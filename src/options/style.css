@@ -1,0 +1,49 @@
+html {
+  font-family: sans-serif;
+}
+
+pre,
+code {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+pre {
+  padding: 15px;
+}
+
+code {
+  padding: 3px;
+}
+
+button[type="submit"] {
+  font-size: 1rem;
+  margin-top: 15px;
+  padding: 5px;
+}
+
+.help {
+  color: inherit;
+  text-decoration: none;
+}
+
+.help:visited {
+  color: inherit;
+}
+
+.help-text {
+  display: none;
+}
+
+.show {
+  display: unset;
+}
+
+#options {
+  display: flex;
+  flex-direction: column;
+}
+
+#options > label.column {
+  display: flex;
+  flex-direction: column;
+}

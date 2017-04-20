@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <link href="style.css" rel="stylesheet">
+  </head>
+
+  <body>
+    <form id="options">
+      <label class="column">
+        <h4>Paths <a href="#" class="help" data-help-for="help-paths">🛈</a></h4>
+        <p class="help-summary">Paths relative to default download directory. One path per line.</p>
+        <div class="help-text" id="help-paths">
+          <p>For example, the setting</p>
+
+<pre>
+.
+images/dogs
+images/cats
+videos/cats
+</pre>
+
+          <p>with a default download directory of <code>~/downloads</code> will create options to save media to the directories</p>
+
+<pre>
+~/downloads/
+~/downloads/images/dogs
+~/downloads/images/cats
+~/downloads/videos/cats
+</pre>
+
+<p>Invalid paths (eg. <code>..</code> and <code>/</code>) are ignored.</p>
+
+<p>The web extensions API does not allow files to be saved outside of the default download directory. If you want to save the files outside the default download directory, use a <a href="https://en.wikipedia.org/wiki/Symbolic_link" target="_blank">symlink</a> inside the default download directory. (<a href="https://serverfault.com/questions/7109/how-do-i-create-a-symbolic-link-in-windows" target="_blank">Windows</a>, <a href="https://apple.stackexchange.com/questions/115646/how-can-i-create-a-symbolic-link-in-terminal" target="_blank">OS X/Unix</a>)</p>
+        </div>
+        <textarea type="textarea" id="paths" rows=7></textarea>
+      </label>
+
+      <h4>More options</h4>
+      <label>
+        <input type="checkbox" id="links" />
+        Enable saving of links. Prefers sources if available.
+      </label>
+
+      <button type="submit">Save</button>
+    </form>
+
+    <script src="options.js"></script>
+  </body>
+</html>
