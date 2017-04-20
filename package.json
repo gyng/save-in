@@ -1,7 +1,8 @@
 {
   "scripts": {
     "lint": "eslint src",
-    "lint:fix": "eslint --fix src"
+    "lint:fix": "eslint --fix src",
+    "package": "mkdir -p build && zip -FS -r build/package.zip . -x *.git* -x .* -x yarn.lock -x package.json -x docs/**\\* -x docs/ -x build/ -x build/**\\* -x node_modules/ -x node_modules/**\\*"
   },
   "devDependencies": {
     "eslint": "^3.19.0",
