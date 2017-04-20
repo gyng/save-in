@@ -10,8 +10,6 @@
     "url": "https://github.com/gyng/save-source-in"
   },
 
-  "homepage": "https://github.com/gyng/save-source-in",
-
   "background": {
     "scripts": ["src/index.js"]
   },
