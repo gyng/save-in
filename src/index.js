@@ -2,12 +2,13 @@ const MEDIA_TYPES = ['image', 'video', 'audio'];
 
 browser.storage.local.get(['links', 'paths'])
   .then((item) => {
-    const { links, paths } = item;
+    const links = item.links || false;
+    const paths = item.paths || '';
     const pathsArray = paths.split('\n');
     const media = links ? MEDIA_TYPES.concat(['link']) : MEDIA_TYPES;
 
     pathsArray.forEach((dir) => {
-      if (dir === '..' || dir.startsWith('../') || dir.startsWith('/')) {
+      if (!dir || dir === '..' || dir.startsWith('../') || dir.startsWith('/')) {
         return;
       }
 
