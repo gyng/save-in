@@ -1,10 +1,10 @@
-# save-source
+# save-in
 
-[Download beta release](https://github.com/gyng/save-source/releases/tag/v0.1.1)
+[Download beta release](https://github.com/gyng/save-in/releases/tag/0.1.2)
 
 ![Screenshot](docs/screenshot.png)
 
-A web extension for saving images, videos, audio, and links into specified directories.
+A web extension (Chrome, Firefox) for saving images, videos, audio, and links into specified directories.
 
 Will only save into directories relative to the default download directory but symlinks can be used to get around this limitation.
 
