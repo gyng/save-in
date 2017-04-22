@@ -32,8 +32,8 @@
   },
 
   "icons": {
-    "48": "icons/ic_archive_black_24px.svg",
-    "96": "icons/ic_archive_black_24px.svg",
-    "128": "icons/ic_archive_black_24px.svg"
+    "48": "icons/ic_archive_black_48px.png",
+    "96": "icons/ic_archive_black_96px.png",
+    "128": "icons/ic_archive_black_128px.png"
   }
 }
