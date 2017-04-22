@@ -1,4 +1,4 @@
-function saveOptions(e) {
+const saveOptions = (e) => {
   e.preventDefault();
 
   browser.storage.local.set({
@@ -8,21 +8,21 @@ function saveOptions(e) {
 
   browser.contextMenus.removeAll();
   browser.runtime.reload();
-}
+};
 
-function restoreOptions() {
+const restoreOptions = () => {
   browser.storage.local.get(['links', 'paths'])
     .then((result) => {
       document.querySelector('#links').checked = result.links || false;
       document.querySelector('#paths').value = result.paths || '';
     });
-}
+};
 
-function addHelp(e) {
+const addHelp = (e) => {
   e.addEventListener('click', () => {
     document.getElementById(e.dataset.helpFor).classList.toggle('show');
   });
-}
+};
 
 document.addEventListener('DOMContentLoaded', restoreOptions);
 document.querySelector('#options').addEventListener('submit', saveOptions);

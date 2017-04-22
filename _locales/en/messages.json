@@ -1,11 +1,11 @@
 {
   "extensionName": {
-    "message": "Save Source In…",
+    "message": "Save In…",
     "description": "Name of the extension."
   },
 
   "extensionDescription": {
-    "message": "Saves media {image, video, audio} or links (check options) in user-defined directories relative to the default download directory. Compatiable with FF57 (multiprocess).",
+    "message": "Saves media {image, video, audio} or links (check options) in user-defined directories relative to the default download directory.",
     "description": "Description of the add-on."
   },
 
