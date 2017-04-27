@@ -1,6 +1,6 @@
 # save-in
 
-[Download beta release](https://github.com/gyng/save-in/releases/tag/0.1.2)
+[Download beta release](https://github.com/gyng/save-in/releases/)
 
 ![Screenshot](docs/screenshot.png)
 
