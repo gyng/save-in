@@ -44,7 +44,9 @@ browser.contextMenus.onClicked.addListener((info) => {
   if (matchSave && matchSave.length === 2) {
     const path = matchSave[1];
     const url = MEDIA_TYPES.includes(info.mediaType) ? info.srcUrl : info.linkUrl;
-    const filename = url.substring(url.lastIndexOf('/') + 1).replace(/[|&;$%@"<>()+,]/g, '');
+    const remotePath = new URL(url).pathname;
+    const filename = remotePath.substring(remotePath.lastIndexOf('/') + 1)
+      .replace(/[|&;$%@"<>()+,]/g, '');
 
     browser.downloads.download({
       url,
