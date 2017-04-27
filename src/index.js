@@ -46,7 +46,7 @@ browser.contextMenus.onClicked.addListener((info) => {
     const url = MEDIA_TYPES.includes(info.mediaType) ? info.srcUrl : info.linkUrl;
     const remotePath = new URL(url).pathname;
     const filename = remotePath.substring(remotePath.lastIndexOf('/') + 1)
-      .replace(/[|&;$%@"<>()+,]/g, '');
+      .replace(/[<>:"/\\|?*\0]/g, '_');
 
     browser.downloads.download({
       url,
