@@ -1,9 +1,9 @@
-const saveOptions = (e) => {
+const saveOptions = e => {
   e.preventDefault();
 
   browser.storage.local.set({
-    links: document.querySelector('#links').checked,
-    paths: document.querySelector('#paths').value.trim(),
+    links: document.querySelector("#links").checked,
+    paths: document.querySelector("#paths").value.trim()
   });
 
   browser.contextMenus.removeAll();
@@ -11,20 +11,19 @@ const saveOptions = (e) => {
 };
 
 const restoreOptions = () => {
-  browser.storage.local.get(['links', 'paths'])
-    .then((result) => {
-      document.querySelector('#links').checked = result.links || true;
-      document.querySelector('#paths').value = result.paths || '.';
-    });
-};
-
-const addHelp = (el) => {
-  el.addEventListener('click', (e) => {
-    e.preventDefault();
-    document.getElementById(el.dataset.helpFor).classList.toggle('show');
+  browser.storage.local.get(["links", "paths"]).then(result => {
+    document.querySelector("#links").checked = result.links || true;
+    document.querySelector("#paths").value = result.paths || ".";
   });
 };
 
-document.addEventListener('DOMContentLoaded', restoreOptions);
-document.querySelector('#options').addEventListener('submit', saveOptions);
-document.querySelectorAll('.help').forEach(addHelp);
+const addHelp = el => {
+  el.addEventListener("click", e => {
+    e.preventDefault();
+    document.getElementById(el.dataset.helpFor).classList.toggle("show");
+  });
+};
+
+document.addEventListener("DOMContentLoaded", restoreOptions);
+document.querySelector("#options").addEventListener("submit", saveOptions);
+document.querySelectorAll(".help").forEach(addHelp);

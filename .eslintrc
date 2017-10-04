@@ -3,5 +3,14 @@
     "browser": true,
     "webextensions": true
   },
-  "extends": "airbnb"
+  "extends": [
+    "airbnb",
+    "prettier"
+  ],
+  "plugins": [
+    "prettier"
+  ],
+  "rules": {
+    "prettier/prettier": "error"
+  }
 }

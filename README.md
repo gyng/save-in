@@ -25,5 +25,6 @@ See the options page for usage and more information.
 
 1. Install dev dependencies `yarn install`
 2. Develop
-3. `yarn lint` and/or `yarn lint:fix`
-4. `yarn package` to create a zip in the `build` directory for Firefox
+3. `yarn prettier` and/or `yarn prettier:write`
+4. `yarn lint` and/or `yarn lint:fix`
+5. `yarn package` to create a zip in the `build` directory for Firefox
