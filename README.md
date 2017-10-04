@@ -19,7 +19,7 @@ Windows
 
     mklink /default_download_dir/symlink /path/to/actual
 
-See the options page for more information.
+See the options page for usage and more information.
 
 ## Development
 

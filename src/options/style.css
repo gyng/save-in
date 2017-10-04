@@ -23,7 +23,7 @@ button[type="submit"] {
 
 .help {
   color: inherit;
-  text-decoration: none;
+  text-decoration: underline;
 }
 
 .help:visited {
@@ -32,6 +32,10 @@ button[type="submit"] {
 
 .help-text {
   display: none;
+  color: black;
+  background-color: rgb(241, 243, 217);
+  padding: 10px;
+  margin: 0 0 15px 0;
 }
 
 .show {
@@ -46,4 +50,10 @@ button[type="submit"] {
 #options > label.column {
   display: flex;
   flex-direction: column;
+}
+
+.box {
+  margin: 15px 0;
+  padding: 3px;
+  border: solid 1px rgba(0, 0, 0, 0.1);
 }
