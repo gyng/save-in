@@ -13,14 +13,15 @@ const saveOptions = (e) => {
 const restoreOptions = () => {
   browser.storage.local.get(['links', 'paths'])
     .then((result) => {
-      document.querySelector('#links').checked = result.links || false;
-      document.querySelector('#paths').value = result.paths || '';
+      document.querySelector('#links').checked = result.links || true;
+      document.querySelector('#paths').value = result.paths || '.';
     });
 };
 
-const addHelp = (e) => {
-  e.addEventListener('click', () => {
-    document.getElementById(e.dataset.helpFor).classList.toggle('show');
+const addHelp = (el) => {
+  el.addEventListener('click', (e) => {
+    e.preventDefault();
+    document.getElementById(el.dataset.helpFor).classList.toggle('show');
   });
 };
 

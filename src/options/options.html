@@ -10,7 +10,10 @@
     <form id="options">
       <label class="column">
         <h4>Paths <a href="#" class="help" data-help-for="help-paths">🛈</a></h4>
-        <p class="help-summary">Paths relative to default download directory. One path per line.</p>
+        <div class="help-summary">
+          <p>Paths relative to default download directory. One path per line.</p>
+          <p>Use <code>---</code> to insert a separator.</p>
+        </div>
         <div class="help-text" id="help-paths">
           <p>For example, the setting</p>
 
@@ -18,6 +21,7 @@
 .
 images/dogs
 images/cats
+---
 videos/cats
 </pre>
 
@@ -27,6 +31,7 @@ videos/cats
 ~/downloads/
 ~/downloads/images/dogs
 ~/downloads/images/cats
+---
 ~/downloads/videos/cats
 </pre>
 

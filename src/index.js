@@ -41,21 +41,32 @@ browser.storage.local.get(['links', 'paths'])
     const paths = item.paths || '';
     const pathsArray = paths.split('\n');
     const media = links ? MEDIA_TYPES.concat(['link']) : MEDIA_TYPES;
+    let separatorCounter = 0;
 
     pathsArray.forEach((dir) => {
       if (!dir || dir === '..' || dir.startsWith('../') || dir.startsWith('/')) {
         return;
       }
 
-      browser.contextMenus.create({
-        id: `save-in-${dir}`,
-        title: dir,
-        contexts: media,
-      });
+      if (dir === '---') {
+        browser.contextMenus.create({
+          id: `separator-${separatorCounter}`,
+          type: 'separator',
+          contexts: media,
+        });
+
+        separatorCounter += 1;
+      } else {
+        browser.contextMenus.create({
+          id: `save-in-${dir}`,
+          title: dir,
+          contexts: media,
+        });
+      }
     });
 
     browser.contextMenus.create({
-      id: 'separator-0',
+      id: `separator-${separatorCounter}`,
       type: 'separator',
       contexts: media,
     });
