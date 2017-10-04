@@ -1,5 +1,40 @@
 const MEDIA_TYPES = ['image', 'video', 'audio'];
 
+const replaceFsUnsafeChars = s => s.replace(/[<>:"/\\|?*\0]/g, '_');
+
+const downloadInto = (path, url) => {
+  const download = (filename) => {
+    browser.downloads.download({
+      url,
+      filename: `${path}/${filename}`,
+      // conflictAction: 'prompt', // Not supported in FF
+    });
+  };
+
+  const remotePath = new URL(url).pathname;
+  const urlFilename = replaceFsUnsafeChars(remotePath.substring(remotePath.lastIndexOf('/') + 1));
+
+  fetch(url, { method: 'HEAD' })
+    .then((res) => {
+      if (res.headers.has('Content-Disposition')) {
+        const disposition = res.headers.get('Content-Disposition');
+        const dispositionFilenames = disposition.match(/filename=['"]?(.+)['"]?/i);
+
+        if (dispositionFilenames.length >= 2) {
+          download(replaceFsUnsafeChars(dispositionFilenames[1]));
+        } else {
+          download(urlFilename);
+        }
+      } else {
+        download(urlFilename);
+      }
+    })
+    .catch(() => {
+      // HEAD rejected for whatever reason: try to download anyway
+      download(urlFilename);
+    });
+};
+
 browser.storage.local.get(['links', 'paths'])
   .then((item) => {
     const links = item.links || false;
@@ -44,15 +79,7 @@ browser.contextMenus.onClicked.addListener((info) => {
   if (matchSave && matchSave.length === 2) {
     const path = matchSave[1];
     const url = MEDIA_TYPES.includes(info.mediaType) ? info.srcUrl : info.linkUrl;
-    const remotePath = new URL(url).pathname;
-    const filename = remotePath.substring(remotePath.lastIndexOf('/') + 1)
-      .replace(/[<>:"/\\|?*\0]/g, '_');
-
-    browser.downloads.download({
-      url,
-      filename: `${path}/${filename}`,
-      // conflictAction: 'prompt', // Not supported in FF
-    });
+    downloadInto(path, url);
   }
 
   switch (info.menuItemId) {
