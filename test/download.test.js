@@ -65,13 +65,13 @@ describe("filename from Content-Disposition", () => {
     );
   });
 
-  test("handles unicode content-dispositions", () => {
-    expect(
-      download.getFilenameFromContentDisposition("filename=シャイニング・フォース イクサ;")
-    ).toBe("シャイニング・フォース イクサ");
+  test("handles utf8 Content-Dispositions", () => {
+    const encodeUtf8 = s => unescape(encodeURIComponent(s));
 
     expect(
-      download.getFilenameFromContentDisposition('filename="シャイニング・フォース イクサ";')
+      download.getFilenameFromContentDisposition(
+        encodeUtf8('filename="シャイニング・フォース イクサ";')
+      )
     ).toBe("シャイニング・フォース イクサ");
   });
 

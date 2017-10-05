@@ -13,10 +13,14 @@ const getFilenameFromUrl = url => {
 };
 
 const getFilenameFromContentDisposition = disposition => {
+  if (typeof disposition !== "string") return null;
+
   const matches = disposition.match(DISPOSITION_FILENAME_REGEX);
 
   if (matches && matches.length >= 2) {
-    let filename = decodeURIComponent(matches[1]);
+    // First decode utf8
+    // And then decode once more for any URI-encoded headers
+    let filename = decodeURIComponent(decodeURIComponent(escape(matches[1])));
 
     if (filename[0] && filename[filename.length - 1] === '"') {
       filename = filename.slice(1, -1);
