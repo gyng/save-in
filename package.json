@@ -1,19 +1,29 @@
 {
   "scripts": {
-    "lint": "eslint src",
-    "lint:fix": "eslint --fix src",
-    "prettier": "echo '💈 Listing files to format. Run yarn prettier:write to write.\n' && prettier --list-different src/**/*.js src/*.js",
-    "prettier:write": "prettier --write src/**/*.js src/*.js",
-    "package": "mkdir -p build && zip -FS -r build/package.zip . -x *.git* -x .* -x yarn.lock -x package.json -x docs/**\\* -x docs/ -x build/ -x build/**\\* -x node_modules/ -x node_modules/**\\*"
+    "lint": "eslint src test",
+    "lint:fix": "eslint --fix src test",
+    "prettier": "echo '💈 Listing files to format. Run yarn prettier:write to write.\n' && prettier --list-different src/**/*.js src/*.js test/**/*.js test/*.js",
+    "prettier:write": "prettier --write src/**/*.js src/*.js test/**/*.js test/*.js",
+    "package": "mkdir -p build && zip -FS -r build/package.zip . -x *.git* -x .* -x yarn.lock -x package.json -x docs/**\\* -x docs/ -x build/ -x build/**\\* -x node_modules/ -x node_modules/**\\*",
+    "test": "jest",
+    "test:watch": "jest --watch"
   },
   "devDependencies": {
     "eslint": "^3.19.0",
     "eslint-config-airbnb": "^14.1.0",
     "eslint-config-prettier": "^2.6.0",
     "eslint-plugin-import": "^2.2.0",
+    "eslint-plugin-jest": "^21.2.0",
     "eslint-plugin-jsx-a11y": "^4.0.0",
     "eslint-plugin-prettier": "^2.3.1",
     "eslint-plugin-react": "^6.10.3",
+    "jest": "^21.2.1",
+    "jest-webextension-mock": "^2.1.0",
     "prettier": "^1.7.4"
+  },
+  "jest": {
+    "setupFiles": [
+      "jest-webextension-mock"
+    ]
   }
 }

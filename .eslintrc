@@ -12,5 +12,11 @@
   ],
   "rules": {
     "prettier/prettier": "error"
+  },
+  "globals": {
+    "SPECIAL_DIRS": true,
+    "MEDIA_TYPES": true,
+    "replaceSpecialDirs": true,
+    "downloadInto": true
   }
 }
