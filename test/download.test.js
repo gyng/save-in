@@ -46,6 +46,12 @@ describe("filename from Content-Disposition", () => {
 
     expect(
       download.getFilenameFromContentDisposition(
+        'filename="stock-photo-230363917.jpg"'
+      )
+    ).toBe("stock-photo-230363917.jpg");
+
+    expect(
+      download.getFilenameFromContentDisposition(
         "filename=foobar; filename=notthis.jpg"
       )
     ).toBe("foobar");
