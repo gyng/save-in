@@ -1,7 +1,9 @@
 # save-in
 
-[Release](https://github.com/gyng/save-in/releases/)
-[Firefox Addons](https://addons.mozilla.org/en-US/firefox/addon/save-in)
+[![Build Status](https://travis-ci.org/gyng/save-in.svg?branch=v1.1.0-rc.1)](https://travis-ci.org/gyng/save-in)
+
+[Firefox Addons](https://addons.mozilla.org/en-US/firefox/addon/save-in)<br />
+[Releases](https://github.com/gyng/save-in/releases/)
 
 ![Screenshot](docs/screenshot.png)
 
