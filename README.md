@@ -29,4 +29,5 @@ See the options page for usage and more information.
 2. Develop
 3. `yarn prettier` and/or `yarn prettier:write`
 4. `yarn lint` and/or `yarn lint:fix`
-5. `yarn package` to create a zip in the `build` directory for Firefox
+5. `yarn test` and/or `yarn test:watch`
+6. `yarn package` to create a zip in the `build` directory for Firefox
