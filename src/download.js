@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 
-const DISPOSITION_FILENAME_REGEX = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/i;
+const DISPOSITION_FILENAME_REGEX = /filename[^;=\n]*=((['"])(.*)?\2|(.+'')?([^;\n]*))/i;
 
 // TODO: Make this OS-aware instead of assuming Windows
 const replaceFsBadChars = s => s.replace(/[<>:"/\\|?*\0]/g, "_");
@@ -17,10 +17,12 @@ const getFilenameFromContentDisposition = disposition => {
 
   const matches = disposition.match(DISPOSITION_FILENAME_REGEX);
 
-  if (matches && matches.length >= 2) {
+  if (matches && matches.length >= 3) {
     // First decode utf8
     // And then decode once more for any URI-encoded headers
-    let filename = decodeURIComponent(decodeURIComponent(escape(matches[1])));
+    const filteredMatches = matches.filter(m => m != null);
+    const match = filteredMatches[filteredMatches.length - 1];
+    let filename = decodeURIComponent(decodeURIComponent(escape(match)));
 
     if (filename[0] && filename[filename.length - 1] === '"') {
       filename = filename.slice(1, -1);

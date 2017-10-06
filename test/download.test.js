@@ -37,19 +37,23 @@ describe("filename from URL", () => {
 });
 
 describe("filename from Content-Disposition", () => {
-  test("extracts filenames from Content-Disposition", () => {
+  test("handles basic filenames", () => {
     expect(
       download.getFilenameFromContentDisposition(
         "filename=stock-photo-230363917.jpg"
       )
     ).toBe("stock-photo-230363917.jpg");
+  });
 
+  test("handles quoted filenames", () => {
     expect(
       download.getFilenameFromContentDisposition(
         'filename="stock-photo-230363917.jpg"'
       )
     ).toBe("stock-photo-230363917.jpg");
+  });
 
+  test("handles multiple filenames", () => {
     expect(
       download.getFilenameFromContentDisposition(
         "filename=foobar; filename=notthis.jpg"
@@ -61,7 +65,9 @@ describe("filename from Content-Disposition", () => {
         "filename=foobar; filename=notthis.jpg"
       )
     ).toBe("foobar");
+  });
 
+  test("handles filename*=", () => {
     expect(download.getFilenameFromContentDisposition("filename*=foo")).toBe(
       "foo"
     );
@@ -71,7 +77,22 @@ describe("filename from Content-Disposition", () => {
     );
   });
 
-  test("handles utf8 Content-Dispositions", () => {
+  // https://tools.ietf.org/html/rfc5987
+  test("handles rfc5987", () => {
+    expect(
+      download.getFilenameFromContentDisposition(
+        "filename*=utf-8''%e2%82%ac%20exchange%20rates"
+      )
+    ).toBe("€ exchange rates");
+
+    expect(
+      download.getFilenameFromContentDisposition(
+        "filename*=utf-8''\"%e2%82%ac%20exchange%20rates\""
+      )
+    ).toBe("€ exchange rates");
+  });
+
+  test("handles utf8 filenames", () => {
     const encodeUtf8 = s => unescape(encodeURIComponent(s));
 
     expect(
@@ -81,7 +102,7 @@ describe("filename from Content-Disposition", () => {
     ).toBe("シャイニング・フォース イクサ");
   });
 
-  test("handles URI-encoded content-dispositions", () => {
+  test("handles URI-encoded filenames", () => {
     expect(
       download.getFilenameFromContentDisposition(
         "filename=%E3%82%B7%E3%83%A3%E3%82%A4%E3%83%8B%E3%83%B3%E3%82%B0;"
@@ -89,8 +110,9 @@ describe("filename from Content-Disposition", () => {
     ).toBe("シャイニング");
   });
 
-  test("handles invalid Content-Dispositions", () => {
+  test("handles invalid/empty Content-Disposition filenames", () => {
     expect(download.getFilenameFromContentDisposition('=""')).toBe(null);
+    expect(download.getFilenameFromContentDisposition("")).toBe(null);
     expect(download.getFilenameFromContentDisposition('filename=""')).toBe("");
     expect(download.getFilenameFromContentDisposition("filename=")).toBe("");
   });
