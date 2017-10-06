@@ -1,5 +1,5 @@
 browser.storage.local.get(["links", "paths"]).then(item => {
-  const links = item.links || false;
+  const links = item.links || true;
   const paths = item.paths || ".";
   const pathsArray = paths.split("\n");
   const media = links ? MEDIA_TYPES.concat(["link"]) : MEDIA_TYPES;
