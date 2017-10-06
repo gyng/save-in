@@ -53,6 +53,20 @@ describe("filename from Content-Disposition", () => {
     ).toBe("stock-photo-230363917.jpg");
   });
 
+  test("handles Content-Disposition with attachment;", () => {
+    expect(
+      download.getFilenameFromContentDisposition(
+        'attachment; filename="test.json"'
+      )
+    ).toBe("test.json");
+
+    expect(
+      download.getFilenameFromContentDisposition(
+        "attachment; filename=test.json"
+      )
+    ).toBe("test.json");
+  });
+
   test("handles multiple filenames", () => {
     expect(
       download.getFilenameFromContentDisposition(
