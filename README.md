@@ -1,6 +1,6 @@
 # save-in
 
-[![Build Status](https://travis-ci.org/gyng/save-in.svg?branch=v1.1.0-rc.1)](https://travis-ci.org/gyng/save-in)
+[![Build Status](https://travis-ci.org/gyng/save-in.svg?branch=master)](https://travis-ci.org/gyng/save-in)
 
 [Firefox Addons](https://addons.mozilla.org/en-US/firefox/addon/save-in)<br />
 [Releases](https://github.com/gyng/save-in/releases/)
@@ -9,7 +9,7 @@
 
 A web extension (Chrome, Firefox) for saving images, videos, audio, and links into specified directories.
 
-`<all_urls>` permission is used for HTTP HEAD requests to check for `Content-Disposition` headers.
+`<all_urls>` permission is used to get around CORS on HTTP HEAD requests (to check for `Content-Disposition` headers).
 
 The WebExtension API only allows saving into directories relative to the default download directory. Symlinks/junctions can be used to get around this limitation.
 
