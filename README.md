@@ -42,7 +42,8 @@ See the options page for usage and more information.
 
 1. Get API keys from [here](https://addons.mozilla.org/en-US/developers/addon/api/key/)
 2. Set environment variables `WEB_EXT_API_KEY` (JWT issuer) and `WEB_EXT_API_SECRET`
-3. `yarn submit` to sign and upload to AMO (Firefox Addons), or manually upload at [Firefox Addons](https://addons.mozilla.org/en-US/developers/addons). Chrome store not supported yet.
+3. `yarn build:firefox:submit` to sign and upload to AMO (Firefox Addons), or manually upload at [Firefox Addons](https://addons.mozilla.org/en-US/developers/addons)
+4. `yarn build:firefox:submit` also generates an XPI for manual distribution
 
 ### Chrome
 
