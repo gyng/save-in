@@ -34,6 +34,22 @@ const getFilenameFromContentDisposition = disposition => {
   return null;
 };
 
+// CHROME
+// Chrome has a nice API for this. Migrate to this once it's available on Firefox, since
+// we wont't have to fire off another HEAD just to get Content-Disposition.
+let globalChromePath = "."; // global variable: no other easy way around this
+if (chrome && chrome.downloads && chrome.downloads.onDeterminingFilename) {
+  chrome.downloads.onDeterminingFilename.addListener(
+    (downloadItem, suggest) => {
+      suggest({
+        filename: `${globalChromePath}/${replaceFsBadChars(
+          downloadItem.filename
+        )}`
+      });
+    }
+  );
+}
+
 const downloadInto = (path, url) => {
   const download = filename => {
     browser.downloads.download({
@@ -42,6 +58,13 @@ const downloadInto = (path, url) => {
       // conflictAction: 'prompt', // Not supported in FF
     });
   };
+
+  // CHROME
+  if (chrome && chrome.downloads && chrome.downloads.onDeterminingFilename) {
+    globalChromePath = path;
+    download(url, "_overridden_by_listener");
+    return;
+  }
 
   const urlFilename = getFilenameFromUrl(url);
 
