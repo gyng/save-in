@@ -20,13 +20,6 @@ browser.storage.local.get(["links", "paths"]).then(item => {
 
         separatorCounter += 1;
         break;
-      case SPECIAL_DIRS.DOMAIN:
-        browser.contextMenus.create({
-          id: `save-in-${SPECIAL_DIRS.DOMAIN}`,
-          title: dir,
-          contexts: media
-        });
-        break;
       default:
         browser.contextMenus.create({
           id: `save-in-${dir}`,
