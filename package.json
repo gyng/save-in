@@ -1,10 +1,15 @@
 {
+  "name": "save-in",
+  "version": "1.1.1",
+  "license": "MIT",
   "scripts": {
-    "lint": "eslint src test",
+    "build": "env -u WEB_EXT_API_KEY -u WEB_EXT_API_SECRET web-ext build --overwrite-dest -i test docs",
+    "d": "env -u WEB_EXT_API_KEY -u WEB_EXT_API_SECRET web-ext run",
+    "lint": "env -u WEB_EXT_API_KEY -u WEB_EXT_API_SECRET web-ext lint && eslint src test",
     "lint:fix": "eslint --fix src test",
     "prettier": "echo '💈 Listing files to format. Run yarn prettier:write to write.\n' && prettier --list-different src/**/*.js src/*.js test/**/*.js test/*.js",
     "prettier:write": "prettier --write src/**/*.js src/*.js test/**/*.js test/*.js",
-    "package": "mkdir -p build && zip -FS -r build/package.zip . -x *.git* -x .* -x yarn.lock -x package.json -x docs/**\\* -x docs/ -x build/ -x build/**\\* -x node_modules/ -x node_modules/**\\* -x test/",
+    "submit": "web-ext sign",
     "test": "jest",
     "test:watch": "jest --watch"
   },
@@ -19,11 +24,15 @@
     "eslint-plugin-react": "^6.10.3",
     "jest": "^21.2.1",
     "jest-webextension-mock": "^2.1.0",
-    "prettier": "^1.7.4"
+    "prettier": "^1.7.4",
+    "web-ext": "^2.0.0"
   },
   "jest": {
     "setupFiles": [
       "jest-webextension-mock"
+    ],
+    "modulePathIgnorePatterns": [
+      "<rootDir>/web-ext-artifacts/"
     ]
   }
 }

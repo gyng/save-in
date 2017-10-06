@@ -26,8 +26,28 @@ See the options page for usage and more information.
 ## Development
 
 1. Install dev dependencies `yarn install`
-2. Develop
-3. `yarn prettier` and/or `yarn prettier:write`
-4. `yarn lint` and/or `yarn lint:fix`
-5. `yarn test` and/or `yarn test:watch`
-6. `yarn package` to create a zip in the `build` directory for Firefox
+2. `yarn d` to start a dev Firefox instance using web-ext
+3. Develop
+4. `yarn prettier` and/or `yarn prettier:write`
+5. `yarn lint` and/or `yarn lint:fix`
+6. `yarn test` and/or `yarn test:watch`
+
+## Deployment
+
+### ZIP file
+
+1. `yarn build` to create a zip in `web-ext-artifacts` directory
+
+### Firefox
+
+1. Get API keys from [here](https://addons.mozilla.org/en-US/developers/addon/api/key/)
+2. Set environment variables `WEB_EXT_API_KEY` (JWT issuer) and `WEB_EXT_API_SECRET`
+3. `yarn submit` to sign and upload to AMO (Firefox Addons), or manually upload at [Firefox Addons](https://addons.mozilla.org/en-US/developers/addons). Chrome store not supported yet.
+
+### Chrome
+
+Not on Chrome store yet, so manually pack this
+1. Build a ZIP and extract it somewhere clean
+2. [chrome://extensions/](chrome://extensions/)
+3. Load unpacked extension...
+4. Pack extension...
