@@ -48,8 +48,5 @@ See the options page for usage and more information.
 
 ### Chrome
 
-Not on Chrome store yet, so manually pack this
-1. Build a ZIP and extract it somewhere clean
-2. [chrome://extensions/](chrome://extensions/)
-3. Load unpacked extension...
-4. Pack extension...
+1. Go [here](https://chrome.google.com/webstore/developer/dashboard)
+2. Upload built ZIP file
