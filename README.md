@@ -3,6 +3,7 @@
 [![Build Status](https://travis-ci.org/gyng/save-in.svg?branch=master)](https://travis-ci.org/gyng/save-in)
 
 [Firefox Addons](https://addons.mozilla.org/en-US/firefox/addon/save-in)<br />
+[Chrome Web Store](https://chrome.google.com/webstore/detail/save-in%E2%80%A6/jpblofcpgfjikaapfedldfeilmpgkedf)<br />
 [Releases](https://github.com/gyng/save-in/releases/)
 
 ![Screenshot](docs/screenshot.png)
