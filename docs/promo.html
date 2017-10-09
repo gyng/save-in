@@ -1,0 +1,58 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <style type="text/css">
+     :root {
+      --c-dark: rgb(167, 51, 187);
+      --c-light: #ffffff;
+    }
+
+    body {
+      background-color: grey;
+    }
+
+    .promo {
+      background-color: var(--c-dark);
+      color: white;
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      align-items: center;
+      margin: 25px;
+    }
+
+    .promo .icon {
+      width: 20%;
+    }
+
+    .promo .icon path {
+      fill: var(--c-light);
+    }
+
+    .promo .name {
+      margin-left: 5%;
+      font-size: 400%;
+    }
+
+    .promo .text {
+      font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="promo" style="width: 440px; height: 280px;">
+    <img class="icon" src="../icons/ic_archive_white_24px.svg"></img>
+    <div class="text">
+      <div class="name">Save&nbsp;in…</div>
+    </div>
+  </div>
+
+  <div class="promo">
+    <img width="100%" src="https://upload.wikimedia.org/wikipedia/commons/0/0b/Cat_poster_1.jpg"></img>
+  </div>
+</body>
+
+</html>
