@@ -1,8 +1,23 @@
-browser.storage.local.get(["links", "paths"]).then(item => {
-  const links = typeof item.links === "undefined" ? true : item.links;
-  const paths = item.paths || ".";
-  const pathsArray = paths.split("\n");
-  const media = links ? MEDIA_TYPES.concat(["link"]) : MEDIA_TYPES;
+// defaults
+const options = {
+  links: true,
+  prompt: false,
+  paths: "."
+};
+
+const setOption = (name, value) => {
+  if (typeof value !== "undefined") {
+    options[name] = value;
+  }
+};
+
+browser.storage.local.get(["links", "paths", "prompt"]).then(item => {
+  setOption("links", item.links);
+  setOption("paths", item.paths);
+  setOption("prompt", item.prompt);
+
+  const pathsArray = options.paths.split("\n");
+  const media = options.links ? MEDIA_TYPES.concat(["link"]) : MEDIA_TYPES;
   let separatorCounter = 0;
 
   pathsArray.forEach(dir => {
@@ -57,7 +72,7 @@ browser.contextMenus.onClicked.addListener(info => {
       ? info.srcUrl
       : info.linkUrl;
     const actualPath = replaceSpecialDirs(matchSave[1], url, info);
-    downloadInto(actualPath, url);
+    downloadInto(actualPath, url, options.prompt);
   }
 
   switch (info.menuItemId) {

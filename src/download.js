@@ -50,11 +50,12 @@ if (chrome && chrome.downloads && chrome.downloads.onDeterminingFilename) {
   );
 }
 
-const downloadInto = (path, url) => {
+const downloadInto = (path, url, prompt) => {
   const download = filename => {
     browser.downloads.download({
       url,
-      filename: `${path}/${replaceFsBadChars(filename)}`
+      filename: `${path}/${replaceFsBadChars(filename)}`,
+      saveAs: prompt
       // conflictAction: 'prompt', // Not supported in FF
     });
   };
