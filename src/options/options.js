@@ -12,7 +12,8 @@ const saveOptions = e => {
 
 const restoreOptions = () => {
   browser.storage.local.get(["links", "paths"]).then(result => {
-    document.querySelector("#links").checked = result.links || true;
+    document.querySelector("#links").checked =
+      typeof result.links === "undefined" ? true : result.links;
     document.querySelector("#paths").value = result.paths || ".";
   });
 };
