@@ -1,3 +1,8 @@
+# 1.2.0
+
+* Added option to show file dialog on save
+* Fix link option always being checked in options page
+
 # 1.1.0
 
 * Added `<all_urls>` permission (to get around CORS when issuing HEAD requests)
