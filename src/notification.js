@@ -1,5 +1,7 @@
 // https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/notifications
 
+const ICON_URL = "icons/ic_archive_black_128px.png";
+
 const downloadsList = {}; // global
 
 const addNotifications = options => {
@@ -17,19 +19,39 @@ const addNotifications = options => {
 
   browser.downloads.onChanged.addListener(downloadDelta => {
     const item = downloadsList[downloadDelta.id];
-    const slashIdx = item.filename && item.filename.lastIndexOf("/");
-    const filename = item.filename && item.filename.substring(slashIdx + 1);
 
-    if (
-      notifyOnFailure &&
-      (!downloadDelta ||
+    // CHROME
+    // Chrome does not have the filename in the initial DownloadItem,
+    // so extract it from the DownloadDelta
+    if (chrome) {
+      if (
+        downloadDelta &&
+        downloadDelta.filename &&
+        downloadDelta.filename.current
+      ) {
+        downloadsList[downloadDelta.id].filename =
+          downloadDelta.filename.current;
+      }
+    }
+
+    const fullFilename = item && item.filename;
+    const slashIdx = fullFilename && fullFilename.lastIndexOf("/");
+    const filename = fullFilename.substring(slashIdx + 1);
+
+    // CHROME
+    // Chrome's DownloadDelta contains different information from Firefox's
+    const failed = chrome
+      ? downloadDelta.error
+      : !downloadDelta ||
         !downloadDelta.state ||
-        downloadDelta.state.current === "interrupted")
-    ) {
+        downloadDelta.state.current === "interrupted";
+
+    if (notifyOnFailure && failed) {
       browser.notifications.create(String(downloadDelta.id), {
         type: "basic",
         title: "Failed to save",
-        message: `${filename}`
+        iconUrl: ICON_URL,
+        message: filename
       });
     } else if (
       notifyOnSuccess &&
@@ -39,7 +61,8 @@ const addNotifications = options => {
       browser.notifications.create(String(downloadDelta.id), {
         type: "basic",
         title: "Saved",
-        message: `${filename}`
+        iconUrl: ICON_URL,
+        message: filename
       });
     }
   });
