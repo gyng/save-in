@@ -2,7 +2,9 @@
 const options = {
   links: true,
   prompt: false,
-  paths: "."
+  paths: ".",
+  notifyOnSuccess: false,
+  notifyOnFailure: false
 };
 
 const setOption = (name, value) => {
@@ -11,58 +13,73 @@ const setOption = (name, value) => {
   }
 };
 
-browser.storage.local.get(["links", "paths", "prompt"]).then(item => {
-  setOption("links", item.links);
-  setOption("paths", item.paths);
-  setOption("prompt", item.prompt);
+browser.storage.local
+  .get(["links", "paths", "prompt", "notifyOnSuccess", "notifyOnFailure"])
+  .then(item => {
+    // Options page has a different scope
+    setOption("links", item.links);
+    setOption("paths", item.paths);
+    setOption("prompt", item.prompt);
+    setOption("notifyOnSuccess", item.notifyOnSuccess);
+    setOption("notifyOnFailure", item.notifyOnFailure);
 
-  const pathsArray = options.paths.split("\n");
-  const media = options.links ? MEDIA_TYPES.concat(["link"]) : MEDIA_TYPES;
-  let separatorCounter = 0;
+    addNotifications({
+      notifyOnSuccess: options.notifyOnSuccess,
+      notifyOnFailure: options.notifyOnFailure
+    });
 
-  pathsArray.forEach(dir => {
-    if (!dir || dir === ".." || dir.startsWith("../") || dir.startsWith("/")) {
-      return;
-    }
+    const pathsArray = options.paths.split("\n");
+    const media = options.links ? MEDIA_TYPES.concat(["link"]) : MEDIA_TYPES;
+    let separatorCounter = 0;
 
-    switch (dir) {
-      case SPECIAL_DIRS.SEPARATOR:
-        browser.contextMenus.create({
-          id: `separator-${separatorCounter}`,
-          type: "separator",
-          contexts: media
-        });
+    pathsArray.forEach(dir => {
+      if (
+        !dir ||
+        dir === ".." ||
+        dir.startsWith("../") ||
+        dir.startsWith("/")
+      ) {
+        return;
+      }
 
-        separatorCounter += 1;
-        break;
-      default:
-        browser.contextMenus.create({
-          id: `save-in-${dir}`,
-          title: dir,
-          contexts: media
-        });
-        break;
-    }
+      switch (dir) {
+        case SPECIAL_DIRS.SEPARATOR:
+          browser.contextMenus.create({
+            id: `separator-${separatorCounter}`,
+            type: "separator",
+            contexts: media
+          });
+
+          separatorCounter += 1;
+          break;
+        default:
+          browser.contextMenus.create({
+            id: `save-in-${dir}`,
+            title: dir,
+            contexts: media
+          });
+          break;
+      }
+    });
+
+    browser.contextMenus.create({
+      id: `separator-${separatorCounter}`,
+      type: "separator",
+      contexts: media
+    });
+
+    browser.contextMenus.create({
+      id: "show-default-folder",
+      title: browser.i18n.getMessage("contextMenuShowDefaultFolder"),
+      contexts: media
+    });
+
+    browser.contextMenus.create({
+      id: "options",
+      title: browser.i18n.getMessage("contextMenuItemOptions"),
+      contexts: media
+    });
   });
-
-  browser.contextMenus.create({
-    id: `separator-${separatorCounter}`,
-    type: "separator",
-    contexts: media
-  });
-
-  browser.contextMenus.create({
-    id: "show-default-folder",
-    title: browser.i18n.getMessage("contextMenuShowDefaultFolder"),
-    contexts: media
-  });
-
-  browser.contextMenus.create({
-    id: "options",
-    title: browser.i18n.getMessage("contextMenuItemOptions"),
-    contexts: media
-  });
-});
 
 browser.contextMenus.onClicked.addListener(info => {
   const matchSave = info.menuItemId.match(/save-in-(.*)/);

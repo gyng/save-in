@@ -1,3 +1,8 @@
+# 1.3.0
+
+* Added notifications for download success/failures (disabled by default)
+* Added `notifications` permission
+
 # 1.2.0
 
 * Added option to show file dialog on save
