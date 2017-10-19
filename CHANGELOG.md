@@ -1,3 +1,7 @@
+# 1.3.1
+
+* Added timeout duration option for notifications
+
 # 1.3.0
 
 * Added notifications for download success/failures (disabled by default)
