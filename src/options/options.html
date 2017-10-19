@@ -104,6 +104,11 @@ others/:date:/:pagedomain:/foo
         Show notification on failed download
       </label>
 
+      <label>
+        <input type="number" id="notifyDuration" />
+        Close notification early after (ms, 1s = 1000ms). Will not extend beyond OS/browser notification duration.
+      </label>
+
       <button type="submit">Save</button>
     </form>
 

@@ -4,7 +4,8 @@ const options = {
   prompt: false,
   paths: ".",
   notifyOnSuccess: false,
-  notifyOnFailure: false
+  notifyOnFailure: false,
+  notifyDuration: 7000
 };
 
 const setOption = (name, value) => {
@@ -14,7 +15,14 @@ const setOption = (name, value) => {
 };
 
 browser.storage.local
-  .get(["links", "paths", "prompt", "notifyOnSuccess", "notifyOnFailure"])
+  .get([
+    "links",
+    "paths",
+    "prompt",
+    "notifyOnSuccess",
+    "notifyOnFailure",
+    "notifyDuration"
+  ])
   .then(item => {
     // Options page has a different scope
     setOption("links", item.links);
@@ -22,10 +30,12 @@ browser.storage.local
     setOption("prompt", item.prompt);
     setOption("notifyOnSuccess", item.notifyOnSuccess);
     setOption("notifyOnFailure", item.notifyOnFailure);
+    setOption("notifyDuration", item.notifyDuration);
 
     addNotifications({
       notifyOnSuccess: options.notifyOnSuccess,
-      notifyOnFailure: options.notifyOnFailure
+      notifyOnFailure: options.notifyOnFailure,
+      notifyDuration: options.notifyDuration
     });
 
     const pathsArray = options.paths.split("\n");

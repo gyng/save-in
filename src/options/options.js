@@ -6,7 +6,8 @@ const saveOptions = e => {
     paths: document.querySelector("#paths").value.trim(),
     prompt: document.querySelector("#prompt").checked,
     notifyOnSuccess: document.querySelector("#notifyOnSuccess").checked,
-    notifyOnFailure: document.querySelector("#notifyOnFailure").checked
+    notifyOnFailure: document.querySelector("#notifyOnFailure").checked,
+    notifyDuration: document.querySelector("#notifyDuration").value
   });
 
   browser.contextMenus.removeAll();
@@ -15,7 +16,14 @@ const saveOptions = e => {
 
 const restoreOptions = () => {
   browser.storage.local
-    .get(["links", "paths", "prompt", "notifyOnSuccess", "notifyOnFailure"])
+    .get([
+      "links",
+      "paths",
+      "prompt",
+      "notifyOnSuccess",
+      "notifyOnFailure",
+      "notifyDuration"
+    ])
     .then(result => {
       document.querySelector("#links").checked =
         typeof result.links === "undefined" ? true : result.links;
@@ -34,6 +42,11 @@ const restoreOptions = () => {
         typeof result.notifyOnFailure === "undefined"
           ? false
           : result.notifyOnFailure;
+
+      document.querySelector("#notifyDuration").value =
+        typeof result.notifyDuration === "undefined"
+          ? 7000
+          : result.notifyDuration;
     });
 };
 

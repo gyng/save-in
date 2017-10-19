@@ -7,6 +7,7 @@ const downloadsList = {}; // global
 const addNotifications = options => {
   const notifyOnSuccess = options && options.notifyOnSuccess;
   const notifyOnFailure = options && options.notifyOnFailure;
+  const notifyDuration = options && options.notifyDuration;
 
   browser.downloads.onCreated.addListener(item => {
     downloadsList[item.id] = item;
@@ -53,6 +54,10 @@ const addNotifications = options => {
         iconUrl: ICON_URL,
         message: filename
       });
+
+      window.setTimeout(() => {
+        browser.notifications.clear(String(downloadDelta.id));
+      }, notifyDuration);
     } else if (
       notifyOnSuccess &&
       downloadDelta.state.current === "complete" &&
@@ -64,6 +69,10 @@ const addNotifications = options => {
         iconUrl: ICON_URL,
         message: filename
       });
+
+      window.setTimeout(() => {
+        browser.notifications.clear(String(downloadDelta.id));
+      }, notifyDuration);
     }
   });
 };
