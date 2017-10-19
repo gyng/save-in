@@ -6,6 +6,7 @@
     "build": "env -u WEB_EXT_API_KEY -u WEB_EXT_API_SECRET web-ext build --overwrite-dest -i test docs yarn.lock",
     "build:firefox:submit": "web-ext sign",
     "d": "env -u WEB_EXT_API_KEY -u WEB_EXT_API_SECRET web-ext run",
+    "d:noenv": "web-ext run",
     "lint": "env -u WEB_EXT_API_KEY -u WEB_EXT_API_SECRET web-ext lint && eslint src test",
     "lint:fix": "eslint --fix src test",
     "prettier": "echo '💈 Listing files to format. Run yarn prettier:write to write.\n' && prettier --list-different src/**/*.js src/*.js test/**/*.js test/*.js",
