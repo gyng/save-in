@@ -163,14 +163,14 @@ others/:date:/:pagedomain:/foo
       </h4>
       <b>EXPERIMENTAL: MIGHT CHANGE IN FUTURE VERSIONS</b>
       <div class="help-summary">
-        <p>Optionally, rewrite filenames that match the regex pattern in order of precedence. Multiple variables can be used
-          in the replacement pattern. The format for each pattern is
+        <p>Optionally, rewrite filenames that match the regex patterns in order of precedence. Multiple variables can be used
+          in the replacement pattern. The format for each rule is
           <pre>
 Regex pattern to match filename against
 Replacement pattern
-(Optional) Regex pattern to match source URL against</pre>
+(Optional) Regex pattern to match source URL against, defaults to all</pre>
         </p>
-        <p>Separate multiple patterns with an empty line.</p>
+        <p>Separate multiple rules with an empty line.</p>
         <p class="chrome-only">CHROME USERS: Special characters in the filename (eg.
           <code>:</code> or
           <code>/</code>) are pre-replaced with the character
