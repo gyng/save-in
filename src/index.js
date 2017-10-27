@@ -20,6 +20,7 @@ browser.storage.local
     "paths",
     "filenames",
     "prompt",
+    "promptIfNoExtension",
     "notifyOnSuccess",
     "notifyOnFailure",
     "notifyDuration"
@@ -29,6 +30,7 @@ browser.storage.local
     setOption("links", item.links);
     setOption("paths", item.paths);
     setOption("prompt", item.prompt);
+    setOption("promptIfNoExtension", item.promptIfNoExtension);
     setOption("notifyOnSuccess", item.notifyOnSuccess);
     setOption("notifyOnFailure", item.notifyOnFailure);
     setOption("notifyDuration", item.notifyDuration);
@@ -112,7 +114,7 @@ browser.contextMenus.onClicked.addListener(info => {
       ? info.srcUrl
       : info.linkUrl;
     const actualPath = replaceSpecialDirs(matchSave[1], url, info);
-    downloadInto(actualPath, url, info, options.filenames, options.prompt);
+    downloadInto(actualPath, url, info, options);
   }
 
   switch (info.menuItemId) {

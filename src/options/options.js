@@ -6,6 +6,7 @@ const saveOptions = e => {
     paths: document.querySelector("#paths").value.trim(),
     filenames: document.querySelector("#filenames").value.trim(),
     prompt: document.querySelector("#prompt").checked,
+    promptIfNoExtension: document.querySelector("#promptIfNoExtension").checked,
     notifyOnSuccess: document.querySelector("#notifyOnSuccess").checked,
     notifyOnFailure: document.querySelector("#notifyOnFailure").checked,
     notifyDuration: document.querySelector("#notifyDuration").value
@@ -22,6 +23,7 @@ const restoreOptions = () => {
       "paths",
       "filenames",
       "prompt",
+      "promptIfNoExtension",
       "notifyOnSuccess",
       "notifyOnFailure",
       "notifyDuration"
@@ -32,6 +34,11 @@ const restoreOptions = () => {
 
       document.querySelector("#prompt").checked =
         typeof result.prompt === "undefined" ? false : result.prompt;
+
+      document.querySelector("#promptIfNoExtension").checked =
+        typeof result.promptIfNoExtension === "undefined"
+          ? false
+          : result.promptIfNoExtension;
 
       document.querySelector("#paths").value = result.paths || ".";
 

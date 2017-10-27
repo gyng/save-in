@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
 
 const DISPOSITION_FILENAME_REGEX = /filename[^;=\n]*=((['"])(.*)?\2|(.+'')?([^;\n]*))/i;
+const EXTENSION_REGEX = /\.[0-9a-z]{1,8}$/i;
 
 // TODO: Make this OS-aware instead of assuming Windows
 const replaceFsBadChars = s => s.replace(/[<>:"/\\|?*\0]/g, "_");
@@ -106,16 +107,21 @@ if (chrome && chrome.downloads && chrome.downloads.onDeterminingFilename) {
   );
 }
 
-const downloadInto = (path, url, info, patterns, prompt) => {
+const downloadInto = (path, url, info, options) => {
+  const { filenames, prompt, promptIfNoExtension } = options;
+  const patterns = filenames;
+
   const download = (filename, rewrite = true) => {
     const rewrittenFilename = rewrite
       ? rewriteFilename(filename, patterns, url, info)
       : filename;
 
+    const hasExtension = rewrittenFilename.match(EXTENSION_REGEX);
+
     browser.downloads.download({
       url,
       filename: `${path}/${replaceFsBadChars(rewrittenFilename)}`,
-      saveAs: prompt
+      saveAs: prompt || (promptIfNoExtension && !hasExtension)
       // conflictAction: 'prompt', // Not supported in FF
     });
   };
@@ -162,6 +168,8 @@ if (typeof module !== "undefined") {
     getFilenameFromUrl,
     getFilenameFromContentDisposition,
     replaceSpecialDirs,
-    rewriteFilename
+    rewriteFilename,
+    DISPOSITION_FILENAME_REGEX,
+    EXTENSION_REGEX
   };
 }

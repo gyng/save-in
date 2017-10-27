@@ -1,6 +1,7 @@
 # 1.4.0
 
 * Added global filename rewrites
+* Added option to prompt if filename has no extension
 * Fixed Chrome detection on Firefox
 * Fixed bunch of undefined variables in Chrome (notifications)
 

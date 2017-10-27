@@ -11,6 +11,16 @@ test("escapes bad filesystem characters", () => {
   expect(download.replaceFsBadChars("ok foo bar")).toBe("ok foo bar");
 });
 
+test("extension detection regex", () => {
+  expect("abc.xyz".match(download.EXTENSION_REGEX)).toHaveLength(1);
+  expect("abc.XYZ".match(download.EXTENSION_REGEX)).toHaveLength(1);
+  expect("abcxyz".match(download.EXTENSION_REGEX)).toBeFalsy();
+  expect("abc.jpg:xyz".match(download.EXTENSION_REGEX)).toBeFalsy();
+  expect("abc.jpg:xyz".match(download.EXTENSION_REGEX)).toBeFalsy();
+  expect("abc.bananas".match(download.EXTENSION_REGEX)).toHaveLength(1);
+  expect("abc.bananas123".match(download.EXTENSION_REGEX)).toBeFalsy();
+});
+
 describe("filename from URL", () => {
   test("extracts filenames from URL", () => {
     expect(download.getFilenameFromUrl("https://baz.com/foo.bar")).toBe(
