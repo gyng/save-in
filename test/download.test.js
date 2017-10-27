@@ -175,6 +175,14 @@ describe("variables", () => {
       );
     });
 
+    test("interpolates :isodate:", () => {
+      const now = new Date();
+      const expected = `${now.getUTCFullYear()}${now.getUTCMonth() +
+        1}${now.getUTCDate()}T${now.getUTCHours()}${now.getUTCMinutes()}${now.getUTCSeconds()}Z`;
+      const output = download.replaceSpecialDirs(":isodate:", url, info);
+      expect(output).toEqual(expected);
+    });
+
     test("interpolates :pagedomain:", () => {
       expect(download.replaceSpecialDirs("a/b/:pagedomain:", url, info)).toBe(
         "a/b/www.example.com"

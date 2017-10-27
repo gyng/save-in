@@ -7,6 +7,7 @@ const SPECIAL_DIRS = {
   PAGE_DOMAIN: new RegExp(":pagedomain:", "g"),
   PAGE_URL: new RegExp(":pageurl:", "g"),
   DATE: new RegExp(":date:", "g"),
+  ISO8601_DATE: new RegExp(":isodate:", "g"),
   UNIX_DATE: new RegExp(":unixdate:", "g"),
   FILENAME: new RegExp(":filename:", "g"),
   LINK_TEXT: new RegExp(":linktext:", "g")

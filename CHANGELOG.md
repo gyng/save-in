@@ -1,7 +1,7 @@
 # 1.4.0
 
 * Added global filename rewrites, along with `:filename:` and `:$n:` variables
-* Added `:unixdate:` variable
+* Added `:unixdate:`, `:isodate:` variables
 * Added option to prompt if filename has no extension
 * Fixed Chrome detection on Firefox
 * Fixed bunch of undefined variables in Chrome (notifications)
