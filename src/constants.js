@@ -7,6 +7,7 @@ const SPECIAL_DIRS = {
   PAGE_DOMAIN: ":pagedomain:",
   PAGE_URL: ":pageurl:",
   DATE: ":date:",
+  UNIX_DATE: ":unixdate:",
   FILENAME: ":filename:"
 };
 

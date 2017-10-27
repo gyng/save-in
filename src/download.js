@@ -47,6 +47,7 @@ const replaceSpecialDirs = (path, url, info) => {
   const formattedDate = `${now.getFullYear()}-${now.getMonth() +
     1}-${now.getDate()}`;
   ret = ret.replace(SPECIAL_DIRS.DATE, formattedDate);
+  ret = ret.replace(SPECIAL_DIRS.UNIX_DATE, Date.parse(now) / 1000);
 
   return ret;
 };
