@@ -1,6 +1,6 @@
 html {
   font-family: sans-serif;
-  min-height: 99%;
+  min-height: 1%; /* Firefox options page height hack */
 }
 
 pre,
