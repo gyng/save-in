@@ -84,6 +84,16 @@
 
           <tr>
             <td>
+              <code>:fileext:</code>
+            </td>
+            <td>jpg</td>
+            <td>The naive file extension, if available
+              <i>filenames only</i>
+            </td>
+          </tr>
+
+          <tr>
+            <td>
               <code>:$1:</code>
             </td>
             <td></td>
@@ -209,8 +219,8 @@ Replacement pattern
 :$1:
 pbs.twimg.com
 
-.*(\..*)
-:linktext::$1:
+.*
+:linktext::fileext:
 example.com
 
 (.*)\.jpg

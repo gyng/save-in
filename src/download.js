@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 
 const DISPOSITION_FILENAME_REGEX = /filename[^;=\n]*=((['"])(.*)?\2|(.+'')?([^;\n]*))/i;
-const EXTENSION_REGEX = /\.[0-9a-z]{1,8}$/i;
+const EXTENSION_REGEX = /\.([0-9a-z]{1,8})$/i;
 const SPECIAL_CHARACTERS_REGEX = /[~<>:"/\\|?*\0]/g;
 
 // TODO: Make this OS-aware instead of assuming Windows
@@ -68,6 +68,11 @@ const rewriteFilename = (filename, filenamePatterns, url, info) => {
     if (matches && url.match(p.urlMatch)) {
       let ret = p.replace.replace(SPECIAL_DIRS.FILENAME, filename);
       ret = ret.replace(SPECIAL_DIRS.LINK_TEXT, info.linkText);
+
+      const fileExtensionMatches = filename.match(EXTENSION_REGEX);
+      const fileExtension =
+        (fileExtensionMatches && fileExtensionMatches[1]) || "";
+      ret = ret.replace(SPECIAL_DIRS.FILE_EXTENSION, fileExtension);
 
       // Replace capture groups
       for (let j = 0; j < matches.length; j += 1) {

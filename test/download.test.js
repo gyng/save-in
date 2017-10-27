@@ -12,12 +12,15 @@ test("escapes bad filesystem characters", () => {
 });
 
 test("extension detection regex", () => {
-  expect("abc.xyz".match(download.EXTENSION_REGEX)).toHaveLength(1);
-  expect("abc.XYZ".match(download.EXTENSION_REGEX)).toHaveLength(1);
+  const match = "abc.xyz".match(download.EXTENSION_REGEX);
+  expect(match).toHaveLength(2);
+  expect(match[0]).toBe(".xyz");
+  expect(match[1]).toBe("xyz");
+  expect("abc.XYZ".match(download.EXTENSION_REGEX)).toHaveLength(2);
   expect("abcxyz".match(download.EXTENSION_REGEX)).toBeFalsy();
   expect("abc.jpg:xyz".match(download.EXTENSION_REGEX)).toBeFalsy();
   expect("abc.jpg:xyz".match(download.EXTENSION_REGEX)).toBeFalsy();
-  expect("abc.bananas".match(download.EXTENSION_REGEX)).toHaveLength(1);
+  expect("abc.bananas".match(download.EXTENSION_REGEX)).toHaveLength(2);
   expect("abc.bananas123".match(download.EXTENSION_REGEX)).toBeFalsy();
 });
 
@@ -236,6 +239,18 @@ describe("variables", () => {
       ];
       const output = download.rewriteFilename(input, patterns, url, info);
       expect(output).toBe("lol.jpeglol.jpeg");
+    });
+
+    test("interpolates :fileext:", () => {
+      const input = "lol.jpeg";
+      const patterns = [
+        {
+          filenameMatch: new RegExp(".*"),
+          replace: ":fileext::fileext:"
+        }
+      ];
+      const output = download.rewriteFilename(input, patterns, url, info);
+      expect(output).toBe("jpegjpeg");
     });
 
     test("interpolates :linktext:", () => {

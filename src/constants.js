@@ -10,6 +10,7 @@ const SPECIAL_DIRS = {
   ISO8601_DATE: new RegExp(":isodate:", "g"),
   UNIX_DATE: new RegExp(":unixdate:", "g"),
   FILENAME: new RegExp(":filename:", "g"),
+  FILE_EXTENSION: new RegExp(":fileext:", "g"),
   LINK_TEXT: new RegExp(":linktext:", "g")
 };
 

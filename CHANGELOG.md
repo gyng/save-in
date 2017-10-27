@@ -1,6 +1,6 @@
 # 1.4.0
 
-* Added global filename rewrites, along with `:filename:` and `:$n:` variables
+* Added global filename rewrites, along with `:filename:`, `:fileext:`, and `:$n:` variables
 * Added `:unixdate:`, `:isodate:` variables
 * Added option to prompt if filename has no extension
 * Fixed Chrome detection on Firefox
