@@ -69,7 +69,9 @@
               <code>:filename:</code>
             </td>
             <td>my_image.jpg</td>
-            <td>The full filename <i>filenames only</i></td>
+            <td>The full filename
+              <i>filenames only</i>
+            </td>
           </tr>
 
           <tr>
@@ -78,7 +80,8 @@
             </td>
             <td></td>
             <td>The capture group where
-              <code>1</code> = the nth capture group <i>filenames only</i>
+              <code>1</code> = the nth capture group
+              <i>filenames only</i>
             </td>
           </tr>
 
@@ -87,7 +90,9 @@
               <code>:linktext:</code>
             </td>
             <td>Direct link to image</td>
-            <td>The text of the saved link <i>filenames and links only</i></td>
+            <td>The text of the saved link
+              <i>filenames and links only</i>
+            </td>
           </tr>
         </table>
       </div>
@@ -138,15 +143,22 @@ others/:date:/:pagedomain:/foo
       <h4>Rewrite filenames
         <a href="#" class="help" data-help-for="help-filenames">(🛈 help)</a>
       </h4>
+      <b>EXPERIMENTAL: MIGHT CHANGE IN FUTURE VERSIONS</b>
       <div class="help-summary">
-        <p>Optionally, rewrite filenames that match the regex pattern. Regex pattern to match filename against on the first
-          line, replacement pattern on the second line. Separate multiple patterns with an empty line.</p>
+        <p>Optionally, rewrite filenames that match the regex pattern in order of precedence. Multiple variables can be used
+          in the replacement pattern. The format for each pattern is
+          <pre>
+Regex pattern to match filename against
+Replacement pattern
+(Optional) Regex pattern to match URL against</pre>
+        </p>
+        <p>Separate multiple patterns with an empty line.</p>
         <p class="chrome-only">CHROME USERS: Special characters in the filename (eg.
           <code>:</code> or
           <code>/</code>) are pre-replaced with the character
           <code>-</code> by Chrome. When matching against filenames with such characters, match against
           <code>-</code> instead of the special character. For example, use
-          <code>(.*)-large</code> to match filenames with the pattern
+          <code>(.*)-large</code> to match filenames instead of
           <code>(.*):large</code>.
         </p>
       </div>
@@ -167,23 +179,33 @@ others/:date:/:pagedomain:/foo
             </li>
             <li>
               <code>twitter_pic.png:large</code> to
-              <code>twitter_pic.png</code>
+              <code>twitter_pic.png</code> only on
+              <code>pbs.twimg.com</code>
+            </li>
+            <li>
+              Everything to <code>link text.extension</code> only on
+              <code>example.com</code>
             </li>
             <li>
               <code>catpic.jpg</code> to
-              <code>catpic_2017-01-01.jpeg</code>
+              <code>2017-01-01_catpic.jpeg</code>
             </li>
           </ul>
         </p>
         <pre>
-(.*)\_thumbnail\.(.*)
+(.*)\_thumbnail(\..*)
 :$1::$2:
 
 (.*)(:|-)large
 :$1:
+pbs.twimg.com
+
+.*(\..*)
+:linktext::$1:
+example.com
 
 (.*)\.jpg
-:$1:_:date:.jpeg
+:date::$1:.jpeg
 </pre>
       </div>
       <textarea type="textarea" id="filenamePatterns" rows=7 placeholder="Optional" spellcheck="false"></textarea>

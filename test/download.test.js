@@ -146,7 +146,8 @@ describe("variables", () => {
   const specialDirs = global.SPECIAL_DIRS;
   const url = "http://www.source.com/foobar/file.jpg";
   const info = {
-    pageUrl: "http://www.example.com/foobar/"
+    pageUrl: "http://www.example.com/foobar/",
+    linkText: "linkfoobar"
   };
 
   beforeAll(() => {
@@ -166,6 +167,14 @@ describe("variables", () => {
       );
     });
 
+    test("interpolates :unixdate:", () => {
+      const now = new Date();
+      const timestamp = Date.parse(now) / 1000;
+      expect(download.replaceSpecialDirs(":unixdate:/a/b", url, info)).toBe(
+        `${timestamp}/a/b`
+      );
+    });
+
     test("interpolates :pagedomain:", () => {
       expect(download.replaceSpecialDirs("a/b/:pagedomain:", url, info)).toBe(
         "a/b/www.example.com"
@@ -176,6 +185,16 @@ describe("variables", () => {
       expect(
         download.replaceSpecialDirs("a/b/:sourcedomain:/c", url, info)
       ).toBe("a/b/www.source.com/c");
+    });
+
+    test("interpolates multiple :sourcedomain:s", () => {
+      expect(
+        download.replaceSpecialDirs(
+          "a/b/:sourcedomain::sourcedomain:/c",
+          url,
+          info
+        )
+      ).toBe("a/b/www.source.comwww.source.com/c");
     });
 
     test("interpolates :pageurl:", () => {
@@ -197,6 +216,30 @@ describe("variables", () => {
       const output = download.rewriteFilename(input, patterns, url, info);
       const expected = "lol`jpeg`$1`http___www.example.com_foobar_`.jpg";
       expect(output).toBe(expected);
+    });
+
+    test("interpolates :filename:", () => {
+      const input = "lol.jpeg";
+      const patterns = [
+        {
+          match: new RegExp("(.*)\\.(jpeg)"),
+          replace: ":filename::filename:"
+        }
+      ];
+      const output = download.rewriteFilename(input, patterns, url, info);
+      expect(output).toBe("lol.jpeglol.jpeg");
+    });
+
+    test("interpolates :linktext:", () => {
+      const input = "lol.jpeg";
+      const patterns = [
+        {
+          match: new RegExp("(.*)\\.(jpeg)"),
+          replace: ":linktext::linktext:"
+        }
+      ];
+      const output = download.rewriteFilename(input, patterns, url, info);
+      expect(output).toBe("linkfoobarlinkfoobar");
     });
   });
 });

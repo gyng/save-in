@@ -62,10 +62,10 @@ const rewriteFilename = (filename, filenamePatterns, url, info) => {
     const p = filenamePatterns[i];
     const matches = p.match.exec(filename);
 
-    if (matches) {
+    if (matches && url.match(p.urlMatch)) {
       let ret = p.replace.replace(SPECIAL_DIRS.FILENAME, filename);
       ret = ret.replace(SPECIAL_DIRS.LINK_TEXT, info.linkText);
- 
+
       // Replace capture groups
       for (let j = 0; j < matches.length; j += 1) {
         ret = ret.split(`:$${j}:`).join(matches[j]);
