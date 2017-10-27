@@ -3,13 +3,13 @@
 const MEDIA_TYPES = ["image", "video", "audio"];
 const SPECIAL_DIRS = {
   SEPARATOR: "---",
-  SOURCE_DOMAIN: ":sourcedomain:",
-  PAGE_DOMAIN: ":pagedomain:",
-  PAGE_URL: ":pageurl:",
-  DATE: ":date:",
-  UNIX_DATE: ":unixdate:",
-  FILENAME: ":filename:",
-  LINK_TEXT: ":linktext:"
+  SOURCE_DOMAIN: new RegExp(":sourcedomain:", "g"),
+  PAGE_DOMAIN: new RegExp(":pagedomain:", "g"),
+  PAGE_URL: new RegExp(":pageurl:", "g"),
+  DATE: new RegExp(":date:", "g"),
+  UNIX_DATE: new RegExp(":unixdate:", "g"),
+  FILENAME: new RegExp(":filename:", "g"),
+  LINK_TEXT: new RegExp(":linktext:", "g")
 };
 
 // Export for testing
