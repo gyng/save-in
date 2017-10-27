@@ -60,7 +60,7 @@ const rewriteFilename = (filename, filenamePatterns, url, info) => {
 
   for (let i = 0; i < filenamePatterns.length; i += 1) {
     const p = filenamePatterns[i];
-    const matches = p.match.exec(filename);
+    const matches = p.filenameMatch.exec(filename);
 
     if (matches && url.match(p.urlMatch)) {
       let ret = p.replace.replace(SPECIAL_DIRS.FILENAME, filename);

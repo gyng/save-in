@@ -42,7 +42,7 @@ browser.storage.local
         .split("\n\n")
         .map(pairStr => pairStr.split("\n"))
         .map(pairArr => ({
-          match: new RegExp(pairArr[0]),
+          filenameMatch: new RegExp(pairArr[0]),
           replace: pairArr[1] || "",
           urlMatch: new RegExp(pairArr[2] || ".*") // defaults to match all URLs
         }));
