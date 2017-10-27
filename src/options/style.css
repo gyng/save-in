@@ -1,6 +1,6 @@
 html {
   font-family: sans-serif;
-  min-height: 100%;
+  min-height: 99%;
 }
 
 pre,
@@ -26,6 +26,14 @@ h4 {
   margin-bottom: 0;
 }
 
+li {
+  margin-bottom: 5px;
+}
+
+textarea {
+  font-family: monospace;
+}
+
 .help {
   color: inherit;
   text-decoration: underline;
@@ -44,7 +52,7 @@ h4 {
 }
 
 .show {
-  display: block;
+  display: block !important;
 }
 
 #options {
@@ -61,4 +69,10 @@ h4 {
   margin: 15px 0;
   padding: 3px;
   background-color: rgba(0, 0, 0, 0.1);
+}
+
+.chrome-only {
+  display: none;
+  background-color: rgb(165, 249, 168);
+  padding: 10px;
 }

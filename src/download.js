@@ -2,14 +2,15 @@
 
 const DISPOSITION_FILENAME_REGEX = /filename[^;=\n]*=((['"])(.*)?\2|(.+'')?([^;\n]*))/i;
 const EXTENSION_REGEX = /\.[0-9a-z]{1,8}$/i;
+const SPECIAL_CHARACTERS_REGEX = /[~<>:"/\\|?*\0]/g;
 
 // TODO: Make this OS-aware instead of assuming Windows
-const replaceFsBadChars = s => s.replace(/[<>:"/\\|?*\0]/g, "_");
+const replaceFsBadChars = s => s.replace(SPECIAL_CHARACTERS_REGEX, "_");
 
 const getFilenameFromUrl = url => {
   const remotePath = new URL(url).pathname;
   return decodeURIComponent(
-    replaceFsBadChars(remotePath.substring(remotePath.lastIndexOf("/") + 1))
+    remotePath.substring(remotePath.lastIndexOf("/") + 1)
   );
 };
 
@@ -39,14 +40,8 @@ const getFilenameFromContentDisposition = disposition => {
 const replaceSpecialDirs = (path, url, info) => {
   let ret = path;
 
-  ret = ret.replace(
-    SPECIAL_DIRS.SOURCE_DOMAIN,
-    replaceFsBadChars(new URL(url).hostname)
-  );
-  ret = ret.replace(
-    SPECIAL_DIRS.PAGE_DOMAIN,
-    replaceFsBadChars(new URL(info.pageUrl).hostname)
-  );
+  ret = ret.replace(SPECIAL_DIRS.SOURCE_DOMAIN, new URL(url).hostname);
+  ret = ret.replace(SPECIAL_DIRS.PAGE_DOMAIN, new URL(info.pageUrl).hostname);
   ret = ret.replace(SPECIAL_DIRS.PAGE_URL, replaceFsBadChars(info.pageUrl));
   const now = new Date();
   const formattedDate = `${now.getFullYear()}-${now.getMonth() +
@@ -57,70 +52,70 @@ const replaceSpecialDirs = (path, url, info) => {
 };
 
 // Handles rewriting FILENAME and regex captures
-const rewriteFilename = (filename, patterns, url, info) => {
-  if (!patterns || !url || !info) {
+const rewriteFilename = (filename, filenamePatterns, url, info) => {
+  if (!filenamePatterns || !url || !info) {
     return filename;
   }
 
-  for (let i = 0; i < patterns.length; i += 1) {
-    const p = patterns[i];
+  for (let i = 0; i < filenamePatterns.length; i += 1) {
+    const p = filenamePatterns[i];
     const matches = p.match.exec(filename);
 
     if (matches) {
-      let ret = replaceSpecialDirs(p.replace, url, info);
-      ret = ret.replace(SPECIAL_DIRS.FILENAME, filename);
+      let ret = p.replace.replace(SPECIAL_DIRS.FILENAME, filename);
 
       // Replace capture groups
       for (let j = 0; j < matches.length; j += 1) {
-        ret = ret.replace(`:$${j}:`, matches[j]);
+        ret = ret.split(`:$${j}:`).join(matches[j]);
       }
 
-      // Abort after first match
+      ret = replaceSpecialDirs(ret, url, info);
+
       return ret;
     }
   }
 
-  // Defaults to noop on filename
   return filename;
 };
 
 // CHROME
 // Chrome has a nice API for this. Migrate to this once it's available on Firefox, since
 // we wont't have to fire off another HEAD just to get Content-Disposition.
-let globalChromePath = "."; // global variable: no other easy way around this
-let globalChromeRewriteOptions = {};
+let globalChromeRewriteOptions = {}; // global variable: no other easy way around this
 if (chrome && chrome.downloads && chrome.downloads.onDeterminingFilename) {
   chrome.downloads.onDeterminingFilename.addListener(
     (downloadItem, suggest) => {
-      // todo: check chrome
       const rewrittenFilename = rewriteFilename(
         downloadItem.filename,
-        globalChromeRewriteOptions.patterns,
+        globalChromeRewriteOptions.filenamePatterns,
         globalChromeRewriteOptions.url,
         globalChromeRewriteOptions.info
       );
 
       suggest({
-        filename: `${globalChromePath}/${replaceFsBadChars(rewrittenFilename)}`
+        filename: `${globalChromeRewriteOptions.path}/${replaceFsBadChars(
+          rewrittenFilename
+        )}`
       });
     }
   );
 }
 
 const downloadInto = (path, url, info, options) => {
-  const { filenames, prompt, promptIfNoExtension } = options;
-  const patterns = filenames;
+  const { filenamePatterns, prompt, promptIfNoExtension } = options;
 
   const download = (filename, rewrite = true) => {
     const rewrittenFilename = rewrite
-      ? rewriteFilename(filename, patterns, url, info)
+      ? rewriteFilename(filename, filenamePatterns, url, info)
       : filename;
 
     const hasExtension = rewrittenFilename.match(EXTENSION_REGEX);
 
     browser.downloads.download({
       url,
-      filename: `${path}/${replaceFsBadChars(rewrittenFilename)}`,
+      filename: `${replaceFsBadChars(path)}/${replaceFsBadChars(
+        rewrittenFilename
+      )}`,
       saveAs: prompt || (promptIfNoExtension && !hasExtension)
       // conflictAction: 'prompt', // Not supported in FF
     });
@@ -132,13 +127,13 @@ const downloadInto = (path, url, info, options) => {
     chrome.downloads &&
     chrome.downloads.onDeterminingFilename
   ) {
-    globalChromePath = path;
     globalChromeRewriteOptions = {
-      patterns,
+      path,
+      filenamePatterns,
       url,
       info
     };
-    download(url, "_overridden_by_listener", false);
+    download(url, false); // Will be rewritten inside Chrome event listener
     return;
   }
 
@@ -170,6 +165,7 @@ if (typeof module !== "undefined") {
     replaceSpecialDirs,
     rewriteFilename,
     DISPOSITION_FILENAME_REGEX,
-    EXTENSION_REGEX
+    EXTENSION_REGEX,
+    SPECIAL_CHARACTERS_REGEX
   };
 }

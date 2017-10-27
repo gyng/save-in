@@ -4,7 +4,7 @@ const saveOptions = e => {
   browser.storage.local.set({
     links: document.querySelector("#links").checked,
     paths: document.querySelector("#paths").value.trim(),
-    filenames: document.querySelector("#filenames").value.trim(),
+    filenamePatterns: document.querySelector("#filenamePatterns").value.trim(),
     prompt: document.querySelector("#prompt").checked,
     promptIfNoExtension: document.querySelector("#promptIfNoExtension").checked,
     notifyOnSuccess: document.querySelector("#notifyOnSuccess").checked,
@@ -21,7 +21,7 @@ const restoreOptions = () => {
     .get([
       "links",
       "paths",
-      "filenames",
+      "filenamePatterns",
       "prompt",
       "promptIfNoExtension",
       "notifyOnSuccess",
@@ -42,7 +42,8 @@ const restoreOptions = () => {
 
       document.querySelector("#paths").value = result.paths || ".";
 
-      document.querySelector("#filenames").value = result.filenames || "";
+      document.querySelector("#filenamePatterns").value =
+        result.filenamePatterns || "";
 
       document.querySelector("#notifyOnSuccess").checked =
         typeof result.notifyOnSuccess === "undefined"
@@ -71,3 +72,9 @@ const addHelp = el => {
 document.addEventListener("DOMContentLoaded", restoreOptions);
 document.querySelector("#options").addEventListener("submit", saveOptions);
 document.querySelectorAll(".help").forEach(addHelp);
+
+if (browser === chrome) {
+  document.querySelectorAll(".chrome-only").forEach(el => {
+    el.classList.toggle("show");
+  });
+}

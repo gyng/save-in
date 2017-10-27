@@ -18,7 +18,7 @@ browser.storage.local
   .get([
     "links",
     "paths",
-    "filenames",
+    "filenamePatterns",
     "prompt",
     "promptIfNoExtension",
     "notifyOnSuccess",
@@ -35,17 +35,18 @@ browser.storage.local
     setOption("notifyOnFailure", item.notifyOnFailure);
     setOption("notifyDuration", item.notifyDuration);
 
-    // Parse filenames
-    const filenames =
-      item.filenames &&
-      item.filenames
+    // Parse filenamePatterns
+    const filenamePatterns =
+      item.filenamePatterns &&
+      item.filenamePatterns
         .split("\n\n")
         .map(pairStr => pairStr.split("\n"))
         .map(pairArr => ({
           match: new RegExp(pairArr[0]),
           replace: pairArr[1]
         }));
-    setOption("filenames", filenames || []);
+
+    setOption("filenamePatterns", filenamePatterns || []);
 
     addNotifications({
       notifyOnSuccess: options.notifyOnSuccess,
