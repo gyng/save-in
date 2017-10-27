@@ -8,7 +8,8 @@ const SPECIAL_DIRS = {
   PAGE_URL: ":pageurl:",
   DATE: ":date:",
   UNIX_DATE: ":unixdate:",
-  FILENAME: ":filename:"
+  FILENAME: ":filename:",
+  LINK_TEXT: ":linktext:"
 };
 
 // Export for testing
