@@ -1,14 +1,16 @@
 /* eslint-disable no-unused-vars */
 
 const DISPOSITION_FILENAME_REGEX = /filename[^;=\n]*=((['"])(.*)?\2|(.+'')?([^;\n]*))/i;
+const EXTENSION_REGEX = /\.([0-9a-z]{1,8})$/i;
+const SPECIAL_CHARACTERS_REGEX = /[~<>:"/\\|?*\0]/g;
 
 // TODO: Make this OS-aware instead of assuming Windows
-const replaceFsBadChars = s => s.replace(/[<>:"/\\|?*\0]/g, "_");
+const replaceFsBadChars = s => s.replace(SPECIAL_CHARACTERS_REGEX, "_");
 
 const getFilenameFromUrl = url => {
   const remotePath = new URL(url).pathname;
   return decodeURIComponent(
-    replaceFsBadChars(remotePath.substring(remotePath.lastIndexOf("/") + 1))
+    remotePath.substring(remotePath.lastIndexOf("/") + 1)
   );
 };
 
@@ -34,36 +36,114 @@ const getFilenameFromContentDisposition = disposition => {
   return null;
 };
 
+// Handles SPECIAL_DIRS except FILENAME and SEPARATOR
+const replaceSpecialDirs = (path, url, info) => {
+  let ret = path;
+
+  ret = ret.replace(SPECIAL_DIRS.SOURCE_DOMAIN, new URL(url).hostname);
+  ret = ret.replace(SPECIAL_DIRS.PAGE_DOMAIN, new URL(info.pageUrl).hostname);
+  ret = ret.replace(SPECIAL_DIRS.PAGE_URL, replaceFsBadChars(info.pageUrl));
+  const now = new Date();
+  const formattedDate = `${now.getFullYear()}-${now.getMonth() +
+    1}-${now.getDate()}`;
+  ret = ret.replace(SPECIAL_DIRS.DATE, formattedDate);
+  const formattedDatetime = `${now.getUTCFullYear()}${now.getUTCMonth() +
+    1}${now.getUTCDate()}T${now.getUTCHours()}${now.getUTCMinutes()}${now.getUTCSeconds()}Z`;
+  ret = ret.replace(SPECIAL_DIRS.ISO8601_DATE, formattedDatetime);
+  ret = ret.replace(SPECIAL_DIRS.UNIX_DATE, Date.parse(now) / 1000);
+
+  return ret;
+};
+
+// Handles rewriting FILENAME and regex captures
+const rewriteFilename = (filename, filenamePatterns, url, info) => {
+  if (!filenamePatterns || !url || !info) {
+    return filename;
+  }
+
+  for (let i = 0; i < filenamePatterns.length; i += 1) {
+    const p = filenamePatterns[i];
+    const matches = p.filenameMatch.exec(filename);
+
+    if (matches && url.match(p.urlMatch)) {
+      let ret = p.replace.replace(SPECIAL_DIRS.FILENAME, filename);
+      ret = ret.replace(SPECIAL_DIRS.LINK_TEXT, info.linkText);
+
+      const fileExtensionMatches = filename.match(EXTENSION_REGEX);
+      const fileExtension =
+        (fileExtensionMatches && fileExtensionMatches[1]) || "";
+      ret = ret.replace(SPECIAL_DIRS.FILE_EXTENSION, fileExtension);
+
+      // Replace capture groups
+      for (let j = 0; j < matches.length; j += 1) {
+        ret = ret.split(`:$${j}:`).join(matches[j]);
+      }
+
+      ret = replaceSpecialDirs(ret, url, info);
+
+      return ret;
+    }
+  }
+
+  return filename;
+};
+
 // CHROME
 // Chrome has a nice API for this. Migrate to this once it's available on Firefox, since
 // we wont't have to fire off another HEAD just to get Content-Disposition.
-let globalChromePath = "."; // global variable: no other easy way around this
+let globalChromeRewriteOptions = {}; // global variable: no other easy way around this
 if (chrome && chrome.downloads && chrome.downloads.onDeterminingFilename) {
   chrome.downloads.onDeterminingFilename.addListener(
     (downloadItem, suggest) => {
+      const rewrittenFilename = rewriteFilename(
+        downloadItem.filename,
+        globalChromeRewriteOptions.filenamePatterns,
+        globalChromeRewriteOptions.url,
+        globalChromeRewriteOptions.info
+      );
+
       suggest({
-        filename: `${globalChromePath}/${replaceFsBadChars(
-          downloadItem.filename
+        filename: `${globalChromeRewriteOptions.path}/${replaceFsBadChars(
+          rewrittenFilename
         )}`
       });
     }
   );
 }
 
-const downloadInto = (path, url, prompt) => {
-  const download = filename => {
+const downloadInto = (path, url, info, options) => {
+  const { filenamePatterns, prompt, promptIfNoExtension } = options;
+
+  const download = (filename, rewrite = true) => {
+    const rewrittenFilename = rewrite
+      ? rewriteFilename(filename, filenamePatterns, url, info)
+      : filename;
+
+    const hasExtension = rewrittenFilename.match(EXTENSION_REGEX);
+
     browser.downloads.download({
       url,
-      filename: `${path}/${replaceFsBadChars(filename)}`,
-      saveAs: prompt
+      filename: `${replaceFsBadChars(path)}/${replaceFsBadChars(
+        rewrittenFilename
+      )}`,
+      saveAs: prompt || (promptIfNoExtension && !hasExtension)
       // conflictAction: 'prompt', // Not supported in FF
     });
   };
 
   // CHROME
-  if (chrome && chrome.downloads && chrome.downloads.onDeterminingFilename) {
-    globalChromePath = path;
-    download(url, "_overridden_by_listener");
+  if (
+    browser === chrome &&
+    chrome.downloads &&
+    chrome.downloads.onDeterminingFilename
+  ) {
+    globalChromeRewriteOptions = {
+      path,
+      filenamePatterns,
+      url,
+      info
+    };
+    download(url, false); // Will be rewritten inside Chrome event listener
     return;
   }
 
@@ -86,32 +166,16 @@ const downloadInto = (path, url, prompt) => {
     });
 };
 
-const replaceSpecialDirs = (path, url, info) => {
-  let ret = path;
-
-  ret = ret.replace(
-    SPECIAL_DIRS.SOURCE_DOMAIN,
-    replaceFsBadChars(new URL(url).hostname)
-  );
-  ret = ret.replace(
-    SPECIAL_DIRS.PAGE_DOMAIN,
-    replaceFsBadChars(new URL(info.pageUrl).hostname)
-  );
-  ret = ret.replace(SPECIAL_DIRS.PAGE_URL, replaceFsBadChars(info.pageUrl));
-  const now = new Date();
-  const formattedDate = `${now.getFullYear()}-${now.getMonth() +
-    1}-${now.getDate()}`;
-  ret = ret.replace(SPECIAL_DIRS.DATE, formattedDate);
-
-  return ret;
-};
-
 // Export for testing
 if (typeof module !== "undefined") {
   module.exports = {
     replaceFsBadChars,
     getFilenameFromUrl,
     getFilenameFromContentDisposition,
-    replaceSpecialDirs
+    replaceSpecialDirs,
+    rewriteFilename,
+    DISPOSITION_FILENAME_REGEX,
+    EXTENSION_REGEX,
+    SPECIAL_CHARACTERS_REGEX
   };
 }

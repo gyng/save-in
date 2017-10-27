@@ -18,7 +18,9 @@ browser.storage.local
   .get([
     "links",
     "paths",
+    "filenamePatterns",
     "prompt",
+    "promptIfNoExtension",
     "notifyOnSuccess",
     "notifyOnFailure",
     "notifyDuration"
@@ -28,9 +30,24 @@ browser.storage.local
     setOption("links", item.links);
     setOption("paths", item.paths);
     setOption("prompt", item.prompt);
+    setOption("promptIfNoExtension", item.promptIfNoExtension);
     setOption("notifyOnSuccess", item.notifyOnSuccess);
     setOption("notifyOnFailure", item.notifyOnFailure);
     setOption("notifyDuration", item.notifyDuration);
+
+    // Parse filenamePatterns
+    const filenamePatterns =
+      item.filenamePatterns &&
+      item.filenamePatterns
+        .split("\n\n")
+        .map(pairStr => pairStr.split("\n"))
+        .map(pairArr => ({
+          filenameMatch: new RegExp(pairArr[0]),
+          replace: pairArr[1] || "",
+          urlMatch: new RegExp(pairArr[2] || ".*") // defaults to match all URLs
+        }));
+
+    setOption("filenamePatterns", filenamePatterns || []);
 
     addNotifications({
       notifyOnSuccess: options.notifyOnSuccess,
@@ -99,7 +116,7 @@ browser.contextMenus.onClicked.addListener(info => {
       ? info.srcUrl
       : info.linkUrl;
     const actualPath = replaceSpecialDirs(matchSave[1], url, info);
-    downloadInto(actualPath, url, options.prompt);
+    downloadInto(actualPath, url, info, options);
   }
 
   switch (info.menuItemId) {

@@ -11,6 +11,19 @@ test("escapes bad filesystem characters", () => {
   expect(download.replaceFsBadChars("ok foo bar")).toBe("ok foo bar");
 });
 
+test("extension detection regex", () => {
+  const match = "abc.xyz".match(download.EXTENSION_REGEX);
+  expect(match).toHaveLength(2);
+  expect(match[0]).toBe(".xyz");
+  expect(match[1]).toBe("xyz");
+  expect("abc.XYZ".match(download.EXTENSION_REGEX)).toHaveLength(2);
+  expect("abcxyz".match(download.EXTENSION_REGEX)).toBeFalsy();
+  expect("abc.jpg:xyz".match(download.EXTENSION_REGEX)).toBeFalsy();
+  expect("abc.jpg:xyz".match(download.EXTENSION_REGEX)).toBeFalsy();
+  expect("abc.bananas".match(download.EXTENSION_REGEX)).toHaveLength(2);
+  expect("abc.bananas123".match(download.EXTENSION_REGEX)).toBeFalsy();
+});
+
 describe("filename from URL", () => {
   test("extracts filenames from URL", () => {
     expect(download.getFilenameFromUrl("https://baz.com/foo.bar")).toBe(
@@ -132,11 +145,12 @@ describe("filename from Content-Disposition", () => {
   });
 });
 
-describe("directory variables", () => {
+describe("variables", () => {
   const specialDirs = global.SPECIAL_DIRS;
   const url = "http://www.source.com/foobar/file.jpg";
   const info = {
-    pageUrl: "http://www.example.com/foobar/"
+    pageUrl: "http://www.example.com/foobar/",
+    linkText: "linkfoobar"
   };
 
   beforeAll(() => {
@@ -147,29 +161,108 @@ describe("directory variables", () => {
     global.SPECIAL_DIRS = specialDirs;
   });
 
-  test("interpolates :date:", () => {
-    const now = new Date();
-    const ymd = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
-    expect(download.replaceSpecialDirs(":date:/a/b", url, info)).toBe(
-      `${ymd}/a/b`
-    );
+  describe("standard variables", () => {
+    test("interpolates :date:", () => {
+      const now = new Date();
+      const ymd = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
+      expect(download.replaceSpecialDirs(":date:/a/b", url, info)).toBe(
+        `${ymd}/a/b`
+      );
+    });
+
+    test("interpolates :unixdate:", () => {
+      const now = new Date();
+      const timestamp = Date.parse(now) / 1000;
+      expect(download.replaceSpecialDirs(":unixdate:/a/b", url, info)).toBe(
+        `${timestamp}/a/b`
+      );
+    });
+
+    test("interpolates :isodate:", () => {
+      const now = new Date();
+      const expected = `${now.getUTCFullYear()}${now.getUTCMonth() +
+        1}${now.getUTCDate()}T${now.getUTCHours()}${now.getUTCMinutes()}${now.getUTCSeconds()}Z`;
+      const output = download.replaceSpecialDirs(":isodate:", url, info);
+      expect(output).toEqual(expected);
+    });
+
+    test("interpolates :pagedomain:", () => {
+      expect(download.replaceSpecialDirs("a/b/:pagedomain:", url, info)).toBe(
+        "a/b/www.example.com"
+      );
+    });
+
+    test("interpolates :sourcedomain:", () => {
+      expect(
+        download.replaceSpecialDirs("a/b/:sourcedomain:/c", url, info)
+      ).toBe("a/b/www.source.com/c");
+    });
+
+    test("interpolates multiple :sourcedomain:s", () => {
+      expect(
+        download.replaceSpecialDirs(
+          "a/b/:sourcedomain::sourcedomain:/c",
+          url,
+          info
+        )
+      ).toBe("a/b/www.source.comwww.source.com/c");
+    });
+
+    test("interpolates :pageurl:", () => {
+      expect(download.replaceSpecialDirs("a/b/:pageurl:/c", url, info)).toBe(
+        "a/b/http___www.example.com_foobar_/c"
+      );
+    });
   });
 
-  test("interpolates :pagedomain:", () => {
-    expect(download.replaceSpecialDirs("a/b/:pagedomain:", url, info)).toBe(
-      "a/b/www.example.com"
-    );
-  });
+  describe("filename variables", () => {
+    test("replaces filename regex capture groups", () => {
+      const input = "lol.jpeg";
+      const patterns = [
+        {
+          filenameMatch: new RegExp("(.*)\\.(jpeg)"),
+          replace: ":$1:`:$2:`$1`:pageurl:`.jpg"
+        }
+      ];
+      const output = download.rewriteFilename(input, patterns, url, info);
+      const expected = "lol`jpeg`$1`http___www.example.com_foobar_`.jpg";
+      expect(output).toBe(expected);
+    });
 
-  test("interpolates :sourcedomain:", () => {
-    expect(download.replaceSpecialDirs("a/b/:sourcedomain:/c", url, info)).toBe(
-      "a/b/www.source.com/c"
-    );
-  });
+    test("interpolates :filename:", () => {
+      const input = "lol.jpeg";
+      const patterns = [
+        {
+          filenameMatch: new RegExp("(.*)\\.(jpeg)"),
+          replace: ":filename::filename:"
+        }
+      ];
+      const output = download.rewriteFilename(input, patterns, url, info);
+      expect(output).toBe("lol.jpeglol.jpeg");
+    });
 
-  test("interpolates :pageurl:", () => {
-    expect(download.replaceSpecialDirs("a/b/:pageurl:/c", url, info)).toBe(
-      "a/b/http___www.example.com_foobar_/c"
-    );
+    test("interpolates :fileext:", () => {
+      const input = "lol.jpeg";
+      const patterns = [
+        {
+          filenameMatch: new RegExp(".*"),
+          replace: ":fileext::fileext:"
+        }
+      ];
+      const output = download.rewriteFilename(input, patterns, url, info);
+      expect(output).toBe("jpegjpeg");
+    });
+
+    test("interpolates :linktext:", () => {
+      const input = "lol.jpeg";
+      const patterns = [
+        {
+          filenameMatch: new RegExp("(.*)\\.(jpeg)"),
+          replace: ":linktext::linktext:"
+        }
+      ];
+      const output = download.rewriteFilename(input, patterns, url, info);
+      expect(output).toBe("linkfoobarlinkfoobar");
+    });
   });
 });

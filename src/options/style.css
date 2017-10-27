@@ -1,5 +1,6 @@
 html {
   font-family: sans-serif;
+  min-height: 1%; /* Firefox options page height hack */
 }
 
 pre,
@@ -21,6 +22,18 @@ button[type="submit"] {
   padding: 5px;
 }
 
+h4 {
+  margin-bottom: 0;
+}
+
+li {
+  margin-bottom: 5px;
+}
+
+textarea {
+  font-family: monospace;
+}
+
 .help {
   color: inherit;
   text-decoration: underline;
@@ -39,7 +52,7 @@ button[type="submit"] {
 }
 
 .show {
-  display: unset;
+  display: block !important;
 }
 
 #options {
@@ -56,4 +69,10 @@ button[type="submit"] {
   margin: 15px 0;
   padding: 3px;
   background-color: rgba(0, 0, 0, 0.1);
+}
+
+.chrome-only {
+  display: none;
+  background-color: rgb(165, 249, 168);
+  padding: 10px;
 }

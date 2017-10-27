@@ -1,60 +1,129 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8">
-    <script type="application/javascript" src="../chrome-polyfill.js"></script>
-    <link href="style.css" rel="stylesheet">
-  </head>
 
-  <body>
-    <a href="https://github.com/gyng/save-in/">GitHub</a>
-    <a href="https://github.com/gyng/save-in/blob/master/CHANGELOG.md">Changelog</a>
+<head>
+  <meta charset="utf-8">
+  <script type="application/javascript" src="../chrome-polyfill.js"></script>
+  <link href="style.css" rel="stylesheet">
+</head>
 
-    <form id="options">
-      <label class="column">
-        <h4>Paths <a href="#" class="help" data-help-for="help-paths">(🛈 help)</a></h4>
-        <div class="help-summary">
-          <p>Paths relative to default download directory. One path per line. Multiple variables can be used in a path.</p>
+<body>
+  <a href="https://github.com/gyng/save-in/">GitHub</a>
+  <a href="https://github.com/gyng/save-in/blob/master/CHANGELOG.md">Changelog</a>
 
-          <h4>Variables</h4>
-          <div class="box">
-            <table>
-              <tr>
-                <td><code>---</code></td>
-                <td></td>
-                <td>Creates a separator in the context menu</td>
-              </tr>
+  <form id="options">
+    <label class="column">
+      <h4>Variables</h4>
+      <div class="box">
+        <table>
+          <tr>
+            <td>
+              <code>---</code>
+            </td>
+            <td></td>
+            <td>Creates a separator in the context menu</td>
+          </tr>
 
-              <tr>
-                <td><code>:date:</code></td>
-                <td>2000-01-01</td>
-                <td>The current date</td>
-              </tr>
+          <tr>
+            <td>
+              <code>:date:</code>
+            </td>
+            <td>2000-01-01</td>
+            <td>The current date</td>
+          </tr>
 
-              <tr>
-                <td><code>:pageurl:</code></td>
-                <td>https://github.com/gyng/save-in</td>
-                <td>The url of the page</td>
-              </tr>
+          <tr>
+            <td>
+              <code>:isodate:</code>
+            </td>
+            <td>20170123T123040Z</td>
+            <td>The current datetime as a UTC ISO8601 time string</td>
+          </tr>
 
-              <tr>
-                <td><code>:sourcedomain:</code></td>
-                <td>github.com</td>
-                <td>The hostname of the source</td>
-              </tr>
+          <tr>
+            <td>
+              <code>:unixdate:</code>
+            </td>
+            <td>946684800</td>
+            <td>The current datetime as a Unix timestamp</td>
+          </tr>
 
-              <tr>
-                <td><code>:pagedomain:</code></td>
-                <td>github.com</td>
-                <td>The hostname of the page</td>
-              </tr>
-            </table>
-          </div>
-        </div>
-        <div class="help-text" id="help-paths">
-          <p>For example, the setting</p>
+          <tr>
+            <td>
+              <code>:pageurl:</code>
+            </td>
+            <td>https://xyz.com/abc</td>
+            <td>The url of the page</td>
+          </tr>
 
-<pre>
+          <tr>
+            <td>
+              <code>:sourcedomain:</code>
+            </td>
+            <td>cdn.xyz.com</td>
+            <td>The hostname of the source</td>
+          </tr>
+
+          <tr>
+            <td>
+              <code>:pagedomain:</code>
+            </td>
+            <td>xyz.com</td>
+            <td>The hostname of the page</td>
+          </tr>
+
+          <tr>
+            <td>
+              <code>:filename:</code>
+            </td>
+            <td>my_image.jpg</td>
+            <td>The full filename
+              <i>filenames only</i>
+            </td>
+          </tr>
+
+          <tr>
+            <td>
+              <code>:fileext:</code>
+            </td>
+            <td>jpg</td>
+            <td>The naive file extension, if available
+              <i>filenames only</i>
+            </td>
+          </tr>
+
+          <tr>
+            <td>
+              <code>:$1:</code>
+            </td>
+            <td></td>
+            <td>The capture group where
+              <code>1</code> = the nth capture group
+              <i>filenames only</i>
+            </td>
+          </tr>
+
+          <tr>
+            <td>
+              <code>:linktext:</code>
+            </td>
+            <td>Direct link to image</td>
+            <td>The text of the saved link
+              <i>filenames and links only</i>
+            </td>
+          </tr>
+        </table>
+      </div>
+      <h4>Paths
+        <a href="#" class="help" data-help-for="help-paths">(🛈 help)</a>
+      </h4>
+      <div class="help-summary">
+        <p>Paths relative to default download directory. One path per line. Multiple variables can be used in a path.</p>
+      </div>
+      <div class="help-text" id="help-paths">
+        <p>For example, the setting</p>
+
+        <pre>
 .
 images/dogs
 images/cats
@@ -63,9 +132,10 @@ videos/cats
 others/:date:/:pagedomain:/foo
 </pre>
 
-          <p>with a default download directory of <code>~/downloads</code> will create options to save media to the directories</p>
+        <p>with a default download directory of
+          <code>~/downloads</code> will create options to save media to the directories</p>
 
-<pre>
+        <pre>
 ~/downloads/
 ~/downloads/images/dogs
 ~/downloads/images/cats
@@ -74,44 +144,125 @@ others/:date:/:pagedomain:/foo
 ~/others/2000-01-01/github.com/foo
 </pre>
 
-<p>Invalid paths (eg. <code>..</code> and <code>/</code>) are ignored.</p>
+        <p>Invalid paths (eg.
+          <code>..</code> and
+          <code>/</code>) are ignored.</p>
 
-<p>The WebExtensions API does not allow files to be saved outside of the default download directory. If you want to save the files outside the default download directory, use a <a href="https://en.wikipedia.org/wiki/Symbolic_link" target="_blank">symlink</a> inside the default download directory. (<a href="https://serverfault.com/questions/7109/how-do-i-create-a-symbolic-link-in-windows" target="_blank">Windows</a>, <a href="https://apple.stackexchange.com/questions/115646/how-can-i-create-a-symbolic-link-in-terminal" target="_blank">OS X/Unix</a>)</p>
-        </div>
-        <textarea type="textarea" id="paths" rows=7></textarea>
-      </label>
+        <p>The WebExtensions API does not allow files to be saved outside of the default download directory. If you want to
+          save the files outside the default download directory, use a
+          <a href="https://en.wikipedia.org/wiki/Symbolic_link" target="_blank">symlink</a> inside the default download directory. (
+          <a href="https://serverfault.com/questions/7109/how-do-i-create-a-symbolic-link-in-windows" target="_blank">Windows</a>,
+          <a href="https://apple.stackexchange.com/questions/115646/how-can-i-create-a-symbolic-link-in-terminal" target="_blank">OS X/Unix</a>)</p>
+      </div>
+      <textarea type="textarea" id="paths" rows=7 placeholder="." spellcheck="false"></textarea>
+    </label>
 
-      <h4>More options</h4>
-      <label>
-        <input type="checkbox" id="links" />
-        Enable saving of links. Prefers sources if available.
-      </label>
+    <label class="column">
+      <h4>Rewrite filenames
+        <a href="#" class="help" data-help-for="help-filenames">(🛈 help)</a>
+      </h4>
+      <b>EXPERIMENTAL: MIGHT CHANGE IN FUTURE VERSIONS</b>
+      <div class="help-summary">
+        <p>Optionally, rewrite filenames that match the regex patterns in order of precedence. Multiple variables can be used
+          in the replacement pattern. The format for each rule is
+          <pre>
+Regex pattern to match filename against
+Replacement pattern
+(Optional) Regex pattern to match source URL against, defaults to all</pre>
+        </p>
+        <p>Separate multiple rules with an empty line.</p>
+        <p class="chrome-only">CHROME USERS: Special characters in the filename (eg.
+          <code>:</code> or
+          <code>/</code>) are pre-replaced with the character
+          <code>-</code> by Chrome. When matching against filenames with such characters, match against
+          <code>-</code> instead of the special character. For example, use
+          <code>(.*)-large</code> to match filenames instead of
+          <code>(.*):large</code>.
+        </p>
+      </div>
+      <div class="help-text" id="help-filenames">
+        <p>
+          Match filenames against a
+          <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions">regex pattern</a> and rewrite them according to a replacement string. Regex capture groups are supported in the
+          replacement pattern, and can be referenced by the variables
+          <code>:$1:</code> to
+          <code>:$n:</code>.
+        </p>
 
-      <label>
-        <input type="checkbox" id="prompt" />
-        Open a save file dialog when saving
-      </label>
+        <p>The following example rewrites the filenames
+          <ul>
+            <li>
+              <code>dog_thumbnail.png</code> to
+              <code>dog.png</code>
+            </li>
+            <li>
+              <code>twitter_pic.png:large</code> to
+              <code>twitter_pic.png</code> only on
+              <code>pbs.twimg.com</code>
+            </li>
+            <li>
+              Everything to
+              <code>link text.extension</code> only on
+              <code>example.com</code>
+            </li>
+            <li>
+              <code>catpic.jpg</code> to
+              <code>2017-01-01_catpic.jpeg</code>
+            </li>
+          </ul>
+        </p>
+        <pre>
+(.*)\_thumbnail(\..*)
+:$1::$2:
 
-      <h4>Notifications</h4>
-      <p>Click on the notification to open the file's directory.</p>
-      <label>
-        <input type="checkbox" id="notifyOnSuccess" />
-        Show notification on successful download
-      </label>
+(.*)(:|-)large
+:$1:
+pbs.twimg.com
 
-      <label>
-        <input type="checkbox" id="notifyOnFailure" />
-        Show notification on failed download
-      </label>
+.*
+:linktext::fileext:
+example.com
 
-      <label>
-        <input type="number" id="notifyDuration" />
-        Close notification early after (ms, 1s = 1000ms). Will not extend beyond OS/browser notification duration.
-      </label>
+(.*)\.jpg
+:date::$1:.jpeg
+</pre>
 
-      <button type="submit">Save</button>
-    </form>
+<p>If you have a useful rule, please add it to <a href="https://github.com/gyng/save-in/wiki/Filename-rewrite">the wiki</a>!</p>
+      </div>
+      <textarea type="textarea" id="filenamePatterns" rows=7 placeholder="Optional" spellcheck="false"></textarea>
+    </label>
 
-    <script src="options.js"></script>
-  </body>
+    <h4>More options</h4>
+    <label>
+      <input type="checkbox" id="links" /> Enable saving of links. Prefers sources if available.
+    </label>
+
+    <label>
+      <input type="checkbox" id="prompt" /> Open a save file dialog when saving
+    </label>
+
+    <label>
+      <input type="checkbox" id="promptIfNoExtension" /> Open a save file dialog if filename has no extension
+    </label>
+
+    <h4>Notifications</h4>
+    <p>Click on the notification to open the file's directory.</p>
+    <label>
+      <input type="checkbox" id="notifyOnSuccess" /> Show notification on successful download
+    </label>
+
+    <label>
+      <input type="checkbox" id="notifyOnFailure" /> Show notification on failed download
+    </label>
+
+    <label>
+      <input type="number" id="notifyDuration" /> Close notification early after (ms, 1s = 1000ms). Will not extend beyond OS/browser notification duration.
+    </label>
+
+    <button type="submit">Save</button>
+  </form>
+
+  <script src="options.js"></script>
+</body>
+
 </html>
