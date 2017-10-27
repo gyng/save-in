@@ -209,7 +209,7 @@ describe("variables", () => {
       const input = "lol.jpeg";
       const patterns = [
         {
-          match: new RegExp("(.*)\\.(jpeg)"),
+          filenameMatch: new RegExp("(.*)\\.(jpeg)"),
           replace: ":$1:`:$2:`$1`:pageurl:`.jpg"
         }
       ];
@@ -222,7 +222,7 @@ describe("variables", () => {
       const input = "lol.jpeg";
       const patterns = [
         {
-          match: new RegExp("(.*)\\.(jpeg)"),
+          filenameMatch: new RegExp("(.*)\\.(jpeg)"),
           replace: ":filename::filename:"
         }
       ];
@@ -234,7 +234,7 @@ describe("variables", () => {
       const input = "lol.jpeg";
       const patterns = [
         {
-          match: new RegExp("(.*)\\.(jpeg)"),
+          filenameMatch: new RegExp("(.*)\\.(jpeg)"),
           replace: ":linktext::linktext:"
         }
       ];
