@@ -18,6 +18,7 @@ browser.storage.local
   .get([
     "links",
     "paths",
+    "filenames",
     "prompt",
     "notifyOnSuccess",
     "notifyOnFailure",
@@ -31,6 +32,18 @@ browser.storage.local
     setOption("notifyOnSuccess", item.notifyOnSuccess);
     setOption("notifyOnFailure", item.notifyOnFailure);
     setOption("notifyDuration", item.notifyDuration);
+
+    // Parse filenames
+    const filenames =
+      item.filenames &&
+      item.filenames
+        .split("\n\n")
+        .map(pairStr => pairStr.split("\n"))
+        .map(pairArr => ({
+          match: new RegExp(pairArr[0]),
+          replace: pairArr[1]
+        }));
+    setOption("filenames", filenames || []);
 
     addNotifications({
       notifyOnSuccess: options.notifyOnSuccess,
@@ -99,7 +112,7 @@ browser.contextMenus.onClicked.addListener(info => {
       ? info.srcUrl
       : info.linkUrl;
     const actualPath = replaceSpecialDirs(matchSave[1], url, info);
-    downloadInto(actualPath, url, options.prompt);
+    downloadInto(actualPath, url, info, options.filenames, options.prompt);
   }
 
   switch (info.menuItemId) {

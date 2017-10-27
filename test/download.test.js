@@ -132,7 +132,7 @@ describe("filename from Content-Disposition", () => {
   });
 });
 
-describe("directory variables", () => {
+describe("variables", () => {
   const specialDirs = global.SPECIAL_DIRS;
   const url = "http://www.source.com/foobar/file.jpg";
   const info = {
@@ -147,29 +147,46 @@ describe("directory variables", () => {
     global.SPECIAL_DIRS = specialDirs;
   });
 
-  test("interpolates :date:", () => {
-    const now = new Date();
-    const ymd = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
-    expect(download.replaceSpecialDirs(":date:/a/b", url, info)).toBe(
-      `${ymd}/a/b`
-    );
+  describe("standard variables", () => {
+    test("interpolates :date:", () => {
+      const now = new Date();
+      const ymd = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
+      expect(download.replaceSpecialDirs(":date:/a/b", url, info)).toBe(
+        `${ymd}/a/b`
+      );
+    });
+
+    test("interpolates :pagedomain:", () => {
+      expect(download.replaceSpecialDirs("a/b/:pagedomain:", url, info)).toBe(
+        "a/b/www.example.com"
+      );
+    });
+
+    test("interpolates :sourcedomain:", () => {
+      expect(
+        download.replaceSpecialDirs("a/b/:sourcedomain:/c", url, info)
+      ).toBe("a/b/www.source.com/c");
+    });
+
+    test("interpolates :pageurl:", () => {
+      expect(download.replaceSpecialDirs("a/b/:pageurl:/c", url, info)).toBe(
+        "a/b/http___www.example.com_foobar_/c"
+      );
+    });
   });
 
-  test("interpolates :pagedomain:", () => {
-    expect(download.replaceSpecialDirs("a/b/:pagedomain:", url, info)).toBe(
-      "a/b/www.example.com"
-    );
-  });
-
-  test("interpolates :sourcedomain:", () => {
-    expect(download.replaceSpecialDirs("a/b/:sourcedomain:/c", url, info)).toBe(
-      "a/b/www.source.com/c"
-    );
-  });
-
-  test("interpolates :pageurl:", () => {
-    expect(download.replaceSpecialDirs("a/b/:pageurl:/c", url, info)).toBe(
-      "a/b/http___www.example.com_foobar_/c"
-    );
+  describe("filename variables", () => {
+    test("replaces filename regex capture groups", () => {
+      const input = "lol.jpeg";
+      const patterns = [
+        {
+          match: new RegExp("(.*)\\.(jpeg)"),
+          replace: ":$1:`:$2:`$1`:pageurl:`.jpg"
+        }
+      ];
+      const output = download.rewriteFilename(input, patterns, url, info);
+      const expected = "lol`jpeg`$1`http___www.example.com_foobar_`.jpg";
+      expect(output).toBe(expected);
+    });
   });
 });

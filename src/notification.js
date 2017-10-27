@@ -24,7 +24,7 @@ const addNotifications = options => {
     // CHROME
     // Chrome does not have the filename in the initial DownloadItem,
     // so extract it from the DownloadDelta
-    if (chrome) {
+    if (browser === chrome) {
       if (
         downloadDelta &&
         downloadDelta.filename &&
@@ -41,11 +41,12 @@ const addNotifications = options => {
 
     // CHROME
     // Chrome's DownloadDelta contains different information from Firefox's
-    const failed = chrome
-      ? downloadDelta.error
-      : !downloadDelta ||
-        !downloadDelta.state ||
-        downloadDelta.state.current === "interrupted";
+    const failed =
+      browser === chrome
+        ? downloadDelta.error
+        : !downloadDelta ||
+          !downloadDelta.state ||
+          downloadDelta.state.current === "interrupted";
 
     if (notifyOnFailure && failed) {
       browser.notifications.create(String(downloadDelta.id), {
@@ -55,11 +56,15 @@ const addNotifications = options => {
         message: filename
       });
 
-      window.setTimeout(() => {
-        browser.notifications.clear(String(downloadDelta.id));
-      }, notifyDuration);
+      if (downloadDelta && downloadDelta.id) {
+        window.setTimeout(() => {
+          browser.notifications.clear(String(downloadDelta.id));
+        }, notifyDuration);
+      }
     } else if (
       notifyOnSuccess &&
+      downloadDelta &&
+      downloadDelta.state &&
       downloadDelta.state.current === "complete" &&
       downloadDelta.state.previous === "in_progress"
     ) {

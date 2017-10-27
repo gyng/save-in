@@ -1,5 +1,6 @@
 html {
   font-family: sans-serif;
+  min-height: 100%;
 }
 
 pre,
@@ -21,6 +22,10 @@ button[type="submit"] {
   padding: 5px;
 }
 
+h4 {
+  margin-bottom: 0;
+}
+
 .help {
   color: inherit;
   text-decoration: underline;
@@ -39,7 +44,7 @@ button[type="submit"] {
 }
 
 .show {
-  display: unset;
+  display: block;
 }
 
 #options {

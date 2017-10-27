@@ -1,3 +1,9 @@
+# 1.4.0
+
+* Added global filename rewrites
+* Fixed Chrome detection on Firefox
+* Fixed bunch of undefined variables in Chrome (notifications)
+
 # 1.3.1
 
 * Added timeout duration option for notifications

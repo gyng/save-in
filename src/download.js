@@ -34,36 +34,105 @@ const getFilenameFromContentDisposition = disposition => {
   return null;
 };
 
+// Handles SPECIAL_DIRS except FILENAME and SEPARATOR
+const replaceSpecialDirs = (path, url, info) => {
+  let ret = path;
+
+  ret = ret.replace(
+    SPECIAL_DIRS.SOURCE_DOMAIN,
+    replaceFsBadChars(new URL(url).hostname)
+  );
+  ret = ret.replace(
+    SPECIAL_DIRS.PAGE_DOMAIN,
+    replaceFsBadChars(new URL(info.pageUrl).hostname)
+  );
+  ret = ret.replace(SPECIAL_DIRS.PAGE_URL, replaceFsBadChars(info.pageUrl));
+  const now = new Date();
+  const formattedDate = `${now.getFullYear()}-${now.getMonth() +
+    1}-${now.getDate()}`;
+  ret = ret.replace(SPECIAL_DIRS.DATE, formattedDate);
+
+  return ret;
+};
+
+// Handles rewriting FILENAME and regex captures
+const rewriteFilename = (filename, patterns, url, info) => {
+  if (!patterns || !url || !info) {
+    return filename;
+  }
+
+  for (let i = 0; i < patterns.length; i += 1) {
+    const p = patterns[i];
+    const matches = p.match.exec(filename);
+
+    if (matches) {
+      let ret = replaceSpecialDirs(p.replace, url, info);
+      ret = ret.replace(SPECIAL_DIRS.FILENAME, filename);
+
+      // Replace capture groups
+      for (let j = 0; j < matches.length; j += 1) {
+        ret = ret.replace(`:$${j}:`, matches[j]);
+      }
+
+      // Abort after first match
+      return ret;
+    }
+  }
+
+  // Defaults to noop on filename
+  return filename;
+};
+
 // CHROME
 // Chrome has a nice API for this. Migrate to this once it's available on Firefox, since
 // we wont't have to fire off another HEAD just to get Content-Disposition.
 let globalChromePath = "."; // global variable: no other easy way around this
+let globalChromeRewriteOptions = {};
 if (chrome && chrome.downloads && chrome.downloads.onDeterminingFilename) {
   chrome.downloads.onDeterminingFilename.addListener(
     (downloadItem, suggest) => {
+      // todo: check chrome
+      const rewrittenFilename = rewriteFilename(
+        downloadItem.filename,
+        globalChromeRewriteOptions.patterns,
+        globalChromeRewriteOptions.url,
+        globalChromeRewriteOptions.info
+      );
+
       suggest({
-        filename: `${globalChromePath}/${replaceFsBadChars(
-          downloadItem.filename
-        )}`
+        filename: `${globalChromePath}/${replaceFsBadChars(rewrittenFilename)}`
       });
     }
   );
 }
 
-const downloadInto = (path, url, prompt) => {
-  const download = filename => {
+const downloadInto = (path, url, info, patterns, prompt) => {
+  const download = (filename, rewrite = true) => {
+    const rewrittenFilename = rewrite
+      ? rewriteFilename(filename, patterns, url, info)
+      : filename;
+
     browser.downloads.download({
       url,
-      filename: `${path}/${replaceFsBadChars(filename)}`,
+      filename: `${path}/${replaceFsBadChars(rewrittenFilename)}`,
       saveAs: prompt
       // conflictAction: 'prompt', // Not supported in FF
     });
   };
 
   // CHROME
-  if (chrome && chrome.downloads && chrome.downloads.onDeterminingFilename) {
+  if (
+    browser === chrome &&
+    chrome.downloads &&
+    chrome.downloads.onDeterminingFilename
+  ) {
     globalChromePath = path;
-    download(url, "_overridden_by_listener");
+    globalChromeRewriteOptions = {
+      patterns,
+      url,
+      info
+    };
+    download(url, "_overridden_by_listener", false);
     return;
   }
 
@@ -86,32 +155,13 @@ const downloadInto = (path, url, prompt) => {
     });
 };
 
-const replaceSpecialDirs = (path, url, info) => {
-  let ret = path;
-
-  ret = ret.replace(
-    SPECIAL_DIRS.SOURCE_DOMAIN,
-    replaceFsBadChars(new URL(url).hostname)
-  );
-  ret = ret.replace(
-    SPECIAL_DIRS.PAGE_DOMAIN,
-    replaceFsBadChars(new URL(info.pageUrl).hostname)
-  );
-  ret = ret.replace(SPECIAL_DIRS.PAGE_URL, replaceFsBadChars(info.pageUrl));
-  const now = new Date();
-  const formattedDate = `${now.getFullYear()}-${now.getMonth() +
-    1}-${now.getDate()}`;
-  ret = ret.replace(SPECIAL_DIRS.DATE, formattedDate);
-
-  return ret;
-};
-
 // Export for testing
 if (typeof module !== "undefined") {
   module.exports = {
     replaceFsBadChars,
     getFilenameFromUrl,
     getFilenameFromContentDisposition,
-    replaceSpecialDirs
+    replaceSpecialDirs,
+    rewriteFilename
   };
 }

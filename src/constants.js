@@ -6,7 +6,8 @@ const SPECIAL_DIRS = {
   SOURCE_DOMAIN: ":sourcedomain:",
   PAGE_DOMAIN: ":pagedomain:",
   PAGE_URL: ":pageurl:",
-  DATE: ":date:"
+  DATE: ":date:",
+  FILENAME: ":filename:"
 };
 
 // Export for testing
