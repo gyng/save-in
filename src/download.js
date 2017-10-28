@@ -49,12 +49,41 @@ const replaceSpecialDirs = (path, url, info) => {
   ret = ret.replace(SPECIAL_DIRS.PAGE_DOMAIN, new URL(info.pageUrl).hostname);
   ret = ret.replace(SPECIAL_DIRS.PAGE_URL, replaceFsBadChars(info.pageUrl));
   const now = new Date();
-  const formattedDate = `${now.getFullYear()}-${now.getMonth() +
-    1}-${now.getDate()}`;
-  ret = ret.replace(SPECIAL_DIRS.DATE, formattedDate);
-  const formattedDatetime = `${now.getUTCFullYear()}${now.getUTCMonth() +
-    1}${now.getUTCDate()}T${now.getUTCHours()}${now.getUTCMinutes()}${now.getUTCSeconds()}Z`;
-  ret = ret.replace(SPECIAL_DIRS.ISO8601_DATE, formattedDatetime);
+
+  const date = [
+    now.getFullYear(),
+    (now.getMonth() + 1).toString().padStart(2, "0"),
+    now
+      .getDate()
+      .toString()
+      .padStart(2, "0")
+  ].join("-");
+  ret = ret.replace(SPECIAL_DIRS.DATE, date);
+
+  const isodate = [
+    now.getUTCFullYear(),
+    (now.getUTCMonth() + 1).toString().padStart(2, "0"),
+    now
+      .getUTCDate()
+      .toString()
+      .padStart(2, "0"),
+    "T",
+    now
+      .getUTCHours()
+      .toString()
+      .padStart(2, "0"),
+    now
+      .getUTCMinutes()
+      .toString()
+      .padStart(2, "0"),
+    now
+      .getUTCSeconds()
+      .toString()
+      .padStart(2, "0"),
+    "Z"
+  ].join("");
+
+  ret = ret.replace(SPECIAL_DIRS.ISO8601_DATE, isodate);
   ret = ret.replace(SPECIAL_DIRS.UNIX_DATE, Date.parse(now) / 1000);
 
   return ret;

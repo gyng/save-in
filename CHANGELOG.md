@@ -1,6 +1,7 @@
 # 1.4.1
 
 * Fix nested directories being treated as a single directory
+* Pad single-digit components in dates with `0`
 
 # 1.4.0
 
