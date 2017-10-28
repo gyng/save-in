@@ -1,3 +1,7 @@
+# 1.4.1
+
+* Fix nested directories being treated as a single directory
+
 # 1.4.0
 
 * Added global filename rewrites, along with `:filename:`, `:fileext:`, and `:$n:` variables

@@ -6,6 +6,11 @@ const SPECIAL_CHARACTERS_REGEX = /[~<>:"/\\|?*\0]/g;
 
 // TODO: Make this OS-aware instead of assuming Windows
 const replaceFsBadChars = s => s.replace(SPECIAL_CHARACTERS_REGEX, "_");
+const replaceFsBadCharsInPath = pathStr =>
+  pathStr
+    .split(new RegExp("[\\/\\\\]", "g"))
+    .map(replaceFsBadChars)
+    .join("/");
 
 const getFilenameFromUrl = url => {
   const remotePath = new URL(url).pathname;
@@ -123,7 +128,7 @@ const downloadInto = (path, url, info, options) => {
 
     browser.downloads.download({
       url,
-      filename: `${replaceFsBadChars(path)}/${replaceFsBadChars(
+      filename: `${replaceFsBadCharsInPath(path)}/${replaceFsBadChars(
         rewrittenFilename
       )}`,
       saveAs: prompt || (promptIfNoExtension && !hasExtension)
@@ -170,6 +175,7 @@ const downloadInto = (path, url, info, options) => {
 if (typeof module !== "undefined") {
   module.exports = {
     replaceFsBadChars,
+    replaceFsBadCharsInPath,
     getFilenameFromUrl,
     getFilenameFromContentDisposition,
     replaceSpecialDirs,

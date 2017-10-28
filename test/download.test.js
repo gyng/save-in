@@ -11,6 +11,14 @@ test("escapes bad filesystem characters", () => {
   expect(download.replaceFsBadChars("ok foo bar")).toBe("ok foo bar");
 });
 
+test("escapes bad filesystem characters in path", () => {
+  expect(download.replaceFsBadCharsInPath("/:stop:/::/")).toBe("/_stop_/__/");
+  expect(download.replaceFsBadCharsInPath("/:date:/dog")).toBe("/_date_/dog");
+  expect(download.replaceFsBadCharsInPath("/aa/b/c")).toBe("/aa/b/c");
+  expect(download.replaceFsBadCharsInPath("ab/b/c")).toBe("ab/b/c");
+  expect(download.replaceFsBadCharsInPath("a\\b/c")).toBe("a/b/c");
+});
+
 test("extension detection regex", () => {
   const match = "abc.xyz".match(download.EXTENSION_REGEX);
   expect(match).toHaveLength(2);
