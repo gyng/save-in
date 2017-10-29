@@ -3,7 +3,7 @@ const saveOptions = e => {
 
   browser.storage.local.set({
     links: document.querySelector("#links").checked,
-    paths: document.querySelector("#paths").value.trim(),
+    paths: document.querySelector("#paths").value.trim() || ".",
     filenamePatterns: document.querySelector("#filenamePatterns").value.trim(),
     prompt: document.querySelector("#prompt").checked,
     promptIfNoExtension: document.querySelector("#promptIfNoExtension").checked,
