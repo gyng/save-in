@@ -155,16 +155,16 @@ const downloadInto = (path, url, info, options) => {
 
     const hasExtension = rewrittenFilename.match(EXTENSION_REGEX);
 
-    const fsSafeDirectory = replaceFsBadCharsInPath(path);
+    let fsSafeDirectory = replaceFsBadCharsInPath(path);
     const fsSafeFilename = replaceFsBadChars(rewrittenFilename);
 
     // https://github.com/gyng/save-in/issues/7
     // Firefox doesn't like saving into the default directory "./filename"
     // since 58a
-    const fsSafePath =
-      fsSafeDirectory === "." || fsSafeDirectory === "./"
-        ? fsSafeFilename
-        : [fsSafeDirectory, fsSafeFilename].join("/");
+    fsSafeDirectory = fsSafeDirectory.replace(/^\.[\\/\\\\]/, "");
+    const fsSafePath = fsSafeDirectory
+      ? [fsSafeDirectory, fsSafeFilename].join("/")
+      : fsSafeFilename;
 
     browser.downloads.download({
       url,
