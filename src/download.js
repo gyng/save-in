@@ -163,8 +163,8 @@ const downloadInto = (path, url, info, options) => {
     // since 58a
     fsSafeDirectory = fsSafeDirectory.replace(/^\.[\\/\\\\]/, "");
     const fsSafePath = fsSafeDirectory
-      ? fsSafeFilename
-      : [fsSafeDirectory, fsSafeFilename].join("/");
+      ? [fsSafeDirectory, fsSafeFilename].join("/")
+      : fsSafeFilename;
 
     browser.downloads.download({
       url,
