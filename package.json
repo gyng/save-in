@@ -1,6 +1,6 @@
 {
   "name": "save-in",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "license": "MIT",
   "scripts": {
     "build": "env -u WEB_EXT_API_KEY -u WEB_EXT_API_SECRET web-ext build --overwrite-dest -i test docs yarn.lock",
