@@ -166,8 +166,6 @@ const downloadInto = (path, url, info, options) => {
       ? [fsSafeDirectory, fsSafeFilename].join("/")
       : fsSafeFilename;
 
-    console.log(fsSafeDirectory, fsSafePath);
-
     browser.downloads.download({
       url,
       filename: fsSafePath,
