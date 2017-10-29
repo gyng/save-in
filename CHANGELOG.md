@@ -1,4 +1,4 @@
-# 1.4.2
+# 1.4.3
 
 * Fix Firefox Nightly 58.0a not saving into default directory (#7)
 
