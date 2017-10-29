@@ -1,3 +1,7 @@
+# 1.4.2
+
+* Fix Firefox Nightly 58.0a not saving into default directory (#7)
+
 # 1.4.1
 
 * Fix nested directories being treated as a single directory
