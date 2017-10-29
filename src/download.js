@@ -43,6 +43,10 @@ const getFilenameFromContentDisposition = disposition => {
 
 // Handles SPECIAL_DIRS except FILENAME and SEPARATOR
 const replaceSpecialDirs = (path, url, info) => {
+  if (window.SI_DEBUG) {
+    console.log("replaceSpecialDirs", path, url, info); // eslint-disable-line
+  }
+
   let ret = path;
 
   ret = ret.replace(SPECIAL_DIRS.SOURCE_DOMAIN, new URL(url).hostname);
@@ -146,6 +150,19 @@ if (chrome && chrome.downloads && chrome.downloads.onDeterminingFilename) {
 }
 
 const downloadInto = (path, url, info, options) => {
+  // Make bug reports easier
+  /* eslint-disable no-console */
+  if (window.SI_DEBUG) {
+    console.log(
+      "downloadInto path, url, info, options",
+      path,
+      url,
+      info,
+      options
+    );
+  }
+  /* eslint-enable no-console */
+
   const { filenamePatterns, prompt, promptIfNoExtension } = options;
 
   const download = (filename, rewrite = true) => {
@@ -165,6 +182,10 @@ const downloadInto = (path, url, info, options) => {
     const fsSafePath = fsSafeDirectory
       ? [fsSafeDirectory, fsSafeFilename].join("/")
       : fsSafeFilename;
+
+    if (window.SI_DEBUG) {
+      console.log("downloadInto fsSafePath", fsSafePath); // eslint-disable-line
+    }
 
     browser.downloads.download({
       url,
