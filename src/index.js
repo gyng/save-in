@@ -61,15 +61,22 @@ browser.storage.local
     const media = options.links ? MEDIA_TYPES.concat(["link"]) : MEDIA_TYPES;
     let separatorCounter = 0;
 
-    browser.contextMenus.create({
+    let lastUsedMenuOptions = {
       id: `save-in-last-used`,
       title: "Last used",
       enabled: false,
-      icons: {
-        "16": "icons/ic_update_black_24px.svg"
-      },
       contexts: media
-    });
+    };
+
+    if (browser !== chrome) {
+      lastUsedMenuOptions = Object.assign(lastUsedMenuOptions, {
+        icons: {
+          "16": "icons/ic_update_black_24px.svg"
+        }
+      });
+    }
+
+    browser.contextMenus.create(lastUsedMenuOptions);
 
     browser.contextMenus.create({
       id: `separator-${separatorCounter}`,
