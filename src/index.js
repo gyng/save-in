@@ -1,6 +1,7 @@
 // defaults
 const options = {
   links: true,
+  selection: false,
   prompt: false,
   paths: ".",
   notifyOnSuccess: false,
@@ -19,6 +20,7 @@ let lastUsedPath = null; // global variable
 browser.storage.local
   .get([
     "links",
+    "selection",
     "paths",
     "filenamePatterns",
     "prompt",
@@ -30,6 +32,7 @@ browser.storage.local
   .then(item => {
     // Options page has a different scope
     setOption("links", item.links);
+    setOption("selection", item.selection);
     setOption("paths", item.paths);
     setOption("prompt", item.prompt);
     setOption("promptIfNoExtension", item.promptIfNoExtension);
@@ -58,7 +61,8 @@ browser.storage.local
     });
 
     const pathsArray = options.paths.split("\n");
-    const media = options.links ? MEDIA_TYPES.concat(["link"]) : MEDIA_TYPES;
+    let media = options.links ? MEDIA_TYPES.concat(["link"]) : MEDIA_TYPES;
+    media = options.selection ? MEDIA_TYPES.concat(["selection"]) : MEDIA_TYPES;
     let separatorCounter = 0;
 
     let lastUsedMenuOptions = {
@@ -138,9 +142,22 @@ browser.contextMenus.onClicked.addListener(info => {
   const matchSave = info.menuItemId.match(/save-in-(.*)/);
 
   if (matchSave && matchSave.length === 2) {
-    const url = MEDIA_TYPES.includes(info.mediaType)
-      ? info.srcUrl
-      : info.linkUrl;
+    let url;
+    if (MEDIA_TYPES.includes(info.mediaType)) {
+      url = info.srcUrl;
+    } else if (info.linkUrl) {
+      url = info.linkUrl;
+    } else if (info.selectionText) {
+      const blob = new Blob([info.selectionText], {
+        type: "text/plain;charset=utf-8"
+      });
+      url = URL.createObjectURL(blob);
+    } else {
+      if (window.SI_DEBUG) {
+        console.log("failed to choose download", info); // eslint-disable-line
+      }
+      return;
+    }
 
     const saveIntoPath =
       matchSave[1] === "last-used" ? lastUsedPath : matchSave[1];

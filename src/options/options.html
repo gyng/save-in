@@ -262,6 +262,10 @@ Replacement pattern
               <code>catpic.jpg</code> to
               <code>2017-01-01_catpic.jpeg</code>
             </li>
+            <li>
+              <code>b18be819-3fcb-0e4d-b7e3-8ae126e2b37f</code> to
+              <code>example.com.txt</code>
+            </li>
           </ul>
         </p>
         <pre>
@@ -278,6 +282,9 @@ example.com
 
 (.*)\.jpg
 :date::$1:.jpeg
+
+.{8}-.{4}-.{4}-.{12}
+:pageurl:.txt
 </pre>
 
         <p>If you have a useful rule, please add it to
@@ -289,6 +296,11 @@ example.com
     <h4>More options</h4>
     <label>
       <input type="checkbox" id="links" /> Enable saving of links. Prefers sources if available.
+    </label>
+
+    <label>
+      <input type="checkbox" id="selection" /> Enable saving of selected text as a blob. Use a file rewrite rule (eg.
+      <code>.{8}-.{4}-.{4}-.{12}</code>) to rename the saved file.
     </label>
 
     <label>

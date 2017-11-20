@@ -3,6 +3,7 @@ const saveOptions = e => {
 
   browser.storage.local.set({
     links: document.querySelector("#links").checked,
+    selection: document.querySelector("#selection").checked,
     paths: document.querySelector("#paths").value.trim() || ".",
     filenamePatterns: document.querySelector("#filenamePatterns").value.trim(),
     prompt: document.querySelector("#prompt").checked,
@@ -21,6 +22,7 @@ const restoreOptions = () => {
   browser.storage.local
     .get([
       "links",
+      "selection",
       "paths",
       "filenamePatterns",
       "prompt",
@@ -32,6 +34,9 @@ const restoreOptions = () => {
     .then(result => {
       document.querySelector("#links").checked =
         typeof result.links === "undefined" ? true : result.links;
+
+      document.querySelector("#selection").checked =
+        typeof result.selection === "undefined" ? false : result.selection;
 
       document.querySelector("#prompt").checked =
         typeof result.prompt === "undefined" ? false : result.prompt;

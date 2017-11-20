@@ -1,7 +1,8 @@
 # 1.5.0
 
 * Add `:year:`, `:month:`, `:day:`, `:hour:`, `:minute:` variables (#24)
-* Add last used menu entry
+* Add last used menu entry (#20)*
+* Add save selection feature/option (#19)
 
 # 1.4.4
 
