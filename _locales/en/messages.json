@@ -5,7 +5,7 @@
   },
 
   "extensionDescription": {
-    "message": "Saves media {image, video, audio}, links, or selected text (check options) in user-defined directories relative to the default download directory.",
+    "message": "Saves media {image, video, audio, links, text} (check options) in directories relative to the default download directory.",
     "description": "Description of the add-on."
   },
 
