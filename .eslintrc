@@ -11,7 +11,8 @@
     "prettier"
   ],
   "rules": {
-    "prettier/prettier": "error"
+    "prettier/prettier": "error",
+    "no-else-return": 0
   },
   "globals": {
     "SPECIAL_DIRS": true,
