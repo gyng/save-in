@@ -14,6 +14,8 @@ const setOption = (name, value) => {
   }
 };
 
+let lastUsedPath = null; // global variable
+
 browser.storage.local
   .get([
     "links",
@@ -58,6 +60,23 @@ browser.storage.local
     const pathsArray = options.paths.split("\n");
     const media = options.links ? MEDIA_TYPES.concat(["link"]) : MEDIA_TYPES;
     let separatorCounter = 0;
+
+    browser.contextMenus.create({
+      id: `save-in-last-used`,
+      title: "Last used",
+      enabled: false,
+      icons: {
+        "16": "icons/ic_update_black_24px.svg"
+      },
+      contexts: media
+    });
+
+    browser.contextMenus.create({
+      id: `separator-${separatorCounter}`,
+      type: "separator",
+      contexts: media
+    });
+    separatorCounter += 1;
 
     pathsArray.forEach(dir => {
       if (
@@ -115,7 +134,18 @@ browser.contextMenus.onClicked.addListener(info => {
     const url = MEDIA_TYPES.includes(info.mediaType)
       ? info.srcUrl
       : info.linkUrl;
-    const actualPath = replaceSpecialDirs(matchSave[1], url, info);
+
+    const saveIntoPath =
+      matchSave[1] === "last-used" ? lastUsedPath : matchSave[1];
+    lastUsedPath = saveIntoPath;
+
+    const actualPath = replaceSpecialDirs(saveIntoPath, url, info);
+
+    browser.contextMenus.update("save-in-last-used", {
+      title: `${lastUsedPath}`,
+      enabled: true
+    });
+
     downloadInto(actualPath, url, info, options);
   }
 
