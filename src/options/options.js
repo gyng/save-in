@@ -13,6 +13,7 @@ const saveOptions = e => {
   });
 
   browser.contextMenus.removeAll();
+  document.querySelector("body").innerHTML = "";
   browser.runtime.reload();
 };
 
