@@ -68,7 +68,7 @@ browser.storage.local
 
     const pathsArray = options.paths.split("\n");
     let media = options.links ? MEDIA_TYPES.concat(["link"]) : MEDIA_TYPES;
-    media = options.selection ? MEDIA_TYPES.concat(["selection"]) : MEDIA_TYPES;
+    media = options.selection ? media.concat(["selection"]) : media;
     let separatorCounter = 0;
 
     let lastUsedMenuOptions = {

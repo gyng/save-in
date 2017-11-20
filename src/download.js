@@ -180,13 +180,10 @@ const downloadInto = (path, url, info, options) => {
   // Make bug reports easier
   /* eslint-disable no-console */
   if (window.SI_DEBUG) {
-    console.log(
-      "downloadInto path, url, info, options",
-      path,
-      url,
-      info,
-      options
-    );
+    console.log("downloadInto path", path);
+    console.log("downloadInto url", url);
+    console.log("downloadInto info", info);
+    console.log("downloadInto options", options);
   }
   /* eslint-enable no-console */
 
@@ -211,6 +208,9 @@ const downloadInto = (path, url, info, options) => {
       : fsSafeFilename;
 
     if (window.SI_DEBUG) {
+      console.log("downloadInto filename", filename); // eslint-disable-line
+      console.log("downloadInto fsSafeDirectory", fsSafeDirectory); // eslint-disable-line
+      console.log("downloadInto fsSafeFilename", fsSafeFilename); // eslint-disable-line
       console.log("downloadInto fsSafePath", fsSafePath); // eslint-disable-line
     }
 
@@ -234,6 +234,7 @@ const downloadInto = (path, url, info, options) => {
       url,
       info
     };
+
     download(url, false); // Will be rewritten inside Chrome event listener
     return;
   }
@@ -248,7 +249,7 @@ const downloadInto = (path, url, info, options) => {
           getFilenameFromContentDisposition(disposition) || urlFilename;
         download(filename);
       } else {
-        download(urlFilename);
+        download(urlFilename || url);
       }
     })
     .catch(() => {
