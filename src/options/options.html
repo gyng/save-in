@@ -13,107 +13,159 @@
 
   <form id="options">
     <label class="column">
-      <h4>Variables</h4>
-      <div class="box">
-        <table>
-          <tr>
-            <td>
-              <code>---</code>
-            </td>
-            <td></td>
-            <td>Creates a separator in the context menu</td>
-          </tr>
+      <h4 class="help" data-help-for="help-standard-variables">Variables list (🛈 click to expand)</h4>
+      <div class="help-text" id="help-standard-variables">
+        <h4>Standard</h4>
+        <div class="box">
+          <table>
+            <tr>
+              <td>
+                <code>---</code>
+              </td>
+              <td></td>
+              <td>Creates a separator in the context menu</td>
+            </tr>
 
-          <tr>
-            <td>
-              <code>:date:</code>
-            </td>
-            <td>2000-01-01</td>
-            <td>The current date</td>
-          </tr>
+            <tr>
+              <td>
+                <code>:date:</code>
+              </td>
+              <td>2000-01-01</td>
+              <td>The current date</td>
+            </tr>
 
-          <tr>
-            <td>
-              <code>:isodate:</code>
-            </td>
-            <td>20170123T123040Z</td>
-            <td>The current datetime as a UTC ISO8601 time string</td>
-          </tr>
+            <tr>
+              <td>
+                <code>:isodate:</code>
+              </td>
+              <td>20170123T123040Z</td>
+              <td>The current datetime as a UTC ISO8601 time string</td>
+            </tr>
 
-          <tr>
-            <td>
-              <code>:unixdate:</code>
-            </td>
-            <td>946684800</td>
-            <td>The current datetime as a Unix timestamp</td>
-          </tr>
+            <tr>
+              <td>
+                <code>:unixdate:</code>
+              </td>
+              <td>946684800</td>
+              <td>The current datetime as a Unix timestamp</td>
+            </tr>
 
-          <tr>
-            <td>
-              <code>:pageurl:</code>
-            </td>
-            <td>https://xyz.com/abc</td>
-            <td>The url of the page</td>
-          </tr>
+            <tr>
+              <td>
+                <code>:year:</code>
+              </td>
+              <td>2000</td>
+              <td>The current year</td>
+            </tr>
 
-          <tr>
-            <td>
-              <code>:sourcedomain:</code>
-            </td>
-            <td>cdn.xyz.com</td>
-            <td>The hostname of the source</td>
-          </tr>
+            <tr>
+              <td>
+                <code>:month:</code>
+              </td>
+              <td>01</td>
+              <td>The current month</td>
+            </tr>
 
-          <tr>
-            <td>
-              <code>:pagedomain:</code>
-            </td>
-            <td>xyz.com</td>
-            <td>The hostname of the page</td>
-          </tr>
+            <tr>
+              <td>
+                <code>:day:</code>
+              </td>
+              <td>24</td>
+              <td>The current day of month</td>
+            </tr>
 
-          <tr>
-            <td>
-              <code>:filename:</code>
-            </td>
-            <td>my_image.jpg</td>
-            <td>The full filename
-              <i>filenames only</i>
-            </td>
-          </tr>
+            <tr>
+              <td>
+                <code>:hour:</code>
+              </td>
+              <td>13</td>
+              <td>The current hour (24-hour)</td>
+            </tr>
 
-          <tr>
-            <td>
-              <code>:fileext:</code>
-            </td>
-            <td>jpg</td>
-            <td>The naive file extension, if available
-              <i>filenames only</i>
-            </td>
-          </tr>
+            <tr>
+              <td>
+                <code>:minute:</code>
+              </td>
+              <td>46</td>
+              <td>The current minute</td>
+            </tr>
 
-          <tr>
-            <td>
-              <code>:$1:</code>
-            </td>
-            <td></td>
-            <td>The capture group where
-              <code>1</code> = the nth capture group
-              <i>filenames only</i>
-            </td>
-          </tr>
+            <tr>
+              <td>
+                <code>:pageurl:</code>
+              </td>
+              <td>https://xyz.com/abc</td>
+              <td>The url of the page</td>
+            </tr>
 
-          <tr>
-            <td>
-              <code>:linktext:</code>
-            </td>
-            <td>Direct link to image</td>
-            <td>The text of the saved link
-              <i>filenames and links only</i>
-            </td>
-          </tr>
-        </table>
+            <tr>
+              <td>
+                <code>:sourcedomain:</code>
+              </td>
+              <td>cdn.xyz.com</td>
+              <td>The hostname of the source</td>
+            </tr>
+
+            <tr>
+              <td>
+                <code>:pagedomain:</code>
+              </td>
+              <td>xyz.com</td>
+              <td>The hostname of the page</td>
+            </tr>
+
+          </table>
+        </div>
+
+        <h4>Filename-only</h4>
+        <div class="box">
+          <table>
+            <tr>
+              <td>
+                <code>:filename:</code>
+              </td>
+              <td>my_image.jpg</td>
+              <td>The full filename
+                <i>filenames only</i>
+              </td>
+            </tr>
+
+            <tr>
+              <td>
+                <code>:fileext:</code>
+              </td>
+              <td>jpg</td>
+              <td>The naive file extension, if available
+                <i>filenames only</i>
+              </td>
+            </tr>
+
+            <tr>
+              <td>
+                <code>:$1:</code>
+              </td>
+              <td></td>
+              <td>The capture group where
+                <code>1</code> = the n
+                <sup>th</sup> capture group
+                <i>filenames only</i>
+              </td>
+            </tr>
+
+            <tr>
+              <td>
+                <code>:linktext:</code>
+              </td>
+              <td>Direct link to image</td>
+              <td>The text of the saved link
+                <i>filenames and links only</i>
+              </td>
+            </tr>
+          </table>
+        </div>
       </div>
+      </div>
+
       <h4>Paths
         <a href="#" class="help" data-help-for="help-paths">(🛈 help)</a>
       </h4>
@@ -162,6 +214,7 @@ others/:date:/:pagedomain:/foo
         <a href="#" class="help" data-help-for="help-filenames">(🛈 help)</a>
       </h4>
       <b>EXPERIMENTAL: MIGHT CHANGE IN FUTURE VERSIONS</b>
+
       <div class="help-summary">
         <p>Optionally, rewrite filenames that match the regex patterns in order of precedence. Multiple variables can be used
           in the replacement pattern. The format for each rule is
@@ -220,14 +273,15 @@ Replacement pattern
 pbs.twimg.com
 
 .*
-:linktext::fileext:
+:linktext:.:fileext:
 example.com
 
 (.*)\.jpg
 :date::$1:.jpeg
 </pre>
 
-<p>If you have a useful rule, please add it to <a href="https://github.com/gyng/save-in/wiki/Filename-rewrite">the wiki</a>!</p>
+        <p>If you have a useful rule, please add it to
+          <a href="https://github.com/gyng/save-in/wiki/Filename-rewrite">the wiki</a>!</p>
       </div>
       <textarea type="textarea" id="filenamePatterns" rows=7 placeholder="Optional" spellcheck="false"></textarea>
     </label>

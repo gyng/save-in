@@ -218,6 +218,36 @@ describe("variables", () => {
         "a/b/http___www.example.com_foobar_/c"
       );
     });
+
+    test("interpolates :year:", () => {
+      const now = new Date();
+      const output = download.replaceSpecialDirs(":year:", url, info);
+      expect(output.startsWith(now.getFullYear()));
+    });
+
+    test("interpolates :month:", () => {
+      const now = new Date();
+      const output = download.replaceSpecialDirs(":month:", url, info);
+      expect(output.startsWith(now.getMonth() + 1));
+    });
+
+    test("interpolates :day:", () => {
+      const now = new Date();
+      const output = download.replaceSpecialDirs(":day:", url, info);
+      expect(output.startsWith(now.getDay()));
+    });
+
+    test("interpolates :hour:", () => {
+      const now = new Date();
+      const output = download.replaceSpecialDirs(":hour:", url, info);
+      expect(output.startsWith(now.getDay()));
+    });
+
+    test("interpolates :minute:", () => {
+      const now = new Date();
+      const output = download.replaceSpecialDirs(":minute:", url, info);
+      expect(output.startsWith(now.getMinutes()));
+    });
   });
 
   describe("filename variables", () => {

@@ -11,7 +11,12 @@ const SPECIAL_DIRS = {
   UNIX_DATE: new RegExp(":unixdate:", "g"),
   FILENAME: new RegExp(":filename:", "g"),
   FILE_EXTENSION: new RegExp(":fileext:", "g"),
-  LINK_TEXT: new RegExp(":linktext:", "g")
+  LINK_TEXT: new RegExp(":linktext:", "g"),
+  YEAR: new RegExp(":year:", "g"),
+  DAY: new RegExp(":day:", "g"),
+  MONTH: new RegExp(":month:", "g"),
+  HOUR: new RegExp(":hour:", "g"),
+  MINUTE: new RegExp(":minute:", "g")
 };
 
 // Export for testing

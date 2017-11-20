@@ -1,3 +1,7 @@
+# 1.5.0
+
+* Add `:year:`, `:month:`, `:day:`, `:hour:`, `:minute:` variables (#24)
+
 # 1.4.4
 
 * Fix Firefox Nightly 58.0a not saving into default directory (#7)

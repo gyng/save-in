@@ -23,7 +23,7 @@ button[type="submit"] {
 }
 
 h4 {
-  margin-bottom: 0;
+  margin-bottom: 5px;
 }
 
 li {
@@ -37,6 +37,7 @@ textarea {
 .help {
   color: inherit;
   text-decoration: underline;
+  cursor: pointer;
 }
 
 .help:visited {
@@ -49,6 +50,10 @@ textarea {
   background-color: rgb(241, 243, 217);
   padding: 10px;
   margin: 0 0 15px 0;
+}
+
+.hide {
+  display: none;
 }
 
 .show {
