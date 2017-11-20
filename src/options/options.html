@@ -293,6 +293,20 @@ example.com
       <textarea type="textarea" id="filenamePatterns" rows=7 placeholder="Optional" spellcheck="false"></textarea>
     </label>
 
+    <h4>Notifications</h4>
+    <p>Click on the notification to open the file's directory.</p>
+    <label>
+      <input type="checkbox" id="notifyOnSuccess" /> Show notification on successful download
+    </label>
+
+    <label>
+      <input type="checkbox" id="notifyOnFailure" /> Show notification on failed download
+    </label>
+
+    <label>
+      Close notification early after <input type="number" id="notifyDuration" />ms (1s = 1000ms). Will not extend beyond OS/browser notification duration.
+    </label>
+
     <h4>More options</h4>
     <label>
       <input type="checkbox" id="links" /> Enable saving of links. Prefers sources if available.
@@ -311,18 +325,8 @@ example.com
       <input type="checkbox" id="promptIfNoExtension" /> Open a save file dialog if filename has no extension
     </label>
 
-    <h4>Notifications</h4>
-    <p>Click on the notification to open the file's directory.</p>
     <label>
-      <input type="checkbox" id="notifyOnSuccess" /> Show notification on successful download
-    </label>
-
-    <label>
-      <input type="checkbox" id="notifyOnFailure" /> Show notification on failed download
-    </label>
-
-    <label>
-      <input type="number" id="notifyDuration" /> Close notification early after (ms, 1s = 1000ms). Will not extend beyond OS/browser notification duration.
+      <input type="checkbox" id="debug" /> Enable debug logging
     </label>
 
     <button type="submit">Save</button>

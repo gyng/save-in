@@ -1,5 +1,6 @@
 // defaults
 const options = {
+  debug: false,
   links: true,
   selection: false,
   prompt: false,
@@ -19,6 +20,7 @@ let lastUsedPath = null; // global variable
 
 browser.storage.local
   .get([
+    "debug",
     "links",
     "selection",
     "paths",
@@ -30,6 +32,10 @@ browser.storage.local
     "notifyDuration"
   ])
   .then(item => {
+    if (item.debug) {
+      window.SI_DEBUG = 1;
+    }
+
     // Options page has a different scope
     setOption("links", item.links);
     setOption("selection", item.selection);

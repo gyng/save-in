@@ -2,6 +2,7 @@ const saveOptions = e => {
   e.preventDefault();
 
   browser.storage.local.set({
+    debug: document.querySelector("#debug").checked,
     links: document.querySelector("#links").checked,
     selection: document.querySelector("#selection").checked,
     paths: document.querySelector("#paths").value.trim() || ".",
@@ -21,6 +22,7 @@ const saveOptions = e => {
 const restoreOptions = () => {
   browser.storage.local
     .get([
+      "debug",
       "links",
       "selection",
       "paths",
@@ -32,6 +34,9 @@ const restoreOptions = () => {
       "notifyDuration"
     ])
     .then(result => {
+      document.querySelector("#debug").checked =
+        typeof result.debug === "undefined" ? false : result.debug;
+
       document.querySelector("#links").checked =
         typeof result.links === "undefined" ? true : result.links;
 

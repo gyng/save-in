@@ -3,6 +3,7 @@
 * Add `:year:`, `:month:`, `:day:`, `:hour:`, `:minute:` variables (#24)
 * Add last used menu entry (#20)*
 * Add save selection feature/option (#19)
+* Add debug loggin checkbox in options page
 
 # 1.4.4
 
