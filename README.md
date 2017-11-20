@@ -8,7 +8,7 @@
 
 ![Screenshot](docs/screenshot.png)
 
-A web extension (Chrome, Firefox) for saving images, videos, audio, and links into specified directories.
+A web extension (Chrome, Firefox) for saving images, videos, audio, links, and selections into specified directories.
 
 `<all_urls>` permission is used to get around CORS on HTTP HEAD requests (to check for `Content-Disposition` headers).
 
