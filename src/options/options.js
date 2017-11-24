@@ -63,7 +63,7 @@ const restoreOptions = () => {
 
       document.querySelector("#notifyOnFailure").checked =
         typeof result.notifyOnFailure === "undefined"
-          ? false
+          ? true
           : result.notifyOnFailure;
 
       document.querySelector("#notifyDuration").value =

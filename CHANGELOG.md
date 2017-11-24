@@ -2,13 +2,14 @@
 
 * Fix false-positive failure notifications (#28)
 * Fix for browsers (FF < 57) which do not support `icons` in context menu items (#27)
+* Set notify on failure to be on by default
 
 # 1.5.0
 
 * Add `:year:`, `:month:`, `:day:`, `:hour:`, `:minute:` variables (#24)
 * Add last used menu entry (#20)*
 * Add save selection feature/option (#19)
-* Add debug loggin checkbox in options page
+* Add debug logging checkbox in options page
 
 # 1.4.4
 

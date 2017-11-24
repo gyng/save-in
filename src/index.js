@@ -6,7 +6,7 @@ const options = {
   prompt: false,
   paths: ".",
   notifyOnSuccess: false,
-  notifyOnFailure: false,
+  notifyOnFailure: true,
   notifyDuration: 7000
 };
 
