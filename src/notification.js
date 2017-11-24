@@ -1,6 +1,7 @@
 // https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/notifications
 
 const ICON_URL = "icons/ic_archive_black_128px.png";
+const ERROR_ICON_URL = "icons/ic_error_outline_red_96px.png";
 
 const downloadsList = {}; // global
 
@@ -65,7 +66,7 @@ const addNotifications = options => {
       browser.notifications.create(String(downloadDelta.id), {
         type: "basic",
         title: `Failed to save ${filename}`,
-        iconUrl: ICON_URL,
+        iconUrl: ERROR_ICON_URL,
         message: failed.current || "Unknown error"
       });
 
