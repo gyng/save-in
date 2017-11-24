@@ -4,6 +4,22 @@ const ICON_URL = "icons/ic_archive_black_128px.png";
 
 const downloadsList = {}; // global
 
+const isDownloadFailure = (downloadDelta, isChrome) => {
+  // CHROME
+  // Chrome's DownloadDelta contains different information from Firefox's
+  let failed = false;
+
+  if (isChrome) {
+    failed = downloadDelta.error;
+  } else {
+    failed =
+      downloadDelta.error ||
+      (downloadDelta.state && downloadDelta.state.current === "interrupted");
+  }
+
+  return failed;
+};
+
 const addNotifications = options => {
   const notifyOnSuccess = options && options.notifyOnSuccess;
   const notifyOnFailure = options && options.notifyOnFailure;
@@ -39,21 +55,18 @@ const addNotifications = options => {
     const slashIdx = fullFilename && fullFilename.lastIndexOf("/");
     const filename = fullFilename.substring(slashIdx + 1);
 
-    // CHROME
-    // Chrome's DownloadDelta contains different information from Firefox's
-    const failed =
-      browser === chrome
-        ? downloadDelta.error
-        : !downloadDelta ||
-          !downloadDelta.state ||
-          downloadDelta.state.current === "interrupted";
+    const failed = isDownloadFailure(downloadDelta, browser === chrome);
+
+    if (window.SI_DEBUG) {
+      console.log("failed notification", failed, downloadDelta); // eslint-disable-line
+    }
 
     if (notifyOnFailure && failed) {
       browser.notifications.create(String(downloadDelta.id), {
         type: "basic",
-        title: "Failed to save",
+        title: `Failed to save ${filename}`,
         iconUrl: ICON_URL,
-        message: filename
+        message: failed.current || "Unknown error"
       });
 
       if (downloadDelta && downloadDelta.id) {
@@ -85,6 +98,7 @@ const addNotifications = options => {
 // Export for testing
 if (typeof module !== "undefined") {
   module.exports = {
-    addNotifications
+    addNotifications,
+    isDownloadFailure
   };
 }
