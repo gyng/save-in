@@ -4,6 +4,7 @@ const ICON_URL = "icons/ic_archive_black_128px.png";
 const ERROR_ICON_URL = "icons/ic_error_outline_red_96px.png";
 
 const downloadsList = {}; // global
+let requestedDownloadFlag = false;
 
 const isDownloadFailure = (downloadDelta, isChrome) => {
   // CHROME
@@ -27,7 +28,10 @@ const addNotifications = options => {
   const notifyDuration = options && options.notifyDuration;
 
   browser.downloads.onCreated.addListener(item => {
-    downloadsList[item.id] = item;
+    if (requestedDownloadFlag) {
+      downloadsList[item.id] = item;
+      requestedDownloadFlag = false;
+    }
   });
 
   browser.notifications.onClicked.addListener(notId => {
@@ -37,6 +41,10 @@ const addNotifications = options => {
 
   browser.downloads.onChanged.addListener(downloadDelta => {
     const item = downloadsList[downloadDelta.id];
+
+    if (!item) {
+      return;
+    }
 
     // CHROME
     // Chrome does not have the filename in the initial DownloadItem,
@@ -58,11 +66,21 @@ const addNotifications = options => {
 
     const failed = isDownloadFailure(downloadDelta, browser === chrome);
 
+    const isFromSelf = typeof downloadsList[downloadDelta.id] !== "undefined";
+
     if (window.SI_DEBUG) {
-      console.log("failed notification", failed, downloadDelta); // eslint-disable-line
+      /* eslint-disable no-console */
+      console.log(
+        "notification",
+        failed,
+        isFromSelf,
+        downloadsList,
+        downloadDelta
+      );
+      /* eslint-enable no-console */
     }
 
-    if (notifyOnFailure && failed) {
+    if (notifyOnFailure && isFromSelf && failed) {
       browser.notifications.create(String(downloadDelta.id), {
         type: "basic",
         title: `Failed to save ${filename}`,
@@ -77,6 +95,7 @@ const addNotifications = options => {
       }
     } else if (
       notifyOnSuccess &&
+      isFromSelf &&
       downloadDelta &&
       downloadDelta.state &&
       downloadDelta.state.current === "complete" &&

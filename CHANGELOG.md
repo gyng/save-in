@@ -1,3 +1,7 @@
+# 1.5.2
+
+* Only notify for downloads downloaded through save in
+
 # 1.5.1
 
 * Fix false-positive failure notifications (#28)

@@ -184,6 +184,7 @@ browser.contextMenus.onClicked.addListener(info => {
       enabled: true
     });
 
+    requestedDownloadFlag = true;
     downloadInto(actualPath, url, info, options);
   }
 

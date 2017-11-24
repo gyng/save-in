@@ -19,6 +19,7 @@
     "MEDIA_TYPES": true,
     "replaceSpecialDirs": true,
     "downloadInto": true,
-    "addNotifications": true
+    "addNotifications": true,
+    "requestedDownloadFlag": true
   }
 }
