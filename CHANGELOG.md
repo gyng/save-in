@@ -1,3 +1,8 @@
+# 1.5.1
+
+* Fix false-positive failure notifications (#28)
+* Fix for browsers (FF < 57) which do not support `icons` in context menu items (#27)
+
 # 1.5.0
 
 * Add `:year:`, `:month:`, `:day:`, `:hour:`, `:minute:` variables (#24)
