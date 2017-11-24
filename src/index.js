@@ -71,22 +71,30 @@ browser.storage.local
     media = options.selection ? media.concat(["selection"]) : media;
     let separatorCounter = 0;
 
-    let lastUsedMenuOptions = {
+    const lastUsedMenuOptions = {
       id: `save-in-last-used`,
       title: "Last used",
       enabled: false,
       contexts: media
     };
 
-    if (browser !== chrome) {
-      lastUsedMenuOptions = Object.assign(lastUsedMenuOptions, {
-        icons: {
-          "16": "icons/ic_update_black_24px.svg"
-        }
-      });
-    }
+    // Chrome, FF < 57 crash when icons is supplied
+    // There is no easy way to detect support, so use a try/catch
+    try {
+      browser.contextMenus.create(
+        Object.assign({}, lastUsedMenuOptions, {
+          icons: {
+            "16": "icons/ic_update_black_24px.svg"
+          }
+        })
+      );
+    } catch (e) {
+      if (window.SI_DEBUG) {
+        console.log("Failed to create last used menu item with icons"); // eslint-disable-line
+      }
 
-    browser.contextMenus.create(lastUsedMenuOptions);
+      browser.contextMenus.create(lastUsedMenuOptions);
+    }
 
     browser.contextMenus.create({
       id: `separator-${separatorCounter}`,
