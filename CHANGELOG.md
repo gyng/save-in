@@ -1,7 +1,7 @@
 # 1.6.0
 
 * Add `:second:` variable (#31)
-* Add `:pagetitle:` variable
+* Add `:pagetitle:` variable, this requires a new `tabs` permission
 * Add saving of current page (#17, #30)
 * Add saving of things as shortcuts (#17)
 * Save selection with page titles for filenames
