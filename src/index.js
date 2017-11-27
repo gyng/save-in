@@ -179,7 +179,7 @@ browser.contextMenus.onClicked.addListener(info => {
       url = info.linkUrl;
     } else if (options.selection && info.selectionText) {
       url = makeObjectUrl(info.selectionText);
-      suggestedFilename = `${currentTab.title}.html`;
+      suggestedFilename = `${currentTab.title}.txt`;
     } else if (options.page && info.pageUrl) {
       url = info.pageUrl;
       suggestedFilename = `${currentTab.title}.html`;

@@ -35,7 +35,7 @@ const SHORTCUT_EXTENSIONS = {
   [SHORTCUT_TYPES.WINDOWS]: ".url"
 };
 
-const DUPLICATE_BEHAVIOUR = {
+const CONFLICT_ACTION = {
   UNIQUIFY: "uniquify",
   OVERWRITE: "overwrite",
   PROMPT: "prompt"
@@ -48,6 +48,6 @@ if (typeof module !== "undefined") {
     SPECIAL_DIRS,
     SHORTCUT_TYPES,
     SHORTCUT_EXTENSIONS,
-    DUPLICATE_BEHAVIOUR
+    CONFLICT_ACTION
   };
 }
