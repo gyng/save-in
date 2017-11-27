@@ -24,6 +24,7 @@
       "src/constants.js",
       "src/notification.js",
       "src/download.js",
+      "src/shortcut.js",
       "src/index.js"
     ]
   },

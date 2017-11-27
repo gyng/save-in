@@ -5,6 +5,9 @@ const options = {
   selection: false,
   prompt: false,
   paths: ".",
+  page: false,
+  shortcut: false,
+  shortcutType: SHORTCUT_TYPES.HTML_REDIRECT,
   notifyOnSuccess: false,
   notifyOnFailure: true,
   notifyDuration: 7000
@@ -22,6 +25,9 @@ browser.storage.local
   .get([
     "debug",
     "links",
+    "page",
+    "shortcut",
+    "shortcutType",
     "selection",
     "paths",
     "filenamePatterns",
@@ -39,12 +45,15 @@ browser.storage.local
     // Options page has a different scope
     setOption("links", item.links);
     setOption("selection", item.selection);
+    setOption("page", item.page);
     setOption("paths", item.paths);
     setOption("prompt", item.prompt);
     setOption("promptIfNoExtension", item.promptIfNoExtension);
     setOption("notifyOnSuccess", item.notifyOnSuccess);
     setOption("notifyOnFailure", item.notifyOnFailure);
     setOption("notifyDuration", item.notifyDuration);
+    setOption("shortcut", item.shortcut);
+    setOption("shortcutType", item.shortcutType);
 
     // Parse filenamePatterns
     const filenamePatterns =
@@ -69,6 +78,7 @@ browser.storage.local
     const pathsArray = options.paths.split("\n");
     let media = options.links ? MEDIA_TYPES.concat(["link"]) : MEDIA_TYPES;
     media = options.selection ? media.concat(["selection"]) : media;
+    media = options.page ? media.concat(["page"]) : media;
     let separatorCounter = 0;
 
     const lastUsedMenuOptions = {
@@ -157,15 +167,18 @@ browser.contextMenus.onClicked.addListener(info => {
 
   if (matchSave && matchSave.length === 2) {
     let url;
+    let suggestedFilename = null;
+
     if (MEDIA_TYPES.includes(info.mediaType)) {
       url = info.srcUrl;
-    } else if (info.linkUrl) {
+    } else if (options.links && info.linkUrl) {
       url = info.linkUrl;
-    } else if (info.selectionText) {
-      const blob = new Blob([info.selectionText], {
-        type: "text/plain;charset=utf-8"
-      });
-      url = URL.createObjectURL(blob);
+    } else if (options.selection && info.selectionText) {
+      url = makeObjectUrl(info.selectionText);
+      suggestedFilename = info.pageUrl;
+    } else if (options.page && info.pageUrl) {
+      url = info.pageUrl;
+      suggestedFilename = `${info.pageUrl}.html`;
     } else {
       if (window.SI_DEBUG) {
         console.log("failed to choose download", info); // eslint-disable-line
@@ -184,8 +197,16 @@ browser.contextMenus.onClicked.addListener(info => {
       enabled: true
     });
 
+    if (options.shortcut) {
+      url = makeShortcut(options.shortcutType, url);
+      suggestedFilename = `${suggestedFilename ||
+        info.srcUrl ||
+        info.linkUrl ||
+        info.pageUrl}.${SHORTCUT_EXTENSIONS[options.shortcutType]}`;
+    }
+
     requestedDownloadFlag = true;
-    downloadInto(actualPath, url, info, options);
+    downloadInto(actualPath, url, info, options, suggestedFilename);
   }
 
   switch (info.menuItemId) {

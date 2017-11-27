@@ -20,10 +20,26 @@ const SPECIAL_DIRS = {
   SECOND: new RegExp(":second:", "g")
 };
 
+const SHORTCUT_TYPES = {
+  HTML_REDIRECT: "HTML_REDIRECT",
+  MAC: "MAC",
+  FREEDESKTOP: "FREEDESKTOP",
+  WINDOWS: "WINDOWS"
+};
+
+const SHORTCUT_EXTENSIONS = {
+  [SHORTCUT_TYPES.HTML_REDIRECT]: ".html",
+  [SHORTCUT_TYPES.MAC]: ".url",
+  [SHORTCUT_TYPES.FREEDESKTOP]: ".url",
+  [SHORTCUT_TYPES.WINDOWS]: ".url"
+};
+
 // Export for testing
 if (typeof module !== "undefined") {
   module.exports = {
     MEDIA_TYPES,
-    SPECIAL_DIRS
+    SPECIAL_DIRS,
+    SHORTCUT_TYPES,
+    SHORTCUT_EXTENSIONS
   };
 }

@@ -317,6 +317,21 @@ example.com
       Close notification early after <input type="number" id="notifyDuration" />ms (1s = 1000ms). Will not extend beyond OS/browser notification duration.
     </label>
 
+    <h4>Save as shortcuts</h4>
+    <label>
+      <input type="checkbox" id="shortcut" /> Save everything as shortcuts instead
+    </label>
+
+    <label>
+      Shortcut type
+      <select id="shortcutType">
+        <option value="HTML_REDIRECT">HTML redirect</option>
+        <option value="MAC">Mac .url</option>
+        <option value="WINDOWS">Windows .url</option>
+        <option value="FREEDESKTOP">Freedesktop .url</option>
+      </select>
+    </label>
+
     <h4>More options</h4>
     <label>
       <input type="checkbox" id="links" /> Enable saving of links. Prefers sources if available.
@@ -325,6 +340,10 @@ example.com
     <label>
       <input type="checkbox" id="selection" /> Enable saving of selected text as a blob. Use a file rewrite rule (eg.
       <code>.{8}-.{4}-.{4}-.{12}</code>) to rename the saved file.
+    </label>
+
+    <label>
+      <input type="checkbox" id="page" /> Enable saving of the current page.
     </label>
 
     <label>

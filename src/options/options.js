@@ -5,6 +5,9 @@ const saveOptions = e => {
     debug: document.querySelector("#debug").checked,
     links: document.querySelector("#links").checked,
     selection: document.querySelector("#selection").checked,
+    page: document.querySelector("#page").checked,
+    shortcut: document.querySelector("#shortcut").checked,
+    shortcutType: document.querySelector("#shortcutType").value,
     paths: document.querySelector("#paths").value.trim() || ".",
     filenamePatterns: document.querySelector("#filenamePatterns").value.trim(),
     prompt: document.querySelector("#prompt").checked,
@@ -31,45 +34,37 @@ const restoreOptions = () => {
       "promptIfNoExtension",
       "notifyOnSuccess",
       "notifyOnFailure",
-      "notifyDuration"
+      "notifyDuration",
+      "page",
+      "shortcut",
+      "shortcutType"
     ])
     .then(result => {
-      document.querySelector("#debug").checked =
-        typeof result.debug === "undefined" ? false : result.debug;
+      const setCheckboxElement = (id, defaultVal) => {
+        document.querySelector(`#${id}`).checked =
+          typeof result[id] === "undefined" ? defaultVal : result[id];
+      };
 
-      document.querySelector("#links").checked =
-        typeof result.links === "undefined" ? true : result.links;
-
-      document.querySelector("#selection").checked =
-        typeof result.selection === "undefined" ? false : result.selection;
-
-      document.querySelector("#prompt").checked =
-        typeof result.prompt === "undefined" ? false : result.prompt;
-
-      document.querySelector("#promptIfNoExtension").checked =
-        typeof result.promptIfNoExtension === "undefined"
-          ? false
-          : result.promptIfNoExtension;
+      const setValueElement = (id, defaultVal) => {
+        document.querySelector(`#${id}`).value =
+          typeof result[id] === "undefined" ? defaultVal : result[id];
+      };
 
       document.querySelector("#paths").value = result.paths || ".";
-
       document.querySelector("#filenamePatterns").value =
         result.filenamePatterns || "";
 
-      document.querySelector("#notifyOnSuccess").checked =
-        typeof result.notifyOnSuccess === "undefined"
-          ? false
-          : result.notifyOnSuccess;
-
-      document.querySelector("#notifyOnFailure").checked =
-        typeof result.notifyOnFailure === "undefined"
-          ? true
-          : result.notifyOnFailure;
-
-      document.querySelector("#notifyDuration").value =
-        typeof result.notifyDuration === "undefined"
-          ? 7000
-          : result.notifyDuration;
+      setCheckboxElement("debug", false);
+      setCheckboxElement("links", true);
+      setCheckboxElement("selection", false);
+      setCheckboxElement("page", false);
+      setCheckboxElement("shortcut", false);
+      setValueElement("shortcutType", "HTML_REDIRECT");
+      setCheckboxElement("prompt", false);
+      setCheckboxElement("promptIfNoExtension", false);
+      setCheckboxElement("notifyOnSuccess", false);
+      setCheckboxElement("notifyOnFailure", true);
+      setValueElement("notifyDuration", 7000);
     });
 };
 

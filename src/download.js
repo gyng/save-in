@@ -4,6 +4,13 @@ const DISPOSITION_FILENAME_REGEX = /filename[^;=\n]*=((['"])(.*)?\2|(.+'')?([^;\
 const EXTENSION_REGEX = /\.([0-9a-z]{1,8})$/i;
 const SPECIAL_CHARACTERS_REGEX = /[~<>:"/\\|?*\0]/g;
 
+const makeObjectUrl = (content, mime = "text/plain") =>
+  URL.createObjectURL(
+    new Blob([content], {
+      type: `${mime};charset=utf-8`
+    })
+  );
+
 // TODO: Make this OS-aware instead of assuming Windows
 const replaceFsBadChars = s => s.replace(SPECIAL_CHARACTERS_REGEX, "_");
 const replaceFsBadCharsInPath = pathStr =>
@@ -168,7 +175,7 @@ if (chrome && chrome.downloads && chrome.downloads.onDeterminingFilename) {
   chrome.downloads.onDeterminingFilename.addListener(
     (downloadItem, suggest) => {
       const rewrittenFilename = rewriteFilename(
-        downloadItem.filename,
+        globalChromeRewriteOptions.suggestedFilename || downloadItem.filename,
         globalChromeRewriteOptions.filenamePatterns,
         globalChromeRewriteOptions.url,
         globalChromeRewriteOptions.info
@@ -183,7 +190,7 @@ if (chrome && chrome.downloads && chrome.downloads.onDeterminingFilename) {
   );
 }
 
-const downloadInto = (path, url, info, options) => {
+const downloadInto = (path, url, info, options, suggestedFilename) => {
   // Make bug reports easier
   /* eslint-disable no-console */
   if (window.SI_DEBUG) {
@@ -198,8 +205,13 @@ const downloadInto = (path, url, info, options) => {
 
   const download = (filename, rewrite = true) => {
     const rewrittenFilename = rewrite
-      ? rewriteFilename(filename, filenamePatterns, url, info)
-      : filename;
+      ? rewriteFilename(
+          suggestedFilename || filename,
+          filenamePatterns,
+          url,
+          info
+        )
+      : suggestedFilename || filename;
 
     const hasExtension = rewrittenFilename.match(EXTENSION_REGEX);
 
@@ -238,6 +250,7 @@ const downloadInto = (path, url, info, options) => {
     globalChromeRewriteOptions = {
       path,
       filenamePatterns,
+      suggestedFilename,
       url,
       info
     };
@@ -274,6 +287,7 @@ if (typeof module !== "undefined") {
     getFilenameFromContentDisposition,
     replaceSpecialDirs,
     rewriteFilename,
+    makeObjectUrl,
     DISPOSITION_FILENAME_REGEX,
     EXTENSION_REGEX,
     SPECIAL_CHARACTERS_REGEX

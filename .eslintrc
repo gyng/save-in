@@ -17,9 +17,13 @@
   "globals": {
     "SPECIAL_DIRS": true,
     "MEDIA_TYPES": true,
+    "SHORTCUT_TYPES": true,
+    "SHORTCUT_EXTENSIONS": true,
     "replaceSpecialDirs": true,
     "downloadInto": true,
     "addNotifications": true,
-    "requestedDownloadFlag": true
+    "requestedDownloadFlag": true,
+    "makeObjectUrl": true,
+    "makeShortcut": true
   }
 }
