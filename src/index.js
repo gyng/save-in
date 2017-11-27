@@ -20,6 +20,7 @@ const setOption = (name, value) => {
 };
 
 let lastUsedPath = null; // global variable
+let currentTab = null; // global variable
 
 browser.storage.local
   .get([
@@ -219,4 +220,14 @@ browser.contextMenus.onClicked.addListener(info => {
     default:
       break; // noop
   }
+});
+
+browser.tabs.onActivated.addListener(info => {
+  browser.tabs.get(info.tabId).then(t => {
+    if (window.SI_DEBUG) {
+      console.log("current tab", t); // eslint-disable-line
+    }
+
+    currentTab = t;
+  });
 });

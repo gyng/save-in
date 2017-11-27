@@ -32,6 +32,7 @@
   "permissions": [
     "<all_urls>",
     "activeTab",
+    "tabs",
     "contextMenus",
     "downloads",
     "notifications",

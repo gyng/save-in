@@ -131,6 +131,8 @@ const replaceSpecialDirs = (path, url, info) => {
       .padStart(2, "0")
   );
 
+  ret = ret.replace(SPECIAL_DIRS.PAGE_TITLE, currentTab.title || "");
+
   return ret;
 };
 

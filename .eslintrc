@@ -24,6 +24,7 @@
     "addNotifications": true,
     "requestedDownloadFlag": true,
     "makeObjectUrl": true,
-    "makeShortcut": true
+    "makeShortcut": true,
+    "currentTab": true
   }
 }

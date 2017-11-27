@@ -163,10 +163,12 @@ describe("variables", () => {
 
   beforeAll(() => {
     global.SPECIAL_DIRS = constants.SPECIAL_DIRS;
+    global.currentTab = { title: "foobartitle" };
   });
 
   afterAll(() => {
     global.SPECIAL_DIRS = specialDirs;
+    global.currentTab = undefined;
   });
 
   describe("standard variables", () => {
@@ -298,6 +300,18 @@ describe("variables", () => {
       ];
       const output = download.rewriteFilename(input, patterns, url, info);
       expect(output).toBe("linkfoobarlinkfoobar");
+    });
+
+    test("interpolates :pagetitle:", () => {
+      const input = "lol.jpeg";
+      const patterns = [
+        {
+          filenameMatch: new RegExp("(.*)\\.(jpeg)"),
+          replace: ":pagetitle::pagetitle:"
+        }
+      ];
+      const output = download.rewriteFilename(input, patterns, url, info);
+      expect(output).toBe("foobartitlefoobartitle");
     });
   });
 });

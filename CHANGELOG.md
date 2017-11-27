@@ -1,6 +1,7 @@
 # 1.6.0
 
 * Add `:second:` variable (#31)
+* Add `:pagetitle:` variable
 * Add saving of current page (#17, #30)
 * Add saving of things as shortcuts (#17)
 
