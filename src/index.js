@@ -176,10 +176,10 @@ browser.contextMenus.onClicked.addListener(info => {
       url = info.linkUrl;
     } else if (options.selection && info.selectionText) {
       url = makeObjectUrl(info.selectionText);
-      suggestedFilename = info.pageUrl;
+      suggestedFilename = `${currentTab.title}.html`;
     } else if (options.page && info.pageUrl) {
       url = info.pageUrl;
-      suggestedFilename = `${info.pageUrl}.html`;
+      suggestedFilename = `${currentTab.title}.html`;
     } else {
       if (window.SI_DEBUG) {
         console.log("failed to choose download", info); // eslint-disable-line
@@ -201,6 +201,7 @@ browser.contextMenus.onClicked.addListener(info => {
     if (options.shortcut) {
       url = makeShortcut(options.shortcutType, url);
       suggestedFilename = `${suggestedFilename ||
+        currentTab.title ||
         info.srcUrl ||
         info.linkUrl ||
         info.pageUrl}.${SHORTCUT_EXTENSIONS[options.shortcutType]}`;
