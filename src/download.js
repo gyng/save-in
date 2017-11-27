@@ -131,7 +131,12 @@ const replaceSpecialDirs = (path, url, info) => {
       .padStart(2, "0")
   );
 
-  ret = ret.replace(SPECIAL_DIRS.PAGE_TITLE, currentTab.title || "");
+  ret = ret.replace(
+    SPECIAL_DIRS.PAGE_TITLE,
+    (currentTab && currentTab.title) || ""
+  );
+
+  ret = ret.replace(SPECIAL_DIRS.LINK_TEXT, info.linkText);
 
   return ret;
 };

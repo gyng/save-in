@@ -36,10 +36,19 @@ describe("shortcut content creation", () => {
     );
   });
 
-  test("creates a Freedesktop URL shortcut", () => {
-    const expected = "[Desktop Entry]\nEncoding=UTF-8\nURL=foo";
+  test("creates a Freedesktop URL shortcut without a title", () => {
+    const expected =
+      "[Desktop Entry]\nEncoding=UTF-8\nType=2\nTitle=foo\nURL=foo";
     expect(
       shortcut.makeShortcutContent(SHORTCUT_TYPES.FREEDESKTOP, "foo")
+    ).toBe(expected);
+  });
+
+  test("creates a Freedesktop URL shortcut with a title", () => {
+    const expected =
+      "[Desktop Entry]\nEncoding=UTF-8\nType=2\nTitle=bar\nURL=foo";
+    expect(
+      shortcut.makeShortcutContent(SHORTCUT_TYPES.FREEDESKTOP, "foo", "bar")
     ).toBe(expected);
   });
 });

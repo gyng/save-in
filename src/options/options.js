@@ -7,7 +7,9 @@ const saveOptions = e => {
     links: document.querySelector("#links").checked,
     selection: document.querySelector("#selection").checked,
     page: document.querySelector("#page").checked,
-    shortcut: document.querySelector("#shortcut").checked,
+    shortcutMedia: document.querySelector("#shortcutMedia").checked,
+    shortcutLink: document.querySelector("#shortcutLink").checked,
+    shortcutPage: document.querySelector("#shortcutPage").checked,
     shortcutType: document.querySelector("#shortcutType").value,
     paths: document.querySelector("#paths").value.trim() || ".",
     filenamePatterns: document.querySelector("#filenamePatterns").value.trim(),
@@ -38,7 +40,9 @@ const restoreOptions = () => {
       "notifyOnFailure",
       "notifyDuration",
       "page",
-      "shortcut",
+      "shortcutMedia",
+      "shortcutLink",
+      "shortcutPage",
       "shortcutType"
     ])
     .then(result => {
@@ -61,7 +65,9 @@ const restoreOptions = () => {
       setCheckboxElement("links", true);
       setCheckboxElement("selection", false);
       setCheckboxElement("page", false);
-      setCheckboxElement("shortcut", false);
+      setCheckboxElement("shortcutMedia", false);
+      setCheckboxElement("shortcutLink", false);
+      setCheckboxElement("shortcutPage", false);
       setValueElement("shortcutType", "HTML_REDIRECT");
       setCheckboxElement("prompt", false);
       setCheckboxElement("promptIfNoExtension", false);

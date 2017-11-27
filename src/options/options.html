@@ -130,6 +130,16 @@
               <td>The title of the page</td>
             </tr>
 
+            <tr>
+              <td>
+                <code>:linktext:</code>
+              </td>
+              <td>Direct link to image</td>
+              <td>The text of the saved link, or the <code>title</code> attribute of the image
+                <i>filenames, images, and links only</i>
+              </td>
+            </tr>
+
           </table>
         </div>
 
@@ -165,16 +175,6 @@
                 <code>1</code> = the n
                 <sup>th</sup> capture group
                 <i>filenames only</i>
-              </td>
-            </tr>
-
-            <tr>
-              <td>
-                <code>:linktext:</code>
-              </td>
-              <td>Direct link to image</td>
-              <td>The text of the saved link
-                <i>filenames and links only</i>
               </td>
             </tr>
           </table>
@@ -329,10 +329,6 @@ example.com
 
     <h4>Save as shortcuts</h4>
     <label>
-      <input type="checkbox" id="shortcut" /> Save everything as shortcuts instead
-    </label>
-
-    <label>
       Shortcut type
       <select id="shortcutType">
         <option value="HTML_REDIRECT">HTML redirect</option>
@@ -342,14 +338,25 @@ example.com
       </select>
     </label>
 
+    <label>
+      <input type="checkbox" id="shortcutMedia" /> Save media as shortcuts instead
+    </label>
+
+    <label>
+      <input type="checkbox" id="shortcutLink" /> Save links as shortcuts instead
+    </label>
+
+    <label>
+      <input type="checkbox" id="shortcutPage" /> Save pages as shortcuts instead
+    </label>
+
     <h4>More options</h4>
     <label>
       <input type="checkbox" id="links" /> Enable saving of links. Prefers sources if available.
     </label>
 
     <label>
-      <input type="checkbox" id="selection" /> Enable saving of selected text as a blob. Use a file rewrite rule (eg.
-      <code>.{8}-.{4}-.{4}-.{12}</code>) to rename the saved file.
+      <input type="checkbox" id="selection" /> Enable saving of selected text as a blob.
     </label>
 
     <label>

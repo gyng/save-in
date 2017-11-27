@@ -7,7 +7,9 @@ const options = {
   prompt: false,
   paths: ".",
   page: false,
-  shortcut: false,
+  shortcutMedia: false,
+  shortcutLink: false,
+  shortcutPage: false,
   shortcutType: SHORTCUT_TYPES.HTML_REDIRECT,
   notifyOnSuccess: false,
   notifyOnFailure: true,
@@ -29,7 +31,9 @@ browser.storage.local
     "conflictAction",
     "links",
     "page",
-    "shortcut",
+    "shortcutMedia",
+    "shortcutLink",
+    "shortcutPage",
     "shortcutType",
     "selection",
     "paths",
@@ -56,7 +60,9 @@ browser.storage.local
     setOption("notifyOnSuccess", item.notifyOnSuccess);
     setOption("notifyOnFailure", item.notifyOnFailure);
     setOption("notifyDuration", item.notifyDuration);
-    setOption("shortcut", item.shortcut);
+    setOption("shortcutMedia", item.shortcutMedia);
+    setOption("shortcutLink", item.shortcutLink);
+    setOption("shortcutPage", item.shortcutPage);
     setOption("shortcutType", item.shortcutType);
 
     // Parse filenamePatterns
@@ -172,17 +178,23 @@ browser.contextMenus.onClicked.addListener(info => {
   if (matchSave && matchSave.length === 2) {
     let url;
     let suggestedFilename = null;
+    let downloadType = DOWNLOAD_TYPES.UNKNOWN;
 
     if (MEDIA_TYPES.includes(info.mediaType)) {
+      downloadType = DOWNLOAD_TYPES.MEDIA;
       url = info.srcUrl;
     } else if (options.links && info.linkUrl) {
+      downloadType = DOWNLOAD_TYPES.LINK;
       url = info.linkUrl;
     } else if (options.selection && info.selectionText) {
+      downloadType = DOWNLOAD_TYPES.SELECTION;
       url = makeObjectUrl(info.selectionText);
       suggestedFilename = `${currentTab.title}.txt`;
     } else if (options.page && info.pageUrl) {
+      downloadType = DOWNLOAD_TYPES.PAGE;
       url = info.pageUrl;
-      suggestedFilename = `${currentTab.title}.html`;
+      suggestedFilename = `${(currentTab && currentTab.title) ||
+        info.pageUrl}.html`;
     } else {
       if (window.SI_DEBUG) {
         console.log("failed to choose download", info); // eslint-disable-line
@@ -201,13 +213,33 @@ browser.contextMenus.onClicked.addListener(info => {
       enabled: true
     });
 
-    if (options.shortcut) {
-      url = makeShortcut(options.shortcutType, url);
-      suggestedFilename = `${suggestedFilename ||
-        currentTab.title ||
-        info.srcUrl ||
-        info.linkUrl ||
-        info.pageUrl}.${SHORTCUT_EXTENSIONS[options.shortcutType]}`;
+    const saveAsShortcut =
+      (downloadType === DOWNLOAD_TYPES.MEDIA && options.shortcutMedia) ||
+      (downloadType === DOWNLOAD_TYPES.LINK && options.shortcutLink) ||
+      (downloadType === DOWNLOAD_TYPES.PAGE && options.shortcutPage);
+
+    if (window.SI_DEBUG) {
+      console.log("shortcut", saveAsShortcut, downloadType, options, info); // eslint-disable-line
+    }
+
+    if (saveAsShortcut) {
+      url = makeShortcut(
+        options.shortcutType,
+        url,
+        currentTab && currentTab.title
+      );
+
+      suggestedFilename =
+        downloadType === DOWNLOAD_TYPES.PAGE
+          ? `${suggestedFilename ||
+              (currentTab && currentTab.title) ||
+              info.srcUrl ||
+              info.linkUrl ||
+              info.pageUrl}${SHORTCUT_EXTENSIONS[options.shortcutType]}`
+          : `${suggestedFilename ||
+              info.linkText ||
+              info.srcUrl ||
+              info.linkUrl}${SHORTCUT_EXTENSIONS[options.shortcutType]}`;
     }
 
     requestedDownloadFlag = true;

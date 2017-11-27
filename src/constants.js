@@ -35,6 +35,14 @@ const SHORTCUT_EXTENSIONS = {
   [SHORTCUT_TYPES.WINDOWS]: ".url"
 };
 
+const DOWNLOAD_TYPES = {
+  UNKNOWN: "UNKNOWN",
+  MEDIA: "MEDIA",
+  LINK: "LINK",
+  SELECTION: "SELECTION",
+  PAGE: "PAGE"
+};
+
 const CONFLICT_ACTION = {
   UNIQUIFY: "uniquify",
   OVERWRITE: "overwrite",

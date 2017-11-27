@@ -19,6 +19,7 @@
     "MEDIA_TYPES": true,
     "SHORTCUT_TYPES": true,
     "SHORTCUT_EXTENSIONS": true,
+    "DOWNLOAD_TYPES": true,
     "replaceSpecialDirs": true,
     "downloadInto": true,
     "addNotifications": true,
