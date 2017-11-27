@@ -186,7 +186,8 @@ if (chrome && chrome.downloads && chrome.downloads.onDeterminingFilename) {
       suggest({
         filename: `${globalChromeRewriteOptions.path}/${replaceFsBadChars(
           rewrittenFilename
-        )}`
+        )}`,
+        conflictAction: globalChromeRewriteOptions.conflictAction
       });
     }
   );
@@ -203,7 +204,12 @@ const downloadInto = (path, url, info, options, suggestedFilename) => {
   }
   /* eslint-enable no-console */
 
-  const { filenamePatterns, prompt, promptIfNoExtension } = options;
+  const {
+    filenamePatterns,
+    prompt,
+    promptIfNoExtension,
+    conflictAction
+  } = options;
 
   const download = (filename, rewrite = true) => {
     const rewrittenFilename = rewrite
@@ -233,13 +239,15 @@ const downloadInto = (path, url, info, options, suggestedFilename) => {
       console.log("downloadInto fsSafeDirectory", fsSafeDirectory); // eslint-disable-line
       console.log("downloadInto fsSafeFilename", fsSafeFilename); // eslint-disable-line
       console.log("downloadInto fsSafePath", fsSafePath); // eslint-disable-line
+      console.log("downloadInto conflictAction", conflictAction); // eslint-disable-line
     }
 
+    // conflictAction is Chrome only and overridden in onDeterminingFilename, Firefox enforced in settings
     browser.downloads.download({
       url,
       filename: fsSafePath,
-      saveAs: prompt || (promptIfNoExtension && !hasExtension)
-      // conflictAction: 'prompt', // Not supported in FF
+      saveAs: prompt || (promptIfNoExtension && !hasExtension),
+      conflictAction
     });
   };
 
@@ -254,7 +262,8 @@ const downloadInto = (path, url, info, options, suggestedFilename) => {
       filenamePatterns,
       suggestedFilename,
       url,
-      info
+      info,
+      conflictAction
     };
 
     download(url, false); // Will be rewritten inside Chrome event listener

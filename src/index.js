@@ -1,6 +1,7 @@
 // defaults
 const options = {
   debug: false,
+  conflictAction: "uniquify",
   links: true,
   selection: false,
   prompt: false,
@@ -25,6 +26,7 @@ let currentTab = null; // global variable
 browser.storage.local
   .get([
     "debug",
+    "conflictAction",
     "links",
     "page",
     "shortcut",
@@ -45,6 +47,7 @@ browser.storage.local
 
     // Options page has a different scope
     setOption("links", item.links);
+    setOption("conflictAction", item.conflictAction);
     setOption("selection", item.selection);
     setOption("page", item.page);
     setOption("paths", item.paths);

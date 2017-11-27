@@ -3,6 +3,7 @@ const saveOptions = e => {
 
   browser.storage.local.set({
     debug: document.querySelector("#debug").checked,
+    conflictAction: document.querySelector("#conflictAction").value,
     links: document.querySelector("#links").checked,
     selection: document.querySelector("#selection").checked,
     page: document.querySelector("#page").checked,
@@ -26,6 +27,7 @@ const restoreOptions = () => {
   browser.storage.local
     .get([
       "debug",
+      "conflictAction",
       "links",
       "selection",
       "paths",
@@ -55,6 +57,7 @@ const restoreOptions = () => {
         result.filenamePatterns || "";
 
       setCheckboxElement("debug", false);
+      setValueElement("conflictAction", "uniquify");
       setCheckboxElement("links", true);
       setCheckboxElement("selection", false);
       setCheckboxElement("page", false);
@@ -82,5 +85,9 @@ document.querySelectorAll(".help").forEach(addHelp);
 if (browser === chrome) {
   document.querySelectorAll(".chrome-only").forEach(el => {
     el.classList.toggle("show");
+  });
+
+  document.querySelectorAll(".chrome-enabled").forEach(el => {
+    el.removeAttribute("disabled");
   });
 }

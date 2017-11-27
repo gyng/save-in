@@ -35,12 +35,19 @@ const SHORTCUT_EXTENSIONS = {
   [SHORTCUT_TYPES.WINDOWS]: ".url"
 };
 
+const DUPLICATE_BEHAVIOUR = {
+  UNIQUIFY: "uniquify",
+  OVERWRITE: "overwrite",
+  PROMPT: "prompt"
+};
+
 // Export for testing
 if (typeof module !== "undefined") {
   module.exports = {
     MEDIA_TYPES,
     SPECIAL_DIRS,
     SHORTCUT_TYPES,
-    SHORTCUT_EXTENSIONS
+    SHORTCUT_EXTENSIONS,
+    DUPLICATE_BEHAVIOUR
   };
 }

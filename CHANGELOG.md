@@ -5,6 +5,7 @@
 * Add saving of current page (#17, #30)
 * Add saving of things as shortcuts (#17)
 * Save selection with page titles for filenames
+* Add filename conflict action option for Chrome
 
 # 1.5.2
 
