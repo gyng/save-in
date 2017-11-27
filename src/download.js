@@ -116,6 +116,13 @@ const replaceSpecialDirs = (path, url, info) => {
       .toString()
       .padStart(2, "0")
   );
+  ret = ret.replace(
+    SPECIAL_DIRS.SECOND,
+    now
+      .getSeconds()
+      .toString()
+      .padStart(2, "0")
+  );
 
   return ret;
 };

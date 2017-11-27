@@ -16,7 +16,8 @@ const SPECIAL_DIRS = {
   DAY: new RegExp(":day:", "g"),
   MONTH: new RegExp(":month:", "g"),
   HOUR: new RegExp(":hour:", "g"),
-  MINUTE: new RegExp(":minute:", "g")
+  MINUTE: new RegExp(":minute:", "g"),
+  SECOND: new RegExp(":second:", "g")
 };
 
 // Export for testing

@@ -1,3 +1,7 @@
+# 1.6.0
+
+* Add `:second:` variable
+
 # 1.5.2
 
 * Only notify for downloads downloaded through save in
