@@ -88,6 +88,19 @@ document.addEventListener("DOMContentLoaded", restoreOptions);
 document.querySelector("#options").addEventListener("submit", saveOptions);
 document.querySelectorAll(".help").forEach(addHelp);
 
+document.querySelector("#reset").addEventListener("click", e => {
+  /* eslint-disable no-alert */
+  e.preventDefault();
+  const reset = confirm("Reset settings to defaults?");
+  if (reset) {
+    browser.storage.local.clear().then(() => {
+      restoreOptions();
+      alert("Settings have been reset to defaults.");
+    });
+  }
+  /* eslint-enable no-alert */
+});
+
 if (browser === chrome) {
   document.querySelectorAll(".chrome-only").forEach(el => {
     el.classList.toggle("show");
