@@ -136,7 +136,8 @@ const replaceSpecialDirs = (path, url, info) => {
     (currentTab && currentTab.title) || ""
   );
 
-  ret = ret.replace(SPECIAL_DIRS.LINK_TEXT, info.linkText);
+  // FIXME: Disabled until filename length truncation is implemented
+  // ret = ret.replace(SPECIAL_DIRS.LINK_TEXT, info.linkText);
 
   return ret;
 };
