@@ -262,7 +262,7 @@ browser.contextMenus.onClicked.addListener(info => {
 
       suggestedFilename = `${truncateIfLongerThan(
         suggestedFilename,
-        options.truncateLength - 5
+        options.truncateLength - 8
       )}${SHORTCUT_EXTENSIONS[options.shortcutType] || ""}`;
     }
 
