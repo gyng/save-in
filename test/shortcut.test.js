@@ -38,7 +38,7 @@ describe("shortcut content creation", () => {
 
   test("creates a Freedesktop URL shortcut without a title", () => {
     const expected =
-      "[Desktop Entry]\nEncoding=UTF-8\nType=2\nTitle=foo\nURL=foo";
+      "[Desktop Entry]\nEncoding=UTF-8\nType=Link\nTitle=foo\nURL=foo";
     expect(
       shortcut.makeShortcutContent(SHORTCUT_TYPES.FREEDESKTOP, "foo")
     ).toBe(expected);
@@ -46,7 +46,7 @@ describe("shortcut content creation", () => {
 
   test("creates a Freedesktop URL shortcut with a title", () => {
     const expected =
-      "[Desktop Entry]\nEncoding=UTF-8\nType=2\nTitle=bar\nURL=foo";
+      "[Desktop Entry]\nEncoding=UTF-8\nType=Link\nTitle=bar\nURL=foo";
     expect(
       shortcut.makeShortcutContent(SHORTCUT_TYPES.FREEDESKTOP, "foo", "bar")
     ).toBe(expected);

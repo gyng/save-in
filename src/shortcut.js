@@ -5,7 +5,7 @@ const makeShortcutContent = (type, url, title) => {
     case SHORTCUT_TYPES.WINDOWS:
       return `[InternetShortcut]\r\nURL=${url}`;
     case SHORTCUT_TYPES.FREEDESKTOP:
-      return `[Desktop Entry]\nEncoding=UTF-8\nType=2\nTitle=${title ||
+      return `[Desktop Entry]\nEncoding=UTF-8\nType=Link\nTitle=${title ||
         url}\nURL=${url}`;
     case SHORTCUT_TYPES.HTML_REDIRECT:
       return `
