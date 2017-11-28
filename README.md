@@ -16,6 +16,8 @@ Optionally, save everything as HTML redirects or .url shortcuts instead.
 
 `<all_urls>` permission is used to get around CORS on HTTP HEAD requests (to check for `Content-Disposition` headers).
 
+`tabs` permission is used to grab the current page's title
+
 The WebExtension API only allows saving into directories relative to the default download directory. Symlinks/junctions can be used to get around this limitation.
 
 Linux/Mac:

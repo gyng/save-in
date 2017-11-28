@@ -1,11 +1,11 @@
 # 1.6.0
 
 * Add `:second:` variable (#31)
-* Add `:pagetitle:` variable, this requires a new `tabs` permission
+* Add `:pagetitle:` variable (requires new `tabs` permission)
 * Add saving of current page (#17, #30)
 * Add saving of things as shortcuts (#17)
 * Save selection with page titles for filenames
-* Add filename conflict action option for Chrome
+* Add filename conflict action option for Chrome (#18)*
 * Add reset to default button in options
 * Add :linktext: to directories
 * Add truncate path component option
