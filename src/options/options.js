@@ -17,7 +17,8 @@ const saveOptions = e => {
     promptIfNoExtension: document.querySelector("#promptIfNoExtension").checked,
     notifyOnSuccess: document.querySelector("#notifyOnSuccess").checked,
     notifyOnFailure: document.querySelector("#notifyOnFailure").checked,
-    notifyDuration: document.querySelector("#notifyDuration").value
+    notifyDuration: document.querySelector("#notifyDuration").value,
+    truncateLength: document.querySelector("#truncateLength").value
   });
 
   browser.contextMenus.removeAll();
@@ -43,7 +44,8 @@ const restoreOptions = () => {
       "shortcutMedia",
       "shortcutLink",
       "shortcutPage",
-      "shortcutType"
+      "shortcutType",
+      "truncateLength"
     ])
     .then(result => {
       const setCheckboxElement = (id, defaultVal) => {
@@ -74,6 +76,7 @@ const restoreOptions = () => {
       setCheckboxElement("notifyOnSuccess", false);
       setCheckboxElement("notifyOnFailure", true);
       setValueElement("notifyDuration", 7000);
+      setValueElement("truncateLength", 240);
     });
 };
 

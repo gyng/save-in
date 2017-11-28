@@ -13,7 +13,8 @@ const options = {
   shortcutType: SHORTCUT_TYPES.HTML_REDIRECT,
   notifyOnSuccess: false,
   notifyOnFailure: true,
-  notifyDuration: 7000
+  notifyDuration: 7000,
+  truncateLength: 240
 };
 
 const setOption = (name, value) => {
@@ -42,7 +43,8 @@ browser.storage.local
     "promptIfNoExtension",
     "notifyOnSuccess",
     "notifyOnFailure",
-    "notifyDuration"
+    "notifyDuration",
+    "truncateLength"
   ])
   .then(item => {
     if (item.debug) {
@@ -64,6 +66,7 @@ browser.storage.local
     setOption("shortcutLink", item.shortcutLink);
     setOption("shortcutPage", item.shortcutPage);
     setOption("shortcutType", item.shortcutType);
+    setOption("truncateLength", item.truncateLength);
 
     // Parse filenamePatterns
     const filenamePatterns =
@@ -235,12 +238,22 @@ browser.contextMenus.onClicked.addListener(info => {
               (currentTab && currentTab.title) ||
               info.srcUrl ||
               info.linkUrl ||
-              info.pageUrl}${SHORTCUT_EXTENSIONS[options.shortcutType]}`
+              info.pageUrl}`
           : `${suggestedFilename ||
               info.linkText ||
               info.srcUrl ||
-              info.linkUrl}${SHORTCUT_EXTENSIONS[options.shortcutType]}`;
+              info.linkUrl}`;
+
+      suggestedFilename = `${truncateIfLongerThan(
+        suggestedFilename,
+        options.truncateLength - 5
+      )}${SHORTCUT_EXTENSIONS[options.shortcutType] || ""}`;
     }
+
+    suggestedFilename = truncateIfLongerThan(
+      suggestedFilename,
+      options.truncateLength
+    );
 
     requestedDownloadFlag = true;
     downloadInto(actualPath, url, info, options, suggestedFilename);

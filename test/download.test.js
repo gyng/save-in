@@ -12,11 +12,11 @@ test("escapes bad filesystem characters", () => {
 });
 
 test("escapes bad filesystem characters in path", () => {
-  expect(download.replaceFsBadCharsInPath("/:stop:/::/")).toBe("/_stop_/__/");
-  expect(download.replaceFsBadCharsInPath("/:date:/dog")).toBe("/_date_/dog");
-  expect(download.replaceFsBadCharsInPath("/aa/b/c")).toBe("/aa/b/c");
-  expect(download.replaceFsBadCharsInPath("ab/b/c")).toBe("ab/b/c");
-  expect(download.replaceFsBadCharsInPath("a\\b/c")).toBe("a/b/c");
+  expect(download.sanitizePath("/:stop:/::/")).toBe("/_stop_/__/");
+  expect(download.sanitizePath("/:date:/dog")).toBe("/_date_/dog");
+  expect(download.sanitizePath("/aa/b/c")).toBe("/aa/b/c");
+  expect(download.sanitizePath("ab/b/c")).toBe("ab/b/c");
+  expect(download.sanitizePath("a\\b/c")).toBe("a/b/c");
 });
 
 test("extension detection regex", () => {

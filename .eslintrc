@@ -21,6 +21,7 @@
     "SHORTCUT_EXTENSIONS": true,
     "DOWNLOAD_TYPES": true,
     "replaceSpecialDirs": true,
+    "truncateIfLongerThan": true,
     "downloadInto": true,
     "addNotifications": true,
     "requestedDownloadFlag": true,

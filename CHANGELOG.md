@@ -7,6 +7,8 @@
 * Save selection with page titles for filenames
 * Add filename conflict action option for Chrome
 * Add reset to default button in options
+* Add :linktext: to directories
+* Add truncate path component option
 
 # 1.5.2
 

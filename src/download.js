@@ -3,6 +3,7 @@
 const DISPOSITION_FILENAME_REGEX = /filename[^;=\n]*=((['"])(.*)?\2|(.+'')?([^;\n]*))/i;
 const EXTENSION_REGEX = /\.([0-9a-z]{1,8})$/i;
 const SPECIAL_CHARACTERS_REGEX = /[~<>:"/\\|?*\0]/g;
+const LEADING_DOTS_REGEX = /^\./g;
 
 const makeObjectUrl = (content, mime = "text/plain") =>
   URL.createObjectURL(
@@ -13,10 +14,18 @@ const makeObjectUrl = (content, mime = "text/plain") =>
 
 // TODO: Make this OS-aware instead of assuming Windows
 const replaceFsBadChars = s => s.replace(SPECIAL_CHARACTERS_REGEX, "_");
-const replaceFsBadCharsInPath = pathStr =>
+// Leading dots are considered invalid by both Firefox and Chrome
+const replaceLeadingDots = s => s.replace(LEADING_DOTS_REGEX, "");
+
+const truncateIfLongerThan = (str, max) =>
+  str && max > 0 && str.length > max ? str.substr(0, max) : str;
+
+const sanitizePath = (pathStr, maxComponentLength = 0) =>
   pathStr
     .split(new RegExp("[\\/\\\\]", "g"))
     .map(replaceFsBadChars)
+    .map(replaceLeadingDots)
+    .map(c => truncateIfLongerThan(c, maxComponentLength))
     .join("/");
 
 const getFilenameFromUrl = url => {
@@ -96,8 +105,7 @@ const replaceSpecialDirs = (path, url, info) => {
     (currentTab && currentTab.title) || ""
   );
 
-  // FIXME: Disabled until filename length truncation is implemented
-  // ret = ret.replace(SPECIAL_DIRS.LINK_TEXT, info.linkText);
+  ret = ret.replace(SPECIAL_DIRS.LINK_TEXT, info.linkText);
 
   return ret;
 };
@@ -167,6 +175,7 @@ const downloadInto = (path, url, info, options, suggestedFilename) => {
     console.log("downloadInto url", url);
     console.log("downloadInto info", info);
     console.log("downloadInto options", options);
+    console.log("downloadInto suggestedFilename", suggestedFilename);
   }
   /* eslint-enable no-console */
 
@@ -174,7 +183,8 @@ const downloadInto = (path, url, info, options, suggestedFilename) => {
     filenamePatterns,
     prompt,
     promptIfNoExtension,
-    conflictAction
+    conflictAction,
+    truncateLength
   } = options;
 
   const download = (filename, rewrite = true) => {
@@ -189,23 +199,24 @@ const downloadInto = (path, url, info, options, suggestedFilename) => {
 
     const hasExtension = rewrittenFilename.match(EXTENSION_REGEX);
 
-    let fsSafeDirectory = replaceFsBadCharsInPath(path);
-    const fsSafeFilename = replaceFsBadChars(rewrittenFilename);
+    const fsSafeDirectory = sanitizePath(
+      path.replace(/^\.[\\/\\\\]?/, ""),
+      truncateLength
+    );
+    const fsSafeFilename = sanitizePath(rewrittenFilename, truncateLength);
 
-    // https://github.com/gyng/save-in/issues/7
-    // Firefox doesn't like saving into the default directory "./filename"
-    // since 58a
-    fsSafeDirectory = fsSafeDirectory.replace(/^\.[\\/\\\\]?/, "");
     const fsSafePath = fsSafeDirectory
       ? [fsSafeDirectory, fsSafeFilename].join("/")
       : fsSafeFilename;
 
     if (window.SI_DEBUG) {
-      console.log("downloadInto filename", filename); // eslint-disable-line
-      console.log("downloadInto fsSafeDirectory", fsSafeDirectory); // eslint-disable-line
-      console.log("downloadInto fsSafeFilename", fsSafeFilename); // eslint-disable-line
-      console.log("downloadInto fsSafePath", fsSafePath); // eslint-disable-line
-      console.log("downloadInto conflictAction", conflictAction); // eslint-disable-line
+      console.log("download filename", filename); // eslint-disable-line
+      console.log("download suggestedFilename", suggestedFilename); // eslint-disable-line
+      console.log("download rewrittenFilename", rewrittenFilename); // eslint-disable-line
+      console.log("download fsSafeDirectory", fsSafeDirectory); // eslint-disable-line
+      console.log("download fsSafeFilename", fsSafeFilename); // eslint-disable-line
+      console.log("download fsSafePath", fsSafePath); // eslint-disable-line
+      console.log("download conflictAction", conflictAction); // eslint-disable-line
     }
 
     // conflictAction is Chrome only and overridden in onDeterminingFilename, Firefox enforced in settings
@@ -229,6 +240,7 @@ const downloadInto = (path, url, info, options, suggestedFilename) => {
       suggestedFilename,
       url,
       info,
+      truncateLength,
       conflictAction
     };
 
@@ -259,7 +271,8 @@ const downloadInto = (path, url, info, options, suggestedFilename) => {
 if (typeof module !== "undefined") {
   module.exports = {
     replaceFsBadChars,
-    replaceFsBadCharsInPath,
+    sanitizePath,
+    truncateIfLongerThan,
     getFilenameFromUrl,
     getFilenameFromContentDisposition,
     replaceSpecialDirs,
