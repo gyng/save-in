@@ -22,10 +22,37 @@ const makeShortcutContent = (type, url, title) => {
 const makeShortcut = (type, url) =>
   makeObjectUrl(makeShortcutContent(type, url));
 
+const suggestShortcutFilename = (
+  shortcutType,
+  downloadType,
+  info,
+  suggestedFilename,
+  maxlen
+) => {
+  const shortcutExtension = SHORTCUT_EXTENSIONS[shortcutType] || "";
+
+  let shortcutFilename =
+    downloadType === DOWNLOAD_TYPES.PAGE
+      ? `${suggestedFilename ||
+          (currentTab && currentTab.title) ||
+          info.srcUrl ||
+          info.linkUrl ||
+          info.pageUrl}`
+      : `${suggestedFilename || info.linkText || info.srcUrl || info.linkUrl}`;
+
+  shortcutFilename = `${truncateIfLongerThan(
+    shortcutFilename,
+    maxlen - shortcutExtension.length
+  )}${shortcutExtension}`;
+
+  return shortcutFilename;
+};
+
 // Export for testing
 if (typeof module !== "undefined") {
   module.exports = {
     makeShortcut,
-    makeShortcutContent
+    makeShortcutContent,
+    suggestShortcutFilename
   };
 }

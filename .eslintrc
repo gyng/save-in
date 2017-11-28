@@ -28,6 +28,7 @@
     "makeObjectUrl": true,
     "makeShortcut": true,
     "currentTab": true,
-    "createExtensionNotification": true
+    "createExtensionNotification": true,
+    "suggestShortcutFilename": true
   }
 }

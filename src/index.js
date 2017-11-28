@@ -248,22 +248,13 @@ browser.contextMenus.onClicked.addListener(info => {
         currentTab && currentTab.title
       );
 
-      suggestedFilename =
-        downloadType === DOWNLOAD_TYPES.PAGE
-          ? `${suggestedFilename ||
-              (currentTab && currentTab.title) ||
-              info.srcUrl ||
-              info.linkUrl ||
-              info.pageUrl}`
-          : `${suggestedFilename ||
-              info.linkText ||
-              info.srcUrl ||
-              info.linkUrl}`;
-
-      suggestedFilename = `${truncateIfLongerThan(
+      suggestedFilename = suggestShortcutFilename(
+        options.shortcutType,
+        downloadType,
+        info,
         suggestedFilename,
-        options.truncateLength - 8
-      )}${SHORTCUT_EXTENSIONS[options.shortcutType] || ""}`;
+        options.truncateLength
+      );
     }
 
     suggestedFilename = truncateIfLongerThan(
