@@ -18,9 +18,9 @@ Linux/Mac:
 
     ln -s /path/to/actual /default_download_dir/symlink
 
-Windows
+Windows:
 
-    mklink /default_download_dir/symlink /path/to/actual
+    mklink /d \default_download_dir\symlink \path\to\actual
 
 See the options page for usage and more information.
 
