@@ -61,36 +61,23 @@ const replaceSpecialDirs = (path, url, info) => {
   ret = ret.replace(SPECIAL_DIRS.PAGE_URL, replaceFsBadChars(info.pageUrl));
   const now = new Date();
 
+  const padDateComponent = (num, func) => num.toString().padStart(2, "0");
+
   const date = [
     now.getFullYear(),
-    (now.getMonth() + 1).toString().padStart(2, "0"),
-    now
-      .getDate()
-      .toString()
-      .padStart(2, "0")
+    padDateComponent(now.getMonth() + 1),
+    padDateComponent(now.getDate())
   ].join("-");
   ret = ret.replace(SPECIAL_DIRS.DATE, date);
 
   const isodate = [
     now.getUTCFullYear(),
-    (now.getUTCMonth() + 1).toString().padStart(2, "0"),
-    now
-      .getUTCDate()
-      .toString()
-      .padStart(2, "0"),
+    padDateComponent(now.getUTCMonth() + 1),
+    padDateComponent(now.getUTCDate()),
     "T",
-    now
-      .getUTCHours()
-      .toString()
-      .padStart(2, "0"),
-    now
-      .getUTCMinutes()
-      .toString()
-      .padStart(2, "0"),
-    now
-      .getUTCSeconds()
-      .toString()
-      .padStart(2, "0"),
+    padDateComponent(now.getUTCHours()),
+    padDateComponent(now.getUTCMinutes()),
+    padDateComponent(now.getUTCSeconds()),
     "Z"
   ].join("");
 
@@ -98,38 +85,11 @@ const replaceSpecialDirs = (path, url, info) => {
   ret = ret.replace(SPECIAL_DIRS.UNIX_DATE, Date.parse(now) / 1000);
 
   ret = ret.replace(SPECIAL_DIRS.YEAR, now.getFullYear());
-  ret = ret.replace(
-    SPECIAL_DIRS.MONTH,
-    (now.getMonth() + 1).toString().padStart(2, "0")
-  );
-  ret = ret.replace(
-    SPECIAL_DIRS.DAY,
-    now
-      .getDate()
-      .toString()
-      .padStart(2, "0")
-  );
-  ret = ret.replace(
-    SPECIAL_DIRS.HOUR,
-    now
-      .getHours()
-      .toString()
-      .padStart(2, "0")
-  );
-  ret = ret.replace(
-    SPECIAL_DIRS.MINUTE,
-    now
-      .getMinutes()
-      .toString()
-      .padStart(2, "0")
-  );
-  ret = ret.replace(
-    SPECIAL_DIRS.SECOND,
-    now
-      .getSeconds()
-      .toString()
-      .padStart(2, "0")
-  );
+  ret = ret.replace(SPECIAL_DIRS.MONTH, padDateComponent(now.getMonth() + 1));
+  ret = ret.replace(SPECIAL_DIRS.DAY, padDateComponent(now.getDate()));
+  ret = ret.replace(SPECIAL_DIRS.HOUR, padDateComponent(now.getHours()));
+  ret = ret.replace(SPECIAL_DIRS.MINUTE, padDateComponent(now.getMinutes()));
+  ret = ret.replace(SPECIAL_DIRS.SECOND, padDateComponent(now.getSeconds()));
 
   ret = ret.replace(
     SPECIAL_DIRS.PAGE_TITLE,
