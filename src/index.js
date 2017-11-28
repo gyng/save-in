@@ -192,7 +192,7 @@ browser.contextMenus.onClicked.addListener(info => {
     } else if (options.selection && info.selectionText) {
       downloadType = DOWNLOAD_TYPES.SELECTION;
       url = makeObjectUrl(info.selectionText);
-      suggestedFilename = `${currentTab.title}.txt`;
+      suggestedFilename = `${currentTab.title}.selection.txt`;
     } else if (options.page && info.pageUrl) {
       downloadType = DOWNLOAD_TYPES.PAGE;
       url = info.pageUrl;
