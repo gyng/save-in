@@ -74,11 +74,27 @@ browser.storage.local
       item.filenamePatterns
         .split("\n\n")
         .map(pairStr => pairStr.split("\n"))
-        .map(pairArr => ({
-          filenameMatch: new RegExp(pairArr[0]),
-          replace: pairArr[1] || "",
-          urlMatch: new RegExp(pairArr[2] || ".*") // defaults to match all URLs
-        }));
+        .map(pairArr => {
+          try {
+            const filenameMatch = new RegExp(pairArr[0]);
+            const urlMatch = new RegExp(pairArr[2] || ".*"); // defaults to match all URLs
+
+            return {
+              filenameMatch,
+              replace: pairArr[1] || "",
+              urlMatch
+            };
+          } catch (e) {
+            console.log(e); // eslint-disable-line
+            createExtensionNotification(
+              "Save In: Ignoring bad rewrite pattern",
+              `${e.message}: ${pairArr}`,
+              true
+            );
+            return null;
+          }
+        })
+        .filter(f => f != null);
 
     setOption("filenamePatterns", filenamePatterns || []);
 

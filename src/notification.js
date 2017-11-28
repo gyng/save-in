@@ -6,6 +6,16 @@ const ERROR_ICON_URL = "icons/ic_error_outline_red_96px.png";
 const downloadsList = {}; // global
 let requestedDownloadFlag = false;
 
+const createExtensionNotification = (title, message, error) => {
+  const id = String(Math.floor(Math.random() * 100000));
+  browser.notifications.create(id, {
+    type: "basic",
+    title: title || "Save In",
+    iconUrl: error ? ERROR_ICON_URL : ICON_URL,
+    message: message || "Unknown error"
+  });
+};
+
 const isDownloadFailure = (downloadDelta, isChrome) => {
   // CHROME
   // Chrome's DownloadDelta contains different information from Firefox's
@@ -119,6 +129,7 @@ const addNotifications = options => {
 if (typeof module !== "undefined") {
   module.exports = {
     addNotifications,
+    createExtensionNotification,
     isDownloadFailure
   };
 }
