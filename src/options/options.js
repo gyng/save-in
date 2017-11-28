@@ -94,11 +94,14 @@ document.querySelectorAll(".help").forEach(addHelp);
 document.querySelector("#reset").addEventListener("click", e => {
   /* eslint-disable no-alert */
   e.preventDefault();
-  const reset = confirm("Reset settings to defaults?");
+  const reset =
+    browser === chrome ? true : confirm("Reset settings to defaults?");
+
   if (reset) {
     browser.storage.local.clear().then(() => {
       restoreOptions();
       alert("Settings have been reset to defaults.");
+      browser.runtime.reload();
     });
   }
   /* eslint-enable no-alert */
