@@ -10,6 +10,7 @@
   --grey30: #d7d7db;
   --grey40: #b1b1b3;
   --grey50: #737373;
+  --yellow50: #ffe900;
 }
 
 a {
@@ -84,13 +85,6 @@ option {
 
 li {
   margin-bottom: 4px;
-}
-
-input[type="checkbox"] {
-  border-radius: 2px;
-  height: 16px;
-  width: 16px;
-  padding: 0 4px;
 }
 
 input[type="number"] {
@@ -244,4 +238,14 @@ button.puffy:active {
 .float-right {
   align-self: flex-end !important;
   float: right;
+}
+
+.badge {
+  padding: 4px;
+  border-radius: 4px;
+  font-weight: 700;
+}
+
+.warning.badge {
+  background-color: var(--yellow50);
 }
