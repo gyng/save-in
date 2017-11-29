@@ -2,7 +2,7 @@
   "manifest_version": 2,
   "name": "__MSG_extensionName__",
   "description": "__MSG_extensionDescription__",
-  "version": "1.5.2",
+  "version": "1.6.0",
   "default_locale": "en",
 
   "applications": {
@@ -24,6 +24,7 @@
       "src/constants.js",
       "src/notification.js",
       "src/download.js",
+      "src/shortcut.js",
       "src/index.js"
     ]
   },
@@ -31,6 +32,7 @@
   "permissions": [
     "<all_urls>",
     "activeTab",
+    "tabs",
     "contextMenus",
     "downloads",
     "notifications",

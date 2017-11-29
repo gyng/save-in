@@ -1,13 +1,20 @@
 // defaults
 const options = {
   debug: false,
+  conflictAction: "uniquify",
   links: true,
   selection: false,
   prompt: false,
   paths: ".",
+  page: false,
+  shortcutMedia: false,
+  shortcutLink: false,
+  shortcutPage: false,
+  shortcutType: SHORTCUT_TYPES.HTML_REDIRECT,
   notifyOnSuccess: false,
   notifyOnFailure: true,
-  notifyDuration: 7000
+  notifyDuration: 7000,
+  truncateLength: 240
 };
 
 const setOption = (name, value) => {
@@ -17,11 +24,18 @@ const setOption = (name, value) => {
 };
 
 let lastUsedPath = null; // global variable
+let currentTab = null; // global variable
 
 browser.storage.local
   .get([
     "debug",
+    "conflictAction",
     "links",
+    "page",
+    "shortcutMedia",
+    "shortcutLink",
+    "shortcutPage",
+    "shortcutType",
     "selection",
     "paths",
     "filenamePatterns",
@@ -29,7 +43,8 @@ browser.storage.local
     "promptIfNoExtension",
     "notifyOnSuccess",
     "notifyOnFailure",
-    "notifyDuration"
+    "notifyDuration",
+    "truncateLength"
   ])
   .then(item => {
     if (item.debug) {
@@ -38,13 +53,20 @@ browser.storage.local
 
     // Options page has a different scope
     setOption("links", item.links);
+    setOption("conflictAction", item.conflictAction);
     setOption("selection", item.selection);
+    setOption("page", item.page);
     setOption("paths", item.paths);
     setOption("prompt", item.prompt);
     setOption("promptIfNoExtension", item.promptIfNoExtension);
     setOption("notifyOnSuccess", item.notifyOnSuccess);
     setOption("notifyOnFailure", item.notifyOnFailure);
     setOption("notifyDuration", item.notifyDuration);
+    setOption("shortcutMedia", item.shortcutMedia);
+    setOption("shortcutLink", item.shortcutLink);
+    setOption("shortcutPage", item.shortcutPage);
+    setOption("shortcutType", item.shortcutType);
+    setOption("truncateLength", item.truncateLength);
 
     // Parse filenamePatterns
     const filenamePatterns =
@@ -52,11 +74,31 @@ browser.storage.local
       item.filenamePatterns
         .split("\n\n")
         .map(pairStr => pairStr.split("\n"))
-        .map(pairArr => ({
-          filenameMatch: new RegExp(pairArr[0]),
-          replace: pairArr[1] || "",
-          urlMatch: new RegExp(pairArr[2] || ".*") // defaults to match all URLs
-        }));
+        .map(pairArr => {
+          try {
+            if (pairArr.length < 2) {
+              throw new Error("missing filename replacement pattern");
+            }
+
+            const filenameMatch = new RegExp(pairArr[0]);
+            const urlMatch = new RegExp(pairArr[2] || ".*"); // defaults to match all URLs
+
+            return {
+              filenameMatch,
+              replace: pairArr[1] || "",
+              urlMatch
+            };
+          } catch (e) {
+            console.log(e); // eslint-disable-line
+            createExtensionNotification(
+              "Save In: Ignoring bad rewrite pattern",
+              `${e.message}: ${pairArr}`,
+              true
+            );
+            return null;
+          }
+        })
+        .filter(f => f != null);
 
     setOption("filenamePatterns", filenamePatterns || []);
 
@@ -69,6 +111,7 @@ browser.storage.local
     const pathsArray = options.paths.split("\n");
     let media = options.links ? MEDIA_TYPES.concat(["link"]) : MEDIA_TYPES;
     media = options.selection ? media.concat(["selection"]) : media;
+    media = options.page ? media.concat(["page"]) : media;
     let separatorCounter = 0;
 
     const lastUsedMenuOptions = {
@@ -157,15 +200,24 @@ browser.contextMenus.onClicked.addListener(info => {
 
   if (matchSave && matchSave.length === 2) {
     let url;
+    let suggestedFilename = null;
+    let downloadType = DOWNLOAD_TYPES.UNKNOWN;
+
     if (MEDIA_TYPES.includes(info.mediaType)) {
+      downloadType = DOWNLOAD_TYPES.MEDIA;
       url = info.srcUrl;
-    } else if (info.linkUrl) {
+    } else if (options.links && info.linkUrl) {
+      downloadType = DOWNLOAD_TYPES.LINK;
       url = info.linkUrl;
-    } else if (info.selectionText) {
-      const blob = new Blob([info.selectionText], {
-        type: "text/plain;charset=utf-8"
-      });
-      url = URL.createObjectURL(blob);
+    } else if (options.selection && info.selectionText) {
+      downloadType = DOWNLOAD_TYPES.SELECTION;
+      url = makeObjectUrl(info.selectionText);
+      suggestedFilename = `${currentTab.title}.selection.txt`;
+    } else if (options.page && info.pageUrl) {
+      downloadType = DOWNLOAD_TYPES.PAGE;
+      url = info.pageUrl;
+      const pageTitle = currentTab && currentTab.title;
+      suggestedFilename = pageTitle ? `${pageTitle}.html` : info.pageUrl;
     } else {
       if (window.SI_DEBUG) {
         console.log("failed to choose download", info); // eslint-disable-line
@@ -184,8 +236,34 @@ browser.contextMenus.onClicked.addListener(info => {
       enabled: true
     });
 
+    const saveAsShortcut =
+      (downloadType === DOWNLOAD_TYPES.MEDIA && options.shortcutMedia) ||
+      (downloadType === DOWNLOAD_TYPES.LINK && options.shortcutLink) ||
+      (downloadType === DOWNLOAD_TYPES.PAGE && options.shortcutPage);
+
+    if (window.SI_DEBUG) {
+      console.log("shortcut", saveAsShortcut, downloadType, options, info); // eslint-disable-line
+    }
+
+    if (saveAsShortcut) {
+      url = makeShortcut(options.shortcutType, url);
+
+      suggestedFilename = suggestShortcutFilename(
+        options.shortcutType,
+        downloadType,
+        info,
+        suggestedFilename,
+        options.truncateLength
+      );
+    }
+
+    suggestedFilename = truncateIfLongerThan(
+      suggestedFilename,
+      options.truncateLength
+    );
+
     requestedDownloadFlag = true;
-    downloadInto(actualPath, url, info, options);
+    downloadInto(actualPath, url, info, options, suggestedFilename);
   }
 
   switch (info.menuItemId) {
@@ -198,4 +276,14 @@ browser.contextMenus.onClicked.addListener(info => {
     default:
       break; // noop
   }
+});
+
+browser.tabs.onActivated.addListener(info => {
+  browser.tabs.get(info.tabId).then(t => {
+    if (window.SI_DEBUG) {
+      console.log("current tab", t); // eslint-disable-line
+    }
+
+    currentTab = t;
+  });
 });

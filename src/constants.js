@@ -6,6 +6,7 @@ const SPECIAL_DIRS = {
   SOURCE_DOMAIN: new RegExp(":sourcedomain:", "g"),
   PAGE_DOMAIN: new RegExp(":pagedomain:", "g"),
   PAGE_URL: new RegExp(":pageurl:", "g"),
+  PAGE_TITLE: new RegExp(":pagetitle:", "g"),
   DATE: new RegExp(":date:", "g"),
   ISO8601_DATE: new RegExp(":isodate:", "g"),
   UNIX_DATE: new RegExp(":unixdate:", "g"),
@@ -20,10 +21,41 @@ const SPECIAL_DIRS = {
   SECOND: new RegExp(":second:", "g")
 };
 
+const SHORTCUT_TYPES = {
+  HTML_REDIRECT: "HTML_REDIRECT",
+  MAC: "MAC",
+  FREEDESKTOP: "FREEDESKTOP",
+  WINDOWS: "WINDOWS"
+};
+
+const SHORTCUT_EXTENSIONS = {
+  [SHORTCUT_TYPES.HTML_REDIRECT]: ".html",
+  [SHORTCUT_TYPES.MAC]: ".url",
+  [SHORTCUT_TYPES.FREEDESKTOP]: ".desktop",
+  [SHORTCUT_TYPES.WINDOWS]: ".url"
+};
+
+const DOWNLOAD_TYPES = {
+  UNKNOWN: "UNKNOWN",
+  MEDIA: "MEDIA",
+  LINK: "LINK",
+  SELECTION: "SELECTION",
+  PAGE: "PAGE"
+};
+
+const CONFLICT_ACTION = {
+  UNIQUIFY: "uniquify",
+  OVERWRITE: "overwrite",
+  PROMPT: "prompt"
+};
+
 // Export for testing
 if (typeof module !== "undefined") {
   module.exports = {
     MEDIA_TYPES,
-    SPECIAL_DIRS
+    SPECIAL_DIRS,
+    SHORTCUT_TYPES,
+    SHORTCUT_EXTENSIONS,
+    CONFLICT_ACTION
   };
 }

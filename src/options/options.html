@@ -8,183 +8,194 @@
 </head>
 
 <body>
-  <a href="https://github.com/gyng/save-in/">GitHub</a>
-  <a href="https://github.com/gyng/save-in/blob/master/CHANGELOG.md">Changelog</a>
+  <div>
+    <a href="https://github.com/gyng/save-in/">GitHub</a>
+    &middot;
+    <a href="https://github.com/gyng/save-in/blob/master/CHANGELOG.md">Changelog</a>
+  </div>
 
   <form id="options">
     <label class="column">
-      <h4 class="help" data-help-for="help-standard-variables">Variables list (🛈 click to expand)</h4>
+      <h2>Downloads</h2>
+      <h3 class="help" data-help-for="help-standard-variables">
+        📓 Variable list (click to expand)</h3>
       <div class="help-text" id="help-standard-variables">
-        <h4>Standard</h4>
+        <h3>Standard</h3>
+        <div class="caption">Usable everywhere*</div>
         <div class="box">
           <table>
             <tr>
               <td>
-                <code>---</code>
+                <code class="click-to-copy">---</code>
               </td>
               <td></td>
-              <td>Creates a separator in the context menu</td>
+              <td>Creates a separator in the context menu
+                <i>*decorative</i>
+              </td>
             </tr>
 
             <tr>
               <td>
-                <code>:date:</code>
+                <code class="click-to-copy">:date:</code>
               </td>
               <td>2000-01-01</td>
-              <td>The current date</td>
+              <td>Current date</td>
             </tr>
 
             <tr>
               <td>
-                <code>:isodate:</code>
+                <code class="click-to-copy">:isodate:</code>
               </td>
               <td>20170123T123040Z</td>
-              <td>The current datetime as a UTC ISO8601 time string</td>
+              <td>Current datetime as a UTC ISO8601 string</td>
             </tr>
 
             <tr>
               <td>
-                <code>:unixdate:</code>
+                <code class="click-to-copy">:unixdate:</code>
               </td>
               <td>946684800</td>
-              <td>The current datetime as a Unix timestamp</td>
+              <td>Current datetime as a Unix timestamp</td>
             </tr>
 
             <tr>
               <td>
-                <code>:year:</code>
+                <code class="click-to-copy">:year:</code>
               </td>
               <td>2000</td>
-              <td>The current year</td>
+              <td>Current year</td>
             </tr>
 
             <tr>
               <td>
-                <code>:month:</code>
+                <code class="click-to-copy">:month:</code>
               </td>
               <td>01</td>
-              <td>The current month</td>
+              <td>Current month</td>
             </tr>
 
             <tr>
               <td>
-                <code>:day:</code>
+                <code class="click-to-copy">:day:</code>
               </td>
               <td>24</td>
-              <td>The current day of month</td>
+              <td>Current day of month</td>
             </tr>
 
             <tr>
               <td>
-                <code>:hour:</code>
+                <code class="click-to-copy">:hour:</code>
               </td>
               <td>13</td>
-              <td>The current hour (24-hour)</td>
+              <td>Current hour (24-hour)</td>
             </tr>
 
             <tr>
               <td>
-                <code>:minute:</code>
+                <code class="click-to-copy">:minute:</code>
               </td>
               <td>46</td>
-              <td>The current minute</td>
+              <td>Current minute</td>
             </tr>
 
             <tr>
               <td>
-                <code>:second:</code>
+                <code class="click-to-copy">:second:</code>
               </td>
               <td>05</td>
-              <td>The current second</td>
+              <td>Current second</td>
             </tr>
 
             <tr>
               <td>
-                <code>:pageurl:</code>
+                <code class="click-to-copy">:pageurl:</code>
               </td>
               <td>https://xyz.com/abc</td>
-              <td>The url of the page</td>
+              <td>URL of the page</td>
             </tr>
 
             <tr>
               <td>
-                <code>:sourcedomain:</code>
+                <code class="click-to-copy">:sourcedomain:</code>
               </td>
               <td>cdn.xyz.com</td>
-              <td>The hostname of the source</td>
+              <td>Hostname of the source</td>
             </tr>
 
             <tr>
               <td>
-                <code>:pagedomain:</code>
+                <code class="click-to-copy">:pagedomain:</code>
               </td>
               <td>xyz.com</td>
-              <td>The hostname of the page</td>
+              <td>Hostname of the page</td>
             </tr>
 
+            <tr>
+              <td>
+                <code class="click-to-copy">:pagetitle:</code>
+              </td>
+              <td>My Webpage Title!</td>
+              <td>Title of the page</td>
+            </tr>
+
+            <tr>
+              <td>
+                <code class="click-to-copy">:linktext:</code>
+              </td>
+              <td>Direct link to image</td>
+              <td>Text of the link, or
+                <code>title</code> attribute of element
+                <i>* images and links only</i>
+              </td>
+            </tr>
           </table>
         </div>
 
-        <h4>Filename-only</h4>
+        <h3>Filename-only</h3>
+        <div class="caption">Only usable when rewriting filenames</div>
         <div class="box">
           <table>
             <tr>
               <td>
-                <code>:filename:</code>
+                <code class="click-to-copy">:filename:</code>
               </td>
               <td>my_image.jpg</td>
-              <td>The full filename
-                <i>filenames only</i>
+              <td>Full filename
               </td>
             </tr>
 
             <tr>
               <td>
-                <code>:fileext:</code>
+                <code class="click-to-copy">:fileext:</code>
               </td>
               <td>jpg</td>
-              <td>The naive file extension, if available
-                <i>filenames only</i>
+              <td>Naive file extension, if available
               </td>
             </tr>
 
             <tr>
               <td>
-                <code>:$1:</code>
+                <code class="click-to-copy">:$1:</code>,
+                <code class="click-to-copy">:$2:</code>&hellip;
               </td>
               <td></td>
-              <td>The capture group where
+              <td>Capture group where
                 <code>1</code> = the n
                 <sup>th</sup> capture group
-                <i>filenames only</i>
               </td>
             </tr>
 
-            <tr>
-              <td>
-                <code>:linktext:</code>
-              </td>
-              <td>Direct link to image</td>
-              <td>The text of the saved link
-                <i>filenames and links only</i>
-              </td>
-            </tr>
           </table>
         </div>
       </div>
       </div>
 
-      <h4>Paths
-        <a href="#" class="help" data-help-for="help-paths">(🛈 help)</a>
-      </h4>
-      <div class="help-summary">
-        <p>Paths relative to default download directory. One path per line. Multiple variables can be used in a path.</p>
-      </div>
+      <h3>Menu items
+        <a href="#" class="help" data-help-for="help-paths">help</a>
+      </h3>
+      <p>Paths relative to default download directory. One path per line. Multiple variables can be used in a path.</p>
       <div class="help-text" id="help-paths">
-        <p>For example, the setting</p>
-
-        <pre>
-.
+        <pre>.
 images/dogs
 images/cats
 ---
@@ -204,51 +215,48 @@ others/:date:/:pagedomain:/foo
 ~/others/2000-01-01/github.com/foo
 </pre>
 
-        <p>Invalid paths (eg.
+        <p>Invalid paths (
           <code>..</code> and
-          <code>/</code>) are ignored.</p>
+          <code>/</code>) are ignored. Files and directories with leading dots (
+          <code>foo/.hidden</code>) are considered invalid by Firefox and Chrome.</p>
 
         <p>The WebExtensions API does not allow files to be saved outside of the default download directory. If you want to
           save the files outside the default download directory, use a
-          <a href="https://en.wikipedia.org/wiki/Symbolic_link" target="_blank">symlink</a> inside the default download directory. (
+          <a href="https://en.wikipedia.org/wiki/Symbolic_link" target="_blank">symlink</a> inside the default download directory.
           <a href="https://serverfault.com/questions/7109/how-do-i-create-a-symbolic-link-in-windows" target="_blank">Windows</a>,
-          <a href="https://apple.stackexchange.com/questions/115646/how-can-i-create-a-symbolic-link-in-terminal" target="_blank">OS X/Unix</a>)</p>
-
-        <p>Both Chrome and Firefox do not allow saving to directories with leading dots (eg. <code>foo/.hidden</code>).</p>
+          <a href="https://apple.stackexchange.com/questions/115646/how-can-i-create-a-symbolic-link-in-terminal" target="_blank">OS X/Unix</a>
+        </p>
       </div>
-      <textarea type="textarea" id="paths" rows=7 placeholder="." spellcheck="false"></textarea>
+      <textarea type="textarea" id="paths" rows=10 placeholder="." spellcheck="false"></textarea>
     </label>
 
     <label class="column">
-      <h4>Rewrite filenames
-        <a href="#" class="help" data-help-for="help-filenames">(🛈 help)</a>
-      </h4>
-      <b>EXPERIMENTAL: MIGHT CHANGE IN FUTURE VERSIONS</b>
+      <h3>Rewrite filenames
+        <a href="#" class="help" data-help-for="help-filenames">help</a>
+        <span title="Unstable: expect changes in future version" class="caption warning badge">⚗️ Unstable</span>
+      </h3>
 
-      <div class="help-summary">
-        <p>Optionally, rewrite filenames that match the regex patterns in order of precedence. Multiple variables can be used
-          in the replacement pattern. The format for each rule is
-          <pre>
+      <p>Optionally, rewrite filenames that match the regex patterns in order of precedence. Multiple variables can be used
+        in the replacement pattern. Separate multiple rules with an empty line. The format for each rule is</p>
+      <pre>
 Regex pattern to match filename against
 Replacement pattern
 (Optional) Regex pattern to match source URL against, defaults to all</pre>
-        </p>
-        <p>Separate multiple rules with an empty line.</p>
-        <p class="chrome-only">CHROME USERS: Special characters in the filename (eg.
-          <code>:</code> or
-          <code>/</code>) are pre-replaced with the character
-          <code>-</code> by Chrome. When matching against filenames with such characters, match against
-          <code>-</code> instead of the special character. For example, use
-          <code>(.*)-large</code> to match filenames instead of
-          <code>(.*):large</code>.
-        </p>
-      </div>
+      <p class="chrome-only">CHROME USERS: Special characters in the filename (eg.
+        <code>:</code> or
+        <code>/</code>) are pre-replaced with the character
+        <code>-</code> by Chrome. Match against
+        <code>-</code> instead of these special characters. For example, use
+        <code>(.*)-large</code> to match filenames instead of
+        <code>(.*):large</code>.
+      </p>
+
       <div class="help-text" id="help-filenames">
         <p>
           Match filenames against a
           <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions">regex pattern</a> and rewrite them according to a replacement string. Regex capture groups are supported in the
           replacement pattern, and can be referenced by the variables
-          <code>:$1:</code> to
+          <code>:$1:</code> through
           <code>:$n:</code>.
         </p>
 
@@ -278,7 +286,8 @@ Replacement pattern
             </li>
           </ul>
         </p>
-        <pre>
+        <div>
+          <pre>
 (.*)\_thumbnail(\..*)
 :$1::$2:
 
@@ -297,34 +306,24 @@ example.com
 :pageurl:.txt
 </pre>
 
-        <p>If you have a useful rule, please add it to
-          <a href="https://github.com/gyng/save-in/wiki/Filename-rewrite">the wiki</a>!</p>
+        </div>
+
+        <a href="https://github.com/gyng/save-in/wiki/Filename-rewrite">Short list of useful rules</a>
       </div>
-      <textarea type="textarea" id="filenamePatterns" rows=7 placeholder="Optional" spellcheck="false"></textarea>
+      <textarea type="textarea" id="filenamePatterns" rows=10 placeholder="Optional" spellcheck="false"></textarea>
     </label>
 
-    <h4>Notifications</h4>
-    <p>Click on the notification to open the file's directory.</p>
-    <label>
-      <input type="checkbox" id="notifyOnSuccess" /> Show notification on successful download
-    </label>
-
-    <label>
-      <input type="checkbox" id="notifyOnFailure" /> Show notification on failed download
-    </label>
-
-    <label>
-      Close notification early after <input type="number" id="notifyDuration" />ms (1s = 1000ms). Will not extend beyond OS/browser notification duration.
-    </label>
-
-    <h4>More options</h4>
     <label>
       <input type="checkbox" id="links" /> Enable saving of links. Prefers sources if available.
     </label>
 
     <label>
-      <input type="checkbox" id="selection" /> Enable saving of selected text as a blob. Use a file rewrite rule (eg.
-      <code>.{8}-.{4}-.{4}-.{12}</code>) to rename the saved file.
+      <input type="checkbox" id="selection" /> Enable saving of selected text with a
+      <code>.selection.txt</code> extension
+    </label>
+
+    <label>
+      <input type="checkbox" id="page" /> Enable saving of the current page
     </label>
 
     <label>
@@ -335,11 +334,73 @@ example.com
       <input type="checkbox" id="promptIfNoExtension" /> Open a save file dialog if filename has no extension
     </label>
 
+    <hr>
+
+    <h2>Notifications</h2>
+    <label>
+      <input type="checkbox" id="notifyOnSuccess" /> Show notification on successful download
+    </label>
+
+    <label>
+      <input type="checkbox" id="notifyOnFailure" /> Show notification on failed download
+    </label>
+
+    <label>
+      Close notification early after
+      <input type="number" id="notifyDuration" min="0" />ms
+      <div class="caption caption-line">1s = 1000ms. Will not extend beyond OS/browser notification duration.</div>
+    </label>
+
+    <hr />
+
+    <h2>Save as shortcuts</h2>
+    <label>
+      Save shortcuts as
+      <select id="shortcutType">
+        <option value="HTML_REDIRECT">HTML redirect</option>
+        <option value="MAC">Mac .url</option>
+        <option value="WINDOWS">Windows .url</option>
+        <option value="FREEDESKTOP">Freedesktop .desktop</option>
+      </select>
+    </label>
+
+    <label>
+      <input type="checkbox" id="shortcutMedia" /> Save media as shortcuts instead
+    </label>
+
+    <label>
+      <input type="checkbox" id="shortcutLink" /> Save links as shortcuts instead
+    </label>
+
+    <label>
+      <input type="checkbox" id="shortcutPage" /> Save pages as shortcuts instead
+    </label>
+
+    <label>
+      <select disabled class="chrome-enabled" id="conflictAction">
+        <option value="uniquify">Uniquify</option>
+        <option value="overwrite">Overwrite</option>
+        <option value="prompt">Prompt</option>
+      </select>
+      when a duplicate filename is encountered (Chrome only)
+    </label>
+
+    <hr>
+
+    <h2>More options
+      <div id="reset" class="button float-right">Restore defaults</div>
+    </h2>
+    <label>
+      Truncate path components to
+      <input type="number" id="truncateLength" min="1" /> characters
+      <div class="caption caption-line">0 = no truncation</div>
+    </label>
+
     <label>
       <input type="checkbox" id="debug" /> Enable debug logging
     </label>
 
-    <button type="submit">Save</button>
+    <div id="submit" type="submit" class="button puffy save">Save</div>
   </form>
 
   <script src="options.js"></script>

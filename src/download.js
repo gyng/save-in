@@ -3,13 +3,29 @@
 const DISPOSITION_FILENAME_REGEX = /filename[^;=\n]*=((['"])(.*)?\2|(.+'')?([^;\n]*))/i;
 const EXTENSION_REGEX = /\.([0-9a-z]{1,8})$/i;
 const SPECIAL_CHARACTERS_REGEX = /[~<>:"/\\|?*\0]/g;
+const LEADING_DOTS_REGEX = /^\./g;
+
+const makeObjectUrl = (content, mime = "text/plain") =>
+  URL.createObjectURL(
+    new Blob([content], {
+      type: `${mime};charset=utf-8`
+    })
+  );
 
 // TODO: Make this OS-aware instead of assuming Windows
 const replaceFsBadChars = s => s.replace(SPECIAL_CHARACTERS_REGEX, "_");
-const replaceFsBadCharsInPath = pathStr =>
+// Leading dots are considered invalid by both Firefox and Chrome
+const replaceLeadingDots = s => s.replace(LEADING_DOTS_REGEX, "");
+
+const truncateIfLongerThan = (str, max) =>
+  str && max > 0 && str.length > max ? str.substr(0, max) : str;
+
+const sanitizePath = (pathStr, maxComponentLength = 0) =>
   pathStr
     .split(new RegExp("[\\/\\\\]", "g"))
     .map(replaceFsBadChars)
+    .map(replaceLeadingDots)
+    .map(c => truncateIfLongerThan(c, maxComponentLength))
     .join("/");
 
 const getFilenameFromUrl = url => {
@@ -54,36 +70,23 @@ const replaceSpecialDirs = (path, url, info) => {
   ret = ret.replace(SPECIAL_DIRS.PAGE_URL, replaceFsBadChars(info.pageUrl));
   const now = new Date();
 
+  const padDateComponent = (num, func) => num.toString().padStart(2, "0");
+
   const date = [
     now.getFullYear(),
-    (now.getMonth() + 1).toString().padStart(2, "0"),
-    now
-      .getDate()
-      .toString()
-      .padStart(2, "0")
+    padDateComponent(now.getMonth() + 1),
+    padDateComponent(now.getDate())
   ].join("-");
   ret = ret.replace(SPECIAL_DIRS.DATE, date);
 
   const isodate = [
     now.getUTCFullYear(),
-    (now.getUTCMonth() + 1).toString().padStart(2, "0"),
-    now
-      .getUTCDate()
-      .toString()
-      .padStart(2, "0"),
+    padDateComponent(now.getUTCMonth() + 1),
+    padDateComponent(now.getUTCDate()),
     "T",
-    now
-      .getUTCHours()
-      .toString()
-      .padStart(2, "0"),
-    now
-      .getUTCMinutes()
-      .toString()
-      .padStart(2, "0"),
-    now
-      .getUTCSeconds()
-      .toString()
-      .padStart(2, "0"),
+    padDateComponent(now.getUTCHours()),
+    padDateComponent(now.getUTCMinutes()),
+    padDateComponent(now.getUTCSeconds()),
     "Z"
   ].join("");
 
@@ -91,38 +94,18 @@ const replaceSpecialDirs = (path, url, info) => {
   ret = ret.replace(SPECIAL_DIRS.UNIX_DATE, Date.parse(now) / 1000);
 
   ret = ret.replace(SPECIAL_DIRS.YEAR, now.getFullYear());
+  ret = ret.replace(SPECIAL_DIRS.MONTH, padDateComponent(now.getMonth() + 1));
+  ret = ret.replace(SPECIAL_DIRS.DAY, padDateComponent(now.getDate()));
+  ret = ret.replace(SPECIAL_DIRS.HOUR, padDateComponent(now.getHours()));
+  ret = ret.replace(SPECIAL_DIRS.MINUTE, padDateComponent(now.getMinutes()));
+  ret = ret.replace(SPECIAL_DIRS.SECOND, padDateComponent(now.getSeconds()));
+
   ret = ret.replace(
-    SPECIAL_DIRS.MONTH,
-    (now.getMonth() + 1).toString().padStart(2, "0")
+    SPECIAL_DIRS.PAGE_TITLE,
+    (currentTab && currentTab.title) || ""
   );
-  ret = ret.replace(
-    SPECIAL_DIRS.DAY,
-    now
-      .getDate()
-      .toString()
-      .padStart(2, "0")
-  );
-  ret = ret.replace(
-    SPECIAL_DIRS.HOUR,
-    now
-      .getHours()
-      .toString()
-      .padStart(2, "0")
-  );
-  ret = ret.replace(
-    SPECIAL_DIRS.MINUTE,
-    now
-      .getMinutes()
-      .toString()
-      .padStart(2, "0")
-  );
-  ret = ret.replace(
-    SPECIAL_DIRS.SECOND,
-    now
-      .getSeconds()
-      .toString()
-      .padStart(2, "0")
-  );
+
+  ret = ret.replace(SPECIAL_DIRS.LINK_TEXT, info.linkText);
 
   return ret;
 };
@@ -168,7 +151,7 @@ if (chrome && chrome.downloads && chrome.downloads.onDeterminingFilename) {
   chrome.downloads.onDeterminingFilename.addListener(
     (downloadItem, suggest) => {
       const rewrittenFilename = rewriteFilename(
-        downloadItem.filename,
+        globalChromeRewriteOptions.suggestedFilename || downloadItem.filename,
         globalChromeRewriteOptions.filenamePatterns,
         globalChromeRewriteOptions.url,
         globalChromeRewriteOptions.info
@@ -177,13 +160,14 @@ if (chrome && chrome.downloads && chrome.downloads.onDeterminingFilename) {
       suggest({
         filename: `${globalChromeRewriteOptions.path}/${replaceFsBadChars(
           rewrittenFilename
-        )}`
+        )}`,
+        conflictAction: globalChromeRewriteOptions.conflictAction
       });
     }
   );
 }
 
-const downloadInto = (path, url, info, options) => {
+const downloadInto = (path, url, info, options, suggestedFilename) => {
   // Make bug reports easier
   /* eslint-disable no-console */
   if (window.SI_DEBUG) {
@@ -191,41 +175,56 @@ const downloadInto = (path, url, info, options) => {
     console.log("downloadInto url", url);
     console.log("downloadInto info", info);
     console.log("downloadInto options", options);
+    console.log("downloadInto suggestedFilename", suggestedFilename);
   }
   /* eslint-enable no-console */
 
-  const { filenamePatterns, prompt, promptIfNoExtension } = options;
+  const {
+    filenamePatterns,
+    prompt,
+    promptIfNoExtension,
+    conflictAction,
+    truncateLength
+  } = options;
 
   const download = (filename, rewrite = true) => {
     const rewrittenFilename = rewrite
-      ? rewriteFilename(filename, filenamePatterns, url, info)
-      : filename;
+      ? rewriteFilename(
+          suggestedFilename || filename,
+          filenamePatterns,
+          url,
+          info
+        )
+      : suggestedFilename || filename;
 
     const hasExtension = rewrittenFilename.match(EXTENSION_REGEX);
 
-    let fsSafeDirectory = replaceFsBadCharsInPath(path);
-    const fsSafeFilename = replaceFsBadChars(rewrittenFilename);
+    const fsSafeDirectory = sanitizePath(
+      path.replace(/^\.[\\/\\\\]?/, ""),
+      truncateLength
+    );
+    const fsSafeFilename = sanitizePath(rewrittenFilename, truncateLength);
 
-    // https://github.com/gyng/save-in/issues/7
-    // Firefox doesn't like saving into the default directory "./filename"
-    // since 58a
-    fsSafeDirectory = fsSafeDirectory.replace(/^\.[\\/\\\\]?/, "");
     const fsSafePath = fsSafeDirectory
       ? [fsSafeDirectory, fsSafeFilename].join("/")
       : fsSafeFilename;
 
     if (window.SI_DEBUG) {
-      console.log("downloadInto filename", filename); // eslint-disable-line
-      console.log("downloadInto fsSafeDirectory", fsSafeDirectory); // eslint-disable-line
-      console.log("downloadInto fsSafeFilename", fsSafeFilename); // eslint-disable-line
-      console.log("downloadInto fsSafePath", fsSafePath); // eslint-disable-line
+      console.log("download filename", filename); // eslint-disable-line
+      console.log("download suggestedFilename", suggestedFilename); // eslint-disable-line
+      console.log("download rewrittenFilename", rewrittenFilename); // eslint-disable-line
+      console.log("download fsSafeDirectory", fsSafeDirectory); // eslint-disable-line
+      console.log("download fsSafeFilename", fsSafeFilename); // eslint-disable-line
+      console.log("download fsSafePath", fsSafePath); // eslint-disable-line
+      console.log("download conflictAction", conflictAction); // eslint-disable-line
     }
 
+    // conflictAction is Chrome only and overridden in onDeterminingFilename, Firefox enforced in settings
     browser.downloads.download({
       url,
       filename: fsSafePath,
-      saveAs: prompt || (promptIfNoExtension && !hasExtension)
-      // conflictAction: 'prompt', // Not supported in FF
+      saveAs: prompt || (promptIfNoExtension && !hasExtension),
+      conflictAction
     });
   };
 
@@ -238,8 +237,11 @@ const downloadInto = (path, url, info, options) => {
     globalChromeRewriteOptions = {
       path,
       filenamePatterns,
+      suggestedFilename,
       url,
-      info
+      info,
+      truncateLength,
+      conflictAction
     };
 
     download(url, false); // Will be rewritten inside Chrome event listener
@@ -269,11 +271,13 @@ const downloadInto = (path, url, info, options) => {
 if (typeof module !== "undefined") {
   module.exports = {
     replaceFsBadChars,
-    replaceFsBadCharsInPath,
+    sanitizePath,
+    truncateIfLongerThan,
     getFilenameFromUrl,
     getFilenameFromContentDisposition,
     replaceSpecialDirs,
     rewriteFilename,
+    makeObjectUrl,
     DISPOSITION_FILENAME_REGEX,
     EXTENSION_REGEX,
     SPECIAL_CHARACTERS_REGEX

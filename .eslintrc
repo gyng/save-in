@@ -17,9 +17,18 @@
   "globals": {
     "SPECIAL_DIRS": true,
     "MEDIA_TYPES": true,
+    "SHORTCUT_TYPES": true,
+    "SHORTCUT_EXTENSIONS": true,
+    "DOWNLOAD_TYPES": true,
     "replaceSpecialDirs": true,
+    "truncateIfLongerThan": true,
     "downloadInto": true,
     "addNotifications": true,
-    "requestedDownloadFlag": true
+    "requestedDownloadFlag": true,
+    "makeObjectUrl": true,
+    "makeShortcut": true,
+    "currentTab": true,
+    "createExtensionNotification": true,
+    "suggestShortcutFilename": true
   }
 }

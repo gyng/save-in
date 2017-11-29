@@ -12,11 +12,11 @@ test("escapes bad filesystem characters", () => {
 });
 
 test("escapes bad filesystem characters in path", () => {
-  expect(download.replaceFsBadCharsInPath("/:stop:/::/")).toBe("/_stop_/__/");
-  expect(download.replaceFsBadCharsInPath("/:date:/dog")).toBe("/_date_/dog");
-  expect(download.replaceFsBadCharsInPath("/aa/b/c")).toBe("/aa/b/c");
-  expect(download.replaceFsBadCharsInPath("ab/b/c")).toBe("ab/b/c");
-  expect(download.replaceFsBadCharsInPath("a\\b/c")).toBe("a/b/c");
+  expect(download.sanitizePath("/:stop:/::/")).toBe("/_stop_/__/");
+  expect(download.sanitizePath("/:date:/dog")).toBe("/_date_/dog");
+  expect(download.sanitizePath("/aa/b/c")).toBe("/aa/b/c");
+  expect(download.sanitizePath("ab/b/c")).toBe("ab/b/c");
+  expect(download.sanitizePath("a\\b/c")).toBe("a/b/c");
 });
 
 test("extension detection regex", () => {
@@ -163,10 +163,12 @@ describe("variables", () => {
 
   beforeAll(() => {
     global.SPECIAL_DIRS = constants.SPECIAL_DIRS;
+    global.currentTab = { title: "foobartitle" };
   });
 
   afterAll(() => {
     global.SPECIAL_DIRS = specialDirs;
+    global.currentTab = undefined;
   });
 
   describe("standard variables", () => {
@@ -298,6 +300,18 @@ describe("variables", () => {
       ];
       const output = download.rewriteFilename(input, patterns, url, info);
       expect(output).toBe("linkfoobarlinkfoobar");
+    });
+
+    test("interpolates :pagetitle:", () => {
+      const input = "lol.jpeg";
+      const patterns = [
+        {
+          filenameMatch: new RegExp("(.*)\\.(jpeg)"),
+          replace: ":pagetitle::pagetitle:"
+        }
+      ];
+      const output = download.rewriteFilename(input, patterns, url, info);
+      expect(output).toBe("foobartitlefoobartitle");
     });
   });
 });

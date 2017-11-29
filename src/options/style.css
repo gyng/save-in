@@ -1,5 +1,41 @@
+:root {
+  --font-stack: "Segoe UI", "San Francisco", "Ubuntu", "Fira Sans", "Roboto",
+    sans-serif;
+  --blue40: #45a1ff;
+  --blue50: #0a84ff;
+  --blue60: #0060df;
+  --blue70: #003eaa;
+  --blue80: #002275;
+  --grey20: #ededf0;
+  --grey30: #d7d7db;
+  --grey40: #b1b1b3;
+  --grey50: #737373;
+  --yellow50: #ffe900;
+}
+
+a {
+  color: var(--blue50);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+* {
+  font-family: var(--font-stack);
+  line-height: 1.3;
+  font-size: 15px;
+}
+
+code,
+pre {
+  font-family: monospace;
+  border-radius: 2px;
+}
+
 html {
-  font-family: sans-serif;
+  font-family: var(--font-stack);
   min-height: 1%; /* Firefox options page height hack */
 }
 
@@ -9,47 +45,134 @@ code {
 }
 
 pre {
-  padding: 15px;
+  padding: 16px;
+  overflow-x: auto;
 }
 
 code {
-  padding: 3px;
+  padding: 4px;
 }
 
-button[type="submit"] {
-  font-size: 1rem;
-  margin-top: 15px;
-  padding: 5px;
+h2 {
+  width: 100%;
+  font-size: 22px;
+  font-weight: 300;
+  margin-bottom: 16px;
 }
 
-h4 {
-  margin-bottom: 5px;
+h3 {
+  width: 100%;
+  font-size: 17px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+hr {
+  height: 1px;
+  background-color: var(--grey40);
+  width: 100%;
+  border: none;
+  margin: 32px 0 0 0;
+}
+
+p,
+div,
+label,
+input,
+option {
+  font-size: 15px;
+  margin-bottom: 4px;
 }
 
 li {
-  margin-bottom: 5px;
+  margin-bottom: 4px;
+}
+
+input[type="number"] {
+  max-width: 80px;
+  padding: 4px;
 }
 
 textarea {
   font-family: monospace;
+  border-radius: 2px;
+  border: solid 1px var(--grey40);
+  padding: 8px;
+  margin: 8px 0 8px 0;
+}
+
+select {
+  padding: 4px;
+}
+
+td {
+  padding: 0 8px;
+  line-height: 1.6;
+}
+
+div.button,
+button {
+  border-radius: 2px;
+  padding: 8px;
+  border: solid 1px var(--grey30);
+  background-color: transparent;
+}
+
+div.button:hover,
+button:hover {
+  background-color: var(--grey30);
+}
+
+div.button:active,
+button:active {
+  background-color: var(--grey40);
+}
+
+div.button.puffy,
+button.puffy {
+  color: white;
+  background-color: var(--blue60);
+  margin-top: 16px;
+  padding: 16px;
+  border-radius: 4px;
+  border: none;
+  text-align: center;
+}
+
+div.button.puffy:hover,
+button.puffy:hover {
+  background-color: var(--blue70);
+}
+
+div.button.puffy:active,
+button.puffy:active {
+  background-color: var(--blue80);
+}
+
+.save {
+  margin-top: 32px;
 }
 
 .help {
-  color: inherit;
-  text-decoration: underline;
+  color: var(--blue50);
   cursor: pointer;
 }
 
 .help:visited {
-  color: inherit;
+  color: var(--blue50);
+}
+
+.help:hover {
+  text-decoration: underline;
 }
 
 .help-text {
+  border-radius: 2px;
   display: none;
   color: black;
   background-color: rgb(241, 243, 217);
-  padding: 10px;
-  margin: 0 0 15px 0;
+  padding: 4px 12px 8px 12px;
+  margin: 8px 0 16px 0;
 }
 
 .hide {
@@ -63,21 +186,67 @@ textarea {
 #options {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
+  max-width: 960px;
 }
 
-#options > label.column {
+#options > .column {
   display: flex;
   flex-direction: column;
+  width: 100%;
+}
+
+#submit {
+  margin-top: 32px;
+  min-width: 132px;
 }
 
 .box {
-  margin: 15px 0;
-  padding: 3px;
+  margin: 16px 0;
+  padding: 4px;
   background-color: rgba(0, 0, 0, 0.1);
 }
 
 .chrome-only {
   display: none;
   background-color: rgb(165, 249, 168);
-  padding: 10px;
+  padding: 12px;
+  margin: 0 0 8px 0;
+  border-radius: 2px;
+}
+
+.click-to-copy {
+  cursor: pointer;
+}
+
+.click-to-copy:hover {
+  outline: solid 2px var(--blue40);
+}
+
+.click-to-copy:active {
+  background-color: var(--grey40);
+}
+
+.caption {
+  font-size: 13px;
+  font-weight: 400;
+}
+
+.caption-line {
+  margin-left: 32px;
+}
+
+.float-right {
+  align-self: flex-end !important;
+  float: right;
+}
+
+.badge {
+  padding: 4px;
+  border-radius: 4px;
+  font-weight: 700;
+}
+
+.warning.badge {
+  background-color: var(--yellow50);
 }
