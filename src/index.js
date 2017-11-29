@@ -76,6 +76,10 @@ browser.storage.local
         .map(pairStr => pairStr.split("\n"))
         .map(pairArr => {
           try {
+            if (pairArr.length < 2) {
+              throw new Error("missing filename replacement pattern");
+            }
+
             const filenameMatch = new RegExp(pairArr[0]);
             const urlMatch = new RegExp(pairArr[2] || ".*"); // defaults to match all URLs
 
