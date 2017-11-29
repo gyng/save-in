@@ -234,6 +234,7 @@ button.puffy:active {
 }
 
 .caption-line {
+  margin-top: 4px;
   margin-left: 32px;
 }
 

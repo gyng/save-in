@@ -190,6 +190,130 @@
       </div>
       </div>
 
+      <h3 class="help" data-help-for="help-clause-list">
+        📓 Clause list (click to expand)</h3>
+      <div class="help-text" id="help-clause-list">
+        <h3>Output and others</h3>
+        <div class="box">
+          <table>
+            <tr>
+              <td>
+                <code class="click-to-copy">into:</code>
+              </td>
+              <td>
+                <code>:pagedomain:/:date:</code>
+              </td>
+              <td>Routes downloads to, or rewrites download filenames into the given pattern</td>
+            </tr>
+            <tr>
+              <td>
+                <code class="click-to-copy">capture:</code>
+              </td>
+              <td>
+                <code>pageurl</code>
+              </td>
+              <td>optional, selects the matcher for regex capture group variables (
+                <code class="click-to-copy">:$1:</code>,
+                <code class="click-to-copy">:$2:</code>&hellip;)</td>
+            </tr>
+          </table>
+        </div>
+
+        <h3>Matchers</h3>
+        <div class="caption">Matchers take a regular expression pattern</div class="caption">
+
+        <div class="box">
+          <table>
+            <tr>
+              <td>
+                <code class="click-to-copy">fileext:</code>
+              </td>
+              <td>
+                <code>jpg</code>
+              </td>
+              <td>Matches the naive file extension</td>
+            </tr>
+            <tr>
+              <td>
+                <code class="click-to-copy">frameurl:</code>
+              </td>
+              <td>
+                <code>http://www.google.com</code>
+              </td>
+              <td>Matches the URL of the current frame</td>
+            </tr>
+            <tr>
+              <td>
+                <code class="click-to-copy">linktext:</code>
+              </td>
+              <td>
+                <code>Click here to download</code>
+              </td>
+              <td>Matches the link text or element
+                <code>title</code> attribute</td>
+            </tr>
+            <tr>
+              <td>
+                <code class="click-to-copy">mediatype:</code>
+              </td>
+              <td>
+                <code>image</code>
+              </td>
+              <td>Matches the media type:
+                <code>audio</code>,
+                <code>video</code>, or
+                <code>image</code>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <code class="click-to-copy">naivefilename:</code>
+              </td>
+              <td>
+                <code>cat.jpg</code>
+              </td>
+              <td>Matches the naive filename</td>
+            </tr>
+            <tr>
+              <td>
+                <code class="click-to-copy">pagetitle:</code>
+              </td>
+              <td>
+                <code>Welcome to my page!</code>
+              </td>
+              <td>Matches the current page title</td>
+            </tr>
+            <tr>
+              <td>
+                <code class="click-to-copy">pageurl:</code>
+              </td>
+              <td>
+                <code>http://www.google.com</code>
+              </td>
+              <td>Matches the current page URL</td>
+            </tr>
+            <tr>
+              <td>
+                <code class="click-to-copy">selectiontext:</code>
+              </td>
+              <td>
+                <code>"X-Cops" is the twelfth</code>
+              </td>
+              <td>Matches the selection text</td>
+            </tr>
+            <tr>
+              <td>
+                <code class="click-to-copy">srcurl:</code>
+              </td>
+              <td>
+                <code>cdn.xyz.com</code>
+              </td>
+              <td>Matches the source URL for media</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
       <h3>Menu items
         <a href="#" class="help" data-help-for="help-paths">help</a>
       </h3>
@@ -228,6 +352,54 @@ others/:date:/:pagedomain:/foo
         </p>
       </div>
       <textarea type="textarea" id="paths" rows=10 placeholder="." spellcheck="false"></textarea>
+    </label>
+
+    <label class="column">
+      <h3>Route downloads
+        <a href="#" class="help" data-help-for="help-routes">help</a>
+        <span title="Unstable: expect changes in future version" class="caption warning badge">⚗️ Unstable</span>
+      </h3>
+      <p>Optionally, set up rules to dynamically route downloads. The first rule that matches will apply. Separate multiple rules with
+        an empty line. Each rule must have an
+        <code>into</code> clause, at least one matcher clause, and an optional
+        <code>capture</code> clause. Multiple variables can be used in the
+        <code>into</code> clause. </p>
+      <pre>
+(matchername): regex
+into: directory pattern
+</pre>
+      <div class="help-text" id="help-routes">
+        Dynamically route downloads into directories. Filenames will still be rewritten if it matches a filename rewrite rule. The
+        <code>capture</code> clause allows the use of regex capture groups.
+
+        <p>
+          <code>cat-1234.jpg</code> →
+          <code>cat/</code> and
+          <code>dog-2345.jpg</code> →
+          <code>dog/</code>:
+        </p>
+        <pre>
+naivefilename: (cat|dog).*
+capture: naivefilename
+into: :$1:</pre>
+
+        <p>Multiple matchers can be used in a rule.</p>
+        <pre>
+mediaType: audio
+srcurl: cdn.myexampleradio.com
+into: music/:date:</pre>
+
+      </div>
+      <textarea type="textarea" id="routeDownloadRules" rows=7 placeholder="Optional" spellcheck="false"></textarea>
+    </label>
+
+    <label>
+      <input type="checkbox" id="routeFailurePrompt" /> Open a save file dialog on routing failure
+    </label>
+
+    <label>
+      <input type="checkbox" id="routeExclusive" /> Exclusively use routing rules
+      <div class="caption caption-line">This disables the submenu for two-click downloads</div>
     </label>
 
     <label class="column">
@@ -310,7 +482,7 @@ example.com
 
         <a href="https://github.com/gyng/save-in/wiki/Filename-rewrite">Short list of useful rules</a>
       </div>
-      <textarea type="textarea" id="filenamePatterns" rows=10 placeholder="Optional" spellcheck="false"></textarea>
+      <textarea type="textarea" id="filenamePatterns" rows=7 placeholder="Optional" spellcheck="false"></textarea>
     </label>
 
     <label>

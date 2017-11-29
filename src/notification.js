@@ -14,6 +14,12 @@ const createExtensionNotification = (title, message, error) => {
     iconUrl: error ? ERROR_ICON_URL : ICON_URL,
     message: message || "Unknown error"
   });
+
+  if (options && options.notifyDuration) {
+    window.setTimeout(() => {
+      browser.notifications.clear(id);
+    }, options.notifyDuration);
+  }
 };
 
 const isDownloadFailure = (downloadDelta, isChrome) => {

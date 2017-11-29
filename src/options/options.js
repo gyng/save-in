@@ -13,6 +13,11 @@ const saveOptions = e => {
     shortcutType: document.querySelector("#shortcutType").value,
     paths: document.querySelector("#paths").value.trim() || ".",
     filenamePatterns: document.querySelector("#filenamePatterns").value.trim(),
+    routeDownloadRules: document
+      .querySelector("#routeDownloadRules")
+      .value.trim(),
+    routeFailurePrompt: document.querySelector("#routeFailurePrompt").checked,
+    routeExclusive: document.querySelector("#routeExclusive").checked,
     prompt: document.querySelector("#prompt").checked,
     promptIfNoExtension: document.querySelector("#promptIfNoExtension").checked,
     notifyOnSuccess: document.querySelector("#notifyOnSuccess").checked,
@@ -35,6 +40,9 @@ const restoreOptions = () => {
       "selection",
       "paths",
       "filenamePatterns",
+      "routeDownloadRules",
+      "routeFailurePrompt",
+      "routeExclusive",
       "prompt",
       "promptIfNoExtension",
       "notifyOnSuccess",
@@ -61,6 +69,11 @@ const restoreOptions = () => {
       document.querySelector("#paths").value = result.paths || ".";
       document.querySelector("#filenamePatterns").value =
         result.filenamePatterns || "";
+
+      document.querySelector("#routeDownloadRules").value =
+        result.routeDownloadRules || "";
+      setCheckboxElement("routeFailurePrompt", false);
+      setCheckboxElement("routeExclusive", false);
 
       setCheckboxElement("debug", false);
       setValueElement("conflictAction", "uniquify");

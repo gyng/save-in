@@ -3,7 +3,7 @@
 const DISPOSITION_FILENAME_REGEX = /filename[^;=\n]*=((['"])(.*)?\2|(.+'')?([^;\n]*))/i;
 const EXTENSION_REGEX = /\.([0-9a-z]{1,8})$/i;
 const SPECIAL_CHARACTERS_REGEX = /[~<>:"/\\|?*\0]/g;
-const LEADING_DOTS_REGEX = /^\./g;
+const BAD_LEADING_CHARACTERS = /^[\.\/\\]/g;
 
 const makeObjectUrl = (content, mime = "text/plain") =>
   URL.createObjectURL(
@@ -15,7 +15,7 @@ const makeObjectUrl = (content, mime = "text/plain") =>
 // TODO: Make this OS-aware instead of assuming Windows
 const replaceFsBadChars = s => s.replace(SPECIAL_CHARACTERS_REGEX, "_");
 // Leading dots are considered invalid by both Firefox and Chrome
-const replaceLeadingDots = s => s.replace(LEADING_DOTS_REGEX, "");
+const replaceLeadingDots = s => s.replace(BAD_LEADING_CHARACTERS, "");
 
 const truncateIfLongerThan = (str, max) =>
   str && max > 0 && str.length > max ? str.substr(0, max) : str;
@@ -223,7 +223,7 @@ const downloadInto = (path, url, info, options, suggestedFilename) => {
     browser.downloads.download({
       url,
       filename: fsSafePath,
-      saveAs: prompt || (promptIfNoExtension && !hasExtension),
+      saveAs: !path || prompt || (promptIfNoExtension && !hasExtension),
       conflictAction
     });
   };

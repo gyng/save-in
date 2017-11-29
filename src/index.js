@@ -14,7 +14,9 @@ const options = {
   notifyOnSuccess: false,
   notifyOnFailure: true,
   notifyDuration: 7000,
-  truncateLength: 240
+  truncateLength: 240,
+  routeFailurePrompt: false,
+  routeExclusive: false
 };
 
 const setOption = (name, value) => {
@@ -39,6 +41,9 @@ browser.storage.local
     "selection",
     "paths",
     "filenamePatterns",
+    "routeDownloadRules",
+    "routeFailurePrompt",
+    "routeExclusive",
     "prompt",
     "promptIfNoExtension",
     "notifyOnSuccess",
@@ -67,6 +72,8 @@ browser.storage.local
     setOption("shortcutPage", item.shortcutPage);
     setOption("shortcutType", item.shortcutType);
     setOption("truncateLength", item.truncateLength);
+    setOption("routeFailurePrompt", item.routeFailurePrompt);
+    setOption("routeExclusive", item.routeExclusive);
 
     // Parse filenamePatterns
     const filenamePatterns =
@@ -99,8 +106,11 @@ browser.storage.local
           }
         })
         .filter(f => f != null);
-
     setOption("filenamePatterns", filenamePatterns || []);
+
+    const routeDownloadRules =
+      item.routeDownloadRules && parseRules(item.routeDownloadRules);
+    setOption("routeDownloadRules", routeDownloadRules || []);
 
     addNotifications({
       notifyOnSuccess: options.notifyOnSuccess,
@@ -113,6 +123,16 @@ browser.storage.local
     media = options.selection ? media.concat(["selection"]) : media;
     media = options.page ? media.concat(["page"]) : media;
     let separatorCounter = 0;
+
+    if (options.routeExclusive) {
+      browser.contextMenus.create({
+        id: "save-in-route-exclusive",
+        title: "Save In route…",
+        contexts: media
+      });
+      
+      return;
+    }
 
     const lastUsedMenuOptions = {
       id: `save-in-last-used`,
@@ -137,6 +157,14 @@ browser.storage.local
       }
 
       browser.contextMenus.create(lastUsedMenuOptions);
+    }
+
+    if (options.routeDownloadRules.length > 0) {
+      browser.contextMenus.create({
+        id: `save-in-auto`,
+        title: "Try to route",
+        contexts: media
+      });
     }
 
     browser.contextMenus.create({
@@ -197,6 +225,8 @@ browser.storage.local
 
 browser.contextMenus.onClicked.addListener(info => {
   const matchSave = info.menuItemId.match(/save-in-(.*)/);
+  const matchRoute = matchRules(options.routeDownloadRules, info);
+  console.log(options.routeDownloadRules, info)
 
   if (matchSave && matchSave.length === 2) {
     let url;
@@ -212,7 +242,8 @@ browser.contextMenus.onClicked.addListener(info => {
     } else if (options.selection && info.selectionText) {
       downloadType = DOWNLOAD_TYPES.SELECTION;
       url = makeObjectUrl(info.selectionText);
-      suggestedFilename = `${currentTab.title}.selection.txt`;
+      suggestedFilename = `${(currentTab && currentTab.title) ||
+        info.selectionText}.selection.txt`;
     } else if (options.page && info.pageUrl) {
       downloadType = DOWNLOAD_TYPES.PAGE;
       url = info.pageUrl;
@@ -225,16 +256,41 @@ browser.contextMenus.onClicked.addListener(info => {
       return;
     }
 
-    const saveIntoPath =
-      matchSave[1] === "last-used" ? lastUsedPath : matchSave[1];
-    lastUsedPath = saveIntoPath;
+    let saveIntoPath;
+
+    if (matchSave[1] === "auto" || matchSave[1] === "route-exclusive") {
+      saveIntoPath = matchRoute;
+
+      if (!matchRoute) {
+        if (options.routeFailurePrompt) {
+          saveIntoPath = "";
+        } else if (options.notifyOnFailure) {
+          createExtensionNotification(
+            "Save In: Failed to route download",
+            `No matching rule found for ${url}`,
+            true,
+            options
+          );
+        } else {
+          return;
+        }
+      }
+    } else if (matchSave[1] === "last-used") {
+      saveIntoPath = lastUsedPath;
+      lastUsedPath = saveIntoPath;
+    } else {
+      saveIntoPath - matchSave[1];
+      lastUsedPath = saveIntoPath;
+    }
 
     const actualPath = replaceSpecialDirs(saveIntoPath, url, info);
 
-    browser.contextMenus.update("save-in-last-used", {
-      title: `${lastUsedPath}`,
-      enabled: true
-    });
+    if (lastUsedPath) {
+      browser.contextMenus.update("save-in-last-used", {
+        title: `${lastUsedPath}`,
+        enabled: true
+      });
+    }
 
     const saveAsShortcut =
       (downloadType === DOWNLOAD_TYPES.MEDIA && options.shortcutMedia) ||
