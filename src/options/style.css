@@ -116,6 +116,7 @@ button {
   padding: 8px;
   border: solid 1px var(--grey30);
   background-color: transparent;
+  font-weight: 400;
 }
 
 div.button:hover,
