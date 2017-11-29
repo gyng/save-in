@@ -46,6 +46,7 @@ code {
 
 pre {
   padding: 16px;
+  overflow-x: auto;
 }
 
 code {
