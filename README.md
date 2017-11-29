@@ -12,7 +12,7 @@ A web extension (Chrome, Firefox) for saving images, videos, audio, links, selec
 
 Rewrite filenames based off rules.
 
-Optionally, save everything as HTML redirects or .url shortcuts instead.
+Optionally, save everything as HTML redirects or .url/.desktop shortcuts instead.
 
 `<all_urls>` permission is used to get around CORS on HTTP HEAD requests (to check for `Content-Disposition` headers).
 

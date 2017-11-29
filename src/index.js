@@ -242,11 +242,7 @@ browser.contextMenus.onClicked.addListener(info => {
     }
 
     if (saveAsShortcut) {
-      url = makeShortcut(
-        options.shortcutType,
-        url,
-        currentTab && currentTab.title
-      );
+      url = makeShortcut(options.shortcutType, url);
 
       suggestedFilename = suggestShortcutFilename(
         options.shortcutType,
