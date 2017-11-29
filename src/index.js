@@ -216,8 +216,8 @@ browser.contextMenus.onClicked.addListener(info => {
     } else if (options.page && info.pageUrl) {
       downloadType = DOWNLOAD_TYPES.PAGE;
       url = info.pageUrl;
-      suggestedFilename = `${(currentTab && currentTab.title) ||
-        info.pageUrl}.html`;
+      const pageTitle = currentTab && currentTab.title;
+      suggestedFilename = pageTitle ? `${pageTitle}.html` : info.pageUrl;
     } else {
       if (window.SI_DEBUG) {
         console.log("failed to choose download", info); // eslint-disable-line
