@@ -10,6 +10,7 @@
 * Add :linktext: to directories
 * Add truncate path component option
 * Better error handling for bad regex patterns (#34)
+* Photonized options page
 
 # 1.5.2
 

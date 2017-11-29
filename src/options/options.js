@@ -83,13 +83,44 @@ const restoreOptions = () => {
 const addHelp = el => {
   el.addEventListener("click", e => {
     e.preventDefault();
-    document.getElementById(el.dataset.helpFor).classList.toggle("show");
+    const targetEl = document.getElementById(el.dataset.helpFor);
+    if (!targetEl.classList.contains("show")) {
+      el.scrollIntoView();
+    }
+    targetEl.classList.toggle("show");
+  });
+};
+
+const addClickToCopy = el => {
+  let clicked;
+
+  el.title = `Click to copy ${el.textContent} to clipboard`; // eslint-disable-line
+
+  el.addEventListener("click", () => {
+    clicked = el;
+    document.execCommand("copy");
+  });
+
+  document.addEventListener("copy", e => {
+    if (clicked !== el) {
+      return;
+    }
+
+    e.preventDefault();
+    if (e.clipboardData) {
+      e.clipboardData.setData("text/plain", el.textContent);
+      clicked = null;
+    }
   });
 };
 
 document.addEventListener("DOMContentLoaded", restoreOptions);
+document.querySelector("#submit").addEventListener("click", () => {
+  document.querySelector("#options").dispatchEvent(new Event("submit"));
+});
 document.querySelector("#options").addEventListener("submit", saveOptions);
 document.querySelectorAll(".help").forEach(addHelp);
+document.querySelectorAll(".click-to-copy").forEach(addClickToCopy);
 
 document.querySelector("#reset").addEventListener("click", e => {
   /* eslint-disable no-alert */
