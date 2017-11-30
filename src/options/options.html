@@ -120,6 +120,14 @@
 
         <tr>
           <td>
+            <code class="click-to-copy">:srcurl:</code>
+          </td>
+          <td>http://xyz.com/pic.jpg</td>
+          <td>URL of the source</td>
+        </tr>
+
+        <tr>
+          <td>
             <code class="click-to-copy">:pagedomain:</code>
           </td>
           <td>xyz.com</td>
@@ -334,6 +342,7 @@
       </h3>
       <p>Paths relative to default download directory. One path per line. Multiple variables can be used in a path.</p>
       <div class="help-text" id="help-paths">
+        <h4>Creating context menu items</h4>
         <div class="demo-box" style="margin-top: 12px; align-items: flex-start;">
           <div class="demo-code left ">
           <pre class="click-to-copy">.
@@ -376,12 +385,17 @@ v/cats
           <code>/</code>) are ignored. Files and directories with leading dots (
           <code>foo/.hidden</code>) are considered invalid by Firefox and Chrome.</p>
 
+        <h4>Saving outside the default download directory</h4>
         <p>The WebExtensions API does not allow files to be saved outside of the default download directory. If you want to
           save the files outside the default download directory, use a
           <a href="https://en.wikipedia.org/wiki/Symbolic_link" target="_blank">symlink</a> inside the default download directory.
-          <a href="https://serverfault.com/questions/7109/how-do-i-create-a-symbolic-link-in-windows" target="_blank">Windows</a>,
-          <a href="https://apple.stackexchange.com/questions/115646/how-can-i-create-a-symbolic-link-in-terminal" target="_blank">OS X/Unix</a>
         </p>
+
+        <a href="https://serverfault.com/questions/7109/how-do-i-create-a-symbolic-link-in-windows" target="_blank"><h5>Windows</h5></a>
+        <pre class="click-to-copy">mklink /D C:\path\to\symlink D:\path\to\actual</pre>
+
+        <a href="https://apple.stackexchange.com/questions/115646/how-can-i-create-a-symbolic-link-in-terminal" target="_blank"><h5>macOS/Unix</h5></a>
+        <pre class="click-to-copy">ln -s /path/to/actual /path/to/symlink</pre>
       </div>
       <textarea type="textarea" id="paths" rows=10 placeholder="." spellcheck="false"></textarea>
     </label>

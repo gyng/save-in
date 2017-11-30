@@ -43,7 +43,7 @@ a.external {
 
 html {
   font-family: var(--font-stack);
-  min-width: 640px;
+  min-width: 420px;
   min-height: 1%; /* Firefox options page height hack */
 }
 
@@ -73,6 +73,18 @@ h2 {
 h3 {
   width: 100%;
   font-size: 17px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+h4 {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+h5 {
+  font-size: 13px;
   font-weight: 600;
   margin-bottom: 4px;
 }
