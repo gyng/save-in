@@ -1,3 +1,5 @@
+let debugOptions;
+
 const saveOptions = e => {
   e.preventDefault();
 
@@ -89,6 +91,8 @@ const restoreOptions = () => {
       setValueElement("notifyDuration", 7000);
       setValueElement("truncateLength", 240);
       setValueElement("replacementChar", "_");
+
+      debugOptions = result;
     });
 };
 
@@ -133,6 +137,40 @@ document.querySelector("#submit").addEventListener("click", () => {
 document.querySelector("#options").addEventListener("submit", saveOptions);
 document.querySelectorAll(".help").forEach(addHelp);
 document.querySelectorAll(".click-to-copy").forEach(addClickToCopy);
+
+document.querySelector("#print-debug-info").addEventListener("click", () => {
+  const navigatorInfo = {
+    appVersion: navigator.appVersion,
+    userAgent: navigator.userAgent,
+    language: navigator.language
+  };
+
+  const doc = window.open().document;
+  const pp = obj => {
+    doc.write("```json\n" + JSON.stringify(obj, null, 2) + "```\n\n"); // eslint-disable-line
+  };
+  const title = name => {
+    doc.write(`\n\n## ${name}\n\n`);
+  };
+
+  doc.write("<pre>");
+
+  doc.write(`Generated ${new Date().toISOString()}\n`);
+
+  title("Browser");
+  pp(navigatorInfo);
+
+  title("Options");
+  pp(debugOptions);
+
+  title("Last runtime error");
+  pp(browser.runtime.lastError);
+
+  title("Extension");
+  browser.management.getSelf().then(o => pp({ version: o.version }));
+
+  browser.permissions.getAll().then(o => pp({ permissions: o.permissions }));
+});
 
 document.querySelector("#reset").addEventListener("click", e => {
   /* eslint-disable no-alert */
