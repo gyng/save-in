@@ -1,9 +1,3 @@
-const RULE_TYPES = {
-  MATCHER: "MATCHER",
-  CAPTURE: "CAPTURE",
-  DESTINATION: "DESTINATION"
-};
-
 const makeInfoMatcherFactory = propertyName => regex => info => {
   const match = info[propertyName] && info[propertyName].match(regex);
 
@@ -29,7 +23,6 @@ const makeTabMatcherFactory = propertyName => regex => info => {
 
 const matcherFunctions = {
   fileext: regex => info => {
-    console.log(info, regex);
     const url = info.srcUrl || info.linkUrl || info.pageUrl;
     if (!url) return false;
 
@@ -71,17 +64,18 @@ const matcherFunctions = {
 const tokenizeLine = line =>
   line
     .split("\n")
-    .map(line => line.match(/^(\S*): ?(.*)/))
+    .map(l => l.match(/^(\S*): ?(.*)/))
     .map(toks => {
       if (!toks || toks.length < 3) {
-        createExtensionNotification("Save In: Bad routing rule", toks, true);
+        createExtensionNotification("Save In: Bad routing clause", toks, true);
+        return null;
       }
       return toks;
     })
     .filter(toks => toks && toks.length >= 3);
 
 const parseRule = lines => {
-  let matchers = lines.map(tokens => {
+  const matchers = lines.map(tokens => {
     const name = tokens[1];
 
     let value;
@@ -108,7 +102,7 @@ const parseRule = lines => {
 
       if (!matcher) {
         createExtensionNotification(
-          "Save In: Unknown matcher rule",
+          "Save In: Unknown matcher clause",
           name,
           true
         );
@@ -130,9 +124,12 @@ const parseRule = lines => {
     }
   });
 
-  if (!matchers.some(m => m.type === RULE_TYPES.DESTINATION)) {
+  if (
+    !matchers.some(m => m.type === RULE_TYPES.DESTINATION) ||
+    !matchers.some(m => m.type === RULE_TYPES.MATCHER)
+  ) {
     createExtensionNotification(
-      "Save In: Routing rule missing output",
+      "Save In: Routing rule missing output or matcher",
       JSON.stringify(lines.map(l => l[0]))
     );
 
@@ -150,7 +147,7 @@ const parseRules = raw => {
     .filter(r => !!r);
 
   if (window.SI_DEBUG) {
-    console.log("parsedRules", rules);
+    console.log("parsedRules", rules); // eslint-disable-line
   }
 
   return rules;
@@ -200,4 +197,14 @@ const matchRules = (rules, info) => {
       return result;
     }
   }
+
+  return null;
 };
+
+// Export for testing
+if (typeof module !== "undefined") {
+  module.exports = {
+    matchRules,
+    parseRules
+  };
+}

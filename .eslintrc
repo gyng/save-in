@@ -20,6 +20,8 @@
     "SHORTCUT_TYPES": true,
     "SHORTCUT_EXTENSIONS": true,
     "DOWNLOAD_TYPES": true,
+    "RULE_TYPES": true,
+    "EXTENSION_REGEX": true,
     "replaceSpecialDirs": true,
     "truncateIfLongerThan": true,
     "downloadInto": true,
@@ -29,6 +31,10 @@
     "makeShortcut": true,
     "currentTab": true,
     "createExtensionNotification": true,
-    "suggestShortcutFilename": true
+    "suggestShortcutFilename": true,
+    "getFilenameFromUrl": true,
+    "matchRules": true,
+    "parseRules": true,
+    "options": true
   }
 }

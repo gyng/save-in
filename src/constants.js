@@ -49,6 +49,12 @@ const CONFLICT_ACTION = {
   PROMPT: "prompt"
 };
 
+const RULE_TYPES = {
+  MATCHER: "MATCHER",
+  CAPTURE: "CAPTURE",
+  DESTINATION: "DESTINATION"
+};
+
 // Export for testing
 if (typeof module !== "undefined") {
   module.exports = {
@@ -56,6 +62,7 @@ if (typeof module !== "undefined") {
     SPECIAL_DIRS,
     SHORTCUT_TYPES,
     SHORTCUT_EXTENSIONS,
-    CONFLICT_ACTION
+    CONFLICT_ACTION,
+    RULE_TYPES
   };
 }

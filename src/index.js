@@ -130,7 +130,7 @@ browser.storage.local
         title: "Save In route…",
         contexts: media
       });
-      
+
       return;
     }
 
@@ -226,7 +226,6 @@ browser.storage.local
 browser.contextMenus.onClicked.addListener(info => {
   const matchSave = info.menuItemId.match(/save-in-(.*)/);
   const matchRoute = matchRules(options.routeDownloadRules, info);
-  console.log(options.routeDownloadRules, info)
 
   if (matchSave && matchSave.length === 2) {
     let url;
@@ -277,20 +276,17 @@ browser.contextMenus.onClicked.addListener(info => {
       }
     } else if (matchSave[1] === "last-used") {
       saveIntoPath = lastUsedPath;
-      lastUsedPath = saveIntoPath;
     } else {
-      saveIntoPath - matchSave[1];
+      saveIntoPath = matchSave[1];
       lastUsedPath = saveIntoPath;
-    }
 
-    const actualPath = replaceSpecialDirs(saveIntoPath, url, info);
-
-    if (lastUsedPath) {
       browser.contextMenus.update("save-in-last-used", {
         title: `${lastUsedPath}`,
         enabled: true
       });
     }
+
+    const actualPath = replaceSpecialDirs(saveIntoPath, url, info);
 
     const saveAsShortcut =
       (downloadType === DOWNLOAD_TYPES.MEDIA && options.shortcutMedia) ||
