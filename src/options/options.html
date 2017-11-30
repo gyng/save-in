@@ -9,13 +9,6 @@
 
 <body>
   <div>
-    <select id="section-toc">
-      <option>Jump to section</option>
-      <option value="#section-downloads">Downloads</option>
-      <option value="#section-notifications">Notifications</option>
-      <option value="#section-save-as-shortcuts">Save as shortcuts</option>
-      <option value="#section-more-options">More options</option>
-    </select>
     <a class="external" href="https://github.com/gyng/save-in/">GitHub</a>
     &middot;
     <a class="external" href="https://github.com/gyng/save-in/blob/master/CHANGELOG.md">Changelog</a>
@@ -155,14 +148,14 @@
         </tr>
 
         <tr>
-            <td>
-              <code class="click-to-copy">:selectiontext:</code>
-            </td>
-            <td>A swan created using</td>
-            <td>
-              The currently selected text on the page
-            </td>
-          </tr>
+          <td>
+            <code class="click-to-copy">:selectiontext:</code>
+          </td>
+          <td>A swan created using</td>
+          <td>
+            The currently selected text on the page
+          </td>
+        </tr>
       </table>
 
 
@@ -228,7 +221,7 @@
             <code>:pagedomain:/:date:</code>
           </td>
           <td>
-            <i>Required</i> Routes downloads to, or rewrites download filenames into the given pattern</td>
+            <span class="badge warning">Required</span> Routes downloads to, or rewrites download filenames into the given pattern</td>
         </tr>
         <tr>
           <td>
@@ -238,15 +231,16 @@
             <code>pageurl</code>
           </td>
           <td>
-            <i>Optional</i> Selects the matcher for regex capture group variables (
+            <span class="badge">Optional</span> Selects the matcher for regex capture group variables (
             <code class="click-to-copy">:$1:</code>,
             <code class="click-to-copy">:$2:</code>&hellip;)</td>
         </tr>
       </table>
 
       <h3>Matchers</h3>
-      <div class="caption">Matchers take a
-        <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions">regular expression</a> pattern</div class="caption">
+      Matcher clauses use
+      <a class="external" href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions">regular expression</a> strings:
+      <code class="click-to-copy">fileext: jpe?g</code>.
 
       <table class="box">
         <tr>
@@ -426,13 +420,14 @@ v/cats
           <a href="https://en.wikipedia.org/wiki/Symbolic_link" target="_blank">symlink</a> inside the default download directory can be used to get around this limitation.
         </p>
 
-        <a href="https://serverfault.com/questions/7109/how-do-i-create-a-symbolic-link-in-windows" target="_blank">
-          <h5>Windows</h5>
+        <br>
+        <a class="external" href="https://technet.microsoft.com/en-us/library/cc753194(v=ws.11).aspx" target="_blank">
+          Windows
         </a>
         <pre class="click-to-copy">mklink /D C:\path\to\symlink D:\path\to\actual</pre>
 
-        <a href="https://apple.stackexchange.com/questions/115646/how-can-i-create-a-symbolic-link-in-terminal" target="_blank">
-          <h5>macOS/Unix</h5>
+        <a class="external" href="http://manpages.ubuntu.com/manpages/xenial/man1/ln.1.html" target="_blank">
+          macOS/Unix
         </a>
         <pre class="click-to-copy">ln -s /path/to/actual /path/to/symlink</pre>
       </div>
@@ -442,11 +437,12 @@ v/cats
     <label class="column">
       <h3>Download routing and renaming
         <a href="#" class="help" data-help-for="help-filenames">help</a>
+        <span class="badge warning" style="font-size: 13px">🐞 New</span>
       </h3>
 
       <p>
         Optionally, set up rules to automate the routing of downloads or renaming of files. The first matching rule applies. Separate
-        multiple rules with an empty line. Multiple variables can be used in the
+        multiple rules with an empty line. Each rule is made up of multiple clauses. Multiple variables can be used in the
         <code class="click-to-copy">into:</code> clause. Each rule must have an
         <code class="click-to-copy">into:</code> clause, at least one matcher clause, and an optional
         <code class="click-to-copy">capture:</code> clause.</p>
@@ -468,8 +464,10 @@ into: filename/path pattern</pre>
       <div class="help-text" id="help-filenames">
         <h4>Rewrite filenames</h4>
         <p>
-          Match filenames against a list of rules and rewrite them according to the
-          <code class="click-to-copy">into:</code> clause.
+          Match downloads against clauses. If all clauses match, rewrite them according to the
+          <code class="click-to-copy">into:</code> clause. Matcher clauses use
+          <a class="external" href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions">regular expression</a> strings (ie. not the
+          <code>//</code> syntax).
         </p>
 
         <div class="demo-box">

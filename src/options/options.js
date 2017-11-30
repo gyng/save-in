@@ -131,16 +131,6 @@ document.querySelector("#options").addEventListener("submit", saveOptions);
 document.querySelectorAll(".help").forEach(addHelp);
 document.querySelectorAll(".click-to-copy").forEach(addClickToCopy);
 
-document.querySelector("#section-toc").addEventListener("change", e => {
-  e.preventDefault();
-  if (e.target.value) {
-    const el = document.querySelector(e.target.value);
-    if (el) {
-      el.scrollIntoView();
-    }
-  }
-});
-
 document.querySelector("#reset").addEventListener("click", e => {
   /* eslint-disable no-alert */
   e.preventDefault();
