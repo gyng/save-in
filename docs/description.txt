@@ -9,6 +9,8 @@ The WebExtension API only allows saving into directories relative to the default
 Windows: mklink /D C:\path\to\symlink D:\path\to\actual
 macOS/Unix: ln -s /path/to/actual /path/to/symlink
 
+Make sure the actual directories exist, or downloads will silently fail.
+
 <all_urls> permission is used to get around CORS on HTTP HEAD requests (to check for Content-Disposition headers)
 tabs permission is used to get the active page's title.
 
