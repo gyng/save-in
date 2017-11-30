@@ -19,7 +19,8 @@ const SPECIAL_DIRS = {
   MONTH: new RegExp(":month:", "g"),
   HOUR: new RegExp(":hour:", "g"),
   MINUTE: new RegExp(":minute:", "g"),
-  SECOND: new RegExp(":second:", "g")
+  SECOND: new RegExp(":second:", "g"),
+  SELECTION: new RegExp(":selectiontext:", "g")
 };
 
 const SHORTCUT_TYPES = {

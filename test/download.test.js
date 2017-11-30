@@ -160,7 +160,8 @@ describe("variables", () => {
   const info = {
     pageUrl: "http://www.example.com/foobar/",
     srcUrl: "http://srcurl.com",
-    linkText: "linkfoobar"
+    linkText: "linkfoobar",
+    selectionText: "selectionfoobar"
   };
   const filenameMatcher = regex => router.matcherFunctions.filename(regex);
 
@@ -261,6 +262,11 @@ describe("variables", () => {
       const now = new Date();
       const output = download.replaceSpecialDirs(":minute:", url, info);
       expect(output.startsWith(now.getMinutes()));
+    });
+
+    test("interpolates :selectiontext:", () => {
+      const output = download.replaceSpecialDirs(":selectiontext:", url, info);
+      expect(output).toBe("selectionfoobar");
     });
   });
 

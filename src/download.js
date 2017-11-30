@@ -120,7 +120,11 @@ const replaceSpecialDirs = (path, url, info) => {
     (currentTab && currentTab.title) || ""
   );
 
-  ret = ret.replace(SPECIAL_DIRS.LINK_TEXT, info.linkText);
+  ret = ret.replace(SPECIAL_DIRS.LINK_TEXT, replaceFsBadChars(info.linkText));
+  ret = ret.replace(
+    SPECIAL_DIRS.SELECTION,
+    replaceFsBadChars(info.selectionText.trim() || "")
+  );
 
   return ret;
 };
