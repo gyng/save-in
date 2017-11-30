@@ -37,6 +37,18 @@ const matcherFunctions = {
 
     return match;
   },
+  filename: regex => (info, filename) => {
+    const fn = filename || (info && info.filename);
+    if (!fn) return false;
+
+    const match = fn.match(regex);
+
+    if (window.SI_DEBUG && match) {
+      console.log("matched", match, regex, info); // eslint-disable-line
+    }
+
+    return match;
+  },
   frameurl: makeInfoMatcherFactory("frameUrl"),
   linktext: makeInfoMatcherFactory("linkText"),
   mediatype: makeInfoMatcherFactory("mediaType"),
@@ -153,10 +165,10 @@ const parseRules = raw => {
   return rules;
 };
 
-const matchRule = (rule, info) => {
+const matchRule = (rule, info, rest) => {
   const matches = rule
     .filter(m => m.type === RULE_TYPES.MATCHER)
-    .map(m => m.matcher(info));
+    .map(m => m.matcher(info, rest));
 
   if (matches.some(m => !m)) {
     return false;
@@ -190,9 +202,9 @@ const matchRule = (rule, info) => {
   return destination;
 };
 
-const matchRules = (rules, info) => {
+const matchRules = (rules, info, rest) => {
   for (let i = 0; i < rules.length; i += 1) {
-    const result = matchRule(rules[i], info);
+    const result = matchRule(rules[i], info, rest);
     if (result) {
       return result;
     }

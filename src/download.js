@@ -116,7 +116,7 @@ const rewriteFilename = (filename, filenamePatterns, info) => {
     return filename;
   }
 
-  const matchFile = matchRules(filenamePatterns, info);
+  const matchFile = matchRules(filenamePatterns, info, filename);
 
   if (window.SI_DEBUG) {
     console.log("matchfile", matchFile, filenamePatterns, info); // eslint-disable-line
