@@ -141,7 +141,7 @@ const parseRule = lines => {
     !matchers.some(m => m.type === RULE_TYPES.MATCHER)
   ) {
     createExtensionNotification(
-      "Save In: rule rule missing output or matcher",
+      "Save In: Rule missing output or matcher",
       JSON.stringify(lines.map(l => l[0]))
     );
 

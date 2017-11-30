@@ -28,19 +28,15 @@ a:hover {
   font-size: 15px;
 }
 
-code,
-pre {
-  font-family: monospace;
-  border-radius: 2px;
-}
-
 html {
   font-family: var(--font-stack);
   min-height: 1%; /* Firefox options page height hack */
 }
 
-pre,
-code {
+code,
+pre {
+  font-family: monospace;
+  border-radius: 2px;
   background-color: rgba(0, 0, 0, 0.1);
 }
 
@@ -172,7 +168,7 @@ button.puffy:active {
   display: none;
   color: black;
   background-color: rgb(241, 243, 217);
-  padding: 4px 12px 8px 12px;
+  padding: 8px 12px 8px 12px;
   margin: 8px 0 16px 0;
 }
 
@@ -205,6 +201,7 @@ button.puffy:active {
 .box {
   margin: 16px 0;
   padding: 4px;
+  width: 100%;
   background-color: rgba(0, 0, 0, 0.1);
 }
 
@@ -252,3 +249,33 @@ button.puffy:active {
 .warning.badge {
   background-color: var(--yellow50);
 }
+
+.demo-box {
+  display: flex;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.demo-box > .demo-arrow {
+  color: rgba(0, 0, 0, 0.4);
+  margin: 0 1%;
+}
+
+.demo-box > .demo-code {
+  margin: 0 auto;
+  flex: 1;
+  overflow-x: hidden;
+}
+
+.demo-box > .right {
+  margin: 0 0 0 auto;
+}
+
+.demo-box > .left {
+  margin: 0 auto 0 0;
+}
+
+.demo-box > .demo-pic {
+  flex: 1;
+  background-size: cover;
+};

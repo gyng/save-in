@@ -112,7 +112,7 @@ const replaceSpecialDirs = (path, url, info) => {
 
 // Handles rewriting FILENAME and regex captures
 const rewriteFilename = (filename, filenamePatterns, info) => {
-  if (!filenamePatterns || !info) {
+  if (!filenamePatterns || filenamePatterns.length === 0 || !info) {
     return filename;
   }
 

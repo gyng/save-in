@@ -133,7 +133,7 @@ browser.storage.local
     if (options.routeDownloadRules.length > 0) {
       browser.contextMenus.create({
         id: `save-in-auto`,
-        title: "Try to route",
+        title: "Route download",
         contexts: media
       });
     }
