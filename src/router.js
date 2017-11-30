@@ -67,7 +67,7 @@ const tokenizeLine = line =>
     .map(l => l.match(/^(\S*): ?(.*)/))
     .map(toks => {
       if (!toks || toks.length < 3) {
-        createExtensionNotification("Save In: Bad routing clause", toks, true);
+        createExtensionNotification("Save In: Bad rule clause", toks, true);
         return null;
       }
       return toks;
@@ -85,7 +85,7 @@ const parseRule = lines => {
           ? tokens[2]
           : new RegExp(tokens[2]);
     } catch (e) {
-      createExtensionNotification("Save In: Invalid routing regex", e, true);
+      createExtensionNotification("Save In: Invalid rule regex", e, true);
     }
 
     let type = RULE_TYPES.MATCHER;
@@ -129,7 +129,7 @@ const parseRule = lines => {
     !matchers.some(m => m.type === RULE_TYPES.MATCHER)
   ) {
     createExtensionNotification(
-      "Save In: Routing rule missing output or matcher",
+      "Save In: rule rule missing output or matcher",
       JSON.stringify(lines.map(l => l[0]))
     );
 
@@ -175,7 +175,7 @@ const matchRule = (rule, info) => {
 
     if (!captured) {
       createExtensionNotification(
-        "Save In: Routing rule missing capture target",
+        "Save In: Rule missing capture target",
         JSON.stringify(captureDeclaration)
       );
     }

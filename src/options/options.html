@@ -16,7 +16,6 @@
 
   <form id="options">
     <label class="column">
-      <h2>Downloads</h2>
       <h3 class="help" data-help-for="help-standard-variables">
         📓 Variable list (click to expand)</h3>
       <div class="help-text" id="help-standard-variables">
@@ -314,6 +313,7 @@
         </div>
       </div>
 
+      <h2>Downloads</h2>
       <h3>Menu items
         <a href="#" class="help" data-help-for="help-paths">help</a>
       </h3>
@@ -352,45 +352,92 @@ others/:date:/:pagedomain:/foo
         </p>
       </div>
       <textarea type="textarea" id="paths" rows=10 placeholder="." spellcheck="false"></textarea>
+
+      <h3>Behavior</h3>
+
+      <label>
+        <input type="checkbox" id="links" /> Enable saving of links. Prefers sources if available.
+      </label>
+
+      <label>
+        <input type="checkbox" id="selection" /> Enable saving of selected text with a
+        <code>.selection.txt</code> extension
+      </label>
+
+      <label>
+        <input type="checkbox" id="page" /> Enable saving of the current page
+      </label>
+
+      <label>
+        <input type="checkbox" id="prompt" /> Open a save file dialog when saving
+      </label>
+
+      <label>
+        <input type="checkbox" id="promptIfNoExtension" /> Open a save file dialog if filename has no extension
+      </label>
+
+      <label>
+        <select disabled class="chrome-enabled" id="conflictAction">
+          <option value="uniquify">Uniquify</option>
+          <option value="overwrite">Overwrite</option>
+          <option value="prompt">Prompt</option>
+        </select>
+        when a duplicate filename is encountered (Chrome only)
+      </label>
+
     </label>
 
     <label class="column">
+      <hr>
+      <h2>Dynamic downloads</h2>
+
+      <p>
+        Optionally, set up rules to route downloads or rewrite filenames. The first matching rule applies. Separate multiple rules
+        with an empty line. Each rule must have an
+        <code>into</code> clause, at least one matcher clause, and an optional
+        <code>capture</code> clause. Multiple variables can be used in the
+        <code>into</code> clause. </p>
+
+      <pre>
+(matchername): regex
+into: directory pattern</pre>
+
+      <p class="chrome-only">CHROME USERS: Special characters in the filename (eg.
+        <code>:</code> or
+        <code>/</code>) are pre-replaced with the character
+        <code>-</code> by Chrome. Match against
+        <code>-</code> instead of these special characters. For example, use
+        <code>(.*)-large</code> to match filenames instead of
+        <code>(.*):large</code>.
+      </p>
+
       <h3>Route downloads
         <a href="#" class="help" data-help-for="help-routes">help</a>
         <span title="Unstable: expect changes in future version" class="caption warning badge">⚗️ Unstable</span>
       </h3>
-      <p>Optionally, set up rules to dynamically route downloads. The first rule that matches will apply. Separate multiple rules with
-        an empty line. Each rule must have an
-        <code>into</code> clause, at least one matcher clause, and an optional
-        <code>capture</code> clause. Multiple variables can be used in the
-        <code>into</code> clause. </p>
-      <pre>
-(matchername): regex
-into: directory pattern
-</pre>
-      <div class="help-text" id="help-routes">
-        Dynamically route downloads into directories. Filenames will still be rewritten if it matches a filename rewrite rule. The
-        <code>capture</code> clause allows the use of regex capture groups.
+      <p>Optional. Route matching downloads into directories.
+        <div class="help-text" id="help-routes">
+          Dynamically route downloads into directories. Filenames will still be rewritten if it matches a filename rewrite rule. The
+          <code>capture</code> clause allows the use of regex capture groups.
 
-        <p>
-          <code>cat-1234.jpg</code> →
-          <code>cat/</code> and
-          <code>dog-2345.jpg</code> →
-          <code>dog/</code>:
-        </p>
-        <pre>
-naivefilename: (cat|dog).*
-capture: naivefilename
-into: :$1:</pre>
-
-        <p>Multiple matchers can be used in a rule.</p>
-        <pre>
+          <pre>
 mediaType: audio
 srcurl: cdn.myexampleradio.com
 into: music/:date:</pre>
 
-      </div>
-      <textarea type="textarea" id="routeDownloadRules" rows=7 placeholder="Optional" spellcheck="false"></textarea>
+          <p>
+            <code>cat-1234.jpg</code> →
+            <code>cat/</code> and
+            <code>dog-2345.jpg</code> →
+            <code>dog/</code>:
+          </p>
+          <pre>
+naivefilename: (cat|dog).*
+capture: naivefilename
+into: :$1:</pre>
+
+        </div>
+        <textarea type="textarea" id="routeDownloadRules" rows=7 placeholder="Optional" spellcheck="false"></textarea>
     </label>
 
     <label>
@@ -408,20 +455,7 @@ into: music/:date:</pre>
         <span title="Unstable: expect changes in future version" class="caption warning badge">⚗️ Unstable</span>
       </h3>
 
-      <p>Optionally, rewrite filenames that match the regex patterns in order of precedence. Multiple variables can be used
-        in the replacement pattern. Separate multiple rules with an empty line. The format for each rule is</p>
-      <pre>
-Regex pattern to match filename against
-Replacement pattern
-(Optional) Regex pattern to match source URL against, defaults to all</pre>
-      <p class="chrome-only">CHROME USERS: Special characters in the filename (eg.
-        <code>:</code> or
-        <code>/</code>) are pre-replaced with the character
-        <code>-</code> by Chrome. Match against
-        <code>-</code> instead of these special characters. For example, use
-        <code>(.*)-large</code> to match filenames instead of
-        <code>(.*):large</code>.
-      </p>
+      <p>Optional. Rename filenames.</p>
 
       <div class="help-text" id="help-filenames">
         <p>
@@ -483,36 +517,6 @@ example.com
         <a href="https://github.com/gyng/save-in/wiki/Filename-rewrite">Short list of useful rules</a>
       </div>
       <textarea type="textarea" id="filenamePatterns" rows=7 placeholder="Optional" spellcheck="false"></textarea>
-    </label>
-
-    <label>
-      <input type="checkbox" id="links" /> Enable saving of links. Prefers sources if available.
-    </label>
-
-    <label>
-      <input type="checkbox" id="selection" /> Enable saving of selected text with a
-      <code>.selection.txt</code> extension
-    </label>
-
-    <label>
-      <input type="checkbox" id="page" /> Enable saving of the current page
-    </label>
-
-    <label>
-      <input type="checkbox" id="prompt" /> Open a save file dialog when saving
-    </label>
-
-    <label>
-      <input type="checkbox" id="promptIfNoExtension" /> Open a save file dialog if filename has no extension
-    </label>
-
-    <label>
-      <select disabled class="chrome-enabled" id="conflictAction">
-        <option value="uniquify">Uniquify</option>
-        <option value="overwrite">Overwrite</option>
-        <option value="prompt">Prompt</option>
-      </select>
-      when a duplicate filename is encountered (Chrome only)
     </label>
 
     <hr>

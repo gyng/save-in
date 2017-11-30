@@ -75,42 +75,13 @@ browser.storage.local
     setOption("routeFailurePrompt", item.routeFailurePrompt);
     setOption("routeExclusive", item.routeExclusive);
 
-    // Parse filenamePatterns
-    const filenamePatterns =
-      item.filenamePatterns &&
-      item.filenamePatterns
-        .split("\n\n")
-        .map(pairStr => pairStr.split("\n"))
-        .map(pairArr => {
-          try {
-            if (pairArr.length < 2) {
-              throw new Error("missing filename replacement pattern");
-            }
-
-            const filenameMatch = new RegExp(pairArr[0]);
-            const urlMatch = new RegExp(pairArr[2] || ".*"); // defaults to match all URLs
-
-            return {
-              filenameMatch,
-              replace: pairArr[1] || "",
-              urlMatch
-            };
-          } catch (e) {
-            console.log(e); // eslint-disable-line
-            createExtensionNotification(
-              "Save In: Ignoring bad rewrite pattern",
-              `${e.message}: ${pairArr}`,
-              true
-            );
-            return null;
-          }
-        })
-        .filter(f => f != null);
-    setOption("filenamePatterns", filenamePatterns || []);
-
     const routeDownloadRules =
       item.routeDownloadRules && parseRules(item.routeDownloadRules);
     setOption("routeDownloadRules", routeDownloadRules || []);
+
+    const filenamePatterns =
+      item.filenamePatterns && parseRules(item.filenamePatterns);
+    setOption("filenamePatterns", filenamePatterns || []);
 
     addNotifications({
       notifyOnSuccess: options.notifyOnSuccess,
@@ -265,7 +236,7 @@ browser.contextMenus.onClicked.addListener(info => {
           saveIntoPath = "";
         } else if (options.notifyOnFailure) {
           createExtensionNotification(
-            "Save In: Failed to route download",
+            "Save In: Failed to route or rename download",
             `No matching rule found for ${url}`,
             true,
             options

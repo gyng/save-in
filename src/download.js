@@ -111,36 +111,18 @@ const replaceSpecialDirs = (path, url, info) => {
 };
 
 // Handles rewriting FILENAME and regex captures
-const rewriteFilename = (filename, filenamePatterns, url, info) => {
-  if (!filenamePatterns || !url || !info) {
+const rewriteFilename = (filename, filenamePatterns, info) => {
+  if (!filenamePatterns || !info) {
     return filename;
   }
 
-  for (let i = 0; i < filenamePatterns.length; i += 1) {
-    const p = filenamePatterns[i];
-    const matches = p.filenameMatch.exec(filename);
+  const matchFile = matchRules(filenamePatterns, info);
 
-    if (matches && url.match(p.urlMatch)) {
-      let ret = p.replace.replace(SPECIAL_DIRS.FILENAME, filename);
-      ret = ret.replace(SPECIAL_DIRS.LINK_TEXT, info.linkText);
-
-      const fileExtensionMatches = filename.match(EXTENSION_REGEX);
-      const fileExtension =
-        (fileExtensionMatches && fileExtensionMatches[1]) || "";
-      ret = ret.replace(SPECIAL_DIRS.FILE_EXTENSION, fileExtension);
-
-      // Replace capture groups
-      for (let j = 0; j < matches.length; j += 1) {
-        ret = ret.split(`:$${j}:`).join(matches[j]);
-      }
-
-      ret = replaceSpecialDirs(ret, url, info);
-
-      return ret;
-    }
+  if (window.SI_DEBUG) {
+    console.log("matchfile", matchFile, filenamePatterns, info); // eslint-disable-line
   }
 
-  return filename;
+  return matchFile;
 };
 
 // CHROME
@@ -153,7 +135,6 @@ if (chrome && chrome.downloads && chrome.downloads.onDeterminingFilename) {
       const rewrittenFilename = rewriteFilename(
         globalChromeRewriteOptions.suggestedFilename || downloadItem.filename,
         globalChromeRewriteOptions.filenamePatterns,
-        globalChromeRewriteOptions.url,
         globalChromeRewriteOptions.info
       );
 
@@ -189,12 +170,7 @@ const downloadInto = (path, url, info, options, suggestedFilename) => {
 
   const download = (filename, rewrite = true) => {
     const rewrittenFilename = rewrite
-      ? rewriteFilename(
-          suggestedFilename || filename,
-          filenamePatterns,
-          url,
-          info
-        )
+      ? rewriteFilename(suggestedFilename || filename, filenamePatterns, info)
       : suggestedFilename || filename;
 
     const hasExtension = rewrittenFilename.match(EXTENSION_REGEX);
