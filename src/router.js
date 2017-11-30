@@ -185,17 +185,17 @@ const matchRule = (rule, info, rest) => {
       m => m.type === RULE_TYPES.MATCHER && m.name === captureDeclaration.value
     );
 
-    if (!captured) {
+    if (!captured || !captured.matcher) {
       createExtensionNotification(
         "Save In: Rule missing capture target",
         JSON.stringify(captureDeclaration)
       );
-    }
+    } else {
+      const capturedMatches = captured.matcher(info, rest);
 
-    const capturedMatches = captured.matcher(info, rest);
-
-    for (let i = 0; i < capturedMatches.length; i += 1) {
-      destination = destination.split(`:$${i}:`).join(capturedMatches[i]);
+      for (let i = 0; i < capturedMatches.length; i += 1) {
+        destination = destination.split(`:$${i}:`).join(capturedMatches[i]);
+      }
     }
   }
 
