@@ -155,4 +155,6 @@ if (browser === chrome) {
   document.querySelectorAll(".chrome-enabled").forEach(el => {
     el.removeAttribute("disabled");
   });
+
+  document.querySelector("html").style = "min-width: 640px;";
 }
