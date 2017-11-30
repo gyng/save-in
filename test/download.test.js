@@ -1,5 +1,6 @@
 const constants = require("../src/constants.js");
 const download = require("../src/download.js");
+const router = require("../src/router.js");
 
 test("escapes bad filesystem characters", () => {
   expect(download.replaceFsBadChars(":stop:")).toBe("_stop_");
@@ -160,15 +161,19 @@ describe("variables", () => {
     pageUrl: "http://www.example.com/foobar/",
     linkText: "linkfoobar"
   };
+  const filenameMatcher = regex => router.matcherFunctions.filename(regex);
 
   beforeAll(() => {
     global.SPECIAL_DIRS = constants.SPECIAL_DIRS;
+    global.RULE_TYPES = constants.RULE_TYPES;
     global.currentTab = { title: "foobartitle" };
+    global.matchRules = router.matchRules;
   });
 
   afterAll(() => {
     global.SPECIAL_DIRS = specialDirs;
     global.currentTab = undefined;
+    global.matchRules = undefined;
   });
 
   describe("standard variables", () => {
@@ -253,15 +258,34 @@ describe("variables", () => {
   });
 
   describe("filename variables", () => {
+    const capture = value => ({
+      name: "capture",
+      type: RULE_TYPES.CAPTURE,
+      value
+    });
+
+    const into = value => ({
+      name: "into",
+      type: RULE_TYPES.DESTINATION,
+      value
+    });
+
+    const matcher = (name, m) => ({
+      matcher: m,
+      name,
+      type: RULE_TYPES.MATCHER
+    });
+
     test("replaces filename regex capture groups", () => {
       const input = "lol.jpeg";
       const patterns = [
-        {
-          filenameMatch: new RegExp("(.*)\\.(jpeg)"),
-          replace: ":$1:`:$2:`$1`:pageurl:`.jpg"
-        }
+        [
+          matcher("filename", filenameMatcher(new RegExp("(.*).(jpeg)"))),
+          capture("filename"),
+          into(":$1:`:$2:`$1`:pageurl:`.jpg")
+        ]
       ];
-      const output = download.rewriteFilename(input, patterns, url, info);
+      const output = download.rewriteFilename(input, patterns, info, url);
       const expected = "lol`jpeg`$1`http___www.example.com_foobar_`.jpg";
       expect(output).toBe(expected);
     });
@@ -269,48 +293,48 @@ describe("variables", () => {
     test("interpolates :filename:", () => {
       const input = "lol.jpeg";
       const patterns = [
-        {
-          filenameMatch: new RegExp("(.*)\\.(jpeg)"),
-          replace: ":filename::filename:"
-        }
+        [
+          matcher("filename", filenameMatcher(new RegExp("(.*)\\.(jpeg)"))),
+          into(":filename::filename:")
+        ]
       ];
-      const output = download.rewriteFilename(input, patterns, url, info);
+      const output = download.rewriteFilename(input, patterns, info, url);
       expect(output).toBe("lol.jpeglol.jpeg");
     });
 
     test("interpolates :fileext:", () => {
       const input = "lol.jpeg";
       const patterns = [
-        {
-          filenameMatch: new RegExp(".*"),
-          replace: ":fileext::fileext:"
-        }
+        [
+          matcher("filename", filenameMatcher(new RegExp(".*"))),
+          into(":fileext::fileext:")
+        ]
       ];
-      const output = download.rewriteFilename(input, patterns, url, info);
+      const output = download.rewriteFilename(input, patterns, info, url);
       expect(output).toBe("jpegjpeg");
     });
 
     test("interpolates :linktext:", () => {
       const input = "lol.jpeg";
       const patterns = [
-        {
-          filenameMatch: new RegExp("(.*)\\.(jpeg)"),
-          replace: ":linktext::linktext:"
-        }
+        [
+          matcher("filename", filenameMatcher(new RegExp("(.*)\\.(jpeg)"))),
+          into(":linktext::linktext:")
+        ]
       ];
-      const output = download.rewriteFilename(input, patterns, url, info);
+      const output = download.rewriteFilename(input, patterns, info, url);
       expect(output).toBe("linkfoobarlinkfoobar");
     });
 
     test("interpolates :pagetitle:", () => {
       const input = "lol.jpeg";
       const patterns = [
-        {
-          filenameMatch: new RegExp("(.*)\\.(jpeg)"),
-          replace: ":pagetitle::pagetitle:"
-        }
+        [
+          matcher("filename", filenameMatcher(new RegExp("(.*)\\.(jpeg)"))),
+          into(":pagetitle::pagetitle:")
+        ]
       ];
-      const output = download.rewriteFilename(input, patterns, url, info);
+      const output = download.rewriteFilename(input, patterns, info, url);
       expect(output).toBe("foobartitlefoobartitle");
     });
   });

@@ -217,6 +217,8 @@ const matchRules = (rules, info, rest) => {
 if (typeof module !== "undefined") {
   module.exports = {
     matchRules,
-    parseRules
+    parseRules,
+    makeInfoMatcherFactory,
+    matcherFunctions
   };
 }

@@ -65,8 +65,22 @@ const replaceSpecialDirs = (path, url, info) => {
 
   let ret = path;
 
-  ret = ret.replace(SPECIAL_DIRS.SOURCE_DOMAIN, new URL(url).hostname);
-  ret = ret.replace(SPECIAL_DIRS.PAGE_DOMAIN, new URL(info.pageUrl).hostname);
+  try {
+    ret = ret.replace(SPECIAL_DIRS.SOURCE_DOMAIN, new URL(url).hostname);
+  } catch (e) {
+    if (window.SI_DEBUG) {
+      console.log("Bad url", url, e); // eslint-disable-line
+    }
+  }
+
+  try {
+    ret = ret.replace(SPECIAL_DIRS.PAGE_DOMAIN, new URL(info.pageUrl).hostname);
+  } catch (e) {
+    if (window.SI_DEBUG) {
+      console.log("Bad page url", url, e); // eslint-disable-line
+    }
+  }
+
   ret = ret.replace(SPECIAL_DIRS.PAGE_URL, replaceFsBadChars(info.pageUrl));
   const now = new Date();
 
@@ -111,18 +125,32 @@ const replaceSpecialDirs = (path, url, info) => {
 };
 
 // Handles rewriting FILENAME and regex captures
-const rewriteFilename = (filename, filenamePatterns, info) => {
+const rewriteFilename = (filename, filenamePatterns, info, url) => {
+  // Clauses (matchers)
   if (!filenamePatterns || filenamePatterns.length === 0 || !info) {
     return filename;
   }
 
   const matchFile = matchRules(filenamePatterns, info, filename);
 
-  if (window.SI_DEBUG) {
-    console.log("matchfile", matchFile, filenamePatterns, info); // eslint-disable-line
+  // Didn't get any matches, abort!
+  if (!matchFile) {
+    return matchFile;
   }
 
-  return matchFile;
+  // Variables
+  let ret = matchFile.replace(SPECIAL_DIRS.FILENAME, filename);
+  ret = ret.replace(SPECIAL_DIRS.LINK_TEXT, info.linkText);
+  const fileExtensionMatches = filename.match(EXTENSION_REGEX);
+  const fileExtension = (fileExtensionMatches && fileExtensionMatches[1]) || "";
+  ret = ret.replace(SPECIAL_DIRS.FILE_EXTENSION, fileExtension);
+  ret = replaceSpecialDirs(ret, url, info);
+
+  if (window.SI_DEBUG) {
+    console.log("matchfile", matchFile, ret, filenamePatterns, info); // eslint-disable-line
+  }
+
+  return ret;
 };
 
 // CHROME
@@ -135,7 +163,8 @@ if (chrome && chrome.downloads && chrome.downloads.onDeterminingFilename) {
       const rewrittenFilename = rewriteFilename(
         globalChromeRewriteOptions.suggestedFilename || downloadItem.filename,
         globalChromeRewriteOptions.filenamePatterns,
-        globalChromeRewriteOptions.info
+        globalChromeRewriteOptions.info,
+        globalChromeRewriteOptions.url
       );
 
       suggest({
@@ -171,7 +200,12 @@ const downloadInto = (path, url, info, options, suggestedFilename) => {
 
   const download = (filename, rewrite = true) => {
     let rewrittenFilename = rewrite
-      ? rewriteFilename(suggestedFilename || filename, filenamePatterns, info)
+      ? rewriteFilename(
+          suggestedFilename || filename,
+          filenamePatterns,
+          info,
+          url
+        )
       : suggestedFilename || filename;
 
     if (routeExclusive) {
