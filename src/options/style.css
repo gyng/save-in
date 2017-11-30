@@ -274,7 +274,7 @@ button.puffy:active {
   padding: 4px;
   border-radius: 4px;
   font-weight: 700;
-  background-color: var(--grey40);
+  background-color: var(--grey30);
 }
 
 .warning.badge {
@@ -287,7 +287,7 @@ button.puffy:active {
 
 .demo-box {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   margin-top: 8px;
 }
 
@@ -300,11 +300,11 @@ button.puffy:active {
 .demo-box > .demo-code {
   margin: 0 auto;
   flex: 1;
-  overflow-x: hidden;
+  overflow-x: auto;
 }
 
 .demo-box pre {
-  overflow-x: hidden;
+  overflow-x: auto;
 }
 
 .demo-box > .right {

@@ -96,11 +96,11 @@ describe("filename rewrite and routing", () => {
   describe("rule parsing", () => {
     test("parsing valid rules", () => {
       const rules = router.parseRules(
-        "srcurl: dog\ninto: cat\n\npageurl:cat\ncapture: pageurl\ninto:dog"
+        "sourceurl: dog\ninto: cat\n\npageurl:cat\ncapture: pageurl\ninto:dog"
       );
       expect(rules.length).toBe(2);
       expect(rules[0].length).toBe(2);
-      expect(rules[0][0].name).toBe("srcurl");
+      expect(rules[0][0].name).toBe("sourceurl");
       expect(rules[0][0].type).toBe(RULE_TYPES.MATCHER);
       expect(rules[0][1].name).toBe("into");
       expect(rules[0][1].type).toBe(RULE_TYPES.DESTINATION);
@@ -114,7 +114,7 @@ describe("filename rewrite and routing", () => {
 
     test("parsing missing into", () => {
       const rules = router.parseRules(
-        "srcurl: dog\n\npageurl:cat\ncapture: pageurl\ninto:dog"
+        "sourceurl: dog\n\npageurl:cat\ncapture: pageurl\ninto:dog"
       );
 
       expect(rules.length).toBe(1);
@@ -148,7 +148,7 @@ describe("filename rewrite and routing", () => {
 
     beforeAll(() => {
       rules = router.parseRules(
-        "srcurl: dog\ninto: cat\n\nsrcurl: (cat)\ncapture: srcurl\ninto: dog:$1:"
+        "sourceurl: dog\ninto: cat\n\nsourceurl: (cat)\ncapture: sourceurl\ninto: dog:$1:"
       );
     });
 
@@ -158,7 +158,9 @@ describe("filename rewrite and routing", () => {
     });
 
     test("missing capture target", () => {
-      rules = router.parseRules("srcurl: dog\ncapture: pageurl\ninto: cat:$1:");
+      rules = router.parseRules(
+        "sourceurl: dog\ncapture: pageurl\ninto: cat:$1:"
+      );
       const match = router.matchRules(rules, info);
       expect(match).toBe(null);
     });

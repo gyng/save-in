@@ -27,6 +27,7 @@
     <h3 id="list-variable" class="help" data-help-for="help-standard-variables">
       📓 Variable list (click to expand)</h3>
     <div class="help-text" id="help-standard-variables">
+      <p>Variables are used in directory and path patterns.</p>
       <h3>Standard</h3>
       <div class="caption">Usable everywhere</div>
       <table class="box">
@@ -120,7 +121,7 @@
 
         <tr>
           <td>
-            <code class="click-to-copy">:srcurl:</code>
+            <code class="click-to-copy">:sourceurl:</code>
           </td>
           <td>http://xyz.com/pic.jpg</td>
           <td>URL of the source</td>
@@ -206,6 +207,7 @@
     <h3 id="list-clause" class="help" data-help-for="help-clause-list">
       📓 Clause list (click to expand)</h3>
     <div class="help-text" id="help-clause-list">
+      <p>Clauses are only used in rule definitions for routing and renaming.</p>
       <h3>Output and others</h3>
       <table class="box">
         <tr>
@@ -299,6 +301,15 @@
         </tr>
         <tr>
           <td>
+            <code class="click-to-copy">pagedomain:</code>
+          </td>
+          <td>
+            <code>xyz.com</code>
+          </td>
+          <td>Matches the page hostname</td>
+        </tr>
+        <tr>
+          <td>
             <code class="click-to-copy">pagetitle:</code>
           </td>
           <td>
@@ -326,10 +337,19 @@
         </tr>
         <tr>
           <td>
-            <code class="click-to-copy">srcurl:</code>
+            <code class="click-to-copy">sourcedomain:</code>
           </td>
           <td>
             <code>cdn.xyz.com</code>
+          </td>
+          <td>Matches the source hostname for media</td>
+        </tr>
+        <tr>
+          <td>
+            <code class="click-to-copy">sourceurl:</code>
+          </td>
+          <td>
+            <code>http://cdn.xyz.com/pic.jpg</code>
           </td>
           <td>Matches the source URL for media</td>
         </tr>
@@ -345,27 +365,29 @@
         <h4>Creating context menu items</h4>
         <div class="demo-box" style="margin-top: 12px; align-items: flex-start;">
           <div class="demo-code left ">
-          <pre class="click-to-copy">.
+            <pre class="click-to-copy">.
 i/dogs
 i/cats
 ---
 v/cats
 :date:/:day:/foo
 </pre>
-<div class="caption">Settings</div>
-</div>
+            <div class="caption">Settings</div>
+          </div>
           <div class="demo-arrow">➡</div>
 
           <div class="demo-code">
-          <pre>~/downloads/
+            <pre>~/downloads/
 ~/downloads/i/dogs
 ~/downloads/i/cats
 ---
 ~/downloads/v/cats
 ~/downloads/2000-01-01/01/foo
 </pre>
-<div class="caption">Default download dir <code>~/downloads</code></div>
-</div>
+            <div class="caption">Default download dir
+              <code>~/downloads</code>
+            </div>
+          </div>
 
           <div class="demo-arrow">➡</div>
 
@@ -377,8 +399,12 @@ v/cats
 
 
 </pre>
-
         </div>
+
+        <p>Saving a picture
+          <code>cat.jpg</code> into
+          <code>i/cats</code> will save it as
+          <code>~/downloads/i/cats/cat.jpg</code>.</p>
 
         <p>Invalid paths (
           <code>..</code> and
@@ -386,15 +412,18 @@ v/cats
           <code>foo/.hidden</code>) are considered invalid by Firefox and Chrome.</p>
 
         <h4>Saving outside the default download directory</h4>
-        <p>The WebExtensions API does not allow files to be saved outside of the default download directory. If you want to
-          save the files outside the default download directory, use a
-          <a href="https://en.wikipedia.org/wiki/Symbolic_link" target="_blank">symlink</a> inside the default download directory.
+        <p>The WebExtensions API does not allow files to be saved outside of the default download directory. A
+          <a href="https://en.wikipedia.org/wiki/Symbolic_link" target="_blank">symlink</a> inside the default download directory can be used to get around this limitation.
         </p>
 
-        <a href="https://serverfault.com/questions/7109/how-do-i-create-a-symbolic-link-in-windows" target="_blank"><h5>Windows</h5></a>
+        <a href="https://serverfault.com/questions/7109/how-do-i-create-a-symbolic-link-in-windows" target="_blank">
+          <h5>Windows</h5>
+        </a>
         <pre class="click-to-copy">mklink /D C:\path\to\symlink D:\path\to\actual</pre>
 
-        <a href="https://apple.stackexchange.com/questions/115646/how-can-i-create-a-symbolic-link-in-terminal" target="_blank"><h5>macOS/Unix</h5></a>
+        <a href="https://apple.stackexchange.com/questions/115646/how-can-i-create-a-symbolic-link-in-terminal" target="_blank">
+          <h5>macOS/Unix</h5>
+        </a>
         <pre class="click-to-copy">ln -s /path/to/actual /path/to/symlink</pre>
       </div>
       <textarea type="textarea" id="paths" rows=10 placeholder="." spellcheck="false"></textarea>
@@ -406,15 +435,15 @@ v/cats
       </h3>
 
       <p>
-        Optionally, set up rules to automate the routing of downloads or renaming of files. The first matching rule applies. Separate multiple rules
-        with an empty line. Multiple variables can be used in the
+        Optionally, set up rules to automate the routing of downloads or renaming of files. The first matching rule applies. Separate
+        multiple rules with an empty line. Multiple variables can be used in the
         <code class="click-to-copy">into:</code> clause. Each rule must have an
         <code class="click-to-copy">into:</code> clause, at least one matcher clause, and an optional
         <code class="click-to-copy">capture:</code> clause.</p>
 
       <pre>
 (matchername): regex
-into: directory/path pattern</pre>
+into: filename/path pattern</pre>
 
       <p class="chrome-only">CHROME USERS: Special characters in the filename (eg.
         <code>:</code> or
@@ -436,7 +465,7 @@ into: directory/path pattern</pre>
         <div class="demo-box">
           <pre class="demo-code left click-to-copy">
 filename: (.*):large
-srcurl: pbs.twimg.com
+sourceurl: pbs.twimg.com
 capture: filename
 into: :$1:
 </pre>
@@ -447,8 +476,8 @@ into: :$1:
           <pre class="demo-code right">
 twitter_pic.png:large
  ┣ on pbs.twimg.com
- ┣ using `filename` captures
- ┗ name it the first group
+ ┣ use `filename` captures
+ ┗ use capture group 1
 </pre>
 
           <div class="demo-arrow">➡</div>
@@ -467,8 +496,8 @@ twitter_pic.png
           <code>:$n:</code>.</p>
         <div class="demo-box">
           <pre class="demo-code left click-to-copy">
-naivefilename: (.*)\.(tar|gz)
-capture: naivefilename
+filename: (.*)\.(tar|gz)
+capture: filename
 into: :$1:-:$2:.:fileext:</pre>
 
           <div class="demo-arrow">=</div>
@@ -489,12 +518,13 @@ debian-gz.gz
         <h4>Route downloads into directories</h4>
         <p>Extend a filename rewrite rule to include
           <code>/</code> in the
-          <code class="click-to-copy">into:</code> clause. The route will be relative to the chosen directory.</p>
+          <code class="click-to-copy">into:</code> clause. The route will be relative to the chosen directory. Note that you need to supply the
+          <code class="click-to-copy">:filename:</code> variable.</p>
 
         <div class="demo-box">
           <pre class="demo-code left click-to-copy">
 mediatype: audio
-srcurl: foo.com
+sourceurl: foo.com
 into: music/:date:/:filename:</pre>
 
           <div class="demo-arrow">=</div>
@@ -561,7 +591,7 @@ music/2000-01-01/a.mp3
         <option value="overwrite">Overwrite</option>
         <option value="prompt">Prompt</option>
       </select>
-      when a duplicate filename is encountered (Chrome only)
+      when a duplicate filename is encountered <span class="badge">Chrome</span>
     </label>
 
     <hr>

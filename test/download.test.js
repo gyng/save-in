@@ -221,9 +221,9 @@ describe("variables", () => {
       ).toBe("a/b/www.source.comwww.source.com/c");
     });
 
-    test("interpolates multiple :srcurl:", () => {
+    test("interpolates multiple :sourceurl:", () => {
       expect(
-        download.replaceSpecialDirs("a/b/:srcurl::srcurl:/c", url, info)
+        download.replaceSpecialDirs("a/b/:sourceurl::sourceurl:/c", url, info)
       ).toBe("a/b/http___srcurl.comhttp___srcurl.com/c");
     });
 

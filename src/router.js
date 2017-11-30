@@ -21,6 +21,27 @@ const makeTabMatcherFactory = propertyName => regex => info => {
   return match;
 };
 
+const makeHostnameMatcherFactory = propertyName => regex => info => {
+  try {
+    const url = new URL(info && info[propertyName]);
+
+    const hostname = url.hostname;
+    const match = hostname.match(regex);
+
+    if (window.SI_DEBUG && match) {
+      console.log("matched", match, regex, info); // eslint-disable-line
+    }
+
+    return match;
+  } catch (e) {
+    if (window.SI_DEBUG) {
+      console.log("bad page domain in matcher", info.pageUrl, e); // eslint-disable-line
+    }
+
+    return null;
+  }
+};
+
 const matcherFunctions = {
   fileext: regex => info => {
     const url = info.srcUrl || info.linkUrl || info.pageUrl;
@@ -67,10 +88,12 @@ const matcherFunctions = {
 
     return match;
   },
+  pagedomain: makeHostnameMatcherFactory("pageUrl"),
+  sourcedomain: makeHostnameMatcherFactory("srcUrl"),
   pagetitle: makeTabMatcherFactory("title"),
   pageurl: makeInfoMatcherFactory("pageUrl"),
   selectiontext: makeInfoMatcherFactory("selectionText"),
-  srcurl: makeInfoMatcherFactory("srcUrl")
+  sourceurl: makeInfoMatcherFactory("srcUrl")
 };
 
 const tokenizeLine = line =>
@@ -118,6 +141,7 @@ const parseRule = lines => {
           name,
           true
         );
+
         return false;
       }
 
