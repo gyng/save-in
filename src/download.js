@@ -134,6 +134,19 @@ const rewriteFilename = (filename, filenamePatterns, info, url) => {
 
   const matchFile = matchRules(filenamePatterns, info, filename);
 
+  if (window.SI_DEBUG) {
+    /* eslint-disable no-console */
+    console.log(
+      "rewriteFilename",
+      filename,
+      filenamePatterns,
+      info,
+      url,
+      matchFile
+    );
+    /* eslint-enable no-console */
+  }
+
   // Didn't get any matches, abort!
   if (!matchFile) {
     return matchFile;
@@ -209,18 +222,20 @@ const downloadInto = (path, url, info, options, suggestedFilename) => {
         )
       : suggestedFilename || filename;
 
-    if (routeExclusive) {
-      if (!rewrittenFilename) {
-        if (options.routeFailurePrompt) {
-          prompt = true;
-        } else if (options.notifyOnFailure) {
+    if (!rewrittenFilename) {
+      prompt = prompt || options.routeFailurePrompt;
+
+      if (options.routeExclusive) {
+        if (options.notifyOnFailure) {
           createExtensionNotification(
             "Save In: Failed to route or rename download",
             `No matching rule found for ${url}`,
             true,
             options
           );
-        } else {
+        }
+
+        if (!prompt) {
           return;
         }
       }
