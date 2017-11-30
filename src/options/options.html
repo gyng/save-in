@@ -9,17 +9,26 @@
 
 <body>
   <div>
+    <select id="section-toc">
+      <option>Jump to section</option>
+      <option value="#section-downloads">Downloads</option>
+      <option value="#section-notifications">Notifications</option>
+      <option value="#section-save-as-shortcuts">Save as shortcuts</option>
+      <option value="#section-more-options">More options</option>
+    </select>
     <a href="https://github.com/gyng/save-in/">GitHub</a>
     &middot;
     <a href="https://github.com/gyng/save-in/blob/master/CHANGELOG.md">Changelog</a>
   </div>
 
   <form id="options">
-    <h3 class="help" data-help-for="help-standard-variables">
+    <h2 id="section-downloads">Downloads</h2>
+
+    <h3 id="list-variable" class="help" data-help-for="help-standard-variables">
       📓 Variable list (click to expand)</h3>
     <div class="help-text" id="help-standard-variables">
       <h3>Standard</h3>
-      <div class="caption">Usable everywhere*</div>
+      <div class="caption">Usable everywhere</div>
       <table class="box">
         <tr>
           <td>
@@ -130,16 +139,16 @@
             <code class="click-to-copy">:linktext:</code>
           </td>
           <td>Direct link to image</td>
-          <td>Text of the link, or
+          <td>
+            <span class="badge">Firefox</span> Text of the link, or
             <code>title</code> attribute of element
-            <i>*images and links only</i>
           </td>
         </tr>
       </table>
 
 
-      <h3>Filename-only</h3>
-      <div class="caption">Only usable when rewriting filenames</div>
+      <h3>Routing and filename-only</h3>
+      <div class="caption">Only usable when routing and rewriting filenames</div>
       <table class="box">
         <tr>
           <td>
@@ -185,7 +194,140 @@
       </table>
     </div>
 
-    <h2>Downloads</h2>
+
+    <h3 id="list-clause" class="help" data-help-for="help-clause-list">
+      📓 Clause list (click to expand)</h3>
+    <div class="help-text" id="help-clause-list">
+      <h3>Output and others</h3>
+      <table class="box">
+        <tr>
+          <td>
+            <code class="click-to-copy">into:</code>
+          </td>
+          <td>
+            <code>:pagedomain:/:date:</code>
+          </td>
+          <td>
+            <i>Required</i> Routes downloads to, or rewrites download filenames into the given pattern</td>
+        </tr>
+        <tr>
+          <td>
+            <code class="click-to-copy">capture:</code>
+          </td>
+          <td>
+            <code>pageurl</code>
+          </td>
+          <td>
+            <i>Optional</i> Selects the matcher for regex capture group variables (
+            <code class="click-to-copy">:$1:</code>,
+            <code class="click-to-copy">:$2:</code>&hellip;)</td>
+        </tr>
+      </table>
+
+      <h3>Matchers</h3>
+      <div class="caption">Matchers take a
+        <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions">regular expression</a> pattern</div class="caption">
+
+      <table class="box">
+        <tr>
+          <td>
+            <code class="click-to-copy">fileext:</code>
+          </td>
+          <td>
+            <code>jpg</code>
+          </td>
+          <td>Matches the naive file extension</td>
+        </tr>
+        <tr>
+          <td>
+            <code class="click-to-copy">filename:</code>
+          </td>
+          <td>
+            <code>actual_filename.jpg</code>
+          </td>
+          <td>Matches the final filename</td>
+        </tr>
+        <tr>
+          <td>
+            <code class="click-to-copy">frameurl:</code>
+          </td>
+          <td>
+            <code>http://www.google.com</code>
+          </td>
+          <td>Matches the URL of the current frame</td>
+        </tr>
+        <tr>
+          <td>
+            <code class="click-to-copy">linktext:</code>
+          </td>
+          <td>
+            <code>Click here to download</code>
+          </td>
+          <td>
+            <span class="badge">Firefox</span> Matches the link text or element
+            <code>title</code> attribute</td>
+        </tr>
+        <tr>
+          <td>
+            <code class="click-to-copy">mediatype:</code>
+          </td>
+          <td>
+            <code>image</code>
+          </td>
+          <td>Matches the media type:
+            <code>audio</code>,
+            <code>video</code>, or
+            <code>image</code>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <code class="click-to-copy">naivefilename:</code>
+          </td>
+          <td>
+            <code>cat.jpg</code>
+          </td>
+          <td>Matches the naive filename</td>
+        </tr>
+        <tr>
+          <td>
+            <code class="click-to-copy">pagetitle:</code>
+          </td>
+          <td>
+            <code>Welcome to my page!</code>
+          </td>
+          <td>Matches the current page title</td>
+        </tr>
+        <tr>
+          <td>
+            <code class="click-to-copy">pageurl:</code>
+          </td>
+          <td>
+            <code>http://www.google.com</code>
+          </td>
+          <td>Matches the current page URL</td>
+        </tr>
+        <tr>
+          <td>
+            <code class="click-to-copy">selectiontext:</code>
+          </td>
+          <td>
+            <code>"X-Cops" is the twelfth</code>
+          </td>
+          <td>Matches the selection text</td>
+        </tr>
+        <tr>
+          <td>
+            <code class="click-to-copy">srcurl:</code>
+          </td>
+          <td>
+            <code>cdn.xyz.com</code>
+          </td>
+          <td>Matches the source URL for media</td>
+        </tr>
+      </table>
+    </div>
+
     <label class="column">
       <h3>Menu items
         <a href="#" class="help" data-help-for="help-paths">help</a>
@@ -224,7 +366,7 @@ v/cats
 
         </div>
         <p>With a default download directory of
-          <code>~/downloads</code> the paths on the left will create menu items to save items to the directories on the right</p>
+          <code>~/downloads</code> the paths on the left will create menu items to save items to the directories on the right.</p>
 
 
         <p>Invalid paths (
@@ -240,6 +382,138 @@ v/cats
         </p>
       </div>
       <textarea type="textarea" id="paths" rows=10 placeholder="." spellcheck="false"></textarea>
+    </label>
+
+    <label class="column">
+      <h3>Download routing and renaming
+        <a href="#" class="help" data-help-for="help-filenames">help</a>
+      </h3>
+
+      <p>
+        Optionally, set up rules to automate the routing of downloads or renaming of files. The first matching rule applies. Separate multiple rules
+        with an empty line. Multiple variables can be used in the
+        <code class="click-to-copy">into:</code> clause. Each rule must have an
+        <code class="click-to-copy">into:</code> clause, at least one matcher clause, and an optional
+        <code class="click-to-copy">capture:</code> clause.</p>
+
+      <pre>
+(matchername): regex
+into: directory/path pattern</pre>
+
+      <p class="chrome-only">CHROME USERS: Special characters in the filename (eg.
+        <code>:</code> or
+        <code>/</code>) are pre-replaced with the character
+        <code>-</code> by Chrome. Match against
+        <code>-</code> instead of these special characters. For example, use
+        <code>(.*)-large</code> to match filenames instead of
+        <code>(.*):large</code>.
+      </p>
+      </div>
+
+      <div class="help-text" id="help-filenames">
+        <h4>Rewrite filenames</h4>
+        <p>
+          Match filenames against a list of rules and rewrite them according to the
+          <code class="click-to-copy">into:</code> clause.
+        </p>
+
+        <div class="demo-box">
+          <pre class="demo-code left click-to-copy">
+filename: (.*):large
+srcurl: pbs.twimg.com
+capture: filename
+into: :$1:
+</pre>
+
+
+          <div class="demo-arrow">=</div>
+
+          <pre class="demo-code right">
+twitter_pic.png:large
+ ┣ on pbs.twimg.com
+ ┣ using `filename` captures
+ ┗ name it the first group
+</pre>
+
+          <div class="demo-arrow">➡</div>
+
+          <pre class="demo-code right">
+twitter_pic.png
+
+
+
+</pre>
+        </div>
+
+        <p>The
+          <code class="click-to-copy">capture:</code> clause enables the use of regex capture groups, referenced by the variables
+          <code class="click-to-copy">:$1:</code> through
+          <code>:$n:</code>.</p>
+        <div class="demo-box">
+          <pre class="demo-code left click-to-copy">
+naivefilename: (.*)\.(tar|gz)
+capture: naivefilename
+into: :$1:-:$2:.:fileext:</pre>
+
+          <div class="demo-arrow">=</div>
+
+          <pre class="demo-code right">
+ubuntu.tar
+debian.gz
+ubuntu.zip</pre>
+
+          <div class="demo-arrow">➡</div>
+
+          <pre class="demo-code right">
+ubuntu-tar.tar
+debian-gz.gz
+(no match)</pre>
+        </div>
+
+        <h4>Route downloads into directories</h4>
+        <p>Extend a filename rewrite rule to include
+          <code>/</code> in the
+          <code class="click-to-copy">into:</code> clause. The route will be relative to the chosen directory.</p>
+
+        <div class="demo-box">
+          <pre class="demo-code left click-to-copy">
+mediatype: audio
+srcurl: foo.com
+into: music/:date:/:filename:</pre>
+
+          <div class="demo-arrow">=</div>
+
+          <pre class="demo-code right">
+&lt;audio src="foo.com/a.mp3">
+&lt;audio src="bar.com/a.mp3">
+&lt;video src="foo.com/b.avi">
+</pre>
+
+          <div class="demo-arrow">➡</div>
+
+          <pre class="demo-code right">
+music/2000-01-01
+(no match)
+(no match)
+</pre>
+
+        </div>
+
+        <a href="https://github.com/gyng/save-in/wiki/Filename-rewrite">Short list of useful rules</a>
+      </div>
+      </div>
+      </div>
+      <textarea type="textarea" id="filenamePatterns" rows=7 placeholder="Optional" spellcheck="false"></textarea>
+    </label>
+
+    <label>
+      <input type="checkbox" id="routeFailurePrompt" /> Open a save file dialog if no rules match
+      <div class="caption caption-line">A match-all rule can be used to create a default directory</div>
+    </label>
+
+    <label>
+      <input type="checkbox" id="routeExclusive" /> Exclusively use routing and renaming rules
+      <div class="caption caption-line">Disables submenu for two-click downloads</div>
     </label>
 
     <h3>Behavior</h3>
@@ -274,297 +548,9 @@ v/cats
       when a duplicate filename is encountered (Chrome only)
     </label>
 
-    </div>
-
-    <div class="column">
-      <hr>
-      <h2>Dynamic downloads
-        <span title="Experimental: expect changes in future versions" class="caption warning badge">⚗️ Experimental</span>
-      </h2>
-
-      <h3 class="help" data-help-for="help-clause-list">
-        📓 Clause list (click to expand)</h3>
-      <div class="help-text" id="help-clause-list">
-        <h3>Output and others</h3>
-        <table class="box">
-          <tr>
-            <td>
-              <code class="click-to-copy">into:</code>
-            </td>
-            <td>
-              <code>:pagedomain:/:date:</code>
-            </td>
-            <td>
-              <i>Required</i> Routes downloads to, or rewrites download filenames into the given pattern</td>
-          </tr>
-          <tr>
-            <td>
-              <code class="click-to-copy">capture:</code>
-            </td>
-            <td>
-              <code>pageurl</code>
-            </td>
-            <td>
-              <i>Optional</i> Selects the matcher for regex capture group variables (
-              <code class="click-to-copy">:$1:</code>,
-              <code class="click-to-copy">:$2:</code>&hellip;)</td>
-          </tr>
-        </table>
-
-        <h3>Standard matchers</h3>
-        <div class="caption">Matchers take a
-          <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions">regular expression</a> pattern</div class="caption">
-
-        <table class="box">
-          <tr>
-            <td>
-              <code class="click-to-copy">fileext:</code>
-            </td>
-            <td>
-              <code>jpg</code>
-            </td>
-            <td>Matches the naive file extension</td>
-          </tr>
-          <tr>
-            <td>
-              <code class="click-to-copy">frameurl:</code>
-            </td>
-            <td>
-              <code>http://www.google.com</code>
-            </td>
-            <td>Matches the URL of the current frame</td>
-          </tr>
-          <tr>
-            <td>
-              <code class="click-to-copy">linktext:</code>
-            </td>
-            <td>
-              <code>Click here to download</code>
-            </td>
-            <td>Matches the link text or element
-              <code>title</code> attribute</td>
-          </tr>
-          <tr>
-            <td>
-              <code class="click-to-copy">mediatype:</code>
-            </td>
-            <td>
-              <code>image</code>
-            </td>
-            <td>Matches the media type:
-              <code>audio</code>,
-              <code>video</code>, or
-              <code>image</code>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <code class="click-to-copy">naivefilename:</code>
-            </td>
-            <td>
-              <code>cat.jpg</code>
-            </td>
-            <td>Matches the naive filename</td>
-          </tr>
-          <tr>
-            <td>
-              <code class="click-to-copy">pagetitle:</code>
-            </td>
-            <td>
-              <code>Welcome to my page!</code>
-            </td>
-            <td>Matches the current page title</td>
-          </tr>
-          <tr>
-            <td>
-              <code class="click-to-copy">pageurl:</code>
-            </td>
-            <td>
-              <code>http://www.google.com</code>
-            </td>
-            <td>Matches the current page URL</td>
-          </tr>
-          <tr>
-            <td>
-              <code class="click-to-copy">selectiontext:</code>
-            </td>
-            <td>
-              <code>"X-Cops" is the twelfth</code>
-            </td>
-            <td>Matches the selection text</td>
-          </tr>
-          <tr>
-            <td>
-              <code class="click-to-copy">srcurl:</code>
-            </td>
-            <td>
-              <code>cdn.xyz.com</code>
-            </td>
-            <td>Matches the source URL for media</td>
-          </tr>
-        </table>
-
-        <h3>Filename rewrite matchers</h3>
-        <div class="caption">Usable only in filename rewrite rules</div>
-        <table class="box">
-          <tr>
-            <td>
-              <code class="click-to-copy">filename:</code>
-            </td>
-            <td>
-              <code>actual_filename.jpg</code>
-            </td>
-            <td>Matches the final filename</td>
-          </tr>
-        </table>
-      </div>
-
-      <p>
-        Optionally, set up rules to route downloads or rewrite filenames. The first matching rule applies. Separate multiple rules
-        with an empty line. Each rule must have an
-        <code>into</code> clause, at least one matcher clause, and an optional
-        <code>capture</code> clause. Multiple variables can be used in the
-        <code>into</code> clause. </p>
-
-      <pre>
-(matchername): regex
-into: directory pattern</pre>
-
-      <p class="chrome-only">CHROME USERS: Special characters in the filename (eg.
-        <code>:</code> or
-        <code>/</code>) are pre-replaced with the character
-        <code>-</code> by Chrome. Match against
-        <code>-</code> instead of these special characters. For example, use
-        <code>(.*)-large</code> to match filenames instead of
-        <code>(.*):large</code>.
-      </p>
-
-      <h3>Route downloads
-        <a href="#" class="help" data-help-for="help-routes">help</a>
-      </h3>
-      <p>Optional. Route matching downloads into directories.
-        <div class="help-text" id="help-routes">
-          <img src="i/route-download.png" style="max-height: 100px;">
-
-          <p>Dynamically route downloads into directories. Filenames will still be rewritten if it matches a filename rewrite
-            rule.
-          </p>
-
-          <div class="demo-box">
-            <pre class="demo-code left click-to-copy">
-mediatype: audio
-srcurl: foo.com
-into: music/:date:</pre>
-
-            <div class="demo-arrow">➡</div>
-
-            <pre class="demo-code right">
-&lt;audio src="foo.com/a.mp3">
-&lt;audio src="bar.com/a.mp3">
-&lt;video src="foo.com/b.avi">
-</pre>
-
-            <div class="demo-arrow">➡</div>
-
-            <pre class="demo-code right">
-music/2000-01-01
-not routed
-not routed
-</pre>
-
-          </div>
-
-          <p>The
-            <code>capture</code> clause allows the use of regex capture groups, referenced by the variables
-            <code class="click-to-copy">:$1:</code> through
-            <code>:$n:</code>.</p>
-          <div class="demo-box">
-            <pre class="demo-code left click-to-copy">
-naivefilename: (.*)\.(tar|gz)
-capture: naivefilename
-into: :$1:/:$2:</pre>
-
-            <div class="demo-arrow">➡</div>
-
-            <pre class="demo-code right">
-ubuntu.tar
-debian.gz
-ubuntu.zip</pre>
-
-            <div class="demo-arrow">➡</div>
-
-            <pre class="demo-code right">
-ubuntu/tar
-debian/gz
-not routed</pre>
-          </div>
-        </div>
-        <textarea type="textarea" id="routeDownloadRules" rows=7 placeholder="Optional" spellcheck="false"></textarea>
-    </div>
-
-    <label>
-      <input type="checkbox" id="routeFailurePrompt" /> Open a save file dialog on routing failure
-    </label>
-
-    <label>
-      <input type="checkbox" id="routeExclusive" /> Exclusively use routing rules
-      <div class="caption caption-line">Disables submenu for two-click downloads</div>
-    </label>
-
-    <label class="column">
-      <h3>Rewrite filenames
-        <a href="#" class="help" data-help-for="help-filenames">help</a>
-      </h3>
-
-      <p>Optional. Rename filenames.</p>
-
-      <div class="help-text" id="help-filenames">
-        <p>
-          Match filenames against a list of rules and rewrite them according to the
-          <code class="click-to-copy">into:</code> clause. The
-          <code class="click-to-copy">capture:</code> clause allows the use of regex capture groups, referenced by the variables
-          <code class="click-to-copy">:$1:</code> through
-          <code>:$n:</code>.
-        </p>
-
-        <div class="demo-box">
-          <pre class="demo-code left click-to-copy">
-filename: (.*):large
-srcurl: pbs.twimg.com
-capture: filename
-into: :$1:
-</pre>
-
-
-          <div class="demo-arrow">➡</div>
-
-          <pre class="demo-code right">
-twitter_pic.png:large
-on pbs.twimg.com
-
-
-</pre>
-
-          <div class="demo-arrow">➡</div>
-
-          <pre class="demo-code right">
-twitter_pic.png
-
-
-
-</pre>
-
-        </div>
-
-        <a href="https://github.com/gyng/save-in/wiki/Filename-rewrite">Short list of useful rules</a>
-      </div>
-      </div>
-      <textarea type="textarea" id="filenamePatterns" rows=7 placeholder="Optional" spellcheck="false"></textarea>
-    </label>
-
     <hr>
 
-    <h2>Notifications</h2>
+    <h2 id="section-notifications">Notifications</h2>
     <label>
       <input type="checkbox" id="notifyOnSuccess" /> Show notification on successful download
     </label>
@@ -581,7 +567,7 @@ twitter_pic.png
 
     <hr />
 
-    <h2>Save as shortcuts</h2>
+    <h2 id="section-save-as-shortcuts">Save as shortcuts</h2>
     <label>
       Save shortcuts as
       <select id="shortcutType">
@@ -606,7 +592,7 @@ twitter_pic.png
 
     <hr>
 
-    <h2>More options
+    <h2 id="section-more-options">More options
       <div id="reset" class="button float-right">Restore defaults</div>
     </h2>
     <label>

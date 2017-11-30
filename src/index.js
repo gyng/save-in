@@ -41,7 +41,6 @@ browser.storage.local
     "selection",
     "paths",
     "filenamePatterns",
-    "routeDownloadRules",
     "routeFailurePrompt",
     "routeExclusive",
     "prompt",
@@ -74,10 +73,6 @@ browser.storage.local
     setOption("truncateLength", item.truncateLength);
     setOption("routeFailurePrompt", item.routeFailurePrompt);
     setOption("routeExclusive", item.routeExclusive);
-
-    const routeDownloadRules =
-      item.routeDownloadRules && parseRules(item.routeDownloadRules);
-    setOption("routeDownloadRules", routeDownloadRules || []);
 
     const filenamePatterns =
       item.filenamePatterns && parseRules(item.filenamePatterns);
@@ -128,14 +123,6 @@ browser.storage.local
       }
 
       browser.contextMenus.create(lastUsedMenuOptions);
-    }
-
-    if (options.routeDownloadRules.length > 0) {
-      browser.contextMenus.create({
-        id: `save-in-auto`,
-        title: "Route download",
-        contexts: media
-      });
     }
 
     browser.contextMenus.create({
@@ -196,7 +183,6 @@ browser.storage.local
 
 browser.contextMenus.onClicked.addListener(info => {
   const matchSave = info.menuItemId.match(/save-in-(.*)/);
-  const matchRoute = matchRules(options.routeDownloadRules, info);
 
   if (matchSave && matchSave.length === 2) {
     let url;
@@ -228,23 +214,8 @@ browser.contextMenus.onClicked.addListener(info => {
 
     let saveIntoPath;
 
-    if (matchSave[1] === "auto" || matchSave[1] === "route-exclusive") {
-      saveIntoPath = matchRoute;
-
-      if (!matchRoute) {
-        if (options.routeFailurePrompt) {
-          saveIntoPath = "";
-        } else if (options.notifyOnFailure) {
-          createExtensionNotification(
-            "Save In: Failed to route or rename download",
-            `No matching rule found for ${url}`,
-            true,
-            options
-          );
-        } else {
-          return;
-        }
-      }
+    if (matchSave[1] === "route-exclusive") {
+      saveIntoPath = ".";
     } else if (matchSave[1] === "last-used") {
       saveIntoPath = lastUsedPath;
     } else {

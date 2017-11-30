@@ -192,7 +192,7 @@ const matchRule = (rule, info, rest) => {
       );
     }
 
-    const capturedMatches = captured.matcher(info);
+    const capturedMatches = captured.matcher(info, rest);
 
     for (let i = 0; i < capturedMatches.length; i += 1) {
       destination = destination.split(`:$${i}:`).join(capturedMatches[i]);

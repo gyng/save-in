@@ -162,18 +162,40 @@ const downloadInto = (path, url, info, options, suggestedFilename) => {
 
   const {
     filenamePatterns,
-    prompt,
     promptIfNoExtension,
     conflictAction,
-    truncateLength
+    truncateLength,
+    routeExclusive
   } = options;
+  let prompt = options.prompt;
 
   const download = (filename, rewrite = true) => {
-    const rewrittenFilename = rewrite
+    let rewrittenFilename = rewrite
       ? rewriteFilename(suggestedFilename || filename, filenamePatterns, info)
       : suggestedFilename || filename;
 
-    const hasExtension = rewrittenFilename.match(EXTENSION_REGEX);
+    if (routeExclusive) {
+      if (!rewrittenFilename) {
+        if (options.routeFailurePrompt) {
+          prompt = true;
+        } else if (options.notifyOnFailure) {
+          createExtensionNotification(
+            "Save In: Failed to route or rename download",
+            `No matching rule found for ${url}`,
+            true,
+            options
+          );
+        } else {
+          return;
+        }
+      }
+    }
+
+    // If no filename rewrites matched, fall back to filename
+    rewrittenFilename = rewrittenFilename || suggestedFilename || filename;
+
+    const hasExtension =
+      rewrittenFilename && rewrittenFilename.match(EXTENSION_REGEX);
 
     const fsSafeDirectory = sanitizePath(
       path.replace(/^\.[\\/\\\\]?/, ""),
@@ -186,20 +208,23 @@ const downloadInto = (path, url, info, options, suggestedFilename) => {
       : fsSafeFilename;
 
     if (window.SI_DEBUG) {
-      console.log("download filename", filename); // eslint-disable-line
-      console.log("download suggestedFilename", suggestedFilename); // eslint-disable-line
-      console.log("download rewrittenFilename", rewrittenFilename); // eslint-disable-line
-      console.log("download fsSafeDirectory", fsSafeDirectory); // eslint-disable-line
-      console.log("download fsSafeFilename", fsSafeFilename); // eslint-disable-line
-      console.log("download fsSafePath", fsSafePath); // eslint-disable-line
-      console.log("download conflictAction", conflictAction); // eslint-disable-line
+      /* eslint-disable no-console */
+      console.log("download filename", filename);
+      console.log("download suggestedFilename", suggestedFilename);
+      console.log("download rewrittenFilename", rewrittenFilename);
+      console.log("download fsSafeDirectory", fsSafeDirectory);
+      console.log("download fsSafeFilename", fsSafeFilename);
+      console.log("download fsSafePath", fsSafePath);
+      console.log("download conflictAction", conflictAction);
+      console.log("download prompt", prompt);
+      /* eslint-enable no-console */
     }
 
     // conflictAction is Chrome only and overridden in onDeterminingFilename, Firefox enforced in settings
     browser.downloads.download({
       url,
       filename: fsSafePath,
-      saveAs: !path || prompt || (promptIfNoExtension && !hasExtension),
+      saveAs: prompt || (promptIfNoExtension && !hasExtension),
       conflictAction
     });
   };

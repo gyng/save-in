@@ -11,6 +11,7 @@
   --grey40: #b1b1b3;
   --grey50: #737373;
   --yellow50: #ffe900;
+  --orange50: #ff9400;
 }
 
 a {
@@ -30,6 +31,7 @@ a:hover {
 
 html {
   font-family: var(--font-stack);
+  min-width: 640px;
   min-height: 1%; /* Firefox options page height hack */
 }
 
@@ -244,10 +246,15 @@ button.puffy:active {
   padding: 4px;
   border-radius: 4px;
   font-weight: 700;
+  background-color: var(--grey40);
 }
 
 .warning.badge {
   background-color: var(--yellow50);
+}
+
+.firefox.badge {
+  background-color: var(--orange50);
 }
 
 .demo-box {

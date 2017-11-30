@@ -13,9 +13,6 @@ const saveOptions = e => {
     shortcutType: document.querySelector("#shortcutType").value,
     paths: document.querySelector("#paths").value.trim() || ".",
     filenamePatterns: document.querySelector("#filenamePatterns").value.trim(),
-    routeDownloadRules: document
-      .querySelector("#routeDownloadRules")
-      .value.trim(),
     routeFailurePrompt: document.querySelector("#routeFailurePrompt").checked,
     routeExclusive: document.querySelector("#routeExclusive").checked,
     prompt: document.querySelector("#prompt").checked,
@@ -40,7 +37,6 @@ const restoreOptions = () => {
       "selection",
       "paths",
       "filenamePatterns",
-      "routeDownloadRules",
       "routeFailurePrompt",
       "routeExclusive",
       "prompt",
@@ -70,11 +66,8 @@ const restoreOptions = () => {
       document.querySelector("#filenamePatterns").value =
         result.filenamePatterns || "";
 
-      document.querySelector("#routeDownloadRules").value =
-        result.routeDownloadRules || "";
       setCheckboxElement("routeFailurePrompt", false);
       setCheckboxElement("routeExclusive", false);
-
       setCheckboxElement("debug", false);
       setValueElement("conflictAction", "uniquify");
       setCheckboxElement("links", true);
@@ -134,6 +127,16 @@ document.querySelector("#submit").addEventListener("click", () => {
 document.querySelector("#options").addEventListener("submit", saveOptions);
 document.querySelectorAll(".help").forEach(addHelp);
 document.querySelectorAll(".click-to-copy").forEach(addClickToCopy);
+
+document.querySelector("#section-toc").addEventListener("change", e => {
+  e.preventDefault();
+  if (e.target.value) {
+    const el = document.querySelector(e.target.value);
+    if (el) {
+      el.scrollIntoView();
+    }
+  }
+});
 
 document.querySelector("#reset").addEventListener("click", e => {
   /* eslint-disable no-alert */
