@@ -4,6 +4,7 @@ const MEDIA_TYPES = ["image", "video", "audio"];
 const SPECIAL_DIRS = {
   SEPARATOR: "---",
   SOURCE_DOMAIN: new RegExp(":sourcedomain:", "g"),
+  SOURCE_URL: new RegExp(":srcurl:", "g"),
   PAGE_DOMAIN: new RegExp(":pagedomain:", "g"),
   PAGE_URL: new RegExp(":pageurl:", "g"),
   PAGE_TITLE: new RegExp(":pagetitle:", "g"),

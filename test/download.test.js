@@ -159,6 +159,7 @@ describe("variables", () => {
   const url = "http://www.source.com/foobar/file.jpg";
   const info = {
     pageUrl: "http://www.example.com/foobar/",
+    srcUrl: "http://srcurl.com",
     linkText: "linkfoobar"
   };
   const filenameMatcher = regex => router.matcherFunctions.filename(regex);
@@ -218,6 +219,12 @@ describe("variables", () => {
           info
         )
       ).toBe("a/b/www.source.comwww.source.com/c");
+    });
+
+    test("interpolates multiple :srcurl:", () => {
+      expect(
+        download.replaceSpecialDirs("a/b/:srcurl::srcurl:/c", url, info)
+      ).toBe("a/b/http___srcurl.comhttp___srcurl.com/c");
     });
 
     test("interpolates :pageurl:", () => {

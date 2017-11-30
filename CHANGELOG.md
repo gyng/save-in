@@ -1,3 +1,8 @@
+# 2.0.0
+
+* Filename rewrites upgrade: now more flexible
+* Add `:srcurl:` variable (#39)
+
 # 1.6.0
 
 * Add `:second:` variable (#31)

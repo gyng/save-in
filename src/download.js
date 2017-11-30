@@ -82,6 +82,7 @@ const replaceSpecialDirs = (path, url, info) => {
   }
 
   ret = ret.replace(SPECIAL_DIRS.PAGE_URL, replaceFsBadChars(info.pageUrl));
+  ret = ret.replace(SPECIAL_DIRS.SOURCE_URL, replaceFsBadChars(info.srcUrl));
   const now = new Date();
 
   const padDateComponent = (num, func) => num.toString().padStart(2, "0");
