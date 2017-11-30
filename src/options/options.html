@@ -442,8 +442,8 @@ v/cats
       </h3>
 
       <p>
-        Set up rules to automate the routing of downloads or renaming of files. The first matching rule applies. Separate
-        multiple rules with an empty line. Each rule is made up of multiple clauses. Multiple variables can be used in the
+        Set up rules to automate the routing of downloads or renaming of files. The first matching rule applies. Separate multiple
+        rules with an empty line. Each rule is made up of multiple clauses. Multiple variables can be used in the
         <code class="click-to-copy">into:</code> clause. Each rule must have an
         <code class="click-to-copy">into:</code> clause, at least one matcher clause, and an optional
         <code class="click-to-copy">capture:</code> clause.</p>
@@ -603,6 +603,11 @@ music/2000-01-01/a.mp3
       <span class="badge">Chrome</span>
     </label>
 
+    <label>
+      Replace invalid characters with
+      <input type="text" id="replacementChar" placeholder="delete" style="font-family: monospace;" />
+      <div class="caption caption-line">Leave blank to delete. Invalid replacement characters are ignored.</div>
+    </label>
     <hr>
 
     <h2 id="section-notifications">Notifications</h2>
@@ -619,7 +624,7 @@ music/2000-01-01/a.mp3
     </label>
 
     <label>
-      Close notification early after
+      Close notifications early after
       <input type="number" id="notifyDuration" min="0" />ms
       <div class="caption caption-line">1s = 1000ms. Will not extend beyond OS/browser notification duration.</div>
     </label>

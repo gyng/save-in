@@ -13,9 +13,21 @@ const makeObjectUrl = (content, mime = "text/plain") =>
   );
 
 // TODO: Make this OS-aware instead of assuming Windows
-const replaceFsBadChars = s => s.replace(SPECIAL_CHARACTERS_REGEX, "_");
+const replaceFsBadChars = (s, replacement) =>
+  s.replace(
+    SPECIAL_CHARACTERS_REGEX,
+    replacement ||
+      (typeof options !== "undefined" && options && options.replacementChar) ||
+      "_"
+  );
 // Leading dots are considered invalid by both Firefox and Chrome
-const replaceLeadingDots = s => s.replace(BAD_LEADING_CHARACTERS, "");
+const replaceLeadingDots = (s, replacement) =>
+  s.replace(
+    BAD_LEADING_CHARACTERS,
+    replacement ||
+      (typeof options !== "undefined" && options && options.replacementChar) ||
+      "_"
+  );
 
 const truncateIfLongerThan = (str, max) =>
   str && max > 0 && str.length > max ? str.substr(0, max) : str;
@@ -23,8 +35,8 @@ const truncateIfLongerThan = (str, max) =>
 const sanitizePath = (pathStr, maxComponentLength = 0) =>
   pathStr
     .split(new RegExp("[\\/\\\\]", "g"))
-    .map(replaceFsBadChars)
-    .map(replaceLeadingDots)
+    .map(s => replaceFsBadChars(s))
+    .map(s => replaceLeadingDots(s))
     .map(c => truncateIfLongerThan(c, maxComponentLength))
     .join("/");
 
@@ -123,7 +135,7 @@ const replaceSpecialDirs = (path, url, info) => {
   ret = ret.replace(SPECIAL_DIRS.LINK_TEXT, replaceFsBadChars(info.linkText));
   ret = ret.replace(
     SPECIAL_DIRS.SELECTION,
-    replaceFsBadChars(info.selectionText.trim() || "")
+    replaceFsBadChars((info.selectionText && info.selectionText.trim()) || "")
   );
 
   return ret;
@@ -282,7 +294,7 @@ const downloadInto = (path, url, info, options, suggestedFilename) => {
     // conflictAction is Chrome only and overridden in onDeterminingFilename, Firefox enforced in settings
     browser.downloads.download({
       url,
-      filename: fsSafePath,
+      filename: fsSafePath || "_",
       saveAs: prompt || (promptIfNoExtension && !hasExtension),
       conflictAction
     });

@@ -17,7 +17,8 @@ const options = {
   notifyDuration: 7000,
   truncateLength: 240,
   routeFailurePrompt: false,
-  routeExclusive: false
+  routeExclusive: false,
+  replacementChar: "_"
 };
 
 const setOption = (name, value) => {
@@ -50,7 +51,8 @@ browser.storage.local
     "notifyOnRuleMatch",
     "notifyOnFailure",
     "notifyDuration",
-    "truncateLength"
+    "truncateLength",
+    "replacementChar"
   ])
   .then(item => {
     if (item.debug) {
@@ -76,6 +78,11 @@ browser.storage.local
     setOption("truncateLength", item.truncateLength);
     setOption("routeFailurePrompt", item.routeFailurePrompt);
     setOption("routeExclusive", item.routeExclusive);
+    setOption(
+      "replacementChar",
+      replaceLeadingDots(replaceFsBadChars(item.replacementChar || "", "")) ||
+        ""
+    );
 
     const filenamePatterns =
       item.filenamePatterns && parseRules(item.filenamePatterns);

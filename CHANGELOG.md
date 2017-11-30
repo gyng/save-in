@@ -9,7 +9,8 @@
   - Option to prompt if no rules matched
   - Option to notify on rule match
 
-* Add `:sourceurl:`, `:selectiontext:` variable (#39)
+* Add `:sourceurl:`, `:selectiontext:` variables (#39)
+* Add replacement character option (#39)
 
 # 1.6.0
 

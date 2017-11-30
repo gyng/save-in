@@ -12,6 +12,26 @@ test("escapes bad filesystem characters", () => {
   expect(download.replaceFsBadChars("ok foo bar")).toBe("ok foo bar");
 });
 
+describe("bad character replacement with custom character", () => {
+  const oldOptions = global.options;
+
+  beforeAll(() => {
+    global.options = { replacementChar: "x" };
+  });
+
+  afterAll(() => {
+    global.options = oldOptions;
+  });
+
+  test("from options", () => {
+    expect(download.replaceFsBadChars(":stop:")).toBe("xstopx");
+  });
+
+  test("from supplied", () => {
+    expect(download.replaceFsBadChars(":stop:", "y")).toBe("ystopy");
+  });
+});
+
 test("escapes bad filesystem characters in path", () => {
   expect(download.sanitizePath("/:stop:/::/")).toBe("/_stop_/__/");
   expect(download.sanitizePath("/:date:/dog")).toBe("/_date_/dog");

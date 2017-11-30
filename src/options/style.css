@@ -110,7 +110,8 @@ li {
   margin-bottom: 4px;
 }
 
-input[type="number"] {
+input[type="number"],
+input[type="text"] {
   max-width: 80px;
   padding: 4px;
 }

@@ -35,6 +35,8 @@
     "getFilenameFromUrl": true,
     "matchRules": true,
     "parseRules": true,
-    "options": true
+    "options": true,
+    "replaceFsBadChars": true,
+    "replaceLeadingDots": true
   }
 }
