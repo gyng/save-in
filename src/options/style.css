@@ -15,12 +15,24 @@
 }
 
 a {
-  color: var(--blue50);
+  color: var(--blue60);
   text-decoration: none;
 }
 
 a:hover {
   text-decoration: underline;
+}
+
+a:active {
+  color: var(--blue70);
+}
+
+a.external {
+  padding-right: 16px;
+  background-image: url(i/open-in-new-16.svg);
+  background-size: auto 60%;
+  background-position: right center;
+  background-repeat: no-repeat;
 }
 
 * {
@@ -153,16 +165,20 @@ button.puffy:active {
 }
 
 .help {
-  color: var(--blue50);
+  color: var(--blue60);
   cursor: pointer;
 }
 
 .help:visited {
-  color: var(--blue50);
+  color: var(--blue60);
 }
 
 .help:hover {
   text-decoration: underline;
+}
+
+.help:active {
+  color: var(--blue70);
 }
 
 .help-text {
@@ -266,11 +282,16 @@ button.puffy:active {
 .demo-box > .demo-arrow {
   color: rgba(0, 0, 0, 0.4);
   margin: 0 1%;
+  align-self: center;
 }
 
 .demo-box > .demo-code {
   margin: 0 auto;
   flex: 1;
+  overflow-x: hidden;
+}
+
+.demo-box pre {
   overflow-x: hidden;
 }
 

@@ -16,9 +16,9 @@
       <option value="#section-save-as-shortcuts">Save as shortcuts</option>
       <option value="#section-more-options">More options</option>
     </select>
-    <a href="https://github.com/gyng/save-in/">GitHub</a>
+    <a class="external" href="https://github.com/gyng/save-in/">GitHub</a>
     &middot;
-    <a href="https://github.com/gyng/save-in/blob/master/CHANGELOG.md">Changelog</a>
+    <a class="external" href="https://github.com/gyng/save-in/blob/master/CHANGELOG.md">Changelog</a>
   </div>
 
   <form id="options">
@@ -334,24 +334,29 @@
       </h3>
       <p>Paths relative to default download directory. One path per line. Multiple variables can be used in a path.</p>
       <div class="help-text" id="help-paths">
-        <div class="demo-box" style="margin-top: 12px;">
-          <pre class="demo-code left click-to-copy">.
+        <div class="demo-box" style="margin-top: 12px; align-items: flex-start;">
+          <div class="demo-code left ">
+          <pre class="click-to-copy">.
 i/dogs
 i/cats
 ---
 v/cats
 :date:/:day:/foo
 </pre>
-
+<div class="caption">Settings</div>
+</div>
           <div class="demo-arrow">➡</div>
 
-          <pre class="demo-code">~/downloads/
+          <div class="demo-code">
+          <pre>~/downloads/
 ~/downloads/i/dogs
 ~/downloads/i/cats
 ---
 ~/downloads/v/cats
 ~/downloads/2000-01-01/01/foo
 </pre>
+<div class="caption">Default download dir <code>~/downloads</code></div>
+</div>
 
           <div class="demo-arrow">➡</div>
 
@@ -365,9 +370,6 @@ v/cats
 </pre>
 
         </div>
-        <p>With a default download directory of
-          <code>~/downloads</code> the paths on the left will create menu items to save items to the directories on the right.</p>
-
 
         <p>Invalid paths (
           <code>..</code> and
@@ -492,14 +494,14 @@ into: music/:date:/:filename:</pre>
           <div class="demo-arrow">➡</div>
 
           <pre class="demo-code right">
-music/2000-01-01
+music/2000-01-01/a.mp3
 (no match)
 (no match)
 </pre>
 
         </div>
 
-        <a href="https://github.com/gyng/save-in/wiki/Filename-rewrite">Short list of useful rules</a>
+        <a class="external" href="https://github.com/gyng/save-in/wiki/Filename-rewrite">Short list of useful rules</a>
       </div>
       </div>
       </div>
