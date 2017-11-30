@@ -17,6 +17,7 @@ const saveOptions = e => {
     routeExclusive: document.querySelector("#routeExclusive").checked,
     prompt: document.querySelector("#prompt").checked,
     promptIfNoExtension: document.querySelector("#promptIfNoExtension").checked,
+    notifyOnRuleMatch: document.querySelector("#notifyOnRuleMatch").checked,
     notifyOnSuccess: document.querySelector("#notifyOnSuccess").checked,
     notifyOnFailure: document.querySelector("#notifyOnFailure").checked,
     notifyDuration: document.querySelector("#notifyDuration").value,
@@ -42,6 +43,7 @@ const restoreOptions = () => {
       "prompt",
       "promptIfNoExtension",
       "notifyOnSuccess",
+      "notifyOnRuleMatch",
       "notifyOnFailure",
       "notifyDuration",
       "page",
@@ -80,6 +82,7 @@ const restoreOptions = () => {
       setCheckboxElement("prompt", false);
       setCheckboxElement("promptIfNoExtension", false);
       setCheckboxElement("notifyOnSuccess", false);
+      setCheckboxElement("notifyOnRuleMatch", true);
       setCheckboxElement("notifyOnFailure", true);
       setValueElement("notifyDuration", 7000);
       setValueElement("truncateLength", 240);

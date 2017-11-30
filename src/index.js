@@ -1,4 +1,4 @@
-// defaults
+// defaults, duplicate of those in options.js
 const options = {
   debug: false,
   conflictAction: "uniquify",
@@ -12,6 +12,7 @@ const options = {
   shortcutPage: false,
   shortcutType: SHORTCUT_TYPES.HTML_REDIRECT,
   notifyOnSuccess: false,
+  notifyOnRuleMatch: true,
   notifyOnFailure: true,
   notifyDuration: 7000,
   truncateLength: 240,
@@ -46,6 +47,7 @@ browser.storage.local
     "prompt",
     "promptIfNoExtension",
     "notifyOnSuccess",
+    "notifyOnRuleMatch",
     "notifyOnFailure",
     "notifyDuration",
     "truncateLength"
@@ -64,6 +66,7 @@ browser.storage.local
     setOption("prompt", item.prompt);
     setOption("promptIfNoExtension", item.promptIfNoExtension);
     setOption("notifyOnSuccess", item.notifyOnSuccess);
+    setOption("notifyOnRuleMatch", item.notifyOnRuleMatch);
     setOption("notifyOnFailure", item.notifyOnFailure);
     setOption("notifyDuration", item.notifyDuration);
     setOption("shortcutMedia", item.shortcutMedia);

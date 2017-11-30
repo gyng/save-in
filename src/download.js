@@ -230,8 +230,7 @@ const downloadInto = (path, url, info, options, suggestedFilename) => {
           createExtensionNotification(
             "Save In: Failed to route or rename download",
             `No matching rule found for ${url}`,
-            true,
-            options
+            true
           );
         }
 
@@ -239,6 +238,12 @@ const downloadInto = (path, url, info, options, suggestedFilename) => {
           return;
         }
       }
+    } else if (options.notifyOnRuleMatch) {
+      createExtensionNotification(
+        "Save In: Rule matched",
+        `${rewrittenFilename} from ${filename}`,
+        false
+      );
     }
 
     // If no filename rewrites matched, fall back to filename

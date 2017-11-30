@@ -1,7 +1,15 @@
 # 2.0.0
 
-* Filename rewrites upgrade: now more flexible
-* Add `:srcurl:` variable (#39)
+* Filename rewrites upgrade: now 100% more flexible
+
+  - New rule-based syntax
+  - Now able to use regex capture groups on supported clauses
+  - Document how to route downloads
+  - Option for exclusive rule-base mode: disable context menu for quicker rule-based saving
+  - Option to prompt if no rules matched
+  - Option to notify on rule match
+
+* Add `:sourceurl:` variable (#39)
 
 # 1.6.0
 
