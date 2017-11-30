@@ -1,0 +1,15 @@
+Adds a context menu to save media {image, video, audio, link, page} in user-defined folders or directories relative to the default download location.
+
+Rules-based file renaming and routing.
+
+Option to save as shortcuts {.url, .desktop, .html redirect}.
+
+The WebExtension API only allows saving into directories relative to the default download directory. Symlinks can be used to get around this limitation:
+
+Windows: mklink /D C:\path\to\symlink D:\path\to\actual
+macOS/Unix: ln -s /path/to/actual /path/to/symlink
+
+<all_urls> permission is used to get around CORS on HTTP HEAD requests (to check for Content-Disposition headers)
+tabs permission is used to get the active page's title.
+
+Configure before use.

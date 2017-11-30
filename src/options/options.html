@@ -218,7 +218,7 @@
             <code class="click-to-copy">into:</code>
           </td>
           <td>
-            <code>:pagedomain:/:date:</code>
+            <code>:fileext:/foo</code>
           </td>
           <td>
             <span class="badge warning">Required</span> Routes downloads to, or rewrites download filenames into the given pattern</td>
@@ -438,10 +438,11 @@ v/cats
       <h3>Download routing and renaming
         <a href="#" class="help" data-help-for="help-filenames">help</a>
         <span class="badge warning" style="font-size: 13px">🐞 New</span>
+        <span class="badge" style="font-size: 13px">Optional</span>
       </h3>
 
       <p>
-        Optionally, set up rules to automate the routing of downloads or renaming of files. The first matching rule applies. Separate
+        Set up rules to automate the routing of downloads or renaming of files. The first matching rule applies. Separate
         multiple rules with an empty line. Each rule is made up of multiple clauses. Multiple variables can be used in the
         <code class="click-to-copy">into:</code> clause. Each rule must have an
         <code class="click-to-copy">into:</code> clause, at least one matcher clause, and an optional
