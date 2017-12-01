@@ -46,7 +46,6 @@ a.external {
 
 html {
   font-family: var(--font-stack);
-  padding: 1px;
   min-width: 420px;
   min-height: 1%; /* Firefox options page height hack */
 }
@@ -374,4 +373,12 @@ label.saved-base {
 
 .saved-base:active {
   background-size: auto 24px;
+}
+
+.popout {
+  padding-left: 16px;
+  background-image: url(i/open-in-new-16.svg);
+  background-size: auto 60%;
+  background-position: left center;
+  background-repeat: no-repeat;
 }

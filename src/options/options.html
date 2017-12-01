@@ -7,8 +7,10 @@
   <link href="style.css" rel="stylesheet">
 </head>
 
-<body>
+<body id="settings-page">
   <div>
+    <a class="open-settings-in-window" href="options.html" target="_blank">Popout settings page</a>
+    &middot;
     <a class="external" href="https://github.com/gyng/save-in/">GitHub</a>
     &middot;
     <a class="external" href="https://github.com/gyng/save-in/blob/master/CHANGELOG.md">Changelog</a>
@@ -17,8 +19,12 @@
   <form id="options">
     <h2 id="section-downloads">Downloads</h2>
 
-    <h3 id="list-variable" class="help" data-help-for="help-standard-variables">
-      📓 Variable list</h3>
+    <h3 id="list-variable">
+      <span>📓 Variable list</span>
+      <span class="help" data-help-for="help-standard-variables">▼ expand</span>
+      <span class="popout help" data-popout-for="help-standard-variables" data-popout-title="Save In variable list">popout</span>
+    </h3>
+
     <div class="help-text" id="help-standard-variables">
       <p>Variables are used in directory and path patterns.</p>
       <h3>Standard</h3>
@@ -329,14 +335,19 @@ v/cats
     <label class="column">
       <h2>Dynamic downloads (advanced)</h2>
 
-      <h3 id="list-clause" class="help" data-help-for="help-clause-list">
-        📓 Clause list</h3>
+      <h3 id="list-clause">
+        <span>📓 Clause list</span>
+        <span class="help" data-help-for="help-clause-list">▼ expand</span>
+        <span class="popout help" data-popout-for="help-clause-list" data-popout-title="Save In clause list">popout</span>
+      </h3>
 
       <h3>Rename and route downloads
         <a href="#" class="help learn-more" data-help-for="help-filenames">guide</a>
       </h3>
       <div class="help-text" id="help-clause-list">
-        <p>Clauses are only used in rule definitions for routing and renaming.</p>
+        <p>Clauses are only used in rule definitions for routing and renaming to determine if a download should be renamed or
+          routed.
+        </p>
         <h3>Output and others</h3>
         <table class="box">
           <tr>
@@ -365,8 +376,7 @@ v/cats
 
         <h3>Matchers</h3>
         Matcher clauses use
-        <a class="external" href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions">regular expression</a> strings:
-        <code class="click-to-copy">fileext: jpe?g</code>.
+        <a class="external" href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions" target="_blank">regular expression</a> strings.
 
         <table class="box">
           <tr>
@@ -680,6 +690,7 @@ music/2000-01-01/a.mp3
   </form>
 
   <script src="options.js"></script>
+  <script src="clicktocopy.js"></script>
 </body>
 
 </html>

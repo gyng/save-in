@@ -123,39 +123,19 @@ const addHelp = el => {
   el.addEventListener("click", e => {
     e.preventDefault();
     const targetEl = document.getElementById(el.dataset.helpFor);
-    if (!targetEl.classList.contains("show")) {
+    if (!targetEl) {
+      return;
+    }
+
+    if (targetEl && !targetEl.classList.contains("show")) {
       el.scrollIntoView();
     }
     targetEl.classList.toggle("show");
   });
 };
 
-const addClickToCopy = el => {
-  let clicked;
-
-  el.title = `Click to copy ${el.textContent} to clipboard`; // eslint-disable-line
-
-  el.addEventListener("click", () => {
-    clicked = el;
-    document.execCommand("copy");
-  });
-
-  document.addEventListener("copy", e => {
-    if (clicked !== el) {
-      return;
-    }
-
-    e.preventDefault();
-    if (e.clipboardData) {
-      e.clipboardData.setData("text/plain", el.textContent);
-      clicked = null;
-    }
-  });
-};
-
 document.addEventListener("DOMContentLoaded", restoreOptions);
 document.querySelectorAll(".help").forEach(addHelp);
-document.querySelectorAll(".click-to-copy").forEach(addClickToCopy);
 
 document.querySelector("#print-debug-info").addEventListener("click", () => {
   const navigatorInfo = {
@@ -244,4 +224,34 @@ const setupAutosave = el => {
 
 ["textarea", "input", "select"].forEach(type => {
   document.querySelectorAll(type).forEach(setupAutosave);
+});
+
+document.querySelectorAll(".popout").forEach(el => {
+  el.addEventListener("click", () => {
+    const target = el.dataset.popoutFor;
+    const targetEl = document.getElementById(target);
+
+    if (targetEl) {
+      const popout = window.open(
+        null,
+        null,
+        "menubar=no,width=900,height=600,scrollbars=yes"
+      );
+      popout.document.open();
+      popout.document.write(`
+        <!doctype html>
+        <html class="popout-page" style="width: 100%; height: 100%; padding: 0; margin: 0;">
+          <head><link href="style.css" rel="stylesheet">
+          
+          <title>${el.dataset.popoutTitle || "Save In"}</title>
+          
+          </head>
+          <body style="height: 100%; padding: 0; margin: 0;">hello!
+          </body>
+        </html>`);
+      popout.document.body.innerHTML = targetEl.outerHTML;
+      popout.document.querySelector("div").style = "display: block; margin: 0;";
+      popout.document.close();
+    }
+  });
 });
