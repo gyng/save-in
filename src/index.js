@@ -157,7 +157,19 @@ window.init = () => {
           dir.startsWith("../") ||
           dir.startsWith("/")
         ) {
+          window.optionErrors.paths.push({
+            message: "Path cannot start with .. or",
+            error: `${dir}:`
+          });
+
           return;
+        }
+
+        if (dir !== "." && !dir.startsWith("./") && sanitizePath(dir) !== dir) {
+          window.optionErrors.paths.push({
+            message: "Path contains invalid characters",
+            error: `${dir}`
+          });
         }
 
         switch (dir) {

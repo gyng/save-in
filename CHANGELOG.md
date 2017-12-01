@@ -4,6 +4,7 @@
 
   - New rule-based syntax
   - Now able to use regex capture groups on supported clauses
+  - Whole bunch of new matchers
   - Document how to route downloads
   - Option for exclusive rule-base mode: disable context menu for quicker rule-based saving
   - Option to prompt if no rules matched
@@ -12,7 +13,10 @@
 * Add `:sourceurl:`, `:selectiontext:` variables (#39)
 * Add replacement character option (#39)
 * Settings now autosave on update
+* More iteration on options page
 * Fix improper bad character replacements creating extra directories (#37)
+* Add error messages for bad paths and rewrite patterns (#29)
+* Bug fixes and other improvements
 
 # 1.6.0
 

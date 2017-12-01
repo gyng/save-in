@@ -34,9 +34,10 @@ const truncateIfLongerThan = (str, max) =>
   str && max > 0 && str.length > max ? str.substr(0, max) : str;
 
 const sanitizeFilename = (str, max = 0) =>
-  replaceLeadingDots(truncateIfLongerThan(replaceFsBadChars(str), max));
+  str && replaceLeadingDots(truncateIfLongerThan(replaceFsBadChars(str), max));
 
 const sanitizePath = (pathStr, maxComponentLength = 0) =>
+  pathStr &&
   pathStr
     .split(SEPARATOR_REGEX)
     .map(s => sanitizeFilename(s, maxComponentLength))

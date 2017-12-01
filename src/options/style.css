@@ -15,6 +15,9 @@
   --red50: #ff0039;
   --green50: #30e60b;
   --green60: #12bc00;
+  --teal50: #00feff;
+  --magenta50: #ff1ad9;
+  --purple50: #9400ff;
 }
 
 a,
@@ -206,17 +209,28 @@ button.puffy:active {
   background-size: auto 90%;
   background-position: left 2px;
   background-repeat: no-repeat;
+  margin-top: 16px;
+  font-weight: 600;
 }
 
 .error-row {
   border-radius: 4px;
   background-color: var(--red50);
   color: white;
-  padding: 8px 8px 8px 40px;
+  padding: 8px 8px 8px 36px;
   background-image: url(i/warning-16.svg);
-  background-size: auto 66%;
+  background-size: auto 20px;
   background-position: 8px center;
   background-repeat: no-repeat;
+}
+
+.error-message {
+  font-weight: 600;
+  margin-right: 16px;
+}
+
+.error-error {
+  font-family: monospace;
 }
 
 .help:visited {
@@ -380,10 +394,23 @@ label.saved-base {
   background-size: auto 24px;
 }
 
-.popout {
-  padding-left: 16px;
-  background-image: url(i/open-in-new-16.svg);
-  background-size: auto 60%;
-  background-position: left center;
-  background-repeat: no-repeat;
+.demo {
+  border-radius: 2px;
+  font-family: monospace;
+}
+
+.demo.g1 {
+  background-color: var(--purple50);
+}
+
+.demo.g2 {
+  background-color: var(--orange50);
+}
+
+.demo.g3 {
+  background-color: var(--yellow50);
+}
+
+.demo.g4 {
+  background-color: var(--teal50);
 }

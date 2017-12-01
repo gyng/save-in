@@ -144,7 +144,7 @@ const parseRule = lines => {
       if (!matcher) {
         window.optionErrors.filenamePatterns.push({
           message: "Unknown matcher",
-          error: name + tokens
+          error: `${name}:`
         });
 
         return false;
@@ -178,6 +178,39 @@ const parseRule = lines => {
     window.optionErrors.filenamePatterns.push({
       message: "Rule needs at least one matcher clause",
       error: JSON.stringify(lines.map(l => l[0]))
+    });
+
+    return false;
+  }
+
+  if (matchers.filter(m => m.name === "into").length >= 2) {
+    window.optionErrors.filenamePatterns.push({
+      message: "Rule can only have one into clause",
+      error: JSON.stringify(lines.map(l => l[0]))
+    });
+
+    return false;
+  }
+
+  if (matchers.filter(m => m.name === "capture").length >= 2) {
+    window.optionErrors.filenamePatterns.push({
+      message: "Rule can only have one capture clause",
+      error: JSON.stringify(lines.map(l => l[0]))
+    });
+
+    return false;
+  }
+
+  // Capture clause pointing at nothing
+  const captures = matchers.filter(m => m.name === "capture");
+  if (
+    captures &&
+    captures.length === 1 &&
+    matchers.filter(m => m.name === captures[0].value).length < 1
+  ) {
+    window.optionErrors.filenamePatterns.push({
+      message: "Capture clause is not targeting a matcher",
+      error: `capture: ${captures[0].value}`
     });
 
     return false;

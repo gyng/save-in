@@ -1,4 +1,5 @@
 let debugOptions;
+const pathsErrors = document.querySelector("#error-paths");
 const filenamePatternsErrors = document.querySelector(
   "#error-filenamePatterns"
 );
@@ -7,14 +8,35 @@ const updateErrors = () => {
   window.setTimeout(() => {
     browser.runtime.getBackgroundPage().then(w => {
       filenamePatternsErrors.innerHTML = "";
+      pathsErrors.innerHTML = "";
       const errors = w.optionErrors;
+
+      const row = err => {
+        const r = document.createElement("div");
+        r.className = "error-row";
+
+        const message = document.createElement("span");
+        message.className = "error-message";
+        message.textContent = err.message;
+        r.appendChild(message);
+
+        const error = document.createElement("span");
+        error.className = "error-error";
+        error.textContent = err.error;
+        r.appendChild(error);
+
+        return r;
+      };
 
       if (errors.filenamePatterns.length > 0) {
         errors.filenamePatterns.forEach(err => {
-          const row = document.createElement("div");
-          row.className = "error-row";
-          row.textContent = `${err.message}: ${err.error}`;
-          filenamePatternsErrors.appendChild(row);
+          filenamePatternsErrors.appendChild(row(err));
+        });
+      }
+
+      if (errors.paths.length > 0) {
+        errors.paths.forEach(err => {
+          pathsErrors.appendChild(row(err));
         });
       }
     });
