@@ -30,166 +30,173 @@ const setOption = (name, value) => {
 let lastUsedPath = null; // global variable
 let currentTab = null; // global variable
 
-browser.storage.local
-  .get([
-    "debug",
-    "conflictAction",
-    "links",
-    "page",
-    "shortcutMedia",
-    "shortcutLink",
-    "shortcutPage",
-    "shortcutType",
-    "selection",
-    "paths",
-    "filenamePatterns",
-    "routeFailurePrompt",
-    "routeExclusive",
-    "prompt",
-    "promptIfNoExtension",
-    "notifyOnSuccess",
-    "notifyOnRuleMatch",
-    "notifyOnFailure",
-    "notifyDuration",
-    "truncateLength",
-    "replacementChar"
-  ])
-  .then(item => {
-    if (item.debug) {
-      window.SI_DEBUG = 1;
-    }
+window.init = () => {
+  window.optionErrors = {
+    paths: [],
+    filenamePatterns: []
+  };
 
-    // Options page has a different scope
-    setOption("links", item.links);
-    setOption("conflictAction", item.conflictAction);
-    setOption("selection", item.selection);
-    setOption("page", item.page);
-    setOption("paths", item.paths);
-    setOption("prompt", item.prompt);
-    setOption("promptIfNoExtension", item.promptIfNoExtension);
-    setOption("notifyOnSuccess", item.notifyOnSuccess);
-    setOption("notifyOnRuleMatch", item.notifyOnRuleMatch);
-    setOption("notifyOnFailure", item.notifyOnFailure);
-    setOption("notifyDuration", item.notifyDuration);
-    setOption("shortcutMedia", item.shortcutMedia);
-    setOption("shortcutLink", item.shortcutLink);
-    setOption("shortcutPage", item.shortcutPage);
-    setOption("shortcutType", item.shortcutType);
-    setOption("truncateLength", item.truncateLength);
-    setOption("routeFailurePrompt", item.routeFailurePrompt);
-    setOption("routeExclusive", item.routeExclusive);
-    setOption(
-      "replacementChar",
-      replaceLeadingDots(replaceFsBadChars(item.replacementChar || "", "")) ||
-        ""
-    );
-
-    const filenamePatterns =
-      item.filenamePatterns && parseRules(item.filenamePatterns);
-    setOption("filenamePatterns", filenamePatterns || []);
-
-    addNotifications({
-      notifyOnSuccess: options.notifyOnSuccess,
-      notifyOnFailure: options.notifyOnFailure,
-      notifyDuration: options.notifyDuration
-    });
-
-    const pathsArray = options.paths.split("\n");
-    let media = options.links ? MEDIA_TYPES.concat(["link"]) : MEDIA_TYPES;
-    media = options.selection ? media.concat(["selection"]) : media;
-    media = options.page ? media.concat(["page"]) : media;
-    let separatorCounter = 0;
-
-    if (options.routeExclusive) {
-      browser.contextMenus.create({
-        id: "save-in-route-exclusive",
-        title: "Save In route…",
-        contexts: media
-      });
-
-      return;
-    }
-
-    const lastUsedMenuOptions = {
-      id: `save-in-last-used`,
-      title: "Last used",
-      enabled: false,
-      contexts: media
-    };
-
-    // Chrome, FF < 57 crash when icons is supplied
-    // There is no easy way to detect support, so use a try/catch
-    try {
-      browser.contextMenus.create(
-        Object.assign({}, lastUsedMenuOptions, {
-          icons: {
-            "16": "icons/ic_update_black_24px.svg"
-          }
-        })
-      );
-    } catch (e) {
-      if (window.SI_DEBUG) {
-        console.log("Failed to create last used menu item with icons"); // eslint-disable-line
+  browser.storage.local
+    .get([
+      "debug",
+      "conflictAction",
+      "links",
+      "page",
+      "shortcutMedia",
+      "shortcutLink",
+      "shortcutPage",
+      "shortcutType",
+      "selection",
+      "paths",
+      "filenamePatterns",
+      "routeFailurePrompt",
+      "routeExclusive",
+      "prompt",
+      "promptIfNoExtension",
+      "notifyOnSuccess",
+      "notifyOnRuleMatch",
+      "notifyOnFailure",
+      "notifyDuration",
+      "truncateLength",
+      "replacementChar"
+    ])
+    .then(item => {
+      if (item.debug) {
+        window.SI_DEBUG = 1;
       }
 
-      browser.contextMenus.create(lastUsedMenuOptions);
-    }
+      // Options page has a different scope
+      setOption("links", item.links);
+      setOption("conflictAction", item.conflictAction);
+      setOption("selection", item.selection);
+      setOption("page", item.page);
+      setOption("paths", item.paths);
+      setOption("prompt", item.prompt);
+      setOption("promptIfNoExtension", item.promptIfNoExtension);
+      setOption("notifyOnSuccess", item.notifyOnSuccess);
+      setOption("notifyOnRuleMatch", item.notifyOnRuleMatch);
+      setOption("notifyOnFailure", item.notifyOnFailure);
+      setOption("notifyDuration", item.notifyDuration);
+      setOption("shortcutMedia", item.shortcutMedia);
+      setOption("shortcutLink", item.shortcutLink);
+      setOption("shortcutPage", item.shortcutPage);
+      setOption("shortcutType", item.shortcutType);
+      setOption("truncateLength", item.truncateLength);
+      setOption("routeFailurePrompt", item.routeFailurePrompt);
+      setOption("routeExclusive", item.routeExclusive);
+      setOption(
+        "replacementChar",
+        replaceLeadingDots(replaceFsBadChars(item.replacementChar || "", "")) ||
+          ""
+      );
 
-    browser.contextMenus.create({
-      id: `separator-${separatorCounter}`,
-      type: "separator",
-      contexts: media
-    });
-    separatorCounter += 1;
+      const filenamePatterns =
+        item.filenamePatterns && parseRules(item.filenamePatterns);
+      setOption("filenamePatterns", filenamePatterns || []);
 
-    pathsArray.forEach(dir => {
-      if (
-        !dir ||
-        dir === ".." ||
-        dir.startsWith("../") ||
-        dir.startsWith("/")
-      ) {
+      addNotifications({
+        notifyOnSuccess: options.notifyOnSuccess,
+        notifyOnFailure: options.notifyOnFailure,
+        notifyDuration: options.notifyDuration
+      });
+
+      const pathsArray = options.paths.split("\n");
+      let media = options.links ? MEDIA_TYPES.concat(["link"]) : MEDIA_TYPES;
+      media = options.selection ? media.concat(["selection"]) : media;
+      media = options.page ? media.concat(["page"]) : media;
+      let separatorCounter = 0;
+
+      if (options.routeExclusive) {
+        browser.contextMenus.create({
+          id: "save-in-route-exclusive",
+          title: "Save In route…",
+          contexts: media
+        });
+
         return;
       }
 
-      switch (dir) {
-        case SPECIAL_DIRS.SEPARATOR:
-          browser.contextMenus.create({
-            id: `separator-${separatorCounter}`,
-            type: "separator",
-            contexts: media
-          });
+      const lastUsedMenuOptions = {
+        id: `save-in-last-used`,
+        title: "Last used",
+        enabled: false,
+        contexts: media
+      };
 
-          separatorCounter += 1;
-          break;
-        default:
-          browser.contextMenus.create({
-            id: `save-in-${dir}`,
-            title: dir,
-            contexts: media
-          });
-          break;
+      // Chrome, FF < 57 crash when icons is supplied
+      // There is no easy way to detect support, so use a try/catch
+      try {
+        browser.contextMenus.create(
+          Object.assign({}, lastUsedMenuOptions, {
+            icons: {
+              "16": "icons/ic_update_black_24px.svg"
+            }
+          })
+        );
+      } catch (e) {
+        if (window.SI_DEBUG) {
+          console.log("Failed to create last used menu item with icons"); // eslint-disable-line
+        }
+
+        browser.contextMenus.create(lastUsedMenuOptions);
       }
-    });
 
-    browser.contextMenus.create({
-      id: `separator-${separatorCounter}`,
-      type: "separator",
-      contexts: media
-    });
+      browser.contextMenus.create({
+        id: `separator-${separatorCounter}`,
+        type: "separator",
+        contexts: media
+      });
+      separatorCounter += 1;
 
-    browser.contextMenus.create({
-      id: "show-default-folder",
-      title: browser.i18n.getMessage("contextMenuShowDefaultFolder"),
-      contexts: media
-    });
+      pathsArray.forEach(dir => {
+        if (
+          !dir ||
+          dir === ".." ||
+          dir.startsWith("../") ||
+          dir.startsWith("/")
+        ) {
+          return;
+        }
 
-    browser.contextMenus.create({
-      id: "options",
-      title: browser.i18n.getMessage("contextMenuItemOptions"),
-      contexts: media
+        switch (dir) {
+          case SPECIAL_DIRS.SEPARATOR:
+            browser.contextMenus.create({
+              id: `separator-${separatorCounter}`,
+              type: "separator",
+              contexts: media
+            });
+
+            separatorCounter += 1;
+            break;
+          default:
+            browser.contextMenus.create({
+              id: `save-in-${dir}`,
+              title: dir,
+              contexts: media
+            });
+            break;
+        }
+      });
+
+      browser.contextMenus.create({
+        id: `separator-${separatorCounter}`,
+        type: "separator",
+        contexts: media
+      });
+
+      browser.contextMenus.create({
+        id: "show-default-folder",
+        title: browser.i18n.getMessage("contextMenuShowDefaultFolder"),
+        contexts: media
+      });
+
+      browser.contextMenus.create({
+        id: "options",
+        title: browser.i18n.getMessage("contextMenuItemOptions"),
+        contexts: media
+      });
     });
-  });
+};
 
 browser.contextMenus.onClicked.addListener(info => {
   const matchSave = info.menuItemId.match(/save-in-(.*)/);
@@ -281,6 +288,14 @@ browser.contextMenus.onClicked.addListener(info => {
       break; // noop
   }
 });
+
+window.reset = () => {
+  browser.contextMenus.removeAll().then(() => {
+    window.init();
+  });
+};
+
+window.init();
 
 browser.tabs.onActivated.addListener(info => {
   browser.tabs.get(info.tabId).then(t => {

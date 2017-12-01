@@ -1,4 +1,25 @@
 let debugOptions;
+const filenamePatternsErrors = document.querySelector(
+  "#error-filenamePatterns"
+);
+
+const updateErrors = () => {
+  window.setTimeout(() => {
+    browser.runtime.getBackgroundPage().then(w => {
+      filenamePatternsErrors.innerHTML = "";
+      const errors = w.optionErrors;
+
+      if (errors.filenamePatterns.length > 0) {
+        errors.filenamePatterns.forEach(err => {
+          const row = document.createElement("div");
+          row.className = "error-row";
+          row.textContent = `${err.message}: ${err.error}`;
+          filenamePatternsErrors.appendChild(row);
+        });
+      }
+    });
+  }, 200);
+};
 
 const saveOptions = e => {
   e.preventDefault();
@@ -27,9 +48,9 @@ const saveOptions = e => {
     truncateLength: document.querySelector("#truncateLength").value
   });
 
-  browser.contextMenus.removeAll();
-  document.querySelector("body").innerHTML = "";
-  browser.runtime.reload();
+  browser.runtime.getBackgroundPage().then(w => {
+    w.reset();
+  });
 };
 
 const restoreOptions = () => {
@@ -93,6 +114,7 @@ const restoreOptions = () => {
       setValueElement("replacementChar", "_");
 
       debugOptions = result;
+      updateErrors();
     });
 };
 
@@ -131,10 +153,6 @@ const addClickToCopy = el => {
 };
 
 document.addEventListener("DOMContentLoaded", restoreOptions);
-document.querySelector("#submit").addEventListener("click", () => {
-  document.querySelector("#options").dispatchEvent(new Event("submit"));
-});
-document.querySelector("#options").addEventListener("submit", saveOptions);
 document.querySelectorAll(".help").forEach(addHelp);
 document.querySelectorAll(".click-to-copy").forEach(addClickToCopy);
 
@@ -186,7 +204,9 @@ document.querySelector("#reset").addEventListener("click", e => {
     browser.storage.local.clear().then(() => {
       restoreOptions();
       alert("Settings have been reset to defaults.");
-      browser.runtime.reload();
+      browser.runtime.getBackgroundPage().then(w => {
+        w.reset();
+      });
     });
   }
   /* eslint-enable no-alert */
@@ -203,3 +223,24 @@ if (browser === chrome) {
 
   document.querySelector("html").style = "min-width: 640px;";
 }
+
+const setupAutosave = el => {
+  el.addEventListener("input", e => {
+    saveOptions(e);
+    updateErrors();
+
+    if (el.type !== "textarea") {
+      el.parentNode.classList.remove("saved");
+      el.parentNode.classList.add("saved-base");
+      el.parentNode.classList.add("saved");
+    } else {
+      el.classList.remove("saved");
+      el.classList.add("saved-base");
+      el.classList.add("saved");
+    }
+  });
+};
+
+["textarea", "input", "select"].forEach(type => {
+  document.querySelectorAll(type).forEach(setupAutosave);
+});

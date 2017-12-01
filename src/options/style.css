@@ -12,6 +12,9 @@
   --grey50: #737373;
   --yellow50: #ffe900;
   --orange50: #ff9400;
+  --red50: #ff0039;
+  --green50: #30e60b;
+  --green60: #12bc00;
 }
 
 a {
@@ -43,6 +46,7 @@ a.external {
 
 html {
   font-family: var(--font-stack);
+  padding: 1px;
   min-width: 420px;
   min-height: 1%; /* Firefox options page height hack */
 }
@@ -106,6 +110,10 @@ option {
   margin-bottom: 4px;
 }
 
+label {
+  padding: 2px;
+}
+
 li {
   margin-bottom: 4px;
 }
@@ -114,6 +122,12 @@ input[type="number"],
 input[type="text"] {
   max-width: 80px;
   padding: 4px;
+}
+
+input[type="number"],
+input[type="text"],
+textarea {
+  outline: solid 2px rgba(0, 0, 0, 0);
 }
 
 textarea {
@@ -180,6 +194,25 @@ button.puffy:active {
 .help {
   color: var(--blue60);
   cursor: pointer;
+}
+
+.help.learn-more {
+  padding-left: 24px;
+  background-image: url(i/help-16.svg);
+  background-size: auto 90%;
+  background-position: left 2px;
+  background-repeat: no-repeat;
+}
+
+.error-row {
+  border-radius: 4px;
+  background-color: var(--red50);
+  color: white;
+  padding: 8px 8px 8px 40px;
+  background-image: url(i/warning-16.svg);
+  background-size: auto 66%;
+  background-position: 8px center;
+  background-repeat: no-repeat;
 }
 
 .help:visited {
@@ -319,4 +352,26 @@ button.puffy:active {
 .demo-box > .demo-pic {
   flex: 1;
   background-size: cover;
-};
+}
+
+.saved-base {
+  border-radius: 4px;
+  background-image: url(i/check-16.svg);
+  background-position: right 4px top 4px;
+  background-size: auto 24px;
+  background-repeat: no-repeat;
+}
+
+label.saved-base {
+  padding-right: 32px;
+  background-position: right 8px center;
+}
+
+.saved {
+  background-size: 16px;
+  background-position: right 4px top 4px;
+}
+
+.saved-base:active {
+  background-size: auto 24px;
+}

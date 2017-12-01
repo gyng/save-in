@@ -99,13 +99,16 @@ const matcherFunctions = {
 const tokenizeLine = line =>
   line
     .split("\n")
-    .map(l => l.match(/^(\S*): ?(.*)/))
+    .map(l => ({ l, matches: l.match(/^(\S*): ?(.*)/) }))
     .map(toks => {
-      if (!toks || toks.length < 3) {
-        createExtensionNotification("Save In: Bad rule clause", toks, true);
+      if (!toks.matches || toks.matches.length < 3) {
+        window.optionErrors.filenamePatterns.push({
+          message: "Bad clause",
+          error: `${toks.l || "invalid line syntax"}`
+        });
         return null;
       }
-      return toks;
+      return toks.matches;
     })
     .filter(toks => toks && toks.length >= 3);
 
@@ -120,7 +123,10 @@ const parseRule = lines => {
           ? tokens[2]
           : new RegExp(tokens[2]);
     } catch (e) {
-      createExtensionNotification("Save In: Invalid rule regex", e, true);
+      window.optionErrors.filenamePatterns.push({
+        message: "Invalid rule regex",
+        error: `${e}`
+      });
     }
 
     let type = RULE_TYPES.MATCHER;
@@ -136,11 +142,10 @@ const parseRule = lines => {
       const matcher = matcherFunctions[name.toLowerCase()];
 
       if (!matcher) {
-        createExtensionNotification(
-          "Save In: Unknown matcher clause",
-          name,
-          true
-        );
+        window.optionErrors.filenamePatterns.push({
+          message: "Unknown matcher",
+          error: name + tokens
+        });
 
         return false;
       }
@@ -160,14 +165,20 @@ const parseRule = lines => {
     }
   });
 
-  if (
-    !matchers.some(m => m.type === RULE_TYPES.DESTINATION) ||
-    !matchers.some(m => m.type === RULE_TYPES.MATCHER)
-  ) {
-    createExtensionNotification(
-      "Save In: Rule missing output or matcher",
-      JSON.stringify(lines.map(l => l[0]))
-    );
+  if (!matchers.some(m => m.type === RULE_TYPES.DESTINATION)) {
+    window.optionErrors.filenamePatterns.push({
+      message: "Missing clause: into",
+      error: name
+    });
+
+    return false;
+  }
+
+  if (!matchers.some(m => m.type === RULE_TYPES.MATCHER)) {
+    window.optionErrors.filenamePatterns.push({
+      message: "Rule needs at least one matcher clause",
+      error: JSON.stringify(lines.map(l => l[0]))
+    });
 
     return false;
   }

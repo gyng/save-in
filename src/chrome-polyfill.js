@@ -22,5 +22,13 @@ if (typeof browser === "undefined") {
     browser.storage.local.get = promisify(browser.storage.local.get, 1);
     browser.storage.local.clear = promisify(browser.storage.local.clear, 0);
     browser.tabs.get = promisify(browser.tabs.get, 1);
+    browser.runtime.getBackgroundPage = promisify(
+      browser.runtime.getBackgroundPage,
+      0
+    );
+    browser.contextMenus.removeAll = promisify(
+      browser.contextMenus.removeAll,
+      0
+    );
   }
 }

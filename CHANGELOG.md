@@ -11,6 +11,7 @@
 
 * Add `:sourceurl:`, `:selectiontext:` variables (#39)
 * Add replacement character option (#39)
+* Settings now autosave on update
 
 # 1.6.0
 
