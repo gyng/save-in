@@ -1,6 +1,8 @@
-Adds a context menu to save media {image, video, audio, link, page} in user-defined folders or directories relative to the default download location.
+Adds a context menu to save media {image, video, audio, link, selection, page} in user-defined folders or directories relative to the default download location.
 
-Rules-based file renaming and routing.
+Save into dynamically named directories.
+
+Flexible rules-based download renaming and routing.
 
 Option to save as shortcuts {.url, .desktop, .html redirect}.
 
