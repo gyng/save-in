@@ -229,29 +229,6 @@ const setupAutosave = el => {
 document.querySelectorAll(".popout").forEach(el => {
   el.addEventListener("click", () => {
     const target = el.dataset.popoutFor;
-    const targetEl = document.getElementById(target);
-
-    if (targetEl) {
-      const popout = window.open(
-        null,
-        null,
-        "menubar=no,width=900,height=600,scrollbars=yes"
-      );
-      popout.document.open();
-      popout.document.write(`
-        <!doctype html>
-        <html class="popout-page" style="width: 100%; height: 100%; padding: 0; margin: 0;">
-          <head><link href="style.css" rel="stylesheet">
-          
-          <title>${el.dataset.popoutTitle || "Save In"}</title>
-          
-          </head>
-          <body style="height: 100%; padding: 0; margin: 0;">hello!
-          </body>
-        </html>`);
-      popout.document.body.innerHTML = targetEl.outerHTML;
-      popout.document.querySelector("div").style = "display: block; margin: 0;";
-      popout.document.close();
-    }
+    window.open(target, null, "menubar=no,width=900,height=600,scrollbars=yes");
   });
 });

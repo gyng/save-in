@@ -1,0 +1,202 @@
+<!doctype html>
+<html>
+
+<head>
+  <title>Variables &mdash; Save In</title>
+  <link href="style.css" rel="stylesheet">
+</head>
+
+<body>
+  <div class="help-text show" id="help-standard-variables">
+    <h2>Variables</h2>
+
+    <p>Variables are used in directory and path patterns.</p>
+    <h3>Standard</h3>
+    <div class="caption">Usable everywhere</div>
+    <table class="box">
+      <tr>
+        <td>
+          <code class="click-to-copy">:date:</code>
+        </td>
+        <td>2000-01-01</td>
+        <td>Current date</td>
+      </tr>
+
+      <tr>
+        <td>
+          <code class="click-to-copy">:isodate:</code>
+        </td>
+        <td>20170123T123040Z</td>
+        <td>Current datetime as a UTC ISO8601 string</td>
+      </tr>
+
+      <tr>
+        <td>
+          <code class="click-to-copy">:unixdate:</code>
+        </td>
+        <td>946684800</td>
+        <td>Current datetime as a Unix timestamp</td>
+      </tr>
+
+      <tr>
+        <td>
+          <code class="click-to-copy">:year:</code>
+        </td>
+        <td>2000</td>
+        <td>Current year</td>
+      </tr>
+
+      <tr>
+        <td>
+          <code class="click-to-copy">:month:</code>
+        </td>
+        <td>01</td>
+        <td>Current month</td>
+      </tr>
+
+      <tr>
+        <td>
+          <code class="click-to-copy">:day:</code>
+        </td>
+        <td>24</td>
+        <td>Current day of month</td>
+      </tr>
+
+      <tr>
+        <td>
+          <code class="click-to-copy">:hour:</code>
+        </td>
+        <td>13</td>
+        <td>Current hour (24-hour)</td>
+      </tr>
+
+      <tr>
+        <td>
+          <code class="click-to-copy">:minute:</code>
+        </td>
+        <td>46</td>
+        <td>Current minute</td>
+      </tr>
+
+      <tr>
+        <td>
+          <code class="click-to-copy">:second:</code>
+        </td>
+        <td>05</td>
+        <td>Current second</td>
+      </tr>
+
+      <tr>
+        <td>
+          <code class="click-to-copy">:pageurl:</code>
+        </td>
+        <td>https://xyz.com/abc</td>
+        <td>URL of the page</td>
+      </tr>
+
+      <tr>
+        <td>
+          <code class="click-to-copy">:sourcedomain:</code>
+        </td>
+        <td>cdn.xyz.com</td>
+        <td>Hostname of the source</td>
+      </tr>
+
+      <tr>
+        <td>
+          <code class="click-to-copy">:sourceurl:</code>
+        </td>
+        <td>http://xyz.com/pic.jpg</td>
+        <td>URL of the source</td>
+      </tr>
+
+      <tr>
+        <td>
+          <code class="click-to-copy">:pagedomain:</code>
+        </td>
+        <td>xyz.com</td>
+        <td>Hostname of the page</td>
+      </tr>
+
+      <tr>
+        <td>
+          <code class="click-to-copy">:pagetitle:</code>
+        </td>
+        <td>My Webpage Title!</td>
+        <td>Title of the page</td>
+      </tr>
+
+      <tr>
+        <td>
+          <code class="click-to-copy">:linktext:</code>
+        </td>
+        <td>Direct link to image</td>
+        <td>
+          <span class="badge">Firefox</span> Text of the link, or
+          <code>title</code> attribute of element
+        </td>
+      </tr>
+
+      <tr>
+        <td>
+          <code class="click-to-copy">:selectiontext:</code>
+        </td>
+        <td>A swan created using</td>
+        <td>
+          The currently selected text on the page
+        </td>
+      </tr>
+    </table>
+
+
+    <h3>Routing and filename-only</h3>
+    <div class="caption">Only usable when routing and rewriting filenames</div>
+    <table class="box">
+      <tr>
+        <td>
+          <code class="click-to-copy">:filename:</code>
+        </td>
+        <td>my_image.jpg</td>
+        <td>Full filename
+        </td>
+      </tr>
+
+      <tr>
+        <td>
+          <code class="click-to-copy">:fileext:</code>
+        </td>
+        <td>jpg</td>
+        <td>Naive file extension, if available
+        </td>
+      </tr>
+
+      <tr>
+        <td>
+          <code class="click-to-copy">:$1:</code>,
+          <code class="click-to-copy">:$2:</code>&hellip;
+        </td>
+        <td></td>
+        <td>Capture group where
+          <code>1</code> = the n
+          <sup>th</sup> capture group
+        </td>
+      </tr>
+
+    </table>
+
+    <h3>Decorative</h3>
+    <div class="caption">Only usable in menu items</div>
+    <table class="box">
+      <tr>
+        <td>
+          <code class="click-to-copy">---</code>
+        </td>
+        <td>Creates a separator in the context menu</td>
+      </tr>
+    </table>
+  </div>
+
+  <script src="clicktocopy.js"></script>
+</body>
+
+</html>

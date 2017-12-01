@@ -17,20 +17,25 @@
   --green60: #12bc00;
 }
 
-a {
+a,
+.link {
+  cursor: pointer;
   color: var(--blue60);
   text-decoration: none;
 }
 
-a:hover {
+a:hover,
+.link:hover {
   text-decoration: underline;
 }
 
-a:active {
+a:active,
+.link:active {
   color: var(--blue70);
 }
 
-a.external {
+a.external,
+.link.external {
   padding-right: 16px;
   background-image: url(i/open-in-new-16.svg);
   background-size: auto 60%;

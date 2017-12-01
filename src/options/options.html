@@ -4,6 +4,7 @@
 <head>
   <meta charset="utf-8">
   <script type="application/javascript" src="../chrome-polyfill.js"></script>
+  <title>Settings &mdash; Save In</title>
   <link href="style.css" rel="stylesheet">
 </head>
 
@@ -18,205 +19,14 @@
 
   <form id="options">
     <h2 id="section-downloads">Downloads</h2>
-
-    <h3 id="list-variable">
-      <span>📓 Variable list</span>
-      <span class="help" data-help-for="help-standard-variables">▼ expand</span>
-      <span class="popout help" data-popout-for="help-standard-variables" data-popout-title="Save In variable list">popout</span>
-    </h3>
-
-    <div class="help-text" id="help-standard-variables">
-      <p>Variables are used in directory and path patterns.</p>
-      <h3>Standard</h3>
-      <div class="caption">Usable everywhere</div>
-      <table class="box">
-        <tr>
-          <td>
-            <code class="click-to-copy">:date:</code>
-          </td>
-          <td>2000-01-01</td>
-          <td>Current date</td>
-        </tr>
-
-        <tr>
-          <td>
-            <code class="click-to-copy">:isodate:</code>
-          </td>
-          <td>20170123T123040Z</td>
-          <td>Current datetime as a UTC ISO8601 string</td>
-        </tr>
-
-        <tr>
-          <td>
-            <code class="click-to-copy">:unixdate:</code>
-          </td>
-          <td>946684800</td>
-          <td>Current datetime as a Unix timestamp</td>
-        </tr>
-
-        <tr>
-          <td>
-            <code class="click-to-copy">:year:</code>
-          </td>
-          <td>2000</td>
-          <td>Current year</td>
-        </tr>
-
-        <tr>
-          <td>
-            <code class="click-to-copy">:month:</code>
-          </td>
-          <td>01</td>
-          <td>Current month</td>
-        </tr>
-
-        <tr>
-          <td>
-            <code class="click-to-copy">:day:</code>
-          </td>
-          <td>24</td>
-          <td>Current day of month</td>
-        </tr>
-
-        <tr>
-          <td>
-            <code class="click-to-copy">:hour:</code>
-          </td>
-          <td>13</td>
-          <td>Current hour (24-hour)</td>
-        </tr>
-
-        <tr>
-          <td>
-            <code class="click-to-copy">:minute:</code>
-          </td>
-          <td>46</td>
-          <td>Current minute</td>
-        </tr>
-
-        <tr>
-          <td>
-            <code class="click-to-copy">:second:</code>
-          </td>
-          <td>05</td>
-          <td>Current second</td>
-        </tr>
-
-        <tr>
-          <td>
-            <code class="click-to-copy">:pageurl:</code>
-          </td>
-          <td>https://xyz.com/abc</td>
-          <td>URL of the page</td>
-        </tr>
-
-        <tr>
-          <td>
-            <code class="click-to-copy">:sourcedomain:</code>
-          </td>
-          <td>cdn.xyz.com</td>
-          <td>Hostname of the source</td>
-        </tr>
-
-        <tr>
-          <td>
-            <code class="click-to-copy">:sourceurl:</code>
-          </td>
-          <td>http://xyz.com/pic.jpg</td>
-          <td>URL of the source</td>
-        </tr>
-
-        <tr>
-          <td>
-            <code class="click-to-copy">:pagedomain:</code>
-          </td>
-          <td>xyz.com</td>
-          <td>Hostname of the page</td>
-        </tr>
-
-        <tr>
-          <td>
-            <code class="click-to-copy">:pagetitle:</code>
-          </td>
-          <td>My Webpage Title!</td>
-          <td>Title of the page</td>
-        </tr>
-
-        <tr>
-          <td>
-            <code class="click-to-copy">:linktext:</code>
-          </td>
-          <td>Direct link to image</td>
-          <td>
-            <span class="badge">Firefox</span> Text of the link, or
-            <code>title</code> attribute of element
-          </td>
-        </tr>
-
-        <tr>
-          <td>
-            <code class="click-to-copy">:selectiontext:</code>
-          </td>
-          <td>A swan created using</td>
-          <td>
-            The currently selected text on the page
-          </td>
-        </tr>
-      </table>
-
-
-      <h3>Routing and filename-only</h3>
-      <div class="caption">Only usable when routing and rewriting filenames</div>
-      <table class="box">
-        <tr>
-          <td>
-            <code class="click-to-copy">:filename:</code>
-          </td>
-          <td>my_image.jpg</td>
-          <td>Full filename
-          </td>
-        </tr>
-
-        <tr>
-          <td>
-            <code class="click-to-copy">:fileext:</code>
-          </td>
-          <td>jpg</td>
-          <td>Naive file extension, if available
-          </td>
-        </tr>
-
-        <tr>
-          <td>
-            <code class="click-to-copy">:$1:</code>,
-            <code class="click-to-copy">:$2:</code>&hellip;
-          </td>
-          <td></td>
-          <td>Capture group where
-            <code>1</code> = the n
-            <sup>th</sup> capture group
-          </td>
-        </tr>
-
-      </table>
-
-      <h3>Decorative</h3>
-      <div class="caption">Only usable in menu items</div>
-      <table class="box">
-        <tr>
-          <td>
-            <code class="click-to-copy">---</code>
-          </td>
-          <td>Creates a separator in the context menu</td>
-        </tr>
-      </table>
-    </div>
+    <h3 class="popout link" data-popout-for="variablelist.html">📓 Variable list</h3>
 
     <label class="column">
       <h3>Directories
         <a href="#" class="help learn-more" data-help-for="help-paths">guide</a>
       </h3>
-      <p>One path per line, relative to the default download directory.</p>
+      <p>One path per line, relative to the default download directory.
+        <code>.</code> downloads to the default download directory.</p>
       <p>A symlink is needed to save outside the default download directory (see guide).</p>
       <div class="help-text" id="help-paths">
         <h4>Creating context menu items</h4>
@@ -334,12 +144,11 @@ v/cats
 
     <label class="column">
       <h2>Dynamic downloads (advanced)</h2>
-
-      <h3 id="list-clause">
-        <span>📓 Clause list</span>
-        <span class="help" data-help-for="help-clause-list">▼ expand</span>
-        <span class="popout help" data-popout-for="help-clause-list" data-popout-title="Save In clause list">popout</span>
-      </h3>
+      <div style="display: flex; justify-content: flex-start; align-items: center;">
+        <h3 style="width: auto;" class="popout link" data-popout-for="variablelist.html">📓 Variable list</h3>
+        &nbsp;&nbsp;&nbsp;
+        <h3 style="width: auto;" class="popout link" data-popout-for="clauselist.html">📓 Clause list</h3>
+      </div>
 
       <h3>Rename and route downloads
         <a href="#" class="help learn-more" data-help-for="help-filenames">guide</a>
@@ -496,8 +305,8 @@ v/cats
         </table>
       </div>
 
-      <p>Automate the routing of downloads or renaming of files. Separate multiple rules with an empty line. See the guide for
-        more details.</p>
+      <p>Automate routing of downloads or renaming of files. Separate multiple rules with an empty line. See the guide for more
+        details.</p>
       <p>The following example moves all
         <code>.gif</code> files into the
         <code>gif</code> subdirectory and renames the moved files to a timestamp.</p>
@@ -524,89 +333,67 @@ into: gif/:unixdate:.:fileext:</pre>
       <div class="help-text" id="help-filenames">
         <h4>Rewrite filenames</h4>
         <p>
-          Match downloads against clauses. If all clauses match, rewrite them according to the
-          <code class="click-to-copy">into:</code> clause. Matcher clauses use
+          Match downloads against regex. If all regex match, rewrite the filename according to
+          <code class="click-to-copy">into:</code>. Matcher clauses use
           <a class="external" href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions">regular expression</a> strings</p>
 
+        <p>This renames all gif files to a unix timestamp</p>
         <div class="demo-box">
           <pre class="demo-code left click-to-copy">
-filename: (.*):large
-sourceurl: pbs.twimg.com
-capture: filename
-into: :$1:</pre>
-
+fileext: gif
+into: :unixtimestamp:.:fileext:</pre>
 
           <div class="demo-arrow">=</div>
 
           <pre class="demo-code right">
-twitter_pic.png:large
-  ┣ on pbs.twimg.com
-  ┣ use `filename` captures
-  ┗ use capture group 1</pre>
-
-          <div class="demo-arrow">➡</div>
-
-          <pre class="demo-code right">
-twitter_pic.png
-
-
+cat.gif ➡ 1512136516.gif
  </pre>
         </div>
 
-        <p>The
-          <code class="click-to-copy">capture:</code> clause enables the use of regex capture groups, referenced by the variables
-          <code class="click-to-copy">:$1:</code> through
-          <code>:$n:</code>.</p>
-        <div class="demo-box">
-          <pre class="demo-code left click-to-copy">
+        <p>This advanced example renames downloads based off captured regex groups &mdash; the stuff inside
+          <code>()</code>.
+          <code class="click-to-copy">capture: filename</code> selects the filename's capture groups, and finally
+          <code class="click-to-copy">into:</code> renames the files based off them using
+          <code class="click-to-copy">:$1:</code> for the first one
+          <code>(.*)</code>, and
+          <code class="click-to-copy">:$2:</code> for the second one
+          <code>(tar|gz)</code>.
+
+          <div class="demo-box">
+            <pre class="demo-code left click-to-copy">
 filename: (.*)\.(tar|gz)
 capture: filename
 into: :$1:-:$2:.:fileext:</pre>
 
-          <div class="demo-arrow">=</div>
+            <div class="demo-arrow">=</div>
 
-          <pre class="demo-code right">
-ubuntu.tar
-debian.gz
-ubuntu.zip</pre>
+            <pre class="demo-code right">
+ubuntu.tar ➡ ubuntu-tar.tar
+debian.gz  ➡ debian-gz.gz
+ubuntu.zip ✘ (no match)</pre>
+          </div>
 
-          <div class="demo-arrow">➡</div>
+          <h4>Route downloads into directories</h4>
+          <p>Extend a filename rewrite rule to include
+            <code>/</code> in the
+            <code class="click-to-copy">into:</code> clause. The route will be relative to the chosen directory. Note that you need to supply the
+            <code class="click-to-copy">:filename:</code> variable.</p>
 
-          <pre class="demo-code right">
-ubuntu-tar.tar
-debian-gz.gz
-(no match)</pre>
-        </div>
-
-        <h4>Route downloads into directories</h4>
-        <p>Extend a filename rewrite rule to include
-          <code>/</code> in the
-          <code class="click-to-copy">into:</code> clause. The route will be relative to the chosen directory. Note that you need to supply the
-          <code class="click-to-copy">:filename:</code> variable.</p>
-
-        <div class="demo-box">
-          <pre class="demo-code left click-to-copy">
+          <div class="demo-box">
+            <pre class="demo-code left click-to-copy">
 mediatype: audio
 sourceurl: foo.com
 into: music/:date:/:filename:</pre>
 
-          <div class="demo-arrow">=</div>
+            <div class="demo-arrow">=</div>
 
-          <pre class="demo-code right">
-&lt;audio src="foo.com/a.mp3">
-&lt;audio src="bar.com/a.mp3">
-&lt;video src="foo.com/b.avi"></pre>
+            <pre class="demo-code right">
+foo.com/a.mp3 ➡ music/2000-01-01/a.mp3
+bar.com/a.mp3 ✘ (no match)
+foo.com/b.avi ✘ (no match)</pre>
+          </div>
 
-          <div class="demo-arrow">➡</div>
-
-          <pre class="demo-code right">
-music/2000-01-01/a.mp3
-(no match)
-(no match)</pre>
-
-        </div>
-
-        <a class="external" href="https://github.com/gyng/save-in/wiki/Filename-rewrite">Short list of useful rules</a>
+          <a class="external" href="https://github.com/gyng/save-in/wiki/Filename-rewrite">Short list of useful rules</a>
       </div>
       </div>
       </div>
