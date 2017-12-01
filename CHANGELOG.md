@@ -16,6 +16,7 @@
 * More iteration on options page
 * Fix improper bad character replacements creating extra directories (#37)
 * Add error messages for bad paths and rewrite patterns (#29)
+* Add settings import and export
 * Bug fixes and other improvements
 
 # 1.6.0

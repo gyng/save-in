@@ -75,6 +75,45 @@ const saveOptions = e => {
   });
 };
 
+const restoreOptionsHandler = result => {
+  const setCheckboxElement = (id, defaultVal) => {
+    document.querySelector(`#${id}`).checked =
+      typeof result[id] === "undefined" ? defaultVal : result[id];
+  };
+
+  const setValueElement = (id, defaultVal) => {
+    document.querySelector(`#${id}`).value =
+      typeof result[id] === "undefined" ? defaultVal : result[id];
+  };
+
+  document.querySelector("#paths").value = result.paths || ".\nimages\nvideos";
+  document.querySelector("#filenamePatterns").value =
+    result.filenamePatterns || "";
+
+  setCheckboxElement("routeFailurePrompt", false);
+  setCheckboxElement("routeExclusive", false);
+  setCheckboxElement("debug", false);
+  setValueElement("conflictAction", "uniquify");
+  setCheckboxElement("links", true);
+  setCheckboxElement("selection", false);
+  setCheckboxElement("page", false);
+  setCheckboxElement("shortcutMedia", false);
+  setCheckboxElement("shortcutLink", false);
+  setCheckboxElement("shortcutPage", false);
+  setValueElement("shortcutType", "HTML_REDIRECT");
+  setCheckboxElement("prompt", false);
+  setCheckboxElement("promptIfNoExtension", false);
+  setCheckboxElement("notifyOnSuccess", false);
+  setCheckboxElement("notifyOnRuleMatch", true);
+  setCheckboxElement("notifyOnFailure", true);
+  setValueElement("notifyDuration", 7000);
+  setValueElement("truncateLength", 240);
+  setValueElement("replacementChar", "_");
+
+  debugOptions = result;
+  updateErrors();
+};
+
 const restoreOptions = () => {
   browser.storage.local
     .get([
@@ -100,45 +139,7 @@ const restoreOptions = () => {
       "shortcutType",
       "truncateLength"
     ])
-    .then(result => {
-      const setCheckboxElement = (id, defaultVal) => {
-        document.querySelector(`#${id}`).checked =
-          typeof result[id] === "undefined" ? defaultVal : result[id];
-      };
-
-      const setValueElement = (id, defaultVal) => {
-        document.querySelector(`#${id}`).value =
-          typeof result[id] === "undefined" ? defaultVal : result[id];
-      };
-
-      document.querySelector("#paths").value =
-        result.paths || ".\nimages\nvideos";
-      document.querySelector("#filenamePatterns").value =
-        result.filenamePatterns || "";
-
-      setCheckboxElement("routeFailurePrompt", false);
-      setCheckboxElement("routeExclusive", false);
-      setCheckboxElement("debug", false);
-      setValueElement("conflictAction", "uniquify");
-      setCheckboxElement("links", true);
-      setCheckboxElement("selection", false);
-      setCheckboxElement("page", false);
-      setCheckboxElement("shortcutMedia", false);
-      setCheckboxElement("shortcutLink", false);
-      setCheckboxElement("shortcutPage", false);
-      setValueElement("shortcutType", "HTML_REDIRECT");
-      setCheckboxElement("prompt", false);
-      setCheckboxElement("promptIfNoExtension", false);
-      setCheckboxElement("notifyOnSuccess", false);
-      setCheckboxElement("notifyOnRuleMatch", true);
-      setCheckboxElement("notifyOnFailure", true);
-      setValueElement("notifyDuration", 7000);
-      setValueElement("truncateLength", 240);
-      setValueElement("replacementChar", "_");
-
-      debugOptions = result;
-      updateErrors();
-    });
+    .then(restoreOptionsHandler);
 };
 
 const addHelp = el => {
@@ -254,3 +255,37 @@ document.querySelectorAll(".popout").forEach(el => {
     window.open(target, null, "menubar=no,width=900,height=600,scrollbars=yes");
   });
 });
+
+const exportSettings = () => {
+  const doc = window.open().document;
+  doc.write("<pre>");
+  doc.write(JSON.stringify(debugOptions, null, 2));
+  doc.write("</pre>");
+  doc.close();
+};
+document
+  .querySelector("#settings-export")
+  .addEventListener("click", exportSettings);
+
+const importSettings = () => {
+  const importField = document.querySelector("#settings-import-field");
+  document.querySelector("#settings-import-error").innerHTML = "";
+  document.querySelector("#settings-import-error").classList.add("hide");
+  const json = importField.value; // eslint-disable-line
+  let settings;
+
+  try {
+    if (!json) {
+      document.querySelector("#settings-import-error").classList.remove("hide");
+      throw new Error("Nothing to import");
+    }
+    settings = JSON.parse(json);
+    restoreOptionsHandler(settings);
+  } catch (e) {
+    document.querySelector("#settings-import-error").classList.remove("hide");
+    document.querySelector("#settings-import-error").textContent = e;
+  }
+};
+document
+  .querySelector("#settings-import")
+  .addEventListener("click", importSettings);
