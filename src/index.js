@@ -5,7 +5,7 @@ const options = {
   links: true,
   selection: false,
   prompt: false,
-  paths: ".",
+  paths: ".\nimages\nvideos",
   page: false,
   shortcutMedia: false,
   shortcutLink: false,

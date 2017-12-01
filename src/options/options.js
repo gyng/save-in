@@ -34,7 +34,7 @@ const saveOptions = e => {
     notifyOnRuleMatch: document.querySelector("#notifyOnRuleMatch").checked,
     notifyOnSuccess: document.querySelector("#notifyOnSuccess").checked,
     page: document.querySelector("#page").checked,
-    paths: document.querySelector("#paths").value.trim() || ".",
+    paths: document.querySelector("#paths").value.trim() || ".\nimages\nvideos",
     prompt: document.querySelector("#prompt").checked,
     promptIfNoExtension: document.querySelector("#promptIfNoExtension").checked,
     replacementChar: document.querySelector("#replacementChar").value,
@@ -89,7 +89,8 @@ const restoreOptions = () => {
           typeof result[id] === "undefined" ? defaultVal : result[id];
       };
 
-      document.querySelector("#paths").value = result.paths || ".";
+      document.querySelector("#paths").value =
+        result.paths || ".\nimages\nvideos";
       document.querySelector("#filenamePatterns").value =
         result.filenamePatterns || "";
 

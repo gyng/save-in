@@ -18,7 +18,7 @@
     <h2 id="section-downloads">Downloads</h2>
 
     <h3 id="list-variable" class="help" data-help-for="help-standard-variables">
-      📓 Variable list (click to expand)</h3>
+      📓 Variable list</h3>
     <div class="help-text" id="help-standard-variables">
       <p>Variables are used in directory and path patterns.</p>
       <h3>Standard</h3>
@@ -210,7 +210,8 @@
       <h3>Directories
         <a href="#" class="help learn-more" data-help-for="help-paths">guide</a>
       </h3>
-      <p>Paths relative to default download directory. One path per line. Multiple variables can be used in a path.</p>
+      <p>One path per line, relative to the default download directory.</p>
+      <p>A symlink is needed to save outside the default download directory (see guide).</p>
       <div class="help-text" id="help-paths">
         <h4>Creating context menu items</h4>
         <div class="demo-box" style="margin-top: 12px; align-items: flex-start;">
@@ -263,7 +264,7 @@ v/cats
 
         <h4>Saving outside the default download directory</h4>
         <p>The WebExtensions API does not allow files to be saved outside of the default download directory. A
-          <a href="https://en.wikipedia.org/wiki/Symbolic_link" target="_blank">symlink</a> inside the default download directory can be used to get around this limitation.
+          <a class="external" href="https://en.wikipedia.org/wiki/Symbolic_link" target="_blank">symlink</a> inside the default download directory can be used to get around this limitation.
         </p>
 
         <br>
@@ -295,7 +296,7 @@ v/cats
 
     <label>
       <input type="checkbox" id="page" /> Enable saving of the current page
-      <div class="caption caption-line">Does not save external resources.</div>
+      <div class="caption caption-line">Does not save external resources</div>
     </label>
 
     <label>
@@ -326,15 +327,10 @@ v/cats
 
 
     <label class="column">
-      <h2>Dynamic downloads
-        <span class="float-right">
-          <span class="badge warning" style="font-size: 13px">🐞 New</span>
-          <span class="badge" style="font-size: 13px">Optional</span>
-        </span>
-      </h2>
+      <h2>Dynamic downloads (advanced)</h2>
 
       <h3 id="list-clause" class="help" data-help-for="help-clause-list">
-        📓 Clause list (click to expand)</h3>
+        📓 Clause list</h3>
 
       <h3>Rename and route downloads
         <a href="#" class="help learn-more" data-help-for="help-filenames">guide</a>
@@ -490,16 +486,20 @@ v/cats
         </table>
       </div>
 
-      <p>
-        Set up rules to automate the routing of downloads or renaming of files. The first matching rule applies. Separate multiple
-        rules with an empty line. Each rule is made up of multiple clauses. Multiple variables can be used in the
-        <code class="click-to-copy">into:</code> clause. Each rule must have an
-        <code class="click-to-copy">into:</code> clause, at least one matcher clause, and an optional
-        <code class="click-to-copy">capture:</code> clause.</p>
+      <p>Automate the routing of downloads or renaming of files. Separate multiple rules with an empty line. See the guide for
+        more details.</p>
+      <p>The following example moves all
+        <code>.gif</code> files into the
+        <code>gif</code> subdirectory and renames the moved files to a timestamp.</p>
 
-      <pre>
-  (matchername): regex
-  into: filename/path pattern</pre>
+      <pre class="click-to-copy">
+fileext: gif
+into: gif/:unixdate:.:fileext:</pre>
+
+      <p>Routing is relative to the selected menu item, so if you download a cat gif using the
+        <code>images</code> context menu, the above example will save the cat as
+        <code>./images/gif/946684800.gif</code>. See the clause list and the guide for more details.
+      </p>
 
       <p class="chrome-only">CHROME USERS: Special characters in the filename (eg.
         <code>:</code> or
@@ -516,36 +516,31 @@ v/cats
         <p>
           Match downloads against clauses. If all clauses match, rewrite them according to the
           <code class="click-to-copy">into:</code> clause. Matcher clauses use
-          <a class="external" href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions">regular expression</a> strings (ie. not the
-          <code>//</code> syntax).
-        </p>
+          <a class="external" href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions">regular expression</a> strings</p>
 
         <div class="demo-box">
           <pre class="demo-code left click-to-copy">
-  filename: (.*):large
-  sourceurl: pbs.twimg.com
-  capture: filename
-  into: :$1:
-  </pre>
+filename: (.*):large
+sourceurl: pbs.twimg.com
+capture: filename
+into: :$1:</pre>
 
 
           <div class="demo-arrow">=</div>
 
           <pre class="demo-code right">
-  twitter_pic.png:large
-   ┣ on pbs.twimg.com
-   ┣ use `filename` captures
-   ┗ use capture group 1
-  </pre>
+twitter_pic.png:large
+  ┣ on pbs.twimg.com
+  ┣ use `filename` captures
+  ┗ use capture group 1</pre>
 
           <div class="demo-arrow">➡</div>
 
           <pre class="demo-code right">
-  twitter_pic.png
+twitter_pic.png
 
 
-
-  </pre>
+ </pre>
         </div>
 
         <p>The
@@ -554,23 +549,23 @@ v/cats
           <code>:$n:</code>.</p>
         <div class="demo-box">
           <pre class="demo-code left click-to-copy">
-  filename: (.*)\.(tar|gz)
-  capture: filename
-  into: :$1:-:$2:.:fileext:</pre>
+filename: (.*)\.(tar|gz)
+capture: filename
+into: :$1:-:$2:.:fileext:</pre>
 
           <div class="demo-arrow">=</div>
 
           <pre class="demo-code right">
-  ubuntu.tar
-  debian.gz
-  ubuntu.zip</pre>
+ubuntu.tar
+debian.gz
+ubuntu.zip</pre>
 
           <div class="demo-arrow">➡</div>
 
           <pre class="demo-code right">
-  ubuntu-tar.tar
-  debian-gz.gz
-  (no match)</pre>
+ubuntu-tar.tar
+debian-gz.gz
+(no match)</pre>
         </div>
 
         <h4>Route downloads into directories</h4>
@@ -581,25 +576,23 @@ v/cats
 
         <div class="demo-box">
           <pre class="demo-code left click-to-copy">
-  mediatype: audio
-  sourceurl: foo.com
-  into: music/:date:/:filename:</pre>
+mediatype: audio
+sourceurl: foo.com
+into: music/:date:/:filename:</pre>
 
           <div class="demo-arrow">=</div>
 
           <pre class="demo-code right">
-  &lt;audio src="foo.com/a.mp3">
-  &lt;audio src="bar.com/a.mp3">
-  &lt;video src="foo.com/b.avi">
-  </pre>
+&lt;audio src="foo.com/a.mp3">
+&lt;audio src="bar.com/a.mp3">
+&lt;video src="foo.com/b.avi"></pre>
 
           <div class="demo-arrow">➡</div>
 
           <pre class="demo-code right">
-  music/2000-01-01/a.mp3
-  (no match)
-  (no match)
-  </pre>
+music/2000-01-01/a.mp3
+(no match)
+(no match)</pre>
 
         </div>
 
@@ -620,6 +613,8 @@ v/cats
       <input type="checkbox" id="routeExclusive" /> Exclusively use routing and renaming rules
       <div class="caption caption-line">Disables submenu for two-click downloads</div>
     </label>
+
+    <hr>
 
     <h2 id="section-notifications">Notifications</h2>
     <label>
