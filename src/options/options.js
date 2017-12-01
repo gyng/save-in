@@ -207,17 +207,31 @@ document.querySelector("#print-debug-info").addEventListener("click", () => {
 document.querySelector("#reset").addEventListener("click", e => {
   /* eslint-disable no-alert */
   e.preventDefault();
-  const reset =
-    browser === chrome ? true : confirm("Reset settings to defaults?");
 
-  if (reset) {
-    browser.storage.local.clear().then(() => {
-      restoreOptions();
-      alert("Settings have been reset to defaults.");
-      browser.runtime.getBackgroundPage().then(w => {
-        w.reset();
-      });
+  if (browser === chrome) {
+    browser.runtime.getBackgroundPage().then(w => {
+      const reset = w.confirm("Reset settings to defaults?");
+
+      if (reset) {
+        browser.storage.local.clear().then(() => {
+          restoreOptions();
+          w.alert("Settings have been reset to defaults.");
+          w.reset();
+        });
+      }
     });
+  } else {
+    const reset = confirm("Reset settings to defaults?");
+
+    if (reset) {
+      browser.storage.local.clear().then(() => {
+        restoreOptions();
+        alert("Settings have been reset to defaults.");
+        browser.runtime.getBackgroundPage().then(w => {
+          w.reset();
+        });
+      });
+    }
   }
   /* eslint-enable no-alert */
 });
