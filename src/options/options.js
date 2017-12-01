@@ -4,27 +4,27 @@ const saveOptions = e => {
   e.preventDefault();
 
   browser.storage.local.set({
-    debug: document.querySelector("#debug").checked,
     conflictAction: document.querySelector("#conflictAction").value,
-    links: document.querySelector("#links").checked,
-    selection: document.querySelector("#selection").checked,
-    page: document.querySelector("#page").checked,
-    shortcutMedia: document.querySelector("#shortcutMedia").checked,
-    shortcutLink: document.querySelector("#shortcutLink").checked,
-    shortcutPage: document.querySelector("#shortcutPage").checked,
-    shortcutType: document.querySelector("#shortcutType").value,
-    paths: document.querySelector("#paths").value.trim() || ".",
+    debug: document.querySelector("#debug").checked,
     filenamePatterns: document.querySelector("#filenamePatterns").value.trim(),
-    routeFailurePrompt: document.querySelector("#routeFailurePrompt").checked,
-    routeExclusive: document.querySelector("#routeExclusive").checked,
-    prompt: document.querySelector("#prompt").checked,
-    promptIfNoExtension: document.querySelector("#promptIfNoExtension").checked,
+    links: document.querySelector("#links").checked,
+    notifyDuration: document.querySelector("#notifyDuration").value,
+    notifyOnFailure: document.querySelector("#notifyOnFailure").checked,
     notifyOnRuleMatch: document.querySelector("#notifyOnRuleMatch").checked,
     notifyOnSuccess: document.querySelector("#notifyOnSuccess").checked,
-    notifyOnFailure: document.querySelector("#notifyOnFailure").checked,
-    notifyDuration: document.querySelector("#notifyDuration").value,
-    truncateLength: document.querySelector("#truncateLength").value,
-    replacementChar: document.querySelector("#replacementChar").value
+    page: document.querySelector("#page").checked,
+    paths: document.querySelector("#paths").value.trim() || ".",
+    prompt: document.querySelector("#prompt").checked,
+    promptIfNoExtension: document.querySelector("#promptIfNoExtension").checked,
+    replacementChar: document.querySelector("#replacementChar").value,
+    routeExclusive: document.querySelector("#routeExclusive").checked,
+    routeFailurePrompt: document.querySelector("#routeFailurePrompt").checked,
+    selection: document.querySelector("#selection").checked,
+    shortcutLink: document.querySelector("#shortcutLink").checked,
+    shortcutMedia: document.querySelector("#shortcutMedia").checked,
+    shortcutPage: document.querySelector("#shortcutPage").checked,
+    shortcutType: document.querySelector("#shortcutType").value,
+    truncateLength: document.querySelector("#truncateLength").value
   });
 
   browser.contextMenus.removeAll();
@@ -35,27 +35,27 @@ const saveOptions = e => {
 const restoreOptions = () => {
   browser.storage.local
     .get([
-      "debug",
       "conflictAction",
-      "links",
-      "selection",
-      "paths",
+      "debug",
       "filenamePatterns",
-      "routeFailurePrompt",
-      "routeExclusive",
+      "links",
+      "notifyDuration",
+      "notifyOnFailure",
+      "notifyOnRuleMatch",
+      "notifyOnSuccess",
+      "page",
+      "paths",
       "prompt",
       "promptIfNoExtension",
-      "notifyOnSuccess",
-      "notifyOnRuleMatch",
-      "notifyOnFailure",
-      "notifyDuration",
-      "page",
-      "shortcutMedia",
+      "replacementChar",
+      "routeExclusive",
+      "routeFailurePrompt",
+      "selection",
       "shortcutLink",
+      "shortcutMedia",
       "shortcutPage",
       "shortcutType",
-      "truncateLength",
-      "replacementChar"
+      "truncateLength"
     ])
     .then(result => {
       const setCheckboxElement = (id, defaultVal) => {
@@ -147,13 +147,13 @@ document.querySelector("#print-debug-info").addEventListener("click", () => {
 
   const doc = window.open().document;
   const pp = obj => {
-    doc.write("```json\n" + JSON.stringify(obj, null, 2) + "```\n\n"); // eslint-disable-line
+    doc.write("```json\n" + JSON.stringify(obj, null, 2) + "\n```\n\n"); // eslint-disable-line
   };
   const title = name => {
-    doc.write(`\n\n## ${name}\n\n`);
+    doc.write(`\n\n#### ${name}\n\n`);
   };
 
-  doc.write("<pre>");
+  doc.write("<pre>&lt;details>&lt;summary>Debug information&lt;/summary>\n");
 
   doc.write(`Generated ${new Date().toISOString()}\n`);
 
@@ -167,9 +167,13 @@ document.querySelector("#print-debug-info").addEventListener("click", () => {
   pp(browser.runtime.lastError);
 
   title("Extension");
-  browser.management.getSelf().then(o => pp({ version: o.version }));
 
-  browser.permissions.getAll().then(o => pp({ permissions: o.permissions }));
+  Promise.all([
+    browser.management.getSelf().then(o => pp({ version: o.version })),
+    browser.permissions.getAll().then(o => pp({ permissions: o.permissions }))
+  ]).then(() => {
+    doc.write("&lt;/details></pre>");
+  });
 });
 
 document.querySelector("#reset").addEventListener("click", e => {
