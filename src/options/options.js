@@ -198,7 +198,10 @@ document.querySelector("#print-debug-info").addEventListener("click", () => {
     })
   ]).then(() => {
     str = str.concat("</details>");
-    const blob = new Blob([str], { type: "text/markdown" });
+    const blob = new Blob([str], {
+      encoding: "UTF-8",
+      type: "text/plain;charset=UTF-8"
+    });
     const fileObjectURL = URL.createObjectURL(blob);
     window.open(fileObjectURL);
   });
@@ -278,7 +281,10 @@ document.querySelectorAll(".popout").forEach(el => {
 
 const exportSettings = () => {
   const json = JSON.stringify(debugOptions, null, 2);
-  const blob = new Blob([json], { type: "application/json" });
+  const blob = new Blob([json], {
+    encoding: "UTF-8",
+    type: "application/json"
+  });
   const fileObjectURL = URL.createObjectURL(blob);
   window.open(fileObjectURL);
 };
