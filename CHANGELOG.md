@@ -12,6 +12,7 @@
 * Add `:sourceurl:`, `:selectiontext:` variables (#39)
 * Add replacement character option (#39)
 * Settings now autosave on update
+* Fix improper bad character replacements creating extra directories (#37)
 
 # 1.6.0
 

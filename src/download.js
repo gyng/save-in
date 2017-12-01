@@ -33,12 +33,13 @@ const replaceLeadingDots = (s, replacement) =>
 const truncateIfLongerThan = (str, max) =>
   str && max > 0 && str.length > max ? str.substr(0, max) : str;
 
+const sanitizeFilename = (str, max = 0) =>
+  replaceLeadingDots(truncateIfLongerThan(replaceFsBadChars(str), max));
+
 const sanitizePath = (pathStr, maxComponentLength = 0) =>
   pathStr
     .split(SEPARATOR_REGEX)
-    .map(s => replaceFsBadChars(s))
-    .map(s => replaceLeadingDots(s))
-    .map(c => truncateIfLongerThan(c, maxComponentLength))
+    .map(s => sanitizeFilename(s, maxComponentLength))
     .join("/");
 
 const getFilenameFromUrl = url => {
@@ -65,11 +66,7 @@ const getFilenameFromContentDisposition = disposition => {
       filename = filename.slice(1, -1);
     }
 
-    // Has bad characters in name
-    filename = replaceLeadingDots(replaceFsBadChars(filename)).replace(
-      SEPARATOR_REGEX,
-      (typeof options !== "undefined" && options.replacementChar) || "_"
-    );
+    filename = sanitizeFilename(filename);
 
     return filename;
   }
@@ -101,8 +98,8 @@ const replaceSpecialDirs = (path, url, info) => {
     }
   }
 
-  ret = ret.replace(SPECIAL_DIRS.PAGE_URL, replaceFsBadChars(info.pageUrl));
-  ret = ret.replace(SPECIAL_DIRS.SOURCE_URL, replaceFsBadChars(info.srcUrl));
+  ret = ret.replace(SPECIAL_DIRS.PAGE_URL, sanitizeFilename(info.pageUrl));
+  ret = ret.replace(SPECIAL_DIRS.SOURCE_URL, sanitizeFilename(info.srcUrl));
   const now = new Date();
 
   const padDateComponent = (num, func) => num.toString().padStart(2, "0");
@@ -140,10 +137,10 @@ const replaceSpecialDirs = (path, url, info) => {
     (currentTab && currentTab.title) || ""
   );
 
-  ret = ret.replace(SPECIAL_DIRS.LINK_TEXT, replaceFsBadChars(info.linkText));
+  ret = ret.replace(SPECIAL_DIRS.LINK_TEXT, sanitizeFilename(info.linkText));
   ret = ret.replace(
     SPECIAL_DIRS.SELECTION,
-    replaceFsBadChars((info.selectionText && info.selectionText.trim()) || "")
+    sanitizeFilename((info.selectionText && info.selectionText.trim()) || "")
   );
 
   return ret;
@@ -280,7 +277,10 @@ const downloadInto = (path, url, info, options, suggestedFilename) => {
       path.replace(/^\.[\\/\\\\]?/, ""),
       truncateLength
     );
-    const fsSafeFilename = sanitizePath(rewrittenFilename, truncateLength);
+    const fsSafeFilename = sanitizePath(
+      sanitizeFilename(rewrittenFilename, truncateLength),
+      truncateLength
+    );
 
     const fsSafePath = fsSafeDirectory
       ? [fsSafeDirectory, fsSafeFilename].join("/")

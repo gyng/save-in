@@ -268,10 +268,12 @@ browser.contextMenus.onClicked.addListener(info => {
       );
     }
 
-    suggestedFilename = truncateIfLongerThan(
-      suggestedFilename,
-      options.truncateLength
-    );
+    if (suggestedFilename) {
+      suggestedFilename = sanitizeFilename(
+        suggestedFilename,
+        options.truncateLength
+      );
+    }
 
     requestedDownloadFlag = true;
     downloadInto(actualPath, url, info, options, suggestedFilename);

@@ -40,7 +40,7 @@ const suggestShortcutFilename = (
           info.pageUrl}`
       : `${suggestedFilename || info.linkText || info.srcUrl || info.linkUrl}`;
 
-  shortcutFilename = `${truncateIfLongerThan(
+  shortcutFilename = `${sanitizeFilename(
     shortcutFilename,
     maxlen - shortcutExtension.length
   )}${shortcutExtension}`;

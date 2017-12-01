@@ -37,6 +37,8 @@
     "parseRules": true,
     "options": true,
     "replaceFsBadChars": true,
+    "sanitizePath": true,
+    "sanitizeFilename": true,
     "replaceLeadingDots": true
   }
 }
