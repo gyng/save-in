@@ -39,6 +39,7 @@
     "replaceFsBadChars": true,
     "sanitizePath": true,
     "sanitizeFilename": true,
-    "replaceLeadingDots": true
+    "replaceLeadingDots": true,
+    "removeSpecialDirs": true
   }
 }

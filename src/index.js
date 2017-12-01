@@ -157,15 +157,22 @@ window.init = () => {
           dir.startsWith("../") ||
           dir.startsWith("/")
         ) {
-          window.optionErrors.paths.push({
-            message: "Path cannot start with .. or",
-            error: `${dir}:`
-          });
+          // Silently ignore blank lines
+          if (dir !== "") {
+            window.optionErrors.paths.push({
+              message: "Path cannot start with .. or",
+              error: `${dir}:`
+            });
+          }
 
           return;
         }
 
-        if (dir !== "." && !dir.startsWith("./") && sanitizePath(dir) !== dir) {
+        if (
+          dir !== "." &&
+          !dir.startsWith("./") &&
+          sanitizePath(removeSpecialDirs(dir)) !== removeSpecialDirs(dir)
+        ) {
           window.optionErrors.paths.push({
             message: "Path contains invalid characters",
             error: `${dir}`

@@ -75,6 +75,15 @@ const getFilenameFromContentDisposition = disposition => {
   return null;
 };
 
+// Used for validation
+const removeSpecialDirs = path => {
+  let ret = path;
+  Object.keys(SPECIAL_DIRS).forEach(v => {
+    ret = ret.replace(SPECIAL_DIRS[v], "");
+  });
+  return ret;
+};
+
 // Handles SPECIAL_DIRS except FILENAME and SEPARATOR
 const replaceSpecialDirs = (path, url, info) => {
   if (window.SI_DEBUG) {
