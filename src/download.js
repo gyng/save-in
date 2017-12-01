@@ -4,6 +4,7 @@ const DISPOSITION_FILENAME_REGEX = /filename[^;=\n]*=((['"])(.*)?\2|(.+'')?([^;\
 const EXTENSION_REGEX = /\.([0-9a-z]{1,8})$/i;
 const SPECIAL_CHARACTERS_REGEX = /[~<>:"/\\|?*\0]/g;
 const BAD_LEADING_CHARACTERS = /^[./\\]/g;
+const SEPARATOR_REGEX = /[/\\]/g;
 
 const makeObjectUrl = (content, mime = "text/plain") =>
   URL.createObjectURL(
@@ -34,7 +35,7 @@ const truncateIfLongerThan = (str, max) =>
 
 const sanitizePath = (pathStr, maxComponentLength = 0) =>
   pathStr
-    .split(new RegExp("[\\/\\\\]", "g"))
+    .split(SEPARATOR_REGEX)
     .map(s => replaceFsBadChars(s))
     .map(s => replaceLeadingDots(s))
     .map(c => truncateIfLongerThan(c, maxComponentLength))
@@ -59,9 +60,16 @@ const getFilenameFromContentDisposition = disposition => {
     const match = filteredMatches[filteredMatches.length - 1];
     let filename = decodeURIComponent(decodeURIComponent(escape(match)));
 
+    // Wrapped in quotation marks
     if (filename[0] && filename[filename.length - 1] === '"') {
       filename = filename.slice(1, -1);
     }
+
+    // Has bad characters in name
+    filename = replaceLeadingDots(replaceFsBadChars(filename)).replace(
+      SEPARATOR_REGEX,
+      (typeof options !== "undefined" && options.replacementChar) || "_"
+    );
 
     return filename;
   }
