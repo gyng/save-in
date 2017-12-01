@@ -100,7 +100,9 @@ window.init = () => {
         notifyDuration: options.notifyDuration
       });
 
-      const pathsArray = options.paths.split("\n");
+      const pathsArray = [
+        ...new Set(options.paths.split("\n").map(p => p.trim()))
+      ];
       let media = options.links ? MEDIA_TYPES.concat(["link"]) : MEDIA_TYPES;
       media = options.selection ? media.concat(["selection"]) : media;
       media = options.page ? media.concat(["page"]) : media;
