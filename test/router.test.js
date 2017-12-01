@@ -13,6 +13,10 @@ describe("filename rewrite and routing", () => {
 
   beforeAll(() => {
     global.createExtensionNotification = () => {};
+    global.optionErrors = {
+      filenamePatterns: [],
+      paths: []
+    };
     global.currentTab = {
       title: "some title"
     };
