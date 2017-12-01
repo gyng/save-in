@@ -30,5 +30,7 @@ if (typeof browser === "undefined") {
       browser.contextMenus.removeAll,
       0
     );
+    browser.management.getSelf = promisify(browser.management.getSelf, 0);
+    browser.permissions.getAll = promisify(browser.permissions.getAll, 0);
   }
 }

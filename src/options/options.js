@@ -167,17 +167,17 @@ document.querySelector("#print-debug-info").addEventListener("click", () => {
     language: navigator.language
   };
 
-  const doc = window.open().document;
+  let str = "";
   const pp = obj => {
-    doc.write("```json\n" + JSON.stringify(obj, null, 2) + "\n```\n\n"); // eslint-disable-line
+    str = str.concat("```json\n" + JSON.stringify(obj, null, 2) + "\n```\n"); // eslint-disable-line
   };
   const title = name => {
-    doc.write(`\n\n#### ${name}\n\n`);
+    str = str.concat(`\n#### ${name}\n\n`);
   };
 
-  doc.write("<pre>&lt;details>&lt;summary>Debug information&lt;/summary>\n");
+  str = str.concat("<details><summary>Debug information</summary>\n");
 
-  doc.write(`Generated ${new Date().toISOString()}\n`);
+  str = str.concat(`Generated ${new Date().toISOString()}\n`);
 
   title("Browser");
   pp(navigatorInfo);
@@ -185,16 +185,22 @@ document.querySelector("#print-debug-info").addEventListener("click", () => {
   title("Options");
   pp(debugOptions);
 
-  title("Last runtime error");
-  pp(browser.runtime.lastError);
-
   title("Extension");
-
   Promise.all([
     browser.management.getSelf().then(o => pp({ version: o.version })),
-    browser.permissions.getAll().then(o => pp({ permissions: o.permissions }))
+    browser.permissions.getAll().then(o => pp({ permissions: o.permissions })),
+    browser.runtime.getBackgroundPage().then(p => {
+      title("Globals");
+      pp({
+        optionErrors: p.optionErrors,
+        lastUsedPath: p.lastUsedPath || "null"
+      });
+    })
   ]).then(() => {
-    doc.write("&lt;/details></pre>");
+    str = str.concat("</details>");
+    const blob = new Blob([str], { type: "text/markdown" });
+    const fileObjectURL = URL.createObjectURL(blob);
+    window.open(fileObjectURL);
   });
 });
 
@@ -257,11 +263,10 @@ document.querySelectorAll(".popout").forEach(el => {
 });
 
 const exportSettings = () => {
-  const doc = window.open().document;
-  doc.write("<pre>");
-  doc.write(JSON.stringify(debugOptions, null, 2));
-  doc.write("</pre>");
-  doc.close();
+  const json = JSON.stringify(debugOptions, null, 2);
+  const blob = new Blob([json], { type: "application/json" });
+  const fileObjectURL = URL.createObjectURL(blob);
+  window.open(fileObjectURL);
 };
 document
   .querySelector("#settings-export")
