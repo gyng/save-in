@@ -348,6 +348,8 @@ const downloadInto = (path, url, info, options, suggestedFilename) => {
       saveAs: prompt || (promptIfNoExtension && !hasExtension),
       conflictAction
     });
+
+    window.lastDownload = { info, path, url };
   };
 
   // CHROME

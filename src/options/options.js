@@ -195,7 +195,11 @@ document.querySelector("#print-debug-info").addEventListener("click", () => {
     str = str.concat(`\n#### ${name}\n\n`);
   };
 
-  str = str.concat("<details><summary>Debug information</summary>\n");
+  str = str.concat(
+    "!⚠! Remove all sensitive information before sharing !⚠!\n\n"
+  );
+
+  str = str.concat("<details>\n<summary>Debug information</summary>\n\n");
 
   str = str.concat(`Generated ${new Date().toISOString()}\n`);
 
@@ -213,7 +217,8 @@ document.querySelector("#print-debug-info").addEventListener("click", () => {
       title("Globals");
       pp({
         optionErrors: p.optionErrors,
-        lastUsedPath: p.lastUsedPath || "null"
+        lastUsedPath: p.lastUsedPath || "null",
+        lastDownload: p.lastDownload || "null"
       });
     })
   ]).then(() => {
@@ -301,8 +306,8 @@ document.querySelectorAll(".popout").forEach(el => {
   });
 });
 
-const exportSettings = () => {
-  const json = JSON.stringify(debugOptions, null, 2);
+const showJson = obj => {
+  const json = JSON.stringify(obj, null, 2);
   const blob = new Blob([json], {
     encoding: "UTF-8",
     type: "application/json"
@@ -310,9 +315,14 @@ const exportSettings = () => {
   const fileObjectURL = URL.createObjectURL(blob);
   window.open(fileObjectURL);
 };
-document
-  .querySelector("#settings-export")
-  .addEventListener("click", exportSettings);
+document.querySelector("#settings-export").addEventListener("click", () => {
+  showJson(debugOptions);
+});
+document.querySelector("#show-last-downlaod").addEventListener("click", () => {
+  browser.runtime.getBackgroundPage().then(w => {
+    showJson(w.lastDownload || { "Nothing!": "No downloads recorded yet." });
+  });
+});
 
 const importSettings = () => {
   const load = w => {

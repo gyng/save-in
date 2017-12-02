@@ -119,6 +119,9 @@ option {
 
 label {
   padding: 2px;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 li {
@@ -161,6 +164,10 @@ button {
   border: solid 1px var(--grey30);
   background-color: transparent;
   font-weight: 400;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;
+  cursor: default;
 }
 
 div.button:hover,
