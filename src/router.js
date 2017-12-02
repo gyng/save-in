@@ -194,21 +194,6 @@ const parseRule = lines => {
     return false;
   }
 
-  if (
-    intoMatcher.length === 1 &&
-    (intoMatcher[0].value.startsWith("/") ||
-      sanitizePath(
-        removeSpecialDirs(intoMatcher[0].value.replace(/:\$\d+:/g, ""))
-      ) !== removeSpecialDirs(intoMatcher[0].value.replace(/:\$\d+:/g, "")))
-  ) {
-    window.optionErrors.filenamePatterns.push({
-      message: "Bad into destination",
-      error: intoMatcher[0].value
-    });
-
-    return false;
-  }
-
   if (matchers.filter(m => m.name === "capture").length >= 2) {
     window.optionErrors.filenamePatterns.push({
       message: "Rule can only have one capture clause",

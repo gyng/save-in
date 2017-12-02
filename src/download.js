@@ -261,9 +261,12 @@ const downloadInto = (path, url, info, options, suggestedFilename) => {
         )
       : suggestedFilename || filename;
 
-    if (!suggestedFilename && rewrittenFilename !== filename) {
+    if (
+      !suggestedFilename &&
+      rewrittenFilename &&
+      rewrittenFilename !== filename
+    ) {
       sanitizeFilenameSlashes = false; // already sanitized
-
       if (options.notifyOnRuleMatch) {
         createExtensionNotification(
           "Save In: Rule matched",
@@ -271,7 +274,11 @@ const downloadInto = (path, url, info, options, suggestedFilename) => {
           false
         );
       }
-    } else if (suggestedFilename && rewrittenFilename !== suggestedFilename) {
+    } else if (
+      rewrittenFilename &&
+      suggestedFilename &&
+      rewrittenFilename !== suggestedFilename
+    ) {
       sanitizeFilenameSlashes = false; // already sanitized
 
       if (options.notifyOnRuleMatch) {

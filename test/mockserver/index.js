@@ -15,7 +15,18 @@ const routes = {
     ctx.set("Cache-Control", "no-cache");
   },
   root: ctx => {
-    ctx.body = `<html><a href="cd">Content-Disposition</a><br><img src="origami.jpg" /></html>`;
+    ctx.body = `<html>
+      <a href="cd">Content-Disposition</a>
+      <br>
+      <img src="origami.jpg" />
+      <hr>
+      Example tests
+      <br>
+      <img src="cat.gif" /><br>
+      <a href="ubuntu.v1.tar">ubuntu.v1.tar</a><br>
+      <a href="debian.v2.gz">debian.v2.gz</a><br>
+      <a href="debian.zip">debian.zip</a><br>
+    </html>`;
   }
 };
 
