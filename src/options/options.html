@@ -24,11 +24,11 @@
 
   <form id="options">
     <h2 id="section-downloads">Downloads</h2>
-    <h3 class="popout link" data-popout-for="variablelist.html">📓 Variable List</h3>
+    <span><h3 class="popout link" data-popout-for="variablelist.html">📓 Variable List</h3></span>
 
     <label class="column">
       <h3>Directories</h3>
-      <a href="#" class="help learn-more" data-help-for="help-paths">Guide: Create menu items</a>
+      <p><a href="#" class="help learn-more" data-help-for="help-paths">Guide: Create menu items</a></p>
       <p>One path per line, relative to the default download directory.
         <code>.</code> downloads to the default download directory.</p>
       <p>A symlink is needed to save outside the default download directory.</p>
@@ -142,14 +142,17 @@ v/cats
 
     <label class="column">
       <h2>Dynamic Downloads (Advanced)</h2>
-      <div style="display: flex; justify-content: flex-start; align-items: center;">
+      <div style="display: flex; justify-content: flex-start; align-items: baseline;">
         <h3 style="width: auto;" class="popout link" data-popout-for="variablelist.html">📓 Variable list</h3>
         &nbsp;&nbsp;&nbsp;
         <h3 style="width: auto;" class="popout link" data-popout-for="clauselist.html">📓 Clause list</h3>
       </div>
 
       <h3>Rename and Route Downloads</h3>
-      <a href="#" class="help learn-more" data-help-for="help-filenames">Guide: Rename and route downloads</a>
+      <p>
+        <a href="#" class="help learn-more" data-help-for="help-filenames">Guide: Rename and route downloads</a>
+        <a class="external float-right" href="https://github.com/gyng/save-in/wiki/Filename-rewrite">Templates</a>
+      </p>
 
       <p>Automate routing of downloads or renaming of files. Separate multiple rules with an empty line. See the guide for more
         details.
@@ -205,36 +208,33 @@ cat.jpg ✘ (no match)</pre>
           </div>
 
 
-          <p>Routing is relative to the selected menu item. So, if you download a cat gif using the
-            <code>images</code> context menu, the above example will save the cat as
-            <code>./images/gif/946684800.gif</code>. See the clause list and the guide for more details.
+          <p>Routing is relative to the selected menu item. When you download a cat gif using the
+            <code>images</code> context menu, the above example will save it as
+            <code>./images/gif/946684800.gif</code>.
           </p>
 
           <p>This advanced example renames downloads based off captured regex groups &mdash; the stuff inside
-            <code>()</code>.
+            <code>()</code> &mdash; and moves them into different directories.
             <code class="click-to-copy">capture:&nbsp;filename</code> selects the filename's capture groups, and finally
             <code class="click-to-copy">into:</code> renames the files based off them using
-            <code class="click-to-copy">:$1:</code> for the first one
-            <code>(.*)</code>, and
-            <code class="click-to-copy">:$2:</code> for the second one
-            <code>(tar|gz)</code>.
+            <code class="click-to-copy">:$1:</code>, <code class="click-to-copy">:$2:</code>, and <code class="click-to-copy">:$3:</code>.
 
             <div class="demo-box">
               <pre class="demo-code left click-to-copy">
-<span class="demo g1">filename:</span> <span class="demo g2">(.*)</span>\.<span class="demo g3">(tar|gz)</span>
+# Comment: Move downloads based off versions
+<span class="demo g1">filename:</span> <span class="demo g2">(.*)</span>\.<span class="demo g4">(v.)</span>\.<span class="demo g3">(tar|gz)</span>
 pageurl: dl.example.com
 capture: <span class="demo g1">filename</span>
-into: <span class="demo g2">:$1:</span>.<span class="demo g3">:$2:</span></pre>
+into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span class="demo g3">:$3:</span></pre>
               <div class="demo-arrow">=</div>
 
               <pre class="demo-code right">
-<span class="demo g2">ubuntu</span>.<span class="demo g3">tar</span> ➡ <span class="demo g2">ubuntu</span>.<span class="demo g3">tar</span>
-<span class="demo g2">debian</span>.<span class="demo g3">gz</span>  ➡ <span class="demo g2">debian</span>.<span class="demo g3">gz</span>
-<span class="demo g2">debian</span>.zip ✘ (no match)
+ 
+<span class="demo g2">ubuntu</span>.<span class="demo g4">v1</span>.<span class="demo g3">tar</span> ➡ <span class="demo g4">v1</span>/<span class="demo g2">ubuntu</span>.<span class="demo g3">tar</span>
+<span class="demo g2">debian</span>.<span class="demo g4">v2</span>.<span class="demo g3">gz</span>  ➡ <span class="demo g4">v2</span>/<span class="demo g2">debian</span>.<span class="demo g3">gz</span>
+<span class="demo g2">debian</span>.zip    ✘ (no match)
  </pre>
             </div>
-
-            <a class="external" href="https://github.com/gyng/save-in/wiki/Filename-rewrite">Short list of useful rules</a>
       </div>
       </div>
       </div>
