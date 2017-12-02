@@ -349,7 +349,7 @@ const downloadInto = (path, url, info, options, suggestedFilename) => {
       conflictAction
     });
 
-    window.lastDownload = { info, path, url };
+    window.lastDownload = { info, path, url, filename };
   };
 
   // CHROME

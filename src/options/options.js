@@ -3,12 +3,15 @@ const pathsErrors = document.querySelector("#error-paths");
 const filenamePatternsErrors = document.querySelector(
   "#error-filenamePatterns"
 );
+const lastDlMatch = document.querySelector("#last-dl-match");
 
-const updateErrors = () => {
+const updateErrors = (timeout = 200) => {
   window.setTimeout(() => {
     browser.runtime.getBackgroundPage().then(w => {
       filenamePatternsErrors.innerHTML = "";
       pathsErrors.innerHTML = "";
+      lastDlMatch.innerHTML = "none yet";
+
       const errors = w.optionErrors;
 
       const row = err => {
@@ -39,12 +42,18 @@ const updateErrors = () => {
           pathsErrors.appendChild(row(err));
         });
       }
+
+      if (errors.testLastResult) {
+        lastDlMatch.textContent = errors.testLastResult;
+      }
     });
-  }, 200);
+  }, timeout);
 };
 
 const saveOptions = e => {
-  e.preventDefault();
+  if (e) {
+    e.preventDefault();
+  }
 
   browser.storage.local
     .set({
@@ -315,13 +324,20 @@ const showJson = obj => {
   const fileObjectURL = URL.createObjectURL(blob);
   window.open(fileObjectURL);
 };
+
 document.querySelector("#settings-export").addEventListener("click", () => {
   showJson(debugOptions);
 });
-document.querySelector("#show-last-downlaod").addEventListener("click", () => {
+
+document.querySelector("#show-last-download").addEventListener("click", () => {
   browser.runtime.getBackgroundPage().then(w => {
     showJson(w.lastDownload || { "Nothing!": "No downloads recorded yet." });
   });
+});
+
+document.querySelector("#refresh-errors").addEventListener("click", e => {
+  saveOptions(e);
+  updateErrors();
 });
 
 const importSettings = () => {

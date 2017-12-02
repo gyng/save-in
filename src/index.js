@@ -36,7 +36,8 @@ let currentTab = null; // global variable
 window.init = () => {
   window.optionErrors = {
     paths: [],
-    filenamePatterns: []
+    filenamePatterns: [],
+    testLastResult: null
   };
 
   browser.storage.local
@@ -103,6 +104,17 @@ window.init = () => {
       const filenamePatterns =
         item.filenamePatterns && parseRules(item.filenamePatterns);
       setOption("filenamePatterns", filenamePatterns || []);
+
+      if (window.lastDownload) {
+        const last = window.lastDownload;
+        const testLastResult = rewriteFilename(
+          last.filename,
+          filenamePatterns,
+          last.info,
+          last.url
+        );
+        window.optionErrors.testLastResult = testLastResult;
+      }
 
       addNotifications({
         notifyOnSuccess: options.notifyOnSuccess,

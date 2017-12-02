@@ -24,14 +24,19 @@
 
   <form id="options">
     <h2 id="section-downloads">Downloads</h2>
-    <span><h3 class="popout link" data-popout-for="variablelist.html">📓 Variable List</h3></span>
+    <span>
+      <h3 class="popout link" data-popout-for="variablelist.html">📓 Variable List</h3>
+    </span>
 
     <label class="column">
       <h3>Directories</h3>
-      <p><a href="#" class="help learn-more" data-help-for="help-paths">Guide: Create menu items</a></p>
-      <p>One path per line, relative to the default download directory.
-        <code>.</code> downloads to the default download directory.</p>
-      <p>A symlink is needed to save outside the default download directory.</p>
+      <p>
+        <a href="#" class="help learn-more" data-help-for="help-paths">Guide: Create menu items</a>
+      </p>
+      <p>
+        <a href="#" class="help learn-more" data-help-for="help-symlink">Guide: Save outside the default downloads directory</a>
+      </p>
+
       <div class="help-text" id="help-paths">
         <h4>Creating context menu items</h4>
         <div class="demo-box" style="margin-top: 12px; align-items: flex-start;">
@@ -81,7 +86,9 @@ v/cats
           <code>..</code> and
           <code>/</code>) are ignored. Files and directories with leading dots (
           <code>foo/.hidden</code>) are considered invalid by Firefox and Chrome.</p>
+      </div>
 
+      <div class="help-text" id="help-symlink">
         <h4>Saving outside the default download directory</h4>
         <p>The WebExtensions API does not allow files to be saved outside of the default download directory. A
           <a class="external" href="https://en.wikipedia.org/wiki/Symbolic_link" target="_blank">symlink</a> inside the default download directory can be used to get around this limitation.
@@ -100,6 +107,11 @@ v/cats
 
         <p>Make sure the target directories actually exist, or the extension will silently fail to download.</p>
       </div>
+
+      <p>One path per line, relative to the default download directory.
+        <code>.</code> downloads to the default download directory.</p>
+      <p>A symlink is needed to save outside the default download directory.</p>
+
       <textarea type="textarea" id="paths" rows=10 placeholder="." spellcheck="false"></textarea>
       <div class="error-notification" id="error-paths">path errors</div>
     </label>
@@ -153,23 +165,10 @@ v/cats
         <a href="#" class="help learn-more" data-help-for="help-filenames">Guide: Rename and route downloads</a>
         <a class="external float-right" href="https://github.com/gyng/save-in/wiki/Filename-rewrite">Templates</a>
       </p>
-
-      <p>Automate routing of downloads or renaming of files. Separate multiple rules with an empty line. See the guide for more
-        details.
-      </p>
-
-      <p class="chrome-only">CHROME USERS: Special characters in the filename (eg.
-        <code>:</code> or
-        <code>/</code>) are pre-replaced with the character
-        <code>-</code> by Chrome. Match against
-        <code>-</code> instead of these special characters. For example, use
-        <code>(.*)-large</code> to match filenames instead of
-        <code>(.*):large</code>.
-      </p>
       </div>
 
       <div class="help-text" id="help-filenames">
-        <h4>Rename filenames</h4>
+        <h4>Renaming downloads</h4>
         <p>
           Match downloads against
           <a class="external" href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions">regex patterns</a>. When a download matches all patterns, rename it according to
@@ -188,7 +187,7 @@ cat.<span class="demo g3">gif</span> ➡ <span class="demo g4">1512136516</span>
  </pre>
           </div>
 
-          <h4>Route downloads into directories</h4>
+          <h4>Moving downloads into different directories</h4>
 
           <p>The following example moves all
             <code>.gif</code> files into the
@@ -217,7 +216,9 @@ cat.jpg ✘ (no match)</pre>
             <code>()</code> &mdash; and moves them into different directories.
             <code class="click-to-copy">capture:&nbsp;filename</code> selects the filename's capture groups, and finally
             <code class="click-to-copy">into:</code> renames the files based off them using
-            <code class="click-to-copy">:$1:</code>, <code class="click-to-copy">:$2:</code>, and <code class="click-to-copy">:$3:</code>.
+            <code class="click-to-copy">:$1:</code>,
+            <code class="click-to-copy">:$2:</code>, and
+            <code class="click-to-copy">:$3:</code>.
 
             <div class="demo-box">
               <pre class="demo-code left click-to-copy">
@@ -238,8 +239,30 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
       </div>
       </div>
       </div>
+
+      <p>Automate routing of downloads or renaming of files. Separate multiple rules with an empty line. See the guide for more
+        details.
+      </p>
+
+      <p class="chrome-only">CHROME USERS: Special characters in the filename (eg.
+        <code>:</code> or
+        <code>/</code>) are pre-replaced with the replacement character (defaults to
+        <code>_</code>). Match against it instead of these special characters. For example, use
+        <code>(.*)_large</code> to match filenames instead of
+        <code>(.*):large</code>.
+      </p>
+
       <textarea type="textarea" id="filenamePatterns" rows=7 placeholder="Optional" spellcheck="false"></textarea>
       <div class="error-notification" id="error-filenamePatterns">errors</div>
+      <div style="display: flex; max-width: 100%; align-items: baseline;">
+        <div class="info-row" style="display: flex; flex: 1; align-items: baseline; margin-right: 8px;">
+          <div style="font-weight: 600; margin-right: 16px;">Last download</div>
+          <div style="font-family: monospace; word-break: break-all;" id="last-dl-match">last dl match</div>
+          <div style="margin: 0 0 0 auto;" class="link" id="refresh-errors">🗘</div>
+        </div>
+
+        <div id="show-last-download" class="button">Last&nbsp;Download&nbsp;Info</div>
+      </div>
     </label>
 
     <label>
@@ -339,13 +362,14 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
       <div style="margin-left: 8px;" id="print-debug-info" class="button">Show Debug Information</div>
     </div>
 
-    <div style="margin-top: 4px;" id="show-last-downlaod" class="button">Show Last Download</div>
-
     <label>
       <input type="checkbox" id="debug" /> Enable debug logging
     </label>
 
-    <p><span>Last saved at:&nbsp;</span><span id="lastSavedAt">never</span></p>
+    <p>
+      <span>Last saved at:&nbsp;</span>
+      <span id="lastSavedAt">never</span>
+    </p>
   </form>
 
   <script src="options.js"></script>

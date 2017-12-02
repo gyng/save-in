@@ -240,6 +240,13 @@ button.puffy:active {
   font-family: monospace;
 }
 
+.info-row {
+  border-radius: 4px;
+  padding: 8px 16px;
+  color: black;
+  background-color: rgb(241, 243, 217);
+}
+
 .help:visited {
   color: var(--blue60);
 }

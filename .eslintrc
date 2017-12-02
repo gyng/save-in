@@ -41,6 +41,7 @@
     "sanitizeFilename": true,
     "replaceLeadingDots": true,
     "removeSpecialDirs": true,
-    "lastDownload": true
+    "lastDownload": true,
+    "rewriteFilename": true
   }
 }
