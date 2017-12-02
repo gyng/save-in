@@ -14,8 +14,38 @@
     "description": "Title of context menu item that opens the options menu when clicked."
   },
 
+  "contextMenuExclusive": {
+    "message": "Save In route…",
+    "description": "Name for menu item when in exclusive mode."
+  },
+
+  "contextMenuLastUsed": {
+    "message": "Last Used",
+    "description": "Placeholder title for last used option."
+  },
+
+  "contextMenuContextMedia": {
+    "message": "Media",
+    "description": "Indicator that Save In is saving just media."
+  },
+
+  "contextMenuContextMediaOrLink": {
+    "message": "Media or Link",
+    "description": "Indicator that Save In is saving a media or link."
+  },
+
+  "contextMenuContextSelection": {
+    "message": "Selection",
+    "description": "Indicator that Save In is saving a selection."
+  },
+
+  "contextMenuContextPage": {
+    "message": "Page",
+    "description": "Indicator that Save In is saving a page."
+  },
+
   "contextMenuShowDefaultFolder": {
-    "message": "Open default folder",
+    "message": "Open Default Folder",
     "description": "Title of context menu item that opens the default downloads directory in the system file manager when clicked."
   }
 }

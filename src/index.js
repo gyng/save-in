@@ -111,7 +111,7 @@ window.init = () => {
       if (options.routeExclusive) {
         browser.contextMenus.create({
           id: "save-in-route-exclusive",
-          title: "Save In route…",
+          title: browser.i18n.getMessage("contextMenuExclusive"),
           contexts: media
         });
 
@@ -120,7 +120,7 @@ window.init = () => {
 
       const lastUsedMenuOptions = {
         id: `save-in-last-used`,
-        title: "Last used",
+        title: browser.i18n.getMessage("contextMenuLastUsed"),
         enabled: false,
         contexts: media
       };
@@ -204,6 +204,40 @@ window.init = () => {
         type: "separator",
         contexts: media
       });
+
+      if (media.includes("link")) {
+        browser.contextMenus.create({
+          id: "download-context-media-link",
+          title: browser.i18n.getMessage("contextMenuContextMediaOrLink"),
+          enabled: false,
+          contexts: MEDIA_TYPES.concat("link")
+        });
+      } else {
+        browser.contextMenus.create({
+          id: "download-context-media",
+          title: browser.i18n.getMessage("contextMenuContextMedia"),
+          enabled: false,
+          contexts: MEDIA_TYPES
+        });
+      }
+
+      if (media.includes("selection")) {
+        browser.contextMenus.create({
+          id: "download-context-selection",
+          title: browser.i18n.getMessage("contextMenuContextSelection"),
+          enabled: false,
+          contexts: ["selection"]
+        });
+      }
+
+      if (media.includes("page")) {
+        browser.contextMenus.create({
+          id: "download-context-page",
+          title: browser.i18n.getMessage("contextMenuContextPage"),
+          enabled: false,
+          contexts: ["page"]
+        });
+      }
 
       browser.contextMenus.create({
         id: "show-default-folder",
