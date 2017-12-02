@@ -236,6 +236,10 @@ document.querySelector("#reset").addEventListener("click", e => {
 
     if (reset) {
       browser.storage.local.clear().then(() => {
+        document.querySelector(
+          "#lastSavedAt"
+        ).textContent = new Date().toLocaleTimeString();
+
         restoreOptions();
         w.alert("Settings have been reset to defaults.");
         w.reset();
