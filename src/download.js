@@ -154,6 +154,12 @@ const replaceSpecialDirs = (path, url, info) => {
     sanitizeFilename((info.selectionText && info.selectionText.trim()) || "")
   );
 
+  const naiveFilename = getFilenameFromUrl(url);
+  ret = ret.replace(SPECIAL_DIRS.NAIVE_FILENAME, naiveFilename);
+  const fileExtensionMatches = naiveFilename.match(EXTENSION_REGEX);
+  const fileExtension = (fileExtensionMatches && fileExtensionMatches[1]) || "";
+  ret = ret.replace(SPECIAL_DIRS.NAIVE_FILE_EXTENSION, fileExtension);
+
   return ret;
 };
 

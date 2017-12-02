@@ -11,6 +11,7 @@
   - Option to notify on rule match
 
 * Add `:sourceurl:`, `:selectiontext:` variables (#39)
+* Add `:naivefilename:`, `:naivefileext:` variables
 * Add replacement character option (#39)
 * Settings now autosave on update
 * More iteration on options page
