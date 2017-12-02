@@ -40,7 +40,7 @@
   },
 
   "contextMenuContextSelection": {
-    "message": "Selection",
+    "message": "Selection Text",
     "description": "Indicator that Save In is saving a selection."
   },
 

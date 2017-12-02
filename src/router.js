@@ -175,6 +175,18 @@ const parseRule = lines => {
     return false;
   }
 
+  const destination = matchers.find(m => m.type === RULE_TYPES.DESTINATION);
+  if (
+    destination.value.match(/:\$\d+:/) &&
+    !matchers.find(m => m.name === "capture")
+  ) {
+    window.optionErrors.filenamePatterns.push({
+      message: "Missing capture: clause",
+      error: destination.value,
+      warning: true
+    });
+  }
+
   if (!matchers.some(m => m.type === RULE_TYPES.MATCHER)) {
     window.optionErrors.filenamePatterns.push({
       message: "Rule needs at least one matcher clause",
