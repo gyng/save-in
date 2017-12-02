@@ -220,32 +220,24 @@ document.querySelector("#reset").addEventListener("click", e => {
   /* eslint-disable no-alert */
   e.preventDefault();
 
-  if (browser === chrome) {
-    browser.runtime.getBackgroundPage().then(w => {
-      const reset = w.confirm("Reset settings to defaults?");
-
-      if (reset) {
-        browser.storage.local.clear().then(() => {
-          restoreOptions();
-          w.alert("Settings have been reset to defaults.");
-          w.reset();
-        });
-      }
-    });
-  } else {
-    const reset = confirm("Reset settings to defaults?");
+  const resetFn = w => {
+    const reset = w.confirm("Reset settings to defaults?");
 
     if (reset) {
       browser.storage.local.clear().then(() => {
         restoreOptions();
-        alert("Settings have been reset to defaults.");
-        browser.runtime.getBackgroundPage().then(w => {
-          w.reset();
-        });
+        w.alert("Settings have been reset to defaults.");
+        w.reset();
       });
     }
-  }
+  };
   /* eslint-enable no-alert */
+
+  if (browser === chrome) {
+    browser.runtime.getBackgroundPage().then(resetFn);
+  } else {
+    resetFn(window);
+  }
 });
 
 if (browser === chrome) {
@@ -308,22 +300,21 @@ document
   .addEventListener("click", exportSettings);
 
 const importSettings = () => {
-  const importField = document.querySelector("#settings-import-field");
-  document.querySelector("#settings-import-error").innerHTML = "";
-  document.querySelector("#settings-import-error").classList.add("hide");
-  const json = importField.value; // eslint-disable-line
-  let settings;
-
-  try {
-    if (!json) {
-      document.querySelector("#settings-import-error").classList.remove("hide");
-      throw new Error("Nothing to import");
+  const load = w => {
+    const json = w.prompt("Paste settings to import");
+    try {
+      const settings = JSON.parse(json);
+      restoreOptionsHandler(settings);
+      w.alert("Settings loaded.");
+    } catch (e) {
+      w.alert(`Failed to load settings ${e}`);
     }
-    settings = JSON.parse(json);
-    restoreOptionsHandler(settings);
-  } catch (e) {
-    document.querySelector("#settings-import-error").classList.remove("hide");
-    document.querySelector("#settings-import-error").textContent = e;
+  };
+
+  if (browser === chrome) {
+    browser.runtime.getBackgroundPage().then(load);
+  } else {
+    load(window);
   }
 };
 document
