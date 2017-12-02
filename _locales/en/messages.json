@@ -19,6 +19,11 @@
     "description": "Name for menu item when in exclusive mode."
   },
 
+  "contextMenuRoot": {
+    "message": "Save In…",
+    "description": "Name for root context menu item."
+  },
+
   "contextMenuLastUsed": {
     "message": "Last Used",
     "description": "Placeholder title for last used option."

@@ -414,3 +414,10 @@ label.saved-base {
 .demo.g4 {
   background-color: var(--teal50);
 }
+
+input.key {
+  max-width: 2em;
+  margin-right: 8px;
+  text-align: center;
+  padding: 4px 8px 4px 8px;
+}

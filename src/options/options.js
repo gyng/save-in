@@ -67,7 +67,10 @@ const saveOptions = e => {
     shortcutMedia: document.querySelector("#shortcutMedia").checked,
     shortcutPage: document.querySelector("#shortcutPage").checked,
     shortcutType: document.querySelector("#shortcutType").value,
-    truncateLength: document.querySelector("#truncateLength").value
+    truncateLength: document.querySelector("#truncateLength").value,
+    keyRoot: document.querySelector("#keyRoot").value,
+    keyLastUsed: document.querySelector("#keyLastUsed").value,
+    enableNumberedItems: document.querySelector("#enableNumberedItems").checked
   });
 
   browser.runtime.getBackgroundPage().then(w => {
@@ -109,6 +112,9 @@ const restoreOptionsHandler = result => {
   setValueElement("notifyDuration", 7000);
   setValueElement("truncateLength", 240);
   setValueElement("replacementChar", "_");
+  setCheckboxElement("enableNumberedItems", true);
+  setValueElement("keyRoot", "a");
+  setValueElement("keyLastUsed", "a");
 
   debugOptions = result;
   updateErrors();
@@ -137,7 +143,10 @@ const restoreOptions = () => {
       "shortcutMedia",
       "shortcutPage",
       "shortcutType",
-      "truncateLength"
+      "truncateLength",
+      "keyRoot",
+      "keyLastUsed",
+      "enableNumberedItems"
     ])
     .then(restoreOptionsHandler);
 };

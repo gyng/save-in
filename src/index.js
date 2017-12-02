@@ -18,7 +18,10 @@ const options = {
   truncateLength: 240,
   routeFailurePrompt: false,
   routeExclusive: false,
-  replacementChar: "_"
+  replacementChar: "_",
+  keyRoot: "a",
+  keyLastUsed: "a",
+  enableNumberedItems: true
 };
 
 const setOption = (name, value) => {
@@ -58,7 +61,10 @@ window.init = () => {
       "notifyOnFailure",
       "notifyDuration",
       "truncateLength",
-      "replacementChar"
+      "replacementChar",
+      "keyRoot",
+      "keyLastUsed",
+      "enableNumberedItems"
     ])
     .then(item => {
       if (item.debug) {
@@ -90,6 +96,10 @@ window.init = () => {
           ""
       );
 
+      setOption("keyRoot", item.keyRoot);
+      setOption("keyLastUsed", item.keyLastUsed);
+      setOption("enableNumberedItems", item.enableNumberedItems);
+
       const filenamePatterns =
         item.filenamePatterns && parseRules(item.filenamePatterns);
       setOption("filenamePatterns", filenamePatterns || []);
@@ -108,21 +118,48 @@ window.init = () => {
       media = options.page ? media.concat(["page"]) : media;
       let separatorCounter = 0;
 
+      // CHROME ONLY, FF does not support yet
+      // https://bugzilla.mozilla.org/show_bug.cgi?id=1320462
+      const setAccesskey = (str, key) => {
+        if (browser !== chrome || !key) {
+          return str;
+        }
+
+        if (str.includes(key)) {
+          return str.replace(key, `&${key}`);
+        } else {
+          return `${str} (&${key})`;
+        }
+      };
+
       if (options.routeExclusive) {
         browser.contextMenus.create({
           id: "save-in-route-exclusive",
-          title: browser.i18n.getMessage("contextMenuExclusive"),
+          title: setAccesskey(
+            browser.i18n.getMessage("contextMenuExclusive"),
+            options.keyRoot
+          ),
           contexts: media
         });
 
         return;
+      } else {
+        browser.contextMenus.create({
+          id: "save-in-root",
+          title: setAccesskey(
+            browser.i18n.getMessage("contextMenuRoot"),
+            options.keyRoot
+          ),
+          contexts: media
+        });
       }
 
       const lastUsedMenuOptions = {
         id: `save-in-last-used`,
         title: browser.i18n.getMessage("contextMenuLastUsed"),
         enabled: false,
-        contexts: media
+        contexts: media,
+        parentId: "save-in-root"
       };
 
       // Chrome, FF < 57 crash when icons is supplied
@@ -146,10 +183,12 @@ window.init = () => {
       browser.contextMenus.create({
         id: `separator-${separatorCounter}`,
         type: "separator",
-        contexts: media
+        contexts: media,
+        parentId: "save-in-root"
       });
       separatorCounter += 1;
 
+      let menuItemCounter = 0;
       pathsArray.forEach(dir => {
         if (
           !dir ||
@@ -184,16 +223,21 @@ window.init = () => {
             browser.contextMenus.create({
               id: `separator-${separatorCounter}`,
               type: "separator",
-              contexts: media
+              contexts: media,
+              parentId: "save-in-root"
             });
 
             separatorCounter += 1;
             break;
           default:
+            menuItemCounter += 1;
             browser.contextMenus.create({
               id: `save-in-${dir}`,
-              title: dir,
-              contexts: media
+              title: options.enableNumberedItems
+                ? setAccesskey(dir, menuItemCounter)
+                : dir,
+              contexts: media,
+              parentId: "save-in-root"
             });
             break;
         }
@@ -202,7 +246,8 @@ window.init = () => {
       browser.contextMenus.create({
         id: `separator-${separatorCounter}`,
         type: "separator",
-        contexts: media
+        contexts: media,
+        parentId: "save-in-root"
       });
 
       if (media.includes("link")) {
@@ -210,14 +255,16 @@ window.init = () => {
           id: "download-context-media-link",
           title: browser.i18n.getMessage("contextMenuContextMediaOrLink"),
           enabled: false,
-          contexts: MEDIA_TYPES.concat("link")
+          contexts: MEDIA_TYPES.concat("link"),
+          parentId: "save-in-root"
         });
       } else {
         browser.contextMenus.create({
           id: "download-context-media",
           title: browser.i18n.getMessage("contextMenuContextMedia"),
           enabled: false,
-          contexts: MEDIA_TYPES
+          contexts: MEDIA_TYPES,
+          parentId: "save-in-root"
         });
       }
 
@@ -226,7 +273,8 @@ window.init = () => {
           id: "download-context-selection",
           title: browser.i18n.getMessage("contextMenuContextSelection"),
           enabled: false,
-          contexts: ["selection"]
+          contexts: ["selection"],
+          parentId: "save-in-root"
         });
       }
 
@@ -235,20 +283,23 @@ window.init = () => {
           id: "download-context-page",
           title: browser.i18n.getMessage("contextMenuContextPage"),
           enabled: false,
-          contexts: ["page"]
+          contexts: ["page"],
+          parentId: "save-in-root"
         });
       }
 
       browser.contextMenus.create({
         id: "show-default-folder",
         title: browser.i18n.getMessage("contextMenuShowDefaultFolder"),
-        contexts: media
+        contexts: media,
+        parentId: "save-in-root"
       });
 
       browser.contextMenus.create({
         id: "options",
         title: browser.i18n.getMessage("contextMenuItemOptions"),
-        contexts: media
+        contexts: media,
+        parentId: "save-in-root"
       });
     });
 };
@@ -295,7 +346,7 @@ browser.contextMenus.onClicked.addListener(info => {
       lastUsedPath = saveIntoPath;
 
       browser.contextMenus.update("save-in-last-used", {
-        title: `${lastUsedPath}`,
+        title: browser === chrome ? `${lastUsedPath} (&a)` : lastUsedPath,
         enabled: true
       });
     }
