@@ -252,7 +252,7 @@ if (browser === chrome) {
 }
 
 const setupAutosave = el => {
-  el.addEventListener("input", e => {
+  const autosaveCb = e => {
     saveOptions(e);
     updateErrors();
 
@@ -265,7 +265,13 @@ const setupAutosave = el => {
       el.classList.add("saved-base");
       el.classList.add("saved");
     }
-  });
+  };
+
+  if (["textarea", "text", "number"].includes(el.type)) {
+    el.addEventListener("input", autosaveCb);
+  } else {
+    el.addEventListener("change", autosaveCb);
+  }
 };
 
 ["textarea", "input", "select"].forEach(type => {
