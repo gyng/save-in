@@ -21,6 +21,7 @@ const replaceFsBadChars = (s, replacement) =>
       (typeof options !== "undefined" && options && options.replacementChar) ||
       "_"
   );
+
 // Leading dots are considered invalid by both Firefox and Chrome
 const replaceLeadingDots = (s, replacement) =>
   s.replace(
@@ -242,6 +243,7 @@ const downloadInto = (path, url, info, options, suggestedFilename) => {
     routeExclusive
   } = options;
   let prompt = options.prompt;
+  let sanitizeFilenameSlashes = true;
 
   const download = (filename, rewrite = true) => {
     let rewrittenFilename = rewrite
@@ -253,7 +255,27 @@ const downloadInto = (path, url, info, options, suggestedFilename) => {
         )
       : suggestedFilename || filename;
 
-    if (!rewrittenFilename) {
+    if (!suggestedFilename && rewrittenFilename !== filename) {
+      sanitizeFilenameSlashes = false; // already sanitized
+
+      if (options.notifyOnRuleMatch) {
+        createExtensionNotification(
+          "Save In: Rule matched",
+          `${filename}\n🡳\n${rewrittenFilename}`,
+          false
+        );
+      }
+    } else if (suggestedFilename && rewrittenFilename !== suggestedFilename) {
+      sanitizeFilenameSlashes = false; // already sanitized
+
+      if (options.notifyOnRuleMatch) {
+        createExtensionNotification(
+          "Save In: Rule matched",
+          `${suggestedFilename}\n🡳\n${rewrittenFilename}`,
+          false
+        );
+      }
+    } else {
       prompt = prompt || options.routeFailurePrompt;
 
       if (options.routeExclusive) {
@@ -269,22 +291,6 @@ const downloadInto = (path, url, info, options, suggestedFilename) => {
           return;
         }
       }
-    } else if (options.notifyOnRuleMatch) {
-      if (!suggestedFilename) {
-        if (rewrittenFilename !== filename) {
-          createExtensionNotification(
-            "Save In: Rule matched",
-            `${filename}\n🡳\n${rewrittenFilename}`,
-            false
-          );
-        }
-      } else if (rewrittenFilename !== suggestedFilename) {
-        createExtensionNotification(
-          "Save In: Rule matched",
-          `${suggestedFilename}\n🡳\n${rewrittenFilename}`,
-          false
-        );
-      }
     }
 
     // If no filename rewrites matched, fall back to filename
@@ -297,10 +303,13 @@ const downloadInto = (path, url, info, options, suggestedFilename) => {
       path.replace(/^\.[\\/\\\\]?/, ""),
       truncateLength
     );
-    const fsSafeFilename = sanitizePath(
-      sanitizeFilename(rewrittenFilename, truncateLength),
-      truncateLength
-    );
+
+    const fsSafeFilename = sanitizeFilenameSlashes
+      ? sanitizePath(
+          sanitizeFilename(rewrittenFilename, truncateLength),
+          truncateLength
+        )
+      : sanitizePath(rewrittenFilename, truncateLength);
 
     const fsSafePath = fsSafeDirectory
       ? [fsSafeDirectory, fsSafeFilename].join("/")

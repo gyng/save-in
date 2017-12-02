@@ -96,8 +96,8 @@ const matcherFunctions = {
   sourceurl: makeInfoMatcherFactory("srcUrl")
 };
 
-const tokenizeLine = line =>
-  line
+const tokenizeLines = lines =>
+  lines
     .split("\n")
     .map(l => ({ l, matches: l.match(/^(\S*): ?(.*)/) }))
     .map(toks => {
@@ -134,6 +134,7 @@ const parseRule = lines => {
     // Special matchers
     if (name === "into") {
       type = RULE_TYPES.DESTINATION;
+      value = value.replace(/^\.\//, "");
     } else if (name === "capture") {
       type = RULE_TYPES.CAPTURE;
     }
@@ -183,10 +184,25 @@ const parseRule = lines => {
     return false;
   }
 
-  if (matchers.filter(m => m.name === "into").length >= 2) {
+  const intoMatcher = matchers.filter(m => m.name === "into");
+  if (intoMatcher.length >= 2) {
     window.optionErrors.filenamePatterns.push({
       message: "Rule can only have one into clause",
       error: JSON.stringify(lines.map(l => l[0]))
+    });
+
+    return false;
+  }
+
+  if (
+    intoMatcher.length === 1 &&
+    (intoMatcher[0].value.startsWith("/") ||
+      sanitizePath(removeSpecialDirs(intoMatcher[0].value)) !==
+        removeSpecialDirs(intoMatcher[0].value))
+  ) {
+    window.optionErrors.filenamePatterns.push({
+      message: "Bad into destination",
+      error: intoMatcher[0].value
     });
 
     return false;
@@ -220,9 +236,20 @@ const parseRule = lines => {
 };
 
 const parseRules = raw => {
-  const rules = raw
+  const withoutComments = raw
+    .split("\n")
+    .filter(l => !l.startsWith("//"))
+    .join("\n")
+    .trim();
+
+  if (!withoutComments) {
+    return [];
+  }
+
+  const rules = withoutComments
+    .replace(new RegExp("\\n\\n+", "g"), "\n\n")
     .split("\n\n")
-    .map(tokenizeLine)
+    .map(tokenizeLines)
     .map(parseRule)
     .filter(r => !!r);
 

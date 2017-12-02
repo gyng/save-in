@@ -194,13 +194,14 @@ window.init = () => {
           !dir ||
           dir === ".." ||
           dir.startsWith("../") ||
-          dir.startsWith("/")
+          dir.startsWith("/") ||
+          dir.startsWith("//")
         ) {
           // Silently ignore blank lines
-          if (dir !== "") {
+          if (dir !== "" && !dir.startsWith("//")) {
             window.optionErrors.paths.push({
               message: "Path cannot start with .. or",
-              error: `${dir}:`
+              error: `${dir}`
             });
           }
 
