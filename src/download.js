@@ -269,12 +269,22 @@ const downloadInto = (path, url, info, options, suggestedFilename) => {
           return;
         }
       }
-    } else if (rewrittenFilename !== filename && options.notifyOnRuleMatch) {
-      createExtensionNotification(
-        "Save In: Rule matched",
-        `${rewrittenFilename} from ${filename}`,
-        false
-      );
+    } else if (options.notifyOnRuleMatch) {
+      if (!suggestedFilename) {
+        if (rewrittenFilename !== filename) {
+          createExtensionNotification(
+            "Save In: Rule matched",
+            `${filename}\n🡳\n${rewrittenFilename}`,
+            false
+          );
+        }
+      } else if (rewrittenFilename !== suggestedFilename) {
+        createExtensionNotification(
+          "Save In: Rule matched",
+          `${suggestedFilename}\n🡳\n${rewrittenFilename}`,
+          false
+        );
+      }
     }
 
     // If no filename rewrites matched, fall back to filename

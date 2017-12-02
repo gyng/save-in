@@ -6,8 +6,12 @@ const ERROR_ICON_URL = "icons/ic_error_outline_red_96px.png";
 const downloadsList = {}; // global
 let requestedDownloadFlag = false;
 
+let currentDownloadChangeListener;
+let currentDownloadCreatedListener;
+let currentNotificationClickListener;
+
 const createExtensionNotification = (title, message, error) => {
-  const id = String(Math.floor(Math.random() * 100000));
+  const id = `save-in-not-${String(Math.floor(Math.random() * 100000))}`;
   browser.notifications.create(id, {
     type: "basic",
     title: title || "Save In",
@@ -43,19 +47,49 @@ const addNotifications = options => {
   const notifyOnFailure = options && options.notifyOnFailure;
   const notifyDuration = options && options.notifyDuration;
 
-  browser.downloads.onCreated.addListener(item => {
+  if (!notifyDuration && window.SI_DEBUG) {
+    console.log("Bad notify duration", options); // eslint-disable-line
+  }
+
+  const onDownloadCreatedListener = item => {
     if (requestedDownloadFlag) {
       downloadsList[item.id] = item;
       requestedDownloadFlag = false;
     }
-  });
+  };
 
-  browser.notifications.onClicked.addListener(notId => {
+  if (
+    currentDownloadCreatedListener &&
+    browser.downloads.onCreated.hasListener(currentDownloadCreatedListener)
+  ) {
+    browser.downloads.onCreated.removeListener(currentDownloadCreatedListener);
+  }
+  browser.downloads.onCreated.addListener(onDownloadCreatedListener);
+  currentDownloadCreatedListener = onDownloadCreatedListener;
+
+  const onNotificationClickedListener = notId => {
+    if (String(notId).startsWith("save-in-not-")) {
+      return;
+    }
+
     // notification ID should be set to download ID on download creation
     browser.downloads.show(Number(notId));
-  });
+  };
 
-  browser.downloads.onChanged.addListener(downloadDelta => {
+  if (
+    currentNotificationClickListener &&
+    browser.notifications.onClicked.hasListener(
+      currentNotificationClickListener
+    )
+  ) {
+    browser.notifications.onClicked.removeListener(
+      currentNotificationClickListener
+    );
+  }
+  currentNotificationClickListener = onNotificationClickedListener;
+  browser.notifications.onClicked.addListener(onNotificationClickedListener);
+
+  const onDownloadChangeListener = downloadDelta => {
     const item = downloadsList[downloadDelta.id];
 
     if (!item) {
@@ -104,6 +138,17 @@ const addNotifications = options => {
         message: failed.current || "Unknown error"
       });
 
+      if (window.SI_DEBUG) {
+        /* eslint-disable no-console */
+        console.log(
+          "notification: created failure",
+          String(downloadDelta.id),
+          notifyDuration,
+          downloadDelta.id
+        );
+        /* eslint-enable no-console */
+      }
+
       if (downloadDelta && downloadDelta.id) {
         window.setTimeout(() => {
           browser.notifications.clear(String(downloadDelta.id));
@@ -124,11 +169,31 @@ const addNotifications = options => {
         message: filename
       });
 
+      if (window.SI_DEBUG) {
+        /* eslint-disable no-console */
+        console.log(
+          "notification: created success",
+          String(downloadDelta.id),
+          notifyDuration,
+          downloadDelta.id
+        );
+        /* eslint-enable no-console */
+      }
+
       window.setTimeout(() => {
         browser.notifications.clear(String(downloadDelta.id));
       }, notifyDuration);
     }
-  });
+  };
+
+  if (
+    currentDownloadChangeListener &&
+    browser.downloads.onChanged.hasListener(currentDownloadChangeListener)
+  ) {
+    browser.downloads.onChanged.removeListener(currentDownloadChangeListener);
+  }
+  browser.downloads.onChanged.addListener(onDownloadChangeListener);
+  currentDownloadChangeListener = onDownloadChangeListener;
 };
 
 // Export for testing
