@@ -76,6 +76,10 @@ const saveOptions = e => {
   browser.runtime.getBackgroundPage().then(w => {
     w.reset();
   });
+
+  document.querySelector(
+    "#lastSavedAt"
+  ).textContent = new Date().toLocaleTimeString();
 };
 
 const restoreOptionsHandler = result => {
