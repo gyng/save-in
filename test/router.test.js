@@ -21,7 +21,10 @@ describe("filename rewrite and routing", () => {
       title: "some title"
     };
     global.getFilenameFromUrl = downloads.getFilenameFromUrl;
+    global.sanitizePath = downloads.sanitizePath;
+    global.removeSpecialDirs = downloads.removeSpecialDirs;
     global.RULE_TYPES = constants.RULE_TYPES;
+    global.SPECIAL_DIRS = constants.SPECIAL_DIRS;
     global.EXTENSION_REGEX = downloads.EXTENSION_REGEX;
   });
 

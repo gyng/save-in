@@ -197,8 +197,9 @@ const parseRule = lines => {
   if (
     intoMatcher.length === 1 &&
     (intoMatcher[0].value.startsWith("/") ||
-      sanitizePath(removeSpecialDirs(intoMatcher[0].value)) !==
-        removeSpecialDirs(intoMatcher[0].value))
+      sanitizePath(
+        removeSpecialDirs(intoMatcher[0].value.replace(/:\$\d+:/g, ""))
+      ) !== removeSpecialDirs(intoMatcher[0].value.replace(/:\$\d+:/g, "")))
   ) {
     window.optionErrors.filenamePatterns.push({
       message: "Bad into destination",

@@ -387,6 +387,7 @@ if (typeof module !== "undefined") {
     replaceSpecialDirs,
     rewriteFilename,
     makeObjectUrl,
+    removeSpecialDirs,
     DISPOSITION_FILENAME_REGEX,
     EXTENSION_REGEX,
     SPECIAL_CHARACTERS_REGEX
