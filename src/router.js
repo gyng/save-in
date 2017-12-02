@@ -103,11 +103,12 @@ const tokenizeLines = lines =>
     .map(toks => {
       if (!toks.matches || toks.matches.length < 3) {
         window.optionErrors.filenamePatterns.push({
-          message: "Bad clause",
+          message: browser.i18n.getMessage("ruleBadClause"),
           error: `${toks.l || "invalid line syntax"}`
         });
         return null;
       }
+
       return toks.matches;
     })
     .filter(toks => toks && toks.length >= 3);
@@ -124,7 +125,7 @@ const parseRule = lines => {
           : new RegExp(tokens[2]);
     } catch (e) {
       window.optionErrors.filenamePatterns.push({
-        message: "Invalid rule regex",
+        message: browser.i18n.getMessage("ruleInvalidRegex"),
         error: `${e}`
       });
     }
@@ -144,7 +145,7 @@ const parseRule = lines => {
 
       if (!matcher) {
         window.optionErrors.filenamePatterns.push({
-          message: "Unknown matcher",
+          message: browser.i18n.getMessage("ruleUnknownMatcher"),
           error: `${name}:`
         });
 
@@ -168,7 +169,7 @@ const parseRule = lines => {
 
   if (!matchers.some(m => m.type === RULE_TYPES.DESTINATION)) {
     window.optionErrors.filenamePatterns.push({
-      message: "Missing clause: into",
+      message: browser.i18n.getMessage("ruleMissingInto"),
       error: name
     });
 
@@ -181,7 +182,7 @@ const parseRule = lines => {
     !matchers.find(m => m.name === "capture")
   ) {
     window.optionErrors.filenamePatterns.push({
-      message: "Missing capture: clause",
+      message: browser.i18n.getMessage("ruleMissingCapture"),
       error: destination.value,
       warning: true
     });
@@ -189,7 +190,7 @@ const parseRule = lines => {
 
   if (!matchers.some(m => m.type === RULE_TYPES.MATCHER)) {
     window.optionErrors.filenamePatterns.push({
-      message: "Rule needs at least one matcher clause",
+      message: browser.i18n.getMessage("ruleMissingMatcher"),
       error: JSON.stringify(lines.map(l => l[0]))
     });
 
@@ -199,7 +200,7 @@ const parseRule = lines => {
   const intoMatcher = matchers.filter(m => m.name === "into");
   if (intoMatcher.length >= 2) {
     window.optionErrors.filenamePatterns.push({
-      message: "Rule can only have one into clause",
+      message: browser.i18n.getMessage("ruleExtraInto"),
       error: JSON.stringify(lines.map(l => l[0]))
     });
 
@@ -223,7 +224,7 @@ const parseRule = lines => {
     matchers.filter(m => m.name === captures[0].value).length < 1
   ) {
     window.optionErrors.filenamePatterns.push({
-      message: "Capture clause is not targeting a matcher",
+      message: browser.i18n.getMessage("ruleCaptureMissingMatcher"),
       error: `capture: ${captures[0].value}`
     });
 

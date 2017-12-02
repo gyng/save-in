@@ -52,5 +52,45 @@
   "contextMenuShowDefaultFolder": {
     "message": "Open Default Folder",
     "description": "Title of context menu item that opens the default downloads directory in the system file manager when clicked."
+  },
+
+  "ruleMissingMatcher": {
+    "message": "Rule needs at least one matcher clause",
+    "description": "Error message for missing matcher in rule"
+  },
+
+  "ruleCaptureMissingMatcher": {
+    "message": "Capture clause is not targeting a matcher",
+    "description": "Error message for capture targeting missing matcher"
+  },
+
+  "ruleMissingCapture": {
+    "message": "Rule needs a capture clause to use capture variables",
+    "description": "Error message for missing capture clause in rule"
+  },
+
+  "ruleMissingInto": {
+    "message": "Rule needs at least one into clause",
+    "description": "Error message for missing into clause in rule"
+  },
+
+  "ruleExtraInto": {
+    "message": "Rule can only have one into clause",
+    "description": "Error message for multiple into clauses in rule"
+  },
+
+  "ruleUnknownMatcher": {
+    "message": "Unknown matcher",
+    "description": "Error message for an unknown matcher"
+  },
+  
+  "ruleInvalidRegex": {
+    "message": "Invalid regex",
+    "description": "Error message for a rule with invalid regex"
+  },
+  
+  "ruleBadClause": {
+    "message": "Bad clause",
+    "description": "Error message for lines in rule with syntax errors"
   }
 }
