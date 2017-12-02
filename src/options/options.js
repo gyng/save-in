@@ -95,8 +95,8 @@ const restoreOptionsHandler = result => {
   setCheckboxElement("debug", false);
   setValueElement("conflictAction", "uniquify");
   setCheckboxElement("links", true);
-  setCheckboxElement("selection", false);
-  setCheckboxElement("page", false);
+  setCheckboxElement("selection", true);
+  setCheckboxElement("page", true);
   setCheckboxElement("shortcutMedia", false);
   setCheckboxElement("shortcutLink", false);
   setCheckboxElement("shortcutPage", false);
