@@ -9,6 +9,7 @@
   - Option for exclusive rule-base mode: disable context menu for quicker rule-based saving
   - Option to prompt if no rules matched
   - Option to notify on rule match
+  - Migrating old rules: https://github.com/gyng/save-in/wiki/Filename-rewrite#migrating-to-the-new-syntax
 
 * Add `:sourceurl:`, `:selectiontext:` variables (#39)
 * Add `:naivefilename:`, `:naivefileext:` variables

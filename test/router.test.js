@@ -20,6 +20,7 @@ describe("filename rewrite and routing", () => {
     global.currentTab = {
       title: "some title"
     };
+    global.browser = { i18n: { getMessage: () => {} } };
     global.getFilenameFromUrl = downloads.getFilenameFromUrl;
     global.sanitizePath = downloads.sanitizePath;
     global.removeSpecialDirs = downloads.removeSpecialDirs;
@@ -154,6 +155,7 @@ describe("filename rewrite and routing", () => {
     let rules;
 
     beforeAll(() => {
+      global.RULE_TYPES = constants.RULE_TYPES;
       rules = router.parseRules(
         "sourceurl: dog\ninto: cat\n\nsourceurl: (cat)\ncapture: sourceurl\ninto: dog:$1:"
       );
