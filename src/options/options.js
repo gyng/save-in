@@ -344,9 +344,11 @@ const importSettings = () => {
   const load = w => {
     const json = w.prompt("Paste settings to import");
     try {
-      const settings = JSON.parse(json);
-      restoreOptionsHandler(settings);
-      w.alert("Settings loaded.");
+      if (json) {
+        const settings = JSON.parse(json);
+        restoreOptionsHandler(settings);
+        w.alert("Settings loaded.");
+      }
     } catch (e) {
       w.alert(`Failed to load settings ${e}`);
     }
