@@ -69,7 +69,7 @@ const saveOptions = e => {
       notifyOnSuccess: document.querySelector("#notifyOnSuccess").checked,
       page: document.querySelector("#page").checked,
       paths:
-        document.querySelector("#paths").value.trim() || ".\nimages\nvideos",
+        document.querySelector("#paths").value.trim() || ".",
       prompt: document.querySelector("#prompt").checked,
       promptIfNoExtension: document.querySelector("#promptIfNoExtension")
         .checked,
