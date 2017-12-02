@@ -46,40 +46,47 @@ const updateErrors = () => {
 const saveOptions = e => {
   e.preventDefault();
 
-  browser.storage.local.set({
-    conflictAction: document.querySelector("#conflictAction").value,
-    debug: document.querySelector("#debug").checked,
-    filenamePatterns: document.querySelector("#filenamePatterns").value.trim(),
-    links: document.querySelector("#links").checked,
-    notifyDuration: document.querySelector("#notifyDuration").value,
-    notifyOnFailure: document.querySelector("#notifyOnFailure").checked,
-    notifyOnRuleMatch: document.querySelector("#notifyOnRuleMatch").checked,
-    notifyOnSuccess: document.querySelector("#notifyOnSuccess").checked,
-    page: document.querySelector("#page").checked,
-    paths: document.querySelector("#paths").value.trim() || ".\nimages\nvideos",
-    prompt: document.querySelector("#prompt").checked,
-    promptIfNoExtension: document.querySelector("#promptIfNoExtension").checked,
-    replacementChar: document.querySelector("#replacementChar").value,
-    routeExclusive: document.querySelector("#routeExclusive").checked,
-    routeFailurePrompt: document.querySelector("#routeFailurePrompt").checked,
-    selection: document.querySelector("#selection").checked,
-    shortcutLink: document.querySelector("#shortcutLink").checked,
-    shortcutMedia: document.querySelector("#shortcutMedia").checked,
-    shortcutPage: document.querySelector("#shortcutPage").checked,
-    shortcutType: document.querySelector("#shortcutType").value,
-    truncateLength: document.querySelector("#truncateLength").value,
-    keyRoot: document.querySelector("#keyRoot").value,
-    keyLastUsed: document.querySelector("#keyLastUsed").value,
-    enableNumberedItems: document.querySelector("#enableNumberedItems").checked
-  });
+  browser.storage.local
+    .set({
+      conflictAction: document.querySelector("#conflictAction").value,
+      debug: document.querySelector("#debug").checked,
+      filenamePatterns: document
+        .querySelector("#filenamePatterns")
+        .value.trim(),
+      links: document.querySelector("#links").checked,
+      notifyDuration: document.querySelector("#notifyDuration").value,
+      notifyOnFailure: document.querySelector("#notifyOnFailure").checked,
+      notifyOnRuleMatch: document.querySelector("#notifyOnRuleMatch").checked,
+      notifyOnSuccess: document.querySelector("#notifyOnSuccess").checked,
+      page: document.querySelector("#page").checked,
+      paths:
+        document.querySelector("#paths").value.trim() || ".\nimages\nvideos",
+      prompt: document.querySelector("#prompt").checked,
+      promptIfNoExtension: document.querySelector("#promptIfNoExtension")
+        .checked,
+      replacementChar: document.querySelector("#replacementChar").value,
+      routeExclusive: document.querySelector("#routeExclusive").checked,
+      routeFailurePrompt: document.querySelector("#routeFailurePrompt").checked,
+      selection: document.querySelector("#selection").checked,
+      shortcutLink: document.querySelector("#shortcutLink").checked,
+      shortcutMedia: document.querySelector("#shortcutMedia").checked,
+      shortcutPage: document.querySelector("#shortcutPage").checked,
+      shortcutType: document.querySelector("#shortcutType").value,
+      truncateLength: document.querySelector("#truncateLength").value,
+      keyRoot: document.querySelector("#keyRoot").value,
+      keyLastUsed: document.querySelector("#keyLastUsed").value,
+      enableNumberedItems: document.querySelector("#enableNumberedItems")
+        .checked
+    })
+    .then(() => {
+      browser.runtime.getBackgroundPage().then(w => {
+        w.reset();
+      });
 
-  browser.runtime.getBackgroundPage().then(w => {
-    w.reset();
-  });
-
-  document.querySelector(
-    "#lastSavedAt"
-  ).textContent = new Date().toLocaleTimeString();
+      document.querySelector(
+        "#lastSavedAt"
+      ).textContent = new Date().toLocaleTimeString();
+    });
 };
 
 const restoreOptionsHandler = result => {
