@@ -62,7 +62,7 @@ const updateErrors = (timeout = 200) => {
           const div = document.createElement("div");
           div.className = "match-row";
           const code = document.createElement("code");
-          code.innerText = `:$${i}`;
+          code.innerText = `:$${i}:`;
           div.appendChild(code);
 
           const value = document.createElement("div");
@@ -283,6 +283,7 @@ document.querySelector("#reset").addEventListener("click", e => {
         ).textContent = new Date().toLocaleTimeString();
 
         restoreOptions();
+        updateErrors();
         w.alert("Settings have been reset to defaults.");
         w.reset();
       });

@@ -386,6 +386,20 @@ button.puffy:active {
   background-size: cover;
 }
 
+@keyframes pulse {
+  from {
+    background-size: auto 16px;
+  }
+
+  50% {
+    background-size: auto 24px;
+  }
+
+  to {
+    background-size: auto 16px;
+  }
+}
+
 .saved-base {
   border-radius: 4px;
   background-image: url(i/check-16.svg);
@@ -402,6 +416,10 @@ label.saved-base {
 .saved {
   background-size: 16px;
   background-position: right 4px top 4px;
+  animation-name: pulse;
+  animation-duration: 0.1s;
+  animation-iteration-count: 1;
+  animation-timing-function: cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
 .saved-base:active {
