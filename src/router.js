@@ -231,19 +231,6 @@ const parseRule = lines => {
     return false;
   }
 
-  for (let i = 0; i < matchers.length; i += 1) {
-    const self = matchers[i];
-
-    if (matchers.filter(other => other.name === self.name).length > 1) {
-      window.optionErrors.filenamePatterns.push({
-        message: "Duplicate matcher",
-        error: self.name
-      });
-
-      return false;
-    }
-  }
-
   return matchers;
 };
 
