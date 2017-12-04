@@ -54,13 +54,16 @@ const updateErrors = (timeout = 200) => {
       document
         .querySelector("#capture-group-rows")
         .classList.toggle("hide", !hasCaptureMatches);
+
       if (hasCaptureMatches) {
         // Skip first match
         lastDlCapture.textContent = "";
         for (let i = 1; i < errors.testLastCapture.length; i += 1) {
           const div = document.createElement("div");
           div.className = "match-row";
-          div.innerHTML = `<code>:$${i}:</code>`;
+          const code = document.createElement("code");
+          code.innerText = `:$${i}`;
+          div.appendChild(code);
 
           const value = document.createElement("div");
           value.className = "match-row-result";

@@ -120,7 +120,7 @@ window.init = () => {
           testLastCapture = getCaptureMatches(
             filenamePatterns[i],
             last.info,
-            last.url
+            last.filename || last.url
           );
 
           if (testLastCapture) {
@@ -184,8 +184,8 @@ window.init = () => {
 
       const lastUsedMenuOptions = {
         id: `save-in-last-used`,
-        title: browser.i18n.getMessage("contextMenuLastUsed"),
-        enabled: false,
+        title: lastUsedPath || browser.i18n.getMessage("contextMenuLastUsed"),
+        enabled: lastUsedPath ? true : false, // eslint-disable-line
         contexts: media,
         parentId: "save-in-root"
       };

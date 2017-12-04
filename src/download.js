@@ -212,17 +212,20 @@ let globalChromeRewriteOptions = {}; // global variable: no other easy way aroun
 if (chrome && chrome.downloads && chrome.downloads.onDeterminingFilename) {
   chrome.downloads.onDeterminingFilename.addListener(
     (downloadItem, suggest) => {
-      const rewrittenFilename = rewriteFilename(
-        globalChromeRewriteOptions.suggestedFilename || downloadItem.filename,
-        globalChromeRewriteOptions.filenamePatterns,
-        globalChromeRewriteOptions.info,
-        globalChromeRewriteOptions.url
-      );
+      const rewrittenFilename =
+        rewriteFilename(
+          globalChromeRewriteOptions.suggestedFilename || downloadItem.filename,
+          globalChromeRewriteOptions.filenamePatterns,
+          globalChromeRewriteOptions.info,
+          globalChromeRewriteOptions.url
+        ) || downloadItem.filename;
+
+      const safeFilename = `${globalChromeRewriteOptions.path}/${rewrittenFilename}`
+        .replace(/^\.\//, "")
+        .replace(BAD_LEADING_CHARACTERS, "");
 
       suggest({
-        filename: `${globalChromeRewriteOptions.path}/${replaceFsBadChars(
-          rewrittenFilename
-        )}`,
+        filename: safeFilename,
         conflictAction: globalChromeRewriteOptions.conflictAction
       });
     }
@@ -342,6 +345,7 @@ const downloadInto = (path, url, info, options, suggestedFilename) => {
     }
 
     // conflictAction is Chrome only and overridden in onDeterminingFilename, Firefox enforced in settings
+
     browser.downloads.download({
       url,
       filename: fsSafePath || "_",
@@ -351,6 +355,8 @@ const downloadInto = (path, url, info, options, suggestedFilename) => {
 
     window.lastDownload = { info, path, url, filename };
   };
+
+  const urlFilename = getFilenameFromUrl(url);
 
   // CHROME
   if (
@@ -368,11 +374,9 @@ const downloadInto = (path, url, info, options, suggestedFilename) => {
       conflictAction
     };
 
-    download(url, false); // Will be rewritten inside Chrome event listener
+    download(urlFilename || url, false); // Will be rewritten inside Chrome event listener
     return;
   }
-
-  const urlFilename = getFilenameFromUrl(url);
 
   fetch(url, { method: "HEAD" })
     .then(res => {
