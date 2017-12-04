@@ -24,21 +24,23 @@
 
   <form id="options">
     <h2 id="section-downloads">Downloads</h2>
-    <span>
-      <h3 class="popout link" data-popout-for="variablelist.html">📓 Variable List</h3>
-    </span>
 
     <label class="column">
       <h3>Directories</h3>
+      <span>
+        <h3 class="popout link" data-popout-for="variablelist.html">📓 Variable List</h3>
+      </span>
       <p>
         <a href="#" class="help learn-more" data-help-for="help-paths">Guide: Create menu items</a>
       </p>
-      <p>
-        <a href="#" class="help learn-more" data-help-for="help-symlink">Guide: Save outside the default downloads directory</a>
-      </p>
-
       <div class="help-text" id="help-paths">
         <h4>Creating context menu items</h4>
+        <p>To create a menu item to save
+          <code>cat.jpg</code> into the directory
+          <code>~/downloads/i/cats</code>, with
+          <code>~/downloads</code> as the default download directory, add the line
+          <code>i/cats</code>.</p>
+
         <div class="demo-box" style="margin-top: 12px; align-items: flex-start;">
           <div class="demo-code left ">
             <pre class="click-to-copy">.
@@ -77,22 +79,23 @@ v/cats
 </pre>
         </div>
 
-        <p>Saving a picture
-          <code>cat.jpg</code> into
-          <code>i/cats</code> will save it as
-          <code>~/downloads/i/cats/cat.jpg</code>.</p>
-
-        <p>Invalid paths (
-          <code>..</code> and
-          <code>/</code>) are ignored. Files and directories with leading dots (
-          <code>foo/.hidden</code>) are considered invalid by Firefox and Chrome.</p>
+        <p>Note: You can only save relative to the default download directory. See the next guide for a workaround.</p>
+      </div>
       </div>
 
+      <p>
+        <a href="#" class="help learn-more" data-help-for="help-symlink">Guide: Save outside the default downloads directory</a>
+      </p>
       <div class="help-text" id="help-symlink">
         <h4>Saving outside the default download directory</h4>
         <p>The WebExtensions API does not allow files to be saved outside of the default download directory. A
           <a class="external" href="https://en.wikipedia.org/wiki/Symbolic_link" target="_blank">symlink</a> inside the default download directory can be used to get around this limitation.
         </p>
+
+        <p>Invalid paths (
+          <code>..</code> and
+          <code>/</code>) are ignored. Files and directories with leading dots (
+          <code>foo/.hidden</code>) are considered invalid by Firefox and Chrome.</p>
 
         <br>
         <a class="external" href="https://technet.microsoft.com/en-us/library/cc753194(v=ws.11).aspx" target="_blank">
@@ -158,13 +161,15 @@ v/cats
 
     <label class="column">
       <h2>Dynamic Downloads (Advanced)</h2>
+
+      <h3>Rename and Route Downloads</h3>
+
       <div style="display: flex; justify-content: flex-start; align-items: baseline;">
         <h3 style="width: auto;" class="popout link" data-popout-for="variablelist.html">📓 Variable list</h3>
         &nbsp;&nbsp;&nbsp;
         <h3 style="width: auto;" class="popout link" data-popout-for="clauselist.html">📓 Clause list</h3>
       </div>
 
-      <h3>Rename and Route Downloads</h3>
       <p>
         <a href="#" class="help learn-more" data-help-for="help-filenames">Guide: Rename and route downloads</a>
         <a class="external float-right" href="https://github.com/gyng/save-in/wiki/Filename-rewrite">Templates</a>
@@ -213,12 +218,12 @@ cat.jpg ✘ (no match)</pre>
 
           <p>Routing is relative to the selected menu item. When you download a cat gif using the
             <code>images</code> context menu, the above example will save it as
-            <code>./images/gif/946684800.gif</code>.
+            <code>~/downloads/images/gif/946684800.gif</code>.
           </p>
 
           <p>This advanced example renames downloads based off captured regex groups &mdash; the stuff inside
             <code>()</code> &mdash; and moves them into different directories.
-            <code class="click-to-copy">capture:&nbsp;filename</code> selects the filename's capture groups, and finally
+            <code class="click-to-copy">capture:&nbsp;filename</code> selects the filename&rsquo;s capture groups, and finally
             <code class="click-to-copy">into:</code> renames the files based off them using
             <code class="click-to-copy">:$1:</code>,
             <code class="click-to-copy">:$2:</code>, and
@@ -228,7 +233,7 @@ cat.jpg ✘ (no match)</pre>
               <pre class="demo-code left click-to-copy">
 // Move downloads based off versions
 <span class="demo g1">filename:</span> <span class="demo g2">(.*)</span>\.<span class="demo g4">(v.)</span>\.<span class="demo g3">(tar|gz)</span>
-pageurl: localhost:3000
+pageurl: example.com
 capture: <span class="demo g1">filename</span>
 into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span class="demo g3">:$3:</span></pre>
               <div class="demo-arrow">=</div>
@@ -258,12 +263,12 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
 
       <textarea type="textarea" id="filenamePatterns" rows=7 placeholder="Optional" spellcheck="false"></textarea>
       <div class="error-notification" id="error-filenamePatterns">errors</div>
-      <div style="display: flex; max-width: 100%; align-items: baseline; flex-wrap: wrap;">
+      <div style="display: flex; max-width: 100%; align-items: center; flex-wrap: wrap;">
         <div class="info-row" style="display: flex; flex-direction: column; flex: 1; align-items: baseline; margin-right: 8px;">
           <div style="display: flex; align-items: baseline; width: 100%">
-            <div style="font-weight: 600; margin-right: 16px;">Last download</div>
+            <div style="font-weight: 600; margin-right: 16px;">Applied to last download</div>
             <div style="font-family: monospace; word-break: break-all;" id="last-dl-match">last dl match</div>
-            <div style="margin: 0 0 0 auto;" class="link" id="refresh-errors">⟳</div>
+            <div style="margin: 0 0 0 auto; font-size: 23px;" class="link" id="refresh-errors">⟳</div>
           </div>
 
           <div class="hide" id="capture-group-rows" style="display: flex; width: 100%">
@@ -274,6 +279,8 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
 
         <div id="show-last-download" class="button">Last&nbsp;Download&nbsp;Info</div>
       </div>
+      <div class="caption caption-line">Test your current rules, applied to the last downloaded file</div>
+
     </label>
 
     <label>
@@ -344,11 +351,11 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
     </label>
 
     <label>
-      <input disabled class="chrome-enabled key" type="text" id="keyLastUsed" maxlength="1" /> Last used context menu item
+      <input disabled class="chrome-enabled key" type="text" id="keyLastUsed" maxlength="1" /> Last used context submenu item
     </label>
 
     <label>
-      <input disabled class="chrome-enabled" type="checkbox" id="enableNumberedItems" /> Add number key shortcuts to menu items
+      <input disabled class="chrome-enabled" type="checkbox" id="enableNumberedItems" /> Add number key shortcuts to context submenu items
     </label>
 
     <hr>

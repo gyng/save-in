@@ -11,7 +11,7 @@ const updateErrors = (timeout = 200) => {
     browser.runtime.getBackgroundPage().then(w => {
       filenamePatternsErrors.innerHTML = "";
       pathsErrors.innerHTML = "";
-      lastDlMatch.innerHTML = "none yet";
+      lastDlMatch.innerHTML = "no downloads yet: refresh if needed";
       lastDlCapture.textContent = "none";
 
       const errors = w.optionErrors;
