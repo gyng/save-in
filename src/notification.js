@@ -46,6 +46,7 @@ const addNotifications = options => {
   const notifyOnSuccess = options && options.notifyOnSuccess;
   const notifyOnFailure = options && options.notifyOnFailure;
   const notifyDuration = options && options.notifyDuration;
+  const promptOnFailure = options && options.promptOnFailure;
 
   if (!notifyDuration && window.SI_DEBUG) {
     console.log("Bad notify duration", options); // eslint-disable-line
@@ -130,13 +131,22 @@ const addNotifications = options => {
       /* eslint-enable no-console */
     }
 
-    if (notifyOnFailure && isFromSelf && failed) {
-      browser.notifications.create(String(downloadDelta.id), {
-        type: "basic",
-        title: `Failed to save ${filename}`,
-        iconUrl: ERROR_ICON_URL,
-        message: failed.current || "Unknown error"
-      });
+    if (isFromSelf && failed) {
+      if (notifyOnFailure) {
+        browser.notifications.create(String(downloadDelta.id), {
+          type: "basic",
+          title: `Failed to save ${filename}`,
+          iconUrl: ERROR_ICON_URL,
+          message: failed.current || "Unknown error"
+        });
+      }
+
+      if (promptOnFailure) {
+        browser.downloads.download({
+          url: downloadsList[downloadDelta.id].url,
+          saveAs: true
+        });
+      }
 
       if (window.SI_DEBUG) {
         /* eslint-disable no-console */

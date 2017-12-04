@@ -20,6 +20,7 @@
 * Add error messages for bad paths and rewrite patterns (#29)
 * Add settings import and export
 * Add menu keyboard shortcuts for Chrome (#15)*
+* Add option to prompt on download failure
 * Bug fixes and other improvements
 
 # 1.6.0

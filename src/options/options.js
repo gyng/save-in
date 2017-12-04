@@ -97,6 +97,7 @@ const saveOptions = e => {
       page: document.querySelector("#page").checked,
       paths: document.querySelector("#paths").value.trim() || ".",
       prompt: document.querySelector("#prompt").checked,
+      promptOnFailure: document.querySelector("#promptOnFailure").checked,
       promptIfNoExtension: document.querySelector("#promptIfNoExtension")
         .checked,
       replacementChar: document.querySelector("#replacementChar").value,
@@ -152,6 +153,7 @@ const restoreOptionsHandler = result => {
   setValueElement("shortcutType", "HTML_REDIRECT");
   setCheckboxElement("prompt", false);
   setCheckboxElement("promptIfNoExtension", false);
+  setCheckboxElement("promptOnFailure", true);
   setCheckboxElement("notifyOnSuccess", false);
   setCheckboxElement("notifyOnRuleMatch", true);
   setCheckboxElement("notifyOnFailure", true);

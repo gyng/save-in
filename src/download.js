@@ -273,7 +273,7 @@ const downloadInto = (path, url, info, options, suggestedFilename) => {
       if (options.notifyOnRuleMatch) {
         createExtensionNotification(
           "Save In: Rule matched",
-          `${filename}\n🡳\n${rewrittenFilename}`,
+          `${filename}\n⬇\n${rewrittenFilename}`,
           false
         );
       }

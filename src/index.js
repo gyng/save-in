@@ -5,6 +5,7 @@ const options = {
   links: true,
   selection: true,
   prompt: false,
+  promptOnFailure: true,
   paths: ".\nimages\nvideos",
   page: true,
   shortcutMedia: false,
@@ -57,6 +58,7 @@ window.init = () => {
       "routeFailurePrompt",
       "routeExclusive",
       "prompt",
+      "promptOnFailure",
       "promptIfNoExtension",
       "notifyOnSuccess",
       "notifyOnRuleMatch",
@@ -80,6 +82,7 @@ window.init = () => {
       setOption("page", item.page);
       setOption("paths", item.paths);
       setOption("prompt", item.prompt);
+      setOption("promptOnFailure", item.promptOnFailure);
       setOption("promptIfNoExtension", item.promptIfNoExtension);
       setOption("notifyOnSuccess", item.notifyOnSuccess);
       setOption("notifyOnRuleMatch", item.notifyOnRuleMatch);
@@ -135,7 +138,8 @@ window.init = () => {
       addNotifications({
         notifyOnSuccess: options.notifyOnSuccess,
         notifyOnFailure: options.notifyOnFailure,
-        notifyDuration: options.notifyDuration
+        notifyDuration: options.notifyDuration,
+        promptOnFailure: options.promptOnFailure
       });
 
       const pathsArray = [
