@@ -42,6 +42,7 @@
     "replaceLeadingDots": true,
     "removeSpecialDirs": true,
     "lastDownload": true,
-    "rewriteFilename": true
+    "rewriteFilename": true,
+    "getCaptureMatches": true
   }
 }

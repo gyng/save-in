@@ -259,6 +259,26 @@ const parseRules = raw => {
   return rules;
 };
 
+const getCaptureMatches = (rule, info, rest) => {
+  const captureDeclaration = rule.find(
+    d => d.type === RULE_TYPES.CAPTURE && d.name === "capture"
+  );
+
+  if (captureDeclaration) {
+    const captured = rule.find(
+      m => m.type === RULE_TYPES.MATCHER && m.name === captureDeclaration.value
+    );
+
+    if (!captured || !captured.matcher) {
+      return null;
+    }
+
+    return captured.matcher(info, rest);
+  } else {
+    return null;
+  }
+};
+
 const matchRule = (rule, info, rest) => {
   const matches = rule
     .filter(m => m.type === RULE_TYPES.MATCHER)
@@ -271,25 +291,11 @@ const matchRule = (rule, info, rest) => {
   let destination = rule.find(r => r.name === "into").value;
 
   // Regex capture groups
-  const captureDeclaration = rule.find(
-    d => d.type === RULE_TYPES.CAPTURE && d.name === "capture"
-  );
-  if (captureDeclaration) {
-    const captured = rule.find(
-      m => m.type === RULE_TYPES.MATCHER && m.name === captureDeclaration.value
-    );
+  const capturedMatches = getCaptureMatches(rule, info, rest);
 
-    if (!captured || !captured.matcher) {
-      createExtensionNotification(
-        "Save In: Rule missing capture target",
-        JSON.stringify(captureDeclaration)
-      );
-    } else {
-      const capturedMatches = captured.matcher(info, rest);
-
-      for (let i = 0; i < capturedMatches.length; i += 1) {
-        destination = destination.split(`:$${i}:`).join(capturedMatches[i]);
-      }
+  if (capturedMatches) {
+    for (let i = 0; i < capturedMatches.length; i += 1) {
+      destination = destination.split(`:$${i}:`).join(capturedMatches[i]);
     }
   }
 

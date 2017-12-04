@@ -37,7 +37,8 @@ window.init = () => {
   window.optionErrors = {
     paths: [],
     filenamePatterns: [],
-    testLastResult: null
+    testLastResult: null,
+    testLastCapture: null
   };
 
   browser.storage.local
@@ -113,7 +114,22 @@ window.init = () => {
           last.info,
           last.url
         );
+
+        let testLastCapture;
+        for (let i = 0; i < filenamePatterns.length; i += 1) {
+          testLastCapture = getCaptureMatches(
+            filenamePatterns[i],
+            last.info,
+            last.url
+          );
+
+          if (testLastCapture) {
+            break;
+          }
+        }
+
         window.optionErrors.testLastResult = testLastResult;
+        window.optionErrors.testLastCapture = testLastCapture;
       }
 
       addNotifications({

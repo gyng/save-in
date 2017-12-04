@@ -269,7 +269,7 @@ button.puffy:active {
 }
 
 .hide {
-  display: none;
+  display: none !important;
 }
 
 .show {
@@ -434,4 +434,14 @@ input.key {
   margin-right: 8px;
   text-align: center;
   padding: 4px 8px 4px 8px;
+}
+
+.match-row {
+  display: flex;
+  align-items: baseline;
+}
+
+.match-row-result {
+  margin-left: 8px;
+  font-family: monospace;
 }

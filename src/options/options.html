@@ -230,7 +230,7 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
               <div class="demo-arrow">=</div>
 
               <pre class="demo-code right">
- 
+
 <span class="demo g2">ubuntu</span>.<span class="demo g4">v1</span>.<span class="demo g3">tar</span> ➡ <span class="demo g4">v1</span>/<span class="demo g2">ubuntu</span>.<span class="demo g3">tar</span>
 <span class="demo g2">debian</span>.<span class="demo g4">v2</span>.<span class="demo g3">gz</span>  ➡ <span class="demo g4">v2</span>/<span class="demo g2">debian</span>.<span class="demo g3">gz</span>
 <span class="demo g2">debian</span>.zip    ✘ (no match)
@@ -254,11 +254,18 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
 
       <textarea type="textarea" id="filenamePatterns" rows=7 placeholder="Optional" spellcheck="false"></textarea>
       <div class="error-notification" id="error-filenamePatterns">errors</div>
-      <div style="display: flex; max-width: 100%; align-items: baseline;">
-        <div class="info-row" style="display: flex; flex: 1; align-items: baseline; margin-right: 8px;">
-          <div style="font-weight: 600; margin-right: 16px;">Last download</div>
-          <div style="font-family: monospace; word-break: break-all;" id="last-dl-match">last dl match</div>
-          <div style="margin: 0 0 0 auto;" class="link" id="refresh-errors">🗘</div>
+      <div style="display: flex; max-width: 100%; align-items: baseline; flex-wrap: wrap;">
+        <div class="info-row" style="display: flex; flex-direction: column; flex: 1; align-items: baseline; margin-right: 8px;">
+          <div style="display: flex; align-items: baseline; width: 100%">
+            <div style="font-weight: 600; margin-right: 16px;">Last download</div>
+            <div style="font-family: monospace; word-break: break-all;" id="last-dl-match">last dl match</div>
+            <div style="margin: 0 0 0 auto;" class="link" id="refresh-errors">⟳</div>
+          </div>
+
+          <div class="hide" id="capture-group-rows" style="display: flex; width: 100%">
+            <div style="font-weight: 600; margin-right: 16px;">Capture groups</div>
+            <div style="font-family: monospace; word-break: break-all;" id="last-dl-capture">last dl capture</div>
+          </div>
         </div>
 
         <div id="show-last-download" class="button">Last&nbsp;Download&nbsp;Info</div>

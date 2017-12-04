@@ -4,6 +4,7 @@ const filenamePatternsErrors = document.querySelector(
   "#error-filenamePatterns"
 );
 const lastDlMatch = document.querySelector("#last-dl-match");
+const lastDlCapture = document.querySelector("#last-dl-capture");
 
 const updateErrors = (timeout = 200) => {
   window.setTimeout(() => {
@@ -11,6 +12,7 @@ const updateErrors = (timeout = 200) => {
       filenamePatternsErrors.innerHTML = "";
       pathsErrors.innerHTML = "";
       lastDlMatch.innerHTML = "none yet";
+      lastDlCapture.textContent = "none";
 
       const errors = w.optionErrors;
 
@@ -46,6 +48,28 @@ const updateErrors = (timeout = 200) => {
       if (errors.testLastResult) {
         lastDlMatch.textContent = errors.testLastResult;
       }
+
+      const hasCaptureMatches =
+        errors.testLastCapture && Array.isArray(errors.testLastCapture);
+      document
+        .querySelector("#capture-group-rows")
+        .classList.toggle("hide", !hasCaptureMatches);
+      if (hasCaptureMatches) {
+        // Skip first match
+        lastDlCapture.textContent = "";
+        for (let i = 1; i < errors.testLastCapture.length; i += 1) {
+          const div = document.createElement("div");
+          div.className = "match-row";
+          div.innerHTML = `<code>:$${i}:</code>`;
+
+          const value = document.createElement("div");
+          value.className = "match-row-result";
+          value.textContent = errors.testLastCapture[i];
+          div.appendChild(value);
+
+          lastDlCapture.appendChild(div);
+        }
+      }
     });
   }, timeout);
 };
@@ -68,8 +92,7 @@ const saveOptions = e => {
       notifyOnRuleMatch: document.querySelector("#notifyOnRuleMatch").checked,
       notifyOnSuccess: document.querySelector("#notifyOnSuccess").checked,
       page: document.querySelector("#page").checked,
-      paths:
-        document.querySelector("#paths").value.trim() || ".",
+      paths: document.querySelector("#paths").value.trim() || ".",
       prompt: document.querySelector("#prompt").checked,
       promptIfNoExtension: document.querySelector("#promptIfNoExtension")
         .checked,
