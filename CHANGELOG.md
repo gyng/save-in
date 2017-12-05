@@ -21,6 +21,7 @@
 * Add settings import and export
 * Add menu keyboard shortcuts for Chrome (#15)*
 * Add option to prompt on download failure
+* Fix `:pagetitle` not updating (#41)
 * Bug fixes and other improvements
 
 # 1.6.0
