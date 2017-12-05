@@ -1,3 +1,7 @@
+# 2.0.1
+
+* Fix unescaped filenames from replacement pattern
+
 # 2.0.0
 
 * Filename rewrites upgrade: now 100% more flexible

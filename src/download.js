@@ -197,6 +197,7 @@ const rewriteFilename = (filename, filenamePatterns, info, url) => {
   const fileExtension = (fileExtensionMatches && fileExtensionMatches[1]) || "";
   ret = ret.replace(SPECIAL_DIRS.FILE_EXTENSION, fileExtension);
   ret = replaceSpecialDirs(ret, url, info);
+  ret = sanitizePath(ret);
 
   if (window.SI_DEBUG) {
     console.log("matchfile", matchFile, ret, filenamePatterns, info); // eslint-disable-line
@@ -212,6 +213,10 @@ let globalChromeRewriteOptions = {}; // global variable: no other easy way aroun
 if (chrome && chrome.downloads && chrome.downloads.onDeterminingFilename) {
   chrome.downloads.onDeterminingFilename.addListener(
     (downloadItem, suggest) => {
+      if (window.lastDownload && window.lastDownload.filename) {
+        window.lastDownload.filename = downloadItem.filename;
+      }
+
       const rewrittenFilename =
         rewriteFilename(
           globalChromeRewriteOptions.suggestedFilename || downloadItem.filename,
