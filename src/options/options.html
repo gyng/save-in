@@ -4,314 +4,122 @@
 <head>
   <meta charset="utf-8">
   <script type="application/javascript" src="../chrome-polyfill.js"></script>
+  <title>Settings &mdash; Save In</title>
   <link href="style.css" rel="stylesheet">
 </head>
 
-<body>
+<body id="settings-page">
   <div>
-    <a href="https://github.com/gyng/save-in/">GitHub</a>
+    <a class="open-settings-in-window" href="options.html" target="_blank">Popout</a>
     &middot;
-    <a href="https://github.com/gyng/save-in/blob/master/CHANGELOG.md">Changelog</a>
+    <a href="variablelist.html" target="_blank">Variable List</a>
+    &middot;
+    <a href="clauselist.html" target="_blank">Clause List</a>
+    &middot;
+    <a class="external" href="https://github.com/gyng/save-in/">GitHub</a>
+    &middot;
+    <a class="external" href="https://github.com/gyng/save-in/blob/master/CHANGELOG.md">Changelog</a>
+
   </div>
 
   <form id="options">
+    <h2 id="section-downloads">Downloads</h2>
+
     <label class="column">
-      <h2>Downloads</h2>
-      <h3 class="help" data-help-for="help-standard-variables">
-        📓 Variable list (click to expand)</h3>
-      <div class="help-text" id="help-standard-variables">
-        <h3>Standard</h3>
-        <div class="caption">Usable everywhere*</div>
-        <div class="box">
-          <table>
-            <tr>
-              <td>
-                <code class="click-to-copy">---</code>
-              </td>
-              <td></td>
-              <td>Creates a separator in the context menu
-                <i>*decorative</i>
-              </td>
-            </tr>
-
-            <tr>
-              <td>
-                <code class="click-to-copy">:date:</code>
-              </td>
-              <td>2000-01-01</td>
-              <td>Current date</td>
-            </tr>
-
-            <tr>
-              <td>
-                <code class="click-to-copy">:isodate:</code>
-              </td>
-              <td>20170123T123040Z</td>
-              <td>Current datetime as a UTC ISO8601 string</td>
-            </tr>
-
-            <tr>
-              <td>
-                <code class="click-to-copy">:unixdate:</code>
-              </td>
-              <td>946684800</td>
-              <td>Current datetime as a Unix timestamp</td>
-            </tr>
-
-            <tr>
-              <td>
-                <code class="click-to-copy">:year:</code>
-              </td>
-              <td>2000</td>
-              <td>Current year</td>
-            </tr>
-
-            <tr>
-              <td>
-                <code class="click-to-copy">:month:</code>
-              </td>
-              <td>01</td>
-              <td>Current month</td>
-            </tr>
-
-            <tr>
-              <td>
-                <code class="click-to-copy">:day:</code>
-              </td>
-              <td>24</td>
-              <td>Current day of month</td>
-            </tr>
-
-            <tr>
-              <td>
-                <code class="click-to-copy">:hour:</code>
-              </td>
-              <td>13</td>
-              <td>Current hour (24-hour)</td>
-            </tr>
-
-            <tr>
-              <td>
-                <code class="click-to-copy">:minute:</code>
-              </td>
-              <td>46</td>
-              <td>Current minute</td>
-            </tr>
-
-            <tr>
-              <td>
-                <code class="click-to-copy">:second:</code>
-              </td>
-              <td>05</td>
-              <td>Current second</td>
-            </tr>
-
-            <tr>
-              <td>
-                <code class="click-to-copy">:pageurl:</code>
-              </td>
-              <td>https://xyz.com/abc</td>
-              <td>URL of the page</td>
-            </tr>
-
-            <tr>
-              <td>
-                <code class="click-to-copy">:sourcedomain:</code>
-              </td>
-              <td>cdn.xyz.com</td>
-              <td>Hostname of the source</td>
-            </tr>
-
-            <tr>
-              <td>
-                <code class="click-to-copy">:pagedomain:</code>
-              </td>
-              <td>xyz.com</td>
-              <td>Hostname of the page</td>
-            </tr>
-
-            <tr>
-              <td>
-                <code class="click-to-copy">:pagetitle:</code>
-              </td>
-              <td>My Webpage Title!</td>
-              <td>Title of the page</td>
-            </tr>
-
-            <tr>
-              <td>
-                <code class="click-to-copy">:linktext:</code>
-              </td>
-              <td>Direct link to image</td>
-              <td>Text of the link, or
-                <code>title</code> attribute of element
-                <i>* images and links only</i>
-              </td>
-            </tr>
-          </table>
-        </div>
-
-        <h3>Filename-only</h3>
-        <div class="caption">Only usable when rewriting filenames</div>
-        <div class="box">
-          <table>
-            <tr>
-              <td>
-                <code class="click-to-copy">:filename:</code>
-              </td>
-              <td>my_image.jpg</td>
-              <td>Full filename
-              </td>
-            </tr>
-
-            <tr>
-              <td>
-                <code class="click-to-copy">:fileext:</code>
-              </td>
-              <td>jpg</td>
-              <td>Naive file extension, if available
-              </td>
-            </tr>
-
-            <tr>
-              <td>
-                <code class="click-to-copy">:$1:</code>,
-                <code class="click-to-copy">:$2:</code>&hellip;
-              </td>
-              <td></td>
-              <td>Capture group where
-                <code>1</code> = the n
-                <sup>th</sup> capture group
-              </td>
-            </tr>
-
-          </table>
-        </div>
-      </div>
-      </div>
-
-      <h3>Menu items
-        <a href="#" class="help" data-help-for="help-paths">help</a>
-      </h3>
-      <p>Paths relative to default download directory. One path per line. Multiple variables can be used in a path.</p>
+      <h3>Directories</h3>
+      <span>
+        <h3 class="popout link" data-popout-for="variablelist.html">📓 Variable List</h3>
+      </span>
+      <p>
+        <a href="#" class="help learn-more" data-help-for="help-paths">Guide: Create menu items</a>
+      </p>
       <div class="help-text" id="help-paths">
-        <pre>.
-images/dogs
-images/cats
----
-videos/cats
-others/:date:/:pagedomain:/foo
-</pre>
+        <h4>Creating context menu items</h4>
+        <p>To create a menu item to save
+          <code>cat.jpg</code> into the directory
+          <code>~/downloads/i/cats</code>, with
+          <code>~/downloads</code> as the default download directory, add the line
+          <code>i/cats</code>.</p>
 
-        <p>with a default download directory of
-          <code>~/downloads</code> will create options to save media to the directories</p>
-
-        <pre>
-~/downloads/
-~/downloads/images/dogs
-~/downloads/images/cats
+        <div class="demo-box" style="margin-top: 12px; align-items: flex-start;">
+          <div class="demo-code left ">
+            <pre class="click-to-copy">.
+i/dogs
+i/cats
 ---
-~/downloads/videos/cats
-~/others/2000-01-01/github.com/foo
+v/cats
+:date:/:day:/foo
 </pre>
+            <div class="caption">Settings</div>
+          </div>
+          <div class="demo-arrow">➡</div>
+
+          <div class="demo-code">
+            <pre>~/downloads/
+~/downloads/i/dogs
+~/downloads/i/cats
+---
+~/downloads/v/cats
+~/downloads/2000-01-01/01/foo
+</pre>
+            <div class="caption">Default download dir
+              <code>~/downloads</code>
+            </div>
+          </div>
+
+          <div class="demo-arrow">➡</div>
+
+          <pre class="demo-pic" style="background-image: url(i/menu-items.png)">
+
+
+
+
+
+
+</pre>
+        </div>
+
+        <p>Note: You can only save relative to the default download directory. See the next guide for a workaround.</p>
+      </div>
+      </div>
+
+      <p>
+        <a href="#" class="help learn-more" data-help-for="help-symlink">Guide: Save outside the default downloads directory</a>
+      </p>
+      <div class="help-text" id="help-symlink">
+        <h4>Saving outside the default download directory</h4>
+        <p>The WebExtensions API does not allow files to be saved outside of the default download directory. A
+          <a class="external" href="https://en.wikipedia.org/wiki/Symbolic_link" target="_blank">symlink</a> inside the default download directory can be used to get around this limitation.
+        </p>
 
         <p>Invalid paths (
           <code>..</code> and
           <code>/</code>) are ignored. Files and directories with leading dots (
           <code>foo/.hidden</code>) are considered invalid by Firefox and Chrome.</p>
 
-        <p>The WebExtensions API does not allow files to be saved outside of the default download directory. If you want to
-          save the files outside the default download directory, use a
-          <a href="https://en.wikipedia.org/wiki/Symbolic_link" target="_blank">symlink</a> inside the default download directory.
-          <a href="https://serverfault.com/questions/7109/how-do-i-create-a-symbolic-link-in-windows" target="_blank">Windows</a>,
-          <a href="https://apple.stackexchange.com/questions/115646/how-can-i-create-a-symbolic-link-in-terminal" target="_blank">OS X/Unix</a>
-        </p>
+        <br>
+        <a class="external" href="https://technet.microsoft.com/en-us/library/cc753194(v=ws.11).aspx" target="_blank">
+          Windows
+        </a>
+        <pre class="click-to-copy">mklink /D C:\path\to\symlink D:\path\to\actual</pre>
+
+        <a class="external" href="http://manpages.ubuntu.com/manpages/xenial/man1/ln.1.html" target="_blank">
+          macOS/Unix
+        </a>
+        <pre class="click-to-copy">ln -s /path/to/actual /path/to/symlink</pre>
+
+        <p>Make sure the target directories actually exist, or the extension will silently fail to download.</p>
       </div>
-      <textarea type="textarea" id="paths" rows=10 placeholder="." spellcheck="false"></textarea>
+
+      <p>One path per line, relative to the default download directory.
+        <code>.</code> downloads to the default download directory.</p>
+      <p>A symlink is needed to save outside the default download directory.</p>
+
+      <textarea required type="textarea" id="paths" rows=10 placeholder="." spellcheck="false"></textarea>
+      <div class="error-notification" id="error-paths">path errors</div>
     </label>
 
-    <label class="column">
-      <h3>Rewrite filenames
-        <a href="#" class="help" data-help-for="help-filenames">help</a>
-        <span title="Unstable: expect changes in future version" class="caption warning badge">⚗️ Unstable</span>
-      </h3>
-
-      <p>Optionally, rewrite filenames that match the regex patterns in order of precedence. Multiple variables can be used
-        in the replacement pattern. Separate multiple rules with an empty line. The format for each rule is</p>
-      <pre>
-Regex pattern to match filename against
-Replacement pattern
-(Optional) Regex pattern to match source URL against, defaults to all</pre>
-      <p class="chrome-only">CHROME USERS: Special characters in the filename (eg.
-        <code>:</code> or
-        <code>/</code>) are pre-replaced with the character
-        <code>-</code> by Chrome. Match against
-        <code>-</code> instead of these special characters. For example, use
-        <code>(.*)-large</code> to match filenames instead of
-        <code>(.*):large</code>.
-      </p>
-
-      <div class="help-text" id="help-filenames">
-        <p>
-          Match filenames against a
-          <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions">regex pattern</a> and rewrite them according to a replacement string. Regex capture groups are supported in the
-          replacement pattern, and can be referenced by the variables
-          <code>:$1:</code> through
-          <code>:$n:</code>.
-        </p>
-
-        <p>The following example rewrites the filenames
-          <ul>
-            <li>
-              <code>dog_thumbnail.png</code> to
-              <code>dog.png</code>
-            </li>
-            <li>
-              <code>twitter_pic.png:large</code> to
-              <code>twitter_pic.png</code> only on
-              <code>pbs.twimg.com</code>
-            </li>
-            <li>
-              Everything to
-              <code>link text.extension</code> only on
-              <code>example.com</code>
-            </li>
-            <li>
-              <code>catpic.jpg</code> to
-              <code>2017-01-01_catpic.jpeg</code>
-            </li>
-            <li>
-              <code>b18be819-3fcb-0e4d-b7e3-8ae126e2b37f</code> to
-              <code>example.com.txt</code>
-            </li>
-          </ul>
-        </p>
-        <div>
-          <pre>
-(.*)\_thumbnail(\..*)
-:$1::$2:
-
-(.*)(:|-)large
-:$1:
-pbs.twimg.com
-
-.*
-:linktext:.:fileext:
-example.com
-
-(.*)\.jpg
-:date::$1:.jpeg
-
-.{8}-.{4}-.{4}-.{12}
-:pageurl:.txt
-</pre>
-
-        </div>
-
-        <a href="https://github.com/gyng/save-in/wiki/Filename-rewrite">Short list of useful rules</a>
-      </div>
-      <textarea type="textarea" id="filenamePatterns" rows=10 placeholder="Optional" spellcheck="false"></textarea>
-    </label>
+    <h3>Behavior</h3>
 
     <label>
       <input type="checkbox" id="links" /> Enable saving of links. Prefers sources if available.
@@ -324,6 +132,7 @@ example.com
 
     <label>
       <input type="checkbox" id="page" /> Enable saving of the current page
+      <div class="caption caption-line">Does not save external resources</div>
     </label>
 
     <label>
@@ -335,17 +144,157 @@ example.com
     </label>
 
     <label>
+      <input type="checkbox" id="promptOnFailure" /> Open a save file dialog if download fails
+    </label>
+
+    <label>
       <select disabled class="chrome-enabled" id="conflictAction">
         <option value="uniquify">Uniquify</option>
         <option value="overwrite">Overwrite</option>
         <option value="prompt">Prompt</option>
       </select>
-      when a duplicate filename is encountered (Chrome only)
+      when a duplicate filename is encountered
+      <span class="badge">Chrome</span>
     </label>
 
     <hr>
 
-    <h2>Notifications</h2>
+    <label class="column">
+      <h2>Dynamic Downloads (Advanced)</h2>
+
+      <h3>Rename and Route Downloads</h3>
+
+      <div style="display: flex; justify-content: flex-start; align-items: baseline;">
+        <h3 style="width: auto;" class="popout link" data-popout-for="variablelist.html">📓 Variable list</h3>
+        &nbsp;&nbsp;&nbsp;
+        <h3 style="width: auto;" class="popout link" data-popout-for="clauselist.html">📓 Clause list</h3>
+      </div>
+
+      <p>
+        <a href="#" class="help learn-more" data-help-for="help-filenames">Guide: Rename and route downloads</a>
+        <a class="external float-right" href="https://github.com/gyng/save-in/wiki/Filename-rewrite">Templates</a>
+      </p>
+      </div>
+
+      <div class="help-text" id="help-filenames">
+        <h4>Renaming downloads</h4>
+        <p>
+          Match downloads against
+          <a class="external" href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions">regex patterns</a>. When a download matches all patterns, rename it according to
+          <code class="click-to-copy">into:</code>.
+
+          <p>This renames all gif files to a UNIX timestamp.</p>
+          <div class="demo-box">
+            <pre class="demo-code left click-to-copy">
+fileext: <span class="demo g3">gif</span>
+into: <span class="demo g4">:unixdate:</span>.<span class="demo g3">:fileext:</span></pre>
+
+            <div class="demo-arrow">=</div>
+
+            <pre class="demo-code right">
+cat.<span class="demo g3">gif</span> ➡ <span class="demo g4">1512136516</span>.<span class="demo g3">gif</span>
+ </pre>
+          </div>
+
+          <h4>Moving downloads into different directories</h4>
+
+          <p>The following example moves all
+            <code>.gif</code> files into the
+            <code>gifs</code> subdirectory and renames the moved files to a timestamp.</p>
+
+
+          <div class="demo-box">
+            <pre class="demo-code left click-to-copy">
+fileext: <span class="demo g3">gif</span>
+into: <span class="demo g2">gifs</span>/<span class="demo g4">:unixdate:</span>.<span class="demo g3">:fileext:</span></pre>
+
+            <div class="demo-arrow">=</div>
+
+            <pre class="demo-code right">
+cat.<span class="demo g3">gif</span> ➡ <span class="demo g2">gifs</span>/<span class="demo g4">1512136516</span>.<span class="demo g3">gif</span>
+cat.jpg ✘ (no match)</pre>
+          </div>
+
+
+          <p>Routing is relative to the selected menu item. When you download a cat gif using the
+            <code>images</code> context menu, the above example will save it as
+            <code>~/downloads/images/gif/946684800.gif</code>.
+          </p>
+
+          <p>This advanced example renames downloads based off captured regex groups &mdash; the stuff inside
+            <code>()</code> &mdash; and moves them into different directories.
+            <code class="click-to-copy">capture:&nbsp;filename</code> selects the filename&rsquo;s capture groups, and finally
+            <code class="click-to-copy">into:</code> renames the files based off them using
+            <code class="click-to-copy">:$1:</code>,
+            <code class="click-to-copy">:$2:</code>, and
+            <code class="click-to-copy">:$3:</code>.
+
+            <div class="demo-box">
+              <pre class="demo-code left click-to-copy">
+// Move downloads based off versions
+<span class="demo g1">filename:</span> <span class="demo g2">(.*)</span>\.<span class="demo g4">(v.)</span>\.<span class="demo g3">(tar|gz)</span>
+pageurl: example.com
+capture: <span class="demo g1">filename</span>
+into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span class="demo g3">:$3:</span></pre>
+              <div class="demo-arrow">=</div>
+
+              <pre class="demo-code right">
+
+<span class="demo g2">ubuntu</span>.<span class="demo g4">v1</span>.<span class="demo g3">tar</span> ➡ <span class="demo g4">v1</span>/<span class="demo g2">ubuntu</span>.<span class="demo g3">tar</span>
+<span class="demo g2">debian</span>.<span class="demo g4">v2</span>.<span class="demo g3">gz</span>  ➡ <span class="demo g4">v2</span>/<span class="demo g2">debian</span>.<span class="demo g3">gz</span>
+<span class="demo g2">debian</span>.zip    ✘ (no match)
+ </pre>
+            </div>
+      </div>
+      </div>
+      </div>
+
+      <p>Automate routing of downloads or renaming of files. Separate multiple rules with an empty line. See the guide for more
+        details.
+      </p>
+
+      <p class="chrome-only">CHROME USERS: Special characters in the filename (eg.
+        <code>:</code> or
+        <code>/</code>) are pre-replaced with the replacement character (defaults to
+        <code>_</code>). Match against it instead of these special characters. For example, use
+        <code>(.*)_large</code> to match filenames instead of
+        <code>(.*):large</code>.
+      </p>
+
+      <textarea type="textarea" id="filenamePatterns" rows=7 placeholder="Optional" spellcheck="false"></textarea>
+      <div class="error-notification" id="error-filenamePatterns">errors</div>
+      <div style="display: flex; max-width: 100%; align-items: center; flex-wrap: wrap;">
+        <div class="info-row" style="display: flex; flex-direction: column; flex: 1; align-items: baseline; margin-right: 8px;">
+          <div style="display: flex; align-items: baseline; width: 100%">
+            <div style="font-weight: 600; margin-right: 16px;">Applied to last download</div>
+            <div style="font-family: monospace; word-break: break-all;" id="last-dl-match">last dl match</div>
+            <div style="margin: 0 0 0 auto; font-size: 23px;" class="link" id="refresh-errors">⟳</div>
+          </div>
+
+          <div class="hide" id="capture-group-rows" style="display: flex; width: 100%">
+            <div style="font-weight: 600; margin-right: 16px;">Capture groups</div>
+            <div style="font-family: monospace; word-break: break-all;" id="last-dl-capture">last dl capture</div>
+          </div>
+        </div>
+
+        <div id="show-last-download" class="button">Last&nbsp;Download&nbsp;Info</div>
+      </div>
+      <div class="caption caption-line">Test your current rules, applied to the last downloaded file</div>
+
+    </label>
+
+    <label>
+      <input type="checkbox" id="routeFailurePrompt" /> Open a save file dialog if no rules match
+    </label>
+
+    <label>
+      <input type="checkbox" id="routeExclusive" /> Exclusively use routing and renaming rules
+      <div class="caption caption-line">Disables submenu for two-click downloads, saves relative to default downloads directory</div>
+    </label>
+
+    <hr>
+
+    <h2 id="section-notifications">Notifications</h2>
     <label>
       <input type="checkbox" id="notifyOnSuccess" /> Show notification on successful download
     </label>
@@ -355,14 +304,18 @@ example.com
     </label>
 
     <label>
-      Close notification early after
+      <input type="checkbox" id="notifyOnRuleMatch" /> Show notification on a rule match
+    </label>
+
+    <label>
+      Close notifications early after
       <input type="number" id="notifyDuration" min="0" />ms
       <div class="caption caption-line">1s = 1000ms. Will not extend beyond OS/browser notification duration.</div>
     </label>
 
     <hr />
 
-    <h2>Save as shortcuts</h2>
+    <h2 id="section-save-as-shortcuts">Save As Shortcuts</h2>
     <label>
       Save shortcuts as
       <select id="shortcutType">
@@ -387,9 +340,30 @@ example.com
 
     <hr>
 
-    <h2>More options
-      <div id="reset" class="button float-right">Restore defaults</div>
+    <h2 id="section-save-as-shortcuts">Keyboard Shortcuts
+      <span class="badge">Chrome</span>
     </h2>
+
+    <p>Set accesskeys for Save In menu items. This does not work on macOS as it does not support accesskeys.</p>
+
+    <label>
+      <input disabled class="chrome-enabled key" type="text" id="keyRoot" maxlength="1" /> Save In context menu item
+    </label>
+
+    <label>
+      <input disabled class="chrome-enabled key" type="text" id="keyLastUsed" maxlength="1" /> Last used context submenu item
+    </label>
+
+    <label>
+      <input disabled class="chrome-enabled" type="checkbox" id="enableNumberedItems" /> Add number key shortcuts to context submenu items
+    </label>
+
+    <hr>
+
+    <h2 id="section-more-options">More Options
+      <div id="reset" class="button float-right">Restore Defaults</div>
+    </h2>
+
     <label>
       Truncate path components to
       <input type="number" id="truncateLength" min="1" /> characters
@@ -397,13 +371,29 @@ example.com
     </label>
 
     <label>
+      Replace invalid characters with
+      <input type="text" id="replacementChar" placeholder="delete" style="font-family: monospace;" />
+      <div class="caption caption-line">Leave blank to delete. Invalid replacement characters are ignored.</div>
+    </label>
+
+    <div style="display: flex; justify-content: flex-start; align-items: center;">
+      <div id="settings-import" class="button">Import Settings</div>
+      <div style="margin-left: 8px;" id="settings-export" class="button">Export Settings</div>
+      <div style="margin-left: 8px;" id="print-debug-info" class="button">Show Debug Information</div>
+    </div>
+
+    <label>
       <input type="checkbox" id="debug" /> Enable debug logging
     </label>
 
-    <div id="submit" type="submit" class="button puffy save">Save</div>
+    <p>
+      <span>Last saved at:&nbsp;</span>
+      <span id="lastSavedAt">never</span>
+    </p>
   </form>
 
   <script src="options.js"></script>
+  <script src="clicktocopy.js"></script>
 </body>
 
 </html>

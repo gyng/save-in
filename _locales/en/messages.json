@@ -14,8 +14,83 @@
     "description": "Title of context menu item that opens the options menu when clicked."
   },
 
+  "contextMenuExclusive": {
+    "message": "Save In route…",
+    "description": "Name for menu item when in exclusive mode."
+  },
+
+  "contextMenuRoot": {
+    "message": "Save In…",
+    "description": "Name for root context menu item."
+  },
+
+  "contextMenuLastUsed": {
+    "message": "Last Used",
+    "description": "Placeholder title for last used option."
+  },
+
+  "contextMenuContextMedia": {
+    "message": "Media",
+    "description": "Indicator that Save In is saving just media."
+  },
+
+  "contextMenuContextMediaOrLink": {
+    "message": "Media or Link",
+    "description": "Indicator that Save In is saving a media or link."
+  },
+
+  "contextMenuContextSelection": {
+    "message": "Selection Text",
+    "description": "Indicator that Save In is saving a selection."
+  },
+
+  "contextMenuContextPage": {
+    "message": "Page",
+    "description": "Indicator that Save In is saving a page."
+  },
+
   "contextMenuShowDefaultFolder": {
-    "message": "Open default folder",
+    "message": "Open Default Folder",
     "description": "Title of context menu item that opens the default downloads directory in the system file manager when clicked."
+  },
+
+  "ruleMissingMatcher": {
+    "message": "Rule needs at least one matcher clause",
+    "description": "Error message for missing matcher in rule"
+  },
+
+  "ruleCaptureMissingMatcher": {
+    "message": "Capture clause is not targeting a matcher",
+    "description": "Error message for capture targeting missing matcher"
+  },
+
+  "ruleMissingCapture": {
+    "message": "Rule needs a capture clause to use capture variables",
+    "description": "Error message for missing capture clause in rule"
+  },
+
+  "ruleMissingInto": {
+    "message": "Rule needs at least one into clause",
+    "description": "Error message for missing into clause in rule"
+  },
+
+  "ruleExtraInto": {
+    "message": "Rule can only have one into clause",
+    "description": "Error message for multiple into clauses in rule"
+  },
+
+  "ruleUnknownMatcher": {
+    "message": "Unknown matcher",
+    "description": "Error message for an unknown matcher"
+  },
+  
+  "ruleInvalidRegex": {
+    "message": "Invalid regex",
+    "description": "Error message for a rule with invalid regex"
+  },
+  
+  "ruleBadClause": {
+    "message": "Bad clause",
+    "description": "Error message for lines in rule with syntax errors"
   }
 }

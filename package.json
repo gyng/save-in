@@ -1,6 +1,6 @@
 {
   "name": "save-in",
-  "version": "1.6.0",
+  "version": "2.0.0",
   "license": "MIT",
   "scripts": {
     "build": "env -u WEB_EXT_API_KEY -u WEB_EXT_API_SECRET web-ext build --overwrite-dest -i test docs yarn.lock",
@@ -9,6 +9,7 @@
     "d:noenv": "web-ext run",
     "lint": "env -u WEB_EXT_API_KEY -u WEB_EXT_API_SECRET web-ext lint && eslint src test",
     "lint:fix": "eslint --fix src test",
+    "mockserve": "node test/mockserver",
     "prettier": "echo '💈 Listing files to format. Run yarn prettier:write to write.\n' && prettier --list-different src/**/*.js src/*.js test/**/*.js test/*.js",
     "prettier:write": "prettier --write src/**/*.js src/*.js test/**/*.js test/*.js",
     "test": "jest",
@@ -25,6 +26,10 @@
     "eslint-plugin-react": "^6.10.3",
     "jest": "^21.2.1",
     "jest-webextension-mock": "^2.1.0",
+    "koa": "^2.4.1",
+    "koa-logger": "^3.1.0",
+    "koa-route": "^3.2.0",
+    "koa-static": "^4.0.2",
     "prettier": "^1.7.4",
     "web-ext": "^2.0.0"
   },
@@ -35,5 +40,6 @@
     "modulePathIgnorePatterns": [
       "<rootDir>/web-ext-artifacts/"
     ]
-  }
+  },
+  "dependencies": {}
 }

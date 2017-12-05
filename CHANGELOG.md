@@ -1,3 +1,28 @@
+# 2.0.0
+
+* Filename rewrites upgrade: now 100% more flexible
+
+  - New rule-based syntax
+  - Now able to use regex capture groups on supported clauses
+  - Whole bunch of new matchers
+  - Document how to route downloads
+  - Option for exclusive rule-base mode: disable context menu for quicker rule-based saving
+  - Option to prompt if no rules matched
+  - Option to notify on rule match
+  - Migrating old rules: https://github.com/gyng/save-in/wiki/Filename-rewrite#migrating-to-the-new-syntax
+
+* Add `:sourceurl:`, `:selectiontext:` variables (#39)
+* Add `:naivefilename:`, `:naivefileext:` variables
+* Add replacement character option (#39)
+* Settings now autosave on update
+* More iteration on options page
+* Fix improper bad character replacements creating extra directories (#37)
+* Add error messages for bad paths and rewrite patterns (#29)
+* Add settings import and export
+* Add menu keyboard shortcuts for Chrome (#15)*
+* Add option to prompt on download failure
+* Bug fixes and other improvements
+
 # 1.6.0
 
 * Add `:second:` variable (#31)

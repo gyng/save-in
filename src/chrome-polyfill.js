@@ -20,7 +20,18 @@ if (typeof browser === "undefined") {
   if (chrome) {
     browser = chrome; // eslint-disable-line
     browser.storage.local.get = promisify(browser.storage.local.get, 1);
+    browser.storage.local.set = promisify(browser.storage.local.set, 1);
     browser.storage.local.clear = promisify(browser.storage.local.clear, 0);
     browser.tabs.get = promisify(browser.tabs.get, 1);
+    browser.runtime.getBackgroundPage = promisify(
+      browser.runtime.getBackgroundPage,
+      0
+    );
+    browser.contextMenus.removeAll = promisify(
+      browser.contextMenus.removeAll,
+      0
+    );
+    browser.management.getSelf = promisify(browser.management.getSelf, 0);
+    browser.permissions.getAll = promisify(browser.permissions.getAll, 0);
   }
 }

@@ -3,7 +3,8 @@
 const DISPOSITION_FILENAME_REGEX = /filename[^;=\n]*=((['"])(.*)?\2|(.+'')?([^;\n]*))/i;
 const EXTENSION_REGEX = /\.([0-9a-z]{1,8})$/i;
 const SPECIAL_CHARACTERS_REGEX = /[~<>:"/\\|?*\0]/g;
-const LEADING_DOTS_REGEX = /^\./g;
+const BAD_LEADING_CHARACTERS = /^[./\\]/g;
+const SEPARATOR_REGEX = /[/\\]/g;
 
 const makeObjectUrl = (content, mime = "text/plain") =>
   URL.createObjectURL(
@@ -13,19 +14,34 @@ const makeObjectUrl = (content, mime = "text/plain") =>
   );
 
 // TODO: Make this OS-aware instead of assuming Windows
-const replaceFsBadChars = s => s.replace(SPECIAL_CHARACTERS_REGEX, "_");
+const replaceFsBadChars = (s, replacement) =>
+  s.replace(
+    SPECIAL_CHARACTERS_REGEX,
+    replacement ||
+      (typeof options !== "undefined" && options && options.replacementChar) ||
+      "_"
+  );
+
 // Leading dots are considered invalid by both Firefox and Chrome
-const replaceLeadingDots = s => s.replace(LEADING_DOTS_REGEX, "");
+const replaceLeadingDots = (s, replacement) =>
+  s.replace(
+    BAD_LEADING_CHARACTERS,
+    replacement ||
+      (typeof options !== "undefined" && options && options.replacementChar) ||
+      "_"
+  );
 
 const truncateIfLongerThan = (str, max) =>
   str && max > 0 && str.length > max ? str.substr(0, max) : str;
 
+const sanitizeFilename = (str, max = 0) =>
+  str && replaceLeadingDots(truncateIfLongerThan(replaceFsBadChars(str), max));
+
 const sanitizePath = (pathStr, maxComponentLength = 0) =>
+  pathStr &&
   pathStr
-    .split(new RegExp("[\\/\\\\]", "g"))
-    .map(replaceFsBadChars)
-    .map(replaceLeadingDots)
-    .map(c => truncateIfLongerThan(c, maxComponentLength))
+    .split(SEPARATOR_REGEX)
+    .map(s => sanitizeFilename(s, maxComponentLength))
     .join("/");
 
 const getFilenameFromUrl = url => {
@@ -47,14 +63,26 @@ const getFilenameFromContentDisposition = disposition => {
     const match = filteredMatches[filteredMatches.length - 1];
     let filename = decodeURIComponent(decodeURIComponent(escape(match)));
 
+    // Wrapped in quotation marks
     if (filename[0] && filename[filename.length - 1] === '"') {
       filename = filename.slice(1, -1);
     }
+
+    filename = sanitizeFilename(filename);
 
     return filename;
   }
 
   return null;
+};
+
+// Used for validation
+const removeSpecialDirs = path => {
+  let ret = path;
+  Object.keys(SPECIAL_DIRS).forEach(v => {
+    ret = ret.replace(SPECIAL_DIRS[v], "");
+  });
+  return ret;
 };
 
 // Handles SPECIAL_DIRS except FILENAME and SEPARATOR
@@ -65,9 +93,24 @@ const replaceSpecialDirs = (path, url, info) => {
 
   let ret = path;
 
-  ret = ret.replace(SPECIAL_DIRS.SOURCE_DOMAIN, new URL(url).hostname);
-  ret = ret.replace(SPECIAL_DIRS.PAGE_DOMAIN, new URL(info.pageUrl).hostname);
-  ret = ret.replace(SPECIAL_DIRS.PAGE_URL, replaceFsBadChars(info.pageUrl));
+  try {
+    ret = ret.replace(SPECIAL_DIRS.SOURCE_DOMAIN, new URL(url).hostname);
+  } catch (e) {
+    if (window.SI_DEBUG) {
+      console.log("Bad url", url, e); // eslint-disable-line
+    }
+  }
+
+  try {
+    ret = ret.replace(SPECIAL_DIRS.PAGE_DOMAIN, new URL(info.pageUrl).hostname);
+  } catch (e) {
+    if (window.SI_DEBUG) {
+      console.log("Bad page url", url, e); // eslint-disable-line
+    }
+  }
+
+  ret = ret.replace(SPECIAL_DIRS.PAGE_URL, sanitizeFilename(info.pageUrl));
+  ret = ret.replace(SPECIAL_DIRS.SOURCE_URL, sanitizeFilename(info.srcUrl));
   const now = new Date();
 
   const padDateComponent = (num, func) => num.toString().padStart(2, "0");
@@ -105,42 +148,61 @@ const replaceSpecialDirs = (path, url, info) => {
     (currentTab && currentTab.title) || ""
   );
 
-  ret = ret.replace(SPECIAL_DIRS.LINK_TEXT, info.linkText);
+  ret = ret.replace(SPECIAL_DIRS.LINK_TEXT, sanitizeFilename(info.linkText));
+  ret = ret.replace(
+    SPECIAL_DIRS.SELECTION,
+    sanitizeFilename((info.selectionText && info.selectionText.trim()) || "")
+  );
+
+  const naiveFilename = getFilenameFromUrl(url);
+  ret = ret.replace(SPECIAL_DIRS.NAIVE_FILENAME, naiveFilename);
+  const fileExtensionMatches = naiveFilename.match(EXTENSION_REGEX);
+  const fileExtension = (fileExtensionMatches && fileExtensionMatches[1]) || "";
+  ret = ret.replace(SPECIAL_DIRS.NAIVE_FILE_EXTENSION, fileExtension);
 
   return ret;
 };
 
 // Handles rewriting FILENAME and regex captures
-const rewriteFilename = (filename, filenamePatterns, url, info) => {
-  if (!filenamePatterns || !url || !info) {
+const rewriteFilename = (filename, filenamePatterns, info, url) => {
+  // Clauses (matchers)
+  if (!filenamePatterns || filenamePatterns.length === 0 || !info) {
     return filename;
   }
 
-  for (let i = 0; i < filenamePatterns.length; i += 1) {
-    const p = filenamePatterns[i];
-    const matches = p.filenameMatch.exec(filename);
+  const matchFile = matchRules(filenamePatterns, info, filename);
 
-    if (matches && url.match(p.urlMatch)) {
-      let ret = p.replace.replace(SPECIAL_DIRS.FILENAME, filename);
-      ret = ret.replace(SPECIAL_DIRS.LINK_TEXT, info.linkText);
-
-      const fileExtensionMatches = filename.match(EXTENSION_REGEX);
-      const fileExtension =
-        (fileExtensionMatches && fileExtensionMatches[1]) || "";
-      ret = ret.replace(SPECIAL_DIRS.FILE_EXTENSION, fileExtension);
-
-      // Replace capture groups
-      for (let j = 0; j < matches.length; j += 1) {
-        ret = ret.split(`:$${j}:`).join(matches[j]);
-      }
-
-      ret = replaceSpecialDirs(ret, url, info);
-
-      return ret;
-    }
+  if (window.SI_DEBUG) {
+    /* eslint-disable no-console */
+    console.log(
+      "rewriteFilename",
+      filename,
+      filenamePatterns,
+      info,
+      url,
+      matchFile
+    );
+    /* eslint-enable no-console */
   }
 
-  return filename;
+  // Didn't get any matches, abort!
+  if (!matchFile) {
+    return matchFile;
+  }
+
+  // Variables
+  let ret = matchFile.replace(SPECIAL_DIRS.FILENAME, filename);
+  ret = ret.replace(SPECIAL_DIRS.LINK_TEXT, info.linkText);
+  const fileExtensionMatches = filename.match(EXTENSION_REGEX);
+  const fileExtension = (fileExtensionMatches && fileExtensionMatches[1]) || "";
+  ret = ret.replace(SPECIAL_DIRS.FILE_EXTENSION, fileExtension);
+  ret = replaceSpecialDirs(ret, url, info);
+
+  if (window.SI_DEBUG) {
+    console.log("matchfile", matchFile, ret, filenamePatterns, info); // eslint-disable-line
+  }
+
+  return ret;
 };
 
 // CHROME
@@ -150,17 +212,20 @@ let globalChromeRewriteOptions = {}; // global variable: no other easy way aroun
 if (chrome && chrome.downloads && chrome.downloads.onDeterminingFilename) {
   chrome.downloads.onDeterminingFilename.addListener(
     (downloadItem, suggest) => {
-      const rewrittenFilename = rewriteFilename(
-        globalChromeRewriteOptions.suggestedFilename || downloadItem.filename,
-        globalChromeRewriteOptions.filenamePatterns,
-        globalChromeRewriteOptions.url,
-        globalChromeRewriteOptions.info
-      );
+      const rewrittenFilename =
+        rewriteFilename(
+          globalChromeRewriteOptions.suggestedFilename || downloadItem.filename,
+          globalChromeRewriteOptions.filenamePatterns,
+          globalChromeRewriteOptions.info,
+          globalChromeRewriteOptions.url
+        ) || downloadItem.filename;
+
+      const safeFilename = `${globalChromeRewriteOptions.path}/${rewrittenFilename}`
+        .replace(/^\.\//, "")
+        .replace(BAD_LEADING_CHARACTERS, "");
 
       suggest({
-        filename: `${globalChromeRewriteOptions.path}/${replaceFsBadChars(
-          rewrittenFilename
-        )}`,
+        filename: safeFilename,
         conflictAction: globalChromeRewriteOptions.conflictAction
       });
     }
@@ -181,52 +246,117 @@ const downloadInto = (path, url, info, options, suggestedFilename) => {
 
   const {
     filenamePatterns,
-    prompt,
     promptIfNoExtension,
     conflictAction,
-    truncateLength
+    truncateLength,
+    routeExclusive
   } = options;
+  let prompt = options.prompt;
+  let sanitizeFilenameSlashes = true;
 
   const download = (filename, rewrite = true) => {
-    const rewrittenFilename = rewrite
+    let rewrittenFilename = rewrite
       ? rewriteFilename(
           suggestedFilename || filename,
           filenamePatterns,
-          url,
-          info
+          info,
+          url
         )
       : suggestedFilename || filename;
 
-    const hasExtension = rewrittenFilename.match(EXTENSION_REGEX);
+    if (
+      !suggestedFilename &&
+      rewrittenFilename &&
+      rewrittenFilename !== filename
+    ) {
+      sanitizeFilenameSlashes = false; // already sanitized
+      if (options.notifyOnRuleMatch) {
+        createExtensionNotification(
+          "Save In: Rule matched",
+          `${filename}\n⬇\n${rewrittenFilename}`,
+          false
+        );
+      }
+    } else if (
+      rewrittenFilename &&
+      suggestedFilename &&
+      rewrittenFilename !== suggestedFilename
+    ) {
+      sanitizeFilenameSlashes = false; // already sanitized
+
+      if (options.notifyOnRuleMatch) {
+        createExtensionNotification(
+          "Save In: Rule matched",
+          `${suggestedFilename}\n🡳\n${rewrittenFilename}`,
+          false
+        );
+      }
+    } else {
+      prompt = prompt || options.routeFailurePrompt;
+
+      if (options.routeExclusive) {
+        if (options.notifyOnFailure) {
+          createExtensionNotification(
+            "Save In: Failed to route or rename download",
+            `No matching rule found for ${url}`,
+            true
+          );
+        }
+
+        if (!prompt) {
+          return;
+        }
+      }
+    }
+
+    // If no filename rewrites matched, fall back to filename
+    rewrittenFilename = rewrittenFilename || suggestedFilename || filename;
+
+    const hasExtension =
+      rewrittenFilename && rewrittenFilename.match(EXTENSION_REGEX);
 
     const fsSafeDirectory = sanitizePath(
       path.replace(/^\.[\\/\\\\]?/, ""),
       truncateLength
     );
-    const fsSafeFilename = sanitizePath(rewrittenFilename, truncateLength);
+
+    const fsSafeFilename = sanitizeFilenameSlashes
+      ? sanitizePath(
+          sanitizeFilename(rewrittenFilename, truncateLength),
+          truncateLength
+        )
+      : sanitizePath(rewrittenFilename, truncateLength);
 
     const fsSafePath = fsSafeDirectory
       ? [fsSafeDirectory, fsSafeFilename].join("/")
       : fsSafeFilename;
 
     if (window.SI_DEBUG) {
-      console.log("download filename", filename); // eslint-disable-line
-      console.log("download suggestedFilename", suggestedFilename); // eslint-disable-line
-      console.log("download rewrittenFilename", rewrittenFilename); // eslint-disable-line
-      console.log("download fsSafeDirectory", fsSafeDirectory); // eslint-disable-line
-      console.log("download fsSafeFilename", fsSafeFilename); // eslint-disable-line
-      console.log("download fsSafePath", fsSafePath); // eslint-disable-line
-      console.log("download conflictAction", conflictAction); // eslint-disable-line
+      /* eslint-disable no-console */
+      console.log("download filename", filename);
+      console.log("download suggestedFilename", suggestedFilename);
+      console.log("download rewrittenFilename", rewrittenFilename);
+      console.log("download fsSafeDirectory", fsSafeDirectory);
+      console.log("download fsSafeFilename", fsSafeFilename);
+      console.log("download fsSafePath", fsSafePath);
+      console.log("download conflictAction", conflictAction);
+      console.log("download prompt", prompt);
+      /* eslint-enable no-console */
     }
 
     // conflictAction is Chrome only and overridden in onDeterminingFilename, Firefox enforced in settings
+
     browser.downloads.download({
       url,
-      filename: fsSafePath,
+      filename: fsSafePath || "_",
       saveAs: prompt || (promptIfNoExtension && !hasExtension),
       conflictAction
     });
+
+    window.lastDownload = { info, path, url, filename };
   };
+
+  const urlFilename = getFilenameFromUrl(url);
 
   // CHROME
   if (
@@ -244,11 +374,9 @@ const downloadInto = (path, url, info, options, suggestedFilename) => {
       conflictAction
     };
 
-    download(url, false); // Will be rewritten inside Chrome event listener
+    download(urlFilename || url, false); // Will be rewritten inside Chrome event listener
     return;
   }
-
-  const urlFilename = getFilenameFromUrl(url);
 
   fetch(url, { method: "HEAD" })
     .then(res => {
@@ -278,6 +406,7 @@ if (typeof module !== "undefined") {
     replaceSpecialDirs,
     rewriteFilename,
     makeObjectUrl,
+    removeSpecialDirs,
     DISPOSITION_FILENAME_REGEX,
     EXTENSION_REGEX,
     SPECIAL_CHARACTERS_REGEX
