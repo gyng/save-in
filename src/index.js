@@ -441,9 +441,23 @@ window.init();
 browser.tabs.onActivated.addListener(info => {
   browser.tabs.get(info.tabId).then(t => {
     if (window.SI_DEBUG) {
-      console.log("current tab", t); // eslint-disable-line
+      console.log("current tab activated", t); // eslint-disable-line
     }
 
     currentTab = t;
   });
+});
+
+browser.tabs.onUpdated.addListener((tabId, changeInfo) => {
+  if (!currentTab) {
+    browser.tabs.get(tabId).then(t => {
+      currentTab = t;
+    });
+  } else if (currentTab.id === tabId && changeInfo.title) {
+    if (window.SI_DEBUG) {
+      console.log("current tab updated", tabId, changeInfo); // eslint-disable-line
+    }
+
+    currentTab.title = changeInfo.title;
+  }
 });
