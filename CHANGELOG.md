@@ -1,3 +1,7 @@
+# 2.0.2
+
+* Don't warn if path has a `\` in it
+
 # 2.0.0
 
 * Filename rewrites upgrade: now 100% more flexible

@@ -243,7 +243,8 @@ window.init = () => {
         if (
           dir !== "." &&
           !dir.startsWith("./") &&
-          sanitizePath(removeSpecialDirs(dir)) !== removeSpecialDirs(dir)
+          sanitizePath(removeSpecialDirs(dir)) !==
+            removeSpecialDirs(dir).replace(new RegExp(/\\/, "g"), "/")
         ) {
           window.optionErrors.paths.push({
             message: "Path contains invalid characters",
