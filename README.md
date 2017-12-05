@@ -8,17 +8,17 @@
 
 ![Screenshot](docs/screenshot.png)
 
-A web extension (Chrome, Firefox) for saving images, videos, audio, links, selections, and the current page into specified directories.
+A web extension for Firefox and Chrome.
 
-Rewrite filenames based off rules.
+Adds a context menu to save media {image, video, audio, link, selection, page} in user-defined folders or directories relative to the default download location.
 
-Optionally, save everything as HTML redirects or .url/.desktop shortcuts instead.
+Save into dynamically named directories.
 
-`<all_urls>` permission is used to get around CORS on HTTP HEAD requests (to check for `Content-Disposition` headers).
+Flexible rules-based download renaming and routing.
 
-`tabs` permission is used to grab the current page's title
+Option to save as shortcuts {.url, .desktop, .html redirect}.
 
-The WebExtension API only allows saving into directories relative to the default download directory. Symlinks/junctions can be used to get around this limitation.
+The WebExtension API only allows saving into directories relative to the default download directory. Symlinks can be used to get around this limitation:
 
 Linux/Mac:
 
@@ -28,7 +28,12 @@ Windows:
 
     mklink /d \default_download_dir\symlink \path\to\actual
 
-See the options page for usage and more information.
+Make sure the actual directories exist, or downloads will silently fail.
+
+* <all_urls> permission is used to get around CORS on HTTP HEAD requests (to check for Content-Disposition headers)
+* tabs permission is used to get the active page's title.
+
+Configure before use.
 
 ## Development
 
