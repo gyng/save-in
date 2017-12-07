@@ -142,13 +142,23 @@ window.init = () => {
         promptOnFailure: options.promptOnFailure
       });
 
+      // HACK: Allow duplicate separators
+      let separatorHackCounter = 0;
       const pathsArray = [
-        ...new Set(options.paths.split("\n").map(p => p.trim()))
+        ...new Set(
+          options.paths.split("\n").map(
+            p =>
+              p.trim() === SPECIAL_DIRS.SEPARATOR
+                ? `:${SPECIAL_DIRS.SEPARATOR}-${separatorHackCounter++}` // eslint-disable-line
+                : p.trim()
+          )
+        )
       ];
+
+      let separatorCounter = 0;
       let media = options.links ? MEDIA_TYPES.concat(["link"]) : MEDIA_TYPES;
       media = options.selection ? media.concat(["selection"]) : media;
       media = options.page ? media.concat(["page"]) : media;
-      let separatorCounter = 0;
 
       // CHROME ONLY, FF does not support yet
       // https://bugzilla.mozilla.org/show_bug.cgi?id=1320462
@@ -244,7 +254,8 @@ window.init = () => {
           dir !== "." &&
           !dir.startsWith("./") &&
           sanitizePath(removeSpecialDirs(dir)) !==
-            removeSpecialDirs(dir).replace(new RegExp(/\\/, "g"), "/")
+            removeSpecialDirs(dir).replace(new RegExp(/\\/, "g"), "/") &&
+          !dir.startsWith(`:${SPECIAL_DIRS.SEPARATOR}`)
         ) {
           window.optionErrors.paths.push({
             message: "Path contains invalid characters",
@@ -252,28 +263,26 @@ window.init = () => {
           });
         }
 
-        switch (dir) {
-          case SPECIAL_DIRS.SEPARATOR:
-            browser.contextMenus.create({
-              id: `separator-${separatorCounter}`,
-              type: "separator",
-              contexts: media,
-              parentId: "save-in-root"
-            });
+        // HACK
+        if (dir.startsWith(`:${SPECIAL_DIRS.SEPARATOR}`)) {
+          browser.contextMenus.create({
+            id: `separator-${separatorCounter}`,
+            type: "separator",
+            contexts: media,
+            parentId: "save-in-root"
+          });
 
-            separatorCounter += 1;
-            break;
-          default:
-            menuItemCounter += 1;
-            browser.contextMenus.create({
-              id: `save-in-${dir}`,
-              title: options.enableNumberedItems
-                ? setAccesskey(dir, menuItemCounter)
-                : dir,
-              contexts: media,
-              parentId: "save-in-root"
-            });
-            break;
+          separatorCounter += 1;
+        } else {
+          menuItemCounter += 1;
+          browser.contextMenus.create({
+            id: `save-in-${dir}`,
+            title: options.enableNumberedItems
+              ? setAccesskey(dir, menuItemCounter)
+              : dir,
+            contexts: media,
+            parentId: "save-in-root"
+          });
         }
       });
 

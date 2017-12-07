@@ -1,6 +1,7 @@
 # 2.0.2
 
 * Don't warn if path has a `\` in it
+* Hack to allow multiple separators (#44)
 
 # 2.0.0
 
