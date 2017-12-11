@@ -48,13 +48,13 @@ describe("filename rewrite and routing", () => {
 
     test("filename", () => {
       const matcher = router.matcherFunctions.filename(new RegExp("dog.jpg"));
-      expect(matcher(info, "dog.jpg").length).toBe(1);
-      expect(matcher(info, "dog.jpg")[0]).toBe("dog.jpg");
+      expect(matcher(info, { filename: "dog.jpg" }).length).toBe(1);
+      expect(matcher(info, { filename: "dog.jpg" })[0]).toBe("dog.jpg");
     });
 
     test("filename negative", () => {
       const matcher = router.matcherFunctions.filename(new RegExp("dog.jpg"));
-      expect(matcher(info, "cat.jpg")).toBe(null);
+      expect(matcher(info, { filename: "cat.jpg" })).toBe(null);
     });
 
     test("naivefilename", () => {

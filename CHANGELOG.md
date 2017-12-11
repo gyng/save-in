@@ -1,3 +1,12 @@
+# 2.1.0
+
+* Add `context:` clause
+* Do not automatically add `.html` to all page downloads. (#45) This avoids wrong extensions on non-HTML pages. For the old behaviour, use a rule:
+  ```
+  context: page
+  into: :pagetitle:.html
+  ```
+
 # 2.0.2
 
 * Don't warn if path has a `\` in it

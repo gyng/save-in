@@ -340,7 +340,7 @@ const setupAutosave = el => {
 document.querySelectorAll(".popout").forEach(el => {
   el.addEventListener("click", () => {
     const target = el.dataset.popoutFor;
-    window.open(target, null, "menubar=no,width=900,height=600,scrollbars=yes");
+    window.open(target, null, "menubar=no,width=940,height=600,scrollbars=yes");
   });
 });
 

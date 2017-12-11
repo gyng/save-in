@@ -164,13 +164,13 @@ const replaceSpecialDirs = (path, url, info) => {
 };
 
 // Handles rewriting FILENAME and regex captures
-const rewriteFilename = (filename, filenamePatterns, info, url) => {
+const rewriteFilename = (filename, filenamePatterns, info, url, context) => {
   // Clauses (matchers)
   if (!filenamePatterns || filenamePatterns.length === 0 || !info) {
     return filename;
   }
 
-  const matchFile = matchRules(filenamePatterns, info, filename);
+  const matchFile = matchRules(filenamePatterns, info, { filename, context });
 
   if (window.SI_DEBUG) {
     /* eslint-disable no-console */
@@ -222,7 +222,8 @@ if (chrome && chrome.downloads && chrome.downloads.onDeterminingFilename) {
           globalChromeRewriteOptions.suggestedFilename || downloadItem.filename,
           globalChromeRewriteOptions.filenamePatterns,
           globalChromeRewriteOptions.info,
-          globalChromeRewriteOptions.url
+          globalChromeRewriteOptions.url,
+          globalChromeRewriteOptions.context
         ) || downloadItem.filename;
 
       const safeFilename = `${globalChromeRewriteOptions.path}/${rewrittenFilename}`
@@ -237,17 +238,17 @@ if (chrome && chrome.downloads && chrome.downloads.onDeterminingFilename) {
   );
 }
 
-const downloadInto = (path, url, info, options, suggestedFilename) => {
-  // Make bug reports easier
-  /* eslint-disable no-console */
+const downloadInto = downloadIntoOptions => {
+  const url = downloadIntoOptions.url;
+  const path = downloadIntoOptions.path;
+  const info = downloadIntoOptions.downloadInfo;
+  const options = downloadIntoOptions.addonOptions;
+  const suggestedFilename = downloadIntoOptions.suggestedFilename;
+  const context = downloadIntoOptions.context;
+
   if (window.SI_DEBUG) {
-    console.log("downloadInto path", path);
-    console.log("downloadInto url", url);
-    console.log("downloadInto info", info);
-    console.log("downloadInto options", options);
-    console.log("downloadInto suggestedFilename", suggestedFilename);
+    console.log("downloadInto", downloadIntoOptions); // eslint-disable-line
   }
-  /* eslint-enable no-console */
 
   const {
     filenamePatterns,
@@ -265,7 +266,8 @@ const downloadInto = (path, url, info, options, suggestedFilename) => {
           suggestedFilename || filename,
           filenamePatterns,
           info,
-          url
+          url,
+          context
         )
       : suggestedFilename || filename;
 
@@ -358,7 +360,7 @@ const downloadInto = (path, url, info, options, suggestedFilename) => {
       conflictAction
     });
 
-    window.lastDownload = { info, path, url, filename };
+    window.lastDownload = { info, path, url, filename, context };
   };
 
   const urlFilename = getFilenameFromUrl(url);
@@ -376,7 +378,8 @@ const downloadInto = (path, url, info, options, suggestedFilename) => {
       url,
       info,
       truncateLength,
-      conflictAction
+      conflictAction,
+      context
     };
 
     download(urlFilename || url, false); // Will be rewritten inside Chrome event listener

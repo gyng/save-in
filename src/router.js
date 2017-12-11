@@ -43,6 +43,15 @@ const makeHostnameMatcherFactory = propertyName => regex => info => {
 };
 
 const matcherFunctions = {
+  context: regex => (info, { context }) => {
+    const match = context.toLowerCase().match(regex);
+
+    if (window.SI_DEBUG && match) {
+      console.log("matched", match, regex, info); // eslint-disable-line
+    }
+
+    return match;
+  },
   fileext: regex => info => {
     const url = info.srcUrl || info.linkUrl || info.pageUrl;
     if (!url) return false;
@@ -58,7 +67,7 @@ const matcherFunctions = {
 
     return match;
   },
-  filename: regex => (info, filename) => {
+  filename: regex => (info, { filename }) => {
     const fn = filename || (info && info.filename);
     if (!fn) return false;
 

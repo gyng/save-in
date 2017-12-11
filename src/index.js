@@ -115,7 +115,8 @@ window.init = () => {
           last.filename,
           filenamePatterns,
           last.info,
-          last.url
+          last.url,
+          last.context
         );
 
         let testLastCapture;
@@ -370,7 +371,7 @@ browser.contextMenus.onClicked.addListener(info => {
       downloadType = DOWNLOAD_TYPES.PAGE;
       url = info.pageUrl;
       const pageTitle = currentTab && currentTab.title;
-      suggestedFilename = pageTitle ? `${pageTitle}.html` : info.pageUrl;
+      suggestedFilename = pageTitle || info.pageUrl;
     } else {
       if (window.SI_DEBUG) {
         console.log("failed to choose download", info); // eslint-disable-line
@@ -425,7 +426,17 @@ browser.contextMenus.onClicked.addListener(info => {
     }
 
     requestedDownloadFlag = true;
-    downloadInto(actualPath, url, info, options, suggestedFilename);
+
+    const downloadIntoOptions = {
+      path: actualPath,
+      url,
+      downloadInfo: info,
+      addonOptions: options,
+      suggestedFilename,
+      context: downloadType
+    };
+
+    downloadInto(downloadIntoOptions);
   }
 
   switch (info.menuItemId) {
