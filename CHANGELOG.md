@@ -1,4 +1,4 @@
-* 2.2.0
+# 2.2.0
 
 * Add filesize and mimetype to successful download notification (#48)
 * Add experimental click-to-save feature (#15, #20)
