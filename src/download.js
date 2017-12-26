@@ -259,6 +259,7 @@ const downloadInto = downloadIntoOptions => {
   } = options;
   let prompt = options.prompt;
   let sanitizeFilenameSlashes = true;
+  requestedDownloadFlag = true;
 
   const download = (filename, rewrite = true) => {
     let rewrittenFilename = rewrite

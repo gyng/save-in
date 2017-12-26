@@ -44,7 +44,8 @@ const DOWNLOAD_TYPES = {
   MEDIA: "MEDIA",
   LINK: "LINK",
   SELECTION: "SELECTION",
-  PAGE: "PAGE"
+  PAGE: "PAGE",
+  CLICK: "CLICK"
 };
 
 const CONFLICT_ACTION = {
@@ -59,6 +60,12 @@ const RULE_TYPES = {
   DESTINATION: "DESTINATION"
 };
 
+const MESSAGE_TYPES = {
+  OPTIONS: "OPTIONS",
+  DOWNLOAD: "DOWNLOAD",
+  OK: "OK"
+};
+
 // Export for testing
 if (typeof module !== "undefined") {
   module.exports = {
@@ -67,6 +74,7 @@ if (typeof module !== "undefined") {
     SHORTCUT_TYPES,
     SHORTCUT_EXTENSIONS,
     CONFLICT_ACTION,
-    RULE_TYPES
+    RULE_TYPES,
+    MESSAGE_TYPES
   };
 }

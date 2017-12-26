@@ -43,6 +43,8 @@
     "removeSpecialDirs": true,
     "lastDownload": true,
     "rewriteFilename": true,
-    "getCaptureMatches": true
+    "getCaptureMatches": true,
+    "MESSAGE_TYPES": true,
+    "lastUsedPath": true
   }
 }

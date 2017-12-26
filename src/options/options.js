@@ -112,7 +112,11 @@ const saveOptions = e => {
       keyRoot: document.querySelector("#keyRoot").value,
       keyLastUsed: document.querySelector("#keyLastUsed").value,
       enableNumberedItems: document.querySelector("#enableNumberedItems")
-        .checked
+        .checked,
+      contentClickToSave: document.querySelector("#contentClickToSave").checked,
+      contentClickToSaveCombo: document.querySelector(
+        "#contentClickToSaveCombo"
+      ).value
     })
     .then(() => {
       browser.runtime.getBackgroundPage().then(w => {
@@ -163,6 +167,8 @@ const restoreOptionsHandler = result => {
   setCheckboxElement("enableNumberedItems", true);
   setValueElement("keyRoot", "a");
   setValueElement("keyLastUsed", "a");
+  setCheckboxElement("contentClickToSave", false);
+  setValueElement("contentClickToSaveCombo", 18);
 
   debugOptions = result;
   updateErrors();
@@ -194,7 +200,9 @@ const restoreOptions = () => {
       "truncateLength",
       "keyRoot",
       "keyLastUsed",
-      "enableNumberedItems"
+      "enableNumberedItems",
+      "contentClickToSave",
+      "contentClickToSaveCombo"
     ])
     .then(restoreOptionsHandler);
 };

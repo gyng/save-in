@@ -22,7 +22,9 @@ const options = {
   replacementChar: "_",
   keyRoot: "a",
   keyLastUsed: "a",
-  enableNumberedItems: true
+  enableNumberedItems: true,
+  contentClickToSave: false,
+  contentClickToSaveCombo: 18
 };
 
 const setOption = (name, value) => {
@@ -68,7 +70,9 @@ window.init = () => {
       "replacementChar",
       "keyRoot",
       "keyLastUsed",
-      "enableNumberedItems"
+      "enableNumberedItems",
+      "contentClickToSave",
+      "contentClickToSaveCombo"
     ])
     .then(item => {
       if (item.debug) {
@@ -95,6 +99,8 @@ window.init = () => {
       setOption("truncateLength", item.truncateLength);
       setOption("routeFailurePrompt", item.routeFailurePrompt);
       setOption("routeExclusive", item.routeExclusive);
+      setOption("contentClickToSave", item.contentClickToSave);
+      setOption("contentClickToSaveCombo", item.contentClickToSaveCombo);
       setOption(
         "replacementChar",
         replaceLeadingDots(replaceFsBadChars(item.replacementChar || "", "")) ||
@@ -424,8 +430,6 @@ browser.contextMenus.onClicked.addListener(info => {
         options.truncateLength
       );
     }
-
-    requestedDownloadFlag = true;
 
     const downloadIntoOptions = {
       path: actualPath,
