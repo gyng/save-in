@@ -399,7 +399,7 @@ const downloadInto = downloadIntoOptions => {
     })
     .catch(() => {
       // HEAD rejected for whatever reason: try to download anyway
-      download(urlFilename);
+      download(urlFilename || url);
     });
 };
 

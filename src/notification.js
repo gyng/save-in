@@ -172,11 +172,32 @@ const addNotifications = options => {
       downloadDelta.state.current === "complete" &&
       downloadDelta.state.previous === "in_progress"
     ) {
-      browser.notifications.create(String(downloadDelta.id), {
-        type: "basic",
-        title: "Saved",
-        iconUrl: ICON_URL,
-        message: filename
+      browser.downloads.search({ id: downloadDelta.id }).then(res => {
+        let filesize = "";
+        const mime = res.length > 0 && res[0].mime;
+
+        if (res.length > 0 && res[0].fileSize) {
+          const bytes = res[0].fileSize;
+          if (bytes >= 1000 * 1000) {
+            const mb = (res[0].fileSize / 1000 / 1000).toFixed(1);
+            filesize = `${mb} MB`;
+          } else if (bytes >= 1000) {
+            const kb = (res[0].fileSize / 1000).toFixed(1);
+            filesize = `${kb} KB`;
+          } else {
+            filesize = `${bytes} B`;
+          }
+        }
+
+        const title =
+          res.length > 0 ? `Saved — ${filesize} — ${mime}` : "Saved";
+
+        browser.notifications.create(String(downloadDelta.id), {
+          type: "basic",
+          title,
+          iconUrl: ICON_URL,
+          message: filename
+        });
       });
 
       if (window.SI_DEBUG) {

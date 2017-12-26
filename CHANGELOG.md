@@ -1,3 +1,7 @@
+* 2.2.0
+
+* Add filesize and mimetype to successful download notification (#48)
+
 # 2.1.0
 
 * Add `context:` clause
