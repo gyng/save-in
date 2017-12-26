@@ -118,6 +118,8 @@ const addNotifications = options => {
     const failed = isDownloadFailure(downloadDelta, browser === chrome);
 
     const isFromSelf = typeof downloadsList[downloadDelta.id] !== "undefined";
+    const isUserCancelled =
+      downloadDelta.error && downloadDelta.error.current === "USER_CANCELED";
 
     if (window.SI_DEBUG) {
       /* eslint-disable no-console */
@@ -131,7 +133,7 @@ const addNotifications = options => {
       /* eslint-enable no-console */
     }
 
-    if (isFromSelf && failed) {
+    if (isFromSelf && failed && !isUserCancelled) {
       if (notifyOnFailure) {
         browser.notifications.create(String(downloadDelta.id), {
           type: "basic",
