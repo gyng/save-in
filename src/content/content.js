@@ -29,10 +29,12 @@ chrome.runtime.sendMessage(
         }
 
         if (isComboActive(shortcutOptions.combo, active)) {
-          e.preventDefault();
           const source = e.target.currentSrc || e.target.src;
 
           if (source) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+
             chrome.runtime.sendMessage({
               type: "DOWNLOAD",
               body: {
