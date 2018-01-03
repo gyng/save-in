@@ -11,13 +11,17 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
     case MESSAGE_TYPES.DOWNLOAD:
       const { url, info } = request.body;
       const path = replaceSpecialDirs(lastUsedPath || "", url, info);
+      const last = window.lastDownload || {};
+
       downloadInto({
         path,
         url,
         downloadInfo: info,
         addonOptions: options,
         suggestedFilename: null,
-        context: DOWNLOAD_TYPES.CLICK
+        context: DOWNLOAD_TYPES.CLICK,
+        menuIndex: last.menuIndex || "",
+        comment: last.comment || ""
       });
 
       sendResponse({

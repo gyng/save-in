@@ -45,7 +45,7 @@
           <div class="demo-code left ">
             <pre class="click-to-copy">.
 i/dogs
-i/cats
+i/cats // cute!
 ---
 v/cats
 :date:/:day:/foo
@@ -112,7 +112,8 @@ v/cats
       </div>
 
       <p>One path per line, relative to the default download directory.
-        <code>.</code> downloads to the default download directory.</p>
+        <code>.</code> downloads to the default download directory. Use
+        <code>//</code> at the end of a line to add a comment.</p>
       <p>A symlink is needed to save outside the default download directory.</p>
 
       <textarea required type="textarea" id="paths" rows=10 placeholder="." spellcheck="false"></textarea>
@@ -361,16 +362,21 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
       <input disabled class="chrome-enabled" type="checkbox" id="enableNumberedItems" /> Add number key shortcuts to context submenu items
     </label>
 
-    <h3>Click To Save <span class="warning badge">Experimental</span></h3>
+    <h3>Click To Save
+      <span class="warning badge">Experimental</span>
+    </h3>
     <label>
       <input type="checkbox" id="contentClickToSave" /> Enable click to save
-      <div class="caption caption-line">Hold down Alt (default) and click images or media to save them in the last used directory or default download directory. Injects a script into pages to listen for click events. Not all variables are available when using this. Requires page
-        refresh to take effect.</div>
+      <div class="caption caption-line">Hold down Alt (default) and click images or media to save them in the last used directory or default download directory.
+        Injects a script into pages to listen for click events. Not all variables are available when using this. Requires
+        page refresh to take effect.</div>
     </label>
 
     <label>
       <input type="number" id="contentClickToSaveCombo" /> Click-to-save modifier keycode
-      <div class="caption caption-line">Modifier keycode for click-to-save. Requires page refresh to take effect. <a class="caption" href="http://keycode.info/">keycode.info</a></div>
+      <div class="caption caption-line">Modifier keycode for click-to-save. Requires page refresh to take effect.
+        <a class="caption" href="http://keycode.info/">keycode.info</a>
+      </div>
     </label>
 
     <hr>

@@ -1,3 +1,8 @@
+# 2.3.0
+
+* Add `comment:`, `menuindex:` matchers
+* Allow comments on menu items
+
 # 2.2.1
 
 * Also stop propagation immediately on click-to-save

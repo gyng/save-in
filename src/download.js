@@ -164,13 +164,26 @@ const replaceSpecialDirs = (path, url, info) => {
 };
 
 // Handles rewriting FILENAME and regex captures
-const rewriteFilename = (filename, filenamePatterns, info, url, context) => {
+const rewriteFilename = (
+  filename,
+  filenamePatterns,
+  info,
+  url,
+  context,
+  menuIndex,
+  comment
+) => {
   // Clauses (matchers)
   if (!filenamePatterns || filenamePatterns.length === 0 || !info) {
     return filename;
   }
 
-  const matchFile = matchRules(filenamePatterns, info, { filename, context });
+  const matchFile = matchRules(filenamePatterns, info, {
+    filename,
+    context,
+    menuIndex,
+    comment
+  });
 
   if (window.SI_DEBUG) {
     /* eslint-disable no-console */
@@ -180,7 +193,10 @@ const rewriteFilename = (filename, filenamePatterns, info, url, context) => {
       filenamePatterns,
       info,
       url,
-      matchFile
+      matchFile,
+      context,
+      menuIndex,
+      comment
     );
     /* eslint-enable no-console */
   }
@@ -223,7 +239,9 @@ if (chrome && chrome.downloads && chrome.downloads.onDeterminingFilename) {
           globalChromeRewriteOptions.filenamePatterns,
           globalChromeRewriteOptions.info,
           globalChromeRewriteOptions.url,
-          globalChromeRewriteOptions.context
+          globalChromeRewriteOptions.context,
+          globalChromeRewriteOptions.menuIndex,
+          globalChromeRewriteOptions.comment
         ) || downloadItem.filename;
 
       const safeFilename = `${globalChromeRewriteOptions.path}/${rewrittenFilename}`
@@ -245,6 +263,8 @@ const downloadInto = downloadIntoOptions => {
   const options = downloadIntoOptions.addonOptions;
   const suggestedFilename = downloadIntoOptions.suggestedFilename;
   const context = downloadIntoOptions.context;
+  const menuIndex = downloadIntoOptions.menuIndex;
+  const comment = downloadIntoOptions.comment;
 
   if (window.SI_DEBUG) {
     console.log("downloadInto", downloadIntoOptions); // eslint-disable-line
@@ -268,7 +288,9 @@ const downloadInto = downloadIntoOptions => {
           filenamePatterns,
           info,
           url,
-          context
+          context,
+          menuIndex,
+          comment
         )
       : suggestedFilename || filename;
 
@@ -361,7 +383,15 @@ const downloadInto = downloadIntoOptions => {
       conflictAction
     });
 
-    window.lastDownload = { info, path, url, filename, context };
+    window.lastDownload = {
+      info,
+      path,
+      url,
+      filename,
+      context,
+      menuIndex,
+      comment
+    };
   };
 
   const urlFilename = getFilenameFromUrl(url);
@@ -380,7 +410,9 @@ const downloadInto = downloadIntoOptions => {
       info,
       truncateLength,
       conflictAction,
-      context
+      context,
+      menuIndex,
+      comment
     };
 
     download(urlFilename || url, false); // Will be rewritten inside Chrome event listener

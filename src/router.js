@@ -52,6 +52,24 @@ const matcherFunctions = {
 
     return match;
   },
+  menuindex: regex => (info, { menuIndex }) => {
+    const match = menuIndex.match(regex);
+
+    if (window.SI_DEBUG && match) {
+      console.log("matched", match, regex, info); // eslint-disable-line
+    }
+
+    return match;
+  },
+  comment: regex => (info, { comment }) => {
+    const match = comment.match(regex);
+
+    if (window.SI_DEBUG && match) {
+      console.log("matched", match, regex, info); // eslint-disable-line
+    }
+
+    return match;
+  },
   fileext: regex => info => {
     const url = info.srcUrl || info.linkUrl || info.pageUrl;
     if (!url) return false;
