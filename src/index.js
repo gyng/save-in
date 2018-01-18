@@ -1,31 +1,60 @@
-// defaults, duplicate of those in options.js
-const options = {
-  debug: false,
-  conflictAction: "uniquify",
-  links: true,
-  selection: true,
-  prompt: false,
-  promptOnFailure: true,
-  paths: ".\nimages\nvideos",
-  page: true,
-  shortcutMedia: false,
-  shortcutLink: false,
-  shortcutPage: false,
-  shortcutType: SHORTCUT_TYPES.HTML_REDIRECT,
-  notifyOnSuccess: false,
-  notifyOnRuleMatch: true,
-  notifyOnFailure: true,
-  notifyDuration: 7000,
-  truncateLength: 240,
-  routeFailurePrompt: false,
-  routeExclusive: false,
-  replacementChar: "_",
-  keyRoot: "a",
-  keyLastUsed: "a",
-  enableNumberedItems: true,
-  contentClickToSave: false,
-  contentClickToSaveCombo: 18
+const T = {
+  BOOL: "BOOL",
+  VALUE: "VALUE"
 };
+
+const OPTION_KEYS = [
+  { name: "conflictAction", type: T.VALUE, default: "uniquify" },
+  { name: "contentClickToSave", type: T.BOOL, default: false },
+  { name: "contentClickToSaveCombo", type: T.VALUE, default: 18 },
+  { name: "debug", type: T.BOOL, fn: null, default: false },
+  { name: "enableNumberedItems", type: T.BOOL, default: true },
+  {
+    name: "filenamePatterns",
+    type: T.VALUE,
+    onSave: v => v.trim(),
+    onLoad: v => parseRules(v),
+    default: ""
+  },
+  { name: "keyLastUsed", type: T.VALUE, default: "a" },
+  { name: "keyRoot", type: T.VALUE, default: "a" },
+  { name: "links", type: T.BOOL, default: true },
+  { name: "notifyDuration", type: T.VALUE, default: 7000 },
+  { name: "notifyOnFailure", type: T.BOOL, default: true },
+  { name: "notifyOnRuleMatch", type: T.BOOL, default: true },
+  { name: "notifyOnSuccess", type: T.BOOL, default: false },
+  { name: "page", type: T.BOOL, default: true },
+  {
+    name: "paths",
+    type: T.VALUE,
+    onSave: v => v.trim() || ".",
+    default: ".\nimages\nvideos"
+  },
+  { name: "prompt", type: T.BOOL, default: false },
+  { name: "promptIfNoExtension", type: T.BOOL, default: false },
+  { name: "promptOnFailure", type: T.BOOL, default: true },
+  { name: "replacementChar", type: T.VALUE, default: "_" },
+  { name: "routeExclusive", type: T.BOOL, default: false },
+  { name: "routeFailurePrompt", type: T.BOOL, default: false },
+  { name: "selection", type: T.BOOL, default: true },
+  { name: "shortcutLink", type: T.BOOL, default: false },
+  { name: "shortcutMedia", type: T.BOOL, default: false },
+  { name: "shortcutPage", type: T.BOOL, default: false },
+  {
+    name: "shortcutType",
+    type: T.VALUE,
+    default: SHORTCUT_TYPES.HTML_REDIRECT
+  },
+  { name: "truncateLength", type: T.VALUE, default: 240 }
+];
+
+window.OPTION_TYPES = T;
+window.OPTION_KEYS = OPTION_KEYS;
+
+// defaults, duplicate of those in options.js
+const options = OPTION_KEYS.reduce((acc, val) =>
+  Object.assign(acc, { [val.name]: val.default }, {})
+);
 
 const setOption = (name, value) => {
   if (typeof value !== "undefined") {
@@ -44,318 +73,260 @@ window.init = () => {
     testLastCapture: null
   };
 
-  browser.storage.local
-    .get([
-      "debug",
-      "conflictAction",
-      "links",
-      "page",
-      "shortcutMedia",
-      "shortcutLink",
-      "shortcutPage",
-      "shortcutType",
-      "selection",
-      "paths",
-      "filenamePatterns",
-      "routeFailurePrompt",
-      "routeExclusive",
-      "prompt",
-      "promptOnFailure",
-      "promptIfNoExtension",
-      "notifyOnSuccess",
-      "notifyOnRuleMatch",
-      "notifyOnFailure",
-      "notifyDuration",
-      "truncateLength",
-      "replacementChar",
-      "keyRoot",
-      "keyLastUsed",
-      "enableNumberedItems",
-      "contentClickToSave",
-      "contentClickToSaveCombo"
-    ])
-    .then(item => {
-      if (item.debug) {
-        window.SI_DEBUG = 1;
-      }
+  const keys = OPTION_KEYS.reduce((acc, val) => acc.concat([val.name]), []);
+  browser.storage.local.get(keys).then(loadedOptions => {
+    if (loadedOptions.debug) {
+      window.SI_DEBUG = 1;
+    }
 
-      // Options page has a different scope
-      setOption("links", item.links);
-      setOption("conflictAction", item.conflictAction);
-      setOption("selection", item.selection);
-      setOption("page", item.page);
-      setOption("paths", item.paths);
-      setOption("prompt", item.prompt);
-      setOption("promptOnFailure", item.promptOnFailure);
-      setOption("promptIfNoExtension", item.promptIfNoExtension);
-      setOption("notifyOnSuccess", item.notifyOnSuccess);
-      setOption("notifyOnRuleMatch", item.notifyOnRuleMatch);
-      setOption("notifyOnFailure", item.notifyOnFailure);
-      setOption("notifyDuration", item.notifyDuration);
-      setOption("shortcutMedia", item.shortcutMedia);
-      setOption("shortcutLink", item.shortcutLink);
-      setOption("shortcutPage", item.shortcutPage);
-      setOption("shortcutType", item.shortcutType);
-      setOption("truncateLength", item.truncateLength);
-      setOption("routeFailurePrompt", item.routeFailurePrompt);
-      setOption("routeExclusive", item.routeExclusive);
-      setOption("contentClickToSave", item.contentClickToSave);
-      setOption("contentClickToSaveCombo", item.contentClickToSaveCombo);
-      setOption(
-        "replacementChar",
-        replaceLeadingDots(replaceFsBadChars(item.replacementChar || "", "")) ||
-          ""
+    const localKeys = Object.keys(loadedOptions);
+    localKeys.forEach(k => {
+      const optionType = OPTION_KEYS.find(ok => ok.name === k);
+      const fn = optionType.onLoad || (x => x);
+      setOption(k, fn(loadedOptions[k]));
+    });
+
+    if (window.lastDownload) {
+      const last = window.lastDownload;
+      const testLastResult = rewriteFilename(
+        last.filename,
+        options.filenamePatterns,
+        last.info,
+        last.url,
+        last.context,
+        last.menuIndex,
+        last.comment
       );
 
-      setOption("keyRoot", item.keyRoot);
-      setOption("keyLastUsed", item.keyLastUsed);
-      setOption("enableNumberedItems", item.enableNumberedItems);
-
-      const filenamePatterns =
-        item.filenamePatterns && parseRules(item.filenamePatterns);
-      setOption("filenamePatterns", filenamePatterns || []);
-
-      if (window.lastDownload) {
-        const last = window.lastDownload;
-        const testLastResult = rewriteFilename(
-          last.filename,
-          filenamePatterns,
+      let testLastCapture;
+      for (let i = 0; i < options.filenamePatterns.length; i += 1) {
+        testLastCapture = getCaptureMatches(
+          options.filenamePatterns[i],
           last.info,
-          last.url,
-          last.context,
-          last.menuIndex,
-          last.comment
+          last.filename || last.url
         );
 
-        let testLastCapture;
-        for (let i = 0; i < filenamePatterns.length; i += 1) {
-          testLastCapture = getCaptureMatches(
-            filenamePatterns[i],
-            last.info,
-            last.filename || last.url
-          );
-
-          if (testLastCapture) {
-            break;
-          }
+        if (testLastCapture) {
+          break;
         }
-
-        window.optionErrors.testLastResult = testLastResult;
-        window.optionErrors.testLastCapture = testLastCapture;
       }
 
-      addNotifications({
-        notifyOnSuccess: options.notifyOnSuccess,
-        notifyOnFailure: options.notifyOnFailure,
-        notifyDuration: options.notifyDuration,
-        promptOnFailure: options.promptOnFailure
-      });
+      window.optionErrors.testLastResult = testLastResult;
+      window.optionErrors.testLastCapture = testLastCapture;
+    }
 
-      // HACK: Allow duplicate separators
-      let separatorHackCounter = 0;
-      const pathsArray = options.paths.split("\n").map(
-        p =>
-          p.trim() === SPECIAL_DIRS.SEPARATOR
-            ? `:${SPECIAL_DIRS.SEPARATOR}-${separatorHackCounter++}` // eslint-disable-line
-            : p.trim()
-      );
+    addNotifications({
+      notifyOnSuccess: options.notifyOnSuccess,
+      notifyOnFailure: options.notifyOnFailure,
+      notifyDuration: options.notifyDuration,
+      promptOnFailure: options.promptOnFailure
+    });
 
-      let separatorCounter = 0;
-      let media = options.links ? MEDIA_TYPES.concat(["link"]) : MEDIA_TYPES;
-      media = options.selection ? media.concat(["selection"]) : media;
-      media = options.page ? media.concat(["page"]) : media;
+    // HACK: Allow duplicate separators
+    let separatorHackCounter = 0;
+    const pathsArray = options.paths.split("\n").map(
+      p =>
+        p.trim() === SPECIAL_DIRS.SEPARATOR
+          ? `:${SPECIAL_DIRS.SEPARATOR}-${separatorHackCounter++}` // eslint-disable-line
+          : p.trim()
+    );
 
-      // CHROME ONLY, FF does not support yet
-      // https://bugzilla.mozilla.org/show_bug.cgi?id=1320462
-      const setAccesskey = (str, key) => {
-        if (browser !== chrome || !key) {
-          return str;
-        }
+    let separatorCounter = 0;
+    let media = options.links ? MEDIA_TYPES.concat(["link"]) : MEDIA_TYPES;
+    media = options.selection ? media.concat(["selection"]) : media;
+    media = options.page ? media.concat(["page"]) : media;
 
-        if (str.includes(key)) {
-          return str.replace(key, `&${key}`);
-        } else {
-          return `${str} (&${key})`;
-        }
-      };
+    // CHROME ONLY, FF does not support yet
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=1320462
+    const setAccesskey = (str, key) => {
+      if (browser !== chrome || !key) {
+        return str;
+      }
 
-      if (options.routeExclusive) {
-        browser.contextMenus.create({
-          id: "save-in-_-_-route-exclusive",
-          title: setAccesskey(
-            browser.i18n.getMessage("contextMenuExclusive"),
-            options.keyRoot
-          ),
-          contexts: media
-        });
-
-        return;
+      if (str.includes(key)) {
+        return str.replace(key, `&${key}`);
       } else {
-        browser.contextMenus.create({
-          id: "save-in-_-_-root",
-          title: setAccesskey(
-            browser.i18n.getMessage("contextMenuRoot"),
-            options.keyRoot
-          ),
-          contexts: media
-        });
+        return `${str} (&${key})`;
       }
+    };
 
-      const lastUsedMenuOptions = {
-        id: `save-in-_-_-last-used`,
-        title: lastUsedPath || browser.i18n.getMessage("contextMenuLastUsed"),
-        enabled: lastUsedPath ? true : false, // eslint-disable-line
-        contexts: media,
-        parentId: "save-in-_-_-root"
-      };
-
-      // Chrome, FF < 57 crash when icons is supplied
-      // There is no easy way to detect support, so use a try/catch
-      try {
-        browser.contextMenus.create(
-          Object.assign({}, lastUsedMenuOptions, {
-            icons: {
-              "16": "icons/ic_update_black_24px.svg"
-            }
-          })
-        );
-      } catch (e) {
-        if (window.SI_DEBUG) {
-          console.log("Failed to create last used menu item with icons"); // eslint-disable-line
-        }
-
-        browser.contextMenus.create(lastUsedMenuOptions);
-      }
-
+    if (options.routeExclusive) {
       browser.contextMenus.create({
-        id: `separator-${separatorCounter}`,
-        type: "separator",
-        contexts: media,
-        parentId: "save-in-_-_-root"
+        id: "save-in-_-_-route-exclusive",
+        title: setAccesskey(
+          browser.i18n.getMessage("contextMenuExclusive"),
+          options.keyRoot
+        ),
+        contexts: media
       });
-      separatorCounter += 1;
 
-      let menuItemCounter = 0;
-      pathsArray.forEach(dir => {
-        if (
-          !dir ||
-          dir === ".." ||
-          dir.startsWith("../") ||
-          dir.startsWith("/") ||
-          dir.startsWith("//")
-        ) {
-          // Silently ignore blank lines
-          if (dir !== "" && !dir.startsWith("//")) {
-            window.optionErrors.paths.push({
-              message: "Path cannot start with .. or",
-              error: `${dir}`
-            });
+      return;
+    } else {
+      browser.contextMenus.create({
+        id: "save-in-_-_-root",
+        title: setAccesskey(
+          browser.i18n.getMessage("contextMenuRoot"),
+          options.keyRoot
+        ),
+        contexts: media
+      });
+    }
+
+    const lastUsedMenuOptions = {
+      id: `save-in-_-_-last-used`,
+      title: lastUsedPath || browser.i18n.getMessage("contextMenuLastUsed"),
+      enabled: lastUsedPath ? true : false, // eslint-disable-line
+      contexts: media,
+      parentId: "save-in-_-_-root"
+    };
+
+    // Chrome, FF < 57 crash when icons is supplied
+    // There is no easy way to detect support, so use a try/catch
+    try {
+      browser.contextMenus.create(
+        Object.assign({}, lastUsedMenuOptions, {
+          icons: {
+            "16": "icons/ic_update_black_24px.svg"
           }
+        })
+      );
+    } catch (e) {
+      if (window.SI_DEBUG) {
+        console.log("Failed to create last used menu item with icons"); // eslint-disable-line
+      }
 
-          return;
-        }
+      browser.contextMenus.create(lastUsedMenuOptions);
+    }
 
-        if (
-          dir !== "." &&
-          !dir.startsWith("./") &&
-          sanitizePath(removeSpecialDirs(dir)) !==
-            removeSpecialDirs(dir).replace(new RegExp(/\\/, "g"), "/") &&
-          !dir.startsWith(`:${SPECIAL_DIRS.SEPARATOR}`)
-        ) {
+    browser.contextMenus.create({
+      id: `separator-${separatorCounter}`,
+      type: "separator",
+      contexts: media,
+      parentId: "save-in-_-_-root"
+    });
+    separatorCounter += 1;
+
+    let menuItemCounter = 0;
+    pathsArray.forEach(dir => {
+      if (
+        !dir ||
+        dir === ".." ||
+        dir.startsWith("../") ||
+        dir.startsWith("/") ||
+        dir.startsWith("//")
+      ) {
+        // Silently ignore blank lines
+        if (dir !== "" && !dir.startsWith("//")) {
           window.optionErrors.paths.push({
-            message: "Path contains invalid characters",
+            message: "Path cannot start with .. or",
             error: `${dir}`
           });
         }
 
-        // HACK
-        if (dir.startsWith(`:${SPECIAL_DIRS.SEPARATOR}`)) {
-          browser.contextMenus.create({
-            id: `separator-${separatorCounter}`,
-            type: "separator",
-            contexts: media,
-            parentId: "save-in-_-_-root"
-          });
+        return;
+      }
 
-          separatorCounter += 1;
-        } else {
-          menuItemCounter += 1;
+      if (
+        dir !== "." &&
+        !dir.startsWith("./") &&
+        sanitizePath(removeSpecialDirs(dir)) !==
+          removeSpecialDirs(dir).replace(new RegExp(/\\/, "g"), "/") &&
+        !dir.startsWith(`:${SPECIAL_DIRS.SEPARATOR}`)
+      ) {
+        window.optionErrors.paths.push({
+          message: "Path contains invalid characters",
+          error: `${dir}`
+        });
+      }
 
-          const tokens = dir.split("//");
-          const parsedDir = tokens[0].trim();
-          const comment = (tokens[1] || "").trim();
-          const title = `${parsedDir}${comment ? ` // ${comment}` : ""}`;
-
-          browser.contextMenus.create({
-            id: `save-in-${menuItemCounter}-${comment}-${parsedDir}`,
-            title: options.enableNumberedItems
-              ? setAccesskey(title, menuItemCounter)
-              : title,
-            contexts: media,
-            parentId: "save-in-_-_-root"
-          });
-        }
-      });
-
-      browser.contextMenus.create({
-        id: `separator-${separatorCounter}`,
-        type: "separator",
-        contexts: media,
-        parentId: "save-in-_-_-root"
-      });
-
-      if (media.includes("link")) {
+      // HACK
+      if (dir.startsWith(`:${SPECIAL_DIRS.SEPARATOR}`)) {
         browser.contextMenus.create({
-          id: "download-context-media-link",
-          title: browser.i18n.getMessage("contextMenuContextMediaOrLink"),
-          enabled: false,
-          contexts: MEDIA_TYPES.concat("link"),
+          id: `separator-${separatorCounter}`,
+          type: "separator",
+          contexts: media,
           parentId: "save-in-_-_-root"
         });
+
+        separatorCounter += 1;
       } else {
+        menuItemCounter += 1;
+
+        const tokens = dir.split("//");
+        const parsedDir = tokens[0].trim();
+        const comment = (tokens[1] || "").trim();
+        const title = `${parsedDir}${comment ? ` // ${comment}` : ""}`;
+
         browser.contextMenus.create({
-          id: "download-context-media",
-          title: browser.i18n.getMessage("contextMenuContextMedia"),
-          enabled: false,
-          contexts: MEDIA_TYPES,
+          id: `save-in-${menuItemCounter}-${comment}-${parsedDir}`,
+          title: options.enableNumberedItems
+            ? setAccesskey(title, menuItemCounter)
+            : title,
+          contexts: media,
           parentId: "save-in-_-_-root"
         });
       }
-
-      if (media.includes("selection")) {
-        browser.contextMenus.create({
-          id: "download-context-selection",
-          title: browser.i18n.getMessage("contextMenuContextSelection"),
-          enabled: false,
-          contexts: ["selection"],
-          parentId: "save-in-_-_-root"
-        });
-      }
-
-      if (media.includes("page")) {
-        browser.contextMenus.create({
-          id: "download-context-page",
-          title: browser.i18n.getMessage("contextMenuContextPage"),
-          enabled: false,
-          contexts: ["page"],
-          parentId: "save-in-_-_-root"
-        });
-      }
-
-      browser.contextMenus.create({
-        id: "show-default-folder",
-        title: browser.i18n.getMessage("contextMenuShowDefaultFolder"),
-        contexts: media,
-        parentId: "save-in-_-_-root"
-      });
-
-      browser.contextMenus.create({
-        id: "options",
-        title: browser.i18n.getMessage("contextMenuItemOptions"),
-        contexts: media,
-        parentId: "save-in-_-_-root"
-      });
     });
+
+    browser.contextMenus.create({
+      id: `separator-${separatorCounter}`,
+      type: "separator",
+      contexts: media,
+      parentId: "save-in-_-_-root"
+    });
+
+    if (media.includes("link")) {
+      browser.contextMenus.create({
+        id: "download-context-media-link",
+        title: browser.i18n.getMessage("contextMenuContextMediaOrLink"),
+        enabled: false,
+        contexts: MEDIA_TYPES.concat("link"),
+        parentId: "save-in-_-_-root"
+      });
+    } else {
+      browser.contextMenus.create({
+        id: "download-context-media",
+        title: browser.i18n.getMessage("contextMenuContextMedia"),
+        enabled: false,
+        contexts: MEDIA_TYPES,
+        parentId: "save-in-_-_-root"
+      });
+    }
+
+    if (media.includes("selection")) {
+      browser.contextMenus.create({
+        id: "download-context-selection",
+        title: browser.i18n.getMessage("contextMenuContextSelection"),
+        enabled: false,
+        contexts: ["selection"],
+        parentId: "save-in-_-_-root"
+      });
+    }
+
+    if (media.includes("page")) {
+      browser.contextMenus.create({
+        id: "download-context-page",
+        title: browser.i18n.getMessage("contextMenuContextPage"),
+        enabled: false,
+        contexts: ["page"],
+        parentId: "save-in-_-_-root"
+      });
+    }
+
+    browser.contextMenus.create({
+      id: "show-default-folder",
+      title: browser.i18n.getMessage("contextMenuShowDefaultFolder"),
+      contexts: media,
+      parentId: "save-in-_-_-root"
+    });
+
+    browser.contextMenus.create({
+      id: "options",
+      title: browser.i18n.getMessage("contextMenuItemOptions"),
+      contexts: media,
+      parentId: "save-in-_-_-root"
+    });
+  });
 };
 
 browser.contextMenus.onClicked.addListener(info => {

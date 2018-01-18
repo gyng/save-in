@@ -1,3 +1,8 @@
+# 2.3.1
+
+* Fix save-to-click toggle key not deactivating after switching tabs
+* Refactor options management backend
+
 # 2.3.0
 
 * Add `comment:`, `menuindex:` matchers

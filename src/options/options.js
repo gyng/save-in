@@ -6,6 +6,13 @@ const filenamePatternsErrors = document.querySelector(
 const lastDlMatch = document.querySelector("#last-dl-match");
 const lastDlCapture = document.querySelector("#last-dl-capture");
 
+const getOptionsSchema = new Promise((resolve, reject) =>
+  browser.runtime
+    .getBackgroundPage()
+    .then(win => resolve({ keys: win.OPTION_KEYS, types: win.OPTION_TYPES }))
+    .catch(reject)
+);
+
 const updateErrors = (timeout = 200) => {
   window.setTimeout(() => {
     browser.runtime.getBackgroundPage().then(w => {
@@ -82,43 +89,25 @@ const saveOptions = e => {
     e.preventDefault();
   }
 
-  browser.storage.local
-    .set({
-      conflictAction: document.querySelector("#conflictAction").value,
-      debug: document.querySelector("#debug").checked,
-      filenamePatterns: document
-        .querySelector("#filenamePatterns")
-        .value.trim(),
-      links: document.querySelector("#links").checked,
-      notifyDuration: document.querySelector("#notifyDuration").value,
-      notifyOnFailure: document.querySelector("#notifyOnFailure").checked,
-      notifyOnRuleMatch: document.querySelector("#notifyOnRuleMatch").checked,
-      notifyOnSuccess: document.querySelector("#notifyOnSuccess").checked,
-      page: document.querySelector("#page").checked,
-      paths: document.querySelector("#paths").value.trim() || ".",
-      prompt: document.querySelector("#prompt").checked,
-      promptOnFailure: document.querySelector("#promptOnFailure").checked,
-      promptIfNoExtension: document.querySelector("#promptIfNoExtension")
-        .checked,
-      replacementChar: document.querySelector("#replacementChar").value,
-      routeExclusive: document.querySelector("#routeExclusive").checked,
-      routeFailurePrompt: document.querySelector("#routeFailurePrompt").checked,
-      selection: document.querySelector("#selection").checked,
-      shortcutLink: document.querySelector("#shortcutLink").checked,
-      shortcutMedia: document.querySelector("#shortcutMedia").checked,
-      shortcutPage: document.querySelector("#shortcutPage").checked,
-      shortcutType: document.querySelector("#shortcutType").value,
-      truncateLength: document.querySelector("#truncateLength").value,
-      keyRoot: document.querySelector("#keyRoot").value,
-      keyLastUsed: document.querySelector("#keyLastUsed").value,
-      enableNumberedItems: document.querySelector("#enableNumberedItems")
-        .checked,
-      contentClickToSave: document.querySelector("#contentClickToSave").checked,
-      contentClickToSaveCombo: document.querySelector(
-        "#contentClickToSaveCombo"
-      ).value
-    })
-    .then(() => {
+  // Zip result -> schema
+  getOptionsSchema.then(schema => {
+    const toSave = schema.keys.reduce((acc, val) => {
+      const el = document.getElementById(val.name);
+      if (!el) {
+        return acc;
+      }
+
+      const propMap = {
+        [schema.types.BOOL]: "checked",
+        [schema.types.VALUE]: "value"
+      };
+      const fn = val.onSave || (x => x);
+      const optionValue = fn(el[propMap[val.type]]);
+
+      return Object.assign(acc, { [val.name]: optionValue });
+    }, {});
+
+    browser.storage.local.set(toSave).then(() => {
       browser.runtime.getBackgroundPage().then(w => {
         w.reset();
       });
@@ -127,84 +116,43 @@ const saveOptions = e => {
         "#lastSavedAt"
       ).textContent = new Date().toLocaleTimeString();
     });
+  });
 };
 
-const restoreOptionsHandler = result => {
-  const setCheckboxElement = (id, defaultVal) => {
-    document.querySelector(`#${id}`).checked =
-      typeof result[id] === "undefined" ? defaultVal : result[id];
-  };
+// Set UI elements' value/checked
+const restoreOptionsHandler = (result, schema) => {
+  // Zip result -> schema
+  const schemaWithValues = schema.keys.map(o =>
+    Object.assign({}, o, { value: result[o.name] })
+  );
 
-  const setValueElement = (id, defaultVal) => {
-    document.querySelector(`#${id}`).value =
-      typeof result[id] === "undefined" ? defaultVal : result[id];
-  };
+  schemaWithValues.forEach(o => {
+    const el = document.getElementById(o.name);
+    if (!el) {
+      return;
+    }
 
-  document.querySelector("#paths").value = result.paths || ".\nimages\nvideos";
-  document.querySelector("#filenamePatterns").value =
-    result.filenamePatterns || "";
+    const fn = o.onOptionsLoad || (x => x);
+    const val = typeof o.value === "undefined" ? o.default : fn(o.value);
 
-  setCheckboxElement("routeFailurePrompt", false);
-  setCheckboxElement("routeExclusive", false);
-  setCheckboxElement("debug", false);
-  setValueElement("conflictAction", "uniquify");
-  setCheckboxElement("links", true);
-  setCheckboxElement("selection", true);
-  setCheckboxElement("page", true);
-  setCheckboxElement("shortcutMedia", false);
-  setCheckboxElement("shortcutLink", false);
-  setCheckboxElement("shortcutPage", false);
-  setValueElement("shortcutType", "HTML_REDIRECT");
-  setCheckboxElement("prompt", false);
-  setCheckboxElement("promptIfNoExtension", false);
-  setCheckboxElement("promptOnFailure", true);
-  setCheckboxElement("notifyOnSuccess", false);
-  setCheckboxElement("notifyOnRuleMatch", true);
-  setCheckboxElement("notifyOnFailure", true);
-  setValueElement("notifyDuration", 7000);
-  setValueElement("truncateLength", 240);
-  setValueElement("replacementChar", "_");
-  setCheckboxElement("enableNumberedItems", true);
-  setValueElement("keyRoot", "a");
-  setValueElement("keyLastUsed", "a");
-  setCheckboxElement("contentClickToSave", false);
-  setValueElement("contentClickToSaveCombo", 18);
+    const propMap = {
+      [schema.types.BOOL]: "checked",
+      [schema.types.VALUE]: "value"
+    };
+    el[propMap[o.type]] = val;
+  });
 
   debugOptions = result;
   updateErrors();
 };
 
 const restoreOptions = () => {
-  browser.storage.local
-    .get([
-      "conflictAction",
-      "debug",
-      "filenamePatterns",
-      "links",
-      "notifyDuration",
-      "notifyOnFailure",
-      "notifyOnRuleMatch",
-      "notifyOnSuccess",
-      "page",
-      "paths",
-      "prompt",
-      "promptIfNoExtension",
-      "replacementChar",
-      "routeExclusive",
-      "routeFailurePrompt",
-      "selection",
-      "shortcutLink",
-      "shortcutMedia",
-      "shortcutPage",
-      "shortcutType",
-      "truncateLength",
-      "keyRoot",
-      "keyLastUsed",
-      "enableNumberedItems",
-      "contentClickToSave",
-      "contentClickToSaveCombo"
-    ])
-    .then(restoreOptionsHandler);
+  getOptionsSchema.then(schema => {
+    const keys = schema.keys.map(o => o.name);
+    browser.storage.local
+      .get(keys)
+      .then(loaded => restoreOptionsHandler(loaded, schema));
+  });
 };
 
 const addHelp = el => {
