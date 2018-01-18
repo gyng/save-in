@@ -10,7 +10,7 @@ chrome.runtime.sendMessage(
     }
 
     const setupKeyboardListeners = (shortcutOptions = { combo: [18] }) => {
-      const active = {};
+      let active = {};
 
       const isComboActive = (combo, activeKeys) =>
         combo.map(code => activeKeys[code]).every(code => code === true);
@@ -21,6 +21,10 @@ chrome.runtime.sendMessage(
 
       window.addEventListener("keyup", e => {
         active[e.keyCode] = false;
+      });
+
+      window.addEventListener("focus", () => {
+        active = {};
       });
 
       window.addEventListener("click", e => {
