@@ -372,6 +372,30 @@ browser.contextMenus.onClicked.addListener(info => {
       }
     }
 
+    const fixmedirs = [":sourcedomain:", ":filename:", ":naivefilename:"];
+
+    const fixmeregex = `(${fixmedirs.join("|")})`;
+
+    const PATH_COMPONENT = {
+      STRING: v => ({ type: "STRING", val: v }),
+      VARIABLE: v => ({ type: "VARIABLE", val: v }),
+      SEPARATOR: v => ({ type: "SEPARATOR", val: v })
+    };
+
+    const tokenized = saveIntoPath
+      .split(/([/\\])/)
+      .map(c => c.split(new RegExp(fixmeregex)).filter(sub => sub.length > 0));
+    const flattened = [].concat.apply([], tokenized); // eslint-disable-line
+
+    const parsed = flattened.map(tok => {
+      if (tok.match(/[/\\]/)) {
+        return PATH_COMPONENT.SEPARATOR(tok);
+      } else if (tok.match(fixmeregex)) {
+        return PATH_COMPONENT.VARIABLE(tok);
+      }
+      return PATH_COMPONENT.STRING(tok);
+    });
+
     const actualPath = replaceSpecialDirs(saveIntoPath, url, info);
 
     const saveAsShortcut =
