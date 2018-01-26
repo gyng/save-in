@@ -372,14 +372,43 @@ browser.contextMenus.onClicked.addListener(info => {
       }
     }
 
-    const fixmedirs = [":sourcedomain:", ":filename:", ":naivefilename:"];
+    // const fixmedirs = [":sourcedomain:", ":filename:", ":naivefilename:"];
+    const SPECIAL_DIRS_NEW = {
+      UNIX_DATE: ":unixdate:"
+    };
+    const fixmedirs = Object.values(SPECIAL_DIRS_NEW);
 
     const fixmeregex = `(${fixmedirs.join("|")})`;
 
-    const PATH_COMPONENT = {
-      STRING: v => ({ type: "STRING", val: v }),
-      VARIABLE: v => ({ type: "VARIABLE", val: v }),
-      SEPARATOR: v => ({ type: "SEPARATOR", val: v })
+    console.log(fixmeregex);
+
+    const PATH_SEGMENT_TYPES = {
+      STRING: "STRING",
+      VARIABLE: "VARIABLE",
+      SEPARATOR: "SEPARATOR"
+    };
+
+    function PathSegment(type, val) {
+      this.type = type;
+      this.val = val;
+    }
+    PathSegment.prototype.toString = function toString() {
+      return this.val;
+    };
+
+    const PATH_SEGMENT = {
+      [PATH_SEGMENT_TYPES.STRING]: v =>
+        new PathSegment(PATH_SEGMENT_TYPES.STRING, v),
+      [PATH_SEGMENT_TYPES.VARIABLE]: v =>
+        new PathSegment(PATH_SEGMENT_TYPES.VARIABLE, v),
+      [PATH_SEGMENT_TYPES.SEPARATOR]: v =>
+        new PathSegment(PATH_SEGMENT_TYPES.SEPARATOR, v)
+    };
+
+    const variableTransformers = {
+      [SPECIAL_DIRS_NEW.FILENAME]: (tok, i, toks, opts) => opts.filename,
+      [SPECIAL_DIRS_NEW.UNIX_DATE]: (tok, i, toks, opts) =>
+        Date.parse(new Date()) / 1000
     };
 
     const tokenized = saveIntoPath
@@ -389,14 +418,33 @@ browser.contextMenus.onClicked.addListener(info => {
 
     const parsed = flattened.map(tok => {
       if (tok.match(/[/\\]/)) {
-        return PATH_COMPONENT.SEPARATOR(tok);
+        return PATH_SEGMENT.SEPARATOR(tok);
       } else if (tok.match(fixmeregex)) {
-        return PATH_COMPONENT.VARIABLE(tok);
+        return PATH_SEGMENT.VARIABLE(tok);
       }
-      return PATH_COMPONENT.STRING(tok);
+      return PATH_SEGMENT.STRING(tok);
     });
 
     const actualPath = replaceSpecialDirs(saveIntoPath, url, info);
+
+    const transformation = toks =>
+      toks.map((t, i, arr) => {
+        if (t.type === PATH_SEGMENT_TYPES.VARIABLE) {
+          const transformer = variableTransformers[t];
+          if (transformer) {
+            return transformer(t, i, arr);
+          }
+        }
+
+        return t;
+      });
+
+    console.log(tokenized)
+    console.log(parsed);
+
+    const transformed = transformation(parsed);
+
+    console.log(transformed, transformed.join(""));
 
     const saveAsShortcut =
       (downloadType === DOWNLOAD_TYPES.MEDIA && options.shortcutMedia) ||
