@@ -2,7 +2,7 @@
 
 const DISPOSITION_FILENAME_REGEX = /filename[^;=\n]*=((['"])(.*)?\2|(.+'')?([^;\n]*))/i;
 const EXTENSION_REGEX = /\.([0-9a-z]{1,8})$/i;
-const SPECIAL_CHARACTERS_REGEX = /[~<>:"/\\|?*\0]/g;
+const SPECIAL_CHARACTERS_REGEX = /[<>:"/\\|?*\0]/g;
 const BAD_LEADING_CHARACTERS = /^[./\\]/g;
 const SEPARATOR_REGEX = /[/\\]/g;
 
