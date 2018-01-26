@@ -8,6 +8,7 @@ const OPTION_KEYS = [
   { name: "contentClickToSave", type: T.BOOL, default: false },
   { name: "contentClickToSaveCombo", type: T.VALUE, default: 18 },
   { name: "debug", type: T.BOOL, fn: null, default: false },
+  { name: "enableLastLocation", type: T.BOOL, default: true },
   { name: "enableNumberedItems", type: T.BOOL, default: true },
   {
     name: "filenamePatterns",
@@ -173,39 +174,41 @@ window.init = () => {
       });
     }
 
-    const lastUsedMenuOptions = {
-      id: `save-in-_-_-last-used`,
-      title: lastUsedPath || browser.i18n.getMessage("contextMenuLastUsed"),
-      enabled: lastUsedPath ? true : false, // eslint-disable-line
-      contexts: media,
-      parentId: "save-in-_-_-root"
-    };
+    if (options.enableLastLocation) {
+      const lastUsedMenuOptions = {
+        id: `save-in-_-_-last-used`,
+        title: lastUsedPath || browser.i18n.getMessage("contextMenuLastUsed"),
+        enabled: lastUsedPath ? true : false, // eslint-disable-line
+        contexts: media,
+        parentId: "save-in-_-_-root"
+      };
 
-    // Chrome, FF < 57 crash when icons is supplied
-    // There is no easy way to detect support, so use a try/catch
-    try {
-      browser.contextMenus.create(
-        Object.assign({}, lastUsedMenuOptions, {
-          icons: {
-            "16": "icons/ic_update_black_24px.svg"
-          }
-        })
-      );
-    } catch (e) {
-      if (window.SI_DEBUG) {
-        console.log("Failed to create last used menu item with icons"); // eslint-disable-line
+      // Chrome, FF < 57 crash when icons is supplied
+      // There is no easy way to detect support, so use a try/catch
+      try {
+        browser.contextMenus.create(
+          Object.assign({}, lastUsedMenuOptions, {
+            icons: {
+              "16": "icons/ic_update_black_24px.svg"
+            }
+          })
+        );
+      } catch (e) {
+        if (window.SI_DEBUG) {
+          console.log("Failed to create last used menu item with icons"); // eslint-disable-line
+        }
+
+        browser.contextMenus.create(lastUsedMenuOptions);
       }
 
-      browser.contextMenus.create(lastUsedMenuOptions);
+      browser.contextMenus.create({
+        id: `separator-${separatorCounter}`,
+        type: "separator",
+        contexts: media,
+        parentId: "save-in-_-_-root"
+      });
+      separatorCounter += 1;
     }
-
-    browser.contextMenus.create({
-      id: `separator-${separatorCounter}`,
-      type: "separator",
-      contexts: media,
-      parentId: "save-in-_-_-root"
-    });
-    separatorCounter += 1;
 
     let menuItemCounter = 0;
     pathsArray.forEach(dir => {
@@ -380,10 +383,12 @@ browser.contextMenus.onClicked.addListener(info => {
         ? `${lastUsedPath}${comment ? ` // ${comment}` : ""}`
         : lastUsedPath;
 
-      browser.contextMenus.update("save-in-_-_-last-used", {
-        title: browser === chrome ? `${title} (&a)` : title,
-        enabled: true
-      });
+      if (options.enableLastLocation) {
+        browser.contextMenus.update("save-in-_-_-last-used", {
+          title: browser === chrome ? `${title} (&a)` : title,
+          enabled: true
+        });
+      }
     }
 
     const actualPath = replaceSpecialDirs(saveIntoPath, url, info);
