@@ -5,8 +5,8 @@
   "scripts": {
     "build": "env -u WEB_EXT_API_KEY -u WEB_EXT_API_SECRET web-ext build --overwrite-dest -i test docs yarn.lock",
     "build:firefox:submit": "web-ext sign",
-    "d": "env -u WEB_EXT_API_KEY -u WEB_EXT_API_SECRET web-ext run",
-    "d:noenv": "web-ext run",
+    "d": "env -u WEB_EXT_API_KEY -u WEB_EXT_API_SECRET web-ext run --verbose",
+    "d:noenv": "web-ext run --verbose",
     "lint": "env -u WEB_EXT_API_KEY -u WEB_EXT_API_SECRET web-ext lint && eslint src test",
     "lint:fix": "eslint --fix src test",
     "mockserve": "node test/mockserver",
