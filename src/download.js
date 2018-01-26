@@ -383,6 +383,7 @@ const downloadInto = downloadIntoOptions => {
         prompt ||
         (promptIfNoExtension && !hasExtension) ||
         (promptOnShift &&
+          info.modifiers &&
           typeof info.modifiers.find(m => m === "Shift") !== "undefined"),
       conflictAction
     });
