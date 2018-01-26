@@ -27,6 +27,8 @@
       "src/router.js",
       "src/shortcut.js",
       "src/messenging.js",
+      "src/path.js",
+      "src/variables.js",
       "src/menu.js",
       "src/index.js"
     ]

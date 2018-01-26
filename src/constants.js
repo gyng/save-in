@@ -1,28 +1,51 @@
 /* eslint-disable no-unused-vars */
 
 const MEDIA_TYPES = ["image", "video", "audio"];
-const SPECIAL_DIRS = {
-  SEPARATOR: "---",
-  SOURCE_DOMAIN: new RegExp(":sourcedomain:", "g"),
-  SOURCE_URL: new RegExp(":sourceurl:", "g"),
-  PAGE_DOMAIN: new RegExp(":pagedomain:", "g"),
-  PAGE_URL: new RegExp(":pageurl:", "g"),
-  PAGE_TITLE: new RegExp(":pagetitle:", "g"),
-  DATE: new RegExp(":date:", "g"),
-  ISO8601_DATE: new RegExp(":isodate:", "g"),
-  UNIX_DATE: new RegExp(":unixdate:", "g"),
-  FILENAME: new RegExp(":filename:", "g"),
-  NAIVE_FILENAME: new RegExp(":naivefilename:", "g"),
-  FILE_EXTENSION: new RegExp(":fileext:", "g"),
-  NAIVE_FILE_EXTENSION: new RegExp(":naivefileext:", "g"),
-  LINK_TEXT: new RegExp(":linktext:", "g"),
-  YEAR: new RegExp(":year:", "g"),
-  DAY: new RegExp(":day:", "g"),
-  MONTH: new RegExp(":month:", "g"),
-  HOUR: new RegExp(":hour:", "g"),
-  MINUTE: new RegExp(":minute:", "g"),
-  SECOND: new RegExp(":second:", "g"),
-  SELECTION: new RegExp(":selectiontext:", "g")
+// const SPECIAL_DIRS = {
+//   SEPARATOR: "---",
+//   SOURCE_DOMAIN: new RegExp(":sourcedomain:", "g"),
+//   SOURCE_URL: new RegExp(":sourceurl:", "g"),
+//   PAGE_DOMAIN: new RegExp(":pagedomain:", "g"),
+//   PAGE_URL: new RegExp(":pageurl:", "g"),
+//   PAGE_TITLE: new RegExp(":pagetitle:", "g"),
+//   DATE: new RegExp(":date:", "g"),
+//   ISO8601_DATE: new RegExp(":isodate:", "g"),
+//   UNIX_DATE: new RegExp(":unixdate:", "g"),
+//   FILENAME: new RegExp(":filename:", "g"),
+//   NAIVE_FILENAME: new RegExp(":naivefilename:", "g"),
+//   FILE_EXTENSION: new RegExp(":fileext:", "g"),
+//   NAIVE_FILE_EXTENSION: new RegExp(":naivefileext:", "g"),
+//   LINK_TEXT: new RegExp(":linktext:", "g"),
+//   YEAR: new RegExp(":year:", "g"),
+//   DAY: new RegExp(":day:", "g"),
+//   MONTH: new RegExp(":month:", "g"),
+//   HOUR: new RegExp(":hour:", "g"),
+//   MINUTE: new RegExp(":minute:", "g"),
+//   SECOND: new RegExp(":second:", "g"),
+//   SELECTION: new RegExp(":selectiontext:", "g")
+// };
+
+// WIP
+const SDN = {
+  SOURCE_DOMAIN: ":sourcedomain:",
+  PAGE_DOMAIN: ":pagedomain:",
+  PAGE_URL: ":pageurl:",
+  SOURCE_URL: ":sourceurl:",
+  DATE: ":date:",
+  ISO8601_DATE: ":isodate:",
+  UNIX_DATE: ":unixdate:",
+  YEAR: ":year:",
+  MONTH: ":month:",
+  DAY: ":day:",
+  HOUR: ":hour:",
+  MINUTE: ":minute:",
+  SECOND: ":second:",
+  PAGE_TITLE: ":pagetitle:",
+  LINK_TEXT: ":linktext:",
+  SELECTION_TEXT: ":selectiontext:",
+  NAIVE_FILENAME: ":naivefilename:",
+  NAIVE_FILE_EXTENSION: ":naivefileext:",
+  FILENAME: ":filename:"
 };
 
 const SHORTCUT_TYPES = {
@@ -78,3 +101,10 @@ if (typeof module !== "undefined") {
     MESSAGE_TYPES
   };
 }
+
+const PATH_SEGMENT_TYPES = {
+  STRING: "STRING",
+  VARIABLE: "VARIABLE",
+  SEPARATOR: "SEPARATOR",
+  MENU_SEPARATOR: "MENU_SEPARATOR"
+};

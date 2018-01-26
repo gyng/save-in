@@ -13,30 +13,7 @@ const makeObjectUrl = (content, mime = "text/plain") =>
     })
   );
 
-// TODO: Make this OS-aware instead of assuming Windows
-const replaceFsBadChars = (s, replacement) =>
-  s.replace(
-    SPECIAL_CHARACTERS_REGEX,
-    replacement ||
-      (typeof options !== "undefined" && options && options.replacementChar) ||
-      "_"
-  );
-
-// Leading dots are considered invalid by both Firefox and Chrome
-const replaceLeadingDots = (s, replacement) =>
-  s.replace(
-    BAD_LEADING_CHARACTERS,
-    replacement ||
-      (typeof options !== "undefined" && options && options.replacementChar) ||
-      "_"
-  );
-
-const truncateIfLongerThan = (str, max) =>
-  str && max > 0 && str.length > max ? str.substr(0, max) : str;
-
-const sanitizeFilename = (str, max = 0) =>
-  str && replaceLeadingDots(truncateIfLongerThan(replaceFsBadChars(str), max));
-
+// WIP: Remove
 const sanitizePath = (pathStr, maxComponentLength = 0) =>
   pathStr &&
   pathStr
@@ -49,6 +26,17 @@ const getFilenameFromUrl = url => {
   return decodeURIComponent(
     remotePath.substring(remotePath.lastIndexOf("/") + 1)
   );
+};
+
+const finalizeFullPath = _state => {
+  const finalDir = finalizeToString(_state.path);
+  const finalMatch = _state.route ? finalizeToString(_state.route) : null;
+  const finalFilename = sanitizeFilename(_state.info.filename);
+  const finalFullPath = [finalDir, finalMatch, finalFilename]
+    .filter(x => x != null)
+    .join("/");
+
+  return finalFullPath;
 };
 
 const getFilenameFromContentDisposition = disposition => {
@@ -77,368 +65,132 @@ const getFilenameFromContentDisposition = disposition => {
 };
 
 // Used for validation
-const removeSpecialDirs = path => {
-  let ret = path;
-  Object.keys(SPECIAL_DIRS).forEach(v => {
-    ret = ret.replace(SPECIAL_DIRS[v], "");
-  });
-  return ret;
-};
+// const removeSpecialDirs = path => {
+//   let ret = path;
+//   Object.keys(SPECIAL_DIRS).forEach(v => {
+//     ret = ret.replace(SPECIAL_DIRS[v], "");
+//   });
+//   return ret;
+// };
 
-// Handles SPECIAL_DIRS except FILENAME and SEPARATOR
-const replaceSpecialDirs = (path, url, info) => {
-  if (window.SI_DEBUG) {
-    console.log("replaceSpecialDirs", path, url, info); // eslint-disable-line
+const getRoutingMatches = state => {
+  const filenamePatterns = state.info.filenamePatterns;
+  const downloadInfo = state.info.legacyDownloadInfo;
+
+  if (!filenamePatterns || filenamePatterns.length === 0) {
+    return null;
   }
 
-  let ret = path;
-
-  try {
-    ret = ret.replace(SPECIAL_DIRS.SOURCE_DOMAIN, new URL(url).hostname);
-  } catch (e) {
-    if (window.SI_DEBUG) {
-      console.log("Bad url", url, e); // eslint-disable-line
-    }
-  }
-
-  try {
-    ret = ret.replace(SPECIAL_DIRS.PAGE_DOMAIN, new URL(info.pageUrl).hostname);
-  } catch (e) {
-    if (window.SI_DEBUG) {
-      console.log("Bad page url", url, e); // eslint-disable-line
-    }
-  }
-
-  ret = ret.replace(SPECIAL_DIRS.PAGE_URL, sanitizeFilename(info.pageUrl));
-  ret = ret.replace(SPECIAL_DIRS.SOURCE_URL, sanitizeFilename(info.srcUrl));
-  const now = new Date();
-
-  const padDateComponent = (num, func) => num.toString().padStart(2, "0");
-
-  const date = [
-    now.getFullYear(),
-    padDateComponent(now.getMonth() + 1),
-    padDateComponent(now.getDate())
-  ].join("-");
-  ret = ret.replace(SPECIAL_DIRS.DATE, date);
-
-  const isodate = [
-    now.getUTCFullYear(),
-    padDateComponent(now.getUTCMonth() + 1),
-    padDateComponent(now.getUTCDate()),
-    "T",
-    padDateComponent(now.getUTCHours()),
-    padDateComponent(now.getUTCMinutes()),
-    padDateComponent(now.getUTCSeconds()),
-    "Z"
-  ].join("");
-
-  ret = ret.replace(SPECIAL_DIRS.ISO8601_DATE, isodate);
-  ret = ret.replace(SPECIAL_DIRS.UNIX_DATE, Date.parse(now) / 1000);
-
-  ret = ret.replace(SPECIAL_DIRS.YEAR, now.getFullYear());
-  ret = ret.replace(SPECIAL_DIRS.MONTH, padDateComponent(now.getMonth() + 1));
-  ret = ret.replace(SPECIAL_DIRS.DAY, padDateComponent(now.getDate()));
-  ret = ret.replace(SPECIAL_DIRS.HOUR, padDateComponent(now.getHours()));
-  ret = ret.replace(SPECIAL_DIRS.MINUTE, padDateComponent(now.getMinutes()));
-  ret = ret.replace(SPECIAL_DIRS.SECOND, padDateComponent(now.getSeconds()));
-
-  ret = ret.replace(
-    SPECIAL_DIRS.PAGE_TITLE,
-    (currentTab && currentTab.title) || ""
+  return matchRules(
+    filenamePatterns,
+    state.info.legacyDownloadInfo,
+    state.info
   );
-
-  ret = ret.replace(SPECIAL_DIRS.LINK_TEXT, sanitizeFilename(info.linkText));
-  ret = ret.replace(
-    SPECIAL_DIRS.SELECTION,
-    sanitizeFilename((info.selectionText && info.selectionText.trim()) || "")
-  );
-
-  const naiveFilename = getFilenameFromUrl(url);
-  ret = ret.replace(SPECIAL_DIRS.NAIVE_FILENAME, naiveFilename);
-  const fileExtensionMatches = naiveFilename.match(EXTENSION_REGEX);
-  const fileExtension = (fileExtensionMatches && fileExtensionMatches[1]) || "";
-  ret = ret.replace(SPECIAL_DIRS.NAIVE_FILE_EXTENSION, fileExtension);
-
-  return ret;
 };
 
-// Handles rewriting FILENAME and regex captures
-const rewriteFilename = (
-  filename,
-  filenamePatterns,
-  info,
-  url,
-  context,
-  menuIndex,
-  comment
-) => {
-  // Clauses (matchers)
-  if (!filenamePatterns || filenamePatterns.length === 0 || !info) {
-    return filename;
-  }
-
-  const matchFile = matchRules(filenamePatterns, info, {
-    filename,
-    context,
-    menuIndex,
-    comment
-  });
-
-  if (window.SI_DEBUG) {
-    /* eslint-disable no-console */
-    console.log(
-      "rewriteFilename",
-      filename,
-      filenamePatterns,
-      info,
-      url,
-      matchFile,
-      context,
-      menuIndex,
-      comment
-    );
-    /* eslint-enable no-console */
-  }
-
-  // Didn't get any matches, abort!
-  if (!matchFile) {
-    return matchFile;
-  }
-
-  // Variables
-  let ret = matchFile.replace(SPECIAL_DIRS.FILENAME, filename);
-  ret = ret.replace(SPECIAL_DIRS.LINK_TEXT, info.linkText);
-  const fileExtensionMatches = filename.match(EXTENSION_REGEX);
-  const fileExtension = (fileExtensionMatches && fileExtensionMatches[1]) || "";
-  ret = ret.replace(SPECIAL_DIRS.FILE_EXTENSION, fileExtension);
-  ret = replaceSpecialDirs(ret, url, info);
-  ret = sanitizePath(ret);
-
-  if (window.SI_DEBUG) {
-    console.log("matchfile", matchFile, ret, filenamePatterns, info); // eslint-disable-line
-  }
-
-  return ret;
-};
-
-// CHROME
-// Chrome has a nice API for this. Migrate to this once it's available on Firefox, since
-// we wont't have to fire off another HEAD just to get Content-Disposition.
-let globalChromeRewriteOptions = {}; // global variable: no other easy way around this
+let globalChromeState = {};
 if (chrome && chrome.downloads && chrome.downloads.onDeterminingFilename) {
   chrome.downloads.onDeterminingFilename.addListener(
     (downloadItem, suggest) => {
-      if (window.lastDownload && window.lastDownload.filename) {
-        window.lastDownload.filename = downloadItem.filename;
-      }
-
-      const rewrittenFilename =
-        rewriteFilename(
-          globalChromeRewriteOptions.suggestedFilename || downloadItem.filename,
-          globalChromeRewriteOptions.filenamePatterns,
-          globalChromeRewriteOptions.info,
-          globalChromeRewriteOptions.url,
-          globalChromeRewriteOptions.context,
-          globalChromeRewriteOptions.menuIndex,
-          globalChromeRewriteOptions.comment
-        ) || downloadItem.filename;
-
-      const safeFilename = `${globalChromeRewriteOptions.path}/${rewrittenFilename}`
-        .replace(/^\.\//, "")
-        .replace(BAD_LEADING_CHARACTERS, "");
-
+      globalChromeState.info.filename =
+        globalChromeState.info.suggestedFilename ||
+        downloadItem.filename ||
+        globalChromeState.info.filename;
       suggest({
-        filename: safeFilename,
-        conflictAction: globalChromeRewriteOptions.conflictAction
+        filename: finalizeFullPath(globalChromeState),
+        conflictAction: options.conflictAction
       });
     }
   );
 }
 
-const downloadInto = downloadIntoOptions => {
-  const url = downloadIntoOptions.url;
-  const path = downloadIntoOptions.path;
-  const info = downloadIntoOptions.downloadInfo;
-  const options = downloadIntoOptions.addonOptions;
-  const suggestedFilename = downloadIntoOptions.suggestedFilename;
-  const context = downloadIntoOptions.context;
-  const menuIndex = downloadIntoOptions.menuIndex;
-  const comment = downloadIntoOptions.comment;
+const renameAndDownload = state => {
+  const naiveFilename = getFilenameFromUrl(state.info.url);
+  const initialFilename =
+    state.info.suggestedFilename || naiveFilename || state.info.url;
 
-  if (window.SI_DEBUG) {
-    console.log("downloadInto", downloadIntoOptions); // eslint-disable-line
+  Object.assign(state.info, {
+    naiveFilename,
+    filename: initialFilename,
+    initialFilename
+  });
+
+  state.path = applyVariables(state.path, state.info);
+
+  // FIXME: Fix router params for new path struct
+  const routeMatches = getRoutingMatches(state);
+  if (routeMatches) {
+    state.route = applyVariables(new Path(routeMatches), state.info);
+  } else {
+    state.scratch.prompt = options.prompt || options.routeFailurePrompt;
   }
 
-  const {
-    filenamePatterns,
-    promptIfNoExtension,
-    promptOnShift,
-    conflictAction,
-    truncateLength,
-    routeExclusive
-  } = options;
-  let prompt = options.prompt;
-  let sanitizeFilenameSlashes = true;
-  requestedDownloadFlag = true;
+  const download = _state => {
+    const finalFullPath = finalizeFullPath(_state);
 
-  const download = (filename, rewrite = true) => {
-    let rewrittenFilename = rewrite
-      ? rewriteFilename(
-          suggestedFilename || filename,
-          filenamePatterns,
-          info,
-          url,
-          context,
-          menuIndex,
-          comment
-        )
-      : suggestedFilename || filename;
+    _state.scratch.hasExtension =
+      routeMatches && routeMatches.match(EXTENSION_REGEX);
 
-    if (
-      !suggestedFilename &&
-      rewrittenFilename &&
-      rewrittenFilename !== filename
-    ) {
-      sanitizeFilenameSlashes = false; // already sanitized
-      if (options.notifyOnRuleMatch) {
-        createExtensionNotification(
-          "Save In: Rule matched",
-          `${filename}\n⬇\n${rewrittenFilename}`,
-          false
-        );
-      }
-    } else if (
-      rewrittenFilename &&
-      suggestedFilename &&
-      rewrittenFilename !== suggestedFilename
-    ) {
-      sanitizeFilenameSlashes = false; // already sanitized
+    const prompt =
+      _state.info.prompt ||
+      (options.promptIfNoExtension && !_state.scratch.hasExtension) ||
+      (options.promptOnShift &&
+        _state.info.modifiers &&
+        typeof _state.info.modifiers.find(m => m === "Shift") !== "undefined");
 
-      if (options.notifyOnRuleMatch) {
-        createExtensionNotification(
-          "Save In: Rule matched",
-          `${suggestedFilename}\n🡳\n${rewrittenFilename}`,
-          false
-        );
-      }
-    } else {
-      prompt = prompt || options.routeFailurePrompt;
+    console.log(_state, "x", finalFullPath);
 
-      if (options.routeExclusive) {
-        if (options.notifyOnFailure) {
-          createExtensionNotification(
-            "Save In: Failed to route or rename download",
-            `No matching rule found for ${url}`,
-            true
-          );
-        }
-
-        if (!prompt) {
-          return;
-        }
-      }
-    }
-
-    // If no filename rewrites matched, fall back to filename
-    rewrittenFilename = rewrittenFilename || suggestedFilename || filename;
-
-    const hasExtension =
-      rewrittenFilename && rewrittenFilename.match(EXTENSION_REGEX);
-
-    const fsSafeDirectory = sanitizePath(
-      path.replace(/^\.[\\/\\\\]?/, ""),
-      truncateLength
-    );
-
-    const fsSafeFilename = sanitizeFilenameSlashes
-      ? sanitizePath(
-          sanitizeFilename(rewrittenFilename, truncateLength),
-          truncateLength
-        )
-      : sanitizePath(rewrittenFilename, truncateLength);
-
-    const fsSafePath = fsSafeDirectory
-      ? [fsSafeDirectory, fsSafeFilename].join("/")
-      : fsSafeFilename;
-
-    if (window.SI_DEBUG) {
-      /* eslint-disable no-console */
-      console.log("download filename", filename);
-      console.log("download suggestedFilename", suggestedFilename);
-      console.log("download rewrittenFilename", rewrittenFilename);
-      console.log("download fsSafeDirectory", fsSafeDirectory);
-      console.log("download fsSafeFilename", fsSafeFilename);
-      console.log("download fsSafePath", fsSafePath);
-      console.log("download conflictAction", conflictAction);
-      console.log("download prompt", prompt);
-      /* eslint-enable no-console */
-    }
-
-    // conflictAction is Chrome only and overridden in onDeterminingFilename, Firefox enforced in settings
     browser.downloads.download({
-      url,
-      filename: fsSafePath || "_",
-      saveAs:
-        prompt ||
-        (promptIfNoExtension && !hasExtension) ||
-        (promptOnShift &&
-          info.modifiers &&
-          typeof info.modifiers.find(m => m === "Shift") !== "undefined"),
-      conflictAction
+      url: _state.info.url,
+      filename: finalFullPath || "_",
+      saveAs: prompt,
+      conflictAction: options.conflictAction
     });
 
-    window.lastDownload = {
-      info,
-      path,
-      url,
-      filename,
-      context,
-      menuIndex,
-      comment
-    };
+    window.lastDownloadState = _state;
   };
 
-  const urlFilename = getFilenameFromUrl(url);
-
-  // CHROME
+  // Chrome: Skip HEAD request for Content-Disposition and use onDeterminingFilename
   if (
     browser === chrome &&
     chrome.downloads &&
     chrome.downloads.onDeterminingFilename
   ) {
-    globalChromeRewriteOptions = {
-      path,
-      filenamePatterns,
-      suggestedFilename,
-      url,
-      info,
-      truncateLength,
-      conflictAction,
-      context,
-      menuIndex,
-      comment
-    };
-
-    download(urlFilename || url, false); // Will be rewritten inside Chrome event listener
-    return;
+    download(state);
+  } else {
+    fetch(state.info.url, { method: "HEAD" })
+      .then(res => {
+        if (res.headers.has("Content-Disposition")) {
+          const disposition = res.headers.get("Content-Disposition");
+          const dispositionName = getFilenameFromContentDisposition(
+            disposition
+          );
+          state.info.filename = dispositionName || state.info.filename;
+        }
+        download(state);
+      })
+      .catch(() => {
+        // HEAD rejected for whatever reason: try to download anyway
+        download(state);
+      });
   }
 
-  fetch(url, { method: "HEAD" })
-    .then(res => {
-      if (res.headers.has("Content-Disposition")) {
-        const disposition = res.headers.get("Content-Disposition");
-        const filename =
-          getFilenameFromContentDisposition(disposition) || urlFilename;
-        download(filename);
-      } else {
-        download(urlFilename || url);
-      }
-    })
-    .catch(() => {
-      // HEAD rejected for whatever reason: try to download anyway
-      download(urlFilename || url);
-    });
+  // Trigger notifications
+  if (state.route) {
+    if (options.notifyOnRuleMatch) {
+      createExtensionNotification(
+        "Save In: Rule matched",
+        `${state.info.initialFilename}\n⬇\n${state.route}`,
+        false
+      );
+    }
+  } else if (options.routeExclusive && options.notifyOnFailure) {
+    createExtensionNotification(
+      "Save In: Failed to route or rename download",
+      `No matching rule found for ${state.info.url}`,
+      true
+    );
+  }
 };
 
 // Export for testing
@@ -450,7 +202,7 @@ if (typeof module !== "undefined") {
     getFilenameFromUrl,
     getFilenameFromContentDisposition,
     replaceSpecialDirs,
-    rewriteFilename,
+    getRoutingMatches,
     makeObjectUrl,
     removeSpecialDirs,
     DISPOSITION_FILENAME_REGEX,
