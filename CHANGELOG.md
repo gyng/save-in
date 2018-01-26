@@ -2,7 +2,8 @@
 
 * Fix save-to-click toggle key not deactivating after switching tabs
 * Add more fields to Freedesktop shortcuts (#54)
-* Treat `~` as a normal character in paths (#51)
+* Treat `~` as a normal character in paths (#51).
+* Add option to prompt on menu item click when shift is held. On by default. (#55)
 * Refactor options management backend
 
 # 2.3.0

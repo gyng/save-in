@@ -273,6 +273,7 @@ const downloadInto = downloadIntoOptions => {
   const {
     filenamePatterns,
     promptIfNoExtension,
+    promptOnShift,
     conflictAction,
     truncateLength,
     routeExclusive
@@ -375,11 +376,14 @@ const downloadInto = downloadIntoOptions => {
     }
 
     // conflictAction is Chrome only and overridden in onDeterminingFilename, Firefox enforced in settings
-
     browser.downloads.download({
       url,
       filename: fsSafePath || "_",
-      saveAs: prompt || (promptIfNoExtension && !hasExtension),
+      saveAs:
+        prompt ||
+        (promptIfNoExtension && !hasExtension) ||
+        (promptOnShift &&
+          typeof info.modifiers.find(m => m === "Shift") !== "undefined"),
       conflictAction
     });
 

@@ -33,6 +33,7 @@ const OPTION_KEYS = [
   { name: "prompt", type: T.BOOL, default: false },
   { name: "promptIfNoExtension", type: T.BOOL, default: false },
   { name: "promptOnFailure", type: T.BOOL, default: true },
+  { name: "promptOnShift", type: T.BOOL, default: true },
   { name: "replacementChar", type: T.VALUE, default: "_" },
   { name: "routeExclusive", type: T.BOOL, default: false },
   { name: "routeFailurePrompt", type: T.BOOL, default: false },
