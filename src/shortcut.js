@@ -4,9 +4,20 @@ const makeShortcutContent = (type, url, title) => {
       return `[InternetShortcut]\nURL=${url}`;
     case SHORTCUT_TYPES.WINDOWS:
       return `[InternetShortcut]\r\nURL=${url}`;
-    case SHORTCUT_TYPES.FREEDESKTOP:
-      return `[Desktop Entry]\nEncoding=UTF-8\nType=Link\nTitle=${title ||
-        url}\nURL=${url}`;
+    case SHORTCUT_TYPES.FREEDESKTOP: {
+      const name = title || url;
+      return [
+        "[Desktop Entry]",
+        "Encoding=UTF-8",
+        "Icon=text-html",
+        "Type=Link",
+        `Name=${name}`,
+        `Title=${name}`,
+        `URL=${url}`,
+        "[InternetShortcut]",
+        `URL=${url}`
+      ].join("\n");
+    }
     case SHORTCUT_TYPES.HTML_REDIRECT:
       return `
         <html>

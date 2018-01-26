@@ -1,6 +1,7 @@
 # 2.3.1
 
 * Fix save-to-click toggle key not deactivating after switching tabs
+* Add more fields to Freedesktop shortcuts (#54)
 * Refactor options management backend
 
 # 2.3.0
