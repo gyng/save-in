@@ -133,7 +133,6 @@ window.init = () => {
           : p.trim()
     );
 
-    let separatorCounter = 0;
     let media = options.links ? MEDIA_TYPES.concat(["link"]) : MEDIA_TYPES;
     media = options.selection ? media.concat(["selection"]) : media;
     media = options.page ? media.concat(["page"]) : media;
@@ -201,13 +200,7 @@ window.init = () => {
         browser.contextMenus.create(lastUsedMenuOptions);
       }
 
-      browser.contextMenus.create({
-        id: `separator-${separatorCounter}`,
-        type: "separator",
-        contexts: media,
-        parentId: "save-in-_-_-root"
-      });
-      separatorCounter += 1;
+      makeSeparator(media);
     }
 
     let menuItemCounter = 0;
@@ -245,14 +238,7 @@ window.init = () => {
 
       // HACK
       if (dir.startsWith(`:${SPECIAL_DIRS.SEPARATOR}`)) {
-        browser.contextMenus.create({
-          id: `separator-${separatorCounter}`,
-          type: "separator",
-          contexts: media,
-          parentId: "save-in-_-_-root"
-        });
-
-        separatorCounter += 1;
+        makeSeparator(media);
       } else {
         menuItemCounter += 1;
 
@@ -272,12 +258,7 @@ window.init = () => {
       }
     });
 
-    browser.contextMenus.create({
-      id: `separator-${separatorCounter}`,
-      type: "separator",
-      contexts: media,
-      parentId: "save-in-_-_-root"
-    });
+    makeSeparator(media);
 
     if (media.includes("link")) {
       browser.contextMenus.create({

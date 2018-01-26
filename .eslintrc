@@ -45,6 +45,7 @@
     "rewriteFilename": true,
     "getCaptureMatches": true,
     "MESSAGE_TYPES": true,
-    "lastUsedPath": true
+    "lastUsedPath": true,
+    "makeSeparator": true
   }
 }
