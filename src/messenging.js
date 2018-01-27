@@ -12,8 +12,8 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
       sendResponse({
         type: MESSAGE_TYPES.OPTIONS_SCHEMA,
         body: {
-          keys: OPTION_KEYS,
-          types: OPTION_TYPES
+          keys: Options.OPTION_KEYS,
+          types: Options.OPTION_TYPES
         }
       });
       break;
@@ -22,7 +22,7 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
         type: MESSAGE_TYPES.CHECK_ROUTES_RESPONSE,
         body: {
           optionErrors: window.optionErrors,
-          routeInfo: checkRoutes(
+          routeInfo: Options.checkRoutes(
             (request.body && request.body.state) ||
               (window.lastDownloadState != null && window.lastDownloadState)
           ),

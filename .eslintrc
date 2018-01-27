@@ -20,15 +20,17 @@
     "Downloads": false,
     "Variables": false,
     "Messenging": false,
+    "Options": false,
     "options": false,
     "currentTab": false,
+    "requestedDownloadFlag": true,
 
     "createExtensionNotification": false,
     "matchRules": false,
     "parseRules": false,
     "makeSeparator": false,
     "makeShortcut": false,
-    "requestedDownloadFlag": false,
+    
     "SPECIAL_DIRS": false,
     "RULE_TYPES": false,
     "PATH_SEGMENT_TYPES": false,

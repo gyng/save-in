@@ -70,6 +70,10 @@ const Paths = {
 
     validate() {
       // Special cases
+      if (this.buf == null) {
+        return { valid: false };
+      }
+
       if (this.buf[0].val === ".") {
         return { valid: true };
       }

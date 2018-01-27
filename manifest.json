@@ -30,6 +30,7 @@
       "src/messenging.js",
       "src/variables.js",
       "src/menu.js",
+      "src/options.js",
       "src/index.js"
     ]
   },
