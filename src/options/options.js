@@ -23,6 +23,8 @@ const updateErrors = (timeout = 200) => {
 
       const errors = w.optionErrors;
 
+      console.log(errors, w)
+
       const row = err => {
         const r = document.createElement("div");
         r.className = "error-row";
@@ -316,7 +318,7 @@ document.querySelector("#settings-export").addEventListener("click", () => {
 
 document.querySelector("#show-last-download").addEventListener("click", () => {
   browser.runtime.getBackgroundPage().then(w => {
-    showJson(w.lastDownload || { "Nothing!": "No downloads recorded yet." });
+    showJson(w.lastDownloadState || { "Nothing!": "No downloads recorded yet." });
   });
 });
 

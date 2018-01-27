@@ -31,7 +31,7 @@ const makeShortcutContent = (type, url, title) => {
 };
 
 const makeShortcut = (type, url) =>
-  makeObjectUrl(makeShortcutContent(type, url));
+  Downloads.makeObjectUrl(makeShortcutContent(type, url, currentTab.pageTitle));
 
 const suggestShortcutFilename = (
   shortcutType,
@@ -51,7 +51,7 @@ const suggestShortcutFilename = (
           info.pageUrl}`
       : `${suggestedFilename || info.linkText || info.srcUrl || info.linkUrl}`;
 
-  shortcutFilename = `${sanitizeFilename(
+  shortcutFilename = `${Paths.sanitizeFilename(
     shortcutFilename,
     maxlen - shortcutExtension.length
   )}${shortcutExtension}`;
