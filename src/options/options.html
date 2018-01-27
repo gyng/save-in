@@ -375,9 +375,7 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
       <input disabled class="chrome-enabled" type="checkbox" id="enableNumberedItems" /> Add number key shortcuts to context submenu items
     </label>
 
-    <h3>Click To Save
-      <span class="warning badge">Experimental</span>
-    </h3>
+    <h3>Click To Save</h3>
     <label>
       <input type="checkbox" id="contentClickToSave" /> Enable click to save
       <div class="caption caption-line">Hold down Alt (default) and click images or media to save them in the last used directory or default download directory.
@@ -408,6 +406,15 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
       Replace invalid characters with
       <input type="text" id="replacementChar" placeholder="delete" style="font-family: monospace;" />
       <div class="caption caption-line">Leave blank to delete. Invalid replacement characters are ignored.</div>
+    </label>
+
+    <label>
+      <input type="checkbox" id="fetchViaContent" class="chrome-disabled" />
+      <span style="margin: 0 5px">Enable fetching via content script</span>
+      <span class="badge">Firefox</span>
+      <span class="warning badge">Experimental</span>
+      <div class="caption caption-line">Slower and prone to failure. Send headers from page with download request. Success/failure notifications do not work
+        in this mode. Requires page refresh to take effect.</div>
     </label>
 
     <div style="display: flex; justify-content: flex-start; align-items: center;">

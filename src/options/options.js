@@ -286,6 +286,10 @@ if (browser === chrome) {
   });
 
   document.querySelector("html").style = "min-width: 640px;";
+
+  document.querySelectorAll(".chrome-disabled").forEach(el => {
+    el.disabled = true;
+  });
 }
 
 const setupAutosave = el => {

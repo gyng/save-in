@@ -53,7 +53,8 @@ const OptionsManagement = {
       type: T.VALUE,
       default: SHORTCUT_TYPES.HTML_REDIRECT
     },
-    { name: "truncateLength", type: T.VALUE, default: 240 }
+    { name: "truncateLength", type: T.VALUE, default: 240 },
+    { name: "fetchViaContent", type: T.BOOL, default: false }
   ],
 
   getKeys: () =>

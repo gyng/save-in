@@ -68,6 +68,7 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 const Messaging = {
+  // Fires off and does not expect a return value
   emit: {
     downloaded: state => {
       browser.runtime.sendMessage({
@@ -75,6 +76,32 @@ const Messaging = {
         body: { state }
       });
     }
+  },
+
+  // Returns a Promise
+  send: {
+    fetchViaContent: state =>
+      new Promise((resolve, reject) => {
+        browser.tabs
+          .query({
+            currentWindow: true,
+            active: true
+          })
+          .then(tabs => {
+            browser.tabs
+              .sendMessage(tabs[0].id, {
+                type: MESSAGE_TYPES.FETCH_VIA_CONTENT,
+                body: { state }
+              })
+              .then(resolve)
+              .catch(err => {
+                if (window.SI_DEBUG) {
+                  console.log(err); // eslint-disable-line
+                }
+                reject(err);
+              });
+          });
+      })
   }
 };
 
