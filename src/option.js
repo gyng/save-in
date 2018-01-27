@@ -77,13 +77,18 @@ const OptionsManagement = {
       };
     }
 
-    const last = {
-      ...state,
-      info: {
-        ...state.info,
-        filenamePatterns: options.filenamePatterns
-      }
-    };
+    // webext linter does not support spread
+    // const last = {
+    //   ...state,
+    //   info: {
+    //     ...state.info,
+    //     filenamePatterns: options.filenamePatterns
+    //   }
+    // };
+    const newInfo = Object.assign({}, state.info, {
+      filenamePatterns: options.filenamePatterns
+    });
+    const last = Object.assign({}, state, { info: newInfo });
 
     const lastInterpolated = Variable.applyVariables(
       new Path.Path(Download.getRoutingMatches(last)),
