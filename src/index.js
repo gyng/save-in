@@ -67,6 +67,48 @@ const setOption = (name, value) => {
 let lastUsedPath = null; // global variable
 let currentTab = null; // global variable
 
+// For options
+const checkRoutes = state => {
+  if (!state) {
+    return {
+      path: null,
+      captures: null
+    };
+  }
+
+  const last = {
+    ...state,
+    info: {
+      ...state.info,
+      filenamePatterns: options.filenamePatterns
+    }
+  };
+
+  const lastInterpolated = Variables.applyVariables(
+    new Paths.Path(Downloads.getRoutingMatches(last)),
+    last.info
+  );
+  const testLastResult = lastInterpolated.finalize();
+
+  let testLastCapture;
+  for (let i = 0; i < options.filenamePatterns.length; i += 1) {
+    testLastCapture = getCaptureMatches(
+      options.filenamePatterns[i],
+      last.info,
+      last.info.filename || last.info.url
+    );
+
+    if (testLastCapture) {
+      break;
+    }
+  }
+
+  return {
+    path: testLastResult,
+    captures: testLastCapture
+  };
+};
+
 window.init = () => {
   window.optionErrors = {
     paths: [],
@@ -87,36 +129,6 @@ window.init = () => {
       const fn = optionType.onLoad || (x => x);
       setOption(k, fn(loadedOptions[k]));
     });
-
-    // Setup error messages for options page: refactor this into a message response
-    if (window.lastDownloadState) {
-      const last = {
-        ...window.lastDownloadState,
-        info: {
-          ...window.lastDownloadState.info,
-          filenamePatterns: options.filenamePatterns
-        }
-      };
-      last.route = Variables.applyVariables(
-        new Paths.Path(Downloads.getRoutingMatches(last)),
-        last.info
-      );
-      window.optionErrors.testLastResult = Downloads.finalizeFullPath(last);
-
-      let testLastCapture;
-      for (let i = 0; i < options.filenamePatterns.length; i += 1) {
-        testLastCapture = getCaptureMatches(
-          options.filenamePatterns[i],
-          last.info,
-          last.info.filename || last.info.url
-        );
-
-        if (testLastCapture) {
-          break;
-        }
-      }
-      window.optionErrors.testLastCapture = testLastCapture;
-    }
 
     addNotifications({
       notifyOnSuccess: options.notifyOnSuccess,
@@ -362,7 +374,8 @@ browser.contextMenus.onClicked.addListener(info => {
     if (suggestedFilename) {
       suggestedFilename = Paths.sanitizeFilename(
         suggestedFilename,
-        options.truncateLength
+        options.truncateLength,
+        options.replacementChar
       );
     }
 

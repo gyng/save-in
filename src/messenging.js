@@ -8,6 +8,28 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
         body: options
       });
       break;
+    case MESSAGE_TYPES.OPTIONS_SCHEMA:
+      sendResponse({
+        type: MESSAGE_TYPES.OPTIONS_SCHEMA,
+        body: {
+          keys: OPTION_KEYS,
+          types: OPTION_TYPES
+        }
+      });
+      break;
+    case MESSAGE_TYPES.CHECK_ROUTES:
+      sendResponse({
+        type: MESSAGE_TYPES.CHECK_ROUTES_RESPONSE,
+        body: {
+          optionErrors: window.optionErrors,
+          routeInfo: checkRoutes(
+            (request.body && request.body.state) ||
+              (window.lastDownloadState != null && window.lastDownloadState)
+          ),
+          lastDownload: window.lastDownloadState
+        }
+      });
+      break;
     case MESSAGE_TYPES.DOWNLOAD:
       const { url, info } = request.body;
       const last = window.lastDownloadState || {
@@ -44,3 +66,19 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
       break; // noop
   }
 });
+
+const Messenging = {
+  emit: {
+    downloaded: state => {
+      browser.runtime.sendMessage({
+        type: MESSAGE_TYPES.DOWNLOADED,
+        body: { state }
+      });
+    }
+  }
+};
+
+// Export for testing
+if (typeof module !== "undefined") {
+  module.exports = Messenging;
+}

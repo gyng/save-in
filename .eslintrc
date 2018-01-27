@@ -19,6 +19,7 @@
     "Paths": false,
     "Downloads": false,
     "Variables": false,
+    "Messenging": false,
     "options": false,
     "currentTab": false,
 
@@ -27,6 +28,7 @@
     "parseRules": false,
     "makeSeparator": false,
     "makeShortcut": false,
+    "requestedDownloadFlag": false,
     "SPECIAL_DIRS": false,
     "RULE_TYPES": false,
     "PATH_SEGMENT_TYPES": false,
@@ -34,6 +36,8 @@
     "SHORTCUT_TYPES": false,
     "MESSAGE_TYPES": false,
     "DOWNLOAD_TYPES": false,
-    "MEDIA_TYPES": false
+    "MEDIA_TYPES": false,
+    "OPTION_KEYS": false,
+    "OPTION_TYPES": false
   }
 }

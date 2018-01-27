@@ -1,90 +1,111 @@
 let debugOptions;
-const pathsErrors = document.querySelector("#error-paths");
-const filenamePatternsErrors = document.querySelector(
-  "#error-filenamePatterns"
-);
-const lastDlMatch = document.querySelector("#last-dl-match");
-const lastDlCapture = document.querySelector("#last-dl-capture");
 
-const getOptionsSchema = new Promise((resolve, reject) =>
-  browser.runtime
-    .getBackgroundPage()
-    .then(win => resolve({ keys: win.OPTION_KEYS, types: win.OPTION_TYPES }))
-    .catch(reject)
-);
+const getOptionsSchema = browser.runtime
+  .sendMessage({ type: "OPTIONS_SCHEMA" })
+  .then(res => res.body);
 
-const updateErrors = (timeout = 200) => {
-  window.setTimeout(() => {
-    browser.runtime.getBackgroundPage().then(w => {
-      filenamePatternsErrors.innerHTML = "";
-      pathsErrors.innerHTML = "";
-      lastDlMatch.innerHTML = "no downloads yet: refresh if needed";
-      lastDlCapture.textContent = "none";
+const updateErrors = () => {
+  const pathsErrors = document.querySelector("#error-paths");
+  const lastDlMatch = document.querySelector("#last-dl-match");
+  const lastDlCapture = document.querySelector("#last-dl-capture");
+  const rulesErrors = document.querySelector("#error-filenamePatterns");
 
-      const errors = w.optionErrors;
+  browser.runtime.sendMessage({ type: "CHECK_ROUTES" }).then(({ body }) => {
+    rulesErrors.innerHTML = "";
+    pathsErrors.innerHTML = "";
 
-      console.log(errors, w)
+    const errors = body.optionErrors;
 
-      const row = err => {
-        const r = document.createElement("div");
-        r.className = "error-row";
+    const row = err => {
+      const r = document.createElement("div");
+      r.className = "error-row";
 
-        const message = document.createElement("span");
-        message.className = "error-message";
-        message.textContent = err.message;
-        r.appendChild(message);
+      const message = document.createElement("span");
+      message.className = "error-message";
+      message.textContent = err.message;
+      r.appendChild(message);
 
-        const error = document.createElement("span");
-        error.className = "error-error";
-        error.textContent = err.error;
-        r.appendChild(error);
+      const error = document.createElement("span");
+      error.className = "error-error";
+      error.textContent = err.error;
+      r.appendChild(error);
 
-        return r;
-      };
+      return r;
+    };
 
-      if (errors.filenamePatterns.length > 0) {
-        errors.filenamePatterns.forEach(err => {
-          filenamePatternsErrors.appendChild(row(err));
-        });
-      }
+    if (errors.filenamePatterns.length > 0) {
+      errors.filenamePatterns.forEach(err => {
+        rulesErrors.appendChild(row(err));
+      });
+    }
 
-      if (errors.paths.length > 0) {
-        errors.paths.forEach(err => {
-          pathsErrors.appendChild(row(err));
-        });
-      }
+    if (errors.paths.length > 0) {
+      errors.paths.forEach(err => {
+        pathsErrors.appendChild(row(err));
+      });
+    }
 
-      if (errors.testLastResult) {
-        lastDlMatch.textContent = errors.testLastResult;
-      }
+    // Last download
+    const hasLastDownload =
+      body.lastDownload && body.lastDownload.info && body.lastDownload.info.url;
+    if (hasLastDownload) {
+      document.querySelector("#last-dl-url").textContent =
+        body.lastDownload.info.url;
+    }
 
-      const hasCaptureMatches =
-        errors.testLastCapture && Array.isArray(errors.testLastCapture);
-      document
-        .querySelector("#capture-group-rows")
-        .classList.toggle("hide", !hasCaptureMatches);
+    document
+      .querySelector("#rules-applied-row")
+      .classList.toggle("hide", !hasLastDownload);
 
-      if (hasCaptureMatches) {
-        // Skip first match
-        lastDlCapture.textContent = "";
-        for (let i = 1; i < errors.testLastCapture.length; i += 1) {
+    // Routing result
+    lastDlMatch.innerHTML = "no matches";
+    if (body.routeInfo.path) {
+      lastDlMatch.textContent = body.routeInfo.path;
+    }
+
+    // Capture groups
+    const hasCaptureMatches =
+      body.routeInfo && Array.isArray(body.routeInfo.captures);
+
+    document
+      .querySelector("#capture-group-rows")
+      .classList.toggle("hide", !hasCaptureMatches);
+
+    if (hasCaptureMatches) {
+      lastDlCapture.textContent = "";
+
+      // Skip first match as it's just the entire input
+      body.routeInfo.captures
+        .slice(1)
+        .map((c, i) => {
           const div = document.createElement("div");
           div.className = "match-row";
+
           const code = document.createElement("code");
-          code.innerText = `:$${i}:`;
+          code.innerText = `:$${i + 1}:`;
           div.appendChild(code);
 
           const value = document.createElement("div");
           value.className = "match-row-result";
-          value.textContent = errors.testLastCapture[i];
+          value.textContent = body.routeInfo.captures[i];
           div.appendChild(value);
 
-          lastDlCapture.appendChild(div);
-        }
-      }
-    });
-  }, timeout);
+          return div;
+        })
+        .forEach(rowDiv => lastDlCapture.appendChild(rowDiv));
+    }
+  });
 };
+
+browser.runtime.onMessage.addListener(message => {
+  switch (message.type) {
+    case "DOWNLOADED":
+      updateErrors();
+      break;
+    default:
+      break;
+  }
+});
 
 const saveOptions = e => {
   if (e) {
@@ -243,7 +264,6 @@ document.querySelector("#reset").addEventListener("click", e => {
         restoreOptions();
         updateErrors();
         w.alert("Settings have been reset to defaults.");
-        w.reset();
       });
     }
   };
@@ -318,13 +338,10 @@ document.querySelector("#settings-export").addEventListener("click", () => {
 
 document.querySelector("#show-last-download").addEventListener("click", () => {
   browser.runtime.getBackgroundPage().then(w => {
-    showJson(w.lastDownloadState || { "Nothing!": "No downloads recorded yet." });
+    showJson(
+      w.lastDownloadState || { "Nothing!": "No downloads recorded yet." }
+    );
   });
-});
-
-document.querySelector("#refresh-errors").addEventListener("click", e => {
-  saveOptions(e);
-  updateErrors();
 });
 
 const importSettings = () => {
