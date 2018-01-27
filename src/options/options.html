@@ -275,19 +275,25 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
       <div class="error-notification" id="error-filenamePatterns">errors</div>
       <div style="display: flex; max-width: 100%; align-items: center; flex-wrap: wrap;">
         <div class="info-row" style="display: flex; flex-direction: column; flex: 1; align-items: baseline; margin-right: 8px;">
-          <div style="display: flex; align-items: baseline; width: 100%">
-            <div style="font-weight: 600; margin-right: 16px;">Applied to last download</div>
-            <div style="font-family: monospace; word-break: break-all;" id="last-dl-match">last dl match</div>
-            <div style="margin: 0 0 0 auto; font-size: 23px;" class="link" id="refresh-errors">⟳</div>
-          </div>
-
-          <div class="hide" id="capture-group-rows" style="display: flex; width: 100%">
-            <div style="font-weight: 600; margin-right: 16px;">Capture groups</div>
-            <div style="font-family: monospace; word-break: break-all;" id="last-dl-capture">last dl capture</div>
-          </div>
+          <table style="margin: 0; padding: 0">
+            <tbody style="margin: 0; padding: 0; vertical-align: baseline;">
+              <tr>
+                <td div style="font-weight: 600; padding: 0; text-align: left; min-width: 110px;">
+                  Last download
+                </td>
+                <td style="font-family: monospace; text-overflow: hidden; overflow: hidden; white-space: nowrap;" id="last-dl-url">none yet</td>
+              </tr>
+              <tr class="hi2de" id="rules-applied-row">
+                <td style="font-weight: 600; padding: 0; text-align: left;">Renamed to</td>
+                <td style="font-family: monospace; word-break: break-all;" id="last-dl-match">no matches</td>
+              </tr>
+              <tr class="hide" id="capture-group-rows">
+                <td style="font-weight: 600; padding: 0;">Capture groups</td>
+                <td style="font-family: monospace; word-break: break-all;" id="last-dl-capture"></td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-
-        <div id="show-last-download" class="button">Last&nbsp;Download&nbsp;Info</div>
       </div>
       <div class="caption caption-line">Test your current rules, applied to the last downloaded file</div>
 
@@ -409,6 +415,8 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
       <div style="margin-left: 8px;" id="settings-export" class="button">Export Settings</div>
       <div style="margin-left: 8px;" id="print-debug-info" class="button">Show Debug Information</div>
     </div>
+
+    <div id="show-last-download" class="button" style="align-self: flex-start">Last Download Info</div>
 
     <label>
       <input type="checkbox" id="debug" /> Enable debug logging

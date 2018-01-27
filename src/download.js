@@ -125,6 +125,7 @@ const Downloads = {
         conflictAction: options.conflictAction
       });
 
+      Messenging.emit.downloaded(_state);
       window.lastDownloadState = _state;
     };
 

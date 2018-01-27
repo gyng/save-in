@@ -107,7 +107,7 @@ const Paths = {
         (typeof options !== "undefined" &&
           options &&
           options.replacementChar) ||
-        "_"
+        ""
     ),
 
   // Leading dots are considered invalid by both Firefox and Chrome
@@ -118,7 +118,7 @@ const Paths = {
         (typeof options !== "undefined" &&
           options &&
           options.replacementChar) ||
-        "_"
+        ""
     ),
 
   truncateIfLongerThan: (str, max) =>
@@ -159,6 +159,10 @@ const Paths = {
     }),
 
   parsePathStr: (pathStr = "") => {
+    if (pathStr == null) {
+      pathStr = "";
+    }
+
     let split = pathStr.split(Paths.SEPARATOR_REGEX_INCLUSIVE);
     if (typeof split === "string") {
       split = [split];
