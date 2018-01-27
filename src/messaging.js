@@ -12,8 +12,8 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
       sendResponse({
         type: MESSAGE_TYPES.OPTIONS_SCHEMA,
         body: {
-          keys: Options.OPTION_KEYS,
-          types: Options.OPTION_TYPES
+          keys: OptionsManagement.OPTION_KEYS,
+          types: OptionsManagement.OPTION_TYPES
         }
       });
       break;
@@ -22,7 +22,7 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
         type: MESSAGE_TYPES.CHECK_ROUTES_RESPONSE,
         body: {
           optionErrors: window.optionErrors,
-          routeInfo: Options.checkRoutes(
+          routeInfo: OptionsManagement.checkRoutes(
             (request.body && request.body.state) ||
               (window.lastDownloadState != null && window.lastDownloadState)
           ),
@@ -33,7 +33,7 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
     case MESSAGE_TYPES.DOWNLOAD:
       const { url, info } = request.body;
       const last = window.lastDownloadState || {
-        path: new Paths.Path("."),
+        path: new Path.Path("."),
         scratch: {},
         info: {}
       };
@@ -49,13 +49,13 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
       };
 
       const clickState = {
-        path: last.path || new Paths.Path("."),
+        path: last.path || new Path.Path("."),
         scratch: last.scratch,
         route: last.route,
         info: Object.assign({}, last.info, opts, info)
       };
 
-      Downloads.renameAndDownload(clickState);
+      Download.renameAndDownload(clickState);
 
       sendResponse({
         type: MESSAGE_TYPES.DOWNLOAD,

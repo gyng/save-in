@@ -1,25 +1,25 @@
 const constants = require("../src/constants.js");
 
 Object.assign(global, constants);
-global.options = {};
+global.options = { replacementChar: "_" };
 global.Download = require("../src/download.js");
-global.Paths = require("../src/path.js");
+global.Path = require("../src/path.js");
 
 const Download = global.Download;
 
 describe("sanitisation", () => {
   test("paths", () => {
-    expect(new Paths.Path(":stop:").finalize()).toBe("_stop_");
-    expect(new Paths.Path(":date:").finalize()).toBe("_date_");
-    expect(new Paths.Path("/:stop:/::/").finalize()).toBe("/_stop_/__/");
-    expect(new Paths.Path("/:date:/dog").finalize()).toBe("/_date_/dog");
-    expect(new Paths.Path("/aa/b/c").finalize()).toBe("/aa/b/c");
-    expect(new Paths.Path("ab/b/c").finalize()).toBe("ab/b/c");
-    expect(new Paths.Path("a\\b/c").finalize()).toBe("a/b/c");
+    expect(new Path.Path(":stop:").finalize()).toBe("_stop_");
+    expect(new Path.Path(":date:").finalize()).toBe("_date_");
+    expect(new Path.Path("/:stop:/::/").finalize()).toBe("/_stop_/__/");
+    expect(new Path.Path("/:date:/dog").finalize()).toBe("/_date_/dog");
+    expect(new Path.Path("/aa/b/c").finalize()).toBe("/aa/b/c");
+    expect(new Path.Path("ab/b/c").finalize()).toBe("ab/b/c");
+    expect(new Path.Path("a\\b/c").finalize()).toBe("a/b/c");
   });
 
   test("filesystem characters", () => {
-    expect(Paths.replaceFsBadChars('/ : * ? " < > | % ~')).toBe(
+    expect(Path.replaceFsBadChars('/ : * ? " < > | % ~')).toBe(
       "_ _ _ _ _ _ _ _ % ~"
     );
   });
@@ -35,8 +35,8 @@ describe("sanitisation", () => {
     });
 
     test("replaces invalid characters with a custom replacement character", () => {
-      expect(new Paths.Path(":stop:").finalize()).toBe("xstopx");
-      expect(Paths.replaceFsBadChars("/", "a")).toBe("a");
+      expect(new Path.Path(":stop:").finalize()).toBe("xstopx");
+      expect(Path.replaceFsBadChars("/", "a")).toBe("a");
     });
   });
 });

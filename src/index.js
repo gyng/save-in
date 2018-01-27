@@ -8,8 +8,8 @@ window.init = () => {
     filenamePatterns: []
   };
 
-  Options.loadOptions().then(() => {
-    Notifications.addNotifications({
+  OptionsManagement.loadOptions().then(() => {
+    Notification.addNotifications({
       notifyOnSuccess: options.notifyOnSuccess,
       notifyOnFailure: options.notifyOnFailure,
       notifyDuration: options.notifyDuration,
@@ -89,7 +89,7 @@ window.init = () => {
 
     let menuItemCounter = 0;
     pathsArray.forEach(dir => {
-      const validation = new Paths.Path(dir).validate();
+      const validation = new Path.Path(dir).validate();
       if (!validation.valid) {
         window.optionErrors.paths.push({
           message: validation.message,
@@ -197,8 +197,8 @@ browser.contextMenus.onClicked.addListener(info => {
       url = info.linkUrl;
     } else if (options.selection && info.selectionText) {
       downloadType = DOWNLOAD_TYPES.SELECTION;
-      url = Downloads.makeObjectUrl(info.selectionText);
-      suggestedFilename = `${Paths.truncateIfLongerThan(
+      url = Download.makeObjectUrl(info.selectionText);
+      suggestedFilename = `${Path.truncateIfLongerThan(
         (currentTab && currentTab.title) || info.selectionText,
         options.truncateLength - 14
       )}.selection.txt`;
@@ -234,7 +234,7 @@ browser.contextMenus.onClicked.addListener(info => {
       }
     }
 
-    const parsedPath = new Paths.Path(saveIntoPath);
+    const parsedPath = new Path.Path(saveIntoPath);
 
     const saveAsShortcut =
       (downloadType === DOWNLOAD_TYPES.MEDIA && options.shortcutMedia) ||
@@ -254,7 +254,7 @@ browser.contextMenus.onClicked.addListener(info => {
     }
 
     if (suggestedFilename) {
-      suggestedFilename = Paths.sanitizeFilename(
+      suggestedFilename = Path.sanitizeFilename(
         suggestedFilename,
         options.truncateLength,
         options.replacementChar
@@ -286,12 +286,12 @@ browser.contextMenus.onClicked.addListener(info => {
     };
 
     requestedDownloadFlag = true; // Notifications.
-    Downloads.renameAndDownload(state);
+    Download.renameAndDownload(state);
   }
 
   switch (info.menuItemId) {
     case "show-default-folder":
-      browser.downloads.showDefaultFolder();
+      browser.download.showDefaultFolder();
       break;
     case "options":
       browser.runtime.openOptionsPage();

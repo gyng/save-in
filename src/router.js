@@ -1,4 +1,4 @@
-const RouterFactories = {
+const RouterFactory = {
   makeInfoMatcherFactory: propertyName => regex => info => {
     const match = info[propertyName] && info[propertyName].match(regex);
 
@@ -77,7 +77,7 @@ const Router = {
       const url = info.srcUrl || info.linkUrl || info.pageUrl;
       if (!url) return false;
 
-      const extension = url.match(Downloads.EXTENSION_REGEX);
+      const extension = url.match(Download.EXTENSION_REGEX);
       if (!extension) return false;
 
       const match = extension[1].match(regex);
@@ -100,14 +100,14 @@ const Router = {
 
       return match;
     },
-    frameurl: RouterFactories.makeInfoMatcherFactory("frameUrl"),
-    linktext: RouterFactories.makeInfoMatcherFactory("linkText"),
-    mediatype: RouterFactories.makeInfoMatcherFactory("mediaType"),
+    frameurl: RouterFactory.makeInfoMatcherFactory("frameUrl"),
+    linktext: RouterFactory.makeInfoMatcherFactory("linkText"),
+    mediatype: RouterFactory.makeInfoMatcherFactory("mediaType"),
     naivefilename: regex => info => {
       const url = info.srcUrl || info.linkUrl || info.pageUrl;
       if (!url) return false;
 
-      const filename = Downloads.getFilenameFromUrl(url);
+      const filename = Download.getFilenameFromUrl(url);
       if (!filename) return false;
 
       const match = filename.match(regex);
@@ -118,12 +118,12 @@ const Router = {
 
       return match;
     },
-    pagedomain: RouterFactories.makeHostnameMatcherFactory("pageUrl"),
-    sourcedomain: RouterFactories.makeHostnameMatcherFactory("srcUrl"),
-    pagetitle: RouterFactories.makeTabMatcherFactory("title"),
-    pageurl: RouterFactories.makeInfoMatcherFactory("pageUrl"),
-    selectiontext: RouterFactories.makeInfoMatcherFactory("selectionText"),
-    sourceurl: RouterFactories.makeInfoMatcherFactory("srcUrl")
+    pagedomain: RouterFactory.makeHostnameMatcherFactory("pageUrl"),
+    sourcedomain: RouterFactory.makeHostnameMatcherFactory("srcUrl"),
+    pagetitle: RouterFactory.makeTabMatcherFactory("title"),
+    pageurl: RouterFactory.makeInfoMatcherFactory("pageUrl"),
+    selectiontext: RouterFactory.makeInfoMatcherFactory("selectionText"),
+    sourceurl: RouterFactory.makeInfoMatcherFactory("srcUrl")
   },
 
   tokenizeLines: lines =>

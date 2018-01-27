@@ -11,12 +11,12 @@
     "no-param-reassign": 0
   },
   "globals": {
-    "Paths": false,
-    "Downloads": false,
-    "Variables": false,
+    "Path": false,
+    "Download": false,
+    "Variable": false,
     "Messaging": false,
-    "Options": false,
-    "Notifications": false,
+    "OptionsManagement": false,
+    "Notification": false,
     "Menus": false,
     "Shortcut": false,
     "Router": false,
