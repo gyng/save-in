@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 
-const globalChromeState = {};
+let globalChromeState = {};
 
 const Download = {
   DISPOSITION_FILENAME_REGEX: /filename[^;=\n]*=((['"])(.*)?\2|(.+'')?([^;\n]*))/i,
@@ -118,12 +118,31 @@ const Download = {
         shiftHeldPrompt ||
         noRuleMatchedPrompt;
 
-      browser.downloads.download({
-        url: _state.info.url,
-        filename: finalFullPath || "_",
-        saveAs: prompt,
-        conflictAction: options.conflictAction
-      });
+      const browserDownload = _url => {
+        browser.downloads.download({
+          url: _url,
+          filename: finalFullPath || "_",
+          saveAs: prompt,
+          conflictAction: options.conflictAction
+        });
+      };
+
+      if (options.fetchViaContent) {
+        Messaging.send
+          .fetchViaContent(_state)
+          .then(res => {
+            const objectUrl = URL.createObjectURL(res.body.blob);
+            return browserDownload(objectUrl);
+          })
+          .catch(e => {
+            if (window.SI_DEBUG) {
+              console.log("Failed to fetch via content", e); // eslint-disable-line
+            }
+            browserDownload(_state.info.url);
+          });
+      } else {
+        browserDownload(_state.info.url);
+      }
 
       Messaging.emit.downloaded(_state);
       window.lastDownloadState = _state;
@@ -135,6 +154,7 @@ const Download = {
       chrome.downloads &&
       chrome.downloads.onDeterminingFilename
     ) {
+      globalChromeState = state;
       download(state);
     } else {
       fetch(state.info.url, { method: "HEAD" })
@@ -177,9 +197,9 @@ if (chrome && chrome.downloads && chrome.downloads.onDeterminingFilename) {
   chrome.downloads.onDeterminingFilename.addListener(
     (downloadItem, suggest) => {
       globalChromeState.info.filename =
-        globalChromeState.info.suggestedFilename ||
+        (globalChromeState.info && globalChromeState.info.suggestedFilename) ||
         downloadItem.filename ||
-        globalChromeState.info.filename;
+        (globalChromeState.info && globalChromeState.info.filename);
       suggest({
         filename: Download.finalizeFullPath(globalChromeState),
         conflictAction: options.conflictAction
