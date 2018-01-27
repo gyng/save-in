@@ -28,7 +28,7 @@ describe("filename rewrite and routing", () => {
     global.SPECIAL_DIRS = constants.SPECIAL_DIRS;
     global.EXTENSION_REGEX = downloads.EXTENSION_REGEX;
 
-    global.Downloads = downloads;
+    global.Download = downloads;
   });
 
   afterAll(() => {

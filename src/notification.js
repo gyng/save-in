@@ -6,7 +6,7 @@ const ERROR_ICON_URL = "icons/ic_error_outline_red_96px.png";
 const downloadsList = {}; // global
 let requestedDownloadFlag = false;
 
-const Notifications = {
+const Notification = {
   currentDownloadChangeListener: null,
   currentDownloadCreatedListener: null,
   currentNotificationClickListener: null,
@@ -61,17 +61,17 @@ const Notifications = {
     };
 
     if (
-      Notifications.currentDownloadCreatedListener &&
+      Notification.currentDownloadCreatedListener &&
       browser.downloads.onCreated.hasListener(
-        Notifications.currentDownloadCreatedListener
+        Notification.currentDownloadCreatedListener
       )
     ) {
       browser.downloads.onCreated.removeListener(
-        Notifications.currentDownloadCreatedListener
+        Notification.currentDownloadCreatedListener
       );
     }
     browser.downloads.onCreated.addListener(onDownloadCreatedListener);
-    Notifications.currentDownloadCreatedListener = onDownloadCreatedListener;
+    Notification.currentDownloadCreatedListener = onDownloadCreatedListener;
 
     const onNotificationClickedListener = notId => {
       if (String(notId).startsWith("save-in-not-")) {
@@ -83,16 +83,16 @@ const Notifications = {
     };
 
     if (
-      Notifications.currentNotificationClickListener &&
+      Notification.currentNotificationClickListener &&
       browser.notifications.onClicked.hasListener(
-        Notifications.currentNotificationClickListener
+        Notification.currentNotificationClickListener
       )
     ) {
       browser.notifications.onClicked.removeListener(
-        Notifications.currentNotificationClickListener
+        Notification.currentNotificationClickListener
       );
     }
-    Notifications.currentNotificationClickListener = onNotificationClickedListener;
+    Notification.currentNotificationClickListener = onNotificationClickedListener;
     browser.notifications.onClicked.addListener(onNotificationClickedListener);
 
     const onDownloadChangeListener = downloadDelta => {
@@ -120,7 +120,7 @@ const Notifications = {
       const slashIdx = fullFilename && fullFilename.lastIndexOf("/");
       const filename = fullFilename.substring(slashIdx + 1);
 
-      const failed = Notifications.isDownloadFailure(
+      const failed = Notification.isDownloadFailure(
         downloadDelta,
         browser === chrome
       );
@@ -228,21 +228,21 @@ const Notifications = {
     };
 
     if (
-      Notifications.currentDownloadChangeListener &&
+      Notification.currentDownloadChangeListener &&
       browser.downloads.onChanged.hasListener(
-        Notifications.currentDownloadChangeListener
+        Notification.currentDownloadChangeListener
       )
     ) {
       browser.downloads.onChanged.removeListener(
-        Notifications.currentDownloadChangeListener
+        Notification.currentDownloadChangeListener
       );
     }
     browser.downloads.onChanged.addListener(onDownloadChangeListener);
-    Notifications.currentDownloadChangeListener = onDownloadChangeListener;
+    Notification.currentDownloadChangeListener = onDownloadChangeListener;
   }
 };
 
 // Export for testing
 if (typeof module !== "undefined") {
-  module.exports = Notifications;
+  module.exports = Notification;
 }

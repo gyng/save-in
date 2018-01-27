@@ -1,7 +1,7 @@
 const specialDirVariables = Object.values(SPECIAL_DIRS);
 const specialDirRegexp = new RegExp(`(${specialDirVariables.join("|")})`);
 
-const Paths = {
+const Path = {
   SPECIAL_CHARACTERS_REGEX: /[<>:"/\\|?*\0]/g,
   BAD_LEADING_CHARACTERS: /^[./\\]/g,
   SEPARATOR_REGEX: /[/\\]/g,
@@ -33,9 +33,9 @@ const Paths = {
     }
   },
 
-  Path: class Path {
+  Path: class _Path {
     constructor(str) {
-      const buf = Paths.parsePathStr(str);
+      const buf = Path.parsePathStr(str);
       this.raw = str;
       this.rawbuf = buf;
       this.buf = buf;
@@ -49,19 +49,19 @@ const Paths = {
       const stringifiedBuf = this.buf
         .map(s => {
           if (s.type !== PATH_SEGMENT_TYPES.SEPARATOR) {
-            return Paths.PathSegment.String(s.val);
+            return Path.PathSegment.String(s.val);
           } else {
             return s;
           }
         })
         .map(
           s =>
-            s.val ? s : Paths.PathSegment.String(options.replacementChar || "_")
+            s.val ? s : Path.PathSegment.String(options.replacementChar || "_")
         );
 
-      const sanitizedStringifiedBuf = Paths.sanitizeBufStrings(stringifiedBuf);
+      const sanitizedStringifiedBuf = Path.sanitizeBufStrings(stringifiedBuf);
 
-      const finalizedPath = Object.assign(new Path(), this, {
+      const finalizedPath = Object.assign(new _Path(), this, {
         buf: sanitizedStringifiedBuf
       });
 
@@ -94,7 +94,7 @@ const Paths = {
         const segment = this.buf[i];
         if (
           segment.type === PATH_SEGMENT_TYPES.STRING &&
-          Paths.sanitizeFilename(segment.val) !== segment.val
+          Path.sanitizeFilename(segment.val) !== segment.val
         ) {
           return { valid: false, message: "Path contains invalid characters" };
         }
@@ -106,7 +106,7 @@ const Paths = {
   // TODO: Make this OS-aware instead of assuming Windows as LCD
   replaceFsBadChars: (s, replacement) =>
     s.replace(
-      Paths.SPECIAL_CHARACTERS_REGEX,
+      Path.SPECIAL_CHARACTERS_REGEX,
       replacement ||
         (typeof options !== "undefined" &&
           options &&
@@ -117,7 +117,7 @@ const Paths = {
   // Leading dots are considered invalid by both Firefox and Chrome
   replaceLeadingDots: (s, replacement) =>
     s.replace(
-      Paths.BAD_LEADING_CHARACTERS,
+      Path.BAD_LEADING_CHARACTERS,
       replacement ||
         (typeof options !== "undefined" &&
           options &&
@@ -133,13 +133,10 @@ const Paths = {
       return str;
     }
 
-    const fsSafe = Paths.truncateIfLongerThan(
-      Paths.replaceFsBadChars(str),
-      max
-    );
+    const fsSafe = Path.truncateIfLongerThan(Path.replaceFsBadChars(str), max);
 
     if (leadingDotsForbidden) {
-      return Paths.replaceLeadingDots(fsSafe);
+      return Path.replaceLeadingDots(fsSafe);
     }
 
     return fsSafe;
@@ -152,10 +149,10 @@ const Paths = {
       }
 
       if (s.type === PATH_SEGMENT_TYPES.Separator) {
-        return Paths.PathSegment.String("/");
+        return Path.PathSegment.String("/");
       } else if (s.type === PATH_SEGMENT_TYPES.STRING) {
-        return Paths.PathSegment.String(
-          Paths.sanitizeFilename(s.val, options.truncateLength, i === 0)
+        return Path.PathSegment.String(
+          Path.sanitizeFilename(s.val, options.truncateLength, i === 0)
         );
       } else {
         return s;
@@ -167,7 +164,7 @@ const Paths = {
       pathStr = "";
     }
 
-    let split = pathStr.split(Paths.SEPARATOR_REGEX_INCLUSIVE);
+    let split = pathStr.split(Path.SEPARATOR_REGEX_INCLUSIVE);
     if (typeof split === "string") {
       split = [split];
     }
@@ -178,12 +175,12 @@ const Paths = {
     const flattened = [].concat.apply([], tokenized); // eslint-disable-line
 
     const parsed = flattened.map(tok => {
-      if (tok.match(Paths.SEPARATOR_REGEX_INCLUSIVE)) {
-        return Paths.PathSegment.Separator(tok);
+      if (tok.match(Path.SEPARATOR_REGEX_INCLUSIVE)) {
+        return Path.PathSegment.Separator(tok);
       } else if (tok.match(specialDirRegexp)) {
-        return Paths.PathSegment.Variable(tok);
+        return Path.PathSegment.Variable(tok);
       }
-      return Paths.PathSegment.String(tok);
+      return Path.PathSegment.String(tok);
     });
 
     return parsed;
@@ -192,5 +189,5 @@ const Paths = {
 
 // Export for testing
 if (typeof module !== "undefined") {
-  module.exports = Paths;
+  module.exports = Path;
 }

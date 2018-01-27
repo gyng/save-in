@@ -2,7 +2,7 @@
 
 const globalChromeState = {};
 
-const Downloads = {
+const Download = {
   DISPOSITION_FILENAME_REGEX: /filename[^;=\n]*=((['"])(.*)?\2|(.+'')?([^;\n]*))/i,
   EXTENSION_REGEX: /\.([0-9a-z]{1,8})$/i,
 
@@ -24,7 +24,7 @@ const Downloads = {
     const finalDir = _state.path.finalize();
     const finalFilename = _state.route
       ? _state.route.finalize()
-      : Paths.sanitizeFilename(_state.info.filename);
+      : Path.sanitizeFilename(_state.info.filename);
     const finalFullPath = [finalDir, finalFilename]
       .filter(x => x != null)
       .join("/");
@@ -35,7 +35,7 @@ const Downloads = {
   getFilenameFromContentDisposition: disposition => {
     if (typeof disposition !== "string") return null;
 
-    const matches = disposition.match(Downloads.DISPOSITION_FILENAME_REGEX);
+    const matches = disposition.match(Download.DISPOSITION_FILENAME_REGEX);
 
     if (matches && matches.length >= 3) {
       // First decode utf8
@@ -49,7 +49,7 @@ const Downloads = {
         filename = filename.slice(1, -1);
       }
 
-      filename = Paths.sanitizeFilename(filename);
+      filename = Path.sanitizeFilename(filename);
 
       return filename;
     }
@@ -73,7 +73,7 @@ const Downloads = {
   },
 
   renameAndDownload: state => {
-    const naiveFilename = Downloads.getFilenameFromUrl(state.info.url);
+    const naiveFilename = Download.getFilenameFromUrl(state.info.url);
     const initialFilename =
       state.info.suggestedFilename || naiveFilename || state.info.url;
 
@@ -83,26 +83,26 @@ const Downloads = {
       initialFilename
     });
 
-    state.path = Variables.applyVariables(state.path, state.info);
+    state.path = Variable.applyVariables(state.path, state.info);
 
     // FIXME: Fix router params for new path struct
-    const routeMatches = Downloads.getRoutingMatches(state);
+    const routeMatches = Download.getRoutingMatches(state);
     if (routeMatches) {
-      state.route = Variables.applyVariables(
-        new Paths.Path(routeMatches),
+      state.route = Variable.applyVariables(
+        new Path.Path(routeMatches),
         state.info
       );
     }
 
     const download = _state => {
-      const finalFullPath = Downloads.finalizeFullPath(_state);
+      const finalFullPath = Download.finalizeFullPath(_state);
 
       if (window.SI_DEBUG) {
         console.log(state, finalFullPath); // eslint-disable-line
       }
 
       _state.scratch.hasExtension =
-        routeMatches && routeMatches.match(Downloads.EXTENSION_REGEX);
+        routeMatches && routeMatches.match(Download.EXTENSION_REGEX);
 
       const noExtensionPrompt =
         options.promptIfNoExtension && !_state.scratch.hasExtension;
@@ -141,7 +141,7 @@ const Downloads = {
         .then(res => {
           if (res.headers.has("Content-Disposition")) {
             const disposition = res.headers.get("Content-Disposition");
-            const dispositionName = Downloads.getFilenameFromContentDisposition(
+            const dispositionName = Download.getFilenameFromContentDisposition(
               disposition
             );
             state.info.filename = dispositionName || state.info.filename;
@@ -157,14 +157,14 @@ const Downloads = {
     // Trigger notifications
     if (state.route) {
       if (options.notifyOnRuleMatch) {
-        Notifications.createExtensionNotification(
+        Notification.createExtensionNotification(
           "Save In: Rule matched",
           `${state.info.initialFilename}\n⬇\n${state.route}`,
           false
         );
       }
     } else if (options.routeExclusive && options.notifyOnFailure) {
-      Notifications.createExtensionNotification(
+      Notification.createExtensionNotification(
         "Save In: Failed to route or rename download",
         `No matching rule found for ${state.info.url}`,
         true
@@ -181,7 +181,7 @@ if (chrome && chrome.downloads && chrome.downloads.onDeterminingFilename) {
         downloadItem.filename ||
         globalChromeState.info.filename;
       suggest({
-        filename: Downloads.finalizeFullPath(globalChromeState),
+        filename: Download.finalizeFullPath(globalChromeState),
         conflictAction: options.conflictAction
       });
     }
@@ -190,5 +190,5 @@ if (chrome && chrome.downloads && chrome.downloads.onDeterminingFilename) {
 
 // Export for testing
 if (typeof module !== "undefined") {
-  module.exports = Downloads;
+  module.exports = Download;
 }

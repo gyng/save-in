@@ -32,7 +32,7 @@ const Shortcut = {
   },
 
   makeShortcut: (type, url) =>
-    Downloads.makeObjectUrl(
+    Download.makeObjectUrl(
       Shortcut.makeShortcutContent(type, url, currentTab.pageTitle)
     ),
 
@@ -57,7 +57,7 @@ const Shortcut = {
             info.srcUrl ||
             info.linkUrl}`;
 
-    shortcutFilename = `${Paths.sanitizeFilename(
+    shortcutFilename = `${Path.sanitizeFilename(
       shortcutFilename,
       maxlen - shortcutExtension.length
     )}${shortcutExtension}`;

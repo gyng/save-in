@@ -6,7 +6,7 @@ const T = {
 
 let options = {};
 
-const Options = {
+const OptionsManagement = {
   OPTION_TYPES: T, // re-export
 
   OPTION_KEYS: [
@@ -57,7 +57,10 @@ const Options = {
   ],
 
   getKeys: () =>
-    Options.OPTION_KEYS.reduce((acc, val) => acc.concat([val.name]), []),
+    OptionsManagement.OPTION_KEYS.reduce(
+      (acc, val) => acc.concat([val.name]),
+      []
+    ),
 
   setOption: (name, value) => {
     if (typeof value !== "undefined") {
@@ -81,8 +84,8 @@ const Options = {
       }
     };
 
-    const lastInterpolated = Variables.applyVariables(
-      new Paths.Path(Downloads.getRoutingMatches(last)),
+    const lastInterpolated = Variable.applyVariables(
+      new Path.Path(Download.getRoutingMatches(last)),
       last.info
     );
     const testLastResult = lastInterpolated.finalize();
@@ -107,28 +110,30 @@ const Options = {
   }
 };
 
-Options.loadOptions = () =>
-  browser.storage.local.get(Options.getKeys()).then(loadedOptions => {
+OptionsManagement.loadOptions = () =>
+  browser.storage.local.get(OptionsManagement.getKeys()).then(loadedOptions => {
     if (loadedOptions.debug) {
       window.SI_DEBUG = 1;
     }
 
     const localKeys = Object.keys(loadedOptions);
     localKeys.forEach(k => {
-      const optionType = Options.OPTION_KEYS.find(ok => ok.name === k);
+      const optionType = OptionsManagement.OPTION_KEYS.find(
+        ok => ok.name === k
+      );
       const fn = optionType.onLoad || (x => x);
-      Options.setOption(k, fn(loadedOptions[k]));
+      OptionsManagement.setOption(k, fn(loadedOptions[k]));
     });
 
     return options;
   });
 
 // global
-options = Options.OPTION_KEYS.reduce((acc, val) =>
+options = OptionsManagement.OPTION_KEYS.reduce((acc, val) =>
   Object.assign(acc, { [val.name]: val.default }, {})
 );
 
 // Export for testing
 if (typeof module !== "undefined") {
-  module.exports = Options;
+  module.exports = OptionsManagement;
 }
