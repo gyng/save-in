@@ -18,6 +18,8 @@
     "Options": false,
     "Notifications": false,
     "Menus": false,
+    "Shortcut": false,
+    "Router": false,
     "options": false,
     "currentTab": false,
     "requestedDownloadFlag": true,

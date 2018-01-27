@@ -20,7 +20,7 @@ const Options = {
       name: "filenamePatterns",
       type: T.VALUE,
       onSave: v => v.trim(),
-      onLoad: v => parseRules(v),
+      onLoad: v => Router.parseRules(v),
       default: ""
     },
     { name: "keyLastUsed", type: T.VALUE, default: "a" },
@@ -89,7 +89,7 @@ const Options = {
 
     let testLastCapture;
     for (let i = 0; i < options.filenamePatterns.length; i += 1) {
-      testLastCapture = getCaptureMatches(
+      testLastCapture = Router.getCaptureMatches(
         options.filenamePatterns[i],
         last.info,
         last.info.filename || last.info.url

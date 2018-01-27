@@ -2,11 +2,10 @@ let lastUsedPath = null; // global variable
 let currentTab = null; // global variable
 
 window.init = () => {
+  // FIXME
   window.optionErrors = {
     paths: [],
     filenamePatterns: []
-    // testLastResult: null,
-    // testLastCapture: null
   };
 
   Options.loadOptions().then(() => {
@@ -243,9 +242,9 @@ browser.contextMenus.onClicked.addListener(info => {
       (downloadType === DOWNLOAD_TYPES.PAGE && options.shortcutPage);
 
     if (saveAsShortcut) {
-      url = makeShortcut(options.shortcutType, url);
+      url = Shortcut.makeShortcut(options.shortcutType, url);
 
-      suggestedFilename = suggestShortcutFilename(
+      suggestedFilename = Shortcut.suggestShortcutFilename(
         options.shortcutType,
         downloadType,
         info,
