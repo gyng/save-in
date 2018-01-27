@@ -1,135 +1,15 @@
-const T = {
-  BOOL: "BOOL",
-  VALUE: "VALUE"
-};
-
-const OPTION_KEYS = [
-  { name: "conflictAction", type: T.VALUE, default: "uniquify" },
-  { name: "contentClickToSave", type: T.BOOL, default: false },
-  { name: "contentClickToSaveCombo", type: T.VALUE, default: 18 },
-  { name: "debug", type: T.BOOL, fn: null, default: false },
-  { name: "enableLastLocation", type: T.BOOL, default: true },
-  { name: "enableNumberedItems", type: T.BOOL, default: true },
-  {
-    name: "filenamePatterns",
-    type: T.VALUE,
-    onSave: v => v.trim(),
-    onLoad: v => parseRules(v),
-    default: ""
-  },
-  { name: "keyLastUsed", type: T.VALUE, default: "a" },
-  { name: "keyRoot", type: T.VALUE, default: "a" },
-  { name: "links", type: T.BOOL, default: true },
-  { name: "notifyDuration", type: T.VALUE, default: 7000 },
-  { name: "notifyOnFailure", type: T.BOOL, default: true },
-  { name: "notifyOnRuleMatch", type: T.BOOL, default: true },
-  { name: "notifyOnSuccess", type: T.BOOL, default: false },
-  { name: "page", type: T.BOOL, default: true },
-  {
-    name: "paths",
-    type: T.VALUE,
-    onSave: v => v.trim() || ".",
-    default: ".\nimages\nvideos"
-  },
-  { name: "prompt", type: T.BOOL, default: false },
-  { name: "promptIfNoExtension", type: T.BOOL, default: false },
-  { name: "promptOnFailure", type: T.BOOL, default: true },
-  { name: "promptOnShift", type: T.BOOL, default: true },
-  { name: "replacementChar", type: T.VALUE, default: "_" },
-  { name: "routeExclusive", type: T.BOOL, default: false },
-  { name: "routeFailurePrompt", type: T.BOOL, default: false },
-  { name: "selection", type: T.BOOL, default: true },
-  { name: "shortcutLink", type: T.BOOL, default: false },
-  { name: "shortcutMedia", type: T.BOOL, default: false },
-  { name: "shortcutPage", type: T.BOOL, default: false },
-  {
-    name: "shortcutType",
-    type: T.VALUE,
-    default: SHORTCUT_TYPES.HTML_REDIRECT
-  },
-  { name: "truncateLength", type: T.VALUE, default: 240 }
-];
-
-window.OPTION_TYPES = T;
-window.OPTION_KEYS = OPTION_KEYS;
-
-// defaults, duplicate of those in options.js
-const options = OPTION_KEYS.reduce((acc, val) =>
-  Object.assign(acc, { [val.name]: val.default }, {})
-);
-
-const setOption = (name, value) => {
-  if (typeof value !== "undefined") {
-    options[name] = value;
-  }
-};
-
 let lastUsedPath = null; // global variable
 let currentTab = null; // global variable
-
-// For options
-const checkRoutes = state => {
-  if (!state) {
-    return {
-      path: null,
-      captures: null
-    };
-  }
-
-  const last = {
-    ...state,
-    info: {
-      ...state.info,
-      filenamePatterns: options.filenamePatterns
-    }
-  };
-
-  const lastInterpolated = Variables.applyVariables(
-    new Paths.Path(Downloads.getRoutingMatches(last)),
-    last.info
-  );
-  const testLastResult = lastInterpolated.finalize();
-
-  let testLastCapture;
-  for (let i = 0; i < options.filenamePatterns.length; i += 1) {
-    testLastCapture = getCaptureMatches(
-      options.filenamePatterns[i],
-      last.info,
-      last.info.filename || last.info.url
-    );
-
-    if (testLastCapture) {
-      break;
-    }
-  }
-
-  return {
-    path: testLastResult,
-    captures: testLastCapture
-  };
-};
 
 window.init = () => {
   window.optionErrors = {
     paths: [],
-    filenamePatterns: [],
-    testLastResult: null,
-    testLastCapture: null
+    filenamePatterns: []
+    // testLastResult: null,
+    // testLastCapture: null
   };
 
-  const keys = OPTION_KEYS.reduce((acc, val) => acc.concat([val.name]), []);
-  browser.storage.local.get(keys).then(loadedOptions => {
-    if (loadedOptions.debug) {
-      window.SI_DEBUG = 1;
-    }
-
-    const localKeys = Object.keys(loadedOptions);
-    localKeys.forEach(k => {
-      const optionType = OPTION_KEYS.find(ok => ok.name === k);
-      const fn = optionType.onLoad || (x => x);
-      setOption(k, fn(loadedOptions[k]));
-    });
-
+  Options.loadOptions().then(() => {
     addNotifications({
       notifyOnSuccess: options.notifyOnSuccess,
       notifyOnFailure: options.notifyOnFailure,
@@ -137,7 +17,10 @@ window.init = () => {
       promptOnFailure: options.promptOnFailure
     });
 
-    const pathsArray = options.paths.split("\n").map(p => p.trim());
+    const pathsArray = options.paths
+      .split("\n")
+      .map(p => p.trim())
+      .filter(p => p && p.length > 0);
 
     let media = options.links ? MEDIA_TYPES.concat(["link"]) : MEDIA_TYPES;
     media = options.selection ? media.concat(["selection"]) : media;
