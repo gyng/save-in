@@ -65,7 +65,7 @@ const Downloads = {
       return null;
     }
 
-    return matchRules(
+    return Router.matchRules(
       filenamePatterns,
       state.info.legacyDownloadInfo,
       state.info
