@@ -67,7 +67,7 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 });
 
-const Messenging = {
+const Messaging = {
   emit: {
     downloaded: state => {
       browser.runtime.sendMessage({
@@ -80,5 +80,5 @@ const Messenging = {
 
 // Export for testing
 if (typeof module !== "undefined") {
-  module.exports = Messenging;
+  module.exports = Messaging;
 }

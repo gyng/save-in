@@ -291,7 +291,7 @@ if (browser === chrome) {
 const setupAutosave = el => {
   const autosaveCb = e => {
     saveOptions(e);
-    updateErrors();
+    window.setTimeout(updateErrors, 200);
 
     if (el.type !== "textarea") {
       el.parentNode.classList.remove("saved");

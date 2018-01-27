@@ -125,7 +125,7 @@ const Downloads = {
         conflictAction: options.conflictAction
       });
 
-      Messenging.emit.downloaded(_state);
+      Messaging.emit.downloaded(_state);
       window.lastDownloadState = _state;
     };
 
@@ -157,14 +157,14 @@ const Downloads = {
     // Trigger notifications
     if (state.route) {
       if (options.notifyOnRuleMatch) {
-        createExtensionNotification(
+        Notifications.createExtensionNotification(
           "Save In: Rule matched",
           `${state.info.initialFilename}\n⬇\n${state.route}`,
           false
         );
       }
     } else if (options.routeExclusive && options.notifyOnFailure) {
-      createExtensionNotification(
+      Notifications.createExtensionNotification(
         "Save In: Failed to route or rename download",
         `No matching rule found for ${state.info.url}`,
         true
