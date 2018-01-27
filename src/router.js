@@ -74,7 +74,7 @@ const matcherFunctions = {
     const url = info.srcUrl || info.linkUrl || info.pageUrl;
     if (!url) return false;
 
-    const extension = url.match(EXTENSION_REGEX);
+    const extension = url.match(Downloads.EXTENSION_REGEX);
     if (!extension) return false;
 
     const match = extension[1].match(regex);
@@ -104,7 +104,7 @@ const matcherFunctions = {
     const url = info.srcUrl || info.linkUrl || info.pageUrl;
     if (!url) return false;
 
-    const filename = getFilenameFromUrl(url);
+    const filename = Downloads.getFilenameFromUrl(url);
     if (!filename) return false;
 
     const match = filename.match(regex);

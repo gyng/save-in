@@ -88,32 +88,33 @@ window.init = () => {
       setOption(k, fn(loadedOptions[k]));
     });
 
-    if (window.lastDownload) {
-      const last = window.lastDownload;
-      const testLastResult = rewriteFilename(
-        last.filename,
-        options.filenamePatterns,
-        last.info,
-        last.url,
-        last.context,
-        last.menuIndex,
-        last.comment
+    // Setup error messages for options page: refactor this into a message response
+    if (window.lastDownloadState) {
+      const last = {
+        ...window.lastDownloadState,
+        info: {
+          ...window.lastDownloadState.info,
+          filenamePatterns: options.filenamePatterns
+        }
+      };
+      last.route = Variables.applyVariables(
+        new Paths.Path(Downloads.getRoutingMatches(last)),
+        last.info
       );
+      window.optionErrors.testLastResult = Downloads.finalizeFullPath(last);
 
       let testLastCapture;
       for (let i = 0; i < options.filenamePatterns.length; i += 1) {
         testLastCapture = getCaptureMatches(
           options.filenamePatterns[i],
           last.info,
-          last.filename || last.url
+          last.info.filename || last.info.url
         );
 
         if (testLastCapture) {
           break;
         }
       }
-
-      window.optionErrors.testLastResult = testLastResult;
       window.optionErrors.testLastCapture = testLastCapture;
     }
 
@@ -124,14 +125,7 @@ window.init = () => {
       promptOnFailure: options.promptOnFailure
     });
 
-    // HACK: Allow duplicate separators
-    let separatorHackCounter = 0;
-    const pathsArray = options.paths.split("\n").map(
-      p =>
-        p.trim() === SPECIAL_DIRS.SEPARATOR
-          ? `:${SPECIAL_DIRS.SEPARATOR}-${separatorHackCounter++}` // eslint-disable-line
-          : p.trim()
-    );
+    const pathsArray = options.paths.split("\n").map(p => p.trim());
 
     let media = options.links ? MEDIA_TYPES.concat(["link"]) : MEDIA_TYPES;
     media = options.selection ? media.concat(["selection"]) : media;
@@ -193,10 +187,6 @@ window.init = () => {
           })
         );
       } catch (e) {
-        if (window.SI_DEBUG) {
-          console.log("Failed to create last used menu item with icons"); // eslint-disable-line
-        }
-
         browser.contextMenus.create(lastUsedMenuOptions);
       }
 
@@ -205,39 +195,18 @@ window.init = () => {
 
     let menuItemCounter = 0;
     pathsArray.forEach(dir => {
-      if (
-        !dir ||
-        dir === ".." ||
-        dir.startsWith("../") ||
-        dir.startsWith("/") ||
-        dir.startsWith("//")
-      ) {
-        // Silently ignore blank lines
-        if (dir !== "" && !dir.startsWith("//")) {
-          window.optionErrors.paths.push({
-            message: "Path cannot start with .. or",
-            error: `${dir}`
-          });
-        }
+      const validation = new Paths.Path(dir).validate();
+      if (!validation.valid) {
+        window.optionErrors.paths.push({
+          message: validation.message,
+          error: `${dir}`
+        });
 
         return;
       }
 
-      if (
-        dir !== "." &&
-        !dir.startsWith("./") &&
-        sanitizePath(removeSpecialDirs(dir)) !==
-          removeSpecialDirs(dir).replace(new RegExp(/\\/, "g"), "/") &&
-        !dir.startsWith(`:${SPECIAL_DIRS.SEPARATOR}`)
-      ) {
-        window.optionErrors.paths.push({
-          message: "Path contains invalid characters",
-          error: `${dir}`
-        });
-      }
-
       // HACK
-      if (dir.startsWith(`:${SPECIAL_DIRS.SEPARATOR}`)) {
+      if (dir === SPECIAL_DIRS.SEPARATOR) {
         makeSeparator(media);
       } else {
         menuItemCounter += 1;
@@ -334,18 +303,17 @@ browser.contextMenus.onClicked.addListener(info => {
       url = info.linkUrl;
     } else if (options.selection && info.selectionText) {
       downloadType = DOWNLOAD_TYPES.SELECTION;
-      url = makeObjectUrl(info.selectionText);
-      suggestedFilename = `${(currentTab && currentTab.title) ||
-        info.selectionText}.selection.txt`;
+      url = Downloads.makeObjectUrl(info.selectionText);
+      suggestedFilename = `${Paths.truncateIfLongerThan(
+        (currentTab && currentTab.title) || info.selectionText,
+        options.truncateLength - 14
+      )}.selection.txt`;
     } else if (options.page && info.pageUrl) {
       downloadType = DOWNLOAD_TYPES.PAGE;
       url = info.pageUrl;
       const pageTitle = currentTab && currentTab.title;
       suggestedFilename = pageTitle || info.pageUrl;
     } else {
-      if (window.SI_DEBUG) {
-        console.log("failed to choose download", info); // eslint-disable-line
-      }
       return;
     }
 
@@ -355,8 +323,8 @@ browser.contextMenus.onClicked.addListener(info => {
       saveIntoPath = ".";
     } else if (matchedDir === "last-used") {
       saveIntoPath = lastUsedPath;
-      comment = window.lastDownload.comment;
-      menuIndex = window.lastDownload.menuIndex;
+      comment = window.lastDownloadState.info.comment;
+      menuIndex = window.lastDownloadState.info.menuIndex;
     } else {
       saveIntoPath = matchedDir;
       lastUsedPath = saveIntoPath;
@@ -372,16 +340,12 @@ browser.contextMenus.onClicked.addListener(info => {
       }
     }
 
-    const parsedPath = new Path(saveIntoPath);
+    const parsedPath = new Paths.Path(saveIntoPath);
 
     const saveAsShortcut =
       (downloadType === DOWNLOAD_TYPES.MEDIA && options.shortcutMedia) ||
       (downloadType === DOWNLOAD_TYPES.LINK && options.shortcutLink) ||
       (downloadType === DOWNLOAD_TYPES.PAGE && options.shortcutPage);
-
-    if (window.SI_DEBUG) {
-      console.log("shortcut", saveAsShortcut, downloadType, options, info); // eslint-disable-line
-    }
 
     if (saveAsShortcut) {
       url = makeShortcut(options.shortcutType, url);
@@ -396,13 +360,13 @@ browser.contextMenus.onClicked.addListener(info => {
     }
 
     if (suggestedFilename) {
-      suggestedFilename = sanitizeFilename(
+      suggestedFilename = Paths.sanitizeFilename(
         suggestedFilename,
         options.truncateLength
       );
     }
 
-    // Organise things by flattening the info struct
+    // Organise things by flattening the info struct and only keeping needed info
     const opts = {
       currentTab, // Global
       linkText: info.linkText,
@@ -419,21 +383,15 @@ browser.contextMenus.onClicked.addListener(info => {
       legacyDownloadInfo: info // wip, remove
     };
 
-    // console.log(opts);
-
-    // todo: remove
-    // let actualPath = transformation(parsedPath, opts);
-    // console.log(actualPath, actualPath.toString());
-    // actualPath = actualPath.toString();
-
-    // keeps track of state of path
+    // keeps track of state of the final path
     const state = {
       path: parsedPath,
       scratch: {},
       info: opts
     };
 
-    renameAndDownload(state);
+    requestedDownloadFlag = true; // Notifications.
+    Downloads.renameAndDownload(state);
   }
 
   switch (info.menuItemId) {
@@ -458,10 +416,6 @@ window.init();
 
 browser.tabs.onActivated.addListener(info => {
   browser.tabs.get(info.tabId).then(t => {
-    if (window.SI_DEBUG) {
-      console.log("current tab activated", t); // eslint-disable-line
-    }
-
     currentTab = t;
   });
 });
@@ -472,10 +426,6 @@ browser.tabs.onUpdated.addListener((tabId, changeInfo) => {
       currentTab = t;
     });
   } else if (currentTab.id === tabId && changeInfo.title) {
-    if (window.SI_DEBUG) {
-      console.log("current tab updated", tabId, changeInfo); // eslint-disable-line
-    }
-
     currentTab.title = changeInfo.title;
   }
 });

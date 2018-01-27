@@ -2,7 +2,7 @@
   "manifest_version": 2,
   "name": "__MSG_extensionName__",
   "description": "__MSG_extensionDescription__",
-  "version": "2.3.1",
+  "version": "2.4.0",
   "default_locale": "en",
 
   "applications": {
@@ -23,11 +23,11 @@
       "src/chrome-polyfill.js",
       "src/constants.js",
       "src/notification.js",
+      "src/path.js",
       "src/download.js",
       "src/router.js",
       "src/shortcut.js",
       "src/messenging.js",
-      "src/path.js",
       "src/variables.js",
       "src/menu.js",
       "src/index.js"

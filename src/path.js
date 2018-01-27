@@ -1,132 +1,188 @@
-// const DISPOSITION_FILENAME_REGEX = /filename[^;=\n]*=((['"])(.*)?\2|(.+'')?([^;\n]*))/i;
-// const EXTENSION_REGEX = /\.([0-9a-z]{1,8})$/i;
-// const SPECIAL_CHARACTERS_REGEX = /[<>:"/\\|?*\0]/g;
-// const BAD_LEADING_CHARACTERS = /^[./\\]/g;
-// const SEPARATOR_REGEX = /[/\\]/g;
+const specialDirVariables = Object.values(SPECIAL_DIRS);
+const specialDirRegexp = new RegExp(`(${specialDirVariables.join("|")})`);
 
-// TODO: Make this OS-aware instead of assuming Windows
-const replaceFsBadChars = (s, replacement) =>
-  s.replace(
-    SPECIAL_CHARACTERS_REGEX,
-    replacement ||
-      (typeof options !== "undefined" && options && options.replacementChar) ||
-      "_"
-  );
+const Paths = {
+  SPECIAL_CHARACTERS_REGEX: /[<>:"/\\|?*\0]/g,
+  BAD_LEADING_CHARACTERS: /^[./\\]/g,
+  SEPARATOR_REGEX: /[/\\]/g,
+  SEPARATOR_REGEX_INCLUSIVE: /([/\\])/g,
 
-// Leading dots are considered invalid by both Firefox and Chrome
-const replaceLeadingDots = (s, replacement) =>
-  s.replace(
-    BAD_LEADING_CHARACTERS,
-    replacement ||
-      (typeof options !== "undefined" && options && options.replacementChar) ||
-      "_"
-  );
-
-const truncateIfLongerThan = (str, max) =>
-  str && max > 0 && str.length > max ? str.substr(0, max) : str;
-
-const sanitizeFilename = (str, max = 0) =>
-  str && replaceLeadingDots(truncateIfLongerThan(replaceFsBadChars(str), max));
-
-const sanitizeBufStrings = buf =>
-  buf.map(s => {
-    if (s.type === PATH_SEGMENT_TYPES.SEPARATOR) {
-      return PATH_SEGMENT.STRING("/");
-    } else if (s.type === PATH_SEGMENT_TYPES.STRING) {
-      return PATH_SEGMENT.STRING(
-        sanitizeFilename(s.val, options.truncateLength)
-      );
-    } else {
-      return s;
+  PathSegment: class PathSegment {
+    constructor(type, val) {
+      this.type = type;
+      this.val = val;
     }
-  });
 
-const finalizeToString = path => {
-  if (!path) {
-    return null;
-  }
+    static String(v) {
+      return new PathSegment(
+        PATH_SEGMENT_TYPES.STRING,
+        v == null ? "" : v.toString()
+      );
+    }
 
-  const stringifiedBuf = path.buf
-    .map(s => {
-      if (s.type !== PATH_SEGMENT_TYPES.SEPARATOR) {
-        return PATH_SEGMENT.STRING(s.val);
+    static Variable(v) {
+      return new PathSegment(PATH_SEGMENT_TYPES.VARIABLE, v);
+    }
+
+    static Separator() {
+      return new PathSegment(PATH_SEGMENT_TYPES.SEPARATOR, "/");
+    }
+
+    toString() {
+      return this.val;
+    }
+  },
+
+  Path: class Path {
+    constructor(str) {
+      const buf = Paths.parsePathStr(str);
+      this.raw = str;
+      this.rawbuf = buf;
+      this.buf = buf;
+    }
+
+    toString() {
+      return this.buf.join("");
+    }
+
+    finalize() {
+      const stringifiedBuf = this.buf
+        .map(s => {
+          if (s.type !== PATH_SEGMENT_TYPES.SEPARATOR) {
+            return Paths.PathSegment.String(s.val);
+          } else {
+            return s;
+          }
+        })
+        .map(
+          s =>
+            s.val ? s : Paths.PathSegment.String(options.replacementChar || "_")
+        );
+
+      const sanitizedStringifiedBuf = Paths.sanitizeBufStrings(stringifiedBuf);
+
+      const finalizedPath = Object.assign(new Path(), this, {
+        buf: sanitizedStringifiedBuf
+      });
+
+      return finalizedPath.toString();
+    }
+
+    validate() {
+      // Special cases
+      if (this.buf[0].val === ".") {
+        return { valid: true };
+      }
+
+      // Path is not a child of the default downloads directory
+      if (
+        this.buf[0].type === PATH_SEGMENT_TYPES.SEPARATOR ||
+        this.buf[0].val === ".."
+      ) {
+        return {
+          valid: false,
+          message: "Path cannot start with .. or /"
+        };
+      }
+
+      for (let i = 0; i < this.buf.length; i += 1) {
+        // Sanitisation failure
+        const segment = this.buf[i];
+        if (
+          segment.type === PATH_SEGMENT_TYPES.STRING &&
+          Paths.sanitizeFilename(segment.val) !== segment.val
+        ) {
+          return { valid: false, message: "Path contains invalid characters" };
+        }
+      }
+      return { valid: true };
+    }
+  },
+
+  // TODO: Make this OS-aware instead of assuming Windows as LCD
+  replaceFsBadChars: (s, replacement) =>
+    s.replace(
+      Paths.SPECIAL_CHARACTERS_REGEX,
+      replacement ||
+        (typeof options !== "undefined" &&
+          options &&
+          options.replacementChar) ||
+        "_"
+    ),
+
+  // Leading dots are considered invalid by both Firefox and Chrome
+  replaceLeadingDots: (s, replacement) =>
+    s.replace(
+      Paths.BAD_LEADING_CHARACTERS,
+      replacement ||
+        (typeof options !== "undefined" &&
+          options &&
+          options.replacementChar) ||
+        "_"
+    ),
+
+  truncateIfLongerThan: (str, max) =>
+    str && max > 0 && str.length > max ? str.substr(0, max) : str,
+
+  sanitizeFilename: (str, max = 0, leadingDotsForbidden = true) => {
+    if (!str) {
+      return str;
+    }
+
+    const fsSafe = Paths.truncateIfLongerThan(
+      Paths.replaceFsBadChars(str),
+      max
+    );
+
+    if (leadingDotsForbidden) {
+      return Paths.replaceLeadingDots(fsSafe);
+    }
+
+    return fsSafe;
+  },
+
+  sanitizeBufStrings: buf =>
+    buf.map((s, i) => {
+      if (i === 0 && s.type === PATH_SEGMENT_TYPES.STRING && s.val === ".") {
+        return s;
+      }
+
+      if (s.type === PATH_SEGMENT_TYPES.Separator) {
+        return Paths.PathSegment.String("/");
+      } else if (s.type === PATH_SEGMENT_TYPES.STRING) {
+        return Paths.PathSegment.String(
+          Paths.sanitizeFilename(s.val, options.truncateLength, i === 0)
+        );
       } else {
         return s;
       }
-    })
-    .map(
-      s => (s.val ? s : PATH_SEGMENT.STRING(options.replacementChar || "_"))
-    );
+    }),
 
-  const sanitizedStringifiedBuf = sanitizeBufStrings(stringifiedBuf);
-
-  const finalizedPath = Object.assign(new Path(), path, {
-    buf: sanitizedStringifiedBuf
-  });
-
-  return finalizedPath.toString();
-};
-
-function PathSegment(type, val) {
-  this.type = type;
-  this.val = val;
-}
-
-PathSegment.prototype.toString = function toString() {
-  return this.val;
-};
-
-const PATH_SEGMENT = {
-  [PATH_SEGMENT_TYPES.STRING]: v =>
-    new PathSegment(PATH_SEGMENT_TYPES.STRING, v),
-  [PATH_SEGMENT_TYPES.VARIABLE]: v =>
-    new PathSegment(PATH_SEGMENT_TYPES.VARIABLE, v),
-  [PATH_SEGMENT_TYPES.SEPARATOR]: v =>
-    new PathSegment(PATH_SEGMENT_TYPES.SEPARATOR, v)
-};
-
-const fixmedirs = Object.values(SDN);
-const fixmeregex = `(${fixmedirs.join("|")})`;
-const parsePathStr = (pathStr = "") => {
-  let split = pathStr.split(/([/\\])/);
-  if (typeof split === "string") {
-    split = [split];
-  }
-
-  const tokenized = split.map(c =>
-    c.split(new RegExp(fixmeregex)).filter(sub => sub.length > 0)
-  );
-  const flattened = [].concat.apply([], tokenized); // eslint-disable-line
-
-  const parsed = flattened.map(tok => {
-    if (tok.match(/[/\\]/)) {
-      return PATH_SEGMENT.SEPARATOR(tok);
-    } else if (tok.match(fixmeregex)) {
-      return PATH_SEGMENT.VARIABLE(tok);
+  parsePathStr: (pathStr = "") => {
+    let split = pathStr.split(Paths.SEPARATOR_REGEX_INCLUSIVE);
+    if (typeof split === "string") {
+      split = [split];
     }
-    return PATH_SEGMENT.STRING(tok);
-  });
 
-  return parsed;
-};
+    const tokenized = split.map(c =>
+      c.split(specialDirRegexp).filter(sub => sub.length > 0)
+    );
+    const flattened = [].concat.apply([], tokenized); // eslint-disable-line
 
-function Path(str) {
-  const buf = parsePathStr(str);
-  this.raw = str;
-  this.rawbuf = buf;
-  this.buf = buf;
-}
-Path.prototype.toString = function pathToString() {
-  return this.buf.map(b => b.toString()).join("");
+    const parsed = flattened.map(tok => {
+      if (tok.match(Paths.SEPARATOR_REGEX_INCLUSIVE)) {
+        return Paths.PathSegment.Separator(tok);
+      } else if (tok.match(specialDirRegexp)) {
+        return Paths.PathSegment.Variable(tok);
+      }
+      return Paths.PathSegment.String(tok);
+    });
+
+    return parsed;
+  }
 };
 
 // Export for testing
 if (typeof module !== "undefined") {
-  module.exports = {
-    parsePathStr,
-    Path,
-    PathSegment,
-    PATH_SEGMENT,
-    PATH_SEGMENT_TYPES
-  };
+  module.exports = Paths;
 }

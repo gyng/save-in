@@ -1,32 +1,9 @@
 /* eslint-disable no-unused-vars */
 
 const MEDIA_TYPES = ["image", "video", "audio"];
-// const SPECIAL_DIRS = {
-//   SEPARATOR: "---",
-//   SOURCE_DOMAIN: new RegExp(":sourcedomain:", "g"),
-//   SOURCE_URL: new RegExp(":sourceurl:", "g"),
-//   PAGE_DOMAIN: new RegExp(":pagedomain:", "g"),
-//   PAGE_URL: new RegExp(":pageurl:", "g"),
-//   PAGE_TITLE: new RegExp(":pagetitle:", "g"),
-//   DATE: new RegExp(":date:", "g"),
-//   ISO8601_DATE: new RegExp(":isodate:", "g"),
-//   UNIX_DATE: new RegExp(":unixdate:", "g"),
-//   FILENAME: new RegExp(":filename:", "g"),
-//   NAIVE_FILENAME: new RegExp(":naivefilename:", "g"),
-//   FILE_EXTENSION: new RegExp(":fileext:", "g"),
-//   NAIVE_FILE_EXTENSION: new RegExp(":naivefileext:", "g"),
-//   LINK_TEXT: new RegExp(":linktext:", "g"),
-//   YEAR: new RegExp(":year:", "g"),
-//   DAY: new RegExp(":day:", "g"),
-//   MONTH: new RegExp(":month:", "g"),
-//   HOUR: new RegExp(":hour:", "g"),
-//   MINUTE: new RegExp(":minute:", "g"),
-//   SECOND: new RegExp(":second:", "g"),
-//   SELECTION: new RegExp(":selectiontext:", "g")
-// };
 
-// WIP
-const SDN = {
+const SPECIAL_DIRS = {
+  SEPARATOR: "---",
   SOURCE_DOMAIN: ":sourcedomain:",
   PAGE_DOMAIN: ":pagedomain:",
   PAGE_URL: ":pageurl:",
@@ -45,7 +22,8 @@ const SDN = {
   SELECTION_TEXT: ":selectiontext:",
   NAIVE_FILENAME: ":naivefilename:",
   NAIVE_FILE_EXTENSION: ":naivefileext:",
-  FILENAME: ":filename:"
+  FILENAME: ":filename:",
+  FILE_EXTENSION: ":fileext:"
 };
 
 const SHORTCUT_TYPES = {
@@ -89,6 +67,13 @@ const MESSAGE_TYPES = {
   OK: "OK"
 };
 
+const PATH_SEGMENT_TYPES = {
+  STRING: "STRING",
+  VARIABLE: "VARIABLE",
+  SEPARATOR: "SEPARATOR",
+  MENU_SEPARATOR: "MENU_SEPARATOR"
+};
+
 // Export for testing
 if (typeof module !== "undefined") {
   module.exports = {
@@ -98,13 +83,7 @@ if (typeof module !== "undefined") {
     SHORTCUT_EXTENSIONS,
     CONFLICT_ACTION,
     RULE_TYPES,
-    MESSAGE_TYPES
+    MESSAGE_TYPES,
+    PATH_SEGMENT_TYPES
   };
 }
-
-const PATH_SEGMENT_TYPES = {
-  STRING: "STRING",
-  VARIABLE: "VARIABLE",
-  SEPARATOR: "SEPARATOR",
-  MENU_SEPARATOR: "MENU_SEPARATOR"
-};

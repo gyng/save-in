@@ -10,19 +10,30 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
       break;
     case MESSAGE_TYPES.DOWNLOAD:
       const { url, info } = request.body;
-      const path = replaceSpecialDirs(lastUsedPath || "", url, info);
-      const last = window.lastDownload || {};
+      const last = window.lastDownloadState || {
+        path: new Paths.Path("."),
+        scratch: {},
+        info: {}
+      };
 
-      downloadInto({
-        path,
+      const opts = {
+        currentTab, // Global
+        now: new Date(),
+        pageUrl: info.pageUrl,
+        selectionText: info.selectionText,
+        sourceUrl: info.srcUrl,
         url,
-        downloadInfo: info,
-        addonOptions: options,
-        suggestedFilename: null,
-        context: DOWNLOAD_TYPES.CLICK,
-        menuIndex: last.menuIndex || "",
-        comment: last.comment || ""
-      });
+        context: DOWNLOAD_TYPES.CLICK
+      };
+
+      const clickState = {
+        path: last.path || new Paths.Path("."),
+        scratch: last.scratch,
+        route: last.route,
+        info: Object.assign({}, last.info, opts, info)
+      };
+
+      Downloads.renameAndDownload(clickState);
 
       sendResponse({
         type: MESSAGE_TYPES.DOWNLOAD,

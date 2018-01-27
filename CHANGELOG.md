@@ -1,11 +1,11 @@
-# 2.3.1
+# 2.4.0
 
+* Refactor options management, downloading, and renaming. I've tried to keep behaviour identical to older versions so if there are any unexpected changes please file an issue. The extension has had insane feature creep and code spaghettification, so this taming was necessary to keep it maintainable.
 * Fix save-to-click toggle key not deactivating after switching tabs
 * Add more fields to Freedesktop shortcuts (#54)
-* Treat `~` as a normal character in paths (#51).
+* Treat `~` as a normal character in paths (#51)
 * Add option to prompt on menu item click when shift is held. Enabled by default. (#55)
 * Add option to show or hide last used location. Enabled by default. (#52)
-* Refactor options management backend
 
 # 2.3.0
 
