@@ -10,7 +10,7 @@ window.init = () => {
   };
 
   Options.loadOptions().then(() => {
-    addNotifications({
+    Notifications.addNotifications({
       notifyOnSuccess: options.notifyOnSuccess,
       notifyOnFailure: options.notifyOnFailure,
       notifyDuration: options.notifyDuration,
@@ -85,7 +85,7 @@ window.init = () => {
         browser.contextMenus.create(lastUsedMenuOptions);
       }
 
-      makeSeparator(media);
+      Menus.makeSeparator(media);
     }
 
     let menuItemCounter = 0;
@@ -102,7 +102,7 @@ window.init = () => {
 
       // HACK
       if (dir === SPECIAL_DIRS.SEPARATOR) {
-        makeSeparator(media);
+        Menus.makeSeparator(media);
       } else {
         menuItemCounter += 1;
 
@@ -122,7 +122,7 @@ window.init = () => {
       }
     });
 
-    makeSeparator(media);
+    Menus.makeSeparator(media);
 
     if (media.includes("link")) {
       browser.contextMenus.create({

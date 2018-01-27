@@ -27,7 +27,7 @@
       "src/download.js",
       "src/router.js",
       "src/shortcut.js",
-      "src/messenging.js",
+      "src/messaging.js",
       "src/variables.js",
       "src/menu.js",
       "src/options.js",
