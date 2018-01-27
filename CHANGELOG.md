@@ -1,12 +1,13 @@
 # 2.4.0
 
-* Refactor options management, downloading, and renaming. I've tried to keep behaviour identical to older versions so if there are any unexpected changes please file an issue. The extension has had insane feature creep and code spaghettification, so this taming was necessary to keep it maintainable.
+* Major refactor to options management, downloading, and renaming. I've tried to keep behaviour identical to older versions so if there are any unexpected changes please file an issue. The extension has had insane feature creep and code spaghettification, so this taming was necessary to keep it maintainable.
 * Fix save-to-click toggle key not deactivating after switching tabs (#15)
 * Add option to download things via content script. Disabled by default, Firefox only. (#46)
 * Treat `~` as a normal character in paths (#51)
 * Add option to show or hide last used location. Enabled by default. (#52)
 * Add more fields to Freedesktop shortcuts (#54)
 * Add option to prompt on menu item click when shift is held. Enabled by default. (#55)
+* Options page now validates routes without needing to refresh to get last download
 
 # 2.3.0
 
