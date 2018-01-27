@@ -131,6 +131,7 @@ const Download = {
         Messaging.send
           .fetchViaContent(_state)
           .then(res => {
+            // Object URL has to be created inside the background script
             const objectUrl = URL.createObjectURL(res.body.blob);
             return browserDownload(objectUrl);
           })
