@@ -256,8 +256,7 @@ browser.contextMenus.onClicked.addListener(info => {
     if (suggestedFilename) {
       suggestedFilename = Path.sanitizeFilename(
         suggestedFilename,
-        options.truncateLength,
-        options.replacementChar
+        options.truncateLength
       );
     }
 

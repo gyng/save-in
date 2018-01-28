@@ -152,7 +152,7 @@ const Path = {
         return Path.PathSegment.String("/");
       } else if (s.type === PATH_SEGMENT_TYPES.STRING) {
         return Path.PathSegment.String(
-          Path.sanitizeFilename(s.val, options.truncateLength, i === 0)
+          Path.sanitizeFilename(s.val, options.truncateLength)
         );
       } else {
         return s;
