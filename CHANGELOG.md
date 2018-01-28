@@ -1,3 +1,7 @@
+# 2.4.1
+
+* Fix Freedesktop shortcuts not using the page title for Name and Title (#54)
+
 # 2.4.0
 
 * Major refactor to options management, downloading, and renaming. I've tried to keep behaviour identical to older versions so if there are any unexpected changes please file an issue. The extension has had insane feature creep and code spaghettification, so this taming was necessary to keep it maintainable.

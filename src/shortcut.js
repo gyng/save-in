@@ -33,7 +33,7 @@ const Shortcut = {
 
   makeShortcut: (type, url) =>
     Download.makeObjectUrl(
-      Shortcut.makeShortcutContent(type, url, currentTab.pageTitle)
+      Shortcut.makeShortcutContent(type, url, currentTab.title)
     ),
 
   suggestShortcutFilename: (
