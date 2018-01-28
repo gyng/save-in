@@ -102,8 +102,7 @@ const Download = {
       }
 
       _state.scratch.hasExtension =
-        routeMatches && routeMatches.match(Download.EXTENSION_REGEX);
-
+        finalFullPath && finalFullPath.match(Download.EXTENSION_REGEX);
       const noExtensionPrompt =
         options.promptIfNoExtension && !_state.scratch.hasExtension;
       const shiftHeldPrompt =
