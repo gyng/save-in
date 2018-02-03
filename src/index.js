@@ -290,7 +290,7 @@ browser.contextMenus.onClicked.addListener(info => {
       info: opts
     };
 
-    requestedDownloadFlag = 1; // Notifications.
+    requestedDownloadFlag = true; // Notifications.
     Download.renameAndDownload(state);
   }
 

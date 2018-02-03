@@ -89,7 +89,7 @@ const Menus = {
         .then(tabs => tabs.filter(filter))
         .then(tabs => {
           tabs.forEach(t => {
-            requestedDownloadFlag += 1; // Notifications.
+            requestedDownloadFlag = true; // Notifications.
 
             let url = t.url;
             let suggestedFilename = null;

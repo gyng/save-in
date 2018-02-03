@@ -54,11 +54,9 @@ const Notification = {
     }
 
     const onDownloadCreatedListener = item => {
-      if (requestedDownloadFlag > 0) {
+      if (requestedDownloadFlag) {
         downloadsList[item.id] = item;
-        requestedDownloadFlag -= 1;
-      } else {
-        requestedDownloadFlag = 0;
+        requestedDownloadFlag = false;
       }
     };
 
