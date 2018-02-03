@@ -1,3 +1,7 @@
+# 2.5.0
+
+* Save tabs from tabstrip, with options to save to right, and tabs opened from another tab. Firefox only. (#57)
+
 # 2.4.1
 
 * Fix Freedesktop shortcuts not using the page title for Name and Title (#54)

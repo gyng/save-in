@@ -46,7 +46,8 @@ const DOWNLOAD_TYPES = {
   LINK: "LINK",
   SELECTION: "SELECTION",
   PAGE: "PAGE",
-  CLICK: "CLICK"
+  CLICK: "CLICK",
+  TAB: "TAB"
 };
 
 const CONFLICT_ACTION = {

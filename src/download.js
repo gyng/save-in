@@ -94,6 +94,14 @@ const Download = {
       );
     }
 
+    if (
+      typeof state.needRouteMatch !== "undefined" &&
+      state.needRouteMatch &&
+      !routeMatches
+    ) {
+      return;
+    }
+
     const download = _state => {
       const finalFullPath = Download.finalizeFullPath(_state);
 

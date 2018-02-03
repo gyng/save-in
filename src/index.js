@@ -25,6 +25,8 @@ window.init = () => {
     media = options.selection ? media.concat(["selection"]) : media;
     media = options.page ? media.concat(["page"]) : media;
 
+    Menus.addTabMenus();
+
     // CHROME ONLY, FF does not support yet
     // https://bugzilla.mozilla.org/show_bug.cgi?id=1320462
     const setAccesskey = (str, key) => {
@@ -178,6 +180,10 @@ window.init = () => {
 };
 
 browser.contextMenus.onClicked.addListener(info => {
+  if (Object.values(Menus.IDS.TABSTRIP).includes(info.menuItemId)) {
+    return;
+  }
+
   const matchSave = info.menuItemId.match(/save-in-(\d|_)+-(.*?)-(.*)/);
 
   if (matchSave && matchSave.length === 4) {
@@ -284,7 +290,7 @@ browser.contextMenus.onClicked.addListener(info => {
       info: opts
     };
 
-    requestedDownloadFlag = true; // Notifications.
+    requestedDownloadFlag = 1; // Notifications.
     Download.renameAndDownload(state);
   }
 

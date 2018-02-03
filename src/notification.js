@@ -4,7 +4,7 @@ const ICON_URL = "icons/ic_archive_black_128px.png";
 const ERROR_ICON_URL = "icons/ic_error_outline_red_96px.png";
 
 const downloadsList = {}; // global
-let requestedDownloadFlag = false;
+let requestedDownloadFlag = 0;
 
 const Notification = {
   currentDownloadChangeListener: null,
@@ -54,9 +54,11 @@ const Notification = {
     }
 
     const onDownloadCreatedListener = item => {
-      if (requestedDownloadFlag) {
+      if (requestedDownloadFlag > 0) {
         downloadsList[item.id] = item;
-        requestedDownloadFlag = false;
+        requestedDownloadFlag -= 1;
+      } else {
+        requestedDownloadFlag = 0;
       }
     };
 

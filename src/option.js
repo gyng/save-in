@@ -48,13 +48,15 @@ const OptionsManagement = {
     { name: "shortcutLink", type: T.BOOL, default: false },
     { name: "shortcutMedia", type: T.BOOL, default: false },
     { name: "shortcutPage", type: T.BOOL, default: false },
+    { name: "shortcutTab", type: T.BOOL, default: false },
     {
       name: "shortcutType",
       type: T.VALUE,
       default: SHORTCUT_TYPES.HTML_REDIRECT
     },
     { name: "truncateLength", type: T.VALUE, default: 240 },
-    { name: "fetchViaContent", type: T.BOOL, default: false }
+    { name: "fetchViaContent", type: T.BOOL, default: false },
+    { name: "tabEnabled", type: T.BOOL, default: false }
   ],
 
   getKeys: () =>
