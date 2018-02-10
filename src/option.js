@@ -56,7 +56,8 @@ const OptionsManagement = {
     },
     { name: "truncateLength", type: T.VALUE, default: 240 },
     { name: "fetchViaContent", type: T.BOOL, default: false },
-    { name: "tabEnabled", type: T.BOOL, default: false }
+    { name: "tabEnabled", type: T.BOOL, default: false },
+    { name: "tabCloseOnDownload", type: T.BOOL, default: false }
   ],
 
   getKeys: () =>

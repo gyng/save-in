@@ -88,54 +88,62 @@ const Menus = {
         .then(tabs => tabs.filter(t => !t.url.match(/^(about|chrome):/)))
         .then(tabs => tabs.filter(filter))
         .then(tabs => {
-          tabs.forEach(t => {
-            requestedDownloadFlag = true; // Notifications.
+          const timeoutInterval = 500; // Prevents notification bugs
 
-            let url = t.url;
-            let suggestedFilename = null;
+          tabs.forEach((t, i) => {
+            window.setTimeout(() => {
+              requestedDownloadFlag = true; // Notifications.
 
-            if (options.shortcutTab) {
-              url = Shortcut.makeShortcut(
-                options.shortcutType,
-                url,
-                t.title || t.url
-              );
+              let url = t.url;
+              let suggestedFilename = null;
 
-              suggestedFilename = Shortcut.suggestShortcutFilename(
-                options.shortcutType,
-                DOWNLOAD_TYPES.TAB,
-                info,
-                t.title,
-                options.truncateLength
-              );
-            }
+              if (options.shortcutTab) {
+                url = Shortcut.makeShortcut(
+                  options.shortcutType,
+                  url,
+                  t.title || t.url
+                );
 
-            const opts = {
-              currentTab: t, // Global
-              linkText: t.title,
-              now: new Date(),
-              pageUrl: t.url,
-              selectionText: info.selectionText,
-              sourceUrl: t.url,
-              url, // Changes based off context
-              suggestedFilename, // wip: rename
-              context: DOWNLOAD_TYPES.TAB,
-              menuIndex: null,
-              comment: null,
-              modifiers: info.modifiers,
-              legacyDownloadInfo: info // wip, remove
-            };
+                suggestedFilename = Shortcut.suggestShortcutFilename(
+                  options.shortcutType,
+                  DOWNLOAD_TYPES.TAB,
+                  info,
+                  t.title,
+                  options.truncateLength
+                );
+              }
 
-            // keeps track of state of the final path
-            const state = {
-              path: new Path.Path("."),
-              scratch: {},
-              info: opts,
-              needRouteMatch:
-                info.menuItemId === Menus.IDS.TABSTRIP.TO_RIGHT_MATCH
-            };
+              const opts = {
+                currentTab: t, // Global
+                linkText: t.title,
+                now: new Date(),
+                pageUrl: t.url,
+                selectionText: info.selectionText,
+                sourceUrl: t.url,
+                url, // Changes based off context
+                suggestedFilename, // wip: rename
+                context: DOWNLOAD_TYPES.TAB,
+                menuIndex: null,
+                comment: null,
+                modifiers: info.modifiers,
+                legacyDownloadInfo: info // wip, remove
+              };
 
-            Download.renameAndDownload(state);
+              // keeps track of state of the final path
+              const state = {
+                path: new Path.Path("."),
+                scratch: {},
+                info: opts,
+                needRouteMatch:
+                  info.menuItemId === Menus.IDS.TABSTRIP.TO_RIGHT_MATCH
+              };
+
+              Download.renameAndDownload(state);
+
+              if (options.tabCloseOnDownload) {
+                browser.tabs.remove(t.id);
+              }
+            }, timeoutInterval * i);
           });
         });
     });

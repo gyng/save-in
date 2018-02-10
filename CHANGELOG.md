@@ -1,3 +1,8 @@
+# 2.5.2
+
+* Throttle saving tabs from tabstrip, might fix random bugginess when saving (#57)
+* Add option to close tabs when downloaded from tabstrip (#57)
+
 # 2.5.0
 
 * Save tabs from tabstrip, with options to save to right, and tabs opened from another tab. Firefox only. (#57)
