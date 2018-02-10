@@ -1,4 +1,4 @@
-# 2.5.2
+# 2.5.3
 
 * Throttle saving tabs from tabstrip, might fix random bugginess when saving (#57)
 
