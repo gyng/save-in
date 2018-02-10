@@ -139,10 +139,6 @@ const Menus = {
               };
 
               Download.renameAndDownload(state);
-
-              if (options.tabCloseOnDownload) {
-                browser.tabs.remove(t.id);
-              }
             }, timeoutInterval * i);
           });
         });
