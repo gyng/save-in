@@ -20,6 +20,7 @@ const promisify = (func, arity) =>
 if (typeof browser === "undefined") {
   if (chrome) {
     browser = chrome; // eslint-disable-line
+    browser.downloads.search = promisify(browser.downloads.search, 1);
     browser.storage.local.get = promisify(browser.storage.local.get, 1);
     browser.storage.local.set = promisify(browser.storage.local.set, 1);
     browser.storage.local.clear = promisify(browser.storage.local.clear, 0);
