@@ -204,6 +204,7 @@ const Download = {
 if (chrome && chrome.downloads && chrome.downloads.onDeterminingFilename) {
   chrome.downloads.onDeterminingFilename.addListener(
     (downloadItem, suggest) => {
+      globalChromeState.info = globalChromeState.info || {};
       globalChromeState.info.filename =
         (globalChromeState.info && globalChromeState.info.suggestedFilename) ||
         downloadItem.filename ||
