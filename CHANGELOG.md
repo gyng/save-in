@@ -1,6 +1,8 @@
 # 2.5.4
 
+* Fix overzealous leading dot sanitisation when rewriting filenames (#61)
 * Fix notifications not being polyfilled for Chrome (#62)
+* Fix potential uninitialised object error in Chrome
 
 # 2.5.3
 
