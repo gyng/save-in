@@ -1,3 +1,7 @@
+# 2.6.0
+
+* Add option to chose which mouse button to use for click-to-save (#60)
+
 # 2.5.4
 
 * Fix overzealous leading dot sanitisation when rewriting filenames (#61)

@@ -82,6 +82,12 @@ const PATH_SEGMENT_TYPES = {
   MENU_SEPARATOR: "MENU_SEPARATOR"
 };
 
+const CLICK_TYPES = {
+  LEFT_CLICK: "LEFT_CLICK",
+  RIGHT_CLICK: "RIGHT_CLICK",
+  MIDDLE_CLICK: "MIDDLE_CLICK"
+};
+
 // Export for testing
 if (typeof module !== "undefined") {
   module.exports = {

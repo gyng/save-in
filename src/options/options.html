@@ -396,7 +396,12 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
     </label>
 
     <label>
-      <input type="number" id="contentClickToSaveCombo" /> Click-to-save modifier keycode
+      <input type="number" id="contentClickToSaveCombo" /> keycode +&nbsp;
+      <select id="contentClickToSaveButton">
+          <option value="LEFT_CLICK">Left click</option>
+          <option value="MIDDLE_CLICK">Middle click</option>
+          <option value="RIGHT_CLICK">Right click</option>
+        </select>
       <div class="caption caption-line">Modifier keycode for click-to-save. Requires page refresh to take effect.
         <a class="caption" href="http://keycode.info/">keycode.info</a>
       </div>

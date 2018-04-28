@@ -13,6 +13,11 @@ const OptionsManagement = {
     { name: "conflictAction", type: T.VALUE, default: "uniquify" },
     { name: "contentClickToSave", type: T.BOOL, default: false },
     { name: "contentClickToSaveCombo", type: T.VALUE, default: 18 },
+    {
+      name: "contentClickToSaveButton",
+      type: T.VALUE,
+      default: CLICK_TYPES.LEFT_CLICK
+    },
     { name: "debug", type: T.BOOL, fn: null, default: false },
     { name: "enableLastLocation", type: T.BOOL, default: true },
     { name: "enableNumberedItems", type: T.BOOL, default: true },

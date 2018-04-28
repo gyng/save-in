@@ -44,11 +44,23 @@ chrome.runtime.sendMessage(
     }
 
     if (options.contentClickToSave) {
-      const setupKeyboardListeners = (shortcutOptions = { combo: [18] }) => {
+      const setupKeyboardListeners = (
+        shortcutOptions = { combo: [18], button: "LEFT_CLICK" }
+      ) => {
         let active = {};
 
-        const isComboActive = (combo, activeKeys) =>
+        const isKeyboardComboActive = (combo, activeKeys) =>
           combo.map(code => activeKeys[code]).every(code => code === true);
+
+        const isMouseButtonActive = (target, buttonCode) => {
+          const codeToButtonMap = {
+            0: "LEFT_CLICK",
+            1: "MIDDLE_CLICK",
+            2: "RIGHT_CLICK"
+          };
+
+          return codeToButtonMap[buttonCode] === target;
+        };
 
         window.addEventListener("keydown", e => {
           active[e.keyCode] = true;
@@ -67,7 +79,10 @@ chrome.runtime.sendMessage(
             return;
           }
 
-          if (isComboActive(shortcutOptions.combo, active)) {
+          if (
+            isMouseButtonActive(shortcutOptions.button, e.button) &&
+            isKeyboardComboActive(shortcutOptions.combo, active)
+          ) {
             const source = e.target.currentSrc || e.target.src;
 
             if (source) {
@@ -87,7 +102,8 @@ chrome.runtime.sendMessage(
       };
 
       setupKeyboardListeners({
-        combo: [].concat(response.body.contentClickToSaveCombo)
+        combo: [].concat(options.contentClickToSaveCombo),
+        button: options.contentClickToSaveButton
       });
     }
   }

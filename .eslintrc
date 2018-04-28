@@ -33,6 +33,7 @@
     "DOWNLOAD_TYPES": false,
     "MEDIA_TYPES": false,
     "OPTION_KEYS": false,
-    "OPTION_TYPES": false
+    "OPTION_TYPES": false,
+    "CLICK_TYPES": false
   }
 }
