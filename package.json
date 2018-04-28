@@ -3,7 +3,7 @@
   "version": "2.5.4",
   "license": "MIT",
   "scripts": {
-    "build": "env -u WEB_EXT_API_KEY -u WEB_EXT_API_SECRET web-ext build --overwrite-dest -i test docs yarn.lock",
+    "build": "env -u WEB_EXT_API_KEY -u WEB_EXT_API_SECRET web-ext build --overwrite-dest -i test docs yarn.lock yarn-error.log",
     "build:firefox:submit": "web-ext sign",
     "d": "env -u WEB_EXT_API_KEY -u WEB_EXT_API_SECRET web-ext run --verbose",
     "d:noenv": "web-ext run --verbose",
