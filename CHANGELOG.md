@@ -1,6 +1,7 @@
 # 2.6.0
 
-* Add option to chose which mouse button to use for click-to-save (#60)
+* Add option to choose which mouse button to use for click-to-save (#60)
+* Add autocomplete dropdown in options page (#63)
 
 # 2.5.4
 

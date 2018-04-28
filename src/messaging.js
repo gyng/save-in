@@ -17,6 +17,15 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
         }
       });
       break;
+    case MESSAGE_TYPES.GET_KEYWORDS:
+      sendResponse({
+        type: MESSAGE_TYPES.KEYWORD_LIST,
+        body: {
+          matchers: Object.keys(Router.matcherFunctions),
+          variables: Object.keys(Variable.transformers)
+        }
+      });
+      break;
     case MESSAGE_TYPES.CHECK_ROUTES:
       sendResponse({
         type: MESSAGE_TYPES.CHECK_ROUTES_RESPONSE,
