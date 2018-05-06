@@ -1,3 +1,7 @@
+# 2.6.1 (unreleased)
+
+* Fix options page spazzing out in new Chrome extensions options page design
+
 # 2.6.0
 
 * Add option to choose which mouse button to use for click-to-save (#60)

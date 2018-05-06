@@ -285,11 +285,12 @@ if (browser === chrome) {
     el.removeAttribute("disabled");
   });
 
-  document.querySelector("html").style = "min-width: 640px;";
-
   document.querySelectorAll(".chrome-disabled").forEach(el => {
     el.disabled = true;
   });
+
+  // New-style Chrome extensions options page
+  document.querySelector("body").style = "overflow-y: hidden;";
 }
 
 const setupAutosave = el => {
