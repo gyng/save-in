@@ -1,4 +1,4 @@
-# 2.6.1 (unreleased)
+# 2.6.1
 
 * Fix import settings on options page being totally broken
 
