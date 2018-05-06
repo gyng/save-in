@@ -1,6 +1,6 @@
 # 2.6.1 (unreleased)
 
-* Fix options page spazzing out in new Chrome extensions options page design
+* Fix import settings on options page being totally broken
 
 # 2.6.0
 

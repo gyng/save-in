@@ -285,12 +285,12 @@ if (browser === chrome) {
     el.removeAttribute("disabled");
   });
 
+  document.querySelector("html").style = "min-width: 640px;";
+  // document.querySelector("body").style = "overflow-y: hidden;";
+
   document.querySelectorAll(".chrome-disabled").forEach(el => {
     el.disabled = true;
   });
-
-  // New-style Chrome extensions options page
-  document.querySelector("body").style = "overflow-y: hidden;";
 }
 
 const setupAutosave = el => {
@@ -351,16 +351,18 @@ document.querySelector("#show-last-download").addEventListener("click", () => {
 
 const importSettings = () => {
   const load = w => {
-    const json = w.prompt("Paste settings to import");
-    try {
-      if (json) {
-        const settings = JSON.parse(json);
-        restoreOptionsHandler(settings);
-        w.alert("Settings loaded.");
+    getOptionsSchema.then(schema => {
+      const json = w.prompt("Paste settings to import");
+      try {
+        if (json) {
+          const settings = JSON.parse(json);
+          restoreOptionsHandler(settings, schema);
+          w.alert("Settings loaded.");
+        }
+      } catch (e) {
+        w.alert(`Failed to load settings ${e}`);
       }
-    } catch (e) {
-      w.alert(`Failed to load settings ${e}`);
-    }
+    });
   };
 
   if (browser === chrome) {
