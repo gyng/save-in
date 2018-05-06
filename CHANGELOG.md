@@ -1,6 +1,7 @@
-# 2.6.1
+# 2.6.2
 
 * Fix import settings on options page being totally broken
+* Remove debug information and last download information from options
 
 # 2.6.0
 

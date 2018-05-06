@@ -143,7 +143,6 @@ v/cats
     <label>
       <input type="checkbox" id="tabEnabled" class="chrome-disabled" /> Enable saving from tabstrip
       <span class="badge">Firefox</span>
-      <span class="warning badge">Experimental</span>
       <div class="caption caption-line">Saves a tab, tab group, or tabs to right</div>
     </label>
 
@@ -429,18 +428,16 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
       <input type="checkbox" id="fetchViaContent" class="chrome-disabled" />
       <span>Enable fetching via content script</span>
       <span class="badge">Firefox</span>
-      <span class="warning badge">Experimental</span>
-      <div class="caption caption-line">Slower and prone to failure. Send headers from page with download request. Success/failure notifications do not work
+      <div class="caption caption-line">Send headers from page with download request. Some sites such as pixiv require this. Slower and prone to failure. Success/failure notifications do not work
         in this mode. Requires page refresh to take effect.</div>
     </label>
 
     <div style="display: flex; justify-content: flex-start; align-items: center;">
       <div id="settings-import" class="button">Import Settings</div>
       <div style="margin-left: 8px;" id="settings-export" class="button">Export Settings</div>
-      <div style="margin-left: 8px;" id="print-debug-info" class="button">Show Debug Information</div>
     </div>
 
-    <div id="show-last-download" class="button" style="align-self: flex-start">Last Download Info</div>
+    <textarea id="export-target" style="display: none;" spellcheck="false"></textarea>
 
     <label>
       <input type="checkbox" id="debug" /> Enable debug logging

@@ -490,3 +490,7 @@ input.key {
 .textcomplete-item.active {
   background-color: var(--blue40);
 }
+
+#export-target {
+  width: 100%;
+}

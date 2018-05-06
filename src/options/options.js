@@ -196,58 +196,6 @@ const addHelp = el => {
 document.addEventListener("DOMContentLoaded", restoreOptions);
 document.querySelectorAll(".help").forEach(addHelp);
 
-document.querySelector("#print-debug-info").addEventListener("click", () => {
-  const navigatorInfo = {
-    appVersion: navigator.appVersion,
-    userAgent: navigator.userAgent,
-    language: navigator.language
-  };
-
-  let str = "";
-  const pp = obj => {
-    str = str.concat("```json\n" + JSON.stringify(obj, null, 2) + "\n```\n"); // eslint-disable-line
-  };
-  const title = name => {
-    str = str.concat(`\n#### ${name}\n\n`);
-  };
-
-  str = str.concat(
-    "!⚠! Remove all sensitive information before sharing !⚠!\n\n"
-  );
-
-  str = str.concat("<details>\n<summary>Debug information</summary>\n\n");
-
-  str = str.concat(`Generated ${new Date().toISOString()}\n`);
-
-  title("Browser");
-  pp(navigatorInfo);
-
-  title("Options");
-  pp(debugOptions);
-
-  title("Extension");
-  Promise.all([
-    browser.management.getSelf().then(o => pp({ version: o.version })),
-    browser.permissions.getAll().then(o => pp({ permissions: o.permissions })),
-    browser.runtime.getBackgroundPage().then(p => {
-      title("Globals");
-      pp({
-        optionErrors: p.optionErrors,
-        lastUsedPath: p.lastUsedPath || "null",
-        lastDownload: p.lastDownload || "null"
-      });
-    })
-  ]).then(() => {
-    str = str.concat("</details>");
-    const blob = new Blob([str], {
-      encoding: "UTF-8",
-      type: "text/plain;charset=UTF-8"
-    });
-    const fileObjectURL = URL.createObjectURL(blob);
-    window.open(fileObjectURL);
-  });
-});
-
 document.querySelector("#reset").addEventListener("click", e => {
   /* eslint-disable no-alert */
   e.preventDefault();
@@ -329,24 +277,13 @@ document.querySelectorAll(".popout").forEach(el => {
 
 const showJson = obj => {
   const json = JSON.stringify(obj, null, 2);
-  const blob = new Blob([json], {
-    encoding: "UTF-8",
-    type: "application/json"
-  });
-  const fileObjectURL = URL.createObjectURL(blob);
-  window.open(fileObjectURL);
+  const outputEl = document.querySelector("#export-target");
+  outputEl.style = "display: unset;";
+  outputEl.value = json;
 };
 
 document.querySelector("#settings-export").addEventListener("click", () => {
   showJson(debugOptions);
-});
-
-document.querySelector("#show-last-download").addEventListener("click", () => {
-  browser.runtime.getBackgroundPage().then(w => {
-    showJson(
-      w.lastDownloadState || { "Nothing!": "No downloads recorded yet." }
-    );
-  });
 });
 
 const importSettings = () => {
