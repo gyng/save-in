@@ -56,8 +56,24 @@ Configure before use.
 2. Set environment variables `WEB_EXT_API_KEY` (JWT issuer) and `WEB_EXT_API_SECRET`
 3. `yarn build:firefox:submit` to sign and upload to AMO (Firefox Addons), or manually upload at [Firefox Addons](https://addons.mozilla.org/en-US/developers/addons)
 4. `yarn build:firefox:submit` also generates an XPI for manual distribution
+5. Add https://github.com/yuku-t/textcomplete/releases in the comments when uploading.
 
 ### Chrome
 
 1. Go [here](https://chrome.google.com/webstore/developer/dashboard)
 2. Upload built ZIP file
+
+### Notes for reviewers
+
+#### Third-party dependencies
+
+##### Textcomplete
+
+The archive containing this library can be downloaded from https://github.com/yuku-t/textcomplete/releases/download/v0.17.1/textcomplete-0.17.1.tgz
+
+The vendored source for the minified Textcomplete library is obtained from within the archive located at  `package/dist/textcomplete.min.js`
+
+This link to the archive was retrieved from https://github.com/yuku-t/textcomplete/releases. The minified source is included with the source of this addon in `src/options/vendor/textcomplete/textcomplete.min.js`
+
+`yarn install` installs the dependencies for the library
+`yarn build:dist` builds the distribution for the library
