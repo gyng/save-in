@@ -6,6 +6,7 @@ const Download = require("../src/download.js");
 
 global.Download = Download;
 global.Path = require("../src/path.js");
+global.getFilenameFromContentDispositionHeader = require("../src/vendor/content-disposition.js");
 
 test("extension detection regex", () => {
   const match = "abc.xyz".match(Download.EXTENSION_REGEX);
@@ -100,28 +101,9 @@ describe("filename from Content-Disposition", () => {
     );
   });
 
-  // https://tools.ietf.org/html/rfc5987
-  test("handles rfc5987", () => {
+  test("handles encoded utf8 filenames", () => {
     expect(
-      Download.getFilenameFromContentDisposition(
-        "filename*=utf-8''%e2%82%ac%20exchange%20rates"
-      )
-    ).toBe("€ exchange rates");
-
-    expect(
-      Download.getFilenameFromContentDisposition(
-        "filename*=utf-8''\"%e2%82%ac%20exchange%20rates\""
-      )
-    ).toBe("€ exchange rates");
-  });
-
-  test("handles utf8 filenames", () => {
-    const encodeUtf8 = s => unescape(encodeURIComponent(s));
-
-    expect(
-      Download.getFilenameFromContentDisposition(
-        encodeUtf8('filename="シャイニング・フォース イクサ";')
-      )
+      Download.getFilenameFromContentDisposition('filename="シャイニング・フォース イクサ";')
     ).toBe("シャイニング・フォース イクサ");
   });
 
@@ -136,7 +118,9 @@ describe("filename from Content-Disposition", () => {
   test("handles invalid/empty Content-Disposition filenames", () => {
     expect(Download.getFilenameFromContentDisposition('=""')).toBe(null);
     expect(Download.getFilenameFromContentDisposition("")).toBe(null);
-    expect(Download.getFilenameFromContentDisposition('filename=""')).toBe("");
-    expect(Download.getFilenameFromContentDisposition("filename=")).toBe("");
+    expect(Download.getFilenameFromContentDisposition('filename=""')).toBe(
+      null
+    );
+    expect(Download.getFilenameFromContentDisposition("filename=")).toBe(null);
   });
 });

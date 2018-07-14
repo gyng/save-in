@@ -1,3 +1,8 @@
+# 2.6.3
+
+* Use @Rob--W's Content-Disposition parser (#73)
+  (source: Rob--W/open-in-browser)[https://github.com/Rob--W/open-in-browser/blob/master/extension/content-disposition.js]
+
 # 2.6.2
 
 * Fix import settings on options page being totally broken

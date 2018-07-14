@@ -35,23 +35,12 @@ const Download = {
   getFilenameFromContentDisposition: disposition => {
     if (typeof disposition !== "string") return null;
 
-    const matches = disposition.match(Download.DISPOSITION_FILENAME_REGEX);
+    const filenameFromLib = getFilenameFromContentDispositionHeader(
+      disposition
+    );
 
-    if (matches && matches.length >= 3) {
-      // First decode utf8
-      // And then decode once more for any URI-encoded headers
-      const filteredMatches = matches.filter(m => m != null);
-      const match = filteredMatches[filteredMatches.length - 1];
-      let filename = decodeURIComponent(decodeURIComponent(escape(match)));
-
-      // Wrapped in quotation marks
-      if (filename[0] && filename[filename.length - 1] === '"') {
-        filename = filename.slice(1, -1);
-      }
-
-      filename = Path.sanitizeFilename(filename);
-
-      return filename;
+    if (filenameFromLib) {
+      return decodeURIComponent(decodeURIComponent(filenameFromLib));
     }
 
     return null;

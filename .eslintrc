@@ -11,6 +11,8 @@
     "no-param-reassign": 0
   },
   "globals": {
+    "getFilenameFromContentDispositionHeader": false,
+
     "Path": false,
     "Download": false,
     "Variable": false,
