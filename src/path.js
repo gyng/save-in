@@ -85,7 +85,7 @@ const Path = {
       ) {
         return {
           valid: false,
-          message: "Path cannot start with .. or /"
+          message: browser.i18n.getMessage("rulePathStartsWithDot")
         };
       }
 
@@ -96,7 +96,10 @@ const Path = {
           segment.type === PATH_SEGMENT_TYPES.STRING &&
           Path.sanitizeFilename(segment.val) !== segment.val
         ) {
-          return { valid: false, message: "Path contains invalid characters" };
+          return {
+            valid: false,
+            message: browser.i18n.getMessage("rulePathInvalidCharacter")
+          };
         }
       }
       return { valid: true };

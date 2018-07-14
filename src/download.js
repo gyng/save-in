@@ -175,15 +175,17 @@ const Download = {
     if (state.route) {
       if (options.notifyOnRuleMatch) {
         Notification.createExtensionNotification(
-          "Save In: Rule matched",
+          browser.i18n.getMessage("notificationRuleMatchedTitle"),
           `${state.info.initialFilename}\n⬇\n${state.route}`,
           false
         );
       }
     } else if (options.routeExclusive && options.notifyOnFailure) {
       Notification.createExtensionNotification(
-        "Save In: Failed to route or rename download",
-        `No matching rule found for ${state.info.url}`,
+        browser.i18n.getMessage("notificationRuleMatchFailedExclusiveTitle"),
+        browser.i18n.getMessage("notificationRuleMatchFailedExclusiveMessage", [
+          state.info.url
+        ]),
         true
       );
     }

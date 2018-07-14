@@ -31,25 +31,25 @@ const Menus = {
 
     browser.contextMenus.create({
       id: Menus.IDS.TABSTRIP.SELECTED_TAB,
-      title: "Save selected tab",
+      title: browser.i18n.getMessage("tabstripMenuSelectedTab"),
       contexts: ["tab"]
     });
 
     browser.contextMenus.create({
       id: Menus.IDS.TABSTRIP.OPENED_FROM_TAB,
-      title: "Save other tabs opened from this tab",
+      title: browser.i18n.getMessage("tabstripMenuSaveChildrenTabs"),
       contexts: ["tab"]
     });
 
     browser.contextMenus.create({
       id: Menus.IDS.TABSTRIP.TO_RIGHT,
-      title: "Save all tabs to right including this",
+      title: browser.i18n.getMessage("tabstripMenuSaveRightTabs"),
       contexts: ["tab"]
     });
 
     browser.contextMenus.create({
       id: Menus.IDS.TABSTRIP.TO_RIGHT_MATCH,
-      title: "Save all tabs to right including this (must match a route)",
+      title: browser.i18n.getMessage("tabstripMenuSaveRightTabsMatched"),
       contexts: ["tab"]
     });
 

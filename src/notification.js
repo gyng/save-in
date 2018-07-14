@@ -15,9 +15,9 @@ const Notification = {
     const id = `save-in-not-${String(Math.floor(Math.random() * 100000))}`;
     browser.notifications.create(id, {
       type: "basic",
-      title: title || "Save In",
+      title: title || browser.i18n.getMessage("extensionName"),
       iconUrl: error ? ERROR_ICON_URL : ICON_URL,
-      message: message || "Unknown error"
+      message: message || browser.i18n.getMessage("genericUnknownError")
     });
 
     if (options && options.notifyDuration) {
@@ -145,9 +145,12 @@ const Notification = {
         if (notifyOnFailure) {
           browser.notifications.create(String(downloadDelta.id), {
             type: "basic",
-            title: `Failed to save ${filename}`,
+            title: browser.i18n.getMessage("notificationFailureTitle", [
+              filename
+            ]),
             iconUrl: ERROR_ICON_URL,
-            message: failed.current || "Unknown error"
+            message:
+              failed.current || browser.i18n.getMessage("genericUnknownError")
           });
         }
 
@@ -199,8 +202,13 @@ const Notification = {
             }
           }
 
+          const successfulLabel = browser.i18n.getMessage(
+            "notificationSuccessTitle"
+          );
           const title =
-            res.length > 0 ? `Saved — ${filesize} — ${mime}` : "Saved";
+            res.length > 0
+              ? `${successfulLabel} · ${filesize} · ${mime}`
+              : successfulLabel;
 
           browser.notifications.create(String(downloadDelta.id), {
             type: "basic",

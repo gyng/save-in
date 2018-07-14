@@ -4,34 +4,35 @@
 <head>
   <meta charset="utf-8">
   <script type="application/javascript" src="../chrome-polyfill.js"></script>
+  <script type="application/javascript" src="./vendor/l10n/l10n.js"></script>
   <title>Settings &mdash; Save In</title>
   <link href="style.css" rel="stylesheet">
 </head>
 
 <body id="settings-page">
   <div>
-    <a class="open-settings-in-window" href="options.html" target="_blank">Popout</a>
+    <a class="open-settings-in-window" href="options.html" target="_blank">__MSG_o_lPopout__</a>
     &middot;
-    <a href="variablelist.html" target="_blank">Variable List</a>
+    <a href="variablelist.html" target="_blank">__MSG_o_lVariableList__</a>
     &middot;
-    <a href="clauselist.html" target="_blank">Clause List</a>
+    <a href="clauselist.html" target="_blank">__MSG_o_lClauseList__</a>
     &middot;
-    <a class="external" href="https://github.com/gyng/save-in/">GitHub</a>
+    <a class="external" href="https://github.com/gyng/save-in/">__MSG_o_lGithub__</a>
     &middot;
-    <a class="external" href="https://github.com/gyng/save-in/blob/master/CHANGELOG.md">Changelog</a>
+    <a class="external" href="https://github.com/gyng/save-in/blob/master/CHANGELOG.md">__MSG_o_lChangelog__</a>
 
   </div>
 
   <form id="options">
-    <h2 id="section-downloads">Downloads</h2>
+    <h2 id="section-downloads">__MSG_o_sDownloads__</h2>
 
     <label class="column">
-      <h3>Directories</h3>
+      <h3>__MSG_o_sDirectories__</h3>
       <span>
-        <h3 class="popout link" data-popout-for="variablelist.html">📓 Variable List</h3>
+        <h3 class="popout link" data-popout-for="variablelist.html">📓 __MSG_o_lVariableList__</h3>
       </span>
       <p>
-        <a href="#" class="help learn-more" data-help-for="help-paths">Guide: Create menu items</a>
+        <a href="#" class="help learn-more" data-help-for="help-paths">__MSG_o_lGuideCreateMenuItems__</a>
       </p>
       <div class="help-text" id="help-paths">
         <h4>Creating context menu items</h4>
@@ -84,7 +85,7 @@ v/cats
       </div>
 
       <p>
-        <a href="#" class="help learn-more" data-help-for="help-symlink">Guide: Save outside the default downloads directory</a>
+        <a href="#" class="help learn-more" data-help-for="help-symlink">__MSG_o_lGuideSymlink__</a>
       </p>
       <div class="help-text" id="help-symlink">
         <h4>Saving outside the default download directory</h4>
@@ -111,83 +112,82 @@ v/cats
         <p>Make sure the target directories actually exist, or the extension will silently fail to download.</p>
       </div>
 
-      <p>One path per line, relative to the default download directory.
-        <code>.</code> downloads to the default download directory. Use
-        <code>//</code> at the end of a line to add a comment.</p>
-      <p>A symlink is needed to save outside the default download directory.</p>
+      <p>__MSG_o_lDirectoryInstructionOnePerLine__
+        <code>.</code> __MSG_o_lDirectoryInstructionDot__
+        <code>//</code> __MSG_o_lDirectoryInstructionComment__ </p>
+      <p>__MSG_o_lDirectoryInstructionSymlink__</p>
 
       <textarea required type="textarea" id="paths" rows=10 placeholder="." spellcheck="false"></textarea>
       <div class="error-notification" id="error-paths">path errors</div>
     </label>
 
     <label>
-      <input type="checkbox" id="enableLastLocation" /> Show last used menu item
+      <input type="checkbox" id="enableLastLocation" />__MSG_o_cLastUsedMenu__
     </label>
 
-    <h3>Behavior</h3>
+    <h3>__MSG_o_sBehavior__</h3>
 
     <label>
-      <input type="checkbox" id="links" /> Enable saving of links. Prefers sources if available.
-    </label>
-
-    <label>
-      <input type="checkbox" id="selection" /> Enable saving of selected text with a
-      <code>.selection.txt</code> extension
+      <input type="checkbox" id="links" />__MSG_o_cSaveLinks__
     </label>
 
     <label>
-      <input type="checkbox" id="page" /> Enable saving of the current page
-      <div class="caption caption-line">Does not save external resources</div>
+      <input type="checkbox" id="selection" />__MSG_o_cSaveText__
     </label>
 
     <label>
-      <input type="checkbox" id="tabEnabled" class="chrome-disabled" /> Enable saving from tabstrip
+      <input type="checkbox" id="page" />__MSG_o_cSavePage__
+      <div class="caption caption-line">__MSG_o_cSavePageHelp__</div>
+    </label>
+
+    <label>
+      <input type="checkbox" id="tabEnabled" class="chrome-disabled" />__MSG_o_cSaveTabstrip__
       <span class="badge">Firefox</span>
-      <div class="caption caption-line">Saves a tab, tab group, or tabs to right</div>
+      <div class="caption caption-line">__MSG_o_cSaveTabstripHelp__</div>
     </label>
 
     <label>
-      <input type="checkbox" id="prompt" /> Open a save file dialog when saving
+      <input type="checkbox" id="prompt" />__MSG_o_cOpenDialog__
     </label>
 
     <label>
-      <input type="checkbox" id="promptIfNoExtension" /> Open a save file dialog if filename has no extension
+      <input type="checkbox" id="promptIfNoExtension" />__MSG_o_cOpenDialogNoExt__
     </label>
 
     <label>
-      <input type="checkbox" id="promptOnShift" /> Open a save file dialog when menu item is clicked and SHIFT is held down
+      <input type="checkbox" id="promptOnShift" />__MSG_o_cOpenDialogShift__
     </label>
 
     <label>
-      <input type="checkbox" id="promptOnFailure" /> Open a save file dialog if download fails
+      <input type="checkbox" id="promptOnFailure" />__MSG_o_cOpenDialogOnFailure__
     </label>
 
     <label>
       <select disabled class="chrome-enabled" id="conflictAction">
-        <option value="uniquify">Uniquify</option>
-        <option value="overwrite">Overwrite</option>
-        <option value="prompt">Prompt</option>
+        <option value="uniquify">__MSG_o_cDupeUniquify__</option>
+        <option value="overwrite">__MSG_o_cDupeOverwrite__</option>
+        <option value="prompt">__MSG_o_cDupePrompt__</option>
       </select>
-      when a duplicate filename is encountered
+      __MSG_o_cDupeFilename__
       <span class="badge">Chrome</span>
     </label>
 
     <hr>
 
     <label class="column">
-      <h2>Dynamic Downloads (Advanced)</h2>
+      <h2>__MSG_o_sDynamicDownloads__</h2>
 
-      <h3>Rename and Route Downloads</h3>
+      <h3>__MSG_o_sRenameAndRouteDownloads__</h3>
 
       <div style="display: flex; justify-content: flex-start; align-items: baseline;">
-        <h3 style="width: auto;" class="popout link" data-popout-for="variablelist.html">📓 Variable list</h3>
+        <h3 style="width: auto;" class="popout link" data-popout-for="variablelist.html">📓 __MSG_o_lVariableList__</h3>
         &nbsp;&nbsp;&nbsp;
-        <h3 style="width: auto;" class="popout link" data-popout-for="clauselist.html">📓 Clause list</h3>
+        <h3 style="width: auto;" class="popout link" data-popout-for="clauselist.html">📓 __MSG_o_lClauseList__</h3>
       </div>
 
       <p>
-        <a href="#" class="help learn-more" data-help-for="help-filenames">Guide: Rename and route downloads</a>
-        <a class="external float-right" href="https://github.com/gyng/save-in/wiki/Filename-rewrite">Templates</a>
+        <a href="#" class="help learn-more" data-help-for="help-filenames">__MSG_o_lGuideRouting__</a>
+        <a class="external float-right" href="https://github.com/gyng/save-in/wiki/Filename-rewrite">__MSG_o_lRoutingTemplates__</a>
       </p>
       </div>
 
@@ -265,9 +265,7 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
       </div>
       </div>
 
-      <p>Automate routing of downloads or renaming of files. Separate multiple rules with an empty line. See the guide for more
-        details.
-      </p>
+      <p>__MSG_o_lRoutingInstruction__</p>
 
       <p class="chrome-only">CHROME USERS: Special characters in the filename (eg.
         <code>:</code> or
@@ -285,167 +283,163 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
             <tbody style="margin: 0; padding: 0; vertical-align: baseline;">
               <tr>
                 <td div style="font-weight: 600; padding: 0; text-align: left; min-width: 110px;">
-                  Last download
+                  __MSG_o_lRoutingLastDownload__
                 </td>
-                <td style="font-family: monospace; text-overflow: hidden; overflow: hidden; white-space: nowrap; max-width: 80%;" id="last-dl-url">none yet</td>
+                <td style="font-family: monospace; text-overflow: hidden; overflow: hidden; white-space: nowrap; max-width: 80%;" id="last-dl-url">__MSG_o_lRoutingLastDownloadEmpty__</td>
               </tr>
               <tr class="hi2de" id="rules-applied-row">
-                <td style="font-weight: 600; padding: 0; text-align: left;">Renamed to</td>
-                <td style="font-family: monospace; word-break: break-all;" id="last-dl-match">no matches</td>
+                <td style="font-weight: 600; padding: 0; text-align: left;">__MSG_o_lRenamedTo__</td>
+                <td style="font-family: monospace; word-break: break-all;" id="last-dl-match">__MSG_o_lRoutingNoMatches__</td>
               </tr>
               <tr class="hide" id="capture-group-rows">
-                <td style="font-weight: 600; padding: 0;">Capture groups</td>
+                <td style="font-weight: 600; padding: 0;">__MSG_o_lRoutingCaptureGroups__</td>
                 <td style="font-family: monospace; word-break: break-all;" id="last-dl-capture"></td>
               </tr>
             </tbody>
           </table>
         </div>
       </div>
-      <div class="caption caption-line">Test your current rules, applied to the last downloaded file</div>
+      <div class="caption caption-line">__MSG_o_lRoutingLastDownloadHelp__</div>
 
     </label>
 
     <label>
-      <input type="checkbox" id="routeFailurePrompt" /> Open a save file dialog if no rules match
+      <input type="checkbox" id="routeFailurePrompt" /> __MSG_o_cOpenDialogIfNoRulesMatch__
     </label>
 
     <label>
-      <input type="checkbox" id="routeExclusive" /> Exclusively use routing and renaming rules
-      <div class="caption caption-line">Disables submenu for two-click downloads, saves relative to default downloads directory</div>
+      <input type="checkbox" id="routeExclusive" /> __MSG_o_cExclusiveMode__
+      <div class="caption caption-line">__MSG_o_cExclusiveModeHelp__</div>
     </label>
 
     <hr>
 
-    <h2 id="section-notifications">Notifications</h2>
+    <h2 id="section-notifications">__MSG_o_sNotifications__</h2>
     <label>
-      <input type="checkbox" id="notifyOnSuccess" /> Show notification on successful download
+      <input type="checkbox" id="notifyOnSuccess" /> __MSG_o_cNotifySuccess__
     </label>
 
     <label>
-      <input type="checkbox" id="notifyOnFailure" /> Show notification on failed download
+      <input type="checkbox" id="notifyOnFailure" /> __MSG_o_cNotifyFailure__
     </label>
 
     <label>
-      <input type="checkbox" id="notifyOnRuleMatch" /> Show notification on a rule match
+      <input type="checkbox" id="notifyOnRuleMatch" /> __MSG_o_cNotifyMatch__
     </label>
 
     <label>
-      Close notifications early after
+      __MSG_o_cNotifyCloseAfter__
       <input type="number" id="notifyDuration" min="0" />ms
-      <div class="caption caption-line">1s = 1000ms. Will not extend beyond OS/browser notification duration.</div>
+      <div class="caption caption-line">__MSG_o_cNotifyCloseAfterHelp__</div>
     </label>
 
     <hr />
 
-    <h2 id="section-save-as-shortcuts">Save As Shortcuts</h2>
+    <h2 id="section-save-as-shortcuts">__MSG_o_sSaveAsShortcuts__</h2>
     <label>
-      Save shortcuts as
+      __MSG_o_cSaveShortcutsAs__
       <select id="shortcutType">
-        <option value="HTML_REDIRECT">HTML redirect</option>
-        <option value="MAC">Mac .url</option>
-        <option value="WINDOWS">Windows .url</option>
-        <option value="FREEDESKTOP">Freedesktop .desktop</option>
+        <option value="HTML_REDIRECT">__MSG_o_cSaveShortcutsTypeHtml__</option>
+        <option value="MAC">__MSG_o_cSaveShortcutsTypeMac__</option>
+        <option value="WINDOWS">__MSG_o_cSaveShortcutsTypeWindows__</option>
+        <option value="FREEDESKTOP">__MSG_o_cSaveShortcutsTypeFreedesktop__</option>
       </select>
     </label>
 
     <label>
-      <input type="checkbox" id="shortcutMedia" /> Save media as shortcuts instead
+      <input type="checkbox" id="shortcutMedia" /> __MSG_o_cSaveShortcutsMediaInstead__
     </label>
 
     <label>
-      <input type="checkbox" id="shortcutLink" /> Save links as shortcuts instead
+      <input type="checkbox" id="shortcutLink" /> __MSG_o_cSaveShortcutsLinksInstead__
     </label>
 
     <label>
-      <input type="checkbox" id="shortcutPage" /> Save pages as shortcuts instead
+      <input type="checkbox" id="shortcutPage" /> __MSG_o_cSaveShortcutsPagesInstead__
     </label>
 
     <label>
-      <input type="checkbox" id="shortcutTab" class="chrome-disabled" /> Save tabs as shortcuts instead (from right-click tab)
+      <input type="checkbox" id="shortcutTab" class="chrome-disabled" /> __MSG_o_cSaveShortcutsTabsInstead__
       <span class="badge">Firefox</span>
     </label>
 
     <hr>
 
-    <h2 id="section-save-as-shortcuts">Keyboard Shortcuts</h2>
+    <h2 id="section-save-as-shortcuts">__MSG_o_sKeyboardShortcuts__</h2>
 
-    <h3>Context Menu
+    <h3>__MSG_o_sContextMenu__
       <span class="badge">Chrome</span>
     </h3>
-    <p>Set accesskeys for Save In menu items. This does not work on macOS as it does not support accesskeys.</p>
+    <p>__MSG_o_lAccessKeysInstruction__</p>
 
     <label>
-      <input disabled class="chrome-enabled key" type="text" id="keyRoot" maxlength="1" /> Save In context menu item
+      <input disabled class="chrome-enabled key" type="text" id="keyRoot" maxlength="1" /> __MSG_o_cKeyboardShortcutSaveInMenu__
     </label>
 
     <label>
-      <input disabled class="chrome-enabled key" type="text" id="keyLastUsed" maxlength="1" /> Last used context submenu item
+      <input disabled class="chrome-enabled key" type="text" id="keyLastUsed" maxlength="1" /> __MSG_o_cKeyboardShortcutSubmenu__
     </label>
 
     <label>
-      <input disabled class="chrome-enabled" type="checkbox" id="enableNumberedItems" /> Add number key shortcuts to context submenu items
+      <input disabled class="chrome-enabled" type="checkbox" id="enableNumberedItems" /> __MSG_o_cKeyboardShortcutNumbers__
     </label>
 
-    <h3>Click To Save</h3>
+    <h3>__MSG_o_sClickToSave__</h3>
     <label>
-      <input type="checkbox" id="contentClickToSave" /> Enable click to save
-      <div class="caption caption-line">Hold down Alt (default) and click images or media to save them in the last used directory or default download directory.
-        Injects a script into pages to listen for click events. Not all variables are available when using this. Requires
-        page refresh to take effect.</div>
+      <input type="checkbox" id="contentClickToSave" /> __MSG_o_cKeyboardShortcutClickToSave__
+      <div class="caption caption-line">__MSG_o_cKeyboardShortcutClickToHelp__</div>
     </label>
 
     <label>
-      <input type="number" id="contentClickToSaveCombo" /> keycode +&nbsp;
+      <input type="number" id="contentClickToSaveCombo" /> __MSG_o_cKeyboardShotcutKeycode__ +&nbsp;
       <select id="contentClickToSaveButton">
-          <option value="LEFT_CLICK">Left click</option>
-          <option value="MIDDLE_CLICK">Middle click</option>
-          <option value="RIGHT_CLICK">Right click</option>
-        </select>
-      <div class="caption caption-line">Modifier keycode for click-to-save. Requires page refresh to take effect.
+        <option value="LEFT_CLICK">__MSG_o_cKeyboardShortcutModifierLeftClick__</option>
+        <option value="MIDDLE_CLICK">__MSG_o_cKeyboardShortcutModifierMiddleClick__</option>
+        <option value="RIGHT_CLICK">__MSG_o_cKeyboardShortcutModifierRightClick__</option>
+      </select>
+      <div class="caption caption-line">__MSG_o_cKeyboardShortcutModifierHelp__
         <a class="caption" href="http://keycode.info/">keycode.info</a>
       </div>
     </label>
 
     <hr>
 
-    <h2 id="section-more-options">More Options
-      <div id="reset" class="button float-right">Restore Defaults</div>
+    <h2 id="section-more-options">__MSG_o_sMoreOptions__
+      <div id="reset" class="button float-right">__MSG_o_cRestoreDefaults__</div>
     </h2>
 
     <label>
-      Truncate path components to
-      <input type="number" id="truncateLength" min="1" /> characters
-      <div class="caption caption-line">0 = no truncation</div>
+      <input type="number" id="truncateLength" min="1" />__MSG_o_cTruncatePath__&nbsp;
+      <div class="caption caption-line">__MSG_o_cTruncatePathHelp__</div>
     </label>
 
     <label>
-      Replace invalid characters with
+      __MSG_o_cReplaceInvalidCharsWith__
       <input type="text" id="replacementChar" placeholder="delete" style="font-family: monospace;" />
-      <div class="caption caption-line">Leave blank to delete. Invalid replacement characters are ignored.</div>
+      <div class="caption caption-line">__MSG_o_cReplaceInvalidCharsWithHelp__</div>
     </label>
 
     <label>
       <input type="checkbox" id="fetchViaContent" class="chrome-disabled" />
-      <span>Enable fetching via content script</span>
+      <span>__MSG_o_cFetchViaContentScript__</span>
       <span class="badge">Firefox</span>
-      <div class="caption caption-line">Send headers from page with download request. Some sites such as pixiv require this. Slower and prone to failure. Success/failure notifications do not work
-        in this mode. Requires page refresh to take effect.</div>
+      <div class="caption caption-line">__MSG_o_cFetchViaContentScriptHelp__</div>
     </label>
 
     <div style="display: flex; justify-content: flex-start; align-items: center;">
-      <div id="settings-import" class="button">Import Settings</div>
-      <div style="margin-left: 8px;" id="settings-export" class="button">Export Settings</div>
+      <div id="settings-import" class="button">__MSG_o_cImportSettings__</div>
+      <div style="margin-left: 8px;" id="settings-export" class="button">__MSG_o_cExportSettings__</div>
     </div>
 
     <textarea id="export-target" style="display: none;" spellcheck="false"></textarea>
 
     <label>
-      <input type="checkbox" id="debug" /> Enable debug logging
+      <input type="checkbox" id="debug" /> __MSG_o_cDebugMode__
     </label>
 
     <p>
-      <span>Last saved at:&nbsp;</span>
-      <span id="lastSavedAt">never</span>
+      <span>__MSG_o_cLastSavedAt__</span>
+      <span id="lastSavedAt">__MSG_o_cLastSavedAtNever__</span>
     </p>
   </form>
 

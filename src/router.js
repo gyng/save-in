@@ -239,7 +239,7 @@ const Router = {
 
     if (matchers.filter(m => m.name === "capture").length >= 2) {
       window.optionErrors.filenamePatterns.push({
-        message: "Rule can only have one capture clause",
+        message: browser.i18n.getMessage("ruleMultipleCapture"),
         error: JSON.stringify(lines.map(l => l[0]))
       });
 

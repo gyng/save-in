@@ -54,6 +54,7 @@
   ],
 
   "options_ui": {
+    "browser_style": true,
     "chrome_style": true,
     "page": "src/options/options.html"
   },
