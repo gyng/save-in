@@ -31,6 +31,7 @@ const OptionsManagement = {
     { name: "keyLastUsed", type: T.VALUE, default: "a" },
     { name: "keyRoot", type: T.VALUE, default: "a" },
     { name: "links", type: T.BOOL, default: true },
+    { name: "preferLinks", type: T.BOOL, default: false },
     { name: "notifyDuration", type: T.VALUE, default: 7000 },
     { name: "notifyOnFailure", type: T.BOOL, default: true },
     { name: "notifyOnRuleMatch", type: T.BOOL, default: true },

@@ -195,10 +195,17 @@ browser.contextMenus.onClicked.addListener(info => {
     let suggestedFilename = null;
     let downloadType = DOWNLOAD_TYPES.UNKNOWN;
 
+    const hasLink = options.links && info.linkUrl;
+
     if (MEDIA_TYPES.includes(info.mediaType)) {
       downloadType = DOWNLOAD_TYPES.MEDIA;
       url = info.srcUrl;
-    } else if (options.links && info.linkUrl) {
+
+      if (hasLink && options.preferLinks) {
+        downloadType = DOWNLOAD_TYPES.LINK;
+        url = info.linkUrl;
+      }
+    } else if (hasLink) {
       downloadType = DOWNLOAD_TYPES.LINK;
       url = info.linkUrl;
     } else if (options.selection && info.selectionText) {

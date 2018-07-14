@@ -18,7 +18,7 @@ const routes = {
     ctx.body = `<html>
       <a href="cd">Content-Disposition</a>
       <br>
-      <img src="origami.jpg" />
+      <a href="cd"><img src="origami.jpg" /></a>
       <hr>
       Example tests
       <br>

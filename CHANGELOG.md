@@ -1,5 +1,6 @@
-# 2.6.3
+# 2.7.0
 
+* Add option to prefer links over media (#75)
 * Use @Rob--W's Content-Disposition parser (#73)
   (source: Rob--W/open-in-browser)[https://github.com/Rob--W/open-in-browser/blob/master/extension/content-disposition.js]
 * Add localisation hooks to most things

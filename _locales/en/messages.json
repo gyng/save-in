@@ -322,6 +322,10 @@
     "message": "Enable saving of links. Prefers sources if available"
   },
 
+  "o_cPreferLinks": {
+    "message": "Prefer links over sources instead"
+  },
+
   "o_cSaveText": {
     "message":
       "Enable saving of selected text with a \".selection.txt\" extension"
