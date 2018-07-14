@@ -284,6 +284,10 @@
     "message": "Last download"
   },
 
+  "_o_lRoutingRenamedTo": {
+    "message": "Renamed to"
+  },
+
   "o_lRoutingLastDownloadEmpty": {
     "message": "none yet"
   },
