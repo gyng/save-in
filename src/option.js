@@ -143,8 +143,9 @@ OptionsManagement.loadOptions = () =>
   });
 
 // global
-options = OptionsManagement.OPTION_KEYS.reduce((acc, val) =>
-  Object.assign(acc, { [val.name]: val.default }, {})
+options = OptionsManagement.OPTION_KEYS.reduce(
+  (acc, val) => Object.assign(acc, { [val.name]: val.default }),
+  {}
 );
 
 // Export for testing
