@@ -1,3 +1,7 @@
+# 2.7.1
+
+* Include credentials when firing `HEAD` to grab Content-Disposition (Firefox)
+
 # 2.7.0
 
 * Add option to prefer links over media (#75)

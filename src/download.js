@@ -154,7 +154,7 @@ const Download = {
       globalChromeState = state;
       download(state);
     } else {
-      fetch(state.info.url, { method: "HEAD" })
+      fetch(state.info.url, { method: "HEAD", credentials: "include" })
         .then(res => {
           if (res.headers.has("Content-Disposition")) {
             const disposition = res.headers.get("Content-Disposition");
