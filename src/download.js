@@ -147,7 +147,7 @@ const Download = {
 
     // Chrome: Skip HEAD request for Content-Disposition and use onDeterminingFilename
     if (
-      browser === chrome &&
+      CURRENT_BROWSER === BROWSERS.CHROME &&
       chrome.downloads &&
       chrome.downloads.onDeterminingFilename
     ) {

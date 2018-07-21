@@ -241,7 +241,7 @@ browser.contextMenus.onClicked.addListener(info => {
 
       if (options.enableLastLocation) {
         browser.contextMenus.update("save-in-_-_-last-used", {
-          title: browser === chrome ? `${title} (&a)` : title,
+          title: CURRENT_BROWSER === BROWSERS.CHROME ? `${title} (&a)` : title,
           enabled: true
         });
       }

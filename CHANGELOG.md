@@ -1,3 +1,7 @@
+# 2.7.2
+
+* Replace custom polyfill with mozilla/webextension-polyfill
+
 # 2.7.1
 
 * Include credentials when firing `HEAD` to grab Content-Disposition (Firefox)

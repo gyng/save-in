@@ -77,3 +77,7 @@ This link to the archive was retrieved from https://github.com/yuku-t/textcomple
 
 `yarn install` installs the dependencies for the library
 `yarn build:dist` builds the distribution for the library
+
+#### webextension-polyfill
+
+This extension includes webextension-polyfill as browser-polyfill.js. The source repo is located at https://github.com/mozilla/webextension-polyfill and the actual included library is obtained from https://unpkg.com/webextension-polyfill@0.3.0/dist/ as suggested by mozilla/webextension-polyfill.

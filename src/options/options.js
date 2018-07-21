@@ -217,14 +217,14 @@ document.querySelector("#reset").addEventListener("click", e => {
   };
   /* eslint-enable no-alert */
 
-  if (browser === chrome) {
+  if (CURRENT_BROWSER === BROWSERS.CHROME) {
     browser.runtime.getBackgroundPage().then(resetFn);
   } else {
     resetFn(window);
   }
 });
 
-if (browser === chrome) {
+if (CURRENT_BROWSER === BROWSERS.CHROME) {
   document.querySelectorAll(".chrome-only").forEach(el => {
     el.classList.toggle("show");
   });
@@ -302,7 +302,7 @@ const importSettings = () => {
     });
   };
 
-  if (browser === chrome) {
+  if (CURRENT_BROWSER === BROWSERS.CHROME) {
     browser.runtime.getBackgroundPage().then(load);
   } else {
     load(window);

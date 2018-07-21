@@ -105,7 +105,7 @@ const Notification = {
       // CHROME
       // Chrome does not have the filename in the initial DownloadItem,
       // so extract it from the DownloadDelta
-      if (browser === chrome) {
+      if (CURRENT_BROWSER === BROWSERS.CHROME) {
         if (
           downloadDelta &&
           downloadDelta.filename &&
@@ -122,7 +122,7 @@ const Notification = {
 
       const failed = Notification.isDownloadFailure(
         downloadDelta,
-        browser === chrome
+        CURRENT_BROWSER === BROWSERS.CHROME
       );
 
       const isFromSelf = typeof downloadsList[downloadDelta.id] !== "undefined";
