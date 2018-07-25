@@ -125,8 +125,7 @@ const Menus = {
                 context: DOWNLOAD_TYPES.TAB,
                 menuIndex: null,
                 comment: null,
-                modifiers: info.modifiers,
-                legacyDownloadInfo: info // wip, remove
+                modifiers: info.modifiers
               };
 
               // keeps track of state of the final path

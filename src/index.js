@@ -286,8 +286,7 @@ browser.contextMenus.onClicked.addListener(info => {
       context: downloadType,
       menuIndex,
       comment,
-      modifiers: info.modifiers,
-      legacyDownloadInfo: info // wip, remove
+      modifiers: info.modifiers
     };
 
     // keeps track of state of the final path

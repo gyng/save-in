@@ -1,6 +1,7 @@
 # 2.7.3
 
-* Fix accesskeys not appearing in Chrome (regression)
+* Fix accesskeys not appearing in Chrome (regression) (#79)
+* Fix notifications not showing up for alt-clicked images (#78)
 
 # 2.7.2
 

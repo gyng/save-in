@@ -136,7 +136,8 @@ const Notification = {
           failed,
           isFromSelf,
           downloadsList,
-          downloadDelta
+          downloadDelta,
+          notifyOnSuccess
         );
         /* eslint-enable no-console */
       }

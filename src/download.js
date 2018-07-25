@@ -48,17 +48,11 @@ const Download = {
 
   getRoutingMatches: state => {
     const filenamePatterns = options.filenamePatterns;
-    const downloadInfo = state.info.legacyDownloadInfo;
-
     if (!filenamePatterns || filenamePatterns.length === 0) {
       return null;
     }
 
-    return Router.matchRules(
-      filenamePatterns,
-      state.info.legacyDownloadInfo,
-      state.info
-    );
+    return Router.matchRules(filenamePatterns, state.info);
   },
 
   renameAndDownload: state => {

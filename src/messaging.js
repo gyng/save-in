@@ -64,6 +64,7 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
         info: Object.assign({}, last.info, opts, info)
       };
 
+      requestedDownloadFlag = true;
       Download.renameAndDownload(clickState);
 
       sendResponse({
