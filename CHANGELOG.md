@@ -1,3 +1,7 @@
+# 2.7.3
+
+* Fix accesskeys not appearing in Chrome (regression)
+
 # 2.7.2
 
 * Replace custom polyfill with mozilla/webextension-polyfill

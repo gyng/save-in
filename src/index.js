@@ -30,7 +30,7 @@ window.init = () => {
     // CHROME ONLY, FF does not support yet
     // https://bugzilla.mozilla.org/show_bug.cgi?id=1320462
     const setAccesskey = (str, key) => {
-      if (browser !== chrome || !key) {
+      if (CURRENT_BROWSER !== BROWSERS.CHROME || !key) {
         return str;
       }
 
