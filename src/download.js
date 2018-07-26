@@ -52,7 +52,11 @@ const Download = {
       return null;
     }
 
-    return Router.matchRules(filenamePatterns, state.info);
+    return Router.matchRules(
+      filenamePatterns,
+      state.info.legacyDownloadInfo,
+      state.info
+    );
   },
 
   renameAndDownload: state => {
@@ -67,7 +71,6 @@ const Download = {
     });
 
     state.path = Variable.applyVariables(state.path, state.info);
-
     // FIXME: Fix router params for new path struct
     const routeMatches = Download.getRoutingMatches(state);
     if (routeMatches) {

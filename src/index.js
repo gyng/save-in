@@ -64,9 +64,10 @@ window.init = () => {
     }
 
     if (options.enableLastLocation) {
+      const lastUsedTitle = lastUsedPath || browser.i18n.getMessage("contextMenuLastUsed");
       const lastUsedMenuOptions = {
         id: `save-in-_-_-last-used`,
-        title: lastUsedPath || browser.i18n.getMessage("contextMenuLastUsed"),
+        title: setAccesskey(lastUsedTitle, options.keyLastUsed),
         enabled: lastUsedPath ? true : false, // eslint-disable-line
         contexts: media,
         parentId: "save-in-_-_-root"
@@ -280,13 +281,14 @@ browser.contextMenus.onClicked.addListener(info => {
       now: new Date(),
       pageUrl: info.pageUrl,
       selectionText: info.selectionText,
-      sourceUrl: info.srcUrl,
+      sourceUrl: info.srcUrl || info.url,
       url, // Changes based off context
       suggestedFilename, // wip: rename
       context: downloadType,
       menuIndex,
       comment,
-      modifiers: info.modifiers
+      modifiers: info.modifiers,
+      legacyDownloadInfo: info // wip, remove
     };
 
     // keeps track of state of the final path

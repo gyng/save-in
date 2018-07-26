@@ -93,8 +93,12 @@ const OptionsManagement = {
     //     filenamePatterns: options.filenamePatterns
     //   }
     // };
+
     const newInfo = Object.assign({}, state.info, {
-      filenamePatterns: options.filenamePatterns
+      filenamePatterns: options.filenamePatterns,
+      // Chrome hack for filename: Chrome replaces special characters with `_`
+      // This mutates(?) the last object and ruins it
+      filename: state.info.initialFilename || state.info.filename
     });
     const last = Object.assign({}, state, { info: newInfo });
 

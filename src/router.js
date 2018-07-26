@@ -333,10 +333,9 @@ const Router = {
     return destination;
   },
 
-  matchRules: (rules, info) => {
+  matchRules: (rules, info, rest) => {
     for (let i = 0; i < rules.length; i += 1) {
-      // TODO: Legacy, combine both info into single info object
-      const result = Router.matchRule(rules[i], info, info);
+      const result = Router.matchRule(rules[i], info, rest);
       if (result) {
         return result;
       }

@@ -1,3 +1,9 @@
+# 3.0.0
+
+* Fix Chrome rules matching against `_`, now matches against special characters instead
+* Fix routing failing in some cases (regression) (#80)
+* Fix last used access key not working at all (Chrome)
+
 # 2.7.3
 
 * Fix accesskeys not appearing in Chrome (regression) (#79)

@@ -1,6 +1,7 @@
 const router = require("../src/router.js");
 const downloads = require("../src/download.js");
 const constants = require("../src/constants.js");
+const fixtures = require("./fixtures/clickInfo");
 
 describe("filename rewrite and routing", () => {
   const info = {
@@ -174,6 +175,54 @@ describe("filename rewrite and routing", () => {
       );
       const match = router.matchRules(rules, info);
       expect(match).toBe(null);
+    });
+  });
+
+  describe("browser context menu click integration", () => {
+    beforeAll(() => {
+      global.RULE_TYPES = constants.RULE_TYPES;
+    });
+
+    test("parses Firefox clicks", () => {
+      const twitterRulesFirefox = router.parseRules(
+        [
+          "filename: (.*)(:|-|=)(large|small|medium|thumb|orig)",
+          "sourceurl: pbs.twimg.com",
+          "capture: filename",
+          "into: :$1:"
+        ].join("\n")
+      );
+
+      const clickInfo = fixtures.firefoxInfo;
+
+      const matched = router.matchRules(
+        twitterRulesFirefox,
+        clickInfo.legacyDownloadInfo,
+        clickInfo
+      );
+
+      expect(matched).toBe("Di6uEBuVsAEYVBw.jpg");
+    });
+
+    test("parses Chrome clicks", () => {
+      const twitterRulesChrome = router.parseRules(
+        [
+          "filename: (.*)_(large|small|medium|thumb|orig)",
+          "sourceurl: pbs.twimg.com",
+          "capture: filename",
+          "into: :$1:"
+        ].join("\n")
+      );
+
+      const clickInfo = fixtures.chromeInfo;
+
+      const matched = router.matchRules(
+        twitterRulesChrome,
+        clickInfo.legacyDownloadInfo,
+        clickInfo
+      );
+
+      expect(matched).toBe("Di6uEBuVsAEYVBw.jpg");
     });
   });
 });
