@@ -1,6 +1,7 @@
 # 3.0.0
 
 * Fix Chrome rules matching against `_`, now matches against special characters instead
+* Add variables view to last download in options
 * Fix routing failing in some cases (regression) (#80)
 * Fix last used access key not working at all (Chrome)
 

@@ -27,15 +27,30 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
       });
       break;
     case MESSAGE_TYPES.CHECK_ROUTES:
+      const lastState =
+        (request.body && request.body.state) ||
+        (window.lastDownloadState != null && window.lastDownloadState);
+
+      const interpolatedVariables = lastState
+        ? Object.keys(Variable.transformers).reduce(
+            (acc, val) =>
+              Object.assign(acc, {
+                [val]: Variable.applyVariables(
+                  new Path.Path(val),
+                  lastState.info
+                ).finalize()
+              }),
+            {}
+          )
+        : null;
+
       sendResponse({
         type: MESSAGE_TYPES.CHECK_ROUTES_RESPONSE,
         body: {
           optionErrors: window.optionErrors,
-          routeInfo: OptionsManagement.checkRoutes(
-            (request.body && request.body.state) ||
-              (window.lastDownloadState != null && window.lastDownloadState)
-          ),
-          lastDownload: window.lastDownloadState
+          routeInfo: OptionsManagement.checkRoutes(lastState),
+          lastDownload: window.lastDownloadState,
+          interpolatedVariables
         }
       });
       break;

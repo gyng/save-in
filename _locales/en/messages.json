@@ -304,6 +304,14 @@
     "message": "Capture groups"
   },
 
+  "o_lRoutingVariables": {
+    "message": "Variables"
+  },
+
+  "o_lRoutingVariablesClickToSee": {
+    "message": "Click to reveal"
+  },
+
   "o_lRoutingLastDownloadHelp": {
     "message": "Test your current rules, applied to the last downloaded file"
   },

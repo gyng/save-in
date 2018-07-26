@@ -64,7 +64,8 @@ window.init = () => {
     }
 
     if (options.enableLastLocation) {
-      const lastUsedTitle = lastUsedPath || browser.i18n.getMessage("contextMenuLastUsed");
+      const lastUsedTitle =
+        lastUsedPath || browser.i18n.getMessage("contextMenuLastUsed");
       const lastUsedMenuOptions = {
         id: `save-in-_-_-last-used`,
         title: setAccesskey(lastUsedTitle, options.keyLastUsed),

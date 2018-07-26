@@ -58,6 +58,7 @@ html {
   min-height: 1%; /* Firefox options page height hack */
 }
 
+.code,
 code,
 pre {
   font-family: monospace;
@@ -70,6 +71,7 @@ pre {
   overflow-x: auto;
 }
 
+.code,
 code {
   padding: 4px;
 }

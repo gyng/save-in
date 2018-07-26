@@ -39,6 +39,8 @@
     "CLICK_TYPES": false,
 
     "BROWSERS": false,
-    "CURRENT_BROWSER": false
+    "CURRENT_BROWSER": false,
+
+    "addClickToCopy": false
   }
 }

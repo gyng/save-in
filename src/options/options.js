@@ -63,6 +63,42 @@ const updateErrors = () => {
       lastDlMatch.textContent = body.routeInfo.path;
     }
 
+    // Variables
+    if (hasLastDownload) {
+      document
+        .querySelector("#variables-table-row")
+        .classList.toggle("hide", !hasLastDownload);
+    }
+    document
+      .querySelector("#see-variables-btn")
+      .addEventListener("click", () => {
+        if (body.interpolatedVariables) {
+          const tableBody = document.querySelector("#variables-body");
+          tableBody.classList.toggle("hide");
+          tableBody.innerHTML = "";
+
+          Object.keys(body.interpolatedVariables).forEach(key => {
+            const val = body.interpolatedVariables[key];
+
+            const variableRow = document.createElement("tr");
+
+            const nameEl = document.createElement("td");
+            nameEl.textContent = key;
+            nameEl.classList.add("click-to-copy");
+            nameEl.classList.add("code");
+            addClickToCopy(nameEl);
+
+            const interpolatedEl = document.createElement("td");
+            interpolatedEl.style.fontFamily = "monospace";
+            interpolatedEl.textContent = val;
+
+            variableRow.appendChild(nameEl);
+            variableRow.appendChild(interpolatedEl);
+            tableBody.appendChild(variableRow);
+          });
+        }
+      });
+
     // Capture groups
     const hasCaptureMatches =
       body.routeInfo && Array.isArray(body.routeInfo.captures);
@@ -83,6 +119,8 @@ const updateErrors = () => {
 
           const code = document.createElement("code");
           code.innerText = `:$${i + 1}:`;
+          code.classList.add("click-to-copy");
+          addClickToCopy(code);
           div.appendChild(code);
 
           const value = document.createElement("div");
