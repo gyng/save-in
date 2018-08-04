@@ -181,6 +181,26 @@ const Menus = {
       }, {});
   },
 
+  parsePath: dir => {
+    const tokens = dir.split("//").map(tok => tok.trim());
+    const depthMatch = tokens[0].match(/^(>+)?(.+)/);
+    const arrows = depthMatch[1] || "";
+    const depth = arrows.length;
+    const parsedDir = depthMatch[2].trim();
+    const validation = new Path.Path(parsedDir).validate();
+    const comment = (tokens[1] || "").trim();
+    const meta = Menus.parseMeta(comment);
+
+    return {
+      raw: dir,
+      comment,
+      depth,
+      meta,
+      parsedDir,
+      validation
+    };
+  },
+
   addPaths: (pathsArray, contexts) => {
     const menuItemCounter = { 0: 0 };
 
@@ -193,11 +213,9 @@ const Menus = {
       if (dir === SPECIAL_DIRS.SEPARATOR) {
         Menus.makeSeparator(contexts);
       } else {
-        const tokens = dir.split("//").map(tok => tok.trim());
-        const depthMatch = tokens[0].match(/^(>+)?(.+)/);
-        const parsedDir = depthMatch[2];
+        const parsed = Menus.parsePath(dir);
+        const { comment, depth, meta, validation, parsedDir } = parsed;
 
-        const validation = new Path.Path(parsedDir).validate();
         if (!validation.valid) {
           window.optionErrors.paths.push({
             message: validation.message,
@@ -207,16 +225,8 @@ const Menus = {
           return;
         }
 
-        const comment = (tokens[1] || "").trim();
-        const meta = Menus.parseMeta(comment);
+        const title = meta.alias != null ? meta.alias : parsedDir;
 
-        const title =
-          meta.alias != null
-            ? meta.alias
-            : `${parsedDir}${comment ? ` // ${comment}` : ""}`;
-
-        const arrows = depthMatch[1] || "";
-        const depth = arrows.length;
         if (menuItemCounter[depth] != null) {
           menuItemCounter[depth] += 1;
         } else {
