@@ -41,7 +41,8 @@ const OptionsManagement = {
       name: "paths",
       type: T.VALUE,
       onSave: v => v.trim() || ".",
-      default: ".\nimages\nvideos"
+      default:
+        ".\nimages\nimages/cute\nvideos\n\nsubmenu\n>submenu/subdir\n>>submenu/subdir/2\n>submenu/subdir2 // comments"
     },
     { name: "prompt", type: T.BOOL, default: false },
     { name: "promptIfNoExtension", type: T.BOOL, default: false },

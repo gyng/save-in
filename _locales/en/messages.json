@@ -550,5 +550,9 @@
 
   "o_cLastSavedAtNever": {
     "message": "never"
+  }, 
+
+  "o_lSubdirectoryInstructionComment": {
+    "message": "at the start creates nested submenus depending on the number of arrows."
   }
 }

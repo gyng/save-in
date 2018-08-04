@@ -51,6 +51,12 @@ i/cats // cute!
 ---
 v/cats
 :date:/:day:/foo
+---
+submenu
+>mammals
+>>i/cats
+>>i/dogs
+>i/others
 </pre>
             <div class="caption">Settings</div>
           </div>
@@ -63,6 +69,12 @@ v/cats
 ---
 ~/downloads/v/cats
 ~/downloads/2000-01-01/01/foo
+---
+(submenu)
+(submenu)
+~/downloads/i/cats
+~/downloads/i/dogs
+~/downloads/i/others
 </pre>
             <div class="caption">Default download dir
               <code>~/downloads</code>
@@ -115,7 +127,9 @@ v/cats
 
       <p>__MSG_o_lDirectoryInstructionOnePerLine__
         <code>.</code> __MSG_o_lDirectoryInstructionDot__
-        <code>//</code> __MSG_o_lDirectoryInstructionComment__ </p>
+        <code>//</code> __MSG_o_lDirectoryInstructionComment__
+        <code>&gt;</code> __MSG_o_lSubdirectoryInstructionComment__
+      </p>
       <p>__MSG_o_lDirectoryInstructionSymlink__</p>
 
       <textarea required type="textarea" id="paths" rows=10 placeholder="." spellcheck="false"></textarea>

@@ -3,6 +3,8 @@ const BROWSERS = {
   FIREFOX: "FIREFOX"
 };
 
+var CURRENT_BROWSER; // eslint-disable-line
+
 if (typeof browser === "undefined") {
   if (chrome) {
     CURRENT_BROWSER = BROWSERS.CHROME; // eslint-disable-line

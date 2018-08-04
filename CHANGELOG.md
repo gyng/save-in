@@ -1,3 +1,15 @@
+# 3.1.0
+
+* Add submenu support (#26)
+
+  To use this, add `>`s at the start of the line. For example:
+  ```
+  submenu
+  >mammals
+  >>i/cats
+  >>i/dogs
+  ```
+
 # 3.0.0
 
 * Fix Chrome rules matching against `_`, now matches against special characters instead
