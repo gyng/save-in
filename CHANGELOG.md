@@ -1,8 +1,17 @@
 # 3.1.0
 
+* Add menu item aliasing (#64)
+
+  To use this, put an `(alias: <display name>)` in the comments for that line. For example:
+
+  ```
+  cats // (alias: actually dogs)
+  ```
+
 * Add submenu support (#26)
 
   To use this, add `>`s at the start of the line. For example:
+
   ```
   submenu
   >mammals

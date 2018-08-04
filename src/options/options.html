@@ -54,7 +54,7 @@ v/cats
 ---
 submenu
 >mammals
->>i/cats
+>>i/cats // (alias: cute cats)
 >>i/dogs
 >i/others
 </pre>
@@ -72,7 +72,7 @@ submenu
 ---
 (submenu)
 (submenu)
-~/downloads/i/cats
+~/downloads/i/cats (shows up as "cute cats")
 ~/downloads/i/dogs
 ~/downloads/i/others
 </pre>
@@ -92,6 +92,16 @@ submenu
 
 </pre>
         </div>
+
+        <h4>Comments and aliases</h4>
+
+        <p>To add comments, add <code>//</code> to the end of a line. For example, <code>cats // very cute!</code>.</p>
+
+        <p>To change display names of menu items, add <code>(alias: display name)</code> to comments. For example, <code>cats // very cute! (alias: cute cats)</code>. The menu item will then show "cute cats" instead of "cats".</p>
+
+        <h4>Submenus</h4>
+
+        <p>To create submenus, add <code>&gt;</code>s to the line itself. An example can be seen above.</p>
 
         <p>Note: You can only save relative to the default download directory. See the next guide for a workaround.</p>
       </div>

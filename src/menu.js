@@ -11,6 +11,8 @@ const Menus = {
     ROOT: "save-in-_-_-root"
   },
 
+  titles: {},
+
   makeSeparator: (() => {
     let separatorCounter = 0;
 
@@ -159,6 +161,26 @@ const Menus = {
     }
   },
 
+  parseMeta: comment => {
+    const matches = comment.match(/\(.+?:.+?\)+/g);
+
+    if (!matches) {
+      return {};
+    }
+
+    return matches
+      .map(pair =>
+        pair
+          .replace(/(^\(|\)$)/g, "")
+          .split(":")
+          .map(val => val.trim())
+      )
+      .reduce((acc, kv) => {
+        const key = kv[0];
+        return Object.assign(acc, { [key]: kv.slice(1).join(" ") });
+      }, {});
+  },
+
   addPaths: (pathsArray, contexts) => {
     const menuItemCounter = { 0: 0 };
 
@@ -186,7 +208,12 @@ const Menus = {
         }
 
         const comment = (tokens[1] || "").trim();
-        const title = `${parsedDir}${comment ? ` // ${comment}` : ""}`;
+        const meta = Menus.parseMeta(comment);
+
+        const title =
+          meta.alias != null
+            ? meta.alias
+            : `${parsedDir}${comment ? ` // ${comment}` : ""}`;
 
         const arrows = depthMatch[1] || "";
         const depth = arrows.length;
@@ -211,6 +238,8 @@ const Menus = {
         }
         lastDepth = depth;
         pathsNestingStack = pathsNestingStack.slice(0, depth + 1);
+
+        Menus.titles[id] = title;
 
         browser.contextMenus.create({
           id,
@@ -282,9 +311,7 @@ const Menus = {
         } else {
           saveIntoPath = matchedDir;
           lastUsedPath = saveIntoPath;
-          const title = comment
-            ? `${lastUsedPath}${comment ? ` // ${comment}` : ""}`
-            : lastUsedPath;
+          const title = Menus.titles[info.menuItemId] || lastUsedPath;
 
           if (options.enableLastLocation) {
             browser.contextMenus.update("save-in-_-_-last-used", {
