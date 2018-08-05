@@ -1,0 +1,555 @@
+{
+  "extensionName": {
+    "message": "Opslaan in…",
+    "description": "Naam van de uitbreidingsmodule."
+  },
+
+  "extensionDescription": {
+    "message":
+      "Slaat de download (plaatje,foto,bestand) op in voorgedefinieerde mappen.",
+    "description": "Beschrijving van de add-on."
+  },
+
+  "genericUnknownError": {
+    "message": "Foutmelding",
+    "description": "Een generieke foutmelding is gebruikt om op terug te vallen"
+  },
+
+  "contextMenuItemOptions": {
+    "message": "Opties",
+    "description":
+      "Naam van het contextmenu dat opent als het optiemenu is aangeklikt."
+  },
+
+  "contextMenuExclusive": {
+    "message": "Opslaan in pad…",
+    "description": "Naam voor het menu item in exclusieve modus."
+  },
+
+  "contextMenuRoot": {
+    "message": "Opslaan in…",
+    "description": "Naam voor beheerder context menu item."
+  },
+
+  "contextMenuLastUsed": {
+    "message": "Laatst gebruikt",
+    "description": "Aanduiding voor laatst gebruikte optie."
+  },
+
+  "contextMenuContextMedia": {
+    "message": "Media",
+    "description":
+      "Indicatie dat Opslaan In slechts foto- en videobestanden opslaat."
+  },
+
+  "contextMenuContextMediaOrLink": {
+    "message": "Media of Link",
+    "description":
+      "Indicatie dat Opslaan In een foto- en videobestand of link opslaat."
+  },
+
+  "contextMenuContextSelection": {
+    "message": "Selectie text",
+    "description": "Indicatie dat Opslaan In een selectie opslaat."
+  },
+
+  "contextMenuContextPage": {
+    "message": "Pagina",
+    "description": "Indicatie dat Opslaan In een pagina opslaat."
+  },
+
+  "contextMenuShowDefaultFolder": {
+    "message": "Open standaard map",
+    "description":
+      "Titel van het contextmenu dat opent als standaardmap in het bestandenscherm."
+  },
+
+  "notificationSuccessTitle": {
+    "message": "Opgeslagen",
+    "description": "Titel van de notificatie van een geslaagde download"
+  },
+
+  "notificationFailureTitle": {
+    "message": "Opslaan naar $FILENAME$ is mislukt.",
+    "description": "Titel van de notificatie voor een mislukte download",
+    "placeholders": {
+      "filename": {
+        "content": "$1",
+        "example": "mijn_bestandsnaam.jpg"
+      }
+    }
+  },
+
+  "notificationRuleMatchedTitle": {
+    "message": "Opslaan In: Regelmatch",
+    "description": "Notificatietitel voor een match"
+  },
+
+  "notificationRuleMatchFailedExclusiveTitle": {
+    "message":
+      "Opslaan In: Het zoeken naar- of hernoemen van de download is mislukt",
+    "description": "Notificatietitel indien er geen match in exclusive modus is"
+  },
+
+  "notificationRuleMatchFailedExclusiveMessage": {
+    "message": "Geen match gevonden voor $URL$",
+    "description":
+      "Notificatietitel indien er geen match in exclusieve modus is",
+    "placeholders": {
+      "url": {
+        "content": "$1",
+        "example": "www.google.jpg"
+      }
+    }
+  },
+
+  "ruleMissingMatcher": {
+    "message": "Regel heeft minimaal een clausule nodig",
+    "description":
+      "Foutbericht bij het ontbreken van een steekwoord in een regel"
+  },
+
+  "ruleCaptureMissingMatcher": {
+    "message": "Zoekclausule mist een steekwoord",
+    "description": "Foutbericht voor het onbreken van een steekwoord"
+  },
+
+  "ruleMissingCapture": {
+    "message":
+      "Regel heeft een zoek-clausule nodig om zoek variabelen te gebruiken",
+    "description":
+      "Foutbericht voor het ontbreken van de zoekclausule in een regel"
+  },
+
+  "ruleMissingInto": {
+    "message": "Regel heeft minstens een argument nodig in een clausule",
+    "description": "Foutbericht voor onvolledige clausules in een regel"
+  },
+
+  "ruleExtraInto": {
+    "message": "Regel kan slechts eenmaal in een clausule aanwezig zijn",
+    "description": "Foutbericht voor meerdere in clausules in een regel"
+  },
+
+  "ruleUnknownMatcher": {
+    "message": "Onbekend steekwoord",
+    "description": "Foutbericht voor een onbekend steekwoord"
+  },
+
+  "ruleInvalidRegex": {
+    "message": "Incorrecte reguliere expressie",
+    "description":
+      "Foutbericht voor een regel met incorrecte reguliere expressie"
+  },
+
+  "ruleBadClause": {
+    "message": "Foutieve clausule",
+    "description": "Foutbericht voor incorrecte bepalingen in een clausule"
+  },
+
+  "rulePathInvalidCharacter": {
+    "message": "Pad bevat niet toegestane karakters",
+    "description": "Foutbericht voor regels met foutieve karakters in het pad"
+  },
+
+  "rulePathStartsWithDot": {
+    "message": "Pad kan niet beginnen met .. of /",
+    "description":
+      "Foutbericht voor paden in regels die beginnen met foutieve karakters"
+  },
+
+  "tabstripMenuSelectedTab": {
+    "message": "Geselecteerde tab opslaan",
+    "description":
+      "Tab contextmenu label voor het opslaan van de geselecteerde tab"
+  },
+
+  "tabstripMenuSaveChildrenTabs": {
+    "message": "Tabs geopend vanaf deze tab opslaan",
+    "description":
+      "Tabstrip context menu label voor het opslaan van gecreerde tabs"
+  },
+
+  "tabstripMenuSaveRightTabs": {
+    "message": "Opslaan van alle tabs inclusief deze",
+    "description":
+      "Tabstrip context menu label voor het opslaan van de rechter tabs (inclusief)"
+  },
+
+  "tabstripMenuSaveRightTabsMatched": {
+    "message":
+      "Opslaan van alle rechter tabs inclusief deze (dient overeen te komen met een regel)",
+    "description":
+      "Tabstrip context menu label voor het opslaan van alle tabs (inclusief ) die een overeenkomst met een regel hebben"
+  },
+
+  "o_sDownloads": {
+    "message": "Downloads",
+    "description":
+      "o prefixen is voor optiepagina-tekst, s prefixen zijn voor secties en subsecties"
+  },
+
+  "o_sDirectories": {
+    "message": "Downloads"
+  },
+
+  "o_sBehavior": {
+    "message": "Gedrag"
+  },
+
+  "o_sDynamicDownloads": {
+    "message": "Dynamische Downloads (Geavanceerd)"
+  },
+
+  "o_sRenameAndRouteDownloads": {
+    "message": "Hernoemen en routeren Downloads"
+  },
+
+  "o_sNotifications": {
+    "message": "Notificaties"
+  },
+
+  "o_sSaveAsShortcuts": {
+    "message": "Opslaan In Snelkoppelingen"
+  },
+
+  "o_sKeyboardShortcuts": {
+    "message": "Toetsenbord Snelkoppelingen"
+  },
+
+  "o_sContextMenu": {
+    "message": "Context Menu"
+  },
+
+  "o_sClickToSave": {
+    "message": "Klik om op te slaan"
+  },
+
+  "o_sMoreOptions": {
+    "message": "Meer opties"
+  },
+
+  "o_lVariableList": {
+    "message": "Variabelenlijst",
+    "description": "l prefixen zijn voor labels"
+  },
+
+  "o_lClauseList": {
+    "message": "Clausule Lijst"
+  },
+
+  "o_lPopout": {
+    "message": "Popout"
+  },
+
+  "o_lGithub": {
+    "message": "GitHub"
+  },
+
+  "o_lChangelog": {
+    "message": "Changelog"
+  },
+
+  "o_lGuideCreateMenuItems": {
+    "message": "Gids: Creeer menuitems"
+  },
+
+  "o_lGuideSymlink": {
+    "message": "Gids: Opslaan buiten de standaard Downloads-map"
+  },
+
+  "o_lGuideRouting": {
+    "message": "Gids: Hernoemen en routeren downloads"
+  },
+
+  "o_lDirectoryInstructionOnePerLine": {
+    "message": "Een pad per regel, startend vanuit de standaard download map."
+  },
+
+  "o_lDirectoryInstructionDot": {
+    "message": "downloads naar de standaard download map."
+  },
+
+  "o_lDirectoryInstructionComment": {
+    "message": "aan het einde van de regel voor het plaatsten van commentaar."
+  },
+
+  "o_lDirectoryInstructionSymlink": {
+    "message":
+      "Een symlink is nodig om buiten de standaard download map op te slaan."
+  },
+
+  "o_lRoutingInstruction": {
+    "message":
+      "Automatisch routeren van Downloads of hernoemen van bestanden. Gebruik een lege regel voor het scheiden van meerdere regels. Zie de Gids voor meer informatie."
+  },
+
+  "o_lRoutingLastDownload": {
+    "message": "Laatste download"
+  },
+
+  "_o_lRoutingRenamedTo": {
+    "message": "Hernoemd naar"
+  },
+
+  "o_lRoutingLastDownloadEmpty": {
+    "message": "nog geen"
+  },
+
+  "o_lRoutingRenamedTo": {
+    "message": "Hernoemd naar"
+  },
+
+  "o_lRoutingNoMatches": {
+    "message": "geen overeenkomsten"
+  },
+
+  "o_lRoutingCaptureGroups": {
+    "message": "Groepen"
+  },
+
+  "o_lRoutingLastDownloadHelp": {
+    "message":
+      "Test de huidige regels, toegepast op het bestand wat voor het laatst is gedownload"
+  },
+
+  "o_lRoutingTemplates": {
+    "message": "Sjabloon"
+  },
+
+  "o_lAccessKeysInstruction": {
+    "message":
+      "Stel toegangstoetsen in voor Opslaan in menu-items. Dit werkt niet op macOS omdat het geen toegangssleutels ondersteunt."
+  },
+
+  "o_cLastUsedMenu": {
+    "message": "Toon laatstgebruikt menu item",
+    "description": "c prefixen zijn voor besturing (knoppen, etc)"
+  },
+
+  "o_cSaveLinks": {
+    "message":
+      "Inschakelen opslaan van links. Bij voorkeur de bron indien beschikbaar"
+  },
+
+  "o_cPreferLinks": {
+    "message": "Links hebben voorkeur in plaats van de bron"
+  },
+
+  "o_cSaveText": {
+    "message":
+      "Inschakelen opslaan van geselecteerde text met \".selectie.txt\" extensie"
+  },
+
+  "o_cSavePage": {
+    "message": "Inschakelen van het opslaan van de huidige pagina"
+  },
+
+  "o_cSavePageHelp": {
+    "message": "Slaat geen externe bronnen op"
+  },
+
+  "o_cSaveTabstrip": {
+    "message": "Inschakelen opslaan vanaf de tabstrip"
+  },
+
+  "o_cSaveTabstripHelp": {
+    "message": "Slaat een tab op, een tab groep, of tabs aan de rechterkant"
+  },
+
+  "o_cOpenDialog": {
+    "message": "Open een Opslaan-dialoog bij het opslaan"
+  },
+
+  "o_cOpenDialogNoExt": {
+    "message":
+      "Open een Bestand-opslaan dialoog als de bestandsnaam geen extensie heeft"
+  },
+
+  "o_cOpenDialogShift": {
+    "message":
+      "Open een bestand-opslaan dialoog als een menuitem is aangeklikt terwijl SHIFT is ingedrukt"
+  },
+
+  "o_cOpenDialogOnFailure": {
+    "message": "Open een bestand-opslaan dialoog als een download is mislukt"
+  },
+
+  "o_cDupeUniquify": {
+    "message": "Uniek maken"
+  },
+
+  "o_cDupeOverwrite": {
+    "message": "Overschrijven"
+  },
+
+  "o_cDupePrompt": {
+    "message": "Vragen"
+  },
+
+  "o_cDupeFilename": {
+    "message": "Als een duplicaat bestandsnaam is aangetroffen"
+  },
+
+  "o_cOpenDialogIfNoRulesMatch": {
+    "message": "Open een opslaan-dialoog als er geen overeenkomsten zijn"
+  },
+
+  "o_cExclusiveMode": {
+    "message": "Exclusief routeren en hernoemen regels gebruiken"
+  },
+
+  "o_cExclusiveModeHelp": {
+    "message":
+      "Submenu uitschakelen voor twee-klik downloads, opslaan relatief aan de standaard download-map"
+  },
+
+  "o_cNotifySuccess": {
+    "message": "Toon notificatie bij een geslaagde download"
+  },
+
+  "o_cNotifyFailure": {
+    "message": "Toon notificatie bij een mislukte download"
+  },
+
+  "o_cNotifyMatch": {
+    "message": "Toon notificatie bij een overeenkomst van een regel"
+  },
+
+  "o_cNotifyCloseAfter": {
+    "message": "Sluit notificaties eerder na"
+  },
+
+  "o_cNotifyCloseAfterHelp": {
+    "message":
+      "1s = 1000ms. Kan niet langer duren dan de standaard besturingssysteem/browser notificatie tijd."
+  },
+
+  "o_cSaveShortcutsAs": {
+    "message": "Snelknopplingen opslaan als"
+  },
+
+  "o_cSaveShortcutsTypeHtml": {
+    "message": "HTML redirect"
+  },
+
+  "o_cSaveShortcutsTypeMac": {
+    "message": "Mac .url"
+  },
+
+  "o_cSaveShortcutsTypeWindows": {
+    "message": "Windows .url"
+  },
+
+  "o_cSaveShortcutsTypeFreedesktop": {
+    "message": "Freedesktop .desktop"
+  },
+
+  "o_cSaveShortcutsMediaInstead": {
+    "message": "Media opslaan als snelkoppelingen"
+  },
+
+  "o_cSaveShortcutsLinksInstead": {
+    "message": "Links opslaan als snelkoppelingen"
+  },
+
+  "o_cSaveShortcutsPagesInstead": {
+    "message": "Paginas opslaan als snelkoppelingen"
+  },
+
+  "o_cSaveShortcutsTabsInstead": {
+    "message": "Tabs opslaan als snelkoppelingen (vanaf rechtermuisknop tab)"
+  },
+
+  "o_cKeyboardShortcutSaveInMenu": {
+    "message": "Opslaan In context menu item"
+  },
+
+  "o_cKeyboardShortcutSubmenu": {
+    "message": "Laatst gebruikte context submenu item"
+  },
+
+  "o_cKeyboardShortcutNumbers": {
+    "message": "Toevoegen nummercode snelkoppeling aan context submenu items"
+  },
+
+  "o_cKeyboardShortcutClickToSave": {
+    "message": "Klik om op te slaan inschakelen"
+  },
+
+  "o_cKeyboardShortcutClickToHelp": {
+    "message":
+      "Houd Alt ingedrukt (standaard) en klik afbeeldingen of media om deze op te slaan in de laatst gebruikte map of standaard Download-map.. Injecteert een script bij de paginas om te luisteren naar muisklikken. Niet alle variabelen kunnen worden hiervoor worden gebruikt. Heeft pagina-vernieuwen nodig om toe te passen."
+  },
+
+  "o_cKeyboardShotcutKeycode": {
+    "message": "toetsenbordcode"
+  },
+
+  "o_cKeyboardShortcutModifierLeftClick": {
+    "message": "Linkermuis klik"
+  },
+
+  "o_cKeyboardShortcutModifierMiddleClick": {
+    "message": "Middelste muisknop klik"
+  },
+
+  "o_cKeyboardShortcutModifierRightClick": {
+    "message": "Rechtermuis klik"
+  },
+
+  "o_cKeyboardShortcutModifierHelp": {
+    "message":
+      "Aanpassen toetsenbordcode voor het klikken-om-opteslaan. Heeft een pagina-vernieuwing nodig om toe te passen."
+  },
+
+  "o_cRestoreDefaults": {
+    "message": "Herstel standaardinstellingen"
+  },
+
+  "o_cTruncatePath": {
+    "message": "Pad inkorten met aangegeven aantal posities"
+  },
+
+  "o_cTruncatePathHelp": {
+    "message": "0 = niet inkorten"
+  },
+
+  "o_cReplaceInvalidCharsWith": {
+    "message": "Vervang foutieve karakters met"
+  },
+
+  "o_cReplaceInvalidCharsWithHelp": {
+    "message":
+      "Leeg laten om te wissen. Niet toegestane karakters worden genegeerd."
+  },
+
+  "o_cFetchViaContentScript": {
+    "message": "Ophalen via een script inschakelen"
+  },
+
+  "o_cFetchViaContentScriptHelp": {
+    "message":
+      "Verstuur headers van pagina's zonder download verzoek. Websites zoals pixiv hebben dit nodig. Langzamer en kan mislukken. Notificaties werken niet met deze instelling. De pagina dient ververst te worden om dit toe te passen."
+  },
+
+  "o_cImportSettings": {
+    "message": "Importeer Instellingen"
+  },
+
+  "o_cExportSettings": {
+    "message": "Exporteer Instellingen"
+  },
+
+  "o_cDebugMode": {
+    "message": "Debug logging inschakelen"
+  },
+
+  "o_cLastSavedAt": {
+    "message": "Laatst opgeslagen op: "
+  },
+
+  "o_cLastSavedAtNever": {
+    "message": "nooit"
+  }
+}

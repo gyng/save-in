@@ -1,5 +1,7 @@
 # 3.1.0
 
+* Add nl localisation (Thanks @80486dx, #72)
+
 * Add menu item aliasing (#64)
 
   To use this, put an `(alias: <display name>)` in the comments for that line. For example:
