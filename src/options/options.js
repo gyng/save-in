@@ -1,5 +1,3 @@
-let debugOptions;
-
 const getOptionsSchema = browser.runtime
   .sendMessage({ type: "OPTIONS_SCHEMA" })
   .then(res => res.body);
@@ -203,18 +201,16 @@ const restoreOptionsHandler = (result, schema) => {
     el[propMap[o.type]] = val;
   });
 
-  debugOptions = result;
   updateErrors();
 };
 
-const restoreOptions = () => {
+const restoreOptions = () =>
   getOptionsSchema.then(schema => {
     const keys = schema.keys.map(o => o.name);
     browser.storage.local
       .get(keys)
       .then(loaded => restoreOptionsHandler(loaded, schema));
   });
-};
 
 const addHelp = el => {
   el.addEventListener("click", e => {
@@ -321,7 +317,10 @@ const showJson = obj => {
 };
 
 document.querySelector("#settings-export").addEventListener("click", () => {
-  showJson(debugOptions);
+  getOptionsSchema.then(schema => {
+    const keys = schema.keys.map(o => o.name);
+    browser.storage.local.get(keys).then(loaded => showJson(loaded));
+  });
 });
 
 const importSettings = () => {

@@ -1,3 +1,7 @@
+# 3.1.2
+
+* Fix export settings not exporting updated settings after changing them
+
 # 3.1.1
 
 * Fix neighbouring submenus nesting when they should not
