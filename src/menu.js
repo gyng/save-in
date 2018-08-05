@@ -213,12 +213,13 @@ const Menus = {
     // 2. Parse comments
     // 3. Parse depth
     // 4. Construct menu items
-    pathsArray.forEach(dir => {
+    pathsArray.forEach((dir, i) => {
       // HACK
       if (dir === SPECIAL_DIRS.SEPARATOR) {
         Menus.makeSeparator(contexts);
       } else {
         const parsed = Menus.parsePath(dir);
+
         const { comment, depth, meta, validation, parsedDir } = parsed;
 
         if (!validation.valid) {
@@ -237,7 +238,9 @@ const Menus = {
         } else {
           menuItemCounter[depth] = 1;
         }
-        const id = `save-in-${menuItemCounter[depth]}-${comment}-${parsedDir}`;
+        const id = `save-in-${menuItemCounter[
+          depth
+        ]}-${`${i}${comment}`}-${parsedDir}`;
 
         let parentId;
         if (depth === 0) {
