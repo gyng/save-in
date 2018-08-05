@@ -282,12 +282,16 @@ const setupAutosave = el => {
 
     if (el.type !== "textarea") {
       el.parentNode.classList.remove("saved");
-      el.parentNode.classList.add("saved-base");
-      el.parentNode.classList.add("saved");
+      window.setTimeout(() => {
+        el.parentNode.classList.add("saved-base");
+        el.parentNode.classList.add("saved");
+      }, 100);
     } else {
       el.classList.remove("saved");
-      el.classList.add("saved-base");
-      el.classList.add("saved");
+      window.setTimeout(() => {
+        el.classList.add("saved-base");
+        el.classList.add("saved");
+      }, 100);
     }
   };
 

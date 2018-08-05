@@ -1,6 +1,7 @@
 # 3.1.2
 
-* Fix export settings not exporting updated settings after changing them
+* Fix export settings not exporting updated settings after changing them (#83)
+* Improve checkmark styling in options page (#84)
 
 # 3.1.1
 
