@@ -250,7 +250,7 @@ const Menus = {
 
         if (depth === 0) {
           pathsNestingStack = [id];
-        } else if (depth === lastDepth) {
+        } else if (depth <= lastDepth) {
           pathsNestingStack[depth] = id;
         } else if (depth > lastDepth) {
           pathsNestingStack.push(id);
