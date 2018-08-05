@@ -1,3 +1,8 @@
+# 3.1.3
+
+* Fix submenus not tracking parent menu item
+* Fix submenu items having duplicate IDs
+
 # 3.1.2
 
 * Fix export settings not exporting updated settings after changing them (#83)
