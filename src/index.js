@@ -7,44 +7,46 @@ window.init = () => {
     filenamePatterns: []
   };
 
-  OptionsManagement.loadOptions().then(() => {
-    Notification.addNotifications({
-      notifyOnSuccess: options.notifyOnSuccess,
-      notifyOnFailure: options.notifyOnFailure,
-      notifyDuration: options.notifyDuration,
-      promptOnFailure: options.promptOnFailure
-    });
+  OptionsManagement.loadOptions()
+    .then(browser.contextMenus.removeAll())
+    .then(() => {
+      Notification.addNotifications({
+        notifyOnSuccess: options.notifyOnSuccess,
+        notifyOnFailure: options.notifyOnFailure,
+        notifyDuration: options.notifyDuration,
+        promptOnFailure: options.promptOnFailure
+      });
 
-    const pathsArray = options.paths
-      .split("\n")
-      .map(p => p.trim())
-      .filter(p => p && p.length > 0);
+      const pathsArray = options.paths
+        .split("\n")
+        .map(p => p.trim())
+        .filter(p => p && p.length > 0);
 
-    let contexts = options.links ? MEDIA_TYPES.concat(["link"]) : MEDIA_TYPES;
-    contexts = options.selection ? contexts.concat(["selection"]) : contexts;
-    contexts = options.page ? contexts.concat(["page"]) : contexts;
+      let contexts = options.links ? MEDIA_TYPES.concat(["link"]) : MEDIA_TYPES;
+      contexts = options.selection ? contexts.concat(["selection"]) : contexts;
+      contexts = options.page ? contexts.concat(["page"]) : contexts;
 
-    Menus.addTabMenus();
+      Menus.addTabMenus();
 
-    if (options.routeExclusive) {
-      Menus.addRouteExclusive(contexts);
-      return;
-    } else {
-      Menus.addRoot(contexts);
-    }
+      if (options.routeExclusive) {
+        Menus.addRouteExclusive(contexts);
+        return;
+      } else {
+        Menus.addRoot(contexts);
+      }
 
-    if (options.enableLastLocation) {
-      Menus.addLastUsed(contexts);
+      if (options.enableLastLocation) {
+        Menus.addLastUsed(contexts);
+        Menus.makeSeparator(contexts);
+      }
+
+      Menus.addPaths(pathsArray, contexts);
       Menus.makeSeparator(contexts);
-    }
 
-    Menus.addPaths(pathsArray, contexts);
-    Menus.makeSeparator(contexts);
-
-    Menus.addSelectionType(contexts);
-    Menus.addShowDefaultFolder(contexts);
-    Menus.addOptions(contexts);
-  });
+      Menus.addSelectionType(contexts);
+      Menus.addShowDefaultFolder(contexts);
+      Menus.addOptions(contexts);
+    });
 };
 
 Menus.addDownloadListener();

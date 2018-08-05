@@ -1,3 +1,7 @@
+# 3.1.1
+
+* Fix neighbouring submenus nesting when they should not
+
 # 3.1.0
 
 * Add nl localisation (Thanks @80486dx, #72)

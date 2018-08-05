@@ -208,6 +208,11 @@ const Menus = {
     let pathsNestingStack = [];
     let lastDepth = 0;
 
+    // TODO: Refactor this
+    // 1. Make a pass to parse dir types
+    // 2. Parse comments
+    // 3. Parse depth
+    // 4. Construct menu items
     pathsArray.forEach(dir => {
       // HACK
       if (dir === SPECIAL_DIRS.SEPARATOR) {
@@ -234,15 +239,19 @@ const Menus = {
         }
         const id = `save-in-${menuItemCounter[depth]}-${comment}-${parsedDir}`;
 
-        const parentId =
-          (depth > pathsNestingStack.length
-            ? pathsNestingStack[pathsNestingStack.length - 1]
-            : pathsNestingStack[depth - 1]) || Menus.IDS.ROOT;
+        let parentId;
+        if (depth === 0) {
+          parentId = Menus.IDS.ROOT;
+        } else if (depth > pathsNestingStack.length) {
+          parentId = pathsNestingStack[pathsNestingStack.length - 1];
+        } else {
+          parentId = pathsNestingStack[depth - 1];
+        }
 
         if (depth === 0) {
           pathsNestingStack = [id];
         } else if (depth === lastDepth) {
-          pathsNestingStack[depth - 1] = id;
+          pathsNestingStack[depth] = id;
         } else if (depth > lastDepth) {
           pathsNestingStack.push(id);
         }
