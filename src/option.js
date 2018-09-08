@@ -63,7 +63,13 @@ const OptionsManagement = {
     },
     { name: "truncateLength", type: T.VALUE, default: 240 },
     { name: "fetchViaContent", type: T.BOOL, default: false },
-    { name: "tabEnabled", type: T.BOOL, default: false }
+    { name: "tabEnabled", type: T.BOOL, default: false },
+    { name: "setRefererHeader", type: T.BOOL, default: false },
+    {
+      name: "setRefererHeaderFilter",
+      type: T.VALUE,
+      default: "*://i.pximg.net/*"
+    }
   ],
 
   getKeys: () =>

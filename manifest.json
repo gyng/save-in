@@ -2,7 +2,7 @@
   "manifest_version": 2,
   "name": "__MSG_extensionName__",
   "description": "__MSG_extensionDescription__",
-  "version": "3.1.3",
+  "version": "3.2.0",
   "default_locale": "en",
 
   "applications": {
@@ -30,6 +30,7 @@
       "src/router.js",
       "src/shortcut.js",
       "src/messaging.js",
+      "src/headers.js",
       "src/variable.js",
       "src/menu.js",
       "src/option.js",
@@ -51,7 +52,9 @@
     "contextMenus",
     "downloads",
     "notifications",
-    "storage"
+    "storage",
+    "webRequest",
+    "webRequestBlocking"
   ],
 
   "options_ui": {

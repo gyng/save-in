@@ -10,6 +10,8 @@ window.init = () => {
   OptionsManagement.loadOptions()
     .then(browser.contextMenus.removeAll())
     .then(() => {
+      Headers.addRequestListener();
+
       Notification.addNotifications({
         notifyOnSuccess: options.notifyOnSuccess,
         notifyOnFailure: options.notifyOnFailure,

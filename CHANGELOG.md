@@ -1,3 +1,7 @@
+# 3.2.0
+
+* Add option to set `Referer` header on downloads, disabled by default. Should fix errors while downloading for sites that check this, especially pixiv.net in Chrome. Requires new permissions. (#66)
+
 # 3.1.3
 
 * Fix submenus not tracking parent menu item

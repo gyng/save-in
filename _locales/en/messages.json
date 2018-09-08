@@ -529,7 +529,23 @@
   },
 
   "o_cFetchViaContentScriptHelp": {
-    "message": "Send headers from page with download request. Some sites such as pixiv require this. Slower and prone to failure. Success/failure notifications do not work in this mode. Requires page refresh to take effect."
+    "message": "Do not enable this if you have no problems downloading. Download from the content page and not the extension, sending headers from the page itself. Some sites (eg. pixiv.net) require this to bypass server-side protections. Slower and prone to failure. Success/failure notifications do not work in this mode. Requires page refresh to take effect."
+  },
+
+  "o_cSetRefererHeader": {
+    "message": "Set the \"Referer\" header to page URL if it is missing"
+  },
+
+  "o_cSetRefererHeaderHelp": {
+    "message": "Do not enable this if you have no problems downloading, and try using the content script option before this. Some sites (eg. pixiv.net) check HTTP Referer headers on the server. Enabling this will set the HTTP Referer header to the page URL if it does not already exist."
+  },
+
+  "o_cSetRefererHeaderFilter": {
+    "message": "Set Referer headers for the following sites"
+  },
+
+  "o_cSetRefererHeaderFilterHelp": {
+    "message": "Whitelist of match patterns to match against. One per line. Headers will only be modified for downloads (source URLs) that match this whitelist."
   },
 
   "o_cImportSettings": {

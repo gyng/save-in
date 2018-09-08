@@ -32,6 +32,7 @@ Make sure the actual directories exist, or downloads will silently fail.
 
 * <all_urls> permission is used to get around CORS on HTTP HEAD requests (to check for Content-Disposition headers)
 * tabs permission is used to get the active page's title.
+* webRequest permissions are required to inject the Referer header on downloads (disabled by default)
 
 Configure before use.
 

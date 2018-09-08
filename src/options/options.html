@@ -461,6 +461,17 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
       <div class="caption caption-line">__MSG_o_cFetchViaContentScriptHelp__</div>
     </label>
 
+    <label>
+      <input type="checkbox" id="setRefererHeader" />
+      __MSG_o_cSetRefererHeader__ <span class="warning badge">Experimental</span>
+      <div class="caption caption-line">__MSG_o_cSetRefererHeaderHelp__</div>
+      <div class="caption-line">
+        <div>__MSG_o_cSetRefererHeaderFilter__</div>
+        <textarea style="width: 100%" type="textarea" id="setRefererHeaderFilter" rows=3 placeholder="" spellcheck="false"></textarea>
+      </div>
+      <div class="caption caption-line">__MSG_o_cSetRefererHeaderFilterHelp__ <a href="https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Match_patterns">MDN: Match patterns</a></div>
+    </label>
+
     <div style="display: flex; justify-content: flex-start; align-items: center;">
       <div id="settings-import" class="button">__MSG_o_cImportSettings__</div>
       <div style="margin-left: 8px;" id="settings-export" class="button">__MSG_o_cExportSettings__</div>

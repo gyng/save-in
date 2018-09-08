@@ -11,6 +11,7 @@
     "no-param-reassign": 0
   },
   "globals": {
+    "globalChromeState": false,
     "getFilenameFromContentDispositionHeader": false,
 
     "Path": false,
@@ -20,6 +21,7 @@
     "OptionsManagement": false,
     "Notification": false,
     "Menus": false,
+    "Headers": false,
     "Shortcut": false,
     "Router": false,
     "options": false,
