@@ -1,0 +1,19 @@
+Lägger till en innehållsmeny för att kunna spara media {bilder, video, ljud, länkar, markerat, sidor} i användardefinierade kataloger i förhållande till standard nerladdningsplatsen.
+
+Spara till dynamiskt namngivna kataloger.
+
+Flexibel regelbaserad nerladdningsomdöpning och omdirigering.
+
+Alternativ att spara som genvägar {.url, .desktop, .html omdirigering}.
+
+WebExtension API tillåter endast att du sparar i kataloger i förhållande till standard nerladdningskatalog. Symbolisk länk kan användas för att komma runt denna begränsning:
+
+Windows: mklink /D C:\sökväg\till\symbolisk_länk D:\sökväg\till\existerande_mapp
+macOS/Unix: ln -s /sökväg/till/existerande_mapp /sökväg/till/symbolisk_länk
+
+Se till att katalogen existerar för annars kommer nerladdningen att misslyckas utan något felmeddelande.
+
+<all_urls> permission is used to get around CORS on HTTP HEAD requests (to check for Content-Disposition headers)
+tabs permission is used to get the active page's title.
+
+Måste konfigureras före användning.
