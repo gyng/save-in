@@ -1,0 +1,574 @@
+{
+  "extensionName": {
+    "message": "Save In…",
+    "description": "Name of the extension."
+  },
+
+  "extensionDescription": {
+    "message":
+      "Sparar {bilder, video, ljud, länkar, markerat, sidor} i kataloger i förhållande till standard nerladdningskatalog.",
+    "description": "Description of the add-on."
+  },
+
+  "genericUnknownError": {
+    "message": "Okänt fel",
+    "description": "A generic error message used as a fallback"
+  },
+
+  "contextMenuItemOptions": {
+    "message": "Alternativ",
+    "description":
+      "Title of context menu item that opens the options menu when clicked."
+  },
+
+  "contextMenuExclusive": {
+    "message": "Spara i omdirigering…",
+    "description": "Name for menu item when in exclusive mode."
+  },
+
+  "contextMenuRoot": {
+    "message": "Spara i…",
+    "description": "Name for root context menu item."
+  },
+
+  "contextMenuLastUsed": {
+    "message": "Senast använd",
+    "description": "Placeholder title for last used option."
+  },
+
+  "contextMenuContextMedia": {
+    "message": "Media",
+    "description": "Indicator that Save In is saving just media."
+  },
+
+  "contextMenuContextMediaOrLink": {
+    "message": "Media eller länk",
+    "description": "Indicator that Save In is saving a media or link."
+  },
+
+  "contextMenuContextSelection": {
+    "message": "Urvalstext",
+    "description": "Indicator that Save In is saving a selection."
+  },
+
+  "contextMenuContextPage": {
+    "message": "Sida",
+    "description": "Indicator that Save In is saving a page."
+  },
+
+  "contextMenuShowDefaultFolder": {
+    "message": "Öppna standardmappen",
+    "description":
+      "Title of context menu item that opens the default downloads directory in the system file manager when clicked."
+  },
+
+  "notificationSuccessTitle": {
+    "message": "Sparad",
+    "description": "Notification title for a successful download"
+  },
+
+  "notificationFailureTitle": {
+    "message": "Det gick inte att spara $FILENAME$.",
+    "description": "Notification title for a failed download",
+    "placeholders": {
+      "filename": {
+        "content": "$1",
+        "example": "my_filename.jpg"
+      }
+    }
+  },
+
+  "notificationRuleMatchedTitle": {
+    "message": "Save In: Regel matchad",
+    "description": "Notification title for a rule match"
+  },
+
+  "notificationRuleMatchFailedExclusiveTitle": {
+    "message": "Save In: Det gick inte att dirigera om eller döpa om nerladdningen",
+    "description":
+      "Notification title for no rule matches when in exclusive mode"
+  },
+
+  "notificationRuleMatchFailedExclusiveMessage": {
+    "message": "Ingen matchande regel funnen för $URL$",
+    "description":
+      "Notification title for no rule matches when in exclusive mode",
+    "placeholders": {
+      "url": {
+        "content": "$1",
+        "example": "www.google.jpg"
+      }
+    }
+  },
+
+  "ruleMissingMatcher": {
+    "message": "Det krävs minst en passande klausul för en regel",
+    "description": "Error message for missing matcher in rule"
+  },
+
+  "ruleCaptureMissingMatcher": {
+    "message": "Fångstklausulen inriktar sig inte mot en passare",
+    "description": "Error message for capture targeting missing matcher"
+  },
+
+  "ruleMissingCapture": {
+    "message": "Regeln kräver minst en fångstklausul för att kunna använda sig av fångstvariabler",
+    "description": "Error message for missing capture clause in rule"
+  },
+
+  "ruleMultipleCapture": {
+    "message": "Regeln kan endast ha en fångstklausul",
+    "description": "Error message for multiple capture clauses in rule"
+  },
+
+  "ruleMissingInto": {
+    "message": "Regeln kräver minst en till-klausul",
+    "description": "Error message for missing into clause in rule"
+  },
+
+  "ruleExtraInto": {
+    "message": "Regeln kan endast ha en till-klausul",
+    "description": "Error message for multiple into clauses in rule"
+  },
+
+  "ruleUnknownMatcher": {
+    "message": "Okänd passare",
+    "description": "Error message for an unknown matcher"
+  },
+
+  "ruleInvalidRegex": {
+    "message": "Ogiltigt reguljära uttryck",
+    "description": "Error message for a rule with invalid regex"
+  },
+
+  "ruleBadClause": {
+    "message": "Dålig klausul",
+    "description": "Error message for lines in rule with syntax errors"
+  },
+
+  "rulePathInvalidCharacter": {
+    "message": "Sökvägen innehåller ogiltiga tecken",
+    "description": "Error message for rules with invalid characters in path"
+  },
+
+  "rulePathStartsWithDot": {
+    "message": "Sökvägen kan inte börja med .. eller /",
+    "description":
+      "Error message for paths in routing rules that start with invalid characters"
+  },
+
+  "tabstripMenuSelectedTab": {
+    "message": "Spara vald flik",
+    "description": "Tabstrip context menu label for saving selected tab"
+  },
+
+  "tabstripMenuSaveChildrenTabs": {
+    "message": "Spara andra flikar som har öppnats från denna fliken",
+    "description": "Tabstrip context menu label for saving child tabs"
+  },
+
+  "tabstripMenuSaveRightTabs": {
+    "message": "Spara alla flikar till höger inklusive denna",
+    "description":
+      "Tabstrip context menu label for saving tabs to the right (inclusive)"
+  },
+
+  "tabstripMenuSaveRightTabsMatched": {
+    "message": "Spara alla flikar till höger inklusiv denna (detta måste matcha en omdirigering)",
+    "description":
+      "Tabstrip context menu label for saving tabs to the right (inclusive) that match a route"
+  },
+
+  "o_sDownloads": {
+    "message": "Nerladdningar",
+    "description":
+      "o prefixes are for options page text, s prefix are for section/subsection titles"
+  },
+
+  "o_sDirectories": {
+    "message": "Nerladdningar"
+  },
+
+  "o_sBehavior": {
+    "message": "Beteende"
+  },
+
+  "o_sDynamicDownloads": {
+    "message": "Dynamiska nerladdningar (Avancerat)"
+  },
+
+  "o_sRenameAndRouteDownloads": {
+    "message": "Döp om och dirigera om nerladdningarna"
+  },
+
+  "o_sNotifications": {
+    "message": "Aviseringar"
+  },
+
+  "o_sSaveAsShortcuts": {
+    "message": "Spara som genväg"
+  },
+
+  "o_sKeyboardShortcuts": {
+    "message": "Tangentbordsgenväg"
+  },
+
+  "o_sContextMenu": {
+    "message": "Innehållsmeny"
+  },
+
+  "o_sClickToSave": {
+    "message": "Tryck för att spara"
+  },
+
+  "o_sMoreOptions": {
+    "message": "Fler alternativ"
+  },
+
+  "o_lVariableList": {
+    "message": "Variabellista",
+    "description": "l prefixes are for labels"
+  },
+
+  "o_lClauseList": {
+    "message": "Klausullista"
+  },
+
+  "o_lPopout": {
+    "message": "Poppa ut"
+  },
+
+  "o_lGithub": {
+    "message": "GitHub"
+  },
+
+  "o_lChangelog": {
+    "message": "Ändringslogg"
+  },
+
+  "o_lGuideCreateMenuItems": {
+    "message": "Guide: Skapa menyobjekt"
+  },
+
+  "o_lGuideSymlink": {
+    "message": "Guide: Spara utanför standard nerladdningskatalog"
+  },
+
+  "o_lGuideRouting": {
+    "message": "Guide: Döpa om och dirigera om nerladdningar"
+  },
+
+  "o_lDirectoryInstructionOnePerLine": {
+    "message": "En sökväg per rad, i förhållande till standard nerladdningskatalog."
+  },
+
+  "o_lDirectoryInstructionDot": {
+    "message": "nerladdningar till standard nerladdningskatalog."
+  },
+
+  "o_lDirectoryInstructionComment": {
+    "message": "i slutet av en rad läggs en kommentar."
+  },
+
+  "o_lDirectoryInstructionSymlink": {
+    "message":
+      "En symbolisk länk krävs för att kunna spara utanför standard nerladdningskatalog."
+  },
+
+  "o_lRoutingInstruction": {
+    "message":
+      "Automatisk omdirigering och omdöpning av filer. Separera flera regler med en tom rad. Läs i guiden för fler detaljer."
+  },
+
+  "o_lRoutingLastDownload": {
+    "message": "Senaste nerladdningen"
+  },
+
+  "_o_lRoutingRenamedTo": {
+    "message": "Döp om till"
+  },
+
+  "o_lRoutingLastDownloadEmpty": {
+    "message": "inga än"
+  },
+
+  "o_lRoutingRenamedTo": {
+    "message": "Döp om till"
+  },
+
+  "o_lRoutingNoMatches": {
+    "message": "inga matchningar"
+  },
+
+  "o_lRoutingCaptureGroups": {
+    "message": "Fångstgrupper"
+  },
+
+  "o_lRoutingVariables": {
+    "message": "Variabler"
+  },
+
+  "o_lRoutingVariablesClickToSee": {
+    "message": "Klicka för att visa"
+  },
+
+  "o_lRoutingLastDownloadHelp": {
+    "message": "Testa dina aktuella regler, testas på den senaste nerladdade filen"
+  },
+
+  "o_lRoutingTemplates": {
+    "message": "Mallar"
+  },
+
+  "o_lAccessKeysInstruction": {
+    "message":
+      "Ange åtkomstnycklar till menyobjekt för Save In. Detta fungerar inte på macOS eftersom det inte stöder åtkomstnycklar."
+  },
+
+  "o_cLastUsedMenu": {
+    "message": "Visa senaste använda menyobjekt",
+    "description": "c prefixes are for controls (buttons, etc)"
+  },
+
+  "o_cSaveLinks": {
+    "message": "Aktivera sparning av länkar. Föredrar källor om det är tillgängligt"
+  },
+
+  "o_cPreferLinks": {
+    "message": "Föredra i stället länkar över källorna"
+  },
+
+  "o_cSaveText": {
+    "message":
+      "Aktivera sparning av markerad text med filändelsen \".selection.txt\""
+  },
+
+  "o_cSavePage": {
+    "message": "Aktivera sparning av aktuell sida"
+  },
+
+  "o_cSavePageHelp": {
+    "message": "Sparar inte externa resurser"
+  },
+
+  "o_cSaveTabstrip": {
+    "message": "Aktivera sparning från flikraden"
+  },
+
+  "o_cSaveTabstripHelp": {
+    "message": "Sparar en flik, flikgrupp, eller flikar till höger"
+  },
+
+  "o_cOpenDialog": {
+    "message": "Öppna spara när du sparar"
+  },
+
+  "o_cOpenDialogNoExt": {
+    "message": "Öppna spara om filnamnet saknar filändelse"
+  },
+
+  "o_cOpenDialogShift": {
+    "message":
+      "Öppna spara när ett menyobjekt klickas på och SKIFT hålls nertryckt"
+  },
+
+  "o_cOpenDialogOnFailure": {
+    "message": "Öppna spara när en nerladdning misslyckas"
+  },
+
+  "o_cDupeUniquify": {
+    "message": "Gör unik"
+  },
+
+  "o_cDupeOverwrite": {
+    "message": "Skriv över"
+  },
+
+  "o_cDupePrompt": {
+    "message": "Fråga"
+  },
+
+  "o_cDupeFilename": {
+    "message": "när ett filnamn redan finns"
+  },
+
+  "o_cOpenDialogIfNoRulesMatch": {
+    "message": "Öppna spara om ingen regel matchar"
+  },
+
+  "o_cExclusiveMode": {
+    "message": "Använd endast omdirigerings- och omdöpningsreglerna"
+  },
+
+  "o_cExclusiveModeHelp": {
+    "message":
+      "Inaktiverar undermenyn för nerladdningar med två klick, sparar i förhållande till standard nerladdningskatalog"
+  },
+
+  "o_cNotifySuccess": {
+    "message": "Visa avisering vid lyckade nerladdningar"
+  },
+
+  "o_cNotifyFailure": {
+    "message": "Visa avisering vid misslyckade nerladdningar"
+  },
+
+  "o_cNotifyMatch": {
+    "message": "Visa avisering vid en regelmatchning"
+  },
+
+  "o_cNotifyCloseAfter": {
+    "message": "Stäng aviseringar tidare efter"
+  },
+
+  "o_cNotifyCloseAfterHelp": {
+    "message":
+      "1s = 1000ms. Kommer inte att bli längre än OS/webbläsarens aviseringsvaraktighet."
+  },
+
+  "o_cSaveShortcutsAs": {
+    "message": "Spara genvägar som"
+  },
+
+  "o_cSaveShortcutsTypeHtml": {
+    "message": "HTML-omdirigering"
+  },
+
+  "o_cSaveShortcutsTypeMac": {
+    "message": "Mac .url"
+  },
+
+  "o_cSaveShortcutsTypeWindows": {
+    "message": "Windows .url"
+  },
+
+  "o_cSaveShortcutsTypeFreedesktop": {
+    "message": "Freedesktop .desktop"
+  },
+
+  "o_cSaveShortcutsMediaInstead": {
+    "message": "Spara media som genvägar i stället"
+  },
+
+  "o_cSaveShortcutsLinksInstead": {
+    "message": "Spara länkar som genvägar i stället"
+  },
+
+  "o_cSaveShortcutsPagesInstead": {
+    "message": "Spara sidor som genvägar i stället"
+  },
+
+  "o_cSaveShortcutsTabsInstead": {
+    "message": "Spara flikar som genvägar i stället (från högerklick flik)"
+  },
+
+  "o_cKeyboardShortcutSaveInMenu": {
+    "message": "Save In innehållsmenyobjekt"
+  },
+
+  "o_cKeyboardShortcutSubmenu": {
+    "message": "Senast använda innehållsundermenyobjekt"
+  },
+
+  "o_cKeyboardShortcutNumbers": {
+    "message": "Lägg till kortkommandon till innehållsundermenyobjekten"
+  },
+
+  "o_cKeyboardShortcutClickToSave": {
+    "message": "Aktivera klick för att spara"
+  },
+
+  "o_cKeyboardShortcutClickToHelp": {
+    "message":
+      "Håll ner Alt (standard) och klicka på bilder eller media för att spara dem i den senaste sparade katalogen eller i standard nerladdningskatalog. Inför ett skript på sidorna för att lyssna på klickhändelser. Inte alla variabler är tillgängliga när du använder det här. Kräver en siduppdatering för att träda i kraft."
+  },
+
+  "o_cKeyboardShotcutKeycode": {
+    "message": "nyckelkod"
+  },
+
+  "o_cKeyboardShortcutModifierLeftClick": {
+    "message": "Vänsterklick"
+  },
+
+  "o_cKeyboardShortcutModifierMiddleClick": {
+    "message": "Mittklick"
+  },
+
+  "o_cKeyboardShortcutModifierRightClick": {
+    "message": "Högerklick"
+  },
+
+  "o_cKeyboardShortcutModifierHelp": {
+    "message":
+      "Modifieringsnyckelkod för klicka-till-spara. Kräver siduppdatering för att träda i kraft."
+  },
+
+  "o_cRestoreDefaults": {
+    "message": "Återställer standardinställningarna"
+  },
+
+  "o_cTruncatePath": {
+    "message": "Korta ner sökvägen till så här många tecken"
+  },
+
+  "o_cTruncatePathHelp": {
+    "message": "0 = ingen nerkortning"
+  },
+
+  "o_cReplaceInvalidCharsWith": {
+    "message": "Ersätt ogiltiga tecken med"
+  },
+
+  "o_cReplaceInvalidCharsWithHelp": {
+    "message": "Lämna tom för att ta bort. Ogiltiga ersättningstecken ignoreras."
+  },
+
+  "o_cFetchViaContentScript": {
+    "message": "Aktivera hämtning via innehållsskript"
+  },
+
+  "o_cFetchViaContentScriptHelp": {
+    "message": "Aktivera endast om du har problem att ladda ner. Ladda ner från innehållssidan och inte från tillägget, skickar huvuden från sidan i sig själv. Visa webbplatser (t.ex pixiv.net) kräver detta för att kunna gå förbi serversidsskydd. Långsammare och benägen att misslyckas. Lyckade/misslyckade aviseringar fungerar inte i detta läget. Kräver siduppdatering för att träda i kraft."
+  },
+
+  "o_cSetRefererHeader": {
+    "message": "Ställ in huvudet \"Referer\" till sidadressen om den saknas"
+  },
+
+  "o_cSetRefererHeaderHelp": {
+    "message": "Aktivera endast om du har problem att ladda ner, men prova alternativet innehållsskript före denna. En del webbplatser (t.ex pixiv.net) kontrollerar HTTP Referer-huvudet på servern. Aktiverad kommer HTTP Referer-huvudet att sättas till header till sidans webbadress om det inte redan existerar."
+  },
+
+  "o_cSetRefererHeaderFilter": {
+    "message": "Ange Referer-huvudet för följande webbplatser"
+  },
+
+  "o_cSetRefererHeaderFilterHelp": {
+    "message": "Vitlista för matchmönster som matchar mot. En per rad. Huvudet kommer bara att ändras för nerladdningar (käll-webbplatser) som matchar den här vitlistan."
+  },
+
+  "o_cImportSettings": {
+    "message": "Importera inställningar"
+  },
+
+  "o_cExportSettings": {
+    "message": "Exportera inställningar"
+  },
+
+  "o_cDebugMode": {
+    "message": "Aktivera felsökningsloggning"
+  },
+
+  "o_cLastSavedAt": {
+    "message": "Senast sparad på: "
+  },
+
+  "o_cLastSavedAtNever": {
+    "message": "aldrig"
+  }, 
+
+  "o_lSubdirectoryInstructionComment": {
+    "message": "i början skapas inbyggda undermenyer beroende på antalet pilar."
+  }
+}
