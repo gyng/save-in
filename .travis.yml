@@ -1,6 +1,6 @@
 language: node_js
 node_js:
-  - "8.4.0"
+  - "10.14.2"
 cache: yarn
 script:
   - yarn run lint
