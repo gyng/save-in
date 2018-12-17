@@ -1,3 +1,8 @@
+# 3.3.0
+
+* Add downloading of multiple highlighted tabs (FF63, #91)
+* Enable access keys for Firefox >= 63 (#91)
+
 # 3.2.0
 
 * Add option to set `Referer` header on downloads, disabled by default. Should fix errors while downloading for sites that check this, especially pixiv.net in Chrome. Requires new permissions. (#66)

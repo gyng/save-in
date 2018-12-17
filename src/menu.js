@@ -4,11 +4,13 @@ const Menus = {
   IDS: {
     TABSTRIP: {
       SELECTED_TAB: "save-in-_-_-SI-selected-tab",
+      SELECTED_MULTIPLE_TABS: "save-in-_-_-SI-selected-multiple-tabs",
       TO_RIGHT: "save-in-_-_-SI-to-right",
       TO_RIGHT_MATCH: "save-in-_-_-SI-to-right-match",
       OPENED_FROM_TAB: "save-in-_-_-SI-opened-from-tab"
     },
-    ROOT: "save-in-_-_-root"
+    ROOT: "save-in-_-_-root",
+    LAST_USED: "save-in-_-_-last-used"
   },
 
   titles: {},
@@ -30,9 +32,7 @@ const Menus = {
   })(),
 
   setAccesskey: (str, key) => {
-    // CHROME ONLY, FF does not support this yet
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=1320462
-    if (CURRENT_BROWSER !== BROWSERS.CHROME || !key) {
+    if (!BROWSER_FEATURES.accessKeys) {
       return str;
     }
 
@@ -139,11 +139,11 @@ const Menus = {
     const lastUsedTitle =
       lastUsedPath || browser.i18n.getMessage("contextMenuLastUsed");
     const lastUsedMenuOptions = {
-      id: `save-in-_-_-last-used`,
+      id: Menus.IDS.LAST_USED,
       title: Menus.setAccesskey(lastUsedTitle, options.keyLastUsed),
       enabled: lastUsedPath ? true : false, // eslint-disable-line
       contexts,
-      parentId: "save-in-_-_-root"
+      parentId: Menus.IDS.ROOT
     };
 
     // Chrome, FF < 57 crash when icons is supplied
@@ -336,9 +336,8 @@ const Menus = {
           const title = Menus.titles[info.menuItemId] || lastUsedPath;
 
           if (options.enableLastLocation) {
-            browser.contextMenus.update("save-in-_-_-last-used", {
-              title:
-                CURRENT_BROWSER === BROWSERS.CHROME ? `${title} (&a)` : title,
+            browser.contextMenus.update(Menus.IDS.LAST_USED, {
+              title: BROWSER_FEATURES.accessKeys ? `${title} (&a)` : title,
               enabled: true
             });
           }
@@ -411,6 +410,24 @@ const Menus = {
       contexts: ["tab"]
     });
 
+    if (BROWSER_FEATURES.multitab) {
+      browser.contextMenus.create({
+        id: Menus.IDS.TABSTRIP.SELECTED_MULTIPLE_TABS,
+        title: browser.i18n.getMessage("tabstripMenuMultipleSelectedTab", [1]),
+        contexts: ["tab"]
+      });
+
+      browser.tabs.onHighlighted.addListener(highlightInfo => {
+        const length = highlightInfo.tabIds.length;
+        browser.contextMenus.update(Menus.IDS.TABSTRIP.SELECTED_MULTIPLE_TABS, {
+          title: browser.i18n.getMessage("tabstripMenuMultipleSelectedTab", [
+            length
+          ]),
+          contexts: ["tab"]
+        });
+      });
+    }
+
     browser.contextMenus.create({
       id: Menus.IDS.TABSTRIP.OPENED_FROM_TAB,
       title: browser.i18n.getMessage("tabstripMenuSaveChildrenTabs"),
@@ -446,6 +463,10 @@ const Menus = {
       switch (info.menuItemId) {
         case Menus.IDS.TABSTRIP.SELECTED_TAB:
           filter = t => t.id === fromTab.id;
+          break;
+        case Menus.IDS.TABSTRIP.SELECTED_MULTIPLE_TABS:
+          filter = () => true;
+          query = Object.assign(query, { highlighted: true });
           break;
         case Menus.IDS.TABSTRIP.TO_RIGHT:
         case Menus.IDS.TABSTRIP.TO_RIGHT_MATCH:

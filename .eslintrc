@@ -43,6 +43,8 @@
 
     "BROWSERS": false,
     "CURRENT_BROWSER": false,
+    "BROWSER_FEATURES": false,
+    "CURRENT_BROWSER_VERSION": false,
 
     "addClickToCopy": false
   }

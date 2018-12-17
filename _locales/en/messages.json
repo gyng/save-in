@@ -162,6 +162,17 @@
     "description": "Tabstrip context menu label for saving selected tab"
   },
 
+  "tabstripMenuMultipleSelectedTab": {
+    "message": "Save highlighted tabs ($COUNT$)",
+    "description": "Tabstrip context menu label for saving one or more highlighted tab",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "5"
+      }
+    }
+  },
+
   "tabstripMenuSaveChildrenTabs": {
     "message": "Save other tabs opened from this tab",
     "description": "Tabstrip context menu label for saving child tabs"
@@ -322,7 +333,7 @@
 
   "o_lAccessKeysInstruction": {
     "message":
-      "Set accesskeys for Save In menu items. This does not work on macOS as it does not support accesskeys."
+      "Set accesskeys for Save In menu items. Chrome or Firefox >= 63."
   },
 
   "o_cLastUsedMenu": {
@@ -566,7 +577,7 @@
 
   "o_cLastSavedAtNever": {
     "message": "never"
-  }, 
+  },
 
   "o_lSubdirectoryInstructionComment": {
     "message": "at the start creates nested submenus depending on the number of arrows."

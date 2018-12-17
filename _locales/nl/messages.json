@@ -319,7 +319,7 @@
 
   "o_lAccessKeysInstruction": {
     "message":
-      "Stel toegangstoetsen in voor Opslaan in menu-items. Dit werkt niet op macOS omdat het geen toegangssleutels ondersteunt."
+      "Stel toegangstoetsen in voor Opslaan in menu-items. Chrome, Firefox >= 63."
   },
 
   "o_cLastUsedMenu": {
