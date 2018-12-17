@@ -81,7 +81,7 @@ This link to the archive was retrieved from https://github.com/yuku-t/textcomple
 
 ## Contributors
 
-Bug reports and issues are welcome.
+Pull requests, bug reports, and issues are welcome.
 
 Localisations kindly contributed by
 
