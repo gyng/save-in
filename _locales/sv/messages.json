@@ -322,7 +322,7 @@
 
   "o_lAccessKeysInstruction": {
     "message":
-      "Ange åtkomstnycklar till menyobjekt för Save In. Detta fungerar inte på macOS eftersom det inte stöder åtkomstnycklar."
+      "Ange åtkomstnycklar till menyobjekt för Save In. Chrome, Firefox >= 63."
   },
 
   "o_cLastUsedMenu": {
@@ -566,7 +566,7 @@
 
   "o_cLastSavedAtNever": {
     "message": "aldrig"
-  }, 
+  },
 
   "o_lSubdirectoryInstructionComment": {
     "message": "i början skapas inbyggda undermenyer beroende på antalet pilar."

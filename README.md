@@ -78,3 +78,12 @@ This link to the archive was retrieved from https://github.com/yuku-t/textcomple
 
 `yarn install` installs the dependencies for the library
 `yarn build:dist` builds the distribution for the library
+
+## Contributors
+
+Bug reports and issues are welcome.
+
+Localisations kindly contributed by
+
+* nl (@80486dx)
+* sv (@Sopor-)

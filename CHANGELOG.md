@@ -2,6 +2,7 @@
 
 * Add downloading of multiple highlighted tabs (FF63, #91)
 * Enable access keys for Firefox >= 63 (#91)
+* Add sv localisation by @Sopor- (#98, #99)
 
 # 3.2.0
 
