@@ -103,7 +103,9 @@ describe("filename from Content-Disposition", () => {
 
   test("handles encoded utf8 filenames", () => {
     expect(
-      Download.getFilenameFromContentDisposition('filename="シャイニング・フォース イクサ";')
+      Download.getFilenameFromContentDisposition(
+        'filename="シャイニング・フォース イクサ";'
+      )
     ).toBe("シャイニング・フォース イクサ");
   });
 

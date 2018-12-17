@@ -200,7 +200,7 @@ const Router = {
     if (!matchers.some(m => m.type === RULE_TYPES.DESTINATION)) {
       window.optionErrors.filenamePatterns.push({
         message: browser.i18n.getMessage("ruleMissingInto"),
-        error: name
+        error: ""
       });
 
       return false;

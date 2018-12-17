@@ -54,9 +54,8 @@ const Path = {
             return s;
           }
         })
-        .map(
-          s =>
-            s.val ? s : Path.PathSegment.String(options.replacementChar || "_")
+        .map(s =>
+          s.val ? s : Path.PathSegment.String(options.replacementChar || "_")
         );
 
       const sanitizedStringifiedBuf = Path.sanitizeBufStrings(stringifiedBuf);
