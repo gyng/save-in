@@ -85,5 +85,5 @@ Bug reports and issues are welcome.
 
 Localisations kindly contributed by
 
-* nl (@80486dx)
-* sv (@Sopor-)
+* nl [@80486dx](https://github.com/80486dx)
+* sv [@Sopor-](https://github.com/Sopor-)
