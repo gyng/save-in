@@ -10,6 +10,11 @@
     "description": "Beschrijving van de add-on."
   },
 
+  "translationCredits": {
+    "message": "nl translation by @80486dx <https://github.com/80486dx>",
+    "description": "Credits for translations. Eg. sv translation by @username <email or url>, Real Name <contact>"
+  },
+
   "genericUnknownError": {
     "message": "Foutmelding",
     "description": "Een generieke foutmelding is gebruikt om op terug te vallen"

@@ -10,6 +10,11 @@
     "description": "Description of the add-on."
   },
 
+  "translationCredits": {
+    "message": "\u200b",
+    "description": "Credits for translations. Leave \u200b for blank. Eg. sv translation by @username <email or url>, Real Name <contact>"
+  },
+
   "genericUnknownError": {
     "message": "Unknown error",
     "description": "A generic error message used as a fallback"

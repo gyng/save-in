@@ -10,6 +10,11 @@
     "description": "Description of the add-on."
   },
 
+  "translationCredits": {
+    "message": "sv translation by @Sopor- <https://github.com/Sopor->",
+    "description": "Credits for translations. Eg. sv translation by @username <email or url>, Real Name <contact>"
+  },
+
   "genericUnknownError": {
     "message": "Okänt fel",
     "description": "A generic error message used as a fallback"
