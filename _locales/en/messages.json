@@ -5,8 +5,7 @@
   },
 
   "extensionDescription": {
-    "message":
-      "Saves {image, video, audio, links, selection, page} in directories relative to the default download directory.",
+    "message": "Saves {image, video, audio, links, selection, page} in directories relative to the default download directory.",
     "description": "Description of the add-on."
   },
 
@@ -22,8 +21,7 @@
 
   "contextMenuItemOptions": {
     "message": "Options",
-    "description":
-      "Title of context menu item that opens the options menu when clicked."
+    "description": "Title of context menu item that opens the options menu when clicked."
   },
 
   "contextMenuExclusive": {
@@ -63,8 +61,7 @@
 
   "contextMenuShowDefaultFolder": {
     "message": "Open Default Folder",
-    "description":
-      "Title of context menu item that opens the default downloads directory in the system file manager when clicked."
+    "description": "Title of context menu item that opens the default downloads directory in the system file manager when clicked."
   },
 
   "notificationSuccessTitle": {
@@ -90,14 +87,12 @@
 
   "notificationRuleMatchFailedExclusiveTitle": {
     "message": "Save In: Failed to route or rename download",
-    "description":
-      "Notification title for no rule matches when in exclusive mode"
+    "description": "Notification title for no rule matches when in exclusive mode"
   },
 
   "notificationRuleMatchFailedExclusiveMessage": {
     "message": "No matching rule found for $URL$",
-    "description":
-      "Notification title for no rule matches when in exclusive mode",
+    "description": "Notification title for no rule matches when in exclusive mode",
     "placeholders": {
       "url": {
         "content": "$1",
@@ -158,8 +153,7 @@
 
   "rulePathStartsWithDot": {
     "message": "Path cannot start with .. or /",
-    "description":
-      "Error message for paths in routing rules that start with invalid characters"
+    "description": "Error message for paths in routing rules that start with invalid characters"
   },
 
   "tabstripMenuSelectedTab": {
@@ -185,20 +179,17 @@
 
   "tabstripMenuSaveRightTabs": {
     "message": "Save all tabs to right including this",
-    "description":
-      "Tabstrip context menu label for saving tabs to the right (inclusive)"
+    "description": "Tabstrip context menu label for saving tabs to the right (inclusive)"
   },
 
   "tabstripMenuSaveRightTabsMatched": {
     "message": "Save all tabs to right including this (must match a route)",
-    "description":
-      "Tabstrip context menu label for saving tabs to the right (inclusive) that match a route"
+    "description": "Tabstrip context menu label for saving tabs to the right (inclusive) that match a route"
   },
 
   "o_sDownloads": {
     "message": "Downloads",
-    "description":
-      "o prefixes are for options page text, s prefix are for section/subsection titles"
+    "description": "o prefixes are for options page text, s prefix are for section/subsection titles"
   },
 
   "o_sDirectories": {
@@ -287,13 +278,11 @@
   },
 
   "o_lDirectoryInstructionSymlink": {
-    "message":
-      "A symlink is needed to save outside the default download directory."
+    "message": "A symlink is needed to save outside the default download directory."
   },
 
   "o_lRoutingInstruction": {
-    "message":
-      "Automate routing of downloads or renaming of files. Separate multiple rules with an empty line. See the guide for more details."
+    "message": "Automate routing of downloads or renaming of files. Separate multiple rules with an empty line. See the guide for more details."
   },
 
   "o_lRoutingLastDownload": {
@@ -337,8 +326,7 @@
   },
 
   "o_lAccessKeysInstruction": {
-    "message":
-      "Set accesskeys for Save In menu items. Chrome or Firefox >= 63."
+    "message": "Set accesskeys for Save In menu items. Chrome or Firefox >= 63."
   },
 
   "o_cLastUsedMenu": {
@@ -351,12 +339,11 @@
   },
 
   "o_cPreferLinks": {
-    "message": "Prefer links over sources instead"
+    "message": "Always prefer links over sources"
   },
 
   "o_cSaveText": {
-    "message":
-      "Enable saving of selected text with a \".selection.txt\" extension"
+    "message": "Enable saving of selected text with a \".selection.txt\" extension"
   },
 
   "o_cSavePage": {
@@ -384,8 +371,7 @@
   },
 
   "o_cOpenDialogShift": {
-    "message":
-      "Open a save file dialog when menu item is clicked and SHIFT is held down"
+    "message": "Open a save file dialog when menu item is clicked and SHIFT is held down"
   },
 
   "o_cOpenDialogOnFailure": {
@@ -417,8 +403,7 @@
   },
 
   "o_cExclusiveModeHelp": {
-    "message":
-      "Disables submenu for two-click downloads, saves relative to default downloads directory"
+    "message": "Disables submenu for two-click downloads, saves relative to default downloads directory"
   },
 
   "o_cNotifySuccess": {
@@ -438,8 +423,7 @@
   },
 
   "o_cNotifyCloseAfterHelp": {
-    "message":
-      "1s = 1000ms. Will not extend beyond OS/browser notification duration."
+    "message": "1s = 1000ms. Will not extend beyond OS/browser notification duration."
   },
 
   "o_cSaveShortcutsAs": {
@@ -495,8 +479,7 @@
   },
 
   "o_cKeyboardShortcutClickToHelp": {
-    "message":
-      "Hold down Alt (default) and click images or media to save them in the last used directory or default download directory. Injects a script into pages to listen for click events. Not all variables are available when using this. Requires page refresh to take effect."
+    "message": "Hold down Alt (default) and click images or media to save them in the last used directory or default download directory. Injects a script into pages to listen for click events. Not all variables are available when using this. Requires page refresh to take effect."
   },
 
   "o_cKeyboardShotcutKeycode": {
@@ -516,8 +499,7 @@
   },
 
   "o_cKeyboardShortcutModifierHelp": {
-    "message":
-      "Modifier keycode for click-to-save. Requires page refresh to take effect."
+    "message": "Modifier keycode for click-to-save. Requires page refresh to take effect."
   },
 
   "o_cRestoreDefaults": {
@@ -586,5 +568,30 @@
 
   "o_lSubdirectoryInstructionComment": {
     "message": "at the start creates nested submenus depending on the number of arrows."
+  },
+
+  "notificationLinkPreferred": {
+    "message": "A link was downloaded instead",
+    "description": "Notification title when link was downloaded over a source"
+  },
+
+  "o_cPreferLinksFilterEnabled": {
+    "message": "Prefer links for pages that match the following URLs"
+  },
+
+  "o_cPreferLinksFilter": {
+    "message": "URL filters"
+  },
+
+  "o_cPreferLinksFilterHelp": {
+    "message": "One regular expression to match against the page URL per line."
+  },
+
+  "notificationBadPreferLinksPattern": {
+    "message": "Invalid regex for prefer links"
+  },
+
+  "o_cNotifyLinkPreferred": {
+    "message": "Show notification when a link was downloaded instead of the source"
   }
 }

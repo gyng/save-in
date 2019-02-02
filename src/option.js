@@ -32,10 +32,17 @@ const OptionsManagement = {
     { name: "keyRoot", type: T.VALUE, default: "e" },
     { name: "links", type: T.BOOL, default: true },
     { name: "preferLinks", type: T.BOOL, default: false },
+    { name: "preferLinksFilterEnabled", type: T.BOOL, default: false },
+    {
+      name: "preferLinksFilter",
+      type: T.VALUE,
+      default: ".*commons.wikimedia.org/wiki/File:.*"
+    },
     { name: "notifyDuration", type: T.VALUE, default: 7000 },
     { name: "notifyOnFailure", type: T.BOOL, default: true },
     { name: "notifyOnRuleMatch", type: T.BOOL, default: true },
     { name: "notifyOnSuccess", type: T.BOOL, default: false },
+    { name: "notifyOnLinkPreferred", type: T.BOOL, default: true },
     { name: "page", type: T.BOOL, default: true },
     {
       name: "paths",

@@ -1,3 +1,8 @@
+# 3.4.0
+
+* Add option to always prefer links when downloading from pages that match a regex list of URLs (#100)
+* Add notification option for when a link is downloaded instead of the source
+
 # 3.3.0
 
 * Add downloading of multiple highlighted tabs (FF63, #91)

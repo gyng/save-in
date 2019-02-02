@@ -299,9 +299,50 @@ const Menus = {
           downloadType = DOWNLOAD_TYPES.MEDIA;
           url = info.srcUrl;
 
-          if (hasLink && options.preferLinks) {
-            downloadType = DOWNLOAD_TYPES.LINK;
-            url = info.linkUrl;
+          if (hasLink) {
+            if (options.preferLinks) {
+              downloadType = DOWNLOAD_TYPES.LINK;
+              url = info.linkUrl;
+
+              if (options.notifyOnLinkPreferred) {
+                Notification.createExtensionNotification(
+                  browser.i18n.getMessage("notificationLinkPreferred"),
+                  url
+                );
+              }
+            }
+
+            if (options.preferLinksFilterEnabled && options.preferLinksFilter) {
+              let overrideUrls = false;
+              try {
+                (options.preferLinksFilter || "")
+                  .split("\n")
+                  .map(s => s.trim())
+                  .map(s => new RegExp(s))
+                  .forEach(re => {
+                    if (info.pageUrl.match(re) != null) {
+                      overrideUrls = true;
+                    }
+                  });
+              } catch (err) {
+                Notification.createExtensionNotification(
+                  browser.i18n.getMessage("notificationBadPreferLinksPattern"),
+                  err
+                );
+              }
+
+              if (overrideUrls) {
+                downloadType = DOWNLOAD_TYPES.LINK;
+                url = info.linkUrl;
+
+                if (options.notifyOnLinkPreferred) {
+                  Notification.createExtensionNotification(
+                    browser.i18n.getMessage("notificationLinkPreferred"),
+                    url
+                  );
+                }
+              }
+            }
           }
         } else if (hasLink) {
           downloadType = DOWNLOAD_TYPES.LINK;
