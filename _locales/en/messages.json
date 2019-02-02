@@ -593,5 +593,9 @@
 
   "o_cNotifyLinkPreferred": {
     "message": "Show notification when a link was downloaded instead of the source"
+  },
+
+  "o_cCloseTabOnSave": {
+    "message": "Close tabs marked for saving"
   }
 }

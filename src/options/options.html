@@ -264,7 +264,15 @@ ln -s /path/to/actual /path/to/symlink</pre
           id="tabEnabled"
           class="chrome-disabled"
         />__MSG_o_cSaveTabstrip__ <span class="badge">Firefox</span>
-        <div class="caption caption-line">__MSG_o_cSaveTabstripHelp__</div>
+        <div class="caption-line">
+          <label>
+            <input
+              type="checkbox"
+              id="closeTabOnSave"
+            />__MSG_o_cCloseTabOnSave__
+          </label>
+          <div class="caption">__MSG_o_cSaveTabstripHelp__</div>
+        </div>
       </label>
 
       <label>
@@ -525,8 +533,9 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
       </label>
 
       <label>
-          <input type="checkbox" id="notifyOnLinkPreferred" /> __MSG_o_cNotifyLinkPreferred__
-        </label>
+        <input type="checkbox" id="notifyOnLinkPreferred" />
+        __MSG_o_cNotifyLinkPreferred__
+      </label>
 
       <label>
         __MSG_o_cNotifyCloseAfter__

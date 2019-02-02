@@ -552,7 +552,7 @@ const Menus = {
               }
 
               const opts = {
-                currentTab: t, // Global
+                currentTab: t, // Global,
                 linkText: t.title,
                 now: new Date(),
                 pageUrl: t.url,
@@ -577,6 +577,13 @@ const Menus = {
               };
 
               Download.renameAndDownload(state);
+
+              // TODO: Store tabs marked for saving and close only on successful save
+              if (options.closeTabOnSave) {
+                window.setTimeout(() => {
+                  browser.tabs.remove(t.id);
+                }, timeoutInterval);
+              }
             }, timeoutInterval * i);
           });
         });
