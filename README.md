@@ -66,6 +66,10 @@ Configure before use.
 
 ### Notes for reviewers
 
+#### Source code
+
+The source code for this extension is available at https://github.com/gyng/save-in.
+
 #### Third-party dependencies
 
 ##### Textcomplete
