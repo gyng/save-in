@@ -1,6 +1,8 @@
 # 3.4.1
 
 * Fix `Referer` header not set in Chrome >= 72 (#66)
+* Check if download originates from save-in before renaming download (Chrome, #109)
+* Add favicon to options page (#108)
 
 # 3.4.0
 

@@ -199,10 +199,17 @@ if (chrome && chrome.downloads && chrome.downloads.onDeterminingFilename) {
         (globalChromeState.info && globalChromeState.info.suggestedFilename) ||
         downloadItem.filename ||
         (globalChromeState.info && globalChromeState.info.filename);
-      suggest({
-        filename: Download.finalizeFullPath(globalChromeState),
-        conflictAction: options.conflictAction
-      });
+
+      // Don't interfere with other extensions
+      if (
+        browser.runtime &&
+        browser.runtime.id === downloadItem.byExtensionId
+      ) {
+        suggest({
+          filename: Download.finalizeFullPath(globalChromeState),
+          conflictAction: options.conflictAction
+        });
+      }
     }
   );
 }
