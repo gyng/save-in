@@ -1,3 +1,7 @@
+# 3.4.1
+
+* Fix `Referer` header not set in Chrome >= 72 (#66)
+
 # 3.4.0
 
 * Add option to always prefer links when downloading from pages that match a regex list of URLs (#100)

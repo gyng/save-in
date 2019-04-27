@@ -36,10 +36,19 @@ const Headers = {
 
       const urls = filterList.split("\n").map(s => s.trim());
 
+      const listenerOptions = ["blocking", "requestHeaders"];
+
+      // Chrome needs `extraHeaders` to set Referer
+      // https://developer.chrome.com/extensions/webRequest
+      // Firefox doesn't permit unknown options and dies, so we need this explicit check
+      if (CURRENT_BROWSER === BROWSERS.CHROME) {
+        listenerOptions.push("extraHeaders");
+      }
+
       browser.webRequest.onBeforeSendHeaders.addListener(
         Headers.refererListener,
         { urls },
-        ["blocking", "requestHeaders"]
+        listenerOptions
       );
     }
   }
