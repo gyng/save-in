@@ -10,6 +10,10 @@
   --grey30: #d7d7db;
   --grey40: #b1b1b3;
   --grey50: #737373;
+  --grey60: #4a4a4f;
+  --grey70: #38383d;
+  --grey80: #2a2a2e;
+  --grey-90: #0c0c0d;
   --yellow50: #ffe900;
   --orange50: #ff9400;
   --red50: #ff0039;
@@ -18,12 +22,44 @@
   --teal50: #00feff;
   --magenta50: #ff1ad9;
   --purple50: #9400ff;
+
+  --input-background: unset;
+  --link-color: var(--blue60);
+  --link-color-active: var(--blue70);
+}
+
+@media (prefers-color-scheme: dark) {
+  #settings-page {
+    --input-background: #474749;
+    --link-color: var(--blue40);
+    --link-color-hover: var(--blue50);
+    --link-color-active: var(--blue60);
+
+    color: white;
+  }
+
+  .badge {
+    color: black;
+  }
+
+  input,
+  textarea,
+  select {
+    color: white;
+    border: solid 1px var(--grey50) !important;
+  }
+
+  input:disabled,
+  textarea:disabled,
+  select:disabled {
+    color: var(--grey40);
+  }
 }
 
 a,
 .link {
   cursor: pointer;
-  color: var(--blue60);
+  color: var(--link-color);
   text-decoration: none;
 }
 
@@ -34,7 +70,7 @@ a:hover,
 
 a:active,
 .link:active {
-  color: var(--blue70);
+  color: var(--link-color-active);
 }
 
 a.external,
@@ -143,7 +179,7 @@ input[type="text"] {
 input[type="number"],
 input[type="text"],
 textarea {
-  outline: solid 2px rgba(0, 0, 0, 0);
+  background-color: var(--input-background);
 }
 
 textarea {
@@ -155,6 +191,7 @@ textarea {
 }
 
 select {
+  background-color: var(--input-background);
   padding: 4px;
 }
 
@@ -189,7 +226,7 @@ button:active {
 div.button.puffy,
 button.puffy {
   color: white;
-  background-color: var(--blue60);
+  background-color: var(--link-color);
   margin-top: 16px;
   padding: 16px;
   border-radius: 4px;
@@ -199,12 +236,12 @@ button.puffy {
 
 div.button.puffy:hover,
 button.puffy:hover {
-  background-color: var(--blue70);
+  background-color: var(---link-color-hover);
 }
 
 div.button.puffy:active,
 button.puffy:active {
-  background-color: var(--blue80);
+  background-color: var(---link-color-active);
 }
 
 .save {
@@ -212,7 +249,7 @@ button.puffy:active {
 }
 
 .help {
-  color: var(--blue60);
+  color: var(--link-color);
   cursor: pointer;
 }
 
@@ -254,7 +291,7 @@ button.puffy:active {
 }
 
 .help:visited {
-  color: var(--blue60);
+  color: var(--link-color);
 }
 
 .help:hover {
@@ -262,7 +299,7 @@ button.puffy:active {
 }
 
 .help:active {
-  color: var(--blue70);
+  color: var(--link-color-active);
 }
 
 .help-text {
@@ -320,7 +357,7 @@ button.puffy:active {
 }
 
 .click-to-copy:hover {
-  outline: solid 2px var(--blue40);
+  outline: solid 2px var(--link-color);
 }
 
 .click-to-copy:active {
@@ -501,6 +538,9 @@ input.key {
 
 .textcomplete-item.active {
   background-color: var(--blue40);
+}
+
+@media (prefers-color-scheme: dark) {
 }
 
 #export-target {

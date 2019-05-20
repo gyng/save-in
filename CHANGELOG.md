@@ -1,3 +1,7 @@
+# 3.5.0
+
+* Make options page support dark mode for Firefox (#112)
+
 # 3.4.1
 
 * Fix `Referer` header not set in Chrome >= 72 (#66)
