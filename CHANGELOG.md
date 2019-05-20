@@ -1,6 +1,8 @@
 # 3.5.0
 
 * Make options page support dark mode for Firefox (#112)
+* Add unofficially (unsupported) onMessageExternal listener for use with other extensions such as Foxy Gestures (#110)
+  See wiki at https://github.com/gyng/save-in/wiki/Use-with-Foxy-Gestures
 
 # 3.4.1
 
