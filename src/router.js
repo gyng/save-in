@@ -289,7 +289,7 @@ const Router = {
     return rules;
   },
 
-  getCaptureMatches: (rule, info, rest) => {
+  getCaptureMatches: (rule, info) => {
     const captureDeclaration = rule.find(
       d => d.type === RULE_TYPES.CAPTURE && d.name === "capture"
     );
@@ -304,16 +304,16 @@ const Router = {
         return null;
       }
 
-      return captured.matcher(info, rest);
+      return captured.matcher(info);
     } else {
       return null;
     }
   },
 
-  matchRule: (rule, info, rest) => {
+  matchRule: (rule, info) => {
     const matches = rule
       .filter(m => m.type === RULE_TYPES.MATCHER)
-      .map(m => m.matcher(info, rest));
+      .map(m => m.matcher(info, info));
 
     if (matches.some(m => !m)) {
       return false;
@@ -322,7 +322,7 @@ const Router = {
     let destination = rule.find(r => r.name === "into").value;
 
     // Regex capture groups
-    const capturedMatches = Router.getCaptureMatches(rule, info, rest);
+    const capturedMatches = Router.getCaptureMatches(rule, info);
 
     if (capturedMatches) {
       for (let i = 0; i < capturedMatches.length; i += 1) {
@@ -333,9 +333,9 @@ const Router = {
     return destination;
   },
 
-  matchRules: (rules, info, rest) => {
+  matchRules: (rules, info) => {
     for (let i = 0; i < rules.length; i += 1) {
-      const result = Router.matchRule(rules[i], info, rest);
+      const result = Router.matchRule(rules[i], info);
       if (result) {
         return result;
       }

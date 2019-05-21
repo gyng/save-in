@@ -195,11 +195,7 @@ describe("filename rewrite and routing", () => {
 
       const clickInfo = fixtures.firefoxInfo;
 
-      const matched = router.matchRules(
-        twitterRulesFirefox,
-        clickInfo.legacyDownloadInfo,
-        clickInfo
-      );
+      const matched = router.matchRules(twitterRulesFirefox, clickInfo);
 
       expect(matched).toBe("Di6uEBuVsAEYVBw.jpg");
     });
@@ -216,11 +212,7 @@ describe("filename rewrite and routing", () => {
 
       const clickInfo = fixtures.chromeInfo;
 
-      const matched = router.matchRules(
-        twitterRulesChrome,
-        clickInfo.legacyDownloadInfo,
-        clickInfo
-      );
+      const matched = router.matchRules(twitterRulesChrome, clickInfo);
 
       expect(matched).toBe("Di6uEBuVsAEYVBw.jpg");
     });

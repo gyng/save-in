@@ -32,19 +32,6 @@ const firefoxInfo = {
   menuIndex: "1",
   comment: "",
   modifiers: [],
-  legacyDownloadInfo: {
-    menuItemId: "save-in-1--.",
-    editable: false,
-    parentMenuItemId: "save-in-_-_-root",
-    mediaType: "image",
-    linkText: "",
-    linkUrl: "",
-    srcUrl: "https://pbs.twimg.com/media/Di6uEBuVsAEYVBw.jpg:orig",
-    pageUrl: "https://pbs.twimg.com/media/Di6uEBuVsAEYVBw.jpg:orig",
-    frameUrl: "https://pbs.twimg.com/media/Di6uEBuVsAEYVBw.jpg:orig",
-    frameId: 0,
-    modifiers: []
-  },
   naiveFilename: "Di6uEBuVsAEYVBw.jpg:orig",
   filename: "Di6uEBuVsAEYVBw.jpg:orig",
   initialFilename: "Di6uEBuVsAEYVBw.jpg:orig",
@@ -105,15 +92,6 @@ const chromeInfo = {
   context: "MEDIA",
   menuIndex: "1",
   comment: "",
-  legacyDownloadInfo: {
-    editable: false,
-    frameId: 0,
-    mediaType: "image",
-    menuItemId: "save-in-1--.",
-    pageUrl: "https://pbs.twimg.com/media/Di6uEBuVsAEYVBw.jpg:orig",
-    parentMenuItemId: "save-in-_-_-root",
-    srcUrl: "https://pbs.twimg.com/media/Di6uEBuVsAEYVBw.jpg:orig"
-  },
   naiveFilename: "Di6uEBuVsAEYVBw.jpg:orig",
   filename: "Di6uEBuVsAEYVBw.jpg_orig",
   initialFilename: "Di6uEBuVsAEYVBw.jpg:orig"

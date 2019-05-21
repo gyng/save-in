@@ -1,3 +1,7 @@
+# 3.5.1 (Unreleased)
+
+* Refactor `legacyDownloadInfo` out from code
+
 # 3.5.0
 
 * Make options page support dark mode for Firefox (#112)

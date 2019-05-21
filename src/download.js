@@ -52,11 +52,7 @@ const Download = {
       return null;
     }
 
-    return Router.matchRules(
-      filenamePatterns,
-      state.info.legacyDownloadInfo,
-      state.info
-    );
+    return Router.matchRules(filenamePatterns, state.info);
   },
 
   renameAndDownload: state => {
