@@ -11,7 +11,7 @@
   },
 
   "translationCredits": {
-    "message": "sv translation by @Sopor- <https://github.com/Sopor->",
+    "message": "sv translation by @Sopor <https://github.com/Sopor>",
     "description": "Credits for translations. Eg. sv translation by @username <email or url>, Real Name <contact>"
   },
 
@@ -142,7 +142,7 @@
   },
 
   "ruleInvalidRegex": {
-    "message": "Ogiltigt reguljära uttryck",
+    "message": "Ogiltigt reguljärt uttryck",
     "description": "Error message for a rule with invalid regex"
   },
 
@@ -336,7 +336,7 @@
   },
 
   "o_cSaveLinks": {
-    "message": "Aktivera sparning av länkar. Föredrar källor om det är tillgängligt"
+    "message": "Aktivera spara av länkar. Föredrar källor om det är tillgängligt"
   },
 
   "o_cPreferLinks": {
@@ -345,11 +345,11 @@
 
   "o_cSaveText": {
     "message":
-      "Aktivera sparning av markerad text med filändelsen \".selection.txt\""
+      "Aktivera spara av markerad text med filändelsen \".selection.txt\""
   },
 
   "o_cSavePage": {
-    "message": "Aktivera sparning av aktuell sida"
+    "message": "Aktivera spara av aktuell sida"
   },
 
   "o_cSavePageHelp": {
@@ -357,7 +357,7 @@
   },
 
   "o_cSaveTabstrip": {
-    "message": "Aktivera sparning från flikraden"
+    "message": "Aktivera spara från flikraden"
   },
 
   "o_cSaveTabstripHelp": {
