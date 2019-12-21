@@ -7,6 +7,7 @@
 * Fix Click-to-save not working for middle and right mouse buttons (#116)
 * Fix text not visible in dark mode (#112)
 * Update sv localisation (#119, @Sopor)
+* Update vendored mozilla/webextension-polyfill to 0.5
 
 # 3.5.0
 
