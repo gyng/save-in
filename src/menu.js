@@ -238,9 +238,10 @@ const Menus = {
         } else {
           menuItemCounter[depth] = 1;
         }
-        const id = `save-in-${
-          menuItemCounter[depth]
-        }-${`${i}${comment}`}-${parsedDir}`;
+        const id = `save-in-${menuItemCounter[depth]}-${`${i}${comment.replace(
+          "-",
+          "_"
+        )}`}-${parsedDir}`;
 
         let parentId;
         if (depth === 0) {

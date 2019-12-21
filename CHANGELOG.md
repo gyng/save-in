@@ -2,6 +2,7 @@
 
 * Refactor `legacyDownloadInfo` out from code
 * Fix some potential bugs with filename and source URL routing
+* Fix dashes in aliases breaking download paths (#124)
 
 # 3.5.0
 
