@@ -3,6 +3,7 @@
 * Refactor `legacyDownloadInfo` out from code
 * Fix some potential bugs with filename and source URL routing
 * Fix dashes in aliases breaking download paths (#124)
+* Update sv localisation (#119, @Sopor)
 
 # 3.5.0
 
