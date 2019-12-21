@@ -7,9 +7,11 @@
   "plugins": ["prettier"],
   "rules": {
     "prettier/prettier": "error",
+    "max-classes-per-file": 0,
     "no-else-return": 0,
     "no-param-reassign": 0,
-    "prefer-destructuring": 0
+    "prefer-destructuring": 0,
+    "prefer-object-spread": 0
   },
   "globals": {
     "globalChromeState": false,
