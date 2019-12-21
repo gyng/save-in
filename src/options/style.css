@@ -57,6 +57,13 @@
   select:disabled {
     color: var(--grey40);
   }
+
+  /* Chromium overrides */
+  h1,
+  h2,
+  h3 {
+    color: white;
+  }
 }
 
 a,
@@ -541,9 +548,6 @@ input.key {
 
 .textcomplete-item.active {
   background-color: var(--blue40);
-}
-
-@media (prefers-color-scheme: dark) {
 }
 
 #export-target {
