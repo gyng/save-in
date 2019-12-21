@@ -214,7 +214,6 @@ const Menus = {
     // 3. Parse depth
     // 4. Construct menu items
     pathsArray.forEach((dir, i) => {
-      console.log(dir);
       // HACK
       if (dir === SPECIAL_DIRS.SEPARATOR) {
         Menus.makeSeparator(contexts);
