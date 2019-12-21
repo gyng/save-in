@@ -267,7 +267,7 @@ if (CURRENT_BROWSER === BROWSERS.CHROME) {
     el.removeAttribute("disabled");
   });
 
-  document.querySelector("html").style = "min-width: 640px;";
+  document.querySelector("html").style = "min-width: 600px;";
   // document.querySelector("body").style = "overflow-y: hidden;";
 
   document.querySelectorAll(".chrome-disabled").forEach(el => {

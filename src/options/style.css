@@ -34,8 +34,11 @@
     --link-color: var(--blue40);
     --link-color-hover: var(--blue50);
     --link-color-active: var(--blue60);
+  }
 
-    color: white;
+  body {
+    color: white !important;
+    background-color: #2a2a2e !important;
   }
 
   .badge {
@@ -90,7 +93,7 @@ a.external,
 
 html {
   font-family: var(--font-stack);
-  min-width: 420px;
+  min-width: 400px;
   min-height: 1%; /* Firefox options page height hack */
 }
 
