@@ -4,6 +4,7 @@
 * Fix some potential bugs with filename and source URL routing
 * Fix dashes in aliases breaking download paths (#124)
 * Fix separators in submenus not being treated as special directories (#117)
+* Fix Click-to-save not working for middle and right mouse buttons (#116)
 * Update sv localisation (#119, @Sopor)
 
 # 3.5.0

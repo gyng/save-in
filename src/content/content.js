@@ -52,14 +52,23 @@ chrome.runtime.sendMessage(
         const isKeyboardComboActive = (combo, activeKeys) =>
           combo.map(code => activeKeys[code]).every(code => code === true);
 
-        const isMouseButtonActive = (target, buttonCode) => {
-          const codeToButtonMap = {
-            0: "LEFT_CLICK",
-            1: "MIDDLE_CLICK",
-            2: "RIGHT_CLICK"
-          };
+        // https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/buttons
+        const isMouseButtonActive = (target, buttons) => {
+          if (buttons === 1 && target === "LEFT_CLICK") {
+            return true;
+          }
 
-          return codeToButtonMap[buttonCode] === target;
+          // eslint-disable-next-line no-bitwise
+          if (buttons >> 1 === 1 && target === "RIGHT_CLICK") {
+            return true;
+          }
+
+          // eslint-disable-next-line no-bitwise
+          if (buttons >> 2 === 1 && target === "MIDDLE_CLICK") {
+            return true;
+          }
+
+          return false;
         };
 
         window.addEventListener("keydown", e => {
@@ -74,13 +83,9 @@ chrome.runtime.sendMessage(
           active = {};
         });
 
-        window.addEventListener("click", e => {
-          if (!e.target) {
-            return;
-          }
-
+        window.addEventListener("mousedown", e => {
           if (
-            isMouseButtonActive(shortcutOptions.button, e.button) &&
+            isMouseButtonActive(shortcutOptions.button, e.buttons) &&
             isKeyboardComboActive(shortcutOptions.combo, active)
           ) {
             const source = e.target.currentSrc || e.target.src;
