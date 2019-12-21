@@ -18,12 +18,12 @@ const Menus = {
   makeSeparator: (() => {
     let separatorCounter = 0;
 
-    const makeSeparatorInner = contexts => {
+    const makeSeparatorInner = (contexts, parentId = Menus.IDS.ROOT) => {
       browser.contextMenus.create({
         id: `separator-${separatorCounter}`,
         type: "separator",
         contexts,
-        parentId: Menus.IDS.ROOT
+        parentId
       });
       separatorCounter += 1;
     };
@@ -214,6 +214,7 @@ const Menus = {
     // 3. Parse depth
     // 4. Construct menu items
     pathsArray.forEach((dir, i) => {
+      console.log(dir);
       // HACK
       if (dir === SPECIAL_DIRS.SEPARATOR) {
         Menus.makeSeparator(contexts);
@@ -252,26 +253,30 @@ const Menus = {
           parentId = pathsNestingStack[depth - 1];
         }
 
-        if (depth === 0) {
-          pathsNestingStack = [id];
-        } else if (depth <= lastDepth) {
-          pathsNestingStack[depth] = id;
-        } else if (depth > lastDepth) {
-          pathsNestingStack.push(id);
+        if (parsedDir === SPECIAL_DIRS.SEPARATOR) {
+          Menus.makeSeparator(contexts, parentId);
+        } else {
+          if (depth === 0) {
+            pathsNestingStack = [id];
+          } else if (depth <= lastDepth) {
+            pathsNestingStack[depth] = id;
+          } else if (depth > lastDepth) {
+            pathsNestingStack.push(id);
+          }
+          lastDepth = depth;
+          pathsNestingStack = pathsNestingStack.slice(0, depth + 1);
+
+          Menus.titles[id] = title;
+
+          browser.contextMenus.create({
+            id,
+            title: options.enableNumberedItems
+              ? Menus.setAccesskey(title, menuItemCounter[depth])
+              : title,
+            contexts,
+            parentId
+          });
         }
-        lastDepth = depth;
-        pathsNestingStack = pathsNestingStack.slice(0, depth + 1);
-
-        Menus.titles[id] = title;
-
-        browser.contextMenus.create({
-          id,
-          title: options.enableNumberedItems
-            ? Menus.setAccesskey(title, menuItemCounter[depth])
-            : title,
-          contexts,
-          parentId
-        });
       }
     });
   },
