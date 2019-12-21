@@ -84,7 +84,7 @@ const Router = {
       return match;
     },
     fileext: regex => info => {
-      const url = info.srcUrl || info.linkUrl || info.pageUrl;
+      const url = info.sourceUrl || info.srcUrl || info.linkUrl || info.pageUrl;
       if (!url) return false;
 
       const extension = url.match(Download.EXTENSION_REGEX);
