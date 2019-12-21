@@ -1,6 +1,7 @@
 # 3.5.1 (Unreleased)
 
 * Refactor `legacyDownloadInfo` out from code
+* Fix some potential bugs with filename and source URL routing
 
 # 3.5.0
 

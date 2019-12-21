@@ -22,19 +22,19 @@ const firefoxInfo = {
     title: "Di6uEBuVsAEYVBw.jpg:orig (JPEG Image, 25 × 24 pixels)",
     favIconUrl: "https://pbs.twimg.com/media/Di6uEBuVsAEYVBw.jpg:orig"
   },
-  linkText: "",
-  now: "2018-07-26T11:56:42.642Z",
-  pageUrl: "https://pbs.twimg.com/media/Di6uEBuVsAEYVBw.jpg:orig",
-  sourceUrl: "https://pbs.twimg.com/media/Di6uEBuVsAEYVBw.jpg:orig",
-  url: "https://pbs.twimg.com/media/Di6uEBuVsAEYVBw.jpg:orig",
+  now: "2019-12-21T10:14:54.508Z",
+  pageUrl:
+    "https://twitter.com/aers00?ref_src=twsrc%5Egoogle%7Ctwcamp%5Eserp%7Ctwgr%5Eauthor",
+  sourceUrl: "https://pbs.twimg.com/media/EMNH-QAUwAEUmd_.jpg:large",
+  url: "https://pbs.twimg.com/media/EMNH-QAUwAEUmd_.jpg:large",
   suggestedFilename: null,
   context: "MEDIA",
   menuIndex: "1",
-  comment: "",
+  comment: "0",
   modifiers: [],
-  naiveFilename: "Di6uEBuVsAEYVBw.jpg:orig",
-  filename: "Di6uEBuVsAEYVBw.jpg:orig",
-  initialFilename: "Di6uEBuVsAEYVBw.jpg:orig",
+  naiveFilename: "EMNH-QAUwAEUmd_.jpg:large",
+  filename: "EMNH-QAUwAEUmd_.jpg:large",
+  initialFilename: "EMNH-QAUwAEUmd_.jpg:large",
   filenamePatterns: [
     [
       {

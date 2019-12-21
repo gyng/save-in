@@ -1,6 +1,16 @@
 const RouterFactory = {
-  makeInfoMatcherFactory: propertyName => regex => info => {
-    const match = info[propertyName] && info[propertyName].match(regex);
+  makeInfoMatcherFactory: (
+    propertyName,
+    alternativePropertyName
+  ) => regex => info => {
+    let match = info[propertyName] && info[propertyName].match(regex);
+
+    // Hack for sourceUrl, srcUrl
+    if (!match && alternativePropertyName) {
+      match =
+        info[alternativePropertyName] &&
+        info[alternativePropertyName].match(regex);
+    }
 
     if (window.SI_DEBUG && match) {
       console.log("matched", match, regex, info); // eslint-disable-line
@@ -55,7 +65,7 @@ const Router = {
 
       return match;
     },
-    menuindex: regex => (info, { menuIndex }) => {
+    menuindex: regex => (info, { menuIndex } = {}) => {
       const match = menuIndex.match(regex);
 
       if (window.SI_DEBUG && match) {
@@ -64,7 +74,7 @@ const Router = {
 
       return match;
     },
-    comment: regex => (info, { comment }) => {
+    comment: regex => (info, { comment } = {}) => {
       const match = comment.match(regex);
 
       if (window.SI_DEBUG && match) {
@@ -88,8 +98,8 @@ const Router = {
 
       return match;
     },
-    filename: regex => (info, { filename }) => {
-      const fn = filename || (info && info.filename);
+    filename: regex => (info, { filename } = {}) => {
+      const fn = (info && info.filename) || filename;
       if (!fn) return false;
 
       const match = fn.match(regex);
@@ -123,7 +133,7 @@ const Router = {
     pagetitle: RouterFactory.makeTabMatcherFactory("title"),
     pageurl: RouterFactory.makeInfoMatcherFactory("pageUrl"),
     selectiontext: RouterFactory.makeInfoMatcherFactory("selectionText"),
-    sourceurl: RouterFactory.makeInfoMatcherFactory("srcUrl")
+    sourceurl: RouterFactory.makeInfoMatcherFactory("sourceUrl", "srcUrl")
   },
 
   tokenizeLines: lines =>

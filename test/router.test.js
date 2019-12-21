@@ -197,7 +197,7 @@ describe("filename rewrite and routing", () => {
 
       const matched = router.matchRules(twitterRulesFirefox, clickInfo);
 
-      expect(matched).toBe("Di6uEBuVsAEYVBw.jpg");
+      expect(matched).toBe("EMNH-QAUwAEUmd_.jpg");
     });
 
     test("parses Chrome clicks", () => {
