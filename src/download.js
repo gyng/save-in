@@ -119,7 +119,7 @@ const Download = {
       const fetchDownload = _url => {
         fetch(_url)
           .then(response => response.blob())
-          .then((myBlob) => {
+          .then(myBlob => {
             const objectURL = URL.createObjectURL(myBlob);
             browser.downloads.download({
               url: objectURL,
@@ -128,7 +128,7 @@ const Download = {
               conflictAction: options.conflictAction
             });
           });
-      }
+      };
 
       if (options.fetchViaContent) {
         Messaging.send
