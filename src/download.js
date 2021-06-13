@@ -3,41 +3,41 @@
 let globalChromeState = {};
 
 const Download = {
-  DISPOSITION_FILENAME_REGEX: /filename[^;=\n]*=((['"])(.*)?\2|(.+'')?([^;\n]*))/i,
+  DISPOSITION_FILENAME_REGEX:
+    /filename[^;=\n]*=((['"])(.*)?\2|(.+'')?([^;\n]*))/i,
   EXTENSION_REGEX: /\.([0-9a-z]{1,8})$/i,
 
   makeObjectUrl: (content, mime = "text/plain") =>
     URL.createObjectURL(
       new Blob([content], {
-        type: `${mime};charset=utf-8`
+        type: `${mime};charset=utf-8`,
       })
     ),
 
-  getFilenameFromUrl: url => {
+  getFilenameFromUrl: (url) => {
     const remotePath = new URL(url).pathname;
     return decodeURIComponent(
       remotePath.substring(remotePath.lastIndexOf("/") + 1)
     );
   },
 
-  finalizeFullPath: _state => {
+  finalizeFullPath: (_state) => {
     const finalDir = _state.path.finalize();
     const finalFilename = _state.route
       ? _state.route.finalize()
       : Path.sanitizeFilename(_state.info.filename);
     const finalFullPath = [finalDir, finalFilename]
-      .filter(x => x != null)
+      .filter((x) => x != null)
       .join("/");
 
     return finalFullPath.replace(/^\.\//, "");
   },
 
-  getFilenameFromContentDisposition: disposition => {
+  getFilenameFromContentDisposition: (disposition) => {
     if (typeof disposition !== "string") return null;
 
-    const filenameFromLib = getFilenameFromContentDispositionHeader(
-      disposition
-    );
+    const filenameFromLib =
+      getFilenameFromContentDispositionHeader(disposition);
 
     if (filenameFromLib) {
       return decodeURIComponent(decodeURIComponent(filenameFromLib));
@@ -46,7 +46,7 @@ const Download = {
     return null;
   },
 
-  getRoutingMatches: state => {
+  getRoutingMatches: (state) => {
     const filenamePatterns = options.filenamePatterns;
     if (!filenamePatterns || filenamePatterns.length === 0) {
       return null;
@@ -55,7 +55,7 @@ const Download = {
     return Router.matchRules(filenamePatterns, state.info);
   },
 
-  renameAndDownload: state => {
+  renameAndDownload: (state) => {
     const naiveFilename = Download.getFilenameFromUrl(state.info.url);
     const initialFilename =
       state.info.suggestedFilename || naiveFilename || state.info.url;
@@ -63,7 +63,7 @@ const Download = {
     Object.assign(state.info, {
       naiveFilename,
       filename: initialFilename,
-      initialFilename
+      initialFilename,
     });
 
     state.path = Variable.applyVariables(state.path, state.info);
@@ -84,7 +84,7 @@ const Download = {
       return;
     }
 
-    const download = _state => {
+    const download = (_state) => {
       const finalFullPath = Download.finalizeFullPath(_state);
 
       if (window.SI_DEBUG) {
@@ -98,7 +98,7 @@ const Download = {
       const shiftHeldPrompt =
         options.promptOnShift &&
         _state.info.modifiers &&
-        typeof _state.info.modifiers.find(m => m === "Shift") !== "undefined";
+        typeof _state.info.modifiers.find((m) => m === "Shift") !== "undefined";
       const noRuleMatchedPrompt = options.routeFailurePrompt && !state.route;
 
       const prompt =
@@ -107,25 +107,25 @@ const Download = {
         shiftHeldPrompt ||
         noRuleMatchedPrompt;
 
-      const browserDownload = _url => {
+      const browserDownload = (_url) => {
         browser.downloads.download({
           url: _url,
           filename: finalFullPath || "_",
           saveAs: prompt,
-          conflictAction: options.conflictAction
+          conflictAction: options.conflictAction,
         });
       };
 
-      const fetchDownload = _url => {
+      const fetchDownload = (_url) => {
         fetch(_url)
-          .then(response => response.blob())
-          .then(myBlob => {
+          .then((response) => response.blob())
+          .then((myBlob) => {
             const objectURL = URL.createObjectURL(myBlob);
             browser.downloads.download({
               url: objectURL,
               filename: finalFullPath || "_",
               saveAs: prompt,
-              conflictAction: options.conflictAction
+              conflictAction: options.conflictAction,
             });
           });
       };
@@ -133,12 +133,12 @@ const Download = {
       if (options.fetchViaContent) {
         Messaging.send
           .fetchViaContent(_state)
-          .then(res => {
+          .then((res) => {
             // Object URL has to be created inside the background script
             const objectUrl = URL.createObjectURL(res.body.blob);
             return browserDownload(objectUrl);
           })
-          .catch(e => {
+          .catch((e) => {
             if (window.SI_DEBUG) {
               console.log("Failed to fetch via content", e); // eslint-disable-line
             }
@@ -166,12 +166,11 @@ const Download = {
       // Set globalChromeState as well for headers
       globalChromeState = state;
       fetch(state.info.url, { method: "HEAD", credentials: "include" })
-        .then(res => {
+        .then((res) => {
           if (res.headers.has("Content-Disposition")) {
             const disposition = res.headers.get("Content-Disposition");
-            const dispositionName = Download.getFilenameFromContentDisposition(
-              disposition
-            );
+            const dispositionName =
+              Download.getFilenameFromContentDisposition(disposition);
             state.info.filename = dispositionName || state.info.filename;
           }
           download(state);
@@ -195,12 +194,12 @@ const Download = {
       Notification.createExtensionNotification(
         browser.i18n.getMessage("notificationRuleMatchFailedExclusiveTitle"),
         browser.i18n.getMessage("notificationRuleMatchFailedExclusiveMessage", [
-          state.info.url
+          state.info.url,
         ]),
         true
       );
     }
-  }
+  },
 };
 
 if (chrome && chrome.downloads && chrome.downloads.onDeterminingFilename) {
@@ -219,7 +218,7 @@ if (chrome && chrome.downloads && chrome.downloads.onDeterminingFilename) {
       ) {
         suggest({
           filename: Download.finalizeFullPath(globalChromeState),
-          conflictAction: options.conflictAction
+          conflictAction: options.conflictAction,
         });
       }
     }

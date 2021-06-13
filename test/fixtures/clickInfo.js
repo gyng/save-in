@@ -14,13 +14,13 @@ const firefoxInfo = {
     lastAccessed: 1532606200506,
     audible: false,
     mutedInfo: {
-      muted: false
+      muted: false,
     },
     isArticle: false,
     isInReaderMode: false,
     url: "https://pbs.twimg.com/media/Di6uEBuVsAEYVBw.jpg:orig",
     title: "Di6uEBuVsAEYVBw.jpg:orig (JPEG Image, 25 × 24 pixels)",
-    favIconUrl: "https://pbs.twimg.com/media/Di6uEBuVsAEYVBw.jpg:orig"
+    favIconUrl: "https://pbs.twimg.com/media/Di6uEBuVsAEYVBw.jpg:orig",
   },
   now: "2019-12-21T10:14:54.508Z",
   pageUrl:
@@ -40,25 +40,25 @@ const firefoxInfo = {
       {
         name: "filename",
         value: {},
-        type: "MATCHER"
+        type: "MATCHER",
       },
       {
         name: "sourceurl",
         value: {},
-        type: "MATCHER"
+        type: "MATCHER",
       },
       {
         name: "capture",
         value: "filename",
-        type: "CAPTURE"
+        type: "CAPTURE",
       },
       {
         name: "into",
         value: ":$1:",
-        type: "DESTINATION"
-      }
-    ]
-  ]
+        type: "DESTINATION",
+      },
+    ],
+  ],
 };
 
 const chromeInfo = {
@@ -73,7 +73,7 @@ const chromeInfo = {
     incognito: false,
     index: 1,
     mutedInfo: {
-      muted: false
+      muted: false,
     },
     openerTabId: 1060,
     pinned: false,
@@ -82,7 +82,7 @@ const chromeInfo = {
     title: "Di6uEBuVsAEYVBw.jpg:orig (25×24)",
     url: "chrome://newtab/",
     width: 1236,
-    windowId: 1059
+    windowId: 1059,
   },
   now: "2018-07-26T12:07:55.529Z",
   pageUrl: "https://pbs.twimg.com/media/Di6uEBuVsAEYVBw.jpg:orig",
@@ -94,10 +94,10 @@ const chromeInfo = {
   comment: "",
   naiveFilename: "Di6uEBuVsAEYVBw.jpg:orig",
   filename: "Di6uEBuVsAEYVBw.jpg_orig",
-  initialFilename: "Di6uEBuVsAEYVBw.jpg:orig"
+  initialFilename: "Di6uEBuVsAEYVBw.jpg:orig",
 };
 
 module.exports = {
   chromeInfo,
-  firefoxInfo
+  firefoxInfo,
 };

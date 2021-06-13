@@ -1,8 +1,8 @@
 const Headers = {
-  refererListener: details => {
+  refererListener: (details) => {
     // TODO: option to ignore or rewrite referer, check if needed
     const existingReferer = details.requestHeaders.find(
-      h => h.name === "Referer"
+      (h) => h.name === "Referer"
     );
     if (existingReferer) {
       return {};
@@ -19,7 +19,7 @@ const Headers = {
 
     const referer = {
       name: "Referer",
-      value: pageUrl
+      value: pageUrl,
     };
     details.requestHeaders.push(referer);
 
@@ -34,7 +34,7 @@ const Headers = {
     if (options.setRefererHeader) {
       const filterList = options.setRefererHeaderFilter || "";
 
-      const urls = filterList.split("\n").map(s => s.trim());
+      const urls = filterList.split("\n").map((s) => s.trim());
 
       const listenerOptions = ["blocking", "requestHeaders"];
 
@@ -51,7 +51,7 @@ const Headers = {
         listenerOptions
       );
     }
-  }
+  },
 };
 
 // Export for testing

@@ -1,25 +1,23 @@
 const RouterFactory = {
-  makeInfoMatcherFactory: (
-    propertyName,
-    alternativePropertyName
-  ) => regex => info => {
-    let match = info[propertyName] && info[propertyName].match(regex);
+  makeInfoMatcherFactory:
+    (propertyName, alternativePropertyName) => (regex) => (info) => {
+      let match = info[propertyName] && info[propertyName].match(regex);
 
-    // Hack for sourceUrl, srcUrl
-    if (!match && alternativePropertyName) {
-      match =
-        info[alternativePropertyName] &&
-        info[alternativePropertyName].match(regex);
-    }
+      // Hack for sourceUrl, srcUrl
+      if (!match && alternativePropertyName) {
+        match =
+          info[alternativePropertyName] &&
+          info[alternativePropertyName].match(regex);
+      }
 
-    if (window.SI_DEBUG && match) {
+      if (window.SI_DEBUG && match) {
       console.log("matched", match, regex, info); // eslint-disable-line
-    }
+      }
 
-    return match;
-  },
+      return match;
+    },
 
-  makeTabMatcherFactory: propertyName => regex => info => {
+  makeTabMatcherFactory: (propertyName) => (regex) => (info) => {
     const match =
       currentTab &&
       currentTab[propertyName] &&
@@ -32,7 +30,7 @@ const RouterFactory = {
     return match;
   },
 
-  makeHostnameMatcherFactory: propertyName => regex => info => {
+  makeHostnameMatcherFactory: (propertyName) => (regex) => (info) => {
     try {
       const url = new URL(info && info[propertyName]);
 
@@ -51,39 +49,45 @@ const RouterFactory = {
 
       return null;
     }
-  }
+  },
 };
 
 const Router = {
   matcherFunctions: {
-    context: regex => (info, { context }) => {
-      const match = context.toLowerCase().match(regex);
+    context:
+      (regex) =>
+      (info, { context }) => {
+        const match = context.toLowerCase().match(regex);
 
-      if (window.SI_DEBUG && match) {
+        if (window.SI_DEBUG && match) {
         console.log("matched", match, regex, info); // eslint-disable-line
-      }
+        }
 
-      return match;
-    },
-    menuindex: regex => (info, { menuIndex } = {}) => {
-      const match = menuIndex.match(regex);
+        return match;
+      },
+    menuindex:
+      (regex) =>
+      (info, { menuIndex } = {}) => {
+        const match = menuIndex.match(regex);
 
-      if (window.SI_DEBUG && match) {
+        if (window.SI_DEBUG && match) {
         console.log("matched", match, regex, info); // eslint-disable-line
-      }
+        }
 
-      return match;
-    },
-    comment: regex => (info, { comment } = {}) => {
-      const match = comment.match(regex);
+        return match;
+      },
+    comment:
+      (regex) =>
+      (info, { comment } = {}) => {
+        const match = comment.match(regex);
 
-      if (window.SI_DEBUG && match) {
+        if (window.SI_DEBUG && match) {
         console.log("matched", match, regex, info); // eslint-disable-line
-      }
+        }
 
-      return match;
-    },
-    fileext: regex => info => {
+        return match;
+      },
+    fileext: (regex) => (info) => {
       const url = info.sourceUrl || info.srcUrl || info.linkUrl || info.pageUrl;
       if (!url) return false;
 
@@ -98,22 +102,24 @@ const Router = {
 
       return match;
     },
-    filename: regex => (info, { filename } = {}) => {
-      const fn = (info && info.filename) || filename;
-      if (!fn) return false;
+    filename:
+      (regex) =>
+      (info, { filename } = {}) => {
+        const fn = (info && info.filename) || filename;
+        if (!fn) return false;
 
-      const match = fn.match(regex);
+        const match = fn.match(regex);
 
-      if (window.SI_DEBUG && match) {
+        if (window.SI_DEBUG && match) {
         console.log("matched", match, regex, info); // eslint-disable-line
-      }
+        }
 
-      return match;
-    },
+        return match;
+      },
     frameurl: RouterFactory.makeInfoMatcherFactory("frameUrl"),
     linktext: RouterFactory.makeInfoMatcherFactory("linkText"),
     mediatype: RouterFactory.makeInfoMatcherFactory("mediaType"),
-    naivefilename: regex => info => {
+    naivefilename: (regex) => (info) => {
       const url = info.srcUrl || info.linkUrl || info.pageUrl;
       if (!url) return false;
 
@@ -133,28 +139,28 @@ const Router = {
     pagetitle: RouterFactory.makeTabMatcherFactory("title"),
     pageurl: RouterFactory.makeInfoMatcherFactory("pageUrl"),
     selectiontext: RouterFactory.makeInfoMatcherFactory("selectionText"),
-    sourceurl: RouterFactory.makeInfoMatcherFactory("sourceUrl", "srcUrl")
+    sourceurl: RouterFactory.makeInfoMatcherFactory("sourceUrl", "srcUrl"),
   },
 
-  tokenizeLines: lines =>
+  tokenizeLines: (lines) =>
     lines
       .split("\n")
-      .map(l => ({ l, matches: l.match(/^(\S*): ?(.*)/) }))
-      .map(toks => {
+      .map((l) => ({ l, matches: l.match(/^(\S*): ?(.*)/) }))
+      .map((toks) => {
         if (!toks.matches || toks.matches.length < 3) {
           window.optionErrors.filenamePatterns.push({
             message: browser.i18n.getMessage("ruleBadClause"),
-            error: `${toks.l || "invalid line syntax"}`
+            error: `${toks.l || "invalid line syntax"}`,
           });
           return null;
         }
 
         return toks.matches;
       })
-      .filter(toks => toks && toks.length >= 3),
+      .filter((toks) => toks && toks.length >= 3),
 
-  parseRule: lines => {
-    const matchers = lines.map(tokens => {
+  parseRule: (lines) => {
+    const matchers = lines.map((tokens) => {
       const name = tokens[1];
 
       let value;
@@ -166,7 +172,7 @@ const Router = {
       } catch (e) {
         window.optionErrors.filenamePatterns.push({
           message: browser.i18n.getMessage("ruleInvalidRegex"),
-          error: `${e}`
+          error: `${e}`,
         });
       }
 
@@ -186,7 +192,7 @@ const Router = {
         if (!matcher) {
           window.optionErrors.filenamePatterns.push({
             message: browser.i18n.getMessage("ruleUnknownMatcher"),
-            error: `${name}:`
+            error: `${name}:`,
           });
 
           return false;
@@ -196,76 +202,76 @@ const Router = {
           name,
           value,
           type,
-          matcher: matcher(value)
+          matcher: matcher(value),
         };
       } else {
         return {
           name,
           value,
-          type
+          type,
         };
       }
     });
 
-    if (!matchers.some(m => m.type === RULE_TYPES.DESTINATION)) {
+    if (!matchers.some((m) => m.type === RULE_TYPES.DESTINATION)) {
       window.optionErrors.filenamePatterns.push({
         message: browser.i18n.getMessage("ruleMissingInto"),
-        error: ""
+        error: "",
       });
 
       return false;
     }
 
-    const destination = matchers.find(m => m.type === RULE_TYPES.DESTINATION);
+    const destination = matchers.find((m) => m.type === RULE_TYPES.DESTINATION);
     if (
       destination.value.match(/:\$\d+:/) &&
-      !matchers.find(m => m.name === "capture")
+      !matchers.find((m) => m.name === "capture")
     ) {
       window.optionErrors.filenamePatterns.push({
         message: browser.i18n.getMessage("ruleMissingCapture"),
         error: destination.value,
-        warning: true
+        warning: true,
       });
     }
 
-    if (!matchers.some(m => m.type === RULE_TYPES.MATCHER)) {
+    if (!matchers.some((m) => m.type === RULE_TYPES.MATCHER)) {
       window.optionErrors.filenamePatterns.push({
         message: browser.i18n.getMessage("ruleMissingMatcher"),
-        error: JSON.stringify(lines.map(l => l[0]))
+        error: JSON.stringify(lines.map((l) => l[0])),
       });
 
       return false;
     }
 
-    const intoMatcher = matchers.filter(m => m.name === "into");
+    const intoMatcher = matchers.filter((m) => m.name === "into");
     if (intoMatcher.length >= 2) {
       window.optionErrors.filenamePatterns.push({
         message: browser.i18n.getMessage("ruleExtraInto"),
-        error: JSON.stringify(lines.map(l => l[0]))
+        error: JSON.stringify(lines.map((l) => l[0])),
       });
 
       return false;
     }
 
-    if (matchers.filter(m => m.name === "capture").length >= 2) {
+    if (matchers.filter((m) => m.name === "capture").length >= 2) {
       window.optionErrors.filenamePatterns.push({
         message: browser.i18n.getMessage("ruleMultipleCapture"),
-        error: JSON.stringify(lines.map(l => l[0]))
+        error: JSON.stringify(lines.map((l) => l[0])),
       });
 
       return false;
     }
 
     // Capture clause pointing at nothing
-    const captures = matchers.filter(m => m.name === "capture");
+    const captures = matchers.filter((m) => m.name === "capture");
     if (
       captures &&
       captures.length === 1 &&
-      matchers.filter(m => m.name === captures[0].value).length < 1
+      matchers.filter((m) => m.name === captures[0].value).length < 1
     ) {
       window.optionErrors.filenamePatterns.push({
         message: browser.i18n.getMessage("ruleCaptureMissingMatcher"),
-        error: `capture: ${captures[0].value}`
+        error: `capture: ${captures[0].value}`,
       });
 
       return false;
@@ -274,10 +280,10 @@ const Router = {
     return matchers;
   },
 
-  parseRules: raw => {
+  parseRules: (raw) => {
     const withoutComments = raw
       .split("\n")
-      .filter(l => !l.startsWith("//"))
+      .filter((l) => !l.startsWith("//"))
       .join("\n")
       .trim();
 
@@ -290,7 +296,7 @@ const Router = {
       .split("\n\n")
       .map(Router.tokenizeLines)
       .map(Router.parseRule)
-      .filter(r => !!r);
+      .filter((r) => !!r);
 
     if (window.SI_DEBUG) {
       console.log("parsedRules", rules); // eslint-disable-line
@@ -301,12 +307,12 @@ const Router = {
 
   getCaptureMatches: (rule, info) => {
     const captureDeclaration = rule.find(
-      d => d.type === RULE_TYPES.CAPTURE && d.name === "capture"
+      (d) => d.type === RULE_TYPES.CAPTURE && d.name === "capture"
     );
 
     if (captureDeclaration) {
       const captured = rule.find(
-        m =>
+        (m) =>
           m.type === RULE_TYPES.MATCHER && m.name === captureDeclaration.value
       );
 
@@ -322,14 +328,14 @@ const Router = {
 
   matchRule: (rule, info) => {
     const matches = rule
-      .filter(m => m.type === RULE_TYPES.MATCHER)
-      .map(m => m.matcher(info, info));
+      .filter((m) => m.type === RULE_TYPES.MATCHER)
+      .map((m) => m.matcher(info, info));
 
-    if (matches.some(m => !m)) {
+    if (matches.some((m) => !m)) {
       return false;
     }
 
-    let destination = rule.find(r => r.name === "into").value;
+    let destination = rule.find((r) => r.name === "into").value;
 
     // Regex capture groups
     const capturedMatches = Router.getCaptureMatches(rule, info);
@@ -352,7 +358,7 @@ const Router = {
     }
 
     return null;
-  }
+  },
 };
 
 // Export for testing

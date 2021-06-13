@@ -47,21 +47,21 @@ const Path = {
 
     finalize() {
       const stringifiedBuf = this.buf
-        .map(s => {
+        .map((s) => {
           if (s.type !== PATH_SEGMENT_TYPES.SEPARATOR) {
             return Path.PathSegment.String(s.val);
           } else {
             return s;
           }
         })
-        .map(s =>
+        .map((s) =>
           s.val ? s : Path.PathSegment.String(options.replacementChar || "_")
         );
 
       const sanitizedStringifiedBuf = Path.sanitizeBufStrings(stringifiedBuf);
 
       const finalizedPath = Object.assign(new _Path(), this, {
-        buf: sanitizedStringifiedBuf
+        buf: sanitizedStringifiedBuf,
       });
 
       return finalizedPath.toString();
@@ -84,7 +84,7 @@ const Path = {
       ) {
         return {
           valid: false,
-          message: browser.i18n.getMessage("rulePathStartsWithDot")
+          message: browser.i18n.getMessage("rulePathStartsWithDot"),
         };
       }
 
@@ -97,7 +97,7 @@ const Path = {
         ) {
           return {
             valid: false,
-            message: browser.i18n.getMessage("rulePathInvalidCharacter")
+            message: browser.i18n.getMessage("rulePathInvalidCharacter"),
           };
         }
       }
@@ -144,7 +144,7 @@ const Path = {
     return fsSafe;
   },
 
-  sanitizeBufStrings: buf =>
+  sanitizeBufStrings: (buf) =>
     buf.map((s, i) => {
       if (i === 0 && s.type === PATH_SEGMENT_TYPES.STRING && s.val === ".") {
         return s;
@@ -180,12 +180,12 @@ const Path = {
       split = [split];
     }
 
-    const tokenized = split.map(c =>
-      c.split(specialDirRegexp).filter(sub => sub.length > 0)
+    const tokenized = split.map((c) =>
+      c.split(specialDirRegexp).filter((sub) => sub.length > 0)
     );
     const flattened = [].concat.apply([], tokenized); // eslint-disable-line
 
-    const parsed = flattened.map(tok => {
+    const parsed = flattened.map((tok) => {
       if (tok.match(Path.SEPARATOR_REGEX_INCLUSIVE)) {
         return Path.PathSegment.Separator(tok);
       } else if (tok.match(specialDirRegexp)) {
@@ -195,7 +195,7 @@ const Path = {
     });
 
     return parsed;
-  }
+  },
 };
 
 // Export for testing

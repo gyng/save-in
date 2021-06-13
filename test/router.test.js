@@ -9,17 +9,17 @@ describe("filename rewrite and routing", () => {
     linkUrl: "http://link.com",
     pageUrl: "http://page.com",
     frameUrl: "http://frameurl.com",
-    linkText: "link text"
+    linkText: "link text",
   };
 
   beforeAll(() => {
     global.createExtensionNotification = () => {};
     global.optionErrors = {
       filenamePatterns: [],
-      paths: []
+      paths: [],
     };
     global.currentTab = {
-      title: "some title"
+      title: "some title",
     };
     global.browser = { i18n: { getMessage: () => {} } };
     global.getFilenameFromUrl = downloads.getFilenameFromUrl;
@@ -189,7 +189,7 @@ describe("filename rewrite and routing", () => {
           "filename: (.*)(:|-|=)(large|small|medium|thumb|orig)",
           "sourceurl: pbs.twimg.com",
           "capture: filename",
-          "into: :$1:"
+          "into: :$1:",
         ].join("\n")
       );
 
@@ -206,7 +206,7 @@ describe("filename rewrite and routing", () => {
           "filename: (.*)_(large|small|medium|thumb|orig)",
           "sourceurl: pbs.twimg.com",
           "capture: filename",
-          "into: :$1:"
+          "into: :$1:",
         ].join("\n")
       );
 

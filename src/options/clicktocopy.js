@@ -1,4 +1,4 @@
-const addClickToCopy = el => {
+const addClickToCopy = (el) => {
   let clicked;
 
   el.title = `Click to copy ${el.textContent} to clipboard`; // eslint-disable-line
@@ -8,7 +8,7 @@ const addClickToCopy = el => {
     document.execCommand("copy");
   });
 
-  document.addEventListener("copy", e => {
+  document.addEventListener("copy", (e) => {
     if (clicked !== el) {
       return;
     }

@@ -11,7 +11,8 @@
     "no-else-return": 0,
     "no-param-reassign": 0,
     "prefer-destructuring": 0,
-    "prefer-object-spread": 0
+    "prefer-object-spread": 0,
+    "import/extensions": 0
   },
   "globals": {
     "globalChromeState": false,

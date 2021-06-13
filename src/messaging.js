@@ -3,38 +3,38 @@
 const Messaging = {
   // Fires off and does not expect a return value
   emit: {
-    downloaded: state => {
+    downloaded: (state) => {
       browser.runtime.sendMessage({
         type: MESSAGE_TYPES.DOWNLOADED,
-        body: { state }
+        body: { state },
       });
-    }
+    },
   },
 
   // Returns a Promise
   send: {
-    fetchViaContent: state =>
+    fetchViaContent: (state) =>
       new Promise((resolve, reject) => {
         browser.tabs
           .query({
             currentWindow: true,
-            active: true
+            active: true,
           })
-          .then(tabs => {
+          .then((tabs) => {
             browser.tabs
               .sendMessage(tabs[0].id, {
                 type: MESSAGE_TYPES.FETCH_VIA_CONTENT,
-                body: { state }
+                body: { state },
               })
               .then(resolve)
-              .catch(err => {
+              .catch((err) => {
                 if (window.SI_DEBUG) {
                   console.log(err); // eslint-disable-line
                 }
                 reject(err);
               });
           });
-      })
+      }),
   },
 
   /**
@@ -66,7 +66,7 @@ const Messaging = {
     const last = window.lastDownloadState || {
       path: new Path.Path("."),
       scratch: {},
-      info: {}
+      info: {},
     };
 
     const opts = {
@@ -76,7 +76,7 @@ const Messaging = {
       selectionText: info.selectionText,
       sourceUrl: info.srcUrl,
       url,
-      context: DOWNLOAD_TYPES.CLICK
+      context: DOWNLOAD_TYPES.CLICK,
     };
 
     // Useful for passing in from external extensions
@@ -88,7 +88,7 @@ const Messaging = {
       path: last.path || new Path.Path("."),
       scratch: last.scratch,
       route: last.route,
-      info: Object.assign({}, last.info, opts, info)
+      info: Object.assign({}, last.info, opts, info),
     };
 
     requestedDownloadFlag = true;
@@ -96,9 +96,9 @@ const Messaging = {
 
     sendResponse({
       type: MESSAGE_TYPES.DOWNLOAD,
-      body: { status: MESSAGE_TYPES.OK }
+      body: { status: MESSAGE_TYPES.OK },
     });
-  }
+  },
 };
 
 browser.runtime.onMessageExternal.addListener(
@@ -119,7 +119,7 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
     case MESSAGE_TYPES.OPTIONS:
       sendResponse({
         type: MESSAGE_TYPES.OPTIONS,
-        body: options
+        body: options,
       });
       break;
     case MESSAGE_TYPES.OPTIONS_SCHEMA:
@@ -127,8 +127,8 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
         type: MESSAGE_TYPES.OPTIONS_SCHEMA,
         body: {
           keys: OptionsManagement.OPTION_KEYS,
-          types: OptionsManagement.OPTION_TYPES
-        }
+          types: OptionsManagement.OPTION_TYPES,
+        },
       });
       break;
     case MESSAGE_TYPES.GET_KEYWORDS:
@@ -136,8 +136,8 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
         type: MESSAGE_TYPES.KEYWORD_LIST,
         body: {
           matchers: Object.keys(Router.matcherFunctions),
-          variables: Object.keys(Variable.transformers)
-        }
+          variables: Object.keys(Variable.transformers),
+        },
       });
       break;
     case MESSAGE_TYPES.CHECK_ROUTES:
@@ -152,7 +152,7 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 [val]: Variable.applyVariables(
                   new Path.Path(val),
                   lastState.info
-                ).finalize()
+                ).finalize(),
               }),
             {}
           )
@@ -164,8 +164,8 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
           optionErrors: window.optionErrors,
           routeInfo: OptionsManagement.checkRoutes(lastState),
           lastDownload: window.lastDownloadState,
-          interpolatedVariables
-        }
+          interpolatedVariables,
+        },
       });
       break;
     case MESSAGE_TYPES.DOWNLOAD:

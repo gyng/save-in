@@ -6,7 +6,7 @@ const Koa = require("koa");
 const app = new Koa();
 
 const routes = {
-  cd: ctx => {
+  cd: (ctx) => {
     const filename = "test/me/out";
     const mimetype = "text/plain";
     ctx.body = "downloadthis";
@@ -14,7 +14,7 @@ const routes = {
     ctx.set("Content-type", mimetype);
     ctx.set("Cache-Control", "no-cache");
   },
-  root: ctx => {
+  root: (ctx) => {
     ctx.body = `<html>
       <a href="cd">Content-Disposition</a>
       <br>
@@ -27,7 +27,7 @@ const routes = {
       <a href="debian.v2.gz">debian.v2.gz</a><br>
       <a href="debian.zip">debian.zip</a><br>
     </html>`;
-  }
+  },
 };
 
 app.use(serve("./test/mockserver/static"));

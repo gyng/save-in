@@ -1,6 +1,6 @@
 const getOptionsSchema = browser.runtime
   .sendMessage({ type: "OPTIONS_SCHEMA" })
-  .then(res => res.body);
+  .then((res) => res.body);
 
 const updateErrors = () => {
   const pathsErrors = document.querySelector("#error-paths");
@@ -14,7 +14,7 @@ const updateErrors = () => {
 
     const errors = body.optionErrors;
 
-    const row = err => {
+    const row = (err) => {
       const r = document.createElement("div");
       r.className = "error-row";
 
@@ -32,13 +32,13 @@ const updateErrors = () => {
     };
 
     if (errors.filenamePatterns.length > 0) {
-      errors.filenamePatterns.forEach(err => {
+      errors.filenamePatterns.forEach((err) => {
         rulesErrors.appendChild(row(err));
       });
     }
 
     if (errors.paths.length > 0) {
-      errors.paths.forEach(err => {
+      errors.paths.forEach((err) => {
         pathsErrors.appendChild(row(err));
       });
     }
@@ -75,7 +75,7 @@ const updateErrors = () => {
           tableBody.classList.toggle("hide");
           tableBody.innerHTML = "";
 
-          Object.keys(body.interpolatedVariables).forEach(key => {
+          Object.keys(body.interpolatedVariables).forEach((key) => {
             const val = body.interpolatedVariables[key];
 
             const variableRow = document.createElement("tr");
@@ -128,12 +128,12 @@ const updateErrors = () => {
 
           return div;
         })
-        .forEach(rowDiv => lastDlCapture.appendChild(rowDiv));
+        .forEach((rowDiv) => lastDlCapture.appendChild(rowDiv));
     }
   });
 };
 
-browser.runtime.onMessage.addListener(message => {
+browser.runtime.onMessage.addListener((message) => {
   switch (message.type) {
     case "DOWNLOADED":
       updateErrors();
@@ -143,13 +143,13 @@ browser.runtime.onMessage.addListener(message => {
   }
 });
 
-const saveOptions = e => {
+const saveOptions = (e) => {
   if (e) {
     e.preventDefault();
   }
 
   // Zip result -> schema
-  getOptionsSchema.then(schema => {
+  getOptionsSchema.then((schema) => {
     const toSave = schema.keys.reduce((acc, val) => {
       const el = document.getElementById(val.name);
       if (!el) {
@@ -158,22 +158,21 @@ const saveOptions = e => {
 
       const propMap = {
         [schema.types.BOOL]: "checked",
-        [schema.types.VALUE]: "value"
+        [schema.types.VALUE]: "value",
       };
-      const fn = val.onSave || (x => x);
+      const fn = val.onSave || ((x) => x);
       const optionValue = fn(el[propMap[val.type]]);
 
       return Object.assign(acc, { [val.name]: optionValue });
     }, {});
 
     browser.storage.local.set(toSave).then(() => {
-      browser.runtime.getBackgroundPage().then(w => {
+      browser.runtime.getBackgroundPage().then((w) => {
         w.reset();
       });
 
-      document.querySelector(
-        "#lastSavedAt"
-      ).textContent = new Date().toLocaleTimeString();
+      document.querySelector("#lastSavedAt").textContent =
+        new Date().toLocaleTimeString();
     });
   });
 };
@@ -181,22 +180,22 @@ const saveOptions = e => {
 // Set UI elements' value/checked
 const restoreOptionsHandler = (result, schema) => {
   // Zip result -> schema
-  const schemaWithValues = schema.keys.map(o =>
+  const schemaWithValues = schema.keys.map((o) =>
     Object.assign({}, o, { value: result[o.name] })
   );
 
-  schemaWithValues.forEach(o => {
+  schemaWithValues.forEach((o) => {
     const el = document.getElementById(o.name);
     if (!el) {
       return;
     }
 
-    const fn = o.onOptionsLoad || (x => x);
+    const fn = o.onOptionsLoad || ((x) => x);
     const val = typeof o.value === "undefined" ? o.default : fn(o.value);
 
     const propMap = {
       [schema.types.BOOL]: "checked",
-      [schema.types.VALUE]: "value"
+      [schema.types.VALUE]: "value",
     };
     el[propMap[o.type]] = val;
   });
@@ -205,15 +204,15 @@ const restoreOptionsHandler = (result, schema) => {
 };
 
 const restoreOptions = () =>
-  getOptionsSchema.then(schema => {
-    const keys = schema.keys.map(o => o.name);
+  getOptionsSchema.then((schema) => {
+    const keys = schema.keys.map((o) => o.name);
     browser.storage.local
       .get(keys)
-      .then(loaded => restoreOptionsHandler(loaded, schema));
+      .then((loaded) => restoreOptionsHandler(loaded, schema));
   });
 
-const addHelp = el => {
-  el.addEventListener("click", e => {
+const addHelp = (el) => {
+  el.addEventListener("click", (e) => {
     e.preventDefault();
     const targetEl = document.getElementById(el.dataset.helpFor);
     if (!targetEl) {
@@ -230,18 +229,17 @@ const addHelp = el => {
 document.addEventListener("DOMContentLoaded", restoreOptions);
 document.querySelectorAll(".help").forEach(addHelp);
 
-document.querySelector("#reset").addEventListener("click", e => {
+document.querySelector("#reset").addEventListener("click", (e) => {
   /* eslint-disable no-alert */
   e.preventDefault();
 
-  const resetFn = w => {
+  const resetFn = (w) => {
     const reset = w.confirm("Reset settings to defaults?");
 
     if (reset) {
       browser.storage.local.clear().then(() => {
-        document.querySelector(
-          "#lastSavedAt"
-        ).textContent = new Date().toLocaleTimeString();
+        document.querySelector("#lastSavedAt").textContent =
+          new Date().toLocaleTimeString();
 
         restoreOptions();
         updateErrors();
@@ -259,24 +257,24 @@ document.querySelector("#reset").addEventListener("click", e => {
 });
 
 if (CURRENT_BROWSER === BROWSERS.CHROME) {
-  document.querySelectorAll(".chrome-only").forEach(el => {
+  document.querySelectorAll(".chrome-only").forEach((el) => {
     el.classList.toggle("show");
   });
 
-  document.querySelectorAll(".chrome-enabled").forEach(el => {
+  document.querySelectorAll(".chrome-enabled").forEach((el) => {
     el.removeAttribute("disabled");
   });
 
   document.querySelector("html").style = "min-width: 600px;";
   // document.querySelector("body").style = "overflow-y: hidden;";
 
-  document.querySelectorAll(".chrome-disabled").forEach(el => {
+  document.querySelectorAll(".chrome-disabled").forEach((el) => {
     el.disabled = true;
   });
 }
 
-const setupAutosave = el => {
-  const autosaveCb = e => {
+const setupAutosave = (el) => {
+  const autosaveCb = (e) => {
     saveOptions(e);
     window.setTimeout(updateErrors, 200);
 
@@ -302,18 +300,18 @@ const setupAutosave = el => {
   }
 };
 
-["textarea", "input", "select"].forEach(type => {
+["textarea", "input", "select"].forEach((type) => {
   document.querySelectorAll(type).forEach(setupAutosave);
 });
 
-document.querySelectorAll(".popout").forEach(el => {
+document.querySelectorAll(".popout").forEach((el) => {
   el.addEventListener("click", () => {
     const target = el.dataset.popoutFor;
     window.open(target, null, "menubar=no,width=940,height=600,scrollbars=yes");
   });
 });
 
-const showJson = obj => {
+const showJson = (obj) => {
   const json = JSON.stringify(obj, null, 2);
   const outputEl = document.querySelector("#export-target");
   outputEl.style = "display: unset;";
@@ -321,15 +319,15 @@ const showJson = obj => {
 };
 
 document.querySelector("#settings-export").addEventListener("click", () => {
-  getOptionsSchema.then(schema => {
-    const keys = schema.keys.map(o => o.name);
-    browser.storage.local.get(keys).then(loaded => showJson(loaded));
+  getOptionsSchema.then((schema) => {
+    const keys = schema.keys.map((o) => o.name);
+    browser.storage.local.get(keys).then((loaded) => showJson(loaded));
   });
 });
 
 const importSettings = () => {
-  const load = w => {
-    getOptionsSchema.then(schema => {
+  const load = (w) => {
+    getOptionsSchema.then((schema) => {
       const json = w.prompt("Paste settings to import");
       try {
         if (json) {

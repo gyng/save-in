@@ -17,7 +17,7 @@ const Notification = {
       type: "basic",
       title: title || browser.i18n.getMessage("extensionName"),
       iconUrl: error ? ERROR_ICON_URL : ICON_URL,
-      message: message || browser.i18n.getMessage("genericUnknownError")
+      message: message || browser.i18n.getMessage("genericUnknownError"),
     });
 
     if (options && options.notifyDuration) {
@@ -43,7 +43,7 @@ const Notification = {
     return failed;
   },
 
-  addNotifications: options => {
+  addNotifications: (options) => {
     const notifyOnSuccess = options && options.notifyOnSuccess;
     const notifyOnFailure = options && options.notifyOnFailure;
     const notifyDuration = options && options.notifyDuration;
@@ -53,7 +53,7 @@ const Notification = {
       console.log("Bad notify duration", options); // eslint-disable-line
     }
 
-    const onDownloadCreatedListener = item => {
+    const onDownloadCreatedListener = (item) => {
       if (requestedDownloadFlag) {
         downloadsList[item.id] = item;
         requestedDownloadFlag = false;
@@ -73,7 +73,7 @@ const Notification = {
     browser.downloads.onCreated.addListener(onDownloadCreatedListener);
     Notification.currentDownloadCreatedListener = onDownloadCreatedListener;
 
-    const onNotificationClickedListener = notId => {
+    const onNotificationClickedListener = (notId) => {
       if (String(notId).startsWith("save-in-not-")) {
         return;
       }
@@ -92,10 +92,11 @@ const Notification = {
         Notification.currentNotificationClickListener
       );
     }
-    Notification.currentNotificationClickListener = onNotificationClickedListener;
+    Notification.currentNotificationClickListener =
+      onNotificationClickedListener;
     browser.notifications.onClicked.addListener(onNotificationClickedListener);
 
-    const onDownloadChangeListener = downloadDelta => {
+    const onDownloadChangeListener = (downloadDelta) => {
       const item = downloadsList[downloadDelta.id];
 
       if (!item) {
@@ -147,18 +148,18 @@ const Notification = {
           browser.notifications.create(String(downloadDelta.id), {
             type: "basic",
             title: browser.i18n.getMessage("notificationFailureTitle", [
-              filename
+              filename,
             ]),
             iconUrl: ERROR_ICON_URL,
             message:
-              failed.current || browser.i18n.getMessage("genericUnknownError")
+              failed.current || browser.i18n.getMessage("genericUnknownError"),
           });
         }
 
         if (promptOnFailure) {
           browser.downloads.download({
             url: downloadsList[downloadDelta.id].url,
-            saveAs: true
+            saveAs: true,
           });
         }
 
@@ -186,7 +187,7 @@ const Notification = {
         downloadDelta.state.current === "complete" &&
         downloadDelta.state.previous === "in_progress"
       ) {
-        browser.downloads.search({ id: downloadDelta.id }).then(res => {
+        browser.downloads.search({ id: downloadDelta.id }).then((res) => {
           let filesize = "";
           const mime = res.length > 0 && res[0].mime;
 
@@ -215,7 +216,7 @@ const Notification = {
             type: "basic",
             title,
             iconUrl: ICON_URL,
-            message: filename
+            message: filename,
           });
         });
 
@@ -248,7 +249,7 @@ const Notification = {
     }
     browser.downloads.onChanged.addListener(onDownloadChangeListener);
     Notification.currentDownloadChangeListener = onDownloadChangeListener;
-  }
+  },
 };
 
 // Export for testing

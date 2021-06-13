@@ -1,7 +1,7 @@
 // Short name for convenience
 const T = {
   BOOL: "BOOL",
-  VALUE: "VALUE"
+  VALUE: "VALUE",
 };
 
 let options = {};
@@ -16,7 +16,7 @@ const OptionsManagement = {
     {
       name: "contentClickToSaveButton",
       type: T.VALUE,
-      default: CLICK_TYPES.LEFT_CLICK
+      default: CLICK_TYPES.LEFT_CLICK,
     },
     { name: "debug", type: T.BOOL, fn: null, default: false },
     { name: "enableLastLocation", type: T.BOOL, default: true },
@@ -24,9 +24,9 @@ const OptionsManagement = {
     {
       name: "filenamePatterns",
       type: T.VALUE,
-      onSave: v => v.trim(),
-      onLoad: v => Router.parseRules(v),
-      default: ""
+      onSave: (v) => v.trim(),
+      onLoad: (v) => Router.parseRules(v),
+      default: "",
     },
     { name: "keyLastUsed", type: T.VALUE, default: "e" },
     { name: "keyRoot", type: T.VALUE, default: "e" },
@@ -36,7 +36,7 @@ const OptionsManagement = {
     {
       name: "preferLinksFilter",
       type: T.VALUE,
-      default: ".*commons.wikimedia.org/wiki/File:.*"
+      default: ".*commons.wikimedia.org/wiki/File:.*",
     },
     { name: "notifyDuration", type: T.VALUE, default: 7000 },
     { name: "notifyOnFailure", type: T.BOOL, default: true },
@@ -47,9 +47,9 @@ const OptionsManagement = {
     {
       name: "paths",
       type: T.VALUE,
-      onSave: v => v.trim() || ".",
+      onSave: (v) => v.trim() || ".",
       default:
-        ".\nimages\nimages/cute\nvideos\n\nsubmenu\n>submenu/subdir\n>>submenu/subdir/2 // (alias: actual display name)\n>submenu/subdir2 // comments"
+        ".\nimages\nimages/cute\nvideos\n\nsubmenu\n>submenu/subdir\n>>submenu/subdir/2 // (alias: actual display name)\n>submenu/subdir2 // comments",
     },
     { name: "prompt", type: T.BOOL, default: false },
     { name: "promptIfNoExtension", type: T.BOOL, default: false },
@@ -66,7 +66,7 @@ const OptionsManagement = {
     {
       name: "shortcutType",
       type: T.VALUE,
-      default: SHORTCUT_TYPES.HTML_REDIRECT
+      default: SHORTCUT_TYPES.HTML_REDIRECT,
     },
     { name: "truncateLength", type: T.VALUE, default: 240 },
     { name: "fetchViaContent", type: T.BOOL, default: false },
@@ -77,8 +77,8 @@ const OptionsManagement = {
     {
       name: "setRefererHeaderFilter",
       type: T.VALUE,
-      default: "*://i.pximg.net/*"
-    }
+      default: "*://i.pximg.net/*",
+    },
   ],
 
   getKeys: () =>
@@ -93,11 +93,11 @@ const OptionsManagement = {
     }
   },
 
-  checkRoutes: state => {
+  checkRoutes: (state) => {
     if (!state) {
       return {
         path: null,
-        captures: null
+        captures: null,
       };
     }
 
@@ -114,7 +114,7 @@ const OptionsManagement = {
       filenamePatterns: options.filenamePatterns,
       // Chrome hack for filename: Chrome replaces special characters with `_`
       // This mutates(?) the last object and ruins it
-      filename: state.info.initialFilename || state.info.filename
+      filename: state.info.initialFilename || state.info.filename,
     });
     const last = Object.assign({}, state, { info: newInfo });
 
@@ -139,28 +139,30 @@ const OptionsManagement = {
 
     return {
       path: testLastResult,
-      captures: testLastCapture
+      captures: testLastCapture,
     };
-  }
+  },
 };
 
 OptionsManagement.loadOptions = () =>
-  browser.storage.local.get(OptionsManagement.getKeys()).then(loadedOptions => {
-    if (loadedOptions.debug) {
-      window.SI_DEBUG = 1;
-    }
+  browser.storage.local
+    .get(OptionsManagement.getKeys())
+    .then((loadedOptions) => {
+      if (loadedOptions.debug) {
+        window.SI_DEBUG = 1;
+      }
 
-    const localKeys = Object.keys(loadedOptions);
-    localKeys.forEach(k => {
-      const optionType = OptionsManagement.OPTION_KEYS.find(
-        ok => ok.name === k
-      );
-      const fn = optionType.onLoad || (x => x);
-      OptionsManagement.setOption(k, fn(loadedOptions[k]));
+      const localKeys = Object.keys(loadedOptions);
+      localKeys.forEach((k) => {
+        const optionType = OptionsManagement.OPTION_KEYS.find(
+          (ok) => ok.name === k
+        );
+        const fn = optionType.onLoad || ((x) => x);
+        OptionsManagement.setOption(k, fn(loadedOptions[k]));
+      });
+
+      return options;
     });
-
-    return options;
-  });
 
 // global
 options = OptionsManagement.OPTION_KEYS.reduce(

@@ -18,7 +18,7 @@ describe("variables", () => {
     selectionText: "selectionfoobar",
     currentTab: { title: "foobartitle" },
     filename: "lol.jpeg",
-    now: new Date()
+    now: new Date(),
   };
 
   beforeAll(() => {

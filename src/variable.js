@@ -10,16 +10,16 @@ const Variable = {
     }
   },
 
-  padDateComponent: num => num.toString().padStart(2, "0"),
+  padDateComponent: (num) => num.toString().padStart(2, "0"),
 
-  toDateString: d =>
+  toDateString: (d) =>
     [
       d.getFullYear(),
       Variable.padDateComponent(d.getMonth() + 1),
-      Variable.padDateComponent(d.getDate())
+      Variable.padDateComponent(d.getDate()),
     ].join("-"),
 
-  toISODateString: d =>
+  toISODateString: (d) =>
     [
       d.getUTCFullYear(),
       Variable.padDateComponent(d.getUTCMonth() + 1),
@@ -28,10 +28,10 @@ const Variable = {
       Variable.padDateComponent(d.getUTCHours()),
       Variable.padDateComponent(d.getUTCMinutes()),
       Variable.padDateComponent(d.getUTCSeconds()),
-      "Z"
+      "Z",
     ].join(""),
 
-  getFileExtension: filename => {
+  getFileExtension: (filename) => {
     const fileExtensionMatches = filename.match(Download.EXTENSION_REGEX);
     return (fileExtensionMatches && fileExtensionMatches[1]) || "";
   },
@@ -100,8 +100,8 @@ const Variable = {
           }
 
           return t;
-        })
-    })
+        }),
+    }),
 };
 
 if (typeof module !== "undefined") {

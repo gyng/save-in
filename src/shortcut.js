@@ -16,7 +16,7 @@ const Shortcut = {
           `Title=${name}`,
           `URL=${url}`,
           "[InternetShortcut]",
-          `URL=${url}`
+          `URL=${url}`,
         ].join("\n");
       }
       case SHORTCUT_TYPES.HTML_REDIRECT:
@@ -45,15 +45,16 @@ const Shortcut = {
 
     let shortcutFilename =
       downloadType === DOWNLOAD_TYPES.PAGE
-        ? `${suggestedFilename ||
+        ? `${
+            suggestedFilename ||
             (currentTab && currentTab.title) ||
             info.srcUrl ||
             info.linkUrl ||
-            info.pageUrl}`
-        : `${suggestedFilename ||
-            info.linkText ||
-            info.srcUrl ||
-            info.linkUrl}`;
+            info.pageUrl
+          }`
+        : `${
+            suggestedFilename || info.linkText || info.srcUrl || info.linkUrl
+          }`;
 
     shortcutFilename = `${Path.sanitizeFilename(
       shortcutFilename,
@@ -61,7 +62,7 @@ const Shortcut = {
     )}${shortcutExtension}`;
 
     return shortcutFilename;
-  }
+  },
 };
 
 // Export for testing

@@ -1,46 +1,46 @@
 const getKeywords = browser.runtime
   .sendMessage({ type: "GET_KEYWORDS" })
-  .then(res => res.body)
-  .then(keywords => ({
+  .then((res) => res.body)
+  .then((keywords) => ({
     matchers: keywords.matchers.sort(),
-    variables: keywords.variables.sort()
+    variables: keywords.variables.sort(),
   }));
 
-const matcherStrategy = matcherList => ({
+const matcherStrategy = (matcherList) => ({
   id: "matchers",
   match: /(^|\n)([a-z]+)$/,
   search: (term, callback) => {
-    callback(matcherList.filter(name => name.startsWith(term)));
+    callback(matcherList.filter((name) => name.startsWith(term)));
   },
-  template: name => `${name}:`,
-  replace: name => `$1${name}: `
+  template: (name) => `${name}:`,
+  replace: (name) => `$1${name}: `,
 });
 
-const routerVariableStrategy = variableList => ({
+const routerVariableStrategy = (variableList) => ({
   id: "routerVariables",
   match: /(\ninto:.*)(:[a-z]+)$/,
   search: (term, callback) => {
-    callback(variableList.filter(name => name.startsWith(term)));
+    callback(variableList.filter((name) => name.startsWith(term)));
   },
-  template: name => name,
-  replace: name => `$1${name}`
+  template: (name) => name,
+  replace: (name) => `$1${name}`,
 });
 
-const pathVariableStrategy = variableList => ({
+const pathVariableStrategy = (variableList) => ({
   id: "pathVariables",
   match: /(.*)(:[a-z]+)$/,
   search: (term, callback) => {
-    callback(variableList.filter(name => name.startsWith(term)));
+    callback(variableList.filter((name) => name.startsWith(term)));
   },
-  template: name => name,
-  replace: name => `$1${name}`
+  template: (name) => name,
+  replace: (name) => `$1${name}`,
 });
 
-const setupRoutingAutocomplete = keywords => {
+const setupRoutingAutocomplete = (keywords) => {
   const dropdownOptions = {
     dropdown: {
-      maxCount: Infinity
-    }
+      maxCount: Infinity,
+    },
   };
 
   const pathTextarea = document.getElementById("paths");
@@ -56,7 +56,7 @@ const setupRoutingAutocomplete = keywords => {
   );
   routerTextcomplete.register([
     matcherStrategy([...keywords.matchers, "into"]),
-    routerVariableStrategy(keywords.variables)
+    routerVariableStrategy(keywords.variables),
   ]);
 };
 

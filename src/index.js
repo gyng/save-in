@@ -4,7 +4,7 @@ window.init = () => {
   // FIXME
   window.optionErrors = {
     paths: [],
-    filenamePatterns: []
+    filenamePatterns: [],
   };
 
   OptionsManagement.loadOptions()
@@ -16,13 +16,13 @@ window.init = () => {
         notifyOnSuccess: options.notifyOnSuccess,
         notifyOnFailure: options.notifyOnFailure,
         notifyDuration: options.notifyDuration,
-        promptOnFailure: options.promptOnFailure
+        promptOnFailure: options.promptOnFailure,
       });
 
       const pathsArray = options.paths
         .split("\n")
-        .map(p => p.trim())
-        .filter(p => p && p.length > 0);
+        .map((p) => p.trim())
+        .filter((p) => p && p.length > 0);
 
       let contexts = options.links ? MEDIA_TYPES.concat(["link"]) : MEDIA_TYPES;
       contexts = options.selection ? contexts.concat(["selection"]) : contexts;
@@ -61,15 +61,15 @@ window.reset = () => {
 
 window.init();
 
-browser.tabs.onActivated.addListener(info => {
-  browser.tabs.get(info.tabId).then(t => {
+browser.tabs.onActivated.addListener((info) => {
+  browser.tabs.get(info.tabId).then((t) => {
     currentTab = t;
   });
 });
 
 browser.tabs.onUpdated.addListener((tabId, changeInfo) => {
   if (!currentTab) {
-    browser.tabs.get(tabId).then(t => {
+    browser.tabs.get(tabId).then((t) => {
       currentTab = t;
     });
   } else if (currentTab.id === tabId && changeInfo.title) {

@@ -14,7 +14,7 @@ describe("menu parsing", () => {
 
     const expected = {
       alias: "doggo is (cute!)",
-      foo: "bar"
+      foo: "bar",
     };
     expect(actual).toEqual(expected);
   });
@@ -28,12 +28,12 @@ describe("menu parsing", () => {
       comment: "comment (alias: baz)",
       depth: 1,
       meta: {
-        alias: "baz"
+        alias: "baz",
       },
       parsedDir: "i/foo/bar",
       validation: {
-        valid: true
-      }
+        valid: true,
+      },
     };
 
     expect(actual).toEqual(expected);
