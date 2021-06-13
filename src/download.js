@@ -108,18 +108,27 @@ const Download = {
         noRuleMatchedPrompt;
 
       const browserDownload = _url => {
-        // Add a 0ms timeout to work around bug
-        // https://bugzilla.mozilla.org/show_bug.cgi?id=1633191
-        // https://github.com/gyng/save-in/issues/166
-        window.setTimeout(() => {
-          browser.downloads.download({
-            url: _url,
-            filename: finalFullPath || "_",
-            saveAs: prompt,
-            conflictAction: options.conflictAction
-          });
-        }, 0);
+        browser.downloads.download({
+          url: _url,
+          filename: finalFullPath || "_",
+          saveAs: prompt,
+          conflictAction: options.conflictAction
+        });
       };
+
+      const fetchDownload = _url => {
+        fetch(_url)
+          .then(response => response.blob())
+          .then((myBlob) => {
+            const objectURL = URL.createObjectURL(myBlob);
+            browser.downloads.download({
+              url: objectURL,
+              filename: finalFullPath || "_",
+              saveAs: prompt,
+              conflictAction: options.conflictAction
+            });
+          });
+      }
 
       if (options.fetchViaContent) {
         Messaging.send
@@ -135,6 +144,8 @@ const Download = {
             }
             browserDownload(_state.info.url);
           });
+      } else if (options.fetchViaFetch) {
+        fetchDownload(_state.info.url);
       } else {
         browserDownload(_state.info.url);
       }

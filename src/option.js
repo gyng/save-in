@@ -70,6 +70,7 @@ const OptionsManagement = {
     },
     { name: "truncateLength", type: T.VALUE, default: 240 },
     { name: "fetchViaContent", type: T.BOOL, default: false },
+    { name: "fetchViaFetch", type: T.BOOL, default: false },
     { name: "tabEnabled", type: T.BOOL, default: false },
     { name: "closeTabOnSave", type: T.BOOL, default: false },
     { name: "setRefererHeader", type: T.BOOL, default: false },

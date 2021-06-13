@@ -1,4 +1,8 @@
-# 3.5.1
+# 3.5.3
+
+* Add "fetch via Fetch API" option for some incompatiable sites (eg, Instagram) (#166)
+
+# 3.5.2
 
 * Refactor `legacyDownloadInfo` out from code
 * Fix some potential bugs with filename and source URL routing

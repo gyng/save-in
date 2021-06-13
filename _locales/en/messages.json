@@ -530,6 +530,14 @@
     "message": "Do not enable this if you have no problems downloading. Download from the content page and not the extension, sending headers from the page itself. Some sites (eg. pixiv.net) require this to bypass server-side protections. Slower and prone to failure. Success/failure notifications do not work in this mode. Requires page refresh to take effect."
   },
 
+  "o_cFetchViaFetchAPI": {
+    "message": "Enable fetching via Fetch API"
+  },
+
+  "o_cFetchViaFetchAPIHelp": {
+    "message": "Do not enable this if you have no problems downloading. Download using HTML Fetch API instead of the browser’s Downloads API for extensions. Some sites (eg. Instagram) are incompatiable with Firefox’s Downloads API."
+  },
+
   "o_cSetRefererHeader": {
     "message": "Set the \"Referer\" header to page URL if it is missing"
   },
