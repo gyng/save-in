@@ -1,6 +1,6 @@
 # 3.5.3
 
-* Add "fetch via Fetch API" option for some incompatiable sites (eg, Instagram) (#166)
+* Add "fetch via Fetch API" option for some incompatible sites (eg, Instagram) (#166)
 * Upgrade webextension-polyfill to 0.8.0
 
 # 3.5.2
