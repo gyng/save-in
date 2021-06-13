@@ -108,12 +108,17 @@ const Download = {
         noRuleMatchedPrompt;
 
       const browserDownload = _url => {
-        browser.downloads.download({
-          url: _url,
-          filename: finalFullPath || "_",
-          saveAs: prompt,
-          conflictAction: options.conflictAction
-        });
+        // Add a 0ms timeout to work around bug
+        // https://bugzilla.mozilla.org/show_bug.cgi?id=1633191
+        // https://github.com/gyng/save-in/issues/166
+        window.setTimeout(() => {
+          browser.downloads.download({
+            url: _url,
+            filename: finalFullPath || "_",
+            saveAs: prompt,
+            conflictAction: options.conflictAction
+          });
+        }, 0);
       };
 
       if (options.fetchViaContent) {

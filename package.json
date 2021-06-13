@@ -1,15 +1,15 @@
 {
   "name": "save-in",
-  "version": "3.5.1",
+  "version": "3.5.2",
   "license": "MIT",
   "scripts": {
     "build": "env -u WEB_EXT_API_KEY -u WEB_EXT_API_SECRET web-ext build --overwrite-dest -i test docs yarn.lock yarn-error.log",
     "build:firefox:submit": "web-ext sign",
     "d": "env -u WEB_EXT_API_KEY -u WEB_EXT_API_SECRET web-ext run --verbose --start-url about:debugging --start-url about:addons",
-    "d:chromium": "web-ext run  --target chromium",
+    "d:chromium": "web-ext run --target chromium",
     "d:noenv": "web-ext run --verbose",
-    "d:win:stable": "web-ext run  --start-url about:debugging#/runtime/this-firefox --start-url about:addons --verbose --firefox=\"C:/Program Files/Mozilla Firefox/firefox.exe\" -s=\".\"",
-    "d:win:nightly": "web-ext run  --start-url about:debugging#/runtime/this-firefox --start-url about:addons --verbose --firefox=\"C:/Program Files/Nightly/firefox.exe\" -s=\".\"",
+    "d:win:stable": "web-ext run --start-url about:debugging#/runtime/this-firefox --start-url about:addons --verbose --firefox=\"C:/Program Files/Mozilla Firefox/firefox.exe\" -s=\".\"",
+    "d:win:nightly": "web-ext run --start-url about:debugging#/runtime/this-firefox --start-url about:addons --verbose --firefox=\"C:/Program Files/Firefox Nightly/firefox.exe\" -s=\".\"",
     "lint": "web-ext lint && eslint src test",
     "lint:fix": "eslint --fix src test",
     "mockserve": "node test/mockserver",
@@ -34,7 +34,7 @@
     "koa-route": "^3.2.0",
     "koa-static": "^5.0.0",
     "prettier": "^1.19.1",
-    "web-ext": "^3.2.1"
+    "web-ext": "^6.1.0"
   },
   "jest": {
     "setupFiles": [
