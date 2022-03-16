@@ -123,7 +123,7 @@ const updateErrors = () => {
 
           const value = document.createElement("div");
           value.className = "match-row-result";
-          value.textContent = body.routeInfo.captures[i];
+          value.textContent = body.routeInfo.captures[i + 1];
           div.appendChild(value);
 
           return div;

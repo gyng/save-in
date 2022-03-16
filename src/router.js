@@ -11,7 +11,7 @@ const RouterFactory = {
       }
 
       if (window.SI_DEBUG && match) {
-      console.log("matched", match, regex, info); // eslint-disable-line
+        console.log("matched", match, regex, info); // eslint-disable-line
       }
 
       return match;
@@ -60,7 +60,7 @@ const Router = {
         const match = context.toLowerCase().match(regex);
 
         if (window.SI_DEBUG && match) {
-        console.log("matched", match, regex, info); // eslint-disable-line
+          console.log("matched", match, regex, info); // eslint-disable-line
         }
 
         return match;
@@ -71,7 +71,7 @@ const Router = {
         const match = menuIndex.match(regex);
 
         if (window.SI_DEBUG && match) {
-        console.log("matched", match, regex, info); // eslint-disable-line
+          console.log("matched", match, regex, info); // eslint-disable-line
         }
 
         return match;
@@ -82,7 +82,7 @@ const Router = {
         const match = comment.match(regex);
 
         if (window.SI_DEBUG && match) {
-        console.log("matched", match, regex, info); // eslint-disable-line
+          console.log("matched", match, regex, info); // eslint-disable-line
         }
 
         return match;
@@ -111,7 +111,7 @@ const Router = {
         const match = fn.match(regex);
 
         if (window.SI_DEBUG && match) {
-        console.log("matched", match, regex, info); // eslint-disable-line
+          console.log("matched", match, regex, info); // eslint-disable-line
         }
 
         return match;
@@ -267,6 +267,21 @@ const Router = {
     if (
       captures &&
       captures.length === 1 &&
+      captures[0].value.split(",").length > 1
+    ) {
+      const captureMatchers = captures[0].value.split(",").map((m) => m.trim());
+      for (let i = 0; i < captureMatchers.length; i += 1)
+        if (matchers.filter((m) => m.name === captureMatchers[i]).length < 1) {
+          window.optionErrors.filenamePatterns.push({
+            message: browser.i18n.getMessage("ruleCaptureMissingMatcher"),
+            error: `capture: ${captures[0].value}`,
+          });
+
+          return false;
+        }
+    } else if (
+      captures &&
+      captures.length === 1 &&
       matchers.filter((m) => m.name === captures[0].value).length < 1
     ) {
       window.optionErrors.filenamePatterns.push({
@@ -310,17 +325,26 @@ const Router = {
       (d) => d.type === RULE_TYPES.CAPTURE && d.name === "capture"
     );
 
+    const capturedAll = [];
     if (captureDeclaration) {
-      const captured = rule.find(
-        (m) =>
-          m.type === RULE_TYPES.MATCHER && m.name === captureDeclaration.value
-      );
+      const capturedMatcherNames = captureDeclaration.value
+        .split(",")
+        .map((m) => m.trim());
+      for (let i = 0; i < capturedMatcherNames.length; i += 1) {
+        const captured = rule.find(
+          (m) =>
+            m.type === RULE_TYPES.MATCHER && m.name === capturedMatcherNames[i]
+        );
+        if (captured && captured.matcher && captured.matcher(info)) {
+          capturedAll.push(captured.matcher(info));
+        }
+      }
 
-      if (!captured || !captured.matcher) {
+      if (capturedAll.length !== capturedMatcherNames.length) {
         return null;
       }
 
-      return captured.matcher(info);
+      return capturedAll.flat();
     } else {
       return null;
     }
