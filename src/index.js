@@ -1,3 +1,8 @@
+// @ts-check
+
+/**
+ * @type {browser.tabs.Tab | null}
+ */
 let currentTab = null; // global variable
 
 window.init = () => {
@@ -8,11 +13,12 @@ window.init = () => {
   };
 
   OptionsManagement.loadOptions()
+    // @ts-ignore
     .then(browser.contextMenus.removeAll())
     .then(() => {
-      Headers.addRequestListener();
+      CustomHeaders.addRequestListener();
 
-      Notification.addNotifications({
+      CustomNotification.addNotifications({
         notifyOnSuccess: options.notifyOnSuccess,
         notifyOnFailure: options.notifyOnFailure,
         notifyDuration: options.notifyDuration,
@@ -24,6 +30,8 @@ window.init = () => {
         .map((p) => p.trim())
         .filter((p) => p && p.length > 0);
 
+      /** @type {browser.menus.ContextType[]} */
+      // @ts-ignore
       let contexts = options.links ? MEDIA_TYPES.concat(["link"]) : MEDIA_TYPES;
       contexts = options.selection ? contexts.concat(["selection"]) : contexts;
       contexts = options.page ? contexts.concat(["page"]) : contexts;
@@ -76,3 +84,9 @@ browser.tabs.onUpdated.addListener((tabId, changeInfo) => {
     currentTab.title = changeInfo.title;
   }
 });
+
+if (typeof module !== "undefined") {
+  module.exports = {
+    currentTab,
+  };
+}

@@ -1,5 +1,9 @@
+// @ts-check
+
 /* eslint-disable no-unused-vars */
 
+/** @type {State} */
+// @ts-ignore
 let globalChromeState = {};
 
 const Download = {
@@ -7,25 +11,26 @@ const Download = {
     /filename[^;=\n]*=((['"])(.*)?\2|(.+'')?([^;\n]*))/i,
   EXTENSION_REGEX: /\.([0-9a-z]{1,8})$/i,
 
-  makeObjectUrl: (content, mime = "text/plain") =>
+  makeObjectUrl: (/** @type {BlobPart} */ content, mime = "text/plain") =>
     URL.createObjectURL(
       new Blob([content], {
         type: `${mime};charset=utf-8`,
       })
     ),
 
-  getFilenameFromUrl: (url) => {
+  getFilenameFromUrl: (/** @type {string | URL} */ url) => {
     const remotePath = new URL(url).pathname;
     return decodeURIComponent(
       remotePath.substring(remotePath.lastIndexOf("/") + 1)
     );
   },
 
-  finalizeFullPath: (_state) => {
+  finalizeFullPath: (/** @type {State} */ _state) => {
     const finalDir = _state.path.finalize();
     const finalFilename = _state.route
       ? _state.route.finalize()
-      : Path.sanitizeFilename(_state.info.filename);
+      : // @ts-ignore
+        Path.sanitizeFilename(_state.info.filename);
     const finalFullPath = [finalDir, finalFilename]
       .filter((x) => x != null)
       .join("/");
@@ -33,7 +38,7 @@ const Download = {
     return finalFullPath.replace(/^\.\//, "");
   },
 
-  getFilenameFromContentDisposition: (disposition) => {
+  getFilenameFromContentDisposition: (/** @type {any} */ disposition) => {
     if (typeof disposition !== "string") return null;
 
     const filenameFromLib =
@@ -46,7 +51,7 @@ const Download = {
     return null;
   },
 
-  getRoutingMatches: (state) => {
+  getRoutingMatches: (/** @type {State} */ state) => {
     const filenamePatterns = options.filenamePatterns;
     if (!filenamePatterns || filenamePatterns.length === 0) {
       return null;
@@ -55,7 +60,8 @@ const Download = {
     return Router.matchRules(filenamePatterns, state.info);
   },
 
-  renameAndDownload: (state) => {
+  renameAndDownload: (/** @type {State} */ state) => {
+    // @ts-ignore
     const naiveFilename = Download.getFilenameFromUrl(state.info.url);
     const initialFilename =
       state.info.suggestedFilename || naiveFilename || state.info.url;
@@ -84,15 +90,16 @@ const Download = {
       return;
     }
 
-    const download = (_state) => {
+    const download = (/** @type {State} */ _state) => {
       const finalFullPath = Download.finalizeFullPath(_state);
 
       if (window.SI_DEBUG) {
         console.log(state, finalFullPath); // eslint-disable-line
       }
 
-      _state.scratch.hasExtension =
-        finalFullPath && finalFullPath.match(Download.EXTENSION_REGEX);
+      _state.scratch.hasExtension = Boolean(
+        finalFullPath && finalFullPath.match(Download.EXTENSION_REGEX)
+      );
       const noExtensionPrompt =
         options.promptIfNoExtension && !_state.scratch.hasExtension;
       const shiftHeldPrompt =
@@ -107,7 +114,11 @@ const Download = {
         shiftHeldPrompt ||
         noRuleMatchedPrompt;
 
-      const browserDownload = (_url) => {
+      const browserDownload = (/** @type {string | undefined} */ _url) => {
+        if (!_url) {
+          return;
+        }
+
         browser.downloads.download({
           url: _url,
           filename: finalFullPath || "_",
@@ -116,7 +127,11 @@ const Download = {
         });
       };
 
-      const fetchDownload = (_url) => {
+      const fetchDownload = (/** @type {string | undefined} */ _url) => {
+        if (!_url) {
+          return;
+        }
+
         fetch(_url)
           .then((response) => response.blob())
           .then((myBlob) => {
@@ -165,6 +180,7 @@ const Download = {
     } else {
       // Set globalChromeState as well for headers
       globalChromeState = state;
+      // @ts-ignore
       fetch(state.info.url, { method: "HEAD", credentials: "include" })
         .then((res) => {
           if (res.headers.has("Content-Disposition")) {
@@ -184,14 +200,14 @@ const Download = {
     // Trigger notifications
     if (state.route) {
       if (options.notifyOnRuleMatch) {
-        Notification.createExtensionNotification(
+        CustomNotification.createExtensionNotification(
           browser.i18n.getMessage("notificationRuleMatchedTitle"),
           `${state.info.initialFilename}\n⬇\n${state.route}`,
           false
         );
       }
     } else if (options.routeExclusive && options.notifyOnFailure) {
-      Notification.createExtensionNotification(
+      CustomNotification.createExtensionNotification(
         browser.i18n.getMessage("notificationRuleMatchFailedExclusiveTitle"),
         browser.i18n.getMessage("notificationRuleMatchFailedExclusiveMessage", [
           state.info.url,
@@ -205,10 +221,14 @@ const Download = {
 if (chrome && chrome.downloads && chrome.downloads.onDeterminingFilename) {
   chrome.downloads.onDeterminingFilename.addListener(
     (downloadItem, suggest) => {
+      // @ts-ignore
       globalChromeState.info = globalChromeState.info || {};
+      // @ts-ignore
       globalChromeState.info.filename =
+        // @ts-ignore
         (globalChromeState.info && globalChromeState.info.suggestedFilename) ||
         downloadItem.filename ||
+        // @ts-ignore
         (globalChromeState.info && globalChromeState.info.filename);
 
       // Don't interfere with other extensions

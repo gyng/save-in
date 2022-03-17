@@ -1,24 +1,33 @@
+// @ts-check
+
+/** @type {null | string} */
 let lastUsedPath = null; // global variable
 
-const Menus = {
-  IDS: {
-    TABSTRIP: {
-      SELECTED_TAB: "save-in-_-_-SI-selected-tab",
-      SELECTED_MULTIPLE_TABS: "save-in-_-_-SI-selected-multiple-tabs",
-      TO_RIGHT: "save-in-_-_-SI-to-right",
-      TO_RIGHT_MATCH: "save-in-_-_-SI-to-right-match",
-      OPENED_FROM_TAB: "save-in-_-_-SI-opened-from-tab",
-    },
-    ROOT: "save-in-_-_-root",
-    LAST_USED: "save-in-_-_-last-used",
+const IDS = {
+  TABSTRIP: {
+    SELECTED_TAB: "save-in-_-_-SI-selected-tab",
+    SELECTED_MULTIPLE_TABS: "save-in-_-_-SI-selected-multiple-tabs",
+    TO_RIGHT: "save-in-_-_-SI-to-right",
+    TO_RIGHT_MATCH: "save-in-_-_-SI-to-right-match",
+    OPENED_FROM_TAB: "save-in-_-_-SI-opened-from-tab",
   },
+  ROOT: "save-in-_-_-root",
+  LAST_USED: "save-in-_-_-last-used",
+};
 
+const Menus = {
+  IDS,
+
+  /** @type {Record<string | number, string>} */
   titles: {},
 
   makeSeparator: (() => {
     let separatorCounter = 0;
 
-    const makeSeparatorInner = (contexts, parentId = Menus.IDS.ROOT) => {
+    const makeSeparatorInner = (
+      /** @type {browser.contextMenus._ContextType[]} */ contexts,
+      parentId = IDS.ROOT
+    ) => {
       browser.contextMenus.create({
         id: `separator-${separatorCounter}`,
         type: "separator",
@@ -31,21 +40,24 @@ const Menus = {
     return makeSeparatorInner;
   })(),
 
-  setAccesskey: (str, key) => {
+  setAccesskey: (
+    /** @type {string} */ str,
+    /** @type {string | number} */ key
+  ) => {
     if (!BROWSER_FEATURES.accessKeys) {
       return str;
     }
 
-    if (str.includes(key)) {
-      return str.replace(key, `&${key}`);
+    if (str.includes(key.toString())) {
+      return str.replace(key.toString(), `&${key}`);
     } else {
       return `${str} (&${key})`;
     }
   },
 
-  addRoot: (contexts) => {
+  addRoot: (/** @type {browser.contextMenus._ContextType[]} */ contexts) => {
     browser.contextMenus.create({
-      id: Menus.IDS.ROOT,
+      id: IDS.ROOT,
       title: Menus.setAccesskey(
         browser.i18n.getMessage("contextMenuRoot"),
         options.keyRoot
@@ -54,7 +66,9 @@ const Menus = {
     });
   },
 
-  addRouteExclusive: (contexts) => {
+  addRouteExclusive: (
+    /** @type {browser.contextMenus._ContextType[]} */ contexts
+  ) => {
     browser.contextMenus.create({
       id: "save-in-_-_-route-exclusive",
       title: Menus.setAccesskey(
@@ -65,22 +79,26 @@ const Menus = {
     });
   },
 
-  addSelectionType: (contexts) => {
+  addSelectionType: (
+    /** @type {browser.contextMenus._ContextType[]} */ contexts
+  ) => {
     if (contexts.includes("link")) {
       browser.contextMenus.create({
         id: "download-context-media-link",
         title: browser.i18n.getMessage("contextMenuContextMediaOrLink"),
         enabled: false,
+        // @ts-ignore
         contexts: MEDIA_TYPES.concat("link"),
-        parentId: Menus.IDS.ROOT,
+        parentId: IDS.ROOT,
       });
     } else {
       browser.contextMenus.create({
         id: "download-context-media",
         title: browser.i18n.getMessage("contextMenuContextMedia"),
         enabled: false,
+        // @ts-ignore
         contexts: MEDIA_TYPES,
-        parentId: Menus.IDS.ROOT,
+        parentId: IDS.ROOT,
       });
     }
 
@@ -90,7 +108,7 @@ const Menus = {
         title: browser.i18n.getMessage("contextMenuContextSelection"),
         enabled: false,
         contexts: ["selection"],
-        parentId: Menus.IDS.ROOT,
+        parentId: IDS.ROOT,
       });
     }
 
@@ -100,12 +118,12 @@ const Menus = {
         title: browser.i18n.getMessage("contextMenuContextPage"),
         enabled: false,
         contexts: ["page"],
-        parentId: Menus.IDS.ROOT,
+        parentId: IDS.ROOT,
       });
     }
   },
 
-  addOptions: (contexts) => {
+  addOptions: (/** @type {browser.contextMenus._ContextType[]} */ contexts) => {
     browser.contextMenus.create({
       id: "options",
       title: browser.i18n.getMessage("contextMenuItemOptions"),
@@ -120,12 +138,14 @@ const Menus = {
     });
   },
 
-  addShowDefaultFolder: (contexts) => {
+  addShowDefaultFolder: (
+    /** @type {browser.contextMenus._ContextType[]} */ contexts
+  ) => {
     browser.contextMenus.create({
       id: "show-default-folder",
       title: browser.i18n.getMessage("contextMenuShowDefaultFolder"),
       contexts,
-      parentId: Menus.IDS.ROOT,
+      parentId: IDS.ROOT,
     });
 
     browser.contextMenus.onClicked.addListener((info) => {
@@ -135,15 +155,17 @@ const Menus = {
     });
   },
 
-  addLastUsed: (contexts) => {
+  addLastUsed: (
+    /** @type {browser.contextMenus._ContextType[]} */ contexts
+  ) => {
     const lastUsedTitle =
       lastUsedPath || browser.i18n.getMessage("contextMenuLastUsed");
     const lastUsedMenuOptions = {
-      id: Menus.IDS.LAST_USED,
+      id: IDS.LAST_USED,
       title: Menus.setAccesskey(lastUsedTitle, options.keyLastUsed),
       enabled: lastUsedPath ? true : false, // eslint-disable-line
       contexts,
-      parentId: Menus.IDS.ROOT,
+      parentId: IDS.ROOT,
     };
 
     // Chrome, FF < 57 crash when icons is supplied
@@ -161,7 +183,8 @@ const Menus = {
     }
   },
 
-  parseMeta: (comment) => {
+  /** @return {{ alias?: string }} */
+  parseMeta: (/** @type {string} */ comment) => {
     const matches = comment.match(/\(.+?:.+?\)+/g);
 
     if (!matches) {
@@ -181,11 +204,13 @@ const Menus = {
       }, {});
   },
 
-  parsePath: (dir) => {
+  parsePath: (/** @type {string} */ dir) => {
     const tokens = dir.split("//").map((tok) => tok.trim());
     const depthMatch = tokens[0].match(/^(>+)?(.+)/);
+    // @ts-ignore
     const arrows = depthMatch[1] || "";
     const depth = arrows.length;
+    // @ts-ignore
     const parsedDir = depthMatch[2].trim();
     const validation = new Path.Path(parsedDir).validate();
     const comment = (tokens[1] || "").trim();
@@ -201,10 +226,15 @@ const Menus = {
     };
   },
 
-  addPaths: (pathsArray, contexts) => {
+  addPaths: (
+    /** @type {any[]} */ pathsArray,
+    /** @type {browser.contextMenus._ContextType[]} */ contexts
+  ) => {
+    /** @type {Record<number, number>} */
     const menuItemCounter = { 0: 0 };
 
     // Create a stack for nested menus
+    /** @type {string[]} */
     let pathsNestingStack = [];
     let lastDepth = 0;
 
@@ -245,7 +275,7 @@ const Menus = {
 
         let parentId;
         if (depth === 0) {
-          parentId = Menus.IDS.ROOT;
+          parentId = IDS.ROOT;
         } else if (depth > pathsNestingStack.length) {
           parentId = pathsNestingStack[pathsNestingStack.length - 1];
         } else {
@@ -283,10 +313,12 @@ const Menus = {
   // TODO: refactor this to handle only paths, add tests
   addDownloadListener: () => {
     browser.contextMenus.onClicked.addListener((info) => {
-      if (Object.values(Menus.IDS.TABSTRIP).includes(info.menuItemId)) {
+      // @ts-ignore
+      if (Object.values(IDS.TABSTRIP).includes(info.menuItemId)) {
         return;
       }
 
+      // @ts-ignore
       const matchSave = info.menuItemId.match(/save-in-(\d|_)+-(.*?)-(.*)/);
 
       if (matchSave && matchSave.length === 4) {
@@ -300,6 +332,7 @@ const Menus = {
 
         const hasLink = options.links && info.linkUrl;
 
+        // @ts-ignore
         if (MEDIA_TYPES.includes(info.mediaType)) {
           downloadType = DOWNLOAD_TYPES.MEDIA;
           url = info.srcUrl;
@@ -310,8 +343,9 @@ const Menus = {
               url = info.linkUrl;
 
               if (options.notifyOnLinkPreferred) {
-                Notification.createExtensionNotification(
+                CustomNotification.createExtensionNotification(
                   browser.i18n.getMessage("notificationLinkPreferred"),
+                  // @ts-ignore
                   url
                 );
               }
@@ -325,13 +359,15 @@ const Menus = {
                   .map((s) => s.trim())
                   .map((s) => new RegExp(s))
                   .forEach((re) => {
+                    // @ts-ignore
                     if (info.pageUrl.match(re) != null) {
                       overrideUrls = true;
                     }
                   });
               } catch (err) {
-                Notification.createExtensionNotification(
+                CustomNotification.createExtensionNotification(
                   browser.i18n.getMessage("notificationBadPreferLinksPattern"),
+                  // @ts-ignore
                   err
                 );
               }
@@ -341,8 +377,9 @@ const Menus = {
                 url = info.linkUrl;
 
                 if (options.notifyOnLinkPreferred) {
-                  Notification.createExtensionNotification(
+                  CustomNotification.createExtensionNotification(
                     browser.i18n.getMessage("notificationLinkPreferred"),
+                    // @ts-ignore
                     url
                   );
                 }
@@ -357,6 +394,7 @@ const Menus = {
           url = Download.makeObjectUrl(info.selectionText);
           suggestedFilename = `${Path.truncateIfLongerThan(
             (currentTab && currentTab.title) || info.selectionText,
+            // @ts-ignore
             options.truncateLength - 14
           )}.selection.txt`;
         } else if (options.page && info.pageUrl) {
@@ -379,10 +417,11 @@ const Menus = {
         } else {
           saveIntoPath = matchedDir;
           lastUsedPath = saveIntoPath;
-          const title = Menus.titles[info.menuItemId] || lastUsedPath;
+          const title =
+            Menus.titles[info.menuItemId] || lastUsedPath || undefined;
 
           if (options.enableLastLocation) {
-            browser.contextMenus.update(Menus.IDS.LAST_USED, {
+            browser.contextMenus.update(IDS.LAST_USED, {
               title: BROWSER_FEATURES.accessKeys ? `${title} (&a)` : title,
               enabled: true,
             });
@@ -422,6 +461,7 @@ const Menus = {
           now: new Date(),
           pageUrl: info.pageUrl,
           selectionText: info.selectionText,
+          // @ts-ignore
           sourceUrl: info.srcUrl || info.url,
           url, // Changes based off context
           suggestedFilename, // wip: rename
@@ -450,21 +490,21 @@ const Menus = {
     }
 
     browser.contextMenus.create({
-      id: Menus.IDS.TABSTRIP.SELECTED_TAB,
+      id: IDS.TABSTRIP.SELECTED_TAB,
       title: browser.i18n.getMessage("tabstripMenuSelectedTab"),
       contexts: ["tab"],
     });
 
     if (BROWSER_FEATURES.multitab) {
       browser.contextMenus.create({
-        id: Menus.IDS.TABSTRIP.SELECTED_MULTIPLE_TABS,
+        id: IDS.TABSTRIP.SELECTED_MULTIPLE_TABS,
         title: browser.i18n.getMessage("tabstripMenuMultipleSelectedTab", [1]),
         contexts: ["tab"],
       });
 
       browser.tabs.onHighlighted.addListener((highlightInfo) => {
         const length = highlightInfo.tabIds.length;
-        browser.contextMenus.update(Menus.IDS.TABSTRIP.SELECTED_MULTIPLE_TABS, {
+        browser.contextMenus.update(IDS.TABSTRIP.SELECTED_MULTIPLE_TABS, {
           title: browser.i18n.getMessage("tabstripMenuMultipleSelectedTab", [
             length,
           ]),
@@ -474,51 +514,58 @@ const Menus = {
     }
 
     browser.contextMenus.create({
-      id: Menus.IDS.TABSTRIP.OPENED_FROM_TAB,
+      id: IDS.TABSTRIP.OPENED_FROM_TAB,
       title: browser.i18n.getMessage("tabstripMenuSaveChildrenTabs"),
       contexts: ["tab"],
     });
 
     browser.contextMenus.create({
-      id: Menus.IDS.TABSTRIP.TO_RIGHT,
+      id: IDS.TABSTRIP.TO_RIGHT,
       title: browser.i18n.getMessage("tabstripMenuSaveRightTabs"),
       contexts: ["tab"],
     });
 
     browser.contextMenus.create({
-      id: Menus.IDS.TABSTRIP.TO_RIGHT_MATCH,
+      id: IDS.TABSTRIP.TO_RIGHT_MATCH,
       title: browser.i18n.getMessage("tabstripMenuSaveRightTabsMatched"),
       contexts: ["tab"],
     });
 
-    const ids = Object.values(Menus.IDS.TABSTRIP);
+    const ids = Object.values(IDS.TABSTRIP);
 
     browser.contextMenus.onClicked.addListener((info, fromTab) => {
+      // @ts-ignore
       if (!ids.includes(info.menuItemId)) {
         return;
       }
 
       let filter = () => false;
+
+      /** @type {browser.tabs._QueryQueryInfo} */
       let query = {
         pinned: false,
+        // @ts-ignore
         windowId: fromTab.windowId,
         windowType: "normal",
       };
 
       switch (info.menuItemId) {
-        case Menus.IDS.TABSTRIP.SELECTED_TAB:
+        case IDS.TABSTRIP.SELECTED_TAB:
+          // @ts-ignore
           filter = (t) => t.id === fromTab.id;
           break;
-        case Menus.IDS.TABSTRIP.SELECTED_MULTIPLE_TABS:
+        case IDS.TABSTRIP.SELECTED_MULTIPLE_TABS:
           filter = () => true;
           query = Object.assign(query, { highlighted: true });
           break;
-        case Menus.IDS.TABSTRIP.TO_RIGHT:
-        case Menus.IDS.TABSTRIP.TO_RIGHT_MATCH:
+        case IDS.TABSTRIP.TO_RIGHT:
+        case IDS.TABSTRIP.TO_RIGHT_MATCH:
+          // @ts-ignore
           filter = (t) => t.index >= fromTab.index;
           break;
-        case Menus.IDS.TABSTRIP.OPENED_FROM_TAB:
+        case IDS.TABSTRIP.OPENED_FROM_TAB:
           filter = () => true;
+          // @ts-ignore
           query = Object.assign(query, { openerTabId: fromTab.id });
           break;
         default:
@@ -527,6 +574,7 @@ const Menus = {
 
       browser.tabs
         .query(query)
+        // @ts-ignore
         .then((tabs) => tabs.filter((t) => !t.url.match(/^(about|chrome):/)))
         .then((tabs) => tabs.filter(filter))
         .then((tabs) => {
@@ -571,12 +619,14 @@ const Menus = {
               };
 
               // keeps track of state of the final path
+              /**
+               * @type State
+               */
               const state = {
                 path: new Path.Path("."),
                 scratch: {},
                 info: opts,
-                needRouteMatch:
-                  info.menuItemId === Menus.IDS.TABSTRIP.TO_RIGHT_MATCH,
+                needRouteMatch: info.menuItemId === IDS.TABSTRIP.TO_RIGHT_MATCH,
               };
 
               Download.renameAndDownload(state);
@@ -584,6 +634,7 @@ const Menus = {
               // TODO: Store tabs marked for saving and close only on successful save
               if (options.closeTabOnSave) {
                 window.setTimeout(() => {
+                  // @ts-ignore
                   browser.tabs.remove(t.id);
                 }, timeoutInterval);
               }

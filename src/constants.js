@@ -1,3 +1,5 @@
+// @ts-check
+
 /* eslint-disable no-unused-vars */
 
 const MEDIA_TYPES = ["image", "video", "audio"];
@@ -90,9 +92,10 @@ const CLICK_TYPES = {
   MIDDLE_CLICK: "MIDDLE_CLICK",
 };
 
-// Export for testing
 if (typeof module !== "undefined") {
   module.exports = {
+    CLICK_TYPES,
+    DOWNLOAD_TYPES,
     MEDIA_TYPES,
     SPECIAL_DIRS,
     SHORTCUT_TYPES,

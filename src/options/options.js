@@ -1,20 +1,40 @@
+// @ts-check
+
+/** @type {Promise<{ keys: typeof OptionsManagement.OPTION_KEYS; types: typeof OptionsManagement.OPTION_TYPES; }>} */
 const getOptionsSchema = browser.runtime
   .sendMessage({ type: "OPTIONS_SCHEMA" })
   .then((res) => res.body);
 
 const updateErrors = () => {
+  /** @type {Element} */
+  // @ts-ignore
   const pathsErrors = document.querySelector("#error-paths");
+
+  /** @type {Element} */
+  // @ts-ignore
   const lastDlMatch = document.querySelector("#last-dl-match");
+
+  /** @type {Element} */
+  // @ts-ignore
   const lastDlCapture = document.querySelector("#last-dl-capture");
+
+  /** @type {Element} */
+  // @ts-ignore
   const rulesErrors = document.querySelector("#error-filenamePatterns");
 
   browser.runtime.sendMessage({ type: "CHECK_ROUTES" }).then(({ body }) => {
-    rulesErrors.innerHTML = "";
-    pathsErrors.innerHTML = "";
+    if (rulesErrors) {
+      rulesErrors.innerHTML = "";
+    }
 
+    if (pathsErrors) {
+      pathsErrors.innerHTML = "";
+    }
+
+    /** @type {typeof window.optionErrors} */
     const errors = body.optionErrors;
 
-    const row = (err) => {
+    const row = (/** @type {OptionError} */ err) => {
       const r = document.createElement("div");
       r.className = "error-row";
 
@@ -47,10 +67,12 @@ const updateErrors = () => {
     const hasLastDownload =
       body.lastDownload && body.lastDownload.info && body.lastDownload.info.url;
     if (hasLastDownload) {
+      // @ts-ignore
       document.querySelector("#last-dl-url").textContent =
         body.lastDownload.info.url;
     }
 
+    // @ts-ignore
     document
       .querySelector("#rules-applied-row")
       .classList.toggle("hide", !hasLastDownload);
@@ -63,14 +85,18 @@ const updateErrors = () => {
 
     // Variables
     if (hasLastDownload) {
+      // @ts-ignore
       document
         .querySelector("#variables-table-row")
         .classList.toggle("hide", !hasLastDownload);
     }
+    // @ts-ignore
     document
       .querySelector("#see-variables-btn")
       .addEventListener("click", () => {
         if (body.interpolatedVariables) {
+          /** @type {Element} */
+          // @ts-ignore
           const tableBody = document.querySelector("#variables-body");
           tableBody.classList.toggle("hide");
           tableBody.innerHTML = "";
@@ -101,6 +127,7 @@ const updateErrors = () => {
     const hasCaptureMatches =
       body.routeInfo && Array.isArray(body.routeInfo.captures);
 
+    // @ts-ignore
     document
       .querySelector("#capture-group-rows")
       .classList.toggle("hide", !hasCaptureMatches);
@@ -111,7 +138,7 @@ const updateErrors = () => {
       // Skip first match as it's just the entire input
       body.routeInfo.captures
         .slice(1)
-        .map((c, i) => {
+        .map((/** @type {any} */ c, /** @type {number} */ i) => {
           const div = document.createElement("div");
           div.className = "match-row";
 
@@ -128,7 +155,9 @@ const updateErrors = () => {
 
           return div;
         })
-        .forEach((rowDiv) => lastDlCapture.appendChild(rowDiv));
+        .forEach((/** @type {Element} */ rowDiv) =>
+          lastDlCapture.appendChild(rowDiv)
+        );
     }
   });
 };
@@ -143,7 +172,7 @@ browser.runtime.onMessage.addListener((message) => {
   }
 });
 
-const saveOptions = (e) => {
+const saveOptions = (/** @type {Event} */ e) => {
   if (e) {
     e.preventDefault();
   }
@@ -161,6 +190,7 @@ const saveOptions = (e) => {
         [schema.types.VALUE]: "value",
       };
       const fn = val.onSave || ((x) => x);
+      // @ts-ignore
       const optionValue = fn(el[propMap[val.type]]);
 
       return Object.assign(acc, { [val.name]: optionValue });
@@ -171,6 +201,7 @@ const saveOptions = (e) => {
         w.reset();
       });
 
+      // @ts-ignore
       document.querySelector("#lastSavedAt").textContent =
         new Date().toLocaleTimeString();
     });
@@ -178,27 +209,36 @@ const saveOptions = (e) => {
 };
 
 // Set UI elements' value/checked
-const restoreOptionsHandler = (result, schema) => {
+const restoreOptionsHandler = (
+  /** @type {{ [x: string]: any; }} */ result,
+  /** @type {{ keys: any; types: any; }} */ schema
+) => {
   // Zip result -> schema
-  const schemaWithValues = schema.keys.map((o) =>
-    Object.assign({}, o, { value: result[o.name] })
+  const schemaWithValues = schema.keys.map(
+    (/** @type {OptionDefinition} */ o) =>
+      Object.assign({}, o, { value: result[o.name] })
   );
 
-  schemaWithValues.forEach((o) => {
-    const el = document.getElementById(o.name);
-    if (!el) {
-      return;
+  schemaWithValues.forEach(
+    (/** @type {OptionDefinition & { value: any }} */ o) => {
+      const el = document.getElementById(o.name);
+      if (!el) {
+        return;
+      }
+
+      // does this even do anything? o.onOptionsLoad does not seem to exist
+      // @ts-ignore
+      const fn = o.onOptionsLoad || ((/** @type {any} */ x) => x);
+      const val = typeof o.value === "undefined" ? o.default : fn(o.value);
+
+      const propMap = {
+        [schema.types.BOOL]: "checked",
+        [schema.types.VALUE]: "value",
+      };
+      // @ts-ignore
+      el[propMap[o.type]] = val;
     }
-
-    const fn = o.onOptionsLoad || ((x) => x);
-    const val = typeof o.value === "undefined" ? o.default : fn(o.value);
-
-    const propMap = {
-      [schema.types.BOOL]: "checked",
-      [schema.types.VALUE]: "value",
-    };
-    el[propMap[o.type]] = val;
-  });
+  );
 
   updateErrors();
 };
@@ -211,9 +251,10 @@ const restoreOptions = () =>
       .then((loaded) => restoreOptionsHandler(loaded, schema));
   });
 
-const addHelp = (el) => {
+const addHelp = (/** @type {Element} */ el) => {
   el.addEventListener("click", (e) => {
     e.preventDefault();
+    // @ts-ignore
     const targetEl = document.getElementById(el.dataset.helpFor);
     if (!targetEl) {
       return;
@@ -229,15 +270,17 @@ const addHelp = (el) => {
 document.addEventListener("DOMContentLoaded", restoreOptions);
 document.querySelectorAll(".help").forEach(addHelp);
 
+// @ts-ignore
 document.querySelector("#reset").addEventListener("click", (e) => {
   /* eslint-disable no-alert */
   e.preventDefault();
 
-  const resetFn = (w) => {
+  const resetFn = (/** @type {Window} */ w) => {
     const reset = w.confirm("Reset settings to defaults?");
 
     if (reset) {
       browser.storage.local.clear().then(() => {
+        // @ts-ignore
         document.querySelector("#lastSavedAt").textContent =
           new Date().toLocaleTimeString();
 
@@ -265,23 +308,30 @@ if (CURRENT_BROWSER === BROWSERS.CHROME) {
     el.removeAttribute("disabled");
   });
 
+  // @ts-ignore
   document.querySelector("html").style = "min-width: 600px;";
   // document.querySelector("body").style = "overflow-y: hidden;";
 
   document.querySelectorAll(".chrome-disabled").forEach((el) => {
+    // @ts-ignore
     el.disabled = true;
   });
 }
 
-const setupAutosave = (el) => {
-  const autosaveCb = (e) => {
+const setupAutosave = (
+  /** @type {HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement} */ el
+) => {
+  const autosaveCb = (/** @type {Event} */ e) => {
     saveOptions(e);
     window.setTimeout(updateErrors, 200);
 
     if (el.type !== "textarea") {
+      // @ts-ignore
       el.parentNode.classList.remove("saved");
       window.setTimeout(() => {
+        // @ts-ignore
         el.parentNode.classList.add("saved-base");
+        // @ts-ignore
         el.parentNode.classList.add("saved");
       }, 100);
     } else {
@@ -301,23 +351,32 @@ const setupAutosave = (el) => {
 };
 
 ["textarea", "input", "select"].forEach((type) => {
+  // @ts-ignore
   document.querySelectorAll(type).forEach(setupAutosave);
 });
 
 document.querySelectorAll(".popout").forEach((el) => {
   el.addEventListener("click", () => {
+    // @ts-ignore
     const target = el.dataset.popoutFor;
-    window.open(target, null, "menubar=no,width=940,height=600,scrollbars=yes");
+    window.open(
+      target,
+      undefined,
+      "menubar=no,width=940,height=600,scrollbars=yes"
+    );
   });
 });
 
-const showJson = (obj) => {
+const showJson = (/** @type {Record<string, any>} */ obj) => {
   const json = JSON.stringify(obj, null, 2);
   const outputEl = document.querySelector("#export-target");
+  // @ts-ignore
   outputEl.style = "display: unset;";
+  // @ts-ignore
   outputEl.value = json;
 };
 
+// @ts-ignore
 document.querySelector("#settings-export").addEventListener("click", () => {
   getOptionsSchema.then((schema) => {
     const keys = schema.keys.map((o) => o.name);
@@ -326,7 +385,7 @@ document.querySelector("#settings-export").addEventListener("click", () => {
 });
 
 const importSettings = () => {
-  const load = (w) => {
+  const load = (/** @type {Window} */ w) => {
     getOptionsSchema.then((schema) => {
       const json = w.prompt("Paste settings to import");
       try {
@@ -347,6 +406,8 @@ const importSettings = () => {
     load(window);
   }
 };
+
+// @ts-ignore
 document
   .querySelector("#settings-import")
   .addEventListener("click", importSettings);

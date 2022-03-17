@@ -1,13 +1,28 @@
+// @ts-check
+
 const BROWSERS = {
   CHROME: "CHROME",
   FIREFOX: "FIREFOX",
 };
 
+/**
+ * @type {{ multitab: boolean; accessKeys: boolean }}
+ */
 let BROWSER_FEATURES; // eslint-disable-line
+
+/**
+ * @type {typeof BROWSERS[keyof BROWSERS]}
+ */
 let CURRENT_BROWSER = BROWSERS.CHROME;
+/**
+ * @type {number}
+ */
 let CURRENT_BROWSER_VERSION;
 
-const setFeatures = (browser, version) => {
+const setFeatures = (
+  /** @type {typeof BROWSERS[keyof BROWSERS]} */ browser,
+  /** @type {number} */ version
+) => {
   // defaults
   const features = {
     multitab: false,
@@ -51,5 +66,6 @@ if (typeof browser === "undefined") {
   // If we don't have browser.runtime.getBrowserInfo, assume it's Chrome
   // Big assumption, but browser.runtime.getBrowserInfo is not well supported
   CURRENT_BROWSER = BROWSERS.CHROME; // eslint-disable-line
-  BROWSER_FEATURES = setFeatures(CURRENT_BROWSER, CURRENT_BROWSER_VERSION);  // eslint-disable-line
+  // @ts-expect-error CURRENT_BROWSER_VERSION possibly used before set
+  BROWSER_FEATURES = setFeatures(CURRENT_BROWSER, CURRENT_BROWSER_VERSION); // eslint-disable-line
 }

@@ -1,17 +1,29 @@
+// @ts-check
+
 // https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/notifications
 
 const ICON_URL = "icons/ic_archive_black_128px.png";
 const ERROR_ICON_URL = "icons/ic_error_outline_red_96px.png";
 
+/** @type {Record<string | number, browser.downloads.DownloadItem>} */
 const downloadsList = {}; // global
+
+/** @type {boolean | number} */
 let requestedDownloadFlag = 0;
 
-const Notification = {
+const CustomNotification = {
+  /** @type {null | (() => any)} */
   currentDownloadChangeListener: null,
+  /** @type {null | (() => any)} */
   currentDownloadCreatedListener: null,
+  /** @type {null | (() => any)} */
   currentNotificationClickListener: null,
 
-  createExtensionNotification: (title, message, error) => {
+  createExtensionNotification: (
+    /** @type {string} */ title,
+    /** @type {string} */ message,
+    /** @type {boolean | undefined} */ error
+  ) => {
     const id = `save-in-not-${String(Math.floor(Math.random() * 100000))}`;
     browser.notifications.create(id, {
       type: "basic",
@@ -27,9 +39,13 @@ const Notification = {
     }
   },
 
-  isDownloadFailure: (downloadDelta, isChrome) => {
+  isDownloadFailure: (
+    /** @type {browser.downloads._OnChangedDownloadDelta} */ downloadDelta,
+    /** @type {boolean} */ isChrome
+  ) => {
     // CHROME
     // Chrome's DownloadDelta contains different information from Firefox's
+    /** @type {boolean | undefined | browser.downloads.StringDelta} */
     let failed = false;
 
     if (isChrome) {
@@ -43,7 +59,9 @@ const Notification = {
     return failed;
   },
 
-  addNotifications: (options) => {
+  addNotifications: (
+    /** @type {{ notifyOnSuccess: boolean; notifyOnFailure: boolean; notifyDuration: number; promptOnFailure: boolean; }} */ options
+  ) => {
     const notifyOnSuccess = options && options.notifyOnSuccess;
     const notifyOnFailure = options && options.notifyOnFailure;
     const notifyDuration = options && options.notifyDuration;
@@ -53,7 +71,9 @@ const Notification = {
       console.log("Bad notify duration", options); // eslint-disable-line
     }
 
-    const onDownloadCreatedListener = (item) => {
+    const onDownloadCreatedListener = (
+      /** @type {browser.downloads.DownloadItem} */ item
+    ) => {
       if (requestedDownloadFlag) {
         downloadsList[item.id] = item;
         requestedDownloadFlag = false;
@@ -61,19 +81,22 @@ const Notification = {
     };
 
     if (
-      Notification.currentDownloadCreatedListener &&
+      CustomNotification.currentDownloadCreatedListener &&
       browser.downloads.onCreated.hasListener(
-        Notification.currentDownloadCreatedListener
+        CustomNotification.currentDownloadCreatedListener
       )
     ) {
       browser.downloads.onCreated.removeListener(
-        Notification.currentDownloadCreatedListener
+        CustomNotification.currentDownloadCreatedListener
       );
     }
     browser.downloads.onCreated.addListener(onDownloadCreatedListener);
-    Notification.currentDownloadCreatedListener = onDownloadCreatedListener;
+    CustomNotification.currentDownloadCreatedListener =
+      onDownloadCreatedListener;
 
-    const onNotificationClickedListener = (notId) => {
+    const onNotificationClickedListener = (
+      /** @type {string | number} */ notId
+    ) => {
       if (String(notId).startsWith("save-in-not-")) {
         return;
       }
@@ -83,20 +106,22 @@ const Notification = {
     };
 
     if (
-      Notification.currentNotificationClickListener &&
+      CustomNotification.currentNotificationClickListener &&
       browser.notifications.onClicked.hasListener(
-        Notification.currentNotificationClickListener
+        CustomNotification.currentNotificationClickListener
       )
     ) {
       browser.notifications.onClicked.removeListener(
-        Notification.currentNotificationClickListener
+        CustomNotification.currentNotificationClickListener
       );
     }
-    Notification.currentNotificationClickListener =
+    CustomNotification.currentNotificationClickListener =
       onNotificationClickedListener;
     browser.notifications.onClicked.addListener(onNotificationClickedListener);
 
-    const onDownloadChangeListener = (downloadDelta) => {
+    const onDownloadChangeListener = (
+      /** @type {browser.downloads._OnChangedDownloadDelta} */ downloadDelta
+    ) => {
       const item = downloadsList[downloadDelta.id];
 
       if (!item) {
@@ -119,9 +144,10 @@ const Notification = {
 
       const fullFilename = item && item.filename;
       const slashIdx = fullFilename && fullFilename.lastIndexOf("/");
+      // @ts-expect-error
       const filename = fullFilename.substring(slashIdx + 1);
 
-      const failed = Notification.isDownloadFailure(
+      const failed = CustomNotification.isDownloadFailure(
         downloadDelta,
         CURRENT_BROWSER === BROWSERS.CHROME
       );
@@ -152,6 +178,7 @@ const Notification = {
             ]),
             iconUrl: ERROR_ICON_URL,
             message:
+              // @ts-ignore
               failed.current || browser.i18n.getMessage("genericUnknownError"),
           });
         }
@@ -238,21 +265,21 @@ const Notification = {
     };
 
     if (
-      Notification.currentDownloadChangeListener &&
+      CustomNotification.currentDownloadChangeListener &&
       browser.downloads.onChanged.hasListener(
-        Notification.currentDownloadChangeListener
+        CustomNotification.currentDownloadChangeListener
       )
     ) {
       browser.downloads.onChanged.removeListener(
-        Notification.currentDownloadChangeListener
+        CustomNotification.currentDownloadChangeListener
       );
     }
     browser.downloads.onChanged.addListener(onDownloadChangeListener);
-    Notification.currentDownloadChangeListener = onDownloadChangeListener;
+    CustomNotification.currentDownloadChangeListener = onDownloadChangeListener;
   },
 };
 
 // Export for testing
 if (typeof module !== "undefined") {
-  module.exports = Notification;
+  module.exports = CustomNotification;
 }

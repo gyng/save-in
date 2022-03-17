@@ -1,9 +1,10 @@
+// @ts-check
 /* eslint-disable no-case-declarations */
 
 const Messaging = {
   // Fires off and does not expect a return value
   emit: {
-    downloaded: (state) => {
+    downloaded: (/** @type {State} */ state) => {
       browser.runtime.sendMessage({
         type: MESSAGE_TYPES.DOWNLOADED,
         body: { state },
@@ -13,7 +14,7 @@ const Messaging = {
 
   // Returns a Promise
   send: {
-    fetchViaContent: (state) =>
+    fetchViaContent: (/** @type {State} */ state) =>
       new Promise((resolve, reject) => {
         browser.tabs
           .query({
@@ -22,6 +23,7 @@ const Messaging = {
           })
           .then((tabs) => {
             browser.tabs
+              // @ts-ignore
               .sendMessage(tabs[0].id, {
                 type: MESSAGE_TYPES.FETCH_VIA_CONTENT,
                 body: { state },
@@ -61,7 +63,11 @@ const Messaging = {
    *   browser.runtime.sendMessage("{72d92df5-2aa0-4b06-b807-aa21767545cd}", payload);
    * }
    */
-  handleDownloadMessage: (request, sender, sendResponse) => {
+  handleDownloadMessage: (
+    /** @type {{ body: { url: string; info: { pageUrl: string; srcUrl: string; selectionText: string; }; comment: any; }; }} */ request,
+    /** @type {unknown} */ sender,
+    /** @type {(response: Message) => void} */ sendResponse
+  ) => {
     const { url, info, comment } = request.body;
     const last = window.lastDownloadState || {
       path: new Path.Path("."),
@@ -69,6 +75,7 @@ const Messaging = {
       info: {},
     };
 
+    /** @type {Partial<StateInfo>} */
     const opts = {
       currentTab, // Global
       now: new Date(),
@@ -95,8 +102,8 @@ const Messaging = {
     Download.renameAndDownload(clickState);
 
     sendResponse({
-      type: MESSAGE_TYPES.DOWNLOAD,
-      body: { status: MESSAGE_TYPES.OK },
+      type: "DOWNLOAD",
+      body: { status: "OK" },
     });
   },
 };
@@ -114,67 +121,75 @@ browser.runtime.onMessageExternal.addListener(
   }
 );
 
-browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  switch (request.type) {
-    case MESSAGE_TYPES.OPTIONS:
-      sendResponse({
-        type: MESSAGE_TYPES.OPTIONS,
-        body: options,
-      });
-      break;
-    case MESSAGE_TYPES.OPTIONS_SCHEMA:
-      sendResponse({
-        type: MESSAGE_TYPES.OPTIONS_SCHEMA,
-        body: {
-          keys: OptionsManagement.OPTION_KEYS,
-          types: OptionsManagement.OPTION_TYPES,
-        },
-      });
-      break;
-    case MESSAGE_TYPES.GET_KEYWORDS:
-      sendResponse({
-        type: MESSAGE_TYPES.KEYWORD_LIST,
-        body: {
-          matchers: Object.keys(Router.matcherFunctions),
-          variables: Object.keys(Variable.transformers),
-        },
-      });
-      break;
-    case MESSAGE_TYPES.CHECK_ROUTES:
-      const lastState =
-        (request.body && request.body.state) ||
-        (window.lastDownloadState != null && window.lastDownloadState);
+browser.runtime.onMessage.addListener(
+  (
+    /** @type {Message} */ request,
+    sender,
+    /** @type {(arg0: Message) => void} */ sendResponse
+  ) => {
+    switch (request.type) {
+      case "OPTIONS":
+        sendResponse({
+          type: "OPTIONS",
+          body: options,
+        });
+        break;
+      case "OPTIONS_SCHEMA":
+        sendResponse({
+          type: "OPTIONS_SCHEMA",
+          body: {
+            keys: OptionsManagement.OPTION_KEYS,
+            types: OptionsManagement.OPTION_TYPES,
+          },
+        });
+        break;
+      case "GET_KEYWORDS":
+        sendResponse({
+          type: "KEYWORD_LIST",
+          body: {
+            matchers: Object.keys(Router.matcherFunctions),
+            variables: Object.keys(Variable.transformers),
+          },
+        });
+        break;
+      case "CHECK_ROUTES":
+        const lastState =
+          // @ts-expect-error there's no request
+          (request.body && request.body.state) ||
+          (window.lastDownloadState != null && window.lastDownloadState);
 
-      const interpolatedVariables = lastState
-        ? Object.keys(Variable.transformers).reduce(
-            (acc, val) =>
-              Object.assign(acc, {
-                [val]: Variable.applyVariables(
-                  new Path.Path(val),
-                  lastState.info
-                ).finalize(),
-              }),
-            {}
-          )
-        : null;
+        const interpolatedVariables = lastState
+          ? Object.keys(Variable.transformers).reduce(
+              (acc, val) =>
+                Object.assign(acc, {
+                  [val]: Variable.applyVariables(
+                    new Path.Path(val),
+                    lastState.info
+                  ).finalize(),
+                }),
+              {}
+            )
+          : null;
 
-      sendResponse({
-        type: MESSAGE_TYPES.CHECK_ROUTES_RESPONSE,
-        body: {
-          optionErrors: window.optionErrors,
-          routeInfo: OptionsManagement.checkRoutes(lastState),
-          lastDownload: window.lastDownloadState,
-          interpolatedVariables,
-        },
-      });
-      break;
-    case MESSAGE_TYPES.DOWNLOAD:
-      Messaging.handleDownloadMessage(request, sender, sendResponse);
-      break;
-    default:
-      break; // noop
+        sendResponse({
+          type: "CHECK_ROUTES_RESPONSE",
+          body: {
+            optionErrors: window.optionErrors,
+            routeInfo: OptionsManagement.checkRoutes(lastState),
+            lastDownload: window.lastDownloadState,
+            interpolatedVariables,
+          },
+        });
+        break;
+      case "DOWNLOAD":
+        // @ts-expect-error
+        Messaging.handleDownloadMessage(request, sender, sendResponse);
+        break;
+      default:
+        break; // noop
+    }
   }
-});
+);
 
 // Export for testing
 if (typeof module !== "undefined") {

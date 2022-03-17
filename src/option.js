@@ -1,14 +1,24 @@
+// @ts-check
+
 // Short name for convenience
+/**
+ * @type {{ BOOL: "BOOL", VALUE: "VALUE" }}
+ */
 const T = {
   BOOL: "BOOL",
   VALUE: "VALUE",
 };
 
+/**
+ * @type {OptionTypes}
+ */
+// @ts-ignore
 let options = {};
 
 const OptionsManagement = {
   OPTION_TYPES: T, // re-export
 
+  /** @type {OptionDefinition[]} */
   OPTION_KEYS: [
     { name: "conflictAction", type: T.VALUE, default: "uniquify" },
     { name: "contentClickToSave", type: T.BOOL, default: false },
@@ -24,7 +34,9 @@ const OptionsManagement = {
     {
       name: "filenamePatterns",
       type: T.VALUE,
+      // @ts-ignore
       onSave: (v) => v.trim(),
+      // @ts-ignore
       onLoad: (v) => Router.parseRules(v),
       default: "",
     },
@@ -47,6 +59,7 @@ const OptionsManagement = {
     {
       name: "paths",
       type: T.VALUE,
+      // @ts-ignore
       onSave: (v) => v.trim() || ".",
       default:
         ".\nimages\nimages/cute\nvideos\n\nsubmenu\n>submenu/subdir\n>>submenu/subdir/2 // (alias: actual display name)\n>submenu/subdir2 // comments",
@@ -83,17 +96,22 @@ const OptionsManagement = {
 
   getKeys: () =>
     OptionsManagement.OPTION_KEYS.reduce(
+      // @ts-ignore
       (acc, val) => acc.concat([val.name]),
       []
     ),
 
-  setOption: (name, value) => {
+  setOption: (
+    /** @type {string | number} */ name,
+    /** @type {string | number | boolean} */ value
+  ) => {
     if (typeof value !== "undefined") {
+      // @ts-ignore
       options[name] = value;
     }
   },
 
-  checkRoutes: (state) => {
+  checkRoutes: (/** @type {State} */ state) => {
     if (!state) {
       return {
         path: null,
@@ -129,6 +147,7 @@ const OptionsManagement = {
       testLastCapture = Router.getCaptureMatches(
         options.filenamePatterns[i],
         last.info,
+        // @ts-expect-error argument not used
         last.info.filename || last.info.url
       );
 
@@ -142,29 +161,31 @@ const OptionsManagement = {
       captures: testLastCapture,
     };
   },
+
+  loadOptions: () =>
+    browser.storage.local
+      .get(OptionsManagement.getKeys())
+      .then((loadedOptions) => {
+        if (loadedOptions.debug) {
+          window.SI_DEBUG = 1;
+        }
+
+        const localKeys = Object.keys(loadedOptions);
+        localKeys.forEach((k) => {
+          const optionType = OptionsManagement.OPTION_KEYS.find(
+            (ok) => ok.name === k
+          );
+          // @ts-expect-error optionType could be undefined
+          const fn = optionType.onLoad || ((x) => x);
+          OptionsManagement.setOption(k, fn(loadedOptions[k]));
+        });
+
+        return options;
+      }),
 };
 
-OptionsManagement.loadOptions = () =>
-  browser.storage.local
-    .get(OptionsManagement.getKeys())
-    .then((loadedOptions) => {
-      if (loadedOptions.debug) {
-        window.SI_DEBUG = 1;
-      }
-
-      const localKeys = Object.keys(loadedOptions);
-      localKeys.forEach((k) => {
-        const optionType = OptionsManagement.OPTION_KEYS.find(
-          (ok) => ok.name === k
-        );
-        const fn = optionType.onLoad || ((x) => x);
-        OptionsManagement.setOption(k, fn(loadedOptions[k]));
-      });
-
-      return options;
-    });
-
 // global
+// @ts-ignore
 options = OptionsManagement.OPTION_KEYS.reduce(
   (acc, val) => Object.assign(acc, { [val.name]: val.default }),
   {}

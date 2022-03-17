@@ -1,8 +1,13 @@
+// @ts-check
+
 chrome.runtime.sendMessage(
   {
     type: "OPTIONS",
   },
-  (response) => {
+  (untypedResponse) => {
+    /** @type {MessageOptionsResponse} */
+    const response = untypedResponse;
+
     if (!response || !response.body) {
       return;
     }
@@ -47,13 +52,20 @@ chrome.runtime.sendMessage(
       const setupKeyboardListeners = (
         shortcutOptions = { combo: [18], button: "LEFT_CLICK" }
       ) => {
+        /** @type {Record<number, boolean>} */
         let active = {};
 
-        const isKeyboardComboActive = (combo, activeKeys) =>
+        const isKeyboardComboActive = (
+          /** @type {number[]} */ combo,
+          /** @type {Record<string, boolean>} */ activeKeys
+        ) =>
           combo.map((code) => activeKeys[code]).every((code) => code === true);
 
         // https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/buttons
-        const isMouseButtonActive = (target, buttons) => {
+        const isMouseButtonActive = (
+          /** @type {string} */ target,
+          /** @type {number} */ buttons
+        ) => {
           if (buttons === 1 && target === "LEFT_CLICK") {
             return true;
           }
@@ -88,6 +100,7 @@ chrome.runtime.sendMessage(
             isMouseButtonActive(shortcutOptions.button, e.buttons) &&
             isKeyboardComboActive(shortcutOptions.combo, active)
           ) {
+            // @ts-expect-error
             const source = e.target.currentSrc || e.target.src;
 
             if (source) {
@@ -107,6 +120,7 @@ chrome.runtime.sendMessage(
       };
 
       setupKeyboardListeners({
+        // @ts-expect-error
         combo: [].concat(options.contentClickToSaveCombo),
         button: options.contentClickToSaveButton,
       });

@@ -1,93 +1,117 @@
+// @ts-check
+
 const RouterFactory = {
   makeInfoMatcherFactory:
-    (propertyName, alternativePropertyName) => (regex) => (info) => {
+    (
+      /** @type {keyof StateInfo | keyof browser.menus.OnClickData} */ propertyName,
+      /** @type {keyof StateInfo | keyof browser.menus.OnClickData} */ alternativePropertyName
+    ) =>
+    (/** @type {string} */ regex) =>
+    (/** @type {browser.menus.OnClickData & StateInfo} */ info) => {
+      // @ts-ignore
       let match = info[propertyName] && info[propertyName].match(regex);
 
       // Hack for sourceUrl, srcUrl
       if (!match && alternativePropertyName) {
         match =
           info[alternativePropertyName] &&
+          // @ts-ignore
           info[alternativePropertyName].match(regex);
       }
 
       if (window.SI_DEBUG && match) {
-      console.log("matched", match, regex, info); // eslint-disable-line
+        console.log("matched", match, regex, info); // eslint-disable-line
       }
 
       return match;
     },
 
-  makeTabMatcherFactory: (propertyName) => (regex) => (info) => {
-    const match =
-      currentTab &&
-      currentTab[propertyName] &&
-      currentTab[propertyName].match(regex);
-
-    if (window.SI_DEBUG && match) {
-      console.log("matched", match, regex, info); // eslint-disable-line
-    }
-
-    return match;
-  },
-
-  makeHostnameMatcherFactory: (propertyName) => (regex) => (info) => {
-    try {
-      const url = new URL(info && info[propertyName]);
-
-      const hostname = url.hostname;
-      const match = hostname.match(regex);
+  makeTabMatcherFactory:
+    (/** @type {keyof browser.tabs.Tab} */ propertyName) =>
+    (/** @type {string} */ regex) =>
+    (/** @type {browser.menus.OnClickData & StateInfo} */ info) => {
+      const match =
+        currentTab &&
+        currentTab[propertyName] &&
+        // @ts-ignore
+        currentTab[propertyName].match(regex);
 
       if (window.SI_DEBUG && match) {
         console.log("matched", match, regex, info); // eslint-disable-line
       }
 
       return match;
-    } catch (e) {
-      if (window.SI_DEBUG) {
-        console.log("bad page domain in matcher", info.pageUrl, e); // eslint-disable-line
-      }
+    },
 
-      return null;
-    }
-  },
+  makeHostnameMatcherFactory:
+    (
+      /** @type {keyof StateInfo | keyof browser.menus.OnClickData} */ propertyName
+    ) =>
+    (/** @type {string} */ regex) =>
+    (/** @type {browser.menus.OnClickData & StateInfo} */ info) => {
+      try {
+        // @ts-ignore
+        const url = new URL(info && info[propertyName]);
+
+        const hostname = url.hostname;
+        const match = hostname.match(regex);
+
+        if (window.SI_DEBUG && match) {
+          console.log("matched", match, regex, info); // eslint-disable-line
+        }
+
+        return match;
+      } catch (e) {
+        if (window.SI_DEBUG) {
+          console.log("bad page domain in matcher", info.pageUrl, e); // eslint-disable-line
+        }
+
+        return null;
+      }
+    },
 };
 
 const Router = {
+  /** @type {Record<string, (regex: string) => (info: browser.menus.OnClickData & StateInfo, stateInfo: Partial<StateInfo>) => unknown>} */
   matcherFunctions: {
     context:
       (regex) =>
       (info, { context }) => {
+        // @ts-ignore
         const match = context.toLowerCase().match(regex);
 
         if (window.SI_DEBUG && match) {
-        console.log("matched", match, regex, info); // eslint-disable-line
+          console.log("matched", match, regex, info); // eslint-disable-line
         }
 
         return match;
       },
     menuindex:
       (regex) =>
-      (info, { menuIndex } = {}) => {
+      (info, { menuIndex }) => {
+        // @ts-ignore
         const match = menuIndex.match(regex);
 
         if (window.SI_DEBUG && match) {
-        console.log("matched", match, regex, info); // eslint-disable-line
+          console.log("matched", match, regex, info); // eslint-disable-line
         }
 
         return match;
       },
     comment:
       (regex) =>
-      (info, { comment } = {}) => {
+      (info, { comment }) => {
+        // @ts-ignore
         const match = comment.match(regex);
 
         if (window.SI_DEBUG && match) {
-        console.log("matched", match, regex, info); // eslint-disable-line
+          console.log("matched", match, regex, info); // eslint-disable-line
         }
 
         return match;
       },
     fileext: (regex) => (info) => {
+      // @ts-ignore
       const url = info.sourceUrl || info.srcUrl || info.linkUrl || info.pageUrl;
       if (!url) return false;
 
@@ -104,14 +128,15 @@ const Router = {
     },
     filename:
       (regex) =>
-      (info, { filename } = {}) => {
+      (info, { filename }) => {
+        // @ts-ignore
         const fn = (info && info.filename) || filename;
         if (!fn) return false;
 
         const match = fn.match(regex);
 
         if (window.SI_DEBUG && match) {
-        console.log("matched", match, regex, info); // eslint-disable-line
+          console.log("matched", match, regex, info); // eslint-disable-line
         }
 
         return match;
@@ -142,7 +167,7 @@ const Router = {
     sourceurl: RouterFactory.makeInfoMatcherFactory("sourceUrl", "srcUrl"),
   },
 
-  tokenizeLines: (lines) =>
+  tokenizeLines: (/** @type {string} */ lines) =>
     lines
       .split("\n")
       .map((l) => ({ l, matches: l.match(/^(\S*): ?(.*)/) }))
@@ -159,8 +184,14 @@ const Router = {
       })
       .filter((toks) => toks && toks.length >= 3),
 
-  parseRule: (lines) => {
+  parseRule: (/** @type {(null | RegExpMatchArray)[]} */ lines) => {
+    /** @type {MatcherRule[]} */
+    // @ts-ignore
     const matchers = lines.map((tokens) => {
+      if (tokens === null) {
+        return false;
+      }
+
       const name = tokens[1];
 
       let value;
@@ -181,6 +212,7 @@ const Router = {
       // Special matchers
       if (name === "into") {
         type = RULE_TYPES.DESTINATION;
+        // @ts-ignore
         value = value.replace(/^\.\//, "");
       } else if (name === "capture") {
         type = RULE_TYPES.CAPTURE;
@@ -195,6 +227,7 @@ const Router = {
             error: `${name}:`,
           });
 
+          // Should not return and throw instead?
           return false;
         }
 
@@ -224,6 +257,7 @@ const Router = {
 
     const destination = matchers.find((m) => m.type === RULE_TYPES.DESTINATION);
     if (
+      destination &&
       destination.value.match(/:\$\d+:/) &&
       !matchers.find((m) => m.name === "capture")
     ) {
@@ -237,7 +271,7 @@ const Router = {
     if (!matchers.some((m) => m.type === RULE_TYPES.MATCHER)) {
       window.optionErrors.filenamePatterns.push({
         message: browser.i18n.getMessage("ruleMissingMatcher"),
-        error: JSON.stringify(lines.map((l) => l[0])),
+        error: JSON.stringify(lines.map((l) => (l ? l[0] : l))),
       });
 
       return false;
@@ -247,7 +281,7 @@ const Router = {
     if (intoMatcher.length >= 2) {
       window.optionErrors.filenamePatterns.push({
         message: browser.i18n.getMessage("ruleExtraInto"),
-        error: JSON.stringify(lines.map((l) => l[0])),
+        error: JSON.stringify(lines.map((l) => (l ? l[0] : l))),
       });
 
       return false;
@@ -256,7 +290,7 @@ const Router = {
     if (matchers.filter((m) => m.name === "capture").length >= 2) {
       window.optionErrors.filenamePatterns.push({
         message: browser.i18n.getMessage("ruleMultipleCapture"),
-        error: JSON.stringify(lines.map((l) => l[0])),
+        error: JSON.stringify(lines.map((l) => (l ? l[0] : l))),
       });
 
       return false;
@@ -280,7 +314,8 @@ const Router = {
     return matchers;
   },
 
-  parseRules: (raw) => {
+  /** @return {MatcherRule[]} */
+  parseRules: (/** @type {string} */ raw) => {
     const withoutComments = raw
       .split("\n")
       .filter((l) => !l.startsWith("//"))
@@ -291,6 +326,8 @@ const Router = {
       return [];
     }
 
+    /** @type {MatcherRule[]} */
+    // @ts-ignore
     const rules = withoutComments
       .replace(new RegExp("\\n\\n+", "g"), "\n\n")
       .split("\n\n")
@@ -305,7 +342,7 @@ const Router = {
     return rules;
   },
 
-  getCaptureMatches: (rule, info) => {
+  getCaptureMatches: (/** @type {any[]} */ rule, /** @type {any} */ info) => {
     const captureDeclaration = rule.find(
       (d) => d.type === RULE_TYPES.CAPTURE && d.name === "capture"
     );
@@ -326,15 +363,17 @@ const Router = {
     }
   },
 
-  matchRule: (rule, info) => {
+  matchRule: (/** @type {MatcherRule[]} */ rule, /** @type {any} */ info) => {
     const matches = rule
       .filter((m) => m.type === RULE_TYPES.MATCHER)
+      // @ts-ignore
       .map((m) => m.matcher(info, info));
 
     if (matches.some((m) => !m)) {
       return false;
     }
 
+    // @ts-ignore
     let destination = rule.find((r) => r.name === "into").value;
 
     // Regex capture groups
@@ -349,7 +388,10 @@ const Router = {
     return destination;
   },
 
-  matchRules: (rules, info) => {
+  matchRules: (
+    /** @type {MatcherRule[][]} */ rules,
+    /** @type {StateInfo} */ info
+  ) => {
     for (let i = 0; i < rules.length; i += 1) {
       const result = Router.matchRule(rules[i], info);
       if (result) {
