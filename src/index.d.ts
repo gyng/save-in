@@ -54,7 +54,8 @@ declare global {
   const SHORTCUT_TYPES: typeof constants.SHORTCUT_TYPES;
   const SHORTCUT_EXTENSIONS: keyof typeof constants.SHORTCUT_EXTENSIONS;
   const CONFLICT_ACTION: keyof typeof constants.CONFLICT_ACTION;
-  const RULE_TYPES: keyof typeof constants.RULE_TYPES;
+  const RULE_TYPES: typeof constants.RULE_TYPES;
+  type RuleTypesValues = keyof typeof constants.RULE_TYPES;
   const MESSAGE_TYPES: typeof constants.MESSAGE_TYPES;
   type MessageTypesValues = keyof typeof constants.MESSAGE_TYPES;
 

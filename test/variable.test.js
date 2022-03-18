@@ -1,3 +1,4 @@
+/* eslint-disable no-underscore-dangle */
 const constants = require("../src/constants.js");
 
 Object.assign(global, constants);
@@ -37,7 +38,7 @@ describe("variables", () => {
 
   describe("standard variables", () => {
     test("interpolates :date:", () => {
-      const input = new Path.Path(":date:/a/b");
+      const input = new Path._Path(":date:/a/b");
       const output = Variable.applyVariables(input, info).finalize();
       expect(output.startsWith(info.now.getFullYear()));
       expect(output.split("-")).toHaveLength(3);
@@ -45,109 +46,109 @@ describe("variables", () => {
 
     test("interpolates :unixdate:", () => {
       const timestamp = Math.floor(info.now / 1000);
-      const input = new Path.Path(":unixdate:/a/b");
+      const input = new Path._Path(":unixdate:/a/b");
       const output = Variable.applyVariables(input, info).finalize();
       expect(output).toBe(`${timestamp}/a/b`);
     });
 
     test("interpolates :isodate:", () => {
       const now = new Date();
-      const input = new Path.Path(":isodate:");
+      const input = new Path._Path(":isodate:");
       const output = Variable.applyVariables(input, info).finalize();
       expect(output.startsWith(now.getUTCFullYear()));
     });
 
     test("interpolates :pagedomain:", () => {
-      const input = new Path.Path("a/b/:pagedomain:");
+      const input = new Path._Path("a/b/:pagedomain:");
       const output = Variable.applyVariables(input, info).finalize();
       expect(output).toBe("a/b/www.example.com");
     });
 
     test("interpolates :sourcedomain:", () => {
-      const input = new Path.Path("a/b/:sourcedomain:/c");
+      const input = new Path._Path("a/b/:sourcedomain:/c");
       const output = Variable.applyVariables(input, info).finalize();
       expect(output).toBe("a/b/www.source.com/c");
     });
 
     test("interpolates multiple :sourcedomain:s", () => {
-      const input = new Path.Path("a/b/:sourcedomain::sourcedomain:/c");
+      const input = new Path._Path("a/b/:sourcedomain::sourcedomain:/c");
       const output = Variable.applyVariables(input, info).finalize();
       expect(output).toBe("a/b/www.source.comwww.source.com/c");
     });
 
     test("interpolates multiple :sourceurl:", () => {
-      const input = new Path.Path("a/b/:sourceurl::sourceurl:/c");
+      const input = new Path._Path("a/b/:sourceurl::sourceurl:/c");
       const output = Variable.applyVariables(input, info).finalize();
       expect(output).toBe("a/b/http___srcurl.comhttp___srcurl.com/c");
     });
 
     test("interpolates :pageurl:", () => {
-      const input = new Path.Path("a/b/:pageurl:/c");
+      const input = new Path._Path("a/b/:pageurl:/c");
       const output = Variable.applyVariables(input, info).finalize();
       expect(output).toBe("a/b/http___www.example.com_foobar_/c");
     });
 
     test("interpolates :year:", () => {
       const now = new Date();
-      const input = new Path.Path(":year:");
+      const input = new Path._Path(":year:");
       const output = Variable.applyVariables(input, info).finalize();
       expect(output.startsWith(now.getFullYear()));
     });
 
     test("interpolates :month:", () => {
       const now = new Date();
-      const input = new Path.Path(":month:");
+      const input = new Path._Path(":month:");
       const output = Variable.applyVariables(input, info).finalize();
       expect(output.startsWith(now.getMonth() + 1));
     });
 
     test("interpolates :day:", () => {
       const now = new Date();
-      const input = new Path.Path(":day:");
+      const input = new Path._Path(":day:");
       const output = Variable.applyVariables(input, info).finalize();
       expect(output.startsWith(now.getDay()));
     });
 
     test("interpolates :hour:", () => {
       const now = new Date();
-      const input = new Path.Path(":hour:");
+      const input = new Path._Path(":hour:");
       const output = Variable.applyVariables(input, info).finalize();
       expect(output.startsWith(now.getDay()));
     });
 
     test("interpolates :minute:", () => {
       const now = new Date();
-      const input = new Path.Path(":minute");
+      const input = new Path._Path(":minute");
       const output = Variable.applyVariables(input, info).finalize();
       expect(output.startsWith(now.getMinutes()));
     });
 
     test("interpolates :selectiontext:", () => {
-      const input = new Path.Path(":selectiontext:");
+      const input = new Path._Path(":selectiontext:");
       const output = Variable.applyVariables(input, info).finalize();
       expect(output).toBe("selectionfoobar");
     });
 
     test("interpolates :filename:", () => {
-      const input = new Path.Path(":filename::filename:");
+      const input = new Path._Path(":filename::filename:");
       const output = Variable.applyVariables(input, info).finalize();
       expect(output).toBe("lol.jpeglol.jpeg");
     });
 
     test("interpolates :fileext:", () => {
-      const input = new Path.Path(":fileext:");
+      const input = new Path._Path(":fileext:");
       const output = Variable.applyVariables(input, info).finalize();
       expect(output).toBe("jpeg");
     });
 
     test("interpolates :linktext:", () => {
-      const input = new Path.Path(":linktext:");
+      const input = new Path._Path(":linktext:");
       const output = Variable.applyVariables(input, info).finalize();
       expect(output).toBe("linkfoobar");
     });
 
     test("interpolates :pagetitle:", () => {
-      const input = new Path.Path(":pagetitle:");
+      const input = new Path._Path(":pagetitle:");
       const output = Variable.applyVariables(input, info).finalize();
       expect(output).toBe("foobartitle");
     });

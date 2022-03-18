@@ -5,7 +5,7 @@ describe("menu parsing", () => {
   beforeAll(() => {
     global.SPECIAL_DIRS = constants.SPECIAL_DIRS;
     global.PATH_SEGMENT_TYPES = constants.PATH_SEGMENT_TYPES;
-    global.Path = require("../src/path.js"); // eslint-disable-line
+    global.Path = require("../src/path.js").Path; // eslint-disable-line
   });
 
   test("parses comments for metadata", () => {
