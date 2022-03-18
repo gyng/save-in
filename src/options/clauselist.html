@@ -1,199 +1,210 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Clauses &mdash; Save In</title>
+    <link href="style.css" rel="stylesheet" />
+  </head>
 
-<head>
-  <meta charset="utf-8">
-  <title>Clauses &mdash; Save In</title>
-  <link href="style.css" rel="stylesheet">
-</head>
+  <body>
+    <div class="help-text show" id="help-clause-list">
+      <h2>Clauses</h2>
+      <p>
+        Clauses are only used in rule definitions for routing and renaming to
+        determine if a download should be renamed or routed.
+      </p>
+      <h3>Output and Capture</h3>
+      <table class="box">
+        <tr>
+          <td>
+            <code class="click-to-copy">into:</code>
+          </td>
+          <td>
+            <code>:fileext:/foo</code>
+          </td>
+          <td>
+            <span class="badge warning">Required</span> Routes downloads to, or
+            rewrites download filenames into the given pattern
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <code class="click-to-copy">capture:</code>
+          </td>
+          <td>
+            <code>pageurl</code>
+            <code>pageurl,sourceurl</code>
+          </td>
+          <td>
+            <span class="badge">Optional</span> Selects the matcher for regex
+            capture group variables ( <code class="click-to-copy">:$1:</code>,
+            <code class="click-to-copy">:$2:</code>&hellip;). Split multiple
+            capture targets with a <code>,</code>.
+          </td>
+        </tr>
+      </table>
 
-<body>
-  <div class="help-text show" id="help-clause-list">
-    <h2>Clauses</h2>
-    <p>Clauses are only used in rule definitions for routing and renaming to determine if a download should be renamed or routed.
-    </p>
-    <h3>Output and Capture</h3>
-    <table class="box">
-      <tr>
-        <td>
-          <code class="click-to-copy">into:</code>
-        </td>
-        <td>
-          <code>:fileext:/foo</code>
-        </td>
-        <td>
-          <span class="badge warning">Required</span> Routes downloads to, or rewrites download filenames into the given pattern</td>
-      </tr>
-      <tr>
-        <td>
-          <code class="click-to-copy">capture:</code>
-        </td>
-        <td>
-          <code>pageurl</code>
-        </td>
-        <td>
-          <span class="badge">Optional</span> Selects the matcher for regex capture group variables (
-          <code class="click-to-copy">:$1:</code>,
-          <code class="click-to-copy">:$2:</code>&hellip;)</td>
-      </tr>
-    </table>
+      <h3>Matchers</h3>
+      Matcher clauses use
+      <a
+        class="external"
+        href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions"
+        target="_blank"
+        >regular expression</a
+      >
+      strings.
 
-    <h3>Matchers</h3>
-    Matcher clauses use
-    <a class="external" href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions" target="_blank">regular expression</a> strings.
+      <table class="box">
+        <tr>
+          <td>
+            <code class="click-to-copy">context:</code>
+          </td>
+          <td>
+            <code>page</code>
+          </td>
+          <td>
+            Matches what is clicked { <code>media</code>, <code>link</code>,
+            <code>selection</code>, <code>page</code>, <code>click</code>,
+            <code>tab</code> (Firefox)}
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <code class="click-to-copy">menuindex:</code>
+          </td>
+          <td>
+            <code>1</code>
+          </td>
+          <td>
+            Matches the menu index of the clicked menu item (1, 2, 3&hellip;)
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <code class="click-to-copy">comment:</code>
+          </td>
+          <td>
+            <code>a menu item comment</code>
+          </td>
+          <td>Matches the comment of the clicked menu item</td>
+        </tr>
+        <tr>
+          <td>
+            <code class="click-to-copy">fileext:</code>
+          </td>
+          <td>
+            <code>jpg</code>
+          </td>
+          <td>Matches the file extension</td>
+        </tr>
+        <tr>
+          <td>
+            <code class="click-to-copy">filename:</code>
+          </td>
+          <td>
+            <code>actual_filename.jpg</code>
+          </td>
+          <td>Matches the final filename</td>
+        </tr>
+        <tr>
+          <td>
+            <code class="click-to-copy">frameurl:</code>
+          </td>
+          <td>
+            <code>http://www.google.com</code>
+          </td>
+          <td>Matches the URL of the current frame</td>
+        </tr>
+        <tr>
+          <td>
+            <code class="click-to-copy">linktext:</code>
+          </td>
+          <td>
+            <code>Click here to download</code>
+          </td>
+          <td>
+            <span class="badge">Firefox</span> Matches the link text or element
+            <code>title</code> attribute
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <code class="click-to-copy">mediatype:</code>
+          </td>
+          <td>
+            <code>image</code>
+          </td>
+          <td>
+            Matches the media type: <code>audio</code>, <code>video</code>, or
+            <code>image</code>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <code class="click-to-copy">naivefilename:</code>
+          </td>
+          <td>
+            <code>cat.jpg</code>
+          </td>
+          <td>Matches the naive filename</td>
+        </tr>
+        <tr>
+          <td>
+            <code class="click-to-copy">pagedomain:</code>
+          </td>
+          <td>
+            <code>xyz.com</code>
+          </td>
+          <td>Matches the page hostname</td>
+        </tr>
+        <tr>
+          <td>
+            <code class="click-to-copy">pagetitle:</code>
+          </td>
+          <td>
+            <code>Welcome to my page!</code>
+          </td>
+          <td>Matches the current page title</td>
+        </tr>
+        <tr>
+          <td>
+            <code class="click-to-copy">pageurl:</code>
+          </td>
+          <td>
+            <code>http://www.google.com</code>
+          </td>
+          <td>Matches the current page URL</td>
+        </tr>
+        <tr>
+          <td>
+            <code class="click-to-copy">selectiontext:</code>
+          </td>
+          <td>
+            <code>"X-Cops" is the twelfth</code>
+          </td>
+          <td>Matches the selection text</td>
+        </tr>
+        <tr>
+          <td>
+            <code class="click-to-copy">sourcedomain:</code>
+          </td>
+          <td>
+            <code>cdn.xyz.com</code>
+          </td>
+          <td>Matches the source hostname for media</td>
+        </tr>
+        <tr>
+          <td>
+            <code class="click-to-copy">sourceurl:</code>
+          </td>
+          <td>
+            <code>http://cdn.xyz.com/pic.jpg</code>
+          </td>
+          <td>Matches the source URL for media</td>
+        </tr>
+      </table>
+    </div>
 
-    <table class="box">
-      <tr>
-        <td>
-          <code class="click-to-copy">context:</code>
-        </td>
-        <td>
-          <code>page</code>
-        </td>
-        <td>Matches what is clicked {
-          <code>media</code>,
-          <code>link</code>,
-          <code>selection</code>,
-          <code>page</code>,
-          <code>click</code>,
-          <code>tab</code> (Firefox)}</td>
-      </tr>
-      <tr>
-        <td>
-          <code class="click-to-copy">menuindex:</code>
-        </td>
-        <td>
-          <code>1</code>
-        </td>
-        <td>Matches the menu index of the clicked menu item (1, 2, 3&hellip;)</td>
-      </tr>
-      <tr>
-        <td>
-          <code class="click-to-copy">comment:</code>
-        </td>
-        <td>
-          <code>a menu item comment</code>
-        </td>
-        <td>Matches the comment of the clicked menu item</td>
-      </tr>
-      <tr>
-        <td>
-          <code class="click-to-copy">fileext:</code>
-        </td>
-        <td>
-          <code>jpg</code>
-        </td>
-        <td>Matches the file extension</td>
-      </tr>
-      <tr>
-        <td>
-          <code class="click-to-copy">filename:</code>
-        </td>
-        <td>
-          <code>actual_filename.jpg</code>
-        </td>
-        <td>Matches the final filename</td>
-      </tr>
-      <tr>
-        <td>
-          <code class="click-to-copy">frameurl:</code>
-        </td>
-        <td>
-          <code>http://www.google.com</code>
-        </td>
-        <td>Matches the URL of the current frame</td>
-      </tr>
-      <tr>
-        <td>
-          <code class="click-to-copy">linktext:</code>
-        </td>
-        <td>
-          <code>Click here to download</code>
-        </td>
-        <td>
-          <span class="badge">Firefox</span> Matches the link text or element
-          <code>title</code> attribute</td>
-      </tr>
-      <tr>
-        <td>
-          <code class="click-to-copy">mediatype:</code>
-        </td>
-        <td>
-          <code>image</code>
-        </td>
-        <td>Matches the media type:
-          <code>audio</code>,
-          <code>video</code>, or
-          <code>image</code>
-        </td>
-      </tr>
-      <tr>
-        <td>
-          <code class="click-to-copy">naivefilename:</code>
-        </td>
-        <td>
-          <code>cat.jpg</code>
-        </td>
-        <td>Matches the naive filename</td>
-      </tr>
-      <tr>
-        <td>
-          <code class="click-to-copy">pagedomain:</code>
-        </td>
-        <td>
-          <code>xyz.com</code>
-        </td>
-        <td>Matches the page hostname</td>
-      </tr>
-      <tr>
-        <td>
-          <code class="click-to-copy">pagetitle:</code>
-        </td>
-        <td>
-          <code>Welcome to my page!</code>
-        </td>
-        <td>Matches the current page title</td>
-      </tr>
-      <tr>
-        <td>
-          <code class="click-to-copy">pageurl:</code>
-        </td>
-        <td>
-          <code>http://www.google.com</code>
-        </td>
-        <td>Matches the current page URL</td>
-      </tr>
-      <tr>
-        <td>
-          <code class="click-to-copy">selectiontext:</code>
-        </td>
-        <td>
-          <code>"X-Cops" is the twelfth</code>
-        </td>
-        <td>Matches the selection text</td>
-      </tr>
-      <tr>
-        <td>
-          <code class="click-to-copy">sourcedomain:</code>
-        </td>
-        <td>
-          <code>cdn.xyz.com</code>
-        </td>
-        <td>Matches the source hostname for media</td>
-      </tr>
-      <tr>
-        <td>
-          <code class="click-to-copy">sourceurl:</code>
-        </td>
-        <td>
-          <code>http://cdn.xyz.com/pic.jpg</code>
-        </td>
-        <td>Matches the source URL for media</td>
-      </tr>
-    </table>
-  </div>
-
-  <script src="clicktocopy.js"></script>
-</body>
-
+    <script src="clicktocopy.js"></script>
+  </body>
 </html>

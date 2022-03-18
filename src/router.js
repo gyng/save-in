@@ -262,28 +262,37 @@ const Router = {
       return false;
     }
 
-    // Capture clause pointing at nothing
     const captures = matchers.filter((m) => m.name === "capture");
     if (
       captures &&
       captures.length === 1 &&
       captures[0].value.split(",").length > 1
     ) {
+      // Get all captures
       const captureMatchers = captures[0].value.split(",").map((m) => m.trim());
-      for (let i = 0; i < captureMatchers.length; i += 1)
+      let failed = false;
+
+      for (let i = 0; i < captureMatchers.length; i += 1) {
         if (matchers.filter((m) => m.name === captureMatchers[i]).length < 1) {
           window.optionErrors.filenamePatterns.push({
             message: browser.i18n.getMessage("ruleCaptureMissingMatcher"),
-            error: `capture: ${captures[0].value}`,
+            error: `capture: ${captureMatchers[i]}`,
           });
 
-          return false;
+          // Don't bail out: iterate through every matcher for errors
+          failed = true;
         }
+      }
+
+      if (failed) {
+        return false;
+      }
     } else if (
       captures &&
       captures.length === 1 &&
       matchers.filter((m) => m.name === captures[0].value).length < 1
     ) {
+      // Capture clause pointing at missing matcher
       window.optionErrors.filenamePatterns.push({
         message: browser.i18n.getMessage("ruleCaptureMissingMatcher"),
         error: `capture: ${captures[0].value}`,
