@@ -19,22 +19,21 @@
     "test:watch": "jest --watch"
   },
   "devDependencies": {
-    "eslint": "7.28.0",
-    "eslint-config-airbnb": "18.2.1",
-    "eslint-config-prettier": "^8.3.0",
-    "eslint-plugin-import": "2.23.4",
-    "eslint-plugin-jest": "^24.3.6",
-    "eslint-plugin-jsx-a11y": "6.4.1",
-    "eslint-plugin-prettier": "^3.4.0",
-    "eslint-plugin-react": "7.24.0",
-    "jest": "^27.0.4",
-    "jest-webextension-mock": "^3.7.14",
-    "koa": "^2.13.1",
+    "eslint": "8.11.0",
+    "eslint-config-airbnb": "19.0.4",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-import": "2.25.4",
+    "eslint-plugin-jest": "^26.1.1",
+    "eslint-plugin-jsx-a11y": "6.5.1",
+    "eslint-plugin-prettier": "^4.0.0",
+    "jest": "^27.5.1",
+    "jest-webextension-mock": "^3.7.19",
+    "koa": "^2.13.4",
     "koa-logger": "^3.2.1",
     "koa-route": "^3.2.0",
     "koa-static": "^5.0.0",
-    "prettier": "^2.3.1",
-    "web-ext": "^6.1.0"
+    "prettier": "^2.6.0",
+    "web-ext": "^6.7.0"
   },
   "jest": {
     "setupFiles": [

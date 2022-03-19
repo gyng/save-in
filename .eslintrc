@@ -12,7 +12,10 @@
     "no-param-reassign": 0,
     "prefer-destructuring": 0,
     "prefer-object-spread": 0,
-    "import/extensions": 0
+    "import/extensions": 0,
+    "prefer-regex-literals": 0,
+    "react/function-component-definition": 0,
+    "react/destructuring-assignment": 0
   },
   "globals": {
     "globalChromeState": false,
