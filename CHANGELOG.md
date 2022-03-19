@@ -1,3 +1,7 @@
+# 3.6.0
+
+* Add support for multiple `capture` clauses (#160, @MaddyKakkoHeart)
+
 # 3.5.3
 
 * Add "fetch via Fetch API" option for some incompatible sites (eg, Instagram) (#166)

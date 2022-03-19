@@ -143,6 +143,22 @@ describe("filename rewrite and routing", () => {
       expect(rules[0][0].name).toBe("pageurl");
     });
 
+    test("parsing multiple matchers", () => {
+      const rules = router.parseRules(
+        "into: dog\n\npageurl:cat\nsourceurl:pig\ncapture: pageurl,sourceurl\ninto:dog"
+      );
+
+      expect(rules.length).toBe(1);
+      expect(rules[0].length).toBe(4);
+      expect(rules[0].filter((r) => r.type === RULE_TYPES.MATCHER).length).toBe(
+        2
+      );
+      expect(rules[0][0].name).toBe("pageurl");
+      expect(rules[0][0].value.toString()).toBe("/cat/");
+      expect(rules[0][1].name).toBe("sourceurl");
+      expect(rules[0][1].value.toString()).toBe("/pig/");
+    });
+
     test("parsing unknown clause", () => {
       const rules = router.parseRules(
         "what: dog\n\npageurl:cat\ncapture: pageurl\ninto:dog"
@@ -172,6 +188,14 @@ describe("filename rewrite and routing", () => {
     test("missing capture target", () => {
       rules = router.parseRules(
         "sourceurl: dog\ncapture: pageurl\ninto: cat:$1:"
+      );
+      const match = router.matchRules(rules, info);
+      expect(match).toBe(null);
+    });
+
+    test("missing capture target, multiple captures", () => {
+      rules = router.parseRules(
+        "sourceurl: dog\ncapture: sourceurl, pageurl\ninto: cat:$1:"
       );
       const match = router.matchRules(rules, info);
       expect(match).toBe(null);
