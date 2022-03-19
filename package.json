@@ -26,6 +26,7 @@
     "eslint-plugin-jest": "^26.1.1",
     "eslint-plugin-jsx-a11y": "6.5.1",
     "eslint-plugin-prettier": "^4.0.0",
+    "eslint-plugin-react": "^7.29.4",
     "jest": "^27.5.1",
     "jest-webextension-mock": "^3.7.19",
     "koa": "^2.13.4",
