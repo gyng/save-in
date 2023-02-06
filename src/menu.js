@@ -202,7 +202,7 @@ const Menus = {
   },
 
   addPaths: (pathsArray, contexts) => {
-    const menuItemCounter = { 0: 0 };
+    const menuItemCounter = [0]; // key: depth, val: index
 
     // Create a stack for nested menus
     let pathsNestingStack = [];
@@ -233,12 +233,14 @@ const Menus = {
 
         const title = meta.alias != null ? meta.alias : parsedDir;
 
+		// splice the counter to fit current depth, resetting the farther depths
+		menuItemCounter.splice(depth+1)
         if (menuItemCounter[depth] != null) {
           menuItemCounter[depth] += 1;
         } else {
           menuItemCounter[depth] = 1;
         }
-        const id = `save-in-${menuItemCounter[depth]}-${`${i}${comment.replace(
+        const id = `save-in-${menuItemCounter.join('.')}-${`${i}${comment.replace(
           "-",
           "_"
         )}`}-${parsedDir}`;
