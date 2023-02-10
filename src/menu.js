@@ -31,15 +31,17 @@ const Menus = {
     return makeSeparatorInner;
   })(),
 
-  setAccesskey: (str, key) => {
+  setAccesskey: (str, key, override) => {
     if (!BROWSER_FEATURES.accessKeys) {
       return str;
     }
 
-    if (str.includes(key)) {
-      return str.replace(key, `&${key}`);
+    const keyUsed = override != null ? override : key;
+
+    if (str.includes(keyUsed)) {
+      return str.replace(keyUsed, `&${keyUsed}`);
     } else {
-      return `${str} (&${key})`;
+      return `${str} (&${keyUsed})`;
     }
   },
 
@@ -272,7 +274,7 @@ const Menus = {
           browser.contextMenus.create({
             id,
             title: options.enableNumberedItems
-              ? Menus.setAccesskey(title, menuItemCounter[depth])
+              ? Menus.setAccesskey(title, menuItemCounter[depth], meta.key)
               : title,
             contexts,
             parentId,

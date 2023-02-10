@@ -49,7 +49,7 @@ const OptionsManagement = {
       type: T.VALUE,
       onSave: (v) => v.trim() || ".",
       default:
-        ".\nimages\nimages/cute\nvideos\n\nsubmenu\n>submenu/subdir\n>>submenu/subdir/2 // (alias: actual display name)\n>submenu/subdir2 // comments",
+        ".\nimages\nimages/cute\nvideos (key: h)\n\nsubmenu\n>submenu/subdir\n>>submenu/subdir/2 // (alias: actual display name)\n>submenu/subdir2 // comments",
     },
     { name: "prompt", type: T.BOOL, default: false },
     { name: "promptIfNoExtension", type: T.BOOL, default: false },

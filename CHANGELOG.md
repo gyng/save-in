@@ -1,3 +1,13 @@
+# 3.7.0
+
+This update might require a change in your muscle memories. Previously all submenus of the same depth would have their shortcut keys increment even if they had different parents. That's now been fixed. Thanks, 
+@mfaizsyahmi!
+
+If you want to use your old buggy shortcut again, use the new `(key: <VALUE>)` comment (eg, `menu // (key: 1)`), which will override the automatically-assigned shortcut with `1`.
+
+* Reset accessKey count on every submenu. (#198, #199). Thanks @mfaizsyahmi!
+* Add new meta comment to override accessKey
+
 # 3.6.0
 
 * Add support for multiple `capture` clauses (#160, @MaddyKakkoHeart)
