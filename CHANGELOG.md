@@ -7,6 +7,7 @@ If you want to use your old buggy shortcut again, use the new `(key: <VALUE>)` c
 
 * Reset accessKey count on every submenu. (#198, #199). Thanks @mfaizsyahmi!
 * Add new meta comment to override accessKey
+* Use white icon for previous entry in dark mode (#184)
 
 # 3.6.0
 
