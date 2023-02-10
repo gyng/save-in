@@ -236,16 +236,15 @@ const Menus = {
         const title = meta.alias != null ? meta.alias : parsedDir;
 
         // splice the counter to fit current depth, resetting the farther depths
-        menuItemCounter.splice(depth + 1)
+        menuItemCounter.splice(depth + 1);
         if (menuItemCounter[depth] != null) {
           menuItemCounter[depth] += 1;
         } else {
           menuItemCounter[depth] = 1;
         }
-        const id = `save-in-${menuItemCounter.join('.')}-${`${i}${comment.replace(
-          "-",
-          "_"
-        )}`}-${parsedDir}`;
+        const id = `save-in-${menuItemCounter.join(
+          "."
+        )}-${`${i}${comment.replace("-", "_")}`}-${parsedDir}`;
 
         let parentId;
         if (depth === 0) {

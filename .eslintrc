@@ -31,6 +31,7 @@
     "Headers": false,
     "Shortcut": false,
     "Router": false,
+    "SaveHistory": false,
     "options": false,
     "currentTab": false,
     "requestedDownloadFlag": true,

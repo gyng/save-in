@@ -152,7 +152,12 @@ const Download = {
 
       Messaging.emit.downloaded(_state);
       window.lastDownloadState = _state;
-      SaveHistory.add({ timestamp: new Date().toISOString(), url: _state.info.url, finalFullPath, state: _state })
+      SaveHistory.add({
+        timestamp: new Date().toISOString(),
+        url: _state.info.url,
+        finalFullPath,
+        state: _state,
+      });
     };
 
     // Chrome: Skip HEAD request for Content-Disposition and use onDeterminingFilename
