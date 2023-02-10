@@ -8,6 +8,9 @@ If you want to use your old buggy shortcut again, use the new `(key: <VALUE>)` c
 * Reset accessKey count on every submenu. (#198, #199). Thanks @mfaizsyahmi!
 * Add new meta comment to override accessKey
 * Use white icon for previous entry in dark mode (#184)
+* Add basic history to options page (#159)
+
+It's been difficult getting motivation to work on save-in, especially with the poor code quality, stalled TypeScript changes, and impending v3 manifest changes. Sorry if I've disappointed anyone! I still have grand dreams of rewriting this extension to make it maintainable, but my energy is being and has been sucked up by $DAY_JOB!
 
 # 3.6.0
 

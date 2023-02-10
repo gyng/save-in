@@ -133,10 +133,29 @@ const updateErrors = () => {
   });
 };
 
+const updateHistory = async () => {
+  // Copied from history.js
+  const HISTORY_KEY = "save-in-history";
+  const history = await browser.storage.local.get(HISTORY_KEY) ?? {};
+  const el = document.querySelector("#history");
+  el.value = JSON.stringify(history, null, 2);
+};
+document.addEventListener("DOMContentLoaded", updateHistory);
+
+const deleteHistory = () => {
+  const HISTORY_KEY = "save-in-history";
+  const answer = window.confirm("Delete all history?");
+  if (answer) {
+    browser.storage.local.remove(HISTORY_KEY).then(updateHistory);
+  }
+}
+document.querySelector("#history-delete")?.addEventListener("click", deleteHistory);
+
 browser.runtime.onMessage.addListener((message) => {
   switch (message.type) {
     case "DOWNLOADED":
       updateErrors();
+      updateHistory();
       break;
     default:
       break;

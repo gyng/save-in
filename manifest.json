@@ -24,6 +24,7 @@
       "src/vendor/content-disposition.js",
       "src/chrome-detector.js",
       "src/constants.js",
+      "src/history.js",
       "src/notification.js",
       "src/path.js",
       "src/download.js",

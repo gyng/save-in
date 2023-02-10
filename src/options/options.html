@@ -1,69 +1,54 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8" />
-    <script
-      type="application/javascript"
-      src="../vendor/browser-polyfill.js"
-    ></script>
-    <script type="application/javascript" src="./vendor/l10n/l10n.js"></script>
-    <script type="application/javascript" src="../chrome-detector.js"></script>
-    <title>Settings &mdash; Save In</title>
-    <link href="style.css" rel="stylesheet" />
-    <link rel="icon" type="image/png" href="./favicon.png" />
-  </head>
 
-  <body id="settings-page">
-    <div>
-      <a class="open-settings-in-window" href="options.html" target="_blank"
-        >__MSG_o_lPopout__</a
-      >
-      &middot;
-      <a href="variablelist.html" target="_blank">__MSG_o_lVariableList__</a>
-      &middot;
-      <a href="clauselist.html" target="_blank">__MSG_o_lClauseList__</a>
-      &middot;
-      <a class="external" href="https://github.com/gyng/save-in/"
-        >__MSG_o_lGithub__</a
-      >
-      &middot;
-      <a
-        class="external"
-        href="https://github.com/gyng/save-in/blob/master/CHANGELOG.md"
-        >__MSG_o_lChangelog__</a
-      >
-    </div>
+<head>
+  <meta charset="utf-8" />
+  <script type="application/javascript" src="../vendor/browser-polyfill.js"></script>
+  <script type="application/javascript" src="./vendor/l10n/l10n.js"></script>
+  <script type="application/javascript" src="../chrome-detector.js"></script>
+  <title>Settings &mdash; Save In</title>
+  <link href="style.css" rel="stylesheet" />
+  <link rel="icon" type="image/png" href="./favicon.png" />
+</head>
 
-    <form id="options">
-      <h2 id="section-downloads">__MSG_o_sDownloads__</h2>
+<body id="settings-page">
+  <div>
+    <a class="open-settings-in-window" href="options.html" target="_blank">__MSG_o_lPopout__</a>
+    &middot;
+    <a href="variablelist.html" target="_blank">__MSG_o_lVariableList__</a>
+    &middot;
+    <a href="clauselist.html" target="_blank">__MSG_o_lClauseList__</a>
+    &middot;
+    <a class="external" href="https://github.com/gyng/save-in/">__MSG_o_lGithub__</a>
+    &middot;
+    <a class="external" href="https://github.com/gyng/save-in/blob/master/CHANGELOG.md">__MSG_o_lChangelog__</a>
+  </div>
 
-      <label class="column">
-        <h3>__MSG_o_sDirectories__</h3>
-        <span>
-          <h3 class="popout link" data-popout-for="variablelist.html">
-            📓 __MSG_o_lVariableList__
-          </h3>
-        </span>
+  <form id="options">
+    <h2 id="section-downloads">__MSG_o_sDownloads__</h2>
+
+    <label class="column">
+      <h3>__MSG_o_sDirectories__</h3>
+      <span>
+        <h3 class="popout link" data-popout-for="variablelist.html">
+          📓 __MSG_o_lVariableList__
+        </h3>
+      </span>
+      <p>
+        <a href="#" class="help learn-more" data-help-for="help-paths">__MSG_o_lGuideCreateMenuItems__</a>
+      </p>
+      <div class="help-text" id="help-paths">
+        <h4>Creating context menu items</h4>
         <p>
-          <a href="#" class="help learn-more" data-help-for="help-paths"
-            >__MSG_o_lGuideCreateMenuItems__</a
-          >
+          To create a menu item to save <code>cat.jpg</code> into the
+          directory <code>~/downloads/i/cats</code>, with
+          <code>~/downloads</code> as the default download directory, add the
+          line <code>i/cats</code>.
         </p>
-        <div class="help-text" id="help-paths">
-          <h4>Creating context menu items</h4>
-          <p>
-            To create a menu item to save <code>cat.jpg</code> into the
-            directory <code>~/downloads/i/cats</code>, with
-            <code>~/downloads</code> as the default download directory, add the
-            line <code>i/cats</code>.
-          </p>
 
-          <div
-            class="demo-box"
-            style="margin-top: 12px; align-items: flex-start;"
-          >
-            <div class="demo-code left ">
-              <pre class="click-to-copy">
+        <div class="demo-box" style="margin-top: 12px; align-items: flex-start;">
+          <div class="demo-code left ">
+            <pre class="click-to-copy">
 .
 i/dogs
 i/cats // cute!
@@ -76,14 +61,13 @@ submenu
 >>i/cats // (alias: cute cats)
 >>i/dogs
 >i/others
-</pre
-              >
-              <div class="caption">Settings</div>
-            </div>
-            <div class="demo-arrow">➡</div>
+</pre>
+            <div class="caption">Settings</div>
+          </div>
+          <div class="demo-arrow">➡</div>
 
-            <div class="demo-code">
-              <pre>
+          <div class="demo-code">
+            <pre>
 ~/downloads/
 ~/downloads/i/dogs
 ~/downloads/i/cats
@@ -96,649 +80,538 @@ submenu
 ~/downloads/i/cats (shows up as "cute cats")
 ~/downloads/i/dogs
 ~/downloads/i/others
-</pre
-              >
-              <div class="caption">
-                Default download dir <code>~/downloads</code>
-              </div>
+</pre>
+            <div class="caption">
+              Default download dir <code>~/downloads</code>
             </div>
-
-            <div class="demo-arrow">➡</div>
-
-            <pre
-              class="demo-pic"
-              style="background-image: url(i/menu-items.png)"
-            ></pre>
           </div>
 
-          <h4>Comments and aliases</h4>
+          <div class="demo-arrow">➡</div>
 
-          <p>
-            To add comments, add <code>//</code> to the end of a line. For
-            example, <code>cats // very cute!</code>.
-          </p>
-
-          <p>
-            To change display names of menu items, add
-            <code>(alias: display name)</code> to comments. For example,
-            <code>cats // very cute! (alias: cute cats)</code>. The menu item
-            will then show "cute cats" instead of "cats".
-          </p>
-
-          <p>
-            To change the shortcut key, use <code>(key: f)</code> to manually
-            assign one.
-          </p>
-
-          <h4>Submenus</h4>
-
-          <p>
-            To create submenus, add <code>&gt;</code>s to the line itself. An
-            example can be seen above.
-          </p>
-
-          <p>
-            Note: You can only save relative to the default download directory.
-            See the next guide for a workaround.
-          </p>
+          <pre class="demo-pic" style="background-image: url(i/menu-items.png)"></pre>
         </div>
+
+        <h4>Comments and aliases</h4>
 
         <p>
-          <a href="#" class="help learn-more" data-help-for="help-symlink"
-            >__MSG_o_lGuideSymlink__</a
-          >
+          To add comments, add <code>//</code> to the end of a line. For
+          example, <code>cats // very cute!</code>.
         </p>
-        <div class="help-text" id="help-symlink">
-          <h4>Saving outside the default download directory</h4>
-          <p>
-            The WebExtensions API does not allow files to be saved outside of
-            the default download directory. A
-            <a
-              class="external"
-              href="https://en.wikipedia.org/wiki/Symbolic_link"
-              target="_blank"
-              >symlink</a
-            >
-            inside the default download directory can be used to get around this
-            limitation.
-          </p>
-
-          <p>
-            Invalid paths ( <code>..</code> and <code>/</code>) are ignored.
-            Files and directories with leading dots ( <code>foo/.hidden</code>)
-            are considered invalid by Firefox and Chrome.
-          </p>
-
-          <br />
-          <a
-            class="external"
-            href="https://technet.microsoft.com/en-us/library/cc753194(v=ws.11).aspx"
-            target="_blank"
-          >
-            Windows
-          </a>
-          <pre class="click-to-copy">
-mklink /D C:\path\to\symlink D:\path\to\actual</pre
-          >
-
-          <a
-            class="external"
-            href="http://manpages.ubuntu.com/manpages/xenial/man1/ln.1.html"
-            target="_blank"
-          >
-            macOS/Unix
-          </a>
-          <pre class="click-to-copy">
-ln -s /path/to/actual /path/to/symlink</pre
-          >
-
-          <p>
-            Make sure the target directories actually exist, or the extension
-            will silently fail to download.
-          </p>
-        </div>
 
         <p>
-          __MSG_o_lDirectoryInstructionOnePerLine__
-          <code>.</code> __MSG_o_lDirectoryInstructionDot__
-          <code>//</code> __MSG_o_lDirectoryInstructionComment__
-          <code>&gt;</code> __MSG_o_lSubdirectoryInstructionComment__
+          To change display names of menu items, add
+          <code>(alias: display name)</code> to comments. For example,
+          <code>cats // very cute! (alias: cute cats)</code>. The menu item
+          will then show "cute cats" instead of "cats".
         </p>
-        <p>__MSG_o_lDirectoryInstructionSymlink__</p>
-
-        <textarea
-          required
-          type="textarea"
-          id="paths"
-          rows="10"
-          placeholder="."
-          spellcheck="false"
-        ></textarea>
-        <div class="error-notification" id="error-paths">path errors</div>
-      </label>
-
-      <label>
-        <input type="checkbox" id="enableLastLocation" />__MSG_o_cLastUsedMenu__
-      </label>
-
-      <h3>__MSG_o_sBehavior__</h3>
-
-      <label>
-        <input type="checkbox" id="links" />__MSG_o_cSaveLinks__
-        <div class="caption caption-line">
-          <label>
-            <input type="checkbox" id="preferLinks" />__MSG_o_cPreferLinks__
-          </label>
-        </div>
-
-        <div class="caption caption-line">
-          <label>
-            <input
-              type="checkbox"
-              id="preferLinksFilterEnabled"
-            />__MSG_o_cPreferLinksFilterEnabled__
-          </label>
-
-          <details class="caption caption-line">
-            <summary>__MSG_o_cPreferLinksFilter__</summary>
-            <div></div>
-            <textarea
-              style="width: 100%"
-              type="textarea"
-              id="preferLinksFilter"
-              rows="3"
-              placeholder=""
-              spellcheck="false"
-            ></textarea>
-            <div class="caption">__MSG_o_cPreferLinksFilterHelp__</div>
-          </details>
-        </div>
-      </label>
-
-      <label>
-        <input type="checkbox" id="selection" />__MSG_o_cSaveText__
-      </label>
-
-      <label>
-        <input type="checkbox" id="page" />__MSG_o_cSavePage__
-        <div class="caption caption-line">__MSG_o_cSavePageHelp__</div>
-      </label>
-
-      <label>
-        <input
-          type="checkbox"
-          id="tabEnabled"
-          class="chrome-disabled"
-        />__MSG_o_cSaveTabstrip__ <span class="badge">Firefox</span>
-        <div class="caption-line">
-          <label>
-            <input
-              type="checkbox"
-              id="closeTabOnSave"
-            />__MSG_o_cCloseTabOnSave__
-          </label>
-          <div class="caption">__MSG_o_cSaveTabstripHelp__</div>
-        </div>
-      </label>
-
-      <label>
-        <input type="checkbox" id="prompt" />__MSG_o_cOpenDialog__
-      </label>
-
-      <label>
-        <input
-          type="checkbox"
-          id="promptIfNoExtension"
-        />__MSG_o_cOpenDialogNoExt__
-      </label>
-
-      <label>
-        <input type="checkbox" id="promptOnShift" />__MSG_o_cOpenDialogShift__
-      </label>
-
-      <label>
-        <input
-          type="checkbox"
-          id="promptOnFailure"
-        />__MSG_o_cOpenDialogOnFailure__
-      </label>
-
-      <label>
-        <select disabled class="chrome-enabled" id="conflictAction">
-          <option value="uniquify">__MSG_o_cDupeUniquify__</option>
-          <option value="overwrite">__MSG_o_cDupeOverwrite__</option>
-          <option value="prompt">__MSG_o_cDupePrompt__</option>
-        </select>
-        __MSG_o_cDupeFilename__ <span class="badge">Chrome</span>
-      </label>
-
-      <hr />
-
-      <label class="column">
-        <h2>__MSG_o_sDynamicDownloads__</h2>
-
-        <h3>__MSG_o_sRenameAndRouteDownloads__</h3>
-
-        <div
-          style="display: flex; justify-content: flex-start; align-items: baseline;"
-        >
-          <h3
-            style="width: auto;"
-            class="popout link"
-            data-popout-for="variablelist.html"
-          >
-            📓 __MSG_o_lVariableList__
-          </h3>
-          &nbsp;&nbsp;&nbsp;
-          <h3
-            style="width: auto;"
-            class="popout link"
-            data-popout-for="clauselist.html"
-          >
-            📓 __MSG_o_lClauseList__
-          </h3>
-        </div>
 
         <p>
-          <a href="#" class="help learn-more" data-help-for="help-filenames"
-            >__MSG_o_lGuideRouting__</a
-          >
-          <a
-            class="external float-right"
-            href="https://github.com/gyng/save-in/wiki/Filename-rewrite"
-            >__MSG_o_lRoutingTemplates__</a
-          >
+          To change the shortcut key, use <code>(key: f)</code> to manually
+          assign one.
         </p>
 
-        <div class="help-text" id="help-filenames">
-          <h4>Renaming downloads</h4>
-          <p>
-            Match downloads against
-            <a
-              class="external"
-              href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions"
-              >regex patterns</a
-            >. When a download matches all patterns, rename it according to
-            <code class="click-to-copy">into:</code>.
-          </p>
+        <h4>Submenus</h4>
 
-          <p>This renames all gif files to a UNIX timestamp.</p>
-          <div class="demo-box">
-            <pre class="demo-code left click-to-copy">
+        <p>
+          To create submenus, add <code>&gt;</code>s to the line itself. An
+          example can be seen above.
+        </p>
+
+        <p>
+          Note: You can only save relative to the default download directory.
+          See the next guide for a workaround.
+        </p>
+      </div>
+
+      <p>
+        <a href="#" class="help learn-more" data-help-for="help-symlink">__MSG_o_lGuideSymlink__</a>
+      </p>
+      <div class="help-text" id="help-symlink">
+        <h4>Saving outside the default download directory</h4>
+        <p>
+          The WebExtensions API does not allow files to be saved outside of
+          the default download directory. A
+          <a class="external" href="https://en.wikipedia.org/wiki/Symbolic_link" target="_blank">symlink</a>
+          inside the default download directory can be used to get around this
+          limitation.
+        </p>
+
+        <p>
+          Invalid paths ( <code>..</code> and <code>/</code>) are ignored.
+          Files and directories with leading dots ( <code>foo/.hidden</code>)
+          are considered invalid by Firefox and Chrome.
+        </p>
+
+        <br />
+        <a class="external" href="https://technet.microsoft.com/en-us/library/cc753194(v=ws.11).aspx" target="_blank">
+          Windows
+        </a>
+        <pre class="click-to-copy">
+mklink /D C:\path\to\symlink D:\path\to\actual</pre>
+
+        <a class="external" href="http://manpages.ubuntu.com/manpages/xenial/man1/ln.1.html" target="_blank">
+          macOS/Unix
+        </a>
+        <pre class="click-to-copy">
+ln -s /path/to/actual /path/to/symlink</pre>
+
+        <p>
+          Make sure the target directories actually exist, or the extension
+          will silently fail to download.
+        </p>
+      </div>
+
+      <p>
+        __MSG_o_lDirectoryInstructionOnePerLine__
+        <code>.</code> __MSG_o_lDirectoryInstructionDot__
+        <code>//</code> __MSG_o_lDirectoryInstructionComment__
+        <code>&gt;</code> __MSG_o_lSubdirectoryInstructionComment__
+      </p>
+      <p>__MSG_o_lDirectoryInstructionSymlink__</p>
+
+      <textarea required type="textarea" id="paths" rows="10" placeholder="." spellcheck="false"></textarea>
+      <div class="error-notification" id="error-paths">path errors</div>
+    </label>
+
+    <label>
+      <input type="checkbox" id="enableLastLocation" />__MSG_o_cLastUsedMenu__
+    </label>
+
+    <h3>__MSG_o_sBehavior__</h3>
+
+    <label>
+      <input type="checkbox" id="links" />__MSG_o_cSaveLinks__
+      <div class="caption caption-line">
+        <label>
+          <input type="checkbox" id="preferLinks" />__MSG_o_cPreferLinks__
+        </label>
+      </div>
+
+      <div class="caption caption-line">
+        <label>
+          <input type="checkbox" id="preferLinksFilterEnabled" />__MSG_o_cPreferLinksFilterEnabled__
+        </label>
+
+        <details class="caption caption-line">
+          <summary>__MSG_o_cPreferLinksFilter__</summary>
+          <div></div>
+          <textarea style="width: 100%" type="textarea" id="preferLinksFilter" rows="3" placeholder=""
+            spellcheck="false"></textarea>
+          <div class="caption">__MSG_o_cPreferLinksFilterHelp__</div>
+        </details>
+      </div>
+    </label>
+
+    <label>
+      <input type="checkbox" id="selection" />__MSG_o_cSaveText__
+    </label>
+
+    <label>
+      <input type="checkbox" id="page" />__MSG_o_cSavePage__
+      <div class="caption caption-line">__MSG_o_cSavePageHelp__</div>
+    </label>
+
+    <label>
+      <input type="checkbox" id="tabEnabled" class="chrome-disabled" />__MSG_o_cSaveTabstrip__ <span
+        class="badge">Firefox</span>
+      <div class="caption-line">
+        <label>
+          <input type="checkbox" id="closeTabOnSave" />__MSG_o_cCloseTabOnSave__
+        </label>
+        <div class="caption">__MSG_o_cSaveTabstripHelp__</div>
+      </div>
+    </label>
+
+    <label>
+      <input type="checkbox" id="prompt" />__MSG_o_cOpenDialog__
+    </label>
+
+    <label>
+      <input type="checkbox" id="promptIfNoExtension" />__MSG_o_cOpenDialogNoExt__
+    </label>
+
+    <label>
+      <input type="checkbox" id="promptOnShift" />__MSG_o_cOpenDialogShift__
+    </label>
+
+    <label>
+      <input type="checkbox" id="promptOnFailure" />__MSG_o_cOpenDialogOnFailure__
+    </label>
+
+    <label>
+      <select disabled class="chrome-enabled" id="conflictAction">
+        <option value="uniquify">__MSG_o_cDupeUniquify__</option>
+        <option value="overwrite">__MSG_o_cDupeOverwrite__</option>
+        <option value="prompt">__MSG_o_cDupePrompt__</option>
+      </select>
+      __MSG_o_cDupeFilename__ <span class="badge">Chrome</span>
+    </label>
+
+    <hr />
+
+    <label class="column">
+      <h2>__MSG_o_sDynamicDownloads__</h2>
+
+      <h3>__MSG_o_sRenameAndRouteDownloads__</h3>
+
+      <div style="display: flex; justify-content: flex-start; align-items: baseline;">
+        <h3 style="width: auto;" class="popout link" data-popout-for="variablelist.html">
+          📓 __MSG_o_lVariableList__
+        </h3>
+        &nbsp;&nbsp;&nbsp;
+        <h3 style="width: auto;" class="popout link" data-popout-for="clauselist.html">
+          📓 __MSG_o_lClauseList__
+        </h3>
+      </div>
+
+      <p>
+        <a href="#" class="help learn-more" data-help-for="help-filenames">__MSG_o_lGuideRouting__</a>
+        <a class="external float-right"
+          href="https://github.com/gyng/save-in/wiki/Filename-rewrite">__MSG_o_lRoutingTemplates__</a>
+      </p>
+
+      <div class="help-text" id="help-filenames">
+        <h4>Renaming downloads</h4>
+        <p>
+          Match downloads against
+          <a class="external"
+            href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions">regex patterns</a>.
+          When a download matches all patterns, rename it according to
+          <code class="click-to-copy">into:</code>.
+        </p>
+
+        <p>This renames all gif files to a UNIX timestamp.</p>
+        <div class="demo-box">
+          <pre class="demo-code left click-to-copy">
 fileext: <span class="demo g3">gif</span>
 into: <span class="demo g4">:unixdate:</span>.<span class="demo g3">:fileext:</span></pre>
 
-            <div class="demo-arrow">=</div>
+          <div class="demo-arrow">=</div>
 
-            <pre class="demo-code right">
+          <pre class="demo-code right">
 cat.<span class="demo g3">gif</span> ➡ <span class="demo g4">1512136516</span>.<span class="demo g3">gif</span>
  </pre>
-          </div>
+        </div>
 
-          <h4>Moving downloads into different directories</h4>
+        <h4>Moving downloads into different directories</h4>
 
-          <p>
-            The following example moves all <code>.gif</code> files into the
-            <code>gifs</code> subdirectory and renames the moved files to a
-            timestamp.
-          </p>
+        <p>
+          The following example moves all <code>.gif</code> files into the
+          <code>gifs</code> subdirectory and renames the moved files to a
+          timestamp.
+        </p>
 
-          <div class="demo-box">
-            <pre class="demo-code left click-to-copy">
+        <div class="demo-box">
+          <pre class="demo-code left click-to-copy">
 fileext: <span class="demo g3">gif</span>
 into: <span class="demo g2">gifs</span>/<span class="demo g4">:unixdate:</span>.<span class="demo g3">:fileext:</span></pre>
 
-            <div class="demo-arrow">=</div>
+          <div class="demo-arrow">=</div>
 
-            <pre class="demo-code right">
+          <pre class="demo-code right">
 cat.<span class="demo g3">gif</span> ➡ <span class="demo g2">gifs</span>/<span class="demo g4">1512136516</span>.<span class="demo g3">gif</span>
 cat.jpg ✘ (no match)</pre>
-          </div>
+        </div>
 
-          <p>
-            Routing is relative to the selected menu item. When you download a
-            cat gif using the <code>images</code> context menu, the above
-            example will save it as
-            <code>~/downloads/images/gif/946684800.gif</code>.
-          </p>
+        <p>
+          Routing is relative to the selected menu item. When you download a
+          cat gif using the <code>images</code> context menu, the above
+          example will save it as
+          <code>~/downloads/images/gif/946684800.gif</code>.
+        </p>
 
-          <p>
-            This advanced example renames downloads based off captured regex
-            groups &mdash; the stuff inside <code>()</code> &mdash; and moves
-            them into different directories.
-            <code class="click-to-copy">capture:&nbsp;filename</code> selects
-            the filename&rsquo;s capture groups, and finally
-            <code class="click-to-copy">into:</code> renames the files based off
-            them using <code class="click-to-copy">:$1:</code>,
-            <code class="click-to-copy">:$2:</code>, and
-            <code class="click-to-copy">:$3:</code>.
-          </p>
+        <p>
+          This advanced example renames downloads based off captured regex
+          groups &mdash; the stuff inside <code>()</code> &mdash; and moves
+          them into different directories.
+          <code class="click-to-copy">capture:&nbsp;filename</code> selects
+          the filename&rsquo;s capture groups, and finally
+          <code class="click-to-copy">into:</code> renames the files based off
+          them using <code class="click-to-copy">:$1:</code>,
+          <code class="click-to-copy">:$2:</code>, and
+          <code class="click-to-copy">:$3:</code>.
+        </p>
 
-          <div class="demo-box">
-            <pre class="demo-code left click-to-copy">
+        <div class="demo-box">
+          <pre class="demo-code left click-to-copy">
 // Move downloads based off versions
 <span class="demo g1">filename:</span> <span class="demo g2">(.*)</span>\.<span class="demo g4">(v.)</span>\.<span class="demo g3">(tar|gz)</span>
 pageurl: example.com
 capture: <span class="demo g1">filename</span>
 into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span class="demo g3">:$3:</span></pre>
-            <div class="demo-arrow">=</div>
+          <div class="demo-arrow">=</div>
 
-            <pre class="demo-code right">
+          <pre class="demo-code right">
 
 <span class="demo g2">ubuntu</span>.<span class="demo g4">v1</span>.<span class="demo g3">tar</span> ➡ <span class="demo g4">v1</span>/<span class="demo g2">ubuntu</span>.<span class="demo g3">tar</span>
 <span class="demo g2">debian</span>.<span class="demo g4">v2</span>.<span class="demo g3">gz</span>  ➡ <span class="demo g4">v2</span>/<span class="demo g2">debian</span>.<span class="demo g3">gz</span>
 <span class="demo g2">debian</span>.zip    ✘ (no match)
  </pre>
-          </div>
-
-          <a
-            class="external"
-            href="https://github.com/gyng/save-in/wiki/Filename-rewrite#migrating-to-the-new-syntax"
-            >Migrating rules from the old version</a
-          >
         </div>
 
-        <p>__MSG_o_lRoutingInstruction__</p>
-
-        <textarea
-          type="textarea"
-          id="filenamePatterns"
-          rows="7"
-          placeholder="Optional"
-          spellcheck="false"
-        ></textarea>
-        <div class="error-notification" id="error-filenamePatterns">errors</div>
-        <div
-          style="display: flex; max-width: 100%; align-items: center; flex-wrap: wrap;"
-        >
-          <div
-            class="info-row"
-            style="display: flex; flex-direction: column; flex: 1; align-items: baseline; max-width: 100%; overflow: hidden; padding-right: 8px;"
-          >
-            <table style="margin: 0; padding: 0; max-width: 100%;">
-              <tbody style="margin: 0; padding: 0; vertical-align: baseline;">
-                <tr>
-                  <td
-                    div
-                    style="font-weight: 600; padding: 0; text-align: left; min-width: 110px;"
-                  >
-                    __MSG_o_lRoutingLastDownload__
-                  </td>
-                  <td
-                    style="font-family: monospace; text-overflow: hidden; overflow: hidden; white-space: nowrap; max-width: 80%;"
-                    id="last-dl-url"
-                  >
-                    __MSG_o_lRoutingLastDownloadEmpty__
-                  </td>
-                </tr>
-                <tr id="rules-applied-row">
-                  <td style="font-weight: 600; padding: 0; text-align: left;">
-                    __MSG_o_lRoutingRenamedTo__
-                  </td>
-                  <td
-                    style="font-family: monospace; word-break: break-all;"
-                    id="last-dl-match"
-                  >
-                    __MSG_o_lRoutingNoMatches__
-                  </td>
-                </tr>
-                <tr class="hide" id="capture-group-rows">
-                  <td style="font-weight: 600; padding: 0;">
-                    __MSG_o_lRoutingCaptureGroups__
-                  </td>
-                  <td
-                    style="font-family: monospace; word-break: break-all;"
-                    id="last-dl-capture"
-                  ></td>
-                </tr>
-                <tr class="hide" id="variables-table-row">
-                  <td style="font-weight: 600; padding: 0;">
-                    __MSG_o_lRoutingVariables__
-                  </td>
-                  <td>
-                    <div class="button" id="see-variables-btn">
-                      __MSG_o_lRoutingVariablesClickToSee__
-                    </div>
-                    <table id="variables-table">
-                      <tbody class="hide" id="variables-body"></tbody>
-                    </table>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-        <div class="caption caption-line">
-          __MSG_o_lRoutingLastDownloadHelp__
-        </div>
-      </label>
-
-      <label>
-        <input type="checkbox" id="routeFailurePrompt" />
-        __MSG_o_cOpenDialogIfNoRulesMatch__
-      </label>
-
-      <label>
-        <input type="checkbox" id="routeExclusive" /> __MSG_o_cExclusiveMode__
-        <div class="caption caption-line">__MSG_o_cExclusiveModeHelp__</div>
-      </label>
-
-      <hr />
-
-      <h2 id="section-notifications">__MSG_o_sNotifications__</h2>
-      <label>
-        <input type="checkbox" id="notifyOnSuccess" /> __MSG_o_cNotifySuccess__
-      </label>
-
-      <label>
-        <input type="checkbox" id="notifyOnFailure" /> __MSG_o_cNotifyFailure__
-      </label>
-
-      <label>
-        <input type="checkbox" id="notifyOnRuleMatch" /> __MSG_o_cNotifyMatch__
-      </label>
-
-      <label>
-        <input type="checkbox" id="notifyOnLinkPreferred" />
-        __MSG_o_cNotifyLinkPreferred__
-      </label>
-
-      <label>
-        __MSG_o_cNotifyCloseAfter__
-        <input type="number" id="notifyDuration" min="0" />ms
-        <div class="caption caption-line">__MSG_o_cNotifyCloseAfterHelp__</div>
-      </label>
-
-      <hr />
-
-      <h2 id="section-save-as-shortcuts">__MSG_o_sSaveAsShortcuts__</h2>
-      <label>
-        __MSG_o_cSaveShortcutsAs__
-        <select id="shortcutType">
-          <option value="HTML_REDIRECT"
-            >__MSG_o_cSaveShortcutsTypeHtml__</option
-          >
-          <option value="MAC">__MSG_o_cSaveShortcutsTypeMac__</option>
-          <option value="WINDOWS">__MSG_o_cSaveShortcutsTypeWindows__</option>
-          <option value="FREEDESKTOP"
-            >__MSG_o_cSaveShortcutsTypeFreedesktop__</option
-          >
-        </select>
-      </label>
-
-      <label>
-        <input type="checkbox" id="shortcutMedia" />
-        __MSG_o_cSaveShortcutsMediaInstead__
-      </label>
-
-      <label>
-        <input type="checkbox" id="shortcutLink" />
-        __MSG_o_cSaveShortcutsLinksInstead__
-      </label>
-
-      <label>
-        <input type="checkbox" id="shortcutPage" />
-        __MSG_o_cSaveShortcutsPagesInstead__
-      </label>
-
-      <label>
-        <input type="checkbox" id="shortcutTab" class="chrome-disabled" />
-        __MSG_o_cSaveShortcutsTabsInstead__ <span class="badge">Firefox</span>
-      </label>
-
-      <hr />
-
-      <h2 id="section-save-as-shortcuts">__MSG_o_sKeyboardShortcuts__</h2>
-
-      <h3>__MSG_o_sContextMenu__</h3>
-      <p>__MSG_o_lAccessKeysInstruction__</p>
-
-      <label>
-        <input class="key" type="text" id="keyRoot" maxlength="1" />
-        __MSG_o_cKeyboardShortcutSaveInMenu__
-      </label>
-
-      <label>
-        <input class="key" type="text" id="keyLastUsed" maxlength="1" />
-        __MSG_o_cKeyboardShortcutSubmenu__
-      </label>
-
-      <label>
-        <input type="checkbox" id="enableNumberedItems" />
-        __MSG_o_cKeyboardShortcutNumbers__
-      </label>
-
-      <h3>__MSG_o_sClickToSave__</h3>
-      <label>
-        <input type="checkbox" id="contentClickToSave" />
-        __MSG_o_cKeyboardShortcutClickToSave__
-        <div class="caption caption-line">
-          __MSG_o_cKeyboardShortcutClickToHelp__
-        </div>
-      </label>
-
-      <label>
-        <input type="number" id="contentClickToSaveCombo" />
-        __MSG_o_cKeyboardShotcutKeycode__ +&nbsp;
-        <select id="contentClickToSaveButton">
-          <option value="LEFT_CLICK"
-            >__MSG_o_cKeyboardShortcutModifierLeftClick__</option
-          >
-          <option value="MIDDLE_CLICK"
-            >__MSG_o_cKeyboardShortcutModifierMiddleClick__</option
-          >
-          <option value="RIGHT_CLICK"
-            >__MSG_o_cKeyboardShortcutModifierRightClick__</option
-          >
-        </select>
-        <div class="caption caption-line">
-          __MSG_o_cKeyboardShortcutModifierHelp__
-          <a class="caption" href="http://keycode.info/">keycode.info</a>
-        </div>
-      </label>
-
-      <hr />
-
-      <h2 id="section-more-options">
-        __MSG_o_sMoreOptions__
-        <div id="reset" class="button float-right">
-          __MSG_o_cRestoreDefaults__
-        </div>
-      </h2>
-
-      <label>
-        <input
-          type="number"
-          id="truncateLength"
-          min="1"
-        />__MSG_o_cTruncatePath__&nbsp;
-        <div class="caption caption-line">__MSG_o_cTruncatePathHelp__</div>
-      </label>
-
-      <label>
-        __MSG_o_cReplaceInvalidCharsWith__
-        <input
-          type="text"
-          id="replacementChar"
-          placeholder="delete"
-          style="font-family: monospace;"
-        />
-        <div class="caption caption-line">
-          __MSG_o_cReplaceInvalidCharsWithHelp__
-        </div>
-      </label>
-
-      <label>
-        <input type="checkbox" id="fetchViaContent" class="chrome-disabled" />
-        <span>__MSG_o_cFetchViaContentScript__</span>
-        <span class="badge">Firefox</span>
-        <div class="caption caption-line">
-          __MSG_o_cFetchViaContentScriptHelp__
-        </div>
-      </label>
-
-      <label>
-        <input type="checkbox" id="fetchViaFetch" class="chrome-disabled" />
-        <span>__MSG_o_cFetchViaFetchAPI__</span>
-        <span class="badge">Firefox</span>
-        <div class="caption caption-line">
-          __MSG_o_cFetchViaFetchAPIHelp__
-        </div>
-      </label>
-
-      <label>
-        <input type="checkbox" id="setRefererHeader" />
-        __MSG_o_cSetRefererHeader__
-        <span class="warning badge">Experimental</span>
-        <div class="caption caption-line">__MSG_o_cSetRefererHeaderHelp__</div>
-        <div class="caption-line">
-          <div>__MSG_o_cSetRefererHeaderFilter__</div>
-          <textarea
-            style="width: 100%"
-            type="textarea"
-            id="setRefererHeaderFilter"
-            rows="3"
-            placeholder=""
-            spellcheck="false"
-          ></textarea>
-        </div>
-        <div class="caption caption-line">
-          __MSG_o_cSetRefererHeaderFilterHelp__
-          <a
-            href="https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Match_patterns"
-            >MDN: Match patterns</a
-          >
-        </div>
-      </label>
-
-      <div
-        style="display: flex; justify-content: flex-start; align-items: center;"
-      >
-        <div id="settings-import" class="button">__MSG_o_cImportSettings__</div>
-        <div style="margin-left: 8px;" id="settings-export" class="button">
-          __MSG_o_cExportSettings__
-        </div>
+        <a class="external"
+          href="https://github.com/gyng/save-in/wiki/Filename-rewrite#migrating-to-the-new-syntax">Migrating rules from
+          the old version</a>
       </div>
 
-      <textarea
-        id="export-target"
-        style="display: none;"
-        spellcheck="false"
-      ></textarea>
+      <p>__MSG_o_lRoutingInstruction__</p>
 
-      <label> <input type="checkbox" id="debug" /> __MSG_o_cDebugMode__ </label>
+      <textarea type="textarea" id="filenamePatterns" rows="7" placeholder="Optional" spellcheck="false"></textarea>
+      <div class="error-notification" id="error-filenamePatterns">errors</div>
+      <div style="display: flex; max-width: 100%; align-items: center; flex-wrap: wrap;">
+        <div class="info-row"
+          style="display: flex; flex-direction: column; flex: 1; align-items: baseline; max-width: 100%; overflow: hidden; padding-right: 8px;">
+          <table style="margin: 0; padding: 0; max-width: 100%;">
+            <tbody style="margin: 0; padding: 0; vertical-align: baseline;">
+              <tr>
+                <td div style="font-weight: 600; padding: 0; text-align: left; min-width: 110px;">
+                  __MSG_o_lRoutingLastDownload__
+                </td>
+                <td
+                  style="font-family: monospace; text-overflow: hidden; overflow: hidden; white-space: nowrap; max-width: 80%;"
+                  id="last-dl-url">
+                  __MSG_o_lRoutingLastDownloadEmpty__
+                </td>
+              </tr>
+              <tr id="rules-applied-row">
+                <td style="font-weight: 600; padding: 0; text-align: left;">
+                  __MSG_o_lRoutingRenamedTo__
+                </td>
+                <td style="font-family: monospace; word-break: break-all;" id="last-dl-match">
+                  __MSG_o_lRoutingNoMatches__
+                </td>
+              </tr>
+              <tr class="hide" id="capture-group-rows">
+                <td style="font-weight: 600; padding: 0;">
+                  __MSG_o_lRoutingCaptureGroups__
+                </td>
+                <td style="font-family: monospace; word-break: break-all;" id="last-dl-capture"></td>
+              </tr>
+              <tr class="hide" id="variables-table-row">
+                <td style="font-weight: 600; padding: 0;">
+                  __MSG_o_lRoutingVariables__
+                </td>
+                <td>
+                  <div class="button" id="see-variables-btn">
+                    __MSG_o_lRoutingVariablesClickToSee__
+                  </div>
+                  <table id="variables-table">
+                    <tbody class="hide" id="variables-body"></tbody>
+                  </table>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="caption caption-line">
+        __MSG_o_lRoutingLastDownloadHelp__
+      </div>
+    </label>
 
-      <p>__MSG_translationCredits__</p>
+    <label>
+      <input type="checkbox" id="routeFailurePrompt" />
+      __MSG_o_cOpenDialogIfNoRulesMatch__
+    </label>
 
-      <p>
-        <span>__MSG_o_cLastSavedAt__</span>
-        <span id="lastSavedAt">__MSG_o_cLastSavedAtNever__</span>
-      </p>
-    </form>
+    <label>
+      <input type="checkbox" id="routeExclusive" /> __MSG_o_cExclusiveMode__
+      <div class="caption caption-line">__MSG_o_cExclusiveModeHelp__</div>
+    </label>
 
-    <script src="options.js"></script>
-    <script src="clicktocopy.js"></script>
-    <script src="vendor/textcomplete/textcomplete.min.js"></script>
-    <script src="autocomplete.js"></script>
-  </body>
+    <hr />
+
+    <h2 id="section-notifications">__MSG_o_sNotifications__</h2>
+    <label>
+      <input type="checkbox" id="notifyOnSuccess" /> __MSG_o_cNotifySuccess__
+    </label>
+
+    <label>
+      <input type="checkbox" id="notifyOnFailure" /> __MSG_o_cNotifyFailure__
+    </label>
+
+    <label>
+      <input type="checkbox" id="notifyOnRuleMatch" /> __MSG_o_cNotifyMatch__
+    </label>
+
+    <label>
+      <input type="checkbox" id="notifyOnLinkPreferred" />
+      __MSG_o_cNotifyLinkPreferred__
+    </label>
+
+    <label>
+      __MSG_o_cNotifyCloseAfter__
+      <input type="number" id="notifyDuration" min="0" />ms
+      <div class="caption caption-line">__MSG_o_cNotifyCloseAfterHelp__</div>
+    </label>
+
+    <hr />
+
+    <h2 id="section-save-as-shortcuts">__MSG_o_sSaveAsShortcuts__</h2>
+    <label>
+      __MSG_o_cSaveShortcutsAs__
+      <select id="shortcutType">
+        <option value="HTML_REDIRECT">__MSG_o_cSaveShortcutsTypeHtml__</option>
+        <option value="MAC">__MSG_o_cSaveShortcutsTypeMac__</option>
+        <option value="WINDOWS">__MSG_o_cSaveShortcutsTypeWindows__</option>
+        <option value="FREEDESKTOP">__MSG_o_cSaveShortcutsTypeFreedesktop__</option>
+      </select>
+    </label>
+
+    <label>
+      <input type="checkbox" id="shortcutMedia" />
+      __MSG_o_cSaveShortcutsMediaInstead__
+    </label>
+
+    <label>
+      <input type="checkbox" id="shortcutLink" />
+      __MSG_o_cSaveShortcutsLinksInstead__
+    </label>
+
+    <label>
+      <input type="checkbox" id="shortcutPage" />
+      __MSG_o_cSaveShortcutsPagesInstead__
+    </label>
+
+    <label>
+      <input type="checkbox" id="shortcutTab" class="chrome-disabled" />
+      __MSG_o_cSaveShortcutsTabsInstead__ <span class="badge">Firefox</span>
+    </label>
+
+    <hr />
+
+    <h2 id="section-save-as-shortcuts">__MSG_o_sKeyboardShortcuts__</h2>
+
+    <h3>__MSG_o_sContextMenu__</h3>
+    <p>__MSG_o_lAccessKeysInstruction__</p>
+
+    <label>
+      <input class="key" type="text" id="keyRoot" maxlength="1" />
+      __MSG_o_cKeyboardShortcutSaveInMenu__
+    </label>
+
+    <label>
+      <input class="key" type="text" id="keyLastUsed" maxlength="1" />
+      __MSG_o_cKeyboardShortcutSubmenu__
+    </label>
+
+    <label>
+      <input type="checkbox" id="enableNumberedItems" />
+      __MSG_o_cKeyboardShortcutNumbers__
+    </label>
+
+    <h3>__MSG_o_sClickToSave__</h3>
+    <label>
+      <input type="checkbox" id="contentClickToSave" />
+      __MSG_o_cKeyboardShortcutClickToSave__
+      <div class="caption caption-line">
+        __MSG_o_cKeyboardShortcutClickToHelp__
+      </div>
+    </label>
+
+    <label>
+      <input type="number" id="contentClickToSaveCombo" />
+      __MSG_o_cKeyboardShotcutKeycode__ +&nbsp;
+      <select id="contentClickToSaveButton">
+        <option value="LEFT_CLICK">__MSG_o_cKeyboardShortcutModifierLeftClick__</option>
+        <option value="MIDDLE_CLICK">__MSG_o_cKeyboardShortcutModifierMiddleClick__</option>
+        <option value="RIGHT_CLICK">__MSG_o_cKeyboardShortcutModifierRightClick__</option>
+      </select>
+      <div class="caption caption-line">
+        __MSG_o_cKeyboardShortcutModifierHelp__
+        <a class="caption" href="http://keycode.info/">keycode.info</a>
+      </div>
+    </label>
+
+    <hr />
+
+    <h2 id="section-more-options">
+      __MSG_o_sMoreOptions__
+      <div id="reset" class="button float-right">
+        __MSG_o_cRestoreDefaults__
+      </div>
+    </h2>
+
+    <label>
+      <input type="number" id="truncateLength" min="1" />__MSG_o_cTruncatePath__&nbsp;
+      <div class="caption caption-line">__MSG_o_cTruncatePathHelp__</div>
+    </label>
+
+    <label>
+      __MSG_o_cReplaceInvalidCharsWith__
+      <input type="text" id="replacementChar" placeholder="delete" style="font-family: monospace;" />
+      <div class="caption caption-line">
+        __MSG_o_cReplaceInvalidCharsWithHelp__
+      </div>
+    </label>
+
+    <label>
+      <input type="checkbox" id="fetchViaContent" class="chrome-disabled" />
+      <span>__MSG_o_cFetchViaContentScript__</span>
+      <span class="badge">Firefox</span>
+      <div class="caption caption-line">
+        __MSG_o_cFetchViaContentScriptHelp__
+      </div>
+    </label>
+
+    <label>
+      <input type="checkbox" id="fetchViaFetch" class="chrome-disabled" />
+      <span>__MSG_o_cFetchViaFetchAPI__</span>
+      <span class="badge">Firefox</span>
+      <div class="caption caption-line">
+        __MSG_o_cFetchViaFetchAPIHelp__
+      </div>
+    </label>
+
+    <label>
+      <input type="checkbox" id="setRefererHeader" />
+      __MSG_o_cSetRefererHeader__
+      <span class="warning badge">Experimental</span>
+      <div class="caption caption-line">__MSG_o_cSetRefererHeaderHelp__</div>
+      <div class="caption-line">
+        <div>__MSG_o_cSetRefererHeaderFilter__</div>
+        <textarea style="width: 100%" type="textarea" id="setRefererHeaderFilter" rows="3" placeholder=""
+          spellcheck="false"></textarea>
+      </div>
+      <div class="caption caption-line">
+        __MSG_o_cSetRefererHeaderFilterHelp__
+        <a href="https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Match_patterns">MDN: Match
+          patterns</a>
+      </div>
+    </label>
+
+    <div style="display: flex; justify-content: flex-start; align-items: center;">
+      <div id="settings-import" class="button">__MSG_o_cImportSettings__</div>
+      <div style="margin-left: 8px;" id="settings-export" class="button">
+        __MSG_o_cExportSettings__
+      </div>
+    </div>
+
+    <textarea id="export-target" style="display: none;" spellcheck="false"></textarea>
+
+    <label> <input type="checkbox" id="debug" /> __MSG_o_cDebugMode__ </label>
+
+    <p>__MSG_translationCredits__</p>
+
+    <div style="display: flex; width: 100%;">
+      <details style="flex: 1;">
+        <summary>History</summary>
+        <textarea style="width: 100%; min-height: 400px;" type="textarea" id="history" spellcheck="false"
+          readonly></textarea>
+        <div id="history-delete" class="button">Delete history</div>
+      </details>
+    </div>
+
+    <p>
+      <span>__MSG_o_cLastSavedAt__</span>
+      <span id="lastSavedAt">__MSG_o_cLastSavedAtNever__</span>
+    </p>
+  </form>
+
+  <script src="options.js"></script>
+  <script src="clicktocopy.js"></script>
+  <script src="vendor/textcomplete/textcomplete.min.js"></script>
+  <script src="autocomplete.js"></script>
+</body>
+
 </html>
