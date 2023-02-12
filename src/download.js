@@ -30,7 +30,7 @@ const Download = {
       .filter((x) => x != null)
       .join("/");
 
-    return finalFullPath.replace(/^\.\//, "");
+    return finalFullPath.replace(/^\.\//, "").replace(/^\//, "");
   },
 
   getFilenameFromContentDisposition: (disposition) => {

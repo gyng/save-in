@@ -3,17 +3,19 @@ let lastUsedPath = null; // global variable
 const Menus = {
   IDS: {
     TABSTRIP: {
-      SELECTED_TAB: "save-in-_-_-SI-selected-tab",
-      SELECTED_MULTIPLE_TABS: "save-in-_-_-SI-selected-multiple-tabs",
-      TO_RIGHT: "save-in-_-_-SI-to-right",
-      TO_RIGHT_MATCH: "save-in-_-_-SI-to-right-match",
-      OPENED_FROM_TAB: "save-in-_-_-SI-opened-from-tab",
+      SELECTED_TAB: "save-in-SI-selected-tab",
+      SELECTED_MULTIPLE_TABS: "save-in-SI-selected-multiple-tabs",
+      TO_RIGHT: "save-in-SI-to-right",
+      TO_RIGHT_MATCH: "save-in-SI-to-right-match",
+      OPENED_FROM_TAB: "save-in-SI-opened-from-tab",
     },
-    ROOT: "save-in-_-_-root",
-    LAST_USED: "save-in-_-_-last-used",
+    ROUTE_EXCLUSIVE: "save-in-route-exclusive",
+    ROOT: "save-in-root",
+    LAST_USED: "save-in-last-used",
   },
 
   titles: {},
+  pathMappings: {}, // key: ID, val: actual path
 
   makeSeparator: (() => {
     let separatorCounter = 0;
@@ -58,7 +60,7 @@ const Menus = {
 
   addRouteExclusive: (contexts) => {
     browser.contextMenus.create({
-      id: "save-in-_-_-route-exclusive",
+      id: Menus.IDS.ROUTE_EXCLUSIVE,
       title: Menus.setAccesskey(
         browser.i18n.getMessage("contextMenuExclusive"),
         options.keyRoot
@@ -112,7 +114,7 @@ const Menus = {
       id: "options",
       title: browser.i18n.getMessage("contextMenuItemOptions"),
       contexts,
-      parentId: "save-in-_-_-root",
+      parentId: "save-in-root",
     });
 
     browser.contextMenus.onClicked.addListener((info) => {
@@ -154,7 +156,9 @@ const Menus = {
       browser.contextMenus.create(
         Object.assign({}, lastUsedMenuOptions, {
           icons: {
-            16: "icons/ic_update_black_24px.svg",
+            16: OptionsManagement.isDarkMode()
+              ? "icons/ic_update_light_24px.svg"
+              : "icons/ic_update_black_24px.svg",
           },
         })
       );
@@ -205,6 +209,7 @@ const Menus = {
 
   addPaths: (pathsArray, contexts) => {
     const menuItemCounter = [0]; // key: depth, val: index
+    Menus.pathMappings = {};
 
     // Create a stack for nested menus
     let pathsNestingStack = [];
@@ -242,9 +247,14 @@ const Menus = {
         } else {
           menuItemCounter[depth] = 1;
         }
-        const id = `save-in-${menuItemCounter.join(
-          "."
-        )}-${`${i}${comment.replace("-", "_")}`}-${parsedDir}`;
+        const id = `save-in-${i}`;
+        Menus.pathMappings[id] = {
+          parsedDir,
+          comment: `${i}${comment.replace("-", "_")}`,
+          menuIndex: menuItemCounter.join("."),
+          title,
+          depth,
+        };
 
         let parentId;
         if (depth === 0) {
@@ -290,12 +300,16 @@ const Menus = {
         return;
       }
 
-      const matchSave = info.menuItemId.match(/save-in-(\d|_)+-(.*?)-(.*)/);
+      const menuInfo = Menus.pathMappings[info.menuItemId];
 
-      if (matchSave && matchSave.length === 4) {
-        let menuIndex = matchSave[1];
-        let comment = matchSave[2];
-        const matchedDir = matchSave[3];
+      if (
+        menuInfo ||
+        [Menus.IDS.ROUTE_EXCLUSIVE, Menus.IDS.LAST_USED].includes(
+          info.menuItemId
+        )
+      ) {
+        let menuIndex = menuInfo && menuInfo.menuIndex;
+        let comment = menuInfo && menuInfo.comment;
 
         let url;
         let suggestedFilename = null;
@@ -373,16 +387,16 @@ const Menus = {
 
         let saveIntoPath;
 
-        if (matchedDir === "route-exclusive") {
+        if (info.menuItemId === Menus.IDS.ROUTE_EXCLUSIVE) {
           saveIntoPath = ".";
-        } else if (matchedDir === "last-used") {
+        } else if (info.menuItemId === Menus.IDS.LAST_USED) {
           saveIntoPath = lastUsedPath;
           comment = window.lastDownloadState.info.comment;
           menuIndex = window.lastDownloadState.info.menuIndex;
         } else {
-          saveIntoPath = matchedDir;
+          saveIntoPath = menuInfo.parsedDir;
           lastUsedPath = saveIntoPath;
-          const title = Menus.titles[info.menuItemId] || lastUsedPath;
+          const title = menuInfo.title || lastUsedPath;
 
           if (options.enableLastLocation) {
             browser.contextMenus.update(Menus.IDS.LAST_USED, {

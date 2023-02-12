@@ -1,3 +1,10 @@
+# 3.7.1
+
+* Fix invalid default menu configuration
+* Now notifies by default for successful downloads
+* Fix light mode icon for last used menu item being white
+* Refactor context menu creation, might help with #200
+
 # 3.7.0
 
 This update might require a change in your muscle memories. Previously all submenus of the same depth would have their shortcut keys increment even if they had different parents. That's now been fixed. Thanks, 
