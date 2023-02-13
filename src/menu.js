@@ -156,9 +156,7 @@ const Menus = {
       browser.contextMenus.create(
         Object.assign({}, lastUsedMenuOptions, {
           icons: {
-            16: OptionsManagement.isDarkMode()
-              ? "icons/ic_update_light_24px.svg"
-              : "icons/ic_update_black_24px.svg",
+            16: "icons/ic_update_black_24px.svg",
           },
         })
       );

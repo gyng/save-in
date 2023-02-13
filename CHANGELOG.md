@@ -1,3 +1,7 @@
+# 3.7.2
+
+* Fix light mode icon again
+
 # 3.7.1
 
 * Fix invalid default menu configuration
