@@ -347,6 +347,10 @@ document.querySelector("#settings-export").addEventListener("click", () => {
   });
 });
 
+document.querySelector("#history-export").addEventListener("click", () => {
+/*  __FIXME__ */
+});
+
 const importSettings = () => {
   const load = (w) => {
     getOptionsSchema.then((schema) => {

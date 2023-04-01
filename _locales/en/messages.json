@@ -562,6 +562,10 @@
     "message": "Export Settings"
   },
 
+  "o_cExportHistory": {
+    "message": "Export History"
+  },
+
   "o_cDebugMode": {
     "message": "Enable debug logging"
   },

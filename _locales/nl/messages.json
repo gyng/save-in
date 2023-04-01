@@ -546,6 +546,10 @@
     "message": "Exporteer Instellingen"
   },
 
+  "o_cExportHistory": {
+    "message": "Exporteer Geschiedenis"
+  },
+
   "o_cDebugMode": {
     "message": "Debug logging inschakelen"
   },

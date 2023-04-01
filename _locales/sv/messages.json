@@ -561,6 +561,10 @@
     "message": "Exportera inställningar"
   },
 
+  "o_cExportHistory": {
+    "message": "Exportera historia"
+  },
+
   "o_cDebugMode": {
     "message": "Aktivera felsökningsloggning"
   },
