@@ -4,9 +4,10 @@ const HISTORY_KEY = "save-in-history";
 
 const SaveHistory = {
   add: async (entry) => {
-    const current = (await browser.storage.local.get(HISTORY_KEY)) || {};
-    await browser.storage.local.set({
-      [HISTORY_KEY]: [...(current.history || []), entry],
+    browser.storage.local.get(HISTORY_KEY, function(current) {
+      browser.storage.local.set({
+        [HISTORY_KEY]: [...((current || {})[HISTORY_KEY] || []), entry],
+      })
     });
   },
   get: async () => (await browser.storage.local.get(HISTORY_KEY)) || [],
