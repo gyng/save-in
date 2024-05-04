@@ -1,10 +1,11 @@
 const BROWSERS = {
   CHROME: "CHROME",
   FIREFOX: "FIREFOX",
+  UNKNOWN: "UNKNOWN",
 };
 
 let BROWSER_FEATURES; // eslint-disable-line
-let CURRENT_BROWSER = BROWSERS.CHROME;
+let CURRENT_BROWSER = BROWSERS.UNKNOWN;
 let CURRENT_BROWSER_VERSION;
 
 const setFeatures = (browser, version) => {
@@ -51,5 +52,5 @@ if (typeof browser === "undefined") {
   // If we don't have browser.runtime.getBrowserInfo, assume it's Chrome
   // Big assumption, but browser.runtime.getBrowserInfo is not well supported
   CURRENT_BROWSER = BROWSERS.CHROME; // eslint-disable-line
-  BROWSER_FEATURES = setFeatures(CURRENT_BROWSER, CURRENT_BROWSER_VERSION);  // eslint-disable-line
+  BROWSER_FEATURES = setFeatures(CURRENT_BROWSER, CURRENT_BROWSER_VERSION); // eslint-disable-line
 }

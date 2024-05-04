@@ -1,6 +1,19 @@
 const getOptionsSchema = browser.runtime
   .sendMessage({ type: "OPTIONS_SCHEMA" })
-  .then((res) => res.body);
+  .then((res) => {
+    console.log("options", res, CURRENT_BROWSER);
+    return res.body;
+  })
+  .catch(console.error);
+
+const waitForBrowserDetection = () => {
+  if (CURRENT_BROWSER === "UNKNOWN") {
+    setTimeout(waitForBrowserDetection, 10);
+  } else {
+    setupChromeDisables();
+  }
+};
+waitForBrowserDetection();
 
 const updateErrors = () => {
   const pathsErrors = document.querySelector("#error-paths");
@@ -136,7 +149,7 @@ const updateErrors = () => {
 const updateHistory = async () => {
   // Copied from history.js
   const HISTORY_KEY = "save-in-history";
-  const history = (await browser.storage.local.get(HISTORY_KEY)) || {};
+  const history = (await browser.storage.local.get(HISTORY_KEY)) ?? {};
   const el = document.querySelector("#history");
   el.value = JSON.stringify(history, null, 2);
 };
@@ -152,7 +165,7 @@ const deleteHistory = () => {
 };
 document
   .querySelector("#history-delete")
-  .addEventListener("click", deleteHistory);
+  ?.addEventListener("click", deleteHistory);
 
 browser.runtime.onMessage.addListener((message) => {
   switch (message.type) {
@@ -278,22 +291,24 @@ document.querySelector("#reset").addEventListener("click", (e) => {
   }
 });
 
-if (CURRENT_BROWSER === BROWSERS.CHROME) {
-  document.querySelectorAll(".chrome-only").forEach((el) => {
-    el.classList.toggle("show");
-  });
+const setupChromeDisables = () => {
+  if (CURRENT_BROWSER === BROWSERS.CHROME) {
+    document.querySelectorAll(".chrome-only").forEach((el) => {
+      el.classList.toggle("show");
+    });
 
-  document.querySelectorAll(".chrome-enabled").forEach((el) => {
-    el.removeAttribute("disabled");
-  });
+    document.querySelectorAll(".chrome-enabled").forEach((el) => {
+      el.removeAttribute("disabled");
+    });
 
-  document.querySelector("html").style = "min-width: 600px;";
-  // document.querySelector("body").style = "overflow-y: hidden;";
+    document.querySelector("html").style = "min-width: 600px;";
+    // document.querySelector("body").style = "overflow-y: hidden;";
 
-  document.querySelectorAll(".chrome-disabled").forEach((el) => {
-    el.disabled = true;
-  });
-}
+    document.querySelectorAll(".chrome-disabled").forEach((el) => {
+      el.disabled = true;
+    });
+  }
+};
 
 const setupAutosave = (el) => {
   const autosaveCb = (e) => {
