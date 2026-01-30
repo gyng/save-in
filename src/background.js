@@ -1,36 +1,54 @@
 // src/background.js
 
-// MV3 Service Worker Implementation
-
-// Initialize any variables or constants needed for the service worker
-const contextMenuId = 'myContextMenu';
-
-// Setup the context menu
+// Context menu setup
 chrome.runtime.onInstalled.addListener(() => {
     chrome.contextMenus.create({
-        id: contextMenuId,
-        title: 'My Context Menu',
-        contexts: ['selection']
+        id: "save-in",
+        title: "Save In",
+        contexts: ["selection"]
     });
 });
 
-// Message handling from content scripts
+// Handle context menu click event
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+    if (info.menuItemId === "save-in") {
+        const selectedText = info.selectionText;
+        saveSelectedText(selectedText);
+    }
+});
+
+// Function to save selected text using Chrome's storage API
+function saveSelectedText(text) {
+    chrome.storage.local.get({ savedTexts: [] }, (result) => {
+        const savedTexts = result.savedTexts;
+        savedTexts.push(text);
+        chrome.storage.local.set({ savedTexts: savedTexts }, () => {
+            console.log("Text saved:", text);
+            // You can implement download functionality here if needed
+        });
+    });
+}
+
+// Listen for messages from content scripts
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.action === 'trackTab') {
-        // Logic to track the tab
-        console.log('Tracking tab:', request.tabId);
-    }
-    sendResponse({status: 'success'});
-});
-
-// On tab updated (loaded) to track tab information
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-    if (changeInfo.status === 'complete') {
-        // Logic to handle the completed tab load
-        console.log('Tab loaded:', tabId);
+    if (request.action === "getSavedTexts") {
+        chrome.storage.local.get({ savedTexts: [] }, (result) => {
+            sendResponse(result.savedTexts);
+        });
+        return true; // Keep the message channel open for sendResponse
     }
 });
 
-// Add additional functionalities as required
+// Download functionality (optional depending on requirements)
+function downloadFile(fileName, content) {
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
 
-// This service worker can be expanded to include other functionality as needed.
+    chrome.downloads.download({
+        url: url,
+        filename: fileName,
+        saveAs: true
+    }, (downloadId) => {
+        console.log("Download initiated with ID:", downloadId);
+    });
+}
