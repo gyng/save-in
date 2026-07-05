@@ -1,0 +1,34 @@
+name: Pack Chromium extension archive
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Get version from manifest
+        id: get_version
+        run: |
+          VERSION=$(node -p "require('./manifest.json').version")
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Upload zip artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SaveIn-extension-v${{ env.VERSION }}
+          # List the files and directories to include directly
+          path: |
+            manifest.json
+            background-wrapper.js
+            src/
+            icons/
+            _locales/
+          retention-days: 14
