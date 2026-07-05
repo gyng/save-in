@@ -1,67 +1,39 @@
 {
-  "manifest_version": 2,
+  "manifest_version": 3,
   "name": "__MSG_extensionName__",
   "description": "__MSG_extensionDescription__",
-  "version": "3.7.3",
+  "version": "3.7.6",
   "default_locale": "en",
-
-  "applications": {
-    "gecko": {
-      "id": "{72d92df5-2aa0-4b06-b807-aa21767545cd}"
-    }
-  },
-
-  "developer": {
-    "name": "Ng Guoyou",
-    "url": "https://github.com/gyng/save-in"
-  },
-
-  "homepage_url": "https://github.com/gyng/save-in",
-
   "background": {
-    "scripts": [
-      "src/vendor/browser-polyfill.js",
-      "src/vendor/content-disposition.js",
-      "src/chrome-detector.js",
-      "src/constants.js",
-      "src/history.js",
-      "src/notification.js",
-      "src/path.js",
-      "src/download.js",
-      "src/router.js",
-      "src/shortcut.js",
-      "src/messaging.js",
-      "src/headers.js",
-      "src/variable.js",
-      "src/menu.js",
-      "src/option.js",
-      "src/index.js"
-    ]
+    "service_worker": "background-wrapper.js" 
   },
-
-  "content_scripts": [
-    {
-      "matches": ["<all_urls>"],
-      "js": ["src/content/content.js"]
-    }
+  "host_permissions": [
+    "<all_urls>"
   ],
-
   "permissions": [
-    "<all_urls>",
     "activeTab",
     "tabs",
     "contextMenus",
     "downloads",
     "notifications",
     "storage",
-    "webRequest",
-    "webRequestBlocking"
+    "declarativeNetRequest", 
+    "declarativeNetRequestWithHostAccess"
+  ],
+
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["src/content/content.js"],
+      "run_at": "document_idle",
+      "all_frames": true
+    }
   ],
 
   "options_ui": {
     "browser_style": true,
-    "chrome_style": true,
-    "page": "src/options/options.html"
+    "page": "src/options/options.html",
+    "open_in_tab": true
   },
 
   "icons": {

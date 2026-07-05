@@ -41,7 +41,7 @@ const Shortcut = {
     suggestedFilename,
     maxlen
   ) => {
-    const shortcutExtension = SHORTCUT_EXTENSIONS[shortcutType] || "";
+    const shortcutExtension = SHORTCUT_EXTENSIONS[shortcutType] ?? "";
 
     let shortcutFilename =
       downloadType === DOWNLOAD_TYPES.PAGE

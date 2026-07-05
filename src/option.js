@@ -62,17 +62,12 @@ const OptionsManagement = {
     { name: "shortcutLink", type: T.BOOL, default: false },
     { name: "shortcutMedia", type: T.BOOL, default: false },
     { name: "shortcutPage", type: T.BOOL, default: false },
-    { name: "shortcutTab", type: T.BOOL, default: false },
     {
       name: "shortcutType",
       type: T.VALUE,
       default: SHORTCUT_TYPES.HTML_REDIRECT,
     },
     { name: "truncateLength", type: T.VALUE, default: 240 },
-    { name: "fetchViaContent", type: T.BOOL, default: false },
-    { name: "fetchViaFetch", type: T.BOOL, default: false },
-    { name: "tabEnabled", type: T.BOOL, default: false },
-    { name: "closeTabOnSave", type: T.BOOL, default: false },
     { name: "setRefererHeader", type: T.BOOL, default: false },
     {
       name: "setRefererHeaderFilter",
@@ -81,11 +76,7 @@ const OptionsManagement = {
     },
   ],
 
-  getKeys: () =>
-    OptionsManagement.OPTION_KEYS.reduce(
-      (acc, val) => acc.concat([val.name]),
-      []
-    ),
+  getKeys: () => OptionsManagement.OPTION_KEYS.map((val) => val.name),
 
   setOption: (name, value) => {
     if (typeof value !== "undefined") {
@@ -101,22 +92,12 @@ const OptionsManagement = {
       };
     }
 
-    // webext linter does not support spread
-    // const last = {
-    //   ...state,
-    //   info: {
-    //     ...state.info,
-    //     filenamePatterns: options.filenamePatterns
-    //   }
-    // };
-
-    const newInfo = Object.assign({}, state.info, {
+    const newInfo = {
+      ...state.info,
       filenamePatterns: options.filenamePatterns,
-      // Chrome hack for filename: Chrome replaces special characters with `_`
-      // This mutates(?) the last object and ruins it
-      filename: state.info.initialFilename || state.info.filename,
-    });
-    const last = Object.assign({}, state, { info: newInfo });
+      filename: state.info.initialFilename ?? state.info.filename,
+    };
+    const last = { ...state, info: newInfo };
 
     const lastInterpolated = Variable.applyVariables(
       new Path.Path(Download.getRoutingMatches(last)),
@@ -129,7 +110,7 @@ const OptionsManagement = {
       testLastCapture = Router.getCaptureMatches(
         options.filenamePatterns[i],
         last.info,
-        last.info.filename || last.info.url
+        last.info.filename ?? last.info.url
       );
 
       if (testLastCapture) {
@@ -149,14 +130,15 @@ OptionsManagement.loadOptions = () =>
     .get(OptionsManagement.getKeys())
     .then((loadedOptions) => {
       if (loadedOptions.debug) {
-        window.SI_DEBUG = 1;
+        self.SI_DEBUG = 1;
       }
 
+      const optionMap = new Map(
+        OptionsManagement.OPTION_KEYS.map((ok) => [ok.name, ok])
+      );
       const localKeys = Object.keys(loadedOptions);
       localKeys.forEach((k) => {
-        const optionType = OptionsManagement.OPTION_KEYS.find(
-          (ok) => ok.name === k
-        );
+        const optionType = optionMap.get(k);
         const fn = optionType.onLoad || ((x) => x);
         OptionsManagement.setOption(k, fn(loadedOptions[k]));
       });
@@ -165,9 +147,8 @@ OptionsManagement.loadOptions = () =>
     });
 
 // global
-options = OptionsManagement.OPTION_KEYS.reduce(
-  (acc, val) => Object.assign(acc, { [val.name]: val.default }),
-  {}
+options = Object.fromEntries(
+  OptionsManagement.OPTION_KEYS.map((val) => [val.name, val.default])
 );
 
 // Export for testing

@@ -6,6 +6,38 @@ const ERROR_ICON_URL = "icons/ic_error_outline_red_96px.png";
 const downloadsList = {}; // global
 let requestedDownloadFlag = 0;
 
+// Restore tracked downloads on SW restart (MV3 — globals don't survive termination)
+(async () => {
+  try {
+    const { siTrackedDownloads = [] } = await browser.storage.session.get(
+      "siTrackedDownloads"
+    );
+
+    // Prune stale IDs (downloads that completed while SW was terminated)
+    const results = await Promise.all(
+      siTrackedDownloads.map(async (id) => {
+        const [item] = await browser.downloads.search({ id }).catch(() => []);
+        if (
+          item &&
+          (item.state === "in_progress" || item.state === "interrupted")
+        ) {
+          downloadsList[id] = { id };
+          return id;
+        }
+        return null;
+      })
+    );
+    const validIds = results.filter(Boolean);
+    if (validIds.length !== siTrackedDownloads.length) {
+      await browser.storage.session
+        .set({ siTrackedDownloads: validIds })
+        .catch(() => {});
+    }
+  } catch (e) {
+    // session storage unavailable or first run
+  }
+})();
+
 const Notification = {
   currentDownloadChangeListener: null,
   currentDownloadCreatedListener: null,
@@ -15,48 +47,51 @@ const Notification = {
     const id = `save-in-not-${String(Math.floor(Math.random() * 100000))}`;
     browser.notifications.create(id, {
       type: "basic",
-      title: title || browser.i18n.getMessage("extensionName"),
+      title: title ?? browser.i18n.getMessage("extensionName"),
       iconUrl: error ? ERROR_ICON_URL : ICON_URL,
-      message: message || browser.i18n.getMessage("genericUnknownError"),
+      message: message ?? browser.i18n.getMessage("genericUnknownError"),
     });
 
     if (options && options.notifyDuration) {
-      window.setTimeout(() => {
+      self.setTimeout(() => {
         browser.notifications.clear(id);
       }, options.notifyDuration);
     }
   },
 
-  isDownloadFailure: (downloadDelta, isChrome) => {
-    // CHROME
-    // Chrome's DownloadDelta contains different information from Firefox's
-    let failed = false;
-
-    if (isChrome) {
-      failed = downloadDelta.error;
-    } else {
-      failed =
-        downloadDelta.error ||
-        (downloadDelta.state && downloadDelta.state.current === "interrupted");
-    }
-
-    return failed;
-  },
+  isDownloadFailure: (downloadDelta) => downloadDelta.error,
 
   addNotifications: (options) => {
-    const notifyOnSuccess = options && options.notifyOnSuccess;
-    const notifyOnFailure = options && options.notifyOnFailure;
-    const notifyDuration = options && options.notifyDuration;
-    const promptOnFailure = options && options.promptOnFailure;
+    const notifyOnSuccess = options?.notifyOnSuccess;
+    const notifyOnFailure = options?.notifyOnFailure;
+    const notifyDuration = options?.notifyDuration;
+    const promptOnFailure = options?.promptOnFailure;
 
-    if (!notifyDuration && window.SI_DEBUG) {
+    if (!notifyDuration && self.SI_DEBUG) {
       console.log("Bad notify duration", options); // eslint-disable-line
     }
 
-    const onDownloadCreatedListener = (item) => {
-      if (requestedDownloadFlag) {
+    const onDownloadCreatedListener = async (item) => {
+      const { siPendingDownload } = await browser.storage.session
+        .get("siPendingDownload")
+        .catch(() => ({}));
+      if (requestedDownloadFlag || siPendingDownload) {
         downloadsList[item.id] = item;
         requestedDownloadFlag = false;
+        // Persist to session storage so it survives SW termination
+        await browser.storage.session
+          .set({ siPendingDownload: false })
+          .catch(() => {});
+        const { siTrackedDownloads = [] } = await browser.storage.session
+          .get("siTrackedDownloads")
+          .catch(() => ({}));
+        if (!siTrackedDownloads.includes(item.id)) {
+          await browser.storage.session
+            .set({
+              siTrackedDownloads: [...siTrackedDownloads, item.id],
+            })
+            .catch(() => {});
+        }
       }
     };
 
@@ -107,30 +142,22 @@ const Notification = {
       // Chrome does not have the filename in the initial DownloadItem,
       // so extract it from the DownloadDelta
       if (CURRENT_BROWSER === BROWSERS.CHROME) {
-        if (
-          downloadDelta &&
-          downloadDelta.filename &&
-          downloadDelta.filename.current
-        ) {
+        if (downloadDelta?.filename?.current) {
           downloadsList[downloadDelta.id].filename =
             downloadDelta.filename.current;
         }
       }
 
-      const fullFilename = item && item.filename;
-      const slashIdx = fullFilename && fullFilename.lastIndexOf("/");
+      const fullFilename = item?.filename;
+      const slashIdx = fullFilename?.lastIndexOf("/");
       const filename = fullFilename.substring(slashIdx + 1);
 
-      const failed = Notification.isDownloadFailure(
-        downloadDelta,
-        CURRENT_BROWSER === BROWSERS.CHROME
-      );
+      const failed = Notification.isDownloadFailure(downloadDelta);
 
       const isFromSelf = typeof downloadsList[downloadDelta.id] !== "undefined";
-      const isUserCancelled =
-        downloadDelta.error && downloadDelta.error.current === "USER_CANCELED";
+      const isUserCancelled = downloadDelta.error?.current === "USER_CANCELED";
 
-      if (window.SI_DEBUG) {
+      if (self.SI_DEBUG) {
         /* eslint-disable no-console */
         console.log(
           "notification",
@@ -152,7 +179,7 @@ const Notification = {
             ]),
             iconUrl: ERROR_ICON_URL,
             message:
-              failed.current || browser.i18n.getMessage("genericUnknownError"),
+              failed.current ?? browser.i18n.getMessage("genericUnknownError"),
           });
         }
 
@@ -163,7 +190,7 @@ const Notification = {
           });
         }
 
-        if (window.SI_DEBUG) {
+        if (self.SI_DEBUG) {
           /* eslint-disable no-console */
           console.log(
             "notification: created failure",
@@ -174,24 +201,39 @@ const Notification = {
           /* eslint-enable no-console */
         }
 
-        if (downloadDelta && downloadDelta.id) {
-          window.setTimeout(() => {
+        // Clean up session storage tracking (fire-and-forget)
+        if (downloadDelta?.id) {
+          browser.storage.session
+            .get("siTrackedDownloads")
+            .then(({ siTrackedDownloads = [] }) => {
+              browser.storage.session
+                .set({
+                  siTrackedDownloads: siTrackedDownloads.filter(
+                    (id) => id !== downloadDelta.id
+                  ),
+                })
+                .catch(() => {});
+            })
+            .catch(() => {});
+        }
+
+        if (downloadDelta?.id) {
+          self.setTimeout(() => {
             browser.notifications.clear(String(downloadDelta.id));
+            delete downloadsList[downloadDelta.id];
           }, notifyDuration);
         }
       } else if (
         notifyOnSuccess &&
         isFromSelf &&
-        downloadDelta &&
-        downloadDelta.state &&
-        downloadDelta.state.current === "complete" &&
-        downloadDelta.state.previous === "in_progress"
+        downloadDelta?.state?.current === "complete" &&
+        downloadDelta?.state?.previous === "in_progress"
       ) {
         browser.downloads.search({ id: downloadDelta.id }).then((res) => {
           let filesize = "";
-          const mime = res.length > 0 && res[0].mime;
+          const mime = res[0]?.mime;
 
-          if (res.length > 0 && res[0].fileSize) {
+          if (res[0]?.fileSize) {
             const bytes = res[0].fileSize;
             if (bytes >= 1000 * 1000) {
               const mb = (res[0].fileSize / 1000 / 1000).toFixed(1);
@@ -220,7 +262,7 @@ const Notification = {
           });
         });
 
-        if (window.SI_DEBUG) {
+        if (self.SI_DEBUG) {
           /* eslint-disable no-console */
           console.log(
             "notification: created success",
@@ -231,8 +273,23 @@ const Notification = {
           /* eslint-enable no-console */
         }
 
-        window.setTimeout(() => {
+        // Clean up session storage tracking (fire-and-forget)
+        browser.storage.session
+          .get("siTrackedDownloads")
+          .then(({ siTrackedDownloads = [] }) => {
+            browser.storage.session
+              .set({
+                siTrackedDownloads: siTrackedDownloads.filter(
+                  (id) => id !== downloadDelta.id
+                ),
+              })
+              .catch(() => {});
+          })
+          .catch(() => {});
+
+        self.setTimeout(() => {
           browser.notifications.clear(String(downloadDelta.id));
+          delete downloadsList[downloadDelta.id];
         }, notifyDuration);
       }
     };

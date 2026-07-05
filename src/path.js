@@ -55,7 +55,7 @@ const Path = {
           }
         })
         .map((s) =>
-          s.val ? s : Path.PathSegment.String(options.replacementChar || "_")
+          s.val ? s : Path.PathSegment.String(options.replacementChar ?? "_")
         );
 
       const sanitizedStringifiedBuf = Path.sanitizeBufStrings(stringifiedBuf);
@@ -109,22 +109,14 @@ const Path = {
   replaceFsBadChars: (s, replacement) =>
     s.replace(
       Path.SPECIAL_CHARACTERS_REGEX,
-      replacement ||
-        (typeof options !== "undefined" &&
-          options &&
-          options.replacementChar) ||
-        ""
+      replacement ?? options.replacementChar ?? ""
     ),
 
   // Leading dots are considered invalid by both Firefox and Chrome
   replaceLeadingDots: (s, replacement) =>
     s.replace(
       Path.BAD_LEADING_CHARACTERS,
-      replacement ||
-        (typeof options !== "undefined" &&
-          options &&
-          options.replacementChar) ||
-        ""
+      replacement ?? options.replacementChar ?? ""
     ),
 
   truncateIfLongerThan: (str, max) =>
@@ -175,17 +167,13 @@ const Path = {
       pathStr = "";
     }
 
-    let split = pathStr.split(Path.SEPARATOR_REGEX_INCLUSIVE);
-    if (typeof split === "string") {
-      split = [split];
-    }
+    const flattened = pathStr
+      .split(Path.SEPARATOR_REGEX_INCLUSIVE)
+      .flatMap((c) =>
+        c.split(specialDirRegexp).filter((sub) => sub.length > 0)
+      );
 
-    const tokenized = split.map((c) =>
-      c.split(specialDirRegexp).filter((sub) => sub.length > 0)
-    );
-    const flattened = [].concat.apply([], tokenized); // eslint-disable-line
-
-    const parsed = flattened.map((tok) => {
+    return flattened.map((tok) => {
       if (tok.match(Path.SEPARATOR_REGEX_INCLUSIVE)) {
         return Path.PathSegment.Separator(tok);
       } else if (tok.match(specialDirRegexp)) {
@@ -193,8 +181,6 @@ const Path = {
       }
       return Path.PathSegment.String(tok);
     });
-
-    return parsed;
   },
 };
 

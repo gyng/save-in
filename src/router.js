@@ -1,16 +1,13 @@
 const RouterFactory = {
   makeInfoMatcherFactory:
     (propertyName, alternativePropertyName) => (regex) => (info) => {
-      let match = info[propertyName] && info[propertyName].match(regex);
+      let match = info[propertyName]?.match(regex);
 
-      // Hack for sourceUrl, srcUrl
       if (!match && alternativePropertyName) {
-        match =
-          info[alternativePropertyName] &&
-          info[alternativePropertyName].match(regex);
+        match = info[alternativePropertyName]?.match(regex);
       }
 
-      if (window.SI_DEBUG && match) {
+      if (self.SI_DEBUG && match) {
         console.log("matched", match, regex, info); // eslint-disable-line
       }
 
@@ -18,12 +15,9 @@ const RouterFactory = {
     },
 
   makeTabMatcherFactory: (propertyName) => (regex) => (info) => {
-    const match =
-      currentTab &&
-      currentTab[propertyName] &&
-      currentTab[propertyName].match(regex);
+    const match = currentTab?.[propertyName]?.match(regex);
 
-    if (window.SI_DEBUG && match) {
+    if (self.SI_DEBUG && match) {
       console.log("matched", match, regex, info); // eslint-disable-line
     }
 
@@ -32,18 +26,18 @@ const RouterFactory = {
 
   makeHostnameMatcherFactory: (propertyName) => (regex) => (info) => {
     try {
-      const url = new URL(info && info[propertyName]);
+      const url = new URL(info?.[propertyName]);
 
       const hostname = url.hostname;
       const match = hostname.match(regex);
 
-      if (window.SI_DEBUG && match) {
+      if (self.SI_DEBUG && match) {
         console.log("matched", match, regex, info); // eslint-disable-line
       }
 
       return match;
     } catch (e) {
-      if (window.SI_DEBUG) {
+      if (self.SI_DEBUG) {
         console.log("bad page domain in matcher", info.pageUrl, e); // eslint-disable-line
       }
 
@@ -52,6 +46,8 @@ const RouterFactory = {
   },
 };
 
+const DOUBLE_NEWLINE_REGEX = new RegExp("\\n\\n+", "g");
+
 const Router = {
   matcherFunctions: {
     context:
@@ -59,7 +55,7 @@ const Router = {
       (info, { context }) => {
         const match = context.toLowerCase().match(regex);
 
-        if (window.SI_DEBUG && match) {
+        if (self.SI_DEBUG && match) {
           console.log("matched", match, regex, info); // eslint-disable-line
         }
 
@@ -70,7 +66,7 @@ const Router = {
       (info, { menuIndex } = {}) => {
         const match = menuIndex.match(regex);
 
-        if (window.SI_DEBUG && match) {
+        if (self.SI_DEBUG && match) {
           console.log("matched", match, regex, info); // eslint-disable-line
         }
 
@@ -81,7 +77,7 @@ const Router = {
       (info, { comment } = {}) => {
         const match = comment.match(regex);
 
-        if (window.SI_DEBUG && match) {
+        if (self.SI_DEBUG && match) {
           console.log("matched", match, regex, info); // eslint-disable-line
         }
 
@@ -96,7 +92,7 @@ const Router = {
 
       const match = extension[1].match(regex);
 
-      if (window.SI_DEBUG && match) {
+      if (self.SI_DEBUG && match) {
         console.log("matched", match, regex, info); // eslint-disable-line
       }
 
@@ -105,12 +101,12 @@ const Router = {
     filename:
       (regex) =>
       (info, { filename } = {}) => {
-        const fn = (info && info.filename) || filename;
+        const fn = info?.filename ?? filename;
         if (!fn) return false;
 
         const match = fn.match(regex);
 
-        if (window.SI_DEBUG && match) {
+        if (self.SI_DEBUG && match) {
           console.log("matched", match, regex, info); // eslint-disable-line
         }
 
@@ -128,7 +124,7 @@ const Router = {
 
       const match = filename.match(regex);
 
-      if (window.SI_DEBUG && match) {
+      if (self.SI_DEBUG && match) {
         console.log("matched", match, regex, info); // eslint-disable-line
       }
 
@@ -148,7 +144,7 @@ const Router = {
       .map((l) => ({ l, matches: l.match(/^(\S*): ?(.*)/) }))
       .map((toks) => {
         if (!toks.matches || toks.matches.length < 3) {
-          window.optionErrors.filenamePatterns.push({
+          self.optionErrors.filenamePatterns.push({
             message: browser.i18n.getMessage("ruleBadClause"),
             error: `${toks.l || "invalid line syntax"}`,
           });
@@ -170,7 +166,7 @@ const Router = {
             ? tokens[2]
             : new RegExp(tokens[2]);
       } catch (e) {
-        window.optionErrors.filenamePatterns.push({
+        self.optionErrors.filenamePatterns.push({
           message: browser.i18n.getMessage("ruleInvalidRegex"),
           error: `${e}`,
         });
@@ -190,7 +186,7 @@ const Router = {
         const matcher = Router.matcherFunctions[name.toLowerCase()];
 
         if (!matcher) {
-          window.optionErrors.filenamePatterns.push({
+          self.optionErrors.filenamePatterns.push({
             message: browser.i18n.getMessage("ruleUnknownMatcher"),
             error: `${name}:`,
           });
@@ -214,7 +210,7 @@ const Router = {
     });
 
     if (!matchers.some((m) => m.type === RULE_TYPES.DESTINATION)) {
-      window.optionErrors.filenamePatterns.push({
+      self.optionErrors.filenamePatterns.push({
         message: browser.i18n.getMessage("ruleMissingInto"),
         error: "",
       });
@@ -227,7 +223,7 @@ const Router = {
       destination.value.match(/:\$\d+:/) &&
       !matchers.find((m) => m.name === "capture")
     ) {
-      window.optionErrors.filenamePatterns.push({
+      self.optionErrors.filenamePatterns.push({
         message: browser.i18n.getMessage("ruleMissingCapture"),
         error: destination.value,
         warning: true,
@@ -235,7 +231,7 @@ const Router = {
     }
 
     if (!matchers.some((m) => m.type === RULE_TYPES.MATCHER)) {
-      window.optionErrors.filenamePatterns.push({
+      self.optionErrors.filenamePatterns.push({
         message: browser.i18n.getMessage("ruleMissingMatcher"),
         error: JSON.stringify(lines.map((l) => l[0])),
       });
@@ -245,7 +241,7 @@ const Router = {
 
     const intoMatcher = matchers.filter((m) => m.name === "into");
     if (intoMatcher.length >= 2) {
-      window.optionErrors.filenamePatterns.push({
+      self.optionErrors.filenamePatterns.push({
         message: browser.i18n.getMessage("ruleExtraInto"),
         error: JSON.stringify(lines.map((l) => l[0])),
       });
@@ -254,7 +250,7 @@ const Router = {
     }
 
     if (matchers.filter((m) => m.name === "capture").length >= 2) {
-      window.optionErrors.filenamePatterns.push({
+      self.optionErrors.filenamePatterns.push({
         message: browser.i18n.getMessage("ruleMultipleCapture"),
         error: JSON.stringify(lines.map((l) => l[0])),
       });
@@ -274,7 +270,7 @@ const Router = {
 
       for (let i = 0; i < captureMatchers.length; i += 1) {
         if (matchers.filter((m) => m.name === captureMatchers[i]).length < 1) {
-          window.optionErrors.filenamePatterns.push({
+          self.optionErrors.filenamePatterns.push({
             message: browser.i18n.getMessage("ruleCaptureMissingMatcher"),
             error: `capture: ${captureMatchers[i]}`,
           });
@@ -293,7 +289,7 @@ const Router = {
       matchers.filter((m) => m.name === captures[0].value).length < 1
     ) {
       // Capture clause pointing at missing matcher
-      window.optionErrors.filenamePatterns.push({
+      self.optionErrors.filenamePatterns.push({
         message: browser.i18n.getMessage("ruleCaptureMissingMatcher"),
         error: `capture: ${captures[0].value}`,
       });
@@ -316,13 +312,13 @@ const Router = {
     }
 
     const rules = withoutComments
-      .replace(new RegExp("\\n\\n+", "g"), "\n\n")
+      .replace(DOUBLE_NEWLINE_REGEX, "\n\n")
       .split("\n\n")
       .map(Router.tokenizeLines)
       .map(Router.parseRule)
       .filter((r) => !!r);
 
-    if (window.SI_DEBUG) {
+    if (self.SI_DEBUG) {
       console.log("parsedRules", rules); // eslint-disable-line
     }
 
@@ -344,7 +340,7 @@ const Router = {
           (m) =>
             m.type === RULE_TYPES.MATCHER && m.name === capturedMatcherNames[i]
         );
-        if (captured && captured.matcher && captured.matcher(info)) {
+        if (captured?.matcher?.(info)) {
           capturedAll.push(captured.matcher(info));
         }
       }

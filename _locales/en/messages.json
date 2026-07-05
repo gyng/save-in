@@ -326,7 +326,7 @@
   },
 
   "o_lAccessKeysInstruction": {
-    "message": "Set accesskeys for Save In menu items. Chrome or Firefox >= 63."
+    "message": "Set access keys for Save In menu items. Chrome or Firefox >= 63."
   },
 
   "o_cLastUsedMenu": {

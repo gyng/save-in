@@ -1,60 +1,54 @@
 const Headers = {
-  refererListener: (details) => {
-    // TODO: option to ignore or rewrite referer, check if needed
-    const existingReferer = details.requestHeaders.find(
-      (h) => h.name === "Referer"
-    );
-    if (existingReferer) {
-      return {};
-    }
-
-    if (!globalChromeState || !globalChromeState.info) {
-      return {};
-    }
-
-    const { pageUrl } = globalChromeState.info;
-    if (!pageUrl) {
-      return {};
-    }
-
-    const referer = {
-      name: "Referer",
-      value: pageUrl,
-    };
-    details.requestHeaders.push(referer);
-
-    return { requestHeaders: details.requestHeaders };
-  },
-
-  addRequestListener: () => {
-    browser.webRequest.onBeforeSendHeaders.removeListener(
-      Headers.refererListener
-    );
+  addRequestListener: async () => {
+    // Clear old dynamic rules
+    await browser.declarativeNetRequest.updateDynamicRules({
+      removeRuleIds: [1],
+    });
 
     if (options.setRefererHeader) {
-      const filterList = options.setRefererHeaderFilter || "";
+      const filterList = options.setRefererHeaderFilter ?? "";
+      const urls = filterList
+        .split("\n")
+        .map((s) => s.trim())
+        .filter((s) => s);
 
-      const urls = filterList.split("\n").map((s) => s.trim());
+      if (!urls.length) return;
 
-      const listenerOptions = ["blocking", "requestHeaders"];
+      const pageUrl = self.globalChromeState?.info?.pageUrl;
+      if (!pageUrl) return;
 
-      // Chrome needs `extraHeaders` to set Referer
-      // https://developer.chrome.com/extensions/webRequest
-      // Firefox doesn't permit unknown options and dies, so we need this explicit check
-      if (CURRENT_BROWSER === BROWSERS.CHROME) {
-        listenerOptions.push("extraHeaders");
-      }
-
-      browser.webRequest.onBeforeSendHeaders.addListener(
-        Headers.refererListener,
-        { urls },
-        listenerOptions
-      );
+      // Add a dynamic DNR rule
+      await browser.declarativeNetRequest.updateDynamicRules({
+        addRules: [
+          {
+            id: 1,
+            priority: 1,
+            action: {
+              type: "modifyHeaders",
+              requestHeaders: [
+                {
+                  header: "Referer",
+                  operation: "set",
+                  value: pageUrl,
+                },
+              ],
+            },
+            condition: {
+              urlFilter: urls.length === 1 ? urls[0] : undefined, // Simplify if possible
+              resourceTypes: [
+                "main_frame",
+                "sub_frame",
+                "xmlhttprequest",
+                "other",
+              ],
+            },
+          },
+        ],
+      });
     }
   },
 };
 
-// Export for testing
 if (typeof module !== "undefined") {
   module.exports = Headers;
 }

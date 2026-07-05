@@ -1,4 +1,15 @@
-/* eslint-disable no-unused-vars */
+const BROWSERS = {
+  CHROME: "CHROME",
+  FIREFOX: "FIREFOX",
+  UNKNOWN: "UNKNOWN",
+};
+
+const CURRENT_BROWSER = BROWSERS.CHROME;
+const CURRENT_BROWSER_VERSION = 120;
+const BROWSER_FEATURES = {
+  multitab: false,
+  accessKeys: true,
+};
 
 const MEDIA_TYPES = ["image", "video", "audio"];
 
@@ -70,7 +81,6 @@ const MESSAGE_TYPES = {
   DOWNLOADED: "DOWNLOADED",
   CHECK_ROUTES: "CHECK_ROUTES",
   CHECK_ROUTES_RESPONSE: "CHECK_ROUTES_RESPONSE",
-  FETCH_VIA_CONTENT: "FETCH_VIA_CONTENT",
   OK: "OK",
   ERROR: "ERROR",
   GET_KEYWORDS: "GET_KEYWORDS",

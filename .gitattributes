@@ -7,3 +7,4 @@
 *.json text
 *.png binary
 *.svg text
+*.js text eol=lf

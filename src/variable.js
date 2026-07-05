@@ -1,5 +1,7 @@
 // @ts-check
 
+const segStr = (v) => Path.PathSegment.String(v);
+
 const Variable = {
   // TODO: Move into utils
   withUrl: (str, cb) => {
@@ -31,59 +33,31 @@ const Variable = {
       "Z",
     ].join(""),
 
-  getFileExtension: (filename) => {
-    const fileExtensionMatches = filename.match(Download.EXTENSION_REGEX);
-    return (fileExtensionMatches && fileExtensionMatches[1]) || "";
-  },
+  getFileExtension: (filename) =>
+    filename.match(Download.EXTENSION_REGEX)?.[1] ?? "",
 
   /* prettier-ignore */
   transformers: {
-    [SPECIAL_DIRS.FILENAME]:
-      opts => Path.PathSegment.String(opts.filename),
-    [SPECIAL_DIRS.FILE_EXTENSION]:
-      opts => Path.PathSegment.String(Variable.getFileExtension(opts.filename)),
-    [SPECIAL_DIRS.SOURCE_DOMAIN]:
-      opts => Path.PathSegment.String(Variable.withUrl(opts.url, url => url.hostname)),
-    [SPECIAL_DIRS.PAGE_DOMAIN]:
-      opts => Path.PathSegment.String(Variable.withUrl(opts.pageUrl, url => url.hostname)),
-    [SPECIAL_DIRS.PAGE_URL]:
-      opts => Path.PathSegment.String(opts.pageUrl),
-    [SPECIAL_DIRS.SOURCE_URL]:
-      opts => Path.PathSegment.String(opts.sourceUrl),
-    [SPECIAL_DIRS.DATE]:
-      opts => Path.PathSegment.String(Variable.toDateString(opts.now)),
-    [SPECIAL_DIRS.ISO8601_DATE]:
-      opts => Path.PathSegment.String(Variable.toISODateString(opts.now)),
-    [SPECIAL_DIRS.UNIX_DATE]:
-      opts => Path.PathSegment.String(Date.parse(opts.now) / 1000),
-    [SPECIAL_DIRS.YEAR]:
-      opts => Path.PathSegment.String(opts.now.getFullYear()),
-    [SPECIAL_DIRS.MONTH]:
-      opts => Path.PathSegment.String(Variable.padDateComponent(opts.now.getMonth() + 1)),
-    [SPECIAL_DIRS.DAY]:
-      opts => Path.PathSegment.String(Variable.padDateComponent(opts.now.getDate())),
-    [SPECIAL_DIRS.HOUR]:
-      opts => Path.PathSegment.String(Variable.padDateComponent(opts.now.getHours())),
-    [SPECIAL_DIRS.MINUTE]:
-      opts => Path.PathSegment.String(Variable.padDateComponent(opts.now.getMinutes())),
-    [SPECIAL_DIRS.SECOND]:
-      opts => Path.PathSegment.String(Variable.padDateComponent(opts.now.getSeconds())),
-    [SPECIAL_DIRS.PAGE_TITLE]:
-      opts => Path.PathSegment.String((opts.currentTab && opts.currentTab.title) || ""),
-    [SPECIAL_DIRS.LINK_TEXT]:
-      opts => Path.PathSegment.String(opts.linkText),
-    [SPECIAL_DIRS.SELECTION_TEXT]:
-      opts => Path.PathSegment.String((opts.selectionText && opts.selectionText.trim()) || ""),
-    [SPECIAL_DIRS.NAIVE_FILENAME]:
-      opts => {
-        const naiveFilename = Download.getFilenameFromUrl(opts.url);
-        return Path.PathSegment.String(naiveFilename);
-      },
-    [SPECIAL_DIRS.NAIVE_FILE_EXTENSION]:
-      opts => {
-        const naiveFilename = Download.getFilenameFromUrl(opts.url);
-        return Path.PathSegment.String(Variable.getFileExtension(naiveFilename));
-      }
+    [SPECIAL_DIRS.FILENAME]:              opts => segStr(opts.filename),
+    [SPECIAL_DIRS.FILE_EXTENSION]:        opts => segStr(Variable.getFileExtension(opts.filename)),
+    [SPECIAL_DIRS.SOURCE_DOMAIN]:         opts => segStr(Variable.withUrl(opts.url, url => url.hostname)),
+    [SPECIAL_DIRS.PAGE_DOMAIN]:           opts => segStr(Variable.withUrl(opts.pageUrl, url => url.hostname)),
+    [SPECIAL_DIRS.PAGE_URL]:              opts => segStr(opts.pageUrl),
+    [SPECIAL_DIRS.SOURCE_URL]:            opts => segStr(opts.sourceUrl),
+    [SPECIAL_DIRS.DATE]:                  opts => segStr(Variable.toDateString(opts.now)),
+    [SPECIAL_DIRS.ISO8601_DATE]:          opts => segStr(Variable.toISODateString(opts.now)),
+    [SPECIAL_DIRS.UNIX_DATE]:             opts => segStr(Date.parse(opts.now) / 1000),
+    [SPECIAL_DIRS.YEAR]:                  opts => segStr(opts.now.getFullYear()),
+    [SPECIAL_DIRS.MONTH]:                 opts => segStr(Variable.padDateComponent(opts.now.getMonth() + 1)),
+    [SPECIAL_DIRS.DAY]:                   opts => segStr(Variable.padDateComponent(opts.now.getDate())),
+    [SPECIAL_DIRS.HOUR]:                  opts => segStr(Variable.padDateComponent(opts.now.getHours())),
+    [SPECIAL_DIRS.MINUTE]:                opts => segStr(Variable.padDateComponent(opts.now.getMinutes())),
+    [SPECIAL_DIRS.SECOND]:                opts => segStr(Variable.padDateComponent(opts.now.getSeconds())),
+    [SPECIAL_DIRS.PAGE_TITLE]:            opts => segStr(opts.currentTab?.title ?? ""),
+    [SPECIAL_DIRS.LINK_TEXT]:             opts => segStr(opts.linkText),
+    [SPECIAL_DIRS.SELECTION_TEXT]:        opts => segStr(opts.selectionText?.trim() ?? ""),
+    [SPECIAL_DIRS.NAIVE_FILENAME]:        opts => segStr(Download.getFilenameFromUrl(opts.url)),
+    [SPECIAL_DIRS.NAIVE_FILE_EXTENSION]:  opts => segStr(Variable.getFileExtension(Download.getFilenameFromUrl(opts.url)))
   },
 
   applyVariables: (path, opts = {}) =>

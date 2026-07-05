@@ -3,6 +3,9 @@
     "browser": true,
     "webextensions": true
   },
+  "parserOptions": {
+    "ecmaVersion": 2020
+  },
   "extends": ["airbnb", "prettier"],
   "plugins": ["prettier"],
   "rules": {

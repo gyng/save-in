@@ -8,11 +8,7 @@ const Download = {
   EXTENSION_REGEX: /\.([0-9a-z]{1,8})$/i,
 
   makeObjectUrl: (content, mime = "text/plain") =>
-    URL.createObjectURL(
-      new Blob([content], {
-        type: `${mime};charset=utf-8`,
-      })
-    ),
+    `data:${mime};charset=utf-8,${encodeURIComponent(content)}`,
 
   getFilenameFromUrl: (url) => {
     const remotePath = new URL(url).pathname;
@@ -40,7 +36,7 @@ const Download = {
       getFilenameFromContentDispositionHeader(disposition);
 
     if (filenameFromLib) {
-      return decodeURIComponent(decodeURIComponent(filenameFromLib));
+      return decodeURIComponent(filenameFromLib);
     }
 
     return null;
@@ -60,11 +56,12 @@ const Download = {
     const initialFilename =
       state.info.suggestedFilename || naiveFilename || state.info.url;
 
-    Object.assign(state.info, {
+    state.info = {
+      ...state.info,
       naiveFilename,
       filename: initialFilename,
       initialFilename,
-    });
+    };
 
     state.path = Variable.applyVariables(state.path, state.info);
     // FIXME: Fix router params for new path struct
@@ -87,7 +84,7 @@ const Download = {
     const download = (_state) => {
       const finalFullPath = Download.finalizeFullPath(_state);
 
-      if (window.SI_DEBUG) {
+      if (self.SI_DEBUG) {
         console.log(state, finalFullPath); // eslint-disable-line
       }
 
@@ -107,51 +104,40 @@ const Download = {
         shiftHeldPrompt ||
         noRuleMatchedPrompt;
 
-      const browserDownload = (_url) => {
-        browser.downloads.download({
-          url: _url,
-          filename: finalFullPath || "_",
-          saveAs: prompt,
-          conflictAction: options.conflictAction,
-        });
-      };
-
-      const fetchDownload = (_url) => {
-        fetch(_url)
-          .then((response) => response.blob())
-          .then((myBlob) => {
-            const objectURL = URL.createObjectURL(myBlob);
-            browser.downloads.download({
-              url: objectURL,
-              filename: finalFullPath || "_",
-              saveAs: prompt,
-              conflictAction: options.conflictAction,
+      const browserDownload = async (_url) => {
+        // Persist pending flag + final filename before download API call so
+        // onDeterminingFilename / notification tracking survive SW termination
+        await browser.storage.session
+          .set({ siPendingDownload: true, siFinalFilename: finalFullPath })
+          .catch(() => {});
+        try {
+          const downloadId = await browser.downloads.download({
+            url: _url,
+            filename: finalFullPath || "_",
+            saveAs: prompt,
+            conflictAction: options.conflictAction,
+          });
+          const { siTrackedDownloads = [] } = await browser.storage.session.get(
+            "siTrackedDownloads"
+          );
+          if (!siTrackedDownloads.includes(downloadId)) {
+            await browser.storage.session.set({
+              siTrackedDownloads: [...siTrackedDownloads, downloadId],
             });
-          });
+          }
+          return downloadId;
+        } finally {
+          await browser.storage.session
+            .set({ siPendingDownload: false })
+            .catch(() => {});
+        }
       };
 
-      if (options.fetchViaContent) {
-        Messaging.send
-          .fetchViaContent(_state)
-          .then((res) => {
-            // Object URL has to be created inside the background script
-            const objectUrl = URL.createObjectURL(res.body.blob);
-            return browserDownload(objectUrl);
-          })
-          .catch((e) => {
-            if (window.SI_DEBUG) {
-              console.log("Failed to fetch via content", e); // eslint-disable-line
-            }
-            browserDownload(_state.info.url);
-          });
-      } else if (options.fetchViaFetch) {
-        fetchDownload(_state.info.url);
-      } else {
-        browserDownload(_state.info.url);
-      }
+      browserDownload(_state.info.url);
 
       Messaging.emit.downloaded(_state);
-      window.lastDownloadState = _state;
+      self.lastDownloadState = _state;
+      browser.storage.session.set({ lastDownloadState: _state });
       SaveHistory.add({
         timestamp: new Date().toISOString(),
         url: _state.info.url,
@@ -163,8 +149,7 @@ const Download = {
     // Chrome: Skip HEAD request for Content-Disposition and use onDeterminingFilename
     if (
       CURRENT_BROWSER === BROWSERS.CHROME &&
-      chrome.downloads &&
-      chrome.downloads.onDeterminingFilename
+      chrome.downloads?.onDeterminingFilename
     ) {
       globalChromeState = state;
       download(state);
@@ -208,20 +193,34 @@ const Download = {
   },
 };
 
-if (chrome && chrome.downloads && chrome.downloads.onDeterminingFilename) {
+if (chrome.downloads?.onDeterminingFilename) {
   chrome.downloads.onDeterminingFilename.addListener(
-    (downloadItem, suggest) => {
-      globalChromeState.info = globalChromeState.info || {};
-      globalChromeState.info.filename =
-        (globalChromeState.info && globalChromeState.info.suggestedFilename) ||
-        downloadItem.filename ||
-        (globalChromeState.info && globalChromeState.info.filename);
+    async (downloadItem, suggest) => {
+      // globalChromeState is lost if SW restarted between menu click and download;
+      // fall back to session storage in that case
+      if (!globalChromeState || !globalChromeState.path) {
+        const { siFinalFilename } = await browser.storage.session
+          .get("siFinalFilename")
+          .catch(() => ({}));
+        if (
+          siFinalFilename &&
+          browser.runtime?.id === downloadItem.byExtensionId
+        ) {
+          suggest({
+            filename: siFinalFilename,
+            conflictAction: options.conflictAction,
+          });
+          return;
+        }
+      }
 
-      // Don't interfere with other extensions
-      if (
-        browser.runtime &&
-        browser.runtime.id === downloadItem.byExtensionId
-      ) {
+      globalChromeState.info = globalChromeState.info ?? {};
+      globalChromeState.info.filename =
+        globalChromeState.info?.suggestedFilename ??
+        downloadItem.filename ??
+        globalChromeState.info?.filename;
+
+      if (browser.runtime?.id === downloadItem.byExtensionId) {
         suggest({
           filename: Download.finalizeFullPath(globalChromeState),
           conflictAction: options.conflictAction,
