@@ -26,6 +26,8 @@
   --input-background: unset;
   --link-color: var(--blue60);
   --link-color-active: var(--blue70);
+  --section-bg: #f9f9fb;
+  --section-border: var(--grey30);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -34,9 +36,16 @@
     --link-color: var(--blue40);
     --link-color-hover: var(--blue50);
     --link-color-active: var(--blue60);
+    --section-bg: #232327;
+    --section-border: #3a3a3e;
   }
 
   body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
     color: white !important;
     background-color: #2a2a2e !important;
   }
@@ -64,6 +73,20 @@
   h3 {
     color: white;
   }
+
+  .textcomplete-dropdown {
+    background-color: #2a2a2e;
+    border-color: var(--grey50);
+  }
+
+  .textcomplete-item > a {
+    color: #f0f0f0;
+  }
+
+  .textcomplete-item.active {
+    background-color: var(--blue70);
+  }
+
 }
 
 a,
@@ -172,6 +195,12 @@ label {
   user-select: none;
 }
 
+#options > label,
+.settings-section > label {
+  display: block;
+  width: 100%;
+}
+
 details {
   margin: 5px 0 0 5px;
 }
@@ -198,6 +227,11 @@ textarea {
   border: solid 1px var(--grey40);
   padding: 8px;
   margin: 8px 0 8px 0;
+}
+
+#paths,
+#filenamePatterns {
+  width: 100%;
 }
 
 select {
@@ -332,11 +366,12 @@ button.puffy:active {
 #options {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   max-width: 960px;
+  margin: 0 auto;
 }
 
-#options > .column {
+.settings-section .column {
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -552,4 +587,154 @@ input.key {
 
 #export-target {
   width: 100%;
+}
+
+/* Settings section cards */
+.settings-section {
+  background: var(--section-bg);
+  border: 1px solid var(--section-border);
+  border-radius: 8px;
+  padding: 20px 24px;
+  margin-bottom: 20px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Flex utility classes */
+.flex-row {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: flex-start;
+}
+.flex-wrap {
+  flex-wrap: wrap;
+}
+.flex-1 {
+  flex: 1;
+}
+.full-width {
+  width: 100%;
+}
+.ml-8 {
+  margin-left: 8px;
+}
+.mono {
+  font-family: monospace;
+}
+.no-margin {
+  margin: 0;
+}
+.no-padding {
+  padding: 0;
+}
+.text-left {
+  text-align: left;
+}
+.font-semibold {
+  font-weight: 600;
+}
+.overflow-hidden {
+  overflow: hidden;
+}
+.truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.break-all {
+  word-break: break-all;
+}
+.va-baseline {
+  vertical-align: baseline;
+}
+.h3-inline {
+  width: auto;
+}
+
+/* Routing info area */
+.routing-info {
+  display: flex;
+  max-width: 100%;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.routing-info-inner {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  align-items: baseline;
+  max-width: 100%;
+  overflow: hidden;
+  padding-right: 8px;
+}
+.routing-info-inner table {
+  margin: 0;
+  padding: 0;
+  max-width: 100%;
+}
+.routing-info-inner tbody {
+  margin: 0;
+  padding: 0;
+  vertical-align: baseline;
+}
+.routing-info-label {
+  font-weight: 600;
+  padding: 0;
+  text-align: left;
+  min-width: 110px;
+}
+.routing-info-value {
+  font-family: monospace;
+  word-break: break-all;
+}
+.routing-info-value-url {
+  font-family: monospace;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  max-width: 80%;
+}
+
+/* Demo box with top margin */
+.demo-box-top {
+  margin-top: 12px;
+  align-items: flex-start;
+}
+
+/* History textarea */
+.history-textarea {
+  width: 100%;
+  min-height: 400px;
+}
+
+/* Full-width caption textarea */
+.caption-textarea {
+  width: 100%;
+}
+
+/* Buttons & accessibility */
+button.button {
+  font-family: var(--font-stack);
+  font-size: 15px;
+  cursor: pointer;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--blue60);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :focus-visible {
+    outline-color: var(--blue40);
+  }
+}
+
+/* Top page links */
+.top-links {
+  margin-bottom: 16px;
+  text-align: center;
 }

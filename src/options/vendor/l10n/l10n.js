@@ -14,10 +14,8 @@ var l10n = {
 
   $log(aMessage, ...aArgs) {
     aMessage = `l10s: ${aMessage}`;
-    if (typeof window.log === 'function')
-      log(aMessage, ...aArgs);
-    else
-      console.log(aMessage, ...aArgs);
+    if (typeof window.log === "function") log(aMessage, ...aArgs);
+    else console.log(aMessage, ...aArgs);
   },
 
   updateDocument() {
@@ -42,12 +40,16 @@ var l10n = {
     );
     for (let i = 0, maxi = attributes.snapshotLength; i < maxi; i++) {
       const attribute = attributes.snapshotItem(i);
-      this.$log('apply', attribute);
+      this.$log("apply", attribute);
       attribute.value = this.updateString(attribute.value);
     }
-  }
+  },
 };
 
-document.addEventListener('DOMContentLoaded', () => {
-  l10n.updateDocument();
-}, { once: true });
+document.addEventListener(
+  "DOMContentLoaded",
+  () => {
+    l10n.updateDocument();
+  },
+  { once: true }
+);

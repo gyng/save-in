@@ -1,11 +1,11 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 
 <head>
   <meta charset="utf-8" />
   <script type="application/javascript" src="../vendor/browser-polyfill.js"></script>
   <script type="application/javascript" src="./vendor/l10n/l10n.js"></script>
-  <script type="application/javascript" src="../chrome-detector.js"></script>
+  <script type="application/javascript" src="../constants.js"></script>
   <title>Settings &mdash; Save In</title>
   <link href="style.css" rel="stylesheet" />
   <link rel="icon" type="image/png" href="./favicon.png" />
@@ -13,18 +13,17 @@
 
 <body id="settings-page">
   <div>
-    <a class="open-settings-in-window" href="options.html" target="_blank">__MSG_o_lPopout__</a>
-    &middot;
     <a href="variablelist.html" target="_blank">__MSG_o_lVariableList__</a>
     &middot;
     <a href="clauselist.html" target="_blank">__MSG_o_lClauseList__</a>
     &middot;
-    <a class="external" href="https://github.com/gyng/save-in/">__MSG_o_lGithub__</a>
+    <a class="external" href="https://github.com/rudolphos/save-in/">__MSG_o_lGithub__</a>
     &middot;
-    <a class="external" href="https://github.com/gyng/save-in/blob/master/CHANGELOG.md">__MSG_o_lChangelog__</a>
+    <a class="external" href="https://github.com/rudolphos/save-in/blob/mv3-quick/CHANGELOG.md">__MSG_o_lChangelog__</a>
   </div>
 
   <form id="options">
+    <div class="settings-section">
     <h2 id="section-downloads">__MSG_o_sDownloads__</h2>
 
     <label class="column">
@@ -64,7 +63,7 @@ submenu
 </pre>
             <div class="caption">Settings</div>
           </div>
-          <div class="demo-arrow">➡</div>
+          <div class="demo-arrow">âž¡</div>
 
           <div class="demo-code">
             <pre>
@@ -86,7 +85,7 @@ submenu
             </div>
           </div>
 
-          <div class="demo-arrow">➡</div>
+          <div class="demo-arrow">âž¡</div>
 
           <pre class="demo-pic" style="background-image: url(i/menu-items.png)"></pre>
         </div>
@@ -212,17 +211,6 @@ ln -s /path/to/actual /path/to/symlink</pre>
     </label>
 
     <label>
-      <input type="checkbox" id="tabEnabled" class="chrome-disabled" />__MSG_o_cSaveTabstrip__ <span
-        class="badge">Firefox</span>
-      <div class="caption-line">
-        <label>
-          <input type="checkbox" id="closeTabOnSave" />__MSG_o_cCloseTabOnSave__
-        </label>
-        <div class="caption">__MSG_o_cSaveTabstripHelp__</div>
-      </div>
-    </label>
-
-    <label>
       <input type="checkbox" id="prompt" />__MSG_o_cOpenDialog__
     </label>
 
@@ -246,9 +234,9 @@ ln -s /path/to/actual /path/to/symlink</pre>
       </select>
       __MSG_o_cDupeFilename__ <span class="badge">Chrome</span>
     </label>
+  </div>
 
-    <hr />
-
+    <div class="settings-section">
     <label class="column">
       <h2>__MSG_o_sDynamicDownloads__</h2>
 
@@ -289,7 +277,7 @@ into: <span class="demo g4">:unixdate:</span>.<span class="demo g3">:fileext:</s
           <div class="demo-arrow">=</div>
 
           <pre class="demo-code right">
-cat.<span class="demo g3">gif</span> ➡ <span class="demo g4">1512136516</span>.<span class="demo g3">gif</span>
+cat.<span class="demo g3">gif</span> âž¡ <span class="demo g4">1512136516</span>.<span class="demo g3">gif</span>
  </pre>
         </div>
 
@@ -309,8 +297,8 @@ into: <span class="demo g2">gifs</span>/<span class="demo g4">:unixdate:</span>.
           <div class="demo-arrow">=</div>
 
           <pre class="demo-code right">
-cat.<span class="demo g3">gif</span> ➡ <span class="demo g2">gifs</span>/<span class="demo g4">1512136516</span>.<span class="demo g3">gif</span>
-cat.jpg ✘ (no match)</pre>
+cat.<span class="demo g3">gif</span> âž¡ <span class="demo g2">gifs</span>/<span class="demo g4">1512136516</span>.<span class="demo g3">gif</span>
+cat.jpg âœ˜ (no match)</pre>
         </div>
 
         <p>
@@ -343,9 +331,9 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
 
           <pre class="demo-code right">
 
-<span class="demo g2">ubuntu</span>.<span class="demo g4">v1</span>.<span class="demo g3">tar</span> ➡ <span class="demo g4">v1</span>/<span class="demo g2">ubuntu</span>.<span class="demo g3">tar</span>
-<span class="demo g2">debian</span>.<span class="demo g4">v2</span>.<span class="demo g3">gz</span>  ➡ <span class="demo g4">v2</span>/<span class="demo g2">debian</span>.<span class="demo g3">gz</span>
-<span class="demo g2">debian</span>.zip    ✘ (no match)
+<span class="demo g2">ubuntu</span>.<span class="demo g4">v1</span>.<span class="demo g3">tar</span> âž¡ <span class="demo g4">v1</span>/<span class="demo g2">ubuntu</span>.<span class="demo g3">tar</span>
+<span class="demo g2">debian</span>.<span class="demo g4">v2</span>.<span class="demo g3">gz</span>  âž¡ <span class="demo g4">v2</span>/<span class="demo g2">debian</span>.<span class="demo g3">gz</span>
+<span class="demo g2">debian</span>.zip    âœ˜ (no match)
  </pre>
         </div>
 
@@ -418,9 +406,9 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
       <input type="checkbox" id="routeExclusive" /> __MSG_o_cExclusiveMode__
       <div class="caption caption-line">__MSG_o_cExclusiveModeHelp__</div>
     </label>
+  </div>
 
-    <hr />
-
+    <div class="settings-section">
     <h2 id="section-notifications">__MSG_o_sNotifications__</h2>
     <label>
       <input type="checkbox" id="notifyOnSuccess" /> __MSG_o_cNotifySuccess__
@@ -444,9 +432,9 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
       <input type="number" id="notifyDuration" min="0" />ms
       <div class="caption caption-line">__MSG_o_cNotifyCloseAfterHelp__</div>
     </label>
+  </div>
 
-    <hr />
-
+    <div class="settings-section">
     <h2 id="section-save-as-shortcuts">__MSG_o_sSaveAsShortcuts__</h2>
     <label>
       __MSG_o_cSaveShortcutsAs__
@@ -472,15 +460,10 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
       <input type="checkbox" id="shortcutPage" />
       __MSG_o_cSaveShortcutsPagesInstead__
     </label>
+  </div>
 
-    <label>
-      <input type="checkbox" id="shortcutTab" class="chrome-disabled" />
-      __MSG_o_cSaveShortcutsTabsInstead__ <span class="badge">Firefox</span>
-    </label>
-
-    <hr />
-
-    <h2 id="section-save-as-shortcuts">__MSG_o_sKeyboardShortcuts__</h2>
+    <div class="settings-section">
+    <h2 id="section-keyboard-shortcuts">__MSG_o_sKeyboardShortcuts__</h2>
 
     <h3>__MSG_o_sContextMenu__</h3>
     <p>__MSG_o_lAccessKeysInstruction__</p>
@@ -522,9 +505,9 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
         <a class="caption" href="http://keycode.info/">keycode.info</a>
       </div>
     </label>
+  </div>
 
-    <hr />
-
+    <div class="settings-section">
     <h2 id="section-more-options">
       __MSG_o_sMoreOptions__
       <div id="reset" class="button float-right">
@@ -542,24 +525,6 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
       <input type="text" id="replacementChar" placeholder="delete" style="font-family: monospace;" />
       <div class="caption caption-line">
         __MSG_o_cReplaceInvalidCharsWithHelp__
-      </div>
-    </label>
-
-    <label>
-      <input type="checkbox" id="fetchViaContent" class="chrome-disabled" />
-      <span>__MSG_o_cFetchViaContentScript__</span>
-      <span class="badge">Firefox</span>
-      <div class="caption caption-line">
-        __MSG_o_cFetchViaContentScriptHelp__
-      </div>
-    </label>
-
-    <label>
-      <input type="checkbox" id="fetchViaFetch" class="chrome-disabled" />
-      <span>__MSG_o_cFetchViaFetchAPI__</span>
-      <span class="badge">Firefox</span>
-      <div class="caption caption-line">
-        __MSG_o_cFetchViaFetchAPIHelp__
       </div>
     </label>
 
@@ -585,9 +550,8 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
       <div style="margin-left: 8px;" id="settings-export" class="button">
         __MSG_o_cExportSettings__
       </div>
+      <input type="file" id="settings-file-input" accept=".json,.txt" style="display: none;" />
     </div>
-
-    <textarea id="export-target" style="display: none;" spellcheck="false"></textarea>
 
     <label> <input type="checkbox" id="debug" /> __MSG_o_cDebugMode__ </label>
 
@@ -606,6 +570,7 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
       <span>__MSG_o_cLastSavedAt__</span>
       <span id="lastSavedAt">__MSG_o_cLastSavedAtNever__</span>
     </p>
+  </div>
   </form>
 
   <script src="options.js"></script>
