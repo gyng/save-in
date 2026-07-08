@@ -33,7 +33,10 @@ try {
         "keydown",
         (e) => {
           active[e.keyCode] = true;
-          chrome.runtime.sendMessage({ type: "WAKE_WARM" }).catch(() => {});
+          const combo = [].concat(options.contentClickToSaveCombo);
+          if (combo.includes(e.keyCode)) {
+            chrome.runtime.sendMessage({ type: "WAKE_WARM" }).catch(() => {});
+          }
         },
         true
       );
