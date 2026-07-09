@@ -61,19 +61,32 @@ const main = async () => {
     check("running in real SW (no createObjectURL)", s.noObjectUrl);
     check("declarativeNetRequest available", s.hasDnr);
 
-    // 2. Options page under MV3 CSP: vendored libraries (textcomplete UMD)
-    //    must not fall back to eval/Function
+    // 2. Options page under MV3 CSP, with the first-party autocomplete live
     const optionsPage = await cdp.evalInTarget(
       PORT,
       "options.html",
-      `JSON.stringify({
-        textcomplete: typeof window.Textcomplete !== "undefined",
-        form: !!document.querySelector("#paths"),
-      })`,
+      `(async () => {
+        const ta = document.querySelector("#paths");
+        ta.focus();
+        ta.value = ":d";
+        ta.selectionStart = ta.selectionEnd = 2;
+        ta.dispatchEvent(new InputEvent("input", { bubbles: true }));
+        await new Promise((r) => setTimeout(r, 200));
+        const dd = document.querySelector(".autocomplete-dropdown");
+        const open = !!dd && dd.style.display !== "none";
+        const suggestions = open ? dd.textContent : "";
+        ta.value = "";
+        ta.dispatchEvent(new InputEvent("input", { bubbles: true }));
+        return JSON.stringify({
+          form: !!ta,
+          open,
+          hasDate: suggestions.includes(":date:"),
+        });
+      })()`,
     );
     const op = JSON.parse(optionsPage);
     check("options page loads under MV3 CSP", op.form);
-    check("textcomplete vendored lib survives CSP", op.textcomplete);
+    check("first-party autocomplete suggests variables", op.open && op.hasDate);
 
     // 3. WAKE_WARM round trip (content-script service worker prewarm)
     const wake = await cdp.evalInTarget(
@@ -167,6 +180,130 @@ const main = async () => {
       })()`,
     );
     check("referer DNR session rule created", dnr === '["https://www.pixiv.net/artworks/1"]', dnr);
+
+    // 7. Options change rebuilds the context menus (storage -> OPTIONS_LOADED)
+    const rebuilt = await cdp.evalInServiceWorker(
+      PORT,
+      extensionId,
+      `browser.storage.local.set({ paths: "alpha\\nbeta\\ngamma\\ndelta\\nepsilon" })
+        .then(() => window.reset())
+        .then(() => JSON.stringify(Object.keys(Menus.pathMappings).length))`,
+    );
+    check("options change rebuilds menus", rebuilt === "5", `${rebuilt} items`);
+
+    // 8. Routing rules: rename + route through the real router/variable stack
+    const routed = await cdp.evalInServiceWorker(
+      PORT,
+      extensionId,
+      `browser.storage.local.set({
+        filenamePatterns: "filename: routeme\\ninto: routed/renamed-:filename:",
+      })
+        .then(() => window.reset())
+        .then(() => {
+          requestedDownloadFlag = true;
+          return Download.renameAndDownload({
+            path: new Path.Path("e2e"),
+            scratch: {},
+            info: {
+              url: Download.makeObjectUrl("routed content"),
+              suggestedFilename: "routeme.txt",
+              pageUrl: "https://example.com/",
+              modifiers: [],
+            },
+          });
+        })
+        .then(() => new Promise(r => setTimeout(r, 2000)))
+        .then(() => browser.downloads.search({ filenameRegex: "renamed-routeme" }))
+        .then((d) => JSON.stringify(d.map((x) => x.state)))`,
+    );
+    check("routing rule renames the download", routed === '["complete"]', routed);
+
+    const routedFile = path.join(DOWNLOADS, "e2e", "routed", "renamed-routeme.txt");
+    check(
+      "routed file lands in the rule destination",
+      fs.existsSync(routedFile) && fs.readFileSync(routedFile, "utf8") === "routed content",
+      routedFile,
+    );
+
+    // 9. Message-driven download (external extension / click-to-save API path)
+    const msgResponse = await cdp.evalInTarget(
+      PORT,
+      "options.html",
+      `new Promise((res) => chrome.runtime.sendMessage({
+        type: "DOWNLOAD",
+        body: {
+          url: "data:text/plain,message%20download",
+          info: {
+            pageUrl: "https://example.com/",
+            srcUrl: "data:text/plain,message%20download",
+            suggestedFilename: "msg-download.txt",
+          },
+        },
+      }, (r) => res(JSON.stringify(r))))`,
+    );
+    check(
+      "DOWNLOAD message acknowledged",
+      msgResponse === '{"type":"DOWNLOAD","body":{"status":"OK"}}',
+      msgResponse,
+    );
+
+    const msgDl = await cdp.evalInServiceWorker(
+      PORT,
+      extensionId,
+      `new Promise(r => setTimeout(r, 2000))
+        .then(() => browser.downloads.search({ filenameRegex: "msg-download" }))
+        .then((d) => JSON.stringify(d.map((x) => x.state)))`,
+    );
+    check("message-driven download completes", msgDl === '["complete"]', msgDl);
+
+    // 10. fetchViaFetch pipeline (fetch -> blob -> data URL -> downloads API)
+    const viaFetch = await cdp.evalInServiceWorker(
+      PORT,
+      extensionId,
+      `browser.storage.local.set({ filenamePatterns: "" })
+        .then(() => window.reset())
+        .then(() => {
+          options.fetchViaFetch = true;
+          requestedDownloadFlag = true;
+          return Download.renameAndDownload({
+            path: new Path.Path("e2e"),
+            scratch: {},
+            info: {
+              url: "data:text/plain,via%20fetch%20content",
+              suggestedFilename: "viafetch.txt",
+              pageUrl: "https://example.com/",
+              modifiers: [],
+            },
+          });
+        })
+        .then(() => new Promise(r => setTimeout(r, 2500)))
+        .then(() => {
+          options.fetchViaFetch = false;
+          return browser.downloads.search({ filenameRegex: "viafetch" });
+        })
+        .then((d) => JSON.stringify(d.map((x) => x.state)))`,
+    );
+    check("fetchViaFetch download completes", viaFetch === '["complete"]', viaFetch);
+
+    const viaFetchFile = path.join(DOWNLOADS, "e2e", "viafetch.txt");
+    check(
+      "fetchViaFetch file has correct content",
+      fs.existsSync(viaFetchFile) && fs.readFileSync(viaFetchFile, "utf8") === "via fetch content",
+      viaFetchFile,
+    );
+
+    // 11. History and debug log record the session's downloads
+    const records = await cdp.evalInServiceWorker(
+      PORT,
+      extensionId,
+      `Promise.all([SaveHistory.get(), Log.get()]).then(([history, log]) => JSON.stringify({
+        history: history.length,
+        logRequested: log.filter((e) => e.message === "download requested").length,
+      }))`,
+    );
+    const rec = JSON.parse(records);
+    check("history records downloads", rec.history >= 3, `${rec.history} entries`);
+    check("debug log records downloads", rec.logRequested >= 3, `${rec.logRequested} entries`);
   } finally {
     proc.kill();
   }

@@ -11,7 +11,7 @@
 self.window = self;
 
 importScripts(
-  "vendor/browser-polyfill.js",
+  "browser-shim.js",
   "vendor/content-disposition.js",
   "chrome-detector.js",
   "constants.js",

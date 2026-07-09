@@ -217,6 +217,68 @@ const main = async () => {
       "blocking webRequest referer listener registers",
       JSON.parse(referer).registered === true,
     );
+
+    const routed = await rdp.evaluate(
+      consoleActor,
+      `browser.storage.local.set({
+        filenamePatterns: "filename: routeme\\ninto: routed/renamed-:filename:",
+      })
+        .then(() => window.reset())
+        .then(() => {
+          requestedDownloadFlag = true;
+          return Download.renameAndDownload({
+            path: new Path.Path("e2e"),
+            scratch: {},
+            info: {
+              url: Download.makeObjectUrl("ff routed content"),
+              suggestedFilename: "routeme.txt",
+              pageUrl: "https://example.com/",
+              modifiers: [],
+            },
+          });
+        })
+        .then(() => new Promise(r => setTimeout(r, 3000)))
+        .then(() => browser.downloads.search({}))
+        .then((d) => JSON.stringify(
+          d.filter((x) => x.filename.includes("renamed-routeme")).map((x) => x.state)
+        ))`,
+      45000,
+    );
+    check("routing rule renames the download", routed === '["complete"]', routed);
+
+    const msgDl = await rdp.evaluate(
+      consoleActor,
+      `new Promise((resolve) => {
+        Messaging.handleDownloadMessage({
+          body: {
+            url: Download.makeObjectUrl("ff message download"),
+            info: {
+              pageUrl: "https://example.com/",
+              srcUrl: "https://example.com/src.png",
+              suggestedFilename: "ff-msg-download.txt",
+            },
+          },
+        }, { tab: { id: 1, title: "E2E Tab" } }, resolve);
+      })
+        .then(() => new Promise(r => setTimeout(r, 3000)))
+        .then(() => browser.downloads.search({}))
+        .then((d) => JSON.stringify(
+          d.filter((x) => x.filename.includes("ff-msg-download")).map((x) => x.state)
+        ))`,
+      45000,
+    );
+    check("message-driven download completes (no stale route)", msgDl === '["complete"]', msgDl);
+
+    const records = await rdp.evaluate(
+      consoleActor,
+      `Promise.all([SaveHistory.get(), Log.get()]).then(([history, log]) => JSON.stringify({
+        history: history.length,
+        logRequested: log.filter((e) => e.message === "download requested").length,
+      }))`,
+    );
+    const rec = JSON.parse(records);
+    check("history records downloads", rec.history >= 3, `${rec.history} entries`);
+    check("debug log records downloads", rec.logRequested >= 3, `${rec.logRequested} entries`);
   } finally {
     if (rdp) rdp.close();
     killTree(proc.pid);

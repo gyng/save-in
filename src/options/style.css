@@ -522,33 +522,33 @@ input.key {
   font-family: monospace;
 }
 
-.textcomplete-dropdown {
-  background-color: white;
-  border: solid 1px var(--grey30);
-  list-style: none;
-  border-radius: 2px;
-  padding: 0;
-  max-height: 200px;
-  overflow-y: auto;
-  overflow-x: hidden;
+#export-target {
+  width: 100%;
 }
 
-.textcomplete-item {
-  padding: 0 4px;
+/* First-party autocomplete dropdown (autocomplete.js) */
+.autocomplete-dropdown {
+  position: absolute;
+  z-index: 100;
   margin: 0;
+  padding: 0.2em 0;
+  list-style: none;
+  max-height: 14em;
+  overflow-y: auto;
+  background: var(--background-color, #fff);
+  color: var(--text-color, #000);
+  border: 1px solid rgba(128, 128, 128, 0.5);
+  border-radius: 3px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  font-family: monospace;
+}
+
+.autocomplete-dropdown li {
+  padding: 0.15em 0.75em;
   cursor: pointer;
 }
 
-.textcomplete-item > a {
-  font-family: monospace;
-  text-decoration: none;
-  color: black;
-}
-
-.textcomplete-item.active {
-  background-color: var(--blue40);
-}
-
-#export-target {
-  width: 100%;
+.autocomplete-dropdown li.selected,
+.autocomplete-dropdown li:hover {
+  background: rgba(128, 128, 128, 0.25);
 }

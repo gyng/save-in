@@ -101,16 +101,11 @@ The source code for this extension is available at https://github.com/gyng/save-
 
 #### Third-party dependencies
 
-##### Textcomplete
-
-The archive containing this library can be downloaded from https://github.com/yuku-t/textcomplete/releases/download/v0.17.1/textcomplete-0.17.1.tgz
-
-The vendored source for the minified Textcomplete library is obtained from within the archive located at `package/dist/textcomplete.min.js`
-
-This link to the archive was retrieved from https://github.com/yuku-t/textcomplete/releases. The minified source is included with the source of this addon in `src/options/vendor/textcomplete/textcomplete.min.js`
-
-`yarn install` installs the dependencies for the library
-`yarn build:dist` builds the distribution for the library
+All code is first-party except `src/vendor/content-disposition.js`, a
+readable (non-minified) Content-Disposition header parser by @Rob--W, taken
+from https://github.com/Rob--W/open-in-browser (license header in the file).
+There are no minified files, no remote code, and no build-time
+transformations: the shipped sources are the repository sources.
 
 ## Contributors
 

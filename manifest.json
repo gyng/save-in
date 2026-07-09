@@ -17,11 +17,11 @@
 
   "homepage_url": "https://github.com/gyng/save-in",
 
-  "minimum_chrome_version": "121",
+  "minimum_chrome_version": "123",
 
   "background": {
     "scripts": [
-      "src/vendor/browser-polyfill.js",
+      "src/browser-shim.js",
       "src/vendor/content-disposition.js",
       "src/chrome-detector.js",
       "src/constants.js",

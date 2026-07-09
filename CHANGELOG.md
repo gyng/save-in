@@ -27,6 +27,12 @@ testing on Chromium!
   cross-origin requests, so it only helps for same-origin/CORS downloads
 - Waterfox and other Gecko forks are now detected as Firefox, and browser
   detection is synchronous (#186)
+- Removed vendored libraries for easier store review: the webextension
+  polyfill is a 6-line first-party shim (Chrome minimum raised to 123 for
+  promise-capable contextMenus), the options-page autocomplete and l10n are
+  small first-party rewrites — this also revives autocomplete, whose event
+  wiring had been silently broken. Only readable, credited
+  content-disposition.js remains vendored
 - Dev: automated Chrome (CDP) and Firefox (RDP) end-to-end smoke tests,
   watch-mode dev loop, 130-test vitest suite, oxlint + oxfmt, web-ext 10,
   npm, CI on Node 24

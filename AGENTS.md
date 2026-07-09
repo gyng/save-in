@@ -8,7 +8,7 @@ Firefox (AMO) and Chrome (Web Store).
 
 **There is no bundler and no module system in shipped code.** Background
 scripts are plain scripts sharing one global scope, loaded in manifest order
-(vendor polyfill first, `index.js` last). Files communicate through globals
+(browser-shim first, `index.js` last). Files communicate through globals
 (`Menus`, `Download`, `Headers`, `OptionsManagement`, `options`,
 `currentTab`, `lastUsedPath`, ...). New cross-file globals must be added to
 `.oxlintrc.json` `globals`. Each `src/*.js` ends with a
@@ -70,23 +70,24 @@ to Firefox too.
 - Firefox `browser.*` is promise-only (no callbacks); Firefox `chrome.*`
   supports callbacks. Content scripts (no polyfill) therefore use
   callback-style `chrome.*` + `chrome.runtime.lastError` checks.
-- The vendored `browser-polyfill.js` covers the background and options
-  pages; in Chrome-only code paths prefer bare `chrome.*` (e.g. DNR calls).
+- There is no polyfill: `src/browser-shim.js` aliases `browser` to `chrome`
+  (Chrome ≥ 123 is promise-native everywhere we await, contextMenus
+  included). In Chrome-only code paths prefer bare `chrome.*` (e.g. DNR).
 - `contextMenus.create` with an `icons` property throws on Chrome — wrapped
   in try/catch in `Menus.addLastUsed`.
 - Tab-strip context menus (`contexts: ["tab"]`) are Firefox-only.
 
 ## Iteration workflow
 
-| Command                           | What it does                                                                                                                                   |
-| --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `npm test` / `npm run test:watch` | vitest unit tests (jsdom + jest-webextension-mock via a vi alias)                                                                              |
-| `npm run lint`                    | web-ext lint (Firefox manifest) + oxlint + oxfmt --check                                                                                       |
-| `npm run e2e:chrome`              | **~20s full MV3 smoke test** — launches isolated Chrome, loads the staged build over CDP, drives the real download pipeline, asserts 15 checks |
-| `npm run e2e:firefox`             | same for Firefox on a throwaway profile (RDP, like web-ext)                                                                                    |
-| `npm run d:chrome`                | dev loop: isolated Chrome + auto restage/reload on file save                                                                                   |
-| `npm run d`                       | web-ext Firefox dev instance                                                                                                                   |
-| `npm run build`                   | one zip for both stores (web-ext)                                                                                                              |
+| Command                           | What it does                                                                                                                                                                                                      |
+| --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm test` / `npm run test:watch` | vitest unit tests (jsdom + jest-webextension-mock via a vi alias); npm run test:coverage enforces 95%-line thresholds on src/ (vendor, options page, SW bootstrap excluded)                                       |
+| `npm run lint`                    | web-ext lint (Firefox manifest) + oxlint + oxfmt --check                                                                                                                                                          |
+| `npm run e2e:chrome`              | **~20s full MV3 smoke test** — launches isolated Chrome, loads the staged build over CDP, drives the real download pipeline, asserts 24 checks (SW lifecycle, CSP, routing rules, messaging, session persistence) |
+| `npm run e2e:firefox`             | 13-check equivalent for Firefox on a throwaway profile (RDP, like web-ext)                                                                                                                                        |
+| `npm run d:chrome`                | dev loop: isolated Chrome + auto restage/reload on file save                                                                                                                                                      |
+| `npm run d`                       | web-ext Firefox dev instance                                                                                                                                                                                      |
+| `npm run build`                   | one zip for both stores (web-ext)                                                                                                                                                                                 |
 
 Chrome ≥ 137 ignores `--load-extension`; the scripts load an unpacked copy
 (staged by `scripts/stage.js` into `dist/unpacked` — the repo root can't be
