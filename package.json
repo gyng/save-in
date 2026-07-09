@@ -1,12 +1,9 @@
 {
   "name": "save-in",
   "version": "4.0.0",
-  "engines": {
-    "node": ">=24"
-  },
   "license": "MIT",
   "scripts": {
-    "build": "env -u WEB_EXT_API_KEY -u WEB_EXT_API_SECRET web-ext build --overwrite-dest -i test docs scripts dist yarn.lock yarn-error.log AGENTS.md CLAUDE.md",
+    "build": "env -u WEB_EXT_API_KEY -u WEB_EXT_API_SECRET web-ext build --overwrite-dest -i test docs scripts dist AGENTS.md CLAUDE.md vitest.config.mjs",
     "build:firefox:submit": "web-ext sign",
     "d": "env -u WEB_EXT_API_KEY -u WEB_EXT_API_SECRET web-ext run --verbose --start-url about:debugging --start-url about:addons",
     "d:chrome": "node scripts/dev-chrome.js --watch",
@@ -16,31 +13,27 @@
     "d:noenv": "web-ext run --verbose",
     "d:win:stable": "web-ext run --start-url about:debugging#/runtime/this-firefox --start-url about:addons --verbose --firefox=\"C:/Program Files/Mozilla Firefox/firefox.exe\" -s=\".\"",
     "d:win:nightly": "web-ext run --start-url about:debugging#/runtime/this-firefox --start-url about:addons --verbose --firefox=\"C:/Program Files/Firefox Nightly/firefox.exe\" -s=\".\"",
-    "lint": "web-ext lint && eslint src test",
-    "lint:fix": "eslint --fix src test",
+    "fmt": "oxfmt",
+    "fmt:check": "oxfmt --check",
+    "lint": "web-ext lint && oxlint && oxfmt --check",
+    "lint:fix": "oxlint --fix && oxfmt",
     "mockserve": "node test/mockserver",
-    "prettier": "echo '💈 Listing files to format. Run yarn prettier:write to write.\n' && prettier --list-different src/**/*.js src/*.js test/**/*.js test/*.js",
-    "prettier:write": "prettier --write src/**/*.js src/*.js test/**/*.js test/*.js",
     "test": "vitest run",
     "test:watch": "vitest"
   },
   "devDependencies": {
-    "eslint": "8.11.0",
-    "eslint-config-airbnb": "19.0.4",
-    "eslint-config-prettier": "^8.5.0",
-    "eslint-plugin-import": "2.25.4",
-    "eslint-plugin-jest": "^26.1.1",
-    "eslint-plugin-jsx-a11y": "6.5.1",
-    "eslint-plugin-prettier": "^4.0.0",
-    "eslint-plugin-react": "^7.29.4",
     "jest-webextension-mock": "^3.7.19",
     "jsdom": "^29.1.1",
     "koa": "^2.13.4",
     "koa-logger": "^3.2.1",
     "koa-route": "^3.2.0",
     "koa-static": "^5.0.0",
-    "prettier": "^2.6.0",
+    "oxfmt": "^0.58.0",
+    "oxlint": "^1.73.0",
     "vitest": "^4.1.10",
     "web-ext": "^10.4.0"
+  },
+  "engines": {
+    "node": ">=24"
   }
 }

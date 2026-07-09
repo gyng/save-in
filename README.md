@@ -28,9 +28,9 @@ Windows:
 
 Make sure the actual directories exist, or downloads will silently fail.
 
-* <all_urls> permission is used to get around CORS on HTTP HEAD requests (to check for Content-Disposition headers)
-* tabs permission is used to get the active page's title.
-* webRequest permissions are required to inject the Referer header on downloads (disabled by default)
+- <all_urls> permission is used to get around CORS on HTTP HEAD requests (to check for Content-Disposition headers)
+- tabs permission is used to get the active page's title.
+- webRequest permissions are required to inject the Referer header on downloads (disabled by default)
 
 Configure before use.
 
@@ -51,7 +51,7 @@ browser.runtime.sendMessage(
       // `comment` can be used for targeting in routing rules
       info: { pageUrl: `${window.location}`, srcUrl: sourceUrl, comment: "foo" },
     },
-  }
+  },
 );
 ```
 
@@ -60,36 +60,36 @@ menu save. On Chrome, use save-in's Chrome Web Store extension ID instead.
 
 ## Development
 
-1. Install dev dependencies `yarn install`
-2. `yarn d` to start a dev Firefox instance using web-ext
+1. Install dev dependencies `npm install` (Node 24+)
+2. `npm run d` to start a dev Firefox instance using web-ext, or `npm run d:chrome` for a Chrome dev loop with auto-reload
 3. Develop
-4. `yarn prettier` and/or `yarn prettier:write`
-5. `yarn lint` and/or `yarn lint:fix`
-6. `yarn test` and/or `yarn test:watch`
+4. `npm run fmt:check` and/or `npm run fmt`
+5. `npm run lint` and/or `npm run lint:fix`
+6. `npm test` and/or `npm run test:watch`, `npm run e2e:chrome`, `npm run e2e:firefox`
 
 ## Deployment
 
 ### ZIP file
 
-1. `yarn build` to create the zip in the `web-ext-artifacts` directory — the
+1. `npm run build` to create the zip in the `web-ext-artifacts` directory — the
    same Manifest V3 zip is uploaded to both AMO and the Chrome Web Store
 
 The single `manifest.json` declares both `background.scripts` (Firefox event
 page, Firefox ≥ 121) and `background.service_worker` (Chrome). To load the
 extension unpacked in Chrome, run `node scripts/stage.js` and load
-`dist/unpacked` (or just use `yarn d:chrome`).
+`dist/unpacked` (or just use `npm run d:chrome`).
 
 ### Firefox
 
 1. Get API keys from [here](https://addons.mozilla.org/en-US/developers/addon/api/key/)
 2. Set environment variables `WEB_EXT_API_KEY` (JWT issuer) and `WEB_EXT_API_SECRET`
-3. `yarn build:firefox:submit` to sign and upload to AMO (Firefox Addons), or manually upload at [Firefox Addons](https://addons.mozilla.org/en-US/developers/addons)
-4. `yarn build:firefox:submit` also generates an XPI for manual distribution
+3. `npm run build:firefox:submit` to sign and upload to AMO (Firefox Addons), or manually upload at [Firefox Addons](https://addons.mozilla.org/en-US/developers/addons)
+4. `npm run build:firefox:submit` also generates an XPI for manual distribution
 5. Add https://github.com/yuku-t/textcomplete/releases in the comments when uploading.
 
 ### Chrome
 
-1. `yarn build`
+1. `npm run build`
 2. Go [here](https://chrome.google.com/webstore/developer/dashboard)
 3. Upload the zip from `web-ext-artifacts`
 
@@ -105,7 +105,7 @@ The source code for this extension is available at https://github.com/gyng/save-
 
 The archive containing this library can be downloaded from https://github.com/yuku-t/textcomplete/releases/download/v0.17.1/textcomplete-0.17.1.tgz
 
-The vendored source for the minified Textcomplete library is obtained from within the archive located at  `package/dist/textcomplete.min.js`
+The vendored source for the minified Textcomplete library is obtained from within the archive located at `package/dist/textcomplete.min.js`
 
 This link to the archive was retrieved from https://github.com/yuku-t/textcomplete/releases. The minified source is included with the source of this addon in `src/options/vendor/textcomplete/textcomplete.min.js`
 
@@ -118,5 +118,5 @@ Pull requests, bug reports, and issues are welcome.
 
 Localisations kindly contributed by
 
-* nl [@80486dx](https://github.com/80486dx)
-* sv [@Sopor-](https://github.com/Sopor-)
+- nl [@80486dx](https://github.com/80486dx)
+- sv [@Sopor-](https://github.com/Sopor-)

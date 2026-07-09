@@ -11,8 +11,8 @@ scripts are plain scripts sharing one global scope, loaded in manifest order
 (vendor polyfill first, `index.js` last). Files communicate through globals
 (`Menus`, `Download`, `Headers`, `OptionsManagement`, `options`,
 `currentTab`, `lastUsedPath`, ...). New cross-file globals must be added to
-`.eslintrc` `globals`. Each `src/*.js` ends with a
-`if (typeof module !== "undefined") module.exports = ...` block so jest can
+`.oxlintrc.json` `globals`. Each `src/*.js` ends with a
+`if (typeof module !== "undefined") module.exports = ...` block so vitest can
 require it in isolation.
 
 Execution contexts:
@@ -33,10 +33,10 @@ Firefox (≥ 121) uses `background.scripts` (an **event page**) and ignores
 same file list) and ignores `scripts`. Keep the two lists in sync when
 adding a background script.
 
-| | Firefox (event page) | Chrome (service worker) |
-|---|---|---|
-| Referer feature | blocking `webRequest` (still allowed in FF MV3) | `declarativeNetRequest` session rule (`Headers.prepareReferer`) |
-| Blob downloads | `URL.createObjectURL` (event pages have DOM) | data-URL fallbacks (`Download.makeObjectUrl` / `makeUrlFromBlob`) |
+|                 | Firefox (event page)                            | Chrome (service worker)                                           |
+| --------------- | ----------------------------------------------- | ----------------------------------------------------------------- |
+| Referer feature | blocking `webRequest` (still allowed in FF MV3) | `declarativeNetRequest` session rule (`Headers.prepareReferer`)   |
+| Blob downloads  | `URL.createObjectURL` (event pages have DOM)    | data-URL fallbacks (`Download.makeObjectUrl` / `makeUrlFromBlob`) |
 
 Shared code must **feature-detect, not sniff**: blocking webRequest is
 detected by attempting registration (Chrome MV3 exposes `webRequest` but
@@ -78,15 +78,15 @@ to Firefox too.
 
 ## Iteration workflow
 
-| Command | What it does |
-|---|---|
-| `yarn test` / `yarn test:watch` | jest unit tests (jsdom + jest-webextension-mock) |
-| `yarn lint` | web-ext lint (Firefox manifest) + eslint |
-| `yarn e2e:chrome` | **~20s full MV3 smoke test** — launches isolated Chrome, loads the staged build over CDP, drives the real download pipeline, asserts 13 checks |
-| `yarn e2e:firefox` | same for Firefox MV2 on a throwaway profile (RDP, like web-ext) |
-| `yarn d:chrome` | dev loop: isolated Chrome + auto restage/reload on file save |
-| `yarn d` | web-ext Firefox dev instance |
-| `yarn build` | one zip for both stores (web-ext) |
+| Command                           | What it does                                                                                                                                   |
+| --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm test` / `npm run test:watch` | vitest unit tests (jsdom + jest-webextension-mock via a vi alias)                                                                              |
+| `npm run lint`                    | web-ext lint (Firefox manifest) + oxlint + oxfmt --check                                                                                       |
+| `npm run e2e:chrome`              | **~20s full MV3 smoke test** — launches isolated Chrome, loads the staged build over CDP, drives the real download pipeline, asserts 15 checks |
+| `npm run e2e:firefox`             | same for Firefox on a throwaway profile (RDP, like web-ext)                                                                                    |
+| `npm run d:chrome`                | dev loop: isolated Chrome + auto restage/reload on file save                                                                                   |
+| `npm run d`                       | web-ext Firefox dev instance                                                                                                                   |
+| `npm run build`                   | one zip for both stores (web-ext)                                                                                                              |
 
 Chrome ≥ 137 ignores `--load-extension`; the scripts load an unpacked copy
 (staged by `scripts/stage.js` into `dist/unpacked` — the repo root can't be
@@ -99,41 +99,44 @@ for CI runs of either e2e suite.
 
 ## Testing practices
 
-Work test-first where the change is logic: add/adjust a jest test in
-`test/`, watch it fail (`yarn test:watch`), then implement. Behavior that
+Work test-first where the change is logic: add/adjust a vitest test in
+`test/`, watch it fail (`npm run test:watch`), then implement. Behavior that
 spans the real browser (menus, downloads, SW lifecycle) belongs in the e2e
 scripts instead — add a `check(...)` to `scripts/e2e-chrome.js` /
 `e2e-firefox.js`. Both e2e suites must pass before a release; they are the
 regression net for the two manifests.
 
-jest specifics:
+vitest specifics:
 
 - `jest-webextension-mock` provides partial `browser`/`chrome` globals; it
   lacks `contextMenus`, download events, and `storage.session` — define
   those per test (see `test/menu-listeners.test.js`,
   `test/notification-session.test.js`).
-- Under jest, top-level `let` in a src file is module-scoped, not global —
+- Under vitest, src files are strict-mode ESM: top-level `let` is
+  module-scoped, and assigning an undeclared global (fine in the browser
+  shared scope) throws unless the test predefines it on `global` —
   seed state through exported functions or registered listeners, not by
   assignment.
-- jsdom in jest 27 has no `setImmediate`/`TextEncoder`; flush promises with
-  `await Promise.resolve()` loops and import `TextEncoder` from `util`.
+- Module-reset tests use `vi.resetModules()` + `await import(...)`; the
+  global `jest` is aliased to `vi` in test/vitest.setup.mjs. vitest jsdom
+  provides `URL.createObjectURL`: stub it away to exercise MV3 paths.
 - Capture browser event handlers via
   `browser.x.onY.addListener.mock.calls[0][0]` and invoke them directly.
 
 ## Conventions
 
-- Prettier (default config) + eslint airbnb; `yarn lint:fix` before commit.
+- oxfmt (prettier-compatible) + oxlint; `npm run lint:fix` before commit.
 - No runtime dependencies; scripts under `scripts/` use Node built-ins only
-  (Node ≥ 22 for the global WebSocket).
-- Comments explain *constraints* (why something must be this way — usually
+  (Node ≥ 24, npm).
+- Comments explain _constraints_ (why something must be this way — usually
   an MV3/cross-browser rule), not what the code does.
 - Version lives in both `manifest.json` and `manifest.chrome.json` — bump
   together (plus `package.json`).
 
 ## Release checklist
 
-1. `yarn test && yarn lint && yarn e2e:chrome && yarn e2e:firefox`
+1. `npm test && npm run lint && npm run e2e:chrome && npm run e2e:firefox`
 2. Bump version in `manifest.json` and `package.json`.
-3. `yarn build` → upload the same zip to AMO and the Chrome Web Store.
+3. `npm run build` → upload the same zip to AMO and the Chrome Web Store.
 4. Manual spot-check of anything the e2e can't reach: notifications
    rendering, a pixiv Referer download (Chrome), options page dialogs.

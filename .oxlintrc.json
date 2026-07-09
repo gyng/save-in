@@ -1,0 +1,80 @@
+{
+  "env": {
+    "browser": true,
+    "webextensions": true
+  },
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn"
+  },
+  "rules": {
+    "no-console": "warn",
+    "no-unused-vars": ["warn", { "caughtErrors": "none" }],
+    "unicorn/consistent-function-scoping": "off"
+  },
+  "globals": {
+    "globalChromeState": "writable",
+    "getFilenameFromContentDispositionHeader": "readonly",
+
+    "Path": "readonly",
+    "Download": "readonly",
+    "Variable": "readonly",
+    "Messaging": "readonly",
+    "OptionsManagement": "readonly",
+    "Notification": "readonly",
+    "Menus": "readonly",
+    "Headers": "readonly",
+    "Shortcut": "readonly",
+    "Router": "readonly",
+    "SaveHistory": "readonly",
+    "Log": "readonly",
+    "SessionState": "readonly",
+    "options": "readonly",
+    "currentTab": "writable",
+    "requestedDownloadFlag": "writable",
+    "lastUsedPath": "writable",
+
+    "SPECIAL_DIRS": "readonly",
+    "RULE_TYPES": "readonly",
+    "PATH_SEGMENT_TYPES": "readonly",
+    "SHORTCUT_EXTENSIONS": "readonly",
+    "SHORTCUT_TYPES": "readonly",
+    "MESSAGE_TYPES": "readonly",
+    "DOWNLOAD_TYPES": "readonly",
+    "MEDIA_TYPES": "readonly",
+    "OPTION_KEYS": "readonly",
+    "OPTION_TYPES": "readonly",
+    "CLICK_TYPES": "readonly",
+
+    "BROWSERS": "readonly",
+    "CURRENT_BROWSER": "writable",
+    "CURRENT_BROWSER_VERSION": "writable",
+    "BROWSER_FEATURES": "writable",
+
+    "addClickToCopy": "readonly"
+  },
+  "ignorePatterns": [
+    "src/vendor",
+    "src/options/vendor",
+    "web-ext-artifacts",
+    "dist",
+    "docs",
+    "test/mockserver"
+  ],
+  "overrides": [
+    {
+      "files": ["scripts/**/*.js", "scripts/**/*.mjs"],
+      "env": { "node": true },
+      "rules": {
+        "no-console": "off"
+      }
+    },
+    {
+      "files": ["test/**/*.js", "test/**/*.mjs"],
+      "env": { "node": true, "vitest": true },
+      "globals": {
+        "jest": "readonly"
+      }
+    }
+  ]
+}

@@ -28,7 +28,8 @@ testing on Chromium!
 - Waterfox and other Gecko forks are now detected as Firefox, and browser
   detection is synchronous (#186)
 - Dev: automated Chrome (CDP) and Firefox (RDP) end-to-end smoke tests,
-  watch-mode dev loop, 128-test jest suite, web-ext 10, CI on Node 22
+  watch-mode dev loop, 130-test vitest suite, oxlint + oxfmt, web-ext 10,
+  npm, CI on Node 24
 
 # 3.7.3
 
