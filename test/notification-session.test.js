@@ -63,7 +63,7 @@ describe("startup restore", () => {
       return []; // 13 vanished entirely
     });
 
-    require("../src/notification.js");
+    await import("../src/notification.js");
     await flush();
 
     expect(sessionStore.siTrackedDownloads).toEqual([12]);
@@ -73,7 +73,7 @@ describe("startup restore", () => {
     setupGlobals({}, () => []);
     global.browser.storage.session = undefined;
 
-    expect(() => require("../src/notification.js")).not.toThrow();
+    await expect(import("../src/notification.js")).resolves.toBeDefined();
     await flush();
   });
 });
@@ -82,11 +82,11 @@ describe("track/untrack helpers", () => {
   let Notification;
   let sessionStore;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     jest.resetModules();
     sessionStore = {};
     setupGlobals(sessionStore, () => []);
-    Notification = require("../src/notification.js");
+    Notification = (await import("../src/notification.js")).default;
   });
 
   test("trackDownload appends without duplicating", async () => {
@@ -117,7 +117,7 @@ describe("download lifecycle notifications", () => {
       { id: 7, fileSize: 2048, mime: "image/png" },
     ]);
 
-    Notification = require("../src/notification.js");
+    Notification = (await import("../src/notification.js")).default;
     Notification.addNotifications({
       notifyOnSuccess: true,
       notifyOnFailure: true,

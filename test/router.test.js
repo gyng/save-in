@@ -1,7 +1,7 @@
-const router = require("../src/router.js");
-const downloads = require("../src/download.js");
-const constants = require("../src/constants.js");
-const fixtures = require("./fixtures/clickInfo");
+const router = (await import("../src/router.js")).default;
+const downloads = (await import("../src/download.js")).default;
+const constants = (await import("../src/constants.js")).default;
+const fixtures = (await import("./fixtures/clickInfo")).default;
 
 describe("filename rewrite and routing", () => {
   const info = {

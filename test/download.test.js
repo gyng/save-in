@@ -1,12 +1,12 @@
-const constants = require("../src/constants.js");
+const constants = (await import("../src/constants.js")).default;
 
 Object.assign(global, constants);
 
-const Download = require("../src/download.js");
+const Download = (await import("../src/download.js")).default;
 
 global.Download = Download;
-global.Path = require("../src/path.js");
-global.getFilenameFromContentDispositionHeader = require("../src/vendor/content-disposition.js");
+global.Path = (await import("../src/path.js")).default;
+global.getFilenameFromContentDispositionHeader = (await import("../src/vendor/content-disposition.js")).default;
 
 test("extension detection regex", () => {
   const match = "abc.xyz".match(Download.EXTENSION_REGEX);

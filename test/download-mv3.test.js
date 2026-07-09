@@ -1,14 +1,16 @@
 // MV3 service worker compatibility: data URL fallbacks and the
 // onDeterminingFilename session-storage recovery path
 
-const { TextEncoder } = require("util");
-const { Blob: NodeBlob } = require("buffer");
+import { TextEncoder } from "util";
+import { Blob as NodeBlob } from "buffer";
 
 global.TextEncoder = global.TextEncoder || TextEncoder;
 
-const constants = require("../src/constants.js");
+const constants = (await import("../src/constants.js")).default;
 
 Object.assign(global, constants);
+
+const Download = (await import("../src/download.js")).default;
 
 const decodeDataUrl = (url) => {
   const [meta, b64] = url.split(",");
@@ -19,10 +21,26 @@ const decodeDataUrl = (url) => {
 };
 
 describe("makeObjectUrl", () => {
-  const Download = require("../src/download.js");
+
+  // vitest's jsdom provides URL.createObjectURL; the MV3 service worker
+  // path is the one without it, so stub it away for these tests
+  let originalCreateObjectURL;
+
+  beforeEach(() => {
+    originalCreateObjectURL = URL.createObjectURL;
+    Object.defineProperty(URL, "createObjectURL", {
+      value: undefined,
+      configurable: true,
+      writable: true,
+    });
+  });
 
   afterEach(() => {
-    delete URL.createObjectURL;
+    Object.defineProperty(URL, "createObjectURL", {
+      value: originalCreateObjectURL,
+      configurable: true,
+      writable: true,
+    });
   });
 
   test("falls back to a base64 data URL without URL.createObjectURL (MV3)", () => {
@@ -58,10 +76,26 @@ describe("makeObjectUrl", () => {
 });
 
 describe("makeUrlFromBlob", () => {
-  const Download = require("../src/download.js");
+
+  // vitest's jsdom provides URL.createObjectURL; the MV3 service worker
+  // path is the one without it, so stub it away for these tests
+  let originalCreateObjectURL;
+
+  beforeEach(() => {
+    originalCreateObjectURL = URL.createObjectURL;
+    Object.defineProperty(URL, "createObjectURL", {
+      value: undefined,
+      configurable: true,
+      writable: true,
+    });
+  });
 
   afterEach(() => {
-    delete URL.createObjectURL;
+    Object.defineProperty(URL, "createObjectURL", {
+      value: originalCreateObjectURL,
+      configurable: true,
+      writable: true,
+    });
   });
 
   test("falls back to a data URL without URL.createObjectURL (MV3)", async () => {
@@ -100,7 +134,7 @@ describe("onDeterminingFilename listener (Chrome)", () => {
   let listener;
   let sessionStore;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     jest.resetModules();
     sessionStore = {};
 
@@ -122,7 +156,7 @@ describe("onDeterminingFilename listener (Chrome)", () => {
       }),
     };
 
-    require("../src/download.js");
+    await import("../src/download.js");
     [[listener]] =
       global.chrome.downloads.onDeterminingFilename.addListener.mock.calls;
   });

@@ -1,5 +1,5 @@
-const constants = require("../src/constants.js");
-const shortcut = require("../src/shortcut.js");
+const constants = (await import("../src/constants.js")).default;
+const shortcut = (await import("../src/shortcut.js")).default;
 
 describe("shortcut content creation", () => {
   let oldShortcutTypes;

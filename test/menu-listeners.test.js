@@ -1,15 +1,18 @@
 // Context menu click handling: listeners are registered synchronously at
 // service worker startup and must wait for async init before acting
 
-const constants = require("../src/constants.js");
+const constants = (await import("../src/constants.js")).default;
 
 Object.assign(global, constants);
-global.Path = require("../src/path.js");
+global.Path = (await import("../src/path.js")).default;
 
 global.BROWSER_FEATURES = { accessKeys: false, multitab: false };
 
 const setupBrowserMocks = () => {
   global.currentTab = null;
+  // Declared by notification.js in the browser's shared global scope;
+  // src files are strict mode under vitest's ESM transform
+  global.requestedDownloadFlag = 0;
   global.browser.contextMenus = {
     create: jest.fn(),
     update: jest.fn(),
@@ -43,13 +46,13 @@ describe("addDownloadListener", () => {
   let Menus;
   let listener;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     jest.resetModules();
     setupBrowserMocks();
     window.ready = Promise.resolve();
     delete window.lastDownloadState;
 
-    Menus = require("../src/menu.js");
+    Menus = (await import("../src/menu.js")).default;
     Menus.addDownloadListener();
     [[listener]] = global.browser.contextMenus.onClicked.addListener.mock.calls;
   });
@@ -175,7 +178,7 @@ describe("addTabMenuListener", () => {
     global.browser.tabs = { query: jest.fn(() => Promise.resolve([])) };
     window.ready = Promise.resolve();
 
-    const Menus = require("../src/menu.js");
+    const Menus = (await import("../src/menu.js")).default;
     Menus.addTabMenuListener();
     const [[listener]] =
       global.browser.contextMenus.onClicked.addListener.mock.calls;

@@ -2,7 +2,7 @@
   "name": "save-in",
   "version": "4.0.0",
   "engines": {
-    "node": ">=22"
+    "node": ">=24"
   },
   "license": "MIT",
   "scripts": {
@@ -21,8 +21,8 @@
     "mockserve": "node test/mockserver",
     "prettier": "echo '💈 Listing files to format. Run yarn prettier:write to write.\n' && prettier --list-different src/**/*.js src/*.js test/**/*.js test/*.js",
     "prettier:write": "prettier --write src/**/*.js src/*.js test/**/*.js test/*.js",
-    "test": "jest",
-    "test:watch": "jest --watch"
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "devDependencies": {
     "eslint": "8.11.0",
@@ -33,23 +33,14 @@
     "eslint-plugin-jsx-a11y": "6.5.1",
     "eslint-plugin-prettier": "^4.0.0",
     "eslint-plugin-react": "^7.29.4",
-    "jest": "^27.5.1",
     "jest-webextension-mock": "^3.7.19",
+    "jsdom": "^29.1.1",
     "koa": "^2.13.4",
     "koa-logger": "^3.2.1",
     "koa-route": "^3.2.0",
     "koa-static": "^5.0.0",
     "prettier": "^2.6.0",
+    "vitest": "^4.1.10",
     "web-ext": "^10.4.0"
-  },
-  "jest": {
-    "setupFiles": [
-      "jest-webextension-mock"
-    ],
-    "modulePathIgnorePatterns": [
-      "<rootDir>/web-ext-artifacts/"
-    ],
-    "testEnvironment": "jsdom"
-  },
-  "dependencies": {}
+  }
 }

@@ -1,4 +1,4 @@
-const { BROWSERS, setFeatures } = require("../src/chrome-detector.js");
+const { BROWSERS, setFeatures } = (await import("../src/chrome-detector.js")).default;
 
 describe("setFeatures", () => {
   test("multitab tab-strip menus are Firefox-only", () => {

@@ -1,8 +1,8 @@
-const constants = require("../src/constants.js");
+const constants = (await import("../src/constants.js")).default;
 
 Object.assign(global, constants);
 
-const path = require("../src/path.js");
+const path = (await import("../src/path.js")).default;
 
 global.Path = path;
 global.options = { replacementChar: "_" };

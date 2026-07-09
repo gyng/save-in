@@ -1,4 +1,4 @@
-const notification = require("../src/notification.js");
+const notification = (await import("../src/notification.js")).default;
 
 test("checks for download failures on Firefox", () => {
   const notFailure = {

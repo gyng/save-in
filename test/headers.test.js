@@ -1,4 +1,4 @@
-const Headers = require("../src/headers.js");
+const Headers = (await import("../src/headers.js")).default;
 
 describe("matchesRefererFilter", () => {
   beforeEach(() => {

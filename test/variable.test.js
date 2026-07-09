@@ -1,12 +1,12 @@
-const constants = require("../src/constants.js");
+const constants = (await import("../src/constants.js")).default;
 
 Object.assign(global, constants);
-const router = require("../src/router.js");
-const Variable = require("../src/variable.js");
-const Path = require("../src/path.js");
+const router = (await import("../src/router.js")).default;
+const Variable = (await import("../src/variable.js")).default;
+const Path = (await import("../src/path.js")).default;
 
 global.Path = Path;
-global.Download = require("../src/download.js");
+global.Download = (await import("../src/download.js")).default;
 
 describe("variables", () => {
   const specialDirs = global.SPECIAL_DIRS;

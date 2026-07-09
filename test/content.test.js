@@ -1,4 +1,4 @@
-const ClickToSave = require("../src/content/content.js");
+const ClickToSave = (await import("../src/content/content.js")).default;
 
 describe("findSource", () => {
   afterEach(() => {

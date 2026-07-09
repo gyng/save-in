@@ -1,11 +1,11 @@
-const menu = require("../src/menu.js");
-const constants = require("../src/constants.js");
+const menu = (await import("../src/menu.js")).default;
+const constants = (await import("../src/constants.js")).default;
 
 describe("menu parsing", () => {
-  beforeAll(() => {
+  beforeAll(async () => {
     global.SPECIAL_DIRS = constants.SPECIAL_DIRS;
     global.PATH_SEGMENT_TYPES = constants.PATH_SEGMENT_TYPES;
-    global.Path = require("../src/path.js"); // eslint-disable-line
+    global.Path = (await import("../src/path.js")).default;
   });
 
   test("parses comments for metadata", () => {
