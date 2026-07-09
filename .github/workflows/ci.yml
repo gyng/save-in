@@ -16,10 +16,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - run: yarn
-      - run: yarn build
-      - run: yarn lint
-      - run: yarn test
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npm run lint
+      - run: npm test
 
   e2e:
     runs-on: ubuntu-latest
@@ -28,6 +29,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - run: yarn
-      - run: HEADLESS=1 yarn e2e:chrome
-      - run: HEADLESS=1 yarn e2e:firefox
+          cache: npm
+      - run: npm ci
+      - run: HEADLESS=1 npm run e2e:chrome
+      - run: HEADLESS=1 npm run e2e:firefox
