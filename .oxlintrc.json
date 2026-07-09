@@ -9,13 +9,17 @@
   },
   "rules": {
     "no-console": "warn",
-    "no-unused-vars": ["warn", { "caughtErrors": "none" }],
+    "no-unused-vars": [
+      "warn",
+      {
+        "caughtErrors": "none"
+      }
+    ],
     "unicorn/consistent-function-scoping": "off"
   },
   "globals": {
     "globalChromeState": "writable",
     "getFilenameFromContentDispositionHeader": "readonly",
-
     "Path": "readonly",
     "Download": "readonly",
     "Variable": "readonly",
@@ -33,7 +37,6 @@
     "currentTab": "writable",
     "requestedDownloadFlag": "writable",
     "lastUsedPath": "writable",
-
     "SPECIAL_DIRS": "readonly",
     "RULE_TYPES": "readonly",
     "PATH_SEGMENT_TYPES": "readonly",
@@ -45,12 +48,10 @@
     "OPTION_KEYS": "readonly",
     "OPTION_TYPES": "readonly",
     "CLICK_TYPES": "readonly",
-
     "BROWSERS": "readonly",
     "CURRENT_BROWSER": "writable",
     "CURRENT_BROWSER_VERSION": "writable",
     "BROWSER_FEATURES": "writable",
-
     "addClickToCopy": "readonly"
   },
   "ignorePatterns": [
@@ -64,16 +65,28 @@
   "overrides": [
     {
       "files": ["scripts/**/*.js", "scripts/**/*.mjs"],
-      "env": { "node": true },
+      "env": {
+        "node": true
+      },
       "rules": {
         "no-console": "off"
       }
     },
     {
       "files": ["test/**/*.js", "test/**/*.mjs"],
-      "env": { "node": true, "vitest": true },
+      "env": {
+        "node": true,
+        "vitest": true
+      },
       "globals": {
         "jest": "readonly"
+      }
+    },
+    {
+      "files": ["e2e/**/*.mjs"],
+      "env": {
+        "node": true,
+        "vitest": true
       }
     }
   ]

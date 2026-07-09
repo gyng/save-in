@@ -83,8 +83,8 @@ to Firefox too.
 | --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `npm test` / `npm run test:watch` | vitest unit tests (jsdom + jest-webextension-mock via a vi alias); npm run test:coverage enforces 95%-line thresholds on src/ (vendor, options page, SW bootstrap excluded)                                       |
 | `npm run lint`                    | web-ext lint (Firefox manifest) + oxlint + oxfmt --check                                                                                                                                                          |
-| `npm run e2e:chrome`              | **~20s full MV3 smoke test** — launches isolated Chrome, loads the staged build over CDP, drives the real download pipeline, asserts 24 checks (SW lifecycle, CSP, routing rules, messaging, session persistence) |
-| `npm run e2e:firefox`             | 13-check equivalent for Firefox on a throwaway profile (RDP, like web-ext)                                                                                                                                        |
+| `npm run e2e:chrome`              | vitest e2e suite (~15s): isolated Chrome over CDP, drives the real download pipeline — SW lifecycle, CSP, routing rules, messaging, session persistence (e2e/chrome.e2e.mjs) |
+| `npm run e2e:firefox`             | vitest e2e suite for Firefox on a throwaway profile via RDP (e2e/firefox.e2e.mjs)                                                                                                                                        |
 | `npm run d:chrome`                | dev loop: isolated Chrome + auto restage/reload on file save                                                                                                                                                      |
 | `npm run d`                       | web-ext Firefox dev instance                                                                                                                                                                                      |
 | `npm run build`                   | one zip for both stores (web-ext)                                                                                                                                                                                 |
@@ -103,8 +103,8 @@ for CI runs of either e2e suite.
 Work test-first where the change is logic: add/adjust a vitest test in
 `test/`, watch it fail (`npm run test:watch`), then implement. Behavior that
 spans the real browser (menus, downloads, SW lifecycle) belongs in the e2e
-scripts instead — add a `check(...)` to `scripts/e2e-chrome.js` /
-`e2e-firefox.js`. Both e2e suites must pass before a release; they are the
+scripts instead — add a test to `e2e/chrome.e2e.mjs` /
+`e2e/firefox.e2e.mjs` (vitest, sequential within each file). Both e2e suites must pass before a release; they are the
 regression net for the two manifests.
 
 vitest specifics:
