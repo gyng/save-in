@@ -26,7 +26,119 @@ const Headers = {
     return { requestHeaders: details.requestHeaders };
   },
 
+  DNR_REFERER_RULE_ID: 4077,
+
+  // Matches URLs against the newline-separated match patterns in
+  // options.setRefererHeaderFilter (e.g., `*://i.pximg.net/*`), following
+  // WebExtension match pattern semantics: the host part is anchored so a
+  // pattern cannot match inside another URL's query string
+  matchPatternToRegExp: (pattern) => {
+    const escapeRegExp = (s) => s.replace(/[.+?^${}()|[\]\\]/g, "\\$&");
+
+    const parts = pattern.match(/^(\*|https?|file|ftp):\/\/([^/]*)(\/.*)$/);
+    if (!parts) {
+      return null;
+    }
+
+    const scheme = parts[1] === "*" ? "https?" : parts[1];
+
+    let host;
+    if (parts[2] === "*") {
+      host = "[^/]+";
+    } else if (parts[2].startsWith("*.")) {
+      host = `([^/]+\\.)?${escapeRegExp(parts[2].slice(2))}`;
+    } else {
+      host = escapeRegExp(parts[2]);
+    }
+
+    const path = parts[3].split("*").map(escapeRegExp).join(".*");
+
+    return new RegExp(`^${scheme}://${host}${path}$`);
+  },
+
+  matchesRefererFilter: (url) =>
+    (options.setRefererHeaderFilter || "")
+      .split("\n")
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0)
+      .some((pattern) => {
+        try {
+          const re = Headers.matchPatternToRegExp(pattern);
+          return re != null && re.test(url);
+        } catch (e) {
+          return false;
+        }
+      }),
+
+  // True when a blocking webRequest listener is registered (Firefox);
+  // Chrome MV3 exposes webRequest but rejects the "blocking" option, so
+  // this is determined by attempting registration, not by presence
+  usingBlockingWebRequest: false,
+
+  // Without blocking webRequest: set the Referer header for the upcoming
+  // download with a declarativeNetRequest session rule instead
+  prepareReferer: (state) => {
+    if (!options.setRefererHeader) {
+      return Promise.resolve();
+    }
+
+    // The blocking webRequest listener already handles it
+    if (Headers.usingBlockingWebRequest) {
+      return Promise.resolve();
+    }
+
+    if (typeof chrome === "undefined" || !chrome.declarativeNetRequest) {
+      return Promise.resolve();
+    }
+
+    const pageUrl = state && state.info && state.info.pageUrl;
+    const url = state && state.info && state.info.url;
+
+    if (!pageUrl || !url || !Headers.matchesRefererFilter(url)) {
+      return Promise.resolve();
+    }
+
+    return chrome.declarativeNetRequest
+      .updateSessionRules({
+        removeRuleIds: [Headers.DNR_REFERER_RULE_ID],
+        addRules: [
+          {
+            id: Headers.DNR_REFERER_RULE_ID,
+            action: {
+              type: "modifyHeaders",
+              requestHeaders: [
+                { header: "Referer", operation: "set", value: pageUrl },
+              ],
+            },
+            condition: { urlFilter: url },
+          },
+        ],
+      })
+      .then(() => {
+        if (typeof Log !== "undefined") {
+          Log.add("referer session rule set", { url, referer: pageUrl });
+        }
+
+        // Best-effort cleanup so the rule does not outlive the download
+        setTimeout(() => {
+          chrome.declarativeNetRequest
+            .updateSessionRules({
+              removeRuleIds: [Headers.DNR_REFERER_RULE_ID],
+            })
+            .catch(() => {});
+        }, 30000);
+      })
+      .catch(() => {});
+  },
+
   addRequestListener: () => {
+    Headers.usingBlockingWebRequest = false;
+
+    if (!browser.webRequest || !browser.webRequest.onBeforeSendHeaders) {
+      // No webRequest at all; see Headers.prepareReferer
+      return;
+    }
+
     browser.webRequest.onBeforeSendHeaders.removeListener(
       Headers.refererListener
     );
@@ -34,7 +146,17 @@ const Headers = {
     if (options.setRefererHeader) {
       const filterList = options.setRefererHeaderFilter || "";
 
-      const urls = filterList.split("\n").map((s) => s.trim());
+      // Empty lines (e.g. a trailing newline in the textarea) are invalid
+      // match patterns: addListener would throw and kill init before the
+      // menus are created (#222)
+      const urls = filterList
+        .split("\n")
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0);
+
+      if (urls.length === 0) {
+        return;
+      }
 
       const listenerOptions = ["blocking", "requestHeaders"];
 
@@ -45,11 +167,19 @@ const Headers = {
         listenerOptions.push("extraHeaders");
       }
 
-      browser.webRequest.onBeforeSendHeaders.addListener(
-        Headers.refererListener,
-        { urls },
-        listenerOptions
-      );
+      try {
+        browser.webRequest.onBeforeSendHeaders.addListener(
+          Headers.refererListener,
+          { urls },
+          listenerOptions
+        );
+        Headers.usingBlockingWebRequest = true;
+      } catch (e) {
+        // Chrome MV3 rejects "blocking" (prepareReferer's DNR rules take
+        // over), and an invalid user-supplied match pattern must not break
+        // startup (#222)
+        console.error("Blocking webRequest unavailable", urls, e); // eslint-disable-line
+      }
     }
   },
 };

@@ -3,8 +3,31 @@
     "browser": true,
     "webextensions": true
   },
+  "parserOptions": {
+    "ecmaVersion": 2022
+  },
   "extends": ["airbnb", "prettier"],
   "plugins": ["prettier"],
+  "overrides": [
+    {
+      "files": ["scripts/**/*.js"],
+      "env": { "node": true, "browser": false },
+      "rules": {
+        "no-console": 0,
+        "global-require": 0,
+        "no-await-in-loop": 0,
+        "no-restricted-syntax": 0
+      }
+    },
+    {
+      "files": ["test/**/*.js"],
+      "env": { "jest": true, "node": true },
+      "rules": {
+        "global-require": 0,
+        "no-await-in-loop": 0
+      }
+    }
+  ],
   "rules": {
     "prettier/prettier": "error",
     "max-classes-per-file": 0,
@@ -29,12 +52,15 @@
     "Notification": false,
     "Menus": false,
     "Headers": false,
+    "SessionState": false,
     "Shortcut": false,
     "Router": false,
     "SaveHistory": false,
+    "Log": false,
     "options": false,
     "currentTab": false,
     "requestedDownloadFlag": true,
+    "lastUsedPath": true,
 
     "SPECIAL_DIRS": false,
     "RULE_TYPES": false,

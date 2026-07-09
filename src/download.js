@@ -7,12 +7,44 @@ const Download = {
     /filename[^;=\n]*=((['"])(.*)?\2|(.+'')?([^;\n]*))/i,
   EXTENSION_REGEX: /\.([0-9a-z]{1,8})$/i,
 
-  makeObjectUrl: (content, mime = "text/plain") =>
-    URL.createObjectURL(
-      new Blob([content], {
-        type: `${mime};charset=utf-8`,
-      })
-    ),
+  makeObjectUrl: (content, mime = "text/plain") => {
+    if (typeof URL.createObjectURL === "function") {
+      return URL.createObjectURL(
+        new Blob([content], {
+          type: `${mime};charset=utf-8`,
+        })
+      );
+    }
+
+    // MV3 service workers have no URL.createObjectURL: use a data URL
+    const bytes = new TextEncoder().encode(content);
+    let binary = "";
+    for (let i = 0; i < bytes.length; i += 1) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    return `data:${mime};charset=utf-8;base64,${btoa(binary)}`;
+  },
+
+  // Object URL if available (MV2), data URL otherwise (MV3 service workers)
+  makeUrlFromBlob: (blob) => {
+    if (typeof URL.createObjectURL === "function") {
+      return Promise.resolve(URL.createObjectURL(blob));
+    }
+
+    return blob.arrayBuffer().then((buf) => {
+      const bytes = new Uint8Array(buf);
+      let binary = "";
+      const chunkSize = 0x8000;
+      for (let i = 0; i < bytes.length; i += chunkSize) {
+        binary += String.fromCharCode.apply(
+          null,
+          bytes.subarray(i, i + chunkSize)
+        );
+      }
+      const mime = blob.type || "application/octet-stream";
+      return `data:${mime};base64,${btoa(binary)}`;
+    });
+  },
 
   getFilenameFromUrl: (url) => {
     const remotePath = new URL(url).pathname;
@@ -87,6 +119,14 @@ const Download = {
     const download = (_state) => {
       const finalFullPath = Download.finalizeFullPath(_state);
 
+      if (typeof Log !== "undefined") {
+        Log.add("download requested", {
+          url: _state.info.url && String(_state.info.url).slice(0, 200),
+          path: finalFullPath,
+          route: _state.route ? String(_state.route.finalize()) : null,
+        });
+      }
+
       if (window.SI_DEBUG) {
         console.log(state, finalFullPath); // eslint-disable-line
       }
@@ -107,37 +147,45 @@ const Download = {
         shiftHeldPrompt ||
         noRuleMatchedPrompt;
 
-      const browserDownload = (_url) => {
-        browser.downloads.download({
-          url: _url,
-          filename: finalFullPath || "_",
-          saveAs: prompt,
-          conflictAction: options.conflictAction,
-        });
-      };
+      const browserDownload = (_url) =>
+        Headers.prepareReferer(_state)
+          .then(() =>
+            // Persist before calling the downloads API so notification
+            // tracking and onDeterminingFilename survive an MV3 service
+            // worker restart mid-download
+            SessionState.set({
+              siPendingDownload: true,
+              siFinalFilename: finalFullPath || "_",
+            })
+          )
+          .then(() =>
+            browser.downloads.download({
+              url: _url,
+              filename: finalFullPath || "_",
+              saveAs: prompt,
+              conflictAction: options.conflictAction,
+            })
+          )
+          .then((downloadId) => Notification.trackDownload(downloadId))
+          .catch(() => {})
+          .then(() => SessionState.set({ siPendingDownload: false }));
 
       const fetchDownload = (_url) => {
         fetch(_url)
           .then((response) => response.blob())
-          .then((myBlob) => {
-            const objectURL = URL.createObjectURL(myBlob);
-            browser.downloads.download({
-              url: objectURL,
-              filename: finalFullPath || "_",
-              saveAs: prompt,
-              conflictAction: options.conflictAction,
-            });
-          });
+          .then((myBlob) => Download.makeUrlFromBlob(myBlob))
+          .then((blobUrl) => browserDownload(blobUrl));
       };
 
       if (options.fetchViaContent) {
         Messaging.send
           .fetchViaContent(_state)
-          .then((res) => {
+          .then((res) =>
             // Object URL has to be created inside the background script
-            const objectUrl = URL.createObjectURL(res.body.blob);
-            return browserDownload(objectUrl);
-          })
+            Download.makeUrlFromBlob(res.body.blob).then((blobUrl) =>
+              browserDownload(blobUrl)
+            )
+          )
           .catch((e) => {
             if (window.SI_DEBUG) {
               console.log("Failed to fetch via content", e); // eslint-disable-line
@@ -211,22 +259,41 @@ const Download = {
 if (chrome && chrome.downloads && chrome.downloads.onDeterminingFilename) {
   chrome.downloads.onDeterminingFilename.addListener(
     (downloadItem, suggest) => {
+      // Don't interfere with other extensions
+      if (
+        !browser.runtime ||
+        browser.runtime.id !== downloadItem.byExtensionId
+      ) {
+        return false;
+      }
+
+      // In-memory state is lost if the MV3 service worker restarted between
+      // requesting the download and this event: recover the persisted filename
+      if (!globalChromeState || !globalChromeState.path) {
+        SessionState.get("siFinalFilename").then((res) => {
+          if (res.siFinalFilename) {
+            suggest({
+              filename: res.siFinalFilename,
+              conflictAction: options.conflictAction,
+            });
+          } else {
+            suggest();
+          }
+        });
+        return true; // suggest is called asynchronously
+      }
+
       globalChromeState.info = globalChromeState.info || {};
       globalChromeState.info.filename =
         (globalChromeState.info && globalChromeState.info.suggestedFilename) ||
         downloadItem.filename ||
         (globalChromeState.info && globalChromeState.info.filename);
 
-      // Don't interfere with other extensions
-      if (
-        browser.runtime &&
-        browser.runtime.id === downloadItem.byExtensionId
-      ) {
-        suggest({
-          filename: Download.finalizeFullPath(globalChromeState),
-          conflictAction: options.conflictAction,
-        });
-      }
+      suggest({
+        filename: Download.finalizeFullPath(globalChromeState),
+        conflictAction: options.conflictAction,
+      });
+      return false;
     }
   );
 }

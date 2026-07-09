@@ -116,12 +116,6 @@ const Menus = {
       contexts,
       parentId: "save-in-root",
     });
-
-    browser.contextMenus.onClicked.addListener((info) => {
-      if (info.menuItemId === "options") {
-        browser.runtime.openOptionsPage();
-      }
-    });
   },
 
   addShowDefaultFolder: (contexts) => {
@@ -130,12 +124,6 @@ const Menus = {
       title: browser.i18n.getMessage("contextMenuShowDefaultFolder"),
       contexts,
       parentId: Menus.IDS.ROOT,
-    });
-
-    browser.contextMenus.onClicked.addListener((info) => {
-      if (info.menuItemId === "show-default-folder") {
-        browser.downloads.showDefaultFolder();
-      }
     });
   },
 
@@ -293,10 +281,31 @@ const Menus = {
 
   // TODO: refactor this to handle only paths, add tests
   addDownloadListener: () => {
-    browser.contextMenus.onClicked.addListener((info) => {
+    browser.contextMenus.onClicked.addListener(async (info, tab) => {
       if (Object.values(Menus.IDS.TABSTRIP).includes(info.menuItemId)) {
         return;
       }
+
+      if (info.menuItemId === "options") {
+        browser.runtime.openOptionsPage();
+        return;
+      }
+
+      if (info.menuItemId === "show-default-folder") {
+        browser.downloads.showDefaultFolder();
+        return;
+      }
+
+      // MV3 service workers restart between events: wait for options
+      // and menus to be reinitialised before handling the click
+      if (window.ready) {
+        await window.ready;
+      }
+
+      // Prefer the tab the click happened in: the tracked global can lag
+      // behind or belong to another window, and its title is mutated by
+      // later tab updates (#172, #188)
+      const clickTab = tab || currentTab;
 
       const menuInfo = Menus.pathMappings[info.menuItemId];
 
@@ -371,13 +380,13 @@ const Menus = {
           downloadType = DOWNLOAD_TYPES.SELECTION;
           url = Download.makeObjectUrl(info.selectionText);
           suggestedFilename = `${Path.truncateIfLongerThan(
-            (currentTab && currentTab.title) || info.selectionText,
+            (clickTab && clickTab.title) || info.selectionText,
             options.truncateLength - 14
           )}.selection.txt`;
         } else if (options.page && info.pageUrl) {
           downloadType = DOWNLOAD_TYPES.PAGE;
           url = info.pageUrl;
-          const pageTitle = currentTab && currentTab.title;
+          const pageTitle = clickTab && clickTab.title;
           suggestedFilename = pageTitle || info.pageUrl;
         } else {
           return;
@@ -389,11 +398,15 @@ const Menus = {
           saveIntoPath = ".";
         } else if (info.menuItemId === Menus.IDS.LAST_USED) {
           saveIntoPath = lastUsedPath;
-          comment = window.lastDownloadState.info.comment;
-          menuIndex = window.lastDownloadState.info.menuIndex;
+          if (window.lastDownloadState && window.lastDownloadState.info) {
+            comment = window.lastDownloadState.info.comment;
+            menuIndex = window.lastDownloadState.info.menuIndex;
+          }
         } else {
           saveIntoPath = menuInfo.parsedDir;
           lastUsedPath = saveIntoPath;
+          // MV3 service workers are stateless: persist across restarts
+          browser.storage.local.set({ lastUsedPath });
           const title = menuInfo.title || lastUsedPath;
 
           if (options.enableLastLocation) {
@@ -432,7 +445,7 @@ const Menus = {
 
         // Organise things by flattening the info struct and only keeping needed info
         const opts = {
-          currentTab, // Global
+          currentTab: clickTab,
           linkText: info.linkText,
           now: new Date(),
           pageUrl: info.pageUrl,
@@ -476,16 +489,6 @@ const Menus = {
         title: browser.i18n.getMessage("tabstripMenuMultipleSelectedTab", [1]),
         contexts: ["tab"],
       });
-
-      browser.tabs.onHighlighted.addListener((highlightInfo) => {
-        const length = highlightInfo.tabIds.length;
-        browser.contextMenus.update(Menus.IDS.TABSTRIP.SELECTED_MULTIPLE_TABS, {
-          title: browser.i18n.getMessage("tabstripMenuMultipleSelectedTab", [
-            length,
-          ]),
-          contexts: ["tab"],
-        });
-      });
     }
 
     browser.contextMenus.create({
@@ -505,12 +508,40 @@ const Menus = {
       title: browser.i18n.getMessage("tabstripMenuSaveRightTabsMatched"),
       contexts: ["tab"],
     });
+  },
 
+  addTabHighlightListener: () => {
+    browser.tabs.onHighlighted.addListener((highlightInfo) => {
+      if (
+        !options.tabEnabled ||
+        !BROWSER_FEATURES ||
+        !BROWSER_FEATURES.multitab
+      ) {
+        return;
+      }
+
+      const length = highlightInfo.tabIds.length;
+      browser.contextMenus.update(Menus.IDS.TABSTRIP.SELECTED_MULTIPLE_TABS, {
+        title: browser.i18n.getMessage("tabstripMenuMultipleSelectedTab", [
+          length,
+        ]),
+        contexts: ["tab"],
+      });
+    });
+  },
+
+  addTabMenuListener: () => {
     const ids = Object.values(Menus.IDS.TABSTRIP);
 
-    browser.contextMenus.onClicked.addListener((info, fromTab) => {
+    browser.contextMenus.onClicked.addListener(async (info, fromTab) => {
       if (!ids.includes(info.menuItemId)) {
         return;
+      }
+
+      // MV3 service workers restart between events: wait for options
+      // and menus to be reinitialised before handling the click
+      if (window.ready) {
+        await window.ready;
       }
 
       let filter = () => false;

@@ -6,15 +6,6 @@ const getOptionsSchema = browser.runtime
   })
   .catch(console.error);
 
-const waitForBrowserDetection = () => {
-  if (CURRENT_BROWSER === "UNKNOWN") {
-    setTimeout(waitForBrowserDetection, 10);
-  } else {
-    setupChromeDisables();
-  }
-};
-waitForBrowserDetection();
-
 const updateErrors = () => {
   const pathsErrors = document.querySelector("#error-paths");
   const lastDlMatch = document.querySelector("#last-dl-match");
@@ -167,11 +158,42 @@ document
   .querySelector("#history-delete")
   ?.addEventListener("click", deleteHistory);
 
+const LOG_STORAGE_KEY = "si-log";
+
+const updateDebugLog = async () => {
+  const el = document.querySelector("#debug-log");
+  if (!el) {
+    return;
+  }
+
+  try {
+    const res = await browser.storage.session.get(LOG_STORAGE_KEY);
+    const entries = (res && res[LOG_STORAGE_KEY]) || [];
+    el.value = entries
+      .map((e) => [e.at, e.message, e.data].filter(Boolean).join("  "))
+      .join("\n");
+  } catch (e) {
+    // storage.session unavailable (older browsers)
+    el.value = "(debug log unavailable in this browser)";
+  }
+};
+document.addEventListener("DOMContentLoaded", updateDebugLog);
+document
+  .querySelector("#debug-log-refresh")
+  ?.addEventListener("click", updateDebugLog);
+document.querySelector("#debug-log-clear")?.addEventListener("click", () => {
+  browser.storage.session
+    .remove(LOG_STORAGE_KEY)
+    .then(updateDebugLog)
+    .catch(() => {});
+});
+
 browser.runtime.onMessage.addListener((message) => {
   switch (message.type) {
     case "DOWNLOADED":
       updateErrors();
       updateHistory();
+      updateDebugLog();
       break;
     default:
       break;
@@ -202,9 +224,8 @@ const saveOptions = (e) => {
     }, {});
 
     browser.storage.local.set(toSave).then(() => {
-      browser.runtime.getBackgroundPage().then((w) => {
-        w.reset();
-      });
+      // MV3 has no getBackgroundPage: ask the background to reload instead
+      browser.runtime.sendMessage({ type: "OPTIONS_LOADED" });
 
       document.querySelector("#lastSavedAt").textContent =
         new Date().toLocaleTimeString();
@@ -273,6 +294,8 @@ document.querySelector("#reset").addEventListener("click", (e) => {
 
     if (reset) {
       browser.storage.local.clear().then(() => {
+        browser.runtime.sendMessage({ type: "OPTIONS_LOADED" });
+
         document.querySelector("#lastSavedAt").textContent =
           new Date().toLocaleTimeString();
 
@@ -284,11 +307,9 @@ document.querySelector("#reset").addEventListener("click", (e) => {
   };
   /* eslint-enable no-alert */
 
-  if (CURRENT_BROWSER === BROWSERS.CHROME) {
-    browser.runtime.getBackgroundPage().then(resetFn);
-  } else {
-    resetFn(window);
-  }
+  // On Chrome the options page opens in a tab (options_ui.open_in_tab),
+  // so dialogs work on the local window in both browsers
+  resetFn(window);
 });
 
 const setupChromeDisables = () => {
@@ -378,12 +399,19 @@ const importSettings = () => {
     });
   };
 
-  if (CURRENT_BROWSER === BROWSERS.CHROME) {
-    browser.runtime.getBackgroundPage().then(load);
-  } else {
-    load(window);
-  }
+  load(window);
 };
 document
   .querySelector("#settings-import")
   .addEventListener("click", importSettings);
+
+// Detection can complete synchronously (Chrome), so this must be defined
+// after setupChromeDisables
+const waitForBrowserDetection = () => {
+  if (CURRENT_BROWSER === "UNKNOWN") {
+    setTimeout(waitForBrowserDetection, 10);
+  } else {
+    setupChromeDisables();
+  }
+};
+waitForBrowserDetection();

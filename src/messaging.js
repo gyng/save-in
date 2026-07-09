@@ -70,7 +70,8 @@ const Messaging = {
     };
 
     const opts = {
-      currentTab, // Global
+      // Prefer the tab the message came from over the tracked global (#172)
+      currentTab: (sender && sender.tab) || currentTab,
       now: new Date(),
       pageUrl: info.pageUrl,
       selectionText: info.selectionText,
@@ -116,6 +117,17 @@ browser.runtime.onMessageExternal.addListener(
 
 browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
   switch (request.type) {
+    case MESSAGE_TYPES.WAKE_WARM:
+      // Sent by content scripts on combo keydown purely to wake the MV3
+      // service worker before a click-to-save message arrives
+      sendResponse({ type: MESSAGE_TYPES.OK });
+      break;
+    case MESSAGE_TYPES.OPTIONS_LOADED:
+      // Sent by the options page after saving: reload options and menus.
+      // MV3 has no getBackgroundPage, so this goes over messaging instead.
+      window.reset();
+      sendResponse({ type: MESSAGE_TYPES.OK });
+      break;
     case MESSAGE_TYPES.OPTIONS:
       sendResponse({
         type: MESSAGE_TYPES.OPTIONS,

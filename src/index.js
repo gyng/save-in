@@ -7,9 +7,15 @@ window.init = () => {
     filenamePatterns: [],
   };
 
-  OptionsManagement.loadOptions()
-    .then(browser.contextMenus.removeAll())
-    .then(() => {
+  return Promise.all([
+    OptionsManagement.loadOptions(),
+    browser.storage.local.get("lastUsedPath"),
+    browser.contextMenus.removeAll(),
+  ])
+    .then((results) => {
+      // MV3 service workers are stateless: restore last used path across restarts
+      lastUsedPath = (results[1] && results[1].lastUsedPath) || null;
+
       Headers.addRequestListener();
 
       Notification.addNotifications({
@@ -48,18 +54,34 @@ window.init = () => {
       Menus.addSelectionType(contexts);
       Menus.addShowDefaultFolder(contexts);
       Menus.addOptions(contexts);
+    })
+    .catch((e) => {
+      Log.add("init failed", String(e));
+      throw e;
     });
 };
 
+// Event listeners must be registered synchronously on startup, or MV3
+// service workers/event pages will not wake up for the events they missed.
 Menus.addDownloadListener();
+Menus.addTabMenuListener();
+Menus.addTabHighlightListener();
 
 window.reset = () => {
-  browser.contextMenus.removeAll().then(() => {
-    window.init();
-  });
+  window.ready = window.init();
+  return window.ready;
 };
 
-window.init();
+window.ready = window.init();
+
+browser.tabs
+  .query({ active: true, currentWindow: true })
+  .then((tabs) => {
+    if (!currentTab && tabs && tabs.length > 0) {
+      currentTab = tabs[0];
+    }
+  })
+  .catch(() => {});
 
 browser.tabs.onActivated.addListener((info) => {
   browser.tabs.get(info.tabId).then((t) => {
