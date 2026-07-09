@@ -18,15 +18,7 @@ const findChrome = () => {
     process.env.CHROME_PATH,
     "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
     "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
-    path.join(
-      os.homedir(),
-      "AppData",
-      "Local",
-      "Google",
-      "Chrome",
-      "Application",
-      "chrome.exe"
-    ),
+    path.join(os.homedir(), "AppData", "Local", "Google", "Chrome", "Application", "chrome.exe"),
     "/usr/bin/google-chrome",
     "/usr/bin/chromium",
     "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
@@ -34,9 +26,7 @@ const findChrome = () => {
 
   const found = candidates.find((p) => fs.existsSync(p));
   if (!found) {
-    throw new Error(
-      "Chrome not found: set CHROME_PATH to your chrome executable"
-    );
+    throw new Error("Chrome not found: set CHROME_PATH to your chrome executable");
   }
   return found;
 };
@@ -58,7 +48,7 @@ const makeProfile = (profileDir, downloadDir) => {
         default_directory: downloadDir,
         prompt_for_download: false,
       },
-    })
+    }),
   );
 };
 

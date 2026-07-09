@@ -5,8 +5,7 @@
   },
 
   "extensionDescription": {
-    "message":
-      "Slaat de download (plaatje,foto,bestand) op in voorgedefinieerde mappen.",
+    "message": "Slaat de download (plaatje,foto,bestand) op in voorgedefinieerde mappen.",
     "description": "Beschrijving van de add-on."
   },
 
@@ -22,8 +21,7 @@
 
   "contextMenuItemOptions": {
     "message": "Opties",
-    "description":
-      "Naam van het contextmenu dat opent als het optiemenu is aangeklikt."
+    "description": "Naam van het contextmenu dat opent als het optiemenu is aangeklikt."
   },
 
   "contextMenuExclusive": {
@@ -43,14 +41,12 @@
 
   "contextMenuContextMedia": {
     "message": "Media",
-    "description":
-      "Indicatie dat Opslaan In slechts foto- en videobestanden opslaat."
+    "description": "Indicatie dat Opslaan In slechts foto- en videobestanden opslaat."
   },
 
   "contextMenuContextMediaOrLink": {
     "message": "Media of Link",
-    "description":
-      "Indicatie dat Opslaan In een foto- en videobestand of link opslaat."
+    "description": "Indicatie dat Opslaan In een foto- en videobestand of link opslaat."
   },
 
   "contextMenuContextSelection": {
@@ -65,8 +61,7 @@
 
   "contextMenuShowDefaultFolder": {
     "message": "Open standaard map",
-    "description":
-      "Titel van het contextmenu dat opent als standaardmap in het bestandenscherm."
+    "description": "Titel van het contextmenu dat opent als standaardmap in het bestandenscherm."
   },
 
   "notificationSuccessTitle": {
@@ -91,15 +86,13 @@
   },
 
   "notificationRuleMatchFailedExclusiveTitle": {
-    "message":
-      "Opslaan In: Het zoeken naar- of hernoemen van de download is mislukt",
+    "message": "Opslaan In: Het zoeken naar- of hernoemen van de download is mislukt",
     "description": "Notificatietitel indien er geen match in exclusive modus is"
   },
 
   "notificationRuleMatchFailedExclusiveMessage": {
     "message": "Geen match gevonden voor $URL$",
-    "description":
-      "Notificatietitel indien er geen match in exclusieve modus is",
+    "description": "Notificatietitel indien er geen match in exclusieve modus is",
     "placeholders": {
       "url": {
         "content": "$1",
@@ -110,8 +103,7 @@
 
   "ruleMissingMatcher": {
     "message": "Regel heeft minimaal een clausule nodig",
-    "description":
-      "Foutbericht bij het ontbreken van een steekwoord in een regel"
+    "description": "Foutbericht bij het ontbreken van een steekwoord in een regel"
   },
 
   "ruleCaptureMissingMatcher": {
@@ -120,10 +112,8 @@
   },
 
   "ruleMissingCapture": {
-    "message":
-      "Regel heeft een zoek-clausule nodig om zoek variabelen te gebruiken",
-    "description":
-      "Foutbericht voor het ontbreken van de zoekclausule in een regel"
+    "message": "Regel heeft een zoek-clausule nodig om zoek variabelen te gebruiken",
+    "description": "Foutbericht voor het ontbreken van de zoekclausule in een regel"
   },
 
   "ruleMissingInto": {
@@ -143,8 +133,7 @@
 
   "ruleInvalidRegex": {
     "message": "Incorrecte reguliere expressie",
-    "description":
-      "Foutbericht voor een regel met incorrecte reguliere expressie"
+    "description": "Foutbericht voor een regel met incorrecte reguliere expressie"
   },
 
   "ruleBadClause": {
@@ -159,39 +148,32 @@
 
   "rulePathStartsWithDot": {
     "message": "Pad kan niet beginnen met .. of /",
-    "description":
-      "Foutbericht voor paden in regels die beginnen met foutieve karakters"
+    "description": "Foutbericht voor paden in regels die beginnen met foutieve karakters"
   },
 
   "tabstripMenuSelectedTab": {
     "message": "Geselecteerde tab opslaan",
-    "description":
-      "Tab contextmenu label voor het opslaan van de geselecteerde tab"
+    "description": "Tab contextmenu label voor het opslaan van de geselecteerde tab"
   },
 
   "tabstripMenuSaveChildrenTabs": {
     "message": "Tabs geopend vanaf deze tab opslaan",
-    "description":
-      "Tabstrip context menu label voor het opslaan van gecreerde tabs"
+    "description": "Tabstrip context menu label voor het opslaan van gecreerde tabs"
   },
 
   "tabstripMenuSaveRightTabs": {
     "message": "Opslaan van alle tabs inclusief deze",
-    "description":
-      "Tabstrip context menu label voor het opslaan van de rechter tabs (inclusief)"
+    "description": "Tabstrip context menu label voor het opslaan van de rechter tabs (inclusief)"
   },
 
   "tabstripMenuSaveRightTabsMatched": {
-    "message":
-      "Opslaan van alle rechter tabs inclusief deze (dient overeen te komen met een regel)",
-    "description":
-      "Tabstrip context menu label voor het opslaan van alle tabs (inclusief ) die een overeenkomst met een regel hebben"
+    "message": "Opslaan van alle rechter tabs inclusief deze (dient overeen te komen met een regel)",
+    "description": "Tabstrip context menu label voor het opslaan van alle tabs (inclusief ) die een overeenkomst met een regel hebben"
   },
 
   "o_sDownloads": {
     "message": "Downloads",
-    "description":
-      "o prefixen is voor optiepagina-tekst, s prefixen zijn voor secties en subsecties"
+    "description": "o prefixen is voor optiepagina-tekst, s prefixen zijn voor secties en subsecties"
   },
 
   "o_sDirectories": {
@@ -280,13 +262,11 @@
   },
 
   "o_lDirectoryInstructionSymlink": {
-    "message":
-      "Een symlink is nodig om buiten de standaard download map op te slaan."
+    "message": "Een symlink is nodig om buiten de standaard download map op te slaan."
   },
 
   "o_lRoutingInstruction": {
-    "message":
-      "Automatisch routeren van Downloads of hernoemen van bestanden. Gebruik een lege regel voor het scheiden van meerdere regels. Zie de Gids voor meer informatie."
+    "message": "Automatisch routeren van Downloads of hernoemen van bestanden. Gebruik een lege regel voor het scheiden van meerdere regels. Zie de Gids voor meer informatie."
   },
 
   "o_lRoutingLastDownload": {
@@ -314,8 +294,7 @@
   },
 
   "o_lRoutingLastDownloadHelp": {
-    "message":
-      "Test de huidige regels, toegepast op het bestand wat voor het laatst is gedownload"
+    "message": "Test de huidige regels, toegepast op het bestand wat voor het laatst is gedownload"
   },
 
   "o_lRoutingTemplates": {
@@ -323,8 +302,7 @@
   },
 
   "o_lAccessKeysInstruction": {
-    "message":
-      "Stel toegangstoetsen in voor Opslaan in menu-items. Chrome, Firefox >= 63."
+    "message": "Stel toegangstoetsen in voor Opslaan in menu-items. Chrome, Firefox >= 63."
   },
 
   "o_cLastUsedMenu": {
@@ -333,8 +311,7 @@
   },
 
   "o_cSaveLinks": {
-    "message":
-      "Inschakelen opslaan van links. Bij voorkeur de bron indien beschikbaar"
+    "message": "Inschakelen opslaan van links. Bij voorkeur de bron indien beschikbaar"
   },
 
   "o_cPreferLinks": {
@@ -342,8 +319,7 @@
   },
 
   "o_cSaveText": {
-    "message":
-      "Inschakelen opslaan van geselecteerde text met \".selectie.txt\" extensie"
+    "message": "Inschakelen opslaan van geselecteerde text met \".selectie.txt\" extensie"
   },
 
   "o_cSavePage": {
@@ -367,13 +343,11 @@
   },
 
   "o_cOpenDialogNoExt": {
-    "message":
-      "Open een Bestand-opslaan dialoog als de bestandsnaam geen extensie heeft"
+    "message": "Open een Bestand-opslaan dialoog als de bestandsnaam geen extensie heeft"
   },
 
   "o_cOpenDialogShift": {
-    "message":
-      "Open een bestand-opslaan dialoog als een menuitem is aangeklikt terwijl SHIFT is ingedrukt"
+    "message": "Open een bestand-opslaan dialoog als een menuitem is aangeklikt terwijl SHIFT is ingedrukt"
   },
 
   "o_cOpenDialogOnFailure": {
@@ -405,8 +379,7 @@
   },
 
   "o_cExclusiveModeHelp": {
-    "message":
-      "Submenu uitschakelen voor twee-klik downloads, opslaan relatief aan de standaard download-map"
+    "message": "Submenu uitschakelen voor twee-klik downloads, opslaan relatief aan de standaard download-map"
   },
 
   "o_cNotifySuccess": {
@@ -426,8 +399,7 @@
   },
 
   "o_cNotifyCloseAfterHelp": {
-    "message":
-      "1s = 1000ms. Kan niet langer duren dan de standaard besturingssysteem/browser notificatie tijd."
+    "message": "1s = 1000ms. Kan niet langer duren dan de standaard besturingssysteem/browser notificatie tijd."
   },
 
   "o_cSaveShortcutsAs": {
@@ -483,8 +455,7 @@
   },
 
   "o_cKeyboardShortcutClickToHelp": {
-    "message":
-      "Houd Alt ingedrukt (standaard) en klik afbeeldingen of media om deze op te slaan in de laatst gebruikte map of standaard Download-map.. Injecteert een script bij de paginas om te luisteren naar muisklikken. Niet alle variabelen kunnen worden hiervoor worden gebruikt. Heeft pagina-vernieuwen nodig om toe te passen."
+    "message": "Houd Alt ingedrukt (standaard) en klik afbeeldingen of media om deze op te slaan in de laatst gebruikte map of standaard Download-map.. Injecteert een script bij de paginas om te luisteren naar muisklikken. Niet alle variabelen kunnen worden hiervoor worden gebruikt. Heeft pagina-vernieuwen nodig om toe te passen."
   },
 
   "o_cKeyboardShotcutKeycode": {
@@ -504,8 +475,7 @@
   },
 
   "o_cKeyboardShortcutModifierHelp": {
-    "message":
-      "Aanpassen toetsenbordcode voor het klikken-om-opteslaan. Heeft een pagina-vernieuwing nodig om toe te passen."
+    "message": "Aanpassen toetsenbordcode voor het klikken-om-opteslaan. Heeft een pagina-vernieuwing nodig om toe te passen."
   },
 
   "o_cRestoreDefaults": {
@@ -525,8 +495,7 @@
   },
 
   "o_cReplaceInvalidCharsWithHelp": {
-    "message":
-      "Leeg laten om te wissen. Niet toegestane karakters worden genegeerd."
+    "message": "Leeg laten om te wissen. Niet toegestane karakters worden genegeerd."
   },
 
   "o_cFetchViaContentScript": {
@@ -534,8 +503,7 @@
   },
 
   "o_cFetchViaContentScriptHelp": {
-    "message":
-      "Verstuur headers van pagina's zonder download verzoek. Websites zoals pixiv hebben dit nodig. Langzamer en kan mislukken. Notificaties werken niet met deze instelling. De pagina dient ververst te worden om dit toe te passen."
+    "message": "Verstuur headers van pagina's zonder download verzoek. Websites zoals pixiv hebben dit nodig. Langzamer en kan mislukken. Notificaties werken niet met deze instelling. De pagina dient ververst te worden om dit toe te passen."
   },
 
   "o_cImportSettings": {

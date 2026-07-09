@@ -102,18 +102,16 @@ const Messaging = {
   },
 };
 
-browser.runtime.onMessageExternal.addListener(
-  (request, sender, sendResponse) => {
-    switch (request.type) {
-      case MESSAGE_TYPES.DOWNLOAD:
-        Messaging.handleDownloadMessage(request, sender, sendResponse);
-        break;
-      default:
-        // noop
-        break;
-    }
+browser.runtime.onMessageExternal.addListener((request, sender, sendResponse) => {
+  switch (request.type) {
+    case MESSAGE_TYPES.DOWNLOAD:
+      Messaging.handleDownloadMessage(request, sender, sendResponse);
+      break;
+    default:
+      // noop
+      break;
   }
-);
+});
 
 browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
   switch (request.type) {
@@ -161,12 +159,9 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
         ? Object.keys(Variable.transformers).reduce(
             (acc, val) =>
               Object.assign(acc, {
-                [val]: Variable.applyVariables(
-                  new Path.Path(val),
-                  lastState.info
-                ).finalize(),
+                [val]: Variable.applyVariables(new Path.Path(val), lastState.info).finalize(),
               }),
-            {}
+            {},
           )
         : null;
 

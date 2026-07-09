@@ -7,9 +7,7 @@ describe("SaveHistory", () => {
 
   beforeEach(() => {
     store = {};
-    global.browser.storage.local.get = jest.fn((key) =>
-      Promise.resolve({ [key]: store[key] })
-    );
+    global.browser.storage.local.get = jest.fn((key) => Promise.resolve({ [key]: store[key] }));
     global.browser.storage.local.set = jest.fn((obj) => {
       Object.assign(store, obj);
       return Promise.resolve();

@@ -21,7 +21,6 @@ const decodeDataUrl = (url) => {
 };
 
 describe("makeObjectUrl", () => {
-
   // vitest's jsdom provides URL.createObjectURL; the MV3 service worker
   // path is the one without it, so stub it away for these tests
   let originalCreateObjectURL;
@@ -60,9 +59,7 @@ describe("makeObjectUrl", () => {
   });
 
   test("data URL fallback respects the mime type", () => {
-    const { meta } = decodeDataUrl(
-      Download.makeObjectUrl("<html></html>", "text/html")
-    );
+    const { meta } = decodeDataUrl(Download.makeObjectUrl("<html></html>", "text/html"));
     expect(meta).toBe("data:text/html;charset=utf-8;base64");
   });
 
@@ -76,7 +73,6 @@ describe("makeObjectUrl", () => {
 });
 
 describe("makeUrlFromBlob", () => {
-
   // vitest's jsdom provides URL.createObjectURL; the MV3 service worker
   // path is the one without it, so stub it away for these tests
   let originalCreateObjectURL;
@@ -124,9 +120,7 @@ describe("makeUrlFromBlob", () => {
   test("uses URL.createObjectURL when available (MV2)", async () => {
     URL.createObjectURL = jest.fn(() => "blob:fake-object-url");
     const blob = new NodeBlob(["x"]);
-    await expect(Download.makeUrlFromBlob(blob)).resolves.toBe(
-      "blob:fake-object-url"
-    );
+    await expect(Download.makeUrlFromBlob(blob)).resolves.toBe("blob:fake-object-url");
   });
 });
 
@@ -157,8 +151,7 @@ describe("onDeterminingFilename listener (Chrome)", () => {
     };
 
     await import("../src/download.js");
-    [[listener]] =
-      global.chrome.downloads.onDeterminingFilename.addListener.mock.calls;
+    [[listener]] = global.chrome.downloads.onDeterminingFilename.addListener.mock.calls;
   });
 
   const flush = async () => {
@@ -170,10 +163,7 @@ describe("onDeterminingFilename listener (Chrome)", () => {
 
   test("ignores downloads from other extensions", () => {
     const suggest = jest.fn();
-    const returned = listener(
-      { byExtensionId: "someone-else", filename: "x" },
-      suggest
-    );
+    const returned = listener({ byExtensionId: "someone-else", filename: "x" }, suggest);
     expect(returned).toBe(false);
     expect(suggest).not.toHaveBeenCalled();
   });
@@ -186,7 +176,7 @@ describe("onDeterminingFilename listener (Chrome)", () => {
     const suggest = jest.fn();
     const returned = listener(
       { byExtensionId: "self-extension-id", filename: "original.txt" },
-      suggest
+      suggest,
     );
 
     // Chrome requires a synchronous `return true` for async suggest()
@@ -203,7 +193,7 @@ describe("onDeterminingFilename listener (Chrome)", () => {
     const suggest = jest.fn();
     const returned = listener(
       { byExtensionId: "self-extension-id", filename: "original.txt" },
-      suggest
+      suggest,
     );
 
     expect(returned).toBe(true);

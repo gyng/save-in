@@ -51,13 +51,10 @@ const updateErrors = () => {
     const hasLastDownload =
       body.lastDownload && body.lastDownload.info && body.lastDownload.info.url;
     if (hasLastDownload) {
-      document.querySelector("#last-dl-url").textContent =
-        body.lastDownload.info.url;
+      document.querySelector("#last-dl-url").textContent = body.lastDownload.info.url;
     }
 
-    document
-      .querySelector("#rules-applied-row")
-      .classList.toggle("hide", !hasLastDownload);
+    document.querySelector("#rules-applied-row").classList.toggle("hide", !hasLastDownload);
 
     // Routing result
     lastDlMatch.innerHTML = "no matches";
@@ -67,47 +64,40 @@ const updateErrors = () => {
 
     // Variables
     if (hasLastDownload) {
-      document
-        .querySelector("#variables-table-row")
-        .classList.toggle("hide", !hasLastDownload);
+      document.querySelector("#variables-table-row").classList.toggle("hide", !hasLastDownload);
     }
-    document
-      .querySelector("#see-variables-btn")
-      .addEventListener("click", () => {
-        if (body.interpolatedVariables) {
-          const tableBody = document.querySelector("#variables-body");
-          tableBody.classList.toggle("hide");
-          tableBody.innerHTML = "";
+    document.querySelector("#see-variables-btn").addEventListener("click", () => {
+      if (body.interpolatedVariables) {
+        const tableBody = document.querySelector("#variables-body");
+        tableBody.classList.toggle("hide");
+        tableBody.innerHTML = "";
 
-          Object.keys(body.interpolatedVariables).forEach((key) => {
-            const val = body.interpolatedVariables[key];
+        Object.keys(body.interpolatedVariables).forEach((key) => {
+          const val = body.interpolatedVariables[key];
 
-            const variableRow = document.createElement("tr");
+          const variableRow = document.createElement("tr");
 
-            const nameEl = document.createElement("td");
-            nameEl.textContent = key;
-            nameEl.classList.add("click-to-copy");
-            nameEl.classList.add("code");
-            addClickToCopy(nameEl);
+          const nameEl = document.createElement("td");
+          nameEl.textContent = key;
+          nameEl.classList.add("click-to-copy");
+          nameEl.classList.add("code");
+          addClickToCopy(nameEl);
 
-            const interpolatedEl = document.createElement("td");
-            interpolatedEl.style.fontFamily = "monospace";
-            interpolatedEl.textContent = val;
+          const interpolatedEl = document.createElement("td");
+          interpolatedEl.style.fontFamily = "monospace";
+          interpolatedEl.textContent = val;
 
-            variableRow.appendChild(nameEl);
-            variableRow.appendChild(interpolatedEl);
-            tableBody.appendChild(variableRow);
-          });
-        }
-      });
+          variableRow.appendChild(nameEl);
+          variableRow.appendChild(interpolatedEl);
+          tableBody.appendChild(variableRow);
+        });
+      }
+    });
 
     // Capture groups
-    const hasCaptureMatches =
-      body.routeInfo && Array.isArray(body.routeInfo.captures);
+    const hasCaptureMatches = body.routeInfo && Array.isArray(body.routeInfo.captures);
 
-    document
-      .querySelector("#capture-group-rows")
-      .classList.toggle("hide", !hasCaptureMatches);
+    document.querySelector("#capture-group-rows").classList.toggle("hide", !hasCaptureMatches);
 
     if (hasCaptureMatches) {
       lastDlCapture.textContent = "";
@@ -154,9 +144,7 @@ const deleteHistory = () => {
     browser.storage.local.remove(HISTORY_KEY).then(updateHistory);
   }
 };
-document
-  .querySelector("#history-delete")
-  ?.addEventListener("click", deleteHistory);
+document.querySelector("#history-delete")?.addEventListener("click", deleteHistory);
 
 const LOG_STORAGE_KEY = "si-log";
 
@@ -169,18 +157,14 @@ const updateDebugLog = async () => {
   try {
     const res = await browser.storage.session.get(LOG_STORAGE_KEY);
     const entries = (res && res[LOG_STORAGE_KEY]) || [];
-    el.value = entries
-      .map((e) => [e.at, e.message, e.data].filter(Boolean).join("  "))
-      .join("\n");
+    el.value = entries.map((e) => [e.at, e.message, e.data].filter(Boolean).join("  ")).join("\n");
   } catch (e) {
     // storage.session unavailable (older browsers)
     el.value = "(debug log unavailable in this browser)";
   }
 };
 document.addEventListener("DOMContentLoaded", updateDebugLog);
-document
-  .querySelector("#debug-log-refresh")
-  ?.addEventListener("click", updateDebugLog);
+document.querySelector("#debug-log-refresh")?.addEventListener("click", updateDebugLog);
 document.querySelector("#debug-log-clear")?.addEventListener("click", () => {
   browser.storage.session
     .remove(LOG_STORAGE_KEY)
@@ -227,8 +211,7 @@ const saveOptions = (e) => {
       // MV3 has no getBackgroundPage: ask the background to reload instead
       browser.runtime.sendMessage({ type: "OPTIONS_LOADED" });
 
-      document.querySelector("#lastSavedAt").textContent =
-        new Date().toLocaleTimeString();
+      document.querySelector("#lastSavedAt").textContent = new Date().toLocaleTimeString();
     });
   });
 };
@@ -236,9 +219,7 @@ const saveOptions = (e) => {
 // Set UI elements' value/checked
 const restoreOptionsHandler = (result, schema) => {
   // Zip result -> schema
-  const schemaWithValues = schema.keys.map((o) =>
-    Object.assign({}, o, { value: result[o.name] })
-  );
+  const schemaWithValues = schema.keys.map((o) => Object.assign({}, o, { value: result[o.name] }));
 
   schemaWithValues.forEach((o) => {
     const el = document.getElementById(o.name);
@@ -262,9 +243,7 @@ const restoreOptionsHandler = (result, schema) => {
 const restoreOptions = () =>
   getOptionsSchema.then((schema) => {
     const keys = schema.keys.map((o) => o.name);
-    browser.storage.local
-      .get(keys)
-      .then((loaded) => restoreOptionsHandler(loaded, schema));
+    browser.storage.local.get(keys).then((loaded) => restoreOptionsHandler(loaded, schema));
   });
 
 const addHelp = (el) => {
@@ -296,8 +275,7 @@ document.querySelector("#reset").addEventListener("click", (e) => {
       browser.storage.local.clear().then(() => {
         browser.runtime.sendMessage({ type: "OPTIONS_LOADED" });
 
-        document.querySelector("#lastSavedAt").textContent =
-          new Date().toLocaleTimeString();
+        document.querySelector("#lastSavedAt").textContent = new Date().toLocaleTimeString();
 
         restoreOptions();
         updateErrors();
@@ -401,9 +379,7 @@ const importSettings = () => {
 
   load(window);
 };
-document
-  .querySelector("#settings-import")
-  .addEventListener("click", importSettings);
+document.querySelector("#settings-import").addEventListener("click", importSettings);
 
 // Detection can complete synchronously (Chrome), so this must be defined
 // after setupChromeDisables

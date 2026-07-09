@@ -61,23 +61,17 @@ describe("filename rewrite and routing", () => {
     });
 
     test("naivefilename", () => {
-      const matcher = router.matcherFunctions.naivefilename(
-        new RegExp("cat.jpg")
-      );
+      const matcher = router.matcherFunctions.naivefilename(new RegExp("cat.jpg"));
       expect(matcher(info).length).toBe(1);
       expect(matcher(info)[0]).toBe("cat.jpg");
     });
 
     test("naivefilename negative", () => {
-      const matcher = router.matcherFunctions.naivefilename(
-        new RegExp("dog.jpg")
-      );
+      const matcher = router.matcherFunctions.naivefilename(new RegExp("dog.jpg"));
       expect(matcher(info)).toBe(null);
     });
     test("naivefilename negative", () => {
-      const matcher = router.matcherFunctions.naivefilename(
-        new RegExp("dog.jpg")
-      );
+      const matcher = router.matcherFunctions.naivefilename(new RegExp("dog.jpg"));
       expect(matcher(info, "cat.jpg")).toBe(null);
     });
 
@@ -107,7 +101,7 @@ describe("filename rewrite and routing", () => {
   describe("rule parsing", () => {
     test("parsing valid rules", () => {
       const rules = router.parseRules(
-        "sourceurl: dog\ninto: cat\n\npageurl:cat\ncapture: pageurl\ninto:dog"
+        "sourceurl: dog\ninto: cat\n\npageurl:cat\ncapture: pageurl\ninto:dog",
       );
       expect(rules.length).toBe(2);
       expect(rules[0].length).toBe(2);
@@ -124,9 +118,7 @@ describe("filename rewrite and routing", () => {
     });
 
     test("parsing missing into", () => {
-      const rules = router.parseRules(
-        "sourceurl: dog\n\npageurl:cat\ncapture: pageurl\ninto:dog"
-      );
+      const rules = router.parseRules("sourceurl: dog\n\npageurl:cat\ncapture: pageurl\ninto:dog");
 
       expect(rules.length).toBe(1);
       expect(rules[0].length).toBe(3);
@@ -134,9 +126,7 @@ describe("filename rewrite and routing", () => {
     });
 
     test("parsing missing matcher", () => {
-      const rules = router.parseRules(
-        "into: dog\n\npageurl:cat\ncapture: pageurl\ninto:dog"
-      );
+      const rules = router.parseRules("into: dog\n\npageurl:cat\ncapture: pageurl\ninto:dog");
 
       expect(rules.length).toBe(1);
       expect(rules[0].length).toBe(3);
@@ -145,14 +135,12 @@ describe("filename rewrite and routing", () => {
 
     test("parsing multiple matchers", () => {
       const rules = router.parseRules(
-        "into: dog\n\npageurl:cat\nsourceurl:pig\ncapture: pageurl,sourceurl\ninto:dog"
+        "into: dog\n\npageurl:cat\nsourceurl:pig\ncapture: pageurl,sourceurl\ninto:dog",
       );
 
       expect(rules.length).toBe(1);
       expect(rules[0].length).toBe(4);
-      expect(rules[0].filter((r) => r.type === RULE_TYPES.MATCHER).length).toBe(
-        2
-      );
+      expect(rules[0].filter((r) => r.type === RULE_TYPES.MATCHER).length).toBe(2);
       expect(rules[0][0].name).toBe("pageurl");
       expect(rules[0][0].value.toString()).toBe("/cat/");
       expect(rules[0][1].name).toBe("sourceurl");
@@ -160,9 +148,7 @@ describe("filename rewrite and routing", () => {
     });
 
     test("parsing unknown clause", () => {
-      const rules = router.parseRules(
-        "what: dog\n\npageurl:cat\ncapture: pageurl\ninto:dog"
-      );
+      const rules = router.parseRules("what: dog\n\npageurl:cat\ncapture: pageurl\ninto:dog");
 
       expect(rules.length).toBe(1);
       expect(rules[0].length).toBe(3);
@@ -176,7 +162,7 @@ describe("filename rewrite and routing", () => {
     beforeAll(() => {
       global.RULE_TYPES = constants.RULE_TYPES;
       rules = router.parseRules(
-        "sourceurl: dog\ninto: cat\n\nsourceurl: (cat)\ncapture: sourceurl\ninto: dog:$1:"
+        "sourceurl: dog\ninto: cat\n\nsourceurl: (cat)\ncapture: sourceurl\ninto: dog:$1:",
       );
     });
 
@@ -186,17 +172,13 @@ describe("filename rewrite and routing", () => {
     });
 
     test("missing capture target", () => {
-      rules = router.parseRules(
-        "sourceurl: dog\ncapture: pageurl\ninto: cat:$1:"
-      );
+      rules = router.parseRules("sourceurl: dog\ncapture: pageurl\ninto: cat:$1:");
       const match = router.matchRules(rules, info);
       expect(match).toBe(null);
     });
 
     test("missing capture target, multiple captures", () => {
-      rules = router.parseRules(
-        "sourceurl: dog\ncapture: sourceurl, pageurl\ninto: cat:$1:"
-      );
+      rules = router.parseRules("sourceurl: dog\ncapture: sourceurl, pageurl\ninto: cat:$1:");
       const match = router.matchRules(rules, info);
       expect(match).toBe(null);
     });
@@ -214,7 +196,7 @@ describe("filename rewrite and routing", () => {
           "sourceurl: pbs.twimg.com",
           "capture: filename",
           "into: :$1:",
-        ].join("\n")
+        ].join("\n"),
       );
 
       const clickInfo = fixtures.firefoxInfo;
@@ -231,7 +213,7 @@ describe("filename rewrite and routing", () => {
           "sourceurl: pbs.twimg.com",
           "capture: filename",
           "into: :$1:",
-        ].join("\n")
+        ].join("\n"),
       );
 
       const clickInfo = fixtures.chromeInfo;

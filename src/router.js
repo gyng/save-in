@@ -1,27 +1,21 @@
 const RouterFactory = {
-  makeInfoMatcherFactory:
-    (propertyName, alternativePropertyName) => (regex) => (info) => {
-      let match = info[propertyName] && info[propertyName].match(regex);
+  makeInfoMatcherFactory: (propertyName, alternativePropertyName) => (regex) => (info) => {
+    let match = info[propertyName] && info[propertyName].match(regex);
 
-      // Hack for sourceUrl, srcUrl
-      if (!match && alternativePropertyName) {
-        match =
-          info[alternativePropertyName] &&
-          info[alternativePropertyName].match(regex);
-      }
+    // Hack for sourceUrl, srcUrl
+    if (!match && alternativePropertyName) {
+      match = info[alternativePropertyName] && info[alternativePropertyName].match(regex);
+    }
 
-      if (window.SI_DEBUG && match) {
-        console.log("matched", match, regex, info); // eslint-disable-line
-      }
+    if (window.SI_DEBUG && match) {
+      console.log("matched", match, regex, info); // eslint-disable-line
+    }
 
-      return match;
-    },
+    return match;
+  },
 
   makeTabMatcherFactory: (propertyName) => (regex) => (info) => {
-    const match =
-      currentTab &&
-      currentTab[propertyName] &&
-      currentTab[propertyName].match(regex);
+    const match = currentTab && currentTab[propertyName] && currentTab[propertyName].match(regex);
 
     if (window.SI_DEBUG && match) {
       console.log("matched", match, regex, info); // eslint-disable-line
@@ -165,10 +159,7 @@ const Router = {
 
       let value;
       try {
-        value =
-          name === "into" || name === "capture"
-            ? tokens[2]
-            : new RegExp(tokens[2]);
+        value = name === "into" || name === "capture" ? tokens[2] : new RegExp(tokens[2]);
       } catch (e) {
         window.optionErrors.filenamePatterns.push({
           message: browser.i18n.getMessage("ruleInvalidRegex"),
@@ -223,10 +214,7 @@ const Router = {
     }
 
     const destination = matchers.find((m) => m.type === RULE_TYPES.DESTINATION);
-    if (
-      destination.value.match(/:\$\d+:/) &&
-      !matchers.find((m) => m.name === "capture")
-    ) {
+    if (destination.value.match(/:\$\d+:/) && !matchers.find((m) => m.name === "capture")) {
       window.optionErrors.filenamePatterns.push({
         message: browser.i18n.getMessage("ruleMissingCapture"),
         error: destination.value,
@@ -263,11 +251,7 @@ const Router = {
     }
 
     const captures = matchers.filter((m) => m.name === "capture");
-    if (
-      captures &&
-      captures.length === 1 &&
-      captures[0].value.split(",").length > 1
-    ) {
+    if (captures && captures.length === 1 && captures[0].value.split(",").length > 1) {
       // Get all captures
       const captureMatchers = captures[0].value.split(",").map((m) => m.trim());
       let failed = false;
@@ -331,18 +315,15 @@ const Router = {
 
   getCaptureMatches: (rule, info) => {
     const captureDeclaration = rule.find(
-      (d) => d.type === RULE_TYPES.CAPTURE && d.name === "capture"
+      (d) => d.type === RULE_TYPES.CAPTURE && d.name === "capture",
     );
 
     const capturedAll = [];
     if (captureDeclaration) {
-      const capturedMatcherNames = captureDeclaration.value
-        .split(",")
-        .map((m) => m.trim());
+      const capturedMatcherNames = captureDeclaration.value.split(",").map((m) => m.trim());
       for (let i = 0; i < capturedMatcherNames.length; i += 1) {
         const captured = rule.find(
-          (m) =>
-            m.type === RULE_TYPES.MATCHER && m.name === capturedMatcherNames[i]
+          (m) => m.type === RULE_TYPES.MATCHER && m.name === capturedMatcherNames[i],
         );
         if (captured && captured.matcher && captured.matcher(info)) {
           capturedAll.push(captured.matcher(info));

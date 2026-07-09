@@ -58,9 +58,7 @@ describe("addDownloadListener", () => {
   });
 
   test("registers the listener synchronously (MV3 requirement)", () => {
-    expect(
-      global.browser.contextMenus.onClicked.addListener
-    ).toHaveBeenCalledTimes(1);
+    expect(global.browser.contextMenus.onClicked.addListener).toHaveBeenCalledTimes(1);
   });
 
   test("opens the options page for the options item", async () => {
@@ -129,7 +127,7 @@ describe("addDownloadListener", () => {
         linkUrl: "https://example.com/f.png",
         pageUrl: "https://example.com/",
       },
-      { id: 5, title: "Clicked Tab" }
+      { id: 5, title: "Clicked Tab" },
     );
 
     const state = global.Download.renameAndDownload.mock.calls[0][0];
@@ -164,7 +162,7 @@ describe("addDownloadListener", () => {
         menuItemId: Menus.IDS.LAST_USED,
         linkUrl: "https://example.com/g.png",
         pageUrl: "https://example.com/",
-      })
+      }),
     ).resolves.not.toThrow();
 
     expect(global.Download.renameAndDownload).toHaveBeenCalledTimes(2);
@@ -180,15 +178,14 @@ describe("addTabMenuListener", () => {
 
     const Menus = (await import("../src/menu.js")).default;
     Menus.addTabMenuListener();
-    const [[listener]] =
-      global.browser.contextMenus.onClicked.addListener.mock.calls;
+    const [[listener]] = global.browser.contextMenus.onClicked.addListener.mock.calls;
 
     await listener({ menuItemId: "save-in-0" }, { windowId: 1 });
     expect(global.browser.tabs.query).not.toHaveBeenCalled();
 
     await listener(
       { menuItemId: Menus.IDS.TABSTRIP.SELECTED_TAB },
-      { windowId: 1, id: 5, index: 0 }
+      { windowId: 1, id: 5, index: 0 },
     );
     expect(global.browser.tabs.query).toHaveBeenCalled();
   });

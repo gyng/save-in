@@ -81,11 +81,7 @@ const OptionsManagement = {
     },
   ],
 
-  getKeys: () =>
-    OptionsManagement.OPTION_KEYS.reduce(
-      (acc, val) => acc.concat([val.name]),
-      []
-    ),
+  getKeys: () => OptionsManagement.OPTION_KEYS.reduce((acc, val) => acc.concat([val.name]), []),
 
   setOption: (name, value) => {
     if (typeof value !== "undefined") {
@@ -120,7 +116,7 @@ const OptionsManagement = {
 
     const lastInterpolated = Variable.applyVariables(
       new Path.Path(Download.getRoutingMatches(last)),
-      last.info
+      last.info,
     );
     const testLastResult = lastInterpolated.finalize();
 
@@ -129,7 +125,7 @@ const OptionsManagement = {
       testLastCapture = Router.getCaptureMatches(
         options.filenamePatterns[i],
         last.info,
-        last.info.filename || last.info.url
+        last.info.filename || last.info.url,
       );
 
       if (testLastCapture) {
@@ -145,29 +141,25 @@ const OptionsManagement = {
 };
 
 OptionsManagement.loadOptions = () =>
-  browser.storage.local
-    .get(OptionsManagement.getKeys())
-    .then((loadedOptions) => {
-      if (loadedOptions.debug) {
-        window.SI_DEBUG = 1;
-      }
+  browser.storage.local.get(OptionsManagement.getKeys()).then((loadedOptions) => {
+    if (loadedOptions.debug) {
+      window.SI_DEBUG = 1;
+    }
 
-      const localKeys = Object.keys(loadedOptions);
-      localKeys.forEach((k) => {
-        const optionType = OptionsManagement.OPTION_KEYS.find(
-          (ok) => ok.name === k
-        );
-        const fn = optionType.onLoad || ((x) => x);
-        OptionsManagement.setOption(k, fn(loadedOptions[k]));
-      });
-
-      return options;
+    const localKeys = Object.keys(loadedOptions);
+    localKeys.forEach((k) => {
+      const optionType = OptionsManagement.OPTION_KEYS.find((ok) => ok.name === k);
+      const fn = optionType.onLoad || ((x) => x);
+      OptionsManagement.setOption(k, fn(loadedOptions[k]));
     });
+
+    return options;
+  });
 
 // global
 options = OptionsManagement.OPTION_KEYS.reduce(
   (acc, val) => Object.assign(acc, { [val.name]: val.default }),
-  {}
+  {},
 );
 
 // Export for testing

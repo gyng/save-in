@@ -11,9 +11,7 @@ const flush = async (times = 10) => {
 };
 
 const makeSessionMock = (store) => ({
-  get: jest.fn((key) =>
-    Promise.resolve(key == null ? { ...store } : { [key]: store[key] })
-  ),
+  get: jest.fn((key) => Promise.resolve(key == null ? { ...store } : { [key]: store[key] })),
   set: jest.fn((obj) => {
     Object.assign(store, obj);
     return Promise.resolve();
@@ -25,9 +23,7 @@ const setupGlobals = (sessionStore, searchResults) => {
   global.CURRENT_BROWSER = "CHROME";
 
   global.browser.storage.session = makeSessionMock(sessionStore);
-  global.browser.downloads.search = jest.fn((query) =>
-    Promise.resolve(searchResults(query))
-  );
+  global.browser.downloads.search = jest.fn((query) => Promise.resolve(searchResults(query)));
   global.browser.downloads.onCreated = {
     addListener: jest.fn(),
     removeListener: jest.fn(),
@@ -113,9 +109,7 @@ describe("download lifecycle notifications", () => {
     jest.resetModules();
     jest.useFakeTimers();
     sessionStore = {};
-    setupGlobals(sessionStore, () => [
-      { id: 7, fileSize: 2048, mime: "image/png" },
-    ]);
+    setupGlobals(sessionStore, () => [{ id: 7, fileSize: 2048, mime: "image/png" }]);
 
     Notification = (await import("../src/notification.js")).default;
     Notification.addNotifications({
@@ -158,7 +152,7 @@ describe("download lifecycle notifications", () => {
 
     expect(global.browser.notifications.create).toHaveBeenCalledWith(
       "7",
-      expect.objectContaining({ type: "basic" })
+      expect.objectContaining({ type: "basic" }),
     );
     expect(sessionStore.siTrackedDownloads).toEqual([]);
   });
@@ -182,9 +176,7 @@ describe("download lifecycle notifications", () => {
     onCreated({ id: 7, url: "https://x/p.png" }); // no filename yet
     await flush();
 
-    expect(() =>
-      onChanged({ id: 7, error: { current: "NETWORK_FAILED" } })
-    ).not.toThrow();
+    expect(() => onChanged({ id: 7, error: { current: "NETWORK_FAILED" } })).not.toThrow();
     await flush();
 
     expect(global.browser.notifications.create).toHaveBeenCalled();

@@ -25,10 +25,7 @@ const main = async () => {
     fresh: !fs.existsSync(PROFILE),
   });
 
-  await cdp.openTab(
-    PORT,
-    `chrome-extension://${extensionId}/src/options/options.html`
-  );
+  await cdp.openTab(PORT, `chrome-extension://${extensionId}/src/options/options.html`);
 
   console.log(`Extension loaded: ${extensionId}`);
   console.log(`CDP port: ${PORT} | Profile: ${PROFILE}`);
@@ -46,7 +43,7 @@ const main = async () => {
           console.log(
             `[${new Date().toLocaleTimeString()}] restaged; auto-reload failed (${
               e.message
-            }) — reload manually via chrome://extensions`
+            }) — reload manually via chrome://extensions`,
           );
         }
       }, 300);

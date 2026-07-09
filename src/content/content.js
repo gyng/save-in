@@ -77,7 +77,7 @@ const setupClickToSave = (options) => {
           if (chrome.runtime.lastError && retries > 0) {
             setTimeout(() => sendDownload(source, retries - 1), 300);
           }
-        }
+        },
       );
     } catch (e) {
       // Extension context invalidated (extension reloaded)
@@ -94,16 +94,13 @@ const setupClickToSave = (options) => {
       if (shortcutOptions.combo.includes(e.keyCode)) {
         try {
           // Reading lastError stops Chrome logging an unchecked error
-          chrome.runtime.sendMessage(
-            { type: "WAKE_WARM" },
-            () => chrome.runtime.lastError
-          );
+          chrome.runtime.sendMessage({ type: "WAKE_WARM" }, () => chrome.runtime.lastError);
         } catch (err) {
           // Extension context invalidated
         }
       }
     },
-    true
+    true,
   );
 
   window.addEventListener(
@@ -111,7 +108,7 @@ const setupClickToSave = (options) => {
     (e) => {
       active[e.keyCode] = false;
     },
-    true
+    true,
   );
 
   window.addEventListener("focus", () => {
@@ -140,7 +137,7 @@ const setupClickToSave = (options) => {
         }
       }
     },
-    true
+    true,
   );
 };
 

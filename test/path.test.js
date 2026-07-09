@@ -19,9 +19,7 @@ describe("sanitisation", () => {
   });
 
   test("filesystem characters", () => {
-    expect(Path.replaceFsBadChars('/ : * ? " < > | % ~')).toBe(
-      "_ _ _ _ _ _ _ _ % ~"
-    );
+    expect(Path.replaceFsBadChars('/ : * ? " < > | % ~')).toBe("_ _ _ _ _ _ _ _ % ~");
   });
 
   describe("custom replacement character", () => {

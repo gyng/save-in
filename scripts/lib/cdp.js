@@ -26,9 +26,7 @@ class Cdp {
     const ws = new WebSocket(url);
     await new Promise((resolve, reject) => {
       ws.addEventListener("open", resolve);
-      ws.addEventListener("error", () =>
-        reject(new Error(`Failed to connect to ${url}`))
-      );
+      ws.addEventListener("error", () => reject(new Error(`Failed to connect to ${url}`)));
     });
     return new Cdp(ws);
   }
@@ -39,10 +37,7 @@ class Cdp {
     this.ws.send(JSON.stringify({ id, method, params }));
     return new Promise((resolve, reject) => {
       this.pending.set(id, { resolve, reject });
-      setTimeout(
-        () => reject(new Error(`CDP timeout: ${method}`)),
-        timeoutMs
-      ).unref();
+      setTimeout(() => reject(new Error(`CDP timeout: ${method}`)), timeoutMs).unref();
     });
   }
 
@@ -61,9 +56,7 @@ const listTargets = (port) => getJson(port, "/json");
 // Evaluates an expression in the first live target whose URL contains
 // urlSubstr. Skips targets whose extension context has been invalidated.
 const evalInTarget = async (port, urlSubstr, expression) => {
-  const targets = (await listTargets(port)).filter((t) =>
-    t.url.includes(urlSubstr)
-  );
+  const targets = (await listTargets(port)).filter((t) => t.url.includes(urlSubstr));
   if (targets.length === 0) {
     throw new Error(`No target matching "${urlSubstr}"`);
   }
@@ -81,9 +74,7 @@ const evalInTarget = async (port, urlSubstr, expression) => {
       if (!result.exceptionDetails) {
         return result.result.value;
       }
-      lastError = new Error(
-        result.exceptionDetails.exception?.description || "evaluation failed"
-      );
+      lastError = new Error(result.exceptionDetails.exception?.description || "evaluation failed");
     } finally {
       cdp.close();
     }
@@ -97,11 +88,11 @@ const evalInServiceWorker = async (port, extensionId, expression) => {
   await evalInTarget(
     port,
     `${extensionId}/src/options/options.html`,
-    "new Promise(res => chrome.runtime.sendMessage({type:'WAKE_WARM'}, () => res('ok')))"
+    "new Promise(res => chrome.runtime.sendMessage({type:'WAKE_WARM'}, () => res('ok')))",
   );
 
   const sw = (await listTargets(port)).find(
-    (t) => t.type === "service_worker" && t.url.includes(extensionId)
+    (t) => t.type === "service_worker" && t.url.includes(extensionId),
   );
   if (!sw) {
     throw new Error("Service worker did not wake up");
@@ -116,9 +107,7 @@ const evalInServiceWorker = async (port, extensionId, expression) => {
       returnByValue: true,
     });
     if (result.exceptionDetails) {
-      throw new Error(
-        result.exceptionDetails.exception?.description || "evaluation failed"
-      );
+      throw new Error(result.exceptionDetails.exception?.description || "evaluation failed");
     }
     return result.result.value;
   } finally {

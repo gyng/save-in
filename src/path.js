@@ -2,6 +2,7 @@ const specialDirVariables = Object.values(SPECIAL_DIRS);
 const specialDirRegexp = new RegExp(`(${specialDirVariables.join("|")})`);
 
 const Path = {
+  // eslint-disable-next-line no-control-regex -- NUL is intentionally stripped from filenames
   SPECIAL_CHARACTERS_REGEX: /[<>:"/\\|?*\0]/g,
   BAD_LEADING_CHARACTERS: /^[./\\]/g,
   SEPARATOR_REGEX: /[/\\]/g,
@@ -14,10 +15,7 @@ const Path = {
     }
 
     static String(v) {
-      return new PathSegment(
-        PATH_SEGMENT_TYPES.STRING,
-        v == null ? "" : v.toString()
-      );
+      return new PathSegment(PATH_SEGMENT_TYPES.STRING, v == null ? "" : v.toString());
     }
 
     static Variable(v) {
@@ -54,9 +52,7 @@ const Path = {
             return s;
           }
         })
-        .map((s) =>
-          s.val ? s : Path.PathSegment.String(options.replacementChar || "_")
-        );
+        .map((s) => (s.val ? s : Path.PathSegment.String(options.replacementChar || "_")));
 
       const sanitizedStringifiedBuf = Path.sanitizeBufStrings(stringifiedBuf);
 
@@ -78,10 +74,7 @@ const Path = {
       }
 
       // Path is not a child of the default downloads directory
-      if (
-        this.buf[0].type === PATH_SEGMENT_TYPES.SEPARATOR ||
-        this.buf[0].val === ".."
-      ) {
+      if (this.buf[0].type === PATH_SEGMENT_TYPES.SEPARATOR || this.buf[0].val === "..") {
         return {
           valid: false,
           message: browser.i18n.getMessage("rulePathStartsWithDot"),
@@ -109,22 +102,14 @@ const Path = {
   replaceFsBadChars: (s, replacement) =>
     s.replace(
       Path.SPECIAL_CHARACTERS_REGEX,
-      replacement ||
-        (typeof options !== "undefined" &&
-          options &&
-          options.replacementChar) ||
-        ""
+      replacement || (typeof options !== "undefined" && options && options.replacementChar) || "",
     ),
 
   // Leading dots are considered invalid by both Firefox and Chrome
   replaceLeadingDots: (s, replacement) =>
     s.replace(
       Path.BAD_LEADING_CHARACTERS,
-      replacement ||
-        (typeof options !== "undefined" &&
-          options &&
-          options.replacementChar) ||
-        ""
+      replacement || (typeof options !== "undefined" && options && options.replacementChar) || "",
     ),
 
   truncateIfLongerThan: (str, max) =>
@@ -156,14 +141,9 @@ const Path = {
         // This allows for Path segments [(STRING, foofilename), (STRING, .bar)]
         // but forbids [(SEPARATOR, /), (STRING, .bar)]
         // STRING followed by a STRING can happen in filename rewrites
-        const forbidLeadingDots =
-          i === 0 || buf[i - 1].type === PATH_SEGMENT_TYPES.SEPARATOR;
+        const forbidLeadingDots = i === 0 || buf[i - 1].type === PATH_SEGMENT_TYPES.SEPARATOR;
         return Path.PathSegment.String(
-          Path.sanitizeFilename(
-            s.val,
-            options.truncateLength,
-            forbidLeadingDots
-          )
+          Path.sanitizeFilename(s.val, options.truncateLength, forbidLeadingDots),
         );
       } else {
         return s;
@@ -180,9 +160,7 @@ const Path = {
       split = [split];
     }
 
-    const tokenized = split.map((c) =>
-      c.split(specialDirRegexp).filter((sub) => sub.length > 0)
-    );
+    const tokenized = split.map((c) => c.split(specialDirRegexp).filter((sub) => sub.length > 0));
     const flattened = [].concat.apply([], tokenized); // eslint-disable-line
 
     const parsed = flattened.map((tok) => {

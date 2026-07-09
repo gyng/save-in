@@ -14,9 +14,7 @@ const Log = {
   writeQueue: Promise.resolve(),
 
   available: () =>
-    typeof browser !== "undefined" &&
-    browser.storage &&
-    browser.storage.session != null,
+    typeof browser !== "undefined" && browser.storage && browser.storage.session != null,
 
   serialize: (data) => {
     if (typeof data === "undefined") {
@@ -59,9 +57,7 @@ const Log = {
     if (!Log.available()) {
       return [];
     }
-    const res = await browser.storage.session
-      .get(LOG_STORAGE_KEY)
-      .catch(() => ({}));
+    const res = await browser.storage.session.get(LOG_STORAGE_KEY).catch(() => ({}));
     return (res && res[LOG_STORAGE_KEY]) || [];
   },
 

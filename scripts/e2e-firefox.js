@@ -44,9 +44,7 @@ const findFirefox = () => {
   ].filter(Boolean);
   const found = candidates.find((p) => fs.existsSync(p));
   if (!found) {
-    throw new Error(
-      "Firefox not found: set FIREFOX_PATH to your firefox executable"
-    );
+    throw new Error("Firefox not found: set FIREFOX_PATH to your firefox executable");
   }
   return found;
 };
@@ -107,24 +105,14 @@ const connectWithRetry = async (port, attempts = 30) => {
 const results = [];
 const check = (name, ok, detail = "") => {
   results.push({ name, ok });
-  console.log(
-    `  ${ok ? "PASS" : "FAIL"}  ${name}${detail ? ` — ${detail}` : ""}`
-  );
+  console.log(`  ${ok ? "PASS" : "FAIL"}  ${name}${detail ? ` — ${detail}` : ""}`);
 };
 
 const main = async () => {
-  const { profileDir, downloadDir } = makeProfile(
-    path.join(os.tmpdir(), "save-in-ff-e2e")
-  );
+  const { profileDir, downloadDir } = makeProfile(path.join(os.tmpdir(), "save-in-ff-e2e"));
 
   console.log("Launching Firefox (isolated profile)...");
-  const ffArgs = [
-    "-profile",
-    profileDir,
-    "-no-remote",
-    "-start-debugger-server",
-    String(RDP_PORT),
-  ];
+  const ffArgs = ["-profile", profileDir, "-no-remote", "-start-debugger-server", String(RDP_PORT)];
   if (process.env.HEADLESS) {
     ffArgs.push("-headless");
   }
@@ -164,21 +152,14 @@ const main = async () => {
         menuCount: Object.keys(Menus.pathMappings).length,
         hasObjectUrl: typeof URL.createObjectURL === "function",
         hasBlockingWebRequest: !!(browser.webRequest && browser.webRequest.onBeforeSendHeaders),
-      }))`
+      }))`,
     );
     const s = JSON.parse(state);
-    check(
-      "background init (browser detected)",
-      s.browser === "FIREFOX",
-      s.browser
-    );
+    check("background init (browser detected)", s.browser === "FIREFOX", s.browser);
     check("no option errors", s.pathErrors === 0);
     check("path menus built", s.menuCount > 0, `${s.menuCount} items`);
     check("object URLs available (event page)", s.hasObjectUrl === true);
-    check(
-      "blocking webRequest available (FF MV3 keeps it)",
-      s.hasBlockingWebRequest === true
-    );
+    check("blocking webRequest available (FF MV3 keeps it)", s.hasBlockingWebRequest === true);
 
     const dl = await rdp.evaluate(
       consoleActor,
@@ -201,27 +182,23 @@ const main = async () => {
         d.filter((x) => x.filename.includes("ff-smoke"))
           .map((x) => ({ state: x.state, filename: x.filename }))
       ))`,
-      45000
+      45000,
     );
     const downloads = JSON.parse(dl);
     check(
       "download completes through real pipeline",
       downloads.length === 1 && downloads[0].state === "complete",
-      dl
+      dl,
     );
 
     const reportedFile = downloads.length === 1 ? downloads[0].filename : null;
     const file = reportedFile || path.join(downloadDir, "e2e", "ff-smoke.txt");
     const content = fs.existsSync(file) ? fs.readFileSync(file, "utf8") : null;
-    check(
-      "file on disk with correct content",
-      content === "firefox e2e content",
-      file
-    );
+    check("file on disk with correct content", content === "firefox e2e content", file);
 
     const reset = await rdp.evaluate(
       consoleActor,
-      `Promise.resolve(window.reset()).then(() => "reset-ok")`
+      `Promise.resolve(window.reset()).then(() => "reset-ok")`,
     );
     check("options reset re-initialises", reset === "reset-ok");
 
@@ -234,11 +211,11 @@ const main = async () => {
         return JSON.stringify({
           registered: browser.webRequest.onBeforeSendHeaders.hasListener(Headers.refererListener),
         });
-      })()`
+      })()`,
     );
     check(
       "blocking webRequest referer listener registers",
-      JSON.parse(referer).registered === true
+      JSON.parse(referer).registered === true,
     );
   } finally {
     if (rdp) rdp.close();
@@ -256,9 +233,7 @@ const main = async () => {
   }
 
   const failed = results.filter((r) => !r.ok);
-  console.log(
-    `\n${results.length - failed.length}/${results.length} checks passed`
-  );
+  console.log(`\n${results.length - failed.length}/${results.length} checks passed`);
   if (failed.length > 0) process.exitCode = 1;
 };
 

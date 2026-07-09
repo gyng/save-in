@@ -50,10 +50,7 @@ const Menus = {
   addRoot: (contexts) => {
     browser.contextMenus.create({
       id: Menus.IDS.ROOT,
-      title: Menus.setAccesskey(
-        browser.i18n.getMessage("contextMenuRoot"),
-        options.keyRoot
-      ),
+      title: Menus.setAccesskey(browser.i18n.getMessage("contextMenuRoot"), options.keyRoot),
       contexts,
     });
   },
@@ -61,10 +58,7 @@ const Menus = {
   addRouteExclusive: (contexts) => {
     browser.contextMenus.create({
       id: Menus.IDS.ROUTE_EXCLUSIVE,
-      title: Menus.setAccesskey(
-        browser.i18n.getMessage("contextMenuExclusive"),
-        options.keyRoot
-      ),
+      title: Menus.setAccesskey(browser.i18n.getMessage("contextMenuExclusive"), options.keyRoot),
       contexts,
     });
   },
@@ -128,8 +122,7 @@ const Menus = {
   },
 
   addLastUsed: (contexts) => {
-    const lastUsedTitle =
-      lastUsedPath || browser.i18n.getMessage("contextMenuLastUsed");
+    const lastUsedTitle = lastUsedPath || browser.i18n.getMessage("contextMenuLastUsed");
     const lastUsedMenuOptions = {
       id: Menus.IDS.LAST_USED,
       title: Menus.setAccesskey(lastUsedTitle, options.keyLastUsed),
@@ -146,7 +139,7 @@ const Menus = {
           icons: {
             16: "icons/ic_update_black_24px.svg",
           },
-        })
+        }),
       );
     } catch (e) {
       browser.contextMenus.create(lastUsedMenuOptions);
@@ -165,7 +158,7 @@ const Menus = {
         pair
           .replace(/(^\(|\)$)/g, "")
           .split(":")
-          .map((val) => val.trim())
+          .map((val) => val.trim()),
       )
       .reduce((acc, kv) => {
         const key = kv[0];
@@ -309,12 +302,7 @@ const Menus = {
 
       const menuInfo = Menus.pathMappings[info.menuItemId];
 
-      if (
-        menuInfo ||
-        [Menus.IDS.ROUTE_EXCLUSIVE, Menus.IDS.LAST_USED].includes(
-          info.menuItemId
-        )
-      ) {
+      if (menuInfo || [Menus.IDS.ROUTE_EXCLUSIVE, Menus.IDS.LAST_USED].includes(info.menuItemId)) {
         let menuIndex = menuInfo && menuInfo.menuIndex;
         let comment = menuInfo && menuInfo.comment;
 
@@ -336,7 +324,7 @@ const Menus = {
               if (options.notifyOnLinkPreferred) {
                 Notification.createExtensionNotification(
                   browser.i18n.getMessage("notificationLinkPreferred"),
-                  url
+                  url,
                 );
               }
             }
@@ -356,7 +344,7 @@ const Menus = {
               } catch (err) {
                 Notification.createExtensionNotification(
                   browser.i18n.getMessage("notificationBadPreferLinksPattern"),
-                  err
+                  err,
                 );
               }
 
@@ -367,7 +355,7 @@ const Menus = {
                 if (options.notifyOnLinkPreferred) {
                   Notification.createExtensionNotification(
                     browser.i18n.getMessage("notificationLinkPreferred"),
-                    url
+                    url,
                   );
                 }
               }
@@ -381,7 +369,7 @@ const Menus = {
           url = Download.makeObjectUrl(info.selectionText);
           suggestedFilename = `${Path.truncateIfLongerThan(
             (clickTab && clickTab.title) || info.selectionText,
-            options.truncateLength - 14
+            options.truncateLength - 14,
           )}.selection.txt`;
         } else if (options.page && info.pageUrl) {
           downloadType = DOWNLOAD_TYPES.PAGE;
@@ -432,15 +420,12 @@ const Menus = {
             downloadType,
             info,
             suggestedFilename,
-            options.truncateLength
+            options.truncateLength,
           );
         }
 
         if (suggestedFilename) {
-          suggestedFilename = Path.sanitizeFilename(
-            suggestedFilename,
-            options.truncateLength
-          );
+          suggestedFilename = Path.sanitizeFilename(suggestedFilename, options.truncateLength);
         }
 
         // Organise things by flattening the info struct and only keeping needed info
@@ -512,19 +497,13 @@ const Menus = {
 
   addTabHighlightListener: () => {
     browser.tabs.onHighlighted.addListener((highlightInfo) => {
-      if (
-        !options.tabEnabled ||
-        !BROWSER_FEATURES ||
-        !BROWSER_FEATURES.multitab
-      ) {
+      if (!options.tabEnabled || !BROWSER_FEATURES || !BROWSER_FEATURES.multitab) {
         return;
       }
 
       const length = highlightInfo.tabIds.length;
       browser.contextMenus.update(Menus.IDS.TABSTRIP.SELECTED_MULTIPLE_TABS, {
-        title: browser.i18n.getMessage("tabstripMenuMultipleSelectedTab", [
-          length,
-        ]),
+        title: browser.i18n.getMessage("tabstripMenuMultipleSelectedTab", [length]),
         contexts: ["tab"],
       });
     });
@@ -586,18 +565,14 @@ const Menus = {
               let suggestedFilename = null;
 
               if (options.shortcutTab) {
-                url = Shortcut.makeShortcut(
-                  options.shortcutType,
-                  url,
-                  t.title || t.url
-                );
+                url = Shortcut.makeShortcut(options.shortcutType, url, t.title || t.url);
 
                 suggestedFilename = Shortcut.suggestShortcutFilename(
                   options.shortcutType,
                   DOWNLOAD_TYPES.TAB,
                   info,
                   t.title,
-                  options.truncateLength
+                  options.truncateLength,
                 );
               }
 
@@ -621,8 +596,7 @@ const Menus = {
                 path: new Path.Path("."),
                 scratch: {},
                 info: opts,
-                needRouteMatch:
-                  info.menuItemId === Menus.IDS.TABSTRIP.TO_RIGHT_MATCH,
+                needRouteMatch: info.menuItemId === Menus.IDS.TABSTRIP.TO_RIGHT_MATCH,
               };
 
               Download.renameAndDownload(state);

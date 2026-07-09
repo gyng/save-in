@@ -10,17 +10,13 @@ let requestedDownloadFlag = 0;
 // restarts; storage.session is unavailable in older Firefox
 const SessionState = {
   available: () =>
-    typeof browser !== "undefined" &&
-    browser.storage &&
-    browser.storage.session != null,
+    typeof browser !== "undefined" && browser.storage && browser.storage.session != null,
   get: (key) =>
     SessionState.available()
       ? browser.storage.session.get(key).catch(() => ({}))
       : Promise.resolve({}),
   set: (obj) =>
-    SessionState.available()
-      ? browser.storage.session.set(obj).catch(() => {})
-      : Promise.resolve(),
+    SessionState.available() ? browser.storage.session.set(obj).catch(() => {}) : Promise.resolve(),
 };
 
 // Restore tracked downloads on startup: MV3 service worker globals do not
@@ -44,8 +40,8 @@ SessionState.get("siTrackedDownloads").then((res) => {
           }
           return null;
         })
-        .catch(() => null)
-    )
+        .catch(() => null),
+    ),
   ).then((ids) => {
     const validIds = ids.filter((id) => id != null);
     if (validIds.length !== tracked.length) {
@@ -144,13 +140,9 @@ const Notification = {
 
     if (
       Notification.currentDownloadCreatedListener &&
-      browser.downloads.onCreated.hasListener(
-        Notification.currentDownloadCreatedListener
-      )
+      browser.downloads.onCreated.hasListener(Notification.currentDownloadCreatedListener)
     ) {
-      browser.downloads.onCreated.removeListener(
-        Notification.currentDownloadCreatedListener
-      );
+      browser.downloads.onCreated.removeListener(Notification.currentDownloadCreatedListener);
     }
     browser.downloads.onCreated.addListener(onDownloadCreatedListener);
     Notification.currentDownloadCreatedListener = onDownloadCreatedListener;
@@ -166,16 +158,11 @@ const Notification = {
 
     if (
       Notification.currentNotificationClickListener &&
-      browser.notifications.onClicked.hasListener(
-        Notification.currentNotificationClickListener
-      )
+      browser.notifications.onClicked.hasListener(Notification.currentNotificationClickListener)
     ) {
-      browser.notifications.onClicked.removeListener(
-        Notification.currentNotificationClickListener
-      );
+      browser.notifications.onClicked.removeListener(Notification.currentNotificationClickListener);
     }
-    Notification.currentNotificationClickListener =
-      onNotificationClickedListener;
+    Notification.currentNotificationClickListener = onNotificationClickedListener;
     browser.notifications.onClicked.addListener(onNotificationClickedListener);
 
     const onDownloadChangeListener = (downloadDelta) => {
@@ -189,13 +176,8 @@ const Notification = {
       // Chrome does not have the filename in the initial DownloadItem,
       // so extract it from the DownloadDelta
       if (CURRENT_BROWSER === BROWSERS.CHROME) {
-        if (
-          downloadDelta &&
-          downloadDelta.filename &&
-          downloadDelta.filename.current
-        ) {
-          downloadsList[downloadDelta.id].filename =
-            downloadDelta.filename.current;
+        if (downloadDelta && downloadDelta.filename && downloadDelta.filename.current) {
+          downloadsList[downloadDelta.id].filename = downloadDelta.filename.current;
         }
       }
 
@@ -207,7 +189,7 @@ const Notification = {
 
       const failed = Notification.isDownloadFailure(
         downloadDelta,
-        CURRENT_BROWSER === BROWSERS.CHROME
+        CURRENT_BROWSER === BROWSERS.CHROME,
       );
 
       const isFromSelf = typeof downloadsList[downloadDelta.id] !== "undefined";
@@ -222,7 +204,7 @@ const Notification = {
           isFromSelf,
           downloadsList,
           downloadDelta,
-          notifyOnSuccess
+          notifyOnSuccess,
         );
         /* eslint-enable no-console */
       }
@@ -238,12 +220,9 @@ const Notification = {
         if (notifyOnFailure) {
           browser.notifications.create(String(downloadDelta.id), {
             type: "basic",
-            title: browser.i18n.getMessage("notificationFailureTitle", [
-              filename,
-            ]),
+            title: browser.i18n.getMessage("notificationFailureTitle", [filename]),
             iconUrl: ERROR_ICON_URL,
-            message:
-              failed.current || browser.i18n.getMessage("genericUnknownError"),
+            message: failed.current || browser.i18n.getMessage("genericUnknownError"),
           });
         }
 
@@ -260,7 +239,7 @@ const Notification = {
             "notification: created failure",
             String(downloadDelta.id),
             notifyDuration,
-            downloadDelta.id
+            downloadDelta.id,
           );
           /* eslint-enable no-console */
         }
@@ -298,13 +277,9 @@ const Notification = {
             }
           }
 
-          const successfulLabel = browser.i18n.getMessage(
-            "notificationSuccessTitle"
-          );
+          const successfulLabel = browser.i18n.getMessage("notificationSuccessTitle");
           const title =
-            res.length > 0
-              ? `${successfulLabel} · ${filesize} · ${mime}`
-              : successfulLabel;
+            res.length > 0 ? `${successfulLabel} · ${filesize} · ${mime}` : successfulLabel;
 
           browser.notifications.create(String(downloadDelta.id), {
             type: "basic",
@@ -320,7 +295,7 @@ const Notification = {
             "notification: created success",
             String(downloadDelta.id),
             notifyDuration,
-            downloadDelta.id
+            downloadDelta.id,
           );
           /* eslint-enable no-console */
         }
@@ -330,8 +305,7 @@ const Notification = {
         }, notifyDuration);
       }
 
-      const isComplete =
-        downloadDelta.state && downloadDelta.state.current === "complete";
+      const isComplete = downloadDelta.state && downloadDelta.state.current === "complete";
       if (failed || isComplete) {
         delete downloadsList[downloadDelta.id];
         Notification.untrackDownload(downloadDelta.id);
@@ -340,13 +314,9 @@ const Notification = {
 
     if (
       Notification.currentDownloadChangeListener &&
-      browser.downloads.onChanged.hasListener(
-        Notification.currentDownloadChangeListener
-      )
+      browser.downloads.onChanged.hasListener(Notification.currentDownloadChangeListener)
     ) {
-      browser.downloads.onChanged.removeListener(
-        Notification.currentDownloadChangeListener
-      );
+      browser.downloads.onChanged.removeListener(Notification.currentDownloadChangeListener);
     }
     browser.downloads.onChanged.addListener(onDownloadChangeListener);
     Notification.currentDownloadChangeListener = onDownloadChangeListener;

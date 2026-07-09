@@ -32,10 +32,7 @@ const main = async () => {
   });
 
   try {
-    await cdp.openTab(
-      PORT,
-      `chrome-extension://${extensionId}/src/options/options.html`
-    );
+    await cdp.openTab(PORT, `chrome-extension://${extensionId}/src/options/options.html`);
     await cdp.sleep(2000);
 
     console.log("Running checks...");
@@ -51,14 +48,14 @@ const main = async () => {
         menuCount: Object.keys(Menus.pathMappings).length,
         noObjectUrl: typeof URL.createObjectURL === "undefined",
         hasDnr: typeof chrome.declarativeNetRequest === "object",
-      }))`
+      }))`,
     );
     const s = JSON.parse(state);
     check("service worker init", s.browser === "CHROME");
     check(
       "no option errors",
       s.pathErrors === 0 && s.patternErrors === 0,
-      `paths=${s.pathErrors} patterns=${s.patternErrors}`
+      `paths=${s.pathErrors} patterns=${s.patternErrors}`,
     );
     check("path menus built", s.menuCount > 0, `${s.menuCount} items`);
     check("running in real SW (no createObjectURL)", s.noObjectUrl);
@@ -72,7 +69,7 @@ const main = async () => {
       `JSON.stringify({
         textcomplete: typeof window.Textcomplete !== "undefined",
         form: !!document.querySelector("#paths"),
-      })`
+      })`,
     );
     const op = JSON.parse(optionsPage);
     check("options page loads under MV3 CSP", op.form);
@@ -82,7 +79,7 @@ const main = async () => {
     const wake = await cdp.evalInTarget(
       PORT,
       "options.html",
-      "new Promise(res => chrome.runtime.sendMessage({type:'WAKE_WARM'}, r => res(JSON.stringify(r))))"
+      "new Promise(res => chrome.runtime.sendMessage({type:'WAKE_WARM'}, r => res(JSON.stringify(r))))",
     );
     check("WAKE_WARM responds OK", wake === '{"type":"OK"}', wake);
 
@@ -90,7 +87,7 @@ const main = async () => {
     const reset = await cdp.evalInTarget(
       PORT,
       "options.html",
-      "new Promise(res => chrome.runtime.sendMessage({type:'OPTIONS_LOADED'}, r => res(JSON.stringify(r))))"
+      "new Promise(res => chrome.runtime.sendMessage({type:'OPTIONS_LOADED'}, r => res(JSON.stringify(r))))",
     );
     check("options reset responds OK", reset === '{"type":"OK"}', reset);
 
@@ -122,27 +119,23 @@ const main = async () => {
         tracked: sess.siTrackedDownloads || [],
         pending: sess.siPendingDownload,
         finalFilename: sess.siFinalFilename,
-      }))`
+      }))`,
     );
     const download = JSON.parse(dl);
     check("download completes", download.state === "complete", download.state);
     check(
       "download untracked after completion",
-      download.tracked.length === 0 && download.pending === false
+      download.tracked.length === 0 && download.pending === false,
     );
     check(
       "final filename persisted for SW-restart recovery",
       download.finalFilename === "e2e/smoke.txt",
-      String(download.finalFilename)
+      String(download.finalFilename),
     );
 
     const file = path.join(DOWNLOADS, "e2e", "smoke.txt");
     const content = fs.existsSync(file) ? fs.readFileSync(file, "utf8") : null;
-    check(
-      "file on disk with correct content",
-      content === "e2e smoke test content",
-      file
-    );
+    check("file on disk with correct content", content === "e2e smoke test content", file);
 
     // 5. lastUsedPath persists across re-init (simulated SW restart)
     const lastUsed = await cdp.evalInServiceWorker(
@@ -150,13 +143,9 @@ const main = async () => {
       extensionId,
       `browser.storage.local.set({ lastUsedPath: "e2e/persisted" })
         .then(() => window.reset())
-        .then(() => String(lastUsedPath))`
+        .then(() => String(lastUsedPath))`,
     );
-    check(
-      "lastUsedPath restored on re-init",
-      lastUsed === "e2e/persisted",
-      lastUsed
-    );
+    check("lastUsedPath restored on re-init", lastUsed === "e2e/persisted", lastUsed);
 
     // 6. Referer DNR session rule
     const dnr = await cdp.evalInServiceWorker(
@@ -175,21 +164,15 @@ const main = async () => {
         .then((rules) => JSON.stringify(
           rules.map((r) => r.action.requestHeaders[0].value)
         ));
-      })()`
+      })()`,
     );
-    check(
-      "referer DNR session rule created",
-      dnr === '["https://www.pixiv.net/artworks/1"]',
-      dnr
-    );
+    check("referer DNR session rule created", dnr === '["https://www.pixiv.net/artworks/1"]', dnr);
   } finally {
     proc.kill();
   }
 
   const failed = results.filter((r) => !r.ok);
-  console.log(
-    `\n${results.length - failed.length}/${results.length} checks passed`
-  );
+  console.log(`\n${results.length - failed.length}/${results.length} checks passed`);
   if (failed.length > 0) {
     process.exitCode = 1;
   }

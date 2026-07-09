@@ -3,8 +3,7 @@
 let globalChromeState = {};
 
 const Download = {
-  DISPOSITION_FILENAME_REGEX:
-    /filename[^;=\n]*=((['"])(.*)?\2|(.+'')?([^;\n]*))/i,
+  DISPOSITION_FILENAME_REGEX: /filename[^;=\n]*=((['"])(.*)?\2|(.+'')?([^;\n]*))/i,
   EXTENSION_REGEX: /\.([0-9a-z]{1,8})$/i,
 
   makeObjectUrl: (content, mime = "text/plain") => {
@@ -12,7 +11,7 @@ const Download = {
       return URL.createObjectURL(
         new Blob([content], {
           type: `${mime};charset=utf-8`,
-        })
+        }),
       );
     }
 
@@ -36,10 +35,7 @@ const Download = {
       let binary = "";
       const chunkSize = 0x8000;
       for (let i = 0; i < bytes.length; i += chunkSize) {
-        binary += String.fromCharCode.apply(
-          null,
-          bytes.subarray(i, i + chunkSize)
-        );
+        binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunkSize));
       }
       const mime = blob.type || "application/octet-stream";
       return `data:${mime};base64,${btoa(binary)}`;
@@ -48,9 +44,7 @@ const Download = {
 
   getFilenameFromUrl: (url) => {
     const remotePath = new URL(url).pathname;
-    return decodeURIComponent(
-      remotePath.substring(remotePath.lastIndexOf("/") + 1)
-    );
+    return decodeURIComponent(remotePath.substring(remotePath.lastIndexOf("/") + 1));
   },
 
   finalizeFullPath: (_state) => {
@@ -58,9 +52,7 @@ const Download = {
     const finalFilename = _state.route
       ? _state.route.finalize()
       : Path.sanitizeFilename(_state.info.filename);
-    const finalFullPath = [finalDir, finalFilename]
-      .filter((x) => x != null)
-      .join("/");
+    const finalFullPath = [finalDir, finalFilename].filter((x) => x != null).join("/");
 
     return finalFullPath.replace(/^\.\//, "").replace(/^\//, "");
   },
@@ -68,8 +60,7 @@ const Download = {
   getFilenameFromContentDisposition: (disposition) => {
     if (typeof disposition !== "string") return null;
 
-    const filenameFromLib =
-      getFilenameFromContentDispositionHeader(disposition);
+    const filenameFromLib = getFilenameFromContentDispositionHeader(disposition);
 
     if (filenameFromLib) {
       return decodeURIComponent(decodeURIComponent(filenameFromLib));
@@ -89,8 +80,7 @@ const Download = {
 
   renameAndDownload: (state) => {
     const naiveFilename = Download.getFilenameFromUrl(state.info.url);
-    const initialFilename =
-      state.info.suggestedFilename || naiveFilename || state.info.url;
+    const initialFilename = state.info.suggestedFilename || naiveFilename || state.info.url;
 
     Object.assign(state.info, {
       naiveFilename,
@@ -102,17 +92,10 @@ const Download = {
     // FIXME: Fix router params for new path struct
     const routeMatches = Download.getRoutingMatches(state);
     if (routeMatches) {
-      state.route = Variable.applyVariables(
-        new Path.Path(routeMatches),
-        state.info
-      );
+      state.route = Variable.applyVariables(new Path.Path(routeMatches), state.info);
     }
 
-    if (
-      typeof state.needRouteMatch !== "undefined" &&
-      state.needRouteMatch &&
-      !routeMatches
-    ) {
+    if (typeof state.needRouteMatch !== "undefined" && state.needRouteMatch && !routeMatches) {
       return;
     }
 
@@ -131,21 +114,15 @@ const Download = {
         console.log(state, finalFullPath); // eslint-disable-line
       }
 
-      _state.scratch.hasExtension =
-        finalFullPath && finalFullPath.match(Download.EXTENSION_REGEX);
-      const noExtensionPrompt =
-        options.promptIfNoExtension && !_state.scratch.hasExtension;
+      _state.scratch.hasExtension = finalFullPath && finalFullPath.match(Download.EXTENSION_REGEX);
+      const noExtensionPrompt = options.promptIfNoExtension && !_state.scratch.hasExtension;
       const shiftHeldPrompt =
         options.promptOnShift &&
         _state.info.modifiers &&
         typeof _state.info.modifiers.find((m) => m === "Shift") !== "undefined";
       const noRuleMatchedPrompt = options.routeFailurePrompt && !state.route;
 
-      const prompt =
-        options.prompt ||
-        noExtensionPrompt ||
-        shiftHeldPrompt ||
-        noRuleMatchedPrompt;
+      const prompt = options.prompt || noExtensionPrompt || shiftHeldPrompt || noRuleMatchedPrompt;
 
       const browserDownload = (_url) =>
         Headers.prepareReferer(_state)
@@ -156,7 +133,7 @@ const Download = {
             SessionState.set({
               siPendingDownload: true,
               siFinalFilename: finalFullPath || "_",
-            })
+            }),
           )
           .then(() =>
             browser.downloads.download({
@@ -164,7 +141,7 @@ const Download = {
               filename: finalFullPath || "_",
               saveAs: prompt,
               conflictAction: options.conflictAction,
-            })
+            }),
           )
           .then((downloadId) => Notification.trackDownload(downloadId))
           .catch(() => {})
@@ -182,9 +159,7 @@ const Download = {
           .fetchViaContent(_state)
           .then((res) =>
             // Object URL has to be created inside the background script
-            Download.makeUrlFromBlob(res.body.blob).then((blobUrl) =>
-              browserDownload(blobUrl)
-            )
+            Download.makeUrlFromBlob(res.body.blob).then((blobUrl) => browserDownload(blobUrl)),
           )
           .catch((e) => {
             if (window.SI_DEBUG) {
@@ -223,8 +198,7 @@ const Download = {
         .then((res) => {
           if (res.headers.has("Content-Disposition")) {
             const disposition = res.headers.get("Content-Disposition");
-            const dispositionName =
-              Download.getFilenameFromContentDisposition(disposition);
+            const dispositionName = Download.getFilenameFromContentDisposition(disposition);
             state.info.filename = dispositionName || state.info.filename;
           }
           download(state);
@@ -241,61 +215,54 @@ const Download = {
         Notification.createExtensionNotification(
           browser.i18n.getMessage("notificationRuleMatchedTitle"),
           `${state.info.initialFilename}\n⬇\n${state.route}`,
-          false
+          false,
         );
       }
     } else if (options.routeExclusive && options.notifyOnFailure) {
       Notification.createExtensionNotification(
         browser.i18n.getMessage("notificationRuleMatchFailedExclusiveTitle"),
-        browser.i18n.getMessage("notificationRuleMatchFailedExclusiveMessage", [
-          state.info.url,
-        ]),
-        true
+        browser.i18n.getMessage("notificationRuleMatchFailedExclusiveMessage", [state.info.url]),
+        true,
       );
     }
   },
 };
 
 if (chrome && chrome.downloads && chrome.downloads.onDeterminingFilename) {
-  chrome.downloads.onDeterminingFilename.addListener(
-    (downloadItem, suggest) => {
-      // Don't interfere with other extensions
-      if (
-        !browser.runtime ||
-        browser.runtime.id !== downloadItem.byExtensionId
-      ) {
-        return false;
-      }
-
-      // In-memory state is lost if the MV3 service worker restarted between
-      // requesting the download and this event: recover the persisted filename
-      if (!globalChromeState || !globalChromeState.path) {
-        SessionState.get("siFinalFilename").then((res) => {
-          if (res.siFinalFilename) {
-            suggest({
-              filename: res.siFinalFilename,
-              conflictAction: options.conflictAction,
-            });
-          } else {
-            suggest();
-          }
-        });
-        return true; // suggest is called asynchronously
-      }
-
-      globalChromeState.info = globalChromeState.info || {};
-      globalChromeState.info.filename =
-        (globalChromeState.info && globalChromeState.info.suggestedFilename) ||
-        downloadItem.filename ||
-        (globalChromeState.info && globalChromeState.info.filename);
-
-      suggest({
-        filename: Download.finalizeFullPath(globalChromeState),
-        conflictAction: options.conflictAction,
-      });
+  chrome.downloads.onDeterminingFilename.addListener((downloadItem, suggest) => {
+    // Don't interfere with other extensions
+    if (!browser.runtime || browser.runtime.id !== downloadItem.byExtensionId) {
       return false;
     }
-  );
+
+    // In-memory state is lost if the MV3 service worker restarted between
+    // requesting the download and this event: recover the persisted filename
+    if (!globalChromeState || !globalChromeState.path) {
+      SessionState.get("siFinalFilename").then((res) => {
+        if (res.siFinalFilename) {
+          suggest({
+            filename: res.siFinalFilename,
+            conflictAction: options.conflictAction,
+          });
+        } else {
+          suggest();
+        }
+      });
+      return true; // suggest is called asynchronously
+    }
+
+    globalChromeState.info = globalChromeState.info || {};
+    globalChromeState.info.filename =
+      (globalChromeState.info && globalChromeState.info.suggestedFilename) ||
+      downloadItem.filename ||
+      (globalChromeState.info && globalChromeState.info.filename);
+
+    suggest({
+      filename: Download.finalizeFullPath(globalChromeState),
+      conflictAction: options.conflictAction,
+    });
+    return false;
+  });
 }
 
 // Export for testing

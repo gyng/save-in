@@ -16,10 +16,7 @@ fs.mkdirSync(out, { recursive: true });
   fs.cpSync(path.join(root, dir), path.join(out, dir), { recursive: true });
 });
 
-fs.copyFileSync(
-  path.join(root, "manifest.json"),
-  path.join(out, "manifest.json")
-);
+fs.copyFileSync(path.join(root, "manifest.json"), path.join(out, "manifest.json"));
 fs.copyFileSync(path.join(root, "LICENSE"), path.join(out, "LICENSE"));
 
 process.stdout.write(`Staged unpacked extension in ${out}\n`);

@@ -8,32 +8,19 @@ describe("matchesRefererFilter", () => {
   });
 
   test("matches URLs against a single match pattern", () => {
-    expect(
-      Headers.matchesRefererFilter("https://i.pximg.net/img/foo.png")
-    ).toBe(true);
-    expect(Headers.matchesRefererFilter("http://i.pximg.net/img.jpg")).toBe(
-      true
-    );
-    expect(Headers.matchesRefererFilter("https://example.com/foo.png")).toBe(
-      false
-    );
+    expect(Headers.matchesRefererFilter("https://i.pximg.net/img/foo.png")).toBe(true);
+    expect(Headers.matchesRefererFilter("http://i.pximg.net/img.jpg")).toBe(true);
+    expect(Headers.matchesRefererFilter("https://example.com/foo.png")).toBe(false);
   });
 
   test("does not match substrings outside the pattern", () => {
-    expect(
-      Headers.matchesRefererFilter("https://evil.com/?u=https://i.pximg.net/")
-    ).toBe(false);
+    expect(Headers.matchesRefererFilter("https://evil.com/?u=https://i.pximg.net/")).toBe(false);
   });
 
   test("supports multiple newline-separated patterns", () => {
-    global.options.setRefererHeaderFilter =
-      "*://i.pximg.net/*\n*://example.org/downloads/*";
-    expect(
-      Headers.matchesRefererFilter("https://example.org/downloads/a")
-    ).toBe(true);
-    expect(Headers.matchesRefererFilter("https://example.org/other/a")).toBe(
-      false
-    );
+    global.options.setRefererHeaderFilter = "*://i.pximg.net/*\n*://example.org/downloads/*";
+    expect(Headers.matchesRefererFilter("https://example.org/downloads/a")).toBe(true);
+    expect(Headers.matchesRefererFilter("https://example.org/other/a")).toBe(false);
   });
 
   test("escapes regex metacharacters in patterns", () => {
@@ -44,13 +31,9 @@ describe("matchesRefererFilter", () => {
 
   test("handles empty and whitespace-only filters", () => {
     global.options.setRefererHeaderFilter = "";
-    expect(Headers.matchesRefererFilter("https://i.pximg.net/a.png")).toBe(
-      false
-    );
+    expect(Headers.matchesRefererFilter("https://i.pximg.net/a.png")).toBe(false);
     global.options.setRefererHeaderFilter = "\n  \n";
-    expect(Headers.matchesRefererFilter("https://i.pximg.net/a.png")).toBe(
-      false
-    );
+    expect(Headers.matchesRefererFilter("https://i.pximg.net/a.png")).toBe(false);
   });
 });
 
@@ -96,8 +79,7 @@ describe("prepareReferer (MV3 declarativeNetRequest path)", () => {
     jest.useFakeTimers();
     await Headers.prepareReferer(state);
 
-    const { calls } =
-      global.chrome.declarativeNetRequest.updateSessionRules.mock;
+    const { calls } = global.chrome.declarativeNetRequest.updateSessionRules.mock;
     expect(calls.length).toBe(1);
     const [rules] = calls[0];
     expect(rules.removeRuleIds).toEqual([Headers.DNR_REFERER_RULE_ID]);
@@ -106,9 +88,7 @@ describe("prepareReferer (MV3 declarativeNetRequest path)", () => {
       operation: "set",
       value: "https://www.pixiv.net/artworks/123",
     });
-    expect(rules.addRules[0].condition.urlFilter).toBe(
-      "https://i.pximg.net/img/foo.png"
-    );
+    expect(rules.addRules[0].condition.urlFilter).toBe("https://i.pximg.net/img/foo.png");
   });
 
   test("removes the rule after a delay", async () => {
@@ -116,8 +96,7 @@ describe("prepareReferer (MV3 declarativeNetRequest path)", () => {
     await Headers.prepareReferer(state);
     jest.runAllTimers();
 
-    const { calls } =
-      global.chrome.declarativeNetRequest.updateSessionRules.mock;
+    const { calls } = global.chrome.declarativeNetRequest.updateSessionRules.mock;
     expect(calls.length).toBe(2);
     expect(calls[1][0]).toEqual({
       removeRuleIds: [Headers.DNR_REFERER_RULE_ID],
@@ -127,18 +106,14 @@ describe("prepareReferer (MV3 declarativeNetRequest path)", () => {
   test("no-op when the option is disabled", async () => {
     global.options.setRefererHeader = false;
     await Headers.prepareReferer(state);
-    expect(
-      global.chrome.declarativeNetRequest.updateSessionRules
-    ).not.toHaveBeenCalled();
+    expect(global.chrome.declarativeNetRequest.updateSessionRules).not.toHaveBeenCalled();
   });
 
   test("no-op when URL does not match the filter", async () => {
     await Headers.prepareReferer({
       info: { url: "https://example.com/a.png", pageUrl: "https://p.example/" },
     });
-    expect(
-      global.chrome.declarativeNetRequest.updateSessionRules
-    ).not.toHaveBeenCalled();
+    expect(global.chrome.declarativeNetRequest.updateSessionRules).not.toHaveBeenCalled();
   });
 
   test("no-op when a blocking webRequest listener is registered (Firefox)", async () => {
@@ -152,9 +127,7 @@ describe("prepareReferer (MV3 declarativeNetRequest path)", () => {
     expect(Headers.usingBlockingWebRequest).toBe(true);
 
     await Headers.prepareReferer(state);
-    expect(
-      global.chrome.declarativeNetRequest.updateSessionRules
-    ).not.toHaveBeenCalled();
+    expect(global.chrome.declarativeNetRequest.updateSessionRules).not.toHaveBeenCalled();
   });
 
   test("falls back to DNR when blocking registration is rejected (Chrome MV3)", async () => {
@@ -172,9 +145,7 @@ describe("prepareReferer (MV3 declarativeNetRequest path)", () => {
 
     jest.useFakeTimers();
     await Headers.prepareReferer(state);
-    expect(
-      global.chrome.declarativeNetRequest.updateSessionRules
-    ).toHaveBeenCalled();
+    expect(global.chrome.declarativeNetRequest.updateSessionRules).toHaveBeenCalled();
   });
 
   test("no-op without declarativeNetRequest support", async () => {
@@ -216,8 +187,7 @@ describe("addRequestListener", () => {
 
     Headers.addRequestListener();
 
-    const { calls } =
-      global.browser.webRequest.onBeforeSendHeaders.addListener.mock;
+    const { calls } = global.browser.webRequest.onBeforeSendHeaders.addListener.mock;
     expect(calls).toHaveLength(1);
     expect(calls[0][1]).toEqual({ urls: ["*://i.pximg.net/*"] });
   });
@@ -227,9 +197,7 @@ describe("addRequestListener", () => {
 
     Headers.addRequestListener();
 
-    expect(
-      global.browser.webRequest.onBeforeSendHeaders.addListener
-    ).not.toHaveBeenCalled();
+    expect(global.browser.webRequest.onBeforeSendHeaders.addListener).not.toHaveBeenCalled();
   });
 
   test("an invalid pattern must not break startup (#222)", () => {
@@ -237,11 +205,9 @@ describe("addRequestListener", () => {
       setRefererHeader: true,
       setRefererHeaderFilter: "not-a-match-pattern",
     };
-    global.browser.webRequest.onBeforeSendHeaders.addListener.mockImplementation(
-      () => {
-        throw new Error("Invalid match pattern");
-      }
-    );
+    global.browser.webRequest.onBeforeSendHeaders.addListener.mockImplementation(() => {
+      throw new Error("Invalid match pattern");
+    });
 
     expect(() => Headers.addRequestListener()).not.toThrow();
   });

@@ -5,8 +5,7 @@
   },
 
   "extensionDescription": {
-    "message":
-      "Sparar {bilder, video, ljud, länkar, markerat, sidor} i kataloger i förhållande till standard nerladdningskatalog.",
+    "message": "Sparar {bilder, video, ljud, länkar, markerat, sidor} i kataloger i förhållande till standard nerladdningskatalog.",
     "description": "Description of the add-on."
   },
 
@@ -22,8 +21,7 @@
 
   "contextMenuItemOptions": {
     "message": "Alternativ",
-    "description":
-      "Title of context menu item that opens the options menu when clicked."
+    "description": "Title of context menu item that opens the options menu when clicked."
   },
 
   "contextMenuExclusive": {
@@ -63,8 +61,7 @@
 
   "contextMenuShowDefaultFolder": {
     "message": "Öppna standardmappen",
-    "description":
-      "Title of context menu item that opens the default downloads directory in the system file manager when clicked."
+    "description": "Title of context menu item that opens the default downloads directory in the system file manager when clicked."
   },
 
   "notificationSuccessTitle": {
@@ -90,14 +87,12 @@
 
   "notificationRuleMatchFailedExclusiveTitle": {
     "message": "Save In: Det gick inte att dirigera om eller döpa om nerladdningen",
-    "description":
-      "Notification title for no rule matches when in exclusive mode"
+    "description": "Notification title for no rule matches when in exclusive mode"
   },
 
   "notificationRuleMatchFailedExclusiveMessage": {
     "message": "Ingen matchande regel funnen för $URL$",
-    "description":
-      "Notification title for no rule matches when in exclusive mode",
+    "description": "Notification title for no rule matches when in exclusive mode",
     "placeholders": {
       "url": {
         "content": "$1",
@@ -158,8 +153,7 @@
 
   "rulePathStartsWithDot": {
     "message": "Sökvägen kan inte börja med .. eller /",
-    "description":
-      "Error message for paths in routing rules that start with invalid characters"
+    "description": "Error message for paths in routing rules that start with invalid characters"
   },
 
   "tabstripMenuSelectedTab": {
@@ -174,20 +168,17 @@
 
   "tabstripMenuSaveRightTabs": {
     "message": "Spara alla flikar till höger inklusive denna",
-    "description":
-      "Tabstrip context menu label for saving tabs to the right (inclusive)"
+    "description": "Tabstrip context menu label for saving tabs to the right (inclusive)"
   },
 
   "tabstripMenuSaveRightTabsMatched": {
     "message": "Spara alla flikar till höger inklusiv denna (detta måste matcha en omdirigering)",
-    "description":
-      "Tabstrip context menu label for saving tabs to the right (inclusive) that match a route"
+    "description": "Tabstrip context menu label for saving tabs to the right (inclusive) that match a route"
   },
 
   "o_sDownloads": {
     "message": "Nerladdningar",
-    "description":
-      "o prefixes are for options page text, s prefix are for section/subsection titles"
+    "description": "o prefixes are for options page text, s prefix are for section/subsection titles"
   },
 
   "o_sDirectories": {
@@ -276,13 +267,11 @@
   },
 
   "o_lDirectoryInstructionSymlink": {
-    "message":
-      "En symbolisk länk krävs för att kunna spara utanför standard nerladdningskatalog."
+    "message": "En symbolisk länk krävs för att kunna spara utanför standard nerladdningskatalog."
   },
 
   "o_lRoutingInstruction": {
-    "message":
-      "Automatisk omdirigering och omdöpning av filer. Separera flera regler med en tom rad. Läs i guiden för fler detaljer."
+    "message": "Automatisk omdirigering och omdöpning av filer. Separera flera regler med en tom rad. Läs i guiden för fler detaljer."
   },
 
   "o_lRoutingLastDownload": {
@@ -326,8 +315,7 @@
   },
 
   "o_lAccessKeysInstruction": {
-    "message":
-      "Ange åtkomstnycklar till menyobjekt för Save In. Chrome, Firefox >= 63."
+    "message": "Ange åtkomstnycklar till menyobjekt för Save In. Chrome, Firefox >= 63."
   },
 
   "o_cLastUsedMenu": {
@@ -344,8 +332,7 @@
   },
 
   "o_cSaveText": {
-    "message":
-      "Aktivera spara av markerad text med filändelsen \".selection.txt\""
+    "message": "Aktivera spara av markerad text med filändelsen \".selection.txt\""
   },
 
   "o_cSavePage": {
@@ -373,8 +360,7 @@
   },
 
   "o_cOpenDialogShift": {
-    "message":
-      "Öppna spara när ett menyobjekt klickas på och SKIFT hålls nertryckt"
+    "message": "Öppna spara när ett menyobjekt klickas på och SKIFT hålls nertryckt"
   },
 
   "o_cOpenDialogOnFailure": {
@@ -406,8 +392,7 @@
   },
 
   "o_cExclusiveModeHelp": {
-    "message":
-      "Inaktiverar undermenyn för nerladdningar med två klick, sparar i förhållande till standard nerladdningskatalog"
+    "message": "Inaktiverar undermenyn för nerladdningar med två klick, sparar i förhållande till standard nerladdningskatalog"
   },
 
   "o_cNotifySuccess": {
@@ -427,8 +412,7 @@
   },
 
   "o_cNotifyCloseAfterHelp": {
-    "message":
-      "1s = 1000ms. Kommer inte att bli längre än OS/webbläsarens aviseringsvaraktighet."
+    "message": "1s = 1000ms. Kommer inte att bli längre än OS/webbläsarens aviseringsvaraktighet."
   },
 
   "o_cSaveShortcutsAs": {
@@ -484,8 +468,7 @@
   },
 
   "o_cKeyboardShortcutClickToHelp": {
-    "message":
-      "Håll ner Alt (standard) och klicka på bilder eller media för att spara dem i den senaste sparade katalogen eller i standard nerladdningskatalog. Inför ett skript på sidorna för att lyssna på klickhändelser. Inte alla variabler är tillgängliga när du använder det här. Kräver en siduppdatering för att träda i kraft."
+    "message": "Håll ner Alt (standard) och klicka på bilder eller media för att spara dem i den senaste sparade katalogen eller i standard nerladdningskatalog. Inför ett skript på sidorna för att lyssna på klickhändelser. Inte alla variabler är tillgängliga när du använder det här. Kräver en siduppdatering för att träda i kraft."
   },
 
   "o_cKeyboardShotcutKeycode": {
@@ -505,8 +488,7 @@
   },
 
   "o_cKeyboardShortcutModifierHelp": {
-    "message":
-      "Modifieringsnyckelkod för klicka-till-spara. Kräver siduppdatering för att träda i kraft."
+    "message": "Modifieringsnyckelkod för klicka-till-spara. Kräver siduppdatering för att träda i kraft."
   },
 
   "o_cRestoreDefaults": {

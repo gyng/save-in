@@ -34,13 +34,7 @@ const Shortcut = {
   makeShortcut: (type, url, title = currentTab && currentTab.title) =>
     Download.makeObjectUrl(Shortcut.makeShortcutContent(type, url, title)),
 
-  suggestShortcutFilename: (
-    shortcutType,
-    downloadType,
-    info,
-    suggestedFilename,
-    maxlen
-  ) => {
+  suggestShortcutFilename: (shortcutType, downloadType, info, suggestedFilename, maxlen) => {
     const shortcutExtension = SHORTCUT_EXTENSIONS[shortcutType] || "";
 
     let shortcutFilename =
@@ -52,13 +46,11 @@ const Shortcut = {
             info.linkUrl ||
             info.pageUrl
           }`
-        : `${
-            suggestedFilename || info.linkText || info.srcUrl || info.linkUrl
-          }`;
+        : `${suggestedFilename || info.linkText || info.srcUrl || info.linkUrl}`;
 
     shortcutFilename = `${Path.sanitizeFilename(
       shortcutFilename,
-      maxlen - shortcutExtension.length
+      maxlen - shortcutExtension.length,
     )}${shortcutExtension}`;
 
     return shortcutFilename;

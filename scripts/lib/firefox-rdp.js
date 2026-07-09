@@ -76,10 +76,7 @@ class FirefoxRdp {
   waitForEvent(predicate, timeoutMs = 30000) {
     return new Promise((resolve, reject) => {
       this.eventWaiters.push({ predicate, resolve });
-      setTimeout(
-        () => reject(new Error("RDP event timeout")),
-        timeoutMs
-      ).unref();
+      setTimeout(() => reject(new Error("RDP event timeout")), timeoutMs).unref();
     });
   }
 
@@ -89,10 +86,7 @@ class FirefoxRdp {
       this.queues.get(packet.to).push({ resolve, reject });
       const json = JSON.stringify(packet);
       this.socket.write(`${Buffer.byteLength(json)}:${json}`);
-      setTimeout(
-        () => reject(new Error(`RDP timeout: ${packet.type}`)),
-        timeoutMs
-      ).unref();
+      setTimeout(() => reject(new Error(`RDP timeout: ${packet.type}`)), timeoutMs).unref();
     });
   }
 
@@ -101,10 +95,7 @@ class FirefoxRdp {
   }
 
   async installTemporaryAddon(addonsActor, addonPath) {
-    return this.request(
-      { to: addonsActor, type: "installTemporaryAddon", addonPath },
-      60000
-    );
+    return this.request({ to: addonsActor, type: "installTemporaryAddon", addonPath }, 60000);
   }
 
   async findAddonActor(addonId) {
@@ -154,14 +145,12 @@ class FirefoxRdp {
     await new Promise((res) => setTimeout(res, 2000));
 
     const background = targets.find(
-      (t) => t && t.url && t.url.includes("_generated_background_page")
+      (t) => t && t.url && t.url.includes("_generated_background_page"),
     );
     const target = background || targets.find((t) => t && t.consoleActor);
     if (!target || !target.consoleActor) {
       throw new Error(
-        `No background target found (saw: ${targets
-          .map((t) => t && t.url)
-          .join(", ")})`
+        `No background target found (saw: ${targets.map((t) => t && t.url).join(", ")})`,
       );
     }
     return target.consoleActor;
@@ -180,7 +169,7 @@ class FirefoxRdp {
     });
     const result = await this.waitForEvent(
       (p) => p.type === "evaluationResult" && p.resultID === resultID,
-      timeoutMs
+      timeoutMs,
     );
     if (result.exceptionMessage) {
       throw new Error(`Evaluation failed: ${result.exceptionMessage}`);

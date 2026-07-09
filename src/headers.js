@@ -1,9 +1,7 @@
 const Headers = {
   refererListener: (details) => {
     // TODO: option to ignore or rewrite referer, check if needed
-    const existingReferer = details.requestHeaders.find(
-      (h) => h.name === "Referer"
-    );
+    const existingReferer = details.requestHeaders.find((h) => h.name === "Referer");
     if (existingReferer) {
       return {};
     }
@@ -106,9 +104,7 @@ const Headers = {
             id: Headers.DNR_REFERER_RULE_ID,
             action: {
               type: "modifyHeaders",
-              requestHeaders: [
-                { header: "Referer", operation: "set", value: pageUrl },
-              ],
+              requestHeaders: [{ header: "Referer", operation: "set", value: pageUrl }],
             },
             condition: { urlFilter: url },
           },
@@ -139,9 +135,7 @@ const Headers = {
       return;
     }
 
-    browser.webRequest.onBeforeSendHeaders.removeListener(
-      Headers.refererListener
-    );
+    browser.webRequest.onBeforeSendHeaders.removeListener(Headers.refererListener);
 
     if (options.setRefererHeader) {
       const filterList = options.setRefererHeaderFilter || "";
@@ -171,7 +165,7 @@ const Headers = {
         browser.webRequest.onBeforeSendHeaders.addListener(
           Headers.refererListener,
           { urls },
-          listenerOptions
+          listenerOptions,
         );
         Headers.usingBlockingWebRequest = true;
       } catch (e) {

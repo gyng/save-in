@@ -50,10 +50,7 @@ const setupRoutingAutocomplete = (keywords) => {
 
   const routerTextarea = document.getElementById("filenamePatterns");
   const routerEditor = new window.Textcomplete.editors.Textarea(routerTextarea);
-  const routerTextcomplete = new window.Textcomplete(
-    routerEditor,
-    dropdownOptions
-  );
+  const routerTextcomplete = new window.Textcomplete(routerEditor, dropdownOptions);
   routerTextcomplete.register([
     matcherStrategy([...keywords.matchers, "into"]),
     routerVariableStrategy(keywords.variables),

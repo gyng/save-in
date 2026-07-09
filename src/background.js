@@ -27,5 +27,5 @@ importScripts(
   "variable.js",
   "menu.js",
   "option.js",
-  "index.js"
+  "index.js",
 );

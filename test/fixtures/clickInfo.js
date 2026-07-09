@@ -23,8 +23,7 @@ const firefoxInfo = {
     favIconUrl: "https://pbs.twimg.com/media/Di6uEBuVsAEYVBw.jpg:orig",
   },
   now: "2019-12-21T10:14:54.508Z",
-  pageUrl:
-    "https://twitter.com/aers00?ref_src=twsrc%5Egoogle%7Ctwcamp%5Eserp%7Ctwgr%5Eauthor",
+  pageUrl: "https://twitter.com/aers00?ref_src=twsrc%5Egoogle%7Ctwcamp%5Eserp%7Ctwgr%5Eauthor",
   sourceUrl: "https://pbs.twimg.com/media/EMNH-QAUwAEUmd_.jpg:large",
   url: "https://pbs.twimg.com/media/EMNH-QAUwAEUmd_.jpg:large",
   suggestedFilename: null,
