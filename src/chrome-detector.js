@@ -8,49 +8,37 @@ let BROWSER_FEATURES; // eslint-disable-line
 let CURRENT_BROWSER = BROWSERS.UNKNOWN;
 let CURRENT_BROWSER_VERSION;
 
-const setFeatures = (browser, version) => {
-  // defaults
-  const features = {
-    multitab: false,
-    accessKeys: true,
-  };
-
-  if (browser === BROWSERS.FIREFOX && version >= 63) {
-    features.multitab = true;
-  }
-
-  if (browser === BROWSERS.FIREFOX && version < 63) {
-    features.accessKeys = false;
-  }
-
-  return features;
-};
+const setFeatures = (currentBrowser) => ({
+  // Multi-select tab strip menus need the Firefox-only "tab" context
+  multitab: currentBrowser === BROWSERS.FIREFOX,
+  accessKeys: true,
+});
 
 if (typeof browser === "undefined") {
   if (chrome) {
     CURRENT_BROWSER = BROWSERS.CHROME; // eslint-disable-line
+    BROWSER_FEATURES = setFeatures(CURRENT_BROWSER);
   }
 } else if (browser.runtime.getBrowserInfo) {
+  // Only Gecko-based browsers implement getBrowserInfo: treat forks like
+  // Waterfox or LibreWolf as Firefox regardless of the reported name (#186)
+  CURRENT_BROWSER = BROWSERS.FIREFOX;
+  BROWSER_FEATURES = setFeatures(CURRENT_BROWSER);
+
   browser.runtime
     .getBrowserInfo()
     .then((res) => {
-      if (res.name === "Firefox") {
-        CURRENT_BROWSER = BROWSERS.FIREFOX; // eslint-disable-line
-        CURRENT_BROWSER_VERSION = parseFloat(res.version);
-      } else {
-        CURRENT_BROWSER = BROWSERS.CHROME;
-      }
-
-      BROWSER_FEATURES = setFeatures(CURRENT_BROWSER, CURRENT_BROWSER_VERSION);
+      CURRENT_BROWSER_VERSION = parseFloat(res.version);
     })
-    .catch((e) => {
-      console.log("Failed to get browser version", e); // eslint-disable-line
-      CURRENT_BROWSER = BROWSERS.CHROME;
-      BROWSER_FEATURES = setFeatures(CURRENT_BROWSER, CURRENT_BROWSER_VERSION);
-    });
+    .catch(() => {});
 } else {
   // If we don't have browser.runtime.getBrowserInfo, assume it's Chrome
   // Big assumption, but browser.runtime.getBrowserInfo is not well supported
   CURRENT_BROWSER = BROWSERS.CHROME; // eslint-disable-line
-  BROWSER_FEATURES = setFeatures(CURRENT_BROWSER, CURRENT_BROWSER_VERSION); // eslint-disable-line
+  BROWSER_FEATURES = setFeatures(CURRENT_BROWSER); // eslint-disable-line
+}
+
+// Export for testing
+if (typeof module !== "undefined") {
+  module.exports = { BROWSERS, setFeatures };
 }

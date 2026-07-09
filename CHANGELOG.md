@@ -22,6 +22,11 @@ testing on Chromium!
 - New session-scoped debug log, viewable at the bottom of the options page
   (#159, #216)
 - Options page opens in a tab
+- "Fetch via Fetch API" is now available on Chrome too
+- "Fetch via content script" is deprecated: MV3 content scripts cannot make
+  cross-origin requests, so it only helps for same-origin/CORS downloads
+- Waterfox and other Gecko forks are now detected as Firefox, and browser
+  detection is synchronous (#186)
 - Dev: automated Chrome (CDP) and Firefox (RDP) end-to-end smoke tests,
   watch-mode dev loop, 128-test jest suite, web-ext 10, CI on Node 22
 

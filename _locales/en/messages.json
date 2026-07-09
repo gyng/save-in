@@ -527,7 +527,7 @@
   },
 
   "o_cFetchViaContentScriptHelp": {
-    "message": "Do not enable this if you have no problems downloading. Download from the content page and not the extension, sending headers from the page itself. Some sites (eg. pixiv.net) require this to bypass server-side protections. Slower and prone to failure. Success/failure notifications do not work in this mode. Requires page refresh to take effect."
+    "message": "Do not enable this if you have no problems downloading. Download from the content page and not the extension, sending headers from the page itself. Some sites (eg. pixiv.net) require this to bypass server-side protections. Slower and prone to failure. Success/failure notifications do not work in this mode. Requires page refresh to take effect. Deprecated: under Manifest V3, content scripts can no longer make cross-origin requests, so this only works for same-origin or CORS-permitted downloads."
   },
 
   "o_cFetchViaFetchAPI": {
@@ -535,7 +535,7 @@
   },
 
   "o_cFetchViaFetchAPIHelp": {
-    "message": "Do not enable this if you have no problems downloading. Download using HTML Fetch API instead of the browser’s Downloads API for extensions. Some sites (eg. Instagram) are incompatiable with Firefox’s Downloads API."
+    "message": "Do not enable this if you have no problems downloading. Download using HTML Fetch API instead of the browser’s Downloads API for extensions. Some sites (eg. Instagram) are incompatiable with Firefox’s Downloads API. Works on both Firefox and Chrome; on Chrome, large downloads are buffered in memory first."
   },
 
   "o_cSetRefererHeader": {
