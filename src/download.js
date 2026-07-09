@@ -144,7 +144,12 @@ const Download = {
             }),
           )
           .then((downloadId) => Notification.trackDownload(downloadId))
-          .catch(() => {})
+          .catch((e) => {
+            // e.g. Firefox rejects data: URLs in downloads.download
+            if (typeof Log !== "undefined") {
+              Log.add("downloads.download failed", String(e));
+            }
+          })
           .then(() => SessionState.set({ siPendingDownload: false }));
 
       const fetchDownload = (_url) => {

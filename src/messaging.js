@@ -85,10 +85,13 @@ const Messaging = {
       opts.comment = comment;
     }
 
+    // Reuse the last download's directory, but never its route: that is a
+    // finalized rename for a different URL, and inheriting it would save
+    // this download under the previous download's routed filename.
+    // renameAndDownload re-evaluates the routing rules for this URL.
     const clickState = {
       path: last.path || new Path.Path("."),
       scratch: last.scratch,
-      route: last.route,
       info: Object.assign({}, last.info, opts, info),
     };
 
