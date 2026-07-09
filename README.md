@@ -34,6 +34,30 @@ Make sure the actual directories exist, or downloads will silently fail.
 
 Configure before use.
 
+## Use from other extensions
+
+Other extensions can trigger a save-in download by sending an external
+message (see [the wiki](https://github.com/gyng/save-in/wiki/Use-with-Foxy-Gestures)
+for a Foxy Gestures example). This API is unofficial and unsupported — use at
+your own risk:
+
+```js
+browser.runtime.sendMessage(
+  "{72d92df5-2aa0-4b06-b807-aa21767545cd}", // save-in's extension ID
+  {
+    type: "DOWNLOAD",
+    body: {
+      url: sourceUrl,
+      // `comment` can be used for targeting in routing rules
+      info: { pageUrl: `${window.location}`, srcUrl: sourceUrl, comment: "foo" },
+    },
+  }
+);
+```
+
+The download is routed through the same rename/routing rules as a context
+menu save. On Chrome, use save-in's Chrome Web Store extension ID instead.
+
 ## Development
 
 1. Install dev dependencies `yarn install`
@@ -47,7 +71,13 @@ Configure before use.
 
 ### ZIP file
 
-1. `yarn build` to create a zip in `web-ext-artifacts` directory
+1. `yarn build` to create the zip in the `web-ext-artifacts` directory — the
+   same Manifest V3 zip is uploaded to both AMO and the Chrome Web Store
+
+The single `manifest.json` declares both `background.scripts` (Firefox event
+page, Firefox ≥ 121) and `background.service_worker` (Chrome). To load the
+extension unpacked in Chrome, run `node scripts/stage.js` and load
+`dist/unpacked` (or just use `yarn d:chrome`).
 
 ### Firefox
 
@@ -59,8 +89,9 @@ Configure before use.
 
 ### Chrome
 
-1. Go [here](https://chrome.google.com/webstore/developer/dashboard)
-2. Upload built ZIP file
+1. `yarn build`
+2. Go [here](https://chrome.google.com/webstore/developer/dashboard)
+3. Upload the zip from `web-ext-artifacts`
 
 ### Notes for reviewers
 

@@ -1,3 +1,30 @@
+# 4.0.0
+
+save-in is now a Manifest V3 extension on both Firefox and Chrome (#225,
+#227), from a single manifest: Firefox ≥ 121 runs the background as an event
+page, Chrome ≥ 121 as a service worker. Thanks @rudolphos for #230 and
+testing on Chromium!
+
+- Migrate to Manifest V3; requires Firefox 121+ / Chrome 121+
+- Wake the service worker as soon as the click-to-save combo key is held, so
+  alt+click saves work reliably on Chrome (thanks @rudolphos, #230)
+- Download notifications and filenames now survive the background
+  terminating mid-download (session storage tracking)
+- The "Set Referer header" option uses declarativeNetRequest on Chrome
+  (blocking webRequest stays on Firefox), and no longer breaks the context
+  menu when the filter has an empty or invalid line (#222)
+- Click-to-save now falls back to the link under the cursor (respects the
+  "links" option), so alt+click on PDF/file links works (#226)
+- Page titles in filenames come from the tab that was clicked, fixing wrong
+  or mutated titles (#172, #188)
+- Download history actually accumulates now (previously only the last entry
+  was kept) and is capped at 100 entries
+- New session-scoped debug log, viewable at the bottom of the options page
+  (#159, #216)
+- Options page opens in a tab
+- Dev: automated Chrome (CDP) and Firefox (RDP) end-to-end smoke tests,
+  watch-mode dev loop, 128-test jest suite, web-ext 10, CI on Node 22
+
 # 3.7.3
 
 - Firefox settings no longer disabled on the options page when in Firefox (#214)
