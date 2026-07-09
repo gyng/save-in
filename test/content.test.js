@@ -72,3 +72,283 @@ describe("input helpers", () => {
     expect(ClickToSave.isMouseButtonActive("LEFT_CLICK", 2)).toBe(false);
   });
 });
+
+// Simulate the OPTIONS handshake the content script performs at load: the
+// module is re-imported with chrome.runtime.sendMessage responding
+// synchronously via its callback, mirroring the real callback-style API
+const importContentWithOptions = async (optionsBody) => {
+  vi.resetModules();
+  global.chrome.runtime.sendMessage = vi.fn((message, cb) => cb({ body: optionsBody }));
+  global.chrome.runtime.onMessage.addListener = vi.fn();
+  await import("../src/content/content.js");
+};
+
+describe("FETCH_VIA_CONTENT message handler", () => {
+  const originalSendMessage = global.chrome.runtime.sendMessage;
+  const originalAddListener = global.chrome.runtime.onMessage.addListener;
+  const originalFetch = global.fetch;
+
+  afterEach(() => {
+    global.chrome.runtime.sendMessage = originalSendMessage;
+    global.chrome.runtime.onMessage.addListener = originalAddListener;
+    global.fetch = originalFetch;
+    vi.restoreAllMocks();
+  });
+
+  const captureFetchListener = async () => {
+    await importContentWithOptions({ fetchViaContent: true, contentClickToSave: false });
+    expect(global.chrome.runtime.onMessage.addListener).toHaveBeenCalledTimes(1);
+    return global.chrome.runtime.onMessage.addListener.mock.calls[0][0];
+  };
+
+  test("no message listener is registered when fetchViaContent is off", async () => {
+    await importContentWithOptions({ fetchViaContent: false, contentClickToSave: false });
+    expect(global.chrome.runtime.onMessage.addListener).not.toHaveBeenCalled();
+  });
+
+  test("bails out when the options response has no body (SW gone)", async () => {
+    vi.resetModules();
+    global.chrome.runtime.sendMessage = vi.fn((message, cb) => cb(undefined));
+    global.chrome.runtime.onMessage.addListener = vi.fn();
+    await import("../src/content/content.js");
+    expect(global.chrome.runtime.onMessage.addListener).not.toHaveBeenCalled();
+  });
+
+  test("fetches the url with page credentials and replies OK with the blob", async () => {
+    const listener = await captureFetchListener();
+
+    const blob = { size: 3, type: "image/png" };
+    global.fetch = vi.fn(() => Promise.resolve({ blob: () => Promise.resolve(blob) }));
+
+    const response = await listener({
+      type: "FETCH_VIA_CONTENT",
+      body: { state: { info: { url: "http://x.test/pic.png" } } },
+    });
+
+    expect(response).toEqual({ type: "OK", body: { blob } });
+
+    const request = global.fetch.mock.calls[0][0];
+    expect(request.url).toBe("http://x.test/pic.png");
+    expect(request.credentials).toBe("include");
+    expect(request.mode).toBe("no-cors");
+  });
+
+  test("replies ERROR when the fetch fails", async () => {
+    const listener = await captureFetchListener();
+
+    const error = new Error("network down");
+    global.fetch = vi.fn(() => Promise.reject(error));
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    const response = await listener({
+      type: "FETCH_VIA_CONTENT",
+      body: { state: { info: { url: "http://x.test/pic.png" } } },
+    });
+
+    expect(response).toEqual({ type: "ERROR", body: { error } });
+    expect(consoleError).toHaveBeenCalledWith(error);
+  });
+
+  test("returns null for unrelated message types", async () => {
+    const listener = await captureFetchListener();
+    expect(listener({ type: "DOWNLOADED" })).toBeNull();
+  });
+
+  test("wires up click-to-save when the option is enabled", async () => {
+    // Distinct combo/button so this stray listener set stays inert during
+    // the setupClickToSave tests below
+    await importContentWithOptions({
+      fetchViaContent: false,
+      contentClickToSave: true,
+      contentClickToSaveCombo: 17,
+      contentClickToSaveButton: "RIGHT_CLICK",
+      links: false,
+    });
+
+    global.chrome.runtime.sendMessage.mockClear();
+
+    const keydown = new Event("keydown");
+    keydown.keyCode = 17;
+    window.dispatchEvent(keydown);
+
+    expect(global.chrome.runtime.sendMessage).toHaveBeenCalledWith(
+      { type: "WAKE_WARM" },
+      expect.any(Function),
+    );
+  });
+});
+
+describe("setupClickToSave", () => {
+  // One listener set for the whole block: setupClickToSave registers window
+  // listeners that cannot be removed, so state is reset between tests by
+  // firing the same events a real page would (focus, keyup)
+  beforeAll(() => {
+    ClickToSave.setupClickToSave({
+      contentClickToSaveCombo: 18,
+      contentClickToSaveButton: "LEFT_CLICK",
+      links: false,
+    });
+  });
+
+  let sendMessage;
+
+  beforeEach(() => {
+    document.body.innerHTML = '<img id="i" src="http://x.test/pic.png">';
+    sendMessage = vi.fn((message, cb) => cb && cb());
+    global.chrome.runtime.sendMessage = sendMessage;
+    delete global.chrome.runtime.lastError;
+  });
+
+  afterEach(() => {
+    // Clears the closed-over `active` key map
+    window.dispatchEvent(new Event("focus"));
+    document.body.innerHTML = "";
+    vi.useRealTimers();
+  });
+
+  const keyEvent = (type, keyCode) => {
+    const e = new Event(type);
+    e.keyCode = keyCode;
+    return e;
+  };
+
+  const holdCombo = () => window.dispatchEvent(keyEvent("keydown", 18));
+
+  const mousedown = (target, buttons = 1) => {
+    const e = new MouseEvent("mousedown", { buttons, bubbles: true, cancelable: true });
+    vi.spyOn(e, "preventDefault");
+    vi.spyOn(e, "stopImmediatePropagation");
+    target.dispatchEvent(e);
+    return e;
+  };
+
+  const downloadsSent = () => sendMessage.mock.calls.filter(([m]) => m.type === "DOWNLOAD");
+
+  test("holding the combo key wakes the service worker (WAKE_WARM)", () => {
+    holdCombo();
+    expect(sendMessage).toHaveBeenCalledWith({ type: "WAKE_WARM" }, expect.any(Function));
+  });
+
+  test("unrelated keys do not wake the service worker", () => {
+    window.dispatchEvent(keyEvent("keydown", 65));
+    expect(sendMessage).not.toHaveBeenCalled();
+  });
+
+  test("combo + configured button on media sends DOWNLOAD and swallows the click", () => {
+    holdCombo();
+
+    const img = document.getElementById("i");
+    const e = mousedown(img);
+
+    expect(e.preventDefault).toHaveBeenCalled();
+    expect(e.stopImmediatePropagation).toHaveBeenCalled();
+    expect(sendMessage).toHaveBeenCalledWith(
+      {
+        type: "DOWNLOAD",
+        body: {
+          url: "http://x.test/pic.png",
+          info: { pageUrl: `${window.location}`, srcUrl: "http://x.test/pic.png" },
+        },
+      },
+      expect.any(Function),
+    );
+  });
+
+  test("click without a resolvable source does nothing", () => {
+    document.body.innerHTML = '<p id="p">text</p>';
+    holdCombo();
+
+    const e = mousedown(document.getElementById("p"));
+
+    expect(e.preventDefault).not.toHaveBeenCalled();
+    expect(downloadsSent()).toHaveLength(0);
+  });
+
+  test("wrong mouse button does not trigger a download", () => {
+    holdCombo();
+    mousedown(document.getElementById("i"), 2);
+    expect(downloadsSent()).toHaveLength(0);
+  });
+
+  test("keyup releases the combo", () => {
+    holdCombo();
+    window.dispatchEvent(keyEvent("keyup", 18));
+
+    mousedown(document.getElementById("i"));
+    expect(downloadsSent()).toHaveLength(0);
+  });
+
+  test("window focus resets held keys (alt-tab back into the page)", () => {
+    holdCombo();
+    window.dispatchEvent(new Event("focus"));
+
+    mousedown(document.getElementById("i"));
+    expect(downloadsSent()).toHaveLength(0);
+  });
+
+  test("hiding the tab resets held keys", () => {
+    holdCombo();
+
+    Object.defineProperty(document, "hidden", { configurable: true, get: () => true });
+    document.dispatchEvent(new Event("visibilitychange"));
+    Object.defineProperty(document, "hidden", { configurable: true, get: () => false });
+
+    mousedown(document.getElementById("i"));
+    expect(downloadsSent()).toHaveLength(0);
+  });
+
+  test("visibilitychange while still visible keeps held keys", () => {
+    holdCombo();
+    document.dispatchEvent(new Event("visibilitychange"));
+
+    mousedown(document.getElementById("i"));
+    expect(downloadsSent()).toHaveLength(1);
+  });
+
+  test("retries the DOWNLOAD every 300ms while the service worker is starting", async () => {
+    vi.useFakeTimers();
+    // Every send reports lastError: initial send + 2 retries, then gives up
+    sendMessage.mockImplementation((message, cb) => {
+      global.chrome.runtime.lastError = { message: "SW starting" };
+      if (cb) {
+        cb();
+      }
+      delete global.chrome.runtime.lastError;
+    });
+
+    holdCombo();
+    mousedown(document.getElementById("i"));
+
+    expect(downloadsSent()).toHaveLength(1);
+
+    await vi.advanceTimersByTimeAsync(300);
+    expect(downloadsSent()).toHaveLength(2);
+
+    await vi.advanceTimersByTimeAsync(300);
+    expect(downloadsSent()).toHaveLength(3);
+
+    // Retries exhausted: no further attempts
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(downloadsSent()).toHaveLength(3);
+  });
+
+  test("does not retry when the send succeeds", async () => {
+    vi.useFakeTimers();
+    holdCombo();
+    mousedown(document.getElementById("i"));
+
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(downloadsSent()).toHaveLength(1);
+  });
+
+  test("survives the extension being reloaded underneath the page", () => {
+    sendMessage.mockImplementation(() => {
+      throw new Error("Extension context invalidated.");
+    });
+
+    // Both the WAKE_WARM and DOWNLOAD sends throw synchronously
+    expect(() => holdCombo()).not.toThrow();
+    expect(() => mousedown(document.getElementById("i"))).not.toThrow();
+    expect(sendMessage).toHaveBeenCalled();
+  });
+});

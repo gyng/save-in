@@ -193,5 +193,9 @@ try {
 
 // Export for testing
 if (typeof module !== "undefined") {
+  // Attach rather than replace so `module.exports` keeps its existing shape
+  // (a direct reference to ClickToSave) for consumers/tests that already
+  // destructure findSource/isKeyboardComboActive/isMouseButtonActive off it
+  ClickToSave.setupClickToSave = setupClickToSave;
   module.exports = ClickToSave;
 }

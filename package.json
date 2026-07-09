@@ -19,9 +19,11 @@
     "lint:fix": "oxlint --fix && oxfmt",
     "mockserve": "node test/mockserver",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "test:watch": "vitest"
   },
   "devDependencies": {
+    "@vitest/coverage-v8": "^4.1.10",
     "jest-webextension-mock": "^3.7.19",
     "jsdom": "^29.1.1",
     "koa": "^2.13.4",

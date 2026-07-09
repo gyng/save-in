@@ -152,4 +152,74 @@ describe("variables", () => {
       expect(output).toBe("foobartitle");
     });
   });
+
+  describe("remaining variables and edge cases", () => {
+    test("withUrl returns the input for invalid URLs", () => {
+      expect(Variable.withUrl("not a url", (url) => url.hostname)).toBe("not a url");
+    });
+
+    test("interpolates :minute: and :second:", () => {
+      const input = new Path.Path(":minute:/:second:");
+      const output = Variable.applyVariables(input, info).finalize();
+      const expected = [
+        Variable.padDateComponent(info.now.getMinutes()),
+        Variable.padDateComponent(info.now.getSeconds()),
+      ].join("/");
+      expect(output).toBe(expected);
+    });
+
+    test("interpolates :pagetitle: as empty without a tab", () => {
+      const input = new Path.Path(":pagetitle:");
+      const output = Variable.applyVariables(input, { ...info, currentTab: undefined }).finalize();
+      expect(output).toBe("_");
+    });
+
+    test("interpolates :selectiontext: as empty when nothing is selected", () => {
+      const input = new Path.Path(":selectiontext:");
+      const output = Variable.applyVariables(input, {
+        ...info,
+        selectionText: undefined,
+      }).finalize();
+      expect(output).toBe("_");
+    });
+
+    test("trims :selectiontext:", () => {
+      const input = new Path.Path(":selectiontext:");
+      const output = Variable.applyVariables(input, {
+        ...info,
+        selectionText: "  padded  ",
+      }).finalize();
+      expect(output).toBe("padded");
+    });
+
+    test("interpolates :naivefilename:", () => {
+      const input = new Path.Path(":naivefilename:");
+      const output = Variable.applyVariables(input, info).finalize();
+      expect(output).toBe("file.jpg");
+    });
+
+    test("interpolates :naivefileext:", () => {
+      const input = new Path.Path(":naivefileext:");
+      const output = Variable.applyVariables(input, info).finalize();
+      expect(output).toBe("jpg");
+    });
+
+    test("interpolates :fileext: as empty for extensionless filenames", () => {
+      const input = new Path.Path(":fileext:");
+      const output = Variable.applyVariables(input, { ...info, filename: "noext" }).finalize();
+      expect(output).toBe("_");
+    });
+
+    test("passes through variable tokens without a transformer", () => {
+      // "---" (the menu separator) parses as a variable but has no transformer
+      const input = new Path.Path("---");
+      const output = Variable.applyVariables(input, info).finalize();
+      expect(output).toBe("---");
+    });
+
+    test("leaves paths without a parsed buffer alone", () => {
+      const result = Variable.applyVariables({ buf: undefined }, info);
+      expect(result.buf).toBeUndefined();
+    });
+  });
 });

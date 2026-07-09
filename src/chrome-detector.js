@@ -40,5 +40,13 @@ if (typeof browser === "undefined") {
 
 // Export for testing
 if (typeof module !== "undefined") {
-  module.exports = { BROWSERS, setFeatures };
+  module.exports = {
+    BROWSERS,
+    setFeatures,
+    // Test-only accessors: CURRENT_BROWSER/CURRENT_BROWSER_VERSION are set as
+    // a side effect of the detection logic above and aren't otherwise
+    // observable from outside this module's scope
+    getCurrentBrowser: () => CURRENT_BROWSER,
+    getCurrentBrowserVersion: () => CURRENT_BROWSER_VERSION,
+  };
 }

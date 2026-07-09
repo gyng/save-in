@@ -223,4 +223,200 @@ describe("filename rewrite and routing", () => {
       expect(matched).toBe("Di6uEBuVsAEYVBw.jpg");
     });
   });
+
+  describe("additional matcher functions", () => {
+    test("pagedomain", () => {
+      const matcher = router.matcherFunctions.pagedomain(new RegExp("page.com"));
+      expect(matcher(info)[0]).toBe("page.com");
+    });
+
+    test("pagedomain negative", () => {
+      const matcher = router.matcherFunctions.pagedomain(new RegExp("notvalid"));
+      expect(matcher(info)).toBe(null);
+    });
+
+    test("pagedomain with an unparseable page URL", () => {
+      const matcher = router.matcherFunctions.pagedomain(new RegExp(".*"));
+      expect(matcher({ pageUrl: "not a url" })).toBe(null);
+    });
+
+    test("pagedomain without info", () => {
+      const matcher = router.matcherFunctions.pagedomain(new RegExp(".*"));
+      expect(matcher(undefined)).toBe(null);
+    });
+
+    test("sourcedomain", () => {
+      const matcher = router.matcherFunctions.sourcedomain(new RegExp("source.com"));
+      expect(matcher(info)[0]).toBe("source.com");
+    });
+
+    test("context matches case-insensitively", () => {
+      const matcher = router.matcherFunctions.context(new RegExp("image"));
+      expect(matcher(info, { context: "IMAGE" })[0]).toBe("image");
+      expect(router.matcherFunctions.context(new RegExp("link"))(info, { context: "IMAGE" })).toBe(
+        null,
+      );
+    });
+
+    test("menuindex", () => {
+      const matcher = router.matcherFunctions.menuindex(new RegExp("^2$"));
+      expect(matcher(info, { menuIndex: "2" })[0]).toBe("2");
+      expect(matcher(info, { menuIndex: "3" })).toBe(null);
+      // current behavior: calling without an options object throws
+      expect(() => matcher(info)).toThrow(TypeError);
+    });
+
+    test("comment", () => {
+      const matcher = router.matcherFunctions.comment(new RegExp("save"));
+      expect(matcher(info, { comment: "save here" })[0]).toBe("save");
+      expect(matcher(info, { comment: "other" })).toBe(null);
+      // current behavior: calling without an options object throws
+      expect(() => matcher(info)).toThrow(TypeError);
+    });
+
+    test("fileext falls back through URL fields", () => {
+      const matcher = router.matcherFunctions.fileext(new RegExp("html"));
+      expect(matcher({ linkUrl: "http://x.com/a.html" })[0]).toBe("html");
+      expect(matcher({ pageUrl: "http://x.com/b.html" })[0]).toBe("html");
+    });
+
+    test("fileext without a URL or extension", () => {
+      const matcher = router.matcherFunctions.fileext(new RegExp(".*"));
+      expect(matcher({})).toBe(false);
+      expect(matcher({ srcUrl: "http://x.com/noextension" })).toBe(false);
+    });
+
+    test("filename prefers info.filename", () => {
+      const matcher = router.matcherFunctions.filename(new RegExp("dog.jpg"));
+      expect(matcher({ filename: "dog.jpg" }, {})[0]).toBe("dog.jpg");
+    });
+
+    test("filename missing everywhere", () => {
+      const matcher = router.matcherFunctions.filename(new RegExp(".*"));
+      expect(matcher({}, {})).toBe(false);
+    });
+
+    test("naivefilename falls back through URL fields", () => {
+      const matcher = router.matcherFunctions.naivefilename(new RegExp("cat.jpg"));
+      expect(matcher({ linkUrl: "http://x.com/cat.jpg" })[0]).toBe("cat.jpg");
+      expect(matcher({ pageUrl: "http://x.com/cat.jpg" })[0]).toBe("cat.jpg");
+    });
+
+    test("naivefilename without a URL or filename", () => {
+      const matcher = router.matcherFunctions.naivefilename(new RegExp(".*"));
+      expect(matcher({})).toBe(false);
+      expect(matcher({ srcUrl: "http://x.com/" })).toBe(false);
+    });
+  });
+
+  describe("rule parsing errors", () => {
+    beforeEach(() => {
+      global.optionErrors = { filenamePatterns: [], paths: [] };
+    });
+
+    test("empty and comment-only rulesets parse to nothing", () => {
+      expect(router.parseRules("")).toEqual([]);
+      expect(router.parseRules("// just a comment\n\n// another")).toEqual([]);
+    });
+
+    test("bad clause syntax is reported", () => {
+      const rules = router.parseRules("not a clause\ninto: x");
+      expect(rules).toEqual([]);
+      expect(optionErrors.filenamePatterns[0].error).toBe("not a clause");
+    });
+
+    test("an empty line inside a rule is reported as invalid syntax", () => {
+      expect(router.tokenizeLines("")).toEqual([]);
+      expect(optionErrors.filenamePatterns[0].error).toBe("invalid line syntax");
+    });
+
+    test("invalid matcher regex is reported", () => {
+      const rules = router.parseRules("sourceurl: [[\ninto: x");
+      expect(rules.length).toBe(1); // the rule survives with an undefined value
+      expect(optionErrors.filenamePatterns[0].error).toMatch(/SyntaxError/);
+    });
+
+    test("a capture destination without a capture clause warns", () => {
+      const rules = router.parseRules("sourceurl: (dog)\ninto: cat:$1:");
+      expect(rules.length).toBe(1);
+      expect(optionErrors.filenamePatterns[0].warning).toBe(true);
+      expect(optionErrors.filenamePatterns[0].error).toBe("cat:$1:");
+    });
+
+    test("multiple into clauses are rejected", () => {
+      const rules = router.parseRules("sourceurl: a\ninto: x\ninto: y");
+      expect(rules).toEqual([]);
+      expect(optionErrors.filenamePatterns.length).toBe(1);
+    });
+
+    test("multiple capture clauses are rejected", () => {
+      const rules = router.parseRules(
+        "sourceurl: a\ncapture: sourceurl\ncapture: sourceurl\ninto: x",
+      );
+      expect(rules).toEqual([]);
+      expect(optionErrors.filenamePatterns.length).toBe(1);
+    });
+  });
+
+  describe("capture matching internals", () => {
+    test("getCaptureMatches without a capture clause", () => {
+      const rules = router.parseRules("sourceurl: dog\ninto: cat");
+      expect(router.getCaptureMatches(rules[0], info)).toBe(null);
+    });
+
+    test("getCaptureMatches when the captured matcher does not match", () => {
+      const rules = router.parseRules("sourceurl: (dog)\ncapture: sourceurl\ninto: :$1:");
+      expect(router.getCaptureMatches(rules[0], { sourceUrl: "http://cat.com/" })).toBe(null);
+    });
+
+    test("matchRule returns the destination untouched without captures", () => {
+      const rules = router.parseRules("sourceurl: dog\ninto: plain");
+      expect(router.matchRules(rules, { sourceUrl: "http://dog.com/" })).toBe("plain");
+    });
+  });
+
+  describe("debug logging", () => {
+    let logSpy;
+
+    beforeAll(() => {
+      window.SI_DEBUG = 1;
+    });
+
+    afterAll(() => {
+      window.SI_DEBUG = 0;
+    });
+
+    beforeEach(() => {
+      logSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+      logSpy.mockRestore();
+    });
+
+    test("logs every matcher type on a match", () => {
+      router.matcherFunctions.frameurl(new RegExp(".*"))(info);
+      router.matcherFunctions.pagetitle(new RegExp(".*"))(info);
+      router.matcherFunctions.pagedomain(new RegExp(".*"))(info);
+      router.matcherFunctions.context(new RegExp(".*"))(info, { context: "image" });
+      router.matcherFunctions.menuindex(new RegExp(".*"))(info, { menuIndex: "1" });
+      router.matcherFunctions.comment(new RegExp(".*"))(info, { comment: "c" });
+      router.matcherFunctions.fileext(new RegExp(".*"))(info);
+      router.matcherFunctions.filename(new RegExp(".*"))(info, { filename: "dog.jpg" });
+      router.matcherFunctions.naivefilename(new RegExp(".*"))(info);
+
+      expect(logSpy).toHaveBeenCalledTimes(9);
+      expect(logSpy.mock.calls.every((c) => c[0] === "matched")).toBe(true);
+    });
+
+    test("logs unparseable page domains", () => {
+      expect(router.matcherFunctions.pagedomain(new RegExp(".*"))({ pageUrl: "%%" })).toBe(null);
+      expect(logSpy).toHaveBeenCalledWith("bad page domain in matcher", "%%", expect.anything());
+    });
+
+    test("logs parsed rules", () => {
+      router.parseRules("sourceurl: a\ninto: x");
+      expect(logSpy).toHaveBeenCalledWith("parsedRules", expect.any(Array));
+    });
+  });
 });

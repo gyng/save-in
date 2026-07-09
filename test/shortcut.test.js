@@ -1,6 +1,10 @@
 const constants = (await import("../src/constants.js")).default;
 const shortcut = (await import("../src/shortcut.js")).default;
 
+// Needed by makeShortcut/suggestShortcutFilename below (DOWNLOAD_TYPES,
+// SHORTCUT_EXTENSIONS); SHORTCUT_TYPES is also (re)assigned per-describe below.
+Object.assign(global, constants);
+
 describe("shortcut content creation", () => {
   let oldShortcutTypes;
   let SHORTCUT_TYPES;
@@ -40,5 +44,242 @@ describe("shortcut content creation", () => {
     const expected =
       "[Desktop Entry]\nEncoding=UTF-8\nIcon=text-html\nType=Link\nName=bar\nTitle=bar\nURL=foo\n[InternetShortcut]\nURL=foo";
     expect(shortcut.makeShortcutContent(SHORTCUT_TYPES.FREEDESKTOP, "foo", "bar")).toBe(expected);
+  });
+
+  test("falls back to the URL for an unknown/undefined shortcut type", () => {
+    expect(shortcut.makeShortcutContent(undefined, "https://example.com")).toBe(
+      "https://example.com",
+    );
+    expect(shortcut.makeShortcutContent("SOME_UNKNOWN_TYPE", "https://example.com")).toBe(
+      "https://example.com",
+    );
+  });
+});
+
+describe("makeShortcut", () => {
+  let originalCurrentTab;
+  let originalDownload;
+
+  beforeEach(() => {
+    originalCurrentTab = global.currentTab;
+    originalDownload = global.Download;
+    global.Download = { makeObjectUrl: jest.fn((content) => `objurl:${content}`) };
+  });
+
+  afterEach(() => {
+    global.currentTab = originalCurrentTab;
+    global.Download = originalDownload;
+  });
+
+  test("uses the explicit title over currentTab when provided", () => {
+    global.currentTab = { title: "Current Tab Title" };
+
+    shortcut.makeShortcut(SHORTCUT_TYPES.FREEDESKTOP, "https://example.com", "Explicit Title");
+
+    expect(global.Download.makeObjectUrl).toHaveBeenCalledWith(
+      expect.stringContaining("Name=Explicit Title"),
+    );
+  });
+
+  test("defaults the title to currentTab.title when none is given", () => {
+    global.currentTab = { title: "Current Tab Title" };
+
+    shortcut.makeShortcut(SHORTCUT_TYPES.FREEDESKTOP, "https://example.com");
+
+    expect(global.Download.makeObjectUrl).toHaveBeenCalledWith(
+      expect.stringContaining("Name=Current Tab Title"),
+    );
+  });
+
+  test("falls back to the URL when there is no currentTab", () => {
+    global.currentTab = undefined;
+
+    const result = shortcut.makeShortcut(SHORTCUT_TYPES.FREEDESKTOP, "https://example.com");
+
+    expect(global.Download.makeObjectUrl).toHaveBeenCalledWith(
+      expect.stringContaining("Name=https://example.com"),
+    );
+    expect(result).toBe(
+      "objurl:" + shortcut.makeShortcutContent(SHORTCUT_TYPES.FREEDESKTOP, "https://example.com"),
+    );
+  });
+});
+
+describe("suggestShortcutFilename", () => {
+  let originalPath;
+  let originalCurrentTab;
+
+  beforeEach(() => {
+    originalPath = global.Path;
+    originalCurrentTab = global.currentTab;
+    global.Path = { sanitizeFilename: jest.fn((name) => name) };
+  });
+
+  afterEach(() => {
+    global.Path = originalPath;
+    global.currentTab = originalCurrentTab;
+  });
+
+  describe("PAGE download type", () => {
+    test("prefers the suggested filename", () => {
+      global.currentTab = { title: "Tab Title" };
+      const info = { srcUrl: "src", linkUrl: "link", pageUrl: "page" };
+
+      const result = shortcut.suggestShortcutFilename(
+        SHORTCUT_TYPES.MAC,
+        DOWNLOAD_TYPES.PAGE,
+        info,
+        "suggested",
+        100,
+      );
+
+      expect(result).toBe("suggested.url");
+    });
+
+    test("falls back to currentTab.title", () => {
+      global.currentTab = { title: "Tab Title" };
+      const info = { srcUrl: "src", linkUrl: "link", pageUrl: "page" };
+
+      const result = shortcut.suggestShortcutFilename(
+        SHORTCUT_TYPES.MAC,
+        DOWNLOAD_TYPES.PAGE,
+        info,
+        undefined,
+        100,
+      );
+
+      expect(result).toBe("Tab Title.url");
+    });
+
+    test("falls back to info.srcUrl", () => {
+      global.currentTab = undefined;
+      const info = { srcUrl: "src", linkUrl: "link", pageUrl: "page" };
+
+      const result = shortcut.suggestShortcutFilename(
+        SHORTCUT_TYPES.MAC,
+        DOWNLOAD_TYPES.PAGE,
+        info,
+        undefined,
+        100,
+      );
+
+      expect(result).toBe("src.url");
+    });
+
+    test("falls back to info.linkUrl", () => {
+      global.currentTab = undefined;
+      const info = { linkUrl: "link", pageUrl: "page" };
+
+      const result = shortcut.suggestShortcutFilename(
+        SHORTCUT_TYPES.MAC,
+        DOWNLOAD_TYPES.PAGE,
+        info,
+        undefined,
+        100,
+      );
+
+      expect(result).toBe("link.url");
+    });
+
+    test("falls back to info.pageUrl", () => {
+      global.currentTab = undefined;
+      const info = { pageUrl: "page" };
+
+      const result = shortcut.suggestShortcutFilename(
+        SHORTCUT_TYPES.MAC,
+        DOWNLOAD_TYPES.PAGE,
+        info,
+        undefined,
+        100,
+      );
+
+      expect(result).toBe("page.url");
+    });
+  });
+
+  describe("non-PAGE download types", () => {
+    test("prefers the suggested filename", () => {
+      const info = { linkText: "text", srcUrl: "src", linkUrl: "link" };
+
+      const result = shortcut.suggestShortcutFilename(
+        SHORTCUT_TYPES.WINDOWS,
+        DOWNLOAD_TYPES.MEDIA,
+        info,
+        "suggested",
+        100,
+      );
+
+      expect(result).toBe("suggested.url");
+    });
+
+    test("falls back to info.linkText", () => {
+      const info = { linkText: "text", srcUrl: "src", linkUrl: "link" };
+
+      const result = shortcut.suggestShortcutFilename(
+        SHORTCUT_TYPES.WINDOWS,
+        DOWNLOAD_TYPES.MEDIA,
+        info,
+        undefined,
+        100,
+      );
+
+      expect(result).toBe("text.url");
+    });
+
+    test("falls back to info.srcUrl", () => {
+      const info = { srcUrl: "src", linkUrl: "link" };
+
+      const result = shortcut.suggestShortcutFilename(
+        SHORTCUT_TYPES.WINDOWS,
+        DOWNLOAD_TYPES.MEDIA,
+        info,
+        undefined,
+        100,
+      );
+
+      expect(result).toBe("src.url");
+    });
+
+    test("falls back to info.linkUrl", () => {
+      const info = { linkUrl: "link" };
+
+      const result = shortcut.suggestShortcutFilename(
+        SHORTCUT_TYPES.WINDOWS,
+        DOWNLOAD_TYPES.MEDIA,
+        info,
+        undefined,
+        100,
+      );
+
+      expect(result).toBe("link.url");
+    });
+  });
+
+  test("uses an empty extension for shortcut types without one", () => {
+    const info = { linkUrl: "link" };
+
+    const result = shortcut.suggestShortcutFilename(
+      "UNKNOWN_TYPE",
+      DOWNLOAD_TYPES.MEDIA,
+      info,
+      undefined,
+      100,
+    );
+
+    expect(result).toBe("link");
+  });
+
+  test("passes maxlen minus the extension length to Path.sanitizeFilename", () => {
+    const info = { linkUrl: "link" };
+
+    shortcut.suggestShortcutFilename(
+      SHORTCUT_TYPES.MAC,
+      DOWNLOAD_TYPES.MEDIA,
+      info,
+      undefined,
+      100,
+    );
+
+    expect(global.Path.sanitizeFilename).toHaveBeenCalledWith("link", 100 - 4); // ".url" is 4 chars
   });
 });

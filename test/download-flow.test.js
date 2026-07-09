@@ -1,0 +1,722 @@
+// renameAndDownload end-to-end flow: Chrome vs Firefox entry points, prompt
+// combinations, routing, the browserDownload/fetchDownload/fetchViaContent
+// closures, notification triggers, and the onDeterminingFilename sync path.
+//
+// The MV3 data-URL fallbacks and the onDeterminingFilename async
+// session-recovery path are covered by test/download-mv3.test.js and are not
+// duplicated here.
+
+const flush = async (times = 10) => {
+  for (let i = 0; i < times; i += 1) {
+    // eslint-disable-next-line no-await-in-loop
+    await Promise.resolve();
+  }
+};
+
+// These are read at module-import time (chrome.downloads.onDeterminingFilename
+// presence) as well as at call time, so they must exist before the import.
+global.BROWSERS = { CHROME: "CHROME", FIREFOX: "FIREFOX", UNKNOWN: "UNKNOWN" };
+global.CURRENT_BROWSER = "FIREFOX";
+
+global.chrome = {
+  downloads: {
+    onDeterminingFilename: { addListener: jest.fn() },
+  },
+};
+global.browser = {
+  runtime: { id: "self-extension-id" },
+  i18n: { getMessage: jest.fn((key) => key) },
+  downloads: { download: jest.fn(() => Promise.resolve(101)) },
+};
+
+const Download = (await import("../src/download.js")).default;
+
+const [[capturedListener]] = global.chrome.downloads.onDeterminingFilename.addListener.mock.calls;
+
+const makeState = (overrides = {}) => ({
+  path: { finalize: () => "downloads" },
+  scratch: {},
+  ...overrides,
+  info: {
+    url: "https://example.com/dir/file.png",
+    ...overrides.info,
+  },
+});
+
+beforeEach(() => {
+  global.CURRENT_BROWSER = "FIREFOX";
+
+  global.options = {
+    filenamePatterns: [],
+    prompt: false,
+    promptIfNoExtension: false,
+    promptOnShift: false,
+    routeFailurePrompt: false,
+    routeExclusive: false,
+    notifyOnRuleMatch: false,
+    notifyOnFailure: false,
+    conflictAction: "uniquify",
+    fetchViaContent: false,
+    fetchViaFetch: false,
+  };
+
+  global.Path = {
+    Path: class MockPath {
+      constructor(val) {
+        this.val = val;
+      }
+
+      finalize() {
+        return this.val;
+      }
+
+      toString() {
+        return String(this.val);
+      }
+    },
+    sanitizeFilename: jest.fn((name) => name),
+  };
+
+  global.Router = { matchRules: jest.fn(() => null) };
+  global.Variable = { applyVariables: jest.fn((path) => path) };
+
+  global.Messaging = {
+    send: {
+      fetchViaContent: jest.fn(() => Promise.resolve({ body: { blob: new Blob(["x"]) } })),
+    },
+    emit: { downloaded: jest.fn() },
+  };
+
+  global.Notification = {
+    trackDownload: jest.fn(() => Promise.resolve()),
+    createExtensionNotification: jest.fn(),
+  };
+
+  global.Headers = { prepareReferer: jest.fn(() => Promise.resolve()) };
+  global.SessionState = {
+    set: jest.fn(() => Promise.resolve()),
+    get: jest.fn(() => Promise.resolve({})),
+  };
+  global.SaveHistory = { add: jest.fn(() => Promise.resolve()) };
+  global.Log = { add: jest.fn() };
+
+  global.browser.i18n.getMessage = jest.fn((key) => key);
+  global.browser.downloads.download = jest.fn(() => Promise.resolve(101));
+
+  global.getFilenameFromContentDispositionHeader = jest.fn(() => null);
+  global.fetch = jest.fn(() => Promise.resolve({ headers: { has: () => false, get: () => null } }));
+
+  window.SI_DEBUG = false;
+  window.lastDownloadState = undefined;
+});
+
+describe("getFilenameFromContentDisposition", () => {
+  test("returns null for non-string input", () => {
+    expect(Download.getFilenameFromContentDisposition(undefined)).toBe(null);
+    expect(Download.getFilenameFromContentDisposition(123)).toBe(null);
+    expect(Download.getFilenameFromContentDisposition(null)).toBe(null);
+  });
+
+  test("double-decodes the value returned by the library", () => {
+    // "na me.txt" URI-encoded twice
+    global.getFilenameFromContentDispositionHeader = jest.fn(() => "na%2520me.txt");
+    expect(Download.getFilenameFromContentDisposition("attachment; filename=whatever")).toBe(
+      "na me.txt",
+    );
+  });
+
+  test("returns null when the library returns a falsy value", () => {
+    global.getFilenameFromContentDispositionHeader = jest.fn(() => null);
+    expect(Download.getFilenameFromContentDisposition("attachment")).toBe(null);
+
+    global.getFilenameFromContentDispositionHeader = jest.fn(() => "");
+    expect(Download.getFilenameFromContentDisposition("attachment")).toBe(null);
+  });
+});
+
+describe("getRoutingMatches", () => {
+  test("returns null when there are no filename patterns", () => {
+    global.options.filenamePatterns = undefined;
+    expect(Download.getRoutingMatches({ info: {} })).toBe(null);
+
+    global.options.filenamePatterns = [];
+    expect(Download.getRoutingMatches({ info: {} })).toBe(null);
+
+    expect(global.Router.matchRules).not.toHaveBeenCalled();
+  });
+
+  test("delegates to Router.matchRules when patterns exist", () => {
+    global.options.filenamePatterns = [["rule"]];
+    global.Router.matchRules = jest.fn(() => "the/route");
+    const state = { info: { url: "x" } };
+
+    expect(Download.getRoutingMatches(state)).toBe("the/route");
+    expect(global.Router.matchRules).toHaveBeenCalledWith(
+      global.options.filenamePatterns,
+      state.info,
+    );
+  });
+});
+
+describe("finalizeFullPath", () => {
+  test("strips a leading ./ and uses the sanitized filename when there is no route", () => {
+    global.Path.sanitizeFilename = jest.fn(() => "sanitized.txt");
+    const state = {
+      path: { finalize: () => "./some/dir" },
+      info: { filename: "raw.txt" },
+    };
+
+    expect(Download.finalizeFullPath(state)).toBe("some/dir/sanitized.txt");
+    expect(global.Path.sanitizeFilename).toHaveBeenCalledWith("raw.txt");
+  });
+
+  test("strips a leading / and prefers the route's finalized filename", () => {
+    const state = {
+      path: { finalize: () => "/abs/dir" },
+      route: { finalize: () => "route-file.txt" },
+      info: { filename: "raw.txt" },
+    };
+
+    expect(Download.finalizeFullPath(state)).toBe("abs/dir/route-file.txt");
+  });
+});
+
+describe("renameAndDownload: Chrome vs Firefox entry", () => {
+  test("Chrome path skips the HEAD request and downloads immediately", async () => {
+    global.CURRENT_BROWSER = "CHROME";
+    const state = makeState();
+
+    Download.renameAndDownload(state);
+    expect(global.fetch).not.toHaveBeenCalled();
+
+    await flush();
+    expect(global.browser.downloads.download).toHaveBeenCalledWith(
+      expect.objectContaining({ url: state.info.url }),
+    );
+  });
+
+  test("Firefox path performs a HEAD request and applies the Content-Disposition filename", async () => {
+    global.CURRENT_BROWSER = "FIREFOX";
+    global.getFilenameFromContentDispositionHeader = jest.fn(() => "server-name.pdf");
+    global.fetch = jest.fn(() =>
+      Promise.resolve({
+        headers: { has: () => true, get: () => 'attachment; filename="server-name.pdf"' },
+      }),
+    );
+
+    const state = makeState();
+    Download.renameAndDownload(state);
+
+    expect(global.fetch).toHaveBeenCalledWith(state.info.url, {
+      method: "HEAD",
+      credentials: "include",
+    });
+
+    await flush();
+    expect(state.info.filename).toBe("server-name.pdf");
+    expect(global.browser.downloads.download).toHaveBeenCalledWith(
+      expect.objectContaining({ filename: expect.stringContaining("server-name.pdf") }),
+    );
+  });
+
+  test("Firefox path keeps the original filename when the Content-Disposition has no usable name", async () => {
+    global.CURRENT_BROWSER = "FIREFOX";
+    global.getFilenameFromContentDispositionHeader = jest.fn(() => null);
+    global.fetch = jest.fn(() =>
+      Promise.resolve({ headers: { has: () => true, get: () => "attachment" } }),
+    );
+
+    const state = makeState();
+    Download.renameAndDownload(state);
+    await flush();
+
+    expect(state.info.filename).toBe("file.png");
+    expect(global.browser.downloads.download).toHaveBeenCalled();
+  });
+
+  test("Firefox path keeps the original filename when Content-Disposition is absent", async () => {
+    global.CURRENT_BROWSER = "FIREFOX";
+    global.fetch = jest.fn(() =>
+      Promise.resolve({ headers: { has: () => false, get: () => null } }),
+    );
+
+    const state = makeState();
+    Download.renameAndDownload(state);
+    await flush();
+
+    expect(state.info.filename).toBe("file.png");
+    expect(global.getFilenameFromContentDispositionHeader).not.toHaveBeenCalled();
+    expect(global.browser.downloads.download).toHaveBeenCalled();
+  });
+
+  test("Firefox path downloads anyway when the HEAD request rejects", async () => {
+    global.CURRENT_BROWSER = "FIREFOX";
+    global.fetch = jest.fn(() => Promise.reject(new Error("network down")));
+
+    const state = makeState();
+    Download.renameAndDownload(state);
+    await flush();
+
+    expect(global.browser.downloads.download).toHaveBeenCalled();
+  });
+});
+
+describe("renameAndDownload: initial filename resolution", () => {
+  test("prefers info.suggestedFilename over the URL-derived filename", async () => {
+    global.CURRENT_BROWSER = "CHROME";
+    const state = makeState({ info: { suggestedFilename: "suggested.txt" } });
+
+    Download.renameAndDownload(state);
+    await flush();
+
+    expect(state.info.naiveFilename).toBe("file.png");
+    expect(state.info.initialFilename).toBe("suggested.txt");
+    expect(state.info.filename).toBe("suggested.txt");
+  });
+
+  test("falls back to the full URL when the URL has no filename component", async () => {
+    global.CURRENT_BROWSER = "CHROME";
+    const state = makeState({ info: { url: "https://example.com/" } });
+
+    Download.renameAndDownload(state);
+    await flush();
+
+    expect(state.info.naiveFilename).toBe("");
+    expect(state.info.initialFilename).toBe("https://example.com/");
+  });
+});
+
+describe("renameAndDownload: needRouteMatch", () => {
+  test("returns early without downloading when no route matched", async () => {
+    global.CURRENT_BROWSER = "CHROME";
+    const state = makeState({ needRouteMatch: true });
+
+    Download.renameAndDownload(state);
+    await flush();
+
+    expect(global.browser.downloads.download).not.toHaveBeenCalled();
+    expect(global.Messaging.emit.downloaded).not.toHaveBeenCalled();
+    expect(global.SaveHistory.add).not.toHaveBeenCalled();
+  });
+
+  test("proceeds when needRouteMatch is true and a route matched", async () => {
+    global.CURRENT_BROWSER = "CHROME";
+    global.options.filenamePatterns = [["rule"]];
+    global.Router.matchRules = jest.fn(() => "matched/route.txt");
+
+    const state = makeState({ needRouteMatch: true });
+    Download.renameAndDownload(state);
+    await flush();
+
+    expect(global.browser.downloads.download).toHaveBeenCalled();
+  });
+
+  test("proceeds when needRouteMatch is false even without a route", async () => {
+    global.CURRENT_BROWSER = "CHROME";
+    const state = makeState({ needRouteMatch: false });
+
+    Download.renameAndDownload(state);
+    await flush();
+
+    expect(global.browser.downloads.download).toHaveBeenCalled();
+  });
+});
+
+describe("renameAndDownload: route matching", () => {
+  test("builds state.route from Router.matchRules and uses it in the final path", async () => {
+    global.CURRENT_BROWSER = "CHROME";
+    global.options.filenamePatterns = [["rule"]];
+    global.Router.matchRules = jest.fn(() => "matched/route.txt");
+
+    const state = makeState();
+    Download.renameAndDownload(state);
+
+    expect(global.Router.matchRules).toHaveBeenCalledWith(
+      global.options.filenamePatterns,
+      state.info,
+    );
+    expect(state.route).toBeDefined();
+    expect(String(state.route.finalize())).toBe("matched/route.txt");
+
+    await flush();
+    expect(global.browser.downloads.download).toHaveBeenCalledWith(
+      expect.objectContaining({ filename: expect.stringContaining("matched/route.txt") }),
+    );
+  });
+});
+
+describe("renameAndDownload: prompt combinations", () => {
+  const expectSaveAs = async (state, expected) => {
+    Download.renameAndDownload(state);
+    await flush();
+    expect(global.browser.downloads.download).toHaveBeenCalledWith(
+      expect.objectContaining({ saveAs: expected }),
+    );
+  };
+
+  test("options.prompt forces saveAs", async () => {
+    global.CURRENT_BROWSER = "CHROME";
+    global.options.prompt = true;
+    await expectSaveAs(makeState(), true);
+  });
+
+  test("promptIfNoExtension prompts when the final filename has no extension", async () => {
+    global.CURRENT_BROWSER = "CHROME";
+    global.options.promptIfNoExtension = true;
+    const state = makeState({ info: { url: "https://example.com/dir/noext" } });
+    await expectSaveAs(state, true);
+  });
+
+  test("promptOnShift prompts when the Shift modifier was held", async () => {
+    global.CURRENT_BROWSER = "CHROME";
+    global.options.promptOnShift = true;
+    const state = makeState({ info: { modifiers: ["Shift"] } });
+    await expectSaveAs(state, true);
+  });
+
+  test("routeFailurePrompt prompts when no rule matched", async () => {
+    global.CURRENT_BROWSER = "CHROME";
+    global.options.routeFailurePrompt = true;
+    await expectSaveAs(makeState(), true);
+  });
+
+  test("saveAs is falsy when no prompt condition is met", async () => {
+    global.CURRENT_BROWSER = "CHROME";
+    await expectSaveAs(makeState(), false);
+  });
+});
+
+describe("renameAndDownload: browserDownload", () => {
+  test("prepares the referer, persists session state, downloads, and tracks the result", async () => {
+    global.CURRENT_BROWSER = "CHROME";
+    global.browser.downloads.download = jest.fn(() => Promise.resolve(555));
+
+    const state = makeState();
+    Download.renameAndDownload(state);
+    await flush();
+
+    expect(global.Headers.prepareReferer).toHaveBeenCalledWith(state);
+    expect(global.SessionState.set).toHaveBeenCalledWith(
+      expect.objectContaining({ siPendingDownload: true, siFinalFilename: expect.any(String) }),
+    );
+    expect(global.browser.downloads.download).toHaveBeenCalledWith({
+      url: state.info.url,
+      filename: expect.any(String),
+      saveAs: false,
+      conflictAction: "uniquify",
+    });
+    expect(global.Notification.trackDownload).toHaveBeenCalledWith(555);
+    expect(global.SessionState.set).toHaveBeenLastCalledWith({ siPendingDownload: false });
+  });
+
+  test("logs a downloads.download rejection and still clears the pending flag", async () => {
+    global.CURRENT_BROWSER = "CHROME";
+    global.browser.downloads.download = jest.fn(() => Promise.reject(new Error("disk full")));
+
+    const state = makeState();
+    Download.renameAndDownload(state);
+    await flush();
+
+    expect(global.Notification.trackDownload).not.toHaveBeenCalled();
+    expect(global.Log.add).toHaveBeenCalledWith("downloads.download failed", "Error: disk full");
+    expect(global.SessionState.set).toHaveBeenLastCalledWith({ siPendingDownload: false });
+  });
+
+  test("a downloads.download rejection does not throw when Log is undefined", async () => {
+    global.CURRENT_BROWSER = "CHROME";
+    global.browser.downloads.download = jest.fn(() => Promise.reject(new Error("disk full")));
+    const originalLog = global.Log;
+    delete global.Log;
+
+    const state = makeState();
+    expect(() => Download.renameAndDownload(state)).not.toThrow();
+    await flush();
+
+    expect(global.Notification.trackDownload).not.toHaveBeenCalled();
+    expect(global.SessionState.set).toHaveBeenLastCalledWith({ siPendingDownload: false });
+    global.Log = originalLog;
+  });
+
+  test("substitutes _ for an empty final path", async () => {
+    global.CURRENT_BROWSER = "CHROME";
+    global.Path.sanitizeFilename = jest.fn(() => null);
+
+    const state = makeState({ path: { finalize: () => null } });
+    Download.renameAndDownload(state);
+    await flush();
+
+    expect(global.SessionState.set).toHaveBeenCalledWith(
+      expect.objectContaining({ siPendingDownload: true, siFinalFilename: "_" }),
+    );
+    expect(global.browser.downloads.download).toHaveBeenCalledWith(
+      expect.objectContaining({ filename: "_" }),
+    );
+  });
+
+  test("emits downloaded, records lastDownloadState, and saves history", () => {
+    global.CURRENT_BROWSER = "CHROME";
+    const state = makeState();
+
+    Download.renameAndDownload(state);
+
+    expect(global.Messaging.emit.downloaded).toHaveBeenCalledWith(state);
+    expect(window.lastDownloadState).toBe(state);
+    expect(global.SaveHistory.add).toHaveBeenCalledWith(
+      expect.objectContaining({ url: state.info.url, state }),
+    );
+  });
+});
+
+describe("renameAndDownload: fetchViaFetch", () => {
+  test("fetches the URL, converts the blob to an object URL, then downloads it", async () => {
+    global.CURRENT_BROWSER = "CHROME";
+    global.options.fetchViaFetch = true;
+    global.fetch = jest.fn(() =>
+      Promise.resolve({ blob: () => Promise.resolve(new Blob(["file contents"])) }),
+    );
+
+    const state = makeState();
+    Download.renameAndDownload(state);
+    await flush();
+
+    expect(global.fetch).toHaveBeenCalledWith(state.info.url);
+    expect(global.browser.downloads.download).toHaveBeenCalledWith(
+      expect.objectContaining({ url: expect.stringMatching(/^blob:/) }),
+    );
+  });
+});
+
+describe("renameAndDownload: fetchViaContent", () => {
+  test("uses the content-script-fetched blob when it resolves", async () => {
+    global.CURRENT_BROWSER = "CHROME";
+    global.options.fetchViaContent = true;
+    global.Messaging.send.fetchViaContent = jest.fn(() =>
+      Promise.resolve({ body: { blob: new Blob(["from content script"]) } }),
+    );
+
+    const state = makeState();
+    Download.renameAndDownload(state);
+    await flush();
+
+    expect(global.Messaging.send.fetchViaContent).toHaveBeenCalledWith(state);
+    expect(global.browser.downloads.download).toHaveBeenCalledWith(
+      expect.objectContaining({ url: expect.stringMatching(/^blob:/) }),
+    );
+  });
+
+  test("falls back to a direct browser download when fetchViaContent rejects", async () => {
+    global.CURRENT_BROWSER = "CHROME";
+    global.options.fetchViaContent = true;
+    window.SI_DEBUG = false;
+    global.Messaging.send.fetchViaContent = jest.fn(() =>
+      Promise.reject(new Error("no content script")),
+    );
+    const consoleSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+
+    const state = makeState();
+    Download.renameAndDownload(state);
+    await flush();
+
+    expect(global.browser.downloads.download).toHaveBeenCalledWith(
+      expect.objectContaining({ url: state.info.url }),
+    );
+    expect(consoleSpy).not.toHaveBeenCalledWith("Failed to fetch via content", expect.anything());
+    consoleSpy.mockRestore();
+  });
+
+  test("logs the failure when SI_DEBUG is enabled before falling back", async () => {
+    global.CURRENT_BROWSER = "CHROME";
+    global.options.fetchViaContent = true;
+    window.SI_DEBUG = true;
+    global.Messaging.send.fetchViaContent = jest.fn(() =>
+      Promise.reject(new Error("no content script")),
+    );
+    const consoleSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+
+    const state = makeState();
+    Download.renameAndDownload(state);
+    await flush();
+
+    expect(consoleSpy).toHaveBeenCalledWith("Failed to fetch via content", expect.any(Error));
+    expect(global.browser.downloads.download).toHaveBeenCalledWith(
+      expect.objectContaining({ url: state.info.url }),
+    );
+    consoleSpy.mockRestore();
+  });
+});
+
+describe("renameAndDownload: notification triggers", () => {
+  test("notifies on rule match when a route was found and notifyOnRuleMatch is enabled", () => {
+    global.CURRENT_BROWSER = "CHROME";
+    global.options.filenamePatterns = [["rule"]];
+    global.Router.matchRules = jest.fn(() => "matched/route.txt");
+    global.options.notifyOnRuleMatch = true;
+
+    const state = makeState();
+    Download.renameAndDownload(state);
+
+    expect(global.Notification.createExtensionNotification).toHaveBeenCalledWith(
+      "notificationRuleMatchedTitle",
+      "file.png\n⬇\nmatched/route.txt",
+      false,
+    );
+  });
+
+  test("does not notify on rule match when notifyOnRuleMatch is disabled", () => {
+    global.CURRENT_BROWSER = "CHROME";
+    global.options.filenamePatterns = [["rule"]];
+    global.Router.matchRules = jest.fn(() => "matched/route.txt");
+    global.options.notifyOnRuleMatch = false;
+
+    Download.renameAndDownload(makeState());
+    expect(global.Notification.createExtensionNotification).not.toHaveBeenCalled();
+  });
+
+  test("notifies failure when routeExclusive+notifyOnFailure are enabled and no route matched", () => {
+    global.CURRENT_BROWSER = "CHROME";
+    global.options.routeExclusive = true;
+    global.options.notifyOnFailure = true;
+
+    const state = makeState();
+    Download.renameAndDownload(state);
+
+    expect(global.Notification.createExtensionNotification).toHaveBeenCalledWith(
+      "notificationRuleMatchFailedExclusiveTitle",
+      "notificationRuleMatchFailedExclusiveMessage",
+      true,
+    );
+  });
+
+  test("does not notify failure when routeExclusive is disabled", () => {
+    global.CURRENT_BROWSER = "CHROME";
+    global.options.routeExclusive = false;
+    global.options.notifyOnFailure = true;
+
+    Download.renameAndDownload(makeState());
+    expect(global.Notification.createExtensionNotification).not.toHaveBeenCalled();
+  });
+});
+
+describe("renameAndDownload: Log integration", () => {
+  test("logs 'download requested' when Log is defined", () => {
+    global.CURRENT_BROWSER = "CHROME";
+    const state = makeState();
+
+    Download.renameAndDownload(state);
+
+    expect(global.Log.add).toHaveBeenCalledWith(
+      "download requested",
+      expect.objectContaining({ url: expect.any(String), path: expect.any(String), route: null }),
+    );
+  });
+
+  test("does not throw when Log is undefined", async () => {
+    global.CURRENT_BROWSER = "CHROME";
+    const originalLog = global.Log;
+    delete global.Log;
+
+    const state = makeState();
+    expect(() => Download.renameAndDownload(state)).not.toThrow();
+    await flush();
+
+    expect(global.browser.downloads.download).toHaveBeenCalled();
+    global.Log = originalLog;
+  });
+});
+
+describe("renameAndDownload: window.SI_DEBUG", () => {
+  test("logs debug info when window.SI_DEBUG is set", () => {
+    global.CURRENT_BROWSER = "CHROME";
+    window.SI_DEBUG = true;
+    const consoleSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+
+    Download.renameAndDownload(makeState());
+
+    expect(consoleSpy).toHaveBeenCalled();
+    consoleSpy.mockRestore();
+    window.SI_DEBUG = false;
+  });
+});
+
+describe("onDeterminingFilename listener: sync path", () => {
+  test("suggests the finalized path when globalChromeState already has a path", async () => {
+    global.CURRENT_BROWSER = "CHROME";
+    const state = makeState();
+
+    // Drives globalChromeState (module-local) via renameAndDownload
+    Download.renameAndDownload(state);
+    await flush();
+
+    const suggest = jest.fn();
+    const returned = capturedListener(
+      { byExtensionId: global.browser.runtime.id, filename: "from-download-item.bin" },
+      suggest,
+    );
+
+    expect(returned).toBe(false);
+    expect(suggest).toHaveBeenCalledWith({
+      filename: Download.finalizeFullPath(state),
+      conflictAction: global.options.conflictAction,
+    });
+  });
+
+  test("prefers the state's suggestedFilename over the download item's filename", async () => {
+    global.CURRENT_BROWSER = "CHROME";
+    const state = makeState({ info: { suggestedFilename: "suggested.txt" } });
+
+    Download.renameAndDownload(state);
+    await flush();
+
+    const suggest = jest.fn();
+    capturedListener(
+      { byExtensionId: global.browser.runtime.id, filename: "from-download-item.bin" },
+      suggest,
+    );
+
+    expect(suggest).toHaveBeenCalledWith({
+      filename: "downloads/suggested.txt",
+      conflictAction: "uniquify",
+    });
+  });
+
+  test("keeps the state's filename when the download item has none", async () => {
+    global.CURRENT_BROWSER = "CHROME";
+    const state = makeState();
+
+    Download.renameAndDownload(state);
+    await flush();
+
+    const suggest = jest.fn();
+    capturedListener({ byExtensionId: global.browser.runtime.id, filename: undefined }, suggest);
+
+    expect(suggest).toHaveBeenCalledWith({
+      filename: "downloads/file.png",
+      conflictAction: "uniquify",
+    });
+  });
+
+  test("recreates missing state info from the download item", async () => {
+    global.CURRENT_BROWSER = "CHROME";
+    const state = makeState();
+
+    Download.renameAndDownload(state);
+    await flush();
+
+    // globalChromeState is a reference to this same state object: clearing
+    // info here simulates a state that lost it before the event fired
+    delete state.info;
+
+    const suggest = jest.fn();
+    const returned = capturedListener(
+      { byExtensionId: global.browser.runtime.id, filename: "item.bin" },
+      suggest,
+    );
+
+    expect(returned).toBe(false);
+    expect(state.info).toEqual({ filename: "item.bin" });
+    expect(suggest).toHaveBeenCalledWith({
+      filename: "downloads/item.bin",
+      conflictAction: "uniquify",
+    });
+  });
+});

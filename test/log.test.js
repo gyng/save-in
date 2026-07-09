@@ -88,5 +88,27 @@ describe("Log", () => {
 
     await expect(BareLog.add("x")).resolves.toBeUndefined();
     await expect(BareLog.get()).resolves.toEqual([]);
+    await expect(BareLog.clear()).resolves.toBeUndefined();
+  });
+
+  test("get returns [] when the read fails", async () => {
+    global.browser.storage.session.get.mockRejectedValueOnce(new Error("gone"));
+
+    await expect(Log.get()).resolves.toEqual([]);
+  });
+
+  test("add swallows storage failures and keeps the queue alive", async () => {
+    global.browser.storage.session.get.mockRejectedValueOnce(new Error("gone"));
+
+    await expect(Log.add("lost")).resolves.toBeUndefined();
+    await Log.add("kept");
+
+    expect(store[LOG_KEY].map((e) => e.message)).toEqual(["kept"]);
+  });
+
+  test("clear swallows storage failures", async () => {
+    global.browser.storage.session.remove.mockRejectedValueOnce(new Error("gone"));
+
+    await expect(Log.clear()).resolves.toBeUndefined();
   });
 });

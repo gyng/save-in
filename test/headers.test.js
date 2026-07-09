@@ -35,6 +35,87 @@ describe("matchesRefererFilter", () => {
     global.options.setRefererHeaderFilter = "\n  \n";
     expect(Headers.matchesRefererFilter("https://i.pximg.net/a.png")).toBe(false);
   });
+
+  test("ignores patterns that are not match patterns", () => {
+    global.options.setRefererHeaderFilter = "not-a-match-pattern";
+    expect(Headers.matchesRefererFilter("https://i.pximg.net/a.png")).toBe(false);
+  });
+
+  test("treats patterns whose compilation throws as non-matching", () => {
+    const original = Headers.matchPatternToRegExp;
+    Headers.matchPatternToRegExp = () => {
+      throw new Error("boom");
+    };
+    try {
+      expect(Headers.matchesRefererFilter("https://i.pximg.net/a.png")).toBe(false);
+    } finally {
+      Headers.matchPatternToRegExp = original;
+    }
+  });
+});
+
+describe("matchPatternToRegExp", () => {
+  test("returns null for gibberish and unsupported schemes", () => {
+    expect(Headers.matchPatternToRegExp("not-a-match-pattern")).toBe(null);
+    expect(Headers.matchPatternToRegExp("gopher://weird/*")).toBe(null);
+  });
+
+  test("keeps explicit schemes", () => {
+    const re = Headers.matchPatternToRegExp("https://example.com/*");
+    expect(re.test("https://example.com/a")).toBe(true);
+    expect(re.test("http://example.com/a")).toBe(false);
+  });
+
+  test("wildcard host matches any host", () => {
+    const re = Headers.matchPatternToRegExp("*://*/download/*");
+    expect(re.test("https://anything.example/download/x")).toBe(true);
+    expect(re.test("https://anything.example/other/x")).toBe(false);
+  });
+
+  test("*.host matches the host and its subdomains", () => {
+    const re = Headers.matchPatternToRegExp("*://*.example.com/*");
+    expect(re.test("https://example.com/a")).toBe(true);
+    expect(re.test("https://cdn.example.com/a")).toBe(true);
+    expect(re.test("https://example.org/a")).toBe(false);
+  });
+});
+
+describe("refererListener", () => {
+  afterEach(() => {
+    delete global.globalChromeState;
+  });
+
+  test("leaves requests with an existing Referer alone", () => {
+    const details = { requestHeaders: [{ name: "Referer", value: "https://already/" }] };
+    expect(Headers.refererListener(details)).toEqual({});
+    expect(details.requestHeaders).toHaveLength(1);
+  });
+
+  test("does nothing without download state", () => {
+    global.globalChromeState = null;
+    expect(Headers.refererListener({ requestHeaders: [] })).toEqual({});
+
+    global.globalChromeState = {};
+    expect(Headers.refererListener({ requestHeaders: [] })).toEqual({});
+  });
+
+  test("does nothing without a page URL", () => {
+    global.globalChromeState = { info: {} };
+    expect(Headers.refererListener({ requestHeaders: [] })).toEqual({});
+  });
+
+  test("appends the page URL as Referer", () => {
+    global.globalChromeState = {
+      info: { pageUrl: "https://www.pixiv.net/artworks/123" },
+    };
+    const details = { requestHeaders: [{ name: "Accept", value: "*/*" }] };
+    expect(Headers.refererListener(details)).toEqual({
+      requestHeaders: [
+        { name: "Accept", value: "*/*" },
+        { name: "Referer", value: "https://www.pixiv.net/artworks/123" },
+      ],
+    });
+  });
 });
 
 describe("prepareReferer (MV3 declarativeNetRequest path)", () => {
@@ -72,6 +153,7 @@ describe("prepareReferer (MV3 declarativeNetRequest path)", () => {
   afterEach(() => {
     global.browser.webRequest = originalWebRequest;
     global.chrome = originalChrome;
+    delete global.Log;
     jest.useRealTimers();
   });
 
@@ -152,6 +234,42 @@ describe("prepareReferer (MV3 declarativeNetRequest path)", () => {
     global.chrome = {};
     await expect(Headers.prepareReferer(state)).resolves.toBeUndefined();
   });
+
+  test("logs the session rule when a Log global is present", async () => {
+    global.Log = { add: jest.fn() };
+    jest.useFakeTimers();
+
+    await Headers.prepareReferer(state);
+
+    expect(global.Log.add).toHaveBeenCalledWith("referer session rule set", {
+      url: state.info.url,
+      referer: state.info.pageUrl,
+    });
+  });
+
+  test("resolves even when the rule cannot be installed", async () => {
+    global.chrome.declarativeNetRequest.updateSessionRules = jest.fn(() =>
+      Promise.reject(new Error("no permission")),
+    );
+
+    await expect(Headers.prepareReferer(state)).resolves.toBeUndefined();
+  });
+
+  test("swallows failures when removing the rule later", async () => {
+    jest.useFakeTimers();
+    global.chrome.declarativeNetRequest.updateSessionRules = jest
+      .fn()
+      .mockImplementationOnce(() => Promise.resolve())
+      .mockImplementationOnce(() => Promise.reject(new Error("already gone")));
+
+    await Headers.prepareReferer(state);
+    jest.runAllTimers();
+    // let the removal rejection propagate to its .catch
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(global.chrome.declarativeNetRequest.updateSessionRules).toHaveBeenCalledTimes(2);
+  });
 });
 
 describe("addRequestListener", () => {
@@ -210,5 +328,37 @@ describe("addRequestListener", () => {
     });
 
     expect(() => Headers.addRequestListener()).not.toThrow();
+  });
+
+  test("only removes the listener when the option is disabled", () => {
+    global.options = { setRefererHeader: false };
+    Headers.usingBlockingWebRequest = true;
+
+    Headers.addRequestListener();
+
+    expect(global.browser.webRequest.onBeforeSendHeaders.removeListener).toHaveBeenCalled();
+    expect(global.browser.webRequest.onBeforeSendHeaders.addListener).not.toHaveBeenCalled();
+    expect(Headers.usingBlockingWebRequest).toBe(false);
+  });
+
+  test("treats a missing filter as empty (no registration)", () => {
+    global.options = { setRefererHeader: true };
+
+    Headers.addRequestListener();
+
+    expect(global.browser.webRequest.onBeforeSendHeaders.addListener).not.toHaveBeenCalled();
+  });
+
+  test("asks Chrome for extraHeaders", () => {
+    global.CURRENT_BROWSER = "CHROME";
+    global.options = {
+      setRefererHeader: true,
+      setRefererHeaderFilter: "*://i.pximg.net/*",
+    };
+
+    Headers.addRequestListener();
+
+    const { calls } = global.browser.webRequest.onBeforeSendHeaders.addListener.mock;
+    expect(calls[0][2]).toEqual(["blocking", "requestHeaders", "extraHeaders"]);
   });
 });

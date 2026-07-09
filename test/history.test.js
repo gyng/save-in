@@ -44,4 +44,18 @@ describe("SaveHistory", () => {
     expect(store[HISTORY_KEY][0]).toEqual({ i: 1 });
     expect(store[HISTORY_KEY][99]).toEqual({ i: 100 });
   });
+
+  test("add tolerates a storage backend returning nothing", async () => {
+    global.browser.storage.local.get.mockResolvedValueOnce(undefined);
+
+    await SaveHistory.add({ url: "https://a/1" });
+
+    expect(store[HISTORY_KEY]).toEqual([{ url: "https://a/1" }]);
+  });
+
+  test("get tolerates a storage backend returning nothing", async () => {
+    global.browser.storage.local.get.mockResolvedValueOnce(undefined);
+
+    await expect(SaveHistory.get()).resolves.toEqual([]);
+  });
 });

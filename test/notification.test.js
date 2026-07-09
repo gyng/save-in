@@ -19,3 +19,63 @@ test("checks for download failures on Chrome", () => {
   const failure = { error: "some error" };
   expect(notification.isDownloadFailure(failure, true)).toBeTruthy();
 });
+
+test("an error delta is a failure on Firefox too", () => {
+  const failure = { error: { current: "NETWORK_FAILED" } };
+  expect(notification.isDownloadFailure(failure, false)).toBeTruthy();
+});
+
+describe("createExtensionNotification", () => {
+  beforeEach(() => {
+    global.browser.notifications = {
+      create: jest.fn(),
+      clear: jest.fn(),
+    };
+  });
+
+  afterEach(() => {
+    global.options = undefined;
+    jest.useRealTimers();
+  });
+
+  test("creates a notification and clears it after notifyDuration", () => {
+    jest.useFakeTimers();
+    global.options = { notifyDuration: 500 };
+
+    notification.createExtensionNotification("Title", "Message", false);
+
+    const [id, spec] = global.browser.notifications.create.mock.calls[0];
+    expect(id).toMatch(/^save-in-not-/);
+    expect(spec).toEqual({
+      type: "basic",
+      title: "Title",
+      iconUrl: "icons/ic_archive_black_128px.png",
+      message: "Message",
+    });
+
+    expect(global.browser.notifications.clear).not.toHaveBeenCalled();
+    jest.runAllTimers();
+    expect(global.browser.notifications.clear).toHaveBeenCalledWith(id);
+  });
+
+  test("falls back to i18n title/message and the error icon", () => {
+    global.options = {};
+
+    notification.createExtensionNotification(null, null, true);
+
+    const [, spec] = global.browser.notifications.create.mock.calls[0];
+    expect(spec.title).toBe("Translated<extensionName>");
+    expect(spec.message).toBe("Translated<genericUnknownError>");
+    expect(spec.iconUrl).toBe("icons/ic_error_outline_red_96px.png");
+    expect(global.browser.notifications.clear).not.toHaveBeenCalled();
+  });
+
+  test("skips the auto-clear timer when options are missing", () => {
+    global.options = undefined;
+
+    notification.createExtensionNotification("T", "M", false);
+
+    expect(global.browser.notifications.create).toHaveBeenCalled();
+    expect(global.browser.notifications.clear).not.toHaveBeenCalled();
+  });
+});
