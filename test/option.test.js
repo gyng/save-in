@@ -196,3 +196,17 @@ describe("OptionsManagement", () => {
     });
   });
 });
+
+describe("loadOptions resilience", () => {
+  test("ignores unknown stored keys instead of throwing", async () => {
+    vi.resetModules();
+    setupGlobals();
+    const OptionsManagement = (await import("../src/option.js")).default;
+    global.browser.storage.local.get = jest.fn(() =>
+      Promise.resolve({ conflictAction: "overwrite", someRemovedOption: 1 }),
+    );
+
+    const loaded = await OptionsManagement.loadOptions();
+    expect(loaded.conflictAction).toBe("overwrite");
+  });
+});

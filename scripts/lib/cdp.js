@@ -115,6 +115,25 @@ const evalInServiceWorker = async (port, extensionId, expression) => {
   }
 };
 
+// Dispatches trusted input events (Input domain) to the first target whose
+// URL contains urlSubstr. Synthetic DOM events don't carry legacy fields
+// like keyCode across content-script world boundaries; real input does.
+const dispatchInput = async (port, urlSubstr, events) => {
+  const target = (await listTargets(port)).find((t) => t.url.includes(urlSubstr));
+  if (!target) {
+    throw new Error(`No target matching "${urlSubstr}"`);
+  }
+  const cdp = await Cdp.connect(target.webSocketDebuggerUrl);
+  try {
+    for (const { method, params } of events) {
+      // eslint-disable-next-line no-await-in-loop
+      await cdp.send(method, params);
+    }
+  } finally {
+    cdp.close();
+  }
+};
+
 const openTab = async (port, url) => {
   const browser = await connectBrowser(port);
   try {
@@ -154,6 +173,7 @@ module.exports = {
   listTargets,
   evalInTarget,
   evalInServiceWorker,
+  dispatchInput,
   openTab,
   loadUnpacked,
   sleep,

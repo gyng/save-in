@@ -247,7 +247,7 @@ describe("menu creation", () => {
     test("keeps the comment (with dash munging) and menu index for routing", () => {
       menu.addPaths(["a // some-comment-x"], ["link"]);
 
-      expect(menu.pathMappings["save-in-0"].comment).toBe("0some_comment-x");
+      expect(menu.pathMappings["save-in-0"].comment).toBe("0some_comment_x");
       expect(menu.pathMappings["save-in-0"].menuIndex).toBe("1");
     });
 

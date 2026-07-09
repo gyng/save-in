@@ -31,8 +31,21 @@ const Shortcut = {
     }
   },
 
+  // The download URL's mime must match the intended extension, or browsers
+  // rewrite it (e.g. .desktop/.html shortcuts saved as .txt, #161)
+  mimeForType: (type) =>
+    ({
+      [SHORTCUT_TYPES.HTML_REDIRECT]: "text/html",
+      [SHORTCUT_TYPES.MAC]: "application/octet-stream",
+      [SHORTCUT_TYPES.WINDOWS]: "application/octet-stream",
+      [SHORTCUT_TYPES.FREEDESKTOP]: "application/octet-stream",
+    })[type] || "text/plain",
+
   makeShortcut: (type, url, title = currentTab && currentTab.title) =>
-    Download.makeObjectUrl(Shortcut.makeShortcutContent(type, url, title)),
+    Download.makeObjectUrl(
+      Shortcut.makeShortcutContent(type, url, title),
+      Shortcut.mimeForType(type),
+    ),
 
   suggestShortcutFilename: (shortcutType, downloadType, info, suggestedFilename, maxlen) => {
     const shortcutExtension = SHORTCUT_EXTENSIONS[shortcutType] || "";

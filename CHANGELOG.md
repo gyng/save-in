@@ -19,6 +19,14 @@ testing on Chromium!
   or mutated titles (#172, #188)
 - Download history actually accumulates now (previously only the last entry
   was kept) and is capped at 100 entries
+- Click-to-save and external-extension downloads no longer inherit the
+  previous download's filename or rename route
+- Shortcut files keep their extensions instead of being saved as .txt
+  (#161): the download mime now matches the shortcut type
+- Server-provided filenames containing a literal % no longer error out and
+  fall back to the URL filename
+- Empty menu aliases (`alias:` with no value) fall back to the path instead of a blank
+  menu item; multi-dash comments are munged consistently
 - New session-scoped debug log, viewable at the bottom of the options page
   (#159, #216)
 - Options page opens in a tab

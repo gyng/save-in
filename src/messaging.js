@@ -85,14 +85,22 @@ const Messaging = {
       opts.comment = comment;
     }
 
-    // Reuse the last download's directory, but never its route: that is a
-    // finalized rename for a different URL, and inheriting it would save
-    // this download under the previous download's routed filename.
-    // renameAndDownload re-evaluates the routing rules for this URL.
+    // Reuse the last download's directory and routing metadata
+    // (comment/menuindex rules stay usable), but never its route, filenames,
+    // or scratch: those describe a different URL, and inheriting them names
+    // this download after the previous one. renameAndDownload re-evaluates
+    // the routing rules and filenames for this URL.
     const clickState = {
       path: last.path || new Path.Path("."),
-      scratch: last.scratch,
-      info: Object.assign({}, last.info, opts, info),
+      scratch: {},
+      info: Object.assign(
+        {
+          menuIndex: last.info && last.info.menuIndex,
+          comment: last.info && last.info.comment,
+        },
+        opts,
+        info,
+      ),
     };
 
     requestedDownloadFlag = true;

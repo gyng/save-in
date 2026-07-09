@@ -132,12 +132,10 @@ describe("sanitizeBufStrings", () => {
     expect(new Path.Path("./x").finalize()).toBe("./x");
   });
 
-  test("maps segments with an undefined type to separators (Separator typo)", () => {
-    // PATH_SEGMENT_TYPES.Separator does not exist (the constant is SEPARATOR),
-    // so this branch only triggers for segments with type === undefined;
-    // real separator segments fall through to the final else untouched
-    const out = Path.sanitizeBufStrings([{ type: undefined, val: "anything" }]);
-    expect(out[0].val).toBe("/");
+  test("passes unknown-type segments through unchanged", () => {
+    const seg = { type: undefined, val: "anything" };
+    const out = Path.sanitizeBufStrings([seg]);
+    expect(out[0]).toBe(seg);
   });
 });
 

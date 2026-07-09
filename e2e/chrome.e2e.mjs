@@ -3,6 +3,7 @@
 // this file are sequential and build on each other's state.
 
 import fs from "fs";
+import http from "http";
 import path from "path";
 
 import cdp from "../scripts/lib/cdp.js";
@@ -249,6 +250,201 @@ test("fetchViaFetch downloads via fetch -> blob -> data URL", async () => {
 
   const file = path.join(DOWNLOADS, "e2e", "viafetch.txt");
   expect(fs.readFileSync(file, "utf8")).toBe("via fetch content");
+});
+
+test("options page autosave persists and reloads the background", async () => {
+  await evalOptions(`(() => {
+    const cb = document.querySelector("#prompt");
+    cb.checked = true;
+    cb.dispatchEvent(new Event("change", { bubbles: true }));
+    return "toggled";
+  })()`);
+  await cdp.sleep(1000);
+
+  const prompt = await evalSW(`window.ready.then(() => JSON.stringify(options.prompt))`);
+  expect(JSON.parse(prompt)).toBe(true);
+
+  await evalOptions(`(() => {
+    const cb = document.querySelector("#prompt");
+    cb.checked = false;
+    cb.dispatchEvent(new Event("change", { bubbles: true }));
+    return "restored";
+  })()`);
+  await cdp.sleep(1000);
+});
+
+test("shortcut files download with redirect content", async () => {
+  const downloads = JSON.parse(
+    await evalSW(`window.ready.then(() => {
+      requestedDownloadFlag = true;
+      return Download.renameAndDownload({
+        path: new Path.Path("e2e"),
+        scratch: {},
+        info: {
+          url: Shortcut.makeShortcut(SHORTCUT_TYPES.HTML_REDIRECT, "https://example.com/target"),
+          suggestedFilename: "page-shortcut.html",
+          pageUrl: "https://example.com/",
+          modifiers: [],
+        },
+      });
+    })
+    .then(() => new Promise(r => setTimeout(r, 2000)))
+    .then(() => browser.downloads.search({ filenameRegex: "page-shortcut" }))
+    .then((d) => JSON.stringify(d.map((x) => ({ state: x.state, filename: x.filename }))))`),
+  );
+  expect(downloads).toHaveLength(1);
+  expect(downloads[0].state).toBe("complete");
+  // text/html mime keeps Chrome from rewriting the extension (#161)
+  expect(downloads[0].filename.endsWith("page-shortcut.html")).toBe(true);
+  expect(fs.readFileSync(downloads[0].filename, "utf8")).toContain(
+    'window.location.href = "https://example.com/target"',
+  );
+});
+
+test("failed downloads are recorded in the debug log", async () => {
+  const entries = JSON.parse(
+    await evalSW(`window.ready.then(() => {
+      requestedDownloadFlag = true;
+      return Download.renameAndDownload({
+        path: new Path.Path("e2e"),
+        scratch: {},
+        info: {
+          // Nothing listens on port 1
+          url: "http://127.0.0.1:1/unreachable.bin",
+          suggestedFilename: "unreachable.bin",
+          pageUrl: "https://example.com/",
+          modifiers: [],
+        },
+      });
+    })
+    .then(() => new Promise(r => setTimeout(r, 3000)))
+    .then(() => Log.get())
+    .then((log) => JSON.stringify(log.filter((e) => e.message === "download failed").length))`),
+  );
+  expect(entries).toBeGreaterThanOrEqual(1);
+});
+
+test("alt+click on a real page saves the image through the content script", async () => {
+  // Serve a page with an image so the content script has something real
+  const png = Buffer.from(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+    "base64",
+  );
+  const server = http.createServer((req, res) => {
+    if (req.url === "/pic.png") {
+      res.writeHead(200, { "Content-Type": "image/png" });
+      res.end(png);
+    } else {
+      res.writeHead(200, { "Content-Type": "text/html" });
+      res.end('<html><body><img id="img" src="/pic.png"></body></html>');
+    }
+  });
+  await new Promise((res) => {
+    server.listen(8917, "127.0.0.1", res);
+  });
+
+  try {
+    await evalSW(
+      `browser.storage.local.set({ contentClickToSave: true })
+        .then(() => window.reset())
+        .then(() => "enabled")`,
+    );
+
+    await cdp.openTab(PORT, "http://127.0.0.1:8917/");
+    await cdp.sleep(2000);
+
+    // Synthetic DOM events don't carry keyCode/buttons across the content
+    // script's isolated-world boundary: dispatch trusted input via CDP
+    const target = JSON.parse(
+      await cdp.evalInTarget(
+        PORT,
+        "127.0.0.1:8917",
+        `(() => {
+          const rect = document.getElementById("img").getBoundingClientRect();
+          return JSON.stringify({
+            x: rect.left + rect.width / 2,
+            y: rect.top + rect.height / 2,
+          });
+        })()`,
+      ),
+    );
+
+    await cdp.dispatchInput(PORT, "127.0.0.1:8917", [
+      {
+        method: "Input.dispatchKeyEvent",
+        params: {
+          type: "keyDown",
+          key: "Alt",
+          code: "AltLeft",
+          windowsVirtualKeyCode: 18,
+          nativeVirtualKeyCode: 18,
+          modifiers: 1,
+        },
+      },
+      {
+        method: "Input.dispatchMouseEvent",
+        params: {
+          type: "mousePressed",
+          x: target.x,
+          y: target.y,
+          button: "left",
+          buttons: 1,
+          clickCount: 1,
+          modifiers: 1,
+        },
+      },
+      {
+        method: "Input.dispatchMouseEvent",
+        params: {
+          type: "mouseReleased",
+          x: target.x,
+          y: target.y,
+          button: "left",
+          buttons: 0,
+          clickCount: 1,
+          modifiers: 1,
+        },
+      },
+      {
+        method: "Input.dispatchKeyEvent",
+        params: {
+          type: "keyUp",
+          key: "Alt",
+          code: "AltLeft",
+          windowsVirtualKeyCode: 18,
+          nativeVirtualKeyCode: 18,
+        },
+      },
+    ]);
+
+    const download = JSON.parse(
+      await evalSW(
+        `new Promise(r => setTimeout(r, 3000))
+          .then(() => browser.downloads.search({ filenameRegex: "pic" }))
+          .then((d) => JSON.stringify(d.map((x) => ({ state: x.state, filename: x.filename }))))`,
+      ),
+    );
+
+    if (download.length !== 1) {
+      console.log(
+        "DIAG:",
+        await evalSW(
+          `Promise.all([Log.get(), browser.downloads.search({}), browser.storage.local.get("contentClickToSave")])
+            .then(([log, d, o]) => JSON.stringify({
+              log: log.slice(-5),
+              downloads: d.map((x) => x.filename.slice(-30)),
+              option: o,
+            }))`,
+        ),
+      );
+    }
+
+    expect(download).toHaveLength(1);
+    expect(download[0].state).toBe("complete");
+    expect(fs.readFileSync(download[0].filename)).toEqual(png);
+  } finally {
+    server.close();
+  }
 });
 
 test("history and the debug log record the session's downloads", async () => {

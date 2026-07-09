@@ -262,16 +262,16 @@ describe("filename rewrite and routing", () => {
       const matcher = router.matcherFunctions.menuindex(new RegExp("^2$"));
       expect(matcher(info, { menuIndex: "2" })[0]).toBe("2");
       expect(matcher(info, { menuIndex: "3" })).toBe(null);
-      // current behavior: calling without an options object throws
-      expect(() => matcher(info)).toThrow(TypeError);
+      // missing menu metadata is treated as no match
+      expect(matcher(info)).toBe(null);
     });
 
     test("comment", () => {
       const matcher = router.matcherFunctions.comment(new RegExp("save"));
       expect(matcher(info, { comment: "save here" })[0]).toBe("save");
       expect(matcher(info, { comment: "other" })).toBe(null);
-      // current behavior: calling without an options object throws
-      expect(() => matcher(info)).toThrow(TypeError);
+      // missing menu metadata is treated as no match
+      expect(matcher(info)).toBe(null);
     });
 
     test("fileext falls back through URL fields", () => {

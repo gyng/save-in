@@ -135,9 +135,7 @@ const Path = {
         return s;
       }
 
-      if (s.type === PATH_SEGMENT_TYPES.Separator) {
-        return Path.PathSegment.String("/");
-      } else if (s.type === PATH_SEGMENT_TYPES.STRING) {
+      if (s.type === PATH_SEGMENT_TYPES.STRING) {
         // This allows for Path segments [(STRING, foofilename), (STRING, .bar)]
         // but forbids [(SEPARATOR, /), (STRING, .bar)]
         // STRING followed by a STRING can happen in filename rewrites

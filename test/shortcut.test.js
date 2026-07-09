@@ -78,6 +78,7 @@ describe("makeShortcut", () => {
 
     expect(global.Download.makeObjectUrl).toHaveBeenCalledWith(
       expect.stringContaining("Name=Explicit Title"),
+      "application/octet-stream",
     );
   });
 
@@ -88,6 +89,7 @@ describe("makeShortcut", () => {
 
     expect(global.Download.makeObjectUrl).toHaveBeenCalledWith(
       expect.stringContaining("Name=Current Tab Title"),
+      "application/octet-stream",
     );
   });
 
@@ -98,6 +100,7 @@ describe("makeShortcut", () => {
 
     expect(global.Download.makeObjectUrl).toHaveBeenCalledWith(
       expect.stringContaining("Name=https://example.com"),
+      "application/octet-stream",
     );
     expect(result).toBe(
       "objurl:" + shortcut.makeShortcutContent(SHORTCUT_TYPES.FREEDESKTOP, "https://example.com"),
@@ -281,5 +284,28 @@ describe("suggestShortcutFilename", () => {
     );
 
     expect(global.Path.sanitizeFilename).toHaveBeenCalledWith("link", 100 - 4); // ".url" is 4 chars
+  });
+});
+
+describe("shortcut mime types (#161)", () => {
+  beforeEach(() => {
+    global.SHORTCUT_TYPES = constants.SHORTCUT_TYPES;
+    global.Download = { makeObjectUrl: jest.fn((content) => `objurl:${content}`) };
+    global.currentTab = { title: "t" };
+  });
+
+  test("HTML redirects are served as text/html so browsers keep .html", () => {
+    shortcut.makeShortcut(constants.SHORTCUT_TYPES.HTML_REDIRECT, "https://x/");
+    expect(global.Download.makeObjectUrl).toHaveBeenCalledWith(expect.any(String), "text/html");
+  });
+
+  test(".url and .desktop shortcuts use octet-stream so browsers keep the extension", () => {
+    for (const type of ["MAC", "WINDOWS", "FREEDESKTOP"]) {
+      shortcut.makeShortcut(constants.SHORTCUT_TYPES[type], "https://x/");
+      expect(global.Download.makeObjectUrl).toHaveBeenLastCalledWith(
+        expect.any(String),
+        "application/octet-stream",
+      );
+    }
   });
 });

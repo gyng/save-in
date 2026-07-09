@@ -202,25 +202,33 @@ describe("handleDownloadMessage", () => {
     });
   });
 
-  test("reuses the last download's path and scratch but never its route", () => {
+  test("reuses the last path and routing metadata, never filenames or routes", () => {
     const lastPath = new FakePath("images/cats");
     global.window.lastDownloadState = {
       path: lastPath,
       scratch: { hasExtension: true },
       route: new FakePath("stale/route/from/other.png"),
-      info: { comment: "0last", menuIndex: "1" },
+      info: {
+        comment: "0last",
+        menuIndex: "1",
+        suggestedFilename: "previous-download.png",
+        filename: "previous-download.png",
+      },
     };
 
     onMessage(request(), {}, vi.fn());
 
     const state = global.Download.renameAndDownload.mock.calls[0][0];
     expect(state.path).toBe(lastPath);
-    expect(state.scratch).toEqual({ hasExtension: true });
-    // Inheriting the previous route would rename this download to the
-    // previous download's routed filename
+    // Inheriting the previous route, filename, or scratch would name this
+    // download after the previous one (found live by the alt+click e2e)
     expect(state).not.toHaveProperty("route");
-    // last.info is merged under the new request's info
+    expect(state.info.suggestedFilename).toBeUndefined();
+    expect(state.info.filename).toBeUndefined();
+    expect(state.scratch).toEqual({});
+    // Routing metadata is kept so comment/menuindex rules stay usable
     expect(state.info.menuIndex).toBe("1");
+    expect(state.info.comment).toBe("0last");
     expect(state.info.url).toBe("https://x/file.png");
   });
 

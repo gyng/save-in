@@ -62,7 +62,7 @@ const Router = {
     menuindex:
       (regex) =>
       (info, { menuIndex } = {}) => {
-        const match = menuIndex.match(regex);
+        const match = menuIndex == null ? null : menuIndex.match(regex);
 
         if (window.SI_DEBUG && match) {
           console.log("matched", match, regex, info); // eslint-disable-line
@@ -73,7 +73,7 @@ const Router = {
     comment:
       (regex) =>
       (info, { comment } = {}) => {
-        const match = comment.match(regex);
+        const match = comment == null ? null : comment.match(regex);
 
         if (window.SI_DEBUG && match) {
           console.log("matched", match, regex, info); // eslint-disable-line

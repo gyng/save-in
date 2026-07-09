@@ -149,6 +149,10 @@ OptionsManagement.loadOptions = () =>
     const localKeys = Object.keys(loadedOptions);
     localKeys.forEach((k) => {
       const optionType = OptionsManagement.OPTION_KEYS.find((ok) => ok.name === k);
+      if (!optionType) {
+        // A key from a removed option (or foreign storage) must not break load
+        return;
+      }
       const fn = optionType.onLoad || ((x) => x);
       OptionsManagement.setOption(k, fn(loadedOptions[k]));
     });

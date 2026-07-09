@@ -217,7 +217,8 @@ const Menus = {
           return;
         }
 
-        const title = meta.alias != null ? meta.alias : parsedDir;
+        // An empty alias `(alias: )` must not produce an empty menu title
+        const title = meta.alias ? meta.alias : parsedDir;
 
         // splice the counter to fit current depth, resetting the farther depths
         menuItemCounter.splice(depth + 1);
@@ -229,7 +230,7 @@ const Menus = {
         const id = `save-in-${i}`;
         Menus.pathMappings[id] = {
           parsedDir,
-          comment: `${i}${comment.replace("-", "_")}`,
+          comment: `${i}${comment.replaceAll("-", "_")}`,
           menuIndex: menuItemCounter.join("."),
           title,
           depth,

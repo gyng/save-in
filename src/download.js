@@ -63,7 +63,16 @@ const Download = {
     const filenameFromLib = getFilenameFromContentDispositionHeader(disposition);
 
     if (filenameFromLib) {
-      return decodeURIComponent(decodeURIComponent(filenameFromLib));
+      // Some servers double-encode; decode at most twice, but a filename
+      // with a literal % (e.g. "50%.txt") must not throw and lose the name
+      const safeDecode = (s) => {
+        try {
+          return decodeURIComponent(s);
+        } catch (e) {
+          return s;
+        }
+      };
+      return safeDecode(safeDecode(filenameFromLib));
     }
 
     return null;
@@ -111,7 +120,7 @@ const Download = {
       }
 
       if (window.SI_DEBUG) {
-        console.log(state, finalFullPath); // eslint-disable-line
+        console.log(_state, finalFullPath); // eslint-disable-line
       }
 
       _state.scratch.hasExtension = finalFullPath && finalFullPath.match(Download.EXTENSION_REGEX);
@@ -120,7 +129,7 @@ const Download = {
         options.promptOnShift &&
         _state.info.modifiers &&
         typeof _state.info.modifiers.find((m) => m === "Shift") !== "undefined";
-      const noRuleMatchedPrompt = options.routeFailurePrompt && !state.route;
+      const noRuleMatchedPrompt = options.routeFailurePrompt && !_state.route;
 
       const prompt = options.prompt || noExtensionPrompt || shiftHeldPrompt || noRuleMatchedPrompt;
 

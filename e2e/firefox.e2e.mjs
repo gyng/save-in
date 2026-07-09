@@ -143,6 +143,68 @@ test("message-driven downloads work and never inherit a stale route", async () =
   expect(states).toEqual(["complete"]);
 });
 
+test("shortcut files keep their extension and redirect content", async () => {
+  const downloads = JSON.parse(
+    await session.evaluate(
+      `window.ready.then(() => {
+        requestedDownloadFlag = true;
+        return Download.renameAndDownload({
+          path: new Path.Path("e2e"),
+          scratch: {},
+          info: {
+            url: Shortcut.makeShortcut(SHORTCUT_TYPES.HTML_REDIRECT, "https://example.com/target"),
+            suggestedFilename: "page-shortcut.html",
+            pageUrl: "https://example.com/",
+            modifiers: [],
+          },
+        });
+      })
+      .then(() => new Promise(r => setTimeout(r, 3000)))
+      .then(() => browser.downloads.search({}))
+      .then((d) => JSON.stringify(
+        d.filter((x) => x.filename.includes("page-shortcut"))
+          .map((x) => ({ state: x.state, filename: x.filename }))
+      ))`,
+      45000,
+    ),
+  );
+
+  expect(downloads).toHaveLength(1);
+  expect(downloads[0].state).toBe("complete");
+  expect(downloads[0].filename.endsWith("page-shortcut.html")).toBe(true);
+  expect(fs.readFileSync(downloads[0].filename, "utf8")).toContain(
+    'window.location.href = "https://example.com/target"',
+  );
+});
+
+test("failed downloads are recorded in the debug log", async () => {
+  const entries = JSON.parse(
+    await session.evaluate(
+      `window.ready.then(() => {
+        requestedDownloadFlag = true;
+        return Download.renameAndDownload({
+          path: new Path.Path("e2e"),
+          scratch: {},
+          info: {
+            // Nothing listens on port 1
+            url: "http://127.0.0.1:1/unreachable.bin",
+            suggestedFilename: "unreachable.bin",
+            pageUrl: "https://example.com/",
+            modifiers: [],
+          },
+        });
+      })
+      .then(() => new Promise(r => setTimeout(r, 4000)))
+      .then(() => Log.get())
+      .then((log) => JSON.stringify(
+        log.filter((e) => e.message === "download failed" || e.message === "downloads.download failed").length
+      ))`,
+      45000,
+    ),
+  );
+  expect(entries).toBeGreaterThanOrEqual(1);
+});
+
 test("history and the debug log record the session's downloads", async () => {
   const records = JSON.parse(
     await session.evaluate(

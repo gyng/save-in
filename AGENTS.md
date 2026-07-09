@@ -79,15 +79,15 @@ to Firefox too.
 
 ## Iteration workflow
 
-| Command                           | What it does                                                                                                                                                                                                      |
-| --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `npm test` / `npm run test:watch` | vitest unit tests (jsdom + jest-webextension-mock via a vi alias); npm run test:coverage enforces 95%-line thresholds on src/ (vendor, options page, SW bootstrap excluded)                                       |
-| `npm run lint`                    | web-ext lint (Firefox manifest) + oxlint + oxfmt --check                                                                                                                                                          |
+| Command                           | What it does                                                                                                                                                                 |
+| --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm test` / `npm run test:watch` | vitest unit tests (jsdom + jest-webextension-mock via a vi alias); npm run test:coverage enforces 95%-line thresholds on src/ (vendor, options page, SW bootstrap excluded)  |
+| `npm run lint`                    | web-ext lint (Firefox manifest) + oxlint + oxfmt --check                                                                                                                     |
 | `npm run e2e:chrome`              | vitest e2e suite (~15s): isolated Chrome over CDP, drives the real download pipeline — SW lifecycle, CSP, routing rules, messaging, session persistence (e2e/chrome.e2e.mjs) |
-| `npm run e2e:firefox`             | vitest e2e suite for Firefox on a throwaway profile via RDP (e2e/firefox.e2e.mjs)                                                                                                                                        |
-| `npm run d:chrome`                | dev loop: isolated Chrome + auto restage/reload on file save                                                                                                                                                      |
-| `npm run d`                       | web-ext Firefox dev instance                                                                                                                                                                                      |
-| `npm run build`                   | one zip for both stores (web-ext)                                                                                                                                                                                 |
+| `npm run e2e:firefox`             | vitest e2e suite for Firefox on a throwaway profile via RDP (e2e/firefox.e2e.mjs)                                                                                            |
+| `npm run d:chrome`                | dev loop: isolated Chrome + auto restage/reload on file save                                                                                                                 |
+| `npm run d`                       | web-ext Firefox dev instance                                                                                                                                                 |
+| `npm run build`                   | one zip for both stores (web-ext)                                                                                                                                            |
 
 Chrome ≥ 137 ignores `--load-extension`; the scripts load an unpacked copy
 (staged by `scripts/stage.js` into `dist/unpacked` — the repo root can't be

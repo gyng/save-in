@@ -125,6 +125,21 @@ describe("getFilenameFromContentDisposition", () => {
     );
   });
 
+  test("keeps filenames with a literal % that is not an escape", () => {
+    global.getFilenameFromContentDispositionHeader = jest.fn(() => "50%.txt");
+    expect(Download.getFilenameFromContentDisposition("attachment; filename=whatever")).toBe(
+      "50%.txt",
+    );
+  });
+
+  test("stops decoding when a second pass would fail", () => {
+    // one valid decode, then the result is no longer a valid escape sequence
+    global.getFilenameFromContentDispositionHeader = jest.fn(() => "%2550%25.txt");
+    expect(Download.getFilenameFromContentDisposition("attachment; filename=whatever")).toBe(
+      "%50%.txt",
+    );
+  });
+
   test("returns null when the library returns a falsy value", () => {
     global.getFilenameFromContentDispositionHeader = jest.fn(() => null);
     expect(Download.getFilenameFromContentDisposition("attachment")).toBe(null);
