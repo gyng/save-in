@@ -258,6 +258,7 @@ describe("text/visual mode toggle", () => {
     document.body.innerHTML = `
       <button type="button" class="editor-tab active" id="paths-mode-text">Text</button>
       <button type="button" class="editor-tab" id="paths-mode-visual">Visual</button>
+      <div id="paths-text-help"></div>
       <details id="paths-insert-menu"></details>
       <textarea id="paths">a</textarea>
       <div id="error-paths"></div>
@@ -277,6 +278,7 @@ describe("text/visual mode toggle", () => {
 
     expect(document.querySelector("#paths").hidden).toBe(true);
     expect(document.querySelector("#paths-insert-menu").hidden).toBe(true);
+    expect(document.querySelector("#paths-text-help").hidden).toBe(true);
     expect(document.querySelector("#paths-visual").hidden).toBe(false);
     expect(document.querySelector("#paths-mode-visual").classList.contains("active")).toBe(true);
     expect(PathEditor.rebuildVisual).toHaveBeenCalled();
@@ -289,5 +291,47 @@ describe("text/visual mode toggle", () => {
     expect(document.querySelector("#paths").hidden).toBe(false);
     expect(document.querySelector("#paths-visual").hidden).toBe(true);
     expect(document.querySelector("#paths-mode-text").classList.contains("active")).toBe(true);
+  });
+});
+
+describe("visual editor drag and drop", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    document.body.innerHTML = `
+      <textarea id="paths">a\nb\nc</textarea>
+      <div id="path-editor-rows"></div>
+    `;
+    global.browser.runtime.sendMessage = vi.fn(() => Promise.resolve({}));
+    PathEditor.setupVisualEditor();
+    vi.advanceTimersByTime(1500);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    document.body.innerHTML = "";
+  });
+
+  test("dropping a dragged row onto another reorders the lines", () => {
+    const rows = document.querySelectorAll(".path-editor-row");
+    // Drag row 0 ("a") and drop it on row 2 ("c")
+    rows[0].querySelector(".path-editor-handle").dispatchEvent(new Event("dragstart"));
+    rows[2].dispatchEvent(new Event("drop"));
+
+    expect(document.querySelector("#paths").value).toBe("b\nc\na");
+  });
+
+  test("dropping a row on itself is a no-op", () => {
+    const rows = document.querySelectorAll(".path-editor-row");
+    rows[1].querySelector(".path-editor-handle").dispatchEvent(new Event("dragstart"));
+    rows[1].dispatchEvent(new Event("drop"));
+
+    expect(document.querySelector("#paths").value).toBe("a\nb\nc");
+  });
+
+  test("a drop without a drag is ignored", () => {
+    const rows = document.querySelectorAll(".path-editor-row");
+    rows[0].dispatchEvent(new Event("drop"));
+
+    expect(document.querySelector("#paths").value).toBe("a\nb\nc");
   });
 });

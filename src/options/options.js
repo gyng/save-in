@@ -490,6 +490,23 @@ const updateMenuPreview = () => {
   document.querySelectorAll(type).forEach(setupAutosave);
 });
 
+// Explicit apply: autosave already persists (debounced for textareas);
+// these buttons save immediately and refresh the validation + preview panes
+document.querySelectorAll("[data-apply]").forEach((button) => {
+  button.addEventListener("click", () => {
+    saveOptions();
+    window.setTimeout(() => {
+      updateErrors();
+      updateMenuPreview();
+    }, 200);
+    const original = button.textContent;
+    button.textContent = "✓";
+    window.setTimeout(() => {
+      button.textContent = original;
+    }, 900);
+  });
+});
+
 const showJson = (obj) => {
   const json = JSON.stringify(obj, null, 2);
   /** @type {HTMLTextAreaElement} */

@@ -200,6 +200,7 @@ const PathEditor = {
     const visualButton = document.querySelector("#paths-mode-visual");
     /** @type {HTMLElement[]} */
     const textElements = [
+      document.querySelector("#paths-text-help"),
       document.querySelector("#paths-insert-menu"),
       document.querySelector("#paths"),
       document.querySelector("#error-paths"),
@@ -230,26 +231,13 @@ const PathEditor = {
     /** @type {HTMLTextAreaElement} */
     const textarea = document.querySelector("#paths");
     const container = document.querySelector("#path-editor-rows");
-    const previewContainer = document.querySelector("#menu-preview-tree-visual");
     if (!textarea || !container) {
       return;
     }
 
     let rows = [];
-
-    const refreshPreview = () => {
-      if (!previewContainer || typeof renderMenuPreview !== "function") {
-        return;
-      }
-      browser.runtime
-        .sendMessage({ type: "PREVIEW_MENUS", body: { paths: textarea.value } })
-        .then((response) => {
-          if (response && response.body) {
-            renderMenuPreview(previewContainer, response.body);
-          }
-        })
-        .catch(() => {});
-    };
+    // Index being dragged via a row handle; null when no drag is active
+    let dragFrom = null;
 
     // Serialize rows back to the textarea (the source of truth) and let
     // the normal pipeline (autosave, previews) react
@@ -264,6 +252,50 @@ const PathEditor = {
       rows.forEach((row, index) => {
         const rowEl = document.createElement("div");
         rowEl.className = "path-editor-row";
+
+        // Drag to reorder: only the handle starts a drag (a draggable row
+        // would fight text selection in the inputs); any row is a target
+        const handle = document.createElement("span");
+        handle.className = "path-editor-handle";
+        handle.textContent = "⠿";
+        handle.title = "drag to reorder";
+        handle.draggable = true;
+        handle.addEventListener("dragstart", (e) => {
+          dragFrom = index;
+          rowEl.classList.add("dragging");
+          if (e.dataTransfer) {
+            // Firefox requires data for a drag to start
+            e.dataTransfer.setData("text/plain", String(index));
+            e.dataTransfer.effectAllowed = "move";
+          }
+        });
+        handle.addEventListener("dragend", () => {
+          dragFrom = null;
+          rowEl.classList.remove("dragging");
+        });
+        rowEl.appendChild(handle);
+
+        rowEl.addEventListener("dragover", (e) => {
+          if (dragFrom !== null) {
+            e.preventDefault();
+            rowEl.classList.add("drag-over");
+          }
+        });
+        rowEl.addEventListener("dragleave", () => {
+          rowEl.classList.remove("drag-over");
+        });
+        rowEl.addEventListener("drop", (e) => {
+          e.preventDefault();
+          rowEl.classList.remove("drag-over");
+          if (dragFrom === null || dragFrom === index) {
+            return;
+          }
+          const [moved] = rows.splice(dragFrom, 1);
+          rows.splice(index, 0, moved);
+          dragFrom = null;
+          commit();
+          rebuild();
+        });
 
         const indentEl = document.createElement("span");
         indentEl.className = "path-editor-indent";
@@ -364,7 +396,6 @@ const PathEditor = {
     const rebuild = () => {
       rows = PathEditor.linesToRows(textarea.value);
       render();
-      refreshPreview();
     };
     // The mode toggle forces a rebuild when switching into visual mode
     PathEditor.rebuildVisual = rebuild;

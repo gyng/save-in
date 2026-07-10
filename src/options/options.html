@@ -37,28 +37,26 @@
     <form id="options">
       <h2 id="section-downloads">__MSG_o_sDownloads__</h2>
 
-      <div class="paths-editor">
-        <label class="column">
-          <h3>__MSG_o_sDirectories__</h3>
-          <p>
-            <a class="external" href="variablelist.html" target="_blank">__MSG_o_lVariableList__</a>
-          </p>
-          <p>
-            <a href="#" class="help learn-more" data-help-for="help-paths"
-              >__MSG_o_lGuideCreateMenuItems__</a
-            >
-          </p>
-          <div class="help-text" id="help-paths">
-            <h4>Creating context menu items</h4>
-            <p>
-              To create a menu item to save <code>cat.jpg</code> into the directory
-              <code>~/downloads/i/cats</code>, with <code>~/downloads</code> as the default download
-              directory, add the line <code>i/cats</code>.
-            </p>
+      <h3>__MSG_o_sDirectories__</h3>
+      <p>
+        <a class="external" href="variablelist.html" target="_blank">__MSG_o_lVariableList__</a>
+      </p>
+      <p>
+        <a href="#" class="help learn-more" data-help-for="help-paths"
+          >__MSG_o_lGuideCreateMenuItems__</a
+        >
+      </p>
+      <div class="help-text" id="help-paths">
+        <h4>Creating context menu items</h4>
+        <p>
+          To create a menu item to save <code>cat.jpg</code> into the directory
+          <code>~/downloads/i/cats</code>, with <code>~/downloads</code> as the default download
+          directory, add the line <code>i/cats</code>.
+        </p>
 
-            <div class="demo-box" style="margin-top: 12px; align-items: flex-start">
-              <div class="demo-code left">
-                <pre class="click-to-copy">
+        <div class="demo-box" style="margin-top: 12px; align-items: flex-start">
+          <div class="demo-code left">
+            <pre class="click-to-copy">
 .
 i/dogs
 i/cats // cute!
@@ -72,12 +70,12 @@ submenu
 >>i/dogs
 >i/others
 </pre>
-                <div class="caption">Settings</div>
-              </div>
-              <div class="demo-arrow">➡</div>
+            <div class="caption">Settings</div>
+          </div>
+          <div class="demo-arrow">➡</div>
 
-              <div class="demo-code">
-                <pre>
+          <div class="demo-code">
+            <pre>
 ~/downloads/
 ~/downloads/i/dogs
 ~/downloads/i/cats
@@ -91,98 +89,90 @@ submenu
 ~/downloads/i/dogs
 ~/downloads/i/others
 </pre>
-                <div class="caption">Default download dir <code>~/downloads</code></div>
-              </div>
-
-              <div class="demo-arrow">➡</div>
-
-              <pre class="demo-pic" style="background-image: url(i/menu-items.png)"></pre>
-            </div>
-
-            <h4>Comments and aliases</h4>
-
-            <p>
-              To add comments, add <code>//</code> to the end of a line. For example,
-              <code>cats // very cute!</code>.
-            </p>
-
-            <p>
-              To change display names of menu items, add
-              <code>(alias: display name)</code> to comments. For example,
-              <code>cats // very cute! (alias: cute cats)</code>. The menu item will then show "cute
-              cats" instead of "cats".
-            </p>
-
-            <p>To change the shortcut key, use <code>(key: f)</code> to manually assign one.</p>
-
-            <h4>Submenus</h4>
-
-            <p>
-              To create submenus, add <code>&gt;</code>s to the line itself. An example can be seen
-              above.
-            </p>
-
-            <p>
-              Note: You can only save relative to the default download directory. See the next guide
-              for a workaround.
-            </p>
+            <div class="caption">Default download dir <code>~/downloads</code></div>
           </div>
 
-          <p>
-            <a href="#" class="help learn-more" data-help-for="help-symlink"
-              >__MSG_o_lGuideSymlink__</a
-            >
-          </p>
-          <div class="help-text" id="help-symlink">
-            <h4>Saving outside the default download directory</h4>
-            <p>
-              The WebExtensions API does not allow files to be saved outside of the default download
-              directory. A
-              <a class="external" href="https://en.wikipedia.org/wiki/Symbolic_link" target="_blank"
-                >symlink</a
-              >
-              inside the default download directory can be used to get around this limitation.
-            </p>
+          <div class="demo-arrow">➡</div>
 
-            <p>
-              Invalid paths ( <code>..</code> and <code>/</code>) are ignored. Files and directories
-              with leading dots ( <code>foo/.hidden</code>) are considered invalid by Firefox and
-              Chrome.
-            </p>
+          <pre class="demo-pic" style="background-image: url(i/menu-items.png)"></pre>
+        </div>
 
-            <br />
-            <a
-              class="external"
-              href="https://technet.microsoft.com/en-us/library/cc753194(v=ws.11).aspx"
-              target="_blank"
-            >
-              Windows
-            </a>
-            <pre class="click-to-copy">mklink /D C:\path\to\symlink D:\path\to\actual</pre>
+        <h4>Comments and aliases</h4>
 
-            <a
-              class="external"
-              href="http://manpages.ubuntu.com/manpages/xenial/man1/ln.1.html"
-              target="_blank"
-            >
-              macOS/Unix
-            </a>
-            <pre class="click-to-copy">ln -s /path/to/actual /path/to/symlink</pre>
+        <p>
+          To add comments, add <code>//</code> to the end of a line. For example,
+          <code>cats // very cute!</code>.
+        </p>
 
-            <p>
-              Make sure the target directories actually exist, or the extension will silently fail
-              to download.
-            </p>
-          </div>
+        <p>
+          To change display names of menu items, add
+          <code>(alias: display name)</code> to comments. For example,
+          <code>cats // very cute! (alias: cute cats)</code>. The menu item will then show "cute
+          cats" instead of "cats".
+        </p>
 
-          <p>
-            __MSG_o_lDirectoryInstructionOnePerLine__
-            <code>.</code> __MSG_o_lDirectoryInstructionDot__
-            <code>//</code> __MSG_o_lDirectoryInstructionComment__
-            <code>&gt;</code> __MSG_o_lSubdirectoryInstructionComment__
-          </p>
-          <p>__MSG_o_lDirectoryInstructionSymlink__</p>
+        <p>To change the shortcut key, use <code>(key: f)</code> to manually assign one.</p>
 
+        <h4>Submenus</h4>
+
+        <p>
+          To create submenus, add <code>&gt;</code>s to the line itself. An example can be seen
+          above.
+        </p>
+
+        <p>
+          Note: You can only save relative to the default download directory. See the next guide for
+          a workaround.
+        </p>
+      </div>
+
+      <p>
+        <a href="#" class="help learn-more" data-help-for="help-symlink">__MSG_o_lGuideSymlink__</a>
+      </p>
+      <div class="help-text" id="help-symlink">
+        <h4>Saving outside the default download directory</h4>
+        <p>
+          The WebExtensions API does not allow files to be saved outside of the default download
+          directory. A
+          <a class="external" href="https://en.wikipedia.org/wiki/Symbolic_link" target="_blank"
+            >symlink</a
+          >
+          inside the default download directory can be used to get around this limitation.
+        </p>
+
+        <p>
+          Invalid paths ( <code>..</code> and <code>/</code>) are ignored. Files and directories
+          with leading dots ( <code>foo/.hidden</code>) are considered invalid by Firefox and
+          Chrome.
+        </p>
+
+        <br />
+        <a
+          class="external"
+          href="https://technet.microsoft.com/en-us/library/cc753194(v=ws.11).aspx"
+          target="_blank"
+        >
+          Windows
+        </a>
+        <pre class="click-to-copy">mklink /D C:\path\to\symlink D:\path\to\actual</pre>
+
+        <a
+          class="external"
+          href="http://manpages.ubuntu.com/manpages/xenial/man1/ln.1.html"
+          target="_blank"
+        >
+          macOS/Unix
+        </a>
+        <pre class="click-to-copy">ln -s /path/to/actual /path/to/symlink</pre>
+
+        <p>
+          Make sure the target directories actually exist, or the extension will silently fail to
+          download.
+        </p>
+      </div>
+
+      <div class="paths-editor">
+        <label class="column">
           <div class="editor-tabs">
             <button type="button" class="editor-tab active" id="paths-mode-text">
               __MSG_o_lEditorModeText__
@@ -190,6 +180,17 @@ submenu
             <button type="button" class="editor-tab" id="paths-mode-visual">
               __MSG_o_sVisualEditor__
             </button>
+            <button type="button" class="apply-button" data-apply>__MSG_o_bApply__</button>
+          </div>
+
+          <div id="paths-text-help">
+            <p>
+              __MSG_o_lDirectoryInstructionOnePerLine__
+              <code>.</code> __MSG_o_lDirectoryInstructionDot__
+              <code>//</code> __MSG_o_lDirectoryInstructionComment__
+              <code>&gt;</code> __MSG_o_lSubdirectoryInstructionComment__
+            </p>
+            <p>__MSG_o_lDirectoryInstructionSymlink__</p>
           </div>
 
           <details class="insert-menu" id="paths-insert-menu">
@@ -419,6 +420,8 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
           spellcheck="false"
         ></textarea>
         <div class="error-notification" id="error-filenamePatterns">errors</div>
+
+        <p><button type="button" class="apply-button" data-apply>__MSG_o_bApply__</button></p>
 
         <div class="rule-builder">
           <div class="caption">__MSG_o_lRuleBuilder__</div>
