@@ -681,7 +681,6 @@ input.key {
   width: 100%;
   box-sizing: border-box;
   padding-bottom: var(--space-6);
-  animation: tab-fade 0.15s ease;
 }
 
 .tab-panel.active {
@@ -741,17 +740,6 @@ input.key {
    own caps; everything else gets a comfortable width */
 .tab-panel input[type="text"]:not(.key):not(#replacementChar) {
   max-width: 340px;
-}
-
-@keyframes tab-fade {
-  from {
-    opacity: 0;
-    transform: translateY(2px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
 }
 
 /* Panel titles (the section h2s, incl. ones wrapped in a label.column) */

@@ -315,7 +315,7 @@
   },
 
   "o_lAccessKeysInstruction": {
-    "message": "Ange åtkomstnycklar till menyobjekt för Save In. Chrome, Firefox >= 63."
+    "message": "Ange åtkomstnycklar till menyobjekt för Save In."
   },
 
   "o_cLastUsedMenu": {
