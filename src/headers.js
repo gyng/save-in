@@ -1,4 +1,10 @@
 const RequestHeaders = {
+  // requestId -> state. Firefox keeps requestId stable across a redirect chain,
+  // so binding the state to it on the first leg means a redirected leg (a
+  // different URL, e.g. a hotlink CDN's signed target) still gets the right
+  // page's referer, and concurrent downloads never cross over (#66, #193).
+  refererStates: new Map(),
+
   refererListener: (details) => {
     // TODO: option to ignore or rewrite referer, check if needed
     const existingReferer = details.requestHeaders.find((h) => h.name === "Referer");
@@ -6,13 +12,24 @@ const RequestHeaders = {
       return {};
     }
 
-    // Correlate by request URL so overlapping downloads each get their own
-    // page's referer; the most-recent state is the fallback (e.g. redirects)
-    const state =
-      (typeof Download !== "undefined" &&
-        Download.pendingStates &&
-        Download.pendingStates.get(details.url)) ||
-      globalChromeState;
+    // Reuse the state bound to this request on an earlier leg; otherwise match
+    // the (first-leg) URL against the in-flight downloads and remember it for
+    // the rest of the redirect chain. The most-recent state is the last resort.
+    let state = RequestHeaders.refererStates.get(details.requestId);
+    if (!state) {
+      state =
+        (typeof Download !== "undefined" &&
+          Download.pendingStates &&
+          Download.pendingStates.get(details.url)) ||
+        globalChromeState;
+      if (state && state.info && details.requestId != null) {
+        RequestHeaders.refererStates.set(details.requestId, state);
+        if (RequestHeaders.refererStates.size > 100) {
+          const oldest = RequestHeaders.refererStates.keys().next().value;
+          RequestHeaders.refererStates.delete(oldest);
+        }
+      }
+    }
 
     if (!state || !state.info) {
       return {};
@@ -115,6 +132,19 @@ const RequestHeaders = {
       return Promise.resolve();
     }
 
+    // Scope the rule to the source host, not the exact URL: Chrome's DNR
+    // condition is evaluated per request, and a hotlink CDN often 302s to a
+    // signed URL on the same host. An exact urlFilter wouldn't match that
+    // redirected leg (so the Referer would be dropped); requestDomains covers
+    // the whole host for the rule's short lifetime. Falls back to the exact URL
+    // if the host can't be parsed. (#66/#193)
+    let host;
+    try {
+      host = new URL(url).hostname;
+    } catch (e) {
+      host = null;
+    }
+
     const ruleId = RequestHeaders.nextRefererRuleId();
     return chrome.declarativeNetRequest
       .updateSessionRules({
@@ -126,7 +156,7 @@ const RequestHeaders = {
               type: "modifyHeaders",
               requestHeaders: [{ header: "Referer", operation: "set", value: pageUrl }],
             },
-            condition: { urlFilter: url },
+            condition: host ? { requestDomains: [host] } : { urlFilter: url },
           },
         ],
       })

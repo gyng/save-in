@@ -120,6 +120,51 @@ describe("refererListener", () => {
   });
 });
 
+describe("refererListener: redirect & concurrency (requestId keying)", () => {
+  afterEach(() => {
+    RequestHeaders.refererStates.clear();
+    delete global.globalChromeState;
+    delete global.Download;
+  });
+
+  const refererOf = (details) => {
+    RequestHeaders.refererListener(details);
+    const h = details.requestHeaders.find((x) => x.name === "Referer");
+    return h && h.value;
+  };
+
+  test("a redirected leg (same requestId, new URL) keeps the first leg's referer", () => {
+    global.Download = {
+      pendingStates: new Map([["https://cdn/a.jpg", { info: { pageUrl: "https://pixiv/1" } }]]),
+    };
+    // first leg matches by URL and binds the state to the requestId
+    expect(refererOf({ requestId: "r1", url: "https://cdn/a.jpg", requestHeaders: [] })).toBe(
+      "https://pixiv/1",
+    );
+    // redirect target isn't in pendingStates, but the requestId resolves it
+    expect(refererOf({ requestId: "r1", url: "https://signed/xyz?t=1", requestHeaders: [] })).toBe(
+      "https://pixiv/1",
+    );
+  });
+
+  test("concurrent downloads never cross over on their redirect legs", () => {
+    global.Download = {
+      pendingStates: new Map([
+        ["https://cdn/a.jpg", { info: { pageUrl: "https://pixiv/A" } }],
+        ["https://cdn/b.jpg", { info: { pageUrl: "https://pixiv/B" } }],
+      ]),
+    };
+    refererOf({ requestId: "ra", url: "https://cdn/a.jpg", requestHeaders: [] });
+    refererOf({ requestId: "rb", url: "https://cdn/b.jpg", requestHeaders: [] });
+    expect(refererOf({ requestId: "ra", url: "https://x/a2", requestHeaders: [] })).toBe(
+      "https://pixiv/A",
+    );
+    expect(refererOf({ requestId: "rb", url: "https://x/b2", requestHeaders: [] })).toBe(
+      "https://pixiv/B",
+    );
+  });
+});
+
 describe("prepareReferer (MV3 declarativeNetRequest path)", () => {
   const state = {
     info: {
@@ -174,7 +219,8 @@ describe("prepareReferer (MV3 declarativeNetRequest path)", () => {
       operation: "set",
       value: "https://www.pixiv.net/artworks/123",
     });
-    expect(rules.addRules[0].condition.urlFilter).toBe("https://i.pximg.net/img/foo.png");
+    // Scoped to the source host so a same-host signed-URL redirect still matches
+    expect(rules.addRules[0].condition).toEqual({ requestDomains: ["i.pximg.net"] });
   });
 
   test("removes the rule after a delay", async () => {
