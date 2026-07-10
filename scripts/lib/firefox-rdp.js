@@ -33,9 +33,25 @@ class FirefoxRdp {
     return new Promise((resolve, reject) => {
       const socket = net.connect(port, host);
       const client = new FirefoxRdp(socket);
-      socket.on("error", reject);
+      let done = false;
+      // A failed attempt (socket error, or no greeting) must settle the pending
+      // greeting waiter — otherwise its unref'd timeout rejects unhandled ~30s
+      // later. connectWithRetry makes several attempts before Firefox opens the
+      // RDP port, so those orphaned timers are the "exit 1 despite passing"
+      // artifact.
+      const fail = (e) => {
+        if (done) return;
+        done = true;
+        client.close();
+        reject(e);
+      };
+      socket.on("error", fail);
       // The root actor greets us on connect
-      client.waitForEvent((p) => p.from === "root").then(() => resolve(client));
+      client.waitForEvent((p) => p.from === "root").then((greeting) => {
+        if (done || !greeting) return;
+        done = true;
+        resolve(client);
+      }, fail);
     });
   }
 
@@ -82,8 +98,26 @@ class FirefoxRdp {
 
   waitForEvent(predicate, timeoutMs = 30000) {
     return new Promise((resolve, reject) => {
-      this.eventWaiters.push({ predicate, resolve });
-      setTimeout(() => reject(new Error("RDP event timeout")), timeoutMs).unref();
+      const waiter = { predicate };
+      const timer = setTimeout(() => {
+        // Drop the waiter so it can't leak, then reject
+        this.eventWaiters = this.eventWaiters.filter((w) => w !== waiter);
+        reject(new Error("RDP event timeout"));
+      }, timeoutMs);
+      timer.unref();
+      // dispatch() calls resolve on a match; clearing the timeout stops it from
+      // firing after the promise settled — an unref'd timer rejecting after the
+      // suite finished is the "exit 1 despite passing" artifact
+      waiter.resolve = (packet) => {
+        clearTimeout(timer);
+        resolve(packet);
+      };
+      // close() calls this to settle a still-pending waiter without rejecting
+      waiter.cancel = () => {
+        clearTimeout(timer);
+        resolve(undefined);
+      };
+      this.eventWaiters.push(waiter);
     });
   }
 
@@ -92,16 +126,30 @@ class FirefoxRdp {
       if (!this.queues.has(packet.to)) this.queues.set(packet.to, []);
       // The entry stays in the queue on timeout but is flagged settled, so
       // dispatch() skips it instead of matching a later reply to it
-      const entry = { resolve, reject, settled: false };
+      const entry = { settled: false };
+      entry.resolve = (p) => {
+        clearTimeout(entry.timer);
+        resolve(p);
+      };
+      entry.reject = (e) => {
+        clearTimeout(entry.timer);
+        reject(e);
+      };
+      // close() settles a still-pending request without rejecting
+      entry.cancel = () => {
+        clearTimeout(entry.timer);
+        resolve(undefined);
+      };
       this.queues.get(packet.to).push(entry);
       const json = JSON.stringify(packet);
       this.socket.write(`${Buffer.byteLength(json)}:${json}`);
-      setTimeout(() => {
+      entry.timer = setTimeout(() => {
         if (!entry.settled) {
           entry.settled = true;
           reject(new Error(`RDP timeout: ${packet.type}`));
         }
-      }, timeoutMs).unref();
+      }, timeoutMs);
+      entry.timer.unref();
     });
   }
 
@@ -223,6 +271,21 @@ class FirefoxRdp {
   }
 
   close() {
+    // Settle anything still pending so its unref'd timeout can't reject after
+    // teardown (the "exit 1 despite passing" artifact)
+    for (const waiter of this.eventWaiters) {
+      if (waiter.cancel) waiter.cancel();
+    }
+    this.eventWaiters = [];
+    for (const queue of this.queues.values()) {
+      for (const entry of queue) {
+        if (!entry.settled && entry.cancel) {
+          entry.settled = true;
+          entry.cancel();
+        }
+      }
+    }
+    this.queues.clear();
     this.socket.destroy();
   }
 }
