@@ -305,6 +305,30 @@
 
         <tr>
           <td>
+            <code class="click-to-copy">:sha256:</code>
+          </td>
+          <td>ba7816bf&hellip;</td>
+          <td>
+            SHA-256 of the file's content, as lowercase hex &mdash; for content-addressed or
+            deduplicated names. <strong>Downloads the file to hash it</strong> (extra bandwidth and
+            a delay before the save); skipped for very large files and blank if it can't be fetched.
+          </td>
+        </tr>
+
+        <tr>
+          <td>
+            <code class="click-to-copy">:finalurl:</code>,
+            <code class="click-to-copy">:redirecturl:</code>
+          </td>
+          <td>https://cdn.example.com/&hellip;</td>
+          <td>
+            The URL after following redirects (via the same HEAD request as <code>:mime:</code>).
+            Blank if the server doesn't answer.
+          </td>
+        </tr>
+
+        <tr>
+          <td>
             <code class="click-to-copy">:$1:</code>, <code class="click-to-copy">:$2:</code>&hellip;
           </td>
           <td></td>

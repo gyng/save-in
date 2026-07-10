@@ -544,3 +544,124 @@ describe(":mime: / :contenttype: / :mimeext: (async HEAD)", () => {
     expect(Variable.mimeToExtension("")).toBe("");
   });
 });
+
+describe(":sha256: (async content hash)", () => {
+  const mockBody = (text, extraHeaders = {}) => {
+    global.fetch = vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        headers: { get: (h) => extraHeaders[h] ?? null },
+        arrayBuffer: () => Promise.resolve(new TextEncoder().encode(text).buffer),
+      }),
+    );
+  };
+
+  beforeEach(() => {
+    global.options = { replacementChar: "_" };
+  });
+
+  afterEach(() => {
+    delete global.fetch;
+  });
+
+  test(":sha256: is the lowercase hex SHA-256 of the fetched bytes", async () => {
+    mockBody("abc"); // NIST test vector
+    const out = (
+      await Variable.applyVariables(new Path.Path("h/:sha256:"), { url: "https://x/a" })
+    ).finalize();
+    expect(out).toBe("h/ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad");
+    expect(global.fetch).toHaveBeenCalledWith(
+      "https://x/a",
+      expect.objectContaining({ credentials: "include" }),
+    );
+  });
+
+  test("shares one GET across multiple :sha256: occurrences", async () => {
+    mockBody("abc");
+    await Variable.applyVariables(new Path.Path(":sha256:/:sha256:"), { url: "https://x/a" });
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+  });
+
+  test("a failed fetch yields an empty value (-> replacement char)", async () => {
+    global.fetch = vi.fn(() => Promise.reject(new Error("network")));
+    const out = (
+      await Variable.applyVariables(new Path.Path(":sha256:"), { url: "https://x/a" })
+    ).finalize();
+    expect(out).toBe("_");
+  });
+
+  test("skips a file larger than the cap (declared Content-Length)", async () => {
+    global.fetch = vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        headers: {
+          get: (h) => (h === "Content-Length" ? String(Variable.HASH_MAX_BYTES + 1) : null),
+        },
+        arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)),
+      }),
+    );
+    const out = (
+      await Variable.applyVariables(new Path.Path(":sha256:"), { url: "https://x/a" })
+    ).finalize();
+    expect(out).toBe("_");
+  });
+
+  test("preview mode never hits the network", async () => {
+    global.fetch = vi.fn();
+    const out = (
+      await Variable.applyVariables(new Path.Path(":sha256:"), {
+        url: "https://x/a",
+        preview: true,
+      })
+    ).finalize();
+    expect(global.fetch).not.toHaveBeenCalled();
+    expect(out).toBe("_");
+  });
+});
+
+describe(":finalurl: / :redirecturl: (post-redirect URL)", () => {
+  beforeEach(() => {
+    global.options = { replacementChar: "_" };
+  });
+
+  afterEach(() => {
+    delete global.fetch;
+  });
+
+  test(":finalurl: is the response URL after redirects", async () => {
+    global.fetch = vi.fn(() =>
+      Promise.resolve({
+        url: "https://cdn.example.com/real/file.jpg",
+        headers: { get: () => null },
+      }),
+    );
+    const out = (
+      await Variable.applyVariables(new Path.Path(":finalurl:"), { url: "https://x/a" })
+    ).finalize();
+    // the full URL is path-sanitized like :sourceurl:, but the host survives intact
+    expect(out).toContain("cdn.example.com");
+    expect(global.fetch).toHaveBeenCalledWith(
+      "https://x/a",
+      expect.objectContaining({ method: "HEAD" }),
+    );
+  });
+
+  test(":redirecturl: is an alias sharing the same HEAD", async () => {
+    global.fetch = vi.fn(() =>
+      Promise.resolve({ url: "https://final/x", headers: { get: () => null } }),
+    );
+    await Variable.applyVariables(new Path.Path(":finalurl:/:redirecturl:"), {
+      url: "https://x/a",
+    });
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+  });
+
+  test("preview mode never hits the network", async () => {
+    global.fetch = vi.fn();
+    await Variable.applyVariables(new Path.Path(":finalurl:"), {
+      url: "https://x/a",
+      preview: true,
+    });
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+});

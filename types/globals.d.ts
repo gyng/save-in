@@ -32,12 +32,13 @@ interface StateInfo {
   naiveFilename?: string;
   initialFilename?: string;
 
-  // preview: true suppresses side-effectful variables (:counter:, :mime:) in
-  // the options-page dry-run; counter/mimePromise cache the resolved value so
-  // every occurrence in one download shares it
+  // preview: true suppresses side-effectful variables (:counter:, :mime:,
+  // :sha256:) in the options-page dry-run; counter/headPromise/bodyPromise cache
+  // the resolved value so every occurrence in one download shares it
   preview?: boolean;
   counter?: number;
-  mimePromise?: Promise<string>;
+  headPromise?: Promise<{ contentType: string; finalUrl: string }>;
+  bodyPromise?: Promise<ArrayBuffer | null>;
 }
 
 // the per-download state threaded through the rename/route/download pipeline

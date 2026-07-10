@@ -40,6 +40,9 @@ const SPECIAL_DIRS = {
   MIME: ":mime:",
   CONTENT_TYPE: ":contenttype:",
   MIME_EXT: ":mimeext:",
+  SHA256: ":sha256:",
+  FINAL_URL: ":finalurl:",
+  REDIRECT_URL: ":redirecturl:",
 };
 
 const SHORTCUT_TYPES = {
