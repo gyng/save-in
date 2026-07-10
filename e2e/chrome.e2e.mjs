@@ -9,30 +9,52 @@ import path from "path";
 import cdp from "../scripts/lib/cdp.js";
 import chrome from "../scripts/lib/chrome.js";
 
-const PORT = 9377;
 const PROFILE = path.join(chrome.ROOT, "dist", "e2e-profile");
-const DOWNLOADS = path.join(PROFILE, "downloads");
 
 let proc;
 let extensionId;
+let PORT;
+let DOWNLOADS;
 
 const evalSW = (expr, wake) => cdp.evalInServiceWorker(PORT, extensionId, expr, wake);
 const evalOptions = (expr) => cdp.evalInTarget(PORT, "options.html", expr);
 
+// Polls a service-worker expression that returns a JSON array until it is
+// non-empty or the deadline passes, instead of a single fixed sleep
+const waitForDownloads = async (regex, deadlineMs = 8000) => {
+  const start = Date.now();
+  for (;;) {
+    // eslint-disable-next-line no-await-in-loop
+    const json = await evalSW(
+      `browser.downloads.search({ filenameRegex: ${JSON.stringify(regex)} })
+        .then((d) => JSON.stringify(d.map((x) => ({ state: x.state, filename: x.filename }))))`,
+    );
+    const rows = JSON.parse(json);
+    if (rows.some((r) => r.state === "complete") || Date.now() - start > deadlineMs) {
+      return rows;
+    }
+    // eslint-disable-next-line no-await-in-loop
+    await cdp.sleep(250);
+  }
+};
+
 beforeAll(async () => {
   chrome.stageBuild();
-  ({ proc, extensionId } = await chrome.launch({
+  ({
+    proc,
+    extensionId,
     port: PORT,
-    profileDir: PROFILE,
     downloadDir: DOWNLOADS,
+  } = await chrome.launch({
+    profileDir: PROFILE,
     fresh: true,
   }));
   await cdp.openTab(PORT, `chrome-extension://${extensionId}/src/options/options.html`);
   await cdp.sleep(2000);
 });
 
-afterAll(() => {
-  if (proc) proc.kill();
+afterAll(async () => {
+  await chrome.killTree(proc);
 });
 
 test("service worker initialises cleanly", async () => {
@@ -198,6 +220,15 @@ test("routing rules rename and route the download", async () => {
 });
 
 test("message-driven downloads work and never inherit a stale route", async () => {
+  // Explicit precondition: a routing rule matching "routeme" is active, and
+  // the previous download's routed state is the "last" state a naive merge
+  // would inherit. The message download must NOT be renamed/rerouted by it.
+  await evalSW(
+    `browser.storage.local.set({
+      filenamePatterns: "filename: routeme\\ninto: routed/renamed-:filename:",
+    }).then(() => window.reset())`,
+  );
+
   const ack = await evalOptions(`new Promise((res) => chrome.runtime.sendMessage({
     type: "DOWNLOAD",
     body: {
@@ -211,14 +242,13 @@ test("message-driven downloads work and never inherit a stale route", async () =
   }, (r) => res(JSON.stringify(r))))`);
   expect(JSON.parse(ack)).toEqual({ type: "DOWNLOAD", body: { status: "OK" } });
 
-  const states = JSON.parse(
-    await evalSW(
-      `new Promise(r => setTimeout(r, 2000))
-        .then(() => browser.downloads.search({ filenameRegex: "msg-download" }))
-        .then((d) => JSON.stringify(d.map((x) => x.state)))`,
-    ),
-  );
-  expect(states).toEqual(["complete"]);
+  const rows = await waitForDownloads("msg-download");
+  expect(rows).toHaveLength(1);
+  expect(rows[0].state).toBe("complete");
+  // The download kept its own filename and did NOT land under the rule's
+  // routed/renamed- destination
+  expect(rows[0].filename).toMatch(/msg-download\.txt$/);
+  expect(rows[0].filename).not.toMatch(/routed/);
 });
 
 test("fetchViaFetch downloads via fetch -> blob -> data URL", async () => {
@@ -252,25 +282,39 @@ test("fetchViaFetch downloads via fetch -> blob -> data URL", async () => {
   expect(fs.readFileSync(file, "utf8")).toBe("via fetch content");
 });
 
-test("options page autosave persists and reloads the background", async () => {
-  await evalOptions(`(() => {
-    const cb = document.querySelector("#prompt");
-    cb.checked = true;
-    cb.dispatchEvent(new Event("change", { bubbles: true }));
-    return "toggled";
-  })()`);
-  await cdp.sleep(1000);
+test("options page autosave persists to storage and survives a restart", async () => {
+  // "promptOnShift" is a safe toggle: it never opens a Save As dialog that
+  // would stall later downloads, unlike "prompt"
+  try {
+    await evalOptions(`(() => {
+      const cb = document.querySelector("#promptOnShift");
+      cb.checked = false;
+      cb.dispatchEvent(new Event("change", { bubbles: true }));
+      return "toggled";
+    })()`);
+    await cdp.sleep(1000);
 
-  const prompt = await evalSW(`window.ready.then(() => JSON.stringify(options.prompt))`);
-  expect(JSON.parse(prompt)).toBe(true);
+    // Persisted to storage.local (not just the in-memory option)...
+    const stored = await evalSW(
+      `browser.storage.local.get("promptOnShift").then((o) => JSON.stringify(o.promptOnShift))`,
+    );
+    expect(JSON.parse(stored)).toBe(false);
 
-  await evalOptions(`(() => {
-    const cb = document.querySelector("#prompt");
-    cb.checked = false;
-    cb.dispatchEvent(new Event("change", { bubbles: true }));
-    return "restored";
-  })()`);
-  await cdp.sleep(1000);
+    // ...and survives a simulated service-worker restart
+    const afterReset = await evalSW(
+      `window.reset().then(() => JSON.stringify(options.promptOnShift))`,
+    );
+    expect(JSON.parse(afterReset)).toBe(false);
+  } finally {
+    await evalOptions(`(() => {
+      const cb = document.querySelector("#promptOnShift");
+      cb.checked = true;
+      cb.dispatchEvent(new Event("change", { bubbles: true }));
+      return "restored";
+    })()`);
+    await cdp.sleep(1000);
+    await evalSW(`window.reset().then(() => "reset")`);
+  }
 });
 
 test("shortcut files download with redirect content", async () => {
@@ -310,8 +354,8 @@ test("failed downloads are recorded in the debug log", async () => {
         scratch: {},
         info: {
           // Nothing listens on port 1
-          url: "http://127.0.0.1:1/unreachable.bin",
-          suggestedFilename: "unreachable.bin",
+          url: "http://127.0.0.1:1/si-unreachable.bin",
+          suggestedFilename: "si-unreachable.bin",
           pageUrl: "https://example.com/",
           modifiers: [],
         },
@@ -319,9 +363,22 @@ test("failed downloads are recorded in the debug log", async () => {
     })
     .then(() => new Promise(r => setTimeout(r, 3000)))
     .then(() => Log.get())
-    .then((log) => JSON.stringify(log.filter((e) => e.message === "download failed").length))`),
+    .then((log) => JSON.stringify(
+      log.filter((e) => e.message === "download failed" || e.message === "downloads.download failed")
+    ))`),
   );
-  expect(entries).toBeGreaterThanOrEqual(1);
+
+  // A failure entry exists and references THIS download, not noise from
+  // earlier tests
+  expect(entries.length).toBeGreaterThanOrEqual(1);
+  const requested = JSON.parse(
+    await evalSW(
+      `Log.get().then((log) => JSON.stringify(
+        log.filter((e) => e.message === "download requested" && String(e.data).includes("si-unreachable"))
+      ))`,
+    ),
+  );
+  expect(requested.length).toBeGreaterThanOrEqual(1);
 });
 
 test("alt+click on a real page saves the image through the content script", async () => {

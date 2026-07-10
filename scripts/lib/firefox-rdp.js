@@ -64,11 +64,18 @@ class FirefoxRdp {
 
     const queue = this.queues.get(packet.from);
     if (queue && queue.length > 0) {
-      const { resolve, reject } = queue.shift();
+      // Skip entries already settled by a timeout: leaving them in the queue
+      // would desync every later reply for this actor
+      let pending = queue.shift();
+      while (pending && pending.settled) {
+        pending = queue.shift();
+      }
+      if (!pending) return;
+      pending.settled = true;
       if (packet.error) {
-        reject(new Error(`${packet.error}: ${packet.message || ""}`));
+        pending.reject(new Error(`${packet.error}: ${packet.message || ""}`));
       } else {
-        resolve(packet);
+        pending.resolve(packet);
       }
     }
   }
@@ -83,10 +90,18 @@ class FirefoxRdp {
   request(packet, timeoutMs = 30000) {
     return new Promise((resolve, reject) => {
       if (!this.queues.has(packet.to)) this.queues.set(packet.to, []);
-      this.queues.get(packet.to).push({ resolve, reject });
+      // The entry stays in the queue on timeout but is flagged settled, so
+      // dispatch() skips it instead of matching a later reply to it
+      const entry = { resolve, reject, settled: false };
+      this.queues.get(packet.to).push(entry);
       const json = JSON.stringify(packet);
       this.socket.write(`${Buffer.byteLength(json)}:${json}`);
-      setTimeout(() => reject(new Error(`RDP timeout: ${packet.type}`)), timeoutMs).unref();
+      setTimeout(() => {
+        if (!entry.settled) {
+          entry.settled = true;
+          reject(new Error(`RDP timeout: ${packet.type}`));
+        }
+      }, timeoutMs).unref();
     });
   }
 
@@ -105,29 +120,30 @@ class FirefoxRdp {
     return addon.actor;
   }
 
-  async getConsoleActor(addonActor) {
-    // Firefox < 129: the descriptor answers getTarget directly
+  // Collects the frame targets a descriptor actor (addon or tab) exposes.
+  // Firefox < 129 answers getTarget directly; >= 129 needs a watcher and
+  // emits target-available-form events.
+  async watchFrameTargets(descriptorActor) {
     try {
-      const { form } = await this.request({
-        to: addonActor,
-        type: "getTarget",
-      });
-      if (form && form.consoleActor) return form.consoleActor;
+      const { form } = await this.request({ to: descriptorActor, type: "getTarget" });
+      if (form && form.consoleActor) return [form];
     } catch (e) {
       if (!String(e.message).includes("unrecognizedPacketType")) throw e;
     }
 
-    // Firefox >= 129: descriptor -> watcher -> target-available-form events.
-    // Several frame targets can arrive (background page, options page, ...):
-    // collect briefly and prefer the generated background page.
     const { actor: watcher } = await this.request({
-      to: addonActor,
+      to: descriptorActor,
       type: "getWatcher",
       isServerTargetSwitchingEnabled: true,
     });
 
     const targets = [];
+    // A short-lived collector: matches target-available-form events for this
+    // watcher, then deregisters after the collection window so it can't keep
+    // intercepting events from tabs opened by later tests
+    let collecting = true;
     const collector = (p) => {
+      if (!collecting) return false;
       if (p.type === "target-available-form" && p.from === watcher) {
         targets.push(p.target);
         this.eventWaiters.push({ predicate: collector, resolve: () => {} });
@@ -137,13 +153,18 @@ class FirefoxRdp {
     };
     this.eventWaiters.push({ predicate: collector, resolve: () => {} });
 
-    await this.request({
-      to: watcher,
-      type: "watchTargets",
-      targetType: "frame",
-    });
+    await this.request({ to: watcher, type: "watchTargets", targetType: "frame" });
     await new Promise((res) => setTimeout(res, 2000));
+    collecting = false;
+    this.eventWaiters = this.eventWaiters.filter((w) => w.predicate !== collector);
 
+    return targets;
+  }
+
+  async getConsoleActor(addonActor) {
+    const targets = await this.watchFrameTargets(addonActor);
+    // Several frame targets can arrive (background page, options page, ...):
+    // prefer the generated background page
     const background = targets.find(
       (t) => t && t.url && t.url.includes("_generated_background_page"),
     );
@@ -152,6 +173,26 @@ class FirefoxRdp {
       throw new Error(
         `No background target found (saw: ${targets.map((t) => t && t.url).join(", ")})`,
       );
+    }
+    return target.consoleActor;
+  }
+
+  // Console actor for an open browser tab whose URL contains urlSubstr.
+  // Evaluations run in the page's content window (not the extension sandbox),
+  // so they see the real DOM but not content-script variables.
+  async getTabConsoleActor(urlSubstr) {
+    const { tabs } = await this.request({ to: "root", type: "listTabs" });
+    const tab = (tabs || []).find((t) => t.url && t.url.includes(urlSubstr));
+    if (!tab) {
+      throw new Error(
+        `No tab matching "${urlSubstr}" (saw: ${(tabs || []).map((t) => t.url).join(", ")})`,
+      );
+    }
+
+    const targets = await this.watchFrameTargets(tab.actor);
+    const target = targets.find((t) => t && t.url && t.url.includes(urlSubstr) && t.consoleActor);
+    if (!target) {
+      throw new Error(`No console actor for tab "${urlSubstr}"`);
     }
     return target.consoleActor;
   }

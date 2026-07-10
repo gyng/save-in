@@ -131,6 +131,13 @@ const launch = async () => {
 
   const evaluate = (text, timeoutMs) => rdp.evaluate(consoleActor, text, timeoutMs);
 
+  // Evaluates in the content window of an open tab matching urlSubstr. The
+  // tab must already be open (e.g. via browser.tabs.create from evaluate()).
+  const evaluateInTab = async (urlSubstr, text, timeoutMs) => {
+    const tabConsole = await rdp.getTabConsoleActor(urlSubstr);
+    return rdp.evaluate(tabConsole, text, timeoutMs);
+  };
+
   const cleanup = async () => {
     rdp.close();
     killTree(proc.pid);
@@ -146,7 +153,7 @@ const launch = async () => {
     }
   };
 
-  return { proc, rdp, evaluate, profileDir, downloadDir, cleanup };
+  return { proc, rdp, evaluate, evaluateInTab, profileDir, downloadDir, cleanup };
 };
 
 module.exports = { ROOT, launch };

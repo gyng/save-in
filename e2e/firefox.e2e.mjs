@@ -3,10 +3,32 @@
 // event page. Tests are sequential and build on each other's state.
 
 import fs from "fs";
+import http from "http";
 
 import firefox from "../scripts/lib/firefox.js";
 
 let session;
+
+// 1x1 transparent PNG
+const PNG = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+  "base64",
+);
+
+const startPageServer = (port) => {
+  const server = http.createServer((req, res) => {
+    if (req.url === "/pic.png") {
+      res.writeHead(200, { "Content-Type": "image/png" });
+      res.end(PNG);
+    } else {
+      res.writeHead(200, { "Content-Type": "text/html" });
+      res.end('<html><body><img id="img" src="/pic.png" width="50" height="50"></body></html>');
+    }
+  });
+  return new Promise((resolve) => {
+    server.listen(port, "127.0.0.1", () => resolve(server));
+  });
+};
 
 beforeAll(async () => {
   session = await firefox.launch();
@@ -203,6 +225,56 @@ test("failed downloads are recorded in the debug log", async () => {
     ),
   );
   expect(entries).toBeGreaterThanOrEqual(1);
+});
+
+test("alt+click on a real page saves the image through the content script", async () => {
+  const server = await startPageServer(8919);
+
+  try {
+    // Enable click-to-save and reinitialise so the content script picks it up
+    await session.evaluate(
+      `browser.storage.local.set({ contentClickToSave: true })
+        .then(() => window.reset())
+        .then(() => "enabled")`,
+    );
+
+    await session.evaluate(
+      `browser.tabs.create({ url: "http://127.0.0.1:8919/" }).then(() => "opened")`,
+    );
+    await new Promise((r) => setTimeout(r, 2500));
+
+    // Firefox honours keyCode/buttons on synthetic events, and content-script
+    // window listeners fire on real page DOM events, so we can drive the flow
+    // straight from a page-context evaluate
+    await session.evaluateInTab(
+      "127.0.0.1:8919",
+      `(() => {
+        const alt = new KeyboardEvent("keydown", { keyCode: 18, bubbles: true });
+        window.dispatchEvent(alt);
+        const img = document.getElementById("img");
+        img.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, cancelable: true, buttons: 1 }));
+        return "clicked";
+      })()`,
+    );
+
+    const downloads = JSON.parse(
+      await session.evaluate(
+        `new Promise(r => setTimeout(r, 3000))
+          .then(() => browser.downloads.search({}))
+          .then((d) => JSON.stringify(
+            d.filter((x) => x.filename.includes("pic"))
+              .map((x) => ({ state: x.state, filename: x.filename }))
+          ))`,
+        45000,
+      ),
+    );
+
+    expect(downloads.length).toBeGreaterThanOrEqual(1);
+    expect(downloads[0].state).toBe("complete");
+    expect(fs.readFileSync(downloads[0].filename)).toEqual(PNG);
+  } finally {
+    server.close();
+  }
 });
 
 test("history and the debug log record the session's downloads", async () => {

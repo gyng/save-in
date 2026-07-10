@@ -37,29 +37,68 @@ const stageBuild = () => {
   });
 };
 
-const makeProfile = (profileDir, downloadDir) => {
-  fs.rmSync(profileDir, { recursive: true, force: true });
+const killTree = (proc) => {
+  if (!proc || !proc.pid) return Promise.resolve();
+  if (process.platform === "win32") {
+    try {
+      execFileSync("taskkill", ["/pid", String(proc.pid), "/T", "/F"], { stdio: "ignore" });
+    } catch (e) {
+      // already gone
+    }
+    return Promise.resolve();
+  }
+  return new Promise((resolve) => {
+    proc.once("exit", resolve);
+    try {
+      proc.kill();
+    } catch (e) {
+      resolve();
+    }
+    setTimeout(resolve, 3000).unref();
+  });
+};
+
+const makeProfile = (baseProfileDir, downloadDir) => {
+  let profileDir = baseProfileDir;
+  try {
+    // force:true only suppresses ENOENT, not EPERM/EBUSY from a Chrome that
+    // hasn't fully exited: fall back to a fresh dir rather than crash
+    fs.rmSync(profileDir, { recursive: true, force: true });
+  } catch (e) {
+    profileDir = `${baseProfileDir}-${Date.now()}`;
+  }
+  const downloads = downloadDir || path.join(profileDir, "downloads");
   fs.mkdirSync(path.join(profileDir, "Default"), { recursive: true });
-  fs.mkdirSync(downloadDir, { recursive: true });
+  fs.mkdirSync(downloads, { recursive: true });
   fs.writeFileSync(
     path.join(profileDir, "Default", "Preferences"),
     JSON.stringify({
       download: {
-        default_directory: downloadDir,
+        default_directory: downloads,
         prompt_for_download: false,
       },
     }),
   );
+  return { profileDir, downloadDir: downloads };
 };
 
-const launch = async ({ port, profileDir, downloadDir, fresh = true }) => {
+const launch = async ({ port: requestedPort, profileDir, downloadDir, fresh = true }) => {
+  let resolvedProfile = profileDir;
+  let resolvedDownloads = downloadDir;
   if (fresh || !fs.existsSync(profileDir)) {
-    makeProfile(profileDir, downloadDir);
+    ({ profileDir: resolvedProfile, downloadDir: resolvedDownloads } = makeProfile(
+      profileDir,
+      downloadDir,
+    ));
   }
+
+  // Random port so a stale instance from an aborted run can't be mistaken
+  // for the one we just launched
+  const port = requestedPort || 9400 + Math.floor(Math.random() * 400);
 
   const chromePath = findChrome();
   const args = [
-    `--user-data-dir=${profileDir}`,
+    `--user-data-dir=${resolvedProfile}`,
     `--remote-debugging-port=${port}`,
     "--enable-unsafe-extension-debugging",
     "--no-first-run",
@@ -75,7 +114,7 @@ const launch = async ({ port, profileDir, downloadDir, fresh = true }) => {
 
   await cdp.waitForCdp(port);
   const extensionId = await cdp.loadUnpacked(port, DIST);
-  return { proc, extensionId };
+  return { proc, extensionId, port, profileDir: resolvedProfile, downloadDir: resolvedDownloads };
 };
 
-module.exports = { ROOT, DIST, findChrome, stageBuild, launch };
+module.exports = { ROOT, DIST, findChrome, stageBuild, launch, killTree };
