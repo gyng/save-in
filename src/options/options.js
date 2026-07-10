@@ -53,9 +53,39 @@ const updateErrors = () => {
 
     const errors = body.optionErrors;
 
-    const row = (err) => {
+    // Reveal + select the offending text in its editor. Best-effort: the error
+    // string is usually the offending line/clause, so we find and select it.
+    const jumpToError = (textareaId, needle) => {
+      const ta = document.querySelector(textareaId);
+      if (!(ta instanceof HTMLTextAreaElement)) {
+        return;
+      }
+      // The paths textarea is hidden while the Visual Editor tab is active
+      const visual = document.querySelector("#paths-visual");
+      if (textareaId === "#paths" && visual instanceof HTMLElement && !visual.hidden) {
+        const textBtn = document.querySelector("#paths-mode-text");
+        if (textBtn instanceof HTMLElement) {
+          textBtn.click();
+        }
+      }
+      ta.scrollIntoView({ block: "center" });
+      ta.focus();
+      const idx = needle ? ta.value.indexOf(needle) : -1;
+      if (idx >= 0) {
+        ta.setSelectionRange(idx, idx + needle.length);
+        // Nudge the caret into view (setSelectionRange alone may not scroll)
+        const lineHeight = parseFloat(getComputedStyle(ta).lineHeight) || 18;
+        const line = ta.value.slice(0, idx).split("\n").length - 1;
+        ta.scrollTop = Math.max(0, line * lineHeight - ta.clientHeight / 2);
+      }
+    };
+
+    const row = (err, textareaId) => {
       const r = document.createElement("div");
       r.className = "error-row";
+      r.setAttribute("role", "button");
+      r.setAttribute("tabindex", "0");
+      r.title = "Jump to this error";
 
       const message = document.createElement("span");
       message.className = "error-message";
@@ -67,18 +97,27 @@ const updateErrors = () => {
       error.textContent = err.error;
       r.appendChild(error);
 
+      const jump = () => jumpToError(textareaId, err.error);
+      r.addEventListener("click", jump);
+      r.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          jump();
+        }
+      });
+
       return r;
     };
 
     if (errors.filenamePatterns.length > 0) {
       errors.filenamePatterns.forEach((err) => {
-        rulesErrors.appendChild(row(err));
+        rulesErrors.appendChild(row(err, "#filenamePatterns"));
       });
     }
 
     if (errors.paths.length > 0) {
       errors.paths.forEach((err) => {
-        pathsErrors.appendChild(row(err));
+        pathsErrors.appendChild(row(err, "#paths"));
       });
     }
 
@@ -1218,6 +1257,14 @@ document.querySelectorAll('label:has(> input[type="checkbox"])').forEach((label)
 // element inside a label never toggles the ancestor checkbox anyway).
 document.addEventListener("click", (e) => {
   if (!(e.target instanceof Element)) {
+    return;
+  }
+  // The blank stretch of a full-width checkbox row: the click lands on the
+  // <label> element itself (its title text lives in .opt-title, the checkbox is
+  // the input), so clicking empty space used to toggle the box. Only the
+  // checkbox and its title should toggle it.
+  if (e.target.tagName === "LABEL" && e.target.querySelector(":scope > input[type=checkbox]")) {
+    e.preventDefault();
     return;
   }
   const help = e.target.closest(".caption, .caption-line");

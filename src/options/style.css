@@ -394,6 +394,30 @@ button:active {
   border: 1px solid var(--error-border);
   border-left: 3px solid var(--red50);
   color: var(--error-fg);
+  /* Click a row to jump to (and select) the offending text in the editor */
+  cursor: pointer;
+}
+
+/* Jump-to affordance: an arrow pinned right, brighter on hover */
+.error-row::after {
+  content: "→";
+  margin-left: auto;
+  align-self: center;
+  color: var(--red50);
+  opacity: 0.5;
+}
+
+.error-row:hover {
+  border-color: var(--red50);
+}
+
+.error-row:hover::after {
+  opacity: 1;
+}
+
+.error-row:focus-visible {
+  outline: 2px solid var(--red50);
+  outline-offset: 1px;
 }
 
 /* Recolour the (light-fill) warning glyph to the error red via a mask, so it
@@ -958,6 +982,20 @@ summary {
 }
 
 /* ── Guided rule input + template library (rule-builder.js) ───────── */
+
+/* Quick-add reads as a distinct little form, not loose controls */
+.rule-builder {
+  margin-top: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  background-color: var(--panel-bg);
+}
+
+.rule-builder > .caption {
+  font-weight: 600;
+  margin-bottom: var(--space-2);
+}
 
 .rule-builder-row {
   display: flex;
