@@ -169,13 +169,18 @@ body:not(#settings-page) {
 
 .app-title {
   font-weight: 600;
-  margin-right: var(--space-3);
 }
 
 .version-label {
   margin-left: var(--space-2);
+  margin-right: var(--space-1);
   color: var(--grey50);
   font-size: var(--text-sm);
+}
+
+.nav-sep {
+  margin-right: var(--space-1);
+  color: var(--grey40);
 }
 
 .code,
@@ -953,6 +958,12 @@ button:disabled:hover {
   margin: var(--space-1) 0;
 }
 
+/* + Add stays left; the save controls float to the right of the editor */
+.editor-actions .apply-button,
+.path-editor-toolbar .apply-button {
+  margin-left: auto;
+}
+
 .editor-actions .insert-menu {
   margin: 0;
 }
@@ -1059,12 +1070,6 @@ button:disabled:hover {
   display: none;
 }
 
-.section-actions {
-  display: flex;
-  justify-content: flex-end;
-  width: 100%;
-}
-
 @media (prefers-color-scheme: dark) {
   .tablist {
     border-bottom-color: var(--grey60);
@@ -1169,4 +1174,88 @@ button {
   .menu-preview-separator hr {
     border-color: var(--grey60);
   }
+}
+
+/* ── History tab ──────────────────────────────────────────────────── */
+
+.section-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  width: 100%;
+}
+
+/* History count sits left, the action button right */
+#history-count {
+  margin-right: auto;
+}
+
+.history-table {
+  table-layout: fixed;
+  border-collapse: collapse;
+  width: 100%;
+  margin-top: var(--space-2);
+  font-size: var(--text-sm);
+}
+
+.history-table th {
+  text-align: left;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--grey50);
+  font-weight: 600;
+  padding: 0 var(--space-3) var(--space-1) 0;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.history-table td {
+  padding: var(--space-2) var(--space-3) var(--space-2) 0;
+  border-bottom: 1px solid var(--panel-border);
+  vertical-align: top;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.history-time {
+  width: 14em;
+  color: var(--grey50);
+  font-variant-numeric: tabular-nums;
+}
+
+.history-file {
+  width: 22%;
+  font-family: var(--font-mono);
+}
+
+.history-path {
+  width: 26%;
+  color: var(--grey50);
+  font-family: var(--font-mono);
+}
+
+.history-source a {
+  font-family: var(--font-mono);
+}
+
+/* ── In-tab hierarchy: subsection headings get vertical rhythm ─────── */
+
+/* h3 subsections within a panel are separated from the block above; the
+   first one (right after the hidden section h2) sits flush to the tab bar */
+.tab-panel h3 {
+  margin-top: var(--space-6);
+}
+
+.tab-heading-hidden + h3,
+.tab-panel > h3:first-child,
+.tab-panel > .column > h3:first-child {
+  margin-top: 0;
+}
+
+/* Section-level action rows (History count/clear, Restore Defaults) clear
+   the heading above them */
+.tab-panel .section-actions {
+  margin: var(--space-1) 0 var(--space-2);
 }

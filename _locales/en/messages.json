@@ -232,6 +232,22 @@
     "message": "More Options"
   },
 
+  "o_sHistory": {
+    "message": "History"
+  },
+
+  "o_lHistoryHelp": {
+    "message": "The most recent saves, newest first. Stored locally on this device and capped at 100 entries."
+  },
+
+  "o_cClearHistory": {
+    "message": "Clear history"
+  },
+
+  "o_lHistoryRaw": {
+    "message": "Raw JSON (for import/debugging)"
+  },
+
   "o_lVariableList": {
     "message": "Variable List",
     "description": "l prefixes are for labels"

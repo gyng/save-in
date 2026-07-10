@@ -15,6 +15,14 @@
     <div class="top-nav">
       <div>
         <span class="app-title">__MSG_extensionName__</span>
+        <a
+          class="version-label"
+          id="version-label"
+          href="https://github.com/gyng/save-in/releases"
+          target="_blank"
+          rel="noreferrer"
+        ></a>
+        <span class="nav-sep">&middot;</span>
         <a class="open-settings-in-window" href="options.html" target="_blank">__MSG_o_lPopout__</a>
         &middot;
         <a href="variablelist.html" target="_blank">__MSG_o_lVariableList__</a>
@@ -26,7 +34,6 @@
         <a class="external" href="https://github.com/gyng/save-in/blob/master/CHANGELOG.md"
           >__MSG_o_lChangelog__</a
         >
-        <span class="version-label" id="version-label"></span>
       </div>
       <div class="save-status caption">
         <span>__MSG_o_cLastSavedAt__</span>
@@ -654,6 +661,26 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
 
       <hr />
 
+      <h2 id="section-history">__MSG_o_sHistory__</h2>
+      <div class="section-actions">
+        <span id="history-count" class="caption"></span>
+        <button type="button" id="history-clear" class="button">__MSG_o_cClearHistory__</button>
+      </div>
+      <p class="caption">__MSG_o_lHistoryHelp__</p>
+      <div id="history-list"></div>
+
+      <details class="history-raw">
+        <summary>__MSG_o_lHistoryRaw__</summary>
+        <textarea
+          style="width: 100%; min-height: 320px"
+          id="history"
+          spellcheck="false"
+          readonly
+        ></textarea>
+      </details>
+
+      <hr />
+
       <h2 id="section-more-options">__MSG_o_sMoreOptions__</h2>
       <div class="section-actions">
         <div id="reset" class="button">__MSG_o_cRestoreDefaults__</div>
@@ -731,20 +758,6 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
       <label> <input type="checkbox" id="debug" /> __MSG_o_cDebugMode__ </label>
 
       <p>__MSG_translationCredits__</p>
-
-      <div style="display: flex; width: 100%">
-        <details style="flex: 1">
-          <summary>History</summary>
-          <textarea
-            style="width: 100%; min-height: 400px"
-            type="textarea"
-            id="history"
-            spellcheck="false"
-            readonly
-          ></textarea>
-          <div id="history-delete" class="button">Delete history</div>
-        </details>
-      </div>
 
       <div style="display: flex; width: 100%">
         <details style="flex: 1">

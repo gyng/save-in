@@ -143,6 +143,7 @@ const updateErrors = () => {
 // (written by scripts/write-version.js at build/stage time — absent in a
 // bare checkout, where just the version shows)
 const renderVersionLabel = () => {
+  /** @type {HTMLAnchorElement} */
   const el = document.querySelector("#version-label");
   if (!el) {
     return;
@@ -150,6 +151,7 @@ const renderVersionLabel = () => {
 
   const version = browser.runtime.getManifest().version;
   el.textContent = `v${version}`;
+  el.title = `save-in v${version} — view releases`;
 
   fetch("version.json")
     .then((res) => res.json())
@@ -160,25 +162,116 @@ const renderVersionLabel = () => {
 };
 document.addEventListener("DOMContentLoaded", renderVersionLabel);
 
-const updateHistory = async () => {
-  // Copied from history.js
-  const HISTORY_KEY = "save-in-history";
-  const history = (await browser.storage.local.get(HISTORY_KEY)) ?? {};
-  /** @type {HTMLTextAreaElement} */
-  const el = document.querySelector("#history");
-  el.value = JSON.stringify(history, null, 2);
-};
-document.addEventListener("DOMContentLoaded", updateHistory);
+const HISTORY_KEY = "save-in-history";
 
-const deleteHistory = () => {
-  const HISTORY_KEY = "save-in-history";
-  // eslint-disable-next-line
-  const answer = window.confirm("Delete all history?");
-  if (answer) {
-    browser.storage.local.remove(HISTORY_KEY).then(updateHistory);
+// The last path component of a saved path, for the primary column
+const historyFilename = (fullPath) => {
+  if (!fullPath) {
+    return "(unnamed)";
+  }
+  const parts = String(fullPath).split("/");
+  return parts[parts.length - 1] || fullPath;
+};
+
+const historyTime = (iso) => {
+  try {
+    return new Date(iso).toLocaleString();
+  } catch (e) {
+    return iso || "";
   }
 };
-document.querySelector("#history-delete")?.addEventListener("click", deleteHistory);
+
+const renderHistory = async () => {
+  const container = document.querySelector("#history-list");
+  const countEl = document.querySelector("#history-count");
+  if (!container) {
+    return;
+  }
+
+  const stored = (await browser.storage.local.get(HISTORY_KEY)) ?? {};
+  const entries = (stored[HISTORY_KEY] || []).slice().reverse(); // newest first
+
+  // Raw JSON stays available (some users import/inspect it); kept in sync
+  /** @type {HTMLTextAreaElement} */
+  const raw = document.querySelector("#history");
+  if (raw) {
+    raw.value = JSON.stringify(stored, null, 2);
+  }
+
+  container.textContent = "";
+  if (countEl) {
+    countEl.textContent = entries.length ? `${entries.length} saved` : "";
+  }
+
+  if (entries.length === 0) {
+    const empty = document.createElement("p");
+    empty.className = "caption";
+    empty.textContent = "No downloads saved yet.";
+    container.appendChild(empty);
+    return;
+  }
+
+  const table = document.createElement("table");
+  table.className = "history-table";
+
+  const head = document.createElement("tr");
+  ["Saved", "File", "Saved to", "Source"].forEach((label) => {
+    const th = document.createElement("th");
+    th.textContent = label;
+    head.appendChild(th);
+  });
+  table.appendChild(head);
+
+  entries.forEach((entry) => {
+    const info = (entry.state && entry.state.info) || {};
+    const source = info.sourceUrl || entry.url || info.pageUrl || "";
+
+    const tr = document.createElement("tr");
+
+    const time = document.createElement("td");
+    time.className = "history-time";
+    time.textContent = historyTime(entry.timestamp);
+    tr.appendChild(time);
+
+    const file = document.createElement("td");
+    file.className = "history-file";
+    file.textContent = historyFilename(entry.finalFullPath);
+    file.title = entry.finalFullPath || "";
+    tr.appendChild(file);
+
+    const path = document.createElement("td");
+    path.className = "history-path";
+    path.textContent = entry.finalFullPath || "";
+    path.title = entry.finalFullPath || "";
+    tr.appendChild(path);
+
+    const src = document.createElement("td");
+    src.className = "history-source";
+    if (source) {
+      const link = document.createElement("a");
+      link.href = source;
+      link.target = "_blank";
+      link.rel = "noreferrer";
+      link.textContent = source;
+      link.title = source;
+      src.appendChild(link);
+    }
+    tr.appendChild(src);
+
+    table.appendChild(tr);
+  });
+
+  container.appendChild(table);
+};
+document.addEventListener("DOMContentLoaded", renderHistory);
+
+const clearHistory = () => {
+  // eslint-disable-next-line no-alert
+  if (window.confirm("Clear all saved history? This cannot be undone.")) {
+    browser.storage.local.remove(HISTORY_KEY).then(renderHistory);
+  }
+};
+document.querySelector("#history-clear")?.addEventListener("click", clearHistory);
 
 const LOG_STORAGE_KEY = "si-log";
 
@@ -211,7 +304,7 @@ browser.runtime.onMessage.addListener((message) => {
   switch (message.type) {
     case "DOWNLOADED":
       updateErrors();
-      updateHistory();
+      renderHistory();
       updateDebugLog();
       break;
     default:
