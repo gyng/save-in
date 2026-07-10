@@ -129,6 +129,22 @@ const Notifier = {
     }
   },
 
+  // Single user-facing path for a TERMINAL download failure that happens before
+  // a download is even created (the pipeline throwing, or downloads.download
+  // rejecting after the fetch fallback is exhausted) — cases onDownloadChanged
+  // never sees. Gated on notifyOnFailure so it stays consistent with the
+  // post-creation failure notification.
+  reportFailure: (name, message) => {
+    if (!(options && options.notifyOnFailure)) {
+      return;
+    }
+    Notifier.createExtensionNotification(
+      browser.i18n.getMessage("notificationFailureTitle", [name || ""]),
+      message || browser.i18n.getMessage("genericUnknownError"),
+      true,
+    );
+  },
+
   // Returns Firefox/Chrome error deltas ({ current }) or a boolean
   /** @returns {any} */
   isDownloadFailure: (downloadDelta, isChrome) => {

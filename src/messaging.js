@@ -282,13 +282,9 @@ const Messaging = {
     };
 
     Notifier.expectDownload();
-    // Fire-and-forget async: the OK below acknowledges acceptance, not
-    // completion; swallow a rejection so it can't surface as an unhandled one
-    Download.renameAndDownload(clickState).catch((e) => {
-      if (typeof Log !== "undefined") {
-        Log.add("renameAndDownload failed", String(e));
-      }
-    });
+    // Fire-and-forget async (the OK below acknowledges acceptance, not
+    // completion); Download.launch logs and reports a terminal failure
+    Download.launch(clickState);
 
     // status:"OK" is unchanged for back-compat; version/url are additive
     sendResponse({

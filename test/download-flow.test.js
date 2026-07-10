@@ -89,6 +89,7 @@ beforeEach(() => {
     trackDownload: jest.fn(() => Promise.resolve()),
     createExtensionNotification: jest.fn(),
     expectDownload: jest.fn(),
+    reportFailure: jest.fn(),
   };
 
   global.RequestHeaders = { prepareReferer: jest.fn(() => Promise.resolve()) };
@@ -243,7 +244,11 @@ describe("renameAndDownload: shared :sha256: fetch reuse", () => {
   test("reuses the already-fetched download URL instead of fetching the file again", async () => {
     global.CURRENT_BROWSER = "CHROME";
     const state = makeState({
-      info: { contentPromise: Promise.resolve({ downloadUrl: "data:application/octet-stream;base64,eA==" }) },
+      info: {
+        contentPromise: Promise.resolve({
+          downloadUrl: "data:application/octet-stream;base64,eA==",
+        }),
+      },
     });
 
     await Download.renameAndDownload(state);
@@ -928,6 +933,56 @@ describe("concurrent downloads (pendingStates)", () => {
       Download.rememberPendingState(makeState(`https://x/${i}.png`, "d", `${i}.png`));
     }
     expect(Download.pendingStates.size).toBeLessThanOrEqual(50);
+  });
+});
+
+describe("Download.launch (fire-and-forget with a user-facing failure)", () => {
+  test("swallows a pipeline rejection, logging and reporting it to the user", async () => {
+    const orig = Download.renameAndDownload;
+    Download.renameAndDownload = jest.fn(() => Promise.reject(new Error("kaboom")));
+    try {
+      await expect(
+        Download.launch(makeState({ info: { suggestedFilename: "x.png" } })),
+      ).resolves.toBeUndefined();
+
+      expect(global.Log.add).toHaveBeenCalledWith(
+        "renameAndDownload failed",
+        expect.stringContaining("kaboom"),
+      );
+      expect(global.Notifier.reportFailure).toHaveBeenCalledWith(
+        "x.png",
+        expect.stringContaining("kaboom"),
+      );
+    } finally {
+      Download.renameAndDownload = orig;
+    }
+  });
+
+  test("reports nothing on a successful pipeline run", async () => {
+    const orig = Download.renameAndDownload;
+    Download.renameAndDownload = jest.fn(() => Promise.resolve());
+    try {
+      await Download.launch(makeState());
+      expect(global.Notifier.reportFailure).not.toHaveBeenCalled();
+    } finally {
+      Download.renameAndDownload = orig;
+    }
+  });
+});
+
+describe("terminal browserDownload failure surfaces to the user", () => {
+  test("reports a failure when downloads.download rejects and the fallback is off", async () => {
+    global.CURRENT_BROWSER = "CHROME";
+    global.options.fallbackFetch = false;
+    global.browser.downloads.download = jest.fn(() => Promise.reject(new Error("disk full")));
+
+    await Download.renameAndDownload(makeState());
+    await flush();
+
+    expect(global.Notifier.reportFailure).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.stringContaining("disk full"),
+    );
   });
 });
 

@@ -358,6 +358,20 @@ const Download = {
     return Router.matchRules(filenamePatterns, state.info);
   },
 
+  // Single entry point for firing a download from a menu/message click:
+  // fire-and-forget (renameAndDownload is async) but with one place that both
+  // logs and surfaces a terminal pipeline failure to the user. Callers still
+  // call Notifier.expectDownload() themselves (the tab-strip batch stages it
+  // separately from the per-tab launch).
+  launch: (state) =>
+    Download.renameAndDownload(state).catch((e) => {
+      if (typeof Log !== "undefined") {
+        Log.add("renameAndDownload failed", String(e));
+      }
+      const name = (state && state.info && (state.info.suggestedFilename || state.info.url)) || "";
+      Notifier.reportFailure(name, String(e));
+    }),
+
   // async because Variable.applyVariables is now async (it may await a
   // :counter:/:mime: transformer). Callers fire-and-forget, so awaiting the
   // path/route interpolation here before the download is safe.
@@ -485,9 +499,14 @@ const Download = {
             if (typeof Log !== "undefined") {
               Log.add("downloads.download failed", String(e));
             }
-            // Immediate rejections also get one fetch-fallback attempt
+            // Immediate rejections also get one fetch-fallback attempt; once the
+            // fallback is exhausted (or disabled), tell the user rather than
+            // failing silently — onDownloadChanged never fires for a download
+            // that was never created
             if (!viaFetch && options.fallbackFetch !== false) {
               fetchDownload(_state.info.url);
+            } else {
+              Notifier.reportFailure(finalFullPath || _state.info.url, String(e));
             }
           })
           .then(() =>

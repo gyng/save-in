@@ -568,6 +568,34 @@ describe("notification variants", () => {
   });
 });
 
+describe("reportFailure", () => {
+  beforeEach(() => {
+    jest.resetModules();
+    setupGlobals({}, () => []);
+  });
+
+  test("fires a failure notification when notifyOnFailure is on", async () => {
+    global.options = { notifyOnFailure: true, notifyDuration: 0 };
+    const Notifier = (await import("../src/notification.js")).default;
+
+    Notifier.reportFailure("file.png", "boom");
+
+    expect(global.browser.notifications.create).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({ iconUrl: expect.stringContaining("error") }),
+    );
+  });
+
+  test("stays silent when notifyOnFailure is off", async () => {
+    global.options = { notifyOnFailure: false };
+    const Notifier = (await import("../src/notification.js")).default;
+
+    Notifier.reportFailure("file.png", "boom");
+
+    expect(global.browser.notifications.create).not.toHaveBeenCalled();
+  });
+});
+
 describe("expectDownload", () => {
   test("an expected download is tracked without the session fallback", async () => {
     jest.resetModules();

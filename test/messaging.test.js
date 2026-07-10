@@ -22,7 +22,10 @@ const setupGlobals = () => {
   global.currentTab = { id: 1, title: "Tracked Tab" };
   global.options = { conflictAction: "uniquify" };
   global.Path = { Path: FakePath };
-  global.Download = { renameAndDownload: vi.fn(() => Promise.resolve()) };
+  global.Download = {
+    renameAndDownload: vi.fn(() => Promise.resolve()),
+    launch: (state) => global.Download.renameAndDownload(state).catch(() => {}),
+  };
   global.Notifier = { expectDownload: vi.fn() };
   global.Menus = {
     buildTree: vi.fn((paths) => ({

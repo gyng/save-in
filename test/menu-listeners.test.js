@@ -22,6 +22,9 @@ const setupBrowserMocks = () => {
   global.browser.storage.local.set = jest.fn(() => Promise.resolve());
   global.Download = {
     renameAndDownload: jest.fn(() => Promise.resolve()),
+    // Mirrors the real Download.launch: run the pipeline, swallow rejections.
+    // Its logging/reportFailure behavior is unit-tested in download-flow.test.js.
+    launch: (state) => global.Download.renameAndDownload(state).catch(() => {}),
     makeObjectUrl: jest.fn(() => "data:text/plain;base64,eA=="),
   };
   global.Notifier = { createExtensionNotification: jest.fn(), expectDownload: jest.fn() };
@@ -398,29 +401,6 @@ describe("addDownloadListener", () => {
     await listener({ menuItemId: "save-in-0", pageUrl: "https://example.com/" });
 
     expect(global.Download.renameAndDownload).not.toHaveBeenCalled();
-  });
-
-  test("logs (and swallows) a rejection from the fire-and-forget download", async () => {
-    global.Log = { add: jest.fn() };
-    global.Download.renameAndDownload = jest.fn(() => Promise.reject(new Error("boom")));
-
-    Menus.addPaths(["dir1"], ["link"]);
-    await expect(
-      listener({
-        menuItemId: "save-in-0",
-        linkUrl: "https://example.com/f.png",
-        pageUrl: "https://example.com/",
-      }),
-    ).resolves.not.toThrow();
-
-    // let the rejection reach the .catch handler
-    await Promise.resolve();
-    await Promise.resolve();
-    expect(global.Log.add).toHaveBeenCalledWith(
-      "renameAndDownload failed",
-      expect.stringContaining("boom"),
-    );
-    delete global.Log;
   });
 
   test("closeTabOnSave removes the tab shortly after a page save", async () => {
@@ -808,23 +788,6 @@ describe("addTabMenuListener tabstrip downloads", () => {
       undefined,
       240,
     );
-  });
-
-  test("logs (and swallows) a rejection from a tabstrip download", async () => {
-    global.Log = { add: jest.fn() };
-    global.Download.renameAndDownload = jest.fn(() => Promise.reject(new Error("boom")));
-
-    await listener({ menuItemId: Menus.IDS.TABSTRIP.SELECTED_TAB }, fromTab);
-    await jest.advanceTimersByTimeAsync(2000);
-    // let the rejection reach the .catch handler
-    await Promise.resolve();
-    await Promise.resolve();
-
-    expect(global.Log.add).toHaveBeenCalledWith(
-      "renameAndDownload failed",
-      expect.stringContaining("boom"),
-    );
-    delete global.Log;
   });
 
   test("closeTabOnSave removes each tab shortly after saving it", async () => {
