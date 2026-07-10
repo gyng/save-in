@@ -745,35 +745,78 @@ input.key {
   margin-top: 0;
 }
 
-/* Live variable values (current interpolation from the last download) */
-.variables-preview-list {
-  max-height: 220px;
-  overflow-y: auto;
-  border: 1px solid var(--panel-border);
-  border-radius: var(--radius);
+/* Live variable values (current interpolation from the last download);
+   collapsed by default */
+.variables-preview {
+  margin: 0;
+}
+
+.variables-preview > summary {
+  cursor: pointer;
+  user-select: none;
+  font-weight: 600;
+  font-size: var(--text-sm);
   padding: var(--space-1) 0;
 }
 
-.variables-preview-row {
-  display: flex;
-  align-items: baseline;
-  gap: var(--space-2);
-  padding: 2px var(--space-3);
-  font-size: var(--text-sm);
+.variables-preview-list {
+  max-height: 240px;
+  overflow-y: auto;
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  margin-top: var(--space-1);
 }
 
-.variables-preview-row code {
-  flex: none;
+.variables-preview-empty {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+}
+
+.variables-preview-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.variables-preview-table td {
+  padding: 2px var(--space-2);
+  border-bottom: 1px solid var(--panel-border);
+  line-height: 1.5;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 0;
+}
+
+.variables-preview-table tr:last-child td {
+  border-bottom: none;
+}
+
+.variables-preview-table td:first-child {
+  width: 45%;
+}
+
+.variables-preview-table code {
+  background: none;
+  padding: 0;
+  font-size: 12px;
 }
 
 .variables-preview-value {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
   color: var(--grey50);
   font-family: var(--font-mono);
+}
+
+.variables-preview-row.insertable {
+  cursor: pointer;
+}
+
+.variables-preview-row.insertable:hover {
+  background-color: var(--panel-bg);
+}
+
+.variables-preview-row.insertable:hover code {
+  color: var(--link-color);
 }
 
 /* Source-order <hr> section separators are redundant once sections
@@ -1391,4 +1434,23 @@ button {
    the heading above them */
 .tab-panel .section-actions {
   margin: var(--space-1) 0 var(--space-2);
+}
+
+/* Dynamic tab: the last-download routing test stays in the left column
+   (aligned with the rules editor) instead of spanning the wide column */
+.last-download-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  max-width: var(--content-max-width);
+}
+
+/* Deprecated options read as faded and struck through (the badge stays
+   legible so the reason is clear) */
+.deprecated {
+  opacity: 0.6;
+}
+
+.deprecated .deprecated-text {
+  text-decoration: line-through;
 }

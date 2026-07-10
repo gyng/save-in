@@ -257,10 +257,10 @@
             <div class="menu-preview-tree" id="menu-preview-tree"></div>
           </div>
 
-          <div class="variables-preview">
-            <div class="caption">__MSG_o_lLiveVariables__</div>
+          <details class="variables-preview" data-insert-target="paths">
+            <summary>__MSG_o_lLiveVariables__</summary>
             <div class="variables-preview-list"></div>
-          </div>
+          </details>
         </div>
       </div>
 
@@ -513,14 +513,14 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
               <div id="rule-templates"></div>
             </details>
 
-            <div class="variables-preview">
-              <div class="caption">__MSG_o_lLiveVariables__</div>
+            <details class="variables-preview" data-insert-target="filenamePatterns">
+              <summary>__MSG_o_lLiveVariables__</summary>
               <div class="variables-preview-list"></div>
-            </div>
+            </details>
           </div>
         </div>
 
-        <div style="display: flex; max-width: 100%; align-items: center; flex-wrap: wrap">
+        <div class="last-download-row">
           <div
             class="info-row"
             style="
@@ -741,9 +741,9 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
         <div class="caption caption-line">__MSG_o_cReplaceInvalidCharsWithHelp__</div>
       </label>
 
-      <label>
+      <label class="deprecated">
         <input type="checkbox" id="fetchViaContent" class="chrome-disabled" />
-        <span>__MSG_o_cFetchViaContentScript__</span>
+        <span class="deprecated-text">__MSG_o_cFetchViaContentScript__</span>
         <span class="badge">Firefox</span>
         <span class="warning badge">Deprecated</span>
         <div class="caption caption-line">__MSG_o_cFetchViaContentScriptHelp__</div>

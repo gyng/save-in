@@ -163,11 +163,12 @@ const renderVersionLabel = () => {
 document.addEventListener("DOMContentLoaded", renderVersionLabel);
 
 // Live variable values, shown in the preview columns of the Downloads and
-// Dynamic tabs: the full variable list (GET_KEYWORDS) with each one's
-// current interpolated value from the last download (CHECK_ROUTES).
+// Dynamic tabs: each variable and its current interpolated value from the
+// last download (CHECK_ROUTES). Clicking a variable inserts it into the
+// panel's target editor; empty until there is a download to interpolate.
 const renderVariablesPreview = () => {
-  const containers = document.querySelectorAll(".variables-preview-list");
-  if (containers.length === 0) {
+  const panels = document.querySelectorAll(".variables-preview");
+  if (panels.length === 0) {
     return;
   }
 
@@ -178,27 +179,54 @@ const renderVariablesPreview = () => {
     .then(([keywords, routes]) => {
       const variables = (keywords && keywords.body && keywords.body.variables) || [];
       const values = (routes && routes.body && routes.body.interpolatedVariables) || {};
+      const hasValues = Object.keys(values).length > 0;
 
-      containers.forEach((container) => {
+      panels.forEach((/** @type {HTMLElement} */ panel) => {
+        const container = panel.querySelector(".variables-preview-list");
+        if (!container) {
+          return;
+        }
         container.textContent = "";
+
+        if (!hasValues) {
+          const empty = document.createElement("p");
+          empty.className = "caption variables-preview-empty";
+          empty.textContent = "Values appear here after your next save.";
+          container.appendChild(empty);
+          return;
+        }
+
+        const targetId = panel.dataset.insertTarget;
+        const target = targetId ? document.querySelector(`#${targetId}`) : null;
+
+        const table = document.createElement("table");
+        table.className = "variables-preview-table";
+
         variables.forEach((variable) => {
-          const row = document.createElement("div");
-          row.className = "variables-preview-row";
+          const tr = document.createElement("tr");
+          tr.className = "variables-preview-row";
+          if (target && typeof PathEditor !== "undefined") {
+            tr.classList.add("insertable");
+            tr.title = `Insert ${variable}`;
+            tr.addEventListener("click", () => PathEditor.insertAtCursor(target, variable));
+          }
 
+          const nameCell = document.createElement("td");
           const name = document.createElement("code");
-          name.className = "click-to-copy";
           name.textContent = variable;
-          addClickToCopy(name);
-          row.appendChild(name);
+          nameCell.appendChild(name);
+          tr.appendChild(nameCell);
 
-          const value = document.createElement("span");
-          value.className = "variables-preview-value";
-          value.textContent = values[variable] || "";
-          value.title = values[variable] || "";
-          row.appendChild(value);
+          const valueCell = document.createElement("td");
+          valueCell.className = "variables-preview-value";
+          valueCell.textContent = values[variable] || "";
+          valueCell.title = values[variable] || "";
+          tr.appendChild(valueCell);
 
-          container.appendChild(row);
+          table.appendChild(tr);
         });
+
+        container.appendChild(table);
       });
     })
     .catch(() => {});
