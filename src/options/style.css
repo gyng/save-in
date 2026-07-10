@@ -726,10 +726,54 @@ input.key {
   flex: 1 1 280px;
   min-width: 240px;
   margin-top: 0;
-  /* Stays in view while editing a long directory list; offset clears the
-     sticky tab bar's full height */
+}
+
+/* Right-hand preview stack (menu/template preview + live variables): one
+   sticky column so it stays in view while editing */
+.preview-column {
+  flex: 1 1 300px;
+  min-width: 260px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
   position: sticky;
   top: 56px;
+  max-height: calc(100vh - 130px);
+}
+
+.preview-column > .menu-preview {
+  margin-top: 0;
+}
+
+/* Live variable values (current interpolation from the last download) */
+.variables-preview-list {
+  max-height: 220px;
+  overflow-y: auto;
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  padding: var(--space-1) 0;
+}
+
+.variables-preview-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  padding: 2px var(--space-3);
+  font-size: var(--text-sm);
+}
+
+.variables-preview-row code {
+  flex: none;
+}
+
+.variables-preview-value {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--grey50);
+  font-family: var(--font-mono);
 }
 
 /* Source-order <hr> section separators are redundant once sections
@@ -810,11 +854,7 @@ input.key {
 }
 
 .rule-templates-panel {
-  flex: 1 1 320px;
-  min-width: 280px;
-  position: sticky;
-  top: 56px;
-  max-height: calc(100vh - 130px);
+  max-height: 40vh;
   overflow-y: auto;
   margin: 0;
 }

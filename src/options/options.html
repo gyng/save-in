@@ -251,9 +251,16 @@
           </div>
         </div>
 
-        <div class="menu-preview" id="menu-preview">
-          <div class="caption">__MSG_o_lMenuPreview__</div>
-          <div class="menu-preview-tree" id="menu-preview-tree"></div>
+        <div class="preview-column">
+          <div class="menu-preview" id="menu-preview">
+            <div class="caption">__MSG_o_lMenuPreview__</div>
+            <div class="menu-preview-tree" id="menu-preview-tree"></div>
+          </div>
+
+          <div class="variables-preview">
+            <div class="caption">__MSG_o_lLiveVariables__</div>
+            <div class="variables-preview-list"></div>
+          </div>
         </div>
       </div>
 
@@ -492,18 +499,25 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
             </div>
           </div>
 
-          <details class="rule-templates-panel">
-            <summary>__MSG_o_lRuleTemplates__</summary>
-            <p class="rule-templates-links">
-              <a
-                class="external"
-                href="https://github.com/gyng/save-in/wiki/Filename-rewrite"
-                target="_blank"
-                >__MSG_o_lRoutingTemplates__</a
-              >
-            </p>
-            <div id="rule-templates"></div>
-          </details>
+          <div class="preview-column">
+            <details class="rule-templates-panel">
+              <summary>__MSG_o_lRuleTemplates__</summary>
+              <p class="rule-templates-links">
+                <a
+                  class="external"
+                  href="https://github.com/gyng/save-in/wiki/Filename-rewrite"
+                  target="_blank"
+                  >__MSG_o_lRoutingTemplates__</a
+                >
+              </p>
+              <div id="rule-templates"></div>
+            </details>
+
+            <div class="variables-preview">
+              <div class="caption">__MSG_o_lLiveVariables__</div>
+              <div class="variables-preview-list"></div>
+            </div>
+          </div>
         </div>
 
         <div style="display: flex; max-width: 100%; align-items: center; flex-wrap: wrap">

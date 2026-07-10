@@ -162,6 +162,49 @@ const renderVersionLabel = () => {
 };
 document.addEventListener("DOMContentLoaded", renderVersionLabel);
 
+// Live variable values, shown in the preview columns of the Downloads and
+// Dynamic tabs: the full variable list (GET_KEYWORDS) with each one's
+// current interpolated value from the last download (CHECK_ROUTES).
+const renderVariablesPreview = () => {
+  const containers = document.querySelectorAll(".variables-preview-list");
+  if (containers.length === 0) {
+    return;
+  }
+
+  Promise.all([
+    browser.runtime.sendMessage({ type: "GET_KEYWORDS" }),
+    browser.runtime.sendMessage({ type: "CHECK_ROUTES" }).catch(() => null),
+  ])
+    .then(([keywords, routes]) => {
+      const variables = (keywords && keywords.body && keywords.body.variables) || [];
+      const values = (routes && routes.body && routes.body.interpolatedVariables) || {};
+
+      containers.forEach((container) => {
+        container.textContent = "";
+        variables.forEach((variable) => {
+          const row = document.createElement("div");
+          row.className = "variables-preview-row";
+
+          const name = document.createElement("code");
+          name.className = "click-to-copy";
+          name.textContent = variable;
+          addClickToCopy(name);
+          row.appendChild(name);
+
+          const value = document.createElement("span");
+          value.className = "variables-preview-value";
+          value.textContent = values[variable] || "";
+          value.title = values[variable] || "";
+          row.appendChild(value);
+
+          container.appendChild(row);
+        });
+      });
+    })
+    .catch(() => {});
+};
+document.addEventListener("DOMContentLoaded", renderVariablesPreview);
+
 const HISTORY_KEY = "save-in-history";
 
 // Newest-first cache of the stored entries, and the current sort/filter
@@ -398,6 +441,7 @@ browser.runtime.onMessage.addListener((message) => {
     case "DOWNLOADED":
       updateErrors();
       renderHistory();
+      renderVariablesPreview();
       updateDebugLog();
       break;
     default:
@@ -804,6 +848,7 @@ document.querySelectorAll("[data-apply]").forEach((button) => {
     window.setTimeout(() => {
       updateErrors();
       updateMenuPreview();
+      renderVariablesPreview();
     }, 200);
     const original = button.textContent;
     button.textContent = "✓";

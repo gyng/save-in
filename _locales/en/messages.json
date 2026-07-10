@@ -262,6 +262,11 @@
     "description": "Heading for the live context-menu tree preview on the options page"
   },
 
+  "o_lLiveVariables": {
+    "message": "Live variables",
+    "description": "Heading for the scrollable list of variables and their current values"
+  },
+
   "o_sVisualEditor": {
     "message": "Visual Editor"
   },
