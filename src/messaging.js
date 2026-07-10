@@ -28,7 +28,9 @@ const Messaging = {
     }
     try {
       const { protocol } = new URL(url);
-      return ["http:", "https:", "ftp:", "data:"].includes(protocol);
+      // blob: is included because the extension downloads fetched content via
+      // blob URLs on Firefox (data: URLs are rejected there by downloads.download)
+      return ["http:", "https:", "ftp:", "data:", "blob:"].includes(protocol);
     } catch {
       return false;
     }
@@ -40,6 +42,40 @@ const Messaging = {
       body: {
         version: Messaging.API_VERSION,
         capabilities: Messaging.API_CAPABILITIES.slice(),
+      },
+    });
+  },
+
+  // Live routing/variable preview for the options page. Async because
+  // Variable.applyVariables and OptionsManagement.checkRoutes now await.
+  handleCheckRoutes: async (request, sendResponse) => {
+    const lastState =
+      (request.body && request.body.state) ||
+      (window.lastDownloadState != null && window.lastDownloadState);
+
+    let interpolatedVariables = null;
+    if (lastState) {
+      const keys = Object.keys(Variable.transformers);
+      const values = await Promise.all(
+        keys.map((val) =>
+          Variable.applyVariables(new Path.Path(val), lastState.info).then((p) => p.finalize()),
+        ),
+      );
+      interpolatedVariables = {};
+      keys.forEach((key, i) => {
+        interpolatedVariables[key] = values[i];
+      });
+    }
+
+    const routeInfo = await OptionsManagement.checkRoutes(lastState);
+
+    sendResponse({
+      type: MESSAGE_TYPES.CHECK_ROUTES_RESPONSE,
+      body: {
+        optionErrors: window.optionErrors,
+        routeInfo,
+        lastDownload: window.lastDownloadState,
+        interpolatedVariables,
       },
     });
   },
@@ -139,7 +175,7 @@ const Messaging = {
       return;
     }
     if (!Messaging.isValidDownloadUrl(url)) {
-      fail(Messaging.API_ERRORS.INVALID_URL, "URL must be http(s), ftp or data");
+      fail(Messaging.API_ERRORS.INVALID_URL, "URL must be http(s), ftp, data or blob");
       return;
     }
 
@@ -186,7 +222,13 @@ const Messaging = {
     };
 
     Notifier.expectDownload();
-    Download.renameAndDownload(clickState);
+    // Fire-and-forget async: the OK below acknowledges acceptance, not
+    // completion; swallow a rejection so it can't surface as an unhandled one
+    Download.renameAndDownload(clickState).catch((e) => {
+      if (typeof Log !== "undefined") {
+        Log.add("renameAndDownload failed", String(e));
+      }
+    });
 
     // status:"OK" is unchanged for back-compat; version/url are additive
     sendResponse({
@@ -271,30 +313,10 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
       break;
     }
     case MESSAGE_TYPES.CHECK_ROUTES:
-      const lastState =
-        (request.body && request.body.state) ||
-        (window.lastDownloadState != null && window.lastDownloadState);
-
-      const interpolatedVariables = lastState
-        ? Object.keys(Variable.transformers).reduce(
-            (acc, val) =>
-              Object.assign(acc, {
-                [val]: Variable.applyVariables(new Path.Path(val), lastState.info).finalize(),
-              }),
-            {},
-          )
-        : null;
-
-      sendResponse({
-        type: MESSAGE_TYPES.CHECK_ROUTES_RESPONSE,
-        body: {
-          optionErrors: window.optionErrors,
-          routeInfo: OptionsManagement.checkRoutes(lastState),
-          lastDownload: window.lastDownloadState,
-          interpolatedVariables,
-        },
-      });
-      break;
+      // async: interpolation + checkRoutes now await Variable.applyVariables.
+      // Returning true keeps the message channel open for the late sendResponse.
+      Messaging.handleCheckRoutes(request, sendResponse);
+      return true;
     case MESSAGE_TYPES.PING:
       Messaging.handlePing(request, sender, sendResponse);
       break;

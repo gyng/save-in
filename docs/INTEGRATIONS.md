@@ -56,7 +56,7 @@ const res = await browser.runtime.sendMessage(ID, {
 ```
 
 `error` is one of `BAD_REQUEST` (malformed message, e.g. missing `url`),
-`INVALID_URL` (not an `http(s)`/`ftp`/`data` URL), or `UNKNOWN_TYPE` (message
+`INVALID_URL` (not an `http(s)`/`ftp`/`data`/`blob` URL), or `UNKNOWN_TYPE` (message
 type the running version doesn't handle). `status: "OK"` is unchanged from
 earlier builds, so pre-existing callers keep working; `version`/`url` are
 additive.
@@ -79,7 +79,7 @@ filename or route.
   needed for external messages (unlike the content-script click path).
 - **Trust model:** `onMessageExternal` accepts from **any** installed
   extension, and a `DOWNLOAD` triggers a save. save-in validates the URL scheme
-  (`http`/`https`/`ftp`/`data` only, so a caller can't make it fetch
+  (`http`/`https`/`ftp`/`data`/`blob` only, so a caller can't make it fetch
   `javascript:`/`file:`) but does not otherwise allowlist senders. Treat the
   ability to install an extension as the trust boundary.
 - The `OK` response acknowledges that the save was **accepted and started**, not

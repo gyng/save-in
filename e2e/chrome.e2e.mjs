@@ -300,6 +300,16 @@ test("message-driven downloads work and never inherit a stale route", async () =
     }).then(() => window.reset())`,
   );
 
+  // v1 handshake: PING negotiates the version + capabilities end-to-end
+  const pong = JSON.parse(
+    await evalOptions(
+      `new Promise((res) => chrome.runtime.sendMessage({ type: "PING" }, (r) => res(JSON.stringify(r))))`,
+    ),
+  );
+  expect(pong.type).toBe("PONG");
+  expect(pong.body.version).toBe(1);
+  expect(pong.body.capabilities).toContain("download");
+
   const ack = await evalOptions(`new Promise((res) => chrome.runtime.sendMessage({
     type: "DOWNLOAD",
     body: {
@@ -311,7 +321,11 @@ test("message-driven downloads work and never inherit a stale route", async () =
       },
     },
   }, (r) => res(JSON.stringify(r))))`);
-  expect(JSON.parse(ack)).toEqual({ type: "DOWNLOAD", body: { status: "OK" } });
+  // v1 external API: status:"OK" is unchanged for back-compat; version/url added
+  expect(JSON.parse(ack)).toEqual({
+    type: "DOWNLOAD",
+    body: { status: "OK", version: 1, url: "data:text/plain,message%20download" },
+  });
 
   const rows = await waitForDownloads("msg-download");
   expect(rows).toHaveLength(1);

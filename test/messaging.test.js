@@ -22,7 +22,7 @@ const setupGlobals = () => {
   global.currentTab = { id: 1, title: "Tracked Tab" };
   global.options = { conflictAction: "uniquify" };
   global.Path = { Path: FakePath };
-  global.Download = { renameAndDownload: vi.fn() };
+  global.Download = { renameAndDownload: vi.fn(() => Promise.resolve()) };
   global.Notifier = { expectDownload: vi.fn() };
   global.Menus = {
     buildTree: vi.fn((paths) => ({
@@ -33,7 +33,7 @@ const setupGlobals = () => {
   global.Router = { matcherFunctions: { fileext: () => {}, pageurl: () => {} } };
   global.Variable = {
     transformers: { ":date:": () => {}, ":year:": () => {} },
-    applyVariables: vi.fn((path) => ({ finalize: () => `interp:${path.raw}` })),
+    applyVariables: vi.fn((path) => Promise.resolve({ finalize: () => `interp:${path.raw}` })),
   };
   global.OptionsManagement = {
     OPTION_KEYS: [{ name: "prompt", type: "BOOL", default: false }],
@@ -147,11 +147,16 @@ describe("onMessage", () => {
 });
 
 describe("onMessage CHECK_ROUTES", () => {
-  test("uses the state supplied in the request body", () => {
+  // CHECK_ROUTES is now async (interpolation + checkRoutes await); let the
+  // handler's microtasks settle before asserting the response
+  const settle = () => new Promise((r) => setTimeout(r, 0));
+
+  test("uses the state supplied in the request body", async () => {
     const state = { info: { filename: "f.png" } };
     const sendResponse = vi.fn();
 
     onMessage({ type: MESSAGE_TYPES.CHECK_ROUTES, body: { state } }, {}, sendResponse);
+    await settle();
 
     expect(global.OptionsManagement.checkRoutes).toHaveBeenCalledWith(state);
     expect(global.Variable.applyVariables).toHaveBeenCalledWith(expect.any(FakePath), state.info);
@@ -166,12 +171,13 @@ describe("onMessage CHECK_ROUTES", () => {
     });
   });
 
-  test("falls back to window.lastDownloadState without a state in the body", () => {
+  test("falls back to window.lastDownloadState without a state in the body", async () => {
     const lastState = { info: { filename: "last.png" } };
     global.window.lastDownloadState = lastState;
     const sendResponse = vi.fn();
 
     onMessage({ type: MESSAGE_TYPES.CHECK_ROUTES, body: {} }, {}, sendResponse);
+    await settle();
 
     expect(global.OptionsManagement.checkRoutes).toHaveBeenCalledWith(lastState);
     expect(sendResponse).toHaveBeenCalledWith(
@@ -184,11 +190,12 @@ describe("onMessage CHECK_ROUTES", () => {
     );
   });
 
-  test("responds with null interpolations when there is no state at all", () => {
+  test("responds with null interpolations when there is no state at all", async () => {
     global.window.lastDownloadState = null;
     const sendResponse = vi.fn();
 
     onMessage({ type: MESSAGE_TYPES.CHECK_ROUTES }, {}, sendResponse);
+    await settle();
 
     expect(global.OptionsManagement.checkRoutes).toHaveBeenCalledWith(false);
     expect(global.Variable.applyVariables).not.toHaveBeenCalled();
@@ -392,6 +399,7 @@ describe("external DOWNLOAD API v1", () => {
     expect(Messaging.isValidDownloadUrl("http://x/f.png")).toBe(true);
     expect(Messaging.isValidDownloadUrl("ftp://x/f.png")).toBe(true);
     expect(Messaging.isValidDownloadUrl("data:text/plain,hi")).toBe(true);
+    expect(Messaging.isValidDownloadUrl("blob:https://x/uuid")).toBe(true);
     expect(Messaging.isValidDownloadUrl("file:///etc/passwd")).toBe(false);
     expect(Messaging.isValidDownloadUrl("javascript:1")).toBe(false);
     expect(Messaging.isValidDownloadUrl("not a url")).toBe(false);
