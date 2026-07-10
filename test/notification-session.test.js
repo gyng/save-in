@@ -556,7 +556,7 @@ describe("automatic fetch fallback gating", () => {
     [[onChanged]] = global.browser.downloads.onChanged.addListener.mock.calls;
 
     sessionStore.siPendingDownload = true;
-    onCreated({ id: 7, filename: "C:\dl\pic.png", url: "https://x/p.png" });
+    onCreated({ id: 7, filename: "C:\\dl\\pic.png", url: "https://x/p.png" });
     await flush();
   };
 
