@@ -813,7 +813,9 @@ input.key {
 }
 
 .preview-column > .menu-preview {
-  margin-top: 0;
+  /* Reset the base `details` margin (incl. the 5px left) so the menu preview
+     lines up with the live-variables details below it */
+  margin: 0;
 }
 
 /* One consistent look for every collapsible section header across the options
