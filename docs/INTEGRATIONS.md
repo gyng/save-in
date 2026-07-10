@@ -121,41 +121,44 @@ documented, discoverable API — without a build step or new permissions.
 
 ---
 
-## 4. Proposed: AI-assisted configuration
+## 4. AI-assisted configuration (v1)
 
-The options are already a **structured schema** (`OptionsManagement.OPTION_KEYS`
-in `src/option.js`) with types and defaults, and the whole config imports/exports
-as JSON. That makes save-in unusually amenable to being configured by an AI
-agent. What's missing is a safe, documented apply path.
+The options are a **structured schema** (`OptionsManagement.OPTION_KEYS`) with
+types and defaults, and the `paths`/`filenamePatterns` grammars are pure and
+return structured errors — so an agent can generate a candidate, validate it,
+and apply it. Three messages make that a supported flow (all on the versioned
+API; `schema`/`validate` are in the `PING` capabilities):
 
-**Why it's a good fit:**
+1. **`GET_SCHEMA`** (read-only, external + internal) → `{ version, options: [{
+   name, type, default, description }] }`. The agent reads this to know what it
+   may set.
+2. **`VALIDATE`** (read-only, external + internal) — `{ paths?,
+   filenamePatterns? }` → `{ pathErrors, ruleErrors, menuPreview }`, run through
+   `Menus.buildTree` / `Router.parseRulesCollecting` without saving. The
+   generate→validate→fix loop lives here.
+3. **`APPLY_CONFIG`** (**internal only**) — `{ config: { name: value } }`,
+   validated against the schema (unknown keys and type mismatches rejected;
+   `onSave` normalises the stored form; load-time `onLoad` validators still
+   coerce cross-browser-invalid values). Closes #89. It is deliberately **not**
+   reachable from `onMessageExternal` — rewriting a user's config is not
+   something an arbitrary extension may do; it's for the options page, WebMCP
+   (below), and same-extension automation.
 
-- Options are declarative key/value pairs, not imperative UI state.
-- The two hard parts — the `paths` menu syntax and the `filenamePatterns`
-  routing rules — are pure, testable grammars (`Menus.buildTree`,
-  `Router.parseRules`) that already return structured errors. An agent can
-  generate a candidate, and the extension can validate it *before* applying.
-- Import/export means "apply a whole config" already works end to end.
+### WebMCP — experimental in-browser AI tools
 
-**Proposed surface (no new grammar, reuses what exists):**
-
-1. **`VALIDATE` message** — takes `{ paths?, filenamePatterns? }`, runs them
-   through `buildTree` / `parseRules`, returns `{ pathErrors, ruleErrors,
-   menuPreview }`. An agent (or the options page itself) can check a draft
-   without saving. This is literally the `PREVIEW_MENUS` + `CHECK_ROUTES`
-   plumbing generalised.
-2. **`APPLY_CONFIG` message** — takes a partial options object, validates it
-   against the schema (unknown keys rejected, types coerced via the existing
-   `onLoad` validators), and applies it. Same guardrails as Import Settings,
-   but scriptable and partial.
-3. **A schema descriptor** — expose `OPTION_KEYS` (name, type, default, and a
-   one-line human description) via a `GET_SCHEMA` message. An agent reads this
-   to know what it's allowed to set and how each field behaves. We already send
-   `OPTIONS_SCHEMA` internally; this is that, documented and stable.
-4. **Options-page affordance** — a "Paste config" box (JSON or a natural-ish
-   rule list) that runs `VALIDATE` live and shows the menu preview + errors
-   before the user clicks Apply. This is the human-in-the-loop version of the
-   agent flow and reuses the preview panes we just built.
+In a [WebMCP](https://developer.chrome.com/docs/ai/webmcp)-capable browser
+(Chrome origin trial), the options page registers four tools an in-browser AI
+agent can call — thin wrappers over the messages above
+(`src/options/webmcp.js`): `save_in_get_schema`, `save_in_validate_config`,
+`save_in_apply_config`, `save_in_download`. It feature-detects
+`document.modelContext` (the surface moved off `navigator.`) and no-ops
+everywhere else, so it's safe in the polyfill-free build. **How to connect:**
+open Save In's options page in a WebMCP-enabled Chrome, keep the tab open, and
+point your agent at it — e.g. *"use Save In to route all Twitter images into
+`pics/twitter/:date:`"* drives `save_in_validate_config` → `save_in_apply_config`.
+The API is explicitly "subject to change"; treat it as a preview. The natural
+next step is a `world: "MAIN"` content script so the `save_in_download` tool is
+available on any page (needs a main-/isolated-world message bridge).
 
 **Guardrails that already exist and should be kept:**
 

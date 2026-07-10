@@ -840,6 +840,33 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
         </div>
       </div>
 
+      <h3>AI agent tools <span class="warning badge">Experimental</span></h3>
+      <p class="caption caption-line">
+        In a browser that supports
+        <a class="external" href="https://developer.chrome.com/docs/ai/webmcp">WebMCP</a>, Save In
+        registers tools an AI agent can call while this options page is open.
+      </p>
+      <div class="dev-api">
+        <div class="dev-api-row">
+          <span class="dev-api-label">Status</span>
+          <span id="webmcp-status" class="dev-api-value">checking&hellip;</span>
+        </div>
+        <div class="dev-api-row">
+          <span class="dev-api-label">Tools</span>
+          <span class="dev-api-value"
+            ><code>save_in_get_schema</code>, <code>save_in_validate_config</code>,
+            <code>save_in_apply_config</code>, <code>save_in_download</code></span
+          >
+        </div>
+        <p class="caption">
+          To connect: open this page in a WebMCP-enabled Chrome (the WebMCP origin trial or
+          <code>chrome://flags</code>), keep it open, and point your in-browser agent at this tab.
+          Ask it to e.g. &ldquo;use Save In to route all Twitter images into
+          <code>pics/twitter/:date:</code>&rdquo; &mdash; it will call
+          <code>save_in_validate_config</code> then <code>save_in_apply_config</code>.
+        </p>
+      </div>
+
       <label> <input type="checkbox" id="debug" /> __MSG_o_cDebugMode__ </label>
 
       <p>__MSG_translationCredits__</p>
@@ -866,5 +893,6 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
     <script src="path-editor.js"></script>
     <script src="rule-builder.js"></script>
     <script src="tabs.js"></script>
+    <script src="webmcp.js"></script>
   </body>
 </html>

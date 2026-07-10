@@ -163,3 +163,16 @@ interface Window {
   // options page: tab-switch unsaved-changes guard (options.js)
   confirmPendingChanges?: () => void;
 }
+
+// Experimental WebMCP (Chrome origin trial) — not yet in lib.dom. Used by the
+// options-page adapter in src/options/webmcp.js, which feature-detects it.
+interface ModelContext {
+  registerTool: (tool: any) => any;
+  [k: string]: any;
+}
+interface Document {
+  modelContext?: ModelContext;
+}
+interface Navigator {
+  modelContext?: ModelContext;
+}

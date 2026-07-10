@@ -26,6 +26,16 @@ testing on Chromium!
   now returns a typed `OK`/`ERROR` response and validates the URL scheme, and
   More Options → External API shows the extension id, live version, and a
   copy-paste snippet
+- New path variables: `:counter:` (atomic, persistent, per-download counter with
+  a reset control), `:uuid:`, and `:mime:`/`:contenttype:`/`:mimeext:` (from a
+  HEAD request) for naming extensionless URLs
+- Scriptable / AI-assisted configuration: `GET_SCHEMA`, `VALIDATE` and (internal)
+  `APPLY_CONFIG` messages validate a config against the schema before applying
+  (#89), plus an experimental WebMCP adapter that exposes them as AI-agent tools
+  on the options page (More Options → AI agent tools)
+- Reliability: `Variable.applyVariables` is async; concurrent downloads survive a
+  service-worker restart without losing notifications (pending counter, per-URL
+  filename recovery, per-download Referer rule ids)
 - Shortcut files keep their extensions instead of being saved as .txt
   (#161): the download mime now matches the shortcut type
 - Server-provided filenames containing a literal % no longer error out and
