@@ -397,12 +397,33 @@ async data (network, storage, clipboard) needs new plumbing.
 
 ### Recommendation
 
-Ship the trivial date/title/URL batch now (**S**, big perceived value for the
-effort). Make **one** plumbing investment: convert `Variable.applyVariables`
-to async (return a `Promise`, `await` in `renameAndDownload`), which unlocks
-`:counter:` and `:mime:`. That change ripples into `option.js`
-`checkRoutes` and the `messaging.js` `CHECK_ROUTES` variable-interpolation loop
-and their tests — scope it as **M** and land it on its own PR.
+The trivial date/title/URL batch is **shipped** (see table #5). The next step is
+the **one plumbing investment**: convert `Variable.applyVariables` to async.
+
+**Land it as two PRs:**
+
+1. **Pure async refactor, no new variables.** A transformer may return a value
+   _or_ a `Promise`; `applyVariables` wraps the `path.buf` map in `Promise.all`
+   and returns `Promise<Path>`. Existing sync transformers resolve instantly, so
+   output is byte-identical. The four call sites `await`:
+   `download.js:194,198` (`renameAndDownload` — fire-and-forget, so awaiting
+   internally is safe), `option.js:148` (`checkRoutes` preview), and
+   `messaging.js:282` (the `CHECK_ROUTES` interpolation `reduce` → `Promise.all`).
+   Ripples into `variable`/`download-flow`/`router`/`option`/`messaging` tests
+   (add `await`). **M**, risk is the test sweep, not the logic.
+2. **New variables on top.** In value-per-effort order:
+   - **`:counter:`/`:count:`** — atomic incrementing `storage.local` state,
+     serialized read-modify-write via the `SaveHistory.writeQueue` pattern so
+     concurrent saves don't race. Survives SW restarts.
+   - **`:mime:`/`:contenttype:`** and **MIME-derived `:ext:`** — from a `HEAD`
+     `Content-Type` (Firefox already HEADs, `download.js:347`; Chrome would add
+     one or read `onDeterminingFilename`). **This is the same capability as
+     §8.1** — do the extension-correctness reliability fix here.
+   - **`:finalurl:`/`:redirecturl:`** — URL after redirects, from the HEAD/fetch.
+   - _Not worth it:_ `:filesize:` (known only post-download — drop),
+     `:clipboard:` (no worker clipboard; content-script round-trip — low value),
+     image dimensions (decode the blob — niche). `:urlmatch:(regex):` is
+     high-power but needs a **parameterized-variable grammar** — separate, bigger.
 
 ---
 
@@ -445,6 +466,97 @@ This is the correct home for the extension-to-extension half of §3, and it's
 small. Version it now while the only known consumer is a documented wiki
 example — cheap to do before an ecosystem forms, expensive after.
 
+**Status: shipped (v1, v4.0.0).** `PING` → `{ version, capabilities }`;
+`DOWNLOAD` validates the URL scheme and returns typed `OK`/`ERROR`; More
+Options → External API surfaces the id + snippet. Remaining: `RESOLVE_PATH`
+(compute the save path without downloading, for downloader hand-offs) and the
+scriptable-config messages in §9.
+
+---
+
+## 8. Core download reliability
+
+Not previously on this roadmap — surfaced by a full pipeline audit plus the long
+tail of site-specific bugs (#66 pixiv, #166 Instagram, #126/#135/#43 extensions,
+#28 false failures, #193 referer-on-redirect). Five workstreams, most-valuable
+first; all reference `src/download.js` / `headers.js` / `notification.js`.
+
+### 8.1 Filename & extension correctness. M. High. #73/#126/#135/#43.
+
+Extension is parsed **from the URL string only** (`EXTENSION_REGEX`,
+`download.js:9`) — there is **no MIME→extension mapping anywhere**, so
+extensionless CDN URLs and `?format=jpg` query-suffix images save without an
+extension. On Chrome the browser's own resolved filename
+(`onDeterminingFilename`, which honours Content-Disposition/MIME) is
+**discarded whenever a routing rule or `:name:`/`:ext:` template sets the name**
+(`download.js:144-152`).
+
+- Split the **directory decision** (routing) from the **filename decision**: a
+  rule that only chooses a folder should let the browser/CD/MIME name the file.
+- Add a MIME→extension fallback for extensionless targets — **the same
+  capability as the `:mime:`/`:ext:` variables (§6); do them together** on the
+  #10 async refactor.
+- Fix `EXTENSION_REGEX` false-positives (`file.12345` → bogus `.12345`).
+
+### 8.2 Concurrency & SW-restart correctness. M. High (kills silent failures).
+
+- `siPendingDownload` is a **boolean, not a counter** (`notification.js`): after
+  a worker restart, two near-simultaneous downloads → the first flips it false
+  and the **second is never tracked → no notification at all**. Make it a
+  counter or keyed set.
+- `siFinalFilename` is a single value → concurrent downloads suggest the same
+  filename. Key by download id.
+- DNR referer uses a single fixed rule id (`DNR_REFERER_RULE_ID = 4077`,
+  `headers.js:35`) → concurrent referers clobber. Allocate per-download ids.
+
+### 8.3 Referer robustness. M. #66 (pixiv), #193.
+
+Chrome's DNR `urlFilter` is the **pre-redirect URL**, so the Referer often isn't
+applied after a redirect (what hotlink-protected CDNs do). Firefox's redirect
+leg falls back to the most-recent global state (wrong under concurrency), and the
+Firefox HEAD probe (`download.js:347`) carries no Referer (#193). Broaden the DNR
+condition (or re-arm on the redirect target) and key the Firefox listener by
+`requestId`. **[verify]** current DNR redirect semantics per Chrome.
+
+### 8.4 Notification accuracy. S–M. #28.
+
+Firefox counts `state === "interrupted"` as failure → spurious "failed" toasts
+for paused/resumable interruptions. Downloads lost from bookkeeping produce
+**no** notification; immediate `downloads.download` rejections are only logged.
+Distinguish terminal from resumable, and surface the rejections.
+
+### 8.5 Fetch-fallback limits. S–M. #166, large files.
+
+MV3 has no `URL.createObjectURL`, so blob fallbacks base64 the whole file into a
+`data:` URL in memory (`download.js:114-123`) — large files exhaust memory / hit
+Chrome's data-URL cap. `fetchViaContent` uses `no-cors` → opaque **0-byte**
+downloads cross-origin (`content.js`). Prefer `fetchViaFetch`; document/limit
+the data-URL ceiling.
+
+---
+
+## 9. Scriptable / AI-assisted configuration
+
+The full design is in `docs/INTEGRATIONS.md §4`. Options are already a typed
+schema (`OptionsManagement.OPTION_KEYS`) and the `paths`/`filenamePatterns`
+grammars are pure and return structured errors, so the generate → validate → fix
+loop is a natural fit. Ride the now-versioned external API (§7) and add three
+messages (also add them to the `PING` `capabilities`):
+
+1. **`GET_SCHEMA`** — `OPTION_KEYS` + a one-line human description per field.
+   (We already send `OPTIONS_SCHEMA` internally; formalize + document it.)
+2. **`VALIDATE`** — dry-run `{ paths?, filenamePatterns? }` →
+   `{ pathErrors, ruleErrors, menuPreview }`. `PREVIEW_MENUS` + `CHECK_ROUTES`
+   generalised, no new grammar.
+3. **`APPLY_CONFIG`** — partial, schema-validated apply (unknown keys rejected,
+   types coerced by the existing `onLoad` validators). Scriptable Import — and it
+   **also closes #89** (invalid imported options silently breaking downloads).
+
+Plus an options-page "Paste config" box (human-in-the-loop `VALIDATE` + preview)
+and a self-describing prompt pack (schema + worked examples) users can paste into
+any LLM. Guardrails already exist (invalid regex drops the rule, path traversal
+rejected, import can't widen permissions). **S–M** each.
+
 ---
 
 ## Suggested sequencing & priority
@@ -457,18 +569,28 @@ example — cheap to do before an ecosystem forms, expensive after.
 | 4 | ~~`tsconfig` + `globals.d.ts` + core typedefs; `tsc --noEmit` in CI~~ (checkJs over all of src/) | M | Low | High (safety) | — | **Done** |
 | 5 | ~~Trivial `:variables:` batch (weekday, week, title slugs, URL parts)~~ | S | Low | Med–High | — | **Done** |
 | 6 | ~~Live context-menu tree preview in options page~~ (PREVIEW_MENUS message + #menu-preview) | M | Low | High (UX) | 3 | **Done** |
-| 7 | Formalize + version the external DOWNLOAD API (+ PING, docs, e2e) | S–M | Low | Med–High | — | **Next release** |
-| 8 | yt-dlp "copy command / save `.txt`" hand-off via `Shortcut` | S–M | Low | Med–High | — | **Next release / +1** |
+| 7 | ~~Formalize + version the external DOWNLOAD API (PING, typed errors, docs)~~ | S–M | Low | Med–High | — | **Done (v1)** |
+| 8 | yt-dlp "copy command / save `.txt`" hand-off via `Shortcut` | S–M | Low | Med–High | — | **+1** |
 | 9 | ~~Guided rule builder~~ (shipped as quick-add row + template library; capture rules via templates) | M–L | Med | High (UX) | 3, 7-style preview | **Done** |
-| 10 | Async `applyVariables` → `:counter:`, `:mime:` | M | Med | Med–High | 4 helps | **+1** |
-| 11 | ~~Per-file `// @ts-check` rollout~~ (superseded: checkJs covers all of src/; next is typedef refinement + strictness) | S each | Low | Med | 4 | **Done** |
-| 12 | ~~Visual/form path builder~~ (Visual Editor tab + insert menu; textarea stays source of truth) | M–L | Med | Med | 6 | **Done** |
-| 13 | ESM + bundler migration (only if justified) | L | Med–High | Low–Med | 1–3 | **Defer** |
-| 14 | Native-messaging yt-dlp companion (separate repo) | L | High | Med (power users) | 7 | **Defer / separate** |
+| 10a | **Async `applyVariables` refactor** (Promise.all, no new variables) | M | Med (test sweep) | Med–High | 4 helps | **Now → ①** |
+| 10b | New async variables: `:counter:`, `:mime:`/`:ext:`, `:finalurl:` | M | Med | Med–High | 10a, §8.1 | **Next** |
+| 11 | ~~Per-file `// @ts-check` rollout~~ (superseded: checkJs covers all of src/) | S each | Low | Med | 4 | **Done** |
+| 12 | ~~Visual/form path builder~~ (Visual Editor tab + insert menu) | M–L | Med | Med | 6 | **Done** |
+| 13 | **§8.1 Filename/extension correctness + MIME→ext** (folds into 10b) | M | Med | High | 10a | **Next** |
+| 14 | **§8.2 Concurrency / SW-restart correctness** (counter, keyed filename, per-download DNR id) | M | Med | High (silent failures) | — | **Next** |
+| 15 | **§9 AI config: `GET_SCHEMA` / `VALIDATE` / `APPLY_CONFIG`** (also closes #89) | S–M | Low | Med–High | 7 | **Next** |
+| 16 | **§8.3 Referer on redirects** (#66 pixiv, #193) | M | Med | Med–High | — | **+1** |
+| 17 | ESM + bundler migration (only if justified) | L | Med–High | Low–Med | 1–3 | **Defer** |
+| 18 | Native-messaging yt-dlp companion (separate repo) | L | High | Med (power users) | 7 | **Defer / separate** |
 
-**Next-release theme:** de-globalise, add types, and turn the existing parse
-functions into UI (preview + variables + external API). All no-build, all
-test-covered, all high-leverage.
+**Recommended build order:** 10a (pure async refactor) → 13+10b (extension
+correctness + `:mime:`/`:ext:`/`:counter:`, one combined win) → 14 (concurrency
+correctness) → 15 (AI-config trio) → 16 (referer/pixiv).
+
+**Deliberately deferred:** the bundler/ESM migration and the yt-dlp native
+companion — each forfeits a property the project currently sells (readable
+shipped source; zero native install). Revisit only when a concrete need
+outweighs that.
 
 **Deliberately deferred:** the bundler/ESM migration and the yt-dlp native
 companion — each forfeits a property the project currently sells (readable
