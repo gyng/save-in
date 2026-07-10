@@ -545,6 +545,14 @@
     "message": "Do not enable this if you have no problems downloading. Download from the content page and not the extension, sending headers from the page itself. Some sites (eg. pixiv.net) require this to bypass server-side protections. Slower and prone to failure. Success/failure notifications do not work in this mode. Requires page refresh to take effect. Deprecated: under Manifest V3, content scripts can no longer make cross-origin requests, so this only works for same-origin or CORS-permitted downloads."
   },
 
+  "o_cFallbackFetch": {
+    "message": "Retry failed downloads in the background"
+  },
+
+  "o_cFallbackFetchHelp": {
+    "message": "When a download fails with a network or server error, retry it once by fetching in the background before reporting failure. Referer rules are applied to the retry."
+  },
+
   "o_cFetchViaFetchAPI": {
     "message": "Enable fetching via Fetch API"
   },

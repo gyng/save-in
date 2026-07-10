@@ -494,7 +494,7 @@ describe("renameAndDownload: fetchViaFetch", () => {
     Download.renameAndDownload(state);
     await flush();
 
-    expect(global.fetch).toHaveBeenCalledWith(state.info.url);
+    expect(global.fetch).toHaveBeenCalledWith(state.info.url, { credentials: "include" });
     expect(global.browser.downloads.download).toHaveBeenCalledWith(
       expect.objectContaining({ url: expect.stringMatching(/^blob:/) }),
     );
@@ -814,5 +814,131 @@ describe("concurrent downloads (pendingStates)", () => {
       Download.rememberPendingState(makeState(`https://x/${i}.png`, "d", `${i}.png`));
     }
     expect(Download.pendingStates.size).toBeLessThanOrEqual(50);
+  });
+});
+
+describe("automatic fetch fallback (retryViaFetch)", () => {
+  const seedStartedDownload = async () => {
+    const state = makeState({
+      info: { url: "https://example.com/dir/file.png", pageUrl: "https://example.com/page" },
+    });
+    Download.renameAndDownload(state);
+    await flush();
+  };
+
+  beforeEach(() => {
+    Download.startedDownloads.clear();
+    Download.pendingRetryFilenames.clear();
+    global.options.fallbackFetch = true;
+  });
+
+  test("started downloads are recorded with what a retry needs", async () => {
+    await seedStartedDownload();
+
+    expect(Download.startedDownloads.get(101)).toMatchObject({
+      url: "https://example.com/dir/file.png",
+      pageUrl: "https://example.com/page",
+      filename: "downloads/file.png",
+      conflictAction: "uniquify",
+      viaFetch: false,
+      retried: false,
+    });
+  });
+
+  test("retries a failed download once via a background fetch", async () => {
+    await seedStartedDownload();
+
+    global.fetch = jest.fn(() =>
+      Promise.resolve({ ok: true, blob: () => Promise.resolve(new Blob(["bytes"])) }),
+    );
+    global.browser.downloads.download = jest.fn(() => Promise.resolve(202));
+
+    const retried = await Download.retryViaFetch(101);
+
+    expect(retried).toBe(true);
+    expect(global.fetch).toHaveBeenCalledWith("https://example.com/dir/file.png", {
+      credentials: "include",
+    });
+    // The referer rule is re-armed for the retry
+    expect(global.RequestHeaders.prepareReferer).toHaveBeenCalledWith({
+      info: { url: "https://example.com/dir/file.png", pageUrl: "https://example.com/page" },
+    });
+    expect(global.browser.downloads.download).toHaveBeenCalledWith({
+      url: expect.stringMatching(/^blob:/),
+      filename: "downloads/file.png",
+      conflictAction: "uniquify",
+    });
+    expect(global.Notifier.trackDownload).toHaveBeenCalledWith(202);
+    // The retry marks itself so a second failure cannot loop
+    expect(Download.startedDownloads.get(202)).toMatchObject({ viaFetch: true });
+
+    // Only one retry per download
+    await expect(Download.retryViaFetch(101)).resolves.toBe(false);
+  });
+
+  test("never retries downloads that already went through a fetch", async () => {
+    Download.startedDownloads.set(7, {
+      url: "https://x/y.png",
+      filename: "y.png",
+      viaFetch: true,
+      retried: false,
+    });
+    global.fetch = jest.fn();
+
+    await expect(Download.retryViaFetch(7)).resolves.toBe(false);
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  test("does nothing when the option is disabled", async () => {
+    await seedStartedDownload();
+    global.options.fallbackFetch = false;
+    global.fetch = jest.fn();
+
+    await expect(Download.retryViaFetch(101)).resolves.toBe(false);
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  test("an HTTP error response does not start a second download", async () => {
+    await seedStartedDownload();
+    global.fetch = jest.fn(() => Promise.resolve({ ok: false, status: 403 }));
+    global.browser.downloads.download = jest.fn();
+
+    await expect(Download.retryViaFetch(101)).resolves.toBe(false);
+    expect(global.browser.downloads.download).not.toHaveBeenCalled();
+  });
+
+  test("unknown download ids resolve false", async () => {
+    await expect(Download.retryViaFetch(999)).resolves.toBe(false);
+  });
+
+  test("an immediately rejected downloads.download falls back to fetch once", async () => {
+    global.CURRENT_BROWSER = "CHROME";
+    global.browser.downloads.download = jest
+      .fn()
+      .mockRejectedValueOnce(new Error("data: URLs are not supported"))
+      .mockResolvedValue(303);
+    global.fetch = jest.fn(() =>
+      Promise.resolve({ ok: true, blob: () => Promise.resolve(new Blob(["bytes"])) }),
+    );
+
+    Download.renameAndDownload(makeState());
+    await flush(30);
+
+    expect(global.browser.downloads.download).toHaveBeenCalledTimes(2);
+    expect(global.browser.downloads.download.mock.calls[1][0].url).toMatch(/^blob:/);
+    expect(Download.startedDownloads.get(303)).toMatchObject({ viaFetch: true });
+  });
+
+  test("immediate rejection does not fall back when disabled", async () => {
+    global.CURRENT_BROWSER = "CHROME";
+    global.options.fallbackFetch = false;
+    global.browser.downloads.download = jest.fn(() => Promise.reject(new Error("nope")));
+    global.fetch = jest.fn();
+
+    Download.renameAndDownload(makeState());
+    await flush();
+
+    expect(global.browser.downloads.download).toHaveBeenCalledTimes(1);
+    expect(global.fetch).not.toHaveBeenCalled();
   });
 });

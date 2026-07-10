@@ -45,6 +45,10 @@ testing on Chromium!
   :pagetitleslug:, :pagetitlesnake:, :sourcepath:, :tld:
 - The options page shows a live preview of the context-menu tree as you
   edit the directory list
+- Downloads that fail with a network or server error are now retried
+  once automatically through a background fetch before reporting failure
+  (on by default; "Retry failed downloads in the background" in More
+  Options)
 - Routing rules got a guided quick-add row (matcher, pattern, destination)
   and a built-in template library with one-click starter rules
 - Options page refresh: full-width tabbed layout, live save indicator in

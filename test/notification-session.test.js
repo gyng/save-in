@@ -530,3 +530,75 @@ describe("expectDownload", () => {
     expect(sessionStore.siTrackedDownloads).toEqual([1, 2]);
   });
 });
+
+describe("automatic fetch fallback gating", () => {
+  let onCreated;
+  let onChanged;
+  let sessionStore;
+
+  const setupWithDownload = async (retryResult) => {
+    jest.resetModules();
+    sessionStore = {};
+    setupGlobals(sessionStore, () => [{ id: 7, fileSize: 2048, mime: "image/png" }]);
+    global.options = {
+      notifyOnSuccess: true,
+      notifyOnFailure: true,
+      notifyDuration: 1000,
+      promptOnFailure: false,
+    };
+    global.Download =
+      retryResult === undefined
+        ? undefined
+        : { retryViaFetch: jest.fn(() => Promise.resolve(retryResult)) };
+
+    await import("../src/notification.js");
+    [[onCreated]] = global.browser.downloads.onCreated.addListener.mock.calls;
+    [[onChanged]] = global.browser.downloads.onChanged.addListener.mock.calls;
+
+    sessionStore.siPendingDownload = true;
+    onCreated({ id: 7, filename: "C:\dl\pic.png", url: "https://x/p.png" });
+    await flush();
+  };
+
+  test("a network failure is retried and the failure notification suppressed", async () => {
+    await setupWithDownload(true);
+
+    onChanged({ id: 7, error: { current: "NETWORK_FAILED" } });
+    await flush();
+
+    expect(global.Download.retryViaFetch).toHaveBeenCalledWith(7);
+    expect(global.browser.notifications.create).not.toHaveBeenCalled();
+    // The failed original is untracked; the retry tracks itself
+    expect(sessionStore.siTrackedDownloads).toEqual([]);
+  });
+
+  test("when the retry does not start, the failure notification shows", async () => {
+    await setupWithDownload(false);
+
+    onChanged({ id: 7, error: { current: "SERVER_FORBIDDEN" } });
+    await flush();
+
+    expect(global.Download.retryViaFetch).toHaveBeenCalledWith(7);
+    expect(global.browser.notifications.create).toHaveBeenCalled();
+  });
+
+  test("file errors are not retried", async () => {
+    await setupWithDownload(true);
+
+    onChanged({ id: 7, error: { current: "FILE_FAILED" } });
+    await flush();
+
+    expect(global.Download.retryViaFetch).not.toHaveBeenCalled();
+    expect(global.browser.notifications.create).toHaveBeenCalled();
+  });
+
+  test("user cancellation is never retried or notified", async () => {
+    await setupWithDownload(true);
+
+    onChanged({ id: 7, error: { current: "USER_CANCELED" } });
+    await flush();
+
+    expect(global.Download.retryViaFetch).not.toHaveBeenCalled();
+    expect(global.browser.notifications.create).not.toHaveBeenCalled();
+  });
+});

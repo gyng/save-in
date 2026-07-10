@@ -413,6 +413,53 @@ test("failed downloads are recorded in the debug log", async () => {
   expect(requested.length).toBeGreaterThanOrEqual(1);
 });
 
+test("a failed download is retried automatically via background fetch", async () => {
+  // First response 500s (browser download fails with SERVER_FAILED), the
+  // automatic fetch fallback then gets the 200
+  let hits = 0;
+  const server = http.createServer((req, res) => {
+    hits += 1;
+    if (hits === 1) {
+      res.writeHead(500, { "Content-Type": "text/plain" });
+      res.end("boom");
+    } else {
+      res.writeHead(200, { "Content-Type": "application/octet-stream" });
+      res.end("recovered content");
+    }
+  });
+  await new Promise((res) => {
+    server.listen(8919, "127.0.0.1", res);
+  });
+
+  try {
+    await evalSW(
+      `window.ready.then(() => {
+        Notifier.expectDownload();
+        return Download.renameAndDownload({
+          path: new Path.Path("e2e"),
+          scratch: {},
+          info: {
+            url: "http://127.0.0.1:8919/flaky.bin",
+            suggestedFilename: "flaky.bin",
+            pageUrl: "http://127.0.0.1:8919/",
+            modifiers: [],
+          },
+        });
+      }).then(() => "started")`,
+    );
+
+    const rows = await waitForDownloads("flaky", 10000);
+    expect(rows.some((r) => r.state === "complete")).toBe(true);
+
+    const file = path.join(DOWNLOADS, "e2e", "flaky.bin");
+    expect(fs.readFileSync(file, "utf8")).toBe("recovered content");
+    // The server really was hit twice: browser download, then fetch retry
+    expect(hits).toBeGreaterThanOrEqual(2);
+  } finally {
+    server.close();
+  }
+});
+
 test("alt+click on a real page saves the image through the content script", async () => {
   // Serve a page with an image so the content script has something real
   const png = Buffer.from(

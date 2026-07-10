@@ -25,6 +25,68 @@ const Download = {
     }
   },
 
+  // downloadId -> what we need to retry it through the fetch fallback
+  // (notification.js consults this when a download fails)
+  startedDownloads: new Map(),
+
+  rememberStartedDownload: (downloadId, record) => {
+    Download.startedDownloads.set(downloadId, record);
+    if (Download.startedDownloads.size > 50) {
+      const oldest = Download.startedDownloads.keys().next().value;
+      Download.startedDownloads.delete(oldest);
+    }
+  },
+
+  // blob/data URL -> final filename for retry downloads, so Chrome's
+  // onDeterminingFilename suggests the intended path instead of falling
+  // back to an unrelated pending state
+  pendingRetryFilenames: new Map(),
+
+  // Automatic fallback chain: a browser-initiated download that failed with
+  // a network/server error is retried once through a background fetch
+  // (host permissions exempt extension-context fetches from CORS, and the
+  // referer rule is re-armed). Resolves true when a retry was started.
+  retryViaFetch: (downloadId) => {
+    const record = Download.startedDownloads.get(downloadId);
+    if (!record || record.retried || record.viaFetch || options.fallbackFetch === false) {
+      return Promise.resolve(false);
+    }
+    record.retried = true;
+
+    return RequestHeaders.prepareReferer({ info: { url: record.url, pageUrl: record.pageUrl } })
+      .then(() => fetch(record.url, { credentials: "include" }))
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        return response.blob();
+      })
+      .then((blob) => Download.makeUrlFromBlob(blob))
+      .then((blobUrl) => {
+        Download.pendingRetryFilenames.set(blobUrl, record.filename);
+        return SessionState.set({ siPendingDownload: true, siFinalFilename: record.filename })
+          .then(() =>
+            browser.downloads.download({
+              url: blobUrl,
+              filename: record.filename,
+              conflictAction: record.conflictAction,
+            }),
+          )
+          .then((newId) => {
+            Download.rememberStartedDownload(newId, Object.assign({}, record, { viaFetch: true }));
+            return Notifier.trackDownload(newId);
+          })
+          .then(() => SessionState.set({ siPendingDownload: false }))
+          .then(() => true);
+      })
+      .catch((e) => {
+        if (typeof Log !== "undefined") {
+          Log.add("fallback fetch failed", String(e));
+        }
+        return false;
+      });
+  },
+
   makeObjectUrl: (content, mime = "text/plain") => {
     if (typeof URL.createObjectURL === "function") {
       return URL.createObjectURL(
@@ -165,7 +227,10 @@ const Download = {
 
       const prompt = options.prompt || noExtensionPrompt || shiftHeldPrompt || noRuleMatchedPrompt;
 
-      const browserDownload = (_url) =>
+      // viaFetch marks attempts that already went through a fetch (their
+      // URL is a blob/data URL, or the fetch itself failed) so the
+      // automatic fallback never loops
+      const browserDownload = (_url, viaFetch = false) =>
         RequestHeaders.prepareReferer(_state)
           .then(() =>
             // Persist before calling the downloads API so notification
@@ -184,26 +249,42 @@ const Download = {
               conflictAction: options.conflictAction,
             }),
           )
-          .then((downloadId) => Notifier.trackDownload(downloadId))
+          .then((downloadId) => {
+            // Enough to retry this download via the fetch fallback if it
+            // later fails with a network/server error
+            Download.rememberStartedDownload(downloadId, {
+              url: _state.info.url,
+              pageUrl: _state.info.pageUrl,
+              filename: finalFullPath || "_",
+              conflictAction: options.conflictAction,
+              viaFetch,
+              retried: false,
+            });
+            return Notifier.trackDownload(downloadId);
+          })
           .catch((e) => {
             // e.g. Firefox rejects data: URLs in downloads.download
             if (typeof Log !== "undefined") {
               Log.add("downloads.download failed", String(e));
             }
+            // Immediate rejections also get one fetch-fallback attempt
+            if (!viaFetch && options.fallbackFetch !== false) {
+              fetchDownload(_state.info.url);
+            }
           })
           .then(() => SessionState.set({ siPendingDownload: false }));
 
       const fetchDownload = (_url) => {
-        fetch(_url)
+        fetch(_url, { credentials: "include" })
           .then((response) => response.blob())
           .then((myBlob) => Download.makeUrlFromBlob(myBlob))
-          .then((blobUrl) => browserDownload(blobUrl))
+          .then((blobUrl) => browserDownload(blobUrl, true))
           .catch((e) => {
             // A failed fetch (network/CORS) must not be a silent no-op
             if (typeof Log !== "undefined") {
               Log.add("fetch download failed", String(e));
             }
-            browserDownload(_url);
+            browserDownload(_url, true);
           });
       };
 
@@ -212,7 +293,9 @@ const Download = {
           .fetchViaContent(_state)
           .then((res) =>
             // Object URL has to be created inside the background script
-            Download.makeUrlFromBlob(res.body.blob).then((blobUrl) => browserDownload(blobUrl)),
+            Download.makeUrlFromBlob(res.body.blob).then((blobUrl) =>
+              browserDownload(blobUrl, true),
+            ),
           )
           .catch((e) => {
             if (window.SI_DEBUG) {
@@ -285,6 +368,18 @@ if (chrome && chrome.downloads && chrome.downloads.onDeterminingFilename) {
   chrome.downloads.onDeterminingFilename.addListener((downloadItem, suggest) => {
     // Don't interfere with other extensions
     if (!browser.runtime || browser.runtime.id !== downloadItem.byExtensionId) {
+      return false;
+    }
+
+    // Fetch-fallback retries carry their finalized filename directly; the
+    // pending-state fallback below would suggest an unrelated download's name
+    const retryFilename = Download.pendingRetryFilenames.get(downloadItem.url);
+    if (retryFilename) {
+      Download.pendingRetryFilenames.delete(downloadItem.url);
+      suggest({
+        filename: retryFilename,
+        conflictAction: options.conflictAction,
+      });
       return false;
     }
 

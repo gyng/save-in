@@ -216,37 +216,64 @@ const Notifier = {
           });
         }
 
-        if (notifyOnFailure) {
-          browser.notifications.create(String(downloadDelta.id), {
-            type: "basic",
-            title: browser.i18n.getMessage("notificationFailureTitle", [filename]),
-            iconUrl: ERROR_ICON_URL,
-            message: failed.current || browser.i18n.getMessage("genericUnknownError"),
+        const notifyFailure = () => {
+          if (notifyOnFailure) {
+            browser.notifications.create(String(downloadDelta.id), {
+              type: "basic",
+              title: browser.i18n.getMessage("notificationFailureTitle", [filename]),
+              iconUrl: ERROR_ICON_URL,
+              message: failed.current || browser.i18n.getMessage("genericUnknownError"),
+            });
+          }
+
+          if (promptOnFailure) {
+            browser.downloads.download({
+              url: downloadsList[downloadDelta.id].url,
+              saveAs: true,
+            });
+          }
+
+          if (window.SI_DEBUG) {
+            /* eslint-disable no-console */
+            console.log(
+              "notification: created failure",
+              String(downloadDelta.id),
+              notifyDuration,
+              downloadDelta.id,
+            );
+            /* eslint-enable no-console */
+          }
+
+          if (downloadDelta && downloadDelta.id) {
+            window.setTimeout(() => {
+              browser.notifications.clear(String(downloadDelta.id));
+            }, notifyDuration);
+          }
+        };
+
+        // Automatic fallback chain: network/server failures get one retry
+        // through the background fetch before the user sees a failure
+        const errorName = (failed && failed.current) || "";
+        const canRetry =
+          /^(NETWORK_|SERVER_)/.test(errorName) &&
+          typeof Download !== "undefined" &&
+          typeof Download.retryViaFetch === "function";
+
+        if (canRetry) {
+          Download.retryViaFetch(downloadDelta.id).then((retried) => {
+            if (retried) {
+              if (typeof Log !== "undefined") {
+                Log.add("retrying failed download via fetch", { id: downloadDelta.id });
+              }
+              // The retry is tracked as its own download
+              delete downloadsList[downloadDelta.id];
+              Notifier.untrackDownload(downloadDelta.id);
+            } else {
+              notifyFailure();
+            }
           });
-        }
-
-        if (promptOnFailure) {
-          browser.downloads.download({
-            url: downloadsList[downloadDelta.id].url,
-            saveAs: true,
-          });
-        }
-
-        if (window.SI_DEBUG) {
-          /* eslint-disable no-console */
-          console.log(
-            "notification: created failure",
-            String(downloadDelta.id),
-            notifyDuration,
-            downloadDelta.id,
-          );
-          /* eslint-enable no-console */
-        }
-
-        if (downloadDelta && downloadDelta.id) {
-          window.setTimeout(() => {
-            browser.notifications.clear(String(downloadDelta.id));
-          }, notifyDuration);
+        } else {
+          notifyFailure();
         }
       } else if (
         notifyOnSuccess &&
