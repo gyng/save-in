@@ -321,30 +321,57 @@ const setupChromeDisables = () => {
   }
 };
 
-const setupAutosave = (el) => {
-  const autosaveCb = (e) => {
-    saveOptions(e);
-    window.setTimeout(updateErrors, 200);
+// Debouncing only textareas: every keystroke there previously triggered a
+// full save -> OPTIONS_LOADED -> contextMenus.removeAll()+rebuild round
+// trip, racing any context menu the user had open while typing a long
+// path/pattern. Single-value fields (checkboxes/selects/number/text
+// inputs) are cheap to save on every event and stay immediate.
+const AUTOSAVE_DEBOUNCE_MS = 400;
 
-    if (el.type !== "textarea") {
-      el.parentNode.classList.remove("saved");
-      window.setTimeout(() => {
-        el.parentNode.classList.add("saved-base");
-        el.parentNode.classList.add("saved");
-      }, 100);
-    } else {
-      el.classList.remove("saved");
-      window.setTimeout(() => {
-        el.classList.add("saved-base");
-        el.classList.add("saved");
-      }, 100);
-    }
+const setupAutosave = (el) => {
+  let debounceTimer = null;
+
+  // Tied to the actual save firing (not every keystroke), so it still
+  // reflects when a save really happened once debounced.
+  const showSavedIndicator = () => {
+    const target = el.type === "textarea" ? el : el.parentNode;
+    target.classList.remove("saved");
+    window.setTimeout(() => {
+      target.classList.add("saved-base");
+      target.classList.add("saved");
+    }, 100);
   };
 
-  if (["textarea", "text", "number"].includes(el.type)) {
-    el.addEventListener("input", autosaveCb);
+  const doSave = (e) => {
+    saveOptions(e);
+    window.setTimeout(updateErrors, 200);
+    showSavedIndicator();
+  };
+
+  if (el.type === "textarea") {
+    el.addEventListener("input", () => {
+      if (debounceTimer !== null) {
+        window.clearTimeout(debounceTimer);
+      }
+      debounceTimer = window.setTimeout(() => {
+        debounceTimer = null;
+        doSave();
+      }, AUTOSAVE_DEBOUNCE_MS);
+    });
+
+    // Flush on blur so a quick click-away right after typing isn't lost
+    el.addEventListener("blur", () => {
+      if (debounceTimer === null) {
+        return;
+      }
+      window.clearTimeout(debounceTimer);
+      debounceTimer = null;
+      doSave();
+    });
+  } else if (["text", "number"].includes(el.type)) {
+    el.addEventListener("input", doSave);
   } else {
-    el.addEventListener("change", autosaveCb);
+    el.addEventListener("change", doSave);
   }
 };
 

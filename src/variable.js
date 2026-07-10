@@ -36,6 +36,23 @@ const Variable = {
     return (fileExtensionMatches && fileExtensionMatches[1]) || "";
   },
 
+  IPV4_REGEX: /^\d{1,3}(\.\d{1,3}){3}$/,
+
+  // Strips a hostname down to its registrable domain using a simple
+  // last-two-labels heuristic (no public suffix list): "sub.cdn.example.com"
+  // -> "example.com". This mishandles multi-part public suffixes (e.g.
+  // "example.co.uk" -> "co.uk" instead of "example.co.uk"). IPv4 addresses
+  // and single-label hosts (e.g. "localhost") are left unchanged since they
+  // have no subdomain to strip.
+  toRootDomain: (hostname) => {
+    if (!hostname || Variable.IPV4_REGEX.test(hostname)) {
+      return hostname;
+    }
+
+    const labels = hostname.split(".");
+    return labels.length <= 2 ? hostname : labels.slice(-2).join(".");
+  },
+
   /* prettier-ignore */
   transformers: {
     [SPECIAL_DIRS.FILENAME]:
@@ -46,6 +63,10 @@ const Variable = {
       opts => Path.PathSegment.String(Variable.withUrl(opts.url, url => url.hostname)),
     [SPECIAL_DIRS.PAGE_DOMAIN]:
       opts => Path.PathSegment.String(Variable.withUrl(opts.pageUrl, url => url.hostname)),
+    [SPECIAL_DIRS.SOURCE_ROOT_DOMAIN]:
+      opts => Path.PathSegment.String(Variable.withUrl(opts.url, url => Variable.toRootDomain(url.hostname))),
+    [SPECIAL_DIRS.PAGE_ROOT_DOMAIN]:
+      opts => Path.PathSegment.String(Variable.withUrl(opts.pageUrl, url => Variable.toRootDomain(url.hostname))),
     [SPECIAL_DIRS.PAGE_URL]:
       opts => Path.PathSegment.String(opts.pageUrl),
     [SPECIAL_DIRS.SOURCE_URL]:

@@ -153,6 +153,89 @@ describe("variables", () => {
     });
   });
 
+  describe("root domain variables (GH #221)", () => {
+    test("interpolates :pagerootdomain: stripped to the last two labels", () => {
+      const input = new Path.Path("a/b/:pagerootdomain:");
+      const output = Variable.applyVariables(input, {
+        ...info,
+        pageUrl: "http://sub.cdn.example.com/foobar/",
+      }).finalize();
+      expect(output).toBe("a/b/example.com");
+    });
+
+    test("interpolates :sourcerootdomain: stripped to the last two labels", () => {
+      const input = new Path.Path("a/b/:sourcerootdomain:/c");
+      const output = Variable.applyVariables(input, {
+        ...info,
+        url: "http://sub.cdn.example.com/foobar/file.jpg",
+      }).finalize();
+      expect(output).toBe("a/b/example.com/c");
+    });
+
+    test("leaves a bare two-label domain unchanged", () => {
+      const input = new Path.Path(":pagerootdomain:");
+      const output = Variable.applyVariables(input, {
+        ...info,
+        pageUrl: "http://example.com/foobar/",
+      }).finalize();
+      expect(output).toBe("example.com");
+    });
+
+    test("leaves a single-label host (e.g. localhost) unchanged", () => {
+      const input = new Path.Path(":pagerootdomain:");
+      const output = Variable.applyVariables(input, {
+        ...info,
+        pageUrl: "http://localhost:8080/foobar/",
+      }).finalize();
+      expect(output).toBe("localhost");
+    });
+
+    test("leaves an IPv4 address unchanged", () => {
+      const input = new Path.Path(":sourcerootdomain:");
+      const output = Variable.applyVariables(input, {
+        ...info,
+        url: "http://192.168.1.100/foobar/",
+      }).finalize();
+      expect(output).toBe("192.168.1.100");
+    });
+
+    test("falls back to the raw string for an invalid page URL (withUrl catch)", () => {
+      const input = new Path.Path(":pagerootdomain:");
+      const output = Variable.applyVariables(input, { ...info, pageUrl: "not a url" }).finalize();
+      expect(output).toBe("not a url");
+    });
+
+    test("falls back to the raw string for an invalid source URL (withUrl catch)", () => {
+      const input = new Path.Path(":sourcerootdomain:");
+      const output = Variable.applyVariables(input, { ...info, url: "not a url" }).finalize();
+      expect(output).toBe("not a url");
+    });
+  });
+
+  describe("Variable.toRootDomain", () => {
+    test("strips subdomains to the last two labels", () => {
+      expect(Variable.toRootDomain("sub.cdn.example.com")).toBe("example.com");
+    });
+
+    test("leaves bare two-label domains unchanged", () => {
+      expect(Variable.toRootDomain("example.com")).toBe("example.com");
+    });
+
+    test("leaves single-label hosts unchanged", () => {
+      expect(Variable.toRootDomain("localhost")).toBe("localhost");
+    });
+
+    test("leaves IPv4 addresses unchanged", () => {
+      expect(Variable.toRootDomain("127.0.0.1")).toBe("127.0.0.1");
+      expect(Variable.toRootDomain("192.168.1.100")).toBe("192.168.1.100");
+    });
+
+    test("leaves falsy input unchanged", () => {
+      expect(Variable.toRootDomain("")).toBe("");
+      expect(Variable.toRootDomain(undefined)).toBeUndefined();
+    });
+  });
+
   describe("remaining variables and edge cases", () => {
     test("withUrl returns the input for invalid URLs", () => {
       expect(Variable.withUrl("not a url", (url) => url.hostname)).toBe("not a url");

@@ -58,6 +58,48 @@ describe("OptionsManagement", () => {
     });
   });
 
+  describe("replacementChar validation (#221)", () => {
+    const replacementCharKey = () =>
+      OptionsManagement.OPTION_KEYS.find((k) => k.name === "replacementChar");
+
+    test("falls back to '_' for forbidden filesystem characters", () => {
+      expect(replacementCharKey().onLoad("/")).toBe("_");
+      expect(replacementCharKey().onLoad("\\")).toBe("_");
+      expect(replacementCharKey().onLoad(":")).toBe("_");
+      expect(replacementCharKey().onLoad("*")).toBe("_");
+      expect(replacementCharKey().onLoad("?")).toBe("_");
+      expect(replacementCharKey().onLoad("<")).toBe("_");
+      expect(replacementCharKey().onLoad(">")).toBe("_");
+      expect(replacementCharKey().onLoad('"')).toBe("_");
+      expect(replacementCharKey().onLoad("|")).toBe("_");
+    });
+
+    test("falls back to '_' for control characters", () => {
+      expect(replacementCharKey().onLoad("\n")).toBe("_");
+      expect(replacementCharKey().onLoad("\t")).toBe("_");
+      expect(replacementCharKey().onLoad("\x00")).toBe("_");
+    });
+
+    test("falls back to '_' for dot-segments", () => {
+      expect(replacementCharKey().onLoad(".")).toBe("_");
+      expect(replacementCharKey().onLoad("..")).toBe("_");
+    });
+
+    test("falls back to '_' when a forbidden character appears amid other characters", () => {
+      expect(replacementCharKey().onLoad("a/b")).toBe("_");
+    });
+
+    test("keeps an empty string (means: delete the offending character)", () => {
+      expect(replacementCharKey().onLoad("")).toBe("");
+    });
+
+    test("keeps an ordinary custom replacement character untouched", () => {
+      expect(replacementCharKey().onLoad("x")).toBe("x");
+      expect(replacementCharKey().onLoad("-")).toBe("-");
+      expect(replacementCharKey().onLoad("_")).toBe("_");
+    });
+  });
+
   describe("onSave hooks", () => {
     test("filenamePatterns are trimmed on save", () => {
       const key = OptionsManagement.OPTION_KEYS.find((k) => k.name === "filenamePatterns");
@@ -211,6 +253,12 @@ describe("OptionsManagement", () => {
       expect(global.Router.parseRules).toHaveBeenCalledWith("raw-pattern-source");
       expect(resolved.filenamePatterns).toBe("PARSED_RULES");
       expect(resolved.conflictAction).toBe("overwrite");
+    });
+
+    test("sanitizes a forbidden stored replacementChar (#221)", async () => {
+      global.browser.storage.local.get = vi.fn(() => Promise.resolve({ replacementChar: "/" }));
+      const resolved = await OptionsManagement.loadOptions();
+      expect(resolved.replacementChar).toBe("_");
     });
   });
 });

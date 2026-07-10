@@ -2,9 +2,14 @@ const specialDirVariables = Object.values(SPECIAL_DIRS);
 const specialDirRegexp = new RegExp(`(${specialDirVariables.join("|")})`);
 
 const Path = {
-  // eslint-disable-next-line no-control-regex -- NUL is intentionally stripped from filenames
-  SPECIAL_CHARACTERS_REGEX: /[<>:"/\\|?*\0]/g,
+  // eslint-disable-next-line no-control-regex -- control characters \x00-\x1F (including NUL) are intentionally stripped: :pagetitle:/selection text can carry raw newlines/tabs that Windows filenames can't contain (GH #221)
+  SPECIAL_CHARACTERS_REGEX: /[<>:"/\\|?*\x00-\x1f]/g,
   BAD_LEADING_CHARACTERS: /^[./\\]/g,
+  // Windows trims/rejects trailing dots and spaces on every path segment
+  TRAILING_DOTS_AND_SPACES_REGEX: /[. ]+$/,
+  // Windows reserves these device names case-insensitively, extension
+  // ignored ("con.txt" is just as reserved as bare "con")
+  RESERVED_DEVICE_NAME_REGEX: /^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])$/i,
   SEPARATOR_REGEX: /[/\\]/g,
   SEPARATOR_REGEX_INCLUSIVE: /([/\\])/g,
 
@@ -115,18 +120,33 @@ const Path = {
   truncateIfLongerThan: (str, max) =>
     str && max > 0 && str.length > max ? str.substr(0, max) : str,
 
+  // Trailing dots/spaces are silently dropped or rejected by Windows Explorer
+  // and the underlying Win32 API
+  trimTrailingDotsAndSpaces: (s) => s.replace(Path.TRAILING_DOTS_AND_SPACES_REGEX, ""),
+
+  // Windows treats everything up to the first dot as the device name, so
+  // "con.tar.gz" is just as reserved as "con"
+  neutralizeReservedDeviceName: (s, replacement) => {
+    const baseName = s.split(".")[0];
+    if (!Path.RESERVED_DEVICE_NAME_REGEX.test(baseName)) {
+      return s;
+    }
+
+    const char =
+      replacement || (typeof options !== "undefined" && options && options.replacementChar) || "_";
+    return `${char}${s}`;
+  },
+
   sanitizeFilename: (str, max = 0, leadingDotsForbidden = true) => {
     if (!str) {
       return str;
     }
 
     const fsSafe = Path.truncateIfLongerThan(Path.replaceFsBadChars(str), max);
+    const dotsHandled = leadingDotsForbidden ? Path.replaceLeadingDots(fsSafe) : fsSafe;
+    const trimmed = Path.trimTrailingDotsAndSpaces(dotsHandled);
 
-    if (leadingDotsForbidden) {
-      return Path.replaceLeadingDots(fsSafe);
-    }
-
-    return fsSafe;
+    return Path.neutralizeReservedDeviceName(trimmed);
   },
 
   sanitizeBufStrings: (buf) =>

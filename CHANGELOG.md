@@ -35,21 +35,34 @@ testing on Chromium!
   cross-origin requests, so it only helps for same-origin/CORS downloads
 - Waterfox and other Gecko forks are now detected as Firefox, and browser
   detection is synchronous (#186)
+- Concurrent downloads (e.g. tab-strip batch saves) no longer misattribute
+  filenames, referers, notifications, or history entries to each other
+- Download completion/failure notifications survive a service worker
+  cold-start (listeners now register synchronously); "Last used" keeps its
+  routing metadata across restarts
+- New :pagerootdomain: and :sourcerootdomain: variables (#221)
+- Filenames are hardened for Windows: control characters, trailing
+  dots/spaces, and reserved device names (CON, NUL, ...) are neutralized;
+  a broken replacement character can no longer defeat the sanitizer
+- Dark-mode last-used menu icon on Firefox (#184); "close tab on save" now
+  also applies to page saves (#115)
+- Options textareas autosave after you pause typing instead of rebuilding
+  the context menu on every keystroke
 - Tabbed options page with a refreshed system-font design; fixed a stale
   event-listener leak and a settings-import that never persisted
 - A bad routing-rule regex is now dropped instead of matching everything;
   malformed URLs, absent capture groups, and info-less external messages no
   longer abort downloads
-- The Firefox-only  conflict action is downgraded on Chrome, where
+- The Firefox-only conflict action is downgraded on Chrome, where
   it silently broke all downloads (#89, #217); a fresh install's default
   Downloads menu item shows a name instead of "." (#213)
 - HTML-redirect shortcuts escape the target URL
 - - Removed vendored libraries for easier store review: the webextension
-  polyfill is a 6-line first-party shim (Chrome minimum raised to 123 for
-  promise-capable contextMenus), the options-page autocomplete and l10n are
-  small first-party rewrites — this also revives autocomplete, whose event
-  wiring had been silently broken. Only readable, credited
-  content-disposition.js remains vendored
+    polyfill is a 6-line first-party shim (Chrome minimum raised to 123 for
+    promise-capable contextMenus), the options-page autocomplete and l10n are
+    small first-party rewrites — this also revives autocomplete, whose event
+    wiring had been silently broken. Only readable, credited
+    content-disposition.js remains vendored
 - Dev: automated Chrome (CDP) and Firefox (RDP) end-to-end smoke tests,
   watch-mode dev loop, 130-test vitest suite, oxlint + oxfmt, web-ext 10,
   npm, CI on Node 24

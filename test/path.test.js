@@ -22,6 +22,54 @@ describe("sanitisation", () => {
     expect(Path.replaceFsBadChars('/ : * ? " < > | % ~')).toBe("_ _ _ _ _ _ _ _ % ~");
   });
 
+  test("control characters", () => {
+    // :pagetitle:/selection text can carry raw newlines/tabs that Windows
+    // filenames can't contain (GH #221)
+    expect(Path.replaceFsBadChars("a\tb\nc\rd\x01e\x1ff\x00g")).toBe("a_b_c_d_e_f_g");
+  });
+
+  describe("trailing dots and spaces", () => {
+    test("trims a trailing dot from a sanitized segment", () => {
+      expect(new Path.Path("dir./sub").finalize()).toBe("dir/sub");
+    });
+
+    test("trims trailing spaces from a sanitized segment", () => {
+      expect(new Path.Path("dir /sub").finalize()).toBe("dir/sub");
+    });
+
+    test("trims a run of trailing dots and spaces", () => {
+      expect(Path.sanitizeFilename("name. . ", 0, false)).toBe("name");
+    });
+  });
+
+  describe("reserved Windows device names", () => {
+    test.each(["CON", "con", "PRN", "AUX", "NUL", "COM1", "com9", "LPT1", "lpt9"])(
+      "prefixes the bare reserved name %s with the replacement character",
+      (name) => {
+        expect(Path.sanitizeFilename(name, 0, false)).toBe(`_${name}`);
+      },
+    );
+
+    test("prefixes a reserved name that has an extension", () => {
+      expect(Path.sanitizeFilename("con.txt", 0, false)).toBe("_con.txt");
+    });
+
+    test("leaves names that merely start with a reserved prefix alone", () => {
+      expect(Path.sanitizeFilename("console.txt", 0, false)).toBe("console.txt");
+      expect(Path.sanitizeFilename("company", 0, false)).toBe("company");
+    });
+
+    test("leaves COM0/COM10/LPT0/LPT10 alone (not reserved)", () => {
+      expect(Path.sanitizeFilename("COM10", 0, false)).toBe("COM10");
+      expect(Path.sanitizeFilename("COM0", 0, false)).toBe("COM0");
+      expect(Path.sanitizeFilename("LPT10", 0, false)).toBe("LPT10");
+    });
+
+    test("round-trips a reserved name through Path.finalize", () => {
+      expect(new Path.Path("con.txt").finalize()).toBe("_con.txt");
+    });
+  });
+
   describe("custom replacement character", () => {
     const oldOptions = global.options;
     beforeAll(() => {
@@ -35,6 +83,10 @@ describe("sanitisation", () => {
     test("replaces invalid characters with a custom replacement character", () => {
       expect(new Path.Path(":stop:").finalize()).toBe("xstopx");
       expect(Path.replaceFsBadChars("/", "a")).toBe("a");
+    });
+
+    test("prefixes reserved device names with the custom replacement character", () => {
+      expect(new Path.Path("con.txt").finalize()).toBe("xcon.txt");
     });
   });
 
@@ -93,6 +145,23 @@ describe("sanitizeFilename", () => {
     expect(Path.sanitizeFilename(".dotfile")).toBe("_dotfile");
     expect(Path.sanitizeFilename(".dotfile", 0, false)).toBe(".dotfile");
   });
+
+  test("trims trailing dots", () => {
+    expect(Path.sanitizeFilename("file.", 0, false)).toBe("file");
+  });
+
+  test("trims trailing spaces", () => {
+    expect(Path.sanitizeFilename("file   ", 0, false)).toBe("file");
+  });
+
+  test("strips control characters", () => {
+    expect(Path.sanitizeFilename("a\x01b\x1fc", 0, false)).toBe("a_b_c");
+  });
+
+  test("neutralizes reserved device names", () => {
+    expect(Path.sanitizeFilename("CON", 0, false)).toBe("_CON");
+    expect(Path.sanitizeFilename("con.txt", 0, false)).toBe("_con.txt");
+  });
 });
 
 describe("Path.validate", () => {
@@ -124,6 +193,17 @@ describe("Path.validate", () => {
 
   test("plain relative paths are valid", () => {
     expect(new Path.Path("a/b").validate()).toEqual({ valid: true });
+  });
+
+  test("segments with reserved device names are invalid", () => {
+    const result = new Path.Path("a/con.txt").validate();
+    expect(result.valid).toBe(false);
+    expect(result.message).toBeDefined();
+  });
+
+  test("segments with trailing dots or spaces are invalid", () => {
+    expect(new Path.Path("a/dir.").validate().valid).toBe(false);
+    expect(new Path.Path("a/dir ").validate().valid).toBe(false);
   });
 });
 

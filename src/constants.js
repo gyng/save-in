@@ -6,6 +6,8 @@ const SPECIAL_DIRS = {
   SEPARATOR: "---",
   SOURCE_DOMAIN: ":sourcedomain:",
   PAGE_DOMAIN: ":pagedomain:",
+  SOURCE_ROOT_DOMAIN: ":sourcerootdomain:",
+  PAGE_ROOT_DOMAIN: ":pagerootdomain:",
   PAGE_URL: ":pageurl:",
   SOURCE_URL: ":sourceurl:",
   DATE: ":date:",
