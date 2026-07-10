@@ -252,3 +252,42 @@ describe("insert menu typeahead", () => {
     expect(sendMessage).toHaveBeenCalledWith({ type: "CHECK_ROUTES" });
   });
 });
+
+describe("text/visual mode toggle", () => {
+  beforeEach(() => {
+    document.body.innerHTML = `
+      <button type="button" class="editor-tab active" id="paths-mode-text">Text</button>
+      <button type="button" class="editor-tab" id="paths-mode-visual">Visual</button>
+      <details id="paths-insert-menu"></details>
+      <textarea id="paths">a</textarea>
+      <div id="error-paths"></div>
+      <div id="paths-visual" hidden></div>
+    `;
+    PathEditor.rebuildVisual = vi.fn();
+    PathEditor.setupModeToggle();
+  });
+
+  afterEach(() => {
+    document.body.innerHTML = "";
+    delete PathEditor.rebuildVisual;
+  });
+
+  test("switching to visual hides the text inputs and rebuilds the rows", () => {
+    document.querySelector("#paths-mode-visual").click();
+
+    expect(document.querySelector("#paths").hidden).toBe(true);
+    expect(document.querySelector("#paths-insert-menu").hidden).toBe(true);
+    expect(document.querySelector("#paths-visual").hidden).toBe(false);
+    expect(document.querySelector("#paths-mode-visual").classList.contains("active")).toBe(true);
+    expect(PathEditor.rebuildVisual).toHaveBeenCalled();
+  });
+
+  test("switching back restores the text input", () => {
+    document.querySelector("#paths-mode-visual").click();
+    document.querySelector("#paths-mode-text").click();
+
+    expect(document.querySelector("#paths").hidden).toBe(false);
+    expect(document.querySelector("#paths-visual").hidden).toBe(true);
+    expect(document.querySelector("#paths-mode-text").classList.contains("active")).toBe(true);
+  });
+});

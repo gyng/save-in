@@ -193,6 +193,39 @@ const PathEditor = {
     });
   },
 
+  // Text/Visual sub-tabs inside the Downloads Menu tab: both edit the same
+  // list; text is the default and stays the source of truth
+  setupModeToggle: () => {
+    const textButton = document.querySelector("#paths-mode-text");
+    const visualButton = document.querySelector("#paths-mode-visual");
+    /** @type {HTMLElement[]} */
+    const textElements = [
+      document.querySelector("#paths-insert-menu"),
+      document.querySelector("#paths"),
+      document.querySelector("#error-paths"),
+    ];
+    /** @type {HTMLElement} */
+    const visualContainer = document.querySelector("#paths-visual");
+    if (!textButton || !visualButton || !visualContainer || textElements.some((el) => !el)) {
+      return;
+    }
+
+    const select = (visual) => {
+      textButton.classList.toggle("active", !visual);
+      visualButton.classList.toggle("active", visual);
+      textElements.forEach((el) => {
+        el.hidden = visual;
+      });
+      visualContainer.hidden = !visual;
+      if (visual && typeof PathEditor.rebuildVisual === "function") {
+        PathEditor.rebuildVisual();
+      }
+    };
+
+    textButton.addEventListener("click", () => select(false));
+    visualButton.addEventListener("click", () => select(true));
+  },
+
   setupVisualEditor: () => {
     /** @type {HTMLTextAreaElement} */
     const textarea = document.querySelector("#paths");
@@ -333,6 +366,8 @@ const PathEditor = {
       render();
       refreshPreview();
     };
+    // The mode toggle forces a rebuild when switching into visual mode
+    PathEditor.rebuildVisual = rebuild;
 
     document.querySelector("#path-editor-add-dir")?.addEventListener("click", () => {
       rows.push({ depth: 0, body: "new-folder", comment: "" });
@@ -366,6 +401,7 @@ const PathEditor = {
 document.addEventListener("DOMContentLoaded", () => {
   PathEditor.setupInsertMenu();
   PathEditor.setupVisualEditor();
+  PathEditor.setupModeToggle();
 });
 
 // Export for testing

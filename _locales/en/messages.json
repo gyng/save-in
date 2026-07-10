@@ -188,7 +188,7 @@
   },
 
   "o_sDownloads": {
-    "message": "Downloads",
+    "message": "Downloads Menu",
     "description": "o prefixes are for options page text, s prefix are for section/subsection titles"
   },
 
@@ -276,6 +276,10 @@
 
   "o_lInsertFilter": {
     "message": "Type to filter, Enter to insert"
+  },
+
+  "o_lEditorModeText": {
+    "message": "Text"
   },
 
   "o_lRuleBuilder": {

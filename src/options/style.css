@@ -915,28 +915,27 @@ button:disabled:hover {
   color: var(--grey50);
 }
 
-.tab-panel > .path-editor-layout {
-  max-width: 1200px;
-}
-
-.path-editor-layout {
+/* Text/Visual sub-tabs above the directory editor */
+.editor-tabs {
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-5);
-  align-items: flex-start;
-  width: 100%;
+  gap: var(--space-1);
+  margin-bottom: var(--space-2);
 }
 
-.path-editor-main {
-  flex: 1 1 520px;
-  min-width: 340px;
+.editor-tab {
+  padding: 3px 12px;
+  font-size: var(--text-sm);
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--grey50);
+  cursor: pointer;
 }
 
-.path-editor-layout > .menu-preview {
-  flex: 1 1 280px;
-  min-width: 240px;
-  position: sticky;
-  top: 56px;
+.editor-tab.active {
+  color: var(--link-color);
+  border-color: var(--panel-border);
+  background-color: var(--panel-bg);
 }
 
 .path-editor-toolbar {

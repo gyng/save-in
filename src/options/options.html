@@ -183,6 +183,15 @@ submenu
           </p>
           <p>__MSG_o_lDirectoryInstructionSymlink__</p>
 
+          <div class="editor-tabs">
+            <button type="button" class="editor-tab active" id="paths-mode-text">
+              __MSG_o_lEditorModeText__
+            </button>
+            <button type="button" class="editor-tab" id="paths-mode-visual">
+              __MSG_o_sVisualEditor__
+            </button>
+          </div>
+
           <details class="insert-menu" id="paths-insert-menu">
             <summary>__MSG_o_lInsertMenu__</summary>
             <div class="insert-menu-panel">
@@ -210,6 +219,14 @@ submenu
             spellcheck="false"
           ></textarea>
           <div class="error-notification" id="error-paths">path errors</div>
+
+          <div id="paths-visual" hidden>
+            <div class="path-editor-toolbar">
+              <button type="button" id="path-editor-add-dir">+ __MSG_o_bAddDirectory__</button>
+              <button type="button" id="path-editor-add-sep">+ __MSG_o_bAddSeparator__</button>
+            </div>
+            <div id="path-editor-rows"></div>
+          </div>
         </label>
 
         <div class="menu-preview" id="menu-preview">
@@ -284,24 +301,6 @@ submenu
         </select>
         __MSG_o_cDupeFilename__ <span class="badge">Chrome</span>
       </label>
-
-      <hr />
-
-      <h2 id="section-visual-editor">__MSG_o_sVisualEditor__</h2>
-      <p class="caption">__MSG_o_lVisualEditorHelp__</p>
-      <div class="path-editor-layout">
-        <div class="path-editor-main">
-          <div class="path-editor-toolbar">
-            <button type="button" id="path-editor-add-dir">+ __MSG_o_bAddDirectory__</button>
-            <button type="button" id="path-editor-add-sep">+ __MSG_o_bAddSeparator__</button>
-          </div>
-          <div id="path-editor-rows"></div>
-        </div>
-        <div class="menu-preview">
-          <div class="caption">__MSG_o_lMenuPreview__</div>
-          <div class="menu-preview-tree" id="menu-preview-tree-visual"></div>
-        </div>
-      </div>
 
       <hr />
 
