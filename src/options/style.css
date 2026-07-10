@@ -888,6 +888,18 @@ button:disabled:hover {
   background-color: var(--panel-bg);
 }
 
+.tab-panel .insert-menu-panel input[type="text"] {
+  width: 100%;
+  max-width: none;
+  box-sizing: border-box;
+  margin: 0 0 var(--space-1);
+}
+
+.insert-menu-value {
+  margin-left: var(--space-2);
+  color: var(--grey50);
+}
+
 .tab-panel > .path-editor-layout {
   max-width: 1200px;
 }

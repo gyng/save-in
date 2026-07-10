@@ -165,3 +165,89 @@ describe("visual editor", () => {
     expect(rows()).toHaveLength(1);
   });
 });
+
+describe("insert menu typeahead", () => {
+  let sendMessage;
+
+  beforeEach(async () => {
+    document.body.innerHTML = `
+      <textarea id="paths">a</textarea>
+      <details id="paths-insert-menu">
+        <summary>+ Add</summary>
+        <div>
+          <input type="text" id="paths-insert-filter" />
+          <button type="button" data-insert-line="---">separator</button>
+          <div id="paths-insert-variables"></div>
+        </div>
+      </details>
+    `;
+    sendMessage = vi.fn((msg) => {
+      if (msg.type === "GET_KEYWORDS") {
+        return Promise.resolve({ body: { variables: [":date:", ":pagetitle:"] } });
+      }
+      if (msg.type === "CHECK_ROUTES") {
+        return Promise.resolve({
+          body: { interpolatedVariables: { ":date:": "2026-07-10" } },
+        });
+      }
+      return Promise.resolve({});
+    });
+    global.browser.runtime.sendMessage = sendMessage;
+    PathEditor.setupInsertMenu();
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+  });
+
+  afterEach(() => {
+    document.body.innerHTML = "";
+  });
+
+  const buttons = () => [...document.querySelectorAll(".insert-menu-variable")];
+  const filter = () => document.querySelector("#paths-insert-filter");
+
+  test("lists variables with their current values", () => {
+    expect(buttons().map((b) => b.querySelector("code").textContent)).toEqual([
+      ":date:",
+      ":pagetitle:",
+    ]);
+    expect(buttons()[0].querySelector(".insert-menu-value").textContent).toBe("2026-07-10");
+    expect(buttons()[1].querySelector(".insert-menu-value").textContent).toBe("");
+  });
+
+  test("typing filters by name and by current value", () => {
+    filter().value = "title";
+    filter().dispatchEvent(new InputEvent("input", { bubbles: true }));
+    expect(buttons()[0].style.display).toBe("none");
+    expect(buttons()[1].style.display).toBe("");
+
+    // Value text matches too
+    filter().value = "2026";
+    filter().dispatchEvent(new InputEvent("input", { bubbles: true }));
+    expect(buttons()[0].style.display).toBe("");
+    expect(buttons()[1].style.display).toBe("none");
+  });
+
+  test("Enter inserts the first visible match at the cursor", () => {
+    const textarea = document.querySelector("#paths");
+    textarea.setSelectionRange(1, 1);
+
+    filter().value = "page";
+    filter().dispatchEvent(new InputEvent("input", { bubbles: true }));
+    filter().dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+
+    expect(textarea.value).toBe("a:pagetitle:");
+    expect(document.querySelector("#paths-insert-menu").open).toBe(false);
+  });
+
+  test("values refresh each time the menu opens", async () => {
+    const menu = document.querySelector("#paths-insert-menu");
+    sendMessage.mockClear();
+    menu.open = true;
+    menu.dispatchEvent(new Event("toggle"));
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(sendMessage).toHaveBeenCalledWith({ type: "CHECK_ROUTES" });
+  });
+});

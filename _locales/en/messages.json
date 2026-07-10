@@ -274,6 +274,10 @@
     "message": "Variables (inserted at the cursor)"
   },
 
+  "o_lInsertFilter": {
+    "message": "Type to filter, Enter to insert"
+  },
+
   "o_lRuleBuilder": {
     "message": "Quick add: match a pattern, choose where it goes",
     "description": "Caption above the guided rule input on the options page"

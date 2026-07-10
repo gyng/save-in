@@ -106,6 +106,8 @@ declare const Menus: {
   [key: string]: any;
 };
 declare const Messaging: Record<string, any>;
+// options page: path-editor.js (used by rule-builder.js for undoable edits)
+declare const PathEditor: Record<string, any>;
 declare const OptionsManagement: Record<string, any>;
 // Named Notifier/RequestHeaders (not Notification/Headers) so the runtime
 // globals do not shadow the platform classes of the same name

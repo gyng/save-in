@@ -51,11 +51,12 @@ const RULE_TEMPLATES = [
 
 const RuleBuilder = {
   // Appends a complete rule, separated by the blank line the parser uses
-  // as a rule boundary, and fires the input pipeline
+  // as a rule boundary. Goes through PathEditor.insertText so the edit
+  // joins the undo stack and fires the input pipeline
   appendRule: (textarea, rule) => {
-    const existing = textarea.value.trim();
-    textarea.value = existing ? `${existing}\n\n${rule}\n` : `${rule}\n`;
-    textarea.dispatchEvent(new InputEvent("input", { bubbles: true }));
+    const trimmedEnd = textarea.value.replace(/\s+$/, "").length;
+    const separator = trimmedEnd > 0 ? "\n\n" : "";
+    PathEditor.insertText(textarea, `${separator}${rule}\n`, trimmedEnd, textarea.value.length);
   },
 
   setupGuidedInput: () => {

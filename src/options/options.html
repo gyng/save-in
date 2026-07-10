@@ -186,6 +186,12 @@ submenu
           <details class="insert-menu" id="paths-insert-menu">
             <summary>__MSG_o_lInsertMenu__</summary>
             <div class="insert-menu-panel">
+              <input
+                type="text"
+                id="paths-insert-filter"
+                placeholder="__MSG_o_lInsertFilter__"
+                spellcheck="false"
+              />
               <button type="button" data-insert-line="---">--- __MSG_o_bInsertSeparator__</button>
               <button type="button" data-insert-line=">subfolder">
                 &gt; __MSG_o_bInsertSubmenuItem__
@@ -721,8 +727,8 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
     <script src="options.js"></script>
     <script src="clicktocopy.js"></script>
     <script src="autocomplete.js"></script>
-    <script src="rule-builder.js"></script>
     <script src="path-editor.js"></script>
+    <script src="rule-builder.js"></script>
     <script src="tabs.js"></script>
   </body>
 </html>

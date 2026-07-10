@@ -6,6 +6,7 @@ const constants = (await import("../src/constants.js")).default;
 Object.assign(global, constants);
 
 const Router = (await import("../src/router.js")).default;
+global.PathEditor = (await import("../src/options/path-editor.js")).default;
 const { RULE_TEMPLATES, RuleBuilder } = await import("../src/options/rule-builder.js");
 
 const flush = async (times = 5) => {

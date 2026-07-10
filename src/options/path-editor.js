@@ -49,14 +49,29 @@ const PathEditor = {
     return cleaned ? `${cleaned} (alias: ${alias})` : `(alias: ${alias})`;
   },
 
+  // Replaces [start, end) with text as an undoable edit: execCommand is
+  // deprecated but remains the only way a programmatic edit joins the
+  // browser's undo stack (it also fires input itself); setRangeText is
+  // the non-undoable fallback (e.g. under jsdom)
+  insertText: (textarea, text, start, end) => {
+    textarea.focus();
+    textarea.setSelectionRange(start, end);
+    let inserted = false;
+    try {
+      inserted = document.execCommand("insertText", false, text);
+    } catch (e) {
+      inserted = false;
+    }
+    if (!inserted) {
+      textarea.setRangeText(text, start, end, "end");
+      textarea.dispatchEvent(new InputEvent("input", { bubbles: true }));
+    }
+  },
+
   insertAtCursor: (textarea, text) => {
     const start = textarea.selectionStart != null ? textarea.selectionStart : textarea.value.length;
     const end = textarea.selectionEnd != null ? textarea.selectionEnd : start;
-    textarea.value = textarea.value.slice(0, start) + text + textarea.value.slice(end);
-    const pos = start + text.length;
-    textarea.focus();
-    textarea.setSelectionRange(pos, pos);
-    textarea.dispatchEvent(new InputEvent("input", { bubbles: true }));
+    PathEditor.insertText(textarea, text, start, end);
   },
 
   // Inserts a whole line after the line the cursor is on
@@ -66,14 +81,8 @@ const PathEditor = {
     if (lineEnd === -1) {
       lineEnd = textarea.value.length;
     }
-    const before = textarea.value.slice(0, lineEnd);
-    const after = textarea.value.slice(lineEnd);
-    const glue = before.length > 0 && !before.endsWith("\n") ? "\n" : "";
-    textarea.value = `${before}${glue}${line}${after}`;
-    const pos = before.length + glue.length + line.length;
-    textarea.focus();
-    textarea.setSelectionRange(pos, pos);
-    textarea.dispatchEvent(new InputEvent("input", { bubbles: true }));
+    const glue = lineEnd > 0 ? "\n" : "";
+    PathEditor.insertText(textarea, `${glue}${line}`, lineEnd, lineEnd);
   },
 
   setupInsertMenu: () => {
@@ -82,6 +91,8 @@ const PathEditor = {
     /** @type {HTMLDetailsElement} */
     const menu = document.querySelector("#paths-insert-menu");
     const variablesContainer = document.querySelector("#paths-insert-variables");
+    /** @type {HTMLInputElement} */
+    const filter = document.querySelector("#paths-insert-filter");
     if (!textarea || !menu || !variablesContainer) {
       return;
     }
@@ -97,16 +108,37 @@ const PathEditor = {
       });
     });
 
-    // Variables from the background Router; current values (from the last
-    // download) arrive with CHECK_ROUTES when available
-    Promise.all([
-      browser.runtime.sendMessage({ type: "GET_KEYWORDS" }),
-      browser.runtime.sendMessage({ type: "CHECK_ROUTES" }).catch(() => null),
-    ])
-      .then(([keywords, routes]) => {
-        const variables = (keywords && keywords.body && keywords.body.variables) || [];
-        const values = (routes && routes.body && routes.body.interpolatedVariables) || {};
+    /** @type {{ variable: string, value: string, button: HTMLButtonElement, valueEl: HTMLElement }[]} */
+    const entries = [];
 
+    // Interpolated values come from the last download and change with
+    // every save, so they are re-fetched each time the menu opens
+    const refreshValues = () => {
+      browser.runtime
+        .sendMessage({ type: "CHECK_ROUTES" })
+        .then((res) => {
+          const values = (res && res.body && res.body.interpolatedVariables) || {};
+          entries.forEach((entry) => {
+            entry.value = values[entry.variable] || "";
+            entry.valueEl.textContent = entry.value;
+          });
+        })
+        .catch(() => {});
+    };
+
+    const applyFilter = () => {
+      const query = filter ? filter.value.trim().toLowerCase() : "";
+      entries.forEach((entry) => {
+        const match =
+          !query || entry.variable.includes(query) || entry.value.toLowerCase().includes(query);
+        entry.button.style.display = match ? "" : "none";
+      });
+    };
+
+    browser.runtime
+      .sendMessage({ type: "GET_KEYWORDS" })
+      .then((res) => {
+        const variables = (res && res.body && res.body.variables) || [];
         variables.forEach((variable) => {
           const button = document.createElement("button");
           button.type = "button";
@@ -116,21 +148,47 @@ const PathEditor = {
           name.textContent = variable;
           button.appendChild(name);
 
-          if (values[variable]) {
-            const value = document.createElement("span");
-            value.className = "caption";
-            value.textContent = ` ${values[variable]}`;
-            button.appendChild(value);
-          }
+          const valueEl = document.createElement("span");
+          valueEl.className = "caption insert-menu-value";
+          button.appendChild(valueEl);
 
           button.addEventListener("click", () => {
             PathEditor.insertAtCursor(textarea, variable);
             closeMenu();
           });
           variablesContainer.appendChild(button);
+          entries.push({ variable, value: "", button, valueEl });
         });
+        refreshValues();
       })
       .catch(() => {});
+
+    if (filter) {
+      filter.addEventListener("input", applyFilter);
+      filter.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          // Typeahead: Enter inserts the first visible match
+          e.preventDefault();
+          const first = entries.find((entry) => entry.button.style.display !== "none");
+          if (first) {
+            first.button.click();
+          }
+        } else if (e.key === "Escape") {
+          closeMenu();
+        }
+      });
+    }
+
+    menu.addEventListener("toggle", () => {
+      if (menu.open) {
+        refreshValues();
+        if (filter) {
+          filter.value = "";
+          applyFilter();
+          filter.focus();
+        }
+      }
+    });
   },
 
   setupVisualEditor: () => {
