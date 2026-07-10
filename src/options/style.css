@@ -706,6 +706,18 @@ input.key {
   padding: 4px 8px 4px 8px;
 }
 
+/* Click-to-save key picker: click, then press the key to bind */
+.key-capture {
+  min-width: 68px;
+  padding: 4px 10px;
+  font-family: var(--font-mono);
+}
+
+.key-capture.key-capture-active {
+  color: var(--link-color);
+  border-color: var(--link-color);
+}
+
 .match-row {
   display: flex;
   align-items: baseline;

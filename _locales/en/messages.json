@@ -579,7 +579,7 @@
   },
 
   "o_cKeyboardShotcutKeycode": {
-    "message": "keycode"
+    "message": "Hold"
   },
 
   "o_cKeyboardShortcutModifierLeftClick": {
@@ -595,7 +595,7 @@
   },
 
   "o_cKeyboardShortcutModifierHelp": {
-    "message": "Modifier keycode for click-to-save. Requires page refresh to take effect."
+    "message": "Click the button, then press the key to hold while clicking to save (Alt by default). Takes effect after you refresh open pages."
   },
 
   "o_cRestoreDefaults": {
