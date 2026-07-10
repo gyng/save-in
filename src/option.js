@@ -97,7 +97,6 @@ const OptionsManagement = {
       default: SHORTCUT_TYPES.HTML_REDIRECT,
     },
     { name: "truncateLength", type: T.VALUE, default: 240 },
-    { name: "fetchViaContent", type: T.BOOL, default: false },
     { name: "fetchViaFetch", type: T.BOOL, default: false },
     // Automatic fallback: retry a failed browser download once via a
     // background fetch (see Download.retryViaFetch)
@@ -150,7 +149,6 @@ const OptionsManagement = {
     shortcutTab: "Save tabs as shortcut files (Firefox tab menu).",
     shortcutType: "Shortcut file format (HTML redirect, .url, .desktop, .webloc).",
     truncateLength: "Truncate each path segment to this many characters (0 = no limit).",
-    fetchViaContent: "Deprecated: fetch via the content script (Firefox).",
     fetchViaFetch: "Download via the Fetch API instead of the downloads API.",
     fallbackFetch: "Retry a failed download once via a background fetch.",
     tabEnabled: "Enable the tab-strip context menu (Firefox).",

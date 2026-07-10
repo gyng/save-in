@@ -149,40 +149,6 @@ try {
 
     const options = response.body;
 
-    if (options.fetchViaContent) {
-      chrome.runtime.onMessage.addListener((request) => {
-        switch (request.type) {
-          case "FETCH_VIA_CONTENT": {
-            const url = request.body.state.info.url;
-
-            const contentRequest = new Request(url, {
-              method: "GET",
-              credentials: "include",
-              mode: "no-cors",
-            });
-
-            // Chrome doesn't support returning a promise from onMessage.addListener
-            return fetch(contentRequest)
-              .then((res) => res.blob())
-              .then((blob) => ({
-                type: "OK",
-                body: {
-                  blob,
-                },
-              }))
-              .catch((error) => {
-                console.error(error); // eslint-disable-line
-                return { type: "ERROR", body: { error } };
-              });
-          }
-          default:
-            break;
-        }
-
-        return null;
-      });
-    }
-
     if (options.contentClickToSave) {
       setupClickToSave(options);
     }

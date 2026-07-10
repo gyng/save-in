@@ -89,7 +89,6 @@ const MESSAGE_TYPES = {
   DOWNLOADED: "DOWNLOADED",
   CHECK_ROUTES: "CHECK_ROUTES",
   CHECK_ROUTES_RESPONSE: "CHECK_ROUTES_RESPONSE",
-  FETCH_VIA_CONTENT: "FETCH_VIA_CONTENT",
   // Chrome offscreen document: fetch a URL and return a blob object URL (a
   // service worker has no URL.createObjectURL)
   OFFSCREEN_FETCH: "OFFSCREEN_FETCH",

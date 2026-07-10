@@ -1,6 +1,6 @@
 // renameAndDownload end-to-end flow: Chrome vs Firefox entry points, prompt
-// combinations, routing, the browserDownload/fetchDownload/fetchViaContent
-// closures, notification triggers, and the onDeterminingFilename sync path.
+// combinations, routing, the browserDownload/fetchDownload closures,
+// notification triggers, and the onDeterminingFilename sync path.
 //
 // The MV3 data-URL fallbacks and the onDeterminingFilename async
 // session-recovery path are covered by test/download-mv3.test.js and are not
@@ -56,7 +56,6 @@ beforeEach(() => {
     notifyOnRuleMatch: false,
     notifyOnFailure: false,
     conflictAction: "uniquify",
-    fetchViaContent: false,
     fetchViaFetch: false,
   };
 
@@ -81,9 +80,6 @@ beforeEach(() => {
   global.Variable = { applyVariables: jest.fn((path) => path) };
 
   global.Messaging = {
-    send: {
-      fetchViaContent: jest.fn(() => Promise.resolve({ body: { blob: new Blob(["x"]) } })),
-    },
     emit: { downloaded: jest.fn() },
   };
 
@@ -524,65 +520,6 @@ describe("renameAndDownload: fetchViaFetch", () => {
     expect(global.browser.downloads.download).toHaveBeenCalledWith(
       expect.objectContaining({ url: expect.stringMatching(/^blob:/) }),
     );
-  });
-});
-
-describe("renameAndDownload: fetchViaContent", () => {
-  test("uses the content-script-fetched blob when it resolves", async () => {
-    global.CURRENT_BROWSER = "CHROME";
-    global.options.fetchViaContent = true;
-    global.Messaging.send.fetchViaContent = jest.fn(() =>
-      Promise.resolve({ body: { blob: new Blob(["from content script"]) } }),
-    );
-
-    const state = makeState();
-    await Download.renameAndDownload(state);
-    await flush();
-
-    expect(global.Messaging.send.fetchViaContent).toHaveBeenCalledWith(state);
-    expect(global.browser.downloads.download).toHaveBeenCalledWith(
-      expect.objectContaining({ url: expect.stringMatching(/^blob:/) }),
-    );
-  });
-
-  test("falls back to a direct browser download when fetchViaContent rejects", async () => {
-    global.CURRENT_BROWSER = "CHROME";
-    global.options.fetchViaContent = true;
-    window.SI_DEBUG = false;
-    global.Messaging.send.fetchViaContent = jest.fn(() =>
-      Promise.reject(new Error("no content script")),
-    );
-    const consoleSpy = jest.spyOn(console, "log").mockImplementation(() => {});
-
-    const state = makeState();
-    await Download.renameAndDownload(state);
-    await flush();
-
-    expect(global.browser.downloads.download).toHaveBeenCalledWith(
-      expect.objectContaining({ url: state.info.url }),
-    );
-    expect(consoleSpy).not.toHaveBeenCalledWith("Failed to fetch via content", expect.anything());
-    consoleSpy.mockRestore();
-  });
-
-  test("logs the failure when SI_DEBUG is enabled before falling back", async () => {
-    global.CURRENT_BROWSER = "CHROME";
-    global.options.fetchViaContent = true;
-    window.SI_DEBUG = true;
-    global.Messaging.send.fetchViaContent = jest.fn(() =>
-      Promise.reject(new Error("no content script")),
-    );
-    const consoleSpy = jest.spyOn(console, "log").mockImplementation(() => {});
-
-    const state = makeState();
-    await Download.renameAndDownload(state);
-    await flush();
-
-    expect(consoleSpy).toHaveBeenCalledWith("Failed to fetch via content", expect.any(Error));
-    expect(global.browser.downloads.download).toHaveBeenCalledWith(
-      expect.objectContaining({ url: state.info.url }),
-    );
-    consoleSpy.mockRestore();
   });
 });
 

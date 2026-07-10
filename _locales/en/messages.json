@@ -618,14 +618,6 @@
     "message": "Leave blank to delete. Invalid replacement characters are ignored."
   },
 
-  "o_cFetchViaContentScript": {
-    "message": "Enable fetching via content script"
-  },
-
-  "o_cFetchViaContentScriptHelp": {
-    "message": "Deprecated: under Manifest V3 content scripts can no longer make cross-origin requests, so this rarely works. Use “Enable fetching via Fetch API” instead."
-  },
-
   "o_cFallbackFetch": {
     "message": "Retry failed downloads in the background"
   },

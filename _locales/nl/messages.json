@@ -498,14 +498,6 @@
     "message": "Leeg laten om te wissen. Niet toegestane karakters worden genegeerd."
   },
 
-  "o_cFetchViaContentScript": {
-    "message": "Ophalen via een script inschakelen"
-  },
-
-  "o_cFetchViaContentScriptHelp": {
-    "message": "Verstuur headers van pagina's zonder download verzoek. Websites zoals pixiv hebben dit nodig. Langzamer en kan mislukken. Notificaties werken niet met deze instelling. De pagina dient ververst te worden om dit toe te passen."
-  },
-
   "o_cImportSettings": {
     "message": "Importeer Instellingen"
   },

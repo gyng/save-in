@@ -83,7 +83,7 @@ const importContentWithOptions = async (optionsBody) => {
   await import("../src/content/content.js");
 };
 
-describe("FETCH_VIA_CONTENT message handler", () => {
+describe("content.js initialisation", () => {
   const originalSendMessage = global.chrome.runtime.sendMessage;
   const originalAddListener = global.chrome.runtime.onMessage.addListener;
   const originalFetch = global.fetch;
@@ -95,17 +95,6 @@ describe("FETCH_VIA_CONTENT message handler", () => {
     vi.restoreAllMocks();
   });
 
-  const captureFetchListener = async () => {
-    await importContentWithOptions({ fetchViaContent: true, contentClickToSave: false });
-    expect(global.chrome.runtime.onMessage.addListener).toHaveBeenCalledTimes(1);
-    return global.chrome.runtime.onMessage.addListener.mock.calls[0][0];
-  };
-
-  test("no message listener is registered when fetchViaContent is off", async () => {
-    await importContentWithOptions({ fetchViaContent: false, contentClickToSave: false });
-    expect(global.chrome.runtime.onMessage.addListener).not.toHaveBeenCalled();
-  });
-
   test("bails out when the options response has no body (SW gone)", async () => {
     vi.resetModules();
     global.chrome.runtime.sendMessage = vi.fn((message, cb) => cb(undefined));
@@ -114,51 +103,10 @@ describe("FETCH_VIA_CONTENT message handler", () => {
     expect(global.chrome.runtime.onMessage.addListener).not.toHaveBeenCalled();
   });
 
-  test("fetches the url with page credentials and replies OK with the blob", async () => {
-    const listener = await captureFetchListener();
-
-    const blob = { size: 3, type: "image/png" };
-    global.fetch = vi.fn(() => Promise.resolve({ blob: () => Promise.resolve(blob) }));
-
-    const response = await listener({
-      type: "FETCH_VIA_CONTENT",
-      body: { state: { info: { url: "http://x.test/pic.png" } } },
-    });
-
-    expect(response).toEqual({ type: "OK", body: { blob } });
-
-    const request = global.fetch.mock.calls[0][0];
-    expect(request.url).toBe("http://x.test/pic.png");
-    expect(request.credentials).toBe("include");
-    expect(request.mode).toBe("no-cors");
-  });
-
-  test("replies ERROR when the fetch fails", async () => {
-    const listener = await captureFetchListener();
-
-    const error = new Error("network down");
-    global.fetch = vi.fn(() => Promise.reject(error));
-    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
-
-    const response = await listener({
-      type: "FETCH_VIA_CONTENT",
-      body: { state: { info: { url: "http://x.test/pic.png" } } },
-    });
-
-    expect(response).toEqual({ type: "ERROR", body: { error } });
-    expect(consoleError).toHaveBeenCalledWith(error);
-  });
-
-  test("returns null for unrelated message types", async () => {
-    const listener = await captureFetchListener();
-    expect(listener({ type: "DOWNLOADED" })).toBeNull();
-  });
-
   test("wires up click-to-save when the option is enabled", async () => {
     // Distinct combo/button so this stray listener set stays inert during
     // the setupClickToSave tests below
     await importContentWithOptions({
-      fetchViaContent: false,
       contentClickToSave: true,
       contentClickToSaveCombo: 17,
       contentClickToSaveButton: "RIGHT_CLICK",

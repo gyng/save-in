@@ -465,22 +465,7 @@ const Download = {
       });
 
       const normalDownload = () => {
-        if (options.fetchViaContent) {
-          Messaging.send
-            .fetchViaContent(_state)
-            .then((res) =>
-              // Object URL has to be created inside the background script
-              Download.makeUrlFromBlob(res.body.blob).then((blobUrl) =>
-                browserDownload(blobUrl, true),
-              ),
-            )
-            .catch((e) => {
-              if (window.SI_DEBUG) {
-                console.log("Failed to fetch via content", e); // eslint-disable-line
-              }
-              browserDownload(_state.info.url);
-            });
-        } else if (options.fetchViaFetch) {
+        if (options.fetchViaFetch) {
           fetchDownload(_state.info.url);
         } else {
           browserDownload(_state.info.url);

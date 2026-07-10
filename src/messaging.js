@@ -191,39 +191,6 @@ const Messaging = {
     },
   },
 
-  // Returns a Promise
-  send: {
-    fetchViaContent: (state) =>
-      new Promise((resolve, reject) => {
-        browser.tabs
-          .query({
-            currentWindow: true,
-            active: true,
-          })
-          .then((tabs) => {
-            // With no active tab there is no content script to fetch through:
-            // reject so the caller's fallback runs instead of hanging forever
-            if (!tabs || !tabs[0]) {
-              reject(new Error("No active tab for fetchViaContent"));
-              return;
-            }
-            browser.tabs
-              .sendMessage(tabs[0].id, {
-                type: MESSAGE_TYPES.FETCH_VIA_CONTENT,
-                body: { state },
-              })
-              .then(resolve)
-              .catch((err) => {
-                if (window.SI_DEBUG) {
-                  console.log(err); // eslint-disable-line
-                }
-                reject(err);
-              });
-          })
-          .catch(reject);
-      }),
-  },
-
   /**
    * Official, versioned DOWNLOAD API for external extensions (issue #110).
    * Other extensions push a URL into save-in's routing/rename pipeline by

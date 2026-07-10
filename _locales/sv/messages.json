@@ -511,14 +511,6 @@
     "message": "Lämna tom för att ta bort. Ogiltiga ersättningstecken ignoreras."
   },
 
-  "o_cFetchViaContentScript": {
-    "message": "Aktivera hämtning via innehållsskript"
-  },
-
-  "o_cFetchViaContentScriptHelp": {
-    "message": "Aktivera endast om du har problem att ladda ner. Ladda ner från innehållssidan och inte från tillägget, skickar huvuden från sidan i sig själv. Visa webbplatser (t.ex pixiv.net) kräver detta för att kunna gå förbi serversidsskydd. Långsammare och benägen att misslyckas. Lyckade/misslyckade aviseringar fungerar inte i detta läget. Kräver siduppdatering för att träda i kraft."
-  },
-
   "o_cSetRefererHeader": {
     "message": "Ställ in huvudet \"Referer\" till sidadressen om den saknas"
   },
