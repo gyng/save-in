@@ -97,6 +97,78 @@ const Variable = {
     return labels.length <= 2 ? hostname : labels.slice(-2).join(".");
   },
 
+  // Common Content-Type -> file extension. The subtype fallback in
+  // mimeToExtension covers the long tail, so this only needs the cases where
+  // the subtype is not the extension people expect.
+  MIME_EXTENSIONS: {
+    "image/jpeg": "jpg",
+    "image/svg+xml": "svg",
+    "image/x-icon": "ico",
+    "image/vnd.microsoft.icon": "ico",
+    "image/tiff": "tif",
+    "video/quicktime": "mov",
+    "video/x-matroska": "mkv",
+    "video/mpeg": "mpg",
+    "audio/mpeg": "mp3",
+    "audio/x-wav": "wav",
+    "audio/wav": "wav",
+    "application/pdf": "pdf",
+    "application/zip": "zip",
+    "application/gzip": "gz",
+    "application/javascript": "js",
+    "application/xml": "xml",
+    "text/plain": "txt",
+    "text/html": "html",
+    "text/markdown": "md",
+    "text/javascript": "js",
+  },
+
+  // "image/jpeg" -> "jpg". Falls back to the subtype with vendor/x- prefixes
+  // and +suffixes stripped ("application/vnd.foo+json" -> "json") for the tail.
+  mimeToExtension: (mime) => {
+    if (!mime) {
+      return "";
+    }
+    if (Variable.MIME_EXTENSIONS[mime]) {
+      return Variable.MIME_EXTENSIONS[mime];
+    }
+    const sub = mime.split("/")[1];
+    if (!sub) {
+      return "";
+    }
+    return sub
+      .replace(/^(x-|vnd\.)/, "")
+      .replace(/^.*\+/, "")
+      .replace(/[^0-9a-z].*$/i, "");
+  },
+
+  // Lazily HEAD the URL once per download (cached as a promise on the info bag,
+  // so every :mime:/:mimeext: occurrence — path and route — shares one request)
+  // and read its Content-Type. Times out so a slow/hanging HEAD can't block the
+  // download, and resolves to "" on any failure (CORS, 405, network).
+  resolveMime: (opts) => {
+    if (opts.mimePromise) {
+      return opts.mimePromise;
+    }
+    opts.mimePromise = (async () => {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 5000);
+      try {
+        const res = await fetch(opts.url, {
+          method: "HEAD",
+          credentials: "include",
+          signal: controller.signal,
+        });
+        return (res.headers.get("Content-Type") || "").split(";")[0].trim().toLowerCase();
+      } catch {
+        return "";
+      } finally {
+        clearTimeout(timer);
+      }
+    })();
+    return opts.mimePromise;
+  },
+
   // Transformers are called as (info, token, index, tokens); most only
   // need the info bag, hence the cast to the full signature
   /* prettier-ignore */
@@ -185,7 +257,20 @@ const Variable = {
     // A fresh random v4 UUID (crypto.randomUUID is available in the SW, the
     // event page, and Node/vitest — all secure contexts)
     [SPECIAL_DIRS.UUID]:
-      () => Path.PathSegment.String(crypto.randomUUID())
+      () => Path.PathSegment.String(crypto.randomUUID()),
+    // Async: the server's Content-Type from a HEAD request (see resolveMime).
+    // The options-page preview skips the network and shows nothing.
+    [SPECIAL_DIRS.MIME]:
+      async opts => Path.PathSegment.String(opts.preview ? "" : await Variable.resolveMime(opts)),
+    [SPECIAL_DIRS.CONTENT_TYPE]:
+      async opts => Path.PathSegment.String(opts.preview ? "" : await Variable.resolveMime(opts)),
+    // The extension derived from that Content-Type ("image/jpeg" -> "jpg") —
+    // useful for naming extensionless CDN/query-suffix URLs (#126/#135/#43)
+    [SPECIAL_DIRS.MIME_EXT]:
+      async opts =>
+        Path.PathSegment.String(
+          opts.preview ? "" : Variable.mimeToExtension(await Variable.resolveMime(opts)),
+        )
   }),
 
   // Async so a transformer may await (e.g. a :counter: read-modify-write or a

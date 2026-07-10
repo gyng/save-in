@@ -282,6 +282,29 @@
 
         <tr>
           <td>
+            <code class="click-to-copy">:mime:</code>,
+            <code class="click-to-copy">:contenttype:</code>
+          </td>
+          <td>image/jpeg</td>
+          <td>
+            The server's <code>Content-Type</code> (via a HEAD request). Adds a small delay and is
+            blank if the server doesn't answer.
+          </td>
+        </tr>
+
+        <tr>
+          <td>
+            <code class="click-to-copy">:mimeext:</code>
+          </td>
+          <td>jpg</td>
+          <td>
+            File extension derived from the <code>Content-Type</code> &mdash; handy for
+            extensionless or query-suffixed URLs.
+          </td>
+        </tr>
+
+        <tr>
+          <td>
             <code class="click-to-copy">:$1:</code>, <code class="click-to-copy">:$2:</code>&hellip;
           </td>
           <td></td>

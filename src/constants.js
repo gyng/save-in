@@ -37,6 +37,9 @@ const SPECIAL_DIRS = {
   FILE_EXTENSION: ":fileext:",
   COUNTER: ":counter:",
   UUID: ":uuid:",
+  MIME: ":mime:",
+  CONTENT_TYPE: ":contenttype:",
+  MIME_EXT: ":mimeext:",
 };
 
 const SHORTCUT_TYPES = {

@@ -461,3 +461,86 @@ describe(":uuid:", () => {
     expect(a).not.toBe(b);
   });
 });
+
+describe(":mime: / :contenttype: / :mimeext: (async HEAD)", () => {
+  const mockHead = (contentType) => {
+    global.fetch = vi.fn(() =>
+      Promise.resolve({
+        headers: { get: (h) => (h === "Content-Type" ? contentType : null) },
+      }),
+    );
+  };
+
+  beforeEach(() => {
+    // path.js sanitizes "/" in the mime value using options.replacementChar
+    global.options = { replacementChar: "_" };
+  });
+
+  afterEach(() => {
+    delete global.fetch;
+  });
+
+  test(":mime: is the Content-Type with charset stripped (and path-sanitized)", async () => {
+    mockHead("image/jpeg; charset=binary");
+    const out = (
+      await Variable.applyVariables(new Path.Path(":mime:"), { url: "https://x/a" })
+    ).finalize();
+    expect(out).toBe("image_jpeg"); // the "/" is sanitized like any segment
+    expect(global.fetch).toHaveBeenCalledWith(
+      "https://x/a",
+      expect.objectContaining({ method: "HEAD", credentials: "include" }),
+    );
+  });
+
+  test(":contenttype: is an alias for :mime:", async () => {
+    mockHead("application/pdf");
+    const out = (
+      await Variable.applyVariables(new Path.Path(":contenttype:"), { url: "https://x/a" })
+    ).finalize();
+    expect(out).toBe("application_pdf");
+  });
+
+  test(":mimeext: maps the Content-Type to a file extension", async () => {
+    mockHead("image/jpeg");
+    // path.js trims a literal dot before a variable, so :mimeext: is used as a
+    // directory or right after :filename:; here we assert the raw mapping
+    const out = (
+      await Variable.applyVariables(new Path.Path("by/:mimeext:"), { url: "https://x/a" })
+    ).finalize();
+    expect(out).toBe("by/jpg");
+  });
+
+  test("shares one HEAD across occurrences in a single download", async () => {
+    mockHead("video/mp4");
+    await Variable.applyVariables(new Path.Path(":mime:/:mimeext:"), { url: "https://x/a" });
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+  });
+
+  test("a failed HEAD yields an empty value (-> replacement char)", async () => {
+    global.fetch = vi.fn(() => Promise.reject(new Error("CORS")));
+    const out = (
+      await Variable.applyVariables(new Path.Path(":mimeext:"), { url: "https://x/a" })
+    ).finalize();
+    expect(out).toBe("_"); // an empty variable value becomes the replacement char
+  });
+
+  test("preview mode never hits the network", async () => {
+    global.fetch = vi.fn();
+    const out = (
+      await Variable.applyVariables(new Path.Path(":mime:"), {
+        url: "https://x/a",
+        preview: true,
+      })
+    ).finalize();
+    expect(global.fetch).not.toHaveBeenCalled();
+    expect(out).toBe("_"); // empty in preview -> replacement char
+  });
+
+  test("mimeToExtension maps common types and falls back to the subtype", () => {
+    expect(Variable.mimeToExtension("image/jpeg")).toBe("jpg");
+    expect(Variable.mimeToExtension("image/png")).toBe("png");
+    expect(Variable.mimeToExtension("application/vnd.foobar+json")).toBe("json");
+    expect(Variable.mimeToExtension("audio/x-wav")).toBe("wav");
+    expect(Variable.mimeToExtension("")).toBe("");
+  });
+});
