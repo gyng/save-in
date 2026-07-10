@@ -37,7 +37,7 @@ Configure before use.
 ## Use from other extensions
 
 Other extensions can trigger a save-in download by sending an external
-message (see [the wiki](https://github.com/gyng/save-in/wiki/Use-with-Foxy-Gestures)
+message (see [the wiki](https://github.com/gyng/save-in/wiki/Integrations)
 for a Foxy Gestures example). This API is unofficial and unsupported — use at
 your own risk:
 

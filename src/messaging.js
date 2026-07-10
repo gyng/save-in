@@ -234,7 +234,7 @@ const Messaging = {
    *      or:  { type: "DOWNLOAD", body: { status: "ERROR", error, message, version } }
    *
    * See docs/INTEGRATIONS.md and
-   * https://github.com/gyng/save-in/wiki/Use-with-Foxy-Gestures
+   * https://github.com/gyng/save-in/wiki/Integrations
    *
    * In Foxy Gestures:
    *

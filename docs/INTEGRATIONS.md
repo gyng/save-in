@@ -11,7 +11,7 @@ notes, not commitments.
 
 save-in listens on `browser.runtime.onMessageExternal`, so any other extension
 can ask it to save a URL. This is how [Foxy
-Gestures](https://github.com/gyng/save-in/wiki/Use-with-Foxy-Gestures) drives
+Gestures](https://github.com/gyng/save-in/wiki/Integrations) drives
 it. As of v4.0.0 this is a **versioned, supported contract** (issue #110), not
 an unofficial hook — see `src/messaging.js`.
 
