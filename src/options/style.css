@@ -847,15 +847,29 @@ button:disabled:hover {
 
 .insert-menu {
   position: relative;
-  margin: 0 0 var(--space-1);
+  margin: var(--space-1) 0;
 }
 
+/* Button-like affordance for the + Add opener */
 .insert-menu summary {
+  display: inline-block;
+  list-style: none;
+  padding: 3px 14px;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--link-color);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
   cursor: pointer;
   user-select: none;
-  color: var(--link-color);
-  font-size: var(--text-sm);
-  font-weight: 600;
+}
+
+.insert-menu summary::-webkit-details-marker {
+  display: none;
+}
+
+.insert-menu summary:hover {
+  background-color: var(--panel-bg);
 }
 
 .insert-menu-panel {
@@ -947,11 +961,6 @@ button:disabled:hover {
 .editor-tab.active {
   color: var(--link-color);
   border-bottom-color: var(--link-color);
-}
-
-.editor-tabs .apply-button {
-  margin-left: auto;
-  margin-bottom: var(--space-1);
 }
 
 .apply-button {
@@ -1106,6 +1115,11 @@ button {
   color: var(--grey50);
   font-family: var(--font-mono);
   font-size: var(--text-sm);
+}
+
+.menu-preview-lastused .menu-preview-title {
+  color: var(--grey50);
+  font-style: italic;
 }
 
 .menu-preview-separator hr {

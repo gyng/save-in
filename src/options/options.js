@@ -223,6 +223,7 @@ const saveOptions = (e) => {
   if (e) {
     e.preventDefault();
   }
+  pendingChanges = false;
 
   // Zip result -> schema
   getOptionsSchema.then((schema) => {
@@ -352,6 +353,17 @@ const setupChromeDisables = () => {
 // inputs) are cheap to save on every event and stay immediate.
 const AUTOSAVE_DEBOUNCE_MS = 400;
 
+// True between a textarea edit and the debounced save that persists it;
+// closing the page in that window would silently drop the edit
+let pendingChanges = false;
+
+window.addEventListener("beforeunload", (e) => {
+  if (pendingChanges) {
+    e.preventDefault();
+    e.returnValue = "";
+  }
+});
+
 const setupAutosave = (el) => {
   let debounceTimer = null;
 
@@ -374,6 +386,7 @@ const setupAutosave = (el) => {
 
   if (el.type === "textarea") {
     el.addEventListener("input", () => {
+      pendingChanges = true;
       if (debounceTimer !== null) {
         window.clearTimeout(debounceTimer);
       }
@@ -440,6 +453,25 @@ const renderMenuPreview = (container, tree) => {
     parentUl.appendChild(li);
   });
 
+  // Mirror the real menu: the Last Used slot and its separator sit above
+  // the configured paths when the option is enabled
+  /** @type {HTMLInputElement} */
+  const lastUsed = document.querySelector("#enableLastLocation");
+  if (lastUsed && lastUsed.checked) {
+    const sep = document.createElement("li");
+    sep.className = "menu-preview-separator";
+    sep.appendChild(document.createElement("hr"));
+    rootUl.insertBefore(sep, rootUl.firstChild);
+
+    const li = document.createElement("li");
+    li.className = "menu-preview-item menu-preview-lastused";
+    const title = document.createElement("span");
+    title.className = "menu-preview-title";
+    title.textContent = browser.i18n.getMessage("contextMenuLastUsed");
+    li.appendChild(title);
+    rootUl.insertBefore(li, rootUl.firstChild);
+  }
+
   tree.errors.forEach((error) => {
     const li = document.createElement("li");
     li.className = "menu-preview-error";
@@ -473,6 +505,11 @@ const updateMenuPreview = () => {
   if (!textarea) {
     return;
   }
+
+  // The Last Used slot in the preview follows its checkbox
+  document
+    .querySelector("#enableLastLocation")
+    ?.addEventListener("change", () => updateMenuPreview());
 
   let previewTimer = null;
   textarea.addEventListener("input", () => {

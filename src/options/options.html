@@ -171,8 +171,10 @@ submenu
         </p>
       </div>
 
+      <p>__MSG_o_lDirectoryInstructionSymlink__</p>
+
       <div class="paths-editor">
-        <label class="column">
+        <div class="column">
           <div class="editor-tabs">
             <button type="button" class="editor-tab active" id="paths-mode-text">
               __MSG_o_lEditorModeText__
@@ -180,18 +182,17 @@ submenu
             <button type="button" class="editor-tab" id="paths-mode-visual">
               __MSG_o_sVisualEditor__
             </button>
-            <button type="button" class="apply-button" data-apply>__MSG_o_bApply__</button>
           </div>
 
-          <div id="paths-text-help">
-            <p>
-              __MSG_o_lDirectoryInstructionOnePerLine__
-              <code>.</code> __MSG_o_lDirectoryInstructionDot__
-              <code>//</code> __MSG_o_lDirectoryInstructionComment__
-              <code>&gt;</code> __MSG_o_lSubdirectoryInstructionComment__
-            </p>
-            <p>__MSG_o_lDirectoryInstructionSymlink__</p>
-          </div>
+          <textarea
+            required
+            type="textarea"
+            id="paths"
+            rows="10"
+            placeholder="."
+            spellcheck="false"
+          ></textarea>
+          <div class="error-notification" id="error-paths">path errors</div>
 
           <details class="insert-menu" id="paths-insert-menu">
             <summary>__MSG_o_lInsertMenu__</summary>
@@ -211,15 +212,14 @@ submenu
             </div>
           </details>
 
-          <textarea
-            required
-            type="textarea"
-            id="paths"
-            rows="10"
-            placeholder="."
-            spellcheck="false"
-          ></textarea>
-          <div class="error-notification" id="error-paths">path errors</div>
+          <div id="paths-text-help">
+            <p>
+              __MSG_o_lDirectoryInstructionOnePerLine__
+              <code>.</code> __MSG_o_lDirectoryInstructionDot__
+              <code>//</code> __MSG_o_lDirectoryInstructionComment__
+              <code>&gt;</code> __MSG_o_lSubdirectoryInstructionComment__
+            </p>
+          </div>
 
           <div id="paths-visual" hidden>
             <div class="path-editor-toolbar">
@@ -228,7 +228,9 @@ submenu
             </div>
             <div id="path-editor-rows"></div>
           </div>
-        </label>
+
+          <p><button type="button" class="apply-button" data-apply>__MSG_o_bApply__</button></p>
+        </div>
 
         <div class="menu-preview" id="menu-preview">
           <div class="caption">__MSG_o_lMenuPreview__</div>

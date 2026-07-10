@@ -206,6 +206,8 @@ test("paths textarea renders a live menu-tree preview", async () => {
   );
 
   expect(items).toEqual([
+    { separator: false, title: "Last Used", dir: null, depth: 0 },
+    { separator: true, title: null, dir: null, depth: 0 },
     { separator: false, title: "Dogs!", dir: "dogs", depth: 0 },
     { separator: false, title: "corgi", dir: null, depth: 1 },
     { separator: true, title: null, dir: null, depth: 0 },
