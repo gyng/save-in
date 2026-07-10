@@ -168,6 +168,19 @@ const Variable = {
       opts => {
         const naiveFilename = Download.getFilenameFromUrl(opts.url);
         return Path.PathSegment.String(Variable.getFileExtension(naiveFilename));
+      },
+    // Async: an atomic, persistent counter (needs storage). Cached on the info
+    // bag so every :counter: in one download shares a value and the stored
+    // counter advances exactly once; the options-page preview peeks instead.
+    [SPECIAL_DIRS.COUNTER]:
+      async opts => {
+        if (opts.preview) {
+          return Path.PathSegment.String((await Counter.peek()) + 1);
+        }
+        if (opts.counter == null) {
+          opts.counter = await Counter.next();
+        }
+        return Path.PathSegment.String(opts.counter);
       }
   }),
 

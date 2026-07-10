@@ -1377,6 +1377,10 @@ button {
   background-color: var(--panel-bg);
 }
 
+.counter-control {
+  max-width: 360px;
+}
+
 .dev-api-row {
   display: flex;
   align-items: baseline;

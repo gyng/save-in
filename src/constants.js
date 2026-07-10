@@ -35,6 +35,7 @@ const SPECIAL_DIRS = {
   NAIVE_FILE_EXTENSION: ":naivefileext:",
   FILENAME: ":filename:",
   FILE_EXTENSION: ":fileext:",
+  COUNTER: ":counter:",
 };
 
 const SHORTCUT_TYPES = {

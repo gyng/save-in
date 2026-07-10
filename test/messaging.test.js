@@ -159,7 +159,11 @@ describe("onMessage CHECK_ROUTES", () => {
     await settle();
 
     expect(global.OptionsManagement.checkRoutes).toHaveBeenCalledWith(state);
-    expect(global.Variable.applyVariables).toHaveBeenCalledWith(expect.any(FakePath), state.info);
+    // interpolation runs in preview mode (a copy of info with preview:true)
+    expect(global.Variable.applyVariables).toHaveBeenCalledWith(
+      expect.any(FakePath),
+      expect.objectContaining({ filename: "f.png", preview: true }),
+    );
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.CHECK_ROUTES_RESPONSE,
       body: {

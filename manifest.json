@@ -27,6 +27,7 @@
       "src/constants.js",
       "src/log.js",
       "src/history.js",
+      "src/counter.js",
       "src/notification.js",
       "src/path.js",
       "src/download.js",

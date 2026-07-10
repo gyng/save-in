@@ -827,6 +827,19 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
         </details>
       </div>
 
+      <h3>Counter</h3>
+      <p class="caption caption-line">
+        Current value of the <code>:counter:</code> variable. It advances once per saved download
+        and persists across restarts.
+      </p>
+      <div class="dev-api counter-control">
+        <div class="dev-api-row">
+          <span class="dev-api-label">Current</span>
+          <span id="counter-value" class="dev-api-value">0</span>
+          <button type="button" id="counter-reset">Reset to 0</button>
+        </div>
+      </div>
+
       <label> <input type="checkbox" id="debug" /> __MSG_o_cDebugMode__ </label>
 
       <p>__MSG_translationCredits__</p>

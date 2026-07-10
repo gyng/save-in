@@ -31,6 +31,12 @@ interface StateInfo {
   filename?: string;
   naiveFilename?: string;
   initialFilename?: string;
+
+  // preview: true suppresses side-effectful variables (:counter:) in the
+  // options-page dry-run; counter caches the resolved :counter: value so every
+  // occurrence in one download shares it
+  preview?: boolean;
+  counter?: number;
 }
 
 // the per-download state threaded through the rename/route/download pipeline
@@ -119,6 +125,13 @@ declare const Notifier: {
 declare const RequestHeaders: Record<string, any>;
 declare const Shortcut: Record<string, any>;
 declare const SaveHistory: Record<string, any>;
+declare const Counter: {
+  KEY: string;
+  writeQueue: Promise<any>;
+  next: () => Promise<number>;
+  peek: () => Promise<number>;
+  reset: () => Promise<any>;
+};
 declare const Log: Record<string, any>;
 declare const SessionState: {
   get: (key: string) => Promise<Record<string, any>>;

@@ -417,3 +417,34 @@ describe("URL-part variables", () => {
     expect(await interpolate(":tld:", "not a url")).toBe("not a url");
   });
 });
+
+describe(":counter: (async, persistent)", () => {
+  beforeEach(() => {
+    global.Counter = {
+      next: vi.fn(() => Promise.resolve(7)),
+      peek: vi.fn(() => Promise.resolve(41)),
+    };
+  });
+  afterEach(() => {
+    delete global.Counter;
+  });
+
+  test("consumes one value and caches it across the whole download", async () => {
+    const shared = { now: new Date() };
+    const a = (await Variable.applyVariables(new Path.Path("img-:counter:"), shared)).finalize();
+    expect(a).toBe("img-7");
+    // The same info bag (path then route in one download) reuses the value
+    const b = (await Variable.applyVariables(new Path.Path(":counter:/x"), shared)).finalize();
+    expect(b).toBe("7/x");
+    expect(global.Counter.next).toHaveBeenCalledTimes(1);
+  });
+
+  test("preview mode peeks the next value without consuming", async () => {
+    const out = (
+      await Variable.applyVariables(new Path.Path("n-:counter:"), { preview: true })
+    ).finalize();
+    expect(out).toBe("n-42"); // peek() 41 + 1
+    expect(global.Counter.next).not.toHaveBeenCalled();
+    expect(global.Counter.peek).toHaveBeenCalled();
+  });
+});

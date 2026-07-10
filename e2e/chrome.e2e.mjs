@@ -290,6 +290,39 @@ test("routing rules rename and route the download", async () => {
   expect(fs.readFileSync(file, "utf8")).toBe("routed content");
 });
 
+test(":counter: advances once per download and persists in storage", async () => {
+  const finalCount = JSON.parse(
+    await evalSW(`Counter.reset()
+      .then(() => browser.storage.local.set({
+        filenamePatterns: "filename: countme\\ninto: counters/:counter:-:filename:",
+      }))
+      .then(() => window.reset())
+      .then(async () => {
+        for (let i = 0; i < 2; i += 1) {
+          Notifier.expectDownload();
+          await Download.renameAndDownload({
+            path: new Path.Path("e2e"),
+            scratch: {},
+            info: {
+              url: Download.makeObjectUrl("counted-" + i),
+              suggestedFilename: "countme.txt",
+              pageUrl: "https://example.com/",
+              modifiers: [],
+            },
+          });
+          await new Promise(r => setTimeout(r, 400));
+        }
+      })
+      .then(() => new Promise(r => setTimeout(r, 1500)))
+      .then(() => Counter.peek())`),
+  );
+  // two downloads -> counter advanced exactly twice
+  expect(finalCount).toBe(2);
+  // and each download's :counter: resolved to its own value
+  expect(fs.existsSync(path.join(DOWNLOADS, "e2e", "counters", "1-countme.txt"))).toBe(true);
+  expect(fs.existsSync(path.join(DOWNLOADS, "e2e", "counters", "2-countme.txt"))).toBe(true);
+});
+
 test("message-driven downloads work and never inherit a stale route", async () => {
   // Explicit precondition: a routing rule matching "routeme" is active, and
   // the previous download's routed state is the "last" state a naive merge

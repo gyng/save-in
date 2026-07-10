@@ -215,6 +215,27 @@ const renderExternalApi = () => {
 };
 document.addEventListener("DOMContentLoaded", renderExternalApi);
 
+// More Options → Counter: show and reset the :counter: variable's value. The
+// options page shares storage.local with the background, so it reads/writes the
+// counter directly (Counter.KEY) — no background round-trip needed.
+const renderCounter = () => {
+  const key = "save-in-counter";
+  const valueEl = document.querySelector("#counter-value");
+  const resetBtn = document.querySelector("#counter-reset");
+  if (!valueEl || !resetBtn) {
+    return;
+  }
+  const show = () =>
+    browser.storage.local.get(key).then((res) => {
+      valueEl.textContent = String((res && res[key]) || 0);
+    });
+  show();
+  resetBtn.addEventListener("click", () => {
+    browser.storage.local.set({ [key]: 0 }).then(show);
+  });
+};
+document.addEventListener("DOMContentLoaded", renderCounter);
+
 // Live variable values, shown in the preview columns of the Downloads and
 // Dynamic tabs: each variable and its current interpolated value from the
 // last download (CHECK_ROUTES). Clicking a variable inserts it into the

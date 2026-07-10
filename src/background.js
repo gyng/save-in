@@ -18,6 +18,7 @@ importScripts(
   "constants.js",
   "log.js",
   "history.js",
+  "counter.js",
   "notification.js",
   "path.js",
   "download.js",

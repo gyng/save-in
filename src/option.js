@@ -143,6 +143,8 @@ const OptionsManagement = {
       // Chrome hack for filename: Chrome replaces special characters with `_`
       // This mutates(?) the last object and ruins it
       filename: state.info.initialFilename || state.info.filename,
+      // Preview only: don't consume a :counter: value while dry-running rules
+      preview: true,
     });
     const last = Object.assign({}, state, { info: newInfo });
 

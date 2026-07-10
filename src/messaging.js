@@ -56,9 +56,11 @@ const Messaging = {
     let interpolatedVariables = null;
     if (lastState) {
       const keys = Object.keys(Variable.transformers);
+      // Preview only: :counter: peeks instead of consuming a value
+      const previewInfo = Object.assign({}, lastState.info, { preview: true });
       const values = await Promise.all(
         keys.map((val) =>
-          Variable.applyVariables(new Path.Path(val), lastState.info).then((p) => p.finalize()),
+          Variable.applyVariables(new Path.Path(val), previewInfo).then((p) => p.finalize()),
         ),
       );
       interpolatedVariables = {};
