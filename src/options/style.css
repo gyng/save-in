@@ -1916,3 +1916,26 @@ code.click-to-copy {
 .deprecated .deprecated-text {
   text-decoration: line-through;
 }
+
+/* Host-permission banner (permissions-banner.js): shown only when <all_urls> is
+   missing, so click-to-save and the Referer feature would silently fail */
+.host-permission-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin: 0 0 var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  background: var(--error-bg);
+  border: 1px solid var(--error-border);
+  border-radius: var(--radius);
+  color: var(--error-fg);
+}
+
+.host-permission-text {
+  flex: 1;
+}
+
+.host-permission-grant {
+  flex: none;
+  cursor: pointer;
+}

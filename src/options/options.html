@@ -42,6 +42,13 @@
       </div>
     </div>
 
+    <div id="host-permission-banner" class="host-permission-banner" hidden>
+      <span class="host-permission-text">__MSG_o_cHostPermissionMissing__</span>
+      <button type="button" id="host-permission-grant" class="host-permission-grant">
+        __MSG_o_cHostPermissionGrant__
+      </button>
+    </div>
+
     <form id="options">
       <h2 id="section-downloads">__MSG_o_sDownloads__</h2>
 
@@ -914,6 +921,7 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
     </form>
 
     <script src="options.js"></script>
+    <script src="permissions-banner.js"></script>
     <script src="clicktocopy.js"></script>
     <script src="autocomplete.js"></script>
     <script src="path-editor.js"></script>

@@ -578,6 +578,14 @@
     "message": "Hold down Alt (default) and click images or media to save them in the last used directory or default download directory. Injects a script into pages to listen for click events. Not all variables are available when using this. Requires page refresh to take effect."
   },
 
+  "o_cHostPermissionMissing": {
+    "message": "Save in doesn't have access to page content. Click-to-save and the Referer feature won't work until you grant access to all sites."
+  },
+
+  "o_cHostPermissionGrant": {
+    "message": "Grant access"
+  },
+
   "o_cKeyboardShotcutKeycode": {
     "message": "Hold"
   },
