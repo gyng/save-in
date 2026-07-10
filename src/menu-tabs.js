@@ -132,7 +132,7 @@ Menus.addTabMenuListener = () => {
               selectionText: info.selectionText,
               sourceUrl: t.url,
               url, // Changes based off context
-              suggestedFilename, // wip: rename
+              suggestedFilename,
               context: DOWNLOAD_TYPES.TAB,
               menuIndex: null,
               comment: null,

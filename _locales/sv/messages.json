@@ -278,10 +278,6 @@
     "message": "Senaste nerladdningen"
   },
 
-  "_o_lRoutingRenamedTo": {
-    "message": "Döp om till"
-  },
-
   "o_lRoutingLastDownloadEmpty": {
     "message": "inga än"
   },

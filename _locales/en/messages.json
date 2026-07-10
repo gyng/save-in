@@ -271,10 +271,6 @@
     "message": "Visual Editor"
   },
 
-  "o_lVisualEditorHelp": {
-    "message": "Edits the same directory list as the Downloads tab — the text box remains the source of truth."
-  },
-
   "o_bAddDirectory": {
     "message": "Directory"
   },
@@ -383,10 +379,6 @@
 
   "o_lRoutingLastDownload": {
     "message": "Last download"
-  },
-
-  "_o_lRoutingRenamedTo": {
-    "message": "Renamed to"
   },
 
   "o_lRoutingLastDownloadEmpty": {

@@ -137,7 +137,7 @@ const Menus = {
     const lastUsedMenuOptions = {
       id: Menus.IDS.LAST_USED,
       title: Menus.setAccesskey(lastUsedTitle, options.keyLastUsed),
-      enabled: Menus.state.lastUsedPath ? true : false, // eslint-disable-line
+      enabled: Boolean(Menus.state.lastUsedPath),
       contexts,
       parentId: Menus.IDS.ROOT,
     };

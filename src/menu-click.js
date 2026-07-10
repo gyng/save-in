@@ -176,9 +176,9 @@ Menus.addDownloadListener = () => {
         now: new Date(),
         pageUrl: info.pageUrl,
         selectionText: info.selectionText,
-        sourceUrl: info.srcUrl || info["url"], // url: defensive, not in OnClickData
+        sourceUrl: info.srcUrl,
         url, // Changes based off context
-        suggestedFilename, // wip: rename
+        suggestedFilename,
         context: downloadType,
         menuIndex,
         comment,
