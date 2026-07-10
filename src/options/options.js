@@ -1363,7 +1363,10 @@ setupManualEditor("filenamePatterns");
   ];
 
   const dropdown = document.createElement("ul");
-  dropdown.className = "combo-dropdown autocomplete-dropdown";
+  // Its own class, NOT autocomplete-dropdown: that class is queried by the
+  // variables autocomplete (and its e2e), so sharing it makes this empty
+  // dropdown shadow the real one.
+  dropdown.className = "combo-dropdown";
   dropdown.hidden = true;
   wrap.appendChild(dropdown);
 

@@ -713,10 +713,24 @@ input.key {
   display: inline-block;
 }
 
+/* Self-contained — must NOT reuse .autocomplete-dropdown (that class is queried
+   by the variables autocomplete and its e2e; sharing it shadows the real one) */
 .combo-dropdown {
+  position: absolute;
   top: 100%;
   left: 0;
-  margin-top: 2px;
+  z-index: 100;
+  margin: 2px 0 0;
+  padding: var(--space-1);
+  list-style: none;
+  min-width: 14em;
+  max-height: 16em;
+  overflow-y: auto;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.22);
+  font-size: var(--text-sm);
 }
 
 .combo-dropdown li {
@@ -724,6 +738,19 @@ input.key {
   align-items: baseline;
   justify-content: space-between;
   gap: var(--space-4);
+  padding: var(--space-1) var(--space-3);
+  border-radius: calc(var(--radius) - 1px);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.combo-dropdown li:hover {
+  background: rgba(128, 128, 128, 0.22);
+}
+
+.combo-dropdown li.selected {
+  background: var(--link-color);
+  color: #fff;
 }
 
 .combo-value {
