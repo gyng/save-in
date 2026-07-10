@@ -259,7 +259,7 @@ describe("text/visual mode toggle", () => {
       <button type="button" class="editor-tab active" id="paths-mode-text">Text</button>
       <button type="button" class="editor-tab" id="paths-mode-visual">Visual</button>
       <div id="paths-text-help"></div>
-      <details id="paths-insert-menu"></details>
+      <div id="paths-text-actions"><details id="paths-insert-menu"></details></div>
       <textarea id="paths">a</textarea>
       <div id="error-paths"></div>
       <div id="paths-visual" hidden></div>
@@ -277,7 +277,7 @@ describe("text/visual mode toggle", () => {
     document.querySelector("#paths-mode-visual").click();
 
     expect(document.querySelector("#paths").hidden).toBe(true);
-    expect(document.querySelector("#paths-insert-menu").hidden).toBe(true);
+    expect(document.querySelector("#paths-text-actions").hidden).toBe(true);
     expect(document.querySelector("#paths-text-help").hidden).toBe(true);
     expect(document.querySelector("#paths-visual").hidden).toBe(false);
     expect(document.querySelector("#paths-mode-visual").classList.contains("active")).toBe(true);

@@ -194,23 +194,26 @@ submenu
           ></textarea>
           <div class="error-notification" id="error-paths">path errors</div>
 
-          <details class="insert-menu" id="paths-insert-menu">
-            <summary>__MSG_o_lInsertMenu__</summary>
-            <div class="insert-menu-panel">
-              <input
-                type="text"
-                id="paths-insert-filter"
-                placeholder="__MSG_o_lInsertFilter__"
-                spellcheck="false"
-              />
-              <button type="button" data-insert-line="---">--- __MSG_o_bInsertSeparator__</button>
-              <button type="button" data-insert-line=">subfolder">
-                &gt; __MSG_o_bInsertSubmenuItem__
-              </button>
-              <div class="caption">__MSG_o_lInsertVariables__</div>
-              <div id="paths-insert-variables"></div>
-            </div>
-          </details>
+          <div class="editor-actions" id="paths-text-actions">
+            <details class="insert-menu" id="paths-insert-menu">
+              <summary>__MSG_o_lInsertMenu__</summary>
+              <div class="insert-menu-panel">
+                <input
+                  type="text"
+                  id="paths-insert-filter"
+                  placeholder="__MSG_o_lInsertFilter__"
+                  spellcheck="false"
+                />
+                <button type="button" data-insert-line="---">--- __MSG_o_bInsertSeparator__</button>
+                <button type="button" data-insert-line=">subfolder">
+                  &gt; __MSG_o_bInsertSubmenuItem__
+                </button>
+                <div class="caption">__MSG_o_lInsertVariables__</div>
+                <div id="paths-insert-variables"></div>
+              </div>
+            </details>
+            <button type="button" class="apply-button" data-apply>__MSG_o_bApply__</button>
+          </div>
 
           <div id="paths-text-help">
             <p>
@@ -225,11 +228,10 @@ submenu
             <div class="path-editor-toolbar">
               <button type="button" id="path-editor-add-dir">+ __MSG_o_bAddDirectory__</button>
               <button type="button" id="path-editor-add-sep">+ __MSG_o_bAddSeparator__</button>
+              <button type="button" class="apply-button" data-apply>__MSG_o_bApply__</button>
             </div>
             <div id="path-editor-rows"></div>
           </div>
-
-          <p><button type="button" class="apply-button" data-apply>__MSG_o_bApply__</button></p>
         </div>
 
         <div class="menu-preview" id="menu-preview">
@@ -619,10 +621,10 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
 
       <hr />
 
-      <h2 id="section-more-options">
-        __MSG_o_sMoreOptions__
-        <div id="reset" class="button float-right">__MSG_o_cRestoreDefaults__</div>
-      </h2>
+      <h2 id="section-more-options">__MSG_o_sMoreOptions__</h2>
+      <div class="section-actions">
+        <div id="reset" class="button">__MSG_o_cRestoreDefaults__</div>
+      </div>
 
       <label>
         <input type="number" id="truncateLength" min="1" />__MSG_o_cTruncatePath__&nbsp;

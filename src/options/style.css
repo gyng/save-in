@@ -744,7 +744,7 @@ input.key {
 
 /* Source-order <hr> section separators are redundant once sections
    live in separate tab panels */
-.tab-panel hr {
+.tab-panel > hr {
   display: none;
 }
 
@@ -963,10 +963,35 @@ button:disabled:hover {
   border-bottom-color: var(--link-color);
 }
 
+.editor-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: var(--space-1) 0;
+}
+
+.editor-actions .insert-menu {
+  margin: 0;
+}
+
 .apply-button {
-  padding: 3px 14px;
+  padding: 3px 16px;
   font-size: var(--text-sm);
+  font-weight: 500;
   border-radius: var(--radius);
+  color: white;
+  background-color: var(--link-color);
+  border-color: var(--link-color);
+  cursor: pointer;
+}
+
+.apply-button:hover {
+  background-color: var(--link-color-active);
+  border-color: var(--link-color-active);
+}
+
+.path-editor-toolbar .apply-button {
+  margin-left: auto;
 }
 
 .path-editor-handle {
@@ -1029,13 +1054,14 @@ button:disabled:hover {
   line-height: 1;
 }
 
-/* Panel titles (the section h2s, incl. ones wrapped in a label.column) */
-.tab-panel > h2:first-child,
-.tab-panel > .column > h2:first-child {
-  font-size: var(--text-xl);
-  font-weight: 300;
-  margin-top: 0;
-  margin-bottom: var(--space-4);
+.tab-heading-hidden {
+  display: none;
+}
+
+.section-actions {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -1123,9 +1149,12 @@ button {
 }
 
 .menu-preview-separator hr {
+  /* Base hr is width: 100%, which overflows once side margins apply */
+  width: auto;
   margin: var(--space-1) var(--space-2);
   border: none;
   border-top: 1px solid var(--grey30);
+  background: none;
 }
 
 .menu-preview-error {

@@ -201,7 +201,7 @@ const PathEditor = {
     /** @type {HTMLElement[]} */
     const textElements = [
       document.querySelector("#paths-text-help"),
-      document.querySelector("#paths-insert-menu"),
+      document.querySelector("#paths-text-actions"),
       document.querySelector("#paths"),
       document.querySelector("#error-paths"),
     ];
