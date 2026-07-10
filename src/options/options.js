@@ -416,8 +416,14 @@ window.confirmPendingChanges = () => {
   if (!pendingChanges && !anyManualEditorDirty()) {
     return;
   }
+  // Literal fallback: getMessage returns "" if the extension context was
+  // invalidated (e.g. a reloaded dev build in a still-open tab), which
+  // would otherwise show a text-less confirm dialog
+  const message =
+    browser.i18n.getMessage("optionsUnsavedChanges") ||
+    "You have unsaved changes. OK to save them, or Cancel to discard.";
   // eslint-disable-next-line no-alert
-  const save = window.confirm(browser.i18n.getMessage("optionsUnsavedChanges"));
+  const save = window.confirm(message);
   if (save) {
     saveOptions();
   } else {

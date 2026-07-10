@@ -153,6 +153,30 @@ const loadUnpacked = async (port, path) => {
   }
 };
 
+// Reloads every open page target whose URL contains urlSubstr, in place
+// (so a reloaded unpacked extension is picked up without opening a new
+// tab). Returns how many were reloaded.
+const reloadTargets = async (port, urlSubstr) => {
+  const targets = (await listTargets(port)).filter(
+    (t) => t.type === "page" && t.url.includes(urlSubstr),
+  );
+  let count = 0;
+  for (const t of targets) {
+    // eslint-disable-next-line no-await-in-loop
+    const c = await Cdp.connect(t.webSocketDebuggerUrl);
+    try {
+      // eslint-disable-next-line no-await-in-loop
+      await c.send("Page.enable");
+      // eslint-disable-next-line no-await-in-loop
+      await c.send("Page.reload", { ignoreCache: true });
+      count += 1;
+    } finally {
+      c.close();
+    }
+  }
+  return count;
+};
+
 const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
 
 const waitForCdp = async (port, attempts = 30) => {
@@ -176,6 +200,7 @@ module.exports = {
   dispatchInput,
   openTab,
   loadUnpacked,
+  reloadTargets,
   sleep,
   waitForCdp,
 };

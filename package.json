@@ -21,6 +21,7 @@
     "lint:fix": "oxlint --fix && oxfmt",
     "mockserve": "node test/mockserver",
     "review": "node scripts/review-demo.js",
+    "reload": "node scripts/reload.js",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
