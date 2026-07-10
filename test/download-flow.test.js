@@ -90,12 +90,23 @@ beforeEach(() => {
   global.Notifier = {
     trackDownload: jest.fn(() => Promise.resolve()),
     createExtensionNotification: jest.fn(),
+    expectDownload: jest.fn(),
   };
 
   global.RequestHeaders = { prepareReferer: jest.fn(() => Promise.resolve()) };
+  global.sessionStore = {};
   global.SessionState = {
-    set: jest.fn(() => Promise.resolve()),
-    get: jest.fn(() => Promise.resolve({})),
+    set: jest.fn((obj) => {
+      Object.assign(global.sessionStore, obj);
+      return Promise.resolve();
+    }),
+    get: jest.fn((key) =>
+      Promise.resolve(key in global.sessionStore ? { [key]: global.sessionStore[key] } : {}),
+    ),
+    update: jest.fn((key, fn) => {
+      global.sessionStore[key] = fn(global.sessionStore[key]);
+      return Promise.resolve();
+    }),
   };
   global.SaveHistory = { add: jest.fn(() => Promise.resolve()) };
   global.Log = { add: jest.fn() };
@@ -411,8 +422,15 @@ describe("renameAndDownload: browserDownload", () => {
     await flush();
 
     expect(global.RequestHeaders.prepareReferer).toHaveBeenCalledWith(state);
-    expect(global.SessionState.set).toHaveBeenCalledWith(
-      expect.objectContaining({ siPendingDownload: true, siFinalFilename: expect.any(String) }),
+    // pending counter + per-URL filename map are updated (see the session-
+    // restart recovery tests for the values)
+    expect(global.SessionState.update).toHaveBeenCalledWith(
+      "siPendingDownloads",
+      expect.any(Function),
+    );
+    expect(global.SessionState.update).toHaveBeenCalledWith(
+      "siFinalFilenames",
+      expect.any(Function),
     );
     expect(global.browser.downloads.download).toHaveBeenCalledWith({
       url: state.info.url,
@@ -421,7 +439,9 @@ describe("renameAndDownload: browserDownload", () => {
       conflictAction: "uniquify",
     });
     expect(global.Notifier.trackDownload).toHaveBeenCalledWith(555);
-    expect(global.SessionState.set).toHaveBeenLastCalledWith({ siPendingDownload: false });
+    // incremented then cleared -> back to 0, and the filename key removed
+    expect(global.sessionStore.siPendingDownloads).toBe(0);
+    expect(global.sessionStore.siFinalFilenames).toEqual({});
   });
 
   test("logs a downloads.download rejection and still clears the pending flag", async () => {
@@ -434,7 +454,7 @@ describe("renameAndDownload: browserDownload", () => {
 
     expect(global.Notifier.trackDownload).not.toHaveBeenCalled();
     expect(global.Log.add).toHaveBeenCalledWith("downloads.download failed", "Error: disk full");
-    expect(global.SessionState.set).toHaveBeenLastCalledWith({ siPendingDownload: false });
+    expect(global.sessionStore.siPendingDownloads).toBe(0);
   });
 
   test("a downloads.download rejection does not throw when Log is undefined", async () => {
@@ -448,7 +468,7 @@ describe("renameAndDownload: browserDownload", () => {
     await flush();
 
     expect(global.Notifier.trackDownload).not.toHaveBeenCalled();
-    expect(global.SessionState.set).toHaveBeenLastCalledWith({ siPendingDownload: false });
+    expect(global.sessionStore.siPendingDownloads).toBe(0);
     global.Log = originalLog;
   });
 
@@ -460,9 +480,11 @@ describe("renameAndDownload: browserDownload", () => {
     await Download.renameAndDownload(state);
     await flush();
 
-    expect(global.SessionState.set).toHaveBeenCalledWith(
-      expect.objectContaining({ siPendingDownload: true, siFinalFilename: "_" }),
+    // the filename-map update stores "_" for this download's URL
+    const fnameUpdate = global.SessionState.update.mock.calls.find(
+      (c) => c[0] === "siFinalFilenames",
     );
+    expect(fnameUpdate[1]({})).toEqual({ [state.info.url]: "_" });
     expect(global.browser.downloads.download).toHaveBeenCalledWith(
       expect.objectContaining({ filename: "_" }),
     );
@@ -772,13 +794,21 @@ describe("concurrent downloads (pendingStates)", () => {
     global.Router = { matchRules: () => null };
     global.RequestHeaders = { prepareReferer: vi.fn(() => Promise.resolve()) };
     global.Messaging = { emit: { downloaded: vi.fn() }, send: {} };
-    global.Notifier = { trackDownload: vi.fn(), createExtensionNotification: vi.fn() };
+    global.Notifier = {
+      trackDownload: vi.fn(),
+      createExtensionNotification: vi.fn(),
+      expectDownload: vi.fn(),
+    };
     global.SaveHistory = { add: vi.fn() };
     global.SessionState = {
       available: () => true,
       get: vi.fn((key) => Promise.resolve({ [key]: sessionStore[key] })),
       set: vi.fn((obj) => {
         Object.assign(sessionStore, obj);
+        return Promise.resolve();
+      }),
+      update: vi.fn((key, fn) => {
+        sessionStore[key] = fn(sessionStore[key]);
         return Promise.resolve();
       }),
     };

@@ -148,6 +148,10 @@ describe("onDeterminingFilename listener (Chrome)", () => {
         Object.assign(sessionStore, obj);
         return Promise.resolve();
       }),
+      update: jest.fn((key, fn) => {
+        sessionStore[key] = fn(sessionStore[key]);
+        return Promise.resolve();
+      }),
     };
 
     await import("../src/download.js");
@@ -170,12 +174,17 @@ describe("onDeterminingFilename listener (Chrome)", () => {
 
   test("recovers the persisted filename after a service worker restart", async () => {
     // Module-fresh download.js has empty globalChromeState (no .path),
-    // simulating a service worker that restarted mid-download
-    sessionStore.siFinalFilename = "route/recovered.txt";
+    // simulating a service worker that restarted mid-download. The filename map
+    // is keyed by the download URL so overlapping downloads don't clobber it.
+    sessionStore.siFinalFilenames = { "https://x/recover.png": "route/recovered.txt" };
 
     const suggest = jest.fn();
     const returned = listener(
-      { byExtensionId: "self-extension-id", filename: "original.txt" },
+      {
+        byExtensionId: "self-extension-id",
+        filename: "original.txt",
+        url: "https://x/recover.png",
+      },
       suggest,
     );
 

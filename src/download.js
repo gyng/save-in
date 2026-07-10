@@ -64,7 +64,16 @@ const Download = {
       .then((blob) => Download.makeUrlFromBlob(blob))
       .then((blobUrl) => {
         Download.pendingRetryFilenames.set(blobUrl, record.filename);
-        return SessionState.set({ siPendingDownload: true, siFinalFilename: record.filename })
+        // expectDownload so the retry download is tracked via the in-memory
+        // path (not the session-restart fallback) — that keeps the pending
+        // counter balanced against the cleanup below
+        Notifier.expectDownload();
+        return Promise.all([
+          SessionState.update("siPendingDownloads", (n) => Math.max(0, (n || 0) + 1)),
+          SessionState.update("siFinalFilenames", (m) =>
+            Object.assign({}, m, { [blobUrl]: record.filename }),
+          ),
+        ])
           .then(() =>
             browser.downloads.download({
               url: blobUrl,
@@ -76,7 +85,16 @@ const Download = {
             Download.rememberStartedDownload(newId, Object.assign({}, record, { viaFetch: true }));
             return Notifier.trackDownload(newId);
           })
-          .then(() => SessionState.set({ siPendingDownload: false }))
+          .then(() =>
+            Promise.all([
+              SessionState.update("siPendingDownloads", (n) => Math.max(0, (n || 0) - 1)),
+              SessionState.update("siFinalFilenames", (m) => {
+                const copy = Object.assign({}, m);
+                delete copy[blobUrl];
+                return copy;
+              }),
+            ]),
+          )
           .then(() => true);
       })
       .catch((e) => {
@@ -244,13 +262,16 @@ const Download = {
       const browserDownload = (_url, viaFetch = false) =>
         RequestHeaders.prepareReferer(_state)
           .then(() =>
-            // Persist before calling the downloads API so notification
-            // tracking and onDeterminingFilename survive an MV3 service
-            // worker restart mid-download
-            SessionState.set({
-              siPendingDownload: true,
-              siFinalFilename: finalFullPath || "_",
-            }),
+            // Persist before calling the downloads API so notification tracking
+            // and onDeterminingFilename survive an MV3 service worker restart.
+            // The counter and the per-download-URL filename map both tolerate
+            // overlapping downloads (a boolean/single value clobbered them).
+            Promise.all([
+              SessionState.update("siPendingDownloads", (n) => Math.max(0, (n || 0) + 1)),
+              SessionState.update("siFinalFilenames", (m) =>
+                Object.assign({}, m, { [_url]: finalFullPath || "_" }),
+              ),
+            ]),
           )
           .then(() =>
             browser.downloads.download({
@@ -284,7 +305,16 @@ const Download = {
               fetchDownload(_state.info.url);
             }
           })
-          .then(() => SessionState.set({ siPendingDownload: false }));
+          .then(() =>
+            Promise.all([
+              SessionState.update("siPendingDownloads", (n) => Math.max(0, (n || 0) - 1)),
+              SessionState.update("siFinalFilenames", (m) => {
+                const copy = Object.assign({}, m);
+                delete copy[_url];
+                return copy;
+              }),
+            ]),
+          );
 
       const fetchDownload = (_url) => {
         fetch(_url, { credentials: "include" })
@@ -412,12 +442,21 @@ if (chrome && chrome.downloads && chrome.downloads.onDeterminingFilename) {
     Download.pendingStates.delete(downloadItem.finalUrl);
 
     // In-memory state is lost if the MV3 service worker restarted between
-    // requesting the download and this event: recover the persisted filename
+    // requesting the download and this event: recover the persisted filename,
+    // keyed by download URL so overlapping downloads each get their own name
     if (!pendingState || !pendingState.path) {
-      SessionState.get("siFinalFilename").then((res) => {
-        if (res.siFinalFilename) {
+      SessionState.get("siFinalFilenames").then((res) => {
+        const map = res.siFinalFilenames || {};
+        const recovered = map[downloadItem.url] || map[downloadItem.finalUrl];
+        if (recovered) {
+          SessionState.update("siFinalFilenames", (m) => {
+            const copy = Object.assign({}, m);
+            delete copy[downloadItem.url];
+            delete copy[downloadItem.finalUrl];
+            return copy;
+          });
           suggest({
-            filename: res.siFinalFilename,
+            filename: recovered,
             conflictAction: options.conflictAction,
           });
         } else {

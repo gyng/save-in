@@ -22,6 +22,18 @@ const SessionState = {
       : Promise.resolve({}),
   set: (obj) =>
     SessionState.available() ? browser.storage.session.set(obj).catch(() => {}) : Promise.resolve(),
+
+  // Serialised read-modify-write for one session key. Concurrent downloads
+  // mutating the same key (the pending counter or the per-URL filename map)
+  // would otherwise lose updates.
+  queue: Promise.resolve(),
+  update: (key, fn) => {
+    SessionState.queue = SessionState.queue
+      .then(() => SessionState.get(key))
+      .then((res) => SessionState.set({ [key]: fn(res[key]) }))
+      .catch(() => {});
+    return SessionState.queue;
+  },
 };
 
 // Restore tracked downloads on startup: MV3 service worker globals do not
@@ -138,11 +150,13 @@ const Notifier = {
     }
 
     // The in-memory counter is lost if the MV3 service worker restarted
-    // between requesting the download and this event
-    SessionState.get("siPendingDownload").then((res) => {
-      if (res.siPendingDownload) {
+    // between requesting the download and this event. siPendingDownloads is a
+    // COUNTER (not a boolean) so several downloads created after one restart
+    // are all recovered — a boolean dropped every one past the first.
+    SessionState.get("siPendingDownloads").then((res) => {
+      if (res.siPendingDownloads > 0) {
         downloadsList[item.id] = item;
-        SessionState.set({ siPendingDownload: false });
+        SessionState.update("siPendingDownloads", (n) => Math.max(0, (n || 0) - 1));
         Notifier.trackDownload(item.id);
       }
     });

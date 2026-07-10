@@ -138,17 +138,18 @@ test("download completes through the real pipeline with session tracking", async
     .then(([d, sess]) => JSON.stringify({
       state: d[0] && d[0].state,
       tracked: sess.siTrackedDownloads || [],
-      pending: sess.siPendingDownload,
-      finalFilename: sess.siFinalFilename,
+      pending: sess.siPendingDownloads || 0,
+      finalFilenames: sess.siFinalFilenames || {},
     }))`),
   );
 
   expect(result.state).toBe("complete");
-  // Untracked again after completion; the persisted filename remains for
-  // service-worker-restart recovery
+  // Untracked again after completion; the pending counter is balanced back to 0
+  // and the per-URL filename entry was cleaned up (it only lingers across a
+  // real service-worker restart, where the cleanup never runs)
   expect(result.tracked).toEqual([]);
-  expect(result.pending).toBe(false);
-  expect(result.finalFilename).toBe("e2e/smoke.txt");
+  expect(result.pending).toBe(0);
+  expect(result.finalFilenames).toEqual({});
 
   const file = path.join(DOWNLOADS, "e2e", "smoke.txt");
   expect(fs.readFileSync(file, "utf8")).toBe("e2e smoke test content");

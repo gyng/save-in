@@ -177,17 +177,31 @@ describe("download lifecycle notifications", () => {
   test("tracks a download recorded via the persisted pending flag", async () => {
     // The in-memory expectDownload counter was lost with the old worker;
     // the session flag written before downloads.download() takes over
-    sessionStore.siPendingDownload = true;
+    sessionStore.siPendingDownloads = 1;
 
     onCreated({ id: 7, filename: "C:\\dl\\pic.png", url: "https://x/p.png" });
     await flush();
 
-    expect(sessionStore.siPendingDownload).toBe(false);
+    expect(sessionStore.siPendingDownloads).toBe(0);
     expect(sessionStore.siTrackedDownloads).toEqual([7]);
   });
 
+  test("recovers every download created after one restart (counter, not boolean)", async () => {
+    // Two downloads were in flight when the worker died; the old boolean flag
+    // tracked only the first, silently dropping the second's notifications
+    sessionStore.siPendingDownloads = 2;
+
+    onCreated({ id: 7, filename: "C:\\dl\\a.png", url: "https://x/a.png" });
+    await flush();
+    onCreated({ id: 8, filename: "C:\\dl\\b.png", url: "https://x/b.png" });
+    await flush();
+
+    expect(sessionStore.siPendingDownloads).toBe(0);
+    expect(sessionStore.siTrackedDownloads).toEqual([7, 8]);
+  });
+
   test("notifies on completion and untracks", async () => {
-    sessionStore.siPendingDownload = true;
+    sessionStore.siPendingDownloads = 1;
     onCreated({ id: 7, filename: "C:\\dl\\pic.png", url: "https://x/p.png" });
     await flush();
 
@@ -219,7 +233,7 @@ describe("download lifecycle notifications", () => {
   });
 
   test("does not crash on failure deltas for entries missing a filename", async () => {
-    sessionStore.siPendingDownload = true;
+    sessionStore.siPendingDownloads = 1;
     onCreated({ id: 7, url: "https://x/p.png" }); // no filename yet
     await flush();
 
@@ -241,7 +255,7 @@ describe("download lifecycle notifications", () => {
   });
 
   test("picks the filename up from Chrome's delta", async () => {
-    sessionStore.siPendingDownload = true;
+    sessionStore.siPendingDownloads = 1;
     onCreated({ id: 7, url: "https://x/p.png" }); // Chrome: no filename yet
     await flush();
 
@@ -257,7 +271,7 @@ describe("download lifecycle notifications", () => {
   });
 
   test("clears the success notification after notifyDuration", async () => {
-    sessionStore.siPendingDownload = true;
+    sessionStore.siPendingDownloads = 1;
     onCreated({ id: 7, filename: "/dl/pic.png", url: "https://x/p.png" });
     await flush();
 
@@ -307,7 +321,7 @@ describe("notification variants", () => {
   };
 
   const startTracked = async (item) => {
-    sessionStore.siPendingDownload = true;
+    sessionStore.siPendingDownloads = 1;
     onCreated(item);
     await flush();
   };
@@ -512,7 +526,7 @@ describe("expectDownload", () => {
 
     expect(sessionStore.siTrackedDownloads).toEqual([9]);
     // The session fallback was never consulted
-    expect(global.browser.storage.session.get).not.toHaveBeenCalledWith("siPendingDownload");
+    expect(global.browser.storage.session.get).not.toHaveBeenCalledWith("siPendingDownloads");
   });
 
   test("two expected downloads are both tracked (counter semantics)", async () => {
@@ -555,7 +569,7 @@ describe("automatic fetch fallback gating", () => {
     [[onCreated]] = global.browser.downloads.onCreated.addListener.mock.calls;
     [[onChanged]] = global.browser.downloads.onChanged.addListener.mock.calls;
 
-    sessionStore.siPendingDownload = true;
+    sessionStore.siPendingDownloads = 1;
     onCreated({ id: 7, filename: "C:\\dl\\pic.png", url: "https://x/p.png" });
     await flush();
   };
