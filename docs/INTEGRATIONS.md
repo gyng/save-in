@@ -147,15 +147,18 @@ API; `schema`/`validate` are in the `PING` capabilities):
 ### WebMCP — experimental in-browser AI tools
 
 In a [WebMCP](https://developer.chrome.com/docs/ai/webmcp)-capable browser
-(Chrome origin trial), the options page registers four tools an in-browser AI
+(Chrome origin trial), the options page registers five tools an in-browser AI
 agent can call — thin wrappers over the messages above
-(`src/options/webmcp.js`): `save_in_get_schema`, `save_in_validate_config`,
-`save_in_apply_config`, `save_in_download`. It feature-detects
+(`src/options/webmcp.js`): `save_in_get_schema` (every option, so an agent can
+change **any** setting), `save_in_list_vocabulary` (the `:variables:` **and**
+routing clause matchers), `save_in_validate_config`, `save_in_apply_config`, and
+`save_in_download`. It feature-detects
 `document.modelContext` (the surface moved off `navigator.`) and no-ops
 everywhere else, so it's safe in the polyfill-free build. **How to connect:**
 open Save In's options page in a WebMCP-enabled Chrome, keep the tab open, and
-point your agent at it — e.g. *"use Save In to route all Twitter images into
-`pics/twitter/:date:`"* drives `save_in_validate_config` → `save_in_apply_config`.
+point your agent at it — e.g. *"use Save In to file images into
+`gallery/:sourcedomain:/:date:` and PDFs into `papers/:year:`, numbering each
+with `:counter:`"* drives `save_in_validate_config` → `save_in_apply_config`.
 The API is explicitly "subject to change"; treat it as a preview. The natural
 next step is a `world: "MAIN"` content script so the `save_in_download` tool is
 available on any page (needs a main-/isolated-world message bridge).

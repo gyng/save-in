@@ -23,6 +23,13 @@ const SaveInWebMCP = {
       execute: () => send({ type: "GET_SCHEMA" }),
     },
     {
+      name: "save_in_list_vocabulary",
+      description:
+        "List the :variables: (e.g. :sourcedomain:, :date:, :counter: — used in paths and filenames) and the clause matchers (fileext, filename, pageurl, into, capture, ... — used in Dynamic Downloads routing rules). Returns { variables, matchers }. Call this to translate a plain-language request into the config syntax.",
+      inputSchema: { type: "object", properties: {}, additionalProperties: false },
+      execute: () => send({ type: "GET_KEYWORDS" }),
+    },
+    {
       name: "save_in_validate_config",
       description:
         "Dry-run Save In directory paths and/or routing rules. Returns errors and a menu preview without saving. Call this before save_in_apply_config for paths/filenamePatterns.",

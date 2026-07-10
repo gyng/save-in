@@ -214,7 +214,12 @@ pre {
 
 .code,
 code {
-  padding: 4px;
+  /* Tight vertical padding so inline code on adjacent wrapped lines within a
+     paragraph doesn't overlap; clone keeps padding/radius on each line fragment
+     when a single code span wraps */
+  padding: 1px 4px;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
 }
 
 h2 {

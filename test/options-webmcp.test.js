@@ -9,12 +9,13 @@ describe("buildTools", () => {
     return { send, byName: Object.fromEntries(tools.map((t) => [t.name, t])) };
   };
 
-  test("defines the four save-in tools with input schemas", () => {
+  test("defines the save-in tools with input schemas", () => {
     const { byName } = toolsByName();
-    expect(Object.keys(byName).sort()).toEqual([
+    expect(Object.keys(byName).toSorted()).toEqual([
       "save_in_apply_config",
       "save_in_download",
       "save_in_get_schema",
+      "save_in_list_vocabulary",
       "save_in_validate_config",
     ]);
     for (const tool of Object.values(byName)) {
@@ -30,6 +31,9 @@ describe("buildTools", () => {
 
     byName.save_in_get_schema.execute({});
     expect(send).toHaveBeenCalledWith({ type: "GET_SCHEMA" });
+
+    byName.save_in_list_vocabulary.execute({});
+    expect(send).toHaveBeenCalledWith({ type: "GET_KEYWORDS" });
 
     byName.save_in_validate_config.execute({ paths: "dogs" });
     expect(send).toHaveBeenCalledWith({ type: "VALIDATE", body: { paths: "dogs" } });
@@ -58,7 +62,7 @@ describe("buildTools", () => {
   test("register registers every tool and swallows failures", () => {
     const registerTool = vi.fn(() => Promise.resolve());
     SaveInWebMCP.register({ registerTool }, vi.fn());
-    expect(registerTool).toHaveBeenCalledTimes(4);
+    expect(registerTool).toHaveBeenCalledTimes(5);
 
     const throwing = {
       registerTool: vi.fn(() => {
@@ -85,9 +89,9 @@ describe("auto-registration on import", () => {
     vi.resetModules();
     await import("../src/options/webmcp.js");
 
-    expect(registerTool).toHaveBeenCalledTimes(4);
+    expect(registerTool).toHaveBeenCalledTimes(5);
     expect(document.getElementById("webmcp-status").textContent).toBe(
-      "Active — 4 tools registered",
+      "Active — 5 tools registered",
     );
   });
 
