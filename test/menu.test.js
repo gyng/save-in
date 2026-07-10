@@ -235,6 +235,7 @@ describe("menu creation", () => {
         {
           message: "Translated<rulePathInvalidCharacter>",
           error: "<invalid>",
+          parentId: menu.IDS.ROOT,
         },
       ]);
     });
@@ -412,6 +413,7 @@ describe("buildTree", () => {
         menuIndex: "1",
         depth: 0,
         parentId: menu.IDS.ROOT,
+        raw: "a",
       },
       {
         kind: "path",
@@ -424,6 +426,7 @@ describe("buildTree", () => {
         menuIndex: "1.1",
         depth: 1,
         parentId: "save-in-0",
+        raw: ">b",
       },
     ]);
   });
@@ -445,6 +448,7 @@ describe("buildTree", () => {
       {
         message: "Translated<rulePathInvalidCharacter>",
         error: "<invalid>",
+        parentId: menu.IDS.ROOT,
       },
     ]);
   });

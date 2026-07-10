@@ -1317,6 +1317,27 @@ button:disabled:hover {
   cursor: grabbing;
 }
 
+/* Briefly highlight a row jumped to from the menu preview */
+@keyframes path-editor-flash {
+  from {
+    background-color: rgba(10, 132, 255, 0.35);
+  }
+  to {
+    background-color: transparent;
+  }
+}
+
+.path-editor-row-flash {
+  animation: path-editor-flash 1.2s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .path-editor-row-flash {
+    animation: none;
+    outline: 2px solid var(--link-color);
+  }
+}
+
 .path-editor-row.dragging {
   opacity: 0.5;
 }
@@ -1495,8 +1516,18 @@ button {
   cursor: default;
 }
 
-.menu-preview-row:hover {
+/* Rows that jump to their editor line are clickable */
+.menu-preview-row[role="button"] {
+  cursor: pointer;
+}
+
+.menu-preview-row[role="button"]:hover {
   background-color: var(--panel-bg);
+}
+
+.menu-preview-row[role="button"]:focus-visible {
+  outline: 2px solid var(--link-color);
+  outline-offset: -1px;
 }
 
 .menu-preview-title {
@@ -1526,10 +1557,43 @@ button {
   background: none;
 }
 
-.menu-preview-error {
-  padding: 4px var(--space-2);
-  color: var(--red50);
+/* Invalid path: a red, clickable row (jumps to the editor); the full message is
+   the row's tooltip */
+.menu-preview-error > .menu-preview-row {
+  gap: var(--space-1);
+  color: var(--error-fg);
+  background-color: var(--error-bg);
+  cursor: pointer;
+}
+
+.menu-preview-error > .menu-preview-row::before {
+  content: "";
+  flex: none;
+  align-self: center;
+  width: 13px;
+  height: 13px;
+  background-color: var(--red50);
+  -webkit-mask: url(i/warning-16.svg) center / contain no-repeat;
+  mask: url(i/warning-16.svg) center / contain no-repeat;
+}
+
+.menu-preview-error > .menu-preview-row:hover {
+  outline: 1px solid var(--error-border);
+}
+
+.menu-preview-error .menu-preview-title {
+  color: var(--error-fg);
+  font-family: var(--font-mono);
   font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.menu-preview-error:focus-visible {
+  outline: 2px solid var(--red50);
+  outline-offset: 1px;
+  border-radius: var(--radius);
 }
 
 /* ── More Options → External API (issue #110) ─────────────────────── */

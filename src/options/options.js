@@ -44,17 +44,39 @@ document.querySelector("#see-variables-btn")?.addEventListener("click", renderVa
 // Reveal + select the offending text in its editor. Best-effort: the error
 // string is usually the offending line/clause, so we find and select it.
 const jumpToError = (textareaId, needle) => {
+  // Paths in Visual mode: jump to the matching visual row instead of switching
+  // back to the textarea. Match the row whose directory field is contained in
+  // the (raw) line; fall back to Text mode if nothing matches (e.g. a line the
+  // visual editor couldn't represent).
+  if (textareaId === "#paths" && needle) {
+    const visual = document.querySelector("#paths-visual");
+    if (visual instanceof HTMLElement && !visual.hidden) {
+      const rows = [...document.querySelectorAll("#path-editor-rows .path-editor-row")];
+      const target = rows.find((r) => {
+        const dir = r.querySelector(".path-editor-dir");
+        return dir instanceof HTMLInputElement && dir.value.trim() && needle.includes(dir.value.trim());
+      });
+      if (target) {
+        target.scrollIntoView({ block: "center" });
+        const dir = target.querySelector(".path-editor-dir");
+        if (dir instanceof HTMLInputElement) {
+          dir.focus();
+          dir.select();
+        }
+        target.classList.add("path-editor-row-flash");
+        window.setTimeout(() => target.classList.remove("path-editor-row-flash"), 1200);
+        return;
+      }
+      const textBtn = document.querySelector("#paths-mode-text");
+      if (textBtn instanceof HTMLElement) {
+        textBtn.click();
+      }
+    }
+  }
+
   const ta = document.querySelector(textareaId);
   if (!(ta instanceof HTMLTextAreaElement)) {
     return;
-  }
-  // The paths textarea is hidden while the Visual Editor tab is active
-  const visual = document.querySelector("#paths-visual");
-  if (textareaId === "#paths" && visual instanceof HTMLElement && !visual.hidden) {
-    const textBtn = document.querySelector("#paths-mode-text");
-    if (textBtn instanceof HTMLElement) {
-      textBtn.click();
-    }
   }
   ta.scrollIntoView({ block: "center" });
   ta.focus();
@@ -1158,6 +1180,22 @@ const renderMenuPreview = (container, tree) => {
         row.appendChild(dir);
       }
 
+      // Any row jumps to its line in the editor (the row only, so clicking a
+      // nested child jumps to the child, not its parent)
+      if (item.raw) {
+        row.setAttribute("role", "button");
+        row.setAttribute("tabindex", "0");
+        row.title = "Jump to this line";
+        const jump = () => jumpToError("#paths", item.raw);
+        row.addEventListener("click", jump);
+        row.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            jump();
+          }
+        });
+      }
+
       li.appendChild(row);
 
       const childUl = document.createElement("ul");
@@ -1190,11 +1228,35 @@ const renderMenuPreview = (container, tree) => {
     rootUl.insertBefore(li, rootUl.firstChild);
   }
 
+  // Invalid paths can't be a menu item, so show them as a red row in place (in
+  // the submenu they'd belong to). The row shows the offending line; the message
+  // is a tooltip. Click jumps to (and selects) the line in the editor.
   tree.errors.forEach((error) => {
+    const parentUl = (error.parentId && listsByParent.get(error.parentId)) || rootUl;
     const li = document.createElement("li");
-    li.className = "menu-preview-error";
-    li.textContent = `${error.error} — ${error.message}`;
-    rootUl.appendChild(li);
+    li.className = "menu-preview-item menu-preview-error";
+    li.title = error.message;
+    li.setAttribute("role", "button");
+    li.setAttribute("tabindex", "0");
+
+    const row = document.createElement("div");
+    row.className = "menu-preview-row";
+    const title = document.createElement("span");
+    title.className = "menu-preview-title";
+    title.textContent = error.error;
+    row.appendChild(title);
+    li.appendChild(row);
+
+    const jump = () => jumpToError("#paths", error.error);
+    li.addEventListener("click", jump);
+    li.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        jump();
+      }
+    });
+
+    parentUl.appendChild(li);
   });
 
   container.appendChild(rootUl);

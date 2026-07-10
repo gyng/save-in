@@ -229,9 +229,20 @@ const Menus = {
       const { comment, depth, meta, validation, parsedDir } = Menus.parsePath(dir);
 
       if (!validation.valid) {
+        // Attribute the error to the submenu it would have belonged to, so the
+        // preview can show it in place (not orphaned at the root).
+        let errorParentId;
+        if (depth === 0) {
+          errorParentId = Menus.IDS.ROOT;
+        } else if (depth > pathsNestingStack.length) {
+          errorParentId = pathsNestingStack[pathsNestingStack.length - 1];
+        } else {
+          errorParentId = pathsNestingStack[depth - 1];
+        }
         errors.push({
           message: validation.message,
           error: `${dir}`,
+          parentId: errorParentId,
         });
         return;
       }
@@ -283,6 +294,8 @@ const Menus = {
         menuIndex: menuItemCounter.join("."),
         depth,
         parentId,
+        // The original textarea line, so the preview can jump back to it
+        raw: dir,
       });
     });
 
