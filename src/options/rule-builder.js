@@ -1,0 +1,184 @@
+// Guided rule input and template library for the Dynamic Downloads rules
+// textarea. Both compose complete rules and append them through the normal
+// input event pipeline, so autosave, validation, and the routing preview
+// all react as if the user had typed the rule.
+
+// Every `into:` must end in a filename component (it replaces the whole
+// path, not just the directory) — test/rule-builder.test.js parses each
+// template through the real Router to keep these valid.
+const RULE_TEMPLATES = [
+  {
+    name: "Images into per-site folders",
+    description: "Sorts every saved image by the site it came from",
+    rule: "mediatype: image\ninto: images/:pagedomain:/:filename:",
+  },
+  {
+    name: "Videos into per-site folders",
+    description: "Same, for video",
+    rule: "mediatype: video\ninto: videos/:pagedomain:/:filename:",
+  },
+  {
+    name: "PDFs into a documents folder",
+    description: "Collects every PDF in one place",
+    rule: "fileext: pdf\ninto: documents/:filename:",
+  },
+  {
+    name: "Archives into one folder",
+    description: "zip/rar/7z/tar downloads land together",
+    rule: "fileext: (zip|rar|7z|gz|tgz)\ninto: archives/:filename:",
+  },
+  {
+    name: "Date-stamp every download",
+    description: "Keeps the original name, prefixed with the save date",
+    rule: "sourceurl: .*\ninto: :date:-:filename:",
+  },
+  {
+    name: "Weekly inbox",
+    description: "Everything into one folder per ISO week",
+    rule: "sourceurl: .*\ninto: inbox/:year:-w:isoweek:/:filename:",
+  },
+  {
+    name: "One site, one folder",
+    description: "Add it, then change example.com to the site you want",
+    rule: "pagedomain: example\\.com\ninto: example/:pagetitleslug:/:filename:",
+  },
+  {
+    name: "Capture part of the URL",
+    description: "Regex capture groups become :$1:, :$2:, … in the path",
+    rule: "sourceurl: imgur\\.com/(\\w+)\ncapture: sourceurl\ninto: imgur/:$1:-:filename:",
+  },
+];
+
+const RuleBuilder = {
+  // Appends a complete rule, separated by the blank line the parser uses
+  // as a rule boundary, and fires the input pipeline
+  appendRule: (textarea, rule) => {
+    const existing = textarea.value.trim();
+    textarea.value = existing ? `${existing}\n\n${rule}\n` : `${rule}\n`;
+    textarea.dispatchEvent(new InputEvent("input", { bubbles: true }));
+  },
+
+  setupGuidedInput: () => {
+    /** @type {HTMLTextAreaElement} */
+    const textarea = document.querySelector("#filenamePatterns");
+    /** @type {HTMLSelectElement} */
+    const matcher = document.querySelector("#rule-builder-matcher");
+    /** @type {HTMLInputElement} */
+    const pattern = document.querySelector("#rule-builder-pattern");
+    /** @type {HTMLInputElement} */
+    const into = document.querySelector("#rule-builder-into");
+    /** @type {HTMLButtonElement} */
+    const add = document.querySelector("#rule-builder-add");
+    if (!textarea || !matcher || !pattern || !into || !add) {
+      return;
+    }
+
+    // The matcher list comes from the background's Router, like the
+    // autocomplete keywords do
+    browser.runtime
+      .sendMessage({ type: "GET_KEYWORDS" })
+      .then((res) => {
+        ((res && res.body && res.body.matchers) || []).forEach((name) => {
+          const option = document.createElement("option");
+          option.value = name;
+          option.textContent = name;
+          matcher.appendChild(option);
+        });
+        // fileext is the most common matcher; context (first in Router's
+        // object order) is an obscure default
+        if ([...matcher.options].some((o) => o.value === "fileext")) {
+          matcher.value = "fileext";
+        }
+        sync();
+      })
+      .catch(() => {});
+
+    const sync = () => {
+      add.disabled = !(matcher.value && pattern.value.trim() && into.value.trim());
+    };
+    [matcher, pattern, into].forEach((el) => {
+      el.addEventListener("input", sync);
+      el.addEventListener("change", sync);
+    });
+    sync();
+
+    add.addEventListener("click", () => {
+      RuleBuilder.appendRule(
+        textarea,
+        `${matcher.value}: ${pattern.value.trim()}\ninto: ${into.value.trim()}`,
+      );
+      pattern.value = "";
+      sync();
+    });
+  },
+
+  renderTemplates: () => {
+    const container = document.querySelector("#rule-templates");
+    /** @type {HTMLTextAreaElement} */
+    const textarea = document.querySelector("#filenamePatterns");
+    if (!container || !textarea) {
+      return;
+    }
+
+    const syncs = [];
+
+    RULE_TEMPLATES.forEach((tpl) => {
+      const row = document.createElement("div");
+      row.className = "rule-template";
+
+      const body = document.createElement("div");
+      body.className = "rule-template-body";
+
+      const name = document.createElement("div");
+      name.className = "rule-template-name";
+      name.textContent = tpl.name;
+      body.appendChild(name);
+
+      const description = document.createElement("div");
+      description.className = "caption";
+      description.textContent = tpl.description;
+      body.appendChild(description);
+
+      const rule = document.createElement("pre");
+      rule.className = "rule-template-rule";
+      rule.textContent = tpl.rule;
+      body.appendChild(rule);
+
+      const add = document.createElement("button");
+      add.type = "button";
+      add.className = "rule-template-add";
+
+      const sync = () => {
+        const present = textarea.value.includes(tpl.rule);
+        add.disabled = present;
+        add.textContent = present ? "Added" : "Add";
+      };
+      syncs.push(sync);
+      sync();
+
+      add.addEventListener("click", () => {
+        RuleBuilder.appendRule(textarea, tpl.rule);
+        syncs.forEach((fn) => fn());
+      });
+
+      row.appendChild(body);
+      row.appendChild(add);
+      container.appendChild(row);
+    });
+
+    textarea.addEventListener("input", () => syncs.forEach((fn) => fn()));
+    // restoreOptions fills the textarea programmatically (no input event);
+    // re-check the Added states once options have had a chance to load
+    window.setTimeout(() => syncs.forEach((fn) => fn()), 1000);
+  },
+};
+
+document.addEventListener("DOMContentLoaded", () => {
+  RuleBuilder.setupGuidedInput();
+  RuleBuilder.renderTemplates();
+});
+
+// Export for testing
+if (typeof module !== "undefined") {
+  module.exports = { RULE_TEMPLATES, RuleBuilder };
+}

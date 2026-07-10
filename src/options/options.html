@@ -12,17 +12,23 @@
 
   <body id="settings-page">
     <div class="top-nav">
-      <a class="open-settings-in-window" href="options.html" target="_blank">__MSG_o_lPopout__</a>
-      &middot;
-      <a href="variablelist.html" target="_blank">__MSG_o_lVariableList__</a>
-      &middot;
-      <a href="clauselist.html" target="_blank">__MSG_o_lClauseList__</a>
-      &middot;
-      <a class="external" href="https://github.com/gyng/save-in/">__MSG_o_lGithub__</a>
-      &middot;
-      <a class="external" href="https://github.com/gyng/save-in/blob/master/CHANGELOG.md"
-        >__MSG_o_lChangelog__</a
-      >
+      <div>
+        <a class="open-settings-in-window" href="options.html" target="_blank">__MSG_o_lPopout__</a>
+        &middot;
+        <a href="variablelist.html" target="_blank">__MSG_o_lVariableList__</a>
+        &middot;
+        <a href="clauselist.html" target="_blank">__MSG_o_lClauseList__</a>
+        &middot;
+        <a class="external" href="https://github.com/gyng/save-in/">__MSG_o_lGithub__</a>
+        &middot;
+        <a class="external" href="https://github.com/gyng/save-in/blob/master/CHANGELOG.md"
+          >__MSG_o_lChangelog__</a
+        >
+      </div>
+      <div class="save-status caption">
+        <span>__MSG_o_cLastSavedAt__</span>
+        <span id="lastSavedAt">__MSG_o_cLastSavedAtNever__</span>
+      </div>
     </div>
 
     <form id="options">
@@ -375,6 +381,28 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
           spellcheck="false"
         ></textarea>
         <div class="error-notification" id="error-filenamePatterns">errors</div>
+
+        <div class="rule-builder">
+          <div class="caption">__MSG_o_lRuleBuilder__</div>
+          <div class="rule-builder-row">
+            <select id="rule-builder-matcher"></select>
+            <input type="text" id="rule-builder-pattern" placeholder=".*\.jpg" spellcheck="false" />
+            <span class="rule-builder-into-label">into:</span>
+            <input
+              type="text"
+              id="rule-builder-into"
+              placeholder="images/:pagedomain:/:filename:"
+              spellcheck="false"
+            />
+            <button type="button" id="rule-builder-add" disabled>Add</button>
+          </div>
+        </div>
+
+        <details class="rule-templates">
+          <summary>__MSG_o_lRuleTemplates__</summary>
+          <div id="rule-templates"></div>
+        </details>
+
         <div style="display: flex; max-width: 100%; align-items: center; flex-wrap: wrap">
           <div
             class="info-row"
@@ -573,6 +601,7 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
         <input type="checkbox" id="fetchViaContent" class="chrome-disabled" />
         <span>__MSG_o_cFetchViaContentScript__</span>
         <span class="badge">Firefox</span>
+        <span class="warning badge">Deprecated</span>
         <div class="caption caption-line">__MSG_o_cFetchViaContentScriptHelp__</div>
       </label>
 
@@ -648,16 +677,12 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
           <div id="debug-log-clear" class="button">Clear log</div>
         </details>
       </div>
-
-      <p>
-        <span>__MSG_o_cLastSavedAt__</span>
-        <span id="lastSavedAt">__MSG_o_cLastSavedAtNever__</span>
-      </p>
     </form>
 
     <script src="options.js"></script>
     <script src="clicktocopy.js"></script>
     <script src="autocomplete.js"></script>
+    <script src="rule-builder.js"></script>
     <script src="tabs.js"></script>
   </body>
 </html>

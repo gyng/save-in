@@ -242,6 +242,16 @@
     "description": "Heading for the live context-menu tree preview on the options page"
   },
 
+  "o_lRuleBuilder": {
+    "message": "Quick add: match a pattern, choose where it goes",
+    "description": "Caption above the guided rule input on the options page"
+  },
+
+  "o_lRuleTemplates": {
+    "message": "Template library",
+    "description": "Summary label for the built-in rule templates list"
+  },
+
   "o_lClauseList": {
     "message": "Clause List"
   },

@@ -45,6 +45,10 @@ testing on Chromium!
   :pagetitleslug:, :pagetitlesnake:, :sourcepath:, :tld:
 - The options page shows a live preview of the context-menu tree as you
   edit the directory list
+- Routing rules got a guided quick-add row (matcher, pattern, destination)
+  and a built-in template library with one-click starter rules
+- Options page refresh: full-width tabbed layout, live save indicator in
+  the top bar, system font stack, dark-mode fixes
 - Filenames are hardened for Windows: control characters, trailing
   dots/spaces, and reserved device names (CON, NUL, ...) are neutralized;
   a broken replacement character can no longer defeat the sanitizer

@@ -150,7 +150,17 @@ body:not(#settings-page) {
 }
 
 .top-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-4);
+  flex-wrap: wrap;
   padding: var(--space-3) var(--space-5);
+}
+
+.save-status {
+  color: var(--grey50);
+  white-space: nowrap;
 }
 
 .code,
@@ -740,6 +750,86 @@ input.key {
    own caps; everything else gets a comfortable width */
 .tab-panel input[type="text"]:not(.key):not(#replacementChar) {
   max-width: 340px;
+}
+
+/* ── Guided rule input + template library (rule-builder.js) ───────── */
+
+.rule-builder-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+}
+
+.rule-builder-row select {
+  max-width: 170px;
+}
+
+.tab-panel .rule-builder-row input[type="text"] {
+  max-width: none;
+}
+
+#rule-builder-pattern {
+  flex: 1 1 140px;
+}
+
+#rule-builder-into {
+  flex: 2 1 220px;
+}
+
+.rule-builder-into-label {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+}
+
+.rule-templates {
+  margin-top: var(--space-3);
+}
+
+.rule-templates summary {
+  cursor: pointer;
+  user-select: none;
+}
+
+.rule-template {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.rule-template:last-child {
+  border-bottom: none;
+}
+
+.rule-template-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.rule-template-name {
+  font-weight: 600;
+}
+
+.rule-template-rule {
+  margin: var(--space-1) 0 0;
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--text-sm);
+  overflow-x: auto;
+}
+
+.rule-template-add {
+  min-width: 72px;
+}
+
+button:disabled {
+  opacity: 0.55;
+}
+
+button:disabled:hover {
+  background-color: transparent;
 }
 
 /* Panel titles (the section h2s, incl. ones wrapped in a label.column) */

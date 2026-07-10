@@ -459,7 +459,7 @@ example — cheap to do before an ecosystem forms, expensive after.
 | 6 | ~~Live context-menu tree preview in options page~~ (PREVIEW_MENUS message + #menu-preview) | M | Low | High (UX) | 3 | **Done** |
 | 7 | Formalize + version the external DOWNLOAD API (+ PING, docs, e2e) | S–M | Low | Med–High | — | **Next release** |
 | 8 | yt-dlp "copy command / save `.txt`" hand-off via `Shortcut` | S–M | Low | Med–High | — | **Next release / +1** |
-| 9 | Guided rule builder (form for matcher/capture/into) | M–L | Med | High (UX) | 3, 7-style preview | **+1** |
+| 9 | ~~Guided rule builder~~ (shipped as quick-add row + template library; capture rules via templates) | M–L | Med | High (UX) | 3, 7-style preview | **Done** |
 | 10 | Async `applyVariables` → `:counter:`, `:mime:` | M | Med | Med–High | 4 helps | **+1** |
 | 11 | ~~Per-file `// @ts-check` rollout~~ (superseded: checkJs covers all of src/; next is typedef refinement + strictness) | S each | Low | Med | 4 | **Done** |
 | 12 | Visual/form path builder | M–L | Med | Med | 6 | **+2** |
