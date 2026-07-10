@@ -19,6 +19,7 @@
     "lint": "web-ext lint && oxlint && oxfmt --check && node scripts/check-background-scripts.js",
     "lint:fix": "oxlint --fix && oxfmt",
     "mockserve": "node test/mockserver",
+    "review": "node scripts/review-demo.js",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",

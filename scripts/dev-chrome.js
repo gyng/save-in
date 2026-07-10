@@ -1,7 +1,7 @@
 // Development loop for the Chrome MV3 build: stages dist/chrome, launches an
 // isolated Chrome with the extension loaded, and (with --watch) re-stages and
-// reloads the extension whenever src/ or manifest.chrome.json changes.
-// Run with `yarn d:chrome`. Requires Node >= 22.
+// reloads the extension whenever src/ or manifest.json changes.
+// Run with `npm run d:chrome`.
 
 const fs = require("fs");
 const path = require("path");
@@ -50,8 +50,8 @@ const main = async () => {
     };
 
     fs.watch(path.join(chrome.ROOT, "src"), { recursive: true }, reload);
-    fs.watch(path.join(chrome.ROOT, "manifest.chrome.json"), reload);
-    console.log("Watching src/ and manifest.chrome.json for changes...");
+    fs.watch(path.join(chrome.ROOT, "manifest.json"), reload);
+    console.log("Watching src/ and manifest.json for changes...");
   }
 
   proc.on("exit", () => {
