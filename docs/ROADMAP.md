@@ -462,7 +462,7 @@ example — cheap to do before an ecosystem forms, expensive after.
 | 9 | ~~Guided rule builder~~ (shipped as quick-add row + template library; capture rules via templates) | M–L | Med | High (UX) | 3, 7-style preview | **Done** |
 | 10 | Async `applyVariables` → `:counter:`, `:mime:` | M | Med | Med–High | 4 helps | **+1** |
 | 11 | ~~Per-file `// @ts-check` rollout~~ (superseded: checkJs covers all of src/; next is typedef refinement + strictness) | S each | Low | Med | 4 | **Done** |
-| 12 | Visual/form path builder | M–L | Med | Med | 6 | **+2** |
+| 12 | ~~Visual/form path builder~~ (Visual Editor tab + insert menu; textarea stays source of truth) | M–L | Med | Med | 6 | **Done** |
 | 13 | ESM + bundler migration (only if justified) | L | Med–High | Low–Med | 1–3 | **Defer** |
 | 14 | Native-messaging yt-dlp companion (separate repo) | L | High | Med (power users) | 7 | **Defer / separate** |
 

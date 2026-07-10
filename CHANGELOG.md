@@ -51,6 +51,9 @@ testing on Chromium!
   Options)
 - Routing rules got a guided quick-add row (matcher, pattern, destination)
   and a built-in template library with one-click starter rules
+- New Visual Editor tab for the directory list (rows with indent/reorder/
+  alias controls; the text box remains the source of truth) and a + Add
+  insert menu on the text box for variables and separators
 - Options page refresh: full-width tabbed layout, live save indicator in
   the top bar, system font stack, dark-mode fixes
 - Filenames are hardened for Windows: control characters, trailing

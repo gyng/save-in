@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <script type="application/javascript" src="../browser-shim.js"></script>
     <script type="application/javascript" src="./l10n.js"></script>
+    <script type="application/javascript" src="../constants.js"></script>
     <script type="application/javascript" src="../chrome-detector.js"></script>
     <title>Settings &mdash; Save In</title>
     <link href="style.css" rel="stylesheet" />
@@ -182,6 +183,18 @@ submenu
           </p>
           <p>__MSG_o_lDirectoryInstructionSymlink__</p>
 
+          <details class="insert-menu" id="paths-insert-menu">
+            <summary>__MSG_o_lInsertMenu__</summary>
+            <div class="insert-menu-panel">
+              <button type="button" data-insert-line="---">--- __MSG_o_bInsertSeparator__</button>
+              <button type="button" data-insert-line=">subfolder">
+                &gt; __MSG_o_bInsertSubmenuItem__
+              </button>
+              <div class="caption">__MSG_o_lInsertVariables__</div>
+              <div id="paths-insert-variables"></div>
+            </div>
+          </details>
+
           <textarea
             required
             type="textarea"
@@ -195,7 +208,7 @@ submenu
 
         <div class="menu-preview" id="menu-preview">
           <div class="caption">__MSG_o_lMenuPreview__</div>
-          <div id="menu-preview-tree"></div>
+          <div class="menu-preview-tree" id="menu-preview-tree"></div>
         </div>
       </div>
 
@@ -265,6 +278,24 @@ submenu
         </select>
         __MSG_o_cDupeFilename__ <span class="badge">Chrome</span>
       </label>
+
+      <hr />
+
+      <h2 id="section-visual-editor">__MSG_o_sVisualEditor__</h2>
+      <p class="caption">__MSG_o_lVisualEditorHelp__</p>
+      <div class="path-editor-layout">
+        <div class="path-editor-main">
+          <div class="path-editor-toolbar">
+            <button type="button" id="path-editor-add-dir">+ __MSG_o_bAddDirectory__</button>
+            <button type="button" id="path-editor-add-sep">+ __MSG_o_bAddSeparator__</button>
+          </div>
+          <div id="path-editor-rows"></div>
+        </div>
+        <div class="menu-preview">
+          <div class="caption">__MSG_o_lMenuPreview__</div>
+          <div class="menu-preview-tree" id="menu-preview-tree-visual"></div>
+        </div>
+      </div>
 
       <hr />
 
@@ -691,6 +722,7 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
     <script src="clicktocopy.js"></script>
     <script src="autocomplete.js"></script>
     <script src="rule-builder.js"></script>
+    <script src="path-editor.js"></script>
     <script src="tabs.js"></script>
   </body>
 </html>

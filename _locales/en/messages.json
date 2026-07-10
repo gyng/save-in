@@ -242,6 +242,38 @@
     "description": "Heading for the live context-menu tree preview on the options page"
   },
 
+  "o_sVisualEditor": {
+    "message": "Visual Editor"
+  },
+
+  "o_lVisualEditorHelp": {
+    "message": "Edits the same directory list as the Downloads tab — the text box remains the source of truth."
+  },
+
+  "o_bAddDirectory": {
+    "message": "Directory"
+  },
+
+  "o_bAddSeparator": {
+    "message": "Separator"
+  },
+
+  "o_lInsertMenu": {
+    "message": "+ Add"
+  },
+
+  "o_bInsertSeparator": {
+    "message": "Separator"
+  },
+
+  "o_bInsertSubmenuItem": {
+    "message": "Submenu item"
+  },
+
+  "o_lInsertVariables": {
+    "message": "Variables (inserted at the cursor)"
+  },
+
   "o_lRuleBuilder": {
     "message": "Quick add: match a pattern, choose where it goes",
     "description": "Caption above the guided rule input on the options page"

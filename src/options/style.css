@@ -843,6 +843,119 @@ button:disabled:hover {
   background-color: transparent;
 }
 
+/* ── Paths insert menu + visual editor (path-editor.js) ───────────── */
+
+.insert-menu {
+  position: relative;
+  margin: 0 0 var(--space-1);
+}
+
+.insert-menu summary {
+  cursor: pointer;
+  user-select: none;
+  color: var(--link-color);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.insert-menu-panel {
+  position: absolute;
+  z-index: 20;
+  left: 0;
+  margin-top: var(--space-1);
+  min-width: 300px;
+  max-height: 320px;
+  overflow-y: auto;
+  padding: var(--space-2);
+  background-color: var(--page-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+}
+
+.insert-menu-panel button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: transparent;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.insert-menu-panel button:hover {
+  background-color: var(--panel-bg);
+}
+
+.tab-panel > .path-editor-layout {
+  max-width: 1200px;
+}
+
+.path-editor-layout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-5);
+  align-items: flex-start;
+  width: 100%;
+}
+
+.path-editor-main {
+  flex: 1 1 520px;
+  min-width: 340px;
+}
+
+.path-editor-layout > .menu-preview {
+  flex: 1 1 280px;
+  min-width: 240px;
+  position: sticky;
+  top: 56px;
+}
+
+.path-editor-toolbar {
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.path-editor-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 2px 0;
+}
+
+.path-editor-indent {
+  flex: none;
+}
+
+.path-editor-dir {
+  flex: 1 1 auto;
+  font-family: var(--font-mono);
+}
+
+.path-editor-alias {
+  flex: 0 1 130px;
+}
+
+.tab-panel .path-editor-row input[type="text"] {
+  max-width: none;
+}
+
+.path-editor-separator {
+  flex: 1;
+  color: var(--grey50);
+  text-align: center;
+  user-select: none;
+}
+
+.path-editor-control {
+  min-width: 26px;
+  padding: 3px 6px;
+  font-size: 12px;
+  line-height: 1;
+}
+
 /* Panel titles (the section h2s, incl. ones wrapped in a label.column) */
 .tab-panel > h2:first-child,
 .tab-panel > .column > h2:first-child {
@@ -896,13 +1009,13 @@ button {
   margin-top: var(--space-2);
 }
 
-#menu-preview-tree ul {
+.menu-preview-tree ul {
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
-#menu-preview-tree > ul {
+.menu-preview-tree > ul {
   display: inline-block;
   min-width: 240px;
   padding: var(--space-1) 0;
@@ -911,12 +1024,12 @@ button {
   font-size: var(--text-sm);
 }
 
-#menu-preview-tree li ul {
+.menu-preview-tree li ul {
   margin-left: var(--space-4);
   border-left: 1px solid var(--grey30);
 }
 
-#menu-preview-tree li ul:empty {
+.menu-preview-tree li ul:empty {
   display: none;
 }
 
@@ -943,8 +1056,8 @@ button {
 }
 
 @media (prefers-color-scheme: dark) {
-  #menu-preview-tree > ul,
-  #menu-preview-tree li ul,
+  .menu-preview-tree > ul,
+  .menu-preview-tree li ul,
   .menu-preview-separator hr {
     border-color: var(--grey60);
   }

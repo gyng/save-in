@@ -50,7 +50,8 @@
     "CURRENT_BROWSER": "writable",
     "CURRENT_BROWSER_VERSION": "writable",
     "BROWSER_FEATURES": "writable",
-    "addClickToCopy": "readonly"
+    "addClickToCopy": "readonly",
+    "renderMenuPreview": "readonly"
   },
   "ignorePatterns": [
     "src/vendor",
