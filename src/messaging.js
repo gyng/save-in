@@ -1,6 +1,49 @@
 /* eslint-disable no-case-declarations */
 
 const Messaging = {
+  // ─── External DOWNLOAD API (issue #110) ────────────────────────────────
+  // Versioned, supported contract for other extensions to push a URL into
+  // save-in's routing/rename pipeline. Callers should PING first to discover
+  // the version and capabilities. Documented in docs/INTEGRATIONS.md.
+  API_VERSION: 1,
+  API_CAPABILITIES: [
+    "download", // { type: "DOWNLOAD", body: { url, info?, comment?, version? } }
+    "ping", // { type: "PING" } -> { version, capabilities }
+    "routing", // the URL runs through the user's rename/route rules
+    "comment", // body.comment is targetable in routing rules
+    "info", // body.info fields: pageUrl, srcUrl, selectionText, menuIndex, ...
+  ],
+  API_ERRORS: {
+    BAD_REQUEST: "BAD_REQUEST", // malformed message (e.g. missing url)
+    INVALID_URL: "INVALID_URL", // url is not a fetchable http(s)/ftp/data URL
+    UNKNOWN_TYPE: "UNKNOWN_TYPE", // unrecognised message type
+  },
+
+  // Only schemes the downloads pipeline can actually fetch are accepted from
+  // external callers — this keeps javascript:/file:/extension: URLs from being
+  // turned into downloads by another extension.
+  isValidDownloadUrl: (url) => {
+    if (!url || typeof url !== "string") {
+      return false;
+    }
+    try {
+      const { protocol } = new URL(url);
+      return ["http:", "https:", "ftp:", "data:"].includes(protocol);
+    } catch {
+      return false;
+    }
+  },
+
+  handlePing: (request, sender, sendResponse) => {
+    sendResponse({
+      type: MESSAGE_TYPES.PONG,
+      body: {
+        version: Messaging.API_VERSION,
+        capabilities: Messaging.API_CAPABILITIES.slice(),
+      },
+    });
+  },
+
   // Fires off and does not expect a return value
   emit: {
     downloaded: (state) => {
@@ -49,10 +92,16 @@ const Messaging = {
   },
 
   /**
-   * This is an unofficial, unsupported method for use with external extensions.
-   * Please use this at your own risk and without any warranty. PRs are welcome.
+   * Official, versioned DOWNLOAD API for external extensions (issue #110).
+   * Other extensions push a URL into save-in's routing/rename pipeline by
+   * sending this message; PING first to negotiate the version.
    *
-   * See: https://github.com/gyng/save-in/wiki/Use-with-Foxy-Gestures
+   * Request:  { type: "DOWNLOAD", body: { url, info?, comment?, version? } }
+   * Response: { type: "DOWNLOAD", body: { status: "OK", version, url } }
+   *      or:  { type: "DOWNLOAD", body: { status: "ERROR", error, message, version } }
+   *
+   * See docs/INTEGRATIONS.md and
+   * https://github.com/gyng/save-in/wiki/Use-with-Foxy-Gestures
    *
    * In Foxy Gestures:
    *
@@ -73,9 +122,29 @@ const Messaging = {
    * }
    */
   handleDownloadMessage: (request, sender, sendResponse) => {
-    const { url, comment } = request.body;
-    // The external onMessageExternal API may omit info
-    const info = request.body.info || {};
+    const requestBody = request.body || {};
+    const { url, comment } = requestBody;
+    // Callers may pin a version; default to the current one
+    const version = requestBody.version || Messaging.API_VERSION;
+
+    // Validate before triggering a download: external callers are untrusted,
+    // and a malformed message should get typed feedback, not silent failure.
+    const fail = (error, message) =>
+      sendResponse({
+        type: MESSAGE_TYPES.DOWNLOAD,
+        body: { status: MESSAGE_TYPES.ERROR, error, message, version },
+      });
+    if (!url || typeof url !== "string") {
+      fail(Messaging.API_ERRORS.BAD_REQUEST, "Missing or non-string 'url'");
+      return;
+    }
+    if (!Messaging.isValidDownloadUrl(url)) {
+      fail(Messaging.API_ERRORS.INVALID_URL, "URL must be http(s), ftp or data");
+      return;
+    }
+
+    // The external DOWNLOAD API may omit info
+    const info = requestBody.info || {};
     const last = window.lastDownloadState || {
       path: new Path.Path("."),
       scratch: {},
@@ -119,20 +188,33 @@ const Messaging = {
     Notifier.expectDownload();
     Download.renameAndDownload(clickState);
 
+    // status:"OK" is unchanged for back-compat; version/url are additive
     sendResponse({
       type: MESSAGE_TYPES.DOWNLOAD,
-      body: { status: MESSAGE_TYPES.OK },
+      body: { status: MESSAGE_TYPES.OK, version, url },
     });
   },
 };
 
 browser.runtime.onMessageExternal.addListener((request, sender, sendResponse) => {
   switch (request.type) {
+    case MESSAGE_TYPES.PING:
+      Messaging.handlePing(request, sender, sendResponse);
+      break;
     case MESSAGE_TYPES.DOWNLOAD:
       Messaging.handleDownloadMessage(request, sender, sendResponse);
       break;
     default:
-      // noop
+      // Unknown type on the external API: give callers typed feedback rather
+      // than silence so they can detect a version/contract mismatch
+      sendResponse({
+        type: request.type,
+        body: {
+          status: MESSAGE_TYPES.ERROR,
+          error: Messaging.API_ERRORS.UNKNOWN_TYPE,
+          version: Messaging.API_VERSION,
+        },
+      });
       break;
   }
 });
@@ -212,6 +294,9 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
           interpolatedVariables,
         },
       });
+      break;
+    case MESSAGE_TYPES.PING:
+      Messaging.handlePing(request, sender, sendResponse);
       break;
     case MESSAGE_TYPES.DOWNLOAD:
       Messaging.handleDownloadMessage(request, sender, sendResponse);

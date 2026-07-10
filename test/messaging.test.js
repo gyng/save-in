@@ -138,10 +138,10 @@ describe("onMessage", () => {
     expect(sendResponse).toHaveBeenCalled();
   });
 
-  test("unknown message types are a no-op", () => {
+  test("an unknown internal message type is a no-op", () => {
+    // (the external API instead replies UNKNOWN_TYPE — see the API v1 suite)
     const sendResponse = vi.fn();
     onMessage({ type: "SOMETHING_ELSE" }, {}, sendResponse);
-    onMessageExternal({ type: "SOMETHING_ELSE" }, {}, sendResponse);
     expect(sendResponse).not.toHaveBeenCalled();
   });
 });
@@ -227,7 +227,7 @@ describe("handleDownloadMessage", () => {
     expect(global.Download.renameAndDownload).toHaveBeenCalledTimes(1);
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.DOWNLOAD,
-      body: { status: MESSAGE_TYPES.OK },
+      body: { status: MESSAGE_TYPES.OK, version: 1, url: "https://x/file.png" },
     });
   });
 
@@ -249,7 +249,7 @@ describe("handleDownloadMessage", () => {
 
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.DOWNLOAD,
-      body: { status: MESSAGE_TYPES.OK },
+      body: { status: MESSAGE_TYPES.OK, version: 1, url: "https://x/file.png" },
     });
   });
 
@@ -328,7 +328,82 @@ describe("handleDownloadMessage", () => {
     expect(global.Download.renameAndDownload).toHaveBeenCalledTimes(1);
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.DOWNLOAD,
-      body: { status: MESSAGE_TYPES.OK },
+      body: { status: MESSAGE_TYPES.OK, version: 1, url: "https://x/file.png" },
+    });
+  });
+});
+
+// Official versioned external API (#110)
+describe("external DOWNLOAD API v1", () => {
+  const download = (body) => ({ type: MESSAGE_TYPES.DOWNLOAD, body });
+
+  test("PING returns the version and capabilities on both listeners", () => {
+    for (const listener of [onMessageExternal, onMessage]) {
+      const sendResponse = vi.fn();
+      listener({ type: MESSAGE_TYPES.PING }, {}, sendResponse);
+      expect(sendResponse).toHaveBeenCalledWith({
+        type: MESSAGE_TYPES.PONG,
+        body: { version: 1, capabilities: expect.arrayContaining(["download", "ping"]) },
+      });
+    }
+  });
+
+  test("echoes a caller-supplied version back", () => {
+    const sendResponse = vi.fn();
+    onMessageExternal(download({ url: "https://x/f.png", version: 1 }), {}, sendResponse);
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.DOWNLOAD,
+      body: { status: MESSAGE_TYPES.OK, version: 1, url: "https://x/f.png" },
+    });
+  });
+
+  test("rejects a missing url with BAD_REQUEST and does not download", () => {
+    const sendResponse = vi.fn();
+    onMessageExternal(download({ info: {} }), {}, sendResponse);
+    expect(global.Download.renameAndDownload).not.toHaveBeenCalled();
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.DOWNLOAD,
+      body: {
+        status: MESSAGE_TYPES.ERROR,
+        error: "BAD_REQUEST",
+        message: expect.any(String),
+        version: 1,
+      },
+    });
+  });
+
+  test("rejects an unfetchable scheme with INVALID_URL", () => {
+    const sendResponse = vi.fn();
+    onMessageExternal(download({ url: "javascript:alert(1)" }), {}, sendResponse);
+    expect(global.Download.renameAndDownload).not.toHaveBeenCalled();
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.DOWNLOAD,
+      body: {
+        status: MESSAGE_TYPES.ERROR,
+        error: "INVALID_URL",
+        message: expect.any(String),
+        version: 1,
+      },
+    });
+  });
+
+  test("isValidDownloadUrl accepts fetchable schemes and rejects the rest", () => {
+    expect(Messaging.isValidDownloadUrl("https://x/f.png")).toBe(true);
+    expect(Messaging.isValidDownloadUrl("http://x/f.png")).toBe(true);
+    expect(Messaging.isValidDownloadUrl("ftp://x/f.png")).toBe(true);
+    expect(Messaging.isValidDownloadUrl("data:text/plain,hi")).toBe(true);
+    expect(Messaging.isValidDownloadUrl("file:///etc/passwd")).toBe(false);
+    expect(Messaging.isValidDownloadUrl("javascript:1")).toBe(false);
+    expect(Messaging.isValidDownloadUrl("not a url")).toBe(false);
+    expect(Messaging.isValidDownloadUrl(undefined)).toBe(false);
+  });
+
+  test("an unknown external message type returns UNKNOWN_TYPE", () => {
+    const sendResponse = vi.fn();
+    onMessageExternal({ type: "WAT" }, {}, sendResponse);
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: "WAT",
+      body: { status: MESSAGE_TYPES.ERROR, error: "UNKNOWN_TYPE", version: 1 },
     });
   });
 });
