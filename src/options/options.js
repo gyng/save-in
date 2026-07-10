@@ -139,6 +139,27 @@ const updateErrors = () => {
   });
 };
 
+// Version from the live manifest; commit + stamp date from version.json
+// (written by scripts/write-version.js at build/stage time — absent in a
+// bare checkout, where just the version shows)
+const renderVersionLabel = () => {
+  const el = document.querySelector("#version-label");
+  if (!el) {
+    return;
+  }
+
+  const version = browser.runtime.getManifest().version;
+  el.textContent = `v${version}`;
+
+  fetch("version.json")
+    .then((res) => res.json())
+    .then(({ commit, date }) => {
+      el.textContent = `v${version} (${commit} · ${date})`;
+    })
+    .catch(() => {});
+};
+document.addEventListener("DOMContentLoaded", renderVersionLabel);
+
 const updateHistory = async () => {
   // Copied from history.js
   const HISTORY_KEY = "save-in-history";

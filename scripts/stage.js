@@ -6,6 +6,10 @@
 const fs = require("fs");
 const path = require("path");
 
+const writeVersion = require("./write-version");
+
+writeVersion();
+
 const root = path.join(__dirname, "..");
 const out = path.join(root, "dist", "unpacked");
 
