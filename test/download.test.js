@@ -67,6 +67,45 @@ describe("finalizeFullPath: MIME extension append (§8.1)", () => {
   });
 });
 
+describe("finalizeFullPath: folder-only route keeps the real filename (§8.1)", () => {
+  beforeEach(() => {
+    global.options = { replacementChar: "_" };
+  });
+
+  test("routes into the folder and keeps the download's real name", () => {
+    const s = {
+      path: { finalize: () => "menu" },
+      route: { finalize: () => "pdfs" },
+      routeIsFolder: true,
+      info: { filename: "report.pdf" },
+      scratch: {},
+    };
+    expect(Download.finalizeFullPath(s)).toBe("menu/pdfs/report.pdf");
+  });
+
+  test("a non-folder route still sets the whole name (backward-compatible)", () => {
+    const s = {
+      path: { finalize: () => "menu" },
+      route: { finalize: () => "renamed.pdf" },
+      routeIsFolder: false,
+      info: { filename: "report.pdf" },
+      scratch: {},
+    };
+    expect(Download.finalizeFullPath(s)).toBe("menu/renamed.pdf");
+  });
+
+  test("folder route still appends a MIME extension to an extensionless name", () => {
+    const s = {
+      path: { finalize: () => "menu" },
+      route: { finalize: () => "images" },
+      routeIsFolder: true,
+      info: { filename: "12345" },
+      scratch: { mimeExtension: "jpg" },
+    };
+    expect(Download.finalizeFullPath(s)).toBe("menu/images/12345.jpg");
+  });
+});
+
 describe("filename from URL", () => {
   test("extracts filenames from URL", () => {
     expect(Download.getFilenameFromUrl("https://baz.com/foo.bar")).toBe("foo.bar");

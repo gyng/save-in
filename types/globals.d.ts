@@ -49,6 +49,9 @@ interface DownloadState {
   info: StateInfo;
   needRouteMatch?: boolean;
   route?: any; // Path.Path instance
+  // §8.1: the route's `into:` ended with "/" — treat it as a folder and keep
+  // the download's real filename
+  routeIsFolder?: boolean;
 }
 
 // constants.js

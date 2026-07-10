@@ -239,6 +239,38 @@ describe("renameAndDownload: MIME extension append (§8.1)", () => {
   });
 });
 
+describe("renameAndDownload: folder-only route (§8.1)", () => {
+  test("a trailing-slash into: routes into the folder and keeps the real filename", async () => {
+    global.CURRENT_BROWSER = "CHROME";
+    global.options.filenamePatterns = [["rule"]];
+    global.Router.matchRules = jest.fn(() => "pdfs/");
+
+    const state = makeState();
+    await Download.renameAndDownload(state);
+    await flush();
+
+    expect(state.routeIsFolder).toBe(true);
+    expect(global.browser.downloads.download).toHaveBeenCalledWith(
+      expect.objectContaining({ filename: "downloads/pdfs/file.png" }),
+    );
+  });
+
+  test("a route without a trailing slash sets the whole name (unchanged)", async () => {
+    global.CURRENT_BROWSER = "CHROME";
+    global.options.filenamePatterns = [["rule"]];
+    global.Router.matchRules = jest.fn(() => "renamed.png");
+
+    const state = makeState();
+    await Download.renameAndDownload(state);
+    await flush();
+
+    expect(state.routeIsFolder).toBe(false);
+    expect(global.browser.downloads.download).toHaveBeenCalledWith(
+      expect.objectContaining({ filename: "downloads/renamed.png" }),
+    );
+  });
+});
+
 describe("renameAndDownload: Chrome vs Firefox entry", () => {
   test("Chrome path skips the HEAD request and downloads immediately", async () => {
     global.CURRENT_BROWSER = "CHROME";

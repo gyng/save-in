@@ -262,10 +262,23 @@ const Download = {
   },
 
   finalizeFullPath: (_state) => {
-    const finalDir = _state.path.finalize();
-    let finalFilename = _state.route
-      ? _state.route.finalize()
-      : Path.sanitizeFilename(_state.info.filename);
+    let finalDir = _state.path.finalize();
+    let finalFilename;
+
+    if (_state.route && _state.routeIsFolder) {
+      // §8.1: a folder-only rule (its `into:` ends with "/") routes into a
+      // directory and keeps the download's real name — the browser's
+      // Content-Disposition/MIME-resolved filename (or the URL/CD name on
+      // Firefox) — instead of naming the file after the folder.
+      const routeDir = String(_state.route.finalize()).replace(/\/+$/, "");
+      finalDir = [finalDir, routeDir].filter((x) => x != null && x !== "").join("/");
+      finalFilename = Path.sanitizeFilename(_state.info.filename);
+    } else if (_state.route) {
+      // The rule sets the whole name (which may itself include subdirectories)
+      finalFilename = _state.route.finalize();
+    } else {
+      finalFilename = Path.sanitizeFilename(_state.info.filename);
+    }
 
     // §8.1: append a MIME-derived extension when the resolved filename has none
     // (extensionless CDN / query-suffix URLs). The extension is resolved once,
@@ -336,6 +349,11 @@ const Download = {
     // FIXME: Fix router params for new path struct
     const routeMatches = Download.getRoutingMatches(state);
     if (routeMatches) {
+      // §8.1: a trailing "/" on the rule's `into:` marks it as a folder-only
+      // route — the destination is a directory and the real filename is kept
+      // (see finalizeFullPath). Backward-compatible: rules without a trailing
+      // slash still set the whole name.
+      state.routeIsFolder = typeof routeMatches === "string" && /\/\s*$/.test(routeMatches);
       state.route = await Variable.applyVariables(new Path.Path(routeMatches), state.info);
     }
 
@@ -348,9 +366,10 @@ const Download = {
     // save with a sensible extension. Best-effort HEAD (shared with :mime:),
     // gated on the option; finalizeFullPath appends scratch.mimeExtension.
     if (options.appendMimeExtension !== false && typeof Variable !== "undefined") {
-      const tentative = state.route
-        ? state.route.finalize()
-        : Path.sanitizeFilename(state.info.filename);
+      const tentative =
+        state.route && !state.routeIsFolder
+          ? state.route.finalize()
+          : Path.sanitizeFilename(state.info.filename);
       if (tentative && !Download.EXTENSION_REGEX.test(tentative)) {
         const ext = Variable.mimeToExtension(await Variable.resolveMime(state.info));
         if (ext) {
