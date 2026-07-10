@@ -864,6 +864,7 @@ button:disabled:hover {
   left: 0;
   margin-top: var(--space-1);
   min-width: 300px;
+  max-width: 480px;
   max-height: 320px;
   overflow-y: auto;
   padding: var(--space-2);
@@ -895,8 +896,22 @@ button:disabled:hover {
   margin: 0 0 var(--space-1);
 }
 
+.insert-menu-panel .insert-menu-variable {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.insert-menu-variable code {
+  flex: none;
+}
+
 .insert-menu-value {
-  margin-left: var(--space-2);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
   color: var(--grey50);
 }
 

@@ -212,6 +212,7 @@ describe("insert menu typeahead", () => {
       ":pagetitle:",
     ]);
     expect(buttons()[0].querySelector(".insert-menu-value").textContent).toBe("2026-07-10");
+    expect(buttons()[0].title).toBe("2026-07-10");
     expect(buttons()[1].querySelector(".insert-menu-value").textContent).toBe("");
   });
 

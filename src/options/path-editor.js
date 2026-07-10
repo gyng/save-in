@@ -121,6 +121,8 @@ const PathEditor = {
           entries.forEach((entry) => {
             entry.value = values[entry.variable] || "";
             entry.valueEl.textContent = entry.value;
+            // Long values ellipsize; the tooltip carries the full value
+            entry.button.title = entry.value;
           });
         })
         .catch(() => {});
