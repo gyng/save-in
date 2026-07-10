@@ -537,7 +537,7 @@ for paused/resumable interruptions. Downloads lost from bookkeeping produce
 **no** notification; immediate `downloads.download` rejections are only logged.
 Distinguish terminal from resumable, and surface the rejections.
 
-### 8.5 Fetch-fallback limits. S–M. #166, large files.
+### 8.5 Fetch-fallback limits. S–M. #166, large files. ✅ DONE (offscreen).
 
 MV3 has no `URL.createObjectURL`, so blob fallbacks base64 the whole file into a
 `data:` URL in memory (`download.js:114-123`) — large files exhaust memory / hit
@@ -545,14 +545,18 @@ Chrome's data-URL cap. `fetchViaContent` uses `no-cors` → opaque **0-byte**
 downloads cross-origin (`content.js`). Prefer `fetchViaFetch`; document/limit
 the data-URL ceiling.
 
-**The real fix — an Offscreen Document (Chrome). M.** `chrome.offscreen`
+**The real fix — an Offscreen Document (Chrome). ✅ DONE.** `chrome.offscreen`
 (permission: `offscreen`, Chrome-only) creates a hidden page with a full DOM,
 so `URL.createObjectURL` works there. The SW asks the offscreen doc to fetch the
 URL (credentials/referer intact) and hand back a blob URL, then downloads it — no
-base64, no memory blowup, no data-URL cap. Keep the doc alive until
-`downloads.download` has consumed the URL (blob URLs die with their creating
-document). Feature-detect `chrome.offscreen`; Firefox keeps `createObjectURL` on
-its event page. This removes the §8.5 ceiling and is the modern MV3 answer.
+base64, no memory blowup, no data-URL cap. Blob URLs die with their creating
+document, so the offscreen doc is kept alive and the blob URL revoked on a TTL
+(`OFFSCREEN_BLOB_TTL_MS`) after `downloads.download` consumes it. `fetchDownload`
+gates on `Download.canUseOffscreen()` (feature-detects `chrome.offscreen` +
+absent `createObjectURL`) and falls back to the `data:` URL path if the offscreen
+doc can't be created; Firefox keeps `createObjectURL` on its event page.
+Implemented in `src/offscreen.{html,js}` + `Download.fetchViaOffscreen`;
+covered by `test/download-mv3.test.js` and a Chrome e2e case.
 
 ---
 
