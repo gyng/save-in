@@ -148,12 +148,13 @@ feasibility are in the options-page editor code:
   `Router.tokenizeLines` / `Menus.parsePath` to tokenise), ~a day of careful
   scroll/resize/caret-alignment work. The risk is alignment drift across fonts
   and wrapping.
-- **Cursor-anchored autocomplete** — the existing `autocomplete.js` dropdown
-  positions itself at the textarea's bounding box, not the caret. Anchoring it
-  at the caret needs a caret-coordinate measurement (mirror-div technique:
-  clone the textarea's text up to the caret into a hidden div and read the last
-  span's offset). Also ~half a day, and it composes with the highlight overlay
-  (same mirror element can serve both).
+- **Cursor-anchored autocomplete** — _done._ `autocomplete.js` now positions
+  its dropdown at the caret via the mirror-div technique (`caretCoordinates`:
+  clone the field's text up to the caret into a hidden div, read the marker
+  span's offset, add the field's on-screen rect, undo the field's scroll). It
+  clamps to the viewport and flips above the caret near the bottom edge, and
+  works for both the textareas and the single-line quick-add input. The same
+  mirror element can serve the highlight overlay below.
 
 Both are pure front-end, no new permissions, and gated behind the same
 grammars the routing/preview already use — so they'd stay in sync with the

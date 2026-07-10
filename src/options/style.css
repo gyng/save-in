@@ -616,6 +616,7 @@ input.key {
   margin: 0;
   padding: 0.2em 0;
   list-style: none;
+  min-width: 12em;
   max-height: 14em;
   overflow-y: auto;
   background: var(--background-color, #fff);

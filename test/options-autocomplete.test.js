@@ -5,6 +5,7 @@ const {
   routerVariableStrategy,
   pathVariableStrategy,
   suggestFor,
+  caretCoordinates,
   applySuggestion,
   attachAutocomplete,
   setupRoutingAutocomplete,
@@ -60,6 +61,35 @@ describe("applySuggestion", () => {
 
     expect(applied.value).toBe("fileext: ");
     expect(applied.caret).toBe(9);
+  });
+});
+
+describe("caretCoordinates", () => {
+  afterEach(() => {
+    document.body.innerHTML = "";
+  });
+
+  // jsdom has no layout engine, so offsets are 0; this only guards the shape,
+  // that it doesn't throw, and that the measuring mirror is cleaned up
+  test("returns finite coordinates and leaves no mirror behind", () => {
+    document.body.innerHTML = '<textarea id="ta">images/:d</textarea>';
+    const ta = document.getElementById("ta");
+    ta.value = "images/:d";
+    const coords = caretCoordinates(ta, ta.value.length);
+
+    expect(Number.isFinite(coords.top)).toBe(true);
+    expect(Number.isFinite(coords.left)).toBe(true);
+    expect(coords.height).toBeGreaterThan(0);
+    // only the textarea remains — the hidden mirror div was removed
+    expect(document.querySelectorAll("div").length).toBe(0);
+  });
+
+  test("also measures single-line inputs", () => {
+    document.body.innerHTML = '<input type="text" id="in" />';
+    const input = document.getElementById("in");
+    input.value = "docs/:d";
+    expect(() => caretCoordinates(input, input.value.length)).not.toThrow();
+    expect(document.querySelectorAll("div").length).toBe(0);
   });
 });
 

@@ -38,6 +38,72 @@ const suggestFor = (beforeCaret, strategies) => {
   return null;
 };
 
+// Styles the mirror <div> must copy from the field so wrapping, metrics and
+// the caret position line up with what the browser actually renders
+const MIRROR_PROPS = [
+  "boxSizing",
+  "width",
+  "borderTopWidth",
+  "borderRightWidth",
+  "borderBottomWidth",
+  "borderLeftWidth",
+  "paddingTop",
+  "paddingRight",
+  "paddingBottom",
+  "paddingLeft",
+  "fontStyle",
+  "fontVariant",
+  "fontWeight",
+  "fontStretch",
+  "fontSize",
+  "fontFamily",
+  "lineHeight",
+  "letterSpacing",
+  "wordSpacing",
+  "textIndent",
+  "textTransform",
+  "tabSize",
+];
+
+// A <textarea>/<input> exposes no caret pixel coordinates, so mirror its text
+// up to the caret into a hidden div and read where a marker span lands. Returns
+// {top, left, height} relative to the field's border box.
+const caretCoordinates = (el, position) => {
+  const isInput = el.tagName === "INPUT";
+  const computed = getComputedStyle(el);
+  const mirror = document.createElement("div");
+  const s = mirror.style;
+  s.position = "absolute";
+  s.top = "0";
+  s.left = "-9999px";
+  s.visibility = "hidden";
+  s.overflow = "hidden";
+  // A textarea wraps; an input is a single non-wrapping line
+  s.whiteSpace = isInput ? "pre" : "pre-wrap";
+  s.wordWrap = isInput ? "normal" : "break-word";
+  for (const prop of MIRROR_PROPS) {
+    s[prop] = computed[prop];
+  }
+  document.body.appendChild(mirror);
+
+  // Inputs can't contain newlines/tabs; normalise any stray whitespace to
+  // spaces, which the mirror's white-space: pre then preserves verbatim
+  const before = el.value.slice(0, position);
+  mirror.textContent = isInput ? before.replaceAll(/\s/g, " ") : before;
+  const marker = document.createElement("span");
+  // A non-empty marker so the span has a box even at end-of-text
+  marker.textContent = el.value.slice(position) || ".";
+  mirror.appendChild(marker);
+
+  const coords = {
+    top: marker.offsetTop + (parseInt(computed.borderTopWidth, 10) || 0),
+    left: marker.offsetLeft + (parseInt(computed.borderLeftWidth, 10) || 0),
+    height: parseInt(computed.lineHeight, 10) || parseInt(computed.fontSize, 10) || 16,
+  };
+  mirror.remove();
+  return coords;
+};
+
 // Pure: applies a chosen suggestion, returning the new value and caret
 const applySuggestion = (value, caret, result, chosen) => {
   const beforeCaret = value.slice(0, caret);
@@ -89,11 +155,32 @@ const attachAutocomplete = (textarea, strategies) => {
       dropdown.appendChild(li);
     });
 
+    // Anchor to the caret, not the whole field: measure where the caret sits,
+    // add the field's on-screen position, and undo the field's own scroll
+    const caret = caretCoordinates(textarea, textarea.selectionStart);
     const rect = textarea.getBoundingClientRect();
-    dropdown.style.left = `${rect.left + window.scrollX}px`;
-    dropdown.style.top = `${rect.bottom + window.scrollY}px`;
-    dropdown.style.minWidth = `${rect.width / 2}px`;
+    const caretLeft = rect.left + window.scrollX + caret.left - textarea.scrollLeft;
+    const caretTop = rect.top + window.scrollY + caret.top - textarea.scrollTop;
+
     dropdown.style.display = "block";
+    dropdown.style.left = "0";
+    dropdown.style.top = "0";
+    // offsetWidth/Height need the box laid out, so measure after display:block
+    const viewportRight = window.scrollX + document.documentElement.clientWidth;
+    const viewportBottom = window.scrollY + document.documentElement.clientHeight;
+    const left = Math.max(
+      window.scrollX,
+      Math.min(caretLeft, viewportRight - dropdown.offsetWidth - 8),
+    );
+    // Drop below the caret line; flip above it if that would clip the viewport
+    const below = caretTop + caret.height;
+    const top =
+      below + dropdown.offsetHeight > viewportBottom &&
+      caretTop - dropdown.offsetHeight > window.scrollY
+        ? caretTop - dropdown.offsetHeight
+        : below;
+    dropdown.style.left = `${left}px`;
+    dropdown.style.top = `${top}px`;
   };
 
   textarea.addEventListener("input", () => {
@@ -170,6 +257,7 @@ if (typeof module !== "undefined") {
     routerVariableStrategy,
     pathVariableStrategy,
     suggestFor,
+    caretCoordinates,
     applySuggestion,
     attachAutocomplete,
     setupRoutingAutocomplete,
