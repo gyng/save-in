@@ -698,17 +698,30 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
       </label>
 
       <label>
-        <input type="number" id="contentClickToSaveCombo" />
-        __MSG_o_cKeyboardShotcutKeycode__ +&nbsp;
+        __MSG_o_cKeyboardShotcutKeycode__
+        <input
+          type="text"
+          id="contentClickToSaveCombo"
+          list="combo-keys"
+          placeholder="Alt"
+          spellcheck="false"
+        />
+        <datalist id="combo-keys">
+          <option value="None">no key — mouse button only</option>
+          <option value="Alt">Alt / Option</option>
+          <option value="Ctrl">Control</option>
+          <option value="Shift">Shift</option>
+          <option value="Meta">Command / Windows key</option>
+        </datalist>
+        +&nbsp;
         <select id="contentClickToSaveButton">
           <option value="LEFT_CLICK">__MSG_o_cKeyboardShortcutModifierLeftClick__</option>
           <option value="MIDDLE_CLICK">__MSG_o_cKeyboardShortcutModifierMiddleClick__</option>
           <option value="RIGHT_CLICK">__MSG_o_cKeyboardShortcutModifierRightClick__</option>
+          <option value="BACK_CLICK">__MSG_o_cKeyboardShortcutModifierBackClick__</option>
+          <option value="FORWARD_CLICK">__MSG_o_cKeyboardShortcutModifierForwardClick__</option>
         </select>
-        <div class="caption caption-line">
-          __MSG_o_cKeyboardShortcutModifierHelp__
-          <a class="caption" href="http://keycode.info/">keycode.info</a>
-        </div>
+        <div class="caption caption-line">__MSG_o_cKeyboardShortcutModifierHelp__</div>
       </label>
 
       <hr />

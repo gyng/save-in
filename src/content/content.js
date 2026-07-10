@@ -8,22 +8,50 @@ const ClickToSave = {
     combo.map((code) => activeKeys[code]).every((code) => code === true),
 
   // https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/buttons
+  // buttons is a bitmask of the buttons currently held; check the target's bit
   isMouseButtonActive: (target, buttons) => {
-    if (buttons === 1 && target === "LEFT_CLICK") {
-      return true;
-    }
-
+    const bit = {
+      LEFT_CLICK: 1, // bit 0
+      RIGHT_CLICK: 2, // bit 1
+      MIDDLE_CLICK: 4, // bit 2
+      BACK_CLICK: 8, // bit 3 (mouse button 4)
+      FORWARD_CLICK: 16, // bit 4 (mouse button 5)
+    }[target];
     // eslint-disable-next-line no-bitwise
-    if (buttons >> 1 === 1 && target === "RIGHT_CLICK") {
-      return true;
-    }
+    return Boolean(bit) && (buttons & bit) === bit;
+  },
 
-    // eslint-disable-next-line no-bitwise
-    if (buttons >> 2 === 1 && target === "MIDDLE_CLICK") {
-      return true;
-    }
-
-    return false;
+  // Resolve the stored combo option to keyCodes. Accepts a raw keyCode number
+  // (old stored values — backward compat), a key name (Alt/Ctrl/Shift/Meta),
+  // or "none"/blank. Unknown / non-positive values drop out so the combo can be
+  // empty — an empty combo is always active (the mouse button alone saves).
+  comboToKeyCodes: (value) => {
+    const names = {
+      alt: 18,
+      option: 18,
+      ctrl: 17,
+      control: 17,
+      shift: 16,
+      meta: 91,
+      cmd: 91,
+      command: 91,
+      win: 91,
+      windows: 91,
+      super: 91,
+    };
+    return []
+      .concat(value)
+      .map((v) => {
+        const key = String(v == null ? "" : v)
+          .trim()
+          .toLowerCase();
+        if (key in names) {
+          return names[key];
+        }
+        const num = Number(v);
+        return Number.isFinite(num) ? num : 0;
+      })
+      .filter((k) => k > 0);
   },
 
   // Resolves what to download for a click: media under the cursor first
@@ -56,7 +84,7 @@ const ClickToSave = {
 
 const setupClickToSave = (options) => {
   const shortcutOptions = {
-    combo: [].concat(options.contentClickToSaveCombo),
+    combo: ClickToSave.comboToKeyCodes(options.contentClickToSaveCombo),
     button: options.contentClickToSaveButton,
   };
 

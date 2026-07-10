@@ -30,7 +30,7 @@ const OptionsManagement = {
       default: "uniquify",
     },
     { name: "contentClickToSave", type: T.BOOL, default: false },
-    { name: "contentClickToSaveCombo", type: T.VALUE, default: 18 },
+    { name: "contentClickToSaveCombo", type: T.VALUE, default: "Alt" },
     {
       name: "contentClickToSaveButton",
       type: T.VALUE,
@@ -117,7 +117,8 @@ const OptionsManagement = {
   OPTION_DESCRIPTIONS: {
     conflictAction: "Filename-collision behaviour: uniquify, overwrite, or prompt (Firefox only).",
     contentClickToSave: "Enable click-to-save: hold the modifier and click media to save it.",
-    contentClickToSaveCombo: "Modifier keycode for click-to-save (18 = Alt).",
+    contentClickToSaveCombo:
+      "Key to hold for click-to-save: a name (Alt/Ctrl/Shift/Meta), a raw keyCode, or blank for none.",
     contentClickToSaveButton: "Mouse button for click-to-save.",
     debug: "Enable the session debug log.",
     enableLastLocation: "Show a 'last used' item at the top of the menu.",

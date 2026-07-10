@@ -579,7 +579,7 @@
   },
 
   "o_cKeyboardShotcutKeycode": {
-    "message": "keycode"
+    "message": "Hold"
   },
 
   "o_cKeyboardShortcutModifierLeftClick": {
@@ -594,8 +594,16 @@
     "message": "Right click"
   },
 
+  "o_cKeyboardShortcutModifierBackClick": {
+    "message": "Back button (4)"
+  },
+
+  "o_cKeyboardShortcutModifierForwardClick": {
+    "message": "Forward button (5)"
+  },
+
   "o_cKeyboardShortcutModifierHelp": {
-    "message": "Modifier keycode for click-to-save. Requires page refresh to take effect."
+    "message": "Hold this key while clicking the chosen mouse button to save. Type a key name (Alt, Ctrl…) or a raw keyCode, or leave it blank to save with the button alone. Takes effect after you refresh open pages."
   },
 
   "o_cRestoreDefaults": {
