@@ -495,7 +495,7 @@ tail of site-specific bugs (#66 pixiv, #166 Instagram, #126/#135/#43 extensions,
 #28 false failures, #193 referer-on-redirect). Five workstreams, most-valuable
 first; all reference `src/download.js` / `headers.js` / `notification.js`.
 
-### 8.1 Filename & extension correctness. M. High. #73/#126/#135/#43.
+### 8.1 Filename & extension correctness. M. High. #73/#126/#135/#43. ✅ DONE (mostly).
 
 Extension is parsed **from the URL string only** (`EXTENSION_REGEX`,
 `download.js:9`) — there is **no MIME→extension mapping anywhere**, so
@@ -523,7 +523,7 @@ extension. On Chrome the browser's own resolved filename
 - DNR referer uses a single fixed rule id (`DNR_REFERER_RULE_ID = 4077`,
   `headers.js:35`) → concurrent referers clobber. Allocate per-download ids.
 
-### 8.3 Referer robustness. M. #66 (pixiv), #193.
+### 8.3 Referer robustness. M. #66 (pixiv), #193. ✅ DONE.
 
 Chrome's DNR `urlFilter` is the **pre-redirect URL**, so the Referer often isn't
 applied after a redirect (what hotlink-protected CDNs do). Firefox's redirect
@@ -641,10 +641,10 @@ the extension-context registration story before committing.
 | 10b | ~~New async variables~~ (`:counter:`, `:uuid:`, `:mime:`/`:contenttype:`/`:mimeext:`) | M | Med | Med–High | 10a | **Done** |
 | 11 | ~~Per-file `// @ts-check` rollout~~ (superseded: checkJs covers all of src/) | S each | Low | Med | 4 | **Done** |
 | 12 | ~~Visual/form path builder~~ (Visual Editor tab + insert menu) | M–L | Med | Med | 6 | **Done** |
-| 13 | **§8.1 Filename/extension correctness** — the `:mimeext:` variable shipped (10b); the pipeline part (auto-append MIME ext to the saved filename) remains | M | Med | High | 10a | **Next** |
+| 13 | ~~**§8.1 Filename/extension correctness**~~ — `appendMimeExtension` auto-appends the Content-Type extension to extensionless names; `EXTENSION_REGEX` no longer false-positives on all-digit tokens (directory/filename routing split still open) | M | Med | High | 10a | **Done** |
 | 14 | ~~§8.2 Concurrency / SW-restart correctness~~ (pending counter, per-URL filename map, per-download DNR id) | M | Med | High (silent failures) | — | **Done** |
 | 15 | ~~§9 AI config: `GET_SCHEMA` / `VALIDATE` / `APPLY_CONFIG`~~ (closes #89) + experimental WebMCP adapter | S–M | Low | Med–High | 7 | **Done** |
-| 16 | **§8.3 Referer on redirects** (#66 pixiv, #193) | M | Med | Med–High | — | **+1** |
+| 16 | ~~**§8.3 Referer on redirects**~~ (#66 pixiv, #193) — Firefox listener keyed by requestId (survives redirects/concurrency); Chrome DNR scoped to the source host for same-host signed-URL redirects | M | Med | Med–High | — | **Done** |
 | 17 | ESM + bundler migration (only if justified) | L | Med–High | Low–Med | 1–3 | **Defer** |
 | 18 | Native-messaging yt-dlp companion (separate repo) | L | High | Med (power users) | 7 | **Defer / separate** |
 
