@@ -198,6 +198,15 @@ const PathEditor = {
         }
       }
     });
+
+    // A native <details> only toggles from its summary, so an open menu stays
+    // open when you click elsewhere. Close it on any click outside the menu
+    // (the summary click that opens it is inside the menu, so it survives).
+    document.addEventListener("click", (e) => {
+      if (menu.open && e.target instanceof Node && !menu.contains(e.target)) {
+        closeMenu();
+      }
+    });
   },
 
   // Text/Visual sub-tabs inside the Downloads Menu tab: both edit the same
