@@ -141,6 +141,13 @@ const setupRoutingAutocomplete = (keywords) => {
       routerVariableStrategy(keywords.variables),
     ]);
   }
+
+  // The quick-add builder's destination field is a plain path, so it gets
+  // the same :variable: autocomplete as the paths list
+  const ruleBuilderInto = document.getElementById("rule-builder-into");
+  if (ruleBuilderInto) {
+    attachAutocomplete(ruleBuilderInto, [pathVariableStrategy(keywords.variables)]);
+  }
 };
 
 if (typeof browser !== "undefined" && browser.runtime && browser.runtime.sendMessage) {

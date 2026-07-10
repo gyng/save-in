@@ -970,6 +970,30 @@ button:disabled:hover {
   border-color: var(--link-color-active);
 }
 
+.apply-button:disabled {
+  color: var(--grey50);
+  background-color: transparent;
+  border-color: var(--grey30);
+  opacity: 1;
+}
+
+.discard-button {
+  padding: 8px 16px;
+  color: var(--grey60);
+}
+
+.discard-button:not(:disabled):hover {
+  color: var(--red50);
+  border-color: var(--red50);
+  background-color: transparent;
+}
+
+.discard-button:disabled {
+  opacity: 1;
+  color: var(--grey50);
+  border-color: var(--grey30);
+}
+
 .path-editor-handle {
   flex: none;
   padding: 0 var(--space-1);

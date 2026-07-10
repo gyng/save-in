@@ -42,91 +42,6 @@
         <a class="external" href="variablelist.html" target="_blank">__MSG_o_lVariableList__</a>
       </p>
       <p>
-        <a href="#" class="help learn-more" data-help-for="help-paths"
-          >__MSG_o_lGuideCreateMenuItems__</a
-        >
-      </p>
-      <div class="help-text" id="help-paths">
-        <h4>Creating context menu items</h4>
-        <p>
-          To create a menu item to save <code>cat.jpg</code> into the directory
-          <code>~/downloads/i/cats</code>, with <code>~/downloads</code> as the default download
-          directory, add the line <code>i/cats</code>.
-        </p>
-
-        <div class="demo-box" style="margin-top: 12px; align-items: flex-start">
-          <div class="demo-code left">
-            <pre class="click-to-copy">
-.
-i/dogs
-i/cats // cute!
----
-v/cats
-:date:/:day:/foo
----
-submenu
->mammals
->>i/cats // (alias: cute cats)
->>i/dogs
->i/others
-</pre>
-            <div class="caption">Settings</div>
-          </div>
-          <div class="demo-arrow">➡</div>
-
-          <div class="demo-code">
-            <pre>
-~/downloads/
-~/downloads/i/dogs
-~/downloads/i/cats
----
-~/downloads/v/cats
-~/downloads/2000-01-01/01/foo
----
-(submenu)
-(submenu)
-~/downloads/i/cats (shows up as "cute cats")
-~/downloads/i/dogs
-~/downloads/i/others
-</pre>
-            <div class="caption">Default download dir <code>~/downloads</code></div>
-          </div>
-
-          <div class="demo-arrow">➡</div>
-
-          <pre class="demo-pic" style="background-image: url(i/menu-items.png)"></pre>
-        </div>
-
-        <h4>Comments and aliases</h4>
-
-        <p>
-          To add comments, add <code>//</code> to the end of a line. For example,
-          <code>cats // very cute!</code>.
-        </p>
-
-        <p>
-          To change display names of menu items, add
-          <code>(alias: display name)</code> to comments. For example,
-          <code>cats // very cute! (alias: cute cats)</code>. The menu item will then show "cute
-          cats" instead of "cats".
-        </p>
-
-        <p>To change the shortcut key, use <code>(key: f)</code> to manually assign one.</p>
-
-        <h4>Submenus</h4>
-
-        <p>
-          To create submenus, add <code>&gt;</code>s to the line itself. An example can be seen
-          above.
-        </p>
-
-        <p>
-          Note: You can only save relative to the default download directory. See the next guide for
-          a workaround.
-        </p>
-      </div>
-
-      <p>
         <a href="#" class="help learn-more" data-help-for="help-symlink">__MSG_o_lGuideSymlink__</a>
       </p>
       <div class="help-text" id="help-symlink">
@@ -188,6 +103,7 @@ submenu
             required
             type="textarea"
             id="paths"
+            data-manual="true"
             rows="10"
             placeholder="."
             spellcheck="false"
@@ -212,10 +128,99 @@ submenu
                 <div id="paths-insert-variables"></div>
               </div>
             </details>
-            <button type="button" class="apply-button" data-apply>__MSG_o_bApply__</button>
+            <button type="button" class="apply-button" data-apply="paths" disabled>
+              __MSG_o_bApply__
+            </button>
+            <button type="button" class="discard-button" data-discard="paths" disabled>
+              __MSG_o_bDiscard__
+            </button>
           </div>
 
           <div id="paths-text-help">
+            <p>
+              <a href="#" class="help learn-more" data-help-for="help-paths"
+                >__MSG_o_lGuideCreateMenuItems__</a
+              >
+            </p>
+            <div class="help-text" id="help-paths">
+              <h4>Creating context menu items</h4>
+              <p>
+                To create a menu item to save <code>cat.jpg</code> into the directory
+                <code>~/downloads/i/cats</code>, with <code>~/downloads</code> as the default
+                download directory, add the line <code>i/cats</code>.
+              </p>
+
+              <div class="demo-box" style="margin-top: 12px; align-items: flex-start">
+                <div class="demo-code left">
+                  <pre class="click-to-copy">
+    .
+    i/dogs
+    i/cats // cute!
+    ---
+    v/cats
+    :date:/:day:/foo
+    ---
+    submenu
+    >mammals
+    >>i/cats // (alias: cute cats)
+    >>i/dogs
+    >i/others
+    </pre>
+                  <div class="caption">Settings</div>
+                </div>
+                <div class="demo-arrow">➡</div>
+
+                <div class="demo-code">
+                  <pre>
+    ~/downloads/
+    ~/downloads/i/dogs
+    ~/downloads/i/cats
+    ---
+    ~/downloads/v/cats
+    ~/downloads/2000-01-01/01/foo
+    ---
+    (submenu)
+    (submenu)
+    ~/downloads/i/cats (shows up as "cute cats")
+    ~/downloads/i/dogs
+    ~/downloads/i/others
+    </pre>
+                  <div class="caption">Default download dir <code>~/downloads</code></div>
+                </div>
+
+                <div class="demo-arrow">➡</div>
+
+                <pre class="demo-pic" style="background-image: url(i/menu-items.png)"></pre>
+              </div>
+
+              <h4>Comments and aliases</h4>
+
+              <p>
+                To add comments, add <code>//</code> to the end of a line. For example,
+                <code>cats // very cute!</code>.
+              </p>
+
+              <p>
+                To change display names of menu items, add
+                <code>(alias: display name)</code> to comments. For example,
+                <code>cats // very cute! (alias: cute cats)</code>. The menu item will then show
+                "cute cats" instead of "cats".
+              </p>
+
+              <p>To change the shortcut key, use <code>(key: f)</code> to manually assign one.</p>
+
+              <h4>Submenus</h4>
+
+              <p>
+                To create submenus, add <code>&gt;</code>s to the line itself. An example can be
+                seen above.
+              </p>
+
+              <p>
+                Note: You can only save relative to the default download directory. See the next
+                guide for a workaround.
+              </p>
+            </div>
             <p>
               __MSG_o_lDirectoryInstructionOnePerLine__
               <code>.</code> __MSG_o_lDirectoryInstructionDot__
@@ -229,7 +234,12 @@ submenu
             <div class="path-editor-toolbar">
               <button type="button" id="path-editor-add-dir">+ __MSG_o_bAddDirectory__</button>
               <button type="button" id="path-editor-add-sep">+ __MSG_o_bAddSeparator__</button>
-              <button type="button" class="apply-button" data-apply>__MSG_o_bApply__</button>
+              <button type="button" class="apply-button" data-apply="paths" disabled>
+                __MSG_o_bApply__
+              </button>
+              <button type="button" class="discard-button" data-discard="paths" disabled>
+                __MSG_o_bDiscard__
+              </button>
             </div>
           </div>
         </div>
@@ -419,13 +429,21 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
         <textarea
           type="textarea"
           id="filenamePatterns"
+          data-manual="true"
           rows="7"
           placeholder="Optional"
           spellcheck="false"
         ></textarea>
         <div class="error-notification" id="error-filenamePatterns">errors</div>
 
-        <p><button type="button" class="apply-button" data-apply>__MSG_o_bApply__</button></p>
+        <p>
+          <button type="button" class="apply-button" data-apply="filenamePatterns" disabled>
+            __MSG_o_bApply__
+          </button>
+          <button type="button" class="discard-button" data-discard="filenamePatterns" disabled>
+            __MSG_o_bDiscard__
+          </button>
+        </p>
 
         <div class="rule-builder">
           <div class="caption">__MSG_o_lRuleBuilder__</div>

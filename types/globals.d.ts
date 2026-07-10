@@ -146,4 +146,6 @@ interface Window {
     filenamePatterns: OptionError[];
   };
   lastDownloadState?: DownloadState;
+  // options page: tab-switch unsaved-changes guard (options.js)
+  confirmPendingChanges?: () => void;
 }

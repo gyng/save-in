@@ -215,6 +215,43 @@ test("paths textarea renders a live menu-tree preview", async () => {
   ]);
 });
 
+test("the paths editor saves manually: Apply/Discard track the dirty state", async () => {
+  const result = JSON.parse(
+    await evalOptions(`(async () => {
+      const ta = document.querySelector("#paths");
+      const apply = document.querySelector('[data-apply="paths"]');
+      const discard = document.querySelector('[data-discard="paths"]');
+      const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+
+      // Establish a clean baseline via Apply
+      ta.value = "baseline";
+      ta.dispatchEvent(new InputEvent("input", { bubbles: true }));
+      apply.click();
+      await wait(300);
+      const clean = { apply: apply.disabled, discard: discard.disabled };
+
+      // Editing dirties both buttons; the value is not yet persisted
+      ta.value = "baseline\\nunsaved";
+      ta.dispatchEvent(new InputEvent("input", { bubbles: true }));
+      const dirty = { apply: apply.disabled, discard: discard.disabled };
+      const stored = await browser.storage.local.get("paths");
+
+      // Discard reverts to the last applied value and re-dims
+      discard.click();
+      await wait(50);
+      const afterDiscard = { value: ta.value, apply: apply.disabled };
+
+      return JSON.stringify({ clean, dirty, storedPaths: stored.paths, afterDiscard });
+    })()`),
+  );
+
+  expect(result.clean).toEqual({ apply: true, discard: true });
+  expect(result.dirty).toEqual({ apply: false, discard: false });
+  // The unsaved edit never reached storage
+  expect(result.storedPaths).toBe("baseline");
+  expect(result.afterDiscard).toEqual({ value: "baseline", apply: true });
+});
+
 test("changing the paths option rebuilds the context menus", async () => {
   const menuCount = await evalSW(
     `browser.storage.local.set({ paths: "alpha\\nbeta\\ngamma\\ndelta\\nepsilon" })

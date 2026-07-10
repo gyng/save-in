@@ -275,6 +275,8 @@ const restoreOptionsHandler = (result, schema) => {
 
   updateErrors();
   updateMenuPreview();
+  // Stored values are now in the editors: they are clean, Apply dims
+  refreshManualEditorBaselines();
 };
 
 const restoreOptions = () =>
@@ -360,17 +362,58 @@ let pendingChanges = false;
 const pendingSaveTimers = new Set();
 
 window.addEventListener("beforeunload", (e) => {
-  if (pendingChanges) {
+  if (pendingChanges || anyManualEditorDirty()) {
     e.preventDefault();
     e.returnValue = "";
   }
 });
 
+// The two large editors (#paths, #filenamePatterns) persist only via their
+// Apply button, not autosave: their Apply lights up while the editor value
+// differs from what is stored, and dims once applied. Every other control
+// still autosaves.
+const manualEditors = [];
+
+const setupManualEditor = (id) => {
+  /** @type {HTMLTextAreaElement} */
+  const textarea = document.querySelector(`#${id}`);
+  const buttons = [...document.querySelectorAll(`[data-apply="${id}"], [data-discard="${id}"]`)];
+  if (!textarea || buttons.length === 0) {
+    return;
+  }
+
+  const editor = { textarea, saved: textarea.value };
+  manualEditors.push(editor);
+
+  // Apply and Discard are both only actionable while the editor is dirty
+  editor.sync = () => {
+    const dirty = textarea.value !== editor.saved;
+    buttons.forEach((b) => {
+      b.toggleAttribute("disabled", !dirty);
+    });
+  };
+
+  textarea.addEventListener("input", editor.sync);
+  editor.sync();
+};
+
+// Re-baseline after a save or a storage restore: the editors now match
+// what is stored, so they are clean
+const refreshManualEditorBaselines = () => {
+  manualEditors.forEach((editor) => {
+    editor.saved = editor.textarea.value;
+    editor.sync();
+  });
+};
+
+const anyManualEditorDirty = () =>
+  manualEditors.some((editor) => editor.textarea.value !== editor.saved);
+
 // Called before an in-page tab switch (main tabs don't unload the page, so
 // beforeunload never fires): prompt to save or discard editor changes that
 // haven't been persisted yet. OK = save now, Cancel = revert to stored.
 window.confirmPendingChanges = () => {
-  if (!pendingChanges) {
+  if (!pendingChanges && !anyManualEditorDirty()) {
     return;
   }
   // eslint-disable-next-line no-alert
@@ -386,6 +429,11 @@ window.confirmPendingChanges = () => {
 };
 
 const setupAutosave = (el) => {
+  // The two big editors save manually via Apply, not autosave
+  if (el.dataset && el.dataset.manual === "true") {
+    return;
+  }
+
   let debounceTimer = null;
 
   // Tied to the actual save firing (not every keystroke), so it still
@@ -548,15 +596,19 @@ const updateMenuPreview = () => {
   });
 })();
 
+setupManualEditor("paths");
+setupManualEditor("filenamePatterns");
+
 ["textarea", "input", "select"].forEach((type) => {
   document.querySelectorAll(type).forEach(setupAutosave);
 });
 
-// Explicit apply: autosave already persists (debounced for textareas);
-// these buttons save immediately and refresh the validation + preview panes
+// Apply: persist the manual editors, re-baseline (dims Apply/Discard),
+// and refresh the validation + preview panes
 document.querySelectorAll("[data-apply]").forEach((button) => {
   button.addEventListener("click", () => {
     saveOptions();
+    refreshManualEditorBaselines();
     window.setTimeout(() => {
       updateErrors();
       updateMenuPreview();
@@ -566,6 +618,20 @@ document.querySelectorAll("[data-apply]").forEach((button) => {
     window.setTimeout(() => {
       button.textContent = original;
     }, 900);
+  });
+});
+
+// Discard: revert the editor to its stored value without saving
+document.querySelectorAll("[data-discard]").forEach((/** @type {HTMLElement} */ button) => {
+  button.addEventListener("click", () => {
+    const id = button.dataset.discard;
+    const editor = manualEditors.find((ed) => ed.textarea.id === id);
+    if (!editor) {
+      return;
+    }
+    editor.textarea.value = editor.saved;
+    editor.textarea.dispatchEvent(new InputEvent("input", { bubbles: true }));
+    updateMenuPreview();
   });
 });
 

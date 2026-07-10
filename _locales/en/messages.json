@@ -286,6 +286,10 @@
     "message": "Apply"
   },
 
+  "o_bDiscard": {
+    "message": "Discard"
+  },
+
   "o_lRuleBuilder": {
     "message": "Quick add: match a pattern, choose where it goes",
     "description": "Caption above the guided rule input on the options page"

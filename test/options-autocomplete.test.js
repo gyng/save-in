@@ -7,6 +7,7 @@ const {
   suggestFor,
   applySuggestion,
   attachAutocomplete,
+  setupRoutingAutocomplete,
 } = Autocomplete;
 
 const VARIABLES = [":date:", ":day:", ":pagetitle:"];
@@ -138,5 +139,28 @@ describe("attachAutocomplete", () => {
   test("keystrokes with no dropdown open are ignored", () => {
     key("Enter");
     expect(textarea.value).toBe("");
+  });
+});
+
+describe("setupRoutingAutocomplete wiring", () => {
+  afterEach(() => {
+    document.body.innerHTML = "";
+  });
+
+  test("attaches variable autocomplete to the quick-add into: input", () => {
+    document.body.innerHTML = `<input type="text" id="rule-builder-into" />`;
+    setupRoutingAutocomplete({ matchers: ["fileext"], variables: [":date:", ":day:"] });
+
+    const input = document.getElementById("rule-builder-into");
+    input.value = "docs/:d";
+    input.selectionStart = input.value.length;
+    input.dispatchEvent(new window.InputEvent("input", { bubbles: true }));
+
+    const dropdown = document.querySelector(".autocomplete-dropdown");
+    expect(dropdown.style.display).toBe("block");
+    expect([...dropdown.querySelectorAll("li")].map((li) => li.textContent)).toEqual([
+      ":date:",
+      ":day:",
+    ]);
   });
 });
