@@ -1224,11 +1224,13 @@ document.addEventListener("click", (e) => {
   if (!help) {
     return;
   }
-  // A control/link/sub-option label *inside* the help region handles its own
-  // click (and never toggles the ancestor checkbox); only cancel the toggle for
-  // plain help text. The outer label is an ancestor of `help`, not inside it, so
-  // it is correctly ignored here.
-  const interactive = e.target.closest("a, button, input, select, textarea, label");
+  // A control/link/sub-option label/disclosure *inside* the help region handles
+  // its own click (and never toggles the ancestor checkbox); only cancel the
+  // toggle for plain help text. `summary` matters here: a <details> can live in
+  // a checkbox label's help (e.g. the Prefer-links filter), and cancelling its
+  // click would stop it opening. The outer label is an ancestor of `help`, not
+  // inside it, so it is correctly ignored here.
+  const interactive = e.target.closest("a, button, input, select, textarea, label, summary");
   if (interactive && help.contains(interactive)) {
     return;
   }
