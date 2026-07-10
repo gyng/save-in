@@ -448,3 +448,16 @@ describe(":counter: (async, persistent)", () => {
     expect(global.Counter.peek).toHaveBeenCalled();
   });
 });
+
+describe(":uuid:", () => {
+  test("interpolates a random v4 UUID", async () => {
+    const out = (await Variable.applyVariables(new Path.Path(":uuid:"), {})).finalize();
+    expect(out).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
+  });
+
+  test("is fresh on each interpolation", async () => {
+    const a = (await Variable.applyVariables(new Path.Path(":uuid:"), {})).finalize();
+    const b = (await Variable.applyVariables(new Path.Path(":uuid:"), {})).finalize();
+    expect(a).not.toBe(b);
+  });
+});

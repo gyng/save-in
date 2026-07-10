@@ -420,6 +420,18 @@ the **one plumbing investment**: convert `Variable.applyVariables` to async.
      one or read `onDeterminingFilename`). **This is the same capability as
      §8.1** — do the extension-correctness reliability fix here.
    - **`:finalurl:`/`:redirecturl:`** — URL after redirects, from the HEAD/fetch.
+   - **`:uuid:`** — _shipped._ Sync `crypto.randomUUID()` (secure context in the
+     SW, event page and Node). Fresh per use.
+   - **`:sha256:` / `:md5:` (content hash)** — feasible but tied to fetching the
+     bytes. SHA-256 is native via `crypto.subtle.digest("SHA-256", buf)` (SW +
+     event page); **MD5 is not in Web Crypto**, so it needs a small vendored
+     pure-JS implementation. Hashing the *content* means an extra fetch at
+     path-compute time (same plumbing as `:mime:`, and same redirect/auth
+     caveats) — do it alongside §8.5's fetch path, not standalone. Hashing the
+     *URL string* is cheaper (no fetch, still async via `crypto.subtle`) but far
+     less useful. Recommendation: ship `:sha256:` (content) with the fetch
+     plumbing; treat `:md5:` as opt-in only if a user needs server-ETag parity
+     (it's legacy + needs the vendored lib).
    - _Not worth it:_ `:filesize:` (known only post-download — drop),
      `:clipboard:` (no worker clipboard; content-script round-trip — low value),
      image dimensions (decode the blob — niche). `:urlmatch:(regex):` is

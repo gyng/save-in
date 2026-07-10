@@ -36,6 +36,7 @@ const SPECIAL_DIRS = {
   FILENAME: ":filename:",
   FILE_EXTENSION: ":fileext:",
   COUNTER: ":counter:",
+  UUID: ":uuid:",
 };
 
 const SHORTCUT_TYPES = {

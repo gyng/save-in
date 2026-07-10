@@ -181,7 +181,11 @@ const Variable = {
           opts.counter = await Counter.next();
         }
         return Path.PathSegment.String(opts.counter);
-      }
+      },
+    // A fresh random v4 UUID (crypto.randomUUID is available in the SW, the
+    // event page, and Node/vitest — all secure contexts)
+    [SPECIAL_DIRS.UUID]:
+      () => Path.PathSegment.String(crypto.randomUUID())
   }),
 
   // Async so a transformer may await (e.g. a :counter: read-modify-write or a
