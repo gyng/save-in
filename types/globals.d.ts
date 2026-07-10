@@ -126,6 +126,8 @@ declare const Util: {
 };
 // options page: path-editor.js (used by rule-builder.js for undoable edits)
 declare const PathEditor: Record<string, any>;
+// options page: history-view.js — pure history-table helpers
+declare const HistoryView: Record<string, any>;
 // options page: options-logic.js — pure helpers extracted from options.js
 declare const OptionsLogic: Record<string, any>;
 declare const OptionsManagement: Record<string, any>;

@@ -27,6 +27,7 @@
     "Messaging": "readonly",
     "OptionsManagement": "readonly",
     "OptionsLogic": "readonly",
+    "HistoryView": "readonly",
     "Notifier": "readonly",
     "Menus": "readonly",
     "RequestHeaders": "readonly",

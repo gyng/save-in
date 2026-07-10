@@ -403,118 +403,6 @@ let historyFilter = "";
 let historyPage = 0;
 const HISTORY_PAGE_SIZE = 50;
 
-const historyFilename = (fullPath) => {
-  if (!fullPath) {
-    return "(unnamed)";
-  }
-  const parts = String(fullPath).split("/");
-  return parts[parts.length - 1] || fullPath;
-};
-
-const historyFolder = (fullPath) => {
-  if (!fullPath) {
-    return "";
-  }
-  const idx = String(fullPath).lastIndexOf("/");
-  return idx === -1 ? "." : fullPath.slice(0, idx);
-};
-
-const historyTime = (iso) => {
-  try {
-    return new Date(iso).toLocaleString();
-  } catch (e) {
-    return iso || "";
-  }
-};
-
-// info.context holds a DOWNLOAD_TYPES value (MEDIA/LINK/PAGE/…); older
-// entries kept the whole state, so fall back to state.info
-const historyInfo = (entry) => entry.info || (entry.state && entry.state.info) || {};
-
-const historyType = (entry) => {
-  const context = historyInfo(entry).context;
-  if (!context) {
-    return "";
-  }
-  const c = String(context).toLowerCase();
-  return c === "media" ? "image" : c;
-};
-
-// Older entries predate status tracking; treat them as complete
-const historyStatus = (entry) => entry.status || "complete";
-
-// "complete"/"pending" get friendly labels; a browser error name (e.g.
-// SERVER_FORBIDDEN, NETWORK_FAILED) is shown lowercased
-const historyStatusLabel = (status) => {
-  if (status === "complete") {
-    return "Saved";
-  }
-  if (status === "pending") {
-    return "Saving…";
-  }
-  if (status === "failed") {
-    return "Failed";
-  }
-  return status.toLowerCase().replace(/_/g, " ");
-};
-
-const historyStatusClass = (status) => {
-  if (status === "complete") {
-    return "status-ok";
-  }
-  if (status === "pending") {
-    return "status-pending";
-  }
-  return "status-fail";
-};
-
-// Flatten an entry into the fields the table shows and sorts/filters on
-const historyRow = (entry) => {
-  const info = historyInfo(entry);
-  return {
-    time: entry.timestamp || "",
-    status: historyStatus(entry),
-    routed: entry.routed ? "routed" : "",
-    type: historyType(entry),
-    file: historyFilename(entry.finalFullPath),
-    folder: historyFolder(entry.finalFullPath),
-    fullPath: entry.finalFullPath || "",
-    source: info.sourceUrl || entry.url || info.pageUrl || "",
-    downloadId: typeof entry.downloadId === "number" ? entry.downloadId : null,
-    size: typeof entry.fileSize === "number" ? entry.fileSize : null,
-  };
-};
-
-// width is a percentage weight (the table is table-layout: fixed, so the
-// header cells set the column widths)
-const COLUMNS = [
-  { key: "time", label: "Saved", sortable: true, width: "14%" },
-  { key: "status", label: "Status", sortable: true, width: "10%" },
-  { key: "size", label: "Size", sortable: true, width: "9%" },
-  { key: "type", label: "Type", sortable: true, width: "6%" },
-  { key: "routed", label: "Rule", sortable: true, width: "7%" },
-  { key: "file", label: "File", sortable: true, width: "18%" },
-  { key: "folder", label: "Folder", sortable: true, width: "16%" },
-  { key: "source", label: "Source", sortable: false, width: "20%" },
-];
-
-// Human-readable byte count (SI units, matching the download notification)
-const formatBytes = (n) => {
-  if (n == null || n < 0) {
-    return "";
-  }
-  if (n < 1000) {
-    return `${n} B`;
-  }
-  if (n < 1000 * 1000) {
-    return `${(n / 1000).toFixed(1)} KB`;
-  }
-  if (n < 1000 * 1000 * 1000) {
-    return `${(n / 1000 / 1000).toFixed(1)} MB`;
-  }
-  return `${(n / 1000 / 1000 / 1000).toFixed(2)} GB`;
-};
-
 // Opens the containing folder for a completed download (best-effort; the
 // browser may have forgotten the download)
 const showInFolder = (downloadId) => {
@@ -563,10 +451,14 @@ const pollHistoryProgress = () => {
           const received = item.bytesReceived || 0;
           const total = item.totalBytes || 0;
           cell.textContent =
-            total > 0 ? `${Math.floor((received / total) * 100)}%` : formatBytes(received);
+            total > 0
+              ? `${Math.floor((received / total) * 100)}%`
+              : HistoryView.formatBytes(received);
           cell.setAttribute(
             "title",
-            total > 0 ? `${formatBytes(received)} / ${formatBytes(total)}` : "",
+            total > 0
+              ? `${HistoryView.formatBytes(received)} / ${HistoryView.formatBytes(total)}`
+              : "",
           );
         } else if (item) {
           // completed/interrupted -> re-render to pick up the stored status+size
@@ -602,34 +494,13 @@ const renderHistoryTable = () => {
   }
 
   const query = historyFilter.trim().toLowerCase();
-  let rows = historyEntries.map(historyRow);
-  const total = rows.length;
-
-  if (query) {
-    rows = rows.filter((r) =>
-      [r.status, r.type, r.file, r.folder, r.source].some((v) => v.toLowerCase().includes(query)),
-    );
-  }
-
-  rows.sort((a, b) => {
-    const av = a[historySort.key];
-    const bv = b[historySort.key];
-    const cmp =
-      historySort.key === "time"
-        ? av.localeCompare(bv)
-        : av.localeCompare(bv, undefined, { numeric: true });
-    return historySort.dir === "asc" ? cmp : -cmp;
+  const { pageRows, matchCount, total, pageCount, page } = HistoryView.paginate(historyEntries, {
+    filter: historyFilter,
+    sort: historySort,
+    page: historyPage,
+    pageSize: HISTORY_PAGE_SIZE,
   });
-
-  const matchCount = rows.length;
-  const pageCount = Math.max(1, Math.ceil(matchCount / HISTORY_PAGE_SIZE));
-  if (historyPage >= pageCount) {
-    historyPage = pageCount - 1;
-  }
-  const pageRows = rows.slice(
-    historyPage * HISTORY_PAGE_SIZE,
-    (historyPage + 1) * HISTORY_PAGE_SIZE,
-  );
+  historyPage = page; // paginate clamped it into range
 
   if (countEl) {
     countEl.textContent = query ? `${matchCount} of ${total}` : total ? `${total} saved` : "";
@@ -649,7 +520,7 @@ const renderHistoryTable = () => {
   table.className = "history-table";
 
   const head = document.createElement("tr");
-  COLUMNS.forEach((col) => {
+  HistoryView.COLUMNS.forEach((col) => {
     const th = document.createElement("th");
     th.textContent = col.label;
     if (col.width) {
@@ -680,14 +551,14 @@ const renderHistoryTable = () => {
 
     const time = document.createElement("td");
     time.className = "history-time";
-    time.textContent = historyTime(r.time);
+    time.textContent = HistoryView.time(r.time);
     tr.appendChild(time);
 
     const status = document.createElement("td");
     status.className = "history-status";
     const badge = document.createElement("span");
-    badge.className = `status-badge ${historyStatusClass(r.status)}`;
-    badge.textContent = historyStatusLabel(r.status);
+    badge.className = `status-badge ${HistoryView.statusClass(r.status)}`;
+    badge.textContent = HistoryView.statusLabel(r.status);
     badge.title = r.status;
     status.appendChild(badge);
     // Open the file's folder for completed downloads the browser still knows
@@ -710,7 +581,7 @@ const renderHistoryTable = () => {
       size.setAttribute("data-download-id", String(r.downloadId));
       size.textContent = "…";
     } else if (r.size != null) {
-      size.textContent = formatBytes(r.size);
+      size.textContent = HistoryView.formatBytes(r.size);
     }
     tr.appendChild(size);
 
