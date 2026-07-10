@@ -142,11 +142,6 @@ const Variable = {
       .replace(/[^0-9a-z].*$/i, "");
   },
 
-  // Content hashing has to pull the whole file into memory, so it is capped
-  // (files bigger than this are skipped, not buffered) and time-limited.
-  HASH_MAX_BYTES: 256 * 1024 * 1024,
-  HASH_FETCH_TIMEOUT_MS: 30000,
-
   // Lazily HEAD the URL once per download (cached as a promise on the info bag,
   // so every :mime:/:mimeext:/:finalurl: occurrence — path and route — shares
   // one request) and read its Content-Type and post-redirect URL. Times out so
@@ -181,47 +176,20 @@ const Variable = {
 
   resolveMime: async (opts) => (await Variable.resolveHead(opts)).contentType,
 
-  // Lazily GET the URL's bytes once per download (cached on the info bag so
-  // every :sha256: shares a single fetch) for content hashing. This is a full,
-  // separate download of the file at path-compute time — see the note in the
-  // variable list — so it is capped via Content-Length and byte length, and
-  // timed out; resolves to null on failure or over-cap so a hash can never
+  // Fetch the file's content once per download (cached on the info bag so every
+  // :sha256: shares it — and the download reuses the same fetch rather than
+  // pulling the file down a second time, see Download.resolveContent). Resolves
+  // to { sha256, downloadUrl } or null on failure/over-cap so a hash can never
   // block a save.
-  resolveBody: (opts) => {
-    if (opts.bodyPromise) {
-      return opts.bodyPromise;
+  resolveContent: (opts) => {
+    if (opts.contentPromise) {
+      return opts.contentPromise;
     }
-    opts.bodyPromise = (async () => {
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), Variable.HASH_FETCH_TIMEOUT_MS);
-      try {
-        const res = await fetch(opts.url, { credentials: "include", signal: controller.signal });
-        if (!res.ok) {
-          return null;
-        }
-        if (Number(res.headers.get("Content-Length")) > Variable.HASH_MAX_BYTES) {
-          return null;
-        }
-        const buf = await res.arrayBuffer();
-        return buf.byteLength > Variable.HASH_MAX_BYTES ? null : buf;
-      } catch {
-        return null;
-      } finally {
-        clearTimeout(timer);
-      }
-    })();
-    return opts.bodyPromise;
-  },
-
-  // Lowercase hex digest of the fetched bytes (Web Crypto — native in the SW,
-  // event page, and Node). Empty string if the body can't be fetched/hashed.
-  resolveHash: async (opts, algorithm) => {
-    const buf = await Variable.resolveBody(opts);
-    if (!buf) {
-      return "";
-    }
-    const digest = await crypto.subtle.digest(algorithm, buf);
-    return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
+    opts.contentPromise =
+      opts.url && typeof Download !== "undefined" && Download.resolveContent
+        ? Download.resolveContent(opts.url)
+        : Promise.resolve(null);
+    return opts.contentPromise;
   },
 
   // Transformers are called as (info, token, index, tokens); most only
@@ -326,10 +294,16 @@ const Variable = {
         Path.PathSegment.String(
           opts.preview ? "" : Variable.mimeToExtension(await Variable.resolveMime(opts)),
         ),
-    // Async: SHA-256 of the file's content (fetches the bytes — see resolveBody).
-    // Useful for content-addressed / deduplicated names. Blank in preview.
+    // Async: SHA-256 of the file's content (fetches the bytes once — see
+    // resolveContent). Useful for content-addressed / dedup names. Blank in preview.
     [SPECIAL_DIRS.SHA256]:
-      async opts => Path.PathSegment.String(opts.preview ? "" : await Variable.resolveHash(opts, "SHA-256")),
+      async opts => {
+        if (opts.preview) {
+          return Path.PathSegment.String("");
+        }
+        const content = await Variable.resolveContent(opts);
+        return Path.PathSegment.String(content ? content.sha256 : "");
+      },
     // Async: the URL after following redirects, from the same HEAD as :mime:.
     [SPECIAL_DIRS.FINAL_URL]:
       async opts => Path.PathSegment.String(opts.preview ? "" : (await Variable.resolveHead(opts)).finalUrl),

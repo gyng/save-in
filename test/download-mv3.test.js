@@ -192,6 +192,31 @@ describe("offscreen document fetch (Chrome MV3)", () => {
     global.chrome.runtime.sendMessage = jest.fn(() => Promise.resolve({ error: "HTTP 403" }));
     await expect(Download.fetchViaOffscreen("https://x/a")).rejects.toThrow("HTTP 403");
   });
+
+  test("resolveContent fetches once via offscreen, returning hash + download URL", async () => {
+    global.chrome.runtime.sendMessage = jest.fn(() =>
+      Promise.resolve({ blobUrl: "blob:offscreen-url", hash: "deadbeef" }),
+    );
+    const content = await Download.resolveContent("https://x/a");
+    // one offscreen fetch, asked to hash the same bytes it blob-ifies
+    expect(global.chrome.runtime.sendMessage).toHaveBeenCalledWith(
+      expect.objectContaining({ type: "OFFSCREEN_FETCH", url: "https://x/a", hash: "SHA-256" }),
+    );
+    expect(content).toEqual({ sha256: "deadbeef", downloadUrl: "blob:offscreen-url" });
+  });
+
+  test("resolveContent resolves null when the offscreen fetch fails", async () => {
+    global.chrome.runtime.sendMessage = jest.fn(() => Promise.resolve({ error: "HTTP 500" }));
+    await expect(Download.resolveContent("https://x/a")).resolves.toBeNull();
+  });
+
+  test("resolveContent tolerates a missing hash (large-file skip) but still downloads", async () => {
+    global.chrome.runtime.sendMessage = jest.fn(() =>
+      Promise.resolve({ blobUrl: "blob:offscreen-url" }),
+    );
+    const content = await Download.resolveContent("https://x/a");
+    expect(content).toEqual({ sha256: "", downloadUrl: "blob:offscreen-url" });
+  });
 });
 
 describe("onDeterminingFilename listener (Chrome)", () => {

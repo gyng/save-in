@@ -2,6 +2,7 @@
 // staged unpacked build over CDP, and drives the real extension. Tests in
 // this file are sequential and build on each other's state.
 
+import crypto from "crypto";
 import fs from "fs";
 import http from "http";
 import path from "path";
@@ -437,6 +438,57 @@ test("fetchViaFetch downloads via an offscreen document (Chrome MV3)", async () 
 
   const file = path.join(DOWNLOADS, "e2e", "viafetch.txt");
   expect(fs.readFileSync(file, "utf8")).toBe("via fetch content");
+});
+
+test(":sha256: hashes and saves from a single fetch (Chrome MV3)", async () => {
+  // The file is named by its own content hash. That hash requires the bytes,
+  // so the offscreen document fetches once, digests, and the save reuses that
+  // same fetch's blob URL — the server must be hit exactly once, not twice.
+  const body = "share this fetch once";
+  const expectedHash = crypto.createHash("sha256").update(body).digest("hex");
+  let hits = 0;
+  const server = http.createServer((req, res) => {
+    hits += 1;
+    res.writeHead(200, { "Content-Type": "application/octet-stream" });
+    res.end(body);
+  });
+  await new Promise((res) => {
+    server.listen(8921, "127.0.0.1", res);
+  });
+
+  try {
+    await evalSW(
+      `browser.storage.local.set({ filenamePatterns: "" })
+        .then(() => window.reset())
+        .then(() => {
+          Notifier.expectDownload();
+          return Download.renameAndDownload({
+            path: new Path.Path("e2e/:sha256:"),
+            scratch: {},
+            info: {
+              url: "http://127.0.0.1:8921/hashme.bin",
+              suggestedFilename: "hashme.bin",
+              pageUrl: "http://127.0.0.1:8921/",
+              modifiers: [],
+            },
+          });
+        }).then(() => "started")`,
+    );
+
+    const rows = await waitForDownloads(expectedHash, 10000);
+    const done = rows.find((r) => r.state === "complete");
+    expect(done).toBeTruthy();
+
+    // The content hash appears in the saved path (here as the destination
+    // folder, since the pattern is a directory) and the bytes are intact...
+    expect(done.filename).toContain(expectedHash);
+    expect(fs.readFileSync(done.filename, "utf8")).toBe(body);
+    // ...and the origin server was fetched exactly once: the hash fetch's bytes
+    // were reused for the save instead of downloading the file a second time
+    expect(hits).toBe(1);
+  } finally {
+    server.close();
+  }
 });
 
 test("options page autosave persists to storage and survives a restart", async () => {

@@ -186,6 +186,60 @@ const Download = {
         return res.blobUrl;
       }),
 
+  // Content hashing pulls the whole file into memory, so it is capped (bigger
+  // files are skipped) and time-limited.
+  HASH_MAX_BYTES: 256 * 1024 * 1024,
+  HASH_FETCH_TIMEOUT_MS: 30000,
+
+  // Fetch a URL's content ONCE and resolve to both its SHA-256 (hex) and a
+  // reusable download URL, so a :sha256: download isn't fetched a second time
+  // to save it. On Chrome the fetch/hash/blob-URL happen together in the
+  // offscreen document (a service worker can't createObjectURL); on the Firefox
+  // event page it's all in-context. Resolves to null on failure / over-cap so
+  // the caller falls back to a normal fetch.
+  resolveContent: (url) => {
+    if (Download.canUseOffscreen()) {
+      return Download.ensureOffscreen()
+        .then(() =>
+          chrome.runtime.sendMessage({
+            type: MESSAGE_TYPES.OFFSCREEN_FETCH,
+            url,
+            hash: "SHA-256",
+            maxBytes: Download.HASH_MAX_BYTES,
+          }),
+        )
+        .then((res) =>
+          res && res.blobUrl ? { sha256: res.hash || "", downloadUrl: res.blobUrl } : null,
+        )
+        .catch(() => null);
+    }
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), Download.HASH_FETCH_TIMEOUT_MS);
+    return fetch(url, { credentials: "include", signal: controller.signal })
+      .then((res) => {
+        if (!res.ok || Number(res.headers.get("Content-Length")) > Download.HASH_MAX_BYTES) {
+          return null;
+        }
+        return res.blob();
+      })
+      .then((blob) => {
+        if (!blob || blob.size > Download.HASH_MAX_BYTES) {
+          return null;
+        }
+        return blob.arrayBuffer().then((buf) =>
+          crypto.subtle.digest("SHA-256", buf).then((digest) => ({
+            sha256: [...new Uint8Array(digest)]
+              .map((b) => b.toString(16).padStart(2, "0"))
+              .join(""),
+            downloadUrl: URL.createObjectURL(blob),
+          })),
+        );
+      })
+      .catch(() => null)
+      .finally(() => clearTimeout(timer));
+  },
+
   getFilenameFromUrl: (url) => {
     let segment;
     try {
@@ -410,25 +464,43 @@ const Download = {
         },
       });
 
-      if (options.fetchViaContent) {
-        Messaging.send
-          .fetchViaContent(_state)
-          .then((res) =>
-            // Object URL has to be created inside the background script
-            Download.makeUrlFromBlob(res.body.blob).then((blobUrl) =>
-              browserDownload(blobUrl, true),
-            ),
-          )
-          .catch((e) => {
-            if (window.SI_DEBUG) {
-              console.log("Failed to fetch via content", e); // eslint-disable-line
-            }
-            browserDownload(_state.info.url);
-          });
-      } else if (options.fetchViaFetch) {
-        fetchDownload(_state.info.url);
+      const normalDownload = () => {
+        if (options.fetchViaContent) {
+          Messaging.send
+            .fetchViaContent(_state)
+            .then((res) =>
+              // Object URL has to be created inside the background script
+              Download.makeUrlFromBlob(res.body.blob).then((blobUrl) =>
+                browserDownload(blobUrl, true),
+              ),
+            )
+            .catch((e) => {
+              if (window.SI_DEBUG) {
+                console.log("Failed to fetch via content", e); // eslint-disable-line
+              }
+              browserDownload(_state.info.url);
+            });
+        } else if (options.fetchViaFetch) {
+          fetchDownload(_state.info.url);
+        } else {
+          browserDownload(_state.info.url);
+        }
+      };
+
+      // A :sha256: (or other content) variable already fetched the whole file
+      // to hash it; reuse that one fetch's download URL instead of fetching the
+      // file a second time to save it. Falls back to the normal path if the
+      // shared fetch failed (contentPromise resolved to null).
+      if (_state.info.contentPromise) {
+        _state.info.contentPromise.then((content) => {
+          if (content && content.downloadUrl) {
+            browserDownload(content.downloadUrl, true);
+          } else {
+            normalDownload();
+          }
+        });
       } else {
-        browserDownload(_state.info.url);
+        normalDownload();
       }
 
       Messaging.emit.downloaded(_state);

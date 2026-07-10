@@ -33,12 +33,13 @@ interface StateInfo {
   initialFilename?: string;
 
   // preview: true suppresses side-effectful variables (:counter:, :mime:,
-  // :sha256:) in the options-page dry-run; counter/headPromise/bodyPromise cache
-  // the resolved value so every occurrence in one download shares it
+  // :sha256:) in the options-page dry-run; counter/headPromise/contentPromise
+  // cache the resolved value so every occurrence in one download shares it —
+  // and the download reuses contentPromise's fetch instead of re-downloading
   preview?: boolean;
   counter?: number;
   headPromise?: Promise<{ contentType: string; finalUrl: string }>;
-  bodyPromise?: Promise<ArrayBuffer | null>;
+  contentPromise?: Promise<{ sha256: string; downloadUrl: string } | null>;
 }
 
 // the per-download state threaded through the rename/route/download pipeline

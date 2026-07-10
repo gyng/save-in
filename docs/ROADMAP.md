@@ -422,16 +422,18 @@ the **one plumbing investment**: convert `Variable.applyVariables` to async.
    - **`:finalurl:`/`:redirecturl:`** — URL after redirects, from the HEAD/fetch.
    - **`:uuid:`** — _shipped._ Sync `crypto.randomUUID()` (secure context in the
      SW, event page and Node). Fresh per use.
-   - **`:sha256:` / `:md5:` (content hash)** — feasible but tied to fetching the
-     bytes. SHA-256 is native via `crypto.subtle.digest("SHA-256", buf)` (SW +
-     event page); **MD5 is not in Web Crypto**, so it needs a small vendored
-     pure-JS implementation. Hashing the *content* means an extra fetch at
-     path-compute time (same plumbing as `:mime:`, and same redirect/auth
-     caveats) — do it alongside §8.5's fetch path, not standalone. Hashing the
-     *URL string* is cheaper (no fetch, still async via `crypto.subtle`) but far
-     less useful. Recommendation: ship `:sha256:` (content) with the fetch
-     plumbing; treat `:md5:` as opt-in only if a user needs server-ETag parity
-     (it's legacy + needs the vendored lib).
+   - **`:sha256:`** — _shipped._ SHA-256 of the content, native via
+     `crypto.subtle.digest`. Content hashing needs the bytes, so it fetches the
+     file — but that **one fetch is shared with the save**: `Download.resolveContent`
+     fetches once (in the offscreen document on Chrome, in-context on the event
+     page), digests, and hands the download a reusable blob URL, so a hashed save
+     is not downloaded twice (`info.contentPromise`; e2e asserts a single origin
+     hit). Presence of `:sha256:` therefore forces the blob download path. Capped
+     (`HASH_MAX_BYTES`) + timed out; blank on failure so it never blocks a save.
+   - **`:md5:` (content hash)** — _held._ **MD5 is not in Web Crypto**, so it
+     needs a small vendored pure-JS implementation; it's legacy and only buys
+     server-ETag parity. Ship only if a user needs it (it would reuse
+     `resolveContent`'s single fetch, same as `:sha256:`).
    - _Not worth it:_ `:filesize:` (known only post-download — drop),
      `:clipboard:` (no worker clipboard; content-script round-trip — low value),
      image dimensions (decode the blob — niche). `:urlmatch:(regex):` is

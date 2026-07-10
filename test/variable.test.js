@@ -546,22 +546,31 @@ describe(":mime: / :contenttype: / :mimeext: (async HEAD)", () => {
 });
 
 describe(":sha256: (async content hash)", () => {
+  // resolveContent (jsdom takes the in-context branch: fetch -> blob ->
+  // arrayBuffer -> digest -> createObjectURL). Stub createObjectURL so the fake
+  // blob is accepted; the test only asserts the hash, not the URL.
+  let origCreateObjectURL;
   const mockBody = (text, extraHeaders = {}) => {
+    const buf = new TextEncoder().encode(text).buffer;
     global.fetch = vi.fn(() =>
       Promise.resolve({
         ok: true,
         headers: { get: (h) => extraHeaders[h] ?? null },
-        arrayBuffer: () => Promise.resolve(new TextEncoder().encode(text).buffer),
+        blob: () =>
+          Promise.resolve({ size: buf.byteLength, arrayBuffer: () => Promise.resolve(buf) }),
       }),
     );
   };
 
   beforeEach(() => {
     global.options = { replacementChar: "_" };
+    origCreateObjectURL = URL.createObjectURL;
+    URL.createObjectURL = vi.fn(() => "blob:mock");
   });
 
   afterEach(() => {
     delete global.fetch;
+    URL.createObjectURL = origCreateObjectURL;
   });
 
   test(":sha256: is the lowercase hex SHA-256 of the fetched bytes", async () => {
@@ -595,9 +604,10 @@ describe(":sha256: (async content hash)", () => {
       Promise.resolve({
         ok: true,
         headers: {
-          get: (h) => (h === "Content-Length" ? String(Variable.HASH_MAX_BYTES + 1) : null),
+          get: (h) => (h === "Content-Length" ? String(Download.HASH_MAX_BYTES + 1) : null),
         },
-        arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)),
+        blob: () =>
+          Promise.resolve({ size: 0, arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)) }),
       }),
     );
     const out = (

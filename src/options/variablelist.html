@@ -310,8 +310,9 @@
           <td>ba7816bf&hellip;</td>
           <td>
             SHA-256 of the file's content, as lowercase hex &mdash; for content-addressed or
-            deduplicated names. <strong>Downloads the file to hash it</strong> (extra bandwidth and
-            a delay before the save); skipped for very large files and blank if it can't be fetched.
+            deduplicated names. <strong>Fetches the file to hash it</strong>, then saves from that
+            same fetch (no second download); adds a small delay, is skipped for very large files,
+            and is blank if it can't be fetched.
           </td>
         </tr>
 
