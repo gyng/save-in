@@ -35,7 +35,16 @@ testing on Chromium!
   cross-origin requests, so it only helps for same-origin/CORS downloads
 - Waterfox and other Gecko forks are now detected as Firefox, and browser
   detection is synchronous (#186)
-- Removed vendored libraries for easier store review: the webextension
+- Tabbed options page with a refreshed system-font design; fixed a stale
+  event-listener leak and a settings-import that never persisted
+- A bad routing-rule regex is now dropped instead of matching everything;
+  malformed URLs, absent capture groups, and info-less external messages no
+  longer abort downloads
+- The Firefox-only  conflict action is downgraded on Chrome, where
+  it silently broke all downloads (#89, #217); a fresh install's default
+  Downloads menu item shows a name instead of "." (#213)
+- HTML-redirect shortcuts escape the target URL
+- - Removed vendored libraries for easier store review: the webextension
   polyfill is a 6-line first-party shim (Chrome minimum raised to 123 for
   promise-capable contextMenus), the options-page autocomplete and l10n are
   small first-party rewrites — this also revives autocomplete, whose event
