@@ -213,15 +213,34 @@ const Notifier = {
       // whether success/failure notifications are enabled)
       const recordHistoryStatus = (status) => {
         if (
-          typeof Download !== "undefined" &&
-          Download.startedDownloads &&
-          typeof SaveHistory !== "undefined"
+          typeof Download === "undefined" ||
+          !Download.startedDownloads ||
+          typeof SaveHistory === "undefined"
         ) {
-          const record = Download.startedDownloads.get(downloadDelta.id);
-          if (record && record.historyEntryId) {
-            SaveHistory.setStatus(record.historyEntryId, status, downloadDelta.id);
-          }
+          return;
         }
+        const record = Download.startedDownloads.get(downloadDelta.id);
+        if (!record || !record.historyEntryId) {
+          return;
+        }
+        // On completion, record the final file size in the history entry too
+        if (status === "complete") {
+          browser.downloads
+            .search({ id: downloadDelta.id })
+            .then((items) => {
+              const item = items && items[0];
+              const size = item ? (item.fileSize > 0 ? item.fileSize : item.totalBytes) : 0;
+              SaveHistory.setStatus(
+                record.historyEntryId,
+                status,
+                downloadDelta.id,
+                size > 0 ? size : null,
+              );
+            })
+            .catch(() => SaveHistory.setStatus(record.historyEntryId, status, downloadDelta.id));
+          return;
+        }
+        SaveHistory.setStatus(record.historyEntryId, status, downloadDelta.id);
       };
 
       if (

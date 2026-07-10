@@ -338,6 +338,11 @@ const Download = {
               retried: false,
               historyEntryId,
             });
+            // Bind the download id to the history entry now so the options page
+            // can poll its progress while it is still downloading
+            if (typeof SaveHistory !== "undefined" && historyEntryId) {
+              SaveHistory.setDownloadId(historyEntryId, downloadId);
+            }
             return Notifier.trackDownload(downloadId);
           })
           .catch((e) => {

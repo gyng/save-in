@@ -1503,6 +1503,12 @@ code.click-to-copy {
   opacity: 1;
 }
 
+.history-size {
+  color: var(--grey50);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
 .history-type {
   text-transform: capitalize;
 }

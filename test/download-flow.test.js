@@ -108,7 +108,7 @@ beforeEach(() => {
       return Promise.resolve();
     }),
   };
-  global.SaveHistory = { add: jest.fn(() => Promise.resolve()) };
+  global.SaveHistory = { add: jest.fn(() => Promise.resolve()), setDownloadId: jest.fn() };
   global.Log = { add: jest.fn() };
 
   global.browser.i18n.getMessage = jest.fn((key) => key);
@@ -799,7 +799,7 @@ describe("concurrent downloads (pendingStates)", () => {
       createExtensionNotification: vi.fn(),
       expectDownload: vi.fn(),
     };
-    global.SaveHistory = { add: vi.fn() };
+    global.SaveHistory = { add: vi.fn(), setDownloadId: vi.fn() };
     global.SessionState = {
       available: () => true,
       get: vi.fn((key) => Promise.resolve({ [key]: sessionStore[key] })),

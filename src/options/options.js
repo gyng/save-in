@@ -395,20 +395,39 @@ const historyRow = (entry) => {
     fullPath: entry.finalFullPath || "",
     source: info.sourceUrl || entry.url || info.pageUrl || "",
     downloadId: typeof entry.downloadId === "number" ? entry.downloadId : null,
+    size: typeof entry.fileSize === "number" ? entry.fileSize : null,
   };
 };
 
 // width is a percentage weight (the table is table-layout: fixed, so the
 // header cells set the column widths)
 const COLUMNS = [
-  { key: "time", label: "Saved", sortable: true, width: "15%" },
+  { key: "time", label: "Saved", sortable: true, width: "14%" },
   { key: "status", label: "Status", sortable: true, width: "10%" },
-  { key: "type", label: "Type", sortable: true, width: "7%" },
-  { key: "routed", label: "Rule", sortable: true, width: "8%" },
-  { key: "file", label: "File", sortable: true, width: "20%" },
-  { key: "folder", label: "Folder", sortable: true, width: "18%" },
-  { key: "source", label: "Source", sortable: false, width: "22%" },
+  { key: "size", label: "Size", sortable: true, width: "9%" },
+  { key: "type", label: "Type", sortable: true, width: "6%" },
+  { key: "routed", label: "Rule", sortable: true, width: "7%" },
+  { key: "file", label: "File", sortable: true, width: "18%" },
+  { key: "folder", label: "Folder", sortable: true, width: "16%" },
+  { key: "source", label: "Source", sortable: false, width: "20%" },
 ];
+
+// Human-readable byte count (SI units, matching the download notification)
+const formatBytes = (n) => {
+  if (n == null || n < 0) {
+    return "";
+  }
+  if (n < 1000) {
+    return `${n} B`;
+  }
+  if (n < 1000 * 1000) {
+    return `${(n / 1000).toFixed(1)} KB`;
+  }
+  if (n < 1000 * 1000 * 1000) {
+    return `${(n / 1000 / 1000).toFixed(1)} MB`;
+  }
+  return `${(n / 1000 / 1000 / 1000).toFixed(2)} GB`;
+};
 
 // Opens the containing folder for a completed download (best-effort; the
 // browser may have forgotten the download)
@@ -420,6 +439,72 @@ const showInFolder = (downloadId) => {
     browser.downloads.show(downloadId);
   } catch (e) {
     // download no longer known to the browser
+  }
+};
+
+// Live progress for still-downloading history rows. Each pending row with a
+// download id renders a `.history-progress[data-download-id]` cell; while any
+// exist, poll the browser and fill in the percentage / bytes. When one finishes
+// we re-render so it picks up the stored final status and size.
+let historyProgressTimer = null;
+
+const stopHistoryProgress = () => {
+  if (historyProgressTimer) {
+    clearInterval(historyProgressTimer);
+    historyProgressTimer = null;
+  }
+};
+
+const pollHistoryProgress = () => {
+  const cells = document.querySelectorAll(".history-progress[data-download-id]");
+  if (cells.length === 0 || !browser.downloads || !browser.downloads.search) {
+    stopHistoryProgress();
+    return;
+  }
+  browser.downloads
+    .search({})
+    .then((items) => {
+      const byId = {};
+      items.forEach((it) => {
+        byId[it.id] = it;
+      });
+      let anyInProgress = false;
+      let anyFinished = false;
+      cells.forEach((cell) => {
+        const item = byId[Number(cell.getAttribute("data-download-id"))];
+        if (item && item.state === "in_progress") {
+          anyInProgress = true;
+          const received = item.bytesReceived || 0;
+          const total = item.totalBytes || 0;
+          cell.textContent =
+            total > 0 ? `${Math.floor((received / total) * 100)}%` : formatBytes(received);
+          cell.setAttribute(
+            "title",
+            total > 0 ? `${formatBytes(received)} / ${formatBytes(total)}` : "",
+          );
+        } else if (item) {
+          // completed/interrupted -> re-render to pick up the stored status+size
+          anyFinished = true;
+        } else {
+          // the browser no longer knows this download: stop polling this cell
+          cell.textContent = "—";
+          cell.removeAttribute("data-download-id");
+        }
+      });
+      if (anyFinished) {
+        renderHistoryTable();
+      } else if (!anyInProgress) {
+        stopHistoryProgress();
+      }
+    })
+    .catch(() => {});
+};
+
+const startHistoryProgress = () => {
+  stopHistoryProgress();
+  if (document.querySelector(".history-progress[data-download-id]")) {
+    historyProgressTimer = setInterval(pollHistoryProgress, 1000);
+    pollHistoryProgress();
   }
 };
 
@@ -531,6 +616,18 @@ const renderHistoryTable = () => {
     }
     tr.appendChild(status);
 
+    const size = document.createElement("td");
+    size.className = "history-size";
+    if (r.status === "pending" && r.downloadId != null) {
+      // filled and updated live by the progress poller below
+      size.classList.add("history-progress");
+      size.setAttribute("data-download-id", String(r.downloadId));
+      size.textContent = "…";
+    } else if (r.size != null) {
+      size.textContent = formatBytes(r.size);
+    }
+    tr.appendChild(size);
+
     const type = document.createElement("td");
     type.className = "history-type";
     type.textContent = r.type;
@@ -609,6 +706,9 @@ const renderHistoryTable = () => {
     pager.appendChild(next);
     container.appendChild(pager);
   }
+
+  // Start/refresh live progress polling for any in-flight downloads on the page
+  startHistoryProgress();
 };
 
 const renderHistory = async () => {

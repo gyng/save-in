@@ -38,10 +38,9 @@ const SaveHistory = {
     return id;
   },
 
-  // Records the final outcome ("complete" or a browser error name) and the
-  // browser download id (so the options page can open the file's folder)
-  // against the entry created by add()
-  setStatus: (id, status, downloadId) => {
+  // Serialised patch of one entry by id (concurrent read-modify-write drops
+  // entries, so it goes through the same queue as add())
+  patch: (id, fields) => {
     if (!id) {
       return SaveHistory.writeQueue;
     }
@@ -49,14 +48,31 @@ const SaveHistory = {
       .then(() => browser.storage.local.get(HISTORY_KEY))
       .then((res) => {
         const history = (res && res[HISTORY_KEY]) || [];
-        const patch = downloadId != null ? { status, downloadId } : { status };
-        const next = history.map((e) => (e.id === id ? Object.assign({}, e, patch) : e));
+        const next = history.map((e) => (e.id === id ? Object.assign({}, e, fields) : e));
         return browser.storage.local.set({ [HISTORY_KEY]: next });
       })
       .catch(() => {});
 
     return SaveHistory.writeQueue;
   },
+
+  // Records the final outcome ("complete" or a browser error name), the browser
+  // download id (so the options page can open the file's folder or poll
+  // progress), and the file size in bytes when known
+  setStatus: (id, status, downloadId, fileSize) => {
+    const fields = { status };
+    if (downloadId != null) {
+      fields.downloadId = downloadId;
+    }
+    if (fileSize != null) {
+      fields.fileSize = fileSize;
+    }
+    return SaveHistory.patch(id, fields);
+  },
+
+  // Binds the browser download id to the entry as soon as the download starts,
+  // so the options page can poll its progress while it is still in flight
+  setDownloadId: (id, downloadId) => SaveHistory.patch(id, { downloadId }),
 
   get: async () => {
     const current = (await browser.storage.local.get(HISTORY_KEY)) || {};

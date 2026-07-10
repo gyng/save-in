@@ -134,13 +134,19 @@ test("download completes through the real pipeline with session tracking", async
     .then(() => Promise.all([
       browser.downloads.search({ filenameRegex: "smoke" }),
       browser.storage.session.get(null),
+      browser.storage.local.get("save-in-history"),
     ]))
-    .then(([d, sess]) => JSON.stringify({
-      state: d[0] && d[0].state,
-      tracked: sess.siTrackedDownloads || [],
-      pending: sess.siPendingDownloads || 0,
-      finalFilenames: sess.siFinalFilenames || {},
-    }))`),
+    .then(([d, sess, hist]) => {
+      const entries = (hist["save-in-history"] || []).filter((e) => (e.finalFullPath || "").includes("smoke"));
+      const entry = entries[entries.length - 1] || {};
+      return JSON.stringify({
+        state: d[0] && d[0].state,
+        tracked: sess.siTrackedDownloads || [],
+        pending: sess.siPendingDownloads || 0,
+        finalFilenames: sess.siFinalFilenames || {},
+        entry: { status: entry.status, hasDownloadId: typeof entry.downloadId === "number", fileSize: entry.fileSize },
+      });
+    })`),
   );
 
   expect(result.state).toBe("complete");
@@ -150,6 +156,10 @@ test("download completes through the real pipeline with session tracking", async
   expect(result.tracked).toEqual([]);
   expect(result.pending).toBe(0);
   expect(result.finalFilenames).toEqual({});
+  // the history entry recorded completion, the download id, and the file size
+  expect(result.entry.status).toBe("complete");
+  expect(result.entry.hasDownloadId).toBe(true);
+  expect(result.entry.fileSize).toBe("e2e smoke test content".length);
 
   const file = path.join(DOWNLOADS, "e2e", "smoke.txt");
   expect(fs.readFileSync(file, "utf8")).toBe("e2e smoke test content");

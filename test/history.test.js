@@ -59,6 +59,30 @@ describe("SaveHistory", () => {
     expect(store[HISTORY_KEY][0].status).toBe("pending");
   });
 
+  test("setStatus records the download id and file size", async () => {
+    const id = SaveHistory.add({ url: "https://a/1" });
+    await flushWrites();
+
+    SaveHistory.setStatus(id, "complete", 42, 123456);
+    await flushWrites();
+
+    expect(store[HISTORY_KEY][0]).toMatchObject({
+      status: "complete",
+      downloadId: 42,
+      fileSize: 123456,
+    });
+  });
+
+  test("setDownloadId binds the id without changing status", async () => {
+    const id = SaveHistory.add({ url: "https://a/1" });
+    await flushWrites();
+
+    SaveHistory.setDownloadId(id, 7);
+    await flushWrites();
+
+    expect(store[HISTORY_KEY][0]).toMatchObject({ status: "pending", downloadId: 7 });
+  });
+
   test("get returns the entry list", async () => {
     store[HISTORY_KEY] = [{ url: "https://a/1" }];
     await expect(SaveHistory.get()).resolves.toEqual([{ url: "https://a/1" }]);
