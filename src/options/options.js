@@ -6,6 +6,41 @@ const getOptionsSchema = browser.runtime
   })
   .catch(console.error);
 
+// Latest interpolated variables from the most recent CHECK_ROUTES; read by
+// the once-bound #see-variables-btn handler (see updateErrors)
+let latestInterpolatedVariables = null;
+
+const renderVariablesTable = () => {
+  if (!latestInterpolatedVariables) {
+    return;
+  }
+  const tableBody = document.querySelector("#variables-body");
+  tableBody.classList.toggle("hide");
+  tableBody.innerHTML = "";
+
+  Object.keys(latestInterpolatedVariables).forEach((key) => {
+    const val = latestInterpolatedVariables[key];
+
+    const variableRow = document.createElement("tr");
+
+    const nameEl = document.createElement("td");
+    nameEl.textContent = key;
+    nameEl.classList.add("click-to-copy");
+    nameEl.classList.add("code");
+    addClickToCopy(nameEl);
+
+    const interpolatedEl = document.createElement("td");
+    interpolatedEl.style.fontFamily = "monospace";
+    interpolatedEl.textContent = val;
+
+    variableRow.appendChild(nameEl);
+    variableRow.appendChild(interpolatedEl);
+    tableBody.appendChild(variableRow);
+  });
+};
+
+document.querySelector("#see-variables-btn")?.addEventListener("click", renderVariablesTable);
+
 const updateErrors = () => {
   const pathsErrors = document.querySelector("#error-paths");
   const lastDlMatch = document.querySelector("#last-dl-match");
@@ -66,33 +101,10 @@ const updateErrors = () => {
     if (hasLastDownload) {
       document.querySelector("#variables-table-row").classList.toggle("hide", !hasLastDownload);
     }
-    document.querySelector("#see-variables-btn").addEventListener("click", () => {
-      if (body.interpolatedVariables) {
-        const tableBody = document.querySelector("#variables-body");
-        tableBody.classList.toggle("hide");
-        tableBody.innerHTML = "";
-
-        Object.keys(body.interpolatedVariables).forEach((key) => {
-          const val = body.interpolatedVariables[key];
-
-          const variableRow = document.createElement("tr");
-
-          const nameEl = document.createElement("td");
-          nameEl.textContent = key;
-          nameEl.classList.add("click-to-copy");
-          nameEl.classList.add("code");
-          addClickToCopy(nameEl);
-
-          const interpolatedEl = document.createElement("td");
-          interpolatedEl.style.fontFamily = "monospace";
-          interpolatedEl.textContent = val;
-
-          variableRow.appendChild(nameEl);
-          variableRow.appendChild(interpolatedEl);
-          tableBody.appendChild(variableRow);
-        });
-      }
-    });
+    // The #see-variables-btn click handler is bound once below; updateErrors
+    // only refreshes the data it reads. Binding here would leak a listener on
+    // every autosave and make the toggle unpredictable.
+    latestInterpolatedVariables = body.interpolatedVariables;
 
     // Capture groups
     const hasCaptureMatches = body.routeInfo && Array.isArray(body.routeInfo.captures);
@@ -369,6 +381,10 @@ const importSettings = () => {
         if (json) {
           const settings = JSON.parse(json);
           restoreOptionsHandler(settings, schema);
+          // Programmatic value assignment doesn't fire input/change, so
+          // persist explicitly — otherwise the import shows in the form but
+          // is never saved or applied to the background
+          saveOptions();
           w.alert("Settings loaded.");
         }
       } catch (e) {
