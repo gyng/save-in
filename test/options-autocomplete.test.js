@@ -35,6 +35,21 @@ describe("suggestFor", () => {
     expect(suggestFor("images/:zz", [pathVariableStrategy(VARIABLES)])).toBeNull();
   });
 
+  test("opens on a bare colon at a token boundary (the opening)", () => {
+    // start of a segment: after "/", after whitespace, and at line start
+    expect(suggestFor("images/:", [pathVariableStrategy(VARIABLES)]).suggestions).toEqual(
+      VARIABLES,
+    );
+    expect(suggestFor("a :", [pathVariableStrategy(VARIABLES)]).suggestions).toEqual(VARIABLES);
+    expect(suggestFor("x\n:", [pathVariableStrategy(VARIABLES)]).suggestions).toEqual(VARIABLES);
+  });
+
+  test("does not open on a colon that follows a letter or digit", () => {
+    expect(suggestFor("notes:d", [pathVariableStrategy(VARIABLES)])).toBeNull();
+    expect(suggestFor("2024:d", [pathVariableStrategy(VARIABLES)])).toBeNull();
+    expect(suggestFor("into: v1:2:d", [routerVariableStrategy(VARIABLES)])).toBeNull();
+  });
+
   test("falls through to later strategies", () => {
     const result = suggestFor("filename: x\ninto: :d", [
       matcherStrategy(MATCHERS),
@@ -157,6 +172,20 @@ describe("attachAutocomplete", () => {
     type("a/:d");
     textarea.dispatchEvent(new window.FocusEvent("blur"));
     expect(dropdown().style.display).toBe("none");
+  });
+
+  test("a press outside the field and dropdown closes it", () => {
+    type("a/:d");
+    expect(dropdown().style.display).toBe("block");
+
+    document.body.dispatchEvent(new window.MouseEvent("mousedown", { bubbles: true }));
+    expect(dropdown().style.display).toBe("none");
+  });
+
+  test("a press inside the dropdown keeps it open", () => {
+    type("a/:d");
+    dropdown().dispatchEvent(new window.MouseEvent("mousedown", { bubbles: true }));
+    expect(dropdown().style.display).toBe("block");
   });
 
   test("mousedown on an entry inserts it", () => {

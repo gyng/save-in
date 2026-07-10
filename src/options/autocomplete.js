@@ -10,15 +10,19 @@ const matcherStrategy = (matcherList) => ({
 });
 
 const routerVariableStrategy = (variableList) => ({
-  // A :variable: being typed in an into: clause
-  match: /(\ninto:.*)(:[a-z]*)$/,
+  // A :variable: being opened in an into: clause. The negative lookbehind keeps
+  // the menu to the opening of a token: the ":" must not follow an alphanumeric
+  // (so "v1:2" or a bare mid-word colon never triggers), then filter by prefix.
+  match: /(\ninto:.*)((?<![a-zA-Z0-9]):[a-z]*)$/,
   suggest: (term) => variableList.filter((name) => name.startsWith(term)),
   insert: (prefix, name) => `${prefix}${name}`,
 });
 
 const pathVariableStrategy = (variableList) => ({
-  // A :variable: being typed anywhere in the paths list
-  match: /(.*)(:[a-z]+)$/,
+  // A :variable: being opened in the paths list — same opening/prefix rule: the
+  // ":" only triggers at a token boundary (start, "/", whitespace or another
+  // ":"), not immediately after a letter or digit
+  match: /(.*)((?<![a-zA-Z0-9]):[a-z]*)$/,
   suggest: (term) => variableList.filter((name) => name.startsWith(term)),
   insert: (prefix, name) => `${prefix}${name}`,
 });
@@ -121,6 +125,9 @@ const attachAutocomplete = (textarea, strategies) => {
   dropdown.className = "autocomplete-dropdown";
   dropdown.style.display = "none";
   document.body.appendChild(dropdown);
+  // Any press inside the dropdown (row, padding, scrollbar) must not blur the
+  // field — keep focus so the list stays open and scrollable
+  dropdown.addEventListener("mousedown", (e) => e.preventDefault());
 
   let current = null; // { result, selected }
 
@@ -213,6 +220,18 @@ const attachAutocomplete = (textarea, strategies) => {
   });
 
   textarea.addEventListener("blur", close);
+
+  // A press anywhere else — outside both the field and its dropdown — dismisses
+  // the list (belt-and-suspenders with blur, and covers non-focus-stealing
+  // targets). Presses inside the dropdown are ignored above, so this never
+  // races the item-accept handler.
+  document.addEventListener("mousedown", (e) => {
+    const target = e.target;
+    if (!current || target === textarea || (target instanceof Node && dropdown.contains(target))) {
+      return;
+    }
+    close();
+  });
 };
 
 const setupRoutingAutocomplete = (keywords) => {
