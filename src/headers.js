@@ -33,6 +33,17 @@ const RequestHeaders = {
   },
 
   DNR_REFERER_RULE_ID: 4077,
+  // Concurrent downloads needing different referers must not share one rule id
+  // (the second would clobber the first). Cycle through a bounded range and
+  // reuse ids (removeRuleIds before addRules), so at most COUNT rules coexist.
+  DNR_REFERER_RULE_COUNT: 50,
+  refererRuleOffset: 0,
+  nextRefererRuleId: () => {
+    const id = RequestHeaders.DNR_REFERER_RULE_ID + RequestHeaders.refererRuleOffset;
+    RequestHeaders.refererRuleOffset =
+      (RequestHeaders.refererRuleOffset + 1) % RequestHeaders.DNR_REFERER_RULE_COUNT;
+    return id;
+  },
 
   // Matches URLs against the newline-separated match patterns in
   // options.setRefererHeaderFilter (e.g., `*://i.pximg.net/*`), following
@@ -104,12 +115,13 @@ const RequestHeaders = {
       return Promise.resolve();
     }
 
+    const ruleId = RequestHeaders.nextRefererRuleId();
     return chrome.declarativeNetRequest
       .updateSessionRules({
-        removeRuleIds: [RequestHeaders.DNR_REFERER_RULE_ID],
+        removeRuleIds: [ruleId],
         addRules: [
           {
-            id: RequestHeaders.DNR_REFERER_RULE_ID,
+            id: ruleId,
             action: {
               type: "modifyHeaders",
               requestHeaders: [{ header: "Referer", operation: "set", value: pageUrl }],
@@ -120,14 +132,14 @@ const RequestHeaders = {
       })
       .then(() => {
         if (typeof Log !== "undefined") {
-          Log.add("referer session rule set", { url, referer: pageUrl });
+          Log.add("referer session rule set", { id: ruleId, url, referer: pageUrl });
         }
 
         // Best-effort cleanup so the rule does not outlive the download
         setTimeout(() => {
           chrome.declarativeNetRequest
             .updateSessionRules({
-              removeRuleIds: [RequestHeaders.DNR_REFERER_RULE_ID],
+              removeRuleIds: [ruleId],
             })
             .catch(() => {});
         }, 30000);

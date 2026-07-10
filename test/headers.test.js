@@ -139,6 +139,8 @@ describe("prepareReferer (MV3 declarativeNetRequest path)", () => {
     global.BROWSERS = { CHROME: "CHROME", FIREFOX: "FIREFOX" };
     global.CURRENT_BROWSER = "FIREFOX";
     RequestHeaders.usingBlockingWebRequest = false;
+    // Rule ids cycle; reset so each test's first rule uses the base id
+    RequestHeaders.refererRuleOffset = 0;
 
     // Simulate MV3: no blocking webRequest, DNR available
     originalWebRequest = global.browser.webRequest;
@@ -244,9 +246,21 @@ describe("prepareReferer (MV3 declarativeNetRequest path)", () => {
     await RequestHeaders.prepareReferer(state);
 
     expect(global.Log.add).toHaveBeenCalledWith("referer session rule set", {
+      id: RequestHeaders.DNR_REFERER_RULE_ID,
       url: state.info.url,
       referer: state.info.pageUrl,
     });
+  });
+
+  test("cycles rule ids so concurrent downloads don't clobber each other", async () => {
+    await RequestHeaders.prepareReferer(state);
+    await RequestHeaders.prepareReferer(state);
+
+    const ids = global.chrome.declarativeNetRequest.updateSessionRules.mock.calls
+      .map((c) => c[0].addRules && c[0].addRules[0].id)
+      .filter((id) => id != null);
+    expect(ids[0]).toBe(RequestHeaders.DNR_REFERER_RULE_ID);
+    expect(ids[1]).toBe(RequestHeaders.DNR_REFERER_RULE_ID + 1);
   });
 
   test("resolves even when the rule cannot be installed", async () => {
