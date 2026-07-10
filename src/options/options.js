@@ -41,86 +41,109 @@ const renderVariablesTable = () => {
 
 document.querySelector("#see-variables-btn")?.addEventListener("click", renderVariablesTable);
 
-const updateErrors = () => {
+// Reveal + select the offending text in its editor. Best-effort: the error
+// string is usually the offending line/clause, so we find and select it.
+const jumpToError = (textareaId, needle) => {
+  const ta = document.querySelector(textareaId);
+  if (!(ta instanceof HTMLTextAreaElement)) {
+    return;
+  }
+  // The paths textarea is hidden while the Visual Editor tab is active
+  const visual = document.querySelector("#paths-visual");
+  if (textareaId === "#paths" && visual instanceof HTMLElement && !visual.hidden) {
+    const textBtn = document.querySelector("#paths-mode-text");
+    if (textBtn instanceof HTMLElement) {
+      textBtn.click();
+    }
+  }
+  ta.scrollIntoView({ block: "center" });
+  ta.focus();
+  const idx = needle ? ta.value.indexOf(needle) : -1;
+  if (idx >= 0) {
+    ta.setSelectionRange(idx, idx + needle.length);
+    // Nudge the caret into view (setSelectionRange alone may not scroll)
+    const lineHeight = parseFloat(getComputedStyle(ta).lineHeight) || 18;
+    const line = ta.value.slice(0, idx).split("\n").length - 1;
+    ta.scrollTop = Math.max(0, line * lineHeight - ta.clientHeight / 2);
+  }
+};
+
+const renderErrorRow = (err, textareaId) => {
+  const r = document.createElement("div");
+  r.className = "error-row";
+  r.setAttribute("role", "button");
+  r.setAttribute("tabindex", "0");
+  r.title = "Jump to this error";
+
+  const message = document.createElement("span");
+  message.className = "error-message";
+  message.textContent = err.message;
+  r.appendChild(message);
+
+  const error = document.createElement("span");
+  error.className = "error-error";
+  error.textContent = err.error;
+  r.appendChild(error);
+
+  const jump = () => jumpToError(textareaId, err.error);
+  r.addEventListener("click", jump);
+  r.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      jump();
+    }
+  });
+
+  return r;
+};
+
+// Validate the (possibly unsaved) editor contents live and render both error
+// panels — VALIDATE dry-runs both grammars, so the panels track the menu
+// preview (which also validates live) instead of the last-saved state.
+const renderValidationErrors = () => {
+  const pathsTa = document.querySelector("#paths");
+  const rulesTa = document.querySelector("#filenamePatterns");
   const pathsErrors = document.querySelector("#error-paths");
+  const rulesErrors = document.querySelector("#error-filenamePatterns");
+  if (!pathsErrors && !rulesErrors) {
+    return;
+  }
+
+  browser.runtime
+    .sendMessage({
+      type: "VALIDATE",
+      body: {
+        paths: pathsTa instanceof HTMLTextAreaElement ? pathsTa.value : "",
+        filenamePatterns: rulesTa instanceof HTMLTextAreaElement ? rulesTa.value : "",
+      },
+    })
+    .then((res) => {
+      const body = (res && res.body) || {};
+      if (pathsErrors) {
+        pathsErrors.innerHTML = "";
+        (body.pathErrors || []).forEach((err) =>
+          pathsErrors.appendChild(renderErrorRow(err, "#paths")),
+        );
+      }
+      if (rulesErrors) {
+        rulesErrors.innerHTML = "";
+        (body.ruleErrors || []).forEach((err) =>
+          rulesErrors.appendChild(renderErrorRow(err, "#filenamePatterns")),
+        );
+      }
+    })
+    .catch(() => {}); // background not awake yet; the next edit retries
+};
+
+const updateErrors = () => {
   const lastDlMatch = document.querySelector("#last-dl-match");
   const lastDlCapture = document.querySelector("#last-dl-capture");
-  const rulesErrors = document.querySelector("#error-filenamePatterns");
+
+  // Errors are validated live (VALIDATE); CHECK_ROUTES fills the routing /
+  // last-download / variables panes below.
+  renderValidationErrors();
 
   browser.runtime.sendMessage({ type: "CHECK_ROUTES" }).then(({ body }) => {
-    rulesErrors.innerHTML = "";
-    pathsErrors.innerHTML = "";
-
-    const errors = body.optionErrors;
-
-    // Reveal + select the offending text in its editor. Best-effort: the error
-    // string is usually the offending line/clause, so we find and select it.
-    const jumpToError = (textareaId, needle) => {
-      const ta = document.querySelector(textareaId);
-      if (!(ta instanceof HTMLTextAreaElement)) {
-        return;
-      }
-      // The paths textarea is hidden while the Visual Editor tab is active
-      const visual = document.querySelector("#paths-visual");
-      if (textareaId === "#paths" && visual instanceof HTMLElement && !visual.hidden) {
-        const textBtn = document.querySelector("#paths-mode-text");
-        if (textBtn instanceof HTMLElement) {
-          textBtn.click();
-        }
-      }
-      ta.scrollIntoView({ block: "center" });
-      ta.focus();
-      const idx = needle ? ta.value.indexOf(needle) : -1;
-      if (idx >= 0) {
-        ta.setSelectionRange(idx, idx + needle.length);
-        // Nudge the caret into view (setSelectionRange alone may not scroll)
-        const lineHeight = parseFloat(getComputedStyle(ta).lineHeight) || 18;
-        const line = ta.value.slice(0, idx).split("\n").length - 1;
-        ta.scrollTop = Math.max(0, line * lineHeight - ta.clientHeight / 2);
-      }
-    };
-
-    const row = (err, textareaId) => {
-      const r = document.createElement("div");
-      r.className = "error-row";
-      r.setAttribute("role", "button");
-      r.setAttribute("tabindex", "0");
-      r.title = "Jump to this error";
-
-      const message = document.createElement("span");
-      message.className = "error-message";
-      message.textContent = err.message;
-      r.appendChild(message);
-
-      const error = document.createElement("span");
-      error.className = "error-error";
-      error.textContent = err.error;
-      r.appendChild(error);
-
-      const jump = () => jumpToError(textareaId, err.error);
-      r.addEventListener("click", jump);
-      r.addEventListener("keydown", (e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          jump();
-        }
-      });
-
-      return r;
-    };
-
-    if (errors.filenamePatterns.length > 0) {
-      errors.filenamePatterns.forEach((err) => {
-        rulesErrors.appendChild(row(err, "#filenamePatterns"));
-      });
-    }
-
-    if (errors.paths.length > 0) {
-      errors.paths.forEach((err) => {
-        pathsErrors.appendChild(row(err, "#paths"));
-      });
-    }
-
     // Last download
     const hasLastDownload =
       body.lastDownload && body.lastDownload.info && body.lastDownload.info.url;
@@ -1214,6 +1237,26 @@ const updateMenuPreview = () => {
     previewTimer = window.setTimeout(() => {
       previewTimer = null;
       updateMenuPreview();
+      renderValidationErrors();
+    }, MENU_PREVIEW_DEBOUNCE_MS);
+  });
+})();
+
+// The rules editor has no menu preview, but its error panel should still update
+// live as you type — same as the paths editor above.
+(() => {
+  const rulesTa = document.querySelector("#filenamePatterns");
+  if (!rulesTa) {
+    return;
+  }
+  let timer = null;
+  rulesTa.addEventListener("input", () => {
+    if (timer !== null) {
+      window.clearTimeout(timer);
+    }
+    timer = window.setTimeout(() => {
+      timer = null;
+      renderValidationErrors();
     }, MENU_PREVIEW_DEBOUNCE_MS);
   });
 })();
@@ -1246,7 +1289,14 @@ document.querySelectorAll('label:has(> input[type="checkbox"])').forEach((label)
 });
 
 ["textarea", "input", "select"].forEach((type) => {
-  document.querySelectorAll(type).forEach(setupAutosave);
+  document.querySelectorAll(type).forEach((el) => {
+    // The quick-add rule builder owns its own fields (rule-builder.js); they are
+    // not options, so autosave here would flash a stray "saved" check over them.
+    if (el.closest(".rule-builder")) {
+      return;
+    }
+    setupAutosave(el);
+  });
 });
 
 // Clicking the help text or sub-option area inside a checkbox row must not
