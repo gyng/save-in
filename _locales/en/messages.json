@@ -610,7 +610,7 @@
   },
 
   "o_cSetRefererHeaderHelp": {
-    "message": "Do not enable this if you have no problems downloading, and try using the content script option before this. Some sites (eg. pixiv.net) check HTTP Referer headers on the server. Enabling this will set the HTTP Referer header to the page URL if it does not already exist."
+    "message": "Some sites (eg. pixiv.net) reject downloads without an HTTP Referer header. For the sites listed below, this sets the Referer to the page URL if it is missing — including on automatic background retries. Leave it off unless a site needs it."
   },
 
   "o_cSetRefererHeaderFilter": {
