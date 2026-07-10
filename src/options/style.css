@@ -706,6 +706,39 @@ input.key {
   padding: 4px 8px 4px 8px;
 }
 
+/* Click-to-save key combobox (options.js): opens a dropdown of named keys but
+   still accepts a free-form keyCode typed into the input */
+.combo-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.combo-dropdown {
+  top: 100%;
+  left: 0;
+  margin-top: 2px;
+}
+
+.combo-dropdown li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.combo-value {
+  font-weight: 600;
+}
+
+.combo-label {
+  color: var(--grey50);
+  font-size: var(--text-sm);
+}
+
+.combo-dropdown li.selected .combo-label {
+  color: rgba(255, 255, 255, 0.85);
+}
+
 .match-row {
   display: flex;
   align-items: baseline;

@@ -54,7 +54,9 @@ const jumpToError = (textareaId, needle) => {
       const rows = [...document.querySelectorAll("#path-editor-rows .path-editor-row")];
       const target = rows.find((r) => {
         const dir = r.querySelector(".path-editor-dir");
-        return dir instanceof HTMLInputElement && dir.value.trim() && needle.includes(dir.value.trim());
+        return (
+          dir instanceof HTMLInputElement && dir.value.trim() && needle.includes(dir.value.trim())
+        );
       });
       if (target) {
         target.scrollIntoView({ block: "center" });
@@ -1325,6 +1327,108 @@ const updateMenuPreview = () => {
 
 setupManualEditor("paths");
 setupManualEditor("filenamePatterns");
+
+// Click-to-open combobox for the click-to-save key: a dropdown of named keys
+// that still accepts a free-form keyCode (backward compat — the content script
+// resolves a name OR a number). A native <datalist> doesn't reliably open on
+// click, so this is a small custom one.
+(() => {
+  const input = document.querySelector("#contentClickToSaveCombo");
+  const wrap = input instanceof HTMLElement ? input.closest(".combo-wrap") : null;
+  if (!(input instanceof HTMLInputElement) || !wrap) {
+    return;
+  }
+
+  const OPTIONS = [
+    { value: "", label: "No key — mouse button only" },
+    { value: "Alt", label: "Alt / Option" },
+    { value: "Ctrl", label: "Control" },
+    { value: "Shift", label: "Shift" },
+    { value: "Meta", label: "Command / Windows key" },
+  ];
+
+  const dropdown = document.createElement("ul");
+  dropdown.className = "combo-dropdown autocomplete-dropdown";
+  dropdown.hidden = true;
+  wrap.appendChild(dropdown);
+
+  let activeIndex = -1;
+  const rows = () => [...dropdown.querySelectorAll("li")];
+
+  const highlight = (i) => {
+    activeIndex = i;
+    rows().forEach((li, idx) => li.classList.toggle("selected", idx === i));
+  };
+
+  const close = () => {
+    dropdown.hidden = true;
+    activeIndex = -1;
+  };
+
+  const choose = (value) => {
+    input.value = value;
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+    close();
+  };
+
+  // filter=false (focus/click) shows every option; filter=true (typing) narrows
+  const open = (filter) => {
+    const q = filter ? input.value.trim().toLowerCase() : "";
+    const matched = OPTIONS.filter(
+      (o) => !q || o.value.toLowerCase().startsWith(q) || o.label.toLowerCase().includes(q),
+    );
+    const list = matched.length ? matched : OPTIONS;
+    dropdown.innerHTML = "";
+    list.forEach((o) => {
+      const li = document.createElement("li");
+      const v = document.createElement("span");
+      v.className = "combo-value";
+      v.textContent = o.value || "None";
+      const l = document.createElement("span");
+      l.className = "combo-label";
+      l.textContent = o.label;
+      li.append(v, l);
+      li.dataset.value = o.value;
+      // preventDefault keeps focus on the input (the click doesn't blur it), so
+      // the dropdown stays closed after choosing rather than reopening on focus
+      li.addEventListener("mousedown", (e) => {
+        e.preventDefault();
+        choose(o.value);
+      });
+      dropdown.appendChild(li);
+    });
+    activeIndex = -1;
+    dropdown.hidden = false;
+  };
+
+  input.addEventListener("focus", () => open(false));
+  input.addEventListener("click", () => open(false));
+  input.addEventListener("input", () => open(true));
+  input.addEventListener("blur", () => window.setTimeout(close, 120));
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      close();
+      return;
+    }
+    if (dropdown.hidden) {
+      if (e.key === "ArrowDown") {
+        open(false);
+      }
+      return;
+    }
+    const items = rows();
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      highlight(Math.min(activeIndex + 1, items.length - 1));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      highlight(Math.max(activeIndex - 1, 0));
+    } else if (e.key === "Enter" && activeIndex >= 0) {
+      e.preventDefault();
+      choose(items[activeIndex].dataset.value);
+    }
+  });
+})();
 
 // Wrap each checkbox row's title (label text + any inline badges, up to the
 // first help / sub-option block) in a .opt-title span. It becomes the row's

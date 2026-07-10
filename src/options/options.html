@@ -699,20 +699,15 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
 
       <label>
         __MSG_o_cKeyboardShotcutKeycode__
-        <input
-          type="text"
-          id="contentClickToSaveCombo"
-          list="combo-keys"
-          placeholder="Alt"
-          spellcheck="false"
-        />
-        <datalist id="combo-keys">
-          <option value="None">no key — mouse button only</option>
-          <option value="Alt">Alt / Option</option>
-          <option value="Ctrl">Control</option>
-          <option value="Shift">Shift</option>
-          <option value="Meta">Command / Windows key</option>
-        </datalist>
+        <span class="combo-wrap">
+          <input
+            type="text"
+            id="contentClickToSaveCombo"
+            placeholder="Alt"
+            spellcheck="false"
+            autocomplete="off"
+          />
+        </span>
         +&nbsp;
         <select id="contentClickToSaveButton">
           <option value="LEFT_CLICK">__MSG_o_cKeyboardShortcutModifierLeftClick__</option>
