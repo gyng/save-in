@@ -64,12 +64,6 @@ const setupTabs = () => {
     panel.className = "tab-panel";
     panel.id = `tab-panel-${index}`;
     panel.setAttribute("role", "tabpanel");
-    // The active tab already labels the section: hide a pure-text heading to
-    // avoid duplicating it (but keep headings that hold controls, e.g. the
-    // reset button in "More Options")
-    if (section.heading.childElementCount === 0) {
-      section.heading.classList.add("tab-heading-hidden");
-    }
     section.nodes.forEach((node) => panel.appendChild(node));
     return panel;
   });

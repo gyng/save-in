@@ -1,6 +1,8 @@
 :root {
   /* Native OS UI font on every platform */
-  --font-stack: system-ui, -apple-system, "Segoe UI", "Ubuntu", "Roboto", "Fira Sans", sans-serif;
+  --font-stack:
+    -apple-system, BlinkMacSystemFont, "avenir next", avenir, "segoe ui", "helvetica neue",
+    "Adwaita Sans", Cantarell, Ubuntu, roboto, noto, helvetica, arial, sans-serif;
   --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "Consolas", "Liberation Mono", monospace;
 
   /* 4px spacing scale */
@@ -691,6 +693,35 @@ input.key {
   max-width: var(--content-max-width);
 }
 
+/* Paths textarea and the live menu preview sit side by side, using the
+   width the full-bleed shell frees up; wraps on narrow windows */
+.tab-panel > .paths-editor {
+  max-width: 1200px;
+}
+
+.paths-editor {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-5);
+  align-items: flex-start;
+  width: 100%;
+}
+
+.paths-editor > .column {
+  flex: 1 1 480px;
+  min-width: 340px;
+}
+
+.paths-editor > .menu-preview {
+  flex: 1 1 280px;
+  min-width: 240px;
+  margin-top: 0;
+  /* Stays in view while editing a long directory list; offset clears the
+     sticky tab bar's full height */
+  position: sticky;
+  top: 56px;
+}
+
 /* Source-order <hr> section separators are redundant once sections
    live in separate tab panels */
 .tab-panel hr {
@@ -723,8 +754,9 @@ input.key {
   }
 }
 
-/* The tab labels replace the in-panel headings */
-.tab-panel > h2:first-child {
+/* Panel titles (the section h2s, incl. ones wrapped in a label.column) */
+.tab-panel > h2:first-child,
+.tab-panel > .column > h2:first-child {
   font-size: var(--text-xl);
   font-weight: 300;
   margin-top: 0;
@@ -768,10 +800,6 @@ button {
   transition:
     background-color 0.12s ease,
     box-shadow 0.12s ease;
-}
-
-.tab-heading-hidden {
-  display: none;
 }
 
 /* Live context-menu tree preview (below the paths textarea) */
