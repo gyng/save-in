@@ -321,7 +321,7 @@ const PathEditor = {
         if (row.body === SPECIAL_DIRS.SEPARATOR) {
           const sep = document.createElement("span");
           sep.className = "path-editor-separator";
-          sep.textContent = "— separator —";
+          sep.textContent = "separator";
           rowEl.appendChild(sep);
         } else {
           const dir = document.createElement("input");
