@@ -784,13 +784,48 @@ input.key {
   font-size: var(--text-sm);
 }
 
-.rule-templates {
-  margin-top: var(--space-3);
+/* Rules editor sits left, the template library to its right (mirrors the
+   directory editor + preview on the Downloads Menu tab) */
+.wide-column {
+  max-width: 1200px !important;
 }
 
-.rule-templates summary {
+/* Prose/controls in the wide Dynamic column stay readable; only the
+   two-column editor row is allowed to use the extra width */
+.wide-column > :not(.rules-editor) {
+  max-width: var(--content-max-width);
+}
+
+.rules-editor {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-5);
+  align-items: flex-start;
+  width: 100%;
+}
+
+.rules-editor-main {
+  flex: 1 1 480px;
+  min-width: 340px;
+}
+
+.rule-templates-panel {
+  flex: 1 1 320px;
+  min-width: 280px;
+  position: sticky;
+  top: 56px;
+  max-height: calc(100vh - 130px);
+  overflow-y: auto;
+  margin: 0;
+}
+
+/* Collapsed by default; the summary reads as a small section header */
+.rule-templates-panel > summary {
   cursor: pointer;
   user-select: none;
+  font-weight: 600;
+  font-size: var(--text-sm);
+  padding: var(--space-1) 0;
 }
 
 .rule-template {
@@ -958,9 +993,10 @@ button:disabled:hover {
   margin: var(--space-1) 0;
 }
 
-/* + Add stays left; the save controls float to the right of the editor */
-.editor-actions .apply-button,
-.path-editor-toolbar .apply-button {
+/* + Add / toolbar stays left; the save controls (Discard, then Apply)
+   float together to the right of the editor */
+.editor-actions .discard-button,
+.path-editor-toolbar .discard-button {
   margin-left: auto;
 }
 

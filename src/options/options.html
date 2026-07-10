@@ -135,11 +135,11 @@
                 <div class="insert-menu-variables"></div>
               </div>
             </details>
-            <button type="button" class="apply-button" data-apply="paths" disabled>
-              __MSG_o_bApply__
-            </button>
             <button type="button" class="discard-button" data-discard="paths" disabled>
               __MSG_o_bDiscard__
+            </button>
+            <button type="button" class="apply-button" data-apply="paths" disabled>
+              __MSG_o_bApply__
             </button>
           </div>
 
@@ -241,11 +241,11 @@
             <div class="path-editor-toolbar">
               <button type="button" id="path-editor-add-dir">+ __MSG_o_bAddDirectory__</button>
               <button type="button" id="path-editor-add-sep">+ __MSG_o_bAddSeparator__</button>
-              <button type="button" class="apply-button" data-apply="paths" disabled>
-                __MSG_o_bApply__
-              </button>
               <button type="button" class="discard-button" data-discard="paths" disabled>
                 __MSG_o_bDiscard__
+              </button>
+              <button type="button" class="apply-button" data-apply="paths" disabled>
+                __MSG_o_bApply__
               </button>
             </div>
           </div>
@@ -326,7 +326,7 @@
 
       <hr />
 
-      <label class="column">
+      <label class="column wide-column">
         <h2>__MSG_o_sDynamicDownloads__</h2>
 
         <h3>__MSG_o_sRenameAndRouteDownloads__</h3>
@@ -340,11 +340,6 @@
         <p>
           <a href="#" class="help learn-more" data-help-for="help-filenames"
             >__MSG_o_lGuideRouting__</a
-          >
-          <a
-            class="external float-right"
-            href="https://github.com/gyng/save-in/wiki/Filename-rewrite"
-            >__MSG_o_lRoutingTemplates__</a
           >
         </p>
 
@@ -433,60 +428,83 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
 
         <p>__MSG_o_lRoutingInstruction__</p>
 
-        <textarea
-          type="textarea"
-          id="filenamePatterns"
-          data-manual="true"
-          rows="7"
-          placeholder="Optional"
-          spellcheck="false"
-        ></textarea>
-        <div class="error-notification" id="error-filenamePatterns">errors</div>
-
-        <div class="editor-actions">
-          <details class="insert-menu" id="rules-insert-menu" data-insert-target="filenamePatterns">
-            <summary>__MSG_o_lInsertMenu__</summary>
-            <div class="insert-menu-panel">
-              <input
-                type="text"
-                class="insert-menu-filter"
-                placeholder="__MSG_o_lInsertFilter__"
-                spellcheck="false"
-              />
-              <button type="button" data-insert-line="into: ">__MSG_o_bInsertInto__</button>
-              <button type="button" data-insert-line="capture: ">__MSG_o_bInsertCapture__</button>
-              <div class="caption">__MSG_o_lInsertVariables__</div>
-              <div class="insert-menu-variables"></div>
-            </div>
-          </details>
-          <button type="button" class="apply-button" data-apply="filenamePatterns" disabled>
-            __MSG_o_bApply__
-          </button>
-          <button type="button" class="discard-button" data-discard="filenamePatterns" disabled>
-            __MSG_o_bDiscard__
-          </button>
-        </div>
-
-        <div class="rule-builder">
-          <div class="caption">__MSG_o_lRuleBuilder__</div>
-          <div class="rule-builder-row">
-            <select id="rule-builder-matcher"></select>
-            <input type="text" id="rule-builder-pattern" placeholder=".*\.jpg" spellcheck="false" />
-            <span class="rule-builder-into-label">into:</span>
-            <input
-              type="text"
-              id="rule-builder-into"
-              placeholder="images/:pagedomain:/:filename:"
+        <div class="rules-editor">
+          <div class="rules-editor-main">
+            <textarea
+              type="textarea"
+              id="filenamePatterns"
+              data-manual="true"
+              rows="7"
+              placeholder="Optional"
               spellcheck="false"
-            />
-            <button type="button" id="rule-builder-add" disabled>Add</button>
-          </div>
-        </div>
+            ></textarea>
+            <div class="error-notification" id="error-filenamePatterns">errors</div>
 
-        <details class="rule-templates">
-          <summary>__MSG_o_lRuleTemplates__</summary>
-          <div id="rule-templates"></div>
-        </details>
+            <div class="editor-actions">
+              <details
+                class="insert-menu"
+                id="rules-insert-menu"
+                data-insert-target="filenamePatterns"
+              >
+                <summary>__MSG_o_lInsertMenu__</summary>
+                <div class="insert-menu-panel">
+                  <input
+                    type="text"
+                    class="insert-menu-filter"
+                    placeholder="__MSG_o_lInsertFilter__"
+                    spellcheck="false"
+                  />
+                  <button type="button" data-insert-line="into: ">__MSG_o_bInsertInto__</button>
+                  <button type="button" data-insert-line="capture: ">
+                    __MSG_o_bInsertCapture__
+                  </button>
+                  <div class="caption">__MSG_o_lInsertVariables__</div>
+                  <div class="insert-menu-variables"></div>
+                </div>
+              </details>
+              <button type="button" class="discard-button" data-discard="filenamePatterns" disabled>
+                __MSG_o_bDiscard__
+              </button>
+              <button type="button" class="apply-button" data-apply="filenamePatterns" disabled>
+                __MSG_o_bApply__
+              </button>
+            </div>
+
+            <div class="rule-builder">
+              <div class="caption">__MSG_o_lRuleBuilder__</div>
+              <div class="rule-builder-row">
+                <select id="rule-builder-matcher"></select>
+                <input
+                  type="text"
+                  id="rule-builder-pattern"
+                  placeholder=".*\.jpg"
+                  spellcheck="false"
+                />
+                <span class="rule-builder-into-label">into:</span>
+                <input
+                  type="text"
+                  id="rule-builder-into"
+                  placeholder="images/:pagedomain:/:filename:"
+                  spellcheck="false"
+                />
+                <button type="button" id="rule-builder-add" disabled>Add</button>
+              </div>
+            </div>
+          </div>
+
+          <details class="rule-templates-panel">
+            <summary>__MSG_o_lRuleTemplates__</summary>
+            <p class="rule-templates-links">
+              <a
+                class="external"
+                href="https://github.com/gyng/save-in/wiki/Filename-rewrite"
+                target="_blank"
+                >__MSG_o_lRoutingTemplates__</a
+              >
+            </p>
+            <div id="rule-templates"></div>
+          </details>
+        </div>
 
         <div style="display: flex; max-width: 100%; align-items: center; flex-wrap: wrap">
           <div
