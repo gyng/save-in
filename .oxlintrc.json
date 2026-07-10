@@ -25,6 +25,7 @@
     "Variable": "readonly",
     "Messaging": "readonly",
     "OptionsManagement": "readonly",
+    "OptionsLogic": "readonly",
     "Notifier": "readonly",
     "Menus": "readonly",
     "RequestHeaders": "readonly",

@@ -905,16 +905,10 @@ const saveOptions = (e) => {
 // Transforms applied to a stored value before it populates its options field.
 // These would belong on the option schema as onOptionsLoad, but the schema
 // reaches this page via the GET_SCHEMA message and structured clone drops
-// functions — so field-display transforms live here instead.
+// functions — so field-display transforms live here instead. The logic is in
+// OptionsLogic (options-logic.js) so it can be unit-tested.
 const OPTION_FIELD_DISPLAY_TRANSFORMS = {
-  // Upgraders stored a raw keyCode for the click-to-save key (the old default
-  // was 18 = Alt). Show the friendly name in the combobox; the content script's
-  // comboToKeyCodes still resolves either a name or a raw number, so the stored
-  // value keeps working whether or not it is ever re-saved.
-  contentClickToSaveCombo: (v) => {
-    const NAME_BY_KEYCODE = { 16: "Shift", 17: "Ctrl", 18: "Alt", 91: "Meta" };
-    return String(v) in NAME_BY_KEYCODE ? NAME_BY_KEYCODE[String(v)] : v;
-  },
+  contentClickToSaveCombo: (v) => OptionsLogic.normalizeKeyComboForDisplay(v),
 };
 
 const restoreOptionsHandler = (result, schema) => {
@@ -1391,11 +1385,7 @@ setupManualEditor("filenamePatterns");
 
   // filter=false (focus/click) shows every option; filter=true (typing) narrows
   const open = (filter) => {
-    const q = filter ? input.value.trim().toLowerCase() : "";
-    const matched = OPTIONS.filter(
-      (o) => !q || o.value.toLowerCase().startsWith(q) || o.label.toLowerCase().includes(q),
-    );
-    const list = matched.length ? matched : OPTIONS;
+    const list = OptionsLogic.filterKeyComboOptions(OPTIONS, filter ? input.value : "");
     dropdown.innerHTML = "";
     list.forEach((o) => {
       const li = document.createElement("li");
