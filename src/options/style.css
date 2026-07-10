@@ -1314,8 +1314,37 @@ button {
   font-variant-numeric: tabular-nums;
 }
 
+.history-status {
+  width: 7em;
+}
+
 .history-type {
   width: 6em;
+  text-transform: capitalize;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.status-badge.status-ok {
+  color: var(--green60);
+  background-color: rgba(48, 230, 11, 0.14);
+}
+
+.status-badge.status-pending {
+  color: var(--grey50);
+  background-color: rgba(128, 128, 128, 0.14);
+}
+
+.status-badge.status-fail {
+  color: var(--red50);
+  background-color: rgba(255, 0, 57, 0.12);
   text-transform: capitalize;
 }
 

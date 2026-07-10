@@ -195,6 +195,30 @@ const Notifier = {
       const isUserCancelled =
         downloadDelta.error && downloadDelta.error.current === "USER_CANCELED";
 
+      // Record the final outcome against the history entry (independent of
+      // whether success/failure notifications are enabled)
+      const recordHistoryStatus = (status) => {
+        if (
+          typeof Download !== "undefined" &&
+          Download.startedDownloads &&
+          typeof SaveHistory !== "undefined"
+        ) {
+          const record = Download.startedDownloads.get(downloadDelta.id);
+          if (record && record.historyEntryId) {
+            SaveHistory.setStatus(record.historyEntryId, status);
+          }
+        }
+      };
+
+      if (
+        isFromSelf &&
+        downloadDelta.state &&
+        downloadDelta.state.current === "complete" &&
+        !isUserCancelled
+      ) {
+        recordHistoryStatus("complete");
+      }
+
       if (window.SI_DEBUG) {
         /* eslint-disable no-console */
         console.log(
@@ -265,14 +289,17 @@ const Notifier = {
               if (typeof Log !== "undefined") {
                 Log.add("retrying failed download via fetch", { id: downloadDelta.id });
               }
-              // The retry is tracked as its own download
+              // The retry is tracked as its own download and carries the
+              // history entry id, so its outcome updates this same entry
               delete downloadsList[downloadDelta.id];
               Notifier.untrackDownload(downloadDelta.id);
             } else {
+              recordHistoryStatus(errorName || "failed");
               notifyFailure();
             }
           });
         } else {
+          recordHistoryStatus(errorName || "failed");
           notifyFailure();
         }
       } else if (

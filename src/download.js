@@ -204,6 +204,9 @@ const Download = {
 
     const download = (_state) => {
       const finalFullPath = Download.finalizeFullPath(_state);
+      // Set below via SaveHistory.add; threaded onto the started-download
+      // record so the completion/failure handler can update this entry
+      let historyEntryId = null;
 
       if (typeof Log !== "undefined") {
         Log.add("download requested", {
@@ -259,6 +262,7 @@ const Download = {
               conflictAction: options.conflictAction,
               viaFetch,
               retried: false,
+              historyEntryId,
             });
             return Notifier.trackDownload(downloadId);
           })
@@ -288,6 +292,15 @@ const Download = {
           });
       };
 
+      // Record history before triggering the download so the entry id is
+      // available to the started-download record above
+      historyEntryId = SaveHistory.add({
+        timestamp: new Date().toISOString(),
+        url: _state.info.url,
+        finalFullPath,
+        state: _state,
+      });
+
       if (options.fetchViaContent) {
         Messaging.send
           .fetchViaContent(_state)
@@ -311,12 +324,6 @@ const Download = {
 
       Messaging.emit.downloaded(_state);
       window.lastDownloadState = _state;
-      SaveHistory.add({
-        timestamp: new Date().toISOString(),
-        url: _state.info.url,
-        finalFullPath,
-        state: _state,
-      });
     };
 
     // Chrome: Skip HEAD request for Content-Disposition and use onDeterminingFilename

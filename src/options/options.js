@@ -247,11 +247,40 @@ const historyType = (entry) => {
   return c === "media" ? "image" : c;
 };
 
+// Older entries predate status tracking; treat them as complete
+const historyStatus = (entry) => entry.status || "complete";
+
+// "complete"/"pending" get friendly labels; a browser error name (e.g.
+// SERVER_FORBIDDEN, NETWORK_FAILED) is shown lowercased
+const historyStatusLabel = (status) => {
+  if (status === "complete") {
+    return "Saved";
+  }
+  if (status === "pending") {
+    return "Saving…";
+  }
+  if (status === "failed") {
+    return "Failed";
+  }
+  return status.toLowerCase().replace(/_/g, " ");
+};
+
+const historyStatusClass = (status) => {
+  if (status === "complete") {
+    return "status-ok";
+  }
+  if (status === "pending") {
+    return "status-pending";
+  }
+  return "status-fail";
+};
+
 // Flatten an entry into the fields the table shows and sorts/filters on
 const historyRow = (entry) => {
   const info = (entry.state && entry.state.info) || {};
   return {
     time: entry.timestamp || "",
+    status: historyStatus(entry),
     type: historyType(entry),
     file: historyFilename(entry.finalFullPath),
     folder: historyFolder(entry.finalFullPath),
@@ -262,6 +291,7 @@ const historyRow = (entry) => {
 
 const COLUMNS = [
   { key: "time", label: "Saved", sortable: true },
+  { key: "status", label: "Status", sortable: true },
   { key: "type", label: "Type", sortable: true },
   { key: "file", label: "File", sortable: true },
   { key: "folder", label: "Folder", sortable: true },
@@ -281,7 +311,7 @@ const renderHistoryTable = () => {
 
   if (query) {
     rows = rows.filter((r) =>
-      [r.type, r.file, r.folder, r.source].some((v) => v.toLowerCase().includes(query)),
+      [r.status, r.type, r.file, r.folder, r.source].some((v) => v.toLowerCase().includes(query)),
     );
   }
 
@@ -342,6 +372,15 @@ const renderHistoryTable = () => {
     time.className = "history-time";
     time.textContent = historyTime(r.time);
     tr.appendChild(time);
+
+    const status = document.createElement("td");
+    status.className = "history-status";
+    const badge = document.createElement("span");
+    badge.className = `status-badge ${historyStatusClass(r.status)}`;
+    badge.textContent = historyStatusLabel(r.status);
+    badge.title = r.status;
+    status.appendChild(badge);
+    tr.appendChild(status);
 
     const type = document.createElement("td");
     type.className = "history-type";
