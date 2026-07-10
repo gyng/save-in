@@ -11,7 +11,6 @@ const cdp = require("./lib/cdp");
 const chrome = require("./lib/chrome");
 
 const PROFILE = path.join(chrome.ROOT, "dist", "review-profile");
-const DEMO_PORT = 9431;
 
 const SHOWCASE_PATHS = [
   ".",
@@ -73,6 +72,7 @@ const DEMO_PAGE = `<!doctype html>
   </body>
 </html>`;
 
+// Ephemeral port so multiple review sessions can coexist
 const startDemoServer = () =>
   new Promise((resolve) => {
     const server = http.createServer((req, res) => {
@@ -90,12 +90,12 @@ const startDemoServer = () =>
         res.end(DEMO_PAGE);
       }
     });
-    server.listen(DEMO_PORT, "127.0.0.1", () => resolve(server));
+    server.listen(0, "127.0.0.1", () => resolve(server.address().port));
   });
 
 const main = async () => {
   chrome.stageBuild();
-  await startDemoServer();
+  const demoPort = await startDemoServer();
 
   console.log("Launching Chrome (throwaway review profile)...");
   const { proc, extensionId, port, downloadDir } = await chrome.launch({
@@ -123,7 +123,7 @@ const main = async () => {
     }).then(() => window.reset()).then(() => "seeded")`,
   );
   await cdp.evalInTarget(port, "options.html", "location.reload()");
-  await cdp.openTab(port, `http://127.0.0.1:${DEMO_PORT}/`);
+  await cdp.openTab(port, `http://127.0.0.1:${demoPort}/`);
 
   console.log(`
 Extension loaded: ${extensionId}
@@ -131,7 +131,7 @@ Downloads land in: ${downloadDir}
 
 Two tabs are open:
   1. Options page — the Directories tab shows the seeded paths with the
-     live menu preview under the textarea. Edit the textarea to watch the
+     live menu preview beside the textarea. Edit the textarea to watch the
      preview update; break a line (e.g. "<bad>") to see inline errors.
   2. Demo page — follow the numbered checklist on the page (nested menus,
      aliases, :variables:, PDF routing rule, alt+click, selection/page save).
