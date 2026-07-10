@@ -82,10 +82,19 @@
     border: solid 1px var(--grey50) !important;
   }
 
+  /* Buttons aren't in the color rule above, so a disabled one falls back to the
+     UA's light-theme grey (near-black) and vanishes on the dark page — e.g. the
+     quick-add "Add" button. Give it the same legible grey as the other controls. */
   input:disabled,
   textarea:disabled,
-  select:disabled {
+  select:disabled,
+  button:disabled {
     color: var(--grey40);
+  }
+
+  /* The mono app icon is authored dark (#474747); lift it onto the dark page */
+  .app-icon {
+    filter: invert(1) brightness(0.85);
   }
 
   /* Chromium overrides */
@@ -614,27 +623,37 @@ input.key {
   position: absolute;
   z-index: 100;
   margin: 0;
-  padding: 0.2em 0;
+  padding: var(--space-1);
   list-style: none;
-  min-width: 12em;
-  max-height: 14em;
+  min-width: 14em;
+  max-height: 16em;
   overflow-y: auto;
-  background: var(--background-color, #fff);
-  color: var(--text-color, #000);
-  border: 1px solid rgba(128, 128, 128, 0.5);
-  border-radius: 3px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  font-family: monospace;
+  /* Theme-aware surface (the old --background-color token never existed, so
+     this box used to render white-on-white text in dark mode) */
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.22);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
 }
 
 .autocomplete-dropdown li {
-  padding: 0.15em 0.75em;
+  padding: var(--space-1) var(--space-3);
+  border-radius: calc(var(--radius) - 1px);
   cursor: pointer;
+  white-space: nowrap;
 }
 
-.autocomplete-dropdown li.selected,
 .autocomplete-dropdown li:hover {
-  background: rgba(128, 128, 128, 0.25);
+  background: rgba(128, 128, 128, 0.22);
+}
+
+/* Keyboard selection is the strong cue and outranks hover so the two never
+   disagree when the pointer rests on a different row */
+.autocomplete-dropdown li.selected {
+  background: var(--link-color);
+  color: #fff;
 }
 
 /* ── Tabbed options (tabs.js progressive enhancement) ─────────────── */
