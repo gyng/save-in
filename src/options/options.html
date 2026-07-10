@@ -730,10 +730,8 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
       <hr />
 
       <h2 id="section-more-options">__MSG_o_sMoreOptions__</h2>
-      <div class="section-actions">
-        <div id="reset" class="button">__MSG_o_cRestoreDefaults__</div>
-      </div>
 
+      <h3>Filenames</h3>
       <label>
         <input type="number" id="truncateLength" min="1" />__MSG_o_cTruncatePath__&nbsp;
         <div class="caption caption-line">__MSG_o_cTruncatePathHelp__</div>
@@ -750,14 +748,7 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
         <div class="caption caption-line">__MSG_o_cReplaceInvalidCharsWithHelp__</div>
       </label>
 
-      <label class="deprecated">
-        <input type="checkbox" id="fetchViaContent" class="chrome-disabled" />
-        <span class="deprecated-text">__MSG_o_cFetchViaContentScript__</span>
-        <span class="badge">Firefox</span>
-        <span class="warning badge">Deprecated</span>
-        <div class="caption caption-line">__MSG_o_cFetchViaContentScriptHelp__</div>
-      </label>
-
+      <h3>Downloading</h3>
       <label>
         <input type="checkbox" id="fallbackFetch" />
         <span>__MSG_o_cFallbackFetch__</span>
@@ -794,11 +785,26 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
         </div>
       </label>
 
-      <div style="display: flex; justify-content: flex-start; align-items: center">
+      <h3>Counter</h3>
+      <p class="caption caption-line">
+        Current value of the <code>:counter:</code> variable. It advances once per saved download
+        and persists across restarts.
+      </p>
+      <div class="dev-api counter-control">
+        <div class="dev-api-row">
+          <span class="dev-api-label">Current</span>
+          <span id="counter-value" class="dev-api-value">0</span>
+          <button type="button" id="counter-reset">Reset to 0</button>
+        </div>
+      </div>
+
+      <h3>Backup &amp; reset</h3>
+      <div style="display: flex; align-items: center">
         <div id="settings-import" class="button">__MSG_o_cImportSettings__</div>
         <div style="margin-left: 8px" id="settings-export" class="button">
           __MSG_o_cExportSettings__
         </div>
+        <div style="margin-left: 24px" id="reset" class="button">__MSG_o_cRestoreDefaults__</div>
       </div>
 
       <textarea id="export-target" style="display: none" spellcheck="false"></textarea>
@@ -828,19 +834,6 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
           <pre id="api-snippet" class="click-to-copy" title="Click to copy"></pre>
           <div class="caption">Click the snippet to copy it.</div>
         </details>
-      </div>
-
-      <h3>Counter</h3>
-      <p class="caption caption-line">
-        Current value of the <code>:counter:</code> variable. It advances once per saved download
-        and persists across restarts.
-      </p>
-      <div class="dev-api counter-control">
-        <div class="dev-api-row">
-          <span class="dev-api-label">Current</span>
-          <span id="counter-value" class="dev-api-value">0</span>
-          <button type="button" id="counter-reset">Reset to 0</button>
-        </div>
       </div>
 
       <h3>AI agent tools <span class="warning badge">Experimental</span></h3>
@@ -875,9 +868,8 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
         </p>
       </div>
 
+      <h3>Diagnostics</h3>
       <label> <input type="checkbox" id="debug" /> __MSG_o_cDebugMode__ </label>
-
-      <p>__MSG_translationCredits__</p>
 
       <div style="display: flex; width: 100%">
         <details style="flex: 1">
@@ -893,6 +885,8 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
           <div id="debug-log-clear" class="button">Clear log</div>
         </details>
       </div>
+
+      <p>__MSG_translationCredits__</p>
     </form>
 
     <script src="options.js"></script>
