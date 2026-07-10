@@ -20,6 +20,10 @@ export default defineConfig({
         "src/options/vendor/**",
         // service worker bootstrap (importScripts shim): exercised by e2e
         "src/background.js",
+        // Chrome offscreen-document bootstrap (message listener doing
+        // fetch/createObjectURL/crypto.subtle in a separate document context):
+        // exercised by the Chrome e2e sha256/offscreen path
+        "src/offscreen.js",
         // options page scripts run top-level against the real options.html
         // DOM: exercised by the e2e options-page checks
         "src/options/**",

@@ -346,7 +346,6 @@ const Download = {
     Download.rememberPendingState(state);
 
     state.path = await Variable.applyVariables(state.path, state.info);
-    // FIXME: Fix router params for new path struct
     const routeMatches = Download.getRoutingMatches(state);
     if (routeMatches) {
       // §8.1: a trailing "/" on the rule's `into:` marks it as a folder-only

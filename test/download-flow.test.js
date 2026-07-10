@@ -239,6 +239,34 @@ describe("renameAndDownload: MIME extension append (§8.1)", () => {
   });
 });
 
+describe("renameAndDownload: shared :sha256: fetch reuse", () => {
+  test("reuses the already-fetched download URL instead of fetching the file again", async () => {
+    global.CURRENT_BROWSER = "CHROME";
+    const state = makeState({
+      info: { contentPromise: Promise.resolve({ downloadUrl: "data:application/octet-stream;base64,eA==" }) },
+    });
+
+    await Download.renameAndDownload(state);
+    await flush();
+
+    expect(global.browser.downloads.download).toHaveBeenCalledWith(
+      expect.objectContaining({ url: "data:application/octet-stream;base64,eA==" }),
+    );
+  });
+
+  test("falls back to the normal download when the shared fetch failed (null content)", async () => {
+    global.CURRENT_BROWSER = "CHROME";
+    const state = makeState({ info: { contentPromise: Promise.resolve(null) } });
+
+    await Download.renameAndDownload(state);
+    await flush();
+
+    expect(global.browser.downloads.download).toHaveBeenCalledWith(
+      expect.objectContaining({ url: state.info.url }),
+    );
+  });
+});
+
 describe("renameAndDownload: folder-only route (§8.1)", () => {
   test("a trailing-slash into: routes into the folder and keeps the real filename", async () => {
     global.CURRENT_BROWSER = "CHROME";
@@ -588,6 +616,53 @@ describe("renameAndDownload: fetchViaFetch", () => {
     expect(global.browser.downloads.download).toHaveBeenCalledWith(
       expect.objectContaining({ url: expect.stringMatching(/^blob:/) }),
     );
+  });
+
+  test("Chrome offscreen: fetches via the offscreen document and downloads the blob URL", async () => {
+    global.CURRENT_BROWSER = "CHROME";
+    global.options.fetchViaFetch = true;
+    const origCanUse = Download.canUseOffscreen;
+    const origFetch = Download.fetchViaOffscreen;
+    Download.canUseOffscreen = jest.fn(() => true);
+    Download.fetchViaOffscreen = jest.fn(() => Promise.resolve("blob:offscreen-url"));
+    try {
+      const state = makeState();
+      await Download.renameAndDownload(state);
+      await flush();
+
+      expect(Download.fetchViaOffscreen).toHaveBeenCalledWith(state.info.url);
+      expect(global.browser.downloads.download).toHaveBeenCalledWith(
+        expect.objectContaining({ url: "blob:offscreen-url" }),
+      );
+    } finally {
+      Download.canUseOffscreen = origCanUse;
+      Download.fetchViaOffscreen = origFetch;
+    }
+  });
+
+  test("Chrome offscreen: falls back to a direct download when the offscreen fetch fails", async () => {
+    global.CURRENT_BROWSER = "CHROME";
+    global.options.fetchViaFetch = true;
+    const origCanUse = Download.canUseOffscreen;
+    const origFetch = Download.fetchViaOffscreen;
+    Download.canUseOffscreen = jest.fn(() => true);
+    Download.fetchViaOffscreen = jest.fn(() => Promise.reject(new Error("offscreen boom")));
+    try {
+      const state = makeState();
+      await Download.renameAndDownload(state);
+      await flush();
+
+      expect(global.Log.add).toHaveBeenCalledWith(
+        "offscreen fetch failed",
+        expect.stringContaining("offscreen boom"),
+      );
+      expect(global.browser.downloads.download).toHaveBeenCalledWith(
+        expect.objectContaining({ url: state.info.url }),
+      );
+    } finally {
+      Download.canUseOffscreen = origCanUse;
+      Download.fetchViaOffscreen = origFetch;
+    }
   });
 });
 

@@ -1,7 +1,6 @@
 let currentTab = null; // global variable
 
 window.init = () => {
-  // FIXME
   window.optionErrors = {
     paths: [],
     filenamePatterns: [],

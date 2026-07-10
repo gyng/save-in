@@ -388,6 +388,72 @@ describe("addDownloadListener", () => {
     expect(global.Download.renameAndDownload).not.toHaveBeenCalled();
   });
 
+  test("logs (and swallows) a rejection from the fire-and-forget download", async () => {
+    global.Log = { add: jest.fn() };
+    global.Download.renameAndDownload = jest.fn(() => Promise.reject(new Error("boom")));
+
+    Menus.addPaths(["dir1"], ["link"]);
+    await expect(
+      listener({
+        menuItemId: "save-in-0",
+        linkUrl: "https://example.com/f.png",
+        pageUrl: "https://example.com/",
+      }),
+    ).resolves.not.toThrow();
+
+    // let the rejection reach the .catch handler
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(global.Log.add).toHaveBeenCalledWith(
+      "renameAndDownload failed",
+      expect.stringContaining("boom"),
+    );
+    delete global.Log;
+  });
+
+  test("closeTabOnSave removes the tab shortly after a page save", async () => {
+    jest.useFakeTimers();
+    try {
+      global.options.closeTabOnSave = true;
+      global.browser.tabs = { remove: jest.fn() };
+
+      Menus.addPaths(["dir1"], ["page"]);
+      await listener(
+        { menuItemId: "save-in-0", pageUrl: "https://example.com/" },
+        { id: 42, title: "Title" },
+      );
+
+      expect(global.browser.tabs.remove).not.toHaveBeenCalled();
+      await jest.advanceTimersByTimeAsync(500);
+      expect(global.browser.tabs.remove).toHaveBeenCalledWith(42);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  test("does not close the tab for a non-page save even with closeTabOnSave", async () => {
+    jest.useFakeTimers();
+    try {
+      global.options.closeTabOnSave = true;
+      global.browser.tabs = { remove: jest.fn() };
+
+      Menus.addPaths(["dir1"], ["link"]);
+      await listener(
+        {
+          menuItemId: "save-in-0",
+          linkUrl: "https://example.com/f.png",
+          pageUrl: "https://example.com/",
+        },
+        { id: 42, title: "Title" },
+      );
+
+      await jest.advanceTimersByTimeAsync(1000);
+      expect(global.browser.tabs.remove).not.toHaveBeenCalled();
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   test("route-exclusive clicks download into the routing root", async () => {
     await listener({
       menuItemId: Menus.IDS.ROUTE_EXCLUSIVE,
@@ -730,6 +796,23 @@ describe("addTabMenuListener tabstrip downloads", () => {
       undefined,
       240,
     );
+  });
+
+  test("logs (and swallows) a rejection from a tabstrip download", async () => {
+    global.Log = { add: jest.fn() };
+    global.Download.renameAndDownload = jest.fn(() => Promise.reject(new Error("boom")));
+
+    await listener({ menuItemId: Menus.IDS.TABSTRIP.SELECTED_TAB }, fromTab);
+    await jest.advanceTimersByTimeAsync(2000);
+    // let the rejection reach the .catch handler
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(global.Log.add).toHaveBeenCalledWith(
+      "renameAndDownload failed",
+      expect.stringContaining("boom"),
+    );
+    delete global.Log;
   });
 
   test("closeTabOnSave removes each tab shortly after saving it", async () => {
