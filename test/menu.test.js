@@ -10,6 +10,7 @@ describe("menu parsing", () => {
   beforeAll(async () => {
     global.SPECIAL_DIRS = constants.SPECIAL_DIRS;
     global.PATH_SEGMENT_TYPES = constants.PATH_SEGMENT_TYPES;
+    global.FORBIDDEN_FILENAME_CHARS = constants.FORBIDDEN_FILENAME_CHARS;
     global.Path = (await import("../src/path.js")).default;
   });
 

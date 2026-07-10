@@ -125,6 +125,12 @@ const CLICK_TYPES = {
   FORWARD_CLICK: "FORWARD_CLICK",
 };
 
+// Characters invalid in a filename/path segment (Windows as the lowest common
+// denominator). One source of truth for Path's sanitizer and option.js's
+// replacementChar validator (#221). No flags — callers add `g` where needed.
+// eslint-disable-next-line no-control-regex -- control chars \x00-\x1f are intentionally forbidden
+const FORBIDDEN_FILENAME_CHARS = /[<>:"/\\|?*\x00-\x1f]/;
+
 // Export for testing
 if (typeof module !== "undefined") {
   module.exports = {
@@ -138,5 +144,6 @@ if (typeof module !== "undefined") {
     PATH_SEGMENT_TYPES,
     DOWNLOAD_TYPES,
     CLICK_TYPES,
+    FORBIDDEN_FILENAME_CHARS,
   };
 }

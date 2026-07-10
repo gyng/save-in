@@ -2,8 +2,10 @@ const specialDirVariables = Object.values(SPECIAL_DIRS);
 const specialDirRegexp = new RegExp(`(${specialDirVariables.join("|")})`);
 
 const Path = {
-  // eslint-disable-next-line no-control-regex -- control characters \x00-\x1F (including NUL) are intentionally stripped: :pagetitle:/selection text can carry raw newlines/tabs that Windows filenames can't contain (GH #221)
-  SPECIAL_CHARACTERS_REGEX: /[<>:"/\\|?*\x00-\x1f]/g,
+  // The shared forbidden-char class (constants.js), with the `g` flag added for
+  // String#replace; :pagetitle:/selection text can carry raw newlines/tabs that
+  // Windows filenames can't contain (GH #221)
+  SPECIAL_CHARACTERS_REGEX: new RegExp(FORBIDDEN_FILENAME_CHARS.source, "g"),
   BAD_LEADING_CHARACTERS: /^[./\\]/g,
   // Windows trims/rejects trailing dots and spaces on every path segment
   TRAILING_DOTS_AND_SPACES_REGEX: /[. ]+$/,
@@ -103,19 +105,18 @@ const Path = {
     }
   },
 
+  // Resolve the replacement character: explicit override, else the user's
+  // configured replacementChar, else the fallback ("" strips, "_" prefixes)
+  replacementChar: (override, fallback = "") =>
+    override || (typeof options !== "undefined" && options && options.replacementChar) || fallback,
+
   // TODO: Make this OS-aware instead of assuming Windows as LCD
   replaceFsBadChars: (s, replacement) =>
-    s.replace(
-      Path.SPECIAL_CHARACTERS_REGEX,
-      replacement || (typeof options !== "undefined" && options && options.replacementChar) || "",
-    ),
+    s.replace(Path.SPECIAL_CHARACTERS_REGEX, Path.replacementChar(replacement)),
 
   // Leading dots are considered invalid by both Firefox and Chrome
   replaceLeadingDots: (s, replacement) =>
-    s.replace(
-      Path.BAD_LEADING_CHARACTERS,
-      replacement || (typeof options !== "undefined" && options && options.replacementChar) || "",
-    ),
+    s.replace(Path.BAD_LEADING_CHARACTERS, Path.replacementChar(replacement)),
 
   truncateIfLongerThan: (str, max) =>
     str && max > 0 && str.length > max ? str.substr(0, max) : str,
@@ -132,8 +133,7 @@ const Path = {
       return s;
     }
 
-    const char =
-      replacement || (typeof options !== "undefined" && options && options.replacementChar) || "_";
+    const char = Path.replacementChar(replacement, "_");
     return `${char}${s}`;
   },
 

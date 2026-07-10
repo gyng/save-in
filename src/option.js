@@ -4,13 +4,6 @@ const T = {
   VALUE: "VALUE",
 };
 
-// Mirrors Path.SPECIAL_CHARACTERS_REGEX's forbidden set, kept independent so
-// option.js doesn't depend on a real Path global under test. A stored
-// replacementChar that is itself one of the characters it's meant to replace
-// (or a path separator) would defeat the sanitizer (#221).
-// eslint-disable-next-line no-control-regex -- control characters are forbidden replacement characters too
-const FORBIDDEN_REPLACEMENT_CHAR_REGEX = /[<>:"/\\|?*\x00-\x1f]/;
-
 let options = {};
 
 const OptionsManagement = {
@@ -80,8 +73,7 @@ const OptionsManagement = {
       // rather than replace it; a non-empty value that reintroduces a
       // forbidden character/separator or forms a dot-segment falls back to
       // the default instead of silently breaking every sanitized path (#221)
-      onLoad: (v) =>
-        v && (FORBIDDEN_REPLACEMENT_CHAR_REGEX.test(v) || v === "." || v === "..") ? "_" : v,
+      onLoad: (v) => (v && (FORBIDDEN_FILENAME_CHARS.test(v) || v === "." || v === "..") ? "_" : v),
       default: "_",
     },
     { name: "routeExclusive", type: T.BOOL, default: false },

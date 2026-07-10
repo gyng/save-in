@@ -57,6 +57,7 @@ interface DownloadState {
 // constants.js
 declare const SPECIAL_DIRS: Record<string, string>;
 declare const RULE_TYPES: Record<string, string>;
+declare const FORBIDDEN_FILENAME_CHARS: RegExp;
 declare const PATH_SEGMENT_TYPES: Record<string, string>;
 declare const SHORTCUT_EXTENSIONS: Record<string, string>;
 declare const SHORTCUT_TYPES: Record<string, string>;
