@@ -924,9 +924,6 @@ const restoreOptionsHandler = (result, schema) => {
   updateMenuPreview();
   // Stored values are now in the editors: they are clean, Apply dims
   refreshManualEditorBaselines();
-  // Widgets that mirror a hidden option (e.g. the click-to-save key picker)
-  // re-render once the stored values have landed
-  document.dispatchEvent(new Event("options-restored"));
 };
 
 const restoreOptions = () =>
@@ -1328,85 +1325,6 @@ const updateMenuPreview = () => {
 
 setupManualEditor("paths");
 setupManualEditor("filenamePatterns");
-
-// Friendly key picker for the click-to-save combo: instead of typing a raw JS
-// keyCode (and consulting keycode.info), click the button and press the key to
-// hold. The numeric keyCode is stored in the hidden #contentClickToSaveCombo.
-(() => {
-  const hidden = document.querySelector("#contentClickToSaveCombo");
-  const btn = document.querySelector("#combo-capture");
-  if (!(hidden instanceof HTMLInputElement) || !(btn instanceof HTMLButtonElement)) {
-    return;
-  }
-
-  const keyName = (code) => {
-    const named = {
-      8: "Backspace",
-      9: "Tab",
-      13: "Enter",
-      16: "Shift",
-      17: "Ctrl",
-      18: "Alt",
-      20: "Caps Lock",
-      27: "Esc",
-      32: "Space",
-      91: "Meta",
-      93: "Meta",
-      224: "Meta",
-    };
-    if (named[code]) {
-      return named[code];
-    }
-    if ((code >= 65 && code <= 90) || (code >= 48 && code <= 57)) {
-      return String.fromCharCode(code); // A–Z, 0–9
-    }
-    if (code >= 112 && code <= 123) {
-      return `F${code - 111}`; // F1–F12
-    }
-    return code ? `key ${code}` : "Not set";
-  };
-
-  const render = () => {
-    btn.textContent = hidden.value ? keyName(Number(hidden.value)) : "Click to set";
-  };
-  render();
-
-  let capturing = false;
-  const stop = () => {
-    capturing = false;
-    btn.classList.remove("key-capture-active");
-    render();
-  };
-
-  btn.addEventListener("click", () => {
-    capturing = true;
-    btn.classList.add("key-capture-active");
-    btn.textContent = "Press a key…";
-  });
-
-  btn.addEventListener("keydown", (e) => {
-    if (!capturing) {
-      return;
-    }
-    e.preventDefault();
-    if (e.key === "Escape") {
-      stop();
-      return;
-    }
-    hidden.value = String(e.keyCode);
-    hidden.dispatchEvent(new Event("change", { bubbles: true }));
-    stop();
-  });
-
-  btn.addEventListener("blur", () => {
-    if (capturing) {
-      stop();
-    }
-  });
-
-  // restoreOptions sets the hidden value asynchronously after load
-  document.addEventListener("options-restored", render);
-})();
 
 // Wrap each checkbox row's title (label text + any inline badges, up to the
 // first help / sub-option block) in a .opt-title span. It becomes the row's
