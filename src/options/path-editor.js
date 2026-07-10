@@ -85,15 +85,22 @@ const PathEditor = {
     PathEditor.insertText(textarea, `${glue}${line}`, lineEnd, lineEnd);
   },
 
-  setupInsertMenu: () => {
-    /** @type {HTMLTextAreaElement} */
-    const textarea = document.querySelector("#paths");
+  // A "+ Add" menu for an editor: line-insert buttons (data-insert-line)
+  // and a filterable variable list. The menu targets the textarea named
+  // by its data-insert-target; children are found by class so the same
+  // markup shape works for the paths and rules editors.
+  setupInsertMenu: (menuSelector) => {
     /** @type {HTMLDetailsElement} */
-    const menu = document.querySelector("#paths-insert-menu");
-    const variablesContainer = document.querySelector("#paths-insert-variables");
+    const menu = document.querySelector(menuSelector);
+    if (!menu) {
+      return;
+    }
+    /** @type {HTMLTextAreaElement} */
+    const textarea = document.querySelector(`#${menu.dataset.insertTarget}`);
+    const variablesContainer = menu.querySelector(".insert-menu-variables");
     /** @type {HTMLInputElement} */
-    const filter = document.querySelector("#paths-insert-filter");
-    if (!textarea || !menu || !variablesContainer) {
+    const filter = menu.querySelector(".insert-menu-filter");
+    if (!textarea || !variablesContainer) {
       return;
     }
 
@@ -430,7 +437,8 @@ const PathEditor = {
 };
 
 document.addEventListener("DOMContentLoaded", () => {
-  PathEditor.setupInsertMenu();
+  PathEditor.setupInsertMenu("#paths-insert-menu");
+  PathEditor.setupInsertMenu("#rules-insert-menu");
   PathEditor.setupVisualEditor();
   PathEditor.setupModeToggle();
 });

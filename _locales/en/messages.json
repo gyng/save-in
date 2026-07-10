@@ -270,6 +270,14 @@
     "message": "Submenu item"
   },
 
+  "o_bInsertInto": {
+    "message": "into: (destination)"
+  },
+
+  "o_bInsertCapture": {
+    "message": "capture: (matcher)"
+  },
+
   "o_lInsertVariables": {
     "message": "Variables (inserted at the cursor)"
   },

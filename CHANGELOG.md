@@ -50,10 +50,17 @@ testing on Chromium!
   (on by default; "Retry failed downloads in the background" in More
   Options)
 - Routing rules got a guided quick-add row (matcher, pattern, destination)
-  and a built-in template library with one-click starter rules
-- New Visual Editor tab for the directory list (rows with indent/reorder/
-  alias controls; the text box remains the source of truth) and a + Add
-  insert menu on the text box for variables and separators
+  with variable autocomplete, and a built-in template library with
+  one-click starter rules
+- The directory list has a Text/Visual editor: the visual mode edits rows
+  with indent, drag-to-reorder, alias, and delete controls; both modes
+  share a "+ Add" menu (variables with live values, separators, submenu
+  lines) and a live menu-tree preview. The rules editor gets the same
+  "+ Add" menu (into:/capture: clauses and variables).
+- The directory list and routing rules now save explicitly via Apply
+  (with a Discard button) instead of autosaving; Apply/Discard light up
+  only while there are unsaved edits, and switching tabs or closing the
+  page prompts to save or discard. Every other setting still autosaves.
 - Options page refresh: full-width tabbed layout, live save indicator in
   the top bar, system font stack, dark-mode fixes
 - Filenames are hardened for Windows: control characters, trailing

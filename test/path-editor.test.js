@@ -172,12 +172,12 @@ describe("insert menu typeahead", () => {
   beforeEach(async () => {
     document.body.innerHTML = `
       <textarea id="paths">a</textarea>
-      <details id="paths-insert-menu">
+      <details id="paths-insert-menu" data-insert-target="paths">
         <summary>+ Add</summary>
         <div>
-          <input type="text" id="paths-insert-filter" />
+          <input type="text" class="insert-menu-filter" />
           <button type="button" data-insert-line="---">separator</button>
-          <div id="paths-insert-variables"></div>
+          <div class="insert-menu-variables"></div>
         </div>
       </details>
     `;
@@ -193,7 +193,7 @@ describe("insert menu typeahead", () => {
       return Promise.resolve({});
     });
     global.browser.runtime.sendMessage = sendMessage;
-    PathEditor.setupInsertMenu();
+    PathEditor.setupInsertMenu("#paths-insert-menu");
     await Promise.resolve();
     await Promise.resolve();
     await Promise.resolve();
@@ -204,7 +204,7 @@ describe("insert menu typeahead", () => {
   });
 
   const buttons = () => [...document.querySelectorAll(".insert-menu-variable")];
-  const filter = () => document.querySelector("#paths-insert-filter");
+  const filter = () => document.querySelector(".insert-menu-filter");
 
   test("lists variables with their current values", () => {
     expect(buttons().map((b) => b.querySelector("code").textContent)).toEqual([
@@ -333,5 +333,39 @@ describe("visual editor drag and drop", () => {
     rows[0].dispatchEvent(new Event("drop"));
 
     expect(document.querySelector("#paths").value).toBe("a\nb\nc");
+  });
+});
+
+describe("insert menu targets its editor via data-insert-target", () => {
+  afterEach(() => {
+    document.body.innerHTML = "";
+  });
+
+  test("a rules menu inserts a line into #filenamePatterns", async () => {
+    document.body.innerHTML = `
+      <textarea id="filenamePatterns">fileext: pdf</textarea>
+      <details id="rules-insert-menu" data-insert-target="filenamePatterns">
+        <summary>+ Add</summary>
+        <div>
+          <input type="text" class="insert-menu-filter" />
+          <button type="button" data-insert-line="into: ">into</button>
+          <div class="insert-menu-variables"></div>
+        </div>
+      </details>
+    `;
+    global.browser.runtime.sendMessage = vi.fn(() =>
+      Promise.resolve({ body: { variables: [":filename:"] } }),
+    );
+    PathEditor.setupInsertMenu("#rules-insert-menu");
+    await Promise.resolve();
+    await Promise.resolve();
+
+    const textarea = document.querySelector("#filenamePatterns");
+    textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+    document.querySelector('[data-insert-line="into: "]').click();
+
+    expect(textarea.value).toBe("fileext: pdf\ninto: ");
+    // Variables from the same GET_KEYWORDS source appear
+    expect(document.querySelectorAll(".insert-menu-variable")).toHaveLength(1);
   });
 });

@@ -111,12 +111,12 @@
           <div class="error-notification" id="error-paths">path errors</div>
 
           <div class="editor-actions" id="paths-text-actions">
-            <details class="insert-menu" id="paths-insert-menu">
+            <details class="insert-menu" id="paths-insert-menu" data-insert-target="paths">
               <summary>__MSG_o_lInsertMenu__</summary>
               <div class="insert-menu-panel">
                 <input
                   type="text"
-                  id="paths-insert-filter"
+                  class="insert-menu-filter"
                   placeholder="__MSG_o_lInsertFilter__"
                   spellcheck="false"
                 />
@@ -125,7 +125,7 @@
                   &gt; __MSG_o_bInsertSubmenuItem__
                 </button>
                 <div class="caption">__MSG_o_lInsertVariables__</div>
-                <div id="paths-insert-variables"></div>
+                <div class="insert-menu-variables"></div>
               </div>
             </details>
             <button type="button" class="apply-button" data-apply="paths" disabled>
@@ -436,14 +436,29 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
         ></textarea>
         <div class="error-notification" id="error-filenamePatterns">errors</div>
 
-        <p>
+        <div class="editor-actions">
+          <details class="insert-menu" id="rules-insert-menu" data-insert-target="filenamePatterns">
+            <summary>__MSG_o_lInsertMenu__</summary>
+            <div class="insert-menu-panel">
+              <input
+                type="text"
+                class="insert-menu-filter"
+                placeholder="__MSG_o_lInsertFilter__"
+                spellcheck="false"
+              />
+              <button type="button" data-insert-line="into: ">__MSG_o_bInsertInto__</button>
+              <button type="button" data-insert-line="capture: ">__MSG_o_bInsertCapture__</button>
+              <div class="caption">__MSG_o_lInsertVariables__</div>
+              <div class="insert-menu-variables"></div>
+            </div>
+          </details>
           <button type="button" class="apply-button" data-apply="filenamePatterns" disabled>
             __MSG_o_bApply__
           </button>
           <button type="button" class="discard-button" data-discard="filenamePatterns" disabled>
             __MSG_o_bDiscard__
           </button>
-        </p>
+        </div>
 
         <div class="rule-builder">
           <div class="caption">__MSG_o_lRuleBuilder__</div>
