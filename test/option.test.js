@@ -40,6 +40,24 @@ describe("OptionsManagement", () => {
     });
   });
 
+  describe("conflictAction validation (#89/#217)", () => {
+    const conflictKey = () =>
+      OptionsManagement.OPTION_KEYS.find((k) => k.name === "conflictAction");
+
+    test("downgrades the Firefox-only 'prompt' to 'uniquify' on Chrome", () => {
+      global.BROWSERS = { CHROME: "CHROME", FIREFOX: "FIREFOX" };
+      global.CURRENT_BROWSER = "CHROME";
+      expect(conflictKey().onLoad("prompt")).toBe("uniquify");
+      expect(conflictKey().onLoad("overwrite")).toBe("overwrite");
+    });
+
+    test("keeps 'prompt' on Firefox", () => {
+      global.BROWSERS = { CHROME: "CHROME", FIREFOX: "FIREFOX" };
+      global.CURRENT_BROWSER = "FIREFOX";
+      expect(conflictKey().onLoad("prompt")).toBe("prompt");
+    });
+  });
+
   describe("onSave hooks", () => {
     test("filenamePatterns are trimmed on save", () => {
       const key = OptionsManagement.OPTION_KEYS.find((k) => k.name === "filenamePatterns");

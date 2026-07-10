@@ -180,6 +180,22 @@ describe("handleDownloadMessage", () => {
     ),
   });
 
+  test("tolerates an external message with no info object", () => {
+    const sendResponse = vi.fn();
+    expect(() =>
+      onMessage(
+        { type: MESSAGE_TYPES.DOWNLOAD, body: { url: "https://x/file.png" } },
+        {},
+        sendResponse,
+      ),
+    ).not.toThrow();
+    expect(global.Download.renameAndDownload).toHaveBeenCalledTimes(1);
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.DOWNLOAD,
+      body: { status: MESSAGE_TYPES.OK },
+    });
+  });
+
   test("downloads with defaults when no previous download state exists", () => {
     const sendResponse = vi.fn();
     onMessage(request(), {}, sendResponse);
@@ -283,14 +299,19 @@ describe("handleDownloadMessage", () => {
 });
 
 describe("emit.downloaded", () => {
-  test("fires a DOWNLOADED message and does not wait", () => {
+  test("fires a DOWNLOADED message and swallows a no-receiver rejection", async () => {
+    global.browser.runtime.sendMessage = vi.fn(() =>
+      Promise.reject(new Error("Receiving end does not exist")),
+    );
     const state = { info: { url: "https://x/file.png" } };
-    Messaging.emit.downloaded(state);
 
+    expect(() => Messaging.emit.downloaded(state)).not.toThrow();
     expect(global.browser.runtime.sendMessage).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.DOWNLOADED,
       body: { state },
     });
+    // The rejection is caught, not left unhandled
+    await Promise.resolve();
   });
 });
 

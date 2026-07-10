@@ -10,7 +10,18 @@ const OptionsManagement = {
   OPTION_TYPES: T, // re-export
 
   OPTION_KEYS: [
-    { name: "conflictAction", type: T.VALUE, default: "uniquify" },
+    {
+      name: "conflictAction",
+      type: T.VALUE,
+      // "prompt" is Firefox-only; a stored "prompt" on Chrome (imported
+      // settings, a migrated profile) makes downloads.download reject and
+      // silently kills every download (#89, #217)
+      onLoad: (v) =>
+        v === CONFLICT_ACTION.PROMPT && CURRENT_BROWSER === BROWSERS.CHROME
+          ? CONFLICT_ACTION.UNIQUIFY
+          : v,
+      default: "uniquify",
+    },
     { name: "contentClickToSave", type: T.BOOL, default: false },
     { name: "contentClickToSaveCombo", type: T.VALUE, default: 18 },
     {
@@ -49,7 +60,7 @@ const OptionsManagement = {
       type: T.VALUE,
       onSave: (v) => v.trim() || ".",
       default:
-        ".\nimages\nimages/cute\nvideos // (key: h)\n\nsubmenu\n>submenu/subdir\n>>submenu/subdir/2 // (alias: actual display name)\n>submenu/subdir2 // comments",
+        ". // (alias: Downloads)\nimages\nimages/cute\nvideos // (key: h)\n\nsubmenu\n>submenu/subdir\n>>submenu/subdir/2 // (alias: actual display name)\n>submenu/subdir2 // comments",
     },
     { name: "prompt", type: T.BOOL, default: false },
     { name: "promptIfNoExtension", type: T.BOOL, default: false },

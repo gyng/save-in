@@ -38,6 +38,16 @@ describe("filename from URL", () => {
       ),
     ).toBe("(ok) シャイニング.bar");
   });
+
+  test("keeps a literal % that is not a valid escape (no throw)", () => {
+    // decodeURIComponent("50%off.jpg") throws URIError — must not abort
+    expect(Download.getFilenameFromUrl("https://x.com/50%off.jpg")).toBe("50%off.jpg");
+    expect(Download.getFilenameFromUrl("https://x.com/a/file%.jpg")).toBe("file%.jpg");
+  });
+
+  test("returns an empty string for an unparseable URL", () => {
+    expect(Download.getFilenameFromUrl("not a url")).toBe("");
+  });
 });
 
 describe("filename from Content-Disposition", () => {

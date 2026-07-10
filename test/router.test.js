@@ -330,9 +330,11 @@ describe("filename rewrite and routing", () => {
       expect(optionErrors.filenamePatterns[0].error).toBe("invalid line syntax");
     });
 
-    test("invalid matcher regex is reported", () => {
+    test("invalid matcher regex is reported and drops the rule", () => {
       const rules = router.parseRules("sourceurl: [[\ninto: x");
-      expect(rules.length).toBe(1); // the rule survives with an undefined value
+      // A bad regex would compile to a match-everything matcher, so the whole
+      // rule is dropped rather than routing every download by it
+      expect(rules.length).toBe(0);
       expect(optionErrors.filenamePatterns[0].error).toMatch(/SyntaxError/);
     });
 
@@ -372,6 +374,19 @@ describe("filename rewrite and routing", () => {
     test("matchRule returns the destination untouched without captures", () => {
       const rules = router.parseRules("sourceurl: dog\ninto: plain");
       expect(router.matchRules(rules, { sourceUrl: "http://dog.com/" })).toBe("plain");
+    });
+
+    test("a non-participating capture group is empty, not literal 'undefined'", () => {
+      // The optional (extra-)? group doesn't match "dog", so :$2: is empty
+      const rules = router.parseRules(
+        "sourceurl: (dog)(extra)?\ncapture: sourceurl\ninto: a/:$1:/:$2:/b",
+      );
+      expect(router.matchRules(rules, { sourceUrl: "http://dog.com/" })).toBe("a/dog//b");
+    });
+
+    test("capturing context does not throw when metadata is absent", () => {
+      const rules = router.parseRules("context: (media)\ncapture: context\ninto: :$1:");
+      expect(() => router.getCaptureMatches(rules[0], { sourceUrl: "http://x/" })).not.toThrow();
     });
   });
 

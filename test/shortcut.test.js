@@ -24,6 +24,15 @@ describe("shortcut content creation", () => {
     expect(shortcut.makeShortcutContent(SHORTCUT_TYPES.HTML_REDIRECT, "foo")).toContain(expected);
   });
 
+  test("escapes the URL so a hostile link cannot inject script", () => {
+    const hostile = 'https://x/"</script><script>alert(1)</script>';
+    const content = shortcut.makeShortcutContent(SHORTCUT_TYPES.HTML_REDIRECT, hostile);
+    // No literal </script> can appear to break out of the <script> element
+    // (except the single legitimate one closing our own script tag)
+    expect(content.match(/<\/script>/g)).toHaveLength(1);
+    expect(content).not.toContain("<script>alert(1)");
+  });
+
   test("creates a Mac URL shortcut", () => {
     const expected = "[InternetShortcut]\nURL=foo";
     expect(shortcut.makeShortcutContent(SHORTCUT_TYPES.MAC, "foo")).toBe(expected);

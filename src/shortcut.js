@@ -19,13 +19,17 @@ const Shortcut = {
           `URL=${url}`,
         ].join("\n");
       }
-      case SHORTCUT_TYPES.HTML_REDIRECT:
+      case SHORTCUT_TYPES.HTML_REDIRECT: {
+        // JSON-encode for the JS string literal, then escape `<` as < so
+        // a `</script>` inside the URL can't break out of the <script> element
+        const safeUrl = JSON.stringify(url).replace(/</g, "\\u003C");
         return `
           <html>
             <head>
-              <script type="text/javascript">window.location.href = "${url}"</script>
+              <script type="text/javascript">window.location.href = ${safeUrl}</script>
             </head>
           </html>`;
+      }
       default:
         return url;
     }

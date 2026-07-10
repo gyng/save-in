@@ -43,8 +43,21 @@ const Download = {
   },
 
   getFilenameFromUrl: (url) => {
-    const remotePath = new URL(url).pathname;
-    return decodeURIComponent(remotePath.substring(remotePath.lastIndexOf("/") + 1));
+    let segment;
+    try {
+      const remotePath = new URL(url).pathname;
+      segment = remotePath.substring(remotePath.lastIndexOf("/") + 1);
+    } catch (e) {
+      // Not a parseable URL (e.g. a data: URL handled elsewhere): no name
+      return "";
+    }
+    try {
+      // A malformed percent-escape (e.g. "50%off.jpg") must not abort the
+      // whole download — fall back to the raw segment
+      return decodeURIComponent(segment);
+    } catch (e) {
+      return segment;
+    }
   },
 
   finalizeFullPath: (_state) => {
@@ -165,7 +178,14 @@ const Download = {
         fetch(_url)
           .then((response) => response.blob())
           .then((myBlob) => Download.makeUrlFromBlob(myBlob))
-          .then((blobUrl) => browserDownload(blobUrl));
+          .then((blobUrl) => browserDownload(blobUrl))
+          .catch((e) => {
+            // A failed fetch (network/CORS) must not be a silent no-op
+            if (typeof Log !== "undefined") {
+              Log.add("fetch download failed", String(e));
+            }
+            browserDownload(_url);
+          });
       };
 
       if (options.fetchViaContent) {

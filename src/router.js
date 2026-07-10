@@ -50,8 +50,8 @@ const Router = {
   matcherFunctions: {
     context:
       (regex) =>
-      (info, { context }) => {
-        const match = context.toLowerCase().match(regex);
+      (info, { context } = {}) => {
+        const match = context == null ? null : context.toLowerCase().match(regex);
 
         if (window.SI_DEBUG && match) {
           console.log("matched", match, regex, info); // eslint-disable-line
@@ -165,6 +165,10 @@ const Router = {
           message: browser.i18n.getMessage("ruleInvalidRegex"),
           error: `${e}`,
         });
+        // An invalid regex left `value` undefined, which would compile to a
+        // match-everything matcher (`str.match(undefined)` matches ""). Drop
+        // the whole rule instead of routing every download by it.
+        return false;
       }
 
       let type = RULE_TYPES.MATCHER;
@@ -203,6 +207,12 @@ const Router = {
         };
       }
     });
+
+    // Any matcher line that failed to parse (invalid regex, unknown matcher)
+    // invalidates the whole rule rather than leaving it partially built
+    if (matchers.some((m) => m === false)) {
+      return false;
+    }
 
     if (!matchers.some((m) => m.type === RULE_TYPES.DESTINATION)) {
       window.optionErrors.filenamePatterns.push({
@@ -356,7 +366,9 @@ const Router = {
 
     if (capturedMatches) {
       for (let i = 0; i < capturedMatches.length; i += 1) {
-        destination = destination.split(`:$${i}:`).join(capturedMatches[i]);
+        // A non-participating optional group is undefined; joining with it
+        // would inject the literal text "undefined" into the path
+        destination = destination.split(`:$${i}:`).join(capturedMatches[i] ?? "");
       }
     }
 

@@ -4,10 +4,14 @@ const Messaging = {
   // Fires off and does not expect a return value
   emit: {
     downloaded: (state) => {
-      browser.runtime.sendMessage({
-        type: MESSAGE_TYPES.DOWNLOADED,
-        body: { state },
-      });
+      // In MV3 sendMessage rejects when no receiver (options page) is open;
+      // that is expected, so swallow it rather than leak an unhandled rejection
+      browser.runtime
+        .sendMessage({
+          type: MESSAGE_TYPES.DOWNLOADED,
+          body: { state },
+        })
+        .catch(() => {});
     },
   },
 
@@ -21,6 +25,12 @@ const Messaging = {
             active: true,
           })
           .then((tabs) => {
+            // With no active tab there is no content script to fetch through:
+            // reject so the caller's fallback runs instead of hanging forever
+            if (!tabs || !tabs[0]) {
+              reject(new Error("No active tab for fetchViaContent"));
+              return;
+            }
             browser.tabs
               .sendMessage(tabs[0].id, {
                 type: MESSAGE_TYPES.FETCH_VIA_CONTENT,
@@ -33,7 +43,8 @@ const Messaging = {
                 }
                 reject(err);
               });
-          });
+          })
+          .catch(reject);
       }),
   },
 
@@ -62,7 +73,9 @@ const Messaging = {
    * }
    */
   handleDownloadMessage: (request, sender, sendResponse) => {
-    const { url, info, comment } = request.body;
+    const { url, comment } = request.body;
+    // The external onMessageExternal API may omit info
+    const info = request.body.info || {};
     const last = window.lastDownloadState || {
       path: new Path.Path("."),
       scratch: {},
