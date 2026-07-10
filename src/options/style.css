@@ -167,6 +167,13 @@ body:not(#settings-page) {
   white-space: nowrap;
 }
 
+.app-icon {
+  width: 18px;
+  height: 18px;
+  vertical-align: text-bottom;
+  margin-right: var(--space-2);
+}
+
 .app-title {
   font-weight: 600;
 }
@@ -934,6 +941,18 @@ input.key {
 }
 
 .rule-template-desc {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rule-template-rule {
+  display: block;
+  margin-top: 2px;
+  padding: 0;
+  background: none;
+  font-size: 11px;
+  color: var(--grey50);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

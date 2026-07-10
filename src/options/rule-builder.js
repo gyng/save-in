@@ -139,8 +139,13 @@ const RuleBuilder = {
       description.className = "caption rule-template-desc";
       description.textContent = tpl.description;
       body.appendChild(description);
-      // The full rule shows on hover to keep the list compact
-      row.title = tpl.rule;
+
+      // The rule itself, compact (newlines joined); full text on hover
+      const ruleEl = document.createElement("code");
+      ruleEl.className = "rule-template-rule";
+      ruleEl.textContent = tpl.rule.replace(/\n/g, "  ");
+      ruleEl.title = tpl.rule;
+      body.appendChild(ruleEl);
 
       const add = document.createElement("button");
       add.type = "button";
