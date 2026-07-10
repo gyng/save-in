@@ -569,6 +569,33 @@ and a self-describing prompt pack (schema + worked examples) users can paste int
 any LLM. Guardrails already exist (invalid regex drops the rule, path traversal
 rejected, import can't widen permissions). **S–M** each.
 
+### WebMCP (browser-native AI tools) — watch, don't build yet. **[verify]**
+
+Chrome's [WebMCP imperative
+API](https://developer.chrome.com/docs/ai/webmcp/imperative-api) lets a page or
+extension register tools an in-browser AI agent can discover and call:
+`document.modelContext.registerTool({ name, description, inputSchema, execute })`
+(the surface already moved from `navigator.` to `document.`), discovered via
+`getTools()` and invoked via `executeTool()`. It is the browser-native form of
+exactly what §7/§9 expose over messaging — and it maps **1:1**:
+
+- `save_url` → `Messaging.handleDownloadMessage` (inputSchema = `{ url, info?,
+  comment? }`).
+- `validate_config` → `VALIDATE` (pure `buildTree`/`parseRules`, structured
+  errors — ideal for an agent's generate→validate→fix loop).
+- `apply_config` → `APPLY_CONFIG`; `get_schema` is just tool discovery.
+
+**Why not now:** it's an **origin trial**, Chrome-only, and explicitly "subject
+to change" (the `navigator`→`document` rename already happened). Shipping it in a
+polyfill-free stable extension would violate the feature-detection discipline.
+
+**What to do:** build §9's messaging API first (stable, cross-browser), with each
+handler a thin wrapper over an internal function (`handleDownloadMessage`,
+`checkRoutes`, `buildTree`, `applyConfig`). Then a WebMCP adapter is ~30 lines
+that `registerTool`s each with an `execute` calling the same internals — feature
+-detected on `document.modelContext`, added when it leaves origin trial. Verify
+the extension-context registration story before committing.
+
 ---
 
 ## Suggested sequencing & priority
@@ -584,20 +611,21 @@ rejected, import can't widen permissions). **S–M** each.
 | 7 | ~~Formalize + version the external DOWNLOAD API (PING, typed errors, docs)~~ | S–M | Low | Med–High | — | **Done (v1)** |
 | 8 | yt-dlp "copy command / save `.txt`" hand-off via `Shortcut` | S–M | Low | Med–High | — | **+1** |
 | 9 | ~~Guided rule builder~~ (shipped as quick-add row + template library; capture rules via templates) | M–L | Med | High (UX) | 3, 7-style preview | **Done** |
-| 10a | **Async `applyVariables` refactor** (Promise.all, no new variables) | M | Med (test sweep) | Med–High | 4 helps | **Now → ①** |
-| 10b | New async variables: `:counter:`, `:mime:`/`:ext:`, `:finalurl:` | M | Med | Med–High | 10a, §8.1 | **Next** |
+| 10a | ~~Async `applyVariables` refactor~~ (Promise.all, no new variables) | M | Med (test sweep) | Med–High | 4 helps | **Done** |
+| 10b | ~~New async variables~~ (`:counter:`, `:uuid:`, `:mime:`/`:contenttype:`/`:mimeext:`) | M | Med | Med–High | 10a | **Done** |
 | 11 | ~~Per-file `// @ts-check` rollout~~ (superseded: checkJs covers all of src/) | S each | Low | Med | 4 | **Done** |
 | 12 | ~~Visual/form path builder~~ (Visual Editor tab + insert menu) | M–L | Med | Med | 6 | **Done** |
-| 13 | **§8.1 Filename/extension correctness + MIME→ext** (folds into 10b) | M | Med | High | 10a | **Next** |
-| 14 | **§8.2 Concurrency / SW-restart correctness** (counter, keyed filename, per-download DNR id) | M | Med | High (silent failures) | — | **Next** |
+| 13 | **§8.1 Filename/extension correctness** — the `:mimeext:` variable shipped (10b); the pipeline part (auto-append MIME ext to the saved filename) remains | M | Med | High | 10a | **Next** |
+| 14 | ~~§8.2 Concurrency / SW-restart correctness~~ (pending counter, per-URL filename map, per-download DNR id) | M | Med | High (silent failures) | — | **Done** |
 | 15 | **§9 AI config: `GET_SCHEMA` / `VALIDATE` / `APPLY_CONFIG`** (also closes #89) | S–M | Low | Med–High | 7 | **Next** |
 | 16 | **§8.3 Referer on redirects** (#66 pixiv, #193) | M | Med | Med–High | — | **+1** |
 | 17 | ESM + bundler migration (only if justified) | L | Med–High | Low–Med | 1–3 | **Defer** |
 | 18 | Native-messaging yt-dlp companion (separate repo) | L | High | Med (power users) | 7 | **Defer / separate** |
 
-**Recommended build order:** 10a (pure async refactor) → 13+10b (extension
-correctness + `:mime:`/`:ext:`/`:counter:`, one combined win) → 14 (concurrency
-correctness) → 15 (AI-config trio) → 16 (referer/pixiv).
+**Recommended build order:** ~~10a → 10b → 14~~ (done). Remaining: 15
+(AI-config trio, also closes #89) → 13 (§8.1 pipeline: auto-append the MIME
+extension to the saved filename) → 16 (referer on redirects / pixiv) → 8 (yt-dlp
+hand-off).
 
 **Deliberately deferred:** the bundler/ESM migration and the yt-dlp native
 companion — each forfeits a property the project currently sells (readable
