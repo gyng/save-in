@@ -153,8 +153,8 @@ const renderVersionLabel = () => {
 
   fetch("version.json")
     .then((res) => res.json())
-    .then(({ commit, date }) => {
-      el.textContent = `v${version} (${commit} · ${date})`;
+    .then(({ commit }) => {
+      el.textContent = `v${version} (${commit})`;
     })
     .catch(() => {});
 };
