@@ -25,6 +25,36 @@ test("an error delta is a failure on Firefox too", () => {
   expect(notification.isDownloadFailure(failure, false)).toBeTruthy();
 });
 
+test("a paused or resumable interruption is not a failure on Firefox (§8.4, #28)", () => {
+  // paused download: interrupted but paused.current === true
+  expect(
+    notification.isDownloadFailure(
+      { state: { current: "interrupted" }, paused: { current: true } },
+      false,
+    ),
+  ).toBeFalsy();
+
+  // resumable stall: interrupted but canResume.current === true
+  expect(
+    notification.isDownloadFailure(
+      { state: { current: "interrupted" }, canResume: { current: true } },
+      false,
+    ),
+  ).toBeFalsy();
+
+  // even with an error reason, a resumable interruption is not surfaced as failed
+  expect(
+    notification.isDownloadFailure(
+      {
+        state: { current: "interrupted" },
+        error: { current: "NETWORK_FAILED" },
+        canResume: { current: true },
+      },
+      false,
+    ),
+  ).toBeFalsy();
+});
+
 describe("createExtensionNotification", () => {
   beforeEach(() => {
     global.browser.notifications = {

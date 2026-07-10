@@ -119,9 +119,14 @@ const Notifier = {
     if (isChrome) {
       failed = downloadDelta.error;
     } else {
-      failed =
-        downloadDelta.error ||
-        (downloadDelta.state && downloadDelta.state.current === "interrupted");
+      // Firefox reports pauses and resumable network stalls as
+      // state:"interrupted" too — neither is a real failure, so treating them
+      // as one produced a spurious "failed" toast (§8.4, #28). Only a terminal
+      // (not paused, not resumable) interruption counts.
+      const paused = downloadDelta.paused && downloadDelta.paused.current === true;
+      const resumable = downloadDelta.canResume && downloadDelta.canResume.current === true;
+      const interrupted = downloadDelta.state && downloadDelta.state.current === "interrupted";
+      failed = !paused && !resumable && (downloadDelta.error || interrupted);
     }
 
     return failed;
