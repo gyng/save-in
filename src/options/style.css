@@ -45,9 +45,18 @@
   --input-background: unset;
   --link-color: var(--blue60);
   --link-color-active: var(--blue70);
+  --page-bg: #ffffff;
+  --panel-bg: var(--grey20);
+  --panel-border: var(--grey30);
 }
 
 @media (prefers-color-scheme: dark) {
+  :root {
+    --page-bg: #2a2a2e;
+    --panel-bg: var(--grey70);
+    --panel-border: var(--grey60);
+  }
+
   #settings-page {
     --input-background: #474749;
     --link-color: var(--blue40);
@@ -57,7 +66,7 @@
 
   body {
     color: white !important;
-    background-color: #2a2a2e !important;
+    background-color: var(--page-bg) !important;
   }
 
   .badge {
@@ -123,6 +132,25 @@ html {
   min-height: 1%; /* Firefox options page height hack */
 }
 
+/* Full-bleed shell: the page owns the viewport; content width is capped
+   per tab panel (.tab-panel > *) instead of on the whole form */
+body {
+  margin: 0;
+  min-height: 100vh;
+  box-sizing: border-box;
+  background-color: var(--page-bg);
+}
+
+/* Pages sharing this stylesheet without the tabbed shell (variable and
+   clause list popouts) keep a plain inset */
+body:not(#settings-page) {
+  padding: var(--space-4) var(--space-5);
+}
+
+.top-nav {
+  padding: var(--space-3) var(--space-5);
+}
+
 .code,
 code,
 pre {
@@ -184,11 +212,24 @@ option {
   margin-bottom: 4px;
 }
 
+/* Block labels: consecutive controls each get their own row instead of
+   flowing (and wrapping mid-sentence) as one inline paragraph */
 label {
-  padding: 2px;
+  display: block;
+  padding: 2px 0;
   -moz-user-select: none;
   -webkit-user-select: none;
   user-select: none;
+}
+
+label input[type="checkbox"] {
+  margin-right: var(--space-2);
+}
+
+label input[type="number"],
+label input[type="text"] {
+  margin-left: var(--space-1);
+  margin-right: var(--space-1);
 }
 
 details {
@@ -313,10 +354,10 @@ button.puffy:active {
 }
 
 .info-row {
-  border-radius: 4px;
-  padding: 8px 16px;
-  color: black;
-  background-color: rgb(241, 243, 217);
+  border-radius: var(--radius);
+  border: 1px solid var(--panel-border);
+  padding: var(--space-2) var(--space-4);
+  background-color: var(--panel-bg);
 }
 
 .help:visited {
@@ -332,10 +373,10 @@ button.puffy:active {
 }
 
 .help-text {
-  border-radius: 2px;
+  border-radius: var(--radius);
   display: none;
-  color: black;
-  background-color: rgb(241, 243, 217);
+  border: 1px solid var(--panel-border);
+  background-color: var(--panel-bg);
   padding: 8px 12px 8px 12px;
   margin: 8px 0 16px 0;
 }
@@ -352,7 +393,9 @@ button.puffy:active {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  max-width: 960px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0 var(--space-5);
 }
 
 #options > .column {
@@ -575,21 +618,26 @@ input.key {
 
 /* ── Tabbed options (tabs.js progressive enhancement) ─────────────── */
 
+/* The shell spans the viewport; readable width is enforced per panel
+   via .tab-panel > * instead */
 #settings-page {
-  max-width: var(--content-max-width);
-  margin: 0 auto;
-  padding: var(--space-4);
+  width: 100%;
 }
 
 .tablist {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-1);
-  margin: 0 0 var(--space-5) 0;
+  /* Full-bleed bar: escape the form's horizontal padding */
+  width: calc(100% + 2 * var(--space-5));
+  box-sizing: border-box;
+  margin: 0 calc(-1 * var(--space-5)) var(--space-5);
+  padding: 0 var(--space-5);
   border-bottom: 1px solid var(--grey30);
   position: sticky;
   top: 0;
-  background-color: inherit;
+  /* Solid, not inherit: content must not show through while scrolling */
+  background-color: var(--page-bg);
   z-index: 10;
 }
 
@@ -630,11 +678,23 @@ input.key {
   display: none;
   width: 100%;
   box-sizing: border-box;
+  padding-bottom: var(--space-6);
   animation: tab-fade 0.15s ease;
 }
 
 .tab-panel.active {
   display: block;
+}
+
+/* The shell is full-width; individual panel content stays readable */
+.tab-panel > * {
+  max-width: var(--content-max-width);
+}
+
+/* Source-order <hr> section separators are redundant once sections
+   live in separate tab panels */
+.tab-panel hr {
+  display: none;
 }
 
 /* Panels are block, so their textareas fill the width the old single-column
@@ -646,7 +706,9 @@ input.key {
   box-sizing: border-box;
 }
 
-.tab-panel input[type="text"] {
+/* Deliberately narrow inputs (accesskeys, replacement char) keep their
+   own caps; everything else gets a comfortable width */
+.tab-panel input[type="text"]:not(.key):not(#replacementChar) {
   max-width: 340px;
 }
 

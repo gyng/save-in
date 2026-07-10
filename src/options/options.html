@@ -11,7 +11,7 @@
   </head>
 
   <body id="settings-page">
-    <div>
+    <div class="top-nav">
       <a class="open-settings-in-window" href="options.html" target="_blank">__MSG_o_lPopout__</a>
       &middot;
       <a href="variablelist.html" target="_blank">__MSG_o_lVariableList__</a>
@@ -30,11 +30,9 @@
 
       <label class="column">
         <h3>__MSG_o_sDirectories__</h3>
-        <span>
-          <h3 class="popout link" data-popout-for="variablelist.html">
-            📓 __MSG_o_lVariableList__
-          </h3>
-        </span>
+        <p>
+          <a class="external" href="variablelist.html" target="_blank">__MSG_o_lVariableList__</a>
+        </p>
         <p>
           <a href="#" class="help learn-more" data-help-for="help-paths"
             >__MSG_o_lGuideCreateMenuItems__</a
@@ -265,15 +263,11 @@ submenu
 
         <h3>__MSG_o_sRenameAndRouteDownloads__</h3>
 
-        <div style="display: flex; justify-content: flex-start; align-items: baseline">
-          <h3 style="width: auto" class="popout link" data-popout-for="variablelist.html">
-            📓 __MSG_o_lVariableList__
-          </h3>
-          &nbsp;&nbsp;&nbsp;
-          <h3 style="width: auto" class="popout link" data-popout-for="clauselist.html">
-            📓 __MSG_o_lClauseList__
-          </h3>
-        </div>
+        <p>
+          <a class="external" href="variablelist.html" target="_blank">__MSG_o_lVariableList__</a>
+          &nbsp;
+          <a class="external" href="clauselist.html" target="_blank">__MSG_o_lClauseList__</a>
+        </p>
 
         <p>
           <a href="#" class="help learn-more" data-help-for="help-filenames"
@@ -509,7 +503,7 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
 
       <hr />
 
-      <h2 id="section-save-as-shortcuts">__MSG_o_sKeyboardShortcuts__</h2>
+      <h2 id="section-keyboard-shortcuts">__MSG_o_sKeyboardShortcuts__</h2>
 
       <h3>__MSG_o_sContextMenu__</h3>
       <p>__MSG_o_lAccessKeysInstruction__</p>

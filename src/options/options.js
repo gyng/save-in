@@ -469,13 +469,6 @@ const updateMenuPreview = () => {
   document.querySelectorAll(type).forEach(setupAutosave);
 });
 
-document.querySelectorAll(".popout").forEach((/** @type {HTMLElement} */ el) => {
-  el.addEventListener("click", () => {
-    const target = el.dataset.popoutFor;
-    window.open(target, null, "menubar=no,width=940,height=600,scrollbars=yes");
-  });
-});
-
 const showJson = (obj) => {
   const json = JSON.stringify(obj, null, 2);
   /** @type {HTMLTextAreaElement} */
