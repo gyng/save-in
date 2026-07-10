@@ -1,0 +1,18 @@
+{
+  // Check-only setup for the no-bundler codebase (docs/ROADMAP.md §2):
+  // plain JS stays as shipped, files opt into checking with // @ts-check,
+  // and shared globals are declared in types/globals.d.ts.
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": false,
+    "noEmit": true,
+    "target": "es2022",
+    "module": "commonjs",
+    "lib": ["es2022", "dom"],
+    "types": ["firefox-webext-browser"],
+    "strict": false,
+    "skipLibCheck": true
+  },
+  "include": ["src/**/*.js", "types/**/*.d.ts"],
+  "exclude": ["src/vendor"]
+}

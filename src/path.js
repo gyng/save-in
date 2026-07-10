@@ -1,3 +1,4 @@
+// @ts-check
 const specialDirVariables = Object.values(SPECIAL_DIRS);
 const specialDirRegexp = new RegExp(`(${specialDirVariables.join("|")})`);
 
@@ -183,7 +184,8 @@ const Path = {
 
     const parsed = flattened.map((tok) => {
       if (tok.match(Path.SEPARATOR_REGEX_INCLUSIVE)) {
-        return Path.PathSegment.Separator(tok);
+        // Both / and \ normalise to a plain "/" separator segment
+        return Path.PathSegment.Separator();
       } else if (tok.match(specialDirRegexp)) {
         return Path.PathSegment.Variable(tok);
       }

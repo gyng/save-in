@@ -3,7 +3,7 @@
   "version": "4.0.0",
   "license": "MIT",
   "scripts": {
-    "build": "env -u WEB_EXT_API_KEY -u WEB_EXT_API_SECRET web-ext build --overwrite-dest -i test docs scripts dist AGENTS.md CLAUDE.md vitest.config.mjs",
+    "build": "env -u WEB_EXT_API_KEY -u WEB_EXT_API_SECRET web-ext build --overwrite-dest -i test docs scripts dist types coverage AGENTS.md CLAUDE.md vitest.config.mjs tsconfig.json",
     "build:firefox:submit": "web-ext sign",
     "d": "env -u WEB_EXT_API_KEY -u WEB_EXT_API_SECRET web-ext run --verbose --start-url about:debugging --start-url about:addons",
     "d:chrome": "node scripts/dev-chrome.js --watch",
@@ -21,9 +21,11 @@
     "mockserve": "node test/mockserver",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
+    "@types/firefox-webext-browser": "^143.0.0",
     "@vitest/coverage-v8": "^4.1.10",
     "jest-webextension-mock": "^3.7.19",
     "jsdom": "^29.1.1",
@@ -33,6 +35,7 @@
     "koa-static": "^5.0.0",
     "oxfmt": "^0.58.0",
     "oxlint": "^1.73.0",
+    "typescript": "^7.0.2",
     "vitest": "^4.1.10",
     "web-ext": "^10.4.0"
   },

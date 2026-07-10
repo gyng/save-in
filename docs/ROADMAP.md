@@ -165,34 +165,23 @@ to harvest.
 
 ### Concrete plan
 
-1. **Add `tsconfig.json`** (check-only): `allowJs`, `checkJs: false`
-   (opt-in per file via `// @ts-check`), `noEmit`, `strict: false` to start,
-   `lib: ["ESNext", "DOM", "WebWorker"]`, `types: ["chrome"]`
-   (`@types/chrome` as a devDep). Add `typescript` devDep and
-   `tsc --noEmit` to the `lint` script. **S.**
-2. **Author `types/globals.d.ts`** — the real cost. `checkJS` has no idea what
-   `options`, `Path`, `Router`, `browser`, `currentTab`, `window.ready`, etc.
-   are, because they're ambient globals. Declare them
-   (`declare const Path: typeof import("../src/path")`, `declare var options:
-   SaveInOptions`, a `declare global` block for the `window.*` state and the
-   `self.window = self` alias). This mirrors `.oxlintrc.json` `globals`. **M.**
-3. **Write the core typedefs** — these pay for themselves immediately because
-   the same loosely-typed structs flow through the whole pipeline:
-   - `DownloadInfo` (the `opts`/`state.info` object assembled in
-     `menu.js` `addDownloadListener` and `messaging.js`
-     `handleDownloadMessage`): `url`, `sourceUrl`, `pageUrl`, `selectionText`,
-     `linkText`, `filename`, `naiveFilename`, `initialFilename`,
-     `suggestedFilename`, `context` (`DOWNLOAD_TYPES`), `menuIndex`,
-     `comment`, `modifiers`, `now`, `currentTab`.
-   - `DownloadState` = `{ path: Path, scratch: object, info: DownloadInfo,
-     route?: Path, needRouteMatch?: boolean }`.
-   - `SaveInOptions` — derive from `OptionsManagement.OPTION_KEYS`
-     (`option.js:12`); this is the schema, so a typedef here is authoritative.
-   - `ParsedRule` matcher objects `{ name, value, type: RULE_TYPES, matcher }`
-     (`router.js` `parseRule`).
-4. **Turn files on most-depended-on first**, one PR each:
-   `path.js` → `variable.js` (done) → `router.js` → `download.js`. These four
-   are the routing/naming core and the highest-churn. Then fan out.
+Foundation **done** (July 2026): check-only `tsconfig.json`
+(`allowJs`, `checkJs: false`, opt-in via `// @ts-check`, `noEmit`,
+`types: ["firefox-webext-browser"]`), `types/globals.d.ts` declaring the
+shared globals plus `StateInfo`/`DownloadState`/`OptionError` typedefs,
+`npm run typecheck` in CI. `variable.js` and `path.js` are opted in and
+pass. Remaining work is the rollout:
+
+1. **Refine `types/globals.d.ts` as files opt in** — many module globals are
+   still `Record<string, any>`; tighten each one when its file (or a caller)
+   gets `// @ts-check`. `SaveInOptions` derived from
+   `OptionsManagement.OPTION_KEYS` (`option.js:12`) and `ParsedRule`
+   (`router.js` `parseRule`) are the highest-value missing typedefs.
+2. **Turn files on most-depended-on first**, one PR each:
+   `router.js` → `download.js` (the routing/naming core, highest churn),
+   then fan out. Gotcha learned: don't use inline `/** @type */ (…)` casts —
+   oxfmt strips the parentheses and silently breaks the cast; use typedefs
+   or optional fields instead.
 
 **Effort:** setup + globals + core typedefs **M**; each additional
 `// @ts-check` **S**. **Risk:** low — it's additive and CI-gated; the only
@@ -469,7 +458,7 @@ example — cheap to do before an ecosystem forms, expensive after.
 | 1 | ~~Kill `requestedDownloadFlag`; make `globalChromeState` a keyed map (fixes concurrent tab-strip race)~~ | M | Low–Med | High (correctness) | — | **Done** |
 | 2 | ~~Split `menu.js`; single-source the background file list~~ (guarded by `scripts/check-background-scripts.js` in lint) | M | Low | Med (maintainability) | — | **Done** |
 | 3 | ~~Extract pure `Menus.buildTree` + side-effect-free `parseRule`~~ | M | Low | High (unblocks §4/§5) | 2 | **Done** |
-| 4 | `tsconfig` + `globals.d.ts` + core typedefs; `tsc --noEmit` in CI | M | Low | High (safety) | — | **Next release** |
+| 4 | ~~`tsconfig` + `globals.d.ts` + core typedefs; `tsc --noEmit` in CI~~ (`variable.js` + `path.js` opted in) | M | Low | High (safety) | — | **Done** |
 | 5 | Trivial `:variables:` batch (weekday, week, title slugs, URL parts) | S | Low | Med–High | — | **Next release** |
 | 6 | Live context-menu tree preview in options page | M | Low | High (UX) | 3 | **Next release** |
 | 7 | Formalize + version the external DOWNLOAD API (+ PING, docs, e2e) | S–M | Low | Med–High | — | **Next release** |

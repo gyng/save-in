@@ -53,8 +53,10 @@ const Variable = {
     return labels.length <= 2 ? hostname : labels.slice(-2).join(".");
   },
 
+  // Transformers are called as (info, token, index, tokens); most only
+  // need the info bag, hence the cast to the full signature
   /* prettier-ignore */
-  transformers: {
+  transformers: /** @type {Record<string, (opts: StateInfo, token?: any, index?: number, tokens?: any[]) => any>} */ ({
     [SPECIAL_DIRS.FILENAME]:
       opts => Path.PathSegment.String(opts.filename),
     [SPECIAL_DIRS.FILE_EXTENSION]:
@@ -76,7 +78,7 @@ const Variable = {
     [SPECIAL_DIRS.ISO8601_DATE]:
       opts => Path.PathSegment.String(Variable.toISODateString(opts.now)),
     [SPECIAL_DIRS.UNIX_DATE]:
-      opts => Path.PathSegment.String(Date.parse(opts.now) / 1000),
+      opts => Path.PathSegment.String(Math.floor(opts.now.getTime() / 1000)),
     [SPECIAL_DIRS.YEAR]:
       opts => Path.PathSegment.String(opts.now.getFullYear()),
     [SPECIAL_DIRS.MONTH]:
@@ -105,7 +107,7 @@ const Variable = {
         const naiveFilename = Download.getFilenameFromUrl(opts.url);
         return Path.PathSegment.String(Variable.getFileExtension(naiveFilename));
       }
-  },
+  }),
 
   applyVariables: (path, opts = {}) =>
     Object.assign(path, {

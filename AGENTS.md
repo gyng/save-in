@@ -86,7 +86,8 @@ to Firefox too.
 | Command                           | What it does                                                                                                                                                                 |
 | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `npm test` / `npm run test:watch` | vitest unit tests (jsdom + jest-webextension-mock via a vi alias); npm run test:coverage enforces 95%-line thresholds on src/ (vendor, options page, SW bootstrap excluded)  |
-| `npm run lint`                    | web-ext lint (Firefox manifest) + oxlint + oxfmt --check                                                                                                                     |
+| `npm run lint`                    | web-ext lint (Firefox manifest) + oxlint + oxfmt --check + background file-list sync check                                                                                   |
+| `npm run typecheck`               | tsc --noEmit over src/; only files with `// @ts-check` are checked (shared globals declared in types/globals.d.ts)                                                           |
 | `npm run e2e:chrome`              | vitest e2e suite (~15s): isolated Chrome over CDP, drives the real download pipeline — SW lifecycle, CSP, routing rules, messaging, session persistence (e2e/chrome.e2e.mjs) |
 | `npm run e2e:firefox`             | vitest e2e suite for Firefox on a throwaway profile via RDP (e2e/firefox.e2e.mjs)                                                                                            |
 | `npm run d:chrome`                | dev loop: isolated Chrome + auto restage/reload on file save                                                                                                                 |
@@ -135,12 +136,16 @@ vitest specifics:
   (Node ≥ 24, npm).
 - Comments explain _constraints_ (why something must be this way — usually
   an MV3/cross-browser rule), not what the code does.
-- Version lives in both `manifest.json` and `manifest.chrome.json` — bump
-  together (plus `package.json`).
+- Version lives in `manifest.json` and `package.json` — bump together.
+- Types are check-only (`npm run typecheck`, no build step): opt files in
+  with `// @ts-check` + JSDoc, declare new cross-file globals in
+  `types/globals.d.ts`, and keep them passing. Avoid inline
+  `/** @type */ (…)` casts on parenthesized literals — oxfmt strips the
+  parentheses and breaks the cast; prefer typedefs or optional fields.
 
 ## Release checklist
 
-1. `npm test && npm run lint && npm run e2e:chrome && npm run e2e:firefox`
+1. `npm test && npm run lint && npm run typecheck && npm run e2e:chrome && npm run e2e:firefox`
 2. Bump version in `manifest.json` and `package.json`.
 3. `npm run build` → upload the same zip to AMO and the Chrome Web Store.
 4. Manual spot-check of anything the e2e can't reach: notifications
