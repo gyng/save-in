@@ -31,6 +31,7 @@ const setupGlobals = ({ options = {}, storedLocal = {}, tabsQueryResult = [] } =
     addOptions: vi.fn(),
     pathMappings: {},
     state: { lastUsedPath: null, lastUsedMeta: null },
+    restoreLastUsed: vi.fn(),
   };
 
   global.options = Object.assign(
@@ -173,16 +174,17 @@ describe("init", () => {
     await import("../src/index.js");
     await global.window.ready;
 
-    expect(global.Menus.state.lastUsedPath).toBe("images/cute");
+    // the stored local object is handed to Menus.restoreLastUsed (its mapping is
+    // covered in menu.test.js)
+    expect(global.Menus.restoreLastUsed).toHaveBeenCalledWith({ lastUsedPath: "images/cute" });
   });
 
-  test("defaults lastUsedPath to null when storage has none", async () => {
+  test("restores from an empty storage result", async () => {
     setupGlobals();
-    global.Menus.state.lastUsedPath = "stale/path/from/before";
     await import("../src/index.js");
     await global.window.ready;
 
-    expect(global.Menus.state.lastUsedPath).toBeNull();
+    expect(global.Menus.restoreLastUsed).toHaveBeenCalledWith({});
   });
 
   test("logs and rethrows when init fails", async () => {

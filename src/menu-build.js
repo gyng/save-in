@@ -24,6 +24,20 @@ const Menus = {
     lastUsedMeta: null, // {comment, menuIndex} of the last used item
   },
 
+  // Single owner of the last-used-path state: menu-click mutates it here,
+  // index.js restores it, menu-build renders it. MV3 service workers are
+  // stateless, so it is mirrored to storage.local to survive restarts.
+  setLastUsed: (path, meta) => {
+    Menus.state.lastUsedPath = path;
+    Menus.state.lastUsedMeta = meta;
+    browser.storage.local.set({ lastUsedPath: path, lastUsedMeta: meta });
+  },
+
+  restoreLastUsed: (stored) => {
+    Menus.state.lastUsedPath = (stored && stored.lastUsedPath) || null;
+    Menus.state.lastUsedMeta = (stored && stored.lastUsedMeta) || null;
+  },
+
   titles: {},
   pathMappings: {}, // key: ID, val: actual path
 

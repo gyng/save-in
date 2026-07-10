@@ -129,13 +129,7 @@ Menus.addDownloadListener = () => {
         }
       } else {
         saveIntoPath = menuInfo.parsedDir;
-        Menus.state.lastUsedPath = saveIntoPath;
-        Menus.state.lastUsedMeta = { comment, menuIndex };
-        // MV3 service workers are stateless: persist across restarts
-        browser.storage.local.set({
-          lastUsedPath: Menus.state.lastUsedPath,
-          lastUsedMeta: Menus.state.lastUsedMeta,
-        });
+        Menus.setLastUsed(saveIntoPath, { comment, menuIndex });
         const title = menuInfo.title || saveIntoPath;
 
         if (options.enableLastLocation) {

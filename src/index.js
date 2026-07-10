@@ -13,8 +13,7 @@ window.init = () => {
   ])
     .then((results) => {
       // MV3 service workers are stateless: restore last used path across restarts
-      Menus.state.lastUsedPath = (results[1] && results[1].lastUsedPath) || null;
-      Menus.state.lastUsedMeta = (results[1] && results[1].lastUsedMeta) || null;
+      Menus.restoreLastUsed(results[1]);
 
       const pathsArray = Util.splitLines(options.paths);
 

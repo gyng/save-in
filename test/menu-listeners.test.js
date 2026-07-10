@@ -62,6 +62,36 @@ const importMenus = async () => {
   return global.Menus;
 };
 
+describe("Menus last-used state", () => {
+  let Menus;
+
+  beforeEach(async () => {
+    jest.resetModules();
+    setupBrowserMocks();
+    Menus = await importMenus();
+  });
+
+  test("restoreLastUsed maps a stored object into state, defaulting to null", () => {
+    Menus.restoreLastUsed({ lastUsedPath: "a/b", lastUsedMeta: { comment: "c" } });
+    expect(Menus.state.lastUsedPath).toBe("a/b");
+    expect(Menus.state.lastUsedMeta).toEqual({ comment: "c" });
+
+    Menus.restoreLastUsed(undefined);
+    expect(Menus.state.lastUsedPath).toBeNull();
+    expect(Menus.state.lastUsedMeta).toBeNull();
+  });
+
+  test("setLastUsed mutates state and persists to storage.local", () => {
+    Menus.setLastUsed("dir/x", { comment: "cm", menuIndex: "2" });
+    expect(Menus.state.lastUsedPath).toBe("dir/x");
+    expect(Menus.state.lastUsedMeta).toEqual({ comment: "cm", menuIndex: "2" });
+    expect(global.browser.storage.local.set).toHaveBeenCalledWith({
+      lastUsedPath: "dir/x",
+      lastUsedMeta: { comment: "cm", menuIndex: "2" },
+    });
+  });
+});
+
 describe("addDownloadListener", () => {
   let Menus;
   let listener;
