@@ -874,9 +874,9 @@ const saveOptions = (e) => {
   }
   pendingChanges = false;
 
-  // Zip result -> schema
+  // Collect the raw form values, then let the background persist them.
   getOptionsSchema.then((schema) => {
-    const toSave = schema.keys.reduce((acc, val) => {
+    const config = schema.keys.reduce((acc, val) => {
       const el = document.getElementById(val.name);
       if (!el) {
         return acc;
@@ -886,16 +886,14 @@ const saveOptions = (e) => {
         [schema.types.BOOL]: "checked",
         [schema.types.VALUE]: "value",
       };
-      const fn = val.onSave || ((x) => x);
-      const optionValue = fn(el[propMap[val.type]]);
-
-      return Object.assign(acc, { [val.name]: optionValue });
+      return Object.assign(acc, { [val.name]: el[propMap[val.type]] });
     }, {});
 
-    browser.storage.local.set(toSave).then(() => {
-      // MV3 has no getBackgroundPage: ask the background to reload instead
-      browser.runtime.sendMessage({ type: "OPTIONS_LOADED" });
-
+    // Route through APPLY_CONFIG so the background applies each option's onSave
+    // (schema functions don't survive the OPTIONS_SCHEMA message, so the page
+    // itself can't) and reloads options + menus. This is why saveOptions no
+    // longer trims paths/filenamePatterns locally — the background does it.
+    browser.runtime.sendMessage({ type: "APPLY_CONFIG", body: { config } }).then(() => {
       document.querySelector("#lastSavedAt").textContent = new Date().toLocaleTimeString();
     });
   });
