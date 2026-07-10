@@ -569,7 +569,18 @@ and a self-describing prompt pack (schema + worked examples) users can paste int
 any LLM. Guardrails already exist (invalid regex drops the rule, path traversal
 rejected, import can't widen permissions). **S–M** each.
 
-### WebMCP (browser-native AI tools) — watch, don't build yet. **[verify]**
+### WebMCP (browser-native AI tools) — shipped experimentally.
+
+**Done (experimental).** `src/options/webmcp.js` registers four tools on the
+options-page document, feature-detected on `document.modelContext`. Verified
+end-to-end on Chrome 150 with the WebMCP flags: `getTools()` returns
+`save_in_{get_schema,validate_config,apply_config,download}` and `executeTool`
+round-trips (get_schema returned the full option list, validate_config parsed a
+rule with no errors). The notes below record the original assessment.
+
+---
+
+_Original assessment:_
 
 Chrome's [WebMCP imperative
 API](https://developer.chrome.com/docs/ai/webmcp/imperative-api) lets a page or
@@ -617,7 +628,7 @@ the extension-context registration story before committing.
 | 12 | ~~Visual/form path builder~~ (Visual Editor tab + insert menu) | M–L | Med | Med | 6 | **Done** |
 | 13 | **§8.1 Filename/extension correctness** — the `:mimeext:` variable shipped (10b); the pipeline part (auto-append MIME ext to the saved filename) remains | M | Med | High | 10a | **Next** |
 | 14 | ~~§8.2 Concurrency / SW-restart correctness~~ (pending counter, per-URL filename map, per-download DNR id) | M | Med | High (silent failures) | — | **Done** |
-| 15 | **§9 AI config: `GET_SCHEMA` / `VALIDATE` / `APPLY_CONFIG`** (also closes #89) | S–M | Low | Med–High | 7 | **Next** |
+| 15 | ~~§9 AI config: `GET_SCHEMA` / `VALIDATE` / `APPLY_CONFIG`~~ (closes #89) + experimental WebMCP adapter | S–M | Low | Med–High | 7 | **Done** |
 | 16 | **§8.3 Referer on redirects** (#66 pixiv, #193) | M | Med | Med–High | — | **+1** |
 | 17 | ESM + bundler migration (only if justified) | L | Med–High | Low–Med | 1–3 | **Defer** |
 | 18 | Native-messaging yt-dlp companion (separate repo) | L | High | Med (power users) | 7 | **Defer / separate** |
