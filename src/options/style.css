@@ -423,6 +423,14 @@ button:active {
   display: block !important;
 }
 
+/* The `hidden` attribute (e.g. the paths editor's text toolbar when Visual mode
+   is active) must beat component display rules like `.editor-actions {
+   display: flex }`, which share its specificity and would otherwise win on
+   source order. */
+[hidden] {
+  display: none !important;
+}
+
 #options {
   display: flex;
   flex-direction: column;
@@ -1253,11 +1261,15 @@ button:disabled:hover {
 
 .path-editor-dir {
   flex: 1 1 auto;
+  /* Let the input shrink below its intrinsic width so the row (5 fixed control
+     buttons + handle) doesn't overflow a narrow editor column */
+  min-width: 0;
   font-family: var(--font-mono);
 }
 
 .path-editor-alias {
   flex: 0 1 130px;
+  min-width: 0;
 }
 
 .tab-panel .path-editor-row input[type="text"] {
