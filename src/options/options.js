@@ -1182,6 +1182,34 @@ setupManualEditor("filenamePatterns");
   document.querySelectorAll(type).forEach(setupAutosave);
 });
 
+// Clicking the help text or sub-option area inside a checkbox row must not
+// toggle that row's checkbox — only the checkbox or its main label text should.
+// The help lives inside the <label> (so it aligns via the row grid), so cancel
+// the label's implicit toggle when a click lands on plain help text. Real
+// controls, links, and nested sub-option labels still work (clicking a labelable
+// element inside a label never toggles the ancestor checkbox anyway).
+document.addEventListener("click", (e) => {
+  if (!(e.target instanceof Element)) {
+    return;
+  }
+  const help = e.target.closest(".caption, .caption-line");
+  if (!help) {
+    return;
+  }
+  // A control/link/sub-option label *inside* the help region handles its own
+  // click (and never toggles the ancestor checkbox); only cancel the toggle for
+  // plain help text. The outer label is an ancestor of `help`, not inside it, so
+  // it is correctly ignored here.
+  const interactive = e.target.closest("a, button, input, select, textarea, label");
+  if (interactive && help.contains(interactive)) {
+    return;
+  }
+  const label = help.closest("label");
+  if (label && label.querySelector(":scope > input[type=checkbox]")) {
+    e.preventDefault();
+  }
+});
+
 // Apply: persist the manual editors, re-baseline (dims Apply/Discard),
 // and refresh the validation + preview panes
 document.querySelectorAll("[data-apply]").forEach((button) => {

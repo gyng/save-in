@@ -475,9 +475,38 @@ button:active {
   font-weight: 400;
 }
 
+/* Checkbox option rows are a 2-column grid — [checkbox] [body] — so help text
+   and sub-options line up under the label text automatically. The control
+   column is `auto` (sized to the real checkbox), so there is no hardcoded indent
+   to drift out of sync with the checkbox's rendered width. */
+label:has(> input[type="checkbox"]) {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: var(--space-2);
+  align-items: baseline;
+  /* Shrink the row to its content so the autosave check sits right after the
+     label text, not out at the far margin; long help still wraps to full
+     width because fit-content is clamped to the available space. */
+  width: fit-content;
+  max-width: 100%;
+}
+
+label:has(> input[type="checkbox"]) > input[type="checkbox"] {
+  margin: 0;
+}
+
+/* Help / sub-options (and .opt-body, which keeps a text+badge run together) go
+   in the body column, under the label text — not under the checkbox. */
+label:has(> input[type="checkbox"]) > .caption-line,
+label:has(> input[type="checkbox"]) > .opt-body {
+  grid-column: 2;
+}
+
+/* Captions under a text/number input have no checkbox column to clear, so they
+   align with the row's left edge (the old hardcoded indent left them detached
+   from their own input). */
 .caption-line {
   margin-top: 4px;
-  margin-left: 32px;
 }
 
 .float-right {
@@ -777,18 +806,28 @@ input.key {
   margin-top: 0;
 }
 
-/* Live variable values (current interpolation from the last download);
-   collapsed by default */
-.variables-preview {
-  margin: 0;
-}
-
-.variables-preview > summary {
+/* One consistent look for every collapsible section header across the options
+   UI (menu preview, live variables, rule templates, raw history, debug log,
+   examples…). The + Add opener (.insert-menu summary) is a button and overrides
+   this below. */
+summary {
   cursor: pointer;
   user-select: none;
   font-weight: 600;
   font-size: var(--text-sm);
   padding: var(--space-1) 0;
+}
+
+/* Menu preview is collapsible (open by default); separate its tree from the
+   title so the header reads as a header, not a caption glued to the box. */
+.menu-preview[open] > .menu-preview-tree {
+  margin-top: var(--space-3);
+}
+
+/* Live variable values (current interpolation from the last download);
+   collapsed by default */
+.variables-preview {
+  margin: 0;
 }
 
 .variables-preview-list {
@@ -934,15 +973,6 @@ input.key {
   margin: 0;
 }
 
-/* Collapsed by default; the summary reads as a small section header */
-.rule-templates-panel > summary {
-  cursor: pointer;
-  user-select: none;
-  font-weight: 600;
-  font-size: var(--text-sm);
-  padding: var(--space-1) 0;
-}
-
 .rule-template {
   display: flex;
   align-items: center;
@@ -1004,7 +1034,8 @@ button:disabled:hover {
   margin: var(--space-1) 0;
 }
 
-/* Button-like affordance for the + Add opener: standard button box */
+/* Button-like affordance for the + Add opener: standard button box, not the
+   section-header summary style */
 .insert-menu summary {
   display: inline-block;
   list-style: none;
@@ -1014,6 +1045,7 @@ button:disabled:hover {
   border-radius: var(--radius);
   cursor: pointer;
   user-select: none;
+  font-weight: 400;
 }
 
 .insert-menu summary::-webkit-details-marker {
