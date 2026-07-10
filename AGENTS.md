@@ -95,7 +95,9 @@ to Firefox too.
 | `npm run e2e:firefox`             | vitest e2e suite for Firefox on a throwaway profile via RDP (e2e/firefox.e2e.mjs)                                                                                            |
 | `npm run d:chrome`                | dev loop: isolated Chrome + auto restage/reload on file save                                                                                                                 |
 | `npm run d`                       | web-ext Firefox dev instance                                                                                                                                                 |
-| `npm run build`                   | one zip for both stores (web-ext)                                                                                                                                            |
+| `npm run build`                   | one zip for both stores (web-ext), loading the individual source scripts                                                                                                     |
+| `npm run bundle`                  | rolldown → `dist/bundled/*.js`: one readable, NON-minified file per target (background event page + SW, options, offscreen, content). ESM output = bare top-level code, so the classic-script shared global scope is preserved |
+| `npm run build:bundled`           | stage `dist/bundled-pkg` (bundles + a manifest/HTML pointing at them; secondary pages keep their source scripts) and zip it for the stores. `EXT_DIR=dist/bundled-pkg npm run e2e:chrome` / `e2e:firefox` run the suites against the bundled build |
 
 Chrome ≥ 137 ignores `--load-extension`; the scripts load an unpacked copy
 (staged by `scripts/stage.js` into `dist/unpacked` — the repo root can't be
@@ -152,7 +154,10 @@ vitest specifics:
 
 1. `npm test && npm run lint && npm run typecheck && npm run e2e:chrome && npm run e2e:firefox`
 2. Bump version in `manifest.json` and `package.json`.
-3. `npm run build` → upload the same zip to AMO and the Chrome Web Store.
+3. `npm run build:bundled` (bundled, store-reviewable) or `npm run build`
+   (individual scripts) → upload the same zip to AMO and the Chrome Web Store.
+   For the bundled build, run both e2e suites against it first:
+   `EXT_DIR=dist/bundled-pkg npm run e2e:chrome && EXT_DIR=dist/bundled-pkg npm run e2e:firefox`.
 4. Manual spot-check of anything the e2e can't reach: notifications
    rendering, a pixiv Referer download (both browsers, via the shared DNR
    path), options page dialogs.

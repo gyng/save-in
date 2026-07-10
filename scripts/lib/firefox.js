@@ -9,7 +9,10 @@ const { spawn, execFileSync } = require("child_process");
 
 const { FirefoxRdp } = require("./firefox-rdp");
 
-const ROOT = path.join(__dirname, "..", "..");
+// EXT_DIR (repo-relative) overrides the loaded package, e.g. to run the e2e
+// against the bundled build (dist/bundled-pkg) instead of the repo root.
+const REPO = path.join(__dirname, "..", "..");
+const ROOT = process.env.EXT_DIR ? path.join(REPO, process.env.EXT_DIR) : REPO;
 const ADDON_ID = "{72d92df5-2aa0-4b06-b807-aa21767545cd}"; // manifest.json gecko id
 
 const sleep = (ms) =>

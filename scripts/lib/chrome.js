@@ -11,7 +11,11 @@ const { spawn, execFileSync } = require("child_process");
 const cdp = require("./cdp");
 
 const ROOT = path.join(__dirname, "..", "..");
-const DIST = path.join(ROOT, "dist", "unpacked");
+// EXT_DIR (repo-relative) overrides the loaded package, e.g. to run the e2e
+// against the bundled build (dist/bundled-pkg) instead of dist/unpacked.
+const DIST = process.env.EXT_DIR
+  ? path.join(ROOT, process.env.EXT_DIR)
+  : path.join(ROOT, "dist", "unpacked");
 
 const findChrome = () => {
   const candidates = [

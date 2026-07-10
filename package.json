@@ -5,6 +5,8 @@
   "scripts": {
     "prebuild": "node scripts/write-version.js",
     "build": "env -u WEB_EXT_API_KEY -u WEB_EXT_API_SECRET web-ext build --overwrite-dest -i test docs scripts dist types coverage AGENTS.md CLAUDE.md vitest.config.mjs tsconfig.json",
+    "bundle": "rolldown -c rolldown.config.mjs",
+    "build:bundled": "node scripts/build-bundled.js && env -u WEB_EXT_API_KEY -u WEB_EXT_API_SECRET web-ext build --source-dir dist/bundled-pkg --artifacts-dir web-ext-artifacts --overwrite-dest",
     "build:firefox:submit": "web-ext sign",
     "d": "env -u WEB_EXT_API_KEY -u WEB_EXT_API_SECRET web-ext run --verbose --start-url about:debugging --start-url about:addons",
     "d:chrome": "node scripts/dev-chrome.js --watch",
@@ -39,6 +41,7 @@
     "koa-static": "^5.0.0",
     "oxfmt": "^0.58.0",
     "oxlint": "^1.73.0",
+    "rolldown": "^1.1.5",
     "typescript": "^7.0.2",
     "vitest": "^4.1.10",
     "web-ext": "^10.4.0"
