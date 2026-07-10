@@ -635,27 +635,27 @@
   },
 
   "o_cFetchViaFetchAPI": {
-    "message": "Enable fetching via Fetch API"
+    "message": "Download through the extension (Fetch API)"
   },
 
   "o_cFetchViaFetchAPIHelp": {
-    "message": "Do not enable this if you have no problems downloading. Download using HTML Fetch API instead of the browser’s Downloads API for extensions. Some sites (eg. Instagram) are incompatiable with Firefox’s Downloads API. Works on both Firefox and Chrome; on Chrome, large downloads are buffered in memory first."
+    "message": "Fetches the file itself and hands the browser the result, instead of pointing the browser's downloader at the URL. Turn it on only where normal downloads fail — some servers block the browser's request or return an empty file. It's slower, and on Chrome the file is held in memory while saving, so avoid it for very large downloads."
   },
 
   "o_cSetRefererHeader": {
-    "message": "Set the \"Referer\" header to page URL if it is missing"
+    "message": "Set the \"Referer\" header to the page URL when missing"
   },
 
   "o_cSetRefererHeaderHelp": {
-    "message": "Some sites (eg. pixiv.net) reject downloads without an HTTP Referer header. For the sites listed below, this sets the Referer to the page URL if it is missing — including on automatic background retries. Leave it off unless a site needs it."
+    "message": "Some sites (e.g. pixiv.net) reject downloads that arrive without an HTTP Referer header. For the sites listed below, this sets the Referer to the page URL — kept through redirects and automatic retries. Leave it off unless a site needs it."
   },
 
   "o_cSetRefererHeaderFilter": {
-    "message": "Set Referer headers for the following sites"
+    "message": "Set the Referer for these sites"
   },
 
   "o_cSetRefererHeaderFilterHelp": {
-    "message": "Whitelist of match patterns to match against. One per line. Headers will only be modified for downloads (source URLs) that match this whitelist."
+    "message": "One match pattern per line, e.g. *://i.pximg.net/*. The Referer is only set for downloads whose URL matches one of these."
   },
 
   "o_cImportSettings": {
