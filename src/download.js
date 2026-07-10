@@ -38,6 +38,34 @@ const Download = {
       const oldest = Download.startedDownloads.keys().next().value;
       Download.startedDownloads.delete(oldest);
     }
+    // Persist so the fetch-retry and the history-status update survive an MV3
+    // service worker restart — the in-memory map dies with the worker, which
+    // otherwise silently drops both for any download in flight across a restart
+    if (typeof SessionState !== "undefined") {
+      SessionState.update("siStartedDownloads", (m) => {
+        const next = Object.assign({}, m, { [downloadId]: record });
+        const ids = Object.keys(next);
+        if (ids.length > 50) {
+          delete next[ids[0]];
+        }
+        return next;
+      });
+    }
+  },
+
+  // The started-download record (retry/history info): from memory, or — after a
+  // service worker restart cleared the map — the persisted session copy
+  getStartedDownload: (downloadId) => {
+    const inMemory = Download.startedDownloads.get(downloadId);
+    if (inMemory) {
+      return Promise.resolve(inMemory);
+    }
+    if (typeof SessionState === "undefined") {
+      return Promise.resolve(null);
+    }
+    return SessionState.get("siStartedDownloads").then(
+      (res) => (res.siStartedDownloads && res.siStartedDownloads[downloadId]) || null,
+    );
   },
 
   // blob/data URL -> final filename for retry downloads, so Chrome's
@@ -49,64 +77,67 @@ const Download = {
   // a network/server error is retried once through a background fetch
   // (host permissions exempt extension-context fetches from CORS, and the
   // referer rule is re-armed). Resolves true when a retry was started.
-  retryViaFetch: (downloadId) => {
-    const record = Download.startedDownloads.get(downloadId);
-    if (!record || record.retried || record.viaFetch || options.fallbackFetch === false) {
-      return Promise.resolve(false);
-    }
-    record.retried = true;
-
-    return RequestHeaders.prepareReferer({ info: { url: record.url, pageUrl: record.pageUrl } })
-      .then(() => fetch(record.url, { credentials: "include" }))
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-        return response.blob();
-      })
-      .then((blob) => Download.makeUrlFromBlob(blob))
-      .then((blobUrl) => {
-        Download.pendingRetryFilenames.set(blobUrl, record.filename);
-        // expectDownload so the retry download is tracked via the in-memory
-        // path (not the session-restart fallback) — that keeps the pending
-        // counter balanced against the cleanup below
-        Notifier.expectDownload();
-        return Promise.all([
-          SessionState.update("siPendingDownloads", (n) => Math.max(0, (n || 0) + 1)),
-          SessionState.update("siFinalFilenames", (m) =>
-            Object.assign({}, m, { [blobUrl]: record.filename }),
-          ),
-        ])
-          .then(() =>
-            browser.downloads.download({
-              url: blobUrl,
-              filename: record.filename,
-              conflictAction: record.conflictAction,
-            }),
-          )
-          .then((newId) => {
-            Download.rememberStartedDownload(newId, Object.assign({}, record, { viaFetch: true }));
-            return Notifier.trackDownload(newId);
-          })
-          .then(() =>
-            Promise.all([
-              SessionState.update("siPendingDownloads", (n) => Math.max(0, (n || 0) - 1)),
-              SessionState.update("siFinalFilenames", (m) => {
-                const copy = Object.assign({}, m);
-                delete copy[blobUrl];
-                return copy;
-              }),
-            ]),
-          )
-          .then(() => true);
-      })
-      .catch((e) => {
-        if (typeof Log !== "undefined") {
-          Log.add("fallback fetch failed", String(e));
-        }
+  retryViaFetch: (downloadId) =>
+    Download.getStartedDownload(downloadId).then((record) => {
+      if (!record || record.retried || record.viaFetch || options.fallbackFetch === false) {
         return false;
-      });
-  },
+      }
+      record.retried = true;
+
+      return RequestHeaders.prepareReferer({ info: { url: record.url, pageUrl: record.pageUrl } })
+        .then(() => fetch(record.url, { credentials: "include" }))
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+          return response.blob();
+        })
+        .then((blob) => Download.makeUrlFromBlob(blob))
+        .then((blobUrl) => {
+          Download.pendingRetryFilenames.set(blobUrl, record.filename);
+          // expectDownload so the retry download is tracked via the in-memory
+          // path (not the session-restart fallback) — that keeps the pending
+          // counter balanced against the cleanup below
+          Notifier.expectDownload();
+          return Promise.all([
+            SessionState.update("siPendingDownloads", (n) => Math.max(0, (n || 0) + 1)),
+            SessionState.update("siFinalFilenames", (m) =>
+              Object.assign({}, m, { [blobUrl]: record.filename }),
+            ),
+          ])
+            .then(() =>
+              browser.downloads.download({
+                url: blobUrl,
+                filename: record.filename,
+                conflictAction: record.conflictAction,
+              }),
+            )
+            .then((newId) => {
+              Download.rememberStartedDownload(
+                newId,
+                Object.assign({}, record, { viaFetch: true }),
+              );
+              return Notifier.trackDownload(newId);
+            })
+            .then(() =>
+              Promise.all([
+                SessionState.update("siPendingDownloads", (n) => Math.max(0, (n || 0) - 1)),
+                SessionState.update("siFinalFilenames", (m) => {
+                  const copy = Object.assign({}, m);
+                  delete copy[blobUrl];
+                  return copy;
+                }),
+              ]),
+            )
+            .then(() => true);
+        })
+        .catch((e) => {
+          if (typeof Log !== "undefined") {
+            Log.add("fallback fetch failed", String(e));
+          }
+          return false;
+        });
+    }),
 
   makeObjectUrl: (content, mime = "text/plain") => {
     if (typeof URL.createObjectURL === "function") {

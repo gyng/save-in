@@ -10,6 +10,12 @@ const downloadsList = {}; // global
 // all picked up. Incremented via Notifier.expectDownload().
 let expectedDownloads = 0;
 
+// A leftover siPendingDownloads (persisted before downloads.download) lets a
+// download that was in flight when the worker died recover its notification.
+// After this grace window a stale count is cleared so it can't adopt an
+// unrelated download — see the startup reconciliation below.
+const PENDING_RECOVERY_GRACE_MS = 10000;
+
 // storage.session no-op wrapper: persists MV3 service worker state across
 // restarts; storage.session is unavailable in older Firefox
 const SessionState = {
@@ -65,6 +71,20 @@ SessionState.get("siTrackedDownloads").then((res) => {
       SessionState.set({ siTrackedDownloads: validIds });
     }
   });
+});
+
+// Reconcile the pending-download counter on startup: honor a leftover count
+// briefly (a download in flight when the worker died fires onCreated within
+// seconds), then subtract whatever of it remains so a stale leak — a requested
+// download that never actually created — can't later adopt an unrelated
+// download as ours.
+SessionState.get("siPendingDownloads").then((res) => {
+  const staleAtStartup = res.siPendingDownloads || 0;
+  if (staleAtStartup > 0) {
+    setTimeout(() => {
+      SessionState.update("siPendingDownloads", (n) => Math.max(0, (n || 0) - staleAtStartup));
+    }, PENDING_RECOVERY_GRACE_MS);
+  }
 });
 
 const Notifier = {
@@ -147,6 +167,15 @@ const Notifier = {
       await window.ready.catch(() => {});
     }
 
+    // Never adopt a download another extension initiated — a leaked pending
+    // count must not track it as ours and fire a spurious notification. Only a
+    // KNOWN-different byExtensionId is rejected: our own downloads may not have
+    // byExtensionId populated yet at onCreated (Chrome), so an absent id is left
+    // to the counters below.
+    if (item.byExtensionId && browser.runtime && item.byExtensionId !== browser.runtime.id) {
+      return;
+    }
+
     if (expectedDownloads > 0) {
       expectedDownloads -= 1;
       downloadsList[item.id] = item;
@@ -219,33 +248,36 @@ const Notifier = {
       const recordHistoryStatus = (status) => {
         if (
           typeof Download === "undefined" ||
-          !Download.startedDownloads ||
+          !Download.getStartedDownload ||
           typeof SaveHistory === "undefined"
         ) {
           return;
         }
-        const record = Download.startedDownloads.get(downloadDelta.id);
-        if (!record || !record.historyEntryId) {
-          return;
-        }
-        // On completion, record the final file size in the history entry too
-        if (status === "complete") {
-          browser.downloads
-            .search({ id: downloadDelta.id })
-            .then((items) => {
-              const item = items && items[0];
-              const size = item ? (item.fileSize > 0 ? item.fileSize : item.totalBytes) : 0;
-              SaveHistory.setStatus(
-                record.historyEntryId,
-                status,
-                downloadDelta.id,
-                size > 0 ? size : null,
-              );
-            })
-            .catch(() => SaveHistory.setStatus(record.historyEntryId, status, downloadDelta.id));
-          return;
-        }
-        SaveHistory.setStatus(record.historyEntryId, status, downloadDelta.id);
+        // Read from memory, or the persisted copy if the worker restarted since
+        // the download started (so a mid-restart download still gets its status)
+        Download.getStartedDownload(downloadDelta.id).then((record) => {
+          if (!record || !record.historyEntryId) {
+            return;
+          }
+          // On completion, record the final file size in the history entry too
+          if (status === "complete") {
+            browser.downloads
+              .search({ id: downloadDelta.id })
+              .then((items) => {
+                const item = items && items[0];
+                const size = item ? (item.fileSize > 0 ? item.fileSize : item.totalBytes) : 0;
+                SaveHistory.setStatus(
+                  record.historyEntryId,
+                  status,
+                  downloadDelta.id,
+                  size > 0 ? size : null,
+                );
+              })
+              .catch(() => SaveHistory.setStatus(record.historyEntryId, status, downloadDelta.id));
+            return;
+          }
+          SaveHistory.setStatus(record.historyEntryId, status, downloadDelta.id);
+        });
       };
 
       if (

@@ -24,6 +24,7 @@ const setupGlobals = (sessionStore, searchResults) => {
   global.BROWSERS = { CHROME: "CHROME", FIREFOX: "FIREFOX" };
   global.CURRENT_BROWSER = "CHROME";
 
+  global.browser.runtime = Object.assign(global.browser.runtime || {}, { id: "save-in" });
   global.browser.storage.session = makeSessionMock(sessionStore);
   global.browser.downloads.search = jest.fn((query) => Promise.resolve(searchResults(query)));
   global.browser.downloads.onCreated = {
@@ -96,6 +97,26 @@ describe("startup restore", () => {
     await flush();
 
     expect(sessionStore.siTrackedDownloads).toEqual([]);
+  });
+
+  test("clears a stale pending count after the grace window", async () => {
+    jest.useFakeTimers();
+    try {
+      const sessionStore = { siPendingDownloads: 3 };
+      setupGlobals(sessionStore, () => []);
+
+      await import("../src/notification.js");
+      await flush();
+
+      // honored immediately after startup so an in-flight download can recover
+      expect(sessionStore.siPendingDownloads).toBe(3);
+
+      // ...but a stale leak is cleared once the grace window elapses
+      await jest.advanceTimersByTimeAsync(10000);
+      expect(sessionStore.siPendingDownloads).toBe(0);
+    } finally {
+      jest.useRealTimers();
+    }
   });
 });
 
@@ -179,7 +200,12 @@ describe("download lifecycle notifications", () => {
     // the session flag written before downloads.download() takes over
     sessionStore.siPendingDownloads = 1;
 
-    onCreated({ id: 7, filename: "C:\\dl\\pic.png", url: "https://x/p.png" });
+    onCreated({
+      id: 7,
+      byExtensionId: "save-in",
+      filename: "C:\\dl\\pic.png",
+      url: "https://x/p.png",
+    });
     await flush();
 
     expect(sessionStore.siPendingDownloads).toBe(0);
@@ -191,18 +217,47 @@ describe("download lifecycle notifications", () => {
     // tracked only the first, silently dropping the second's notifications
     sessionStore.siPendingDownloads = 2;
 
-    onCreated({ id: 7, filename: "C:\\dl\\a.png", url: "https://x/a.png" });
+    onCreated({
+      id: 7,
+      byExtensionId: "save-in",
+      filename: "C:\\dl\\a.png",
+      url: "https://x/a.png",
+    });
     await flush();
-    onCreated({ id: 8, filename: "C:\\dl\\b.png", url: "https://x/b.png" });
+    onCreated({
+      id: 8,
+      byExtensionId: "save-in",
+      filename: "C:\\dl\\b.png",
+      url: "https://x/b.png",
+    });
     await flush();
 
     expect(sessionStore.siPendingDownloads).toBe(0);
     expect(sessionStore.siTrackedDownloads).toEqual([7, 8]);
   });
 
+  test("does not adopt a foreign download even with a leaked pending count", async () => {
+    // A stale siPendingDownloads (a requested download that never actually
+    // created) must not cause an unrelated download — a manual save or another
+    // extension's — to be tracked as ours and fire a spurious notification
+    sessionStore.siPendingDownloads = 1;
+
+    onCreated({ id: 500, filename: "C:\\dl\\theirs.png", byExtensionId: "some-other-extension" });
+    await flush();
+
+    expect(sessionStore.siTrackedDownloads).toBeUndefined();
+    // the leaked count is left untouched (only our downloads consume it)
+    expect(sessionStore.siPendingDownloads).toBe(1);
+  });
+
   test("notifies on completion and untracks", async () => {
     sessionStore.siPendingDownloads = 1;
-    onCreated({ id: 7, filename: "C:\\dl\\pic.png", url: "https://x/p.png" });
+    onCreated({
+      id: 7,
+      byExtensionId: "save-in",
+      filename: "C:\\dl\\pic.png",
+      url: "https://x/p.png",
+    });
     await flush();
 
     onChanged({
@@ -234,7 +289,7 @@ describe("download lifecycle notifications", () => {
 
   test("does not crash on failure deltas for entries missing a filename", async () => {
     sessionStore.siPendingDownloads = 1;
-    onCreated({ id: 7, url: "https://x/p.png" }); // no filename yet
+    onCreated({ id: 7, byExtensionId: "save-in", url: "https://x/p.png" }); // no filename yet
     await flush();
 
     expect(() => onChanged({ id: 7, error: { current: "NETWORK_FAILED" } })).not.toThrow();
@@ -256,7 +311,7 @@ describe("download lifecycle notifications", () => {
 
   test("picks the filename up from Chrome's delta", async () => {
     sessionStore.siPendingDownloads = 1;
-    onCreated({ id: 7, url: "https://x/p.png" }); // Chrome: no filename yet
+    onCreated({ id: 7, byExtensionId: "save-in", url: "https://x/p.png" }); // Chrome: no filename yet
     await flush();
 
     onChanged({ id: 7, filename: {} }); // delta without a current filename
@@ -272,7 +327,7 @@ describe("download lifecycle notifications", () => {
 
   test("clears the success notification after notifyDuration", async () => {
     sessionStore.siPendingDownloads = 1;
-    onCreated({ id: 7, filename: "/dl/pic.png", url: "https://x/p.png" });
+    onCreated({ id: 7, byExtensionId: "save-in", filename: "/dl/pic.png", url: "https://x/p.png" });
     await flush();
 
     onChanged({ id: 7, state: { current: "complete", previous: "in_progress" } });
@@ -322,7 +377,7 @@ describe("notification variants", () => {
 
   const startTracked = async (item) => {
     sessionStore.siPendingDownloads = 1;
-    onCreated(item);
+    onCreated(Object.assign({ byExtensionId: "save-in" }, item));
     await flush();
   };
 
@@ -519,9 +574,12 @@ describe("expectDownload", () => {
     const sessionStore = {};
     setupGlobals(sessionStore, () => []);
     const Notifier = (await import("../src/notification.js")).default;
+    // Ignore the startup pending-count reconciliation's read; this test is about
+    // the download flow itself
+    global.browser.storage.session.get.mockClear();
 
     Notifier.expectDownload();
-    await Notifier.onDownloadCreated({ id: 9, filename: "/dl/x.png" });
+    await Notifier.onDownloadCreated({ id: 9, byExtensionId: "save-in", filename: "/dl/x.png" });
     await flush();
 
     expect(sessionStore.siTrackedDownloads).toEqual([9]);
@@ -537,8 +595,8 @@ describe("expectDownload", () => {
 
     Notifier.expectDownload();
     Notifier.expectDownload();
-    await Notifier.onDownloadCreated({ id: 1, filename: "/dl/a.png" });
-    await Notifier.onDownloadCreated({ id: 2, filename: "/dl/b.png" });
+    await Notifier.onDownloadCreated({ id: 1, byExtensionId: "save-in", filename: "/dl/a.png" });
+    await Notifier.onDownloadCreated({ id: 2, byExtensionId: "save-in", filename: "/dl/b.png" });
     await flush();
 
     expect(sessionStore.siTrackedDownloads).toEqual([1, 2]);
@@ -570,7 +628,12 @@ describe("automatic fetch fallback gating", () => {
     [[onChanged]] = global.browser.downloads.onChanged.addListener.mock.calls;
 
     sessionStore.siPendingDownloads = 1;
-    onCreated({ id: 7, filename: "C:\\dl\\pic.png", url: "https://x/p.png" });
+    onCreated({
+      id: 7,
+      byExtensionId: "save-in",
+      filename: "C:\\dl\\pic.png",
+      url: "https://x/p.png",
+    });
     await flush();
   };
 

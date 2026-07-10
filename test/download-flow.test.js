@@ -990,6 +990,31 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
     await expect(Download.retryViaFetch(101)).resolves.toBe(false);
   });
 
+  test("survives a service worker restart: retry works from the persisted record", async () => {
+    await seedStartedDownload();
+
+    // the record is persisted to storage.session alongside the in-memory map
+    expect(global.sessionStore.siStartedDownloads[101]).toMatchObject({
+      url: "https://example.com/dir/file.png",
+      filename: "downloads/file.png",
+    });
+
+    // a restart wipes the in-memory map; storage.session survives
+    Download.startedDownloads.clear();
+    expect(await Download.getStartedDownload(101)).toMatchObject({
+      url: "https://example.com/dir/file.png",
+    });
+
+    global.fetch = jest.fn(() =>
+      Promise.resolve({ ok: true, blob: () => Promise.resolve(new Blob(["bytes"])) }),
+    );
+    global.browser.downloads.download = jest.fn(() => Promise.resolve(303));
+
+    // the fetch-retry still works even though the in-memory record is gone
+    await expect(Download.retryViaFetch(101)).resolves.toBe(true);
+    expect(global.browser.downloads.download).toHaveBeenCalled();
+  });
+
   test("never retries downloads that already went through a fetch", async () => {
     Download.startedDownloads.set(7, {
       url: "https://x/y.png",
