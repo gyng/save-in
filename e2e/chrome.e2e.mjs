@@ -393,8 +393,8 @@ test("message-driven downloads work and never inherit a stale route", async () =
   expect(rows[0].filename).not.toMatch(/routed/);
 });
 
-test("fetchViaFetch downloads via fetch -> blob -> data URL", async () => {
-  const states = JSON.parse(
+test("fetchViaFetch downloads via an offscreen document (Chrome MV3)", async () => {
+  const result = JSON.parse(
     await evalSW(`browser.storage.local.set({ filenamePatterns: "" })
       .then(() => window.reset())
       .then(() => {
@@ -412,13 +412,18 @@ test("fetchViaFetch downloads via fetch -> blob -> data URL", async () => {
         });
       })
       .then(() => new Promise(r => setTimeout(r, 2500)))
-      .then(() => {
+      .then(() => Promise.all([
+        browser.downloads.search({ filenameRegex: "viafetch" }),
+        chrome.offscreen.hasDocument(),
+      ]))
+      .then(([d, hasOffscreen]) => {
         options.fetchViaFetch = false;
-        return browser.downloads.search({ filenameRegex: "viafetch" });
-      })
-      .then((d) => JSON.stringify(d.map((x) => x.state)))`),
+        return JSON.stringify({ states: d.map((x) => x.state), hasOffscreen });
+      })`),
   );
-  expect(states).toEqual(["complete"]);
+  expect(result.states).toEqual(["complete"]);
+  // the service worker used an offscreen document for the blob object URL
+  expect(result.hasOffscreen).toBe(true);
 
   const file = path.join(DOWNLOADS, "e2e", "viafetch.txt");
   expect(fs.readFileSync(file, "utf8")).toBe("via fetch content");

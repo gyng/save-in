@@ -141,6 +141,51 @@ const Download = {
     });
   },
 
+  // Chrome MV3 only: fetch + createObjectURL in an offscreen document instead
+  // of base64-ing the whole file into a data URL in the service worker. Gated
+  // on a worker with no createObjectURL AND chrome.offscreen present, so the
+  // Firefox event page (which has createObjectURL) never takes this path.
+  canUseOffscreen: () =>
+    typeof URL.createObjectURL !== "function" &&
+    typeof chrome !== "undefined" &&
+    Boolean(chrome.offscreen),
+
+  // At most one offscreen document exists; create it lazily and reuse it
+  ensureOffscreen: () => {
+    const has = chrome.offscreen.hasDocument
+      ? chrome.offscreen.hasDocument()
+      : Promise.resolve(false);
+    return Promise.resolve(has).then((exists) => {
+      if (exists) {
+        return null;
+      }
+      return chrome.offscreen
+        .createDocument({
+          url: "src/offscreen.html",
+          reasons: ["BLOBS"],
+          justification:
+            "Create object URLs for fetched downloads (service workers have no URL.createObjectURL)",
+        })
+        .catch((e) => {
+          // A concurrent createDocument races to "only one document" — tolerate
+          if (!/single|only one|already/i.test(String(e))) {
+            throw e;
+          }
+        });
+    });
+  },
+
+  // Fetch a URL in the offscreen document and resolve to its blob object URL
+  fetchViaOffscreen: (url) =>
+    Download.ensureOffscreen()
+      .then(() => chrome.runtime.sendMessage({ type: MESSAGE_TYPES.OFFSCREEN_FETCH, url }))
+      .then((res) => {
+        if (!res || !res.blobUrl) {
+          throw new Error((res && res.error) || "offscreen fetch failed");
+        }
+        return res.blobUrl;
+      }),
+
   getFilenameFromUrl: (url) => {
     let segment;
     try {
@@ -317,6 +362,20 @@ const Download = {
           );
 
       const fetchDownload = (_url) => {
+        // Chrome MV3: fetch + createObjectURL in an offscreen document so large
+        // files aren't base64-buffered into a data URL (which also has a size cap)
+        if (Download.canUseOffscreen()) {
+          Download.fetchViaOffscreen(_url)
+            .then((blobUrl) => browserDownload(blobUrl, true))
+            .catch((e) => {
+              if (typeof Log !== "undefined") {
+                Log.add("offscreen fetch failed", String(e));
+              }
+              browserDownload(_url, true);
+            });
+          return;
+        }
+
         fetch(_url, { credentials: "include" })
           .then((response) => response.blob())
           .then((myBlob) => Download.makeUrlFromBlob(myBlob))

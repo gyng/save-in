@@ -61,7 +61,8 @@
     "storage",
     "webRequest",
     "webRequestBlocking",
-    "declarativeNetRequestWithHostAccess"
+    "declarativeNetRequestWithHostAccess",
+    "offscreen"
   ],
 
   "host_permissions": ["<all_urls>"],

@@ -124,6 +124,76 @@ describe("makeUrlFromBlob", () => {
   });
 });
 
+describe("offscreen document fetch (Chrome MV3)", () => {
+  let originalCreateObjectURL;
+
+  beforeEach(() => {
+    // simulate a service worker: no URL.createObjectURL
+    originalCreateObjectURL = URL.createObjectURL;
+    Object.defineProperty(URL, "createObjectURL", {
+      value: undefined,
+      configurable: true,
+      writable: true,
+    });
+    global.chrome = {
+      offscreen: {
+        hasDocument: jest.fn(() => Promise.resolve(false)),
+        createDocument: jest.fn(() => Promise.resolve()),
+      },
+      runtime: { sendMessage: jest.fn(() => Promise.resolve({ blobUrl: "blob:offscreen-url" })) },
+    };
+  });
+
+  afterEach(() => {
+    Object.defineProperty(URL, "createObjectURL", {
+      value: originalCreateObjectURL,
+      configurable: true,
+      writable: true,
+    });
+    delete global.chrome;
+  });
+
+  test("canUseOffscreen is true in a worker that has chrome.offscreen", () => {
+    expect(Download.canUseOffscreen()).toBe(true);
+  });
+
+  test("canUseOffscreen is false when createObjectURL exists (Firefox event page)", () => {
+    URL.createObjectURL = () => "blob:x";
+    expect(Download.canUseOffscreen()).toBe(false);
+  });
+
+  test("creates the offscreen document and returns its blob URL", async () => {
+    const url = await Download.fetchViaOffscreen("https://x/big.bin");
+
+    expect(global.chrome.offscreen.createDocument).toHaveBeenCalledWith(
+      expect.objectContaining({ url: "src/offscreen.html", reasons: ["BLOBS"] }),
+    );
+    expect(global.chrome.runtime.sendMessage).toHaveBeenCalledWith({
+      type: "OFFSCREEN_FETCH",
+      url: "https://x/big.bin",
+    });
+    expect(url).toBe("blob:offscreen-url");
+  });
+
+  test("reuses an existing offscreen document", async () => {
+    global.chrome.offscreen.hasDocument = jest.fn(() => Promise.resolve(true));
+    await Download.fetchViaOffscreen("https://x/a");
+    expect(global.chrome.offscreen.createDocument).not.toHaveBeenCalled();
+  });
+
+  test("tolerates a concurrent create-document race", async () => {
+    global.chrome.offscreen.createDocument = jest.fn(() =>
+      Promise.reject(new Error("Only a single offscreen document may be created")),
+    );
+    await expect(Download.fetchViaOffscreen("https://x/a")).resolves.toBe("blob:offscreen-url");
+  });
+
+  test("rejects when the offscreen fetch reports an error", async () => {
+    global.chrome.runtime.sendMessage = jest.fn(() => Promise.resolve({ error: "HTTP 403" }));
+    await expect(Download.fetchViaOffscreen("https://x/a")).rejects.toThrow("HTTP 403");
+  });
+});
+
 describe("onDeterminingFilename listener (Chrome)", () => {
   let listener;
   let sessionStore;
