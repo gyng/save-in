@@ -1,5 +1,3 @@
-// @ts-check
-
 const Variable = {
   // TODO: Move into utils
   withUrl: (str, cb) => {

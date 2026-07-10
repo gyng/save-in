@@ -33,7 +33,7 @@ const ClickToSave = {
 
     if (document.elementsFromPoint) {
       document.elementsFromPoint(e.clientX, e.clientY).some((el) => {
-        source = el.currentSrc || el.src;
+        source = el["currentSrc"] || el["src"]; // undefined for non-media elements
         return !!source;
       });
     }

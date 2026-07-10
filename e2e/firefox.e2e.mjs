@@ -62,7 +62,7 @@ test("download completes through the real pipeline", async () => {
   const downloads = JSON.parse(
     await session.evaluate(
       `window.ready.then(() => {
-        Notification.expectDownload();
+        Notifier.expectDownload();
         return Download.renameAndDownload({
           path: new Path.Path("e2e"),
           scratch: {},
@@ -99,9 +99,9 @@ test("referer option registers a blocking webRequest listener", async () => {
     await session.evaluate(`(() => {
       options.setRefererHeader = true;
       options.setRefererHeaderFilter = "*://i.pximg.net/*";
-      Headers.addRequestListener();
+      RequestHeaders.addRequestListener();
       return JSON.stringify({
-        registered: browser.webRequest.onBeforeSendHeaders.hasListener(Headers.refererListener),
+        registered: browser.webRequest.onBeforeSendHeaders.hasListener(RequestHeaders.refererListener),
       });
     })()`),
   );
@@ -116,7 +116,7 @@ test("routing rules rename and route the download", async () => {
       })
         .then(() => window.reset())
         .then(() => {
-          Notification.expectDownload();
+          Notifier.expectDownload();
           return Download.renameAndDownload({
             path: new Path.Path("e2e"),
             scratch: {},
@@ -169,7 +169,7 @@ test("shortcut files keep their extension and redirect content", async () => {
   const downloads = JSON.parse(
     await session.evaluate(
       `window.ready.then(() => {
-        Notification.expectDownload();
+        Notifier.expectDownload();
         return Download.renameAndDownload({
           path: new Path.Path("e2e"),
           scratch: {},
@@ -203,7 +203,7 @@ test("failed downloads are recorded in the debug log", async () => {
   const entries = JSON.parse(
     await session.evaluate(
       `window.ready.then(() => {
-        Notification.expectDownload();
+        Notifier.expectDownload();
         return Download.renameAndDownload({
           path: new Path.Path("e2e"),
           scratch: {},

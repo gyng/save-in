@@ -7,7 +7,7 @@ const downloadsList = {}; // global
 
 // How many downloads this extension has requested that downloads.onCreated
 // has not yet seen. A counter (not a boolean) so concurrent downloads are
-// all picked up. Incremented via Notification.expectDownload().
+// all picked up. Incremented via Notifier.expectDownload().
 let expectedDownloads = 0;
 
 // storage.session no-op wrapper: persists MV3 service worker state across
@@ -15,6 +15,7 @@ let expectedDownloads = 0;
 const SessionState = {
   available: () =>
     typeof browser !== "undefined" && browser.storage && browser.storage.session != null,
+  /** @returns {Promise<Record<string, any>>} */
   get: (key) =>
     SessionState.available()
       ? browser.storage.session.get(key).catch(() => ({}))
@@ -54,29 +55,29 @@ SessionState.get("siTrackedDownloads").then((res) => {
   });
 });
 
-const Notification = {
+const Notifier = {
   // Serialise siTrackedDownloads mutations: concurrent read-modify-writes
   // (two downloads created in the same tick) would drop entries
   trackQueue: Promise.resolve(),
 
   mutateTracked: (fn) => {
-    Notification.trackQueue = Notification.trackQueue
+    Notifier.trackQueue = Notifier.trackQueue
       .then(() => SessionState.get("siTrackedDownloads"))
       .then((res) => {
         const next = fn(res.siTrackedDownloads || []);
         return next ? SessionState.set({ siTrackedDownloads: next }) : null;
       })
       .catch(() => {});
-    return Notification.trackQueue;
+    return Notifier.trackQueue;
   },
 
   trackDownload: (downloadId) =>
-    Notification.mutateTracked((tracked) =>
+    Notifier.mutateTracked((tracked) =>
       tracked.includes(downloadId) ? null : tracked.concat(downloadId),
     ),
 
   untrackDownload: (downloadId) =>
-    Notification.mutateTracked((tracked) =>
+    Notifier.mutateTracked((tracked) =>
       tracked.includes(downloadId) ? tracked.filter((id) => id !== downloadId) : null,
     ),
 
@@ -96,6 +97,8 @@ const Notification = {
     }
   },
 
+  // Returns Firefox/Chrome error deltas ({ current }) or a boolean
+  /** @returns {any} */
   isDownloadFailure: (downloadDelta, isChrome) => {
     // CHROME
     // Chrome's DownloadDelta contains different information from Firefox's
@@ -114,7 +117,7 @@ const Notification = {
 
   // Handlers are registered once at load (bottom of this file): MV3 workers
   // must register listeners synchronously or they miss the very event that
-  // woke them. Notification options are read from the shared `options`
+  // woke them. Notifier options are read from the shared `options`
   // global at event time, after awaiting init.
   // Call before browser.downloads.download() so onDownloadCreated knows
   // the next created download is ours
@@ -130,7 +133,7 @@ const Notification = {
     if (expectedDownloads > 0) {
       expectedDownloads -= 1;
       downloadsList[item.id] = item;
-      Notification.trackDownload(item.id);
+      Notifier.trackDownload(item.id);
       return;
     }
 
@@ -140,7 +143,7 @@ const Notification = {
       if (res.siPendingDownload) {
         downloadsList[item.id] = item;
         SessionState.set({ siPendingDownload: false });
-        Notification.trackDownload(item.id);
+        Notifier.trackDownload(item.id);
       }
     });
   },
@@ -186,10 +189,7 @@ const Notification = {
       const slashIdx = fullFilename.lastIndexOf("/");
       const filename = fullFilename.substring(slashIdx + 1);
 
-      const failed = Notification.isDownloadFailure(
-        downloadDelta,
-        CURRENT_BROWSER === BROWSERS.CHROME,
-      );
+      const failed = Notifier.isDownloadFailure(downloadDelta, CURRENT_BROWSER === BROWSERS.CHROME);
 
       const isFromSelf = typeof downloadsList[downloadDelta.id] !== "undefined";
       const isUserCancelled =
@@ -307,7 +307,7 @@ const Notification = {
       const isComplete = downloadDelta.state && downloadDelta.state.current === "complete";
       if (failed || isComplete) {
         delete downloadsList[downloadDelta.id];
-        Notification.untrackDownload(downloadDelta.id);
+        Notifier.untrackDownload(downloadDelta.id);
       }
     }
   },
@@ -316,14 +316,14 @@ const Notification = {
 // MV3: register at load so a worker woken BY a download event still handles
 // it (guards exist only for the partial test mocks)
 if (browser.downloads && browser.downloads.onCreated && browser.downloads.onChanged) {
-  browser.downloads.onCreated.addListener(Notification.onDownloadCreated);
-  browser.downloads.onChanged.addListener(Notification.onDownloadChanged);
+  browser.downloads.onCreated.addListener(Notifier.onDownloadCreated);
+  browser.downloads.onChanged.addListener(Notifier.onDownloadChanged);
 }
 if (browser.notifications && browser.notifications.onClicked) {
-  browser.notifications.onClicked.addListener(Notification.onNotificationClicked);
+  browser.notifications.onClicked.addListener(Notifier.onNotificationClicked);
 }
 
 // Export for testing
 if (typeof module !== "undefined") {
-  module.exports = Notification;
+  module.exports = Notifier;
 }

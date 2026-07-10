@@ -24,7 +24,7 @@ const setupBrowserMocks = () => {
     renameAndDownload: jest.fn(),
     makeObjectUrl: jest.fn(() => "data:text/plain;base64,eA=="),
   };
-  global.Notification = { createExtensionNotification: jest.fn(), expectDownload: jest.fn() };
+  global.Notifier = { createExtensionNotification: jest.fn(), expectDownload: jest.fn() };
   global.Shortcut = {
     makeShortcut: jest.fn(() => "blob:mock-shortcut"),
     suggestShortcutFilename: jest.fn(() => "shortcut.url"),
@@ -232,7 +232,7 @@ describe("addDownloadListener", () => {
 
       expect(lastState().info.url).toBe("https://example.com/i.png");
       expect(lastState().info.context).toBe(DOWNLOAD_TYPES.MEDIA);
-      expect(global.Notification.createExtensionNotification).not.toHaveBeenCalled();
+      expect(global.Notifier.createExtensionNotification).not.toHaveBeenCalled();
     });
 
     test("preferLinks downloads the wrapping link and notifies", async () => {
@@ -243,7 +243,7 @@ describe("addDownloadListener", () => {
 
       expect(lastState().info.url).toBe("https://example.com/gallery.html");
       expect(lastState().info.context).toBe(DOWNLOAD_TYPES.LINK);
-      expect(global.Notification.createExtensionNotification).toHaveBeenCalledWith(
+      expect(global.Notifier.createExtensionNotification).toHaveBeenCalledWith(
         "Translated<notificationLinkPreferred>",
         "https://example.com/gallery.html",
       );
@@ -255,7 +255,7 @@ describe("addDownloadListener", () => {
       await listener(mediaClick);
 
       expect(lastState().info.url).toBe("https://example.com/gallery.html");
-      expect(global.Notification.createExtensionNotification).not.toHaveBeenCalled();
+      expect(global.Notifier.createExtensionNotification).not.toHaveBeenCalled();
     });
 
     test("preferLinksFilter overrides to the link on matching pages", async () => {
@@ -267,7 +267,7 @@ describe("addDownloadListener", () => {
 
       expect(lastState().info.url).toBe("https://example.com/gallery.html");
       expect(lastState().info.context).toBe(DOWNLOAD_TYPES.LINK);
-      expect(global.Notification.createExtensionNotification).toHaveBeenCalledWith(
+      expect(global.Notifier.createExtensionNotification).toHaveBeenCalledWith(
         "Translated<notificationLinkPreferred>",
         "https://example.com/gallery.html",
       );
@@ -280,7 +280,7 @@ describe("addDownloadListener", () => {
       await listener(mediaClick);
 
       expect(lastState().info.url).toBe("https://example.com/gallery.html");
-      expect(global.Notification.createExtensionNotification).not.toHaveBeenCalled();
+      expect(global.Notifier.createExtensionNotification).not.toHaveBeenCalled();
     });
 
     test("preferLinksFilter keeps the media source on non-matching pages", async () => {
@@ -299,7 +299,7 @@ describe("addDownloadListener", () => {
 
       await listener(mediaClick);
 
-      expect(global.Notification.createExtensionNotification).toHaveBeenCalledWith(
+      expect(global.Notifier.createExtensionNotification).toHaveBeenCalledWith(
         "Translated<notificationBadPreferLinksPattern>",
         expect.any(SyntaxError),
       );
@@ -619,7 +619,7 @@ describe("addTabMenuListener tabstrip downloads", () => {
     expect(state.info.suggestedFilename).toBeNull();
     expect(state.needRouteMatch).toBe(false);
     expect(state.path.raw).toBe(".");
-    expect(global.Notification.expectDownload).toHaveBeenCalled();
+    expect(global.Notifier.expectDownload).toHaveBeenCalled();
   });
 
   test("SELECTED_MULTIPLE_TABS staggers downloads of the highlighted tabs", async () => {

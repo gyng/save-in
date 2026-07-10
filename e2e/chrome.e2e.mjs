@@ -118,7 +118,7 @@ test("options-save reset message round-trips", async () => {
 test("download completes through the real pipeline with session tracking", async () => {
   const result = JSON.parse(
     await evalSW(`window.ready.then(() => {
-      Notification.expectDownload();
+      Notifier.expectDownload();
       return Download.renameAndDownload({
         path: new Path.Path("e2e"),
         scratch: {},
@@ -168,7 +168,7 @@ test("referer option creates a declarativeNetRequest session rule", async () => 
     await evalSW(`(() => {
       options.setRefererHeader = true;
       options.setRefererHeaderFilter = "*://i.pximg.net/*";
-      return Headers.prepareReferer({
+      return RequestHeaders.prepareReferer({
         info: {
           url: "https://i.pximg.net/img/e2e.png",
           pageUrl: "https://www.pixiv.net/artworks/1",
@@ -197,7 +197,7 @@ test("routing rules rename and route the download", async () => {
     })
       .then(() => window.reset())
       .then(() => {
-        Notification.expectDownload();
+        Notifier.expectDownload();
         return Download.renameAndDownload({
           path: new Path.Path("e2e"),
           scratch: {},
@@ -257,7 +257,7 @@ test("fetchViaFetch downloads via fetch -> blob -> data URL", async () => {
       .then(() => window.reset())
       .then(() => {
         options.fetchViaFetch = true;
-        Notification.expectDownload();
+        Notifier.expectDownload();
         return Download.renameAndDownload({
           path: new Path.Path("e2e"),
           scratch: {},
@@ -320,7 +320,7 @@ test("options page autosave persists to storage and survives a restart", async (
 test("shortcut files download with redirect content", async () => {
   const downloads = JSON.parse(
     await evalSW(`window.ready.then(() => {
-      Notification.expectDownload();
+      Notifier.expectDownload();
       return Download.renameAndDownload({
         path: new Path.Path("e2e"),
         scratch: {},
@@ -348,7 +348,7 @@ test("shortcut files download with redirect content", async () => {
 test("failed downloads are recorded in the debug log", async () => {
   const entries = JSON.parse(
     await evalSW(`window.ready.then(() => {
-      Notification.expectDownload();
+      Notifier.expectDownload();
       return Download.renameAndDownload({
         path: new Path.Path("e2e"),
         scratch: {},

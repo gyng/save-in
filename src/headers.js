@@ -1,4 +1,4 @@
-const Headers = {
+const RequestHeaders = {
   refererListener: (details) => {
     // TODO: option to ignore or rewrite referer, check if needed
     const existingReferer = details.requestHeaders.find((h) => h.name === "Referer");
@@ -69,7 +69,7 @@ const Headers = {
       .filter((s) => s.length > 0)
       .some((pattern) => {
         try {
-          const re = Headers.matchPatternToRegExp(pattern);
+          const re = RequestHeaders.matchPatternToRegExp(pattern);
           return re != null && re.test(url);
         } catch (e) {
           return false;
@@ -89,7 +89,7 @@ const Headers = {
     }
 
     // The blocking webRequest listener already handles it
-    if (Headers.usingBlockingWebRequest) {
+    if (RequestHeaders.usingBlockingWebRequest) {
       return Promise.resolve();
     }
 
@@ -100,16 +100,16 @@ const Headers = {
     const pageUrl = state && state.info && state.info.pageUrl;
     const url = state && state.info && state.info.url;
 
-    if (!pageUrl || !url || !Headers.matchesRefererFilter(url)) {
+    if (!pageUrl || !url || !RequestHeaders.matchesRefererFilter(url)) {
       return Promise.resolve();
     }
 
     return chrome.declarativeNetRequest
       .updateSessionRules({
-        removeRuleIds: [Headers.DNR_REFERER_RULE_ID],
+        removeRuleIds: [RequestHeaders.DNR_REFERER_RULE_ID],
         addRules: [
           {
-            id: Headers.DNR_REFERER_RULE_ID,
+            id: RequestHeaders.DNR_REFERER_RULE_ID,
             action: {
               type: "modifyHeaders",
               requestHeaders: [{ header: "Referer", operation: "set", value: pageUrl }],
@@ -127,7 +127,7 @@ const Headers = {
         setTimeout(() => {
           chrome.declarativeNetRequest
             .updateSessionRules({
-              removeRuleIds: [Headers.DNR_REFERER_RULE_ID],
+              removeRuleIds: [RequestHeaders.DNR_REFERER_RULE_ID],
             })
             .catch(() => {});
         }, 30000);
@@ -136,14 +136,14 @@ const Headers = {
   },
 
   addRequestListener: () => {
-    Headers.usingBlockingWebRequest = false;
+    RequestHeaders.usingBlockingWebRequest = false;
 
     if (!browser.webRequest || !browser.webRequest.onBeforeSendHeaders) {
-      // No webRequest at all; see Headers.prepareReferer
+      // No webRequest at all; see RequestHeaders.prepareReferer
       return;
     }
 
-    browser.webRequest.onBeforeSendHeaders.removeListener(Headers.refererListener);
+    browser.webRequest.onBeforeSendHeaders.removeListener(RequestHeaders.refererListener);
 
     if (options.setRefererHeader) {
       const filterList = options.setRefererHeaderFilter || "";
@@ -160,6 +160,8 @@ const Headers = {
         return;
       }
 
+      // Cross-browser union: "extraHeaders" exists on Chrome only
+      /** @type {any[]} */
       const listenerOptions = ["blocking", "requestHeaders"];
 
       // Chrome needs `extraHeaders` to set Referer
@@ -171,11 +173,11 @@ const Headers = {
 
       try {
         browser.webRequest.onBeforeSendHeaders.addListener(
-          Headers.refererListener,
+          RequestHeaders.refererListener,
           { urls },
           listenerOptions,
         );
-        Headers.usingBlockingWebRequest = true;
+        RequestHeaders.usingBlockingWebRequest = true;
       } catch (e) {
         // Chrome MV3 rejects "blocking" (prepareReferer's DNR rules take
         // over), and an invalid user-supplied match pattern must not break
@@ -188,5 +190,5 @@ const Headers = {
 
 // Export for testing
 if (typeof module !== "undefined") {
-  module.exports = Headers;
+  module.exports = RequestHeaders;
 }

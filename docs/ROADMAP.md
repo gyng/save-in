@@ -11,7 +11,7 @@ Effort sizing: **S** ≈ hours, **M** ≈ 1–3 days, **L** ≈ a week or more._
 > tagged **[verify]** — confirm it against the current minimums on a throwaway
 > profile before committing engineering time. The whole extension only talks
 > to `browser.*`/`chrome.*` through feature-detection today
-> (`Headers.usingBlockingWebRequest`, `SessionState.available`,
+> (`RequestHeaders.usingBlockingWebRequest`, `SessionState.available`,
 > `URL.createObjectURL` probing); keep that discipline.
 
 ---
@@ -35,9 +35,9 @@ Top recommendations, in priority order:
    split the ~620-line `src/menu.js` by extracting a **pure**
    `Menus.buildTree()`. This de-risks everything else and is fully covered by
    existing tests.
-2. **Adopt types via `// @ts-check` + JSDoc + a check-only `tsconfig`**, not a
-   `.ts` migration. `src/variable.js` already has `// @ts-check`; there is a
-   stale `origin/types` branch to mine. This keeps the no-build property.
+2. **Adopt types via JSDoc + a check-only `tsconfig`**, not a `.ts`
+   migration. **Done:** `checkJs` now covers every src file
+   (`npm run typecheck` in CI). This keeps the no-build property.
 3. **Be honest about yt-dlp: a pure webext cannot run it.** Ship the _cheap_
    value first — a "copy yt-dlp command / save `.txt` hand-off" that reuses
    the existing `Shortcut` pipeline — and treat a native-messaging companion
@@ -65,7 +65,7 @@ yet need.
 
 - **Shared global scope, no modules.** Every `src/*.js` defines a global
   (`Menus`, `Download`, `Path`, `Router`, `Variable`, `Messaging`,
-  `OptionsManagement`, `Notification`, `Headers`, `Shortcut`, `SaveHistory`,
+  `OptionsManagement`, `Notifier`, `RequestHeaders`, `Shortcut`, `SaveHistory`,
   `Log`, `SessionState`) and ends with
   `if (typeof module !== "undefined") module.exports = ...`. Every new
   cross-file global must be hand-registered in `.oxlintrc.json` `globals`.
@@ -74,7 +74,7 @@ yet need.
   `window.lastDownloadState`, `window.ready`, `window.SI_DEBUG`. In the
   Chrome SW these live on `self` via the `self.window = self` shim in
   `src/background.js`. ~~`lastUsedPath`~~ → moved onto `Menus.state`;
-  ~~`requestedDownloadFlag`~~ → replaced by `Notification.expectDownload()`;
+  ~~`requestedDownloadFlag`~~ → replaced by `Notifier.expectDownload()`;
   ~~`globalChromeState`~~ → `Download.pendingStates` keyed map (all **done**).
 - ~~**The file list is duplicated**~~ **Done:** still duplicated by necessity
   (no build step), but `scripts/check-background-scripts.js` fails
@@ -88,7 +88,7 @@ yet need.
   `Download.pendingStates` is a bounded per-URL map; `globalChromeState`
   survives only as a last-resort fallback for lookups that miss.
 - ~~**`requestedDownloadFlag` is a cross-file signalling hack.**~~ **Done:**
-  replaced by a module-level counter behind `Notification.expectDownload()`;
+  replaced by a module-level counter behind `Notifier.expectDownload()`;
   `SessionState.siPendingDownload` remains the SW-restart fallback.
 - **FIXMEs**: `index.js:4` (`// FIXME` on `optionErrors` shape),
   `download.js:101` (`// FIXME: Fix router params for new path struct`).
@@ -106,10 +106,10 @@ other means. Sequence:
 
 1. ~~**Collapse the two global-mutation hacks.**~~ **Done.**
    - `requestedDownloadFlag` → a module-level counter behind
-     `Notification.expectDownload()`; `SessionState.siPendingDownload`
+     `Notifier.expectDownload()`; `SessionState.siPendingDownload`
      remains the SW-restart fallback.
    - `globalChromeState` → `Download.pendingStates`, a bounded per-URL map
-     consumed by `onDeterminingFilename` and `Headers.refererListener`;
+     consumed by `onDeterminingFilename` and `RequestHeaders.refererListener`;
      the old singleton survives only as a last-resort fallback.
 2. ~~**Split `menu.js`**~~ **Done:** `menu-build.js` / `menu-click.js` /
    `menu-tabs.js`, still globals + `module.exports`. `lastUsedPath` /
@@ -154,40 +154,36 @@ step 4 unblocks §4/§5; do it before them.
 
 ## 2. TypeScript adoption via JSDoc + `checkJS` (no build step)
 
-### Recommendation: JSDoc + `// @ts-check` + check-only `tsconfig`. Not `.ts`.
+### Recommendation: JSDoc + `checkJs` + check-only `tsconfig`. Not `.ts`.
 
 A `.ts` migration requires emit → a bundler → loss of readable-shipped-source
-and of the `module.exports` test pattern. JSDoc + `checkJS` gives ~90% of the
-safety with `tsc --noEmit` as a pure CI gate and **zero** runtime change. The
-repo has already voted for this: `src/variable.js:1` is `// @ts-check`, and
-there is a stale `origin/types` branch (`a2b0050 chore: Add initial types`)
-to harvest.
+and of the `module.exports` test pattern. JSDoc + `checkJs` gives ~90% of the
+safety with `tsc --noEmit` as a pure CI gate and **zero** runtime change.
 
-### Concrete plan
+### Status: done (July 2026)
 
-Foundation **done** (July 2026): check-only `tsconfig.json`
-(`allowJs`, `checkJs: false`, opt-in via `// @ts-check`, `noEmit`,
-`types: ["firefox-webext-browser"]`), `types/globals.d.ts` declaring the
-shared globals plus `StateInfo`/`DownloadState`/`OptionError` typedefs,
-`npm run typecheck` in CI. `variable.js` and `path.js` are opted in and
-pass. Remaining work is the rollout:
+Check-only `tsconfig.json` (`allowJs`, **`checkJs: true` over all of src/**,
+`noEmit`, `types: ["firefox-webext-browser", "chrome"]`),
+`types/globals.d.ts` declaring the shared globals plus
+`StateInfo`/`DownloadState`/`OptionError` typedefs, `npm run typecheck` in
+CI. Getting there required renaming two runtime globals that shadowed
+platform classes (`Notification` → `Notifier`, `Headers` →
+`RequestHeaders`) — the old 2022 `origin/types` branch died on exactly this.
+Gotcha learned: don't use inline `/** @type */ (…)` casts — oxfmt strips the
+parentheses and silently breaks the cast; use typedefs or optional fields.
 
-1. **Refine `types/globals.d.ts` as files opt in** — many module globals are
-   still `Record<string, any>`; tighten each one when its file (or a caller)
-   gets `// @ts-check`. `SaveInOptions` derived from
-   `OptionsManagement.OPTION_KEYS` (`option.js:12`) and `ParsedRule`
-   (`router.js` `parseRule`) are the highest-value missing typedefs.
-2. **Turn files on most-depended-on first**, one PR each:
-   `router.js` → `download.js` (the routing/naming core, highest churn),
-   then fan out. Gotcha learned: don't use inline `/** @type */ (…)` casts —
-   oxfmt strips the parentheses and silently breaks the cast; use typedefs
-   or optional fields instead.
+Remaining rollout (incremental, optional):
 
-**Effort:** setup + globals + core typedefs **M**; each additional
-`// @ts-check` **S**. **Risk:** low — it's additive and CI-gated; the only
-gotcha is `checkJS` fighting the global scope until `globals.d.ts` exists (do
-that first). **Dependencies:** none, but it composes well with §1 (typed
-structs make the `globalChromeState`/`state` refactors safer).
+1. **Refine `types/globals.d.ts`** — many module globals are still
+   `Record<string, any>`; tighten them as their files change.
+   `SaveInOptions` derived from `OptionsManagement.OPTION_KEYS`
+   (`option.js:12`) and `ParsedRule` (`router.js` `parseRule`) are the
+   highest-value missing typedefs.
+2. **Raise strictness gradually** — `strict: false` today; `noImplicitAny`
+   and `strictNullChecks` are the next gates, each a sweep of its own.
+
+**Effort:** remaining refinement **S** each. **Risk:** low — additive and
+CI-gated. **Dependencies:** none.
 
 ---
 
@@ -458,14 +454,14 @@ example — cheap to do before an ecosystem forms, expensive after.
 | 1 | ~~Kill `requestedDownloadFlag`; make `globalChromeState` a keyed map (fixes concurrent tab-strip race)~~ | M | Low–Med | High (correctness) | — | **Done** |
 | 2 | ~~Split `menu.js`; single-source the background file list~~ (guarded by `scripts/check-background-scripts.js` in lint) | M | Low | Med (maintainability) | — | **Done** |
 | 3 | ~~Extract pure `Menus.buildTree` + side-effect-free `parseRule`~~ | M | Low | High (unblocks §4/§5) | 2 | **Done** |
-| 4 | ~~`tsconfig` + `globals.d.ts` + core typedefs; `tsc --noEmit` in CI~~ (`variable.js` + `path.js` opted in) | M | Low | High (safety) | — | **Done** |
+| 4 | ~~`tsconfig` + `globals.d.ts` + core typedefs; `tsc --noEmit` in CI~~ (checkJs over all of src/) | M | Low | High (safety) | — | **Done** |
 | 5 | Trivial `:variables:` batch (weekday, week, title slugs, URL parts) | S | Low | Med–High | — | **Next release** |
 | 6 | Live context-menu tree preview in options page | M | Low | High (UX) | 3 | **Next release** |
 | 7 | Formalize + version the external DOWNLOAD API (+ PING, docs, e2e) | S–M | Low | Med–High | — | **Next release** |
 | 8 | yt-dlp "copy command / save `.txt`" hand-off via `Shortcut` | S–M | Low | Med–High | — | **Next release / +1** |
 | 9 | Guided rule builder (form for matcher/capture/into) | M–L | Med | High (UX) | 3, 7-style preview | **+1** |
 | 10 | Async `applyVariables` → `:counter:`, `:mime:` | M | Med | Med–High | 4 helps | **+1** |
-| 11 | Per-file `// @ts-check` rollout (path→router→download→…) | S each | Low | Med | 4 | **+1, ongoing** |
+| 11 | ~~Per-file `// @ts-check` rollout~~ (superseded: checkJs covers all of src/; next is typedef refinement + strictness) | S each | Low | Med | 4 | **Done** |
 | 12 | Visual/form path builder | M–L | Med | Med | 6 | **+2** |
 | 13 | ESM + bundler migration (only if justified) | L | Med–High | Low–Med | 1–3 | **Defer** |
 | 14 | Native-messaging yt-dlp companion (separate repo) | L | High | Med (power users) | 7 | **Defer / separate** |

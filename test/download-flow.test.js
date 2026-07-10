@@ -87,12 +87,12 @@ beforeEach(() => {
     emit: { downloaded: jest.fn() },
   };
 
-  global.Notification = {
+  global.Notifier = {
     trackDownload: jest.fn(() => Promise.resolve()),
     createExtensionNotification: jest.fn(),
   };
 
-  global.Headers = { prepareReferer: jest.fn(() => Promise.resolve()) };
+  global.RequestHeaders = { prepareReferer: jest.fn(() => Promise.resolve()) };
   global.SessionState = {
     set: jest.fn(() => Promise.resolve()),
     get: jest.fn(() => Promise.resolve({})),
@@ -410,7 +410,7 @@ describe("renameAndDownload: browserDownload", () => {
     Download.renameAndDownload(state);
     await flush();
 
-    expect(global.Headers.prepareReferer).toHaveBeenCalledWith(state);
+    expect(global.RequestHeaders.prepareReferer).toHaveBeenCalledWith(state);
     expect(global.SessionState.set).toHaveBeenCalledWith(
       expect.objectContaining({ siPendingDownload: true, siFinalFilename: expect.any(String) }),
     );
@@ -420,7 +420,7 @@ describe("renameAndDownload: browserDownload", () => {
       saveAs: false,
       conflictAction: "uniquify",
     });
-    expect(global.Notification.trackDownload).toHaveBeenCalledWith(555);
+    expect(global.Notifier.trackDownload).toHaveBeenCalledWith(555);
     expect(global.SessionState.set).toHaveBeenLastCalledWith({ siPendingDownload: false });
   });
 
@@ -432,7 +432,7 @@ describe("renameAndDownload: browserDownload", () => {
     Download.renameAndDownload(state);
     await flush();
 
-    expect(global.Notification.trackDownload).not.toHaveBeenCalled();
+    expect(global.Notifier.trackDownload).not.toHaveBeenCalled();
     expect(global.Log.add).toHaveBeenCalledWith("downloads.download failed", "Error: disk full");
     expect(global.SessionState.set).toHaveBeenLastCalledWith({ siPendingDownload: false });
   });
@@ -447,7 +447,7 @@ describe("renameAndDownload: browserDownload", () => {
     expect(() => Download.renameAndDownload(state)).not.toThrow();
     await flush();
 
-    expect(global.Notification.trackDownload).not.toHaveBeenCalled();
+    expect(global.Notifier.trackDownload).not.toHaveBeenCalled();
     expect(global.SessionState.set).toHaveBeenLastCalledWith({ siPendingDownload: false });
     global.Log = originalLog;
   });
@@ -570,7 +570,7 @@ describe("renameAndDownload: notification triggers", () => {
     const state = makeState();
     Download.renameAndDownload(state);
 
-    expect(global.Notification.createExtensionNotification).toHaveBeenCalledWith(
+    expect(global.Notifier.createExtensionNotification).toHaveBeenCalledWith(
       "notificationRuleMatchedTitle",
       "file.png\n⬇\nmatched/route.txt",
       false,
@@ -584,7 +584,7 @@ describe("renameAndDownload: notification triggers", () => {
     global.options.notifyOnRuleMatch = false;
 
     Download.renameAndDownload(makeState());
-    expect(global.Notification.createExtensionNotification).not.toHaveBeenCalled();
+    expect(global.Notifier.createExtensionNotification).not.toHaveBeenCalled();
   });
 
   test("notifies failure when routeExclusive+notifyOnFailure are enabled and no route matched", () => {
@@ -595,7 +595,7 @@ describe("renameAndDownload: notification triggers", () => {
     const state = makeState();
     Download.renameAndDownload(state);
 
-    expect(global.Notification.createExtensionNotification).toHaveBeenCalledWith(
+    expect(global.Notifier.createExtensionNotification).toHaveBeenCalledWith(
       "notificationRuleMatchFailedExclusiveTitle",
       "notificationRuleMatchFailedExclusiveMessage",
       true,
@@ -608,7 +608,7 @@ describe("renameAndDownload: notification triggers", () => {
     global.options.notifyOnFailure = true;
 
     Download.renameAndDownload(makeState());
-    expect(global.Notification.createExtensionNotification).not.toHaveBeenCalled();
+    expect(global.Notifier.createExtensionNotification).not.toHaveBeenCalled();
   });
 });
 
@@ -766,9 +766,9 @@ describe("concurrent downloads (pendingStates)", () => {
     };
     global.Variable = { applyVariables: (p) => p };
     global.Router = { matchRules: () => null };
-    global.Headers = { prepareReferer: vi.fn(() => Promise.resolve()) };
+    global.RequestHeaders = { prepareReferer: vi.fn(() => Promise.resolve()) };
     global.Messaging = { emit: { downloaded: vi.fn() }, send: {} };
-    global.Notification = { trackDownload: vi.fn(), createExtensionNotification: vi.fn() };
+    global.Notifier = { trackDownload: vi.fn(), createExtensionNotification: vi.fn() };
     global.SaveHistory = { add: vi.fn() };
     global.SessionState = {
       available: () => true,

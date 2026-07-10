@@ -9,7 +9,7 @@ Firefox (AMO) and Chrome (Web Store).
 **There is no bundler and no module system in shipped code.** Background
 scripts are plain scripts sharing one global scope, loaded in manifest order
 (browser-shim first, `index.js` last). Files communicate through globals
-(`Menus`, `Download`, `Headers`, `OptionsManagement`, `options`,
+(`Menus`, `Download`, `RequestHeaders`, `OptionsManagement`, `options`,
 `currentTab`, ...). New cross-file globals must be added to
 `.oxlintrc.json` `globals`. Each `src/*.js` ends with a
 `if (typeof module !== "undefined") module.exports = ...` block so vitest can
@@ -37,14 +37,14 @@ same file list) and ignores `scripts`. Keep the two lists in sync when
 adding a background script — `scripts/check-background-scripts.js` (part of
 `npm run lint`) fails on drift.
 
-|                 | Firefox (event page)                            | Chrome (service worker)                                           |
-| --------------- | ----------------------------------------------- | ----------------------------------------------------------------- |
-| Referer feature | blocking `webRequest` (still allowed in FF MV3) | `declarativeNetRequest` session rule (`Headers.prepareReferer`)   |
-| Blob downloads  | `URL.createObjectURL` (event pages have DOM)    | data-URL fallbacks (`Download.makeObjectUrl` / `makeUrlFromBlob`) |
+|                 | Firefox (event page)                            | Chrome (service worker)                                                |
+| --------------- | ----------------------------------------------- | ---------------------------------------------------------------------- |
+| Referer feature | blocking `webRequest` (still allowed in FF MV3) | `declarativeNetRequest` session rule (`RequestHeaders.prepareReferer`) |
+| Blob downloads  | `URL.createObjectURL` (event pages have DOM)    | data-URL fallbacks (`Download.makeObjectUrl` / `makeUrlFromBlob`)      |
 
 Shared code must **feature-detect, not sniff**: blocking webRequest is
 detected by attempting registration (Chrome MV3 exposes `webRequest` but
-throws on the `"blocking"` option — see `Headers.usingBlockingWebRequest`);
+throws on the `"blocking"` option — see `RequestHeaders.usingBlockingWebRequest`);
 same for `URL.createObjectURL` and `browser.storage.session`. Both
 lifecycles are non-persistent, so all the service worker rules below apply
 to Firefox too.
@@ -87,7 +87,7 @@ to Firefox too.
 | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `npm test` / `npm run test:watch` | vitest unit tests (jsdom + jest-webextension-mock via a vi alias); npm run test:coverage enforces 95%-line thresholds on src/ (vendor, options page, SW bootstrap excluded)  |
 | `npm run lint`                    | web-ext lint (Firefox manifest) + oxlint + oxfmt --check + background file-list sync check                                                                                   |
-| `npm run typecheck`               | tsc --noEmit over src/; only files with `// @ts-check` are checked (shared globals declared in types/globals.d.ts)                                                           |
+| `npm run typecheck`               | tsc --noEmit with checkJs over all of src/ (shared globals + core typedefs declared in types/globals.d.ts)                                                                   |
 | `npm run e2e:chrome`              | vitest e2e suite (~15s): isolated Chrome over CDP, drives the real download pipeline — SW lifecycle, CSP, routing rules, messaging, session persistence (e2e/chrome.e2e.mjs) |
 | `npm run e2e:firefox`             | vitest e2e suite for Firefox on a throwaway profile via RDP (e2e/firefox.e2e.mjs)                                                                                            |
 | `npm run d:chrome`                | dev loop: isolated Chrome + auto restage/reload on file save                                                                                                                 |
@@ -137,11 +137,13 @@ vitest specifics:
 - Comments explain _constraints_ (why something must be this way — usually
   an MV3/cross-browser rule), not what the code does.
 - Version lives in `manifest.json` and `package.json` — bump together.
-- Types are check-only (`npm run typecheck`, no build step): opt files in
-  with `// @ts-check` + JSDoc, declare new cross-file globals in
-  `types/globals.d.ts`, and keep them passing. Avoid inline
+- Types are check-only (`npm run typecheck`, no build step): every src file
+  is checked via `checkJs`; declare new cross-file globals in
+  `types/globals.d.ts` and keep the check passing. Avoid inline
   `/** @type */ (…)` casts on parenthesized literals — oxfmt strips the
   parentheses and breaks the cast; prefer typedefs or optional fields.
+  Runtime globals must not reuse platform class names (that is why they are
+  `Notifier`/`RequestHeaders`, not `Notification`/`Headers`).
 
 ## Release checklist
 

@@ -69,7 +69,9 @@ Menus.addTabMenuListener = () => {
       await window.ready;
     }
 
+    /** @type {(t: browser.tabs.Tab) => boolean} */
     let filter = () => false;
+    /** @type {{ pinned: boolean, windowId: number, windowType: browser.tabs.WindowType, highlighted?: boolean, openerTabId?: number }} */
     let query = {
       pinned: false,
       windowId: fromTab.windowId,
@@ -105,7 +107,7 @@ Menus.addTabMenuListener = () => {
 
         tabs.forEach((t, i) => {
           window.setTimeout(() => {
-            Notification.expectDownload();
+            Notifier.expectDownload();
 
             let url = t.url;
             let suggestedFilename = null;

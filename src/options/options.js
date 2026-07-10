@@ -143,6 +143,7 @@ const updateHistory = async () => {
   // Copied from history.js
   const HISTORY_KEY = "save-in-history";
   const history = (await browser.storage.local.get(HISTORY_KEY)) ?? {};
+  /** @type {HTMLTextAreaElement} */
   const el = document.querySelector("#history");
   el.value = JSON.stringify(history, null, 2);
 };
@@ -161,6 +162,7 @@ document.querySelector("#history-delete")?.addEventListener("click", deleteHisto
 const LOG_STORAGE_KEY = "si-log";
 
 const updateDebugLog = async () => {
+  /** @type {HTMLTextAreaElement} */
   const el = document.querySelector("#debug-log");
   if (!el) {
     return;
@@ -315,7 +317,7 @@ const setupChromeDisables = () => {
     document.querySelector("html").style = "min-width: 600px;";
     // document.querySelector("body").style = "overflow-y: hidden;";
 
-    document.querySelectorAll(".chrome-disabled").forEach((el) => {
+    document.querySelectorAll(".chrome-disabled").forEach((/** @type {HTMLInputElement} */ el) => {
       el.disabled = true;
     });
   }
@@ -379,7 +381,7 @@ const setupAutosave = (el) => {
   document.querySelectorAll(type).forEach(setupAutosave);
 });
 
-document.querySelectorAll(".popout").forEach((el) => {
+document.querySelectorAll(".popout").forEach((/** @type {HTMLElement} */ el) => {
   el.addEventListener("click", () => {
     const target = el.dataset.popoutFor;
     window.open(target, null, "menubar=no,width=940,height=600,scrollbars=yes");
@@ -388,6 +390,7 @@ document.querySelectorAll(".popout").forEach((el) => {
 
 const showJson = (obj) => {
   const json = JSON.stringify(obj, null, 2);
+  /** @type {HTMLTextAreaElement} */
   const outputEl = document.querySelector("#export-target");
   outputEl.style = "display: unset;";
   outputEl.value = json;

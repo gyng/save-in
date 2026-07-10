@@ -25,6 +25,7 @@
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
+    "@types/chrome": "^0.2.2",
     "@types/firefox-webext-browser": "^143.0.0",
     "@vitest/coverage-v8": "^4.1.10",
     "jest-webextension-mock": "^3.7.19",

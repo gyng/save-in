@@ -47,10 +47,14 @@ const RouterFactory = {
 };
 
 const Router = {
+  // Typed default for matchers destructuring their second (state.info) param
+  /** @type {Partial<StateInfo>} */
+  EMPTY_INFO: {},
+
   matcherFunctions: {
     context:
       (regex) =>
-      (info, { context } = {}) => {
+      (info, { context } = Router.EMPTY_INFO) => {
         const match = context == null ? null : context.toLowerCase().match(regex);
 
         if (window.SI_DEBUG && match) {
@@ -61,7 +65,7 @@ const Router = {
       },
     menuindex:
       (regex) =>
-      (info, { menuIndex } = {}) => {
+      (info, { menuIndex } = Router.EMPTY_INFO) => {
         const match = menuIndex == null ? null : menuIndex.match(regex);
 
         if (window.SI_DEBUG && match) {
@@ -72,7 +76,7 @@ const Router = {
       },
     comment:
       (regex) =>
-      (info, { comment } = {}) => {
+      (info, { comment } = Router.EMPTY_INFO) => {
         const match = comment == null ? null : comment.match(regex);
 
         if (window.SI_DEBUG && match) {
@@ -98,7 +102,7 @@ const Router = {
     },
     filename:
       (regex) =>
-      (info, { filename } = {}) => {
+      (info, { filename } = Router.EMPTY_INFO) => {
         const fn = (info && info.filename) || filename;
         if (!fn) return false;
 

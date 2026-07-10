@@ -53,7 +53,7 @@ Menus.addDownloadListener = () => {
             url = info.linkUrl;
 
             if (options.notifyOnLinkPreferred) {
-              Notification.createExtensionNotification(
+              Notifier.createExtensionNotification(
                 browser.i18n.getMessage("notificationLinkPreferred"),
                 url,
               );
@@ -73,7 +73,7 @@ Menus.addDownloadListener = () => {
                   }
                 });
             } catch (err) {
-              Notification.createExtensionNotification(
+              Notifier.createExtensionNotification(
                 browser.i18n.getMessage("notificationBadPreferLinksPattern"),
                 err,
               );
@@ -84,7 +84,7 @@ Menus.addDownloadListener = () => {
               url = info.linkUrl;
 
               if (options.notifyOnLinkPreferred) {
-                Notification.createExtensionNotification(
+                Notifier.createExtensionNotification(
                   browser.i18n.getMessage("notificationLinkPreferred"),
                   url,
                 );
@@ -176,7 +176,7 @@ Menus.addDownloadListener = () => {
         now: new Date(),
         pageUrl: info.pageUrl,
         selectionText: info.selectionText,
-        sourceUrl: info.srcUrl || info.url,
+        sourceUrl: info.srcUrl || info["url"], // url: defensive, not in OnClickData
         url, // Changes based off context
         suggestedFilename, // wip: rename
         context: downloadType,
@@ -192,7 +192,7 @@ Menus.addDownloadListener = () => {
         info: opts,
       };
 
-      Notification.expectDownload();
+      Notifier.expectDownload();
       Download.renameAndDownload(state);
 
       // Close the tab a "save page" came from, mirroring the tab-strip

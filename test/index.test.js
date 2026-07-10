@@ -14,8 +14,8 @@ const setupGlobals = ({ options = {}, storedLocal = {}, tabsQueryResult = [] } =
   global.MEDIA_TYPES = ["image", "video", "audio"];
 
   global.OptionsManagement = { loadOptions: vi.fn(() => Promise.resolve()) };
-  global.Headers = { addRequestListener: vi.fn() };
-  global.Notification = {};
+  global.RequestHeaders = { addRequestListener: vi.fn() };
+  global.Notifier = {};
   global.Log = { add: vi.fn() };
   global.Menus = {
     addDownloadListener: vi.fn(),
@@ -108,7 +108,7 @@ describe("init", () => {
     expect(global.browser.storage.local.get).toHaveBeenCalledWith(["lastUsedPath", "lastUsedMeta"]);
     expect(global.browser.contextMenus.removeAll).toHaveBeenCalledTimes(1);
 
-    expect(global.Headers.addRequestListener).toHaveBeenCalledTimes(1);
+    expect(global.RequestHeaders.addRequestListener).toHaveBeenCalledTimes(1);
 
     const contexts = ["image", "video", "audio", "link", "selection", "page"];
     expect(global.Menus.addTabMenus).toHaveBeenCalledTimes(1);

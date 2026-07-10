@@ -1,4 +1,4 @@
-const Headers = (await import("../src/headers.js")).default;
+const RequestHeaders = (await import("../src/headers.js")).default;
 
 describe("matchesRefererFilter", () => {
   beforeEach(() => {
@@ -8,72 +8,74 @@ describe("matchesRefererFilter", () => {
   });
 
   test("matches URLs against a single match pattern", () => {
-    expect(Headers.matchesRefererFilter("https://i.pximg.net/img/foo.png")).toBe(true);
-    expect(Headers.matchesRefererFilter("http://i.pximg.net/img.jpg")).toBe(true);
-    expect(Headers.matchesRefererFilter("https://example.com/foo.png")).toBe(false);
+    expect(RequestHeaders.matchesRefererFilter("https://i.pximg.net/img/foo.png")).toBe(true);
+    expect(RequestHeaders.matchesRefererFilter("http://i.pximg.net/img.jpg")).toBe(true);
+    expect(RequestHeaders.matchesRefererFilter("https://example.com/foo.png")).toBe(false);
   });
 
   test("does not match substrings outside the pattern", () => {
-    expect(Headers.matchesRefererFilter("https://evil.com/?u=https://i.pximg.net/")).toBe(false);
+    expect(RequestHeaders.matchesRefererFilter("https://evil.com/?u=https://i.pximg.net/")).toBe(
+      false,
+    );
   });
 
   test("supports multiple newline-separated patterns", () => {
     global.options.setRefererHeaderFilter = "*://i.pximg.net/*\n*://example.org/downloads/*";
-    expect(Headers.matchesRefererFilter("https://example.org/downloads/a")).toBe(true);
-    expect(Headers.matchesRefererFilter("https://example.org/other/a")).toBe(false);
+    expect(RequestHeaders.matchesRefererFilter("https://example.org/downloads/a")).toBe(true);
+    expect(RequestHeaders.matchesRefererFilter("https://example.org/other/a")).toBe(false);
   });
 
   test("escapes regex metacharacters in patterns", () => {
     global.options.setRefererHeaderFilter = "*://a.b/c?d=e*";
-    expect(Headers.matchesRefererFilter("https://a.b/c?d=e&f=g")).toBe(true);
-    expect(Headers.matchesRefererFilter("https://axb/cxd=e")).toBe(false);
+    expect(RequestHeaders.matchesRefererFilter("https://a.b/c?d=e&f=g")).toBe(true);
+    expect(RequestHeaders.matchesRefererFilter("https://axb/cxd=e")).toBe(false);
   });
 
   test("handles empty and whitespace-only filters", () => {
     global.options.setRefererHeaderFilter = "";
-    expect(Headers.matchesRefererFilter("https://i.pximg.net/a.png")).toBe(false);
+    expect(RequestHeaders.matchesRefererFilter("https://i.pximg.net/a.png")).toBe(false);
     global.options.setRefererHeaderFilter = "\n  \n";
-    expect(Headers.matchesRefererFilter("https://i.pximg.net/a.png")).toBe(false);
+    expect(RequestHeaders.matchesRefererFilter("https://i.pximg.net/a.png")).toBe(false);
   });
 
   test("ignores patterns that are not match patterns", () => {
     global.options.setRefererHeaderFilter = "not-a-match-pattern";
-    expect(Headers.matchesRefererFilter("https://i.pximg.net/a.png")).toBe(false);
+    expect(RequestHeaders.matchesRefererFilter("https://i.pximg.net/a.png")).toBe(false);
   });
 
   test("treats patterns whose compilation throws as non-matching", () => {
-    const original = Headers.matchPatternToRegExp;
-    Headers.matchPatternToRegExp = () => {
+    const original = RequestHeaders.matchPatternToRegExp;
+    RequestHeaders.matchPatternToRegExp = () => {
       throw new Error("boom");
     };
     try {
-      expect(Headers.matchesRefererFilter("https://i.pximg.net/a.png")).toBe(false);
+      expect(RequestHeaders.matchesRefererFilter("https://i.pximg.net/a.png")).toBe(false);
     } finally {
-      Headers.matchPatternToRegExp = original;
+      RequestHeaders.matchPatternToRegExp = original;
     }
   });
 });
 
 describe("matchPatternToRegExp", () => {
   test("returns null for gibberish and unsupported schemes", () => {
-    expect(Headers.matchPatternToRegExp("not-a-match-pattern")).toBe(null);
-    expect(Headers.matchPatternToRegExp("gopher://weird/*")).toBe(null);
+    expect(RequestHeaders.matchPatternToRegExp("not-a-match-pattern")).toBe(null);
+    expect(RequestHeaders.matchPatternToRegExp("gopher://weird/*")).toBe(null);
   });
 
   test("keeps explicit schemes", () => {
-    const re = Headers.matchPatternToRegExp("https://example.com/*");
+    const re = RequestHeaders.matchPatternToRegExp("https://example.com/*");
     expect(re.test("https://example.com/a")).toBe(true);
     expect(re.test("http://example.com/a")).toBe(false);
   });
 
   test("wildcard host matches any host", () => {
-    const re = Headers.matchPatternToRegExp("*://*/download/*");
+    const re = RequestHeaders.matchPatternToRegExp("*://*/download/*");
     expect(re.test("https://anything.example/download/x")).toBe(true);
     expect(re.test("https://anything.example/other/x")).toBe(false);
   });
 
   test("*.host matches the host and its subdomains", () => {
-    const re = Headers.matchPatternToRegExp("*://*.example.com/*");
+    const re = RequestHeaders.matchPatternToRegExp("*://*.example.com/*");
     expect(re.test("https://example.com/a")).toBe(true);
     expect(re.test("https://cdn.example.com/a")).toBe(true);
     expect(re.test("https://example.org/a")).toBe(false);
@@ -87,21 +89,21 @@ describe("refererListener", () => {
 
   test("leaves requests with an existing Referer alone", () => {
     const details = { requestHeaders: [{ name: "Referer", value: "https://already/" }] };
-    expect(Headers.refererListener(details)).toEqual({});
+    expect(RequestHeaders.refererListener(details)).toEqual({});
     expect(details.requestHeaders).toHaveLength(1);
   });
 
   test("does nothing without download state", () => {
     global.globalChromeState = null;
-    expect(Headers.refererListener({ requestHeaders: [] })).toEqual({});
+    expect(RequestHeaders.refererListener({ requestHeaders: [] })).toEqual({});
 
     global.globalChromeState = {};
-    expect(Headers.refererListener({ requestHeaders: [] })).toEqual({});
+    expect(RequestHeaders.refererListener({ requestHeaders: [] })).toEqual({});
   });
 
   test("does nothing without a page URL", () => {
     global.globalChromeState = { info: {} };
-    expect(Headers.refererListener({ requestHeaders: [] })).toEqual({});
+    expect(RequestHeaders.refererListener({ requestHeaders: [] })).toEqual({});
   });
 
   test("appends the page URL as Referer", () => {
@@ -109,7 +111,7 @@ describe("refererListener", () => {
       info: { pageUrl: "https://www.pixiv.net/artworks/123" },
     };
     const details = { requestHeaders: [{ name: "Accept", value: "*/*" }] };
-    expect(Headers.refererListener(details)).toEqual({
+    expect(RequestHeaders.refererListener(details)).toEqual({
       requestHeaders: [
         { name: "Accept", value: "*/*" },
         { name: "Referer", value: "https://www.pixiv.net/artworks/123" },
@@ -136,7 +138,7 @@ describe("prepareReferer (MV3 declarativeNetRequest path)", () => {
     };
     global.BROWSERS = { CHROME: "CHROME", FIREFOX: "FIREFOX" };
     global.CURRENT_BROWSER = "FIREFOX";
-    Headers.usingBlockingWebRequest = false;
+    RequestHeaders.usingBlockingWebRequest = false;
 
     // Simulate MV3: no blocking webRequest, DNR available
     originalWebRequest = global.browser.webRequest;
@@ -159,12 +161,12 @@ describe("prepareReferer (MV3 declarativeNetRequest path)", () => {
 
   test("creates a session rule setting Referer to the page URL", async () => {
     jest.useFakeTimers();
-    await Headers.prepareReferer(state);
+    await RequestHeaders.prepareReferer(state);
 
     const { calls } = global.chrome.declarativeNetRequest.updateSessionRules.mock;
     expect(calls.length).toBe(1);
     const [rules] = calls[0];
-    expect(rules.removeRuleIds).toEqual([Headers.DNR_REFERER_RULE_ID]);
+    expect(rules.removeRuleIds).toEqual([RequestHeaders.DNR_REFERER_RULE_ID]);
     expect(rules.addRules[0].action.requestHeaders[0]).toEqual({
       header: "Referer",
       operation: "set",
@@ -175,24 +177,24 @@ describe("prepareReferer (MV3 declarativeNetRequest path)", () => {
 
   test("removes the rule after a delay", async () => {
     jest.useFakeTimers();
-    await Headers.prepareReferer(state);
+    await RequestHeaders.prepareReferer(state);
     jest.runAllTimers();
 
     const { calls } = global.chrome.declarativeNetRequest.updateSessionRules.mock;
     expect(calls.length).toBe(2);
     expect(calls[1][0]).toEqual({
-      removeRuleIds: [Headers.DNR_REFERER_RULE_ID],
+      removeRuleIds: [RequestHeaders.DNR_REFERER_RULE_ID],
     });
   });
 
   test("no-op when the option is disabled", async () => {
     global.options.setRefererHeader = false;
-    await Headers.prepareReferer(state);
+    await RequestHeaders.prepareReferer(state);
     expect(global.chrome.declarativeNetRequest.updateSessionRules).not.toHaveBeenCalled();
   });
 
   test("no-op when URL does not match the filter", async () => {
-    await Headers.prepareReferer({
+    await RequestHeaders.prepareReferer({
       info: { url: "https://example.com/a.png", pageUrl: "https://p.example/" },
     });
     expect(global.chrome.declarativeNetRequest.updateSessionRules).not.toHaveBeenCalled();
@@ -205,10 +207,10 @@ describe("prepareReferer (MV3 declarativeNetRequest path)", () => {
         removeListener: jest.fn(),
       },
     };
-    Headers.addRequestListener();
-    expect(Headers.usingBlockingWebRequest).toBe(true);
+    RequestHeaders.addRequestListener();
+    expect(RequestHeaders.usingBlockingWebRequest).toBe(true);
 
-    await Headers.prepareReferer(state);
+    await RequestHeaders.prepareReferer(state);
     expect(global.chrome.declarativeNetRequest.updateSessionRules).not.toHaveBeenCalled();
   });
 
@@ -222,24 +224,24 @@ describe("prepareReferer (MV3 declarativeNetRequest path)", () => {
         removeListener: jest.fn(),
       },
     };
-    Headers.addRequestListener();
-    expect(Headers.usingBlockingWebRequest).toBe(false);
+    RequestHeaders.addRequestListener();
+    expect(RequestHeaders.usingBlockingWebRequest).toBe(false);
 
     jest.useFakeTimers();
-    await Headers.prepareReferer(state);
+    await RequestHeaders.prepareReferer(state);
     expect(global.chrome.declarativeNetRequest.updateSessionRules).toHaveBeenCalled();
   });
 
   test("no-op without declarativeNetRequest support", async () => {
     global.chrome = {};
-    await expect(Headers.prepareReferer(state)).resolves.toBeUndefined();
+    await expect(RequestHeaders.prepareReferer(state)).resolves.toBeUndefined();
   });
 
   test("logs the session rule when a Log global is present", async () => {
     global.Log = { add: jest.fn() };
     jest.useFakeTimers();
 
-    await Headers.prepareReferer(state);
+    await RequestHeaders.prepareReferer(state);
 
     expect(global.Log.add).toHaveBeenCalledWith("referer session rule set", {
       url: state.info.url,
@@ -252,7 +254,7 @@ describe("prepareReferer (MV3 declarativeNetRequest path)", () => {
       Promise.reject(new Error("no permission")),
     );
 
-    await expect(Headers.prepareReferer(state)).resolves.toBeUndefined();
+    await expect(RequestHeaders.prepareReferer(state)).resolves.toBeUndefined();
   });
 
   test("swallows failures when removing the rule later", async () => {
@@ -262,7 +264,7 @@ describe("prepareReferer (MV3 declarativeNetRequest path)", () => {
       .mockImplementationOnce(() => Promise.resolve())
       .mockImplementationOnce(() => Promise.reject(new Error("already gone")));
 
-    await Headers.prepareReferer(state);
+    await RequestHeaders.prepareReferer(state);
     jest.runAllTimers();
     // let the removal rejection propagate to its .catch
     await Promise.resolve();
@@ -294,7 +296,7 @@ describe("addRequestListener", () => {
   test("returns early when webRequest is unavailable (MV3)", () => {
     global.options = { setRefererHeader: true };
     global.browser.webRequest = undefined;
-    expect(() => Headers.addRequestListener()).not.toThrow();
+    expect(() => RequestHeaders.addRequestListener()).not.toThrow();
   });
 
   test("drops empty filter lines instead of registering invalid patterns (#222)", () => {
@@ -303,7 +305,7 @@ describe("addRequestListener", () => {
       setRefererHeaderFilter: "*://i.pximg.net/*\n\n  \n",
     };
 
-    Headers.addRequestListener();
+    RequestHeaders.addRequestListener();
 
     const { calls } = global.browser.webRequest.onBeforeSendHeaders.addListener.mock;
     expect(calls).toHaveLength(1);
@@ -313,7 +315,7 @@ describe("addRequestListener", () => {
   test("does not register at all for an empty filter (#222)", () => {
     global.options = { setRefererHeader: true, setRefererHeaderFilter: "\n" };
 
-    Headers.addRequestListener();
+    RequestHeaders.addRequestListener();
 
     expect(global.browser.webRequest.onBeforeSendHeaders.addListener).not.toHaveBeenCalled();
   });
@@ -327,24 +329,24 @@ describe("addRequestListener", () => {
       throw new Error("Invalid match pattern");
     });
 
-    expect(() => Headers.addRequestListener()).not.toThrow();
+    expect(() => RequestHeaders.addRequestListener()).not.toThrow();
   });
 
   test("only removes the listener when the option is disabled", () => {
     global.options = { setRefererHeader: false };
-    Headers.usingBlockingWebRequest = true;
+    RequestHeaders.usingBlockingWebRequest = true;
 
-    Headers.addRequestListener();
+    RequestHeaders.addRequestListener();
 
     expect(global.browser.webRequest.onBeforeSendHeaders.removeListener).toHaveBeenCalled();
     expect(global.browser.webRequest.onBeforeSendHeaders.addListener).not.toHaveBeenCalled();
-    expect(Headers.usingBlockingWebRequest).toBe(false);
+    expect(RequestHeaders.usingBlockingWebRequest).toBe(false);
   });
 
   test("treats a missing filter as empty (no registration)", () => {
     global.options = { setRefererHeader: true };
 
-    Headers.addRequestListener();
+    RequestHeaders.addRequestListener();
 
     expect(global.browser.webRequest.onBeforeSendHeaders.addListener).not.toHaveBeenCalled();
   });
@@ -356,7 +358,7 @@ describe("addRequestListener", () => {
       setRefererHeaderFilter: "*://i.pximg.net/*",
     };
 
-    Headers.addRequestListener();
+    RequestHeaders.addRequestListener();
 
     const { calls } = global.browser.webRequest.onBeforeSendHeaders.addListener.mock;
     expect(calls[0][2]).toEqual(["blocking", "requestHeaders", "extraHeaders"]);

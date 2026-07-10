@@ -116,7 +116,7 @@ const Messaging = {
       ),
     };
 
-    Notification.expectDownload();
+    Notifier.expectDownload();
     Download.renameAndDownload(clickState);
 
     sendResponse({

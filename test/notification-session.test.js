@@ -100,49 +100,49 @@ describe("startup restore", () => {
 });
 
 describe("track/untrack helpers", () => {
-  let Notification;
+  let Notifier;
   let sessionStore;
 
   beforeEach(async () => {
     jest.resetModules();
     sessionStore = {};
     setupGlobals(sessionStore, () => []);
-    Notification = (await import("../src/notification.js")).default;
+    Notifier = (await import("../src/notification.js")).default;
   });
 
   test("trackDownload appends without duplicating", async () => {
-    await Notification.trackDownload(5);
-    await Notification.trackDownload(6);
-    await Notification.trackDownload(5);
+    await Notifier.trackDownload(5);
+    await Notifier.trackDownload(6);
+    await Notifier.trackDownload(5);
     expect(sessionStore.siTrackedDownloads).toEqual([5, 6]);
   });
 
   test("untrackDownload removes only the given id", async () => {
     sessionStore.siTrackedDownloads = [5, 6];
-    await Notification.untrackDownload(5);
+    await Notifier.untrackDownload(5);
     expect(sessionStore.siTrackedDownloads).toEqual([6]);
   });
 
   test("untrackDownload leaves unknown ids alone", async () => {
-    await expect(Notification.untrackDownload(99)).resolves.toBeNull();
+    await expect(Notifier.untrackDownload(99)).resolves.toBeNull();
     expect(sessionStore.siTrackedDownloads).toBeUndefined();
   });
 
   test("trackDownload survives a failing storage read", async () => {
     global.browser.storage.session.get.mockRejectedValueOnce(new Error("gone"));
-    await Notification.trackDownload(5);
+    await Notifier.trackDownload(5);
     expect(sessionStore.siTrackedDownloads).toEqual([5]);
   });
 
   test("trackDownload survives a failing storage write", async () => {
     global.browser.storage.session.set.mockRejectedValueOnce(new Error("gone"));
-    await expect(Notification.trackDownload(5)).resolves.toBeUndefined();
+    await expect(Notifier.trackDownload(5)).resolves.toBeUndefined();
     expect(sessionStore.siTrackedDownloads).toBeUndefined();
   });
 
   test("trackDownload resolves without storage.session (older Firefox)", async () => {
     global.browser.storage.session = undefined;
-    await expect(Notification.trackDownload(1)).resolves.toBeUndefined();
+    await expect(Notifier.trackDownload(1)).resolves.toBeUndefined();
   });
 });
 
@@ -274,18 +274,18 @@ describe("listener registration", () => {
   test("registers download and notification listeners at import (MV3 requirement)", async () => {
     jest.resetModules();
     setupGlobals({}, () => []);
-    const Notification = (await import("../src/notification.js")).default;
+    const Notifier = (await import("../src/notification.js")).default;
 
     // Registered synchronously at module load with stable named handlers, so
     // a service worker woken BY one of these events still handles it
     expect(global.browser.downloads.onCreated.addListener).toHaveBeenCalledWith(
-      Notification.onDownloadCreated,
+      Notifier.onDownloadCreated,
     );
     expect(global.browser.downloads.onChanged.addListener).toHaveBeenCalledWith(
-      Notification.onDownloadChanged,
+      Notifier.onDownloadChanged,
     );
     expect(global.browser.notifications.onClicked.addListener).toHaveBeenCalledWith(
-      Notification.onNotificationClicked,
+      Notifier.onNotificationClicked,
     );
   });
 });
@@ -504,10 +504,10 @@ describe("expectDownload", () => {
     jest.resetModules();
     const sessionStore = {};
     setupGlobals(sessionStore, () => []);
-    const Notification = (await import("../src/notification.js")).default;
+    const Notifier = (await import("../src/notification.js")).default;
 
-    Notification.expectDownload();
-    await Notification.onDownloadCreated({ id: 9, filename: "/dl/x.png" });
+    Notifier.expectDownload();
+    await Notifier.onDownloadCreated({ id: 9, filename: "/dl/x.png" });
     await flush();
 
     expect(sessionStore.siTrackedDownloads).toEqual([9]);
@@ -519,12 +519,12 @@ describe("expectDownload", () => {
     jest.resetModules();
     const sessionStore = {};
     setupGlobals(sessionStore, () => []);
-    const Notification = (await import("../src/notification.js")).default;
+    const Notifier = (await import("../src/notification.js")).default;
 
-    Notification.expectDownload();
-    Notification.expectDownload();
-    await Notification.onDownloadCreated({ id: 1, filename: "/dl/a.png" });
-    await Notification.onDownloadCreated({ id: 2, filename: "/dl/b.png" });
+    Notifier.expectDownload();
+    Notifier.expectDownload();
+    await Notifier.onDownloadCreated({ id: 1, filename: "/dl/a.png" });
+    await Notifier.onDownloadCreated({ id: 2, filename: "/dl/b.png" });
     await flush();
 
     expect(sessionStore.siTrackedDownloads).toEqual([1, 2]);

@@ -50,7 +50,8 @@ declare const SHORTCUT_EXTENSIONS: Record<string, string>;
 declare const SHORTCUT_TYPES: Record<string, string>;
 declare const MESSAGE_TYPES: Record<string, string>;
 declare const DOWNLOAD_TYPES: Record<string, string>;
-declare const MEDIA_TYPES: string[];
+// Doubles as contextMenus contexts and as mediaType names, hence the intersection
+declare const MEDIA_TYPES: browser.menus.ContextType[] & string[];
 declare const CLICK_TYPES: Record<string, number>;
 declare const CONFLICT_ACTION: Record<string, string>;
 declare const OPTION_KEYS: { name: string; type: string; default?: unknown }[];
@@ -74,9 +75,6 @@ declare const options: {
   replacementChar: string;
   [key: string]: any;
 };
-
-// index.js
-declare let currentTab: browser.tabs.Tab | null;
 
 // module-object globals (one per src file); refine as files opt in
 declare const Path: {
@@ -109,12 +107,14 @@ declare const Menus: {
 };
 declare const Messaging: Record<string, any>;
 declare const OptionsManagement: Record<string, any>;
-declare const Notification: {
+// Named Notifier/RequestHeaders (not Notification/Headers) so the runtime
+// globals do not shadow the platform classes of the same name
+declare const Notifier: {
   expectDownload: () => void;
   createExtensionNotification: (title: string, message?: unknown, error?: boolean) => void;
   [key: string]: any;
 };
-declare const Headers: Record<string, any>;
+declare const RequestHeaders: Record<string, any>;
 declare const Shortcut: Record<string, any>;
 declare const SaveHistory: Record<string, any>;
 declare const Log: Record<string, any>;
@@ -123,7 +123,11 @@ declare const SessionState: {
   set: (obj: Record<string, unknown>) => Promise<unknown>;
   [key: string]: any;
 };
-declare let globalChromeState: DownloadState | {};
+declare let globalChromeState: Partial<DownloadState>;
+
+// Chrome service worker entry (src/background.js); es2022+dom lib has no
+// worker globals, so declare the one we use
+declare function importScripts(...urls: string[]): void;
 
 // src/vendor/content-disposition.js
 declare function getFilenameFromContentDispositionHeader(header: string): string | undefined;
@@ -141,6 +145,3 @@ interface Window {
   };
   lastDownloadState?: DownloadState;
 }
-
-// options page helper (src/options/*.js)
-declare function addClickToCopy(el: Element): void;

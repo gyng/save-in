@@ -4,5 +4,7 @@
 // codebase awaits when no callback is passed (contextMenus was the last
 // holdout, promise-capable since 123).
 if (typeof globalThis.browser === "undefined") {
+  // @ts-expect-error chrome's typed surface is a subset of browser's;
+  // this shim is the compat layer between the two
   globalThis.browser = chrome;
 }

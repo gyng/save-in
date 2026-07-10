@@ -166,7 +166,7 @@ const Download = {
       const prompt = options.prompt || noExtensionPrompt || shiftHeldPrompt || noRuleMatchedPrompt;
 
       const browserDownload = (_url) =>
-        Headers.prepareReferer(_state)
+        RequestHeaders.prepareReferer(_state)
           .then(() =>
             // Persist before calling the downloads API so notification
             // tracking and onDeterminingFilename survive an MV3 service
@@ -184,7 +184,7 @@ const Download = {
               conflictAction: options.conflictAction,
             }),
           )
-          .then((downloadId) => Notification.trackDownload(downloadId))
+          .then((downloadId) => Notifier.trackDownload(downloadId))
           .catch((e) => {
             // e.g. Firefox rejects data: URLs in downloads.download
             if (typeof Log !== "undefined") {
@@ -265,14 +265,14 @@ const Download = {
     // Trigger notifications
     if (state.route) {
       if (options.notifyOnRuleMatch) {
-        Notification.createExtensionNotification(
+        Notifier.createExtensionNotification(
           browser.i18n.getMessage("notificationRuleMatchedTitle"),
           `${state.info.initialFilename}\n⬇\n${state.route}`,
           false,
         );
       }
     } else if (options.routeExclusive && options.notifyOnFailure) {
-      Notification.createExtensionNotification(
+      Notifier.createExtensionNotification(
         browser.i18n.getMessage("notificationRuleMatchFailedExclusiveTitle"),
         browser.i18n.getMessage("notificationRuleMatchFailedExclusiveMessage", [state.info.url]),
         true,
