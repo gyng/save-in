@@ -31,7 +31,7 @@ Execution contexts:
 
 One `manifest.json` (MV3) serves both browsers via dual `background` keys:
 Firefox (≥ 121) uses `background.scripts` (an **event page**) and ignores
-`service_worker`; Chrome (≥ 121) uses `background.service_worker`
+`service_worker`; Chrome (≥ 123) uses `background.service_worker`
 (`src/background.js`: `self.window = self` shim + `importScripts` of the
 same file list) and ignores `scripts`. Keep the two lists in sync when
 adding a background script — `scripts/check-background-scripts.js` (part of
