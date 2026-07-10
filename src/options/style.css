@@ -1,5 +1,25 @@
 :root {
-  --font-stack: "Segoe UI", "San Francisco", "Ubuntu", "Fira Sans", "Roboto", sans-serif;
+  /* Native OS UI font on every platform */
+  --font-stack: system-ui, -apple-system, "Segoe UI", "Ubuntu", "Roboto", "Fira Sans", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "Consolas", "Liberation Mono", monospace;
+
+  /* 4px spacing scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+
+  /* Type scale */
+  --text-sm: 13px;
+  --text-base: 15px;
+  --text-lg: 17px;
+  --text-xl: 22px;
+
+  --radius: 4px;
+  --focus-ring: 0 0 0 2px var(--blue50);
+  --content-max-width: 760px;
   --blue40: #45a1ff;
   --blue50: #0a84ff;
   --blue60: #0060df;
@@ -551,4 +571,143 @@ input.key {
 .autocomplete-dropdown li.selected,
 .autocomplete-dropdown li:hover {
   background: rgba(128, 128, 128, 0.25);
+}
+
+/* ── Tabbed options (tabs.js progressive enhancement) ─────────────── */
+
+#settings-page {
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  padding: var(--space-4);
+}
+
+.tablist {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin: 0 0 var(--space-5) 0;
+  border-bottom: 1px solid var(--grey30);
+  position: sticky;
+  top: 0;
+  background-color: inherit;
+  z-index: 10;
+}
+
+.tablist .tab {
+  appearance: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: var(--radius) var(--radius) 0 0;
+  background: transparent;
+  padding: var(--space-2) var(--space-3);
+  margin-bottom: -1px;
+  font-size: var(--text-base);
+  font-weight: 500;
+  color: var(--grey50);
+  cursor: pointer;
+  transition:
+    color 0.12s ease,
+    border-color 0.12s ease,
+    background-color 0.12s ease;
+}
+
+.tablist .tab:hover {
+  color: var(--link-color);
+  background-color: rgba(128, 128, 128, 0.08);
+}
+
+.tablist .tab.active {
+  color: var(--link-color);
+  border-bottom-color: var(--link-color);
+}
+
+.tablist .tab:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.tab-panel {
+  display: none;
+  width: 100%;
+  box-sizing: border-box;
+  animation: tab-fade 0.15s ease;
+}
+
+.tab-panel.active {
+  display: block;
+}
+
+/* Panels are block, so their textareas fill the width the old single-column
+   flex layout gave them (align-items: flex-start otherwise shrink-wraps) */
+.tab-panel textarea,
+.tab-panel .column,
+.tab-panel .box {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.tab-panel input[type="text"] {
+  max-width: 340px;
+}
+
+@keyframes tab-fade {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* The tab labels replace the in-panel headings */
+.tab-panel > h2:first-child {
+  font-size: var(--text-xl);
+  font-weight: 300;
+  margin-top: 0;
+  margin-bottom: var(--space-4);
+}
+
+@media (prefers-color-scheme: dark) {
+  .tablist {
+    border-bottom-color: var(--grey60);
+  }
+  .tablist .tab {
+    color: var(--grey40);
+  }
+}
+
+/* ── Refined atoms ────────────────────────────────────────────────── */
+
+input[type="text"]:focus-visible,
+input[type="number"]:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+button:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-color: var(--blue50);
+}
+
+input[type="text"],
+input[type="number"],
+textarea,
+select {
+  border-radius: var(--radius);
+  transition:
+    box-shadow 0.12s ease,
+    border-color 0.12s ease;
+}
+
+div.button,
+button {
+  border-radius: var(--radius);
+  transition:
+    background-color 0.12s ease,
+    box-shadow 0.12s ease;
+}
+
+.tab-heading-hidden {
+  display: none;
 }
