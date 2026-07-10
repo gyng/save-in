@@ -30,14 +30,21 @@ const setupGlobals = () => {
       errors: [],
     })),
   };
-  global.Router = { matcherFunctions: { fileext: () => {}, pageurl: () => {} } };
+  global.Router = {
+    matcherFunctions: { fileext: () => {}, pageurl: () => {} },
+    parseRulesCollecting: vi.fn(() => ({ rules: [], errors: [] })),
+  };
   global.Variable = {
     transformers: { ":date:": () => {}, ":year:": () => {} },
     applyVariables: vi.fn((path) => Promise.resolve({ finalize: () => `interp:${path.raw}` })),
   };
   global.OptionsManagement = {
-    OPTION_KEYS: [{ name: "prompt", type: "BOOL", default: false }],
+    OPTION_KEYS: [
+      { name: "prompt", type: "BOOL", default: false },
+      { name: "paths", type: "VALUE", default: ".", onSave: (v) => v.trim() },
+    ],
     OPTION_TYPES: { BOOL: "BOOL", VALUE: "VALUE" },
+    OPTION_DESCRIPTIONS: { prompt: "Always open Save As", paths: "The menu structure" },
     checkRoutes: vi.fn(() => ({ path: "routed/dir", captures: null })),
   };
   global.window.reset = vi.fn();
@@ -45,6 +52,7 @@ const setupGlobals = () => {
   delete global.window.lastDownloadState;
   delete global.window.SI_DEBUG;
   global.browser.runtime.sendMessage = vi.fn();
+  global.browser.storage = { local: { set: vi.fn(() => Promise.resolve()) } };
   global.browser.tabs.query = vi.fn(() => Promise.resolve([{ id: 42 }]));
   global.browser.tabs.sendMessage = vi.fn(() => Promise.resolve());
 };
@@ -417,6 +425,105 @@ describe("external DOWNLOAD API v1", () => {
       type: "WAT",
       body: { status: MESSAGE_TYPES.ERROR, error: "UNKNOWN_TYPE", version: 1 },
     });
+  });
+
+  test("PING advertises the schema and validate capabilities", () => {
+    const sendResponse = vi.fn();
+    onMessageExternal({ type: MESSAGE_TYPES.PING }, {}, sendResponse);
+    const { capabilities } = sendResponse.mock.calls[0][0].body;
+    expect(capabilities).toEqual(expect.arrayContaining(["schema", "validate"]));
+    expect(capabilities).not.toContain("apply_config");
+  });
+});
+
+// Scriptable / AI-assisted config API (#89, docs/INTEGRATIONS.md §4)
+describe("config API", () => {
+  test("GET_SCHEMA returns option name/type/default/description", () => {
+    const sendResponse = vi.fn();
+    onMessageExternal({ type: MESSAGE_TYPES.GET_SCHEMA }, {}, sendResponse);
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.SCHEMA,
+      body: {
+        version: 1,
+        options: [
+          { name: "prompt", type: "BOOL", default: false, description: "Always open Save As" },
+          { name: "paths", type: "VALUE", default: ".", description: "The menu structure" },
+        ],
+      },
+    });
+  });
+
+  test("VALIDATE dry-runs paths and rules and returns errors + preview", () => {
+    global.Router.parseRulesCollecting = vi.fn(() => ({ rules: [], errors: ["bad rule"] }));
+    const sendResponse = vi.fn();
+    onMessageExternal(
+      { type: MESSAGE_TYPES.VALIDATE, body: { paths: " dogs \n>cats", filenamePatterns: "x" } },
+      {},
+      sendResponse,
+    );
+    expect(global.Menus.buildTree).toHaveBeenCalledWith(["dogs", ">cats"]);
+    expect(global.Router.parseRulesCollecting).toHaveBeenCalledWith("x");
+    const { body } = sendResponse.mock.calls[0][0];
+    expect(body.pathErrors).toEqual([]);
+    expect(body.ruleErrors).toEqual(["bad rule"]);
+    expect(body.menuPreview).toHaveLength(2);
+  });
+
+  test("VALIDATE is exposed on the internal listener too", () => {
+    const sendResponse = vi.fn();
+    onMessage({ type: MESSAGE_TYPES.VALIDATE, body: { paths: "dogs" } }, {}, sendResponse);
+    expect(sendResponse).toHaveBeenCalledWith(
+      expect.objectContaining({ type: MESSAGE_TYPES.VALIDATE_RESULT }),
+    );
+  });
+
+  test("APPLY_CONFIG applies known keys, rejects unknown ones, and resets", async () => {
+    const sendResponse = vi.fn();
+    onMessage(
+      {
+        type: MESSAGE_TYPES.APPLY_CONFIG,
+        body: { config: { prompt: true, paths: "  images  ", bogus: 1 } },
+      },
+      {},
+      sendResponse,
+    );
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(global.browser.storage.local.set).toHaveBeenCalledWith({
+      prompt: true,
+      paths: "images", // onSave trimmed it
+    });
+    expect(global.window.reset).toHaveBeenCalled();
+    const { body } = sendResponse.mock.calls[0][0];
+    expect(body.applied).toEqual({ prompt: true, paths: "images" });
+    expect(body.rejected).toEqual([{ name: "bogus", reason: "unknown option" }]);
+  });
+
+  test("APPLY_CONFIG rejects a type mismatch", async () => {
+    const sendResponse = vi.fn();
+    onMessage(
+      { type: MESSAGE_TYPES.APPLY_CONFIG, body: { config: { prompt: "yes" } } },
+      {},
+      sendResponse,
+    );
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(global.browser.storage.local.set).not.toHaveBeenCalled();
+    expect(sendResponse.mock.calls[0][0].body.rejected).toEqual([
+      { name: "prompt", reason: "expected a boolean" },
+    ]);
+  });
+
+  test("APPLY_CONFIG is NOT reachable from external extensions", () => {
+    const sendResponse = vi.fn();
+    onMessageExternal(
+      { type: MESSAGE_TYPES.APPLY_CONFIG, body: { config: { prompt: true } } },
+      {},
+      sendResponse,
+    );
+    expect(global.browser.storage.local.set).not.toHaveBeenCalled();
+    // falls through to the UNKNOWN_TYPE reply
+    expect(sendResponse.mock.calls[0][0].body.error).toBe("UNKNOWN_TYPE");
   });
 });
 

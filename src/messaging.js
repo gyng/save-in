@@ -12,6 +12,10 @@ const Messaging = {
     "routing", // the URL runs through the user's rename/route rules
     "comment", // body.comment is targetable in routing rules
     "info", // body.info fields: pageUrl, srcUrl, selectionText, menuIndex, ...
+    "schema", // { type: "GET_SCHEMA" } -> the option schema (read-only)
+    "validate", // { type: "VALIDATE", body: { paths?, filenamePatterns? } } (read-only)
+    // apply_config (mutating) is intentionally NOT advertised: it is reachable
+    // only from same-extension callers, not onMessageExternal
   ],
   API_ERRORS: {
     BAD_REQUEST: "BAD_REQUEST", // malformed message (e.g. missing url)
@@ -79,6 +83,97 @@ const Messaging = {
         lastDownload: window.lastDownloadState,
         interpolatedVariables,
       },
+    });
+  },
+
+  // ─── Scriptable / AI-assisted configuration (docs/INTEGRATIONS.md §4) ───
+
+  // Read-only: the option schema (name, type, default, human description) so an
+  // agent knows what it may set. Safe to expose externally.
+  handleGetSchema: (request, sender, sendResponse) => {
+    sendResponse({
+      type: MESSAGE_TYPES.SCHEMA,
+      body: {
+        version: Messaging.API_VERSION,
+        options: OptionsManagement.OPTION_KEYS.map((k) => ({
+          name: k.name,
+          type: k.type,
+          default: k.default,
+          description: OptionsManagement.OPTION_DESCRIPTIONS[k.name] || "",
+        })),
+      },
+    });
+  },
+
+  // Read-only: dry-run the two grammars and return structured errors + a menu
+  // preview, without saving anything. Powers an agent's generate→validate→fix
+  // loop and the options-page "paste config" affordance. Safe externally.
+  handleValidate: (request, sender, sendResponse) => {
+    const body = request.body || {};
+    const result = { version: Messaging.API_VERSION };
+
+    if (typeof body.paths === "string") {
+      const pathsArray = body.paths
+        .split("\n")
+        .map((p) => p.trim())
+        .filter((p) => p.length > 0);
+      const tree = Menus.buildTree(pathsArray);
+      result.menuPreview = tree.items;
+      result.pathErrors = tree.errors;
+    }
+    if (typeof body.filenamePatterns === "string") {
+      result.ruleErrors = Router.parseRulesCollecting(body.filenamePatterns).errors;
+    }
+
+    sendResponse({ type: MESSAGE_TYPES.VALIDATE_RESULT, body: result });
+  },
+
+  // Mutating: apply a partial options object, validated against the schema
+  // (unknown keys and type mismatches rejected). onSave normalises the stored
+  // form; the load-time onLoad validators still coerce cross-browser-invalid
+  // values, so this can't silently break downloads (#89). INTERNAL ONLY —
+  // rewriting a user's config is not something an arbitrary extension may do.
+  handleApplyConfig: async (request, sender, sendResponse) => {
+    const config = (request.body && request.body.config) || {};
+    const applied = {};
+    const rejected = [];
+    const toStore = {};
+
+    Object.keys(config).forEach((name) => {
+      const key = OptionsManagement.OPTION_KEYS.find((k) => k.name === name);
+      if (!key) {
+        rejected.push({ name, reason: "unknown option" });
+        return;
+      }
+      let value = config[name];
+      if (key.type === OptionsManagement.OPTION_TYPES.BOOL && typeof value !== "boolean") {
+        rejected.push({ name, reason: "expected a boolean" });
+        return;
+      }
+      if (
+        key.type === OptionsManagement.OPTION_TYPES.VALUE &&
+        (value == null || typeof value === "object")
+      ) {
+        rejected.push({ name, reason: "expected a string or number" });
+        return;
+      }
+      if (typeof key.onSave === "function") {
+        value = key.onSave(value);
+      }
+      toStore[name] = value;
+      applied[name] = value;
+    });
+
+    if (Object.keys(toStore).length > 0) {
+      await browser.storage.local.set(toStore);
+      if (typeof window !== "undefined" && typeof window.reset === "function") {
+        window.reset();
+      }
+    }
+
+    sendResponse({
+      type: MESSAGE_TYPES.APPLY_CONFIG_RESULT,
+      body: { version: Messaging.API_VERSION, applied, rejected },
     });
   },
 
@@ -245,12 +340,19 @@ browser.runtime.onMessageExternal.addListener((request, sender, sendResponse) =>
     case MESSAGE_TYPES.PING:
       Messaging.handlePing(request, sender, sendResponse);
       break;
+    case MESSAGE_TYPES.GET_SCHEMA:
+      Messaging.handleGetSchema(request, sender, sendResponse);
+      break;
+    case MESSAGE_TYPES.VALIDATE:
+      Messaging.handleValidate(request, sender, sendResponse);
+      break;
     case MESSAGE_TYPES.DOWNLOAD:
       Messaging.handleDownloadMessage(request, sender, sendResponse);
       break;
     default:
       // Unknown type on the external API: give callers typed feedback rather
-      // than silence so they can detect a version/contract mismatch
+      // than silence so they can detect a version/contract mismatch (also the
+      // path for APPLY_CONFIG, which is deliberately internal-only)
       sendResponse({
         type: request.type,
         body: {
@@ -322,6 +424,16 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
     case MESSAGE_TYPES.PING:
       Messaging.handlePing(request, sender, sendResponse);
       break;
+    case MESSAGE_TYPES.GET_SCHEMA:
+      Messaging.handleGetSchema(request, sender, sendResponse);
+      break;
+    case MESSAGE_TYPES.VALIDATE:
+      Messaging.handleValidate(request, sender, sendResponse);
+      break;
+    case MESSAGE_TYPES.APPLY_CONFIG:
+      // async (awaits storage.set) — keep the channel open
+      Messaging.handleApplyConfig(request, sender, sendResponse);
+      return true;
     case MESSAGE_TYPES.DOWNLOAD:
       Messaging.handleDownloadMessage(request, sender, sendResponse);
       break;

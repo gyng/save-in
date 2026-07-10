@@ -302,7 +302,9 @@ const Router = {
     return matchers;
   },
 
-  parseRules: (raw) => {
+  // Pure: parse rules and return both the rules and any errors, without
+  // touching window.optionErrors. Used by VALIDATE and by parseRules below.
+  parseRulesCollecting: (raw) => {
     const withoutComments = raw
       .split("\n")
       .filter((l) => !l.startsWith("//"))
@@ -310,11 +312,10 @@ const Router = {
       .trim();
 
     if (!withoutComments) {
-      return [];
+      return { rules: [], errors: [] };
     }
 
-    // tokenizeLines/parseRule are pure: they report problems into the
-    // collector, and only this caller surfaces them on the options page
+    // tokenizeLines/parseRule are pure: they report problems into the collector
     const errors = [];
     const rules = withoutComments
       .replace(new RegExp("\\n\\n+", "g"), "\n\n")
@@ -322,6 +323,12 @@ const Router = {
       .map((lines) => Router.tokenizeLines(lines, errors))
       .map((tokens) => Router.parseRule(tokens, errors))
       .filter((r) => !!r);
+
+    return { rules, errors };
+  },
+
+  parseRules: (raw) => {
+    const { rules, errors } = Router.parseRulesCollecting(raw);
 
     errors.forEach((error) => {
       window.optionErrors.filenamePatterns.push(error);

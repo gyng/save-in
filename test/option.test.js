@@ -31,6 +31,15 @@ describe("OptionsManagement", () => {
     });
   });
 
+  describe("OPTION_DESCRIPTIONS", () => {
+    test("every option has a one-line description (surfaced by GET_SCHEMA)", () => {
+      OptionsManagement.OPTION_KEYS.forEach((k) => {
+        expect(typeof OptionsManagement.OPTION_DESCRIPTIONS[k.name]).toBe("string");
+        expect(OptionsManagement.OPTION_DESCRIPTIONS[k.name].length).toBeGreaterThan(0);
+      });
+    });
+  });
+
   describe("defaults", () => {
     test("every option is seeded with its declared default", async () => {
       const resolved = await OptionsManagement.loadOptions();

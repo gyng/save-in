@@ -324,6 +324,29 @@ test(":counter: advances once per download and persists in storage", async () =>
   expect(fs.existsSync(path.join(DOWNLOADS, "e2e", "counters", "2-countme.txt"))).toBe(true);
 });
 
+test("APPLY_CONFIG validates and persists a partial config (#89)", async () => {
+  const result = JSON.parse(
+    await evalSW(`new Promise((resolve) => {
+      Messaging.handleApplyConfig(
+        { body: { config: { truncateLength: 99, notifyOnSuccess: false, bogusKey: 1 } } },
+        {},
+        (r) => resolve(r.body),
+      );
+    })
+      .then((body) =>
+        browser.storage.local
+          .get(["truncateLength", "notifyOnSuccess"])
+          .then((stored) => JSON.stringify({ body, stored })),
+      )`),
+  );
+
+  expect(result.body.applied).toEqual({ truncateLength: 99, notifyOnSuccess: false });
+  expect(result.body.rejected).toEqual([{ name: "bogusKey", reason: "unknown option" }]);
+  // persisted to storage.local, and the unknown key was not written
+  expect(result.stored.truncateLength).toBe(99);
+  expect(result.stored.notifyOnSuccess).toBe(false);
+});
+
 test("message-driven downloads work and never inherit a stale route", async () => {
   // Explicit precondition: a routing rule matching "routeme" is active, and
   // the previous download's routed state is the "last" state a naive merge
