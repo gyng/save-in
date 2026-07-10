@@ -57,6 +57,8 @@ beforeEach(() => {
     notifyOnFailure: false,
     conflictAction: "uniquify",
     fetchViaFetch: false,
+    // Off by default here; a dedicated suite exercises the MIME-append path
+    appendMimeExtension: false,
   };
 
   global.Path = {
@@ -200,6 +202,40 @@ describe("finalizeFullPath", () => {
     };
 
     expect(Download.finalizeFullPath(state)).toBe("abs/dir/route-file.txt");
+  });
+});
+
+describe("renameAndDownload: MIME extension append (§8.1)", () => {
+  test("appends the Content-Type extension to an extensionless filename", async () => {
+    global.CURRENT_BROWSER = "CHROME";
+    global.options.appendMimeExtension = true;
+    global.Variable.resolveMime = jest.fn(() => Promise.resolve("image/jpeg"));
+    global.Variable.mimeToExtension = jest.fn((mime) => (mime === "image/jpeg" ? "jpg" : ""));
+
+    const state = makeState({ info: { url: "https://cdn.example.com/img/12345" } });
+    await Download.renameAndDownload(state);
+    await flush();
+
+    expect(global.Variable.resolveMime).toHaveBeenCalledWith(state.info);
+    expect(global.browser.downloads.download).toHaveBeenCalledWith(
+      expect.objectContaining({ filename: expect.stringMatching(/12345\.jpg$/) }),
+    );
+  });
+
+  test("skips the HEAD and leaves a filename that already has an extension", async () => {
+    global.CURRENT_BROWSER = "CHROME";
+    global.options.appendMimeExtension = true;
+    global.Variable.resolveMime = jest.fn(() => Promise.resolve("image/jpeg"));
+    global.Variable.mimeToExtension = jest.fn(() => "jpg");
+
+    const state = makeState({ info: { url: "https://cdn.example.com/img/photo.png" } });
+    await Download.renameAndDownload(state);
+    await flush();
+
+    expect(global.Variable.resolveMime).not.toHaveBeenCalled();
+    expect(global.browser.downloads.download).toHaveBeenCalledWith(
+      expect.objectContaining({ filename: expect.stringMatching(/photo\.png$/) }),
+    );
   });
 });
 

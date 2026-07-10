@@ -618,6 +618,14 @@
     "message": "Leave blank to delete. Invalid replacement characters are ignored."
   },
 
+  "o_cAppendMimeExtension": {
+    "message": "Add a file extension when the filename has none"
+  },
+
+  "o_cAppendMimeExtensionHelp": {
+    "message": "For extensionless or query-suffixed URLs, derive the extension from the server's Content-Type (via a HEAD request). Adds a small delay only when the name lacks one."
+  },
+
   "o_cFallbackFetch": {
     "message": "Retry failed downloads in the background"
   },

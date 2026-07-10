@@ -21,6 +21,50 @@ test("extension detection regex", () => {
   expect("abc.jpg:xyz".match(Download.EXTENSION_REGEX)).toBeFalsy();
   expect("abc.bananas".match(Download.EXTENSION_REGEX)).toHaveLength(2);
   expect("abc.bananas123".match(Download.EXTENSION_REGEX)).toBeFalsy();
+  // Numeric-bearing real extensions keep their letter and still match
+  expect("song.mp3".match(Download.EXTENSION_REGEX)[1]).toBe("mp3");
+  expect("clip.h264".match(Download.EXTENSION_REGEX)[1]).toBe("h264");
+  expect("a.7z".match(Download.EXTENSION_REGEX)[1]).toBe("7z");
+  // An all-digit trailing token is an id/version, not an extension (§8.1)
+  expect("photo.12345".match(Download.EXTENSION_REGEX)).toBeFalsy();
+  expect("IMG_0001.20240607".match(Download.EXTENSION_REGEX)).toBeFalsy();
+});
+
+describe("finalizeFullPath: MIME extension append (§8.1)", () => {
+  const state = (name, scratch = {}) => ({
+    path: { finalize: () => "dir" },
+    route: { finalize: () => name },
+    info: { filename: name },
+    scratch,
+  });
+
+  test("appends the resolved extension when the filename has none", () => {
+    expect(Download.finalizeFullPath(state("image", { mimeExtension: "jpg" }))).toBe(
+      "dir/image.jpg",
+    );
+  });
+
+  test("appends onto a routed/renamed filename", () => {
+    expect(Download.finalizeFullPath(state("renamed", { mimeExtension: "mp4" }))).toBe(
+      "dir/renamed.mp4",
+    );
+  });
+
+  test("leaves a filename that already has a valid extension alone", () => {
+    expect(Download.finalizeFullPath(state("image.png", { mimeExtension: "jpg" }))).toBe(
+      "dir/image.png",
+    );
+  });
+
+  test("appends when the trailing token is all-digits (not a real extension)", () => {
+    expect(Download.finalizeFullPath(state("photo.12345", { mimeExtension: "jpg" }))).toBe(
+      "dir/photo.12345.jpg",
+    );
+  });
+
+  test("is a no-op when no extension was resolved", () => {
+    expect(Download.finalizeFullPath(state("image", {}))).toBe("dir/image");
+  });
 });
 
 describe("filename from URL", () => {

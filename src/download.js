@@ -6,7 +6,10 @@ let globalChromeState = {};
 
 const Download = {
   DISPOSITION_FILENAME_REGEX: /filename[^;=\n]*=((['"])(.*)?\2|(.+'')?([^;\n]*))/i,
-  EXTENSION_REGEX: /\.([0-9a-z]{1,8})$/i,
+  // A trailing dotted token of 1–8 alnum chars, but NOT an all-digit one:
+  // "photo.12345" is an id/version, not a ".12345" extension (§8.1). Real
+  // numeric-bearing extensions keep a letter (mp3, mp4, h264, 7z).
+  EXTENSION_REGEX: /\.(?!\d+$)([0-9a-z]{1,8})$/i,
 
   // url -> state for in-flight downloads, so onDeterminingFilename (Chrome)
   // and the referer listener (Firefox) attribute the right state when two
@@ -260,9 +263,22 @@ const Download = {
 
   finalizeFullPath: (_state) => {
     const finalDir = _state.path.finalize();
-    const finalFilename = _state.route
+    let finalFilename = _state.route
       ? _state.route.finalize()
       : Path.sanitizeFilename(_state.info.filename);
+
+    // §8.1: append a MIME-derived extension when the resolved filename has none
+    // (extensionless CDN / query-suffix URLs). The extension is resolved once,
+    // asynchronously, in renameAndDownload and stashed on scratch.
+    if (
+      _state.scratch &&
+      _state.scratch.mimeExtension &&
+      finalFilename &&
+      !Download.EXTENSION_REGEX.test(finalFilename)
+    ) {
+      finalFilename = `${finalFilename}.${_state.scratch.mimeExtension}`;
+    }
+
     const finalFullPath = [finalDir, finalFilename].filter((x) => x != null).join("/");
 
     return finalFullPath.replace(/^\.\//, "").replace(/^\//, "");
@@ -325,6 +341,22 @@ const Download = {
 
     if (typeof state.needRouteMatch !== "undefined" && state.needRouteMatch && !routeMatches) {
       return;
+    }
+
+    // §8.1: if the resolved filename has no (valid) extension, derive one from
+    // the server's Content-Type so extensionless CDN / query-suffix URLs still
+    // save with a sensible extension. Best-effort HEAD (shared with :mime:),
+    // gated on the option; finalizeFullPath appends scratch.mimeExtension.
+    if (options.appendMimeExtension !== false && typeof Variable !== "undefined") {
+      const tentative = state.route
+        ? state.route.finalize()
+        : Path.sanitizeFilename(state.info.filename);
+      if (tentative && !Download.EXTENSION_REGEX.test(tentative)) {
+        const ext = Variable.mimeToExtension(await Variable.resolveMime(state.info));
+        if (ext) {
+          state.scratch.mimeExtension = ext;
+        }
+      }
     }
 
     const download = (_state) => {
