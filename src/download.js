@@ -181,7 +181,10 @@ const Download = {
     return Router.matchRules(filenamePatterns, state.info);
   },
 
-  renameAndDownload: (state) => {
+  // async because Variable.applyVariables is now async (it may await a
+  // :counter:/:mime: transformer). Callers fire-and-forget, so awaiting the
+  // path/route interpolation here before the download is safe.
+  renameAndDownload: async (state) => {
     const naiveFilename = Download.getFilenameFromUrl(state.info.url);
     const initialFilename = state.info.suggestedFilename || naiveFilename || state.info.url;
 
@@ -191,11 +194,16 @@ const Download = {
       initialFilename,
     });
 
-    state.path = Variable.applyVariables(state.path, state.info);
+    // Register the pending state synchronously — before the async variable
+    // interpolation — so a fast onDeterminingFilename / referer listener finds
+    // it. It's the same object, interpolated in place below.
+    Download.rememberPendingState(state);
+
+    state.path = await Variable.applyVariables(state.path, state.info);
     // FIXME: Fix router params for new path struct
     const routeMatches = Download.getRoutingMatches(state);
     if (routeMatches) {
-      state.route = Variable.applyVariables(new Path.Path(routeMatches), state.info);
+      state.route = await Variable.applyVariables(new Path.Path(routeMatches), state.info);
     }
 
     if (typeof state.needRouteMatch !== "undefined" && state.needRouteMatch && !routeMatches) {
@@ -339,11 +347,8 @@ const Download = {
       chrome.downloads &&
       chrome.downloads.onDeterminingFilename
     ) {
-      Download.rememberPendingState(state);
       download(state);
     } else {
-      // Remembered for the referer listener as well
-      Download.rememberPendingState(state);
       fetch(state.info.url, { method: "HEAD", credentials: "include" })
         .then((res) => {
           if (res.headers.has("Content-Disposition")) {

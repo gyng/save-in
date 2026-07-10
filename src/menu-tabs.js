@@ -147,7 +147,12 @@ Menus.addTabMenuListener = () => {
               needRouteMatch: info.menuItemId === Menus.IDS.TABSTRIP.TO_RIGHT_MATCH,
             };
 
-            Download.renameAndDownload(state);
+            // Fire-and-forget async: swallow a rejection (see menu-click.js)
+            Download.renameAndDownload(state).catch((e) => {
+              if (typeof Log !== "undefined") {
+                Log.add("renameAndDownload failed", String(e));
+              }
+            });
 
             // TODO: Store tabs marked for saving and close only on successful save
             if (options.closeTabOnSave) {

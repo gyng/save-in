@@ -120,7 +120,8 @@ const OptionsManagement = {
     }
   },
 
-  checkRoutes: (state) => {
+  // async because Variable.applyVariables is now async
+  checkRoutes: async (state) => {
     if (!state) {
       return {
         path: null,
@@ -145,7 +146,7 @@ const OptionsManagement = {
     });
     const last = Object.assign({}, state, { info: newInfo });
 
-    const lastInterpolated = Variable.applyVariables(
+    const lastInterpolated = await Variable.applyVariables(
       new Path.Path(Download.getRoutingMatches(last)),
       last.info,
     );

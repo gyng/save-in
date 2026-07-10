@@ -171,21 +171,26 @@ const Variable = {
       }
   }),
 
-  applyVariables: (path, opts = ({})) =>
+  // Async so a transformer may await (e.g. a :counter: read-modify-write or a
+  // :mime: HEAD request). Sync transformers resolve instantly through
+  // Promise.all, so paths built only from today's variables are byte-identical.
+  applyVariables: async (path, opts = {}) =>
     Object.assign(path, {
       buf:
         path.buf &&
-        path.buf.map((t, i, arr) => {
-          if (t.type === PATH_SEGMENT_TYPES.VARIABLE) {
-            const transformer = Variable.transformers[t];
-            if (transformer) {
-              // info, token, index, tokens
-              return transformer(opts, t, i, arr);
+        (await Promise.all(
+          path.buf.map((t, i, arr) => {
+            if (t.type === PATH_SEGMENT_TYPES.VARIABLE) {
+              const transformer = Variable.transformers[t];
+              if (transformer) {
+                // info, token, index, tokens
+                return transformer(opts, t, i, arr);
+              }
             }
-          }
 
-          return t;
-        }),
+            return t;
+          }),
+        )),
     }),
 };
 

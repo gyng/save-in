@@ -129,12 +129,15 @@ describe("OptionsManagement", () => {
   });
 
   describe("checkRoutes", () => {
-    test("returns nulls when there is no state (SW restart, nothing downloaded yet)", () => {
-      expect(OptionsManagement.checkRoutes(null)).toEqual({ path: null, captures: null });
-      expect(OptionsManagement.checkRoutes(undefined)).toEqual({ path: null, captures: null });
+    test("returns nulls when there is no state (SW restart, nothing downloaded yet)", async () => {
+      expect(await OptionsManagement.checkRoutes(null)).toEqual({ path: null, captures: null });
+      expect(await OptionsManagement.checkRoutes(undefined)).toEqual({
+        path: null,
+        captures: null,
+      });
     });
 
-    test("builds the routing preview from a download state", () => {
+    test("builds the routing preview from a download state", async () => {
       OptionsManagement.setOption("filenamePatterns", ["rule-a", "rule-b"]);
 
       global.Download.getRoutingMatches.mockReturnValue("routed/dir");
@@ -150,7 +153,7 @@ describe("OptionsManagement", () => {
 
       const state = { info: { filename: "photo.png", url: "https://x/photo.png" } };
 
-      const result = OptionsManagement.checkRoutes(state);
+      const result = await OptionsManagement.checkRoutes(state);
 
       expect(global.Download.getRoutingMatches).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -183,7 +186,7 @@ describe("OptionsManagement", () => {
       expect(result).toEqual({ path: "finalized:routed/dir", captures: ["cap1"] });
     });
 
-    test("prefers initialFilename over filename (Chrome mutates filename with `_`)", () => {
+    test("prefers initialFilename over filename (Chrome mutates filename with `_`)", async () => {
       OptionsManagement.setOption("filenamePatterns", []);
       global.Download.getRoutingMatches.mockReturnValue("routed/dir");
       global.Path.Path.mockImplementation(function fakePath(routingMatches) {
@@ -195,14 +198,14 @@ describe("OptionsManagement", () => {
         info: { filename: "sanitized_.png", initialFilename: "café.png", url: "https://x/f.png" },
       };
 
-      OptionsManagement.checkRoutes(state);
+      await OptionsManagement.checkRoutes(state);
 
       expect(global.Download.getRoutingMatches).toHaveBeenCalledWith(
         expect.objectContaining({ info: expect.objectContaining({ filename: "café.png" }) }),
       );
     });
 
-    test("falls back to url for capture matching when there is no filename", () => {
+    test("falls back to url for capture matching when there is no filename", async () => {
       OptionsManagement.setOption("filenamePatterns", ["only-rule"]);
       global.Download.getRoutingMatches.mockReturnValue("routed/dir");
       global.Path.Path.mockImplementation(function fakePath(routingMatches) {
@@ -213,7 +216,7 @@ describe("OptionsManagement", () => {
 
       const state = { info: { url: "https://x/nofilename" } };
 
-      const result = OptionsManagement.checkRoutes(state);
+      const result = await OptionsManagement.checkRoutes(state);
 
       expect(global.Router.getCaptureMatches).toHaveBeenCalledWith(
         "only-rule",

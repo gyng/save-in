@@ -86,7 +86,7 @@ declare const Path: {
 };
 declare const Download: {
   EXTENSION_REGEX: RegExp;
-  renameAndDownload: (state: DownloadState) => void;
+  renameAndDownload: (state: DownloadState) => Promise<void>;
   makeObjectUrl: (text: string, mime?: string) => string;
   pendingStates: Map<string, DownloadState>;
   [key: string]: any;

@@ -21,7 +21,7 @@ const setupBrowserMocks = () => {
   global.browser.downloads.showDefaultFolder = jest.fn();
   global.browser.storage.local.set = jest.fn(() => Promise.resolve());
   global.Download = {
-    renameAndDownload: jest.fn(),
+    renameAndDownload: jest.fn(() => Promise.resolve()),
     makeObjectUrl: jest.fn(() => "data:text/plain;base64,eA=="),
   };
   global.Notifier = { createExtensionNotification: jest.fn(), expectDownload: jest.fn() };

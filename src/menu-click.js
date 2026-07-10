@@ -193,7 +193,13 @@ Menus.addDownloadListener = () => {
       };
 
       Notifier.expectDownload();
-      Download.renameAndDownload(state);
+      // Fire-and-forget: renameAndDownload is async (variable interpolation may
+      // await); swallow a rejection so it can't surface as an unhandled one
+      Download.renameAndDownload(state).catch((e) => {
+        if (typeof Log !== "undefined") {
+          Log.add("renameAndDownload failed", String(e));
+        }
+      });
 
       // Close the tab a "save page" came from, mirroring the tab-strip
       // behavior (#115). Deliberately page-context only: closing the tab
