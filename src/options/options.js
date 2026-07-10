@@ -1008,7 +1008,11 @@ const setupAutosave = (el) => {
   // Tied to the actual save firing (not every keystroke), so it still
   // reflects when a save really happened once debounced.
   const showSavedIndicator = () => {
-    const target = el.type === "textarea" ? el : el.parentNode;
+    // Anchor the check to the row's .opt-title (content-width, wrapped below) so
+    // it sits right after the label text; fall back to the label / the field.
+    const label = el.closest("label");
+    const title = label && label.querySelector(":scope > .opt-title");
+    const target = el.type === "textarea" ? el : title || el.parentNode;
     target.classList.remove("saved");
     window.setTimeout(() => {
       target.classList.add("saved-base");
@@ -1177,6 +1181,30 @@ const updateMenuPreview = () => {
 
 setupManualEditor("paths");
 setupManualEditor("filenamePatterns");
+
+// Wrap each checkbox row's title (label text + any inline badges, up to the
+// first help / sub-option block) in a .opt-title span. It becomes the row's
+// first body-column cell, so the autosave check anchors right after the text
+// regardless of the help length below. Text nodes are moved, not recreated, so
+// the l10n walker still substitutes their __MSG_ placeholders in place.
+document.querySelectorAll('label:has(> input[type="checkbox"])').forEach((label) => {
+  const checkbox = label.querySelector(":scope > input[type=checkbox]");
+  if (!checkbox || label.querySelector(":scope > .opt-title")) {
+    return;
+  }
+  const title = document.createElement("span");
+  title.className = "opt-title";
+  let node = checkbox.nextSibling;
+  while (node) {
+    const next = node.nextSibling;
+    if (node instanceof Element && node.matches(".caption, .caption-line")) {
+      break;
+    }
+    title.appendChild(node);
+    node = next;
+  }
+  checkbox.after(title);
+});
 
 ["textarea", "input", "select"].forEach((type) => {
   document.querySelectorAll(type).forEach(setupAutosave);

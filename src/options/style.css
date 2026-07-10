@@ -484,21 +484,22 @@ label:has(> input[type="checkbox"]) {
   grid-template-columns: auto 1fr;
   column-gap: var(--space-2);
   align-items: baseline;
-  /* Shrink the row to its content so the autosave check sits right after the
-     label text, not out at the far margin; long help still wraps to full
-     width because fit-content is clamped to the available space. */
-  width: fit-content;
-  max-width: 100%;
 }
 
 label:has(> input[type="checkbox"]) > input[type="checkbox"] {
   margin: 0;
 }
 
-/* Help / sub-options (and .opt-body, which keeps a text+badge run together) go
-   in the body column, under the label text — not under the checkbox. */
-label:has(> input[type="checkbox"]) > .caption-line,
-label:has(> input[type="checkbox"]) > .opt-body {
+/* The title (label text + any inline badges, wrapped in JS) is the first body
+   row; justify-self:start keeps it as wide as its text — not stretched to the
+   column — so the autosave check anchors right after the text no matter how long
+   the help below is. Help / sub-options take the body column's next rows. */
+label:has(> input[type="checkbox"]) > .opt-title {
+  grid-column: 2;
+  justify-self: start;
+}
+
+label:has(> input[type="checkbox"]) > .caption-line {
   grid-column: 2;
 }
 
@@ -586,7 +587,8 @@ label:has(> input[type="checkbox"]) > .opt-body {
   background-repeat: no-repeat;
 }
 
-label.saved-base {
+label.saved-base,
+.opt-title.saved-base {
   padding-right: 18px;
   background-position: right -2px top 4px;
 }
