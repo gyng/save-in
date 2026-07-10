@@ -326,8 +326,11 @@ describe("filename rewrite and routing", () => {
     });
 
     test("an empty line inside a rule is reported as invalid syntax", () => {
-      expect(router.tokenizeLines("")).toEqual([]);
-      expect(optionErrors.filenamePatterns[0].error).toBe("invalid line syntax");
+      // tokenizeLines is pure: it reports into the passed collector
+      const errors = [];
+      expect(router.tokenizeLines("", errors)).toEqual([]);
+      expect(errors[0].error).toBe("invalid line syntax");
+      expect(optionErrors.filenamePatterns).toEqual([]);
     });
 
     test("invalid matcher regex is reported and drops the rule", () => {

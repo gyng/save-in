@@ -62,7 +62,7 @@ test("download completes through the real pipeline", async () => {
   const downloads = JSON.parse(
     await session.evaluate(
       `window.ready.then(() => {
-        requestedDownloadFlag = true;
+        Notification.expectDownload();
         return Download.renameAndDownload({
           path: new Path.Path("e2e"),
           scratch: {},
@@ -116,7 +116,7 @@ test("routing rules rename and route the download", async () => {
       })
         .then(() => window.reset())
         .then(() => {
-          requestedDownloadFlag = true;
+          Notification.expectDownload();
           return Download.renameAndDownload({
             path: new Path.Path("e2e"),
             scratch: {},
@@ -169,7 +169,7 @@ test("shortcut files keep their extension and redirect content", async () => {
   const downloads = JSON.parse(
     await session.evaluate(
       `window.ready.then(() => {
-        requestedDownloadFlag = true;
+        Notification.expectDownload();
         return Download.renameAndDownload({
           path: new Path.Path("e2e"),
           scratch: {},
@@ -203,7 +203,7 @@ test("failed downloads are recorded in the debug log", async () => {
   const entries = JSON.parse(
     await session.evaluate(
       `window.ready.then(() => {
-        requestedDownloadFlag = true;
+        Notification.expectDownload();
         return Download.renameAndDownload({
           path: new Path.Path("e2e"),
           scratch: {},

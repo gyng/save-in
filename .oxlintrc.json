@@ -35,8 +35,6 @@
     "SessionState": "readonly",
     "options": "readonly",
     "currentTab": "writable",
-    "requestedDownloadFlag": "writable",
-    "lastUsedPath": "writable",
     "SPECIAL_DIRS": "readonly",
     "RULE_TYPES": "readonly",
     "PATH_SEGMENT_TYPES": "readonly",

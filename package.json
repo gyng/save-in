@@ -16,7 +16,7 @@
     "d:win:nightly": "web-ext run --start-url about:debugging#/runtime/this-firefox --start-url about:addons --verbose --firefox=\"C:/Program Files/Firefox Nightly/firefox.exe\" -s=\".\"",
     "fmt": "oxfmt",
     "fmt:check": "oxfmt --check",
-    "lint": "web-ext lint && oxlint && oxfmt --check",
+    "lint": "web-ext lint && oxlint && oxfmt --check && node scripts/check-background-scripts.js",
     "lint:fix": "oxlint --fix && oxfmt",
     "mockserve": "node test/mockserver",
     "test": "vitest run",

@@ -20,10 +20,10 @@ function FakePath(raw) {
 
 const setupGlobals = () => {
   global.currentTab = { id: 1, title: "Tracked Tab" };
-  global.requestedDownloadFlag = 0;
   global.options = { conflictAction: "uniquify" };
   global.Path = { Path: FakePath };
   global.Download = { renameAndDownload: vi.fn() };
+  global.Notification = { expectDownload: vi.fn() };
   global.Router = { matcherFunctions: { fileext: () => {}, pageurl: () => {} } };
   global.Variable = {
     transformers: { ":date:": () => {}, ":year:": () => {} },
@@ -200,7 +200,7 @@ describe("handleDownloadMessage", () => {
     const sendResponse = vi.fn();
     onMessage(request(), {}, sendResponse);
 
-    expect(Number(global.requestedDownloadFlag)).toBeGreaterThan(0);
+    expect(global.Notification.expectDownload).toHaveBeenCalled();
     expect(global.Download.renameAndDownload).toHaveBeenCalledTimes(1);
 
     const state = global.Download.renameAndDownload.mock.calls[0][0];

@@ -136,13 +136,13 @@ const Router = {
     sourceurl: RouterFactory.makeInfoMatcherFactory("sourceUrl", "srcUrl"),
   },
 
-  tokenizeLines: (lines) =>
+  tokenizeLines: (lines, errors = []) =>
     lines
       .split("\n")
       .map((l) => ({ l, matches: l.match(/^(\S*): ?(.*)/) }))
       .map((toks) => {
         if (!toks.matches || toks.matches.length < 3) {
-          window.optionErrors.filenamePatterns.push({
+          errors.push({
             message: browser.i18n.getMessage("ruleBadClause"),
             error: `${toks.l || "invalid line syntax"}`,
           });
@@ -153,7 +153,7 @@ const Router = {
       })
       .filter((toks) => toks && toks.length >= 3),
 
-  parseRule: (lines) => {
+  parseRule: (lines, errors = []) => {
     const matchers = lines.map((tokens) => {
       const name = tokens[1];
 
@@ -161,7 +161,7 @@ const Router = {
       try {
         value = name === "into" || name === "capture" ? tokens[2] : new RegExp(tokens[2]);
       } catch (e) {
-        window.optionErrors.filenamePatterns.push({
+        errors.push({
           message: browser.i18n.getMessage("ruleInvalidRegex"),
           error: `${e}`,
         });
@@ -185,7 +185,7 @@ const Router = {
         const matcher = Router.matcherFunctions[name.toLowerCase()];
 
         if (!matcher) {
-          window.optionErrors.filenamePatterns.push({
+          errors.push({
             message: browser.i18n.getMessage("ruleUnknownMatcher"),
             error: `${name}:`,
           });
@@ -215,7 +215,7 @@ const Router = {
     }
 
     if (!matchers.some((m) => m.type === RULE_TYPES.DESTINATION)) {
-      window.optionErrors.filenamePatterns.push({
+      errors.push({
         message: browser.i18n.getMessage("ruleMissingInto"),
         error: "",
       });
@@ -225,7 +225,7 @@ const Router = {
 
     const destination = matchers.find((m) => m.type === RULE_TYPES.DESTINATION);
     if (destination.value.match(/:\$\d+:/) && !matchers.find((m) => m.name === "capture")) {
-      window.optionErrors.filenamePatterns.push({
+      errors.push({
         message: browser.i18n.getMessage("ruleMissingCapture"),
         error: destination.value,
         warning: true,
@@ -233,7 +233,7 @@ const Router = {
     }
 
     if (!matchers.some((m) => m.type === RULE_TYPES.MATCHER)) {
-      window.optionErrors.filenamePatterns.push({
+      errors.push({
         message: browser.i18n.getMessage("ruleMissingMatcher"),
         error: JSON.stringify(lines.map((l) => l[0])),
       });
@@ -243,7 +243,7 @@ const Router = {
 
     const intoMatcher = matchers.filter((m) => m.name === "into");
     if (intoMatcher.length >= 2) {
-      window.optionErrors.filenamePatterns.push({
+      errors.push({
         message: browser.i18n.getMessage("ruleExtraInto"),
         error: JSON.stringify(lines.map((l) => l[0])),
       });
@@ -252,7 +252,7 @@ const Router = {
     }
 
     if (matchers.filter((m) => m.name === "capture").length >= 2) {
-      window.optionErrors.filenamePatterns.push({
+      errors.push({
         message: browser.i18n.getMessage("ruleMultipleCapture"),
         error: JSON.stringify(lines.map((l) => l[0])),
       });
@@ -268,7 +268,7 @@ const Router = {
 
       for (let i = 0; i < captureMatchers.length; i += 1) {
         if (matchers.filter((m) => m.name === captureMatchers[i]).length < 1) {
-          window.optionErrors.filenamePatterns.push({
+          errors.push({
             message: browser.i18n.getMessage("ruleCaptureMissingMatcher"),
             error: `capture: ${captureMatchers[i]}`,
           });
@@ -287,7 +287,7 @@ const Router = {
       matchers.filter((m) => m.name === captures[0].value).length < 1
     ) {
       // Capture clause pointing at missing matcher
-      window.optionErrors.filenamePatterns.push({
+      errors.push({
         message: browser.i18n.getMessage("ruleCaptureMissingMatcher"),
         error: `capture: ${captures[0].value}`,
       });
@@ -309,12 +309,19 @@ const Router = {
       return [];
     }
 
+    // tokenizeLines/parseRule are pure: they report problems into the
+    // collector, and only this caller surfaces them on the options page
+    const errors = [];
     const rules = withoutComments
       .replace(new RegExp("\\n\\n+", "g"), "\n\n")
       .split("\n\n")
-      .map(Router.tokenizeLines)
-      .map(Router.parseRule)
+      .map((lines) => Router.tokenizeLines(lines, errors))
+      .map((tokens) => Router.parseRule(tokens, errors))
       .filter((r) => !!r);
+
+    errors.forEach((error) => {
+      window.optionErrors.filenamePatterns.push(error);
+    });
 
     if (window.SI_DEBUG) {
       console.log("parsedRules", rules); // eslint-disable-line

@@ -118,7 +118,7 @@ test("options-save reset message round-trips", async () => {
 test("download completes through the real pipeline with session tracking", async () => {
   const result = JSON.parse(
     await evalSW(`window.ready.then(() => {
-      requestedDownloadFlag = true;
+      Notification.expectDownload();
       return Download.renameAndDownload({
         path: new Path.Path("e2e"),
         scratch: {},
@@ -158,7 +158,7 @@ test("lastUsedPath survives re-initialisation", async () => {
   const lastUsed = await evalSW(
     `browser.storage.local.set({ lastUsedPath: "e2e/persisted" })
       .then(() => window.reset())
-      .then(() => String(lastUsedPath))`,
+      .then(() => String(Menus.state.lastUsedPath))`,
   );
   expect(lastUsed).toBe("e2e/persisted");
 });
@@ -197,7 +197,7 @@ test("routing rules rename and route the download", async () => {
     })
       .then(() => window.reset())
       .then(() => {
-        requestedDownloadFlag = true;
+        Notification.expectDownload();
         return Download.renameAndDownload({
           path: new Path.Path("e2e"),
           scratch: {},
@@ -257,7 +257,7 @@ test("fetchViaFetch downloads via fetch -> blob -> data URL", async () => {
       .then(() => window.reset())
       .then(() => {
         options.fetchViaFetch = true;
-        requestedDownloadFlag = true;
+        Notification.expectDownload();
         return Download.renameAndDownload({
           path: new Path.Path("e2e"),
           scratch: {},
@@ -320,7 +320,7 @@ test("options page autosave persists to storage and survives a restart", async (
 test("shortcut files download with redirect content", async () => {
   const downloads = JSON.parse(
     await evalSW(`window.ready.then(() => {
-      requestedDownloadFlag = true;
+      Notification.expectDownload();
       return Download.renameAndDownload({
         path: new Path.Path("e2e"),
         scratch: {},
@@ -348,7 +348,7 @@ test("shortcut files download with redirect content", async () => {
 test("failed downloads are recorded in the debug log", async () => {
   const entries = JSON.parse(
     await evalSW(`window.ready.then(() => {
-      requestedDownloadFlag = true;
+      Notification.expectDownload();
       return Download.renameAndDownload({
         path: new Path.Path("e2e"),
         scratch: {},

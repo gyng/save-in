@@ -3,7 +3,8 @@
 
 // Chrome MV3 service worker entry point (manifest.json background.service_worker).
 // Firefox ignores this file and loads the same scripts as an event page via
-// background.scripts — keep the two lists in sync.
+// background.scripts — keep the two lists in sync
+// (scripts/check-background-scripts.js fails the lint on drift).
 
 // The background scripts predate service workers and use `window` as their
 // shared global namespace. Service workers have no `window`, so alias it to
@@ -25,7 +26,9 @@ importScripts(
   "messaging.js",
   "headers.js",
   "variable.js",
-  "menu.js",
+  "menu-build.js",
+  "menu-click.js",
+  "menu-tabs.js",
   "option.js",
   "index.js",
 );

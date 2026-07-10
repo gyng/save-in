@@ -4,7 +4,11 @@ const ICON_URL = "icons/ic_archive_black_128px.png";
 const ERROR_ICON_URL = "icons/ic_error_outline_red_96px.png";
 
 const downloadsList = {}; // global
-let requestedDownloadFlag = 0;
+
+// How many downloads this extension has requested that downloads.onCreated
+// has not yet seen. A counter (not a boolean) so concurrent downloads are
+// all picked up. Incremented via Notification.expectDownload().
+let expectedDownloads = 0;
 
 // storage.session no-op wrapper: persists MV3 service worker state across
 // restarts; storage.session is unavailable in older Firefox
@@ -51,31 +55,30 @@ SessionState.get("siTrackedDownloads").then((res) => {
 });
 
 const Notification = {
+  // Serialise siTrackedDownloads mutations: concurrent read-modify-writes
+  // (two downloads created in the same tick) would drop entries
+  trackQueue: Promise.resolve(),
+
+  mutateTracked: (fn) => {
+    Notification.trackQueue = Notification.trackQueue
+      .then(() => SessionState.get("siTrackedDownloads"))
+      .then((res) => {
+        const next = fn(res.siTrackedDownloads || []);
+        return next ? SessionState.set({ siTrackedDownloads: next }) : null;
+      })
+      .catch(() => {});
+    return Notification.trackQueue;
+  },
+
   trackDownload: (downloadId) =>
-    SessionState.get("siTrackedDownloads").then((res) => {
-      const tracked = res.siTrackedDownloads || [];
-      if (!tracked.includes(downloadId)) {
-        return SessionState.set({
-          siTrackedDownloads: tracked.concat(downloadId),
-        });
-      }
-      return null;
-    }),
+    Notification.mutateTracked((tracked) =>
+      tracked.includes(downloadId) ? null : tracked.concat(downloadId),
+    ),
 
   untrackDownload: (downloadId) =>
-    SessionState.get("siTrackedDownloads").then((res) => {
-      const tracked = res.siTrackedDownloads || [];
-      if (tracked.includes(downloadId)) {
-        return SessionState.set({
-          siTrackedDownloads: tracked.filter((id) => id !== downloadId),
-        });
-      }
-      return null;
-    }),
-
-  currentDownloadChangeListener: null,
-  currentDownloadCreatedListener: null,
-  currentNotificationClickListener: null,
+    Notification.mutateTracked((tracked) =>
+      tracked.includes(downloadId) ? tracked.filter((id) => id !== downloadId) : null,
+    ),
 
   createExtensionNotification: (title, message, error) => {
     const id = `save-in-not-${String(Math.floor(Math.random() * 100000))}`;
@@ -113,16 +116,19 @@ const Notification = {
   // must register listeners synchronously or they miss the very event that
   // woke them. Notification options are read from the shared `options`
   // global at event time, after awaiting init.
+  // Call before browser.downloads.download() so onDownloadCreated knows
+  // the next created download is ours
+  expectDownload: () => {
+    expectedDownloads += 1;
+  },
+
   onDownloadCreated: async (item) => {
     if (typeof window !== "undefined" && window.ready) {
       await window.ready.catch(() => {});
     }
 
-    // Counter, not boolean: two concurrent requested downloads must both be
-    // picked up here
-    const pending = Number(requestedDownloadFlag) || 0;
-    if (pending > 0) {
-      requestedDownloadFlag = pending - 1;
+    if (expectedDownloads > 0) {
+      expectedDownloads -= 1;
       downloadsList[item.id] = item;
       Notification.trackDownload(item.id);
       return;

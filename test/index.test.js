@@ -13,11 +13,6 @@ const flush = async (times = 10) => {
 const setupGlobals = ({ options = {}, storedLocal = {}, tabsQueryResult = [] } = {}) => {
   global.MEDIA_TYPES = ["image", "video", "audio"];
 
-  // Declared by menu.js/index.js in the browser's shared global scope;
-  // src files are strict mode under vitest's ESM transform
-  global.lastUsedPath = null;
-  global.lastUsedMeta = null;
-
   global.OptionsManagement = { loadOptions: vi.fn(() => Promise.resolve()) };
   global.Headers = { addRequestListener: vi.fn() };
   global.Notification = {};
@@ -36,6 +31,7 @@ const setupGlobals = ({ options = {}, storedLocal = {}, tabsQueryResult = [] } =
     addShowDefaultFolder: vi.fn(),
     addOptions: vi.fn(),
     pathMappings: {},
+    state: { lastUsedPath: null, lastUsedMeta: null },
   };
 
   global.options = Object.assign(
@@ -180,16 +176,16 @@ describe("init", () => {
     await import("../src/index.js");
     await global.window.ready;
 
-    expect(global.lastUsedPath).toBe("images/cute");
+    expect(global.Menus.state.lastUsedPath).toBe("images/cute");
   });
 
   test("defaults lastUsedPath to null when storage has none", async () => {
     setupGlobals();
-    global.lastUsedPath = "stale/path/from/before";
+    global.Menus.state.lastUsedPath = "stale/path/from/before";
     await import("../src/index.js");
     await global.window.ready;
 
-    expect(global.lastUsedPath).toBeNull();
+    expect(global.Menus.state.lastUsedPath).toBeNull();
   });
 
   test("logs and rethrows when init fails", async () => {

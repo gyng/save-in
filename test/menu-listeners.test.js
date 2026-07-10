@@ -10,9 +10,7 @@ global.BROWSER_FEATURES = { accessKeys: false, multitab: false };
 
 const setupBrowserMocks = () => {
   global.currentTab = null;
-  // Declared by notification.js in the browser's shared global scope;
-  // src files are strict mode under vitest's ESM transform
-  global.requestedDownloadFlag = 0;
+
   global.browser.contextMenus = {
     create: jest.fn(),
     update: jest.fn(),
@@ -26,7 +24,7 @@ const setupBrowserMocks = () => {
     renameAndDownload: jest.fn(),
     makeObjectUrl: jest.fn(() => "data:text/plain;base64,eA=="),
   };
-  global.Notification = { createExtensionNotification: jest.fn() };
+  global.Notification = { createExtensionNotification: jest.fn(), expectDownload: jest.fn() };
   global.Shortcut = {
     makeShortcut: jest.fn(() => "blob:mock-shortcut"),
     suggestShortcutFilename: jest.fn(() => "shortcut.url"),
@@ -52,6 +50,15 @@ const setupBrowserMocks = () => {
   };
 };
 
+// menu-click.js/menu-tabs.js augment the Menus object from menu-build.js
+// via the shared global scope, so the global must exist before importing them
+const importMenus = async () => {
+  global.Menus = (await import("../src/menu-build.js")).default;
+  await import("../src/menu-click.js");
+  await import("../src/menu-tabs.js");
+  return global.Menus;
+};
+
 describe("addDownloadListener", () => {
   let Menus;
   let listener;
@@ -62,7 +69,7 @@ describe("addDownloadListener", () => {
     window.ready = Promise.resolve();
     delete window.lastDownloadState;
 
-    Menus = (await import("../src/menu.js")).default;
+    Menus = await importMenus();
     Menus.addDownloadListener();
     [[listener]] = global.browser.contextMenus.onClicked.addListener.mock.calls;
   });
@@ -545,7 +552,7 @@ describe("addTabMenuListener", () => {
     global.browser.tabs = { query: jest.fn(() => Promise.resolve([])) };
     window.ready = Promise.resolve();
 
-    const Menus = (await import("../src/menu.js")).default;
+    const Menus = await importMenus();
     Menus.addTabMenuListener();
     const [[listener]] = global.browser.contextMenus.onClicked.addListener.mock.calls;
 
@@ -583,7 +590,7 @@ describe("addTabMenuListener tabstrip downloads", () => {
     window.ready = Promise.resolve();
     jest.useFakeTimers();
 
-    Menus = (await import("../src/menu.js")).default;
+    Menus = await importMenus();
     Menus.addTabMenuListener();
     [[listener]] = global.browser.contextMenus.onClicked.addListener.mock.calls;
   });
@@ -612,7 +619,7 @@ describe("addTabMenuListener tabstrip downloads", () => {
     expect(state.info.suggestedFilename).toBeNull();
     expect(state.needRouteMatch).toBe(false);
     expect(state.path.raw).toBe(".");
-    expect(Number(global.requestedDownloadFlag)).toBeGreaterThan(0);
+    expect(global.Notification.expectDownload).toHaveBeenCalled();
   });
 
   test("SELECTED_MULTIPLE_TABS staggers downloads of the highlighted tabs", async () => {

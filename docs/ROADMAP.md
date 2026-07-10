@@ -69,35 +69,27 @@ yet need.
   `Log`, `SessionState`) and ends with
   `if (typeof module !== "undefined") module.exports = ...`. Every new
   cross-file global must be hand-registered in `.oxlintrc.json` `globals`.
-- **Mutable free-floating globals**: `lastUsedPath` (`menu.js:1`),
-  `currentTab` (`index.js:1`), `globalChromeState` (`download.js:3`),
-  `requestedDownloadFlag` (`notification.js:7`), `options` (`option.js:7`),
-  plus `window.optionErrors`, `window.lastDownloadState`, `window.ready`,
-  `window.SI_DEBUG`. In the Chrome SW these live on `self` via the
-  `self.window = self` shim in `src/background.js`.
-- **The file list is duplicated** between `manifest.json`
-  (`background.scripts`, the Firefox event page) and
-  `src/background.js` (`importScripts(...)`, the Chrome SW). AGENTS.md warns
-  "keep the two lists in sync" — a footgun with no guard.
-- **`src/menu.js` is ~620 lines** and mixes three concerns: menu _building_
-  (`addPaths`, `addRoot`, `addLastUsed`, `parsePath`), click _handling_
-  (`addDownloadListener` — the 180-line prefer-links/shortcut/route monster),
-  and tab-strip menus (`addTabMenus`/`addTabMenuListener`). It carries
-  `// TODO: Refactor this` (`:197`), `// HACK` (`:203`), and
-  `// TODO: refactor this to handle only paths, add tests` (`:276`).
-- **`globalChromeState` is a genuine race, not just style.** It is a single
-  mutable holder written in `Download.renameAndDownload` and read later by
-  both `chrome.downloads.onDeterminingFilename` (`download.js:246`) and
-  `Headers.refererListener` (`headers.js:9`). Tab-strip "save all to the
-  right" fires N overlapping downloads (`menu.js:561`, staggered only 500 ms)
-  — later saves clobber the state earlier saves depend on. The MV3-restart
-  fallback (`SessionState siFinalFilename`) papers over the restart case but
-  not the concurrency case.
-- **`requestedDownloadFlag` is a cross-file signalling hack.** Set to `true`
-  in `menu.js` (two sites), and `messaging.js:106`; read + reset in
-  `notification.js` `onDownloadCreatedListener` to decide "is this download
-  ours?". It already has a more robust twin in `SessionState.siPendingDownload`
-  for the restart case — so we're maintaining two mechanisms for one job.
+- **Mutable free-floating globals**: `currentTab` (`index.js:1`),
+  `options` (`option.js:7`), plus `window.optionErrors`,
+  `window.lastDownloadState`, `window.ready`, `window.SI_DEBUG`. In the
+  Chrome SW these live on `self` via the `self.window = self` shim in
+  `src/background.js`. ~~`lastUsedPath`~~ → moved onto `Menus.state`;
+  ~~`requestedDownloadFlag`~~ → replaced by `Notification.expectDownload()`;
+  ~~`globalChromeState`~~ → `Download.pendingStates` keyed map (all **done**).
+- ~~**The file list is duplicated**~~ **Done:** still duplicated by necessity
+  (no build step), but `scripts/check-background-scripts.js` fails
+  `npm run lint` on drift.
+- ~~**`src/menu.js` is ~620 lines**~~ **Done:** split into `menu-build.js`
+  (parsing + pure `buildTree` + rendering), `menu-click.js`
+  (`addDownloadListener` — still the 180-line prefer-links/shortcut/route
+  monster, still carrying its `// TODO: refactor this to handle only paths`),
+  and `menu-tabs.js` (tab-strip menus + listeners).
+- ~~**`globalChromeState` is a genuine race, not just style.**~~ **Done:**
+  `Download.pendingStates` is a bounded per-URL map; `globalChromeState`
+  survives only as a last-resort fallback for lookups that miss.
+- ~~**`requestedDownloadFlag` is a cross-file signalling hack.**~~ **Done:**
+  replaced by a module-level counter behind `Notification.expectDownload()`;
+  `SessionState.siPendingDownload` remains the SW-restart fallback.
 - **FIXMEs**: `index.js:4` (`// FIXME` on `optionErrors` shape),
   `download.js:101` (`// FIXME: Fix router params for new path struct`).
 
@@ -110,34 +102,26 @@ transformations"), and the vitest suite requires each file via the
 `module.exports` tail. ESM buys encapsulation this code can get 80% of by
 other means. Sequence:
 
-**Phase A — mechanical, no-build, test-covered (do this for the next release).**
+**Phase A — mechanical, no-build, test-covered. Completed July 2026.**
 
-1. **Collapse the two global-mutation hacks.**
-   - `requestedDownloadFlag` → delete it; rely solely on the
-     `SessionState.siPendingDownload` path already in
-     `onDownloadCreatedListener`, or tag downloads by a short-lived token in
-     session storage. **S–M.** Risk: notification "is this ours" logic is
-     subtle; lean on `test/notification*.test.js`.
-   - `globalChromeState` → a `Map` keyed by a per-download token (generate at
-     `renameAndDownload`, thread it to `onDeterminingFilename` via
-     `downloadItem.byExtensionId` is not enough — use the download id once
-     known, and the persisted `SessionState` for the pre-id window). **M.**
-     Risk: this is the download hot path on Chrome; guard with
-     `test/download-mv3.test.js` + `npm run e2e:chrome`.
-2. **Split `menu.js` into `menu-build.js`, `menu-click.js`, `menu-tabs.js`**
-   (still globals, still `module.exports`). Add each new file to _both_ the
-   manifest list and `background.js` — see step 3. **M.** Zero behaviour
-   change; `test/menu.test.js` + `test/menu-listeners.test.js` hold the line.
-3. **Single-source the file list.** Put the ordered background file list in
-   one JSON (e.g. `src/background-scripts.json`), have `scripts/stage.js`
-   inject it into the manifest, and have `background.js` `importScripts(...)`
-   it. Kills the "keep two lists in sync" footgun. **S.**
-4. **Extract pure parse/build cores** (this is the shared dependency for §4
-   and §5): `Menus.buildTree(pathsArray)` returning a nested structure with
-   **no** `browser.contextMenus.create` calls, consumed by both `addPaths`
-   and the new preview. Likewise expose `Router.parseRule` results without the
-   `window.optionErrors` side effect (return errors, let the caller push).
-   **M.**
+1. ~~**Collapse the two global-mutation hacks.**~~ **Done.**
+   - `requestedDownloadFlag` → a module-level counter behind
+     `Notification.expectDownload()`; `SessionState.siPendingDownload`
+     remains the SW-restart fallback.
+   - `globalChromeState` → `Download.pendingStates`, a bounded per-URL map
+     consumed by `onDeterminingFilename` and `Headers.refererListener`;
+     the old singleton survives only as a last-resort fallback.
+2. ~~**Split `menu.js`**~~ **Done:** `menu-build.js` / `menu-click.js` /
+   `menu-tabs.js`, still globals + `module.exports`. `lastUsedPath` /
+   `lastUsedMeta` moved onto `Menus.state` (same storage.local keys).
+3. ~~**Single-source the file list.**~~ **Done, differently:** generating the
+   manifest would be a build-time transformation (the README reviewer notes
+   promise none), so the two lists stay — but
+   `scripts/check-background-scripts.js` diffs them in `npm run lint`.
+4. ~~**Extract pure parse/build cores**~~ **Done:** `Menus.buildTree(paths)`
+   returns `{ items, errors }` with no `browser.*` calls (`addPaths` renders
+   it); `Router.tokenizeLines`/`parseRule` take an error-collector argument
+   and only `parseRules` pushes to `window.optionErrors`.
 
 **Phase B — ESM, only if a bundler becomes justified (later, optional).**
 
@@ -482,9 +466,9 @@ example — cheap to do before an ecosystem forms, expensive after.
 
 | # | Item | Effort | Risk | Value | Depends on | When |
 |---|------|--------|------|-------|-----------|------|
-| 1 | Kill `requestedDownloadFlag`; make `globalChromeState` a keyed map (fixes concurrent tab-strip race) | M | Low–Med | High (correctness) | — | **Next release** |
-| 2 | Split `menu.js`; single-source the background file list | M | Low | Med (maintainability) | — | **Next release** |
-| 3 | Extract pure `Menus.buildTree` + side-effect-free `parseRule` | M | Low | High (unblocks §4/§5) | 2 | **Next release** |
+| 1 | ~~Kill `requestedDownloadFlag`; make `globalChromeState` a keyed map (fixes concurrent tab-strip race)~~ | M | Low–Med | High (correctness) | — | **Done** |
+| 2 | ~~Split `menu.js`; single-source the background file list~~ (guarded by `scripts/check-background-scripts.js` in lint) | M | Low | Med (maintainability) | — | **Done** |
+| 3 | ~~Extract pure `Menus.buildTree` + side-effect-free `parseRule`~~ | M | Low | High (unblocks §4/§5) | 2 | **Done** |
 | 4 | `tsconfig` + `globals.d.ts` + core typedefs; `tsc --noEmit` in CI | M | Low | High (safety) | — | **Next release** |
 | 5 | Trivial `:variables:` batch (weekday, week, title slugs, URL parts) | S | Low | Med–High | — | **Next release** |
 | 6 | Live context-menu tree preview in options page | M | Low | High (UX) | 3 | **Next release** |

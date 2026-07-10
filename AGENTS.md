@@ -10,10 +10,13 @@ Firefox (AMO) and Chrome (Web Store).
 scripts are plain scripts sharing one global scope, loaded in manifest order
 (browser-shim first, `index.js` last). Files communicate through globals
 (`Menus`, `Download`, `Headers`, `OptionsManagement`, `options`,
-`currentTab`, `lastUsedPath`, ...). New cross-file globals must be added to
+`currentTab`, ...). New cross-file globals must be added to
 `.oxlintrc.json` `globals`. Each `src/*.js` ends with a
 `if (typeof module !== "undefined") module.exports = ...` block so vitest can
-require it in isolation.
+require it in isolation. `menu-click.js`/`menu-tabs.js` extend the `Menus`
+object from `menu-build.js` through that shared scope — under vitest, set
+`global.Menus` before importing them (see `importMenus` in
+`test/menu-listeners.test.js`).
 
 Execution contexts:
 
@@ -31,7 +34,8 @@ Firefox (≥ 121) uses `background.scripts` (an **event page**) and ignores
 `service_worker`; Chrome (≥ 121) uses `background.service_worker`
 (`src/background.js`: `self.window = self` shim + `importScripts` of the
 same file list) and ignores `scripts`. Keep the two lists in sync when
-adding a background script.
+adding a background script — `scripts/check-background-scripts.js` (part of
+`npm run lint`) fails on drift.
 
 |                 | Firefox (event page)                            | Chrome (service worker)                                           |
 | --------------- | ----------------------------------------------- | ----------------------------------------------------------------- |
@@ -53,7 +57,7 @@ to Firefox too.
    `await window.ready` (the init promise) before touching options or
    `Menus.pathMappings`.
 2. **Globals die between events.** Anything needed across wakeups goes to
-   storage: `lastUsedPath` (storage.local), tracked download IDs /
+   storage: `Menus.state.lastUsedPath` (storage.local), tracked download IDs /
    pending-download flag / final filename (storage.session via
    `SessionState` in `notification.js`).
 3. **No `URL.createObjectURL`, no DOM, no `window`.** The SW entry aliases

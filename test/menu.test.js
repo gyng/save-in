@@ -1,4 +1,9 @@
-const menu = (await import("../src/menu.js")).default;
+// menu-click.js/menu-tabs.js augment the Menus object from menu-build.js
+// via the shared global scope, so the global must exist before importing them
+const menu = (await import("../src/menu-build.js")).default;
+globalThis.Menus = menu;
+await import("../src/menu-click.js");
+await import("../src/menu-tabs.js");
 const constants = (await import("../src/constants.js")).default;
 
 describe("menu parsing", () => {
@@ -379,5 +384,88 @@ describe("menu creation", () => {
 
       expect(global.browser.contextMenus.update).not.toHaveBeenCalled();
     });
+  });
+});
+
+describe("buildTree", () => {
+  beforeAll(async () => {
+    Object.assign(global, constants);
+    global.Path = (await import("../src/path.js")).default;
+  });
+
+  test("is pure: computes the tree without any browser calls", () => {
+    global.browser.contextMenus = { create: jest.fn() };
+
+    const { items, errors } = menu.buildTree(["a", ">b"]);
+
+    expect(global.browser.contextMenus.create).not.toHaveBeenCalled();
+    expect(errors).toEqual([]);
+    expect(items).toEqual([
+      {
+        kind: "path",
+        id: "save-in-0",
+        title: "a",
+        number: 1,
+        accessKeyOverride: undefined,
+        parsedDir: "a",
+        comment: "0",
+        menuIndex: "1",
+        depth: 0,
+        parentId: menu.IDS.ROOT,
+      },
+      {
+        kind: "path",
+        id: "save-in-1",
+        title: "b",
+        number: 1,
+        accessKeyOverride: undefined,
+        parsedDir: "b",
+        comment: "1",
+        menuIndex: "1.1",
+        depth: 1,
+        parentId: "save-in-0",
+      },
+    ]);
+  });
+
+  test("emits separator items for --- at the top level and nested", () => {
+    const { items } = menu.buildTree([SPECIAL_DIRS.SEPARATOR, "a", ">---"]);
+
+    expect(items.map((i) => i.kind)).toEqual(["separator", "path", "separator"]);
+    expect(items[0].parentId).toBe(menu.IDS.ROOT);
+    expect(items[2].parentId).toBe("save-in-1");
+  });
+
+  test("collects invalid paths as errors instead of items", () => {
+    const { items, errors } = menu.buildTree(["<invalid>", "ok"]);
+
+    expect(items).toHaveLength(1);
+    expect(items[0].parsedDir).toBe("ok");
+    expect(errors).toEqual([
+      {
+        message: "Translated<rulePathInvalidCharacter>",
+        error: "<invalid>",
+      },
+    ]);
+  });
+
+  test("carries alias titles and access key overrides", () => {
+    const { items } = menu.buildTree(["dogs/corgi // (alias: Nice Name) (key: g)"]);
+
+    expect(items[0].title).toBe("Nice Name");
+    expect(items[0].accessKeyOverride).toBe("g");
+  });
+
+  test("numbers items per depth for menuIndex routing", () => {
+    const { items } = menu.buildTree(["a", ">b", ">>c", ">d", "e"]);
+
+    expect(items.map((i) => i.menuIndex)).toEqual(["1", "1.1", "1.1.1", "1.2", "2"]);
+    expect(items.map((i) => i.parentId)).toEqual([
+      menu.IDS.ROOT,
+      "save-in-0",
+      "save-in-1",
+      "save-in-0",
+      menu.IDS.ROOT,
+    ]);
   });
 });

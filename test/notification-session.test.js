@@ -147,7 +147,6 @@ describe("track/untrack helpers", () => {
 });
 
 describe("download lifecycle notifications", () => {
-  let Notification;
   let sessionStore;
   let onCreated;
   let onChanged;
@@ -164,7 +163,8 @@ describe("download lifecycle notifications", () => {
       notifyDuration: 1000,
       promptOnFailure: false,
     };
-    Notification = (await import("../src/notification.js")).default;
+    // Imported for its side effect: registers the download listeners
+    await import("../src/notification.js");
 
     [[onCreated]] = global.browser.downloads.onCreated.addListener.mock.calls;
     [[onChanged]] = global.browser.downloads.onChanged.addListener.mock.calls;
@@ -175,7 +175,7 @@ describe("download lifecycle notifications", () => {
   });
 
   test("tracks a download recorded via the persisted pending flag", async () => {
-    // requestedDownloadFlag (in-memory) was lost with the old worker;
+    // The in-memory expectDownload counter was lost with the old worker;
     // the session flag written before downloads.download() takes over
     sessionStore.siPendingDownload = true;
 
@@ -496,5 +496,37 @@ describe("notification variants", () => {
       window.SI_DEBUG = 0;
       logSpy.mockRestore();
     }
+  });
+});
+
+describe("expectDownload", () => {
+  test("an expected download is tracked without the session fallback", async () => {
+    jest.resetModules();
+    const sessionStore = {};
+    setupGlobals(sessionStore, () => []);
+    const Notification = (await import("../src/notification.js")).default;
+
+    Notification.expectDownload();
+    await Notification.onDownloadCreated({ id: 9, filename: "/dl/x.png" });
+    await flush();
+
+    expect(sessionStore.siTrackedDownloads).toEqual([9]);
+    // The session fallback was never consulted
+    expect(global.browser.storage.session.get).not.toHaveBeenCalledWith("siPendingDownload");
+  });
+
+  test("two expected downloads are both tracked (counter semantics)", async () => {
+    jest.resetModules();
+    const sessionStore = {};
+    setupGlobals(sessionStore, () => []);
+    const Notification = (await import("../src/notification.js")).default;
+
+    Notification.expectDownload();
+    Notification.expectDownload();
+    await Notification.onDownloadCreated({ id: 1, filename: "/dl/a.png" });
+    await Notification.onDownloadCreated({ id: 2, filename: "/dl/b.png" });
+    await flush();
+
+    expect(sessionStore.siTrackedDownloads).toEqual([1, 2]);
   });
 });

@@ -757,7 +757,6 @@ describe("concurrent downloads (pendingStates)", () => {
     global.BROWSERS = { CHROME: "CHROME", FIREFOX: "FIREFOX" };
     global.CURRENT_BROWSER = "CHROME";
     global.window = global;
-    global.requestedDownloadFlag = 0;
     global.options = { conflictAction: "uniquify", filenamePatterns: [] };
     global.Path = {
       Path: function FakePath(raw) {

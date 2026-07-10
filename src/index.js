@@ -14,8 +14,8 @@ window.init = () => {
   ])
     .then((results) => {
       // MV3 service workers are stateless: restore last used path across restarts
-      lastUsedPath = (results[1] && results[1].lastUsedPath) || null;
-      lastUsedMeta = (results[1] && results[1].lastUsedMeta) || null;
+      Menus.state.lastUsedPath = (results[1] && results[1].lastUsedPath) || null;
+      Menus.state.lastUsedMeta = (results[1] && results[1].lastUsedMeta) || null;
 
       Headers.addRequestListener();
 

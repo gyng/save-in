@@ -116,7 +116,7 @@ const Messaging = {
       ),
     };
 
-    requestedDownloadFlag = (Number(requestedDownloadFlag) || 0) + 1;
+    Notification.expectDownload();
     Download.renameAndDownload(clickState);
 
     sendResponse({

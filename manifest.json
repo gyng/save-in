@@ -35,7 +35,9 @@
       "src/messaging.js",
       "src/headers.js",
       "src/variable.js",
-      "src/menu.js",
+      "src/menu-build.js",
+      "src/menu-click.js",
+      "src/menu-tabs.js",
       "src/option.js",
       "src/index.js"
     ],
