@@ -181,6 +181,38 @@ test("referer option creates a declarativeNetRequest session rule", async () => 
   expect(rules).toEqual(["https://www.pixiv.net/artworks/1"]);
 });
 
+test("paths textarea renders a live menu-tree preview", async () => {
+  const items = JSON.parse(
+    await evalOptions(`(async () => {
+      const ta = document.querySelector("#paths");
+      ta.value = "dogs // (alias: Dogs!)\\n>corgi\\n---\\ncats";
+      ta.dispatchEvent(new InputEvent("input", { bubbles: true }));
+      await new Promise((r) => setTimeout(r, 700));
+      const rows = [...document.querySelectorAll("#menu-preview-tree li")].map((li) => {
+        let depth = 0;
+        let n = li;
+        while ((n = n.parentElement.closest("li"))) depth += 1;
+        const title = li.querySelector(".menu-preview-title");
+        const dir = li.querySelector(".menu-preview-dir");
+        return {
+          separator: li.className === "menu-preview-separator",
+          title: title ? title.textContent : null,
+          dir: dir ? dir.textContent : null,
+          depth,
+        };
+      });
+      return JSON.stringify(rows);
+    })()`),
+  );
+
+  expect(items).toEqual([
+    { separator: false, title: "Dogs!", dir: "dogs", depth: 0 },
+    { separator: false, title: "corgi", dir: null, depth: 1 },
+    { separator: true, title: null, dir: null, depth: 0 },
+    { separator: false, title: "cats", dir: null, depth: 0 },
+  ]);
+});
+
 test("changing the paths option rebuilds the context menus", async () => {
   const menuCount = await evalSW(
     `browser.storage.local.set({ paths: "alpha\\nbeta\\ngamma\\ndelta\\nepsilon" })

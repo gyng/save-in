@@ -306,3 +306,90 @@ describe("variables", () => {
     });
   });
 });
+
+describe("date-name variables (:weekday:, :monthname:, :ampm:, :isoweek:)", () => {
+  const interpolate = (variable, now) => {
+    const input = new Path.Path(variable);
+    return Variable.applyVariables(input, { now }).finalize();
+  };
+
+  test(":weekday: and :monthname: are English names", () => {
+    // 2026-07-10 is a Friday
+    const now = new Date(2026, 6, 10, 9, 30, 0);
+    expect(interpolate(":weekday:", now)).toBe("friday");
+    expect(interpolate(":monthname:", now)).toBe("july");
+  });
+
+  test(":ampm: follows local hours", () => {
+    expect(interpolate(":ampm:", new Date(2026, 6, 10, 0, 0, 0))).toBe("am");
+    expect(interpolate(":ampm:", new Date(2026, 6, 10, 11, 59, 0))).toBe("am");
+    expect(interpolate(":ampm:", new Date(2026, 6, 10, 12, 0, 0))).toBe("pm");
+    expect(interpolate(":ampm:", new Date(2026, 6, 10, 23, 0, 0))).toBe("pm");
+  });
+
+  test(":isoweek: and :week: are the zero-padded ISO week number", () => {
+    // 2026-01-01 is a Thursday -> ISO week 1
+    expect(interpolate(":isoweek:", new Date(2026, 0, 1))).toBe("01");
+    expect(interpolate(":week:", new Date(2026, 0, 1))).toBe("01");
+    // 2021-01-01 is a Friday -> belongs to 2020's ISO week 53
+    expect(interpolate(":isoweek:", new Date(2021, 0, 1))).toBe("53");
+    // 2026-07-10 -> ISO week 28
+    expect(interpolate(":isoweek:", new Date(2026, 6, 10))).toBe("28");
+    // 2024-12-30 (Monday) -> ISO week 1 of 2025
+    expect(interpolate(":isoweek:", new Date(2024, 11, 30))).toBe("01");
+  });
+});
+
+describe("page-title slug variables", () => {
+  const interpolate = (variable, title) => {
+    const input = new Path.Path(variable);
+    return Variable.applyVariables(input, {
+      now: new Date(),
+      currentTab: { title },
+    }).finalize();
+  };
+
+  test(":pagetitleslug: lowercases and dashes punctuation runs", () => {
+    expect(interpolate(":pagetitleslug:", "My Webpage: Title!")).toBe("my-webpage-title");
+  });
+
+  test(":pagetitlesnake: uses underscores", () => {
+    expect(interpolate(":pagetitlesnake:", "My Webpage: Title!")).toBe("my_webpage_title");
+  });
+
+  test("keeps unicode letters and digits", () => {
+    expect(interpolate(":pagetitleslug:", "Ünïcode 123 – Tïtle")).toBe("ünïcode-123-tïtle");
+  });
+
+  test("missing title becomes the replacement char", () => {
+    const input = new Path.Path(":pagetitleslug:");
+    const result = Variable.applyVariables(input, { now: new Date() }).finalize();
+    expect(result).toBe("_");
+  });
+});
+
+describe("URL-part variables", () => {
+  const interpolate = (variable, url) => {
+    const input = new Path.Path(variable);
+    return Variable.applyVariables(input, { now: new Date(), url }).finalize();
+  };
+
+  test(":sourcepath: is the pathname without the leading slash", () => {
+    // Separators inside a variable value are sanitized like any segment
+    expect(interpolate(":sourcepath:", "https://x.com/a/b/pic.jpg")).toBe("a_b_pic.jpg");
+  });
+
+  test(":tld: is the last hostname label", () => {
+    expect(interpolate(":tld:", "https://cdn.example.co.uk/pic.jpg")).toBe("uk");
+    expect(interpolate(":tld:", "https://example.com/pic.jpg")).toBe("com");
+  });
+
+  test(":tld: is empty (replacement char) for IPs and single-label hosts", () => {
+    expect(interpolate(":tld:", "http://192.168.0.1/pic.jpg")).toBe("_");
+    expect(interpolate(":tld:", "http://localhost/pic.jpg")).toBe("_");
+  });
+
+  test("invalid URLs fall back to the raw value (withUrl contract)", () => {
+    expect(interpolate(":tld:", "not a url")).toBe("not a url");
+  });
+});

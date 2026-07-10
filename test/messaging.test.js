@@ -24,6 +24,12 @@ const setupGlobals = () => {
   global.Path = { Path: FakePath };
   global.Download = { renameAndDownload: vi.fn() };
   global.Notifier = { expectDownload: vi.fn() };
+  global.Menus = {
+    buildTree: vi.fn((paths) => ({
+      items: paths.map((p, i) => ({ kind: "path", id: `save-in-${i}`, title: p })),
+      errors: [],
+    })),
+  };
   global.Router = { matcherFunctions: { fileext: () => {}, pageurl: () => {} } };
   global.Variable = {
     transformers: { ":date:": () => {}, ":year:": () => {} },
@@ -101,6 +107,35 @@ describe("onMessage", () => {
         variables: [":date:", ":year:"],
       },
     });
+  });
+
+  test("PREVIEW_MENUS builds a tree from the supplied (unsaved) paths text", () => {
+    const sendResponse = vi.fn();
+    onMessage(
+      { type: MESSAGE_TYPES.PREVIEW_MENUS, body: { paths: " dogs \n\n>cats\n" } },
+      {},
+      sendResponse,
+    );
+
+    // Lines are trimmed and blanks dropped, mirroring window.init
+    expect(global.Menus.buildTree).toHaveBeenCalledWith(["dogs", ">cats"]);
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.MENU_PREVIEW,
+      body: {
+        items: [
+          { kind: "path", id: "save-in-0", title: "dogs" },
+          { kind: "path", id: "save-in-1", title: ">cats" },
+        ],
+        errors: [],
+      },
+    });
+  });
+
+  test("PREVIEW_MENUS tolerates a missing body", () => {
+    const sendResponse = vi.fn();
+    onMessage({ type: MESSAGE_TYPES.PREVIEW_MENUS }, {}, sendResponse);
+    expect(global.Menus.buildTree).toHaveBeenCalledWith([]);
+    expect(sendResponse).toHaveBeenCalled();
   });
 
   test("unknown message types are a no-op", () => {

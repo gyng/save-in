@@ -237,6 +237,11 @@
     "description": "l prefixes are for labels"
   },
 
+  "o_lMenuPreview": {
+    "message": "Menu preview",
+    "description": "Heading for the live context-menu tree preview on the options page"
+  },
+
   "o_lClauseList": {
     "message": "Clause List"
   },

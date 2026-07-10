@@ -174,6 +174,20 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
         },
       });
       break;
+    case MESSAGE_TYPES.PREVIEW_MENUS: {
+      // Live menu-tree preview for the options page: runs the pure
+      // Menus.buildTree over the (possibly unsaved) textarea content
+      const raw = (request.body && request.body.paths) || "";
+      const pathsArray = raw
+        .split("\n")
+        .map((p) => p.trim())
+        .filter((p) => p && p.length > 0);
+      sendResponse({
+        type: MESSAGE_TYPES.MENU_PREVIEW,
+        body: Menus.buildTree(pathsArray),
+      });
+      break;
+    }
     case MESSAGE_TYPES.CHECK_ROUTES:
       const lastState =
         (request.body && request.body.state) ||

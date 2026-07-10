@@ -711,3 +711,62 @@ button {
 .tab-heading-hidden {
   display: none;
 }
+
+/* Live context-menu tree preview (below the paths textarea) */
+.menu-preview {
+  margin-top: var(--space-2);
+}
+
+#menu-preview-tree ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+#menu-preview-tree > ul {
+  display: inline-block;
+  min-width: 240px;
+  padding: var(--space-1) 0;
+  border: 1px solid var(--grey30);
+  border-radius: var(--radius);
+  font-size: var(--text-sm);
+}
+
+#menu-preview-tree li ul {
+  margin-left: var(--space-4);
+  border-left: 1px solid var(--grey30);
+}
+
+#menu-preview-tree li ul:empty {
+  display: none;
+}
+
+.menu-preview-item {
+  padding: 2px var(--space-3);
+}
+
+.menu-preview-dir {
+  margin-left: var(--space-2);
+  color: var(--grey50);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+}
+
+.menu-preview-separator hr {
+  margin: var(--space-1) var(--space-2);
+  border: none;
+  border-top: 1px solid var(--grey30);
+}
+
+.menu-preview-error {
+  padding: 2px var(--space-3);
+  color: var(--red50);
+}
+
+@media (prefers-color-scheme: dark) {
+  #menu-preview-tree > ul,
+  #menu-preview-tree li ul,
+  .menu-preview-separator hr {
+    border-color: var(--grey60);
+  }
+}

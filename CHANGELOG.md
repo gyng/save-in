@@ -41,6 +41,10 @@ testing on Chromium!
   cold-start (listeners now register synchronously); "Last used" keeps its
   routing metadata across restarts
 - New :pagerootdomain: and :sourcerootdomain: variables (#221)
+- More new variables: :weekday:, :monthname:, :ampm:, :isoweek:/:week:,
+  :pagetitleslug:, :pagetitlesnake:, :sourcepath:, :tld:
+- The options page shows a live preview of the context-menu tree as you
+  edit the directory list
 - Filenames are hardened for Windows: control characters, trailing
   dots/spaces, and reserved device names (CON, NUL, ...) are neutralized;
   a broken replacement character can no longer defeat the sanitizer

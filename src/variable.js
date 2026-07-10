@@ -36,6 +36,52 @@ const Variable = {
 
   IPV4_REGEX: /^\d{1,3}(\.\d{1,3}){3}$/,
 
+  // English on purpose: locale-dependent names would make the same rule
+  // produce different paths on different machines
+  WEEKDAY_NAMES: ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"],
+  MONTH_NAMES: [
+    "january",
+    "february",
+    "march",
+    "april",
+    "may",
+    "june",
+    "july",
+    "august",
+    "september",
+    "october",
+    "november",
+    "december",
+  ],
+
+  // ISO-8601 week number (week 1 contains the year's first Thursday),
+  // computed from local date parts like :year:/:month:/:day:
+  toISOWeek: (d) => {
+    const day = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    day.setDate(day.getDate() - ((day.getDay() + 6) % 7) + 3); // nearest Thursday
+    const firstThursday = new Date(day.getFullYear(), 0, 4);
+    firstThursday.setDate(firstThursday.getDate() - ((firstThursday.getDay() + 6) % 7) + 3);
+    return 1 + Math.round((day.getTime() - firstThursday.getTime()) / (7 * 24 * 3600 * 1000));
+  },
+
+  // "My Webpage: Title!" -> "my-webpage-title" (slug) / "my_webpage_title"
+  // (snake); keeps unicode letters/digits so non-latin titles survive
+  toDelimited: (str, delimiter) =>
+    (str || "")
+      .toLowerCase()
+      .replace(/[^\p{L}\p{N}]+/gu, delimiter)
+      .replace(new RegExp(`^\\${delimiter}+|\\${delimiter}+$`, "g"), ""),
+
+  // Last hostname label; empty for IPs and single-label hosts (localhost)
+  toTld: (hostname) => {
+    if (!hostname || Variable.IPV4_REGEX.test(hostname)) {
+      return "";
+    }
+
+    const labels = hostname.split(".");
+    return labels.length >= 2 ? labels[labels.length - 1] : "";
+  },
+
   // Strips a hostname down to its registrable domain using a simple
   // last-two-labels heuristic (no public suffix list): "sub.cdn.example.com"
   // -> "example.com". This mishandles multi-part public suffixes (e.g.
@@ -89,8 +135,26 @@ const Variable = {
       opts => Path.PathSegment.String(Variable.padDateComponent(opts.now.getMinutes())),
     [SPECIAL_DIRS.SECOND]:
       opts => Path.PathSegment.String(Variable.padDateComponent(opts.now.getSeconds())),
+    [SPECIAL_DIRS.WEEKDAY]:
+      opts => Path.PathSegment.String(Variable.WEEKDAY_NAMES[opts.now.getDay()]),
+    [SPECIAL_DIRS.MONTH_NAME]:
+      opts => Path.PathSegment.String(Variable.MONTH_NAMES[opts.now.getMonth()]),
+    [SPECIAL_DIRS.AM_PM]:
+      opts => Path.PathSegment.String(opts.now.getHours() < 12 ? "am" : "pm"),
+    [SPECIAL_DIRS.ISO_WEEK]:
+      opts => Path.PathSegment.String(Variable.padDateComponent(Variable.toISOWeek(opts.now))),
+    [SPECIAL_DIRS.WEEK]:
+      opts => Path.PathSegment.String(Variable.padDateComponent(Variable.toISOWeek(opts.now))),
     [SPECIAL_DIRS.PAGE_TITLE]:
       opts => Path.PathSegment.String((opts.currentTab && opts.currentTab.title) || ""),
+    [SPECIAL_DIRS.PAGE_TITLE_SLUG]:
+      opts => Path.PathSegment.String(Variable.toDelimited((opts.currentTab && opts.currentTab.title) || "", "-")),
+    [SPECIAL_DIRS.PAGE_TITLE_SNAKE]:
+      opts => Path.PathSegment.String(Variable.toDelimited((opts.currentTab && opts.currentTab.title) || "", "_")),
+    [SPECIAL_DIRS.SOURCE_PATH]:
+      opts => Path.PathSegment.String(Variable.withUrl(opts.url, url => url.pathname.replace(/^\//, ""))),
+    [SPECIAL_DIRS.TLD]:
+      opts => Path.PathSegment.String(Variable.withUrl(opts.url, url => Variable.toTld(url.hostname))),
     [SPECIAL_DIRS.LINK_TEXT]:
       opts => Path.PathSegment.String(opts.linkText),
     [SPECIAL_DIRS.SELECTION_TEXT]:
@@ -107,7 +171,7 @@ const Variable = {
       }
   }),
 
-  applyVariables: (path, opts = {}) =>
+  applyVariables: (path, opts = ({})) =>
     Object.assign(path, {
       buf:
         path.buf &&

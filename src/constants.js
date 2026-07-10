@@ -19,7 +19,16 @@ const SPECIAL_DIRS = {
   HOUR: ":hour:",
   MINUTE: ":minute:",
   SECOND: ":second:",
+  WEEKDAY: ":weekday:",
+  MONTH_NAME: ":monthname:",
+  AM_PM: ":ampm:",
+  ISO_WEEK: ":isoweek:",
+  WEEK: ":week:",
   PAGE_TITLE: ":pagetitle:",
+  PAGE_TITLE_SLUG: ":pagetitleslug:",
+  PAGE_TITLE_SNAKE: ":pagetitlesnake:",
+  SOURCE_PATH: ":sourcepath:",
+  TLD: ":tld:",
   LINK_TEXT: ":linktext:",
   SELECTION_TEXT: ":selectiontext:",
   NAIVE_FILENAME: ":naivefilename:",
@@ -78,6 +87,8 @@ const MESSAGE_TYPES = {
   ERROR: "ERROR",
   GET_KEYWORDS: "GET_KEYWORDS",
   KEYWORD_LIST: "KEYWORD_LIST",
+  PREVIEW_MENUS: "PREVIEW_MENUS",
+  MENU_PREVIEW: "MENU_PREVIEW",
 };
 
 const PATH_SEGMENT_TYPES = {

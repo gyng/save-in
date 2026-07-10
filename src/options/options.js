@@ -252,6 +252,7 @@ const restoreOptionsHandler = (result, schema) => {
   });
 
   updateErrors();
+  updateMenuPreview();
 };
 
 const restoreOptions = () =>
@@ -376,6 +377,93 @@ const setupAutosave = (el) => {
     el.addEventListener("change", doSave);
   }
 };
+
+// Live context-menu tree preview: mirrors what the paths textarea will
+// produce, updating as the user types (before autosave persists it)
+const MENU_PREVIEW_DEBOUNCE_MS = 250;
+
+const renderMenuPreview = (container, tree) => {
+  container.textContent = "";
+
+  const rootUl = document.createElement("ul");
+  const listsByParent = new Map();
+
+  tree.items.forEach((item) => {
+    const parentUl = listsByParent.get(item.parentId) || rootUl;
+    const li = document.createElement("li");
+
+    if (item.kind === "separator") {
+      li.className = "menu-preview-separator";
+      li.appendChild(document.createElement("hr"));
+    } else {
+      li.className = "menu-preview-item";
+
+      const title = document.createElement("span");
+      title.className = "menu-preview-title";
+      title.textContent = item.title;
+      li.appendChild(title);
+
+      // Aliased items also show the directory they save into
+      if (item.title !== item.parsedDir) {
+        const dir = document.createElement("span");
+        dir.className = "menu-preview-dir";
+        dir.textContent = item.parsedDir;
+        li.appendChild(dir);
+      }
+
+      const childUl = document.createElement("ul");
+      li.appendChild(childUl);
+      listsByParent.set(item.id, childUl);
+    }
+
+    parentUl.appendChild(li);
+  });
+
+  tree.errors.forEach((error) => {
+    const li = document.createElement("li");
+    li.className = "menu-preview-error";
+    li.textContent = `${error.error} — ${error.message}`;
+    rootUl.appendChild(li);
+  });
+
+  container.appendChild(rootUl);
+};
+
+const updateMenuPreview = () => {
+  /** @type {HTMLTextAreaElement} */
+  const textarea = document.querySelector("#paths");
+  const container = document.querySelector("#menu-preview-tree");
+  if (!textarea || !container) {
+    return;
+  }
+
+  browser.runtime
+    .sendMessage({ type: "PREVIEW_MENUS", body: { paths: textarea.value } })
+    .then((response) => {
+      if (response && response.body) {
+        renderMenuPreview(container, response.body);
+      }
+    })
+    .catch(() => {}); // background not awake yet; the next input retries
+};
+
+(() => {
+  const textarea = document.querySelector("#paths");
+  if (!textarea) {
+    return;
+  }
+
+  let previewTimer = null;
+  textarea.addEventListener("input", () => {
+    if (previewTimer !== null) {
+      window.clearTimeout(previewTimer);
+    }
+    previewTimer = window.setTimeout(() => {
+      previewTimer = null;
+      updateMenuPreview();
+    }, MENU_PREVIEW_DEBOUNCE_MS);
+  });
+})();
 
 ["textarea", "input", "select"].forEach((type) => {
   document.querySelectorAll(type).forEach(setupAutosave);

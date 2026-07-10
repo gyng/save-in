@@ -268,7 +268,7 @@ already has: prefix autocomplete (`src/options/autocomplete.js`, fed by the
 So the plumbing for "parse in the background, render in the options page" is
 proven — we're extending a pattern, not inventing one.
 
-### Live context-menu-tree preview (recommended). M. High value.
+### Live context-menu-tree preview. Done (July 2026).
 
 The `>`-depth syntax is the #1 support-confusing feature; showing the
 resulting tree removes the guesswork.
@@ -455,8 +455,8 @@ example — cheap to do before an ecosystem forms, expensive after.
 | 2 | ~~Split `menu.js`; single-source the background file list~~ (guarded by `scripts/check-background-scripts.js` in lint) | M | Low | Med (maintainability) | — | **Done** |
 | 3 | ~~Extract pure `Menus.buildTree` + side-effect-free `parseRule`~~ | M | Low | High (unblocks §4/§5) | 2 | **Done** |
 | 4 | ~~`tsconfig` + `globals.d.ts` + core typedefs; `tsc --noEmit` in CI~~ (checkJs over all of src/) | M | Low | High (safety) | — | **Done** |
-| 5 | Trivial `:variables:` batch (weekday, week, title slugs, URL parts) | S | Low | Med–High | — | **Next release** |
-| 6 | Live context-menu tree preview in options page | M | Low | High (UX) | 3 | **Next release** |
+| 5 | ~~Trivial `:variables:` batch (weekday, week, title slugs, URL parts)~~ | S | Low | Med–High | — | **Done** |
+| 6 | ~~Live context-menu tree preview in options page~~ (PREVIEW_MENUS message + #menu-preview) | M | Low | High (UX) | 3 | **Done** |
 | 7 | Formalize + version the external DOWNLOAD API (+ PING, docs, e2e) | S–M | Low | Med–High | — | **Next release** |
 | 8 | yt-dlp "copy command / save `.txt`" hand-off via `Shortcut` | S–M | Low | Med–High | — | **Next release / +1** |
 | 9 | Guided rule builder (form for matcher/capture/into) | M–L | Med | High (UX) | 3, 7-style preview | **+1** |
