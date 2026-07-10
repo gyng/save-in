@@ -1394,12 +1394,62 @@ button {
 }
 
 .history-status {
-  width: 7em;
+  width: 8em;
+  white-space: nowrap;
+}
+
+.history-open {
+  padding: 0 4px;
+  margin-left: var(--space-1);
+  border: none;
+  background: none;
+  font-size: 13px;
+  line-height: 1;
+  vertical-align: middle;
+  opacity: 0.7;
+}
+
+.history-open:hover {
+  background: none;
+  opacity: 1;
 }
 
 .history-type {
   width: 6em;
   text-transform: capitalize;
+}
+
+.history-routed {
+  width: 6em;
+}
+
+.routed-chip {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 11px;
+  color: var(--link-color);
+  background-color: rgba(10, 108, 255, 0.1);
+}
+
+/* The history table spans the full tab width (it has many columns) */
+.tab-panel > #history-list {
+  max-width: none;
+}
+
+.history-pager {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+
+.history-pager button {
+  padding: 4px 12px;
+}
+
+.history-pager-label {
+  font-variant-numeric: tabular-nums;
 }
 
 .status-badge {

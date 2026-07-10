@@ -205,7 +205,7 @@ const Notifier = {
         ) {
           const record = Download.startedDownloads.get(downloadDelta.id);
           if (record && record.historyEntryId) {
-            SaveHistory.setStatus(record.historyEntryId, status);
+            SaveHistory.setStatus(record.historyEntryId, status, downloadDelta.id);
           }
         }
       };

@@ -477,7 +477,11 @@ describe("renameAndDownload: browserDownload", () => {
     expect(global.Messaging.emit.downloaded).toHaveBeenCalledWith(state);
     expect(window.lastDownloadState).toBe(state);
     expect(global.SaveHistory.add).toHaveBeenCalledWith(
-      expect.objectContaining({ url: state.info.url, state }),
+      expect.objectContaining({
+        url: state.info.url,
+        routed: false,
+        info: expect.objectContaining({ sourceUrl: state.info.sourceUrl }),
+      }),
     );
   });
 });

@@ -237,7 +237,7 @@
   },
 
   "o_lHistoryHelp": {
-    "message": "The most recent saves. Click a column to sort. Stored locally on this device and capped at 100 entries."
+    "message": "Your saved downloads. Click a column to sort, filter to search. Stored locally on this device, up to 10,000 entries."
   },
 
   "o_lHistoryFilter": {

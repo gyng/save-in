@@ -4,9 +4,11 @@ const HISTORY_KEY = "save-in-history";
 
 // Entries store the whole download state: cap the list so storage.local
 // does not grow without bound
-const HISTORY_LIMIT = 100;
+const HISTORY_LIMIT = 10000;
 
 const SaveHistory = {
+  LIMIT: HISTORY_LIMIT,
+
   // Serialise writes: concurrent read-modify-write would drop entries
   writeQueue: Promise.resolve(),
   idCounter: 0,
@@ -36,9 +38,10 @@ const SaveHistory = {
     return id;
   },
 
-  // Records the final outcome ("complete" or a browser error name) against
-  // the entry created by add()
-  setStatus: (id, status) => {
+  // Records the final outcome ("complete" or a browser error name) and the
+  // browser download id (so the options page can open the file's folder)
+  // against the entry created by add()
+  setStatus: (id, status, downloadId) => {
     if (!id) {
       return SaveHistory.writeQueue;
     }
@@ -46,7 +49,8 @@ const SaveHistory = {
       .then(() => browser.storage.local.get(HISTORY_KEY))
       .then((res) => {
         const history = (res && res[HISTORY_KEY]) || [];
-        const next = history.map((e) => (e.id === id ? Object.assign({}, e, { status }) : e));
+        const patch = downloadId != null ? { status, downloadId } : { status };
+        const next = history.map((e) => (e.id === id ? Object.assign({}, e, patch) : e));
         return browser.storage.local.set({ [HISTORY_KEY]: next });
       })
       .catch(() => {});

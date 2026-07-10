@@ -293,12 +293,19 @@ const Download = {
       };
 
       // Record history before triggering the download so the entry id is
-      // available to the started-download record above
+      // available to the started-download record above. Store a compact
+      // entry (not the whole state) so history can hold many entries, plus
+      // whether a routing/rename rule was applied
       historyEntryId = SaveHistory.add({
         timestamp: new Date().toISOString(),
         url: _state.info.url,
         finalFullPath,
-        state: _state,
+        routed: Boolean(_state.route),
+        info: {
+          sourceUrl: _state.info.sourceUrl,
+          pageUrl: _state.info.pageUrl,
+          context: _state.info.context,
+        },
       });
 
       if (options.fetchViaContent) {

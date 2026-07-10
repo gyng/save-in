@@ -68,15 +68,17 @@ describe("SaveHistory", () => {
     await expect(SaveHistory.get()).resolves.toEqual([]);
   });
 
-  test("caps history length", async () => {
-    store[HISTORY_KEY] = Array.from({ length: 100 }, (_, i) => ({ i }));
+  test("caps history length at SaveHistory.LIMIT", async () => {
+    const limit = SaveHistory.LIMIT;
+    store[HISTORY_KEY] = Array.from({ length: limit }, (_, i) => ({ i }));
 
-    SaveHistory.add({ i: 100 });
+    SaveHistory.add({ i: limit });
     await flushWrites();
 
-    expect(store[HISTORY_KEY]).toHaveLength(100);
+    expect(store[HISTORY_KEY]).toHaveLength(limit);
+    // The oldest entry was dropped; the newest is appended
     expect(store[HISTORY_KEY][0]).toEqual({ i: 1 });
-    expect(store[HISTORY_KEY][99]).toMatchObject({ i: 100 });
+    expect(store[HISTORY_KEY][limit - 1]).toMatchObject({ i: limit });
   });
 
   test("add tolerates a storage backend returning nothing", async () => {

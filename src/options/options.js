@@ -235,11 +235,13 @@ document.addEventListener("DOMContentLoaded", renderVariablesPreview);
 
 const HISTORY_KEY = "save-in-history";
 
-// Newest-first cache of the stored entries, and the current sort/filter
-// state; the table re-renders from these without touching storage
+// Newest-first cache of the stored entries, and the current sort/filter/
+// page state; the table re-renders from these without touching storage
 let historyEntries = [];
 let historySort = { key: "time", dir: "desc" };
 let historyFilter = "";
+let historyPage = 0;
+const HISTORY_PAGE_SIZE = 50;
 
 const historyFilename = (fullPath) => {
   if (!fullPath) {
@@ -265,9 +267,12 @@ const historyTime = (iso) => {
   }
 };
 
-// state.info.context holds a DOWNLOAD_TYPES value (MEDIA/LINK/PAGE/…)
+// info.context holds a DOWNLOAD_TYPES value (MEDIA/LINK/PAGE/…); older
+// entries kept the whole state, so fall back to state.info
+const historyInfo = (entry) => entry.info || (entry.state && entry.state.info) || {};
+
 const historyType = (entry) => {
-  const context = entry.state && entry.state.info && entry.state.info.context;
+  const context = historyInfo(entry).context;
   if (!context) {
     return "";
   }
@@ -305,15 +310,17 @@ const historyStatusClass = (status) => {
 
 // Flatten an entry into the fields the table shows and sorts/filters on
 const historyRow = (entry) => {
-  const info = (entry.state && entry.state.info) || {};
+  const info = historyInfo(entry);
   return {
     time: entry.timestamp || "",
     status: historyStatus(entry),
+    routed: entry.routed ? "routed" : "",
     type: historyType(entry),
     file: historyFilename(entry.finalFullPath),
     folder: historyFolder(entry.finalFullPath),
     fullPath: entry.finalFullPath || "",
     source: info.sourceUrl || entry.url || info.pageUrl || "",
+    downloadId: typeof entry.downloadId === "number" ? entry.downloadId : null,
   };
 };
 
@@ -321,10 +328,24 @@ const COLUMNS = [
   { key: "time", label: "Saved", sortable: true },
   { key: "status", label: "Status", sortable: true },
   { key: "type", label: "Type", sortable: true },
+  { key: "routed", label: "Rule", sortable: true },
   { key: "file", label: "File", sortable: true },
   { key: "folder", label: "Folder", sortable: true },
   { key: "source", label: "Source", sortable: false },
 ];
+
+// Opens the containing folder for a completed download (best-effort; the
+// browser may have forgotten the download)
+const showInFolder = (downloadId) => {
+  if (downloadId == null || !browser.downloads || !browser.downloads.show) {
+    return;
+  }
+  try {
+    browser.downloads.show(downloadId);
+  } catch (e) {
+    // download no longer known to the browser
+  }
+};
 
 const renderHistoryTable = () => {
   const container = document.querySelector("#history-list");
@@ -353,8 +374,18 @@ const renderHistoryTable = () => {
     return historySort.dir === "asc" ? cmp : -cmp;
   });
 
+  const matchCount = rows.length;
+  const pageCount = Math.max(1, Math.ceil(matchCount / HISTORY_PAGE_SIZE));
+  if (historyPage >= pageCount) {
+    historyPage = pageCount - 1;
+  }
+  const pageRows = rows.slice(
+    historyPage * HISTORY_PAGE_SIZE,
+    (historyPage + 1) * HISTORY_PAGE_SIZE,
+  );
+
   if (countEl) {
-    countEl.textContent = query ? `${rows.length} of ${total}` : total ? `${total} saved` : "";
+    countEl.textContent = query ? `${matchCount} of ${total}` : total ? `${total} saved` : "";
   }
 
   container.textContent = "";
@@ -386,6 +417,7 @@ const renderHistoryTable = () => {
         } else {
           historySort = { key: col.key, dir: col.key === "time" ? "desc" : "asc" };
         }
+        historyPage = 0;
         renderHistoryTable();
       });
     }
@@ -393,7 +425,7 @@ const renderHistoryTable = () => {
   });
   table.appendChild(head);
 
-  rows.forEach((r) => {
+  pageRows.forEach((r) => {
     const tr = document.createElement("tr");
 
     const time = document.createElement("td");
@@ -408,12 +440,33 @@ const renderHistoryTable = () => {
     badge.textContent = historyStatusLabel(r.status);
     badge.title = r.status;
     status.appendChild(badge);
+    // Open the file's folder for completed downloads the browser still knows
+    if (r.status === "complete" && r.downloadId != null) {
+      const open = document.createElement("button");
+      open.type = "button";
+      open.className = "history-open";
+      open.textContent = "📂";
+      open.title = "Show in folder";
+      open.addEventListener("click", () => showInFolder(r.downloadId));
+      status.appendChild(open);
+    }
     tr.appendChild(status);
 
     const type = document.createElement("td");
     type.className = "history-type";
     type.textContent = r.type;
     tr.appendChild(type);
+
+    const routed = document.createElement("td");
+    routed.className = "history-routed";
+    if (r.routed) {
+      const chip = document.createElement("span");
+      chip.className = "routed-chip";
+      chip.textContent = "renamed";
+      chip.title = "A routing/rename rule was applied";
+      routed.appendChild(chip);
+    }
+    tr.appendChild(routed);
 
     const file = document.createElement("td");
     file.className = "history-file";
@@ -444,6 +497,39 @@ const renderHistoryTable = () => {
   });
 
   container.appendChild(table);
+
+  // Pagination (only when there is more than one page)
+  if (pageCount > 1) {
+    const pager = document.createElement("div");
+    pager.className = "history-pager";
+
+    const prev = document.createElement("button");
+    prev.type = "button";
+    prev.textContent = "‹ Newer";
+    prev.disabled = historyPage === 0;
+    prev.addEventListener("click", () => {
+      historyPage -= 1;
+      renderHistoryTable();
+    });
+
+    const label = document.createElement("span");
+    label.className = "caption history-pager-label";
+    label.textContent = `Page ${historyPage + 1} of ${pageCount}`;
+
+    const next = document.createElement("button");
+    next.type = "button";
+    next.textContent = "Older ›";
+    next.disabled = historyPage >= pageCount - 1;
+    next.addEventListener("click", () => {
+      historyPage += 1;
+      renderHistoryTable();
+    });
+
+    pager.appendChild(prev);
+    pager.appendChild(label);
+    pager.appendChild(next);
+    container.appendChild(pager);
+  }
 };
 
 const renderHistory = async () => {
@@ -465,6 +551,7 @@ document.addEventListener("DOMContentLoaded", renderHistory);
 const historyFilterInput = document.querySelector("#history-filter");
 historyFilterInput?.addEventListener("input", () => {
   historyFilter = historyFilterInput.value;
+  historyPage = 0;
   renderHistoryTable();
 });
 
