@@ -49,6 +49,7 @@
     "OPTION_KEYS": "readonly",
     "OPTION_TYPES": "readonly",
     "CLICK_TYPES": "readonly",
+    "CONFLICT_ACTION": "readonly",
     "FORBIDDEN_FILENAME_CHARS": "readonly",
     "BROWSERS": "readonly",
     "CURRENT_BROWSER": "writable",
