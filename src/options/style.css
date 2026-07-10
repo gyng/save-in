@@ -1108,6 +1108,19 @@ button:disabled:hover {
   margin: 0;
 }
 
+/* Reference links (Variable/Clause list) that sit inline in an editor
+   toolbar or the rule builder, alongside the +Add / Add buttons */
+.toolbar-link {
+  font-size: var(--text-sm);
+  white-space: nowrap;
+}
+
+.rule-builder-links {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
 .apply-button {
   padding: 8px 20px;
   font-weight: 500;
@@ -1388,13 +1401,11 @@ button {
 }
 
 .history-time {
-  width: 13em;
   color: var(--grey50);
   font-variant-numeric: tabular-nums;
 }
 
 .history-status {
-  width: 8em;
   white-space: nowrap;
 }
 
@@ -1415,12 +1426,7 @@ button {
 }
 
 .history-type {
-  width: 6em;
   text-transform: capitalize;
-}
-
-.history-routed {
-  width: 6em;
 }
 
 .routed-chip {
@@ -1432,8 +1438,11 @@ button {
   background-color: rgba(10, 108, 255, 0.1);
 }
 
-/* The history table spans the full tab width (it has many columns) */
-.tab-panel > #history-list {
+/* The history table spans the full tab width (it has many columns); its
+   action row (filter, count, clear) spans the same width so the count and
+   Clear button align flush with the table's right edge */
+.tab-panel > #history-list,
+.tab-panel > .history-actions {
   max-width: none;
 }
 
@@ -1478,12 +1487,10 @@ button {
 }
 
 .history-file {
-  width: 20%;
   font-family: var(--font-mono);
 }
 
 .history-folder {
-  width: 22%;
   color: var(--grey50);
   font-family: var(--font-mono);
 }

@@ -324,14 +324,16 @@ const historyRow = (entry) => {
   };
 };
 
+// width is a percentage weight (the table is table-layout: fixed, so the
+// header cells set the column widths)
 const COLUMNS = [
-  { key: "time", label: "Saved", sortable: true },
-  { key: "status", label: "Status", sortable: true },
-  { key: "type", label: "Type", sortable: true },
-  { key: "routed", label: "Rule", sortable: true },
-  { key: "file", label: "File", sortable: true },
-  { key: "folder", label: "Folder", sortable: true },
-  { key: "source", label: "Source", sortable: false },
+  { key: "time", label: "Saved", sortable: true, width: "15%" },
+  { key: "status", label: "Status", sortable: true, width: "10%" },
+  { key: "type", label: "Type", sortable: true, width: "7%" },
+  { key: "routed", label: "Rule", sortable: true, width: "8%" },
+  { key: "file", label: "File", sortable: true, width: "20%" },
+  { key: "folder", label: "Folder", sortable: true, width: "18%" },
+  { key: "source", label: "Source", sortable: false, width: "22%" },
 ];
 
 // Opens the containing folder for a completed download (best-effort; the
@@ -405,6 +407,9 @@ const renderHistoryTable = () => {
   COLUMNS.forEach((col) => {
     const th = document.createElement("th");
     th.textContent = col.label;
+    if (col.width) {
+      th.style.width = col.width;
+    }
     if (col.sortable) {
       th.classList.add("sortable");
       if (historySort.key === col.key) {

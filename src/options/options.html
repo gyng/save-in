@@ -47,9 +47,6 @@
 
       <h3>__MSG_o_sDirectories__</h3>
       <p>
-        <a class="external" href="variablelist.html" target="_blank">__MSG_o_lVariableList__</a>
-      </p>
-      <p>
         <a href="#" class="help learn-more" data-help-for="help-symlink">__MSG_o_lGuideSymlink__</a>
       </p>
       <div class="help-text" id="help-symlink">
@@ -136,6 +133,9 @@
                 <div class="insert-menu-variables"></div>
               </div>
             </details>
+            <a class="external toolbar-link" href="variablelist.html" target="_blank"
+              >__MSG_o_lVariableList__</a
+            >
             <button type="button" class="discard-button" data-discard="paths" disabled>
               __MSG_o_bDiscard__
             </button>
@@ -242,6 +242,9 @@
             <div class="path-editor-toolbar">
               <button type="button" id="path-editor-add-dir">+ __MSG_o_bAddDirectory__</button>
               <button type="button" id="path-editor-add-sep">+ __MSG_o_bAddSeparator__</button>
+              <a class="external toolbar-link" href="variablelist.html" target="_blank"
+                >__MSG_o_lVariableList__</a
+              >
               <button type="button" class="discard-button" data-discard="paths" disabled>
                 __MSG_o_bDiscard__
               </button>
@@ -338,12 +341,6 @@
         <h2>__MSG_o_sDynamicDownloads__</h2>
 
         <h3>__MSG_o_sRenameAndRouteDownloads__</h3>
-
-        <p>
-          <a class="external" href="variablelist.html" target="_blank">__MSG_o_lVariableList__</a>
-          &nbsp;
-          <a class="external" href="clauselist.html" target="_blank">__MSG_o_lClauseList__</a>
-        </p>
 
         <p>
           <a href="#" class="help learn-more" data-help-for="help-filenames"
@@ -496,6 +493,14 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
                   spellcheck="false"
                 />
                 <button type="button" id="rule-builder-add" disabled>Add</button>
+                <span class="rule-builder-links">
+                  <a class="external toolbar-link" href="variablelist.html" target="_blank"
+                    >__MSG_o_lVariableList__</a
+                  >
+                  <a class="external toolbar-link" href="clauselist.html" target="_blank"
+                    >__MSG_o_lClauseList__</a
+                  >
+                </span>
               </div>
             </div>
           </div>
@@ -695,7 +700,7 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
       <hr />
 
       <h2 id="section-history">__MSG_o_sHistory__</h2>
-      <div class="section-actions">
+      <div class="section-actions history-actions">
         <input
           type="text"
           id="history-filter"
