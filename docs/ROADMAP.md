@@ -545,6 +545,15 @@ Chrome's data-URL cap. `fetchViaContent` uses `no-cors` → opaque **0-byte**
 downloads cross-origin (`content.js`). Prefer `fetchViaFetch`; document/limit
 the data-URL ceiling.
 
+**The real fix — an Offscreen Document (Chrome). M.** `chrome.offscreen`
+(permission: `offscreen`, Chrome-only) creates a hidden page with a full DOM,
+so `URL.createObjectURL` works there. The SW asks the offscreen doc to fetch the
+URL (credentials/referer intact) and hand back a blob URL, then downloads it — no
+base64, no memory blowup, no data-URL cap. Keep the doc alive until
+`downloads.download` has consumed the URL (blob URLs die with their creating
+document). Feature-detect `chrome.offscreen`; Firefox keeps `createObjectURL` on
+its event page. This removes the §8.5 ceiling and is the modern MV3 answer.
+
 ---
 
 ## 9. Scriptable / AI-assisted configuration

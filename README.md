@@ -16,6 +16,14 @@ Flexible rules-based download renaming and routing.
 
 Option to save as shortcuts {.url, .desktop, .html redirect}.
 
+Records a sortable, filterable download History.
+
+Rich path variables — dates, page/source parts, `:counter:`, `:uuid:`, and `:mime:`/`:mimeext:` (from the file's Content-Type). See the [wiki](https://github.com/gyng/save-in/wiki/Clause-and-Variable-list).
+
+A versioned external API plus config tools for scripts and AI agents (WebMCP). See [Integrations](https://github.com/gyng/save-in/wiki/Integrations).
+
+Version 4 is a [Manifest V3](https://github.com/gyng/save-in/wiki/Manifest-V3) extension on Firefox 121+ and Chrome 121+.
+
 The WebExtension API only allows saving into directories relative to the default download directory. Symlinks can be used to get around this limitation:
 
 Linux/Mac:
@@ -28,22 +36,24 @@ Windows:
 
 Make sure the actual directories exist, or downloads will silently fail.
 
-- <all_urls> permission is used to get around CORS on HTTP HEAD requests (to check for Content-Disposition headers)
-- tabs permission is used to get the active page's title.
-- webRequest permissions are required to inject the Referer header on downloads (disabled by default)
+- `<all_urls>` is used to get around CORS on HTTP HEAD requests (to read Content-Disposition and Content-Type for `:mime:`) and to fetch downloads via the Fetch API.
+- `tabs` is used to get the active page's title.
+- `webRequest` (Firefox) / `declarativeNetRequest` (Chrome) inject the Referer header on downloads (disabled by default).
 
 Configure before use.
 
-## Use from other extensions
+## Integrations
 
-Other extensions can trigger a save-in download by sending an external
-message (see [the wiki](https://github.com/gyng/save-in/wiki/Integrations)
-for a Foxy Gestures example). This API is unofficial and unsupported — use at
-your own risk:
+Save-in exposes a versioned external API (`PING` + `DOWNLOAD`), a config API
+(`GET_SCHEMA` / `VALIDATE` / `APPLY_CONFIG`), and experimental WebMCP tools for
+AI agents. Full docs, a Foxy Gestures example, and the trust model are on the
+[Integrations wiki](https://github.com/gyng/save-in/wiki/Integrations).
+
+Minimal example — another extension triggers a routed download:
 
 ```js
 browser.runtime.sendMessage(
-  "{72d92df5-2aa0-4b06-b807-aa21767545cd}", // save-in's extension ID
+  "{72d92df5-2aa0-4b06-b807-aa21767545cd}", // save-in's extension ID (Web Store ID on Chrome)
   {
     type: "DOWNLOAD",
     body: {
@@ -53,10 +63,11 @@ browser.runtime.sendMessage(
     },
   },
 );
+// -> { type: "DOWNLOAD", body: { status: "OK", version: 1, url } }
 ```
 
-The download is routed through the same rename/routing rules as a context
-menu save. On Chrome, use save-in's Chrome Web Store extension ID instead.
+The download is routed through the same rename/routing rules as a context menu
+save. `PING` first to negotiate the version and capabilities.
 
 ## Development
 
@@ -85,7 +96,6 @@ extension unpacked in Chrome, run `node scripts/stage.js` and load
 2. Set environment variables `WEB_EXT_API_KEY` (JWT issuer) and `WEB_EXT_API_SECRET`
 3. `npm run build:firefox:submit` to sign and upload to AMO (Firefox Addons), or manually upload at [Firefox Addons](https://addons.mozilla.org/en-US/developers/addons)
 4. `npm run build:firefox:submit` also generates an XPI for manual distribution
-5. Add https://github.com/yuku-t/textcomplete/releases in the comments when uploading.
 
 ### Chrome
 
