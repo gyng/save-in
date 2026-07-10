@@ -5,3 +5,8 @@ import { vi } from "vitest";
 globalThis.jest = vi;
 
 await import("jest-webextension-mock");
+
+// Util is a pure, side-effect-free shared helper (like a stdlib): expose the
+// real implementation as a global so every module that depends on it works
+// without each test re-seeding a stub.
+globalThis.Util = (await import("../src/util.js")).default;

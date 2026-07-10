@@ -4,27 +4,26 @@
   "description": "__MSG_extensionDescription__",
   "version": "4.0.0",
   "default_locale": "en",
-
   "browser_specific_settings": {
     "gecko": {
       "id": "{72d92df5-2aa0-4b06-b807-aa21767545cd}",
       "strict_min_version": "121.0",
       "data_collection_permissions": {
-        "required": ["none"]
+        "required": [
+          "none"
+        ]
       }
     }
   },
-
   "homepage_url": "https://github.com/gyng/save-in",
-
   "minimum_chrome_version": "123",
-
   "background": {
     "scripts": [
       "src/browser-shim.js",
       "src/vendor/content-disposition.js",
       "src/chrome-detector.js",
       "src/constants.js",
+      "src/util.js",
       "src/log.js",
       "src/history.js",
       "src/counter.js",
@@ -44,14 +43,16 @@
     ],
     "service_worker": "src/background.js"
   },
-
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
-      "js": ["src/content/content.js"]
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "src/content/content.js"
+      ]
     }
   ],
-
   "permissions": [
     "activeTab",
     "tabs",
@@ -62,14 +63,13 @@
     "declarativeNetRequestWithHostAccess",
     "offscreen"
   ],
-
-  "host_permissions": ["<all_urls>"],
-
+  "host_permissions": [
+    "<all_urls>"
+  ],
   "options_ui": {
     "page": "src/options/options.html",
     "open_in_tab": true
   },
-
   "icons": {
     "48": "icons/ic_archive_black_48px.png",
     "96": "icons/ic_archive_black_96px.png",

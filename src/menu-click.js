@@ -63,9 +63,9 @@ Menus.addDownloadListener = () => {
           if (options.preferLinksFilterEnabled && options.preferLinksFilter) {
             let overrideUrls = false;
             try {
-              (options.preferLinksFilter || "")
-                .split("\n")
-                .map((s) => s.trim())
+              // splitLines drops empty lines: an empty pattern would compile to
+              // `new RegExp("")` and match every page
+              Util.splitLines(options.preferLinksFilter)
                 .map((s) => new RegExp(s))
                 .forEach((re) => {
                   if (info.pageUrl.match(re) != null) {

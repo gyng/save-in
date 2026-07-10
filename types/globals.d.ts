@@ -118,6 +118,11 @@ declare const Menus: {
   [key: string]: any;
 };
 declare const Messaging: Record<string, any>;
+// util.js — small shared helpers (withUrl, splitLines)
+declare const Util: {
+  withUrl: <T>(str: string, cb: (url: URL) => T, fallback?: T) => T;
+  splitLines: (raw: string | null | undefined) => string[];
+};
 // options page: path-editor.js (used by rule-builder.js for undoable edits)
 declare const PathEditor: Record<string, any>;
 // options page: options-logic.js — pure helpers extracted from options.js

@@ -16,6 +16,7 @@ importScripts(
   "vendor/content-disposition.js",
   "chrome-detector.js",
   "constants.js",
+  "util.js",
   "log.js",
   "history.js",
   "counter.js",

@@ -41,18 +41,14 @@ const RequestHeaders = {
   },
 
   matchesRefererFilter: (url) =>
-    (options.setRefererHeaderFilter || "")
-      .split("\n")
-      .map((s) => s.trim())
-      .filter((s) => s.length > 0)
-      .some((pattern) => {
-        try {
-          const re = RequestHeaders.matchPatternToRegExp(pattern);
-          return re != null && re.test(url);
-        } catch (e) {
-          return false;
-        }
-      }),
+    Util.splitLines(options.setRefererHeaderFilter).some((pattern) => {
+      try {
+        const re = RequestHeaders.matchPatternToRegExp(pattern);
+        return re != null && re.test(url);
+      } catch (e) {
+        return false;
+      }
+    }),
 
   // Set the Referer header for the upcoming download with a declarativeNetRequest
   // session rule. Both browsers use this path: Firefox and Chrome MV3 both
@@ -81,12 +77,7 @@ const RequestHeaders = {
     // Referer would be dropped); requestDomains covers the whole host for the
     // rule's short lifetime. Falls back to the exact URL if the host can't be
     // parsed. (#66/#193)
-    let host;
-    try {
-      host = new URL(url).hostname;
-    } catch (e) {
-      host = null;
-    }
+    const host = Util.withUrl(url, (u) => u.hostname, null);
 
     const ruleId = RequestHeaders.nextRefererRuleId();
     return chrome.declarativeNetRequest

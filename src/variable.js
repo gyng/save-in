@@ -1,12 +1,7 @@
 const Variable = {
-  // TODO: Move into utils
-  withUrl: (str, cb) => {
-    try {
-      return cb(new URL(str));
-    } catch (e) {
-      return str;
-    }
-  },
+  // Thin wrapper over Util.withUrl that keeps this call site's historical
+  // behavior of returning the original string on a parse failure
+  withUrl: (str, cb) => Util.withUrl(str, cb, str),
 
   padDateComponent: (num) => num.toString().padStart(2, "0"),
 

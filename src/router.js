@@ -1,3 +1,10 @@
+// SI_DEBUG match logging, deduped from the ~9 identical blocks it replaced
+const logMatch = (match, regex, info) => {
+  if (window.SI_DEBUG && match) {
+    console.log("matched", match, regex, info); // eslint-disable-line
+  }
+};
+
 const RouterFactory = {
   makeInfoMatcherFactory: (propertyName, alternativePropertyName) => (regex) => (info) => {
     let match = info[propertyName] && info[propertyName].match(regex);
@@ -7,9 +14,7 @@ const RouterFactory = {
       match = info[alternativePropertyName] && info[alternativePropertyName].match(regex);
     }
 
-    if (window.SI_DEBUG && match) {
-      console.log("matched", match, regex, info); // eslint-disable-line
-    }
+    logMatch(match, regex, info);
 
     return match;
   },
@@ -17,30 +22,22 @@ const RouterFactory = {
   makeTabMatcherFactory: (propertyName) => (regex) => (info) => {
     const match = currentTab && currentTab[propertyName] && currentTab[propertyName].match(regex);
 
-    if (window.SI_DEBUG && match) {
-      console.log("matched", match, regex, info); // eslint-disable-line
-    }
+    logMatch(match, regex, info);
 
     return match;
   },
 
+  // Keeps its own try/catch (rather than Util.withUrl) because the failure
+  // branch logs the bad domain, not just returns a fallback
   makeHostnameMatcherFactory: (propertyName) => (regex) => (info) => {
     try {
-      const url = new URL(info && info[propertyName]);
-
-      const hostname = url.hostname;
-      const match = hostname.match(regex);
-
-      if (window.SI_DEBUG && match) {
-        console.log("matched", match, regex, info); // eslint-disable-line
-      }
-
+      const match = new URL(info && info[propertyName]).hostname.match(regex);
+      logMatch(match, regex, info);
       return match;
     } catch (e) {
       if (window.SI_DEBUG) {
         console.log("bad page domain in matcher", info.pageUrl, e); // eslint-disable-line
       }
-
       return null;
     }
   },
@@ -57,9 +54,7 @@ const Router = {
       (info, { context } = Router.EMPTY_INFO) => {
         const match = context == null ? null : context.toLowerCase().match(regex);
 
-        if (window.SI_DEBUG && match) {
-          console.log("matched", match, regex, info); // eslint-disable-line
-        }
+        logMatch(match, regex, info);
 
         return match;
       },
@@ -68,9 +63,7 @@ const Router = {
       (info, { menuIndex } = Router.EMPTY_INFO) => {
         const match = menuIndex == null ? null : menuIndex.match(regex);
 
-        if (window.SI_DEBUG && match) {
-          console.log("matched", match, regex, info); // eslint-disable-line
-        }
+        logMatch(match, regex, info);
 
         return match;
       },
@@ -79,9 +72,7 @@ const Router = {
       (info, { comment } = Router.EMPTY_INFO) => {
         const match = comment == null ? null : comment.match(regex);
 
-        if (window.SI_DEBUG && match) {
-          console.log("matched", match, regex, info); // eslint-disable-line
-        }
+        logMatch(match, regex, info);
 
         return match;
       },
@@ -94,9 +85,7 @@ const Router = {
 
       const match = extension[1].match(regex);
 
-      if (window.SI_DEBUG && match) {
-        console.log("matched", match, regex, info); // eslint-disable-line
-      }
+      logMatch(match, regex, info);
 
       return match;
     },
@@ -108,9 +97,7 @@ const Router = {
 
         const match = fn.match(regex);
 
-        if (window.SI_DEBUG && match) {
-          console.log("matched", match, regex, info); // eslint-disable-line
-        }
+        logMatch(match, regex, info);
 
         return match;
       },
@@ -126,9 +113,7 @@ const Router = {
 
       const match = filename.match(regex);
 
-      if (window.SI_DEBUG && match) {
-        console.log("matched", match, regex, info); // eslint-disable-line
-      }
+      logMatch(match, regex, info);
 
       return match;
     },

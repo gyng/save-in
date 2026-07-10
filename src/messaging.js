@@ -30,14 +30,13 @@ const Messaging = {
     if (!url || typeof url !== "string") {
       return false;
     }
-    try {
-      const { protocol } = new URL(url);
-      // blob: is included because the extension downloads fetched content via
-      // blob URLs on Firefox (data: URLs are rejected there by downloads.download)
-      return ["http:", "https:", "ftp:", "data:", "blob:"].includes(protocol);
-    } catch {
-      return false;
-    }
+    // blob: is included because the extension downloads fetched content via
+    // blob URLs on Firefox (data: URLs are rejected there by downloads.download)
+    return Util.withUrl(
+      url,
+      (u) => ["http:", "https:", "ftp:", "data:", "blob:"].includes(u.protocol),
+      false,
+    );
   },
 
   handlePing: (request, sender, sendResponse) => {
@@ -113,10 +112,7 @@ const Messaging = {
     const result = { version: Messaging.API_VERSION };
 
     if (typeof body.paths === "string") {
-      const pathsArray = body.paths
-        .split("\n")
-        .map((p) => p.trim())
-        .filter((p) => p.length > 0);
+      const pathsArray = Util.splitLines(body.paths);
       const tree = Menus.buildTree(pathsArray);
       result.menuPreview = tree.items;
       result.pathErrors = tree.errors;
@@ -373,10 +369,7 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
       // Live menu-tree preview for the options page: runs the pure
       // Menus.buildTree over the (possibly unsaved) textarea content
       const raw = (request.body && request.body.paths) || "";
-      const pathsArray = raw
-        .split("\n")
-        .map((p) => p.trim())
-        .filter((p) => p && p.length > 0);
+      const pathsArray = Util.splitLines(raw);
       sendResponse({
         type: MESSAGE_TYPES.MENU_PREVIEW,
         body: Menus.buildTree(pathsArray),

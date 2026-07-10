@@ -16,10 +16,7 @@ window.init = () => {
       Menus.state.lastUsedPath = (results[1] && results[1].lastUsedPath) || null;
       Menus.state.lastUsedMeta = (results[1] && results[1].lastUsedMeta) || null;
 
-      const pathsArray = options.paths
-        .split("\n")
-        .map((p) => p.trim())
-        .filter((p) => p && p.length > 0);
+      const pathsArray = Util.splitLines(options.paths);
 
       let contexts = options.links ? MEDIA_TYPES.concat(["link"]) : MEDIA_TYPES;
       contexts = options.selection ? contexts.concat(["selection"]) : contexts;

@@ -293,6 +293,18 @@ describe("addDownloadListener", () => {
       expect(lastState().info.context).toBe(DOWNLOAD_TYPES.MEDIA);
     });
 
+    test("a trailing empty filter line does not force-match every page", async () => {
+      global.options.preferLinksFilterEnabled = true;
+      // The empty lines used to compile to `new RegExp("")` (matches everything)
+      // and wrongly override to the link; splitLines drops them
+      global.options.preferLinksFilter = "other\\.site\n\n  \n";
+
+      await listener(mediaClick);
+
+      expect(lastState().info.url).toBe("https://example.com/i.png");
+      expect(lastState().info.context).toBe(DOWNLOAD_TYPES.MEDIA);
+    });
+
     test("an invalid filter pattern notifies and keeps the media source", async () => {
       global.options.preferLinksFilterEnabled = true;
       global.options.preferLinksFilter = "[";
