@@ -1260,33 +1260,57 @@ button {
   padding: 0;
 }
 
+/* Reads like a real context menu: floating panel with a soft shadow and
+   rounded, highlight-on-hover rows */
 .menu-preview-tree > ul {
   display: inline-block;
-  min-width: 240px;
-  padding: var(--space-1) 0;
-  border: 1px solid var(--grey30);
-  border-radius: var(--radius);
+  min-width: 220px;
+  max-width: 100%;
+  padding: var(--space-1);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  background-color: var(--page-bg);
+  box-shadow:
+    0 2px 4px rgba(20, 30, 50, 0.06),
+    0 8px 24px rgba(20, 30, 50, 0.08);
   font-size: var(--text-sm);
 }
 
+/* Nested submenus indent with a faint guide line */
 .menu-preview-tree li ul {
-  margin-left: var(--space-4);
-  border-left: 1px solid var(--grey30);
+  margin: 2px 0 2px var(--space-3);
+  padding-left: var(--space-2);
+  border-left: 1px solid var(--panel-border);
 }
 
 .menu-preview-tree li ul:empty {
   display: none;
 }
 
-.menu-preview-item {
-  padding: 2px var(--space-3);
+.menu-preview-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  padding: 4px var(--space-2);
+  border-radius: var(--radius);
+  cursor: default;
+}
+
+.menu-preview-row:hover {
+  background-color: var(--panel-bg);
+}
+
+.menu-preview-title {
+  flex: none;
 }
 
 .menu-preview-dir {
-  margin-left: var(--space-2);
   color: var(--grey50);
   font-family: var(--font-mono);
-  font-size: var(--text-sm);
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .menu-preview-lastused .menu-preview-title {
@@ -1297,23 +1321,16 @@ button {
 .menu-preview-separator hr {
   /* Base hr is width: 100%, which overflows once side margins apply */
   width: auto;
-  margin: var(--space-1) var(--space-2);
+  margin: var(--space-1);
   border: none;
-  border-top: 1px solid var(--grey30);
+  border-top: 1px solid var(--panel-border);
   background: none;
 }
 
 .menu-preview-error {
-  padding: 2px var(--space-3);
+  padding: 4px var(--space-2);
   color: var(--red50);
-}
-
-@media (prefers-color-scheme: dark) {
-  .menu-preview-tree > ul,
-  .menu-preview-tree li ul,
-  .menu-preview-separator hr {
-    border-color: var(--grey60);
-  }
+  font-size: 12px;
 }
 
 /* ── History tab ──────────────────────────────────────────────────── */

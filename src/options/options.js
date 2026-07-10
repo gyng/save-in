@@ -808,18 +808,25 @@ const renderMenuPreview = (container, tree) => {
     } else {
       li.className = "menu-preview-item";
 
+      // The row (title + dir) is a flex box so the submenu ul drops below
+      // it as a block; hover highlights just the row
+      const row = document.createElement("div");
+      row.className = "menu-preview-row";
+
       const title = document.createElement("span");
       title.className = "menu-preview-title";
       title.textContent = item.title;
-      li.appendChild(title);
+      row.appendChild(title);
 
       // Aliased items also show the directory they save into
       if (item.title !== item.parsedDir) {
         const dir = document.createElement("span");
         dir.className = "menu-preview-dir";
         dir.textContent = item.parsedDir;
-        li.appendChild(dir);
+        row.appendChild(dir);
       }
+
+      li.appendChild(row);
 
       const childUl = document.createElement("ul");
       li.appendChild(childUl);
@@ -841,10 +848,13 @@ const renderMenuPreview = (container, tree) => {
 
     const li = document.createElement("li");
     li.className = "menu-preview-item menu-preview-lastused";
+    const row = document.createElement("div");
+    row.className = "menu-preview-row";
     const title = document.createElement("span");
     title.className = "menu-preview-title";
     title.textContent = browser.i18n.getMessage("contextMenuLastUsed");
-    li.appendChild(title);
+    row.appendChild(title);
+    li.appendChild(row);
     rootUl.insertBefore(li, rootUl.firstChild);
   }
 
