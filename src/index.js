@@ -17,8 +17,6 @@ window.init = () => {
       Menus.state.lastUsedPath = (results[1] && results[1].lastUsedPath) || null;
       Menus.state.lastUsedMeta = (results[1] && results[1].lastUsedMeta) || null;
 
-      RequestHeaders.addRequestListener();
-
       const pathsArray = options.paths
         .split("\n")
         .map((p) => p.trim())

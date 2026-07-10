@@ -37,16 +37,19 @@ same file list) and ignores `scripts`. Keep the two lists in sync when
 adding a background script — `scripts/check-background-scripts.js` (part of
 `npm run lint`) fails on drift.
 
-|                 | Firefox (event page)                            | Chrome (service worker)                                                |
-| --------------- | ----------------------------------------------- | ---------------------------------------------------------------------- |
-| Referer feature | blocking `webRequest` (still allowed in FF MV3) | `declarativeNetRequest` session rule (`RequestHeaders.prepareReferer`) |
-| Blob downloads  | `URL.createObjectURL` (event pages have DOM)    | data-URL fallbacks (`Download.makeObjectUrl` / `makeUrlFromBlob`)      |
+|                 | Firefox (event page)                                                        | Chrome (service worker)                                          |
+| --------------- | --------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| Referer feature | `declarativeNetRequest` session rule (`RequestHeaders.prepareReferer`)       | same — `declarativeNetRequest` session rule                      |
+| Blob downloads  | `URL.createObjectURL` (event pages have DOM)                                | data-URL fallbacks (`Download.makeObjectUrl` / `makeUrlFromBlob`) |
 
-Shared code must **feature-detect, not sniff**: blocking webRequest is
-detected by attempting registration (Chrome MV3 exposes `webRequest` but
-throws on the `"blocking"` option — see `RequestHeaders.usingBlockingWebRequest`);
-same for `URL.createObjectURL` and `browser.storage.session`. Both
-lifecycles are non-persistent, so all the service worker rules below apply
+Both browsers set the Referer via a `declarativeNetRequest` session rule
+(`RequestHeaders.prepareReferer`, per download): Firefox and Chrome MV3 both
+support DNR `modifyHeaders` for the Referer header, so the extension no longer
+requests `webRequest`/`webRequestBlocking` at all. (Chrome MV3 forbids blocking
+`webRequest` for non-policy extensions anyway; requesting it risks a Web Store
+rejection.) Other shared code must **feature-detect, not sniff**:
+`URL.createObjectURL` and `browser.storage.session` are probed for presence.
+Both lifecycles are non-persistent, so all the service worker rules below apply
 to Firefox too.
 
 ### MV3 service worker rules (learned the hard way)
@@ -151,4 +154,5 @@ vitest specifics:
 2. Bump version in `manifest.json` and `package.json`.
 3. `npm run build` → upload the same zip to AMO and the Chrome Web Store.
 4. Manual spot-check of anything the e2e can't reach: notifications
-   rendering, a pixiv Referer download (Chrome), options page dialogs.
+   rendering, a pixiv Referer download (both browsers, via the shared DNR
+   path), options page dialogs.

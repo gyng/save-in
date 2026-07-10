@@ -45,7 +45,7 @@ test("background event page initialises cleanly", async () => {
       pathErrors: window.optionErrors.paths.length,
       menuCount: Object.keys(Menus.pathMappings).length,
       hasObjectUrl: typeof URL.createObjectURL === "function",
-      hasBlockingWebRequest: !!(browser.webRequest && browser.webRequest.onBeforeSendHeaders),
+      hasDnr: typeof chrome.declarativeNetRequest === "object",
     }))`),
   );
 
@@ -54,8 +54,8 @@ test("background event page initialises cleanly", async () => {
   expect(state.menuCount).toBeGreaterThan(0);
   // Event pages keep a real DOM (unlike Chrome's service worker)...
   expect(state.hasObjectUrl).toBe(true);
-  // ...and Firefox MV3 keeps blocking webRequest
-  expect(state.hasBlockingWebRequest).toBe(true);
+  // ...and Firefox sets the Referer via declarativeNetRequest, same as Chrome
+  expect(state.hasDnr).toBe(true);
 });
 
 test("download completes through the real pipeline", async () => {
@@ -94,18 +94,22 @@ test("options reset re-initialises", async () => {
   expect(reset).toBe("reset-ok");
 });
 
-test("referer option registers a blocking webRequest listener", async () => {
-  const result = JSON.parse(
+test("referer option creates a declarativeNetRequest session rule", async () => {
+  const rules = JSON.parse(
     await session.evaluate(`(() => {
       options.setRefererHeader = true;
       options.setRefererHeaderFilter = "*://i.pximg.net/*";
-      RequestHeaders.addRequestListener();
-      return JSON.stringify({
-        registered: browser.webRequest.onBeforeSendHeaders.hasListener(RequestHeaders.refererListener),
-      });
+      return RequestHeaders.prepareReferer({
+        info: {
+          url: "https://i.pximg.net/img/e2e.png",
+          pageUrl: "https://www.pixiv.net/artworks/1",
+        },
+      })
+      .then(() => chrome.declarativeNetRequest.getSessionRules())
+      .then((r) => JSON.stringify(r.map((rule) => rule.action.requestHeaders[0].value)));
     })()`),
   );
-  expect(result.registered).toBe(true);
+  expect(rules).toEqual(["https://www.pixiv.net/artworks/1"]);
 });
 
 test("routing rules rename and route the download", async () => {

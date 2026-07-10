@@ -1,54 +1,4 @@
 const RequestHeaders = {
-  // requestId -> state. Firefox keeps requestId stable across a redirect chain,
-  // so binding the state to it on the first leg means a redirected leg (a
-  // different URL, e.g. a hotlink CDN's signed target) still gets the right
-  // page's referer, and concurrent downloads never cross over (#66, #193).
-  refererStates: new Map(),
-
-  refererListener: (details) => {
-    // TODO: option to ignore or rewrite referer, check if needed
-    const existingReferer = details.requestHeaders.find((h) => h.name === "Referer");
-    if (existingReferer) {
-      return {};
-    }
-
-    // Reuse the state bound to this request on an earlier leg; otherwise match
-    // the (first-leg) URL against the in-flight downloads and remember it for
-    // the rest of the redirect chain. The most-recent state is the last resort.
-    let state = RequestHeaders.refererStates.get(details.requestId);
-    if (!state) {
-      state =
-        (typeof Download !== "undefined" &&
-          Download.pendingStates &&
-          Download.pendingStates.get(details.url)) ||
-        globalChromeState;
-      if (state && state.info && details.requestId != null) {
-        RequestHeaders.refererStates.set(details.requestId, state);
-        if (RequestHeaders.refererStates.size > 100) {
-          const oldest = RequestHeaders.refererStates.keys().next().value;
-          RequestHeaders.refererStates.delete(oldest);
-        }
-      }
-    }
-
-    if (!state || !state.info) {
-      return {};
-    }
-
-    const { pageUrl } = state.info;
-    if (!pageUrl) {
-      return {};
-    }
-
-    const referer = {
-      name: "Referer",
-      value: pageUrl,
-    };
-    details.requestHeaders.push(referer);
-
-    return { requestHeaders: details.requestHeaders };
-  },
-
   DNR_REFERER_RULE_ID: 4077,
   // Concurrent downloads needing different referers must not share one rule id
   // (the second would clobber the first). Cycle through a bounded range and
@@ -104,20 +54,13 @@ const RequestHeaders = {
         }
       }),
 
-  // True when a blocking webRequest listener is registered (Firefox);
-  // Chrome MV3 exposes webRequest but rejects the "blocking" option, so
-  // this is determined by attempting registration, not by presence
-  usingBlockingWebRequest: false,
-
-  // Without blocking webRequest: set the Referer header for the upcoming
-  // download with a declarativeNetRequest session rule instead
+  // Set the Referer header for the upcoming download with a declarativeNetRequest
+  // session rule. Both browsers use this path: Firefox and Chrome MV3 both
+  // support DNR modifyHeaders for the Referer header (verified on downloads.download
+  // requests), so no blocking webRequest is needed — and Chrome MV3 forbids
+  // webRequestBlocking for non-policy extensions anyway.
   prepareReferer: (state) => {
     if (!options.setRefererHeader) {
-      return Promise.resolve();
-    }
-
-    // The blocking webRequest listener already handles it
-    if (RequestHeaders.usingBlockingWebRequest) {
       return Promise.resolve();
     }
 
@@ -132,12 +75,12 @@ const RequestHeaders = {
       return Promise.resolve();
     }
 
-    // Scope the rule to the source host, not the exact URL: Chrome's DNR
-    // condition is evaluated per request, and a hotlink CDN often 302s to a
-    // signed URL on the same host. An exact urlFilter wouldn't match that
-    // redirected leg (so the Referer would be dropped); requestDomains covers
-    // the whole host for the rule's short lifetime. Falls back to the exact URL
-    // if the host can't be parsed. (#66/#193)
+    // Scope the rule to the source host, not the exact URL: DNR conditions are
+    // evaluated per request, and a hotlink CDN often 302s to a signed URL on the
+    // same host. An exact urlFilter wouldn't match that redirected leg (so the
+    // Referer would be dropped); requestDomains covers the whole host for the
+    // rule's short lifetime. Falls back to the exact URL if the host can't be
+    // parsed. (#66/#193)
     let host;
     try {
       host = new URL(url).hostname;
@@ -175,58 +118,6 @@ const RequestHeaders = {
         }, 30000);
       })
       .catch(() => {});
-  },
-
-  addRequestListener: () => {
-    RequestHeaders.usingBlockingWebRequest = false;
-
-    if (!browser.webRequest || !browser.webRequest.onBeforeSendHeaders) {
-      // No webRequest at all; see RequestHeaders.prepareReferer
-      return;
-    }
-
-    browser.webRequest.onBeforeSendHeaders.removeListener(RequestHeaders.refererListener);
-
-    if (options.setRefererHeader) {
-      const filterList = options.setRefererHeaderFilter || "";
-
-      // Empty lines (e.g. a trailing newline in the textarea) are invalid
-      // match patterns: addListener would throw and kill init before the
-      // menus are created (#222)
-      const urls = filterList
-        .split("\n")
-        .map((s) => s.trim())
-        .filter((s) => s.length > 0);
-
-      if (urls.length === 0) {
-        return;
-      }
-
-      // Cross-browser union: "extraHeaders" exists on Chrome only
-      /** @type {any[]} */
-      const listenerOptions = ["blocking", "requestHeaders"];
-
-      // Chrome needs `extraHeaders` to set Referer
-      // https://developer.chrome.com/extensions/webRequest
-      // Firefox doesn't permit unknown options and dies, so we need this explicit check
-      if (CURRENT_BROWSER === BROWSERS.CHROME) {
-        listenerOptions.push("extraHeaders");
-      }
-
-      try {
-        browser.webRequest.onBeforeSendHeaders.addListener(
-          RequestHeaders.refererListener,
-          { urls },
-          listenerOptions,
-        );
-        RequestHeaders.usingBlockingWebRequest = true;
-      } catch (e) {
-        // Chrome MV3 rejects "blocking" (prepareReferer's DNR rules take
-        // over), and an invalid user-supplied match pattern must not break
-        // startup (#222)
-        console.error("Blocking webRequest unavailable", urls, e); // eslint-disable-line
-      }
-    }
   },
 };
 
