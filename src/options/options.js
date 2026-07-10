@@ -162,6 +162,59 @@ const renderVersionLabel = () => {
 };
 document.addEventListener("DOMContentLoaded", renderVersionLabel);
 
+// More Options → External API: show the live extension id and a ready-to-paste
+// integration snippet, and PING the running background so the displayed version
+// and capabilities are the real ones this build serves. See docs/INTEGRATIONS.md.
+const renderExternalApi = () => {
+  const idEl = document.querySelector("#ext-id");
+  if (!idEl) {
+    return;
+  }
+  const id = browser.runtime.id;
+  idEl.textContent = id;
+
+  const snippet = document.querySelector("#api-snippet");
+  if (snippet) {
+    snippet.textContent = [
+      `const ID = "${id}";`,
+      `const pong = await browser.runtime.sendMessage(ID, { type: "PING" });`,
+      `// pong.body -> { version, capabilities }`,
+      ``,
+      `const res = await browser.runtime.sendMessage(ID, {`,
+      `  type: "DOWNLOAD",`,
+      `  body: {`,
+      `    url: "https://example.com/pic.jpg",`,
+      `    info: { pageUrl: location.href, srcUrl: "https://example.com/pic.jpg" },`,
+      `  },`,
+      `});`,
+      `// res.body -> { status: "OK", version, url } | { status: "ERROR", error, message }`,
+    ].join("\n");
+  }
+
+  const versionEl = document.querySelector("#api-version");
+  const capsEl = document.querySelector("#api-capabilities");
+  browser.runtime
+    .sendMessage({ type: "PING" })
+    .then((pong) => {
+      const body = (pong && pong.body) || {};
+      if (versionEl) {
+        versionEl.textContent = body.version != null ? `v${body.version}` : "unknown";
+      }
+      if (capsEl) {
+        capsEl.textContent = (body.capabilities || []).join(", ") || "—";
+      }
+    })
+    .catch(() => {
+      if (versionEl) {
+        versionEl.textContent = "unavailable";
+      }
+      if (capsEl) {
+        capsEl.textContent = "—";
+      }
+    });
+};
+document.addEventListener("DOMContentLoaded", renderExternalApi);
+
 // Live variable values, shown in the preview columns of the Downloads and
 // Dynamic tabs: each variable and its current interpolated value from the
 // last download (CHECK_ROUTES). Clicking a variable inserts it into the

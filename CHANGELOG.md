@@ -21,6 +21,11 @@ testing on Chromium!
   was kept) and is capped at 100 entries
 - Click-to-save and external-extension downloads no longer inherit the
   previous download's filename or rename route
+- The external DOWNLOAD API is now official and versioned (v1, #110): send
+  `{ type: "PING" }` to negotiate the version and capabilities, `DOWNLOAD`
+  now returns a typed `OK`/`ERROR` response and validates the URL scheme, and
+  More Options → External API shows the extension id, live version, and a
+  copy-paste snippet
 - Shortcut files keep their extensions instead of being saved as .txt
   (#161): the download mime now matches the shortcut type
 - Server-provided filenames containing a literal % no longer error out and

@@ -1366,6 +1366,55 @@ button {
   font-size: 12px;
 }
 
+/* ── More Options → External API (issue #110) ─────────────────────── */
+
+.dev-api {
+  max-width: 640px;
+  margin: var(--space-2) 0 var(--space-4);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  background-color: var(--panel-bg);
+}
+
+.dev-api-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  padding: var(--space-1) 0;
+}
+
+.dev-api-label {
+  flex: 0 0 7em;
+  color: var(--grey50);
+  font-size: var(--text-sm);
+}
+
+.dev-api-value {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  word-break: break-all;
+}
+
+code.click-to-copy {
+  cursor: pointer;
+}
+
+.dev-api-snippet {
+  margin-top: var(--space-2);
+}
+
+.dev-api-snippet pre {
+  overflow-x: auto;
+  margin: var(--space-1) 0;
+  padding: var(--space-2);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  background-color: var(--page-bg);
+  font-size: 12px;
+  cursor: pointer;
+}
+
 /* ── History tab ──────────────────────────────────────────────────── */
 
 .section-actions {

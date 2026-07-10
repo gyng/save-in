@@ -800,6 +800,33 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
 
       <textarea id="export-target" style="display: none" spellcheck="false"></textarea>
 
+      <h3>External API</h3>
+      <p class="caption caption-line">
+        Other extensions can save a URL through save-in's routing and rename rules (issue #110).
+        <a class="external" href="https://github.com/gyng/save-in/wiki/Use-with-Foxy-Gestures"
+          >Integration guide</a
+        >.
+      </p>
+      <div class="dev-api">
+        <div class="dev-api-row">
+          <span class="dev-api-label">Extension ID</span>
+          <code id="ext-id" class="click-to-copy dev-api-value" title="Click to copy">…</code>
+        </div>
+        <div class="dev-api-row">
+          <span class="dev-api-label">API version</span>
+          <span id="api-version" class="dev-api-value">…</span>
+        </div>
+        <div class="dev-api-row">
+          <span class="dev-api-label">Capabilities</span>
+          <span id="api-capabilities" class="dev-api-value">…</span>
+        </div>
+        <details class="dev-api-snippet">
+          <summary>Example: negotiate the version, then save a URL</summary>
+          <pre id="api-snippet" class="click-to-copy" title="Click to copy"></pre>
+          <div class="caption">Click the snippet to copy it.</div>
+        </details>
+      </div>
+
       <label> <input type="checkbox" id="debug" /> __MSG_o_cDebugMode__ </label>
 
       <p>__MSG_translationCredits__</p>

@@ -7,20 +7,35 @@ notes, not commitments.
 
 ---
 
-## 1. The external download API (today)
+## 1. The external download API — v1 (supported)
 
-save-in listens on `browser.runtime.onMessageExternal`, so any other
-extension can ask it to save a URL. This is how [Foxy
+save-in listens on `browser.runtime.onMessageExternal`, so any other extension
+can ask it to save a URL. This is how [Foxy
 Gestures](https://github.com/gyng/save-in/wiki/Use-with-Foxy-Gestures) drives
-it.
+it. As of v4.0.0 this is a **versioned, supported contract** (issue #110), not
+an unofficial hook — see `src/messaging.js`.
 
-**Message shape** (`src/messaging.js` → `handleDownloadMessage`):
+### Discover the version first — `PING`
 
 ```js
-browser.runtime.sendMessage("{72d92df5-2aa0-4b06-b807-aa21767545cd}", {
+const ID = "{72d92df5-2aa0-4b06-b807-aa21767545cd}"; // manifest.json gecko id
+const pong = await browser.runtime.sendMessage(ID, { type: "PING" });
+// pong === { type: "PONG", body: { version: 1, capabilities: [
+//   "download", "ping", "routing", "comment", "info" ] } }
+```
+
+Negotiate against `body.version` / `body.capabilities` before sending a
+`DOWNLOAD`. A `PING` to an old build (which doesn't know the type) rejects or
+returns undefined — treat that as "version 0, DOWNLOAD-only".
+
+### Save a URL — `DOWNLOAD`
+
+```js
+const res = await browser.runtime.sendMessage(ID, {
   type: "DOWNLOAD",
   body: {
     url: "https://example.com/pic.jpg", // required: what to save
+    version: 1,                          // optional: pin the API version
     comment: "foo",                      // optional: matched by comment: rules
     info: {
       pageUrl: "https://example.com/",   // optional: :pageurl:, pagedomain rules
@@ -31,25 +46,45 @@ browser.runtime.sendMessage("{72d92df5-2aa0-4b06-b807-aa21767545cd}", {
 });
 ```
 
+**Response contract:**
+
+```js
+// success
+{ type: "DOWNLOAD", body: { status: "OK", version: 1, url: "…" } }
+// failure (typed)
+{ type: "DOWNLOAD", body: { status: "ERROR", error: "INVALID_URL", message: "…", version: 1 } }
+```
+
+`error` is one of `BAD_REQUEST` (malformed message, e.g. missing `url`),
+`INVALID_URL` (not an `http(s)`/`ftp`/`data` URL), or `UNKNOWN_TYPE` (message
+type the running version doesn't handle). `status: "OK"` is unchanged from
+earlier builds, so pre-existing callers keep working; `version`/`url` are
+additive.
+
 The download then flows through the **same pipeline as a context-menu save** —
 routing rules, `:variables:`, the Referer feature, the auto-retry fallback,
-history, and notifications all apply. `context` is set to `CLICK`.
-
-**What it inherits from the last save**: only the last used *directory* plus
-`comment`/`menuIndex` (so routing still matches). It does not reuse the prior
-download's filename or route — that was a real bug we fixed.
+history, and notifications all apply. `context` is set to `CLICK`. **What it
+inherits from the last save**: only the last used *directory* plus
+`comment`/`menuIndex` (so routing still matches) — never the prior download's
+filename or route.
 
 **Constraints worth knowing for integrators:**
 
 - The extension id above is stable; get it from `manifest.json`
-  (`browser_specific_settings.gecko.id` on Firefox).
+  (`browser_specific_settings.gecko.id` on Firefox; the Web Store id on Chrome).
 - There is no `externally_connectable` block, so **web pages cannot message
   save-in directly** — only other extensions can. A userscript needs a host
   extension (Tampermonkey/Violentmonkey count) to relay the message.
 - The MV3 service worker may be asleep; `sendMessage` wakes it. No prewarm is
   needed for external messages (unlike the content-script click path).
-- There is currently **no acknowledgement** returned for `DOWNLOAD` — the
-  sender can't tell whether the save succeeded.
+- **Trust model:** `onMessageExternal` accepts from **any** installed
+  extension, and a `DOWNLOAD` triggers a save. save-in validates the URL scheme
+  (`http`/`https`/`ftp`/`data` only, so a caller can't make it fetch
+  `javascript:`/`file:`) but does not otherwise allowlist senders. Treat the
+  ability to install an extension as the trust boundary.
+- The `OK` response acknowledges that the save was **accepted and started**, not
+  that the file landed — the pipeline is async. Watch the History tab (or a
+  future `DOWNLOADED` push) for completion.
 
 ## 2. Import / export (today)
 
@@ -65,15 +100,14 @@ between machines or profiles, and the basis for programmatic configuration
 Small, additive changes that would turn the two implicit surfaces above into a
 documented, discoverable API — without a build step or new permissions.
 
-1. **Version the external API + add a capability ping.** A
-   `{ type: "PING" }` → `{ ok: true, version, capabilities: [...] }` response,
-   and a `DOWNLOAD` acknowledgement (`{ ok, downloadId }` or
-   `{ ok: false, error }`). This lets an integrator feature-detect and confirm
-   a save. It's the single highest-value change and unblocks the rest.
-2. **A "Connected apps / API" section in the options page.** Show the
-   extension id, a copy-paste `DOWNLOAD` snippet (with the live id filled in),
-   and a link to this doc. Right now integrators have to read the wiki and
-   hardcode the id.
+1. ~~**Version the external API + add a capability ping.**~~ **Done (v1).**
+   `{ type: "PING" }` → `{ type: "PONG", body: { version, capabilities } }`,
+   and `DOWNLOAD` now returns `{ status: "OK", version, url }` or a typed
+   `{ status: "ERROR", error, message, version }` (see §1).
+2. ~~**A "Connected apps / API" section in the options page.**~~ **Done.**
+   More Options → **Developer / External API** shows the live extension id, the
+   negotiated version + capabilities, copy-paste `PING`/`DOWNLOAD` snippets with
+   the id filled in, and a link to this doc.
 3. **`externally_connectable` (opt-in, Chrome).** If we want *web pages* (not
    just extensions) to trigger saves, add an `externally_connectable.matches`
    list. Keep it empty/absent by default — it widens the attack surface — but
