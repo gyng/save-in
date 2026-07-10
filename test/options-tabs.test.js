@@ -132,3 +132,42 @@ describe("setupTabs guards", () => {
     expect(document.querySelector(".tablist")).toBeNull();
   });
 });
+
+describe("unsaved-changes guard on tab switch", () => {
+  beforeEach(() => {
+    buildForm();
+    try {
+      localStorage.removeItem(TAB_STORAGE_KEY);
+    } catch (e) {
+      // ignore
+    }
+    setupTabs();
+  });
+
+  afterEach(() => {
+    document.body.innerHTML = "";
+    delete window.confirmPendingChanges;
+  });
+
+  test("calls the guard when switching to a different tab", () => {
+    window.confirmPendingChanges = vi.fn();
+    const tabs = document.querySelectorAll(".tablist .tab");
+
+    tabs[1].click();
+    expect(window.confirmPendingChanges).toHaveBeenCalledTimes(1);
+
+    // Re-clicking the active tab is not a switch
+    tabs[1].click();
+    expect(window.confirmPendingChanges).toHaveBeenCalledTimes(1);
+
+    tabs[0].click();
+    expect(window.confirmPendingChanges).toHaveBeenCalledTimes(2);
+  });
+
+  test("still switches when no guard is registered", () => {
+    const tabs = document.querySelectorAll(".tablist .tab");
+    const panels = document.querySelectorAll(".tab-panel");
+    tabs[1].click();
+    expect(panels[1].classList.contains("active")).toBe(true);
+  });
+});

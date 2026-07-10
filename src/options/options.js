@@ -354,8 +354,10 @@ const setupChromeDisables = () => {
 const AUTOSAVE_DEBOUNCE_MS = 400;
 
 // True between a textarea edit and the debounced save that persists it;
-// closing the page in that window would silently drop the edit
+// closing the page or switching tabs in that window would drop the edit
 let pendingChanges = false;
+// Scheduled autosave timers, so a Discard can cancel them before they fire
+const pendingSaveTimers = new Set();
 
 window.addEventListener("beforeunload", (e) => {
   if (pendingChanges) {
@@ -363,6 +365,25 @@ window.addEventListener("beforeunload", (e) => {
     e.returnValue = "";
   }
 });
+
+// Called before an in-page tab switch (main tabs don't unload the page, so
+// beforeunload never fires): prompt to save or discard editor changes that
+// haven't been persisted yet. OK = save now, Cancel = revert to stored.
+window.confirmPendingChanges = () => {
+  if (!pendingChanges) {
+    return;
+  }
+  // eslint-disable-next-line no-alert
+  const save = window.confirm(browser.i18n.getMessage("optionsUnsavedChanges"));
+  if (save) {
+    saveOptions();
+  } else {
+    pendingSaveTimers.forEach((t) => window.clearTimeout(t));
+    pendingSaveTimers.clear();
+    pendingChanges = false;
+    restoreOptions();
+  }
+};
 
 const setupAutosave = (el) => {
   let debounceTimer = null;
@@ -389,11 +410,14 @@ const setupAutosave = (el) => {
       pendingChanges = true;
       if (debounceTimer !== null) {
         window.clearTimeout(debounceTimer);
+        pendingSaveTimers.delete(debounceTimer);
       }
       debounceTimer = window.setTimeout(() => {
+        pendingSaveTimers.delete(debounceTimer);
         debounceTimer = null;
         doSave();
       }, AUTOSAVE_DEBOUNCE_MS);
+      pendingSaveTimers.add(debounceTimer);
     });
 
     // Flush on blur so a quick click-away right after typing isn't lost
@@ -402,6 +426,7 @@ const setupAutosave = (el) => {
         return;
       }
       window.clearTimeout(debounceTimer);
+      pendingSaveTimers.delete(debounceTimer);
       debounceTimer = null;
       doSave();
     });

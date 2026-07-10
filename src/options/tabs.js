@@ -82,7 +82,20 @@ const setupTabs = () => {
     return tab;
   });
 
+  let currentIndex = -1;
+
   const select = (index) => {
+    // Leaving a tab with unsaved editor changes prompts to save/discard
+    // (main tabs don't unload the page, so beforeunload can't cover this)
+    if (
+      currentIndex !== -1 &&
+      index !== currentIndex &&
+      typeof window.confirmPendingChanges === "function"
+    ) {
+      window.confirmPendingChanges();
+    }
+    currentIndex = index;
+
     tabs.forEach((tab, i) => {
       const selected = i === index;
       tab.classList.toggle("active", selected);

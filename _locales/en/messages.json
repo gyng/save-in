@@ -641,6 +641,11 @@
     "message": "never"
   },
 
+  "optionsUnsavedChanges": {
+    "message": "You have unsaved changes. OK to save them, or Cancel to discard.",
+    "description": "Confirm prompt when leaving a tab with unsaved editor changes"
+  },
+
   "o_lSubdirectoryInstructionComment": {
     "message": "at the start creates nested submenus depending on the number of arrows."
   },

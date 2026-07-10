@@ -132,6 +132,10 @@ html {
   font-family: var(--font-stack);
   min-width: 400px;
   min-height: 1%; /* Firefox options page height hack */
+  /* Always reserve the vertical scrollbar gutter so switching between
+     short and tall tabs does not shift the layout horizontally */
+  scrollbar-gutter: stable;
+  overflow-y: scroll;
 }
 
 /* Full-bleed shell: the page owns the viewport; content width is capped
