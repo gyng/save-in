@@ -830,9 +830,9 @@ input.key {
 
 .rule-template {
   display: flex;
-  align-items: flex-start;
-  gap: var(--space-3);
-  padding: var(--space-2) 0;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) 0;
   border-bottom: 1px solid var(--panel-border);
 }
 
@@ -847,17 +847,19 @@ input.key {
 
 .rule-template-name {
   font-weight: 600;
+  font-size: var(--text-sm);
 }
 
-.rule-template-rule {
-  margin: var(--space-1) 0 0;
-  padding: var(--space-1) var(--space-2);
-  font-size: var(--text-sm);
-  overflow-x: auto;
+.rule-template-desc {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .rule-template-add {
-  min-width: 72px;
+  flex: none;
+  min-width: 60px;
+  padding: 4px 10px;
 }
 
 button:disabled {
@@ -1223,9 +1225,6 @@ button {
 }
 
 /* History count sits left, the action button right */
-#history-count {
-  margin-right: auto;
-}
 
 .history-table {
   table-layout: fixed;
@@ -1244,6 +1243,20 @@ button {
   font-weight: 600;
   padding: 0 var(--space-3) var(--space-1) 0;
   border-bottom: 1px solid var(--panel-border);
+  white-space: nowrap;
+}
+
+.history-table th.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.history-table th.sortable:hover {
+  color: var(--link-color);
+}
+
+.history-table th.sorted {
+  color: var(--link-color);
 }
 
 .history-table td {
@@ -1256,24 +1269,39 @@ button {
 }
 
 .history-time {
-  width: 14em;
+  width: 13em;
   color: var(--grey50);
   font-variant-numeric: tabular-nums;
 }
 
+.history-type {
+  width: 6em;
+  text-transform: capitalize;
+}
+
 .history-file {
-  width: 22%;
+  width: 20%;
   font-family: var(--font-mono);
 }
 
-.history-path {
-  width: 26%;
+.history-folder {
+  width: 22%;
   color: var(--grey50);
   font-family: var(--font-mono);
 }
 
 .history-source a {
   font-family: var(--font-mono);
+}
+
+/* Filter box sits left of the section actions and grows */
+.history-filter {
+  margin-right: auto;
+}
+
+.tab-panel .section-actions .history-filter[type="text"] {
+  flex: 1 1 200px;
+  max-width: 300px;
 }
 
 /* ── In-tab hierarchy: subsection headings get vertical rhythm ─────── */

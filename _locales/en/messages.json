@@ -237,7 +237,11 @@
   },
 
   "o_lHistoryHelp": {
-    "message": "The most recent saves, newest first. Stored locally on this device and capped at 100 entries."
+    "message": "The most recent saves. Click a column to sort. Stored locally on this device and capped at 100 entries."
+  },
+
+  "o_lHistoryFilter": {
+    "message": "Filter by file, folder, type, or source"
   },
 
   "o_cClearHistory": {

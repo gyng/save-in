@@ -136,14 +136,11 @@ const RuleBuilder = {
       body.appendChild(name);
 
       const description = document.createElement("div");
-      description.className = "caption";
+      description.className = "caption rule-template-desc";
       description.textContent = tpl.description;
       body.appendChild(description);
-
-      const rule = document.createElement("pre");
-      rule.className = "rule-template-rule";
-      rule.textContent = tpl.rule;
-      body.appendChild(rule);
+      // The full rule shows on hover to keep the list compact
+      row.title = tpl.rule;
 
       const add = document.createElement("button");
       add.type = "button";
@@ -158,7 +155,9 @@ const RuleBuilder = {
       sync();
 
       add.addEventListener("click", () => {
-        RuleBuilder.appendRule(textarea, tpl.rule);
+        // Prepend the description as a comment (parseRules strips //-lines)
+        // so the added rule is self-documenting in the textarea
+        RuleBuilder.appendRule(textarea, `// ${tpl.name}: ${tpl.description}\n${tpl.rule}`);
         syncs.forEach((fn) => fn());
       });
 

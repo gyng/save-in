@@ -164,13 +164,26 @@ document.addEventListener("DOMContentLoaded", renderVersionLabel);
 
 const HISTORY_KEY = "save-in-history";
 
-// The last path component of a saved path, for the primary column
+// Newest-first cache of the stored entries, and the current sort/filter
+// state; the table re-renders from these without touching storage
+let historyEntries = [];
+let historySort = { key: "time", dir: "desc" };
+let historyFilter = "";
+
 const historyFilename = (fullPath) => {
   if (!fullPath) {
     return "(unnamed)";
   }
   const parts = String(fullPath).split("/");
   return parts[parts.length - 1] || fullPath;
+};
+
+const historyFolder = (fullPath) => {
+  if (!fullPath) {
+    return "";
+  }
+  const idx = String(fullPath).lastIndexOf("/");
+  return idx === -1 ? "." : fullPath.slice(0, idx);
 };
 
 const historyTime = (iso) => {
@@ -181,29 +194,71 @@ const historyTime = (iso) => {
   }
 };
 
-const renderHistory = async () => {
+// state.info.context holds a DOWNLOAD_TYPES value (MEDIA/LINK/PAGE/…)
+const historyType = (entry) => {
+  const context = entry.state && entry.state.info && entry.state.info.context;
+  if (!context) {
+    return "";
+  }
+  const c = String(context).toLowerCase();
+  return c === "media" ? "image" : c;
+};
+
+// Flatten an entry into the fields the table shows and sorts/filters on
+const historyRow = (entry) => {
+  const info = (entry.state && entry.state.info) || {};
+  return {
+    time: entry.timestamp || "",
+    type: historyType(entry),
+    file: historyFilename(entry.finalFullPath),
+    folder: historyFolder(entry.finalFullPath),
+    fullPath: entry.finalFullPath || "",
+    source: info.sourceUrl || entry.url || info.pageUrl || "",
+  };
+};
+
+const COLUMNS = [
+  { key: "time", label: "Saved", sortable: true },
+  { key: "type", label: "Type", sortable: true },
+  { key: "file", label: "File", sortable: true },
+  { key: "folder", label: "Folder", sortable: true },
+  { key: "source", label: "Source", sortable: false },
+];
+
+const renderHistoryTable = () => {
   const container = document.querySelector("#history-list");
   const countEl = document.querySelector("#history-count");
   if (!container) {
     return;
   }
 
-  const stored = (await browser.storage.local.get(HISTORY_KEY)) ?? {};
-  const entries = (stored[HISTORY_KEY] || []).slice().reverse(); // newest first
+  const query = historyFilter.trim().toLowerCase();
+  let rows = historyEntries.map(historyRow);
+  const total = rows.length;
 
-  // Raw JSON stays available (some users import/inspect it); kept in sync
-  /** @type {HTMLTextAreaElement} */
-  const raw = document.querySelector("#history");
-  if (raw) {
-    raw.value = JSON.stringify(stored, null, 2);
+  if (query) {
+    rows = rows.filter((r) =>
+      [r.type, r.file, r.folder, r.source].some((v) => v.toLowerCase().includes(query)),
+    );
+  }
+
+  rows.sort((a, b) => {
+    const av = a[historySort.key];
+    const bv = b[historySort.key];
+    const cmp =
+      historySort.key === "time"
+        ? av.localeCompare(bv)
+        : av.localeCompare(bv, undefined, { numeric: true });
+    return historySort.dir === "asc" ? cmp : -cmp;
+  });
+
+  if (countEl) {
+    countEl.textContent = query ? `${rows.length} of ${total}` : total ? `${total} saved` : "";
   }
 
   container.textContent = "";
-  if (countEl) {
-    countEl.textContent = entries.length ? `${entries.length} saved` : "";
-  }
 
-  if (entries.length === 0) {
+  if (total === 0) {
     const empty = document.createElement("p");
     empty.className = "caption";
     empty.textContent = "No downloads saved yet.";
@@ -215,45 +270,62 @@ const renderHistory = async () => {
   table.className = "history-table";
 
   const head = document.createElement("tr");
-  ["Saved", "File", "Saved to", "Source"].forEach((label) => {
+  COLUMNS.forEach((col) => {
     const th = document.createElement("th");
-    th.textContent = label;
+    th.textContent = col.label;
+    if (col.sortable) {
+      th.classList.add("sortable");
+      if (historySort.key === col.key) {
+        th.classList.add("sorted");
+        th.textContent = `${col.label} ${historySort.dir === "asc" ? "▲" : "▼"}`;
+      }
+      th.addEventListener("click", () => {
+        if (historySort.key === col.key) {
+          historySort.dir = historySort.dir === "asc" ? "desc" : "asc";
+        } else {
+          historySort = { key: col.key, dir: col.key === "time" ? "desc" : "asc" };
+        }
+        renderHistoryTable();
+      });
+    }
     head.appendChild(th);
   });
   table.appendChild(head);
 
-  entries.forEach((entry) => {
-    const info = (entry.state && entry.state.info) || {};
-    const source = info.sourceUrl || entry.url || info.pageUrl || "";
-
+  rows.forEach((r) => {
     const tr = document.createElement("tr");
 
     const time = document.createElement("td");
     time.className = "history-time";
-    time.textContent = historyTime(entry.timestamp);
+    time.textContent = historyTime(r.time);
     tr.appendChild(time);
+
+    const type = document.createElement("td");
+    type.className = "history-type";
+    type.textContent = r.type;
+    tr.appendChild(type);
 
     const file = document.createElement("td");
     file.className = "history-file";
-    file.textContent = historyFilename(entry.finalFullPath);
-    file.title = entry.finalFullPath || "";
+    file.textContent = r.file;
+    file.title = r.fullPath;
     tr.appendChild(file);
 
-    const path = document.createElement("td");
-    path.className = "history-path";
-    path.textContent = entry.finalFullPath || "";
-    path.title = entry.finalFullPath || "";
-    tr.appendChild(path);
+    const folder = document.createElement("td");
+    folder.className = "history-folder";
+    folder.textContent = r.folder;
+    folder.title = r.folder;
+    tr.appendChild(folder);
 
     const src = document.createElement("td");
     src.className = "history-source";
-    if (source) {
+    if (r.source) {
       const link = document.createElement("a");
-      link.href = source;
+      link.href = r.source;
       link.target = "_blank";
       link.rel = "noreferrer";
-      link.textContent = source;
-      link.title = source;
+      link.textContent = r.source;
+      link.title = r.source;
       src.appendChild(link);
     }
     tr.appendChild(src);
@@ -263,7 +335,28 @@ const renderHistory = async () => {
 
   container.appendChild(table);
 };
+
+const renderHistory = async () => {
+  const stored = (await browser.storage.local.get(HISTORY_KEY)) ?? {};
+  historyEntries = (stored[HISTORY_KEY] || []).slice().reverse(); // newest first
+
+  // Raw JSON stays available (some users import/inspect it); kept in sync
+  /** @type {HTMLTextAreaElement} */
+  const raw = document.querySelector("#history");
+  if (raw) {
+    raw.value = JSON.stringify(stored, null, 2);
+  }
+
+  renderHistoryTable();
+};
 document.addEventListener("DOMContentLoaded", renderHistory);
+
+/** @type {HTMLInputElement} */
+const historyFilterInput = document.querySelector("#history-filter");
+historyFilterInput?.addEventListener("input", () => {
+  historyFilter = historyFilterInput.value;
+  renderHistoryTable();
+});
 
 const clearHistory = () => {
   // eslint-disable-next-line no-alert
