@@ -902,6 +902,21 @@ const saveOptions = (e) => {
 };
 
 // Set UI elements' value/checked
+// Transforms applied to a stored value before it populates its options field.
+// These would belong on the option schema as onOptionsLoad, but the schema
+// reaches this page via the GET_SCHEMA message and structured clone drops
+// functions — so field-display transforms live here instead.
+const OPTION_FIELD_DISPLAY_TRANSFORMS = {
+  // Upgraders stored a raw keyCode for the click-to-save key (the old default
+  // was 18 = Alt). Show the friendly name in the combobox; the content script's
+  // comboToKeyCodes still resolves either a name or a raw number, so the stored
+  // value keeps working whether or not it is ever re-saved.
+  contentClickToSaveCombo: (v) => {
+    const NAME_BY_KEYCODE = { 16: "Shift", 17: "Ctrl", 18: "Alt", 91: "Meta" };
+    return String(v) in NAME_BY_KEYCODE ? NAME_BY_KEYCODE[String(v)] : v;
+  },
+};
+
 const restoreOptionsHandler = (result, schema) => {
   // Zip result -> schema
   const schemaWithValues = schema.keys.map((o) => Object.assign({}, o, { value: result[o.name] }));
@@ -912,7 +927,7 @@ const restoreOptionsHandler = (result, schema) => {
       return;
     }
 
-    const fn = o.onOptionsLoad || ((x) => x);
+    const fn = OPTION_FIELD_DISPLAY_TRANSFORMS[o.name] || ((x) => x);
     const val = typeof o.value === "undefined" ? o.default : fn(o.value);
 
     const propMap = {
