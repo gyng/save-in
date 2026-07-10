@@ -735,3 +735,85 @@ describe("onDeterminingFilename listener: sync path", () => {
     });
   });
 });
+
+describe("concurrent downloads (pendingStates)", () => {
+  let Download;
+  let listener;
+  let sessionStore;
+
+  beforeEach(async () => {
+    vi.resetModules();
+    sessionStore = {};
+    global.chrome = {
+      downloads: { onDeterminingFilename: { addListener: vi.fn() } },
+    };
+    global.browser = {
+      runtime: { id: "self-extension-id" },
+      downloads: { download: vi.fn(() => Promise.resolve(1)) },
+      // The file-level beforeEach of earlier describes touches these
+      i18n: { getMessage: vi.fn((k) => k) },
+      storage: { local: {}, session: {} },
+    };
+    global.BROWSERS = { CHROME: "CHROME", FIREFOX: "FIREFOX" };
+    global.CURRENT_BROWSER = "CHROME";
+    global.window = global;
+    global.requestedDownloadFlag = 0;
+    global.options = { conflictAction: "uniquify", filenamePatterns: [] };
+    global.Path = {
+      Path: function FakePath(raw) {
+        this.raw = raw;
+      },
+      sanitizeFilename: (v) => v,
+    };
+    global.Variable = { applyVariables: (p) => p };
+    global.Router = { matchRules: () => null };
+    global.Headers = { prepareReferer: vi.fn(() => Promise.resolve()) };
+    global.Messaging = { emit: { downloaded: vi.fn() }, send: {} };
+    global.Notification = { trackDownload: vi.fn(), createExtensionNotification: vi.fn() };
+    global.SaveHistory = { add: vi.fn() };
+    global.SessionState = {
+      available: () => true,
+      get: vi.fn((key) => Promise.resolve({ [key]: sessionStore[key] })),
+      set: vi.fn((obj) => {
+        Object.assign(sessionStore, obj);
+        return Promise.resolve();
+      }),
+    };
+    delete global.Log;
+
+    Download = (await import("../src/download.js")).default;
+    [[listener]] = global.chrome.downloads.onDeterminingFilename.addListener.mock.calls;
+  });
+
+  const makeState = (url, dir, name) => ({
+    path: { finalize: () => dir },
+    scratch: {},
+    info: { url, suggestedFilename: name, pageUrl: `https://page/${dir}`, modifiers: [] },
+  });
+
+  test("overlapping downloads each resolve to their own filename", () => {
+    // B starts before A's onDeterminingFilename fires: with a single global
+    // slot, A would be suggested B's path
+    Download.renameAndDownload(makeState("https://x/a.png", "dirA", "a.png"));
+    Download.renameAndDownload(makeState("https://x/b.png", "dirB", "b.png"));
+
+    const suggestA = vi.fn();
+    listener({ byExtensionId: "self-extension-id", url: "https://x/a.png" }, suggestA);
+    expect(suggestA).toHaveBeenCalledWith(expect.objectContaining({ filename: "dirA/a.png" }));
+
+    const suggestB = vi.fn();
+    listener({ byExtensionId: "self-extension-id", url: "https://x/b.png" }, suggestB);
+    expect(suggestB).toHaveBeenCalledWith(expect.objectContaining({ filename: "dirB/b.png" }));
+  });
+
+  test("consumed entries are removed and the map stays bounded", () => {
+    Download.renameAndDownload(makeState("https://x/a.png", "dirA", "a.png"));
+    listener({ byExtensionId: "self-extension-id", url: "https://x/a.png" }, vi.fn());
+    expect(Download.pendingStates.has("https://x/a.png")).toBe(false);
+
+    for (let i = 0; i < 60; i += 1) {
+      Download.rememberPendingState(makeState(`https://x/${i}.png`, "d", `${i}.png`));
+    }
+    expect(Download.pendingStates.size).toBeLessThanOrEqual(50);
+  });
+});

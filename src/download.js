@@ -1,10 +1,29 @@
 /* eslint-disable no-unused-vars */
 
+// Most-recent download state: fallback for consumers that can't correlate
+// by URL. Concurrent downloads are disambiguated via Download.pendingStates.
 let globalChromeState = {};
 
 const Download = {
   DISPOSITION_FILENAME_REGEX: /filename[^;=\n]*=((['"])(.*)?\2|(.+'')?([^;\n]*))/i,
   EXTENSION_REGEX: /\.([0-9a-z]{1,8})$/i,
+
+  // url -> state for in-flight downloads, so onDeterminingFilename (Chrome)
+  // and the referer listener (Firefox) attribute the right state when two
+  // downloads overlap (e.g. tab-strip batch saves)
+  pendingStates: new Map(),
+
+  rememberPendingState: (state) => {
+    globalChromeState = state;
+    if (state.info && state.info.url) {
+      Download.pendingStates.set(state.info.url, state);
+      // Bounded: Firefox has no onDeterminingFilename to consume entries
+      if (Download.pendingStates.size > 50) {
+        const oldest = Download.pendingStates.keys().next().value;
+        Download.pendingStates.delete(oldest);
+      }
+    }
+  },
 
   makeObjectUrl: (content, mime = "text/plain") => {
     if (typeof URL.createObjectURL === "function") {
@@ -223,11 +242,11 @@ const Download = {
       chrome.downloads &&
       chrome.downloads.onDeterminingFilename
     ) {
-      globalChromeState = state;
+      Download.rememberPendingState(state);
       download(state);
     } else {
-      // Set globalChromeState as well for headers
-      globalChromeState = state;
+      // Remembered for the referer listener as well
+      Download.rememberPendingState(state);
       fetch(state.info.url, { method: "HEAD", credentials: "include" })
         .then((res) => {
           if (res.headers.has("Content-Disposition")) {
@@ -269,9 +288,18 @@ if (chrome && chrome.downloads && chrome.downloads.onDeterminingFilename) {
       return false;
     }
 
+    // Correlate by URL so overlapping downloads each get their own state;
+    // the most-recent state is the fallback for uncorrelatable items
+    const pendingState =
+      Download.pendingStates.get(downloadItem.url) ||
+      Download.pendingStates.get(downloadItem.finalUrl) ||
+      globalChromeState;
+    Download.pendingStates.delete(downloadItem.url);
+    Download.pendingStates.delete(downloadItem.finalUrl);
+
     // In-memory state is lost if the MV3 service worker restarted between
     // requesting the download and this event: recover the persisted filename
-    if (!globalChromeState || !globalChromeState.path) {
+    if (!pendingState || !pendingState.path) {
       SessionState.get("siFinalFilename").then((res) => {
         if (res.siFinalFilename) {
           suggest({
@@ -285,14 +313,14 @@ if (chrome && chrome.downloads && chrome.downloads.onDeterminingFilename) {
       return true; // suggest is called asynchronously
     }
 
-    globalChromeState.info = globalChromeState.info || {};
-    globalChromeState.info.filename =
-      (globalChromeState.info && globalChromeState.info.suggestedFilename) ||
+    pendingState.info = pendingState.info || {};
+    pendingState.info.filename =
+      (pendingState.info && pendingState.info.suggestedFilename) ||
       downloadItem.filename ||
-      (globalChromeState.info && globalChromeState.info.filename);
+      (pendingState.info && pendingState.info.filename);
 
     suggest({
-      filename: Download.finalizeFullPath(globalChromeState),
+      filename: Download.finalizeFullPath(pendingState),
       conflictAction: options.conflictAction,
     });
     return false;

@@ -6,11 +6,19 @@ const Headers = {
       return {};
     }
 
-    if (!globalChromeState || !globalChromeState.info) {
+    // Correlate by request URL so overlapping downloads each get their own
+    // page's referer; the most-recent state is the fallback (e.g. redirects)
+    const state =
+      (typeof Download !== "undefined" &&
+        Download.pendingStates &&
+        Download.pendingStates.get(details.url)) ||
+      globalChromeState;
+
+    if (!state || !state.info) {
       return {};
     }
 
-    const { pageUrl } = globalChromeState.info;
+    const { pageUrl } = state.info;
     if (!pageUrl) {
       return {};
     }

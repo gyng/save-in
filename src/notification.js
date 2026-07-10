@@ -109,63 +109,56 @@ const Notification = {
     return failed;
   },
 
-  addNotifications: (options) => {
+  // Handlers are registered once at load (bottom of this file): MV3 workers
+  // must register listeners synchronously or they miss the very event that
+  // woke them. Notification options are read from the shared `options`
+  // global at event time, after awaiting init.
+  onDownloadCreated: async (item) => {
+    if (typeof window !== "undefined" && window.ready) {
+      await window.ready.catch(() => {});
+    }
+
+    // Counter, not boolean: two concurrent requested downloads must both be
+    // picked up here
+    const pending = Number(requestedDownloadFlag) || 0;
+    if (pending > 0) {
+      requestedDownloadFlag = pending - 1;
+      downloadsList[item.id] = item;
+      Notification.trackDownload(item.id);
+      return;
+    }
+
+    // The in-memory counter is lost if the MV3 service worker restarted
+    // between requesting the download and this event
+    SessionState.get("siPendingDownload").then((res) => {
+      if (res.siPendingDownload) {
+        downloadsList[item.id] = item;
+        SessionState.set({ siPendingDownload: false });
+        Notification.trackDownload(item.id);
+      }
+    });
+  },
+
+  onNotificationClicked: (notId) => {
+    if (String(notId).startsWith("save-in-not-")) {
+      return;
+    }
+
+    // notification ID should be set to download ID on download creation
+    browser.downloads.show(Number(notId));
+  },
+
+  onDownloadChanged: async (downloadDelta) => {
+    if (typeof window !== "undefined" && window.ready) {
+      await window.ready.catch(() => {});
+    }
+
     const notifyOnSuccess = options && options.notifyOnSuccess;
     const notifyOnFailure = options && options.notifyOnFailure;
     const notifyDuration = options && options.notifyDuration;
     const promptOnFailure = options && options.promptOnFailure;
 
-    if (!notifyDuration && window.SI_DEBUG) {
-      console.log("Bad notify duration", options); // eslint-disable-line
-    }
-
-    const onDownloadCreatedListener = (item) => {
-      if (requestedDownloadFlag) {
-        downloadsList[item.id] = item;
-        requestedDownloadFlag = false;
-        Notification.trackDownload(item.id);
-        return;
-      }
-
-      // The in-memory flag is lost if the MV3 service worker restarted
-      // between requesting the download and this event
-      SessionState.get("siPendingDownload").then((res) => {
-        if (res.siPendingDownload) {
-          downloadsList[item.id] = item;
-          SessionState.set({ siPendingDownload: false });
-          Notification.trackDownload(item.id);
-        }
-      });
-    };
-
-    if (
-      Notification.currentDownloadCreatedListener &&
-      browser.downloads.onCreated.hasListener(Notification.currentDownloadCreatedListener)
-    ) {
-      browser.downloads.onCreated.removeListener(Notification.currentDownloadCreatedListener);
-    }
-    browser.downloads.onCreated.addListener(onDownloadCreatedListener);
-    Notification.currentDownloadCreatedListener = onDownloadCreatedListener;
-
-    const onNotificationClickedListener = (notId) => {
-      if (String(notId).startsWith("save-in-not-")) {
-        return;
-      }
-
-      // notification ID should be set to download ID on download creation
-      browser.downloads.show(Number(notId));
-    };
-
-    if (
-      Notification.currentNotificationClickListener &&
-      browser.notifications.onClicked.hasListener(Notification.currentNotificationClickListener)
-    ) {
-      browser.notifications.onClicked.removeListener(Notification.currentNotificationClickListener);
-    }
-    Notification.currentNotificationClickListener = onNotificationClickedListener;
-    browser.notifications.onClicked.addListener(onNotificationClickedListener);
-
-    const onDownloadChangeListener = (downloadDelta) => {
+    {
       const item = downloadsList[downloadDelta.id];
 
       if (!item) {
@@ -310,18 +303,19 @@ const Notification = {
         delete downloadsList[downloadDelta.id];
         Notification.untrackDownload(downloadDelta.id);
       }
-    };
-
-    if (
-      Notification.currentDownloadChangeListener &&
-      browser.downloads.onChanged.hasListener(Notification.currentDownloadChangeListener)
-    ) {
-      browser.downloads.onChanged.removeListener(Notification.currentDownloadChangeListener);
     }
-    browser.downloads.onChanged.addListener(onDownloadChangeListener);
-    Notification.currentDownloadChangeListener = onDownloadChangeListener;
   },
 };
+
+// MV3: register at load so a worker woken BY a download event still handles
+// it (guards exist only for the partial test mocks)
+if (browser.downloads && browser.downloads.onCreated && browser.downloads.onChanged) {
+  browser.downloads.onCreated.addListener(Notification.onDownloadCreated);
+  browser.downloads.onChanged.addListener(Notification.onDownloadChanged);
+}
+if (browser.notifications && browser.notifications.onClicked) {
+  browser.notifications.onClicked.addListener(Notification.onNotificationClicked);
+}
 
 // Export for testing
 if (typeof module !== "undefined") {

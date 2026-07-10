@@ -9,21 +9,15 @@ window.init = () => {
 
   return Promise.all([
     OptionsManagement.loadOptions(),
-    browser.storage.local.get("lastUsedPath"),
+    browser.storage.local.get(["lastUsedPath", "lastUsedMeta"]),
     browser.contextMenus.removeAll(),
   ])
     .then((results) => {
       // MV3 service workers are stateless: restore last used path across restarts
       lastUsedPath = (results[1] && results[1].lastUsedPath) || null;
+      lastUsedMeta = (results[1] && results[1].lastUsedMeta) || null;
 
       Headers.addRequestListener();
-
-      Notification.addNotifications({
-        notifyOnSuccess: options.notifyOnSuccess,
-        notifyOnFailure: options.notifyOnFailure,
-        notifyDuration: options.notifyDuration,
-        promptOnFailure: options.promptOnFailure,
-      });
 
       const pathsArray = options.paths
         .split("\n")
@@ -68,7 +62,10 @@ Menus.addTabMenuListener();
 Menus.addTabHighlightListener();
 
 window.reset = () => {
-  window.ready = window.init();
+  // Serialize: overlapping inits interleave removeAll() with another
+  // generation's create() calls, producing duplicate-id errors and
+  // missing/duplicated menu items
+  window.ready = window.ready.catch(() => {}).then(() => window.init());
   return window.ready;
 };
 

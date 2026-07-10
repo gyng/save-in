@@ -123,6 +123,7 @@ describe("addDownloadListener", () => {
 
     expect(global.browser.storage.local.set).toHaveBeenCalledWith({
       lastUsedPath: "dir1",
+      lastUsedMeta: { comment: expect.anything(), menuIndex: expect.anything() },
     });
   });
 
@@ -611,7 +612,7 @@ describe("addTabMenuListener tabstrip downloads", () => {
     expect(state.info.suggestedFilename).toBeNull();
     expect(state.needRouteMatch).toBe(false);
     expect(state.path.raw).toBe(".");
-    expect(global.requestedDownloadFlag).toBe(true);
+    expect(Number(global.requestedDownloadFlag)).toBeGreaterThan(0);
   });
 
   test("SELECTED_MULTIPLE_TABS staggers downloads of the highlighted tabs", async () => {

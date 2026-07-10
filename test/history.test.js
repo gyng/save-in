@@ -58,4 +58,45 @@ describe("SaveHistory", () => {
 
     await expect(SaveHistory.get()).resolves.toEqual([]);
   });
+
+  test("concurrent adds do not clobber each other (write-queue serialization)", async () => {
+    // Simulate a real storage backend: get() only reflects the store once
+    // its own microtask runs, so concurrent adds can interleave their reads
+    // and writes unless serialized.
+    global.browser.storage.local.get = jest.fn((key) =>
+      Promise.resolve().then(() => ({ [key]: store[key] })),
+    );
+    global.browser.storage.local.set = jest.fn((obj) =>
+      Promise.resolve().then(() => {
+        Object.assign(store, obj);
+      }),
+    );
+
+    await Promise.all([
+      SaveHistory.add({ url: "https://a/1" }),
+      SaveHistory.add({ url: "https://a/2" }),
+      SaveHistory.add({ url: "https://a/3" }),
+    ]);
+
+    expect(store[HISTORY_KEY].map((e) => e.url).toSorted()).toEqual([
+      "https://a/1",
+      "https://a/2",
+      "https://a/3",
+    ]);
+  });
+
+  test("a failing set does not break subsequent adds", async () => {
+    global.browser.storage.local.set = jest
+      .fn()
+      .mockRejectedValueOnce(new Error("boom"))
+      .mockImplementation((obj) => {
+        Object.assign(store, obj);
+        return Promise.resolve();
+      });
+
+    await expect(SaveHistory.add({ url: "https://a/1" })).resolves.toBeUndefined();
+    await SaveHistory.add({ url: "https://a/2" });
+
+    expect(store[HISTORY_KEY].map((e) => e.url)).toEqual(["https://a/2"]);
+  });
 });

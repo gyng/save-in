@@ -200,7 +200,7 @@ describe("handleDownloadMessage", () => {
     const sendResponse = vi.fn();
     onMessage(request(), {}, sendResponse);
 
-    expect(global.requestedDownloadFlag).toBe(true);
+    expect(Number(global.requestedDownloadFlag)).toBeGreaterThan(0);
     expect(global.Download.renameAndDownload).toHaveBeenCalledTimes(1);
 
     const state = global.Download.renameAndDownload.mock.calls[0][0];

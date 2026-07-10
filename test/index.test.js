@@ -16,10 +16,11 @@ const setupGlobals = ({ options = {}, storedLocal = {}, tabsQueryResult = [] } =
   // Declared by menu.js/index.js in the browser's shared global scope;
   // src files are strict mode under vitest's ESM transform
   global.lastUsedPath = null;
+  global.lastUsedMeta = null;
 
   global.OptionsManagement = { loadOptions: vi.fn(() => Promise.resolve()) };
   global.Headers = { addRequestListener: vi.fn() };
-  global.Notification = { addNotifications: vi.fn() };
+  global.Notification = {};
   global.Log = { add: vi.fn() };
   global.Menus = {
     addDownloadListener: vi.fn(),
@@ -108,16 +109,10 @@ describe("init", () => {
 
     expect(global.window.optionErrors).toEqual({ paths: [], filenamePatterns: [] });
     expect(global.OptionsManagement.loadOptions).toHaveBeenCalledTimes(1);
-    expect(global.browser.storage.local.get).toHaveBeenCalledWith("lastUsedPath");
+    expect(global.browser.storage.local.get).toHaveBeenCalledWith(["lastUsedPath", "lastUsedMeta"]);
     expect(global.browser.contextMenus.removeAll).toHaveBeenCalledTimes(1);
 
     expect(global.Headers.addRequestListener).toHaveBeenCalledTimes(1);
-    expect(global.Notification.addNotifications).toHaveBeenCalledWith({
-      notifyOnSuccess: true,
-      notifyOnFailure: true,
-      notifyDuration: 7000,
-      promptOnFailure: false,
-    });
 
     const contexts = ["image", "video", "audio", "link", "selection", "page"];
     expect(global.Menus.addTabMenus).toHaveBeenCalledTimes(1);

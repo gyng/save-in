@@ -1,4 +1,5 @@
 let lastUsedPath = null; // global variable
+let lastUsedMeta = null; // global variable: {comment, menuIndex} of the last used item
 
 const Menus = {
   IDS: {
@@ -131,13 +132,22 @@ const Menus = {
       parentId: Menus.IDS.ROOT,
     };
 
+    // Match the menu icon to the browser theme (#184). Chrome's service
+    // worker has no matchMedia (and rejects `icons` anyway — the catch
+    // handles it); Firefox's event page has both.
+    const darkMode =
+      typeof window !== "undefined" &&
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const icon = darkMode ? "icons/ic_update_white_24px.svg" : "icons/ic_update_black_24px.svg";
+
     // Chrome, FF < 57 crash when icons is supplied
     // There is no easy way to detect support, so use a try/catch
     try {
       browser.contextMenus.create(
         Object.assign({}, lastUsedMenuOptions, {
           icons: {
-            16: "icons/ic_update_black_24px.svg",
+            16: icon,
           },
         }),
       );
@@ -390,12 +400,19 @@ const Menus = {
           if (window.lastDownloadState && window.lastDownloadState.info) {
             comment = window.lastDownloadState.info.comment;
             menuIndex = window.lastDownloadState.info.menuIndex;
+          } else if (lastUsedMeta) {
+            // The in-memory lastDownloadState died with the service worker:
+            // fall back to the persisted routing metadata so comment/menuindex
+            // rules still match after a restart
+            comment = lastUsedMeta.comment;
+            menuIndex = lastUsedMeta.menuIndex;
           }
         } else {
           saveIntoPath = menuInfo.parsedDir;
           lastUsedPath = saveIntoPath;
+          lastUsedMeta = { comment, menuIndex };
           // MV3 service workers are stateless: persist across restarts
-          browser.storage.local.set({ lastUsedPath });
+          browser.storage.local.set({ lastUsedPath, lastUsedMeta });
           const title = menuInfo.title || lastUsedPath;
 
           if (options.enableLastLocation) {
@@ -452,8 +469,24 @@ const Menus = {
           info: opts,
         };
 
-        requestedDownloadFlag = true; // Notifications.
+        // Counter, not boolean: two concurrent downloads must both be
+        // picked up by downloads.onCreated for notification tracking
+        requestedDownloadFlag = (Number(requestedDownloadFlag) || 0) + 1;
         Download.renameAndDownload(state);
+
+        // Close the tab a "save page" came from, mirroring the tab-strip
+        // behavior (#115). Deliberately page-context only: closing the tab
+        // under an image/link save would be a surprise.
+        if (
+          options.closeTabOnSave &&
+          downloadType === DOWNLOAD_TYPES.PAGE &&
+          clickTab &&
+          clickTab.id != null
+        ) {
+          window.setTimeout(() => {
+            browser.tabs.remove(clickTab.id);
+          }, 500);
+        }
       }
     });
   },
@@ -560,7 +593,7 @@ const Menus = {
 
           tabs.forEach((t, i) => {
             window.setTimeout(() => {
-              requestedDownloadFlag = true; // Notifications.
+              requestedDownloadFlag = (Number(requestedDownloadFlag) || 0) + 1; // Notifications.
 
               let url = t.url;
               let suggestedFilename = null;

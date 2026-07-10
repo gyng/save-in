@@ -19,6 +19,8 @@ const makeSessionMock = (store) => ({
 });
 
 const setupGlobals = (sessionStore, searchResults) => {
+  // Handlers await window.ready when set; none of these tests want that
+  delete global.window.ready;
   global.BROWSERS = { CHROME: "CHROME", FIREFOX: "FIREFOX" };
   global.CURRENT_BROWSER = "CHROME";
 
@@ -156,13 +158,13 @@ describe("download lifecycle notifications", () => {
     sessionStore = {};
     setupGlobals(sessionStore, () => [{ id: 7, fileSize: 2048, mime: "image/png" }]);
 
-    Notification = (await import("../src/notification.js")).default;
-    Notification.addNotifications({
+    global.options = {
       notifyOnSuccess: true,
       notifyOnFailure: true,
       notifyDuration: 1000,
       promptOnFailure: false,
-    });
+    };
+    Notification = (await import("../src/notification.js")).default;
 
     [[onCreated]] = global.browser.downloads.onCreated.addListener.mock.calls;
     [[onChanged]] = global.browser.downloads.onChanged.addListener.mock.calls;
@@ -268,41 +270,23 @@ describe("download lifecycle notifications", () => {
   });
 });
 
-describe("listener replacement", () => {
-  let Notification;
-  const opts = { notifyOnSuccess: true, notifyOnFailure: true, notifyDuration: 1000 };
-
-  beforeEach(async () => {
+describe("listener registration", () => {
+  test("registers download and notification listeners at import (MV3 requirement)", async () => {
     jest.resetModules();
     setupGlobals({}, () => []);
-    Notification = (await import("../src/notification.js")).default;
-  });
+    const Notification = (await import("../src/notification.js")).default;
 
-  test("re-registering removes the previous listeners", () => {
-    Notification.addNotifications(opts);
-    expect(global.browser.downloads.onCreated.removeListener).not.toHaveBeenCalled();
-    expect(global.browser.downloads.onChanged.removeListener).not.toHaveBeenCalled();
-    expect(global.browser.notifications.onClicked.removeListener).not.toHaveBeenCalled();
-
-    Notification.addNotifications(opts);
-    const [[firstCreated]] = global.browser.downloads.onCreated.addListener.mock.calls;
-    const [[firstChanged]] = global.browser.downloads.onChanged.addListener.mock.calls;
-    expect(global.browser.downloads.onCreated.removeListener).toHaveBeenCalledWith(firstCreated);
-    expect(global.browser.downloads.onChanged.removeListener).toHaveBeenCalledWith(firstChanged);
-    expect(global.browser.notifications.onClicked.removeListener).toHaveBeenCalledTimes(1);
-  });
-
-  test("skips removal when the listener is already gone", () => {
-    Notification.addNotifications(opts);
-    global.browser.downloads.onCreated.hasListener.mockReturnValue(false);
-    global.browser.downloads.onChanged.hasListener.mockReturnValue(false);
-    global.browser.notifications.onClicked.hasListener.mockReturnValue(false);
-
-    Notification.addNotifications(opts);
-
-    expect(global.browser.downloads.onCreated.removeListener).not.toHaveBeenCalled();
-    expect(global.browser.downloads.onChanged.removeListener).not.toHaveBeenCalled();
-    expect(global.browser.notifications.onClicked.removeListener).not.toHaveBeenCalled();
+    // Registered synchronously at module load with stable named handlers, so
+    // a service worker woken BY one of these events still handles it
+    expect(global.browser.downloads.onCreated.addListener).toHaveBeenCalledWith(
+      Notification.onDownloadCreated,
+    );
+    expect(global.browser.downloads.onChanged.addListener).toHaveBeenCalledWith(
+      Notification.onDownloadChanged,
+    );
+    expect(global.browser.notifications.onClicked.addListener).toHaveBeenCalledWith(
+      Notification.onNotificationClicked,
+    );
   });
 });
 
@@ -316,8 +300,8 @@ describe("notification variants", () => {
     jest.useFakeTimers();
     sessionStore = {};
     setupGlobals(sessionStore, searchResults);
-    const Notification = (await import("../src/notification.js")).default;
-    Notification.addNotifications(opts);
+    global.options = opts;
+    await import("../src/notification.js");
     [[onCreated]] = global.browser.downloads.onCreated.addListener.mock.calls;
     [[onChanged]] = global.browser.downloads.onChanged.addListener.mock.calls;
   };
@@ -492,9 +476,9 @@ describe("notification variants", () => {
     const logSpy = jest.spyOn(console, "log").mockImplementation(() => {});
     window.SI_DEBUG = 1;
     try {
-      // no notifyDuration: logs "Bad notify duration"
+      // The "Bad notify duration" preamble died with addNotifications;
+      // per-event debug logging remains
       await install({ notifyOnSuccess: true, notifyOnFailure: true });
-      expect(logSpy).toHaveBeenCalledWith("Bad notify duration", expect.anything());
 
       await startTracked({ id: 7, filename: "/dl/pic.png", url: "https://x/p.png" });
       onChanged({ id: 7, error: { current: "NETWORK_FAILED" } });
