@@ -167,8 +167,10 @@ testable once tests are on real imports.
   sleep); (2) path-editor unit "switching to visual…/back…" (~1/12 flake from the
   shared PathEditor singleton — likely falls out of #67, else reset the singleton
   per test). Neither is a correctness bug but both undermine the green gate. (Task #69.)
-- **TS tooling/CI hardening** — typecheck `test/**`, `expectTypeOf` contract
-  tests, per-context `lib` (SW=webworker vs DOM), sourcemaps. **NO
+- **TS tooling/CI hardening** — browser-only source typechecking (no Node/Vitest
+  globals) plus the combined source+test check are now in place. Remaining:
+  `expectTypeOf` contract tests, finer per-context `lib` (SW=webworker vs DOM),
+  sourcemaps. **NO
   typescript-eslint** (decided — stay oxlint-only); the tradeoff is no
   `no-floating-promises`, so guard unawaited promises by `void` convention +
   review, not lint. NOT: TS-ifying scripts/*.mjs, .d.ts emit, path aliases. (Task #65.)
