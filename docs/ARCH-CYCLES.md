@@ -151,3 +151,32 @@ testable once tests are on real imports.
   typescript-eslint** (decided — stay oxlint-only); the tradeoff is no
   `no-floating-promises`, so guard unawaited promises by `void` convention +
   review, not lint. NOT: TS-ifying scripts/*.mjs, .d.ts emit, path aliases. (Task #65.)
+- **CI/CD + build attribution/provenance** (Task #69) — design task, mostly
+  greenfield on top of what exists. Today: `.github/workflows/ci.yml` runs the
+  gate (`build`+`lint`+`typecheck`+`test`) and both headless e2e, but ONLY on
+  `master` — so `mv3` and feature branches get no CI until they merge up.
+  `scripts/write-version.js` stamps `src/options/version.json` (short commit +
+  date) into the options-page UI, but it's gitignored build metadata and uses
+  `new Date()` — informational, not provenance, and not reproducible. Release +
+  version bump + store upload are all manual (AGENTS.md checklist). Think about:
+  - **CI coverage**: run on `mv3`/PRs too (or all branches), not just `master`;
+    confirm the e2e job exercises the SAME `dist/bundled-pkg` artifact the store
+    gets (the checklist wants `EXT_DIR=dist/bundled-pkg`), and that the runner's
+    Chrome CDP `--enable-unsafe-extension-debugging` path (Chrome ≥ 137, see
+    [[chrome-load-extension-removed]]) + web-ext Firefox both work headless there.
+    Upload the built zip as a CI artifact for inspection.
+  - **CD/release**: tag-triggered — `build:bundled` zip → GH release asset →
+    optional AMO submit (`web-ext sign`, script already present) + Chrome Web
+    Store API. Gate on manifest.json ↔ package.json version parity (add a check —
+    they must bump together; write-version's stamp is a separate file, not the
+    store version). Run both bundled e2e against the exact artifact first.
+  - **Attribution/provenance**: add real provenance — GitHub artifact attestation
+    / SLSA (`actions/attest-build-provenance`) on the store zip, tying it to the
+    commit + workflow run. Make `build:bundled` DETERMINISTIC (pinned Node +
+    `npm ci` → byte-stable zip from a commit); hunt the non-determinism sources
+    (`new Date()` in write-version, zip mtimes/entry order in web-ext build).
+    Write the AMO reviewer-facing BUILD doc: exact steps to reproduce the
+    non-minified scope-hoisted `dist/bundled/*.js` from `src/**` (the "reviewable
+    non-minified bundle + documented build" property, docs/TS-MIGRATION.md), and
+    how the hoisted bundle maps back to modules. Independent of the TS backlog;
+    complements #65's CI hardening.
