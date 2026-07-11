@@ -20,37 +20,45 @@ import { DownloadState } from "../src/download-state.ts";
 
 vi.mock("../src/option.ts", () => ({
   get options() {
-    return globalThis.options;
+    return (globalThis as any).options;
   },
   OptionsManagement: {},
 }));
 vi.mock("../src/chrome-detector.ts", () => ({
   BROWSERS: { CHROME: "CHROME", FIREFOX: "FIREFOX", UNKNOWN: "UNKNOWN" },
   get CURRENT_BROWSER() {
-    return globalThis.CURRENT_BROWSER;
+    return (globalThis as any).CURRENT_BROWSER;
   },
 }));
 vi.mock("../src/log.ts", () => ({
   get Log() {
-    return globalThis.Log;
+    return (globalThis as any).Log;
   },
 }));
 vi.mock("../src/download.ts", () => ({
   get Download() {
-    return globalThis.Download;
+    return (globalThis as any).Download;
   },
 }));
 vi.mock("../src/history.ts", () => ({
   get SaveHistory() {
-    return globalThis.SaveHistory;
+    return (globalThis as any).SaveHistory;
   },
 }));
 
-globalThis.DownloadState = DownloadState;
+// The notification module reads its deps through the vi.mock bridges above,
+// which return these seeded globals. The ambient `declare const` background
+// globals (DownloadState, options, Log, …) are not members of `typeof
+// globalThis`, so this loosely-typed alias is the test's single mock seam.
+const g = globalThis as any;
 
-const makeSessionMock = (store) => ({
-  get: jest.fn((key) => Promise.resolve(key == null ? { ...store } : { [key]: store[key] })),
-  set: jest.fn((obj) => {
+g.DownloadState = DownloadState;
+
+const makeSessionMock = (store: Record<string, any>) => ({
+  get: jest.fn((key: string) =>
+    Promise.resolve(key == null ? { ...store } : { [key]: store[key] }),
+  ),
+  set: jest.fn((obj: Record<string, any>) => {
     Object.assign(store, obj);
     return Promise.resolve();
   }),
@@ -59,38 +67,40 @@ const makeSessionMock = (store) => ({
 // Membership is now the `adopted` flag on each persisted DownloadState record;
 // the sorted ids of the records currently adopted are what the old
 // siTrackedDownloads array used to hold.
-const adoptedIds = (store) =>
+const adoptedIds = (store: Record<string, any>) =>
   Object.keys(store.siDownloads || {})
     .filter((id) => store.siDownloads[id] && store.siDownloads[id].adopted)
     .map(Number);
 
-const setupGlobals = (sessionStore, searchResults) => {
+const setupGlobals = (sessionStore: Record<string, any>, searchResults: (query: any) => any) => {
   // Handlers await window.ready when set; none of these tests want that
   delete global.window.ready;
   // DownloadState.records is a module singleton seeded in vitest.setup; clear
   // the in-memory mirror and the memoized hydration so each test rebuilds the
   // records from its own sessionStore
-  global.DownloadState.records.clear();
-  global.DownloadState.hydration = null;
-  global.BROWSERS = { CHROME: "CHROME", FIREFOX: "FIREFOX" };
-  global.CURRENT_BROWSER = "CHROME";
+  g.DownloadState.records.clear();
+  g.DownloadState.hydration = null;
+  g.BROWSERS = { CHROME: "CHROME", FIREFOX: "FIREFOX" };
+  g.CURRENT_BROWSER = "CHROME";
 
-  global.browser.runtime = Object.assign(global.browser.runtime || {}, { id: "save-in" });
-  global.browser.storage.session = makeSessionMock(sessionStore);
-  global.browser.downloads.search = jest.fn((query) => Promise.resolve(searchResults(query)));
-  global.browser.downloads.onCreated = {
+  (global.browser as any).runtime = Object.assign(global.browser.runtime || {}, { id: "save-in" });
+  (global.browser.storage as any).session = makeSessionMock(sessionStore);
+  (global.browser.downloads as any).search = jest.fn((query: any) =>
+    Promise.resolve(searchResults(query)),
+  );
+  (global.browser.downloads as any).onCreated = {
     addListener: jest.fn(),
     removeListener: jest.fn(),
     hasListener: jest.fn(() => true),
   };
-  global.browser.downloads.onChanged = {
+  (global.browser.downloads as any).onChanged = {
     addListener: jest.fn(),
     removeListener: jest.fn(),
     hasListener: jest.fn(() => true),
   };
-  global.browser.downloads.show = jest.fn();
-  global.browser.downloads.download = jest.fn();
-  global.browser.notifications = {
+  (global.browser.downloads as any).show = jest.fn();
+  (global.browser.downloads as any).download = jest.fn();
+  (global.browser as any).notifications = {
     create: jest.fn(),
     clear: jest.fn(),
     onClicked: {
@@ -131,7 +141,7 @@ describe("startup restore", () => {
 
   test("does not throw when storage.session is unavailable (older Firefox)", async () => {
     setupGlobals({}, () => []);
-    global.browser.storage.session = undefined;
+    (global.browser.storage as any).session = undefined;
 
     await expect(import("../src/notification.ts")).resolves.toBeDefined();
     await flush();
@@ -153,7 +163,7 @@ describe("startup restore", () => {
   test("clears adoption when the download lookup fails", async () => {
     const sessionStore = { siDownloads: { 21: { adopted: true } } };
     setupGlobals(sessionStore, () => []);
-    global.browser.downloads.search = jest.fn(() => Promise.reject(new Error("boom")));
+    (global.browser.downloads as any).search = jest.fn(() => Promise.reject(new Error("boom")));
 
     await import("../src/notification.ts");
     await flush();
@@ -193,7 +203,7 @@ describe("download lifecycle notifications", () => {
     sessionStore = {};
     setupGlobals(sessionStore, () => [{ id: 7, fileSize: 2048, mime: "image/png" }]);
 
-    global.options = {
+    g.options = {
       notifyOnSuccess: true,
       notifyOnFailure: true,
       notifyDuration: 1000,
@@ -202,8 +212,8 @@ describe("download lifecycle notifications", () => {
     // Imported for its side effect: registers the download listeners
     await import("../src/notification.ts");
 
-    [[onCreated]] = global.browser.downloads.onCreated.addListener.mock.calls;
-    [[onChanged]] = global.browser.downloads.onChanged.addListener.mock.calls;
+    [[onCreated]] = vi.mocked(global.browser.downloads.onCreated.addListener).mock.calls;
+    [[onChanged]] = vi.mocked(global.browser.downloads.onChanged.addListener).mock.calls;
   });
 
   afterEach(() => {
@@ -305,7 +315,7 @@ describe("download lifecycle notifications", () => {
     expect(sessionStore.siDownloads[7]).toMatchObject({ adopted: true });
 
     // a restart wipes the in-memory mirror; the persisted record survives
-    global.DownloadState.records.clear();
+    g.DownloadState.records.clear();
 
     onChanged({ id: 7, state: { current: "complete", previous: "in_progress" } });
     await flush();
@@ -345,7 +355,7 @@ describe("download lifecycle notifications", () => {
   });
 
   test("clicking a download notification opens its file", () => {
-    const [[onClicked]] = global.browser.notifications.onClicked.addListener.mock.calls;
+    const [[onClicked]] = vi.mocked(global.browser.notifications.onClicked.addListener).mock.calls;
 
     onClicked("save-in-not-123"); // extension notifications are not downloads
     expect(global.browser.downloads.show).not.toHaveBeenCalled();
@@ -414,10 +424,10 @@ describe("notification variants", () => {
     jest.useFakeTimers();
     sessionStore = {};
     setupGlobals(sessionStore, searchResults);
-    global.options = opts;
+    g.options = opts;
     await import("../src/notification.ts");
-    [[onCreated]] = global.browser.downloads.onCreated.addListener.mock.calls;
-    [[onChanged]] = global.browser.downloads.onChanged.addListener.mock.calls;
+    [[onCreated]] = vi.mocked(global.browser.downloads.onCreated.addListener).mock.calls;
+    [[onChanged]] = vi.mocked(global.browser.downloads.onChanged.addListener).mock.calls;
   };
 
   const startTracked = async (item) => {
@@ -427,7 +437,7 @@ describe("notification variants", () => {
   };
 
   afterEach(() => {
-    delete global.Log;
+    delete g.Log;
     jest.useRealTimers();
   });
 
@@ -458,13 +468,13 @@ describe("notification variants", () => {
 
   test("failures are logged when a Log global is present", async () => {
     await install({ notifyOnFailure: true, notifyDuration: 1000 });
-    global.Log = { add: jest.fn() };
+    g.Log = { add: jest.fn() };
     await startTracked({ id: 7, filename: "/dl/pic.png", url: "https://x/p.png" });
 
     onChanged({ id: 7, error: { current: "NETWORK_FAILED" } });
     await flush();
 
-    expect(global.Log.add).toHaveBeenCalledWith("download failed", {
+    expect(g.Log.add).toHaveBeenCalledWith("download failed", {
       id: 7,
       error: "NETWORK_FAILED",
     });
@@ -472,14 +482,14 @@ describe("notification variants", () => {
 
   test("Firefox interruptions fall back to a generic error message", async () => {
     await install({ notifyOnFailure: true, notifyDuration: 1000 });
-    global.CURRENT_BROWSER = "FIREFOX";
-    global.Log = { add: jest.fn() };
+    g.CURRENT_BROWSER = "FIREFOX";
+    g.Log = { add: jest.fn() };
     await startTracked({ id: 7, filename: "/dl/pic.png", url: "https://x/p.png" });
 
     onChanged({ id: 7, state: { current: "interrupted", previous: "in_progress" } });
     await flush();
 
-    expect(global.Log.add).toHaveBeenCalledWith("download failed", { id: 7, error: true });
+    expect(g.Log.add).toHaveBeenCalledWith("download failed", { id: 7, error: true });
     expect(global.browser.notifications.create).toHaveBeenCalledWith(
       "7",
       expect.objectContaining({ message: "Translated<genericUnknownError>" }),
@@ -514,13 +524,13 @@ describe("notification variants", () => {
     await install({ notifyOnSuccess: true, notifyDuration: 1000 }, () => [
       { id: 7, fileSize: 2500000, mime: "image/png" },
     ]);
-    global.Log = { add: jest.fn() };
+    g.Log = { add: jest.fn() };
     await startTracked({ id: 7, filename: "/dl/pic.png", url: "https://x/p.png" });
 
     onChanged({ id: 7, state: { current: "complete", previous: "in_progress" } });
     await flush();
 
-    expect(global.Log.add).toHaveBeenCalledWith("download complete", {
+    expect(g.Log.add).toHaveBeenCalledWith("download complete", {
       id: 7,
       filename: "pic.png",
     });
@@ -620,7 +630,7 @@ describe("reportFailure", () => {
   });
 
   test("fires a failure notification when notifyOnFailure is on", async () => {
-    global.options = { notifyOnFailure: true, notifyDuration: 0 };
+    g.options = { notifyOnFailure: true, notifyDuration: 0 };
     const Notifier = (await import("../src/notification.ts")).Notifier;
 
     Notifier.reportFailure("file.png", "boom");
@@ -632,7 +642,7 @@ describe("reportFailure", () => {
   });
 
   test("stays silent when notifyOnFailure is off", async () => {
-    global.options = { notifyOnFailure: false };
+    g.options = { notifyOnFailure: false };
     const Notifier = (await import("../src/notification.ts")).Notifier;
 
     Notifier.reportFailure("file.png", "boom");
@@ -649,7 +659,7 @@ describe("expectDownload", () => {
     const Notifier = (await import("../src/notification.ts")).Notifier;
     // Ignore the startup pending-count reconciliation's read; this test is about
     // the download flow itself
-    global.browser.storage.session.get.mockClear();
+    vi.mocked(global.browser.storage.session.get).mockClear();
 
     Notifier.expectDownload();
     await Notifier.onDownloadCreated({ id: 9, byExtensionId: "save-in", filename: "/dl/x.png" });
@@ -685,20 +695,20 @@ describe("automatic fetch fallback gating", () => {
     jest.resetModules();
     sessionStore = {};
     setupGlobals(sessionStore, () => [{ id: 7, fileSize: 2048, mime: "image/png" }]);
-    global.options = {
+    g.options = {
       notifyOnSuccess: true,
       notifyOnFailure: true,
       notifyDuration: 1000,
       promptOnFailure: false,
     };
-    global.Download =
+    g.Download =
       retryResult === undefined
         ? undefined
         : { retryViaFetch: jest.fn(() => Promise.resolve(retryResult)) };
 
     await import("../src/notification.ts");
-    [[onCreated]] = global.browser.downloads.onCreated.addListener.mock.calls;
-    [[onChanged]] = global.browser.downloads.onChanged.addListener.mock.calls;
+    [[onCreated]] = vi.mocked(global.browser.downloads.onCreated.addListener).mock.calls;
+    [[onChanged]] = vi.mocked(global.browser.downloads.onChanged.addListener).mock.calls;
 
     sessionStore.siPendingDownloads = 1;
     onCreated({
@@ -716,7 +726,7 @@ describe("automatic fetch fallback gating", () => {
     onChanged({ id: 7, error: { current: "NETWORK_FAILED" } });
     await flush();
 
-    expect(global.Download.retryViaFetch).toHaveBeenCalledWith(7);
+    expect(g.Download.retryViaFetch).toHaveBeenCalledWith(7);
     expect(global.browser.notifications.create).not.toHaveBeenCalled();
     // The failed original is untracked; the retry tracks itself
     expect(adoptedIds(sessionStore)).toEqual([]);
@@ -728,7 +738,7 @@ describe("automatic fetch fallback gating", () => {
     onChanged({ id: 7, error: { current: "SERVER_FORBIDDEN" } });
     await flush();
 
-    expect(global.Download.retryViaFetch).toHaveBeenCalledWith(7);
+    expect(g.Download.retryViaFetch).toHaveBeenCalledWith(7);
     expect(global.browser.notifications.create).toHaveBeenCalled();
   });
 
@@ -738,7 +748,7 @@ describe("automatic fetch fallback gating", () => {
     onChanged({ id: 7, error: { current: "FILE_FAILED" } });
     await flush();
 
-    expect(global.Download.retryViaFetch).not.toHaveBeenCalled();
+    expect(g.Download.retryViaFetch).not.toHaveBeenCalled();
     expect(global.browser.notifications.create).toHaveBeenCalled();
   });
 
@@ -748,7 +758,7 @@ describe("automatic fetch fallback gating", () => {
     onChanged({ id: 7, error: { current: "USER_CANCELED" } });
     await flush();
 
-    expect(global.Download.retryViaFetch).not.toHaveBeenCalled();
+    expect(g.Download.retryViaFetch).not.toHaveBeenCalled();
     expect(global.browser.notifications.create).not.toHaveBeenCalled();
   });
 });

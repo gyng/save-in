@@ -5,10 +5,12 @@ import { EventEmitter } from "events";
 
 const { FirefoxRdp } = (await import("../scripts/lib/firefox-rdp.js")).default;
 
-const makeSocket = () => {
+// A fake net.Socket: FirefoxRdp only needs write/destroy plus EventEmitter's
+// on/emit, so the mock's shape is intentionally untyped
+const makeSocket = (): any => {
   const s = new EventEmitter();
-  s.write = vi.fn();
-  s.destroy = vi.fn();
+  (s as any).write = vi.fn();
+  (s as any).destroy = vi.fn();
   return s;
 };
 

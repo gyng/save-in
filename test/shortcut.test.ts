@@ -2,12 +2,12 @@ import * as constants from "../src/constants.ts";
 
 vi.mock("../src/download.ts", () => ({
   get Download() {
-    return globalThis.Download;
+    return (globalThis as any).Download;
   },
 }));
 vi.mock("../src/path.ts", () => ({
   get Path() {
-    return globalThis.Path;
+    return (globalThis as any).Path;
   },
 }));
 vi.mock("../src/current-tab.ts", () => ({
@@ -25,28 +25,30 @@ import { Shortcut as shortcut } from "../src/shortcut.ts";
 // SHORTCUT_EXTENSIONS); SHORTCUT_TYPES is also (re)assigned per-describe below.
 Object.assign(global, constants);
 
+// makeShortcutContent's `title` param has no default, so a 2-arg call is
+// narrower than the declared 3-arg signature; the source is intentionally
+// untouched (per AGENTS.md), so the call boundary is cast instead.
+const makeShortcutContent = shortcut.makeShortcutContent as (
+  type: any,
+  url: any,
+  title?: any,
+) => string;
+
 describe("shortcut content creation", () => {
-  let oldShortcutTypes;
   let SHORTCUT_TYPES;
 
   beforeAll(() => {
-    oldShortcutTypes = window.SHORTCUT_TYPES;
     SHORTCUT_TYPES = constants.SHORTCUT_TYPES;
-    window.SHORTCUT_TYPES = constants.SHORTCUT_TYPES;
-  });
-
-  afterAll(() => {
-    window.SHORTCUT_TYPES = oldShortcutTypes;
   });
 
   test("creates a HTML redirect shortcut", () => {
     const expected = 'window.location.href = "foo"';
-    expect(shortcut.makeShortcutContent(SHORTCUT_TYPES.HTML_REDIRECT, "foo")).toContain(expected);
+    expect(makeShortcutContent(SHORTCUT_TYPES.HTML_REDIRECT, "foo")).toContain(expected);
   });
 
   test("escapes the URL so a hostile link cannot inject script", () => {
     const hostile = 'https://x/"</script><script>alert(1)</script>';
-    const content = shortcut.makeShortcutContent(SHORTCUT_TYPES.HTML_REDIRECT, hostile);
+    const content = makeShortcutContent(SHORTCUT_TYPES.HTML_REDIRECT, hostile);
     // No literal </script> can appear to break out of the <script> element
     // (except the single legitimate one closing our own script tag)
     expect(content.match(/<\/script>/g)).toHaveLength(1);
@@ -55,31 +57,29 @@ describe("shortcut content creation", () => {
 
   test("creates a Mac URL shortcut", () => {
     const expected = "[InternetShortcut]\nURL=foo";
-    expect(shortcut.makeShortcutContent(SHORTCUT_TYPES.MAC, "foo")).toBe(expected);
+    expect(makeShortcutContent(SHORTCUT_TYPES.MAC, "foo")).toBe(expected);
   });
 
   test("creates a Windows URL shortcut", () => {
     const expected = "[InternetShortcut]\r\nURL=foo";
-    expect(shortcut.makeShortcutContent(SHORTCUT_TYPES.WINDOWS, "foo")).toBe(expected);
+    expect(makeShortcutContent(SHORTCUT_TYPES.WINDOWS, "foo")).toBe(expected);
   });
 
   test("creates a Freedesktop URL shortcut without a title", () => {
     const expected =
       "[Desktop Entry]\nEncoding=UTF-8\nIcon=text-html\nType=Link\nName=foo\nTitle=foo\nURL=foo\n[InternetShortcut]\nURL=foo";
-    expect(shortcut.makeShortcutContent(SHORTCUT_TYPES.FREEDESKTOP, "foo")).toBe(expected);
+    expect(makeShortcutContent(SHORTCUT_TYPES.FREEDESKTOP, "foo")).toBe(expected);
   });
 
   test("creates a Freedesktop URL shortcut with a title", () => {
     const expected =
       "[Desktop Entry]\nEncoding=UTF-8\nIcon=text-html\nType=Link\nName=bar\nTitle=bar\nURL=foo\n[InternetShortcut]\nURL=foo";
-    expect(shortcut.makeShortcutContent(SHORTCUT_TYPES.FREEDESKTOP, "foo", "bar")).toBe(expected);
+    expect(makeShortcutContent(SHORTCUT_TYPES.FREEDESKTOP, "foo", "bar")).toBe(expected);
   });
 
   test("falls back to the URL for an unknown/undefined shortcut type", () => {
-    expect(shortcut.makeShortcutContent(undefined, "https://example.com")).toBe(
-      "https://example.com",
-    );
-    expect(shortcut.makeShortcutContent("SOME_UNKNOWN_TYPE", "https://example.com")).toBe(
+    expect(makeShortcutContent(undefined, "https://example.com")).toBe("https://example.com");
+    expect(makeShortcutContent("SOME_UNKNOWN_TYPE", "https://example.com")).toBe(
       "https://example.com",
     );
   });
@@ -88,16 +88,18 @@ describe("shortcut content creation", () => {
 describe("makeShortcut", () => {
   let originalCurrentTab;
   let originalDownload;
+  let mockDownload: { makeObjectUrl: ReturnType<typeof jest.fn> };
 
   beforeEach(() => {
     originalCurrentTab = global.currentTab;
-    originalDownload = global.Download;
-    global.Download = { makeObjectUrl: jest.fn((content) => `objurl:${content}`) };
+    originalDownload = (global as any).Download;
+    mockDownload = { makeObjectUrl: jest.fn((content) => `objurl:${content}`) };
+    (global as any).Download = mockDownload;
   });
 
   afterEach(() => {
     global.currentTab = originalCurrentTab;
-    global.Download = originalDownload;
+    (global as any).Download = originalDownload;
   });
 
   test("uses the explicit title over currentTab when provided", () => {
@@ -105,7 +107,7 @@ describe("makeShortcut", () => {
 
     shortcut.makeShortcut(SHORTCUT_TYPES.FREEDESKTOP, "https://example.com", "Explicit Title");
 
-    expect(global.Download.makeObjectUrl).toHaveBeenCalledWith(
+    expect(mockDownload.makeObjectUrl).toHaveBeenCalledWith(
       expect.stringContaining("Name=Explicit Title"),
       "application/octet-stream",
     );
@@ -116,7 +118,7 @@ describe("makeShortcut", () => {
 
     shortcut.makeShortcut(SHORTCUT_TYPES.FREEDESKTOP, "https://example.com");
 
-    expect(global.Download.makeObjectUrl).toHaveBeenCalledWith(
+    expect(mockDownload.makeObjectUrl).toHaveBeenCalledWith(
       expect.stringContaining("Name=Current Tab Title"),
       "application/octet-stream",
     );
@@ -127,12 +129,12 @@ describe("makeShortcut", () => {
 
     const result = shortcut.makeShortcut(SHORTCUT_TYPES.FREEDESKTOP, "https://example.com");
 
-    expect(global.Download.makeObjectUrl).toHaveBeenCalledWith(
+    expect(mockDownload.makeObjectUrl).toHaveBeenCalledWith(
       expect.stringContaining("Name=https://example.com"),
       "application/octet-stream",
     );
     expect(result).toBe(
-      "objurl:" + shortcut.makeShortcutContent(SHORTCUT_TYPES.FREEDESKTOP, "https://example.com"),
+      "objurl:" + makeShortcutContent(SHORTCUT_TYPES.FREEDESKTOP, "https://example.com"),
     );
   });
 });
@@ -140,15 +142,17 @@ describe("makeShortcut", () => {
 describe("suggestShortcutFilename", () => {
   let originalPath;
   let originalCurrentTab;
+  let mockPath: { sanitizeFilename: ReturnType<typeof jest.fn> };
 
   beforeEach(() => {
-    originalPath = global.Path;
+    originalPath = (global as any).Path;
     originalCurrentTab = global.currentTab;
-    global.Path = { sanitizeFilename: jest.fn((name) => name) };
+    mockPath = { sanitizeFilename: jest.fn((name) => name) };
+    (global as any).Path = mockPath;
   });
 
   afterEach(() => {
-    global.Path = originalPath;
+    (global as any).Path = originalPath;
     global.currentTab = originalCurrentTab;
   });
 
@@ -312,26 +316,28 @@ describe("suggestShortcutFilename", () => {
       100,
     );
 
-    expect(global.Path.sanitizeFilename).toHaveBeenCalledWith("link", 100 - 4); // ".url" is 4 chars
+    expect(mockPath.sanitizeFilename).toHaveBeenCalledWith("link", 100 - 4); // ".url" is 4 chars
   });
 });
 
 describe("shortcut mime types (#161)", () => {
+  let mockDownload: { makeObjectUrl: ReturnType<typeof jest.fn> };
+
   beforeEach(() => {
-    global.SHORTCUT_TYPES = constants.SHORTCUT_TYPES;
-    global.Download = { makeObjectUrl: jest.fn((content) => `objurl:${content}`) };
+    mockDownload = { makeObjectUrl: jest.fn((content) => `objurl:${content}`) };
+    (global as any).Download = mockDownload;
     global.currentTab = { title: "t" };
   });
 
   test("HTML redirects are served as text/html so browsers keep .html", () => {
     shortcut.makeShortcut(constants.SHORTCUT_TYPES.HTML_REDIRECT, "https://x/");
-    expect(global.Download.makeObjectUrl).toHaveBeenCalledWith(expect.any(String), "text/html");
+    expect(mockDownload.makeObjectUrl).toHaveBeenCalledWith(expect.any(String), "text/html");
   });
 
   test(".url and .desktop shortcuts use octet-stream so browsers keep the extension", () => {
     for (const type of ["MAC", "WINDOWS", "FREEDESKTOP"]) {
       shortcut.makeShortcut(constants.SHORTCUT_TYPES[type], "https://x/");
-      expect(global.Download.makeObjectUrl).toHaveBeenLastCalledWith(
+      expect(mockDownload.makeObjectUrl).toHaveBeenLastCalledWith(
         expect.any(String),
         "application/octet-stream",
       );

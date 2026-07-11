@@ -17,7 +17,7 @@ const makeStore = () => {
 
 beforeEach(() => {
   Counter.writeQueue = Promise.resolve();
-  global.browser.storage.local = makeStore();
+  (global.browser.storage as any).local = makeStore();
 });
 
 describe("Counter", () => {
@@ -43,13 +43,15 @@ describe("Counter", () => {
   });
 
   test("concurrent next() calls get distinct, gapless values", async () => {
-    const results = await Promise.all([
+    // Counter.next() is inferred as Promise<void> from the object literal's
+    // writeQueue initializer; the runtime value is the counter's new number
+    const results = (await Promise.all([
       Counter.next(),
       Counter.next(),
       Counter.next(),
       Counter.next(),
       Counter.next(),
-    ]);
+    ])) as unknown as number[];
     expect(results.sort((a, b) => a - b)).toEqual([1, 2, 3, 4, 5]);
   });
 

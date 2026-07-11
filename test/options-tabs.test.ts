@@ -69,7 +69,7 @@ describe("setupTabs", () => {
   });
 
   test("builds a tab per section and shows the first by default", () => {
-    const tabs = document.querySelectorAll(".tablist .tab");
+    const tabs = document.querySelectorAll<HTMLElement>(".tablist .tab");
     expect(tabs).toHaveLength(3);
     expect(tabs[0].textContent).toBe("Downloads");
 
@@ -87,7 +87,7 @@ describe("setupTabs", () => {
   });
 
   test("clicking a tab switches the visible panel", () => {
-    const tabs = document.querySelectorAll(".tablist .tab");
+    const tabs = document.querySelectorAll<HTMLElement>(".tablist .tab");
     const panels = document.querySelectorAll(".tab-panel");
 
     tabs[1].click();
@@ -98,7 +98,7 @@ describe("setupTabs", () => {
   });
 
   test("remembers the selected tab across setups", () => {
-    document.querySelectorAll(".tablist .tab")[2].click();
+    document.querySelectorAll<HTMLElement>(".tablist .tab")[2].click();
 
     // Rebuild the page and re-run
     buildForm();
@@ -109,7 +109,7 @@ describe("setupTabs", () => {
   });
 
   test("arrow keys move between tabs", () => {
-    const tabs = document.querySelectorAll(".tablist .tab");
+    const tabs = document.querySelectorAll<HTMLElement>(".tablist .tab");
     tabs[0].focus();
     tabs[0].dispatchEvent(
       new window.KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }),
@@ -151,7 +151,7 @@ describe("unsaved-changes guard on tab switch", () => {
 
   test("calls the guard when switching to a different tab", () => {
     window.confirmPendingChanges = vi.fn();
-    const tabs = document.querySelectorAll(".tablist .tab");
+    const tabs = document.querySelectorAll<HTMLElement>(".tablist .tab");
 
     tabs[1].click();
     expect(window.confirmPendingChanges).toHaveBeenCalledTimes(1);
@@ -165,7 +165,7 @@ describe("unsaved-changes guard on tab switch", () => {
   });
 
   test("still switches when no guard is registered", () => {
-    const tabs = document.querySelectorAll(".tablist .tab");
+    const tabs = document.querySelectorAll<HTMLElement>(".tablist .tab");
     const panels = document.querySelectorAll(".tab-panel");
     tabs[1].click();
     expect(panels[1].classList.contains("active")).toBe(true);

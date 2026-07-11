@@ -11,7 +11,7 @@ describe("buildTools", () => {
 
   test("defines the save-in tools with input schemas", () => {
     const { byName } = toolsByName();
-    expect(Object.keys(byName).toSorted()).toEqual([
+    expect(Object.keys(byName).sort()).toEqual([
       "save_in_apply_config",
       "save_in_download",
       "save_in_get_schema",
@@ -84,7 +84,9 @@ describe("auto-registration on import", () => {
     document.body.innerHTML = '<span id="webmcp-status"></span>';
     const registerTool = vi.fn(() => Promise.resolve());
     document.modelContext = { registerTool };
-    global.browser = { runtime: { sendMessage: vi.fn(() => Promise.resolve({ body: {} })) } };
+    (global as any).browser = {
+      runtime: { sendMessage: vi.fn(() => Promise.resolve({ body: {} })) },
+    };
 
     vi.resetModules();
     await import("../src/options/webmcp.ts");

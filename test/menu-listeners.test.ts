@@ -8,78 +8,84 @@ import * as constants from "../src/constants.ts";
 // handlers build real Path objects).
 vi.mock("../src/option.ts", () => ({
   get options() {
-    return globalThis.options;
+    return (globalThis as any).options;
   },
   OptionsManagement: {},
 }));
 vi.mock("../src/chrome-detector.ts", () => ({
   BROWSERS: { CHROME: "CHROME", FIREFOX: "FIREFOX", UNKNOWN: "UNKNOWN" },
   get CURRENT_BROWSER() {
-    return globalThis.CURRENT_BROWSER;
+    return (globalThis as any).CURRENT_BROWSER;
   },
   get CURRENT_BROWSER_VERSION() {
-    return globalThis.CURRENT_BROWSER_VERSION;
+    return (globalThis as any).CURRENT_BROWSER_VERSION;
   },
   get BROWSER_FEATURES() {
-    return globalThis.BROWSER_FEATURES;
+    return (globalThis as any).BROWSER_FEATURES;
   },
-  setFeatures: (b) => ({ multitab: b === "FIREFOX", accessKeys: true }),
+  setFeatures: (b: string) => ({ multitab: b === "FIREFOX", accessKeys: true }),
 }));
 vi.mock("../src/download.ts", () => ({
   get Download() {
-    return globalThis.Download;
+    return (globalThis as any).Download;
   },
 }));
 vi.mock("../src/notification.ts", () => ({
   get Notifier() {
-    return globalThis.Notifier;
+    return (globalThis as any).Notifier;
   },
 }));
 vi.mock("../src/shortcut.ts", () => ({
   get Shortcut() {
-    return globalThis.Shortcut;
+    return (globalThis as any).Shortcut;
   },
 }));
 vi.mock("../src/current-tab.ts", () => ({
   get currentTab() {
-    return globalThis.currentTab;
+    return (globalThis as any).currentTab;
   },
-  setCurrentTab: (t) => {
-    globalThis.currentTab = t;
+  setCurrentTab: (t: unknown) => {
+    (globalThis as any).currentTab = t;
   },
 }));
 
-Object.assign(global, constants);
-global.Path = (await import("../src/path.ts")).Path;
+// The background modules read their deps through the vi.mock bridges above,
+// which return these seeded globals. The ambient `declare const` background
+// globals (Download, options, Menus, …) are not members of `typeof globalThis`,
+// so this loosely-typed alias is the test's single mock seam for them.
+const g = globalThis as any;
 
-global.BROWSER_FEATURES = { accessKeys: false, multitab: false };
+Object.assign(global, constants);
+g.Path = (await import("../src/path.ts")).Path;
+
+g.BROWSER_FEATURES = { accessKeys: false, multitab: false };
 
 const setupBrowserMocks = () => {
-  global.currentTab = null;
+  g.currentTab = null;
 
-  global.browser.contextMenus = {
+  (global.browser as any).contextMenus = {
     create: jest.fn(),
     update: jest.fn(),
     removeAll: jest.fn(() => Promise.resolve()),
     onClicked: { addListener: jest.fn() },
   };
-  global.browser.runtime.openOptionsPage = jest.fn();
-  global.browser.downloads.showDefaultFolder = jest.fn();
+  (global.browser.runtime as any).openOptionsPage = jest.fn();
+  (global.browser.downloads as any).showDefaultFolder = jest.fn();
   global.browser.storage.local.set = jest.fn(() => Promise.resolve());
-  global.Download = {
+  g.Download = {
     renameAndDownload: jest.fn(() => Promise.resolve()),
     // Mirrors the real Download.launch: run the pipeline, swallow rejections.
     // Its logging/reportFailure behavior is unit-tested in download-flow.test.js.
-    launch: (state) => global.Download.renameAndDownload(state).catch(() => {}),
+    launch: (state: unknown) => g.Download.renameAndDownload(state).catch(() => {}),
     makeObjectUrl: jest.fn(() => "data:text/plain;base64,eA=="),
   };
-  global.Notifier = { createExtensionNotification: jest.fn(), expectDownload: jest.fn() };
-  global.Shortcut = {
+  g.Notifier = { createExtensionNotification: jest.fn(), expectDownload: jest.fn() };
+  g.Shortcut = {
     makeShortcut: jest.fn(() => "blob:mock-shortcut"),
     suggestShortcutFilename: jest.fn(() => "shortcut.url"),
   };
-  global.BROWSER_FEATURES = { accessKeys: false, multitab: false };
-  global.options = {
+  g.BROWSER_FEATURES = { accessKeys: false, multitab: false };
+  g.options = {
     links: true,
     selection: true,
     page: true,
@@ -102,10 +108,10 @@ const setupBrowserMocks = () => {
 // menu-click.js/menu-tabs.js augment the Menus object from menu-build.js
 // via the shared global scope, so the global must exist before importing them
 const importMenus = async () => {
-  global.Menus = (await import("../src/menu-build.ts")).Menus;
+  g.Menus = (await import("../src/menu-build.ts")).Menus;
   await import("../src/menu-click.ts");
   await import("../src/menu-tabs.ts");
-  return global.Menus;
+  return g.Menus;
 };
 
 describe("Menus last-used state", () => {
@@ -150,7 +156,7 @@ describe("addDownloadListener", () => {
 
     Menus = await importMenus();
     Menus.addDownloadListener();
-    [[listener]] = global.browser.contextMenus.onClicked.addListener.mock.calls;
+    [[listener]] = vi.mocked(global.browser.contextMenus.onClicked.addListener).mock.calls;
   });
 
   test("registers the listener synchronously (MV3 requirement)", () => {
@@ -160,7 +166,7 @@ describe("addDownloadListener", () => {
   test("opens the options page for the options item", async () => {
     await listener({ menuItemId: "options" });
     expect(global.browser.runtime.openOptionsPage).toHaveBeenCalled();
-    expect(global.Download.renameAndDownload).not.toHaveBeenCalled();
+    expect(g.Download.renameAndDownload).not.toHaveBeenCalled();
   });
 
   test("shows the default folder for show-default-folder", async () => {
@@ -170,7 +176,7 @@ describe("addDownloadListener", () => {
 
   test("ignores tabstrip menu items", async () => {
     await listener({ menuItemId: Menus.IDS.TABSTRIP.SELECTED_TAB });
-    expect(global.Download.renameAndDownload).not.toHaveBeenCalled();
+    expect(g.Download.renameAndDownload).not.toHaveBeenCalled();
   });
 
   test("waits for init (window.ready) before handling a download click", async () => {
@@ -187,11 +193,11 @@ describe("addDownloadListener", () => {
     });
 
     await Promise.resolve();
-    expect(global.Download.renameAndDownload).not.toHaveBeenCalled();
+    expect(g.Download.renameAndDownload).not.toHaveBeenCalled();
 
     resolveReady();
     await pending;
-    expect(global.Download.renameAndDownload).toHaveBeenCalledTimes(1);
+    expect(g.Download.renameAndDownload).toHaveBeenCalledTimes(1);
   });
 
   test("path click downloads and persists lastUsedPath", async () => {
@@ -203,8 +209,8 @@ describe("addDownloadListener", () => {
       pageUrl: "https://example.com/",
     });
 
-    expect(global.Download.renameAndDownload).toHaveBeenCalledTimes(1);
-    const state = global.Download.renameAndDownload.mock.calls[0][0];
+    expect(g.Download.renameAndDownload).toHaveBeenCalledTimes(1);
+    const state = g.Download.renameAndDownload.mock.calls[0][0];
     expect(state.info.url).toBe("https://example.com/f.png");
 
     expect(global.browser.storage.local.set).toHaveBeenCalledWith({
@@ -215,7 +221,7 @@ describe("addDownloadListener", () => {
 
   test("uses the clicked tab for page title, not the stale global (#172/#188)", async () => {
     // The global can point at another window's tab (or be mutated later)
-    global.currentTab = { id: 99, title: "Some Other Tab" };
+    g.currentTab = { id: 99, title: "Some Other Tab" };
 
     Menus.addPaths(["dir1"], ["link"]);
     await listener(
@@ -227,12 +233,12 @@ describe("addDownloadListener", () => {
       { id: 5, title: "Clicked Tab" },
     );
 
-    const state = global.Download.renameAndDownload.mock.calls[0][0];
+    const state = g.Download.renameAndDownload.mock.calls[0][0];
     expect(state.info.currentTab.title).toBe("Clicked Tab");
   });
 
   test("falls back to the tracked tab when the event has no tab", async () => {
-    global.currentTab = { id: 99, title: "Tracked Tab" };
+    g.currentTab = { id: 99, title: "Tracked Tab" };
 
     Menus.addPaths(["dir1"], ["link"]);
     await listener({
@@ -241,7 +247,7 @@ describe("addDownloadListener", () => {
       pageUrl: "https://example.com/",
     });
 
-    const state = global.Download.renameAndDownload.mock.calls[0][0];
+    const state = g.Download.renameAndDownload.mock.calls[0][0];
     expect(state.info.currentTab.title).toBe("Tracked Tab");
   });
 
@@ -262,10 +268,10 @@ describe("addDownloadListener", () => {
       }),
     ).resolves.not.toThrow();
 
-    expect(global.Download.renameAndDownload).toHaveBeenCalledTimes(2);
+    expect(g.Download.renameAndDownload).toHaveBeenCalledTimes(2);
   });
 
-  const lastState = () => global.Download.renameAndDownload.mock.calls.at(-1)[0];
+  const lastState = () => g.Download.renameAndDownload.mock.calls.at(-1)[0];
 
   const mediaClick = {
     menuItemId: "save-in-0",
@@ -285,13 +291,13 @@ describe("addDownloadListener", () => {
       pageUrl: "https://example.com/",
     });
 
-    expect(global.Download.renameAndDownload).toHaveBeenCalledTimes(1);
+    expect(g.Download.renameAndDownload).toHaveBeenCalledTimes(1);
   });
 
   test("ignores clicks on ids without a path mapping (separators)", async () => {
     Menus.addPaths(["dir1"], ["link"]);
     await listener({ menuItemId: "separator-0", pageUrl: "https://example.com/" });
-    expect(global.Download.renameAndDownload).not.toHaveBeenCalled();
+    expect(g.Download.renameAndDownload).not.toHaveBeenCalled();
   });
 
   describe("media clicks", () => {
@@ -311,60 +317,60 @@ describe("addDownloadListener", () => {
 
       expect(lastState().info.url).toBe("https://example.com/i.png");
       expect(lastState().info.context).toBe(DOWNLOAD_TYPES.MEDIA);
-      expect(global.Notifier.createExtensionNotification).not.toHaveBeenCalled();
+      expect(g.Notifier.createExtensionNotification).not.toHaveBeenCalled();
     });
 
     test("preferLinks downloads the wrapping link and notifies", async () => {
-      global.options.preferLinks = true;
-      global.options.notifyOnLinkPreferred = true;
+      g.options.preferLinks = true;
+      g.options.notifyOnLinkPreferred = true;
 
       await listener(mediaClick);
 
       expect(lastState().info.url).toBe("https://example.com/gallery.html");
       expect(lastState().info.context).toBe(DOWNLOAD_TYPES.LINK);
-      expect(global.Notifier.createExtensionNotification).toHaveBeenCalledWith(
+      expect(g.Notifier.createExtensionNotification).toHaveBeenCalledWith(
         "Translated<notificationLinkPreferred>",
         "https://example.com/gallery.html",
       );
     });
 
     test("preferLinks stays quiet without notifyOnLinkPreferred", async () => {
-      global.options.preferLinks = true;
+      g.options.preferLinks = true;
 
       await listener(mediaClick);
 
       expect(lastState().info.url).toBe("https://example.com/gallery.html");
-      expect(global.Notifier.createExtensionNotification).not.toHaveBeenCalled();
+      expect(g.Notifier.createExtensionNotification).not.toHaveBeenCalled();
     });
 
     test("preferLinksFilter overrides to the link on matching pages", async () => {
-      global.options.preferLinksFilterEnabled = true;
-      global.options.preferLinksFilter = "example\\.com";
-      global.options.notifyOnLinkPreferred = true;
+      g.options.preferLinksFilterEnabled = true;
+      g.options.preferLinksFilter = "example\\.com";
+      g.options.notifyOnLinkPreferred = true;
 
       await listener(mediaClick);
 
       expect(lastState().info.url).toBe("https://example.com/gallery.html");
       expect(lastState().info.context).toBe(DOWNLOAD_TYPES.LINK);
-      expect(global.Notifier.createExtensionNotification).toHaveBeenCalledWith(
+      expect(g.Notifier.createExtensionNotification).toHaveBeenCalledWith(
         "Translated<notificationLinkPreferred>",
         "https://example.com/gallery.html",
       );
     });
 
     test("preferLinksFilter override stays quiet without notifyOnLinkPreferred", async () => {
-      global.options.preferLinksFilterEnabled = true;
-      global.options.preferLinksFilter = "example\\.com";
+      g.options.preferLinksFilterEnabled = true;
+      g.options.preferLinksFilter = "example\\.com";
 
       await listener(mediaClick);
 
       expect(lastState().info.url).toBe("https://example.com/gallery.html");
-      expect(global.Notifier.createExtensionNotification).not.toHaveBeenCalled();
+      expect(g.Notifier.createExtensionNotification).not.toHaveBeenCalled();
     });
 
     test("preferLinksFilter keeps the media source on non-matching pages", async () => {
-      global.options.preferLinksFilterEnabled = true;
-      global.options.preferLinksFilter = "other\\.site";
+      g.options.preferLinksFilterEnabled = true;
+      g.options.preferLinksFilter = "other\\.site";
 
       await listener(mediaClick);
 
@@ -373,10 +379,10 @@ describe("addDownloadListener", () => {
     });
 
     test("a trailing empty filter line does not force-match every page", async () => {
-      global.options.preferLinksFilterEnabled = true;
+      g.options.preferLinksFilterEnabled = true;
       // The empty lines used to compile to `new RegExp("")` (matches everything)
       // and wrongly override to the link; splitLines drops them
-      global.options.preferLinksFilter = "other\\.site\n\n  \n";
+      g.options.preferLinksFilter = "other\\.site\n\n  \n";
 
       await listener(mediaClick);
 
@@ -385,12 +391,12 @@ describe("addDownloadListener", () => {
     });
 
     test("an invalid filter pattern notifies and keeps the media source", async () => {
-      global.options.preferLinksFilterEnabled = true;
-      global.options.preferLinksFilter = "[";
+      g.options.preferLinksFilterEnabled = true;
+      g.options.preferLinksFilter = "[";
 
       await listener(mediaClick);
 
-      expect(global.Notifier.createExtensionNotification).toHaveBeenCalledWith(
+      expect(g.Notifier.createExtensionNotification).toHaveBeenCalledWith(
         "Translated<notificationBadPreferLinksPattern>",
         expect.any(SyntaxError),
       );
@@ -414,7 +420,7 @@ describe("addDownloadListener", () => {
         { id: 5, title: "Page Title" },
       );
 
-      expect(global.Download.makeObjectUrl).toHaveBeenCalledWith("hello world");
+      expect(g.Download.makeObjectUrl).toHaveBeenCalledWith("hello world");
       expect(lastState().info.url).toBe("data:text/plain;base64,eA==");
       expect(lastState().info.context).toBe(DOWNLOAD_TYPES.SELECTION);
       expect(lastState().info.suggestedFilename).toBe("Page Title.selection.txt");
@@ -470,20 +476,20 @@ describe("addDownloadListener", () => {
   });
 
   test("bails out when the click has nothing downloadable", async () => {
-    global.options.selection = false;
-    global.options.page = false;
+    g.options.selection = false;
+    g.options.page = false;
 
     Menus.addPaths(["dir1"], ["page"]);
     await listener({ menuItemId: "save-in-0", pageUrl: "https://example.com/" });
 
-    expect(global.Download.renameAndDownload).not.toHaveBeenCalled();
+    expect(g.Download.renameAndDownload).not.toHaveBeenCalled();
   });
 
   test("closeTabOnSave removes the tab shortly after a page save", async () => {
     jest.useFakeTimers();
     try {
-      global.options.closeTabOnSave = true;
-      global.browser.tabs = { remove: jest.fn() };
+      g.options.closeTabOnSave = true;
+      (global.browser as any).tabs = { remove: jest.fn() };
 
       Menus.addPaths(["dir1"], ["page"]);
       await listener(
@@ -502,8 +508,8 @@ describe("addDownloadListener", () => {
   test("does not close the tab for a non-page save even with closeTabOnSave", async () => {
     jest.useFakeTimers();
     try {
-      global.options.closeTabOnSave = true;
-      global.browser.tabs = { remove: jest.fn() };
+      g.options.closeTabOnSave = true;
+      (global.browser as any).tabs = { remove: jest.fn() };
 
       Menus.addPaths(["dir1"], ["link"]);
       await listener(
@@ -543,7 +549,9 @@ describe("addDownloadListener", () => {
       pageUrl: "https://example.com/",
     });
 
-    window.lastDownloadState = { info: { comment: "0route_comment", menuIndex: "1" } };
+    // A restart-survivor fixture: only the fields the handler reads are set,
+    // so cast past the full DownloadState shape.
+    window.lastDownloadState = { info: { comment: "0route_comment", menuIndex: "1" } } as any;
 
     await listener({
       menuItemId: Menus.IDS.LAST_USED,
@@ -574,7 +582,7 @@ describe("addDownloadListener", () => {
     });
 
     test("the last-used title gets an access key where supported", async () => {
-      global.BROWSER_FEATURES.accessKeys = true;
+      g.BROWSER_FEATURES.accessKeys = true;
 
       Menus.addPaths(["dir1"], ["link"]);
       await listener(pathClick);
@@ -596,7 +604,7 @@ describe("addDownloadListener", () => {
     });
 
     test("no last-used refresh when the feature is disabled", async () => {
-      global.options.enableLastLocation = false;
+      g.options.enableLastLocation = false;
 
       Menus.addPaths(["dir1"], ["link"]);
       await listener(pathClick);
@@ -607,7 +615,7 @@ describe("addDownloadListener", () => {
     test("addLastUsed creates an enabled item once a path has been used", async () => {
       Menus.addPaths(["dir1"], ["link"]);
       await listener(pathClick);
-      global.browser.contextMenus.create.mockClear();
+      vi.mocked(global.browser.contextMenus.create).mockClear();
 
       Menus.addLastUsed(["link"]);
 
@@ -623,16 +631,16 @@ describe("addDownloadListener", () => {
 
   describe("shortcut downloads", () => {
     test("media clicks can save shortcuts instead of the media", async () => {
-      global.options.shortcutMedia = true;
+      g.options.shortcutMedia = true;
 
       Menus.addPaths(["dir1"], ["image"]);
       await listener(mediaClick);
 
-      expect(global.Shortcut.makeShortcut).toHaveBeenCalledWith(
+      expect(g.Shortcut.makeShortcut).toHaveBeenCalledWith(
         "HTML_REDIRECT",
         "https://example.com/i.png",
       );
-      expect(global.Shortcut.suggestShortcutFilename).toHaveBeenCalledWith(
+      expect(g.Shortcut.suggestShortcutFilename).toHaveBeenCalledWith(
         "HTML_REDIRECT",
         DOWNLOAD_TYPES.MEDIA,
         mediaClick,
@@ -644,7 +652,7 @@ describe("addDownloadListener", () => {
     });
 
     test("link clicks can save shortcuts", async () => {
-      global.options.shortcutLink = true;
+      g.options.shortcutLink = true;
 
       Menus.addPaths(["dir1"], ["link"]);
       await listener({
@@ -653,7 +661,7 @@ describe("addDownloadListener", () => {
         pageUrl: "https://example.com/",
       });
 
-      expect(global.Shortcut.makeShortcut).toHaveBeenCalledWith(
+      expect(g.Shortcut.makeShortcut).toHaveBeenCalledWith(
         "HTML_REDIRECT",
         "https://example.com/f.png",
       );
@@ -661,7 +669,7 @@ describe("addDownloadListener", () => {
     });
 
     test("page clicks can save shortcuts", async () => {
-      global.options.shortcutPage = true;
+      g.options.shortcutPage = true;
 
       Menus.addPaths(["dir1"], ["page"]);
       await listener(
@@ -669,10 +677,7 @@ describe("addDownloadListener", () => {
         { id: 5, title: "Title" },
       );
 
-      expect(global.Shortcut.makeShortcut).toHaveBeenCalledWith(
-        "HTML_REDIRECT",
-        "https://example.com/",
-      );
+      expect(g.Shortcut.makeShortcut).toHaveBeenCalledWith("HTML_REDIRECT", "https://example.com/");
       expect(lastState().info.url).toBe("blob:mock-shortcut");
       expect(lastState().info.suggestedFilename).toBe("shortcut.url");
     });
@@ -853,12 +858,15 @@ describe("addTabMenuListener", () => {
   test("registers a synchronous listener that ignores non-tabstrip items", async () => {
     jest.resetModules();
     setupBrowserMocks();
-    global.browser.tabs = { query: jest.fn(() => Promise.resolve([])) };
+    (global.browser as any).tabs = { query: jest.fn(() => Promise.resolve([])) };
     window.ready = Promise.resolve();
 
     const Menus = await importMenus();
     Menus.addTabMenuListener();
-    const [[listener]] = global.browser.contextMenus.onClicked.addListener.mock.calls;
+    // The click payloads below are partial OnClickData fixtures; keep the
+    // captured handler loosely typed so the tests can pass them.
+    const [[listener]] = vi.mocked(global.browser.contextMenus.onClicked.addListener).mock
+      .calls as any[];
 
     await listener({ menuItemId: "save-in-0" }, { windowId: 1 });
     expect(global.browser.tabs.query).not.toHaveBeenCalled();
@@ -887,7 +895,7 @@ describe("addTabMenuListener tabstrip downloads", () => {
   beforeEach(async () => {
     jest.resetModules();
     setupBrowserMocks();
-    global.browser.tabs = {
+    (global.browser as any).tabs = {
       query: jest.fn(() => Promise.resolve(tabFixtures())),
       remove: jest.fn(),
     };
@@ -896,14 +904,14 @@ describe("addTabMenuListener tabstrip downloads", () => {
 
     Menus = await importMenus();
     Menus.addTabMenuListener();
-    [[listener]] = global.browser.contextMenus.onClicked.addListener.mock.calls;
+    [[listener]] = vi.mocked(global.browser.contextMenus.onClicked.addListener).mock.calls;
   });
 
   afterEach(() => {
     jest.useRealTimers();
   });
 
-  const downloads = () => global.Download.renameAndDownload.mock.calls.map(([state]) => state);
+  const downloads = () => g.Download.renameAndDownload.mock.calls.map(([state]) => state);
 
   test("SELECTED_TAB downloads only the clicked tab", async () => {
     await listener({ menuItemId: Menus.IDS.TABSTRIP.SELECTED_TAB }, fromTab);
@@ -923,7 +931,7 @@ describe("addTabMenuListener tabstrip downloads", () => {
     expect(state.info.suggestedFilename).toBeNull();
     expect(state.needRouteMatch).toBe(false);
     expect(state.path.raw).toBe(".");
-    expect(global.Notifier.expectDownload).toHaveBeenCalled();
+    expect(g.Notifier.expectDownload).toHaveBeenCalled();
   });
 
   test("SELECTED_MULTIPLE_TABS staggers downloads of the highlighted tabs", async () => {
@@ -980,17 +988,17 @@ describe("addTabMenuListener tabstrip downloads", () => {
   });
 
   test("shortcutTab saves tabs as shortcut files", async () => {
-    global.options.shortcutTab = true;
+    g.options.shortcutTab = true;
 
     await listener({ menuItemId: Menus.IDS.TABSTRIP.SELECTED_TAB }, fromTab);
     await jest.advanceTimersByTimeAsync(2000);
 
-    expect(global.Shortcut.makeShortcut).toHaveBeenCalledWith(
+    expect(g.Shortcut.makeShortcut).toHaveBeenCalledWith(
       "HTML_REDIRECT",
       "https://b.test/two",
       "Two",
     );
-    expect(global.Shortcut.suggestShortcutFilename).toHaveBeenCalledWith(
+    expect(g.Shortcut.suggestShortcutFilename).toHaveBeenCalledWith(
       "HTML_REDIRECT",
       DOWNLOAD_TYPES.TAB,
       expect.objectContaining({ menuItemId: Menus.IDS.TABSTRIP.SELECTED_TAB }),
@@ -1011,8 +1019,8 @@ describe("addTabMenuListener tabstrip downloads", () => {
   });
 
   test("shortcutTab falls back to the url for tabs without a title", async () => {
-    global.options.shortcutTab = true;
-    global.browser.tabs.query = jest.fn(() =>
+    g.options.shortcutTab = true;
+    (global.browser.tabs as any).query = jest.fn(() =>
       Promise.resolve([{ id: 9, index: 0, url: "https://c.test/nine" }]),
     );
 
@@ -1022,12 +1030,12 @@ describe("addTabMenuListener tabstrip downloads", () => {
     );
     await jest.advanceTimersByTimeAsync(2000);
 
-    expect(global.Shortcut.makeShortcut).toHaveBeenCalledWith(
+    expect(g.Shortcut.makeShortcut).toHaveBeenCalledWith(
       "HTML_REDIRECT",
       "https://c.test/nine",
       "https://c.test/nine",
     );
-    expect(global.Shortcut.suggestShortcutFilename).toHaveBeenCalledWith(
+    expect(g.Shortcut.suggestShortcutFilename).toHaveBeenCalledWith(
       "HTML_REDIRECT",
       DOWNLOAD_TYPES.TAB,
       expect.anything(),
@@ -1037,7 +1045,7 @@ describe("addTabMenuListener tabstrip downloads", () => {
   });
 
   test("closeTabOnSave removes each tab shortly after saving it", async () => {
-    global.options.closeTabOnSave = true;
+    g.options.closeTabOnSave = true;
 
     await listener({ menuItemId: Menus.IDS.TABSTRIP.SELECTED_TAB }, fromTab);
 

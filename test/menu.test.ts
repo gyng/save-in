@@ -4,44 +4,44 @@
 // click handlers, not menu construction, so they stay bridged to (unset) globals.
 vi.mock("../src/option.ts", () => ({
   get options() {
-    return globalThis.options;
+    return (globalThis as any).options;
   },
   OptionsManagement: {},
 }));
 vi.mock("../src/chrome-detector.ts", () => ({
   BROWSERS: { CHROME: "CHROME", FIREFOX: "FIREFOX", UNKNOWN: "UNKNOWN" },
   get CURRENT_BROWSER() {
-    return globalThis.CURRENT_BROWSER;
+    return (globalThis as any).CURRENT_BROWSER;
   },
   get CURRENT_BROWSER_VERSION() {
-    return globalThis.CURRENT_BROWSER_VERSION;
+    return (globalThis as any).CURRENT_BROWSER_VERSION;
   },
   get BROWSER_FEATURES() {
-    return globalThis.BROWSER_FEATURES;
+    return (globalThis as any).BROWSER_FEATURES;
   },
   setFeatures: (b) => ({ multitab: b === "FIREFOX", accessKeys: true }),
 }));
 vi.mock("../src/download.ts", () => ({
   get Download() {
-    return globalThis.Download;
+    return (globalThis as any).Download;
   },
 }));
 vi.mock("../src/notification.ts", () => ({
   get Notifier() {
-    return globalThis.Notifier;
+    return (globalThis as any).Notifier;
   },
 }));
 vi.mock("../src/shortcut.ts", () => ({
   get Shortcut() {
-    return globalThis.Shortcut;
+    return (globalThis as any).Shortcut;
   },
 }));
 vi.mock("../src/current-tab.ts", () => ({
   get currentTab() {
-    return globalThis.currentTab;
+    return (globalThis as any).currentTab;
   },
   setCurrentTab: (t) => {
-    globalThis.currentTab = t;
+    (globalThis as any).currentTab = t;
   },
 }));
 
@@ -50,14 +50,19 @@ import "../src/menu-click.ts";
 import "../src/menu-tabs.ts";
 import * as constants from "../src/constants.ts";
 
-globalThis.Menus = menu;
+// App globals live on globalThis at runtime but are declared `const` in
+// types/globals.d.ts (not on the globalThis type); poke them through an
+// any-typed alias — the same mock boundary the vi.mock getters above bridge.
+const g = global as any;
+
+(globalThis as any).Menus = menu;
 
 describe("menu parsing", () => {
   beforeAll(async () => {
-    global.SPECIAL_DIRS = constants.SPECIAL_DIRS;
-    global.PATH_SEGMENT_TYPES = constants.PATH_SEGMENT_TYPES;
-    global.FORBIDDEN_FILENAME_CHARS = constants.FORBIDDEN_FILENAME_CHARS;
-    global.Path = (await import("../src/path.ts")).Path;
+    g.SPECIAL_DIRS = constants.SPECIAL_DIRS;
+    g.PATH_SEGMENT_TYPES = constants.PATH_SEGMENT_TYPES;
+    g.FORBIDDEN_FILENAME_CHARS = constants.FORBIDDEN_FILENAME_CHARS;
+    g.Path = (await import("../src/path.ts")).Path;
   });
 
   test("parses comments for metadata", () => {
@@ -109,14 +114,14 @@ describe("menu parsing", () => {
 });
 
 const setupMenuCreationMocks = () => {
-  global.BROWSER_FEATURES = { accessKeys: true, multitab: true };
-  global.options = {
+  g.BROWSER_FEATURES = { accessKeys: true, multitab: true };
+  g.options = {
     keyRoot: "q",
     keyLastUsed: "a",
     enableNumberedItems: false,
     tabEnabled: true,
   };
-  global.browser.contextMenus = {
+  (global.browser as any).contextMenus = {
     create: jest.fn(),
     update: jest.fn(),
     onClicked: { addListener: jest.fn() },
@@ -127,14 +132,15 @@ const setupMenuCreationMocks = () => {
 describe("menu creation", () => {
   beforeAll(async () => {
     Object.assign(global, constants);
-    global.Path = (await import("../src/path.ts")).Path;
+    g.Path = (await import("../src/path.ts")).Path;
   });
 
   beforeEach(() => {
     setupMenuCreationMocks();
   });
 
-  const created = () => global.browser.contextMenus.create.mock.calls.map(([props]) => props);
+  const created = () =>
+    (global.browser.contextMenus.create as any).mock.calls.map(([props]) => props);
 
   describe("makeSeparator", () => {
     test("creates separators with an incrementing id under the given parent", () => {
@@ -157,7 +163,7 @@ describe("menu creation", () => {
 
   describe("setAccesskey", () => {
     test("passes the title through when access keys are unsupported", () => {
-      global.BROWSER_FEATURES = { accessKeys: false };
+      g.BROWSER_FEATURES = { accessKeys: false };
       expect(menu.setAccesskey("cats", "c")).toBe("cats");
     });
 
@@ -201,16 +207,16 @@ describe("menu creation", () => {
         "download-context-selection",
         "download-context-page",
       ]);
-      expect(created()[0].contexts).toEqual(global.MEDIA_TYPES.concat("link"));
+      expect(created()[0].contexts).toEqual(g.MEDIA_TYPES.concat("link"));
       expect(created().every((c) => c.enabled === false)).toBe(true);
     });
 
     test("addSelectionType describes media-only contexts when links are disabled", () => {
-      menu.addSelectionType(global.MEDIA_TYPES);
+      menu.addSelectionType(g.MEDIA_TYPES);
 
       const ids = created().map((c) => c.id);
       expect(ids).toEqual(["download-context-media"]);
-      expect(created()[0].contexts).toEqual(global.MEDIA_TYPES);
+      expect(created()[0].contexts).toEqual(g.MEDIA_TYPES);
     });
 
     test("addOptions and addShowDefaultFolder create items under the root", () => {
@@ -243,7 +249,7 @@ describe("menu creation", () => {
     });
 
     test("falls back to an icon-less item on browsers that crash on icons", () => {
-      global.browser.contextMenus.create.mockImplementationOnce(() => {
+      vi.mocked(global.browser.contextMenus.create).mockImplementationOnce(() => {
         throw new Error("icons not supported");
       });
 
@@ -315,7 +321,7 @@ describe("menu creation", () => {
         menu.IDS.ROOT,
       ]);
 
-      const menuIndexes = Object.values(menu.pathMappings).map((m) => m.menuIndex);
+      const menuIndexes = Object.values(menu.pathMappings).map((m: any) => m.menuIndex);
       expect(menuIndexes).toEqual(["1", "1.1", "1.1.1", "1.2", "2"]);
     });
 
@@ -326,7 +332,7 @@ describe("menu creation", () => {
     });
 
     test("numbers items with access keys when enableNumberedItems is on", () => {
-      global.options.enableNumberedItems = true;
+      g.options.enableNumberedItems = true;
 
       menu.addPaths(["dogs", "cats"], ["link"]);
 
@@ -334,7 +340,7 @@ describe("menu creation", () => {
     });
 
     test("meta key overrides the numbered access key", () => {
-      global.options.enableNumberedItems = true;
+      g.options.enableNumberedItems = true;
 
       menu.addPaths(["dogs // (key: g)"], ["link"]);
 
@@ -342,7 +348,7 @@ describe("menu creation", () => {
     });
 
     test("plain titles when enableNumberedItems is off", () => {
-      global.options.enableNumberedItems = false;
+      g.options.enableNumberedItems = false;
 
       menu.addPaths(["dogs"], ["link"]);
 
@@ -352,7 +358,7 @@ describe("menu creation", () => {
 
   describe("addTabMenus", () => {
     test("creates nothing when tab menus are disabled", () => {
-      global.options.tabEnabled = false;
+      g.options.tabEnabled = false;
 
       menu.addTabMenus();
 
@@ -374,7 +380,7 @@ describe("menu creation", () => {
     });
 
     test("skips the multi-select item when multitab is unsupported", () => {
-      global.BROWSER_FEATURES.multitab = false;
+      g.BROWSER_FEATURES.multitab = false;
 
       menu.addTabMenus();
 
@@ -388,9 +394,9 @@ describe("menu creation", () => {
     let highlightListener;
 
     beforeEach(() => {
-      global.browser.tabs = { onHighlighted: { addListener: jest.fn() } };
+      (global.browser as any).tabs = { onHighlighted: { addListener: jest.fn() } };
       menu.addTabHighlightListener();
-      [[highlightListener]] = global.browser.tabs.onHighlighted.addListener.mock.calls;
+      [[highlightListener]] = (global.browser.tabs.onHighlighted.addListener as any).mock.calls;
     });
 
     test("updates the multi-select item title with the highlighted count", () => {
@@ -410,7 +416,7 @@ describe("menu creation", () => {
     });
 
     test("does nothing when tab menus are disabled", () => {
-      global.options.tabEnabled = false;
+      g.options.tabEnabled = false;
 
       highlightListener({ tabIds: [4, 8] });
 
@@ -418,7 +424,7 @@ describe("menu creation", () => {
     });
 
     test("does nothing on browsers without multitab support", () => {
-      global.BROWSER_FEATURES.multitab = false;
+      g.BROWSER_FEATURES.multitab = false;
 
       highlightListener({ tabIds: [4, 8] });
 
@@ -426,7 +432,7 @@ describe("menu creation", () => {
     });
 
     test("does nothing before feature detection has run", () => {
-      global.BROWSER_FEATURES = undefined;
+      g.BROWSER_FEATURES = undefined;
 
       highlightListener({ tabIds: [4, 8] });
 
@@ -438,11 +444,11 @@ describe("menu creation", () => {
 describe("buildTree", () => {
   beforeAll(async () => {
     Object.assign(global, constants);
-    global.Path = (await import("../src/path.ts")).Path;
+    g.Path = (await import("../src/path.ts")).Path;
   });
 
   test("is pure: computes the tree without any browser calls", () => {
-    global.browser.contextMenus = { create: jest.fn() };
+    (global.browser as any).contextMenus = { create: jest.fn() };
 
     const { items, errors } = menu.buildTree(["a", ">b"]);
 

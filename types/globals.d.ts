@@ -55,124 +55,60 @@ interface DownloadState {
 }
 
 // constants.js
-declare const SPECIAL_DIRS: Record<string, string>;
-declare const RULE_TYPES: Record<string, string>;
-declare const FORBIDDEN_FILENAME_CHARS: RegExp;
-declare const PATH_SEGMENT_TYPES: Record<string, string>;
-declare const SHORTCUT_EXTENSIONS: Record<string, string>;
-declare const SHORTCUT_TYPES: Record<string, string>;
-declare const MESSAGE_TYPES: Record<string, string>;
-declare const DOWNLOAD_TYPES: Record<string, string>;
+declare var SPECIAL_DIRS: any;
+declare var RULE_TYPES: any;
+declare var FORBIDDEN_FILENAME_CHARS: any;
+declare var PATH_SEGMENT_TYPES: any;
+declare var SHORTCUT_EXTENSIONS: any;
+declare var SHORTCUT_TYPES: any;
+declare var MESSAGE_TYPES: any;
+declare var DOWNLOAD_TYPES: any;
 // Doubles as contextMenus contexts and as mediaType names, hence the intersection
-declare const MEDIA_TYPES: browser.menus.ContextType[] & string[];
-declare const CLICK_TYPES: Record<string, number>;
-declare const CONFLICT_ACTION: Record<string, string>;
-declare const OPTION_KEYS: { name: string; type: string; default?: unknown }[];
-declare const OPTION_TYPES: Record<string, string>;
+declare var MEDIA_TYPES: any;
+declare var CLICK_TYPES: any;
+declare var CONFLICT_ACTION: any;
+declare var OPTION_KEYS: any;
+declare var OPTION_TYPES: any;
 
 // chrome-detector.js
-declare const BROWSERS: Record<string, string>;
-declare let CURRENT_BROWSER: string;
-declare let CURRENT_BROWSER_VERSION: number;
-declare let BROWSER_FEATURES: {
-  accessKeys?: boolean;
-  multitab?: boolean;
-  [key: string]: boolean | undefined;
-};
+declare var BROWSERS: any;
+declare var CURRENT_BROWSER: any;
+declare var CURRENT_BROWSER_VERSION: any;
+declare var BROWSER_FEATURES: any;
 
 // option.js — the loaded options bag; keys are option names
-declare const options: {
-  paths: string;
-  filenamePatterns: unknown[];
-  truncateLength: number;
-  replacementChar: string;
-  [key: string]: any;
-};
+declare var options: any;
 
 // module-object globals (one per src file); refine as files opt in
-declare const Path: {
-  Path: any;
-  PathSegment: any;
-  sanitizeFilename: (filename: string, truncateLength?: number) => string;
-  truncateIfLongerThan: (str: string, max: number) => string;
-  [key: string]: any;
-};
-declare const Download: {
-  EXTENSION_REGEX: RegExp;
-  renameAndDownload: (state: DownloadState) => Promise<void>;
-  makeObjectUrl: (text: string, mime?: string) => string;
-  pendingStates: Map<string, DownloadState>;
-  [key: string]: any;
-};
-declare const Variable: Record<string, any>;
-declare const Router: Record<string, any>;
-declare const Menus: {
-  IDS: Record<string, any>;
-  state: {
-    lastUsedPath: string | null;
-    lastUsedMeta: { comment?: string | null; menuIndex?: string | null } | null;
-  };
-  pathMappings: Record<
-    string,
-    { parsedDir: string; comment: string; menuIndex: string; title: string; depth: number }
-  >;
-  [key: string]: any;
-};
-declare const Messaging: Record<string, any>;
+declare var Path: any;
+declare var Download: any;
+declare var Variable: any;
+declare var Router: any;
+declare var Menus: any;
+declare var Messaging: any;
 // download-state.js — the per-download record store (in-memory + storage.session)
-declare const DownloadState: {
-  records: Map<number, any>;
-  hydration: Promise<void> | null;
-  hydrate: () => Promise<void>;
-  merge: (downloadId: number, partial: Record<string, any>) => Promise<void>;
-  get: (downloadId: number) => Promise<any>;
-  [key: string]: any;
-};
+declare var DownloadState: any;
 // offscreen-client.js — Chrome SW side of the offscreen document
-declare const OffscreenClient: {
-  canUse: () => boolean;
-  ensure: () => Promise<unknown>;
-  fetch: (url: string) => Promise<string>;
-};
+declare var OffscreenClient: any;
 // util.js — small shared helpers (withUrl, splitLines)
-declare const Util: {
-  withUrl: <T>(str: string, cb: (url: URL) => T, fallback?: T) => T;
-  splitLines: (raw: string | null | undefined) => string[];
-};
+declare var Util: any;
 // options page: path-editor.js (used by rule-builder.js for undoable edits)
-declare const PathEditor: Record<string, any>;
+declare var PathEditor: any;
 // options page: history-view.js — pure history-table helpers
-declare const HistoryView: Record<string, any>;
+declare var HistoryView: any;
 // options page: options-logic.js — pure helpers extracted from options.js
-declare const OptionsLogic: Record<string, any>;
-declare const OptionsManagement: Record<string, any>;
+declare var OptionsLogic: any;
+declare var OptionsManagement: any;
 // Named Notifier/RequestHeaders (not Notification/Headers) so the runtime
 // globals do not shadow the platform classes of the same name
-declare const Notifier: {
-  expectDownload: () => void;
-  createExtensionNotification: (title: string, message?: unknown, error?: boolean) => void;
-  [key: string]: any;
-};
-declare const RequestHeaders: Record<string, any>;
-declare const Shortcut: Record<string, any>;
-declare const SaveHistory: Record<string, any>;
-declare const Counter: {
-  KEY: string;
-  writeQueue: Promise<any>;
-  next: () => Promise<number>;
-  peek: () => Promise<number>;
-  reset: () => Promise<any>;
-};
-declare const Log: Record<string, any>;
-declare const SessionState: {
-  available: () => boolean;
-  get: (key: string) => Promise<Record<string, any>>;
-  set: (obj: Record<string, unknown>) => Promise<void>;
-  remove: (key: string) => Promise<void>;
-  update: (key: string, fn: (current: any) => any) => Promise<void>;
-  queue: Promise<any>;
-};
-declare let globalChromeState: Partial<DownloadState>;
+declare var Notifier: any;
+declare var RequestHeaders: any;
+declare var Shortcut: any;
+declare var SaveHistory: any;
+declare var Counter: any;
+declare var Log: any;
+declare var SessionState: any;
+declare var globalChromeState: any;
 
 // Chrome service worker entry (src/background.js); es2022+dom lib has no
 // worker globals, so declare the one we use

@@ -8,8 +8,8 @@ vi.mock("../src/current-tab.ts", () => ({
 }));
 
 import { Router as router } from "../src/router.ts";
-import { Download as downloads } from "../src/download.ts";
 import * as constants from "../src/constants.ts";
+import { currentTab } from "../src/current-tab.ts";
 
 const fixtures = (await import("./fixtures/clickInfo")).default;
 
@@ -23,27 +23,19 @@ describe("filename rewrite and routing", () => {
   };
 
   beforeAll(() => {
-    global.createExtensionNotification = () => {};
-    global.optionErrors = {
+    window.optionErrors = {
       filenamePatterns: [],
       paths: [],
     };
     global.currentTab = {
       title: "some title",
     };
-    global.browser = { i18n: { getMessage: () => {} } };
-    global.getFilenameFromUrl = downloads.getFilenameFromUrl;
-    global.sanitizePath = downloads.sanitizePath;
-    global.removeSpecialDirs = downloads.removeSpecialDirs;
-    global.RULE_TYPES = constants.RULE_TYPES;
-    global.SPECIAL_DIRS = constants.SPECIAL_DIRS;
-    global.EXTENSION_REGEX = downloads.EXTENSION_REGEX;
-
-    global.Download = downloads;
+    // Mock-boundary cast: router.ts only calls i18n.getMessage, so the test
+    // stubs a minimal shape rather than the full @types Browser interface
+    global.browser = { i18n: { getMessage: () => {} } } as any;
   });
 
   afterAll(() => {
-    global.createExtensionNotification = undefined;
     global.currentTab = undefined;
   });
 
@@ -116,15 +108,15 @@ describe("filename rewrite and routing", () => {
       expect(rules.length).toBe(2);
       expect(rules[0].length).toBe(2);
       expect(rules[0][0].name).toBe("sourceurl");
-      expect(rules[0][0].type).toBe(RULE_TYPES.MATCHER);
+      expect(rules[0][0].type).toBe(constants.RULE_TYPES.MATCHER);
       expect(rules[0][1].name).toBe("into");
-      expect(rules[0][1].type).toBe(RULE_TYPES.DESTINATION);
+      expect(rules[0][1].type).toBe(constants.RULE_TYPES.DESTINATION);
 
       expect(rules[1].length).toBe(3);
-      expect(rules[1][0].type).toBe(RULE_TYPES.MATCHER);
-      expect(rules[1][1].type).toBe(RULE_TYPES.CAPTURE);
+      expect(rules[1][0].type).toBe(constants.RULE_TYPES.MATCHER);
+      expect(rules[1][1].type).toBe(constants.RULE_TYPES.CAPTURE);
       expect(rules[1][1].value).toBe("pageurl");
-      expect(rules[1][2].type).toBe(RULE_TYPES.DESTINATION);
+      expect(rules[1][2].type).toBe(constants.RULE_TYPES.DESTINATION);
     });
 
     test("parsing missing into", () => {
@@ -150,7 +142,7 @@ describe("filename rewrite and routing", () => {
 
       expect(rules.length).toBe(1);
       expect(rules[0].length).toBe(4);
-      expect(rules[0].filter((r) => r.type === RULE_TYPES.MATCHER).length).toBe(2);
+      expect(rules[0].filter((r) => r.type === constants.RULE_TYPES.MATCHER).length).toBe(2);
       expect(rules[0][0].name).toBe("pageurl");
       expect(rules[0][0].value.toString()).toBe("/cat/");
       expect(rules[0][1].name).toBe("sourceurl");
@@ -170,7 +162,6 @@ describe("filename rewrite and routing", () => {
     let rules;
 
     beforeAll(() => {
-      global.RULE_TYPES = constants.RULE_TYPES;
       rules = router.parseRules(
         "sourceurl: dog\ninto: cat\n\nsourceurl: (cat)\ncapture: sourceurl\ninto: dog:$1:",
       );
@@ -195,10 +186,6 @@ describe("filename rewrite and routing", () => {
   });
 
   describe("browser context menu click integration", () => {
-    beforeAll(() => {
-      global.RULE_TYPES = constants.RULE_TYPES;
-    });
-
     test("parses Firefox clicks", () => {
       const twitterRulesFirefox = router.parseRules(
         [
@@ -321,7 +308,7 @@ describe("filename rewrite and routing", () => {
 
   describe("rule parsing errors", () => {
     beforeEach(() => {
-      global.optionErrors = { filenamePatterns: [], paths: [] };
+      window.optionErrors = { filenamePatterns: [], paths: [] };
     });
 
     test("empty and comment-only rulesets parse to nothing", () => {
@@ -332,7 +319,7 @@ describe("filename rewrite and routing", () => {
     test("bad clause syntax is reported", () => {
       const rules = router.parseRules("not a clause\ninto: x");
       expect(rules).toEqual([]);
-      expect(optionErrors.filenamePatterns[0].error).toBe("not a clause");
+      expect(window.optionErrors.filenamePatterns[0].error).toBe("not a clause");
     });
 
     test("an empty line inside a rule is reported as invalid syntax", () => {
@@ -340,7 +327,7 @@ describe("filename rewrite and routing", () => {
       const errors = [];
       expect(router.tokenizeLines("", errors)).toEqual([]);
       expect(errors[0].error).toBe("invalid line syntax");
-      expect(optionErrors.filenamePatterns).toEqual([]);
+      expect(window.optionErrors.filenamePatterns).toEqual([]);
     });
 
     test("invalid matcher regex is reported and drops the rule", () => {
@@ -348,20 +335,20 @@ describe("filename rewrite and routing", () => {
       // A bad regex would compile to a match-everything matcher, so the whole
       // rule is dropped rather than routing every download by it
       expect(rules.length).toBe(0);
-      expect(optionErrors.filenamePatterns[0].error).toMatch(/SyntaxError/);
+      expect(window.optionErrors.filenamePatterns[0].error).toMatch(/SyntaxError/);
     });
 
     test("a capture destination without a capture clause warns", () => {
       const rules = router.parseRules("sourceurl: (dog)\ninto: cat:$1:");
       expect(rules.length).toBe(1);
-      expect(optionErrors.filenamePatterns[0].warning).toBe(true);
-      expect(optionErrors.filenamePatterns[0].error).toBe("cat:$1:");
+      expect(window.optionErrors.filenamePatterns[0].warning).toBe(true);
+      expect(window.optionErrors.filenamePatterns[0].error).toBe("cat:$1:");
     });
 
     test("multiple into clauses are rejected", () => {
       const rules = router.parseRules("sourceurl: a\ninto: x\ninto: y");
       expect(rules).toEqual([]);
-      expect(optionErrors.filenamePatterns.length).toBe(1);
+      expect(window.optionErrors.filenamePatterns.length).toBe(1);
     });
 
     test("multiple capture clauses are rejected", () => {
@@ -369,7 +356,7 @@ describe("filename rewrite and routing", () => {
         "sourceurl: a\ncapture: sourceurl\ncapture: sourceurl\ninto: x",
       );
       expect(rules).toEqual([]);
-      expect(optionErrors.filenamePatterns.length).toBe(1);
+      expect(window.optionErrors.filenamePatterns.length).toBe(1);
     });
   });
 

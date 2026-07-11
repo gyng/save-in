@@ -2,10 +2,7 @@
 // round-trip the textarea syntax losslessly, and the visual editor must
 // serialize every edit back to the textarea (the source of truth).
 
-import * as constants from "../src/constants.ts";
 import { PathEditor } from "../src/options/path-editor.ts";
-
-global.SPECIAL_DIRS = constants.SPECIAL_DIRS;
 
 describe("line helpers", () => {
   test("parseLine extracts depth, body, and comment", () => {
@@ -112,14 +109,15 @@ describe("visual editor", () => {
     delete global.renderMenuPreview;
   });
 
-  const textarea = () => document.querySelector("#paths");
-  const rows = () => document.querySelectorAll(".path-editor-row");
-  const controls = (row, title) => rows()[row].querySelector(`[title="${title}"]`);
+  const textarea = () => document.querySelector<HTMLTextAreaElement>("#paths");
+  const rows = () => document.querySelectorAll<HTMLElement>(".path-editor-row");
+  const controls = (row: number, title: string) =>
+    rows()[row].querySelector<HTMLElement>(`[title="${title}"]`);
 
   test("renders one row per line, separators included", () => {
     expect(rows()).toHaveLength(3);
-    expect(rows()[0].querySelector(".path-editor-dir").value).toBe("a");
-    expect(rows()[1].querySelector(".path-editor-alias").value).toBe("B");
+    expect(rows()[0].querySelector<HTMLInputElement>(".path-editor-dir").value).toBe("a");
+    expect(rows()[1].querySelector<HTMLInputElement>(".path-editor-alias").value).toBe("B");
     expect(rows()[2].querySelector(".path-editor-separator")).not.toBeNull();
   });
 
@@ -143,18 +141,18 @@ describe("visual editor", () => {
   });
 
   test("editing the alias field updates only the alias meta", () => {
-    const alias = rows()[1].querySelector(".path-editor-alias");
+    const alias = rows()[1].querySelector<HTMLInputElement>(".path-editor-alias");
     alias.value = "Better";
     alias.dispatchEvent(new Event("change", { bubbles: true }));
     expect(textarea().value).toBe("a\n>b // (alias: Better)\n---");
   });
 
   test("toolbar buttons append rows", () => {
-    document.querySelector("#path-editor-add-dir").click();
+    document.querySelector<HTMLElement>("#path-editor-add-dir").click();
     expect(textarea().value).toBe("a\n>b // (alias: B)\n---\nnew-folder");
 
     vi.advanceTimersByTime(500);
-    document.querySelector("#path-editor-add-sep").click();
+    document.querySelector<HTMLElement>("#path-editor-add-sep").click();
     expect(textarea().value).toBe("a\n>b // (alias: B)\n---\nnew-folder\n---");
   });
 
@@ -203,8 +201,8 @@ describe("insert menu typeahead", () => {
     document.body.innerHTML = "";
   });
 
-  const buttons = () => [...document.querySelectorAll(".insert-menu-variable")];
-  const filter = () => document.querySelector(".insert-menu-filter");
+  const buttons = () => [...document.querySelectorAll<HTMLButtonElement>(".insert-menu-variable")];
+  const filter = () => document.querySelector<HTMLInputElement>(".insert-menu-filter");
 
   test("lists variables with their current values", () => {
     expect(buttons().map((b) => b.querySelector("code").textContent)).toEqual([
@@ -230,7 +228,7 @@ describe("insert menu typeahead", () => {
   });
 
   test("Enter inserts the first visible match at the cursor", () => {
-    const textarea = document.querySelector("#paths");
+    const textarea = document.querySelector<HTMLTextAreaElement>("#paths");
     textarea.setSelectionRange(1, 1);
 
     filter().value = "page";
@@ -238,11 +236,11 @@ describe("insert menu typeahead", () => {
     filter().dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
 
     expect(textarea.value).toBe("a:pagetitle:");
-    expect(document.querySelector("#paths-insert-menu").open).toBe(false);
+    expect(document.querySelector<HTMLDetailsElement>("#paths-insert-menu").open).toBe(false);
   });
 
   test("values refresh each time the menu opens", async () => {
-    const menu = document.querySelector("#paths-insert-menu");
+    const menu = document.querySelector<HTMLDetailsElement>("#paths-insert-menu");
     sendMessage.mockClear();
     menu.open = true;
     menu.dispatchEvent(new Event("toggle"));
@@ -274,22 +272,22 @@ describe("text/visual mode toggle", () => {
   });
 
   test("switching to visual hides the text inputs and rebuilds the rows", () => {
-    document.querySelector("#paths-mode-visual").click();
+    document.querySelector<HTMLElement>("#paths-mode-visual").click();
 
-    expect(document.querySelector("#paths").hidden).toBe(true);
-    expect(document.querySelector("#paths-text-actions").hidden).toBe(true);
-    expect(document.querySelector("#paths-text-help").hidden).toBe(true);
-    expect(document.querySelector("#paths-visual").hidden).toBe(false);
+    expect(document.querySelector<HTMLElement>("#paths").hidden).toBe(true);
+    expect(document.querySelector<HTMLElement>("#paths-text-actions").hidden).toBe(true);
+    expect(document.querySelector<HTMLElement>("#paths-text-help").hidden).toBe(true);
+    expect(document.querySelector<HTMLElement>("#paths-visual").hidden).toBe(false);
     expect(document.querySelector("#paths-mode-visual").classList.contains("active")).toBe(true);
     expect(PathEditor.rebuildVisual).toHaveBeenCalled();
   });
 
   test("switching back restores the text input", () => {
-    document.querySelector("#paths-mode-visual").click();
-    document.querySelector("#paths-mode-text").click();
+    document.querySelector<HTMLElement>("#paths-mode-visual").click();
+    document.querySelector<HTMLElement>("#paths-mode-text").click();
 
-    expect(document.querySelector("#paths").hidden).toBe(false);
-    expect(document.querySelector("#paths-visual").hidden).toBe(true);
+    expect(document.querySelector<HTMLElement>("#paths").hidden).toBe(false);
+    expect(document.querySelector<HTMLElement>("#paths-visual").hidden).toBe(true);
     expect(document.querySelector("#paths-mode-text").classList.contains("active")).toBe(true);
   });
 });
@@ -317,7 +315,7 @@ describe("visual editor drag and drop", () => {
     rows[0].querySelector(".path-editor-handle").dispatchEvent(new Event("dragstart"));
     rows[2].dispatchEvent(new Event("drop"));
 
-    expect(document.querySelector("#paths").value).toBe("b\nc\na");
+    expect(document.querySelector<HTMLTextAreaElement>("#paths").value).toBe("b\nc\na");
   });
 
   test("dropping a row on itself is a no-op", () => {
@@ -325,14 +323,14 @@ describe("visual editor drag and drop", () => {
     rows[1].querySelector(".path-editor-handle").dispatchEvent(new Event("dragstart"));
     rows[1].dispatchEvent(new Event("drop"));
 
-    expect(document.querySelector("#paths").value).toBe("a\nb\nc");
+    expect(document.querySelector<HTMLTextAreaElement>("#paths").value).toBe("a\nb\nc");
   });
 
   test("a drop without a drag is ignored", () => {
     const rows = document.querySelectorAll(".path-editor-row");
     rows[0].dispatchEvent(new Event("drop"));
 
-    expect(document.querySelector("#paths").value).toBe("a\nb\nc");
+    expect(document.querySelector<HTMLTextAreaElement>("#paths").value).toBe("a\nb\nc");
   });
 });
 
@@ -360,9 +358,9 @@ describe("insert menu targets its editor via data-insert-target", () => {
     await Promise.resolve();
     await Promise.resolve();
 
-    const textarea = document.querySelector("#filenamePatterns");
+    const textarea = document.querySelector<HTMLTextAreaElement>("#filenamePatterns");
     textarea.setSelectionRange(textarea.value.length, textarea.value.length);
-    document.querySelector('[data-insert-line="into: "]').click();
+    document.querySelector<HTMLElement>('[data-insert-line="into: "]').click();
 
     expect(textarea.value).toBe("fileext: pdf\ninto: ");
     // Variables from the same GET_KEYWORDS source appear

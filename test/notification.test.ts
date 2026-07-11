@@ -1,6 +1,6 @@
 vi.mock("../src/option.ts", () => ({
   get options() {
-    return globalThis.options;
+    return (globalThis as any).options;
   },
   OptionsManagement: {},
 }));
@@ -64,24 +64,24 @@ test("a paused or resumable interruption is not a failure on Firefox (§8.4, #28
 
 describe("createExtensionNotification", () => {
   beforeEach(() => {
-    global.browser.notifications = {
+    (global.browser as any).notifications = {
       create: jest.fn(),
       clear: jest.fn(),
     };
   });
 
   afterEach(() => {
-    global.options = undefined;
+    (global as any).options = undefined;
     jest.useRealTimers();
   });
 
   test("creates a notification and clears it after notifyDuration", () => {
     jest.useFakeTimers();
-    global.options = { notifyDuration: 500 };
+    (global as any).options = { notifyDuration: 500 };
 
     notification.createExtensionNotification("Title", "Message", false);
 
-    const [id, spec] = global.browser.notifications.create.mock.calls[0];
+    const [id, spec] = vi.mocked(global.browser.notifications.create).mock.calls[0];
     expect(id).toMatch(/^save-in-not-/);
     expect(spec).toEqual({
       type: "basic",
@@ -96,11 +96,11 @@ describe("createExtensionNotification", () => {
   });
 
   test("falls back to i18n title/message and the error icon", () => {
-    global.options = {};
+    (global as any).options = {};
 
     notification.createExtensionNotification(null, null, true);
 
-    const [, spec] = global.browser.notifications.create.mock.calls[0];
+    const [, spec] = vi.mocked(global.browser.notifications.create).mock.calls[0];
     expect(spec.title).toBe("Translated<extensionName>");
     expect(spec.message).toBe("Translated<genericUnknownError>");
     expect(spec.iconUrl).toBe("icons/ic_error_outline_red_96px.png");
@@ -108,7 +108,7 @@ describe("createExtensionNotification", () => {
   });
 
   test("skips the auto-clear timer when options are missing", () => {
-    global.options = undefined;
+    (global as any).options = undefined;
 
     notification.createExtensionNotification("T", "M", false);
 

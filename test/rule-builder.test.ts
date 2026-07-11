@@ -76,9 +76,10 @@ describe("guided input", () => {
       <input type="text" id="rule-builder-into" />
       <button type="button" id="rule-builder-add" disabled>Add</button>
     `;
-    global.browser.runtime.sendMessage = vi.fn(() =>
-      Promise.resolve({ body: { matchers: ["fileext", "pagedomain"] } }),
-    );
+    // Not spied on — only the resolved value is used, so a plain function
+    // suffices
+    global.browser.runtime.sendMessage = () =>
+      Promise.resolve({ body: { matchers: ["fileext", "pagedomain"] } });
   });
 
   afterEach(() => {
@@ -89,11 +90,11 @@ describe("guided input", () => {
     RuleBuilder.setupGuidedInput();
     await flush();
 
-    const matcher = document.querySelector("#rule-builder-matcher");
-    const pattern = document.querySelector("#rule-builder-pattern");
-    const into = document.querySelector("#rule-builder-into");
-    const add = document.querySelector("#rule-builder-add");
-    const textarea = document.querySelector("#filenamePatterns");
+    const matcher = document.querySelector("#rule-builder-matcher") as HTMLSelectElement;
+    const pattern = document.querySelector("#rule-builder-pattern") as HTMLInputElement;
+    const into = document.querySelector("#rule-builder-into") as HTMLInputElement;
+    const add = document.querySelector("#rule-builder-add") as HTMLButtonElement;
+    const textarea = document.querySelector("#filenamePatterns") as HTMLTextAreaElement;
 
     expect([...matcher.options].map((o) => o.value)).toEqual(["fileext", "pagedomain"]);
 
@@ -139,7 +140,7 @@ describe("template list rendering", () => {
 
     firstAdd.click();
 
-    const textarea = document.querySelector("#filenamePatterns");
+    const textarea = document.querySelector("#filenamePatterns") as HTMLTextAreaElement;
     expect(textarea.value).toContain(RULE_TEMPLATES[0].rule);
     expect(firstAdd.textContent).toBe("Added");
     expect(firstAdd.disabled).toBe(true);
@@ -147,13 +148,13 @@ describe("template list rendering", () => {
 
   test("re-checks Added states after options restore fills the textarea", () => {
     RuleBuilder.renderTemplates();
-    const textarea = document.querySelector("#filenamePatterns");
+    const textarea = document.querySelector("#filenamePatterns") as HTMLTextAreaElement;
 
     // Programmatic fill, as restoreOptions does (no input event)
     textarea.value = RULE_TEMPLATES[1].rule;
     vi.advanceTimersByTime(1500);
 
-    const adds = document.querySelectorAll(".rule-template button");
+    const adds = document.querySelectorAll<HTMLButtonElement>(".rule-template button");
     expect(adds[1].disabled).toBe(true);
     expect(adds[0].disabled).toBe(false);
   });

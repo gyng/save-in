@@ -106,7 +106,7 @@ describe("SaveHistory", () => {
   });
 
   test("add tolerates a storage backend returning nothing", async () => {
-    global.browser.storage.local.get.mockResolvedValueOnce(undefined);
+    vi.mocked(global.browser.storage.local.get).mockResolvedValueOnce(undefined);
 
     SaveHistory.add({ url: "https://a/1" });
     await flushWrites();
@@ -115,7 +115,7 @@ describe("SaveHistory", () => {
   });
 
   test("get tolerates a storage backend returning nothing", async () => {
-    global.browser.storage.local.get.mockResolvedValueOnce(undefined);
+    vi.mocked(global.browser.storage.local.get).mockResolvedValueOnce(undefined);
 
     await expect(SaveHistory.get()).resolves.toEqual([]);
   });

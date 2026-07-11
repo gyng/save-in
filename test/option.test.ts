@@ -3,40 +3,46 @@
 
 import * as constants from "../src/constants.ts";
 
+// Router/Variable/Path/Download/CURRENT_BROWSER are module-scoped exports
+// (src/*.ts), not real ambient globals, so `global.X`/`globalThis.X` never
+// surfaces on `typeof globalThis`; alias through an untyped view to
+// seed/read them as this suite's mock bridge.
+const g = global as typeof globalThis & Record<string, any>;
+
 vi.mock("../src/chrome-detector.ts", () => ({
   BROWSERS: { CHROME: "CHROME", FIREFOX: "FIREFOX", UNKNOWN: "UNKNOWN" },
   get CURRENT_BROWSER() {
-    return globalThis.CURRENT_BROWSER;
+    return g.CURRENT_BROWSER;
   },
 }));
 vi.mock("../src/router.ts", () => ({
   get Router() {
-    return globalThis.Router;
+    return g.Router;
   },
 }));
 vi.mock("../src/variable.ts", () => ({
   get Variable() {
-    return globalThis.Variable;
+    return g.Variable;
   },
 }));
 vi.mock("../src/path.ts", () => ({
   get Path() {
-    return globalThis.Path;
+    return g.Path;
   },
 }));
 vi.mock("../src/download.ts", () => ({
   get Download() {
-    return globalThis.Download;
+    return g.Download;
   },
 }));
 
 Object.assign(global, constants);
 
 const setupGlobals = () => {
-  global.Router = { parseRules: vi.fn((v) => v), getCaptureMatches: vi.fn() };
-  global.Variable = { applyVariables: vi.fn() };
-  global.Path = { Path: vi.fn() };
-  global.Download = { getRoutingMatches: vi.fn() };
+  g.Router = { parseRules: vi.fn((v) => v), getCaptureMatches: vi.fn() };
+  g.Variable = { applyVariables: vi.fn() };
+  g.Path = { Path: vi.fn() };
+  g.Download = { getRoutingMatches: vi.fn() };
   global.browser.storage.local.get = vi.fn(() => Promise.resolve({}));
   delete global.window.SI_DEBUG;
 };
@@ -82,15 +88,15 @@ describe("OptionsManagement", () => {
       OptionsManagement.OPTION_KEYS.find((k) => k.name === "conflictAction");
 
     test("downgrades the Firefox-only 'prompt' to 'uniquify' on Chrome", () => {
-      global.BROWSERS = { CHROME: "CHROME", FIREFOX: "FIREFOX" };
-      global.CURRENT_BROWSER = "CHROME";
+      g.BROWSERS = { CHROME: "CHROME", FIREFOX: "FIREFOX" };
+      g.CURRENT_BROWSER = "CHROME";
       expect(conflictKey().onLoad("prompt")).toBe("uniquify");
       expect(conflictKey().onLoad("overwrite")).toBe("overwrite");
     });
 
     test("keeps 'prompt' on Firefox", () => {
-      global.BROWSERS = { CHROME: "CHROME", FIREFOX: "FIREFOX" };
-      global.CURRENT_BROWSER = "FIREFOX";
+      g.BROWSERS = { CHROME: "CHROME", FIREFOX: "FIREFOX" };
+      g.CURRENT_BROWSER = "FIREFOX";
       expect(conflictKey().onLoad("prompt")).toBe("prompt");
     });
   });
@@ -177,14 +183,14 @@ describe("OptionsManagement", () => {
     test("builds the routing preview from a download state", async () => {
       OptionsManagement.setOption("filenamePatterns", ["rule-a", "rule-b"]);
 
-      global.Download.getRoutingMatches.mockReturnValue("routed/dir");
-      global.Path.Path.mockImplementation(function fakePath(routingMatches) {
+      g.Download.getRoutingMatches.mockReturnValue("routed/dir");
+      g.Path.Path.mockImplementation(function fakePath(routingMatches) {
         this.routingMatches = routingMatches;
       });
-      global.Variable.applyVariables.mockImplementation((path) => ({
+      g.Variable.applyVariables.mockImplementation((path) => ({
         finalize: () => `finalized:${path.routingMatches}`,
       }));
-      global.Router.getCaptureMatches
+      g.Router.getCaptureMatches
         .mockReturnValueOnce(null) // rule-a: no match, loop continues
         .mockReturnValueOnce(["cap1"]); // rule-b: match, loop breaks
 
@@ -192,7 +198,7 @@ describe("OptionsManagement", () => {
 
       const result = await OptionsManagement.checkRoutes(state);
 
-      expect(global.Download.getRoutingMatches).toHaveBeenCalledWith(
+      expect(g.Download.getRoutingMatches).toHaveBeenCalledWith(
         expect.objectContaining({
           info: expect.objectContaining({
             filename: "photo.png",
@@ -200,20 +206,20 @@ describe("OptionsManagement", () => {
           }),
         }),
       );
-      expect(global.Path.Path).toHaveBeenCalledWith("routed/dir");
-      expect(global.Variable.applyVariables).toHaveBeenCalledWith(
+      expect(g.Path.Path).toHaveBeenCalledWith("routed/dir");
+      expect(g.Variable.applyVariables).toHaveBeenCalledWith(
         expect.objectContaining({ routingMatches: "routed/dir" }),
         expect.objectContaining({ filename: "photo.png" }),
       );
 
-      expect(global.Router.getCaptureMatches).toHaveBeenCalledTimes(2);
-      expect(global.Router.getCaptureMatches).toHaveBeenNthCalledWith(
+      expect(g.Router.getCaptureMatches).toHaveBeenCalledTimes(2);
+      expect(g.Router.getCaptureMatches).toHaveBeenNthCalledWith(
         1,
         "rule-a",
         expect.objectContaining({ filename: "photo.png" }),
         "photo.png",
       );
-      expect(global.Router.getCaptureMatches).toHaveBeenNthCalledWith(
+      expect(g.Router.getCaptureMatches).toHaveBeenNthCalledWith(
         2,
         "rule-b",
         expect.objectContaining({ filename: "photo.png" }),
@@ -225,11 +231,11 @@ describe("OptionsManagement", () => {
 
     test("prefers initialFilename over filename (Chrome mutates filename with `_`)", async () => {
       OptionsManagement.setOption("filenamePatterns", []);
-      global.Download.getRoutingMatches.mockReturnValue("routed/dir");
-      global.Path.Path.mockImplementation(function fakePath(routingMatches) {
+      g.Download.getRoutingMatches.mockReturnValue("routed/dir");
+      g.Path.Path.mockImplementation(function fakePath(routingMatches) {
         this.routingMatches = routingMatches;
       });
-      global.Variable.applyVariables.mockImplementation(() => ({ finalize: () => "x" }));
+      g.Variable.applyVariables.mockImplementation(() => ({ finalize: () => "x" }));
 
       const state = {
         info: { filename: "sanitized_.png", initialFilename: "café.png", url: "https://x/f.png" },
@@ -237,25 +243,25 @@ describe("OptionsManagement", () => {
 
       await OptionsManagement.checkRoutes(state);
 
-      expect(global.Download.getRoutingMatches).toHaveBeenCalledWith(
+      expect(g.Download.getRoutingMatches).toHaveBeenCalledWith(
         expect.objectContaining({ info: expect.objectContaining({ filename: "café.png" }) }),
       );
     });
 
     test("falls back to url for capture matching when there is no filename", async () => {
       OptionsManagement.setOption("filenamePatterns", ["only-rule"]);
-      global.Download.getRoutingMatches.mockReturnValue("routed/dir");
-      global.Path.Path.mockImplementation(function fakePath(routingMatches) {
+      g.Download.getRoutingMatches.mockReturnValue("routed/dir");
+      g.Path.Path.mockImplementation(function fakePath(routingMatches) {
         this.routingMatches = routingMatches;
       });
-      global.Variable.applyVariables.mockImplementation(() => ({ finalize: () => "x" }));
-      global.Router.getCaptureMatches.mockReturnValue(null);
+      g.Variable.applyVariables.mockImplementation(() => ({ finalize: () => "x" }));
+      g.Router.getCaptureMatches.mockReturnValue(null);
 
       const state = { info: { url: "https://x/nofilename" } };
 
       const result = await OptionsManagement.checkRoutes(state);
 
-      expect(global.Router.getCaptureMatches).toHaveBeenCalledWith(
+      expect(g.Router.getCaptureMatches).toHaveBeenCalledWith(
         "only-rule",
         expect.objectContaining({ url: "https://x/nofilename" }),
         "https://x/nofilename",
@@ -283,14 +289,14 @@ describe("OptionsManagement", () => {
     });
 
     test("applies each stored value's onLoad transform, defaulting to identity", async () => {
-      global.Router.parseRules.mockReturnValue("PARSED_RULES");
+      g.Router.parseRules.mockReturnValue("PARSED_RULES");
       global.browser.storage.local.get = vi.fn(() =>
         Promise.resolve({ filenamePatterns: "raw-pattern-source", conflictAction: "overwrite" }),
       );
 
       const resolved = await OptionsManagement.loadOptions();
 
-      expect(global.Router.parseRules).toHaveBeenCalledWith("raw-pattern-source");
+      expect(g.Router.parseRules).toHaveBeenCalledWith("raw-pattern-source");
       expect(resolved.filenamePatterns).toBe("PARSED_RULES");
       expect(resolved.conflictAction).toBe("overwrite");
     });

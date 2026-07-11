@@ -1,4 +1,9 @@
-import { CONFLICT_ACTION, CLICK_TYPES, SHORTCUT_TYPES, FORBIDDEN_FILENAME_CHARS } from "./constants.ts";
+import {
+  CONFLICT_ACTION,
+  CLICK_TYPES,
+  SHORTCUT_TYPES,
+  FORBIDDEN_FILENAME_CHARS,
+} from "./constants.ts";
 import { CURRENT_BROWSER, BROWSERS } from "./chrome-detector.ts";
 import { Router } from "./router.ts";
 import { Variable } from "./variable.ts";

@@ -1,3 +1,7 @@
+// This file has no static imports/exports, so top-level await (used to load
+// content.ts fresh in each describe block) needs an explicit module marker.
+export {};
+
 const ClickToSave = (await import("../src/content/content.ts")).default;
 
 describe("findSource", () => {
@@ -132,10 +136,10 @@ describe("content.js initialisation", () => {
       links: false,
     });
 
-    global.chrome.runtime.sendMessage.mockClear();
+    vi.mocked(global.chrome.runtime.sendMessage).mockClear();
 
     const keydown = new Event("keydown");
-    keydown.keyCode = 17;
+    (keydown as any).keyCode = 17;
     window.dispatchEvent(keydown);
 
     expect(global.chrome.runtime.sendMessage).toHaveBeenCalledWith(
@@ -163,7 +167,7 @@ describe("setupClickToSave", () => {
     document.body.innerHTML = '<img id="i" src="http://x.test/pic.png">';
     sendMessage = vi.fn((message, cb) => cb && cb());
     global.chrome.runtime.sendMessage = sendMessage;
-    delete global.chrome.runtime.lastError;
+    delete (global.chrome.runtime as any).lastError;
   });
 
   afterEach(() => {
@@ -175,7 +179,7 @@ describe("setupClickToSave", () => {
 
   const keyEvent = (type, keyCode) => {
     const e = new Event(type);
-    e.keyCode = keyCode;
+    (e as any).keyCode = keyCode;
     return e;
   };
 
@@ -276,11 +280,11 @@ describe("setupClickToSave", () => {
     vi.useFakeTimers();
     // Every send reports lastError: initial send + 2 retries, then gives up
     sendMessage.mockImplementation((message, cb) => {
-      global.chrome.runtime.lastError = { message: "SW starting" };
+      (global.chrome.runtime as any).lastError = { message: "SW starting" };
       if (cb) {
         cb();
       }
-      delete global.chrome.runtime.lastError;
+      delete (global.chrome.runtime as any).lastError;
     });
 
     holdCombo();

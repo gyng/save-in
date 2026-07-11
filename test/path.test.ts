@@ -1,8 +1,14 @@
 import * as constants from "../src/constants.ts";
 
+// `options` is a module-scoped export (src/option.ts), not a real ambient
+// global, so `global.options`/`globalThis.options` never surfaces on
+// `typeof globalThis`; alias through an untyped view to seed/read it as
+// this suite's mock bridge.
+const g = global as typeof globalThis & Record<string, any>;
+
 vi.mock("../src/option.ts", () => ({
   get options() {
-    return globalThis.options;
+    return g.options;
   },
   OptionsManagement: {},
 }));
@@ -11,8 +17,8 @@ import { Path as path } from "../src/path.ts";
 
 Object.assign(global, constants);
 
-global.Path = path;
-global.options = { replacementChar: "_" };
+g.Path = path;
+g.options = { replacementChar: "_" };
 
 describe("sanitisation", () => {
   test("paths", () => {
@@ -45,7 +51,7 @@ describe("sanitisation", () => {
     });
 
     test("trims a run of trailing dots and spaces", () => {
-      expect(Path.sanitizeFilename("name. . ", 0, false)).toBe("name");
+      expect((Path.sanitizeFilename as any)("name. . ", 0, false)).toBe("name");
     });
   });
 
@@ -53,23 +59,23 @@ describe("sanitisation", () => {
     test.each(["CON", "con", "PRN", "AUX", "NUL", "COM1", "com9", "LPT1", "lpt9"])(
       "prefixes the bare reserved name %s with the replacement character",
       (name) => {
-        expect(Path.sanitizeFilename(name, 0, false)).toBe(`_${name}`);
+        expect((Path.sanitizeFilename as any)(name, 0, false)).toBe(`_${name}`);
       },
     );
 
     test("prefixes a reserved name that has an extension", () => {
-      expect(Path.sanitizeFilename("con.txt", 0, false)).toBe("_con.txt");
+      expect((Path.sanitizeFilename as any)("con.txt", 0, false)).toBe("_con.txt");
     });
 
     test("leaves names that merely start with a reserved prefix alone", () => {
-      expect(Path.sanitizeFilename("console.txt", 0, false)).toBe("console.txt");
-      expect(Path.sanitizeFilename("company", 0, false)).toBe("company");
+      expect((Path.sanitizeFilename as any)("console.txt", 0, false)).toBe("console.txt");
+      expect((Path.sanitizeFilename as any)("company", 0, false)).toBe("company");
     });
 
     test("leaves COM0/COM10/LPT0/LPT10 alone (not reserved)", () => {
-      expect(Path.sanitizeFilename("COM10", 0, false)).toBe("COM10");
-      expect(Path.sanitizeFilename("COM0", 0, false)).toBe("COM0");
-      expect(Path.sanitizeFilename("LPT10", 0, false)).toBe("LPT10");
+      expect((Path.sanitizeFilename as any)("COM10", 0, false)).toBe("COM10");
+      expect((Path.sanitizeFilename as any)("COM0", 0, false)).toBe("COM0");
+      expect((Path.sanitizeFilename as any)("LPT10", 0, false)).toBe("LPT10");
     });
 
     test("round-trips a reserved name through Path.finalize", () => {
@@ -78,13 +84,13 @@ describe("sanitisation", () => {
   });
 
   describe("custom replacement character", () => {
-    const oldOptions = global.options;
+    const oldOptions = g.options;
     beforeAll(() => {
-      global.options = { replacementChar: "x" };
+      g.options = { replacementChar: "x" };
     });
 
     afterAll(() => {
-      global.options = oldOptions;
+      g.options = oldOptions;
     });
 
     test("replaces invalid characters with a custom replacement character", () => {
@@ -105,14 +111,14 @@ describe("sanitisation", () => {
     });
 
     test("empty segments fall back to underscore without a replacementChar", () => {
-      const oldOptions = global.options;
-      global.options = {};
+      const oldOptions = g.options;
+      g.options = {};
       try {
         const p = new Path.Path("a");
         p.buf = [Path.PathSegment.String("")];
         expect(p.finalize()).toBe("_");
       } finally {
-        global.options = oldOptions;
+        g.options = oldOptions;
       }
     });
   });
@@ -140,34 +146,34 @@ describe("truncateIfLongerThan", () => {
 
 describe("sanitizeFilename", () => {
   test("empty input is returned as-is", () => {
-    expect(Path.sanitizeFilename("")).toBe("");
-    expect(Path.sanitizeFilename(null)).toBe(null);
+    expect((Path.sanitizeFilename as any)("")).toBe("");
+    expect((Path.sanitizeFilename as any)(null)).toBe(null);
   });
 
   test("truncates to max length", () => {
-    expect(Path.sanitizeFilename("abcdef", 4)).toBe("abcd");
+    expect((Path.sanitizeFilename as any)("abcdef", 4)).toBe("abcd");
   });
 
   test("replaces leading dots unless allowed", () => {
-    expect(Path.sanitizeFilename(".dotfile")).toBe("_dotfile");
-    expect(Path.sanitizeFilename(".dotfile", 0, false)).toBe(".dotfile");
+    expect((Path.sanitizeFilename as any)(".dotfile")).toBe("_dotfile");
+    expect((Path.sanitizeFilename as any)(".dotfile", 0, false)).toBe(".dotfile");
   });
 
   test("trims trailing dots", () => {
-    expect(Path.sanitizeFilename("file.", 0, false)).toBe("file");
+    expect((Path.sanitizeFilename as any)("file.", 0, false)).toBe("file");
   });
 
   test("trims trailing spaces", () => {
-    expect(Path.sanitizeFilename("file   ", 0, false)).toBe("file");
+    expect((Path.sanitizeFilename as any)("file   ", 0, false)).toBe("file");
   });
 
   test("strips control characters", () => {
-    expect(Path.sanitizeFilename("a\x01b\x1fc", 0, false)).toBe("a_b_c");
+    expect((Path.sanitizeFilename as any)("a\x01b\x1fc", 0, false)).toBe("a_b_c");
   });
 
   test("neutralizes reserved device names", () => {
-    expect(Path.sanitizeFilename("CON", 0, false)).toBe("_CON");
-    expect(Path.sanitizeFilename("con.txt", 0, false)).toBe("_con.txt");
+    expect((Path.sanitizeFilename as any)("CON", 0, false)).toBe("_CON");
+    expect((Path.sanitizeFilename as any)("con.txt", 0, false)).toBe("_con.txt");
   });
 });
 
@@ -238,6 +244,6 @@ describe("parsePathStr", () => {
     const parsed = Path.parsePathStr({ split: () => "abc" });
     expect(parsed).toHaveLength(1);
     expect(parsed[0].val).toBe("abc");
-    expect(parsed[0].type).toBe(global.PATH_SEGMENT_TYPES.STRING);
+    expect(parsed[0].type).toBe(g.PATH_SEGMENT_TYPES.STRING);
   });
 });

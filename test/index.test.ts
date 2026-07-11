@@ -77,11 +77,13 @@ const setupGlobals = ({ options = {}, storedLocal = {}, tabsQueryResult = [] } =
   );
 
   global.browser.storage.local.get = vi.fn(() => Promise.resolve(storedLocal));
-  global.browser.contextMenus = { removeAll: vi.fn(() => Promise.resolve()) };
-  global.browser.tabs.query = vi.fn(() => Promise.resolve(tabsQueryResult));
-  global.browser.tabs.get = vi.fn((id) => Promise.resolve({ id, title: `Tab ${id}` }));
-  global.browser.tabs.onActivated = { addListener: vi.fn() };
-  global.browser.tabs.onUpdated = { addListener: vi.fn() };
+  // Mock-boundary casts: these test doubles are partial shapes of the
+  // strict @types/firefox-webext-browser interfaces (contextMenus, tabs.*)
+  (global.browser as any).contextMenus = { removeAll: vi.fn(() => Promise.resolve()) };
+  (global.browser.tabs as any).query = vi.fn(() => Promise.resolve(tabsQueryResult));
+  (global.browser.tabs as any).get = vi.fn((id) => Promise.resolve({ id, title: `Tab ${id}` }));
+  (global.browser.tabs as any).onActivated = { addListener: vi.fn() };
+  (global.browser.tabs as any).onUpdated = { addListener: vi.fn() };
 
   delete global.window.ready;
   delete global.window.init;
@@ -249,8 +251,8 @@ describe("current tab tracking", () => {
 
     // Observable through the onUpdated title-sync branch: a title change on
     // the same tab id mutates the tracked tab object
-    const [[onUpdated]] = global.browser.tabs.onUpdated.addListener.mock.calls;
-    onUpdated(3, { title: "New Title" });
+    const [[onUpdated]] = vi.mocked(global.browser.tabs.onUpdated.addListener).mock.calls;
+    (onUpdated as any)(3, { title: "New Title" });
     expect(tab.title).toBe("New Title");
     expect(global.browser.tabs.get).not.toHaveBeenCalled();
   });
@@ -258,29 +260,29 @@ describe("current tab tracking", () => {
   test("startup query does not clobber a tab set by onActivated first", async () => {
     setupGlobals();
     let resolveQuery;
-    global.browser.tabs.query = vi.fn(
+    (global.browser.tabs as any).query = vi.fn(
       () =>
         new Promise((resolve) => {
           resolveQuery = resolve;
         }),
     );
     const activatedTab = { id: 9, title: "Activated" };
-    global.browser.tabs.get = vi.fn(() => Promise.resolve(activatedTab));
+    (global.browser.tabs as any).get = vi.fn(() => Promise.resolve(activatedTab));
 
     await import("../src/index.ts");
     await global.window.ready;
 
-    const [[onActivated]] = global.browser.tabs.onActivated.addListener.mock.calls;
-    const [[onUpdated]] = global.browser.tabs.onUpdated.addListener.mock.calls;
+    const [[onActivated]] = vi.mocked(global.browser.tabs.onActivated.addListener).mock.calls;
+    const [[onUpdated]] = vi.mocked(global.browser.tabs.onUpdated.addListener).mock.calls;
 
-    onActivated({ tabId: 9 });
+    (onActivated as any)({ tabId: 9 });
     await flush();
     expect(global.browser.tabs.get).toHaveBeenCalledWith(9);
 
     resolveQuery([{ id: 1, title: "Startup Tab" }]);
     await flush();
 
-    onUpdated(9, { title: "Still Activated" });
+    (onUpdated as any)(9, { title: "Still Activated" });
     expect(activatedTab.title).toBe("Still Activated");
   });
 
@@ -293,8 +295,8 @@ describe("current tab tracking", () => {
     await flush();
 
     // The rejection is swallowed; nothing was tracked
-    const [[onUpdated]] = global.browser.tabs.onUpdated.addListener.mock.calls;
-    onUpdated(7, { title: "x" });
+    const [[onUpdated]] = vi.mocked(global.browser.tabs.onUpdated.addListener).mock.calls;
+    (onUpdated as any)(7, { title: "x" });
     expect(global.browser.tabs.get).toHaveBeenCalledWith(7);
   });
 
@@ -302,19 +304,19 @@ describe("current tab tracking", () => {
     const startupTab = { id: 1, title: "Startup Tab" };
     setupGlobals({ tabsQueryResult: [startupTab] });
     const activatedTab = { id: 2, title: "Activated Tab" };
-    global.browser.tabs.get = vi.fn(() => Promise.resolve(activatedTab));
+    (global.browser.tabs as any).get = vi.fn(() => Promise.resolve(activatedTab));
 
     await import("../src/index.ts");
     await global.window.ready;
     await flush();
 
-    const [[onActivated]] = global.browser.tabs.onActivated.addListener.mock.calls;
-    const [[onUpdated]] = global.browser.tabs.onUpdated.addListener.mock.calls;
+    const [[onActivated]] = vi.mocked(global.browser.tabs.onActivated.addListener).mock.calls;
+    const [[onUpdated]] = vi.mocked(global.browser.tabs.onUpdated.addListener).mock.calls;
 
-    onActivated({ tabId: 2 });
+    (onActivated as any)({ tabId: 2 });
     await flush();
 
-    onUpdated(2, { title: "Updated Title" });
+    (onUpdated as any)(2, { title: "Updated Title" });
     expect(activatedTab.title).toBe("Updated Title");
     expect(startupTab.title).toBe("Startup Tab");
   });
@@ -322,19 +324,19 @@ describe("current tab tracking", () => {
   test("onUpdated fetches the tab when none is tracked yet", async () => {
     setupGlobals({ tabsQueryResult: [] });
     const fetchedTab = { id: 4, title: "Fetched Tab" };
-    global.browser.tabs.get = vi.fn(() => Promise.resolve(fetchedTab));
+    (global.browser.tabs as any).get = vi.fn(() => Promise.resolve(fetchedTab));
 
     await import("../src/index.ts");
     await global.window.ready;
     await flush();
 
-    const [[onUpdated]] = global.browser.tabs.onUpdated.addListener.mock.calls;
-    onUpdated(4, {});
+    const [[onUpdated]] = vi.mocked(global.browser.tabs.onUpdated.addListener).mock.calls;
+    (onUpdated as any)(4, {});
     await flush();
     expect(global.browser.tabs.get).toHaveBeenCalledWith(4);
 
     // Now tracked: a title-only delta mutates it in place
-    onUpdated(4, { title: "Renamed" });
+    (onUpdated as any)(4, { title: "Renamed" });
     expect(fetchedTab.title).toBe("Renamed");
   });
 
@@ -345,13 +347,13 @@ describe("current tab tracking", () => {
     await global.window.ready;
     await flush();
 
-    const [[onUpdated]] = global.browser.tabs.onUpdated.addListener.mock.calls;
+    const [[onUpdated]] = vi.mocked(global.browser.tabs.onUpdated.addListener).mock.calls;
 
-    onUpdated(99, { title: "Other Tab Title" });
+    (onUpdated as any)(99, { title: "Other Tab Title" });
     expect(tab.title).toBe("Seeded Tab");
     expect(global.browser.tabs.get).not.toHaveBeenCalled();
 
-    onUpdated(3, { status: "complete" });
+    (onUpdated as any)(3, { status: "complete" });
     expect(tab.title).toBe("Seeded Tab");
   });
 });

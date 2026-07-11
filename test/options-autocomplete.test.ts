@@ -88,7 +88,7 @@ describe("caretCoordinates", () => {
   // that it doesn't throw, and that the measuring mirror is cleaned up
   test("returns finite coordinates and leaves no mirror behind", () => {
     document.body.innerHTML = '<textarea id="ta">images/:d</textarea>';
-    const ta = document.getElementById("ta");
+    const ta = document.getElementById("ta") as HTMLTextAreaElement;
     ta.value = "images/:d";
     const coords = caretCoordinates(ta, ta.value.length);
 
@@ -101,7 +101,7 @@ describe("caretCoordinates", () => {
 
   test("also measures single-line inputs", () => {
     document.body.innerHTML = '<input type="text" id="in" />';
-    const input = document.getElementById("in");
+    const input = document.getElementById("in") as HTMLInputElement;
     input.value = "docs/:d";
     expect(() => caretCoordinates(input, input.value.length)).not.toThrow();
     expect(document.querySelectorAll("div").length).toBe(0);
@@ -109,24 +109,24 @@ describe("caretCoordinates", () => {
 });
 
 describe("attachAutocomplete", () => {
-  let textarea;
+  let textarea: HTMLTextAreaElement;
 
-  const type = (value) => {
+  const type = (value: string) => {
     textarea.value = value;
     textarea.selectionStart = value.length;
     textarea.selectionEnd = value.length;
     textarea.dispatchEvent(new window.InputEvent("input", { bubbles: true }));
   };
 
-  const key = (k) => {
+  const key = (k: string) => {
     textarea.dispatchEvent(new window.KeyboardEvent("keydown", { key: k, cancelable: true }));
   };
 
-  const dropdown = () => document.querySelector(".autocomplete-dropdown");
+  const dropdown = () => document.querySelector(".autocomplete-dropdown") as HTMLElement;
 
   beforeEach(() => {
     document.body.innerHTML = '<textarea id="ta"></textarea>';
-    textarea = document.getElementById("ta");
+    textarea = document.getElementById("ta") as HTMLTextAreaElement;
     attachAutocomplete(textarea, [pathVariableStrategy(VARIABLES)]);
   });
 
@@ -210,12 +210,12 @@ describe("setupRoutingAutocomplete wiring", () => {
     document.body.innerHTML = `<input type="text" id="rule-builder-into" />`;
     setupRoutingAutocomplete({ matchers: ["fileext"], variables: [":date:", ":day:"] });
 
-    const input = document.getElementById("rule-builder-into");
+    const input = document.getElementById("rule-builder-into") as HTMLInputElement;
     input.value = "docs/:d";
     input.selectionStart = input.value.length;
     input.dispatchEvent(new window.InputEvent("input", { bubbles: true }));
 
-    const dropdown = document.querySelector(".autocomplete-dropdown");
+    const dropdown = document.querySelector(".autocomplete-dropdown") as HTMLElement;
     expect(dropdown.style.display).toBe("block");
     expect([...dropdown.querySelectorAll("li")].map((li) => li.textContent)).toEqual([
       ":date:",

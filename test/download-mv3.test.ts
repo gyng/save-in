@@ -10,7 +10,7 @@ import * as constants from "../src/constants.ts";
 
 vi.mock("../src/option.ts", () => ({
   get options() {
-    return globalThis.options;
+    return (globalThis as any).options;
   },
   OptionsManagement: {},
 }));
@@ -25,7 +25,7 @@ vi.mock("../src/session-state.ts", () => {
   };
   return {
     get SessionState() {
-      return globalThis.SessionState || noop;
+      return (globalThis as any).SessionState || noop;
     },
   };
 });
@@ -40,6 +40,11 @@ import { Download } from "../src/download.ts";
 import { OffscreenClient } from "../src/offscreen-client.ts";
 
 Object.assign(global, constants);
+
+// options/SessionState live on globalThis at runtime but are declared `const`
+// in types/globals.d.ts (not on the globalThis type); poke them through an
+// any-typed alias — the same mock boundary the vi.mock getters above bridge.
+const g = global as any;
 
 const decodeDataUrl = (url) => {
   const [meta, b64] = url.split(",");
@@ -170,7 +175,7 @@ describe("offscreen document fetch (Chrome MV3)", () => {
         createDocument: jest.fn(() => Promise.resolve()),
       },
       runtime: { sendMessage: jest.fn(() => Promise.resolve({ blobUrl: "blob:offscreen-url" })) },
-    };
+    } as any;
   });
 
   afterEach(() => {
@@ -262,10 +267,10 @@ describe("onDeterminingFilename listener (Chrome)", () => {
           addListener: jest.fn(),
         },
       },
-    };
-    global.browser = { runtime: { id: "self-extension-id" } };
-    global.options = { conflictAction: "uniquify" };
-    global.SessionState = {
+    } as any;
+    global.browser = { runtime: { id: "self-extension-id" } } as any;
+    g.options = { conflictAction: "uniquify" };
+    g.SessionState = {
       available: () => true,
       get: jest.fn((key) => Promise.resolve({ [key]: sessionStore[key] })),
       set: jest.fn((obj) => {
@@ -279,7 +284,7 @@ describe("onDeterminingFilename listener (Chrome)", () => {
     };
 
     await import("../src/download.ts");
-    [[listener]] = global.chrome.downloads.onDeterminingFilename.addListener.mock.calls;
+    [[listener]] = (global.chrome.downloads.onDeterminingFilename.addListener as any).mock.calls;
   });
 
   const flush = async () => {

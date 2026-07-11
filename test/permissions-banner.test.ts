@@ -4,10 +4,10 @@
 import { PermissionsBanner } from "../src/options/permissions-banner.ts";
 
 const makeEl = () => {
-  const listeners = {};
+  const listeners: Record<string, any> = {};
   return {
     hidden: false,
-    addEventListener: (type, fn) => {
+    addEventListener: (type: string, fn: (...args: any[]) => void) => {
       listeners[type] = fn;
     },
     click: () => listeners.click && listeners.click(),
@@ -27,20 +27,22 @@ describe("PermissionsBanner.hasHostAccess", () => {
   });
 
   test("resolves the contains() result for <all_urls>", async () => {
-    global.browser.permissions = { contains: vi.fn(() => Promise.resolve(false)) };
+    (global.browser as any).permissions = { contains: vi.fn(() => Promise.resolve(false)) };
     await expect(PermissionsBanner.hasHostAccess()).resolves.toBe(false);
     expect(global.browser.permissions.contains).toHaveBeenCalledWith({ origins: ["<all_urls>"] });
   });
 
   test("resolves true when contains() rejects (do not nag on error)", async () => {
-    global.browser.permissions = { contains: vi.fn(() => Promise.reject(new Error("x"))) };
+    (global.browser as any).permissions = {
+      contains: vi.fn(() => Promise.reject(new Error("x"))),
+    };
     await expect(PermissionsBanner.hasHostAccess()).resolves.toBe(true);
   });
 });
 
 describe("PermissionsBanner.init", () => {
-  const withPerms = (containsResult, extra = {}) => {
-    global.browser.permissions = {
+  const withPerms = (containsResult: boolean, extra: Record<string, any> = {}) => {
+    (global.browser as any).permissions = {
       contains: vi.fn(() => Promise.resolve(containsResult)),
       onAdded: { addListener: vi.fn() },
       onRemoved: { addListener: vi.fn() },

@@ -5,91 +5,97 @@ import * as constants from "../src/constants.ts";
 
 vi.mock("../src/path.ts", () => ({
   get Path() {
-    return globalThis.Path;
+    return (globalThis as any).Path;
   },
 }));
 vi.mock("../src/download.ts", () => ({
   get Download() {
-    return globalThis.Download;
+    return (globalThis as any).Download;
   },
 }));
 vi.mock("../src/notification.ts", () => ({
   get Notifier() {
-    return globalThis.Notifier;
+    return (globalThis as any).Notifier;
   },
 }));
 vi.mock("../src/menu-build.ts", () => ({
   get Menus() {
-    return globalThis.Menus;
+    return (globalThis as any).Menus;
   },
 }));
 vi.mock("../src/router.ts", () => ({
   get Router() {
-    return globalThis.Router;
+    return (globalThis as any).Router;
   },
 }));
 vi.mock("../src/variable.ts", () => ({
   get Variable() {
-    return globalThis.Variable;
+    return (globalThis as any).Variable;
   },
 }));
 vi.mock("../src/option.ts", () => ({
   get options() {
-    return globalThis.options;
+    return (globalThis as any).options;
   },
   get OptionsManagement() {
-    return globalThis.OptionsManagement;
+    return (globalThis as any).OptionsManagement;
   },
 }));
 vi.mock("../src/current-tab.ts", () => ({
   get currentTab() {
-    return globalThis.currentTab;
+    return (globalThis as any).currentTab;
   },
   setCurrentTab: (t) => {
-    globalThis.currentTab = t;
+    (globalThis as any).currentTab = t;
   },
 }));
 
 Object.assign(global, constants);
 
+// App globals live on globalThis at runtime but are declared `const` in
+// types/globals.d.ts (not on the globalThis type); poke them through an
+// any-typed alias — the same mock boundary the vi.mock getters above bridge.
+const g = global as any;
+
 // Capture the listeners registered at import time (jest-webextension-mock's
 // runtime events dispatch through their own internal lists, so replace them)
-global.browser.runtime.onMessage = { addListener: vi.fn() };
-global.browser.runtime.onMessageExternal = { addListener: vi.fn() };
+(global.browser.runtime as any).onMessage = { addListener: vi.fn() };
+(global.browser.runtime as any).onMessageExternal = { addListener: vi.fn() };
 
 const Messaging = (await import("../src/messaging.ts")).Messaging;
 
-const [[onMessage]] = global.browser.runtime.onMessage.addListener.mock.calls;
-const [[onMessageExternal]] = global.browser.runtime.onMessageExternal.addListener.mock.calls;
+const [[onMessage]] = (global.browser.runtime.onMessage.addListener as any).mock.calls;
+const [[onMessageExternal]] = (global.browser.runtime.onMessageExternal.addListener as any).mock
+  .calls;
 
 function FakePath(raw) {
   this.raw = raw;
 }
 
 const setupGlobals = () => {
-  global.currentTab = { id: 1, title: "Tracked Tab" };
-  global.options = { conflictAction: "uniquify" };
-  global.Path = { Path: FakePath };
-  global.Download = {
+  g.currentTab = { id: 1, title: "Tracked Tab" };
+  g.options = { conflictAction: "uniquify" };
+  g.Path = { Path: FakePath };
+  g.Download = {
     renameAndDownload: vi.fn(() => Promise.resolve()),
-    launch: (state) => global.Download.renameAndDownload(state).catch(() => {}),
+    launch: (state) => g.Download.renameAndDownload(state).catch(() => {}),
   };
-  global.Notifier = { expectDownload: vi.fn() };
-  global.Menus = {
+  g.Notifier = { expectDownload: vi.fn() };
+  g.Menus = {
     buildTree: vi.fn((paths) => ({
       items: paths.map((p, i) => ({ kind: "path", id: `save-in-${i}`, title: p })),
       errors: [],
     })),
   };
-  global.Router = {
+  g.Router = {
     matcherFunctions: { fileext: () => {}, pageurl: () => {} },
     parseRulesCollecting: vi.fn(() => ({ rules: [], errors: [] })),
   };
-  global.Variable = {
+  g.Variable = {
     transformers: { ":date:": () => {}, ":year:": () => {} },
     applyVariables: vi.fn((path) => Promise.resolve({ finalize: () => `interp:${path.raw}` })),
   };
-  global.OptionsManagement = {
+  g.OptionsManagement = {
     OPTION_KEYS: [
       { name: "prompt", type: "BOOL", default: false },
       { name: "paths", type: "VALUE", default: ".", onSave: (v) => v.trim() },
@@ -103,8 +109,8 @@ const setupGlobals = () => {
   delete global.window.lastDownloadState;
   delete global.window.SI_DEBUG;
   global.browser.runtime.sendMessage = vi.fn();
-  global.browser.storage = { local: { set: vi.fn(() => Promise.resolve()) } };
-  global.browser.tabs.query = vi.fn(() => Promise.resolve([{ id: 42 }]));
+  (global.browser as any).storage = { local: { set: vi.fn(() => Promise.resolve()) } };
+  (global.browser.tabs as any).query = vi.fn(() => Promise.resolve([{ id: 42 }]));
   global.browser.tabs.sendMessage = vi.fn(() => Promise.resolve());
 };
 
@@ -140,7 +146,7 @@ describe("onMessage", () => {
     onMessage({ type: MESSAGE_TYPES.OPTIONS }, {}, sendResponse);
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.OPTIONS,
-      body: global.options,
+      body: g.options,
     });
   });
 
@@ -150,8 +156,8 @@ describe("onMessage", () => {
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.OPTIONS_SCHEMA,
       body: {
-        keys: global.OptionsManagement.OPTION_KEYS,
-        types: global.OptionsManagement.OPTION_TYPES,
+        keys: g.OptionsManagement.OPTION_KEYS,
+        types: g.OptionsManagement.OPTION_TYPES,
       },
     });
   });
@@ -177,7 +183,7 @@ describe("onMessage", () => {
     );
 
     // Lines are trimmed and blanks dropped, mirroring window.init
-    expect(global.Menus.buildTree).toHaveBeenCalledWith(["dogs", ">cats"]);
+    expect(g.Menus.buildTree).toHaveBeenCalledWith(["dogs", ">cats"]);
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.MENU_PREVIEW,
       body: {
@@ -193,7 +199,7 @@ describe("onMessage", () => {
   test("PREVIEW_MENUS tolerates a missing body", () => {
     const sendResponse = vi.fn();
     onMessage({ type: MESSAGE_TYPES.PREVIEW_MENUS }, {}, sendResponse);
-    expect(global.Menus.buildTree).toHaveBeenCalledWith([]);
+    expect(g.Menus.buildTree).toHaveBeenCalledWith([]);
     expect(sendResponse).toHaveBeenCalled();
   });
 
@@ -217,9 +223,9 @@ describe("onMessage CHECK_ROUTES", () => {
     onMessage({ type: MESSAGE_TYPES.CHECK_ROUTES, body: { state } }, {}, sendResponse);
     await settle();
 
-    expect(global.OptionsManagement.checkRoutes).toHaveBeenCalledWith(state);
+    expect(g.OptionsManagement.checkRoutes).toHaveBeenCalledWith(state);
     // interpolation runs in preview mode (a copy of info with preview:true)
-    expect(global.Variable.applyVariables).toHaveBeenCalledWith(
+    expect(g.Variable.applyVariables).toHaveBeenCalledWith(
       expect.any(FakePath),
       expect.objectContaining({ filename: "f.png", preview: true }),
     );
@@ -236,13 +242,13 @@ describe("onMessage CHECK_ROUTES", () => {
 
   test("falls back to window.lastDownloadState without a state in the body", async () => {
     const lastState = { info: { filename: "last.png" } };
-    global.window.lastDownloadState = lastState;
+    (global.window as any).lastDownloadState = lastState;
     const sendResponse = vi.fn();
 
     onMessage({ type: MESSAGE_TYPES.CHECK_ROUTES, body: {} }, {}, sendResponse);
     await settle();
 
-    expect(global.OptionsManagement.checkRoutes).toHaveBeenCalledWith(lastState);
+    expect(g.OptionsManagement.checkRoutes).toHaveBeenCalledWith(lastState);
     expect(sendResponse).toHaveBeenCalledWith(
       expect.objectContaining({
         body: expect.objectContaining({
@@ -260,8 +266,8 @@ describe("onMessage CHECK_ROUTES", () => {
     onMessage({ type: MESSAGE_TYPES.CHECK_ROUTES }, {}, sendResponse);
     await settle();
 
-    expect(global.OptionsManagement.checkRoutes).toHaveBeenCalledWith(false);
-    expect(global.Variable.applyVariables).not.toHaveBeenCalled();
+    expect(g.OptionsManagement.checkRoutes).toHaveBeenCalledWith(false);
+    expect(g.Variable.applyVariables).not.toHaveBeenCalled();
     expect(sendResponse).toHaveBeenCalledWith(
       expect.objectContaining({
         body: expect.objectContaining({
@@ -294,7 +300,7 @@ describe("handleDownloadMessage", () => {
         sendResponse,
       ),
     ).not.toThrow();
-    expect(global.Download.renameAndDownload).toHaveBeenCalledTimes(1);
+    expect(g.Download.renameAndDownload).toHaveBeenCalledTimes(1);
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.DOWNLOAD,
       body: { status: MESSAGE_TYPES.OK, version: 1, url: "https://x/file.png" },
@@ -305,10 +311,10 @@ describe("handleDownloadMessage", () => {
     const sendResponse = vi.fn();
     onMessage(request(), {}, sendResponse);
 
-    expect(global.Notifier.expectDownload).toHaveBeenCalled();
-    expect(global.Download.renameAndDownload).toHaveBeenCalledTimes(1);
+    expect(g.Notifier.expectDownload).toHaveBeenCalled();
+    expect(g.Download.renameAndDownload).toHaveBeenCalledTimes(1);
 
-    const state = global.Download.renameAndDownload.mock.calls[0][0];
+    const state = g.Download.renameAndDownload.mock.calls[0][0];
     expect(state.path).toEqual(new FakePath("."));
     expect(state.scratch).toEqual({});
     expect(state.info.url).toBe("https://x/file.png");
@@ -339,7 +345,7 @@ describe("handleDownloadMessage", () => {
 
     onMessage(request(), {}, vi.fn());
 
-    const state = global.Download.renameAndDownload.mock.calls[0][0];
+    const state = g.Download.renameAndDownload.mock.calls[0][0];
     expect(state.path).toBe(lastPath);
     // Inheriting the previous route, filename, or scratch would name this
     // download after the previous one (found live by the alt+click e2e)
@@ -354,11 +360,11 @@ describe("handleDownloadMessage", () => {
   });
 
   test("falls back to the default path when the last state has none", () => {
-    global.window.lastDownloadState = { scratch: {}, info: {} };
+    (global.window as any).lastDownloadState = { scratch: {}, info: {} };
 
     onMessage(request(), {}, vi.fn());
 
-    const state = global.Download.renameAndDownload.mock.calls[0][0];
+    const state = g.Download.renameAndDownload.mock.calls[0][0];
     expect(state.path).toEqual(new FakePath("."));
   });
 
@@ -366,28 +372,28 @@ describe("handleDownloadMessage", () => {
     const senderTab = { id: 5, title: "Sender Tab" };
     onMessage(request(), { tab: senderTab }, vi.fn());
 
-    const state = global.Download.renameAndDownload.mock.calls[0][0];
+    const state = g.Download.renameAndDownload.mock.calls[0][0];
     expect(state.info.currentTab).toBe(senderTab);
   });
 
   test("falls back to the tracked tab when the sender has none", () => {
     onMessage(request(), {}, vi.fn());
 
-    const state = global.Download.renameAndDownload.mock.calls[0][0];
-    expect(state.info.currentTab).toBe(global.currentTab);
+    const state = g.Download.renameAndDownload.mock.calls[0][0];
+    expect(state.info.currentTab).toBe(g.currentTab);
   });
 
   test("passes through a comment for routing rules (external extensions)", () => {
     onMessage(request({ comment: "from-foxy-gestures" }), {}, vi.fn());
 
-    const state = global.Download.renameAndDownload.mock.calls[0][0];
+    const state = g.Download.renameAndDownload.mock.calls[0][0];
     expect(state.info.comment).toBe("from-foxy-gestures");
   });
 
   test("omits the comment when none is supplied", () => {
     onMessage(request(), {}, vi.fn());
 
-    const state = global.Download.renameAndDownload.mock.calls[0][0];
+    const state = g.Download.renameAndDownload.mock.calls[0][0];
     expect(state.info.comment).toBeUndefined();
   });
 
@@ -395,7 +401,7 @@ describe("handleDownloadMessage", () => {
     const sendResponse = vi.fn();
     onMessageExternal(request(), { tab: { id: 9 } }, sendResponse);
 
-    expect(global.Download.renameAndDownload).toHaveBeenCalledTimes(1);
+    expect(g.Download.renameAndDownload).toHaveBeenCalledTimes(1);
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.DOWNLOAD,
       body: { status: MESSAGE_TYPES.OK, version: 1, url: "https://x/file.png" },
@@ -430,7 +436,7 @@ describe("external DOWNLOAD API v1", () => {
   test("rejects a missing url with BAD_REQUEST and does not download", () => {
     const sendResponse = vi.fn();
     onMessageExternal(download({ info: {} }), {}, sendResponse);
-    expect(global.Download.renameAndDownload).not.toHaveBeenCalled();
+    expect(g.Download.renameAndDownload).not.toHaveBeenCalled();
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.DOWNLOAD,
       body: {
@@ -445,7 +451,7 @@ describe("external DOWNLOAD API v1", () => {
   test("rejects an unfetchable scheme with INVALID_URL", () => {
     const sendResponse = vi.fn();
     onMessageExternal(download({ url: "javascript:alert(1)" }), {}, sendResponse);
-    expect(global.Download.renameAndDownload).not.toHaveBeenCalled();
+    expect(g.Download.renameAndDownload).not.toHaveBeenCalled();
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.DOWNLOAD,
       body: {
@@ -505,15 +511,15 @@ describe("config API", () => {
   });
 
   test("VALIDATE dry-runs paths and rules and returns errors + preview", () => {
-    global.Router.parseRulesCollecting = vi.fn(() => ({ rules: [], errors: ["bad rule"] }));
+    g.Router.parseRulesCollecting = vi.fn(() => ({ rules: [], errors: ["bad rule"] }));
     const sendResponse = vi.fn();
     onMessageExternal(
       { type: MESSAGE_TYPES.VALIDATE, body: { paths: " dogs \n>cats", filenamePatterns: "x" } },
       {},
       sendResponse,
     );
-    expect(global.Menus.buildTree).toHaveBeenCalledWith(["dogs", ">cats"]);
-    expect(global.Router.parseRulesCollecting).toHaveBeenCalledWith("x");
+    expect(g.Menus.buildTree).toHaveBeenCalledWith(["dogs", ">cats"]);
+    expect(g.Router.parseRulesCollecting).toHaveBeenCalledWith("x");
     const { body } = sendResponse.mock.calls[0][0];
     expect(body.pathErrors).toEqual([]);
     expect(body.ruleErrors).toEqual(["bad rule"]);

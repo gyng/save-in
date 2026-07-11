@@ -2,8 +2,8 @@ import { localizeString, localizeDocument } from "../src/options/l10n.ts";
 
 describe("l10n", () => {
   beforeEach(() => {
-    global.chrome.i18n = {
-      getMessage: vi.fn((key) => ({ greeting: "Hello", name: "save-in" })[key] || ""),
+    (global.chrome as any).i18n = {
+      getMessage: vi.fn((key: string) => ({ greeting: "Hello", name: "save-in" })[key] || ""),
     };
   });
 

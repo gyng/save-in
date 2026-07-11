@@ -6,23 +6,28 @@ import { Download } from "../src/download.ts";
 
 vi.mock("../src/counter.ts", () => ({
   get Counter() {
-    return globalThis.Counter;
+    return (globalThis as any).Counter;
   },
 }));
 vi.mock("../src/option.ts", () => ({
   get options() {
-    return globalThis.options;
+    return (globalThis as any).options;
   },
   OptionsManagement: {},
 }));
 
 Object.assign(global, constants);
 
-global.Path = Path;
-global.Download = Download;
+// The app globals below live on globalThis at runtime, but types/globals.d.ts
+// declares them `const` (so they are not on the globalThis type). Poke them
+// through an any-typed alias — the same mock boundary the vi.mock getters bridge.
+const g = global as any;
+
+g.Path = Path;
+g.Download = Download;
 
 describe("variables", () => {
-  const specialDirs = global.SPECIAL_DIRS;
+  const specialDirs = g.SPECIAL_DIRS;
   const info = {
     url: "http://www.source.com/foobar/file.jpg",
     pageUrl: "http://www.example.com/foobar/",
@@ -35,17 +40,17 @@ describe("variables", () => {
   };
 
   beforeAll(() => {
-    global.SPECIAL_DIRS = constants.SPECIAL_DIRS;
-    global.RULE_TYPES = constants.RULE_TYPES;
-    global.currentTab = { title: "foobartitle" };
-    global.matchRules = router.matchRules;
-    global.options = { replacementChar: "_" };
+    g.SPECIAL_DIRS = constants.SPECIAL_DIRS;
+    g.RULE_TYPES = constants.RULE_TYPES;
+    g.currentTab = { title: "foobartitle" };
+    g.matchRules = router.matchRules;
+    g.options = { replacementChar: "_" };
   });
 
   afterAll(() => {
-    global.SPECIAL_DIRS = specialDirs;
-    global.currentTab = undefined;
-    global.matchRules = undefined;
+    g.SPECIAL_DIRS = specialDirs;
+    g.currentTab = undefined;
+    g.matchRules = undefined;
   });
 
   describe("standard variables", () => {
@@ -57,7 +62,7 @@ describe("variables", () => {
     });
 
     test("interpolates :unixdate:", async () => {
-      const timestamp = Math.floor(info.now / 1000);
+      const timestamp = Math.floor(info.now.getTime() / 1000);
       const input = new Path.Path(":unixdate:/a/b");
       const output = (await Variable.applyVariables(input, info)).finalize();
       expect(output).toBe(`${timestamp}/a/b`);
@@ -433,13 +438,13 @@ describe("URL-part variables", () => {
 
 describe(":counter: (async, persistent)", () => {
   beforeEach(() => {
-    global.Counter = {
+    g.Counter = {
       next: vi.fn(() => Promise.resolve(7)),
       peek: vi.fn(() => Promise.resolve(41)),
     };
   });
   afterEach(() => {
-    delete global.Counter;
+    delete g.Counter;
   });
 
   test("consumes one value and caches it across the whole download", async () => {
@@ -449,7 +454,7 @@ describe(":counter: (async, persistent)", () => {
     // The same info bag (path then route in one download) reuses the value
     const b = (await Variable.applyVariables(new Path.Path(":counter:/x"), shared)).finalize();
     expect(b).toBe("7/x");
-    expect(global.Counter.next).toHaveBeenCalledTimes(1);
+    expect(g.Counter.next).toHaveBeenCalledTimes(1);
   });
 
   test("preview mode peeks the next value without consuming", async () => {
@@ -457,8 +462,8 @@ describe(":counter: (async, persistent)", () => {
       await Variable.applyVariables(new Path.Path("n-:counter:"), { preview: true })
     ).finalize();
     expect(out).toBe("n-42"); // peek() 41 + 1
-    expect(global.Counter.next).not.toHaveBeenCalled();
-    expect(global.Counter.peek).toHaveBeenCalled();
+    expect(g.Counter.next).not.toHaveBeenCalled();
+    expect(g.Counter.peek).toHaveBeenCalled();
   });
 });
 
@@ -477,7 +482,7 @@ describe(":uuid:", () => {
 
 describe(":mime: / :contenttype: / :mimeext: (async HEAD)", () => {
   const mockHead = (contentType) => {
-    global.fetch = vi.fn(() =>
+    g.fetch = vi.fn(() =>
       Promise.resolve({
         headers: { get: (h) => (h === "Content-Type" ? contentType : null) },
       }),
@@ -486,11 +491,11 @@ describe(":mime: / :contenttype: / :mimeext: (async HEAD)", () => {
 
   beforeEach(() => {
     // path.js sanitizes "/" in the mime value using options.replacementChar
-    global.options = { replacementChar: "_" };
+    g.options = { replacementChar: "_" };
   });
 
   afterEach(() => {
-    delete global.fetch;
+    delete g.fetch;
   });
 
   test(":mime: is the Content-Type with charset stripped (and path-sanitized)", async () => {
@@ -499,7 +504,7 @@ describe(":mime: / :contenttype: / :mimeext: (async HEAD)", () => {
       await Variable.applyVariables(new Path.Path(":mime:"), { url: "https://x/a" })
     ).finalize();
     expect(out).toBe("image_jpeg"); // the "/" is sanitized like any segment
-    expect(global.fetch).toHaveBeenCalledWith(
+    expect(g.fetch).toHaveBeenCalledWith(
       "https://x/a",
       expect.objectContaining({ method: "HEAD", credentials: "include" }),
     );
@@ -526,11 +531,11 @@ describe(":mime: / :contenttype: / :mimeext: (async HEAD)", () => {
   test("shares one HEAD across occurrences in a single download", async () => {
     mockHead("video/mp4");
     await Variable.applyVariables(new Path.Path(":mime:/:mimeext:"), { url: "https://x/a" });
-    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(g.fetch).toHaveBeenCalledTimes(1);
   });
 
   test("a failed HEAD yields an empty value (-> replacement char)", async () => {
-    global.fetch = vi.fn(() => Promise.reject(new Error("CORS")));
+    g.fetch = vi.fn(() => Promise.reject(new Error("CORS")));
     const out = (
       await Variable.applyVariables(new Path.Path(":mimeext:"), { url: "https://x/a" })
     ).finalize();
@@ -538,14 +543,14 @@ describe(":mime: / :contenttype: / :mimeext: (async HEAD)", () => {
   });
 
   test("preview mode never hits the network", async () => {
-    global.fetch = vi.fn();
+    g.fetch = vi.fn();
     const out = (
       await Variable.applyVariables(new Path.Path(":mime:"), {
         url: "https://x/a",
         preview: true,
       })
     ).finalize();
-    expect(global.fetch).not.toHaveBeenCalled();
+    expect(g.fetch).not.toHaveBeenCalled();
     expect(out).toBe("_"); // empty in preview -> replacement char
   });
 
@@ -565,7 +570,7 @@ describe(":sha256: (async content hash)", () => {
   let origCreateObjectURL;
   const mockBody = (text, extraHeaders = {}) => {
     const buf = new TextEncoder().encode(text).buffer;
-    global.fetch = vi.fn(() =>
+    g.fetch = vi.fn(() =>
       Promise.resolve({
         ok: true,
         headers: { get: (h) => extraHeaders[h] ?? null },
@@ -576,13 +581,13 @@ describe(":sha256: (async content hash)", () => {
   };
 
   beforeEach(() => {
-    global.options = { replacementChar: "_" };
+    g.options = { replacementChar: "_" };
     origCreateObjectURL = URL.createObjectURL;
     URL.createObjectURL = vi.fn(() => "blob:mock");
   });
 
   afterEach(() => {
-    delete global.fetch;
+    delete g.fetch;
     URL.createObjectURL = origCreateObjectURL;
   });
 
@@ -592,7 +597,7 @@ describe(":sha256: (async content hash)", () => {
       await Variable.applyVariables(new Path.Path("h/:sha256:"), { url: "https://x/a" })
     ).finalize();
     expect(out).toBe("h/ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad");
-    expect(global.fetch).toHaveBeenCalledWith(
+    expect(g.fetch).toHaveBeenCalledWith(
       "https://x/a",
       expect.objectContaining({ credentials: "include" }),
     );
@@ -601,11 +606,11 @@ describe(":sha256: (async content hash)", () => {
   test("shares one GET across multiple :sha256: occurrences", async () => {
     mockBody("abc");
     await Variable.applyVariables(new Path.Path(":sha256:/:sha256:"), { url: "https://x/a" });
-    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(g.fetch).toHaveBeenCalledTimes(1);
   });
 
   test("a failed fetch yields an empty value (-> replacement char)", async () => {
-    global.fetch = vi.fn(() => Promise.reject(new Error("network")));
+    g.fetch = vi.fn(() => Promise.reject(new Error("network")));
     const out = (
       await Variable.applyVariables(new Path.Path(":sha256:"), { url: "https://x/a" })
     ).finalize();
@@ -613,7 +618,7 @@ describe(":sha256: (async content hash)", () => {
   });
 
   test("skips a file larger than the cap (declared Content-Length)", async () => {
-    global.fetch = vi.fn(() =>
+    g.fetch = vi.fn(() =>
       Promise.resolve({
         ok: true,
         headers: {
@@ -630,29 +635,29 @@ describe(":sha256: (async content hash)", () => {
   });
 
   test("preview mode never hits the network", async () => {
-    global.fetch = vi.fn();
+    g.fetch = vi.fn();
     const out = (
       await Variable.applyVariables(new Path.Path(":sha256:"), {
         url: "https://x/a",
         preview: true,
       })
     ).finalize();
-    expect(global.fetch).not.toHaveBeenCalled();
+    expect(g.fetch).not.toHaveBeenCalled();
     expect(out).toBe("_");
   });
 });
 
 describe(":finalurl: / :redirecturl: (post-redirect URL)", () => {
   beforeEach(() => {
-    global.options = { replacementChar: "_" };
+    g.options = { replacementChar: "_" };
   });
 
   afterEach(() => {
-    delete global.fetch;
+    delete g.fetch;
   });
 
   test(":finalurl: is the response URL after redirects", async () => {
-    global.fetch = vi.fn(() =>
+    g.fetch = vi.fn(() =>
       Promise.resolve({
         url: "https://cdn.example.com/real/file.jpg",
         headers: { get: () => null },
@@ -663,28 +668,28 @@ describe(":finalurl: / :redirecturl: (post-redirect URL)", () => {
     ).finalize();
     // the full URL is path-sanitized like :sourceurl:, but the host survives intact
     expect(out).toContain("cdn.example.com");
-    expect(global.fetch).toHaveBeenCalledWith(
+    expect(g.fetch).toHaveBeenCalledWith(
       "https://x/a",
       expect.objectContaining({ method: "HEAD" }),
     );
   });
 
   test(":redirecturl: is an alias sharing the same HEAD", async () => {
-    global.fetch = vi.fn(() =>
+    g.fetch = vi.fn(() =>
       Promise.resolve({ url: "https://final/x", headers: { get: () => null } }),
     );
     await Variable.applyVariables(new Path.Path(":finalurl:/:redirecturl:"), {
       url: "https://x/a",
     });
-    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(g.fetch).toHaveBeenCalledTimes(1);
   });
 
   test("preview mode never hits the network", async () => {
-    global.fetch = vi.fn();
+    g.fetch = vi.fn();
     await Variable.applyVariables(new Path.Path(":finalurl:"), {
       url: "https://x/a",
       preview: true,
     });
-    expect(global.fetch).not.toHaveBeenCalled();
+    expect(g.fetch).not.toHaveBeenCalled();
   });
 });

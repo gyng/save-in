@@ -1,12 +1,18 @@
+// `options`/`Log` are module-scoped exports (src/option.ts, src/log.ts), not
+// real ambient globals, and `chrome` (a genuine ambient global from
+// @types/chrome) is far too strictly typed for a partial mock — alias
+// through an untyped view for all three as this suite's mock bridge.
+const g: any = global;
+
 vi.mock("../src/option.ts", () => ({
   get options() {
-    return globalThis.options;
+    return g.options;
   },
   OptionsManagement: {},
 }));
 vi.mock("../src/log.ts", () => ({
   get Log() {
-    return globalThis.Log;
+    return g.Log;
   },
 }));
 
@@ -14,7 +20,7 @@ import { RequestHeaders } from "../src/headers.ts";
 
 describe("matchesRefererFilter", () => {
   beforeEach(() => {
-    global.options = {
+    g.options = {
       setRefererHeaderFilter: "*://i.pximg.net/*",
     };
   });
@@ -32,26 +38,26 @@ describe("matchesRefererFilter", () => {
   });
 
   test("supports multiple newline-separated patterns", () => {
-    global.options.setRefererHeaderFilter = "*://i.pximg.net/*\n*://example.org/downloads/*";
+    g.options.setRefererHeaderFilter = "*://i.pximg.net/*\n*://example.org/downloads/*";
     expect(RequestHeaders.matchesRefererFilter("https://example.org/downloads/a")).toBe(true);
     expect(RequestHeaders.matchesRefererFilter("https://example.org/other/a")).toBe(false);
   });
 
   test("escapes regex metacharacters in patterns", () => {
-    global.options.setRefererHeaderFilter = "*://a.b/c?d=e*";
+    g.options.setRefererHeaderFilter = "*://a.b/c?d=e*";
     expect(RequestHeaders.matchesRefererFilter("https://a.b/c?d=e&f=g")).toBe(true);
     expect(RequestHeaders.matchesRefererFilter("https://axb/cxd=e")).toBe(false);
   });
 
   test("handles empty and whitespace-only filters", () => {
-    global.options.setRefererHeaderFilter = "";
+    g.options.setRefererHeaderFilter = "";
     expect(RequestHeaders.matchesRefererFilter("https://i.pximg.net/a.png")).toBe(false);
-    global.options.setRefererHeaderFilter = "\n  \n";
+    g.options.setRefererHeaderFilter = "\n  \n";
     expect(RequestHeaders.matchesRefererFilter("https://i.pximg.net/a.png")).toBe(false);
   });
 
   test("ignores patterns that are not match patterns", () => {
-    global.options.setRefererHeaderFilter = "not-a-match-pattern";
+    g.options.setRefererHeaderFilter = "not-a-match-pattern";
     expect(RequestHeaders.matchesRefererFilter("https://i.pximg.net/a.png")).toBe(false);
   });
 
@@ -108,15 +114,15 @@ describe("prepareReferer (declarativeNetRequest path)", () => {
   let originalChrome;
 
   beforeEach(() => {
-    global.options = {
+    g.options = {
       setRefererHeader: true,
       setRefererHeaderFilter: "*://i.pximg.net/*",
     };
     // Rule ids cycle; reset so each test's first rule uses the base id
     RequestHeaders.refererRuleOffset = 0;
 
-    originalChrome = global.chrome;
-    global.chrome = {
+    originalChrome = g.chrome;
+    g.chrome = {
       declarativeNetRequest: {
         updateSessionRules: jest.fn(() => Promise.resolve()),
       },
@@ -124,8 +130,8 @@ describe("prepareReferer (declarativeNetRequest path)", () => {
   });
 
   afterEach(() => {
-    global.chrome = originalChrome;
-    delete global.Log;
+    g.chrome = originalChrome;
+    delete g.Log;
     jest.useRealTimers();
   });
 
@@ -133,7 +139,7 @@ describe("prepareReferer (declarativeNetRequest path)", () => {
     jest.useFakeTimers();
     await RequestHeaders.prepareReferer(state);
 
-    const { calls } = global.chrome.declarativeNetRequest.updateSessionRules.mock;
+    const { calls } = g.chrome.declarativeNetRequest.updateSessionRules.mock;
     expect(calls.length).toBe(1);
     const [rules] = calls[0];
     expect(rules.removeRuleIds).toEqual([RequestHeaders.DNR_REFERER_RULE_ID]);
@@ -151,7 +157,7 @@ describe("prepareReferer (declarativeNetRequest path)", () => {
     await RequestHeaders.prepareReferer(state);
     jest.runAllTimers();
 
-    const { calls } = global.chrome.declarativeNetRequest.updateSessionRules.mock;
+    const { calls } = g.chrome.declarativeNetRequest.updateSessionRules.mock;
     expect(calls.length).toBe(2);
     expect(calls[1][0]).toEqual({
       removeRuleIds: [RequestHeaders.DNR_REFERER_RULE_ID],
@@ -159,30 +165,30 @@ describe("prepareReferer (declarativeNetRequest path)", () => {
   });
 
   test("no-op when the option is disabled", async () => {
-    global.options.setRefererHeader = false;
+    g.options.setRefererHeader = false;
     await RequestHeaders.prepareReferer(state);
-    expect(global.chrome.declarativeNetRequest.updateSessionRules).not.toHaveBeenCalled();
+    expect(g.chrome.declarativeNetRequest.updateSessionRules).not.toHaveBeenCalled();
   });
 
   test("no-op when URL does not match the filter", async () => {
     await RequestHeaders.prepareReferer({
       info: { url: "https://example.com/a.png", pageUrl: "https://p.example/" },
     });
-    expect(global.chrome.declarativeNetRequest.updateSessionRules).not.toHaveBeenCalled();
+    expect(g.chrome.declarativeNetRequest.updateSessionRules).not.toHaveBeenCalled();
   });
 
   test("no-op without declarativeNetRequest support", async () => {
-    global.chrome = {};
+    g.chrome = {};
     await expect(RequestHeaders.prepareReferer(state)).resolves.toBeUndefined();
   });
 
   test("logs the session rule when a Log global is present", async () => {
-    global.Log = { add: jest.fn() };
+    g.Log = { add: jest.fn() };
     jest.useFakeTimers();
 
     await RequestHeaders.prepareReferer(state);
 
-    expect(global.Log.add).toHaveBeenCalledWith("referer session rule set", {
+    expect(g.Log.add).toHaveBeenCalledWith("referer session rule set", {
       id: RequestHeaders.DNR_REFERER_RULE_ID,
       url: state.info.url,
       referer: state.info.pageUrl,
@@ -193,7 +199,7 @@ describe("prepareReferer (declarativeNetRequest path)", () => {
     await RequestHeaders.prepareReferer(state);
     await RequestHeaders.prepareReferer(state);
 
-    const ids = global.chrome.declarativeNetRequest.updateSessionRules.mock.calls
+    const ids = g.chrome.declarativeNetRequest.updateSessionRules.mock.calls
       .map((c) => c[0].addRules && c[0].addRules[0].id)
       .filter((id) => id != null);
     expect(ids[0]).toBe(RequestHeaders.DNR_REFERER_RULE_ID);
@@ -201,16 +207,17 @@ describe("prepareReferer (declarativeNetRequest path)", () => {
   });
 
   test("resolves even when the rule cannot be installed", async () => {
-    global.chrome.declarativeNetRequest.updateSessionRules = jest.fn(() =>
-      Promise.reject(new Error("no permission")),
-    );
+    // Not spied on — this stub is never inspected via .mock, only relied on
+    // for its rejection, so a plain function suffices
+    g.chrome.declarativeNetRequest.updateSessionRules = () =>
+      Promise.reject(new Error("no permission"));
 
     await expect(RequestHeaders.prepareReferer(state)).resolves.toBeUndefined();
   });
 
   test("swallows failures when removing the rule later", async () => {
     jest.useFakeTimers();
-    global.chrome.declarativeNetRequest.updateSessionRules = jest
+    g.chrome.declarativeNetRequest.updateSessionRules = jest
       .fn()
       .mockImplementationOnce(() => Promise.resolve())
       .mockImplementationOnce(() => Promise.reject(new Error("already gone")));
@@ -221,6 +228,6 @@ describe("prepareReferer (declarativeNetRequest path)", () => {
     await Promise.resolve();
     await Promise.resolve();
 
-    expect(global.chrome.declarativeNetRequest.updateSessionRules).toHaveBeenCalledTimes(2);
+    expect(g.chrome.declarativeNetRequest.updateSessionRules).toHaveBeenCalledTimes(2);
   });
 });

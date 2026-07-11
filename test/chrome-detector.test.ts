@@ -51,7 +51,7 @@ describe("browser detection at load time", () => {
 
   test("detects FIREFOX immediately when getBrowserInfo exists, then parses the version async", async () => {
     global.browser = originalBrowser;
-    global.browser.runtime.getBrowserInfo = vi.fn(() =>
+    (global.browser.runtime as any).getBrowserInfo = vi.fn(() =>
       Promise.resolve({ name: "Firefox", version: "121.0.1" }),
     );
     vi.resetModules();
@@ -68,7 +68,7 @@ describe("browser detection at load time", () => {
 
   test("treats Gecko forks (e.g. Waterfox) as FIREFOX regardless of the reported name (#186)", async () => {
     global.browser = originalBrowser;
-    global.browser.runtime.getBrowserInfo = vi.fn(() =>
+    (global.browser.runtime as any).getBrowserInfo = vi.fn(() =>
       Promise.resolve({ name: "Waterfox", version: "6.0" }),
     );
     vi.resetModules();
