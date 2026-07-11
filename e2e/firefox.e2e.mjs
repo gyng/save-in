@@ -6,6 +6,7 @@ import fs from "fs";
 import http from "http";
 
 import firefox from "../scripts/lib/firefox.js";
+import { listenLocal } from "./helpers.mjs";
 
 let session;
 
@@ -51,7 +52,7 @@ const PNG = Buffer.from(
   "base64",
 );
 
-const startPageServer = (port) => {
+const startPageServer = async () => {
   const server = http.createServer((req, res) => {
     if (req.url === "/pic.png") {
       res.writeHead(200, { "Content-Type": "image/png" });
@@ -61,9 +62,8 @@ const startPageServer = (port) => {
       res.end('<html><body><img id="img" src="/pic.png" width="50" height="50"></body></html>');
     }
   });
-  return new Promise((resolve) => {
-    server.listen(port, "127.0.0.1", () => resolve(server));
-  });
+  const port = await listenLocal(server);
+  return { server, port };
 };
 
 beforeAll(async () => {
@@ -242,7 +242,9 @@ test("failed downloads are recorded in the debug log", async () => {
 });
 
 test("alt+click on a real page saves the image through the content script", async () => {
-  const server = await startPageServer(8919);
+  const { server, port } = await startPageServer();
+  const pageUrl = `http://127.0.0.1:${port}/`;
+  const targetUrl = `127.0.0.1:${port}`;
 
   try {
     // Enable click-to-save and reinitialise so the content script picks it up
@@ -253,13 +255,13 @@ test("alt+click on a real page saves the image through the content script", asyn
     );
 
     await session.evaluate(
-      `browser.tabs.create({ url: "http://127.0.0.1:8919/" }).then(() => "opened")`,
+      `browser.tabs.create({ url: ${JSON.stringify(pageUrl)} }).then(() => "opened")`,
     );
     await session.evaluate(`(async () => {
       const deadline = Date.now() + 8000;
       for (;;) {
         const tabs = await browser.tabs.query({});
-        if (tabs.some((tab) => tab.url?.includes("127.0.0.1:8919") && tab.status === "complete")) {
+        if (tabs.some((tab) => tab.url?.includes(${JSON.stringify(targetUrl)}) && tab.status === "complete")) {
           return "ready";
         }
         if (Date.now() >= deadline) throw new Error("page load timeout");
@@ -271,7 +273,7 @@ test("alt+click on a real page saves the image through the content script", asyn
     // window listeners fire on real page DOM events, so we can drive the flow
     // straight from a page-context evaluate
     await session.evaluateInTab(
-      "127.0.0.1:8919",
+      targetUrl,
       `(() => {
         const alt = new KeyboardEvent("keydown", { keyCode: 18, bubbles: true });
         window.dispatchEvent(alt);

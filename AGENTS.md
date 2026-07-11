@@ -115,6 +115,7 @@ to Firefox too.
 | `npm run typecheck`               | tsc --noEmit with checkJs over all of src/ (shared globals + core typedefs declared in types/globals.d.ts)                                                                                                                                                           |
 | `npm run e2e:chrome`              | vitest e2e suite (~15s): isolated Chrome over CDP, drives the real download pipeline — SW lifecycle, CSP, routing rules, messaging, session persistence (e2e/chrome.e2e.mjs)                                                                                         |
 | `npm run e2e:firefox`             | vitest e2e suite for Firefox on a throwaway profile via RDP (e2e/firefox.e2e.mjs)                                                                                                                                                                                    |
+| `npm run e2e`                     | stages once, then runs the Chrome and Firefox suites in parallel; use `npm run e2e:serial` when diagnosing shared machine-resource issues                                                                                                                            |
 | `npm run d:chrome`                | dev loop: isolated Chrome + auto restage/reload on file save                                                                                                                                                                                                         |
 | `npm run d`                       | web-ext Firefox dev instance                                                                                                                                                                                                                                         |
 | `npm run build`                   | alias for `build:bundled` — the store zip (the retired individual-scripts build is `build:unpacked`)                                                                                                                                                                 |
@@ -175,12 +176,12 @@ vitest specifics (`test/*.test.ts`, typed; `tsc` covers them):
 
 ## Release checklist
 
-1. `npm test && npm run lint && npm run typecheck && npm run e2e:chrome && npm run e2e:firefox`
+1. `npm test && npm run lint && npm run typecheck && npm run e2e`
 2. Bump version in `manifest.json` and `package.json`.
 3. `npm run build:bundled` (bundled, store-reviewable) or `npm run build`
    (individual scripts) → upload the same zip to AMO and the Chrome Web Store.
    For the bundled build, run both e2e suites against it first:
-   `EXT_DIR=dist/bundled-pkg npm run e2e:chrome && EXT_DIR=dist/bundled-pkg npm run e2e:firefox`.
+   `npm run e2e` (it stages the bundled package once and runs both browser suites).
 4. Manual spot-check of anything the e2e can't reach: notifications
    rendering, a pixiv Referer download (both browsers, via the shared DNR
    path), options page dialogs.

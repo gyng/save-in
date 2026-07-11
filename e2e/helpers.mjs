@@ -23,3 +23,12 @@ export const poll = async (
     await new Promise((resolve) => setTimeout(resolve, intervalMs));
   }
 };
+
+export const listenLocal = (server) =>
+  new Promise((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", () => {
+      server.removeListener("error", reject);
+      resolve(server.address().port);
+    });
+  });

@@ -9,7 +9,7 @@ import path from "path";
 
 import cdp from "../scripts/lib/cdp.js";
 import chrome from "../scripts/lib/chrome.js";
-import { poll } from "./helpers.mjs";
+import { listenLocal, poll } from "./helpers.mjs";
 
 const PROFILE = path.join(chrome.ROOT, "dist", "e2e-profile");
 
@@ -464,9 +464,7 @@ test(":sha256: hashes and saves from a single fetch (Chrome MV3)", async () => {
     res.writeHead(200, { "Content-Type": "application/octet-stream" });
     res.end(body);
   });
-  await new Promise((res) => {
-    server.listen(8921, "127.0.0.1", res);
-  });
+  const serverPort = await listenLocal(server);
 
   try {
     await evalSW(
@@ -478,9 +476,9 @@ test(":sha256: hashes and saves from a single fetch (Chrome MV3)", async () => {
             path: new Path.Path("e2e/:sha256:"),
             scratch: {},
             info: {
-              url: "http://127.0.0.1:8921/hashme.bin",
+              url: "http://127.0.0.1:${serverPort}/hashme.bin",
               suggestedFilename: "hashme.bin",
-              pageUrl: "http://127.0.0.1:8921/",
+              pageUrl: "http://127.0.0.1:${serverPort}/",
               modifiers: [],
             },
           });
@@ -618,9 +616,7 @@ test("a failed download is retried automatically via background fetch", async ()
       res.end("recovered content");
     }
   });
-  await new Promise((res) => {
-    server.listen(8919, "127.0.0.1", res);
-  });
+  const serverPort = await listenLocal(server);
 
   try {
     await evalSW(
@@ -630,9 +626,9 @@ test("a failed download is retried automatically via background fetch", async ()
           path: new Path.Path("e2e"),
           scratch: {},
           info: {
-            url: "http://127.0.0.1:8919/flaky.bin",
+            url: "http://127.0.0.1:${serverPort}/flaky.bin",
             suggestedFilename: "flaky.bin",
-            pageUrl: "http://127.0.0.1:8919/",
+            pageUrl: "http://127.0.0.1:${serverPort}/",
             modifiers: [],
           },
         });
@@ -666,9 +662,9 @@ test("alt+click on a real page saves the image through the content script", asyn
       res.end('<html><body><img id="img" src="/pic.png"></body></html>');
     }
   });
-  await new Promise((res) => {
-    server.listen(8917, "127.0.0.1", res);
-  });
+  const serverPort = await listenLocal(server);
+  const pageUrl = `http://127.0.0.1:${serverPort}/`;
+  const targetUrl = `127.0.0.1:${serverPort}`;
 
   try {
     await evalSW(
@@ -677,11 +673,10 @@ test("alt+click on a real page saves the image through the content script", asyn
         .then(() => "enabled")`,
     );
 
-    await cdp.openTab(PORT, "http://127.0.0.1:8917/");
+    await cdp.openTab(PORT, pageUrl);
     await poll(
       async () =>
-        (await cdp.evalInTarget(PORT, "127.0.0.1:8917", "!!document.getElementById('img')")) ===
-        true,
+        (await cdp.evalInTarget(PORT, targetUrl, "!!document.getElementById('img')")) === true,
       { description: "content page image" },
     );
 
@@ -690,7 +685,7 @@ test("alt+click on a real page saves the image through the content script", asyn
     const target = JSON.parse(
       await cdp.evalInTarget(
         PORT,
-        "127.0.0.1:8917",
+        targetUrl,
         `(() => {
           const rect = document.getElementById("img").getBoundingClientRect();
           return JSON.stringify({
@@ -701,7 +696,7 @@ test("alt+click on a real page saves the image through the content script", asyn
       ),
     );
 
-    await cdp.dispatchInput(PORT, "127.0.0.1:8917", [
+    await cdp.dispatchInput(PORT, targetUrl, [
       {
         method: "Input.dispatchKeyEvent",
         params: {
