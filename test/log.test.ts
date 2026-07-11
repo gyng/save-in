@@ -1,12 +1,15 @@
 const LOG_KEY = "si-log";
+import type { LogEntry } from "../src/log.ts";
+
+type LogStore = Record<string, LogEntry[] | undefined>;
 
 const setupSession = () => {
-  const store: Record<string, any> = {};
+  const store: LogStore = {};
   // @types type storage.session as read-only; assigning a partial mock is the
   // test's job, so cast the container
   (global.browser.storage as any).session = {
     get: jest.fn((key: string) => Promise.resolve({ [key]: store[key] })),
-    set: jest.fn((obj: Record<string, any>) => {
+    set: jest.fn((obj: Record<string, LogEntry[]>) => {
       Object.assign(store, obj);
       return Promise.resolve();
     }),
@@ -19,8 +22,9 @@ const setupSession = () => {
 };
 
 describe("Log", () => {
-  let Log;
-  let store: Record<string, any>;
+  let Log: typeof import("../src/log.ts").Log;
+  let store: LogStore;
+  const entries = (): LogEntry[] => store[LOG_KEY] ?? [];
 
   beforeEach(async () => {
     jest.resetModules();
@@ -32,11 +36,11 @@ describe("Log", () => {
     await Log.add("download requested", { url: "https://a/1" });
     await Log.add("download complete", { id: 7 });
 
-    expect(store[LOG_KEY]).toHaveLength(2);
-    expect(store[LOG_KEY][0].message).toBe("download requested");
-    expect(store[LOG_KEY][0].data).toBe('{"url":"https://a/1"}');
-    expect(store[LOG_KEY][0].at).toEqual(expect.any(String));
-    expect(store[LOG_KEY][1].message).toBe("download complete");
+    expect(entries()).toHaveLength(2);
+    expect(entries()[0].message).toBe("download requested");
+    expect(entries()[0].data).toBe('{"url":"https://a/1"}');
+    expect(entries()[0].at).toEqual(expect.any(String));
+    expect(entries()[1].message).toBe("download complete");
   });
 
   test("caps the ring buffer", async () => {
@@ -47,28 +51,28 @@ describe("Log", () => {
 
     await Log.add("newest");
 
-    expect(store[LOG_KEY]).toHaveLength(Log.LIMIT);
-    expect(store[LOG_KEY][0].message).toBe("m1");
-    expect(store[LOG_KEY][Log.LIMIT - 1].message).toBe("newest");
+    expect(entries()).toHaveLength(Log.LIMIT);
+    expect(entries()[0].message).toBe("m1");
+    expect(entries()[Log.LIMIT - 1].message).toBe("newest");
   });
 
   test("serializes unstringifiable data without throwing", async () => {
-    const circular: Record<string, any> = {};
+    const circular: Record<string, unknown> = {};
     circular.self = circular;
 
     await Log.add("weird", circular);
-    expect(store[LOG_KEY][0].message).toBe("weird");
-    expect(typeof store[LOG_KEY][0].data).toBe("string");
+    expect(entries()[0].message).toBe("weird");
+    expect(typeof entries()[0].data).toBe("string");
   });
 
   test("truncates oversized data payloads", async () => {
     await Log.add("big", { blob: "x".repeat(5000) });
-    expect(store[LOG_KEY][0].data.length).toBeLessThanOrEqual(501);
+    expect(entries()[0].data?.length).toBeLessThanOrEqual(501);
   });
 
   test("concurrent adds do not lose entries", async () => {
     await Promise.all([Log.add("a"), Log.add("b"), Log.add("c")]);
-    expect(store[LOG_KEY].map((e) => e.message)).toEqual(["a", "b", "c"]);
+    expect(entries().map((entry) => entry.message)).toEqual(["a", "b", "c"]);
   });
 
   test("get returns entries, or empty when unset", async () => {
@@ -88,7 +92,7 @@ describe("Log", () => {
     jest.resetModules();
     const BareLog = (await import("../src/log.ts")).Log;
 
-    await expect((BareLog.add as any)("x")).resolves.toBeUndefined();
+    await expect(BareLog.add("x")).resolves.toBeUndefined();
     await expect(BareLog.get()).resolves.toEqual([]);
     await expect(BareLog.clear()).resolves.toBeUndefined();
   });
@@ -107,7 +111,7 @@ describe("Log", () => {
     await expect(Log.add("lost")).resolves.toBeUndefined();
     await Log.add("kept");
 
-    expect(store[LOG_KEY].map((e) => e.message)).toEqual(["kept"]);
+    expect(entries().map((entry) => entry.message)).toEqual(["kept"]);
   });
 
   test("clear swallows storage failures", async () => {
