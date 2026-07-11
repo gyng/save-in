@@ -11,5 +11,3 @@ export const BackgroundState = Object.freeze({
   downloads,
   counterWrites,
 });
-
-// Temporary narrow views while each class is converted to functional state.

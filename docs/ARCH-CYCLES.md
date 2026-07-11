@@ -97,8 +97,8 @@ testable once tests are on real imports.
   keeps the classic namespace-object idiom + loose types. Make it idiomatic:
   discriminated-union message protocol, `SaveInOptions` from OPTION_KEYS, real
   interfaces for the record/pipeline/rule shapes, named function exports for pure
-  collections (Util/HistoryView/OptionsLogic), classes for stateful singletons
-  (DownloadState/SessionState/Counter), `as const` literal-union type maps, and
+  collections (Util/HistoryView/OptionsLogic), explicit functional state records
+  (DownloadsState/SessionWriteState/CounterWriteState), `as const` literal-union type maps, and
   delete the `typeof X === "undefined"` guards + residual globals.d.ts. (Task #62.)
 - **TS-native organization/structure** — the structural axis: group files by
   layer/feature (src/platform, src/core, src/download, src/routing, src/menus,
@@ -201,13 +201,11 @@ testable once tests are on real imports.
     non-minified bundle + documented build" property, docs/TS-MIGRATION.md), and
     how the hoisted bundle maps back to modules. Independent of the TS backlog;
     complements #65's CI hardening.
-- **Singleton sweep** — the codebase uses the classic namespace-object idiom
-  (`export const Foo = { ... }`) for stateful services. (#67) `PathEditor`
-  (`src/options/path-editor.ts`) is the flagged offender: a module-level
-  singleton holding editor DOM/state that should be an instantiable class so the
-  options page (and its tests) can construct isolated instances. (#68) The wider
-  sweep: turn the genuinely-stateful singletons (`DownloadState`, `SessionState`,
-  `Counter`, `PathEditor`) into classes, leaving the pure-collection objects
-  (`Util`, `Path`, `Router`, `Variable`) as named-function modules. Overlaps
-  #62's TS-native pass (do it there or just before); the `Menus` `any` from #3(c)
-  resolves here once the extension idiom is dissolved.
+- **Singleton sweep** — ✅ DONE for state ownership. `PathEditor` is now an
+  instantiable class because each editor owns DOM state. Background persistence
+  uses the data-only `BackgroundState` composition record plus functional
+  `DownloadsState`, `SessionWriteState`, and `CounterWriteState`; no service
+  classes or compatibility facades remain. Pure namespace collections
+  (`Util`, `Path`, `Router`, `Variable`) can become named exports during #62.
+  `Menus` still needs a real interface when its cross-module extension idiom is
+  dissolved.
