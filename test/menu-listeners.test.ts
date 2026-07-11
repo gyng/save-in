@@ -9,6 +9,12 @@
 // click handlers. Path stays untouched (the handlers build real Path objects).
 
 import { DOWNLOAD_TYPES } from "../src/constants.ts";
+import type { CurrentTab } from "../src/current-tab.ts";
+
+type MenusFixture = typeof import("../src/menu-build.ts").Menus;
+// Browser listener mocks intentionally accept partial event payloads: each test
+// supplies only the host fields relevant to the branch it exercises.
+type TestMenuListener = (info: any, tab?: any) => void;
 
 // Reassigned each module reset (in importMenus) to the fresh dep instances; the
 // setup fn and the describe-scoped helpers below read them.
@@ -17,7 +23,7 @@ let Download: any;
 let Notifier: any;
 let Shortcut: any;
 let WEB_EXTENSION_CAPABILITIES: any;
-let setCurrentTab: (tab: unknown) => void;
+let setCurrentTab: (tab: CurrentTab | null) => void;
 
 const setupBrowserMocks = () => {
   (global.browser as any).contextMenus = {
@@ -88,7 +94,7 @@ const importMenus = async () => {
 };
 
 describe("Menus last-used state", () => {
-  let Menus;
+  let Menus: MenusFixture;
 
   beforeEach(async () => {
     jest.resetModules();
@@ -97,11 +103,14 @@ describe("Menus last-used state", () => {
   });
 
   test("restoreLastUsed maps a stored object into state, defaulting to null", () => {
-    Menus.restoreLastUsed({ lastUsedPath: "a/b", lastUsedMeta: { comment: "c" } });
+    Menus.restoreLastUsed({
+      lastUsedPath: "a/b",
+      lastUsedMeta: { comment: "c" },
+    } as unknown as Parameters<MenusFixture["restoreLastUsed"]>[0]);
     expect(Menus.state.lastUsedPath).toBe("a/b");
     expect(Menus.state.lastUsedMeta).toEqual({ comment: "c" });
 
-    Menus.restoreLastUsed(undefined);
+    Menus.restoreLastUsed(undefined as unknown as Parameters<MenusFixture["restoreLastUsed"]>[0]);
     expect(Menus.state.lastUsedPath).toBeNull();
     expect(Menus.state.lastUsedMeta).toBeNull();
   });
@@ -118,8 +127,8 @@ describe("Menus last-used state", () => {
 });
 
 describe("addDownloadListener", () => {
-  let Menus;
-  let listener;
+  let Menus: MenusFixture;
+  let listener: TestMenuListener;
 
   beforeEach(async () => {
     jest.resetModules();
@@ -153,7 +162,7 @@ describe("addDownloadListener", () => {
   });
 
   test("waits for init (window.ready) before handling a download click", async () => {
-    let resolveReady;
+    let resolveReady!: (value?: unknown) => void;
     window.ready = new Promise((res) => {
       resolveReady = res;
     });
@@ -244,7 +253,7 @@ describe("addDownloadListener", () => {
     expect(Download.renameAndDownload).toHaveBeenCalledTimes(2);
   });
 
-  const lastState = () => Download.renameAndDownload.mock.calls.at(-1)[0];
+  const lastState = () => vi.mocked(Download.renameAndDownload).mock.calls.at(-1)![0];
 
   const mediaClick = {
     menuItemId: "save-in-0",
@@ -660,8 +669,8 @@ describe("addDownloadListener", () => {
 // The click handler's tangled "what does this click save?" decision, extracted
 // as a pure function so its branches are testable without driving a browser.
 describe("resolveClickTarget (pure decision)", () => {
-  let Menus;
-  const opts = (over = {}) => ({
+  let Menus: MenusFixture;
+  const opts = (over: Record<string, unknown> = {}) => ({
     links: true,
     selection: true,
     page: true,
@@ -853,8 +862,8 @@ describe("addTabMenuListener", () => {
 });
 
 describe("addTabMenuListener tabstrip downloads", () => {
-  let Menus;
-  let listener;
+  let Menus: MenusFixture;
+  let listener: TestMenuListener;
 
   // Tab 3 must be skipped: privileged pages cannot be saved
   const tabFixtures = () => [
@@ -884,7 +893,8 @@ describe("addTabMenuListener tabstrip downloads", () => {
     jest.useRealTimers();
   });
 
-  const downloads = () => Download.renameAndDownload.mock.calls.map(([state]) => state);
+  const downloads = () =>
+    vi.mocked(Download.renameAndDownload).mock.calls.map(([state]: [any]) => state);
 
   test("SELECTED_TAB downloads only the clicked tab", async () => {
     await listener({ menuItemId: Menus.IDS.TABSTRIP.SELECTED_TAB }, fromTab);
@@ -927,7 +937,7 @@ describe("addTabMenuListener tabstrip downloads", () => {
     // The about: tab is filtered out, so no third download
     await jest.advanceTimersByTimeAsync(2000);
     expect(downloads()).toHaveLength(2);
-    expect(downloads().map((s) => s.info.currentTab.id)).toEqual([1, 2]);
+    expect(downloads().map((s: any) => s.info.currentTab.id)).toEqual([1, 2]);
   });
 
   test("TO_RIGHT downloads tabs at and after the clicked index", async () => {
@@ -947,7 +957,7 @@ describe("addTabMenuListener tabstrip downloads", () => {
     await jest.advanceTimersByTimeAsync(2000);
 
     expect(downloads()).toHaveLength(2);
-    expect(downloads().every((s) => s.needRouteMatch === true)).toBe(true);
+    expect(downloads().every((s: any) => s.needRouteMatch === true)).toBe(true);
   });
 
   test("OPENED_FROM_TAB queries for children of the clicked tab", async () => {
