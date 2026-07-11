@@ -45,7 +45,7 @@ interface Window {
     paths: OptionError[];
     filenamePatterns: OptionError[];
   };
-  lastDownloadState?: import("../src/download-types.ts").DownloadPipelineState;
+  lastDownloadState?: import("../src/download-types.ts").DownloadPipelineState | null;
   // options page: tab-switch unsaved-changes guard (options.js)
   confirmPendingChanges?: () => void;
 }

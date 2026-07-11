@@ -14,7 +14,11 @@ import { Notifier } from "./notification.ts";
 import { Download } from "./download.ts";
 import { currentTab } from "./current-tab.ts";
 import { DownloadEvents } from "./download-events.ts";
-import type { DownloadPipelineState } from "./download-types.ts";
+import type { DownloadInfo, DownloadPipelineState } from "./download-types.ts";
+
+type ExtensionMessage = { type: string; body?: Record<string, any> };
+type MessageSender = browser.runtime.MessageSender;
+type SendResponse = (response: any) => void;
 
 export const Messaging = {
   // ─── External DOWNLOAD API (issue #110) ────────────────────────────────
@@ -42,7 +46,7 @@ export const Messaging = {
   // Only schemes the downloads pipeline can actually fetch are accepted from
   // external callers — this keeps javascript:/file:/extension: URLs from being
   // turned into downloads by another extension.
-  isValidDownloadUrl: (url) => {
+  isValidDownloadUrl: (url: unknown): boolean => {
     if (!url || typeof url !== "string") {
       return false;
     }
@@ -55,7 +59,11 @@ export const Messaging = {
     );
   },
 
-  handlePing: (request, sender, sendResponse) => {
+  handlePing: (
+    _request: ExtensionMessage,
+    _sender: MessageSender,
+    sendResponse: SendResponse,
+  ): void => {
     sendResponse({
       type: MESSAGE_TYPES.PONG,
       body: {
@@ -67,25 +75,31 @@ export const Messaging = {
 
   // Live routing/variable preview for the options page. Async because
   // Variable.applyVariables and OptionsManagement.checkRoutes now await.
-  handleCheckRoutes: async (request, sendResponse) => {
+  handleCheckRoutes: async (
+    request: ExtensionMessage,
+    sendResponse: SendResponse,
+  ): Promise<void> => {
     const lastState =
       (request.body && request.body.state) ||
       (window.lastDownloadState != null && window.lastDownloadState);
 
-    let interpolatedVariables = null;
+    let interpolatedVariables: Record<string, string> | null = null;
     if (lastState) {
       const keys = Object.keys(Variable.transformers);
       // Preview only: :counter: peeks instead of consuming a value
       const previewInfo = Object.assign({}, lastState.info, { preview: true });
       const values = await Promise.all(
         keys.map((val) =>
-          Variable.applyVariables(new Path.Path(val), previewInfo).then((p) => p.finalize()),
+          Variable.applyVariables(new Path.Path(val), previewInfo).then(
+            (path: { finalize: () => string }) => path.finalize(),
+          ),
         ),
       );
-      interpolatedVariables = {};
+      const interpolationMap: Record<string, string> = {};
       keys.forEach((key, i) => {
-        interpolatedVariables[key] = values[i];
+        interpolationMap[key] = values[i];
       });
+      interpolatedVariables = interpolationMap;
     }
 
     const routeInfo = await OptionsManagement.checkRoutes(lastState);
@@ -105,17 +119,23 @@ export const Messaging = {
 
   // Read-only: the option schema (name, type, default, human description) so an
   // agent knows what it may set. Safe to expose externally.
-  handleGetSchema: (request, sender, sendResponse) => {
+  handleGetSchema: (
+    _request: ExtensionMessage,
+    _sender: MessageSender,
+    sendResponse: SendResponse,
+  ): void => {
     sendResponse({
       type: MESSAGE_TYPES.SCHEMA,
       body: {
         version: Messaging.API_VERSION,
-        options: OptionsManagement.OPTION_KEYS.map((k) => ({
-          name: k.name,
-          type: k.type,
-          default: k.default,
-          description: OptionsManagement.OPTION_DESCRIPTIONS[k.name] || "",
-        })),
+        options: OptionsManagement.OPTION_KEYS.map(
+          (k: { name: string; type: string; default: any }) => ({
+            name: k.name,
+            type: k.type,
+            default: k.default,
+            description: OptionsManagement.OPTION_DESCRIPTIONS[k.name] || "",
+          }),
+        ),
       },
     });
   },
@@ -123,7 +143,11 @@ export const Messaging = {
   // Read-only: dry-run the two grammars and return structured errors + a menu
   // preview, without saving anything. Powers an agent's generate→validate→fix
   // loop and the options-page "paste config" affordance. Safe externally.
-  handleValidate: (request, sender, sendResponse) => {
+  handleValidate: (
+    request: ExtensionMessage,
+    _sender: MessageSender,
+    sendResponse: SendResponse,
+  ): void => {
     const body = request.body || {};
     const result: Record<string, any> = { version: Messaging.API_VERSION };
 
@@ -145,14 +169,18 @@ export const Messaging = {
   // form; the load-time onLoad validators still coerce cross-browser-invalid
   // values, so this can't silently break downloads (#89). INTERNAL ONLY —
   // rewriting a user's config is not something an arbitrary extension may do.
-  handleApplyConfig: async (request, sender, sendResponse) => {
+  handleApplyConfig: async (
+    request: ExtensionMessage,
+    _sender: MessageSender,
+    sendResponse: SendResponse,
+  ): Promise<void> => {
     const config = (request.body && request.body.config) || {};
-    const applied = {};
-    const rejected = [];
-    const toStore = {};
+    const applied: Record<string, any> = {};
+    const rejected: Array<{ name: string; reason: string }> = [];
+    const toStore: Record<string, any> = {};
 
     Object.keys(config).forEach((name) => {
-      const key = OptionsManagement.OPTION_KEYS.find((k) => k.name === name);
+      const key = OptionsManagement.OPTION_KEYS.find((k: { name: string }) => k.name === name);
       if (!key) {
         rejected.push({ name, reason: "unknown option" });
         return;
@@ -191,7 +219,7 @@ export const Messaging = {
 
   // Fires off and does not expect a return value
   emit: {
-    downloaded: (state) => {
+    downloaded: (state: DownloadPipelineState): void => {
       // In MV3 sendMessage rejects when no receiver (options page) is open;
       // that is expected, so swallow it rather than leak an unhandled rejection
       webExtensionApi.runtime
@@ -233,7 +261,11 @@ export const Messaging = {
    *   webExtensionApi.runtime.sendMessage("{72d92df5-2aa0-4b06-b807-aa21767545cd}", payload);
    * }
    */
-  handleDownloadMessage: (request, sender, sendResponse) => {
+  handleDownloadMessage: (
+    request: ExtensionMessage,
+    sender: MessageSender,
+    sendResponse: SendResponse,
+  ): void => {
     const requestBody = request.body || {};
     const { url, comment } = requestBody;
     // Callers may pin a version; default to the current one
@@ -241,7 +273,7 @@ export const Messaging = {
 
     // Validate before triggering a download: external callers are untrusted,
     // and a malformed message should get typed feedback, not silent failure.
-    const fail = (error, message) =>
+    const fail = (error: string, message: string): void =>
       sendResponse({
         type: MESSAGE_TYPES.DOWNLOAD,
         body: { status: MESSAGE_TYPES.ERROR, error, message, version },
@@ -257,13 +289,9 @@ export const Messaging = {
 
     // The external DOWNLOAD API may omit info
     const info = requestBody.info || {};
-    const last: Partial<DownloadPipelineState> = window.lastDownloadState || {
-      path: new Path.Path("."),
-      scratch: {},
-      info: {},
-    };
+    const last = window.lastDownloadState;
 
-    const opts: Record<string, any> = {
+    const opts: DownloadInfo = {
       // Prefer the tab the message came from over the tracked global (#172)
       currentTab: (sender && sender.tab) || currentTab,
       now: new Date(),
@@ -284,13 +312,13 @@ export const Messaging = {
     // or scratch: those describe a different URL, and inheriting them names
     // this download after the previous one. renameAndDownload re-evaluates
     // the routing rules and filenames for this URL.
-    const clickState = {
-      path: last.path || new Path.Path("."),
+    const clickState: DownloadPipelineState = {
+      path: last?.path || new Path.Path("."),
       scratch: {},
       info: Object.assign(
         {
-          menuIndex: last.info?.menuIndex,
-          comment: last.info?.comment,
+          menuIndex: last?.info.menuIndex,
+          comment: last?.info.comment,
         },
         opts,
         info,

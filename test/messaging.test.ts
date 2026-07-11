@@ -11,11 +11,20 @@
 // match.
 
 import { MESSAGE_TYPES, DOWNLOAD_TYPES } from "../src/constants.ts";
+import type { CurrentTab } from "../src/current-tab.ts";
 
 // Stand-in Path so a handler's `new Path.Path(x)` yields an inspectable { raw }
 // and the interpolation stub can read `.raw`; installed over the real Path below.
-function FakePath(raw) {
-  this.raw = raw;
+class FakePath {
+  constructor(public raw: string) {}
+
+  finalize(): string {
+    return this.raw;
+  }
+
+  toString(): string {
+    return this.raw;
+  }
 }
 
 // Capture the listeners registerMessaging() attaches (jest-webextension-mock's
@@ -48,7 +57,7 @@ const [[onMessageExternal]] = (global.browser.runtime.onMessageExternal.addListe
 
 // The tracked tab the handlers fall back to; a stable ref so `toBe` can assert
 // identity against what setCurrentTab seeded this run.
-let trackedTab: any;
+let trackedTab: CurrentTab;
 
 const setupGlobals = () => {
   vi.restoreAllMocks();
@@ -62,20 +71,35 @@ const setupGlobals = () => {
   // Download.launch stays real: it just calls renameAndDownload (the rejection
   // path it also handles is covered in download-flow.test).
   vi.spyOn(Notifier, "expectDownload").mockImplementation(() => {});
-  vi.spyOn(Menus, "buildTree").mockImplementation((paths: any) => ({
-    items: paths.map((p, i) => ({ kind: "path", id: `save-in-${i}`, title: p })),
+  vi.spyOn(Menus, "buildTree").mockImplementation((paths: string[]) => ({
+    items: paths.map((path, index) => ({
+      kind: "path",
+      id: `save-in-${index}`,
+      title: path,
+      number: index,
+      parsedDir: path,
+      comment: "",
+      menuIndex: String(index),
+      depth: 0,
+      parentId: "save-in-root",
+      raw: path,
+    })),
     errors: [],
   }));
   Object.assign(Router, { matcherFunctions: { fileext: () => {}, pageurl: () => {} } });
   vi.spyOn(Router, "parseRulesCollecting").mockReturnValue({ rules: [], errors: [] });
   Object.assign(Variable, { transformers: { ":date:": () => {}, ":year:": () => {} } });
   vi.spyOn(Variable, "applyVariables").mockImplementation((path: any) =>
-    Promise.resolve({ finalize: () => `interp:${path.raw}` }),
+    Promise.resolve({
+      buf: [],
+      finalize: () => `interp:${path.raw}`,
+      toString: () => `interp:${path.raw}`,
+    }),
   );
   Object.assign(OptionsManagement, {
     OPTION_KEYS: [
       { name: "prompt", type: "BOOL", default: false },
-      { name: "paths", type: "VALUE", default: ".", onSave: (v) => v.trim() },
+      { name: "paths", type: "VALUE", default: ".", onSave: (value: string) => value.trim() },
     ],
     OPTION_TYPES: { BOOL: "BOOL", VALUE: "VALUE" },
     OPTION_DESCRIPTIONS: { prompt: "Always open Save As", paths: "The menu structure" },
@@ -169,8 +193,8 @@ describe("onMessage", () => {
       type: MESSAGE_TYPES.MENU_PREVIEW,
       body: {
         items: [
-          { kind: "path", id: "save-in-0", title: "dogs" },
-          { kind: "path", id: "save-in-1", title: ">cats" },
+          expect.objectContaining({ kind: "path", id: "save-in-0", title: "dogs" }),
+          expect.objectContaining({ kind: "path", id: "save-in-1", title: ">cats" }),
         ],
         errors: [],
       },
@@ -392,7 +416,7 @@ describe("handleDownloadMessage", () => {
 
 // Official versioned external API (#110)
 describe("external DOWNLOAD API v1", () => {
-  const download = (body) => ({ type: MESSAGE_TYPES.DOWNLOAD, body });
+  const download = (body: Record<string, any>) => ({ type: MESSAGE_TYPES.DOWNLOAD, body });
 
   test("PING returns the version and capabilities on both listeners", () => {
     for (const listener of [onMessageExternal, onMessage]) {
@@ -492,7 +516,10 @@ describe("config API", () => {
   });
 
   test("VALIDATE dry-runs paths and rules and returns errors + preview", () => {
-    vi.mocked(Router.parseRulesCollecting).mockReturnValue({ rules: [], errors: ["bad rule"] });
+    vi.mocked(Router.parseRulesCollecting).mockReturnValue({
+      rules: [],
+      errors: [{ message: "bad rule", error: "bad rule" }],
+    });
     const sendResponse = vi.fn();
     onMessageExternal(
       { type: MESSAGE_TYPES.VALIDATE, body: { paths: " dogs \n>cats", filenamePatterns: "x" } },
@@ -503,7 +530,7 @@ describe("config API", () => {
     expect(Router.parseRulesCollecting).toHaveBeenCalledWith("x");
     const { body } = sendResponse.mock.calls[0][0];
     expect(body.pathErrors).toEqual([]);
-    expect(body.ruleErrors).toEqual(["bad rule"]);
+    expect(body.ruleErrors).toEqual([{ message: "bad rule", error: "bad rule" }]);
     expect(body.menuPreview).toHaveLength(2);
   });
 
@@ -570,7 +597,11 @@ describe("emit.downloaded", () => {
     global.browser.runtime.sendMessage = vi.fn(() =>
       Promise.reject(new Error("Receiving end does not exist")),
     );
-    const state = { info: { url: "https://x/file.png" } };
+    const state = {
+      path: new FakePath("."),
+      scratch: {},
+      info: { url: "https://x/file.png" },
+    };
 
     expect(() => Messaging.emit.downloaded(state)).not.toThrow();
     expect(global.browser.runtime.sendMessage).toHaveBeenCalledWith({
