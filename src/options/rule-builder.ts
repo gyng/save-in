@@ -7,10 +7,16 @@ import { webExtensionApi } from "../web-extension-api.ts";
 
 import { PathEditor } from "./path-editor.ts";
 
+type RuleTemplate = {
+  name: string;
+  description: string;
+  rule: string;
+};
+
 // Every `into:` must end in a filename component (it replaces the whole
 // path, not just the directory) — test/rule-builder.test.js parses each
 // template through the real Router to keep these valid.
-export const RULE_TEMPLATES = [
+export const RULE_TEMPLATES: RuleTemplate[] = [
   {
     name: "Images into per-site folders",
     description: "Sorts every saved image by the site it came from",
@@ -57,7 +63,7 @@ export const RuleBuilder = {
   // Appends a complete rule, separated by the blank line the parser uses
   // as a rule boundary. Goes through PathEditor.insertText so the edit
   // joins the undo stack and fires the input pipeline
-  appendRule: (textarea, rule) => {
+  appendRule: (textarea: HTMLTextAreaElement, rule: string): void => {
     const trimmedEnd = textarea.value.replace(/\s+$/, "").length;
     const separator = trimmedEnd > 0 ? "\n\n" : "";
     PathEditor.insertText(textarea, `${separator}${rule}\n`, trimmedEnd, textarea.value.length);
@@ -77,8 +83,8 @@ export const RuleBuilder = {
     // autocomplete keywords do
     webExtensionApi.runtime
       .sendMessage({ type: "GET_KEYWORDS" })
-      .then((res) => {
-        ((res && res.body && res.body.matchers) || []).forEach((name) => {
+      .then((res: { body?: { matchers?: string[] } } | undefined) => {
+        (res?.body?.matchers || []).forEach((name) => {
           const option = document.createElement("option");
           option.value = name;
           option.textContent = name;
@@ -119,7 +125,7 @@ export const RuleBuilder = {
       return;
     }
 
-    const syncs = [];
+    const syncs: Array<() => void> = [];
 
     RULE_TEMPLATES.forEach((tpl) => {
       const row = document.createElement("div");

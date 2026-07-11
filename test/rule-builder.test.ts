@@ -26,6 +26,9 @@ describe("RULE_TEMPLATES", () => {
 
     test(`"${tpl.name}" only references variables that exist`, () => {
       const intoLine = tpl.rule.split("\n").find((l) => l.startsWith("into:"));
+      if (!intoLine) {
+        throw new Error("Template has no into rule");
+      }
       const known = Object.values(constants.SPECIAL_DIRS);
       const tokens = intoLine.match(/:[a-z$][a-z0-9$]*:/gi) || [];
       tokens.forEach((token) => {
@@ -46,7 +49,7 @@ describe("RULE_TEMPLATES", () => {
 describe("RuleBuilder.appendRule", () => {
   test("appends with a blank-line rule separator and fires input", () => {
     const textarea = document.createElement("textarea");
-    const events = [];
+    const events: string[] = [];
     textarea.addEventListener("input", () => events.push("input"));
 
     RuleBuilder.appendRule(textarea, "fileext: pdf\ninto: documents/:filename:");
@@ -130,7 +133,10 @@ describe("template list rendering", () => {
     const rows = document.querySelectorAll(".rule-template");
     expect(rows).toHaveLength(RULE_TEMPLATES.length);
 
-    const firstAdd = rows[0].querySelector("button");
+    const firstAdd = rows[0]?.querySelector<HTMLButtonElement>("button");
+    if (!firstAdd) {
+      throw new Error("First template has no Add button");
+    }
     expect(firstAdd.textContent).toBe("Add");
 
     firstAdd.click();
