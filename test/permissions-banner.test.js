@@ -1,7 +1,7 @@
 // Options-page host-permission banner: detect a missing <all_urls> grant and
 // offer a one-click request. jest-webextension-mock has no permissions API, so
 // it's defined per test.
-const PermissionsBanner = (await import("../src/options/permissions-banner.js")).default;
+import { PermissionsBanner } from "../src/options/permissions-banner.ts";
 
 const makeEl = () => {
   const listeners = {};

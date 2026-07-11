@@ -2,10 +2,10 @@
 // round-trip the textarea syntax losslessly, and the visual editor must
 // serialize every edit back to the textarea (the source of truth).
 
-const constants = (await import("../src/constants.js")).default;
-global.SPECIAL_DIRS = constants.SPECIAL_DIRS;
+import * as constants from "../src/constants.ts";
+import { PathEditor } from "../src/options/path-editor.ts";
 
-const PathEditor = (await import("../src/options/path-editor.js")).default;
+global.SPECIAL_DIRS = constants.SPECIAL_DIRS;
 
 describe("line helpers", () => {
   test("parseLine extracts depth, body, and comment", () => {

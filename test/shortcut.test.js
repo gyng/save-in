@@ -1,5 +1,25 @@
-const constants = (await import("../src/constants.js")).default;
-const shortcut = (await import("../src/shortcut.js")).default;
+import * as constants from "../src/constants.ts";
+
+vi.mock("../src/download.ts", () => ({
+  get Download() {
+    return globalThis.Download;
+  },
+}));
+vi.mock("../src/path.ts", () => ({
+  get Path() {
+    return globalThis.Path;
+  },
+}));
+vi.mock("../src/current-tab.ts", () => ({
+  get currentTab() {
+    return globalThis.currentTab;
+  },
+  setCurrentTab: (t) => {
+    globalThis.currentTab = t;
+  },
+}));
+
+import { Shortcut as shortcut } from "../src/shortcut.ts";
 
 // Needed by makeShortcut/suggestShortcutFilename below (DOWNLOAD_TYPES,
 // SHORTCUT_EXTENSIONS); SHORTCUT_TYPES is also (re)assigned per-describe below.

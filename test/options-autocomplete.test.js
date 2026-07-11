@@ -1,4 +1,4 @@
-const Autocomplete = (await import("../src/options/autocomplete.js")).default;
+import * as Autocomplete from "../src/options/autocomplete.ts";
 
 const {
   matcherStrategy,

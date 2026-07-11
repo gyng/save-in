@@ -1,8 +1,15 @@
-const constants = (await import("../src/constants.js")).default;
+import * as constants from "../src/constants.ts";
+
+vi.mock("../src/option.ts", () => ({
+  get options() {
+    return globalThis.options;
+  },
+  OptionsManagement: {},
+}));
+
+import { Path as path } from "../src/path.ts";
 
 Object.assign(global, constants);
-
-const path = (await import("../src/path.js")).default;
 
 global.Path = path;
 global.options = { replacementChar: "_" };

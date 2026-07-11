@@ -235,8 +235,7 @@ const updateErrors = () => {
 // (written by scripts/write-version.js at build/stage time — absent in a
 // bare checkout, where just the version shows)
 const renderVersionLabel = () => {
-  /** @type {HTMLAnchorElement} */
-  const el = document.querySelector("#version-label");
+  const el = document.querySelector("#version-label") as HTMLAnchorElement;
   if (!el) {
     return;
   }
@@ -347,7 +346,7 @@ const renderVariablesPreview = () => {
       const values = (routes && routes.body && routes.body.interpolatedVariables) || {};
       const hasValues = Object.keys(values).length > 0;
 
-      panels.forEach((/** @type {HTMLElement} */ panel) => {
+      panels.forEach((panel: any) => {
         const container = panel.querySelector(".variables-preview-list");
         if (!container) {
           return;
@@ -402,8 +401,7 @@ document.addEventListener("DOMContentLoaded", renderVariablesPreview);
 const LOG_STORAGE_KEY = "si-log";
 
 const updateDebugLog = async () => {
-  /** @type {HTMLTextAreaElement} */
-  const el = document.querySelector("#debug-log");
+  const el = document.querySelector("#debug-log") as HTMLTextAreaElement;
   if (!el) {
     return;
   }
@@ -439,7 +437,7 @@ browser.runtime.onMessage.addListener((message) => {
   }
 });
 
-const saveOptions = (e) => {
+const saveOptions = (e?) => {
   if (e) {
     e.preventDefault();
   }
@@ -569,7 +567,7 @@ const setupChromeDisables = () => {
     document.querySelector("html").style = "min-width: 600px;";
     // document.querySelector("body").style = "overflow-y: hidden;";
 
-    document.querySelectorAll(".chrome-disabled").forEach((/** @type {HTMLInputElement} */ el) => {
+    document.querySelectorAll(".chrome-disabled").forEach((el: any) => {
       el.disabled = true;
     });
   }
@@ -586,7 +584,7 @@ const AUTOSAVE_DEBOUNCE_MS = 400;
 // closing the page or switching tabs in that window would drop the edit
 let pendingChanges = false;
 // Scheduled autosave timers, so a Discard can cancel them before they fire
-const pendingSaveTimers = new Set();
+const pendingSaveTimers = new Set<number>();
 
 window.addEventListener("beforeunload", (e) => {
   if (pendingChanges || anyManualEditorDirty()) {
@@ -602,14 +600,13 @@ window.addEventListener("beforeunload", (e) => {
 const manualEditors = [];
 
 const setupManualEditor = (id) => {
-  /** @type {HTMLTextAreaElement} */
-  const textarea = document.querySelector(`#${id}`);
+  const textarea = document.querySelector(`#${id}`) as HTMLTextAreaElement;
   const buttons = [...document.querySelectorAll(`[data-apply="${id}"], [data-discard="${id}"]`)];
   if (!textarea || buttons.length === 0) {
     return;
   }
 
-  const editor = { textarea, saved: textarea.value };
+  const editor: Record<string, any> = { textarea, saved: textarea.value };
   manualEditors.push(editor);
 
   // Apply and Discard are both only actionable while the editor is dirty
@@ -684,7 +681,7 @@ const setupAutosave = (el) => {
     }, 100);
   };
 
-  const doSave = (e) => {
+  const doSave = (e?) => {
     saveOptions(e);
     window.setTimeout(updateErrors, 200);
     showSavedIndicator();
@@ -788,8 +785,7 @@ const renderMenuPreview = (container, tree) => {
 
   // Mirror the real menu: the Last Used slot and its separator sit above
   // the configured paths when the option is enabled
-  /** @type {HTMLInputElement} */
-  const lastUsed = document.querySelector("#enableLastLocation");
+  const lastUsed = document.querySelector("#enableLastLocation") as HTMLInputElement;
   if (lastUsed && lastUsed.checked) {
     const sep = document.createElement("li");
     sep.className = "menu-preview-separator";
@@ -843,8 +839,7 @@ const renderMenuPreview = (container, tree) => {
 };
 
 const updateMenuPreview = () => {
-  /** @type {HTMLTextAreaElement} */
-  const textarea = document.querySelector("#paths");
+  const textarea = document.querySelector("#paths") as HTMLTextAreaElement;
   const container = document.querySelector("#menu-preview-tree");
   if (!textarea || !container) {
     return;
@@ -1100,7 +1095,7 @@ document.querySelectorAll("[data-apply]").forEach((button) => {
 });
 
 // Discard: revert the editor to its stored value without saving
-document.querySelectorAll("[data-discard]").forEach((/** @type {HTMLElement} */ button) => {
+document.querySelectorAll("[data-discard]").forEach((button: any) => {
   button.addEventListener("click", () => {
     const id = button.dataset.discard;
     const editor = manualEditors.find((ed) => ed.textarea.id === id);
@@ -1115,8 +1110,7 @@ document.querySelectorAll("[data-discard]").forEach((/** @type {HTMLElement} */ 
 
 const showJson = (obj) => {
   const json = JSON.stringify(obj, null, 2);
-  /** @type {HTMLTextAreaElement} */
-  const outputEl = document.querySelector("#export-target");
+  const outputEl = document.querySelector("#export-target") as any;
   outputEl.style = "display: unset;";
   outputEl.value = json;
 };

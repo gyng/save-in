@@ -2,6 +2,32 @@
 // requirement), async init/menu construction, and current-tab tracking.
 // index.js runs entirely on import, so every test re-imports it fresh.
 
+// menu-click/menu-tabs extend the shared Menus at import; here Menus is a full
+// stub, so keep them no-ops rather than letting them clobber the stub methods.
+vi.mock("../src/menu-click.ts", () => ({}));
+vi.mock("../src/menu-tabs.ts", () => ({}));
+vi.mock("../src/menu-build.ts", () => ({
+  get Menus() {
+    return globalThis.Menus;
+  },
+}));
+vi.mock("../src/option.ts", () => ({
+  get options() {
+    return globalThis.options;
+  },
+  get OptionsManagement() {
+    return globalThis.OptionsManagement;
+  },
+}));
+vi.mock("../src/log.ts", () => ({
+  get Log() {
+    return globalThis.Log;
+  },
+}));
+vi.mock("../src/download-state.ts", () => ({
+  DownloadState: { hydrate: () => Promise.resolve() },
+}));
+
 // Microtask flush for promise chains started at import time
 const flush = async (times = 10) => {
   for (let i = 0; i < times; i += 1) {
@@ -70,7 +96,7 @@ beforeEach(() => {
 describe("startup", () => {
   test("registers event listeners synchronously at import (MV3 requirement)", async () => {
     setupGlobals();
-    await import("../src/index.js");
+    await import("../src/index.ts");
 
     expect(global.Menus.addDownloadListener).toHaveBeenCalledTimes(1);
     expect(global.Menus.addTabMenuListener).toHaveBeenCalledTimes(1);
@@ -86,7 +112,7 @@ describe("startup", () => {
 
   test("window.reset re-runs init and replaces window.ready", async () => {
     setupGlobals();
-    await import("../src/index.js");
+    await import("../src/index.ts");
     await global.window.ready;
     expect(global.OptionsManagement.loadOptions).toHaveBeenCalledTimes(1);
 
@@ -100,7 +126,7 @@ describe("startup", () => {
 describe("init", () => {
   test("loads options, then builds the full menu", async () => {
     setupGlobals();
-    await import("../src/index.js");
+    await import("../src/index.ts");
     await global.window.ready;
 
     expect(global.window.optionErrors).toEqual({ paths: [], filenamePatterns: [] });
@@ -124,7 +150,7 @@ describe("init", () => {
 
   test("drops blank lines and trims whitespace in the configured paths", async () => {
     setupGlobals({ options: { paths: " . \n\n  \nimages\n" } });
-    await import("../src/index.js");
+    await import("../src/index.ts");
     await global.window.ready;
 
     expect(global.Menus.addPaths).toHaveBeenCalledWith([".", "images"], expect.any(Array));
@@ -132,7 +158,7 @@ describe("init", () => {
 
   test("restricts contexts to media when links/selection/page are disabled", async () => {
     setupGlobals({ options: { links: false, selection: false, page: false } });
-    await import("../src/index.js");
+    await import("../src/index.ts");
     await global.window.ready;
 
     expect(global.Menus.addRoot).toHaveBeenCalledWith(["image", "video", "audio"]);
@@ -140,7 +166,7 @@ describe("init", () => {
 
   test("routeExclusive builds only the exclusive item and stops", async () => {
     setupGlobals({ options: { routeExclusive: true } });
-    await import("../src/index.js");
+    await import("../src/index.ts");
     await global.window.ready;
 
     expect(global.Menus.addTabMenus).toHaveBeenCalledTimes(1);
@@ -160,7 +186,7 @@ describe("init", () => {
 
   test("skips the last-used item when enableLastLocation is off", async () => {
     setupGlobals({ options: { enableLastLocation: false } });
-    await import("../src/index.js");
+    await import("../src/index.ts");
     await global.window.ready;
 
     expect(global.Menus.addLastUsed).not.toHaveBeenCalled();
@@ -171,7 +197,7 @@ describe("init", () => {
 
   test("restores lastUsedPath from storage (MV3 service workers are stateless)", async () => {
     setupGlobals({ storedLocal: { lastUsedPath: "images/cute" } });
-    await import("../src/index.js");
+    await import("../src/index.ts");
     await global.window.ready;
 
     // the stored local object is handed to Menus.restoreLastUsed (its mapping is
@@ -181,7 +207,7 @@ describe("init", () => {
 
   test("restores from an empty storage result", async () => {
     setupGlobals();
-    await import("../src/index.js");
+    await import("../src/index.ts");
     await global.window.ready;
 
     expect(global.Menus.restoreLastUsed).toHaveBeenCalledWith({});
@@ -197,7 +223,7 @@ describe("init", () => {
         }),
     );
 
-    await import("../src/index.js");
+    await import("../src/index.ts");
     // Attach the handler before rejecting so the rejection is never unhandled
     const readyRejects = expect(global.window.ready).rejects.toThrow("storage broke");
     rejectLoad(new Error("storage broke"));
@@ -212,7 +238,7 @@ describe("current tab tracking", () => {
   test("seeds currentTab from the active tab at startup", async () => {
     const tab = { id: 3, title: "Seeded Tab" };
     setupGlobals({ tabsQueryResult: [tab] });
-    await import("../src/index.js");
+    await import("../src/index.ts");
     await global.window.ready;
     await flush();
 
@@ -241,7 +267,7 @@ describe("current tab tracking", () => {
     const activatedTab = { id: 9, title: "Activated" };
     global.browser.tabs.get = vi.fn(() => Promise.resolve(activatedTab));
 
-    await import("../src/index.js");
+    await import("../src/index.ts");
     await global.window.ready;
 
     const [[onActivated]] = global.browser.tabs.onActivated.addListener.mock.calls;
@@ -262,7 +288,7 @@ describe("current tab tracking", () => {
     setupGlobals();
     global.browser.tabs.query = vi.fn(() => Promise.reject(new Error("no window")));
 
-    await import("../src/index.js");
+    await import("../src/index.ts");
     await global.window.ready;
     await flush();
 
@@ -278,7 +304,7 @@ describe("current tab tracking", () => {
     const activatedTab = { id: 2, title: "Activated Tab" };
     global.browser.tabs.get = vi.fn(() => Promise.resolve(activatedTab));
 
-    await import("../src/index.js");
+    await import("../src/index.ts");
     await global.window.ready;
     await flush();
 
@@ -298,7 +324,7 @@ describe("current tab tracking", () => {
     const fetchedTab = { id: 4, title: "Fetched Tab" };
     global.browser.tabs.get = vi.fn(() => Promise.resolve(fetchedTab));
 
-    await import("../src/index.js");
+    await import("../src/index.ts");
     await global.window.ready;
     await flush();
 
@@ -315,7 +341,7 @@ describe("current tab tracking", () => {
   test("onUpdated ignores other tabs and deltas without a title", async () => {
     const tab = { id: 3, title: "Seeded Tab" };
     setupGlobals({ tabsQueryResult: [tab] });
-    await import("../src/index.js");
+    await import("../src/index.ts");
     await global.window.ready;
     await flush();
 

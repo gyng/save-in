@@ -98,7 +98,7 @@ export const Menus = {
         id: "download-context-media-link",
         title: browser.i18n.getMessage("contextMenuContextMediaOrLink"),
         enabled: false,
-        contexts: MEDIA_TYPES.concat("link"),
+        contexts: MEDIA_TYPES.concat("link") as any,
         parentId: Menus.IDS.ROOT,
       });
     } else {
@@ -106,7 +106,7 @@ export const Menus = {
         id: "download-context-media",
         title: browser.i18n.getMessage("contextMenuContextMedia"),
         enabled: false,
-        contexts: MEDIA_TYPES,
+        contexts: MEDIA_TYPES as any,
         parentId: Menus.IDS.ROOT,
       });
     }

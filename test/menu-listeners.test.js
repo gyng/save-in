@@ -1,10 +1,56 @@
 // Context menu click handling: listeners are registered synchronously at
 // service worker startup and must wait for async init before acting
 
-const constants = (await import("../src/constants.js")).default;
+import * as constants from "../src/constants.ts";
+
+// menu-build/menu-click/menu-tabs read these deps through module imports; bridge
+// them to the (stubbed) globals the test seeds. Path stays real (the click
+// handlers build real Path objects).
+vi.mock("../src/option.ts", () => ({
+  get options() {
+    return globalThis.options;
+  },
+  OptionsManagement: {},
+}));
+vi.mock("../src/chrome-detector.ts", () => ({
+  BROWSERS: { CHROME: "CHROME", FIREFOX: "FIREFOX", UNKNOWN: "UNKNOWN" },
+  get CURRENT_BROWSER() {
+    return globalThis.CURRENT_BROWSER;
+  },
+  get CURRENT_BROWSER_VERSION() {
+    return globalThis.CURRENT_BROWSER_VERSION;
+  },
+  get BROWSER_FEATURES() {
+    return globalThis.BROWSER_FEATURES;
+  },
+  setFeatures: (b) => ({ multitab: b === "FIREFOX", accessKeys: true }),
+}));
+vi.mock("../src/download.ts", () => ({
+  get Download() {
+    return globalThis.Download;
+  },
+}));
+vi.mock("../src/notification.ts", () => ({
+  get Notifier() {
+    return globalThis.Notifier;
+  },
+}));
+vi.mock("../src/shortcut.ts", () => ({
+  get Shortcut() {
+    return globalThis.Shortcut;
+  },
+}));
+vi.mock("../src/current-tab.ts", () => ({
+  get currentTab() {
+    return globalThis.currentTab;
+  },
+  setCurrentTab: (t) => {
+    globalThis.currentTab = t;
+  },
+}));
 
 Object.assign(global, constants);
-global.Path = (await import("../src/path.js")).default;
+global.Path = (await import("../src/path.ts")).Path;
 
 global.BROWSER_FEATURES = { accessKeys: false, multitab: false };
 
@@ -56,9 +102,9 @@ const setupBrowserMocks = () => {
 // menu-click.js/menu-tabs.js augment the Menus object from menu-build.js
 // via the shared global scope, so the global must exist before importing them
 const importMenus = async () => {
-  global.Menus = (await import("../src/menu-build.js")).default;
-  await import("../src/menu-click.js");
-  await import("../src/menu-tabs.js");
+  global.Menus = (await import("../src/menu-build.ts")).Menus;
+  await import("../src/menu-click.ts");
+  await import("../src/menu-tabs.ts");
   return global.Menus;
 };
 

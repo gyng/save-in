@@ -19,6 +19,8 @@ export const Path = {
   SEPARATOR_REGEX_INCLUSIVE: /([/\\])/g,
 
   PathSegment: class PathSegment {
+    declare type: any;
+    declare val: any;
     constructor(type, val) {
       this.type = type;
       this.val = val;
@@ -42,7 +44,10 @@ export const Path = {
   },
 
   Path: class _Path {
-    constructor(str) {
+    declare raw: any;
+    declare rawbuf: any;
+    declare buf: any;
+    constructor(str?) {
       const buf = Path.parsePathStr(str);
       this.raw = str;
       this.rawbuf = buf;
@@ -114,11 +119,11 @@ export const Path = {
     override || (typeof options !== "undefined" && options && options.replacementChar) || fallback,
 
   // TODO: Make this OS-aware instead of assuming Windows as LCD
-  replaceFsBadChars: (s, replacement) =>
+  replaceFsBadChars: (s, replacement?) =>
     s.replace(Path.SPECIAL_CHARACTERS_REGEX, Path.replacementChar(replacement)),
 
   // Leading dots are considered invalid by both Firefox and Chrome
-  replaceLeadingDots: (s, replacement) =>
+  replaceLeadingDots: (s, replacement?) =>
     s.replace(Path.BAD_LEADING_CHARACTERS, Path.replacementChar(replacement)),
 
   truncateIfLongerThan: (str, max) =>
@@ -130,7 +135,7 @@ export const Path = {
 
   // Windows treats everything up to the first dot as the device name, so
   // "con.tar.gz" is just as reserved as "con"
-  neutralizeReservedDeviceName: (s, replacement) => {
+  neutralizeReservedDeviceName: (s, replacement?) => {
     const baseName = s.split(".")[0];
     if (!Path.RESERVED_DEVICE_NAME_REGEX.test(baseName)) {
       return s;

@@ -1,4 +1,4 @@
-const { BROWSERS, setFeatures } = (await import("../src/chrome-detector.js")).default;
+import { BROWSERS, setFeatures } from "../src/chrome-detector.ts";
 
 describe("setFeatures", () => {
   test("multitab tab-strip menus are Firefox-only", () => {
@@ -30,9 +30,9 @@ describe("browser detection at load time", () => {
     delete global.browser;
     vi.resetModules();
 
-    const mod = (await import("../src/chrome-detector.js")).default;
+    const mod = await import("../src/chrome-detector.ts");
 
-    expect(mod.getCurrentBrowser()).toBe(mod.BROWSERS.CHROME);
+    expect(mod.CURRENT_BROWSER).toBe(mod.BROWSERS.CHROME);
   });
 
   test("stays UNKNOWN when neither browser nor chrome exist", async () => {
@@ -42,8 +42,8 @@ describe("browser detection at load time", () => {
     vi.resetModules();
 
     try {
-      const mod = (await import("../src/chrome-detector.js")).default;
-      expect(mod.getCurrentBrowser()).toBe(mod.BROWSERS.UNKNOWN);
+      const mod = await import("../src/chrome-detector.ts");
+      expect(mod.CURRENT_BROWSER).toBe(mod.BROWSERS.UNKNOWN);
     } finally {
       global.chrome = originalChrome;
     }
@@ -56,14 +56,14 @@ describe("browser detection at load time", () => {
     );
     vi.resetModules();
 
-    const mod = (await import("../src/chrome-detector.js")).default;
+    const mod = await import("../src/chrome-detector.ts");
 
     // FIREFOX is decided synchronously, without waiting on getBrowserInfo()
-    expect(mod.getCurrentBrowser()).toBe(mod.BROWSERS.FIREFOX);
+    expect(mod.CURRENT_BROWSER).toBe(mod.BROWSERS.FIREFOX);
 
     await flushMicrotasksAndTimers();
 
-    expect(mod.getCurrentBrowserVersion()).toBe(121.0);
+    expect(mod.CURRENT_BROWSER_VERSION).toBe(121.0);
   });
 
   test("treats Gecko forks (e.g. Waterfox) as FIREFOX regardless of the reported name (#186)", async () => {
@@ -73,13 +73,13 @@ describe("browser detection at load time", () => {
     );
     vi.resetModules();
 
-    const mod = (await import("../src/chrome-detector.js")).default;
+    const mod = await import("../src/chrome-detector.ts");
 
-    expect(mod.getCurrentBrowser()).toBe(mod.BROWSERS.FIREFOX);
+    expect(mod.CURRENT_BROWSER).toBe(mod.BROWSERS.FIREFOX);
 
     await flushMicrotasksAndTimers();
 
-    expect(mod.getCurrentBrowserVersion()).toBe(6.0);
+    expect(mod.CURRENT_BROWSER_VERSION).toBe(6.0);
   });
 
   test("swallows a rejected getBrowserInfo() promise without throwing", async () => {
@@ -87,14 +87,14 @@ describe("browser detection at load time", () => {
     global.browser.runtime.getBrowserInfo = vi.fn(() => Promise.reject(new Error("nope")));
     vi.resetModules();
 
-    const mod = (await import("../src/chrome-detector.js")).default;
+    const mod = await import("../src/chrome-detector.ts");
 
-    expect(mod.getCurrentBrowser()).toBe(mod.BROWSERS.FIREFOX);
+    expect(mod.CURRENT_BROWSER).toBe(mod.BROWSERS.FIREFOX);
 
     await flushMicrotasksAndTimers();
 
     // Version stays unset; the rejection is swallowed, not thrown
-    expect(mod.getCurrentBrowserVersion()).toBeUndefined();
+    expect(mod.CURRENT_BROWSER_VERSION).toBeUndefined();
   });
 
   test("assumes CHROME when browser exists without getBrowserInfo", async () => {
@@ -102,8 +102,8 @@ describe("browser detection at load time", () => {
     delete global.browser.runtime.getBrowserInfo;
     vi.resetModules();
 
-    const mod = (await import("../src/chrome-detector.js")).default;
+    const mod = await import("../src/chrome-detector.ts");
 
-    expect(mod.getCurrentBrowser()).toBe(mod.BROWSERS.CHROME);
+    expect(mod.CURRENT_BROWSER).toBe(mod.BROWSERS.CHROME);
   });
 });

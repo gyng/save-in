@@ -9,7 +9,7 @@ export const SessionState = {
     typeof browser !== "undefined" && browser.storage && browser.storage.session != null,
 
   /** @returns {Promise<Record<string, any>>} */
-  get: (key) =>
+  get: (key): Promise<Record<string, any>> =>
     SessionState.available()
       ? browser.storage.session.get(key).catch(() => ({}))
       : Promise.resolve({}),

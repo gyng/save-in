@@ -20,7 +20,7 @@ export function getFilenameFromContentDispositionHeader(contentDisposition) {
   let needsEncodingFixup = true;
 
   // filename*=ext-value ("ext-value" from RFC 5987, referenced by RFC 6266).
-  let tmp = toParamRegExp("filename\\*", "i").exec(contentDisposition);
+  let tmp: any = toParamRegExp("filename\\*", "i").exec(contentDisposition);
   if (tmp) {
     tmp = tmp[1];
     let filename = rfc2616unquote(tmp);
@@ -69,7 +69,7 @@ export function getFilenameFromContentDispositionHeader(contentDisposition) {
     if (encoding) {
       try {
         let decoder = new TextDecoder(encoding, { fatal: true });
-        let bytes = Array.from(value, (c) => c.charCodeAt(0));
+        let bytes = Array.from(value, (c: any) => c.charCodeAt(0));
         if (bytes.every((code) => code <= 0xff)) {
           value = decoder.decode(new Uint8Array(bytes));
           needsEncodingFixup = false;

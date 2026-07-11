@@ -1,12 +1,25 @@
-const constants = (await import("../src/constants.js")).default;
+import * as constants from "../src/constants.ts";
+import { Router as router } from "../src/router.ts";
+import { Variable } from "../src/variable.ts";
+import { Path } from "../src/path.ts";
+import { Download } from "../src/download.ts";
+
+vi.mock("../src/counter.ts", () => ({
+  get Counter() {
+    return globalThis.Counter;
+  },
+}));
+vi.mock("../src/option.ts", () => ({
+  get options() {
+    return globalThis.options;
+  },
+  OptionsManagement: {},
+}));
 
 Object.assign(global, constants);
-const router = (await import("../src/router.js")).default;
-const Variable = (await import("../src/variable.js")).default;
-const Path = (await import("../src/path.js")).default;
 
 global.Path = Path;
-global.Download = (await import("../src/download.js")).default;
+global.Download = Download;
 
 describe("variables", () => {
   const specialDirs = global.SPECIAL_DIRS;

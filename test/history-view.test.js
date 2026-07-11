@@ -1,5 +1,5 @@
 // Pure history-table helpers extracted from options.js (history-view.js).
-const HistoryView = (await import("../src/options/history-view.js")).default;
+import { HistoryView } from "../src/options/history-view.ts";
 
 describe("HistoryView flatteners", () => {
   test("filename / folder split a full path", () => {

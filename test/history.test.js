@@ -1,4 +1,4 @@
-const SaveHistory = (await import("../src/history.js")).default;
+import { SaveHistory } from "../src/history.ts";
 
 const HISTORY_KEY = "save-in-history";
 

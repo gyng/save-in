@@ -1,17 +1,63 @@
-// menu-click.js/menu-tabs.js augment the Menus object from menu-build.js
-// via the shared global scope, so the global must exist before importing them
-const menu = (await import("../src/menu-build.js")).default;
+// menu-click.ts/menu-tabs.ts augment the Menus object from menu-build.ts; they
+// import the same Menus binding, so importing them extends `menu`. Their other
+// dependencies (Download/Notifier/Shortcut/currentTab) are only touched by the
+// click handlers, not menu construction, so they stay bridged to (unset) globals.
+vi.mock("../src/option.ts", () => ({
+  get options() {
+    return globalThis.options;
+  },
+  OptionsManagement: {},
+}));
+vi.mock("../src/chrome-detector.ts", () => ({
+  BROWSERS: { CHROME: "CHROME", FIREFOX: "FIREFOX", UNKNOWN: "UNKNOWN" },
+  get CURRENT_BROWSER() {
+    return globalThis.CURRENT_BROWSER;
+  },
+  get CURRENT_BROWSER_VERSION() {
+    return globalThis.CURRENT_BROWSER_VERSION;
+  },
+  get BROWSER_FEATURES() {
+    return globalThis.BROWSER_FEATURES;
+  },
+  setFeatures: (b) => ({ multitab: b === "FIREFOX", accessKeys: true }),
+}));
+vi.mock("../src/download.ts", () => ({
+  get Download() {
+    return globalThis.Download;
+  },
+}));
+vi.mock("../src/notification.ts", () => ({
+  get Notifier() {
+    return globalThis.Notifier;
+  },
+}));
+vi.mock("../src/shortcut.ts", () => ({
+  get Shortcut() {
+    return globalThis.Shortcut;
+  },
+}));
+vi.mock("../src/current-tab.ts", () => ({
+  get currentTab() {
+    return globalThis.currentTab;
+  },
+  setCurrentTab: (t) => {
+    globalThis.currentTab = t;
+  },
+}));
+
+import { Menus as menu } from "../src/menu-build.ts";
+import "../src/menu-click.ts";
+import "../src/menu-tabs.ts";
+import * as constants from "../src/constants.ts";
+
 globalThis.Menus = menu;
-await import("../src/menu-click.js");
-await import("../src/menu-tabs.js");
-const constants = (await import("../src/constants.js")).default;
 
 describe("menu parsing", () => {
   beforeAll(async () => {
     global.SPECIAL_DIRS = constants.SPECIAL_DIRS;
     global.PATH_SEGMENT_TYPES = constants.PATH_SEGMENT_TYPES;
     global.FORBIDDEN_FILENAME_CHARS = constants.FORBIDDEN_FILENAME_CHARS;
-    global.Path = (await import("../src/path.js")).default;
+    global.Path = (await import("../src/path.ts")).Path;
   });
 
   test("parses comments for metadata", () => {
@@ -81,7 +127,7 @@ const setupMenuCreationMocks = () => {
 describe("menu creation", () => {
   beforeAll(async () => {
     Object.assign(global, constants);
-    global.Path = (await import("../src/path.js")).default;
+    global.Path = (await import("../src/path.ts")).Path;
   });
 
   beforeEach(() => {
@@ -392,7 +438,7 @@ describe("menu creation", () => {
 describe("buildTree", () => {
   beforeAll(async () => {
     Object.assign(global, constants);
-    global.Path = (await import("../src/path.js")).default;
+    global.Path = (await import("../src/path.ts")).Path;
   });
 
   test("is pure: computes the tree without any browser calls", () => {

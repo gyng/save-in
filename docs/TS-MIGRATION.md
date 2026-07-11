@@ -87,14 +87,67 @@ imports) so the handlers attach before `index` calls them. Keep `index` last.
   `VAR=val` (npm runs scripts via CMD).
 - `tsconfig` now includes `src/**/*.ts`.
 
-## Status
+## Status / COLD-RESUME POINT
 
-- [x] Toolchain spike (rolldown TS + ESM scope-hoist + shared-mutation)
-- [x] Background dependency contract mapped (above)
-- [x] Build/lint/e2e switched to the bundled artifact
-- [x] content pilot (`content.ts`, iife bundle, bundled e2e green both browsers)
-- [ ] offscreen
-- [ ] options
-- [ ] background (leaf-first; Layer 2 SCC is one big-bang; expose globals for evalSW)
-- [ ] delete dual registries (`.oxlintrc globals` + `types/globals.d.ts`); AMO reviewer notes
-- [ ] `strict: true` sweep (`noImplicitAny`, `strictNullChecks`)
+Work happens on branch **`ts-migration`** (off `mv3`). `mv3` stays green +
+shippable at 4.0.0 the whole time; nothing merges to it until the full gate is
+green on both browsers.
+
+### Done + committed (on `ts-migration`)
+- **`c748dec`** Phase 1: `content.ts` (iife); `build`/`lint`/`e2e:*` switched to
+  the bundled pkg (`dist/bundled-pkg`); `tsconfig` includes `src/**/*.ts`.
+- **`2a8b4ed`** all 40 source files → ESM/TS (`module.exports`→`export`, globals→
+  imports); per-target entries `src/entry.{background,options,offscreen}.ts`;
+  `rolldown.config.mjs` reworked to real module resolution (concat helpers
+  deleted). Extracted **`src/current-tab.ts`** as a leaf so nothing imports
+  `index.ts` (which was pulled into the SCC → TDZ on OptionsManagement).
+  VERIFIED: `npm run bundle` clean; bundled **Chrome 22/22 + Firefox 10/10**.
+
+### Done, IN THE WORKING TREE (uncommitted — commit when the suite is green)
+- **Typecheck greened 275→0** (Agent A): loose types (`Record<string,any>`, `as`
+  casts) re-applying the old globals.d.ts looseness. KEY GOTCHA: **TS ignores
+  JSDoc `@type`/`@returns` in `.ts`** (they only work in `.js` under checkJs) —
+  every inline JSDoc cast silently broke on rename; fixed with real TS forms.
+  `tsconfig`: `module: preserve`, `moduleResolution: bundler`,
+  `allowImportingTsExtensions`. `option.ts`: `options: Record<string,any>`.
+  VERIFIED typecheck 0 + bundle + Chrome e2e.
+- `package.json`: `build`→bundled; `e2e:*` stage bundled + `env EXT_DIR=…`;
+  `lint` drops the now-obsolete `check-background-scripts` + `check-globals`.
+- **Test correctness refactor DONE + verified** (a subagent): 33 test files
+  global-seeding → `vi.mock` (getter-bridge to `globalThis` for live bindings) +
+  `.ts`-source imports, still `.test.js`; `vitest.setup.mjs` stripped of the
+  obsolete `Util`/`SessionState`/`DownloadState`/`OffscreenClient` seeding
+  (`browser`/`chrome` stay ambient). **`vitest run` = 742/742.** Also fixed the
+  stale `vitest.config.mjs` coverage `include` (`src/**/*.js`→`.ts`) + include
+  glob (`.test.{js,ts}`). Note: `chrome-detector.test.js` referenced accessors
+  that never existed in source — adapted to the live bindings.
+
+### Remaining to merge (the integration pass)
+1. Verify `vitest run` green (after the correctness refactor lands).
+2. **Typed tests (#66):** convert each to proper `.test.ts` + PRUNE over-mocking
+   (real imports for pure deps; `vi.fn()` only where spied) + add `test/**` to
+   `tsconfig` → green `tsc` AND `vitest`. Update `vitest.config.mjs` include
+   (`.test.js`→`.test.ts`). Fan out sonnet (mechanical) + opus (download-flow,
+   notification-session, menu-listeners, download-mv3). `.e2e.mjs` +
+   `vitest.setup.mjs` + mockserver stay Node ESM.
+3. Delete dead **`src/background.js`** (old SW bootstrap; unused by the bundle).
+4. Add a **`clicktocopy` bundle** + rewrite `variablelist.html`/`clauselist.html`
+   (the only broken help pages — they still `<script src="clicktocopy.js">`).
+5. Rewrite the **AGENTS.md** architecture section ("no bundler / shared global
+   scope / dual background lists / check-background-scripts" is now historical).
+6. **Full gate:** `vitest` + `tsc` (src **and** test) + `lint` + Chrome + Firefox
+   e2e, all on the bundled pkg.
+7. **Merge `ts-migration` → `mv3`.**
+
+### Bundle facts (load-bearing)
+- Formats: background / background.sw / options / offscreen = `esm` (bare
+  scope-hoisted; entries have NO exports; `entry.background.ts` does
+  `Object.assign(globalThis, {…})` so the e2e's `evalSW` reaches
+  `Notifier/Download/Menus/Path/options/…` by bare name). content = `iife`.
+- `background.sw.js` gets a `banner: "self.window = self;\n"` (SW has no window).
+
+### Post-migration backlog → `docs/ARCH-CYCLES.md` (tasks #55–68)
+Cuts #55–59 (dissolve the SCC) · #61 renameAndDownload · #63 structure · #60
+strict · #62 TS-native idioms · #64 runtime validation · #65 tooling (NO
+typescript-eslint) · #66 typed tests · #67 PathEditor singleton · #68 singleton
+sweep.

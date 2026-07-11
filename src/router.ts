@@ -10,7 +10,7 @@ const logMatch = (match, regex, info) => {
 };
 
 const RouterFactory = {
-  makeInfoMatcherFactory: (propertyName, alternativePropertyName) => (regex) => (info) => {
+  makeInfoMatcherFactory: (propertyName, alternativePropertyName?) => (regex) => (info) => {
     let match = info[propertyName] && info[propertyName].match(regex);
 
     // Hack for sourceUrl, srcUrl
@@ -47,7 +47,7 @@ const RouterFactory = {
   },
 };
 
-export const Router = {
+export const Router: Record<string, any> = {
   // Typed default for matchers destructuring their second (state.info) param
   /** @type {Partial<StateInfo>} */
   EMPTY_INFO: {},

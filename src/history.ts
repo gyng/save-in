@@ -59,8 +59,8 @@ export const SaveHistory = {
   // Records the final outcome ("complete" or a browser error name), the browser
   // download id (so the options page can open the file's folder or poll
   // progress), and the file size in bytes when known
-  setStatus: (id, status, downloadId, fileSize) => {
-    const fields = { status };
+  setStatus: (id, status, downloadId?, fileSize?) => {
+    const fields: Record<string, any> = { status };
     if (downloadId != null) {
       fields.downloadId = downloadId;
     }

@@ -1,4 +1,4 @@
-const { localizeString, localizeDocument } = (await import("../src/options/l10n.js")).default;
+import { localizeString, localizeDocument } from "../src/options/l10n.ts";
 
 describe("l10n", () => {
   beforeEach(() => {

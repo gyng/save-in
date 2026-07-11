@@ -14,9 +14,11 @@ const T = {
 // Mutable cross-file state: the shared options bag. Reassigned only in this
 // module (below); other modules import a read-only live binding and mutate its
 // fields in place via OptionsManagement.setOption.
-export let options = {};
+// Loosely typed for now; the real SaveInOptions type (derived from OPTION_KEYS)
+// is the TS-native pass (docs/ARCH-CYCLES.md #62).
+export let options: Record<string, any> = {};
 
-export const OptionsManagement = {
+export const OptionsManagement: Record<string, any> = {
   OPTION_TYPES: T, // re-export
 
   OPTION_KEYS: [

@@ -1,4 +1,4 @@
-const Util = (await import("../src/util.js")).default;
+import { Util } from "../src/util.ts";
 
 describe("Util.withUrl", () => {
   test("calls the callback with the parsed URL", () => {

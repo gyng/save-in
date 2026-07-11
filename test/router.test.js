@@ -1,6 +1,16 @@
-const router = (await import("../src/router.js")).default;
-const downloads = (await import("../src/download.js")).default;
-const constants = (await import("../src/constants.js")).default;
+vi.mock("../src/current-tab.ts", () => ({
+  get currentTab() {
+    return globalThis.currentTab;
+  },
+  setCurrentTab: (t) => {
+    globalThis.currentTab = t;
+  },
+}));
+
+import { Router as router } from "../src/router.ts";
+import { Download as downloads } from "../src/download.ts";
+import * as constants from "../src/constants.ts";
+
 const fixtures = (await import("./fixtures/clickInfo")).default;
 
 describe("filename rewrite and routing", () => {

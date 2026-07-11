@@ -17,7 +17,7 @@ describe("browser-shim", () => {
     delete globalThis.browser;
     globalThis.chrome = { runtime: { id: "x" } };
 
-    await import("../src/browser-shim.js");
+    await import("../src/browser-shim.ts");
 
     expect(globalThis.browser).toBe(globalThis.chrome);
   });
@@ -27,7 +27,7 @@ describe("browser-shim", () => {
     globalThis.browser = nativeBrowser;
     globalThis.chrome = { runtime: { id: "chrome-ns" } };
 
-    await import("../src/browser-shim.js");
+    await import("../src/browser-shim.ts");
 
     expect(globalThis.browser).toBe(nativeBrowser);
   });

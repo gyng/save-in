@@ -120,7 +120,7 @@ export const Messaging = {
   // loop and the options-page "paste config" affordance. Safe externally.
   handleValidate: (request, sender, sendResponse) => {
     const body = request.body || {};
-    const result = { version: Messaging.API_VERSION };
+    const result: Record<string, any> = { version: Messaging.API_VERSION };
 
     if (typeof body.paths === "string") {
       const pathsArray = Util.splitLines(body.paths);
@@ -258,7 +258,7 @@ export const Messaging = {
       info: {},
     };
 
-    const opts = {
+    const opts: Record<string, any> = {
       // Prefer the tab the message came from over the tracked global (#172)
       currentTab: (sender && sender.tab) || currentTab,
       now: new Date(),

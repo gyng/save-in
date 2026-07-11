@@ -23,7 +23,7 @@ describe("Log", () => {
   beforeEach(async () => {
     jest.resetModules();
     store = setupSession();
-    Log = (await import("../src/log.js")).default;
+    Log = (await import("../src/log.ts")).Log;
   });
 
   test("appends timestamped entries", async () => {
@@ -84,7 +84,7 @@ describe("Log", () => {
   test("is a no-op without storage.session (older Firefox)", async () => {
     global.browser.storage.session = undefined;
     jest.resetModules();
-    const BareLog = (await import("../src/log.js")).default;
+    const BareLog = (await import("../src/log.ts")).Log;
 
     await expect(BareLog.add("x")).resolves.toBeUndefined();
     await expect(BareLog.get()).resolves.toEqual([]);

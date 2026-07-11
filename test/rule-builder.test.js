@@ -2,12 +2,11 @@
 // template must parse cleanly through the real Router and only reference
 // variables that actually exist.
 
-const constants = (await import("../src/constants.js")).default;
-Object.assign(global, constants);
+import * as constants from "../src/constants.ts";
+import { Router } from "../src/router.ts";
+import { RULE_TEMPLATES, RuleBuilder } from "../src/options/rule-builder.ts";
 
-const Router = (await import("../src/router.js")).default;
-global.PathEditor = (await import("../src/options/path-editor.js")).default;
-const { RULE_TEMPLATES, RuleBuilder } = await import("../src/options/rule-builder.js");
+Object.assign(global, constants);
 
 const flush = async (times = 5) => {
   for (let i = 0; i < times; i += 1) {

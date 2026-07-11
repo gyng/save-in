@@ -1,14 +1,21 @@
-const constants = (await import("../src/constants.js")).default;
+import * as constants from "../src/constants.ts";
+
+vi.mock("../src/option.ts", () => ({
+  get options() {
+    return globalThis.options;
+  },
+  OptionsManagement: {},
+}));
+
+import { Download } from "../src/download.ts";
+import { Path } from "../src/path.ts";
+import { getFilenameFromContentDispositionHeader } from "../src/vendor/content-disposition.ts";
 
 Object.assign(global, constants);
 
-const Download = (await import("../src/download.js")).default;
-
 global.Download = Download;
-global.Path = (await import("../src/path.js")).default;
-global.getFilenameFromContentDispositionHeader = (
-  await import("../src/vendor/content-disposition.js")
-).default;
+global.Path = Path;
+global.getFilenameFromContentDispositionHeader = getFilenameFromContentDispositionHeader;
 
 test("extension detection regex", () => {
   const match = "abc.xyz".match(Download.EXTENSION_REGEX);

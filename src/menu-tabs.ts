@@ -78,8 +78,7 @@ Menus.addTabMenuListener = () => {
       await window.ready;
     }
 
-    /** @type {(t: browser.tabs.Tab) => boolean} */
-    let filter = () => false;
+    let filter: (t: any) => boolean = () => false;
     /** @type {{ pinned: boolean, windowId: number, windowType: browser.tabs.WindowType, highlighted?: boolean, openerTabId?: number }} */
     let query = {
       pinned: false,
@@ -108,7 +107,7 @@ Menus.addTabMenuListener = () => {
     }
 
     browser.tabs
-      .query(query)
+      .query(query as any)
       .then((tabs) => tabs.filter((t) => !t.url.match(/^(about|chrome):/)))
       .then((tabs) => tabs.filter(filter))
       .then((tabs) => {

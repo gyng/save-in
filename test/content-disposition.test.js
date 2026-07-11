@@ -2,10 +2,10 @@
 // Content-Disposition parser) and its integration with
 // Download.getFilenameFromContentDisposition, which elsewhere is mocked.
 
-const constants = (await import("../src/constants.js")).default;
-Object.assign(global, constants);
+import * as constants from "../src/constants.ts";
+import { getFilenameFromContentDispositionHeader as parse } from "../src/vendor/content-disposition.ts";
 
-const parse = (await import("../src/vendor/content-disposition.js")).default;
+Object.assign(global, constants);
 
 describe("vendored content-disposition parser", () => {
   test("quoted and unquoted filenames", () => {
@@ -51,7 +51,7 @@ describe("Download.getFilenameFromContentDisposition with the real parser", () =
     vi.resetModules();
     global.getFilenameFromContentDispositionHeader = parse;
     global.chrome = {};
-    Download = (await import("../src/download.js")).default;
+    Download = (await import("../src/download.ts")).Download;
   });
 
   test("returns the decoded server-provided filename", () => {

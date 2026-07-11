@@ -1,5 +1,5 @@
 // Pure options-page helpers extracted from options.js (options-logic.js).
-const OptionsLogic = (await import("../src/options/options-logic.js")).default;
+import { OptionsLogic } from "../src/options/options-logic.ts";
 
 describe("normalizeKeyComboForDisplay (upgraders)", () => {
   test("maps a stored raw keyCode to its friendly name", () => {

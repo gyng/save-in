@@ -8,7 +8,7 @@
 
 import { SPECIAL_DIRS } from "../constants.ts";
 
-export const PathEditor = {
+export const PathEditor: Record<string, any> = {
   // "  >>i/cats // cute (alias: Cats)" -> { depth: 2, body: "i/cats",
   // comment: "cute (alias: Cats)" }. Round-trips through serializeLine
   // with whitespace normalized.
@@ -224,7 +224,7 @@ export const PathEditor = {
       document.querySelector("#error-paths"),
     ];
     /** @type {HTMLElement} */
-    const visualContainer = document.querySelector("#paths-visual");
+    const visualContainer = document.querySelector("#paths-visual") as HTMLElement;
     if (!textButton || !visualButton || !visualContainer || textElements.some((el) => !el)) {
       return;
     }
@@ -232,7 +232,7 @@ export const PathEditor = {
     const select = (visual) => {
       textButton.classList.toggle("active", !visual);
       visualButton.classList.toggle("active", visual);
-      textElements.forEach((el) => {
+      textElements.forEach((el: any) => {
         el.hidden = visual;
       });
       visualContainer.hidden = !visual;
@@ -246,8 +246,7 @@ export const PathEditor = {
   },
 
   setupVisualEditor: () => {
-    /** @type {HTMLTextAreaElement} */
-    const textarea = document.querySelector("#paths");
+    const textarea = document.querySelector("#paths") as HTMLTextAreaElement;
     const container = document.querySelector("#path-editor-rows");
     if (!textarea || !container) {
       return;
@@ -393,7 +392,7 @@ export const PathEditor = {
           ],
         ];
 
-        controls.forEach(([glyph, title, action]) => {
+        controls.forEach(([glyph, title, action]: any) => {
           const button = document.createElement("button");
           button.type = "button";
           button.className = "path-editor-control";

@@ -10,20 +10,21 @@ export default defineConfig({
       },
     },
     setupFiles: ["./test/vitest.setup.mjs"],
-    include: ["test/**/*.test.js"],
+    include: ["test/**/*.test.{js,ts}"],
     coverage: {
       provider: "v8",
-      include: ["src/**/*.js"],
+      include: ["src/**/*.ts"],
       exclude: [
         // vendored libraries
         "src/vendor/**",
         "src/options/vendor/**",
-        // service worker bootstrap (importScripts shim): exercised by e2e
-        "src/background.js",
+        // rolldown bundle entries (side-effect import lists + globalThis
+        // exposure): exercised by the e2e, not unit tests
+        "src/entry.*.ts",
         // Chrome offscreen-document bootstrap (message listener doing
         // fetch/createObjectURL/crypto.subtle in a separate document context):
         // exercised by the Chrome e2e sha256/offscreen path
-        "src/offscreen.js",
+        "src/offscreen.ts",
         // options page scripts run top-level against the real options.html
         // DOM: exercised by the e2e options-page checks
         "src/options/**",

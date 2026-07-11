@@ -1,7 +1,55 @@
 // Background messaging: routes messages from content scripts, the options
 // page, and external extensions to options/downloads
 
-const constants = (await import("../src/constants.js")).default;
+import * as constants from "../src/constants.ts";
+
+vi.mock("../src/path.ts", () => ({
+  get Path() {
+    return globalThis.Path;
+  },
+}));
+vi.mock("../src/download.ts", () => ({
+  get Download() {
+    return globalThis.Download;
+  },
+}));
+vi.mock("../src/notification.ts", () => ({
+  get Notifier() {
+    return globalThis.Notifier;
+  },
+}));
+vi.mock("../src/menu-build.ts", () => ({
+  get Menus() {
+    return globalThis.Menus;
+  },
+}));
+vi.mock("../src/router.ts", () => ({
+  get Router() {
+    return globalThis.Router;
+  },
+}));
+vi.mock("../src/variable.ts", () => ({
+  get Variable() {
+    return globalThis.Variable;
+  },
+}));
+vi.mock("../src/option.ts", () => ({
+  get options() {
+    return globalThis.options;
+  },
+  get OptionsManagement() {
+    return globalThis.OptionsManagement;
+  },
+}));
+vi.mock("../src/current-tab.ts", () => ({
+  get currentTab() {
+    return globalThis.currentTab;
+  },
+  setCurrentTab: (t) => {
+    globalThis.currentTab = t;
+  },
+}));
+
 Object.assign(global, constants);
 
 // Capture the listeners registered at import time (jest-webextension-mock's
@@ -9,7 +57,7 @@ Object.assign(global, constants);
 global.browser.runtime.onMessage = { addListener: vi.fn() };
 global.browser.runtime.onMessageExternal = { addListener: vi.fn() };
 
-const Messaging = (await import("../src/messaging.js")).default;
+const Messaging = (await import("../src/messaging.ts")).Messaging;
 
 const [[onMessage]] = global.browser.runtime.onMessage.addListener.mock.calls;
 const [[onMessageExternal]] = global.browser.runtime.onMessageExternal.addListener.mock.calls;

@@ -278,8 +278,7 @@ export const renderHistory = async () => {
   historyEntries = (stored[HISTORY_KEY] || []).slice().reverse(); // newest first
 
   // Raw JSON stays available (some users import/inspect it); kept in sync
-  /** @type {HTMLTextAreaElement} */
-  const raw = document.querySelector("#history");
+  const raw = document.querySelector("#history") as HTMLTextAreaElement;
   if (raw) {
     raw.value = JSON.stringify(stored, null, 2);
   }
@@ -288,8 +287,7 @@ export const renderHistory = async () => {
 };
 document.addEventListener("DOMContentLoaded", renderHistory);
 
-/** @type {HTMLInputElement} */
-const historyFilterInput = document.querySelector("#history-filter");
+const historyFilterInput = document.querySelector("#history-filter") as HTMLInputElement;
 historyFilterInput?.addEventListener("input", () => {
   historyFilter = historyFilterInput.value;
   historyPage = 0;

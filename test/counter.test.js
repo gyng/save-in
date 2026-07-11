@@ -1,6 +1,6 @@
 // Counter: an atomic, persistent, serialised download counter for :counter:
 
-const Counter = (await import("../src/counter.js")).default;
+import { Counter } from "../src/counter.ts";
 
 // A tiny in-memory storage.local stand-in
 const makeStore = () => {

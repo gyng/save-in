@@ -20,8 +20,8 @@ const sectionHeading = (node) => {
 // button inside the "More Options" heading).
 export const headingLabel = (heading) =>
   Array.from(heading.childNodes)
-    .filter((n) => n.nodeType === Node.TEXT_NODE)
-    .map((n) => n.textContent)
+    .filter((n: any) => n.nodeType === Node.TEXT_NODE)
+    .map((n: any) => n.textContent)
     .join("")
     .trim();
 

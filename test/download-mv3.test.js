@@ -6,11 +6,40 @@ import { Blob as NodeBlob } from "buffer";
 
 global.TextEncoder = global.TextEncoder || TextEncoder;
 
-const constants = (await import("../src/constants.js")).default;
+import * as constants from "../src/constants.ts";
+
+vi.mock("../src/option.ts", () => ({
+  get options() {
+    return globalThis.options;
+  },
+  OptionsManagement: {},
+}));
+vi.mock("../src/session-state.ts", () => {
+  // notification.ts calls SessionState.get() at module eval; fall back to a
+  // no-op store until a test seeds global.SessionState.
+  const noop = {
+    available: () => false,
+    get: () => Promise.resolve({}),
+    set: () => Promise.resolve(),
+    update: () => Promise.resolve(),
+  };
+  return {
+    get SessionState() {
+      return globalThis.SessionState || noop;
+    },
+  };
+});
+
+// messaging.ts registers runtime listeners at eval; the recovery-path tests
+// swap in a minimal browser without those, so stub it out.
+vi.mock("../src/messaging.ts", () => ({
+  Messaging: { emit: { downloaded: () => {} }, send: {} },
+}));
+
+import { Download } from "../src/download.ts";
+import { OffscreenClient } from "../src/offscreen-client.ts";
 
 Object.assign(global, constants);
-
-const Download = (await import("../src/download.js")).default;
 
 const decodeDataUrl = (url) => {
   const [meta, b64] = url.split(",");
@@ -249,7 +278,7 @@ describe("onDeterminingFilename listener (Chrome)", () => {
       }),
     };
 
-    await import("../src/download.js");
+    await import("../src/download.ts");
     [[listener]] = global.chrome.downloads.onDeterminingFilename.addListener.mock.calls;
   });
 

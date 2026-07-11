@@ -12,6 +12,42 @@ const flush = async (times = 40) => {
   }
 };
 
+// SessionState and DownloadState are the real modules under test (session
+// persistence + record hydration/pruning); notification.ts's other deps are
+// bridged to the (stubbed) globals each test seeds. DownloadState is exposed as
+// a global only so setupGlobals' records.clear()/hydration reset don't throw.
+import { DownloadState } from "../src/download-state.ts";
+
+vi.mock("../src/option.ts", () => ({
+  get options() {
+    return globalThis.options;
+  },
+  OptionsManagement: {},
+}));
+vi.mock("../src/chrome-detector.ts", () => ({
+  BROWSERS: { CHROME: "CHROME", FIREFOX: "FIREFOX", UNKNOWN: "UNKNOWN" },
+  get CURRENT_BROWSER() {
+    return globalThis.CURRENT_BROWSER;
+  },
+}));
+vi.mock("../src/log.ts", () => ({
+  get Log() {
+    return globalThis.Log;
+  },
+}));
+vi.mock("../src/download.ts", () => ({
+  get Download() {
+    return globalThis.Download;
+  },
+}));
+vi.mock("../src/history.ts", () => ({
+  get SaveHistory() {
+    return globalThis.SaveHistory;
+  },
+}));
+
+globalThis.DownloadState = DownloadState;
+
 const makeSessionMock = (store) => ({
   get: jest.fn((key) => Promise.resolve(key == null ? { ...store } : { [key]: store[key] })),
   set: jest.fn((obj) => {
@@ -84,7 +120,7 @@ describe("startup restore", () => {
       return []; // 13 vanished entirely
     });
 
-    await import("../src/notification.js");
+    await import("../src/notification.ts");
     await flush();
 
     // only the still-live download stays adopted; the record (and its
@@ -97,7 +133,7 @@ describe("startup restore", () => {
     setupGlobals({}, () => []);
     global.browser.storage.session = undefined;
 
-    await expect(import("../src/notification.js")).resolves.toBeDefined();
+    await expect(import("../src/notification.ts")).resolves.toBeDefined();
     await flush();
   });
 
@@ -105,7 +141,7 @@ describe("startup restore", () => {
     const sessionStore = { siDownloads: { 12: { adopted: true, historyEntryId: "h12" } } };
     setupGlobals(sessionStore, () => [{ id: 12, state: "in_progress" }]);
 
-    await import("../src/notification.js");
+    await import("../src/notification.ts");
     await flush();
 
     // A live download keeps its adoption; storage.session is not written at all
@@ -119,7 +155,7 @@ describe("startup restore", () => {
     setupGlobals(sessionStore, () => []);
     global.browser.downloads.search = jest.fn(() => Promise.reject(new Error("boom")));
 
-    await import("../src/notification.js");
+    await import("../src/notification.ts");
     await flush();
 
     expect(adoptedIds(sessionStore)).toEqual([]);
@@ -131,7 +167,7 @@ describe("startup restore", () => {
       const sessionStore = { siPendingDownloads: 3 };
       setupGlobals(sessionStore, () => []);
 
-      await import("../src/notification.js");
+      await import("../src/notification.ts");
       await flush();
 
       // honored immediately after startup so an in-flight download can recover
@@ -164,7 +200,7 @@ describe("download lifecycle notifications", () => {
       promptOnFailure: false,
     };
     // Imported for its side effect: registers the download listeners
-    await import("../src/notification.js");
+    await import("../src/notification.ts");
 
     [[onCreated]] = global.browser.downloads.onCreated.addListener.mock.calls;
     [[onChanged]] = global.browser.downloads.onChanged.addListener.mock.calls;
@@ -352,7 +388,7 @@ describe("listener registration", () => {
   test("registers download and notification listeners at import (MV3 requirement)", async () => {
     jest.resetModules();
     setupGlobals({}, () => []);
-    const Notifier = (await import("../src/notification.js")).default;
+    const Notifier = (await import("../src/notification.ts")).Notifier;
 
     // Registered synchronously at module load with stable named handlers, so
     // a service worker woken BY one of these events still handles it
@@ -379,7 +415,7 @@ describe("notification variants", () => {
     sessionStore = {};
     setupGlobals(sessionStore, searchResults);
     global.options = opts;
-    await import("../src/notification.js");
+    await import("../src/notification.ts");
     [[onCreated]] = global.browser.downloads.onCreated.addListener.mock.calls;
     [[onChanged]] = global.browser.downloads.onChanged.addListener.mock.calls;
   };
@@ -585,7 +621,7 @@ describe("reportFailure", () => {
 
   test("fires a failure notification when notifyOnFailure is on", async () => {
     global.options = { notifyOnFailure: true, notifyDuration: 0 };
-    const Notifier = (await import("../src/notification.js")).default;
+    const Notifier = (await import("../src/notification.ts")).Notifier;
 
     Notifier.reportFailure("file.png", "boom");
 
@@ -597,7 +633,7 @@ describe("reportFailure", () => {
 
   test("stays silent when notifyOnFailure is off", async () => {
     global.options = { notifyOnFailure: false };
-    const Notifier = (await import("../src/notification.js")).default;
+    const Notifier = (await import("../src/notification.ts")).Notifier;
 
     Notifier.reportFailure("file.png", "boom");
 
@@ -610,7 +646,7 @@ describe("expectDownload", () => {
     jest.resetModules();
     const sessionStore = {};
     setupGlobals(sessionStore, () => []);
-    const Notifier = (await import("../src/notification.js")).default;
+    const Notifier = (await import("../src/notification.ts")).Notifier;
     // Ignore the startup pending-count reconciliation's read; this test is about
     // the download flow itself
     global.browser.storage.session.get.mockClear();
@@ -628,7 +664,7 @@ describe("expectDownload", () => {
     jest.resetModules();
     const sessionStore = {};
     setupGlobals(sessionStore, () => []);
-    const Notifier = (await import("../src/notification.js")).default;
+    const Notifier = (await import("../src/notification.ts")).Notifier;
 
     Notifier.expectDownload();
     Notifier.expectDownload();
@@ -660,7 +696,7 @@ describe("automatic fetch fallback gating", () => {
         ? undefined
         : { retryViaFetch: jest.fn(() => Promise.resolve(retryResult)) };
 
-    await import("../src/notification.js");
+    await import("../src/notification.ts");
     [[onCreated]] = global.browser.downloads.onCreated.addListener.mock.calls;
     [[onChanged]] = global.browser.downloads.onChanged.addListener.mock.calls;
 

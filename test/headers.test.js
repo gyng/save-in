@@ -1,4 +1,16 @@
-const RequestHeaders = (await import("../src/headers.js")).default;
+vi.mock("../src/option.ts", () => ({
+  get options() {
+    return globalThis.options;
+  },
+  OptionsManagement: {},
+}));
+vi.mock("../src/log.ts", () => ({
+  get Log() {
+    return globalThis.Log;
+  },
+}));
+
+import { RequestHeaders } from "../src/headers.ts";
 
 describe("matchesRefererFilter", () => {
   beforeEach(() => {

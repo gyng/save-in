@@ -1,7 +1,35 @@
 // OptionsManagement: option schema/defaults, storage load, and the routing
 // dry-run used by the options page's "check routes" preview
 
-const constants = (await import("../src/constants.js")).default;
+import * as constants from "../src/constants.ts";
+
+vi.mock("../src/chrome-detector.ts", () => ({
+  BROWSERS: { CHROME: "CHROME", FIREFOX: "FIREFOX", UNKNOWN: "UNKNOWN" },
+  get CURRENT_BROWSER() {
+    return globalThis.CURRENT_BROWSER;
+  },
+}));
+vi.mock("../src/router.ts", () => ({
+  get Router() {
+    return globalThis.Router;
+  },
+}));
+vi.mock("../src/variable.ts", () => ({
+  get Variable() {
+    return globalThis.Variable;
+  },
+}));
+vi.mock("../src/path.ts", () => ({
+  get Path() {
+    return globalThis.Path;
+  },
+}));
+vi.mock("../src/download.ts", () => ({
+  get Download() {
+    return globalThis.Download;
+  },
+}));
+
 Object.assign(global, constants);
 
 const setupGlobals = () => {
@@ -19,7 +47,7 @@ describe("OptionsManagement", () => {
   beforeEach(async () => {
     jest.resetModules();
     setupGlobals();
-    OptionsManagement = (await import("../src/option.js")).default;
+    OptionsManagement = (await import("../src/option.ts")).OptionsManagement;
   });
 
   describe("getKeys", () => {
@@ -279,7 +307,7 @@ describe("loadOptions resilience", () => {
   test("ignores unknown stored keys instead of throwing", async () => {
     vi.resetModules();
     setupGlobals();
-    const OptionsManagement = (await import("../src/option.js")).default;
+    const OptionsManagement = (await import("../src/option.ts")).OptionsManagement;
     global.browser.storage.local.get = jest.fn(() =>
       Promise.resolve({ conflictAction: "overwrite", someRemovedOption: 1 }),
     );

@@ -74,7 +74,7 @@ SessionState.get("siPendingDownloads").then((res) => {
 });
 
 export const Notifier = {
-  createExtensionNotification: (title, message, error) => {
+  createExtensionNotification: (title, message?, error?) => {
     const id = `save-in-not-${String(Math.floor(Math.random() * 100000))}`;
     browser.notifications.create(id, {
       type: "basic",
@@ -108,7 +108,7 @@ export const Notifier = {
 
   // Returns Firefox/Chrome error deltas ({ current }) or a boolean
   /** @returns {any} */
-  isDownloadFailure: (downloadDelta, isChrome) => {
+  isDownloadFailure: (downloadDelta, isChrome): any => {
     // CHROME
     // Chrome's DownloadDelta contains different information from Firefox's
     let failed = false;

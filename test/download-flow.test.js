@@ -13,6 +13,83 @@ const flush = async (times = 10) => {
   }
 };
 
+// download.ts's dependencies are bridged to the (stubbed) globals this test
+// seeds per-test; DownloadState and OffscreenClient are the real singletons the
+// test manipulates directly, so they are imported, not mocked.
+import { DownloadState } from "../src/download-state.ts";
+import { OffscreenClient } from "../src/offscreen-client.ts";
+
+vi.mock("../src/option.ts", () => ({
+  get options() {
+    return globalThis.options;
+  },
+  OptionsManagement: {},
+}));
+vi.mock("../src/chrome-detector.ts", () => ({
+  BROWSERS: { CHROME: "CHROME", FIREFOX: "FIREFOX", UNKNOWN: "UNKNOWN" },
+  get CURRENT_BROWSER() {
+    return globalThis.CURRENT_BROWSER;
+  },
+}));
+vi.mock("../src/path.ts", () => ({
+  get Path() {
+    return globalThis.Path;
+  },
+}));
+vi.mock("../src/router.ts", () => ({
+  get Router() {
+    return globalThis.Router;
+  },
+}));
+vi.mock("../src/variable.ts", () => ({
+  get Variable() {
+    return globalThis.Variable;
+  },
+}));
+vi.mock("../src/messaging.ts", () => ({
+  get Messaging() {
+    return globalThis.Messaging;
+  },
+}));
+vi.mock("../src/notification.ts", () => ({
+  get Notifier() {
+    return globalThis.Notifier;
+  },
+}));
+vi.mock("../src/headers.ts", () => ({
+  get RequestHeaders() {
+    return globalThis.RequestHeaders;
+  },
+}));
+vi.mock("../src/session-state.ts", () => {
+  const noop = {
+    available: () => false,
+    get: () => Promise.resolve({}),
+    set: () => Promise.resolve(),
+    update: () => Promise.resolve(),
+  };
+  return {
+    get SessionState() {
+      return globalThis.SessionState || noop;
+    },
+  };
+});
+vi.mock("../src/history.ts", () => ({
+  get SaveHistory() {
+    return globalThis.SaveHistory;
+  },
+}));
+vi.mock("../src/log.ts", () => ({
+  get Log() {
+    return globalThis.Log;
+  },
+}));
+vi.mock("../src/vendor/content-disposition.ts", () => ({
+  get getFilenameFromContentDispositionHeader() {
+    return globalThis.getFilenameFromContentDispositionHeader;
+  },
+}));
+
 // These are read at module-import time (chrome.downloads.onDeterminingFilename
 // presence) as well as at call time, so they must exist before the import.
 global.BROWSERS = { CHROME: "CHROME", FIREFOX: "FIREFOX", UNKNOWN: "UNKNOWN" };
@@ -29,7 +106,7 @@ global.browser = {
   downloads: { download: jest.fn(() => Promise.resolve(101)) },
 };
 
-const Download = (await import("../src/download.js")).default;
+const Download = (await import("../src/download.ts")).Download;
 
 const [[capturedListener]] = global.chrome.downloads.onDeterminingFilename.addListener.mock.calls;
 
@@ -901,7 +978,7 @@ describe("concurrent downloads (pendingStates)", () => {
     };
     delete global.Log;
 
-    Download = (await import("../src/download.js")).default;
+    Download = (await import("../src/download.ts")).Download;
     [[listener]] = global.chrome.downloads.onDeterminingFilename.addListener.mock.calls;
   });
 

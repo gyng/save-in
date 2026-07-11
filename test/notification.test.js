@@ -1,4 +1,11 @@
-const notification = (await import("../src/notification.js")).default;
+vi.mock("../src/option.ts", () => ({
+  get options() {
+    return globalThis.options;
+  },
+  OptionsManagement: {},
+}));
+
+import { Notifier as notification } from "../src/notification.ts";
 
 test("checks for download failures on Firefox", () => {
   const notFailure = {

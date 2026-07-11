@@ -1,6 +1,6 @@
 // EXPERIMENTAL WebMCP adapter: tool definitions + auto-registration guard
 
-const SaveInWebMCP = (await import("../src/options/webmcp.js")).default;
+import { SaveInWebMCP } from "../src/options/webmcp.ts";
 
 describe("buildTools", () => {
   const toolsByName = () => {
@@ -87,7 +87,7 @@ describe("auto-registration on import", () => {
     global.browser = { runtime: { sendMessage: vi.fn(() => Promise.resolve({ body: {} })) } };
 
     vi.resetModules();
-    await import("../src/options/webmcp.js");
+    await import("../src/options/webmcp.ts");
 
     expect(registerTool).toHaveBeenCalledTimes(5);
     expect(document.getElementById("webmcp-status").textContent).toBe(
@@ -100,7 +100,7 @@ describe("auto-registration on import", () => {
     delete document.modelContext;
 
     vi.resetModules();
-    await import("../src/options/webmcp.js");
+    await import("../src/options/webmcp.ts");
 
     expect(document.getElementById("webmcp-status").textContent).toBe(
       "Not available in this browser",
