@@ -3,7 +3,79 @@
 // Extends the Menus object defined in menu-build.js via the shared
 // global scope; tab-strip clicks are handled in menu-tabs.js.
 
-// TODO: refactor this to handle only paths, add tests
+// Pure decision: what does a click on a path item save? Returns the download
+// type, the url, and a suggested filename from the click `info` + `options`
+// (and the clicked tab, for its title). Returns null when there is nothing
+// downloadable. Side effects are described, not performed, so this is unit-
+// testable without a browser: a text selection reports its `selectionText`
+// (the caller turns it into an object URL) and the link-preference / bad-filter
+// notifications come back as `notifyLinkPreferred` / `badPatternError`.
+Menus.resolveClickTarget = (info, options, clickTab) => {
+  const hasLink = options.links && info.linkUrl;
+  const result = {
+    downloadType: DOWNLOAD_TYPES.UNKNOWN,
+    url: undefined,
+    suggestedFilename: null,
+    selectionText: null,
+    notifyLinkPreferred: false,
+    badPatternError: null,
+  };
+
+  if (MEDIA_TYPES.includes(info.mediaType)) {
+    result.downloadType = DOWNLOAD_TYPES.MEDIA;
+    result.url = info.srcUrl;
+
+    if (hasLink) {
+      if (options.preferLinks) {
+        result.downloadType = DOWNLOAD_TYPES.LINK;
+        result.url = info.linkUrl;
+        result.notifyLinkPreferred = true;
+      }
+
+      if (options.preferLinksFilterEnabled && options.preferLinksFilter) {
+        let overrideUrls = false;
+        try {
+          // splitLines drops empty lines: an empty pattern would compile to
+          // `new RegExp("")` and match every page
+          Util.splitLines(options.preferLinksFilter)
+            .map((s) => new RegExp(s))
+            .forEach((re) => {
+              if (info.pageUrl.match(re) != null) {
+                overrideUrls = true;
+              }
+            });
+        } catch (err) {
+          result.badPatternError = err;
+        }
+
+        if (overrideUrls) {
+          result.downloadType = DOWNLOAD_TYPES.LINK;
+          result.url = info.linkUrl;
+          result.notifyLinkPreferred = true;
+        }
+      }
+    }
+  } else if (hasLink) {
+    result.downloadType = DOWNLOAD_TYPES.LINK;
+    result.url = info.linkUrl;
+  } else if (options.selection && info.selectionText) {
+    result.downloadType = DOWNLOAD_TYPES.SELECTION;
+    result.selectionText = info.selectionText;
+    result.suggestedFilename = `${Path.truncateIfLongerThan(
+      (clickTab && clickTab.title) || info.selectionText,
+      options.truncateLength - 14,
+    )}.selection.txt`;
+  } else if (options.page && info.pageUrl) {
+    result.downloadType = DOWNLOAD_TYPES.PAGE;
+    result.url = info.pageUrl;
+    result.suggestedFilename = (clickTab && clickTab.title) || info.pageUrl;
+  } else {
+    return null;
+  }
+
+  return result;
+};
+
 Menus.addDownloadListener = () => {
   browser.contextMenus.onClicked.addListener(async (info, tab) => {
     if (Object.values(Menus.IDS.TABSTRIP).includes(info.menuItemId)) {
@@ -37,78 +109,30 @@ Menus.addDownloadListener = () => {
       let menuIndex = menuInfo && menuInfo.menuIndex;
       let comment = menuInfo && menuInfo.comment;
 
-      let url;
-      let suggestedFilename = null;
-      let downloadType = DOWNLOAD_TYPES.UNKNOWN;
-
-      const hasLink = options.links && info.linkUrl;
-
-      if (MEDIA_TYPES.includes(info.mediaType)) {
-        downloadType = DOWNLOAD_TYPES.MEDIA;
-        url = info.srcUrl;
-
-        if (hasLink) {
-          if (options.preferLinks) {
-            downloadType = DOWNLOAD_TYPES.LINK;
-            url = info.linkUrl;
-
-            if (options.notifyOnLinkPreferred) {
-              Notifier.createExtensionNotification(
-                browser.i18n.getMessage("notificationLinkPreferred"),
-                url,
-              );
-            }
-          }
-
-          if (options.preferLinksFilterEnabled && options.preferLinksFilter) {
-            let overrideUrls = false;
-            try {
-              // splitLines drops empty lines: an empty pattern would compile to
-              // `new RegExp("")` and match every page
-              Util.splitLines(options.preferLinksFilter)
-                .map((s) => new RegExp(s))
-                .forEach((re) => {
-                  if (info.pageUrl.match(re) != null) {
-                    overrideUrls = true;
-                  }
-                });
-            } catch (err) {
-              Notifier.createExtensionNotification(
-                browser.i18n.getMessage("notificationBadPreferLinksPattern"),
-                err,
-              );
-            }
-
-            if (overrideUrls) {
-              downloadType = DOWNLOAD_TYPES.LINK;
-              url = info.linkUrl;
-
-              if (options.notifyOnLinkPreferred) {
-                Notifier.createExtensionNotification(
-                  browser.i18n.getMessage("notificationLinkPreferred"),
-                  url,
-                );
-              }
-            }
-          }
-        }
-      } else if (hasLink) {
-        downloadType = DOWNLOAD_TYPES.LINK;
-        url = info.linkUrl;
-      } else if (options.selection && info.selectionText) {
-        downloadType = DOWNLOAD_TYPES.SELECTION;
-        url = Download.makeObjectUrl(info.selectionText);
-        suggestedFilename = `${Path.truncateIfLongerThan(
-          (clickTab && clickTab.title) || info.selectionText,
-          options.truncateLength - 14,
-        )}.selection.txt`;
-      } else if (options.page && info.pageUrl) {
-        downloadType = DOWNLOAD_TYPES.PAGE;
-        url = info.pageUrl;
-        const pageTitle = clickTab && clickTab.title;
-        suggestedFilename = pageTitle || info.pageUrl;
-      } else {
+      const target = Menus.resolveClickTarget(info, options, clickTab);
+      if (!target) {
         return;
+      }
+
+      const downloadType = target.downloadType;
+      // A text selection is saved as an object URL of its text (the pure
+      // decision only reports the text)
+      let url =
+        target.selectionText != null ? Download.makeObjectUrl(target.selectionText) : target.url;
+      let suggestedFilename = target.suggestedFilename;
+
+      // Fire the notifications the pure decision flagged
+      if (target.notifyLinkPreferred && options.notifyOnLinkPreferred) {
+        Notifier.createExtensionNotification(
+          browser.i18n.getMessage("notificationLinkPreferred"),
+          url,
+        );
+      }
+      if (target.badPatternError) {
+        Notifier.createExtensionNotification(
+          browser.i18n.getMessage("notificationBadPreferLinksPattern"),
+          target.badPatternError,
+        );
       }
 
       let saveIntoPath;
