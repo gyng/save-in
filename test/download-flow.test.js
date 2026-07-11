@@ -86,7 +86,6 @@ beforeEach(() => {
   };
 
   global.Notifier = {
-    trackDownload: jest.fn(() => Promise.resolve()),
     createExtensionNotification: jest.fn(),
     expectDownload: jest.fn(),
     reportFailure: jest.fn(),
@@ -536,7 +535,9 @@ describe("renameAndDownload: browserDownload", () => {
       saveAs: false,
       conflictAction: "uniquify",
     });
-    expect(global.Notifier.trackDownload).toHaveBeenCalledWith(555);
+    // download.js adopts its own download (the record is what the notifier
+    // watches for a completion toast)
+    expect(DownloadState.records.get(555)).toMatchObject({ adopted: true });
     // incremented then cleared -> back to 0, and the filename key removed
     expect(global.sessionStore.siPendingDownloads).toBe(0);
     expect(global.sessionStore.siFinalFilenames).toEqual({});
@@ -550,7 +551,8 @@ describe("renameAndDownload: browserDownload", () => {
     await Download.renameAndDownload(state);
     await flush();
 
-    expect(global.Notifier.trackDownload).not.toHaveBeenCalled();
+    // a fully failed download registers no adopted record
+    expect([...DownloadState.records.values()].some((r) => r.adopted)).toBe(false);
     expect(global.Log.add).toHaveBeenCalledWith("downloads.download failed", "Error: disk full");
     expect(global.sessionStore.siPendingDownloads).toBe(0);
   });
@@ -565,7 +567,7 @@ describe("renameAndDownload: browserDownload", () => {
     expect(() => Download.renameAndDownload(state)).not.toThrow();
     await flush();
 
-    expect(global.Notifier.trackDownload).not.toHaveBeenCalled();
+    expect([...DownloadState.records.values()].some((r) => r.adopted)).toBe(false);
     expect(global.sessionStore.siPendingDownloads).toBe(0);
     global.Log = originalLog;
   });
@@ -881,7 +883,6 @@ describe("concurrent downloads (pendingStates)", () => {
     global.RequestHeaders = { prepareReferer: vi.fn(() => Promise.resolve()) };
     global.Messaging = { emit: { downloaded: vi.fn() }, send: {} };
     global.Notifier = {
-      trackDownload: vi.fn(),
       createExtensionNotification: vi.fn(),
       expectDownload: vi.fn(),
     };
@@ -1038,9 +1039,9 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
       filename: "downloads/file.png",
       conflictAction: "uniquify",
     });
-    expect(global.Notifier.trackDownload).toHaveBeenCalledWith(202);
-    // The retry marks itself so a second failure cannot loop
-    expect(DownloadState.records.get(202)).toMatchObject({ viaFetch: true });
+    // The retry is adopted as its own download and marks itself so a second
+    // failure cannot loop
+    expect(DownloadState.records.get(202)).toMatchObject({ viaFetch: true, adopted: true });
 
     // Only one retry per download
     await expect(Download.retryViaFetch(101)).resolves.toBe(false);

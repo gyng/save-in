@@ -17,6 +17,29 @@ const DownloadState = {
   // degraded-but-working single-worker-lifetime behavior.
   records: new Map(),
 
+  // Memoized so the map is rebuilt from storage.session exactly once per worker
+  // wake. Without this, merge()'s field-union reads an empty map right after a
+  // restart and would overwrite a persisted record's other fields (its
+  // historyEntryId, url, ...) with just the partial being merged.
+  hydration: null,
+  hydrate: () => {
+    if (!DownloadState.hydration) {
+      DownloadState.hydration =
+        typeof SessionState === "undefined"
+          ? Promise.resolve()
+          : SessionState.get(DownloadState.SESSION_KEY).then((res) => {
+              const store = res[DownloadState.SESSION_KEY] || {};
+              Object.keys(store).forEach((id) => {
+                // A live merge that raced ahead of hydration wins — don't stomp it
+                if (!DownloadState.records.has(Number(id))) {
+                  DownloadState.records.set(Number(id), store[id]);
+                }
+              });
+            });
+    }
+    return DownloadState.hydration;
+  },
+
   cap: (obj) => {
     const keys = Object.keys(obj);
     if (keys.length > DownloadState.MAX) {

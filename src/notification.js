@@ -24,40 +24,30 @@ const PENDING_RECOVERY_GRACE_MS = 10000;
 // SessionState (the storage.session wrapper) lives in session-state.js so
 // Notifier, Download and Log share one implementation.
 
-// Restore tracked downloads on startup: MV3 service worker globals do not
-// survive termination, so in-flight downloads would otherwise lose their
-// completion/failure notifications
-SessionState.get("siTrackedDownloads").then((res) => {
-  const tracked = res.siTrackedDownloads || [];
-  if (tracked.length === 0) {
-    return;
-  }
-
-  Promise.all(
-    tracked.map((id) =>
-      browser.downloads
-        .search({ id })
-        .then((items) => {
-          const item = items && items[0];
-          if (item && item.state !== "complete") {
-            // Re-adopt into the in-memory record so onChanged recognises it as
-            // ours after the worker restart that wiped the map
-            DownloadState.merge(id, {
-              adopted: true,
-              currentFilename: item.filename,
-              url: item.url,
-            });
-            return id;
-          }
-          return null;
-        })
-        .catch(() => null),
-    ),
-  ).then((ids) => {
-    const validIds = ids.filter((id) => id != null);
-    if (validIds.length !== tracked.length) {
-      SessionState.set({ siTrackedDownloads: validIds });
+// Reconcile adopted downloads on startup: MV3 service worker globals do not
+// survive termination, so the records are rehydrated from storage.session
+// (DownloadState.hydrate). Any adopted download that already completed or
+// vanished while the worker was dead will never fire another onChanged, so its
+// adoption is cleared — otherwise it would leak. A still-live download keeps its
+// adoption and recovers its completion/failure notification when it finishes.
+DownloadState.hydrate().then(() => {
+  const adoptedIds = [];
+  DownloadState.records.forEach((record, id) => {
+    if (record && record.adopted) {
+      adoptedIds.push(id);
     }
+  });
+
+  adoptedIds.forEach((id) => {
+    browser.downloads
+      .search({ id })
+      .then((items) => {
+        const item = items && items[0];
+        if (!item || item.state === "complete") {
+          DownloadState.merge(id, { adopted: false });
+        }
+      })
+      .catch(() => DownloadState.merge(id, { adopted: false }));
   });
 });
 
@@ -76,31 +66,6 @@ SessionState.get("siPendingDownloads").then((res) => {
 });
 
 const Notifier = {
-  // Serialise siTrackedDownloads mutations: concurrent read-modify-writes
-  // (two downloads created in the same tick) would drop entries
-  trackQueue: Promise.resolve(),
-
-  mutateTracked: (fn) => {
-    Notifier.trackQueue = Notifier.trackQueue
-      .then(() => SessionState.get("siTrackedDownloads"))
-      .then((res) => {
-        const next = fn(res.siTrackedDownloads || []);
-        return next ? SessionState.set({ siTrackedDownloads: next }) : null;
-      })
-      .catch(() => {});
-    return Notifier.trackQueue;
-  },
-
-  trackDownload: (downloadId) =>
-    Notifier.mutateTracked((tracked) =>
-      tracked.includes(downloadId) ? null : tracked.concat(downloadId),
-    ),
-
-  untrackDownload: (downloadId) =>
-    Notifier.mutateTracked((tracked) =>
-      tracked.includes(downloadId) ? tracked.filter((id) => id !== downloadId) : null,
-    ),
-
   createExtensionNotification: (title, message, error) => {
     const id = `save-in-not-${String(Math.floor(Math.random() * 100000))}`;
     browser.notifications.create(id, {
@@ -187,7 +152,6 @@ const Notifier = {
         currentFilename: item.filename,
         url: item.url,
       });
-      Notifier.trackDownload(item.id);
       return;
     }
 
@@ -203,7 +167,6 @@ const Notifier = {
           url: item.url,
         });
         SessionState.update("siPendingDownloads", (n) => Math.max(0, (n || 0) - 1));
-        Notifier.trackDownload(item.id);
       }
     });
   },
@@ -376,7 +339,6 @@ const Notifier = {
               // adoption (the record lingers for history) so a late delta for the
               // original id is ignored
               DownloadState.merge(downloadDelta.id, { adopted: false });
-              Notifier.untrackDownload(downloadDelta.id);
             } else {
               recordHistoryStatus(errorName || "failed");
               notifyFailure();
@@ -447,7 +409,6 @@ const Notifier = {
         // Clear adoption but keep the record: recordHistoryStatus (above) and any
         // in-flight retry still read its historyEntryId; the cap evicts it later
         DownloadState.merge(downloadDelta.id, { adopted: false });
-        Notifier.untrackDownload(downloadDelta.id);
       }
     }
   },

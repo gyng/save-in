@@ -84,13 +84,14 @@ const Download = {
                 conflictAction: record.conflictAction,
               }),
             )
-            .then((newId) => {
+            .then((newId) =>
+              // The retry is our download too: adopt it so its completion
+              // notifies and its outcome updates the same history entry
               Download.rememberStartedDownload(
                 newId,
-                Object.assign({}, record, { viaFetch: true }),
-              );
-              return Notifier.trackDownload(newId);
-            })
+                Object.assign({}, record, { viaFetch: true, adopted: true }),
+              ),
+            )
             .then(() =>
               Promise.all([
                 SessionState.update("siPendingDownloads", (n) => Math.max(0, (n || 0) - 1)),
@@ -448,9 +449,12 @@ const Download = {
             }),
           )
           .then((downloadId) => {
-            // Enough to retry this download via the fetch fallback if it
-            // later fails with a network/server error
-            Download.rememberStartedDownload(downloadId, {
+            // The record carries what a fetch-fallback retry needs and marks the
+            // download as ours (adopted) so the notifier watches it for a
+            // completion/failure toast — download.js knows for certain it is ours,
+            // where onDownloadCreated's adoption is only a best-effort backstop
+            // for the worker-restart case
+            const remembered = Download.rememberStartedDownload(downloadId, {
               url: _state.info.url,
               pageUrl: _state.info.pageUrl,
               filename: finalFullPath || "_",
@@ -458,13 +462,14 @@ const Download = {
               viaFetch,
               retried: false,
               historyEntryId,
+              adopted: true,
             });
             // Bind the download id to the history entry now so the options page
             // can poll its progress while it is still downloading
             if (typeof SaveHistory !== "undefined" && historyEntryId) {
               SaveHistory.setDownloadId(historyEntryId, downloadId);
             }
-            return Notifier.trackDownload(downloadId);
+            return remembered;
           })
           .catch((e) => {
             // e.g. Firefox rejects data: URLs in downloads.download

@@ -140,9 +140,10 @@ test("download completes through the real pipeline with session tracking", async
     .then(([d, sess, hist]) => {
       const entries = (hist["save-in-history"] || []).filter((e) => (e.finalFullPath || "").includes("smoke"));
       const entry = entries[entries.length - 1] || {};
+      const adopted = Object.keys(sess.siDownloads || {}).filter((id) => sess.siDownloads[id].adopted);
       return JSON.stringify({
         state: d[0] && d[0].state,
-        tracked: sess.siTrackedDownloads || [],
+        adopted,
         pending: sess.siPendingDownloads || 0,
         finalFilenames: sess.siFinalFilenames || {},
         entry: { status: entry.status, hasDownloadId: typeof entry.downloadId === "number", fileSize: entry.fileSize },
@@ -151,10 +152,11 @@ test("download completes through the real pipeline with session tracking", async
   );
 
   expect(result.state).toBe("complete");
-  // Untracked again after completion; the pending counter is balanced back to 0
-  // and the per-URL filename entry was cleaned up (it only lingers across a
-  // real service-worker restart, where the cleanup never runs)
-  expect(result.tracked).toEqual([]);
+  // Adoption is cleared after completion (the record itself lingers in
+  // siDownloads for history/retry correlation); the pending counter is balanced
+  // back to 0 and the per-URL filename entry was cleaned up (it only lingers
+  // across a real service-worker restart, where the cleanup never runs)
+  expect(result.adopted).toEqual([]);
   expect(result.pending).toBe(0);
   expect(result.finalFilenames).toEqual({});
   // the history entry recorded completion, the download id, and the file size

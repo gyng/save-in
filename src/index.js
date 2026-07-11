@@ -10,6 +10,9 @@ window.init = () => {
     OptionsManagement.loadOptions(),
     browser.storage.local.get(["lastUsedPath", "lastUsedMeta"]),
     browser.contextMenus.removeAll(),
+    // Rebuild the in-memory download records from storage.session before any
+    // download event handler (which awaits window.ready) touches them
+    DownloadState.hydrate(),
   ])
     .then((results) => {
       // MV3 service workers are stateless: restore last used path across restarts

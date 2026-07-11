@@ -20,12 +20,22 @@ const makeSessionMock = (store) => ({
   }),
 });
 
+// Membership is now the `adopted` flag on each persisted DownloadState record;
+// the sorted ids of the records currently adopted are what the old
+// siTrackedDownloads array used to hold.
+const adoptedIds = (store) =>
+  Object.keys(store.siDownloads || {})
+    .filter((id) => store.siDownloads[id] && store.siDownloads[id].adopted)
+    .map(Number);
+
 const setupGlobals = (sessionStore, searchResults) => {
   // Handlers await window.ready when set; none of these tests want that
   delete global.window.ready;
   // DownloadState.records is a module singleton seeded in vitest.setup; clear
-  // the in-memory mirror so adoption from a prior test can't leak in
+  // the in-memory mirror and the memoized hydration so each test rebuilds the
+  // records from its own sessionStore
   global.DownloadState.records.clear();
+  global.DownloadState.hydration = null;
   global.BROWSERS = { CHROME: "CHROME", FIREFOX: "FIREFOX" };
   global.CURRENT_BROWSER = "CHROME";
 
@@ -61,7 +71,13 @@ describe("startup restore", () => {
   });
 
   test("prunes downloads that completed while the worker was dead", async () => {
-    const sessionStore = { siTrackedDownloads: [11, 12, 13] };
+    const sessionStore = {
+      siDownloads: {
+        11: { adopted: true, historyEntryId: "h11" },
+        12: { adopted: true, historyEntryId: "h12" },
+        13: { adopted: true, historyEntryId: "h13" },
+      },
+    };
     setupGlobals(sessionStore, (query) => {
       if (query.id === 11) return [{ id: 11, state: "complete" }];
       if (query.id === 12) return [{ id: 12, state: "in_progress" }];
@@ -71,7 +87,10 @@ describe("startup restore", () => {
     await import("../src/notification.js");
     await flush();
 
-    expect(sessionStore.siTrackedDownloads).toEqual([12]);
+    // only the still-live download stays adopted; the record (and its
+    // historyEntryId) is retained, just no longer watched
+    expect(adoptedIds(sessionStore)).toEqual([12]);
+    expect(sessionStore.siDownloads[11]).toMatchObject({ adopted: false, historyEntryId: "h11" });
   });
 
   test("does not throw when storage.session is unavailable (older Firefox)", async () => {
@@ -82,31 +101,28 @@ describe("startup restore", () => {
     await flush();
   });
 
-  test("keeps the list untouched when every download is still live", async () => {
-    const sessionStore = { siTrackedDownloads: [12] };
+  test("keeps adoption when every download is still live", async () => {
+    const sessionStore = { siDownloads: { 12: { adopted: true, historyEntryId: "h12" } } };
     setupGlobals(sessionStore, () => [{ id: 12, state: "in_progress" }]);
 
     await import("../src/notification.js");
     await flush();
 
-    expect(sessionStore.siTrackedDownloads).toEqual([12]);
-    // The live download is re-adopted into siDownloads, but the tracked list
-    // itself is left untouched (no pruning needed)
-    const wroteTracked = global.browser.storage.session.set.mock.calls.some(
-      ([obj]) => "siTrackedDownloads" in obj,
-    );
-    expect(wroteTracked).toBe(false);
+    // A live download keeps its adoption; storage.session is not written at all
+    // (nothing to prune)
+    expect(adoptedIds(sessionStore)).toEqual([12]);
+    expect(global.browser.storage.session.set).not.toHaveBeenCalled();
   });
 
-  test("prunes downloads whose lookup fails", async () => {
-    const sessionStore = { siTrackedDownloads: [21] };
+  test("clears adoption when the download lookup fails", async () => {
+    const sessionStore = { siDownloads: { 21: { adopted: true } } };
     setupGlobals(sessionStore, () => []);
     global.browser.downloads.search = jest.fn(() => Promise.reject(new Error("boom")));
 
     await import("../src/notification.js");
     await flush();
 
-    expect(sessionStore.siTrackedDownloads).toEqual([]);
+    expect(adoptedIds(sessionStore)).toEqual([]);
   });
 
   test("clears a stale pending count after the grace window", async () => {
@@ -127,53 +143,6 @@ describe("startup restore", () => {
     } finally {
       jest.useRealTimers();
     }
-  });
-});
-
-describe("track/untrack helpers", () => {
-  let Notifier;
-  let sessionStore;
-
-  beforeEach(async () => {
-    jest.resetModules();
-    sessionStore = {};
-    setupGlobals(sessionStore, () => []);
-    Notifier = (await import("../src/notification.js")).default;
-  });
-
-  test("trackDownload appends without duplicating", async () => {
-    await Notifier.trackDownload(5);
-    await Notifier.trackDownload(6);
-    await Notifier.trackDownload(5);
-    expect(sessionStore.siTrackedDownloads).toEqual([5, 6]);
-  });
-
-  test("untrackDownload removes only the given id", async () => {
-    sessionStore.siTrackedDownloads = [5, 6];
-    await Notifier.untrackDownload(5);
-    expect(sessionStore.siTrackedDownloads).toEqual([6]);
-  });
-
-  test("untrackDownload leaves unknown ids alone", async () => {
-    await expect(Notifier.untrackDownload(99)).resolves.toBeNull();
-    expect(sessionStore.siTrackedDownloads).toBeUndefined();
-  });
-
-  test("trackDownload survives a failing storage read", async () => {
-    global.browser.storage.session.get.mockRejectedValueOnce(new Error("gone"));
-    await Notifier.trackDownload(5);
-    expect(sessionStore.siTrackedDownloads).toEqual([5]);
-  });
-
-  test("trackDownload survives a failing storage write", async () => {
-    global.browser.storage.session.set.mockRejectedValueOnce(new Error("gone"));
-    await expect(Notifier.trackDownload(5)).resolves.toBeUndefined();
-    expect(sessionStore.siTrackedDownloads).toBeUndefined();
-  });
-
-  test("trackDownload resolves without storage.session (older Firefox)", async () => {
-    global.browser.storage.session = undefined;
-    await expect(Notifier.trackDownload(1)).resolves.toBeUndefined();
   });
 });
 
@@ -219,7 +188,7 @@ describe("download lifecycle notifications", () => {
     await flush();
 
     expect(sessionStore.siPendingDownloads).toBe(0);
-    expect(sessionStore.siTrackedDownloads).toEqual([7]);
+    expect(adoptedIds(sessionStore)).toEqual([7]);
   });
 
   test("recovers every download created after one restart (counter, not boolean)", async () => {
@@ -243,7 +212,7 @@ describe("download lifecycle notifications", () => {
     await flush();
 
     expect(sessionStore.siPendingDownloads).toBe(0);
-    expect(sessionStore.siTrackedDownloads).toEqual([7, 8]);
+    expect(adoptedIds(sessionStore)).toEqual([7, 8]);
   });
 
   test("does not adopt a foreign download even with a leaked pending count", async () => {
@@ -255,7 +224,7 @@ describe("download lifecycle notifications", () => {
     onCreated({ id: 500, filename: "C:\\dl\\theirs.png", byExtensionId: "some-other-extension" });
     await flush();
 
-    expect(sessionStore.siTrackedDownloads).toBeUndefined();
+    expect(adoptedIds(sessionStore)).toEqual([]);
     // the leaked count is left untouched (only our downloads consume it)
     expect(sessionStore.siPendingDownloads).toBe(1);
   });
@@ -280,7 +249,7 @@ describe("download lifecycle notifications", () => {
       "7",
       expect.objectContaining({ type: "basic" }),
     );
-    expect(sessionStore.siTrackedDownloads).toEqual([]);
+    expect(adoptedIds(sessionStore)).toEqual([]);
   });
 
   test("membership survives a worker restart via the persisted record", async () => {
@@ -324,7 +293,7 @@ describe("download lifecycle notifications", () => {
     await flush();
 
     expect(global.browser.notifications.create).not.toHaveBeenCalled();
-    expect(sessionStore.siTrackedDownloads).toBeUndefined();
+    expect(adoptedIds(sessionStore)).toEqual([]);
   });
 
   test("does not crash on failure deltas for entries missing a filename", async () => {
@@ -336,7 +305,7 @@ describe("download lifecycle notifications", () => {
     await flush();
 
     expect(global.browser.notifications.create).toHaveBeenCalled();
-    expect(sessionStore.siTrackedDownloads).toEqual([]);
+    expect(adoptedIds(sessionStore)).toEqual([]);
   });
 
   test("clicking a download notification opens its file", () => {
@@ -448,7 +417,7 @@ describe("notification variants", () => {
     await flush();
 
     expect(global.browser.notifications.create).not.toHaveBeenCalled();
-    expect(sessionStore.siTrackedDownloads).toEqual([]);
+    expect(adoptedIds(sessionStore)).toEqual([]);
   });
 
   test("failures are logged when a Log global is present", async () => {
@@ -578,7 +547,7 @@ describe("notification variants", () => {
     await flush();
 
     expect(global.browser.notifications.create).not.toHaveBeenCalled();
-    expect(sessionStore.siTrackedDownloads).toEqual([]);
+    expect(adoptedIds(sessionStore)).toEqual([]);
   });
 
   test("debug mode logs listener decisions", async () => {
@@ -650,7 +619,7 @@ describe("expectDownload", () => {
     await Notifier.onDownloadCreated({ id: 9, byExtensionId: "save-in", filename: "/dl/x.png" });
     await flush();
 
-    expect(sessionStore.siTrackedDownloads).toEqual([9]);
+    expect(adoptedIds(sessionStore)).toEqual([9]);
     // The session fallback was never consulted
     expect(global.browser.storage.session.get).not.toHaveBeenCalledWith("siPendingDownloads");
   });
@@ -667,7 +636,7 @@ describe("expectDownload", () => {
     await Notifier.onDownloadCreated({ id: 2, byExtensionId: "save-in", filename: "/dl/b.png" });
     await flush();
 
-    expect(sessionStore.siTrackedDownloads).toEqual([1, 2]);
+    expect(adoptedIds(sessionStore)).toEqual([1, 2]);
   });
 });
 
@@ -714,7 +683,7 @@ describe("automatic fetch fallback gating", () => {
     expect(global.Download.retryViaFetch).toHaveBeenCalledWith(7);
     expect(global.browser.notifications.create).not.toHaveBeenCalled();
     // The failed original is untracked; the retry tracks itself
-    expect(sessionStore.siTrackedDownloads).toEqual([]);
+    expect(adoptedIds(sessionStore)).toEqual([]);
   });
 
   test("when the retry does not start, the failure notification shows", async () => {

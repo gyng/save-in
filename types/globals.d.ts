@@ -122,6 +122,8 @@ declare const Messaging: Record<string, any>;
 // download-state.js — the per-download record store (in-memory + storage.session)
 declare const DownloadState: {
   records: Map<number, any>;
+  hydration: Promise<void> | null;
+  hydrate: () => Promise<void>;
   merge: (downloadId: number, partial: Record<string, any>) => Promise<void>;
   get: (downloadId: number) => Promise<any>;
   [key: string]: any;
