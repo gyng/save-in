@@ -4,6 +4,7 @@ import { webExtensionApi } from "./web-extension-api.ts";
 
 import { BackgroundState } from "./background-state.ts";
 import { getDownload, hydrateDownloads, mergeDownload } from "./download-state.ts";
+import type { DownloadRecord } from "./download-state.ts";
 import { getSession, updateSession } from "./session-state.ts";
 import { options } from "./options-data.ts";
 import { WEB_EXTENSION_CAPABILITIES } from "./chrome-detector.ts";
@@ -33,7 +34,7 @@ let expectedDownloads = 0;
 // unrelated download — see the startup reconciliation below.
 const PENDING_RECOVERY_GRACE_MS = 10000;
 
-const mergeTrackedDownload = (downloadId, partial) =>
+const mergeTrackedDownload = (downloadId: number, partial: Partial<DownloadRecord>) =>
   mergeDownload(
     BackgroundState.downloads,
     BackgroundState.sessionWrites,
@@ -42,7 +43,7 @@ const mergeTrackedDownload = (downloadId, partial) =>
     partial,
   );
 
-const getTrackedDownload = (downloadId) =>
+const getTrackedDownload = (downloadId: number) =>
   getDownload(BackgroundState.downloads, extensionSessionStorage, downloadId);
 
 // SessionState (the storage.session wrapper) lives in session-state.js so
@@ -56,7 +57,7 @@ const getTrackedDownload = (downloadId) =>
 // adoption and recovers its completion/failure notification when it finishes.
 const reconcileAdoptedDownloads = async () => {
   await hydrateDownloads(BackgroundState.downloads, extensionSessionStorage);
-  const adoptedIds = [];
+  const adoptedIds: number[] = [];
   BackgroundState.downloads.records.forEach((record, id) => {
     if (record && record.adopted) {
       adoptedIds.push(id);
@@ -104,7 +105,7 @@ export const notifierReady = Promise.all([
 ]);
 
 export const Notifier = {
-  createExtensionNotification: (title, message?, error?) => {
+  createExtensionNotification: (title: string | null, message?: string | null, error?: unknown) => {
     const id = `save-in-not-${String(Math.floor(Math.random() * 100000))}`;
     webExtensionApi.notifications.create(id, {
       type: "basic",
@@ -125,7 +126,7 @@ export const Notifier = {
   // rejecting after the fetch fallback is exhausted) — cases onDownloadChanged
   // never sees. Gated on notifyOnFailure so it stays consistent with the
   // post-creation failure notification.
-  reportFailure: (name, message) => {
+  reportFailure: (name: string, message?: string) => {
     if (!(options && options.notifyOnFailure)) {
       return;
     }
@@ -138,7 +139,7 @@ export const Notifier = {
 
   // Returns Firefox/Chrome error deltas ({ current }) or a boolean
   /** @returns {any} */
-  isDownloadFailure: (downloadDelta, isChrome): any => {
+  isDownloadFailure: (downloadDelta: any, isChrome: boolean): any => {
     // CHROME
     // Chrome's DownloadDelta contains different information from Firefox's
     let failed = false;
@@ -169,7 +170,7 @@ export const Notifier = {
     expectedDownloads += 1;
   },
 
-  onDownloadCreated: async (item) => {
+  onDownloadCreated: async (item: browser.downloads.DownloadItem) => {
     if (typeof window !== "undefined" && window.ready) {
       await window.ready.catch(() => {});
     }
@@ -202,7 +203,7 @@ export const Notifier = {
     // COUNTER (not a boolean) so several downloads created after one restart
     // are all recovered — a boolean dropped every one past the first.
     const res = await getSession<number>(extensionSessionStorage, "siPendingDownloads");
-    if (res.siPendingDownloads > 0) {
+    if ((res.siPendingDownloads ?? 0) > 0) {
       await mergeTrackedDownload(item.id, {
         adopted: true,
         currentFilename: item.filename,
@@ -217,7 +218,7 @@ export const Notifier = {
     }
   },
 
-  onNotificationClicked: (notId) => {
+  onNotificationClicked: (notId: string) => {
     if (String(notId).startsWith("save-in-not-")) {
       return;
     }
@@ -226,7 +227,7 @@ export const Notifier = {
     webExtensionApi.downloads.show(Number(notId));
   },
 
-  onDownloadChanged: async (downloadDelta) => {
+  onDownloadChanged: async (downloadDelta: any) => {
     if (typeof window !== "undefined" && window.ready) {
       await window.ready.catch(() => {});
     }
@@ -276,7 +277,7 @@ export const Notifier = {
 
       // Record the final outcome against the history entry (independent of
       // whether success/failure notifications are enabled)
-      const recordHistoryStatus = async (status) => {
+      const recordHistoryStatus = async (status: string) => {
         if (typeof SaveHistory === "undefined") {
           return;
         }
@@ -293,7 +294,7 @@ export const Notifier = {
               started.historyEntryId,
               status,
               downloadDelta.id,
-              size > 0 ? size : null,
+              size > 0 ? size : undefined,
             );
           } catch {
             await SaveHistory.setStatus(started.historyEntryId, status, downloadDelta.id);
@@ -338,7 +339,7 @@ export const Notifier = {
 
           if (promptOnFailure) {
             webExtensionApi.downloads.download({
-              url: record.url,
+              url: record.url!,
               saveAs: true,
             });
           }

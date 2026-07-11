@@ -199,9 +199,9 @@ describe("startup restore", () => {
 });
 
 describe("download lifecycle notifications", () => {
-  let sessionStore;
-  let onCreated;
-  let onChanged;
+  let sessionStore: Record<string, any>;
+  let onCreated: any;
+  let onChanged: any;
 
   beforeEach(async () => {
     jest.resetModules();
@@ -418,11 +418,14 @@ describe("listener registration", () => {
 });
 
 describe("notification variants", () => {
-  let sessionStore;
-  let onCreated;
-  let onChanged;
+  let sessionStore: Record<string, any>;
+  let onCreated: any;
+  let onChanged: any;
 
-  const install = async (opts, searchResults = () => []) => {
+  const install = async (
+    opts: Record<string, any>,
+    searchResults: (query: any) => any = () => [],
+  ) => {
     jest.resetModules();
     jest.useFakeTimers();
     sessionStore = {};
@@ -435,7 +438,7 @@ describe("notification variants", () => {
     onChanged = changedHandler;
   };
 
-  const startTracked = async (item) => {
+  const startTracked = async (item: Record<string, any>) => {
     sessionStore.siPendingDownloads = 1;
     await onCreated(Object.assign({ byExtensionId: "save-in" }, item));
   };
@@ -672,11 +675,11 @@ describe("expectDownload", () => {
 });
 
 describe("automatic fetch fallback gating", () => {
-  let onCreated;
-  let onChanged;
-  let sessionStore;
+  let onCreated: any;
+  let onChanged: any;
+  let sessionStore: Record<string, any>;
 
-  const setupWithDownload = async (retryResult) => {
+  const setupWithDownload = async (retryResult: boolean) => {
     jest.resetModules();
     sessionStore = {};
     setupGlobals(sessionStore, () => [{ id: 7, fileSize: 2048, mime: "image/png" }]);
