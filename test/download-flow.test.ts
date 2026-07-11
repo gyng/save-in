@@ -142,7 +142,7 @@ beforeEach(() => {
   DownloadEvents.downloaded = vi.fn();
 
   vi.mocked(getFilenameFromContentDispositionHeader).mockReset();
-  vi.mocked(getFilenameFromContentDispositionHeader).mockReturnValue(null);
+  vi.mocked(getFilenameFromContentDispositionHeader).mockReturnValue("");
 
   // getMessage is never asserted; it only needs to echo the key
   (global.browser.i18n as any).getMessage = (key: string) => key;

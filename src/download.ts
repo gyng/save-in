@@ -418,7 +418,7 @@ export const Download = {
         const fallback = await Download.acquireFetchedUrl(requireDownloadUrl(state));
         await Download.executeBrowserDownload(plan, fallback);
       } else {
-        Notifier.reportFailure(finalFullPath || state.info.url, String(e));
+        Notifier.reportFailure(finalFullPath || state.info.url || "", String(e));
       }
     } finally {
       await Promise.all([
