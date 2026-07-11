@@ -1,7 +1,6 @@
 // https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/notifications
 
-import { DownloadState } from "./download-state.ts";
-import { SessionState } from "./session-state.ts";
+import { DownloadState, SessionState } from "./application-state.ts";
 import { options } from "./options-data.ts";
 import { CURRENT_BROWSER, BROWSERS } from "./chrome-detector.ts";
 import { DownloadRetry } from "./download-retry.ts";

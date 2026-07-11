@@ -1,7 +1,7 @@
 // Per-download records are mirrored in memory and storage.session. Each store
 // owns its map and hydration lifecycle; production exports one shared instance.
 
-import { SessionState, SessionStateStore } from "./session-state.ts";
+import { SessionStateStore } from "./session-state.ts";
 
 export class DownloadStateStore {
   readonly SESSION_KEY = "siDownloads";
@@ -9,7 +9,7 @@ export class DownloadStateStore {
   records = new Map();
   hydration: Promise<any> | null = null;
 
-  constructor(private readonly sessionState: SessionStateStore = SessionState) {}
+  constructor(private readonly sessionState: SessionStateStore) {}
 
   hydrate() {
     if (!this.hydration) {
@@ -47,5 +47,3 @@ export class DownloadStateStore {
     });
   }
 }
-
-export const DownloadState = new DownloadStateStore();

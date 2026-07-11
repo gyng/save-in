@@ -5,7 +5,7 @@
 // persistence + record hydration/pruning); notification.ts is re-imported per
 // test for its module-load side effects, and its other deps are imported real
 // alongside it.
-import { DownloadState } from "../src/download-state.ts";
+import { DownloadState } from "../src/application-state.ts";
 
 // chrome-detector now exports setCurrentBrowser, but this suite resetModules +
 // re-imports notification.ts per test (re-binding a fresh chrome-detector each

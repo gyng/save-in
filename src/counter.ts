@@ -27,5 +27,3 @@ export class DownloadCounter {
     return this.writeQueue;
   }
 }
-
-export const Counter = new DownloadCounter();

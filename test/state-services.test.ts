@@ -1,7 +1,20 @@
 import { DownloadStateStore } from "../src/download-state.ts";
 import { SessionStateStore } from "../src/session-state.ts";
+import {
+  ApplicationState,
+  Counter,
+  DownloadState,
+  SessionState,
+} from "../src/application-state.ts";
 
 describe("state service instances", () => {
+  test("the production views belong to one immutable application state", () => {
+    expect(Object.isFrozen(ApplicationState)).toBe(true);
+    expect(SessionState).toBe(ApplicationState.session);
+    expect(DownloadState).toBe(ApplicationState.downloads);
+    expect(Counter).toBe(ApplicationState.counter);
+  });
+
   test("session stores own independent serialization queues", async () => {
     const first = new SessionStateStore();
     const second = new SessionStateStore();

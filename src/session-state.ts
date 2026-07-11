@@ -32,5 +32,3 @@ export class SessionStateStore {
     return this.queue;
   }
 }
-
-export const SessionState = new SessionStateStore();

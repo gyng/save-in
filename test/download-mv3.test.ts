@@ -246,7 +246,7 @@ describe("onDeterminingFilename listener (Chrome)", () => {
     const { options: freshOptions } = await import("../src/options-data.ts");
     Object.assign(freshOptions, { conflictAction: "uniquify" });
 
-    const { SessionState: freshSessionState } = await import("../src/session-state.ts");
+    const { SessionState: freshSessionState } = await import("../src/application-state.ts");
     vi.spyOn(freshSessionState, "available").mockReturnValue(true);
     vi.spyOn(freshSessionState, "get").mockImplementation((key: string) =>
       Promise.resolve({ [key]: sessionStore[key] }),

@@ -8,10 +8,10 @@
 vi.mock("../src/menu-click.ts", () => ({}));
 vi.mock("../src/menu-tabs.ts", () => ({}));
 vi.mock("../src/download-state.ts", () => ({
-  // notification.ts's top-level DownloadState.hydrate().then(...) walks
-  // .records (a Map) as soon as download.ts is transitively imported
-  // (option.ts -> download.ts -> notification.ts, now real modules below).
-  DownloadState: { hydrate: () => Promise.resolve(), records: new Map() },
+  DownloadStateStore: class {
+    records = new Map();
+    hydrate = () => Promise.resolve();
+  },
 }));
 
 export {};

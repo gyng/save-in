@@ -11,9 +11,8 @@
 // in, so importing them at the top can't force it to load early); the rest of
 // download.ts's dependency graph is imported below, after the host globals are in
 // place, so download.ts registers its onDeterminingFilename listener against them.
-import { DownloadState } from "../src/download-state.ts";
+import { DownloadState, SessionState } from "../src/application-state.ts";
 import { OffscreenClient } from "../src/offscreen-client.ts";
-import { SessionState } from "../src/session-state.ts";
 import { Log } from "../src/log.ts";
 import { SaveHistory } from "../src/history.ts";
 import { getFilenameFromContentDispositionHeader } from "../src/vendor/content-disposition.ts";
