@@ -1,5 +1,10 @@
 import { webExtensionApi } from "../web-extension-api.ts";
 
+type PermissionBannerElement = { hidden: boolean | string };
+type PermissionButtonElement = {
+  addEventListener: (type: "click", listener: () => void) => void;
+};
+
 // Options-page host-permission banner. MV3 host permissions are revocable on
 // Firefox (about:addons) and narrowable on Chrome ("on click" / specific
 // sites). Without <all_urls>, click-to-save (the content script) and the
@@ -13,8 +18,8 @@ export const PermissionsBanner = {
   // Resolves true when the extension currently holds the host access it needs.
   // Old browsers without the permissions API, or an errored check, resolve true
   // so the banner never nags when it can't actually determine the state.
-  hasHostAccess: () =>
-    new Promise((resolve) => {
+  hasHostAccess: (): Promise<boolean> =>
+    new Promise<boolean>((resolve) => {
       if (!webExtensionApi.permissions || !webExtensionApi.permissions.contains) {
         resolve(true);
         return;
@@ -28,7 +33,10 @@ export const PermissionsBanner = {
   // Wires the banner: shows/hides on the current grant, requests on click, and
   // reacts to grant/revoke while the page is open. Returns the initial refresh
   // promise (so tests and callers can await the first state).
-  init: (banner, button) => {
+  init: (
+    banner: PermissionBannerElement | null,
+    button: PermissionButtonElement | null,
+  ): Promise<void> => {
     if (!banner || !button) {
       return Promise.resolve();
     }
@@ -61,7 +69,7 @@ export const PermissionsBanner = {
 
 document.addEventListener("DOMContentLoaded", () => {
   PermissionsBanner.init(
-    document.querySelector("#host-permission-banner"),
-    document.querySelector("#host-permission-grant"),
+    document.querySelector<HTMLElement>("#host-permission-banner"),
+    document.querySelector<HTMLButtonElement>("#host-permission-grant"),
   );
 });
