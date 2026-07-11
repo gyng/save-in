@@ -1,24 +1,8 @@
-import * as constants from "../src/constants.ts";
-
-// `options` is a module-scoped export (src/option.ts), not a real ambient
-// global, so `global.options`/`globalThis.options` never surfaces on
-// `typeof globalThis`; alias through an untyped view to seed/read it as
-// this suite's mock bridge.
-const g = global as typeof globalThis & Record<string, any>;
-
-vi.mock("../src/option.ts", () => ({
-  get options() {
-    return g.options;
-  },
-  OptionsManagement: {},
-}));
-
-import { Path as path } from "../src/path.ts";
-
-Object.assign(global, constants);
-
-g.Path = path;
-g.options = { replacementChar: "_" };
+import { Path } from "../src/path.ts";
+import { PATH_SEGMENT_TYPES } from "../src/constants.ts";
+// path.ts reads options.replacementChar at call time; import the real options
+// bag and mutate it (option.ts seeds replacementChar "_" at load).
+import { options } from "../src/option.ts";
 
 describe("sanitisation", () => {
   test("paths", () => {
@@ -84,13 +68,12 @@ describe("sanitisation", () => {
   });
 
   describe("custom replacement character", () => {
-    const oldOptions = g.options;
     beforeAll(() => {
-      g.options = { replacementChar: "x" };
+      options.replacementChar = "x";
     });
 
     afterAll(() => {
-      g.options = oldOptions;
+      options.replacementChar = "_";
     });
 
     test("replaces invalid characters with a custom replacement character", () => {
@@ -111,14 +94,13 @@ describe("sanitisation", () => {
     });
 
     test("empty segments fall back to underscore without a replacementChar", () => {
-      const oldOptions = g.options;
-      g.options = {};
+      options.replacementChar = undefined;
       try {
         const p = new Path.Path("a");
         p.buf = [Path.PathSegment.String("")];
         expect(p.finalize()).toBe("_");
       } finally {
-        g.options = oldOptions;
+        options.replacementChar = "_";
       }
     });
   });
@@ -241,9 +223,9 @@ describe("parsePathStr", () => {
   test("wraps a bare string returned from a custom split()", () => {
     // defensive branch: unreachable for real strings, whose split()
     // always returns an array
-    const parsed = Path.parsePathStr({ split: () => "abc" });
+    const parsed = Path.parsePathStr({ split: () => "abc" } as any);
     expect(parsed).toHaveLength(1);
     expect(parsed[0].val).toBe("abc");
-    expect(parsed[0].type).toBe(g.PATH_SEGMENT_TYPES.STRING);
+    expect(parsed[0].type).toBe(PATH_SEGMENT_TYPES.STRING);
   });
 });
