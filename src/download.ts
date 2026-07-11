@@ -4,6 +4,7 @@ import { webExtensionApi } from "./web-extension-api.ts";
 
 import { BackgroundState } from "./background-state.ts";
 import { getDownload, mergeDownload } from "./download-state.ts";
+import type { DownloadRecord } from "./download-state.ts";
 import { getSession, updateSession } from "./session-state.ts";
 import { RequestHeaders } from "./headers.ts";
 import { Notifier } from "./notification.ts";
@@ -21,12 +22,19 @@ import { EXTENSION_REGEX, getFilenameFromUrl } from "./filename.ts";
 import { DownloadEvents } from "./download-events.ts";
 import { DownloadRetry } from "./download-retry.ts";
 import { extensionSessionStorage } from "./storage-areas.ts";
+import {
+  AcquiredDownload,
+  DownloadPipelineState,
+  DownloadPlan,
+  FinalizableDownloadState,
+  ResolvedDownloadPlan,
+} from "./download-types.ts";
 
 // Most-recent download state: fallback for consumers that can't correlate
 // by URL. Concurrent downloads are disambiguated via Download.pendingStates.
-let globalChromeState = {};
+let globalChromeState: DownloadPipelineState | null = null;
 
-const mergeStartedDownload = (downloadId, partial) =>
+const mergeStartedDownload = (downloadId: number, partial: Partial<DownloadRecord>) =>
   mergeDownload(
     BackgroundState.downloads,
     BackgroundState.sessionWrites,
@@ -35,7 +43,7 @@ const mergeStartedDownload = (downloadId, partial) =>
     partial,
   );
 
-const getStartedDownload = (downloadId) =>
+const getStartedDownload = (downloadId: number) =>
   getDownload(BackgroundState.downloads, extensionSessionStorage, downloadId);
 
 export const Download = {
@@ -47,9 +55,9 @@ export const Download = {
   // url -> state for in-flight downloads, so onDeterminingFilename (Chrome)
   // and the referer listener (Firefox) attribute the right state when two
   // downloads overlap (e.g. tab-strip batch saves)
-  pendingStates: new Map(),
+  pendingStates: new Map<string, DownloadPipelineState>(),
 
-  rememberPendingState: (state) => {
+  rememberPendingState: (state: DownloadPipelineState) => {
     globalChromeState = state;
     if (state.info && state.info.url) {
       Download.pendingStates.set(state.info.url, state);
@@ -72,13 +80,13 @@ export const Download = {
   // blob/data URL -> final filename for retry downloads, so Chrome's
   // onDeterminingFilename suggests the intended path instead of falling
   // back to an unrelated pending state
-  pendingRetryFilenames: new Map(),
+  pendingRetryFilenames: new Map<string, string>(),
 
   // Automatic fallback chain: a browser-initiated download that failed with
   // a network/server error is retried once through a background fetch
   // (host permissions exempt extension-context fetches from CORS, and the
   // referer rule is re-armed). Resolves true when a retry was started.
-  retryViaFetch: (downloadId) =>
+  retryViaFetch: (downloadId: number) =>
     Download.getStartedDownload(downloadId).then((record) => {
       if (!record || record.retried || record.viaFetch || options.fallbackFetch === false) {
         return false;
@@ -163,7 +171,7 @@ export const Download = {
         });
     }),
 
-  makeObjectUrl: (content, mime = "text/plain") => {
+  makeObjectUrl: (content: string, mime = "text/plain"): string => {
     if (typeof URL.createObjectURL === "function") {
       return URL.createObjectURL(
         new Blob([content], {
@@ -181,7 +189,7 @@ export const Download = {
     return `data:${mime};charset=utf-8;base64,${btoa(binary)}`;
   },
 
-  finalizeFullPath: (_state) => {
+  finalizeFullPath: (_state: FinalizableDownloadState): string => {
     let finalDir = _state.path.finalize();
     let finalFilename;
 
@@ -217,7 +225,7 @@ export const Download = {
     return finalFullPath.replace(/^\.\//, "").replace(/^\//, "");
   },
 
-  getFilenameFromContentDisposition: (disposition) => {
+  getFilenameFromContentDisposition: (disposition: unknown): string | null => {
     if (typeof disposition !== "string") return null;
 
     const filenameFromLib = getFilenameFromContentDispositionHeader(disposition);
@@ -225,7 +233,7 @@ export const Download = {
     if (filenameFromLib) {
       // Some servers double-encode; decode at most twice, but a filename
       // with a literal % (e.g. "50%.txt") must not throw and lose the name
-      const safeDecode = (s) => {
+      const safeDecode = (s: string) => {
         try {
           return decodeURIComponent(s);
         } catch (e) {
@@ -238,7 +246,7 @@ export const Download = {
     return null;
   },
 
-  getRoutingMatches: (state) => {
+  getRoutingMatches: (state: Pick<DownloadPipelineState, "info">): string | null => {
     const filenamePatterns = options.filenamePatterns;
     if (!filenamePatterns || filenamePatterns.length === 0) {
       return null;
@@ -252,7 +260,7 @@ export const Download = {
   // logs and surfaces a terminal pipeline failure to the user. Callers still
   // call Notifier.expectDownload() themselves (the tab-strip batch stages it
   // separately from the per-tab launch).
-  launch: (state) =>
+  launch: (state: DownloadPipelineState): Promise<void> =>
     Download.renameAndDownload(state).catch((e) => {
       if (typeof Log !== "undefined") {
         Log.add("renameAndDownload failed", String(e));
@@ -261,7 +269,9 @@ export const Download = {
       Notifier.reportFailure(name, String(e));
     }),
 
-  resolveDownloadPlan: async (state) => {
+  resolveDownloadPlan: async (
+    state: DownloadPipelineState,
+  ): Promise<ResolvedDownloadPlan | null> => {
     const naiveFilename = getFilenameFromUrl(state.info.url);
     const initialFilename = state.info.suggestedFilename || naiveFilename || state.info.url;
     Object.assign(state.info, { naiveFilename, filename: initialFilename, initialFilename });
@@ -291,7 +301,7 @@ export const Download = {
     return { state, routeMatches };
   },
 
-  createDownloadPlan: (state) => {
+  createDownloadPlan: (state: DownloadPipelineState): DownloadPlan => {
     const finalFullPath = Download.finalizeFullPath(state);
     state.scratch.hasExtension = finalFullPath && finalFullPath.match(EXTENSION_REGEX);
     const noExtensionPrompt = options.promptIfNoExtension && !state.scratch.hasExtension;
@@ -317,7 +327,7 @@ export const Download = {
     return { state, finalFullPath, prompt, historyEntryId };
   },
 
-  acquireFetchedUrl: async (url) => {
+  acquireFetchedUrl: async (url: string): Promise<AcquiredDownload> => {
     if (OffscreenClient.canUse()) {
       try {
         return { url: await OffscreenClient.fetch(url), viaFetch: true };
@@ -336,7 +346,7 @@ export const Download = {
     }
   },
 
-  acquireDownloadUrl: async (plan) => {
+  acquireDownloadUrl: async (plan: DownloadPlan): Promise<AcquiredDownload> => {
     const { state } = plan;
     if (state.info.contentPromise) {
       const content = await state.info.contentPromise;
@@ -346,7 +356,7 @@ export const Download = {
     return { url: state.info.url, viaFetch: false };
   },
 
-  executeBrowserDownload: async (plan, acquired) => {
+  executeBrowserDownload: async (plan: DownloadPlan, acquired: AcquiredDownload): Promise<void> => {
     const { state, finalFullPath, prompt, historyEntryId } = plan;
     const filename = finalFullPath || "_";
     await RequestHeaders.prepareReferer(state);
@@ -413,7 +423,7 @@ export const Download = {
     }
   },
 
-  startDownload: async (state) => {
+  startDownload: async (state: DownloadPipelineState): Promise<void> => {
     const plan = Download.createDownloadPlan(state);
     if (typeof Log !== "undefined") {
       Log.add("download requested", {
@@ -433,7 +443,7 @@ export const Download = {
   // async because Variable.applyVariables is now async (it may await a
   // :counter:/:mime: transformer). Callers fire-and-forget, so awaiting the
   // path/route interpolation here before the download is safe.
-  renameAndDownload: async (state) => {
+  renameAndDownload: async (state: DownloadPipelineState): Promise<void> => {
     const plan = await Download.resolveDownloadPlan(state);
     if (!plan) return;
 

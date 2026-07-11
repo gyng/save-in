@@ -11,49 +11,6 @@ interface OptionError {
 }
 
 // info attached to a download state in menu-click.js / messaging.js
-interface StateInfo {
-  currentTab?: browser.tabs.Tab | null;
-  linkText?: string;
-  // Set by every internal caller; optional so empty info bags typecheck
-  now?: Date;
-  pageUrl?: string;
-  selectionText?: string;
-  sourceUrl?: string;
-  url?: string;
-  suggestedFilename?: string | null;
-  context?: string;
-  menuIndex?: string | null;
-  comment?: string | null;
-  modifiers?: string[];
-  legacyDownloadInfo?: unknown;
-
-  // added by Download.renameAndDownload as the filename is resolved
-  filename?: string;
-  naiveFilename?: string;
-  initialFilename?: string;
-
-  // preview: true suppresses side-effectful variables (:counter:, :mime:,
-  // :sha256:) in the options-page dry-run; counter/headPromise/contentPromise
-  // cache the resolved value so every occurrence in one download shares it —
-  // and the download reuses contentPromise's fetch instead of re-downloading
-  preview?: boolean;
-  counter?: number;
-  headPromise?: Promise<{ contentType: string; finalUrl: string }>;
-  contentPromise?: Promise<{ sha256: string; downloadUrl: string } | null>;
-}
-
-// the per-download state threaded through the rename/route/download pipeline
-interface DownloadState {
-  path: any; // Path.Path instance
-  scratch: { hasExtension?: boolean; [key: string]: unknown };
-  info: StateInfo;
-  needRouteMatch?: boolean;
-  route?: any; // Path.Path instance
-  // §8.1: the route's `into:` ended with "/" — treat it as a folder and keep
-  // the download's real filename
-  routeIsFolder?: boolean;
-}
-
 // constants.js
 // Doubles as contextMenus contexts and as mediaType names, hence the intersection
 
@@ -88,7 +45,7 @@ interface Window {
     paths: OptionError[];
     filenamePatterns: OptionError[];
   };
-  lastDownloadState?: DownloadState;
+  lastDownloadState?: import("../src/download-types.ts").DownloadPipelineState;
   // options page: tab-switch unsaved-changes guard (options.js)
   confirmPendingChanges?: () => void;
 }

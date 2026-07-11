@@ -14,6 +14,7 @@ import { Notifier } from "./notification.ts";
 import { Download } from "./download.ts";
 import { currentTab } from "./current-tab.ts";
 import { DownloadEvents } from "./download-events.ts";
+import type { DownloadPipelineState } from "./download-types.ts";
 
 export const Messaging = {
   // ─── External DOWNLOAD API (issue #110) ────────────────────────────────
@@ -256,7 +257,7 @@ export const Messaging = {
 
     // The external DOWNLOAD API may omit info
     const info = requestBody.info || {};
-    const last = window.lastDownloadState || {
+    const last: Partial<DownloadPipelineState> = window.lastDownloadState || {
       path: new Path.Path("."),
       scratch: {},
       info: {},
@@ -288,8 +289,8 @@ export const Messaging = {
       scratch: {},
       info: Object.assign(
         {
-          menuIndex: last.info && last.info.menuIndex,
-          comment: last.info && last.info.comment,
+          menuIndex: last.info?.menuIndex,
+          comment: last.info?.comment,
         },
         opts,
         info,

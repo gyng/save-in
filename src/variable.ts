@@ -6,6 +6,7 @@ import { Path } from "./path.ts";
 import { BackgroundState } from "./background-state.ts";
 import { nextCounter, peekCounter } from "./counter.ts";
 import { extensionLocalStorage } from "./storage-areas.ts";
+import type { DownloadInfo } from "./download-types.ts";
 
 export const Variable = {
   // Thin wrapper over Util.withUrl that keeps this call site's historical
@@ -196,7 +197,7 @@ export const Variable = {
   // Transformers are called as (info, token, index, tokens); most only
   // need the info bag, hence the cast to the full signature
   /* prettier-ignore */
-  transformers: /** @type {Record<string, (opts: StateInfo, token?: any, index?: number, tokens?: any[]) => any>} */ ({
+  transformers: ({
     [SPECIAL_DIRS.FILENAME]:
       opts => Path.PathSegment.String(opts.filename),
     [SPECIAL_DIRS.FILE_EXTENSION]:
@@ -310,7 +311,10 @@ export const Variable = {
       async opts => Path.PathSegment.String(opts.preview ? "" : (await Variable.resolveHead(opts)).finalUrl),
     [SPECIAL_DIRS.REDIRECT_URL]:
       async opts => Path.PathSegment.String(opts.preview ? "" : (await Variable.resolveHead(opts)).finalUrl)
-  }),
+  }) as Record<
+    string,
+    (opts: DownloadInfo, token?: any, index?: number, tokens?: any[]) => any
+  >,
 
   // Async so a transformer may await (e.g. a :counter: read-modify-write or a
   // :mime: HEAD request). Sync transformers resolve instantly through

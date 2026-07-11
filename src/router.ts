@@ -3,6 +3,7 @@ import { webExtensionApi } from "./web-extension-api.ts";
 import { RULE_TYPES } from "./constants.ts";
 import { EXTENSION_REGEX, getFilenameFromUrl } from "./filename.ts";
 import { currentTab } from "./current-tab.ts";
+import type { DownloadInfo } from "./download-types.ts";
 
 // SI_DEBUG match logging, deduped from the ~9 identical blocks it replaced
 const logMatch = (match, regex, info) => {
@@ -51,8 +52,7 @@ const RouterFactory = {
 
 export const Router: Record<string, any> = {
   // Typed default for matchers destructuring their second (state.info) param
-  /** @type {Partial<StateInfo>} */
-  EMPTY_INFO: {},
+  EMPTY_INFO: {} as Partial<DownloadInfo>,
 
   matcherFunctions: {
     context:
