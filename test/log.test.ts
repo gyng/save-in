@@ -1,14 +1,16 @@
 const LOG_KEY = "si-log";
 
 const setupSession = () => {
-  const store = {};
-  global.browser.storage.session = {
-    get: jest.fn((key) => Promise.resolve({ [key]: store[key] })),
-    set: jest.fn((obj) => {
+  const store: Record<string, any> = {};
+  // @types type storage.session as read-only; assigning a partial mock is the
+  // test's job, so cast the container
+  (global.browser.storage as any).session = {
+    get: jest.fn((key: string) => Promise.resolve({ [key]: store[key] })),
+    set: jest.fn((obj: Record<string, any>) => {
       Object.assign(store, obj);
       return Promise.resolve();
     }),
-    remove: jest.fn((key) => {
+    remove: jest.fn((key: string) => {
       delete store[key];
       return Promise.resolve();
     }),
@@ -18,7 +20,7 @@ const setupSession = () => {
 
 describe("Log", () => {
   let Log;
-  let store;
+  let store: Record<string, any>;
 
   beforeEach(async () => {
     jest.resetModules();
@@ -51,7 +53,7 @@ describe("Log", () => {
   });
 
   test("serializes unstringifiable data without throwing", async () => {
-    const circular = {};
+    const circular: Record<string, any> = {};
     circular.self = circular;
 
     await Log.add("weird", circular);
@@ -82,17 +84,17 @@ describe("Log", () => {
   });
 
   test("is a no-op without storage.session (older Firefox)", async () => {
-    global.browser.storage.session = undefined;
+    (global.browser.storage as any).session = undefined;
     jest.resetModules();
     const BareLog = (await import("../src/log.ts")).Log;
 
-    await expect(BareLog.add("x")).resolves.toBeUndefined();
+    await expect((BareLog.add as any)("x")).resolves.toBeUndefined();
     await expect(BareLog.get()).resolves.toEqual([]);
     await expect(BareLog.clear()).resolves.toBeUndefined();
   });
 
   test("get returns [] when the read fails", async () => {
-    global.browser.storage.session.get.mockRejectedValueOnce(new Error("gone"));
+    vi.mocked(global.browser.storage.session.get).mockRejectedValueOnce(new Error("gone"));
 
     await expect(Log.get()).resolves.toEqual([]);
   });
@@ -100,7 +102,7 @@ describe("Log", () => {
   test("add swallows storage failures and keeps the queue alive", async () => {
     // A failed write drops that entry but must not break the serialized queue
     // for later adds (SessionState.update swallows the rejection)
-    global.browser.storage.session.set.mockRejectedValueOnce(new Error("gone"));
+    vi.mocked(global.browser.storage.session.set).mockRejectedValueOnce(new Error("gone"));
 
     await expect(Log.add("lost")).resolves.toBeUndefined();
     await Log.add("kept");
@@ -109,7 +111,7 @@ describe("Log", () => {
   });
 
   test("clear swallows storage failures", async () => {
-    global.browser.storage.session.remove.mockRejectedValueOnce(new Error("gone"));
+    vi.mocked(global.browser.storage.session.remove).mockRejectedValueOnce(new Error("gone"));
 
     await expect(Log.clear()).resolves.toBeUndefined();
   });

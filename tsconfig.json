@@ -11,10 +11,10 @@
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "lib": ["es2022", "dom"],
-    "types": ["firefox-webext-browser", "chrome"],
+    "types": ["firefox-webext-browser", "chrome", "node", "vitest/globals"],
     "strict": false,
     "skipLibCheck": true
   },
-  "include": ["src/**/*.js", "src/**/*.ts", "types/**/*.d.ts"],
+  "include": ["src/**/*.js", "src/**/*.ts", "test/**/*.ts", "types/**/*.d.ts"],
   "exclude": ["src/vendor"]
 }
