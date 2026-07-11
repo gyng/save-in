@@ -14,19 +14,29 @@ vi.mock("../src/download-state.ts", () => ({
 }));
 
 export {};
+import type { CurrentTab } from "../src/current-tab.ts";
 
 // index.ts, menu-build.ts, option.ts and log.ts are all real modules, freshly
 // re-imported after every jest.resetModules() below (mirroring test/log.test.ts
 // and test/option.test.ts): a top-level static import would keep pointing at
 // the first module instance, not the fresh one index.ts actually wires up on
 // each re-import.
-let Menus, options, OptionsManagement, Log;
+let Menus: typeof import("../src/menu-build.ts").Menus;
+let options: typeof import("../src/options-data.ts").options;
+let OptionsManagement: typeof import("../src/option.ts").OptionsManagement;
+let Log: typeof import("../src/log.ts").Log;
+
+type SetupOptions = {
+  options?: Record<string, any>;
+  storedLocal?: Record<string, any>;
+  tabsQueryResult?: CurrentTab[];
+};
 
 const setupGlobals = async ({
   options: optionOverrides = {},
   storedLocal = {},
   tabsQueryResult = [],
-} = {}) => {
+}: SetupOptions = {}) => {
   ({ Menus } = await import("../src/menu-build.ts"));
   ({ OptionsManagement } = await import("../src/option.ts"));
   ({ options } = await import("../src/options-data.ts"));
@@ -67,7 +77,7 @@ const setupGlobals = async ({
     optionOverrides,
   );
 
-  OptionsManagement.loadOptions = vi.fn(() => Promise.resolve());
+  OptionsManagement.loadOptions = vi.fn(() => Promise.resolve({}));
   Log.add = vi.fn();
 
   global.browser.storage.local.get = vi.fn(() => Promise.resolve(storedLocal));
@@ -79,10 +89,10 @@ const setupGlobals = async ({
   (global.browser.tabs as any).onActivated = { addListener: vi.fn() };
   (global.browser.tabs as any).onUpdated = { addListener: vi.fn() };
 
-  delete global.window.ready;
-  delete global.window.init;
-  delete global.window.reset;
-  delete global.window.optionErrors;
+  Reflect.deleteProperty(global.window, "ready");
+  Reflect.deleteProperty(global.window, "init");
+  Reflect.deleteProperty(global.window, "reset");
+  Reflect.deleteProperty(global.window, "optionErrors");
 };
 
 // index.ts's bootstrap is now an exported start() the entry calls synchronously
@@ -219,10 +229,12 @@ describe("init", () => {
 
   test("logs and rethrows when init fails", async () => {
     await setupGlobals();
-    let rejectLoad;
+    let rejectLoad: (reason?: unknown) => void = () => {
+      throw new Error("load rejection was not captured");
+    };
     OptionsManagement.loadOptions = vi.fn(
       () =>
-        new Promise((resolve, reject) => {
+        new Promise<Record<string, any>>((resolve, reject) => {
           rejectLoad = reject;
         }),
     );
@@ -260,7 +272,9 @@ describe("current tab tracking", () => {
 
   test("startup query does not clobber a tab set by onActivated first", async () => {
     await setupGlobals();
-    let resolveQuery;
+    let resolveQuery: (tabs: CurrentTab[]) => void = () => {
+      throw new Error("tab query resolver was not captured");
+    };
     (global.browser.tabs as any).query = vi.fn(
       () =>
         new Promise((resolve) => {
