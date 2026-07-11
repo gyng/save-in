@@ -7,6 +7,22 @@ import { PathEditor } from "./path-editor.ts";
 import { CURRENT_BROWSER, BROWSERS } from "../chrome-detector.ts";
 import { COUNTER_KEY } from "../counter.ts";
 
+type JsonRecord = Record<string, any>;
+type OptionSchema = {
+  keys: Array<JsonRecord & { name: string; type: string }>;
+  types: { BOOL: string; VALUE: string };
+};
+type ValidationError = { message: string; error: string };
+type ManualEditor = {
+  textarea: HTMLTextAreaElement;
+  saved: string;
+  sync: () => void;
+};
+type MenuPreviewTree = {
+  items: JsonRecord[];
+  errors: Array<ValidationError & { parentId?: string }>;
+};
+
 const getOptionsSchema = webExtensionApi.runtime
   .sendMessage({ type: "OPTIONS_SCHEMA" })
   .then((res) => {
@@ -17,18 +33,22 @@ const getOptionsSchema = webExtensionApi.runtime
 
 // Latest interpolated variables from the most recent CHECK_ROUTES; read by
 // the once-bound #see-variables-btn handler (see updateErrors)
-let latestInterpolatedVariables = null;
+let latestInterpolatedVariables: Record<string, string> | null = null;
 
 const renderVariablesTable = () => {
   if (!latestInterpolatedVariables) {
     return;
   }
   const tableBody = document.querySelector("#variables-body");
+  if (!tableBody) {
+    return;
+  }
   tableBody.classList.toggle("hide");
   tableBody.innerHTML = "";
 
-  Object.keys(latestInterpolatedVariables).forEach((key) => {
-    const val = latestInterpolatedVariables[key];
+  const variables = latestInterpolatedVariables;
+  Object.keys(variables).forEach((key) => {
+    const val = variables[key];
 
     const variableRow = document.createElement("tr");
 
@@ -52,7 +72,7 @@ document.querySelector("#see-variables-btn")?.addEventListener("click", renderVa
 
 // Reveal + select the offending text in its editor. Best-effort: the error
 // string is usually the offending line/clause, so we find and select it.
-const jumpToError = (textareaId, needle) => {
+const jumpToError = (textareaId: string, needle: string) => {
   // Paths in Visual mode: jump to the matching visual row instead of switching
   // back to the textarea. Match the row whose directory field is contained in
   // the (raw) line; fall back to Text mode if nothing matches (e.g. a line the
@@ -101,7 +121,7 @@ const jumpToError = (textareaId, needle) => {
   }
 };
 
-const renderErrorRow = (err, textareaId) => {
+const renderErrorRow = (err: ValidationError, textareaId: string) => {
   const r = document.createElement("div");
   r.className = "error-row";
   r.setAttribute("role", "button");
@@ -154,13 +174,13 @@ const renderValidationErrors = () => {
       const body = (res && res.body) || {};
       if (pathsErrors) {
         pathsErrors.innerHTML = "";
-        (body.pathErrors || []).forEach((err) =>
+        (body.pathErrors || []).forEach((err: ValidationError) =>
           pathsErrors.appendChild(renderErrorRow(err, "#paths")),
         );
       }
       if (rulesErrors) {
         rulesErrors.innerHTML = "";
-        (body.ruleErrors || []).forEach((err) =>
+        (body.ruleErrors || []).forEach((err: ValidationError) =>
           rulesErrors.appendChild(renderErrorRow(err, "#filenamePatterns")),
         );
       }
@@ -181,20 +201,25 @@ const updateErrors = () => {
     const hasLastDownload =
       body.lastDownload && body.lastDownload.info && body.lastDownload.info.url;
     if (hasLastDownload) {
-      document.querySelector("#last-dl-url").textContent = body.lastDownload.info.url;
+      const lastDlUrl = document.querySelector("#last-dl-url");
+      if (lastDlUrl) {
+        lastDlUrl.textContent = body.lastDownload.info.url;
+      }
     }
 
-    document.querySelector("#rules-applied-row").classList.toggle("hide", !hasLastDownload);
+    document.querySelector("#rules-applied-row")?.classList.toggle("hide", !hasLastDownload);
 
     // Routing result
-    lastDlMatch.innerHTML = "no matches";
-    if (body.routeInfo.path) {
+    if (lastDlMatch) {
+      lastDlMatch.innerHTML = "no matches";
+    }
+    if (lastDlMatch && body.routeInfo.path) {
       lastDlMatch.textContent = body.routeInfo.path;
     }
 
     // Variables
     if (hasLastDownload) {
-      document.querySelector("#variables-table-row").classList.toggle("hide", !hasLastDownload);
+      document.querySelector("#variables-table-row")?.classList.toggle("hide", !hasLastDownload);
     }
     // The #see-variables-btn click handler is bound once below; updateErrors
     // only refreshes the data it reads. Binding here would leak a listener on
@@ -204,15 +229,15 @@ const updateErrors = () => {
     // Capture groups
     const hasCaptureMatches = body.routeInfo && Array.isArray(body.routeInfo.captures);
 
-    document.querySelector("#capture-group-rows").classList.toggle("hide", !hasCaptureMatches);
+    document.querySelector("#capture-group-rows")?.classList.toggle("hide", !hasCaptureMatches);
 
-    if (hasCaptureMatches) {
+    if (hasCaptureMatches && lastDlCapture) {
       lastDlCapture.textContent = "";
 
       // Skip first match as it's just the entire input
       body.routeInfo.captures
         .slice(1)
-        .map((c, i) => {
+        .map((_capture: string, i: number) => {
           const div = document.createElement("div");
           div.className = "match-row";
 
@@ -229,7 +254,7 @@ const updateErrors = () => {
 
           return div;
         })
-        .forEach((rowDiv) => lastDlCapture.appendChild(rowDiv));
+        .forEach((rowDiv: HTMLElement) => lastDlCapture.appendChild(rowDiv));
     }
   });
 };
@@ -372,7 +397,7 @@ const renderVariablesPreview = () => {
         const table = document.createElement("table");
         table.className = "variables-preview-table";
 
-        variables.forEach((variable) => {
+        variables.forEach((variable: string) => {
           const tr = document.createElement("tr");
           tr.className = "variables-preview-row";
           if (target && typeof PathEditor !== "undefined") {
@@ -414,7 +439,9 @@ const updateDebugLog = async () => {
   try {
     const res = await webExtensionApi.storage.session.get(LOG_STORAGE_KEY);
     const entries = (res && res[LOG_STORAGE_KEY]) || [];
-    el.value = entries.map((e) => [e.at, e.message, e.data].filter(Boolean).join("  ")).join("\n");
+    el.value = entries
+      .map((e: JsonRecord) => [e.at, e.message, e.data].filter(Boolean).join("  "))
+      .join("\n");
   } catch (e) {
     // storage.session unavailable (older browsers)
     el.value = "(debug log unavailable in this browser)";
@@ -442,15 +469,15 @@ webExtensionApi.runtime.onMessage.addListener((message) => {
   }
 });
 
-const saveOptions = (e?) => {
+const saveOptions = (e?: Event) => {
   if (e) {
     e.preventDefault();
   }
   pendingChanges = false;
 
   // Collect the raw form values, then let the background persist them.
-  getOptionsSchema.then((schema) => {
-    const config = schema.keys.reduce((acc, val) => {
+  getOptionsSchema.then((schema: OptionSchema) => {
+    const config = schema.keys.reduce<JsonRecord>((acc, val) => {
       const el = document.getElementById(val.name);
       if (!el) {
         return acc;
@@ -460,7 +487,18 @@ const saveOptions = (e?) => {
         [schema.types.BOOL]: "checked",
         [schema.types.VALUE]: "value",
       };
-      return Object.assign(acc, { [val.name]: el[propMap[val.type]] });
+      const property = propMap[val.type];
+      if (property === "checked" && el instanceof HTMLInputElement) {
+        acc[val.name] = el.checked;
+      } else if (
+        property === "value" &&
+        (el instanceof HTMLInputElement ||
+          el instanceof HTMLTextAreaElement ||
+          el instanceof HTMLSelectElement)
+      ) {
+        acc[val.name] = el.value;
+      }
+      return acc;
     }, {});
 
     // Route through APPLY_CONFIG so the background applies each option's onSave
@@ -468,7 +506,10 @@ const saveOptions = (e?) => {
     // itself can't) and reloads options + menus. This is why saveOptions no
     // longer trims paths/filenamePatterns locally — the background does it.
     webExtensionApi.runtime.sendMessage({ type: "APPLY_CONFIG", body: { config } }).then(() => {
-      document.querySelector("#lastSavedAt").textContent = new Date().toLocaleTimeString();
+      const lastSavedAt = document.querySelector("#lastSavedAt");
+      if (lastSavedAt) {
+        lastSavedAt.textContent = new Date().toLocaleTimeString();
+      }
     });
   });
 };
@@ -480,10 +521,11 @@ const saveOptions = (e?) => {
 // functions — so field-display transforms live here instead. The logic is in
 // OptionsLogic (options-logic.js) so it can be unit-tested.
 const OPTION_FIELD_DISPLAY_TRANSFORMS = {
-  contentClickToSaveCombo: (v) => OptionsLogic.normalizeKeyComboForDisplay(v),
+  contentClickToSaveCombo: (v: unknown) =>
+    OptionsLogic.normalizeKeyComboForDisplay(v as string | number),
 };
 
-const restoreOptionsHandler = (result, schema) => {
+const restoreOptionsHandler = (result: JsonRecord, schema: OptionSchema) => {
   // Zip result -> schema
   const schemaWithValues = schema.keys.map((o) => Object.assign({}, o, { value: result[o.name] }));
 
@@ -493,14 +535,26 @@ const restoreOptionsHandler = (result, schema) => {
       return;
     }
 
-    const fn = OPTION_FIELD_DISPLAY_TRANSFORMS[o.name] || ((x) => x);
+    const fn =
+      OPTION_FIELD_DISPLAY_TRANSFORMS[o.name as keyof typeof OPTION_FIELD_DISPLAY_TRANSFORMS] ||
+      ((x: unknown) => x);
     const val = typeof o.value === "undefined" ? o.default : fn(o.value);
 
     const propMap = {
       [schema.types.BOOL]: "checked",
       [schema.types.VALUE]: "value",
     };
-    el[propMap[o.type]] = val;
+    const property = propMap[o.type];
+    if (property === "checked" && el instanceof HTMLInputElement) {
+      el.checked = Boolean(val);
+    } else if (
+      property === "value" &&
+      (el instanceof HTMLInputElement ||
+        el instanceof HTMLTextAreaElement ||
+        el instanceof HTMLSelectElement)
+    ) {
+      el.value = String(val);
+    }
   });
 
   updateErrors();
@@ -510,15 +564,16 @@ const restoreOptionsHandler = (result, schema) => {
 };
 
 const restoreOptions = () =>
-  getOptionsSchema.then((schema) => {
+  getOptionsSchema.then((schema: OptionSchema) => {
     const keys = schema.keys.map((o) => o.name);
     webExtensionApi.storage.local.get(keys).then((loaded) => restoreOptionsHandler(loaded, schema));
   });
 
-const addHelp = (el) => {
+const addHelp = (el: Element) => {
   el.addEventListener("click", (e) => {
     e.preventDefault();
-    const targetEl = document.getElementById(el.dataset.helpFor);
+    const helpFor = el instanceof HTMLElement ? el.dataset.helpFor : undefined;
+    const targetEl = helpFor ? document.getElementById(helpFor) : null;
     if (!targetEl) {
       return;
     }
@@ -533,18 +588,21 @@ const addHelp = (el) => {
 document.addEventListener("DOMContentLoaded", restoreOptions);
 document.querySelectorAll(".help").forEach(addHelp);
 
-document.querySelector("#reset").addEventListener("click", (e) => {
+document.querySelector("#reset")?.addEventListener("click", (e) => {
   /* eslint-disable no-alert */
   e.preventDefault();
 
-  const resetFn = (w) => {
+  const resetFn = (w: Window) => {
     const reset = w.confirm("Reset settings to defaults?");
 
     if (reset) {
       webExtensionApi.storage.local.clear().then(() => {
         webExtensionApi.runtime.sendMessage({ type: "OPTIONS_LOADED" });
 
-        document.querySelector("#lastSavedAt").textContent = new Date().toLocaleTimeString();
+        const lastSavedAt = document.querySelector("#lastSavedAt");
+        if (lastSavedAt) {
+          lastSavedAt.textContent = new Date().toLocaleTimeString();
+        }
 
         restoreOptions();
         updateErrors();
@@ -569,7 +627,10 @@ const setupChromeDisables = () => {
       el.removeAttribute("disabled");
     });
 
-    document.querySelector("html").style = "min-width: 600px;";
+    const html = document.querySelector("html");
+    if (html) {
+      html.style.minWidth = "600px";
+    }
     // document.querySelector("body").style = "overflow-y: hidden;";
 
     document.querySelectorAll(".chrome-disabled").forEach((el: any) => {
@@ -602,16 +663,16 @@ window.addEventListener("beforeunload", (e) => {
 // Apply button, not autosave: their Apply lights up while the editor value
 // differs from what is stored, and dims once applied. Every other control
 // still autosaves.
-const manualEditors = [];
+const manualEditors: ManualEditor[] = [];
 
-const setupManualEditor = (id) => {
+const setupManualEditor = (id: string) => {
   const textarea = document.querySelector(`#${id}`) as HTMLTextAreaElement;
   const buttons = [...document.querySelectorAll(`[data-apply="${id}"], [data-discard="${id}"]`)];
   if (!textarea || buttons.length === 0) {
     return;
   }
 
-  const editor: Record<string, any> = { textarea, saved: textarea.value };
+  const editor: ManualEditor = { textarea, saved: textarea.value, sync: () => {} };
   manualEditors.push(editor);
 
   // Apply and Discard are both only actionable while the editor is dirty
@@ -663,13 +724,22 @@ window.confirmPendingChanges = () => {
   }
 };
 
-const setupAutosave = (el) => {
+const setupAutosave = (el: Element) => {
+  if (
+    !(
+      el instanceof HTMLInputElement ||
+      el instanceof HTMLTextAreaElement ||
+      el instanceof HTMLSelectElement
+    )
+  ) {
+    return;
+  }
   // The two big editors save manually via Apply, not autosave
   if (el.dataset && el.dataset.manual === "true") {
     return;
   }
 
-  let debounceTimer = null;
+  let debounceTimer: number | null = null;
 
   // Tied to the actual save firing (not every keystroke), so it still
   // reflects when a save really happened once debounced.
@@ -678,7 +748,10 @@ const setupAutosave = (el) => {
     // it sits right after the label text; fall back to the label / the field.
     const label = el.closest("label");
     const title = label && label.querySelector(":scope > .opt-title");
-    const target = el.type === "textarea" ? el : title || el.parentNode;
+    const target = el instanceof HTMLTextAreaElement ? el : title || el.parentElement;
+    if (!target) {
+      return;
+    }
     target.classList.remove("saved");
     window.setTimeout(() => {
       target.classList.add("saved-base");
@@ -686,7 +759,7 @@ const setupAutosave = (el) => {
     }, 100);
   };
 
-  const doSave = (e?) => {
+  const doSave = (e?: Event) => {
     saveOptions(e);
     window.setTimeout(updateErrors, 200);
     showSavedIndicator();
@@ -699,11 +772,12 @@ const setupAutosave = (el) => {
         window.clearTimeout(debounceTimer);
         pendingSaveTimers.delete(debounceTimer);
       }
-      debounceTimer = window.setTimeout(() => {
-        pendingSaveTimers.delete(debounceTimer);
+      const timer = window.setTimeout(() => {
+        pendingSaveTimers.delete(timer);
         debounceTimer = null;
         doSave();
       }, AUTOSAVE_DEBOUNCE_MS);
+      debounceTimer = timer;
       pendingSaveTimers.add(debounceTimer);
     });
 
@@ -728,13 +802,13 @@ const setupAutosave = (el) => {
 // produce, updating as the user types (before autosave persists it)
 const MENU_PREVIEW_DEBOUNCE_MS = 250;
 
-const renderMenuPreview = (container, tree) => {
+const renderMenuPreview = (container: Element, tree: MenuPreviewTree) => {
   container.textContent = "";
 
   const rootUl = document.createElement("ul");
-  const listsByParent = new Map();
+  const listsByParent = new Map<string, HTMLUListElement>();
 
-  tree.items.forEach((item) => {
+  tree.items.forEach((item: JsonRecord) => {
     const parentUl = listsByParent.get(item.parentId) || rootUl;
     const li = document.createElement("li");
 
@@ -871,7 +945,7 @@ const updateMenuPreview = () => {
     .querySelector("#enableLastLocation")
     ?.addEventListener("change", () => updateMenuPreview());
 
-  let previewTimer = null;
+  let previewTimer: number | null = null;
   textarea.addEventListener("input", () => {
     if (previewTimer !== null) {
       window.clearTimeout(previewTimer);
@@ -891,7 +965,7 @@ const updateMenuPreview = () => {
   if (!rulesTa) {
     return;
   }
-  let timer = null;
+  let timer: number | null = null;
   rulesTa.addEventListener("input", () => {
     if (timer !== null) {
       window.clearTimeout(timer);
@@ -936,7 +1010,7 @@ setupManualEditor("filenamePatterns");
   let activeIndex = -1;
   const rows = () => [...dropdown.querySelectorAll("li")];
 
-  const highlight = (i) => {
+  const highlight = (i: number) => {
     activeIndex = i;
     rows().forEach((li, idx) => li.classList.toggle("selected", idx === i));
   };
@@ -946,14 +1020,14 @@ setupManualEditor("filenamePatterns");
     activeIndex = -1;
   };
 
-  const choose = (value) => {
+  const choose = (value: string) => {
     input.value = value;
     input.dispatchEvent(new Event("change", { bubbles: true }));
     close();
   };
 
   // filter=false (focus/click) shows every option; filter=true (typing) narrows
-  const open = (filter) => {
+  const open = (filter: boolean) => {
     const list = OptionsLogic.filterKeyComboOptions(OPTIONS, filter ? input.value : "");
     dropdown.innerHTML = "";
     list.forEach((o) => {
@@ -1002,7 +1076,7 @@ setupManualEditor("filenamePatterns");
       highlight(Math.max(activeIndex - 1, 0));
     } else if (e.key === "Enter" && activeIndex >= 0) {
       e.preventDefault();
-      choose(items[activeIndex].dataset.value);
+      choose(items[activeIndex].dataset.value || "");
     }
   });
 })();
@@ -1113,23 +1187,23 @@ document.querySelectorAll("[data-discard]").forEach((button: any) => {
   });
 });
 
-const showJson = (obj) => {
+const showJson = (obj: unknown) => {
   const json = JSON.stringify(obj, null, 2);
   const outputEl = document.querySelector("#export-target") as any;
   outputEl.style = "display: unset;";
   outputEl.value = json;
 };
 
-document.querySelector("#settings-export").addEventListener("click", () => {
-  getOptionsSchema.then((schema) => {
+document.querySelector("#settings-export")?.addEventListener("click", () => {
+  getOptionsSchema.then((schema: OptionSchema) => {
     const keys = schema.keys.map((o) => o.name);
     webExtensionApi.storage.local.get(keys).then((loaded) => showJson(loaded));
   });
 });
 
 const importSettings = () => {
-  const load = (w) => {
-    getOptionsSchema.then((schema) => {
+  const load = (w: Window) => {
+    getOptionsSchema.then((schema: OptionSchema) => {
       const json = w.prompt("Paste settings to import");
       try {
         if (json) {
@@ -1149,7 +1223,7 @@ const importSettings = () => {
 
   load(window);
 };
-document.querySelector("#settings-import").addEventListener("click", importSettings);
+document.querySelector("#settings-import")?.addEventListener("click", importSettings);
 
 // Detection can complete synchronously (Chrome), so this must be defined
 // after setupChromeDisables
