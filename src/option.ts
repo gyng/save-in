@@ -6,7 +6,7 @@ import {
   SHORTCUT_TYPES,
   FORBIDDEN_FILENAME_CHARS,
 } from "./constants.ts";
-import { CURRENT_BROWSER, BROWSERS } from "./chrome-detector.ts";
+import { WEB_EXTENSION_CAPABILITIES } from "./chrome-detector.ts";
 import { Router } from "./router.ts";
 import { Variable } from "./variable.ts";
 import { Path } from "./path.ts";
@@ -34,7 +34,7 @@ export const OptionsManagement: Record<string, any> = {
       // settings, a migrated profile) makes downloads.download reject and
       // silently kills every download (#89, #217)
       onLoad: (v) =>
-        v === CONFLICT_ACTION.PROMPT && CURRENT_BROWSER === BROWSERS.CHROME
+        v === CONFLICT_ACTION.PROMPT && !WEB_EXTENSION_CAPABILITIES.conflictActionPrompt
           ? CONFLICT_ACTION.UNIQUIFY
           : v,
       default: "uniquify",

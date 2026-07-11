@@ -48,7 +48,7 @@ import {
   CLICK_TYPES,
   FORBIDDEN_FILENAME_CHARS,
 } from "./constants.ts";
-import { BROWSERS, CURRENT_BROWSER, BROWSER_FEATURES } from "./chrome-detector.ts";
+import { BROWSERS, CURRENT_BROWSER, WEB_EXTENSION_CAPABILITIES } from "./chrome-detector.ts";
 import { Util } from "./util.ts";
 import { BackgroundState } from "./background-state.ts";
 import { peekCounter, resetCounter } from "./counter.ts";
@@ -86,7 +86,7 @@ Object.assign(globalThis, {
   // browser detection
   BROWSERS,
   CURRENT_BROWSER,
-  BROWSER_FEATURES,
+  WEB_EXTENSION_CAPABILITIES,
   // core
   Util,
   Log,

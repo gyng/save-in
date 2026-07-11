@@ -1,14 +1,25 @@
-import { BROWSERS, setFeatures } from "../src/chrome-detector.ts";
+import { BROWSERS, detectCapabilities } from "../src/chrome-detector.ts";
 
-describe("setFeatures", () => {
-  test("multitab tab-strip menus are Firefox-only", () => {
-    expect(setFeatures(BROWSERS.FIREFOX).multitab).toBe(true);
-    expect(setFeatures(BROWSERS.CHROME).multitab).toBe(false);
+describe("detectCapabilities", () => {
+  test("tabContextMenus tab-strip menus are Firefox-only", () => {
+    expect(detectCapabilities(BROWSERS.FIREFOX).tabContextMenus).toBe(true);
+    expect(detectCapabilities(BROWSERS.CHROME).tabContextMenus).toBe(false);
   });
 
   test("access keys are supported everywhere (min versions >= 121)", () => {
-    expect(setFeatures(BROWSERS.FIREFOX).accessKeys).toBe(true);
-    expect(setFeatures(BROWSERS.CHROME).accessKeys).toBe(true);
+    expect(detectCapabilities(BROWSERS.FIREFOX).accessKeys).toBe(true);
+    expect(detectCapabilities(BROWSERS.CHROME).accessKeys).toBe(true);
+  });
+
+  test("normalizes browser-specific download semantics", () => {
+    expect(detectCapabilities(BROWSERS.CHROME)).toMatchObject({
+      downloadDeltaFilename: true,
+      conflictActionPrompt: false,
+    });
+    expect(detectCapabilities(BROWSERS.FIREFOX)).toMatchObject({
+      downloadDeltaFilename: false,
+      conflictActionPrompt: true,
+    });
   });
 });
 

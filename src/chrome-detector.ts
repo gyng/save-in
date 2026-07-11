@@ -6,27 +6,40 @@ export const BROWSERS = {
   UNKNOWN: "UNKNOWN",
 };
 
-export type BrowserFeatures = { multitab: boolean; accessKeys: boolean };
+export type WebExtensionCapabilities = {
+  tabContextMenus: boolean;
+  accessKeys: boolean;
+  downloadFilenameSuggestion: boolean;
+  downloadDeltaFilename: boolean;
+  conflictActionPrompt: boolean;
+};
 
 // Mutable cross-file state: reassigned only in this module (by the detection
 // block below and `setCurrentBrowser`); other modules import a read-only live
 // binding and read it at call time.
-export let BROWSER_FEATURES: BrowserFeatures | undefined;
+export let WEB_EXTENSION_CAPABILITIES: WebExtensionCapabilities | undefined;
 export let CURRENT_BROWSER = BROWSERS.UNKNOWN;
 export let CURRENT_BROWSER_VERSION: number | undefined;
 
-export const setFeatures = (currentBrowser: string): BrowserFeatures => ({
-  // Multi-select tab strip menus need the Firefox-only "tab" context
-  multitab: currentBrowser === BROWSERS.FIREFOX,
+export const detectCapabilities = (currentBrowser: string): WebExtensionCapabilities => ({
+  // Support for the "tab" context is not exposed as an API property.
+  tabContextMenus: currentBrowser === BROWSERS.FIREFOX,
   accessKeys: true,
+  downloadFilenameSuggestion:
+    currentBrowser === BROWSERS.CHROME &&
+    Boolean(globalThis.chrome?.downloads?.onDeterminingFilename),
+  // Chrome supplies the final filename through DownloadDelta; Firefox includes
+  // it in the initial DownloadItem.
+  downloadDeltaFilename: currentBrowser === BROWSERS.CHROME,
+  conflictActionPrompt: currentBrowser === BROWSERS.FIREFOX,
 });
 
-// The write-half of the CURRENT_BROWSER/BROWSER_FEATURES live bindings: they
+// The write-half of the browser identity/capability live bindings: they
 // always move together (a browser and its feature set), so both detection and
 // tests switch browser through here rather than reassigning the pair by hand.
 export const setCurrentBrowser = (currentBrowser: string) => {
   CURRENT_BROWSER = currentBrowser; // eslint-disable-line
-  BROWSER_FEATURES = setFeatures(currentBrowser);
+  WEB_EXTENSION_CAPABILITIES = detectCapabilities(currentBrowser);
 };
 
 if (!webExtensionApi) {

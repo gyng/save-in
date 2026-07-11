@@ -5,7 +5,7 @@ import { webExtensionApi } from "./web-extension-api.ts";
 // Click handling lives in menu-click.js, tab-strip menus in menu-tabs.js —
 // both extend this Menus object via the shared global scope.
 
-import { BROWSER_FEATURES } from "./chrome-detector.ts";
+import { WEB_EXTENSION_CAPABILITIES } from "./chrome-detector.ts";
 import { options } from "./options-data.ts";
 import { MEDIA_TYPES, SPECIAL_DIRS } from "./constants.ts";
 import { Path } from "./path.ts";
@@ -65,7 +65,7 @@ export const Menus = {
   })(),
 
   setAccesskey: (str, key, override) => {
-    if (!BROWSER_FEATURES.accessKeys) {
+    if (!WEB_EXTENSION_CAPABILITIES.accessKeys) {
       return str;
     }
 

@@ -5,7 +5,7 @@
 // test resets the module registry (fresh Menus state per case), so the deps are
 // re-imported inside importMenus after the reset — they resolve to the same
 // fresh instances the menu modules just loaded, so Object.assign (options,
-// BROWSER_FEATURES) and vi.spyOn (Download/Notifier/Shortcut) reach the live
+// WEB_EXTENSION_CAPABILITIES) and vi.spyOn (Download/Notifier/Shortcut) reach the live
 // click handlers. Path stays untouched (the handlers build real Path objects).
 
 import { DOWNLOAD_TYPES } from "../src/constants.ts";
@@ -16,7 +16,7 @@ let options: any;
 let Download: any;
 let Notifier: any;
 let Shortcut: any;
-let BROWSER_FEATURES: any;
+let WEB_EXTENSION_CAPABILITIES: any;
 let setCurrentTab: (tab: unknown) => void;
 
 const setupBrowserMocks = () => {
@@ -32,7 +32,7 @@ const setupBrowserMocks = () => {
 };
 
 // Seed the freshly-imported deps: spy the click-handler collaborators, mutate
-// the real options bag and the BROWSER_FEATURES live-binding object in place.
+// the real options bag and the WEB_EXTENSION_CAPABILITIES live-binding object in place.
 // Download.launch stays real (it just calls the spied renameAndDownload, then
 // swallows rejections — its logging/reportFailure path is covered in
 // download-flow.test).
@@ -60,7 +60,7 @@ const seedDeps = () => {
     closeTabOnSave: false,
     tabEnabled: true,
   });
-  Object.assign(BROWSER_FEATURES, { accessKeys: false, multitab: false });
+  Object.assign(WEB_EXTENSION_CAPABILITIES, { accessKeys: false, tabContextMenus: false });
   vi.spyOn(Download, "renameAndDownload").mockResolvedValue(undefined);
   vi.spyOn(Download, "makeObjectUrl").mockReturnValue("data:text/plain;base64,eA==");
   vi.spyOn(Notifier, "createExtensionNotification").mockImplementation(() => {});
@@ -81,7 +81,7 @@ const importMenus = async () => {
   ({ Download } = await import("../src/download.ts"));
   ({ Notifier } = await import("../src/notification.ts"));
   ({ Shortcut } = await import("../src/shortcut.ts"));
-  ({ BROWSER_FEATURES } = await import("../src/chrome-detector.ts"));
+  ({ WEB_EXTENSION_CAPABILITIES } = await import("../src/chrome-detector.ts"));
   ({ setCurrentTab } = await import("../src/current-tab.ts"));
   seedDeps();
   return Menus;
@@ -555,7 +555,7 @@ describe("addDownloadListener", () => {
     });
 
     test("the last-used title gets an access key where supported", async () => {
-      BROWSER_FEATURES.accessKeys = true;
+      WEB_EXTENSION_CAPABILITIES.accessKeys = true;
 
       Menus.addPaths(["dir1"], ["link"]);
       await listener(pathClick);

@@ -42,6 +42,9 @@ test("background event page initialises cleanly", async () => {
   const state = JSON.parse(
     await session.evaluate(`window.ready.then(() => JSON.stringify({
       browser: CURRENT_BROWSER,
+      capabilities: WEB_EXTENSION_CAPABILITIES,
+      promptConflictAction: OptionsManagement.OPTION_KEYS
+        .find(({ name }) => name === "conflictAction").onLoad("prompt"),
       pathErrors: window.optionErrors.paths.length,
       menuCount: Object.keys(Menus.pathMappings).length,
       hasObjectUrl: typeof URL.createObjectURL === "function",
@@ -50,6 +53,14 @@ test("background event page initialises cleanly", async () => {
   );
 
   expect(state.browser).toBe("FIREFOX");
+  expect(state.capabilities).toMatchObject({
+    tabContextMenus: true,
+    accessKeys: true,
+    downloadFilenameSuggestion: false,
+    downloadDeltaFilename: false,
+    conflictActionPrompt: true,
+  });
+  expect(state.promptConflictAction).toBe("prompt");
   expect(state.pathErrors).toBe(0);
   expect(state.menuCount).toBeGreaterThan(0);
   // Event pages keep a real DOM (unlike Chrome's service worker)...

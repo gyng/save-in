@@ -16,8 +16,8 @@ const downloadState = BackgroundState.downloads;
 const browserState = vi.hoisted(() => ({ current: "CHROME" }));
 vi.mock("../src/chrome-detector.ts", () => ({
   BROWSERS: { CHROME: "CHROME", FIREFOX: "FIREFOX", UNKNOWN: "UNKNOWN" },
-  get CURRENT_BROWSER() {
-    return browserState.current;
+  get WEB_EXTENSION_CAPABILITIES() {
+    return { downloadDeltaFilename: browserState.current === "CHROME" };
   },
 }));
 

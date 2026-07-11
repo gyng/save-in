@@ -62,6 +62,9 @@ test("service worker initialises cleanly", async () => {
   const state = JSON.parse(
     await evalSW(`window.ready.then(() => JSON.stringify({
       browser: CURRENT_BROWSER,
+      capabilities: WEB_EXTENSION_CAPABILITIES,
+      promptConflictAction: OptionsManagement.OPTION_KEYS
+        .find(({ name }) => name === "conflictAction").onLoad("prompt"),
       pathErrors: window.optionErrors.paths.length,
       patternErrors: window.optionErrors.filenamePatterns.length,
       menuCount: Object.keys(Menus.pathMappings).length,
@@ -71,6 +74,14 @@ test("service worker initialises cleanly", async () => {
   );
 
   expect(state.browser).toBe("CHROME");
+  expect(state.capabilities).toMatchObject({
+    tabContextMenus: false,
+    accessKeys: true,
+    downloadFilenameSuggestion: true,
+    downloadDeltaFilename: true,
+    conflictActionPrompt: false,
+  });
+  expect(state.promptConflictAction).toBe("uniquify");
   expect(state.pathErrors).toBe(0);
   expect(state.patternErrors).toBe(0);
   expect(state.menuCount).toBeGreaterThan(0);

@@ -25,8 +25,8 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("../src/chrome-detector.ts", () => ({
   BROWSERS: { CHROME: "CHROME", FIREFOX: "FIREFOX", UNKNOWN: "UNKNOWN" },
-  get CURRENT_BROWSER() {
-    return mocks.currentBrowser;
+  get WEB_EXTENSION_CAPABILITIES() {
+    return { conflictActionPrompt: mocks.currentBrowser === "FIREFOX" };
   },
 }));
 vi.mock("../src/router.ts", () => ({ Router: mocks.Router }));

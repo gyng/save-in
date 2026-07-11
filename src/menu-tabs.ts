@@ -7,7 +7,7 @@ import { webExtensionApi } from "./web-extension-api.ts";
 
 import { Menus } from "./menu-build.ts";
 import { options } from "./options-data.ts";
-import { BROWSER_FEATURES } from "./chrome-detector.ts";
+import { WEB_EXTENSION_CAPABILITIES } from "./chrome-detector.ts";
 import { Notifier } from "./notification.ts";
 import { Shortcut } from "./shortcut.ts";
 import { DOWNLOAD_TYPES } from "./constants.ts";
@@ -25,7 +25,7 @@ Menus.addTabMenus = () => {
     contexts: ["tab"],
   });
 
-  if (BROWSER_FEATURES.multitab) {
+  if (WEB_EXTENSION_CAPABILITIES.tabContextMenus) {
     webExtensionApi.contextMenus.create({
       id: Menus.IDS.TABSTRIP.SELECTED_MULTIPLE_TABS,
       title: webExtensionApi.i18n.getMessage("tabstripMenuMultipleSelectedTab", [1]),
@@ -54,7 +54,11 @@ Menus.addTabMenus = () => {
 
 Menus.addTabHighlightListener = () => {
   webExtensionApi.tabs.onHighlighted.addListener((highlightInfo) => {
-    if (!options.tabEnabled || !BROWSER_FEATURES || !BROWSER_FEATURES.multitab) {
+    if (
+      !options.tabEnabled ||
+      !WEB_EXTENSION_CAPABILITIES ||
+      !WEB_EXTENSION_CAPABILITIES.tabContextMenus
+    ) {
       return;
     }
 

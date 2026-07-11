@@ -11,7 +11,7 @@ import { Util } from "./util.ts";
 import { Path } from "./path.ts";
 import { Download } from "./download.ts";
 import { Notifier } from "./notification.ts";
-import { BROWSER_FEATURES } from "./chrome-detector.ts";
+import { WEB_EXTENSION_CAPABILITIES } from "./chrome-detector.ts";
 import { Shortcut } from "./shortcut.ts";
 import { options } from "./options-data.ts";
 import { currentTab } from "./current-tab.ts";
@@ -171,7 +171,7 @@ Menus.addDownloadListener = () => {
 
         if (options.enableLastLocation) {
           webExtensionApi.contextMenus.update(Menus.IDS.LAST_USED, {
-            title: BROWSER_FEATURES.accessKeys ? `${title} (&a)` : title,
+            title: WEB_EXTENSION_CAPABILITIES.accessKeys ? `${title} (&a)` : title,
             enabled: true,
           });
         }

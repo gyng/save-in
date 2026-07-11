@@ -13,7 +13,7 @@ import { Path } from "./path.ts";
 import { Variable } from "./variable.ts";
 import { SaveHistory } from "./history.ts";
 import { options } from "./options-data.ts";
-import { CURRENT_BROWSER, BROWSERS } from "./chrome-detector.ts";
+import { WEB_EXTENSION_CAPABILITIES } from "./chrome-detector.ts";
 import { getFilenameFromContentDispositionHeader } from "./vendor/content-disposition.ts";
 import { makeUrlFromBlob } from "./content-fetch.ts";
 import { OffscreenClient } from "./offscreen-client.ts";
@@ -438,11 +438,7 @@ export const Download = {
     if (!plan) return;
 
     // Chrome: Skip HEAD request for Content-Disposition and use onDeterminingFilename
-    if (
-      CURRENT_BROWSER === BROWSERS.CHROME &&
-      chrome.downloads &&
-      chrome.downloads.onDeterminingFilename
-    ) {
+    if (WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion) {
       await Download.startDownload(state);
     } else {
       try {
@@ -483,7 +479,7 @@ export const Download = {
 // onDeterminingFilename listener is attached before any download event fires.
 export const registerDownloadListener = () => {
   DownloadRetry.retry = Download.retryViaFetch;
-  if (chrome && chrome.downloads && chrome.downloads.onDeterminingFilename) {
+  if (WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion) {
     chrome.downloads.onDeterminingFilename.addListener((downloadItem, suggest) => {
       // Don't interfere with other extensions
       if (!webExtensionApi.runtime || webExtensionApi.runtime.id !== downloadItem.byExtensionId) {

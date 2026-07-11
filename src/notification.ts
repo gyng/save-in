@@ -6,7 +6,7 @@ import { BackgroundState } from "./background-state.ts";
 import { getDownload, hydrateDownloads, mergeDownload } from "./download-state.ts";
 import { getSession, updateSession } from "./session-state.ts";
 import { options } from "./options-data.ts";
-import { CURRENT_BROWSER, BROWSERS } from "./chrome-detector.ts";
+import { WEB_EXTENSION_CAPABILITIES } from "./chrome-detector.ts";
 import { DownloadRetry } from "./download-retry.ts";
 import { SaveHistory } from "./history.ts";
 import { Log } from "./log.ts";
@@ -250,7 +250,7 @@ export const Notifier = {
       // CHROME
       // Chrome does not have the filename in the initial DownloadItem,
       // so extract it from the DownloadDelta
-      if (CURRENT_BROWSER === BROWSERS.CHROME) {
+      if (WEB_EXTENSION_CAPABILITIES.downloadDeltaFilename) {
         if (downloadDelta && downloadDelta.filename && downloadDelta.filename.current) {
           record.currentFilename = downloadDelta.filename.current;
           await mergeTrackedDownload(downloadDelta.id, {
@@ -265,7 +265,10 @@ export const Notifier = {
       const slashIdx = fullFilename.lastIndexOf("/");
       const filename = fullFilename.substring(slashIdx + 1);
 
-      const failed = Notifier.isDownloadFailure(downloadDelta, CURRENT_BROWSER === BROWSERS.CHROME);
+      const failed = Notifier.isDownloadFailure(
+        downloadDelta,
+        WEB_EXTENSION_CAPABILITIES.downloadDeltaFilename,
+      );
 
       const isFromSelf = record.adopted === true;
       const isUserCancelled =

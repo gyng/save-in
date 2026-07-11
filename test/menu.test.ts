@@ -1,22 +1,22 @@
 // menu-click.ts/menu-tabs.ts augment the Menus object from menu-build.ts; they
 // import the same Menus binding, so importing them extends `menu`. Menu
-// construction only reads the real options bag and BROWSER_FEATURES — the click
+// construction only reads the real options bag and WEB_EXTENSION_CAPABILITIES — the click
 // handlers' Download/Notifier/Shortcut/currentTab deps are never exercised here,
 // so those modules import for real (unused). chrome-detector is the one mock:
-// its BROWSER_FEATURES is a read-only live binding, and tests need to swap it
+// its WEB_EXTENSION_CAPABILITIES is a read-only live binding, and tests need to swap it
 // per case (including to undefined, for the pre-detection guard), so a hoisted
 // holder backs it.
 const detector = vi.hoisted(() => ({ features: undefined as any }));
 vi.mock("../src/chrome-detector.ts", () => ({
   BROWSERS: { CHROME: "CHROME", FIREFOX: "FIREFOX", UNKNOWN: "UNKNOWN" },
-  get BROWSER_FEATURES() {
+  get WEB_EXTENSION_CAPABILITIES() {
     return detector.features;
   },
   get CURRENT_BROWSER() {
     return "CHROME";
   },
   CURRENT_BROWSER_VERSION: undefined,
-  setFeatures: (b: string) => ({ multitab: b === "FIREFOX", accessKeys: true }),
+  detectCapabilities: (b: string) => ({ tabContextMenus: b === "FIREFOX", accessKeys: true }),
 }));
 
 import { Menus as menu } from "../src/menu-build.ts";
@@ -75,7 +75,7 @@ describe("menu parsing", () => {
 });
 
 const setupMenuCreationMocks = () => {
-  detector.features = { accessKeys: true, multitab: true };
+  detector.features = { accessKeys: true, tabContextMenus: true };
   Object.assign(options, {
     keyRoot: "q",
     keyLastUsed: "a",
@@ -321,7 +321,7 @@ describe("menu creation", () => {
       expect(global.browser.contextMenus.create).not.toHaveBeenCalled();
     });
 
-    test("creates the full tabstrip set on multitab-capable browsers", () => {
+    test("creates the full tabstrip set on tabContextMenus-capable browsers", () => {
       menu.addTabMenus();
 
       const ids = created().map((c) => c.id);
@@ -335,8 +335,8 @@ describe("menu creation", () => {
       expect(created().every((c) => c.contexts[0] === "tab")).toBe(true);
     });
 
-    test("skips the multi-select item when multitab is unsupported", () => {
-      detector.features.multitab = false;
+    test("skips the multi-select item when tabContextMenus is unsupported", () => {
+      detector.features.tabContextMenus = false;
 
       menu.addTabMenus();
 
@@ -379,8 +379,8 @@ describe("menu creation", () => {
       expect(global.browser.contextMenus.update).not.toHaveBeenCalled();
     });
 
-    test("does nothing on browsers without multitab support", () => {
-      detector.features.multitab = false;
+    test("does nothing on browsers without tabContextMenus support", () => {
+      detector.features.tabContextMenus = false;
 
       highlightListener({ tabIds: [4, 8] });
 
