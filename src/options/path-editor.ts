@@ -10,42 +10,57 @@ import { webExtensionApi } from "../web-extension-api.ts";
 
 import { SPECIAL_DIRS } from "../constants.ts";
 
-const PathEditorHelpers: Record<string, any> = {
+type PathRow = { depth: number; body: string; comment: string };
+type EditorOwner = { rebuildVisual?: () => void };
+type InsertEntry = {
+  variable: string;
+  value: string;
+  button: HTMLButtonElement;
+  valueEl: HTMLElement;
+};
+type MessageResponse = {
+  body?: {
+    variables?: string[];
+    interpolatedVariables?: Record<string, string>;
+  };
+};
+
+const PathEditorHelpers = {
   // "  >>i/cats // cute (alias: Cats)" -> { depth: 2, body: "i/cats",
   // comment: "cute (alias: Cats)" }. Round-trips through serializeLine
   // with whitespace normalized.
-  parseLine: (line) => {
+  parseLine: (line: string): PathRow => {
     const commentIdx = line.indexOf("//");
     const rawBody = commentIdx === -1 ? line : line.slice(0, commentIdx);
     const comment = commentIdx === -1 ? "" : line.slice(commentIdx + 2).trim();
     const depthMatch = rawBody.trim().match(/^(>*)\s*(.*)$/);
     return {
-      depth: depthMatch[1].length,
-      body: depthMatch[2].trim(),
+      depth: depthMatch?.[1].length ?? 0,
+      body: depthMatch?.[2].trim() ?? "",
       comment,
     };
   },
 
-  serializeLine: (row) =>
+  serializeLine: (row: PathRow): string =>
     `${">".repeat(row.depth)}${row.body}${row.comment ? ` // ${row.comment}` : ""}`,
 
-  linesToRows: (text) =>
+  linesToRows: (text: string): PathRow[] =>
     text
       .split("\n")
-      .map((l) => l.trim())
-      .filter((l) => l.length > 0)
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0)
       .map(PathEditorHelpers.parseLine),
 
-  rowsToLines: (rows) => rows.map(PathEditorHelpers.serializeLine),
+  rowsToLines: (rows: PathRow[]): string[] => rows.map(PathEditorHelpers.serializeLine),
 
-  getAlias: (comment) => {
+  getAlias: (comment: string): string => {
     const match = (comment || "").match(/\(alias:\s*([^)]*)\)/);
     return match ? match[1].trim() : "";
   },
 
   // Replaces (or appends/removes) the (alias: …) meta while leaving the
   // rest of the comment untouched
-  setAlias: (comment, alias) => {
+  setAlias: (comment: string, alias: string): string => {
     const cleaned = (comment || "").replace(/\s*\(alias:\s*[^)]*\)/, "").trim();
     if (!alias) {
       return cleaned;
@@ -57,13 +72,13 @@ const PathEditorHelpers: Record<string, any> = {
   // deprecated but remains the only way a programmatic edit joins the
   // browser's undo stack (it also fires input itself); setRangeText is
   // the non-undoable fallback (e.g. under jsdom)
-  insertText: (textarea, text, start, end) => {
+  insertText: (textarea: HTMLTextAreaElement, text: string, start: number, end: number): void => {
     textarea.focus();
     textarea.setSelectionRange(start, end);
     let inserted = false;
     try {
       inserted = document.execCommand("insertText", false, text);
-    } catch (e) {
+    } catch {
       inserted = false;
     }
     if (!inserted) {
@@ -72,14 +87,14 @@ const PathEditorHelpers: Record<string, any> = {
     }
   },
 
-  insertAtCursor: (textarea, text) => {
+  insertAtCursor: (textarea: HTMLTextAreaElement, text: string): void => {
     const start = textarea.selectionStart != null ? textarea.selectionStart : textarea.value.length;
     const end = textarea.selectionEnd != null ? textarea.selectionEnd : start;
     PathEditorHelpers.insertText(textarea, text, start, end);
   },
 
   // Inserts a whole line after the line the cursor is on
-  insertLine: (textarea, line) => {
+  insertLine: (textarea: HTMLTextAreaElement, line: string): void => {
     const start = textarea.selectionStart != null ? textarea.selectionStart : textarea.value.length;
     let lineEnd = textarea.value.indexOf("\n", start);
     if (lineEnd === -1) {
@@ -93,17 +108,15 @@ const PathEditorHelpers: Record<string, any> = {
   // and a filterable variable list. The menu targets the textarea named
   // by its data-insert-target; children are found by class so the same
   // markup shape works for the paths and rules editors.
-  setupInsertMenu: (menuSelector) => {
-    /** @type {HTMLDetailsElement} */
-    const menu = document.querySelector(menuSelector);
+  setupInsertMenu: (menuSelector: string): void => {
+    const menu = document.querySelector<HTMLDetailsElement>(menuSelector);
     if (!menu) {
       return;
     }
-    /** @type {HTMLTextAreaElement} */
-    const textarea = document.querySelector(`#${menu.dataset.insertTarget}`);
-    const variablesContainer = menu.querySelector(".insert-menu-variables");
-    /** @type {HTMLInputElement} */
-    const filter = menu.querySelector(".insert-menu-filter");
+    const target = menu.dataset.insertTarget;
+    const textarea = target ? document.querySelector<HTMLTextAreaElement>(`#${target}`) : null;
+    const variablesContainer = menu.querySelector<HTMLElement>(".insert-menu-variables");
+    const filter = menu.querySelector<HTMLInputElement>(".insert-menu-filter");
     if (!textarea || !variablesContainer) {
       return;
     }
@@ -112,22 +125,21 @@ const PathEditorHelpers: Record<string, any> = {
       menu.open = false;
     };
 
-    menu.querySelectorAll("[data-insert-line]").forEach((/** @type {HTMLElement} */ button) => {
+    menu.querySelectorAll<HTMLElement>("[data-insert-line]").forEach((button) => {
       button.addEventListener("click", () => {
-        PathEditorHelpers.insertLine(textarea, button.dataset.insertLine);
+        PathEditorHelpers.insertLine(textarea, button.dataset.insertLine ?? "");
         closeMenu();
       });
     });
 
-    /** @type {{ variable: string, value: string, button: HTMLButtonElement, valueEl: HTMLElement }[]} */
-    const entries = [];
+    const entries: InsertEntry[] = [];
 
     // Interpolated values come from the last download and change with
     // every save, so they are re-fetched each time the menu opens
     const refreshValues = () => {
       webExtensionApi.runtime
         .sendMessage({ type: "CHECK_ROUTES" })
-        .then((res) => {
+        .then((res: MessageResponse) => {
           const values = (res && res.body && res.body.interpolatedVariables) || {};
           entries.forEach((entry) => {
             entry.value = values[entry.variable] || "";
@@ -150,9 +162,9 @@ const PathEditorHelpers: Record<string, any> = {
 
     webExtensionApi.runtime
       .sendMessage({ type: "GET_KEYWORDS" })
-      .then((res) => {
+      .then((res: MessageResponse) => {
         const variables = (res && res.body && res.body.variables) || [];
-        variables.forEach((variable) => {
+        variables.forEach((variable: string) => {
           const button = document.createElement("button");
           button.type = "button";
           button.className = "insert-menu-variable";
@@ -215,26 +227,25 @@ const PathEditorHelpers: Record<string, any> = {
 
   // Text/Visual sub-tabs inside the Downloads Menu tab: both edit the same
   // list; text is the default and stays the source of truth
-  setupModeToggle: (owner) => {
-    const textButton = document.querySelector("#paths-mode-text");
-    const visualButton = document.querySelector("#paths-mode-visual");
-    /** @type {HTMLElement[]} */
+  setupModeToggle: (owner: EditorOwner): void => {
+    const textButton = document.querySelector<HTMLElement>("#paths-mode-text");
+    const visualButton = document.querySelector<HTMLElement>("#paths-mode-visual");
     const textElements = [
       document.querySelector("#paths-text-help"),
       document.querySelector("#paths-text-actions"),
       document.querySelector("#paths"),
       document.querySelector("#error-paths"),
-    ];
-    /** @type {HTMLElement} */
-    const visualContainer = document.querySelector("#paths-visual") as HTMLElement;
+    ] as (HTMLElement | null)[];
+    const visualContainer = document.querySelector<HTMLElement>("#paths-visual");
     if (!textButton || !visualButton || !visualContainer || textElements.some((el) => !el)) {
       return;
     }
+    const visibleTextElements = textElements as HTMLElement[];
 
-    const select = (visual) => {
+    const select = (visual: boolean): void => {
       textButton.classList.toggle("active", !visual);
       visualButton.classList.toggle("active", visual);
-      textElements.forEach((el: any) => {
+      visibleTextElements.forEach((el) => {
         el.hidden = visual;
       });
       visualContainer.hidden = !visual;
@@ -247,16 +258,16 @@ const PathEditorHelpers: Record<string, any> = {
     visualButton.addEventListener("click", () => select(true));
   },
 
-  setupVisualEditor: (owner) => {
-    const textarea = document.querySelector("#paths") as HTMLTextAreaElement;
-    const container = document.querySelector("#path-editor-rows");
+  setupVisualEditor: (owner: EditorOwner): void => {
+    const textarea = document.querySelector<HTMLTextAreaElement>("#paths");
+    const container = document.querySelector<HTMLElement>("#path-editor-rows");
     if (!textarea || !container) {
       return;
     }
 
-    let rows = [];
+    let rows: PathRow[] = [];
     // Index being dragged via a row handle; null when no drag is active
-    let dragFrom = null;
+    let dragFrom: number | null = null;
 
     // Serialize rows back to the textarea (the source of truth) and let
     // the normal pipeline (autosave, previews) react
@@ -310,7 +321,7 @@ const PathEditorHelpers: Record<string, any> = {
             return;
           }
           const [moved] = rows.splice(dragFrom, 1);
-          rows.splice(index, 0, moved);
+          if (moved) rows.splice(index, 0, moved);
           dragFrom = null;
           commit();
           rebuild();
@@ -351,8 +362,7 @@ const PathEditorHelpers: Record<string, any> = {
           rowEl.appendChild(alias);
         }
 
-        /** @type {[string, string, () => void][]} */
-        const controls = [
+        const controls: [string, string, () => void][] = [
           [
             "◀",
             "outdent",
@@ -372,7 +382,8 @@ const PathEditorHelpers: Record<string, any> = {
             "move up",
             () => {
               if (index > 0) {
-                rows.splice(index - 1, 0, rows.splice(index, 1)[0]);
+                const moved = rows.splice(index, 1)[0];
+                if (moved) rows.splice(index - 1, 0, moved);
               }
             },
           ],
@@ -381,7 +392,8 @@ const PathEditorHelpers: Record<string, any> = {
             "move down",
             () => {
               if (index < rows.length - 1) {
-                rows.splice(index + 1, 0, rows.splice(index, 1)[0]);
+                const moved = rows.splice(index, 1)[0];
+                if (moved) rows.splice(index + 1, 0, moved);
               }
             },
           ],
@@ -394,7 +406,7 @@ const PathEditorHelpers: Record<string, any> = {
           ],
         ];
 
-        controls.forEach(([glyph, title, action]: any) => {
+        controls.forEach(([glyph, title, action]) => {
           const button = document.createElement("button");
           button.type = "button";
           button.className = "path-editor-control";
@@ -432,7 +444,7 @@ const PathEditorHelpers: Record<string, any> = {
 
     // Follow textarea edits made anywhere (typing in the Downloads tab,
     // templates, restore); our own commits also funnel through this
-    let rebuildTimer = null;
+    let rebuildTimer: number | null = null;
     textarea.addEventListener("input", () => {
       if (rebuildTimer !== null) {
         window.clearTimeout(rebuildTimer);
@@ -461,7 +473,7 @@ export class PathEditor {
   static insertAtCursor = PathEditorHelpers.insertAtCursor;
   static insertLine = PathEditorHelpers.insertLine;
 
-  setupInsertMenu(menuSelector) {
+  setupInsertMenu(menuSelector: string): void {
     PathEditorHelpers.setupInsertMenu(menuSelector);
   }
 

@@ -365,7 +365,9 @@ const renderVariablesPreview = () => {
         }
 
         const targetId = panel.dataset.insertTarget;
-        const target = targetId ? document.querySelector(`#${targetId}`) : null;
+        const target = targetId
+          ? document.querySelector<HTMLTextAreaElement>(`#${targetId}`)
+          : null;
 
         const table = document.createElement("table");
         table.className = "variables-preview-table";
