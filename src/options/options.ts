@@ -781,7 +781,7 @@ window.confirmPendingChanges = () => {
           const response = await saveOptions(undefined, id);
           fieldSaveState.succeed(id, token);
           if (manualEditorState.dirtyIds().includes(id)) {
-            manualEditorState.markSaved(
+            return manualEditorState.markSaved(
               id,
               webExtensionApi.i18n.getMessage("o_lSaved") || "Saved",
               getAppliedValue(response, id),
