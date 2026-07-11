@@ -5,16 +5,18 @@ import { RequestHeaders } from "./headers.ts";
 import { Notifier } from "./notification.ts";
 import { SessionState } from "./session-state.ts";
 import { Log } from "./log.ts";
-import { MESSAGE_TYPES } from "./constants.ts";
-import { OffscreenClient } from "./offscreen-client.ts";
 import { Router } from "./router.ts";
 import { Path } from "./path.ts";
 import { Variable } from "./variable.ts";
 import { SaveHistory } from "./history.ts";
-import { Messaging } from "./messaging.ts";
 import { options } from "./options-data.ts";
 import { CURRENT_BROWSER, BROWSERS } from "./chrome-detector.ts";
 import { getFilenameFromContentDispositionHeader } from "./vendor/content-disposition.ts";
+import { makeUrlFromBlob } from "./content-fetch.ts";
+import { OffscreenClient } from "./offscreen-client.ts";
+import { EXTENSION_REGEX, getFilenameFromUrl } from "./filename.ts";
+import { DownloadEvents } from "./download-events.ts";
+import { DownloadRetry } from "./download-retry.ts";
 
 // Most-recent download state: fallback for consumers that can't correlate
 // by URL. Concurrent downloads are disambiguated via Download.pendingStates.
@@ -25,7 +27,6 @@ export const Download = {
   // A trailing dotted token of 1–8 alnum chars, but NOT an all-digit one:
   // "photo.12345" is an id/version, not a ".12345" extension (§8.1). Real
   // numeric-bearing extensions keep a letter (mp3, mp4, h264, 7z).
-  EXTENSION_REGEX: /\.(?!\d+$)([0-9a-z]{1,8})$/i,
 
   // url -> state for in-flight downloads, so onDeterminingFilename (Chrome)
   // and the referer listener (Firefox) attribute the right state when two
@@ -80,7 +81,7 @@ export const Download = {
           }
           return response.blob();
         })
-        .then((blob) => Download.makeUrlFromBlob(blob))
+        .then((blob) => makeUrlFromBlob(blob))
         .then((blobUrl) => {
           Download.pendingRetryFilenames.set(blobUrl, record.filename);
           // expectDownload so the retry download is tracked via the in-memory
@@ -146,96 +147,6 @@ export const Download = {
     return `data:${mime};charset=utf-8;base64,${btoa(binary)}`;
   },
 
-  // Object URL if available (MV2), data URL otherwise (MV3 service workers)
-  makeUrlFromBlob: (blob) => {
-    if (typeof URL.createObjectURL === "function") {
-      return Promise.resolve(URL.createObjectURL(blob));
-    }
-
-    return blob.arrayBuffer().then((buf) => {
-      const bytes = new Uint8Array(buf);
-      let binary = "";
-      const chunkSize = 0x8000;
-      for (let i = 0; i < bytes.length; i += chunkSize) {
-        binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunkSize));
-      }
-      const mime = blob.type || "application/octet-stream";
-      return `data:${mime};base64,${btoa(binary)}`;
-    });
-  },
-
-  // Content hashing pulls the whole file into memory, so it is capped (bigger
-  // files are skipped) and time-limited.
-  HASH_MAX_BYTES: 256 * 1024 * 1024,
-  HASH_FETCH_TIMEOUT_MS: 30000,
-
-  // Fetch a URL's content ONCE and resolve to both its SHA-256 (hex) and a
-  // reusable download URL, so a :sha256: download isn't fetched a second time
-  // to save it. On Chrome the fetch/hash/blob-URL happen together in the
-  // offscreen document (a service worker can't createObjectURL); on the Firefox
-  // event page it's all in-context. Resolves to null on failure / over-cap so
-  // the caller falls back to a normal fetch.
-  resolveContent: (url) => {
-    if (OffscreenClient.canUse()) {
-      return OffscreenClient.ensure()
-        .then(() =>
-          chrome.runtime.sendMessage({
-            type: MESSAGE_TYPES.OFFSCREEN_FETCH,
-            url,
-            hash: "SHA-256",
-            maxBytes: Download.HASH_MAX_BYTES,
-          }),
-        )
-        .then((res) =>
-          res && res.blobUrl ? { sha256: res.hash || "", downloadUrl: res.blobUrl } : null,
-        )
-        .catch(() => null);
-    }
-
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), Download.HASH_FETCH_TIMEOUT_MS);
-    return fetch(url, { credentials: "include", signal: controller.signal })
-      .then((res) => {
-        if (!res.ok || Number(res.headers.get("Content-Length")) > Download.HASH_MAX_BYTES) {
-          return null;
-        }
-        return res.blob();
-      })
-      .then((blob) => {
-        if (!blob || blob.size > Download.HASH_MAX_BYTES) {
-          return null;
-        }
-        return blob.arrayBuffer().then((buf) =>
-          crypto.subtle.digest("SHA-256", buf).then((digest) => ({
-            sha256: [...new Uint8Array(digest)]
-              .map((b) => b.toString(16).padStart(2, "0"))
-              .join(""),
-            downloadUrl: URL.createObjectURL(blob),
-          })),
-        );
-      })
-      .catch(() => null)
-      .finally(() => clearTimeout(timer));
-  },
-
-  getFilenameFromUrl: (url) => {
-    let segment;
-    try {
-      const remotePath = new URL(url).pathname;
-      segment = remotePath.substring(remotePath.lastIndexOf("/") + 1);
-    } catch (e) {
-      // Not a parseable URL (e.g. a data: URL handled elsewhere): no name
-      return "";
-    }
-    try {
-      // A malformed percent-escape (e.g. "50%off.jpg") must not abort the
-      // whole download — fall back to the raw segment
-      return decodeURIComponent(segment);
-    } catch (e) {
-      return segment;
-    }
-  },
-
   finalizeFullPath: (_state) => {
     let finalDir = _state.path.finalize();
     let finalFilename;
@@ -262,7 +173,7 @@ export const Download = {
       _state.scratch &&
       _state.scratch.mimeExtension &&
       finalFilename &&
-      !Download.EXTENSION_REGEX.test(finalFilename)
+      !EXTENSION_REGEX.test(finalFilename)
     ) {
       finalFilename = `${finalFilename}.${_state.scratch.mimeExtension}`;
     }
@@ -320,7 +231,7 @@ export const Download = {
   // :counter:/:mime: transformer). Callers fire-and-forget, so awaiting the
   // path/route interpolation here before the download is safe.
   renameAndDownload: async (state) => {
-    const naiveFilename = Download.getFilenameFromUrl(state.info.url);
+    const naiveFilename = getFilenameFromUrl(state.info.url);
     const initialFilename = state.info.suggestedFilename || naiveFilename || state.info.url;
 
     Object.assign(state.info, {
@@ -358,7 +269,7 @@ export const Download = {
         state.route && !state.routeIsFolder
           ? state.route.finalize()
           : Path.sanitizeFilename(state.info.filename);
-      if (tentative && !Download.EXTENSION_REGEX.test(tentative)) {
+      if (tentative && !EXTENSION_REGEX.test(tentative)) {
         const ext = Variable.mimeToExtension(await Variable.resolveMime(state.info));
         if (ext) {
           state.scratch.mimeExtension = ext;
@@ -384,7 +295,7 @@ export const Download = {
         console.log(_state, finalFullPath); // eslint-disable-line
       }
 
-      _state.scratch.hasExtension = finalFullPath && finalFullPath.match(Download.EXTENSION_REGEX);
+      _state.scratch.hasExtension = finalFullPath && finalFullPath.match(EXTENSION_REGEX);
       const noExtensionPrompt = options.promptIfNoExtension && !_state.scratch.hasExtension;
       const shiftHeldPrompt =
         options.promptOnShift &&
@@ -485,7 +396,7 @@ export const Download = {
 
         fetch(_url, { credentials: "include" })
           .then((response) => response.blob())
-          .then((myBlob) => Download.makeUrlFromBlob(myBlob))
+          .then((myBlob) => makeUrlFromBlob(myBlob))
           .then((blobUrl) => browserDownload(blobUrl, true))
           .catch((e) => {
             // A failed fetch (network/CORS) must not be a silent no-op
@@ -536,7 +447,7 @@ export const Download = {
         normalDownload();
       }
 
-      Messaging.emit.downloaded(_state);
+      DownloadEvents.downloaded(_state);
       window.lastDownloadState = _state;
     };
 
@@ -585,6 +496,7 @@ export const Download = {
 // MV3 (Chrome): entry.background calls this synchronously at startup so the
 // onDeterminingFilename listener is attached before any download event fires.
 export const registerDownloadListener = () => {
+  DownloadRetry.retry = Download.retryViaFetch;
   if (chrome && chrome.downloads && chrome.downloads.onDeterminingFilename) {
     chrome.downloads.onDeterminingFilename.addListener((downloadItem, suggest) => {
       // Don't interfere with other extensions

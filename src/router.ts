@@ -1,5 +1,5 @@
 import { RULE_TYPES } from "./constants.ts";
-import { Download } from "./download.ts";
+import { EXTENSION_REGEX, getFilenameFromUrl } from "./filename.ts";
 import { currentTab } from "./current-tab.ts";
 
 // SI_DEBUG match logging, deduped from the ~9 identical blocks it replaced
@@ -84,7 +84,7 @@ export const Router: Record<string, any> = {
       const url = info.sourceUrl || info.srcUrl || info.linkUrl || info.pageUrl;
       if (!url) return false;
 
-      const extension = url.match(Download.EXTENSION_REGEX);
+      const extension = url.match(EXTENSION_REGEX);
       if (!extension) return false;
 
       const match = extension[1].match(regex);
@@ -112,7 +112,7 @@ export const Router: Record<string, any> = {
       const url = info.srcUrl || info.linkUrl || info.pageUrl;
       if (!url) return false;
 
-      const filename = Download.getFilenameFromUrl(url);
+      const filename = getFilenameFromUrl(url);
       if (!filename) return false;
 
       const match = filename.match(regex);

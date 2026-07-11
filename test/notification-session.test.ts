@@ -30,15 +30,15 @@ vi.mock("../src/chrome-detector.ts", () => ({
   },
 }));
 
-// download.ts is mocked because the notifier's retry gating toggles it between
-// "absent" (the default: no automatic retry) and a stub exposing retryViaFetch,
-// which import-real can't express — a hoisted, mutable holder drives it. Real
-// download.ts would also register onDeterminingFilename and pull the whole
-// download pipeline in via the notification cycle.
-const downloadHolder = vi.hoisted(() => ({ Download: undefined as any }));
-vi.mock("../src/download.ts", () => ({
-  get Download() {
-    return downloadHolder.Download;
+const retryHolder = vi.hoisted(() => ({
+  retry: vi.fn((downloadId: any) => {
+    void downloadId;
+    return Promise.resolve(false);
+  }),
+}));
+vi.mock("../src/download-retry.ts", () => ({
+  DownloadRetry: {
+    retry: (downloadId: any) => retryHolder.retry(downloadId),
   },
 }));
 
@@ -93,8 +93,10 @@ const setupGlobals = (sessionStore: Record<string, any>, searchResults: (query: 
   DownloadState.records.clear();
   DownloadState.hydration = null;
   browserState.current = "CHROME";
-  // Default: no automatic-retry download stub (the gating suite sets one)
-  downloadHolder.Download = undefined;
+  retryHolder.retry = vi.fn((downloadId: any) => {
+    void downloadId;
+    return Promise.resolve(false);
+  });
 
   (global.browser as any).runtime = Object.assign(global.browser.runtime || {}, { id: "save-in" });
   (global.browser.storage as any).session = makeSessionMock(sessionStore);
@@ -715,10 +717,10 @@ describe("automatic fetch fallback gating", () => {
       notifyDuration: 1000,
       promptOnFailure: false,
     });
-    downloadHolder.Download =
-      retryResult === undefined
-        ? undefined
-        : { retryViaFetch: jest.fn(() => Promise.resolve(retryResult)) };
+    retryHolder.retry = vi.fn((downloadId: any) => {
+      void downloadId;
+      return Promise.resolve(retryResult === true);
+    });
 
     [[onCreated]] = vi.mocked(global.browser.downloads.onCreated.addListener).mock.calls;
     [[onChanged]] = vi.mocked(global.browser.downloads.onChanged.addListener).mock.calls;
@@ -739,7 +741,7 @@ describe("automatic fetch fallback gating", () => {
     onChanged({ id: 7, error: { current: "NETWORK_FAILED" } });
     await flush();
 
-    expect(downloadHolder.Download.retryViaFetch).toHaveBeenCalledWith(7);
+    expect(retryHolder.retry).toHaveBeenCalledWith(7);
     expect(global.browser.notifications.create).not.toHaveBeenCalled();
     // The failed original is untracked; the retry tracks itself
     expect(adoptedIds(sessionStore)).toEqual([]);
@@ -751,7 +753,7 @@ describe("automatic fetch fallback gating", () => {
     onChanged({ id: 7, error: { current: "SERVER_FORBIDDEN" } });
     await flush();
 
-    expect(downloadHolder.Download.retryViaFetch).toHaveBeenCalledWith(7);
+    expect(retryHolder.retry).toHaveBeenCalledWith(7);
     expect(global.browser.notifications.create).toHaveBeenCalled();
   });
 
@@ -761,7 +763,7 @@ describe("automatic fetch fallback gating", () => {
     onChanged({ id: 7, error: { current: "FILE_FAILED" } });
     await flush();
 
-    expect(downloadHolder.Download.retryViaFetch).not.toHaveBeenCalled();
+    expect(retryHolder.retry).not.toHaveBeenCalled();
     expect(global.browser.notifications.create).toHaveBeenCalled();
   });
 
@@ -771,7 +773,7 @@ describe("automatic fetch fallback gating", () => {
     onChanged({ id: 7, error: { current: "USER_CANCELED" } });
     await flush();
 
-    expect(downloadHolder.Download.retryViaFetch).not.toHaveBeenCalled();
+    expect(retryHolder.retry).not.toHaveBeenCalled();
     expect(global.browser.notifications.create).not.toHaveBeenCalled();
   });
 });

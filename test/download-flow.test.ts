@@ -64,7 +64,7 @@ const { Variable } = await import("../src/variable.ts");
 const { Notifier } = await import("../src/notification.ts");
 const { Path } = await import("../src/path.ts");
 const { RequestHeaders } = await import("../src/headers.ts");
-const { Messaging } = await import("../src/messaging.ts");
+const { DownloadEvents } = await import("../src/download-events.ts");
 // download.ts already loaded chrome-detector into the graph; this is the same
 // instance it reads CURRENT_BROWSER from. global.browser (above) has no
 // getBrowserInfo, so its load-time detection settled on Chrome.
@@ -141,7 +141,7 @@ beforeEach(() => {
   vi.spyOn(Log, "add").mockImplementation(() => Promise.resolve());
 
   // Reset the emit stub between tests (it is a mock-factory vi.fn, not a spy)
-  Messaging.emit.downloaded = vi.fn();
+  DownloadEvents.downloaded = vi.fn();
 
   vi.mocked(getFilenameFromContentDispositionHeader).mockReset();
   vi.mocked(getFilenameFromContentDispositionHeader).mockReturnValue(null);
@@ -460,7 +460,7 @@ describe("renameAndDownload: needRouteMatch", () => {
     await flush();
 
     expect(global.browser.downloads.download).not.toHaveBeenCalled();
-    expect(Messaging.emit.downloaded).not.toHaveBeenCalled();
+    expect(DownloadEvents.downloaded).not.toHaveBeenCalled();
     expect(SaveHistory.add).not.toHaveBeenCalled();
   });
 
@@ -630,7 +630,7 @@ describe("renameAndDownload: browserDownload", () => {
 
     await Download.renameAndDownload(state);
 
-    expect(Messaging.emit.downloaded).toHaveBeenCalledWith(state);
+    expect(DownloadEvents.downloaded).toHaveBeenCalledWith(state);
     expect(window.lastDownloadState).toBe(state);
     expect(SaveHistory.add).toHaveBeenCalledWith(
       expect.objectContaining({

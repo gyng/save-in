@@ -11,6 +11,7 @@ import { Router } from "./router.ts";
 import { Notifier } from "./notification.ts";
 import { Download } from "./download.ts";
 import { currentTab } from "./current-tab.ts";
+import { DownloadEvents } from "./download-events.ts";
 
 export const Messaging = {
   // ─── External DOWNLOAD API (issue #110) ────────────────────────────────
@@ -309,6 +310,7 @@ export const Messaging = {
 // MV3: entry.background calls this synchronously at startup so a worker woken BY
 // an incoming message still has the handlers attached.
 export const registerMessaging = () => {
+  DownloadEvents.downloaded = Messaging.emit.downloaded;
   browser.runtime.onMessageExternal.addListener((request, sender, sendResponse) => {
     switch (request.type) {
       case MESSAGE_TYPES.PING:

@@ -1,24 +1,25 @@
 import { Download } from "../src/download.ts";
+import { EXTENSION_REGEX, getFilenameFromUrl } from "../src/filename.ts";
 import { options } from "../src/options-data.ts";
 
 test("extension detection regex", () => {
-  const match = "abc.xyz".match(Download.EXTENSION_REGEX);
+  const match = "abc.xyz".match(EXTENSION_REGEX);
   expect(match).toHaveLength(2);
   expect(match[0]).toBe(".xyz");
   expect(match[1]).toBe("xyz");
-  expect("abc.XYZ".match(Download.EXTENSION_REGEX)).toHaveLength(2);
-  expect("abcxyz".match(Download.EXTENSION_REGEX)).toBeFalsy();
-  expect("abc.jpg:xyz".match(Download.EXTENSION_REGEX)).toBeFalsy();
-  expect("abc.jpg:xyz".match(Download.EXTENSION_REGEX)).toBeFalsy();
-  expect("abc.bananas".match(Download.EXTENSION_REGEX)).toHaveLength(2);
-  expect("abc.bananas123".match(Download.EXTENSION_REGEX)).toBeFalsy();
+  expect("abc.XYZ".match(EXTENSION_REGEX)).toHaveLength(2);
+  expect("abcxyz".match(EXTENSION_REGEX)).toBeFalsy();
+  expect("abc.jpg:xyz".match(EXTENSION_REGEX)).toBeFalsy();
+  expect("abc.jpg:xyz".match(EXTENSION_REGEX)).toBeFalsy();
+  expect("abc.bananas".match(EXTENSION_REGEX)).toHaveLength(2);
+  expect("abc.bananas123".match(EXTENSION_REGEX)).toBeFalsy();
   // Numeric-bearing real extensions keep their letter and still match
-  expect("song.mp3".match(Download.EXTENSION_REGEX)[1]).toBe("mp3");
-  expect("clip.h264".match(Download.EXTENSION_REGEX)[1]).toBe("h264");
-  expect("a.7z".match(Download.EXTENSION_REGEX)[1]).toBe("7z");
+  expect("song.mp3".match(EXTENSION_REGEX)[1]).toBe("mp3");
+  expect("clip.h264".match(EXTENSION_REGEX)[1]).toBe("h264");
+  expect("a.7z".match(EXTENSION_REGEX)[1]).toBe("7z");
   // An all-digit trailing token is an id/version, not an extension (§8.1)
-  expect("photo.12345".match(Download.EXTENSION_REGEX)).toBeFalsy();
-  expect("IMG_0001.20240607".match(Download.EXTENSION_REGEX)).toBeFalsy();
+  expect("photo.12345".match(EXTENSION_REGEX)).toBeFalsy();
+  expect("IMG_0001.20240607".match(EXTENSION_REGEX)).toBeFalsy();
 });
 
 describe("finalizeFullPath: MIME extension append (§8.1)", () => {
@@ -99,15 +100,15 @@ describe("finalizeFullPath: folder-only route keeps the real filename (§8.1)", 
 
 describe("filename from URL", () => {
   test("extracts filenames from URL", () => {
-    expect(Download.getFilenameFromUrl("https://baz.com/foo.bar")).toBe("foo.bar");
-    expect(Download.getFilenameFromUrl("ftp://baz.com/foo.bar")).toBe("foo.bar");
-    expect(Download.getFilenameFromUrl("http://baz.x/a/foo.bar")).toBe("foo.bar");
-    expect(Download.getFilenameFromUrl("https://user:pass@baz.x/a/foo.bar")).toBe("foo.bar");
+    expect(getFilenameFromUrl("https://baz.com/foo.bar")).toBe("foo.bar");
+    expect(getFilenameFromUrl("ftp://baz.com/foo.bar")).toBe("foo.bar");
+    expect(getFilenameFromUrl("http://baz.x/a/foo.bar")).toBe("foo.bar");
+    expect(getFilenameFromUrl("https://user:pass@baz.x/a/foo.bar")).toBe("foo.bar");
   });
 
   test("extracts URI-encoded filenames from URL", () => {
     expect(
-      Download.getFilenameFromUrl(
+      getFilenameFromUrl(
         "http://a.ne.jp/foo/(ok)%20%E3%82%B7%E3%83%A3%E3%82%A4%E3%83%8B%E3%83%B3%E3%82%B0.bar",
       ),
     ).toBe("(ok) シャイニング.bar");
@@ -115,12 +116,12 @@ describe("filename from URL", () => {
 
   test("keeps a literal % that is not a valid escape (no throw)", () => {
     // decodeURIComponent("50%off.jpg") throws URIError — must not abort
-    expect(Download.getFilenameFromUrl("https://x.com/50%off.jpg")).toBe("50%off.jpg");
-    expect(Download.getFilenameFromUrl("https://x.com/a/file%.jpg")).toBe("file%.jpg");
+    expect(getFilenameFromUrl("https://x.com/50%off.jpg")).toBe("50%off.jpg");
+    expect(getFilenameFromUrl("https://x.com/a/file%.jpg")).toBe("file%.jpg");
   });
 
   test("returns an empty string for an unparseable URL", () => {
-    expect(Download.getFilenameFromUrl("not a url")).toBe("");
+    expect(getFilenameFromUrl("not a url")).toBe("");
   });
 });
 

@@ -4,7 +4,7 @@ import { DownloadState } from "./download-state.ts";
 import { SessionState } from "./session-state.ts";
 import { options } from "./options-data.ts";
 import { CURRENT_BROWSER, BROWSERS } from "./chrome-detector.ts";
-import { Download } from "./download.ts";
+import { DownloadRetry } from "./download-retry.ts";
 import { SaveHistory } from "./history.ts";
 import { Log } from "./log.ts";
 
@@ -236,16 +236,12 @@ export const Notifier = {
       // Record the final outcome against the history entry (independent of
       // whether success/failure notifications are enabled)
       const recordHistoryStatus = (status) => {
-        if (
-          typeof Download === "undefined" ||
-          !Download.getStartedDownload ||
-          typeof SaveHistory === "undefined"
-        ) {
+        if (typeof SaveHistory === "undefined") {
           return;
         }
         // Read from memory, or the persisted copy if the worker restarted since
         // the download started (so a mid-restart download still gets its status)
-        Download.getStartedDownload(downloadDelta.id).then((started) => {
+        DownloadState.get(downloadDelta.id).then((started) => {
           if (!started || !started.historyEntryId) {
             return;
           }
@@ -331,13 +327,10 @@ export const Notifier = {
         // Automatic fallback chain: network/server failures get one retry
         // through the background fetch before the user sees a failure
         const errorName = (failed && failed.current) || "";
-        const canRetry =
-          /^(NETWORK_|SERVER_)/.test(errorName) &&
-          typeof Download !== "undefined" &&
-          typeof Download.retryViaFetch === "function";
+        const canRetry = /^(NETWORK_|SERVER_)/.test(errorName);
 
         if (canRetry) {
-          Download.retryViaFetch(downloadDelta.id).then((retried) => {
+          DownloadRetry.retry(downloadDelta.id).then((retried) => {
             if (retried) {
               if (typeof Log !== "undefined") {
                 Log.add("retrying failed download via fetch", { id: downloadDelta.id });

@@ -1,6 +1,6 @@
 import { Variable } from "../src/variable.ts";
 import { Path } from "../src/path.ts";
-import { Download } from "../src/download.ts";
+import { HASH_MAX_BYTES } from "../src/content-fetch.ts";
 import { Counter } from "../src/counter.ts";
 // variable.ts reads options.replacementChar (via path.ts) at call time;
 // import the real options bag and mutate it (option.ts seeds
@@ -593,7 +593,7 @@ describe(":sha256: (async content hash)", () => {
       Promise.resolve({
         ok: true,
         headers: {
-          get: (h) => (h === "Content-Length" ? String(Download.HASH_MAX_BYTES + 1) : null),
+          get: (h) => (h === "Content-Length" ? String(HASH_MAX_BYTES + 1) : null),
         },
         blob: () =>
           Promise.resolve({ size: 0, arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)) }),

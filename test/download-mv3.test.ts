@@ -13,6 +13,7 @@ global.TextEncoder = global.TextEncoder || TextEncoder;
 
 import { Download } from "../src/download.ts";
 import { OffscreenClient } from "../src/offscreen-client.ts";
+import { makeUrlFromBlob, resolveContent } from "../src/content-fetch.ts";
 
 const decodeDataUrl = (url) => {
   const [meta, b64] = url.split(",");
@@ -99,7 +100,7 @@ describe("makeUrlFromBlob", () => {
   test("falls back to a data URL without URL.createObjectURL (MV3)", async () => {
     const blob = new NodeBlob(["binary-ish content"], { type: "image/png" });
 
-    const url = await Download.makeUrlFromBlob(blob);
+    const url = await makeUrlFromBlob(blob);
     const { meta, content } = decodeDataUrl(url);
 
     expect(meta).toBe("data:image/png;base64");
@@ -108,21 +109,21 @@ describe("makeUrlFromBlob", () => {
 
   test("defaults to application/octet-stream for untyped blobs", async () => {
     const blob = new NodeBlob(["x"]);
-    const url = await Download.makeUrlFromBlob(blob);
+    const url = await makeUrlFromBlob(blob);
     expect(url.startsWith("data:application/octet-stream;base64,")).toBe(true);
   });
 
   test("handles blobs larger than the base64 chunk size", async () => {
     const big = "a".repeat(0x8000 * 2 + 17);
     const blob = new NodeBlob([big], { type: "text/plain" });
-    const { content } = decodeDataUrl(await Download.makeUrlFromBlob(blob));
+    const { content } = decodeDataUrl(await makeUrlFromBlob(blob));
     expect(content).toBe(big);
   });
 
   test("uses URL.createObjectURL when available (MV2)", async () => {
     URL.createObjectURL = jest.fn(() => "blob:fake-object-url");
     const blob = new NodeBlob(["x"]);
-    await expect(Download.makeUrlFromBlob(blob)).resolves.toBe("blob:fake-object-url");
+    await expect(makeUrlFromBlob(blob)).resolves.toBe("blob:fake-object-url");
   });
 });
 
@@ -199,7 +200,7 @@ describe("offscreen document fetch (Chrome MV3)", () => {
     global.chrome.runtime.sendMessage = jest.fn(() =>
       Promise.resolve({ blobUrl: "blob:offscreen-url", hash: "deadbeef" }),
     );
-    const content = await Download.resolveContent("https://x/a");
+    const content = await resolveContent("https://x/a");
     // one offscreen fetch, asked to hash the same bytes it blob-ifies
     expect(global.chrome.runtime.sendMessage).toHaveBeenCalledWith(
       expect.objectContaining({ type: "OFFSCREEN_FETCH", url: "https://x/a", hash: "SHA-256" }),
@@ -209,14 +210,14 @@ describe("offscreen document fetch (Chrome MV3)", () => {
 
   test("resolveContent resolves null when the offscreen fetch fails", async () => {
     global.chrome.runtime.sendMessage = jest.fn(() => Promise.resolve({ error: "HTTP 500" }));
-    await expect(Download.resolveContent("https://x/a")).resolves.toBeNull();
+    await expect(resolveContent("https://x/a")).resolves.toBeNull();
   });
 
   test("resolveContent tolerates a missing hash (large-file skip) but still downloads", async () => {
     global.chrome.runtime.sendMessage = jest.fn(() =>
       Promise.resolve({ blobUrl: "blob:offscreen-url" }),
     );
-    const content = await Download.resolveContent("https://x/a");
+    const content = await resolveContent("https://x/a");
     expect(content).toEqual({ sha256: "", downloadUrl: "blob:offscreen-url" });
   });
 });

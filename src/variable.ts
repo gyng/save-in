@@ -1,5 +1,6 @@
 import { Util } from "./util.ts";
-import { Download } from "./download.ts";
+import { resolveContent } from "./content-fetch.ts";
+import { EXTENSION_REGEX, getFilenameFromUrl } from "./filename.ts";
 import { SPECIAL_DIRS, PATH_SEGMENT_TYPES } from "./constants.ts";
 import { Path } from "./path.ts";
 import { Counter } from "./counter.ts";
@@ -31,7 +32,7 @@ export const Variable = {
     ].join(""),
 
   getFileExtension: (filename) => {
-    const fileExtensionMatches = filename.match(Download.EXTENSION_REGEX);
+    const fileExtensionMatches = filename.match(EXTENSION_REGEX);
     return (fileExtensionMatches && fileExtensionMatches[1]) || "";
   },
 
@@ -179,17 +180,14 @@ export const Variable = {
 
   // Fetch the file's content once per download (cached on the info bag so every
   // :sha256: shares it — and the download reuses the same fetch rather than
-  // pulling the file down a second time, see Download.resolveContent). Resolves
+  // pulling the file down a second time, see content-fetch.ts). Resolves
   // to { sha256, downloadUrl } or null on failure/over-cap so a hash can never
   // block a save.
   resolveContent: (opts) => {
     if (opts.contentPromise) {
       return opts.contentPromise;
     }
-    opts.contentPromise =
-      opts.url && typeof Download !== "undefined" && Download.resolveContent
-        ? Download.resolveContent(opts.url)
-        : Promise.resolve(null);
+    opts.contentPromise = opts.url ? resolveContent(opts.url) : Promise.resolve(null);
     return opts.contentPromise;
   },
 
@@ -257,12 +255,12 @@ export const Variable = {
       opts => Path.PathSegment.String((opts.selectionText && opts.selectionText.trim()) || ""),
     [SPECIAL_DIRS.NAIVE_FILENAME]:
       opts => {
-        const naiveFilename = Download.getFilenameFromUrl(opts.url);
+        const naiveFilename = getFilenameFromUrl(opts.url);
         return Path.PathSegment.String(naiveFilename);
       },
     [SPECIAL_DIRS.NAIVE_FILE_EXTENSION]:
       opts => {
-        const naiveFilename = Download.getFilenameFromUrl(opts.url);
+        const naiveFilename = getFilenameFromUrl(opts.url);
         return Path.PathSegment.String(Variable.getFileExtension(naiveFilename));
       },
     // Async: an atomic, persistent counter (needs storage). Cached on the info
