@@ -173,6 +173,9 @@ describe("manual editor state", () => {
     state.setValidity("paths", true);
     state.setSaving("paths", true, "Saving…");
     expect(state.canSave("paths")).toBe(false);
+    expect(state.anySaving()).toBe(true);
+    state.setSaving("paths", false);
+    expect(state.anySaving()).toBe(false);
   });
 
   test("validation failure clears pending state and exposes retry without enabling Apply", () => {

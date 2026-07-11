@@ -181,6 +181,7 @@ export const createManualEditorState = (unsavedLabel: string) => {
   };
 
   const anyDirty = () => editors.some((editor) => editor.textarea.value !== editor.saved);
+  const anySaving = () => editors.some((editor) => editor.saving);
   const dirtyIds = () =>
     editors
       .filter((editor) => editor.textarea.value !== editor.saved)
@@ -205,6 +206,7 @@ export const createManualEditorState = (unsavedLabel: string) => {
     setup,
     refreshBaselines,
     anyDirty,
+    anySaving,
     dirtyIds,
     revision,
     canSave,

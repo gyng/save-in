@@ -750,6 +750,11 @@ const showManualSaveError = (id: string, error: unknown) => {
 // Called before an in-page tab switch (main tabs don't unload the page, so
 // beforeunload never fires). OK starts a save; Cancel keeps the editor open.
 window.confirmPendingChanges = () => {
+  // Apply already owns this editor revision. Keep the current tab visible
+  // until it settles instead of prompting and launching a duplicate save.
+  if (manualEditorState.anySaving()) {
+    return false;
+  }
   if (!fieldSaveState.hasUnsaved() && !anyManualEditorDirty()) {
     return true;
   }
