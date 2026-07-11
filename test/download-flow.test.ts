@@ -6,13 +6,6 @@
 // session-recovery path are covered by test/download-mv3.test.js and are not
 // duplicated here.
 
-const flush = async (times = 10) => {
-  for (let i = 0; i < times; i += 1) {
-    // eslint-disable-next-line no-await-in-loop
-    await Promise.resolve();
-  }
-};
-
 // DownloadState / OffscreenClient / SessionState / Log / SaveHistory are real
 // shared singletons the test drives directly (these modules don't pull download.ts
 // in, so importing them at the top can't force it to load early); the rest of
@@ -38,8 +31,7 @@ vi.mock("../src/vendor/content-disposition.ts", () => ({
 }));
 
 // storage.session-backed store the tests assert against; SessionState.update is
-// spied to write here synchronously (the real serialized queue would change the
-// flush() hop counts).
+// spied to write here synchronously so assertions can inspect the store directly.
 const sessionStore: Record<string, any> = {};
 
 // download.ts registers its onDeterminingFilename listener and reads
@@ -257,7 +249,6 @@ describe("renameAndDownload: MIME extension append (§8.1)", () => {
 
     const state = makeState({ info: { url: "https://cdn.example.com/img/12345" } });
     await Download.renameAndDownload(state);
-    await flush();
 
     expect(Variable.resolveMime).toHaveBeenCalledWith(state.info);
     expect(global.browser.downloads.download).toHaveBeenCalledWith(
@@ -273,7 +264,6 @@ describe("renameAndDownload: MIME extension append (§8.1)", () => {
 
     const state = makeState({ info: { url: "https://cdn.example.com/img/photo.png" } });
     await Download.renameAndDownload(state);
-    await flush();
 
     expect(Variable.resolveMime).not.toHaveBeenCalled();
     expect(global.browser.downloads.download).toHaveBeenCalledWith(
@@ -294,7 +284,6 @@ describe("renameAndDownload: shared :sha256: fetch reuse", () => {
     });
 
     await Download.renameAndDownload(state);
-    await flush();
 
     expect(global.browser.downloads.download).toHaveBeenCalledWith(
       expect.objectContaining({ url: "data:application/octet-stream;base64,eA==" }),
@@ -306,7 +295,6 @@ describe("renameAndDownload: shared :sha256: fetch reuse", () => {
     const state = makeState({ info: { contentPromise: Promise.resolve(null) } });
 
     await Download.renameAndDownload(state);
-    await flush();
 
     expect(global.browser.downloads.download).toHaveBeenCalledWith(
       expect.objectContaining({ url: state.info.url }),
@@ -322,7 +310,6 @@ describe("renameAndDownload: folder-only route (§8.1)", () => {
 
     const state = makeState();
     await Download.renameAndDownload(state);
-    await flush();
 
     expect(state.routeIsFolder).toBe(true);
     expect(global.browser.downloads.download).toHaveBeenCalledWith(
@@ -337,7 +324,6 @@ describe("renameAndDownload: folder-only route (§8.1)", () => {
 
     const state = makeState();
     await Download.renameAndDownload(state);
-    await flush();
 
     expect(state.routeIsFolder).toBe(false);
     expect(global.browser.downloads.download).toHaveBeenCalledWith(
@@ -354,7 +340,6 @@ describe("renameAndDownload: Chrome vs Firefox entry", () => {
     await Download.renameAndDownload(state);
     expect(global.fetch).not.toHaveBeenCalled();
 
-    await flush();
     expect(global.browser.downloads.download).toHaveBeenCalledWith(
       expect.objectContaining({ url: state.info.url }),
     );
@@ -377,7 +362,6 @@ describe("renameAndDownload: Chrome vs Firefox entry", () => {
       credentials: "include",
     });
 
-    await flush();
     expect(state.info.filename).toBe("server-name.pdf");
     expect(global.browser.downloads.download).toHaveBeenCalledWith(
       expect.objectContaining({ filename: expect.stringContaining("server-name.pdf") }),
@@ -393,7 +377,6 @@ describe("renameAndDownload: Chrome vs Firefox entry", () => {
 
     const state = makeState();
     await Download.renameAndDownload(state);
-    await flush();
 
     expect(state.info.filename).toBe("file.png");
     expect(global.browser.downloads.download).toHaveBeenCalled();
@@ -407,7 +390,6 @@ describe("renameAndDownload: Chrome vs Firefox entry", () => {
 
     const state = makeState();
     await Download.renameAndDownload(state);
-    await flush();
 
     expect(state.info.filename).toBe("file.png");
     expect(getFilenameFromContentDispositionHeader).not.toHaveBeenCalled();
@@ -420,7 +402,6 @@ describe("renameAndDownload: Chrome vs Firefox entry", () => {
 
     const state = makeState();
     await Download.renameAndDownload(state);
-    await flush();
 
     expect(global.browser.downloads.download).toHaveBeenCalled();
   });
@@ -432,7 +413,6 @@ describe("renameAndDownload: initial filename resolution", () => {
     const state = makeState({ info: { suggestedFilename: "suggested.txt" } });
 
     await Download.renameAndDownload(state);
-    await flush();
 
     expect(state.info.naiveFilename).toBe("file.png");
     expect(state.info.initialFilename).toBe("suggested.txt");
@@ -444,7 +424,6 @@ describe("renameAndDownload: initial filename resolution", () => {
     const state = makeState({ info: { url: "https://example.com/" } });
 
     await Download.renameAndDownload(state);
-    await flush();
 
     expect(state.info.naiveFilename).toBe("");
     expect(state.info.initialFilename).toBe("https://example.com/");
@@ -457,7 +436,6 @@ describe("renameAndDownload: needRouteMatch", () => {
     const state = makeState({ needRouteMatch: true });
 
     await Download.renameAndDownload(state);
-    await flush();
 
     expect(global.browser.downloads.download).not.toHaveBeenCalled();
     expect(DownloadEvents.downloaded).not.toHaveBeenCalled();
@@ -471,7 +449,6 @@ describe("renameAndDownload: needRouteMatch", () => {
 
     const state = makeState({ needRouteMatch: true });
     await Download.renameAndDownload(state);
-    await flush();
 
     expect(global.browser.downloads.download).toHaveBeenCalled();
   });
@@ -481,7 +458,6 @@ describe("renameAndDownload: needRouteMatch", () => {
     const state = makeState({ needRouteMatch: false });
 
     await Download.renameAndDownload(state);
-    await flush();
 
     expect(global.browser.downloads.download).toHaveBeenCalled();
   });
@@ -500,7 +476,6 @@ describe("renameAndDownload: route matching", () => {
     expect(state.route).toBeDefined();
     expect(String(state.route.finalize())).toBe("matched/route.txt");
 
-    await flush();
     expect(global.browser.downloads.download).toHaveBeenCalledWith(
       expect.objectContaining({ filename: expect.stringContaining("matched/route.txt") }),
     );
@@ -510,7 +485,6 @@ describe("renameAndDownload: route matching", () => {
 describe("renameAndDownload: prompt combinations", () => {
   const expectSaveAs = async (state: any, expected: boolean) => {
     await Download.renameAndDownload(state);
-    await flush();
     expect(global.browser.downloads.download).toHaveBeenCalledWith(
       expect.objectContaining({ saveAs: expected }),
     );
@@ -555,7 +529,6 @@ describe("renameAndDownload: browserDownload", () => {
 
     const state = makeState();
     await Download.renameAndDownload(state);
-    await flush();
 
     expect(RequestHeaders.prepareReferer).toHaveBeenCalledWith(state);
     // pending counter + per-URL filename map are updated (see the session-
@@ -584,7 +557,6 @@ describe("renameAndDownload: browserDownload", () => {
 
     const state = makeState();
     await Download.renameAndDownload(state);
-    await flush();
 
     // a fully failed download registers no adopted record
     expect([...DownloadState.records.values()].some((r: any) => r.adopted)).toBe(false);
@@ -599,8 +571,7 @@ describe("renameAndDownload: browserDownload", () => {
     );
 
     const state = makeState();
-    expect(() => Download.renameAndDownload(state)).not.toThrow();
-    await flush();
+    await expect(Download.renameAndDownload(state)).resolves.toBeUndefined();
 
     expect([...DownloadState.records.values()].some((r: any) => r.adopted)).toBe(false);
     await vi.waitFor(() => expect(sessionStore.siPendingDownloads).toBe(0));
@@ -612,7 +583,6 @@ describe("renameAndDownload: browserDownload", () => {
 
     const state = makeState({ path: { finalize: () => null } });
     await Download.renameAndDownload(state);
-    await flush();
 
     // the filename-map update stores "_" for this download's URL
     const fnameUpdate = vi
@@ -652,7 +622,6 @@ describe("renameAndDownload: fetchViaFetch", () => {
 
     const state = makeState();
     await Download.renameAndDownload(state);
-    await flush();
 
     expect(global.fetch).toHaveBeenCalledWith(state.info.url, { credentials: "include" });
     expect(global.browser.downloads.download).toHaveBeenCalledWith(
@@ -670,7 +639,6 @@ describe("renameAndDownload: fetchViaFetch", () => {
     try {
       const state = makeState();
       await Download.renameAndDownload(state);
-      await flush();
 
       expect(OffscreenClient.fetch).toHaveBeenCalledWith(state.info.url);
       expect(global.browser.downloads.download).toHaveBeenCalledWith(
@@ -692,7 +660,6 @@ describe("renameAndDownload: fetchViaFetch", () => {
     try {
       const state = makeState();
       await Download.renameAndDownload(state);
-      await flush();
 
       expect(Log.add).toHaveBeenCalledWith(
         "offscreen fetch failed",
@@ -777,8 +744,7 @@ describe("renameAndDownload: Log integration", () => {
     setCurrentBrowser("CHROME");
 
     const state = makeState();
-    expect(() => Download.renameAndDownload(state)).not.toThrow();
-    await flush();
+    await expect(Download.renameAndDownload(state)).resolves.toBeUndefined();
 
     expect(global.browser.downloads.download).toHaveBeenCalled();
   });
@@ -805,7 +771,6 @@ describe("onDeterminingFilename listener: sync path", () => {
 
     // Drives globalChromeState (module-local) via renameAndDownload
     await Download.renameAndDownload(state);
-    await flush();
 
     const suggest = vi.fn();
     const returned = capturedListener(
@@ -825,7 +790,6 @@ describe("onDeterminingFilename listener: sync path", () => {
     const state = makeState({ info: { suggestedFilename: "suggested.txt" } });
 
     await Download.renameAndDownload(state);
-    await flush();
 
     const suggest = vi.fn();
     capturedListener(
@@ -844,7 +808,6 @@ describe("onDeterminingFilename listener: sync path", () => {
     const state = makeState();
 
     await Download.renameAndDownload(state);
-    await flush();
 
     const suggest = vi.fn();
     capturedListener({ byExtensionId: global.browser.runtime.id, filename: undefined }, suggest);
@@ -860,7 +823,6 @@ describe("onDeterminingFilename listener: sync path", () => {
     const state = makeState();
 
     await Download.renameAndDownload(state);
-    await flush();
 
     // globalChromeState is a reference to this same state object: clearing
     // info here simulates a state that lost it before the event fired
@@ -989,7 +951,6 @@ describe("terminal browserDownload failure surfaces to the user", () => {
     );
 
     await Download.renameAndDownload(makeState());
-    await flush();
 
     expect(Notifier.reportFailure).toHaveBeenCalledWith(
       expect.any(String),
@@ -1004,7 +965,6 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
       info: { url: "https://example.com/dir/file.png", pageUrl: "https://example.com/page" },
     });
     await Download.renameAndDownload(state);
-    await flush();
   };
 
   beforeEach(() => {
@@ -1128,7 +1088,6 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
     ) as any;
 
     await Download.renameAndDownload(makeState());
-    await flush(30);
 
     expect(global.browser.downloads.download).toHaveBeenCalledTimes(2);
     expect(vi.mocked(global.browser.downloads.download).mock.calls[1][0].url).toMatch(/^blob:/);
@@ -1142,7 +1101,6 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
     global.fetch = vi.fn() as any;
 
     await Download.renameAndDownload(makeState());
-    await flush();
 
     expect(global.browser.downloads.download).toHaveBeenCalledTimes(1);
     expect(global.fetch).not.toHaveBeenCalled();

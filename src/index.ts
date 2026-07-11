@@ -80,9 +80,7 @@ export const start = () => {
   Menus.addTabMenuListener();
   Menus.addTabHighlightListener();
 
-  window.ready = window.init();
-
-  browser.tabs
+  const initialTab = browser.tabs
     .query({ active: true, currentWindow: true })
     .then((tabs) => {
       if (!currentTab && tabs && tabs.length > 0) {
@@ -90,18 +88,15 @@ export const start = () => {
       }
     })
     .catch(() => {});
+  window.ready = Promise.all([window.init(), initialTab]).then(([ready]) => ready);
 
-  browser.tabs.onActivated.addListener((info) => {
-    browser.tabs.get(info.tabId).then((t) => {
-      setCurrentTab(t);
-    });
+  browser.tabs.onActivated.addListener(async (info) => {
+    setCurrentTab(await browser.tabs.get(info.tabId));
   });
 
-  browser.tabs.onUpdated.addListener((tabId, changeInfo) => {
+  browser.tabs.onUpdated.addListener(async (tabId, changeInfo) => {
     if (!currentTab) {
-      browser.tabs.get(tabId).then((t) => {
-        setCurrentTab(t);
-      });
+      setCurrentTab(await browser.tabs.get(tabId));
     } else if (currentTab.id === tabId && changeInfo.title) {
       // Mutating a property of the shared tab object (not reassigning the binding)
       currentTab.title = changeInfo.title;

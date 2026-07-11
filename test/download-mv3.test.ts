@@ -271,13 +271,6 @@ describe("onDeterminingFilename listener (Chrome)", () => {
     vi.restoreAllMocks();
   });
 
-  const flush = async () => {
-    for (let i = 0; i < 10; i += 1) {
-      // eslint-disable-next-line no-await-in-loop
-      await Promise.resolve();
-    }
-  };
-
   test("ignores downloads from other extensions", () => {
     const suggest = jest.fn();
     const returned = listener({ byExtensionId: "someone-else", filename: "x" }, suggest);
@@ -303,7 +296,7 @@ describe("onDeterminingFilename listener (Chrome)", () => {
 
     // Chrome requires a synchronous `return true` for async suggest()
     expect(returned).toBe(true);
-    await flush();
+    await vi.waitFor(() => expect(suggest).toHaveBeenCalled());
 
     expect(suggest).toHaveBeenCalledWith({
       filename: "route/recovered.txt",
@@ -319,7 +312,7 @@ describe("onDeterminingFilename listener (Chrome)", () => {
     );
 
     expect(returned).toBe(true);
-    await flush();
+    await vi.waitFor(() => expect(suggest).toHaveBeenCalled());
     expect(suggest).toHaveBeenCalledWith();
   });
 });

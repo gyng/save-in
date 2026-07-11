@@ -16,8 +16,6 @@ describe("setFeatures", () => {
 // no init function to call), so each scenario below deletes/mutates the
 // jest-webextension-mock browser global, resets the module registry, and
 // re-imports a fresh copy to observe the detection logic run again.
-const flushMicrotasksAndTimers = () => new Promise((resolve) => setTimeout(resolve, 0));
-
 describe("browser detection at load time", () => {
   const originalBrowser = global.browser;
 
@@ -61,9 +59,7 @@ describe("browser detection at load time", () => {
     // FIREFOX is decided synchronously, without waiting on getBrowserInfo()
     expect(mod.CURRENT_BROWSER).toBe(mod.BROWSERS.FIREFOX);
 
-    await flushMicrotasksAndTimers();
-
-    expect(mod.CURRENT_BROWSER_VERSION).toBe(121.0);
+    await vi.waitFor(() => expect(mod.CURRENT_BROWSER_VERSION).toBe(121.0));
   });
 
   test("treats Gecko forks (e.g. Waterfox) as FIREFOX regardless of the reported name (#186)", async () => {
@@ -77,9 +73,7 @@ describe("browser detection at load time", () => {
 
     expect(mod.CURRENT_BROWSER).toBe(mod.BROWSERS.FIREFOX);
 
-    await flushMicrotasksAndTimers();
-
-    expect(mod.CURRENT_BROWSER_VERSION).toBe(6.0);
+    await vi.waitFor(() => expect(mod.CURRENT_BROWSER_VERSION).toBe(6.0));
   });
 
   test("swallows a rejected getBrowserInfo() promise without throwing", async () => {
@@ -91,7 +85,7 @@ describe("browser detection at load time", () => {
 
     expect(mod.CURRENT_BROWSER).toBe(mod.BROWSERS.FIREFOX);
 
-    await flushMicrotasksAndTimers();
+    await vi.waitFor(() => expect(global.browser.runtime.getBrowserInfo).toHaveBeenCalled());
 
     // Version stays unset; the rejection is swallowed, not thrown
     expect(mod.CURRENT_BROWSER_VERSION).toBeUndefined();

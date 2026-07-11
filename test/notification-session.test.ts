@@ -1,17 +1,6 @@
 // storage.session download tracking: notifications must survive MV3 service
 // worker restarts between download start and completion
 
-// Microtask flush (jsdom in jest 27 has no setImmediate; plain promise
-// hops also keep working under fake timers). Adoption now rides the shared
-// SessionState.update queue alongside the pending-counter and filename writes,
-// so allow enough hops to drain that serialized chain.
-const flush = async (times = 40) => {
-  for (let i = 0; i < times; i += 1) {
-    // eslint-disable-next-line no-await-in-loop
-    await Promise.resolve();
-  }
-};
-
 // SessionState and DownloadState are the real modules under test (session
 // persistence + record hydration/pruning); notification.ts is re-imported per
 // test for its module-load side effects, and its other deps are imported real
@@ -51,6 +40,7 @@ let Log: any;
 
 const loadNotification = async () => {
   const mod = await import("../src/notification.ts");
+  await mod.notifierReady;
   Notifier = mod.Notifier;
   ({ options } = await import("../src/options-data.ts"));
   ({ Log } = await import("../src/log.ts"));
@@ -150,7 +140,6 @@ describe("startup restore", () => {
     });
 
     await loadNotification();
-    await flush();
 
     // only the still-live download stays adopted; the record (and its
     // historyEntryId) is retained, just no longer watched
@@ -163,7 +152,6 @@ describe("startup restore", () => {
     (global.browser.storage as any).session = undefined;
 
     await expect(loadNotification()).resolves.toBeDefined();
-    await flush();
   });
 
   test("keeps adoption when every download is still live", async () => {
@@ -171,7 +159,6 @@ describe("startup restore", () => {
     setupGlobals(sessionStore, () => [{ id: 12, state: "in_progress" }]);
 
     await loadNotification();
-    await flush();
 
     // A live download keeps its adoption; storage.session is not written at all
     // (nothing to prune)
@@ -185,7 +172,6 @@ describe("startup restore", () => {
     (global.browser.downloads as any).search = jest.fn(() => Promise.reject(new Error("boom")));
 
     await loadNotification();
-    await flush();
 
     expect(adoptedIds(sessionStore)).toEqual([]);
   });
@@ -197,7 +183,6 @@ describe("startup restore", () => {
       setupGlobals(sessionStore, () => []);
 
       await loadNotification();
-      await flush();
 
       // honored immediately after startup so an in-flight download can recover
       expect(sessionStore.siPendingDownloads).toBe(3);
@@ -231,8 +216,10 @@ describe("download lifecycle notifications", () => {
       promptOnFailure: false,
     });
 
-    [[onCreated]] = vi.mocked(global.browser.downloads.onCreated.addListener).mock.calls;
-    [[onChanged]] = vi.mocked(global.browser.downloads.onChanged.addListener).mock.calls;
+    const [[createdHandler]] = vi.mocked(global.browser.downloads.onCreated.addListener).mock.calls;
+    const [[changedHandler]] = vi.mocked(global.browser.downloads.onChanged.addListener).mock.calls;
+    onCreated = createdHandler;
+    onChanged = changedHandler;
   });
 
   afterEach(() => {
@@ -244,13 +231,12 @@ describe("download lifecycle notifications", () => {
     // the session flag written before downloads.download() takes over
     sessionStore.siPendingDownloads = 1;
 
-    onCreated({
+    await onCreated({
       id: 7,
       byExtensionId: "save-in",
       filename: "C:\\dl\\pic.png",
       url: "https://x/p.png",
     });
-    await flush();
 
     expect(sessionStore.siPendingDownloads).toBe(0);
     expect(adoptedIds(sessionStore)).toEqual([7]);
@@ -261,20 +247,18 @@ describe("download lifecycle notifications", () => {
     // tracked only the first, silently dropping the second's notifications
     sessionStore.siPendingDownloads = 2;
 
-    onCreated({
+    await onCreated({
       id: 7,
       byExtensionId: "save-in",
       filename: "C:\\dl\\a.png",
       url: "https://x/a.png",
     });
-    await flush();
-    onCreated({
+    await onCreated({
       id: 8,
       byExtensionId: "save-in",
       filename: "C:\\dl\\b.png",
       url: "https://x/b.png",
     });
-    await flush();
 
     expect(sessionStore.siPendingDownloads).toBe(0);
     expect(adoptedIds(sessionStore)).toEqual([7, 8]);
@@ -286,8 +270,11 @@ describe("download lifecycle notifications", () => {
     // extension's — to be tracked as ours and fire a spurious notification
     sessionStore.siPendingDownloads = 1;
 
-    onCreated({ id: 500, filename: "C:\\dl\\theirs.png", byExtensionId: "some-other-extension" });
-    await flush();
+    await onCreated({
+      id: 500,
+      filename: "C:\\dl\\theirs.png",
+      byExtensionId: "some-other-extension",
+    });
 
     expect(adoptedIds(sessionStore)).toEqual([]);
     // the leaked count is left untouched (only our downloads consume it)
@@ -296,19 +283,17 @@ describe("download lifecycle notifications", () => {
 
   test("notifies on completion and untracks", async () => {
     sessionStore.siPendingDownloads = 1;
-    onCreated({
+    await onCreated({
       id: 7,
       byExtensionId: "save-in",
       filename: "C:\\dl\\pic.png",
       url: "https://x/p.png",
     });
-    await flush();
 
-    onChanged({
+    await onChanged({
       id: 7,
       state: { current: "complete", previous: "in_progress" },
     });
-    await flush();
 
     expect(global.browser.notifications.create).toHaveBeenCalledWith(
       "7",
@@ -322,13 +307,12 @@ describe("download lifecycle notifications", () => {
     // so a completion that arrives after the worker restarted (the in-memory
     // mirror wiped) still recognises the download as ours and notifies
     sessionStore.siPendingDownloads = 1;
-    onCreated({
+    await onCreated({
       id: 7,
       byExtensionId: "save-in",
       filename: "/dl/pic.png",
       url: "https://x/p.png",
     });
-    await flush();
 
     // the record — and its adoption — was persisted
     expect(sessionStore.siDownloads[7]).toMatchObject({ adopted: true });
@@ -336,8 +320,7 @@ describe("download lifecycle notifications", () => {
     // a restart wipes the in-memory mirror; the persisted record survives
     DownloadState.records.clear();
 
-    onChanged({ id: 7, state: { current: "complete", previous: "in_progress" } });
-    await flush();
+    await onChanged({ id: 7, state: { current: "complete", previous: "in_progress" } });
 
     expect(global.browser.notifications.create).toHaveBeenCalledWith(
       "7",
@@ -348,14 +331,12 @@ describe("download lifecycle notifications", () => {
   });
 
   test("ignores downloads it did not initiate", async () => {
-    onCreated({ id: 99, filename: "C:\\dl\\other.png" });
-    await flush();
+    await onCreated({ id: 99, filename: "C:\\dl\\other.png" });
 
-    onChanged({
+    await onChanged({
       id: 99,
       state: { current: "complete", previous: "in_progress" },
     });
-    await flush();
 
     expect(global.browser.notifications.create).not.toHaveBeenCalled();
     expect(adoptedIds(sessionStore)).toEqual([]);
@@ -363,11 +344,11 @@ describe("download lifecycle notifications", () => {
 
   test("does not crash on failure deltas for entries missing a filename", async () => {
     sessionStore.siPendingDownloads = 1;
-    onCreated({ id: 7, byExtensionId: "save-in", url: "https://x/p.png" }); // no filename yet
-    await flush();
+    await onCreated({ id: 7, byExtensionId: "save-in", url: "https://x/p.png" }); // no filename yet
 
-    expect(() => onChanged({ id: 7, error: { current: "NETWORK_FAILED" } })).not.toThrow();
-    await flush();
+    await expect(
+      onChanged({ id: 7, error: { current: "NETWORK_FAILED" } }),
+    ).resolves.toBeUndefined();
 
     expect(global.browser.notifications.create).toHaveBeenCalled();
     expect(adoptedIds(sessionStore)).toEqual([]);
@@ -385,13 +366,11 @@ describe("download lifecycle notifications", () => {
 
   test("picks the filename up from Chrome's delta", async () => {
     sessionStore.siPendingDownloads = 1;
-    onCreated({ id: 7, byExtensionId: "save-in", url: "https://x/p.png" }); // Chrome: no filename yet
-    await flush();
+    await onCreated({ id: 7, byExtensionId: "save-in", url: "https://x/p.png" }); // Chrome: no filename yet
 
-    onChanged({ id: 7, filename: {} }); // delta without a current filename
-    onChanged({ id: 7, filename: { current: "/dl/renamed.png" } });
-    onChanged({ id: 7, state: { current: "complete", previous: "in_progress" } });
-    await flush();
+    await onChanged({ id: 7, filename: {} }); // delta without a current filename
+    await onChanged({ id: 7, filename: { current: "/dl/renamed.png" } });
+    await onChanged({ id: 7, state: { current: "complete", previous: "in_progress" } });
 
     expect(global.browser.notifications.create).toHaveBeenCalledWith(
       "7",
@@ -401,11 +380,14 @@ describe("download lifecycle notifications", () => {
 
   test("clears the success notification after notifyDuration", async () => {
     sessionStore.siPendingDownloads = 1;
-    onCreated({ id: 7, byExtensionId: "save-in", filename: "/dl/pic.png", url: "https://x/p.png" });
-    await flush();
+    await onCreated({
+      id: 7,
+      byExtensionId: "save-in",
+      filename: "/dl/pic.png",
+      url: "https://x/p.png",
+    });
 
-    onChanged({ id: 7, state: { current: "complete", previous: "in_progress" } });
-    await flush();
+    await onChanged({ id: 7, state: { current: "complete", previous: "in_progress" } });
 
     expect(global.browser.notifications.clear).not.toHaveBeenCalled();
     jest.runAllTimers();
@@ -445,14 +427,15 @@ describe("notification variants", () => {
     setupGlobals(sessionStore, searchResults);
     await loadNotification();
     Object.assign(options, opts);
-    [[onCreated]] = vi.mocked(global.browser.downloads.onCreated.addListener).mock.calls;
-    [[onChanged]] = vi.mocked(global.browser.downloads.onChanged.addListener).mock.calls;
+    const [[createdHandler]] = vi.mocked(global.browser.downloads.onCreated.addListener).mock.calls;
+    const [[changedHandler]] = vi.mocked(global.browser.downloads.onChanged.addListener).mock.calls;
+    onCreated = createdHandler;
+    onChanged = changedHandler;
   };
 
   const startTracked = async (item) => {
     sessionStore.siPendingDownloads = 1;
-    onCreated(Object.assign({ byExtensionId: "save-in" }, item));
-    await flush();
+    await onCreated(Object.assign({ byExtensionId: "save-in" }, item));
   };
 
   afterEach(() => {
@@ -463,8 +446,7 @@ describe("notification variants", () => {
     await install({ notifyOnFailure: false, promptOnFailure: true, notifyDuration: 1000 });
     await startTracked({ id: 7, filename: "/dl/pic.png", url: "https://x/p.png" });
 
-    onChanged({ id: 7, error: { current: "NETWORK_FAILED" } });
-    await flush();
+    await onChanged({ id: 7, error: { current: "NETWORK_FAILED" } });
 
     expect(global.browser.downloads.download).toHaveBeenCalledWith({
       url: "https://x/p.png",
@@ -477,8 +459,7 @@ describe("notification variants", () => {
     await install({ notifyOnSuccess: true, notifyOnFailure: true, notifyDuration: 1000 });
     await startTracked({ id: 7, filename: "/dl/pic.png", url: "https://x/p.png" });
 
-    onChanged({ id: 7, error: { current: "USER_CANCELED" } });
-    await flush();
+    await onChanged({ id: 7, error: { current: "USER_CANCELED" } });
 
     expect(global.browser.notifications.create).not.toHaveBeenCalled();
     expect(adoptedIds(sessionStore)).toEqual([]);
@@ -488,8 +469,7 @@ describe("notification variants", () => {
     await install({ notifyOnFailure: true, notifyDuration: 1000 });
     await startTracked({ id: 7, filename: "/dl/pic.png", url: "https://x/p.png" });
 
-    onChanged({ id: 7, error: { current: "NETWORK_FAILED" } });
-    await flush();
+    await onChanged({ id: 7, error: { current: "NETWORK_FAILED" } });
 
     expect(Log.add).toHaveBeenCalledWith("download failed", {
       id: 7,
@@ -502,8 +482,7 @@ describe("notification variants", () => {
     browserState.current = "FIREFOX";
     await startTracked({ id: 7, filename: "/dl/pic.png", url: "https://x/p.png" });
 
-    onChanged({ id: 7, state: { current: "interrupted", previous: "in_progress" } });
-    await flush();
+    await onChanged({ id: 7, state: { current: "interrupted", previous: "in_progress" } });
 
     expect(Log.add).toHaveBeenCalledWith("download failed", { id: 7, error: true });
     expect(global.browser.notifications.create).toHaveBeenCalledWith(
@@ -516,8 +495,7 @@ describe("notification variants", () => {
     await install({ notifyOnFailure: true, notifyDuration: 1000 });
     await startTracked({ id: 7, filename: "/dl/pic.png", url: "https://x/p.png" });
 
-    onChanged({ id: 7, error: { current: "NETWORK_FAILED" } });
-    await flush();
+    await onChanged({ id: 7, error: { current: "NETWORK_FAILED" } });
 
     expect(global.browser.notifications.clear).not.toHaveBeenCalled();
     jest.runAllTimers();
@@ -528,8 +506,7 @@ describe("notification variants", () => {
     await install({ notifyOnFailure: true, notifyDuration: 1000 });
     await startTracked({ id: 0, filename: "/dl/pic.png", url: "https://x/p.png" });
 
-    onChanged({ id: 0, error: { current: "NETWORK_FAILED" } });
-    await flush();
+    await onChanged({ id: 0, error: { current: "NETWORK_FAILED" } });
 
     expect(global.browser.notifications.create).toHaveBeenCalledWith("0", expect.anything());
     jest.runAllTimers();
@@ -542,8 +519,7 @@ describe("notification variants", () => {
     ]);
     await startTracked({ id: 7, filename: "/dl/pic.png", url: "https://x/p.png" });
 
-    onChanged({ id: 7, state: { current: "complete", previous: "in_progress" } });
-    await flush();
+    await onChanged({ id: 7, state: { current: "complete", previous: "in_progress" } });
 
     expect(Log.add).toHaveBeenCalledWith("download complete", {
       id: 7,
@@ -561,8 +537,7 @@ describe("notification variants", () => {
     ]);
     await startTracked({ id: 7, filename: "/dl/pic.png", url: "https://x/p.png" });
 
-    onChanged({ id: 7, state: { current: "complete", previous: "in_progress" } });
-    await flush();
+    await onChanged({ id: 7, state: { current: "complete", previous: "in_progress" } });
 
     expect(global.browser.notifications.create).toHaveBeenCalledWith(
       "7",
@@ -576,8 +551,7 @@ describe("notification variants", () => {
     ]);
     await startTracked({ id: 7, filename: "/dl/pic.png", url: "https://x/p.png" });
 
-    onChanged({ id: 7, state: { current: "complete", previous: "in_progress" } });
-    await flush();
+    await onChanged({ id: 7, state: { current: "complete", previous: "in_progress" } });
 
     expect(global.browser.notifications.create).toHaveBeenCalledWith(
       "7",
@@ -591,8 +565,7 @@ describe("notification variants", () => {
     await install({ notifyOnSuccess: true, notifyDuration: 1000 }, () => []);
     await startTracked({ id: 7, filename: "/dl/pic.png", url: "https://x/p.png" });
 
-    onChanged({ id: 7, state: { current: "complete", previous: "in_progress" } });
-    await flush();
+    await onChanged({ id: 7, state: { current: "complete", previous: "in_progress" } });
 
     expect(global.browser.notifications.create).toHaveBeenCalledWith(
       "7",
@@ -604,8 +577,7 @@ describe("notification variants", () => {
     await install({ notifyOnSuccess: false, notifyOnFailure: true, notifyDuration: 1000 });
     await startTracked({ id: 7, filename: "/dl/pic.png", url: "https://x/p.png" });
 
-    onChanged({ id: 7, state: { current: "complete", previous: "in_progress" } });
-    await flush();
+    await onChanged({ id: 7, state: { current: "complete", previous: "in_progress" } });
 
     expect(global.browser.notifications.create).not.toHaveBeenCalled();
     expect(adoptedIds(sessionStore)).toEqual([]);
@@ -620,12 +592,10 @@ describe("notification variants", () => {
       await install({ notifyOnSuccess: true, notifyOnFailure: true });
 
       await startTracked({ id: 7, filename: "/dl/pic.png", url: "https://x/p.png" });
-      onChanged({ id: 7, error: { current: "NETWORK_FAILED" } });
-      await flush();
+      await onChanged({ id: 7, error: { current: "NETWORK_FAILED" } });
 
       await startTracked({ id: 8, filename: "/dl/pic2.png", url: "https://x/p2.png" });
-      onChanged({ id: 8, state: { current: "complete", previous: "in_progress" } });
-      await flush();
+      await onChanged({ id: 8, state: { current: "complete", previous: "in_progress" } });
 
       const logged = logSpy.mock.calls.map((c) => c[0]);
       expect(logged).toContain("notification");
@@ -678,7 +648,6 @@ describe("expectDownload", () => {
 
     Notifier.expectDownload();
     await Notifier.onDownloadCreated({ id: 9, byExtensionId: "save-in", filename: "/dl/x.png" });
-    await flush();
 
     expect(adoptedIds(sessionStore)).toEqual([9]);
     // The session fallback was never consulted
@@ -695,7 +664,6 @@ describe("expectDownload", () => {
     Notifier.expectDownload();
     await Notifier.onDownloadCreated({ id: 1, byExtensionId: "save-in", filename: "/dl/a.png" });
     await Notifier.onDownloadCreated({ id: 2, byExtensionId: "save-in", filename: "/dl/b.png" });
-    await flush();
 
     expect(adoptedIds(sessionStore)).toEqual([1, 2]);
   });
@@ -722,24 +690,24 @@ describe("automatic fetch fallback gating", () => {
       return Promise.resolve(retryResult === true);
     });
 
-    [[onCreated]] = vi.mocked(global.browser.downloads.onCreated.addListener).mock.calls;
-    [[onChanged]] = vi.mocked(global.browser.downloads.onChanged.addListener).mock.calls;
+    const [[createdHandler]] = vi.mocked(global.browser.downloads.onCreated.addListener).mock.calls;
+    const [[changedHandler]] = vi.mocked(global.browser.downloads.onChanged.addListener).mock.calls;
+    onCreated = createdHandler;
+    onChanged = changedHandler;
 
     sessionStore.siPendingDownloads = 1;
-    onCreated({
+    await onCreated({
       id: 7,
       byExtensionId: "save-in",
       filename: "C:\\dl\\pic.png",
       url: "https://x/p.png",
     });
-    await flush();
   };
 
   test("a network failure is retried and the failure notification suppressed", async () => {
     await setupWithDownload(true);
 
-    onChanged({ id: 7, error: { current: "NETWORK_FAILED" } });
-    await flush();
+    await onChanged({ id: 7, error: { current: "NETWORK_FAILED" } });
 
     expect(retryHolder.retry).toHaveBeenCalledWith(7);
     expect(global.browser.notifications.create).not.toHaveBeenCalled();
@@ -750,8 +718,7 @@ describe("automatic fetch fallback gating", () => {
   test("when the retry does not start, the failure notification shows", async () => {
     await setupWithDownload(false);
 
-    onChanged({ id: 7, error: { current: "SERVER_FORBIDDEN" } });
-    await flush();
+    await onChanged({ id: 7, error: { current: "SERVER_FORBIDDEN" } });
 
     expect(retryHolder.retry).toHaveBeenCalledWith(7);
     expect(global.browser.notifications.create).toHaveBeenCalled();
@@ -760,8 +727,7 @@ describe("automatic fetch fallback gating", () => {
   test("file errors are not retried", async () => {
     await setupWithDownload(true);
 
-    onChanged({ id: 7, error: { current: "FILE_FAILED" } });
-    await flush();
+    await onChanged({ id: 7, error: { current: "FILE_FAILED" } });
 
     expect(retryHolder.retry).not.toHaveBeenCalled();
     expect(global.browser.notifications.create).toHaveBeenCalled();
@@ -770,8 +736,7 @@ describe("automatic fetch fallback gating", () => {
   test("user cancellation is never retried or notified", async () => {
     await setupWithDownload(true);
 
-    onChanged({ id: 7, error: { current: "USER_CANCELED" } });
-    await flush();
+    await onChanged({ id: 7, error: { current: "USER_CANCELED" } });
 
     expect(retryHolder.retry).not.toHaveBeenCalled();
     expect(global.browser.notifications.create).not.toHaveBeenCalled();

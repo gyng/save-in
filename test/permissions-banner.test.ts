@@ -14,8 +14,6 @@ const makeEl = () => {
   };
 };
 
-const flush = () => new Promise((r) => setTimeout(r));
-
 afterEach(() => {
   delete global.browser.permissions;
 });
@@ -83,7 +81,7 @@ describe("PermissionsBanner.init", () => {
     expect(banner.hidden).toBe(false);
 
     button.click();
-    await flush();
+    await vi.waitFor(() => expect(banner.hidden).toBe(true));
 
     expect(global.browser.permissions.request).toHaveBeenCalledWith({ origins: ["<all_urls>"] });
     expect(banner.hidden).toBe(true);
@@ -96,7 +94,7 @@ describe("PermissionsBanner.init", () => {
     await PermissionsBanner.init(banner, button);
 
     button.click();
-    await flush();
+    await vi.waitFor(() => expect(global.browser.permissions.request).toHaveBeenCalled());
 
     expect(banner.hidden).toBe(false);
   });

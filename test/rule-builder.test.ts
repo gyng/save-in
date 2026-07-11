@@ -8,13 +8,6 @@ import { RULE_TEMPLATES, RuleBuilder } from "../src/options/rule-builder.ts";
 
 Object.assign(global, constants);
 
-const flush = async (times = 5) => {
-  for (let i = 0; i < times; i += 1) {
-    // eslint-disable-next-line no-await-in-loop
-    await Promise.resolve();
-  }
-};
-
 describe("RULE_TEMPLATES", () => {
   beforeAll(() => {
     global.window.optionErrors = { paths: [], filenamePatterns: [] };
@@ -88,7 +81,9 @@ describe("guided input", () => {
 
   test("populates matchers, enables Add when filled, appends the rule", async () => {
     RuleBuilder.setupGuidedInput();
-    await flush();
+    await vi.waitFor(() =>
+      expect(document.querySelectorAll("#rule-builder-matcher option")).toHaveLength(2),
+    );
 
     const matcher = document.querySelector("#rule-builder-matcher") as HTMLSelectElement;
     const pattern = document.querySelector("#rule-builder-pattern") as HTMLInputElement;

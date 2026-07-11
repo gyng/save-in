@@ -14,17 +14,7 @@ vi.mock("../src/download-state.ts", () => ({
   DownloadState: { hydrate: () => Promise.resolve(), records: new Map() },
 }));
 
-// Microtask flush for promise chains started at import time. Exported (unused
-// outside this file) so it counts as a top-level export: that puts this
-// file's own `let Menus/options/OptionsManagement/Log` (below) in module
-// scope, rather than colliding with the ambient `declare var` globals of the
-// same names in types/globals.d.ts.
-export const flush = async (times = 10) => {
-  for (let i = 0; i < times; i += 1) {
-    // eslint-disable-next-line no-await-in-loop
-    await Promise.resolve();
-  }
-};
+export {};
 
 // index.ts, menu-build.ts, option.ts and log.ts are all real modules, freshly
 // re-imported after every jest.resetModules() below (mirroring test/log.test.ts
@@ -255,7 +245,6 @@ describe("current tab tracking", () => {
     await setupGlobals({ tabsQueryResult: [tab] });
     await importIndex();
     await global.window.ready;
-    await flush();
 
     expect(global.browser.tabs.query).toHaveBeenCalledWith({
       active: true,
@@ -283,17 +272,15 @@ describe("current tab tracking", () => {
     (global.browser.tabs as any).get = vi.fn(() => Promise.resolve(activatedTab));
 
     await importIndex();
-    await global.window.ready;
 
     const [[onActivated]] = vi.mocked(global.browser.tabs.onActivated.addListener).mock.calls;
     const [[onUpdated]] = vi.mocked(global.browser.tabs.onUpdated.addListener).mock.calls;
 
-    (onActivated as any)({ tabId: 9 });
-    await flush();
+    await (onActivated as any)({ tabId: 9 });
     expect(global.browser.tabs.get).toHaveBeenCalledWith(9);
 
     resolveQuery([{ id: 1, title: "Startup Tab" }]);
-    await flush();
+    await global.window.ready;
 
     (onUpdated as any)(9, { title: "Still Activated" });
     expect(activatedTab.title).toBe("Still Activated");
@@ -305,7 +292,6 @@ describe("current tab tracking", () => {
 
     await importIndex();
     await global.window.ready;
-    await flush();
 
     // The rejection is swallowed; nothing was tracked
     const [[onUpdated]] = vi.mocked(global.browser.tabs.onUpdated.addListener).mock.calls;
@@ -321,13 +307,11 @@ describe("current tab tracking", () => {
 
     await importIndex();
     await global.window.ready;
-    await flush();
 
     const [[onActivated]] = vi.mocked(global.browser.tabs.onActivated.addListener).mock.calls;
     const [[onUpdated]] = vi.mocked(global.browser.tabs.onUpdated.addListener).mock.calls;
 
-    (onActivated as any)({ tabId: 2 });
-    await flush();
+    await (onActivated as any)({ tabId: 2 });
 
     (onUpdated as any)(2, { title: "Updated Title" });
     expect(activatedTab.title).toBe("Updated Title");
@@ -341,11 +325,9 @@ describe("current tab tracking", () => {
 
     await importIndex();
     await global.window.ready;
-    await flush();
 
     const [[onUpdated]] = vi.mocked(global.browser.tabs.onUpdated.addListener).mock.calls;
-    (onUpdated as any)(4, {});
-    await flush();
+    await (onUpdated as any)(4, {});
     expect(global.browser.tabs.get).toHaveBeenCalledWith(4);
 
     // Now tracked: a title-only delta mutates it in place
@@ -358,7 +340,6 @@ describe("current tab tracking", () => {
     await setupGlobals({ tabsQueryResult: [tab] });
     await importIndex();
     await global.window.ready;
-    await flush();
 
     const [[onUpdated]] = vi.mocked(global.browser.tabs.onUpdated.addListener).mock.calls;
 
