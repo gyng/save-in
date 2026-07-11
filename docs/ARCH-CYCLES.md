@@ -196,3 +196,13 @@ testable once tests are on real imports.
     non-minified bundle + documented build" property, docs/TS-MIGRATION.md), and
     how the hoisted bundle maps back to modules. Independent of the TS backlog;
     complements #65's CI hardening.
+- **Singleton sweep** — the codebase uses the classic namespace-object idiom
+  (`export const Foo = { ... }`) for stateful services. (#67) `PathEditor`
+  (`src/options/path-editor.ts`) is the flagged offender: a module-level
+  singleton holding editor DOM/state that should be an instantiable class so the
+  options page (and its tests) can construct isolated instances. (#68) The wider
+  sweep: turn the genuinely-stateful singletons (`DownloadState`, `SessionState`,
+  `Counter`, `PathEditor`) into classes, leaving the pure-collection objects
+  (`Util`, `Path`, `Router`, `Variable`) as named-function modules. Overlaps
+  #62's TS-native pass (do it there or just before); the `Menus` `any` from #3(c)
+  resolves here once the extension idiom is dissolved.
