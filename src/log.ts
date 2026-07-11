@@ -7,6 +7,7 @@
 
 import { BackgroundState } from "./background-state.ts";
 import { getSession, removeSession, updateSession } from "./session-state.ts";
+import { extensionSessionStorage } from "./storage-areas.ts";
 
 const LOG_STORAGE_KEY = "si-log";
 
@@ -36,16 +37,16 @@ export const Log = {
     };
     return updateSession(
       BackgroundState.sessionWrites,
-      browser.storage?.session,
+      extensionSessionStorage,
       LOG_STORAGE_KEY,
       (entries) => [...(entries || []), entry].slice(-Log.LIMIT),
     );
   },
 
   get: async () => {
-    const res = await getSession(browser.storage?.session, LOG_STORAGE_KEY);
+    const res = await getSession(extensionSessionStorage, LOG_STORAGE_KEY);
     return (res && res[LOG_STORAGE_KEY]) || [];
   },
 
-  clear: () => removeSession(browser.storage?.session, LOG_STORAGE_KEY),
+  clear: () => removeSession(extensionSessionStorage, LOG_STORAGE_KEY),
 };

@@ -18,6 +18,7 @@ import { OffscreenClient } from "./offscreen-client.ts";
 import { EXTENSION_REGEX, getFilenameFromUrl } from "./filename.ts";
 import { DownloadEvents } from "./download-events.ts";
 import { DownloadRetry } from "./download-retry.ts";
+import { extensionSessionStorage } from "./storage-areas.ts";
 
 // Most-recent download state: fallback for consumers that can't correlate
 // by URL. Concurrent downloads are disambiguated via Download.pendingStates.
@@ -27,13 +28,13 @@ const mergeStartedDownload = (downloadId, partial) =>
   mergeDownload(
     BackgroundState.downloads,
     BackgroundState.sessionWrites,
-    browser.storage?.session,
+    extensionSessionStorage,
     downloadId,
     partial,
   );
 
 const getStartedDownload = (downloadId) =>
-  getDownload(BackgroundState.downloads, browser.storage?.session, downloadId);
+  getDownload(BackgroundState.downloads, extensionSessionStorage, downloadId);
 
 export const Download = {
   DISPOSITION_FILENAME_REGEX: /filename[^;=\n]*=((['"])(.*)?\2|(.+'')?([^;\n]*))/i,
@@ -104,13 +105,13 @@ export const Download = {
           return Promise.all([
             updateSession(
               BackgroundState.sessionWrites,
-              browser.storage?.session,
+              extensionSessionStorage,
               "siPendingDownloads",
               (n) => Math.max(0, (n || 0) + 1),
             ),
             updateSession(
               BackgroundState.sessionWrites,
-              browser.storage?.session,
+              extensionSessionStorage,
               "siFinalFilenames",
               (m) => Object.assign({}, m, { [blobUrl]: record.filename }),
             ),
@@ -134,13 +135,13 @@ export const Download = {
               Promise.all([
                 updateSession(
                   BackgroundState.sessionWrites,
-                  browser.storage?.session,
+                  extensionSessionStorage,
                   "siPendingDownloads",
                   (n) => Math.max(0, (n || 0) - 1),
                 ),
                 updateSession(
                   BackgroundState.sessionWrites,
-                  browser.storage?.session,
+                  extensionSessionStorage,
                   "siFinalFilenames",
                   (m) => {
                     const copy = Object.assign({}, m);
@@ -350,13 +351,13 @@ export const Download = {
     await Promise.all([
       updateSession(
         BackgroundState.sessionWrites,
-        browser.storage?.session,
+        extensionSessionStorage,
         "siPendingDownloads",
         (n) => Math.max(0, (n || 0) + 1),
       ),
       updateSession(
         BackgroundState.sessionWrites,
-        browser.storage?.session,
+        extensionSessionStorage,
         "siFinalFilenames",
         (m) => Object.assign({}, m, { [acquired.url]: filename }),
       ),
@@ -392,13 +393,13 @@ export const Download = {
       await Promise.all([
         updateSession(
           BackgroundState.sessionWrites,
-          browser.storage?.session,
+          extensionSessionStorage,
           "siPendingDownloads",
           (n) => Math.max(0, (n || 0) - 1),
         ),
         updateSession(
           BackgroundState.sessionWrites,
-          browser.storage?.session,
+          extensionSessionStorage,
           "siFinalFilenames",
           (m) => {
             const copy = Object.assign({}, m);
@@ -510,13 +511,13 @@ export const registerDownloadListener = () => {
       // requesting the download and this event: recover the persisted filename,
       // keyed by download URL so overlapping downloads each get their own name
       if (!pendingState || !pendingState.path) {
-        getSession(browser.storage?.session, "siFinalFilenames").then((res) => {
+        getSession(extensionSessionStorage, "siFinalFilenames").then((res) => {
           const map = res.siFinalFilenames || {};
           const recovered = map[downloadItem.url] || map[downloadItem.finalUrl];
           if (recovered) {
             updateSession(
               BackgroundState.sessionWrites,
-              browser.storage?.session,
+              extensionSessionStorage,
               "siFinalFilenames",
               (m) => {
                 const copy = Object.assign({}, m);

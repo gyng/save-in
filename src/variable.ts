@@ -5,6 +5,7 @@ import { SPECIAL_DIRS, PATH_SEGMENT_TYPES } from "./constants.ts";
 import { Path } from "./path.ts";
 import { BackgroundState } from "./background-state.ts";
 import { nextCounter, peekCounter } from "./counter.ts";
+import { extensionLocalStorage } from "./storage-areas.ts";
 
 export const Variable = {
   // Thin wrapper over Util.withUrl that keeps this call site's historical
@@ -270,10 +271,10 @@ export const Variable = {
     [SPECIAL_DIRS.COUNTER]:
       async opts => {
         if (opts.preview) {
-          return Path.PathSegment.String((await peekCounter(browser.storage.local)) + 1);
+          return Path.PathSegment.String((await peekCounter(extensionLocalStorage)) + 1);
         }
         if (opts.counter == null) {
-          opts.counter = await nextCounter(BackgroundState.counterWrites, browser.storage.local);
+          opts.counter = await nextCounter(BackgroundState.counterWrites, extensionLocalStorage);
         }
         return Path.PathSegment.String(opts.counter);
       },

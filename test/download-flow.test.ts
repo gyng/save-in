@@ -17,6 +17,7 @@ import { OffscreenClient } from "../src/offscreen-client.ts";
 import { Log } from "../src/log.ts";
 import { SaveHistory } from "../src/history.ts";
 import { getFilenameFromContentDispositionHeader } from "../src/vendor/content-disposition.ts";
+import { extensionSessionStorage } from "../src/storage-areas.ts";
 
 const downloadState = BackgroundState.downloads;
 
@@ -539,13 +540,13 @@ describe("renameAndDownload: browserDownload", () => {
     // restart recovery tests for the values)
     expect(SessionState.updateSession).toHaveBeenCalledWith(
       expect.anything(),
-      global.browser.storage?.session,
+      extensionSessionStorage,
       "siPendingDownloads",
       expect.any(Function),
     );
     expect(SessionState.updateSession).toHaveBeenCalledWith(
       expect.anything(),
-      global.browser.storage?.session,
+      extensionSessionStorage,
       "siFinalFilenames",
       expect.any(Function),
     );

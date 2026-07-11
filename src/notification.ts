@@ -8,6 +8,7 @@ import { CURRENT_BROWSER, BROWSERS } from "./chrome-detector.ts";
 import { DownloadRetry } from "./download-retry.ts";
 import { SaveHistory } from "./history.ts";
 import { Log } from "./log.ts";
+import { extensionSessionStorage } from "./storage-areas.ts";
 
 const ICON_URL = "icons/ic_archive_black_128px.png";
 const ERROR_ICON_URL = "icons/ic_error_outline_red_96px.png";
@@ -34,13 +35,13 @@ const mergeTrackedDownload = (downloadId, partial) =>
   mergeDownload(
     BackgroundState.downloads,
     BackgroundState.sessionWrites,
-    browser.storage?.session,
+    extensionSessionStorage,
     downloadId,
     partial,
   );
 
 const getTrackedDownload = (downloadId) =>
-  getDownload(BackgroundState.downloads, browser.storage?.session, downloadId);
+  getDownload(BackgroundState.downloads, extensionSessionStorage, downloadId);
 
 // SessionState (the storage.session wrapper) lives in session-state.js so
 // Notifier, Download and Log share one implementation.
@@ -52,7 +53,7 @@ const getTrackedDownload = (downloadId) =>
 // adoption is cleared — otherwise it would leak. A still-live download keeps its
 // adoption and recovers its completion/failure notification when it finishes.
 const reconcileAdoptedDownloads = async () => {
-  await hydrateDownloads(BackgroundState.downloads, browser.storage?.session);
+  await hydrateDownloads(BackgroundState.downloads, extensionSessionStorage);
   const adoptedIds = [];
   BackgroundState.downloads.records.forEach((record, id) => {
     if (record && record.adopted) {
@@ -81,13 +82,13 @@ const reconcileAdoptedDownloads = async () => {
 // download that never actually created — can't later adopt an unrelated
 // download as ours.
 const reconcilePendingDownloads = async () => {
-  const res = await getSession(browser.storage?.session, "siPendingDownloads");
+  const res = await getSession(extensionSessionStorage, "siPendingDownloads");
   const staleAtStartup = res.siPendingDownloads || 0;
   if (staleAtStartup > 0) {
     setTimeout(() => {
       updateSession(
         BackgroundState.sessionWrites,
-        browser.storage?.session,
+        extensionSessionStorage,
         "siPendingDownloads",
         (n) => Math.max(0, (n || 0) - staleAtStartup),
       );
@@ -194,7 +195,7 @@ export const Notifier = {
     // between requesting the download and this event. siPendingDownloads is a
     // COUNTER (not a boolean) so several downloads created after one restart
     // are all recovered — a boolean dropped every one past the first.
-    const res = await getSession(browser.storage?.session, "siPendingDownloads");
+    const res = await getSession(extensionSessionStorage, "siPendingDownloads");
     if (res.siPendingDownloads > 0) {
       await mergeTrackedDownload(item.id, {
         adopted: true,
@@ -203,7 +204,7 @@ export const Notifier = {
       });
       await updateSession(
         BackgroundState.sessionWrites,
-        browser.storage?.session,
+        extensionSessionStorage,
         "siPendingDownloads",
         (n) => Math.max(0, (n || 0) - 1),
       );

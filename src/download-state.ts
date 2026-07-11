@@ -1,4 +1,5 @@
 import { getSession, SessionWriteState, updateSession } from "./session-state.ts";
+import { StorageReader, StorageWriter } from "./storage-areas.ts";
 
 const SESSION_KEY = "siDownloads";
 const MAX_RECORDS = 50;
@@ -8,7 +9,7 @@ export type DownloadsState = {
   hydration: Promise<any> | null;
 };
 
-export const hydrateDownloads = (state: DownloadsState, storage) => {
+export const hydrateDownloads = (state: DownloadsState, storage: StorageReader | undefined) => {
   if (!state.hydration) {
     state.hydration = getSession(storage, SESSION_KEY).then((res) => {
       const stored = res[SESSION_KEY] || {};
@@ -29,7 +30,7 @@ const capDownloads = (records) => {
 export const mergeDownload = (
   state: DownloadsState,
   sessionWrites: SessionWriteState,
-  storage,
+  storage: StorageWriter | undefined,
   downloadId,
   partial,
 ) => {
@@ -41,7 +42,11 @@ export const mergeDownload = (
   );
 };
 
-export const getDownload = (state: DownloadsState, storage, downloadId) => {
+export const getDownload = (
+  state: DownloadsState,
+  storage: StorageReader | undefined,
+  downloadId,
+) => {
   const inMemory = state.records.get(downloadId);
   if (inMemory) return Promise.resolve(inMemory);
   return getSession(storage, SESSION_KEY).then((res) => {
