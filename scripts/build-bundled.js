@@ -55,5 +55,8 @@ const rewriteHtml = (htmlRel, bundleHref) => {
 
 rewriteHtml("src/options/options.html", "../../options.js");
 rewriteHtml("src/offscreen.html", "../offscreen.js");
+// Secondary help pages load only clicktocopy (now a bundled .ts module)
+rewriteHtml("src/options/variablelist.html", "../../clicktocopy.js");
+rewriteHtml("src/options/clauselist.html", "../../clicktocopy.js");
 
 process.stdout.write(`Staged bundled package in ${out}\n`);
