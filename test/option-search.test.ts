@@ -2,7 +2,8 @@ import { optionSearchEntries, setupOptionSearch } from "../src/options/option-se
 
 describe("options search", () => {
   beforeEach(() => {
-    document.body.innerHTML = `<form id="options">
+    document.body.innerHTML = `<nav class="top-nav"><div><a id="popout">Popout</a></div></nav>
+    <form id="options">
       <div class="tablist"><button aria-controls="panel-downloads">Downloads</button></div>
       <section class="tab-panel" id="panel-downloads">
         <label><input id="prompt" type="checkbox"> Open save dialog</label>
@@ -24,6 +25,16 @@ describe("options search", () => {
       { label: "Notification duration", section: "Downloads" },
       { label: "Short title", section: "Downloads" },
     ]);
+  });
+
+  test("places the search beside the primary navigation actions", () => {
+    setupOptionSearch();
+    expect(
+      document.querySelector(".top-nav > div")?.lastElementChild?.querySelector("#option-search"),
+    ).not.toBeNull();
+    expect(
+      document.getElementById("options")?.contains(document.getElementById("option-search")),
+    ).toBe(false);
   });
 
   test("selects the first match with Enter without requiring an arrow key", () => {

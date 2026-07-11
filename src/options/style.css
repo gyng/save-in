@@ -193,6 +193,14 @@ body:not(#settings-page) {
   padding: var(--space-3) var(--space-5);
 }
 
+.top-nav > div:first-child {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
 .save-status {
   color: var(--color-text-muted);
   white-space: nowrap;
@@ -1036,9 +1044,10 @@ input.key {
 .option-search {
   position: relative;
   box-sizing: border-box;
-  width: 100%;
-  max-width: var(--content-max-width);
-  margin: 0 auto var(--space-3);
+  flex: 0 1 20rem;
+  width: min(20rem, 32vw);
+  max-width: 100%;
+  margin: 0 var(--space-2);
   z-index: 20;
 }
 
@@ -2163,6 +2172,13 @@ code.click-to-copy {
   .save-status {
     width: 100%;
     white-space: normal;
+  }
+
+  .option-search {
+    order: 10;
+    flex-basis: 100%;
+    width: 100%;
+    margin: var(--space-1) 0 0;
   }
 
   .nav-resources-menu {

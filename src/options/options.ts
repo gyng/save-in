@@ -341,7 +341,7 @@ const renderVersionLabel = () => {
   fetch("version.json")
     .then((res) => res.json())
     .then(({ commit }) => {
-      el.textContent = `v${version} (${commit})`;
+      el.title = `save-in v${version} (${commit}) — view releases`;
     })
     .catch(() => {});
 };

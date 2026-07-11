@@ -37,6 +37,7 @@ export const optionSearchEntries = (form: HTMLElement): SearchEntry[] => {
 
 export const setupOptionSearch = (): void => {
   const form = document.getElementById("options");
+  const primaryNav = document.querySelector<HTMLElement>(".top-nav > div:first-child");
   if (!form || document.getElementById("option-search")) return;
 
   const entries = optionSearchEntries(form);
@@ -58,7 +59,7 @@ export const setupOptionSearch = (): void => {
   results.hidden = true;
   input.setAttribute("aria-controls", results.id);
   wrap.append(input, results);
-  form.prepend(wrap);
+  (primaryNav || form).append(wrap);
 
   let active = -1;
   let visibleEntries: SearchEntry[] = [];
