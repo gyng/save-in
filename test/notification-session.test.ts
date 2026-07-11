@@ -5,7 +5,9 @@
 // persistence + record hydration/pruning); notification.ts is re-imported per
 // test for its module-load side effects, and its other deps are imported real
 // alongside it.
-import { DownloadState } from "../src/background-state.ts";
+import { BackgroundState } from "../src/background-state.ts";
+
+const downloadState = BackgroundState.downloads;
 
 // chrome-detector now exports setCurrentBrowser, but this suite resetModules +
 // re-imports notification.ts per test (re-binding a fresh chrome-detector each
@@ -77,11 +79,11 @@ const adoptedIds = (store: Record<string, any>) =>
 const setupGlobals = (sessionStore: Record<string, any>, searchResults: (query: any) => any) => {
   // Handlers await window.ready when set; none of these tests want that
   delete global.window.ready;
-  // DownloadState.records is a module singleton; clear the in-memory mirror and
+  // downloadState.records is a module singleton; clear the in-memory mirror and
   // the memoized hydration so each test rebuilds the records from its own
   // sessionStore
-  DownloadState.records.clear();
-  DownloadState.hydration = null;
+  downloadState.records.clear();
+  downloadState.hydration = null;
   browserState.current = "CHROME";
   retryHolder.retry = vi.fn((downloadId: any) => {
     void downloadId;
@@ -318,7 +320,7 @@ describe("download lifecycle notifications", () => {
     expect(sessionStore.siDownloads[7]).toMatchObject({ adopted: true });
 
     // a restart wipes the in-memory mirror; the persisted record survives
-    DownloadState.records.clear();
+    downloadState.records.clear();
 
     await onChanged({ id: 7, state: { current: "complete", previous: "in_progress" } });
 

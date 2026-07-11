@@ -1,11 +1,10 @@
-import { DownloadStateStore } from "../src/download-state.ts";
+import { mergeDownload } from "../src/download-state.ts";
 import { updateSession } from "../src/session-state.ts";
-import { BackgroundState, Counter, DownloadState } from "../src/background-state.ts";
+import { BackgroundState, Counter } from "../src/background-state.ts";
 
 describe("state service instances", () => {
   test("the production views belong to one immutable application state", () => {
     expect(Object.isFrozen(BackgroundState)).toBe(true);
-    expect(DownloadState).toBe(BackgroundState.downloads);
     expect(Counter).toBe(BackgroundState.counter);
   });
 
@@ -29,10 +28,10 @@ describe("state service instances", () => {
       get: vi.fn(() => Promise.resolve({})),
       set: vi.fn(() => Promise.resolve()),
     };
-    const first = new DownloadStateStore(writes, () => storage);
-    const second = new DownloadStateStore({ queue: Promise.resolve() }, () => storage);
+    const first = { records: new Map(), hydration: null };
+    const second = { records: new Map(), hydration: null };
 
-    await first.merge(7, { adopted: true });
+    await mergeDownload(first, writes, storage, 7, { adopted: true });
 
     expect(first.records.get(7)).toEqual({ adopted: true });
     expect(second.records.has(7)).toBe(false);

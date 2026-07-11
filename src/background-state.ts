@@ -1,15 +1,15 @@
 import { DownloadCounter } from "./counter.ts";
-import { DownloadStateStore } from "./download-state.ts";
+import { DownloadsState } from "./download-state.ts";
 import { SessionWriteState } from "./session-state.ts";
 
 const sessionWrites: SessionWriteState = { queue: Promise.resolve() };
+const downloads: DownloadsState = { records: new Map(), hydration: null };
 
 export const BackgroundState = Object.freeze({
   sessionWrites,
-  downloads: new DownloadStateStore(sessionWrites, () => browser.storage?.session),
+  downloads,
   counter: new DownloadCounter(),
 });
 
 // Temporary narrow views while each class is converted to functional state.
-export const DownloadState = BackgroundState.downloads;
 export const Counter = BackgroundState.counter;

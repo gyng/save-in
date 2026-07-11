@@ -50,7 +50,7 @@ import {
 } from "./constants.ts";
 import { BROWSERS, CURRENT_BROWSER, BROWSER_FEATURES } from "./chrome-detector.ts";
 import { Util } from "./util.ts";
-import { Counter, DownloadState } from "./background-state.ts";
+import { BackgroundState, Counter } from "./background-state.ts";
 import { Log } from "./log.ts";
 import { SaveHistory } from "./history.ts";
 import { Notifier } from "./notification.ts";
@@ -91,7 +91,7 @@ Object.assign(globalThis, {
   Log,
   SaveHistory,
   Counter,
-  DownloadState,
+  DownloadState: BackgroundState.downloads,
   Notifier,
   Path,
   OffscreenClient,

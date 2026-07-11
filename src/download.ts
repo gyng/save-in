@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
 
-import { BackgroundState, DownloadState } from "./background-state.ts";
+import { BackgroundState } from "./background-state.ts";
+import { getDownload, mergeDownload } from "./download-state.ts";
 import { getSession, updateSession } from "./session-state.ts";
 import { RequestHeaders } from "./headers.ts";
 import { Notifier } from "./notification.ts";
@@ -21,6 +22,18 @@ import { DownloadRetry } from "./download-retry.ts";
 // Most-recent download state: fallback for consumers that can't correlate
 // by URL. Concurrent downloads are disambiguated via Download.pendingStates.
 let globalChromeState = {};
+
+const mergeStartedDownload = (downloadId, partial) =>
+  mergeDownload(
+    BackgroundState.downloads,
+    BackgroundState.sessionWrites,
+    browser.storage?.session,
+    downloadId,
+    partial,
+  );
+
+const getStartedDownload = (downloadId) =>
+  getDownload(BackgroundState.downloads, browser.storage?.session, downloadId);
 
 export const Download = {
   DISPOSITION_FILENAME_REGEX: /filename[^;=\n]*=((['"])(.*)?\2|(.+'')?([^;\n]*))/i,
@@ -49,9 +62,9 @@ export const Download = {
   // by downloadId, mirrored to storage.session so it survives an MV3 worker
   // restart. These stay as thin seams because notification.js and the tests use
   // them.
-  rememberStartedDownload: (downloadId, record) => DownloadState.merge(downloadId, record),
+  rememberStartedDownload: mergeStartedDownload,
 
-  getStartedDownload: (downloadId) => DownloadState.get(downloadId),
+  getStartedDownload,
 
   // blob/data URL -> final filename for retry downloads, so Chrome's
   // onDeterminingFilename suggests the intended path instead of falling
@@ -71,7 +84,7 @@ export const Download = {
       // keeps its other fields) so a second failure after a worker restart can't
       // retry the same download twice
       record.retried = true;
-      DownloadState.merge(downloadId, record);
+      mergeStartedDownload(downloadId, record);
 
       return RequestHeaders.prepareReferer({ info: { url: record.url, pageUrl: record.pageUrl } })
         .then(() => fetch(record.url, { credentials: "include" }))

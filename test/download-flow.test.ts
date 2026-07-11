@@ -11,12 +11,14 @@
 // in, so importing them at the top can't force it to load early); the rest of
 // download.ts's dependency graph is imported below, after the host globals are in
 // place, so download.ts registers its onDeterminingFilename listener against them.
-import { DownloadState } from "../src/background-state.ts";
+import { BackgroundState } from "../src/background-state.ts";
 import * as SessionState from "../src/session-state.ts";
 import { OffscreenClient } from "../src/offscreen-client.ts";
 import { Log } from "../src/log.ts";
 import { SaveHistory } from "../src/history.ts";
 import { getFilenameFromContentDispositionHeader } from "../src/vendor/content-disposition.ts";
+
+const downloadState = BackgroundState.downloads;
 
 // chrome-detector's CURRENT_BROWSER is a load-time-detected constant, but this
 // suite flips it per test via the real setCurrentBrowser setter (grabbed below,
@@ -150,7 +152,7 @@ beforeEach(() => {
 
   window.SI_DEBUG = false;
   window.lastDownloadState = undefined;
-  DownloadState.records.clear();
+  downloadState.records.clear();
 });
 
 afterEach(() => {
@@ -555,7 +557,7 @@ describe("renameAndDownload: browserDownload", () => {
     });
     // download.js adopts its own download (the record is what the notifier
     // watches for a completion toast)
-    expect(DownloadState.records.get(555)).toMatchObject({ adopted: true });
+    expect(downloadState.records.get(555)).toMatchObject({ adopted: true });
     // incremented then cleared -> back to 0, and the filename key removed
     await vi.waitFor(() => expect(sessionStore.siPendingDownloads).toBe(0));
     expect(sessionStore.siFinalFilenames).toEqual({});
@@ -571,7 +573,7 @@ describe("renameAndDownload: browserDownload", () => {
     await Download.renameAndDownload(state);
 
     // a fully failed download registers no adopted record
-    expect([...DownloadState.records.values()].some((r: any) => r.adopted)).toBe(false);
+    expect([...downloadState.records.values()].some((r: any) => r.adopted)).toBe(false);
     expect(Log.add).toHaveBeenCalledWith("downloads.download failed", "Error: disk full");
     await vi.waitFor(() => expect(sessionStore.siPendingDownloads).toBe(0));
   });
@@ -585,7 +587,7 @@ describe("renameAndDownload: browserDownload", () => {
     const state = makeState();
     await expect(Download.renameAndDownload(state)).resolves.toBeUndefined();
 
-    expect([...DownloadState.records.values()].some((r: any) => r.adopted)).toBe(false);
+    expect([...downloadState.records.values()].some((r: any) => r.adopted)).toBe(false);
     await vi.waitFor(() => expect(sessionStore.siPendingDownloads).toBe(0));
   });
 
@@ -980,7 +982,7 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
   };
 
   beforeEach(() => {
-    DownloadState.records.clear();
+    downloadState.records.clear();
     Download.pendingRetryFilenames.clear();
     options.fallbackFetch = true;
   });
@@ -988,7 +990,7 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
   test("started downloads are recorded with what a retry needs", async () => {
     await seedStartedDownload();
 
-    expect(DownloadState.records.get(101)).toMatchObject({
+    expect(downloadState.records.get(101)).toMatchObject({
       url: "https://example.com/dir/file.png",
       pageUrl: "https://example.com/page",
       filename: "downloads/file.png",
@@ -1023,7 +1025,7 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
     });
     // The retry is adopted as its own download and marks itself so a second
     // failure cannot loop
-    expect(DownloadState.records.get(202)).toMatchObject({ viaFetch: true, adopted: true });
+    expect(downloadState.records.get(202)).toMatchObject({ viaFetch: true, adopted: true });
 
     // Only one retry per download
     await expect(Download.retryViaFetch(101)).resolves.toBe(false);
@@ -1039,7 +1041,7 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
     });
 
     // a restart wipes the in-memory map; storage.session survives
-    DownloadState.records.clear();
+    downloadState.records.clear();
     expect(await Download.getStartedDownload(101)).toMatchObject({
       url: "https://example.com/dir/file.png",
     });
@@ -1055,7 +1057,7 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
   });
 
   test("never retries downloads that already went through a fetch", async () => {
-    DownloadState.records.set(7, {
+    downloadState.records.set(7, {
       url: "https://x/y.png",
       filename: "y.png",
       viaFetch: true,
@@ -1103,7 +1105,7 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
 
     expect(global.browser.downloads.download).toHaveBeenCalledTimes(2);
     expect(vi.mocked(global.browser.downloads.download).mock.calls[1][0].url).toMatch(/^blob:/);
-    expect(DownloadState.records.get(303)).toMatchObject({ viaFetch: true });
+    expect(downloadState.records.get(303)).toMatchObject({ viaFetch: true });
   });
 
   test("immediate rejection does not fall back when disabled", async () => {

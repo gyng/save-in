@@ -1,6 +1,7 @@
 import { OptionsManagement } from "./option.ts";
 import { options } from "./options-data.ts";
-import { DownloadState } from "./background-state.ts";
+import { BackgroundState } from "./background-state.ts";
+import { hydrateDownloads } from "./download-state.ts";
 import { Menus } from "./menu-build.ts";
 import { Util } from "./util.ts";
 import { MEDIA_TYPES } from "./constants.ts";
@@ -25,7 +26,7 @@ window.init = () => {
     browser.contextMenus.removeAll(),
     // Rebuild the in-memory download records from storage.session before any
     // download event handler (which awaits window.ready) touches them
-    DownloadState.hydrate(),
+    hydrateDownloads(BackgroundState.downloads, browser.storage?.session),
   ])
     .then((results) => {
       // MV3 service workers are stateless: restore last used path across restarts

@@ -1,6 +1,7 @@
 // https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/notifications
 
-import { BackgroundState, DownloadState } from "./background-state.ts";
+import { BackgroundState } from "./background-state.ts";
+import { getDownload, hydrateDownloads, mergeDownload } from "./download-state.ts";
 import { getSession, updateSession } from "./session-state.ts";
 import { options } from "./options-data.ts";
 import { CURRENT_BROWSER, BROWSERS } from "./chrome-detector.ts";
@@ -29,19 +30,31 @@ let expectedDownloads = 0;
 // unrelated download — see the startup reconciliation below.
 const PENDING_RECOVERY_GRACE_MS = 10000;
 
+const mergeTrackedDownload = (downloadId, partial) =>
+  mergeDownload(
+    BackgroundState.downloads,
+    BackgroundState.sessionWrites,
+    browser.storage?.session,
+    downloadId,
+    partial,
+  );
+
+const getTrackedDownload = (downloadId) =>
+  getDownload(BackgroundState.downloads, browser.storage?.session, downloadId);
+
 // SessionState (the storage.session wrapper) lives in session-state.js so
 // Notifier, Download and Log share one implementation.
 
 // Reconcile adopted downloads on startup: MV3 service worker globals do not
 // survive termination, so the records are rehydrated from storage.session
-// (DownloadState.hydrate). Any adopted download that already completed or
+// (`hydrateDownloads`). Any adopted download that already completed or
 // vanished while the worker was dead will never fire another onChanged, so its
 // adoption is cleared — otherwise it would leak. A still-live download keeps its
 // adoption and recovers its completion/failure notification when it finishes.
 const reconcileAdoptedDownloads = async () => {
-  await DownloadState.hydrate();
+  await hydrateDownloads(BackgroundState.downloads, browser.storage?.session);
   const adoptedIds = [];
-  DownloadState.records.forEach((record, id) => {
+  BackgroundState.downloads.records.forEach((record, id) => {
     if (record && record.adopted) {
       adoptedIds.push(id);
     }
@@ -53,10 +66,10 @@ const reconcileAdoptedDownloads = async () => {
         const items = await browser.downloads.search({ id });
         const item = items && items[0];
         if (!item || item.state === "complete") {
-          await DownloadState.merge(id, { adopted: false });
+          await mergeTrackedDownload(id, { adopted: false });
         }
       } catch {
-        await DownloadState.merge(id, { adopted: false });
+        await mergeTrackedDownload(id, { adopted: false });
       }
     }),
   );
@@ -169,7 +182,7 @@ export const Notifier = {
 
     if (expectedDownloads > 0) {
       expectedDownloads -= 1;
-      await DownloadState.merge(item.id, {
+      await mergeTrackedDownload(item.id, {
         adopted: true,
         currentFilename: item.filename,
         url: item.url,
@@ -183,7 +196,7 @@ export const Notifier = {
     // are all recovered — a boolean dropped every one past the first.
     const res = await getSession(browser.storage?.session, "siPendingDownloads");
     if (res.siPendingDownloads > 0) {
-      await DownloadState.merge(item.id, {
+      await mergeTrackedDownload(item.id, {
         adopted: true,
         currentFilename: item.filename,
         url: item.url,
@@ -221,7 +234,7 @@ export const Notifier = {
       // cleared at a prior terminal delta) means this download is not ours. After
       // a worker restart the in-memory mirror is gone, so this falls back to the
       // persisted copy — that is how a mid-restart download keeps its notification.
-      const record = await DownloadState.get(downloadDelta.id);
+      const record = await getTrackedDownload(downloadDelta.id);
 
       if (!record || !record.adopted) {
         return;
@@ -233,7 +246,7 @@ export const Notifier = {
       if (CURRENT_BROWSER === BROWSERS.CHROME) {
         if (downloadDelta && downloadDelta.filename && downloadDelta.filename.current) {
           record.currentFilename = downloadDelta.filename.current;
-          await DownloadState.merge(downloadDelta.id, {
+          await mergeTrackedDownload(downloadDelta.id, {
             currentFilename: downloadDelta.filename.current,
           });
         }
@@ -259,7 +272,7 @@ export const Notifier = {
         }
         // Read from memory, or the persisted copy if the worker restarted since
         // the download started (so a mid-restart download still gets its status)
-        const started = await DownloadState.get(downloadDelta.id);
+        const started = await getTrackedDownload(downloadDelta.id);
         if (!started || !started.historyEntryId) return;
         if (status === "complete") {
           try {
@@ -349,7 +362,7 @@ export const Notifier = {
             if (typeof Log !== "undefined") {
               Log.add("retrying failed download via fetch", { id: downloadDelta.id });
             }
-            await DownloadState.merge(downloadDelta.id, { adopted: false });
+            await mergeTrackedDownload(downloadDelta.id, { adopted: false });
           } else {
             await recordHistoryStatus(errorName || "failed");
             notifyFailure();
@@ -417,7 +430,7 @@ export const Notifier = {
       if (failed || isComplete) {
         // Clear adoption but keep the record: recordHistoryStatus (above) and any
         // in-flight retry still read its historyEntryId; the cap evicts it later
-        await DownloadState.merge(downloadDelta.id, { adopted: false });
+        await mergeTrackedDownload(downloadDelta.id, { adopted: false });
       }
     }
   },

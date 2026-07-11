@@ -1,52 +1,51 @@
-// Per-download records are mirrored in memory and storage.session. Each store
-// owns its map and hydration lifecycle; production exports one shared instance.
-
 import { getSession, SessionWriteState, updateSession } from "./session-state.ts";
 
-export class DownloadStateStore {
-  readonly SESSION_KEY = "siDownloads";
-  readonly MAX = 50;
-  records = new Map();
-  hydration: Promise<any> | null = null;
+const SESSION_KEY = "siDownloads";
+const MAX_RECORDS = 50;
 
-  constructor(
-    private readonly sessionWrites: SessionWriteState,
-    private readonly sessionStorage: () => any,
-  ) {}
+export type DownloadsState = {
+  records: Map<any, any>;
+  hydration: Promise<any> | null;
+};
 
-  hydrate() {
-    if (!this.hydration) {
-      this.hydration = getSession(this.sessionStorage(), this.SESSION_KEY).then((res) => {
-        const store = res[this.SESSION_KEY] || {};
-        Object.keys(store).forEach((id) => {
-          if (!this.records.has(Number(id))) this.records.set(Number(id), store[id]);
-        });
+export const hydrateDownloads = (state: DownloadsState, storage) => {
+  if (!state.hydration) {
+    state.hydration = getSession(storage, SESSION_KEY).then((res) => {
+      const stored = res[SESSION_KEY] || {};
+      Object.keys(stored).forEach((id) => {
+        if (!state.records.has(Number(id))) state.records.set(Number(id), stored[id]);
       });
-    }
-    return this.hydration;
-  }
-
-  cap(obj) {
-    const keys = Object.keys(obj);
-    if (keys.length > this.MAX) delete obj[keys[0]];
-    return obj;
-  }
-
-  merge(downloadId, partial) {
-    const merged = Object.assign({}, this.records.get(downloadId), partial);
-    this.records.set(downloadId, merged);
-    if (this.records.size > this.MAX) this.records.delete(this.records.keys().next().value);
-    return updateSession(this.sessionWrites, this.sessionStorage(), this.SESSION_KEY, (store) =>
-      this.cap(Object.assign({}, store, { [downloadId]: merged })),
-    );
-  }
-
-  get(downloadId) {
-    const inMemory = this.records.get(downloadId);
-    if (inMemory) return Promise.resolve(inMemory);
-    return getSession(this.sessionStorage(), this.SESSION_KEY).then((res) => {
-      const store = res[this.SESSION_KEY];
-      return (store && store[downloadId]) || null;
     });
   }
-}
+  return state.hydration;
+};
+
+const capDownloads = (records) => {
+  const keys = Object.keys(records);
+  if (keys.length > MAX_RECORDS) delete records[keys[0]];
+  return records;
+};
+
+export const mergeDownload = (
+  state: DownloadsState,
+  sessionWrites: SessionWriteState,
+  storage,
+  downloadId,
+  partial,
+) => {
+  const merged = Object.assign({}, state.records.get(downloadId), partial);
+  state.records.set(downloadId, merged);
+  if (state.records.size > MAX_RECORDS) state.records.delete(state.records.keys().next().value);
+  return updateSession(sessionWrites, storage, SESSION_KEY, (stored) =>
+    capDownloads(Object.assign({}, stored, { [downloadId]: merged })),
+  );
+};
+
+export const getDownload = (state: DownloadsState, storage, downloadId) => {
+  const inMemory = state.records.get(downloadId);
+  if (inMemory) return Promise.resolve(inMemory);
+  return getSession(storage, SESSION_KEY).then((res) => {
+    const stored = res[SESSION_KEY];
+    return (stored && stored[downloadId]) || null;
+  });
+};

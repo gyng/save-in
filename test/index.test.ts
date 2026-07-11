@@ -8,10 +8,9 @@
 vi.mock("../src/menu-click.ts", () => ({}));
 vi.mock("../src/menu-tabs.ts", () => ({}));
 vi.mock("../src/download-state.ts", () => ({
-  DownloadStateStore: class {
-    records = new Map();
-    hydrate = () => Promise.resolve();
-  },
+  hydrateDownloads: () => Promise.resolve(),
+  getDownload: () => Promise.resolve(null),
+  mergeDownload: () => Promise.resolve(),
 }));
 
 export {};
