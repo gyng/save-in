@@ -7,8 +7,8 @@ export const OptionsLogic = {
   // was 18 = Alt). Show the friendly name in the field; the content script's
   // comboToKeyCodes still resolves either a name or a raw number, so a custom
   // keyCode and an already-named value pass through untouched.
-  KEYCODE_NAME: { 16: "Shift", 17: "Ctrl", 18: "Alt", 91: "Meta" },
-  normalizeKeyComboForDisplay: (value) => {
+  KEYCODE_NAME: { 16: "Shift", 17: "Ctrl", 18: "Alt", 91: "Meta" } as Record<string, string>,
+  normalizeKeyComboForDisplay: (value: string | number): string | number => {
     const key = String(value);
     return key in OptionsLogic.KEYCODE_NAME ? OptionsLogic.KEYCODE_NAME[key] : value;
   },
@@ -16,7 +16,10 @@ export const OptionsLogic = {
   // Filter the click-to-save combobox options by a query: a prefix match on the
   // key value or a substring match on the human label. Falls back to the full
   // list when nothing matches so the dropdown never renders empty.
-  filterKeyComboOptions: (allOptions, query) => {
+  filterKeyComboOptions: <T extends { value: string; label: string }>(
+    allOptions: T[],
+    query: string,
+  ): T[] => {
     const q = (query || "").trim().toLowerCase();
     const matched = allOptions.filter(
       (o) => !q || o.value.toLowerCase().startsWith(q) || o.label.toLowerCase().includes(q),
