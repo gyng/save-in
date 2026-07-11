@@ -7,10 +7,10 @@ const ClickToSave = (await import("../src/content/content.ts")).default;
 describe("findSource", () => {
   afterEach(() => {
     document.body.innerHTML = "";
-    delete document.elementsFromPoint;
+    Reflect.deleteProperty(document, "elementsFromPoint");
   });
 
-  const event = (target) => ({ target, clientX: 10, clientY: 10 });
+  const event = (target: EventTarget | null) => ({ target, clientX: 10, clientY: 10 });
 
   test("finds media directly under the cursor", () => {
     document.body.innerHTML = '<img id="i" src="http://x.test/pic.png">';
@@ -23,7 +23,9 @@ describe("findSource", () => {
     document.body.innerHTML = '<div id="overlay"></div><img id="i" src="http://x.test/pic.png">';
     const overlay = document.getElementById("overlay");
     const img = document.getElementById("i");
-    document.elementsFromPoint = jest.fn(() => [overlay, img]);
+    document.elementsFromPoint = jest.fn((_x: number, _y: number) =>
+      [overlay, img].filter((element): element is HTMLElement => element != null),
+    );
 
     expect(ClickToSave.findSource(event(overlay), false)).toBe("http://x.test/pic.png");
   });
@@ -99,7 +101,7 @@ describe("input helpers", () => {
 // Simulate the OPTIONS handshake the content script performs at load: the
 // module is re-imported with chrome.runtime.sendMessage responding
 // synchronously via its callback, mirroring the real callback-style API
-const importContentWithOptions = async (optionsBody) => {
+const importContentWithOptions = async (optionsBody: Record<string, unknown>) => {
   vi.resetModules();
   global.chrome.runtime.sendMessage = vi.fn((message, cb) => cb({ body: optionsBody }));
   global.chrome.runtime.onMessage.addListener = vi.fn();
@@ -161,12 +163,15 @@ describe("setupClickToSave", () => {
     });
   });
 
-  let sendMessage;
+  let sendMessage =
+    vi.fn<(message: Record<string, any>, callback?: (response?: unknown) => void) => void>();
 
   beforeEach(() => {
     document.body.innerHTML = '<img id="i" src="http://x.test/pic.png">';
-    sendMessage = vi.fn((message, cb) => cb && cb());
-    global.chrome.runtime.sendMessage = sendMessage;
+    sendMessage = vi.fn((_message: Record<string, any>, callback?: (response?: unknown) => void) =>
+      callback?.(),
+    );
+    (global.chrome.runtime as any).sendMessage = sendMessage;
     delete (global.chrome.runtime as any).lastError;
   });
 
@@ -177,7 +182,7 @@ describe("setupClickToSave", () => {
     vi.useRealTimers();
   });
 
-  const keyEvent = (type, keyCode) => {
+  const keyEvent = (type: string, keyCode: number): Event => {
     const e = new Event(type);
     (e as any).keyCode = keyCode;
     return e;
@@ -185,11 +190,11 @@ describe("setupClickToSave", () => {
 
   const holdCombo = () => window.dispatchEvent(keyEvent("keydown", 18));
 
-  const mousedown = (target, buttons = 1) => {
+  const mousedown = (target: EventTarget | null, buttons = 1) => {
     const e = new MouseEvent("mousedown", { buttons, bubbles: true, cancelable: true });
     vi.spyOn(e, "preventDefault");
     vi.spyOn(e, "stopImmediatePropagation");
-    target.dispatchEvent(e);
+    target?.dispatchEvent(e);
     return e;
   };
 
