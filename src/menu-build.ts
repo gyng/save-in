@@ -10,7 +10,87 @@ import { options } from "./options-data.ts";
 import { MEDIA_TYPES, SPECIAL_DIRS } from "./constants.ts";
 import { Path } from "./path.ts";
 
-export const Menus = {
+type MenuContext = `${chrome.contextMenus.ContextType}`;
+const asMenuContexts = (contexts: string[]) => contexts as MenuContext[];
+type LastUsedMeta = { comment: string; menuIndex: string };
+type StoredLastUsed = {
+  lastUsedPath?: string | null;
+  lastUsedMeta?: LastUsedMeta | null;
+} | null;
+type MenuMeta = Record<string, string>;
+type ParsedPath = {
+  raw: string;
+  comment: string;
+  depth: number;
+  meta: MenuMeta;
+  parsedDir: string;
+  validation: { valid: boolean; message?: string };
+};
+type MenuPathMapping = {
+  parsedDir: string;
+  // Kept permissive until menu-click's optional routing fields are strict-typed.
+  comment: any;
+  menuIndex: any;
+  title: string;
+  depth: number;
+};
+type MenuSeparator = { kind: "separator"; parentId: string };
+type MenuPathItem = {
+  kind: "path";
+  id: string;
+  title: string;
+  number: number;
+  accessKeyOverride?: string;
+  parsedDir: string;
+  comment: string;
+  menuIndex: string;
+  depth: number;
+  parentId: string;
+  raw: string;
+};
+type MenuTreeItem = MenuSeparator | MenuPathItem;
+type MenuTreeError = OptionError & { parentId?: string };
+type MenuTree = { items: MenuTreeItem[]; errors: MenuTreeError[] };
+
+interface MenusApi {
+  IDS: {
+    TABSTRIP: {
+      [key: string]: string | number;
+      SELECTED_TAB: string;
+      SELECTED_MULTIPLE_TABS: string;
+      TO_RIGHT: string;
+      TO_RIGHT_MATCH: string;
+      OPENED_FROM_TAB: string;
+    };
+    ROUTE_EXCLUSIVE: any;
+    ROOT: string;
+    LAST_USED: any;
+  };
+  state: { lastUsedPath: string | null; lastUsedMeta: LastUsedMeta | null };
+  setLastUsed(path: string, meta: LastUsedMeta): void;
+  restoreLastUsed(stored: StoredLastUsed): void;
+  titles: Record<string, string>;
+  pathMappings: Record<string | number, MenuPathMapping>;
+  makeSeparator(contexts: string[], parentId?: string): void;
+  setAccesskey(str: string, key: string | number, override?: string): string;
+  addRoot(contexts: string[]): void;
+  addRouteExclusive(contexts: string[]): void;
+  addSelectionType(contexts: string[]): void;
+  addOptions(contexts: string[]): void;
+  addShowDefaultFolder(contexts: string[]): void;
+  addLastUsed(contexts: string[]): void;
+  parseMeta(comment: string): MenuMeta;
+  parsePath(dir: string): ParsedPath;
+  buildTree(pathsArray: string[]): MenuTree;
+  addPaths(pathsArray: string[], contexts: string[]): void;
+  resolveClickTarget: (...args: any[]) => any;
+  addDownloadListener: () => void;
+  addTabMenus: () => void;
+  addTabHighlightListener: () => void;
+  addTabMenuListener: () => void;
+}
+
+export const Menus: MenusApi = {
   IDS: {
     TABSTRIP: {
       SELECTED_TAB: "save-in-SI-selected-tab",
@@ -34,13 +114,13 @@ export const Menus = {
   // Single owner of the last-used-path state: menu-click mutates it here,
   // index.js restores it, menu-build renders it. MV3 service workers are
   // stateless, so it is mirrored to storage.local to survive restarts.
-  setLastUsed: (path, meta) => {
+  setLastUsed: (path: string, meta: LastUsedMeta) => {
     Menus.state.lastUsedPath = path;
     Menus.state.lastUsedMeta = meta;
     webExtensionApi.storage.local.set({ lastUsedPath: path, lastUsedMeta: meta });
   },
 
-  restoreLastUsed: (stored) => {
+  restoreLastUsed: (stored: StoredLastUsed) => {
     Menus.state.lastUsedPath = (stored && stored.lastUsedPath) || null;
     Menus.state.lastUsedMeta = (stored && stored.lastUsedMeta) || null;
   },
@@ -51,11 +131,11 @@ export const Menus = {
   makeSeparator: (() => {
     let separatorCounter = 0;
 
-    const makeSeparatorInner = (contexts, parentId = Menus.IDS.ROOT) => {
+    const makeSeparatorInner = (contexts: string[], parentId = Menus.IDS.ROOT): void => {
       webExtensionApi.contextMenus.create({
         id: `separator-${separatorCounter}`,
         type: "separator",
-        contexts,
+        contexts: asMenuContexts(contexts),
         parentId,
       });
       separatorCounter += 1;
@@ -64,43 +144,44 @@ export const Menus = {
     return makeSeparatorInner;
   })(),
 
-  setAccesskey: (str, key, override) => {
+  setAccesskey: (str: string, key: string | number, override?: string) => {
     if (!WEB_EXTENSION_CAPABILITIES.accessKeys) {
       return str;
     }
 
     const keyUsed = override != null ? override : key;
 
-    if (str.includes(keyUsed)) {
-      return str.replace(keyUsed, `&${keyUsed}`);
+    const accessKey = String(keyUsed);
+    if (str.includes(accessKey)) {
+      return str.replace(accessKey, `&${accessKey}`);
     } else {
-      return `${str} (&${keyUsed})`;
+      return `${str} (&${accessKey})`;
     }
   },
 
-  addRoot: (contexts) => {
+  addRoot: (contexts: string[]) => {
     webExtensionApi.contextMenus.create({
       id: Menus.IDS.ROOT,
       title: Menus.setAccesskey(
         webExtensionApi.i18n.getMessage("contextMenuRoot"),
         options.keyRoot,
       ),
-      contexts,
+      contexts: asMenuContexts(contexts),
     });
   },
 
-  addRouteExclusive: (contexts) => {
+  addRouteExclusive: (contexts: string[]) => {
     webExtensionApi.contextMenus.create({
       id: Menus.IDS.ROUTE_EXCLUSIVE,
       title: Menus.setAccesskey(
         webExtensionApi.i18n.getMessage("contextMenuExclusive"),
         options.keyRoot,
       ),
-      contexts,
+      contexts: asMenuContexts(contexts),
     });
   },
 
-  addSelectionType: (contexts) => {
+  addSelectionType: (contexts: string[]) => {
     if (contexts.includes("link")) {
       webExtensionApi.contextMenus.create({
         id: "download-context-media-link",
@@ -140,32 +221,32 @@ export const Menus = {
     }
   },
 
-  addOptions: (contexts) => {
+  addOptions: (contexts: string[]) => {
     webExtensionApi.contextMenus.create({
       id: "options",
       title: webExtensionApi.i18n.getMessage("contextMenuItemOptions"),
-      contexts,
+      contexts: asMenuContexts(contexts),
       parentId: "save-in-root",
     });
   },
 
-  addShowDefaultFolder: (contexts) => {
+  addShowDefaultFolder: (contexts: string[]) => {
     webExtensionApi.contextMenus.create({
       id: "show-default-folder",
       title: webExtensionApi.i18n.getMessage("contextMenuShowDefaultFolder"),
-      contexts,
+      contexts: asMenuContexts(contexts),
       parentId: Menus.IDS.ROOT,
     });
   },
 
-  addLastUsed: (contexts) => {
+  addLastUsed: (contexts: string[]) => {
     const lastUsedTitle =
       Menus.state.lastUsedPath || webExtensionApi.i18n.getMessage("contextMenuLastUsed");
     const lastUsedMenuOptions = {
       id: Menus.IDS.LAST_USED,
       title: Menus.setAccesskey(lastUsedTitle, options.keyLastUsed),
       enabled: Boolean(Menus.state.lastUsedPath),
-      contexts,
+      contexts: asMenuContexts(contexts),
       parentId: Menus.IDS.ROOT,
     };
 
@@ -193,7 +274,7 @@ export const Menus = {
     }
   },
 
-  parseMeta: (comment) => {
+  parseMeta: (comment: string): MenuMeta => {
     const matches = comment.match(/\(.+?:.+?\)+/g);
 
     if (!matches) {
@@ -207,15 +288,15 @@ export const Menus = {
           .split(":")
           .map((val) => val.trim()),
       )
-      .reduce((acc, kv) => {
+      .reduce<MenuMeta>((acc, kv) => {
         const key = kv[0];
         return Object.assign(acc, { [key]: kv.slice(1).join(" ") });
       }, {});
   },
 
-  parsePath: (dir) => {
+  parsePath: (dir: string): ParsedPath => {
     const tokens = dir.split("//").map((tok) => tok.trim());
-    const depthMatch = tokens[0].match(/^(>+)?(.+)/);
+    const depthMatch = tokens[0].match(/^(>+)?(.+)/)!;
     const arrows = depthMatch[1] || "";
     const depth = arrows.length;
     const parsedDir = depthMatch[2].trim();
@@ -238,13 +319,13 @@ export const Menus = {
   // are either { kind: "separator", parentId } or
   // { kind: "path", id, title, number, accessKeyOverride, parsedDir,
   //   comment, menuIndex, depth, parentId }.
-  buildTree: (pathsArray) => {
-    const items = [];
-    const errors = [];
+  buildTree: (pathsArray: string[]): MenuTree => {
+    const items: MenuTreeItem[] = [];
+    const errors: MenuTreeError[] = [];
     const menuItemCounter = [0]; // key: depth, val: index
 
     // Stack of open parent ids for nested menus
-    let pathsNestingStack = [];
+    let pathsNestingStack: string[] = [];
     let lastDepth = 0;
 
     pathsArray.forEach((dir, i) => {
@@ -267,7 +348,7 @@ export const Menus = {
           errorParentId = pathsNestingStack[depth - 1];
         }
         errors.push({
-          message: validation.message,
+          message: validation.message!,
           error: `${dir}`,
           parentId: errorParentId,
         });
@@ -286,7 +367,7 @@ export const Menus = {
       }
       const id = `save-in-${i}`;
 
-      let parentId;
+      let parentId: string;
       if (depth === 0) {
         parentId = Menus.IDS.ROOT;
       } else if (depth > pathsNestingStack.length) {
@@ -329,7 +410,7 @@ export const Menus = {
     return { items, errors };
   },
 
-  addPaths: (pathsArray, contexts) => {
+  addPaths: (pathsArray: string[], contexts: string[]) => {
     Menus.pathMappings = {};
 
     const { items, errors } = Menus.buildTree(pathsArray);
@@ -358,9 +439,9 @@ export const Menus = {
         title: options.enableNumberedItems
           ? Menus.setAccesskey(item.title, item.number, item.accessKeyOverride)
           : item.title,
-        contexts,
+        contexts: asMenuContexts(contexts),
         parentId: item.parentId,
       });
     });
   },
-};
+} as unknown as MenusApi;

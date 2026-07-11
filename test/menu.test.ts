@@ -95,8 +95,10 @@ describe("menu creation", () => {
     setupMenuCreationMocks();
   });
 
-  const created = () =>
-    (global.browser.contextMenus.create as any).mock.calls.map(([props]) => props);
+  const created = (): Array<Record<string, any>> =>
+    (global.browser.contextMenus.create as any).mock.calls.map(
+      ([props]: [Record<string, any>]) => props,
+    );
 
   describe("makeSeparator", () => {
     test("creates separators with an incrementing id under the given parent", () => {
@@ -347,7 +349,7 @@ describe("menu creation", () => {
   });
 
   describe("addTabHighlightListener", () => {
-    let highlightListener;
+    let highlightListener: (info: { tabIds: number[] }) => void;
 
     beforeEach(() => {
       (global.browser as any).tabs = { onHighlighted: { addListener: jest.fn() } };
@@ -447,7 +449,7 @@ describe("buildTree", () => {
     const { items, errors } = menu.buildTree(["<invalid>", "ok"]);
 
     expect(items).toHaveLength(1);
-    expect(items[0].parsedDir).toBe("ok");
+    expect("parsedDir" in items[0] && items[0].parsedDir).toBe("ok");
     expect(errors).toEqual([
       {
         message: "Translated<rulePathInvalidCharacter>",
@@ -460,14 +462,20 @@ describe("buildTree", () => {
   test("carries alias titles and access key overrides", () => {
     const { items } = menu.buildTree(["dogs/corgi // (alias: Nice Name) (key: g)"]);
 
-    expect(items[0].title).toBe("Nice Name");
-    expect(items[0].accessKeyOverride).toBe("g");
+    expect("title" in items[0] && items[0].title).toBe("Nice Name");
+    expect("accessKeyOverride" in items[0] && items[0].accessKeyOverride).toBe("g");
   });
 
   test("numbers items per depth for menuIndex routing", () => {
     const { items } = menu.buildTree(["a", ">b", ">>c", ">d", "e"]);
 
-    expect(items.map((i) => i.menuIndex)).toEqual(["1", "1.1", "1.1.1", "1.2", "2"]);
+    expect(items.map((i) => ("menuIndex" in i ? i.menuIndex : undefined))).toEqual([
+      "1",
+      "1.1",
+      "1.1.1",
+      "1.2",
+      "2",
+    ]);
     expect(items.map((i) => i.parentId)).toEqual([
       menu.IDS.ROOT,
       "save-in-0",
