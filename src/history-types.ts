@@ -20,3 +20,42 @@ export type HistoryEntry = HistoryEntryInput & {
   downloadId?: number;
   fileSize?: number;
 };
+
+export type HistoryRow = {
+  time: string;
+  status: string;
+  routed: string;
+  type: string;
+  file: string;
+  folder: string;
+  fullPath: string;
+  source: string;
+  downloadId: number | null;
+  size: number | null;
+};
+
+export type HistorySort = {
+  key: keyof HistoryRow;
+  dir: "asc" | "desc";
+};
+
+export type HistoryColumn = {
+  key: keyof HistoryRow;
+  label: string;
+  sortable: boolean;
+  width: string;
+};
+
+export type HistoryPageOptions = {
+  filter?: string;
+  sort?: HistorySort;
+  page?: number;
+  pageSize?: number;
+};
+
+export type DownloadProgress = {
+  id?: number;
+  state?: string;
+  bytesReceived?: number;
+  totalBytes?: number;
+};

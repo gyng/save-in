@@ -1,4 +1,5 @@
 import { webExtensionApi } from "../web-extension-api.ts";
+import type { DownloadProgress, HistoryEntry, HistorySort } from "../history-types.ts";
 
 // History panel controller for the options page. Owns the history table's
 // view state (sort/filter/page) and its DOM rendering + live download-progress
@@ -13,15 +14,15 @@ const HISTORY_KEY = "save-in-history";
 
 // Newest-first cache of the stored entries, and the current sort/filter/
 // page state; the table re-renders from these without touching storage
-let historyEntries = [];
-let historySort = { key: "time", dir: "desc" };
+let historyEntries: HistoryEntry[] = [];
+let historySort: HistorySort = { key: "time", dir: "desc" };
 let historyFilter = "";
 let historyPage = 0;
 const HISTORY_PAGE_SIZE = 50;
 
 // Opens the containing folder for a completed download (best-effort; the
 // browser may have forgotten the download)
-const showInFolder = (downloadId) => {
+const showInFolder = (downloadId: number | null) => {
   if (downloadId == null || !webExtensionApi.downloads || !webExtensionApi.downloads.show) {
     return;
   }
@@ -36,7 +37,7 @@ const showInFolder = (downloadId) => {
 // download id renders a `.history-progress[data-download-id]` cell; while any
 // exist, poll the browser and fill in the percentage / bytes. When one finishes
 // we re-render so it picks up the stored final status and size.
-let historyProgressTimer = null;
+let historyProgressTimer: ReturnType<typeof setInterval> | null = null;
 
 const stopHistoryProgress = () => {
   if (historyProgressTimer) {
@@ -54,9 +55,11 @@ const pollHistoryProgress = () => {
   webExtensionApi.downloads
     .search({})
     .then((items) => {
-      const byId = {};
-      items.forEach((it) => {
-        byId[it.id] = it;
+      const byId: Record<number, DownloadProgress> = {};
+      items.forEach((it: DownloadProgress) => {
+        if (it.id != null) {
+          byId[it.id] = it;
+        }
       });
       let anyInProgress = false;
       let anyFinished = false;
@@ -277,7 +280,7 @@ const renderHistoryTable = () => {
 
 export const renderHistory = async () => {
   const stored = (await webExtensionApi.storage.local.get(HISTORY_KEY)) ?? {};
-  historyEntries = (stored[HISTORY_KEY] || []).slice().reverse(); // newest first
+  historyEntries = ((stored[HISTORY_KEY] || []) as HistoryEntry[]).slice().reverse(); // newest first
 
   // Raw JSON stays available (some users import/inspect it); kept in sync
   const raw = document.querySelector("#history") as HTMLTextAreaElement;

@@ -3,8 +3,17 @@
 // is covered only by the e2e). options.js keeps the mutable view state and the
 // DOM rendering; everything here is data-in/data-out.
 
+import type {
+  DownloadProgress,
+  HistoryColumn,
+  HistoryEntry,
+  HistoryInfo,
+  HistoryPageOptions,
+  HistoryRow,
+} from "../history-types.ts";
+
 export const HistoryView = {
-  filename: (fullPath) => {
+  filename: (fullPath?: string): string => {
     if (!fullPath) {
       return "(unnamed)";
     }
@@ -12,7 +21,7 @@ export const HistoryView = {
     return parts[parts.length - 1] || fullPath;
   },
 
-  folder: (fullPath) => {
+  folder: (fullPath?: string): string => {
     if (!fullPath) {
       return "";
     }
@@ -20,7 +29,7 @@ export const HistoryView = {
     return idx === -1 ? "." : fullPath.slice(0, idx);
   },
 
-  time: (iso) => {
+  time: (iso?: string): string => {
     try {
       return new Date(iso).toLocaleString();
     } catch (e) {
@@ -30,9 +39,9 @@ export const HistoryView = {
 
   // info.context holds a DOWNLOAD_TYPES value; older entries kept the whole
   // state, so fall back to state.info
-  info: (entry) => entry.info || (entry.state && entry.state.info) || {},
+  info: (entry: HistoryEntry): HistoryInfo => entry.info || (entry.state && entry.state.info) || {},
 
-  type: (entry) => {
+  type: (entry: HistoryEntry): string => {
     const context = HistoryView.info(entry).context;
     if (!context) {
       return "";
@@ -42,9 +51,9 @@ export const HistoryView = {
   },
 
   // Older entries predate status tracking; treat them as complete
-  status: (entry) => entry.status || "complete",
+  status: (entry: HistoryEntry): string => entry.status || "complete",
 
-  statusLabel: (status) => {
+  statusLabel: (status: string): string => {
     if (status === "complete") {
       return "Saved";
     }
@@ -58,7 +67,7 @@ export const HistoryView = {
     return status.toLowerCase().replace(/_/g, " ");
   },
 
-  statusClass: (status) => {
+  statusClass: (status: string): string => {
     if (status === "complete") {
       return "status-ok";
     }
@@ -69,7 +78,7 @@ export const HistoryView = {
   },
 
   // Flatten an entry into the fields the table shows and sorts/filters on
-  row: (entry) => {
+  row: (entry: HistoryEntry): HistoryRow => {
     const info = HistoryView.info(entry);
     return {
       time: entry.timestamp || "",
@@ -88,7 +97,7 @@ export const HistoryView = {
   // In-progress download cell from a downloads.search item: a percentage when
   // the total size is known, otherwise the running byte count. `title` shows
   // received / total when known.
-  progressCell: (item) => {
+  progressCell: (item: DownloadProgress) => {
     const received = (item && item.bytesReceived) || 0;
     const total = (item && item.totalBytes) || 0;
     return {
@@ -100,7 +109,7 @@ export const HistoryView = {
   },
 
   // Human-readable byte count (SI units, matching the download notification)
-  formatBytes: (n) => {
+  formatBytes: (n: number | null | undefined): string => {
     if (n == null || n < 0) {
       return "";
     }
@@ -126,13 +135,18 @@ export const HistoryView = {
     { key: "file", label: "File", sortable: true, width: "18%" },
     { key: "folder", label: "Folder", sortable: true, width: "16%" },
     { key: "source", label: "Source", sortable: false, width: "20%" },
-  ],
+  ] as HistoryColumn[],
 
   // Filter + sort + paginate the newest-first entries. Returns the requested
   // page (page is clamped into range) plus the counts the UI shows.
   paginate: (
-    entries,
-    { filter = "", sort = { key: "time", dir: "desc" }, page = 0, pageSize = 50 } = {},
+    entries: HistoryEntry[],
+    {
+      filter = "",
+      sort = { key: "time", dir: "desc" },
+      page = 0,
+      pageSize = 50,
+    }: HistoryPageOptions = {},
   ) => {
     const query = String(filter || "")
       .trim()
