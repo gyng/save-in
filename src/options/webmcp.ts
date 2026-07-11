@@ -57,6 +57,11 @@ export const SaveInWebMCP = {
         properties: {
           paths: { type: "string", description: "Directory menu structure, one path per line" },
           filenamePatterns: { type: "string", description: "Routing / rename rules" },
+          info: {
+            type: "object",
+            description:
+              "Optional sample download info ({url, filename, initialFilename, pageUrl, ...}) for a per-rule match trace",
+          },
         },
       },
       execute: (input: WebMcpInput) => send({ type: "VALIDATE", body: input || {} }),

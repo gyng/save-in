@@ -31,7 +31,14 @@ export type InternalMessage =
   | Message<typeof MESSAGE_TYPES.CHECK_ROUTES, { state?: DownloadPipelineState }>
   | Message<typeof MESSAGE_TYPES.PING>
   | Message<typeof MESSAGE_TYPES.GET_SCHEMA>
-  | Message<typeof MESSAGE_TYPES.VALIDATE, { paths?: string; filenamePatterns?: string }>
+  | Message<
+      typeof MESSAGE_TYPES.VALIDATE,
+      {
+        paths?: string;
+        filenamePatterns?: string;
+        info?: Partial<DownloadInfo> & { srcUrl?: string };
+      }
+    >
   | Message<typeof MESSAGE_TYPES.APPLY_CONFIG, { config?: Record<string, unknown> }>
   | Message<typeof MESSAGE_TYPES.DOWNLOAD, DownloadRequestBody>;
 
@@ -138,7 +145,8 @@ const isMessageBodyValid = (message: Record<string, unknown>): boolean => {
         (body) =>
           isStringKeyedRecord(body) &&
           hasOptionalString(body, "paths") &&
-          hasOptionalString(body, "filenamePatterns"),
+          hasOptionalString(body, "filenamePatterns") &&
+          (typeof body.info === "undefined" || isStringKeyedRecord(body.info)),
       );
     case MESSAGE_TYPES.APPLY_CONFIG:
       return hasOptionalBody(

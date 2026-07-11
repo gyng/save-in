@@ -342,11 +342,52 @@ describe("filename rewrite and routing", () => {
       expect(window.optionErrors.filenamePatterns[0].error).toMatch(/SyntaxError/);
     });
 
+    test("supports backward-compatible matcher flags in the clause name", () => {
+      const rules = router.parseRules("filename/i: CAT\\.JPG$\ninto: cats/:filename:");
+      expect(router.matchRules(rules, { filename: "cat.jpg" })).toBe("cats/:filename:");
+      expect(window.optionErrors.filenamePatterns).toEqual([]);
+    });
+
+    test("rejects unsupported or duplicate matcher flags", () => {
+      expect(router.parseRules("filename/ii: cat\ninto: cats")).toEqual([]);
+      expect(window.optionErrors.filenamePatterns[0].error).toContain("flags");
+    });
+
+    test("warns when a later rule duplicates an earlier rule's matchers", () => {
+      const result = router.parseRulesCollecting(
+        "fileext: jpg\ninto: first\n\nfileext: jpg\ninto: second",
+      );
+      expect(result.rules).toHaveLength(2);
+      expect(result.errors).toContainEqual(
+        expect.objectContaining({ warning: true, error: "rule 2" }),
+      );
+    });
+
+    test("warns when a match-all rule shadows every later rule", () => {
+      const result = router.parseRulesCollecting(
+        "sourceurl: .*\ninto: first\n\nsourceurl: cat\\.jpg\ninto: second",
+      );
+      expect(result.errors).toContainEqual(
+        expect.objectContaining({ warning: true, error: "rule 2" }),
+      );
+    });
+
     test("a capture destination without a capture clause warns", () => {
       const rules = router.parseRules("sourceurl: (dog)\ninto: cat:$1:");
       expect(rules.length).toBe(1);
       expect(window.optionErrors.filenamePatterns[0].warning).toBe(true);
       expect(window.optionErrors.filenamePatterns[0].error).toBe("cat:$1:");
+    });
+
+    test("rejects a destination that references a capture index that cannot exist", () => {
+      const rules = router.parseRules("sourceurl: (dog)\ncapture: sourceurl\ninto: cat/:$2:");
+      expect(rules).toEqual([]);
+      expect(window.optionErrors.filenamePatterns[0].error).toBe("cat/:$2:");
+    });
+
+    test("rejects an empty destination", () => {
+      expect(router.parseRules("sourceurl: dog\ninto: ")).toEqual([]);
+      expect(window.optionErrors.filenamePatterns.length).toBe(1);
     });
 
     test("multiple into clauses are rejected", () => {
@@ -391,6 +432,43 @@ describe("filename rewrite and routing", () => {
     test("capturing context does not throw when metadata is absent", () => {
       const rules = router.parseRules("context: (media)\ncapture: context\ninto: :$1:");
       expect(() => router.getCaptureMatches(rules[0], { sourceUrl: "http://x/" })).not.toThrow();
+    });
+  });
+
+  describe("rule preview traces", () => {
+    test("reports matcher outcomes and the selected destination", () => {
+      const rules = router.parseRules(
+        "fileext: png\ninto: images/:filename:\n\nfilename: .*\ninto: other/:filename:",
+      );
+      const trace = router.traceRules(rules, {
+        url: "https://x/cat.jpg",
+        filename: "server.png",
+        initialFilename: "cat.jpg",
+      });
+      expect(trace).toEqual(
+        expect.objectContaining({
+          initialFilename: "cat.jpg",
+          actualFilename: "server.png",
+          selectedRule: 2,
+          destination: "other/:filename:",
+          expandedDestination: "other/server.png",
+          sanitizedDestination: "other/server.png",
+          finalPath: "other/server.png",
+          filenameDiagnostics: expect.objectContaining({ utf8Bytes: 10 }),
+        }),
+      );
+      expect(trace.rules[0].clauses[0]).toEqual(
+        expect.objectContaining({ name: "fileext", matched: false }),
+      );
+    });
+  });
+
+  describe("extension matcher aliases", () => {
+    test("distinguishes URL and actual filename extensions", () => {
+      const info = { url: "https://x/opaque.bin", filename: "report.pdf" };
+      expect(router.matcherFunctions.urlfileext(/bin/)(info)).toBeTruthy();
+      expect(router.matcherFunctions.actualfileext(/pdf/)(info)).toBeTruthy();
+      expect(router.matcherFunctions.actualfileext(/bin/)(info)).toBeFalsy();
     });
   });
 

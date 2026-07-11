@@ -22,6 +22,11 @@ type SplitPathInput = {
 
 export type PathInput = string | SplitPathInput | null | undefined;
 export type PathValidation = { valid: boolean; message?: string };
+export type FilenameDiagnostics = {
+  utf8Bytes: number;
+  limitBytes: number;
+  exceedsLimit: boolean;
+};
 
 // These regexes are exported because they define the platform-neutral path
 // policy; callers should normally use the sanitizing functions below.
@@ -66,7 +71,18 @@ export function replaceLeadingDots(value: string, replacement?: string) {
 }
 
 export function truncateIfLongerThan(value: string, max: number) {
-  return value && max > 0 && value.length > max ? value.slice(0, max) : value;
+  if (!value || max <= 0 || value.length <= max) return value;
+  let result = "";
+  for (const character of value) {
+    if (result.length + character.length > max) break;
+    result += character;
+  }
+  return result;
+}
+
+export function getFilenameDiagnostics(value: string, limitBytes = 255): FilenameDiagnostics {
+  const utf8Bytes = new TextEncoder().encode(value).byteLength;
+  return { utf8Bytes, limitBytes, exceedsLimit: utf8Bytes > limitBytes };
 }
 
 export function trimTrailingDotsAndSpaces(value: string) {
@@ -100,7 +116,7 @@ export function sanitizeFilename(
   const fsSafe = truncateIfLongerThan(replaceFsBadChars(value), max);
   const dotsHandled = leadingDotsForbidden ? replaceLeadingDots(fsSafe) : fsSafe;
   const trimmed = trimTrailingDotsAndSpaces(dotsHandled);
-  return neutralizeReservedDeviceName(trimmed);
+  return truncateIfLongerThan(neutralizeReservedDeviceName(trimmed), max);
 }
 
 export function sanitizeBufStrings(buf: PathSegment[]) {
@@ -156,11 +172,29 @@ export class Path {
   }
 
   finalize() {
-    const stringifiedBuf = this.buf!.map((item) =>
-      item.type === PATH_SEGMENT_TYPES.SEPARATOR ? item : stringSegment(item.val),
-    ).map((item) => (item.val ? item : stringSegment(options.replacementChar || "_")));
+    const completed: PathSegment[] = [];
+    let component = "";
+    const flush = () => {
+      if (!component) return;
+      const isLeadingDot = completed.length === 0 && component === ".";
+      completed.push(
+        stringSegment(
+          isLeadingDot ? component : sanitizeFilename(component, options.truncateLength, true),
+        ),
+      );
+      component = "";
+    };
 
-    return Object.assign(new Path(), this, { buf: sanitizeBufStrings(stringifiedBuf) }).toString();
+    for (const item of this.buf!) {
+      if (item.type === PATH_SEGMENT_TYPES.SEPARATOR) {
+        flush();
+        completed.push(separatorSegment());
+      } else {
+        component += item.val || options.replacementChar || "_";
+      }
+    }
+    flush();
+    return completed.join("");
   }
 
   validate(): PathValidation {

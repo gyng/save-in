@@ -310,6 +310,38 @@ describe("onDeterminingFilename listener (Chrome)", () => {
     });
   });
 
+  test("recovers same-URL persisted filenames in request order", async () => {
+    sessionStore.siFinalFilenames = {
+      "https://x/same.png": ["first/a.png", "second/b.png"],
+    };
+
+    const first = jest.fn();
+    expect(
+      listener(
+        { byExtensionId: "self-extension-id", filename: "original", url: "https://x/same.png" },
+        first,
+      ),
+    ).toBe(true);
+    await vi.waitFor(() => expect(first).toHaveBeenCalled());
+    expect(first).toHaveBeenCalledWith({
+      filename: "first/a.png",
+      conflictAction: "uniquify",
+    });
+    expect(sessionStore.siFinalFilenames).toEqual({ "https://x/same.png": "second/b.png" });
+
+    const second = jest.fn();
+    listener(
+      { byExtensionId: "self-extension-id", filename: "original", url: "https://x/same.png" },
+      second,
+    );
+    await vi.waitFor(() => expect(second).toHaveBeenCalled());
+    expect(second).toHaveBeenCalledWith({
+      filename: "second/b.png",
+      conflictAction: "uniquify",
+    });
+    expect(sessionStore.siFinalFilenames).toEqual({});
+  });
+
   test("falls back to default naming when nothing was persisted", async () => {
     const suggest = jest.fn();
     const returned = listener(

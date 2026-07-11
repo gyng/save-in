@@ -54,7 +54,8 @@
         target="_blank"
         >regular expression</a
       >
-      strings.
+      strings. Add JavaScript regex flags after the matcher name, for example
+      <code class="click-to-copy">filename/i:</code> for case-insensitive matching.
 
       <table class="box">
         <tr>
@@ -94,7 +95,15 @@
           <td>
             <code>jpg</code>
           </td>
-          <td>Matches the file extension</td>
+          <td>
+            Matches the URL-derived extension (legacy name). Use
+            <code class="click-to-copy">urlfileext:</code> for explicit new rules.
+          </td>
+        </tr>
+        <tr>
+          <td><code class="click-to-copy">actualfileext:</code></td>
+          <td><code>pdf</code></td>
+          <td>Matches the resolved filename extension after Content-Disposition.</td>
         </tr>
         <tr>
           <td>

@@ -214,6 +214,8 @@ export const transformers = ({
       opts => stringSegment(opts.filename),
     [SPECIAL_DIRS.FILE_EXTENSION]:
       opts => stringSegment(getFileExtension(opts.filename ?? "")),
+    [SPECIAL_DIRS.ACTUAL_FILE_EXTENSION]:
+      opts => stringSegment(getFileExtension(opts.filename ?? "")),
     [SPECIAL_DIRS.SOURCE_DOMAIN]:
       opts => stringSegment(withUrl(opts.url ?? "", url => url.hostname)),
     [SPECIAL_DIRS.PAGE_DOMAIN]:
@@ -274,6 +276,11 @@ export const transformers = ({
         return stringSegment(naiveFilename);
       },
     [SPECIAL_DIRS.NAIVE_FILE_EXTENSION]:
+      opts => {
+        const naiveFilename = getFilenameFromUrl(opts.url ?? "");
+        return stringSegment(getFileExtension(naiveFilename));
+      },
+    [SPECIAL_DIRS.URL_FILE_EXTENSION]:
       opts => {
         const naiveFilename = getFilenameFromUrl(opts.url ?? "");
         return stringSegment(getFileExtension(naiveFilename));

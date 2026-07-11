@@ -5,6 +5,7 @@ import type { RuleType } from "../shared/constants.ts";
 import { EXTENSION_REGEX, getFilenameFromUrl } from "./filename.ts";
 import { currentTab } from "../platform/current-tab.ts";
 import type { DownloadInfo } from "../downloads/download-types.ts";
+import { getFilenameDiagnostics, Path } from "./path.ts";
 
 export type RuleError = { message: string; error: string; warning?: boolean };
 export type RuleToken = RegExpMatchArray;
@@ -129,6 +130,19 @@ export const matcherFunctions = {
 
     return match;
   },
+  urlfileext: (regex) => (info) => {
+    const url = info.sourceUrl || info.srcUrl || info.linkUrl || info.pageUrl || info.url;
+    if (!url) return false;
+    const match = (getFilenameFromUrl(url).match(EXTENSION_REGEX)?.[1] || "").match(regex);
+    logMatch(match, regex, info);
+    return match;
+  },
+  actualfileext: (regex) => (info) => {
+    if (!info.filename) return false;
+    const match = (info.filename.match(EXTENSION_REGEX)?.[1] || "").match(regex);
+    logMatch(match, regex, info);
+    return match;
+  },
   filename:
     (regex) =>
     (info, { filename } = EMPTY_INFO) => {
@@ -184,15 +198,18 @@ export const tokenizeLines = (lines: string, errors: RuleError[] = []): RuleToke
 
 export const parseRule = (lines: RuleToken[], errors: RuleError[] = []): RoutingRule | false => {
   const matchers: (RuleClause | false)[] = lines.map((tokens) => {
-    const name = tokens[1];
+    const rawName = tokens[1];
+    const flagSeparator = rawName.lastIndexOf("/");
+    const name = flagSeparator > 0 ? rawName.slice(0, flagSeparator) : rawName;
+    const flags = flagSeparator > 0 ? rawName.slice(flagSeparator + 1) : "";
 
     let value: string | RegExp;
     try {
-      value = name === "into" || name === "capture" ? tokens[2] : new RegExp(tokens[2]);
+      value = name === "into" || name === "capture" ? tokens[2] : new RegExp(tokens[2], flags);
     } catch (e) {
       errors.push({
         message: webExtensionApi.i18n.getMessage("ruleInvalidRegex"),
-        error: `${e}`,
+        error: flags ? `invalid regex flags: ${flags} (${e})` : `${e}`,
       });
       // An invalid regex left `value` undefined, which would compile to a
       // match-everything matcher (`str.match(undefined)` matches ""). Drop
@@ -258,6 +275,13 @@ export const parseRule = (lines: RuleToken[], errors: RuleError[] = []): Routing
   }
 
   const destination = validMatchers.find((m) => m.type === RULE_TYPES.DESTINATION)!;
+  if (!(destination.value as string).trim()) {
+    errors.push({
+      message: webExtensionApi.i18n.getMessage("ruleMissingInto"),
+      error: destination.value as string,
+    });
+    return false;
+  }
   if (
     (destination.value as string).match(/:\$\d+:/) &&
     !validMatchers.find((m) => m.name === "capture")
@@ -331,6 +355,38 @@ export const parseRule = (lines: RuleToken[], errors: RuleError[] = []): Routing
     return false;
   }
 
+  if (captures.length === 1) {
+    const captureNames = (captures[0].value as string).split(",").map((name) => name.trim());
+    let availableIndexes = 0;
+    for (const captureName of captureNames) {
+      const clause = validMatchers.find(
+        (item) => item.type === RULE_TYPES.MATCHER && item.name === captureName,
+      );
+      const source = (clause?.value as RegExp | undefined)?.source || "";
+      let groups = 0;
+      let inClass = false;
+      for (let i = 0; i < source.length; i += 1) {
+        if (source[i] === "\\") i += 1;
+        else if (source[i] === "[") inClass = true;
+        else if (source[i] === "]") inClass = false;
+        else if (!inClass && source[i] === "(" && source[i + 1] !== "?") groups += 1;
+        else if (!inClass && source.slice(i, i + 3) === "(?<" && !/[=!]/.test(source[i + 3] || ""))
+          groups += 1;
+      }
+      availableIndexes += groups + 1;
+    }
+    const indexes = [...(destination.value as string).matchAll(/:\$(\d+):/g)].map((m) =>
+      Number(m[1]),
+    );
+    if (indexes.some((index) => index >= availableIndexes)) {
+      errors.push({
+        message: webExtensionApi.i18n.getMessage("ruleMissingCapture"),
+        error: destination.value as string,
+      });
+      return false;
+    }
+  }
+
   return validMatchers;
 };
 
@@ -357,6 +413,31 @@ export const parseRulesCollecting = (
     .map((lines) => tokenizeLines(lines, errors))
     .map((tokens) => parseRule(tokens, errors))
     .filter((r): r is RoutingRule => Boolean(r));
+
+  for (let index = 1; index < rules.length; index += 1) {
+    const shadowed = rules.slice(0, index).some((earlier) => {
+      const earlierMatchers = earlier.filter((clause) => clause.type === RULE_TYPES.MATCHER);
+      const laterMatchers = rules[index].filter((clause) => clause.type === RULE_TYPES.MATCHER);
+      return earlierMatchers.every((earlierClause) =>
+        laterMatchers.some((laterClause) => {
+          if (laterClause.name !== earlierClause.name) return false;
+          const earlierRegex = earlierClause.value as RegExp;
+          const laterRegex = laterClause.value as RegExp;
+          return (
+            (/^(?:\.\*|\^\.\*\$)$/.test(earlierRegex.source) && !earlierRegex.flags) ||
+            (earlierRegex.source === laterRegex.source && earlierRegex.flags === laterRegex.flags)
+          );
+        }),
+      );
+    });
+    if (shadowed) {
+      errors.push({
+        message: webExtensionApi.i18n.getMessage("ruleShadowed"),
+        error: `rule ${index + 1}`,
+        warning: true,
+      });
+    }
+  }
 
   return { rules, errors };
 };
@@ -442,4 +523,63 @@ export const matchRules = (rules: RoutingRule[], info: RoutingInfo): string | nu
   }
 
   return null;
+};
+
+export type RuleTrace = {
+  initialFilename?: string;
+  actualFilename?: string;
+  selectedRule: number | null;
+  destination: string | null;
+  expandedDestination: string | null;
+  sanitizedDestination: string | null;
+  finalPath: string | null;
+  filenameDiagnostics: ReturnType<typeof getFilenameDiagnostics> | null;
+  rules: Array<{
+    index: number;
+    matched: boolean;
+    destination: string;
+    clauses: Array<{ name: string; pattern: string; matched: boolean }>;
+  }>;
+};
+
+export const traceRules = (rules: RoutingRule[], info: RoutingInfo): RuleTrace => {
+  const traced = rules.map((rule, index) => {
+    const clauses = rule
+      .filter((clause) => clause.type === RULE_TYPES.MATCHER)
+      .map((clause) => ({
+        name: clause.name,
+        pattern: String(clause.value),
+        matched: Boolean(clause.matcher?.(info, info)),
+      }));
+    const matched = clauses.every((clause) => clause.matched);
+    const ruleDestination = rule.find((clause) => clause.type === RULE_TYPES.DESTINATION)!
+      .value as string;
+    return { index: index + 1, matched, destination: ruleDestination, clauses };
+  });
+  const selectedIndex = traced.findIndex((rule) => rule.matched);
+  const selectedRule = selectedIndex >= 0 ? selectedIndex + 1 : null;
+  const destination = selectedIndex >= 0 ? matchRule(rules[selectedIndex], info) || null : null;
+  const actualFilename = info.filename || "";
+  const naiveFilename = getFilenameFromUrl(info.url || info.srcUrl || info.linkUrl || "");
+  const expandedDestination = destination
+    ?.replaceAll(":filename:", actualFilename)
+    .replaceAll(":fileext:", actualFilename.match(EXTENSION_REGEX)?.[1] || "")
+    .replaceAll(":actualfileext:", actualFilename.match(EXTENSION_REGEX)?.[1] || "")
+    .replaceAll(":naivefilename:", naiveFilename)
+    .replaceAll(":naivefileext:", naiveFilename.match(EXTENSION_REGEX)?.[1] || "")
+    .replaceAll(":urlfileext:", naiveFilename.match(EXTENSION_REGEX)?.[1] || "");
+  const sanitizedDestination = expandedDestination
+    ? new Path(expandedDestination).finalize()
+    : null;
+  return {
+    initialFilename: info.initialFilename,
+    actualFilename: info.filename,
+    selectedRule,
+    destination,
+    expandedDestination: expandedDestination || null,
+    sanitizedDestination,
+    finalPath: sanitizedDestination,
+    filenameDiagnostics: actualFilename ? getFilenameDiagnostics(actualFilename) : null,
+    rules: traced,
+  };
 };

@@ -161,6 +161,9 @@ vitest specifics (`test/*.test.ts`, typed; `tsc` covers them):
 ## Conventions
 
 - oxfmt (prettier-compatible) + oxlint; `npm run lint:fix` before commit.
+- When the user asks for repository changes, commit the completed, verified
+  work before handing it back unless they explicitly ask to leave it uncommitted.
+  Stage only task-related changes when the worktree contains unrelated edits.
 - No runtime dependencies; scripts under `scripts/` use Node built-ins only
   (Node ≥ 24, npm).
 - Comments explain _constraints_ (why something must be this way — usually

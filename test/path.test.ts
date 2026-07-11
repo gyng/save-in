@@ -131,6 +131,16 @@ describe("truncateIfLongerThan", () => {
   });
 });
 
+describe("filename byte diagnostics", () => {
+  test("reports UTF-8 byte length and configured-limit overflow", () => {
+    expect(Path.getFilenameDiagnostics("é.txt", 5)).toEqual({
+      utf8Bytes: 6,
+      limitBytes: 5,
+      exceedsLimit: true,
+    });
+  });
+});
+
 describe("sanitizeFilename", () => {
   test("empty input is returned as-is", () => {
     expect(Path.sanitizeFilename("")).toBe("");
@@ -161,6 +171,34 @@ describe("sanitizeFilename", () => {
   test("neutralizes reserved device names", () => {
     expect(Path.sanitizeFilename("CON", 0, false)).toBe("_CON");
     expect(Path.sanitizeFilename("con.txt", 0, false)).toBe("_con.txt");
+  });
+
+  test("keeps the configured maximum after neutralizing a reserved name", () => {
+    expect(Path.sanitizeFilename("CON.txt", 7, false)).toHaveLength(7);
+  });
+
+  test("does not split a Unicode surrogate pair when truncating", () => {
+    expect(Path.sanitizeFilename("ab😀cd", 3, false)).toBe("ab");
+  });
+});
+
+describe("Path.finalize component semantics", () => {
+  test("sanitizes and truncates a completed interpolated component once", () => {
+    const previous = options.truncateLength;
+    options.truncateLength = 8;
+    try {
+      const path = new Path.Path("prefix-:filename:");
+      path.buf = [Path.stringSegment("prefix-"), Path.stringSegment("long-name.txt")];
+      expect(path.finalize()).toBe("prefix-l");
+    } finally {
+      options.truncateLength = previous;
+    }
+  });
+
+  test("only trims dots and spaces at the end of a completed component", () => {
+    const path = new Path.Path("");
+    path.buf = [Path.stringSegment("name."), Path.stringSegment("-final")];
+    expect(path.finalize()).toBe("name.-final");
   });
 });
 

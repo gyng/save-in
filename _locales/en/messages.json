@@ -141,6 +141,11 @@
     "description": "Error message for a rule with invalid regex"
   },
 
+  "ruleShadowed": {
+    "message": "Rule can never be reached because an earlier rule has the same or broader match",
+    "description": "Warning for a routing rule shadowed by an earlier rule"
+  },
+
   "ruleBadClause": {
     "message": "Bad clause",
     "description": "Error message for lines in rule with syntax errors"

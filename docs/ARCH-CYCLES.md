@@ -207,3 +207,14 @@ graph rather than relying on a one-time audit.
   `DownloadsState`, `SessionWriteState`, and `CounterWriteState`; no service
   classes or compatibility facades remain. Pure namespace collections and the
   cross-module `Menus` extension object were removed during #62.
+
+## Renaming diagnostics and authoring enhancements — DONE
+
+- Added a rule-preview trace showing the initial and actual filenames, matched
+  rule, expanded destination, sanitized destination, and final path.
+- Added backward-compatible matcher-name regex flags such as `filename/i:`.
+- Added warnings for unreachable rules shadowed by an earlier broader rule.
+- Clarified URL-derived versus actual filename extensions in matcher and variable
+  names, while retaining aliases for existing configurations.
+- Added byte-length diagnostics for browser/filesystem filename limits; Unicode-
+  safe character truncation remains the compatibility baseline.

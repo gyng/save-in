@@ -9,7 +9,7 @@ import { Path } from "../routing/path.ts";
 import { OptionsManagement } from "../config/option.ts";
 import { options } from "../config/options-data.ts";
 import { buildTree } from "./menu-build.ts";
-import { matcherFunctions, parseRulesCollecting } from "../routing/router.ts";
+import { matcherFunctions, parseRulesCollecting, traceRules } from "../routing/router.ts";
 import { Download } from "../downloads/download.ts";
 import { currentTab } from "../platform/current-tab.ts";
 import { DownloadEvents } from "../downloads/download-events.ts";
@@ -168,7 +168,11 @@ export const Messaging = {
       result.pathErrors = tree.errors;
     }
     if (typeof body.filenamePatterns === "string") {
-      result.ruleErrors = parseRulesCollecting(body.filenamePatterns).errors;
+      const parsed = parseRulesCollecting(body.filenamePatterns);
+      result.ruleErrors = parsed.errors;
+      if (body.info && typeof body.info === "object" && !Array.isArray(body.info)) {
+        result.ruleTrace = traceRules(parsed.rules, body.info);
+      }
     }
 
     sendResponse({ type: MESSAGE_TYPES.VALIDATE_RESULT, body: result });

@@ -122,6 +122,18 @@ describe("variables", () => {
       expect(output).toBe("lol.jpeglol.jpeg");
     });
 
+    test("supports explicit URL and actual extension aliases", async () => {
+      expect(
+        (
+          await Variable.applyVariables(new Path.Path(":urlfileext:/:actualfileext:"), {
+            ...info,
+            url: "https://x/source.jpg",
+            filename: "server.png",
+          })
+        ).finalize(),
+      ).toBe("jpg/png");
+    });
+
     test("interpolates :fileext:", async () => {
       const input = new Path.Path(":fileext:");
       const output = (await Variable.applyVariables(input, info)).finalize();
