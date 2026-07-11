@@ -8,7 +8,7 @@
 
 import { SPECIAL_DIRS } from "../constants.ts";
 
-export const PathEditor: Record<string, any> = {
+const PathEditorHelpers: Record<string, any> = {
   // "  >>i/cats // cute (alias: Cats)" -> { depth: 2, body: "i/cats",
   // comment: "cute (alias: Cats)" }. Round-trips through serializeLine
   // with whitespace normalized.
@@ -32,9 +32,9 @@ export const PathEditor: Record<string, any> = {
       .split("\n")
       .map((l) => l.trim())
       .filter((l) => l.length > 0)
-      .map(PathEditor.parseLine),
+      .map(PathEditorHelpers.parseLine),
 
-  rowsToLines: (rows) => rows.map(PathEditor.serializeLine),
+  rowsToLines: (rows) => rows.map(PathEditorHelpers.serializeLine),
 
   getAlias: (comment) => {
     const match = (comment || "").match(/\(alias:\s*([^)]*)\)/);
@@ -73,7 +73,7 @@ export const PathEditor: Record<string, any> = {
   insertAtCursor: (textarea, text) => {
     const start = textarea.selectionStart != null ? textarea.selectionStart : textarea.value.length;
     const end = textarea.selectionEnd != null ? textarea.selectionEnd : start;
-    PathEditor.insertText(textarea, text, start, end);
+    PathEditorHelpers.insertText(textarea, text, start, end);
   },
 
   // Inserts a whole line after the line the cursor is on
@@ -84,7 +84,7 @@ export const PathEditor: Record<string, any> = {
       lineEnd = textarea.value.length;
     }
     const glue = lineEnd > 0 ? "\n" : "";
-    PathEditor.insertText(textarea, `${glue}${line}`, lineEnd, lineEnd);
+    PathEditorHelpers.insertText(textarea, `${glue}${line}`, lineEnd, lineEnd);
   },
 
   // A "+ Add" menu for an editor: line-insert buttons (data-insert-line)
@@ -112,7 +112,7 @@ export const PathEditor: Record<string, any> = {
 
     menu.querySelectorAll("[data-insert-line]").forEach((/** @type {HTMLElement} */ button) => {
       button.addEventListener("click", () => {
-        PathEditor.insertLine(textarea, button.dataset.insertLine);
+        PathEditorHelpers.insertLine(textarea, button.dataset.insertLine);
         closeMenu();
       });
     });
@@ -164,7 +164,7 @@ export const PathEditor: Record<string, any> = {
           button.appendChild(valueEl);
 
           button.addEventListener("click", () => {
-            PathEditor.insertAtCursor(textarea, variable);
+            PathEditorHelpers.insertAtCursor(textarea, variable);
             closeMenu();
           });
           variablesContainer.appendChild(button);
@@ -213,7 +213,7 @@ export const PathEditor: Record<string, any> = {
 
   // Text/Visual sub-tabs inside the Downloads Menu tab: both edit the same
   // list; text is the default and stays the source of truth
-  setupModeToggle: () => {
+  setupModeToggle: (owner) => {
     const textButton = document.querySelector("#paths-mode-text");
     const visualButton = document.querySelector("#paths-mode-visual");
     /** @type {HTMLElement[]} */
@@ -236,8 +236,8 @@ export const PathEditor: Record<string, any> = {
         el.hidden = visual;
       });
       visualContainer.hidden = !visual;
-      if (visual && typeof PathEditor.rebuildVisual === "function") {
-        PathEditor.rebuildVisual();
+      if (visual && typeof owner.rebuildVisual === "function") {
+        owner.rebuildVisual();
       }
     };
 
@@ -245,7 +245,7 @@ export const PathEditor: Record<string, any> = {
     visualButton.addEventListener("click", () => select(true));
   },
 
-  setupVisualEditor: () => {
+  setupVisualEditor: (owner) => {
     const textarea = document.querySelector("#paths") as HTMLTextAreaElement;
     const container = document.querySelector("#path-editor-rows");
     if (!textarea || !container) {
@@ -259,7 +259,7 @@ export const PathEditor: Record<string, any> = {
     // Serialize rows back to the textarea (the source of truth) and let
     // the normal pipeline (autosave, previews) react
     const commit = () => {
-      textarea.value = PathEditor.rowsToLines(rows).join("\n");
+      textarea.value = PathEditorHelpers.rowsToLines(rows).join("\n");
       textarea.dispatchEvent(new InputEvent("input", { bubbles: true }));
     };
 
@@ -340,10 +340,10 @@ export const PathEditor: Record<string, any> = {
           const alias = document.createElement("input");
           alias.type = "text";
           alias.className = "path-editor-alias";
-          alias.value = PathEditor.getAlias(row.comment);
+          alias.value = PathEditorHelpers.getAlias(row.comment);
           alias.placeholder = "alias";
           alias.addEventListener("change", () => {
-            row.comment = PathEditor.setAlias(row.comment, alias.value.trim());
+            row.comment = PathEditorHelpers.setAlias(row.comment, alias.value.trim());
             commit();
           });
           rowEl.appendChild(alias);
@@ -411,11 +411,11 @@ export const PathEditor: Record<string, any> = {
     };
 
     const rebuild = () => {
-      rows = PathEditor.linesToRows(textarea.value);
+      rows = PathEditorHelpers.linesToRows(textarea.value);
       render();
     };
     // The mode toggle forces a rebuild when switching into visual mode
-    PathEditor.rebuildVisual = rebuild;
+    owner.rebuildVisual = rebuild;
 
     document.querySelector("#path-editor-add-dir")?.addEventListener("click", () => {
       rows.push({ depth: 0, body: "new-folder", comment: "" });
@@ -446,9 +446,36 @@ export const PathEditor: Record<string, any> = {
   },
 };
 
+export class PathEditor {
+  rebuildVisual?: () => void;
+
+  static parseLine = PathEditorHelpers.parseLine;
+  static serializeLine = PathEditorHelpers.serializeLine;
+  static linesToRows = PathEditorHelpers.linesToRows;
+  static rowsToLines = PathEditorHelpers.rowsToLines;
+  static getAlias = PathEditorHelpers.getAlias;
+  static setAlias = PathEditorHelpers.setAlias;
+  static insertText = PathEditorHelpers.insertText;
+  static insertAtCursor = PathEditorHelpers.insertAtCursor;
+  static insertLine = PathEditorHelpers.insertLine;
+
+  setupInsertMenu(menuSelector) {
+    PathEditorHelpers.setupInsertMenu(menuSelector);
+  }
+
+  setupModeToggle() {
+    PathEditorHelpers.setupModeToggle(this);
+  }
+
+  setupVisualEditor() {
+    PathEditorHelpers.setupVisualEditor(this);
+  }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
-  PathEditor.setupInsertMenu("#paths-insert-menu");
-  PathEditor.setupInsertMenu("#rules-insert-menu");
-  PathEditor.setupVisualEditor();
-  PathEditor.setupModeToggle();
+  const editor = new PathEditor();
+  editor.setupInsertMenu("#paths-insert-menu");
+  editor.setupInsertMenu("#rules-insert-menu");
+  editor.setupVisualEditor();
+  editor.setupModeToggle();
 });

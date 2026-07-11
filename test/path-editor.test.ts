@@ -99,7 +99,7 @@ describe("visual editor", () => {
     global.browser.runtime.sendMessage = vi.fn(() =>
       Promise.resolve({ body: { items: [], errors: [] } }),
     );
-    PathEditor.setupVisualEditor();
+    new PathEditor().setupVisualEditor();
     vi.advanceTimersByTime(1500); // initial rebuild after options restore
   });
 
@@ -191,7 +191,7 @@ describe("insert menu typeahead", () => {
       return Promise.resolve({});
     });
     global.browser.runtime.sendMessage = sendMessage;
-    PathEditor.setupInsertMenu("#paths-insert-menu");
+    new PathEditor().setupInsertMenu("#paths-insert-menu");
     await Promise.resolve();
     await Promise.resolve();
     await Promise.resolve();
@@ -252,6 +252,8 @@ describe("insert menu typeahead", () => {
 });
 
 describe("text/visual mode toggle", () => {
+  let editor: PathEditor;
+
   beforeEach(() => {
     document.body.innerHTML = `
       <button type="button" class="editor-tab active" id="paths-mode-text">Text</button>
@@ -262,13 +264,13 @@ describe("text/visual mode toggle", () => {
       <div id="error-paths"></div>
       <div id="paths-visual" hidden></div>
     `;
-    PathEditor.rebuildVisual = vi.fn();
-    PathEditor.setupModeToggle();
+    editor = new PathEditor();
+    editor.rebuildVisual = vi.fn();
+    editor.setupModeToggle();
   });
 
   afterEach(() => {
     document.body.innerHTML = "";
-    delete PathEditor.rebuildVisual;
   });
 
   test("switching to visual hides the text inputs and rebuilds the rows", () => {
@@ -279,7 +281,7 @@ describe("text/visual mode toggle", () => {
     expect(document.querySelector<HTMLElement>("#paths-text-help").hidden).toBe(true);
     expect(document.querySelector<HTMLElement>("#paths-visual").hidden).toBe(false);
     expect(document.querySelector("#paths-mode-visual").classList.contains("active")).toBe(true);
-    expect(PathEditor.rebuildVisual).toHaveBeenCalled();
+    expect(editor.rebuildVisual).toHaveBeenCalled();
   });
 
   test("switching back restores the text input", () => {
@@ -289,6 +291,16 @@ describe("text/visual mode toggle", () => {
     expect(document.querySelector<HTMLElement>("#paths").hidden).toBe(false);
     expect(document.querySelector<HTMLElement>("#paths-visual").hidden).toBe(true);
     expect(document.querySelector("#paths-mode-text").classList.contains("active")).toBe(true);
+  });
+
+  test("instances keep rebuild callbacks isolated", () => {
+    const other = new PathEditor();
+    other.rebuildVisual = vi.fn();
+
+    document.querySelector<HTMLElement>("#paths-mode-visual").click();
+
+    expect(editor.rebuildVisual).toHaveBeenCalledOnce();
+    expect(other.rebuildVisual).not.toHaveBeenCalled();
   });
 });
 
@@ -300,7 +312,7 @@ describe("visual editor drag and drop", () => {
       <div id="path-editor-rows"></div>
     `;
     global.browser.runtime.sendMessage = vi.fn(() => Promise.resolve({}));
-    PathEditor.setupVisualEditor();
+    new PathEditor().setupVisualEditor();
     vi.advanceTimersByTime(1500);
   });
 
@@ -354,7 +366,7 @@ describe("insert menu targets its editor via data-insert-target", () => {
     global.browser.runtime.sendMessage = vi.fn(() =>
       Promise.resolve({ body: { variables: [":filename:"] } }),
     );
-    PathEditor.setupInsertMenu("#rules-insert-menu");
+    new PathEditor().setupInsertMenu("#rules-insert-menu");
     await Promise.resolve();
     await Promise.resolve();
 
