@@ -12,7 +12,7 @@ describe("manual editor state", () => {
     state.setup("paths");
     const textarea = document.querySelector("textarea")!;
     const buttons = [...document.querySelectorAll("button")];
-    const status = document.querySelector<HTMLElement>("[role=status]")!;
+    const status = document.querySelector<HTMLElement>(".editor-dirty-status")!;
 
     expect(buttons.every((button) => button.disabled)).toBe(true);
     expect(status.hidden).toBe(true);
@@ -44,7 +44,7 @@ describe("manual editor state", () => {
     expect(state.discard("missing")).toBe(false);
   });
 
-  test("Ctrl/Cmd+Enter applies and Escape discards through the existing buttons", () => {
+  test("Ctrl/Cmd+Enter applies and Ctrl/Cmd+Escape discards", () => {
     const state = createManualEditorState("Unsaved changes");
     state.setup("paths");
     const textarea = document.querySelector("textarea")!;
@@ -61,6 +61,8 @@ describe("manual editor state", () => {
     expect(onApply).toHaveBeenCalledOnce();
 
     textarea.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+    expect(onDiscard).not.toHaveBeenCalled();
+    textarea.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", ctrlKey: true }));
     expect(onDiscard).toHaveBeenCalledOnce();
     expect(textarea.value).toBe("saved");
   });
@@ -105,10 +107,25 @@ describe("manual editor state", () => {
     textarea.dispatchEvent(new InputEvent("input"));
     state.setSaving("paths", true, "Saving…");
     expect(state.anyDirty()).toBe(true);
-    expect(document.querySelector<HTMLElement>("[role=status]")!.textContent).toBe("Saving…");
+    expect(document.querySelector<HTMLElement>(".editor-save-status")!.textContent).toBe("Saving…");
     state.setSaving("paths", false);
     expect(state.anyDirty()).toBe(true);
-    state.markSaved("paths", "Saved");
+    state.markSaved("paths", "Saved", "normalized");
     expect(state.anyDirty()).toBe(false);
+    expect(textarea.value).toBe("normalized");
+    expect(document.querySelector<HTMLElement>(".editor-save-status")!.textContent).toBe("Saved");
+    expect(document.querySelector<HTMLElement>(".editor-save-status")!.hidden).toBe(false);
+  });
+
+  test("validation failure clears pending state and exposes retry without enabling Apply", () => {
+    const state = createManualEditorState("Unsaved changes");
+    state.setup("paths");
+    const textarea = document.querySelector("textarea")!;
+    textarea.value = "changed";
+    textarea.dispatchEvent(new InputEvent("input"));
+    state.setValidationPending("paths");
+    state.setValidationUnavailable("paths");
+    expect(document.querySelector<HTMLButtonElement>("[data-apply]")!.disabled).toBe(true);
+    expect(textarea.getAttribute("aria-busy")).toBe("false");
   });
 });

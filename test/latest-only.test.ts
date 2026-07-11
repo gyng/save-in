@@ -17,3 +17,20 @@ describe("latest-only async results", () => {
     expect(applied).toEqual(["current result"]);
   });
 });
+
+test("only reports a rejection from the latest request", async () => {
+  const rejecters: Array<(reason: Error) => void> = [];
+  const failures: string[] = [];
+  const latest = createLatestOnly(
+    () => new Promise<string>((_resolve, reject) => rejecters.push(reject)),
+    () => {},
+    (error) => failures.push(String(error)),
+  );
+  const old = latest.run();
+  const current = latest.run();
+  rejecters[0](new Error("old"));
+  await old;
+  rejecters[1](new Error("current"));
+  await current;
+  expect(failures).toEqual(["Error: current"]);
+});

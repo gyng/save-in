@@ -117,7 +117,10 @@
             </button>
           </div>
 
-          <label class="editor-field-label" for="paths">Directory menu definitions</label>
+          <label class="editor-field-label" for="paths">__MSG_o_lDirectoryDefinitions__</label>
+          <div class="caption" id="paths-editor-description">
+            __MSG_o_lDirectoryDefinitionsHelp__
+          </div>
           <textarea
             required
             id="paths"
@@ -125,7 +128,7 @@
             rows="10"
             placeholder="."
             spellcheck="false"
-            aria-describedby="error-paths paths-text-help"
+            aria-describedby="paths-editor-description error-paths"
           ></textarea>
           <div
             class="error-notification"
@@ -473,7 +476,7 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
 
         <div class="rules-editor">
           <div class="rules-editor-main">
-            <div class="editor-field-label" id="rules-text-label">Text rules</div>
+            <div class="editor-field-label" id="rules-text-label">__MSG_o_lTextRules__</div>
             <textarea
               id="filenamePatterns"
               data-manual="true"
@@ -524,11 +527,11 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
               <div class="editor-field-label" id="rule-builder-label">__MSG_o_lRuleBuilder__</div>
               <div class="rule-builder-row">
                 <label>
-                  <span>Matcher</span>
+                  <span>__MSG_o_lMatcher__</span>
                   <select id="rule-builder-matcher"></select>
                 </label>
                 <label>
-                  <span>Pattern</span>
+                  <span>__MSG_o_lPattern__</span>
                   <input
                     type="text"
                     id="rule-builder-pattern"
@@ -539,7 +542,7 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
               </div>
               <div class="rule-builder-row">
                 <label>
-                  <span class="rule-builder-into-label">Destination (into:)</span>
+                  <span class="rule-builder-into-label">__MSG_o_lDestinationInto__</span>
                   <input
                     type="text"
                     id="rule-builder-into"
@@ -819,6 +822,16 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
             placeholder=""
             spellcheck="false"
           ></textarea>
+        </div>
+        <div class="caption-line chrome-only show">
+          <div>__MSG_o_cRefererProxyUrl__</div>
+          <input
+            class="full-width"
+            id="refererProxyUrl"
+            type="url"
+            placeholder="https://proxy.example/fetch?url={url}&amp;referer={referer}"
+          />
+          <div class="caption">__MSG_o_cRefererProxyUrlHelp__</div>
         </div>
         <div class="caption caption-line">
           __MSG_o_cSetRefererHeaderFilterHelp__

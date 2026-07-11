@@ -705,6 +705,30 @@
     "description": "Status shown beside Apply and Discard for a modified manual editor"
   },
 
+  "o_lDirectoryDefinitions": { "message": "Directory menu definitions" },
+  "o_lDirectoryDefinitionsHelp": {
+    "message": "One relative directory or menu instruction per line."
+  },
+  "o_lTextRules": { "message": "Text rules" },
+  "o_lMatcher": { "message": "Matcher" },
+  "o_lPattern": { "message": "Pattern" },
+  "o_lDestinationInto": { "message": "Destination (into:)" },
+  "o_lSaving": { "message": "Saving…" },
+  "o_lSaved": { "message": "Saved" },
+  "o_lSaveFailed": { "message": "Could not save changes" },
+  "o_lValidationUnavailable": {
+    "message": "Validation is temporarily unavailable. "
+  },
+  "o_bRetryValidation": { "message": "Retry validation" },
+  "o_lNoValidationErrors": { "message": "No validation errors" },
+  "o_lValidationSummary": {
+    "message": "$ERRORS$ errors, $WARNINGS$ warnings",
+    "placeholders": {
+      "errors": { "content": "$1" },
+      "warnings": { "content": "$2" }
+    }
+  },
+
   "o_lSubdirectoryInstructionComment": {
     "message": "at the start creates nested submenus depending on the number of arrows."
   },

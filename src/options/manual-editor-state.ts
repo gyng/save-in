@@ -3,6 +3,7 @@ type ManualEditor = {
   saved: string;
   sync: () => void;
   statuses: HTMLElement[];
+  saveStatus: HTMLElement;
   valid: boolean;
   saving: boolean;
   validationPending: boolean;
@@ -22,21 +23,26 @@ export const createManualEditorState = (unsavedLabel: string) => {
     }
 
     const actionRows = [...new Set(buttons.map((button) => button.parentElement).filter(Boolean))];
-    const statuses = actionRows.map((row, index) => {
+    const statuses = actionRows.map((row) => {
       const status = document.createElement("span");
       status.className = "editor-dirty-status";
-      if (index === 0) status.setAttribute("role", "status");
-      else status.setAttribute("aria-hidden", "true");
+      status.setAttribute("aria-hidden", "true");
       status.textContent = unsavedLabel;
       status.hidden = true;
       row!.insertBefore(status, row!.querySelector(`[data-discard="${id}"]`));
       return status;
     });
+    const saveStatus = document.createElement("span");
+    saveStatus.className = "editor-save-status";
+    saveStatus.setAttribute("role", "status");
+    saveStatus.hidden = true;
+    actionRows[0]!.insertBefore(saveStatus, statuses[0]);
     const editor: ManualEditor = {
       textarea,
       saved: textarea.value,
       sync: () => {},
       statuses,
+      saveStatus,
       valid: true,
       saving: false,
       validationPending: false,
@@ -59,6 +65,9 @@ export const createManualEditorState = (unsavedLabel: string) => {
     };
 
     textarea.addEventListener("input", editor.sync);
+    textarea.addEventListener("input", () => {
+      editor.saveStatus.hidden = true;
+    });
     textarea.addEventListener("keydown", (event) => {
       if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
         event.preventDefault();
@@ -68,6 +77,7 @@ export const createManualEditorState = (unsavedLabel: string) => {
         }
       } else if (
         event.key === "Escape" &&
+        (event.ctrlKey || event.metaKey) &&
         textarea.getAttribute("aria-expanded") !== "true" &&
         textarea.value !== editor.saved
       ) {
@@ -94,6 +104,7 @@ export const createManualEditorState = (unsavedLabel: string) => {
     if (!editor) return false;
     editor.valid = valid;
     editor.validationPending = false;
+    editor.textarea.setAttribute("aria-busy", "false");
     if (valid) editor.textarea.removeAttribute("aria-invalid");
     else editor.textarea.setAttribute("aria-invalid", "true");
     editor.sync();
@@ -104,6 +115,17 @@ export const createManualEditorState = (unsavedLabel: string) => {
     const editor = find(id);
     if (!editor) return false;
     editor.validationPending = true;
+    editor.textarea.setAttribute("aria-busy", "true");
+    editor.sync();
+    return true;
+  };
+
+  const setValidationUnavailable = (id: string) => {
+    const editor = find(id);
+    if (!editor) return false;
+    editor.validationPending = false;
+    editor.valid = false;
+    editor.textarea.setAttribute("aria-busy", "false");
     editor.sync();
     return true;
   };
@@ -113,19 +135,25 @@ export const createManualEditorState = (unsavedLabel: string) => {
     if (!editor) return false;
     editor.saving = saving;
     editor.sync();
-    if (saving && label) editor.statuses.forEach((status) => (status.textContent = label));
+    if (saving && label) {
+      editor.saveStatus.textContent = label;
+      editor.saveStatus.hidden = false;
+    } else if (!saving) editor.saveStatus.hidden = true;
     return true;
   };
 
-  const markSaved = (id: string, label?: string) => {
+  const markSaved = (id: string, label?: string, appliedValue?: unknown) => {
     const editor = find(id);
     if (!editor) return false;
+    if (typeof appliedValue === "string") editor.textarea.value = appliedValue;
     editor.saved = editor.textarea.value;
     editor.saving = false;
     editor.statuses.forEach((status) => {
       status.textContent = label || unsavedLabel;
     });
     editor.sync();
+    editor.saveStatus.textContent = label || "";
+    editor.saveStatus.hidden = !label;
     return true;
   };
 
@@ -148,6 +176,7 @@ export const createManualEditorState = (unsavedLabel: string) => {
     discard,
     setValidity,
     setValidationPending,
+    setValidationUnavailable,
     setSaving,
     markSaved,
   };

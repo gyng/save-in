@@ -1,4 +1,8 @@
-import { assertApplySucceeded } from "../src/options/options-save.ts";
+import {
+  assertApplySucceeded,
+  collectOptionConfig,
+  getAppliedValue,
+} from "../src/options/options-save.ts";
 
 describe("options apply response", () => {
   test("accepts a successful background acknowledgement", () => {
@@ -18,4 +22,25 @@ describe("options apply response", () => {
       }),
     ).toThrow("paths: invalid value");
   });
+});
+
+test("collects only the explicitly scoped editor", () => {
+  document.body.innerHTML = '<textarea id="paths">cats</textarea><input id="other" value="x">';
+  const schema = {
+    keys: [
+      { name: "paths", type: "VALUE" },
+      { name: "other", type: "VALUE" },
+    ],
+    types: { BOOL: "BOOL", VALUE: "VALUE" },
+  };
+  expect(collectOptionConfig(schema, "paths")).toEqual({ paths: "cats" });
+});
+
+test("returns the normalized applied value", () => {
+  expect(
+    getAppliedValue(
+      { type: "APPLY_CONFIG_RESULT", body: { applied: { paths: "cats" }, rejected: [] } },
+      "paths",
+    ),
+  ).toBe("cats");
 });

@@ -13,7 +13,7 @@ import { COUNTER_KEY } from "../background/counter.ts";
 import { isStringKeyedRecord } from "../background/message-protocol.ts";
 import { createManualEditorState } from "./manual-editor-state.ts";
 import { createLatestOnly } from "./latest-only.ts";
-import { assertApplySucceeded } from "./options-save.ts";
+import { assertApplySucceeded, collectOptionConfig, getAppliedValue } from "./options-save.ts";
 
 type JsonRecord = Record<string, any>;
 type OptionSchema = {
@@ -150,6 +150,16 @@ const renderErrorRow = (err: ValidationError, textareaId: string) => {
   return r;
 };
 
+const errorChannel = (panel: Element, name: string) => {
+  let channel = panel.querySelector(`[data-error-channel="${name}"]`);
+  if (!channel) {
+    channel = document.createElement("div");
+    channel.setAttribute("data-error-channel", name);
+    panel.appendChild(channel);
+  }
+  return channel;
+};
+
 // Validate the (possibly unsaved) editor contents live and render both error
 // panels — VALIDATE dry-runs both grammars, so the panels track the menu
 // preview (which also validates live) instead of the last-saved state.
@@ -161,19 +171,25 @@ const validationRequests = createLatestOnly(
     const pathsErrors = document.querySelector("#error-paths");
     const rulesErrors = document.querySelector("#error-filenamePatterns");
     const updatePanel = (panel: Element, errors: ValidationError[], textareaId: string) => {
+      const channel = errorChannel(panel, "validation");
       const signature = JSON.stringify(errors);
-      if (panel.getAttribute("data-validation-signature") === signature) return;
-      panel.setAttribute("data-validation-signature", signature);
+      if (channel.getAttribute("data-validation-signature") === signature) return;
+      channel.setAttribute("data-validation-signature", signature);
       panel.setAttribute(
         "aria-label",
         errors.length === 0
-          ? "No validation errors"
-          : `${errors.filter((error) => !error.warning).length} errors, ${errors.filter((error) => error.warning).length} warnings`,
+          ? webExtensionApi.i18n.getMessage("o_lNoValidationErrors") || "No validation errors"
+          : webExtensionApi.i18n.getMessage("o_lValidationSummary", [
+              String(errors.filter((error) => !error.warning).length),
+              String(errors.filter((error) => error.warning).length),
+            ]) ||
+              `${errors.filter((error) => !error.warning).length} errors, ${errors.filter((error) => error.warning).length} warnings`,
       );
-      panel.innerHTML = "";
-      errors.forEach((error) => panel.appendChild(renderErrorRow(error, textareaId)));
+      channel.innerHTML = "";
+      errors.forEach((error) => channel.appendChild(renderErrorRow(error, textareaId)));
     };
     if (pathsErrors) {
+      errorChannel(pathsErrors, "validation-service").innerHTML = "";
       updatePanel(pathsErrors, body.pathErrors || [], "#paths");
       manualEditorState.setValidity(
         "paths",
@@ -181,12 +197,37 @@ const validationRequests = createLatestOnly(
       );
     }
     if (rulesErrors) {
+      errorChannel(rulesErrors, "validation-service").innerHTML = "";
       updatePanel(rulesErrors, body.ruleErrors || [], "#filenamePatterns");
       manualEditorState.setValidity(
         "filenamePatterns",
         !(body.ruleErrors || []).some((err: ValidationError) => !err.warning),
       );
     }
+  },
+  () => {
+    ["paths", "filenamePatterns"].forEach((id) => {
+      manualEditorState.setValidationUnavailable(id);
+      const panel = document.querySelector(`#error-${id}`);
+      if (!panel) return;
+      const channel = errorChannel(panel, "validation-service");
+      channel.innerHTML = "";
+      const retry = document.createElement("button");
+      retry.type = "button";
+      retry.textContent =
+        webExtensionApi.i18n.getMessage("o_bRetryValidation") || "Retry validation";
+      retry.addEventListener("click", () => {
+        ["paths", "filenamePatterns"].forEach((editorId) =>
+          manualEditorState.setValidationPending(editorId),
+        );
+        renderValidationErrors();
+      });
+      channel.append(
+        webExtensionApi.i18n.getMessage("o_lValidationUnavailable") ||
+          "Validation is temporarily unavailable. ",
+        retry,
+      );
+    });
   },
 );
 
@@ -488,35 +529,13 @@ webExtensionApi.runtime.onMessage.addListener((message) => {
   }
 });
 
-const saveOptions = (e?: Event): Promise<any> => {
+const saveOptions = (e?: Event, scope?: string): Promise<any> => {
   if (e) {
     e.preventDefault();
   }
   // Collect the raw form values, then let the background persist them.
   return getOptionsSchema.then((schema: OptionSchema) => {
-    const config = schema.keys.reduce<JsonRecord>((acc, val) => {
-      const el = document.getElementById(val.name);
-      if (!el) {
-        return acc;
-      }
-
-      const propMap = {
-        [schema.types.BOOL]: "checked",
-        [schema.types.VALUE]: "value",
-      };
-      const property = propMap[val.type];
-      if (property === "checked" && el instanceof HTMLInputElement) {
-        acc[val.name] = el.checked;
-      } else if (
-        property === "value" &&
-        (el instanceof HTMLInputElement ||
-          el instanceof HTMLTextAreaElement ||
-          el instanceof HTMLSelectElement)
-      ) {
-        acc[val.name] = el.value;
-      }
-      return acc;
-    }, {});
+    const config = collectOptionConfig(schema, scope);
 
     // Route through APPLY_CONFIG so the background applies each option's onSave
     // (schema functions don't survive the OPTIONS_SCHEMA message, so the page
@@ -765,7 +784,7 @@ const setupAutosave = (el: Element) => {
   };
 
   const doSave = (e?: Event) => {
-    void saveOptions(e).catch(() => {
+    void saveOptions(e, el.id).catch(() => {
       pendingChanges = true;
     });
     window.setTimeout(updateErrors, 200);
@@ -1168,10 +1187,19 @@ document.addEventListener("click", (e) => {
 document.querySelectorAll("[data-apply]").forEach((button) => {
   button.addEventListener("click", async () => {
     const id = button.getAttribute("data-apply") || "";
-    manualEditorState.setSaving(id, true, "Saving…");
+    manualEditorState.setSaving(
+      id,
+      true,
+      webExtensionApi.i18n.getMessage("o_lSaving") || "Saving…",
+    );
     try {
-      await saveOptions();
-      manualEditorState.markSaved(id, "Saved");
+      const response = await saveOptions(undefined, id);
+      manualEditorState.markSaved(
+        id,
+        webExtensionApi.i18n.getMessage("o_lSaved") || "Saved",
+        getAppliedValue(response, id),
+      );
+      errorChannel(document.querySelector(`#error-${id}`)!, "persistence").innerHTML = "";
       window.setTimeout(() => {
         updateErrors();
         updateMenuPreview();
@@ -1181,9 +1209,15 @@ document.querySelectorAll("[data-apply]").forEach((button) => {
       manualEditorState.setSaving(id, false);
       const panel = document.querySelector(`#error-${id}`);
       if (panel) {
-        panel.appendChild(
+        const channel = errorChannel(panel, "persistence");
+        channel.innerHTML = "";
+        channel.appendChild(
           renderErrorRow(
-            { message: "Could not save changes", error: String(error), warning: false },
+            {
+              message: webExtensionApi.i18n.getMessage("o_lSaveFailed") || "Could not save changes",
+              error: String(error),
+              warning: false,
+            },
             `#${id}`,
           ),
         );
