@@ -100,6 +100,8 @@ testable once tests are on real imports.
   delete the `typeof X === "undefined"` guards + residual globals.d.ts. (Task #62.)
   - ✅ `Util` namespace/global removed; `withUrl` and `splitLines` are named
     functional exports imported directly by their consumers.
+  - ✅ `OptionsLogic` namespace removed; options-page code imports its two
+    DOM-free functions directly.
 - **TS-native organization/structure** — the structural axis: group files by
   layer/feature (src/platform, src/core, src/download, src/routing, src/menus,
   src/messaging — reflecting the post-cut layering), modernize tsconfig

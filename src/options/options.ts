@@ -1,6 +1,6 @@
 import { webExtensionApi } from "../web-extension-api.ts";
 
-import { OptionsLogic } from "./options-logic.ts";
+import { filterKeyComboOptions, normalizeKeyComboForDisplay } from "./options-logic.ts";
 import { renderHistory } from "./history-panel.ts";
 import { addClickToCopy } from "./clicktocopy.ts";
 import { PathEditor } from "./path-editor.ts";
@@ -519,10 +519,9 @@ const saveOptions = (e?: Event) => {
 // These would belong on the option schema as onOptionsLoad, but the schema
 // reaches this page via the GET_SCHEMA message and structured clone drops
 // functions — so field-display transforms live here instead. The logic is in
-// OptionsLogic (options-logic.js) so it can be unit-tested.
+// DOM-free helpers live in options-logic.ts so they can be unit-tested.
 const OPTION_FIELD_DISPLAY_TRANSFORMS = {
-  contentClickToSaveCombo: (v: unknown) =>
-    OptionsLogic.normalizeKeyComboForDisplay(v as string | number),
+  contentClickToSaveCombo: (v: unknown) => normalizeKeyComboForDisplay(v as string | number),
 };
 
 const restoreOptionsHandler = (result: JsonRecord, schema: OptionSchema) => {
@@ -1028,7 +1027,7 @@ setupManualEditor("filenamePatterns");
 
   // filter=false (focus/click) shows every option; filter=true (typing) narrows
   const open = (filter: boolean) => {
-    const list = OptionsLogic.filterKeyComboOptions(OPTIONS, filter ? input.value : "");
+    const list = filterKeyComboOptions(OPTIONS, filter ? input.value : "");
     dropdown.innerHTML = "";
     list.forEach((o) => {
       const li = document.createElement("li");
