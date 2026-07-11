@@ -6,17 +6,31 @@ Firefox (AMO) and Chrome (Web Store).
 
 ## Architecture
 
-**There is no bundler and no module system in shipped code.** Background
-scripts are plain scripts sharing one global scope, loaded in manifest order
-(browser-shim first, `index.js` last). Files communicate through globals
-(`Menus`, `Download`, `RequestHeaders`, `OptionsManagement`, `options`,
-`currentTab`, ...). New cross-file globals must be added to
-`.oxlintrc.json` `globals`. Each `src/*.js` ends with a
-`if (typeof module !== "undefined") module.exports = ...` block so vitest can
-require it in isolation. `menu-click.js`/`menu-tabs.js` extend the `Menus`
-object from `menu-build.js` through that shared scope — under vitest, set
-`global.Menus` before importing them (see `importMenus` in
-`test/menu-listeners.test.js`).
+**The code is ESM + TypeScript, shipped as a non-minified bundle.** Every
+`src/*.ts` is a real ES module using `import`/`export`; `rolldown`
+(`rolldown.config.mjs`) transpiles the types and scope-hoists each target into
+ONE readable, non-minified file (`dist/bundled/*.js`) — so the shipped output is
+still reviewable, but the source has real module boundaries. There is one entry
+module per target (`src/entry.{background,options,offscreen}.ts`) that
+side-effect-imports its modules in load order; `entry.background.ts` also
+re-exposes the objects the e2e's `evalSW` reaches (`Object.assign(globalThis,
+{ Notifier, Download, Menus, … })`). `menu-click.ts`/`menu-tabs.ts` `import { Menus }`
+from `menu-build.ts` and add methods to that shared object; `index.ts`
+side-effect-imports them so the handlers attach before it calls them, and stays
+last. The cyclic core (path/option/headers/variable/router/notification/download/
+messaging/menu-build/index) has real circular imports that resolve fine because
+every cross-module reference is call-time (docs/ARCH-CYCLES.md tracks breaking
+that cycle up). Mutable cross-file state is a plain `export let` (`options`,
+`currentTab`, `CURRENT_BROWSER`) reassigned only in its own module; readers
+observe the live binding. Bundle output format is per-target: `esm` (bare,
+scope-hoisted, no `export` statements) for the SW/event-page/options/offscreen
+classic contexts; `iife` for the content script + clicktocopy help-page script.
+
+**Build/ship/test all target the bundle** (`dist/bundled-pkg`, staged by
+`scripts/build-bundled.js`): `npm run build`, `npm run lint`
+(`web-ext lint --source-dir dist/bundled-pkg`), and `npm run e2e:*` all stage +
+use it. The old individual-scripts build (`build:unpacked`, `e2e:source`) is
+retired. `npm run typecheck` (`tsc --noEmit`) covers `src/**` AND `test/**`.
 
 Execution contexts:
 
@@ -29,13 +43,15 @@ Execution contexts:
 
 ### Single MV3 manifest, two background models
 
-One `manifest.json` (MV3) serves both browsers via dual `background` keys:
-Firefox (≥ 121) uses `background.scripts` (an **event page**) and ignores
-`service_worker`; Chrome (≥ 123) uses `background.service_worker`
-(`src/background.js`: `self.window = self` shim + `importScripts` of the
-same file list) and ignores `scripts`. Keep the two lists in sync when
-adding a background script — `scripts/check-background-scripts.js` (part of
-`npm run lint`) fails on drift.
+One `manifest.json` (MV3) serves both browsers via dual `background` keys, both
+pointing at bundles: Firefox (≥ 121) uses `background.scripts: ["background.js"]`
+(an **event page**, real `window`) and ignores `service_worker`; Chrome (≥ 123)
+uses `background.service_worker: "background.sw.js"` (same modules, bundled with
+a `self.window = self;` banner since the SW has no `window`) and ignores
+`scripts`. Both bundles come from the SAME `src/entry.background.ts`; the staged
+`dist/bundled-pkg` manifest (via `scripts/build-bundled.js`) points the keys at
+the two outputs. Add a background module by importing it from the relevant entry
+— there is no hand-maintained file list to keep in sync anymore.
 
 |                 | Firefox (event page)                                                   | Chrome (service worker)                                           |
 | --------------- | ---------------------------------------------------------------------- | ----------------------------------------------------------------- |
@@ -101,9 +117,9 @@ to Firefox too.
 | `npm run e2e:firefox`             | vitest e2e suite for Firefox on a throwaway profile via RDP (e2e/firefox.e2e.mjs)                                                                                                                                                                  |
 | `npm run d:chrome`                | dev loop: isolated Chrome + auto restage/reload on file save                                                                                                                                                                                       |
 | `npm run d`                       | web-ext Firefox dev instance                                                                                                                                                                                                                       |
-| `npm run build`                   | one zip for both stores (web-ext), loading the individual source scripts                                                                                                                                                                           |
-| `npm run bundle`                  | rolldown → `dist/bundled/*.js`: one readable, NON-minified file per target (background event page + SW, options, offscreen, content). ESM output = bare top-level code, so the classic-script shared global scope is preserved                     |
-| `npm run build:bundled`           | stage `dist/bundled-pkg` (bundles + a manifest/HTML pointing at them; secondary pages keep their source scripts) and zip it for the stores. `EXT_DIR=dist/bundled-pkg npm run e2e:chrome` / `e2e:firefox` run the suites against the bundled build |
+| `npm run build`                   | alias for `build:bundled` — the store zip (the retired individual-scripts build is `build:unpacked`)                                                                                                                                               |
+| `npm run bundle`                  | rolldown resolves the `src/entry.*.ts` modules → `dist/bundled/*.js`: one readable, NON-minified scope-hoisted file per target (background + SW, options, offscreen, content, clicktocopy). `esm` (bare) for classic-script contexts, `iife` for content/clicktocopy |
+| `npm run build:bundled`           | stage `dist/bundled-pkg` (bundles + a manifest/HTML pointing at them) and zip it for the stores. `build`/`lint`/`e2e:*` all stage + target this                                                                                                     |
 
 Chrome ≥ 137 ignores `--load-extension`; the scripts load an unpacked copy
 (staged by `scripts/stage.js` into `dist/unpacked` — the repo root can't be
@@ -123,22 +139,23 @@ scripts instead — add a test to `e2e/chrome.e2e.mjs` /
 `e2e/firefox.e2e.mjs` (vitest, sequential within each file). Both e2e suites must pass before a release; they are the
 regression net for the two manifests.
 
-vitest specifics:
+vitest specifics (`test/*.test.ts`, typed; `tsc` covers them):
 
 - `jest-webextension-mock` provides partial `browser`/`chrome` globals; it
   lacks `contextMenus`, download events, and `storage.session` — define
-  those per test (see `test/menu-listeners.test.js`,
-  `test/notification-session.test.js`).
-- Under vitest, src files are strict-mode ESM: top-level `let` is
-  module-scoped, and assigning an undeclared global (fine in the browser
-  shared scope) throws unless the test predefines it on `global` —
-  seed state through exported functions or registered listeners, not by
-  assignment.
-- Module-reset tests use `vi.resetModules()` + `await import(...)`; the
-  global `jest` is aliased to `vi` in test/vitest.setup.mjs. vitest jsdom
+  those per test (see `test/menu-listeners.test.ts`,
+  `test/notification-session.test.ts`). `browser`/`chrome` stay ambient host
+  globals; only cross-MODULE deps are imported/mocked.
+- Tests import the real `.ts` modules and mock deps via `vi.mock` /
+  `vi.spyOn`. HISTORICAL WART: many still route mocks through `globalThis` (a
+  `vi.mock` getter-bridge that forwards `global.X = …` seeding), typed via the
+  `declare var X: any` ambients in `types/globals.d.ts` — being replaced with
+  import-real + `vi.spyOn` (docs/ARCH-CYCLES.md). `jest` is aliased to `vi` in
+  `test/vitest.setup.mjs`; `test/globals.d.ts` types the test-only ambients.
+- Module-reset tests use `vi.resetModules()` + `await import(...)`. vitest jsdom
   provides `URL.createObjectURL`: stub it away to exercise MV3 paths.
 - Capture browser event handlers via
-  `browser.x.onY.addListener.mock.calls[0][0]` and invoke them directly.
+  `vi.mocked(browser.x.onY.addListener).mock.calls[0][0]` and invoke them.
 
 ## Conventions
 
@@ -148,11 +165,11 @@ vitest specifics:
 - Comments explain _constraints_ (why something must be this way — usually
   an MV3/cross-browser rule), not what the code does.
 - Version lives in `manifest.json` and `package.json` — bump together.
-- Types are check-only (`npm run typecheck`, no build step): every src file
-  is checked via `checkJs`; declare new cross-file globals in
-  `types/globals.d.ts` and keep the check passing. Avoid inline
-  `/** @type */ (…)` casts on parenthesized literals — oxfmt strips the
-  parentheses and breaks the cast; prefer typedefs or optional fields.
+- TypeScript is `strict: false` for now (the migration used deliberately-loose
+  types; `docs/ARCH-CYCLES.md` queues the strict + TS-native sweeps).
+  `npm run typecheck` (`tsc --noEmit`) must stay green over `src/**` and
+  `test/**`. `types/globals.d.ts` is a shrinking residue of the old shared-global
+  era (mostly test-facing ambients now) — prefer real `import`s.
   Runtime globals must not reuse platform class names (that is why they are
   `Notifier`/`RequestHeaders`, not `Notification`/`Headers`).
 
