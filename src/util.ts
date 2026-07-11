@@ -6,7 +6,7 @@ export const Util = {
   // `fallback`. Replaces the ad-hoc try/`new URL`/catch guard reimplemented in
   // variable.js, router.js, headers.js and messaging.js (each with a different
   // failure return — hence the explicit `fallback`).
-  withUrl: (str, cb, fallback = null) => {
+  withUrl: <T, F = null>(str: string, cb: (url: URL) => T, fallback: F = null as F): T | F => {
     try {
       return cb(new URL(str));
     } catch (e) {
@@ -18,7 +18,7 @@ export const Util = {
   // paths/referer-filter/prefer-links-filter options all parse user input this
   // way; keeping it in one place stops the per-site predicate drift (and the
   // empty-line-becomes-match-everything bug when the lines are mapped to RegExp).
-  splitLines: (raw) =>
+  splitLines: (raw: string | null | undefined): string[] =>
     (raw || "")
       .split("\n")
       .map((s) => s.trim())
