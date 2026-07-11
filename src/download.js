@@ -148,51 +148,6 @@ const Download = {
     });
   },
 
-  // Chrome MV3 only: fetch + createObjectURL in an offscreen document instead
-  // of base64-ing the whole file into a data URL in the service worker. Gated
-  // on a worker with no createObjectURL AND chrome.offscreen present, so the
-  // Firefox event page (which has createObjectURL) never takes this path.
-  canUseOffscreen: () =>
-    typeof URL.createObjectURL !== "function" &&
-    typeof chrome !== "undefined" &&
-    Boolean(chrome.offscreen),
-
-  // At most one offscreen document exists; create it lazily and reuse it
-  ensureOffscreen: () => {
-    const has = chrome.offscreen.hasDocument
-      ? chrome.offscreen.hasDocument()
-      : Promise.resolve(false);
-    return Promise.resolve(has).then((exists) => {
-      if (exists) {
-        return null;
-      }
-      return chrome.offscreen
-        .createDocument({
-          url: "src/offscreen.html",
-          reasons: ["BLOBS"],
-          justification:
-            "Create object URLs for fetched downloads (service workers have no URL.createObjectURL)",
-        })
-        .catch((e) => {
-          // A concurrent createDocument races to "only one document" — tolerate
-          if (!/single|only one|already/i.test(String(e))) {
-            throw e;
-          }
-        });
-    });
-  },
-
-  // Fetch a URL in the offscreen document and resolve to its blob object URL
-  fetchViaOffscreen: (url) =>
-    Download.ensureOffscreen()
-      .then(() => chrome.runtime.sendMessage({ type: MESSAGE_TYPES.OFFSCREEN_FETCH, url }))
-      .then((res) => {
-        if (!res || !res.blobUrl) {
-          throw new Error((res && res.error) || "offscreen fetch failed");
-        }
-        return res.blobUrl;
-      }),
-
   // Content hashing pulls the whole file into memory, so it is capped (bigger
   // files are skipped) and time-limited.
   HASH_MAX_BYTES: 256 * 1024 * 1024,
@@ -205,8 +160,8 @@ const Download = {
   // event page it's all in-context. Resolves to null on failure / over-cap so
   // the caller falls back to a normal fetch.
   resolveContent: (url) => {
-    if (Download.canUseOffscreen()) {
-      return Download.ensureOffscreen()
+    if (OffscreenClient.canUse()) {
+      return OffscreenClient.ensure()
         .then(() =>
           chrome.runtime.sendMessage({
             type: MESSAGE_TYPES.OFFSCREEN_FETCH,
@@ -500,8 +455,8 @@ const Download = {
       const fetchDownload = (_url) => {
         // Chrome MV3: fetch + createObjectURL in an offscreen document so large
         // files aren't base64-buffered into a data URL (which also has a size cap)
-        if (Download.canUseOffscreen()) {
-          Download.fetchViaOffscreen(_url)
+        if (OffscreenClient.canUse()) {
+          OffscreenClient.fetch(_url)
             .then((blobUrl) => browserDownload(blobUrl, true))
             .catch((e) => {
               if (typeof Log !== "undefined") {

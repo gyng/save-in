@@ -19,3 +19,8 @@ globalThis.SessionState = (await import("../src/session-state.js")).default;
 // DownloadState (the per-download record store) is a thin global over SessionState;
 // tests that want a plain stub override it.
 globalThis.DownloadState = (await import("../src/download-state.js")).default;
+
+// OffscreenClient (Chrome SW offscreen-document client) is referenced by
+// download.js at call time; the real object defaults to canUse()===false under
+// jsdom (URL.createObjectURL exists). Tests override its methods as needed.
+globalThis.OffscreenClient = (await import("../src/offscreen-client.js")).default;

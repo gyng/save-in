@@ -29,6 +29,7 @@
       "src/download-state.js",
       "src/notification.js",
       "src/path.js",
+      "src/offscreen-client.js",
       "src/download.js",
       "src/router.js",
       "src/shortcut.js",

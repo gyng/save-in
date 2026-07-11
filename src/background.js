@@ -24,6 +24,7 @@ importScripts(
   "download-state.js",
   "notification.js",
   "path.js",
+  "offscreen-client.js",
   "download.js",
   "router.js",
   "shortcut.js",

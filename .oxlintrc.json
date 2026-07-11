@@ -22,6 +22,7 @@
     "getFilenameFromContentDispositionHeader": "readonly",
     "Util": "readonly",
     "DownloadState": "readonly",
+    "OffscreenClient": "readonly",
     "Path": "readonly",
     "Download": "readonly",
     "Variable": "readonly",

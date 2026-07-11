@@ -629,32 +629,32 @@ describe("renameAndDownload: fetchViaFetch", () => {
   test("Chrome offscreen: fetches via the offscreen document and downloads the blob URL", async () => {
     global.CURRENT_BROWSER = "CHROME";
     global.options.fetchViaFetch = true;
-    const origCanUse = Download.canUseOffscreen;
-    const origFetch = Download.fetchViaOffscreen;
-    Download.canUseOffscreen = jest.fn(() => true);
-    Download.fetchViaOffscreen = jest.fn(() => Promise.resolve("blob:offscreen-url"));
+    const origCanUse = OffscreenClient.canUse;
+    const origFetch = OffscreenClient.fetch;
+    OffscreenClient.canUse = jest.fn(() => true);
+    OffscreenClient.fetch = jest.fn(() => Promise.resolve("blob:offscreen-url"));
     try {
       const state = makeState();
       await Download.renameAndDownload(state);
       await flush();
 
-      expect(Download.fetchViaOffscreen).toHaveBeenCalledWith(state.info.url);
+      expect(OffscreenClient.fetch).toHaveBeenCalledWith(state.info.url);
       expect(global.browser.downloads.download).toHaveBeenCalledWith(
         expect.objectContaining({ url: "blob:offscreen-url" }),
       );
     } finally {
-      Download.canUseOffscreen = origCanUse;
-      Download.fetchViaOffscreen = origFetch;
+      OffscreenClient.canUse = origCanUse;
+      OffscreenClient.fetch = origFetch;
     }
   });
 
   test("Chrome offscreen: falls back to a direct download when the offscreen fetch fails", async () => {
     global.CURRENT_BROWSER = "CHROME";
     global.options.fetchViaFetch = true;
-    const origCanUse = Download.canUseOffscreen;
-    const origFetch = Download.fetchViaOffscreen;
-    Download.canUseOffscreen = jest.fn(() => true);
-    Download.fetchViaOffscreen = jest.fn(() => Promise.reject(new Error("offscreen boom")));
+    const origCanUse = OffscreenClient.canUse;
+    const origFetch = OffscreenClient.fetch;
+    OffscreenClient.canUse = jest.fn(() => true);
+    OffscreenClient.fetch = jest.fn(() => Promise.reject(new Error("offscreen boom")));
     try {
       const state = makeState();
       await Download.renameAndDownload(state);
@@ -668,8 +668,8 @@ describe("renameAndDownload: fetchViaFetch", () => {
         expect.objectContaining({ url: state.info.url }),
       );
     } finally {
-      Download.canUseOffscreen = origCanUse;
-      Download.fetchViaOffscreen = origFetch;
+      OffscreenClient.canUse = origCanUse;
+      OffscreenClient.fetch = origFetch;
     }
   });
 });

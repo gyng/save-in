@@ -128,6 +128,12 @@ declare const DownloadState: {
   get: (downloadId: number) => Promise<any>;
   [key: string]: any;
 };
+// offscreen-client.js — Chrome SW side of the offscreen document
+declare const OffscreenClient: {
+  canUse: () => boolean;
+  ensure: () => Promise<unknown>;
+  fetch: (url: string) => Promise<string>;
+};
 // util.js — small shared helpers (withUrl, splitLines)
 declare const Util: {
   withUrl: <T>(str: string, cb: (url: URL) => T, fallback?: T) => T;

@@ -153,17 +153,17 @@ describe("offscreen document fetch (Chrome MV3)", () => {
     delete global.chrome;
   });
 
-  test("canUseOffscreen is true in a worker that has chrome.offscreen", () => {
-    expect(Download.canUseOffscreen()).toBe(true);
+  test("OffscreenClient.canUse is true in a worker that has chrome.offscreen", () => {
+    expect(OffscreenClient.canUse()).toBe(true);
   });
 
-  test("canUseOffscreen is false when createObjectURL exists (Firefox event page)", () => {
+  test("OffscreenClient.canUse is false when createObjectURL exists (Firefox event page)", () => {
     URL.createObjectURL = () => "blob:x";
-    expect(Download.canUseOffscreen()).toBe(false);
+    expect(OffscreenClient.canUse()).toBe(false);
   });
 
   test("creates the offscreen document and returns its blob URL", async () => {
-    const url = await Download.fetchViaOffscreen("https://x/big.bin");
+    const url = await OffscreenClient.fetch("https://x/big.bin");
 
     expect(global.chrome.offscreen.createDocument).toHaveBeenCalledWith(
       expect.objectContaining({ url: "src/offscreen.html", reasons: ["BLOBS"] }),
@@ -177,7 +177,7 @@ describe("offscreen document fetch (Chrome MV3)", () => {
 
   test("reuses an existing offscreen document", async () => {
     global.chrome.offscreen.hasDocument = jest.fn(() => Promise.resolve(true));
-    await Download.fetchViaOffscreen("https://x/a");
+    await OffscreenClient.fetch("https://x/a");
     expect(global.chrome.offscreen.createDocument).not.toHaveBeenCalled();
   });
 
@@ -185,12 +185,12 @@ describe("offscreen document fetch (Chrome MV3)", () => {
     global.chrome.offscreen.createDocument = jest.fn(() =>
       Promise.reject(new Error("Only a single offscreen document may be created")),
     );
-    await expect(Download.fetchViaOffscreen("https://x/a")).resolves.toBe("blob:offscreen-url");
+    await expect(OffscreenClient.fetch("https://x/a")).resolves.toBe("blob:offscreen-url");
   });
 
   test("rejects when the offscreen fetch reports an error", async () => {
     global.chrome.runtime.sendMessage = jest.fn(() => Promise.resolve({ error: "HTTP 403" }));
-    await expect(Download.fetchViaOffscreen("https://x/a")).rejects.toThrow("HTTP 403");
+    await expect(OffscreenClient.fetch("https://x/a")).rejects.toThrow("HTTP 403");
   });
 
   test("resolveContent fetches once via offscreen, returning hash + download URL", async () => {
