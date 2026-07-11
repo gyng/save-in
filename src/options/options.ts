@@ -1,3 +1,5 @@
+import { webExtensionApi } from "../web-extension-api.ts";
+
 import { OptionsLogic } from "./options-logic.ts";
 import { renderHistory } from "./history-panel.ts";
 import { addClickToCopy } from "./clicktocopy.ts";
@@ -5,7 +7,7 @@ import { PathEditor } from "./path-editor.ts";
 import { CURRENT_BROWSER, BROWSERS } from "../chrome-detector.ts";
 import { COUNTER_KEY } from "../counter.ts";
 
-const getOptionsSchema = browser.runtime
+const getOptionsSchema = webExtensionApi.runtime
   .sendMessage({ type: "OPTIONS_SCHEMA" })
   .then((res) => {
     console.log("options", res, CURRENT_BROWSER);
@@ -140,7 +142,7 @@ const renderValidationErrors = () => {
     return;
   }
 
-  browser.runtime
+  webExtensionApi.runtime
     .sendMessage({
       type: "VALIDATE",
       body: {
@@ -174,7 +176,7 @@ const updateErrors = () => {
   // last-download / variables panes below.
   renderValidationErrors();
 
-  browser.runtime.sendMessage({ type: "CHECK_ROUTES" }).then(({ body }) => {
+  webExtensionApi.runtime.sendMessage({ type: "CHECK_ROUTES" }).then(({ body }) => {
     // Last download
     const hasLastDownload =
       body.lastDownload && body.lastDownload.info && body.lastDownload.info.url;
@@ -241,7 +243,7 @@ const renderVersionLabel = () => {
     return;
   }
 
-  const version = browser.runtime.getManifest().version;
+  const version = webExtensionApi.runtime.getManifest().version;
   el.textContent = `v${version}`;
   el.title = `save-in v${version} — view releases`;
 
@@ -262,17 +264,17 @@ const renderExternalApi = () => {
   if (!idEl) {
     return;
   }
-  const id = browser.runtime.id;
+  const id = webExtensionApi.runtime.id;
   idEl.textContent = id;
 
   const snippet = document.querySelector("#api-snippet");
   if (snippet) {
     snippet.textContent = [
       `const ID = "${id}";`,
-      `const pong = await browser.runtime.sendMessage(ID, { type: "PING" });`,
+      `const pong = await webExtensionApi.runtime.sendMessage(ID, { type: "PING" });`,
       `// pong.body -> { version, capabilities }`,
       ``,
-      `const res = await browser.runtime.sendMessage(ID, {`,
+      `const res = await webExtensionApi.runtime.sendMessage(ID, {`,
       `  type: "DOWNLOAD",`,
       `  body: {`,
       `    url: "https://example.com/pic.jpg",`,
@@ -285,7 +287,7 @@ const renderExternalApi = () => {
 
   const versionEl = document.querySelector("#api-version");
   const capsEl = document.querySelector("#api-capabilities");
-  browser.runtime
+  webExtensionApi.runtime
     .sendMessage({ type: "PING" })
     .then((pong) => {
       const body = (pong && pong.body) || {};
@@ -318,12 +320,12 @@ const renderCounter = () => {
     return;
   }
   const show = () =>
-    browser.storage.local.get(key).then((res) => {
+    webExtensionApi.storage.local.get(key).then((res) => {
       valueEl.textContent = String((res && res[key]) || 0);
     });
   show();
   resetBtn.addEventListener("click", () => {
-    browser.storage.local.set({ [key]: 0 }).then(show);
+    webExtensionApi.storage.local.set({ [key]: 0 }).then(show);
   });
 };
 document.addEventListener("DOMContentLoaded", renderCounter);
@@ -339,8 +341,8 @@ const renderVariablesPreview = () => {
   }
 
   Promise.all([
-    browser.runtime.sendMessage({ type: "GET_KEYWORDS" }),
-    browser.runtime.sendMessage({ type: "CHECK_ROUTES" }).catch(() => null),
+    webExtensionApi.runtime.sendMessage({ type: "GET_KEYWORDS" }),
+    webExtensionApi.runtime.sendMessage({ type: "CHECK_ROUTES" }).catch(() => null),
   ])
     .then(([keywords, routes]) => {
       const variables = (keywords && keywords.body && keywords.body.variables) || [];
@@ -408,7 +410,7 @@ const updateDebugLog = async () => {
   }
 
   try {
-    const res = await browser.storage.session.get(LOG_STORAGE_KEY);
+    const res = await webExtensionApi.storage.session.get(LOG_STORAGE_KEY);
     const entries = (res && res[LOG_STORAGE_KEY]) || [];
     el.value = entries.map((e) => [e.at, e.message, e.data].filter(Boolean).join("  ")).join("\n");
   } catch (e) {
@@ -419,13 +421,13 @@ const updateDebugLog = async () => {
 document.addEventListener("DOMContentLoaded", updateDebugLog);
 document.querySelector("#debug-log-refresh")?.addEventListener("click", updateDebugLog);
 document.querySelector("#debug-log-clear")?.addEventListener("click", () => {
-  browser.storage.session
+  webExtensionApi.storage.session
     .remove(LOG_STORAGE_KEY)
     .then(updateDebugLog)
     .catch(() => {});
 });
 
-browser.runtime.onMessage.addListener((message) => {
+webExtensionApi.runtime.onMessage.addListener((message) => {
   switch (message.type) {
     case "DOWNLOADED":
       updateErrors();
@@ -463,7 +465,7 @@ const saveOptions = (e?) => {
     // (schema functions don't survive the OPTIONS_SCHEMA message, so the page
     // itself can't) and reloads options + menus. This is why saveOptions no
     // longer trims paths/filenamePatterns locally — the background does it.
-    browser.runtime.sendMessage({ type: "APPLY_CONFIG", body: { config } }).then(() => {
+    webExtensionApi.runtime.sendMessage({ type: "APPLY_CONFIG", body: { config } }).then(() => {
       document.querySelector("#lastSavedAt").textContent = new Date().toLocaleTimeString();
     });
   });
@@ -508,7 +510,7 @@ const restoreOptionsHandler = (result, schema) => {
 const restoreOptions = () =>
   getOptionsSchema.then((schema) => {
     const keys = schema.keys.map((o) => o.name);
-    browser.storage.local.get(keys).then((loaded) => restoreOptionsHandler(loaded, schema));
+    webExtensionApi.storage.local.get(keys).then((loaded) => restoreOptionsHandler(loaded, schema));
   });
 
 const addHelp = (el) => {
@@ -537,8 +539,8 @@ document.querySelector("#reset").addEventListener("click", (e) => {
     const reset = w.confirm("Reset settings to defaults?");
 
     if (reset) {
-      browser.storage.local.clear().then(() => {
-        browser.runtime.sendMessage({ type: "OPTIONS_LOADED" });
+      webExtensionApi.storage.local.clear().then(() => {
+        webExtensionApi.runtime.sendMessage({ type: "OPTIONS_LOADED" });
 
         document.querySelector("#lastSavedAt").textContent = new Date().toLocaleTimeString();
 
@@ -645,7 +647,7 @@ window.confirmPendingChanges = () => {
   // invalidated (e.g. a reloaded dev build in a still-open tab), which
   // would otherwise show a text-less confirm dialog
   const message =
-    browser.i18n.getMessage("optionsUnsavedChanges") ||
+    webExtensionApi.i18n.getMessage("optionsUnsavedChanges") ||
     "You have unsaved changes. OK to save them, or Cancel to discard.";
   // eslint-disable-next-line no-alert
   const save = window.confirm(message);
@@ -799,7 +801,7 @@ const renderMenuPreview = (container, tree) => {
     row.className = "menu-preview-row";
     const title = document.createElement("span");
     title.className = "menu-preview-title";
-    title.textContent = browser.i18n.getMessage("contextMenuLastUsed");
+    title.textContent = webExtensionApi.i18n.getMessage("contextMenuLastUsed");
     row.appendChild(title);
     li.appendChild(row);
     rootUl.insertBefore(li, rootUl.firstChild);
@@ -846,7 +848,7 @@ const updateMenuPreview = () => {
     return;
   }
 
-  browser.runtime
+  webExtensionApi.runtime
     .sendMessage({ type: "PREVIEW_MENUS", body: { paths: textarea.value } })
     .then((response) => {
       if (response && response.body) {
@@ -1119,7 +1121,7 @@ const showJson = (obj) => {
 document.querySelector("#settings-export").addEventListener("click", () => {
   getOptionsSchema.then((schema) => {
     const keys = schema.keys.map((o) => o.name);
-    browser.storage.local.get(keys).then((loaded) => showJson(loaded));
+    webExtensionApi.storage.local.get(keys).then((loaded) => showJson(loaded));
   });
 });
 

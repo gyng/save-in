@@ -1,3 +1,5 @@
+import { webExtensionApi } from "../web-extension-api.ts";
+
 // Options-page host-permission banner. MV3 host permissions are revocable on
 // Firefox (about:addons) and narrowable on Chrome ("on click" / specific
 // sites). Without <all_urls>, click-to-save (the content script) and the
@@ -13,11 +15,11 @@ export const PermissionsBanner = {
   // so the banner never nags when it can't actually determine the state.
   hasHostAccess: () =>
     new Promise((resolve) => {
-      if (!browser.permissions || !browser.permissions.contains) {
+      if (!webExtensionApi.permissions || !webExtensionApi.permissions.contains) {
         resolve(true);
         return;
       }
-      browser.permissions.contains({ origins: PermissionsBanner.ORIGINS }).then(
+      webExtensionApi.permissions.contains({ origins: PermissionsBanner.ORIGINS }).then(
         (granted) => resolve(granted),
         () => resolve(true),
       );
@@ -37,20 +39,20 @@ export const PermissionsBanner = {
       });
 
     button.addEventListener("click", () => {
-      if (browser.permissions && browser.permissions.request) {
+      if (webExtensionApi.permissions && webExtensionApi.permissions.request) {
         // Synchronous in the gesture handler; refresh once it settles
-        browser.permissions.request({ origins: PermissionsBanner.ORIGINS }).then(
+        webExtensionApi.permissions.request({ origins: PermissionsBanner.ORIGINS }).then(
           () => refresh(),
           () => {},
         );
       }
     });
 
-    if (browser.permissions && browser.permissions.onAdded) {
-      browser.permissions.onAdded.addListener(refresh);
+    if (webExtensionApi.permissions && webExtensionApi.permissions.onAdded) {
+      webExtensionApi.permissions.onAdded.addListener(refresh);
     }
-    if (browser.permissions && browser.permissions.onRemoved) {
-      browser.permissions.onRemoved.addListener(refresh);
+    if (webExtensionApi.permissions && webExtensionApi.permissions.onRemoved) {
+      webExtensionApi.permissions.onRemoved.addListener(refresh);
     }
 
     return refresh();

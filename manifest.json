@@ -17,7 +17,7 @@
   "minimum_chrome_version": "123",
   "background": {
     "scripts": [
-      "src/browser-shim.js",
+      "src/web-extension-api.js",
       "src/vendor/content-disposition.js",
       "src/chrome-detector.js",
       "src/constants.js",

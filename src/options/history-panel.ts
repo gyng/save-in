@@ -1,3 +1,5 @@
+import { webExtensionApi } from "../web-extension-api.ts";
+
 // History panel controller for the options page. Owns the history table's
 // view state (sort/filter/page) and its DOM rendering + live download-progress
 // polling; the pure, data-in/data-out logic (row flattening, sort/filter/
@@ -20,11 +22,11 @@ const HISTORY_PAGE_SIZE = 50;
 // Opens the containing folder for a completed download (best-effort; the
 // browser may have forgotten the download)
 const showInFolder = (downloadId) => {
-  if (downloadId == null || !browser.downloads || !browser.downloads.show) {
+  if (downloadId == null || !webExtensionApi.downloads || !webExtensionApi.downloads.show) {
     return;
   }
   try {
-    browser.downloads.show(downloadId);
+    webExtensionApi.downloads.show(downloadId);
   } catch (e) {
     // download no longer known to the browser
   }
@@ -45,11 +47,11 @@ const stopHistoryProgress = () => {
 
 const pollHistoryProgress = () => {
   const cells = document.querySelectorAll(".history-progress[data-download-id]");
-  if (cells.length === 0 || !browser.downloads || !browser.downloads.search) {
+  if (cells.length === 0 || !webExtensionApi.downloads || !webExtensionApi.downloads.search) {
     stopHistoryProgress();
     return;
   }
-  browser.downloads
+  webExtensionApi.downloads
     .search({})
     .then((items) => {
       const byId = {};
@@ -274,7 +276,7 @@ const renderHistoryTable = () => {
 };
 
 export const renderHistory = async () => {
-  const stored = (await browser.storage.local.get(HISTORY_KEY)) ?? {};
+  const stored = (await webExtensionApi.storage.local.get(HISTORY_KEY)) ?? {};
   historyEntries = (stored[HISTORY_KEY] || []).slice().reverse(); // newest first
 
   // Raw JSON stays available (some users import/inspect it); kept in sync
@@ -297,7 +299,7 @@ historyFilterInput?.addEventListener("input", () => {
 const clearHistory = () => {
   // eslint-disable-next-line no-alert
   if (window.confirm("Clear all saved history? This cannot be undone.")) {
-    browser.storage.local.remove(HISTORY_KEY).then(renderHistory);
+    webExtensionApi.storage.local.remove(HISTORY_KEY).then(renderHistory);
   }
 };
 document.querySelector("#history-clear")?.addEventListener("click", clearHistory);

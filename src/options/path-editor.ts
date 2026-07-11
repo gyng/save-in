@@ -1,3 +1,5 @@
+import { webExtensionApi } from "../web-extension-api.ts";
+
 // Directory-list editing helpers for the options page:
 // - an insert menu ("+ Add") for the paths textarea: variables (with their
 //   current values from the last download), separators, submenu lines
@@ -123,7 +125,7 @@ const PathEditorHelpers: Record<string, any> = {
     // Interpolated values come from the last download and change with
     // every save, so they are re-fetched each time the menu opens
     const refreshValues = () => {
-      browser.runtime
+      webExtensionApi.runtime
         .sendMessage({ type: "CHECK_ROUTES" })
         .then((res) => {
           const values = (res && res.body && res.body.interpolatedVariables) || {};
@@ -146,7 +148,7 @@ const PathEditorHelpers: Record<string, any> = {
       });
     };
 
-    browser.runtime
+    webExtensionApi.runtime
       .sendMessage({ type: "GET_KEYWORDS" })
       .then((res) => {
         const variables = (res && res.body && res.body.variables) || [];

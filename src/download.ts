@@ -1,3 +1,5 @@
+import { webExtensionApi } from "./web-extension-api.ts";
+
 /* eslint-disable no-unused-vars */
 
 import { BackgroundState } from "./background-state.ts";
@@ -117,7 +119,7 @@ export const Download = {
             ),
           ])
             .then(() =>
-              browser.downloads.download({
+              webExtensionApi.downloads.download({
                 url: blobUrl,
                 filename: record.filename,
                 conflictAction: record.conflictAction,
@@ -364,7 +366,7 @@ export const Download = {
     ]);
 
     try {
-      const downloadId = await browser.downloads.download({
+      const downloadId = await webExtensionApi.downloads.download({
         url: acquired.url,
         filename,
         saveAs: prompt,
@@ -460,15 +462,17 @@ export const Download = {
     if (state.route) {
       if (options.notifyOnRuleMatch) {
         Notifier.createExtensionNotification(
-          browser.i18n.getMessage("notificationRuleMatchedTitle"),
+          webExtensionApi.i18n.getMessage("notificationRuleMatchedTitle"),
           `${state.info.initialFilename}\n⬇\n${state.route}`,
           false,
         );
       }
     } else if (options.routeExclusive && options.notifyOnFailure) {
       Notifier.createExtensionNotification(
-        browser.i18n.getMessage("notificationRuleMatchFailedExclusiveTitle"),
-        browser.i18n.getMessage("notificationRuleMatchFailedExclusiveMessage", [state.info.url]),
+        webExtensionApi.i18n.getMessage("notificationRuleMatchFailedExclusiveTitle"),
+        webExtensionApi.i18n.getMessage("notificationRuleMatchFailedExclusiveMessage", [
+          state.info.url,
+        ]),
         true,
       );
     }
@@ -482,7 +486,7 @@ export const registerDownloadListener = () => {
   if (chrome && chrome.downloads && chrome.downloads.onDeterminingFilename) {
     chrome.downloads.onDeterminingFilename.addListener((downloadItem, suggest) => {
       // Don't interfere with other extensions
-      if (!browser.runtime || browser.runtime.id !== downloadItem.byExtensionId) {
+      if (!webExtensionApi.runtime || webExtensionApi.runtime.id !== downloadItem.byExtensionId) {
         return false;
       }
 

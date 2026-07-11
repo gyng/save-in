@@ -1,3 +1,5 @@
+import { webExtensionApi } from "./web-extension-api.ts";
+
 import { OptionsManagement } from "./option.ts";
 import { options } from "./options-data.ts";
 import { BackgroundState } from "./background-state.ts";
@@ -23,8 +25,8 @@ window.init = () => {
 
   return Promise.all([
     OptionsManagement.loadOptions(),
-    browser.storage.local.get(["lastUsedPath", "lastUsedMeta"]),
-    browser.contextMenus.removeAll(),
+    webExtensionApi.storage.local.get(["lastUsedPath", "lastUsedMeta"]),
+    webExtensionApi.contextMenus.removeAll(),
     // Rebuild the in-memory download records from storage.session before any
     // download event handler (which awaits window.ready) touches them
     hydrateDownloads(BackgroundState.downloads, extensionSessionStorage),
@@ -82,7 +84,7 @@ export const start = () => {
   Menus.addTabMenuListener();
   Menus.addTabHighlightListener();
 
-  const initialTab = browser.tabs
+  const initialTab = webExtensionApi.tabs
     .query({ active: true, currentWindow: true })
     .then((tabs) => {
       if (!currentTab && tabs && tabs.length > 0) {
@@ -92,13 +94,13 @@ export const start = () => {
     .catch(() => {});
   window.ready = Promise.all([window.init(), initialTab]).then(([ready]) => ready);
 
-  browser.tabs.onActivated.addListener(async (info) => {
-    setCurrentTab(await browser.tabs.get(info.tabId));
+  webExtensionApi.tabs.onActivated.addListener(async (info) => {
+    setCurrentTab(await webExtensionApi.tabs.get(info.tabId));
   });
 
-  browser.tabs.onUpdated.addListener(async (tabId, changeInfo) => {
+  webExtensionApi.tabs.onUpdated.addListener(async (tabId, changeInfo) => {
     if (!currentTab) {
-      setCurrentTab(await browser.tabs.get(tabId));
+      setCurrentTab(await webExtensionApi.tabs.get(tabId));
     } else if (currentTab.id === tabId && changeInfo.title) {
       // Mutating a property of the shared tab object (not reassigning the binding)
       currentTab.title = changeInfo.title;

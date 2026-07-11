@@ -1,3 +1,5 @@
+import { webExtensionApi } from "../web-extension-api.ts";
+
 // EXPERIMENTAL — WebMCP (Chrome origin trial, https://developer.chrome.com/docs/ai/webmcp).
 // Registers save-in's config + download tools on this page's document so an
 // in-browser AI agent can discover and call them. It wraps the same messaging
@@ -105,10 +107,10 @@ export const SaveInWebMCP = {
       ? document.getElementById("webmcp-status")
       : null;
 
-  if (ctx && typeof ctx.registerTool === "function" && typeof browser !== "undefined") {
+  if (ctx && typeof ctx.registerTool === "function" && webExtensionApi) {
     const count = SaveInWebMCP.buildTools(() => {}).length;
     SaveInWebMCP.register(ctx, (message) =>
-      browser.runtime.sendMessage(message).then((res) => (res && res.body) || res),
+      webExtensionApi.runtime.sendMessage(message).then((res) => (res && res.body) || res),
     );
     if (statusEl) {
       statusEl.textContent = `Active — ${count} tools registered`;

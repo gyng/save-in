@@ -44,11 +44,12 @@ global.chrome = {
     onDeterminingFilename: { addListener: vi.fn() },
   },
 } as any;
-global.browser = {
+const hostBrowser = global.browser;
+Object.assign(hostBrowser, {
   runtime: { id: "self-extension-id" },
   i18n: { getMessage: vi.fn((key: string) => key) },
   downloads: { download: vi.fn(() => Promise.resolve(101)) },
-} as any;
+} as any);
 
 // Importing download.ts loads the rest of the (real) cyclic module graph;
 // grab the same singleton instances it binds to.
@@ -868,7 +869,7 @@ describe("concurrent downloads (pendingStates)", () => {
     global.chrome = {
       downloads: { onDeterminingFilename: { addListener: vi.fn() } },
     } as any;
-    global.browser = {
+    Object.assign(hostBrowser, {
       runtime: { id: "self-extension-id" },
       downloads: { download: vi.fn(() => Promise.resolve(1)) },
       // The file-level beforeEach of earlier describes touches these
@@ -876,7 +877,8 @@ describe("concurrent downloads (pendingStates)", () => {
       // No storage.session: SessionState.available() is false, so the real
       // session wrapper no-ops (these tests don't assert persistence)
       storage: { local: {} },
-    } as any;
+    } as any);
+    global.browser = hostBrowser;
 
     // A fresh module graph (real deps at their defaults): filenamePatterns "" so
     // nothing routes, conflictAction "uniquify", and the identity-ish real Path.

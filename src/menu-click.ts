@@ -1,3 +1,5 @@
+import { webExtensionApi } from "./web-extension-api.ts";
+
 // Click handling for the save-in context menu: routes clicks on path
 // items (and last-used/route-exclusive) into Download.renameAndDownload.
 // Extends the Menus object defined in menu-build.js via the shared
@@ -88,18 +90,18 @@ Menus.resolveClickTarget = (info, options, clickTab) => {
 };
 
 Menus.addDownloadListener = () => {
-  browser.contextMenus.onClicked.addListener(async (info, tab) => {
+  webExtensionApi.contextMenus.onClicked.addListener(async (info, tab) => {
     if (Object.values(Menus.IDS.TABSTRIP).includes(info.menuItemId)) {
       return;
     }
 
     if (info.menuItemId === "options") {
-      browser.runtime.openOptionsPage();
+      webExtensionApi.runtime.openOptionsPage();
       return;
     }
 
     if (info.menuItemId === "show-default-folder") {
-      browser.downloads.showDefaultFolder();
+      webExtensionApi.downloads.showDefaultFolder();
       return;
     }
 
@@ -135,13 +137,13 @@ Menus.addDownloadListener = () => {
       // Fire the notifications the pure decision flagged
       if (target.notifyLinkPreferred && options.notifyOnLinkPreferred) {
         Notifier.createExtensionNotification(
-          browser.i18n.getMessage("notificationLinkPreferred"),
+          webExtensionApi.i18n.getMessage("notificationLinkPreferred"),
           url,
         );
       }
       if (target.badPatternError) {
         Notifier.createExtensionNotification(
-          browser.i18n.getMessage("notificationBadPreferLinksPattern"),
+          webExtensionApi.i18n.getMessage("notificationBadPreferLinksPattern"),
           target.badPatternError,
         );
       }
@@ -168,7 +170,7 @@ Menus.addDownloadListener = () => {
         const title = menuInfo.title || saveIntoPath;
 
         if (options.enableLastLocation) {
-          browser.contextMenus.update(Menus.IDS.LAST_USED, {
+          webExtensionApi.contextMenus.update(Menus.IDS.LAST_USED, {
             title: BROWSER_FEATURES.accessKeys ? `${title} (&a)` : title,
             enabled: true,
           });
@@ -236,7 +238,7 @@ Menus.addDownloadListener = () => {
         clickTab.id != null
       ) {
         window.setTimeout(() => {
-          browser.tabs.remove(clickTab.id);
+          webExtensionApi.tabs.remove(clickTab.id);
         }, 500);
       }
     }

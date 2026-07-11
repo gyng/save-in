@@ -1,3 +1,5 @@
+import { webExtensionApi } from "./web-extension-api.ts";
+
 // Tab-strip context menus (Firefox-only `tab` context): menu creation,
 // the multi-select highlight counter, and the tab-save click handler.
 // Extends the Menus object defined in menu-build.js via the shared
@@ -17,48 +19,48 @@ Menus.addTabMenus = () => {
     return;
   }
 
-  browser.contextMenus.create({
+  webExtensionApi.contextMenus.create({
     id: Menus.IDS.TABSTRIP.SELECTED_TAB,
-    title: browser.i18n.getMessage("tabstripMenuSelectedTab"),
+    title: webExtensionApi.i18n.getMessage("tabstripMenuSelectedTab"),
     contexts: ["tab"],
   });
 
   if (BROWSER_FEATURES.multitab) {
-    browser.contextMenus.create({
+    webExtensionApi.contextMenus.create({
       id: Menus.IDS.TABSTRIP.SELECTED_MULTIPLE_TABS,
-      title: browser.i18n.getMessage("tabstripMenuMultipleSelectedTab", [1]),
+      title: webExtensionApi.i18n.getMessage("tabstripMenuMultipleSelectedTab", [1]),
       contexts: ["tab"],
     });
   }
 
-  browser.contextMenus.create({
+  webExtensionApi.contextMenus.create({
     id: Menus.IDS.TABSTRIP.OPENED_FROM_TAB,
-    title: browser.i18n.getMessage("tabstripMenuSaveChildrenTabs"),
+    title: webExtensionApi.i18n.getMessage("tabstripMenuSaveChildrenTabs"),
     contexts: ["tab"],
   });
 
-  browser.contextMenus.create({
+  webExtensionApi.contextMenus.create({
     id: Menus.IDS.TABSTRIP.TO_RIGHT,
-    title: browser.i18n.getMessage("tabstripMenuSaveRightTabs"),
+    title: webExtensionApi.i18n.getMessage("tabstripMenuSaveRightTabs"),
     contexts: ["tab"],
   });
 
-  browser.contextMenus.create({
+  webExtensionApi.contextMenus.create({
     id: Menus.IDS.TABSTRIP.TO_RIGHT_MATCH,
-    title: browser.i18n.getMessage("tabstripMenuSaveRightTabsMatched"),
+    title: webExtensionApi.i18n.getMessage("tabstripMenuSaveRightTabsMatched"),
     contexts: ["tab"],
   });
 };
 
 Menus.addTabHighlightListener = () => {
-  browser.tabs.onHighlighted.addListener((highlightInfo) => {
+  webExtensionApi.tabs.onHighlighted.addListener((highlightInfo) => {
     if (!options.tabEnabled || !BROWSER_FEATURES || !BROWSER_FEATURES.multitab) {
       return;
     }
 
     const length = highlightInfo.tabIds.length;
-    browser.contextMenus.update(Menus.IDS.TABSTRIP.SELECTED_MULTIPLE_TABS, {
-      title: browser.i18n.getMessage("tabstripMenuMultipleSelectedTab", [length]),
+    webExtensionApi.contextMenus.update(Menus.IDS.TABSTRIP.SELECTED_MULTIPLE_TABS, {
+      title: webExtensionApi.i18n.getMessage("tabstripMenuMultipleSelectedTab", [length]),
       contexts: ["tab"],
     });
   });
@@ -67,7 +69,7 @@ Menus.addTabHighlightListener = () => {
 Menus.addTabMenuListener = () => {
   const ids = Object.values(Menus.IDS.TABSTRIP);
 
-  browser.contextMenus.onClicked.addListener(async (info, fromTab) => {
+  webExtensionApi.contextMenus.onClicked.addListener(async (info, fromTab) => {
     if (!ids.includes(info.menuItemId)) {
       return;
     }
@@ -106,7 +108,7 @@ Menus.addTabMenuListener = () => {
         break;
     }
 
-    browser.tabs
+    webExtensionApi.tabs
       .query(query as any)
       .then((tabs) => tabs.filter((t) => !t.url.match(/^(about|chrome):/)))
       .then((tabs) => tabs.filter(filter))
@@ -161,7 +163,7 @@ Menus.addTabMenuListener = () => {
             // TODO: Store tabs marked for saving and close only on successful save
             if (options.closeTabOnSave) {
               window.setTimeout(() => {
-                browser.tabs.remove(t.id);
+                webExtensionApi.tabs.remove(t.id);
               }, timeoutInterval);
             }
           }, timeoutInterval * i);

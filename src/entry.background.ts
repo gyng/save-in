@@ -1,13 +1,13 @@
 // Background entry point for the rolldown bundle (Firefox event page +
 // Chrome service worker). Side-effect-imports every background module in
-// manifest.background.scripts order (browser-shim first … index last), then
+// manifest.background.scripts order (platform selection first … index last), then
 // re-exposes the handful of objects the e2e's evalSW and cross-context code
 // reach as GLOBALS on the worker/event-page scope. The bundle is emitted as
 // bare scope-hoisted ESM (no export statements), so it loads as a classic
 // script in both the SW (background.sw.js, with the `self.window = self` shim)
 // and the Firefox event page (background.js).
 
-import "./browser-shim.ts";
+import "./web-extension-api.ts";
 import "./vendor/content-disposition.ts";
 import "./chrome-detector.ts";
 import "./current-tab.ts";

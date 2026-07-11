@@ -1,3 +1,5 @@
+import { webExtensionApi } from "./web-extension-api.ts";
+
 /* eslint-disable no-unused-vars */
 
 const HISTORY_KEY = "save-in-history";
@@ -26,10 +28,10 @@ export const SaveHistory = {
     const withMeta = Object.assign({ id, status: "pending" }, entry);
 
     SaveHistory.writeQueue = SaveHistory.writeQueue
-      .then(() => browser.storage.local.get(HISTORY_KEY))
+      .then(() => webExtensionApi.storage.local.get(HISTORY_KEY))
       .then((res) => {
         const history = (res && res[HISTORY_KEY]) || [];
-        return browser.storage.local.set({
+        return webExtensionApi.storage.local.set({
           [HISTORY_KEY]: [...history, withMeta].slice(-HISTORY_LIMIT),
         });
       })
@@ -45,11 +47,11 @@ export const SaveHistory = {
       return SaveHistory.writeQueue;
     }
     SaveHistory.writeQueue = SaveHistory.writeQueue
-      .then(() => browser.storage.local.get(HISTORY_KEY))
+      .then(() => webExtensionApi.storage.local.get(HISTORY_KEY))
       .then((res) => {
         const history = (res && res[HISTORY_KEY]) || [];
         const next = history.map((e) => (e.id === id ? Object.assign({}, e, fields) : e));
-        return browser.storage.local.set({ [HISTORY_KEY]: next });
+        return webExtensionApi.storage.local.set({ [HISTORY_KEY]: next });
       })
       .catch(() => {});
 
@@ -75,7 +77,7 @@ export const SaveHistory = {
   setDownloadId: (id, downloadId) => SaveHistory.patch(id, { downloadId }),
 
   get: async () => {
-    const current = (await browser.storage.local.get(HISTORY_KEY)) || {};
+    const current = (await webExtensionApi.storage.local.get(HISTORY_KEY)) || {};
     return current[HISTORY_KEY] || [];
   },
 };

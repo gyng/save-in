@@ -2,11 +2,11 @@
 // script the options page loads, in options.html order (head scripts first,
 // then body scripts). Emitted as bare scope-hoisted ESM and loaded as a classic
 // script by the staged options.html. The e2e's evalOptions only reaches DOM +
-// chrome/browser globals (browser is set by browser-shim), so nothing here
+// WebExtension API binding, so nothing here
 // needs re-exposing on globalThis.
 
 // <head> scripts
-import "./browser-shim.ts";
+import "./web-extension-api.ts";
 import "./options/l10n.ts";
 import "./constants.ts";
 import "./chrome-detector.ts";

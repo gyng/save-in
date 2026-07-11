@@ -1,3 +1,5 @@
+import { webExtensionApi } from "../web-extension-api.ts";
+
 // First-party autocomplete for the paths and rules textareas (replaces the
 // vendored textcomplete library): suggests routing matchers and :variables:
 // as you type, filtered by prefix, inserted with click/Enter/Tab.
@@ -256,8 +258,8 @@ export const setupRoutingAutocomplete = (keywords) => {
   }
 };
 
-if (typeof browser !== "undefined" && browser.runtime && browser.runtime.sendMessage) {
-  browser.runtime
+if (webExtensionApi?.runtime?.sendMessage) {
+  webExtensionApi.runtime
     .sendMessage({ type: "GET_KEYWORDS" })
     .then((res) => res.body)
     .then((keywords) =>

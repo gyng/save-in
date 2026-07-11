@@ -1,3 +1,5 @@
+import { webExtensionApi } from "./web-extension-api.ts";
+
 import {
   CONFLICT_ACTION,
   CLICK_TYPES,
@@ -231,7 +233,7 @@ export const OptionsManagement: Record<string, any> = {
 };
 
 OptionsManagement.loadOptions = () =>
-  browser.storage.local.get(OptionsManagement.getKeys()).then((loadedOptions) => {
+  webExtensionApi.storage.local.get(OptionsManagement.getKeys()).then((loadedOptions) => {
     if (loadedOptions.debug) {
       window.SI_DEBUG = 1;
     }

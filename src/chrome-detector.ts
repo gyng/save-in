@@ -1,3 +1,5 @@
+import { webExtensionApi } from "./web-extension-api.ts";
+
 export const BROWSERS = {
   CHROME: "CHROME",
   FIREFOX: "FIREFOX",
@@ -27,23 +29,21 @@ export const setCurrentBrowser = (currentBrowser: string) => {
   BROWSER_FEATURES = setFeatures(currentBrowser);
 };
 
-if (typeof browser === "undefined") {
-  if (chrome) {
-    setCurrentBrowser(BROWSERS.CHROME);
-  }
-} else if (browser.runtime.getBrowserInfo) {
+if (!webExtensionApi) {
+  setCurrentBrowser(BROWSERS.UNKNOWN);
+} else if (webExtensionApi.runtime.getBrowserInfo) {
   // Only Gecko-based browsers implement getBrowserInfo: treat forks like
   // Waterfox or LibreWolf as Firefox regardless of the reported name (#186)
   setCurrentBrowser(BROWSERS.FIREFOX);
 
-  browser.runtime
+  webExtensionApi.runtime
     .getBrowserInfo()
     .then((res) => {
       CURRENT_BROWSER_VERSION = parseFloat(res.version);
     })
     .catch(() => {});
 } else {
-  // If we don't have browser.runtime.getBrowserInfo, assume it's Chrome
-  // Big assumption, but browser.runtime.getBrowserInfo is not well supported
+  // If we don't have webExtensionApi.runtime.getBrowserInfo, assume it's Chrome
+  // Big assumption, but webExtensionApi.runtime.getBrowserInfo is not well supported
   setCurrentBrowser(BROWSERS.CHROME);
 }

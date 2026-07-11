@@ -40,7 +40,7 @@ Output is readable + non-minified (the AMO "reviewable source" property becomes
 
 1. **content** — `src/content/content.js` (1 file, isolated, no shared globals). Pilot: proves `.ts` → bundle → ship + e2e.
 2. **offscreen** — `src/offscreen.js` (1 file).
-3. **options** — ~14 files (`src/options/*` + shared `constants`, `chrome-detector`, `browser-shim`). Cross-file: `OptionsLogic`, `HistoryView`, `PathEditor`, `renderHistory`, …
+3. **options** — ~14 files (`src/options/*` + shared `constants`, `chrome-detector`, `web-extension-api`). Cross-file: `OptionsLogic`, `HistoryView`, `PathEditor`, `renderHistory`, …
 4. **background** — 24 files, leaf-first (see the dependency contract). The hard one.
 
 ## Per-target procedure
@@ -59,7 +59,7 @@ function bodies) — so the cyclic core converts with plain ESM `import`s and
 live bindings; NO dependency-injection / lazy-import refactor is needed. No
 exported `let` is reassigned from another module → NO setter functions needed.
 
-- **Layer 0** (no cross-file reads): browser-shim, vendor/content-disposition, chrome-detector, constants, util, session-state, history, counter
+- **Layer 0** (no cross-file reads): web-extension-api, vendor/content-disposition, chrome-detector, constants, util, session-state, history, counter
 - **Layer 1** (reads Layer 0 only): log, download-state, offscreen-client
 - **Layer 2 — CYCLIC CORE (one SCC, convert as ONE unit):** path, option, headers, variable, router, notification, download, messaging, menu-build, index. Eval-time reads only target Layer 0 (constants), so the cycle is eval-safe.
 - **Layer 3** (downstream of the core): shortcut

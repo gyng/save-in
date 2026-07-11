@@ -1,3 +1,5 @@
+import { webExtensionApi } from "./web-extension-api.ts";
+
 import { SPECIAL_DIRS, FORBIDDEN_FILENAME_CHARS, PATH_SEGMENT_TYPES } from "./constants.ts";
 import { options } from "./options-data.ts";
 
@@ -92,7 +94,7 @@ export const Path = {
       if (this.buf[0].type === PATH_SEGMENT_TYPES.SEPARATOR || this.buf[0].val === "..") {
         return {
           valid: false,
-          message: browser.i18n.getMessage("rulePathStartsWithDot"),
+          message: webExtensionApi.i18n.getMessage("rulePathStartsWithDot"),
         };
       }
 
@@ -105,7 +107,7 @@ export const Path = {
         ) {
           return {
             valid: false,
-            message: browser.i18n.getMessage("rulePathInvalidCharacter"),
+            message: webExtensionApi.i18n.getMessage("rulePathInvalidCharacter"),
           };
         }
       }

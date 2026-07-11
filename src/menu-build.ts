@@ -1,5 +1,7 @@
+import { webExtensionApi } from "./web-extension-api.ts";
+
 // Context menu construction: parses the paths option into a menu tree
-// (`buildTree`, pure) and renders it with browser.contextMenus.create.
+// (`buildTree`, pure) and renders it with webExtensionApi.contextMenus.create.
 // Click handling lives in menu-click.js, tab-strip menus in menu-tabs.js —
 // both extend this Menus object via the shared global scope.
 
@@ -35,7 +37,7 @@ export const Menus = {
   setLastUsed: (path, meta) => {
     Menus.state.lastUsedPath = path;
     Menus.state.lastUsedMeta = meta;
-    browser.storage.local.set({ lastUsedPath: path, lastUsedMeta: meta });
+    webExtensionApi.storage.local.set({ lastUsedPath: path, lastUsedMeta: meta });
   },
 
   restoreLastUsed: (stored) => {
@@ -50,7 +52,7 @@ export const Menus = {
     let separatorCounter = 0;
 
     const makeSeparatorInner = (contexts, parentId = Menus.IDS.ROOT) => {
-      browser.contextMenus.create({
+      webExtensionApi.contextMenus.create({
         id: `separator-${separatorCounter}`,
         type: "separator",
         contexts,
@@ -77,34 +79,40 @@ export const Menus = {
   },
 
   addRoot: (contexts) => {
-    browser.contextMenus.create({
+    webExtensionApi.contextMenus.create({
       id: Menus.IDS.ROOT,
-      title: Menus.setAccesskey(browser.i18n.getMessage("contextMenuRoot"), options.keyRoot),
+      title: Menus.setAccesskey(
+        webExtensionApi.i18n.getMessage("contextMenuRoot"),
+        options.keyRoot,
+      ),
       contexts,
     });
   },
 
   addRouteExclusive: (contexts) => {
-    browser.contextMenus.create({
+    webExtensionApi.contextMenus.create({
       id: Menus.IDS.ROUTE_EXCLUSIVE,
-      title: Menus.setAccesskey(browser.i18n.getMessage("contextMenuExclusive"), options.keyRoot),
+      title: Menus.setAccesskey(
+        webExtensionApi.i18n.getMessage("contextMenuExclusive"),
+        options.keyRoot,
+      ),
       contexts,
     });
   },
 
   addSelectionType: (contexts) => {
     if (contexts.includes("link")) {
-      browser.contextMenus.create({
+      webExtensionApi.contextMenus.create({
         id: "download-context-media-link",
-        title: browser.i18n.getMessage("contextMenuContextMediaOrLink"),
+        title: webExtensionApi.i18n.getMessage("contextMenuContextMediaOrLink"),
         enabled: false,
         contexts: MEDIA_TYPES.concat("link") as any,
         parentId: Menus.IDS.ROOT,
       });
     } else {
-      browser.contextMenus.create({
+      webExtensionApi.contextMenus.create({
         id: "download-context-media",
-        title: browser.i18n.getMessage("contextMenuContextMedia"),
+        title: webExtensionApi.i18n.getMessage("contextMenuContextMedia"),
         enabled: false,
         contexts: MEDIA_TYPES as any,
         parentId: Menus.IDS.ROOT,
@@ -112,9 +120,9 @@ export const Menus = {
     }
 
     if (contexts.includes("selection")) {
-      browser.contextMenus.create({
+      webExtensionApi.contextMenus.create({
         id: "download-context-selection",
-        title: browser.i18n.getMessage("contextMenuContextSelection"),
+        title: webExtensionApi.i18n.getMessage("contextMenuContextSelection"),
         enabled: false,
         contexts: ["selection"],
         parentId: Menus.IDS.ROOT,
@@ -122,9 +130,9 @@ export const Menus = {
     }
 
     if (contexts.includes("page")) {
-      browser.contextMenus.create({
+      webExtensionApi.contextMenus.create({
         id: "download-context-page",
-        title: browser.i18n.getMessage("contextMenuContextPage"),
+        title: webExtensionApi.i18n.getMessage("contextMenuContextPage"),
         enabled: false,
         contexts: ["page"],
         parentId: Menus.IDS.ROOT,
@@ -133,18 +141,18 @@ export const Menus = {
   },
 
   addOptions: (contexts) => {
-    browser.contextMenus.create({
+    webExtensionApi.contextMenus.create({
       id: "options",
-      title: browser.i18n.getMessage("contextMenuItemOptions"),
+      title: webExtensionApi.i18n.getMessage("contextMenuItemOptions"),
       contexts,
       parentId: "save-in-root",
     });
   },
 
   addShowDefaultFolder: (contexts) => {
-    browser.contextMenus.create({
+    webExtensionApi.contextMenus.create({
       id: "show-default-folder",
-      title: browser.i18n.getMessage("contextMenuShowDefaultFolder"),
+      title: webExtensionApi.i18n.getMessage("contextMenuShowDefaultFolder"),
       contexts,
       parentId: Menus.IDS.ROOT,
     });
@@ -152,7 +160,7 @@ export const Menus = {
 
   addLastUsed: (contexts) => {
     const lastUsedTitle =
-      Menus.state.lastUsedPath || browser.i18n.getMessage("contextMenuLastUsed");
+      Menus.state.lastUsedPath || webExtensionApi.i18n.getMessage("contextMenuLastUsed");
     const lastUsedMenuOptions = {
       id: Menus.IDS.LAST_USED,
       title: Menus.setAccesskey(lastUsedTitle, options.keyLastUsed),
@@ -173,7 +181,7 @@ export const Menus = {
     // Chrome, FF < 57 crash when icons is supplied
     // There is no easy way to detect support, so use a try/catch
     try {
-      browser.contextMenus.create(
+      webExtensionApi.contextMenus.create(
         Object.assign({}, lastUsedMenuOptions, {
           icons: {
             16: icon,
@@ -181,7 +189,7 @@ export const Menus = {
         }),
       );
     } catch (e) {
-      browser.contextMenus.create(lastUsedMenuOptions);
+      webExtensionApi.contextMenus.create(lastUsedMenuOptions);
     }
   },
 
@@ -345,7 +353,7 @@ export const Menus = {
       };
       Menus.titles[item.id] = item.title;
 
-      browser.contextMenus.create({
+      webExtensionApi.contextMenus.create({
         id: item.id,
         title: options.enableNumberedItems
           ? Menus.setAccesskey(item.title, item.number, item.accessKeyOverride)

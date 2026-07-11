@@ -1,3 +1,5 @@
+import { webExtensionApi } from "./web-extension-api.ts";
+
 /* eslint-disable no-case-declarations */
 
 import { Util } from "./util.ts";
@@ -174,7 +176,7 @@ export const Messaging = {
     });
 
     if (Object.keys(toStore).length > 0) {
-      await browser.storage.local.set(toStore);
+      await webExtensionApi.storage.local.set(toStore);
       if (typeof window !== "undefined" && typeof window.reset === "function") {
         window.reset();
       }
@@ -191,7 +193,7 @@ export const Messaging = {
     downloaded: (state) => {
       // In MV3 sendMessage rejects when no receiver (options page) is open;
       // that is expected, so swallow it rather than leak an unhandled rejection
-      browser.runtime
+      webExtensionApi.runtime
         .sendMessage({
           type: MESSAGE_TYPES.DOWNLOADED,
           body: { state },
@@ -227,7 +229,7 @@ export const Messaging = {
    *   };
    *
    *   // ID obtained from manifest.json
-   *   browser.runtime.sendMessage("{72d92df5-2aa0-4b06-b807-aa21767545cd}", payload);
+   *   webExtensionApi.runtime.sendMessage("{72d92df5-2aa0-4b06-b807-aa21767545cd}", payload);
    * }
    */
   handleDownloadMessage: (request, sender, sendResponse) => {
@@ -311,7 +313,7 @@ export const Messaging = {
 // an incoming message still has the handlers attached.
 export const registerMessaging = () => {
   DownloadEvents.downloaded = Messaging.emit.downloaded;
-  browser.runtime.onMessageExternal.addListener((request, sender, sendResponse) => {
+  webExtensionApi.runtime.onMessageExternal.addListener((request, sender, sendResponse) => {
     switch (request.type) {
       case MESSAGE_TYPES.PING:
         Messaging.handlePing(request, sender, sendResponse);
@@ -341,7 +343,7 @@ export const registerMessaging = () => {
     }
   });
 
-  browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  webExtensionApi.runtime.onMessage.addListener((request, sender, sendResponse) => {
     switch (request.type) {
       case MESSAGE_TYPES.WAKE_WARM:
         // Sent by content scripts on combo keydown purely to wake the MV3

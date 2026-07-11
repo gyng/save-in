@@ -134,8 +134,8 @@ testable once tests are on real imports.
   headers.test + notification.test off their `option`/`Log` globalThis bridges to
   import-real — 0 globalThis module-value bridges remain in the suite. Tests that
   capture a registered listener call the register fn after import; path.test +
-  option.test seed defaults explicitly. `browser-shim`'s `globalThis.browser =
-  chrome` stays at import (it must be present before anything reads `browser`).
+  option.test seed defaults explicitly. `web-extension-api` selects the native
+  `browser` namespace or Chrome's namespace without mutating `globalThis`.
 - **Source refinements surfaced by the test migration** (Task #3): ✅ (a)+(b)
   DONE; (c)/(d) fold into #60/#62 as noted below.
   - (a) ✅ `Counter.next`/`peek` were typed `Promise<void>` but resolve to a

@@ -1,3 +1,5 @@
+import { webExtensionApi } from "./web-extension-api.ts";
+
 // https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/notifications
 
 import { BackgroundState } from "./background-state.ts";
@@ -64,7 +66,7 @@ const reconcileAdoptedDownloads = async () => {
   await Promise.all(
     adoptedIds.map(async (id) => {
       try {
-        const items = await browser.downloads.search({ id });
+        const items = await webExtensionApi.downloads.search({ id });
         const item = items && items[0];
         if (!item || item.state === "complete") {
           await mergeTrackedDownload(id, { adopted: false });
@@ -104,16 +106,16 @@ export const notifierReady = Promise.all([
 export const Notifier = {
   createExtensionNotification: (title, message?, error?) => {
     const id = `save-in-not-${String(Math.floor(Math.random() * 100000))}`;
-    browser.notifications.create(id, {
+    webExtensionApi.notifications.create(id, {
       type: "basic",
-      title: title || browser.i18n.getMessage("extensionName"),
+      title: title || webExtensionApi.i18n.getMessage("extensionName"),
       iconUrl: error ? ERROR_ICON_URL : ICON_URL,
-      message: message || browser.i18n.getMessage("genericUnknownError"),
+      message: message || webExtensionApi.i18n.getMessage("genericUnknownError"),
     });
 
     if (options && options.notifyDuration) {
       window.setTimeout(() => {
-        browser.notifications.clear(id);
+        webExtensionApi.notifications.clear(id);
       }, options.notifyDuration);
     }
   },
@@ -128,8 +130,8 @@ export const Notifier = {
       return;
     }
     Notifier.createExtensionNotification(
-      browser.i18n.getMessage("notificationFailureTitle", [name || ""]),
-      message || browser.i18n.getMessage("genericUnknownError"),
+      webExtensionApi.i18n.getMessage("notificationFailureTitle", [name || ""]),
+      message || webExtensionApi.i18n.getMessage("genericUnknownError"),
       true,
     );
   },
@@ -161,7 +163,7 @@ export const Notifier = {
   // must register listeners synchronously or they miss the very event that
   // woke them. Notifier options are read from the shared `options`
   // global at event time, after awaiting init.
-  // Call before browser.downloads.download() so onDownloadCreated knows
+  // Call before webExtensionApi.downloads.download() so onDownloadCreated knows
   // the next created download is ours
   expectDownload: () => {
     expectedDownloads += 1;
@@ -177,7 +179,11 @@ export const Notifier = {
     // KNOWN-different byExtensionId is rejected: our own downloads may not have
     // byExtensionId populated yet at onCreated (Chrome), so an absent id is left
     // to the counters below.
-    if (item.byExtensionId && browser.runtime && item.byExtensionId !== browser.runtime.id) {
+    if (
+      item.byExtensionId &&
+      webExtensionApi.runtime &&
+      item.byExtensionId !== webExtensionApi.runtime.id
+    ) {
       return;
     }
 
@@ -217,7 +223,7 @@ export const Notifier = {
     }
 
     // notification ID should be set to download ID on download creation
-    browser.downloads.show(Number(notId));
+    webExtensionApi.downloads.show(Number(notId));
   },
 
   onDownloadChanged: async (downloadDelta) => {
@@ -277,7 +283,7 @@ export const Notifier = {
         if (!started || !started.historyEntryId) return;
         if (status === "complete") {
           try {
-            const items = await browser.downloads.search({ id: downloadDelta.id });
+            const items = await webExtensionApi.downloads.search({ id: downloadDelta.id });
             const item = items && items[0];
             const size = item ? (item.fileSize > 0 ? item.fileSize : item.totalBytes) : 0;
             await SaveHistory.setStatus(
@@ -319,16 +325,16 @@ export const Notifier = {
 
         const notifyFailure = () => {
           if (notifyOnFailure) {
-            browser.notifications.create(String(downloadDelta.id), {
+            webExtensionApi.notifications.create(String(downloadDelta.id), {
               type: "basic",
-              title: browser.i18n.getMessage("notificationFailureTitle", [filename]),
+              title: webExtensionApi.i18n.getMessage("notificationFailureTitle", [filename]),
               iconUrl: ERROR_ICON_URL,
-              message: failed.current || browser.i18n.getMessage("genericUnknownError"),
+              message: failed.current || webExtensionApi.i18n.getMessage("genericUnknownError"),
             });
           }
 
           if (promptOnFailure) {
-            browser.downloads.download({
+            webExtensionApi.downloads.download({
               url: record.url,
               saveAs: true,
             });
@@ -347,7 +353,7 @@ export const Notifier = {
 
           if (downloadDelta && downloadDelta.id) {
             window.setTimeout(() => {
-              browser.notifications.clear(String(downloadDelta.id));
+              webExtensionApi.notifications.clear(String(downloadDelta.id));
             }, notifyDuration);
           }
         };
@@ -383,7 +389,7 @@ export const Notifier = {
         if (typeof Log !== "undefined") {
           Log.add("download complete", { id: downloadDelta.id, filename });
         }
-        const res = await browser.downloads.search({ id: downloadDelta.id });
+        const res = await webExtensionApi.downloads.search({ id: downloadDelta.id });
         let filesize = "";
         const mime = res.length > 0 && res[0].mime;
 
@@ -400,11 +406,11 @@ export const Notifier = {
           }
         }
 
-        const successfulLabel = browser.i18n.getMessage("notificationSuccessTitle");
+        const successfulLabel = webExtensionApi.i18n.getMessage("notificationSuccessTitle");
         const title =
           res.length > 0 ? `${successfulLabel} · ${filesize} · ${mime}` : successfulLabel;
 
-        browser.notifications.create(String(downloadDelta.id), {
+        webExtensionApi.notifications.create(String(downloadDelta.id), {
           type: "basic",
           title,
           iconUrl: ICON_URL,
@@ -423,7 +429,7 @@ export const Notifier = {
         }
 
         window.setTimeout(() => {
-          browser.notifications.clear(String(downloadDelta.id));
+          webExtensionApi.notifications.clear(String(downloadDelta.id));
         }, notifyDuration);
       }
 
@@ -441,11 +447,15 @@ export const Notifier = {
 // a download event still has the handler attached (guards exist only for the
 // partial test mocks).
 export const registerNotifier = () => {
-  if (browser.downloads && browser.downloads.onCreated && browser.downloads.onChanged) {
-    browser.downloads.onCreated.addListener(Notifier.onDownloadCreated);
-    browser.downloads.onChanged.addListener(Notifier.onDownloadChanged);
+  if (
+    webExtensionApi.downloads &&
+    webExtensionApi.downloads.onCreated &&
+    webExtensionApi.downloads.onChanged
+  ) {
+    webExtensionApi.downloads.onCreated.addListener(Notifier.onDownloadCreated);
+    webExtensionApi.downloads.onChanged.addListener(Notifier.onDownloadChanged);
   }
-  if (browser.notifications && browser.notifications.onClicked) {
-    browser.notifications.onClicked.addListener(Notifier.onNotificationClicked);
+  if (webExtensionApi.notifications && webExtensionApi.notifications.onClicked) {
+    webExtensionApi.notifications.onClicked.addListener(Notifier.onNotificationClicked);
   }
 };

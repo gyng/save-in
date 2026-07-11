@@ -1,3 +1,5 @@
+import { webExtensionApi } from "./web-extension-api.ts";
+
 import { RULE_TYPES } from "./constants.ts";
 import { EXTENSION_REGEX, getFilenameFromUrl } from "./filename.ts";
 import { currentTab } from "./current-tab.ts";
@@ -136,7 +138,7 @@ export const Router: Record<string, any> = {
       .map((toks) => {
         if (!toks.matches || toks.matches.length < 3) {
           errors.push({
-            message: browser.i18n.getMessage("ruleBadClause"),
+            message: webExtensionApi.i18n.getMessage("ruleBadClause"),
             error: `${toks.l || "invalid line syntax"}`,
           });
           return null;
@@ -155,7 +157,7 @@ export const Router: Record<string, any> = {
         value = name === "into" || name === "capture" ? tokens[2] : new RegExp(tokens[2]);
       } catch (e) {
         errors.push({
-          message: browser.i18n.getMessage("ruleInvalidRegex"),
+          message: webExtensionApi.i18n.getMessage("ruleInvalidRegex"),
           error: `${e}`,
         });
         // An invalid regex left `value` undefined, which would compile to a
@@ -179,7 +181,7 @@ export const Router: Record<string, any> = {
 
         if (!matcher) {
           errors.push({
-            message: browser.i18n.getMessage("ruleUnknownMatcher"),
+            message: webExtensionApi.i18n.getMessage("ruleUnknownMatcher"),
             error: `${name}:`,
           });
 
@@ -209,7 +211,7 @@ export const Router: Record<string, any> = {
 
     if (!matchers.some((m) => m.type === RULE_TYPES.DESTINATION)) {
       errors.push({
-        message: browser.i18n.getMessage("ruleMissingInto"),
+        message: webExtensionApi.i18n.getMessage("ruleMissingInto"),
         error: "",
       });
 
@@ -219,7 +221,7 @@ export const Router: Record<string, any> = {
     const destination = matchers.find((m) => m.type === RULE_TYPES.DESTINATION);
     if (destination.value.match(/:\$\d+:/) && !matchers.find((m) => m.name === "capture")) {
       errors.push({
-        message: browser.i18n.getMessage("ruleMissingCapture"),
+        message: webExtensionApi.i18n.getMessage("ruleMissingCapture"),
         error: destination.value,
         warning: true,
       });
@@ -227,7 +229,7 @@ export const Router: Record<string, any> = {
 
     if (!matchers.some((m) => m.type === RULE_TYPES.MATCHER)) {
       errors.push({
-        message: browser.i18n.getMessage("ruleMissingMatcher"),
+        message: webExtensionApi.i18n.getMessage("ruleMissingMatcher"),
         error: JSON.stringify(lines.map((l) => l[0])),
       });
 
@@ -237,7 +239,7 @@ export const Router: Record<string, any> = {
     const intoMatcher = matchers.filter((m) => m.name === "into");
     if (intoMatcher.length >= 2) {
       errors.push({
-        message: browser.i18n.getMessage("ruleExtraInto"),
+        message: webExtensionApi.i18n.getMessage("ruleExtraInto"),
         error: JSON.stringify(lines.map((l) => l[0])),
       });
 
@@ -246,7 +248,7 @@ export const Router: Record<string, any> = {
 
     if (matchers.filter((m) => m.name === "capture").length >= 2) {
       errors.push({
-        message: browser.i18n.getMessage("ruleMultipleCapture"),
+        message: webExtensionApi.i18n.getMessage("ruleMultipleCapture"),
         error: JSON.stringify(lines.map((l) => l[0])),
       });
 
@@ -262,7 +264,7 @@ export const Router: Record<string, any> = {
       for (let i = 0; i < captureMatchers.length; i += 1) {
         if (matchers.filter((m) => m.name === captureMatchers[i]).length < 1) {
           errors.push({
-            message: browser.i18n.getMessage("ruleCaptureMissingMatcher"),
+            message: webExtensionApi.i18n.getMessage("ruleCaptureMissingMatcher"),
             error: `capture: ${captureMatchers[i]}`,
           });
 
@@ -281,7 +283,7 @@ export const Router: Record<string, any> = {
     ) {
       // Capture clause pointing at missing matcher
       errors.push({
-        message: browser.i18n.getMessage("ruleCaptureMissingMatcher"),
+        message: webExtensionApi.i18n.getMessage("ruleCaptureMissingMatcher"),
         error: `capture: ${captures[0].value}`,
       });
 

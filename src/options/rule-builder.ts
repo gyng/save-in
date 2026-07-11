@@ -1,3 +1,5 @@
+import { webExtensionApi } from "../web-extension-api.ts";
+
 // Guided rule input and template library for the Dynamic Downloads rules
 // textarea. Both compose complete rules and append them through the normal
 // input event pipeline, so autosave, validation, and the routing preview
@@ -73,7 +75,7 @@ export const RuleBuilder = {
 
     // The matcher list comes from the background's Router, like the
     // autocomplete keywords do
-    browser.runtime
+    webExtensionApi.runtime
       .sendMessage({ type: "GET_KEYWORDS" })
       .then((res) => {
         ((res && res.body && res.body.matchers) || []).forEach((name) => {
