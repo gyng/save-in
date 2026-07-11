@@ -94,7 +94,6 @@ Object.assign(globalThis, {
   BackgroundState,
   peekCounter,
   resetCounter,
-  DownloadState: BackgroundState.downloads,
   Notifier,
   Path,
   OffscreenClient,
