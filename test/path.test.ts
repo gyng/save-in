@@ -39,7 +39,7 @@ describe("sanitisation", () => {
     });
 
     test("trims a run of trailing dots and spaces", () => {
-      expect((Path.sanitizeFilename as any)("name. . ", 0, false)).toBe("name");
+      expect(Path.sanitizeFilename("name. . ", 0, false)).toBe("name");
     });
   });
 
@@ -47,23 +47,23 @@ describe("sanitisation", () => {
     test.each(["CON", "con", "PRN", "AUX", "NUL", "COM1", "com9", "LPT1", "lpt9"])(
       "prefixes the bare reserved name %s with the replacement character",
       (name) => {
-        expect((Path.sanitizeFilename as any)(name, 0, false)).toBe(`_${name}`);
+        expect(Path.sanitizeFilename(name, 0, false)).toBe(`_${name}`);
       },
     );
 
     test("prefixes a reserved name that has an extension", () => {
-      expect((Path.sanitizeFilename as any)("con.txt", 0, false)).toBe("_con.txt");
+      expect(Path.sanitizeFilename("con.txt", 0, false)).toBe("_con.txt");
     });
 
     test("leaves names that merely start with a reserved prefix alone", () => {
-      expect((Path.sanitizeFilename as any)("console.txt", 0, false)).toBe("console.txt");
-      expect((Path.sanitizeFilename as any)("company", 0, false)).toBe("company");
+      expect(Path.sanitizeFilename("console.txt", 0, false)).toBe("console.txt");
+      expect(Path.sanitizeFilename("company", 0, false)).toBe("company");
     });
 
     test("leaves COM0/COM10/LPT0/LPT10 alone (not reserved)", () => {
-      expect((Path.sanitizeFilename as any)("COM10", 0, false)).toBe("COM10");
-      expect((Path.sanitizeFilename as any)("COM0", 0, false)).toBe("COM0");
-      expect((Path.sanitizeFilename as any)("LPT10", 0, false)).toBe("LPT10");
+      expect(Path.sanitizeFilename("COM10", 0, false)).toBe("COM10");
+      expect(Path.sanitizeFilename("COM0", 0, false)).toBe("COM0");
+      expect(Path.sanitizeFilename("LPT10", 0, false)).toBe("LPT10");
     });
 
     test("round-trips a reserved name through Path.finalize", () => {
@@ -132,34 +132,34 @@ describe("truncateIfLongerThan", () => {
 
 describe("sanitizeFilename", () => {
   test("empty input is returned as-is", () => {
-    expect((Path.sanitizeFilename as any)("")).toBe("");
-    expect((Path.sanitizeFilename as any)(null)).toBe(null);
+    expect(Path.sanitizeFilename("")).toBe("");
+    expect(Path.sanitizeFilename(null)).toBe(null);
   });
 
   test("truncates to max length", () => {
-    expect((Path.sanitizeFilename as any)("abcdef", 4)).toBe("abcd");
+    expect(Path.sanitizeFilename("abcdef", 4)).toBe("abcd");
   });
 
   test("replaces leading dots unless allowed", () => {
-    expect((Path.sanitizeFilename as any)(".dotfile")).toBe("_dotfile");
-    expect((Path.sanitizeFilename as any)(".dotfile", 0, false)).toBe(".dotfile");
+    expect(Path.sanitizeFilename(".dotfile")).toBe("_dotfile");
+    expect(Path.sanitizeFilename(".dotfile", 0, false)).toBe(".dotfile");
   });
 
   test("trims trailing dots", () => {
-    expect((Path.sanitizeFilename as any)("file.", 0, false)).toBe("file");
+    expect(Path.sanitizeFilename("file.", 0, false)).toBe("file");
   });
 
   test("trims trailing spaces", () => {
-    expect((Path.sanitizeFilename as any)("file   ", 0, false)).toBe("file");
+    expect(Path.sanitizeFilename("file   ", 0, false)).toBe("file");
   });
 
   test("strips control characters", () => {
-    expect((Path.sanitizeFilename as any)("a\x01b\x1fc", 0, false)).toBe("a_b_c");
+    expect(Path.sanitizeFilename("a\x01b\x1fc", 0, false)).toBe("a_b_c");
   });
 
   test("neutralizes reserved device names", () => {
-    expect((Path.sanitizeFilename as any)("CON", 0, false)).toBe("_CON");
-    expect((Path.sanitizeFilename as any)("con.txt", 0, false)).toBe("_con.txt");
+    expect(Path.sanitizeFilename("CON", 0, false)).toBe("_CON");
+    expect(Path.sanitizeFilename("con.txt", 0, false)).toBe("_con.txt");
   });
 });
 
@@ -227,7 +227,7 @@ describe("parsePathStr", () => {
   test("wraps a bare string returned from a custom split()", () => {
     // defensive branch: unreachable for real strings, whose split()
     // always returns an array
-    const parsed = Path.parsePathStr({ split: () => "abc" } as any);
+    const parsed = Path.parsePathStr({ split: () => "abc" });
     expect(parsed).toHaveLength(1);
     expect(parsed[0].val).toBe("abc");
     expect(parsed[0].type).toBe(PATH_SEGMENT_TYPES.STRING);

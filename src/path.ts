@@ -6,7 +6,72 @@ import { options } from "./options-data.ts";
 const specialDirVariables = Object.values(SPECIAL_DIRS);
 const specialDirRegexp = new RegExp(`(${specialDirVariables.join("|")})`);
 
-export const Path = {
+type PathSegmentType = (typeof PATH_SEGMENT_TYPES)[keyof typeof PATH_SEGMENT_TYPES] | undefined;
+
+type PathSegmentValue = {
+  type: PathSegmentType;
+  val: string;
+  toString?: () => string;
+};
+
+type SplitPathInput = {
+  split(separator: RegExp): string | string[];
+};
+
+type PathInput = string | SplitPathInput | null | undefined;
+
+type PathValidation = { valid: boolean; message?: string };
+
+interface PathApi {
+  SPECIAL_CHARACTERS_REGEX: RegExp;
+  BAD_LEADING_CHARACTERS: RegExp;
+  TRAILING_DOTS_AND_SPACES_REGEX: RegExp;
+  RESERVED_DEVICE_NAME_REGEX: RegExp;
+  SEPARATOR_REGEX: RegExp;
+  SEPARATOR_REGEX_INCLUSIVE: RegExp;
+  PathSegment: {
+    new (type: PathSegmentType, val: string): PathSegmentValue;
+    String(value: unknown): PathSegmentValue;
+    Variable(value: string): PathSegmentValue;
+    Separator(): PathSegmentValue;
+  };
+  Path: {
+    new (str?: PathInput): {
+      raw: PathInput;
+      rawbuf: PathSegmentValue[];
+      buf: PathSegmentValue[] | null;
+      toString(): string;
+      finalize(): string;
+      validate(): PathValidation;
+    };
+  };
+  replacementChar(override?: string, fallback?: string): string;
+  replaceFsBadChars(value: string, replacement?: string): string;
+  replaceLeadingDots(value: string, replacement?: string): string;
+  truncateIfLongerThan(value: string, max: number): string;
+  trimTrailingDotsAndSpaces(value: string): string;
+  neutralizeReservedDeviceName(value: string, replacement?: string): string;
+  sanitizeFilename(value: null, max?: number, leadingDotsForbidden?: boolean): null;
+  sanitizeFilename(value: string, max?: number, leadingDotsForbidden?: boolean): string;
+  sanitizeBufStrings(buf: PathSegmentValue[]): PathSegmentValue[];
+  parsePathStr(pathStr?: PathInput): PathSegmentValue[];
+}
+
+function sanitizeFilename(str: null, max?: number, leadingDotsForbidden?: boolean): null;
+function sanitizeFilename(str: string, max?: number, leadingDotsForbidden?: boolean): string;
+function sanitizeFilename(str: string | null, max = 0, leadingDotsForbidden = true): string | null {
+  if (!str) {
+    return str;
+  }
+
+  const fsSafe = Path.truncateIfLongerThan(Path.replaceFsBadChars(str), max);
+  const dotsHandled = leadingDotsForbidden ? Path.replaceLeadingDots(fsSafe) : fsSafe;
+  const trimmed = Path.trimTrailingDotsAndSpaces(dotsHandled);
+
+  return Path.neutralizeReservedDeviceName(trimmed);
+}
+
+export const Path: PathApi = {
   // The shared forbidden-char class (constants.js), with the `g` flag added for
   // String#replace; :pagetitle:/selection text can carry raw newlines/tabs that
   // Windows filenames can't contain (GH #221)
@@ -21,18 +86,18 @@ export const Path = {
   SEPARATOR_REGEX_INCLUSIVE: /([/\\])/g,
 
   PathSegment: class PathSegment {
-    declare type: any;
-    declare val: any;
-    constructor(type, val) {
+    type: PathSegmentType;
+    val: string;
+    constructor(type: PathSegmentType, val: string) {
       this.type = type;
       this.val = val;
     }
 
-    static String(v) {
+    static String(v: unknown) {
       return new PathSegment(PATH_SEGMENT_TYPES.STRING, v == null ? "" : v.toString());
     }
 
-    static Variable(v) {
+    static Variable(v: string) {
       return new PathSegment(PATH_SEGMENT_TYPES.VARIABLE, v);
     }
 
@@ -46,10 +111,10 @@ export const Path = {
   },
 
   Path: class _Path {
-    declare raw: any;
-    declare rawbuf: any;
-    declare buf: any;
-    constructor(str?) {
+    raw: PathInput;
+    rawbuf: PathSegmentValue[];
+    buf: PathSegmentValue[] | null;
+    constructor(str?: PathInput) {
       const buf = Path.parsePathStr(str);
       this.raw = str;
       this.rawbuf = buf;
@@ -57,19 +122,17 @@ export const Path = {
     }
 
     toString() {
-      return this.buf.join("");
+      return this.buf!.join("");
     }
 
     finalize() {
-      const stringifiedBuf = this.buf
-        .map((s) => {
-          if (s.type !== PATH_SEGMENT_TYPES.SEPARATOR) {
-            return Path.PathSegment.String(s.val);
-          } else {
-            return s;
-          }
-        })
-        .map((s) => (s.val ? s : Path.PathSegment.String(options.replacementChar || "_")));
+      const stringifiedBuf = this.buf!.map((s) => {
+        if (s.type !== PATH_SEGMENT_TYPES.SEPARATOR) {
+          return Path.PathSegment.String(s.val);
+        } else {
+          return s;
+        }
+      }).map((s) => (s.val ? s : Path.PathSegment.String(options.replacementChar || "_")));
 
       const sanitizedStringifiedBuf = Path.sanitizeBufStrings(stringifiedBuf);
 
@@ -117,27 +180,27 @@ export const Path = {
 
   // Resolve the replacement character: explicit override, else the user's
   // configured replacementChar, else the fallback ("" strips, "_" prefixes)
-  replacementChar: (override, fallback = "") =>
+  replacementChar: (override?: string, fallback = "") =>
     override || (typeof options !== "undefined" && options && options.replacementChar) || fallback,
 
   // TODO: Make this OS-aware instead of assuming Windows as LCD
-  replaceFsBadChars: (s, replacement?) =>
+  replaceFsBadChars: (s: string, replacement?: string) =>
     s.replace(Path.SPECIAL_CHARACTERS_REGEX, Path.replacementChar(replacement)),
 
   // Leading dots are considered invalid by both Firefox and Chrome
-  replaceLeadingDots: (s, replacement?) =>
+  replaceLeadingDots: (s: string, replacement?: string) =>
     s.replace(Path.BAD_LEADING_CHARACTERS, Path.replacementChar(replacement)),
 
-  truncateIfLongerThan: (str, max) =>
+  truncateIfLongerThan: (str: string, max: number) =>
     str && max > 0 && str.length > max ? str.substr(0, max) : str,
 
   // Trailing dots/spaces are silently dropped or rejected by Windows Explorer
   // and the underlying Win32 API
-  trimTrailingDotsAndSpaces: (s) => s.replace(Path.TRAILING_DOTS_AND_SPACES_REGEX, ""),
+  trimTrailingDotsAndSpaces: (s: string) => s.replace(Path.TRAILING_DOTS_AND_SPACES_REGEX, ""),
 
   // Windows treats everything up to the first dot as the device name, so
   // "con.tar.gz" is just as reserved as "con"
-  neutralizeReservedDeviceName: (s, replacement?) => {
+  neutralizeReservedDeviceName: (s: string, replacement?: string) => {
     const baseName = s.split(".")[0];
     if (!Path.RESERVED_DEVICE_NAME_REGEX.test(baseName)) {
       return s;
@@ -147,19 +210,9 @@ export const Path = {
     return `${char}${s}`;
   },
 
-  sanitizeFilename: (str, max = 0, leadingDotsForbidden = true) => {
-    if (!str) {
-      return str;
-    }
+  sanitizeFilename,
 
-    const fsSafe = Path.truncateIfLongerThan(Path.replaceFsBadChars(str), max);
-    const dotsHandled = leadingDotsForbidden ? Path.replaceLeadingDots(fsSafe) : fsSafe;
-    const trimmed = Path.trimTrailingDotsAndSpaces(dotsHandled);
-
-    return Path.neutralizeReservedDeviceName(trimmed);
-  },
-
-  sanitizeBufStrings: (buf) =>
+  sanitizeBufStrings: (buf: PathSegmentValue[]) =>
     buf.map((s, i) => {
       if (i === 0 && s.type === PATH_SEGMENT_TYPES.STRING && s.val === ".") {
         return s;
@@ -178,7 +231,7 @@ export const Path = {
       }
     }),
 
-  parsePathStr: (pathStr = "") => {
+  parsePathStr: (pathStr: PathInput = "") => {
     if (pathStr == null) {
       pathStr = "";
     }
@@ -189,7 +242,7 @@ export const Path = {
     }
 
     const tokenized = split.map((c) => c.split(specialDirRegexp).filter((sub) => sub.length > 0));
-    const flattened = [].concat.apply([], tokenized); // eslint-disable-line
+    const flattened = tokenized.flat();
 
     const parsed = flattened.map((tok) => {
       if (tok.match(Path.SEPARATOR_REGEX_INCLUSIVE)) {
