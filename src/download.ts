@@ -46,6 +46,11 @@ const mergeStartedDownload = (downloadId: number, partial: Partial<DownloadRecor
 const getStartedDownload = (downloadId: number) =>
   getDownload(BackgroundState.downloads, extensionSessionStorage, downloadId);
 
+const requireDownloadUrl = (state: Pick<DownloadPipelineState, "info">): string => {
+  if (!state.info.url) throw new Error("Download URL is required");
+  return state.info.url;
+};
+
 export const Download = {
   DISPOSITION_FILENAME_REGEX: /filename[^;=\n]*=((['"])(.*)?\2|(.+'')?([^;\n]*))/i,
   // A trailing dotted token of 1–8 alnum chars, but NOT an all-digit one:
@@ -64,7 +69,7 @@ export const Download = {
       // Bounded: Firefox has no onDeterminingFilename to consume entries
       if (Download.pendingStates.size > 50) {
         const oldest = Download.pendingStates.keys().next().value;
-        Download.pendingStates.delete(oldest);
+        if (oldest !== undefined) Download.pendingStates.delete(oldest);
       }
     }
   },
@@ -91,14 +96,18 @@ export const Download = {
       if (!record || record.retried || record.viaFetch || options.fallbackFetch === false) {
         return false;
       }
+      if (!record.url || !record.filename) {
+        return false;
+      }
+      const { filename, url } = record;
       // Persist the retry guard (merge the full record so a persisted-only hit
       // keeps its other fields) so a second failure after a worker restart can't
       // retry the same download twice
       record.retried = true;
       mergeStartedDownload(downloadId, record);
 
-      return RequestHeaders.prepareReferer({ info: { url: record.url, pageUrl: record.pageUrl } })
-        .then(() => fetch(record.url, { credentials: "include" }))
+      return RequestHeaders.prepareReferer({ info: { url, pageUrl: record.pageUrl } })
+        .then(() => fetch(url, { credentials: "include" }))
         .then((response) => {
           if (!response.ok) {
             throw new Error(`HTTP ${response.status}`);
@@ -107,7 +116,7 @@ export const Download = {
         })
         .then((blob) => makeUrlFromBlob(blob))
         .then((blobUrl) => {
-          Download.pendingRetryFilenames.set(blobUrl, record.filename);
+          Download.pendingRetryFilenames.set(blobUrl, filename);
           // expectDownload so the retry download is tracked via the in-memory
           // path (not the session-restart fallback) — that keeps the pending
           // counter balanced against the cleanup below
@@ -123,13 +132,13 @@ export const Download = {
               BackgroundState.sessionWrites,
               extensionSessionStorage,
               "siFinalFilenames",
-              (m) => Object.assign({}, m, { [blobUrl]: record.filename }),
+              (m) => Object.assign({}, m, { [blobUrl]: filename }),
             ),
           ])
             .then(() =>
               webExtensionApi.downloads.download({
                 url: blobUrl,
-                filename: record.filename,
+                filename,
                 conflictAction: record.conflictAction,
               }),
             )
@@ -200,12 +209,18 @@ export const Download = {
       // Firefox) — instead of naming the file after the folder.
       const routeDir = String(_state.route.finalize()).replace(/\/+$/, "");
       finalDir = [finalDir, routeDir].filter((x) => x != null && x !== "").join("/");
-      finalFilename = Path.sanitizeFilename(_state.info.filename);
+      finalFilename =
+        typeof _state.info.filename === "string"
+          ? Path.sanitizeFilename(_state.info.filename)
+          : undefined;
     } else if (_state.route) {
       // The rule sets the whole name (which may itself include subdirectories)
       finalFilename = _state.route.finalize();
     } else {
-      finalFilename = Path.sanitizeFilename(_state.info.filename);
+      finalFilename =
+        typeof _state.info.filename === "string"
+          ? Path.sanitizeFilename(_state.info.filename)
+          : undefined;
     }
 
     // §8.1: append a MIME-derived extension when the resolved filename has none
@@ -272,8 +287,9 @@ export const Download = {
   resolveDownloadPlan: async (
     state: DownloadPipelineState,
   ): Promise<ResolvedDownloadPlan | null> => {
-    const naiveFilename = getFilenameFromUrl(state.info.url);
-    const initialFilename = state.info.suggestedFilename || naiveFilename || state.info.url;
+    const url = requireDownloadUrl(state);
+    const naiveFilename = getFilenameFromUrl(url);
+    const initialFilename = state.info.suggestedFilename || naiveFilename || url;
     Object.assign(state.info, { naiveFilename, filename: initialFilename, initialFilename });
 
     // This must precede the first await so onDeterminingFilename can correlate
@@ -292,7 +308,9 @@ export const Download = {
       const tentative =
         state.route && !state.routeIsFolder
           ? state.route.finalize()
-          : Path.sanitizeFilename(state.info.filename);
+          : typeof state.info.filename === "string"
+            ? Path.sanitizeFilename(state.info.filename)
+            : undefined;
       if (tentative && !EXTENSION_REGEX.test(tentative)) {
         const ext = Variable.mimeToExtension(await Variable.resolveMime(state.info));
         if (ext) state.scratch.mimeExtension = ext;
@@ -352,8 +370,9 @@ export const Download = {
       const content = await state.info.contentPromise;
       if (content && content.downloadUrl) return { url: content.downloadUrl, viaFetch: true };
     }
-    if (options.fetchViaFetch) return Download.acquireFetchedUrl(state.info.url);
-    return { url: state.info.url, viaFetch: false };
+    const url = requireDownloadUrl(state);
+    if (options.fetchViaFetch) return Download.acquireFetchedUrl(url);
+    return { url, viaFetch: false };
   },
 
   executeBrowserDownload: async (plan: DownloadPlan, acquired: AcquiredDownload): Promise<void> => {
@@ -396,7 +415,7 @@ export const Download = {
     } catch (e) {
       if (typeof Log !== "undefined") Log.add("downloads.download failed", String(e));
       if (!acquired.viaFetch && options.fallbackFetch !== false) {
-        const fallback = await Download.acquireFetchedUrl(state.info.url);
+        const fallback = await Download.acquireFetchedUrl(requireDownloadUrl(state));
         await Download.executeBrowserDownload(plan, fallback);
       } else {
         Notifier.reportFailure(finalFullPath || state.info.url, String(e));
@@ -452,7 +471,10 @@ export const Download = {
       await Download.startDownload(state);
     } else {
       try {
-        const res = await fetch(state.info.url, { method: "HEAD", credentials: "include" });
+        const res = await fetch(requireDownloadUrl(state), {
+          method: "HEAD",
+          credentials: "include",
+        });
         if (res.headers.has("Content-Disposition")) {
           const disposition = res.headers.get("Content-Disposition");
           const dispositionName = Download.getFilenameFromContentDisposition(disposition);

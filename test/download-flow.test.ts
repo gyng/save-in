@@ -414,6 +414,12 @@ describe("renameAndDownload: Chrome vs Firefox entry", () => {
 });
 
 describe("renameAndDownload: initial filename resolution", () => {
+  test("rejects a state without a download URL", async () => {
+    await expect(
+      Download.renameAndDownload(makeState({ info: { url: undefined } })),
+    ).rejects.toThrow("Download URL is required");
+  });
+
   test("prefers info.suggestedFilename over the URL-derived filename", async () => {
     setCurrentBrowser("CHROME");
     const state = makeState({ info: { suggestedFilename: "suggested.txt" } });
@@ -1092,6 +1098,14 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
 
   test("unknown download ids resolve false", async () => {
     await expect(Download.retryViaFetch(999)).resolves.toBe(false);
+  });
+
+  test("does not retry an incomplete persisted record", async () => {
+    downloadState.records.set(101, { pageUrl: "https://example.com/page" });
+    global.fetch = vi.fn() as any;
+
+    await expect(Download.retryViaFetch(101)).resolves.toBe(false);
+    expect(global.fetch).not.toHaveBeenCalled();
   });
 
   test("an immediately rejected downloads.download falls back to fetch once", async () => {
