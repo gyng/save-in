@@ -14,7 +14,37 @@ import { Notifier } from "./notification.ts";
 import { WEB_EXTENSION_CAPABILITIES } from "./chrome-detector.ts";
 import { Shortcut } from "./shortcut.ts";
 import { options } from "./options-data.ts";
-import { currentTab } from "./current-tab.ts";
+import { currentTab, CurrentTab } from "./current-tab.ts";
+import type { DownloadInfo } from "./download-types.ts";
+
+type ClickInfo = {
+  mediaType?: string;
+  srcUrl?: string;
+  linkUrl?: string;
+  pageUrl?: string;
+  selectionText?: string;
+  linkText?: string;
+  modifiers?: string[];
+};
+
+type ClickOptions = {
+  links?: boolean;
+  selection?: boolean;
+  page?: boolean;
+  truncateLength: number;
+  preferLinks?: boolean;
+  preferLinksFilterEnabled?: boolean;
+  preferLinksFilter?: string;
+};
+
+type ClickTarget = {
+  downloadType: string;
+  url: string | undefined;
+  suggestedFilename: string | null;
+  selectionText: string | null;
+  notifyLinkPreferred: boolean;
+  badPatternError: unknown | null;
+};
 
 // Pure decision: what does a click on a path item save? Returns the download
 // type, the url, and a suggested filename from the click `info` + `options`
@@ -23,9 +53,13 @@ import { currentTab } from "./current-tab.ts";
 // testable without a browser: a text selection reports its `selectionText`
 // (the caller turns it into an object URL) and the link-preference / bad-filter
 // notifications come back as `notifyLinkPreferred` / `badPatternError`.
-Menus.resolveClickTarget = (info, options, clickTab) => {
+Menus.resolveClickTarget = (
+  info: ClickInfo,
+  options: ClickOptions,
+  clickTab: CurrentTab | null | undefined,
+): ClickTarget | null => {
   const hasLink = options.links && info.linkUrl;
-  const result = {
+  const result: ClickTarget = {
     downloadType: DOWNLOAD_TYPES.UNKNOWN,
     url: undefined,
     suggestedFilename: null,
@@ -34,7 +68,7 @@ Menus.resolveClickTarget = (info, options, clickTab) => {
     badPatternError: null,
   };
 
-  if (MEDIA_TYPES.includes(info.mediaType)) {
+  if (info.mediaType && MEDIA_TYPES.includes(info.mediaType)) {
     result.downloadType = DOWNLOAD_TYPES.MEDIA;
     result.url = info.srcUrl;
 
@@ -53,7 +87,7 @@ Menus.resolveClickTarget = (info, options, clickTab) => {
           Util.splitLines(options.preferLinksFilter)
             .map((s) => new RegExp(s))
             .forEach((re) => {
-              if (info.pageUrl.match(re) != null) {
+              if (info.pageUrl?.match(re) != null) {
                 overrideUrls = true;
               }
             });
@@ -133,6 +167,9 @@ Menus.addDownloadListener = () => {
       let url =
         target.selectionText != null ? Download.makeObjectUrl(target.selectionText) : target.url;
       let suggestedFilename = target.suggestedFilename;
+      if (!url) {
+        return;
+      }
 
       // Fire the notifications the pure decision flagged
       if (target.notifyLinkPreferred && options.notifyOnLinkPreferred) {
@@ -201,7 +238,7 @@ Menus.addDownloadListener = () => {
       }
 
       // Organise things by flattening the info struct and only keeping needed info
-      const opts = {
+      const opts: DownloadInfo = {
         currentTab: clickTab,
         linkText: info.linkText,
         now: new Date(),
@@ -237,8 +274,9 @@ Menus.addDownloadListener = () => {
         clickTab &&
         clickTab.id != null
       ) {
+        const tabId = clickTab.id;
         window.setTimeout(() => {
-          webExtensionApi.tabs.remove(clickTab.id);
+          webExtensionApi.tabs.remove(tabId);
         }, 500);
       }
     }
