@@ -1,83 +1,52 @@
 import { defineConfig } from "rolldown";
-import fs from "node:fs";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 
-// Thin bundler for store submission: consolidates each target's many scripts
-// into ONE readable, NON-minified file. The background/options/content scripts
-// are classic scripts sharing one lexical scope (that's how the globals work);
-// concatenating a target's files into a single virtual module and letting
-// rolldown emit one IIFE preserves that scope exactly — no per-file module
-// wrapping, no import/export migration, no minification/obfuscation (reviewers
-// can read the source). The config is ES-module and rolldown-based so a future
-// TypeScript migration can grow into real modules.
-
-const root = path.dirname(fileURLToPath(import.meta.url));
-const read = (f) => fs.readFileSync(path.join(root, f), "utf8");
-const manifest = JSON.parse(read("manifest.json"));
-
-// Strip the test-only `if (typeof module !== "undefined") { module.exports = … }`
-// guard: it is dead in the browser and would make rolldown treat the virtual
-// module as CommonJS. Some files pair it with an `else { …browser init… }`
-// branch — keep that branch's body (it runs in the browser), drop the rest.
-const stripModuleExports = (src) =>
-  src
-    .replace(
-      /if \(typeof module !== "undefined"\) \{[\s\S]*?\n\} else \{\n([\s\S]*?)\n\}\n?/g,
-      "$1\n",
-    )
-    .replace(/\n?if \(typeof module !== "undefined"\) \{[\s\S]*?\n\}\n?/g, "\n");
-
-// Extract the ordered <script src> list from an HTML page (options/offscreen)
-const scriptsFromHtml = (htmlPath) => {
-  const dir = path.dirname(htmlPath);
-  const html = read(htmlPath);
-  return [...html.matchAll(/<script[^>]*\ssrc="([^"]+)"[^>]*>/g)]
-    .map((m) => m[1])
-    .filter((src) => !/^https?:/.test(src))
-    .map((src) => path.posix.normalize(path.posix.join(dir, src)));
-};
-
-// A plugin serving a virtual entry = in-order concatenation of `files`
-const concat = (id, files, prefix = "") => ({
-  name: `concat:${id}`,
-  resolveId: (source) => (source === id ? id : null),
-  load: (loaded) =>
-    loaded === id
-      ? prefix +
-        files
-          .map(
-            (f) =>
-              `// ==================== ${f} ====================\n${stripModuleExports(read(f))}`,
-          )
-          .join("\n")
-      : null,
-});
-
-const bundle = (name, files, prefix = "") => ({
-  input: `virtual:${name}`,
-  plugins: [concat(`virtual:${name}`, files, prefix)],
-  output: { file: `dist/bundled/${name}.js`, format: "esm", minify: false },
-});
-
-const backgroundScripts = manifest.background.scripts;
-const optionsScripts = scriptsFromHtml("src/options/options.html");
-const offscreenScripts = scriptsFromHtml("src/offscreen.html");
+// Store-submission bundler for the TypeScript/ESM codebase (docs/TS-MIGRATION.md).
+// Each target has one entry module (src/entry.*.ts) that side-effect-imports its
+// files IN LOAD ORDER; rolldown strips the types (oxc), resolves the imports and
+// scope-hoists every module into ONE readable, NON-minified file per target — so
+// top-level side effects and synchronous MV3 listener registration are preserved,
+// and the shared-object-mutation idiom (Menus.addDownloadListener = …) survives.
+//
+// Output format is per-target and load-bearing:
+//   - background / background.sw / options / offscreen use `esm`: an entry with
+//     NO exports emits bare top-level code (no `export` statements), valid as a
+//     classic script in the SW / event page / page. The background entry then
+//     assigns its objects onto globalThis so the e2e's evalSW can reach them by
+//     bare name — an `iife` would hide them.
+//   - content uses `iife`: it runs as a classic content script and is isolated
+//     (nothing outside reads its bindings), so a function wrapper is fine; `esm`
+//     would emit `export` statements (a syntax error when injected).
+//
+// The Chrome service worker has no `window`; background.sw.js is prefixed with
+// `self.window = self;` (banner) so the legacy `window.foo` globals keep working
+// before any module that touches `window` at load evaluates.
 
 export default defineConfig([
-  // Firefox event page loads background.scripts (has window)
-  bundle("background", backgroundScripts),
-  // Chrome service worker: same scripts, with the window shim from background.js
-  bundle("background.sw", backgroundScripts, "self.window = self;\n"),
-  bundle("options", optionsScripts),
-  bundle("offscreen", offscreenScripts),
-  // content is a real ESM/TS module (first target of the Level 2 migration —
-  // docs/TS-MIGRATION.md): rolldown transpiles + bundles it directly instead of
-  // the classic-script concat plugin. It runs as a classic content script, so
-  // the output must be `iife` — `esm` would emit `export` statements (a syntax
-  // error when injected). Content is isolated (nothing outside reads its
-  // bindings), so wrapping it in a function scope is fine — unlike the
-  // background bundle, whose globals the e2e's evalSW reaches on the SW scope.
+  // Firefox event page (has a real window) — loaded via background.scripts
+  {
+    input: "src/entry.background.ts",
+    output: { file: "dist/bundled/background.js", format: "esm", minify: false },
+  },
+  // Chrome service worker: same modules, with the window shim up front
+  {
+    input: "src/entry.background.ts",
+    output: {
+      file: "dist/bundled/background.sw.js",
+      format: "esm",
+      minify: false,
+      banner: "self.window = self;\n",
+    },
+  },
+  {
+    input: "src/entry.options.ts",
+    output: { file: "dist/bundled/options.js", format: "esm", minify: false },
+  },
+  {
+    input: "src/entry.offscreen.ts",
+    output: { file: "dist/bundled/offscreen.js", format: "esm", minify: false },
+  },
+  // content is a classic content script (isolated); iife keeps its bindings
+  // private and, unlike esm, emits no top-level `export` statements
   {
     input: "src/content/content.ts",
     output: {
