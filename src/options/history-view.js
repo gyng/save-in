@@ -85,6 +85,20 @@ const HistoryView = {
     };
   },
 
+  // In-progress download cell from a downloads.search item: a percentage when
+  // the total size is known, otherwise the running byte count. `title` shows
+  // received / total when known.
+  progressCell: (item) => {
+    const received = (item && item.bytesReceived) || 0;
+    const total = (item && item.totalBytes) || 0;
+    return {
+      label:
+        total > 0 ? `${Math.floor((received / total) * 100)}%` : HistoryView.formatBytes(received),
+      title:
+        total > 0 ? `${HistoryView.formatBytes(received)} / ${HistoryView.formatBytes(total)}` : "",
+    };
+  },
+
   // Human-readable byte count (SI units, matching the download notification)
   formatBytes: (n) => {
     if (n == null || n < 0) {

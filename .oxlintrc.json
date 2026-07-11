@@ -59,7 +59,8 @@
     "BROWSER_FEATURES": "writable",
     "addClickToCopy": "readonly",
     "renderMenuPreview": "readonly",
-    "PathEditor": "readonly"
+    "PathEditor": "readonly",
+    "renderHistory": "readonly"
   },
   "ignorePatterns": [
     "src/vendor",

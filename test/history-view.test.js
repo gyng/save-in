@@ -57,6 +57,24 @@ describe("HistoryView flatteners", () => {
     expect(HistoryView.formatBytes(2_500_000)).toBe("2.5 MB");
     expect(HistoryView.formatBytes(3_000_000_000)).toBe("3.00 GB");
   });
+
+  test("progressCell shows a percentage when the total is known", () => {
+    expect(HistoryView.progressCell({ bytesReceived: 512_000, totalBytes: 1_000_000 })).toEqual({
+      label: "51%",
+      title: "512.0 KB / 1.0 MB",
+    });
+  });
+
+  test("progressCell falls back to the running byte count without a total", () => {
+    expect(HistoryView.progressCell({ bytesReceived: 1500, totalBytes: 0 })).toEqual({
+      label: "1.5 KB",
+      title: "",
+    });
+  });
+
+  test("progressCell tolerates a missing item", () => {
+    expect(HistoryView.progressCell(undefined)).toEqual({ label: "0 B", title: "" });
+  });
 });
 
 describe("HistoryView.paginate", () => {
