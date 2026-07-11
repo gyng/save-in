@@ -8,15 +8,15 @@
 // WEB_EXTENSION_CAPABILITIES) and vi.spyOn (Download/Notifier/Shortcut) reach the live
 // click handlers. Path stays untouched (the handlers build real Path objects).
 
-import { DOWNLOAD_TYPES } from "../src/constants.ts";
-import type { CurrentTab } from "../src/current-tab.ts";
+import { DOWNLOAD_TYPES } from "../src/shared/constants.ts";
+import type { CurrentTab } from "../src/platform/current-tab.ts";
 
-type MenusFixture = typeof import("../src/menu-build.ts") &
-  typeof import("../src/menu-click.ts") &
-  typeof import("../src/menu-tabs.ts") & {
-    IDS: typeof import("../src/menu-build.ts").MENU_IDS;
-    state: typeof import("../src/menu-build.ts").menuState;
-    pathMappings: typeof import("../src/menu-build.ts").menuState.pathMappings;
+type MenusFixture = typeof import("../src/background/menu-build.ts") &
+  typeof import("../src/background/menu-click.ts") &
+  typeof import("../src/background/menu-tabs.ts") & {
+    IDS: typeof import("../src/background/menu-build.ts").MENU_IDS;
+    state: typeof import("../src/background/menu-build.ts").menuState;
+    pathMappings: typeof import("../src/background/menu-build.ts").menuState.pathMappings;
   };
 // Browser listener mocks intentionally accept partial event payloads: each test
 // supplies only the host fields relevant to the branch it exercises.
@@ -87,15 +87,15 @@ const seedDeps = () => {
 };
 
 const importMenus = async () => {
-  const menuBuild = await import("../src/menu-build.ts");
-  const menuClick = await import("../src/menu-click.ts");
-  const menuTabs = await import("../src/menu-tabs.ts");
-  ({ options } = await import("../src/options-data.ts"));
-  ({ Download } = await import("../src/download.ts"));
-  ({ Notifier } = await import("../src/notification.ts"));
-  ({ Shortcut } = await import("../src/shortcut.ts"));
-  ({ WEB_EXTENSION_CAPABILITIES } = await import("../src/chrome-detector.ts"));
-  ({ setCurrentTab } = await import("../src/current-tab.ts"));
+  const menuBuild = await import("../src/background/menu-build.ts");
+  const menuClick = await import("../src/background/menu-click.ts");
+  const menuTabs = await import("../src/background/menu-tabs.ts");
+  ({ options } = await import("../src/config/options-data.ts"));
+  ({ Download } = await import("../src/downloads/download.ts"));
+  ({ Notifier } = await import("../src/downloads/notification.ts"));
+  ({ Shortcut } = await import("../src/downloads/shortcut.ts"));
+  ({ WEB_EXTENSION_CAPABILITIES } = await import("../src/platform/chrome-detector.ts"));
+  ({ setCurrentTab } = await import("../src/platform/current-tab.ts"));
   seedDeps();
   return {
     ...menuBuild,

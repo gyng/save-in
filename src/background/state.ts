@@ -1,5 +1,5 @@
 import type { CounterWriteState } from "./counter.ts";
-import type { DownloadsState } from "./download-state.ts";
+import type { DownloadsState } from "../downloads/download-state.ts";
 import type { SessionWriteState } from "./session-state.ts";
 
 const sessionWrites: SessionWriteState = { queue: Promise.resolve() };

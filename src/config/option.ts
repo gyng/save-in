@@ -1,21 +1,21 @@
-import { webExtensionApi } from "./web-extension-api.ts";
+import { webExtensionApi } from "../platform/web-extension-api.ts";
 
-import { getCaptureMatches } from "./router.ts";
+import { getCaptureMatches } from "../routing/router.ts";
 import {
   OPTION_KEYS,
   OPTION_TYPES,
   type SaveInOptionName,
   type SaveInOptions,
 } from "./option-schema.ts";
-import { applyVariables } from "./variable.ts";
-import { Path } from "./path.ts";
-import { Download } from "./download.ts";
+import { applyVariables } from "../routing/variable.ts";
+import { Path } from "../routing/path.ts";
+import { Download } from "../downloads/download.ts";
 // The options bag is a pure leaf (options-data.ts) so modules that only READ
 // settings (path/headers/menu-*/notification/download) import it directly and
 // don't pull in this validator-heavy module — breaking the option↔* cycles
 // (docs/ARCH-CYCLES.md, Cut 1).
 import { options } from "./options-data.ts";
-import type { DownloadInfo } from "./download-types.ts";
+import type { DownloadInfo } from "../downloads/download-types.ts";
 
 type RoutePreviewState = { info: DownloadInfo };
 type RoutePreview = {

@@ -5,7 +5,7 @@
 // persistence + record hydration/pruning); notification.ts is re-imported per
 // test for its module-load side effects, and its other deps are imported real
 // alongside it.
-import { BackgroundState } from "../src/background-state.ts";
+import { BackgroundState } from "../src/background/state.ts";
 
 const downloadState = BackgroundState.downloads;
 
@@ -14,7 +14,7 @@ const downloadState = BackgroundState.downloads;
 // time), so a hoisted-holder getter stays the stable control point across the
 // re-binds (BROWSERS is a plain constant). A couple of tests flip the holder.
 const browserState = vi.hoisted(() => ({ current: "CHROME" }));
-vi.mock("../src/chrome-detector.ts", () => ({
+vi.mock("../src/platform/chrome-detector.ts", () => ({
   BROWSERS: { CHROME: "CHROME", FIREFOX: "FIREFOX", UNKNOWN: "UNKNOWN" },
   get WEB_EXTENSION_CAPABILITIES() {
     return { downloadDeltaFilename: browserState.current === "CHROME" };
@@ -27,7 +27,7 @@ const retryHolder = vi.hoisted(() => ({
     return Promise.resolve(false);
   }),
 }));
-vi.mock("../src/download-retry.ts", () => ({
+vi.mock("../src/downloads/download-retry.ts", () => ({
   DownloadRetry: {
     retry: (downloadId: any) => retryHolder.retry(downloadId),
   },
@@ -41,11 +41,11 @@ let options: any;
 let Log: any;
 
 const loadNotification = async () => {
-  const mod = await import("../src/notification.ts");
+  const mod = await import("../src/downloads/notification.ts");
   await mod.notifierReady;
   Notifier = mod.Notifier;
-  ({ options } = await import("../src/options-data.ts"));
-  ({ Log } = await import("../src/log.ts"));
+  ({ options } = await import("../src/config/options-data.ts"));
+  ({ Log } = await import("../src/background/log.ts"));
   // Reset the real options bag to empty; each test sets the fields it needs
   for (const k of Object.keys(options)) delete options[k];
   // Log is defensive (typeof Log !== "undefined"); spy it so its calls are

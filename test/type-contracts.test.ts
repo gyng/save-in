@@ -1,16 +1,16 @@
 import { expectTypeOf, test } from "vitest";
 
-import type { CounterWriteState } from "../src/counter.ts";
-import type { RuleType } from "../src/constants.ts";
+import type { CounterWriteState } from "../src/background/counter.ts";
+import type { RuleType } from "../src/shared/constants.ts";
 import type {
   AcquiredDownload,
   DownloadPipelineState,
   DownloadPlan,
   FinalizableDownloadState,
-} from "../src/download-types.ts";
-import type { DownloadRecord, DownloadsState } from "../src/download-state.ts";
-import type { RuleClause } from "../src/router.ts";
-import type { SessionWriteState } from "../src/session-state.ts";
+} from "../src/downloads/download-types.ts";
+import type { DownloadRecord, DownloadsState } from "../src/downloads/download-state.ts";
+import type { RuleClause } from "../src/routing/router.ts";
+import type { SessionWriteState } from "../src/background/session-state.ts";
 
 test("download stages expose distinct state contracts", () => {
   expectTypeOf<DownloadPlan>().toHaveProperty("state").toEqualTypeOf<DownloadPipelineState>();

@@ -3,14 +3,14 @@
 // background-main.ts exports start(); every test re-imports it fresh and calls
 // start() through importMain() below.
 
-vi.mock("../src/menu-click.ts", () => ({ addDownloadListener: vi.fn() }));
-vi.mock("../src/menu-tabs.ts", () => ({
+vi.mock("../src/background/menu-click.ts", () => ({ addDownloadListener: vi.fn() }));
+vi.mock("../src/background/menu-tabs.ts", () => ({
   addTabMenuListener: vi.fn(),
   addTabHighlightListener: vi.fn(),
   addTabMenus: vi.fn(),
 }));
-vi.mock("../src/menu-build.ts", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("../src/menu-build.ts")>();
+vi.mock("../src/background/menu-build.ts", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../src/background/menu-build.ts")>();
   return {
     ...actual,
     addRoot: vi.fn(actual.addRoot),
@@ -24,14 +24,14 @@ vi.mock("../src/menu-build.ts", async (importOriginal) => {
     restoreLastUsed: vi.fn(actual.restoreLastUsed),
   };
 });
-vi.mock("../src/download-state.ts", () => ({
+vi.mock("../src/downloads/download-state.ts", () => ({
   hydrateDownloads: () => Promise.resolve(),
   getDownload: () => Promise.resolve(null),
   mergeDownload: () => Promise.resolve(),
 }));
 
-import type { CurrentTab } from "../src/current-tab.ts";
-import type { SaveInOptions } from "../src/option-schema.ts";
+import type { CurrentTab } from "../src/platform/current-tab.ts";
+import type { SaveInOptions } from "../src/config/option-schema.ts";
 
 // background-main.ts, menu-build.ts, option.ts and log.ts are all real modules, freshly
 // re-imported after every jest.resetModules() below (mirroring test/log.test.ts
@@ -39,9 +39,9 @@ import type { SaveInOptions } from "../src/option-schema.ts";
 // the first module instance, not the fresh one background-main.ts actually wires up on
 // each re-import.
 let Menus: Record<string, any>;
-let options: typeof import("../src/options-data.ts").options;
-let OptionsManagement: typeof import("../src/option.ts").OptionsManagement;
-let Log: typeof import("../src/log.ts").Log;
+let options: typeof import("../src/config/options-data.ts").options;
+let OptionsManagement: typeof import("../src/config/option.ts").OptionsManagement;
+let Log: typeof import("../src/background/log.ts").Log;
 
 type SetupOptions = {
   options?: Partial<SaveInOptions>;
@@ -55,13 +55,13 @@ const setupGlobals = async ({
   tabsQueryResult = [],
 }: SetupOptions = {}) => {
   Menus = {
-    ...(await import("../src/menu-build.ts")),
-    ...(await import("../src/menu-click.ts")),
-    ...(await import("../src/menu-tabs.ts")),
+    ...(await import("../src/background/menu-build.ts")),
+    ...(await import("../src/background/menu-click.ts")),
+    ...(await import("../src/background/menu-tabs.ts")),
   };
-  ({ OptionsManagement } = await import("../src/option.ts"));
-  ({ options } = await import("../src/options-data.ts"));
-  ({ Log } = await import("../src/log.ts"));
+  ({ OptionsManagement } = await import("../src/config/option.ts"));
+  ({ options } = await import("../src/config/options-data.ts"));
+  ({ Log } = await import("../src/background/log.ts"));
 
   for (const name of [
     "addRoot",
@@ -116,7 +116,7 @@ const setupGlobals = async ({
 // at startup (Task #2), rather than an import-time side effect. Re-import fresh
 // (after resetModules) and run start() to reproduce the startup sequence.
 const importIndex = async () => {
-  const { start } = await import("../src/background-main.ts");
+  const { start } = await import("../src/background/main.ts");
   start();
 };
 

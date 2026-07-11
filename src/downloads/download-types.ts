@@ -1,5 +1,5 @@
 import type { ContentFetchResult } from "./content-fetch-types.ts";
-import type { CurrentTab } from "./current-tab.ts";
+import type { CurrentTab } from "../platform/current-tab.ts";
 
 export type PathValue = {
   finalize: () => string;

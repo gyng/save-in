@@ -1,4 +1,4 @@
-import type { StorageReader, StorageWriter } from "./storage-areas.ts";
+import type { StorageReader, StorageWriter } from "../platform/storage-areas.ts";
 
 export const COUNTER_KEY = "save-in-counter";
 

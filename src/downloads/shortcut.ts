@@ -1,7 +1,7 @@
-import { SHORTCUT_TYPES, SHORTCUT_EXTENSIONS, DOWNLOAD_TYPES } from "./constants.ts";
+import { SHORTCUT_TYPES, SHORTCUT_EXTENSIONS, DOWNLOAD_TYPES } from "../shared/constants.ts";
 import { Download } from "./download.ts";
-import { sanitizeFilename } from "./path.ts";
-import { currentTab } from "./current-tab.ts";
+import { sanitizeFilename } from "../routing/path.ts";
+import { currentTab } from "../platform/current-tab.ts";
 
 type ShortcutInfo = {
   srcUrl?: string;

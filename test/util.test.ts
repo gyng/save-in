@@ -1,4 +1,4 @@
-import { splitLines, withUrl } from "../src/util.ts";
+import { splitLines, withUrl } from "../src/shared/util.ts";
 
 describe("withUrl", () => {
   test("calls the callback with the parsed URL", () => {

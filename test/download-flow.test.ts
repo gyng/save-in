@@ -11,16 +11,16 @@
 // in, so importing them at the top can't force it to load early); the rest of
 // download.ts's dependency graph is imported below, after the host globals are in
 // place, so download.ts registers its onDeterminingFilename listener against them.
-import { BackgroundState } from "../src/background-state.ts";
-import * as SessionState from "../src/session-state.ts";
-import { OffscreenClient } from "../src/offscreen-client.ts";
-import { Log } from "../src/log.ts";
-import { SaveHistory } from "../src/history.ts";
+import { BackgroundState } from "../src/background/state.ts";
+import * as SessionState from "../src/background/session-state.ts";
+import { OffscreenClient } from "../src/platform/offscreen-client.ts";
+import { Log } from "../src/background/log.ts";
+import { SaveHistory } from "../src/background/history.ts";
 import { getFilenameFromContentDispositionHeader } from "../src/vendor/content-disposition.ts";
-import { extensionSessionStorage } from "../src/storage-areas.ts";
-import { RULE_TYPES } from "../src/constants.ts";
-import type { RoutingRule } from "../src/router.ts";
-import type { SaveInOptions } from "../src/option-schema.ts";
+import { extensionSessionStorage } from "../src/platform/storage-areas.ts";
+import { RULE_TYPES } from "../src/shared/constants.ts";
+import type { RoutingRule } from "../src/routing/router.ts";
+import type { SaveInOptions } from "../src/config/option-schema.ts";
 
 const downloadState = BackgroundState.downloads;
 const routingRule = (name = "rule"): RoutingRule => [
@@ -59,18 +59,18 @@ Object.assign(hostBrowser, {
 
 // Importing download.ts loads the rest of the (real) cyclic module graph;
 // grab the same singleton instances it binds to.
-const { Download, registerDownloadListener } = await import("../src/download.ts");
-const { options } = await import("../src/options-data.ts");
-const router = await import("../src/router.ts");
-const Variable = await import("../src/variable.ts");
-const { Notifier } = await import("../src/notification.ts");
-const Path = await import("../src/path.ts");
-const { RequestHeaders } = await import("../src/headers.ts");
-const { DownloadEvents } = await import("../src/download-events.ts");
+const { Download, registerDownloadListener } = await import("../src/downloads/download.ts");
+const { options } = await import("../src/config/options-data.ts");
+const router = await import("../src/routing/router.ts");
+const Variable = await import("../src/routing/variable.ts");
+const { Notifier } = await import("../src/downloads/notification.ts");
+const Path = await import("../src/routing/path.ts");
+const { RequestHeaders } = await import("../src/downloads/headers.ts");
+const { DownloadEvents } = await import("../src/downloads/download-events.ts");
 // download.ts already loaded chrome-detector into the graph; this is the same
 // instance it reads CURRENT_BROWSER from. global.browser (above) has no
 // getBrowserInfo, so its load-time detection settled on Chrome.
-const { setCurrentBrowser } = await import("../src/chrome-detector.ts");
+const { setCurrentBrowser } = await import("../src/platform/chrome-detector.ts");
 
 // Import-time side effects are deferred (Task #2): download.ts no longer
 // registers onDeterminingFilename at load — the entry does, so call it here to
@@ -931,7 +931,7 @@ describe("concurrent downloads (pendingStates)", () => {
     // nothing routes, conflictAction "uniquify", and the identity-ish real Path.
     // Side effects are deferred (Task #2): register onDeterminingFilename from
     // this fresh instance before capturing it.
-    const dl = await import("../src/download.ts");
+    const dl = await import("../src/downloads/download.ts");
     Download = dl.Download;
     dl.registerDownloadListener();
     [[listener]] = vi.mocked(

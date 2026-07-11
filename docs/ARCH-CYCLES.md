@@ -118,13 +118,13 @@ graph rather than relying on a one-time audit.
   - ✅ The compiler settings are modernized: ESM + bundler resolution,
     `verbatimModuleSyntax`, and `isolatedModules`. Relative source imports keep
     their explicit `.ts` suffix; rolldown owns rewriting them into bundles.
-  - ✅ `index.ts` is now the explicit `background-main.ts` composition root;
-    the actual bundle entry remains `entry.background.ts`.
-  - **Decision:** keep root feature modules and centralized `test/`. A broad
-    directory/co-location move would rewrite imports and reviewer sourcemap
-    paths without enforcing layers or changing the bundled runtime. Existing
-    `src/options`, `src/content`, and `src/vendor` boundaries already identify
-    the contexts where directories add information.
+  - ✅ The former `index.ts` is now the explicit `background/main.ts`
+    composition root; the actual bundle entry is `entries/background.ts`.
+  - ✅ Source modules are grouped by concrete ownership: `background`, `config`,
+    `downloads`, `routing`, `platform`, and `shared`. Runtime-context code stays
+    in `options`, `content`, `entries`, and `vendor`. Tests remain centralized so
+    production directories describe shipped architecture rather than mixing in
+    a second organizational axis.
 - **Runtime validation at trust boundaries — DONE** (Task #64). Dependency-free
   guards validate internal/external message bodies and Chrome offscreen
   requests/responses. External download metadata is allowlisted before entering
@@ -133,7 +133,7 @@ graph rather than relying on a one-time audit.
   object and passes through that same validated boundary.
 - **Defer module import-time side effects** (Task #2): ✅ DONE. The background
   modules ran their side effects at MODULE EVAL, so importing them in a test
-  triggered them. Each is now an explicit exported function `entry.background.ts`
+  triggered them. Each is now an explicit exported function `entries/background.ts`
   calls synchronously at startup (registration stays synchronous — MV3 rule #1 —
   because the entry is the bundle's synchronous top-level code; verified by both
   e2e suites):
@@ -142,10 +142,10 @@ graph rather than relying on a one-time audit.
     notifications.onClicked); the `DownloadState.hydrate()` is still in
     `window.init`, now run via `start()`.
   - `download.ts` → `registerDownloadListener()` (downloads.onDeterminingFilename)
-  - `background-main.ts` → `start()` (menu/tab listeners, `window.ready = init()`, tabs.query)
+  - `background/main.ts` → `start()` (menu/tab listeners, `window.ready = init()`, tabs.query)
   - `option.ts` → `seedOptions()` (the OPTION_KEYS defaults; loadOptions overlays
     storage onto them, so the entry seeds before init). The options page has its
-    own option handling, so only `entry.background` seeds.
+    own option handling, so only `entries/background` seeds.
 
   Payoff: modules are import-side-effect-free, so tests import them real and call
   the register/seed fn explicitly. Removed the messaging `vi.mock`s from

@@ -67,6 +67,7 @@ export const setupTabs = (): void => {
     panel.className = "tab-panel";
     panel.id = `tab-panel-${index}`;
     panel.setAttribute("role", "tabpanel");
+    panel.setAttribute("aria-labelledby", `tab-${index}`);
     // The active tab already labels the section; an in-panel heading
     // would just duplicate it
     section.heading.classList.add("tab-heading-hidden");
@@ -80,6 +81,7 @@ export const setupTabs = (): void => {
     tab.className = "tab";
     tab.id = `tab-${index}`;
     tab.setAttribute("role", "tab");
+    tab.setAttribute("aria-controls", `tab-panel-${index}`);
     tab.textContent = headingLabel(section.heading);
     tab.dataset.index = String(index);
     return tab;
@@ -116,12 +118,16 @@ export const setupTabs = (): void => {
   tabs.forEach((tab, index) => {
     tab.addEventListener("click", () => select(index));
     tab.addEventListener("keydown", (e) => {
-      if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") {
+      if (!["ArrowRight", "ArrowLeft", "Home", "End"].includes(e.key)) {
         return;
       }
       e.preventDefault();
-      const delta = e.key === "ArrowRight" ? 1 : -1;
-      const next = (index + delta + tabs.length) % tabs.length;
+      const next =
+        e.key === "Home"
+          ? 0
+          : e.key === "End"
+            ? tabs.length - 1
+            : (index + (e.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length;
       tabs[next].focus();
       select(next);
     });

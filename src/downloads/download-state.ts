@@ -1,6 +1,6 @@
-import { getSession, updateSession } from "./session-state.ts";
-import type { SessionWriteState } from "./session-state.ts";
-import type { StorageReader, StorageWriter } from "./storage-areas.ts";
+import { getSession, updateSession } from "../background/session-state.ts";
+import type { SessionWriteState } from "../background/session-state.ts";
+import type { StorageReader, StorageWriter } from "../platform/storage-areas.ts";
 
 const SESSION_KEY = "siDownloads";
 const MAX_RECORDS = 50;

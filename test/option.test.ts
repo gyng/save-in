@@ -1,8 +1,8 @@
 // OptionsManagement: option schema/defaults, storage load, and the routing
 // dry-run used by the options page's "check routes" preview
 
-import * as constants from "../src/constants.ts";
-import type { RoutingRule } from "../src/router.ts";
+import * as constants from "../src/shared/constants.ts";
+import type { RoutingRule } from "../src/routing/router.ts";
 
 const routingRule = (name: string): RoutingRule => [
   { name, value: ".*", type: constants.RULE_TYPES.MATCHER },
@@ -28,16 +28,16 @@ const mocks = vi.hoisted(() => ({
   Download: {} as Record<string, any>,
 }));
 
-vi.mock("../src/chrome-detector.ts", () => ({
+vi.mock("../src/platform/chrome-detector.ts", () => ({
   BROWSERS: { CHROME: "CHROME", FIREFOX: "FIREFOX", UNKNOWN: "UNKNOWN" },
   get WEB_EXTENSION_CAPABILITIES() {
     return { conflictActionPrompt: mocks.currentBrowser === "FIREFOX" };
   },
 }));
-vi.mock("../src/router.ts", () => mocks.router);
-vi.mock("../src/variable.ts", () => ({ applyVariables: mocks.applyVariables }));
-vi.mock("../src/path.ts", () => ({ Path: mocks.Path }));
-vi.mock("../src/download.ts", () => ({ Download: mocks.Download }));
+vi.mock("../src/routing/router.ts", () => mocks.router);
+vi.mock("../src/routing/variable.ts", () => ({ applyVariables: mocks.applyVariables }));
+vi.mock("../src/routing/path.ts", () => ({ Path: mocks.Path }));
+vi.mock("../src/downloads/download.ts", () => ({ Download: mocks.Download }));
 
 Object.assign(global, constants);
 
@@ -52,7 +52,7 @@ const setupGlobals = () => {
 };
 
 describe("OptionsManagement", () => {
-  let OptionsManagement: (typeof import("../src/option.ts"))["OptionsManagement"];
+  let OptionsManagement: (typeof import("../src/config/option.ts"))["OptionsManagement"];
   type SchemaKey = (typeof OptionsManagement)["OPTION_KEYS"][number];
   type LoadKey = SchemaKey & { onLoad(value: any): any };
   type SaveKey = SchemaKey & { onSave(value: any): any };
@@ -60,7 +60,7 @@ describe("OptionsManagement", () => {
   beforeEach(async () => {
     jest.resetModules();
     setupGlobals();
-    const optionModule = await import("../src/option.ts");
+    const optionModule = await import("../src/config/option.ts");
     OptionsManagement = optionModule.OptionsManagement;
     // Seeding is deferred out of module eval (Task #2); seed defaults here the
     // way the entry does at startup, so loadOptions overlays storage onto them.
@@ -379,7 +379,7 @@ describe("loadOptions resilience", () => {
   test("ignores unknown stored keys instead of throwing", async () => {
     vi.resetModules();
     setupGlobals();
-    const OptionsManagement = (await import("../src/option.ts")).OptionsManagement;
+    const OptionsManagement = (await import("../src/config/option.ts")).OptionsManagement;
     global.browser.storage.local.get = jest.fn(() =>
       Promise.resolve({ conflictAction: "overwrite", someRemovedOption: 1 }),
     );

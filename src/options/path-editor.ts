@@ -1,4 +1,4 @@
-import { webExtensionApi } from "../web-extension-api.ts";
+import { webExtensionApi } from "../platform/web-extension-api.ts";
 
 // Directory-list editing helpers for the options page:
 // - an insert menu ("+ Add") for the paths textarea: variables (with their
@@ -8,7 +8,7 @@ import { webExtensionApi } from "../web-extension-api.ts";
 // The paths textarea stays the single source of truth: every edit
 // serializes back to it and fires the normal input/autosave pipeline.
 
-import { SPECIAL_DIRS } from "../constants.ts";
+import { SPECIAL_DIRS } from "../shared/constants.ts";
 
 type PathRow = { depth: number; body: string; comment: string };
 type EditorOwner = { rebuildVisual?: () => void };

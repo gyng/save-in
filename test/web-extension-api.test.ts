@@ -13,7 +13,7 @@ describe("webExtensionApi", () => {
     const chromeApi = { runtime: { id: "chrome" } };
     globalThis.chrome = chromeApi as any;
 
-    const { webExtensionApi } = await import("../src/web-extension-api.ts");
+    const { webExtensionApi } = await import("../src/platform/web-extension-api.ts");
 
     expect(webExtensionApi).toBe(chromeApi);
     expect(globalThis.browser).toBeUndefined();
@@ -24,7 +24,7 @@ describe("webExtensionApi", () => {
     globalThis.browser = browserApi as any;
     globalThis.chrome = { runtime: { id: "chrome" } } as any;
 
-    const { webExtensionApi } = await import("../src/web-extension-api.ts");
+    const { webExtensionApi } = await import("../src/platform/web-extension-api.ts");
 
     expect(webExtensionApi).toBe(browserApi);
   });
@@ -33,7 +33,7 @@ describe("webExtensionApi", () => {
     Reflect.deleteProperty(globalThis, "browser");
     Reflect.deleteProperty(globalThis, "chrome");
 
-    const { webExtensionApi } = await import("../src/web-extension-api.ts");
+    const { webExtensionApi } = await import("../src/platform/web-extension-api.ts");
 
     expect(webExtensionApi).toBeUndefined();
   });

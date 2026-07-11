@@ -5,8 +5,8 @@
 // a size cap). At most one offscreen document exists; it is created lazily and
 // reused. The Firefox event page has createObjectURL and never uses any of this.
 
-import { MESSAGE_TYPES } from "./constants.ts";
-import { isOffscreenFetchResponse } from "./content-fetch-types.ts";
+import { MESSAGE_TYPES } from "../shared/constants.ts";
+import { isOffscreenFetchResponse } from "../downloads/content-fetch-types.ts";
 
 type OffscreenClientApi = {
   canUse: () => boolean;

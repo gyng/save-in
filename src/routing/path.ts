@@ -1,7 +1,7 @@
-import { webExtensionApi } from "./web-extension-api.ts";
+import { webExtensionApi } from "../platform/web-extension-api.ts";
 
-import { SPECIAL_DIRS, FORBIDDEN_FILENAME_CHARS, PATH_SEGMENT_TYPES } from "./constants.ts";
-import { options } from "./options-data.ts";
+import { SPECIAL_DIRS, FORBIDDEN_FILENAME_CHARS, PATH_SEGMENT_TYPES } from "../shared/constants.ts";
+import { options } from "../config/options-data.ts";
 
 const specialDirVariables = Object.values(SPECIAL_DIRS);
 const specialDirRegexp = new RegExp(`(${specialDirVariables.join("|")})`);

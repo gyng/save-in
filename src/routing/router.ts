@@ -1,10 +1,10 @@
-import { webExtensionApi } from "./web-extension-api.ts";
+import { webExtensionApi } from "../platform/web-extension-api.ts";
 
-import { RULE_TYPES } from "./constants.ts";
-import type { RuleType } from "./constants.ts";
+import { RULE_TYPES } from "../shared/constants.ts";
+import type { RuleType } from "../shared/constants.ts";
 import { EXTENSION_REGEX, getFilenameFromUrl } from "./filename.ts";
-import { currentTab } from "./current-tab.ts";
-import type { DownloadInfo } from "./download-types.ts";
+import { currentTab } from "../platform/current-tab.ts";
+import type { DownloadInfo } from "../downloads/download-types.ts";
 
 export type RuleError = { message: string; error: string; warning?: boolean };
 export type RuleToken = RegExpMatchArray;

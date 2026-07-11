@@ -1,27 +1,27 @@
-import { webExtensionApi } from "./web-extension-api.ts";
+import { webExtensionApi } from "../platform/web-extension-api.ts";
 
 /* eslint-disable no-unused-vars */
 
-import { BackgroundState } from "./background-state.ts";
+import { BackgroundState } from "../background/state.ts";
 import { getDownload, mergeDownload } from "./download-state.ts";
 import type { DownloadRecord } from "./download-state.ts";
-import { getSession, updateSession } from "./session-state.ts";
+import { getSession, updateSession } from "../background/session-state.ts";
 import { RequestHeaders } from "./headers.ts";
 import { Notifier } from "./notification.ts";
-import { Log } from "./log.ts";
-import { matchRules } from "./router.ts";
-import { Path, sanitizeFilename } from "./path.ts";
-import { applyVariables, mimeToExtension, resolveMime } from "./variable.ts";
-import { SaveHistory } from "./history.ts";
-import { options } from "./options-data.ts";
-import { WEB_EXTENSION_CAPABILITIES } from "./chrome-detector.ts";
-import { getFilenameFromContentDispositionHeader } from "./vendor/content-disposition.ts";
+import { Log } from "../background/log.ts";
+import { matchRules } from "../routing/router.ts";
+import { Path, sanitizeFilename } from "../routing/path.ts";
+import { applyVariables, mimeToExtension, resolveMime } from "../routing/variable.ts";
+import { SaveHistory } from "../background/history.ts";
+import { options } from "../config/options-data.ts";
+import { WEB_EXTENSION_CAPABILITIES } from "../platform/chrome-detector.ts";
+import { getFilenameFromContentDispositionHeader } from "../vendor/content-disposition.ts";
 import { makeUrlFromBlob } from "./content-fetch.ts";
-import { OffscreenClient } from "./offscreen-client.ts";
-import { EXTENSION_REGEX, getFilenameFromUrl } from "./filename.ts";
+import { OffscreenClient } from "../platform/offscreen-client.ts";
+import { EXTENSION_REGEX, getFilenameFromUrl } from "../routing/filename.ts";
 import { DownloadEvents } from "./download-events.ts";
 import { DownloadRetry } from "./download-retry.ts";
-import { extensionSessionStorage } from "./storage-areas.ts";
+import { extensionSessionStorage } from "../platform/storage-areas.ts";
 import type {
   AcquiredDownload,
   DownloadPipelineState,

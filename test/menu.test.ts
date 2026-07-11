@@ -5,7 +5,7 @@
 // per case (including to undefined, for the pre-detection guard), so a hoisted
 // holder backs it.
 const detector = vi.hoisted(() => ({ features: undefined as any }));
-vi.mock("../src/chrome-detector.ts", () => ({
+vi.mock("../src/platform/chrome-detector.ts", () => ({
   BROWSERS: { CHROME: "CHROME", FIREFOX: "FIREFOX", UNKNOWN: "UNKNOWN" },
   get WEB_EXTENSION_CAPABILITIES() {
     return detector.features;
@@ -17,10 +17,10 @@ vi.mock("../src/chrome-detector.ts", () => ({
   detectCapabilities: (b: string) => ({ tabContextMenus: b === "FIREFOX", accessKeys: true }),
 }));
 
-import * as menuBuild from "../src/menu-build.ts";
-import * as menuTabs from "../src/menu-tabs.ts";
-import { SPECIAL_DIRS, MEDIA_TYPES } from "../src/constants.ts";
-import { options } from "../src/options-data.ts";
+import * as menuBuild from "../src/background/menu-build.ts";
+import * as menuTabs from "../src/background/menu-tabs.ts";
+import { SPECIAL_DIRS, MEDIA_TYPES } from "../src/shared/constants.ts";
+import { options } from "../src/config/options-data.ts";
 
 const menu = {
   ...menuBuild,

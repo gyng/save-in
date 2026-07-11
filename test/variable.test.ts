@@ -1,11 +1,11 @@
-import * as Variable from "../src/variable.ts";
-import * as Path from "../src/path.ts";
-import { HASH_MAX_BYTES } from "../src/content-fetch.ts";
-import * as Counter from "../src/counter.ts";
+import * as Variable from "../src/routing/variable.ts";
+import * as Path from "../src/routing/path.ts";
+import { HASH_MAX_BYTES } from "../src/downloads/content-fetch.ts";
+import * as Counter from "../src/background/counter.ts";
 // variable.ts reads options.replacementChar (via path.ts) at call time;
 // import the real options bag and mutate it (option.ts seeds
 // replacementChar "_" at load, so these just document the expectation).
-import { options } from "../src/options-data.ts";
+import { options } from "../src/config/options-data.ts";
 
 describe("variables", () => {
   const info = {

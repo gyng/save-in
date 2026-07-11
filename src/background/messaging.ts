@@ -1,20 +1,20 @@
-import { webExtensionApi } from "./web-extension-api.ts";
+import { webExtensionApi } from "../platform/web-extension-api.ts";
 
 /* eslint-disable no-case-declarations */
 
-import { splitLines, withUrl } from "./util.ts";
-import { MESSAGE_TYPES, DOWNLOAD_TYPES } from "./constants.ts";
-import { applyVariables, transformers } from "./variable.ts";
-import { Path } from "./path.ts";
-import { OptionsManagement } from "./option.ts";
-import { options } from "./options-data.ts";
+import { splitLines, withUrl } from "../shared/util.ts";
+import { MESSAGE_TYPES, DOWNLOAD_TYPES } from "../shared/constants.ts";
+import { applyVariables, transformers } from "../routing/variable.ts";
+import { Path } from "../routing/path.ts";
+import { OptionsManagement } from "../config/option.ts";
+import { options } from "../config/options-data.ts";
 import { buildTree } from "./menu-build.ts";
-import { matcherFunctions, parseRulesCollecting } from "./router.ts";
-import { Notifier } from "./notification.ts";
-import { Download } from "./download.ts";
-import { currentTab } from "./current-tab.ts";
-import { DownloadEvents } from "./download-events.ts";
-import type { DownloadInfo, DownloadPipelineState } from "./download-types.ts";
+import { matcherFunctions, parseRulesCollecting } from "../routing/router.ts";
+import { Notifier } from "../downloads/notification.ts";
+import { Download } from "../downloads/download.ts";
+import { currentTab } from "../platform/current-tab.ts";
+import { DownloadEvents } from "../downloads/download-events.ts";
+import type { DownloadInfo, DownloadPipelineState } from "../downloads/download-types.ts";
 import {
   getMessageType,
   EXTERNAL_MESSAGE_TYPES,

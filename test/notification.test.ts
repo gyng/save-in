@@ -2,9 +2,9 @@
 // module eval), so import the real options bag and mutate it directly instead of
 // bridging through a globalThis getter. It starts empty; each test sets what it
 // needs and clears afterwards.
-import { options } from "../src/options-data.ts";
-import type { SaveInOptions } from "../src/option-schema.ts";
-import { Notifier as notification } from "../src/notification.ts";
+import { options } from "../src/config/options-data.ts";
+import type { SaveInOptions } from "../src/config/option-schema.ts";
+import { Notifier as notification } from "../src/downloads/notification.ts";
 
 const setOptions = (overrides: Partial<SaveInOptions> = {}) => {
   const mutableOptions = options as unknown as Record<string, unknown>;

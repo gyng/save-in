@@ -1,4 +1,4 @@
-import { webExtensionApi } from "../web-extension-api.ts";
+import { webExtensionApi } from "../platform/web-extension-api.ts";
 
 export type AutocompleteStrategy = {
   match: RegExp;
@@ -153,9 +153,16 @@ export const applySuggestion = (
 
 export const attachAutocomplete = (textarea: TextField, strategies: AutocompleteStrategy[]) => {
   const dropdown = document.createElement("ul");
+  const dropdownId = `autocomplete-${textarea.id || document.querySelectorAll(".autocomplete-dropdown").length}`;
+  dropdown.id = dropdownId;
   dropdown.className = "autocomplete-dropdown";
+  dropdown.setAttribute("role", "listbox");
   dropdown.style.display = "none";
   document.body.appendChild(dropdown);
+  textarea.setAttribute("role", "combobox");
+  textarea.setAttribute("aria-autocomplete", "list");
+  textarea.setAttribute("aria-controls", dropdownId);
+  textarea.setAttribute("aria-expanded", "false");
   // Any press inside the dropdown (row, padding, scrollbar) must not blur the
   // field — keep focus so the list stays open and scrollable
   dropdown.addEventListener("mousedown", (e) => e.preventDefault());
@@ -166,6 +173,8 @@ export const attachAutocomplete = (textarea: TextField, strategies: Autocomplete
     current = null;
     dropdown.style.display = "none";
     dropdown.innerHTML = "";
+    textarea.setAttribute("aria-expanded", "false");
+    textarea.removeAttribute("aria-activedescendant");
   };
 
   const accept = (name: string) => {
@@ -189,6 +198,9 @@ export const attachAutocomplete = (textarea: TextField, strategies: Autocomplete
     dropdown.innerHTML = "";
     state.result.suggestions.forEach((name, i) => {
       const li = document.createElement("li");
+      li.id = `${dropdownId}-option-${i}`;
+      li.setAttribute("role", "option");
+      li.setAttribute("aria-selected", i === state.selected ? "true" : "false");
       li.textContent = name;
       if (i === state.selected) {
         li.classList.add("selected");
@@ -209,6 +221,8 @@ export const attachAutocomplete = (textarea: TextField, strategies: Autocomplete
     const caretTop = rect.top + window.scrollY + caret.top - textarea.scrollTop;
 
     dropdown.style.display = "block";
+    textarea.setAttribute("aria-expanded", "true");
+    textarea.setAttribute("aria-activedescendant", `${dropdownId}-option-${state.selected}`);
     dropdown.style.left = "0";
     dropdown.style.top = "0";
     // offsetWidth/Height need the box laid out, so measure after display:block
@@ -251,6 +265,10 @@ export const attachAutocomplete = (textarea: TextField, strategies: Autocomplete
       const count = current.result.suggestions.length;
       const delta = key === "ArrowDown" ? 1 : -1;
       current.selected = (current.selected + delta + count) % count;
+      render();
+    } else if (key === "Home" || key === "End") {
+      e.preventDefault();
+      current.selected = key === "Home" ? 0 : current.result.suggestions.length - 1;
       render();
     } else if (key === "Enter" || key === "Tab") {
       e.preventDefault();

@@ -1,13 +1,13 @@
-import { webExtensionApi } from "./web-extension-api.ts";
+import { webExtensionApi } from "../platform/web-extension-api.ts";
 
 // Context menu construction: parses the paths option into a menu tree
 // (`buildTree`, pure) and renders it with webExtensionApi.contextMenus.create.
 // Click handling lives in menu-click.ts and tab-strip menus in menu-tabs.ts.
 
-import { WEB_EXTENSION_CAPABILITIES } from "./chrome-detector.ts";
-import { options } from "./options-data.ts";
-import { MEDIA_TYPES, SPECIAL_DIRS } from "./constants.ts";
-import { Path } from "./path.ts";
+import { WEB_EXTENSION_CAPABILITIES } from "../platform/chrome-detector.ts";
+import { options } from "../config/options-data.ts";
+import { MEDIA_TYPES, SPECIAL_DIRS } from "../shared/constants.ts";
+import { Path } from "../routing/path.ts";
 
 type MenuContext = `${chrome.contextMenus.ContextType}`;
 const asMenuContexts = (contexts: string[]) => contexts as MenuContext[];

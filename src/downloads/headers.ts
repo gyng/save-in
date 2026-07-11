@@ -1,6 +1,6 @@
-import { options } from "./options-data.ts";
-import { splitLines, withUrl } from "./util.ts";
-import { Log } from "./log.ts";
+import { options } from "../config/options-data.ts";
+import { splitLines, withUrl } from "../shared/util.ts";
+import { Log } from "../background/log.ts";
 import type { DownloadInfo } from "./download-types.ts";
 
 type RefererState = { info?: Pick<DownloadInfo, "url" | "pageUrl"> } | null | undefined;

@@ -1,11 +1,11 @@
 // Background composition root; listener registration remains synchronous.
-import { webExtensionApi } from "./web-extension-api.ts";
+import { webExtensionApi } from "../platform/web-extension-api.ts";
 
-import { OptionsManagement } from "./option.ts";
-import { options } from "./options-data.ts";
-import { BackgroundState } from "./background-state.ts";
-import { hydrateDownloads } from "./download-state.ts";
-import { extensionSessionStorage } from "./storage-areas.ts";
+import { OptionsManagement } from "../config/option.ts";
+import { options } from "../config/options-data.ts";
+import { BackgroundState } from "./state.ts";
+import { hydrateDownloads } from "../downloads/download-state.ts";
+import { extensionSessionStorage } from "../platform/storage-areas.ts";
 import {
   addLastUsed,
   addOptions,
@@ -19,10 +19,10 @@ import {
 } from "./menu-build.ts";
 import { addDownloadListener } from "./menu-click.ts";
 import { addTabHighlightListener, addTabMenuListener, addTabMenus } from "./menu-tabs.ts";
-import { splitLines } from "./util.ts";
-import { MEDIA_TYPES } from "./constants.ts";
+import { splitLines } from "../shared/util.ts";
+import { MEDIA_TYPES } from "../shared/constants.ts";
 import { Log } from "./log.ts";
-import { currentTab, setCurrentTab } from "./current-tab.ts";
+import { currentTab, setCurrentTab } from "../platform/current-tab.ts";
 
 window.init = () => {
   window.optionErrors = {

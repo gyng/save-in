@@ -1,5 +1,5 @@
-import { MESSAGE_TYPES } from "./constants.ts";
-import type { DownloadInfo, DownloadPipelineState } from "./download-types.ts";
+import { MESSAGE_TYPES } from "../shared/constants.ts";
+import type { DownloadInfo, DownloadPipelineState } from "../downloads/download-types.ts";
 
 type Message<T extends string, B = never> = [B] extends [never]
   ? { type: T }

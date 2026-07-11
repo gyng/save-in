@@ -1,21 +1,21 @@
-import { webExtensionApi } from "./web-extension-api.ts";
+import { webExtensionApi } from "../platform/web-extension-api.ts";
 
 // Click handling for the save-in context menu: routes clicks on path
 // items (and last-used/route-exclusive) into Download.renameAndDownload.
 // Tab-strip clicks are handled in menu-tabs.ts.
 
 import { MENU_IDS, menuState, setLastUsed } from "./menu-build.ts";
-import { DOWNLOAD_TYPES, MEDIA_TYPES } from "./constants.ts";
-import { splitLines } from "./util.ts";
-import { Path, sanitizeFilename, truncateIfLongerThan } from "./path.ts";
-import { Download } from "./download.ts";
-import { Notifier } from "./notification.ts";
-import { WEB_EXTENSION_CAPABILITIES } from "./chrome-detector.ts";
-import { Shortcut } from "./shortcut.ts";
-import { options } from "./options-data.ts";
-import { currentTab } from "./current-tab.ts";
-import type { CurrentTab } from "./current-tab.ts";
-import type { DownloadInfo } from "./download-types.ts";
+import { DOWNLOAD_TYPES, MEDIA_TYPES } from "../shared/constants.ts";
+import { splitLines } from "../shared/util.ts";
+import { Path, sanitizeFilename, truncateIfLongerThan } from "../routing/path.ts";
+import { Download } from "../downloads/download.ts";
+import { Notifier } from "../downloads/notification.ts";
+import { WEB_EXTENSION_CAPABILITIES } from "../platform/chrome-detector.ts";
+import { Shortcut } from "../downloads/shortcut.ts";
+import { options } from "../config/options-data.ts";
+import { currentTab } from "../platform/current-tab.ts";
+import type { CurrentTab } from "../platform/current-tab.ts";
+import type { DownloadInfo } from "../downloads/download-types.ts";
 
 type ClickInfo = {
   mediaType?: string;

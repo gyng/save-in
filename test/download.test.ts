@@ -1,6 +1,6 @@
-import { Download } from "../src/download.ts";
-import { EXTENSION_REGEX, getFilenameFromUrl } from "../src/filename.ts";
-import { options } from "../src/options-data.ts";
+import { Download } from "../src/downloads/download.ts";
+import { EXTENSION_REGEX, getFilenameFromUrl } from "../src/routing/filename.ts";
+import { options } from "../src/config/options-data.ts";
 
 test("extension detection regex", () => {
   const match = "abc.xyz".match(EXTENSION_REGEX);

@@ -1,4 +1,4 @@
-import { webExtensionApi } from "./web-extension-api.ts";
+import { webExtensionApi } from "../platform/web-extension-api.ts";
 import type { HistoryEntry, HistoryEntryInput } from "./history-types.ts";
 
 /* eslint-disable no-unused-vars */

@@ -1,11 +1,11 @@
 import { describe, expect, test } from "vitest";
 
-import { MESSAGE_TYPES } from "../src/constants.ts";
+import { MESSAGE_TYPES } from "../src/shared/constants.ts";
 import {
   isExternalMessage,
   isInternalMessage,
   isStringKeyedRecord,
-} from "../src/message-protocol.ts";
+} from "../src/background/message-protocol.ts";
 
 describe("message protocol runtime validation", () => {
   test("accepts valid internal and external message bodies", () => {

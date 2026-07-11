@@ -1,12 +1,12 @@
-import { withUrl as parseUrl } from "./util.ts";
-import { resolveContent as fetchContent } from "./content-fetch.ts";
+import { withUrl as parseUrl } from "../shared/util.ts";
+import { resolveContent as fetchContent } from "../downloads/content-fetch.ts";
 import { EXTENSION_REGEX, getFilenameFromUrl } from "./filename.ts";
-import { SPECIAL_DIRS, PATH_SEGMENT_TYPES } from "./constants.ts";
+import { SPECIAL_DIRS, PATH_SEGMENT_TYPES } from "../shared/constants.ts";
 import { stringSegment, type PathSegment } from "./path.ts";
-import { BackgroundState } from "./background-state.ts";
-import { nextCounter, peekCounter } from "./counter.ts";
-import { extensionLocalStorage } from "./storage-areas.ts";
-import type { DownloadInfo } from "./download-types.ts";
+import { BackgroundState } from "../background/state.ts";
+import { nextCounter, peekCounter } from "../background/counter.ts";
+import { extensionLocalStorage } from "../platform/storage-areas.ts";
+import type { DownloadInfo } from "../downloads/download-types.ts";
 
 type HeadResult = { contentType: string; finalUrl: string };
 type VariablePath = { buf?: PathSegment[] | null };

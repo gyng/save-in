@@ -7,16 +7,19 @@ Firefox (AMO) and Chrome (Web Store).
 ## Architecture
 
 **The code is ESM + TypeScript, shipped as a non-minified bundle.** Every
-`src/*.ts` is a real ES module using `import`/`export`; `rolldown`
+`src/**/*.ts` is a real ES module using `import`/`export`; `rolldown`
 (`rolldown.config.mjs`) transpiles the types and scope-hoists each target into
 ONE readable, non-minified file (`dist/bundled/*.js`) — so the shipped output is
 still reviewable, but the source has real module boundaries. There is one entry
-module per target (`src/entry.{background,options,offscreen}.ts`) that
+module per target (`src/entries/{background,options,offscreen}.ts`) that
 imports its dependencies normally and synchronously calls the background
-registration functions. `entry.background.ts` also re-exposes only the narrow
+registration functions. `entries/background.ts` also re-exposes only the narrow
 objects the e2e `evalSW` bridge needs. Menu construction/click/tab behavior uses
 named imports; `menuState` is the sole shared mutable menu record, and
-`background-main.ts` is the composition root. The import graph is acyclic and
+`background/main.ts` is the composition root. Source is grouped by ownership:
+`background`, `config`, `downloads`, `routing`, `platform`, and `shared`, plus
+the execution-context directories `options`, `content`, `entries`, and `vendor`.
+The import graph is acyclic and
 checked by `scripts/check-import-cycles.js`. Mutable cross-file state uses
 explicit records or live bindings (`options`, `currentTab`, `CURRENT_BROWSER`)
 owned by one module. Bundle output format is per-target: `esm` (bare,
@@ -31,7 +34,8 @@ use it. The old individual-scripts build is retired. `npm run typecheck`
 
 Execution contexts:
 
-- **Background** (`src/*.ts`): menus, download pipeline, messaging hub.
+- **Background** (`src/background`, `src/downloads`, `src/config`, and shared
+  feature directories): menus, download pipeline, messaging hub.
 - **Content script** (`src/content/content.ts`): runs in every page;
   click-to-save and service-worker prewarming. Has no polyfill — uses
   callback-style `chrome.*` APIs, which work in both browsers.
@@ -45,7 +49,7 @@ pointing at bundles: Firefox (≥ 121) uses `background.scripts: ["background.js
 (an **event page**, real `window`) and ignores `service_worker`; Chrome (≥ 123)
 uses `background.service_worker: "background.sw.js"` (same modules, bundled with
 a `self.window = self;` banner since the SW has no `window`) and ignores
-`scripts`. Both bundles come from the SAME `src/entry.background.ts`; the staged
+`scripts`. Both bundles come from the SAME `src/entries/background.ts`; the staged
 `dist/bundled-pkg` manifest (via `scripts/build-bundled.js`) points the keys at
 the two outputs. Add a background module by importing it from the relevant entry
 — there is no hand-maintained file list to keep in sync anymore.
@@ -69,7 +73,7 @@ to Firefox too.
 
 1. **Register event listeners synchronously at top level.** A listener added
    inside a `.then()` misses the event that woke the worker. Menu/tab
-   listeners are registered top-level in `background-main.ts`; their handlers
+   listeners are registered top-level in `background/main.ts`; their handlers
    `await window.ready` (the init promise) before touching options or
    `menuState.pathMappings`.
 2. **Globals die between events.** Anything needed across wakeups goes to
@@ -96,7 +100,7 @@ to Firefox too.
 - Firefox `browser.*` is promise-only (no callbacks); Firefox `chrome.*`
   supports callbacks. Content scripts (no polyfill) therefore use
   callback-style `chrome.*` + `chrome.runtime.lastError` checks.
-- There is no polyfill: `src/web-extension-api.ts` selects the host's
+- There is no polyfill: `src/platform/web-extension-api.ts` selects the host's
   `browser` or `chrome` namespace (Chrome ≥ 123 is promise-native everywhere
   we await, contextMenus included). In Chrome-only code paths prefer bare
   `chrome.*` (e.g. DNR).

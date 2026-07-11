@@ -1,12 +1,12 @@
-import * as router from "../src/router.ts";
+import * as router from "../src/routing/router.ts";
 import {
   type MatcherResult,
   type RoutingRule,
   type RuleError,
   type RoutingInfo,
-} from "../src/router.ts";
-import * as constants from "../src/constants.ts";
-import { currentTab, setCurrentTab } from "../src/current-tab.ts";
+} from "../src/routing/router.ts";
+import * as constants from "../src/shared/constants.ts";
+import { currentTab, setCurrentTab } from "../src/platform/current-tab.ts";
 import type { MockInstance } from "vitest";
 
 const fixtures = (await import("./fixtures/clickInfo")).default;

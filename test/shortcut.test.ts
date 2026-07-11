@@ -1,8 +1,8 @@
-import { SHORTCUT_TYPES, DOWNLOAD_TYPES } from "../src/constants.ts";
-import { Shortcut as shortcut } from "../src/shortcut.ts";
-import { Download } from "../src/download.ts";
-import * as Path from "../src/path.ts";
-import { setCurrentTab } from "../src/current-tab.ts";
+import { SHORTCUT_TYPES, DOWNLOAD_TYPES } from "../src/shared/constants.ts";
+import { Shortcut as shortcut } from "../src/downloads/shortcut.ts";
+import { Download } from "../src/downloads/download.ts";
+import * as Path from "../src/routing/path.ts";
+import { setCurrentTab } from "../src/platform/current-tab.ts";
 
 const makeShortcutContent = shortcut.makeShortcutContent;
 

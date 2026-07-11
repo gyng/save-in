@@ -18,25 +18,29 @@ import {
   PATH_SEGMENT_TYPES,
   CLICK_TYPES,
   FORBIDDEN_FILENAME_CHARS,
-} from "./constants.ts";
-import { BROWSERS, CURRENT_BROWSER, WEB_EXTENSION_CAPABILITIES } from "./chrome-detector.ts";
-import { BackgroundState } from "./background-state.ts";
-import { peekCounter, resetCounter } from "./counter.ts";
-import { Log } from "./log.ts";
-import { SaveHistory } from "./history.ts";
-import { Notifier } from "./notification.ts";
-import { Path } from "./path.ts";
-import { OffscreenClient } from "./offscreen-client.ts";
-import { Download } from "./download.ts";
-import { Shortcut } from "./shortcut.ts";
-import { RequestHeaders } from "./headers.ts";
-import { menuState } from "./menu-build.ts";
-import { OptionsManagement, seedOptions } from "./option.ts";
-import { options } from "./options-data.ts";
-import { Messaging, registerMessaging } from "./messaging.ts";
-import { registerNotifier } from "./notification.ts";
-import { registerDownloadListener } from "./download.ts";
-import { start } from "./background-main.ts";
+} from "../shared/constants.ts";
+import {
+  BROWSERS,
+  CURRENT_BROWSER,
+  WEB_EXTENSION_CAPABILITIES,
+} from "../platform/chrome-detector.ts";
+import { BackgroundState } from "../background/state.ts";
+import { peekCounter, resetCounter } from "../background/counter.ts";
+import { Log } from "../background/log.ts";
+import { SaveHistory } from "../background/history.ts";
+import { Notifier } from "../downloads/notification.ts";
+import { Path } from "../routing/path.ts";
+import { OffscreenClient } from "../platform/offscreen-client.ts";
+import { Download } from "../downloads/download.ts";
+import { Shortcut } from "../downloads/shortcut.ts";
+import { RequestHeaders } from "../downloads/headers.ts";
+import { menuState } from "../background/menu-build.ts";
+import { OptionsManagement, seedOptions } from "../config/option.ts";
+import { options } from "../config/options-data.ts";
+import { Messaging, registerMessaging } from "../background/messaging.ts";
+import { registerNotifier } from "../downloads/notification.ts";
+import { registerDownloadListener } from "../downloads/download.ts";
+import { start } from "../background/main.ts";
 
 Object.assign(globalThis, {
   // constants

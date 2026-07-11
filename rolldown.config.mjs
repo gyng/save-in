@@ -24,7 +24,7 @@ import { defineConfig } from "rolldown";
 export default defineConfig([
   // Firefox event page (has a real window) — loaded via background.scripts
   {
-    input: "src/entry.background.ts",
+    input: "src/entries/background.ts",
     output: {
       file: "dist/bundled/background.js",
       format: "esm",
@@ -34,7 +34,7 @@ export default defineConfig([
   },
   // Chrome service worker: same modules, with the window shim up front
   {
-    input: "src/entry.background.ts",
+    input: "src/entries/background.ts",
     output: {
       file: "dist/bundled/background.sw.js",
       format: "esm",
@@ -44,7 +44,7 @@ export default defineConfig([
     },
   },
   {
-    input: "src/entry.options.ts",
+    input: "src/entries/options.ts",
     output: {
       file: "dist/bundled/options.js",
       format: "esm",
@@ -53,7 +53,7 @@ export default defineConfig([
     },
   },
   {
-    input: "src/entry.offscreen.ts",
+    input: "src/entries/offscreen.ts",
     output: {
       file: "dist/bundled/offscreen.js",
       format: "esm",

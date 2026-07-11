@@ -10,8 +10,8 @@
 // router/interpolator — that the real 40-key config and live routing wouldn't
 // match.
 
-import { MESSAGE_TYPES, DOWNLOAD_TYPES } from "../src/constants.ts";
-import type { CurrentTab } from "../src/current-tab.ts";
+import { MESSAGE_TYPES, DOWNLOAD_TYPES } from "../src/shared/constants.ts";
+import type { CurrentTab } from "../src/platform/current-tab.ts";
 
 // Capture the listeners registerMessaging() attaches (jest-webextension-mock's
 // runtime events dispatch through their own internal lists, so replace them).
@@ -19,19 +19,19 @@ import type { CurrentTab } from "../src/current-tab.ts";
 (global.browser.runtime as any).onMessage = { addListener: vi.fn() };
 (global.browser.runtime as any).onMessageExternal = { addListener: vi.fn() };
 
-const { Messaging, registerMessaging } = await import("../src/messaging.ts");
+const { Messaging, registerMessaging } = await import("../src/background/messaging.ts");
 // Imported after the fakes above: messaging.ts already pulled the whole real SCC
 // into the module cache, so these return the same instances its handlers hold —
 // spies / Object.assign on them reach the live code.
-const { OptionsManagement } = await import("../src/option.ts");
-const { options } = await import("../src/options-data.ts");
-const { Download } = await import("../src/download.ts");
-const { Notifier } = await import("../src/notification.ts");
-const Menus = await import("../src/menu-build.ts");
-const router = await import("../src/router.ts");
-const Variable = await import("../src/variable.ts");
-const { Path } = await import("../src/path.ts");
-const { setCurrentTab } = await import("../src/current-tab.ts");
+const { OptionsManagement } = await import("../src/config/option.ts");
+const { options } = await import("../src/config/options-data.ts");
+const { Download } = await import("../src/downloads/download.ts");
+const { Notifier } = await import("../src/downloads/notification.ts");
+const Menus = await import("../src/background/menu-build.ts");
+const router = await import("../src/routing/router.ts");
+const Variable = await import("../src/routing/variable.ts");
+const { Path } = await import("../src/routing/path.ts");
+const { setCurrentTab } = await import("../src/platform/current-tab.ts");
 
 // Import-time side effects are deferred (Task #2): messaging.ts no longer
 // registers its runtime listeners at load — the entry does, so call it here to

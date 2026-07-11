@@ -1,17 +1,17 @@
-import { webExtensionApi } from "./web-extension-api.ts";
+import { webExtensionApi } from "../platform/web-extension-api.ts";
 
 // https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/notifications
 
-import { BackgroundState } from "./background-state.ts";
+import { BackgroundState } from "../background/state.ts";
 import { getDownload, hydrateDownloads, mergeDownload } from "./download-state.ts";
 import type { DownloadRecord } from "./download-state.ts";
-import { getSession, updateSession } from "./session-state.ts";
-import { options } from "./options-data.ts";
-import { WEB_EXTENSION_CAPABILITIES } from "./chrome-detector.ts";
+import { getSession, updateSession } from "../background/session-state.ts";
+import { options } from "../config/options-data.ts";
+import { WEB_EXTENSION_CAPABILITIES } from "../platform/chrome-detector.ts";
 import { DownloadRetry } from "./download-retry.ts";
-import { SaveHistory } from "./history.ts";
-import { Log } from "./log.ts";
-import { extensionSessionStorage } from "./storage-areas.ts";
+import { SaveHistory } from "../background/history.ts";
+import { Log } from "../background/log.ts";
+import { extensionSessionStorage } from "../platform/storage-areas.ts";
 
 const INFO_ICON_URL = "icons/notification-info.svg";
 const SUCCESS_ICON_URL = "icons/notification-success.svg";

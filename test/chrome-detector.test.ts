@@ -1,4 +1,4 @@
-import { BROWSERS, detectCapabilities } from "../src/chrome-detector.ts";
+import { BROWSERS, detectCapabilities } from "../src/platform/chrome-detector.ts";
 
 describe("detectCapabilities", () => {
   test("tabContextMenus supports Firefox and Chrome exposing the M150 enum", () => {
@@ -47,7 +47,7 @@ describe("browser detection at load time", () => {
     Reflect.deleteProperty(globalThis, "browser");
     vi.resetModules();
 
-    const mod = await import("../src/chrome-detector.ts");
+    const mod = await import("../src/platform/chrome-detector.ts");
 
     expect(mod.CURRENT_BROWSER).toBe(mod.BROWSERS.CHROME);
   });
@@ -59,7 +59,7 @@ describe("browser detection at load time", () => {
     vi.resetModules();
 
     try {
-      const mod = await import("../src/chrome-detector.ts");
+      const mod = await import("../src/platform/chrome-detector.ts");
       expect(mod.CURRENT_BROWSER).toBe(mod.BROWSERS.UNKNOWN);
     } finally {
       global.chrome = originalChrome;
@@ -73,7 +73,7 @@ describe("browser detection at load time", () => {
     );
     vi.resetModules();
 
-    const mod = await import("../src/chrome-detector.ts");
+    const mod = await import("../src/platform/chrome-detector.ts");
 
     // FIREFOX is decided synchronously, without waiting on getBrowserInfo()
     expect(mod.CURRENT_BROWSER).toBe(mod.BROWSERS.FIREFOX);
@@ -88,7 +88,7 @@ describe("browser detection at load time", () => {
     );
     vi.resetModules();
 
-    const mod = await import("../src/chrome-detector.ts");
+    const mod = await import("../src/platform/chrome-detector.ts");
 
     expect(mod.CURRENT_BROWSER).toBe(mod.BROWSERS.FIREFOX);
 
@@ -100,7 +100,7 @@ describe("browser detection at load time", () => {
     global.browser.runtime.getBrowserInfo = vi.fn(() => Promise.reject(new Error("nope")));
     vi.resetModules();
 
-    const mod = await import("../src/chrome-detector.ts");
+    const mod = await import("../src/platform/chrome-detector.ts");
 
     expect(mod.CURRENT_BROWSER).toBe(mod.BROWSERS.FIREFOX);
 
@@ -115,7 +115,7 @@ describe("browser detection at load time", () => {
     Reflect.deleteProperty(global.browser.runtime, "getBrowserInfo");
     vi.resetModules();
 
-    const mod = await import("../src/chrome-detector.ts");
+    const mod = await import("../src/platform/chrome-detector.ts");
 
     expect(mod.CURRENT_BROWSER).toBe(mod.BROWSERS.CHROME);
   });

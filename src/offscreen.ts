@@ -8,7 +8,10 @@
 // bytes and returns the hex hash, so a :sha256: download is fetched once here
 // for both the filename and the save rather than fetched again by the worker.
 
-import { isOffscreenFetchRequest, type OffscreenFetchResponse } from "./content-fetch-types.ts";
+import {
+  isOffscreenFetchRequest,
+  type OffscreenFetchResponse,
+} from "./downloads/content-fetch-types.ts";
 
 const OFFSCREEN_BLOB_TTL_MS = 5 * 60 * 1000;
 

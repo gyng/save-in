@@ -1,4 +1,4 @@
-import { webExtensionApi } from "../web-extension-api.ts";
+import { webExtensionApi } from "../platform/web-extension-api.ts";
 
 // Guided rule input and template library for the Dynamic Downloads rules
 // textarea. Both compose complete rules and append them through the normal

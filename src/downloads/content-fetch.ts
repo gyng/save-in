@@ -1,5 +1,5 @@
-import { MESSAGE_TYPES } from "./constants.ts";
-import { OffscreenClient } from "./offscreen-client.ts";
+import { MESSAGE_TYPES } from "../shared/constants.ts";
+import { OffscreenClient } from "../platform/offscreen-client.ts";
 import type {
   BlobContent,
   ContentFetchResult,

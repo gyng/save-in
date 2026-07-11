@@ -11,9 +11,9 @@ global.TextEncoder = global.TextEncoder || TextEncoder;
 // throw on import. Those side effects are now deferred to the entry (Task #2),
 // so messaging imports cleanly for real — no mock needed.
 
-import { Download } from "../src/download.ts";
-import { OffscreenClient } from "../src/offscreen-client.ts";
-import { makeUrlFromBlob, resolveContent } from "../src/content-fetch.ts";
+import { Download } from "../src/downloads/download.ts";
+import { OffscreenClient } from "../src/platform/offscreen-client.ts";
+import { makeUrlFromBlob, resolveContent } from "../src/downloads/content-fetch.ts";
 
 const decodeDataUrl = (url: string) => {
   const [meta, b64] = url.split(",");
@@ -246,10 +246,10 @@ describe("onDeterminingFilename listener (Chrome)", () => {
     // options/SessionState must be re-imported here to get the SAME
     // instances that graph resolves to — the pre-reset top-level imports
     // above are a different, stale module instance after the reset.
-    const { options: freshOptions } = await import("../src/options-data.ts");
+    const { options: freshOptions } = await import("../src/config/options-data.ts");
     Object.assign(freshOptions, { conflictAction: "uniquify" });
 
-    const freshSessionState = await import("../src/session-state.ts");
+    const freshSessionState = await import("../src/background/session-state.ts");
     vi.spyOn(freshSessionState, "getSession").mockImplementation((_storage: any, key: string) =>
       Promise.resolve({ [key]: sessionStore[key] }),
     );
@@ -268,7 +268,7 @@ describe("onDeterminingFilename listener (Chrome)", () => {
 
     // Side effects are deferred (Task #2): call registerDownloadListener() to
     // attach onDeterminingFilename against the fresh chrome stub, then capture.
-    const { registerDownloadListener } = await import("../src/download.ts");
+    const { registerDownloadListener } = await import("../src/downloads/download.ts");
     registerDownloadListener();
     [[listener]] = (global.chrome.downloads.onDeterminingFilename.addListener as any).mock.calls;
   });

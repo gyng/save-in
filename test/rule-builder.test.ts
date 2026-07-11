@@ -2,8 +2,8 @@
 // template must parse cleanly through the real routing parser and only reference
 // variables that actually exist.
 
-import * as constants from "../src/constants.ts";
-import { parseRules } from "../src/router.ts";
+import * as constants from "../src/shared/constants.ts";
+import { parseRules } from "../src/routing/router.ts";
 import { RULE_TEMPLATES, RuleBuilder } from "../src/options/rule-builder.ts";
 
 Object.assign(global, constants);

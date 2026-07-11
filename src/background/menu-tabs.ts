@@ -1,16 +1,16 @@
-import { webExtensionApi } from "./web-extension-api.ts";
+import { webExtensionApi } from "../platform/web-extension-api.ts";
 
 // Tab-strip context menus (Firefox and Chrome 150+ `tab` context): menu creation,
 // the multi-select highlight counter, and the tab-save click handler.
 import { MENU_IDS } from "./menu-build.ts";
-import { options } from "./options-data.ts";
-import { WEB_EXTENSION_CAPABILITIES } from "./chrome-detector.ts";
-import { Notifier } from "./notification.ts";
-import { Shortcut } from "./shortcut.ts";
-import { DOWNLOAD_TYPES } from "./constants.ts";
-import { Path } from "./path.ts";
-import { Download } from "./download.ts";
-import type { DownloadInfo } from "./download-types.ts";
+import { options } from "../config/options-data.ts";
+import { WEB_EXTENSION_CAPABILITIES } from "../platform/chrome-detector.ts";
+import { Notifier } from "../downloads/notification.ts";
+import { Shortcut } from "../downloads/shortcut.ts";
+import { DOWNLOAD_TYPES } from "../shared/constants.ts";
+import { Path } from "../routing/path.ts";
+import { Download } from "../downloads/download.ts";
+import type { DownloadInfo } from "../downloads/download-types.ts";
 
 export const addTabMenus = () => {
   if (!options.tabEnabled || !WEB_EXTENSION_CAPABILITIES.tabContextMenus) {

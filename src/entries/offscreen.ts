@@ -4,5 +4,5 @@
 // Emitted as bare scope-hoisted ESM, loaded as a classic script by the staged
 // offscreen.html.
 
-import "./constants.ts";
-import "./offscreen.ts";
+import "../shared/constants.ts";
+import "../offscreen.ts";

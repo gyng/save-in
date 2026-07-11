@@ -111,7 +111,7 @@ Work happened on branch **`ts-migration`** (off `mv3`).
   imports); per-target entries `src/entry.{background,options,offscreen}.ts`;
   `rolldown.config.mjs` reworked to real module resolution (concat helpers
   deleted). Extracted **`src/current-tab.ts`** as a leaf so nothing imports
-  the former `index.ts` composition root (now `background-main.ts`, after the
+  the former `index.ts` composition root (now `background/main.ts`, after the
   SCC was removed).
   VERIFIED: `npm run bundle` clean; bundled **Chrome 22/22 + Firefox 10/10**.
 
@@ -153,7 +153,7 @@ Work happened on branch **`ts-migration`** (off `mv3`).
 
 ### Bundle facts (load-bearing)
 - Formats: background / background.sw / options / offscreen = `esm` (bare
-  scope-hoisted; entries have NO exports; `entry.background.ts` does
+  scope-hoisted; entries have NO exports; `entries/background.ts` does
   `Object.assign(globalThis, {…})` so the e2e's `evalSW` reaches
   `Notifier/Download/Menus/Path/options/…` by bare name). content = `iife`.
 - `background.sw.js` gets a `banner: "self.window = self;\n"` (SW has no window).

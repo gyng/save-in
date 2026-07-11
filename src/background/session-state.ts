@@ -3,7 +3,7 @@ import type {
   StorageRemover,
   StorageSetter,
   StorageWriter,
-} from "./storage-areas.ts";
+} from "../platform/storage-areas.ts";
 
 // Serialized writes are explicit state; storage capability is supplied by the caller.
 

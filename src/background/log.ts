@@ -5,9 +5,9 @@
 // leave the machine and clear on browser exit. Viewable from the options
 // page. No-op where storage.session is unavailable.
 
-import { BackgroundState } from "./background-state.ts";
+import { BackgroundState } from "./state.ts";
 import { getSession, removeSession, updateSession } from "./session-state.ts";
-import { extensionSessionStorage } from "./storage-areas.ts";
+import { extensionSessionStorage } from "../platform/storage-areas.ts";
 
 const LOG_STORAGE_KEY = "si-log";
 

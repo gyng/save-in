@@ -38,4 +38,4 @@ export const isOffscreenFetchResponse = (value: unknown): value is OffscreenFetc
   ["blobUrl", "hash", "error"].every(
     (key) => typeof value[key] === "undefined" || typeof value[key] === "string",
   );
-import { MESSAGE_TYPES } from "./constants.ts";
+import { MESSAGE_TYPES } from "../shared/constants.ts";

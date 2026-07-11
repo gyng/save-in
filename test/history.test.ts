@@ -1,5 +1,5 @@
-import { SaveHistory } from "../src/history.ts";
-import type { HistoryEntry } from "../src/history-types.ts";
+import { SaveHistory } from "../src/background/history.ts";
+import type { HistoryEntry } from "../src/background/history-types.ts";
 
 const HISTORY_KEY = "save-in-history";
 

@@ -1,5 +1,5 @@
 const LOG_KEY = "si-log";
-import type { LogEntry } from "../src/log.ts";
+import type { LogEntry } from "../src/background/log.ts";
 
 type LogStore = Record<string, LogEntry[] | undefined>;
 
@@ -22,14 +22,14 @@ const setupSession = () => {
 };
 
 describe("Log", () => {
-  let Log: typeof import("../src/log.ts").Log;
+  let Log: typeof import("../src/background/log.ts").Log;
   let store: LogStore;
   const entries = (): LogEntry[] => store[LOG_KEY] ?? [];
 
   beforeEach(async () => {
     jest.resetModules();
     store = setupSession();
-    Log = (await import("../src/log.ts")).Log;
+    Log = (await import("../src/background/log.ts")).Log;
   });
 
   test("appends timestamped entries", async () => {
@@ -90,7 +90,7 @@ describe("Log", () => {
   test("is a no-op without storage.session (older Firefox)", async () => {
     (global.browser.storage as any).session = undefined;
     jest.resetModules();
-    const BareLog = (await import("../src/log.ts")).Log;
+    const BareLog = (await import("../src/background/log.ts")).Log;
 
     await expect(BareLog.add("x")).resolves.toBeUndefined();
     await expect(BareLog.get()).resolves.toEqual([]);

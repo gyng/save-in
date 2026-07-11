@@ -1,6 +1,9 @@
 import { describe, expect, test } from "vitest";
 
-import { isOffscreenFetchRequest, isOffscreenFetchResponse } from "../src/content-fetch-types.ts";
+import {
+  isOffscreenFetchRequest,
+  isOffscreenFetchResponse,
+} from "../src/downloads/content-fetch-types.ts";
 
 describe("offscreen message runtime validation", () => {
   test("accepts valid fetch requests and responses", () => {

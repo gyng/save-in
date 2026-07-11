@@ -1,4 +1,4 @@
-import { webExtensionApi } from "../web-extension-api.ts";
+import { webExtensionApi } from "../platform/web-extension-api.ts";
 
 type PermissionBannerElement = { hidden: boolean | string };
 type PermissionButtonElement = {

@@ -1,12 +1,16 @@
-import { webExtensionApi } from "../web-extension-api.ts";
+import { webExtensionApi } from "../platform/web-extension-api.ts";
 
 import { filterKeyComboOptions, normalizeKeyComboForDisplay } from "./options-logic.ts";
 import { renderHistory } from "./history-panel.ts";
 import { addClickToCopy } from "./clicktocopy.ts";
 import { PathEditor } from "./path-editor.ts";
-import { CURRENT_BROWSER, BROWSERS, WEB_EXTENSION_CAPABILITIES } from "../chrome-detector.ts";
-import { COUNTER_KEY } from "../counter.ts";
-import { isStringKeyedRecord } from "../message-protocol.ts";
+import {
+  CURRENT_BROWSER,
+  BROWSERS,
+  WEB_EXTENSION_CAPABILITIES,
+} from "../platform/chrome-detector.ts";
+import { COUNTER_KEY } from "../background/counter.ts";
+import { isStringKeyedRecord } from "../background/message-protocol.ts";
 
 type JsonRecord = Record<string, any>;
 type OptionSchema = {

@@ -10,7 +10,7 @@ import type {
   HistoryInfo,
   HistoryPageOptions,
   HistoryRow,
-} from "../history-types.ts";
+} from "../background/history-types.ts";
 
 export const historyFilename = (fullPath?: string): string => {
   if (!fullPath) {

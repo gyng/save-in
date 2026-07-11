@@ -3,10 +3,10 @@ import {
   CONFLICT_ACTION,
   FORBIDDEN_FILENAME_CHARS,
   SHORTCUT_TYPES,
-} from "./constants.ts";
-import type { ConflictAction, ShortcutType } from "./constants.ts";
-import { WEB_EXTENSION_CAPABILITIES } from "./chrome-detector.ts";
-import { parseRules } from "./router.ts";
+} from "../shared/constants.ts";
+import type { ConflictAction, ShortcutType } from "../shared/constants.ts";
+import { WEB_EXTENSION_CAPABILITIES } from "../platform/chrome-detector.ts";
+import { parseRules } from "../routing/router.ts";
 
 export const OPTION_TYPES = { BOOL: "BOOL", VALUE: "VALUE" } as const;
 

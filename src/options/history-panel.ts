@@ -1,5 +1,5 @@
-import { webExtensionApi } from "../web-extension-api.ts";
-import type { DownloadProgress, HistoryEntry, HistorySort } from "../history-types.ts";
+import { webExtensionApi } from "../platform/web-extension-api.ts";
+import type { DownloadProgress, HistoryEntry, HistorySort } from "../background/history-types.ts";
 
 // History panel controller for the options page. Owns the history table's
 // view state (sort/filter/page) and its DOM rendering + live download-progress

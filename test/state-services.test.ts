@@ -1,6 +1,6 @@
-import { mergeDownload } from "../src/download-state.ts";
-import { updateSession } from "../src/session-state.ts";
-import { BackgroundState } from "../src/background-state.ts";
+import { mergeDownload } from "../src/downloads/download-state.ts";
+import { updateSession } from "../src/background/session-state.ts";
+import { BackgroundState } from "../src/background/state.ts";
 
 describe("state service instances", () => {
   test("the production views belong to one immutable application state", () => {
