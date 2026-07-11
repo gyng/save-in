@@ -6,23 +6,31 @@ export type SessionWriteState = {
   queue: Promise<unknown>;
 };
 
-export const getSession = (storage: StorageReader | undefined, key): Promise<Record<string, any>> =>
-  storage ? storage.get(key).catch(() => ({})) : Promise.resolve({});
+export const getSession = <T>(
+  storage: StorageReader | undefined,
+  key: string,
+): Promise<Record<string, T | undefined>> =>
+  storage
+    ? storage.get(key).then(
+        (stored) => stored as Record<string, T | undefined>,
+        () => ({}),
+      )
+    : Promise.resolve({});
 
-export const setSession = (storage: StorageSetter | undefined, obj) =>
+export const setSession = (storage: StorageSetter | undefined, obj: Record<string, unknown>) =>
   storage ? storage.set(obj).catch(() => {}) : Promise.resolve();
 
-export const removeSession = (storage: StorageRemover | undefined, key) =>
+export const removeSession = (storage: StorageRemover | undefined, key: string | string[]) =>
   storage ? storage.remove(key).catch(() => {}) : Promise.resolve();
 
-export const updateSession = (
+export const updateSession = <T>(
   writes: SessionWriteState,
   storage: StorageWriter | undefined,
-  key,
-  update,
+  key: string,
+  update: (value: T | undefined) => T,
 ) => {
   writes.queue = writes.queue
-    .then(() => getSession(storage, key))
+    .then(() => getSession<T>(storage, key))
     .then((stored) => setSession(storage, { [key]: update(stored[key]) }))
     .catch(() => {});
   return writes.queue;

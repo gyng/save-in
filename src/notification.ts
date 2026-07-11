@@ -84,11 +84,11 @@ const reconcileAdoptedDownloads = async () => {
 // download that never actually created — can't later adopt an unrelated
 // download as ours.
 const reconcilePendingDownloads = async () => {
-  const res = await getSession(extensionSessionStorage, "siPendingDownloads");
+  const res = await getSession<number>(extensionSessionStorage, "siPendingDownloads");
   const staleAtStartup = res.siPendingDownloads || 0;
   if (staleAtStartup > 0) {
     setTimeout(() => {
-      updateSession(
+      updateSession<number>(
         BackgroundState.sessionWrites,
         extensionSessionStorage,
         "siPendingDownloads",
@@ -201,14 +201,14 @@ export const Notifier = {
     // between requesting the download and this event. siPendingDownloads is a
     // COUNTER (not a boolean) so several downloads created after one restart
     // are all recovered — a boolean dropped every one past the first.
-    const res = await getSession(extensionSessionStorage, "siPendingDownloads");
+    const res = await getSession<number>(extensionSessionStorage, "siPendingDownloads");
     if (res.siPendingDownloads > 0) {
       await mergeTrackedDownload(item.id, {
         adopted: true,
         currentFilename: item.filename,
         url: item.url,
       });
-      await updateSession(
+      await updateSession<number>(
         BackgroundState.sessionWrites,
         extensionSessionStorage,
         "siPendingDownloads",

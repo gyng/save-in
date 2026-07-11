@@ -15,7 +15,7 @@ describe("state service instances", () => {
       set: vi.fn(() => Promise.resolve()),
     };
 
-    await updateSession(first, storage, "value", (value) => value + 1);
+    await updateSession<number>(first, storage, "value", (value) => (value || 0) + 1);
 
     expect(storage.set).toHaveBeenCalledWith({ value: 2 });
     expect(second.queue).not.toBe(first.queue);

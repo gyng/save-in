@@ -11,10 +11,16 @@ import { extensionSessionStorage } from "./storage-areas.ts";
 
 const LOG_STORAGE_KEY = "si-log";
 
+export type LogEntry = {
+  at: string;
+  message: string;
+  data?: string;
+};
+
 export const Log = {
   LIMIT: 200,
 
-  serialize: (data) => {
+  serialize: (data: unknown): string | undefined => {
     if (typeof data === "undefined") {
       return undefined;
     }
@@ -29,13 +35,13 @@ export const Log = {
 
   // SessionState.update serialises the read-modify-write so concurrent adds
   // don't drop entries; the ring buffer is bounded to LIMIT
-  add: (message, data) => {
+  add: (message: string, data?: unknown) => {
     const entry = {
       at: new Date().toISOString(),
       message,
       data: Log.serialize(data),
     };
-    return updateSession(
+    return updateSession<LogEntry[]>(
       BackgroundState.sessionWrites,
       extensionSessionStorage,
       LOG_STORAGE_KEY,
@@ -44,7 +50,7 @@ export const Log = {
   },
 
   get: async () => {
-    const res = await getSession(extensionSessionStorage, LOG_STORAGE_KEY);
+    const res = await getSession<LogEntry[]>(extensionSessionStorage, LOG_STORAGE_KEY);
     return (res && res[LOG_STORAGE_KEY]) || [];
   },
 

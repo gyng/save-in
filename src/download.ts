@@ -105,13 +105,13 @@ export const Download = {
           // counter balanced against the cleanup below
           Notifier.expectDownload();
           return Promise.all([
-            updateSession(
+            updateSession<number>(
               BackgroundState.sessionWrites,
               extensionSessionStorage,
               "siPendingDownloads",
               (n) => Math.max(0, (n || 0) + 1),
             ),
-            updateSession(
+            updateSession<Record<string, string>>(
               BackgroundState.sessionWrites,
               extensionSessionStorage,
               "siFinalFilenames",
@@ -135,13 +135,13 @@ export const Download = {
             )
             .then(() =>
               Promise.all([
-                updateSession(
+                updateSession<number>(
                   BackgroundState.sessionWrites,
                   extensionSessionStorage,
                   "siPendingDownloads",
                   (n) => Math.max(0, (n || 0) - 1),
                 ),
-                updateSession(
+                updateSession<Record<string, string>>(
                   BackgroundState.sessionWrites,
                   extensionSessionStorage,
                   "siFinalFilenames",
@@ -351,13 +351,13 @@ export const Download = {
     const filename = finalFullPath || "_";
     await RequestHeaders.prepareReferer(state);
     await Promise.all([
-      updateSession(
+      updateSession<number>(
         BackgroundState.sessionWrites,
         extensionSessionStorage,
         "siPendingDownloads",
         (n) => Math.max(0, (n || 0) + 1),
       ),
-      updateSession(
+      updateSession<Record<string, string>>(
         BackgroundState.sessionWrites,
         extensionSessionStorage,
         "siFinalFilenames",
@@ -393,13 +393,13 @@ export const Download = {
       }
     } finally {
       await Promise.all([
-        updateSession(
+        updateSession<number>(
           BackgroundState.sessionWrites,
           extensionSessionStorage,
           "siPendingDownloads",
           (n) => Math.max(0, (n || 0) - 1),
         ),
-        updateSession(
+        updateSession<Record<string, string>>(
           BackgroundState.sessionWrites,
           extensionSessionStorage,
           "siFinalFilenames",
@@ -511,29 +511,31 @@ export const registerDownloadListener = () => {
       // requesting the download and this event: recover the persisted filename,
       // keyed by download URL so overlapping downloads each get their own name
       if (!pendingState || !pendingState.path) {
-        getSession(extensionSessionStorage, "siFinalFilenames").then((res) => {
-          const map = res.siFinalFilenames || {};
-          const recovered = map[downloadItem.url] || map[downloadItem.finalUrl];
-          if (recovered) {
-            updateSession(
-              BackgroundState.sessionWrites,
-              extensionSessionStorage,
-              "siFinalFilenames",
-              (m) => {
-                const copy = Object.assign({}, m);
-                delete copy[downloadItem.url];
-                delete copy[downloadItem.finalUrl];
-                return copy;
-              },
-            );
-            suggest({
-              filename: recovered,
-              conflictAction: options.conflictAction,
-            });
-          } else {
-            suggest();
-          }
-        });
+        getSession<Record<string, string>>(extensionSessionStorage, "siFinalFilenames").then(
+          (res) => {
+            const map = res.siFinalFilenames || {};
+            const recovered = map[downloadItem.url] || map[downloadItem.finalUrl];
+            if (recovered) {
+              updateSession<Record<string, string>>(
+                BackgroundState.sessionWrites,
+                extensionSessionStorage,
+                "siFinalFilenames",
+                (m) => {
+                  const copy = Object.assign({}, m);
+                  delete copy[downloadItem.url];
+                  delete copy[downloadItem.finalUrl];
+                  return copy;
+                },
+              );
+              suggest({
+                filename: recovered,
+                conflictAction: options.conflictAction,
+              });
+            } else {
+              suggest();
+            }
+          },
+        );
         return true; // suggest is called asynchronously
       }
 
