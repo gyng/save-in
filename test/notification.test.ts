@@ -89,7 +89,7 @@ describe("createExtensionNotification", () => {
     expect(spec).toEqual({
       type: "basic",
       title: "Title",
-      iconUrl: "icons/ic_archive_black_128px.png",
+      iconUrl: "icons/notification-info.svg",
       message: "Message",
     });
 
@@ -106,7 +106,7 @@ describe("createExtensionNotification", () => {
     const [, spec] = vi.mocked(global.browser.notifications.create).mock.calls[0];
     expect(spec.title).toBe("Translated<extensionName>");
     expect(spec.message).toBe("Translated<genericUnknownError>");
-    expect(spec.iconUrl).toBe("icons/ic_error_outline_red_96px.png");
+    expect(spec.iconUrl).toBe("icons/notification-error.svg");
     expect(global.browser.notifications.clear).not.toHaveBeenCalled();
   });
 

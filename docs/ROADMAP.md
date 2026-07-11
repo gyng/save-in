@@ -1,5 +1,10 @@
 # save-in — Technical Roadmap
 
+> Historical planning document: sections describing classic scripts, shared
+> globals, duplicated background lists, and their checker scripts predate the
+> completed TypeScript/ESM migration. See `AGENTS.md` and `TS-MIGRATION.md` for
+> the current bundle-only architecture and tooling.
+
 _Status: draft for discussion. Targets the `mv3` branch (manifest v4.0.0).
 Effort sizing: **S** ≈ hours, **M** ≈ 1–3 days, **L** ≈ a week or more._
 
@@ -179,8 +184,8 @@ Remaining rollout (incremental, optional):
    `SaveInOptions` derived from `OptionsManagement.OPTION_KEYS`
    (`option.js:12`) and `ParsedRule` (`router.js` `parseRule`) are the
    highest-value missing typedefs.
-2. **Raise strictness gradually** — `strict: false` today; `noImplicitAny`
-   and `strictNullChecks` are the next gates, each a sweep of its own.
+2. **Strictness — complete** — `strict: true` covers both the browser-only and
+   combined source/test TypeScript configurations.
 
 **Effort:** remaining refinement **S** each. **Risk:** low — additive and
 CI-gated. **Dependencies:** none.

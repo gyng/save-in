@@ -36,12 +36,29 @@ class Cdp {
     const id = this.id;
     this.ws.send(JSON.stringify({ id, method, params }));
     return new Promise((resolve, reject) => {
-      this.pending.set(id, { resolve, reject });
-      setTimeout(() => reject(new Error(`CDP timeout: ${method}`)), timeoutMs).unref();
+      const timer = setTimeout(() => {
+        this.pending.delete(id);
+        reject(new Error(`CDP timeout: ${method}`));
+      }, timeoutMs);
+      timer.unref();
+      this.pending.set(id, {
+        resolve: (value) => {
+          clearTimeout(timer);
+          resolve(value);
+        },
+        reject: (error) => {
+          clearTimeout(timer);
+          reject(error);
+        },
+      });
     });
   }
 
   close() {
+    for (const { reject } of this.pending.values()) {
+      reject(new Error("CDP connection closed"));
+    }
+    this.pending.clear();
     this.ws.close();
   }
 }

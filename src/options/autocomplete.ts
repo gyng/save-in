@@ -244,17 +244,18 @@ export const attachAutocomplete = (textarea: TextField, strategies: Autocomplete
     if (!(e instanceof KeyboardEvent) || !current) {
       return;
     }
+    const key = (e as KeyboardEvent).key;
 
-    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+    if (key === "ArrowDown" || key === "ArrowUp") {
       e.preventDefault();
       const count = current.result.suggestions.length;
-      const delta = e.key === "ArrowDown" ? 1 : -1;
+      const delta = key === "ArrowDown" ? 1 : -1;
       current.selected = (current.selected + delta + count) % count;
       render();
-    } else if (e.key === "Enter" || e.key === "Tab") {
+    } else if (key === "Enter" || key === "Tab") {
       e.preventDefault();
       accept(current.result.suggestions[current.selected]);
-    } else if (e.key === "Escape") {
+    } else if (key === "Escape") {
       close();
     }
   });

@@ -13,8 +13,9 @@ import { SaveHistory } from "./history.ts";
 import { Log } from "./log.ts";
 import { extensionSessionStorage } from "./storage-areas.ts";
 
-const ICON_URL = "icons/ic_archive_black_128px.png";
-const ERROR_ICON_URL = "icons/ic_error_outline_red_96px.png";
+const INFO_ICON_URL = "icons/notification-info.svg";
+const SUCCESS_ICON_URL = "icons/notification-success.svg";
+const ERROR_ICON_URL = "icons/notification-error.svg";
 
 // Membership ("this download is ours, watch it for a completion notification")
 // lives on the DownloadState record as `adopted`, so there is no second
@@ -110,7 +111,7 @@ export const Notifier = {
     webExtensionApi.notifications.create(id, {
       type: "basic",
       title: title || webExtensionApi.i18n.getMessage("extensionName"),
-      iconUrl: error ? ERROR_ICON_URL : ICON_URL,
+      iconUrl: error ? ERROR_ICON_URL : INFO_ICON_URL,
       message: message || webExtensionApi.i18n.getMessage("genericUnknownError"),
     });
 
@@ -417,7 +418,7 @@ export const Notifier = {
         webExtensionApi.notifications.create(String(downloadDelta.id), {
           type: "basic",
           title,
-          iconUrl: ICON_URL,
+          iconUrl: SUCCESS_ICON_URL,
           message: filename,
         });
 

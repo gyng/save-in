@@ -51,8 +51,6 @@
     }
   ],
   "permissions": [
-    "activeTab",
-    "tabs",
     "contextMenus",
     "downloads",
     "notifications",

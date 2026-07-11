@@ -10,7 +10,7 @@
     "module": "preserve",
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
-    "lib": ["es2022", "dom"],
+    "lib": ["es2023", "dom"],
     "types": ["firefox-webext-browser", "chrome", "node", "vitest/globals"],
     "strict": true,
     "skipLibCheck": true

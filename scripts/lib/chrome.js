@@ -11,11 +11,10 @@ const { spawn, execFileSync } = require("child_process");
 const cdp = require("./cdp");
 
 const ROOT = path.join(__dirname, "..", "..");
-// EXT_DIR (repo-relative) overrides the loaded package, e.g. to run the e2e
-// against the bundled build (dist/bundled-pkg) instead of dist/unpacked.
+// EXT_DIR (repo-relative) overrides the bundled package used by the browser.
 const DIST = process.env.EXT_DIR
   ? path.join(ROOT, process.env.EXT_DIR)
-  : path.join(ROOT, "dist", "unpacked");
+  : path.join(ROOT, "dist", "bundled-pkg");
 
 const findChrome = () => {
   const candidates = [
@@ -36,7 +35,7 @@ const findChrome = () => {
 };
 
 const stageBuild = () => {
-  execFileSync(process.execPath, [path.join(ROOT, "scripts", "stage.js")], {
+  execFileSync(process.execPath, [path.join(ROOT, "scripts", "build-bundled.js")], {
     stdio: "inherit",
   });
 };

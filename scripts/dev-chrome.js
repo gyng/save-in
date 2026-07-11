@@ -1,4 +1,4 @@
-// Development loop for the Chrome MV3 build: stages dist/chrome, launches an
+// Development loop for the Chrome MV3 build: stages the bundled package, launches an
 // isolated Chrome with the extension loaded, and (with --watch) re-stages and
 // reloads the extension whenever src/ or manifest.json changes.
 // Run with `npm run d:chrome`.
@@ -49,9 +49,13 @@ const main = async () => {
       }, 300);
     };
 
-    fs.watch(path.join(chrome.ROOT, "src"), { recursive: true }, reload);
-    fs.watch(path.join(chrome.ROOT, "manifest.json"), reload);
-    console.log("Watching src/ and manifest.json for changes...");
+    for (const dir of ["src", "icons", "_locales"]) {
+      fs.watch(path.join(chrome.ROOT, dir), { recursive: true }, reload);
+    }
+    for (const file of ["manifest.json", "rolldown.config.mjs"]) {
+      fs.watch(path.join(chrome.ROOT, file), reload);
+    }
+    console.log("Watching source, icons, locales, manifest, and bundle config...");
   }
 
   proc.on("exit", () => {

@@ -5,7 +5,7 @@
 
 const fs = require("fs");
 const path = require("path");
-const { execSync } = require("child_process");
+const { execFileSync } = require("child_process");
 
 const writeVersion = require("./write-version");
 
@@ -14,15 +14,24 @@ writeVersion();
 const root = path.join(__dirname, "..");
 const out = path.join(root, "dist", "bundled-pkg");
 
-// 1. Build the bundles
-execSync("npx rolldown -c rolldown.config.mjs", { cwd: root, stdio: "inherit" });
+// 1. Build the bundles without going through a platform shell.
+execFileSync(
+  process.execPath,
+  [path.join(root, "node_modules", "rolldown", "bin", "cli.mjs"), "-c", "rolldown.config.mjs"],
+  { cwd: root, stdio: "inherit" },
+);
 
-// 2. Stage the full tree (secondary pages still reference their source scripts)
+// 2. Stage runtime assets. Original TypeScript belongs in the separate AMO
+// source attachment, not in the executable store package.
 fs.rmSync(out, { recursive: true, force: true });
 fs.mkdirSync(out, { recursive: true });
-["src", "icons", "_locales"].forEach((dir) =>
-  fs.cpSync(path.join(root, dir), path.join(out, dir), { recursive: true }),
-);
+fs.cpSync(path.join(root, "src"), path.join(out, "src"), {
+  recursive: true,
+  filter: (source) => path.extname(source) !== ".ts",
+});
+["icons", "_locales"].forEach((dir) => {
+  fs.cpSync(path.join(root, dir), path.join(out, dir), { recursive: true });
+});
 fs.copyFileSync(path.join(root, "LICENSE"), path.join(out, "LICENSE"));
 
 // 3. Drop the bundles at the package root

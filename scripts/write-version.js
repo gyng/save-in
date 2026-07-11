@@ -3,22 +3,42 @@
 // file is gitignored (build metadata, not source); the options page
 // degrades to just the version when it is missing.
 
-const { execSync } = require("child_process");
+const { execFileSync } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 
 const writeVersion = () => {
-  let commit = "unknown";
-  try {
-    commit = execSync("git rev-parse --short HEAD").toString().trim();
-  } catch (e) {
-    // not a git checkout (e.g. a source tarball); keep the placeholder
+  const root = path.join(__dirname, "..");
+  const outputPath = path.join(root, "src", "options", "version.json");
+  let existing = {};
+  if (fs.existsSync(outputPath)) {
+    try {
+      existing = JSON.parse(fs.readFileSync(outputPath, "utf8"));
+    } catch (e) {
+      // Replace malformed generated metadata below.
+    }
   }
-  const date = new Date().toISOString().slice(0, 10);
-  fs.writeFileSync(
-    path.join(__dirname, "..", "src", "options", "version.json"),
-    `${JSON.stringify({ commit, date })}\n`,
-  );
+
+  let commit = process.env.SOURCE_COMMIT;
+  if (!commit) {
+    try {
+      commit = execFileSync(
+        "git",
+        ["-c", `safe.directory=${root.replace(/\\/g, "/")}`, "rev-parse", "--short", "HEAD"],
+        { cwd: root, stdio: ["ignore", "pipe", "ignore"] },
+      )
+        .toString()
+        .trim();
+    } catch (e) {
+      // A source attachment has no .git directory; preserve its release stamp.
+    }
+  }
+  commit ||= existing.commit || "unknown";
+  const date = process.env.SOURCE_DATE || existing.date || new Date().toISOString().slice(0, 10);
+  const output = `${JSON.stringify({ commit, date })}\n`;
+  if (!fs.existsSync(outputPath) || fs.readFileSync(outputPath, "utf8") !== output) {
+    fs.writeFileSync(outputPath, output);
+  }
   return { commit, date };
 };
 

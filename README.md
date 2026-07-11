@@ -4,6 +4,8 @@
 [Chrome Web Store](https://chrome.google.com/webstore/detail/save-in%E2%80%A6/jpblofcpgfjikaapfedldfeilmpgkedf)<br />
 [Releases](https://github.com/gyng/save-in/releases/)
 
+[Privacy policy](PRIVACY.md)
+
 ![Screenshot](docs/screenshot.png)
 
 A web extension for Firefox and Chrome.
@@ -22,7 +24,7 @@ Rich path variables — dates, page/source parts, `:counter:`, `:uuid:`, and `:m
 
 A versioned external API plus config tools for scripts and AI agents (WebMCP). See [Integrations](https://github.com/gyng/save-in/wiki/Integrations).
 
-Version 4 is a [Manifest V3](https://github.com/gyng/save-in/wiki/Manifest-V3) extension on Firefox 121+ and Chrome 121+.
+Version 4 is a [Manifest V3](https://github.com/gyng/save-in/wiki/Manifest-V3) extension on Firefox 121+ and Chrome 123+.
 
 The WebExtension API only allows saving into directories relative to the default download directory. Symlinks can be used to get around this limitation:
 
@@ -37,8 +39,7 @@ Windows:
 Make sure the actual directories exist, or downloads will silently fail.
 
 - `<all_urls>` is used to get around CORS on HTTP HEAD requests (to read Content-Disposition and Content-Type for `:mime:`) and to fetch downloads via the Fetch API.
-- `tabs` is used to get the active page's title.
-- `webRequest` (Firefox) / `declarativeNetRequest` (Chrome) inject the Referer header on downloads (disabled by default).
+- `declarativeNetRequest` injects the Referer header on downloads (disabled by default).
 
 Configure before use.
 
@@ -87,15 +88,21 @@ save. `PING` first to negotiate the version and capabilities.
 
 The single `manifest.json` declares both `background.scripts` (Firefox event
 page, Firefox ≥ 121) and `background.service_worker` (Chrome). To load the
-extension unpacked in Chrome, run `node scripts/stage.js` and load
-`dist/unpacked` (or just use `npm run d:chrome`).
+extension unpacked in Chrome, run `node scripts/build-bundled.js` and load
+`dist/bundled-pkg` (or use `npm run d:chrome` for automatic rebuilds and reloads).
 
 ### Firefox
 
-1. Get API keys from [here](https://addons.mozilla.org/en-US/developers/addon/api/key/)
-2. Set environment variables `WEB_EXT_API_KEY` (JWT issuer) and `WEB_EXT_API_SECRET`
-3. `npm run build:firefox:submit` to sign and upload to AMO (Firefox Addons), or manually upload at [Firefox Addons](https://addons.mozilla.org/en-US/developers/addons)
-4. `npm run build:firefox:submit` also generates an XPI for manual distribution
+1. Run `npm run build`.
+2. Manually upload the generated ZIP from `web-ext-artifacts` at
+   [Firefox Add-ons](https://addons.mozilla.org/en-US/developers/addons).
+3. Run `npm run build:source` and attach the resulting source ZIP from
+   `web-ext-artifacts/source` when AMO requests the source for review.
+
+The source build requires Node 24 and the dependencies pinned by
+`package-lock.json`; no Docker image or nonstandard system dependency is
+required. After extracting the source ZIP, run `npm ci` followed by
+`npm run build`. The reproduced runtime ZIP is written to `web-ext-artifacts`.
 
 ### Chrome
 
@@ -111,11 +118,12 @@ The source code for this extension is available at https://github.com/gyng/save-
 
 #### Third-party dependencies
 
-All code is first-party except `src/vendor/content-disposition.js`, a
+All code is first-party except `src/vendor/content-disposition.ts`, a
 readable (non-minified) Content-Disposition header parser by @Rob--W, taken
 from https://github.com/Rob--W/open-in-browser (license header in the file).
-There are no minified files, no remote code, and no build-time
-transformations: the shipped sources are the repository sources.
+There are no minified files or remote code. Rolldown transpiles and
+scope-hoists the TypeScript modules into one readable, non-minified JavaScript
+file per execution target; the shipped bundle remains suitable for review.
 
 ## Contributors
 
