@@ -572,7 +572,7 @@ describe("renameAndDownload: browserDownload", () => {
     // watches for a completion toast)
     expect(DownloadState.records.get(555)).toMatchObject({ adopted: true });
     // incremented then cleared -> back to 0, and the filename key removed
-    expect(sessionStore.siPendingDownloads).toBe(0);
+    await vi.waitFor(() => expect(sessionStore.siPendingDownloads).toBe(0));
     expect(sessionStore.siFinalFilenames).toEqual({});
   });
 
@@ -589,7 +589,7 @@ describe("renameAndDownload: browserDownload", () => {
     // a fully failed download registers no adopted record
     expect([...DownloadState.records.values()].some((r: any) => r.adopted)).toBe(false);
     expect(Log.add).toHaveBeenCalledWith("downloads.download failed", "Error: disk full");
-    expect(sessionStore.siPendingDownloads).toBe(0);
+    await vi.waitFor(() => expect(sessionStore.siPendingDownloads).toBe(0));
   });
 
   test("a downloads.download rejection does not throw and clears the pending flag", async () => {
@@ -603,7 +603,7 @@ describe("renameAndDownload: browserDownload", () => {
     await flush();
 
     expect([...DownloadState.records.values()].some((r: any) => r.adopted)).toBe(false);
-    expect(sessionStore.siPendingDownloads).toBe(0);
+    await vi.waitFor(() => expect(sessionStore.siPendingDownloads).toBe(0));
   });
 
   test("substitutes _ for an empty final path", async () => {
