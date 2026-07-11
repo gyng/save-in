@@ -28,45 +28,13 @@ const Download = {
     }
   },
 
-  // downloadId -> what we need to retry it through the fetch fallback
-  // (notification.js consults this when a download fails)
-  startedDownloads: new Map(),
+  // The per-download record (retry + history info) lives in DownloadState, keyed
+  // by downloadId, mirrored to storage.session so it survives an MV3 worker
+  // restart. These stay as thin seams because notification.js and the tests use
+  // them.
+  rememberStartedDownload: (downloadId, record) => DownloadState.merge(downloadId, record),
 
-  rememberStartedDownload: (downloadId, record) => {
-    Download.startedDownloads.set(downloadId, record);
-    if (Download.startedDownloads.size > 50) {
-      const oldest = Download.startedDownloads.keys().next().value;
-      Download.startedDownloads.delete(oldest);
-    }
-    // Persist so the fetch-retry and the history-status update survive an MV3
-    // service worker restart — the in-memory map dies with the worker, which
-    // otherwise silently drops both for any download in flight across a restart
-    if (typeof SessionState !== "undefined") {
-      SessionState.update("siStartedDownloads", (m) => {
-        const next = Object.assign({}, m, { [downloadId]: record });
-        const ids = Object.keys(next);
-        if (ids.length > 50) {
-          delete next[ids[0]];
-        }
-        return next;
-      });
-    }
-  },
-
-  // The started-download record (retry/history info): from memory, or — after a
-  // service worker restart cleared the map — the persisted session copy
-  getStartedDownload: (downloadId) => {
-    const inMemory = Download.startedDownloads.get(downloadId);
-    if (inMemory) {
-      return Promise.resolve(inMemory);
-    }
-    if (typeof SessionState === "undefined") {
-      return Promise.resolve(null);
-    }
-    return SessionState.get("siStartedDownloads").then(
-      (res) => (res.siStartedDownloads && res.siStartedDownloads[downloadId]) || null,
-    );
-  },
+  getStartedDownload: (downloadId) => DownloadState.get(downloadId),
 
   // blob/data URL -> final filename for retry downloads, so Chrome's
   // onDeterminingFilename suggests the intended path instead of falling
@@ -82,7 +50,11 @@ const Download = {
       if (!record || record.retried || record.viaFetch || options.fallbackFetch === false) {
         return false;
       }
+      // Persist the retry guard (merge the full record so a persisted-only hit
+      // keeps its other fields) so a second failure after a worker restart can't
+      // retry the same download twice
       record.retried = true;
+      DownloadState.merge(downloadId, record);
 
       return RequestHeaders.prepareReferer({ info: { url: record.url, pageUrl: record.pageUrl } })
         .then(() => fetch(record.url, { credentials: "include" }))

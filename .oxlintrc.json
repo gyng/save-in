@@ -21,6 +21,7 @@
     "globalChromeState": "writable",
     "getFilenameFromContentDispositionHeader": "readonly",
     "Util": "readonly",
+    "DownloadState": "readonly",
     "Path": "readonly",
     "Download": "readonly",
     "Variable": "readonly",

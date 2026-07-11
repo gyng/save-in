@@ -15,3 +15,7 @@ globalThis.Util = (await import("../src/util.js")).default;
 // detects browser.storage.session at call time, which tests mock per-test.
 // Tests that want a plain stub (download-flow/download-mv3) override it.
 globalThis.SessionState = (await import("../src/session-state.js")).default;
+
+// DownloadState (the per-download record store) is a thin global over SessionState;
+// tests that want a plain stub override it.
+globalThis.DownloadState = (await import("../src/download-state.js")).default;

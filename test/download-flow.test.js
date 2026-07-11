@@ -118,6 +118,7 @@ beforeEach(() => {
 
   window.SI_DEBUG = false;
   window.lastDownloadState = undefined;
+  DownloadState.records.clear();
 });
 
 describe("getFilenameFromContentDisposition", () => {
@@ -996,7 +997,7 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
   };
 
   beforeEach(() => {
-    Download.startedDownloads.clear();
+    DownloadState.records.clear();
     Download.pendingRetryFilenames.clear();
     global.options.fallbackFetch = true;
   });
@@ -1004,7 +1005,7 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
   test("started downloads are recorded with what a retry needs", async () => {
     await seedStartedDownload();
 
-    expect(Download.startedDownloads.get(101)).toMatchObject({
+    expect(DownloadState.records.get(101)).toMatchObject({
       url: "https://example.com/dir/file.png",
       pageUrl: "https://example.com/page",
       filename: "downloads/file.png",
@@ -1039,7 +1040,7 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
     });
     expect(global.Notifier.trackDownload).toHaveBeenCalledWith(202);
     // The retry marks itself so a second failure cannot loop
-    expect(Download.startedDownloads.get(202)).toMatchObject({ viaFetch: true });
+    expect(DownloadState.records.get(202)).toMatchObject({ viaFetch: true });
 
     // Only one retry per download
     await expect(Download.retryViaFetch(101)).resolves.toBe(false);
@@ -1049,13 +1050,13 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
     await seedStartedDownload();
 
     // the record is persisted to storage.session alongside the in-memory map
-    expect(global.sessionStore.siStartedDownloads[101]).toMatchObject({
+    expect(global.sessionStore.siDownloads[101]).toMatchObject({
       url: "https://example.com/dir/file.png",
       filename: "downloads/file.png",
     });
 
     // a restart wipes the in-memory map; storage.session survives
-    Download.startedDownloads.clear();
+    DownloadState.records.clear();
     expect(await Download.getStartedDownload(101)).toMatchObject({
       url: "https://example.com/dir/file.png",
     });
@@ -1071,7 +1072,7 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
   });
 
   test("never retries downloads that already went through a fetch", async () => {
-    Download.startedDownloads.set(7, {
+    DownloadState.records.set(7, {
       url: "https://x/y.png",
       filename: "y.png",
       viaFetch: true,
@@ -1120,7 +1121,7 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
 
     expect(global.browser.downloads.download).toHaveBeenCalledTimes(2);
     expect(global.browser.downloads.download.mock.calls[1][0].url).toMatch(/^blob:/);
-    expect(Download.startedDownloads.get(303)).toMatchObject({ viaFetch: true });
+    expect(DownloadState.records.get(303)).toMatchObject({ viaFetch: true });
   });
 
   test("immediate rejection does not fall back when disabled", async () => {

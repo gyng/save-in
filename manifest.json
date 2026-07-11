@@ -28,6 +28,7 @@
       "src/log.js",
       "src/history.js",
       "src/counter.js",
+      "src/download-state.js",
       "src/notification.js",
       "src/path.js",
       "src/download.js",
