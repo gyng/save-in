@@ -141,6 +141,7 @@ describe("manual editor state", () => {
     expect(state.markSaved("paths", "Saved", "submitted", revision)).toBe(false);
     expect(textarea.value).toBe("newer edit");
     expect(state.anyDirty()).toBe(true);
+    expect(document.querySelector<HTMLElement>(".editor-save-status")!.hidden).toBe(true);
   });
 
   test("reports whether an editor can currently be saved", () => {
@@ -150,6 +151,9 @@ describe("manual editor state", () => {
     state.setValidationPending("paths");
     expect(state.canSave("paths")).toBe(false);
     state.setValidity("paths", false);
+    expect(state.canSave("paths")).toBe(false);
+    state.setValidity("paths", true);
+    state.setSaving("paths", true, "Saving…");
     expect(state.canSave("paths")).toBe(false);
   });
 

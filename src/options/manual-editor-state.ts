@@ -183,7 +183,7 @@ export const createManualEditorState = (unsavedLabel: string) => {
   const revision = (id: string) => find(id)?.revision;
   const canSave = (id: string) => {
     const editor = find(id);
-    return Boolean(editor && editor.valid && !editor.validationPending);
+    return Boolean(editor && editor.valid && !editor.validationPending && !editor.saving);
   };
 
   const discard = (id: string) => {
