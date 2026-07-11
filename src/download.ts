@@ -27,7 +27,6 @@ import {
   DownloadPipelineState,
   DownloadPlan,
   FinalizableDownloadState,
-  ResolvedDownloadPlan,
 } from "./download-types.ts";
 
 // Most-recent download state: fallback for consumers that can't correlate
@@ -49,6 +48,21 @@ const getStartedDownload = (downloadId: number) =>
 const requireDownloadUrl = (state: Pick<DownloadPipelineState, "info">): string => {
   if (!state.info.url) throw new Error("Download URL is required");
   return state.info.url;
+};
+
+const recordDownloadRequest = (plan: DownloadPlan): void => {
+  const { state } = plan;
+  if (typeof Log !== "undefined") {
+    Log.add("download requested", {
+      url: state.info.url && String(state.info.url).slice(0, 200),
+      path: plan.finalFullPath,
+      route: state.route ? String(state.route.finalize()) : null,
+    });
+  }
+  if (window.SI_DEBUG) console.log(state, plan.finalFullPath); // eslint-disable-line
+
+  DownloadEvents.downloaded(state);
+  window.lastDownloadState = state;
 };
 
 export const Download = {
@@ -284,9 +298,7 @@ export const Download = {
       Notifier.reportFailure(name, String(e));
     }),
 
-  resolveDownloadPlan: async (
-    state: DownloadPipelineState,
-  ): Promise<ResolvedDownloadPlan | null> => {
+  resolveDownloadPlan: async (state: DownloadPipelineState): Promise<DownloadPlan | null> => {
     const url = requireDownloadUrl(state);
     const naiveFilename = getFilenameFromUrl(url);
     const initialFilename = state.info.suggestedFilename || naiveFilename || url;
@@ -316,7 +328,27 @@ export const Download = {
         if (ext) state.scratch.mimeExtension = ext;
       }
     }
-    return { state, routeMatches };
+    // Firefox resolves a server-provided filename before finalizing the plan.
+    // Chrome must defer this to onDeterminingFilename, which runs after the
+    // browser download starts.
+    if (!WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion) {
+      try {
+        const response = await fetch(url, {
+          method: "HEAD",
+          credentials: "include",
+        });
+        if (response.headers.has("Content-Disposition")) {
+          const dispositionName = Download.getFilenameFromContentDisposition(
+            response.headers.get("Content-Disposition"),
+          );
+          state.info.filename = dispositionName || state.info.filename;
+        }
+      } catch {
+        // HEAD is best-effort; acquisition still proceeds with the resolved name.
+      }
+    }
+
+    return Download.createDownloadPlan(state);
   },
 
   createDownloadPlan: (state: DownloadPipelineState): DownloadPlan => {
@@ -442,23 +474,6 @@ export const Download = {
     }
   },
 
-  startDownload: async (state: DownloadPipelineState): Promise<void> => {
-    const plan = Download.createDownloadPlan(state);
-    if (typeof Log !== "undefined") {
-      Log.add("download requested", {
-        url: state.info.url && String(state.info.url).slice(0, 200),
-        path: plan.finalFullPath,
-        route: state.route ? String(state.route.finalize()) : null,
-      });
-    }
-    if (window.SI_DEBUG) console.log(state, plan.finalFullPath); // eslint-disable-line
-
-    DownloadEvents.downloaded(state);
-    window.lastDownloadState = state;
-    const acquired = await Download.acquireDownloadUrl(plan);
-    await Download.executeBrowserDownload(plan, acquired);
-  },
-
   // async because Variable.applyVariables is now async (it may await a
   // :counter:/:mime: transformer). Callers fire-and-forget, so awaiting the
   // path/route interpolation here before the download is safe.
@@ -466,25 +481,9 @@ export const Download = {
     const plan = await Download.resolveDownloadPlan(state);
     if (!plan) return;
 
-    // Chrome: Skip HEAD request for Content-Disposition and use onDeterminingFilename
-    if (WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion) {
-      await Download.startDownload(state);
-    } else {
-      try {
-        const res = await fetch(requireDownloadUrl(state), {
-          method: "HEAD",
-          credentials: "include",
-        });
-        if (res.headers.has("Content-Disposition")) {
-          const disposition = res.headers.get("Content-Disposition");
-          const dispositionName = Download.getFilenameFromContentDisposition(disposition);
-          state.info.filename = dispositionName || state.info.filename;
-        }
-      } catch {
-        // HEAD is best-effort; acquisition still proceeds with the resolved name.
-      }
-      await Download.startDownload(state);
-    }
+    recordDownloadRequest(plan);
+    const acquired = await Download.acquireDownloadUrl(plan);
+    await Download.executeBrowserDownload(plan, acquired);
 
     // Trigger notifications
     if (state.route) {

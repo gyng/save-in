@@ -161,6 +161,41 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
+describe("pipeline stages", () => {
+  test("runs RESOLVE, ACQUIRE, and DOWNLOAD in order with explicit values", async () => {
+    const calls: string[] = [];
+    const state = makeState();
+    const plan = {
+      state,
+      finalFullPath: "downloads/file.png",
+      prompt: false,
+      historyEntryId: "h-test",
+    };
+    const acquired = { url: "blob:resolved", viaFetch: true };
+
+    vi.spyOn(Download, "resolveDownloadPlan").mockImplementation(async () => {
+      calls.push("resolve");
+      return plan;
+    });
+    vi.spyOn(Download, "acquireDownloadUrl").mockImplementation(async (received) => {
+      calls.push("acquire");
+      expect(received).toBe(plan);
+      return acquired;
+    });
+    vi.spyOn(Download, "executeBrowserDownload").mockImplementation(
+      async (receivedPlan, receivedAcquired) => {
+        calls.push("download");
+        expect(receivedPlan).toBe(plan);
+        expect(receivedAcquired).toBe(acquired);
+      },
+    );
+
+    await Download.renameAndDownload(state);
+
+    expect(calls).toEqual(["resolve", "acquire", "download"]);
+  });
+});
+
 describe("getFilenameFromContentDisposition", () => {
   test("returns null for non-string input", () => {
     expect(Download.getFilenameFromContentDisposition(undefined)).toBe(null);

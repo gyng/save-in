@@ -42,11 +42,6 @@ export type DownloadPipelineState = {
   routeIsFolder?: boolean;
 };
 
-export type ResolvedDownloadPlan = {
-  state: DownloadPipelineState;
-  routeMatches: string | null;
-};
-
 export type DownloadPlan = {
   state: DownloadPipelineState;
   finalFullPath: string;

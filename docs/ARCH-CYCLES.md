@@ -83,13 +83,11 @@ testable once tests are on real imports.
 
 ## Also queued (not cycle-related, but same neighbourhood)
 
-- **Decompose `download.renameAndDownload`** (~240-line async god-function with
-  nested `download`/`fetchDownload`/`normalDownload`/`browserDownload` closures
-  that capture shared state). Split into RESOLVE (path/route/filename/MIME plan)
-  → ACQUIRE-URL (explicit strategy: direct / fetch-fallback / offscreen /
-  contentPromise-for-`:sha256:`) → DOWNLOAD (the `downloads.download` call +
-  bookkeeping) stages, converting the closures to methods that take an explicit
-  plan param. Best done after Cuts 2–3 slim download's surface. (Task #61.)
+- **Decompose `download.renameAndDownload` — DONE.** The orchestrator now runs
+  explicit RESOLVE (path/route/filename/MIME plan) → ACQUIRE-URL (direct /
+  fetch-fallback / offscreen / shared `:sha256:` content) → DOWNLOAD
+  (`downloads.download` + bookkeeping) stages with typed plan values. (Task
+  #61.)
 - **`strict: true` sweep — DONE** — completed through staged `noImplicitAny`,
   `strictNullChecks`, and full-strict passes after the dependency cuts. (Task
   #60.)
