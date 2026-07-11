@@ -162,6 +162,11 @@ testable once tests are on real imports.
     (and dovetails with the #68 singleton sweep).
   - (d) `shortcut.makeShortcutContent` `title` optional is one lone param
     annotation in an otherwise-untyped file → folded into the #60 strict sweep.
+- **Fix flaky tests** — (1) Chrome e2e "shortcut files download with redirect
+  content" (download-timing race — waitFor the settled file/history, not a fixed
+  sleep); (2) path-editor unit "switching to visual…/back…" (~1/12 flake from the
+  shared PathEditor singleton — likely falls out of #67, else reset the singleton
+  per test). Neither is a correctness bug but both undermine the green gate. (Task #69.)
 - **TS tooling/CI hardening** — typecheck `test/**`, `expectTypeOf` contract
   tests, per-context `lib` (SW=webworker vs DOM), sourcemaps. **NO
   typescript-eslint** (decided — stay oxlint-only); the tradeoff is no
