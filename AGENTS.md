@@ -60,9 +60,15 @@ to Firefox too.
    `await window.ready` (the init promise) before touching options or
    `Menus.pathMappings`.
 2. **Globals die between events.** Anything needed across wakeups goes to
-   storage: `Menus.state.lastUsedPath` (storage.local), tracked download IDs /
-   pending-download flag / final filename (storage.session via
-   `SessionState` in `notification.js`).
+   storage (via the `SessionState` wrapper, `session-state.js`):
+   `Menus.state.lastUsedPath` (storage.local); the per-download records
+   (`siDownloads`, keyed by downloadId — retry info, `historyEntryId`, and the
+   `adopted` membership flag), the pending-download counter, and the per-URL
+   final-filename map (storage.session). `DownloadState` (`download-state.js`)
+   owns `siDownloads`: an in-memory `Map` mirror rebuilt from storage by
+   `DownloadState.hydrate()` on each wake (awaited in `init`), plus a
+   field-union `merge()` so download.js (at `downloads.download` resolution)
+   and notification.js (at `onCreated`) converge on one record.
 3. **No `URL.createObjectURL`, no DOM, no `window`.** The SW entry aliases
    `self.window = self` so legacy `window.foo` globals keep working.
 4. **`chrome.downloads.onDeterminingFilename`** listeners must `return true`
