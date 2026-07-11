@@ -35,6 +35,7 @@ chrome.runtime.onMessage.addListener(
       })
       .then((blob) => {
         const blobUrl = URL.createObjectURL(blob);
+        const hash = message.hash;
         // Free the blob once the download has had time to read it. The blob lives
         // here (as a Blob, 1x size), not as base64 in the worker.
         setTimeout(() => URL.revokeObjectURL(blobUrl), OFFSCREEN_BLOB_TTL_MS);
@@ -42,14 +43,14 @@ chrome.runtime.onMessage.addListener(
         // No hash requested, or the file is too large to buffer a second copy for
         // digesting: return the blob URL alone (the download still proceeds; the
         // hash just resolves empty).
-        if (!message.hash || (message.maxBytes && blob.size > message.maxBytes)) {
+        if (!hash || (message.maxBytes && blob.size > message.maxBytes)) {
           sendResponse({ blobUrl });
           return;
         }
 
         blob
           .arrayBuffer()
-          .then((buf) => crypto.subtle.digest(message.hash, buf))
+          .then((buf) => crypto.subtle.digest(hash, buf))
           .then((digest) => sendResponse({ blobUrl, hash: toHex(digest) }))
           // Hashing failed but the blob is fine — let the download go ahead
           .catch(() => sendResponse({ blobUrl }));

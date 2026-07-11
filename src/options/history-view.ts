@@ -30,6 +30,9 @@ export const HistoryView = {
   },
 
   time: (iso?: string): string => {
+    if (!iso) {
+      return "";
+    }
     try {
       return new Date(iso).toLocaleString();
     } catch (e) {
@@ -97,7 +100,7 @@ export const HistoryView = {
   // In-progress download cell from a downloads.search item: a percentage when
   // the total size is known, otherwise the running byte count. `title` shows
   // received / total when known.
-  progressCell: (item: DownloadProgress) => {
+  progressCell: (item: DownloadProgress | null | undefined) => {
     const received = (item && item.bytesReceived) || 0;
     const total = (item && item.totalBytes) || 0;
     return {

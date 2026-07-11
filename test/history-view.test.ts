@@ -1,6 +1,10 @@
 // Pure history-table helpers extracted from options.js (history-view.js).
 import { HistoryView } from "../src/options/history-view.ts";
 
+test("missing legacy timestamps render as blank", () => {
+  expect(HistoryView.time()).toBe("");
+});
+
 describe("HistoryView flatteners", () => {
   test("filename / folder split a full path", () => {
     expect(HistoryView.filename("a/b/c.png")).toBe("c.png");

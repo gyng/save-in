@@ -72,7 +72,7 @@ window.reset = () => {
   // Serialize: overlapping inits interleave removeAll() with another
   // generation's create() calls, producing duplicate-id errors and
   // missing/duplicated menu items
-  window.ready = window.ready.catch(() => {}).then(() => window.init());
+  window.ready = (window.ready ?? Promise.resolve()).catch(() => {}).then(() => window.init());
   return window.ready;
 };
 
