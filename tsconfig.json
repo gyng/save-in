@@ -13,6 +13,6 @@
     "strict": false,
     "skipLibCheck": true
   },
-  "include": ["src/**/*.js", "types/**/*.d.ts"],
+  "include": ["src/**/*.js", "src/**/*.ts", "types/**/*.d.ts"],
   "exclude": ["src/vendor"]
 }

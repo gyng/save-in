@@ -3,13 +3,20 @@
 // guards cover the extension being reloaded underneath the page
 // ("Extension context invalidated").
 
+type ContentOptions = {
+  contentClickToSave?: boolean;
+  contentClickToSaveCombo?: string | number | null;
+  contentClickToSaveButton?: string;
+  links?: boolean;
+};
+
 const ClickToSave = {
-  isKeyboardComboActive: (combo, activeKeys) =>
+  isKeyboardComboActive: (combo: number[], activeKeys: Record<number, boolean>) =>
     combo.map((code) => activeKeys[code]).every((code) => code === true),
 
   // https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/buttons
   // buttons is a bitmask of the buttons currently held; check the target's bit
-  isMouseButtonActive: (target, buttons) => {
+  isMouseButtonActive: (target: string, buttons: number) => {
     const bit = {
       LEFT_CLICK: 1, // bit 0
       RIGHT_CLICK: 2, // bit 1
@@ -18,15 +25,15 @@ const ClickToSave = {
       FORWARD_CLICK: 16, // bit 4 (mouse button 5)
     }[target];
     // eslint-disable-next-line no-bitwise
-    return Boolean(bit) && (buttons & bit) === bit;
+    return Boolean(bit) && (buttons & bit!) === bit;
   },
 
   // Resolve the stored combo option to keyCodes. Accepts a raw keyCode number
   // (old stored values — backward compat), a key name (Alt/Ctrl/Shift/Meta),
   // or "none"/blank. Unknown / non-positive values drop out so the combo can be
   // empty — an empty combo is always active (the mouse button alone saves).
-  comboToKeyCodes: (value) => {
-    const names = {
+  comboToKeyCodes: (value: string | number | null | undefined): number[] => {
+    const names: Record<string, number> = {
       alt: 18,
       option: 18,
       ctrl: 17,
@@ -39,7 +46,7 @@ const ClickToSave = {
       windows: 91,
       super: 91,
     };
-    return []
+    return ([] as (string | number | null | undefined)[])
       .concat(value)
       .map((v) => {
         const key = String(v == null ? "" : v)
@@ -56,11 +63,11 @@ const ClickToSave = {
 
   // Resolves what to download for a click: media under the cursor first
   // (e.target can be an overlay), then the enclosing link (#226)
-  findSource: (e, allowLinks) => {
+  findSource: (e: any, allowLinks: boolean): string | undefined => {
     let source;
 
     if (document.elementsFromPoint) {
-      document.elementsFromPoint(e.clientX, e.clientY).some((el) => {
+      document.elementsFromPoint(e.clientX, e.clientY).some((el: any) => {
         source = el["currentSrc"] || el["src"]; // undefined for non-media elements
         return !!source;
       });
@@ -80,18 +87,21 @@ const ClickToSave = {
 
     return source || undefined;
   },
+
+  // Attached below; declared here so TypeScript allows the assignment
+  setupClickToSave: undefined as unknown as (options: ContentOptions) => void,
 };
 
-const setupClickToSave = (options) => {
+const setupClickToSave = (options: ContentOptions) => {
   const shortcutOptions = {
     combo: ClickToSave.comboToKeyCodes(options.contentClickToSaveCombo),
     button: options.contentClickToSaveButton,
   };
 
-  let active = {};
+  let active: Record<number, boolean> = {};
 
   // Retries cover the MV3 service worker still starting up on first send
-  const sendDownload = (source, retries = 2) => {
+  const sendDownload = (source: string, retries = 2) => {
     try {
       chrome.runtime.sendMessage(
         {
@@ -153,10 +163,10 @@ const setupClickToSave = (options) => {
     "mousedown",
     (e) => {
       if (
-        ClickToSave.isMouseButtonActive(shortcutOptions.button, e.buttons) &&
+        ClickToSave.isMouseButtonActive(shortcutOptions.button!, e.buttons) &&
         ClickToSave.isKeyboardComboActive(shortcutOptions.combo, active)
       ) {
-        const source = ClickToSave.findSource(e, options.links);
+        const source = ClickToSave.findSource(e, options.links!);
 
         if (source) {
           e.preventDefault();
@@ -168,6 +178,8 @@ const setupClickToSave = (options) => {
     true,
   );
 };
+
+ClickToSave.setupClickToSave = setupClickToSave;
 
 try {
   chrome.runtime.sendMessage({ type: "OPTIONS" }, (response) => {
@@ -185,11 +197,4 @@ try {
   // Extension context invalidated (extension reloaded/updated underneath us)
 }
 
-// Export for testing
-if (typeof module !== "undefined") {
-  // Attach rather than replace so `module.exports` keeps its existing shape
-  // (a direct reference to ClickToSave) for consumers/tests that already
-  // destructure findSource/isKeyboardComboActive/isMouseButtonActive off it
-  ClickToSave.setupClickToSave = setupClickToSave;
-  module.exports = ClickToSave;
-}
+export default ClickToSave;

@@ -71,5 +71,20 @@ export default defineConfig([
   bundle("background.sw", backgroundScripts, "self.window = self;\n"),
   bundle("options", optionsScripts),
   bundle("offscreen", offscreenScripts),
-  bundle("content", ["src/content/content.js"]),
+  // content is a real ESM/TS module (first target of the Level 2 migration —
+  // docs/TS-MIGRATION.md): rolldown transpiles + bundles it directly instead of
+  // the classic-script concat plugin. It runs as a classic content script, so
+  // the output must be `iife` — `esm` would emit `export` statements (a syntax
+  // error when injected). Content is isolated (nothing outside reads its
+  // bindings), so wrapping it in a function scope is fine — unlike the
+  // background bundle, whose globals the e2e's evalSW reaches on the SW scope.
+  {
+    input: "src/content/content.ts",
+    output: {
+      file: "dist/bundled/content.js",
+      format: "iife",
+      name: "__saveInContent",
+      minify: false,
+    },
+  },
 ]);

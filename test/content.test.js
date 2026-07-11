@@ -1,4 +1,4 @@
-const ClickToSave = (await import("../src/content/content.js")).default;
+const ClickToSave = (await import("../src/content/content.ts")).default;
 
 describe("findSource", () => {
   afterEach(() => {
@@ -99,7 +99,7 @@ const importContentWithOptions = async (optionsBody) => {
   vi.resetModules();
   global.chrome.runtime.sendMessage = vi.fn((message, cb) => cb({ body: optionsBody }));
   global.chrome.runtime.onMessage.addListener = vi.fn();
-  await import("../src/content/content.js");
+  await import("../src/content/content.ts");
 };
 
 describe("content.js initialisation", () => {
@@ -118,7 +118,7 @@ describe("content.js initialisation", () => {
     vi.resetModules();
     global.chrome.runtime.sendMessage = vi.fn((message, cb) => cb(undefined));
     global.chrome.runtime.onMessage.addListener = vi.fn();
-    await import("../src/content/content.js");
+    await import("../src/content/content.ts");
     expect(global.chrome.runtime.onMessage.addListener).not.toHaveBeenCalled();
   });
 
