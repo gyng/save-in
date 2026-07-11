@@ -18,13 +18,13 @@ function FakePath(raw) {
   this.raw = raw;
 }
 
-// Capture the listeners registered at import time (jest-webextension-mock's
+// Capture the listeners registerMessaging() attaches (jest-webextension-mock's
 // runtime events dispatch through their own internal lists, so replace them).
-// These must exist before messaging.ts evaluates.
+// These must exist before registerMessaging() runs.
 (global.browser.runtime as any).onMessage = { addListener: vi.fn() };
 (global.browser.runtime as any).onMessageExternal = { addListener: vi.fn() };
 
-const { Messaging } = await import("../src/messaging.ts");
+const { Messaging, registerMessaging } = await import("../src/messaging.ts");
 // Imported after the fakes above: messaging.ts already pulled the whole real SCC
 // into the module cache, so these return the same instances its handlers hold —
 // spies / Object.assign on them reach the live code.
@@ -37,6 +37,10 @@ const { Variable } = await import("../src/variable.ts");
 const { Path } = await import("../src/path.ts");
 const { setCurrentTab } = await import("../src/current-tab.ts");
 
+// Import-time side effects are deferred (Task #2): messaging.ts no longer
+// registers its runtime listeners at load — the entry does, so call it here to
+// attach them against the fakes above, then capture.
+registerMessaging();
 const [[onMessage]] = (global.browser.runtime.onMessage.addListener as any).mock.calls;
 const [[onMessageExternal]] = (global.browser.runtime.onMessageExternal.addListener as any).mock
   .calls;

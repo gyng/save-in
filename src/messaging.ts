@@ -305,106 +305,110 @@ export const Messaging = {
   },
 };
 
-browser.runtime.onMessageExternal.addListener((request, sender, sendResponse) => {
-  switch (request.type) {
-    case MESSAGE_TYPES.PING:
-      Messaging.handlePing(request, sender, sendResponse);
-      break;
-    case MESSAGE_TYPES.GET_SCHEMA:
-      Messaging.handleGetSchema(request, sender, sendResponse);
-      break;
-    case MESSAGE_TYPES.VALIDATE:
-      Messaging.handleValidate(request, sender, sendResponse);
-      break;
-    case MESSAGE_TYPES.DOWNLOAD:
-      Messaging.handleDownloadMessage(request, sender, sendResponse);
-      break;
-    default:
-      // Unknown type on the external API: give callers typed feedback rather
-      // than silence so they can detect a version/contract mismatch (also the
-      // path for APPLY_CONFIG, which is deliberately internal-only)
-      sendResponse({
-        type: request.type,
-        body: {
-          status: MESSAGE_TYPES.ERROR,
-          error: Messaging.API_ERRORS.UNKNOWN_TYPE,
-          version: Messaging.API_VERSION,
-        },
-      });
-      break;
-  }
-});
-
-browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  switch (request.type) {
-    case MESSAGE_TYPES.WAKE_WARM:
-      // Sent by content scripts on combo keydown purely to wake the MV3
-      // service worker before a click-to-save message arrives
-      sendResponse({ type: MESSAGE_TYPES.OK });
-      break;
-    case MESSAGE_TYPES.OPTIONS_LOADED:
-      // Sent by the options page after saving: reload options and menus.
-      // MV3 has no getBackgroundPage, so this goes over messaging instead.
-      window.reset();
-      sendResponse({ type: MESSAGE_TYPES.OK });
-      break;
-    case MESSAGE_TYPES.OPTIONS:
-      sendResponse({
-        type: MESSAGE_TYPES.OPTIONS,
-        body: options,
-      });
-      break;
-    case MESSAGE_TYPES.OPTIONS_SCHEMA:
-      sendResponse({
-        type: MESSAGE_TYPES.OPTIONS_SCHEMA,
-        body: {
-          keys: OptionsManagement.OPTION_KEYS,
-          types: OptionsManagement.OPTION_TYPES,
-        },
-      });
-      break;
-    case MESSAGE_TYPES.GET_KEYWORDS:
-      sendResponse({
-        type: MESSAGE_TYPES.KEYWORD_LIST,
-        body: {
-          matchers: Object.keys(Router.matcherFunctions),
-          variables: Object.keys(Variable.transformers),
-        },
-      });
-      break;
-    case MESSAGE_TYPES.PREVIEW_MENUS: {
-      // Live menu-tree preview for the options page: runs the pure
-      // Menus.buildTree over the (possibly unsaved) textarea content
-      const raw = (request.body && request.body.paths) || "";
-      const pathsArray = Util.splitLines(raw);
-      sendResponse({
-        type: MESSAGE_TYPES.MENU_PREVIEW,
-        body: Menus.buildTree(pathsArray),
-      });
-      break;
+// MV3: entry.background calls this synchronously at startup so a worker woken BY
+// an incoming message still has the handlers attached.
+export const registerMessaging = () => {
+  browser.runtime.onMessageExternal.addListener((request, sender, sendResponse) => {
+    switch (request.type) {
+      case MESSAGE_TYPES.PING:
+        Messaging.handlePing(request, sender, sendResponse);
+        break;
+      case MESSAGE_TYPES.GET_SCHEMA:
+        Messaging.handleGetSchema(request, sender, sendResponse);
+        break;
+      case MESSAGE_TYPES.VALIDATE:
+        Messaging.handleValidate(request, sender, sendResponse);
+        break;
+      case MESSAGE_TYPES.DOWNLOAD:
+        Messaging.handleDownloadMessage(request, sender, sendResponse);
+        break;
+      default:
+        // Unknown type on the external API: give callers typed feedback rather
+        // than silence so they can detect a version/contract mismatch (also the
+        // path for APPLY_CONFIG, which is deliberately internal-only)
+        sendResponse({
+          type: request.type,
+          body: {
+            status: MESSAGE_TYPES.ERROR,
+            error: Messaging.API_ERRORS.UNKNOWN_TYPE,
+            version: Messaging.API_VERSION,
+          },
+        });
+        break;
     }
-    case MESSAGE_TYPES.CHECK_ROUTES:
-      // async: interpolation + checkRoutes now await Variable.applyVariables.
-      // Returning true keeps the message channel open for the late sendResponse.
-      Messaging.handleCheckRoutes(request, sendResponse);
-      return true;
-    case MESSAGE_TYPES.PING:
-      Messaging.handlePing(request, sender, sendResponse);
-      break;
-    case MESSAGE_TYPES.GET_SCHEMA:
-      Messaging.handleGetSchema(request, sender, sendResponse);
-      break;
-    case MESSAGE_TYPES.VALIDATE:
-      Messaging.handleValidate(request, sender, sendResponse);
-      break;
-    case MESSAGE_TYPES.APPLY_CONFIG:
-      // async (awaits storage.set) — keep the channel open
-      Messaging.handleApplyConfig(request, sender, sendResponse);
-      return true;
-    case MESSAGE_TYPES.DOWNLOAD:
-      Messaging.handleDownloadMessage(request, sender, sendResponse);
-      break;
-    default:
-      break; // noop
-  }
-});
+  });
+
+  browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    switch (request.type) {
+      case MESSAGE_TYPES.WAKE_WARM:
+        // Sent by content scripts on combo keydown purely to wake the MV3
+        // service worker before a click-to-save message arrives
+        sendResponse({ type: MESSAGE_TYPES.OK });
+        break;
+      case MESSAGE_TYPES.OPTIONS_LOADED:
+        // Sent by the options page after saving: reload options and menus.
+        // MV3 has no getBackgroundPage, so this goes over messaging instead.
+        window.reset();
+        sendResponse({ type: MESSAGE_TYPES.OK });
+        break;
+      case MESSAGE_TYPES.OPTIONS:
+        sendResponse({
+          type: MESSAGE_TYPES.OPTIONS,
+          body: options,
+        });
+        break;
+      case MESSAGE_TYPES.OPTIONS_SCHEMA:
+        sendResponse({
+          type: MESSAGE_TYPES.OPTIONS_SCHEMA,
+          body: {
+            keys: OptionsManagement.OPTION_KEYS,
+            types: OptionsManagement.OPTION_TYPES,
+          },
+        });
+        break;
+      case MESSAGE_TYPES.GET_KEYWORDS:
+        sendResponse({
+          type: MESSAGE_TYPES.KEYWORD_LIST,
+          body: {
+            matchers: Object.keys(Router.matcherFunctions),
+            variables: Object.keys(Variable.transformers),
+          },
+        });
+        break;
+      case MESSAGE_TYPES.PREVIEW_MENUS: {
+        // Live menu-tree preview for the options page: runs the pure
+        // Menus.buildTree over the (possibly unsaved) textarea content
+        const raw = (request.body && request.body.paths) || "";
+        const pathsArray = Util.splitLines(raw);
+        sendResponse({
+          type: MESSAGE_TYPES.MENU_PREVIEW,
+          body: Menus.buildTree(pathsArray),
+        });
+        break;
+      }
+      case MESSAGE_TYPES.CHECK_ROUTES:
+        // async: interpolation + checkRoutes now await Variable.applyVariables.
+        // Returning true keeps the message channel open for the late sendResponse.
+        Messaging.handleCheckRoutes(request, sendResponse);
+        return true;
+      case MESSAGE_TYPES.PING:
+        Messaging.handlePing(request, sender, sendResponse);
+        break;
+      case MESSAGE_TYPES.GET_SCHEMA:
+        Messaging.handleGetSchema(request, sender, sendResponse);
+        break;
+      case MESSAGE_TYPES.VALIDATE:
+        Messaging.handleValidate(request, sender, sendResponse);
+        break;
+      case MESSAGE_TYPES.APPLY_CONFIG:
+        // async (awaits storage.set) — keep the channel open
+        Messaging.handleApplyConfig(request, sender, sendResponse);
+        return true;
+      case MESSAGE_TYPES.DOWNLOAD:
+        Messaging.handleDownloadMessage(request, sender, sendResponse);
+        break;
+      default:
+        break; // noop
+    }
+  });
+};

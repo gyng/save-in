@@ -422,12 +422,15 @@ export const Notifier = {
   },
 };
 
-// MV3: register at load so a worker woken BY a download event still handles
-// it (guards exist only for the partial test mocks)
-if (browser.downloads && browser.downloads.onCreated && browser.downloads.onChanged) {
-  browser.downloads.onCreated.addListener(Notifier.onDownloadCreated);
-  browser.downloads.onChanged.addListener(Notifier.onDownloadChanged);
-}
-if (browser.notifications && browser.notifications.onClicked) {
-  browser.notifications.onClicked.addListener(Notifier.onNotificationClicked);
-}
+// MV3: entry.background calls this synchronously at startup so a worker woken BY
+// a download event still has the handler attached (guards exist only for the
+// partial test mocks).
+export const registerNotifier = () => {
+  if (browser.downloads && browser.downloads.onCreated && browser.downloads.onChanged) {
+    browser.downloads.onCreated.addListener(Notifier.onDownloadCreated);
+    browser.downloads.onChanged.addListener(Notifier.onDownloadChanged);
+  }
+  if (browser.notifications && browser.notifications.onClicked) {
+    browser.notifications.onClicked.addListener(Notifier.onNotificationClicked);
+  }
+};

@@ -65,7 +65,10 @@ import { RequestHeaders } from "./headers.ts";
 import { Variable } from "./variable.ts";
 import { Menus } from "./menu-build.ts";
 import { OptionsManagement, options } from "./option.ts";
-import { Messaging } from "./messaging.ts";
+import { Messaging, registerMessaging } from "./messaging.ts";
+import { registerNotifier } from "./notification.ts";
+import { registerDownloadListener } from "./download.ts";
+import { start } from "./index.ts";
 
 Object.assign(globalThis, {
   // constants
@@ -104,3 +107,13 @@ Object.assign(globalThis, {
   options,
   Messaging,
 });
+
+// Register the MV3 event listeners and run the background bootstrap
+// synchronously at startup. Listeners MUST attach synchronously or the service
+// worker / event page misses the very event that woke it (MV3 rule #1); the
+// modules are otherwise import-side-effect-free so tests can import them without
+// registering anything. Order mirrors the former import-eval order.
+registerNotifier();
+registerDownloadListener();
+registerMessaging();
+start();

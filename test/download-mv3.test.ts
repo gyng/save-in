@@ -6,13 +6,10 @@ import { Blob as NodeBlob } from "buffer";
 
 global.TextEncoder = global.TextEncoder || TextEncoder;
 
-// messaging.ts registers browser.runtime.onMessage(External) listeners at
-// eval time, unguarded; the recovery-path describe below swaps in a minimal
-// browser stub without those, which would throw on a real import — stub it
-// out file-wide (harmless to the other describes, which don't touch it).
-vi.mock("../src/messaging.ts", () => ({
-  Messaging: { emit: { downloaded: () => {} }, send: {} },
-}));
+// messaging.ts used to register its runtime listeners at eval, which forced a
+// vi.mock here so the recovery-path describe's minimal browser stub wouldn't
+// throw on import. Those side effects are now deferred to the entry (Task #2),
+// so messaging imports cleanly for real — no mock needed.
 
 import { Download } from "../src/download.ts";
 import { OffscreenClient } from "../src/offscreen-client.ts";
@@ -262,7 +259,10 @@ describe("onDeterminingFilename listener (Chrome)", () => {
       return Promise.resolve();
     });
 
-    await import("../src/download.ts");
+    // Side effects are deferred (Task #2): call registerDownloadListener() to
+    // attach onDeterminingFilename against the fresh chrome stub, then capture.
+    const { registerDownloadListener } = await import("../src/download.ts");
+    registerDownloadListener();
     [[listener]] = (global.chrome.downloads.onDeterminingFilename.addListener as any).mock.calls;
   });
 

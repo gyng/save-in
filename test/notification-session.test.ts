@@ -50,7 +50,8 @@ let options: any;
 let Log: any;
 
 const loadNotification = async () => {
-  Notifier = (await import("../src/notification.ts")).Notifier;
+  const mod = await import("../src/notification.ts");
+  Notifier = mod.Notifier;
   ({ options } = await import("../src/option.ts"));
   ({ Log } = await import("../src/log.ts"));
   // Reset the real options bag to empty; each test sets the fields it needs
@@ -58,6 +59,10 @@ const loadNotification = async () => {
   // Log is defensive (typeof Log !== "undefined"); spy it so its calls are
   // assertable and it never writes to the session store
   vi.spyOn(Log, "add").mockImplementation(() => Promise.resolve());
+  // Side effects are deferred (Task #2): notification.ts no longer registers the
+  // download/notification listeners at import — the entry does, so register them
+  // here against the browser stubs setupGlobals installed above.
+  mod.registerNotifier();
   return Notifier;
 };
 
@@ -215,7 +220,7 @@ describe("download lifecycle notifications", () => {
     sessionStore = {};
     setupGlobals(sessionStore, () => [{ id: 7, fileSize: 2048, mime: "image/png" }]);
 
-    // Imported for its side effect: registers the download listeners
+    // loadNotification() registers the download listeners via registerNotifier
     await loadNotification();
     Object.assign(options, {
       notifyOnSuccess: true,

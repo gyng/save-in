@@ -31,12 +31,6 @@ import { getFilenameFromContentDispositionHeader } from "../src/vendor/content-d
 // reads CURRENT_BROWSER at call time, so the live-binding reassignment takes
 // effect for the next handler call.
 
-// messaging.ts registers runtime.onMessage* listeners and pulls in the whole
-// menu graph at load; the download flow only needs emit.downloaded, so stub it.
-vi.mock("../src/messaging.ts", () => ({
-  Messaging: { emit: { downloaded: vi.fn() } },
-}));
-
 // content-disposition exports a bare function (not a method that can be spied),
 // so the filename it returns is controlled through this mock.
 vi.mock("../src/vendor/content-disposition.ts", () => ({
@@ -63,7 +57,7 @@ global.browser = {
 
 // Importing download.ts loads the rest of the (real) cyclic module graph;
 // grab the same singleton instances it binds to.
-const { Download } = await import("../src/download.ts");
+const { Download, registerDownloadListener } = await import("../src/download.ts");
 const { options } = await import("../src/option.ts");
 const { Router } = await import("../src/router.ts");
 const { Variable } = await import("../src/variable.ts");
@@ -76,6 +70,10 @@ const { Messaging } = await import("../src/messaging.ts");
 // getBrowserInfo, so its load-time detection settled on Chrome.
 const { setCurrentBrowser } = await import("../src/chrome-detector.ts");
 
+// Import-time side effects are deferred (Task #2): download.ts no longer
+// registers onDeterminingFilename at load — the entry does, so call it here to
+// attach the listener against the chrome.downloads stub, then capture it.
+registerDownloadListener();
 const [[capturedListener]] = vi.mocked(
   (global.chrome as any).downloads.onDeterminingFilename.addListener,
 ).mock.calls;
@@ -905,7 +903,11 @@ describe("concurrent downloads (pendingStates)", () => {
 
     // A fresh module graph (real deps at their defaults): filenamePatterns "" so
     // nothing routes, conflictAction "uniquify", and the identity-ish real Path.
-    Download = (await import("../src/download.ts")).Download;
+    // Side effects are deferred (Task #2): register onDeterminingFilename from
+    // this fresh instance before capturing it.
+    const dl = await import("../src/download.ts");
+    Download = dl.Download;
+    dl.registerDownloadListener();
     [[listener]] = vi.mocked(
       (global.chrome as any).downloads.onDeterminingFilename.addListener,
     ).mock.calls;

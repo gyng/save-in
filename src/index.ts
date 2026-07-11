@@ -63,12 +63,6 @@ window.init = () => {
     });
 };
 
-// Event listeners must be registered synchronously on startup, or MV3
-// service workers/event pages will not wake up for the events they missed.
-Menus.addDownloadListener();
-Menus.addTabMenuListener();
-Menus.addTabHighlightListener();
-
 window.reset = () => {
   // Serialize: overlapping inits interleave removeAll() with another
   // generation's create() calls, producing duplicate-id errors and
@@ -77,30 +71,39 @@ window.reset = () => {
   return window.ready;
 };
 
-window.ready = window.init();
+// MV3: entry.background calls this synchronously at startup. Event listeners
+// must be registered synchronously, or MV3 service workers/event pages will not
+// wake up for the events they missed.
+export const start = () => {
+  Menus.addDownloadListener();
+  Menus.addTabMenuListener();
+  Menus.addTabHighlightListener();
 
-browser.tabs
-  .query({ active: true, currentWindow: true })
-  .then((tabs) => {
-    if (!currentTab && tabs && tabs.length > 0) {
-      setCurrentTab(tabs[0]);
-    }
-  })
-  .catch(() => {});
+  window.ready = window.init();
 
-browser.tabs.onActivated.addListener((info) => {
-  browser.tabs.get(info.tabId).then((t) => {
-    setCurrentTab(t);
-  });
-});
+  browser.tabs
+    .query({ active: true, currentWindow: true })
+    .then((tabs) => {
+      if (!currentTab && tabs && tabs.length > 0) {
+        setCurrentTab(tabs[0]);
+      }
+    })
+    .catch(() => {});
 
-browser.tabs.onUpdated.addListener((tabId, changeInfo) => {
-  if (!currentTab) {
-    browser.tabs.get(tabId).then((t) => {
+  browser.tabs.onActivated.addListener((info) => {
+    browser.tabs.get(info.tabId).then((t) => {
       setCurrentTab(t);
     });
-  } else if (currentTab.id === tabId && changeInfo.title) {
-    // Mutating a property of the shared tab object (not reassigning the binding)
-    currentTab.title = changeInfo.title;
-  }
-});
+  });
+
+  browser.tabs.onUpdated.addListener((tabId, changeInfo) => {
+    if (!currentTab) {
+      browser.tabs.get(tabId).then((t) => {
+        setCurrentTab(t);
+      });
+    } else if (currentTab.id === tabId && changeInfo.title) {
+      // Mutating a property of the shared tab object (not reassigning the binding)
+      currentTab.title = changeInfo.title;
+    }
+  });
+};

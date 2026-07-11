@@ -582,69 +582,73 @@ export const Download = {
   },
 };
 
-if (chrome && chrome.downloads && chrome.downloads.onDeterminingFilename) {
-  chrome.downloads.onDeterminingFilename.addListener((downloadItem, suggest) => {
-    // Don't interfere with other extensions
-    if (!browser.runtime || browser.runtime.id !== downloadItem.byExtensionId) {
-      return false;
-    }
+// MV3 (Chrome): entry.background calls this synchronously at startup so the
+// onDeterminingFilename listener is attached before any download event fires.
+export const registerDownloadListener = () => {
+  if (chrome && chrome.downloads && chrome.downloads.onDeterminingFilename) {
+    chrome.downloads.onDeterminingFilename.addListener((downloadItem, suggest) => {
+      // Don't interfere with other extensions
+      if (!browser.runtime || browser.runtime.id !== downloadItem.byExtensionId) {
+        return false;
+      }
 
-    // Fetch-fallback retries carry their finalized filename directly; the
-    // pending-state fallback below would suggest an unrelated download's name
-    const retryFilename = Download.pendingRetryFilenames.get(downloadItem.url);
-    if (retryFilename) {
-      Download.pendingRetryFilenames.delete(downloadItem.url);
+      // Fetch-fallback retries carry their finalized filename directly; the
+      // pending-state fallback below would suggest an unrelated download's name
+      const retryFilename = Download.pendingRetryFilenames.get(downloadItem.url);
+      if (retryFilename) {
+        Download.pendingRetryFilenames.delete(downloadItem.url);
+        suggest({
+          filename: retryFilename,
+          conflictAction: options.conflictAction,
+        });
+        return false;
+      }
+
+      // Correlate by URL so overlapping downloads each get their own state;
+      // the most-recent state is the fallback for uncorrelatable items
+      const pendingState =
+        Download.pendingStates.get(downloadItem.url) ||
+        Download.pendingStates.get(downloadItem.finalUrl) ||
+        globalChromeState;
+      Download.pendingStates.delete(downloadItem.url);
+      Download.pendingStates.delete(downloadItem.finalUrl);
+
+      // In-memory state is lost if the MV3 service worker restarted between
+      // requesting the download and this event: recover the persisted filename,
+      // keyed by download URL so overlapping downloads each get their own name
+      if (!pendingState || !pendingState.path) {
+        SessionState.get("siFinalFilenames").then((res) => {
+          const map = res.siFinalFilenames || {};
+          const recovered = map[downloadItem.url] || map[downloadItem.finalUrl];
+          if (recovered) {
+            SessionState.update("siFinalFilenames", (m) => {
+              const copy = Object.assign({}, m);
+              delete copy[downloadItem.url];
+              delete copy[downloadItem.finalUrl];
+              return copy;
+            });
+            suggest({
+              filename: recovered,
+              conflictAction: options.conflictAction,
+            });
+          } else {
+            suggest();
+          }
+        });
+        return true; // suggest is called asynchronously
+      }
+
+      pendingState.info = pendingState.info || {};
+      pendingState.info.filename =
+        (pendingState.info && pendingState.info.suggestedFilename) ||
+        downloadItem.filename ||
+        (pendingState.info && pendingState.info.filename);
+
       suggest({
-        filename: retryFilename,
+        filename: Download.finalizeFullPath(pendingState),
         conflictAction: options.conflictAction,
       });
       return false;
-    }
-
-    // Correlate by URL so overlapping downloads each get their own state;
-    // the most-recent state is the fallback for uncorrelatable items
-    const pendingState =
-      Download.pendingStates.get(downloadItem.url) ||
-      Download.pendingStates.get(downloadItem.finalUrl) ||
-      globalChromeState;
-    Download.pendingStates.delete(downloadItem.url);
-    Download.pendingStates.delete(downloadItem.finalUrl);
-
-    // In-memory state is lost if the MV3 service worker restarted between
-    // requesting the download and this event: recover the persisted filename,
-    // keyed by download URL so overlapping downloads each get their own name
-    if (!pendingState || !pendingState.path) {
-      SessionState.get("siFinalFilenames").then((res) => {
-        const map = res.siFinalFilenames || {};
-        const recovered = map[downloadItem.url] || map[downloadItem.finalUrl];
-        if (recovered) {
-          SessionState.update("siFinalFilenames", (m) => {
-            const copy = Object.assign({}, m);
-            delete copy[downloadItem.url];
-            delete copy[downloadItem.finalUrl];
-            return copy;
-          });
-          suggest({
-            filename: recovered,
-            conflictAction: options.conflictAction,
-          });
-        } else {
-          suggest();
-        }
-      });
-      return true; // suggest is called asynchronously
-    }
-
-    pendingState.info = pendingState.info || {};
-    pendingState.info.filename =
-      (pendingState.info && pendingState.info.suggestedFilename) ||
-      downloadItem.filename ||
-      (pendingState.info && pendingState.info.filename);
-
-    suggest({
-      filename: Download.finalizeFullPath(pendingState),
-      conflictAction: options.conflictAction,
     });
-    return false;
-  });
-}
+  }
+};
