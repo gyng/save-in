@@ -43,21 +43,21 @@ export const SPECIAL_DIRS = {
   SHA256: ":sha256:",
   FINAL_URL: ":finalurl:",
   REDIRECT_URL: ":redirecturl:",
-};
+} as const;
 
 export const SHORTCUT_TYPES = {
   HTML_REDIRECT: "HTML_REDIRECT",
   MAC: "MAC",
   FREEDESKTOP: "FREEDESKTOP",
   WINDOWS: "WINDOWS",
-};
+} as const;
 
 export const SHORTCUT_EXTENSIONS = {
   [SHORTCUT_TYPES.HTML_REDIRECT]: ".html",
   [SHORTCUT_TYPES.MAC]: ".url",
   [SHORTCUT_TYPES.FREEDESKTOP]: ".desktop",
   [SHORTCUT_TYPES.WINDOWS]: ".url",
-};
+} as const;
 
 export const DOWNLOAD_TYPES = {
   UNKNOWN: "UNKNOWN",
@@ -67,19 +67,19 @@ export const DOWNLOAD_TYPES = {
   PAGE: "PAGE",
   CLICK: "CLICK",
   TAB: "TAB",
-};
+} as const;
 
 export const CONFLICT_ACTION = {
   UNIQUIFY: "uniquify",
   OVERWRITE: "overwrite",
   PROMPT: "prompt",
-};
+} as const;
 
 export const RULE_TYPES = {
   MATCHER: "MATCHER",
   CAPTURE: "CAPTURE",
   DESTINATION: "DESTINATION",
-};
+} as const;
 
 export const MESSAGE_TYPES = {
   OPTIONS: "OPTIONS",
@@ -109,13 +109,13 @@ export const MESSAGE_TYPES = {
   KEYWORD_LIST: "KEYWORD_LIST",
   PREVIEW_MENUS: "PREVIEW_MENUS",
   MENU_PREVIEW: "MENU_PREVIEW",
-};
+} as const;
 
 export const PATH_SEGMENT_TYPES = {
   STRING: "STRING",
   VARIABLE: "VARIABLE",
   SEPARATOR: "SEPARATOR",
-};
+} as const;
 
 export const CLICK_TYPES = {
   LEFT_CLICK: "LEFT_CLICK",
@@ -123,7 +123,16 @@ export const CLICK_TYPES = {
   MIDDLE_CLICK: "MIDDLE_CLICK",
   BACK_CLICK: "BACK_CLICK",
   FORWARD_CLICK: "FORWARD_CLICK",
-};
+} as const;
+
+export type SpecialDirectory = (typeof SPECIAL_DIRS)[keyof typeof SPECIAL_DIRS];
+export type ShortcutType = (typeof SHORTCUT_TYPES)[keyof typeof SHORTCUT_TYPES];
+export type DownloadType = (typeof DOWNLOAD_TYPES)[keyof typeof DOWNLOAD_TYPES];
+export type ConflictAction = (typeof CONFLICT_ACTION)[keyof typeof CONFLICT_ACTION];
+export type RuleType = (typeof RULE_TYPES)[keyof typeof RULE_TYPES];
+export type MessageType = (typeof MESSAGE_TYPES)[keyof typeof MESSAGE_TYPES];
+export type PathSegmentType = (typeof PATH_SEGMENT_TYPES)[keyof typeof PATH_SEGMENT_TYPES];
+export type ClickType = (typeof CLICK_TYPES)[keyof typeof CLICK_TYPES];
 
 // Characters invalid in a filename/path segment (Windows as the lowest common
 // denominator). One source of truth for Path's sanitizer and option.js's

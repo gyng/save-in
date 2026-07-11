@@ -1,6 +1,7 @@
 import { webExtensionApi } from "./web-extension-api.ts";
 
 import { RULE_TYPES } from "./constants.ts";
+import type { RuleType } from "./constants.ts";
 import { EXTENSION_REGEX, getFilenameFromUrl } from "./filename.ts";
 import { currentTab } from "./current-tab.ts";
 import type { DownloadInfo } from "./download-types.ts";
@@ -20,7 +21,7 @@ export type MatcherFactory = (regex: RegExp) => RuleMatcher;
 export type RuleClause = {
   name: string;
   value: string | RegExp;
-  type: string;
+  type: RuleType;
   matcher?: RuleMatcher;
 };
 export type RoutingRule = RuleClause[];
@@ -218,7 +219,7 @@ export const Router: RouterApi = {
         return false;
       }
 
-      let type = RULE_TYPES.MATCHER;
+      let type: RuleType = RULE_TYPES.MATCHER;
 
       // Special matchers
       if (name === "into") {

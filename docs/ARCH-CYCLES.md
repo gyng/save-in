@@ -104,6 +104,8 @@ testable once tests are on real imports.
     DOM-free functions directly.
   - ✅ `HistoryView` namespace removed; history formatting, row projection,
     columns, and pagination are named exports.
+  - ✅ Shared constant maps are `as const` and export their value unions;
+    routing clauses now carry `RuleType` instead of an unconstrained string.
 - **TS-native organization/structure** — the structural axis: group files by
   layer/feature (src/platform, src/core, src/download, src/routing, src/menus,
   src/messaging — reflecting the post-cut layering), modernize tsconfig

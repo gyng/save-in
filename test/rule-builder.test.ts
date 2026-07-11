@@ -29,11 +29,11 @@ describe("RULE_TEMPLATES", () => {
       if (!intoLine) {
         throw new Error("Template has no into rule");
       }
-      const known = Object.values(constants.SPECIAL_DIRS);
+      const known = new Set<string>(Object.values(constants.SPECIAL_DIRS));
       const tokens = intoLine.match(/:[a-z$][a-z0-9$]*:/gi) || [];
       tokens.forEach((token) => {
         const isCapture = /^:\$\d+:$/.test(token);
-        expect(isCapture || known.includes(token)).toBe(true);
+        expect(isCapture || known.has(token)).toBe(true);
       });
     });
 
