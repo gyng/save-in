@@ -95,7 +95,12 @@ export const createManualEditorState = (unsavedLabel: string) => {
 
   const refreshBaselines = () => {
     editors.forEach((editor) => {
+      // A restore/import is authoritative and must invalidate any Apply that
+      // started against the previous value, even when no input event fired.
+      editor.revision += 1;
       editor.saved = editor.textarea.value;
+      editor.saving = false;
+      editor.saveStatus.hidden = true;
       editor.sync();
     });
   };

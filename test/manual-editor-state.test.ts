@@ -144,6 +144,24 @@ describe("manual editor state", () => {
     expect(document.querySelector<HTMLElement>(".editor-save-status")!.hidden).toBe(true);
   });
 
+  test("an externally restored baseline supersedes an in-flight save", () => {
+    const state = createManualEditorState("Unsaved changes");
+    state.setup("paths");
+    const textarea = document.querySelector("textarea")!;
+    textarea.value = "submitted";
+    textarea.dispatchEvent(new InputEvent("input"));
+    const revision = state.revision("paths");
+    state.setSaving("paths", true, "Saving…");
+
+    textarea.value = "imported";
+    state.refreshBaselines();
+
+    expect(state.markSaved("paths", "Saved", "submitted", revision)).toBe(false);
+    expect(textarea.value).toBe("imported");
+    expect(state.anyDirty()).toBe(false);
+    expect(document.querySelector<HTMLElement>(".editor-save-status")!.hidden).toBe(true);
+  });
+
   test("reports whether an editor can currently be saved", () => {
     const state = createManualEditorState("Unsaved changes");
     state.setup("paths");
