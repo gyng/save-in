@@ -17,7 +17,13 @@ export type WebExtensionCapabilities = {
 // Mutable cross-file state: reassigned only in this module (by the detection
 // block below and `setCurrentBrowser`); other modules import a read-only live
 // binding and read it at call time.
-export let WEB_EXTENSION_CAPABILITIES: WebExtensionCapabilities | undefined;
+export let WEB_EXTENSION_CAPABILITIES: WebExtensionCapabilities = {
+  tabContextMenus: false,
+  accessKeys: true,
+  downloadFilenameSuggestion: false,
+  downloadDeltaFilename: false,
+  conflictActionPrompt: false,
+};
 export let CURRENT_BROWSER = BROWSERS.UNKNOWN;
 export let CURRENT_BROWSER_VERSION: number | undefined;
 
