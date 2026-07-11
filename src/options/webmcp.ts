@@ -52,6 +52,21 @@ const firstUnknownProperty = (
   return field ? { field, message: "Unknown property" } : null;
 };
 
+const NO_PROPERTIES = new Set<string>();
+const VALIDATE_PROPERTIES = new Set(["paths", "filenamePatterns", "info"]);
+const APPLY_PROPERTIES = new Set(["config"]);
+const DOWNLOAD_PROPERTIES = new Set(["url", "pageUrl", "comment"]);
+const TRACE_STRING_FIELDS = [
+  "srcUrl",
+  "url",
+  "sourceUrl",
+  "linkUrl",
+  "pageUrl",
+  "filename",
+  "initialFilename",
+  "comment",
+];
+
 // EXPERIMENTAL — WebMCP (Chrome origin trial, https://developer.chrome.com/docs/ai/webmcp).
 // Registers save-in's config + download tools on this page's document so an
 // in-browser AI agent can discover and call them. It wraps the same messaging
@@ -75,7 +90,10 @@ export const SaveInWebMCP = {
       description: "List Save In's configurable options (name, type, default, description).",
       inputSchema: { type: "object", properties: {}, additionalProperties: false },
       annotations: { readOnlyHint: true, untrustedContentHint: false },
-      execute: () => send({ type: "GET_SCHEMA" }),
+      execute: (input: WebMcpInput) => {
+        const unknown = firstUnknownProperty(input, NO_PROPERTIES);
+        return unknown ? inputError(unknown.field, unknown.message) : send({ type: "GET_SCHEMA" });
+      },
     },
     {
       name: "save_in_list_vocabulary",
@@ -83,7 +101,12 @@ export const SaveInWebMCP = {
         "List the :variables: (e.g. :sourcedomain:, :date:, :counter: — used in paths and filenames) and the clause matchers (fileext, filename, pageurl, into, capture, ... — used in Dynamic Downloads routing rules). Returns { variables, matchers }. Call this to translate a plain-language request into the config syntax.",
       inputSchema: { type: "object", properties: {}, additionalProperties: false },
       annotations: { readOnlyHint: true, untrustedContentHint: false },
-      execute: () => send({ type: "GET_KEYWORDS" }),
+      execute: (input: WebMcpInput) => {
+        const unknown = firstUnknownProperty(input, NO_PROPERTIES);
+        return unknown
+          ? inputError(unknown.field, unknown.message)
+          : send({ type: "GET_KEYWORDS" });
+      },
     },
     {
       name: "save_in_validate_config",
@@ -115,7 +138,7 @@ export const SaveInWebMCP = {
       annotations: { readOnlyHint: true, untrustedContentHint: true },
       execute: (input: WebMcpInput) => {
         const error =
-          firstUnknownProperty(input, new Set(["paths", "filenamePatterns", "info"])) ||
+          firstUnknownProperty(input, VALIDATE_PROPERTIES) ||
           firstInvalidOptionalString(input, ["paths", "filenamePatterns"]);
         if (error) return inputError(error.field, error.message);
         if (
@@ -124,6 +147,13 @@ export const SaveInWebMCP = {
           (typeof input.info !== "object" || input.info === null || Array.isArray(input.info))
         ) {
           return inputError("info", "Expected an object");
+        }
+        if (input?.info) {
+          const infoError = firstInvalidOptionalString(
+            input.info as Record<string, unknown>,
+            TRACE_STRING_FIELDS,
+          );
+          if (infoError) return inputError(`info.${infoError.field}`, infoError.message);
         }
         return send({ type: "VALIDATE", body: input || {} });
       },
@@ -145,7 +175,7 @@ export const SaveInWebMCP = {
       },
       annotations: { readOnlyHint: false, untrustedContentHint: false },
       execute: (input: WebMcpInput) => {
-        const unknown = firstUnknownProperty(input, new Set(["config"]));
+        const unknown = firstUnknownProperty(input, APPLY_PROPERTIES);
         if (unknown) return inputError(unknown.field, unknown.message);
         if (
           !input ||
@@ -173,7 +203,7 @@ export const SaveInWebMCP = {
       },
       annotations: { readOnlyHint: false, untrustedContentHint: true },
       execute: (input: WebMcpInput) => {
-        const unknown = firstUnknownProperty(input, new Set(["url", "pageUrl", "comment"]));
+        const unknown = firstUnknownProperty(input, DOWNLOAD_PROPERTIES);
         if (unknown) return inputError(unknown.field, unknown.message);
         if (!input || typeof input.url !== "string" || input.url.trim() === "") {
           return inputError("url", "Expected a non-empty string");

@@ -74,9 +74,26 @@ describe("buildTools", () => {
   test("rejects malformed tool input before messaging the background", async () => {
     const { send, byName } = toolsByName();
 
+    await expect(byName.save_in_get_schema.execute({ surprise: true })).resolves.toEqual({
+      status: "ERROR",
+      errors: [{ field: "surprise", message: "Unknown property" }],
+    });
+    await expect(byName.save_in_list_vocabulary.execute({ surprise: true })).resolves.toEqual({
+      status: "ERROR",
+      errors: [{ field: "surprise", message: "Unknown property" }],
+    });
     await expect(byName.save_in_validate_config.execute({ paths: false })).resolves.toEqual({
       status: "ERROR",
       errors: [{ field: "paths", message: "Expected a string" }],
+    });
+    await expect(
+      byName.save_in_validate_config.execute({
+        filenamePatterns: "filename: .*\ninto: test/:filename:",
+        info: { filename: 42 },
+      }),
+    ).resolves.toEqual({
+      status: "ERROR",
+      errors: [{ field: "info.filename", message: "Expected a string" }],
     });
     await expect(byName.save_in_apply_config.execute({ config: [] })).resolves.toEqual({
       status: "ERROR",
@@ -93,6 +110,10 @@ describe("buildTools", () => {
       errors: [{ field: "destination", message: "Unknown property" }],
     });
     expect(send).not.toHaveBeenCalled();
+
+    await expect(
+      byName.save_in_validate_config.execute({ info: { surprise: true } }),
+    ).resolves.toEqual({ ok: "VALIDATE" });
   });
 
   test("register reports successful registrations and isolates failures", async () => {
