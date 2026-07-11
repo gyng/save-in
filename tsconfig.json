@@ -12,7 +12,7 @@
     "allowImportingTsExtensions": true,
     "lib": ["es2022", "dom"],
     "types": ["firefox-webext-browser", "chrome", "node", "vitest/globals"],
-    "strict": false,
+    "strict": true,
     "skipLibCheck": true
   },
   "include": ["src/**/*.js", "src/**/*.ts", "test/**/*.ts", "types/**/*.d.ts"],

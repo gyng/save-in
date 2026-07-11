@@ -90,9 +90,9 @@ testable once tests are on real imports.
   contentPromise-for-`:sha256:`) → DOWNLOAD (the `downloads.download` call +
   bookkeeping) stages, converting the closures to methods that take an explicit
   plan param. Best done after Cuts 2–3 slim download's surface. (Task #61.)
-- **`strict: true` sweep** — `noImplicitAny` → `strictNullChecks` → full strict,
-  replacing the deliberately-loose `any`s the migration used. Per-flag, not all
-  at once; layering (the cuts) first makes the types cleaner. (Task #60.)
+- **`strict: true` sweep — DONE** — completed through staged `noImplicitAny`,
+  `strictNullChecks`, and full-strict passes after the dependency cuts. (Task
+  #60.)
 - **TS-native pass** (do LAST) — the migration is a *straight* conversion that
   keeps the classic namespace-object idiom + loose types. Make it idiomatic:
   discriminated-union message protocol, `SaveInOptions` from OPTION_KEYS, real
