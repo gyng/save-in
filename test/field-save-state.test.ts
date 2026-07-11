@@ -22,4 +22,14 @@ describe("per-field save state", () => {
     state.fail("a", current);
     expect(state.status("a")).toBe("failed");
   });
+
+  test("reports whether any field save is currently in flight", () => {
+    const state = createFieldSaveState();
+    state.markDirty("a");
+    expect(state.anySaving()).toBe(false);
+    const token = state.begin("a");
+    expect(state.anySaving()).toBe(true);
+    state.succeed("a", token);
+    expect(state.anySaving()).toBe(false);
+  });
 });

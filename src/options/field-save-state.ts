@@ -22,6 +22,7 @@ export const createFieldSaveState = () => {
     succeed: (id: string, token: number) => settle(id, token),
     fail: (id: string, token: number) => settle(id, token, "failed"),
     hasUnsaved: () => fields.size > 0,
+    anySaving: () => [...fields.values()].some((field) => field.status === "saving"),
     unsavedIds: () => [...fields.keys()],
     status: (id: string) => fields.get(id)?.status,
   };
