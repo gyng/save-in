@@ -4,11 +4,19 @@ import type { DownloadProgress, HistoryEntry, HistorySort } from "../history-typ
 // History panel controller for the options page. Owns the history table's
 // view state (sort/filter/page) and its DOM rendering + live download-progress
 // polling; the pure, data-in/data-out logic (row flattening, sort/filter/
-// paginate, byte + progress formatting) lives in history-view.js (HistoryView).
+// paginate, byte + progress formatting) lives in history-view.ts.
 // A classic script sharing the options page's global scope, like the other
 // options/*.js files. Loaded after history-view.js.
 
-import { HistoryView } from "./history-view.ts";
+import {
+  formatBytes,
+  formatHistoryTime,
+  HISTORY_COLUMNS,
+  paginateHistory,
+  progressCell,
+  statusClass,
+  statusLabel,
+} from "./history-view.ts";
 
 const HISTORY_KEY = "save-in-history";
 
@@ -67,7 +75,7 @@ const pollHistoryProgress = () => {
         const item = byId[Number(cell.getAttribute("data-download-id"))];
         if (item && item.state === "in_progress") {
           anyInProgress = true;
-          const { label, title } = HistoryView.progressCell(item);
+          const { label, title } = progressCell(item);
           cell.textContent = label;
           cell.setAttribute("title", title);
         } else if (item) {
@@ -104,7 +112,7 @@ const renderHistoryTable = () => {
   }
 
   const query = historyFilter.trim().toLowerCase();
-  const { pageRows, matchCount, total, pageCount, page } = HistoryView.paginate(historyEntries, {
+  const { pageRows, matchCount, total, pageCount, page } = paginateHistory(historyEntries, {
     filter: historyFilter,
     sort: historySort,
     page: historyPage,
@@ -130,7 +138,7 @@ const renderHistoryTable = () => {
   table.className = "history-table";
 
   const head = document.createElement("tr");
-  HistoryView.COLUMNS.forEach((col) => {
+  HISTORY_COLUMNS.forEach((col) => {
     const th = document.createElement("th");
     th.textContent = col.label;
     if (col.width) {
@@ -161,14 +169,14 @@ const renderHistoryTable = () => {
 
     const time = document.createElement("td");
     time.className = "history-time";
-    time.textContent = HistoryView.time(r.time);
+    time.textContent = formatHistoryTime(r.time);
     tr.appendChild(time);
 
     const status = document.createElement("td");
     status.className = "history-status";
     const badge = document.createElement("span");
-    badge.className = `status-badge ${HistoryView.statusClass(r.status)}`;
-    badge.textContent = HistoryView.statusLabel(r.status);
+    badge.className = `status-badge ${statusClass(r.status)}`;
+    badge.textContent = statusLabel(r.status);
     badge.title = r.status;
     status.appendChild(badge);
     // Open the file's folder for completed downloads the browser still knows
@@ -191,7 +199,7 @@ const renderHistoryTable = () => {
       size.setAttribute("data-download-id", String(r.downloadId));
       size.textContent = "…";
     } else if (r.size != null) {
-      size.textContent = HistoryView.formatBytes(r.size);
+      size.textContent = formatBytes(r.size);
     }
     tr.appendChild(size);
 

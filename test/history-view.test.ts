@@ -1,39 +1,51 @@
 // Pure history-table helpers extracted from options.js (history-view.js).
-import { HistoryView } from "../src/options/history-view.ts";
+import {
+  formatBytes,
+  formatHistoryTime,
+  historyFilename,
+  historyFolder,
+  historyRow,
+  historyStatus,
+  historyType,
+  paginateHistory,
+  progressCell,
+  statusClass,
+  statusLabel,
+} from "../src/options/history-view.ts";
 
 test("missing legacy timestamps render as blank", () => {
-  expect(HistoryView.time()).toBe("");
+  expect(formatHistoryTime()).toBe("");
 });
 
-describe("HistoryView flatteners", () => {
+describe("history row flatteners", () => {
   test("filename / folder split a full path", () => {
-    expect(HistoryView.filename("a/b/c.png")).toBe("c.png");
-    expect(HistoryView.filename("")).toBe("(unnamed)");
-    expect(HistoryView.folder("a/b/c.png")).toBe("a/b");
-    expect(HistoryView.folder("c.png")).toBe(".");
-    expect(HistoryView.folder("")).toBe("");
+    expect(historyFilename("a/b/c.png")).toBe("c.png");
+    expect(historyFilename("")).toBe("(unnamed)");
+    expect(historyFolder("a/b/c.png")).toBe("a/b");
+    expect(historyFolder("c.png")).toBe(".");
+    expect(historyFolder("")).toBe("");
   });
 
   test("type maps media->image and lowercases, defaults empty", () => {
-    expect(HistoryView.type({ info: { context: "MEDIA" } })).toBe("image");
-    expect(HistoryView.type({ info: { context: "LINK" } })).toBe("link");
-    expect(HistoryView.type({})).toBe("");
+    expect(historyType({ info: { context: "MEDIA" } })).toBe("image");
+    expect(historyType({ info: { context: "LINK" } })).toBe("link");
+    expect(historyType({})).toBe("");
     // legacy entries kept the whole state
-    expect(HistoryView.type({ state: { info: { context: "PAGE" } } })).toBe("page");
+    expect(historyType({ state: { info: { context: "PAGE" } } })).toBe("page");
   });
 
   test("status defaults legacy entries to complete; labels/classes", () => {
-    expect(HistoryView.status({})).toBe("complete");
-    expect(HistoryView.statusLabel("complete")).toBe("Saved");
-    expect(HistoryView.statusLabel("pending")).toBe("Saving…");
-    expect(HistoryView.statusLabel("NETWORK_FAILED")).toBe("network failed");
-    expect(HistoryView.statusClass("complete")).toBe("status-ok");
-    expect(HistoryView.statusClass("pending")).toBe("status-pending");
-    expect(HistoryView.statusClass("SERVER_FORBIDDEN")).toBe("status-fail");
+    expect(historyStatus({})).toBe("complete");
+    expect(statusLabel("complete")).toBe("Saved");
+    expect(statusLabel("pending")).toBe("Saving…");
+    expect(statusLabel("NETWORK_FAILED")).toBe("network failed");
+    expect(statusClass("complete")).toBe("status-ok");
+    expect(statusClass("pending")).toBe("status-pending");
+    expect(statusClass("SERVER_FORBIDDEN")).toBe("status-fail");
   });
 
   test("row flattens an entry to its table fields", () => {
-    const row = HistoryView.row({
+    const row = historyRow({
       timestamp: "2024-01-01T00:00:00Z",
       finalFullPath: "cats/kitten.png",
       routed: true,
@@ -54,34 +66,34 @@ describe("HistoryView flatteners", () => {
   });
 
   test("formatBytes uses SI units", () => {
-    expect(HistoryView.formatBytes(null)).toBe("");
-    expect(HistoryView.formatBytes(-1)).toBe("");
-    expect(HistoryView.formatBytes(512)).toBe("512 B");
-    expect(HistoryView.formatBytes(1500)).toBe("1.5 KB");
-    expect(HistoryView.formatBytes(2_500_000)).toBe("2.5 MB");
-    expect(HistoryView.formatBytes(3_000_000_000)).toBe("3.00 GB");
+    expect(formatBytes(null)).toBe("");
+    expect(formatBytes(-1)).toBe("");
+    expect(formatBytes(512)).toBe("512 B");
+    expect(formatBytes(1500)).toBe("1.5 KB");
+    expect(formatBytes(2_500_000)).toBe("2.5 MB");
+    expect(formatBytes(3_000_000_000)).toBe("3.00 GB");
   });
 
   test("progressCell shows a percentage when the total is known", () => {
-    expect(HistoryView.progressCell({ bytesReceived: 512_000, totalBytes: 1_000_000 })).toEqual({
+    expect(progressCell({ bytesReceived: 512_000, totalBytes: 1_000_000 })).toEqual({
       label: "51%",
       title: "512.0 KB / 1.0 MB",
     });
   });
 
   test("progressCell falls back to the running byte count without a total", () => {
-    expect(HistoryView.progressCell({ bytesReceived: 1500, totalBytes: 0 })).toEqual({
+    expect(progressCell({ bytesReceived: 1500, totalBytes: 0 })).toEqual({
       label: "1.5 KB",
       title: "",
     });
   });
 
   test("progressCell tolerates a missing item", () => {
-    expect(HistoryView.progressCell(undefined)).toEqual({ label: "0 B", title: "" });
+    expect(progressCell(undefined)).toEqual({ label: "0 B", title: "" });
   });
 });
 
-describe("HistoryView.paginate", () => {
+describe("paginateHistory", () => {
   const entries = [
     {
       timestamp: "2024-01-03",
@@ -103,38 +115,36 @@ describe("HistoryView.paginate", () => {
   ];
 
   test("returns all rows and total for an empty filter", () => {
-    const { pageRows, matchCount, total } = HistoryView.paginate(entries, {});
+    const { pageRows, matchCount, total } = paginateHistory(entries, {});
     expect(total).toBe(3);
     expect(matchCount).toBe(3);
     expect(pageRows).toHaveLength(3);
   });
 
   test("filters on file/folder/type/status/source substrings", () => {
-    expect(HistoryView.paginate(entries, { filter: "one" }).matchCount).toBe(1); // file
-    expect(HistoryView.paginate(entries, { filter: "photos" }).matchCount).toBe(2); // folder
-    expect(HistoryView.paginate(entries, { filter: "failed" }).matchCount).toBe(1); // status
-    expect(HistoryView.paginate(entries, { filter: "nope" }).matchCount).toBe(0);
+    expect(paginateHistory(entries, { filter: "one" }).matchCount).toBe(1); // file
+    expect(paginateHistory(entries, { filter: "photos" }).matchCount).toBe(2); // folder
+    expect(paginateHistory(entries, { filter: "failed" }).matchCount).toBe(1); // status
+    expect(paginateHistory(entries, { filter: "nope" }).matchCount).toBe(0);
   });
 
   test("sorts by the given key/direction", () => {
-    const asc = HistoryView.paginate(entries, { sort: { key: "file", dir: "asc" } });
+    const asc = paginateHistory(entries, { sort: { key: "file", dir: "asc" } });
     expect(asc.pageRows.map((r) => r.file)).toEqual(["one.png", "three.png", "two.txt"]);
-    const desc = HistoryView.paginate(entries, { sort: { key: "file", dir: "desc" } });
+    const desc = paginateHistory(entries, { sort: { key: "file", dir: "desc" } });
     expect(desc.pageRows.map((r) => r.file)).toEqual(["two.txt", "three.png", "one.png"]);
   });
 
   test("sorting by a numeric column does not throw (size)", () => {
-    expect(() =>
-      HistoryView.paginate(entries, { sort: { key: "size", dir: "asc" } }),
-    ).not.toThrow();
+    expect(() => paginateHistory(entries, { sort: { key: "size", dir: "asc" } })).not.toThrow();
   });
 
   test("paginates and clamps an out-of-range page", () => {
-    const first = HistoryView.paginate(entries, { pageSize: 2, page: 0 });
+    const first = paginateHistory(entries, { pageSize: 2, page: 0 });
     expect(first.pageRows).toHaveLength(2);
     expect(first.pageCount).toBe(2);
 
-    const clamped = HistoryView.paginate(entries, { pageSize: 2, page: 99 });
+    const clamped = paginateHistory(entries, { pageSize: 2, page: 99 });
     expect(clamped.page).toBe(1);
     expect(clamped.pageRows).toHaveLength(1);
   });

@@ -102,6 +102,8 @@ testable once tests are on real imports.
     functional exports imported directly by their consumers.
   - ✅ `OptionsLogic` namespace removed; options-page code imports its two
     DOM-free functions directly.
+  - ✅ `HistoryView` namespace removed; history formatting, row projection,
+    columns, and pagination are named exports.
 - **TS-native organization/structure** — the structural axis: group files by
   layer/feature (src/platform, src/core, src/download, src/routing, src/menus,
   src/messaging — reflecting the post-cut layering), modernize tsconfig
