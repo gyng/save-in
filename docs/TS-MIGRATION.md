@@ -87,11 +87,20 @@ imports) so the handlers attach before `index` calls them. Keep `index` last.
   `VAR=val` (npm runs scripts via CMD).
 - `tsconfig` now includes `src/**/*.ts`.
 
-## Status / COLD-RESUME POINT
+## Status: ✅ DONE — merged to `mv3`
 
-Work happens on branch **`ts-migration`** (off `mv3`). `mv3` stays green +
-shippable at 4.0.0 the whole time; nothing merges to it until the full gate is
-green on both browsers.
+The migration is complete and merged (fast-forward) to `mv3`. Final gate all
+green: `tsc --noEmit` 0 (src + test), `vitest` 742/742, `lint` 0, bundled Chrome
+22/22 + Firefox 10/10. All source is ESM/TS; all 33 test files are typed
+`.test.ts`; the shipped build is the rolldown bundle. What REMAINS is the
+`docs/ARCH-CYCLES.md` backlog (cut the SCC, strict sweep, TS-native, singletons,
+remove the test-side globalThis bridge) — none blocking; 4.0.0 is shippable.
+
+The section below is the historical resume-point from during the migration.
+
+## Status / COLD-RESUME POINT (historical)
+
+Work happened on branch **`ts-migration`** (off `mv3`).
 
 ### Done + committed (on `ts-migration`)
 - **`c748dec`** Phase 1: `content.ts` (iife); `build`/`lint`/`e2e:*` switched to
