@@ -9,7 +9,7 @@ describe("webExtensionApi", () => {
   });
 
   test("selects chrome when the native browser namespace is absent", async () => {
-    delete globalThis.browser;
+    Reflect.deleteProperty(globalThis, "browser");
     const chromeApi = { runtime: { id: "chrome" } };
     globalThis.chrome = chromeApi as any;
 
@@ -30,8 +30,8 @@ describe("webExtensionApi", () => {
   });
 
   test("is undefined outside a WebExtension host", async () => {
-    delete globalThis.browser;
-    delete globalThis.chrome;
+    Reflect.deleteProperty(globalThis, "browser");
+    Reflect.deleteProperty(globalThis, "chrome");
 
     const { webExtensionApi } = await import("../src/web-extension-api.ts");
 
