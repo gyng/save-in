@@ -1035,6 +1035,8 @@ input.key {
 
 .option-search {
   position: relative;
+  box-sizing: border-box;
+  width: 100%;
   max-width: var(--content-max-width);
   margin: 0 auto var(--space-3);
   z-index: 20;
