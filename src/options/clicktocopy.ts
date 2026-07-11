@@ -1,5 +1,5 @@
-export const addClickToCopy = (el) => {
-  let clicked;
+export const addClickToCopy = (el: HTMLElement): void => {
+  let clicked: HTMLElement | null = null;
 
   el.title = `Click to copy ${el.textContent} to clipboard`; // eslint-disable-line
 
@@ -15,10 +15,10 @@ export const addClickToCopy = (el) => {
 
     e.preventDefault();
     if (e.clipboardData) {
-      e.clipboardData.setData("text/plain", el.textContent);
+      e.clipboardData.setData("text/plain", el.textContent ?? "");
       clicked = null;
     }
   });
 };
 
-document.querySelectorAll(".click-to-copy").forEach(addClickToCopy);
+document.querySelectorAll<HTMLElement>(".click-to-copy").forEach(addClickToCopy);
