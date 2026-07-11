@@ -27,7 +27,7 @@ describe("variables", () => {
     test("interpolates :date:", async () => {
       const input = new Path.Path(":date:/a/b");
       const output = (await Variable.applyVariables(input, info)).finalize();
-      expect(output.startsWith(info.now.getFullYear()));
+      expect(output.startsWith(String(info.now.getFullYear())));
       expect(output.split("-")).toHaveLength(3);
     });
 
@@ -42,7 +42,7 @@ describe("variables", () => {
       const now = new Date();
       const input = new Path.Path(":isodate:");
       const output = (await Variable.applyVariables(input, info)).finalize();
-      expect(output.startsWith(now.getUTCFullYear()));
+      expect(output.startsWith(String(now.getUTCFullYear())));
     });
 
     test("interpolates :pagedomain:", async () => {
@@ -79,35 +79,35 @@ describe("variables", () => {
       const now = new Date();
       const input = new Path.Path(":year:");
       const output = (await Variable.applyVariables(input, info)).finalize();
-      expect(output.startsWith(now.getFullYear()));
+      expect(output.startsWith(String(now.getFullYear())));
     });
 
     test("interpolates :month:", async () => {
       const now = new Date();
       const input = new Path.Path(":month:");
       const output = (await Variable.applyVariables(input, info)).finalize();
-      expect(output.startsWith(now.getMonth() + 1));
+      expect(output.startsWith(String(now.getMonth() + 1)));
     });
 
     test("interpolates :day:", async () => {
       const now = new Date();
       const input = new Path.Path(":day:");
       const output = (await Variable.applyVariables(input, info)).finalize();
-      expect(output.startsWith(now.getDay()));
+      expect(output.startsWith(String(now.getDay())));
     });
 
     test("interpolates :hour:", async () => {
       const now = new Date();
       const input = new Path.Path(":hour:");
       const output = (await Variable.applyVariables(input, info)).finalize();
-      expect(output.startsWith(now.getDay()));
+      expect(output.startsWith(String(now.getDay())));
     });
 
     test("interpolates :minute:", async () => {
       const now = new Date();
       const input = new Path.Path(":minute");
       const output = (await Variable.applyVariables(input, info)).finalize();
-      expect(output.startsWith(now.getMinutes()));
+      expect(output.startsWith(String(now.getMinutes())));
     });
 
     test("interpolates :selectiontext:", async () => {
@@ -318,7 +318,7 @@ describe("variables", () => {
 });
 
 describe("date-name variables (:weekday:, :monthname:, :ampm:, :isoweek:)", () => {
-  const interpolate = async (variable, now) => {
+  const interpolate = async (variable: string, now: Date) => {
     const input = new Path.Path(variable);
     return (await Variable.applyVariables(input, { now })).finalize();
   };
@@ -351,7 +351,7 @@ describe("date-name variables (:weekday:, :monthname:, :ampm:, :isoweek:)", () =
 });
 
 describe("page-title slug variables", () => {
-  const interpolate = async (variable, title) => {
+  const interpolate = async (variable: string, title: string) => {
     const input = new Path.Path(variable);
     return (
       await Variable.applyVariables(input, {
@@ -381,7 +381,7 @@ describe("page-title slug variables", () => {
 });
 
 describe("URL-part variables", () => {
-  const interpolate = async (variable, url) => {
+  const interpolate = async (variable: string, url: string) => {
     const input = new Path.Path(variable);
     return (await Variable.applyVariables(input, { now: new Date(), url })).finalize();
   };
@@ -449,10 +449,10 @@ describe(":uuid:", () => {
 });
 
 describe(":mime: / :contenttype: / :mimeext: (async HEAD)", () => {
-  const mockHead = (contentType) => {
+  const mockHead = (contentType: string) => {
     global.fetch = vi.fn(() =>
       Promise.resolve({
-        headers: { get: (h) => (h === "Content-Type" ? contentType : null) },
+        headers: { get: (h: string) => (h === "Content-Type" ? contentType : null) },
       }),
     ) as any;
   };
@@ -535,13 +535,13 @@ describe(":sha256: (async content hash)", () => {
   // resolveContent (jsdom takes the in-context branch: fetch -> blob ->
   // arrayBuffer -> digest -> createObjectURL). Stub createObjectURL so the fake
   // blob is accepted; the test only asserts the hash, not the URL.
-  let origCreateObjectURL;
-  const mockBody = (text, extraHeaders = {}) => {
+  let origCreateObjectURL: typeof URL.createObjectURL;
+  const mockBody = (text: string, extraHeaders: Record<string, string> = {}) => {
     const buf = new TextEncoder().encode(text).buffer;
     global.fetch = vi.fn(() =>
       Promise.resolve({
         ok: true,
-        headers: { get: (h) => extraHeaders[h] ?? null },
+        headers: { get: (h: string) => extraHeaders[h] ?? null },
         blob: () =>
           Promise.resolve({ size: buf.byteLength, arrayBuffer: () => Promise.resolve(buf) }),
       }),
@@ -590,7 +590,7 @@ describe(":sha256: (async content hash)", () => {
       Promise.resolve({
         ok: true,
         headers: {
-          get: (h) => (h === "Content-Length" ? String(HASH_MAX_BYTES + 1) : null),
+          get: (h: string) => (h === "Content-Length" ? String(HASH_MAX_BYTES + 1) : null),
         },
         blob: () =>
           Promise.resolve({ size: 0, arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)) }),
