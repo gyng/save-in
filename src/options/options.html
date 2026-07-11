@@ -25,16 +25,17 @@
         ></a>
         <span class="nav-sep">&middot;</span>
         <a class="open-settings-in-window" href="options.html" target="_blank">__MSG_o_lPopout__</a>
-        &middot;
-        <a href="variablelist.html" target="_blank">__MSG_o_lVariableList__</a>
-        &middot;
-        <a href="clauselist.html" target="_blank">__MSG_o_lClauseList__</a>
-        &middot;
-        <a class="external" href="https://github.com/gyng/save-in/">__MSG_o_lGithub__</a>
-        &middot;
-        <a class="external" href="https://github.com/gyng/save-in/blob/master/CHANGELOG.md"
-          >__MSG_o_lChangelog__</a
-        >
+        <details class="nav-resources">
+          <summary>__MSG_o_lHelpResources__</summary>
+          <div class="nav-resources-menu">
+            <a href="variablelist.html" target="_blank">__MSG_o_lVariableList__</a>
+            <a href="clauselist.html" target="_blank">__MSG_o_lClauseList__</a>
+            <a class="external" href="https://github.com/gyng/save-in/">__MSG_o_lGithub__</a>
+            <a class="external" href="https://github.com/gyng/save-in/blob/master/CHANGELOG.md"
+              >__MSG_o_lChangelog__</a
+            >
+          </div>
+        </details>
       </div>
       <div class="save-status caption">
         <span>__MSG_o_cLastSavedAt__</span>
@@ -103,24 +104,35 @@
       <div class="paths-editor">
         <div class="column">
           <div class="editor-tabs">
-            <button type="button" class="editor-tab active" id="paths-mode-text">
+            <button
+              type="button"
+              class="editor-tab active"
+              id="paths-mode-text"
+              aria-pressed="true"
+            >
               __MSG_o_lEditorModeText__
             </button>
-            <button type="button" class="editor-tab" id="paths-mode-visual">
+            <button type="button" class="editor-tab" id="paths-mode-visual" aria-pressed="false">
               __MSG_o_sVisualEditor__
             </button>
           </div>
 
+          <label class="editor-field-label" for="paths">Directory menu definitions</label>
           <textarea
             required
-            type="textarea"
             id="paths"
             data-manual="true"
             rows="10"
             placeholder="."
             spellcheck="false"
+            aria-describedby="error-paths paths-text-help"
           ></textarea>
-          <div class="error-notification" id="error-paths">path errors</div>
+          <div
+            class="error-notification"
+            id="error-paths"
+            aria-live="polite"
+            aria-atomic="true"
+          ></div>
 
           <div class="editor-actions" id="paths-text-actions">
             <details class="insert-menu" id="paths-insert-menu" data-insert-target="paths">
@@ -165,7 +177,7 @@
                 download directory, add the line <code>i/cats</code>.
               </p>
 
-              <div class="demo-box" style="margin-top: 12px; align-items: flex-start">
+              <div class="demo-box guide-demo-box">
                 <div class="demo-code left">
                   <pre class="click-to-copy">
     .
@@ -205,7 +217,7 @@
 
                 <div class="demo-arrow">➡</div>
 
-                <pre class="demo-pic" style="background-image: url(i/menu-items.png)"></pre>
+                <pre class="demo-pic menu-items-demo"></pre>
               </div>
 
               <h4>Comments and aliases</h4>
@@ -279,8 +291,10 @@
 
       <h3>__MSG_o_sBehavior__</h3>
 
-      <label>
-        <input type="checkbox" id="links" />__MSG_o_cSaveLinks__
+      <fieldset class="option-group">
+        <legend>
+          <label><input type="checkbox" id="links" />__MSG_o_cSaveLinks__</label>
+        </legend>
         <div class="caption caption-line">
           <label> <input type="checkbox" id="preferLinks" />__MSG_o_cPreferLinks__ </label>
         </div>
@@ -297,8 +311,7 @@
             <summary>__MSG_o_cPreferLinksFilter__</summary>
             <div></div>
             <textarea
-              style="width: 100%"
-              type="textarea"
+              class="full-width"
               id="preferLinksFilter"
               rows="3"
               placeholder=""
@@ -307,7 +320,7 @@
             <div class="caption">__MSG_o_cPreferLinksFilterHelp__</div>
           </details>
         </div>
-      </label>
+      </fieldset>
 
       <label> <input type="checkbox" id="selection" />__MSG_o_cSaveText__ </label>
 
@@ -316,14 +329,25 @@
         <div class="caption caption-line">__MSG_o_cSavePageHelp__</div>
       </label>
 
-      <label>
-        <input type="checkbox" id="tabEnabled" class="chrome-disabled" />__MSG_o_cSaveTabstrip__
-        <span class="badge">Firefox</span>
+      <fieldset class="option-group">
+        <legend>
+          <label>
+            <input
+              type="checkbox"
+              id="tabEnabled"
+              class="tab-context-required"
+              aria-describedby="tab-context-requirement"
+            />__MSG_o_cSaveTabstrip__
+            <span class="warning badge chrome-tab-context-badge" id="tab-context-requirement" hidden
+              >Chrome 150+</span
+            >
+          </label>
+        </legend>
         <div class="caption-line">
           <label> <input type="checkbox" id="closeTabOnSave" />__MSG_o_cCloseTabOnSave__ </label>
           <div class="caption">__MSG_o_cSaveTabstripHelp__</div>
         </div>
-      </label>
+      </fieldset>
 
       <label> <input type="checkbox" id="prompt" />__MSG_o_cOpenDialog__ </label>
 
@@ -344,8 +368,8 @@
 
       <hr />
 
-      <label class="column wide-column">
-        <h2>__MSG_o_sDynamicDownloads__</h2>
+      <div class="column wide-column">
+        <h2 id="section-dynamic-downloads">__MSG_o_sDynamicDownloads__</h2>
 
         <h3>__MSG_o_sRenameAndRouteDownloads__</h3>
 
@@ -449,15 +473,22 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
 
         <div class="rules-editor">
           <div class="rules-editor-main">
+            <div class="editor-field-label" id="rules-text-label">Text rules</div>
             <textarea
-              type="textarea"
               id="filenamePatterns"
               data-manual="true"
               rows="7"
               placeholder="Optional"
               spellcheck="false"
+              aria-labelledby="rules-text-label"
+              aria-describedby="error-filenamePatterns"
             ></textarea>
-            <div class="error-notification" id="error-filenamePatterns">errors</div>
+            <div
+              class="error-notification"
+              id="error-filenamePatterns"
+              aria-live="polite"
+              aria-atomic="true"
+            ></div>
 
             <div class="editor-actions">
               <details
@@ -489,25 +520,33 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
               </button>
             </div>
 
-            <div class="rule-builder">
-              <div class="caption">__MSG_o_lRuleBuilder__</div>
+            <div class="rule-builder" role="group" aria-labelledby="rule-builder-label">
+              <div class="editor-field-label" id="rule-builder-label">__MSG_o_lRuleBuilder__</div>
               <div class="rule-builder-row">
-                <select id="rule-builder-matcher"></select>
-                <input
-                  type="text"
-                  id="rule-builder-pattern"
-                  placeholder=".*\.jpg"
-                  spellcheck="false"
-                />
+                <label>
+                  <span>Matcher</span>
+                  <select id="rule-builder-matcher"></select>
+                </label>
+                <label>
+                  <span>Pattern</span>
+                  <input
+                    type="text"
+                    id="rule-builder-pattern"
+                    placeholder=".*\.jpg"
+                    spellcheck="false"
+                  />
+                </label>
               </div>
               <div class="rule-builder-row">
-                <span class="rule-builder-into-label">into:</span>
-                <input
-                  type="text"
-                  id="rule-builder-into"
-                  placeholder="images/:pagedomain:/:filename:"
-                  spellcheck="false"
-                />
+                <label>
+                  <span class="rule-builder-into-label">Destination (into:)</span>
+                  <input
+                    type="text"
+                    id="rule-builder-into"
+                    placeholder="images/:pagedomain:/:filename:"
+                    spellcheck="false"
+                  />
+                </label>
                 <button type="button" class="apply-button" id="rule-builder-add" disabled>
                   Add
                 </button>
@@ -545,58 +584,31 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
         </div>
 
         <div class="last-download-row">
-          <div
-            class="info-row"
-            style="
-              display: flex;
-              flex-direction: column;
-              flex: 1;
-              align-items: baseline;
-              max-width: 100%;
-              overflow: hidden;
-              padding-right: 8px;
-            "
-          >
-            <table style="margin: 0; padding: 0; max-width: 100%">
-              <tbody style="margin: 0; padding: 0; vertical-align: baseline">
+          <div class="info-row last-download-info">
+            <table class="last-download-table">
+              <tbody>
                 <tr>
-                  <td div style="font-weight: 600; padding: 0; text-align: left; min-width: 110px">
-                    __MSG_o_lRoutingLastDownload__
-                  </td>
-                  <td
-                    style="
-                      font-family: monospace;
-                      text-overflow: hidden;
-                      overflow: hidden;
-                      white-space: nowrap;
-                      max-width: 80%;
-                    "
-                    id="last-dl-url"
-                  >
+                  <th scope="row" class="last-download-label">__MSG_o_lRoutingLastDownload__</th>
+                  <td class="last-download-url" id="last-dl-url">
                     __MSG_o_lRoutingLastDownloadEmpty__
                   </td>
                 </tr>
                 <tr id="rules-applied-row">
-                  <td style="font-weight: 600; padding: 0; text-align: left">
-                    __MSG_o_lRoutingRenamedTo__
-                  </td>
-                  <td style="font-family: monospace; word-break: break-all" id="last-dl-match">
+                  <th scope="row" class="last-download-label">__MSG_o_lRoutingRenamedTo__</th>
+                  <td class="last-download-value" id="last-dl-match">
                     __MSG_o_lRoutingNoMatches__
                   </td>
                 </tr>
                 <tr class="hide" id="capture-group-rows">
-                  <td style="font-weight: 600; padding: 0">__MSG_o_lRoutingCaptureGroups__</td>
-                  <td
-                    style="font-family: monospace; word-break: break-all"
-                    id="last-dl-capture"
-                  ></td>
+                  <th scope="row" class="last-download-label">__MSG_o_lRoutingCaptureGroups__</th>
+                  <td class="last-download-value" id="last-dl-capture"></td>
                 </tr>
                 <tr class="hide" id="variables-table-row">
-                  <td style="font-weight: 600; padding: 0">__MSG_o_lRoutingVariables__</td>
+                  <th scope="row" class="last-download-label">__MSG_o_lRoutingVariables__</th>
                   <td>
-                    <div class="button" id="see-variables-btn">
+                    <button type="button" class="button" id="see-variables-btn">
                       __MSG_o_lRoutingVariablesClickToSee__
-                    </div>
+                    </button>
                     <table id="variables-table">
                       <tbody class="hide" id="variables-body"></tbody>
                     </table>
@@ -607,7 +619,7 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
           </div>
         </div>
         <div class="caption caption-line">__MSG_o_lRoutingLastDownloadHelp__</div>
-      </label>
+      </div>
 
       <label>
         <input type="checkbox" id="routeFailurePrompt" />
@@ -671,8 +683,15 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
         <input
           type="checkbox"
           id="shortcutTab"
-          class="chrome-disabled"
-        />__MSG_o_cSaveShortcutsTabsInstead__ <span class="badge">Firefox</span>
+          class="tab-context-required"
+          aria-describedby="shortcut-tab-context-requirement"
+        />__MSG_o_cSaveShortcutsTabsInstead__
+        <span
+          class="warning badge chrome-tab-context-badge"
+          id="shortcut-tab-context-requirement"
+          hidden
+          >Chrome 150+</span
+        >
       </label>
 
       <hr />
@@ -746,7 +765,7 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
       <details class="history-raw">
         <summary>__MSG_o_lHistoryRaw__</summary>
         <textarea
-          style="width: 100%; min-height: 320px"
+          class="full-width history-raw-text"
           id="history"
           spellcheck="false"
           readonly
@@ -765,12 +784,7 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
 
       <label>
         __MSG_o_cReplaceInvalidCharsWith__
-        <input
-          type="text"
-          id="replacementChar"
-          placeholder="delete"
-          style="font-family: monospace"
-        />
+        <input type="text" id="replacementChar" placeholder="delete" class="mono-input" />
         <div class="caption caption-line">__MSG_o_cReplaceInvalidCharsWithHelp__</div>
       </label>
 
@@ -799,8 +813,7 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
         <div class="caption-line">
           <div>__MSG_o_cSetRefererHeaderFilter__</div>
           <textarea
-            style="width: 100%"
-            type="textarea"
+            class="full-width"
             id="setRefererHeaderFilter"
             rows="3"
             placeholder=""
@@ -830,15 +843,17 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
       </div>
 
       <h3>Backup &amp; reset</h3>
-      <div style="display: flex; align-items: center">
-        <div id="settings-import" class="button">__MSG_o_cImportSettings__</div>
-        <div style="margin-left: 8px" id="settings-export" class="button">
+      <div class="settings-transfer-actions">
+        <button type="button" id="settings-import" class="button">__MSG_o_cImportSettings__</button>
+        <button type="button" id="settings-export" class="button settings-export-button">
           __MSG_o_cExportSettings__
-        </div>
-        <div style="margin-left: 24px" id="reset" class="button">__MSG_o_cRestoreDefaults__</div>
+        </button>
+        <button type="button" id="reset" class="button settings-reset-button">
+          __MSG_o_cRestoreDefaults__
+        </button>
       </div>
 
-      <textarea id="export-target" style="display: none" spellcheck="false"></textarea>
+      <textarea id="export-target" hidden spellcheck="false"></textarea>
 
       <h3>External API</h3>
       <p class="caption caption-line">
@@ -902,18 +917,17 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
       <h3>Diagnostics</h3>
       <label> <input type="checkbox" id="debug" /> __MSG_o_cDebugMode__ </label>
 
-      <div style="display: flex; width: 100%">
-        <details style="flex: 1">
+      <div class="diagnostics-row">
+        <details class="diagnostics-details">
           <summary>Debug log</summary>
           <textarea
-            style="width: 100%; min-height: 200px"
-            type="textarea"
+            class="full-width debug-log-text"
             id="debug-log"
             spellcheck="false"
             readonly
           ></textarea>
-          <div id="debug-log-refresh" class="button">Refresh log</div>
-          <div id="debug-log-clear" class="button">Clear log</div>
+          <button type="button" id="debug-log-refresh" class="button">Refresh log</button>
+          <button type="button" id="debug-log-clear" class="button">Clear log</button>
         </details>
       </div>
 

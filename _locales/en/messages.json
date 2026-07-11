@@ -234,7 +234,7 @@
   },
 
   "o_sMoreOptions": {
-    "message": "More Options"
+    "message": "Advanced"
   },
 
   "o_sHistory": {
@@ -348,6 +348,10 @@
 
   "o_lChangelog": {
     "message": "Changelog"
+  },
+
+  "o_lHelpResources": {
+    "message": "Help & resources"
   },
 
   "o_lGuideCreateMenuItems": {
@@ -608,7 +612,7 @@
   },
 
   "o_cKeyboardShortcutModifierHelp": {
-    "message": "Hold this key while clicking the chosen mouse button to save. Type a key name (Alt, Ctrl…) or a raw keyCode, or leave it blank to save with the button alone. Takes effect after you refresh open pages."
+    "message": "Hold this key while clicking the chosen mouse button to save. Type a key name (Alt, Ctrl…) or a raw keyCode, or leave it blank to save with the button alone. Changes apply to existing pages."
   },
 
   "o_cRestoreDefaults": {
@@ -684,7 +688,7 @@
   },
 
   "o_cLastSavedAt": {
-    "message": "Last saved at: "
+    "message": "Settings synced at: "
   },
 
   "o_cLastSavedAtNever": {
@@ -692,8 +696,13 @@
   },
 
   "optionsUnsavedChanges": {
-    "message": "You have unsaved changes. OK to save them, or Cancel to discard.",
+    "message": "You have unsaved changes. OK to save them, or Cancel to keep editing.",
     "description": "Confirm prompt when leaving a tab with unsaved editor changes"
+  },
+
+  "optionsEditorUnsaved": {
+    "message": "Unsaved changes",
+    "description": "Status shown beside Apply and Discard for a modified manual editor"
   },
 
   "o_lSubdirectoryInstructionComment": {

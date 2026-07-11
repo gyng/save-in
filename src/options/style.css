@@ -44,12 +44,20 @@
   --magenta50: #ff1ad9;
   --purple50: #9400ff;
 
+  /* Semantic aliases: components depend on roles, while the legacy palette
+     remains available during incremental migration. */
+  --color-accent: var(--blue60);
+  --color-border: var(--grey30);
+  --color-surface-page: #ffffff;
+  --color-surface-raised: var(--grey20);
+  --color-text-muted: var(--grey50);
+
   --input-background: unset;
-  --link-color: var(--blue60);
+  --link-color: var(--color-accent);
   --link-color-active: var(--blue70);
-  --page-bg: #ffffff;
-  --panel-bg: var(--grey20);
-  --panel-border: var(--grey30);
+  --page-bg: var(--color-surface-page);
+  --panel-bg: var(--color-surface-raised);
+  --panel-border: var(--color-border);
   --hover-bg: rgba(0, 0, 0, 0.05);
   --chip-bg: rgba(0, 0, 0, 0.06);
   --error-bg: #fdecef;
@@ -59,6 +67,10 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
+    --color-border: var(--grey60);
+    --color-surface-page: #2a2a2e;
+    --color-surface-raised: var(--grey70);
+    --color-text-muted: var(--grey40);
     --page-bg: #2a2a2e;
     --panel-bg: var(--grey70);
     --panel-border: var(--grey60);
@@ -182,7 +194,7 @@ body:not(#settings-page) {
 }
 
 .save-status {
-  color: var(--grey50);
+  color: var(--color-text-muted);
   white-space: nowrap;
 }
 
@@ -207,6 +219,31 @@ body:not(#settings-page) {
 .nav-sep {
   margin-right: var(--space-1);
   color: var(--grey40);
+}
+
+.nav-resources {
+  position: relative;
+  display: inline-block;
+  margin-left: var(--space-2);
+}
+
+.nav-resources > summary {
+  color: var(--link-color);
+  cursor: pointer;
+}
+
+.nav-resources-menu {
+  position: absolute;
+  z-index: 20;
+  display: grid;
+  gap: var(--space-2);
+  min-width: 180px;
+  margin-top: var(--space-1);
+  padding: var(--space-3);
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
 }
 
 .code,
@@ -315,6 +352,23 @@ textarea {
   background-color: var(--input-background);
 }
 
+.editor-field-label {
+  display: block;
+  margin: 0.35rem 0;
+  font-weight: 600;
+}
+
+.rule-builder-row > label {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.rule-builder-row > label > span {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
 textarea {
   font-family: monospace;
   border-radius: 2px;
@@ -335,7 +389,6 @@ td {
 
 /* Standard button box; .apply-button is the primary variant, compact
    controls (.path-editor-control, .editor-tab) are deliberate exceptions */
-div.button,
 button {
   border-radius: var(--radius);
   padding: 8px;
@@ -348,12 +401,10 @@ button {
   cursor: pointer;
 }
 
-div.button:hover,
 button:hover {
   background-color: var(--grey30);
 }
 
-div.button:active,
 button:active {
   background-color: var(--grey40);
 }
@@ -586,6 +637,112 @@ label:has(> input[type="checkbox"]) > .caption-line {
   border-radius: 4px;
   font-weight: 700;
   background-color: var(--grey30);
+}
+
+fieldset.option-group {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+fieldset.option-group > legend {
+  padding: 0;
+}
+
+.editor-dirty-status {
+  margin-left: auto;
+  color: var(--error-fg);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.mono-input {
+  font-family: var(--font-mono);
+}
+
+.guide-demo-box {
+  align-items: flex-start;
+  margin-top: var(--space-3);
+}
+
+.menu-items-demo {
+  background-image: url(i/menu-items.png);
+}
+
+.last-download-info {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: baseline;
+  max-width: 100%;
+  padding-right: var(--space-2);
+  overflow: hidden;
+}
+
+.last-download-table {
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  border-spacing: 0;
+}
+
+.last-download-table tbody {
+  vertical-align: baseline;
+}
+
+.last-download-label {
+  min-width: 110px;
+  padding: 0;
+  font-weight: 600;
+  text-align: left;
+}
+
+.last-download-url,
+.last-download-value {
+  font-family: var(--font-mono);
+}
+
+.last-download-url {
+  max-width: 80%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.last-download-value {
+  word-break: break-all;
+}
+
+.history-raw-text {
+  min-height: 320px;
+}
+
+.settings-transfer-actions,
+.diagnostics-row {
+  display: flex;
+  width: 100%;
+  align-items: center;
+}
+
+.settings-export-button {
+  margin-left: var(--space-2);
+}
+
+.settings-reset-button {
+  margin-left: var(--space-5);
+}
+
+.diagnostics-details {
+  flex: 1;
+}
+
+.debug-log-text {
+  min-height: 200px;
 }
 
 .warning.badge {
@@ -1074,10 +1231,18 @@ summary {
 }
 
 #rule-builder-pattern {
-  flex: 1 1 140px;
+  width: 100%;
 }
 
 #rule-builder-into {
+  width: 100%;
+}
+
+.rule-builder-row > label:has(#rule-builder-pattern) {
+  flex: 1 1 140px;
+}
+
+.rule-builder-row > label:has(#rule-builder-into) {
   flex: 2 1 220px;
 }
 
@@ -1521,7 +1686,6 @@ select {
     border-color 0.12s ease;
 }
 
-div.button,
 button {
   border-radius: var(--radius);
   transition:
@@ -1938,4 +2102,45 @@ code.click-to-copy {
 .host-permission-grant {
   flex: none;
   cursor: pointer;
+}
+
+@media (max-width: 640px) {
+  .top-nav {
+    align-items: flex-start;
+    padding-inline: var(--space-3);
+  }
+
+  .save-status {
+    width: 100%;
+    white-space: normal;
+  }
+
+  .nav-resources-menu {
+    right: 0;
+    left: auto;
+    max-width: calc(100vw - 2 * var(--space-3));
+  }
+
+  #options {
+    padding-inline: var(--space-3);
+  }
+
+  .tablist {
+    width: calc(100% + 2 * var(--space-3));
+    margin-inline: calc(-1 * var(--space-3));
+    padding-inline: var(--space-3);
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+
+  .tablist .tab {
+    flex: 0 0 auto;
+  }
+
+  .editor-actions,
+  .path-editor-toolbar,
+  .section-actions {
+    flex-wrap: wrap;
+  }
 }

@@ -11,18 +11,16 @@ import {
 } from "../platform/chrome-detector.ts";
 import { COUNTER_KEY } from "../background/counter.ts";
 import { isStringKeyedRecord } from "../background/message-protocol.ts";
+import { createManualEditorState } from "./manual-editor-state.ts";
+import { createLatestOnly } from "./latest-only.ts";
+import { assertApplySucceeded } from "./options-save.ts";
 
 type JsonRecord = Record<string, any>;
 type OptionSchema = {
   keys: Array<JsonRecord & { name: string; type: string }>;
   types: { BOOL: string; VALUE: string };
 };
-type ValidationError = { message: string; error: string };
-type ManualEditor = {
-  textarea: HTMLTextAreaElement;
-  saved: string;
-  sync: () => void;
-};
+type ValidationError = { message: string; error: string; warning?: boolean };
 type MenuPreviewTree = {
   items: JsonRecord[];
   errors: Array<ValidationError & { parentId?: string }>;
@@ -30,11 +28,8 @@ type MenuPreviewTree = {
 
 const getOptionsSchema = webExtensionApi.runtime
   .sendMessage({ type: "OPTIONS_SCHEMA" })
-  .then((res) => {
-    console.log("options", res, CURRENT_BROWSER);
-    return res.body;
-  })
-  .catch(console.error);
+  .then((res) => res.body)
+  .catch(() => undefined);
 
 // Latest interpolated variables from the most recent CHECK_ROUTES; read by
 // the once-bound #see-variables-btn handler (see updateErrors)
@@ -158,6 +153,43 @@ const renderErrorRow = (err: ValidationError, textareaId: string) => {
 // Validate the (possibly unsaved) editor contents live and render both error
 // panels — VALIDATE dry-runs both grammars, so the panels track the menu
 // preview (which also validates live) instead of the last-saved state.
+const validationRequests = createLatestOnly(
+  (body: { paths: string; filenamePatterns: string }) =>
+    webExtensionApi.runtime.sendMessage({ type: "VALIDATE", body }),
+  (res: any) => {
+    const body = (res && res.body) || {};
+    const pathsErrors = document.querySelector("#error-paths");
+    const rulesErrors = document.querySelector("#error-filenamePatterns");
+    const updatePanel = (panel: Element, errors: ValidationError[], textareaId: string) => {
+      const signature = JSON.stringify(errors);
+      if (panel.getAttribute("data-validation-signature") === signature) return;
+      panel.setAttribute("data-validation-signature", signature);
+      panel.setAttribute(
+        "aria-label",
+        errors.length === 0
+          ? "No validation errors"
+          : `${errors.filter((error) => !error.warning).length} errors, ${errors.filter((error) => error.warning).length} warnings`,
+      );
+      panel.innerHTML = "";
+      errors.forEach((error) => panel.appendChild(renderErrorRow(error, textareaId)));
+    };
+    if (pathsErrors) {
+      updatePanel(pathsErrors, body.pathErrors || [], "#paths");
+      manualEditorState.setValidity(
+        "paths",
+        !(body.pathErrors || []).some((err: ValidationError) => !err.warning),
+      );
+    }
+    if (rulesErrors) {
+      updatePanel(rulesErrors, body.ruleErrors || [], "#filenamePatterns");
+      manualEditorState.setValidity(
+        "filenamePatterns",
+        !(body.ruleErrors || []).some((err: ValidationError) => !err.warning),
+      );
+    }
+  },
+);
+
 const renderValidationErrors = () => {
   const pathsTa = document.querySelector("#paths");
   const rulesTa = document.querySelector("#filenamePatterns");
@@ -167,28 +199,10 @@ const renderValidationErrors = () => {
     return;
   }
 
-  webExtensionApi.runtime
-    .sendMessage({
-      type: "VALIDATE",
-      body: {
-        paths: pathsTa instanceof HTMLTextAreaElement ? pathsTa.value : "",
-        filenamePatterns: rulesTa instanceof HTMLTextAreaElement ? rulesTa.value : "",
-      },
-    })
-    .then((res) => {
-      const body = (res && res.body) || {};
-      if (pathsErrors) {
-        pathsErrors.innerHTML = "";
-        (body.pathErrors || []).forEach((err: ValidationError) =>
-          pathsErrors.appendChild(renderErrorRow(err, "#paths")),
-        );
-      }
-      if (rulesErrors) {
-        rulesErrors.innerHTML = "";
-        (body.ruleErrors || []).forEach((err: ValidationError) =>
-          rulesErrors.appendChild(renderErrorRow(err, "#filenamePatterns")),
-        );
-      }
+  void validationRequests
+    .run({
+      paths: pathsTa instanceof HTMLTextAreaElement ? pathsTa.value : "",
+      filenamePatterns: rulesTa instanceof HTMLTextAreaElement ? rulesTa.value : "",
     })
     .catch(() => {}); // background not awake yet; the next edit retries
 };
@@ -474,14 +488,12 @@ webExtensionApi.runtime.onMessage.addListener((message) => {
   }
 });
 
-const saveOptions = (e?: Event) => {
+const saveOptions = (e?: Event): Promise<any> => {
   if (e) {
     e.preventDefault();
   }
-  pendingChanges = false;
-
   // Collect the raw form values, then let the background persist them.
-  getOptionsSchema.then((schema: OptionSchema) => {
+  return getOptionsSchema.then((schema: OptionSchema) => {
     const config = schema.keys.reduce<JsonRecord>((acc, val) => {
       const el = document.getElementById(val.name);
       if (!el) {
@@ -510,12 +522,17 @@ const saveOptions = (e?: Event) => {
     // (schema functions don't survive the OPTIONS_SCHEMA message, so the page
     // itself can't) and reloads options + menus. This is why saveOptions no
     // longer trims paths/filenamePatterns locally — the background does it.
-    webExtensionApi.runtime.sendMessage({ type: "APPLY_CONFIG", body: { config } }).then(() => {
-      const lastSavedAt = document.querySelector("#lastSavedAt");
-      if (lastSavedAt) {
-        lastSavedAt.textContent = new Date().toLocaleTimeString();
-      }
-    });
+    return webExtensionApi.runtime
+      .sendMessage({ type: "APPLY_CONFIG", body: { config } })
+      .then((response) => {
+        assertApplySucceeded(response);
+        pendingChanges = false;
+        const lastSavedAt = document.querySelector("#lastSavedAt");
+        if (lastSavedAt) {
+          lastSavedAt.textContent = new Date().toLocaleTimeString();
+        }
+        return response;
+      });
   });
 };
 
@@ -680,64 +697,35 @@ window.addEventListener("beforeunload", (e) => {
 // Apply button, not autosave: their Apply lights up while the editor value
 // differs from what is stored, and dims once applied. Every other control
 // still autosaves.
-const manualEditors: ManualEditor[] = [];
-
-const setupManualEditor = (id: string) => {
-  const textarea = document.querySelector(`#${id}`) as HTMLTextAreaElement;
-  const buttons = [...document.querySelectorAll(`[data-apply="${id}"], [data-discard="${id}"]`)];
-  if (!textarea || buttons.length === 0) {
-    return;
-  }
-
-  const editor: ManualEditor = { textarea, saved: textarea.value, sync: () => {} };
-  manualEditors.push(editor);
-
-  // Apply and Discard are both only actionable while the editor is dirty
-  editor.sync = () => {
-    const dirty = textarea.value !== editor.saved;
-    buttons.forEach((b) => {
-      b.toggleAttribute("disabled", !dirty);
-    });
-  };
-
-  textarea.addEventListener("input", editor.sync);
-  editor.sync();
-};
-
-// Re-baseline after a save or a storage restore: the editors now match
-// what is stored, so they are clean
-const refreshManualEditorBaselines = () => {
-  manualEditors.forEach((editor) => {
-    editor.saved = editor.textarea.value;
-    editor.sync();
-  });
-};
-
-const anyManualEditorDirty = () =>
-  manualEditors.some((editor) => editor.textarea.value !== editor.saved);
+const manualEditorState = createManualEditorState(
+  webExtensionApi.i18n.getMessage("optionsEditorUnsaved") || "Unsaved changes",
+);
+const setupManualEditor = manualEditorState.setup;
+const refreshManualEditorBaselines = manualEditorState.refreshBaselines;
+const anyManualEditorDirty = manualEditorState.anyDirty;
 
 // Called before an in-page tab switch (main tabs don't unload the page, so
 // beforeunload never fires): prompt to save or discard editor changes that
 // haven't been persisted yet. OK = save now, Cancel = revert to stored.
 window.confirmPendingChanges = () => {
   if (!pendingChanges && !anyManualEditorDirty()) {
-    return;
+    return true;
   }
   // Literal fallback: getMessage returns "" if the extension context was
   // invalidated (e.g. a reloaded dev build in a still-open tab), which
   // would otherwise show a text-less confirm dialog
   const message =
     webExtensionApi.i18n.getMessage("optionsUnsavedChanges") ||
-    "You have unsaved changes. OK to save them, or Cancel to discard.";
+    "You have unsaved changes. OK to save them, or Cancel to keep editing.";
   // eslint-disable-next-line no-alert
   const save = window.confirm(message);
   if (save) {
-    saveOptions();
+    void saveOptions().catch(() => {
+      pendingChanges = true;
+    });
+    return true;
   } else {
-    pendingSaveTimers.forEach((t) => window.clearTimeout(t));
-    pendingSaveTimers.clear();
-    pendingChanges = false;
-    restoreOptions();
+    return false;
   }
 };
 
@@ -777,7 +765,9 @@ const setupAutosave = (el: Element) => {
   };
 
   const doSave = (e?: Event) => {
-    saveOptions(e);
+    void saveOptions(e).catch(() => {
+      pendingChanges = true;
+    });
     window.setTimeout(updateErrors, 200);
     showSavedIndicator();
   };
@@ -964,6 +954,7 @@ const updateMenuPreview = () => {
 
   let previewTimer: number | null = null;
   textarea.addEventListener("input", () => {
+    manualEditorState.setValidationPending("paths");
     if (previewTimer !== null) {
       window.clearTimeout(previewTimer);
     }
@@ -984,6 +975,7 @@ const updateMenuPreview = () => {
   }
   let timer: number | null = null;
   rulesTa.addEventListener("input", () => {
+    manualEditorState.setValidationPending("filenamePatterns");
     if (timer !== null) {
       window.clearTimeout(timer);
     }
@@ -1174,19 +1166,29 @@ document.addEventListener("click", (e) => {
 // Apply: persist the manual editors, re-baseline (dims Apply/Discard),
 // and refresh the validation + preview panes
 document.querySelectorAll("[data-apply]").forEach((button) => {
-  button.addEventListener("click", () => {
-    saveOptions();
-    refreshManualEditorBaselines();
-    window.setTimeout(() => {
-      updateErrors();
-      updateMenuPreview();
-      renderVariablesPreview();
-    }, 200);
-    const original = button.textContent;
-    button.textContent = "✓";
-    window.setTimeout(() => {
-      button.textContent = original;
-    }, 900);
+  button.addEventListener("click", async () => {
+    const id = button.getAttribute("data-apply") || "";
+    manualEditorState.setSaving(id, true, "Saving…");
+    try {
+      await saveOptions();
+      manualEditorState.markSaved(id, "Saved");
+      window.setTimeout(() => {
+        updateErrors();
+        updateMenuPreview();
+        renderVariablesPreview();
+      }, 200);
+    } catch (error) {
+      manualEditorState.setSaving(id, false);
+      const panel = document.querySelector(`#error-${id}`);
+      if (panel) {
+        panel.appendChild(
+          renderErrorRow(
+            { message: "Could not save changes", error: String(error), warning: false },
+            `#${id}`,
+          ),
+        );
+      }
+    }
   });
 });
 
@@ -1194,20 +1196,17 @@ document.querySelectorAll("[data-apply]").forEach((button) => {
 document.querySelectorAll("[data-discard]").forEach((button: any) => {
   button.addEventListener("click", () => {
     const id = button.dataset.discard;
-    const editor = manualEditors.find((ed) => ed.textarea.id === id);
-    if (!editor) {
+    if (!manualEditorState.discard(id)) {
       return;
     }
-    editor.textarea.value = editor.saved;
-    editor.textarea.dispatchEvent(new InputEvent("input", { bubbles: true }));
     updateMenuPreview();
   });
 });
 
 const showJson = (obj: unknown) => {
   const json = JSON.stringify(obj, null, 2);
-  const outputEl = document.querySelector("#export-target") as any;
-  outputEl.style = "display: unset;";
+  const outputEl = document.querySelector("#export-target") as HTMLTextAreaElement;
+  outputEl.hidden = false;
   outputEl.value = json;
 };
 

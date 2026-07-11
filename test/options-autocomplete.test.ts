@@ -138,18 +138,30 @@ describe("attachAutocomplete", () => {
     type("a/:d");
     expect(dropdown().style.display).toBe("block");
     expect(dropdown().textContent).toBe(":date::day:");
+    expect(textarea.getAttribute("role")).toBe("combobox");
+    expect(textarea.getAttribute("aria-expanded")).toBe("true");
+    expect(textarea.getAttribute("aria-controls")).toBe(dropdown().id);
+    expect(dropdown().getAttribute("role")).toBe("listbox");
+    expect(dropdown().querySelector("li")?.getAttribute("role")).toBe("option");
+    expect(textarea.getAttribute("aria-activedescendant")).toBe(dropdown().querySelector("li")?.id);
 
     type("a/");
     expect(dropdown().style.display).toBe("none");
+    expect(textarea.getAttribute("aria-expanded")).toBe("false");
+    expect(textarea.hasAttribute("aria-activedescendant")).toBe(false);
   });
 
   test("Enter inserts the selected suggestion", () => {
+    const input = vi.fn();
+    textarea.addEventListener("input", input);
     type("a/:d");
+    input.mockClear();
     key("Enter");
 
     expect(textarea.value).toBe("a/:date:");
     expect(textarea.selectionStart).toBe(8);
     expect(dropdown().style.display).toBe("none");
+    expect(input).toHaveBeenCalledOnce();
   });
 
   test("arrow keys cycle the selection", () => {
@@ -162,6 +174,19 @@ describe("attachAutocomplete", () => {
     key("ArrowUp"); // wraps to the last entry
     key("Tab");
     expect(textarea.value).toBe("a/:day:");
+  });
+
+  test("Home and End select the first and last suggestion", () => {
+    type("a/:d");
+    key("End");
+    key("Enter");
+    expect(textarea.value).toBe("a/:day:");
+
+    type("a/:d");
+    key("End");
+    key("Home");
+    key("Enter");
+    expect(textarea.value).toBe("a/:date:");
   });
 
   test("Escape and blur close the dropdown", () => {

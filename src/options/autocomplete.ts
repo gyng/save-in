@@ -187,6 +187,7 @@ export const attachAutocomplete = (textarea: TextField, strategies: Autocomplete
     textarea.selectionStart = applied.caret;
     textarea.selectionEnd = applied.caret;
     close();
+    textarea.dispatchEvent(new InputEvent("input", { bubbles: true }));
     textarea.focus();
   };
 
@@ -302,7 +303,7 @@ export const setupRoutingAutocomplete = (keywords: RoutingKeywords) => {
   const routerTextarea = document.getElementById("filenamePatterns");
   if (routerTextarea instanceof HTMLTextAreaElement) {
     attachAutocomplete(routerTextarea, [
-      matcherStrategy([...keywords.matchers, "into"].sort()),
+      matcherStrategy([...keywords.matchers, "into"].toSorted()),
       routerVariableStrategy(keywords.variables),
     ]);
   }
@@ -321,8 +322,8 @@ if (webExtensionApi?.runtime?.sendMessage) {
     .then((res: KeywordsResponse) => res.body)
     .then((keywords) =>
       setupRoutingAutocomplete({
-        matchers: keywords.matchers.sort(),
-        variables: keywords.variables.sort(),
+        matchers: keywords.matchers.toSorted(),
+        variables: keywords.variables.toSorted(),
       }),
     )
     .catch(() => {});
