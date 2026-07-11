@@ -1,11 +1,14 @@
-vi.mock("../src/option.ts", () => ({
-  get options() {
-    return (globalThis as any).options;
-  },
-  OptionsManagement: {},
-}));
-
+// option.ts is import-side-effect-free now (Task #2: the seed is deferred out of
+// module eval), so import the real options bag and mutate it directly instead of
+// bridging through a globalThis getter. It starts empty; each test sets what it
+// needs and clears afterwards.
+import { options } from "../src/option.ts";
 import { Notifier as notification } from "../src/notification.ts";
+
+const setOptions = (o: Record<string, any> = {}) => {
+  for (const k of Object.keys(options)) delete options[k];
+  Object.assign(options, o);
+};
 
 test("checks for download failures on Firefox", () => {
   const notFailure = {
@@ -71,13 +74,13 @@ describe("createExtensionNotification", () => {
   });
 
   afterEach(() => {
-    (global as any).options = undefined;
+    setOptions();
     jest.useRealTimers();
   });
 
   test("creates a notification and clears it after notifyDuration", () => {
     jest.useFakeTimers();
-    (global as any).options = { notifyDuration: 500 };
+    setOptions({ notifyDuration: 500 });
 
     notification.createExtensionNotification("Title", "Message", false);
 
@@ -96,7 +99,7 @@ describe("createExtensionNotification", () => {
   });
 
   test("falls back to i18n title/message and the error icon", () => {
-    (global as any).options = {};
+    setOptions({});
 
     notification.createExtensionNotification(null, null, true);
 
@@ -107,8 +110,8 @@ describe("createExtensionNotification", () => {
     expect(global.browser.notifications.clear).not.toHaveBeenCalled();
   });
 
-  test("skips the auto-clear timer when options are missing", () => {
-    (global as any).options = undefined;
+  test("skips the auto-clear timer when notifyDuration is unset", () => {
+    setOptions({});
 
     notification.createExtensionNotification("T", "M", false);
 

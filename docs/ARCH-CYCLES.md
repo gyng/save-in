@@ -112,14 +112,30 @@ testable once tests are on real imports.
   untrusted. Small dependency-free type-guards that narrow `unknown` → the typed
   shape at those boundaries (no zod — no-runtime-deps rule). After the message
   union (#62). (Task #64.)
-- **Defer module import-time side effects** — messaging (unguarded onMessage/
-  onMessageExternal registration), notification (hydrate + listeners), download
-  (onDeterminingFilename), index (init), option (options seed) run side effects
-  at MODULE EVAL. Export explicit `registerX()`/`init()` and have the `entry.*.ts`
-  call them synchronously at top level (preserves MV3 sync-listener registration)
-  → modules become import-side-effect-free → tests import-real everywhere (removes
-  the last `vi.mock` that download-mv3 had to keep). Keep browser-shim's
-  `globalThis.browser = chrome` at import. (Task #2.)
+- **Defer module import-time side effects** (Task #2): ✅ DONE. The background
+  modules ran their side effects at MODULE EVAL, so importing them in a test
+  triggered them. Each is now an explicit exported function `entry.background.ts`
+  calls synchronously at startup (registration stays synchronous — MV3 rule #1 —
+  because the entry is the bundle's synchronous top-level code; verified by both
+  e2e suites):
+  - `messaging.ts` → `registerMessaging()` (onMessage + onMessageExternal)
+  - `notification.ts` → `registerNotifier()` (downloads.onCreated/onChanged,
+    notifications.onClicked); the `DownloadState.hydrate()` is still in
+    `window.init`, now run via `start()`.
+  - `download.ts` → `registerDownloadListener()` (downloads.onDeterminingFilename)
+  - `index.ts` → `start()` (menu/tab listeners, `window.ready = init()`, tabs.query)
+  - `option.ts` → `seedOptions()` (the OPTION_KEYS defaults; loadOptions overlays
+    storage onto them, so the entry seeds before init). The options page has its
+    own option handling, so only `entry.background` seeds.
+
+  Payoff: modules are import-side-effect-free, so tests import them real and call
+  the register/seed fn explicitly. Removed the messaging `vi.mock`s from
+  download-flow + download-mv3 (the last one download-mv3 kept), and converted
+  headers.test + notification.test off their `option`/`Log` globalThis bridges to
+  import-real — 0 globalThis module-value bridges remain in the suite. Tests that
+  capture a registered listener call the register fn after import; path.test +
+  option.test seed defaults explicitly. `browser-shim`'s `globalThis.browser =
+  chrome` stays at import (it must be present before anything reads `browser`).
 - **Source refinements surfaced by the test migration** (Task #3): ✅ (a)+(b)
   DONE; (c)/(d) fold into #60/#62 as noted below.
   - (a) ✅ `Counter.next`/`peek` were typed `Promise<void>` but resolve to a

@@ -52,7 +52,11 @@ describe("OptionsManagement", () => {
   beforeEach(async () => {
     jest.resetModules();
     setupGlobals();
-    OptionsManagement = (await import("../src/option.ts")).OptionsManagement;
+    const optionModule = await import("../src/option.ts");
+    OptionsManagement = optionModule.OptionsManagement;
+    // Seeding is deferred out of module eval (Task #2); seed defaults here the
+    // way the entry does at startup, so loadOptions overlays storage onto them.
+    optionModule.seedOptions();
   });
 
   describe("getKeys", () => {

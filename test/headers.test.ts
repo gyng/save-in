@@ -1,28 +1,22 @@
-// `options`/`Log` are module-scoped exports (src/option.ts, src/log.ts), not
-// real ambient globals, and `chrome` (a genuine ambient global from
-// @types/chrome) is far too strictly typed for a partial mock — alias
-// through an untyped view for all three as this suite's mock bridge.
+// option.ts/log.ts are import-side-effect-free (Task #2: the option seed is
+// deferred out of module eval), so import the real `options` bag and `Log` and
+// drive them directly — options via setOptions() below, Log.add via a spy. Only
+// `chrome` still needs the untyped-global view: it is a genuine ambient global
+// from @types/chrome, too strictly typed to assign a partial stub to.
+import { options } from "../src/option.ts";
+import { Log } from "../src/log.ts";
+import { RequestHeaders } from "../src/headers.ts";
+
 const g: any = global;
 
-vi.mock("../src/option.ts", () => ({
-  get options() {
-    return g.options;
-  },
-  OptionsManagement: {},
-}));
-vi.mock("../src/log.ts", () => ({
-  get Log() {
-    return g.Log;
-  },
-}));
-
-import { RequestHeaders } from "../src/headers.ts";
+const setOptions = (o: Record<string, any> = {}) => {
+  for (const k of Object.keys(options)) delete options[k];
+  Object.assign(options, o);
+};
 
 describe("matchesRefererFilter", () => {
   beforeEach(() => {
-    g.options = {
-      setRefererHeaderFilter: "*://i.pximg.net/*",
-    };
+    setOptions({ setRefererHeaderFilter: "*://i.pximg.net/*" });
   });
 
   test("matches URLs against a single match pattern", () => {
@@ -38,26 +32,26 @@ describe("matchesRefererFilter", () => {
   });
 
   test("supports multiple newline-separated patterns", () => {
-    g.options.setRefererHeaderFilter = "*://i.pximg.net/*\n*://example.org/downloads/*";
+    options.setRefererHeaderFilter = "*://i.pximg.net/*\n*://example.org/downloads/*";
     expect(RequestHeaders.matchesRefererFilter("https://example.org/downloads/a")).toBe(true);
     expect(RequestHeaders.matchesRefererFilter("https://example.org/other/a")).toBe(false);
   });
 
   test("escapes regex metacharacters in patterns", () => {
-    g.options.setRefererHeaderFilter = "*://a.b/c?d=e*";
+    options.setRefererHeaderFilter = "*://a.b/c?d=e*";
     expect(RequestHeaders.matchesRefererFilter("https://a.b/c?d=e&f=g")).toBe(true);
     expect(RequestHeaders.matchesRefererFilter("https://axb/cxd=e")).toBe(false);
   });
 
   test("handles empty and whitespace-only filters", () => {
-    g.options.setRefererHeaderFilter = "";
+    options.setRefererHeaderFilter = "";
     expect(RequestHeaders.matchesRefererFilter("https://i.pximg.net/a.png")).toBe(false);
-    g.options.setRefererHeaderFilter = "\n  \n";
+    options.setRefererHeaderFilter = "\n  \n";
     expect(RequestHeaders.matchesRefererFilter("https://i.pximg.net/a.png")).toBe(false);
   });
 
   test("ignores patterns that are not match patterns", () => {
-    g.options.setRefererHeaderFilter = "not-a-match-pattern";
+    options.setRefererHeaderFilter = "not-a-match-pattern";
     expect(RequestHeaders.matchesRefererFilter("https://i.pximg.net/a.png")).toBe(false);
   });
 
@@ -114,10 +108,10 @@ describe("prepareReferer (declarativeNetRequest path)", () => {
   let originalChrome;
 
   beforeEach(() => {
-    g.options = {
-      setRefererHeader: true,
-      setRefererHeaderFilter: "*://i.pximg.net/*",
-    };
+    setOptions({ setRefererHeader: true, setRefererHeaderFilter: "*://i.pximg.net/*" });
+    // Log is always defined now (real import); spy it so its calls are absorbed
+    // (and assertable) instead of writing to the session log.
+    vi.spyOn(Log, "add").mockImplementation(() => Promise.resolve());
     // Rule ids cycle; reset so each test's first rule uses the base id
     RequestHeaders.refererRuleOffset = 0;
 
@@ -131,7 +125,7 @@ describe("prepareReferer (declarativeNetRequest path)", () => {
 
   afterEach(() => {
     g.chrome = originalChrome;
-    delete g.Log;
+    vi.restoreAllMocks();
     jest.useRealTimers();
   });
 
@@ -165,7 +159,7 @@ describe("prepareReferer (declarativeNetRequest path)", () => {
   });
 
   test("no-op when the option is disabled", async () => {
-    g.options.setRefererHeader = false;
+    options.setRefererHeader = false;
     await RequestHeaders.prepareReferer(state);
     expect(g.chrome.declarativeNetRequest.updateSessionRules).not.toHaveBeenCalled();
   });
@@ -182,13 +176,12 @@ describe("prepareReferer (declarativeNetRequest path)", () => {
     await expect(RequestHeaders.prepareReferer(state)).resolves.toBeUndefined();
   });
 
-  test("logs the session rule when a Log global is present", async () => {
-    g.Log = { add: jest.fn() };
+  test("logs the session rule", async () => {
     jest.useFakeTimers();
 
     await RequestHeaders.prepareReferer(state);
 
-    expect(g.Log.add).toHaveBeenCalledWith("referer session rule set", {
+    expect(Log.add).toHaveBeenCalledWith("referer session rule set", {
       id: RequestHeaders.DNR_REFERER_RULE_ID,
       url: state.info.url,
       referer: state.info.pageUrl,

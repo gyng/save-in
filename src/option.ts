@@ -252,8 +252,15 @@ OptionsManagement.loadOptions = () =>
     return options;
   });
 
-// global
-options = OptionsManagement.OPTION_KEYS.reduce(
-  (acc, val) => Object.assign(acc, { [val.name]: val.default }),
-  {},
-);
+// Seed the options bag with every key's default. loadOptions() only overlays
+// the keys present in storage, so the defaults must be in place first. Deferred
+// out of module eval (Task #2): the entry calls it synchronously at startup, so
+// importing option.ts is side-effect-free (tests import the real bag and set
+// only the fields they exercise).
+export const seedOptions = () => {
+  options = OptionsManagement.OPTION_KEYS.reduce(
+    (acc, val) => Object.assign(acc, { [val.name]: val.default }),
+    {},
+  );
+  return options;
+};
