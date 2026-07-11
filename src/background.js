@@ -17,6 +17,7 @@ importScripts(
   "chrome-detector.js",
   "constants.js",
   "util.js",
+  "session-state.js",
   "log.js",
   "history.js",
   "counter.js",

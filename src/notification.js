@@ -16,31 +16,8 @@ let expectedDownloads = 0;
 // unrelated download — see the startup reconciliation below.
 const PENDING_RECOVERY_GRACE_MS = 10000;
 
-// storage.session no-op wrapper: persists MV3 service worker state across
-// restarts; storage.session is unavailable in older Firefox
-const SessionState = {
-  available: () =>
-    typeof browser !== "undefined" && browser.storage && browser.storage.session != null,
-  /** @returns {Promise<Record<string, any>>} */
-  get: (key) =>
-    SessionState.available()
-      ? browser.storage.session.get(key).catch(() => ({}))
-      : Promise.resolve({}),
-  set: (obj) =>
-    SessionState.available() ? browser.storage.session.set(obj).catch(() => {}) : Promise.resolve(),
-
-  // Serialised read-modify-write for one session key. Concurrent downloads
-  // mutating the same key (the pending counter or the per-URL filename map)
-  // would otherwise lose updates.
-  queue: Promise.resolve(),
-  update: (key, fn) => {
-    SessionState.queue = SessionState.queue
-      .then(() => SessionState.get(key))
-      .then((res) => SessionState.set({ [key]: fn(res[key]) }))
-      .catch(() => {});
-    return SessionState.queue;
-  },
-};
+// SessionState (the storage.session wrapper) lives in session-state.js so
+// Notifier, Download and Log share one implementation.
 
 // Restore tracked downloads on startup: MV3 service worker globals do not
 // survive termination, so in-flight downloads would otherwise lose their

@@ -98,7 +98,9 @@ describe("Log", () => {
   });
 
   test("add swallows storage failures and keeps the queue alive", async () => {
-    global.browser.storage.session.get.mockRejectedValueOnce(new Error("gone"));
+    // A failed write drops that entry but must not break the serialized queue
+    // for later adds (SessionState.update swallows the rejection)
+    global.browser.storage.session.set.mockRejectedValueOnce(new Error("gone"));
 
     await expect(Log.add("lost")).resolves.toBeUndefined();
     await Log.add("kept");

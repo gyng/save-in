@@ -150,9 +150,12 @@ declare const Counter: {
 };
 declare const Log: Record<string, any>;
 declare const SessionState: {
+  available: () => boolean;
   get: (key: string) => Promise<Record<string, any>>;
-  set: (obj: Record<string, unknown>) => Promise<unknown>;
-  [key: string]: any;
+  set: (obj: Record<string, unknown>) => Promise<void>;
+  remove: (key: string) => Promise<void>;
+  update: (key: string, fn: (current: any) => any) => Promise<void>;
+  queue: Promise<any>;
 };
 declare let globalChromeState: Partial<DownloadState>;
 

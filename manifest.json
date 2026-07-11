@@ -24,6 +24,7 @@
       "src/chrome-detector.js",
       "src/constants.js",
       "src/util.js",
+      "src/session-state.js",
       "src/log.js",
       "src/history.js",
       "src/counter.js",

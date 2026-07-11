@@ -10,3 +10,8 @@ await import("jest-webextension-mock");
 // real implementation as a global so every module that depends on it works
 // without each test re-seeding a stub.
 globalThis.Util = (await import("../src/util.js")).default;
+
+// SessionState (the storage.session wrapper) is a thin global too; it feature-
+// detects browser.storage.session at call time, which tests mock per-test.
+// Tests that want a plain stub (download-flow/download-mv3) override it.
+globalThis.SessionState = (await import("../src/session-state.js")).default;
