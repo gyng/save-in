@@ -37,10 +37,10 @@ same file list) and ignores `scripts`. Keep the two lists in sync when
 adding a background script — `scripts/check-background-scripts.js` (part of
 `npm run lint`) fails on drift.
 
-|                 | Firefox (event page)                                                        | Chrome (service worker)                                          |
-| --------------- | --------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| Referer feature | `declarativeNetRequest` session rule (`RequestHeaders.prepareReferer`)       | same — `declarativeNetRequest` session rule                      |
-| Blob downloads  | `URL.createObjectURL` (event pages have DOM)                                | data-URL fallbacks (`Download.makeObjectUrl` / `makeUrlFromBlob`) |
+|                 | Firefox (event page)                                                   | Chrome (service worker)                                           |
+| --------------- | ---------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| Referer feature | `declarativeNetRequest` session rule (`RequestHeaders.prepareReferer`) | same — `declarativeNetRequest` session rule                       |
+| Blob downloads  | `URL.createObjectURL` (event pages have DOM)                           | data-URL fallbacks (`Download.makeObjectUrl` / `makeUrlFromBlob`) |
 
 Both browsers set the Referer via a `declarativeNetRequest` session rule
 (`RequestHeaders.prepareReferer`, per download): Firefox and Chrome MV3 both
@@ -92,17 +92,17 @@ to Firefox too.
 
 ## Iteration workflow
 
-| Command                           | What it does                                                                                                                                                                 |
-| --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `npm test` / `npm run test:watch` | vitest unit tests (jsdom + jest-webextension-mock via a vi alias); npm run test:coverage enforces 95%-line thresholds on src/ (vendor, options page, SW bootstrap excluded)  |
-| `npm run lint`                    | web-ext lint (Firefox manifest) + oxlint + oxfmt --check + background file-list sync check                                                                                   |
-| `npm run typecheck`               | tsc --noEmit with checkJs over all of src/ (shared globals + core typedefs declared in types/globals.d.ts)                                                                   |
-| `npm run e2e:chrome`              | vitest e2e suite (~15s): isolated Chrome over CDP, drives the real download pipeline — SW lifecycle, CSP, routing rules, messaging, session persistence (e2e/chrome.e2e.mjs) |
-| `npm run e2e:firefox`             | vitest e2e suite for Firefox on a throwaway profile via RDP (e2e/firefox.e2e.mjs)                                                                                            |
-| `npm run d:chrome`                | dev loop: isolated Chrome + auto restage/reload on file save                                                                                                                 |
-| `npm run d`                       | web-ext Firefox dev instance                                                                                                                                                 |
-| `npm run build`                   | one zip for both stores (web-ext), loading the individual source scripts                                                                                                     |
-| `npm run bundle`                  | rolldown → `dist/bundled/*.js`: one readable, NON-minified file per target (background event page + SW, options, offscreen, content). ESM output = bare top-level code, so the classic-script shared global scope is preserved |
+| Command                           | What it does                                                                                                                                                                                                                                       |
+| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm test` / `npm run test:watch` | vitest unit tests (jsdom + jest-webextension-mock via a vi alias); npm run test:coverage enforces 95%-line thresholds on src/ (vendor, options page, SW bootstrap excluded)                                                                        |
+| `npm run lint`                    | web-ext lint (Firefox manifest) + oxlint + oxfmt --check + background file-list sync check                                                                                                                                                         |
+| `npm run typecheck`               | tsc --noEmit with checkJs over all of src/ (shared globals + core typedefs declared in types/globals.d.ts)                                                                                                                                         |
+| `npm run e2e:chrome`              | vitest e2e suite (~15s): isolated Chrome over CDP, drives the real download pipeline — SW lifecycle, CSP, routing rules, messaging, session persistence (e2e/chrome.e2e.mjs)                                                                       |
+| `npm run e2e:firefox`             | vitest e2e suite for Firefox on a throwaway profile via RDP (e2e/firefox.e2e.mjs)                                                                                                                                                                  |
+| `npm run d:chrome`                | dev loop: isolated Chrome + auto restage/reload on file save                                                                                                                                                                                       |
+| `npm run d`                       | web-ext Firefox dev instance                                                                                                                                                                                                                       |
+| `npm run build`                   | one zip for both stores (web-ext), loading the individual source scripts                                                                                                                                                                           |
+| `npm run bundle`                  | rolldown → `dist/bundled/*.js`: one readable, NON-minified file per target (background event page + SW, options, offscreen, content). ESM output = bare top-level code, so the classic-script shared global scope is preserved                     |
 | `npm run build:bundled`           | stage `dist/bundled-pkg` (bundles + a manifest/HTML pointing at them; secondary pages keep their source scripts) and zip it for the stores. `EXT_DIR=dist/bundled-pkg npm run e2e:chrome` / `e2e:firefox` run the suites against the bundled build |
 
 Chrome ≥ 137 ignores `--load-extension`; the scripts load an unpacked copy

@@ -19,7 +19,7 @@
     "d:win:nightly": "web-ext run --start-url about:debugging#/runtime/this-firefox --start-url about:addons --verbose --firefox=\"C:/Program Files/Firefox Nightly/firefox.exe\" -s=\".\"",
     "fmt": "oxfmt",
     "fmt:check": "oxfmt --check",
-    "lint": "web-ext lint && oxlint && oxfmt --check && node scripts/check-background-scripts.js && node scripts/check-globals.js",
+    "lint": "web-ext lint -i test docs scripts dist types coverage e2e AGENTS.md CLAUDE.md vitest.config.mjs tsconfig.json && oxlint && oxfmt --check && node scripts/check-background-scripts.js && node scripts/check-globals.js",
     "lint:fix": "oxlint --fix && oxfmt",
     "mockserve": "node test/mockserver",
     "review": "node scripts/review-demo.js",

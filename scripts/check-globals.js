@@ -33,6 +33,6 @@ if (typedButNotLintKnown.length === 0) {
 }
 
 console.error("check-globals: globals typed in types/globals.d.ts are missing from");
-console.error(".oxlintrc.json \"globals\" (oxlint no-undef will flag their uses):\n");
+console.error('.oxlintrc.json "globals" (oxlint no-undef will flag their uses):\n');
 console.error(`    ${typedButNotLintKnown.join(", ")}`);
 process.exit(1);

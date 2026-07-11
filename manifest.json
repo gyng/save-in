@@ -9,9 +9,7 @@
       "id": "{72d92df5-2aa0-4b06-b807-aa21767545cd}",
       "strict_min_version": "121.0",
       "data_collection_permissions": {
-        "required": [
-          "none"
-        ]
+        "required": ["none"]
       }
     }
   },
@@ -47,12 +45,8 @@
   },
   "content_scripts": [
     {
-      "matches": [
-        "<all_urls>"
-      ],
-      "js": [
-        "src/content/content.js"
-      ]
+      "matches": ["<all_urls>"],
+      "js": ["src/content/content.js"]
     }
   ],
   "permissions": [
@@ -65,9 +59,7 @@
     "declarativeNetRequestWithHostAccess",
     "offscreen"
   ],
-  "host_permissions": [
-    "<all_urls>"
-  ],
+  "host_permissions": ["<all_urls>"],
   "options_ui": {
     "page": "src/options/options.html",
     "open_in_tab": true

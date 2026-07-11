@@ -47,11 +47,13 @@ class FirefoxRdp {
       };
       socket.on("error", fail);
       // The root actor greets us on connect
-      client.waitForEvent((p) => p.from === "root").then((greeting) => {
-        if (done || !greeting) return;
-        done = true;
-        resolve(client);
-      }, fail);
+      client
+        .waitForEvent((p) => p.from === "root")
+        .then((greeting) => {
+          if (done || !greeting) return;
+          done = true;
+          resolve(client);
+        }, fail);
     });
   }
 
