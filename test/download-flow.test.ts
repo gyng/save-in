@@ -26,16 +26,10 @@ import { SaveHistory } from "../src/history.ts";
 import { getFilenameFromContentDispositionHeader } from "../src/vendor/content-disposition.ts";
 
 // chrome-detector's CURRENT_BROWSER is a load-time-detected constant, but this
-// suite flips it per test — mock it over a hoisted, mutable holder (BROWSERS
-// stays a plain constant). This is the one place a value the source reads as a
-// live binding has to change per test, so a getter is unavoidable.
-const browserState = vi.hoisted(() => ({ current: "FIREFOX" }));
-vi.mock("../src/chrome-detector.ts", () => ({
-  BROWSERS: { CHROME: "CHROME", FIREFOX: "FIREFOX", UNKNOWN: "UNKNOWN" },
-  get CURRENT_BROWSER() {
-    return browserState.current;
-  },
-}));
+// suite flips it per test via the real setCurrentBrowser setter (grabbed below,
+// after download.ts pulls chrome-detector into the module graph). download.ts
+// reads CURRENT_BROWSER at call time, so the live-binding reassignment takes
+// effect for the next handler call.
 
 // messaging.ts registers runtime.onMessage* listeners and pulls in the whole
 // menu graph at load; the download flow only needs emit.downloaded, so stub it.
@@ -77,6 +71,10 @@ const { Notifier } = await import("../src/notification.ts");
 const { Path } = await import("../src/path.ts");
 const { RequestHeaders } = await import("../src/headers.ts");
 const { Messaging } = await import("../src/messaging.ts");
+// download.ts already loaded chrome-detector into the graph; this is the same
+// instance it reads CURRENT_BROWSER from. global.browser (above) has no
+// getBrowserInfo, so its load-time detection settled on Chrome.
+const { setCurrentBrowser } = await import("../src/chrome-detector.ts");
 
 const [[capturedListener]] = vi.mocked(
   (global.chrome as any).downloads.onDeterminingFilename.addListener,
@@ -93,7 +91,7 @@ const makeState = (overrides: Record<string, any> = {}): any => ({
 });
 
 beforeEach(() => {
-  browserState.current = "FIREFOX";
+  setCurrentBrowser("FIREFOX");
 
   // Reset the real options bag to exactly the fields this suite controls
   for (const k of Object.keys(options)) delete options[k];
@@ -252,7 +250,7 @@ describe("finalizeFullPath", () => {
 
 describe("renameAndDownload: MIME extension append (§8.1)", () => {
   test("appends the Content-Type extension to an extensionless filename", async () => {
-    browserState.current = "CHROME";
+    setCurrentBrowser("CHROME");
     options.appendMimeExtension = true;
     vi.spyOn(Variable, "resolveMime").mockResolvedValue("image/jpeg");
     vi.spyOn(Variable, "mimeToExtension").mockImplementation((mime: any) =>
@@ -270,7 +268,7 @@ describe("renameAndDownload: MIME extension append (§8.1)", () => {
   });
 
   test("skips the HEAD and leaves a filename that already has an extension", async () => {
-    browserState.current = "CHROME";
+    setCurrentBrowser("CHROME");
     options.appendMimeExtension = true;
     vi.spyOn(Variable, "resolveMime").mockResolvedValue("image/jpeg");
     vi.spyOn(Variable, "mimeToExtension").mockReturnValue("jpg");
@@ -288,7 +286,7 @@ describe("renameAndDownload: MIME extension append (§8.1)", () => {
 
 describe("renameAndDownload: shared :sha256: fetch reuse", () => {
   test("reuses the already-fetched download URL instead of fetching the file again", async () => {
-    browserState.current = "CHROME";
+    setCurrentBrowser("CHROME");
     const state = makeState({
       info: {
         contentPromise: Promise.resolve({
@@ -306,7 +304,7 @@ describe("renameAndDownload: shared :sha256: fetch reuse", () => {
   });
 
   test("falls back to the normal download when the shared fetch failed (null content)", async () => {
-    browserState.current = "CHROME";
+    setCurrentBrowser("CHROME");
     const state = makeState({ info: { contentPromise: Promise.resolve(null) } });
 
     await Download.renameAndDownload(state);
@@ -320,7 +318,7 @@ describe("renameAndDownload: shared :sha256: fetch reuse", () => {
 
 describe("renameAndDownload: folder-only route (§8.1)", () => {
   test("a trailing-slash into: routes into the folder and keeps the real filename", async () => {
-    browserState.current = "CHROME";
+    setCurrentBrowser("CHROME");
     options.filenamePatterns = [["rule"]];
     vi.mocked(Router.matchRules).mockReturnValue("pdfs/");
 
@@ -335,7 +333,7 @@ describe("renameAndDownload: folder-only route (§8.1)", () => {
   });
 
   test("a route without a trailing slash sets the whole name (unchanged)", async () => {
-    browserState.current = "CHROME";
+    setCurrentBrowser("CHROME");
     options.filenamePatterns = [["rule"]];
     vi.mocked(Router.matchRules).mockReturnValue("renamed.png");
 
@@ -352,7 +350,7 @@ describe("renameAndDownload: folder-only route (§8.1)", () => {
 
 describe("renameAndDownload: Chrome vs Firefox entry", () => {
   test("Chrome path skips the HEAD request and downloads immediately", async () => {
-    browserState.current = "CHROME";
+    setCurrentBrowser("CHROME");
     const state = makeState();
 
     await Download.renameAndDownload(state);
@@ -365,7 +363,7 @@ describe("renameAndDownload: Chrome vs Firefox entry", () => {
   });
 
   test("Firefox path performs a HEAD request and applies the Content-Disposition filename", async () => {
-    browserState.current = "FIREFOX";
+    setCurrentBrowser("FIREFOX");
     vi.mocked(getFilenameFromContentDispositionHeader).mockReturnValue("server-name.pdf");
     global.fetch = vi.fn(() =>
       Promise.resolve({
@@ -389,7 +387,7 @@ describe("renameAndDownload: Chrome vs Firefox entry", () => {
   });
 
   test("Firefox path keeps the original filename when the Content-Disposition has no usable name", async () => {
-    browserState.current = "FIREFOX";
+    setCurrentBrowser("FIREFOX");
     vi.mocked(getFilenameFromContentDispositionHeader).mockReturnValue(null as any);
     global.fetch = vi.fn(() =>
       Promise.resolve({ headers: { has: () => true, get: () => "attachment" } }),
@@ -404,7 +402,7 @@ describe("renameAndDownload: Chrome vs Firefox entry", () => {
   });
 
   test("Firefox path keeps the original filename when Content-Disposition is absent", async () => {
-    browserState.current = "FIREFOX";
+    setCurrentBrowser("FIREFOX");
     global.fetch = vi.fn(() =>
       Promise.resolve({ headers: { has: () => false, get: () => null } }),
     ) as any;
@@ -419,7 +417,7 @@ describe("renameAndDownload: Chrome vs Firefox entry", () => {
   });
 
   test("Firefox path downloads anyway when the HEAD request rejects", async () => {
-    browserState.current = "FIREFOX";
+    setCurrentBrowser("FIREFOX");
     global.fetch = vi.fn(() => Promise.reject(new Error("network down"))) as any;
 
     const state = makeState();
@@ -432,7 +430,7 @@ describe("renameAndDownload: Chrome vs Firefox entry", () => {
 
 describe("renameAndDownload: initial filename resolution", () => {
   test("prefers info.suggestedFilename over the URL-derived filename", async () => {
-    browserState.current = "CHROME";
+    setCurrentBrowser("CHROME");
     const state = makeState({ info: { suggestedFilename: "suggested.txt" } });
 
     await Download.renameAndDownload(state);
@@ -444,7 +442,7 @@ describe("renameAndDownload: initial filename resolution", () => {
   });
 
   test("falls back to the full URL when the URL has no filename component", async () => {
-    browserState.current = "CHROME";
+    setCurrentBrowser("CHROME");
     const state = makeState({ info: { url: "https://example.com/" } });
 
     await Download.renameAndDownload(state);
@@ -457,7 +455,7 @@ describe("renameAndDownload: initial filename resolution", () => {
 
 describe("renameAndDownload: needRouteMatch", () => {
   test("returns early without downloading when no route matched", async () => {
-    browserState.current = "CHROME";
+    setCurrentBrowser("CHROME");
     const state = makeState({ needRouteMatch: true });
 
     await Download.renameAndDownload(state);
@@ -469,7 +467,7 @@ describe("renameAndDownload: needRouteMatch", () => {
   });
 
   test("proceeds when needRouteMatch is true and a route matched", async () => {
-    browserState.current = "CHROME";
+    setCurrentBrowser("CHROME");
     options.filenamePatterns = [["rule"]];
     vi.mocked(Router.matchRules).mockReturnValue("matched/route.txt");
 
@@ -481,7 +479,7 @@ describe("renameAndDownload: needRouteMatch", () => {
   });
 
   test("proceeds when needRouteMatch is false even without a route", async () => {
-    browserState.current = "CHROME";
+    setCurrentBrowser("CHROME");
     const state = makeState({ needRouteMatch: false });
 
     await Download.renameAndDownload(state);
@@ -493,7 +491,7 @@ describe("renameAndDownload: needRouteMatch", () => {
 
 describe("renameAndDownload: route matching", () => {
   test("builds state.route from Router.matchRules and uses it in the final path", async () => {
-    browserState.current = "CHROME";
+    setCurrentBrowser("CHROME");
     options.filenamePatterns = [["rule"]];
     vi.mocked(Router.matchRules).mockReturnValue("matched/route.txt");
 
@@ -521,40 +519,40 @@ describe("renameAndDownload: prompt combinations", () => {
   };
 
   test("options.prompt forces saveAs", async () => {
-    browserState.current = "CHROME";
+    setCurrentBrowser("CHROME");
     options.prompt = true;
     await expectSaveAs(makeState(), true);
   });
 
   test("promptIfNoExtension prompts when the final filename has no extension", async () => {
-    browserState.current = "CHROME";
+    setCurrentBrowser("CHROME");
     options.promptIfNoExtension = true;
     const state = makeState({ info: { url: "https://example.com/dir/noext" } });
     await expectSaveAs(state, true);
   });
 
   test("promptOnShift prompts when the Shift modifier was held", async () => {
-    browserState.current = "CHROME";
+    setCurrentBrowser("CHROME");
     options.promptOnShift = true;
     const state = makeState({ info: { modifiers: ["Shift"] } });
     await expectSaveAs(state, true);
   });
 
   test("routeFailurePrompt prompts when no rule matched", async () => {
-    browserState.current = "CHROME";
+    setCurrentBrowser("CHROME");
     options.routeFailurePrompt = true;
     await expectSaveAs(makeState(), true);
   });
 
   test("saveAs is falsy when no prompt condition is met", async () => {
-    browserState.current = "CHROME";
+    setCurrentBrowser("CHROME");
     await expectSaveAs(makeState(), false);
   });
 });
 
 describe("renameAndDownload: browserDownload", () => {
   test("prepares the referer, persists session state, downloads, and tracks the result", async () => {
-    browserState.current = "CHROME";
+    setCurrentBrowser("CHROME");
     (global.browser.downloads as any).download = vi.fn(() => Promise.resolve(555));
 
     const state = makeState();
@@ -581,7 +579,7 @@ describe("renameAndDownload: browserDownload", () => {
   });
 
   test("logs a downloads.download rejection and still clears the pending flag", async () => {
-    browserState.current = "CHROME";
+    setCurrentBrowser("CHROME");
     (global.browser.downloads as any).download = vi.fn(() =>
       Promise.reject(new Error("disk full")),
     );
@@ -597,7 +595,7 @@ describe("renameAndDownload: browserDownload", () => {
   });
 
   test("a downloads.download rejection does not throw and clears the pending flag", async () => {
-    browserState.current = "CHROME";
+    setCurrentBrowser("CHROME");
     (global.browser.downloads as any).download = vi.fn(() =>
       Promise.reject(new Error("disk full")),
     );
@@ -611,7 +609,7 @@ describe("renameAndDownload: browserDownload", () => {
   });
 
   test("substitutes _ for an empty final path", async () => {
-    browserState.current = "CHROME";
+    setCurrentBrowser("CHROME");
     vi.mocked(Path.sanitizeFilename).mockReturnValue(null as any);
 
     const state = makeState({ path: { finalize: () => null } });
@@ -629,7 +627,7 @@ describe("renameAndDownload: browserDownload", () => {
   });
 
   test("emits downloaded, records lastDownloadState, and saves history", async () => {
-    browserState.current = "CHROME";
+    setCurrentBrowser("CHROME");
     const state = makeState();
 
     await Download.renameAndDownload(state);
@@ -648,7 +646,7 @@ describe("renameAndDownload: browserDownload", () => {
 
 describe("renameAndDownload: fetchViaFetch", () => {
   test("fetches the URL, converts the blob to an object URL, then downloads it", async () => {
-    browserState.current = "CHROME";
+    setCurrentBrowser("CHROME");
     options.fetchViaFetch = true;
     global.fetch = vi.fn(() =>
       Promise.resolve({ blob: () => Promise.resolve(new Blob(["file contents"])) }),
@@ -665,7 +663,7 @@ describe("renameAndDownload: fetchViaFetch", () => {
   });
 
   test("Chrome offscreen: fetches via the offscreen document and downloads the blob URL", async () => {
-    browserState.current = "CHROME";
+    setCurrentBrowser("CHROME");
     options.fetchViaFetch = true;
     const origCanUse = OffscreenClient.canUse;
     const origFetch = OffscreenClient.fetch;
@@ -687,7 +685,7 @@ describe("renameAndDownload: fetchViaFetch", () => {
   });
 
   test("Chrome offscreen: falls back to a direct download when the offscreen fetch fails", async () => {
-    browserState.current = "CHROME";
+    setCurrentBrowser("CHROME");
     options.fetchViaFetch = true;
     const origCanUse = OffscreenClient.canUse;
     const origFetch = OffscreenClient.fetch;
@@ -714,7 +712,7 @@ describe("renameAndDownload: fetchViaFetch", () => {
 
 describe("renameAndDownload: notification triggers", () => {
   test("notifies on rule match when a route was found and notifyOnRuleMatch is enabled", async () => {
-    browserState.current = "CHROME";
+    setCurrentBrowser("CHROME");
     options.filenamePatterns = [["rule"]];
     vi.mocked(Router.matchRules).mockReturnValue("matched/route.txt");
     options.notifyOnRuleMatch = true;
@@ -730,7 +728,7 @@ describe("renameAndDownload: notification triggers", () => {
   });
 
   test("does not notify on rule match when notifyOnRuleMatch is disabled", async () => {
-    browserState.current = "CHROME";
+    setCurrentBrowser("CHROME");
     options.filenamePatterns = [["rule"]];
     vi.mocked(Router.matchRules).mockReturnValue("matched/route.txt");
     options.notifyOnRuleMatch = false;
@@ -740,7 +738,7 @@ describe("renameAndDownload: notification triggers", () => {
   });
 
   test("notifies failure when routeExclusive+notifyOnFailure are enabled and no route matched", async () => {
-    browserState.current = "CHROME";
+    setCurrentBrowser("CHROME");
     options.routeExclusive = true;
     options.notifyOnFailure = true;
 
@@ -755,7 +753,7 @@ describe("renameAndDownload: notification triggers", () => {
   });
 
   test("does not notify failure when routeExclusive is disabled", async () => {
-    browserState.current = "CHROME";
+    setCurrentBrowser("CHROME");
     options.routeExclusive = false;
     options.notifyOnFailure = true;
 
@@ -766,7 +764,7 @@ describe("renameAndDownload: notification triggers", () => {
 
 describe("renameAndDownload: Log integration", () => {
   test("logs 'download requested' when Log is defined", async () => {
-    browserState.current = "CHROME";
+    setCurrentBrowser("CHROME");
     const state = makeState();
 
     await Download.renameAndDownload(state);
@@ -778,7 +776,7 @@ describe("renameAndDownload: Log integration", () => {
   });
 
   test("does not throw when the download pipeline runs", async () => {
-    browserState.current = "CHROME";
+    setCurrentBrowser("CHROME");
 
     const state = makeState();
     expect(() => Download.renameAndDownload(state)).not.toThrow();
@@ -790,7 +788,7 @@ describe("renameAndDownload: Log integration", () => {
 
 describe("renameAndDownload: window.SI_DEBUG", () => {
   test("logs debug info when window.SI_DEBUG is set", async () => {
-    browserState.current = "CHROME";
+    setCurrentBrowser("CHROME");
     window.SI_DEBUG = true;
     const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
 
@@ -804,7 +802,7 @@ describe("renameAndDownload: window.SI_DEBUG", () => {
 
 describe("onDeterminingFilename listener: sync path", () => {
   test("suggests the finalized path when globalChromeState already has a path", async () => {
-    browserState.current = "CHROME";
+    setCurrentBrowser("CHROME");
     const state = makeState();
 
     // Drives globalChromeState (module-local) via renameAndDownload
@@ -825,7 +823,7 @@ describe("onDeterminingFilename listener: sync path", () => {
   });
 
   test("prefers the state's suggestedFilename over the download item's filename", async () => {
-    browserState.current = "CHROME";
+    setCurrentBrowser("CHROME");
     const state = makeState({ info: { suggestedFilename: "suggested.txt" } });
 
     await Download.renameAndDownload(state);
@@ -844,7 +842,7 @@ describe("onDeterminingFilename listener: sync path", () => {
   });
 
   test("keeps the state's filename when the download item has none", async () => {
-    browserState.current = "CHROME";
+    setCurrentBrowser("CHROME");
     const state = makeState();
 
     await Download.renameAndDownload(state);
@@ -860,7 +858,7 @@ describe("onDeterminingFilename listener: sync path", () => {
   });
 
   test("recreates missing state info from the download item", async () => {
-    browserState.current = "CHROME";
+    setCurrentBrowser("CHROME");
     const state = makeState();
 
     await Download.renameAndDownload(state);
@@ -891,7 +889,7 @@ describe("concurrent downloads (pendingStates)", () => {
 
   beforeEach(async () => {
     vi.resetModules();
-    browserState.current = "CHROME";
+    setCurrentBrowser("CHROME");
     global.chrome = {
       downloads: { onDeterminingFilename: { addListener: vi.fn() } },
     } as any;
@@ -982,7 +980,7 @@ describe("Download.launch (fire-and-forget with a user-facing failure)", () => {
 
 describe("terminal browserDownload failure surfaces to the user", () => {
   test("reports a failure when downloads.download rejects and the fallback is off", async () => {
-    browserState.current = "CHROME";
+    setCurrentBrowser("CHROME");
     options.fallbackFetch = false;
     (global.browser.downloads as any).download = vi.fn(() =>
       Promise.reject(new Error("disk full")),
@@ -1118,7 +1116,7 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
   });
 
   test("an immediately rejected downloads.download falls back to fetch once", async () => {
-    browserState.current = "CHROME";
+    setCurrentBrowser("CHROME");
     (global.browser.downloads as any).download = vi
       .fn()
       .mockRejectedValueOnce(new Error("data: URLs are not supported"))
@@ -1136,7 +1134,7 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
   });
 
   test("immediate rejection does not fall back when disabled", async () => {
-    browserState.current = "CHROME";
+    setCurrentBrowser("CHROME");
     options.fallbackFetch = false;
     (global.browser.downloads as any).download = vi.fn(() => Promise.reject(new Error("nope")));
     global.fetch = vi.fn() as any;

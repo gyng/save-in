@@ -18,8 +18,10 @@ const flush = async (times = 40) => {
 // alongside it.
 import { DownloadState } from "../src/download-state.ts";
 
-// chrome-detector's CURRENT_BROWSER is a load-time constant, but a couple of
-// tests flip it — mock it over a hoisted, mutable holder (BROWSERS is constant).
+// chrome-detector now exports setCurrentBrowser, but this suite resetModules +
+// re-imports notification.ts per test (re-binding a fresh chrome-detector each
+// time), so a hoisted-holder getter stays the stable control point across the
+// re-binds (BROWSERS is a plain constant). A couple of tests flip the holder.
 const browserState = vi.hoisted(() => ({ current: "CHROME" }));
 vi.mock("../src/chrome-detector.ts", () => ({
   BROWSERS: { CHROME: "CHROME", FIREFOX: "FIREFOX", UNKNOWN: "UNKNOWN" },

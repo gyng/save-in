@@ -9,11 +9,12 @@ import * as constants from "../src/constants.ts";
 // vi.mock() calls so the (cached, only-ever-invoked-once) mock factories
 // close over stable references that later mutations stay visible through.
 //
-// CURRENT_BROWSER is different: chrome-detector.ts exports it as a `let`
-// only IT may reassign (other modules get a read-only live binding), so a
-// test can't set it directly even with a real import. A getter over the same
-// hoisted container (read at the conflictAction key's onLoad call time, not
-// at import time) is the only way to flip it per test.
+// CURRENT_BROWSER: chrome-detector now exports setCurrentBrowser (used by
+// download-flow to flip the real live binding), but this suite resetModules +
+// re-imports option.ts per test, which re-binds a fresh chrome-detector each
+// time. A hoisted-holder getter is the stable control point across those
+// re-binds (read at the conflictAction key's onLoad call time); re-grabbing the
+// fresh setter on every re-import would be strictly more plumbing for no gain.
 const mocks = vi.hoisted(() => ({
   currentBrowser: "UNKNOWN",
   Router: {} as Record<string, any>,

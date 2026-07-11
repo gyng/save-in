@@ -120,15 +120,32 @@ testable once tests are on real imports.
   → modules become import-side-effect-free → tests import-real everywhere (removes
   the last `vi.mock` that download-mv3 had to keep). Keep browser-shim's
   `globalThis.browser = chrome` at import. (Task #2.)
-- **Source refinements surfaced by the test migration** (Task #3): (a)
-  `Counter.next`/`peek` are typed `Promise<void>` but return a number — the
-  `writeQueue: Promise.resolve()` initializer poisons inference; annotate it. (b)
-  `chrome-detector` has no exported setter for its `CURRENT_BROWSER`/
-  `BROWSER_FEATURES` `let`s → tests can't flip them (the only two `vi.mock`s the
-  de-globalThis pass had to keep); add a setter like `setCurrentTab`. (c)
-  `Menus`/`Log` infer as `any` (TS7022 self-reference in their object literals) —
-  add a type annotation. (d) `shortcut.makeShortcutContent` `title` should be
-  optional. (a/c/d fold into #60/#62; b is a discrete testability fix.)
+- **Source refinements surfaced by the test migration** (Task #3): ✅ (a)+(b)
+  DONE; (c)/(d) fold into #60/#62 as noted below.
+  - (a) ✅ `Counter.next`/`peek` were typed `Promise<void>` but resolve to a
+    number (the shared `writeQueue: Promise.resolve()` field's `Promise<void>`
+    erased the count `opts.counter = await Counter.next()` awaited). Fixed:
+    `next` returns the freshly-chained `Promise<number>` (not the shared field,
+    now `Promise<unknown>`); `next`/`peek` annotated `Promise<number>`.
+  - (b) ✅ Added `chrome-detector.setCurrentBrowser(browser)` — the write-half of
+    the `CURRENT_BROWSER`/`BROWSER_FEATURES` live bindings (they always move
+    together). The load-time detection block now calls it, so it is production
+    code, not a test backdoor. `download-flow.test` converted from its
+    hoisted-holder `vi.mock` to import-real + `setCurrentBrowser` (46 flip
+    sites). `option`/`notification-session` keep their holder-mocks: both
+    `resetModules` + re-import their SUT per test, so a fresh chrome-detector
+    binds each test and the holder is the stable control point (re-grabbing the
+    setter every re-import is strictly more plumbing). `menu.test` keeps its
+    mock: it forces `BROWSER_FEATURES` to `{accessKeys:false}` and `undefined` —
+    defensive states `setFeatures` cannot produce. Also typed `BrowserFeatures`
+    and `CURRENT_BROWSER_VERSION`.
+  - (c) `Log` is already properly typed (not `any` — its self-refs are in method
+    bodies, lazily typed, so no TS7022). `Menus` IS `any`, but because
+    `menu-click`/`menu-tabs` extend it via `Menus.x = …` (only legal on `any`);
+    fixing needs the full `Menus` interface incl. those members → folded into #62
+    (and dovetails with the #68 singleton sweep).
+  - (d) `shortcut.makeShortcutContent` `title` optional is one lone param
+    annotation in an otherwise-untyped file → folded into the #60 strict sweep.
 - **TS tooling/CI hardening** — typecheck `test/**`, `expectTypeOf` contract
   tests, per-context `lib` (SW=webworker vs DOM), sourcemaps. **NO
   typescript-eslint** (decided — stay oxlint-only); the tradeoff is no
