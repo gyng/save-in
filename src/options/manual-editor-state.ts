@@ -7,6 +7,7 @@ type ManualEditor = {
   valid: boolean;
   saving: boolean;
   validationPending: boolean;
+  revision: number;
 };
 
 // Owns the dirty/baseline state shared by the text and visual representations
@@ -46,6 +47,7 @@ export const createManualEditorState = (unsavedLabel: string) => {
       valid: true,
       saving: false,
       validationPending: false,
+      revision: 0,
     };
     editors.push(editor);
 
@@ -64,8 +66,9 @@ export const createManualEditorState = (unsavedLabel: string) => {
       });
     };
 
-    textarea.addEventListener("input", editor.sync);
     textarea.addEventListener("input", () => {
+      editor.revision += 1;
+      editor.sync();
       editor.saveStatus.hidden = true;
     });
     textarea.addEventListener("keydown", (event) => {
@@ -142,9 +145,19 @@ export const createManualEditorState = (unsavedLabel: string) => {
     return true;
   };
 
-  const markSaved = (id: string, label?: string, appliedValue?: unknown) => {
+  const markSaved = (
+    id: string,
+    label?: string,
+    appliedValue?: unknown,
+    expectedRevision?: number,
+  ) => {
     const editor = find(id);
     if (!editor) return false;
+    if (expectedRevision != null && editor.revision !== expectedRevision) {
+      editor.saving = false;
+      editor.sync();
+      return false;
+    }
     if (typeof appliedValue === "string") editor.textarea.value = appliedValue;
     if (typeof appliedValue !== "undefined") {
       editor.textarea.dispatchEvent(
@@ -167,6 +180,11 @@ export const createManualEditorState = (unsavedLabel: string) => {
     editors
       .filter((editor) => editor.textarea.value !== editor.saved)
       .map((editor) => editor.textarea.id);
+  const revision = (id: string) => find(id)?.revision;
+  const canSave = (id: string) => {
+    const editor = find(id);
+    return Boolean(editor && editor.valid && !editor.validationPending);
+  };
 
   const discard = (id: string) => {
     const editor = editors.find((candidate) => candidate.textarea.id === id);
@@ -183,6 +201,8 @@ export const createManualEditorState = (unsavedLabel: string) => {
     refreshBaselines,
     anyDirty,
     dirtyIds,
+    revision,
+    canSave,
     discard,
     setValidity,
     setValidationPending,

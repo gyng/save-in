@@ -210,6 +210,22 @@ describe("unsaved-changes guard on tab switch", () => {
     expect(panels[1].classList.contains("active")).toBe(false);
   });
 
+  test("waits for asynchronous persistence before switching tabs", async () => {
+    let finish: (allowed: boolean) => void = () => {};
+    window.confirmPendingChanges = vi.fn(
+      () => new Promise<boolean>((resolve) => (finish = resolve)),
+    ) as any;
+    const tabs = document.querySelectorAll<HTMLElement>(".tablist .tab");
+    const panels = document.querySelectorAll(".tab-panel");
+
+    tabs[1].click();
+    expect(panels[0].classList.contains("active")).toBe(true);
+
+    finish(true);
+    await Promise.resolve();
+    expect(panels[1].classList.contains("active")).toBe(true);
+  });
+
   test("waits for an asynchronous save guard before switching", async () => {
     let finish!: (allowed: boolean) => void;
     window.confirmPendingChanges = vi.fn(
@@ -220,6 +236,34 @@ describe("unsaved-changes guard on tab switch", () => {
     expect(tabs[0].getAttribute("aria-selected")).toBe("true");
     finish(true);
     await vi.waitFor(() => expect(tabs[1].getAttribute("aria-selected")).toBe("true"));
+  });
+
+  test("only the latest pending tab request may activate", async () => {
+    const finishes: Array<(allowed: boolean) => void> = [];
+    window.confirmPendingChanges = vi.fn(
+      () => new Promise<boolean>((resolve) => finishes.push(resolve)),
+    ) as any;
+    const tabs = document.querySelectorAll<HTMLElement>(".tablist .tab");
+    tabs[1].click();
+    tabs[2].click();
+    finishes[1](true);
+    await vi.waitFor(() => expect(tabs[2].getAttribute("aria-selected")).toBe("true"));
+    finishes[0](true);
+    await Promise.resolve();
+    expect(tabs[2].getAttribute("aria-selected")).toBe("true");
+  });
+
+  test("keyboard focus follows activation and returns on failure", async () => {
+    let finish!: (allowed: boolean) => void;
+    window.confirmPendingChanges = vi.fn(
+      () => new Promise<boolean>((resolve) => (finish = resolve)),
+    ) as any;
+    const tabs = [...document.querySelectorAll<HTMLElement>('[role="tab"]')];
+    tabs[0].focus();
+    tabs[0].dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+    expect(document.activeElement).toBe(tabs[0]);
+    finish(false);
+    await vi.waitFor(() => expect(document.activeElement).toBe(tabs[0]));
   });
 
   test("still switches when no guard is registered", () => {

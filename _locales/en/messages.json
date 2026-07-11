@@ -722,6 +722,7 @@
   "o_bRetryValidation": { "message": "Retry validation" },
   "o_lAutosaveFailed": { "message": "Could not save this setting. " },
   "o_bRetrySave": { "message": "Retry save" },
+  "o_lFixValidationBeforeSave": { "message": "Fix validation errors before saving." },
   "o_lNoValidationErrors": { "message": "No validation errors" },
   "o_lValidationSummary": {
     "message": "$ERRORS$ errors, $WARNINGS$ warnings",

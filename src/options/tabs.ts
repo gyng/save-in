@@ -92,6 +92,7 @@ export const setupTabs = (): void => {
   });
 
   let currentIndex = -1;
+  let navigationGeneration = 0;
 
   const activate = (index: number): void => {
     currentIndex = index;
@@ -110,7 +111,8 @@ export const setupTabs = (): void => {
     }
   };
 
-  const select = (index: number): void => {
+  const select = (index: number, focusOnActivate = false): void => {
+    const mine = ++navigationGeneration;
     // Leaving a tab with unsaved editor changes prompts to save/discard
     // (main tabs don't unload the page, so beforeunload can't cover this)
     if (
@@ -121,7 +123,11 @@ export const setupTabs = (): void => {
       const allowed = window.confirmPendingChanges();
       if (allowed && typeof (allowed as Promise<boolean>).then === "function") {
         void (allowed as Promise<boolean>).then((result) => {
-          if (result) activate(index);
+          if (mine !== navigationGeneration) return;
+          if (result) {
+            activate(index);
+            if (focusOnActivate) tabs[index].focus();
+          } else if (focusOnActivate && currentIndex >= 0) tabs[currentIndex].focus();
         });
         return;
       }
@@ -130,6 +136,7 @@ export const setupTabs = (): void => {
       }
     }
     activate(index);
+    if (focusOnActivate) tabs[index].focus();
   };
 
   tabs.forEach((tab, index) => {
@@ -145,8 +152,7 @@ export const setupTabs = (): void => {
           : e.key === "End"
             ? tabs.length - 1
             : (index + (e.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length;
-      tabs[next].focus();
-      select(next);
+      select(next, true);
     });
     tablist.appendChild(tab);
   });

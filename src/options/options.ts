@@ -709,7 +709,7 @@ const AUTOSAVE_DEBOUNCE_MS = 400;
 // closing the page or switching tabs in that window would drop the edit
 const fieldSaveState = createFieldSaveState();
 // Scheduled autosave timers, so a Discard can cancel them before they fire
-const pendingSaveTimers = new Set<number>();
+const pendingSaveCancellers = new Set<() => void>();
 
 window.addEventListener("beforeunload", (e) => {
   if (fieldSaveState.hasUnsaved() || anyManualEditorDirty()) {
@@ -729,6 +729,24 @@ const setupManualEditor = manualEditorState.setup;
 const refreshManualEditorBaselines = manualEditorState.refreshBaselines;
 const anyManualEditorDirty = manualEditorState.anyDirty;
 
+const showManualSaveError = (id: string, error: unknown) => {
+  const panel = document.querySelector(`#error-${id}`);
+  if (!panel) return;
+  const channel = errorChannel(panel, "persistence");
+  channel.innerHTML = "";
+  channel.appendChild(
+    renderErrorRow(
+      {
+        message: webExtensionApi.i18n.getMessage("o_lSaveFailed") || "Could not save changes",
+        error: String(error),
+        warning: false,
+      },
+      `#${id}`,
+    ),
+  );
+  updateErrorSummary(panel);
+};
+
 // Called before an in-page tab switch (main tabs don't unload the page, so
 // beforeunload never fires). OK starts a save; Cancel keeps the editor open.
 window.confirmPendingChanges = () => {
@@ -744,9 +762,18 @@ window.confirmPendingChanges = () => {
   // eslint-disable-next-line no-alert
   const save = window.confirm(message);
   if (save) {
-    pendingSaveTimers.forEach((timer) => window.clearTimeout(timer));
-    pendingSaveTimers.clear();
+    pendingSaveCancellers.forEach((cancel) => cancel());
     const ids = [...new Set([...fieldSaveState.unsavedIds(), ...manualEditorState.dirtyIds()])];
+    const blocked = manualEditorState.dirtyIds().find((id) => !manualEditorState.canSave(id));
+    if (blocked) {
+      showManualSaveError(
+        blocked,
+        webExtensionApi.i18n.getMessage("o_lFixValidationBeforeSave") ||
+          "Fix validation errors before saving.",
+      );
+      return Promise.resolve(false);
+    }
+    const revisions = new Map(ids.map((id) => [id, manualEditorState.revision(id)]));
     return Promise.all(
       ids.map(async (id) => {
         const token = fieldSaveState.begin(id);
@@ -758,11 +785,13 @@ window.confirmPendingChanges = () => {
               id,
               webExtensionApi.i18n.getMessage("o_lSaved") || "Saved",
               getAppliedValue(response, id),
+              revisions.get(id),
             );
           }
           return true;
-        } catch {
+        } catch (error) {
           fieldSaveState.fail(id, token);
+          showManualSaveError(id, error);
           return false;
         }
       }),
@@ -809,6 +838,7 @@ const setupAutosave = (el: Element) => {
   }
 
   let debounceTimer: number | null = null;
+  let cancelPending: (() => void) | null = null;
 
   // Tied to the actual save firing (not every keystroke), so it still
   // reflects when a save really happened once debounced.
@@ -847,17 +877,21 @@ const setupAutosave = (el: Element) => {
   if (el.type === "textarea") {
     el.addEventListener("input", () => {
       fieldSaveState.markDirty(el.id);
-      if (debounceTimer !== null) {
-        window.clearTimeout(debounceTimer);
-        pendingSaveTimers.delete(debounceTimer);
-      }
+      cancelPending?.();
       const timer = window.setTimeout(() => {
-        pendingSaveTimers.delete(timer);
+        if (cancelPending) pendingSaveCancellers.delete(cancelPending);
+        cancelPending = null;
         debounceTimer = null;
         doSave();
       }, AUTOSAVE_DEBOUNCE_MS);
       debounceTimer = timer;
-      pendingSaveTimers.add(debounceTimer);
+      cancelPending = () => {
+        window.clearTimeout(timer);
+        debounceTimer = null;
+        if (cancelPending) pendingSaveCancellers.delete(cancelPending);
+        cancelPending = null;
+      };
+      pendingSaveCancellers.add(cancelPending);
     });
 
     // Flush on blur so a quick click-away right after typing isn't lost
@@ -865,9 +899,7 @@ const setupAutosave = (el: Element) => {
       if (debounceTimer === null) {
         return;
       }
-      window.clearTimeout(debounceTimer);
-      pendingSaveTimers.delete(debounceTimer);
-      debounceTimer = null;
+      cancelPending?.();
       doSave();
     });
   } else if (["text", "number"].includes(el.type)) {
@@ -1246,6 +1278,7 @@ document.addEventListener("click", (e) => {
 document.querySelectorAll("[data-apply]").forEach((button) => {
   button.addEventListener("click", async () => {
     const id = button.getAttribute("data-apply") || "";
+    const revision = manualEditorState.revision(id);
     manualEditorState.setSaving(
       id,
       true,
@@ -1257,6 +1290,7 @@ document.querySelectorAll("[data-apply]").forEach((button) => {
         id,
         webExtensionApi.i18n.getMessage("o_lSaved") || "Saved",
         getAppliedValue(response, id),
+        revision,
       );
       const errorPanel = document.querySelector(`#error-${id}`);
       if (errorPanel) {
@@ -1270,22 +1304,7 @@ document.querySelectorAll("[data-apply]").forEach((button) => {
       }, 200);
     } catch (error) {
       manualEditorState.setSaving(id, false);
-      const panel = document.querySelector(`#error-${id}`);
-      if (panel) {
-        const channel = errorChannel(panel, "persistence");
-        channel.innerHTML = "";
-        channel.appendChild(
-          renderErrorRow(
-            {
-              message: webExtensionApi.i18n.getMessage("o_lSaveFailed") || "Could not save changes",
-              error: String(error),
-              warning: false,
-            },
-            `#${id}`,
-          ),
-        );
-        updateErrorSummary(panel);
-      }
+      showManualSaveError(id, error);
     }
   });
 });
@@ -1357,6 +1376,7 @@ const waitForBrowserDetection = () => {
     setTimeout(waitForBrowserDetection, 10);
   } else {
     setupChromeDisables();
+    updateOptionDependencies();
   }
 };
 waitForBrowserDetection();

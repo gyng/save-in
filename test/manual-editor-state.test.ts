@@ -129,6 +129,30 @@ describe("manual editor state", () => {
     expect(applied).toHaveBeenCalledOnce();
   });
 
+  test("does not overwrite edits made after a save started", () => {
+    const state = createManualEditorState("Unsaved changes");
+    state.setup("paths");
+    const textarea = document.querySelector("textarea")!;
+    textarea.value = "submitted";
+    textarea.dispatchEvent(new InputEvent("input"));
+    const revision = state.revision("paths");
+    textarea.value = "newer edit";
+    textarea.dispatchEvent(new InputEvent("input"));
+    expect(state.markSaved("paths", "Saved", "submitted", revision)).toBe(false);
+    expect(textarea.value).toBe("newer edit");
+    expect(state.anyDirty()).toBe(true);
+  });
+
+  test("reports whether an editor can currently be saved", () => {
+    const state = createManualEditorState("Unsaved changes");
+    state.setup("paths");
+    expect(state.canSave("paths")).toBe(true);
+    state.setValidationPending("paths");
+    expect(state.canSave("paths")).toBe(false);
+    state.setValidity("paths", false);
+    expect(state.canSave("paths")).toBe(false);
+  });
+
   test("validation failure clears pending state and exposes retry without enabling Apply", () => {
     const state = createManualEditorState("Unsaved changes");
     state.setup("paths");
