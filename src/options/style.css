@@ -1033,6 +1033,54 @@ input.key {
   box-shadow: var(--focus-ring);
 }
 
+.option-search {
+  position: relative;
+  max-width: var(--content-max-width);
+  margin: 0 auto var(--space-3);
+  z-index: 20;
+}
+
+.option-search #option-search {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: none;
+  padding: var(--space-2) var(--space-3);
+}
+
+.option-search-results {
+  position: absolute;
+  width: 100%;
+  max-height: 20rem;
+  overflow-y: auto;
+  padding: var(--space-1);
+  border: 1px solid var(--grey30);
+  border-radius: var(--radius);
+  background: var(--page-bg);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+}
+
+.option-search-results button {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  width: 100%;
+  text-align: left;
+}
+
+.option-search-results button[aria-selected="true"] {
+  color: var(--link-color);
+  background: rgba(128, 128, 128, 0.12);
+}
+
+.option-search-results small {
+  color: var(--grey50);
+}
+
+.option-search-target {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
 .tab-panel {
   display: none;
   width: 100%;

@@ -22,4 +22,5 @@ import "../options/autocomplete.ts";
 import "../options/path-editor.ts";
 import "../options/rule-builder.ts";
 import "../options/tabs.ts";
+import "../options/option-search.ts";
 import "../options/webmcp.ts";

@@ -100,6 +100,14 @@ describe("setupTabs", () => {
     expect(panels[1].getAttribute("aria-labelledby")).toBe(tabs[1].id);
   });
 
+  test("option navigation activates its panel before focusing the control", () => {
+    const target = document.getElementById("b") as HTMLInputElement;
+    document.dispatchEvent(new CustomEvent("save-in:navigate-option", { detail: { target } }));
+    expect(document.querySelectorAll(".tab-panel")[1].classList.contains("active")).toBe(true);
+    expect(document.activeElement).toBe(target);
+    expect(target.classList.contains("option-search-target")).toBe(true);
+  });
+
   test("Home and End move to the first and last tab", () => {
     const tabs = [...document.querySelectorAll<HTMLElement>('[role="tab"]')];
 

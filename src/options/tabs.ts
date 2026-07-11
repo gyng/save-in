@@ -111,7 +111,7 @@ export const setupTabs = (): void => {
     }
   };
 
-  const select = (index: number, focusOnActivate = false): void => {
+  const select = (index: number, focusOnActivate = false, afterActivate?: () => void): void => {
     const mine = ++navigationGeneration;
     // Leaving a tab with unsaved editor changes prompts to save/discard
     // (main tabs don't unload the page, so beforeunload can't cover this)
@@ -127,6 +127,7 @@ export const setupTabs = (): void => {
           if (result) {
             activate(index);
             if (focusOnActivate) tabs[index].focus();
+            afterActivate?.();
           } else if (focusOnActivate && currentIndex >= 0) tabs[currentIndex].focus();
         });
         return;
@@ -137,6 +138,7 @@ export const setupTabs = (): void => {
     }
     activate(index);
     if (focusOnActivate) tabs[index].focus();
+    afterActivate?.();
   };
 
   tabs.forEach((tab, index) => {
@@ -159,6 +161,19 @@ export const setupTabs = (): void => {
 
   form.prepend(tablist);
   panels.forEach((panel) => form.appendChild(panel));
+
+  document.addEventListener("save-in:navigate-option", (event) => {
+    const target = (event as CustomEvent<{ target?: HTMLElement }>).detail?.target;
+    const panel = target?.closest<HTMLElement>(".tab-panel");
+    const index = panel ? panels.indexOf(panel) : -1;
+    if (!target || index < 0) return;
+    select(index, false, () => {
+      target.focus({ preventScroll: true });
+      target.scrollIntoView?.({ block: "center", behavior: "smooth" });
+      target.classList.add("option-search-target");
+      window.setTimeout(() => target.classList.remove("option-search-target"), 1600);
+    });
+  });
 
   let initial = 0;
   try {
