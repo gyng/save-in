@@ -29,6 +29,13 @@ describe("buildTools", () => {
     expect(byName.save_in_download.inputSchema.additionalProperties).toBe(false);
     expect(byName.save_in_apply_config.annotations?.readOnlyHint).toBe(false);
     expect(byName.save_in_validate_config.annotations?.readOnlyHint).toBe(true);
+    const validationInfo = byName.save_in_validate_config.inputSchema.properties.info as {
+      description: string;
+      properties: Record<string, unknown>;
+    };
+    expect(validationInfo.description).toContain("srcUrl");
+    expect(validationInfo.properties).toHaveProperty("srcUrl");
+    expect(validationInfo.properties).toHaveProperty("url");
   });
 
   test("execute handlers message the right background type", () => {

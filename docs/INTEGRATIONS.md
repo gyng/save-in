@@ -146,22 +146,48 @@ API; `schema`/`validate` are in the `PING` capabilities):
 
 ### WebMCP — experimental in-browser AI tools
 
-In a [WebMCP](https://developer.chrome.com/docs/ai/webmcp)-capable browser
-(Chrome origin trial), the options page registers five tools an in-browser AI
-agent can call — thin wrappers over the messages above
-(`src/options/webmcp.ts`): `save_in_get_schema` (every option, so an agent can
-change **any** setting), `save_in_list_vocabulary` (the `:variables:` **and**
-routing clause matchers), `save_in_validate_config`, `save_in_apply_config`, and
-`save_in_download`. It feature-detects
-`document.modelContext` (the surface moved off `navigator.`) and no-ops
-everywhere else, so it's safe in the polyfill-free build. **How to connect:**
-open Save In's options page in a WebMCP-enabled Chrome, keep the tab open, and
-point your agent at it — e.g. *"use Save In to file images into
-`gallery/:sourcedomain:/:date:` and PDFs into `papers/:year:`, numbering each
-with `:counter:`"* drives `save_in_validate_config` → `save_in_apply_config`.
-The API is explicitly "subject to change"; treat it as a preview. The natural
-next step is a `world: "MAIN"` content script so the `save_in_download` tool is
-available on any page (needs a main-/isolated-world message bridge).
+In a [WebMCP](https://developer.chrome.com/docs/ai/webmcp)-capable Chrome, the
+options page registers five tools through `document.modelContext`. For local
+development, enable `chrome://flags/#enable-webmcp-testing`, relaunch Chrome,
+open Save In's options page, and keep that tab open. The diagnostics section
+reports `Active — 5 tools registered` when registration succeeds. The adapter
+also retains the deprecated `navigator.modelContext` fallback for older origin
+trial builds and no-ops in browsers without either surface.
+
+| Tool | Purpose | Input |
+| --- | --- | --- |
+| `save_in_get_schema` | Read all configurable options, types, defaults, and descriptions | `{}` |
+| `save_in_list_vocabulary` | Read path/filename variables and routing matchers | `{}` |
+| `save_in_validate_config` | Dry-run paths and rules; optionally return a per-rule trace | `{ paths?, filenamePatterns?, info? }` |
+| `save_in_apply_config` | Validate and store a partial configuration | `{ config: { optionName: value } }` |
+| `save_in_download` | Run a URL through normal routing and renaming | `{ url, pageUrl?, comment? }` |
+
+The recommended agent flow is schema → vocabulary → validate → apply. For
+example, *"file JPEGs under `gallery/:sourcedomain:`"* can be validated with:
+
+```json
+{
+  "filenamePatterns": "fileext: jpg\ninto: gallery/:sourcedomain:/:filename:",
+  "info": {
+    "srcUrl": "https://example.test/photo.jpg",
+    "filename": "photo.jpg",
+    "pageUrl": "https://example.test/gallery"
+  }
+}
+```
+
+Use `srcUrl` for `fileext` traces; use the `urlfileext` matcher when only `url`
+is available. Always inspect `pathErrors` and `ruleErrors` before applying.
+`APPLY_CONFIG` is partial: omitted keys are unchanged, not deleted. To restore
+an option, apply the default returned by `save_in_get_schema`.
+
+When debugging manually with `document.modelContext.executeTool`, pass the
+arguments as a JSON string. Chrome may return structured tool results as a JSON
+string as well, so callers should accept either a decoded value or JSON text.
+
+The API remains experimental and subject to change. Today the tools exist only
+while the options page is open; exposing `save_in_download` on arbitrary pages
+would require a main-/isolated-world message bridge.
 
 **Guardrails that already exist and should be kept:**
 

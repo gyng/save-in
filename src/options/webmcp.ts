@@ -97,7 +97,17 @@ export const SaveInWebMCP = {
           info: {
             type: "object",
             description:
-              "Optional sample download info ({url, filename, initialFilename, pageUrl, ...}) for a per-rule match trace",
+              "Optional sample download info ({srcUrl, filename, initialFilename, pageUrl, ...}) for a per-rule match trace. Use srcUrl for fileext matching and urlfileext when only url is available.",
+            properties: {
+              srcUrl: { type: "string" },
+              url: { type: "string" },
+              sourceUrl: { type: "string" },
+              linkUrl: { type: "string" },
+              pageUrl: { type: "string" },
+              filename: { type: "string" },
+              initialFilename: { type: "string" },
+              comment: { type: "string" },
+            },
           },
         },
         additionalProperties: false,

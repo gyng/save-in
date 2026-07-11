@@ -595,8 +595,11 @@ rejected, import can't widen permissions). **S–M** each.
 options-page document, feature-detected on `document.modelContext`. Verified
 end-to-end on Chrome 150 with the WebMCP flags: `getTools()` returns
 `save_in_{get_schema,list_vocabulary,validate_config,apply_config,download}` and `executeTool`
-round-trips (get_schema returned the full option list, validate_config parsed a
-rule with no errors). The notes below record the original assessment.
+round-trips. The July 2026 dogfood covered all five registrations and
+annotations, 43 schema options, 41 variables, 17 matchers, positive and negative
+rule validation, a matched/expanded routing trace, and a config mutation with
+the disposable profile restored afterward. The notes below record the original
+assessment.
 
 ---
 
