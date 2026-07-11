@@ -11,7 +11,8 @@
 // in, so importing them at the top can't force it to load early); the rest of
 // download.ts's dependency graph is imported below, after the host globals are in
 // place, so download.ts registers its onDeterminingFilename listener against them.
-import { DownloadState, SessionState } from "../src/background-state.ts";
+import { DownloadState } from "../src/background-state.ts";
+import * as SessionState from "../src/session-state.ts";
 import { OffscreenClient } from "../src/offscreen-client.ts";
 import { Log } from "../src/log.ts";
 import { SaveHistory } from "../src/history.ts";
@@ -113,17 +114,19 @@ beforeEach(() => {
   vi.spyOn(RequestHeaders, "prepareReferer").mockResolvedValue(undefined);
 
   for (const k of Object.keys(sessionStore)) delete sessionStore[k];
-  vi.spyOn(SessionState, "set").mockImplementation((obj: any) => {
+  vi.spyOn(SessionState, "setSession").mockImplementation((_storage: any, obj: any) => {
     Object.assign(sessionStore, obj);
     return Promise.resolve();
   });
-  vi.spyOn(SessionState, "get").mockImplementation((key: any) =>
+  vi.spyOn(SessionState, "getSession").mockImplementation((_storage: any, key: any) =>
     Promise.resolve(key in sessionStore ? { [key]: sessionStore[key] } : {}),
   );
-  vi.spyOn(SessionState, "update").mockImplementation((key: any, fn: any) => {
-    sessionStore[key] = fn(sessionStore[key]);
-    return Promise.resolve();
-  });
+  vi.spyOn(SessionState, "updateSession").mockImplementation(
+    (_writes: any, _storage: any, key: any, fn: any) => {
+      sessionStore[key] = fn(sessionStore[key]);
+      return Promise.resolve();
+    },
+  );
 
   // setDownloadId is never asserted; add returns a stable id so the started
   // record carries a truthy historyEntryId
@@ -532,8 +535,18 @@ describe("renameAndDownload: browserDownload", () => {
     expect(RequestHeaders.prepareReferer).toHaveBeenCalledWith(state);
     // pending counter + per-URL filename map are updated (see the session-
     // restart recovery tests for the values)
-    expect(SessionState.update).toHaveBeenCalledWith("siPendingDownloads", expect.any(Function));
-    expect(SessionState.update).toHaveBeenCalledWith("siFinalFilenames", expect.any(Function));
+    expect(SessionState.updateSession).toHaveBeenCalledWith(
+      expect.anything(),
+      global.browser.storage?.session,
+      "siPendingDownloads",
+      expect.any(Function),
+    );
+    expect(SessionState.updateSession).toHaveBeenCalledWith(
+      expect.anything(),
+      global.browser.storage?.session,
+      "siFinalFilenames",
+      expect.any(Function),
+    );
     expect(global.browser.downloads.download).toHaveBeenCalledWith({
       url: state.info.url,
       filename: expect.any(String),
@@ -585,9 +598,9 @@ describe("renameAndDownload: browserDownload", () => {
 
     // the filename-map update stores "_" for this download's URL
     const fnameUpdate = vi
-      .mocked(SessionState.update)
-      .mock.calls.find((c: any) => c[0] === "siFinalFilenames");
-    expect(fnameUpdate![1]({})).toEqual({ [state.info.url]: "_" });
+      .mocked(SessionState.updateSession)
+      .mock.calls.find((c: any) => c[2] === "siFinalFilenames");
+    expect(fnameUpdate![3]({})).toEqual({ [state.info.url]: "_" });
     expect(global.browser.downloads.download).toHaveBeenCalledWith(
       expect.objectContaining({ filename: "_" }),
     );

@@ -1,7 +1,7 @@
 // Per-download records are mirrored in memory and storage.session. Each store
 // owns its map and hydration lifecycle; production exports one shared instance.
 
-import { SessionStateStore } from "./session-state.ts";
+import { getSession, SessionWriteState, updateSession } from "./session-state.ts";
 
 export class DownloadStateStore {
   readonly SESSION_KEY = "siDownloads";
@@ -9,11 +9,14 @@ export class DownloadStateStore {
   records = new Map();
   hydration: Promise<any> | null = null;
 
-  constructor(private readonly sessionState: SessionStateStore) {}
+  constructor(
+    private readonly sessionWrites: SessionWriteState,
+    private readonly sessionStorage: () => any,
+  ) {}
 
   hydrate() {
     if (!this.hydration) {
-      this.hydration = this.sessionState.get(this.SESSION_KEY).then((res) => {
+      this.hydration = getSession(this.sessionStorage(), this.SESSION_KEY).then((res) => {
         const store = res[this.SESSION_KEY] || {};
         Object.keys(store).forEach((id) => {
           if (!this.records.has(Number(id))) this.records.set(Number(id), store[id]);
@@ -33,7 +36,7 @@ export class DownloadStateStore {
     const merged = Object.assign({}, this.records.get(downloadId), partial);
     this.records.set(downloadId, merged);
     if (this.records.size > this.MAX) this.records.delete(this.records.keys().next().value);
-    return this.sessionState.update(this.SESSION_KEY, (store) =>
+    return updateSession(this.sessionWrites, this.sessionStorage(), this.SESSION_KEY, (store) =>
       this.cap(Object.assign({}, store, { [downloadId]: merged })),
     );
   }
@@ -41,7 +44,7 @@ export class DownloadStateStore {
   get(downloadId) {
     const inMemory = this.records.get(downloadId);
     if (inMemory) return Promise.resolve(inMemory);
-    return this.sessionState.get(this.SESSION_KEY).then((res) => {
+    return getSession(this.sessionStorage(), this.SESSION_KEY).then((res) => {
       const store = res[this.SESSION_KEY];
       return (store && store[downloadId]) || null;
     });

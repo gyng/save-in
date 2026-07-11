@@ -1,34 +1,22 @@
-// storage.session wrapper: persists MV3 service-worker state across restarts
-// and serializes read-modify-write operations so concurrent events do not lose updates.
+// Serialized writes are explicit state; storage capability is supplied by the caller.
 
-export class SessionStateStore {
-  queue: Promise<unknown> = Promise.resolve();
+export type SessionWriteState = {
+  queue: Promise<unknown>;
+};
 
-  available() {
-    return typeof browser !== "undefined" && browser.storage && browser.storage.session != null;
-  }
+export const getSession = (storage, key): Promise<Record<string, any>> =>
+  storage ? storage.get(key).catch(() => ({})) : Promise.resolve({});
 
-  get(key): Promise<Record<string, any>> {
-    return this.available()
-      ? browser.storage.session.get(key).catch(() => ({}))
-      : Promise.resolve({});
-  }
+export const setSession = (storage, obj) =>
+  storage ? storage.set(obj).catch(() => {}) : Promise.resolve();
 
-  set(obj) {
-    return this.available() ? browser.storage.session.set(obj).catch(() => {}) : Promise.resolve();
-  }
+export const removeSession = (storage, key) =>
+  storage ? storage.remove(key).catch(() => {}) : Promise.resolve();
 
-  remove(key) {
-    return this.available()
-      ? browser.storage.session.remove(key).catch(() => {})
-      : Promise.resolve();
-  }
-
-  update(key, fn) {
-    this.queue = this.queue
-      .then(() => this.get(key))
-      .then((res) => this.set({ [key]: fn(res[key]) }))
-      .catch(() => {});
-    return this.queue;
-  }
-}
+export const updateSession = (writes: SessionWriteState, storage, key, update) => {
+  writes.queue = writes.queue
+    .then(() => getSession(storage, key))
+    .then((stored) => setSession(storage, { [key]: update(stored[key]) }))
+    .catch(() => {});
+  return writes.queue;
+};

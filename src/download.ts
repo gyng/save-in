@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
 
-import { DownloadState, SessionState } from "./background-state.ts";
+import { BackgroundState, DownloadState } from "./background-state.ts";
+import { getSession, updateSession } from "./session-state.ts";
 import { RequestHeaders } from "./headers.ts";
 import { Notifier } from "./notification.ts";
 import { Log } from "./log.ts";
@@ -88,9 +89,17 @@ export const Download = {
           // counter balanced against the cleanup below
           Notifier.expectDownload();
           return Promise.all([
-            SessionState.update("siPendingDownloads", (n) => Math.max(0, (n || 0) + 1)),
-            SessionState.update("siFinalFilenames", (m) =>
-              Object.assign({}, m, { [blobUrl]: record.filename }),
+            updateSession(
+              BackgroundState.sessionWrites,
+              browser.storage?.session,
+              "siPendingDownloads",
+              (n) => Math.max(0, (n || 0) + 1),
+            ),
+            updateSession(
+              BackgroundState.sessionWrites,
+              browser.storage?.session,
+              "siFinalFilenames",
+              (m) => Object.assign({}, m, { [blobUrl]: record.filename }),
             ),
           ])
             .then(() =>
@@ -110,12 +119,22 @@ export const Download = {
             )
             .then(() =>
               Promise.all([
-                SessionState.update("siPendingDownloads", (n) => Math.max(0, (n || 0) - 1)),
-                SessionState.update("siFinalFilenames", (m) => {
-                  const copy = Object.assign({}, m);
-                  delete copy[blobUrl];
-                  return copy;
-                }),
+                updateSession(
+                  BackgroundState.sessionWrites,
+                  browser.storage?.session,
+                  "siPendingDownloads",
+                  (n) => Math.max(0, (n || 0) - 1),
+                ),
+                updateSession(
+                  BackgroundState.sessionWrites,
+                  browser.storage?.session,
+                  "siFinalFilenames",
+                  (m) => {
+                    const copy = Object.assign({}, m);
+                    delete copy[blobUrl];
+                    return copy;
+                  },
+                ),
               ]),
             )
             .then(() => true);
@@ -316,9 +335,17 @@ export const Download = {
     const filename = finalFullPath || "_";
     await RequestHeaders.prepareReferer(state);
     await Promise.all([
-      SessionState.update("siPendingDownloads", (n) => Math.max(0, (n || 0) + 1)),
-      SessionState.update("siFinalFilenames", (m) =>
-        Object.assign({}, m, { [acquired.url]: filename }),
+      updateSession(
+        BackgroundState.sessionWrites,
+        browser.storage?.session,
+        "siPendingDownloads",
+        (n) => Math.max(0, (n || 0) + 1),
+      ),
+      updateSession(
+        BackgroundState.sessionWrites,
+        browser.storage?.session,
+        "siFinalFilenames",
+        (m) => Object.assign({}, m, { [acquired.url]: filename }),
       ),
     ]);
 
@@ -350,12 +377,22 @@ export const Download = {
       }
     } finally {
       await Promise.all([
-        SessionState.update("siPendingDownloads", (n) => Math.max(0, (n || 0) - 1)),
-        SessionState.update("siFinalFilenames", (m) => {
-          const copy = Object.assign({}, m);
-          delete copy[acquired.url];
-          return copy;
-        }),
+        updateSession(
+          BackgroundState.sessionWrites,
+          browser.storage?.session,
+          "siPendingDownloads",
+          (n) => Math.max(0, (n || 0) - 1),
+        ),
+        updateSession(
+          BackgroundState.sessionWrites,
+          browser.storage?.session,
+          "siFinalFilenames",
+          (m) => {
+            const copy = Object.assign({}, m);
+            delete copy[acquired.url];
+            return copy;
+          },
+        ),
       ]);
     }
   },
@@ -460,16 +497,21 @@ export const registerDownloadListener = () => {
       // requesting the download and this event: recover the persisted filename,
       // keyed by download URL so overlapping downloads each get their own name
       if (!pendingState || !pendingState.path) {
-        SessionState.get("siFinalFilenames").then((res) => {
+        getSession(browser.storage?.session, "siFinalFilenames").then((res) => {
           const map = res.siFinalFilenames || {};
           const recovered = map[downloadItem.url] || map[downloadItem.finalUrl];
           if (recovered) {
-            SessionState.update("siFinalFilenames", (m) => {
-              const copy = Object.assign({}, m);
-              delete copy[downloadItem.url];
-              delete copy[downloadItem.finalUrl];
-              return copy;
-            });
+            updateSession(
+              BackgroundState.sessionWrites,
+              browser.storage?.session,
+              "siFinalFilenames",
+              (m) => {
+                const copy = Object.assign({}, m);
+                delete copy[downloadItem.url];
+                delete copy[downloadItem.finalUrl];
+                return copy;
+              },
+            );
             suggest({
               filename: recovered,
               conflictAction: options.conflictAction,

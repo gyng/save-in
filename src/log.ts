@@ -5,7 +5,8 @@
 // leave the machine and clear on browser exit. Viewable from the options
 // page. No-op where storage.session is unavailable.
 
-import { SessionState } from "./background-state.ts";
+import { BackgroundState } from "./background-state.ts";
+import { getSession, removeSession, updateSession } from "./session-state.ts";
 
 const LOG_STORAGE_KEY = "si-log";
 
@@ -33,15 +34,18 @@ export const Log = {
       message,
       data: Log.serialize(data),
     };
-    return SessionState.update(LOG_STORAGE_KEY, (entries) =>
-      [...(entries || []), entry].slice(-Log.LIMIT),
+    return updateSession(
+      BackgroundState.sessionWrites,
+      browser.storage?.session,
+      LOG_STORAGE_KEY,
+      (entries) => [...(entries || []), entry].slice(-Log.LIMIT),
     );
   },
 
   get: async () => {
-    const res = await SessionState.get(LOG_STORAGE_KEY);
+    const res = await getSession(browser.storage?.session, LOG_STORAGE_KEY);
     return (res && res[LOG_STORAGE_KEY]) || [];
   },
 
-  clear: () => SessionState.remove(LOG_STORAGE_KEY),
+  clear: () => removeSession(browser.storage?.session, LOG_STORAGE_KEY),
 };

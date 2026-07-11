@@ -246,19 +246,22 @@ describe("onDeterminingFilename listener (Chrome)", () => {
     const { options: freshOptions } = await import("../src/options-data.ts");
     Object.assign(freshOptions, { conflictAction: "uniquify" });
 
-    const { SessionState: freshSessionState } = await import("../src/background-state.ts");
-    vi.spyOn(freshSessionState, "available").mockReturnValue(true);
-    vi.spyOn(freshSessionState, "get").mockImplementation((key: string) =>
+    const freshSessionState = await import("../src/session-state.ts");
+    vi.spyOn(freshSessionState, "getSession").mockImplementation((_storage: any, key: string) =>
       Promise.resolve({ [key]: sessionStore[key] }),
     );
-    vi.spyOn(freshSessionState, "set").mockImplementation((obj: Record<string, any>) => {
-      Object.assign(sessionStore, obj);
-      return Promise.resolve();
-    });
-    vi.spyOn(freshSessionState, "update").mockImplementation((key: string, fn: (v: any) => any) => {
-      sessionStore[key] = fn(sessionStore[key]);
-      return Promise.resolve();
-    });
+    vi.spyOn(freshSessionState, "setSession").mockImplementation(
+      (_storage: any, obj: Record<string, any>) => {
+        Object.assign(sessionStore, obj);
+        return Promise.resolve();
+      },
+    );
+    vi.spyOn(freshSessionState, "updateSession").mockImplementation(
+      (_writes: any, _storage: any, key: string, fn: (v: any) => any) => {
+        sessionStore[key] = fn(sessionStore[key]);
+        return Promise.resolve();
+      },
+    );
 
     // Side effects are deferred (Task #2): call registerDownloadListener() to
     // attach onDeterminingFilename against the fresh chrome stub, then capture.

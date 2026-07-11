@@ -1,33 +1,36 @@
 import { DownloadStateStore } from "../src/download-state.ts";
-import { SessionStateStore } from "../src/session-state.ts";
-import { BackgroundState, Counter, DownloadState, SessionState } from "../src/background-state.ts";
+import { updateSession } from "../src/session-state.ts";
+import { BackgroundState, Counter, DownloadState } from "../src/background-state.ts";
 
 describe("state service instances", () => {
   test("the production views belong to one immutable application state", () => {
     expect(Object.isFrozen(BackgroundState)).toBe(true);
-    expect(SessionState).toBe(BackgroundState.session);
     expect(DownloadState).toBe(BackgroundState.downloads);
     expect(Counter).toBe(BackgroundState.counter);
   });
 
   test("session stores own independent serialization queues", async () => {
-    const first = new SessionStateStore();
-    const second = new SessionStateStore();
-    vi.spyOn(first, "get").mockResolvedValue({ value: 1 });
-    vi.spyOn(first, "set").mockResolvedValue(undefined);
+    const first = { queue: Promise.resolve() };
+    const second = { queue: Promise.resolve() };
+    const storage = {
+      get: vi.fn(() => Promise.resolve({ value: 1 })),
+      set: vi.fn(() => Promise.resolve()),
+    };
 
-    await first.update("value", (value) => value + 1);
+    await updateSession(first, storage, "value", (value) => value + 1);
 
-    expect(first.set).toHaveBeenCalledWith({ value: 2 });
+    expect(storage.set).toHaveBeenCalledWith({ value: 2 });
     expect(second.queue).not.toBe(first.queue);
   });
 
   test("download stores own independent maps and hydration", async () => {
-    const session = new SessionStateStore();
-    vi.spyOn(session, "get").mockResolvedValue({});
-    vi.spyOn(session, "update").mockResolvedValue(undefined);
-    const first = new DownloadStateStore(session);
-    const second = new DownloadStateStore(session);
+    const writes = { queue: Promise.resolve() };
+    const storage = {
+      get: vi.fn(() => Promise.resolve({})),
+      set: vi.fn(() => Promise.resolve()),
+    };
+    const first = new DownloadStateStore(writes, () => storage);
+    const second = new DownloadStateStore({ queue: Promise.resolve() }, () => storage);
 
     await first.merge(7, { adopted: true });
 

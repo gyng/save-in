@@ -1,6 +1,7 @@
 // https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/notifications
 
-import { DownloadState, SessionState } from "./background-state.ts";
+import { BackgroundState, DownloadState } from "./background-state.ts";
+import { getSession, updateSession } from "./session-state.ts";
 import { options } from "./options-data.ts";
 import { CURRENT_BROWSER, BROWSERS } from "./chrome-detector.ts";
 import { DownloadRetry } from "./download-retry.ts";
@@ -67,11 +68,16 @@ const reconcileAdoptedDownloads = async () => {
 // download that never actually created — can't later adopt an unrelated
 // download as ours.
 const reconcilePendingDownloads = async () => {
-  const res = await SessionState.get("siPendingDownloads");
+  const res = await getSession(browser.storage?.session, "siPendingDownloads");
   const staleAtStartup = res.siPendingDownloads || 0;
   if (staleAtStartup > 0) {
     setTimeout(() => {
-      SessionState.update("siPendingDownloads", (n) => Math.max(0, (n || 0) - staleAtStartup));
+      updateSession(
+        BackgroundState.sessionWrites,
+        browser.storage?.session,
+        "siPendingDownloads",
+        (n) => Math.max(0, (n || 0) - staleAtStartup),
+      );
     }, PENDING_RECOVERY_GRACE_MS);
   }
 };
@@ -175,14 +181,19 @@ export const Notifier = {
     // between requesting the download and this event. siPendingDownloads is a
     // COUNTER (not a boolean) so several downloads created after one restart
     // are all recovered — a boolean dropped every one past the first.
-    const res = await SessionState.get("siPendingDownloads");
+    const res = await getSession(browser.storage?.session, "siPendingDownloads");
     if (res.siPendingDownloads > 0) {
       await DownloadState.merge(item.id, {
         adopted: true,
         currentFilename: item.filename,
         url: item.url,
       });
-      await SessionState.update("siPendingDownloads", (n) => Math.max(0, (n || 0) - 1));
+      await updateSession(
+        BackgroundState.sessionWrites,
+        browser.storage?.session,
+        "siPendingDownloads",
+        (n) => Math.max(0, (n || 0) - 1),
+      );
     }
   },
 
