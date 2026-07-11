@@ -1,3 +1,5 @@
+import { toggleSourcePanel } from "./source-panel.ts";
+
 // Runs in every page. Uses callback-style chrome.* APIs: available in both
 // Chrome and Firefox content scripts (no polyfill is loaded here). try/catch
 // guards cover the extension being reloaded underneath the page
@@ -195,6 +197,20 @@ try {
   });
 } catch (e) {
   // Extension context invalidated (extension reloaded/updated underneath us)
+}
+
+try {
+  chrome.runtime.onMessage.addListener((message) => {
+    if (message?.type !== "TOGGLE_SOURCE_PANEL") return;
+    toggleSourcePanel(({ url, kind }) => {
+      chrome.runtime.sendMessage({
+        type: "DOWNLOAD",
+        body: { url, info: { pageUrl: `${window.location}`, srcUrl: url, sourceKind: kind } },
+      });
+    });
+  });
+} catch {
+  // Extension context invalidated.
 }
 
 export default ClickToSave;

@@ -90,6 +90,13 @@ export const start = () => {
   addDownloadListener();
   addTabMenuListener();
   addTabHighlightListener();
+  webExtensionApi.action?.onClicked.addListener((tab) => {
+    if (tab.id != null) {
+      void webExtensionApi.tabs
+        .sendMessage(tab.id, { type: "TOGGLE_SOURCE_PANEL" })
+        .catch(() => {});
+    }
+  });
 
   const initialTab = webExtensionApi.tabs
     .query({ active: true, currentWindow: true })

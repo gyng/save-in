@@ -123,7 +123,9 @@ describe("content.js initialisation", () => {
     global.chrome.runtime.sendMessage = vi.fn((message, cb) => cb(undefined));
     global.chrome.runtime.onMessage.addListener = vi.fn();
     await import("../src/content/content.ts");
-    expect(global.chrome.runtime.onMessage.addListener).not.toHaveBeenCalled();
+    // The source-panel toggle remains available even if the options request
+    // raced a sleeping service worker; it does not depend on stored options.
+    expect(global.chrome.runtime.onMessage.addListener).toHaveBeenCalledOnce();
   });
 
   test("wires up click-to-save when the option is enabled", async () => {

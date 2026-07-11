@@ -63,6 +63,13 @@
     "page": "src/options/options.html",
     "open_in_tab": true
   },
+  "action": {
+    "default_title": "List page sources",
+    "default_icon": {
+      "48": "icons/ic_archive_black_48px.png",
+      "96": "icons/ic_archive_black_96px.png"
+    }
+  },
   "icons": {
     "48": "icons/ic_archive_black_48px.png",
     "96": "icons/ic_archive_black_96px.png",
