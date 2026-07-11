@@ -2,24 +2,38 @@ import { webExtensionApi } from "../platform/web-extension-api.ts";
 
 type SearchEntry = { control: HTMLElement; label: string; section: string };
 
-export const optionSearchEntries = (form: HTMLElement): SearchEntry[] =>
-  [...form.querySelectorAll<HTMLElement>("input[id], select[id], textarea[id]")]
-    .filter((control) => control.dataset.optionSearch !== "false")
-    .map((control) => {
-      const label = [...form.querySelectorAll<HTMLLabelElement>("label[for]")].find(
-        (candidate) => candidate.htmlFor === control.id,
-      );
+export const optionSearchEntries = (form: HTMLElement): SearchEntry[] => {
+  const explicitLabels = new Map(
+    [...form.querySelectorAll<HTMLLabelElement>("label[for]")].map((label) => [
+      label.htmlFor,
+      label,
+    ]),
+  );
+  return [...form.querySelectorAll<HTMLElement>("input[id], select[id], textarea[id]")]
+    .filter((control) => control.dataset.optionSearch !== "false" && control.id !== "option-search")
+    .flatMap((control) => {
+      const label = explicitLabels.get(control.id);
       const wrappingLabel = control.closest("label");
+      const labelElement = label || wrappingLabel;
+      const shortLabel = labelElement?.querySelector<HTMLElement>(":scope > .opt-title");
+      const labelText =
+        shortLabel?.textContent?.trim() || labelElement?.textContent?.replace(/\s+/g, " ").trim();
+      const accessibleName = control.getAttribute("aria-label")?.trim();
+      const name = labelText || accessibleName;
+      if (!name) return [];
       const panel = control.closest<HTMLElement>(".tab-panel");
       const tab = panel
         ? document.querySelector<HTMLElement>(`[aria-controls="${panel.id}"]`)
         : null;
-      return {
-        control,
-        label: (label || wrappingLabel)?.textContent?.replace(/\s+/g, " ").trim() || control.id,
-        section: tab?.textContent?.trim() || "",
-      };
+      return [
+        {
+          control,
+          label: name,
+          section: tab?.textContent?.trim() || "",
+        },
+      ];
     });
+};
 
 export const setupOptionSearch = (): void => {
   const form = document.getElementById("options");
@@ -48,11 +62,13 @@ export const setupOptionSearch = (): void => {
 
   let active = -1;
   let visibleEntries: SearchEntry[] = [];
+  let blurTimer: number | null = null;
   const close = () => {
     results.hidden = true;
     input.setAttribute("aria-expanded", "false");
     input.removeAttribute("aria-activedescendant");
     active = -1;
+    visibleEntries = [];
   };
   const choose = (entry: SearchEntry) => {
     close();
@@ -74,6 +90,7 @@ export const setupOptionSearch = (): void => {
       option.type = "button";
       option.id = `option-search-result-${index}`;
       option.setAttribute("role", "option");
+      option.tabIndex = -1;
       const label = document.createElement("span");
       label.textContent = entry.label;
       const section = document.createElement("small");
@@ -84,7 +101,9 @@ export const setupOptionSearch = (): void => {
       results.appendChild(option);
     });
     results.hidden = results.childElementCount === 0;
-    input.setAttribute("aria-expanded", String(!results.hidden));
+    if (results.hidden) return close();
+    input.setAttribute("aria-expanded", "true");
+    setActive(0);
   };
   const setActive = (next: number) => {
     const options = [...results.querySelectorAll<HTMLElement>("[role=option]")];
@@ -98,17 +117,36 @@ export const setupOptionSearch = (): void => {
   };
 
   input.addEventListener("input", render);
+  input.addEventListener("focus", () => {
+    if (blurTimer !== null) window.clearTimeout(blurTimer);
+    blurTimer = null;
+    if (results.hidden && input.value.trim()) render();
+  });
   input.addEventListener("keydown", (event) => {
     if (event.key === "ArrowDown" || event.key === "ArrowUp") {
       event.preventDefault();
+      if (results.hidden) {
+        render();
+        if (results.hidden) return;
+        if (event.key === "ArrowUp") {
+          setActive(visibleEntries.length - 1);
+        }
+        return;
+      }
       setActive(active + (event.key === "ArrowDown" ? 1 : -1));
-    } else if (event.key === "Enter" && active >= 0) {
+    } else if (event.key === "Enter" && visibleEntries.length > 0) {
       event.preventDefault();
       const entry = visibleEntries[active];
       if (entry) choose(entry);
     } else if (event.key === "Escape") close();
   });
-  input.addEventListener("blur", () => window.setTimeout(close, 100));
+  input.addEventListener("blur", () => {
+    if (blurTimer !== null) window.clearTimeout(blurTimer);
+    blurTimer = window.setTimeout(() => {
+      blurTimer = null;
+      close();
+    }, 100);
+  });
 };
 
 document.addEventListener("DOMContentLoaded", setupOptionSearch);

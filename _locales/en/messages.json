@@ -248,6 +248,9 @@
   "o_lHistoryFilter": {
     "message": "Filter by file, folder, type, or source"
   },
+  "o_lSearchOptions": {
+    "message": "Search options"
+  },
 
   "o_cClearHistory": {
     "message": "Clear history"
