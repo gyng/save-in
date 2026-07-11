@@ -6,45 +6,16 @@ import { Blob as NodeBlob } from "buffer";
 
 global.TextEncoder = global.TextEncoder || TextEncoder;
 
-import * as constants from "../src/constants.ts";
-
-vi.mock("../src/option.ts", () => ({
-  get options() {
-    return (globalThis as any).options;
-  },
-  OptionsManagement: {},
-}));
-vi.mock("../src/session-state.ts", () => {
-  // notification.ts calls SessionState.get() at module eval; fall back to a
-  // no-op store until a test seeds global.SessionState.
-  const noop = {
-    available: () => false,
-    get: () => Promise.resolve({}),
-    set: () => Promise.resolve(),
-    update: () => Promise.resolve(),
-  };
-  return {
-    get SessionState() {
-      return (globalThis as any).SessionState || noop;
-    },
-  };
-});
-
-// messaging.ts registers runtime listeners at eval; the recovery-path tests
-// swap in a minimal browser without those, so stub it out.
+// messaging.ts registers browser.runtime.onMessage(External) listeners at
+// eval time, unguarded; the recovery-path describe below swaps in a minimal
+// browser stub without those, which would throw on a real import — stub it
+// out file-wide (harmless to the other describes, which don't touch it).
 vi.mock("../src/messaging.ts", () => ({
   Messaging: { emit: { downloaded: () => {} }, send: {} },
 }));
 
 import { Download } from "../src/download.ts";
 import { OffscreenClient } from "../src/offscreen-client.ts";
-
-Object.assign(global, constants);
-
-// options/SessionState live on globalThis at runtime but are declared `const`
-// in types/globals.d.ts (not on the globalThis type); poke them through an
-// any-typed alias — the same mock boundary the vi.mock getters above bridge.
-const g = global as any;
 
 const decodeDataUrl = (url) => {
   const [meta, b64] = url.split(",");
@@ -255,10 +226,10 @@ describe("offscreen document fetch (Chrome MV3)", () => {
 
 describe("onDeterminingFilename listener (Chrome)", () => {
   let listener;
-  let sessionStore;
+  let sessionStore: Record<string, any>;
 
   beforeEach(async () => {
-    jest.resetModules();
+    vi.resetModules();
     sessionStore = {};
 
     global.chrome = {
@@ -269,22 +240,34 @@ describe("onDeterminingFilename listener (Chrome)", () => {
       },
     } as any;
     global.browser = { runtime: { id: "self-extension-id" } } as any;
-    g.options = { conflictAction: "uniquify" };
-    g.SessionState = {
-      available: () => true,
-      get: jest.fn((key) => Promise.resolve({ [key]: sessionStore[key] })),
-      set: jest.fn((obj) => {
-        Object.assign(sessionStore, obj);
-        return Promise.resolve();
-      }),
-      update: jest.fn((key, fn) => {
-        sessionStore[key] = fn(sessionStore[key]);
-        return Promise.resolve();
-      }),
-    };
+
+    // vi.resetModules() gives download.ts (below) a fresh module graph, so
+    // options/SessionState must be re-imported here to get the SAME
+    // instances that graph resolves to — the pre-reset top-level imports
+    // above are a different, stale module instance after the reset.
+    const { options: freshOptions } = await import("../src/option.ts");
+    Object.assign(freshOptions, { conflictAction: "uniquify" });
+
+    const { SessionState: freshSessionState } = await import("../src/session-state.ts");
+    vi.spyOn(freshSessionState, "available").mockReturnValue(true);
+    vi.spyOn(freshSessionState, "get").mockImplementation((key: string) =>
+      Promise.resolve({ [key]: sessionStore[key] }),
+    );
+    vi.spyOn(freshSessionState, "set").mockImplementation((obj: Record<string, any>) => {
+      Object.assign(sessionStore, obj);
+      return Promise.resolve();
+    });
+    vi.spyOn(freshSessionState, "update").mockImplementation((key: string, fn: (v: any) => any) => {
+      sessionStore[key] = fn(sessionStore[key]);
+      return Promise.resolve();
+    });
 
     await import("../src/download.ts");
     [[listener]] = (global.chrome.downloads.onDeterminingFilename.addListener as any).mock.calls;
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   const flush = async () => {

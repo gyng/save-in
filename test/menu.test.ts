@@ -1,70 +1,31 @@
 // menu-click.ts/menu-tabs.ts augment the Menus object from menu-build.ts; they
-// import the same Menus binding, so importing them extends `menu`. Their other
-// dependencies (Download/Notifier/Shortcut/currentTab) are only touched by the
-// click handlers, not menu construction, so they stay bridged to (unset) globals.
-vi.mock("../src/option.ts", () => ({
-  get options() {
-    return (globalThis as any).options;
-  },
-  OptionsManagement: {},
-}));
+// import the same Menus binding, so importing them extends `menu`. Menu
+// construction only reads the real options bag and BROWSER_FEATURES — the click
+// handlers' Download/Notifier/Shortcut/currentTab deps are never exercised here,
+// so those modules import for real (unused). chrome-detector is the one mock:
+// its BROWSER_FEATURES is a read-only live binding, and tests need to swap it
+// per case (including to undefined, for the pre-detection guard), so a hoisted
+// holder backs it.
+const detector = vi.hoisted(() => ({ features: undefined as any }));
 vi.mock("../src/chrome-detector.ts", () => ({
   BROWSERS: { CHROME: "CHROME", FIREFOX: "FIREFOX", UNKNOWN: "UNKNOWN" },
-  get CURRENT_BROWSER() {
-    return (globalThis as any).CURRENT_BROWSER;
-  },
-  get CURRENT_BROWSER_VERSION() {
-    return (globalThis as any).CURRENT_BROWSER_VERSION;
-  },
   get BROWSER_FEATURES() {
-    return (globalThis as any).BROWSER_FEATURES;
+    return detector.features;
   },
-  setFeatures: (b) => ({ multitab: b === "FIREFOX", accessKeys: true }),
-}));
-vi.mock("../src/download.ts", () => ({
-  get Download() {
-    return (globalThis as any).Download;
+  get CURRENT_BROWSER() {
+    return "CHROME";
   },
-}));
-vi.mock("../src/notification.ts", () => ({
-  get Notifier() {
-    return (globalThis as any).Notifier;
-  },
-}));
-vi.mock("../src/shortcut.ts", () => ({
-  get Shortcut() {
-    return (globalThis as any).Shortcut;
-  },
-}));
-vi.mock("../src/current-tab.ts", () => ({
-  get currentTab() {
-    return (globalThis as any).currentTab;
-  },
-  setCurrentTab: (t) => {
-    (globalThis as any).currentTab = t;
-  },
+  CURRENT_BROWSER_VERSION: undefined,
+  setFeatures: (b: string) => ({ multitab: b === "FIREFOX", accessKeys: true }),
 }));
 
 import { Menus as menu } from "../src/menu-build.ts";
 import "../src/menu-click.ts";
 import "../src/menu-tabs.ts";
-import * as constants from "../src/constants.ts";
-
-// App globals live on globalThis at runtime but are declared `const` in
-// types/globals.d.ts (not on the globalThis type); poke them through an
-// any-typed alias — the same mock boundary the vi.mock getters above bridge.
-const g = global as any;
-
-(globalThis as any).Menus = menu;
+import { SPECIAL_DIRS, MEDIA_TYPES } from "../src/constants.ts";
+import { options } from "../src/option.ts";
 
 describe("menu parsing", () => {
-  beforeAll(async () => {
-    g.SPECIAL_DIRS = constants.SPECIAL_DIRS;
-    g.PATH_SEGMENT_TYPES = constants.PATH_SEGMENT_TYPES;
-    g.FORBIDDEN_FILENAME_CHARS = constants.FORBIDDEN_FILENAME_CHARS;
-    g.Path = (await import("../src/path.ts")).Path;
-  });
-
   test("parses comments for metadata", () => {
     const input = "(alias: doggo is (cute!)) cats (foo:bar)";
     const actual = menu.parseMeta(input);
@@ -114,13 +75,13 @@ describe("menu parsing", () => {
 });
 
 const setupMenuCreationMocks = () => {
-  g.BROWSER_FEATURES = { accessKeys: true, multitab: true };
-  g.options = {
+  detector.features = { accessKeys: true, multitab: true };
+  Object.assign(options, {
     keyRoot: "q",
     keyLastUsed: "a",
     enableNumberedItems: false,
     tabEnabled: true,
-  };
+  });
   (global.browser as any).contextMenus = {
     create: jest.fn(),
     update: jest.fn(),
@@ -130,11 +91,6 @@ const setupMenuCreationMocks = () => {
 };
 
 describe("menu creation", () => {
-  beforeAll(async () => {
-    Object.assign(global, constants);
-    g.Path = (await import("../src/path.ts")).Path;
-  });
-
   beforeEach(() => {
     setupMenuCreationMocks();
   });
@@ -163,7 +119,7 @@ describe("menu creation", () => {
 
   describe("setAccesskey", () => {
     test("passes the title through when access keys are unsupported", () => {
-      g.BROWSER_FEATURES = { accessKeys: false };
+      detector.features = { accessKeys: false };
       expect(menu.setAccesskey("cats", "c")).toBe("cats");
     });
 
@@ -207,16 +163,16 @@ describe("menu creation", () => {
         "download-context-selection",
         "download-context-page",
       ]);
-      expect(created()[0].contexts).toEqual(g.MEDIA_TYPES.concat("link"));
+      expect(created()[0].contexts).toEqual(MEDIA_TYPES.concat("link"));
       expect(created().every((c) => c.enabled === false)).toBe(true);
     });
 
     test("addSelectionType describes media-only contexts when links are disabled", () => {
-      menu.addSelectionType(g.MEDIA_TYPES);
+      menu.addSelectionType(MEDIA_TYPES);
 
       const ids = created().map((c) => c.id);
       expect(ids).toEqual(["download-context-media"]);
-      expect(created()[0].contexts).toEqual(g.MEDIA_TYPES);
+      expect(created()[0].contexts).toEqual(MEDIA_TYPES);
     });
 
     test("addOptions and addShowDefaultFolder create items under the root", () => {
@@ -332,7 +288,7 @@ describe("menu creation", () => {
     });
 
     test("numbers items with access keys when enableNumberedItems is on", () => {
-      g.options.enableNumberedItems = true;
+      options.enableNumberedItems = true;
 
       menu.addPaths(["dogs", "cats"], ["link"]);
 
@@ -340,7 +296,7 @@ describe("menu creation", () => {
     });
 
     test("meta key overrides the numbered access key", () => {
-      g.options.enableNumberedItems = true;
+      options.enableNumberedItems = true;
 
       menu.addPaths(["dogs // (key: g)"], ["link"]);
 
@@ -348,7 +304,7 @@ describe("menu creation", () => {
     });
 
     test("plain titles when enableNumberedItems is off", () => {
-      g.options.enableNumberedItems = false;
+      options.enableNumberedItems = false;
 
       menu.addPaths(["dogs"], ["link"]);
 
@@ -358,7 +314,7 @@ describe("menu creation", () => {
 
   describe("addTabMenus", () => {
     test("creates nothing when tab menus are disabled", () => {
-      g.options.tabEnabled = false;
+      options.tabEnabled = false;
 
       menu.addTabMenus();
 
@@ -380,7 +336,7 @@ describe("menu creation", () => {
     });
 
     test("skips the multi-select item when multitab is unsupported", () => {
-      g.BROWSER_FEATURES.multitab = false;
+      detector.features.multitab = false;
 
       menu.addTabMenus();
 
@@ -416,7 +372,7 @@ describe("menu creation", () => {
     });
 
     test("does nothing when tab menus are disabled", () => {
-      g.options.tabEnabled = false;
+      options.tabEnabled = false;
 
       highlightListener({ tabIds: [4, 8] });
 
@@ -424,7 +380,7 @@ describe("menu creation", () => {
     });
 
     test("does nothing on browsers without multitab support", () => {
-      g.BROWSER_FEATURES.multitab = false;
+      detector.features.multitab = false;
 
       highlightListener({ tabIds: [4, 8] });
 
@@ -432,7 +388,7 @@ describe("menu creation", () => {
     });
 
     test("does nothing before feature detection has run", () => {
-      g.BROWSER_FEATURES = undefined;
+      detector.features = undefined;
 
       highlightListener({ tabIds: [4, 8] });
 
@@ -442,11 +398,6 @@ describe("menu creation", () => {
 });
 
 describe("buildTree", () => {
-  beforeAll(async () => {
-    Object.assign(global, constants);
-    g.Path = (await import("../src/path.ts")).Path;
-  });
-
   test("is pure: computes the tree without any browser calls", () => {
     (global.browser as any).contextMenus = { create: jest.fn() };
 

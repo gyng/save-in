@@ -112,6 +112,23 @@ testable once tests are on real imports.
   untrusted. Small dependency-free type-guards that narrow `unknown` → the typed
   shape at those boundaries (no zod — no-runtime-deps rule). After the message
   union (#62). (Task #64.)
+- **Defer module import-time side effects** — messaging (unguarded onMessage/
+  onMessageExternal registration), notification (hydrate + listeners), download
+  (onDeterminingFilename), index (init), option (options seed) run side effects
+  at MODULE EVAL. Export explicit `registerX()`/`init()` and have the `entry.*.ts`
+  call them synchronously at top level (preserves MV3 sync-listener registration)
+  → modules become import-side-effect-free → tests import-real everywhere (removes
+  the last `vi.mock` that download-mv3 had to keep). Keep browser-shim's
+  `globalThis.browser = chrome` at import. (Task #2.)
+- **Source refinements surfaced by the test migration** (Task #3): (a)
+  `Counter.next`/`peek` are typed `Promise<void>` but return a number — the
+  `writeQueue: Promise.resolve()` initializer poisons inference; annotate it. (b)
+  `chrome-detector` has no exported setter for its `CURRENT_BROWSER`/
+  `BROWSER_FEATURES` `let`s → tests can't flip them (the only two `vi.mock`s the
+  de-globalThis pass had to keep); add a setter like `setCurrentTab`. (c)
+  `Menus`/`Log` infer as `any` (TS7022 self-reference in their object literals) —
+  add a type annotation. (d) `shortcut.makeShortcutContent` `title` should be
+  optional. (a/c/d fold into #60/#62; b is a discrete testability fix.)
 - **TS tooling/CI hardening** — typecheck `test/**`, `expectTypeOf` contract
   tests, per-context `lib` (SW=webworker vs DOM), sourcemaps. **NO
   typescript-eslint** (decided — stay oxlint-only); the tradeoff is no

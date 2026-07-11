@@ -1,109 +1,85 @@
 // Background messaging: routes messages from content scripts, the options
-// page, and external extensions to options/downloads
+// page, and external extensions to options/downloads.
+//
+// messaging.ts registers its onMessage/onMessageExternal listeners at eval, so
+// the fake listener objects below are installed before it (and the real SCC it
+// pulls in) evaluates — hence the dynamic imports. Its deps are then imported
+// for real and controlled through vi.spyOn (methods) / Object.assign (data, and
+// the FakePath override): the handlers assert against controlled shapes — a
+// two-key option schema, a fixed matcher/variable set, a stubbed
+// router/interpolator — that the real 40-key config and live routing wouldn't
+// match.
 
-import * as constants from "../src/constants.ts";
+import { MESSAGE_TYPES, DOWNLOAD_TYPES } from "../src/constants.ts";
 
-vi.mock("../src/path.ts", () => ({
-  get Path() {
-    return (globalThis as any).Path;
-  },
-}));
-vi.mock("../src/download.ts", () => ({
-  get Download() {
-    return (globalThis as any).Download;
-  },
-}));
-vi.mock("../src/notification.ts", () => ({
-  get Notifier() {
-    return (globalThis as any).Notifier;
-  },
-}));
-vi.mock("../src/menu-build.ts", () => ({
-  get Menus() {
-    return (globalThis as any).Menus;
-  },
-}));
-vi.mock("../src/router.ts", () => ({
-  get Router() {
-    return (globalThis as any).Router;
-  },
-}));
-vi.mock("../src/variable.ts", () => ({
-  get Variable() {
-    return (globalThis as any).Variable;
-  },
-}));
-vi.mock("../src/option.ts", () => ({
-  get options() {
-    return (globalThis as any).options;
-  },
-  get OptionsManagement() {
-    return (globalThis as any).OptionsManagement;
-  },
-}));
-vi.mock("../src/current-tab.ts", () => ({
-  get currentTab() {
-    return (globalThis as any).currentTab;
-  },
-  setCurrentTab: (t) => {
-    (globalThis as any).currentTab = t;
-  },
-}));
-
-Object.assign(global, constants);
-
-// App globals live on globalThis at runtime but are declared `const` in
-// types/globals.d.ts (not on the globalThis type); poke them through an
-// any-typed alias — the same mock boundary the vi.mock getters above bridge.
-const g = global as any;
+// Stand-in Path so a handler's `new Path.Path(x)` yields an inspectable { raw }
+// and the interpolation stub can read `.raw`; installed over the real Path below.
+function FakePath(raw) {
+  this.raw = raw;
+}
 
 // Capture the listeners registered at import time (jest-webextension-mock's
-// runtime events dispatch through their own internal lists, so replace them)
+// runtime events dispatch through their own internal lists, so replace them).
+// These must exist before messaging.ts evaluates.
 (global.browser.runtime as any).onMessage = { addListener: vi.fn() };
 (global.browser.runtime as any).onMessageExternal = { addListener: vi.fn() };
 
-const Messaging = (await import("../src/messaging.ts")).Messaging;
+const { Messaging } = await import("../src/messaging.ts");
+// Imported after the fakes above: messaging.ts already pulled the whole real SCC
+// into the module cache, so these return the same instances its handlers hold —
+// spies / Object.assign on them reach the live code.
+const { options, OptionsManagement } = await import("../src/option.ts");
+const { Download } = await import("../src/download.ts");
+const { Notifier } = await import("../src/notification.ts");
+const { Menus } = await import("../src/menu-build.ts");
+const { Router } = await import("../src/router.ts");
+const { Variable } = await import("../src/variable.ts");
+const { Path } = await import("../src/path.ts");
+const { setCurrentTab } = await import("../src/current-tab.ts");
 
 const [[onMessage]] = (global.browser.runtime.onMessage.addListener as any).mock.calls;
 const [[onMessageExternal]] = (global.browser.runtime.onMessageExternal.addListener as any).mock
   .calls;
 
-function FakePath(raw) {
-  this.raw = raw;
-}
+// The tracked tab the handlers fall back to; a stable ref so `toBe` can assert
+// identity against what setCurrentTab seeded this run.
+let trackedTab: any;
 
 const setupGlobals = () => {
-  g.currentTab = { id: 1, title: "Tracked Tab" };
-  g.options = { conflictAction: "uniquify" };
-  g.Path = { Path: FakePath };
-  g.Download = {
-    renameAndDownload: vi.fn(() => Promise.resolve()),
-    launch: (state) => g.Download.renameAndDownload(state).catch(() => {}),
-  };
-  g.Notifier = { expectDownload: vi.fn() };
-  g.Menus = {
-    buildTree: vi.fn((paths) => ({
-      items: paths.map((p, i) => ({ kind: "path", id: `save-in-${i}`, title: p })),
-      errors: [],
-    })),
-  };
-  g.Router = {
-    matcherFunctions: { fileext: () => {}, pageurl: () => {} },
-    parseRulesCollecting: vi.fn(() => ({ rules: [], errors: [] })),
-  };
-  g.Variable = {
-    transformers: { ":date:": () => {}, ":year:": () => {} },
-    applyVariables: vi.fn((path) => Promise.resolve({ finalize: () => `interp:${path.raw}` })),
-  };
-  g.OptionsManagement = {
+  vi.restoreAllMocks();
+
+  trackedTab = { id: 1, title: "Tracked Tab" };
+  setCurrentTab(trackedTab);
+  Object.assign(options, { conflictAction: "uniquify" });
+  Object.assign(Path, { Path: FakePath });
+
+  vi.spyOn(Download, "renameAndDownload").mockResolvedValue(undefined);
+  // Download.launch stays real: it just calls renameAndDownload (the rejection
+  // path it also handles is covered in download-flow.test).
+  vi.spyOn(Notifier, "expectDownload").mockImplementation(() => {});
+  vi.spyOn(Menus, "buildTree").mockImplementation((paths: any) => ({
+    items: paths.map((p, i) => ({ kind: "path", id: `save-in-${i}`, title: p })),
+    errors: [],
+  }));
+  Object.assign(Router, { matcherFunctions: { fileext: () => {}, pageurl: () => {} } });
+  vi.spyOn(Router, "parseRulesCollecting").mockReturnValue({ rules: [], errors: [] });
+  Object.assign(Variable, { transformers: { ":date:": () => {}, ":year:": () => {} } });
+  vi.spyOn(Variable, "applyVariables").mockImplementation((path: any) =>
+    Promise.resolve({ finalize: () => `interp:${path.raw}` }),
+  );
+  Object.assign(OptionsManagement, {
     OPTION_KEYS: [
       { name: "prompt", type: "BOOL", default: false },
       { name: "paths", type: "VALUE", default: ".", onSave: (v) => v.trim() },
     ],
     OPTION_TYPES: { BOOL: "BOOL", VALUE: "VALUE" },
     OPTION_DESCRIPTIONS: { prompt: "Always open Save As", paths: "The menu structure" },
-    checkRoutes: vi.fn(() => ({ path: "routed/dir", captures: null })),
-  };
+  });
+  vi.spyOn(OptionsManagement, "checkRoutes").mockReturnValue({
+    path: "routed/dir",
+    captures: null,
+  } as any);
+
   global.window.reset = vi.fn();
   global.window.optionErrors = { paths: [], filenamePatterns: [] };
   delete global.window.lastDownloadState;
@@ -146,7 +122,7 @@ describe("onMessage", () => {
     onMessage({ type: MESSAGE_TYPES.OPTIONS }, {}, sendResponse);
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.OPTIONS,
-      body: g.options,
+      body: options,
     });
   });
 
@@ -156,8 +132,8 @@ describe("onMessage", () => {
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.OPTIONS_SCHEMA,
       body: {
-        keys: g.OptionsManagement.OPTION_KEYS,
-        types: g.OptionsManagement.OPTION_TYPES,
+        keys: OptionsManagement.OPTION_KEYS,
+        types: OptionsManagement.OPTION_TYPES,
       },
     });
   });
@@ -183,7 +159,7 @@ describe("onMessage", () => {
     );
 
     // Lines are trimmed and blanks dropped, mirroring window.init
-    expect(g.Menus.buildTree).toHaveBeenCalledWith(["dogs", ">cats"]);
+    expect(Menus.buildTree).toHaveBeenCalledWith(["dogs", ">cats"]);
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.MENU_PREVIEW,
       body: {
@@ -199,7 +175,7 @@ describe("onMessage", () => {
   test("PREVIEW_MENUS tolerates a missing body", () => {
     const sendResponse = vi.fn();
     onMessage({ type: MESSAGE_TYPES.PREVIEW_MENUS }, {}, sendResponse);
-    expect(g.Menus.buildTree).toHaveBeenCalledWith([]);
+    expect(Menus.buildTree).toHaveBeenCalledWith([]);
     expect(sendResponse).toHaveBeenCalled();
   });
 
@@ -223,9 +199,9 @@ describe("onMessage CHECK_ROUTES", () => {
     onMessage({ type: MESSAGE_TYPES.CHECK_ROUTES, body: { state } }, {}, sendResponse);
     await settle();
 
-    expect(g.OptionsManagement.checkRoutes).toHaveBeenCalledWith(state);
+    expect(OptionsManagement.checkRoutes).toHaveBeenCalledWith(state);
     // interpolation runs in preview mode (a copy of info with preview:true)
-    expect(g.Variable.applyVariables).toHaveBeenCalledWith(
+    expect(Variable.applyVariables).toHaveBeenCalledWith(
       expect.any(FakePath),
       expect.objectContaining({ filename: "f.png", preview: true }),
     );
@@ -248,7 +224,7 @@ describe("onMessage CHECK_ROUTES", () => {
     onMessage({ type: MESSAGE_TYPES.CHECK_ROUTES, body: {} }, {}, sendResponse);
     await settle();
 
-    expect(g.OptionsManagement.checkRoutes).toHaveBeenCalledWith(lastState);
+    expect(OptionsManagement.checkRoutes).toHaveBeenCalledWith(lastState);
     expect(sendResponse).toHaveBeenCalledWith(
       expect.objectContaining({
         body: expect.objectContaining({
@@ -266,8 +242,8 @@ describe("onMessage CHECK_ROUTES", () => {
     onMessage({ type: MESSAGE_TYPES.CHECK_ROUTES }, {}, sendResponse);
     await settle();
 
-    expect(g.OptionsManagement.checkRoutes).toHaveBeenCalledWith(false);
-    expect(g.Variable.applyVariables).not.toHaveBeenCalled();
+    expect(OptionsManagement.checkRoutes).toHaveBeenCalledWith(false);
+    expect(Variable.applyVariables).not.toHaveBeenCalled();
     expect(sendResponse).toHaveBeenCalledWith(
       expect.objectContaining({
         body: expect.objectContaining({
@@ -300,7 +276,7 @@ describe("handleDownloadMessage", () => {
         sendResponse,
       ),
     ).not.toThrow();
-    expect(g.Download.renameAndDownload).toHaveBeenCalledTimes(1);
+    expect(Download.renameAndDownload).toHaveBeenCalledTimes(1);
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.DOWNLOAD,
       body: { status: MESSAGE_TYPES.OK, version: 1, url: "https://x/file.png" },
@@ -311,10 +287,10 @@ describe("handleDownloadMessage", () => {
     const sendResponse = vi.fn();
     onMessage(request(), {}, sendResponse);
 
-    expect(g.Notifier.expectDownload).toHaveBeenCalled();
-    expect(g.Download.renameAndDownload).toHaveBeenCalledTimes(1);
+    expect(Notifier.expectDownload).toHaveBeenCalled();
+    expect(Download.renameAndDownload).toHaveBeenCalledTimes(1);
 
-    const state = g.Download.renameAndDownload.mock.calls[0][0];
+    const state = vi.mocked(Download.renameAndDownload).mock.calls[0][0];
     expect(state.path).toEqual(new FakePath("."));
     expect(state.scratch).toEqual({});
     expect(state.info.url).toBe("https://x/file.png");
@@ -345,7 +321,7 @@ describe("handleDownloadMessage", () => {
 
     onMessage(request(), {}, vi.fn());
 
-    const state = g.Download.renameAndDownload.mock.calls[0][0];
+    const state = vi.mocked(Download.renameAndDownload).mock.calls[0][0];
     expect(state.path).toBe(lastPath);
     // Inheriting the previous route, filename, or scratch would name this
     // download after the previous one (found live by the alt+click e2e)
@@ -364,7 +340,7 @@ describe("handleDownloadMessage", () => {
 
     onMessage(request(), {}, vi.fn());
 
-    const state = g.Download.renameAndDownload.mock.calls[0][0];
+    const state = vi.mocked(Download.renameAndDownload).mock.calls[0][0];
     expect(state.path).toEqual(new FakePath("."));
   });
 
@@ -372,28 +348,28 @@ describe("handleDownloadMessage", () => {
     const senderTab = { id: 5, title: "Sender Tab" };
     onMessage(request(), { tab: senderTab }, vi.fn());
 
-    const state = g.Download.renameAndDownload.mock.calls[0][0];
+    const state = vi.mocked(Download.renameAndDownload).mock.calls[0][0];
     expect(state.info.currentTab).toBe(senderTab);
   });
 
   test("falls back to the tracked tab when the sender has none", () => {
     onMessage(request(), {}, vi.fn());
 
-    const state = g.Download.renameAndDownload.mock.calls[0][0];
-    expect(state.info.currentTab).toBe(g.currentTab);
+    const state = vi.mocked(Download.renameAndDownload).mock.calls[0][0];
+    expect(state.info.currentTab).toBe(trackedTab);
   });
 
   test("passes through a comment for routing rules (external extensions)", () => {
     onMessage(request({ comment: "from-foxy-gestures" }), {}, vi.fn());
 
-    const state = g.Download.renameAndDownload.mock.calls[0][0];
+    const state = vi.mocked(Download.renameAndDownload).mock.calls[0][0];
     expect(state.info.comment).toBe("from-foxy-gestures");
   });
 
   test("omits the comment when none is supplied", () => {
     onMessage(request(), {}, vi.fn());
 
-    const state = g.Download.renameAndDownload.mock.calls[0][0];
+    const state = vi.mocked(Download.renameAndDownload).mock.calls[0][0];
     expect(state.info.comment).toBeUndefined();
   });
 
@@ -401,7 +377,7 @@ describe("handleDownloadMessage", () => {
     const sendResponse = vi.fn();
     onMessageExternal(request(), { tab: { id: 9 } }, sendResponse);
 
-    expect(g.Download.renameAndDownload).toHaveBeenCalledTimes(1);
+    expect(Download.renameAndDownload).toHaveBeenCalledTimes(1);
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.DOWNLOAD,
       body: { status: MESSAGE_TYPES.OK, version: 1, url: "https://x/file.png" },
@@ -436,7 +412,7 @@ describe("external DOWNLOAD API v1", () => {
   test("rejects a missing url with BAD_REQUEST and does not download", () => {
     const sendResponse = vi.fn();
     onMessageExternal(download({ info: {} }), {}, sendResponse);
-    expect(g.Download.renameAndDownload).not.toHaveBeenCalled();
+    expect(Download.renameAndDownload).not.toHaveBeenCalled();
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.DOWNLOAD,
       body: {
@@ -451,7 +427,7 @@ describe("external DOWNLOAD API v1", () => {
   test("rejects an unfetchable scheme with INVALID_URL", () => {
     const sendResponse = vi.fn();
     onMessageExternal(download({ url: "javascript:alert(1)" }), {}, sendResponse);
-    expect(g.Download.renameAndDownload).not.toHaveBeenCalled();
+    expect(Download.renameAndDownload).not.toHaveBeenCalled();
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.DOWNLOAD,
       body: {
@@ -511,15 +487,15 @@ describe("config API", () => {
   });
 
   test("VALIDATE dry-runs paths and rules and returns errors + preview", () => {
-    g.Router.parseRulesCollecting = vi.fn(() => ({ rules: [], errors: ["bad rule"] }));
+    vi.mocked(Router.parseRulesCollecting).mockReturnValue({ rules: [], errors: ["bad rule"] });
     const sendResponse = vi.fn();
     onMessageExternal(
       { type: MESSAGE_TYPES.VALIDATE, body: { paths: " dogs \n>cats", filenamePatterns: "x" } },
       {},
       sendResponse,
     );
-    expect(g.Menus.buildTree).toHaveBeenCalledWith(["dogs", ">cats"]);
-    expect(g.Router.parseRulesCollecting).toHaveBeenCalledWith("x");
+    expect(Menus.buildTree).toHaveBeenCalledWith(["dogs", ">cats"]);
+    expect(Router.parseRulesCollecting).toHaveBeenCalledWith("x");
     const { body } = sendResponse.mock.calls[0][0];
     expect(body.pathErrors).toEqual([]);
     expect(body.ruleErrors).toEqual(["bad rule"]);

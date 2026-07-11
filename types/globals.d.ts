@@ -55,64 +55,24 @@ interface DownloadState {
 }
 
 // constants.js
-declare var SPECIAL_DIRS: any;
-declare var RULE_TYPES: any;
-declare var FORBIDDEN_FILENAME_CHARS: any;
-declare var PATH_SEGMENT_TYPES: any;
-declare var SHORTCUT_EXTENSIONS: any;
-declare var SHORTCUT_TYPES: any;
-declare var MESSAGE_TYPES: any;
-declare var DOWNLOAD_TYPES: any;
 // Doubles as contextMenus contexts and as mediaType names, hence the intersection
-declare var MEDIA_TYPES: any;
-declare var CLICK_TYPES: any;
-declare var CONFLICT_ACTION: any;
-declare var OPTION_KEYS: any;
-declare var OPTION_TYPES: any;
 
 // chrome-detector.js
-declare var BROWSERS: any;
-declare var CURRENT_BROWSER: any;
-declare var CURRENT_BROWSER_VERSION: any;
-declare var BROWSER_FEATURES: any;
 
 // option.js — the loaded options bag; keys are option names
-declare var options: any;
 
 // module-object globals (one per src file); refine as files opt in
-declare var Path: any;
-declare var Download: any;
-declare var Variable: any;
-declare var Router: any;
-declare var Menus: any;
-declare var Messaging: any;
 // download-state.js — the per-download record store (in-memory + storage.session)
-declare var DownloadState: any;
 // offscreen-client.js — Chrome SW side of the offscreen document
-declare var OffscreenClient: any;
 // util.js — small shared helpers (withUrl, splitLines)
-declare var Util: any;
 // options page: path-editor.js (used by rule-builder.js for undoable edits)
-declare var PathEditor: any;
 // options page: history-view.js — pure history-table helpers
-declare var HistoryView: any;
 // options page: options-logic.js — pure helpers extracted from options.js
-declare var OptionsLogic: any;
-declare var OptionsManagement: any;
 // Named Notifier/RequestHeaders (not Notification/Headers) so the runtime
 // globals do not shadow the platform classes of the same name
-declare var Notifier: any;
-declare var RequestHeaders: any;
-declare var Shortcut: any;
-declare var SaveHistory: any;
-declare var Counter: any;
-declare var Log: any;
-declare var SessionState: any;
-declare var globalChromeState: any;
 
 // Chrome service worker entry (src/background.js); es2022+dom lib has no
 // worker globals, so declare the one we use
-declare function importScripts(...urls: string[]): void;
 
 // src/vendor/content-disposition.js
 declare function getFilenameFromContentDispositionHeader(header: string): string | undefined;

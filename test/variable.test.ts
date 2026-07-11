@@ -1,33 +1,13 @@
-import * as constants from "../src/constants.ts";
-import { Router as router } from "../src/router.ts";
 import { Variable } from "../src/variable.ts";
 import { Path } from "../src/path.ts";
 import { Download } from "../src/download.ts";
-
-vi.mock("../src/counter.ts", () => ({
-  get Counter() {
-    return (globalThis as any).Counter;
-  },
-}));
-vi.mock("../src/option.ts", () => ({
-  get options() {
-    return (globalThis as any).options;
-  },
-  OptionsManagement: {},
-}));
-
-Object.assign(global, constants);
-
-// The app globals below live on globalThis at runtime, but types/globals.d.ts
-// declares them `const` (so they are not on the globalThis type). Poke them
-// through an any-typed alias — the same mock boundary the vi.mock getters bridge.
-const g = global as any;
-
-g.Path = Path;
-g.Download = Download;
+import { Counter } from "../src/counter.ts";
+// variable.ts reads options.replacementChar (via path.ts) at call time;
+// import the real options bag and mutate it (option.ts seeds
+// replacementChar "_" at load, so these just document the expectation).
+import { options } from "../src/option.ts";
 
 describe("variables", () => {
-  const specialDirs = g.SPECIAL_DIRS;
   const info = {
     url: "http://www.source.com/foobar/file.jpg",
     pageUrl: "http://www.example.com/foobar/",
@@ -40,17 +20,7 @@ describe("variables", () => {
   };
 
   beforeAll(() => {
-    g.SPECIAL_DIRS = constants.SPECIAL_DIRS;
-    g.RULE_TYPES = constants.RULE_TYPES;
-    g.currentTab = { title: "foobartitle" };
-    g.matchRules = router.matchRules;
-    g.options = { replacementChar: "_" };
-  });
-
-  afterAll(() => {
-    g.SPECIAL_DIRS = specialDirs;
-    g.currentTab = undefined;
-    g.matchRules = undefined;
+    options.replacementChar = "_";
   });
 
   describe("standard variables", () => {
@@ -438,13 +408,14 @@ describe("URL-part variables", () => {
 
 describe(":counter: (async, persistent)", () => {
   beforeEach(() => {
-    g.Counter = {
-      next: vi.fn(() => Promise.resolve(7)),
-      peek: vi.fn(() => Promise.resolve(41)),
-    };
+    // Counter.next's return type infers as Promise<void> (it reassigns the
+    // self-referential Counter.writeQueue field, typed from its Promise.resolve()
+    // initializer); mock-boundary cast around that inference quirk.
+    vi.spyOn(Counter, "next").mockResolvedValue(7 as any);
+    vi.spyOn(Counter, "peek").mockResolvedValue(41);
   });
   afterEach(() => {
-    delete g.Counter;
+    vi.restoreAllMocks();
   });
 
   test("consumes one value and caches it across the whole download", async () => {
@@ -454,7 +425,7 @@ describe(":counter: (async, persistent)", () => {
     // The same info bag (path then route in one download) reuses the value
     const b = (await Variable.applyVariables(new Path.Path(":counter:/x"), shared)).finalize();
     expect(b).toBe("7/x");
-    expect(g.Counter.next).toHaveBeenCalledTimes(1);
+    expect(Counter.next).toHaveBeenCalledTimes(1);
   });
 
   test("preview mode peeks the next value without consuming", async () => {
@@ -462,8 +433,8 @@ describe(":counter: (async, persistent)", () => {
       await Variable.applyVariables(new Path.Path("n-:counter:"), { preview: true })
     ).finalize();
     expect(out).toBe("n-42"); // peek() 41 + 1
-    expect(g.Counter.next).not.toHaveBeenCalled();
-    expect(g.Counter.peek).toHaveBeenCalled();
+    expect(Counter.next).not.toHaveBeenCalled();
+    expect(Counter.peek).toHaveBeenCalled();
   });
 });
 
@@ -482,20 +453,20 @@ describe(":uuid:", () => {
 
 describe(":mime: / :contenttype: / :mimeext: (async HEAD)", () => {
   const mockHead = (contentType) => {
-    g.fetch = vi.fn(() =>
+    global.fetch = vi.fn(() =>
       Promise.resolve({
         headers: { get: (h) => (h === "Content-Type" ? contentType : null) },
       }),
-    );
+    ) as any;
   };
 
   beforeEach(() => {
     // path.js sanitizes "/" in the mime value using options.replacementChar
-    g.options = { replacementChar: "_" };
+    options.replacementChar = "_";
   });
 
   afterEach(() => {
-    delete g.fetch;
+    delete (global as any).fetch;
   });
 
   test(":mime: is the Content-Type with charset stripped (and path-sanitized)", async () => {
@@ -504,7 +475,7 @@ describe(":mime: / :contenttype: / :mimeext: (async HEAD)", () => {
       await Variable.applyVariables(new Path.Path(":mime:"), { url: "https://x/a" })
     ).finalize();
     expect(out).toBe("image_jpeg"); // the "/" is sanitized like any segment
-    expect(g.fetch).toHaveBeenCalledWith(
+    expect(global.fetch).toHaveBeenCalledWith(
       "https://x/a",
       expect.objectContaining({ method: "HEAD", credentials: "include" }),
     );
@@ -531,11 +502,11 @@ describe(":mime: / :contenttype: / :mimeext: (async HEAD)", () => {
   test("shares one HEAD across occurrences in a single download", async () => {
     mockHead("video/mp4");
     await Variable.applyVariables(new Path.Path(":mime:/:mimeext:"), { url: "https://x/a" });
-    expect(g.fetch).toHaveBeenCalledTimes(1);
+    expect(global.fetch).toHaveBeenCalledTimes(1);
   });
 
   test("a failed HEAD yields an empty value (-> replacement char)", async () => {
-    g.fetch = vi.fn(() => Promise.reject(new Error("CORS")));
+    global.fetch = vi.fn(() => Promise.reject(new Error("CORS"))) as any;
     const out = (
       await Variable.applyVariables(new Path.Path(":mimeext:"), { url: "https://x/a" })
     ).finalize();
@@ -543,14 +514,14 @@ describe(":mime: / :contenttype: / :mimeext: (async HEAD)", () => {
   });
 
   test("preview mode never hits the network", async () => {
-    g.fetch = vi.fn();
+    global.fetch = vi.fn() as any;
     const out = (
       await Variable.applyVariables(new Path.Path(":mime:"), {
         url: "https://x/a",
         preview: true,
       })
     ).finalize();
-    expect(g.fetch).not.toHaveBeenCalled();
+    expect(global.fetch).not.toHaveBeenCalled();
     expect(out).toBe("_"); // empty in preview -> replacement char
   });
 
@@ -570,24 +541,24 @@ describe(":sha256: (async content hash)", () => {
   let origCreateObjectURL;
   const mockBody = (text, extraHeaders = {}) => {
     const buf = new TextEncoder().encode(text).buffer;
-    g.fetch = vi.fn(() =>
+    global.fetch = vi.fn(() =>
       Promise.resolve({
         ok: true,
         headers: { get: (h) => extraHeaders[h] ?? null },
         blob: () =>
           Promise.resolve({ size: buf.byteLength, arrayBuffer: () => Promise.resolve(buf) }),
       }),
-    );
+    ) as any;
   };
 
   beforeEach(() => {
-    g.options = { replacementChar: "_" };
+    options.replacementChar = "_";
     origCreateObjectURL = URL.createObjectURL;
     URL.createObjectURL = vi.fn(() => "blob:mock");
   });
 
   afterEach(() => {
-    delete g.fetch;
+    delete (global as any).fetch;
     URL.createObjectURL = origCreateObjectURL;
   });
 
@@ -597,7 +568,7 @@ describe(":sha256: (async content hash)", () => {
       await Variable.applyVariables(new Path.Path("h/:sha256:"), { url: "https://x/a" })
     ).finalize();
     expect(out).toBe("h/ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad");
-    expect(g.fetch).toHaveBeenCalledWith(
+    expect(global.fetch).toHaveBeenCalledWith(
       "https://x/a",
       expect.objectContaining({ credentials: "include" }),
     );
@@ -606,11 +577,11 @@ describe(":sha256: (async content hash)", () => {
   test("shares one GET across multiple :sha256: occurrences", async () => {
     mockBody("abc");
     await Variable.applyVariables(new Path.Path(":sha256:/:sha256:"), { url: "https://x/a" });
-    expect(g.fetch).toHaveBeenCalledTimes(1);
+    expect(global.fetch).toHaveBeenCalledTimes(1);
   });
 
   test("a failed fetch yields an empty value (-> replacement char)", async () => {
-    g.fetch = vi.fn(() => Promise.reject(new Error("network")));
+    global.fetch = vi.fn(() => Promise.reject(new Error("network"))) as any;
     const out = (
       await Variable.applyVariables(new Path.Path(":sha256:"), { url: "https://x/a" })
     ).finalize();
@@ -618,7 +589,7 @@ describe(":sha256: (async content hash)", () => {
   });
 
   test("skips a file larger than the cap (declared Content-Length)", async () => {
-    g.fetch = vi.fn(() =>
+    global.fetch = vi.fn(() =>
       Promise.resolve({
         ok: true,
         headers: {
@@ -627,7 +598,7 @@ describe(":sha256: (async content hash)", () => {
         blob: () =>
           Promise.resolve({ size: 0, arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)) }),
       }),
-    );
+    ) as any;
     const out = (
       await Variable.applyVariables(new Path.Path(":sha256:"), { url: "https://x/a" })
     ).finalize();
@@ -635,61 +606,61 @@ describe(":sha256: (async content hash)", () => {
   });
 
   test("preview mode never hits the network", async () => {
-    g.fetch = vi.fn();
+    global.fetch = vi.fn() as any;
     const out = (
       await Variable.applyVariables(new Path.Path(":sha256:"), {
         url: "https://x/a",
         preview: true,
       })
     ).finalize();
-    expect(g.fetch).not.toHaveBeenCalled();
+    expect(global.fetch).not.toHaveBeenCalled();
     expect(out).toBe("_");
   });
 });
 
 describe(":finalurl: / :redirecturl: (post-redirect URL)", () => {
   beforeEach(() => {
-    g.options = { replacementChar: "_" };
+    options.replacementChar = "_";
   });
 
   afterEach(() => {
-    delete g.fetch;
+    delete (global as any).fetch;
   });
 
   test(":finalurl: is the response URL after redirects", async () => {
-    g.fetch = vi.fn(() =>
+    global.fetch = vi.fn(() =>
       Promise.resolve({
         url: "https://cdn.example.com/real/file.jpg",
         headers: { get: () => null },
       }),
-    );
+    ) as any;
     const out = (
       await Variable.applyVariables(new Path.Path(":finalurl:"), { url: "https://x/a" })
     ).finalize();
     // the full URL is path-sanitized like :sourceurl:, but the host survives intact
     expect(out).toContain("cdn.example.com");
-    expect(g.fetch).toHaveBeenCalledWith(
+    expect(global.fetch).toHaveBeenCalledWith(
       "https://x/a",
       expect.objectContaining({ method: "HEAD" }),
     );
   });
 
   test(":redirecturl: is an alias sharing the same HEAD", async () => {
-    g.fetch = vi.fn(() =>
+    global.fetch = vi.fn(() =>
       Promise.resolve({ url: "https://final/x", headers: { get: () => null } }),
-    );
+    ) as any;
     await Variable.applyVariables(new Path.Path(":finalurl:/:redirecturl:"), {
       url: "https://x/a",
     });
-    expect(g.fetch).toHaveBeenCalledTimes(1);
+    expect(global.fetch).toHaveBeenCalledTimes(1);
   });
 
   test("preview mode never hits the network", async () => {
-    g.fetch = vi.fn();
+    global.fetch = vi.fn() as any;
     await Variable.applyVariables(new Path.Path(":finalurl:"), {
       url: "https://x/a",
       preview: true,
     });
-    expect(g.fetch).not.toHaveBeenCalled();
+    expect(global.fetch).not.toHaveBeenCalled();
   });
 });

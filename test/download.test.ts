@@ -1,27 +1,5 @@
-import * as constants from "../src/constants.ts";
-
-// `options`/`Download`/`Path` are module-scoped exports (src/*.ts), not
-// real ambient globals, so `global.X`/`globalThis.X` never surfaces on
-// `typeof globalThis`; alias through an untyped view to seed/read them as
-// this suite's mock bridge.
-const g = global as typeof globalThis & Record<string, any>;
-
-vi.mock("../src/option.ts", () => ({
-  get options() {
-    return g.options;
-  },
-  OptionsManagement: {},
-}));
-
 import { Download } from "../src/download.ts";
-import { Path } from "../src/path.ts";
-import { getFilenameFromContentDispositionHeader } from "../src/vendor/content-disposition.ts";
-
-Object.assign(global, constants);
-
-g.Download = Download;
-g.Path = Path;
-global.getFilenameFromContentDispositionHeader = getFilenameFromContentDispositionHeader;
+import { options } from "../src/option.ts";
 
 test("extension detection regex", () => {
   const match = "abc.xyz".match(Download.EXTENSION_REGEX);
@@ -82,7 +60,7 @@ describe("finalizeFullPath: MIME extension append (§8.1)", () => {
 
 describe("finalizeFullPath: folder-only route keeps the real filename (§8.1)", () => {
   beforeEach(() => {
-    g.options = { replacementChar: "_" };
+    Object.assign(options, { replacementChar: "_" });
   });
 
   test("routes into the folder and keeps the download's real name", () => {

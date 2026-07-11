@@ -1,15 +1,6 @@
-vi.mock("../src/current-tab.ts", () => ({
-  get currentTab() {
-    return globalThis.currentTab;
-  },
-  setCurrentTab: (t) => {
-    globalThis.currentTab = t;
-  },
-}));
-
 import { Router as router } from "../src/router.ts";
 import * as constants from "../src/constants.ts";
-import { currentTab } from "../src/current-tab.ts";
+import { currentTab, setCurrentTab } from "../src/current-tab.ts";
 
 const fixtures = (await import("./fixtures/clickInfo")).default;
 
@@ -27,16 +18,16 @@ describe("filename rewrite and routing", () => {
       filenamePatterns: [],
       paths: [],
     };
-    global.currentTab = {
+    setCurrentTab({
       title: "some title",
-    };
+    });
     // Mock-boundary cast: router.ts only calls i18n.getMessage, so the test
     // stubs a minimal shape rather than the full @types Browser interface
     global.browser = { i18n: { getMessage: () => {} } } as any;
   });
 
   afterAll(() => {
-    global.currentTab = undefined;
+    setCurrentTab(null);
   });
 
   describe("matcher functions", () => {

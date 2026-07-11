@@ -1,29 +1,8 @@
-import * as constants from "../src/constants.ts";
-
-vi.mock("../src/download.ts", () => ({
-  get Download() {
-    return (globalThis as any).Download;
-  },
-}));
-vi.mock("../src/path.ts", () => ({
-  get Path() {
-    return (globalThis as any).Path;
-  },
-}));
-vi.mock("../src/current-tab.ts", () => ({
-  get currentTab() {
-    return globalThis.currentTab;
-  },
-  setCurrentTab: (t) => {
-    globalThis.currentTab = t;
-  },
-}));
-
+import { SHORTCUT_TYPES, DOWNLOAD_TYPES } from "../src/constants.ts";
 import { Shortcut as shortcut } from "../src/shortcut.ts";
-
-// Needed by makeShortcut/suggestShortcutFilename below (DOWNLOAD_TYPES,
-// SHORTCUT_EXTENSIONS); SHORTCUT_TYPES is also (re)assigned per-describe below.
-Object.assign(global, constants);
+import { Download } from "../src/download.ts";
+import { Path } from "../src/path.ts";
+import { setCurrentTab } from "../src/current-tab.ts";
 
 // makeShortcutContent's `title` param has no default, so a 2-arg call is
 // narrower than the declared 3-arg signature; the source is intentionally
@@ -35,12 +14,6 @@ const makeShortcutContent = shortcut.makeShortcutContent as (
 ) => string;
 
 describe("shortcut content creation", () => {
-  let SHORTCUT_TYPES;
-
-  beforeAll(() => {
-    SHORTCUT_TYPES = constants.SHORTCUT_TYPES;
-  });
-
   test("creates a HTML redirect shortcut", () => {
     const expected = 'window.location.href = "foo"';
     expect(makeShortcutContent(SHORTCUT_TYPES.HTML_REDIRECT, "foo")).toContain(expected);
@@ -86,50 +59,43 @@ describe("shortcut content creation", () => {
 });
 
 describe("makeShortcut", () => {
-  let originalCurrentTab;
-  let originalDownload;
-  let mockDownload: { makeObjectUrl: ReturnType<typeof jest.fn> };
-
   beforeEach(() => {
-    originalCurrentTab = global.currentTab;
-    originalDownload = (global as any).Download;
-    mockDownload = { makeObjectUrl: jest.fn((content) => `objurl:${content}`) };
-    (global as any).Download = mockDownload;
+    vi.spyOn(Download, "makeObjectUrl").mockImplementation((content) => `objurl:${content}`);
   });
 
   afterEach(() => {
-    global.currentTab = originalCurrentTab;
-    (global as any).Download = originalDownload;
+    vi.restoreAllMocks();
+    setCurrentTab(null);
   });
 
   test("uses the explicit title over currentTab when provided", () => {
-    global.currentTab = { title: "Current Tab Title" };
+    setCurrentTab({ title: "Current Tab Title" });
 
     shortcut.makeShortcut(SHORTCUT_TYPES.FREEDESKTOP, "https://example.com", "Explicit Title");
 
-    expect(mockDownload.makeObjectUrl).toHaveBeenCalledWith(
+    expect(vi.mocked(Download.makeObjectUrl)).toHaveBeenCalledWith(
       expect.stringContaining("Name=Explicit Title"),
       "application/octet-stream",
     );
   });
 
   test("defaults the title to currentTab.title when none is given", () => {
-    global.currentTab = { title: "Current Tab Title" };
+    setCurrentTab({ title: "Current Tab Title" });
 
     shortcut.makeShortcut(SHORTCUT_TYPES.FREEDESKTOP, "https://example.com");
 
-    expect(mockDownload.makeObjectUrl).toHaveBeenCalledWith(
+    expect(vi.mocked(Download.makeObjectUrl)).toHaveBeenCalledWith(
       expect.stringContaining("Name=Current Tab Title"),
       "application/octet-stream",
     );
   });
 
   test("falls back to the URL when there is no currentTab", () => {
-    global.currentTab = undefined;
+    setCurrentTab(null);
 
     const result = shortcut.makeShortcut(SHORTCUT_TYPES.FREEDESKTOP, "https://example.com");
 
-    expect(mockDownload.makeObjectUrl).toHaveBeenCalledWith(
+    expect(vi.mocked(Download.makeObjectUrl)).toHaveBeenCalledWith(
       expect.stringContaining("Name=https://example.com"),
       "application/octet-stream",
     );
@@ -140,25 +106,18 @@ describe("makeShortcut", () => {
 });
 
 describe("suggestShortcutFilename", () => {
-  let originalPath;
-  let originalCurrentTab;
-  let mockPath: { sanitizeFilename: ReturnType<typeof jest.fn> };
-
   beforeEach(() => {
-    originalPath = (global as any).Path;
-    originalCurrentTab = global.currentTab;
-    mockPath = { sanitizeFilename: jest.fn((name) => name) };
-    (global as any).Path = mockPath;
+    vi.spyOn(Path, "sanitizeFilename").mockImplementation((name) => name);
   });
 
   afterEach(() => {
-    (global as any).Path = originalPath;
-    global.currentTab = originalCurrentTab;
+    vi.restoreAllMocks();
+    setCurrentTab(null);
   });
 
   describe("PAGE download type", () => {
     test("prefers the suggested filename", () => {
-      global.currentTab = { title: "Tab Title" };
+      setCurrentTab({ title: "Tab Title" });
       const info = { srcUrl: "src", linkUrl: "link", pageUrl: "page" };
 
       const result = shortcut.suggestShortcutFilename(
@@ -173,7 +132,7 @@ describe("suggestShortcutFilename", () => {
     });
 
     test("falls back to currentTab.title", () => {
-      global.currentTab = { title: "Tab Title" };
+      setCurrentTab({ title: "Tab Title" });
       const info = { srcUrl: "src", linkUrl: "link", pageUrl: "page" };
 
       const result = shortcut.suggestShortcutFilename(
@@ -188,7 +147,7 @@ describe("suggestShortcutFilename", () => {
     });
 
     test("falls back to info.srcUrl", () => {
-      global.currentTab = undefined;
+      setCurrentTab(null);
       const info = { srcUrl: "src", linkUrl: "link", pageUrl: "page" };
 
       const result = shortcut.suggestShortcutFilename(
@@ -203,7 +162,7 @@ describe("suggestShortcutFilename", () => {
     });
 
     test("falls back to info.linkUrl", () => {
-      global.currentTab = undefined;
+      setCurrentTab(null);
       const info = { linkUrl: "link", pageUrl: "page" };
 
       const result = shortcut.suggestShortcutFilename(
@@ -218,7 +177,7 @@ describe("suggestShortcutFilename", () => {
     });
 
     test("falls back to info.pageUrl", () => {
-      global.currentTab = undefined;
+      setCurrentTab(null);
       const info = { pageUrl: "page" };
 
       const result = shortcut.suggestShortcutFilename(
@@ -316,28 +275,30 @@ describe("suggestShortcutFilename", () => {
       100,
     );
 
-    expect(mockPath.sanitizeFilename).toHaveBeenCalledWith("link", 100 - 4); // ".url" is 4 chars
+    expect(vi.mocked(Path.sanitizeFilename)).toHaveBeenCalledWith("link", 100 - 4); // ".url" is 4 chars
   });
 });
 
 describe("shortcut mime types (#161)", () => {
-  let mockDownload: { makeObjectUrl: ReturnType<typeof jest.fn> };
-
   beforeEach(() => {
-    mockDownload = { makeObjectUrl: jest.fn((content) => `objurl:${content}`) };
-    (global as any).Download = mockDownload;
-    global.currentTab = { title: "t" };
+    vi.spyOn(Download, "makeObjectUrl").mockImplementation((content) => `objurl:${content}`);
+    setCurrentTab({ title: "t" });
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    setCurrentTab(null);
   });
 
   test("HTML redirects are served as text/html so browsers keep .html", () => {
-    shortcut.makeShortcut(constants.SHORTCUT_TYPES.HTML_REDIRECT, "https://x/");
-    expect(mockDownload.makeObjectUrl).toHaveBeenCalledWith(expect.any(String), "text/html");
+    shortcut.makeShortcut(SHORTCUT_TYPES.HTML_REDIRECT, "https://x/");
+    expect(vi.mocked(Download.makeObjectUrl)).toHaveBeenCalledWith(expect.any(String), "text/html");
   });
 
   test(".url and .desktop shortcuts use octet-stream so browsers keep the extension", () => {
-    for (const type of ["MAC", "WINDOWS", "FREEDESKTOP"]) {
-      shortcut.makeShortcut(constants.SHORTCUT_TYPES[type], "https://x/");
-      expect(mockDownload.makeObjectUrl).toHaveBeenLastCalledWith(
+    for (const type of ["MAC", "WINDOWS", "FREEDESKTOP"] as const) {
+      shortcut.makeShortcut(SHORTCUT_TYPES[type], "https://x/");
+      expect(vi.mocked(Download.makeObjectUrl)).toHaveBeenLastCalledWith(
         expect.any(String),
         "application/octet-stream",
       );
