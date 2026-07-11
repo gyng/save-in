@@ -4,14 +4,7 @@ import { Download } from "../src/download.ts";
 import { Path } from "../src/path.ts";
 import { setCurrentTab } from "../src/current-tab.ts";
 
-// makeShortcutContent's `title` param has no default, so a 2-arg call is
-// narrower than the declared 3-arg signature; the source is intentionally
-// untouched (per AGENTS.md), so the call boundary is cast instead.
-const makeShortcutContent = shortcut.makeShortcutContent as (
-  type: any,
-  url: any,
-  title?: any,
-) => string;
+const makeShortcutContent = shortcut.makeShortcutContent;
 
 describe("shortcut content creation", () => {
   test("creates a HTML redirect shortcut", () => {
