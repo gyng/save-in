@@ -15,7 +15,7 @@ export const makeUrlFromBlob = (blob: BlobContent): Promise<string> => {
     let binary = "";
     const chunkSize = 0x8000;
     for (let i = 0; i < bytes.length; i += chunkSize) {
-      binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunkSize));
+      binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
     }
     const mime = blob.type || "application/octet-stream";
     return `data:${mime};base64,${btoa(binary)}`;

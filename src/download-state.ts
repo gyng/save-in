@@ -50,7 +50,10 @@ export const mergeDownload = (
 ) => {
   const merged = Object.assign({}, state.records.get(downloadId), partial);
   state.records.set(downloadId, merged);
-  if (state.records.size > MAX_RECORDS) state.records.delete(state.records.keys().next().value);
+  if (state.records.size > MAX_RECORDS) {
+    const oldestId = state.records.keys().next().value;
+    if (oldestId !== undefined) state.records.delete(oldestId);
+  }
   return updateSession<Record<string, DownloadRecord>>(
     sessionWrites,
     storage,
