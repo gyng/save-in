@@ -1,9 +1,5 @@
-// Loosely typed until the SaveInOptions type is derived from OPTION_KEYS in
-// the TS-native pass (docs/ARCH-CYCLES.md #62).
-export const options: Record<string, any> = {};
+import type { SaveInOptions } from "./option-schema.ts";
 
-export const setOption = (name: string, value: any) => {
-  if (typeof value !== "undefined") {
-    options[name] = value;
-  }
-};
+// Startup seeds every schema key before background listeners can observe the
+// bag. Keeping the object identity stable lets all read-only consumers share it.
+export const options = {} as SaveInOptions;

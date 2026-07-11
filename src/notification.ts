@@ -279,9 +279,6 @@ export const Notifier = {
       // Record the final outcome against the history entry (independent of
       // whether success/failure notifications are enabled)
       const recordHistoryStatus = async (status: string) => {
-        if (typeof SaveHistory === "undefined") {
-          return;
-        }
         // Read from memory, or the persisted copy if the worker restarted since
         // the download started (so a mid-restart download still gets its status)
         const started = await getTrackedDownload(downloadDelta.id);
@@ -321,12 +318,10 @@ export const Notifier = {
       }
 
       if (isFromSelf && failed && !isUserCancelled) {
-        if (typeof Log !== "undefined") {
-          Log.add("download failed", {
-            id: downloadDelta.id,
-            error: failed.current || failed,
-          });
-        }
+        Log.add("download failed", {
+          id: downloadDelta.id,
+          error: failed.current || failed,
+        });
 
         const notifyFailure = () => {
           if (notifyOnFailure) {
@@ -371,9 +366,7 @@ export const Notifier = {
         if (canRetry) {
           const retried = await DownloadRetry.retry(downloadDelta.id);
           if (retried) {
-            if (typeof Log !== "undefined") {
-              Log.add("retrying failed download via fetch", { id: downloadDelta.id });
-            }
+            Log.add("retrying failed download via fetch", { id: downloadDelta.id });
             await mergeTrackedDownload(downloadDelta.id, { adopted: false });
           } else {
             await recordHistoryStatus(errorName || "failed");
@@ -391,9 +384,7 @@ export const Notifier = {
         downloadDelta.state.current === "complete" &&
         downloadDelta.state.previous === "in_progress"
       ) {
-        if (typeof Log !== "undefined") {
-          Log.add("download complete", { id: downloadDelta.id, filename });
-        }
+        Log.add("download complete", { id: downloadDelta.id, filename });
         const res = await webExtensionApi.downloads.search({ id: downloadDelta.id });
         let filesize = "";
         const mime = res.length > 0 && res[0].mime;

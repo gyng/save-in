@@ -1,6 +1,6 @@
 import { SHORTCUT_TYPES, SHORTCUT_EXTENSIONS, DOWNLOAD_TYPES } from "./constants.ts";
 import { Download } from "./download.ts";
-import { Path } from "./path.ts";
+import { sanitizeFilename } from "./path.ts";
 import { currentTab } from "./current-tab.ts";
 
 type ShortcutInfo = {
@@ -85,7 +85,7 @@ export const Shortcut = {
           }`
         : `${suggestedFilename || info.linkText || info.srcUrl || info.linkUrl}`;
 
-    shortcutFilename = `${Path.sanitizeFilename(
+    shortcutFilename = `${sanitizeFilename(
       shortcutFilename,
       maxlen - shortcutExtension.length,
     )}${shortcutExtension}`;

@@ -2,7 +2,7 @@
 // service worker startup and must wait for async init before acting.
 //
 // menu-build/menu-click/menu-tabs and their deps are imported for real. Each
-// test resets the module registry (fresh Menus state per case), so the deps are
+// test resets the module registry (fresh menu state per case), so the deps are
 // re-imported inside importMenus after the reset — they resolve to the same
 // fresh instances the menu modules just loaded, so Object.assign (options,
 // WEB_EXTENSION_CAPABILITIES) and vi.spyOn (Download/Notifier/Shortcut) reach the live
@@ -11,10 +11,21 @@
 import { DOWNLOAD_TYPES } from "../src/constants.ts";
 import type { CurrentTab } from "../src/current-tab.ts";
 
-type MenusFixture = typeof import("../src/menu-build.ts").Menus;
+type MenusFixture = typeof import("../src/menu-build.ts") &
+  typeof import("../src/menu-click.ts") &
+  typeof import("../src/menu-tabs.ts") & {
+    IDS: typeof import("../src/menu-build.ts").MENU_IDS;
+    state: typeof import("../src/menu-build.ts").menuState;
+    pathMappings: typeof import("../src/menu-build.ts").menuState.pathMappings;
+  };
 // Browser listener mocks intentionally accept partial event payloads: each test
 // supplies only the host fields relevant to the branch it exercises.
 type TestMenuListener = (info: any, tab?: any) => void;
+
+function assertPresent<T>(value: T): asserts value is NonNullable<T> {
+  expect(value).not.toBeNull();
+  expect(value).not.toBeUndefined();
+}
 
 // Reassigned each module reset (in importMenus) to the fresh dep instances; the
 // setup fn and the describe-scoped helpers below read them.
@@ -75,14 +86,10 @@ const seedDeps = () => {
   vi.spyOn(Shortcut, "suggestShortcutFilename").mockReturnValue("shortcut.url");
 };
 
-// menu-click.ts/menu-tabs.ts augment the Menus object from menu-build.ts through
-// the same imported binding, so importing them extends Menus. After each reset
-// the deps are re-imported here (same fresh instances the menu modules hold) and
-// seeded, so spies/Object.assign land on the live click handlers.
 const importMenus = async () => {
-  const { Menus } = await import("../src/menu-build.ts");
-  await import("../src/menu-click.ts");
-  await import("../src/menu-tabs.ts");
+  const menuBuild = await import("../src/menu-build.ts");
+  const menuClick = await import("../src/menu-click.ts");
+  const menuTabs = await import("../src/menu-tabs.ts");
   ({ options } = await import("../src/options-data.ts"));
   ({ Download } = await import("../src/download.ts"));
   ({ Notifier } = await import("../src/notification.ts"));
@@ -90,7 +97,14 @@ const importMenus = async () => {
   ({ WEB_EXTENSION_CAPABILITIES } = await import("../src/chrome-detector.ts"));
   ({ setCurrentTab } = await import("../src/current-tab.ts"));
   seedDeps();
-  return Menus;
+  return {
+    ...menuBuild,
+    ...menuClick,
+    ...menuTabs,
+    IDS: menuBuild.MENU_IDS,
+    state: menuBuild.menuState,
+    pathMappings: menuBuild.menuState.pathMappings,
+  };
 };
 
 describe("Menus last-used state", () => {
@@ -765,6 +779,7 @@ describe("resolveClickTarget (pure decision)", () => {
       opts({ preferLinksFilterEnabled: true, preferLinksFilter: "match\\.example\n" }),
       null,
     );
+    assertPresent(t);
     expect(t.downloadType).toBe("MEDIA");
   });
 
@@ -779,6 +794,7 @@ describe("resolveClickTarget (pure decision)", () => {
       opts({ preferLinksFilterEnabled: true, preferLinksFilter: "(" }),
       null,
     );
+    assertPresent(t);
     expect(t.downloadType).toBe("MEDIA");
     expect(t.badPatternError).toBeInstanceOf(Error);
   });
@@ -794,6 +810,7 @@ describe("resolveClickTarget (pure decision)", () => {
       opts({ links: false }),
       null,
     );
+    assertPresent(t);
     expect(t.downloadType).toBe("PAGE");
   });
 
@@ -801,6 +818,7 @@ describe("resolveClickTarget (pure decision)", () => {
     const t = Menus.resolveClickTarget({ selectionText: "hello world" }, opts(), {
       title: "My Tab",
     });
+    assertPresent(t);
     expect(t).toMatchObject({
       downloadType: "SELECTION",
       selectionText: "hello world",
@@ -813,6 +831,8 @@ describe("resolveClickTarget (pure decision)", () => {
     const t = Menus.resolveClickTarget({ selectionText: "x" }, opts({ truncateLength: 30 }), {
       title: "a".repeat(80),
     });
+    assertPresent(t);
+    assertPresent(t.suggestedFilename);
     expect(t.suggestedFilename.endsWith(".selection.txt")).toBe(true);
     expect(t.suggestedFilename.length).toBeLessThanOrEqual(30);
   });
@@ -828,6 +848,7 @@ describe("resolveClickTarget (pure decision)", () => {
 
   test("a page click falls back to the url when no tab title is known", () => {
     const t = Menus.resolveClickTarget({ pageUrl: "https://x/page" }, opts(), null);
+    assertPresent(t);
     expect(t.suggestedFilename).toBe("https://x/page");
   });
 

@@ -1,7 +1,7 @@
 import { SHORTCUT_TYPES, DOWNLOAD_TYPES } from "../src/constants.ts";
 import { Shortcut as shortcut } from "../src/shortcut.ts";
 import { Download } from "../src/download.ts";
-import { Path } from "../src/path.ts";
+import * as Path from "../src/path.ts";
 import { setCurrentTab } from "../src/current-tab.ts";
 
 const makeShortcutContent = shortcut.makeShortcutContent;

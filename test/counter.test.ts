@@ -1,6 +1,7 @@
 // Counter: an atomic, persistent, serialised download counter for :counter:
 
-import { CounterWriteState, nextCounter, peekCounter, resetCounter } from "../src/counter.ts";
+import { nextCounter, peekCounter, resetCounter } from "../src/counter.ts";
+import type { CounterWriteState } from "../src/counter.ts";
 
 let writes: CounterWriteState;
 

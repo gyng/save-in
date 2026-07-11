@@ -2,11 +2,9 @@ name: Checks
 
 on:
   pull_request:
-    branches:
-      - master
   push:
     branches:
-      - master
+      - "**"
 
 permissions:
   contents: read
@@ -33,6 +31,13 @@ jobs:
         run: npm test
       - name: Verify store packaging
         run: npm run build
+      - name: Preserve store package
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: store-package-${{ github.sha }}
+          path: web-ext-artifacts/*.zip
+          if-no-files-found: error
+          compression-level: 0
 
   e2e:
     runs-on: ubuntu-latest
@@ -47,7 +52,5 @@ jobs:
           cache: npm
       - name: Install pinned dependencies
         run: npm ci
-      - name: Chrome e2e
-        run: HEADLESS=1 npm run e2e:chrome
-      - name: Firefox e2e
-        run: HEADLESS=1 npm run e2e:firefox
+      - name: Chrome and Firefox e2e
+        run: HEADLESS=1 npm run e2e

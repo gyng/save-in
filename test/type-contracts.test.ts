@@ -1,0 +1,33 @@
+import { expectTypeOf, test } from "vitest";
+
+import type { CounterWriteState } from "../src/counter.ts";
+import type { RuleType } from "../src/constants.ts";
+import type {
+  AcquiredDownload,
+  DownloadPipelineState,
+  DownloadPlan,
+  FinalizableDownloadState,
+} from "../src/download-types.ts";
+import type { DownloadRecord, DownloadsState } from "../src/download-state.ts";
+import type { RuleClause } from "../src/router.ts";
+import type { SessionWriteState } from "../src/session-state.ts";
+
+test("download stages expose distinct state contracts", () => {
+  expectTypeOf<DownloadPlan>().toHaveProperty("state").toEqualTypeOf<DownloadPipelineState>();
+  expectTypeOf<AcquiredDownload>().toEqualTypeOf<{ url: string; viaFetch: boolean }>();
+  expectTypeOf<FinalizableDownloadState>().toMatchTypeOf<{
+    path: DownloadPipelineState["path"];
+    info: DownloadPipelineState["info"];
+  }>();
+});
+
+test("routing clauses use the shared rule-type union", () => {
+  expectTypeOf<RuleClause["type"]>().toEqualTypeOf<RuleType>();
+});
+
+test("functional state services expose explicit mutable state", () => {
+  expectTypeOf<CounterWriteState["queue"]>().toEqualTypeOf<Promise<unknown>>();
+  expectTypeOf<SessionWriteState["queue"]>().toEqualTypeOf<Promise<unknown>>();
+  expectTypeOf<DownloadsState["records"]>().toEqualTypeOf<Map<number, DownloadRecord>>();
+  expectTypeOf<DownloadsState["hydration"]>().toEqualTypeOf<Promise<void> | null>();
+});

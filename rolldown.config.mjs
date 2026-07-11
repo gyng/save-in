@@ -25,7 +25,12 @@ export default defineConfig([
   // Firefox event page (has a real window) — loaded via background.scripts
   {
     input: "src/entry.background.ts",
-    output: { file: "dist/bundled/background.js", format: "esm", minify: false },
+    output: {
+      file: "dist/bundled/background.js",
+      format: "esm",
+      minify: false,
+      sourcemap: true,
+    },
   },
   // Chrome service worker: same modules, with the window shim up front
   {
@@ -34,16 +39,27 @@ export default defineConfig([
       file: "dist/bundled/background.sw.js",
       format: "esm",
       minify: false,
+      sourcemap: true,
       banner: "self.window = self;\n",
     },
   },
   {
     input: "src/entry.options.ts",
-    output: { file: "dist/bundled/options.js", format: "esm", minify: false },
+    output: {
+      file: "dist/bundled/options.js",
+      format: "esm",
+      minify: false,
+      sourcemap: true,
+    },
   },
   {
     input: "src/entry.offscreen.ts",
-    output: { file: "dist/bundled/offscreen.js", format: "esm", minify: false },
+    output: {
+      file: "dist/bundled/offscreen.js",
+      format: "esm",
+      minify: false,
+      sourcemap: true,
+    },
   },
   // content is a classic content script (isolated); iife keeps its bindings
   // private and, unlike esm, emits no top-level `export` statements
@@ -54,6 +70,7 @@ export default defineConfig([
       format: "iife",
       name: "__saveInContent",
       minify: false,
+      sourcemap: true,
     },
   },
   // clicktocopy is loaded standalone by the variablelist/clauselist help pages
@@ -65,6 +82,7 @@ export default defineConfig([
       format: "iife",
       name: "__saveInClickToCopy",
       minify: false,
+      sourcemap: true,
     },
   },
 ]);

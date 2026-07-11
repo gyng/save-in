@@ -5,27 +5,13 @@
 // the fake listener objects below are installed before it (and the real SCC it
 // pulls in) evaluates — hence the dynamic imports. Its deps are then imported
 // for real and controlled through vi.spyOn (methods) / Object.assign (data, and
-// the FakePath override): the handlers assert against controlled shapes — a
+// real Path values): the handlers assert against controlled shapes — a
 // two-key option schema, a fixed matcher/variable set, a stubbed
 // router/interpolator — that the real 40-key config and live routing wouldn't
 // match.
 
 import { MESSAGE_TYPES, DOWNLOAD_TYPES } from "../src/constants.ts";
 import type { CurrentTab } from "../src/current-tab.ts";
-
-// Stand-in Path so a handler's `new Path.Path(x)` yields an inspectable { raw }
-// and the interpolation stub can read `.raw`; installed over the real Path below.
-class FakePath {
-  constructor(public raw: string) {}
-
-  finalize(): string {
-    return this.raw;
-  }
-
-  toString(): string {
-    return this.raw;
-  }
-}
 
 // Capture the listeners registerMessaging() attaches (jest-webextension-mock's
 // runtime events dispatch through their own internal lists, so replace them).
@@ -41,9 +27,9 @@ const { OptionsManagement } = await import("../src/option.ts");
 const { options } = await import("../src/options-data.ts");
 const { Download } = await import("../src/download.ts");
 const { Notifier } = await import("../src/notification.ts");
-const { Menus } = await import("../src/menu-build.ts");
-const { Router } = await import("../src/router.ts");
-const { Variable } = await import("../src/variable.ts");
+const Menus = await import("../src/menu-build.ts");
+const router = await import("../src/router.ts");
+const Variable = await import("../src/variable.ts");
 const { Path } = await import("../src/path.ts");
 const { setCurrentTab } = await import("../src/current-tab.ts");
 
@@ -65,8 +51,6 @@ const setupGlobals = () => {
   trackedTab = { id: 1, title: "Tracked Tab" };
   setCurrentTab(trackedTab);
   Object.assign(options, { conflictAction: "uniquify" });
-  Object.assign(Path, { Path: FakePath });
-
   vi.spyOn(Download, "renameAndDownload").mockResolvedValue(undefined);
   // Download.launch stays real: it just calls renameAndDownload (the rejection
   // path it also handles is covered in download-flow.test).
@@ -86,9 +70,9 @@ const setupGlobals = () => {
     })),
     errors: [],
   }));
-  Object.assign(Router, { matcherFunctions: { fileext: () => {}, pageurl: () => {} } });
-  vi.spyOn(Router, "parseRulesCollecting").mockReturnValue({ rules: [], errors: [] });
-  Object.assign(Variable, { transformers: { ":date:": () => {}, ":year:": () => {} } });
+  vi.spyOn(router, "parseRulesCollecting").mockReturnValue({ rules: [], errors: [] });
+  Object.keys(Variable.transformers).forEach((key) => delete Variable.transformers[key]);
+  Object.assign(Variable.transformers, { ":date:": () => {}, ":year:": () => {} });
   vi.spyOn(Variable, "applyVariables").mockImplementation((path: any) =>
     Promise.resolve({
       buf: [],
@@ -173,7 +157,7 @@ describe("onMessage", () => {
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.KEYWORD_LIST,
       body: {
-        matchers: ["fileext", "pageurl"],
+        matchers: Object.keys(router.matcherFunctions),
         variables: [":date:", ":year:"],
       },
     });
@@ -231,7 +215,7 @@ describe("onMessage CHECK_ROUTES", () => {
     expect(OptionsManagement.checkRoutes).toHaveBeenCalledWith(state);
     // interpolation runs in preview mode (a copy of info with preview:true)
     expect(Variable.applyVariables).toHaveBeenCalledWith(
-      expect.any(FakePath),
+      expect.any(Path),
       expect.objectContaining({ filename: "f.png", preview: true }),
     );
     expect(sendResponse).toHaveBeenCalledWith({
@@ -320,7 +304,8 @@ describe("handleDownloadMessage", () => {
     expect(Download.renameAndDownload).toHaveBeenCalledTimes(1);
 
     const state = vi.mocked(Download.renameAndDownload).mock.calls[0][0];
-    expect(state.path).toEqual(new FakePath("."));
+    expect(state.path).toMatchObject({ raw: "." });
+    expect(state.path.finalize()).toBe(".");
     expect(state.scratch).toEqual({});
     expect(state.info.url).toBe("https://x/file.png");
     expect(state.info.pageUrl).toBe("https://x/");
@@ -334,12 +319,23 @@ describe("handleDownloadMessage", () => {
     });
   });
 
+  test("preserves a caller-supplied suggested filename", () => {
+    onMessage(
+      request({ info: { pageUrl: "https://x/", suggestedFilename: "caller-name.png" } }),
+      {},
+      vi.fn(),
+    );
+
+    const state = vi.mocked(Download.renameAndDownload).mock.calls[0][0];
+    expect(state.info.suggestedFilename).toBe("caller-name.png");
+  });
+
   test("reuses the last path and routing metadata, never filenames or routes", () => {
-    const lastPath = new FakePath("images/cats");
+    const lastPath = new Path("images/cats");
     global.window.lastDownloadState = {
       path: lastPath,
       scratch: { hasExtension: true },
-      route: new FakePath("stale/route/from/other.png"),
+      route: new Path("stale/route/from/other.png"),
       info: {
         comment: "0last",
         menuIndex: "1",
@@ -370,7 +366,8 @@ describe("handleDownloadMessage", () => {
     onMessage(request(), {}, vi.fn());
 
     const state = vi.mocked(Download.renameAndDownload).mock.calls[0][0];
-    expect(state.path).toEqual(new FakePath("."));
+    expect(state.path).toMatchObject({ raw: "." });
+    expect(state.path.finalize()).toBe(".");
   });
 
   test("prefers the sender's tab over the tracked global tab (#172)", () => {
@@ -393,6 +390,26 @@ describe("handleDownloadMessage", () => {
 
     const state = vi.mocked(Download.renameAndDownload).mock.calls[0][0];
     expect(state.info.comment).toBe("from-foxy-gestures");
+  });
+
+  test("does not let external info override pipeline-owned fields", () => {
+    onMessage(
+      request({
+        info: {
+          pageUrl: "https://x/",
+          context: "forged",
+          url: "javascript:forged",
+          currentTab: { id: 99 },
+        },
+      }),
+      {},
+      vi.fn(),
+    );
+
+    const state = vi.mocked(Download.renameAndDownload).mock.calls[0][0];
+    expect(state.info.context).toBe(DOWNLOAD_TYPES.CLICK);
+    expect(state.info.url).toBe("https://x/file.png");
+    expect(state.info.currentTab).toBe(trackedTab);
   });
 
   test("omits the comment when none is supplied", () => {
@@ -489,6 +506,20 @@ describe("external DOWNLOAD API v1", () => {
     });
   });
 
+  test("a known external message with a malformed body returns BAD_REQUEST", () => {
+    const sendResponse = vi.fn();
+    onMessageExternal(
+      { type: MESSAGE_TYPES.DOWNLOAD, body: { url: 42, info: "not an object" } },
+      {},
+      sendResponse,
+    );
+    expect(Download.renameAndDownload).not.toHaveBeenCalled();
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.DOWNLOAD,
+      body: { status: MESSAGE_TYPES.ERROR, error: "BAD_REQUEST", version: 1 },
+    });
+  });
+
   test("PING advertises the schema and validate capabilities", () => {
     const sendResponse = vi.fn();
     onMessageExternal({ type: MESSAGE_TYPES.PING }, {}, sendResponse);
@@ -516,7 +547,7 @@ describe("config API", () => {
   });
 
   test("VALIDATE dry-runs paths and rules and returns errors + preview", () => {
-    vi.mocked(Router.parseRulesCollecting).mockReturnValue({
+    vi.mocked(router.parseRulesCollecting).mockReturnValue({
       rules: [],
       errors: [{ message: "bad rule", error: "bad rule" }],
     });
@@ -527,7 +558,7 @@ describe("config API", () => {
       sendResponse,
     );
     expect(Menus.buildTree).toHaveBeenCalledWith(["dogs", ">cats"]);
-    expect(Router.parseRulesCollecting).toHaveBeenCalledWith("x");
+    expect(router.parseRulesCollecting).toHaveBeenCalledWith("x");
     const { body } = sendResponse.mock.calls[0][0];
     expect(body.pathErrors).toEqual([]);
     expect(body.ruleErrors).toEqual([{ message: "bad rule", error: "bad rule" }]);
@@ -579,6 +610,51 @@ describe("config API", () => {
     ]);
   });
 
+  test("APPLY_CONFIG rejects values outside schema constraints", async () => {
+    (OptionsManagement.OPTION_KEYS as unknown as Array<Record<string, unknown>>).push(
+      {
+        name: "conflictAction",
+        type: "VALUE",
+        default: "uniquify",
+        validate: (value: string) => ["uniquify", "overwrite", "prompt"].includes(value),
+      },
+      {
+        name: "notifyDuration",
+        type: "VALUE",
+        default: 7000,
+        validate: (value: number) => value >= 0,
+      },
+    );
+    const sendResponse = vi.fn();
+    onMessage(
+      {
+        type: MESSAGE_TYPES.APPLY_CONFIG,
+        body: { config: { conflictAction: "destroy", notifyDuration: -1 } },
+      },
+      {},
+      sendResponse,
+    );
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(global.browser.storage.local.set).not.toHaveBeenCalled();
+    expect(sendResponse.mock.calls[0][0].body.rejected).toEqual([
+      { name: "conflictAction", reason: "invalid value" },
+      { name: "notifyDuration", reason: "invalid value" },
+    ]);
+  });
+
+  test("APPLY_CONFIG ignores a malformed config container", () => {
+    const sendResponse = vi.fn();
+    onMessage(
+      { type: MESSAGE_TYPES.APPLY_CONFIG, body: { config: ["not", "an", "object"] } },
+      {},
+      sendResponse,
+    );
+
+    expect(global.browser.storage.local.set).not.toHaveBeenCalled();
+    expect(sendResponse).not.toHaveBeenCalled();
+  });
+
   test("APPLY_CONFIG is NOT reachable from external extensions", () => {
     const sendResponse = vi.fn();
     onMessageExternal(
@@ -598,7 +674,7 @@ describe("emit.downloaded", () => {
       Promise.reject(new Error("Receiving end does not exist")),
     );
     const state = {
-      path: new FakePath("."),
+      path: new Path("."),
       scratch: {},
       info: { url: "https://x/file.png" },
     };

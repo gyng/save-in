@@ -2,19 +2,19 @@ import { webExtensionApi } from "./web-extension-api.ts";
 
 // Click handling for the save-in context menu: routes clicks on path
 // items (and last-used/route-exclusive) into Download.renameAndDownload.
-// Extends the Menus object defined in menu-build.js via the shared
-// global scope; tab-strip clicks are handled in menu-tabs.js.
+// Tab-strip clicks are handled in menu-tabs.ts.
 
-import { Menus } from "./menu-build.ts";
+import { MENU_IDS, menuState, setLastUsed } from "./menu-build.ts";
 import { DOWNLOAD_TYPES, MEDIA_TYPES } from "./constants.ts";
 import { splitLines } from "./util.ts";
-import { Path } from "./path.ts";
+import { Path, sanitizeFilename, truncateIfLongerThan } from "./path.ts";
 import { Download } from "./download.ts";
 import { Notifier } from "./notification.ts";
 import { WEB_EXTENSION_CAPABILITIES } from "./chrome-detector.ts";
 import { Shortcut } from "./shortcut.ts";
 import { options } from "./options-data.ts";
-import { currentTab, CurrentTab } from "./current-tab.ts";
+import { currentTab } from "./current-tab.ts";
+import type { CurrentTab } from "./current-tab.ts";
 import type { DownloadInfo } from "./download-types.ts";
 
 type ClickInfo = {
@@ -53,7 +53,7 @@ type ClickTarget = {
 // testable without a browser: a text selection reports its `selectionText`
 // (the caller turns it into an object URL) and the link-preference / bad-filter
 // notifications come back as `notifyLinkPreferred` / `badPatternError`.
-Menus.resolveClickTarget = (
+export const resolveClickTarget = (
   info: ClickInfo,
   options: ClickOptions,
   clickTab: CurrentTab | null | undefined,
@@ -108,7 +108,7 @@ Menus.resolveClickTarget = (
   } else if (options.selection && info.selectionText) {
     result.downloadType = DOWNLOAD_TYPES.SELECTION;
     result.selectionText = info.selectionText;
-    result.suggestedFilename = `${Path.truncateIfLongerThan(
+    result.suggestedFilename = `${truncateIfLongerThan(
       (clickTab && clickTab.title) || info.selectionText,
       options.truncateLength - 14,
     )}.selection.txt`;
@@ -123,9 +123,9 @@ Menus.resolveClickTarget = (
   return result;
 };
 
-Menus.addDownloadListener = () => {
+export const addDownloadListener = () => {
   webExtensionApi.contextMenus.onClicked.addListener(async (info, tab) => {
-    if (Object.values(Menus.IDS.TABSTRIP).includes(info.menuItemId)) {
+    if (Object.values(MENU_IDS.TABSTRIP).some((id) => id === info.menuItemId)) {
       return;
     }
 
@@ -150,13 +150,16 @@ Menus.addDownloadListener = () => {
     // later tab updates (#172, #188)
     const clickTab = tab || currentTab;
 
-    const menuInfo = Menus.pathMappings[info.menuItemId];
+    const menuInfo = menuState.pathMappings[info.menuItemId];
 
-    if (menuInfo || [Menus.IDS.ROUTE_EXCLUSIVE, Menus.IDS.LAST_USED].includes(info.menuItemId)) {
+    if (
+      menuInfo ||
+      [MENU_IDS.ROUTE_EXCLUSIVE, MENU_IDS.LAST_USED].includes(info.menuItemId as any)
+    ) {
       let menuIndex = menuInfo && menuInfo.menuIndex;
       let comment = menuInfo && menuInfo.comment;
 
-      const target = Menus.resolveClickTarget(info, options, clickTab);
+      const target = resolveClickTarget(info, options, clickTab);
       if (!target) {
         return;
       }
@@ -181,40 +184,40 @@ Menus.addDownloadListener = () => {
       if (target.badPatternError) {
         Notifier.createExtensionNotification(
           webExtensionApi.i18n.getMessage("notificationBadPreferLinksPattern"),
-          target.badPatternError,
+          target.badPatternError as string,
         );
       }
 
       let saveIntoPath;
 
-      if (info.menuItemId === Menus.IDS.ROUTE_EXCLUSIVE) {
+      if (info.menuItemId === MENU_IDS.ROUTE_EXCLUSIVE) {
         saveIntoPath = ".";
-      } else if (info.menuItemId === Menus.IDS.LAST_USED) {
-        saveIntoPath = Menus.state.lastUsedPath;
+      } else if (info.menuItemId === MENU_IDS.LAST_USED) {
+        saveIntoPath = menuState.lastUsedPath;
         if (window.lastDownloadState && window.lastDownloadState.info) {
           comment = window.lastDownloadState.info.comment;
           menuIndex = window.lastDownloadState.info.menuIndex;
-        } else if (Menus.state.lastUsedMeta) {
+        } else if (menuState.lastUsedMeta) {
           // The in-memory lastDownloadState died with the service worker:
           // fall back to the persisted routing metadata so comment/menuindex
           // rules still match after a restart
-          comment = Menus.state.lastUsedMeta.comment;
-          menuIndex = Menus.state.lastUsedMeta.menuIndex;
+          comment = menuState.lastUsedMeta.comment;
+          menuIndex = menuState.lastUsedMeta.menuIndex;
         }
       } else {
         saveIntoPath = menuInfo.parsedDir;
-        Menus.setLastUsed(saveIntoPath, { comment, menuIndex });
+        setLastUsed(saveIntoPath, { comment, menuIndex });
         const title = menuInfo.title || saveIntoPath;
 
         if (options.enableLastLocation) {
-          webExtensionApi.contextMenus.update(Menus.IDS.LAST_USED, {
+          webExtensionApi.contextMenus.update(MENU_IDS.LAST_USED, {
             title: WEB_EXTENSION_CAPABILITIES.accessKeys ? `${title} (&a)` : title,
             enabled: true,
           });
         }
       }
 
-      const parsedPath = new Path.Path(saveIntoPath);
+      const parsedPath = new Path(saveIntoPath);
 
       const saveAsShortcut =
         (downloadType === DOWNLOAD_TYPES.MEDIA && options.shortcutMedia) ||
@@ -234,7 +237,7 @@ Menus.addDownloadListener = () => {
       }
 
       if (suggestedFilename) {
-        suggestedFilename = Path.sanitizeFilename(suggestedFilename, options.truncateLength);
+        suggestedFilename = sanitizeFilename(suggestedFilename, options.truncateLength);
       }
 
       // Organise things by flattening the info struct and only keeping needed info

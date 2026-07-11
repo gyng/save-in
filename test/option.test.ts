@@ -2,8 +2,13 @@
 // dry-run used by the options page's "check routes" preview
 
 import * as constants from "../src/constants.ts";
+import type { RoutingRule } from "../src/router.ts";
 
-// Router/Variable/Path/Download are heavy real modules exercised elsewhere;
+const routingRule = (name: string): RoutingRule => [
+  { name, value: ".*", type: constants.RULE_TYPES.MATCHER },
+];
+
+// Routing, variable interpolation, path, and download logic are exercised elsewhere;
 // option.ts only needs to call specific methods on them, so mock those with
 // plain objects mutated in place (Object.assign), hoisted above the
 // vi.mock() calls so the (cached, only-ever-invoked-once) mock factories
@@ -17,9 +22,9 @@ import * as constants from "../src/constants.ts";
 // fresh setter on every re-import would be strictly more plumbing for no gain.
 const mocks = vi.hoisted(() => ({
   currentBrowser: "UNKNOWN",
-  Router: {} as Record<string, any>,
-  Variable: {} as Record<string, any>,
-  Path: {} as Record<string, any>,
+  router: {} as Record<string, any>,
+  applyVariables: vi.fn(),
+  Path: vi.fn(),
   Download: {} as Record<string, any>,
 }));
 
@@ -29,8 +34,8 @@ vi.mock("../src/chrome-detector.ts", () => ({
     return { conflictActionPrompt: mocks.currentBrowser === "FIREFOX" };
   },
 }));
-vi.mock("../src/router.ts", () => ({ Router: mocks.Router }));
-vi.mock("../src/variable.ts", () => ({ Variable: mocks.Variable }));
+vi.mock("../src/router.ts", () => mocks.router);
+vi.mock("../src/variable.ts", () => ({ applyVariables: mocks.applyVariables }));
 vi.mock("../src/path.ts", () => ({ Path: mocks.Path }));
 vi.mock("../src/download.ts", () => ({ Download: mocks.Download }));
 
@@ -38,9 +43,9 @@ Object.assign(global, constants);
 
 const setupGlobals = () => {
   mocks.currentBrowser = "UNKNOWN";
-  Object.assign(mocks.Router, { parseRules: vi.fn((v) => v), getCaptureMatches: vi.fn() });
-  Object.assign(mocks.Variable, { applyVariables: vi.fn() });
-  Object.assign(mocks.Path, { Path: vi.fn() });
+  Object.assign(mocks.router, { parseRules: vi.fn((v) => v), getCaptureMatches: vi.fn() });
+  mocks.applyVariables.mockReset();
+  mocks.Path.mockReset();
   Object.assign(mocks.Download, { getRoutingMatches: vi.fn() });
   global.browser.storage.local.get = vi.fn(() => Promise.resolve({}));
   delete global.window.SI_DEBUG;
@@ -187,19 +192,21 @@ describe("OptionsManagement", () => {
     });
 
     test("builds the routing preview from a download state", async () => {
-      OptionsManagement.setOption("filenamePatterns", ["rule-a", "rule-b"]);
+      const ruleA = routingRule("rule-a");
+      const ruleB = routingRule("rule-b");
+      OptionsManagement.setOption("filenamePatterns", [ruleA, ruleB]);
 
       mocks.Download.getRoutingMatches.mockReturnValue("routed/dir");
-      mocks.Path.Path.mockImplementation(function fakePath(
+      mocks.Path.mockImplementation(function fakePath(
         this: { routingMatches: unknown },
         routingMatches: unknown,
       ) {
         this.routingMatches = routingMatches;
       });
-      mocks.Variable.applyVariables.mockImplementation((path: { routingMatches: unknown }) => ({
+      mocks.applyVariables.mockImplementation((path: { routingMatches: unknown }) => ({
         finalize: () => `finalized:${path.routingMatches}`,
       }));
-      mocks.Router.getCaptureMatches
+      mocks.router.getCaptureMatches
         .mockReturnValueOnce(null) // rule-a: no match, loop continues
         .mockReturnValueOnce(["cap1"]); // rule-b: match, loop breaks
 
@@ -211,28 +218,26 @@ describe("OptionsManagement", () => {
         expect.objectContaining({
           info: expect.objectContaining({
             filename: "photo.png",
-            filenamePatterns: ["rule-a", "rule-b"],
+            filenamePatterns: [ruleA, ruleB],
           }),
         }),
       );
-      expect(mocks.Path.Path).toHaveBeenCalledWith("routed/dir");
-      expect(mocks.Variable.applyVariables).toHaveBeenCalledWith(
+      expect(mocks.Path).toHaveBeenCalledWith("routed/dir");
+      expect(mocks.applyVariables).toHaveBeenCalledWith(
         expect.objectContaining({ routingMatches: "routed/dir" }),
         expect.objectContaining({ filename: "photo.png" }),
       );
 
-      expect(mocks.Router.getCaptureMatches).toHaveBeenCalledTimes(2);
-      expect(mocks.Router.getCaptureMatches).toHaveBeenNthCalledWith(
+      expect(mocks.router.getCaptureMatches).toHaveBeenCalledTimes(2);
+      expect(mocks.router.getCaptureMatches).toHaveBeenNthCalledWith(
         1,
-        "rule-a",
+        ruleA,
         expect.objectContaining({ filename: "photo.png" }),
-        "photo.png",
       );
-      expect(mocks.Router.getCaptureMatches).toHaveBeenNthCalledWith(
+      expect(mocks.router.getCaptureMatches).toHaveBeenNthCalledWith(
         2,
-        "rule-b",
+        ruleB,
         expect.objectContaining({ filename: "photo.png" }),
-        "photo.png",
       );
 
       expect(result).toEqual({ path: "finalized:routed/dir", captures: ["cap1"] });
@@ -241,13 +246,13 @@ describe("OptionsManagement", () => {
     test("prefers initialFilename over filename (Chrome mutates filename with `_`)", async () => {
       OptionsManagement.setOption("filenamePatterns", []);
       mocks.Download.getRoutingMatches.mockReturnValue("routed/dir");
-      mocks.Path.Path.mockImplementation(function fakePath(
+      mocks.Path.mockImplementation(function fakePath(
         this: { routingMatches: unknown },
         routingMatches: unknown,
       ) {
         this.routingMatches = routingMatches;
       });
-      mocks.Variable.applyVariables.mockImplementation(() => ({ finalize: () => "x" }));
+      mocks.applyVariables.mockImplementation(() => ({ finalize: () => "x" }));
 
       const state = {
         info: { filename: "sanitized_.png", initialFilename: "café.png", url: "https://x/f.png" },
@@ -261,25 +266,25 @@ describe("OptionsManagement", () => {
     });
 
     test("falls back to url for capture matching when there is no filename", async () => {
-      OptionsManagement.setOption("filenamePatterns", ["only-rule"]);
+      const onlyRule = routingRule("only-rule");
+      OptionsManagement.setOption("filenamePatterns", [onlyRule]);
       mocks.Download.getRoutingMatches.mockReturnValue("routed/dir");
-      mocks.Path.Path.mockImplementation(function fakePath(
+      mocks.Path.mockImplementation(function fakePath(
         this: { routingMatches: unknown },
         routingMatches: unknown,
       ) {
         this.routingMatches = routingMatches;
       });
-      mocks.Variable.applyVariables.mockImplementation(() => ({ finalize: () => "x" }));
-      mocks.Router.getCaptureMatches.mockReturnValue(null);
+      mocks.applyVariables.mockImplementation(() => ({ finalize: () => "x" }));
+      mocks.router.getCaptureMatches.mockReturnValue(null);
 
       const state = { info: { url: "https://x/nofilename" } };
 
       const result = await OptionsManagement.checkRoutes(state);
 
-      expect(mocks.Router.getCaptureMatches).toHaveBeenCalledWith(
-        "only-rule",
+      expect(mocks.router.getCaptureMatches).toHaveBeenCalledWith(
+        onlyRule,
         expect.objectContaining({ url: "https://x/nofilename" }),
-        "https://x/nofilename",
       );
       expect(result.captures).toBeNull();
     });
@@ -304,14 +309,14 @@ describe("OptionsManagement", () => {
     });
 
     test("applies each stored value's onLoad transform, defaulting to identity", async () => {
-      mocks.Router.parseRules.mockReturnValue("PARSED_RULES");
+      mocks.router.parseRules.mockReturnValue("PARSED_RULES");
       global.browser.storage.local.get = vi.fn(() =>
         Promise.resolve({ filenamePatterns: "raw-pattern-source", conflictAction: "overwrite" }),
       );
 
       const resolved = await OptionsManagement.loadOptions();
 
-      expect(mocks.Router.parseRules).toHaveBeenCalledWith("raw-pattern-source");
+      expect(mocks.router.parseRules).toHaveBeenCalledWith("raw-pattern-source");
       expect(resolved.filenamePatterns).toBe("PARSED_RULES");
       expect(resolved.conflictAction).toBe("overwrite");
     });
@@ -320,6 +325,52 @@ describe("OptionsManagement", () => {
       global.browser.storage.local.get = vi.fn(() => Promise.resolve({ replacementChar: "/" }));
       const resolved = await OptionsManagement.loadOptions();
       expect(resolved.replacementChar).toBe("_");
+    });
+
+    test("falls back to defaults for malformed stored value types", async () => {
+      global.browser.storage.local.get = vi.fn(() =>
+        Promise.resolve({ notifyOnSuccess: "yes", notifyDuration: "forever", paths: null }),
+      );
+      const resolved = await OptionsManagement.loadOptions();
+      expect(resolved.notifyOnSuccess).toBe(true);
+      expect(resolved.notifyDuration).toBe(7000);
+      expect(resolved.paths).toContain("Downloads");
+    });
+
+    test("falls back for unknown enum values and invalid numeric ranges", async () => {
+      global.browser.storage.local.get = vi.fn(() =>
+        Promise.resolve({
+          conflictAction: "destroy",
+          contentClickToSaveButton: "DOUBLE_CLICK",
+          shortcutType: "PDF",
+          notifyDuration: -1,
+          truncateLength: Number.NaN,
+        }),
+      );
+      const resolved = await OptionsManagement.loadOptions();
+      expect(resolved.conflictAction).toBe("uniquify");
+      expect(resolved.contentClickToSaveButton).toBe("LEFT_CLICK");
+      expect(resolved.shortcutType).toBe("HTML_REDIRECT");
+      expect(resolved.notifyDuration).toBe(7000);
+      expect(resolved.truncateLength).toBe(240);
+    });
+
+    test("tolerates a storage backend returning null", async () => {
+      global.browser.storage.local.get = vi.fn(() => Promise.resolve(null as any));
+      await expect(OptionsManagement.loadOptions()).resolves.toEqual(
+        expect.objectContaining({ conflictAction: "uniquify", notifyDuration: 7000 }),
+      );
+    });
+
+    test("falls back when an onLoad migration rejects corrupt data", async () => {
+      mocks.router.parseRules.mockImplementation(() => {
+        throw new Error("bad rules");
+      });
+      global.browser.storage.local.get = vi.fn(() =>
+        Promise.resolve({ filenamePatterns: "broken" }),
+      );
+      const resolved = await OptionsManagement.loadOptions();
+      expect(resolved.filenamePatterns).toBe("");
     });
   });
 });

@@ -49,7 +49,6 @@ describe("Download.getFilenameFromContentDisposition with the real parser", () =
 
   beforeAll(async () => {
     vi.resetModules();
-    global.getFilenameFromContentDispositionHeader = parse;
     (global as any).chrome = {};
     Download = (await import("../src/download.ts")).Download;
   });

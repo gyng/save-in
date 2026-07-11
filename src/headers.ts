@@ -102,9 +102,7 @@ export const RequestHeaders = {
         ],
       })
       .then(() => {
-        if (typeof Log !== "undefined") {
-          Log.add("referer session rule set", { id: ruleId, url, referer: pageUrl });
-        }
+        Log.add("referer session rule set", { id: ruleId, url, referer: pageUrl });
 
         // Best-effort cleanup so the rule does not outlive the download
         setTimeout(() => {

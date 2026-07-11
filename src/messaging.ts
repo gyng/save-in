@@ -4,19 +4,26 @@ import { webExtensionApi } from "./web-extension-api.ts";
 
 import { splitLines, withUrl } from "./util.ts";
 import { MESSAGE_TYPES, DOWNLOAD_TYPES } from "./constants.ts";
-import { Variable } from "./variable.ts";
+import { applyVariables, transformers } from "./variable.ts";
 import { Path } from "./path.ts";
 import { OptionsManagement } from "./option.ts";
 import { options } from "./options-data.ts";
-import { Menus } from "./menu-build.ts";
-import { Router } from "./router.ts";
+import { buildTree } from "./menu-build.ts";
+import { matcherFunctions, parseRulesCollecting } from "./router.ts";
 import { Notifier } from "./notification.ts";
 import { Download } from "./download.ts";
 import { currentTab } from "./current-tab.ts";
 import { DownloadEvents } from "./download-events.ts";
 import type { DownloadInfo, DownloadPipelineState } from "./download-types.ts";
+import {
+  getMessageType,
+  EXTERNAL_MESSAGE_TYPES,
+  isExternalMessage,
+  isInternalMessage,
+  type ExternalMessage,
+  type MessageOf,
+} from "./message-protocol.ts";
 
-type ExtensionMessage = { type: string; body?: Record<string, any> };
 type MessageSender = browser.runtime.MessageSender;
 type SendResponse = (response: any) => void;
 
@@ -60,7 +67,7 @@ export const Messaging = {
   },
 
   handlePing: (
-    _request: ExtensionMessage,
+    _request: MessageOf<typeof MESSAGE_TYPES.PING>,
     _sender: MessageSender,
     sendResponse: SendResponse,
   ): void => {
@@ -74,9 +81,9 @@ export const Messaging = {
   },
 
   // Live routing/variable preview for the options page. Async because
-  // Variable.applyVariables and OptionsManagement.checkRoutes now await.
+  // Variable interpolation and route checking may await.
   handleCheckRoutes: async (
-    request: ExtensionMessage,
+    request: MessageOf<typeof MESSAGE_TYPES.CHECK_ROUTES>,
     sendResponse: SendResponse,
   ): Promise<void> => {
     const lastState =
@@ -85,13 +92,13 @@ export const Messaging = {
 
     let interpolatedVariables: Record<string, string> | null = null;
     if (lastState) {
-      const keys = Object.keys(Variable.transformers);
+      const keys = Object.keys(transformers);
       // Preview only: :counter: peeks instead of consuming a value
       const previewInfo = Object.assign({}, lastState.info, { preview: true });
       const values = await Promise.all(
         keys.map((val) =>
-          Variable.applyVariables(new Path.Path(val), previewInfo).then(
-            (path: { finalize: () => string }) => path.finalize(),
+          applyVariables(new Path(val), previewInfo).then((path: { finalize: () => string }) =>
+            path.finalize(),
           ),
         ),
       );
@@ -102,7 +109,11 @@ export const Messaging = {
       interpolatedVariables = interpolationMap;
     }
 
-    const routeInfo = await OptionsManagement.checkRoutes(lastState);
+    // The legacy no-state path evaluates to false; checkRoutes treats every
+    // nullish/falsy input as an empty preview.
+    const routeInfo = await OptionsManagement.checkRoutes(
+      lastState as Parameters<typeof OptionsManagement.checkRoutes>[0],
+    );
 
     sendResponse({
       type: MESSAGE_TYPES.CHECK_ROUTES_RESPONSE,
@@ -120,7 +131,7 @@ export const Messaging = {
   // Read-only: the option schema (name, type, default, human description) so an
   // agent knows what it may set. Safe to expose externally.
   handleGetSchema: (
-    _request: ExtensionMessage,
+    _request: MessageOf<typeof MESSAGE_TYPES.GET_SCHEMA>,
     _sender: MessageSender,
     sendResponse: SendResponse,
   ): void => {
@@ -144,7 +155,7 @@ export const Messaging = {
   // preview, without saving anything. Powers an agent's generate→validate→fix
   // loop and the options-page "paste config" affordance. Safe externally.
   handleValidate: (
-    request: ExtensionMessage,
+    request: MessageOf<typeof MESSAGE_TYPES.VALIDATE>,
     _sender: MessageSender,
     sendResponse: SendResponse,
   ): void => {
@@ -153,12 +164,12 @@ export const Messaging = {
 
     if (typeof body.paths === "string") {
       const pathsArray = splitLines(body.paths);
-      const tree = Menus.buildTree(pathsArray);
+      const tree = buildTree(pathsArray);
       result.menuPreview = tree.items;
       result.pathErrors = tree.errors;
     }
     if (typeof body.filenamePatterns === "string") {
-      result.ruleErrors = Router.parseRulesCollecting(body.filenamePatterns).errors;
+      result.ruleErrors = parseRulesCollecting(body.filenamePatterns).errors;
     }
 
     sendResponse({ type: MESSAGE_TYPES.VALIDATE_RESULT, body: result });
@@ -170,7 +181,7 @@ export const Messaging = {
   // values, so this can't silently break downloads (#89). INTERNAL ONLY —
   // rewriting a user's config is not something an arbitrary extension may do.
   handleApplyConfig: async (
-    request: ExtensionMessage,
+    request: MessageOf<typeof MESSAGE_TYPES.APPLY_CONFIG>,
     _sender: MessageSender,
     sendResponse: SendResponse,
   ): Promise<void> => {
@@ -197,8 +208,19 @@ export const Messaging = {
         rejected.push({ name, reason: "expected a string or number" });
         return;
       }
-      if (typeof key.onSave === "function") {
-        value = key.onSave(value);
+      const validate =
+        "validate" in key ? (key.validate as (stored: unknown) => boolean) : undefined;
+      if (validate && !validate(value)) {
+        rejected.push({ name, reason: "invalid value" });
+        return;
+      }
+      try {
+        if ("onSave" in key && typeof key.onSave === "function") {
+          value = (key.onSave as (stored: any) => any)(value);
+        }
+      } catch {
+        rejected.push({ name, reason: "invalid value" });
+        return;
       }
       toStore[name] = value;
       applied[name] = value;
@@ -262,7 +284,7 @@ export const Messaging = {
    * }
    */
   handleDownloadMessage: (
-    request: ExtensionMessage,
+    request: MessageOf<typeof MESSAGE_TYPES.DOWNLOAD>,
     sender: MessageSender,
     sendResponse: SendResponse,
   ): void => {
@@ -297,7 +319,12 @@ export const Messaging = {
       now: new Date(),
       pageUrl: info.pageUrl,
       selectionText: info.selectionText,
+      linkText: info.linkText,
       sourceUrl: info.srcUrl,
+      menuIndex: info.menuIndex,
+      comment: info.comment,
+      modifiers: info.modifiers,
+      suggestedFilename: info.suggestedFilename,
       url,
       context: DOWNLOAD_TYPES.CLICK,
     };
@@ -313,16 +340,13 @@ export const Messaging = {
     // this download after the previous one. renameAndDownload re-evaluates
     // the routing rules and filenames for this URL.
     const clickState: DownloadPipelineState = {
-      path: last?.path || new Path.Path("."),
+      path: last?.path || new Path("."),
       scratch: {},
-      info: Object.assign(
-        {
-          menuIndex: last?.info.menuIndex,
-          comment: last?.info.comment,
-        },
-        opts,
-        info,
-      ),
+      info: {
+        ...opts,
+        menuIndex: opts.menuIndex ?? last?.info.menuIndex,
+        comment: opts.comment ?? last?.info.comment,
+      },
     };
 
     Notifier.expectDownload();
@@ -342,7 +366,26 @@ export const Messaging = {
 // an incoming message still has the handlers attached.
 export const registerMessaging = () => {
   DownloadEvents.downloaded = Messaging.emit.downloaded;
-  webExtensionApi.runtime.onMessageExternal.addListener((request, sender, sendResponse) => {
+  webExtensionApi.runtime.onMessageExternal.addListener((rawRequest, sender, sendResponse) => {
+    if (!isExternalMessage(rawRequest)) {
+      const type = getMessageType(rawRequest);
+      // Unknown external message types get a protocol-level error; malformed
+      // values without a type cannot be correlated with a response.
+      if (type) {
+        sendResponse({
+          type,
+          body: {
+            status: MESSAGE_TYPES.ERROR,
+            error: EXTERNAL_MESSAGE_TYPES.has(type as ExternalMessage["type"])
+              ? Messaging.API_ERRORS.BAD_REQUEST
+              : Messaging.API_ERRORS.UNKNOWN_TYPE,
+            version: Messaging.API_VERSION,
+          },
+        });
+      }
+      return;
+    }
+    const request: ExternalMessage = rawRequest;
     switch (request.type) {
       case MESSAGE_TYPES.PING:
         Messaging.handlePing(request, sender, sendResponse);
@@ -356,23 +399,14 @@ export const registerMessaging = () => {
       case MESSAGE_TYPES.DOWNLOAD:
         Messaging.handleDownloadMessage(request, sender, sendResponse);
         break;
-      default:
-        // Unknown type on the external API: give callers typed feedback rather
-        // than silence so they can detect a version/contract mismatch (also the
-        // path for APPLY_CONFIG, which is deliberately internal-only)
-        sendResponse({
-          type: request.type,
-          body: {
-            status: MESSAGE_TYPES.ERROR,
-            error: Messaging.API_ERRORS.UNKNOWN_TYPE,
-            version: Messaging.API_VERSION,
-          },
-        });
-        break;
     }
   });
 
-  webExtensionApi.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  webExtensionApi.runtime.onMessage.addListener((rawRequest, sender, sendResponse) => {
+    if (!isInternalMessage(rawRequest)) {
+      return;
+    }
+    const request = rawRequest;
     switch (request.type) {
       case MESSAGE_TYPES.WAKE_WARM:
         // Sent by content scripts on combo keydown purely to wake the MV3
@@ -404,24 +438,24 @@ export const registerMessaging = () => {
         sendResponse({
           type: MESSAGE_TYPES.KEYWORD_LIST,
           body: {
-            matchers: Object.keys(Router.matcherFunctions),
-            variables: Object.keys(Variable.transformers),
+            matchers: Object.keys(matcherFunctions),
+            variables: Object.keys(transformers),
           },
         });
         break;
       case MESSAGE_TYPES.PREVIEW_MENUS: {
         // Live menu-tree preview for the options page: runs the pure
-        // Menus.buildTree over the (possibly unsaved) textarea content
+        // Build the tree over the (possibly unsaved) textarea content
         const raw = (request.body && request.body.paths) || "";
         const pathsArray = splitLines(raw);
         sendResponse({
           type: MESSAGE_TYPES.MENU_PREVIEW,
-          body: Menus.buildTree(pathsArray),
+          body: buildTree(pathsArray),
         });
         break;
       }
       case MESSAGE_TYPES.CHECK_ROUTES:
-        // async: interpolation + checkRoutes now await Variable.applyVariables.
+        // async: interpolation and route checking may await.
         // Returning true keeps the message channel open for the late sendResponse.
         Messaging.handleCheckRoutes(request, sendResponse);
         return true;

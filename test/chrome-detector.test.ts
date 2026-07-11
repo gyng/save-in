@@ -1,9 +1,17 @@
 import { BROWSERS, detectCapabilities } from "../src/chrome-detector.ts";
 
 describe("detectCapabilities", () => {
-  test("tabContextMenus tab-strip menus are Firefox-only", () => {
+  test("tabContextMenus supports Firefox and Chrome exposing the M150 enum", () => {
     expect(detectCapabilities(BROWSERS.FIREFOX).tabContextMenus).toBe(true);
-    expect(detectCapabilities(BROWSERS.CHROME).tabContextMenus).toBe(false);
+    const contextMenus = (global.chrome as any).contextMenus;
+    try {
+      (global.chrome as any).contextMenus = { ContextType: {} };
+      expect(detectCapabilities(BROWSERS.CHROME).tabContextMenus).toBe(false);
+      (global.chrome as any).contextMenus.ContextType.TAB = "tab";
+      expect(detectCapabilities(BROWSERS.CHROME).tabContextMenus).toBe(true);
+    } finally {
+      (global.chrome as any).contextMenus = contextMenus;
+    }
   });
 
   test("access keys are supported everywhere (min versions >= 121)", () => {

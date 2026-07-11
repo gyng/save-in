@@ -8,8 +8,7 @@
 // bytes and returns the hex hash, so a :sha256: download is fetched once here
 // for both the filename and the save rather than fetched again by the worker.
 
-import { MESSAGE_TYPES } from "./constants.ts";
-import { OffscreenFetchRequest, OffscreenFetchResponse } from "./content-fetch-types.ts";
+import { isOffscreenFetchRequest, type OffscreenFetchResponse } from "./content-fetch-types.ts";
 
 const OFFSCREEN_BLOB_TTL_MS = 5 * 60 * 1000;
 
@@ -18,11 +17,11 @@ const toHex = (buf: ArrayBuffer) =>
 
 chrome.runtime.onMessage.addListener(
   (
-    message: OffscreenFetchRequest,
+    message: unknown,
     _sender: chrome.runtime.MessageSender,
     sendResponse: (response: OffscreenFetchResponse) => void,
   ) => {
-    if (!message || message.type !== MESSAGE_TYPES.OFFSCREEN_FETCH) {
+    if (!isOffscreenFetchRequest(message)) {
       return false;
     }
 

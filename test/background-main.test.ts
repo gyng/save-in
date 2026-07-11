@@ -1,33 +1,50 @@
 // Background entry point: synchronous listener registration (MV3
 // requirement), async init/menu construction, and current-tab tracking.
-// index.ts's bootstrap is an exported start() (the entry calls it); every test
-// re-imports index fresh and runs start() via importIndex() below.
+// background-main.ts exports start(); every test re-imports it fresh and calls
+// start() through importMain() below.
 
-// menu-click/menu-tabs extend the shared Menus at import; here Menus is a full
-// stub, so keep them no-ops rather than letting them clobber the stub methods.
-vi.mock("../src/menu-click.ts", () => ({}));
-vi.mock("../src/menu-tabs.ts", () => ({}));
+vi.mock("../src/menu-click.ts", () => ({ addDownloadListener: vi.fn() }));
+vi.mock("../src/menu-tabs.ts", () => ({
+  addTabMenuListener: vi.fn(),
+  addTabHighlightListener: vi.fn(),
+  addTabMenus: vi.fn(),
+}));
+vi.mock("../src/menu-build.ts", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../src/menu-build.ts")>();
+  return {
+    ...actual,
+    addRoot: vi.fn(actual.addRoot),
+    addRouteExclusive: vi.fn(actual.addRouteExclusive),
+    addLastUsed: vi.fn(actual.addLastUsed),
+    makeSeparator: vi.fn(actual.makeSeparator),
+    addPaths: vi.fn(actual.addPaths),
+    addSelectionType: vi.fn(actual.addSelectionType),
+    addShowDefaultFolder: vi.fn(actual.addShowDefaultFolder),
+    addOptions: vi.fn(actual.addOptions),
+    restoreLastUsed: vi.fn(actual.restoreLastUsed),
+  };
+});
 vi.mock("../src/download-state.ts", () => ({
   hydrateDownloads: () => Promise.resolve(),
   getDownload: () => Promise.resolve(null),
   mergeDownload: () => Promise.resolve(),
 }));
 
-export {};
 import type { CurrentTab } from "../src/current-tab.ts";
+import type { SaveInOptions } from "../src/option-schema.ts";
 
-// index.ts, menu-build.ts, option.ts and log.ts are all real modules, freshly
+// background-main.ts, menu-build.ts, option.ts and log.ts are all real modules, freshly
 // re-imported after every jest.resetModules() below (mirroring test/log.test.ts
 // and test/option.test.ts): a top-level static import would keep pointing at
-// the first module instance, not the fresh one index.ts actually wires up on
+// the first module instance, not the fresh one background-main.ts actually wires up on
 // each re-import.
-let Menus: typeof import("../src/menu-build.ts").Menus;
+let Menus: Record<string, any>;
 let options: typeof import("../src/options-data.ts").options;
 let OptionsManagement: typeof import("../src/option.ts").OptionsManagement;
 let Log: typeof import("../src/log.ts").Log;
 
 type SetupOptions = {
-  options?: Record<string, any>;
+  options?: Partial<SaveInOptions>;
   storedLocal?: Record<string, any>;
   tabsQueryResult?: CurrentTab[];
 };
@@ -37,28 +54,28 @@ const setupGlobals = async ({
   storedLocal = {},
   tabsQueryResult = [],
 }: SetupOptions = {}) => {
-  ({ Menus } = await import("../src/menu-build.ts"));
+  Menus = {
+    ...(await import("../src/menu-build.ts")),
+    ...(await import("../src/menu-click.ts")),
+    ...(await import("../src/menu-tabs.ts")),
+  };
   ({ OptionsManagement } = await import("../src/option.ts"));
   ({ options } = await import("../src/options-data.ts"));
   ({ Log } = await import("../src/log.ts"));
 
-  // menu-click.ts/menu-tabs.ts are mocked to no-ops above, so the methods
-  // they'd normally attach to the shared Menus object are missing; start()
-  // calls them synchronously (MV3 requirement), so stub them by hand before
-  // importIndex() runs it.
-  Menus.addDownloadListener = vi.fn();
-  Menus.addTabMenuListener = vi.fn();
-  Menus.addTabHighlightListener = vi.fn();
-  Menus.addTabMenus = vi.fn();
-  vi.spyOn(Menus, "addRoot").mockImplementation(() => {});
-  vi.spyOn(Menus, "addRouteExclusive").mockImplementation(() => {});
-  vi.spyOn(Menus, "addLastUsed").mockImplementation(() => {});
-  vi.spyOn(Menus, "makeSeparator").mockImplementation(() => {});
-  vi.spyOn(Menus, "addPaths").mockImplementation(() => {});
-  vi.spyOn(Menus, "addSelectionType").mockImplementation(() => {});
-  vi.spyOn(Menus, "addShowDefaultFolder").mockImplementation(() => {});
-  vi.spyOn(Menus, "addOptions").mockImplementation(() => {});
-  vi.spyOn(Menus, "restoreLastUsed").mockImplementation(() => {});
+  for (const name of [
+    "addRoot",
+    "addRouteExclusive",
+    "addLastUsed",
+    "makeSeparator",
+    "addPaths",
+    "addSelectionType",
+    "addShowDefaultFolder",
+    "addOptions",
+    "restoreLastUsed",
+  ]) {
+    Menus[name].mockImplementation(() => {});
+  }
 
   Object.assign(
     options,
@@ -77,7 +94,7 @@ const setupGlobals = async ({
     optionOverrides,
   );
 
-  OptionsManagement.loadOptions = vi.fn(() => Promise.resolve({}));
+  OptionsManagement.loadOptions = vi.fn(() => Promise.resolve(options));
   Log.add = vi.fn();
 
   global.browser.storage.local.get = vi.fn(() => Promise.resolve(storedLocal));
@@ -95,15 +112,16 @@ const setupGlobals = async ({
   Reflect.deleteProperty(global.window, "optionErrors");
 };
 
-// index.ts's bootstrap is now an exported start() the entry calls synchronously
+// background-main.ts's bootstrap is an exported start() the entry calls synchronously
 // at startup (Task #2), rather than an import-time side effect. Re-import fresh
 // (after resetModules) and run start() to reproduce the startup sequence.
 const importIndex = async () => {
-  const { start } = await import("../src/index.ts");
+  const { start } = await import("../src/background-main.ts");
   start();
 };
 
 beforeEach(() => {
+  vi.clearAllMocks();
   jest.resetModules();
 });
 
@@ -234,7 +252,7 @@ describe("init", () => {
     };
     OptionsManagement.loadOptions = vi.fn(
       () =>
-        new Promise<Record<string, any>>((resolve, reject) => {
+        new Promise<SaveInOptions>((resolve, reject) => {
           rejectLoad = reject;
         }),
     );

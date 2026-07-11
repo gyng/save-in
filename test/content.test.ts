@@ -1,6 +1,4 @@
-// This file has no static imports/exports, so top-level await (used to load
-// content.ts fresh in each describe block) needs an explicit module marker.
-export {};
+import { vi } from "vitest";
 
 const ClickToSave = (await import("../src/content/content.ts")).default;
 

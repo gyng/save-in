@@ -1,6 +1,4 @@
-// menu-click.ts/menu-tabs.ts augment the Menus object from menu-build.ts; they
-// import the same Menus binding, so importing them extends `menu`. Menu
-// construction only reads the real options bag and WEB_EXTENSION_CAPABILITIES — the click
+// Menu construction only reads the real options bag and WEB_EXTENSION_CAPABILITIES — the click
 // handlers' Download/Notifier/Shortcut/currentTab deps are never exercised here,
 // so those modules import for real (unused). chrome-detector is the one mock:
 // its WEB_EXTENSION_CAPABILITIES is a read-only live binding, and tests need to swap it
@@ -19,11 +17,17 @@ vi.mock("../src/chrome-detector.ts", () => ({
   detectCapabilities: (b: string) => ({ tabContextMenus: b === "FIREFOX", accessKeys: true }),
 }));
 
-import { Menus as menu } from "../src/menu-build.ts";
-import "../src/menu-click.ts";
-import "../src/menu-tabs.ts";
+import * as menuBuild from "../src/menu-build.ts";
+import * as menuTabs from "../src/menu-tabs.ts";
 import { SPECIAL_DIRS, MEDIA_TYPES } from "../src/constants.ts";
 import { options } from "../src/options-data.ts";
+
+const menu = {
+  ...menuBuild,
+  ...menuTabs,
+  IDS: menuBuild.MENU_IDS,
+  pathMappings: menuBuild.menuState.pathMappings,
+};
 
 describe("menu parsing", () => {
   test("parses comments for metadata", () => {
@@ -337,14 +341,12 @@ describe("menu creation", () => {
       expect(created().every((c) => c.contexts[0] === "tab")).toBe(true);
     });
 
-    test("skips the multi-select item when tabContextMenus is unsupported", () => {
+    test("creates no tab items when tabContextMenus is unsupported", () => {
       detector.features.tabContextMenus = false;
 
       menu.addTabMenus();
 
-      const ids = created().map((c) => c.id);
-      expect(ids).not.toContain(menu.IDS.TABSTRIP.SELECTED_MULTIPLE_TABS);
-      expect(ids).toHaveLength(4);
+      expect(created()).toHaveLength(0);
     });
   });
 

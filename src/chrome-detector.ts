@@ -28,8 +28,11 @@ export let CURRENT_BROWSER = BROWSERS.UNKNOWN;
 export let CURRENT_BROWSER_VERSION: number | undefined;
 
 export const detectCapabilities = (currentBrowser: string): WebExtensionCapabilities => ({
-  // Support for the "tab" context is not exposed as an API property.
-  tabContextMenus: currentBrowser === BROWSERS.FIREFOX,
+  // Chrome exposes the enum from M150. Feature detection keeps M123–149
+  // installs working without attempting an unsupported context-menu value.
+  tabContextMenus:
+    currentBrowser === BROWSERS.FIREFOX ||
+    Boolean((globalThis.chrome?.contextMenus as any)?.ContextType?.TAB),
   accessKeys: true,
   downloadFilenameSuggestion:
     currentBrowser === BROWSERS.CHROME &&

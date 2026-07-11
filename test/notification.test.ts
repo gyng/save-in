@@ -3,11 +3,13 @@
 // bridging through a globalThis getter. It starts empty; each test sets what it
 // needs and clears afterwards.
 import { options } from "../src/options-data.ts";
+import type { SaveInOptions } from "../src/option-schema.ts";
 import { Notifier as notification } from "../src/notification.ts";
 
-const setOptions = (o: Record<string, any> = {}) => {
-  for (const k of Object.keys(options)) delete options[k];
-  Object.assign(options, o);
+const setOptions = (overrides: Partial<SaveInOptions> = {}) => {
+  const mutableOptions = options as unknown as Record<string, unknown>;
+  for (const key of Object.keys(mutableOptions)) delete mutableOptions[key];
+  Object.assign(mutableOptions, overrides);
 };
 
 test("checks for download failures on Firefox", () => {

@@ -4,8 +4,9 @@ import { filterKeyComboOptions, normalizeKeyComboForDisplay } from "./options-lo
 import { renderHistory } from "./history-panel.ts";
 import { addClickToCopy } from "./clicktocopy.ts";
 import { PathEditor } from "./path-editor.ts";
-import { CURRENT_BROWSER, BROWSERS } from "../chrome-detector.ts";
+import { CURRENT_BROWSER, BROWSERS, WEB_EXTENSION_CAPABILITIES } from "../chrome-detector.ts";
 import { COUNTER_KEY } from "../counter.ts";
+import { isStringKeyedRecord } from "../message-protocol.ts";
 
 type JsonRecord = Record<string, any>;
 type OptionSchema = {
@@ -400,7 +401,7 @@ const renderVariablesPreview = () => {
         variables.forEach((variable: string) => {
           const tr = document.createElement("tr");
           tr.className = "variables-preview-row";
-          if (target && typeof PathEditor !== "undefined") {
+          if (target) {
             tr.classList.add("insertable");
             tr.title = `Insert ${variable}`;
             tr.addEventListener("click", () => PathEditor.insertAtCursor(target, variable));
@@ -569,9 +570,13 @@ const restoreOptions = () =>
   });
 
 const addHelp = (el: Element) => {
+  const helpFor = el instanceof HTMLElement ? el.dataset.helpFor : undefined;
+  if (helpFor) {
+    el.setAttribute("aria-controls", helpFor);
+    el.setAttribute("aria-expanded", "false");
+  }
   el.addEventListener("click", (e) => {
     e.preventDefault();
-    const helpFor = el instanceof HTMLElement ? el.dataset.helpFor : undefined;
     const targetEl = helpFor ? document.getElementById(helpFor) : null;
     if (!targetEl) {
       return;
@@ -581,6 +586,7 @@ const addHelp = (el: Element) => {
       el.scrollIntoView();
     }
     targetEl.classList.toggle("show");
+    el.setAttribute("aria-expanded", targetEl.classList.contains("show") ? "true" : "false");
   });
 };
 
@@ -634,6 +640,14 @@ const setupChromeDisables = () => {
 
     document.querySelectorAll(".chrome-disabled").forEach((el: any) => {
       el.disabled = true;
+    });
+
+    const tabContextMenus = WEB_EXTENSION_CAPABILITIES.tabContextMenus;
+    document.querySelectorAll<HTMLInputElement>(".tab-context-required").forEach((el) => {
+      el.disabled = !tabContextMenus;
+    });
+    document.querySelectorAll<HTMLElement>(".chrome-tab-context-badge").forEach((badge) => {
+      badge.hidden = tabContextMenus;
     });
   }
 };
@@ -1202,17 +1216,26 @@ document.querySelector("#settings-export")?.addEventListener("click", () => {
 
 const importSettings = () => {
   const load = (w: Window) => {
-    getOptionsSchema.then((schema: OptionSchema) => {
+    getOptionsSchema.then(() => {
       const json = w.prompt("Paste settings to import");
       try {
         if (json) {
-          const settings = JSON.parse(json);
-          restoreOptionsHandler(settings, schema);
-          // Programmatic value assignment doesn't fire input/change, so
-          // persist explicitly — otherwise the import shows in the form but
-          // is never saved or applied to the background
-          saveOptions();
-          w.alert("Settings loaded.");
+          const settings: unknown = JSON.parse(json);
+          if (!isStringKeyedRecord(settings)) {
+            throw new TypeError("Settings must be a JSON object");
+          }
+          webExtensionApi.runtime
+            .sendMessage({ type: "APPLY_CONFIG", body: { config: settings } })
+            .then((response: JsonRecord) => {
+              restoreOptions();
+              const rejected = response?.body?.rejected;
+              if (Array.isArray(rejected) && rejected.length > 0) {
+                w.alert(`Settings loaded with ${rejected.length} rejected value(s).`);
+              } else {
+                w.alert("Settings loaded.");
+              }
+            })
+            .catch((error: unknown) => w.alert(`Failed to load settings ${error}`));
         }
       } catch (e) {
         w.alert(`Failed to load settings ${e}`);

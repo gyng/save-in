@@ -18,8 +18,14 @@ import { Log } from "../src/log.ts";
 import { SaveHistory } from "../src/history.ts";
 import { getFilenameFromContentDispositionHeader } from "../src/vendor/content-disposition.ts";
 import { extensionSessionStorage } from "../src/storage-areas.ts";
+import { RULE_TYPES } from "../src/constants.ts";
+import type { RoutingRule } from "../src/router.ts";
+import type { SaveInOptions } from "../src/option-schema.ts";
 
 const downloadState = BackgroundState.downloads;
+const routingRule = (name = "rule"): RoutingRule => [
+  { name, value: ".*", type: RULE_TYPES.MATCHER },
+];
 
 // chrome-detector's CURRENT_BROWSER is a load-time-detected constant, but this
 // suite flips it per test via the real setCurrentBrowser setter (grabbed below,
@@ -55,10 +61,10 @@ Object.assign(hostBrowser, {
 // grab the same singleton instances it binds to.
 const { Download, registerDownloadListener } = await import("../src/download.ts");
 const { options } = await import("../src/options-data.ts");
-const { Router } = await import("../src/router.ts");
-const { Variable } = await import("../src/variable.ts");
+const router = await import("../src/router.ts");
+const Variable = await import("../src/variable.ts");
 const { Notifier } = await import("../src/notification.ts");
-const { Path } = await import("../src/path.ts");
+const Path = await import("../src/path.ts");
 const { RequestHeaders } = await import("../src/headers.ts");
 const { DownloadEvents } = await import("../src/download-events.ts");
 // download.ts already loaded chrome-detector into the graph; this is the same
@@ -88,7 +94,7 @@ beforeEach(() => {
   setCurrentBrowser("FIREFOX");
 
   // Reset the real options bag to exactly the fields this suite controls
-  for (const k of Object.keys(options)) delete options[k];
+  for (const k of Object.keys(options)) Reflect.deleteProperty(options, k);
   Object.assign(options, {
     filenamePatterns: [],
     prompt: false,
@@ -107,8 +113,8 @@ beforeEach(() => {
   // Path.Path is used real (its finalize is identity for these test routes);
   // only sanitizeFilename is controlled/asserted.
   vi.spyOn(Path, "sanitizeFilename").mockImplementation((name: any) => name);
-  vi.spyOn(Router, "matchRules").mockReturnValue(null);
-  // Variable.applyVariables stays real (a never-asserted passthrough that leaves
+  vi.spyOn(router, "matchRules").mockReturnValue(null);
+  // applyVariables stays real (a never-asserted passthrough that leaves
   // a bufless path unchanged); resolveMime/mimeToExtension are spied per MIME test.
 
   vi.spyOn(Notifier, "createExtensionNotification").mockImplementation(() => {});
@@ -237,22 +243,22 @@ describe("getFilenameFromContentDisposition", () => {
 
 describe("getRoutingMatches", () => {
   test("returns null when there are no filename patterns", () => {
-    options.filenamePatterns = undefined;
+    (options as Partial<SaveInOptions>).filenamePatterns = undefined;
     expect(Download.getRoutingMatches({ info: {} })).toBe(null);
 
     options.filenamePatterns = [];
     expect(Download.getRoutingMatches({ info: {} })).toBe(null);
 
-    expect(Router.matchRules).not.toHaveBeenCalled();
+    expect(router.matchRules).not.toHaveBeenCalled();
   });
 
-  test("delegates to Router.matchRules when patterns exist", () => {
-    options.filenamePatterns = [["rule"]];
-    vi.mocked(Router.matchRules).mockReturnValue("the/route");
+  test("delegates to matchRules when patterns exist", () => {
+    options.filenamePatterns = [routingRule()];
+    vi.mocked(router.matchRules).mockReturnValue("the/route");
     const state = { info: { url: "x" } };
 
     expect(Download.getRoutingMatches(state)).toBe("the/route");
-    expect(Router.matchRules).toHaveBeenCalledWith(options.filenamePatterns, state.info);
+    expect(router.matchRules).toHaveBeenCalledWith(options.filenamePatterns, state.info);
   });
 });
 
@@ -346,8 +352,8 @@ describe("renameAndDownload: shared :sha256: fetch reuse", () => {
 describe("renameAndDownload: folder-only route (§8.1)", () => {
   test("a trailing-slash into: routes into the folder and keeps the real filename", async () => {
     setCurrentBrowser("CHROME");
-    options.filenamePatterns = [["rule"]];
-    vi.mocked(Router.matchRules).mockReturnValue("pdfs/");
+    options.filenamePatterns = [routingRule()];
+    vi.mocked(router.matchRules).mockReturnValue("pdfs/");
 
     const state = makeState();
     await Download.renameAndDownload(state);
@@ -360,8 +366,8 @@ describe("renameAndDownload: folder-only route (§8.1)", () => {
 
   test("a route without a trailing slash sets the whole name (unchanged)", async () => {
     setCurrentBrowser("CHROME");
-    options.filenamePatterns = [["rule"]];
-    vi.mocked(Router.matchRules).mockReturnValue("renamed.png");
+    options.filenamePatterns = [routingRule()];
+    vi.mocked(router.matchRules).mockReturnValue("renamed.png");
 
     const state = makeState();
     await Download.renameAndDownload(state);
@@ -491,8 +497,8 @@ describe("renameAndDownload: needRouteMatch", () => {
 
   test("proceeds when needRouteMatch is true and a route matched", async () => {
     setCurrentBrowser("CHROME");
-    options.filenamePatterns = [["rule"]];
-    vi.mocked(Router.matchRules).mockReturnValue("matched/route.txt");
+    options.filenamePatterns = [routingRule()];
+    vi.mocked(router.matchRules).mockReturnValue("matched/route.txt");
 
     const state = makeState({ needRouteMatch: true });
     await Download.renameAndDownload(state);
@@ -511,15 +517,15 @@ describe("renameAndDownload: needRouteMatch", () => {
 });
 
 describe("renameAndDownload: route matching", () => {
-  test("builds state.route from Router.matchRules and uses it in the final path", async () => {
+  test("builds state.route from matchRules and uses it in the final path", async () => {
     setCurrentBrowser("CHROME");
-    options.filenamePatterns = [["rule"]];
-    vi.mocked(Router.matchRules).mockReturnValue("matched/route.txt");
+    options.filenamePatterns = [routingRule()];
+    vi.mocked(router.matchRules).mockReturnValue("matched/route.txt");
 
     const state = makeState();
     await Download.renameAndDownload(state);
 
-    expect(Router.matchRules).toHaveBeenCalledWith(options.filenamePatterns, state.info);
+    expect(router.matchRules).toHaveBeenCalledWith(options.filenamePatterns, state.info);
     expect(state.route).toBeDefined();
     expect(String(state.route.finalize())).toBe("matched/route.txt");
 
@@ -735,8 +741,8 @@ describe("renameAndDownload: fetchViaFetch", () => {
 describe("renameAndDownload: notification triggers", () => {
   test("notifies on rule match when a route was found and notifyOnRuleMatch is enabled", async () => {
     setCurrentBrowser("CHROME");
-    options.filenamePatterns = [["rule"]];
-    vi.mocked(Router.matchRules).mockReturnValue("matched/route.txt");
+    options.filenamePatterns = [routingRule()];
+    vi.mocked(router.matchRules).mockReturnValue("matched/route.txt");
     options.notifyOnRuleMatch = true;
 
     const state = makeState();
@@ -751,8 +757,8 @@ describe("renameAndDownload: notification triggers", () => {
 
   test("does not notify on rule match when notifyOnRuleMatch is disabled", async () => {
     setCurrentBrowser("CHROME");
-    options.filenamePatterns = [["rule"]];
-    vi.mocked(Router.matchRules).mockReturnValue("matched/route.txt");
+    options.filenamePatterns = [routingRule()];
+    vi.mocked(router.matchRules).mockReturnValue("matched/route.txt");
     options.notifyOnRuleMatch = false;
 
     await Download.renameAndDownload(makeState());

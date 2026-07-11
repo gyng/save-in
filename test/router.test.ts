@@ -1,5 +1,5 @@
+import * as router from "../src/router.ts";
 import {
-  Router as router,
   type MatcherResult,
   type RoutingRule,
   type RuleError,

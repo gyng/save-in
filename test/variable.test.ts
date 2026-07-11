@@ -1,5 +1,5 @@
-import { Variable } from "../src/variable.ts";
-import { Path } from "../src/path.ts";
+import * as Variable from "../src/variable.ts";
+import * as Path from "../src/path.ts";
 import { HASH_MAX_BYTES } from "../src/content-fetch.ts";
 import * as Counter from "../src/counter.ts";
 // variable.ts reads options.replacementChar (via path.ts) at call time;

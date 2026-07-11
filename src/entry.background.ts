@@ -1,37 +1,8 @@
-// Background entry point for the rolldown bundle (Firefox event page +
-// Chrome service worker). Side-effect-imports every background module in
-// manifest.background.scripts order (platform selection first … index last), then
-// re-exposes the handful of objects the e2e's evalSW and cross-context code
-// reach as GLOBALS on the worker/event-page scope. The bundle is emitted as
-// bare scope-hoisted ESM (no export statements), so it loads as a classic
-// script in both the SW (background.sw.js, with the `self.window = self` shim)
-// and the Firefox event page (background.js).
-
-import "./web-extension-api.ts";
-import "./vendor/content-disposition.ts";
-import "./chrome-detector.ts";
-import "./current-tab.ts";
-import "./constants.ts";
-import "./util.ts";
-import "./session-state.ts";
-import "./log.ts";
-import "./history.ts";
-import "./counter.ts";
-import "./download-state.ts";
-import "./notification.ts";
-import "./path.ts";
-import "./offscreen-client.ts";
-import "./download.ts";
-import "./router.ts";
-import "./shortcut.ts";
-import "./messaging.ts";
-import "./headers.ts";
-import "./variable.ts";
-import "./menu-build.ts";
-import "./menu-click.ts";
-import "./menu-tabs.ts";
-import "./option.ts";
-import "./index.ts";
+// Shared background entry for Firefox's event page and Chrome's service
+// worker. Ordinary ESM dependencies pull in the implementation; explicit
+// registration calls at the bottom preserve synchronous MV3 listener setup.
+// The bundle is emitted as bare scope-hoisted ESM so both classic hosts can
+// execute it.
 
 // Named imports for the globals evalSW (and other execution contexts) touch by
 // bare name on the worker/event-page scope.
@@ -57,17 +28,15 @@ import { Notifier } from "./notification.ts";
 import { Path } from "./path.ts";
 import { OffscreenClient } from "./offscreen-client.ts";
 import { Download } from "./download.ts";
-import { Router } from "./router.ts";
 import { Shortcut } from "./shortcut.ts";
 import { RequestHeaders } from "./headers.ts";
-import { Variable } from "./variable.ts";
-import { Menus } from "./menu-build.ts";
+import { menuState } from "./menu-build.ts";
 import { OptionsManagement, seedOptions } from "./option.ts";
 import { options } from "./options-data.ts";
 import { Messaging, registerMessaging } from "./messaging.ts";
 import { registerNotifier } from "./notification.ts";
 import { registerDownloadListener } from "./download.ts";
-import { start } from "./index.ts";
+import { start } from "./background-main.ts";
 
 Object.assign(globalThis, {
   // constants
@@ -93,14 +62,15 @@ Object.assign(globalThis, {
   peekCounter,
   resetCounter,
   Notifier,
+  // The browser e2e harness constructs route values through evalSW.
   Path,
   OffscreenClient,
   Download,
-  Router,
   Shortcut,
   RequestHeaders,
-  Variable,
-  Menus,
+  // Minimal state surface used by the browser harness; menu behavior remains
+  // ordinary module functions rather than a runtime namespace object.
+  menuState,
   OptionsManagement,
   options,
   Messaging,

@@ -12,17 +12,14 @@ Firefox (AMO) and Chrome (Web Store).
 ONE readable, non-minified file (`dist/bundled/*.js`) — so the shipped output is
 still reviewable, but the source has real module boundaries. There is one entry
 module per target (`src/entry.{background,options,offscreen}.ts`) that
-side-effect-imports its modules in load order; `entry.background.ts` also
-re-exposes the objects the e2e's `evalSW` reaches (`Object.assign(globalThis,
-{ Notifier, Download, Menus, … })`). `menu-click.ts`/`menu-tabs.ts` `import { Menus }`
-from `menu-build.ts` and add methods to that shared object; `index.ts`
-side-effect-imports them so the handlers attach before it calls them, and stays
-last. The cyclic core (path/option/headers/variable/router/notification/download/
-messaging/menu-build/index) has real circular imports that resolve fine because
-every cross-module reference is call-time (docs/ARCH-CYCLES.md tracks breaking
-that cycle up). Mutable cross-file state is a plain `export let` (`options`,
-`currentTab`, `CURRENT_BROWSER`) reassigned only in its own module; readers
-observe the live binding. Bundle output format is per-target: `esm` (bare,
+imports its dependencies normally and synchronously calls the background
+registration functions. `entry.background.ts` also re-exposes only the narrow
+objects the e2e `evalSW` bridge needs. Menu construction/click/tab behavior uses
+named imports; `menuState` is the sole shared mutable menu record, and
+`background-main.ts` is the composition root. The import graph is acyclic and
+checked by `scripts/check-import-cycles.js`. Mutable cross-file state uses
+explicit records or live bindings (`options`, `currentTab`, `CURRENT_BROWSER`)
+owned by one module. Bundle output format is per-target: `esm` (bare,
 scope-hoisted, no `export` statements) for the SW/event-page/options/offscreen
 classic contexts; `iife` for the content script + clicktocopy help-page script.
 
@@ -72,12 +69,12 @@ to Firefox too.
 
 1. **Register event listeners synchronously at top level.** A listener added
    inside a `.then()` misses the event that woke the worker. Menu/tab
-   listeners are registered top-level in `index.ts`; their handlers
+   listeners are registered top-level in `background-main.ts`; their handlers
    `await window.ready` (the init promise) before touching options or
-   `Menus.pathMappings`.
+   `menuState.pathMappings`.
 2. **Globals die between events.** Anything needed across wakeups goes to
    storage (via the `SessionState` wrapper, `session-state.ts`):
-   `Menus.state.lastUsedPath` (storage.local); the per-download records
+   `menuState.lastUsedPath` (storage.local); the per-download records
    (`siDownloads`, keyed by downloadId — retry info, `historyEntryId`, and the
    `adopted` membership flag), the pending-download counter, and the per-URL
    final-filename map (storage.session). `DownloadState` (`download-state.js`)
@@ -104,7 +101,7 @@ to Firefox too.
   we await, contextMenus included). In Chrome-only code paths prefer bare
   `chrome.*` (e.g. DNR).
 - `contextMenus.create` with an `icons` property throws on Chrome — wrapped
-  in try/catch in `Menus.addLastUsed`.
+  in try/catch in `addLastUsed`.
 - Tab-strip context menus (`contexts: ["tab"]`) are Firefox-only.
 
 ## Iteration workflow

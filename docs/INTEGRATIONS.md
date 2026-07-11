@@ -134,7 +134,7 @@ API; `schema`/`validate` are in the `PING` capabilities):
    may set.
 2. **`VALIDATE`** (read-only, external + internal) — `{ paths?,
    filenamePatterns? }` → `{ pathErrors, ruleErrors, menuPreview }`, run through
-   `Menus.buildTree` / `Router.parseRulesCollecting` without saving. The
+   `buildTree` / `parseRulesCollecting` functions without saving. The
    generate→validate→fix loop lives here.
 3. **`APPLY_CONFIG`** (**internal only**) — `{ config: { name: value } }`,
    validated against the schema (unknown keys and type mismatches rejected;
@@ -185,7 +185,7 @@ feasibility are in the options-page editor code:
   colored spans. The standard trick is an overlay: a `<pre>` mirror positioned
   exactly behind a transparent-text textarea, re-tokenised on input, kept in
   sync on scroll. Doable with no dependencies (we already have
-  `Router.tokenizeLines` / `Menus.parsePath` to tokenise), ~a day of careful
+  `tokenizeLines` / `parsePath` to tokenise), ~a day of careful
   scroll/resize/caret-alignment work. The risk is alignment drift across fonts
   and wrapping.
 - **Cursor-anchored autocomplete** — _done._ `autocomplete.js` now positions

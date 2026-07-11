@@ -82,7 +82,7 @@ test("background event page initialises cleanly", async () => {
       promptConflictAction: OptionsManagement.OPTION_KEYS
         .find(({ name }) => name === "conflictAction").onLoad("prompt"),
       pathErrors: window.optionErrors.paths.length,
-      menuCount: Object.keys(Menus.pathMappings).length,
+      menuCount: Object.keys(menuState.pathMappings).length,
       hasObjectUrl: typeof URL.createObjectURL === "function",
       hasDnr: typeof chrome.declarativeNetRequest === "object",
     }))`),
@@ -110,7 +110,7 @@ test("download completes through the real pipeline", async () => {
     `window.ready.then(() => {
         Notifier.expectDownload();
         return Download.renameAndDownload({
-          path: new Path.Path("e2e"),
+          path: new Path("e2e"),
           scratch: {},
           info: {
             url: Download.makeObjectUrl("firefox e2e content"),
@@ -160,7 +160,7 @@ test("routing rules rename and route the download", async () => {
         .then(() => {
           Notifier.expectDownload();
           return Download.renameAndDownload({
-            path: new Path.Path("e2e"),
+            path: new Path("e2e"),
             scratch: {},
             info: {
               url: Download.makeObjectUrl("ff routed content"),
@@ -197,7 +197,7 @@ test("shortcut files keep their extension and redirect content", async () => {
     `window.ready.then(() => {
         Notifier.expectDownload();
         return Download.renameAndDownload({
-          path: new Path.Path("e2e"),
+          path: new Path("e2e"),
           scratch: {},
           info: {
             url: Shortcut.makeShortcut(SHORTCUT_TYPES.HTML_REDIRECT, "https://example.com/target"),
@@ -223,7 +223,7 @@ test("failed downloads are recorded in the debug log", async () => {
     `window.ready.then(() => {
         Notifier.expectDownload();
         return Download.renameAndDownload({
-          path: new Path.Path("e2e"),
+          path: new Path("e2e"),
           scratch: {},
           info: {
             // Nothing listens on port 1

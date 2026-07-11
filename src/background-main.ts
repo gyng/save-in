@@ -1,3 +1,4 @@
+// Background composition root; listener registration remains synchronous.
 import { webExtensionApi } from "./web-extension-api.ts";
 
 import { OptionsManagement } from "./option.ts";
@@ -5,17 +6,23 @@ import { options } from "./options-data.ts";
 import { BackgroundState } from "./background-state.ts";
 import { hydrateDownloads } from "./download-state.ts";
 import { extensionSessionStorage } from "./storage-areas.ts";
-import { Menus } from "./menu-build.ts";
+import {
+  addLastUsed,
+  addOptions,
+  addPaths,
+  addRoot,
+  addRouteExclusive,
+  addSelectionType,
+  addShowDefaultFolder,
+  makeSeparator,
+  restoreLastUsed,
+} from "./menu-build.ts";
+import { addDownloadListener } from "./menu-click.ts";
+import { addTabHighlightListener, addTabMenuListener, addTabMenus } from "./menu-tabs.ts";
 import { splitLines } from "./util.ts";
 import { MEDIA_TYPES } from "./constants.ts";
 import { Log } from "./log.ts";
 import { currentTab, setCurrentTab } from "./current-tab.ts";
-
-// menu-click/menu-tabs extend the shared Menus object with the click/tab
-// handlers; import them for their side effects BEFORE the addDownloadListener()
-// calls below so the methods are attached first.
-import "./menu-click.ts";
-import "./menu-tabs.ts";
 
 window.init = () => {
   window.optionErrors = {
@@ -33,7 +40,7 @@ window.init = () => {
   ])
     .then((results) => {
       // MV3 service workers are stateless: restore last used path across restarts
-      Menus.restoreLastUsed(results[1]);
+      restoreLastUsed(results[1]);
 
       const pathsArray = splitLines(options.paths);
 
@@ -41,26 +48,26 @@ window.init = () => {
       contexts = options.selection ? contexts.concat(["selection"]) : contexts;
       contexts = options.page ? contexts.concat(["page"]) : contexts;
 
-      Menus.addTabMenus();
+      addTabMenus();
 
       if (options.routeExclusive) {
-        Menus.addRouteExclusive(contexts);
+        addRouteExclusive(contexts);
         return;
       } else {
-        Menus.addRoot(contexts);
+        addRoot(contexts);
       }
 
       if (options.enableLastLocation) {
-        Menus.addLastUsed(contexts);
-        Menus.makeSeparator(contexts);
+        addLastUsed(contexts);
+        makeSeparator(contexts);
       }
 
-      Menus.addPaths(pathsArray, contexts);
-      Menus.makeSeparator(contexts);
+      addPaths(pathsArray, contexts);
+      makeSeparator(contexts);
 
-      Menus.addSelectionType(contexts);
-      Menus.addShowDefaultFolder(contexts);
-      Menus.addOptions(contexts);
+      addSelectionType(contexts);
+      addShowDefaultFolder(contexts);
+      addOptions(contexts);
     })
     .catch((e) => {
       Log.add("init failed", String(e));
@@ -80,9 +87,9 @@ window.reset = () => {
 // must be registered synchronously, or MV3 service workers/event pages will not
 // wake up for the events they missed.
 export const start = () => {
-  Menus.addDownloadListener();
-  Menus.addTabMenuListener();
-  Menus.addTabHighlightListener();
+  addDownloadListener();
+  addTabMenuListener();
+  addTabHighlightListener();
 
   const initialTab = webExtensionApi.tabs
     .query({ active: true, currentWindow: true })

@@ -9,9 +9,9 @@ import { getSession, updateSession } from "./session-state.ts";
 import { RequestHeaders } from "./headers.ts";
 import { Notifier } from "./notification.ts";
 import { Log } from "./log.ts";
-import { Router } from "./router.ts";
-import { Path } from "./path.ts";
-import { Variable } from "./variable.ts";
+import { matchRules } from "./router.ts";
+import { Path, sanitizeFilename } from "./path.ts";
+import { applyVariables, mimeToExtension, resolveMime } from "./variable.ts";
 import { SaveHistory } from "./history.ts";
 import { options } from "./options-data.ts";
 import { WEB_EXTENSION_CAPABILITIES } from "./chrome-detector.ts";
@@ -22,7 +22,7 @@ import { EXTENSION_REGEX, getFilenameFromUrl } from "./filename.ts";
 import { DownloadEvents } from "./download-events.ts";
 import { DownloadRetry } from "./download-retry.ts";
 import { extensionSessionStorage } from "./storage-areas.ts";
-import {
+import type {
   AcquiredDownload,
   DownloadPipelineState,
   DownloadPlan,
@@ -52,13 +52,11 @@ const requireDownloadUrl = (state: Pick<DownloadPipelineState, "info">): string 
 
 const recordDownloadRequest = (plan: DownloadPlan): void => {
   const { state } = plan;
-  if (typeof Log !== "undefined") {
-    Log.add("download requested", {
-      url: state.info.url && String(state.info.url).slice(0, 200),
-      path: plan.finalFullPath,
-      route: state.route ? String(state.route.finalize()) : null,
-    });
-  }
+  Log.add("download requested", {
+    url: state.info.url && String(state.info.url).slice(0, 200),
+    path: plan.finalFullPath,
+    route: state.route ? String(state.route.finalize()) : null,
+  });
   if (window.SI_DEBUG) console.log(state, plan.finalFullPath); // eslint-disable-line
 
   DownloadEvents.downloaded(state);
@@ -187,9 +185,7 @@ export const Download = {
             .then(() => true);
         })
         .catch((e) => {
-          if (typeof Log !== "undefined") {
-            Log.add("fallback fetch failed", String(e));
-          }
+          Log.add("fallback fetch failed", String(e));
           return false;
         });
     }),
@@ -225,7 +221,7 @@ export const Download = {
       finalDir = [finalDir, routeDir].filter((x) => x != null && x !== "").join("/");
       finalFilename =
         typeof _state.info.filename === "string"
-          ? Path.sanitizeFilename(_state.info.filename)
+          ? sanitizeFilename(_state.info.filename)
           : undefined;
     } else if (_state.route) {
       // The rule sets the whole name (which may itself include subdirectories)
@@ -233,7 +229,7 @@ export const Download = {
     } else {
       finalFilename =
         typeof _state.info.filename === "string"
-          ? Path.sanitizeFilename(_state.info.filename)
+          ? sanitizeFilename(_state.info.filename)
           : undefined;
     }
 
@@ -276,12 +272,14 @@ export const Download = {
   },
 
   getRoutingMatches: (state: Pick<DownloadPipelineState, "info">): string | null => {
-    const filenamePatterns = options.filenamePatterns;
+    const filenamePatterns = Array.isArray(options.filenamePatterns)
+      ? options.filenamePatterns
+      : [];
     if (!filenamePatterns || filenamePatterns.length === 0) {
       return null;
     }
 
-    return Router.matchRules(filenamePatterns, state.info);
+    return matchRules(filenamePatterns, state.info);
   },
 
   // Single entry point for firing a download from a menu/message click:
@@ -291,9 +289,7 @@ export const Download = {
   // separately from the per-tab launch).
   launch: (state: DownloadPipelineState): Promise<void> =>
     Download.renameAndDownload(state).catch((e) => {
-      if (typeof Log !== "undefined") {
-        Log.add("renameAndDownload failed", String(e));
-      }
+      Log.add("renameAndDownload failed", String(e));
       const name = (state && state.info && (state.info.suggestedFilename || state.info.url)) || "";
       Notifier.reportFailure(name, String(e));
     }),
@@ -308,11 +304,11 @@ export const Download = {
     // a download even when variable interpolation yields control.
     Download.rememberPendingState(state);
 
-    state.path = await Variable.applyVariables(state.path, state.info);
+    state.path = await applyVariables(state.path, state.info);
     const routeMatches = Download.getRoutingMatches(state);
     if (routeMatches) {
       state.routeIsFolder = typeof routeMatches === "string" && /\/\s*$/.test(routeMatches);
-      state.route = await Variable.applyVariables(new Path.Path(routeMatches), state.info);
+      state.route = await applyVariables(new Path(routeMatches), state.info);
     }
     if (state.needRouteMatch && !routeMatches) return null;
 
@@ -321,10 +317,10 @@ export const Download = {
         state.route && !state.routeIsFolder
           ? state.route.finalize()
           : typeof state.info.filename === "string"
-            ? Path.sanitizeFilename(state.info.filename)
+            ? sanitizeFilename(state.info.filename)
             : undefined;
       if (tentative && !EXTENSION_REGEX.test(tentative)) {
-        const ext = Variable.mimeToExtension(await Variable.resolveMime(state.info));
+        const ext = mimeToExtension(await resolveMime(state.info));
         if (ext) state.scratch.mimeExtension = ext;
       }
     }
@@ -382,7 +378,7 @@ export const Download = {
       try {
         return { url: await OffscreenClient.fetch(url), viaFetch: true };
       } catch (e) {
-        if (typeof Log !== "undefined") Log.add("offscreen fetch failed", String(e));
+        Log.add("offscreen fetch failed", String(e));
         return { url, viaFetch: true };
       }
     }
@@ -391,7 +387,7 @@ export const Download = {
       const response = await fetch(url, { credentials: "include" });
       return { url: await makeUrlFromBlob(await response.blob()), viaFetch: true };
     } catch (e) {
-      if (typeof Log !== "undefined") Log.add("fetch download failed", String(e));
+      Log.add("fetch download failed", String(e));
       return { url, viaFetch: true };
     }
   },
@@ -445,7 +441,7 @@ export const Download = {
       });
       if (historyEntryId) SaveHistory.setDownloadId(historyEntryId, downloadId);
     } catch (e) {
-      if (typeof Log !== "undefined") Log.add("downloads.download failed", String(e));
+      Log.add("downloads.download failed", String(e));
       if (!acquired.viaFetch && options.fallbackFetch !== false) {
         const fallback = await Download.acquireFetchedUrl(requireDownloadUrl(state));
         await Download.executeBrowserDownload(plan, fallback);
@@ -474,7 +470,7 @@ export const Download = {
     }
   },
 
-  // async because Variable.applyVariables is now async (it may await a
+  // async because applyVariables may await a
   // :counter:/:mime: transformer). Callers fire-and-forget, so awaiting the
   // path/route interpolation here before the download is safe.
   renameAndDownload: async (state: DownloadPipelineState): Promise<void> => {

@@ -1,4 +1,9 @@
-import { StorageReader, StorageRemover, StorageSetter, StorageWriter } from "./storage-areas.ts";
+import type {
+  StorageReader,
+  StorageRemover,
+  StorageSetter,
+  StorageWriter,
+} from "./storage-areas.ts";
 
 // Serialized writes are explicit state; storage capability is supplied by the caller.
 

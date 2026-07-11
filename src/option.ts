@@ -1,14 +1,13 @@
 import { webExtensionApi } from "./web-extension-api.ts";
 
+import { getCaptureMatches } from "./router.ts";
 import {
-  CONFLICT_ACTION,
-  CLICK_TYPES,
-  SHORTCUT_TYPES,
-  FORBIDDEN_FILENAME_CHARS,
-} from "./constants.ts";
-import { WEB_EXTENSION_CAPABILITIES } from "./chrome-detector.ts";
-import { Router } from "./router.ts";
-import { Variable } from "./variable.ts";
+  OPTION_KEYS,
+  OPTION_TYPES,
+  type SaveInOptionName,
+  type SaveInOptions,
+} from "./option-schema.ts";
+import { applyVariables } from "./variable.ts";
 import { Path } from "./path.ts";
 import { Download } from "./download.ts";
 // The options bag is a pure leaf (options-data.ts) so modules that only READ
@@ -18,22 +17,6 @@ import { Download } from "./download.ts";
 import { options } from "./options-data.ts";
 import type { DownloadInfo } from "./download-types.ts";
 
-// Short name for convenience
-const T = {
-  BOOL: "BOOL",
-  VALUE: "VALUE",
-} as const;
-
-type OptionType = (typeof T)[keyof typeof T];
-type OptionKey = {
-  name: string;
-  type: OptionType;
-  default: any;
-  fn?: null;
-  onLoad?: (value: any) => any;
-  onSave?: (value: any) => any;
-};
-
 type RoutePreviewState = { info: DownloadInfo };
 type RoutePreview = {
   path: string | null;
@@ -41,113 +24,22 @@ type RoutePreview = {
 };
 
 export interface OptionsManagementApi {
-  OPTION_TYPES: typeof T;
-  OPTION_KEYS: OptionKey[];
+  OPTION_TYPES: typeof OPTION_TYPES;
+  OPTION_KEYS: typeof OPTION_KEYS;
   OPTION_DESCRIPTIONS: Record<string, string>;
-  getKeys(): string[];
-  setOption(name: string, value: any): void;
+  getKeys(): SaveInOptionName[];
+  setOption<Name extends SaveInOptionName>(
+    name: Name,
+    value: SaveInOptions[Name] | undefined,
+  ): void;
   checkRoutes(state?: RoutePreviewState | null): Promise<RoutePreview>;
-  loadOptions(): Promise<Record<string, any>>;
+  loadOptions(): Promise<SaveInOptions>;
 }
 
 export const OptionsManagement: OptionsManagementApi = {
-  OPTION_TYPES: T, // re-export
+  OPTION_TYPES, // re-export
 
-  OPTION_KEYS: [
-    {
-      name: "conflictAction",
-      type: T.VALUE,
-      // "prompt" is Firefox-only; a stored "prompt" on Chrome (imported
-      // settings, a migrated profile) makes downloads.download reject and
-      // silently kills every download (#89, #217)
-      onLoad: (v: string) =>
-        v === CONFLICT_ACTION.PROMPT && !WEB_EXTENSION_CAPABILITIES.conflictActionPrompt
-          ? CONFLICT_ACTION.UNIQUIFY
-          : v,
-      default: "uniquify",
-    },
-    { name: "contentClickToSave", type: T.BOOL, default: false },
-    { name: "contentClickToSaveCombo", type: T.VALUE, default: "Alt" },
-    {
-      name: "contentClickToSaveButton",
-      type: T.VALUE,
-      default: CLICK_TYPES.LEFT_CLICK,
-    },
-    { name: "debug", type: T.BOOL, fn: null, default: false },
-    { name: "enableLastLocation", type: T.BOOL, default: true },
-    { name: "enableNumberedItems", type: T.BOOL, default: true },
-    {
-      name: "filenamePatterns",
-      type: T.VALUE,
-      onSave: (v: string) => v.trim(),
-      onLoad: (v: string) => Router.parseRules(v),
-      default: "",
-    },
-    { name: "keyLastUsed", type: T.VALUE, default: "e" },
-    { name: "keyRoot", type: T.VALUE, default: "e" },
-    { name: "links", type: T.BOOL, default: true },
-    { name: "preferLinks", type: T.BOOL, default: false },
-    { name: "preferLinksFilterEnabled", type: T.BOOL, default: false },
-    {
-      name: "preferLinksFilter",
-      type: T.VALUE,
-      default: ".*commons.wikimedia.org/wiki/File:.*",
-    },
-    { name: "notifyDuration", type: T.VALUE, default: 7000 },
-    { name: "notifyOnFailure", type: T.BOOL, default: true },
-    { name: "notifyOnRuleMatch", type: T.BOOL, default: true },
-    { name: "notifyOnSuccess", type: T.BOOL, default: true },
-    { name: "notifyOnLinkPreferred", type: T.BOOL, default: true },
-    { name: "page", type: T.BOOL, default: true },
-    {
-      name: "paths",
-      type: T.VALUE,
-      onSave: (v: string) => v.trim() || ".",
-      default:
-        ". // (alias: Downloads)\nimages\nimages/cute\nvideos // (key: h)\n\nsubmenu\n>submenu/subdir\n>>submenu/subdir/2 // (alias: actual display name)\n>submenu/subdir2 // comments",
-    },
-    { name: "prompt", type: T.BOOL, default: false },
-    { name: "promptIfNoExtension", type: T.BOOL, default: false },
-    { name: "promptOnFailure", type: T.BOOL, default: true },
-    { name: "promptOnShift", type: T.BOOL, default: true },
-    {
-      name: "replacementChar",
-      type: T.VALUE,
-      // Empty string is allowed and means "delete the offending character"
-      // rather than replace it; a non-empty value that reintroduces a
-      // forbidden character/separator or forms a dot-segment falls back to
-      // the default instead of silently breaking every sanitized path (#221)
-      onLoad: (v: string) =>
-        v && (FORBIDDEN_FILENAME_CHARS.test(v) || v === "." || v === "..") ? "_" : v,
-      default: "_",
-    },
-    { name: "routeExclusive", type: T.BOOL, default: false },
-    { name: "routeFailurePrompt", type: T.BOOL, default: false },
-    { name: "selection", type: T.BOOL, default: true },
-    { name: "shortcutLink", type: T.BOOL, default: false },
-    { name: "shortcutMedia", type: T.BOOL, default: false },
-    { name: "shortcutPage", type: T.BOOL, default: false },
-    { name: "shortcutTab", type: T.BOOL, default: false },
-    {
-      name: "shortcutType",
-      type: T.VALUE,
-      default: SHORTCUT_TYPES.HTML_REDIRECT,
-    },
-    { name: "truncateLength", type: T.VALUE, default: 240 },
-    { name: "appendMimeExtension", type: T.BOOL, default: true },
-    { name: "fetchViaFetch", type: T.BOOL, default: false },
-    // Automatic fallback: retry a failed browser download once via a
-    // background fetch (see Download.retryViaFetch)
-    { name: "fallbackFetch", type: T.BOOL, default: true },
-    { name: "tabEnabled", type: T.BOOL, default: false },
-    { name: "closeTabOnSave", type: T.BOOL, default: false },
-    { name: "setRefererHeader", type: T.BOOL, default: false },
-    {
-      name: "setRefererHeaderFilter",
-      type: T.VALUE,
-      default: "*://i.pximg.net/*",
-    },
-  ],
+  OPTION_KEYS,
 
   // One-line human descriptions, surfaced by the GET_SCHEMA API so an agent (or
   // a human reading the schema) knows what each option does
@@ -185,14 +77,14 @@ export const OptionsManagement: OptionsManagementApi = {
     shortcutLink: "Save links as shortcut files instead of downloading.",
     shortcutMedia: "Save media as shortcut files instead of downloading.",
     shortcutPage: "Save pages as shortcut files.",
-    shortcutTab: "Save tabs as shortcut files (Firefox tab menu).",
+    shortcutTab: "Save tabs as shortcut files from the browser tab menu.",
     shortcutType: "Shortcut file format (HTML redirect, .url, .desktop, .webloc).",
     truncateLength: "Truncate each path segment to this many characters (0 = no limit).",
     appendMimeExtension:
       "Append a file extension from the server's Content-Type when the filename has none.",
     fetchViaFetch: "Download via the Fetch API instead of the downloads API.",
     fallbackFetch: "Retry a failed download once via a background fetch.",
-    tabEnabled: "Enable the tab-strip context menu (Firefox).",
+    tabEnabled: "Enable the tab-strip context menu (Firefox or Chrome 150+).",
     closeTabOnSave: "Close a tab after saving it.",
     setRefererHeader: "Set the Referer header to the page URL for matching sites.",
     setRefererHeaderFilter: "URL match patterns for the Referer header.",
@@ -200,13 +92,16 @@ export const OptionsManagement: OptionsManagementApi = {
 
   getKeys: () => OptionsManagement.OPTION_KEYS.map((option) => option.name),
 
-  setOption: (name: string, value: any) => {
+  setOption: <Name extends SaveInOptionName>(
+    name: Name,
+    value: SaveInOptions[Name] | undefined,
+  ) => {
     if (typeof value !== "undefined") {
       options[name] = value;
     }
   },
 
-  // async because Variable.applyVariables is now async
+  // async because variable interpolation may await
   checkRoutes: async (state?: RoutePreviewState | null) => {
     if (!state) {
       return {
@@ -234,19 +129,18 @@ export const OptionsManagement: OptionsManagementApi = {
     });
     const last = Object.assign({}, state, { info: newInfo });
 
-    const lastInterpolated = await Variable.applyVariables(
-      new Path.Path(Download.getRoutingMatches(last)),
+    const lastInterpolated = await applyVariables(
+      new Path(Download.getRoutingMatches(last)),
       last.info,
     );
     const testLastResult = lastInterpolated.finalize();
 
+    const filenamePatterns = Array.isArray(options.filenamePatterns)
+      ? options.filenamePatterns
+      : [];
     let testLastCapture: (string | undefined)[] | null = null;
-    for (let i = 0; i < options.filenamePatterns.length; i += 1) {
-      testLastCapture = Router.getCaptureMatches(
-        options.filenamePatterns[i],
-        last.info,
-        last.info.filename || last.info.url,
-      );
+    for (let i = 0; i < filenamePatterns.length; i += 1) {
+      testLastCapture = getCaptureMatches(filenamePatterns[i], last.info);
 
       if (testLastCapture) {
         break;
@@ -261,6 +155,7 @@ export const OptionsManagement: OptionsManagementApi = {
 
   loadOptions: () =>
     webExtensionApi.storage.local.get(OptionsManagement.getKeys()).then((loadedOptions) => {
+      loadedOptions = loadedOptions && typeof loadedOptions === "object" ? loadedOptions : {};
       if (loadedOptions.debug) {
         window.SI_DEBUG = 1;
       }
@@ -272,8 +167,33 @@ export const OptionsManagement: OptionsManagementApi = {
           // A key from a removed option (or foreign storage) must not break load
           return;
         }
-        const fn = optionType.onLoad || ((value: any) => value);
-        OptionsManagement.setOption(k, fn(loadedOptions[k]));
+        const stored = loadedOptions[k];
+        const validate =
+          "validate" in optionType
+            ? (optionType.validate as (value: unknown) => boolean)
+            : undefined;
+        const validType =
+          optionType.type === OPTION_TYPES.BOOL
+            ? typeof stored === "boolean"
+            : typeof stored === typeof optionType.default ||
+              (k === "contentClickToSaveCombo" && typeof stored === "number");
+        if (
+          !validType ||
+          (typeof stored === "number" && !Number.isFinite(stored)) ||
+          (validate && !validate(stored))
+        ) {
+          OptionsManagement.setOption(optionType.name, optionType.default);
+          return;
+        }
+        const fn: (value: any) => any =
+          "onLoad" in optionType ? (optionType.onLoad as (value: any) => any) : (value) => value;
+        try {
+          OptionsManagement.setOption(optionType.name, fn(stored));
+        } catch {
+          // Profiles and imported settings can outlive their parser/migration.
+          // One corrupt option must not prevent the background page from starting.
+          OptionsManagement.setOption(optionType.name, optionType.default);
+        }
       });
 
       return options;
@@ -288,11 +208,12 @@ export const OptionsManagement: OptionsManagementApi = {
 export const seedOptions = () => {
   // Mutate the shared bag in place (it's a `const` leaf export now) so every
   // module's live reference stays valid across a re-seed (window.reset)
-  for (const k of Object.keys(options)) {
-    delete options[k];
+  const mutableOptions = options as unknown as Record<string, unknown>;
+  for (const k of Object.keys(mutableOptions)) {
+    delete mutableOptions[k];
   }
   OptionsManagement.OPTION_KEYS.forEach((val) => {
-    options[val.name] = val.default;
+    mutableOptions[val.name] = val.default;
   });
   return options;
 };

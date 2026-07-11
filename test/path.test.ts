@@ -1,4 +1,4 @@
-import { Path } from "../src/path.ts";
+import * as Path from "../src/path.ts";
 import { PATH_SEGMENT_TYPES } from "../src/constants.ts";
 // path.ts reads options.replacementChar at call time; import the real options
 // bag and mutate it. Seeding is deferred out of module eval (Task #2), so seed
@@ -93,15 +93,16 @@ describe("sanitisation", () => {
   describe("empty segments", () => {
     test("empty segments become the replacement character", () => {
       const p = new Path.Path("a");
-      p.buf = [Path.PathSegment.String("")];
+      p.buf = [Path.stringSegment("")];
       expect(p.finalize()).toBe("_");
     });
 
     test("empty segments fall back to underscore without a replacementChar", () => {
-      options.replacementChar = undefined;
+      // Exercise the runtime fallback for older/incomplete persisted options.
+      (options as { replacementChar?: string }).replacementChar = undefined;
       try {
         const p = new Path.Path("a");
-        p.buf = [Path.PathSegment.String("")];
+        p.buf = [Path.stringSegment("")];
         expect(p.finalize()).toBe("_");
       } finally {
         options.replacementChar = "_";
@@ -112,9 +113,9 @@ describe("sanitisation", () => {
 
 describe("PathSegment", () => {
   test("String coerces null and undefined to empty strings", () => {
-    expect(Path.PathSegment.String(null).val).toBe("");
-    expect(Path.PathSegment.String(undefined).val).toBe("");
-    expect(Path.PathSegment.String(0).val).toBe("0");
+    expect(Path.stringSegment(null).val).toBe("");
+    expect(Path.stringSegment(undefined).val).toBe("");
+    expect(Path.stringSegment(0).val).toBe("0");
   });
 });
 

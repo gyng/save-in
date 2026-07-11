@@ -1,6 +1,6 @@
-import { CounterWriteState } from "./counter.ts";
-import { DownloadsState } from "./download-state.ts";
-import { SessionWriteState } from "./session-state.ts";
+import type { CounterWriteState } from "./counter.ts";
+import type { DownloadsState } from "./download-state.ts";
+import type { SessionWriteState } from "./session-state.ts";
 
 const sessionWrites: SessionWriteState = { queue: Promise.resolve() };
 const downloads: DownloadsState = { records: new Map(), hydration: null };

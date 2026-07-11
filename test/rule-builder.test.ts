@@ -1,9 +1,9 @@
 // Guided rule input + template library on the options page. Every built-in
-// template must parse cleanly through the real Router and only reference
+// template must parse cleanly through the real routing parser and only reference
 // variables that actually exist.
 
 import * as constants from "../src/constants.ts";
-import { Router } from "../src/router.ts";
+import { parseRules } from "../src/router.ts";
 import { RULE_TEMPLATES, RuleBuilder } from "../src/options/rule-builder.ts";
 
 Object.assign(global, constants);
@@ -19,7 +19,7 @@ describe("RULE_TEMPLATES", () => {
 
   RULE_TEMPLATES.forEach((tpl) => {
     test(`"${tpl.name}" parses as exactly one valid rule`, () => {
-      const rules = Router.parseRules(tpl.rule);
+      const rules = parseRules(tpl.rule);
       expect(global.window.optionErrors.filenamePatterns).toEqual([]);
       expect(rules).toHaveLength(1);
     });

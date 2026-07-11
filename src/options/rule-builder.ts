@@ -15,7 +15,7 @@ type RuleTemplate = {
 
 // Every `into:` must end in a filename component (it replaces the whole
 // path, not just the directory) — test/rule-builder.test.js parses each
-// template through the real Router to keep these valid.
+// template through the real routing parser to keep these valid.
 export const RULE_TEMPLATES: RuleTemplate[] = [
   {
     name: "Images into per-site folders",
@@ -79,7 +79,7 @@ export const RuleBuilder = {
       return;
     }
 
-    // The matcher list comes from the background's Router, like the
+    // The matcher list comes from the background routing module, like the
     // autocomplete keywords do
     webExtensionApi.runtime
       .sendMessage({ type: "GET_KEYWORDS" })
@@ -90,7 +90,7 @@ export const RuleBuilder = {
           option.textContent = name;
           matcher.appendChild(option);
         });
-        // fileext is the most common matcher; context (first in Router's
+        // fileext is the most common matcher; context (first in the routing
         // object order) is an obscure default
         if ([...matcher.options].some((o) => o.value === "fileext")) {
           matcher.value = "fileext";

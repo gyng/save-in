@@ -78,7 +78,7 @@ test("service worker initialises cleanly", async () => {
         .find(({ name }) => name === "conflictAction").onLoad("prompt"),
       pathErrors: window.optionErrors.paths.length,
       patternErrors: window.optionErrors.filenamePatterns.length,
-      menuCount: Object.keys(Menus.pathMappings).length,
+      menuCount: Object.keys(menuState.pathMappings).length,
       noObjectUrl: typeof URL.createObjectURL === "undefined",
       hasDnr: typeof chrome.declarativeNetRequest === "object",
     }))`),
@@ -86,7 +86,7 @@ test("service worker initialises cleanly", async () => {
 
   expect(state.browser).toBe("CHROME");
   expect(state.capabilities).toMatchObject({
-    tabContextMenus: false,
+    tabContextMenus: true,
     accessKeys: true,
     downloadFilenameSuggestion: true,
     downloadDeltaFilename: true,
@@ -142,7 +142,7 @@ test("download completes through the real pipeline with session tracking", async
   await evalSW(`window.ready.then(() => {
       Notifier.expectDownload();
       return Download.renameAndDownload({
-        path: new Path.Path("e2e"),
+        path: new Path("e2e"),
         scratch: {},
         info: {
           url: Download.makeObjectUrl("e2e smoke test content"),
@@ -196,7 +196,7 @@ test("lastUsedPath survives re-initialisation", async () => {
   const lastUsed = await evalSW(
     `browser.storage.local.set({ lastUsedPath: "e2e/persisted" })
       .then(() => window.reset())
-      .then(() => String(Menus.state.lastUsedPath))`,
+      .then(() => String(menuState.lastUsedPath))`,
   );
   expect(lastUsed).toBe("e2e/persisted");
 });
@@ -294,7 +294,7 @@ test("changing the paths option rebuilds the context menus", async () => {
   const menuCount = await evalSW(
     `browser.storage.local.set({ paths: "alpha\\nbeta\\ngamma\\ndelta\\nepsilon" })
       .then(() => window.reset())
-      .then(() => JSON.stringify(Object.keys(Menus.pathMappings).length))`,
+      .then(() => JSON.stringify(Object.keys(menuState.pathMappings).length))`,
   );
   expect(JSON.parse(menuCount)).toBe(5);
 });
@@ -307,7 +307,7 @@ test("routing rules rename and route the download", async () => {
       .then(() => {
         Notifier.expectDownload();
         return Download.renameAndDownload({
-          path: new Path.Path("e2e"),
+          path: new Path("e2e"),
           scratch: {},
           info: {
             url: Download.makeObjectUrl("routed content"),
@@ -334,7 +334,7 @@ test(":counter: advances once per download and persists in storage", async () =>
     await evalSW(`(() => {
       Notifier.expectDownload();
       return Download.renameAndDownload({
-        path: new Path.Path("e2e"),
+        path: new Path("e2e"),
         scratch: {},
         info: {
           url: Download.makeObjectUrl("counted-${i}"),
@@ -432,7 +432,7 @@ test("fetchViaFetch downloads via an offscreen document (Chrome MV3)", async () 
         options.fetchViaFetch = true;
         Notifier.expectDownload();
         return Download.renameAndDownload({
-          path: new Path.Path("e2e"),
+          path: new Path("e2e"),
           scratch: {},
           info: {
             url: "data:text/plain,via%20fetch%20content",
@@ -473,7 +473,7 @@ test(":sha256: hashes and saves from a single fetch (Chrome MV3)", async () => {
         .then(() => {
           Notifier.expectDownload();
           return Download.renameAndDownload({
-            path: new Path.Path("e2e/:sha256:"),
+            path: new Path("e2e/:sha256:"),
             scratch: {},
             info: {
               url: "http://127.0.0.1:${serverPort}/hashme.bin",
@@ -550,7 +550,7 @@ test("shortcut files download with redirect content", async () => {
   await evalSW(`window.ready.then(() => {
       Notifier.expectDownload();
       return Download.renameAndDownload({
-        path: new Path.Path("e2e"),
+        path: new Path("e2e"),
         scratch: {},
         info: {
           url: Shortcut.makeShortcut(SHORTCUT_TYPES.HTML_REDIRECT, "https://example.com/target"),
@@ -574,7 +574,7 @@ test("failed downloads are recorded in the debug log", async () => {
   await evalSW(`window.ready.then(() => {
       Notifier.expectDownload();
       return Download.renameAndDownload({
-        path: new Path.Path("e2e"),
+        path: new Path("e2e"),
         scratch: {},
         info: {
           // Nothing listens on port 1
@@ -623,7 +623,7 @@ test("a failed download is retried automatically via background fetch", async ()
       `window.ready.then(() => {
         Notifier.expectDownload();
         return Download.renameAndDownload({
-          path: new Path.Path("e2e"),
+          path: new Path("e2e"),
           scratch: {},
           info: {
             url: "http://127.0.0.1:${serverPort}/flaky.bin",

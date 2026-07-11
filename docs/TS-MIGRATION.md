@@ -11,7 +11,8 @@ scripts keeping globals).
 types (oxc), resolves `import`s, and **scope-hoists** every module into one
 bare-code bundle per target — no IIFE, so top-level side effects and synchronous
 MV3 listener registration are preserved. A shared object mutated across a module
-boundary (the `Menus.addDownloadListener = …` idiom) survives scope-hoisting.
+boundary now uses named imports; the former `Menus.addDownloadListener = …`
+extension idiom was removed after migration.
 Output is readable + non-minified (the AMO "reviewable source" property becomes
 "reviewable non-minified bundle + documented build").
 
@@ -27,7 +28,8 @@ Output is readable + non-minified (the AMO "reviewable source" property becomes
   a working one).
 - **No native `type: module` service worker** — async module load breaks sync
   listener registration (#1 MV3 rule). Always bundle to a classic-scope file.
-- **Mutable cross-file state** must become explicit: `currentTab` (index.js),
+- **Mutable cross-file state** must become explicit: `currentTab` (now owned by
+  `current-tab.ts` and composed by `background-main.ts`),
   `CURRENT_BROWSER`/`CURRENT_BROWSER_VERSION`/`BROWSER_FEATURES` (chrome-detector),
   `options` (option.js), `globalChromeState`. Exported `let` is live but only
   reassignable in its defining module — readers import read-only. Where a reader
@@ -109,7 +111,8 @@ Work happened on branch **`ts-migration`** (off `mv3`).
   imports); per-target entries `src/entry.{background,options,offscreen}.ts`;
   `rolldown.config.mjs` reworked to real module resolution (concat helpers
   deleted). Extracted **`src/current-tab.ts`** as a leaf so nothing imports
-  `index.ts` (which was pulled into the SCC → TDZ on OptionsManagement).
+  the former `index.ts` composition root (now `background-main.ts`, after the
+  SCC was removed).
   VERIFIED: `npm run bundle` clean; bundled **Chrome 22/22 + Firefox 10/10**.
 
 ### Done, IN THE WORKING TREE (uncommitted — commit when the suite is green)

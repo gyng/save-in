@@ -4,14 +4,16 @@
 // `chrome` still needs the untyped-global view: it is a genuine ambient global
 // from @types/chrome, too strictly typed to assign a partial stub to.
 import { options } from "../src/options-data.ts";
+import type { SaveInOptions } from "../src/option-schema.ts";
 import { Log } from "../src/log.ts";
 import { RequestHeaders } from "../src/headers.ts";
 
 const g: any = global;
 
-const setOptions = (o: Record<string, any> = {}) => {
-  for (const k of Object.keys(options)) delete options[k];
-  Object.assign(options, o);
+const setOptions = (overrides: Partial<SaveInOptions> = {}) => {
+  const mutableOptions = options as unknown as Record<string, unknown>;
+  for (const key of Object.keys(mutableOptions)) delete mutableOptions[key];
+  Object.assign(mutableOptions, overrides);
 };
 
 describe("matchesRefererFilter", () => {

@@ -1,11 +1,8 @@
 import { webExtensionApi } from "./web-extension-api.ts";
 
-// Tab-strip context menus (Firefox-only `tab` context): menu creation,
+// Tab-strip context menus (Firefox and Chrome 150+ `tab` context): menu creation,
 // the multi-select highlight counter, and the tab-save click handler.
-// Extends the Menus object defined in menu-build.js via the shared
-// global scope.
-
-import { Menus } from "./menu-build.ts";
+import { MENU_IDS } from "./menu-build.ts";
 import { options } from "./options-data.ts";
 import { WEB_EXTENSION_CAPABILITIES } from "./chrome-detector.ts";
 import { Notifier } from "./notification.ts";
@@ -15,45 +12,43 @@ import { Path } from "./path.ts";
 import { Download } from "./download.ts";
 import type { DownloadInfo } from "./download-types.ts";
 
-Menus.addTabMenus = () => {
-  if (!options.tabEnabled) {
+export const addTabMenus = () => {
+  if (!options.tabEnabled || !WEB_EXTENSION_CAPABILITIES.tabContextMenus) {
     return;
   }
 
   webExtensionApi.contextMenus.create({
-    id: Menus.IDS.TABSTRIP.SELECTED_TAB,
+    id: MENU_IDS.TABSTRIP.SELECTED_TAB,
     title: webExtensionApi.i18n.getMessage("tabstripMenuSelectedTab"),
     contexts: ["tab"],
   });
 
-  if (WEB_EXTENSION_CAPABILITIES.tabContextMenus) {
-    webExtensionApi.contextMenus.create({
-      id: Menus.IDS.TABSTRIP.SELECTED_MULTIPLE_TABS,
-      title: webExtensionApi.i18n.getMessage("tabstripMenuMultipleSelectedTab", [1]),
-      contexts: ["tab"],
-    });
-  }
+  webExtensionApi.contextMenus.create({
+    id: MENU_IDS.TABSTRIP.SELECTED_MULTIPLE_TABS,
+    title: webExtensionApi.i18n.getMessage("tabstripMenuMultipleSelectedTab", [1]),
+    contexts: ["tab"],
+  });
 
   webExtensionApi.contextMenus.create({
-    id: Menus.IDS.TABSTRIP.OPENED_FROM_TAB,
+    id: MENU_IDS.TABSTRIP.OPENED_FROM_TAB,
     title: webExtensionApi.i18n.getMessage("tabstripMenuSaveChildrenTabs"),
     contexts: ["tab"],
   });
 
   webExtensionApi.contextMenus.create({
-    id: Menus.IDS.TABSTRIP.TO_RIGHT,
+    id: MENU_IDS.TABSTRIP.TO_RIGHT,
     title: webExtensionApi.i18n.getMessage("tabstripMenuSaveRightTabs"),
     contexts: ["tab"],
   });
 
   webExtensionApi.contextMenus.create({
-    id: Menus.IDS.TABSTRIP.TO_RIGHT_MATCH,
+    id: MENU_IDS.TABSTRIP.TO_RIGHT_MATCH,
     title: webExtensionApi.i18n.getMessage("tabstripMenuSaveRightTabsMatched"),
     contexts: ["tab"],
   });
 };
 
-Menus.addTabHighlightListener = () => {
+export const addTabHighlightListener = () => {
   webExtensionApi.tabs.onHighlighted.addListener((highlightInfo) => {
     if (
       !options.tabEnabled ||
@@ -64,18 +59,18 @@ Menus.addTabHighlightListener = () => {
     }
 
     const length = highlightInfo.tabIds.length;
-    webExtensionApi.contextMenus.update(Menus.IDS.TABSTRIP.SELECTED_MULTIPLE_TABS, {
+    webExtensionApi.contextMenus.update(MENU_IDS.TABSTRIP.SELECTED_MULTIPLE_TABS, {
       title: webExtensionApi.i18n.getMessage("tabstripMenuMultipleSelectedTab", [length]),
       contexts: ["tab"],
     });
   });
 };
 
-Menus.addTabMenuListener = () => {
-  const ids = Object.values(Menus.IDS.TABSTRIP);
+export const addTabMenuListener = () => {
+  const ids = Object.values(MENU_IDS.TABSTRIP);
 
   webExtensionApi.contextMenus.onClicked.addListener(async (info, fromTab) => {
-    if (!ids.includes(info.menuItemId) || !fromTab) {
+    if (!ids.some((id) => id === info.menuItemId) || !fromTab) {
       return;
     }
 
@@ -94,18 +89,18 @@ Menus.addTabMenuListener = () => {
     };
 
     switch (info.menuItemId) {
-      case Menus.IDS.TABSTRIP.SELECTED_TAB:
+      case MENU_IDS.TABSTRIP.SELECTED_TAB:
         filter = (t) => t.id === fromTab.id;
         break;
-      case Menus.IDS.TABSTRIP.SELECTED_MULTIPLE_TABS:
+      case MENU_IDS.TABSTRIP.SELECTED_MULTIPLE_TABS:
         filter = () => true;
         query = Object.assign(query, { highlighted: true });
         break;
-      case Menus.IDS.TABSTRIP.TO_RIGHT:
-      case Menus.IDS.TABSTRIP.TO_RIGHT_MATCH:
+      case MENU_IDS.TABSTRIP.TO_RIGHT:
+      case MENU_IDS.TABSTRIP.TO_RIGHT_MATCH:
         filter = (t) => t.index >= fromTab.index;
         break;
-      case Menus.IDS.TABSTRIP.OPENED_FROM_TAB:
+      case MENU_IDS.TABSTRIP.OPENED_FROM_TAB:
         filter = () => true;
         query = Object.assign(query, { openerTabId: fromTab.id });
         break;
@@ -161,10 +156,10 @@ Menus.addTabMenuListener = () => {
 
             // keeps track of state of the final path
             const state = {
-              path: new Path.Path("."),
+              path: new Path("."),
               scratch: {},
               info: opts,
-              needRouteMatch: info.menuItemId === Menus.IDS.TABSTRIP.TO_RIGHT_MATCH,
+              needRouteMatch: info.menuItemId === MENU_IDS.TABSTRIP.TO_RIGHT_MATCH,
             };
 
             // Fire-and-forget async (see menu-click.js / Download.launch)
