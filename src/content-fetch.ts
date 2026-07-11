@@ -1,12 +1,13 @@
 import { MESSAGE_TYPES } from "./constants.ts";
 import { OffscreenClient } from "./offscreen-client.ts";
+import { BlobContent, ContentFetchResult, OffscreenFetchResponse } from "./content-fetch-types.ts";
 
 export const HASH_MAX_BYTES = 256 * 1024 * 1024;
 export const HASH_FETCH_TIMEOUT_MS = 30000;
 
-export const makeUrlFromBlob = (blob) => {
+export const makeUrlFromBlob = (blob: BlobContent): Promise<string> => {
   if (typeof URL.createObjectURL === "function") {
-    return Promise.resolve(URL.createObjectURL(blob));
+    return Promise.resolve(URL.createObjectURL(blob as Blob));
   }
 
   return blob.arrayBuffer().then((buf) => {
@@ -21,7 +22,7 @@ export const makeUrlFromBlob = (blob) => {
   });
 };
 
-export const resolveContent = (url) => {
+export const resolveContent = (url: string): Promise<ContentFetchResult | null> => {
   if (OffscreenClient.canUse()) {
     return OffscreenClient.ensure()
       .then(() =>
@@ -32,10 +33,10 @@ export const resolveContent = (url) => {
           maxBytes: HASH_MAX_BYTES,
         }),
       )
-      .then((res) =>
+      .then((res: OffscreenFetchResponse) =>
         res && res.blobUrl ? { sha256: res.hash || "", downloadUrl: res.blobUrl } : null,
       )
-      .catch(() => null);
+      .catch((): ContentFetchResult | null => null);
   }
 
   const controller = new AbortController();
@@ -54,6 +55,6 @@ export const resolveContent = (url) => {
         })),
       );
     })
-    .catch(() => null)
+    .catch((): ContentFetchResult | null => null)
     .finally(() => clearTimeout(timer));
 };

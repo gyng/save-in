@@ -9,46 +9,53 @@
 // for both the filename and the save rather than fetched again by the worker.
 
 import { MESSAGE_TYPES } from "./constants.ts";
+import { OffscreenFetchRequest, OffscreenFetchResponse } from "./content-fetch-types.ts";
 
 const OFFSCREEN_BLOB_TTL_MS = 5 * 60 * 1000;
 
-const toHex = (buf) =>
+const toHex = (buf: ArrayBuffer) =>
   [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (!message || message.type !== MESSAGE_TYPES.OFFSCREEN_FETCH) {
-    return false;
-  }
+chrome.runtime.onMessage.addListener(
+  (
+    message: OffscreenFetchRequest,
+    _sender: chrome.runtime.MessageSender,
+    sendResponse: (response: OffscreenFetchResponse) => void,
+  ) => {
+    if (!message || message.type !== MESSAGE_TYPES.OFFSCREEN_FETCH) {
+      return false;
+    }
 
-  fetch(message.url, { credentials: "include" })
-    .then((res) => {
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status}`);
-      }
-      return res.blob();
-    })
-    .then((blob) => {
-      const blobUrl = URL.createObjectURL(blob);
-      // Free the blob once the download has had time to read it. The blob lives
-      // here (as a Blob, 1x size), not as base64 in the worker.
-      setTimeout(() => URL.revokeObjectURL(blobUrl), OFFSCREEN_BLOB_TTL_MS);
+    fetch(message.url, { credentials: "include" })
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
+        }
+        return res.blob();
+      })
+      .then((blob) => {
+        const blobUrl = URL.createObjectURL(blob);
+        // Free the blob once the download has had time to read it. The blob lives
+        // here (as a Blob, 1x size), not as base64 in the worker.
+        setTimeout(() => URL.revokeObjectURL(blobUrl), OFFSCREEN_BLOB_TTL_MS);
 
-      // No hash requested, or the file is too large to buffer a second copy for
-      // digesting: return the blob URL alone (the download still proceeds; the
-      // hash just resolves empty).
-      if (!message.hash || (message.maxBytes && blob.size > message.maxBytes)) {
-        sendResponse({ blobUrl });
-        return;
-      }
+        // No hash requested, or the file is too large to buffer a second copy for
+        // digesting: return the blob URL alone (the download still proceeds; the
+        // hash just resolves empty).
+        if (!message.hash || (message.maxBytes && blob.size > message.maxBytes)) {
+          sendResponse({ blobUrl });
+          return;
+        }
 
-      blob
-        .arrayBuffer()
-        .then((buf) => crypto.subtle.digest(message.hash, buf))
-        .then((digest) => sendResponse({ blobUrl, hash: toHex(digest) }))
-        // Hashing failed but the blob is fine — let the download go ahead
-        .catch(() => sendResponse({ blobUrl }));
-    })
-    .catch((e) => sendResponse({ error: String((e && e.message) || e) }));
+        blob
+          .arrayBuffer()
+          .then((buf) => crypto.subtle.digest(message.hash, buf))
+          .then((digest) => sendResponse({ blobUrl, hash: toHex(digest) }))
+          // Hashing failed but the blob is fine — let the download go ahead
+          .catch(() => sendResponse({ blobUrl }));
+      })
+      .catch((e) => sendResponse({ error: String((e && e.message) || e) }));
 
-  return true; // sendResponse is called asynchronously
-});
+    return true; // sendResponse is called asynchronously
+  },
+);

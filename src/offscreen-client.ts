@@ -6,8 +6,15 @@
 // reused. The Firefox event page has createObjectURL and never uses any of this.
 
 import { MESSAGE_TYPES } from "./constants.ts";
+import { OffscreenFetchResponse } from "./content-fetch-types.ts";
 
-export const OffscreenClient = {
+type OffscreenClientApi = {
+  canUse: () => boolean;
+  ensure: () => Promise<void | null>;
+  fetch: (url: string) => Promise<string>;
+};
+
+export const OffscreenClient: OffscreenClientApi = {
   // Gated on a worker with no createObjectURL AND chrome.offscreen present, so
   // the Firefox event page (which has createObjectURL) never takes this path.
   canUse: () =>
@@ -44,7 +51,7 @@ export const OffscreenClient = {
   fetch: (url) =>
     OffscreenClient.ensure()
       .then(() => chrome.runtime.sendMessage({ type: MESSAGE_TYPES.OFFSCREEN_FETCH, url }))
-      .then((res) => {
+      .then((res: OffscreenFetchResponse) => {
         if (!res || !res.blobUrl) {
           throw new Error((res && res.error) || "offscreen fetch failed");
         }
