@@ -5,32 +5,35 @@
 
 const TAB_STORAGE_KEY = "si-options-tab";
 
+type TabSection = { heading: HTMLElement; nodes: HTMLElement[] };
+
 // The <h2> that heads a section: the node itself, or (for a section whose
 // content is wrapped, e.g. Dynamic Downloads in a label.column) its first
 // element child.
-const sectionHeading = (node) => {
+const sectionHeading = (node: HTMLElement): HTMLElement | null => {
   if (node.tagName === "H2") {
     return node;
   }
   const first = node.firstElementChild;
-  return first && first.tagName === "H2" ? first : null;
+  return first instanceof HTMLElement && first.tagName === "H2" ? first : null;
 };
 
 // The heading's own label text, ignoring nested controls (e.g. the reset
 // button inside the "More Options" heading).
-export const headingLabel = (heading) =>
+export const headingLabel = (heading: HTMLElement): string =>
   Array.from(heading.childNodes)
-    .filter((n: any) => n.nodeType === Node.TEXT_NODE)
-    .map((n: any) => n.textContent)
+    .filter((node) => node.nodeType === Node.TEXT_NODE)
+    .map((node) => node.textContent)
     .join("")
     .trim();
 
 // Splits the form's children into [{ heading, nodes }] runs, one per section.
-export const collectSections = (form) => {
-  const sections = [];
-  let current = null;
+export const collectSections = (form: HTMLElement): TabSection[] => {
+  const sections: TabSection[] = [];
+  let current: TabSection | null = null;
 
   Array.from(form.children).forEach((node) => {
+    if (!(node instanceof HTMLElement)) return;
     const heading = sectionHeading(node);
     if (heading) {
       current = { heading, nodes: [node] };
@@ -43,7 +46,7 @@ export const collectSections = (form) => {
   return sections;
 };
 
-export const setupTabs = () => {
+export const setupTabs = (): void => {
   const form = document.getElementById("options");
   if (!form) {
     return;
@@ -84,7 +87,7 @@ export const setupTabs = () => {
 
   let currentIndex = -1;
 
-  const select = (index) => {
+  const select = (index: number): void => {
     // Leaving a tab with unsaved editor changes prompts to save/discard
     // (main tabs don't unload the page, so beforeunload can't cover this)
     if (
@@ -130,7 +133,8 @@ export const setupTabs = () => {
 
   let initial = 0;
   try {
-    const saved = parseInt(localStorage.getItem(TAB_STORAGE_KEY), 10);
+    const stored = localStorage.getItem(TAB_STORAGE_KEY);
+    const saved = stored == null ? Number.NaN : parseInt(stored, 10);
     if (!Number.isNaN(saved) && saved >= 0 && saved < tabs.length) {
       initial = saved;
     }

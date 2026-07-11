@@ -13,7 +13,7 @@ const buildForm = () => {
       <h2>Shortcuts</h2>
       <label id="opt-c"><input id="c" type="checkbox"></label>
     </form>`;
-  return document.getElementById("options");
+  return document.getElementById("options") as HTMLFormElement;
 };
 
 describe("collectSections", () => {
@@ -39,7 +39,7 @@ describe("collectSections", () => {
         <label id="a-label"><input id="a"></label>
         <div class="column"><h2>Dynamic</h2><textarea id="rules"></textarea></div>
       </form>`;
-    const sections = collectSections(document.getElementById("options"));
+    const sections = collectSections(document.getElementById("options") as HTMLFormElement);
 
     expect(sections.map((s) => s.heading.textContent)).toEqual(["Downloads", "Dynamic"]);
     expect(sections[1].nodes[0].querySelector("#rules")).not.toBeNull();
@@ -49,7 +49,7 @@ describe("collectSections", () => {
 describe("headingLabel", () => {
   test("ignores nested controls (e.g. a reset button in the heading)", () => {
     document.body.innerHTML = '<h2 id="h">More Options<div id="reset">Restore</div></h2>';
-    expect(headingLabel(document.getElementById("h"))).toBe("More Options");
+    expect(headingLabel(document.getElementById("h") as HTMLElement)).toBe("More Options");
   });
 });
 
@@ -83,7 +83,7 @@ describe("setupTabs", () => {
       expect(document.getElementById(id)).not.toBeNull();
     });
     // Option controls moved into panels, not destroyed
-    expect(document.getElementById("a").closest(".tab-panel")).not.toBeNull();
+    expect(document.getElementById("a")?.closest(".tab-panel")).not.toBeNull();
   });
 
   test("clicking a tab switches the visible panel", () => {
