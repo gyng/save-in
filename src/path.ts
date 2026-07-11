@@ -1,5 +1,5 @@
 import { SPECIAL_DIRS, FORBIDDEN_FILENAME_CHARS, PATH_SEGMENT_TYPES } from "./constants.ts";
-import { options } from "./option.ts";
+import { options } from "./options-data.ts";
 
 const specialDirVariables = Object.values(SPECIAL_DIRS);
 const specialDirRegexp = new RegExp(`(${specialDirVariables.join("|")})`);

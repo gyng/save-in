@@ -5,7 +5,7 @@ import { Counter } from "../src/counter.ts";
 // variable.ts reads options.replacementChar (via path.ts) at call time;
 // import the real options bag and mutate it (option.ts seeds
 // replacementChar "_" at load, so these just document the expectation).
-import { options } from "../src/option.ts";
+import { options } from "../src/options-data.ts";
 
 describe("variables", () => {
   const info = {

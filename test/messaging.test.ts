@@ -28,7 +28,8 @@ const { Messaging, registerMessaging } = await import("../src/messaging.ts");
 // Imported after the fakes above: messaging.ts already pulled the whole real SCC
 // into the module cache, so these return the same instances its handlers hold —
 // spies / Object.assign on them reach the live code.
-const { options, OptionsManagement } = await import("../src/option.ts");
+const { OptionsManagement } = await import("../src/option.ts");
+const { options } = await import("../src/options-data.ts");
 const { Download } = await import("../src/download.ts");
 const { Notifier } = await import("../src/notification.ts");
 const { Menus } = await import("../src/menu-build.ts");

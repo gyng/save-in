@@ -52,7 +52,7 @@ let Log: any;
 const loadNotification = async () => {
   const mod = await import("../src/notification.ts");
   Notifier = mod.Notifier;
-  ({ options } = await import("../src/option.ts"));
+  ({ options } = await import("../src/options-data.ts"));
   ({ Log } = await import("../src/log.ts"));
   // Reset the real options bag to empty; each test sets the fields it needs
   for (const k of Object.keys(options)) delete options[k];

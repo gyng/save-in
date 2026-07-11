@@ -9,19 +9,17 @@ import { Router } from "./router.ts";
 import { Variable } from "./variable.ts";
 import { Path } from "./path.ts";
 import { Download } from "./download.ts";
+// The options bag is a pure leaf (options-data.ts) so modules that only READ
+// settings (path/headers/menu-*/notification/download) import it directly and
+// don't pull in this validator-heavy module — breaking the option↔* cycles
+// (docs/ARCH-CYCLES.md, Cut 1).
+import { options } from "./options-data.ts";
 
 // Short name for convenience
 const T = {
   BOOL: "BOOL",
   VALUE: "VALUE",
 };
-
-// Mutable cross-file state: the shared options bag. Reassigned only in this
-// module (below); other modules import a read-only live binding and mutate its
-// fields in place via OptionsManagement.setOption.
-// Loosely typed for now; the real SaveInOptions type (derived from OPTION_KEYS)
-// is the TS-native pass (docs/ARCH-CYCLES.md #62).
-export let options: Record<string, any> = {};
 
 export const OptionsManagement: Record<string, any> = {
   OPTION_TYPES: T, // re-export
@@ -258,9 +256,13 @@ OptionsManagement.loadOptions = () =>
 // importing option.ts is side-effect-free (tests import the real bag and set
 // only the fields they exercise).
 export const seedOptions = () => {
-  options = OptionsManagement.OPTION_KEYS.reduce(
-    (acc, val) => Object.assign(acc, { [val.name]: val.default }),
-    {},
-  );
+  // Mutate the shared bag in place (it's a `const` leaf export now) so every
+  // module's live reference stays valid across a re-seed (window.reset)
+  for (const k of Object.keys(options)) {
+    delete options[k];
+  }
+  OptionsManagement.OPTION_KEYS.forEach((val) => {
+    options[val.name] = val.default;
+  });
   return options;
 };

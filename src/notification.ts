@@ -2,7 +2,7 @@
 
 import { DownloadState } from "./download-state.ts";
 import { SessionState } from "./session-state.ts";
-import { options } from "./option.ts";
+import { options } from "./options-data.ts";
 import { CURRENT_BROWSER, BROWSERS } from "./chrome-detector.ts";
 import { Download } from "./download.ts";
 import { SaveHistory } from "./history.ts";

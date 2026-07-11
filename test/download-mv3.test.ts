@@ -242,7 +242,7 @@ describe("onDeterminingFilename listener (Chrome)", () => {
     // options/SessionState must be re-imported here to get the SAME
     // instances that graph resolves to — the pre-reset top-level imports
     // above are a different, stale module instance after the reset.
-    const { options: freshOptions } = await import("../src/option.ts");
+    const { options: freshOptions } = await import("../src/options-data.ts");
     Object.assign(freshOptions, { conflictAction: "uniquify" });
 
     const { SessionState: freshSessionState } = await import("../src/session-state.ts");

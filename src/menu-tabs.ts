@@ -4,7 +4,7 @@
 // global scope.
 
 import { Menus } from "./menu-build.ts";
-import { options } from "./option.ts";
+import { options } from "./options-data.ts";
 import { BROWSER_FEATURES } from "./chrome-detector.ts";
 import { Notifier } from "./notification.ts";
 import { Shortcut } from "./shortcut.ts";

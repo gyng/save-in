@@ -3,7 +3,7 @@
 // drive them directly — options via setOptions() below, Log.add via a spy. Only
 // `chrome` still needs the untyped-global view: it is a genuine ambient global
 // from @types/chrome, too strictly typed to assign a partial stub to.
-import { options } from "../src/option.ts";
+import { options } from "../src/options-data.ts";
 import { Log } from "../src/log.ts";
 import { RequestHeaders } from "../src/headers.ts";
 

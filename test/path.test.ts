@@ -3,7 +3,8 @@ import { PATH_SEGMENT_TYPES } from "../src/constants.ts";
 // path.ts reads options.replacementChar at call time; import the real options
 // bag and mutate it. Seeding is deferred out of module eval (Task #2), so seed
 // the defaults here (replacementChar "_") the way the entry does at startup.
-import { options, seedOptions } from "../src/option.ts";
+import { options } from "../src/options-data.ts";
+import { seedOptions } from "../src/option.ts";
 
 seedOptions();
 

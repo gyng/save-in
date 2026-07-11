@@ -1,4 +1,5 @@
-import { OptionsManagement, options } from "./option.ts";
+import { OptionsManagement } from "./option.ts";
+import { options } from "./options-data.ts";
 import { DownloadState } from "./download-state.ts";
 import { Menus } from "./menu-build.ts";
 import { Util } from "./util.ts";

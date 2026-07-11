@@ -1,4 +1,4 @@
-import { options } from "./option.ts";
+import { options } from "./options-data.ts";
 import { Util } from "./util.ts";
 import { Log } from "./log.ts";
 

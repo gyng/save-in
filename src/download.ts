@@ -12,7 +12,7 @@ import { Path } from "./path.ts";
 import { Variable } from "./variable.ts";
 import { SaveHistory } from "./history.ts";
 import { Messaging } from "./messaging.ts";
-import { options } from "./option.ts";
+import { options } from "./options-data.ts";
 import { CURRENT_BROWSER, BROWSERS } from "./chrome-detector.ts";
 import { getFilenameFromContentDispositionHeader } from "./vendor/content-disposition.ts";
 

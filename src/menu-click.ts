@@ -11,7 +11,7 @@ import { Download } from "./download.ts";
 import { Notifier } from "./notification.ts";
 import { BROWSER_FEATURES } from "./chrome-detector.ts";
 import { Shortcut } from "./shortcut.ts";
-import { options } from "./option.ts";
+import { options } from "./options-data.ts";
 import { currentTab } from "./current-tab.ts";
 
 // Pure decision: what does a click on a path item save? Returns the download

@@ -1,5 +1,5 @@
 import { Download } from "../src/download.ts";
-import { options } from "../src/option.ts";
+import { options } from "../src/options-data.ts";
 
 test("extension detection regex", () => {
   const match = "abc.xyz".match(Download.EXTENSION_REGEX);

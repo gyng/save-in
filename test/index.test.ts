@@ -39,7 +39,8 @@ const setupGlobals = async ({
   tabsQueryResult = [],
 } = {}) => {
   ({ Menus } = await import("../src/menu-build.ts"));
-  ({ options, OptionsManagement } = await import("../src/option.ts"));
+  ({ OptionsManagement } = await import("../src/option.ts"));
+  ({ options } = await import("../src/options-data.ts"));
   ({ Log } = await import("../src/log.ts"));
 
   // menu-click.ts/menu-tabs.ts are mocked to no-ops above, so the methods

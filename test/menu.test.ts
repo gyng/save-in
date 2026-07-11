@@ -23,7 +23,7 @@ import { Menus as menu } from "../src/menu-build.ts";
 import "../src/menu-click.ts";
 import "../src/menu-tabs.ts";
 import { SPECIAL_DIRS, MEDIA_TYPES } from "../src/constants.ts";
-import { options } from "../src/option.ts";
+import { options } from "../src/options-data.ts";
 
 describe("menu parsing", () => {
   test("parses comments for metadata", () => {

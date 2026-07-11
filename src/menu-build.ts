@@ -4,7 +4,7 @@
 // both extend this Menus object via the shared global scope.
 
 import { BROWSER_FEATURES } from "./chrome-detector.ts";
-import { options } from "./option.ts";
+import { options } from "./options-data.ts";
 import { MEDIA_TYPES, SPECIAL_DIRS } from "./constants.ts";
 import { Path } from "./path.ts";
 

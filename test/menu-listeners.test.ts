@@ -77,7 +77,7 @@ const importMenus = async () => {
   const { Menus } = await import("../src/menu-build.ts");
   await import("../src/menu-click.ts");
   await import("../src/menu-tabs.ts");
-  ({ options } = await import("../src/option.ts"));
+  ({ options } = await import("../src/options-data.ts"));
   ({ Download } = await import("../src/download.ts"));
   ({ Notifier } = await import("../src/notification.ts"));
   ({ Shortcut } = await import("../src/shortcut.ts"));

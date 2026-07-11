@@ -58,7 +58,7 @@ global.browser = {
 // Importing download.ts loads the rest of the (real) cyclic module graph;
 // grab the same singleton instances it binds to.
 const { Download, registerDownloadListener } = await import("../src/download.ts");
-const { options } = await import("../src/option.ts");
+const { options } = await import("../src/options-data.ts");
 const { Router } = await import("../src/router.ts");
 const { Variable } = await import("../src/variable.ts");
 const { Notifier } = await import("../src/notification.ts");
