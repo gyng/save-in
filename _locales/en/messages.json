@@ -720,6 +720,8 @@
     "message": "Validation is temporarily unavailable. "
   },
   "o_bRetryValidation": { "message": "Retry validation" },
+  "o_lAutosaveFailed": { "message": "Could not save this setting. " },
+  "o_bRetrySave": { "message": "Retry save" },
   "o_lNoValidationErrors": { "message": "No validation errors" },
   "o_lValidationSummary": {
     "message": "$ERRORS$ errors, $WARNINGS$ warnings",

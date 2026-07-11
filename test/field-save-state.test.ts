@@ -1,0 +1,25 @@
+import { createFieldSaveState } from "../src/options/field-save-state.ts";
+
+describe("per-field save state", () => {
+  test("one successful field cannot clear another dirty field", () => {
+    const state = createFieldSaveState();
+    state.markDirty("a");
+    state.markDirty("b");
+    const a = state.begin("a");
+    state.succeed("a", a);
+    expect(state.hasUnsaved()).toBe(true);
+    expect(state.unsavedIds()).toEqual(["b"]);
+  });
+
+  test("ignores stale completion from an older save generation", () => {
+    const state = createFieldSaveState();
+    state.markDirty("a");
+    const old = state.begin("a");
+    state.markDirty("a");
+    const current = state.begin("a");
+    state.succeed("a", old);
+    expect(state.hasUnsaved()).toBe(true);
+    state.fail("a", current);
+    expect(state.status("a")).toBe("failed");
+  });
+});

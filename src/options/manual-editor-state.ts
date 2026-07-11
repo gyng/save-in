@@ -146,6 +146,11 @@ export const createManualEditorState = (unsavedLabel: string) => {
     const editor = find(id);
     if (!editor) return false;
     if (typeof appliedValue === "string") editor.textarea.value = appliedValue;
+    if (typeof appliedValue !== "undefined") {
+      editor.textarea.dispatchEvent(
+        new CustomEvent("options-value-applied", { bubbles: true, detail: appliedValue }),
+      );
+    }
     editor.saved = editor.textarea.value;
     editor.saving = false;
     editor.statuses.forEach((status) => {
@@ -158,6 +163,10 @@ export const createManualEditorState = (unsavedLabel: string) => {
   };
 
   const anyDirty = () => editors.some((editor) => editor.textarea.value !== editor.saved);
+  const dirtyIds = () =>
+    editors
+      .filter((editor) => editor.textarea.value !== editor.saved)
+      .map((editor) => editor.textarea.id);
 
   const discard = (id: string) => {
     const editor = editors.find((candidate) => candidate.textarea.id === id);
@@ -173,6 +182,7 @@ export const createManualEditorState = (unsavedLabel: string) => {
     setup,
     refreshBaselines,
     anyDirty,
+    dirtyIds,
     discard,
     setValidity,
     setValidationPending,

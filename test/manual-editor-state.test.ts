@@ -44,6 +44,15 @@ describe("manual editor state", () => {
     expect(state.discard("missing")).toBe(false);
   });
 
+  test("reports dirty editor ids for scoped save-before-navigation", () => {
+    const state = createManualEditorState("Unsaved changes");
+    state.setup("paths");
+    const textarea = document.querySelector("textarea")!;
+    textarea.value = "changed";
+    textarea.dispatchEvent(new InputEvent("input"));
+    expect(state.dirtyIds()).toEqual(["paths"]);
+  });
+
   test("Ctrl/Cmd+Enter applies and Ctrl/Cmd+Escape discards", () => {
     const state = createManualEditorState("Unsaved changes");
     state.setup("paths");
@@ -110,11 +119,14 @@ describe("manual editor state", () => {
     expect(document.querySelector<HTMLElement>(".editor-save-status")!.textContent).toBe("Saving…");
     state.setSaving("paths", false);
     expect(state.anyDirty()).toBe(true);
+    const applied = vi.fn();
+    textarea.addEventListener("options-value-applied", applied);
     state.markSaved("paths", "Saved", "normalized");
     expect(state.anyDirty()).toBe(false);
     expect(textarea.value).toBe("normalized");
     expect(document.querySelector<HTMLElement>(".editor-save-status")!.textContent).toBe("Saved");
     expect(document.querySelector<HTMLElement>(".editor-save-status")!.hidden).toBe(false);
+    expect(applied).toHaveBeenCalledOnce();
   });
 
   test("validation failure clears pending state and exposes retry without enabling Apply", () => {

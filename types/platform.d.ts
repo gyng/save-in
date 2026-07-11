@@ -16,7 +16,7 @@ interface Window {
     filenamePatterns: OptionError[];
   };
   lastDownloadState?: import("../src/download-types.ts").DownloadPipelineState | null;
-  confirmPendingChanges?: () => void;
+  confirmPendingChanges?: () => boolean | Promise<boolean>;
 }
 
 // Experimental WebMCP host surface, not yet present in lib.dom.

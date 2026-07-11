@@ -5,12 +5,12 @@ const { collectSections, headingLabel, setupTabs, TAB_STORAGE_KEY } = Tabs;
 const buildForm = () => {
   document.body.innerHTML = `
     <form id="options">
-      <h2>Downloads</h2>
+      <h2 id="section-downloads">Downloads</h2>
       <label id="opt-a"><input id="a" type="checkbox"></label>
       <div id="downloads-extra">extra</div>
-      <h2>Notifications</h2>
+      <h2 id="section-notifications">Notifications</h2>
       <label id="opt-b"><input id="b" type="checkbox"></label>
-      <h2>Shortcuts</h2>
+      <h2 id="section-shortcuts">Shortcuts</h2>
       <label id="opt-c"><input id="c" type="checkbox"></label>
     </form>`;
   return document.getElementById("options") as HTMLFormElement;
@@ -27,6 +27,7 @@ describe("collectSections", () => {
       "Shortcuts",
     ]);
     expect(sections[0].nodes.map((n) => n.id).filter(Boolean)).toEqual([
+      "section-downloads",
       "opt-a",
       "downloads-extra",
     ]);
@@ -95,6 +96,20 @@ describe("setupTabs", () => {
     expect(panels[0].classList.contains("active")).toBe(false);
     expect(panels[1].classList.contains("active")).toBe(true);
     expect(tabs[1].getAttribute("aria-selected")).toBe("true");
+    expect(tabs[1].getAttribute("aria-controls")).toBe(panels[1].id);
+    expect(panels[1].getAttribute("aria-labelledby")).toBe(tabs[1].id);
+  });
+
+  test("Home and End move to the first and last tab", () => {
+    const tabs = [...document.querySelectorAll<HTMLElement>('[role="tab"]')];
+
+    tabs[0].dispatchEvent(new window.KeyboardEvent("keydown", { key: "End", bubbles: true }));
+    expect(document.activeElement).toBe(tabs.at(-1));
+    expect(tabs.at(-1)?.getAttribute("aria-selected")).toBe("true");
+
+    tabs.at(-1)?.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Home", bubbles: true }));
+    expect(document.activeElement).toBe(tabs[0]);
+    expect(tabs[0].getAttribute("aria-selected")).toBe("true");
   });
 
   test("remembers the selected tab across setups", () => {
@@ -106,6 +121,25 @@ describe("setupTabs", () => {
 
     const panels = document.querySelectorAll(".tab-panel");
     expect(panels[2].classList.contains("active")).toBe(true);
+  });
+
+  test("persists a stable section id instead of a positional index", () => {
+    document.querySelectorAll<HTMLElement>(".tablist .tab")[1].click();
+    expect(localStorage.getItem(TAB_STORAGE_KEY)).toBe("section-notifications");
+  });
+
+  test("migrates the legacy numeric tab index", () => {
+    buildForm();
+    const headings = document.querySelectorAll("h2");
+    headings[0].id = "section-downloads";
+    headings[1].id = "section-notifications";
+    headings[2].id = "section-shortcuts";
+    localStorage.setItem(TAB_STORAGE_KEY, "2");
+
+    setupTabs();
+
+    expect(document.querySelectorAll<HTMLElement>('[role="tab"]')[2].ariaSelected).toBe("true");
+    expect(localStorage.getItem(TAB_STORAGE_KEY)).toBe("section-shortcuts");
   });
 
   test("arrow keys move between tabs", () => {
@@ -150,7 +184,7 @@ describe("unsaved-changes guard on tab switch", () => {
   });
 
   test("calls the guard when switching to a different tab", () => {
-    window.confirmPendingChanges = vi.fn();
+    window.confirmPendingChanges = vi.fn(() => true);
     const tabs = document.querySelectorAll<HTMLElement>(".tablist .tab");
 
     tabs[1].click();
@@ -162,6 +196,30 @@ describe("unsaved-changes guard on tab switch", () => {
 
     tabs[0].click();
     expect(window.confirmPendingChanges).toHaveBeenCalledTimes(2);
+  });
+
+  test("stays on the current tab when the unsaved-changes guard declines", () => {
+    window.confirmPendingChanges = vi.fn(() => false);
+    const tabs = document.querySelectorAll<HTMLElement>(".tablist .tab");
+    const panels = document.querySelectorAll(".tab-panel");
+
+    tabs[1].click();
+
+    expect(tabs[0].getAttribute("aria-selected")).toBe("true");
+    expect(panels[0].classList.contains("active")).toBe(true);
+    expect(panels[1].classList.contains("active")).toBe(false);
+  });
+
+  test("waits for an asynchronous save guard before switching", async () => {
+    let finish!: (allowed: boolean) => void;
+    window.confirmPendingChanges = vi.fn(
+      () => new Promise<boolean>((resolve) => (finish = resolve)),
+    ) as any;
+    const tabs = document.querySelectorAll<HTMLElement>(".tablist .tab");
+    tabs[1].click();
+    expect(tabs[0].getAttribute("aria-selected")).toBe("true");
+    finish(true);
+    await vi.waitFor(() => expect(tabs[1].getAttribute("aria-selected")).toBe("true"));
   });
 
   test("still switches when no guard is registered", () => {

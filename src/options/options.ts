@@ -14,6 +14,8 @@ import { isStringKeyedRecord } from "../background/message-protocol.ts";
 import { createManualEditorState } from "./manual-editor-state.ts";
 import { createLatestOnly } from "./latest-only.ts";
 import { assertApplySucceeded, collectOptionConfig, getAppliedValue } from "./options-save.ts";
+import { createFieldSaveState } from "./field-save-state.ts";
+import { setupOptionDependencies } from "./options-dependencies.ts";
 
 type JsonRecord = Record<string, any>;
 type OptionSchema = {
@@ -160,12 +162,21 @@ const errorChannel = (panel: Element, name: string) => {
   return channel;
 };
 
+const updateErrorSummary = (panel: Element) => {
+  panel.setAttribute(
+    "aria-label",
+    panel.textContent?.trim() ||
+      webExtensionApi.i18n.getMessage("o_lNoValidationErrors") ||
+      "No validation errors",
+  );
+};
+
 // Validate the (possibly unsaved) editor contents live and render both error
 // panels — VALIDATE dry-runs both grammars, so the panels track the menu
 // preview (which also validates live) instead of the last-saved state.
 const validationRequests = createLatestOnly(
-  (body: { paths: string; filenamePatterns: string }) =>
-    webExtensionApi.runtime.sendMessage({ type: "VALIDATE", body }),
+  (request: { body: { paths: string; filenamePatterns: string }; initiator?: string }) =>
+    webExtensionApi.runtime.sendMessage({ type: "VALIDATE", body: request.body }),
   (res: any) => {
     const body = (res && res.body) || {};
     const pathsErrors = document.querySelector("#error-paths");
@@ -175,22 +186,14 @@ const validationRequests = createLatestOnly(
       const signature = JSON.stringify(errors);
       if (channel.getAttribute("data-validation-signature") === signature) return;
       channel.setAttribute("data-validation-signature", signature);
-      panel.setAttribute(
-        "aria-label",
-        errors.length === 0
-          ? webExtensionApi.i18n.getMessage("o_lNoValidationErrors") || "No validation errors"
-          : webExtensionApi.i18n.getMessage("o_lValidationSummary", [
-              String(errors.filter((error) => !error.warning).length),
-              String(errors.filter((error) => error.warning).length),
-            ]) ||
-              `${errors.filter((error) => !error.warning).length} errors, ${errors.filter((error) => error.warning).length} warnings`,
-      );
       channel.innerHTML = "";
       errors.forEach((error) => channel.appendChild(renderErrorRow(error, textareaId)));
+      updateErrorSummary(panel);
     };
     if (pathsErrors) {
       errorChannel(pathsErrors, "validation-service").innerHTML = "";
       updatePanel(pathsErrors, body.pathErrors || [], "#paths");
+      updateErrorSummary(pathsErrors);
       manualEditorState.setValidity(
         "paths",
         !(body.pathErrors || []).some((err: ValidationError) => !err.warning),
@@ -199,14 +202,15 @@ const validationRequests = createLatestOnly(
     if (rulesErrors) {
       errorChannel(rulesErrors, "validation-service").innerHTML = "";
       updatePanel(rulesErrors, body.ruleErrors || [], "#filenamePatterns");
+      updateErrorSummary(rulesErrors);
       manualEditorState.setValidity(
         "filenamePatterns",
         !(body.ruleErrors || []).some((err: ValidationError) => !err.warning),
       );
     }
   },
-  () => {
-    ["paths", "filenamePatterns"].forEach((id) => {
+  (_error, request) => {
+    (request.initiator ? [request.initiator] : ["paths", "filenamePatterns"]).forEach((id) => {
       manualEditorState.setValidationUnavailable(id);
       const panel = document.querySelector(`#error-${id}`);
       if (!panel) return;
@@ -217,21 +221,20 @@ const validationRequests = createLatestOnly(
       retry.textContent =
         webExtensionApi.i18n.getMessage("o_bRetryValidation") || "Retry validation";
       retry.addEventListener("click", () => {
-        ["paths", "filenamePatterns"].forEach((editorId) =>
-          manualEditorState.setValidationPending(editorId),
-        );
-        renderValidationErrors();
+        manualEditorState.setValidationPending(id);
+        renderValidationErrors(id);
       });
       channel.append(
         webExtensionApi.i18n.getMessage("o_lValidationUnavailable") ||
           "Validation is temporarily unavailable. ",
         retry,
       );
+      updateErrorSummary(panel);
     });
   },
 );
 
-const renderValidationErrors = () => {
+const renderValidationErrors = (initiator?: string) => {
   const pathsTa = document.querySelector("#paths");
   const rulesTa = document.querySelector("#filenamePatterns");
   const pathsErrors = document.querySelector("#error-paths");
@@ -242,8 +245,11 @@ const renderValidationErrors = () => {
 
   void validationRequests
     .run({
-      paths: pathsTa instanceof HTMLTextAreaElement ? pathsTa.value : "",
-      filenamePatterns: rulesTa instanceof HTMLTextAreaElement ? rulesTa.value : "",
+      initiator,
+      body: {
+        paths: pathsTa instanceof HTMLTextAreaElement ? pathsTa.value : "",
+        filenamePatterns: rulesTa instanceof HTMLTextAreaElement ? rulesTa.value : "",
+      },
     })
     .catch(() => {}); // background not awake yet; the next edit retries
 };
@@ -545,7 +551,6 @@ const saveOptions = (e?: Event, scope?: string): Promise<any> => {
       .sendMessage({ type: "APPLY_CONFIG", body: { config } })
       .then((response) => {
         assertApplySucceeded(response);
-        pendingChanges = false;
         const lastSavedAt = document.querySelector("#lastSavedAt");
         if (lastSavedAt) {
           lastSavedAt.textContent = new Date().toLocaleTimeString();
@@ -601,6 +606,7 @@ const restoreOptionsHandler = (result: JsonRecord, schema: OptionSchema) => {
   updateMenuPreview();
   // Stored values are now in the editors: they are clean, Apply dims
   refreshManualEditorBaselines();
+  updateOptionDependencies();
 };
 
 const restoreOptions = () =>
@@ -701,12 +707,12 @@ const AUTOSAVE_DEBOUNCE_MS = 400;
 
 // True between a textarea edit and the debounced save that persists it;
 // closing the page or switching tabs in that window would drop the edit
-let pendingChanges = false;
+const fieldSaveState = createFieldSaveState();
 // Scheduled autosave timers, so a Discard can cancel them before they fire
 const pendingSaveTimers = new Set<number>();
 
 window.addEventListener("beforeunload", (e) => {
-  if (pendingChanges || anyManualEditorDirty()) {
+  if (fieldSaveState.hasUnsaved() || anyManualEditorDirty()) {
     e.preventDefault();
     e.returnValue = "";
   }
@@ -724,10 +730,9 @@ const refreshManualEditorBaselines = manualEditorState.refreshBaselines;
 const anyManualEditorDirty = manualEditorState.anyDirty;
 
 // Called before an in-page tab switch (main tabs don't unload the page, so
-// beforeunload never fires): prompt to save or discard editor changes that
-// haven't been persisted yet. OK = save now, Cancel = revert to stored.
+// beforeunload never fires). OK starts a save; Cancel keeps the editor open.
 window.confirmPendingChanges = () => {
-  if (!pendingChanges && !anyManualEditorDirty()) {
+  if (!fieldSaveState.hasUnsaved() && !anyManualEditorDirty()) {
     return true;
   }
   // Literal fallback: getMessage returns "" if the extension context was
@@ -739,13 +744,53 @@ window.confirmPendingChanges = () => {
   // eslint-disable-next-line no-alert
   const save = window.confirm(message);
   if (save) {
-    void saveOptions().catch(() => {
-      pendingChanges = true;
-    });
-    return true;
+    pendingSaveTimers.forEach((timer) => window.clearTimeout(timer));
+    pendingSaveTimers.clear();
+    const ids = [...new Set([...fieldSaveState.unsavedIds(), ...manualEditorState.dirtyIds()])];
+    return Promise.all(
+      ids.map(async (id) => {
+        const token = fieldSaveState.begin(id);
+        try {
+          const response = await saveOptions(undefined, id);
+          fieldSaveState.succeed(id, token);
+          if (manualEditorState.dirtyIds().includes(id)) {
+            manualEditorState.markSaved(
+              id,
+              webExtensionApi.i18n.getMessage("o_lSaved") || "Saved",
+              getAppliedValue(response, id),
+            );
+          }
+          return true;
+        } catch {
+          fieldSaveState.fail(id, token);
+          return false;
+        }
+      }),
+    ).then((results) => results.every(Boolean));
   } else {
     return false;
   }
+};
+
+const clearAutosaveFailure = (element: Element) => {
+  element.parentElement?.querySelector(`[data-autosave-error="${element.id}"]`)?.remove();
+};
+
+const showAutosaveFailure = (element: Element, retrySave: () => void) => {
+  clearAutosaveFailure(element);
+  const status = document.createElement("span");
+  status.className = "autosave-error";
+  status.dataset.autosaveError = element.id;
+  status.setAttribute("role", "alert");
+  status.append(
+    webExtensionApi.i18n.getMessage("o_lAutosaveFailed") || "Could not save this setting. ",
+  );
+  const retry = document.createElement("button");
+  retry.type = "button";
+  retry.textContent = webExtensionApi.i18n.getMessage("o_bRetrySave") || "Retry save";
+  retry.addEventListener("click", retrySave);
+  status.appendChild(retry);
+  element.insertAdjacentElement("afterend", status);
 };
 
 const setupAutosave = (el: Element) => {
@@ -784,16 +829,24 @@ const setupAutosave = (el: Element) => {
   };
 
   const doSave = (e?: Event) => {
-    void saveOptions(e, el.id).catch(() => {
-      pendingChanges = true;
-    });
-    window.setTimeout(updateErrors, 200);
-    showSavedIndicator();
+    const token = fieldSaveState.begin(el.id);
+    void saveOptions(e, el.id)
+      .then(() => {
+        if (fieldSaveState.succeed(el.id, token)) {
+          clearAutosaveFailure(el);
+          showSavedIndicator();
+        }
+        window.setTimeout(updateErrors, 200);
+      })
+      .catch(() => {
+        fieldSaveState.fail(el.id, token);
+        showAutosaveFailure(el, () => doSave());
+      });
   };
 
   if (el.type === "textarea") {
     el.addEventListener("input", () => {
-      pendingChanges = true;
+      fieldSaveState.markDirty(el.id);
       if (debounceTimer !== null) {
         window.clearTimeout(debounceTimer);
         pendingSaveTimers.delete(debounceTimer);
@@ -818,9 +871,15 @@ const setupAutosave = (el: Element) => {
       doSave();
     });
   } else if (["text", "number"].includes(el.type)) {
-    el.addEventListener("input", doSave);
+    el.addEventListener("input", (event) => {
+      fieldSaveState.markDirty(el.id);
+      doSave(event);
+    });
   } else {
-    el.addEventListener("change", doSave);
+    el.addEventListener("change", (event) => {
+      fieldSaveState.markDirty(el.id);
+      doSave(event);
+    });
   }
 };
 
@@ -980,7 +1039,7 @@ const updateMenuPreview = () => {
     previewTimer = window.setTimeout(() => {
       previewTimer = null;
       updateMenuPreview();
-      renderValidationErrors();
+      renderValidationErrors("paths");
     }, MENU_PREVIEW_DEBOUNCE_MS);
   });
 })();
@@ -1000,7 +1059,7 @@ const updateMenuPreview = () => {
     }
     timer = window.setTimeout(() => {
       timer = null;
-      renderValidationErrors();
+      renderValidationErrors("filenamePatterns");
     }, MENU_PREVIEW_DEBOUNCE_MS);
   });
 })();
@@ -1199,7 +1258,11 @@ document.querySelectorAll("[data-apply]").forEach((button) => {
         webExtensionApi.i18n.getMessage("o_lSaved") || "Saved",
         getAppliedValue(response, id),
       );
-      errorChannel(document.querySelector(`#error-${id}`)!, "persistence").innerHTML = "";
+      const errorPanel = document.querySelector(`#error-${id}`);
+      if (errorPanel) {
+        errorChannel(errorPanel, "persistence").innerHTML = "";
+        updateErrorSummary(errorPanel);
+      }
       window.setTimeout(() => {
         updateErrors();
         updateMenuPreview();
@@ -1221,6 +1284,7 @@ document.querySelectorAll("[data-apply]").forEach((button) => {
             `#${id}`,
           ),
         );
+        updateErrorSummary(panel);
       }
     }
   });
@@ -1283,6 +1347,8 @@ const importSettings = () => {
   load(window);
 };
 document.querySelector("#settings-import")?.addEventListener("click", importSettings);
+
+const updateOptionDependencies = setupOptionDependencies();
 
 // Detection can complete synchronously (Chrome), so this must be defined
 // after setupChromeDisables
