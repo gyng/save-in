@@ -1,6 +1,6 @@
 export const EXTENSION_REGEX = /\.(?!\d+$)([0-9a-z]{1,8})$/i;
 
-export const getFilenameFromUrl = (url) => {
+export const getFilenameFromUrl = (url: string): string => {
   let segment;
   try {
     const remotePath = new URL(url).pathname;

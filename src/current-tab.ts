@@ -8,8 +8,10 @@
 // Reassigned only here (via setCurrentTab); readers import a read-only live
 // binding. index.ts's tab listeners call setCurrentTab to update it.
 
-export let currentTab = null;
+export type CurrentTab = Partial<browser.tabs.Tab>;
 
-export const setCurrentTab = (tab) => {
+export let currentTab: CurrentTab | null = null;
+
+export const setCurrentTab = (tab: CurrentTab | null): void => {
   currentTab = tab;
 };

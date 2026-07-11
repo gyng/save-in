@@ -1,4 +1,5 @@
 import type { ContentFetchResult } from "./content-fetch-types.ts";
+import type { CurrentTab } from "./current-tab.ts";
 
 export type PathValue = {
   finalize: () => string;
@@ -6,7 +7,7 @@ export type PathValue = {
 };
 
 export type DownloadInfo = {
-  currentTab?: browser.tabs.Tab | null;
+  currentTab?: CurrentTab | null;
   linkText?: string;
   now?: Date;
   pageUrl?: string;
