@@ -14,7 +14,11 @@ import type { SessionWriteState } from "../src/background/session-state.ts";
 
 test("download stages expose distinct state contracts", () => {
   expectTypeOf<DownloadPlan>().toHaveProperty("state").toEqualTypeOf<DownloadPipelineState>();
-  expectTypeOf<AcquiredDownload>().toEqualTypeOf<{ url: string; viaFetch: boolean }>();
+  expectTypeOf<AcquiredDownload>().toEqualTypeOf<{
+    url: string;
+    source: "direct" | "fetched" | "fetch-fallback-direct";
+    ownedObjectUrl?: string;
+  }>();
   expectTypeOf<FinalizableDownloadState>().toMatchTypeOf<{
     path: DownloadPipelineState["path"];
     info: DownloadPipelineState["info"];

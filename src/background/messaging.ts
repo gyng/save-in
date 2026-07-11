@@ -10,7 +10,6 @@ import { OptionsManagement } from "../config/option.ts";
 import { options } from "../config/options-data.ts";
 import { buildTree } from "./menu-build.ts";
 import { matcherFunctions, parseRulesCollecting } from "../routing/router.ts";
-import { Notifier } from "../downloads/notification.ts";
 import { Download } from "../downloads/download.ts";
 import { currentTab } from "../platform/current-tab.ts";
 import { DownloadEvents } from "../downloads/download-events.ts";
@@ -349,7 +348,6 @@ export const Messaging = {
       },
     };
 
-    Notifier.expectDownload();
     // Fire-and-forget async (the OK below acknowledges acceptance, not
     // completion); Download.launch logs and reports a terminal failure
     Download.launch(clickState);

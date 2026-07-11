@@ -1,6 +1,7 @@
 export type ContentFetchResult = {
   sha256: string;
   downloadUrl: string;
+  ownedObjectUrl?: string;
 };
 
 export type BlobContent = {

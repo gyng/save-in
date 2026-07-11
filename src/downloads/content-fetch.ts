@@ -53,10 +53,16 @@ export const resolveContent = (url: string): Promise<ContentFetchResult | null> 
     .then((blob) => {
       if (!blob || blob.size > HASH_MAX_BYTES) return null;
       return blob.arrayBuffer().then((buf) =>
-        crypto.subtle.digest("SHA-256", buf).then((digest) => ({
-          sha256: [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join(""),
-          downloadUrl: URL.createObjectURL(blob),
-        })),
+        crypto.subtle.digest("SHA-256", buf).then((digest) => {
+          const downloadUrl = URL.createObjectURL(blob);
+          return {
+            sha256: [...new Uint8Array(digest)]
+              .map((b) => b.toString(16).padStart(2, "0"))
+              .join(""),
+            downloadUrl,
+            ownedObjectUrl: downloadUrl,
+          };
+        }),
       );
     })
     .catch((): ContentFetchResult | null => null)

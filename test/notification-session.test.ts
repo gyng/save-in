@@ -675,6 +675,33 @@ describe("expectDownload", () => {
 
     expect(adoptedIds(sessionStore)).toEqual([1, 2]);
   });
+
+  test("matches expected downloads by URL and supports cancellation", async () => {
+    jest.resetModules();
+    const sessionStore = {};
+    setupGlobals(sessionStore, () => []);
+    await loadNotification();
+
+    const cancelled = Notifier.expectDownload("https://x/cancelled.png");
+    Notifier.cancelExpectedDownload(cancelled);
+    Notifier.expectDownload("https://x/ours.png");
+
+    await Notifier.onDownloadCreated({
+      id: 1,
+      byExtensionId: "save-in",
+      url: "https://x/other.png",
+      filename: "/dl/other.png",
+    });
+    expect(adoptedIds(sessionStore)).toEqual([]);
+
+    await Notifier.onDownloadCreated({
+      id: 2,
+      byExtensionId: "save-in",
+      url: "https://x/ours.png",
+      filename: "/dl/ours.png",
+    });
+    expect(adoptedIds(sessionStore)).toEqual([2]);
+  });
 });
 
 describe("automatic fetch fallback gating", () => {

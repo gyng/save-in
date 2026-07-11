@@ -263,7 +263,6 @@ export const addDownloadListener = () => {
         info: opts,
       };
 
-      Notifier.expectDownload();
       // Fire-and-forget (renameAndDownload is async); Download.launch logs and
       // reports a terminal failure to the user
       Download.launch(state);

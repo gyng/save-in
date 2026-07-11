@@ -935,7 +935,6 @@ describe("addTabMenuListener tabstrip downloads", () => {
     expect(state.info.suggestedFilename).toBeNull();
     expect(state.needRouteMatch).toBe(false);
     expect(state.path.raw).toBe(".");
-    expect(Notifier.expectDownload).toHaveBeenCalled();
   });
 
   test("SELECTED_MULTIPLE_TABS staggers downloads of the highlighted tabs", async () => {

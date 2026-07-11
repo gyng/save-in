@@ -5,7 +5,6 @@ import { webExtensionApi } from "../platform/web-extension-api.ts";
 import { MENU_IDS } from "./menu-build.ts";
 import { options } from "../config/options-data.ts";
 import { WEB_EXTENSION_CAPABILITIES } from "../platform/chrome-detector.ts";
-import { Notifier } from "../downloads/notification.ts";
 import { Shortcut } from "../downloads/shortcut.ts";
 import { DOWNLOAD_TYPES } from "../shared/constants.ts";
 import { Path } from "../routing/path.ts";
@@ -122,8 +121,6 @@ export const addTabMenuListener = () => {
 
         tabs.forEach((t, i) => {
           window.setTimeout(() => {
-            Notifier.expectDownload();
-
             let url = t.url;
             let suggestedFilename = null;
 

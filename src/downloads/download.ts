@@ -50,6 +50,23 @@ const requireDownloadUrl = (state: Pick<DownloadPipelineState, "info">): string 
   return state.info.url;
 };
 
+type FinalFilenameMap = Record<string, string | string[]>;
+const filenameQueue = (value: string | string[] | undefined): string[] =>
+  Array.isArray(value) ? value : typeof value === "string" ? [value] : [];
+const enqueueFilename = (map: FinalFilenameMap | undefined, url: string, filename: string) => {
+  const queue = [...filenameQueue(map?.[url]), filename];
+  return { ...map, [url]: queue.length === 1 ? queue[0] : queue };
+};
+const removeFilename = (map: FinalFilenameMap | undefined, url: string, filename?: string) => {
+  const copy = { ...map };
+  const queue = filenameQueue(copy[url]);
+  const index = filename == null ? 0 : queue.indexOf(filename);
+  if (index >= 0) queue.splice(index, 1);
+  if (queue.length) copy[url] = queue.length === 1 ? queue[0] : queue;
+  else delete copy[url];
+  return copy;
+};
+
 const recordDownloadRequest = (plan: DownloadPlan): void => {
   const { state } = plan;
   Log.add("download requested", {
@@ -72,12 +89,14 @@ export const Download = {
   // url -> state for in-flight downloads, so onDeterminingFilename (Chrome)
   // and the referer listener (Firefox) attribute the right state when two
   // downloads overlap (e.g. tab-strip batch saves)
-  pendingStates: new Map<string, DownloadPipelineState>(),
+  pendingStates: new Map<string, DownloadPipelineState[]>(),
 
   rememberPendingState: (state: DownloadPipelineState) => {
     globalChromeState = state;
     if (state.info && state.info.url) {
-      Download.pendingStates.set(state.info.url, state);
+      const queue = Download.pendingStates.get(state.info.url) || [];
+      queue.push(state);
+      Download.pendingStates.set(state.info.url, queue);
       // Bounded: Firefox has no onDeterminingFilename to consume entries
       if (Download.pendingStates.size > 50) {
         const oldest = Download.pendingStates.keys().next().value;
@@ -98,105 +117,100 @@ export const Download = {
   // onDeterminingFilename suggests the intended path instead of falling
   // back to an unrelated pending state
   pendingRetryFilenames: new Map<string, string>(),
+  ownedObjectUrls: new Map<number, string>(),
+  generatedObjectUrls: new Set<string>(),
 
   // Automatic fallback chain: a browser-initiated download that failed with
   // a network/server error is retried once through a background fetch
   // (host permissions exempt extension-context fetches from CORS, and the
   // referer rule is re-armed). Resolves true when a retry was started.
-  retryViaFetch: (downloadId: number) =>
-    Download.getStartedDownload(downloadId).then((record) => {
-      if (!record || record.retried || record.viaFetch || options.fallbackFetch === false) {
-        return false;
-      }
-      if (!record.url || !record.filename) {
-        return false;
-      }
-      const { filename, url } = record;
-      // Persist the retry guard (merge the full record so a persisted-only hit
-      // keeps its other fields) so a second failure after a worker restart can't
-      // retry the same download twice
-      record.retried = true;
-      mergeStartedDownload(downloadId, record);
+  retryViaFetch: async (downloadId: number): Promise<boolean> => {
+    const record = await Download.getStartedDownload(downloadId);
+    if (!record || record.retried || record.viaFetch || options.fallbackFetch === false) {
+      return false;
+    }
+    if (!record.url || !record.filename) {
+      return false;
+    }
+    const { filename, url } = record;
+    // Persist the retry guard (merge the full record so a persisted-only hit
+    // keeps its other fields) so a second failure after a worker restart can't
+    // retry the same download twice
+    record.retried = true;
+    await mergeStartedDownload(downloadId, record);
 
-      return RequestHeaders.prepareReferer({ info: { url, pageUrl: record.pageUrl } })
-        .then(() => fetch(url, { credentials: "include" }))
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-          }
-          return response.blob();
-        })
-        .then((blob) => makeUrlFromBlob(blob))
-        .then((blobUrl) => {
-          Download.pendingRetryFilenames.set(blobUrl, filename);
-          // expectDownload so the retry download is tracked via the in-memory
-          // path (not the session-restart fallback) — that keeps the pending
-          // counter balanced against the cleanup below
-          Notifier.expectDownload();
-          return Promise.all([
-            updateSession<number>(
-              BackgroundState.sessionWrites,
-              extensionSessionStorage,
-              "siPendingDownloads",
-              (n) => Math.max(0, (n || 0) + 1),
-            ),
-            updateSession<Record<string, string>>(
-              BackgroundState.sessionWrites,
-              extensionSessionStorage,
-              "siFinalFilenames",
-              (m) => Object.assign({}, m, { [blobUrl]: filename }),
-            ),
-          ])
-            .then(() =>
-              webExtensionApi.downloads.download({
-                url: blobUrl,
-                filename,
-                conflictAction: record.conflictAction,
-              }),
-            )
-            .then((newId) =>
-              // The retry is our download too: adopt it so its completion
-              // notifies and its outcome updates the same history entry
-              Download.rememberStartedDownload(
-                newId,
-                Object.assign({}, record, { viaFetch: true, adopted: true }),
-              ),
-            )
-            .then(() =>
-              Promise.all([
-                updateSession<number>(
-                  BackgroundState.sessionWrites,
-                  extensionSessionStorage,
-                  "siPendingDownloads",
-                  (n) => Math.max(0, (n || 0) - 1),
-                ),
-                updateSession<Record<string, string>>(
-                  BackgroundState.sessionWrites,
-                  extensionSessionStorage,
-                  "siFinalFilenames",
-                  (m) => {
-                    const copy = Object.assign({}, m);
-                    delete copy[blobUrl];
-                    return copy;
-                  },
-                ),
-              ]),
-            )
-            .then(() => true);
-        })
-        .catch((e) => {
-          Log.add("fallback fetch failed", String(e));
-          return false;
-        });
-    }),
+    let blobUrl: string | undefined;
+    let expected: ReturnType<typeof Notifier.expectDownload> | undefined;
+    let newId: number | undefined;
+    try {
+      await RequestHeaders.prepareReferer({ info: { url, pageUrl: record.pageUrl } });
+      const response = await fetch(url, { credentials: "include" });
+      if (response.ok === false) throw new Error(`HTTP ${response.status}`);
+      blobUrl = await makeUrlFromBlob(await response.blob());
+      Download.pendingRetryFilenames.set(blobUrl, filename);
+      expected = Notifier.expectDownload(blobUrl);
+      await Promise.all([
+        updateSession<number>(
+          BackgroundState.sessionWrites,
+          extensionSessionStorage,
+          "siPendingDownloads",
+          (n) => Math.max(0, (n || 0) + 1),
+        ),
+        updateSession<FinalFilenameMap>(
+          BackgroundState.sessionWrites,
+          extensionSessionStorage,
+          "siFinalFilenames",
+          (m) => enqueueFilename(m, blobUrl!, filename),
+        ),
+      ]);
+      newId = await webExtensionApi.downloads.download({
+        url: blobUrl,
+        filename,
+        conflictAction: record.conflictAction,
+      });
+      Notifier.cancelExpectedDownload(expected);
+      expected = undefined;
+      if (blobUrl.startsWith("blob:")) Download.ownedObjectUrls.set(newId, blobUrl);
+      await Download.rememberStartedDownload(
+        newId,
+        Object.assign({}, record, { viaFetch: true, adopted: true }),
+      );
+      return true;
+    } catch (e) {
+      if (expected) Notifier.cancelExpectedDownload(expected);
+      if (blobUrl?.startsWith("blob:") && newId == null) URL.revokeObjectURL(blobUrl);
+      Log.add("fallback fetch failed", String(e));
+      return false;
+    } finally {
+      if (blobUrl) {
+        Download.pendingRetryFilenames.delete(blobUrl);
+        await Promise.all([
+          updateSession<number>(
+            BackgroundState.sessionWrites,
+            extensionSessionStorage,
+            "siPendingDownloads",
+            (n) => Math.max(0, (n || 0) - 1),
+          ),
+          updateSession<FinalFilenameMap>(
+            BackgroundState.sessionWrites,
+            extensionSessionStorage,
+            "siFinalFilenames",
+            (m) => removeFilename(m, blobUrl!, filename),
+          ),
+        ]);
+      }
+    }
+  },
 
   makeObjectUrl: (content: string, mime = "text/plain"): string => {
     if (typeof URL.createObjectURL === "function") {
-      return URL.createObjectURL(
+      const objectUrl = URL.createObjectURL(
         new Blob([content], {
           type: `${mime};charset=utf-8`,
         }),
       );
+      Download.generatedObjectUrls.add(objectUrl);
+      return objectUrl;
     }
 
     // MV3 service workers have no URL.createObjectURL: use a data URL
@@ -285,8 +299,8 @@ export const Download = {
   // Single entry point for firing a download from a menu/message click:
   // fire-and-forget (renameAndDownload is async) but with one place that both
   // logs and surfaces a terminal pipeline failure to the user. Callers still
-  // call Notifier.expectDownload() themselves (the tab-strip batch stages it
-  // separately from the per-tab launch).
+  // Browser-attempt ownership is registered later, immediately around
+  // downloads.download(), so planning failures cannot leak an expectation.
   launch: (state: DownloadPipelineState): Promise<void> =>
     Download.renameAndDownload(state).catch((e) => {
       Log.add("renameAndDownload failed", String(e));
@@ -299,10 +313,33 @@ export const Download = {
     const naiveFilename = getFilenameFromUrl(url);
     const initialFilename = state.info.suggestedFilename || naiveFilename || url;
     Object.assign(state.info, { naiveFilename, filename: initialFilename, initialFilename });
+    if (state.path instanceof Path && typeof state.path.raw === "string") {
+      state.scratch.pathTemplateRaw = state.path.raw;
+    }
 
     // This must precede the first await so onDeterminingFilename can correlate
     // a download even when variable interpolation yields control.
     Download.rememberPendingState(state);
+
+    // Firefox resolves a server-provided filename before finalizing the plan.
+    // Chrome must defer this to onDeterminingFilename, which runs after the
+    // browser download starts.
+    if (!WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion) {
+      try {
+        const response = await fetch(url, {
+          method: "HEAD",
+          credentials: "include",
+        });
+        if (response.headers.has("Content-Disposition")) {
+          const dispositionName = Download.getFilenameFromContentDisposition(
+            response.headers.get("Content-Disposition"),
+          );
+          state.info.filename = dispositionName || state.info.filename;
+        }
+      } catch {
+        // HEAD is best-effort; acquisition still proceeds with the resolved name.
+      }
+    }
 
     state.path = await applyVariables(state.path, state.info);
     const routeMatches = Download.getRoutingMatches(state);
@@ -322,25 +359,6 @@ export const Download = {
       if (tentative && !EXTENSION_REGEX.test(tentative)) {
         const ext = mimeToExtension(await resolveMime(state.info));
         if (ext) state.scratch.mimeExtension = ext;
-      }
-    }
-    // Firefox resolves a server-provided filename before finalizing the plan.
-    // Chrome must defer this to onDeterminingFilename, which runs after the
-    // browser download starts.
-    if (!WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion) {
-      try {
-        const response = await fetch(url, {
-          method: "HEAD",
-          credentials: "include",
-        });
-        if (response.headers.has("Content-Disposition")) {
-          const dispositionName = Download.getFilenameFromContentDisposition(
-            response.headers.get("Content-Disposition"),
-          );
-          state.info.filename = dispositionName || state.info.filename;
-        }
-      } catch {
-        // HEAD is best-effort; acquisition still proceeds with the resolved name.
       }
     }
 
@@ -369,6 +387,7 @@ export const Download = {
         context: state.info.context,
       },
     });
+    state.scratch.historyEntryId = historyEntryId;
 
     return { state, finalFullPath, prompt, historyEntryId };
   },
@@ -376,19 +395,25 @@ export const Download = {
   acquireFetchedUrl: async (url: string): Promise<AcquiredDownload> => {
     if (OffscreenClient.canUse()) {
       try {
-        return { url: await OffscreenClient.fetch(url), viaFetch: true };
+        return { url: await OffscreenClient.fetch(url), source: "fetched" };
       } catch (e) {
         Log.add("offscreen fetch failed", String(e));
-        return { url, viaFetch: true };
+        return { url, source: "fetch-fallback-direct" };
       }
     }
 
     try {
       const response = await fetch(url, { credentials: "include" });
-      return { url: await makeUrlFromBlob(await response.blob()), viaFetch: true };
+      if (response.ok === false) throw new Error(`HTTP ${response.status}`);
+      const objectUrl = await makeUrlFromBlob(await response.blob());
+      return {
+        url: objectUrl,
+        source: "fetched",
+        ownedObjectUrl: objectUrl.startsWith("blob:") ? objectUrl : undefined,
+      };
     } catch (e) {
       Log.add("fetch download failed", String(e));
-      return { url, viaFetch: true };
+      return { url, source: "fetch-fallback-direct" };
     }
   },
 
@@ -396,11 +421,18 @@ export const Download = {
     const { state } = plan;
     if (state.info.contentPromise) {
       const content = await state.info.contentPromise;
-      if (content && content.downloadUrl) return { url: content.downloadUrl, viaFetch: true };
+      if (content && content.downloadUrl) {
+        return {
+          url: content.downloadUrl,
+          source: "fetched",
+          ownedObjectUrl: content.ownedObjectUrl,
+        };
+      }
     }
     const url = requireDownloadUrl(state);
     if (options.fetchViaFetch) return Download.acquireFetchedUrl(url);
-    return { url, viaFetch: false };
+    const ownedObjectUrl = Download.generatedObjectUrls.delete(url) ? url : undefined;
+    return { url, source: "direct", ownedObjectUrl };
   },
 
   executeBrowserDownload: async (plan: DownloadPlan, acquired: AcquiredDownload): Promise<void> => {
@@ -414,14 +446,15 @@ export const Download = {
         "siPendingDownloads",
         (n) => Math.max(0, (n || 0) + 1),
       ),
-      updateSession<Record<string, string>>(
+      updateSession<FinalFilenameMap>(
         BackgroundState.sessionWrites,
         extensionSessionStorage,
         "siFinalFilenames",
-        (m) => Object.assign({}, m, { [acquired.url]: filename }),
+        (m) => enqueueFilename(m, acquired.url, filename),
       ),
     ]);
 
+    const expected = Notifier.expectDownload(acquired.url);
     try {
       const downloadId = await webExtensionApi.downloads.download({
         url: acquired.url,
@@ -429,23 +462,30 @@ export const Download = {
         saveAs: prompt,
         conflictAction: options.conflictAction,
       });
+      Notifier.cancelExpectedDownload(expected);
+      if (acquired.ownedObjectUrl) {
+        Download.ownedObjectUrls.set(downloadId, acquired.ownedObjectUrl);
+      }
       await Download.rememberStartedDownload(downloadId, {
         url: state.info.url,
         pageUrl: state.info.pageUrl,
         filename,
         conflictAction: options.conflictAction,
-        viaFetch: acquired.viaFetch,
+        viaFetch: acquired.source === "fetched",
         retried: false,
         historyEntryId,
         adopted: true,
       });
       if (historyEntryId) SaveHistory.setDownloadId(historyEntryId, downloadId);
     } catch (e) {
+      Notifier.cancelExpectedDownload(expected);
+      if (acquired.ownedObjectUrl) URL.revokeObjectURL(acquired.ownedObjectUrl);
       Log.add("downloads.download failed", String(e));
-      if (!acquired.viaFetch && options.fallbackFetch !== false) {
+      if (acquired.source === "direct" && options.fallbackFetch !== false) {
         const fallback = await Download.acquireFetchedUrl(requireDownloadUrl(state));
         await Download.executeBrowserDownload(plan, fallback);
       } else {
+        await SaveHistory.setStatus(historyEntryId, "DOWNLOAD_API_FAILED");
         Notifier.reportFailure(finalFullPath || state.info.url || "", String(e));
       }
     } finally {
@@ -456,15 +496,11 @@ export const Download = {
           "siPendingDownloads",
           (n) => Math.max(0, (n || 0) - 1),
         ),
-        updateSession<Record<string, string>>(
+        updateSession<FinalFilenameMap>(
           BackgroundState.sessionWrites,
           extensionSessionStorage,
           "siFinalFilenames",
-          (m) => {
-            const copy = Object.assign({}, m);
-            delete copy[acquired.url];
-            return copy;
-          },
+          (m) => removeFilename(m, acquired.url, filename),
         ),
       ]);
     }
@@ -475,7 +511,11 @@ export const Download = {
   // path/route interpolation here before the download is safe.
   renameAndDownload: async (state: DownloadPipelineState): Promise<void> => {
     const plan = await Download.resolveDownloadPlan(state);
-    if (!plan) return;
+    if (!plan) {
+      const url = state.info.url;
+      if (url && Download.generatedObjectUrls.delete(url)) URL.revokeObjectURL(url);
+      return;
+    }
 
     recordDownloadRequest(plan);
     const acquired = await Download.acquireDownloadUrl(plan);
@@ -506,6 +546,13 @@ export const Download = {
 // onDeterminingFilename listener is attached before any download event fires.
 export const registerDownloadListener = () => {
   DownloadRetry.retry = Download.retryViaFetch;
+  webExtensionApi.downloads?.onChanged?.addListener((delta) => {
+    if (delta.state?.current !== "complete" && !delta.error) return;
+    const objectUrl = Download.ownedObjectUrls.get(delta.id);
+    if (!objectUrl) return;
+    Download.ownedObjectUrls.delete(delta.id);
+    URL.revokeObjectURL(objectUrl);
+  });
   if (WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion) {
     chrome.downloads.onDeterminingFilename.addListener((downloadItem, suggest) => {
       // Don't interfere with other extensions
@@ -527,50 +574,79 @@ export const registerDownloadListener = () => {
 
       // Correlate by URL so overlapping downloads each get their own state;
       // the most-recent state is the fallback for uncorrelatable items
-      const pendingState =
+      const pendingQueue =
         Download.pendingStates.get(downloadItem.url) ||
-        Download.pendingStates.get(downloadItem.finalUrl) ||
-        globalChromeState;
-      Download.pendingStates.delete(downloadItem.url);
-      Download.pendingStates.delete(downloadItem.finalUrl);
+        Download.pendingStates.get(downloadItem.finalUrl);
+      const pendingState = pendingQueue?.shift() || globalChromeState;
+      if (pendingQueue?.length === 0) {
+        Download.pendingStates.delete(downloadItem.url);
+        Download.pendingStates.delete(downloadItem.finalUrl);
+      }
 
       // In-memory state is lost if the MV3 service worker restarted between
       // requesting the download and this event: recover the persisted filename,
       // keyed by download URL so overlapping downloads each get their own name
       if (!pendingState || !pendingState.path) {
-        getSession<Record<string, string>>(extensionSessionStorage, "siFinalFilenames").then(
-          (res) => {
-            const map = res.siFinalFilenames || {};
-            const recovered = map[downloadItem.url] || map[downloadItem.finalUrl];
-            if (recovered) {
-              updateSession<Record<string, string>>(
-                BackgroundState.sessionWrites,
-                extensionSessionStorage,
-                "siFinalFilenames",
-                (m) => {
-                  const copy = Object.assign({}, m);
-                  delete copy[downloadItem.url];
-                  delete copy[downloadItem.finalUrl];
-                  return copy;
-                },
-              );
-              suggest({
-                filename: recovered,
-                conflictAction: options.conflictAction,
-              });
-            } else {
-              suggest();
-            }
-          },
-        );
+        getSession<FinalFilenameMap>(extensionSessionStorage, "siFinalFilenames").then((res) => {
+          const map = res.siFinalFilenames || {};
+          const recoveredUrl = map[downloadItem.url]
+            ? downloadItem.url
+            : map[downloadItem.finalUrl]
+              ? downloadItem.finalUrl
+              : undefined;
+          const recovered = recoveredUrl ? filenameQueue(map[recoveredUrl])[0] : undefined;
+          if (recovered) {
+            updateSession<FinalFilenameMap>(
+              BackgroundState.sessionWrites,
+              extensionSessionStorage,
+              "siFinalFilenames",
+              (m) => removeFilename(m, recoveredUrl!, recovered),
+            );
+            suggest({
+              filename: recovered,
+              conflictAction: options.conflictAction,
+            });
+          } else {
+            suggest();
+          }
+        });
         return true; // suggest is called asynchronously
       }
 
       pendingState.info = pendingState.info || {};
+      const previousFilename = pendingState.info.filename;
       pendingState.info.filename =
         (pendingState.info && pendingState.info.suggestedFilename) ||
         downloadItem.filename ||
         (pendingState.info && pendingState.info.filename);
+
+      const pathTemplateRaw = pendingState.scratch?.pathTemplateRaw;
+      const filenameChanged = pendingState.info.filename !== previousFilename;
+      const needsActualFilenameResolution =
+        filenameChanged &&
+        ((Array.isArray(options.filenamePatterns) && options.filenamePatterns.length > 0) ||
+          (typeof pathTemplateRaw === "string" && /:(?:filename|fileext):/.test(pathTemplateRaw)));
+      if (needsActualFilenameResolution) {
+        void (async () => {
+          if (typeof pathTemplateRaw === "string") {
+            pendingState.path = await applyVariables(new Path(pathTemplateRaw), pendingState.info);
+          }
+          const routeMatches = Download.getRoutingMatches(pendingState);
+          pendingState.route = undefined;
+          pendingState.routeIsFolder = false;
+          if (routeMatches) {
+            pendingState.routeIsFolder = /\/\s*$/.test(routeMatches);
+            pendingState.route = await applyVariables(new Path(routeMatches), pendingState.info);
+          }
+          const filename = Download.finalizeFullPath(pendingState);
+          const historyEntryId = pendingState.scratch?.historyEntryId;
+          if (typeof historyEntryId === "string") {
+            void SaveHistory.patch(historyEntryId, { finalFullPath: filename });
+          }
+          suggest({ filename, conflictAction: options.conflictAction });
+        })();
+        return true;
+      }
 
       suggest({
         filename: Download.finalizeFullPath(pendingState),

@@ -54,7 +54,7 @@ const setupGlobals = () => {
   vi.spyOn(Download, "renameAndDownload").mockResolvedValue(undefined);
   // Download.launch stays real: it just calls renameAndDownload (the rejection
   // path it also handles is covered in download-flow.test).
-  vi.spyOn(Notifier, "expectDownload").mockImplementation(() => {});
+  vi.spyOn(Notifier, "expectDownload").mockImplementation((url?: string) => ({ url }));
   vi.spyOn(Menus, "buildTree").mockImplementation((paths: string[]) => ({
     items: paths.map((path, index) => ({
       kind: "path",
@@ -300,7 +300,6 @@ describe("handleDownloadMessage", () => {
     const sendResponse = vi.fn();
     onMessage(request(), {}, sendResponse);
 
-    expect(Notifier.expectDownload).toHaveBeenCalled();
     expect(Download.renameAndDownload).toHaveBeenCalledTimes(1);
 
     const state = vi.mocked(Download.renameAndDownload).mock.calls[0][0];

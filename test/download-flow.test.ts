@@ -54,7 +54,10 @@ const hostBrowser = global.browser;
 Object.assign(hostBrowser, {
   runtime: { id: "self-extension-id" },
   i18n: { getMessage: vi.fn((key: string) => key) },
-  downloads: { download: vi.fn(() => Promise.resolve(101)) },
+  downloads: {
+    download: vi.fn(() => Promise.resolve(101)),
+    onChanged: { addListener: vi.fn() },
+  },
 } as any);
 
 // Importing download.ts loads the rest of the (real) cyclic module graph;
@@ -78,6 +81,9 @@ const { setCurrentBrowser } = await import("../src/platform/chrome-detector.ts")
 registerDownloadListener();
 const [[capturedListener]] = vi.mocked(
   (global.chrome as any).downloads.onDeterminingFilename.addListener,
+).mock.calls;
+const [[capturedDownloadChangedListener]] = vi.mocked(
+  (hostBrowser.downloads as any).onChanged.addListener,
 ).mock.calls;
 
 const makeState = (overrides: Record<string, any> = {}): any => ({
@@ -119,7 +125,7 @@ beforeEach(() => {
 
   vi.spyOn(Notifier, "createExtensionNotification").mockImplementation(() => {});
   vi.spyOn(Notifier, "reportFailure").mockImplementation(() => {});
-  vi.spyOn(Notifier, "expectDownload").mockImplementation(() => {});
+  vi.spyOn(Notifier, "expectDownload").mockImplementation((url?: string) => ({ url }));
 
   vi.spyOn(RequestHeaders, "prepareReferer").mockResolvedValue(undefined);
 
@@ -142,6 +148,7 @@ beforeEach(() => {
   // record carries a truthy historyEntryId
   vi.spyOn(SaveHistory, "add").mockReturnValue("h-test");
   vi.spyOn(SaveHistory, "setDownloadId").mockImplementation(() => Promise.resolve());
+  vi.spyOn(SaveHistory, "setStatus").mockImplementation(() => Promise.resolve());
   vi.spyOn(Log, "add").mockImplementation(() => Promise.resolve());
 
   // Reset the emit stub between tests (it is a mock-factory vi.fn, not a spy)
@@ -177,7 +184,11 @@ describe("pipeline stages", () => {
       prompt: false,
       historyEntryId: "h-test",
     };
-    const acquired = { url: "blob:resolved", viaFetch: true };
+    const acquired = {
+      url: "blob:resolved",
+      source: "fetched" as const,
+      ownedObjectUrl: "blob:resolved",
+    };
 
     vi.spyOn(Download, "resolveDownloadPlan").mockImplementation(async () => {
       calls.push("resolve");
@@ -412,6 +423,28 @@ describe("renameAndDownload: Chrome vs Firefox entry", () => {
     expect(state.info.filename).toBe("server-name.pdf");
     expect(global.browser.downloads.download).toHaveBeenCalledWith(
       expect.objectContaining({ filename: expect.stringContaining("server-name.pdf") }),
+    );
+  });
+
+  test("Firefox matches filename rules after resolving Content-Disposition", async () => {
+    setCurrentBrowser("FIREFOX");
+    options.filenamePatterns = [routingRule()];
+    vi.mocked(getFilenameFromContentDispositionHeader).mockReturnValue("server-name.pdf");
+    global.fetch = vi.fn(() =>
+      Promise.resolve({
+        headers: { has: () => true, get: () => 'attachment; filename="server-name.pdf"' },
+      }),
+    ) as any;
+    vi.mocked(router.matchRules).mockImplementation((_rules, info) =>
+      info.filename === "server-name.pdf" ? "pdf/:filename:" : null,
+    );
+
+    const state = makeState();
+    await Download.renameAndDownload(state);
+
+    expect(router.matchRules).toHaveBeenCalledWith(options.filenamePatterns, state.info);
+    expect(global.browser.downloads.download).toHaveBeenCalledWith(
+      expect.objectContaining({ filename: "downloads/pdf/server-name.pdf" }),
     );
   });
 
@@ -682,11 +715,13 @@ describe("renameAndDownload: fetchViaFetch", () => {
     global.fetch = vi.fn(() =>
       Promise.resolve({ blob: () => Promise.resolve(new Blob(["file contents"])) }),
     ) as any;
+    vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:fetched-content");
 
     const state = makeState();
     await Download.renameAndDownload(state);
 
     expect(global.fetch).toHaveBeenCalledWith(state.info.url, { credentials: "include" });
+    expect(Log.add).not.toHaveBeenCalledWith("fetch download failed", expect.anything());
     expect(global.browser.downloads.download).toHaveBeenCalledWith(
       expect.objectContaining({ url: expect.stringMatching(/^blob:/) }),
     );
@@ -866,6 +901,32 @@ describe("onDeterminingFilename listener: sync path", () => {
     });
   });
 
+  test("reevaluates filename rules with Chrome's actual filename", async () => {
+    setCurrentBrowser("CHROME");
+    options.filenamePatterns = [routingRule()];
+    vi.mocked(router.matchRules).mockImplementation((_rules, info) =>
+      info.filename === "server-name.pdf" ? "pdf/:filename:" : null,
+    );
+    const state = makeState({ path: new Path.Path("downloads") });
+    await Download.renameAndDownload(state);
+
+    const suggest = vi.fn();
+    const returned = capturedListener(
+      {
+        byExtensionId: global.browser.runtime.id,
+        url: state.info.url,
+        filename: "server-name.pdf",
+      },
+      suggest,
+    );
+    expect(returned).toBe(true);
+    await vi.waitFor(() =>
+      expect(suggest).toHaveBeenCalledWith(
+        expect.objectContaining({ filename: "downloads/pdf/server-name.pdf" }),
+      ),
+    );
+  });
+
   test("keeps the state's filename when the download item has none", async () => {
     setCurrentBrowser("CHROME");
     const state = makeState();
@@ -960,6 +1021,25 @@ describe("concurrent downloads (pendingStates)", () => {
     expect(suggestB).toHaveBeenCalledWith(expect.objectContaining({ filename: "dirB/b.png" }));
   });
 
+  test("same-URL downloads are consumed in request order", () => {
+    Download.rememberPendingState(makeState("https://x/same.png", "dirA", "a.png"));
+    Download.rememberPendingState(makeState("https://x/same.png", "dirB", "b.png"));
+
+    const suggestA = vi.fn();
+    listener(
+      { byExtensionId: "self-extension-id", url: "https://x/same.png", filename: "a.png" },
+      suggestA,
+    );
+    expect(suggestA).toHaveBeenCalledWith(expect.objectContaining({ filename: "dirA/a.png" }));
+
+    const suggestB = vi.fn();
+    listener(
+      { byExtensionId: "self-extension-id", url: "https://x/same.png", filename: "b.png" },
+      suggestB,
+    );
+    expect(suggestB).toHaveBeenCalledWith(expect.objectContaining({ filename: "dirB/b.png" }));
+  });
+
   test("consumed entries are removed and the map stays bounded", () => {
     Download.renameAndDownload(makeState("https://x/a.png", "dirA", "a.png"));
     listener({ byExtensionId: "self-extension-id", url: "https://x/a.png" }, vi.fn());
@@ -1020,6 +1100,19 @@ describe("terminal browserDownload failure surfaces to the user", () => {
       expect.any(String),
       expect.stringContaining("disk full"),
     );
+    expect(SaveHistory.setStatus).toHaveBeenCalledWith("h-test", "DOWNLOAD_API_FAILED");
+  });
+});
+
+describe("owned object URL lifecycle", () => {
+  test("revokes an owned object URL when its browser download terminates", () => {
+    vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {});
+    Download.ownedObjectUrls.set(404, "blob:owned-download");
+
+    capturedDownloadChangedListener({ id: 404, state: { current: "complete" } });
+
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:owned-download");
+    expect(Download.ownedObjectUrls.has(404)).toBe(false);
   });
 });
 
@@ -1079,6 +1172,33 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
 
     // Only one retry per download
     await expect(Download.retryViaFetch(101)).resolves.toBe(false);
+  });
+
+  test("cleans pending retry state when the browser rejects the retry", async () => {
+    await seedStartedDownload();
+    vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:retry-rejected");
+    vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {});
+    global.fetch = vi.fn(() =>
+      Promise.resolve({ ok: true, blob: () => Promise.resolve(new Blob(["bytes"])) }),
+    ) as any;
+    (global.browser.downloads as any).download = vi.fn(() => Promise.reject(new Error("denied")));
+
+    await expect(Download.retryViaFetch(101)).resolves.toBe(false);
+
+    expect(sessionStore.siPendingDownloads).toBe(0);
+    expect(sessionStore.siFinalFilenames).toEqual({});
+    expect(Download.pendingRetryFilenames.has("blob:retry-rejected")).toBe(false);
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:retry-rejected");
+  });
+
+  test("does not save an HTTP error body as fetched content", async () => {
+    global.fetch = vi.fn(() => Promise.resolve({ ok: false, status: 503, blob: vi.fn() })) as any;
+
+    await expect(Download.acquireFetchedUrl("https://x/error")).resolves.toEqual({
+      url: "https://x/error",
+      source: "fetch-fallback-direct",
+    });
+    expect(Log.add).toHaveBeenCalledWith("fetch download failed", "Error: HTTP 503");
   });
 
   test("survives a service worker restart: retry works from the persisted record", async () => {

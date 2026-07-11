@@ -24,10 +24,11 @@ const ERROR_ICON_URL = "icons/notification-error.svg";
 // browser's actual path (Chrome only reveals it via onChanged deltas) for the
 // notification body, distinct from the record's intended `filename`.
 
-// How many downloads this extension has requested that downloads.onCreated
-// has not yet seen. A counter (not a boolean) so concurrent downloads are
-// all picked up. Incremented via Notifier.expectDownload().
-let expectedDownloads = 0;
+// Downloads handed to downloads.download that onCreated has not yet seen.
+// URL correlation prevents a rejected or unrelated request from consuming a
+// different attempt; the persisted counter remains the worker-restart fallback.
+type ExpectedDownload = { url?: string };
+const expectedDownloads: ExpectedDownload[] = [];
 
 // A leftover siPendingDownloads (persisted before downloads.download) lets a
 // download that was in flight when the worker died recover its notification.
@@ -167,8 +168,15 @@ export const Notifier = {
   // global at event time, after awaiting init.
   // Call before webExtensionApi.downloads.download() so onDownloadCreated knows
   // the next created download is ours
-  expectDownload: () => {
-    expectedDownloads += 1;
+  expectDownload: (url?: string): ExpectedDownload => {
+    const expected = { url };
+    expectedDownloads.push(expected);
+    return expected;
+  },
+
+  cancelExpectedDownload: (expected: ExpectedDownload): void => {
+    const index = expectedDownloads.indexOf(expected);
+    if (index !== -1) expectedDownloads.splice(index, 1);
   },
 
   onDownloadCreated: async (item: browser.downloads.DownloadItem) => {
@@ -189,8 +197,12 @@ export const Notifier = {
       return;
     }
 
-    if (expectedDownloads > 0) {
-      expectedDownloads -= 1;
+    const finalUrl = (item as browser.downloads.DownloadItem & { finalUrl?: string }).finalUrl;
+    const expectedIndex = expectedDownloads.findIndex(
+      (expected) => expected.url == null || expected.url === item.url || expected.url === finalUrl,
+    );
+    if (expectedIndex !== -1) {
+      expectedDownloads.splice(expectedIndex, 1);
       await mergeTrackedDownload(item.id, {
         adopted: true,
         currentFilename: item.filename,

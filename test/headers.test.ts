@@ -136,6 +136,8 @@ describe("prepareReferer (declarativeNetRequest path)", () => {
 
   test("creates a session rule setting Referer to the page URL", async () => {
     jest.useFakeTimers();
+    const originalId = global.browser.runtime.id;
+    Object.defineProperty(global.browser.runtime, "id", { value: "save-in", configurable: true });
     await RequestHeaders.prepareReferer(state);
 
     const { calls } = g.chrome.declarativeNetRequest.updateSessionRules.mock;
@@ -148,7 +150,14 @@ describe("prepareReferer (declarativeNetRequest path)", () => {
       value: "https://www.pixiv.net/artworks/123",
     });
     // Scoped to the source host so a same-host signed-URL redirect still matches
-    expect(rules.addRules[0].condition).toEqual({ requestDomains: ["i.pximg.net"] });
+    expect(rules.addRules[0].condition).toEqual({
+      requestDomains: ["i.pximg.net"],
+      initiatorDomains: ["save-in"],
+    });
+    Object.defineProperty(global.browser.runtime, "id", {
+      value: originalId,
+      configurable: true,
+    });
   });
 
   test("removes the rule after a delay", async () => {

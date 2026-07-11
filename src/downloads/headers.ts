@@ -1,4 +1,5 @@
 import { options } from "../config/options-data.ts";
+import { webExtensionApi } from "../platform/web-extension-api.ts";
 import { splitLines, withUrl } from "../shared/util.ts";
 import { Log } from "../background/log.ts";
 import type { DownloadInfo } from "./download-types.ts";
@@ -97,7 +98,16 @@ export const RequestHeaders = {
               type: "modifyHeaders",
               requestHeaders: [{ header: "Referer", operation: "set", value: pageUrl }],
             },
-            condition: host ? { requestDomains: [host] } : { urlFilter: url },
+            condition: {
+              ...(host ? { requestDomains: [host] } : { urlFilter: url }),
+              // A session rule scoped only to the CDN host could rewrite
+              // unrelated tab traffic during its cleanup window. Downloads
+              // initiated by this extension carry its runtime id as their
+              // initiator domain in both supported MV3 implementations.
+              ...(webExtensionApi.runtime.id
+                ? { initiatorDomains: [webExtensionApi.runtime.id] }
+                : {}),
+            },
           },
         ],
       })

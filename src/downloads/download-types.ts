@@ -51,7 +51,8 @@ export type DownloadPlan = {
 
 export type AcquiredDownload = {
   url: string;
-  viaFetch: boolean;
+  source: "direct" | "fetched" | "fetch-fallback-direct";
+  ownedObjectUrl?: string;
 };
 
 export type FinalizableDownloadState = Pick<DownloadPipelineState, "path" | "info"> &

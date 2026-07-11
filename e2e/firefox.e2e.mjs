@@ -145,10 +145,13 @@ test("referer option creates a declarativeNetRequest session rule", async () => 
         },
       })
       .then(() => chrome.declarativeNetRequest.getSessionRules())
-      .then((r) => JSON.stringify(r.map((rule) => rule.action.requestHeaders[0].value)));
+      .then((r) => JSON.stringify(r.map((rule) => ({
+        value: rule.action.requestHeaders[0].value,
+        scopedToExtension: rule.condition.initiatorDomains.includes(chrome.runtime.id),
+      }))));
     })()`),
   );
-  expect(rules).toEqual(["https://www.pixiv.net/artworks/1"]);
+  expect(rules).toEqual([{ value: "https://www.pixiv.net/artworks/1", scopedToExtension: true }]);
 });
 
 test("routing rules rename and route the download", async () => {
