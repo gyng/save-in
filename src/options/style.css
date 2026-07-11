@@ -187,23 +187,32 @@ body:not(#settings-page) {
 .top-nav {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
+  align-items: center;
   gap: var(--space-4);
   flex-wrap: wrap;
   padding: var(--space-3) var(--space-5);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .top-nav > div:first-child {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: var(--space-2);
+  gap: var(--space-1) var(--space-2);
   min-width: 0;
 }
 
 .save-status {
   color: var(--color-text-muted);
   white-space: nowrap;
+  margin-left: var(--space-1);
+  padding-left: var(--space-3);
+  border-left: 1px solid var(--color-border);
+  font-size: var(--text-sm);
+}
+
+.save-status span {
+  font-size: inherit;
 }
 
 .app-icon {
@@ -215,13 +224,21 @@ body:not(#settings-page) {
 
 .app-title {
   font-weight: 600;
+  font-size: var(--text-lg);
+  letter-spacing: -0.01em;
 }
 
 .version-label {
   margin-left: var(--space-2);
   margin-right: var(--space-1);
   color: var(--grey50);
-  font-size: var(--text-sm);
+  font-size: 12px;
+}
+
+.open-settings-in-window,
+.nav-resources > summary {
+  font-size: 14px;
+  font-weight: 500;
 }
 
 .nav-sep {
@@ -1044,8 +1061,8 @@ input.key {
 .option-search {
   position: relative;
   box-sizing: border-box;
-  flex: 0 1 20rem;
-  width: min(20rem, 32vw);
+  flex: 0 1 19rem;
+  width: min(19rem, 32vw);
   max-width: 100%;
   margin: 0 var(--space-2);
   z-index: 20;
@@ -1056,6 +1073,7 @@ input.key {
   width: 100%;
   max-width: none;
   padding: var(--space-2) var(--space-3);
+  font-size: 14px;
 }
 
 .option-search-results {
@@ -2170,7 +2188,6 @@ code.click-to-copy {
   }
 
   .save-status {
-    width: 100%;
     white-space: normal;
   }
 

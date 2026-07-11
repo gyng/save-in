@@ -2,7 +2,7 @@ import { optionSearchEntries, setupOptionSearch } from "../src/options/option-se
 
 describe("options search", () => {
   beforeEach(() => {
-    document.body.innerHTML = `<nav class="top-nav"><div><a id="popout">Popout</a></div></nav>
+    document.body.innerHTML = `<nav class="top-nav"><div><a id="popout">Popout</a></div><div class="save-status">Last saved</div></nav>
     <form id="options">
       <div class="tablist"><button aria-controls="panel-downloads">Downloads</button></div>
       <section class="tab-panel" id="panel-downloads">
@@ -27,11 +27,12 @@ describe("options search", () => {
     ]);
   });
 
-  test("places the search beside the primary navigation actions", () => {
+  test("swaps search and save status positions in the top navigation", () => {
     setupOptionSearch();
     expect(
-      document.querySelector(".top-nav > div")?.lastElementChild?.querySelector("#option-search"),
+      document.querySelector(".top-nav")?.lastElementChild?.querySelector("#option-search"),
     ).not.toBeNull();
+    expect(document.querySelector(".top-nav > div:first-child > .save-status")).not.toBeNull();
     expect(
       document.getElementById("options")?.contains(document.getElementById("option-search")),
     ).toBe(false);
