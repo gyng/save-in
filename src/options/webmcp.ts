@@ -1,5 +1,22 @@
 import { webExtensionApi } from "../web-extension-api.ts";
 
+type WebMcpInput = Record<string, unknown> | null | undefined;
+type WebMcpMessage = { type: string; body?: unknown };
+type WebMcpSend = (message: WebMcpMessage) => unknown;
+type WebMcpSchema = {
+  type: string;
+  properties: Record<string, unknown>;
+  additionalProperties?: boolean;
+  required?: string[];
+};
+type WebMcpTool = {
+  name: string;
+  description: string;
+  inputSchema: WebMcpSchema;
+  execute: (input?: WebMcpInput) => unknown;
+};
+type WebMcpContext = { registerTool: (tool: WebMcpTool) => unknown };
+
 // EXPERIMENTAL — WebMCP (Chrome origin trial, https://developer.chrome.com/docs/ai/webmcp).
 // Registers save-in's config + download tools on this page's document so an
 // in-browser AI agent can discover and call them. It wraps the same messaging
@@ -10,14 +27,14 @@ import { webExtensionApi } from "../web-extension-api.ts";
 export const SaveInWebMCP = {
   // The imperative API moved from navigator.* to document.* (Chrome 150); try
   // both so this keeps working across the origin trial
-  getModelContext: () =>
-    (typeof document !== "undefined" && document.modelContext) ||
-    (typeof navigator !== "undefined" && navigator.modelContext) ||
-    null,
+  getModelContext: (): WebMcpContext | null =>
+    ((typeof document !== "undefined" && document.modelContext) ||
+      (typeof navigator !== "undefined" && navigator.modelContext) ||
+      null) as WebMcpContext | null,
 
   // `send` messages the background and resolves to the response body; injected
   // so the tools stay testable
-  buildTools: (send) => [
+  buildTools: (send: WebMcpSend): WebMcpTool[] => [
     {
       name: "save_in_get_schema",
       description: "List Save In's configurable options (name, type, default, description).",
@@ -42,7 +59,7 @@ export const SaveInWebMCP = {
           filenamePatterns: { type: "string", description: "Routing / rename rules" },
         },
       },
-      execute: (input) => send({ type: "VALIDATE", body: input || {} }),
+      execute: (input: WebMcpInput) => send({ type: "VALIDATE", body: input || {} }),
     },
     {
       name: "save_in_apply_config",
@@ -58,7 +75,7 @@ export const SaveInWebMCP = {
         },
         required: ["config"],
       },
-      execute: (input) =>
+      execute: (input: WebMcpInput) =>
         send({ type: "APPLY_CONFIG", body: { config: (input && input.config) || {} } }),
     },
     {
@@ -73,7 +90,7 @@ export const SaveInWebMCP = {
         },
         required: ["url"],
       },
-      execute: (input) =>
+      execute: (input: WebMcpInput) =>
         send({
           type: "DOWNLOAD",
           body: {
@@ -85,7 +102,7 @@ export const SaveInWebMCP = {
     },
   ],
 
-  register: (ctx, send) => {
+  register: (ctx: WebMcpContext, send: WebMcpSend): void => {
     SaveInWebMCP.buildTools(send).forEach((tool) => {
       try {
         // registerTool may return a promise; never let a preview-API hiccup
@@ -109,7 +126,7 @@ export const SaveInWebMCP = {
 
   if (ctx && typeof ctx.registerTool === "function" && webExtensionApi) {
     const count = SaveInWebMCP.buildTools(() => {}).length;
-    SaveInWebMCP.register(ctx, (message) =>
+    SaveInWebMCP.register(ctx, (message: WebMcpMessage) =>
       webExtensionApi.runtime.sendMessage(message).then((res) => (res && res.body) || res),
     );
     if (statusEl) {

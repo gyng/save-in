@@ -76,7 +76,7 @@ describe("buildTools", () => {
 describe("auto-registration on import", () => {
   afterEach(() => {
     delete document.modelContext;
-    delete global.browser;
+    Reflect.deleteProperty(global, "browser");
     document.body.innerHTML = "";
   });
 
@@ -92,7 +92,7 @@ describe("auto-registration on import", () => {
     await import("../src/options/webmcp.ts");
 
     expect(registerTool).toHaveBeenCalledTimes(5);
-    expect(document.getElementById("webmcp-status").textContent).toBe(
+    expect(document.getElementById("webmcp-status")?.textContent).toBe(
       "Active — 5 tools registered",
     );
   });
@@ -104,7 +104,7 @@ describe("auto-registration on import", () => {
     vi.resetModules();
     await import("../src/options/webmcp.ts");
 
-    expect(document.getElementById("webmcp-status").textContent).toBe(
+    expect(document.getElementById("webmcp-status")?.textContent).toBe(
       "Not available in this browser",
     );
   });
