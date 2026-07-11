@@ -1,17 +1,38 @@
 import { webExtensionApi } from "../web-extension-api.ts";
 
+export type AutocompleteStrategy = {
+  match: RegExp;
+  suggest: (term: string) => string[];
+  insert: (prefix: string, name: string) => string;
+};
+
+export type AutocompleteResult = {
+  strategy: AutocompleteStrategy;
+  match: RegExpMatchArray;
+  suggestions: string[];
+};
+
+type RoutingKeywords = {
+  matchers: string[];
+  variables: string[];
+};
+
+type KeywordsResponse = { body: RoutingKeywords };
+
+type TextField = HTMLInputElement | HTMLTextAreaElement;
+
 // First-party autocomplete for the paths and rules textareas (replaces the
 // vendored textcomplete library): suggests routing matchers and :variables:
 // as you type, filtered by prefix, inserted with click/Enter/Tab.
 
-export const matcherStrategy = (matcherList) => ({
+export const matcherStrategy = (matcherList: string[]): AutocompleteStrategy => ({
   // A lowercase word at the start of a line: a routing matcher name
   match: /(^|\n)([a-z]+)$/,
   suggest: (term) => matcherList.filter((name) => name.startsWith(term)),
   insert: (prefix, name) => `${prefix}${name}: `,
 });
 
-export const routerVariableStrategy = (variableList) => ({
+export const routerVariableStrategy = (variableList: string[]): AutocompleteStrategy => ({
   // A :variable: being opened in an into: clause. The negative lookbehind keeps
   // the menu to the opening of a token: the ":" must not follow an alphanumeric
   // (so "v1:2" or a bare mid-word colon never triggers), then filter by prefix.
@@ -20,7 +41,7 @@ export const routerVariableStrategy = (variableList) => ({
   insert: (prefix, name) => `${prefix}${name}`,
 });
 
-export const pathVariableStrategy = (variableList) => ({
+export const pathVariableStrategy = (variableList: string[]): AutocompleteStrategy => ({
   // A :variable: being opened in the paths list — same opening/prefix rule: the
   // ":" only triggers at a token boundary (start, "/", whitespace or another
   // ":"), not immediately after a letter or digit
@@ -31,7 +52,10 @@ export const pathVariableStrategy = (variableList) => ({
 
 // Pure: given the text before the caret, returns the first strategy match
 // with its suggestions, or null
-export const suggestFor = (beforeCaret, strategies) => {
+export const suggestFor = (
+  beforeCaret: string,
+  strategies: AutocompleteStrategy[],
+): AutocompleteResult | null => {
   for (const strategy of strategies) {
     const match = beforeCaret.match(strategy.match);
     if (match) {
@@ -47,34 +71,34 @@ export const suggestFor = (beforeCaret, strategies) => {
 // Styles the mirror <div> must copy from the field so wrapping, metrics and
 // the caret position line up with what the browser actually renders
 const MIRROR_PROPS = [
-  "boxSizing",
+  "box-sizing",
   "width",
-  "borderTopWidth",
-  "borderRightWidth",
-  "borderBottomWidth",
-  "borderLeftWidth",
-  "paddingTop",
-  "paddingRight",
-  "paddingBottom",
-  "paddingLeft",
-  "fontStyle",
-  "fontVariant",
-  "fontWeight",
-  "fontStretch",
-  "fontSize",
-  "fontFamily",
-  "lineHeight",
-  "letterSpacing",
-  "wordSpacing",
-  "textIndent",
-  "textTransform",
-  "tabSize",
-];
+  "border-top-width",
+  "border-right-width",
+  "border-bottom-width",
+  "border-left-width",
+  "padding-top",
+  "padding-right",
+  "padding-bottom",
+  "padding-left",
+  "font-style",
+  "font-variant",
+  "font-weight",
+  "font-stretch",
+  "font-size",
+  "font-family",
+  "line-height",
+  "letter-spacing",
+  "word-spacing",
+  "text-indent",
+  "text-transform",
+  "tab-size",
+] as const;
 
 // A <textarea>/<input> exposes no caret pixel coordinates, so mirror its text
 // up to the caret into a hidden div and read where a marker span lands. Returns
 // {top, left, height} relative to the field's border box.
-export const caretCoordinates = (el, position) => {
+export const caretCoordinates = (el: TextField, position: number) => {
   const isInput = el.tagName === "INPUT";
   const computed = getComputedStyle(el);
   const mirror = document.createElement("div");
@@ -88,7 +112,7 @@ export const caretCoordinates = (el, position) => {
   s.whiteSpace = isInput ? "pre" : "pre-wrap";
   s.wordWrap = isInput ? "normal" : "break-word";
   for (const prop of MIRROR_PROPS) {
-    s[prop] = computed[prop];
+    s.setProperty(prop, computed.getPropertyValue(prop));
   }
   document.body.appendChild(mirror);
 
@@ -111,7 +135,12 @@ export const caretCoordinates = (el, position) => {
 };
 
 // Pure: applies a chosen suggestion, returning the new value and caret
-export const applySuggestion = (value, caret, result, chosen) => {
+export const applySuggestion = (
+  value: string,
+  caret: number,
+  result: AutocompleteResult,
+  chosen: string,
+) => {
   const beforeCaret = value.slice(0, caret);
   const start = beforeCaret.length - result.match[0].length;
   const inserted = result.strategy.insert(result.match[1], chosen);
@@ -122,7 +151,7 @@ export const applySuggestion = (value, caret, result, chosen) => {
   };
 };
 
-export const attachAutocomplete = (textarea, strategies) => {
+export const attachAutocomplete = (textarea: TextField, strategies: AutocompleteStrategy[]) => {
   const dropdown = document.createElement("ul");
   dropdown.className = "autocomplete-dropdown";
   dropdown.style.display = "none";
@@ -131,7 +160,7 @@ export const attachAutocomplete = (textarea, strategies) => {
   // field — keep focus so the list stays open and scrollable
   dropdown.addEventListener("mousedown", (e) => e.preventDefault());
 
-  let current = null; // { result, selected }
+  let current: { result: AutocompleteResult; selected: number } | null = null;
 
   const close = () => {
     current = null;
@@ -139,8 +168,12 @@ export const attachAutocomplete = (textarea, strategies) => {
     dropdown.innerHTML = "";
   };
 
-  const accept = (name) => {
-    const applied = applySuggestion(textarea.value, textarea.selectionStart, current.result, name);
+  const accept = (name: string) => {
+    if (!current) {
+      return;
+    }
+    const caret = textarea.selectionStart ?? textarea.value.length;
+    const applied = applySuggestion(textarea.value, caret, current.result, name);
     textarea.value = applied.value;
     textarea.selectionStart = applied.caret;
     textarea.selectionEnd = applied.caret;
@@ -149,11 +182,15 @@ export const attachAutocomplete = (textarea, strategies) => {
   };
 
   const render = () => {
+    if (!current) {
+      return;
+    }
+    const state = current;
     dropdown.innerHTML = "";
-    current.result.suggestions.forEach((name, i) => {
+    state.result.suggestions.forEach((name, i) => {
       const li = document.createElement("li");
       li.textContent = name;
-      if (i === current.selected) {
+      if (i === state.selected) {
         li.classList.add("selected");
       }
       // mousedown so the textarea keeps focus
@@ -166,7 +203,7 @@ export const attachAutocomplete = (textarea, strategies) => {
 
     // Anchor to the caret, not the whole field: measure where the caret sits,
     // add the field's on-screen position, and undo the field's own scroll
-    const caret = caretCoordinates(textarea, textarea.selectionStart);
+    const caret = caretCoordinates(textarea, textarea.selectionStart ?? textarea.value.length);
     const rect = textarea.getBoundingClientRect();
     const caretLeft = rect.left + window.scrollX + caret.left - textarea.scrollLeft;
     const caretTop = rect.top + window.scrollY + caret.top - textarea.scrollTop;
@@ -193,7 +230,8 @@ export const attachAutocomplete = (textarea, strategies) => {
   };
 
   textarea.addEventListener("input", () => {
-    const result = suggestFor(textarea.value.slice(0, textarea.selectionStart), strategies);
+    const selectionStart = textarea.selectionStart ?? textarea.value.length;
+    const result = suggestFor(textarea.value.slice(0, selectionStart), strategies);
     if (result) {
       current = { result, selected: 0 };
       render();
@@ -203,7 +241,7 @@ export const attachAutocomplete = (textarea, strategies) => {
   });
 
   textarea.addEventListener("keydown", (e) => {
-    if (!current) {
+    if (!(e instanceof KeyboardEvent) || !current) {
       return;
     }
 
@@ -236,14 +274,14 @@ export const attachAutocomplete = (textarea, strategies) => {
   });
 };
 
-export const setupRoutingAutocomplete = (keywords) => {
+export const setupRoutingAutocomplete = (keywords: RoutingKeywords) => {
   const pathTextarea = document.getElementById("paths");
-  if (pathTextarea) {
+  if (pathTextarea instanceof HTMLTextAreaElement) {
     attachAutocomplete(pathTextarea, [pathVariableStrategy(keywords.variables)]);
   }
 
   const routerTextarea = document.getElementById("filenamePatterns");
-  if (routerTextarea) {
+  if (routerTextarea instanceof HTMLTextAreaElement) {
     attachAutocomplete(routerTextarea, [
       matcherStrategy([...keywords.matchers, "into"].sort()),
       routerVariableStrategy(keywords.variables),
@@ -253,7 +291,7 @@ export const setupRoutingAutocomplete = (keywords) => {
   // The quick-add builder's destination field is a plain path, so it gets
   // the same :variable: autocomplete as the paths list
   const ruleBuilderInto = document.getElementById("rule-builder-into");
-  if (ruleBuilderInto) {
+  if (ruleBuilderInto instanceof HTMLInputElement) {
     attachAutocomplete(ruleBuilderInto, [pathVariableStrategy(keywords.variables)]);
   }
 };
@@ -261,7 +299,7 @@ export const setupRoutingAutocomplete = (keywords) => {
 if (webExtensionApi?.runtime?.sendMessage) {
   webExtensionApi.runtime
     .sendMessage({ type: "GET_KEYWORDS" })
-    .then((res) => res.body)
+    .then((res: KeywordsResponse) => res.body)
     .then((keywords) =>
       setupRoutingAutocomplete({
         matchers: keywords.matchers.sort(),

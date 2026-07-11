@@ -17,17 +17,17 @@ const MATCHERS = ["fileext", "filename", "into"];
 describe("suggestFor", () => {
   test("suggests variables for a :prefix in the paths box", () => {
     const result = suggestFor("images/:d", [pathVariableStrategy(VARIABLES)]);
-    expect(result.suggestions).toEqual([":date:", ":day:"]);
+    expect(result!.suggestions).toEqual([":date:", ":day:"]);
   });
 
   test("suggests matchers at the start of a rule line", () => {
     const result = suggestFor("some: rule\nfile", [matcherStrategy(MATCHERS)]);
-    expect(result.suggestions).toEqual(["fileext", "filename"]);
+    expect(result!.suggestions).toEqual(["fileext", "filename"]);
   });
 
   test("suggests variables inside an into: clause", () => {
     const result = suggestFor("filename: x\ninto: dir/:pa", [routerVariableStrategy(VARIABLES)]);
-    expect(result.suggestions).toEqual([":pagetitle:"]);
+    expect(result!.suggestions).toEqual([":pagetitle:"]);
   });
 
   test("returns null when nothing matches", () => {
@@ -37,11 +37,11 @@ describe("suggestFor", () => {
 
   test("opens on a bare colon at a token boundary (the opening)", () => {
     // start of a segment: after "/", after whitespace, and at line start
-    expect(suggestFor("images/:", [pathVariableStrategy(VARIABLES)]).suggestions).toEqual(
+    expect(suggestFor("images/:", [pathVariableStrategy(VARIABLES)])!.suggestions).toEqual(
       VARIABLES,
     );
-    expect(suggestFor("a :", [pathVariableStrategy(VARIABLES)]).suggestions).toEqual(VARIABLES);
-    expect(suggestFor("x\n:", [pathVariableStrategy(VARIABLES)]).suggestions).toEqual(VARIABLES);
+    expect(suggestFor("a :", [pathVariableStrategy(VARIABLES)])!.suggestions).toEqual(VARIABLES);
+    expect(suggestFor("x\n:", [pathVariableStrategy(VARIABLES)])!.suggestions).toEqual(VARIABLES);
   });
 
   test("does not open on a colon that follows a letter or digit", () => {
@@ -55,7 +55,7 @@ describe("suggestFor", () => {
       matcherStrategy(MATCHERS),
       routerVariableStrategy(VARIABLES),
     ]);
-    expect(result.suggestions).toEqual([":date:", ":day:"]);
+    expect(result!.suggestions).toEqual([":date:", ":day:"]);
   });
 });
 
@@ -63,7 +63,7 @@ describe("applySuggestion", () => {
   test("replaces the typed prefix with the chosen variable", () => {
     const value = "images/:d\nvideos";
     const result = suggestFor("images/:d", [pathVariableStrategy(VARIABLES)]);
-    const applied = applySuggestion(value, 9, result, ":date:");
+    const applied = applySuggestion(value, 9, result!, ":date:");
 
     expect(applied.value).toBe("images/:date:\nvideos");
     expect(applied.caret).toBe(13);
@@ -72,7 +72,7 @@ describe("applySuggestion", () => {
   test("appends ': ' when completing a matcher", () => {
     const value = "fil";
     const result = suggestFor(value, [matcherStrategy(MATCHERS)]);
-    const applied = applySuggestion(value, 3, result, "fileext");
+    const applied = applySuggestion(value, 3, result!, "fileext");
 
     expect(applied.value).toBe("fileext: ");
     expect(applied.caret).toBe(9);
@@ -191,7 +191,7 @@ describe("attachAutocomplete", () => {
   test("mousedown on an entry inserts it", () => {
     type("a/:d");
     const first = dropdown().querySelector("li");
-    first.dispatchEvent(new window.MouseEvent("mousedown", { bubbles: true, cancelable: true }));
+    first!.dispatchEvent(new window.MouseEvent("mousedown", { bubbles: true, cancelable: true }));
     expect(textarea.value).toBe("a/:date:");
   });
 
