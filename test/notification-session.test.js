@@ -2,8 +2,10 @@
 // worker restarts between download start and completion
 
 // Microtask flush (jsdom in jest 27 has no setImmediate; plain promise
-// hops also keep working under fake timers)
-const flush = async (times = 10) => {
+// hops also keep working under fake timers). Adoption now rides the shared
+// SessionState.update queue alongside the pending-counter and filename writes,
+// so allow enough hops to drain that serialized chain.
+const flush = async (times = 40) => {
   for (let i = 0; i < times; i += 1) {
     // eslint-disable-next-line no-await-in-loop
     await Promise.resolve();
@@ -21,6 +23,9 @@ const makeSessionMock = (store) => ({
 const setupGlobals = (sessionStore, searchResults) => {
   // Handlers await window.ready when set; none of these tests want that
   delete global.window.ready;
+  // DownloadState.records is a module singleton seeded in vitest.setup; clear
+  // the in-memory mirror so adoption from a prior test can't leak in
+  global.DownloadState.records.clear();
   global.BROWSERS = { CHROME: "CHROME", FIREFOX: "FIREFOX" };
   global.CURRENT_BROWSER = "CHROME";
 
@@ -85,7 +90,12 @@ describe("startup restore", () => {
     await flush();
 
     expect(sessionStore.siTrackedDownloads).toEqual([12]);
-    expect(global.browser.storage.session.set).not.toHaveBeenCalled();
+    // The live download is re-adopted into siDownloads, but the tracked list
+    // itself is left untouched (no pruning needed)
+    const wroteTracked = global.browser.storage.session.set.mock.calls.some(
+      ([obj]) => "siTrackedDownloads" in obj,
+    );
+    expect(wroteTracked).toBe(false);
   });
 
   test("prunes downloads whose lookup fails", async () => {
@@ -271,6 +281,36 @@ describe("download lifecycle notifications", () => {
       expect.objectContaining({ type: "basic" }),
     );
     expect(sessionStore.siTrackedDownloads).toEqual([]);
+  });
+
+  test("membership survives a worker restart via the persisted record", async () => {
+    // Adoption is a field on the DownloadState record, persisted to siDownloads,
+    // so a completion that arrives after the worker restarted (the in-memory
+    // mirror wiped) still recognises the download as ours and notifies
+    sessionStore.siPendingDownloads = 1;
+    onCreated({
+      id: 7,
+      byExtensionId: "save-in",
+      filename: "/dl/pic.png",
+      url: "https://x/p.png",
+    });
+    await flush();
+
+    // the record — and its adoption — was persisted
+    expect(sessionStore.siDownloads[7]).toMatchObject({ adopted: true });
+
+    // a restart wipes the in-memory mirror; the persisted record survives
+    global.DownloadState.records.clear();
+
+    onChanged({ id: 7, state: { current: "complete", previous: "in_progress" } });
+    await flush();
+
+    expect(global.browser.notifications.create).toHaveBeenCalledWith(
+      "7",
+      expect.objectContaining({ type: "basic" }),
+    );
+    // adoption is cleared at the terminal delta, but the record is retained
+    expect(sessionStore.siDownloads[7]).toMatchObject({ adopted: false });
   });
 
   test("ignores downloads it did not initiate", async () => {

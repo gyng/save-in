@@ -3,7 +3,12 @@
 const ICON_URL = "icons/ic_archive_black_128px.png";
 const ERROR_ICON_URL = "icons/ic_error_outline_red_96px.png";
 
-const downloadsList = {}; // global
+// Membership ("this download is ours, watch it for a completion notification")
+// lives on the DownloadState record as `adopted`, so there is no second
+// per-download structure to keep in sync — download.js's started record and the
+// notifier's watch list are the same record. `currentFilename` caches the
+// browser's actual path (Chrome only reveals it via onChanged deltas) for the
+// notification body, distinct from the record's intended `filename`.
 
 // How many downloads this extension has requested that downloads.onCreated
 // has not yet seen. A counter (not a boolean) so concurrent downloads are
@@ -35,7 +40,13 @@ SessionState.get("siTrackedDownloads").then((res) => {
         .then((items) => {
           const item = items && items[0];
           if (item && item.state !== "complete") {
-            downloadsList[id] = item;
+            // Re-adopt into the in-memory record so onChanged recognises it as
+            // ours after the worker restart that wiped the map
+            DownloadState.merge(id, {
+              adopted: true,
+              currentFilename: item.filename,
+              url: item.url,
+            });
             return id;
           }
           return null;
@@ -171,7 +182,11 @@ const Notifier = {
 
     if (expectedDownloads > 0) {
       expectedDownloads -= 1;
-      downloadsList[item.id] = item;
+      DownloadState.merge(item.id, {
+        adopted: true,
+        currentFilename: item.filename,
+        url: item.url,
+      });
       Notifier.trackDownload(item.id);
       return;
     }
@@ -182,7 +197,11 @@ const Notifier = {
     // are all recovered — a boolean dropped every one past the first.
     SessionState.get("siPendingDownloads").then((res) => {
       if (res.siPendingDownloads > 0) {
-        downloadsList[item.id] = item;
+        DownloadState.merge(item.id, {
+          adopted: true,
+          currentFilename: item.filename,
+          url: item.url,
+        });
         SessionState.update("siPendingDownloads", (n) => Math.max(0, (n || 0) - 1));
         Notifier.trackDownload(item.id);
       }
@@ -209,9 +228,13 @@ const Notifier = {
     const promptOnFailure = options && options.promptOnFailure;
 
     {
-      const item = downloadsList[downloadDelta.id];
+      // The record IS the membership check: no record (or one whose adoption was
+      // cleared at a prior terminal delta) means this download is not ours. After
+      // a worker restart the in-memory mirror is gone, so this falls back to the
+      // persisted copy — that is how a mid-restart download keeps its notification.
+      const record = await DownloadState.get(downloadDelta.id);
 
-      if (!item) {
+      if (!record || !record.adopted) {
         return;
       }
 
@@ -220,19 +243,22 @@ const Notifier = {
       // so extract it from the DownloadDelta
       if (CURRENT_BROWSER === BROWSERS.CHROME) {
         if (downloadDelta && downloadDelta.filename && downloadDelta.filename.current) {
-          downloadsList[downloadDelta.id].filename = downloadDelta.filename.current;
+          record.currentFilename = downloadDelta.filename.current;
+          DownloadState.merge(downloadDelta.id, {
+            currentFilename: downloadDelta.filename.current,
+          });
         }
       }
 
       // Filename can be missing on entries restored after a service worker
-      // restart until a filename delta arrives
-      const fullFilename = (item && item.filename) || "";
+      // restart until a filename delta arrives; fall back to the intended path
+      const fullFilename = record.currentFilename || record.filename || "";
       const slashIdx = fullFilename.lastIndexOf("/");
       const filename = fullFilename.substring(slashIdx + 1);
 
       const failed = Notifier.isDownloadFailure(downloadDelta, CURRENT_BROWSER === BROWSERS.CHROME);
 
-      const isFromSelf = typeof downloadsList[downloadDelta.id] !== "undefined";
+      const isFromSelf = record.adopted === true;
       const isUserCancelled =
         downloadDelta.error && downloadDelta.error.current === "USER_CANCELED";
 
@@ -248,8 +274,8 @@ const Notifier = {
         }
         // Read from memory, or the persisted copy if the worker restarted since
         // the download started (so a mid-restart download still gets its status)
-        Download.getStartedDownload(downloadDelta.id).then((record) => {
-          if (!record || !record.historyEntryId) {
+        Download.getStartedDownload(downloadDelta.id).then((started) => {
+          if (!started || !started.historyEntryId) {
             return;
           }
           // On completion, record the final file size in the history entry too
@@ -260,16 +286,16 @@ const Notifier = {
                 const item = items && items[0];
                 const size = item ? (item.fileSize > 0 ? item.fileSize : item.totalBytes) : 0;
                 SaveHistory.setStatus(
-                  record.historyEntryId,
+                  started.historyEntryId,
                   status,
                   downloadDelta.id,
                   size > 0 ? size : null,
                 );
               })
-              .catch(() => SaveHistory.setStatus(record.historyEntryId, status, downloadDelta.id));
+              .catch(() => SaveHistory.setStatus(started.historyEntryId, status, downloadDelta.id));
             return;
           }
-          SaveHistory.setStatus(record.historyEntryId, status, downloadDelta.id);
+          SaveHistory.setStatus(started.historyEntryId, status, downloadDelta.id);
         });
       };
 
@@ -284,14 +310,7 @@ const Notifier = {
 
       if (window.SI_DEBUG) {
         /* eslint-disable no-console */
-        console.log(
-          "notification",
-          failed,
-          isFromSelf,
-          downloadsList,
-          downloadDelta,
-          notifyOnSuccess,
-        );
+        console.log("notification", failed, isFromSelf, record, downloadDelta, notifyOnSuccess);
         /* eslint-enable no-console */
       }
 
@@ -315,7 +334,7 @@ const Notifier = {
 
           if (promptOnFailure) {
             browser.downloads.download({
-              url: downloadsList[downloadDelta.id].url,
+              url: record.url,
               saveAs: true,
             });
           }
@@ -353,8 +372,10 @@ const Notifier = {
                 Log.add("retrying failed download via fetch", { id: downloadDelta.id });
               }
               // The retry is tracked as its own download and carries the
-              // history entry id, so its outcome updates this same entry
-              delete downloadsList[downloadDelta.id];
+              // history entry id, so its outcome updates this same entry. Clear
+              // adoption (the record lingers for history) so a late delta for the
+              // original id is ignored
+              DownloadState.merge(downloadDelta.id, { adopted: false });
               Notifier.untrackDownload(downloadDelta.id);
             } else {
               recordHistoryStatus(errorName || "failed");
@@ -423,7 +444,9 @@ const Notifier = {
 
       const isComplete = downloadDelta.state && downloadDelta.state.current === "complete";
       if (failed || isComplete) {
-        delete downloadsList[downloadDelta.id];
+        // Clear adoption but keep the record: recordHistoryStatus (above) and any
+        // in-flight retry still read its historyEntryId; the cap evicts it later
+        DownloadState.merge(downloadDelta.id, { adopted: false });
         Notifier.untrackDownload(downloadDelta.id);
       }
     }
