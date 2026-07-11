@@ -13,6 +13,7 @@ import { Shortcut } from "./shortcut.ts";
 import { DOWNLOAD_TYPES } from "./constants.ts";
 import { Path } from "./path.ts";
 import { Download } from "./download.ts";
+import type { DownloadInfo } from "./download-types.ts";
 
 Menus.addTabMenus = () => {
   if (!options.tabEnabled) {
@@ -138,7 +139,7 @@ Menus.addTabMenuListener = () => {
               );
             }
 
-            const opts = {
+            const opts: DownloadInfo = {
               currentTab: t, // Global,
               linkText: t.title,
               now: new Date(),
