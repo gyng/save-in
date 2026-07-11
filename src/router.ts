@@ -5,52 +5,104 @@ import { EXTENSION_REGEX, getFilenameFromUrl } from "./filename.ts";
 import { currentTab } from "./current-tab.ts";
 import type { DownloadInfo } from "./download-types.ts";
 
+export type RuleError = { message: string; error: string; warning?: boolean };
+export type RuleToken = RegExpMatchArray;
+export type MatcherResult = RegExpMatchArray | null | false;
+export type RoutingInfo = Omit<DownloadInfo, "currentTab"> & {
+  currentTab?: unknown;
+  srcUrl?: string;
+  linkUrl?: string;
+  frameUrl?: string;
+  mediaType?: string;
+};
+export type RuleMatcher = (info: RoutingInfo, metadata?: Partial<RoutingInfo>) => MatcherResult;
+export type MatcherFactory = (regex: RegExp) => RuleMatcher;
+export type RuleClause = {
+  name: string;
+  value: string | RegExp;
+  type: string;
+  matcher?: RuleMatcher;
+};
+export type RoutingRule = RuleClause[];
+export type RouterApi = {
+  EMPTY_INFO: Partial<DownloadInfo>;
+  matcherFunctions: Record<string, MatcherFactory>;
+  tokenizeLines: (lines: string, errors?: RuleError[]) => RuleToken[];
+  parseRule: (lines: RuleToken[], errors?: RuleError[]) => RoutingRule | false;
+  parseRulesCollecting: (raw: string) => { rules: RoutingRule[]; errors: RuleError[] };
+  parseRules: (raw: string) => RoutingRule[];
+  getCaptureMatches: (
+    rule: RoutingRule,
+    info: RoutingInfo,
+    filename?: string,
+  ) => (string | undefined)[] | null;
+  matchRule: (rule: RoutingRule, info: RoutingInfo) => string | false;
+  matchRules: (rules: RoutingRule[], info: RoutingInfo) => string | null;
+};
+
+type InfoStringKey = {
+  [Key in keyof RoutingInfo]-?: RoutingInfo[Key] extends string | undefined ? Key : never;
+}[keyof RoutingInfo];
+
 // SI_DEBUG match logging, deduped from the ~9 identical blocks it replaced
-const logMatch = (match, regex, info) => {
+const logMatch = (match: MatcherResult, regex: RegExp, info: RoutingInfo | undefined): void => {
   if (window.SI_DEBUG && match) {
     console.log("matched", match, regex, info); // eslint-disable-line
   }
 };
 
 const RouterFactory = {
-  makeInfoMatcherFactory: (propertyName, alternativePropertyName?) => (regex) => (info) => {
-    let match = info[propertyName] && info[propertyName].match(regex);
+  makeInfoMatcherFactory:
+    (propertyName: InfoStringKey, alternativePropertyName?: InfoStringKey): MatcherFactory =>
+    (regex) =>
+    (info) => {
+      const value = info[propertyName];
+      let match = typeof value === "string" ? value.match(regex) : null;
 
-    // Hack for sourceUrl, srcUrl
-    if (!match && alternativePropertyName) {
-      match = info[alternativePropertyName] && info[alternativePropertyName].match(regex);
-    }
+      // Hack for sourceUrl, srcUrl
+      if (!match && alternativePropertyName) {
+        const alternativeValue = info[alternativePropertyName];
+        match = typeof alternativeValue === "string" ? alternativeValue.match(regex) : null;
+      }
 
-    logMatch(match, regex, info);
+      logMatch(match, regex, info);
 
-    return match;
-  },
+      return match;
+    },
 
-  makeTabMatcherFactory: (propertyName) => (regex) => (info) => {
-    const match = currentTab && currentTab[propertyName] && currentTab[propertyName].match(regex);
+  makeTabMatcherFactory:
+    (propertyName: "title"): MatcherFactory =>
+    (regex) =>
+    (info) => {
+      const value = currentTab?.[propertyName];
+      const match = typeof value === "string" ? value.match(regex) : null;
 
-    logMatch(match, regex, info);
+      logMatch(match, regex, info);
 
-    return match;
-  },
+      return match;
+    },
 
   // Keeps its own try/catch (rather than Util.withUrl) because the failure
   // branch logs the bad domain, not just returns a fallback
-  makeHostnameMatcherFactory: (propertyName) => (regex) => (info) => {
-    try {
-      const match = new URL(info && info[propertyName]).hostname.match(regex);
-      logMatch(match, regex, info);
-      return match;
-    } catch (e) {
-      if (window.SI_DEBUG) {
-        console.log("bad page domain in matcher", info.pageUrl, e); // eslint-disable-line
+  makeHostnameMatcherFactory:
+    (propertyName: InfoStringKey): MatcherFactory =>
+    (regex) =>
+    (info) => {
+      try {
+        const value = info[propertyName];
+        const match = new URL(typeof value === "string" ? value : "").hostname.match(regex);
+        logMatch(match, regex, info);
+        return match;
+      } catch (e) {
+        if (window.SI_DEBUG) {
+          console.log("bad page domain in matcher", info.pageUrl, e); // eslint-disable-line
+        }
+        return null;
       }
-      return null;
-    }
-  },
+    },
 };
 
-export const Router: Record<string, any> = {
+export const Router: RouterApi = {
   // Typed default for matchers destructuring their second (state.info) param
   EMPTY_INFO: {} as Partial<DownloadInfo>,
 
@@ -131,7 +183,7 @@ export const Router: Record<string, any> = {
     sourceurl: RouterFactory.makeInfoMatcherFactory("sourceUrl", "srcUrl"),
   },
 
-  tokenizeLines: (lines, errors = []) =>
+  tokenizeLines: (lines: string, errors: RuleError[] = []) =>
     lines
       .split("\n")
       .map((l) => ({ l, matches: l.match(/^(\S*): ?(.*)/) }))
@@ -146,13 +198,13 @@ export const Router: Record<string, any> = {
 
         return toks.matches;
       })
-      .filter((toks) => toks && toks.length >= 3),
+      .filter((toks): toks is RuleToken => Boolean(toks && toks.length >= 3)),
 
-  parseRule: (lines, errors = []) => {
-    const matchers = lines.map((tokens) => {
+  parseRule: (lines: RuleToken[], errors: RuleError[] = []) => {
+    const matchers: (RuleClause | false)[] = lines.map((tokens) => {
       const name = tokens[1];
 
-      let value;
+      let value: string | RegExp;
       try {
         value = name === "into" || name === "capture" ? tokens[2] : new RegExp(tokens[2]);
       } catch (e) {
@@ -171,7 +223,7 @@ export const Router: Record<string, any> = {
       // Special matchers
       if (name === "into") {
         type = RULE_TYPES.DESTINATION;
-        value = value.replace(/^\.\//, "");
+        value = (value as string).replace(/^\.\//, "");
       } else if (name === "capture") {
         type = RULE_TYPES.CAPTURE;
       }
@@ -192,7 +244,7 @@ export const Router: Record<string, any> = {
           name,
           value,
           type,
-          matcher: matcher(value),
+          matcher: matcher(value as RegExp),
         };
       } else {
         return {
@@ -209,7 +261,9 @@ export const Router: Record<string, any> = {
       return false;
     }
 
-    if (!matchers.some((m) => m.type === RULE_TYPES.DESTINATION)) {
+    const validMatchers = matchers as RuleClause[];
+
+    if (!validMatchers.some((m) => m.type === RULE_TYPES.DESTINATION)) {
       errors.push({
         message: webExtensionApi.i18n.getMessage("ruleMissingInto"),
         error: "",
@@ -218,16 +272,19 @@ export const Router: Record<string, any> = {
       return false;
     }
 
-    const destination = matchers.find((m) => m.type === RULE_TYPES.DESTINATION);
-    if (destination.value.match(/:\$\d+:/) && !matchers.find((m) => m.name === "capture")) {
+    const destination = validMatchers.find((m) => m.type === RULE_TYPES.DESTINATION)!;
+    if (
+      (destination.value as string).match(/:\$\d+:/) &&
+      !validMatchers.find((m) => m.name === "capture")
+    ) {
       errors.push({
         message: webExtensionApi.i18n.getMessage("ruleMissingCapture"),
-        error: destination.value,
+        error: destination.value as string,
         warning: true,
       });
     }
 
-    if (!matchers.some((m) => m.type === RULE_TYPES.MATCHER)) {
+    if (!validMatchers.some((m) => m.type === RULE_TYPES.MATCHER)) {
       errors.push({
         message: webExtensionApi.i18n.getMessage("ruleMissingMatcher"),
         error: JSON.stringify(lines.map((l) => l[0])),
@@ -236,7 +293,7 @@ export const Router: Record<string, any> = {
       return false;
     }
 
-    const intoMatcher = matchers.filter((m) => m.name === "into");
+    const intoMatcher = validMatchers.filter((m) => m.name === "into");
     if (intoMatcher.length >= 2) {
       errors.push({
         message: webExtensionApi.i18n.getMessage("ruleExtraInto"),
@@ -246,7 +303,7 @@ export const Router: Record<string, any> = {
       return false;
     }
 
-    if (matchers.filter((m) => m.name === "capture").length >= 2) {
+    if (validMatchers.filter((m) => m.name === "capture").length >= 2) {
       errors.push({
         message: webExtensionApi.i18n.getMessage("ruleMultipleCapture"),
         error: JSON.stringify(lines.map((l) => l[0])),
@@ -255,14 +312,14 @@ export const Router: Record<string, any> = {
       return false;
     }
 
-    const captures = matchers.filter((m) => m.name === "capture");
-    if (captures && captures.length === 1 && captures[0].value.split(",").length > 1) {
+    const captures = validMatchers.filter((m) => m.name === "capture");
+    if (captures.length === 1 && (captures[0].value as string).split(",").length > 1) {
       // Get all captures
-      const captureMatchers = captures[0].value.split(",").map((m) => m.trim());
+      const captureMatchers = (captures[0].value as string).split(",").map((m) => m.trim());
       let failed = false;
 
       for (let i = 0; i < captureMatchers.length; i += 1) {
-        if (matchers.filter((m) => m.name === captureMatchers[i]).length < 1) {
+        if (validMatchers.filter((m) => m.name === captureMatchers[i]).length < 1) {
           errors.push({
             message: webExtensionApi.i18n.getMessage("ruleCaptureMissingMatcher"),
             error: `capture: ${captureMatchers[i]}`,
@@ -277,9 +334,8 @@ export const Router: Record<string, any> = {
         return false;
       }
     } else if (
-      captures &&
       captures.length === 1 &&
-      matchers.filter((m) => m.name === captures[0].value).length < 1
+      validMatchers.filter((m) => m.name === captures[0].value).length < 1
     ) {
       // Capture clause pointing at missing matcher
       errors.push({
@@ -290,12 +346,12 @@ export const Router: Record<string, any> = {
       return false;
     }
 
-    return matchers;
+    return validMatchers;
   },
 
   // Pure: parse rules and return both the rules and any errors, without
   // touching window.optionErrors. Used by VALIDATE and by parseRules below.
-  parseRulesCollecting: (raw) => {
+  parseRulesCollecting: (raw: string) => {
     const withoutComments = raw
       .split("\n")
       .filter((l) => !l.startsWith("//"))
@@ -307,18 +363,18 @@ export const Router: Record<string, any> = {
     }
 
     // tokenizeLines/parseRule are pure: they report problems into the collector
-    const errors = [];
+    const errors: RuleError[] = [];
     const rules = withoutComments
       .replace(new RegExp("\\n\\n+", "g"), "\n\n")
       .split("\n\n")
       .map((lines) => Router.tokenizeLines(lines, errors))
       .map((tokens) => Router.parseRule(tokens, errors))
-      .filter((r) => !!r);
+      .filter((r): r is RoutingRule => Boolean(r));
 
     return { rules, errors };
   },
 
-  parseRules: (raw) => {
+  parseRules: (raw: string) => {
     const { rules, errors } = Router.parseRulesCollecting(raw);
 
     errors.forEach((error) => {
@@ -332,20 +388,23 @@ export const Router: Record<string, any> = {
     return rules;
   },
 
-  getCaptureMatches: (rule, info) => {
+  getCaptureMatches: (rule: RoutingRule, info: RoutingInfo) => {
     const captureDeclaration = rule.find(
       (d) => d.type === RULE_TYPES.CAPTURE && d.name === "capture",
     );
 
-    const capturedAll = [];
+    const capturedAll: RegExpMatchArray[] = [];
     if (captureDeclaration) {
-      const capturedMatcherNames = captureDeclaration.value.split(",").map((m) => m.trim());
+      const capturedMatcherNames = (captureDeclaration.value as string)
+        .split(",")
+        .map((m) => m.trim());
       for (let i = 0; i < capturedMatcherNames.length; i += 1) {
         const captured = rule.find(
           (m) => m.type === RULE_TYPES.MATCHER && m.name === capturedMatcherNames[i],
         );
-        if (captured && captured.matcher && captured.matcher(info)) {
-          capturedAll.push(captured.matcher(info));
+        const result = captured?.matcher?.(info);
+        if (result) {
+          capturedAll.push(result);
         }
       }
 
@@ -359,16 +418,16 @@ export const Router: Record<string, any> = {
     }
   },
 
-  matchRule: (rule, info) => {
+  matchRule: (rule: RoutingRule, info: RoutingInfo) => {
     const matches = rule
       .filter((m) => m.type === RULE_TYPES.MATCHER)
-      .map((m) => m.matcher(info, info));
+      .map((m) => m.matcher?.(info, info));
 
     if (matches.some((m) => !m)) {
       return false;
     }
 
-    let destination = rule.find((r) => r.name === "into").value;
+    let destination = rule.find((r) => r.name === "into")!.value as string;
 
     // Regex capture groups
     const capturedMatches = Router.getCaptureMatches(rule, info);
@@ -384,7 +443,7 @@ export const Router: Record<string, any> = {
     return destination;
   },
 
-  matchRules: (rules, info) => {
+  matchRules: (rules: RoutingRule[], info: RoutingInfo) => {
     for (let i = 0; i < rules.length; i += 1) {
       const result = Router.matchRule(rules[i], info);
       if (result) {

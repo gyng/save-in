@@ -1,8 +1,21 @@
-import { Router as router } from "../src/router.ts";
+import {
+  Router as router,
+  type MatcherResult,
+  type RoutingRule,
+  type RuleError,
+  type RoutingInfo,
+} from "../src/router.ts";
 import * as constants from "../src/constants.ts";
 import { currentTab, setCurrentTab } from "../src/current-tab.ts";
+import type { MockInstance } from "vitest";
 
 const fixtures = (await import("./fixtures/clickInfo")).default;
+
+const expectMatch = (result: MatcherResult): RegExpMatchArray => {
+  expect(result).toBeTruthy();
+  if (!result) throw new Error("expected matcher to return a match");
+  return result;
+};
 
 describe("filename rewrite and routing", () => {
   const info = {
@@ -33,8 +46,8 @@ describe("filename rewrite and routing", () => {
   describe("matcher functions", () => {
     test("fileext", () => {
       const matcher = router.matcherFunctions.fileext(new RegExp("jpg"));
-      expect(matcher(info).length).toBe(1);
-      expect(matcher(info)[0]).toBe("jpg");
+      expect(expectMatch(matcher(info)).length).toBe(1);
+      expect(expectMatch(matcher(info))[0]).toBe("jpg");
     });
 
     test("fileext negative", () => {
@@ -44,8 +57,8 @@ describe("filename rewrite and routing", () => {
 
     test("filename", () => {
       const matcher = router.matcherFunctions.filename(new RegExp("dog.jpg"));
-      expect(matcher(info, { filename: "dog.jpg" }).length).toBe(1);
-      expect(matcher(info, { filename: "dog.jpg" })[0]).toBe("dog.jpg");
+      expect(expectMatch(matcher(info, { filename: "dog.jpg" })).length).toBe(1);
+      expect(expectMatch(matcher(info, { filename: "dog.jpg" }))[0]).toBe("dog.jpg");
     });
 
     test("filename negative", () => {
@@ -55,8 +68,8 @@ describe("filename rewrite and routing", () => {
 
     test("naivefilename", () => {
       const matcher = router.matcherFunctions.naivefilename(new RegExp("cat.jpg"));
-      expect(matcher(info).length).toBe(1);
-      expect(matcher(info)[0]).toBe("cat.jpg");
+      expect(expectMatch(matcher(info)).length).toBe(1);
+      expect(expectMatch(matcher(info))[0]).toBe("cat.jpg");
     });
 
     test("naivefilename negative", () => {
@@ -65,13 +78,13 @@ describe("filename rewrite and routing", () => {
     });
     test("naivefilename negative", () => {
       const matcher = router.matcherFunctions.naivefilename(new RegExp("dog.jpg"));
-      expect(matcher(info, "cat.jpg")).toBe(null);
+      expect(matcher(info)).toBe(null);
     });
 
     test("infoMatcherFactory matchers", () => {
       const matcher = router.matcherFunctions.frameurl(new RegExp(".*"));
-      expect(matcher(info).length).toBe(1);
-      expect(matcher(info)[0]).toBe(info.frameUrl);
+      expect(expectMatch(matcher(info)).length).toBe(1);
+      expect(expectMatch(matcher(info))[0]).toBe(info.frameUrl);
     });
 
     test("infoMatcherFactory negative", () => {
@@ -81,8 +94,8 @@ describe("filename rewrite and routing", () => {
 
     test("tabMatcherFactory matchers", () => {
       const matcher = router.matcherFunctions.pagetitle(new RegExp(".*"));
-      expect(matcher(info).length).toBe(1);
-      expect(matcher(info)[0]).toBe(currentTab.title);
+      expect(expectMatch(matcher(info)).length).toBe(1);
+      expect(expectMatch(matcher(info))[0]).toBe(currentTab?.title);
     });
 
     test("tabMatcherFactory negative", () => {
@@ -150,7 +163,7 @@ describe("filename rewrite and routing", () => {
   });
 
   describe("rule matching", () => {
-    let rules;
+    let rules: RoutingRule[];
 
     beforeAll(() => {
       rules = router.parseRules(
@@ -187,7 +200,7 @@ describe("filename rewrite and routing", () => {
         ].join("\n"),
       );
 
-      const clickInfo = fixtures.firefoxInfo;
+      const clickInfo = fixtures.firefoxInfo as unknown as RoutingInfo;
 
       const matched = router.matchRules(twitterRulesFirefox, clickInfo);
 
@@ -204,7 +217,7 @@ describe("filename rewrite and routing", () => {
         ].join("\n"),
       );
 
-      const clickInfo = fixtures.chromeInfo;
+      const clickInfo = fixtures.chromeInfo as unknown as RoutingInfo;
 
       const matched = router.matchRules(twitterRulesChrome, clickInfo);
 
@@ -215,7 +228,7 @@ describe("filename rewrite and routing", () => {
   describe("additional matcher functions", () => {
     test("pagedomain", () => {
       const matcher = router.matcherFunctions.pagedomain(new RegExp("page.com"));
-      expect(matcher(info)[0]).toBe("page.com");
+      expect(expectMatch(matcher(info))[0]).toBe("page.com");
     });
 
     test("pagedomain negative", () => {
@@ -230,17 +243,17 @@ describe("filename rewrite and routing", () => {
 
     test("pagedomain without info", () => {
       const matcher = router.matcherFunctions.pagedomain(new RegExp(".*"));
-      expect(matcher(undefined)).toBe(null);
+      expect(matcher(undefined as unknown as RoutingInfo)).toBe(null);
     });
 
     test("sourcedomain", () => {
       const matcher = router.matcherFunctions.sourcedomain(new RegExp("source.com"));
-      expect(matcher(info)[0]).toBe("source.com");
+      expect(expectMatch(matcher(info))[0]).toBe("source.com");
     });
 
     test("context matches case-insensitively", () => {
       const matcher = router.matcherFunctions.context(new RegExp("image"));
-      expect(matcher(info, { context: "IMAGE" })[0]).toBe("image");
+      expect(expectMatch(matcher(info, { context: "IMAGE" }))[0]).toBe("image");
       expect(router.matcherFunctions.context(new RegExp("link"))(info, { context: "IMAGE" })).toBe(
         null,
       );
@@ -248,7 +261,7 @@ describe("filename rewrite and routing", () => {
 
     test("menuindex", () => {
       const matcher = router.matcherFunctions.menuindex(new RegExp("^2$"));
-      expect(matcher(info, { menuIndex: "2" })[0]).toBe("2");
+      expect(expectMatch(matcher(info, { menuIndex: "2" }))[0]).toBe("2");
       expect(matcher(info, { menuIndex: "3" })).toBe(null);
       // missing menu metadata is treated as no match
       expect(matcher(info)).toBe(null);
@@ -256,7 +269,7 @@ describe("filename rewrite and routing", () => {
 
     test("comment", () => {
       const matcher = router.matcherFunctions.comment(new RegExp("save"));
-      expect(matcher(info, { comment: "save here" })[0]).toBe("save");
+      expect(expectMatch(matcher(info, { comment: "save here" }))[0]).toBe("save");
       expect(matcher(info, { comment: "other" })).toBe(null);
       // missing menu metadata is treated as no match
       expect(matcher(info)).toBe(null);
@@ -264,8 +277,8 @@ describe("filename rewrite and routing", () => {
 
     test("fileext falls back through URL fields", () => {
       const matcher = router.matcherFunctions.fileext(new RegExp("html"));
-      expect(matcher({ linkUrl: "http://x.com/a.html" })[0]).toBe("html");
-      expect(matcher({ pageUrl: "http://x.com/b.html" })[0]).toBe("html");
+      expect(expectMatch(matcher({ linkUrl: "http://x.com/a.html" }))[0]).toBe("html");
+      expect(expectMatch(matcher({ pageUrl: "http://x.com/b.html" }))[0]).toBe("html");
     });
 
     test("fileext without a URL or extension", () => {
@@ -276,7 +289,7 @@ describe("filename rewrite and routing", () => {
 
     test("filename prefers info.filename", () => {
       const matcher = router.matcherFunctions.filename(new RegExp("dog.jpg"));
-      expect(matcher({ filename: "dog.jpg" }, {})[0]).toBe("dog.jpg");
+      expect(expectMatch(matcher({ filename: "dog.jpg" }, {}))[0]).toBe("dog.jpg");
     });
 
     test("filename missing everywhere", () => {
@@ -286,8 +299,8 @@ describe("filename rewrite and routing", () => {
 
     test("naivefilename falls back through URL fields", () => {
       const matcher = router.matcherFunctions.naivefilename(new RegExp("cat.jpg"));
-      expect(matcher({ linkUrl: "http://x.com/cat.jpg" })[0]).toBe("cat.jpg");
-      expect(matcher({ pageUrl: "http://x.com/cat.jpg" })[0]).toBe("cat.jpg");
+      expect(expectMatch(matcher({ linkUrl: "http://x.com/cat.jpg" }))[0]).toBe("cat.jpg");
+      expect(expectMatch(matcher({ pageUrl: "http://x.com/cat.jpg" }))[0]).toBe("cat.jpg");
     });
 
     test("naivefilename without a URL or filename", () => {
@@ -315,7 +328,7 @@ describe("filename rewrite and routing", () => {
 
     test("an empty line inside a rule is reported as invalid syntax", () => {
       // tokenizeLines is pure: it reports into the passed collector
-      const errors = [];
+      const errors: RuleError[] = [];
       expect(router.tokenizeLines("", errors)).toEqual([]);
       expect(errors[0].error).toBe("invalid line syntax");
       expect(window.optionErrors.filenamePatterns).toEqual([]);
@@ -382,7 +395,7 @@ describe("filename rewrite and routing", () => {
   });
 
   describe("debug logging", () => {
-    let logSpy;
+    let logSpy: MockInstance;
 
     beforeAll(() => {
       window.SI_DEBUG = 1;
