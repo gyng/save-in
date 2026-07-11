@@ -5,7 +5,7 @@
 // leave the machine and clear on browser exit. Viewable from the options
 // page. No-op where storage.session is unavailable.
 
-import { SessionState } from "./application-state.ts";
+import { SessionState } from "./background-state.ts";
 
 const LOG_STORAGE_KEY = "si-log";
 

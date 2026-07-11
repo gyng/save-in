@@ -3,7 +3,7 @@ import { resolveContent } from "./content-fetch.ts";
 import { EXTENSION_REGEX, getFilenameFromUrl } from "./filename.ts";
 import { SPECIAL_DIRS, PATH_SEGMENT_TYPES } from "./constants.ts";
 import { Path } from "./path.ts";
-import { Counter } from "./application-state.ts";
+import { Counter } from "./background-state.ts";
 
 export const Variable = {
   // Thin wrapper over Util.withUrl that keeps this call site's historical

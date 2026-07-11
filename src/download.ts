@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 
-import { DownloadState, SessionState } from "./application-state.ts";
+import { DownloadState, SessionState } from "./background-state.ts";
 import { RequestHeaders } from "./headers.ts";
 import { Notifier } from "./notification.ts";
 import { Log } from "./log.ts";

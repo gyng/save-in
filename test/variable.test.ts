@@ -1,7 +1,7 @@
 import { Variable } from "../src/variable.ts";
 import { Path } from "../src/path.ts";
 import { HASH_MAX_BYTES } from "../src/content-fetch.ts";
-import { Counter } from "../src/application-state.ts";
+import { Counter } from "../src/background-state.ts";
 // variable.ts reads options.replacementChar (via path.ts) at call time;
 // import the real options bag and mutate it (option.ts seeds
 // replacementChar "_" at load, so these just document the expectation).
