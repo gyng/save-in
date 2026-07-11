@@ -47,7 +47,10 @@ const setupGlobals = () => {
 };
 
 describe("OptionsManagement", () => {
-  let OptionsManagement;
+  let OptionsManagement: (typeof import("../src/option.ts"))["OptionsManagement"];
+  type SchemaKey = (typeof OptionsManagement)["OPTION_KEYS"][number];
+  type LoadKey = SchemaKey & { onLoad(value: any): any };
+  type SaveKey = SchemaKey & { onSave(value: any): any };
 
   beforeEach(async () => {
     jest.resetModules();
@@ -88,7 +91,7 @@ describe("OptionsManagement", () => {
 
   describe("conflictAction validation (#89/#217)", () => {
     const conflictKey = () =>
-      OptionsManagement.OPTION_KEYS.find((k) => k.name === "conflictAction");
+      OptionsManagement.OPTION_KEYS.find((k) => k.name === "conflictAction")! as LoadKey;
 
     test("downgrades the Firefox-only 'prompt' to 'uniquify' on Chrome", () => {
       mocks.currentBrowser = "CHROME";
@@ -104,7 +107,7 @@ describe("OptionsManagement", () => {
 
   describe("replacementChar validation (#221)", () => {
     const replacementCharKey = () =>
-      OptionsManagement.OPTION_KEYS.find((k) => k.name === "replacementChar");
+      OptionsManagement.OPTION_KEYS.find((k) => k.name === "replacementChar")! as LoadKey;
 
     test("falls back to '_' for forbidden filesystem characters", () => {
       expect(replacementCharKey().onLoad("/")).toBe("_");
@@ -146,12 +149,14 @@ describe("OptionsManagement", () => {
 
   describe("onSave hooks", () => {
     test("filenamePatterns are trimmed on save", () => {
-      const key = OptionsManagement.OPTION_KEYS.find((k) => k.name === "filenamePatterns");
+      const key = OptionsManagement.OPTION_KEYS.find(
+        (k) => k.name === "filenamePatterns",
+      )! as SaveKey;
       expect(key.onSave("  pageurl: .*\ninto: dir  ")).toBe("pageurl: .*\ninto: dir");
     });
 
     test("paths are trimmed on save and default to the downloads directory", () => {
-      const key = OptionsManagement.OPTION_KEYS.find((k) => k.name === "paths");
+      const key = OptionsManagement.OPTION_KEYS.find((k) => k.name === "paths")! as SaveKey;
       expect(key.onSave("  images  ")).toBe("images");
       expect(key.onSave("   ")).toBe(".");
     });
@@ -185,10 +190,13 @@ describe("OptionsManagement", () => {
       OptionsManagement.setOption("filenamePatterns", ["rule-a", "rule-b"]);
 
       mocks.Download.getRoutingMatches.mockReturnValue("routed/dir");
-      mocks.Path.Path.mockImplementation(function fakePath(routingMatches) {
+      mocks.Path.Path.mockImplementation(function fakePath(
+        this: { routingMatches: unknown },
+        routingMatches: unknown,
+      ) {
         this.routingMatches = routingMatches;
       });
-      mocks.Variable.applyVariables.mockImplementation((path) => ({
+      mocks.Variable.applyVariables.mockImplementation((path: { routingMatches: unknown }) => ({
         finalize: () => `finalized:${path.routingMatches}`,
       }));
       mocks.Router.getCaptureMatches
@@ -233,7 +241,10 @@ describe("OptionsManagement", () => {
     test("prefers initialFilename over filename (Chrome mutates filename with `_`)", async () => {
       OptionsManagement.setOption("filenamePatterns", []);
       mocks.Download.getRoutingMatches.mockReturnValue("routed/dir");
-      mocks.Path.Path.mockImplementation(function fakePath(routingMatches) {
+      mocks.Path.Path.mockImplementation(function fakePath(
+        this: { routingMatches: unknown },
+        routingMatches: unknown,
+      ) {
         this.routingMatches = routingMatches;
       });
       mocks.Variable.applyVariables.mockImplementation(() => ({ finalize: () => "x" }));
@@ -252,7 +263,10 @@ describe("OptionsManagement", () => {
     test("falls back to url for capture matching when there is no filename", async () => {
       OptionsManagement.setOption("filenamePatterns", ["only-rule"]);
       mocks.Download.getRoutingMatches.mockReturnValue("routed/dir");
-      mocks.Path.Path.mockImplementation(function fakePath(routingMatches) {
+      mocks.Path.Path.mockImplementation(function fakePath(
+        this: { routingMatches: unknown },
+        routingMatches: unknown,
+      ) {
         this.routingMatches = routingMatches;
       });
       mocks.Variable.applyVariables.mockImplementation(() => ({ finalize: () => "x" }));

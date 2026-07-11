@@ -16,14 +16,41 @@ import { Download } from "./download.ts";
 // don't pull in this validator-heavy module — breaking the option↔* cycles
 // (docs/ARCH-CYCLES.md, Cut 1).
 import { options } from "./options-data.ts";
+import type { DownloadInfo } from "./download-types.ts";
 
 // Short name for convenience
 const T = {
   BOOL: "BOOL",
   VALUE: "VALUE",
+} as const;
+
+type OptionType = (typeof T)[keyof typeof T];
+type OptionKey = {
+  name: string;
+  type: OptionType;
+  default: any;
+  fn?: null;
+  onLoad?: (value: any) => any;
+  onSave?: (value: any) => any;
 };
 
-export const OptionsManagement: Record<string, any> = {
+type RoutePreviewState = { info: DownloadInfo };
+type RoutePreview = {
+  path: string | null;
+  captures: (string | undefined)[] | null;
+};
+
+export interface OptionsManagementApi {
+  OPTION_TYPES: typeof T;
+  OPTION_KEYS: OptionKey[];
+  OPTION_DESCRIPTIONS: Record<string, string>;
+  getKeys(): string[];
+  setOption(name: string, value: any): void;
+  checkRoutes(state?: RoutePreviewState | null): Promise<RoutePreview>;
+  loadOptions(): Promise<Record<string, any>>;
+}
+
+export const OptionsManagement: OptionsManagementApi = {
   OPTION_TYPES: T, // re-export
 
   OPTION_KEYS: [
@@ -33,7 +60,7 @@ export const OptionsManagement: Record<string, any> = {
       // "prompt" is Firefox-only; a stored "prompt" on Chrome (imported
       // settings, a migrated profile) makes downloads.download reject and
       // silently kills every download (#89, #217)
-      onLoad: (v) =>
+      onLoad: (v: string) =>
         v === CONFLICT_ACTION.PROMPT && !WEB_EXTENSION_CAPABILITIES.conflictActionPrompt
           ? CONFLICT_ACTION.UNIQUIFY
           : v,
@@ -52,8 +79,8 @@ export const OptionsManagement: Record<string, any> = {
     {
       name: "filenamePatterns",
       type: T.VALUE,
-      onSave: (v) => v.trim(),
-      onLoad: (v) => Router.parseRules(v),
+      onSave: (v: string) => v.trim(),
+      onLoad: (v: string) => Router.parseRules(v),
       default: "",
     },
     { name: "keyLastUsed", type: T.VALUE, default: "e" },
@@ -75,7 +102,7 @@ export const OptionsManagement: Record<string, any> = {
     {
       name: "paths",
       type: T.VALUE,
-      onSave: (v) => v.trim() || ".",
+      onSave: (v: string) => v.trim() || ".",
       default:
         ". // (alias: Downloads)\nimages\nimages/cute\nvideos // (key: h)\n\nsubmenu\n>submenu/subdir\n>>submenu/subdir/2 // (alias: actual display name)\n>submenu/subdir2 // comments",
     },
@@ -90,7 +117,8 @@ export const OptionsManagement: Record<string, any> = {
       // rather than replace it; a non-empty value that reintroduces a
       // forbidden character/separator or forms a dot-segment falls back to
       // the default instead of silently breaking every sanitized path (#221)
-      onLoad: (v) => (v && (FORBIDDEN_FILENAME_CHARS.test(v) || v === "." || v === "..") ? "_" : v),
+      onLoad: (v: string) =>
+        v && (FORBIDDEN_FILENAME_CHARS.test(v) || v === "." || v === "..") ? "_" : v,
       default: "_",
     },
     { name: "routeExclusive", type: T.BOOL, default: false },
@@ -170,16 +198,16 @@ export const OptionsManagement: Record<string, any> = {
     setRefererHeaderFilter: "URL match patterns for the Referer header.",
   },
 
-  getKeys: () => OptionsManagement.OPTION_KEYS.reduce((acc, val) => acc.concat([val.name]), []),
+  getKeys: () => OptionsManagement.OPTION_KEYS.map((option) => option.name),
 
-  setOption: (name, value) => {
+  setOption: (name: string, value: any) => {
     if (typeof value !== "undefined") {
       options[name] = value;
     }
   },
 
   // async because Variable.applyVariables is now async
-  checkRoutes: async (state) => {
+  checkRoutes: async (state?: RoutePreviewState | null) => {
     if (!state) {
       return {
         path: null,
@@ -212,7 +240,7 @@ export const OptionsManagement: Record<string, any> = {
     );
     const testLastResult = lastInterpolated.finalize();
 
-    let testLastCapture;
+    let testLastCapture: (string | undefined)[] | null = null;
     for (let i = 0; i < options.filenamePatterns.length; i += 1) {
       testLastCapture = Router.getCaptureMatches(
         options.filenamePatterns[i],
@@ -230,27 +258,27 @@ export const OptionsManagement: Record<string, any> = {
       captures: testLastCapture,
     };
   },
-};
 
-OptionsManagement.loadOptions = () =>
-  webExtensionApi.storage.local.get(OptionsManagement.getKeys()).then((loadedOptions) => {
-    if (loadedOptions.debug) {
-      window.SI_DEBUG = 1;
-    }
-
-    const localKeys = Object.keys(loadedOptions);
-    localKeys.forEach((k) => {
-      const optionType = OptionsManagement.OPTION_KEYS.find((ok) => ok.name === k);
-      if (!optionType) {
-        // A key from a removed option (or foreign storage) must not break load
-        return;
+  loadOptions: () =>
+    webExtensionApi.storage.local.get(OptionsManagement.getKeys()).then((loadedOptions) => {
+      if (loadedOptions.debug) {
+        window.SI_DEBUG = 1;
       }
-      const fn = optionType.onLoad || ((x) => x);
-      OptionsManagement.setOption(k, fn(loadedOptions[k]));
-    });
 
-    return options;
-  });
+      const localKeys = Object.keys(loadedOptions);
+      localKeys.forEach((k) => {
+        const optionType = OptionsManagement.OPTION_KEYS.find((option) => option.name === k);
+        if (!optionType) {
+          // A key from a removed option (or foreign storage) must not break load
+          return;
+        }
+        const fn = optionType.onLoad || ((value: any) => value);
+        OptionsManagement.setOption(k, fn(loadedOptions[k]));
+      });
+
+      return options;
+    }),
+};
 
 // Seed the options bag with every key's default. loadOptions() only overlays
 // the keys present in storage, so the defaults must be in place first. Deferred
