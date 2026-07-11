@@ -6,6 +6,22 @@
 
 const net = require("net");
 
+/** @typedef {Record<string, any>} RdpPacket */
+/**
+ * @typedef {object} EventWaiter
+ * @property {(packet: RdpPacket) => boolean} predicate
+ * @property {(packet?: RdpPacket) => void} resolve
+ * @property {() => void} [cancel]
+ */
+/**
+ * @typedef {object} PendingRequest
+ * @property {boolean} settled
+ * @property {(packet?: RdpPacket) => void} resolve
+ * @property {(error: unknown) => void} reject
+ * @property {() => void} cancel
+ * @property {NodeJS.Timeout} [timer]
+ */
+
 const EVENT_TYPES = new Set([
   "evaluationResult",
   "addonListChanged",
@@ -18,17 +34,25 @@ const EVENT_TYPES = new Set([
 ]);
 
 class FirefoxRdp {
+  /** @param {import("net").Socket} socket */
   constructor(socket) {
     this.socket = socket;
     this.buffer = Buffer.alloc(0);
-    this.queues = new Map(); // actor -> [{resolve, reject}]
-    this.eventWaiters = []; // {predicate, resolve}
+    /** @type {Map<string, PendingRequest[]>} */
+    this.queues = new Map();
+    /** @type {EventWaiter[]} */
+    this.eventWaiters = [];
     socket.on("data", (data) => {
-      this.buffer = Buffer.concat([this.buffer, data]);
+      this.buffer = Buffer.concat([this.buffer, Buffer.from(data)]);
       this.drain();
     });
   }
 
+  /**
+   * @param {number} port
+   * @param {string} [host]
+   * @returns {Promise<FirefoxRdp>}
+   */
   static connect(port, host = "127.0.0.1") {
     return new Promise((resolve, reject) => {
       const socket = net.connect(port, host);
@@ -39,6 +63,7 @@ class FirefoxRdp {
       // later. connectWithRetry makes several attempts before Firefox opens the
       // RDP port, so those orphaned timers are the "exit 1 despite passing"
       // artifact.
+      /** @param {unknown} e */
       const fail = (e) => {
         if (done) return;
         done = true;
@@ -70,6 +95,7 @@ class FirefoxRdp {
     }
   }
 
+  /** @param {RdpPacket} packet */
   dispatch(packet) {
     const waiterIdx = this.eventWaiters.findIndex((w) => w.predicate(packet));
     if (waiterIdx !== -1) {
@@ -98,9 +124,15 @@ class FirefoxRdp {
     }
   }
 
+  /**
+   * @param {(packet: RdpPacket) => boolean} predicate
+   * @param {number} [timeoutMs]
+   * @returns {Promise<RdpPacket | undefined>}
+   */
   waitForEvent(predicate, timeoutMs = 30000) {
     return new Promise((resolve, reject) => {
-      const waiter = { predicate };
+      /** @type {EventWaiter} */
+      const waiter = { predicate, resolve: () => {} };
       const timer = setTimeout(() => {
         // Drop the waiter so it can't leak, then reject
         this.eventWaiters = this.eventWaiters.filter((w) => w !== waiter);
@@ -123,26 +155,37 @@ class FirefoxRdp {
     });
   }
 
+  /**
+   * @param {RdpPacket & {to: string, type: string}} packet
+   * @param {number} [timeoutMs]
+   * @returns {Promise<any>}
+   */
   request(packet, timeoutMs = 30000) {
     return new Promise((resolve, reject) => {
       if (!this.queues.has(packet.to)) this.queues.set(packet.to, []);
       // The entry stays in the queue on timeout but is flagged settled, so
       // dispatch() skips it instead of matching a later reply to it
-      const entry = { settled: false };
+      /** @type {PendingRequest} */
+      const entry = {
+        settled: false,
+        resolve: () => {},
+        reject: () => {},
+        cancel: () => {},
+      };
       entry.resolve = (p) => {
-        clearTimeout(entry.timer);
+        if (entry.timer) clearTimeout(entry.timer);
         resolve(p);
       };
       entry.reject = (e) => {
-        clearTimeout(entry.timer);
+        if (entry.timer) clearTimeout(entry.timer);
         reject(e);
       };
       // close() settles a still-pending request without rejecting
       entry.cancel = () => {
-        clearTimeout(entry.timer);
+        if (entry.timer) clearTimeout(entry.timer);
         resolve(undefined);
       };
-      this.queues.get(packet.to).push(entry);
+      this.queues.get(packet.to)?.push(entry);
       const json = JSON.stringify(packet);
       this.socket.write(`${Buffer.byteLength(json)}:${json}`);
       entry.timer = setTimeout(() => {
@@ -159,13 +202,15 @@ class FirefoxRdp {
     return this.request({ to: "root", type: "getRoot" });
   }
 
+  /** @param {string} addonsActor @param {string} addonPath */
   async installTemporaryAddon(addonsActor, addonPath) {
     return this.request({ to: addonsActor, type: "installTemporaryAddon", addonPath }, 60000);
   }
 
+  /** @param {string} addonId */
   async findAddonActor(addonId) {
     const { addons } = await this.request({ to: "root", type: "listAddons" });
-    const addon = addons.find((a) => a.id === addonId);
+    const addon = addons.find(/** @param {RdpPacket} a */ (a) => a.id === addonId);
     if (!addon) throw new Error(`Addon ${addonId} not in listAddons`);
     return addon.actor;
   }
@@ -173,12 +218,13 @@ class FirefoxRdp {
   // Collects the frame targets a descriptor actor (addon or tab) exposes.
   // Firefox < 129 answers getTarget directly; >= 129 needs a watcher and
   // emits target-available-form events.
+  /** @param {string} descriptorActor */
   async watchFrameTargets(descriptorActor) {
     try {
       const { form } = await this.request({ to: descriptorActor, type: "getTarget" });
       if (form && form.consoleActor) return [form];
     } catch (e) {
-      if (!String(e.message).includes("unrecognizedPacketType")) throw e;
+      if (!String(e instanceof Error ? e.message : e).includes("unrecognizedPacketType")) throw e;
     }
 
     const { actor: watcher } = await this.request({
@@ -187,11 +233,13 @@ class FirefoxRdp {
       isServerTargetSwitchingEnabled: true,
     });
 
+    /** @type {RdpPacket[]} */
     const targets = [];
     // A short-lived collector: matches target-available-form events for this
     // watcher, then deregisters after the collection window so it can't keep
     // intercepting events from tabs opened by later tests
     let collecting = true;
+    /** @param {RdpPacket} p */
     const collector = (p) => {
       if (!collecting) return false;
       if (p.type === "target-available-form" && p.from === watcher) {
@@ -211,6 +259,7 @@ class FirefoxRdp {
     return targets;
   }
 
+  /** @param {string} addonActor */
   async getConsoleActor(addonActor) {
     const targets = await this.watchFrameTargets(addonActor);
     // Several frame targets can arrive (background page, options page, ...):
@@ -230,12 +279,13 @@ class FirefoxRdp {
   // Console actor for an open browser tab whose URL contains urlSubstr.
   // Evaluations run in the page's content window (not the extension sandbox),
   // so they see the real DOM but not content-script variables.
+  /** @param {string} urlSubstr */
   async getTabConsoleActor(urlSubstr) {
     const { tabs } = await this.request({ to: "root", type: "listTabs" });
-    const tab = (tabs || []).find((t) => t.url && t.url.includes(urlSubstr));
+    const tab = (tabs || []).find(/** @param {RdpPacket} t */ (t) => t.url?.includes(urlSubstr));
     if (!tab) {
       throw new Error(
-        `No tab matching "${urlSubstr}" (saw: ${(tabs || []).map((t) => t.url).join(", ")})`,
+        `No tab matching "${urlSubstr}" (saw: ${(tabs || []).map(/** @param {RdpPacket} t */ (t) => t.url).join(", ")})`,
       );
     }
 
@@ -251,6 +301,11 @@ class FirefoxRdp {
   // Wrap complex results with JSON.stringify inside the expression. The
   // expression is wrapped in a top-level await so promises resolve to values
   // (the console actor maps await inputs to async evaluation).
+  /**
+   * @param {string} consoleActor
+   * @param {string} text
+   * @param {number} [timeoutMs]
+   */
   async evaluate(consoleActor, text, timeoutMs = 30000) {
     const { resultID } = await this.request({
       to: consoleActor,
@@ -262,6 +317,7 @@ class FirefoxRdp {
       (p) => p.type === "evaluationResult" && p.resultID === resultID,
       timeoutMs,
     );
+    if (!result) throw new Error("Evaluation cancelled");
     if (result.exceptionMessage) {
       throw new Error(`Evaluation failed: ${result.exceptionMessage}`);
     }

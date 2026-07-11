@@ -15,7 +15,7 @@ const makeSocket = (): any => {
 };
 
 // RDP framing: "<byteLength>:<json>"
-const frame = (obj) => {
+const frame = (obj: Record<string, unknown>) => {
   const j = JSON.stringify(obj);
   return Buffer.from(`${Buffer.byteLength(j)}:${j}`);
 };
