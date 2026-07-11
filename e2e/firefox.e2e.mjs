@@ -9,6 +9,42 @@ import firefox from "../scripts/lib/firefox.js";
 
 let session;
 
+const waitForDownloads = async (filenamePart, deadlineMs = 8000) =>
+  JSON.parse(
+    await session.evaluate(
+      `(async () => {
+        const deadline = Date.now() + ${deadlineMs};
+        for (;;) {
+          const downloads = await browser.downloads.search({});
+          const rows = downloads
+            .filter((x) => x.filename.includes(${JSON.stringify(filenamePart)}))
+            .map((x) => ({ state: x.state, filename: x.filename }));
+          if (rows.some((x) => x.state === "complete")) {
+            return JSON.stringify(rows);
+          }
+          if (Date.now() >= deadline) return JSON.stringify(rows);
+          await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+      })()`,
+      deadlineMs + 2000,
+    ),
+  );
+
+const waitForLog = async (predicate, deadlineMs = 8000) =>
+  JSON.parse(
+    await session.evaluate(
+      `(async () => {
+        const deadline = Date.now() + ${deadlineMs};
+        for (;;) {
+          const matches = (await Log.get()).filter(${predicate});
+          if (matches.length || Date.now() >= deadline) return JSON.stringify(matches);
+          await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+      })()`,
+      deadlineMs + 2000,
+    ),
+  );
+
 // 1x1 transparent PNG
 const PNG = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
@@ -70,9 +106,8 @@ test("background event page initialises cleanly", async () => {
 });
 
 test("download completes through the real pipeline", async () => {
-  const downloads = JSON.parse(
-    await session.evaluate(
-      `window.ready.then(() => {
+  await session.evaluate(
+    `window.ready.then(() => {
         Notifier.expectDownload();
         return Download.renameAndDownload({
           path: new Path.Path("e2e"),
@@ -84,16 +119,9 @@ test("download completes through the real pipeline", async () => {
             modifiers: [],
           },
         });
-      })
-      .then(() => new Promise(r => setTimeout(r, 3000)))
-      .then(() => browser.downloads.search({}))
-      .then((d) => JSON.stringify(
-        d.filter((x) => x.filename.includes("ff-smoke"))
-          .map((x) => ({ state: x.state, filename: x.filename }))
-      ))`,
-      45000,
-    ),
+      }).then(() => "started")`,
   );
+  const downloads = await waitForDownloads("ff-smoke");
 
   expect(downloads).toHaveLength(1);
   expect(downloads[0].state).toBe("complete");
@@ -124,9 +152,8 @@ test("referer option creates a declarativeNetRequest session rule", async () => 
 });
 
 test("routing rules rename and route the download", async () => {
-  const states = JSON.parse(
-    await session.evaluate(
-      `browser.storage.local.set({
+  await session.evaluate(
+    `browser.storage.local.set({
         filenamePatterns: "filename: routeme\\ninto: routed/renamed-:filename:",
       })
         .then(() => window.reset())
@@ -142,22 +169,14 @@ test("routing rules rename and route the download", async () => {
               modifiers: [],
             },
           });
-        })
-        .then(() => new Promise(r => setTimeout(r, 3000)))
-        .then(() => browser.downloads.search({}))
-        .then((d) => JSON.stringify(
-          d.filter((x) => x.filename.includes("renamed-routeme")).map((x) => x.state)
-        ))`,
-      45000,
-    ),
+        }).then(() => "started")`,
   );
-  expect(states).toEqual(["complete"]);
+  expect((await waitForDownloads("renamed-routeme")).map((x) => x.state)).toEqual(["complete"]);
 });
 
 test("message-driven downloads work and never inherit a stale route", async () => {
-  const states = JSON.parse(
-    await session.evaluate(
-      `new Promise((resolve) => {
+  await session.evaluate(
+    `new Promise((resolve) => {
         Messaging.handleDownloadMessage({
           body: {
             url: Download.makeObjectUrl("ff message download"),
@@ -168,22 +187,14 @@ test("message-driven downloads work and never inherit a stale route", async () =
             },
           },
         }, { tab: { id: 1, title: "E2E Tab" } }, resolve);
-      })
-        .then(() => new Promise(r => setTimeout(r, 3000)))
-        .then(() => browser.downloads.search({}))
-        .then((d) => JSON.stringify(
-          d.filter((x) => x.filename.includes("ff-msg-download")).map((x) => x.state)
-        ))`,
-      45000,
-    ),
+      }).then(() => "started")`,
   );
-  expect(states).toEqual(["complete"]);
+  expect((await waitForDownloads("ff-msg-download")).map((x) => x.state)).toEqual(["complete"]);
 });
 
 test("shortcut files keep their extension and redirect content", async () => {
-  const downloads = JSON.parse(
-    await session.evaluate(
-      `window.ready.then(() => {
+  await session.evaluate(
+    `window.ready.then(() => {
         Notifier.expectDownload();
         return Download.renameAndDownload({
           path: new Path.Path("e2e"),
@@ -195,16 +206,9 @@ test("shortcut files keep their extension and redirect content", async () => {
             modifiers: [],
           },
         });
-      })
-      .then(() => new Promise(r => setTimeout(r, 3000)))
-      .then(() => browser.downloads.search({}))
-      .then((d) => JSON.stringify(
-        d.filter((x) => x.filename.includes("page-shortcut"))
-          .map((x) => ({ state: x.state, filename: x.filename }))
-      ))`,
-      45000,
-    ),
+      }).then(() => "started")`,
   );
+  const downloads = await waitForDownloads("page-shortcut");
 
   expect(downloads).toHaveLength(1);
   expect(downloads[0].state).toBe("complete");
@@ -215,9 +219,8 @@ test("shortcut files keep their extension and redirect content", async () => {
 });
 
 test("failed downloads are recorded in the debug log", async () => {
-  const entries = JSON.parse(
-    await session.evaluate(
-      `window.ready.then(() => {
+  await session.evaluate(
+    `window.ready.then(() => {
         Notifier.expectDownload();
         return Download.renameAndDownload({
           path: new Path.Path("e2e"),
@@ -230,16 +233,12 @@ test("failed downloads are recorded in the debug log", async () => {
             modifiers: [],
           },
         });
-      })
-      .then(() => new Promise(r => setTimeout(r, 4000)))
-      .then(() => Log.get())
-      .then((log) => JSON.stringify(
-        log.filter((e) => e.message === "download failed" || e.message === "downloads.download failed").length
-      ))`,
-      45000,
-    ),
+      }).then(() => "started")`,
   );
-  expect(entries).toBeGreaterThanOrEqual(1);
+  const entries = await waitForLog(
+    `(e) => e.message === "download failed" || e.message === "downloads.download failed"`,
+  );
+  expect(entries.length).toBeGreaterThanOrEqual(1);
 });
 
 test("alt+click on a real page saves the image through the content script", async () => {
@@ -256,7 +255,17 @@ test("alt+click on a real page saves the image through the content script", asyn
     await session.evaluate(
       `browser.tabs.create({ url: "http://127.0.0.1:8919/" }).then(() => "opened")`,
     );
-    await new Promise((r) => setTimeout(r, 2500));
+    await session.evaluate(`(async () => {
+      const deadline = Date.now() + 8000;
+      for (;;) {
+        const tabs = await browser.tabs.query({});
+        if (tabs.some((tab) => tab.url?.includes("127.0.0.1:8919") && tab.status === "complete")) {
+          return "ready";
+        }
+        if (Date.now() >= deadline) throw new Error("page load timeout");
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+    })()`);
 
     // Firefox honours keyCode/buttons on synthetic events, and content-script
     // window listeners fire on real page DOM events, so we can drive the flow
@@ -272,17 +281,7 @@ test("alt+click on a real page saves the image through the content script", asyn
       })()`,
     );
 
-    const downloads = JSON.parse(
-      await session.evaluate(
-        `new Promise(r => setTimeout(r, 3000))
-          .then(() => browser.downloads.search({}))
-          .then((d) => JSON.stringify(
-            d.filter((x) => x.filename.includes("pic"))
-              .map((x) => ({ state: x.state, filename: x.filename }))
-          ))`,
-        45000,
-      ),
-    );
+    const downloads = await waitForDownloads("pic");
 
     expect(downloads.length).toBeGreaterThanOrEqual(1);
     expect(downloads[0].state).toBe("complete");

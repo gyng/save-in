@@ -9,6 +9,7 @@ import path from "path";
 
 import cdp from "../scripts/lib/cdp.js";
 import chrome from "../scripts/lib/chrome.js";
+import { poll } from "./helpers.mjs";
 
 const PROFILE = path.join(chrome.ROOT, "dist", "e2e-profile");
 
@@ -22,22 +23,29 @@ const evalOptions = (expr) => cdp.evalInTarget(PORT, "options.html", expr);
 
 // Polls a service-worker expression that returns a JSON array until it is
 // non-empty or the deadline passes, instead of a single fixed sleep
-const waitForDownloads = async (regex, deadlineMs = 8000) => {
-  const start = Date.now();
-  for (;;) {
-    // eslint-disable-next-line no-await-in-loop
-    const json = await evalSW(
-      `browser.downloads.search({ filenameRegex: ${JSON.stringify(regex)} })
+const waitForDownloads = (regex, deadlineMs = 8000) =>
+  poll(
+    async () => {
+      const json = await evalSW(
+        `browser.downloads.search({ filenameRegex: ${JSON.stringify(regex)} })
         .then((d) => JSON.stringify(d.map((x) => ({ state: x.state, filename: x.filename }))))`,
-    );
-    const rows = JSON.parse(json);
-    if (rows.some((r) => r.state === "complete") || Date.now() - start > deadlineMs) {
-      return rows;
-    }
-    // eslint-disable-next-line no-await-in-loop
-    await cdp.sleep(250);
-  }
-};
+      );
+      const rows = JSON.parse(json);
+      return rows.some((r) => r.state === "complete") ? rows : null;
+    },
+    { timeoutMs: deadlineMs, description: `download matching ${regex}` },
+  );
+
+const waitForLog = (predicate, deadlineMs = 8000) =>
+  poll(
+    async () => {
+      const entries = JSON.parse(
+        await evalSW(`Log.get().then((log) => JSON.stringify(log.filter(${predicate})))`),
+      );
+      return entries.length ? entries : null;
+    },
+    { timeoutMs: deadlineMs, description: "matching debug-log entry" },
+  );
 
 beforeAll(async () => {
   chrome.stageBuild();
@@ -51,7 +59,10 @@ beforeAll(async () => {
     fresh: true,
   }));
   await cdp.openTab(PORT, `chrome-extension://${extensionId}/src/options/options.html`);
-  await cdp.sleep(2000);
+  await poll(
+    async () => ((await evalOptions("document.readyState")) === "complete" ? true : null),
+    { description: "options page load" },
+  );
 });
 
 afterAll(async () => {
@@ -128,8 +139,7 @@ test("options-save reset message round-trips", async () => {
 });
 
 test("download completes through the real pipeline with session tracking", async () => {
-  const result = JSON.parse(
-    await evalSW(`window.ready.then(() => {
+  await evalSW(`window.ready.then(() => {
       Notifier.expectDownload();
       return Download.renameAndDownload({
         path: new Path.Path("e2e"),
@@ -141,13 +151,16 @@ test("download completes through the real pipeline with session tracking", async
           modifiers: [],
         },
       });
-    })
-    .then(() => new Promise(r => setTimeout(r, 2500)))
-    .then(() => Promise.all([
+    }).then(() => "started")`);
+  const downloads = await waitForDownloads("smoke");
+  expect(downloads.some((x) => x.state === "complete")).toBe(true);
+
+  const result = JSON.parse(
+    await evalSW(`Promise.all([
       browser.downloads.search({ filenameRegex: "smoke" }),
       browser.storage.session.get(null),
       browser.storage.local.get("save-in-history"),
-    ]))
+    ])
     .then(([d, sess, hist]) => {
       const entries = (hist["save-in-history"] || []).filter((e) => (e.finalFullPath || "").includes("smoke"));
       const entry = entries[entries.length - 1] || {};
@@ -287,8 +300,7 @@ test("changing the paths option rebuilds the context menus", async () => {
 });
 
 test("routing rules rename and route the download", async () => {
-  const states = JSON.parse(
-    await evalSW(`browser.storage.local.set({
+  await evalSW(`browser.storage.local.set({
       filenamePatterns: "filename: routeme\\ninto: routed/renamed-:filename:",
     })
       .then(() => window.reset())
@@ -304,43 +316,39 @@ test("routing rules rename and route the download", async () => {
             modifiers: [],
           },
         });
-      })
-      .then(() => new Promise(r => setTimeout(r, 2000)))
-      .then(() => browser.downloads.search({ filenameRegex: "renamed-routeme" }))
-      .then((d) => JSON.stringify(d.map((x) => x.state)))`),
-  );
-  expect(states).toEqual(["complete"]);
+      }).then(() => "started")`);
+  expect((await waitForDownloads("renamed-routeme")).map((x) => x.state)).toEqual(["complete"]);
 
   const file = path.join(DOWNLOADS, "e2e", "routed", "renamed-routeme.txt");
   expect(fs.readFileSync(file, "utf8")).toBe("routed content");
 });
 
 test(":counter: advances once per download and persists in storage", async () => {
-  const finalCount = JSON.parse(
-    await evalSW(`resetCounter(BackgroundState.counterWrites, browser.storage.local)
+  await evalSW(`resetCounter(BackgroundState.counterWrites, browser.storage.local)
       .then(() => browser.storage.local.set({
         filenamePatterns: "filename: countme\\ninto: counters/:counter:-:filename:",
       }))
-      .then(() => window.reset())
-      .then(async () => {
-        for (let i = 0; i < 2; i += 1) {
-          Notifier.expectDownload();
-          await Download.renameAndDownload({
-            path: new Path.Path("e2e"),
-            scratch: {},
-            info: {
-              url: Download.makeObjectUrl("counted-" + i),
-              suggestedFilename: "countme.txt",
-              pageUrl: "https://example.com/",
-              modifiers: [],
-            },
-          });
-          await new Promise(r => setTimeout(r, 400));
-        }
-      })
-      .then(() => new Promise(r => setTimeout(r, 1500)))
-      .then(() => peekCounter(browser.storage.local))`),
-  );
+      .then(() => window.reset())`);
+  for (let i = 0; i < 2; i += 1) {
+    // eslint-disable-next-line no-await-in-loop
+    await evalSW(`(() => {
+      Notifier.expectDownload();
+      return Download.renameAndDownload({
+        path: new Path.Path("e2e"),
+        scratch: {},
+        info: {
+          url: Download.makeObjectUrl("counted-${i}"),
+          suggestedFilename: "countme.txt",
+          pageUrl: "https://example.com/",
+          modifiers: [],
+        },
+      });
+    })()`);
+    // eslint-disable-next-line no-await-in-loop
+    const rows = await waitForDownloads(`${i + 1}-countme`);
+    expect(rows.some((x) => x.state === "complete")).toBe(true);
+  }
+  const finalCount = JSON.parse(await evalSW(`peekCounter(browser.storage.local)`));
   // two downloads -> counter advanced exactly twice
   expect(finalCount).toBe(2);
   // and each download's :counter: resolved to its own value
@@ -418,8 +426,7 @@ test("message-driven downloads work and never inherit a stale route", async () =
 });
 
 test("fetchViaFetch downloads via an offscreen document (Chrome MV3)", async () => {
-  const result = JSON.parse(
-    await evalSW(`browser.storage.local.set({ filenamePatterns: "" })
+  await evalSW(`browser.storage.local.set({ filenamePatterns: "" })
       .then(() => window.reset())
       .then(() => {
         options.fetchViaFetch = true;
@@ -434,20 +441,12 @@ test("fetchViaFetch downloads via an offscreen document (Chrome MV3)", async () 
             modifiers: [],
           },
         });
-      })
-      .then(() => new Promise(r => setTimeout(r, 2500)))
-      .then(() => Promise.all([
-        browser.downloads.search({ filenameRegex: "viafetch" }),
-        chrome.offscreen.hasDocument(),
-      ]))
-      .then(([d, hasOffscreen]) => {
-        options.fetchViaFetch = false;
-        return JSON.stringify({ states: d.map((x) => x.state), hasOffscreen });
-      })`),
-  );
-  expect(result.states).toEqual(["complete"]);
+      }).then(() => "started")`);
+  expect((await waitForDownloads("viafetch")).map((x) => x.state)).toEqual(["complete"]);
+  const hasOffscreen = await evalSW(`chrome.offscreen.hasDocument()`);
+  await evalSW(`options.fetchViaFetch = false`);
   // the service worker used an offscreen document for the blob object URL
-  expect(result.hasOffscreen).toBe(true);
+  expect(hasOffscreen).toBe(true);
 
   const file = path.join(DOWNLOADS, "e2e", "viafetch.txt");
   expect(fs.readFileSync(file, "utf8")).toBe("via fetch content");
@@ -508,13 +507,18 @@ test("options page autosave persists to storage and survives a restart", async (
   // "promptOnShift" is a safe toggle: it never opens a Save As dialog that
   // would stall later downloads, unlike "prompt"
   try {
-    await evalOptions(`(() => {
+    await evalOptions(`(async () => {
       const cb = document.querySelector("#promptOnShift");
       cb.checked = false;
       cb.dispatchEvent(new Event("change", { bubbles: true }));
-      return "toggled";
+      const deadline = Date.now() + 5000;
+      for (;;) {
+        const stored = await chrome.storage.local.get("promptOnShift");
+        if (stored.promptOnShift === false) return "toggled";
+        if (Date.now() >= deadline) throw new Error("autosave timeout");
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      }
     })()`);
-    await cdp.sleep(1000);
 
     // Persisted to storage.local (not just the in-memory option)...
     const stored = await evalSW(
@@ -528,20 +532,24 @@ test("options page autosave persists to storage and survives a restart", async (
     );
     expect(JSON.parse(afterReset)).toBe(false);
   } finally {
-    await evalOptions(`(() => {
+    await evalOptions(`(async () => {
       const cb = document.querySelector("#promptOnShift");
       cb.checked = true;
       cb.dispatchEvent(new Event("change", { bubbles: true }));
-      return "restored";
+      const deadline = Date.now() + 5000;
+      for (;;) {
+        const stored = await chrome.storage.local.get("promptOnShift");
+        if (stored.promptOnShift === true) return "restored";
+        if (Date.now() >= deadline) throw new Error("autosave restore timeout");
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      }
     })()`);
-    await cdp.sleep(1000);
     await evalSW(`window.reset().then(() => "reset")`);
   }
 });
 
 test("shortcut files download with redirect content", async () => {
-  const downloads = JSON.parse(
-    await evalSW(`window.ready.then(() => {
+  await evalSW(`window.ready.then(() => {
       Notifier.expectDownload();
       return Download.renameAndDownload({
         path: new Path.Path("e2e"),
@@ -553,11 +561,8 @@ test("shortcut files download with redirect content", async () => {
           modifiers: [],
         },
       });
-    })
-    .then(() => new Promise(r => setTimeout(r, 2000)))
-    .then(() => browser.downloads.search({ filenameRegex: "page-shortcut" }))
-    .then((d) => JSON.stringify(d.map((x) => ({ state: x.state, filename: x.filename }))))`),
-  );
+    }).then(() => "started")`);
+  const downloads = await waitForDownloads("page-shortcut");
   expect(downloads).toHaveLength(1);
   expect(downloads[0].state).toBe("complete");
   // text/html mime keeps Chrome from rewriting the extension (#161)
@@ -568,8 +573,7 @@ test("shortcut files download with redirect content", async () => {
 });
 
 test("failed downloads are recorded in the debug log", async () => {
-  const entries = JSON.parse(
-    await evalSW(`window.ready.then(() => {
+  await evalSW(`window.ready.then(() => {
       Notifier.expectDownload();
       return Download.renameAndDownload({
         path: new Path.Path("e2e"),
@@ -582,12 +586,9 @@ test("failed downloads are recorded in the debug log", async () => {
           modifiers: [],
         },
       });
-    })
-    .then(() => new Promise(r => setTimeout(r, 3000)))
-    .then(() => Log.get())
-    .then((log) => JSON.stringify(
-      log.filter((e) => e.message === "download failed" || e.message === "downloads.download failed")
-    ))`),
+    }).then(() => "started")`);
+  const entries = await waitForLog(
+    `(e) => e.message === "download failed" || e.message === "downloads.download failed"`,
   );
 
   // A failure entry exists and references THIS download, not noise from
@@ -677,7 +678,12 @@ test("alt+click on a real page saves the image through the content script", asyn
     );
 
     await cdp.openTab(PORT, "http://127.0.0.1:8917/");
-    await cdp.sleep(2000);
+    await poll(
+      async () =>
+        (await cdp.evalInTarget(PORT, "127.0.0.1:8917", "!!document.getElementById('img')")) ===
+        true,
+      { description: "content page image" },
+    );
 
     // Synthetic DOM events don't carry keyCode/buttons across the content
     // script's isolated-world boundary: dispatch trusted input via CDP
@@ -743,13 +749,7 @@ test("alt+click on a real page saves the image through the content script", asyn
       },
     ]);
 
-    const download = JSON.parse(
-      await evalSW(
-        `new Promise(r => setTimeout(r, 3000))
-          .then(() => browser.downloads.search({ filenameRegex: "pic" }))
-          .then((d) => JSON.stringify(d.map((x) => ({ state: x.state, filename: x.filename }))))`,
-      ),
-    );
+    const download = await waitForDownloads("pic");
 
     if (download.length !== 1) {
       console.log(
