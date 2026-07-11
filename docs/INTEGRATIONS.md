@@ -149,7 +149,7 @@ API; `schema`/`validate` are in the `PING` capabilities):
 In a [WebMCP](https://developer.chrome.com/docs/ai/webmcp)-capable browser
 (Chrome origin trial), the options page registers five tools an in-browser AI
 agent can call — thin wrappers over the messages above
-(`src/options/webmcp.js`): `save_in_get_schema` (every option, so an agent can
+(`src/options/webmcp.ts`): `save_in_get_schema` (every option, so an agent can
 change **any** setting), `save_in_list_vocabulary` (the `:variables:` **and**
 routing clause matchers), `save_in_validate_config`, `save_in_apply_config`, and
 `save_in_download`. It feature-detects

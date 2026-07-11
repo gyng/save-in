@@ -9,13 +9,48 @@ type WebMcpSchema = {
   additionalProperties?: boolean;
   required?: string[];
 };
+type WebMcpAnnotations = {
+  readOnlyHint: boolean;
+  untrustedContentHint: boolean;
+};
 type WebMcpTool = {
   name: string;
   description: string;
   inputSchema: WebMcpSchema;
+  annotations: WebMcpAnnotations;
   execute: (input?: WebMcpInput) => unknown;
 };
 type WebMcpContext = { registerTool: (tool: WebMcpTool) => unknown };
+
+type WebMcpInputError = { field: string; message: string };
+
+const inputError = (field: string, message: string): Promise<unknown> =>
+  Promise.resolve({ status: "ERROR", errors: [{ field, message }] });
+
+const invalidOptionalString = (input: WebMcpInput, key: string): WebMcpInputError | null =>
+  input && typeof input[key] !== "undefined" && typeof input[key] !== "string"
+    ? { field: key, message: "Expected a string" }
+    : null;
+
+const firstInvalidOptionalString = (
+  input: WebMcpInput,
+  keys: string[],
+): WebMcpInputError | null => {
+  for (const key of keys) {
+    const error = invalidOptionalString(input, key);
+    if (error) return error;
+  }
+  return null;
+};
+
+const firstUnknownProperty = (
+  input: WebMcpInput,
+  allowed: ReadonlySet<string>,
+): WebMcpInputError | null => {
+  if (!input) return null;
+  const field = Object.keys(input).find((key) => !allowed.has(key));
+  return field ? { field, message: "Unknown property" } : null;
+};
 
 // EXPERIMENTAL — WebMCP (Chrome origin trial, https://developer.chrome.com/docs/ai/webmcp).
 // Registers save-in's config + download tools on this page's document so an
@@ -39,6 +74,7 @@ export const SaveInWebMCP = {
       name: "save_in_get_schema",
       description: "List Save In's configurable options (name, type, default, description).",
       inputSchema: { type: "object", properties: {}, additionalProperties: false },
+      annotations: { readOnlyHint: true, untrustedContentHint: false },
       execute: () => send({ type: "GET_SCHEMA" }),
     },
     {
@@ -46,6 +82,7 @@ export const SaveInWebMCP = {
       description:
         "List the :variables: (e.g. :sourcedomain:, :date:, :counter: — used in paths and filenames) and the clause matchers (fileext, filename, pageurl, into, capture, ... — used in Dynamic Downloads routing rules). Returns { variables, matchers }. Call this to translate a plain-language request into the config syntax.",
       inputSchema: { type: "object", properties: {}, additionalProperties: false },
+      annotations: { readOnlyHint: true, untrustedContentHint: false },
       execute: () => send({ type: "GET_KEYWORDS" }),
     },
     {
@@ -63,8 +100,23 @@ export const SaveInWebMCP = {
               "Optional sample download info ({url, filename, initialFilename, pageUrl, ...}) for a per-rule match trace",
           },
         },
+        additionalProperties: false,
       },
-      execute: (input: WebMcpInput) => send({ type: "VALIDATE", body: input || {} }),
+      annotations: { readOnlyHint: true, untrustedContentHint: true },
+      execute: (input: WebMcpInput) => {
+        const error =
+          firstUnknownProperty(input, new Set(["paths", "filenamePatterns", "info"])) ||
+          firstInvalidOptionalString(input, ["paths", "filenamePatterns"]);
+        if (error) return inputError(error.field, error.message);
+        if (
+          input &&
+          typeof input.info !== "undefined" &&
+          (typeof input.info !== "object" || input.info === null || Array.isArray(input.info))
+        ) {
+          return inputError("info", "Expected an object");
+        }
+        return send({ type: "VALIDATE", body: input || {} });
+      },
     },
     {
       name: "save_in_apply_config",
@@ -78,10 +130,23 @@ export const SaveInWebMCP = {
             description: "Partial { optionName: value } map (see save_in_get_schema)",
           },
         },
+        additionalProperties: false,
         required: ["config"],
       },
-      execute: (input: WebMcpInput) =>
-        send({ type: "APPLY_CONFIG", body: { config: (input && input.config) || {} } }),
+      annotations: { readOnlyHint: false, untrustedContentHint: false },
+      execute: (input: WebMcpInput) => {
+        const unknown = firstUnknownProperty(input, new Set(["config"]));
+        if (unknown) return inputError(unknown.field, unknown.message);
+        if (
+          !input ||
+          typeof input.config !== "object" ||
+          input.config === null ||
+          Array.isArray(input.config)
+        ) {
+          return inputError("config", "Expected an object");
+        }
+        return send({ type: "APPLY_CONFIG", body: { config: input.config } });
+      },
     },
     {
       name: "save_in_download",
@@ -93,30 +158,43 @@ export const SaveInWebMCP = {
           pageUrl: { type: "string", description: "The page the URL came from" },
           comment: { type: "string", description: "Free text, targetable in routing rules" },
         },
+        additionalProperties: false,
         required: ["url"],
       },
-      execute: (input: WebMcpInput) =>
-        send({
+      annotations: { readOnlyHint: false, untrustedContentHint: true },
+      execute: (input: WebMcpInput) => {
+        const unknown = firstUnknownProperty(input, new Set(["url", "pageUrl", "comment"]));
+        if (unknown) return inputError(unknown.field, unknown.message);
+        if (!input || typeof input.url !== "string" || input.url.trim() === "") {
+          return inputError("url", "Expected a non-empty string");
+        }
+        const error = firstInvalidOptionalString(input, ["pageUrl", "comment"]);
+        if (error) return inputError(error.field, error.message);
+        return send({
           type: "DOWNLOAD",
           body: {
-            url: input && input.url,
-            info: { pageUrl: input && input.pageUrl, srcUrl: input && input.url },
-            comment: input && input.comment,
+            url: input.url,
+            info: { pageUrl: input.pageUrl, srcUrl: input.url },
+            comment: input.comment,
           },
-        }),
+        });
+      },
     },
   ],
 
-  register: (ctx: WebMcpContext, send: WebMcpSend): void => {
-    SaveInWebMCP.buildTools(send).forEach((tool) => {
+  register: async (ctx: WebMcpContext, send: WebMcpSend): Promise<number> => {
+    const registrations = SaveInWebMCP.buildTools(send).map((tool) => {
       try {
-        // registerTool may return a promise; never let a preview-API hiccup
-        // break the options page
-        Promise.resolve(ctx.registerTool(tool)).catch(() => {});
+        return Promise.resolve(ctx.registerTool(tool)).then(
+          () => true,
+          () => false,
+        );
       } catch {
-        // ignore — experimental surface
+        return Promise.resolve(false);
       }
     });
+    const results = await Promise.all(registrations);
+    return results.filter(Boolean).length;
   },
 };
 
@@ -131,12 +209,18 @@ export const SaveInWebMCP = {
 
   if (ctx && typeof ctx.registerTool === "function" && webExtensionApi) {
     const count = SaveInWebMCP.buildTools(() => {}).length;
-    SaveInWebMCP.register(ctx, (message: WebMcpMessage) =>
+    if (statusEl) statusEl.textContent = "Registering…";
+    void SaveInWebMCP.register(ctx, (message: WebMcpMessage) =>
       webExtensionApi.runtime.sendMessage(message).then((res) => (res && res.body) || res),
-    );
-    if (statusEl) {
-      statusEl.textContent = `Active — ${count} tools registered`;
-    }
+    ).then((registered) => {
+      if (!statusEl) return;
+      statusEl.textContent =
+        registered === count
+          ? `Active — ${count} tools registered`
+          : registered > 0
+            ? `Limited — ${registered} of ${count} tools registered`
+            : "Unavailable — tool registration failed";
+    });
   } else if (statusEl) {
     statusEl.textContent = "Not available in this browser";
   }

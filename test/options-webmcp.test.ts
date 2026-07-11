@@ -22,8 +22,13 @@ describe("buildTools", () => {
       expect(typeof tool.description).toBe("string");
       expect(tool.inputSchema.type).toBe("object");
       expect(typeof tool.execute).toBe("function");
+      expect(typeof tool.annotations?.readOnlyHint).toBe("boolean");
+      expect(typeof tool.annotations?.untrustedContentHint).toBe("boolean");
     }
     expect(byName.save_in_download.inputSchema.required).toEqual(["url"]);
+    expect(byName.save_in_download.inputSchema.additionalProperties).toBe(false);
+    expect(byName.save_in_apply_config.annotations?.readOnlyHint).toBe(false);
+    expect(byName.save_in_validate_config.annotations?.readOnlyHint).toBe(true);
   });
 
   test("execute handlers message the right background type", () => {
@@ -59,17 +64,46 @@ describe("buildTools", () => {
     });
   });
 
-  test("register registers every tool and swallows failures", () => {
+  test("rejects malformed tool input before messaging the background", async () => {
+    const { send, byName } = toolsByName();
+
+    await expect(byName.save_in_validate_config.execute({ paths: false })).resolves.toEqual({
+      status: "ERROR",
+      errors: [{ field: "paths", message: "Expected a string" }],
+    });
+    await expect(byName.save_in_apply_config.execute({ config: [] })).resolves.toEqual({
+      status: "ERROR",
+      errors: [{ field: "config", message: "Expected an object" }],
+    });
+    await expect(byName.save_in_download.execute({ url: "" })).resolves.toEqual({
+      status: "ERROR",
+      errors: [{ field: "url", message: "Expected a non-empty string" }],
+    });
+    await expect(
+      byName.save_in_download.execute({ url: "https://x/a.png", destination: "elsewhere" }),
+    ).resolves.toEqual({
+      status: "ERROR",
+      errors: [{ field: "destination", message: "Unknown property" }],
+    });
+    expect(send).not.toHaveBeenCalled();
+  });
+
+  test("register reports successful registrations and isolates failures", async () => {
     const registerTool = vi.fn(() => Promise.resolve());
-    SaveInWebMCP.register({ registerTool }, vi.fn());
+    await expect(SaveInWebMCP.register({ registerTool }, vi.fn())).resolves.toBe(5);
     expect(registerTool).toHaveBeenCalledTimes(5);
 
     const throwing = {
-      registerTool: vi.fn(() => {
-        throw new Error("nope");
+      registerTool: vi.fn((tool: { name: string }) => {
+        if (tool.name === "save_in_download") {
+          throw new Error("nope");
+        }
+        return tool.name === "save_in_apply_config"
+          ? Promise.reject(new Error("also nope"))
+          : Promise.resolve();
       }),
     };
-    expect(() => SaveInWebMCP.register(throwing, vi.fn())).not.toThrow();
+    await expect(SaveInWebMCP.register(throwing, vi.fn())).resolves.toBe(3);
   });
 });
 
@@ -92,8 +126,31 @@ describe("auto-registration on import", () => {
     await import("../src/options/webmcp.ts");
 
     expect(registerTool).toHaveBeenCalledTimes(5);
-    expect(document.getElementById("webmcp-status")?.textContent).toBe(
-      "Active — 5 tools registered",
+    await vi.waitFor(() =>
+      expect(document.getElementById("webmcp-status")?.textContent).toBe(
+        "Active — 5 tools registered",
+      ),
+    );
+  });
+
+  test("reports partial registration instead of claiming full success", async () => {
+    document.body.innerHTML = '<span id="webmcp-status"></span>';
+    document.modelContext = {
+      registerTool: vi.fn((tool: { name: string }) =>
+        tool.name === "save_in_download" ? Promise.reject(new Error("nope")) : Promise.resolve(),
+      ),
+    };
+    (global as any).browser = {
+      runtime: { sendMessage: vi.fn(() => Promise.resolve({ body: {} })) },
+    };
+
+    vi.resetModules();
+    await import("../src/options/webmcp.ts");
+
+    await vi.waitFor(() =>
+      expect(document.getElementById("webmcp-status")?.textContent).toBe(
+        "Limited — 4 of 5 tools registered",
+      ),
     );
   });
 

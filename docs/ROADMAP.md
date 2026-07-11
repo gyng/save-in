@@ -591,10 +591,10 @@ rejected, import can't widen permissions). **S–M** each.
 
 ### WebMCP (browser-native AI tools) — shipped experimentally.
 
-**Done (experimental).** `src/options/webmcp.js` registers four tools on the
+**Done (experimental).** `src/options/webmcp.ts` registers five tools on the
 options-page document, feature-detected on `document.modelContext`. Verified
 end-to-end on Chrome 150 with the WebMCP flags: `getTools()` returns
-`save_in_{get_schema,validate_config,apply_config,download}` and `executeTool`
+`save_in_{get_schema,list_vocabulary,validate_config,apply_config,download}` and `executeTool`
 round-trips (get_schema returned the full option list, validate_config parsed a
 rule with no errors). The notes below record the original assessment.
 
