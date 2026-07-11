@@ -76,18 +76,21 @@ describe("matchPatternToRegExp", () => {
 
   test("keeps explicit schemes", () => {
     const re = RequestHeaders.matchPatternToRegExp("https://example.com/*");
+    if (!re) throw new Error("Valid match pattern did not compile");
     expect(re.test("https://example.com/a")).toBe(true);
     expect(re.test("http://example.com/a")).toBe(false);
   });
 
   test("wildcard host matches any host", () => {
     const re = RequestHeaders.matchPatternToRegExp("*://*/download/*");
+    if (!re) throw new Error("Valid match pattern did not compile");
     expect(re.test("https://anything.example/download/x")).toBe(true);
     expect(re.test("https://anything.example/other/x")).toBe(false);
   });
 
   test("*.host matches the host and its subdomains", () => {
     const re = RequestHeaders.matchPatternToRegExp("*://*.example.com/*");
+    if (!re) throw new Error("Valid match pattern did not compile");
     expect(re.test("https://example.com/a")).toBe(true);
     expect(re.test("https://cdn.example.com/a")).toBe(true);
     expect(re.test("https://example.org/a")).toBe(false);
@@ -105,7 +108,7 @@ describe("prepareReferer (declarativeNetRequest path)", () => {
     },
   };
 
-  let originalChrome;
+  let originalChrome: unknown;
 
   beforeEach(() => {
     setOptions({ setRefererHeader: true, setRefererHeaderFilter: "*://i.pximg.net/*" });
@@ -193,8 +196,8 @@ describe("prepareReferer (declarativeNetRequest path)", () => {
     await RequestHeaders.prepareReferer(state);
 
     const ids = g.chrome.declarativeNetRequest.updateSessionRules.mock.calls
-      .map((c) => c[0].addRules && c[0].addRules[0].id)
-      .filter((id) => id != null);
+      .map((c: any) => c[0].addRules && c[0].addRules[0].id)
+      .filter((id: unknown): id is number => typeof id === "number");
     expect(ids[0]).toBe(RequestHeaders.DNR_REFERER_RULE_ID);
     expect(ids[1]).toBe(RequestHeaders.DNR_REFERER_RULE_ID + 1);
   });

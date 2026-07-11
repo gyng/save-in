@@ -1,6 +1,9 @@
 import { options } from "./options-data.ts";
 import { Util } from "./util.ts";
 import { Log } from "./log.ts";
+import type { DownloadInfo } from "./download-types.ts";
+
+type RefererState = { info?: Pick<DownloadInfo, "url" | "pageUrl"> } | null | undefined;
 
 export const RequestHeaders = {
   DNR_REFERER_RULE_ID: 4077,
@@ -20,8 +23,8 @@ export const RequestHeaders = {
   // options.setRefererHeaderFilter (e.g., `*://i.pximg.net/*`), following
   // WebExtension match pattern semantics: the host part is anchored so a
   // pattern cannot match inside another URL's query string
-  matchPatternToRegExp: (pattern) => {
-    const escapeRegExp = (s) => s.replace(/[.+?^${}()|[\]\\]/g, "\\$&");
+  matchPatternToRegExp: (pattern: string): RegExp | null => {
+    const escapeRegExp = (s: string): string => s.replace(/[.+?^${}()|[\]\\]/g, "\\$&");
 
     const parts = pattern.match(/^(\*|https?|file|ftp):\/\/([^/]*)(\/.*)$/);
     if (!parts) {
@@ -44,7 +47,7 @@ export const RequestHeaders = {
     return new RegExp(`^${scheme}://${host}${path}$`);
   },
 
-  matchesRefererFilter: (url) =>
+  matchesRefererFilter: (url: string): boolean =>
     Util.splitLines(options.setRefererHeaderFilter).some((pattern) => {
       try {
         const re = RequestHeaders.matchPatternToRegExp(pattern);
@@ -59,7 +62,7 @@ export const RequestHeaders = {
   // support DNR modifyHeaders for the Referer header (verified on downloads.download
   // requests), so no blocking webRequest is needed — and Chrome MV3 forbids
   // webRequestBlocking for non-policy extensions anyway.
-  prepareReferer: (state) => {
+  prepareReferer: (state: RefererState): Promise<void> => {
     if (!options.setRefererHeader) {
       return Promise.resolve();
     }
