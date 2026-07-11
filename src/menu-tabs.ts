@@ -75,7 +75,7 @@ Menus.addTabMenuListener = () => {
   const ids = Object.values(Menus.IDS.TABSTRIP);
 
   webExtensionApi.contextMenus.onClicked.addListener(async (info, fromTab) => {
-    if (!ids.includes(info.menuItemId)) {
+    if (!ids.includes(info.menuItemId) || !fromTab) {
       return;
     }
 
@@ -85,7 +85,7 @@ Menus.addTabMenuListener = () => {
       await window.ready;
     }
 
-    let filter: (t: any) => boolean = () => false;
+    let filter: (tab: browser.tabs.Tab) => boolean = () => false;
     /** @type {{ pinned: boolean, windowId: number, windowType: browser.tabs.WindowType, highlighted?: boolean, openerTabId?: number }} */
     let query = {
       pinned: false,
@@ -115,7 +115,12 @@ Menus.addTabMenuListener = () => {
 
     webExtensionApi.tabs
       .query(query as any)
-      .then((tabs) => tabs.filter((t) => !t.url.match(/^(about|chrome):/)))
+      .then((tabs) =>
+        tabs.filter(
+          (tab): tab is browser.tabs.Tab & { url: string } =>
+            Boolean(tab.url) && !/^(about|chrome):/.test(tab.url || ""),
+        ),
+      )
       .then((tabs) => tabs.filter(filter))
       .then((tabs) => {
         const timeoutInterval = 500; // Prevents notification bugs
@@ -167,8 +172,12 @@ Menus.addTabMenuListener = () => {
 
             // TODO: Store tabs marked for saving and close only on successful save
             if (options.closeTabOnSave) {
+              const tabId = t.id;
+              if (tabId == null) {
+                return;
+              }
               window.setTimeout(() => {
-                webExtensionApi.tabs.remove(t.id);
+                webExtensionApi.tabs.remove(tabId);
               }, timeoutInterval);
             }
           }, timeoutInterval * i);
