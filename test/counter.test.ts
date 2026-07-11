@@ -1,16 +1,16 @@
 // Counter: an atomic, persistent, serialised download counter for :counter:
 
-import { nextCounter, peekCounter, resetCounter } from "../src/counter.ts";
+import { CounterWriteState, nextCounter, peekCounter, resetCounter } from "../src/counter.ts";
 
-let writes;
+let writes: CounterWriteState;
 
 // A tiny in-memory storage.local stand-in
 const makeStore = () => {
-  const data = {};
+  const data: Record<string, number> = {};
   return {
     data,
-    get: vi.fn((key) => Promise.resolve(key in data ? { [key]: data[key] } : {})),
-    set: vi.fn((obj) => {
+    get: vi.fn((key: string) => Promise.resolve(key in data ? { [key]: data[key] } : {})),
+    set: vi.fn((obj: Record<string, number>) => {
       Object.assign(data, obj);
       return Promise.resolve();
     }),
@@ -52,7 +52,8 @@ describe("Counter", () => {
       nextCounter(writes, browser.storage.local),
       nextCounter(writes, browser.storage.local),
     ]);
-    expect(results.sort((a, b) => a - b)).toEqual([1, 2, 3, 4, 5]);
+    expect(results).toHaveLength(5);
+    expect(new Set(results)).toEqual(new Set([1, 2, 3, 4, 5]));
   });
 
   test("reset() sets it back to 0", async () => {

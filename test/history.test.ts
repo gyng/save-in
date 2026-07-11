@@ -1,4 +1,5 @@
 import { SaveHistory } from "../src/history.ts";
+import type { HistoryEntry } from "../src/history-types.ts";
 
 const HISTORY_KEY = "save-in-history";
 
@@ -7,12 +8,14 @@ const HISTORY_KEY = "save-in-history";
 const flushWrites = () => SaveHistory.writeQueue;
 
 describe("SaveHistory", () => {
-  let store;
+  let store: Record<string, HistoryEntry[]>;
 
   beforeEach(() => {
     store = {};
-    global.browser.storage.local.get = jest.fn((key) => Promise.resolve({ [key]: store[key] }));
-    global.browser.storage.local.set = jest.fn((obj) => {
+    global.browser.storage.local.get = jest.fn((key: string) =>
+      Promise.resolve({ [key]: store[key] }),
+    );
+    global.browser.storage.local.set = jest.fn((obj: Record<string, HistoryEntry[]>) => {
       Object.assign(store, obj);
       return Promise.resolve();
     });
@@ -106,7 +109,7 @@ describe("SaveHistory", () => {
   });
 
   test("add tolerates a storage backend returning nothing", async () => {
-    vi.mocked(global.browser.storage.local.get).mockResolvedValueOnce(undefined);
+    vi.mocked(global.browser.storage.local.get).mockResolvedValueOnce(undefined as never);
 
     SaveHistory.add({ url: "https://a/1" });
     await flushWrites();
@@ -115,16 +118,16 @@ describe("SaveHistory", () => {
   });
 
   test("get tolerates a storage backend returning nothing", async () => {
-    vi.mocked(global.browser.storage.local.get).mockResolvedValueOnce(undefined);
+    vi.mocked(global.browser.storage.local.get).mockResolvedValueOnce(undefined as never);
 
     await expect(SaveHistory.get()).resolves.toEqual([]);
   });
 
   test("concurrent adds do not clobber each other (write-queue serialization)", async () => {
-    global.browser.storage.local.get = jest.fn((key) =>
+    global.browser.storage.local.get = jest.fn((key: string) =>
       Promise.resolve().then(() => ({ [key]: store[key] })),
     );
-    global.browser.storage.local.set = jest.fn((obj) =>
+    global.browser.storage.local.set = jest.fn((obj: Record<string, HistoryEntry[]>) =>
       Promise.resolve().then(() => {
         Object.assign(store, obj);
       }),
@@ -135,18 +138,16 @@ describe("SaveHistory", () => {
     SaveHistory.add({ url: "https://a/3" });
     await flushWrites();
 
-    expect(store[HISTORY_KEY].map((e) => e.url).toSorted()).toEqual([
-      "https://a/1",
-      "https://a/2",
-      "https://a/3",
-    ]);
+    expect(new Set(store[HISTORY_KEY].map((entry) => entry.url))).toEqual(
+      new Set(["https://a/1", "https://a/2", "https://a/3"]),
+    );
   });
 
   test("a failing set does not break subsequent adds", async () => {
     global.browser.storage.local.set = jest
       .fn()
       .mockRejectedValueOnce(new Error("boom"))
-      .mockImplementation((obj) => {
+      .mockImplementation((obj: Record<string, HistoryEntry[]>) => {
         Object.assign(store, obj);
         return Promise.resolve();
       });
