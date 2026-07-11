@@ -45,7 +45,7 @@ describe("vendored content-disposition parser", () => {
 });
 
 describe("Download.getFilenameFromContentDisposition with the real parser", () => {
-  let Download;
+  let Download: typeof import("../src/download.ts").Download;
 
   beforeAll(async () => {
     vi.resetModules();

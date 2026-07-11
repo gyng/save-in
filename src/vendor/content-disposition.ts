@@ -13,7 +13,7 @@
  * @param {string} contentDisposition
  * @return {string} Filename, if found in the Content-Disposition header.
  */
-export function getFilenameFromContentDispositionHeader(contentDisposition) {
+export function getFilenameFromContentDispositionHeader(contentDisposition: string): string {
   // This parser is designed to be tolerant and accepting of headers that do
   // not comply with the standard, but accepted by Firefox.
 
@@ -50,7 +50,7 @@ export function getFilenameFromContentDispositionHeader(contentDisposition) {
   }
   return "";
 
-  function toParamRegExp(attributePattern, flags) {
+  function toParamRegExp(attributePattern: string, flags: string): RegExp {
     return new RegExp(
       "(?:^|;)\\s*" +
         attributePattern +
@@ -65,11 +65,11 @@ export function getFilenameFromContentDispositionHeader(contentDisposition) {
       flags,
     );
   }
-  function textdecode(encoding, value) {
+  function textdecode(encoding: string, value: string): string {
     if (encoding) {
       try {
         let decoder = new TextDecoder(encoding, { fatal: true });
-        let bytes = Array.from(value, (c: any) => c.charCodeAt(0));
+        let bytes = Array.from(value, (c) => c.charCodeAt(0));
         if (bytes.every((code) => code <= 0xff)) {
           value = decoder.decode(new Uint8Array(bytes));
           needsEncodingFixup = false;
@@ -80,7 +80,7 @@ export function getFilenameFromContentDispositionHeader(contentDisposition) {
     }
     return value;
   }
-  function fixupEncoding(value) {
+  function fixupEncoding(value: string): string {
     if (needsEncodingFixup && /[\x80-\xff]/.test(value)) {
       // Maybe multi-byte UTF-8.
       value = textdecode("utf-8", value);
@@ -91,15 +91,15 @@ export function getFilenameFromContentDispositionHeader(contentDisposition) {
     }
     return value;
   }
-  function rfc2231getparam(contentDisposition) {
-    let matches = [],
+  function rfc2231getparam(contentDisposition: string): string {
+    let matches: Array<[string, string] | undefined> = [],
       match;
     // Iterate over all filename*n= and filename*n*= with n being an integer
     // of at least zero. Any non-zero number must not start with '0'.
     let iter = toParamRegExp("filename\\*((?!0\\d)\\d+)(\\*?)", "ig");
     while ((match = iter.exec(contentDisposition)) !== null) {
-      let [, n, quot, part] = match;
-      n = parseInt(n, 10);
+      let [, index, quot, part] = match;
+      const n = parseInt(index, 10);
       if (n in matches) {
         // Ignore anything after the invalid second filename*0.
         if (n === 0) break;
@@ -113,7 +113,7 @@ export function getFilenameFromContentDispositionHeader(contentDisposition) {
         // Numbers must be consecutive. Truncate when there is a hole.
         break;
       }
-      let [quot, part] = matches[n];
+      let [quot, part] = matches[n]!;
       part = rfc2616unquote(part);
       if (quot) {
         part = unescape(part);
@@ -125,7 +125,7 @@ export function getFilenameFromContentDispositionHeader(contentDisposition) {
     }
     return parts.join("");
   }
-  function rfc2616unquote(value) {
+  function rfc2616unquote(value: string): string {
     if (value.startsWith('"')) {
       let parts = value.slice(1).split('\\"');
       // Find the first unescaped " and terminate there.
@@ -141,7 +141,7 @@ export function getFilenameFromContentDispositionHeader(contentDisposition) {
     }
     return value;
   }
-  function rfc5987decode(extvalue) {
+  function rfc5987decode(extvalue: string): string {
     // Decodes "ext-value" from RFC 5987.
     let encodingend = extvalue.indexOf("'");
     if (encodingend === -1) {
@@ -156,7 +156,7 @@ export function getFilenameFromContentDispositionHeader(contentDisposition) {
     let value = langvalue.replace(/^[^']*'/, "");
     return textdecode(encoding, value);
   }
-  function rfc2047decode(value) {
+  function rfc2047decode(value: string): string {
     // RFC 2047-decode the result. Firefox tried to drop support for it, but
     // backed out because some servers use it - https://bugzil.la/875615
     // Firefox's condition for decoding is here: https://searchfox.org/mozilla-central/rev/4a590a5a15e35d88a3b23dd6ac3c471cf85b04a8/netwerk/mime/nsMIMEHeaderParamImpl.cpp#742-748
@@ -181,7 +181,7 @@ export function getFilenameFromContentDispositionHeader(contentDisposition) {
     //                ... but Firefox permits ? and space.
     return value.replace(
       /=\?([\w-]*)\?([QqBb])\?((?:[^?]|\?(?!=))*)\?=/g,
-      function (_, charset, encoding, text) {
+      function (_: string, charset: string, encoding: string, text: string) {
         if (encoding === "q" || encoding === "Q") {
           // RFC 2047 section 4.2.
           text = text.replace(/_/g, " ");
