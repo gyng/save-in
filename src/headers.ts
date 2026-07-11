@@ -1,5 +1,5 @@
 import { options } from "./options-data.ts";
-import { Util } from "./util.ts";
+import { splitLines, withUrl } from "./util.ts";
 import { Log } from "./log.ts";
 import type { DownloadInfo } from "./download-types.ts";
 
@@ -48,7 +48,7 @@ export const RequestHeaders = {
   },
 
   matchesRefererFilter: (url: string): boolean =>
-    Util.splitLines(options.setRefererHeaderFilter).some((pattern) => {
+    splitLines(options.setRefererHeaderFilter).some((pattern) => {
       try {
         const re = RequestHeaders.matchPatternToRegExp(pattern);
         return re != null && re.test(url);
@@ -84,7 +84,7 @@ export const RequestHeaders = {
     // Referer would be dropped); requestDomains covers the whole host for the
     // rule's short lifetime. Falls back to the exact URL if the host can't be
     // parsed. (#66/#193)
-    const host = Util.withUrl(url, (u) => u.hostname, null);
+    const host = withUrl(url, (parsedUrl) => parsedUrl.hostname, null);
 
     const ruleId = RequestHeaders.nextRefererRuleId();
     return chrome.declarativeNetRequest

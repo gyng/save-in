@@ -1,4 +1,4 @@
-import { Util } from "./util.ts";
+import { withUrl } from "./util.ts";
 import { resolveContent } from "./content-fetch.ts";
 import { EXTENSION_REGEX, getFilenameFromUrl } from "./filename.ts";
 import { SPECIAL_DIRS, PATH_SEGMENT_TYPES } from "./constants.ts";
@@ -41,9 +41,9 @@ interface VariableApi {
 }
 
 export const Variable: VariableApi = {
-  // Thin wrapper over Util.withUrl that keeps this call site's historical
+  // Thin wrapper over withUrl that keeps this call site's historical
   // behavior of returning the original string on a parse failure
-  withUrl: <T>(str: string, cb: (url: URL) => T) => Util.withUrl(str, cb, str),
+  withUrl: <T>(str: string, cb: (url: URL) => T) => withUrl(str, cb, str),
 
   padDateComponent: (num) => num.toString().padStart(2, "0"),
 

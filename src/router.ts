@@ -82,7 +82,7 @@ const RouterFactory = {
       return match;
     },
 
-  // Keeps its own try/catch (rather than Util.withUrl) because the failure
+  // Keeps its own try/catch (rather than withUrl) because the failure
   // branch logs the bad domain, not just returns a fallback
   makeHostnameMatcherFactory:
     (propertyName: InfoStringKey): MatcherFactory =>

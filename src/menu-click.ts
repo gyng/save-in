@@ -7,7 +7,7 @@ import { webExtensionApi } from "./web-extension-api.ts";
 
 import { Menus } from "./menu-build.ts";
 import { DOWNLOAD_TYPES, MEDIA_TYPES } from "./constants.ts";
-import { Util } from "./util.ts";
+import { splitLines } from "./util.ts";
 import { Path } from "./path.ts";
 import { Download } from "./download.ts";
 import { Notifier } from "./notification.ts";
@@ -84,7 +84,7 @@ Menus.resolveClickTarget = (
         try {
           // splitLines drops empty lines: an empty pattern would compile to
           // `new RegExp("")` and match every page
-          Util.splitLines(options.preferLinksFilter)
+          splitLines(options.preferLinksFilter)
             .map((s) => new RegExp(s))
             .forEach((re) => {
               if (info.pageUrl?.match(re) != null) {

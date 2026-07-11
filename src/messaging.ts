@@ -2,7 +2,7 @@ import { webExtensionApi } from "./web-extension-api.ts";
 
 /* eslint-disable no-case-declarations */
 
-import { Util } from "./util.ts";
+import { splitLines, withUrl } from "./util.ts";
 import { MESSAGE_TYPES, DOWNLOAD_TYPES } from "./constants.ts";
 import { Variable } from "./variable.ts";
 import { Path } from "./path.ts";
@@ -52,7 +52,7 @@ export const Messaging = {
     }
     // blob: is included because the extension downloads fetched content via
     // blob URLs on Firefox (data: URLs are rejected there by downloads.download)
-    return Util.withUrl(
+    return withUrl(
       url,
       (u) => ["http:", "https:", "ftp:", "data:", "blob:"].includes(u.protocol),
       false,
@@ -152,7 +152,7 @@ export const Messaging = {
     const result: Record<string, any> = { version: Messaging.API_VERSION };
 
     if (typeof body.paths === "string") {
-      const pathsArray = Util.splitLines(body.paths);
+      const pathsArray = splitLines(body.paths);
       const tree = Menus.buildTree(pathsArray);
       result.menuPreview = tree.items;
       result.pathErrors = tree.errors;
@@ -413,7 +413,7 @@ export const registerMessaging = () => {
         // Live menu-tree preview for the options page: runs the pure
         // Menus.buildTree over the (possibly unsaved) textarea content
         const raw = (request.body && request.body.paths) || "";
-        const pathsArray = Util.splitLines(raw);
+        const pathsArray = splitLines(raw);
         sendResponse({
           type: MESSAGE_TYPES.MENU_PREVIEW,
           body: Menus.buildTree(pathsArray),

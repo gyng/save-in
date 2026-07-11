@@ -49,7 +49,6 @@ import {
   FORBIDDEN_FILENAME_CHARS,
 } from "./constants.ts";
 import { BROWSERS, CURRENT_BROWSER, WEB_EXTENSION_CAPABILITIES } from "./chrome-detector.ts";
-import { Util } from "./util.ts";
 import { BackgroundState } from "./background-state.ts";
 import { peekCounter, resetCounter } from "./counter.ts";
 import { Log } from "./log.ts";
@@ -88,7 +87,6 @@ Object.assign(globalThis, {
   CURRENT_BROWSER,
   WEB_EXTENSION_CAPABILITIES,
   // core
-  Util,
   Log,
   SaveHistory,
   BackgroundState,

@@ -1,31 +1,31 @@
-import { Util } from "../src/util.ts";
+import { splitLines, withUrl } from "../src/util.ts";
 
-describe("Util.withUrl", () => {
+describe("withUrl", () => {
   test("calls the callback with the parsed URL", () => {
-    expect(Util.withUrl("https://example.com/a?b=c", (u) => u.hostname)).toBe("example.com");
-    expect(Util.withUrl("https://x/y", (u) => u.protocol)).toBe("https:");
+    expect(withUrl("https://example.com/a?b=c", (url) => url.hostname)).toBe("example.com");
+    expect(withUrl("https://x/y", (url) => url.protocol)).toBe("https:");
   });
 
   test("returns the fallback on an unparseable URL", () => {
-    expect(Util.withUrl("not a url", (u) => u.hostname, null)).toBe(null);
-    expect(Util.withUrl("nope", (u) => u.protocol, false)).toBe(false);
-    expect(Util.withUrl("nope", (u) => u.hostname, "keep")).toBe("keep");
+    expect(withUrl("not a url", (url) => url.hostname, null)).toBe(null);
+    expect(withUrl("nope", (url) => url.protocol, false)).toBe(false);
+    expect(withUrl("nope", (url) => url.hostname, "keep")).toBe("keep");
   });
 
   test("fallback defaults to null", () => {
-    expect(Util.withUrl("nope", (u) => u.hostname)).toBe(null);
+    expect(withUrl("nope", (url) => url.hostname)).toBe(null);
   });
 });
 
-describe("Util.splitLines", () => {
+describe("splitLines", () => {
   test("splits, trims, and drops empty/whitespace lines", () => {
-    expect(Util.splitLines("a\n  b \n\n  \nc")).toEqual(["a", "b", "c"]);
-    expect(Util.splitLines("*://i.pximg.net/*\n\n  \n")).toEqual(["*://i.pximg.net/*"]);
+    expect(splitLines("a\n  b \n\n  \nc")).toEqual(["a", "b", "c"]);
+    expect(splitLines("*://i.pximg.net/*\n\n  \n")).toEqual(["*://i.pximg.net/*"]);
   });
 
   test("returns [] for empty or nullish input", () => {
-    expect(Util.splitLines("")).toEqual([]);
-    expect(Util.splitLines(null)).toEqual([]);
-    expect(Util.splitLines(undefined)).toEqual([]);
+    expect(splitLines("")).toEqual([]);
+    expect(splitLines(null)).toEqual([]);
+    expect(splitLines(undefined)).toEqual([]);
   });
 });

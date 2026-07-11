@@ -98,6 +98,8 @@ testable once tests are on real imports.
   collections (Util/HistoryView/OptionsLogic), explicit functional state records
   (DownloadsState/SessionWriteState/CounterWriteState), `as const` literal-union type maps, and
   delete the `typeof X === "undefined"` guards + residual globals.d.ts. (Task #62.)
+  - ✅ `Util` namespace/global removed; `withUrl` and `splitLines` are named
+    functional exports imported directly by their consumers.
 - **TS-native organization/structure** — the structural axis: group files by
   layer/feature (src/platform, src/core, src/download, src/routing, src/menus,
   src/messaging — reflecting the post-cut layering), modernize tsconfig

@@ -6,7 +6,7 @@ import { BackgroundState } from "./background-state.ts";
 import { hydrateDownloads } from "./download-state.ts";
 import { extensionSessionStorage } from "./storage-areas.ts";
 import { Menus } from "./menu-build.ts";
-import { Util } from "./util.ts";
+import { splitLines } from "./util.ts";
 import { MEDIA_TYPES } from "./constants.ts";
 import { Log } from "./log.ts";
 import { currentTab, setCurrentTab } from "./current-tab.ts";
@@ -35,7 +35,7 @@ window.init = () => {
       // MV3 service workers are stateless: restore last used path across restarts
       Menus.restoreLastUsed(results[1]);
 
-      const pathsArray = Util.splitLines(options.paths);
+      const pathsArray = splitLines(options.paths);
 
       let contexts = options.links ? MEDIA_TYPES.concat(["link"]) : MEDIA_TYPES;
       contexts = options.selection ? contexts.concat(["selection"]) : contexts;

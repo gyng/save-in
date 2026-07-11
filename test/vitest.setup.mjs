@@ -6,7 +6,7 @@ globalThis.jest = vi;
 
 await import("jest-webextension-mock");
 
-// Dependency modules (Util, SessionState, DownloadState, OffscreenClient, …)
+// Dependency modules (SessionState, DownloadState, OffscreenClient, …)
 // are now real ESM imports inside each src module and each test — they are no
 // longer seeded as ambient globals here. Tests import the real implementation
 // or vi.mock the module as needed.
