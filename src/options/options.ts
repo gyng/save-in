@@ -444,6 +444,10 @@ const renderVariablesPreview = () => {
         const container = panel.querySelector(".variables-preview-list");
         if (!container) {
           return;
+    // Manual editors may change again while getOptionsSchema resolves. Apply
+    // must persist the value that was visible when the user clicked, not a
+    // later edit that belongs to the next revision.
+    if (scope && typeof scopeValue === "string") config[scope] = scopeValue;
         }
         container.textContent = "";
 
@@ -535,7 +539,7 @@ webExtensionApi.runtime.onMessage.addListener((message) => {
   }
 });
 
-const saveOptions = (e?: Event, scope?: string): Promise<any> => {
+const saveOptions = (e?: Event, scope?: string, scopeValue?: string): Promise<any> => {
   if (e) {
     e.preventDefault();
   }
@@ -998,6 +1002,7 @@ const renderMenuPreview = (container: Element, tree: MenuPreviewTree) => {
     const row = document.createElement("div");
     row.className = "menu-preview-row";
     const title = document.createElement("span");
+    const submittedValue = document.querySelector<HTMLTextAreaElement>(`#${id}`)?.value;
     title.className = "menu-preview-title";
     title.textContent = webExtensionApi.i18n.getMessage("contextMenuLastUsed");
     row.appendChild(title);
@@ -1290,7 +1295,7 @@ document.querySelectorAll("[data-apply]").forEach((button) => {
       webExtensionApi.i18n.getMessage("o_lSaving") || "Saving…",
     );
     try {
-      const response = await saveOptions(undefined, id);
+      const response = await saveOptions(undefined, id, submittedValue);
       manualEditorState.markSaved(
         id,
         webExtensionApi.i18n.getMessage("o_lSaved") || "Saved",

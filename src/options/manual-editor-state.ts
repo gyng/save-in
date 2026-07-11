@@ -159,6 +159,11 @@ export const createManualEditorState = (unsavedLabel: string) => {
     const editor = find(id);
     if (!editor) return false;
     if (expectedRevision != null && editor.revision !== expectedRevision) {
+      // The submitted revision still became the persisted baseline even when
+      // the user typed a newer revision while it was saving. A restore/import
+      // clears `saving`, so a response from before that authoritative baseline
+      // change remains ignored.
+      if (editor.saving && typeof appliedValue === "string") editor.saved = appliedValue;
       editor.saving = false;
       editor.sync();
       return false;

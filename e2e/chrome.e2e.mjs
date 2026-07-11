@@ -268,7 +268,8 @@ test("the paths editor saves manually: Apply/Discard track the dirty state", asy
       ta.value = "baseline";
       ta.dispatchEvent(new InputEvent("input", { bubbles: true }));
       apply.click();
-      await wait(300);
+      const saveDeadline = Date.now() + 3000;
+      while ((!apply.disabled || !discard.disabled) && Date.now() < saveDeadline) await wait(25);
       const clean = { apply: apply.disabled, discard: discard.disabled };
 
       // Editing dirties both buttons; the value is not yet persisted
@@ -310,6 +311,8 @@ test("routing rules rename and route the download", async () => {
       .then(() => {
         Notifier.expectDownload();
         return Download.renameAndDownload({
+      const validationDeadline = Date.now() + 3000;
+      while (apply.disabled && Date.now() < validationDeadline) await wait(25);
           path: new Path("e2e"),
           scratch: {},
           info: {
@@ -317,6 +320,8 @@ test("routing rules rename and route the download", async () => {
             suggestedFilename: "routeme.txt",
             pageUrl: "https://example.com/",
             modifiers: [],
+      const dirtyValidationDeadline = Date.now() + 3000;
+      while (apply.disabled && Date.now() < dirtyValidationDeadline) await wait(25);
           },
         });
       }).then(() => "started")`);
