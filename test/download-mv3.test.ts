@@ -15,7 +15,7 @@ import { Download } from "../src/download.ts";
 import { OffscreenClient } from "../src/offscreen-client.ts";
 import { makeUrlFromBlob, resolveContent } from "../src/content-fetch.ts";
 
-const decodeDataUrl = (url) => {
+const decodeDataUrl = (url: string) => {
   const [meta, b64] = url.split(",");
   return {
     meta,
@@ -26,7 +26,7 @@ const decodeDataUrl = (url) => {
 describe("makeObjectUrl", () => {
   // vitest's jsdom provides URL.createObjectURL; the MV3 service worker
   // path is the one without it, so stub it away for these tests
-  let originalCreateObjectURL;
+  let originalCreateObjectURL: typeof URL.createObjectURL;
 
   beforeEach(() => {
     originalCreateObjectURL = URL.createObjectURL;
@@ -78,7 +78,7 @@ describe("makeObjectUrl", () => {
 describe("makeUrlFromBlob", () => {
   // vitest's jsdom provides URL.createObjectURL; the MV3 service worker
   // path is the one without it, so stub it away for these tests
-  let originalCreateObjectURL;
+  let originalCreateObjectURL: typeof URL.createObjectURL;
 
   beforeEach(() => {
     originalCreateObjectURL = URL.createObjectURL;
@@ -128,7 +128,7 @@ describe("makeUrlFromBlob", () => {
 });
 
 describe("offscreen document fetch (Chrome MV3)", () => {
-  let originalCreateObjectURL;
+  let originalCreateObjectURL: typeof URL.createObjectURL;
 
   beforeEach(() => {
     // simulate a service worker: no URL.createObjectURL
@@ -153,7 +153,7 @@ describe("offscreen document fetch (Chrome MV3)", () => {
       configurable: true,
       writable: true,
     });
-    delete global.chrome;
+    Reflect.deleteProperty(globalThis, "chrome");
   });
 
   test("OffscreenClient.canUse is true in a worker that has chrome.offscreen", () => {
@@ -223,7 +223,10 @@ describe("offscreen document fetch (Chrome MV3)", () => {
 });
 
 describe("onDeterminingFilename listener (Chrome)", () => {
-  let listener;
+  let listener: (
+    item: { byExtensionId?: string; filename: string; url?: string },
+    suggest: (suggestion?: { filename: string; conflictAction: string }) => void,
+  ) => boolean;
   let sessionStore: Record<string, any>;
 
   beforeEach(async () => {

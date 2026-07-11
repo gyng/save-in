@@ -25,8 +25,8 @@ describe("l10n", () => {
 
     localizeDocument();
 
-    expect(document.getElementById("t").textContent).toBe("Hello");
-    expect(document.getElementById("i").getAttribute("placeholder")).toBe("save-in");
-    expect(document.getElementById("plain").textContent).toBe("untouched");
+    expect(document.getElementById("t")?.textContent).toBe("Hello");
+    expect(document.getElementById("i")?.getAttribute("placeholder")).toBe("save-in");
+    expect(document.getElementById("plain")?.textContent).toBe("untouched");
   });
 });

@@ -4,6 +4,8 @@ import { options } from "../src/options-data.ts";
 
 test("extension detection regex", () => {
   const match = "abc.xyz".match(EXTENSION_REGEX);
+  expect(match).not.toBeNull();
+  if (!match) throw new Error("Expected extension match");
   expect(match).toHaveLength(2);
   expect(match[0]).toBe(".xyz");
   expect(match[1]).toBe("xyz");
@@ -14,16 +16,16 @@ test("extension detection regex", () => {
   expect("abc.bananas".match(EXTENSION_REGEX)).toHaveLength(2);
   expect("abc.bananas123".match(EXTENSION_REGEX)).toBeFalsy();
   // Numeric-bearing real extensions keep their letter and still match
-  expect("song.mp3".match(EXTENSION_REGEX)[1]).toBe("mp3");
-  expect("clip.h264".match(EXTENSION_REGEX)[1]).toBe("h264");
-  expect("a.7z".match(EXTENSION_REGEX)[1]).toBe("7z");
+  expect("song.mp3".match(EXTENSION_REGEX)?.[1]).toBe("mp3");
+  expect("clip.h264".match(EXTENSION_REGEX)?.[1]).toBe("h264");
+  expect("a.7z".match(EXTENSION_REGEX)?.[1]).toBe("7z");
   // An all-digit trailing token is an id/version, not an extension (§8.1)
   expect("photo.12345".match(EXTENSION_REGEX)).toBeFalsy();
   expect("IMG_0001.20240607".match(EXTENSION_REGEX)).toBeFalsy();
 });
 
 describe("finalizeFullPath: MIME extension append (§8.1)", () => {
-  const state = (name, scratch = {}) => ({
+  const state = (name: string, scratch: Record<string, string> = {}) => ({
     path: { finalize: () => "dir" },
     route: { finalize: () => name },
     info: { filename: name },

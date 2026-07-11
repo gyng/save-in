@@ -15,12 +15,12 @@ const makeEl = () => {
 };
 
 afterEach(() => {
-  delete global.browser.permissions;
+  Reflect.deleteProperty(global.browser, "permissions");
 });
 
 describe("PermissionsBanner.hasHostAccess", () => {
   test("resolves true when the permissions API is unavailable (old browser)", async () => {
-    delete global.browser.permissions;
+    Reflect.deleteProperty(global.browser, "permissions");
     await expect(PermissionsBanner.hasHostAccess()).resolves.toBe(true);
   });
 

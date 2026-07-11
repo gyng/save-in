@@ -32,11 +32,11 @@ describe("browser detection at load time", () => {
 
   afterEach(() => {
     global.browser = originalBrowser;
-    delete global.browser.runtime.getBrowserInfo;
+    Reflect.deleteProperty(global.browser.runtime, "getBrowserInfo");
   });
 
   test("falls back to CHROME when there is no browser global but chrome exists (#no browser)", async () => {
-    delete global.browser;
+    Reflect.deleteProperty(globalThis, "browser");
     vi.resetModules();
 
     const mod = await import("../src/chrome-detector.ts");
@@ -46,8 +46,8 @@ describe("browser detection at load time", () => {
 
   test("stays UNKNOWN when neither browser nor chrome exist", async () => {
     const originalChrome = global.chrome;
-    delete global.browser;
-    global.chrome = undefined;
+    Reflect.deleteProperty(globalThis, "browser");
+    Reflect.deleteProperty(globalThis, "chrome");
     vi.resetModules();
 
     try {
@@ -104,7 +104,7 @@ describe("browser detection at load time", () => {
 
   test("assumes CHROME when browser exists without getBrowserInfo", async () => {
     global.browser = originalBrowser;
-    delete global.browser.runtime.getBrowserInfo;
+    Reflect.deleteProperty(global.browser.runtime, "getBrowserInfo");
     vi.resetModules();
 
     const mod = await import("../src/chrome-detector.ts");
