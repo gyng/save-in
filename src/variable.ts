@@ -3,7 +3,8 @@ import { resolveContent } from "./content-fetch.ts";
 import { EXTENSION_REGEX, getFilenameFromUrl } from "./filename.ts";
 import { SPECIAL_DIRS, PATH_SEGMENT_TYPES } from "./constants.ts";
 import { Path } from "./path.ts";
-import { Counter } from "./background-state.ts";
+import { BackgroundState } from "./background-state.ts";
+import { nextCounter, peekCounter } from "./counter.ts";
 
 export const Variable = {
   // Thin wrapper over Util.withUrl that keeps this call site's historical
@@ -269,10 +270,10 @@ export const Variable = {
     [SPECIAL_DIRS.COUNTER]:
       async opts => {
         if (opts.preview) {
-          return Path.PathSegment.String((await Counter.peek()) + 1);
+          return Path.PathSegment.String((await peekCounter(browser.storage.local)) + 1);
         }
         if (opts.counter == null) {
-          opts.counter = await Counter.next();
+          opts.counter = await nextCounter(BackgroundState.counterWrites, browser.storage.local);
         }
         return Path.PathSegment.String(opts.counter);
       },

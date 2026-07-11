@@ -1,11 +1,10 @@
 import { mergeDownload } from "../src/download-state.ts";
 import { updateSession } from "../src/session-state.ts";
-import { BackgroundState, Counter } from "../src/background-state.ts";
+import { BackgroundState } from "../src/background-state.ts";
 
 describe("state service instances", () => {
   test("the production views belong to one immutable application state", () => {
     expect(Object.isFrozen(BackgroundState)).toBe(true);
-    expect(Counter).toBe(BackgroundState.counter);
   });
 
   test("session stores own independent serialization queues", async () => {

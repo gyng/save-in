@@ -3,6 +3,7 @@ import { renderHistory } from "./history-panel.ts";
 import { addClickToCopy } from "./clicktocopy.ts";
 import { PathEditor } from "./path-editor.ts";
 import { CURRENT_BROWSER, BROWSERS } from "../chrome-detector.ts";
+import { COUNTER_KEY } from "../counter.ts";
 
 const getOptionsSchema = browser.runtime
   .sendMessage({ type: "OPTIONS_SCHEMA" })
@@ -308,9 +309,9 @@ document.addEventListener("DOMContentLoaded", renderExternalApi);
 
 // More Options → Counter: show and reset the :counter: variable's value. The
 // options page shares storage.local with the background, so it reads/writes the
-// counter directly (Counter.KEY) — no background round-trip needed.
+// counter directly — no background round-trip needed.
 const renderCounter = () => {
-  const key = "save-in-counter";
+  const key = COUNTER_KEY;
   const valueEl = document.querySelector("#counter-value");
   const resetBtn = document.querySelector("#counter-reset");
   if (!valueEl || !resetBtn) {

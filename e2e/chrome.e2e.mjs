@@ -306,7 +306,7 @@ test("routing rules rename and route the download", async () => {
 
 test(":counter: advances once per download and persists in storage", async () => {
   const finalCount = JSON.parse(
-    await evalSW(`Counter.reset()
+    await evalSW(`resetCounter(BackgroundState.counterWrites, browser.storage.local)
       .then(() => browser.storage.local.set({
         filenamePatterns: "filename: countme\\ninto: counters/:counter:-:filename:",
       }))
@@ -328,7 +328,7 @@ test(":counter: advances once per download and persists in storage", async () =>
         }
       })
       .then(() => new Promise(r => setTimeout(r, 1500)))
-      .then(() => Counter.peek())`),
+      .then(() => peekCounter(browser.storage.local))`),
   );
   // two downloads -> counter advanced exactly twice
   expect(finalCount).toBe(2);

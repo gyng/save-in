@@ -1,7 +1,7 @@
 import { Variable } from "../src/variable.ts";
 import { Path } from "../src/path.ts";
 import { HASH_MAX_BYTES } from "../src/content-fetch.ts";
-import { Counter } from "../src/background-state.ts";
+import * as Counter from "../src/counter.ts";
 // variable.ts reads options.replacementChar (via path.ts) at call time;
 // import the real options bag and mutate it (option.ts seeds
 // replacementChar "_" at load, so these just document the expectation).
@@ -408,11 +408,8 @@ describe("URL-part variables", () => {
 
 describe(":counter: (async, persistent)", () => {
   beforeEach(() => {
-    // Counter.next's return type infers as Promise<void> (it reassigns the
-    // self-referential Counter.writeQueue field, typed from its Promise.resolve()
-    // initializer); mock-boundary cast around that inference quirk.
-    vi.spyOn(Counter, "next").mockResolvedValue(7 as any);
-    vi.spyOn(Counter, "peek").mockResolvedValue(41);
+    vi.spyOn(Counter, "nextCounter").mockResolvedValue(7);
+    vi.spyOn(Counter, "peekCounter").mockResolvedValue(41);
   });
   afterEach(() => {
     vi.restoreAllMocks();
@@ -425,7 +422,7 @@ describe(":counter: (async, persistent)", () => {
     // The same info bag (path then route in one download) reuses the value
     const b = (await Variable.applyVariables(new Path.Path(":counter:/x"), shared)).finalize();
     expect(b).toBe("7/x");
-    expect(Counter.next).toHaveBeenCalledTimes(1);
+    expect(Counter.nextCounter).toHaveBeenCalledTimes(1);
   });
 
   test("preview mode peeks the next value without consuming", async () => {
@@ -433,8 +430,8 @@ describe(":counter: (async, persistent)", () => {
       await Variable.applyVariables(new Path.Path("n-:counter:"), { preview: true })
     ).finalize();
     expect(out).toBe("n-42"); // peek() 41 + 1
-    expect(Counter.next).not.toHaveBeenCalled();
-    expect(Counter.peek).toHaveBeenCalled();
+    expect(Counter.nextCounter).not.toHaveBeenCalled();
+    expect(Counter.peekCounter).toHaveBeenCalled();
   });
 });
 

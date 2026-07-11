@@ -50,7 +50,8 @@ import {
 } from "./constants.ts";
 import { BROWSERS, CURRENT_BROWSER, BROWSER_FEATURES } from "./chrome-detector.ts";
 import { Util } from "./util.ts";
-import { BackgroundState, Counter } from "./background-state.ts";
+import { BackgroundState } from "./background-state.ts";
+import { peekCounter, resetCounter } from "./counter.ts";
 import { Log } from "./log.ts";
 import { SaveHistory } from "./history.ts";
 import { Notifier } from "./notification.ts";
@@ -90,7 +91,9 @@ Object.assign(globalThis, {
   Util,
   Log,
   SaveHistory,
-  Counter,
+  BackgroundState,
+  peekCounter,
+  resetCounter,
   DownloadState: BackgroundState.downloads,
   Notifier,
   Path,
