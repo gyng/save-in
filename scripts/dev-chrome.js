@@ -14,6 +14,50 @@ const PROFILE = path.join(chrome.ROOT, "dist", "dev-profile");
 const DOWNLOADS = path.join(PROFILE, "downloads");
 const WATCH = process.argv.includes("--watch");
 
+const reloadExtension = async (extensionId) => {
+  const extensionUrl = `chrome-extension://${extensionId}/`;
+  const targets = await cdp.listTargets(PORT);
+  const extensionPages = targets.filter(
+    (target) => target.type === "page" && target.url.startsWith(extensionUrl),
+  );
+  const runtimeTarget =
+    targets.find(
+      (target) => target.type === "service_worker" && target.url.startsWith(extensionUrl),
+    ) || extensionPages[0];
+
+  if (!runtimeTarget) {
+    // A fully idle extension has no CDP target to evaluate in. Loading it is
+    // the only available fallback, but ordinary page tabs remain untouched.
+    await cdp.loadUnpacked(PORT, chrome.DIST);
+    return;
+  }
+
+  const client = await cdp.Cdp.connect(runtimeTarget.webSocketDebuggerUrl);
+  try {
+    await client.send("Runtime.evaluate", { expression: "chrome.runtime.reload()" });
+  } finally {
+    client.close();
+  }
+
+  // Extension pages keep their tab when possible, but need a navigation to
+  // acquire the new extension context. Recreate only a page Chrome discarded.
+  await cdp.sleep(150);
+  const liveUrls = new Set(
+    (await cdp.listTargets(PORT))
+      .filter((target) => target.type === "page")
+      .map((target) => target.url),
+  );
+  for (const page of extensionPages) {
+    if (liveUrls.has(page.url)) {
+      // eslint-disable-next-line no-await-in-loop
+      await cdp.reloadTargets(PORT, page.url);
+    } else {
+      // eslint-disable-next-line no-await-in-loop
+      await cdp.openTab(PORT, page.url);
+    }
+  }
+};
+
 const main = async () => {
   chrome.stageBuild();
 
@@ -32,12 +76,21 @@ const main = async () => {
 
   if (WATCH) {
     let timer = null;
-    const reload = () => {
-      clearTimeout(timer);
-      timer = setTimeout(async () => {
+    let reloading = false;
+    let pending = false;
+
+    const runReload = async () => {
+      if (reloading) {
+        pending = true;
+        return;
+      }
+
+      reloading = true;
+      do {
+        pending = false;
         try {
           chrome.stageBuild();
-          await cdp.loadUnpacked(PORT, chrome.DIST);
+          await reloadExtension(extensionId);
           console.log(`[${new Date().toLocaleTimeString()}] reloaded`);
         } catch (e) {
           console.log(
@@ -46,7 +99,13 @@ const main = async () => {
             }) — reload manually via chrome://extensions`,
           );
         }
-      }, 300);
+      } while (pending);
+      reloading = false;
+    };
+
+    const reload = () => {
+      clearTimeout(timer);
+      timer = setTimeout(runReload, 300);
     };
 
     for (const dir of ["src", "icons", "_locales"]) {
