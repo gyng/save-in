@@ -13,6 +13,7 @@ import { createLatestOnly } from "./latest-only.ts";
 import { assertApplySucceeded, collectOptionConfig, getAppliedValue } from "./options-save.ts";
 import { createFieldSaveState } from "./field-save-state.ts";
 import { setupOptionDependencies } from "./options-dependencies.ts";
+import { linkOptionPreview } from "./option-navigation.ts";
 import { refreshCounterPanel, setupCounterPanel } from "./counter-panel.ts";
 import { setupDebugLogPanel, updateDebugLog } from "./debug-log-panel.ts";
 import { renderVariablesPreview, setupVariablesPreview } from "./variables-preview.ts";
@@ -891,6 +892,7 @@ const renderMenuPreview = (container: Element, tree: MenuPreviewTree) => {
     title.className = "menu-preview-title";
     title.textContent = webExtensionApi.i18n.getMessage("contextMenuLastUsed");
     row.appendChild(title);
+    linkOptionPreview(row, lastUsed, "Show the Last used menu setting");
     li.appendChild(row);
     rootUl.insertBefore(li, rootUl.firstChild);
   }

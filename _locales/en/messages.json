@@ -416,6 +416,14 @@
     "message": "+ Add"
   },
 
+  "o_lInsertVariable": {
+    "message": "+ Variable"
+  },
+
+  "o_lInsertVariableClause": {
+    "message": "+ Variable / clause"
+  },
+
   "o_bInsertSeparator": {
     "message": "Separator"
   },
@@ -453,7 +461,7 @@
   },
 
   "o_lRuleBuilder": {
-    "message": "Quick add: match a pattern, choose where it goes",
+    "message": "Quick add",
     "description": "Caption above the guided rule input on the options page"
   },
 

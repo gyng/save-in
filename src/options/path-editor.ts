@@ -104,7 +104,7 @@ const PathEditorHelpers = {
     PathEditorHelpers.insertText(textarea, `${glue}${line}`, lineEnd, lineEnd);
   },
 
-  // A "+ Add" menu for an editor: line-insert buttons (data-insert-line)
+  // An insertion menu for an editor: line-insert buttons (data-insert-line)
   // and a filterable variable list. The menu targets the textarea named
   // by its data-insert-target; children are found by class so the same
   // markup shape works for the paths and rules editors.
