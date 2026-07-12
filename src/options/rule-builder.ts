@@ -113,11 +113,11 @@ export const RuleBuilder = {
       description.textContent = tpl.description;
       body.appendChild(description);
 
-      // The rule itself, compact (newlines joined); full text on hover
-      const ruleEl = document.createElement("code");
+      // Preserve the matcher/destination line break so the preview teaches the
+      // same grammar users see in the rules editor.
+      const ruleEl = document.createElement("pre");
       ruleEl.className = "rule-template-rule";
-      ruleEl.textContent = tpl.rule.replace(/\n/g, "  ");
-      ruleEl.title = tpl.rule;
+      ruleEl.textContent = tpl.rule;
       body.appendChild(ruleEl);
 
       const add = document.createElement("button");
@@ -137,6 +137,21 @@ export const RuleBuilder = {
         // so the added rule is self-documenting in the textarea
         RuleBuilder.appendRule(textarea, `// ${tpl.name}: ${tpl.description}\n${tpl.rule}`);
         syncs.forEach((fn) => fn());
+        const feedback = document.querySelector<HTMLElement>(".template-feedback");
+        if (feedback) {
+          feedback.replaceChildren(`Added “${tpl.name}”. `);
+          const view = document.createElement("button");
+          view.type = "button";
+          view.textContent = "View in rules editor";
+          view.addEventListener("click", () => {
+            document.querySelector<HTMLDialogElement>("#reference-dialog")?.close();
+            document.dispatchEvent(
+              new CustomEvent("save-in:navigate-option", { detail: { target: textarea } }),
+            );
+          });
+          feedback.append(view);
+          feedback.hidden = false;
+        }
       });
 
       row.appendChild(body);

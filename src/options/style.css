@@ -1669,6 +1669,36 @@ summary {
   min-width: 0;
 }
 
+.rule-template-rule {
+  margin: var(--space-2) 0 0;
+  padding: var(--space-2);
+  border: 0;
+  background: color-mix(in srgb, var(--panel-bg) 60%, var(--page-bg));
+  font-size: 12px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+.template-feedback {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0 var(--space-4) var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius);
+  color: var(--green60);
+  background: color-mix(in srgb, var(--green60) 10%, transparent);
+}
+
+.template-feedback[hidden] {
+  display: none;
+}
+
+.template-feedback button {
+  margin-left: auto;
+  padding: var(--space-1) var(--space-2);
+}
+
 .rule-template-name {
   font-weight: 600;
   font-size: var(--text-sm);

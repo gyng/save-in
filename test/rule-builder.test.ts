@@ -132,6 +132,7 @@ describe("template list rendering", () => {
     document.body.innerHTML = `
       <textarea id="filenamePatterns"></textarea>
       <input type="search" class="rule-template-filter">
+      <div class="template-feedback" hidden></div>
       <div id="rule-templates"></div>
     `;
   });
@@ -159,6 +160,11 @@ describe("template list rendering", () => {
     expect(textarea.value).toContain(RULE_TEMPLATES[0].rule);
     expect(firstAdd.textContent).toBe("Added");
     expect(firstAdd.disabled).toBe(true);
+    expect(document.querySelector(".rule-template-rule")?.textContent).toContain("\ninto:");
+    expect(document.querySelector<HTMLElement>(".template-feedback")?.hidden).toBe(false);
+    expect(document.querySelector(".template-feedback button")?.textContent).toBe(
+      "View in rules editor",
+    );
   });
 
   test("re-checks Added states after options restore fills the textarea", () => {
