@@ -100,8 +100,10 @@ export const setupOptionSearch = (): void => {
       option.setAttribute("role", "option");
       option.tabIndex = -1;
       const label = document.createElement("span");
+      label.className = "option-search-result-label";
       label.textContent = entry.label;
       const section = document.createElement("small");
+      section.className = "option-search-result-location";
       section.textContent = entry.section;
       option.append(label, section);
       option.addEventListener("mousedown", (event) => event.preventDefault());

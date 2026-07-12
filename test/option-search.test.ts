@@ -53,6 +53,19 @@ describe("options search", () => {
     expect((navigate.mock.calls[0][0] as CustomEvent).detail.target.id).toBe("duration");
   });
 
+  test("renders compact two-row results with the section as location", () => {
+    setupOptionSearch();
+    const input = document.getElementById("option-search") as HTMLInputElement;
+    input.value = "notification";
+    input.dispatchEvent(new InputEvent("input"));
+
+    const option = document.querySelector<HTMLElement>('[role="option"]')!;
+    expect(option.querySelector(".option-search-result-label")?.textContent).toBe(
+      "Notification duration",
+    );
+    expect(option.querySelector(".option-search-result-location")?.textContent).toBe("Downloads");
+  });
+
   test("closes stale results when the query has no matches", () => {
     setupOptionSearch();
     const input = document.getElementById("option-search") as HTMLInputElement;
