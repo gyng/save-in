@@ -23,6 +23,7 @@ import {
   statusClass,
   statusLabel,
 } from "./history-view.ts";
+import { renderHistoryFeedback } from "./history-feedback.ts";
 
 const HISTORY_KEY = "save-in-history";
 
@@ -62,14 +63,24 @@ const folderIcon = () => {
 
 // Opens the containing folder for a completed download (best-effort; the
 // browser may have forgotten the download)
-const showInFolder = (downloadId: number | null) => {
+const historyFeedback = () => document.querySelector<HTMLElement>("#history-feedback");
+
+const showInFolder = async (downloadId: number | null) => {
   if (downloadId == null || !webExtensionApi.downloads || !webExtensionApi.downloads.show) {
+    renderHistoryFeedback(historyFeedback(), {
+      message: "Could not open the folder. This browser no longer knows the download.",
+      error: true,
+    });
     return;
   }
   try {
-    webExtensionApi.downloads.show(downloadId);
-  } catch (e) {
-    // download no longer known to the browser
+    await webExtensionApi.downloads.show(downloadId);
+    renderHistoryFeedback(historyFeedback());
+  } catch {
+    renderHistoryFeedback(historyFeedback(), {
+      message: "Could not open the folder. The file may have moved or been removed.",
+      error: true,
+    });
   }
 };
 
@@ -239,7 +250,7 @@ const renderHistoryTable = () => {
       open.title = "Show in folder";
       open.setAttribute("aria-label", "Show in folder");
       open.appendChild(folderIcon());
-      open.addEventListener("click", () => showInFolder(r.downloadId));
+      open.addEventListener("click", () => void showInFolder(r.downloadId));
       status.appendChild(open);
     }
     if (visibleHistoryColumns.has("status")) appendCell("status", status);
@@ -366,10 +377,19 @@ const renderHistoryTable = () => {
 };
 
 export const renderHistory = async () => {
-  const stored = (await webExtensionApi.storage.local.get(HISTORY_KEY)) ?? {};
-  historyEntries = ((stored[HISTORY_KEY] || []) as HistoryEntry[]).toReversed(); // newest first
-
-  renderHistoryTable();
+  try {
+    const stored = (await webExtensionApi.storage.local.get(HISTORY_KEY)) ?? {};
+    historyEntries = ((stored[HISTORY_KEY] || []) as HistoryEntry[]).toReversed(); // newest first
+    renderHistoryFeedback(historyFeedback());
+    renderHistoryTable();
+  } catch {
+    renderHistoryFeedback(historyFeedback(), {
+      message: "Could not load history.",
+      error: true,
+      actionLabel: "Retry",
+      onAction: () => void renderHistory(),
+    });
+  }
 };
 document.addEventListener("DOMContentLoaded", renderHistory);
 
@@ -429,10 +449,26 @@ document
   .querySelector("#history-export-csv")
   ?.addEventListener("click", () => downloadHistoryExport("csv"));
 
+const removeHistory = async () => {
+  const clearButton = document.querySelector<HTMLButtonElement>("#history-clear");
+  if (clearButton) clearButton.disabled = true;
+  renderHistoryFeedback(historyFeedback(), { message: "Clearing history…" });
+  try {
+    await webExtensionApi.storage.local.remove(HISTORY_KEY);
+    await renderHistory();
+  } catch {
+    renderHistoryFeedback(historyFeedback(), {
+      message: "Could not clear history.",
+      error: true,
+      actionLabel: "Retry",
+      onAction: () => void removeHistory(),
+    });
+  } finally {
+    if (clearButton) clearButton.disabled = false;
+  }
+};
 const clearHistory = () => {
   // eslint-disable-next-line no-alert
-  if (window.confirm("Clear all saved history? This cannot be undone.")) {
-    webExtensionApi.storage.local.remove(HISTORY_KEY).then(renderHistory);
-  }
+  if (window.confirm("Clear all saved history? This cannot be undone.")) void removeHistory();
 };
 document.querySelector("#history-clear")?.addEventListener("click", clearHistory);

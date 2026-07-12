@@ -2975,6 +2975,19 @@ code.click-to-copy {
   padding-block: var(--space-1);
 }
 
+.history-feedback {
+  margin: var(--space-2) 0;
+  color: var(--color-text-muted);
+}
+
+.history-feedback-error {
+  color: var(--red50);
+}
+
+.history-feedback button {
+  margin-left: var(--space-2);
+}
+
 .source-shortcut-controls select {
   width: auto;
   min-width: 7.5rem;
