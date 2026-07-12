@@ -8,6 +8,7 @@ const path = require("path");
 
 const cdp = require("./lib/cdp");
 const chrome = require("./lib/chrome");
+const { startDemoServer } = require("./review-demo");
 
 const PORT = 9378;
 const PROFILE = path.join(chrome.ROOT, "dist", "dev-profile");
@@ -37,6 +38,7 @@ const reloadExtension = async (extensionId) => {
 
 const main = async () => {
   chrome.stageBuild();
+  const demoPort = await startDemoServer();
 
   console.log("Launching Chrome (dev profile persists across runs)...");
   const { proc, extensionId } = await chrome.launch({
@@ -47,6 +49,7 @@ const main = async () => {
   });
 
   await cdp.openTab(PORT, `chrome-extension://${extensionId}/src/options/options.html`);
+  await cdp.openTab(PORT, `http://127.0.0.1:${demoPort}/`);
 
   console.log(`Extension loaded: ${extensionId}`);
   console.log(`CDP port: ${PORT} | Profile: ${PROFILE}`);

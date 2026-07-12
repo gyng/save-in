@@ -178,7 +178,11 @@ Close the Chrome window to exit.`);
   });
 };
 
-main().catch((e) => {
-  console.error(e);
-  process.exit(1);
-});
+if (require.main === module) {
+  main().catch((e) => {
+    console.error(e);
+    process.exit(1);
+  });
+}
+
+module.exports = { startDemoServer };
