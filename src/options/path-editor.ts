@@ -279,9 +279,6 @@ const PathEditorHelpers = {
     let rows: PathRow[] = [];
     // Index being dragged via a row handle; null when no drag is active
     let dragFrom: number | null = null;
-    let dragStartX = 0;
-    let dragOriginalDepth = 0;
-    let dropDepth: number | null = null;
     let dropAfter = true;
     let dropInside = false;
     let committing = false;
@@ -292,11 +289,18 @@ const PathEditorHelpers = {
     undo.textContent = "Undo delete";
     undo.hidden = true;
     container.after(undo);
-    const dragHint = document.createElement("p");
-    dragHint.className = "caption path-editor-drag-hint";
-    dragHint.textContent =
-      "Grab the dotted handle. Move up or down to reorder; slide the handle left or right to match the intended nesting guide.";
-    container.before(dragHint);
+    const visualHelp = document.createElement("div");
+    visualHelp.className = "caption path-editor-help";
+    [
+      "One relative directory or menu instruction per row.",
+      "Changes in this editor are saved when you select Apply.",
+      "Drag by the dotted handle. Drop above or below a row to place it at the same level, or onto the row to nest it inside.",
+    ].forEach((copy) => {
+      const line = document.createElement("p");
+      line.textContent = copy;
+      visualHelp.append(line);
+    });
+    (document.querySelector(".path-editor-toolbar") ?? container).after(visualHelp);
 
     // Serialize rows back to the textarea (the source of truth) and let
     // the normal pipeline (autosave, previews) react
@@ -334,9 +338,6 @@ const PathEditorHelpers = {
         handle.draggable = true;
         handle.addEventListener("dragstart", (e) => {
           dragFrom = index;
-          dragStartX = e.clientX;
-          dragOriginalDepth = row.depth;
-          dropDepth = null;
           dropInside = false;
           rowEl.classList.add("dragging");
           if (e.dataTransfer) {
@@ -347,7 +348,6 @@ const PathEditorHelpers = {
         });
         handle.addEventListener("dragend", () => {
           dragFrom = null;
-          dropDepth = null;
           dropInside = false;
           rowEl.classList.remove("dragging");
           container.querySelectorAll(".path-editor-drop-indicator").forEach((el) => el.remove());
@@ -392,37 +392,12 @@ const PathEditorHelpers = {
             rowEl.classList.toggle("drag-before", !dropAfter && !dropInside);
             rowEl.classList.toggle("drag-after", dropAfter && !dropInside);
             rowEl.classList.toggle("drag-inside", dropInside);
-            const adjustedTarget = dragFrom < index ? index - 1 : index;
-            const destination = adjustedTarget + (dropAfter || dropInside ? 1 : 0);
-            const previousIndex = destination > dragFrom ? destination : destination - 1;
-            const maximumDepth =
-              dragFrom === index
-                ? index === 0
-                  ? 0
-                  : rows[index - 1]!.depth + 1
-                : previousIndex < 0
-                  ? 0
-                  : rows[previousIndex]!.depth + 1;
-            dropDepth = dropInside
-              ? row.depth + 1
-              : Math.max(
-                  0,
-                  Math.min(
-                    maximumDepth,
-                    dragOriginalDepth + Math.round((e.clientX - dragStartX) / 16),
-                  ),
-                );
             container.querySelectorAll(".path-editor-drop-indicator").forEach((el) => el.remove());
             const indicator = document.createElement("span");
             indicator.className = "path-editor-drop-indicator";
-            const depthLabel =
-              dropDepth === 0
-                ? "Top level"
-                : `Nested ${dropDepth} ${dropDepth === 1 ? "level" : "levels"}`;
             indicator.textContent = dropInside
-              ? `Move inside ${rowName} · ${depthLabel}`
-              : `Drop here · ${depthLabel}`;
-            indicator.style.setProperty("--drop-depth", String(dropDepth));
+              ? `Nest under “${rowName}”`
+              : `${dropAfter ? "Insert after" : "Insert before"} · Same level`;
             rowEl.append(indicator);
           }
         });
@@ -435,17 +410,9 @@ const PathEditorHelpers = {
           rowEl.classList.remove("drag-before", "drag-after", "drag-inside");
           rowEl.querySelector(".path-editor-drop-indicator")?.remove();
           if (dragFrom === null) return;
-          const horizontalSteps = Math.round((e.clientX - dragStartX) / 16);
           if (dragFrom === index) {
-            const maximumDepth = index === 0 ? 0 : rows[index - 1]!.depth + 1;
-            rows[index]!.depth =
-              dropDepth ??
-              Math.max(0, Math.min(maximumDepth, rows[index]!.depth + horizontalSteps));
             dragFrom = null;
-            dropDepth = null;
             dropInside = false;
-            commit();
-            rebuild();
             return;
           }
           const target = rows[index];
@@ -455,13 +422,9 @@ const PathEditorHelpers = {
           const destination = dropInside ? targetIndex + 1 : adjustedTarget + (dropAfter ? 1 : 0);
           if (moved) {
             rows.splice(destination, 0, moved);
-            const maximumDepth = destination === 0 ? 0 : rows[destination - 1]!.depth + 1;
-            moved.depth = dropInside
-              ? Math.min(maximumDepth, (target?.depth ?? 0) + 1)
-              : (dropDepth ?? Math.max(0, Math.min(maximumDepth, moved.depth + horizontalSteps)));
+            moved.depth = dropInside ? (target?.depth ?? 0) + 1 : (target?.depth ?? 0);
           }
           dragFrom = null;
-          dropDepth = null;
           dropInside = false;
           commit();
           rebuild();
@@ -491,12 +454,27 @@ const PathEditorHelpers = {
           alias.className = "path-editor-alias";
           alias.value = PathEditorHelpers.getAlias(row.comment);
           alias.placeholder = "alias";
+          alias.hidden = true;
           alias.setAttribute("aria-label", `Display name for directory ${index + 1}`);
           alias.addEventListener("input", () => {
             row.comment = PathEditorHelpers.setAlias(row.comment, alias.value);
+            aliasToggle.textContent = alias.value ? `Alias: ${alias.value}` : "+ Alias";
             commit();
           });
-          rowEl.appendChild(alias);
+          const aliasToggle = document.createElement("button");
+          aliasToggle.type = "button";
+          aliasToggle.className = "path-editor-alias-toggle";
+          aliasToggle.textContent = alias.value ? `Alias: ${alias.value}` : "+ Alias";
+          aliasToggle.setAttribute("aria-expanded", "false");
+          aliasToggle.addEventListener("click", () => {
+            alias.hidden = !alias.hidden;
+            aliasToggle.setAttribute("aria-expanded", String(!alias.hidden));
+            if (!alias.hidden) {
+              alias.focus();
+              alias.select();
+            }
+          });
+          rowEl.append(aliasToggle, alias);
         }
 
         const controls: [string, string, () => void][] = [

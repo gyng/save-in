@@ -1697,6 +1697,11 @@ button:disabled:hover {
   transform: translateY(-50%);
 }
 
+.path-editor-row.drag-before .path-editor-drop-indicator {
+  top: -9px;
+  bottom: auto;
+}
+
 .path-editor-toolbar {
   display: flex;
   align-items: center;
@@ -1725,7 +1730,7 @@ button:disabled:hover {
 .path-editor-drop-indicator {
   position: absolute;
   z-index: 1;
-  left: calc(26px + var(--drop-depth) * 20px);
+  right: 6px;
   bottom: -11px;
   padding: 1px 5px;
   border-radius: 3px;
@@ -1737,12 +1742,29 @@ button:disabled:hover {
   white-space: nowrap;
 }
 
+.path-editor-alias-toggle {
+  flex: none;
+  max-width: 130px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.path-editor-help {
+  margin-top: var(--space-2);
+}
+
+.path-editor-help p {
+  margin: 2px 0;
+}
+
 .path-editor-row:hover {
   background-color: var(--hover-bg);
 }
 
 .path-editor-indent {
   flex: none;
+  align-self: stretch;
 }
 
 .path-editor-dir {

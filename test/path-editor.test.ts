@@ -166,6 +166,12 @@ describe("visual editor", () => {
 
   test("editing the alias field updates only the alias meta", () => {
     const alias = rows()[1]!.querySelector<HTMLInputElement>(".path-editor-alias")!;
+    expect(alias.hidden).toBe(true);
+    const toggle = rows()[1]!.querySelector<HTMLButtonElement>(".path-editor-alias-toggle")!;
+    expect(toggle.textContent).toBe("Alias: B");
+    toggle.click();
+    expect(alias.hidden).toBe(false);
+    expect(document.activeElement).toBe(alias);
     alias.value = "Better";
     alias.dispatchEvent(new Event("input", { bubbles: true }));
     expect(textarea().value).toBe("a\n>b // (alias: Better)\n---");
@@ -408,7 +414,7 @@ describe("visual editor drag and drop", () => {
     expect(element<HTMLTextAreaElement>("#paths").value).toBe("a\nb\nc");
   });
 
-  test("dragging right indents at the valid destination depth", () => {
+  test("before/after drops adopt the target depth regardless of horizontal movement", () => {
     element<HTMLTextAreaElement>("#paths").value = "a\n>b\nc";
     element<HTMLTextAreaElement>("#paths").dispatchEvent(
       new InputEvent("input", { bubbles: true }),
@@ -416,43 +422,18 @@ describe("visual editor drag and drop", () => {
     vi.advanceTimersByTime(500);
     const rows = document.querySelectorAll(".path-editor-row");
     rows[2]!.querySelector(".path-editor-handle")!.dispatchEvent(dragEvent("dragstart", 100));
-    rows[1]!.dispatchEvent(dragEvent("drop", 140));
+    rows[1]!.dispatchEvent(dragEvent("dragover", 500));
+    rows[1]!.dispatchEvent(dragEvent("drop", 20));
 
-    expect(element<HTMLTextAreaElement>("#paths").value).toBe("a\n>b\n>>c");
+    expect(element<HTMLTextAreaElement>("#paths").value).toBe("a\n>b\n>c");
   });
 
-  test("drag indentation is constrained by the preceding parent", () => {
-    const rows = document.querySelectorAll(".path-editor-row");
-    rows[2]!.querySelector(".path-editor-handle")!.dispatchEvent(dragEvent("dragstart", 100));
-    rows[0]!.dispatchEvent(dragEvent("drop", 300));
-
-    expect(element<HTMLTextAreaElement>("#paths").value).toBe("a\n>c\nb");
-  });
-
-  test("a horizontal drag on the same row changes nesting without reordering", () => {
+  test("horizontal movement on the same row has no effect", () => {
     const rows = document.querySelectorAll(".path-editor-row");
     rows[1]!.querySelector(".path-editor-handle")!.dispatchEvent(dragEvent("dragstart", 100));
-    rows[1]!.dispatchEvent(dragEvent("drop", 120));
+    rows[1]!.dispatchEvent(dragEvent("drop", 500));
 
-    expect(element<HTMLTextAreaElement>("#paths").value).toBe("a\n>b\nc");
-  });
-
-  test("dragging left previews and applies an outdent", () => {
-    element<HTMLTextAreaElement>("#paths").value = "a\n>b\n>>c";
-    element<HTMLTextAreaElement>("#paths").dispatchEvent(
-      new InputEvent("input", { bubbles: true }),
-    );
-    vi.advanceTimersByTime(500);
-    const rows = document.querySelectorAll(".path-editor-row");
-    rows[2]!.querySelector(".path-editor-handle")!.dispatchEvent(dragEvent("dragstart", 100));
-    rows[2]!.dispatchEvent(dragEvent("dragover", 70));
-
-    const indicator = rows[2]!.querySelector<HTMLElement>(".path-editor-drop-indicator")!;
-    expect(indicator.textContent).toBe("Drop here · Top level");
-    expect(indicator.style.getPropertyValue("--drop-depth")).toBe("0");
-
-    rows[2]!.dispatchEvent(dragEvent("drop", 100));
-    expect(element<HTMLTextAreaElement>("#paths").value).toBe("a\n>b\nc");
+    expect(element<HTMLTextAreaElement>("#paths").value).toBe("a\nb\nc");
   });
 
   test("the middle drop zone moves a row inside the highlighted group", () => {
@@ -473,7 +454,7 @@ describe("visual editor drag and drop", () => {
 
     expect(rows[0]!.classList.contains("drag-inside")).toBe(true);
     expect(rows[0]!.querySelector(".path-editor-drop-indicator")?.textContent).toBe(
-      "Move inside a · Nested 1 level",
+      "Nest under “a”",
     );
 
     rows[0]!.dispatchEvent(dragEvent("drop", 100, 130));
