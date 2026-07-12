@@ -85,6 +85,23 @@ const makeProfile = (baseProfileDir, downloadDir) => {
   return { profileDir, downloadDir: downloads };
 };
 
+const chromeArgs = (profileDir, port, headless = false) => {
+  const args = [
+    `--user-data-dir=${profileDir}`,
+    `--remote-debugging-port=${port}`,
+    "--enable-unsafe-extension-debugging",
+    "--no-first-run",
+    "--no-default-browser-check",
+    "--disable-background-networking",
+    // Disposable E2E profiles do not need GPU acceleration. Avoid persistent
+    // GPU cache locks crashing a subsequent isolated Chrome before CDP opens.
+    "--disable-gpu",
+  ];
+  if (headless) args.push("--headless=new");
+  args.push("about:blank");
+  return args;
+};
+
 const launch = async ({ port: requestedPort, profileDir, downloadDir, fresh = true }) => {
   let resolvedProfile = profileDir;
   let resolvedDownloads = downloadDir;
@@ -100,19 +117,7 @@ const launch = async ({ port: requestedPort, profileDir, downloadDir, fresh = tr
   const port = requestedPort || 9400 + Math.floor(Math.random() * 400);
 
   const chromePath = findChrome();
-  const args = [
-    `--user-data-dir=${resolvedProfile}`,
-    `--remote-debugging-port=${port}`,
-    "--enable-unsafe-extension-debugging",
-    "--no-first-run",
-    "--no-default-browser-check",
-    "--disable-background-networking",
-  ];
-  if (process.env.HEADLESS) {
-    args.push("--headless=new");
-  }
-  args.push("about:blank");
-
+  const args = chromeArgs(resolvedProfile, port, Boolean(process.env.HEADLESS));
   const proc = spawn(chromePath, args, { stdio: "ignore", detached: false });
   try {
     await cdp.waitForCdp(port);
@@ -127,4 +132,4 @@ const launch = async ({ port: requestedPort, profileDir, downloadDir, fresh = tr
   }
 };
 
-module.exports = { ROOT, DIST, findChrome, stageBuild, launch, killTree };
+module.exports = { ROOT, DIST, findChrome, stageBuild, chromeArgs, launch, killTree };
