@@ -241,7 +241,7 @@
   },
 
   "o_cTrackBrowserDownloadsHelp": {
-    "message": "Available in Firefox and Chrome. This is passive tracking only: Save In never retries, prompts for, or sends notifications for these downloads."
+    "message": "Records matching downloads in Save In history without taking ownership of them. They are not retried and do not trigger Save In prompts or notifications."
   },
 
   "o_cRouteBrowserDownloads": {
