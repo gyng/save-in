@@ -1769,19 +1769,22 @@ summary {
   border-radius: var(--radius);
 }
 
-.history-export-menu {
+.history-export-menu,
+.history-more-menu {
   position: relative;
   margin: 0;
 }
 
-.history-export-menu > summary {
+.history-export-menu > summary,
+.history-more-menu > summary {
   padding: 4px 9px;
   border: 1px solid var(--panel-border);
   border-radius: var(--radius);
   list-style: none;
 }
 
-.history-export-options {
+.history-export-options,
+.history-more-options {
   position: absolute;
   z-index: 20;
   top: calc(100% + var(--space-1));
@@ -1798,6 +1801,10 @@ summary {
 .history-export-options button {
   border: 0;
   text-align: left;
+}
+
+.history-more-options button {
+  white-space: nowrap;
 }
 
 .rule-template-category + .rule-template-category {
@@ -2768,8 +2775,70 @@ code.click-to-copy {
   margin-top: var(--space-3);
 }
 
-.history-facets .history-columns {
-  margin-left: auto;
+.history-query-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  max-width: none;
+}
+
+.history-query-row .history-filter {
+  flex: 1 1 24rem;
+  max-width: 38rem;
+}
+
+#history-count {
+  min-width: 8rem;
+  min-height: 1.4em;
+  white-space: nowrap;
+}
+
+.history-table-tools {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.history-custom-date-range {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  background: var(--panel-bg);
+}
+
+.history-custom-date-range[hidden] {
+  display: none;
+}
+
+.history-custom-date-range > label,
+#history-custom-date-label {
+  margin: 0;
+  font-size: var(--text-sm);
+}
+
+#history-custom-date-label {
+  flex: 1 1 100%;
+  color: var(--grey50);
+  font-weight: 600;
+}
+
+.history-date-error {
+  flex: 1 1 100%;
+  color: var(--red50);
+  font-size: var(--text-sm);
+}
+
+.history-active-filters {
+  min-height: 1.4em;
+  margin-top: var(--space-2);
+  color: var(--grey50);
+  font-size: var(--text-sm);
 }
 
 .history-facet {
@@ -3045,6 +3114,13 @@ code.click-to-copy {
   background: var(--grey50);
 }
 
+.stream-thumb {
+  color: white;
+  background: linear-gradient(135deg, var(--purple50), var(--blue40));
+  font-size: var(--text-lg);
+  font-weight: 700;
+}
+
 .history-open:hover {
   background: none;
   opacity: 1;
@@ -3073,7 +3149,9 @@ code.click-to-copy {
    action row (filter, count, clear) spans the same width so the count and
    Clear button align flush with the table's right edge */
 .tab-panel > #history-list,
-.tab-panel > .history-actions {
+.tab-panel > .history-query-row,
+.tab-panel > .history-facets,
+.tab-panel > .history-table-tools {
   max-width: none;
 }
 
@@ -3128,16 +3206,6 @@ code.click-to-copy {
 
 .history-url a {
   font-family: var(--font-mono);
-}
-
-/* Filter box sits left of the section actions and grows */
-.history-filter {
-  margin-right: auto;
-}
-
-.tab-panel .section-actions .history-filter[type="text"] {
-  flex: 1 1 200px;
-  max-width: 300px;
 }
 
 /* ── In-tab hierarchy: subsection headings get vertical rhythm ─────── */
@@ -3272,9 +3340,23 @@ code.click-to-copy {
     flex: 1;
   }
 
-  .history-columns {
-    flex: 1 1 100%;
-    text-align: right;
+  .history-query-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .history-query-row .history-filter {
+    flex-basis: auto;
+    width: 100%;
+    max-width: none;
+  }
+
+  .history-table-tools {
+    flex-wrap: wrap;
+  }
+
+  .history-custom-date-range input[type="date"] {
+    flex: 1 1 10rem;
   }
 
   .editor-actions,
@@ -3384,8 +3466,9 @@ code.click-to-copy {
 
 .source-shortcut-controls button,
 fieldset.inline-option-group:has(#contentClickToSaveCombo) button,
-.history-actions button,
-.history-actions .history-filter {
+.history-query-row .history-filter,
+.history-facets button,
+.history-table-tools summary {
   min-height: var(--control-height);
   box-sizing: border-box;
   padding-block: var(--space-1);

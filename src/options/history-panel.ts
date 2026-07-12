@@ -17,6 +17,7 @@ import {
   formatBytes,
   formatHistoryTime,
   HISTORY_COLUMNS,
+  historyDateRange,
   historyCsv,
   historyTsv,
   paginateHistory,
@@ -37,6 +38,7 @@ let historyFilter = "";
 let historySourceFilter = "";
 let historyStatusFilter = "";
 let historyTypeFilter = "";
+let historyDatePreset = "any";
 let historyDateFrom = "";
 let historyDateTo = "";
 let historyPage = 0;
@@ -54,6 +56,54 @@ try {
   }
 } catch {}
 const HISTORY_PAGE_SIZE = 50;
+
+const historyDateIsValid = () =>
+  !historyDateFrom || !historyDateTo || historyDateFrom <= historyDateTo;
+
+const selectedLabel = (id: string) =>
+  document.querySelector<HTMLSelectElement>(id)?.selectedOptions[0]?.textContent?.trim() || "";
+
+const updateHistoryFilterUi = () => {
+  const active: string[] = [];
+  if (historyFilter.trim()) active.push(`Search: “${historyFilter.trim()}”`);
+  if (historySourceFilter) active.push(selectedLabel("#history-source-filter"));
+  if (historyStatusFilter) active.push(selectedLabel("#history-status-filter"));
+  if (historyTypeFilter) active.push(selectedLabel("#history-type-filter"));
+  if (historyDatePreset !== "any") {
+    active.push(
+      historyDatePreset === "custom"
+        ? historyDateFrom && historyDateTo
+          ? `${historyDateFrom} – ${historyDateTo}`
+          : historyDateFrom
+            ? `Since ${historyDateFrom}`
+            : historyDateTo
+              ? `Through ${historyDateTo}`
+              : "Custom date range"
+        : selectedLabel("#history-date-preset"),
+    );
+  }
+
+  const clear = document.querySelector<HTMLButtonElement>("#history-clear-filters");
+  if (clear) clear.hidden = active.length === 0;
+  const summary = document.querySelector<HTMLElement>("#history-active-filters");
+  if (summary) summary.textContent = active.length ? `Filtered by ${active.join(" · ")}` : "";
+
+  const custom = document.querySelector<HTMLElement>("#history-custom-date-range");
+  if (custom) custom.hidden = historyDatePreset === "any";
+  const from = document.querySelector<HTMLInputElement>("#history-date-from");
+  const to = document.querySelector<HTMLInputElement>("#history-date-to");
+  if (from) from.max = to?.value || "";
+  if (to) to.min = from?.value || "";
+  const valid = historyDateIsValid();
+  const message = valid ? "" : "Start date must be before end date.";
+  from?.setCustomValidity(message);
+  to?.setCustomValidity(message);
+  const error = document.querySelector<HTMLElement>("#history-date-error");
+  if (error) {
+    error.hidden = valid;
+    error.textContent = message;
+  }
+};
 
 const folderIcon = () => {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -159,6 +209,7 @@ const renderHistoryTable = () => {
   }
 
   const query = historyFilter.trim().toLowerCase();
+  const validDateRange = historyDateIsValid();
   const { pageRows, matchCount, total, pageCount, page } = paginateHistory(historyEntries, {
     filter: historyFilter,
     sort: historySort,
@@ -167,10 +218,11 @@ const renderHistoryTable = () => {
     sourceFilter: historySourceFilter,
     statusFilter: historyStatusFilter,
     typeFilter: historyTypeFilter,
-    dateFrom: historyDateFrom,
-    dateTo: historyDateTo,
+    dateFrom: validDateRange ? historyDateFrom : "",
+    dateTo: validDateRange ? historyDateTo : "",
   });
   historyPage = page; // paginate clamped it into range
+  updateHistoryFilterUi();
 
   if (countEl) {
     const filtered = Boolean(
@@ -178,10 +230,11 @@ const renderHistoryTable = () => {
       historySourceFilter ||
       historyStatusFilter ||
       historyTypeFilter ||
-      historyDateFrom ||
-      historyDateTo,
+      historyDatePreset !== "any",
     );
-    countEl.textContent = filtered ? `${matchCount} of ${total}` : total ? `${total} saved` : "";
+    countEl.textContent = filtered
+      ? `${matchCount} of ${total} results`
+      : `${total} ${total === 1 ? "result" : "results"}`;
     countEl.setAttribute("title", "History is stored locally, up to 10,000 entries");
   }
 
@@ -434,8 +487,54 @@ const bindHistoryFacet = (id: string, update: (value: string) => void) => {
 bindHistoryFacet("#history-source-filter", (value) => (historySourceFilter = value));
 bindHistoryFacet("#history-status-filter", (value) => (historyStatusFilter = value));
 bindHistoryFacet("#history-type-filter", (value) => (historyTypeFilter = value));
-bindHistoryFacet("#history-date-from", (value) => (historyDateFrom = value));
-bindHistoryFacet("#history-date-to", (value) => (historyDateTo = value));
+bindHistoryFacet("#history-date-preset", (value) => {
+  historyDatePreset = value;
+  const range = historyDateRange(value);
+  historyDateFrom = range.from;
+  historyDateTo = range.to;
+  const from = document.querySelector<HTMLInputElement>("#history-date-from");
+  const to = document.querySelector<HTMLInputElement>("#history-date-to");
+  if (from) from.value = historyDateFrom;
+  if (to) to.value = historyDateTo;
+});
+const selectCustomHistoryRange = () => {
+  historyDatePreset = "custom";
+  const preset = document.querySelector<HTMLSelectElement>("#history-date-preset");
+  if (preset) preset.value = "custom";
+};
+bindHistoryFacet("#history-date-from", (value) => {
+  historyDateFrom = value;
+  selectCustomHistoryRange();
+});
+bindHistoryFacet("#history-date-to", (value) => {
+  historyDateTo = value;
+  selectCustomHistoryRange();
+});
+
+document.querySelector("#history-clear-filters")?.addEventListener("click", () => {
+  historyFilter = "";
+  historySourceFilter = "";
+  historyStatusFilter = "";
+  historyTypeFilter = "";
+  historyDatePreset = "any";
+  historyDateFrom = "";
+  historyDateTo = "";
+  historyPage = 0;
+  const values: Record<string, string> = {
+    "history-filter": "",
+    "history-source-filter": "",
+    "history-status-filter": "",
+    "history-type-filter": "",
+    "history-date-preset": "any",
+    "history-date-from": "",
+    "history-date-to": "",
+  };
+  Object.entries(values).forEach(([id, value]) => {
+    const control = document.querySelector<HTMLInputElement | HTMLSelectElement>(`#${id}`);
+    if (control) control.value = value;
+  });
+  renderHistoryTable();
+});
 
 const columnOptions = document.querySelector("#history-column-options");
 HISTORY_COLUMNS.forEach(({ key, label }) => {
@@ -508,6 +607,6 @@ const removeHistory = async () => {
 };
 const clearHistory = () => {
   // eslint-disable-next-line no-alert
-  if (window.confirm("Clear all saved history? This cannot be undone.")) void removeHistory();
+  if (window.confirm("Delete all saved history? This cannot be undone.")) void removeHistory();
 };
 document.querySelector("#history-clear")?.addEventListener("click", clearHistory);

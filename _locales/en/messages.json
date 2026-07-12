@@ -297,7 +297,7 @@
   },
 
   "o_sKeyboardShortcuts": {
-    "message": "Keyboard and mouse shortcuts"
+    "message": "Click-to-save"
   },
 
   "o_sContextMenu": {
@@ -369,6 +369,16 @@
   "o_lHistorySaved": { "message": "Saved" },
   "o_lHistorySaving": { "message": "Saving" },
   "o_lHistoryFailed": { "message": "Failed" },
+  "o_lHistoryDateSaved": { "message": "Date saved" },
+  "o_lHistoryAnyTime": { "message": "Any time" },
+  "o_lHistoryToday": { "message": "Today" },
+  "o_lHistoryLast7Days": { "message": "Last 7 days" },
+  "o_lHistoryLast30Days": { "message": "Last 30 days" },
+  "o_lHistoryCustomRange": { "message": "Custom date range" },
+  "o_lHistoryStartDate": { "message": "Start date" },
+  "o_lHistoryEndDate": { "message": "End date" },
+  "o_cClearHistoryFilters": { "message": "Clear filters" },
+  "o_cDeleteAllHistory": { "message": "Delete all history…" },
   "o_lSearchOptions": {
     "message": "Search options"
   },

@@ -23,3 +23,13 @@ test("closes an open history columns menu when clicking outside", () => {
   document.querySelector("button")?.click();
   expect(details.open).toBe(false);
 });
+
+test("closes an open history more menu when clicking outside", () => {
+  document.body.innerHTML = `
+    <details class="history-more-menu" open><summary>More</summary><button>Delete all</button></details>
+    <button type="button" id="outside">Outside</button>`;
+  const details = document.querySelector("details") as HTMLDetailsElement;
+  setupOutsideDismiss(details);
+  document.querySelector<HTMLButtonElement>("#outside")?.click();
+  expect(details.open).toBe(false);
+});

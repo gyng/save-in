@@ -84,6 +84,30 @@ describe("options form semantics", () => {
     ]);
   });
 
+  test("places context-menu access keys with Downloads and leaves click-to-save in its tab", () => {
+    const document = documentForOptions();
+    const downloads = document.querySelector("#section-downloads")!;
+    const browserDownloads = document.querySelector("#section-browser-downloads")!;
+    const clickToSave = document.querySelector("#section-keyboard-shortcuts")!;
+    const clickToSaveControl = document.querySelector("#contentClickToSave")!;
+    const pageSources = document.querySelector("#section-page-sources")!;
+    const accessKeys = document.querySelector('[data-behavior-group="context-menu-access-keys"]')!;
+
+    expect(
+      downloads.compareDocumentPosition(accessKeys) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(
+      accessKeys.compareDocumentPosition(browserDownloads) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(accessKeys.contains(document.querySelector("#keyRoot"))).toBe(true);
+    expect(
+      clickToSave.compareDocumentPosition(clickToSaveControl) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(
+      clickToSaveControl.compareDocumentPosition(pageSources) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
   test("keeps Alt + left click as the fresh-profile click-to-save default", () => {
     const document = documentForOptions();
     expect(document.querySelector<HTMLSelectElement>("#clickToSaveModifier")?.value).toBe("Alt");

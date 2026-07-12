@@ -52,6 +52,25 @@ export const relativeHistoryTime = (iso?: string, now = Date.now()): string => {
   return formatter.format(Math.round(hours / 24), "day");
 };
 
+const localDateValue = (date: Date): string =>
+  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
+    date.getDate(),
+  ).padStart(2, "0")}`;
+
+export const localHistoryDate = (iso?: string): string => {
+  const date = new Date(iso || "");
+  return Number.isNaN(date.getTime()) ? "" : localDateValue(date);
+};
+
+export const historyDateRange = (preset: string, now = Date.now()) => {
+  if (!new Set(["today", "7-days", "30-days"]).has(preset)) return { from: "", to: "" };
+  const end = new Date(now);
+  const start = new Date(end);
+  if (preset === "7-days") start.setDate(start.getDate() - 6);
+  if (preset === "30-days") start.setDate(start.getDate() - 29);
+  return { from: localDateValue(start), to: localDateValue(end) };
+};
+
 // info.context holds a DOWNLOAD_TYPES value; older entries kept the whole
 // state, so fall back to state.info
 export const historyInfo = (entry: HistoryEntry): HistoryInfo =>
@@ -255,8 +274,8 @@ export const paginateHistory = (
     );
   }
   if (typeFilter) rows = rows.filter((r) => r.type === typeFilter);
-  if (dateFrom) rows = rows.filter((r) => r.time.slice(0, 10) >= dateFrom);
-  if (dateTo) rows = rows.filter((r) => r.time.slice(0, 10) <= dateTo);
+  if (dateFrom) rows = rows.filter((r) => localHistoryDate(r.time) >= dateFrom);
+  if (dateTo) rows = rows.filter((r) => localHistoryDate(r.time) <= dateTo);
 
   rows.sort((a, b) => {
     // String() so numeric columns (size) don't blow up localeCompare

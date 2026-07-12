@@ -65,7 +65,7 @@ test("English options headings use sentence case", () => {
     "Downloads menu",
     "Rename and route downloads",
     "Shortcut files",
-    "Keyboard and mouse shortcuts",
+    "Click-to-save",
     "Context menu access keys",
     "Click-to-save gesture",
     "Visual editor",

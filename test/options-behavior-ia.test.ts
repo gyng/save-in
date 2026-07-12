@@ -13,6 +13,7 @@ describe("options behavior information architecture", () => {
       "context-menu",
       "save-dialog",
       "existing-files",
+      "context-menu-access-keys",
     ]);
     expect(
       groups.map((group) =>
@@ -33,6 +34,7 @@ describe("options behavior information architecture", () => {
       ],
       ["prompt", "promptIfNoExtension", "promptOnShift", "promptOnFailure"],
       ["conflictAction"],
+      ["keyRoot", "keyLastUsed", "enableNumberedItems"],
     ]);
   });
 

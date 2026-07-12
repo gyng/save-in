@@ -12,6 +12,8 @@ import {
   historyStatus,
   historyType,
   paginateHistory,
+  historyDateRange,
+  localHistoryDate,
   progressCell,
   statusClass,
   statusLabel,
@@ -206,6 +208,25 @@ describe("paginateHistory", () => {
     expect(
       paginateHistory(entries, { dateFrom: "2024-01-02", dateTo: "2024-01-03" }).matchCount,
     ).toBe(2);
+  });
+
+  test("filters by the user's local calendar day instead of the UTC date", () => {
+    const timestamp = "2024-01-02T00:30:00.000Z";
+    const expected = localHistoryDate(timestamp);
+    expect(
+      paginateHistory([{ timestamp, finalFullPath: "edge.png" }], {
+        dateFrom: expected,
+        dateTo: expected,
+      }).matchCount,
+    ).toBe(1);
+  });
+
+  test("builds inclusive local ranges for the common date presets", () => {
+    const now = new Date(2024, 6, 12, 15, 30).getTime();
+    expect(historyDateRange("today", now)).toEqual({ from: "2024-07-12", to: "2024-07-12" });
+    expect(historyDateRange("7-days", now)).toEqual({ from: "2024-07-06", to: "2024-07-12" });
+    expect(historyDateRange("30-days", now)).toEqual({ from: "2024-06-13", to: "2024-07-12" });
+    expect(historyDateRange("any", now)).toEqual({ from: "", to: "" });
   });
 
   test("sorts by the given key/direction", () => {

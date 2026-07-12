@@ -421,6 +421,44 @@ Create a Save In downloads-menu definition for these destinations: images by web
         </label>
       </div>
 
+      <div class="behavior-group" data-behavior-group="context-menu-access-keys">
+        <h4>__MSG_o_sContextMenu__</h4>
+        <p class="caption caption-line">__MSG_o_lAccessKeysInstruction__</p>
+
+        <label>
+          <input
+            class="key"
+            type="text"
+            id="keyRoot"
+            maxlength="1"
+            aria-describedby="access-key-status"
+          />
+          __MSG_o_cKeyboardShortcutSaveInMenu__
+        </label>
+
+        <label>
+          <input
+            class="key"
+            type="text"
+            id="keyLastUsed"
+            maxlength="1"
+            aria-describedby="access-key-status"
+          />
+          __MSG_o_cKeyboardShortcutSubmenu__
+        </label>
+        <div
+          id="access-key-status"
+          class="caption warning-text"
+          role="status"
+          aria-live="polite"
+        ></div>
+
+        <label>
+          <input type="checkbox" id="enableNumberedItems" />
+          __MSG_o_cKeyboardShortcutNumbers__
+        </label>
+      </div>
+
       <hr />
 
       <div class="column wide-column">
@@ -842,44 +880,6 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
       <hr />
 
       <h2 id="section-keyboard-shortcuts">__MSG_o_sKeyboardShortcuts__</h2>
-
-      <h3>__MSG_o_sContextMenu__</h3>
-      <p>__MSG_o_lAccessKeysInstruction__</p>
-
-      <label>
-        <input
-          class="key"
-          type="text"
-          id="keyRoot"
-          maxlength="1"
-          aria-describedby="access-key-status"
-        />
-        __MSG_o_cKeyboardShortcutSaveInMenu__
-      </label>
-
-      <label>
-        <input
-          class="key"
-          type="text"
-          id="keyLastUsed"
-          maxlength="1"
-          aria-describedby="access-key-status"
-        />
-        __MSG_o_cKeyboardShortcutSubmenu__
-      </label>
-      <div
-        id="access-key-status"
-        class="caption warning-text"
-        role="status"
-        aria-live="polite"
-      ></div>
-
-      <label>
-        <input type="checkbox" id="enableNumberedItems" />
-        __MSG_o_cKeyboardShortcutNumbers__
-      </label>
-
-      <h3>__MSG_o_sClickToSave__</h3>
       <label>
         <input type="checkbox" id="contentClickToSave" />
         __MSG_o_cKeyboardShortcutClickToSave__
@@ -992,6 +992,12 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
               ><strong>intro.mp4</strong><small>Video · 2.4 MB · #2</small></span
             >
           </div>
+          <div class="source-panel-demo-row">
+            <span class="source-panel-demo-thumb stream-thumb" aria-hidden="true">≈</span>
+            <span class="source-panel-demo-details"
+              ><strong>playlist.m3u8</strong><small>Stream · HLS · #3</small></span
+            >
+          </div>
         </div>
       </div>
 
@@ -1077,7 +1083,7 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
       <hr />
 
       <h2 id="section-history">__MSG_o_sHistory__</h2>
-      <div class="section-actions history-actions">
+      <div class="history-query-row">
         <input
           type="text"
           id="history-filter"
@@ -1088,15 +1094,6 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
           spellcheck="false"
         />
         <span id="history-count" class="caption"></span>
-        <details class="history-export-menu">
-          <summary>Export</summary>
-          <div class="history-export-options">
-            <button type="button" id="history-export-json">JSON — complete data</button>
-            <button type="button" id="history-export-csv">CSV</button>
-            <button type="button" id="history-export-tsv">TSV</button>
-          </div>
-        </details>
-        <button type="button" id="history-clear" class="button">__MSG_o_cClearHistory__</button>
       </div>
       <div class="history-facets" aria-label="__MSG_o_lHistoryFacets__">
         <div class="history-facet">
@@ -1129,15 +1126,56 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
             <option value="browser">__MSG_o_lHistoryBrowser__</option>
           </select>
         </div>
-        <div class="history-facet history-date-range">
-          <label for="history-date-from">From</label>
-          <input id="history-date-from" type="date" data-runtime-control="true" />
-          <label for="history-date-to">to</label>
-          <input id="history-date-to" type="date" data-runtime-control="true" />
+        <div class="history-facet">
+          <label for="history-date-preset">__MSG_o_lHistoryDateSaved__</label>
+          <select id="history-date-preset" data-runtime-control="true">
+            <option value="any">__MSG_o_lHistoryAnyTime__</option>
+            <option value="today">__MSG_o_lHistoryToday__</option>
+            <option value="7-days">__MSG_o_lHistoryLast7Days__</option>
+            <option value="30-days">__MSG_o_lHistoryLast30Days__</option>
+            <option value="custom">__MSG_o_lHistoryCustomRange__</option>
+          </select>
         </div>
+        <button type="button" id="history-clear-filters" class="button" hidden>
+          __MSG_o_cClearHistoryFilters__
+        </button>
+      </div>
+      <div
+        id="history-custom-date-range"
+        class="history-custom-date-range"
+        role="group"
+        aria-labelledby="history-custom-date-label"
+        hidden
+      >
+        <span id="history-custom-date-label">__MSG_o_lHistoryCustomRange__</span>
+        <label for="history-date-from">__MSG_o_lHistoryStartDate__</label>
+        <input id="history-date-from" type="date" data-runtime-control="true" />
+        <span aria-hidden="true">–</span>
+        <label for="history-date-to">__MSG_o_lHistoryEndDate__</label>
+        <input id="history-date-to" type="date" data-runtime-control="true" />
+        <span id="history-date-error" class="history-date-error" role="alert" hidden></span>
+      </div>
+      <div id="history-active-filters" class="history-active-filters" aria-live="polite"></div>
+      <div class="history-table-tools" aria-label="History table tools">
         <details class="history-columns">
           <summary>Columns</summary>
           <div class="history-columns-menu" id="history-column-options"></div>
+        </details>
+        <details class="history-export-menu">
+          <summary>Export</summary>
+          <div class="history-export-options">
+            <button type="button" id="history-export-json">JSON — complete data</button>
+            <button type="button" id="history-export-csv">CSV</button>
+            <button type="button" id="history-export-tsv">TSV</button>
+          </div>
+        </details>
+        <details class="history-more-menu">
+          <summary>More</summary>
+          <div class="history-more-options">
+            <button type="button" id="history-clear" class="danger-button">
+              __MSG_o_cDeleteAllHistory__
+            </button>
+          </div>
         </details>
       </div>
       <div
