@@ -85,16 +85,22 @@ body:has(.reference-header) {
 .reference-table thead th {
   position: sticky;
   top: 0;
-  background: var(--panel-bg);
-  color: var(--color-text-muted);
+  z-index: 1;
+  padding-top: var(--space-3);
+  padding-bottom: var(--space-2);
+  border-bottom: 2px solid var(--grey40);
+  background: var(--page-bg);
+  color: inherit;
   font-size: var(--text-sm);
+  font-weight: 650;
+  letter-spacing: 0.02em;
 }
 
 .reference-group-row th {
   padding-top: var(--space-4);
   color: var(--color-text-muted);
   font-size: var(--text-sm);
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .reference-table tbody th {
