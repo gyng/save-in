@@ -4,6 +4,8 @@ import {
   formatHistoryTime,
   historyFilename,
   historyFolder,
+  historyCsv,
+  HISTORY_COLUMNS,
   historyRow,
   historyStatus,
   historyType,
@@ -15,6 +17,30 @@ import {
 
 test("missing legacy timestamps render as blank", () => {
   expect(formatHistoryTime()).toBe("");
+});
+
+test("CSV export includes all flattened history fields and escapes values", () => {
+  const csv = historyCsv([
+    {
+      timestamp: "2024-01-01",
+      finalFullPath: 'docs/a,"b".txt',
+      info: { context: "PAGE", sourceUrl: "https://example.test/a" },
+      downloadId: 7,
+    },
+  ]);
+
+  expect(csv).toContain('"Initiated","Source","Status"');
+  expect(csv).toContain('"a,""b"".txt"');
+  expect(csv).toContain('"7"');
+});
+
+test("history columns show row numbers and hide Source by default", () => {
+  expect(HISTORY_COLUMNS.find(({ key }) => key === "index")?.defaultVisible).toBe(true);
+  expect(HISTORY_COLUMNS.find(({ key }) => key === "source")?.defaultVisible).toBe(false);
+  expect(HISTORY_COLUMNS.map(({ key }) => key)).toContain("fullPath");
+  expect(HISTORY_COLUMNS.map(({ key }) => key)).toContain("downloadId");
+  expect(HISTORY_COLUMNS.find(({ key }) => key === "menuItem")?.defaultVisible).toBe(false);
+  expect(HISTORY_COLUMNS.find(({ key }) => key === "variables")?.defaultVisible).toBe(false);
 });
 
 describe("history row flatteners", () => {
@@ -54,15 +80,29 @@ describe("history row flatteners", () => {
       fileSize: 2048,
     });
     expect(row).toMatchObject({
+      time: "2024-01-01T00:00:00Z",
       status: "complete",
       routed: "routed",
       type: "image",
       file: "kitten.png",
       folder: "cats",
-      source: "https://x/k.png",
+      source: "Save In",
+      url: "https://x/k.png",
       downloadId: 7,
       size: 2048,
     });
+  });
+
+  test("prefers initiation time and formats menu and variable details", () => {
+    const row = historyRow({
+      timestamp: "2024-01-01T00:00:01Z",
+      initiatedAt: "2024-01-01T00:00:00Z",
+      menu: { id: "save-2", title: "Research", path: "docs/research" },
+      variables: { filename: "paper.pdf", pagetitle: "Example", empty: "" },
+    });
+    expect(row.time).toBe("2024-01-01T00:00:00Z");
+    expect(row.menuItem).toBe("Research");
+    expect(row.variables).toBe("filename=paper.pdf · pagetitle=Example");
   });
 
   test("formatBytes uses SI units", () => {
@@ -126,6 +166,21 @@ describe("paginateHistory", () => {
     expect(paginateHistory(entries, { filter: "photos" }).matchCount).toBe(2); // folder
     expect(paginateHistory(entries, { filter: "failed" }).matchCount).toBe(1); // status
     expect(paginateHistory(entries, { filter: "nope" }).matchCount).toBe(0);
+  });
+
+  test("facets filter by download source, status group, and type", () => {
+    const browserEntry = {
+      timestamp: "2024-01-04",
+      finalFullPath: "browser.zip",
+      status: "NETWORK_FAILED",
+      info: { context: "browser" },
+      observedBrowserDownload: true,
+    };
+    const faceted = [...entries, browserEntry];
+    expect(paginateHistory(faceted, { sourceFilter: "browser" }).matchCount).toBe(1);
+    expect(paginateHistory(faceted, { sourceFilter: "save-in" }).matchCount).toBe(3);
+    expect(paginateHistory(faceted, { statusFilter: "failed" }).matchCount).toBe(2);
+    expect(paginateHistory(faceted, { typeFilter: "image" }).matchCount).toBe(1);
   });
 
   test("sorts by the given key/direction", () => {

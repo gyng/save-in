@@ -1,4 +1,4 @@
-import { localizeString, localizeDocument } from "../src/options/l10n.ts";
+import { hardenLinks, localizeString, localizeDocument } from "../src/options/l10n.ts";
 
 describe("l10n", () => {
   beforeEach(() => {
@@ -28,5 +28,21 @@ describe("l10n", () => {
     expect(document.getElementById("t")?.textContent).toBe("Hello");
     expect(document.getElementById("i")?.getAttribute("placeholder")).toBe("save-in");
     expect(document.getElementById("plain")?.textContent).toBe("untouched");
+  });
+
+  test("opens external links separately without exposing the options window", () => {
+    document.body.innerHTML = `
+      <a id="external" class="external" href="https://example.com">external</a>
+      <a id="blank" href="help.html" target="_blank">help</a>
+      <a id="same" href="help.html">same</a>`;
+
+    hardenLinks();
+
+    const external = document.getElementById("external") as HTMLAnchorElement;
+    const blank = document.getElementById("blank") as HTMLAnchorElement;
+    expect(external.target).toBe("_blank");
+    expect(external.relList.contains("noreferrer")).toBe(true);
+    expect(blank.relList.contains("noreferrer")).toBe(true);
+    expect((document.getElementById("same") as HTMLAnchorElement).target).toBe("");
   });
 });

@@ -197,7 +197,12 @@ export const setupReferencePage = (root: Document = document, copy: CopyText = d
       panel.innerHTML = source.querySelector("#help-clause-list")?.innerHTML || "";
       panel.dataset.loaded = "true";
       const vocabulary = await runtimeVocabulary;
-      if (vocabulary) syncReferenceVocabulary(panel, "clauses", vocabulary.matchers.map((x) => `${x}:`));
+      if (vocabulary)
+        syncReferenceVocabulary(
+          panel,
+          "clauses",
+          vocabulary.matchers.map((x) => `${x}:`),
+        );
       groupReferenceRows(panel, "clauses");
       enhanceReferenceTables(root);
     }

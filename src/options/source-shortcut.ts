@@ -46,20 +46,37 @@ export const validateSourceShortcut = (shortcut: string): string => {
 };
 
 export const setupSourceShortcut = () => {
-  const input = document.querySelector<HTMLInputElement>("#sourcePanelShortcut");
+  const modifier = document.querySelector<HTMLSelectElement>("#sourcePanelShortcutModifier");
+  const modifier2 = document.querySelector<HTMLSelectElement>("#sourcePanelShortcutModifier2");
+  const input = document.querySelector<HTMLInputElement>("#sourcePanelShortcutKey");
   const apply = document.querySelector<HTMLButtonElement>("#sourcePanelShortcutApply");
   const reset = document.querySelector<HTMLButtonElement>("#sourcePanelShortcutReset");
   const status = document.querySelector<HTMLElement>("#sourcePanelShortcutStatus");
-  if (!input || !apply || !reset || !status || !webExtensionApi.commands) return;
+  if (!modifier || !modifier2 || !input || !apply || !reset || !status || !webExtensionApi.commands)
+    return;
 
   const announce = (message: string, error = false) => {
     status.textContent = message;
     status.classList.toggle("error", error);
   };
   let savedShortcut = "";
+  const shortcutValue = () => {
+    const key = input.value.trim();
+    return key ? [modifier.value, modifier2.value, key].filter(Boolean).join("+") : "";
+  };
+  const showShortcut = (shortcut: string) => {
+    const parts = shortcut.split("+").filter(Boolean);
+    const key = parts.find((part) => !MODIFIERS.has(part.toLocaleLowerCase())) || "";
+    const modifiers = parts.filter((part) => MODIFIERS.has(part.toLocaleLowerCase()));
+    modifier.value =
+      modifiers.find((part) => PRIMARY_MODIFIERS.has(part.toLocaleLowerCase())) || "Ctrl";
+    modifier2.value = modifiers.find((part) => part !== modifier.value) || "";
+    input.value = key;
+  };
   const validate = () => {
-    const error = validateSourceShortcut(input.value);
-    const changed = input.value.trim() !== savedShortcut;
+    const shortcut = shortcutValue();
+    const error = validateSourceShortcut(shortcut);
+    const changed = shortcut !== savedShortcut;
     if (error && changed) input.setAttribute("aria-invalid", "true");
     else input.removeAttribute("aria-invalid");
     apply.disabled = Boolean(error) || !changed;
@@ -71,12 +88,12 @@ export const setupSourceShortcut = () => {
   const load = () =>
     webExtensionApi.commands.getAll().then((commands) => {
       savedShortcut = commands.find(({ name }) => name === COMMAND)?.shortcut || "";
-      input.value = savedShortcut;
+      showShortcut(savedShortcut);
       validate();
     });
 
   apply.addEventListener("click", () => {
-    const shortcut = input.value.trim();
+    const shortcut = shortcutValue();
     if (!validate()) return;
     apply.disabled = true;
     void webExtensionApi.commands
@@ -92,13 +109,18 @@ export const setupSourceShortcut = () => {
       .then(() => announce("Shortcut reset."))
       .catch((error) => announce(String(error), true));
   });
+  modifier.addEventListener("change", () => {
+    if (modifier2.value === modifier.value) modifier2.value = "";
+    validate();
+  });
+  modifier2.addEventListener("change", validate);
   input.addEventListener("input", validate);
   input.addEventListener("keydown", (event) => {
     if (event.key === "Enter" && !apply.disabled) {
       event.preventDefault();
       apply.click();
     } else if (event.key === "Escape") {
-      input.value = savedShortcut;
+      showShortcut(savedShortcut);
       validate();
     }
   });

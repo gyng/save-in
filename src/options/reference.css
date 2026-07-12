@@ -27,36 +27,44 @@ body:has(.reference-header) {
 .reference-nav {
   display: flex;
   gap: var(--space-3);
+  grid-column: 2;
+  justify-self: end;
 }
 
 .reference-tabs {
   display: flex;
   gap: var(--space-1);
   margin-bottom: var(--space-4);
-  border-bottom: 1px solid var(--panel-border);
-}
-
-.reference-tabs [role="tab"] {
-  padding: var(--space-2) var(--space-4);
-  border: 0;
-  border-bottom: 2px solid transparent;
-  background: transparent;
-}
-
-.reference-tabs [aria-selected="true"] {
-  border-bottom-color: var(--link-color);
-  color: var(--link-color);
+  border-bottom: 1px solid var(--grey30);
 }
 
 .reference-search-label {
   display: flex;
   align-items: center;
   gap: var(--space-2);
+  grid-column: 2;
+  justify-self: end;
 }
 
 .reference-search-label .reference-search {
   width: min(28rem, 70vw);
   max-width: none;
+  box-sizing: border-box;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  font-size: 14px;
+}
+
+.reference-search-label .reference-search:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.reference-count {
+  grid-column: 1;
+  grid-row: 2;
+  align-self: center;
 }
 
 .reference-table {
@@ -64,6 +72,21 @@ body:has(.reference-header) {
   max-width: 100%;
   overflow-x: auto;
   border-collapse: collapse;
+}
+
+/* Reference popouts are already their own surface; avoid nesting the list in
+   another raised panel. */
+.reference-panel {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+}
+
+.reference-table.box {
+  padding: 0;
+  background: none;
 }
 
 .reference-table caption {
@@ -88,8 +111,8 @@ body:has(.reference-header) {
   z-index: 1;
   padding-top: var(--space-3);
   padding-bottom: var(--space-2);
-  border-bottom: 2px solid var(--grey40);
-  background: color-mix(in srgb, var(--panel-bg) 55%, var(--page-bg));
+  border-bottom: 1px solid var(--panel-border);
+  background: none;
   color: inherit;
   font-size: var(--text-sm);
   font-weight: 650;
@@ -133,5 +156,13 @@ body:has(.reference-header) {
   .reference-search-label,
   .reference-search-label .reference-search {
     width: 100%;
+  }
+
+  .reference-nav,
+  .reference-search-label,
+  .reference-count {
+    grid-column: 1;
+    grid-row: auto;
+    justify-self: stretch;
   }
 }

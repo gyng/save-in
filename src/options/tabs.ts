@@ -4,8 +4,35 @@
 // is absent or errors. The selected tab is remembered in localStorage.
 
 const TAB_STORAGE_KEY = "si-options-tab";
+const LEGACY_POSITION_KEYS = [
+  "section-downloads",
+  "section-dynamic-downloads",
+  "section-notifications",
+  "section-save-as-shortcuts",
+  "section-keyboard-shortcuts",
+  "section-history",
+  "section-more-options",
+];
 
 type TabSection = { heading: HTMLElement; nodes: HTMLElement[]; key: string };
+const PRIMARY_SECTION_ORDER = [
+  "section-downloads",
+  "section-dynamic-downloads",
+  "section-browser-downloads",
+  "section-page-sources",
+  "section-history",
+  "section-notifications",
+  "section-save-as-shortcuts",
+  "section-keyboard-shortcuts",
+  "section-more-options",
+];
+
+export const orderSections = (sections: TabSection[]): TabSection[] =>
+  [...sections].toSorted((a, b) => {
+    const ai = PRIMARY_SECTION_ORDER.indexOf(a.key);
+    const bi = PRIMARY_SECTION_ORDER.indexOf(b.key);
+    return (ai < 0 ? Number.MAX_SAFE_INTEGER : ai) - (bi < 0 ? Number.MAX_SAFE_INTEGER : bi);
+  });
 
 // The <h2> that heads a section: the node itself, or (for a section whose
 // content is wrapped, e.g. Dynamic Downloads in a label.column) its first
@@ -56,7 +83,7 @@ export const setupTabs = (): void => {
     return;
   }
 
-  const sections = collectSections(form);
+  const sections = orderSections(collectSections(form));
   // Nothing to tab if the form isn't the expected multi-section shape
   if (sections.length < 2) {
     return;
@@ -177,15 +204,18 @@ export const setupTabs = (): void => {
 
   let initial = 0;
   try {
-    const stored = localStorage.getItem(TAB_STORAGE_KEY);
+    const rawStored = localStorage.getItem(TAB_STORAGE_KEY);
+    const stored = rawStored;
     const stableIndex = sections.findIndex((section) => section.key === stored);
     if (stableIndex >= 0) {
       initial = stableIndex;
     } else {
       // Migrate the pre-4.0 positional value without losing the user's tab.
       const saved = stored == null ? Number.NaN : parseInt(stored, 10);
-      if (!Number.isNaN(saved) && saved >= 0 && saved < tabs.length) {
-        initial = saved;
+      if (!Number.isNaN(saved) && saved >= 0 && saved < LEGACY_POSITION_KEYS.length) {
+        const legacyKey = LEGACY_POSITION_KEYS[saved];
+        const legacyIndex = sections.findIndex(({ key }) => key === legacyKey);
+        initial = legacyIndex >= 0 ? legacyIndex : saved;
       }
     }
   } catch (e) {

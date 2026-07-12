@@ -2,13 +2,30 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>Clauses &mdash; Save In</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>__MSG_o_lClauseList__ &mdash; Save In</title>
     <link href="style.css" rel="stylesheet" />
+    <link href="reference.css" rel="stylesheet" />
   </head>
 
   <body>
+    <header class="reference-header">
+      <div>
+        <strong>Save In</strong>
+        <span aria-hidden="true">/</span>
+        <span>__MSG_o_lClauseList__</span>
+      </div>
+      <nav class="reference-nav" aria-label="__MSG_o_lReferenceNavigation__">
+        <a href="variablelist.html">__MSG_o_lVariableList__</a>
+      </nav>
+      <label class="reference-search-label">
+        <span>__MSG_o_lFilterReference__</span>
+        <input class="reference-search" type="search" autocomplete="off" />
+      </label>
+      <span class="reference-count caption"></span>
+      <span class="reference-copy-status visually-hidden" role="status" aria-live="polite"></span>
+    </header>
     <div class="help-text show" id="help-clause-list">
-      <h2>Clauses</h2>
       <p>
         Clauses are only used in rule definitions for routing and renaming to determine if a
         download should be renamed or routed.
@@ -213,6 +230,6 @@
       </table>
     </div>
 
-    <script src="clicktocopy.js"></script>
+    <script src="reference-page.js"></script>
   </body>
 </html>

@@ -85,4 +85,14 @@ export default defineConfig([
       sourcemap: true,
     },
   },
+  {
+    input: "src/entries/reference-page.ts",
+    output: {
+      file: "dist/bundled/reference-page.js",
+      format: "iife",
+      name: "__saveInReferencePage",
+      minify: false,
+      sourcemap: true,
+    },
+  },
 ]);

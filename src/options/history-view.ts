@@ -5,12 +5,11 @@
 
 import type {
   DownloadProgress,
-  HistoryColumn,
   HistoryEntry,
   HistoryInfo,
   HistoryPageOptions,
   HistoryRow,
-} from "../background/history-types.ts";
+} from "../shared/history-types.ts";
 
 export const historyFilename = (fullPath?: string): string => {
   if (!fullPath) {
@@ -84,16 +83,22 @@ export const statusClass = (status: string): string => {
 export const historyRow = (entry: HistoryEntry): HistoryRow => {
   const info = historyInfo(entry);
   return {
-    time: entry.timestamp || "",
+    time: entry.initiatedAt || entry.timestamp || "",
     status: historyStatus(entry),
     routed: entry.routed ? "routed" : "",
     type: historyType(entry),
     file: historyFilename(entry.finalFullPath),
     folder: historyFolder(entry.finalFullPath),
     fullPath: entry.finalFullPath || "",
-    source: info.sourceUrl || entry.url || info.pageUrl || "",
+    source: entry.observedBrowserDownload || info.context === "browser" ? "Browser" : "Save In",
+    url: info.sourceUrl || entry.url || info.pageUrl || "",
     downloadId: typeof entry.downloadId === "number" ? entry.downloadId : null,
     size: typeof entry.fileSize === "number" ? entry.fileSize : null,
+    menuItem: entry.menu?.title || entry.menu?.path || entry.menu?.id || "",
+    variables: Object.entries(entry.variables || {})
+      .filter(([, value]) => value !== "")
+      .map(([key, value]) => `${key}=${value}`)
+      .join(" · "),
   };
 };
 
@@ -127,16 +132,41 @@ export const formatBytes = (n: number | null | undefined): string => {
 };
 
 // width is a percentage weight (table-layout: fixed)
-export const HISTORY_COLUMNS: HistoryColumn[] = [
-  { key: "time", label: "Saved", sortable: true, width: "14%" },
-  { key: "status", label: "Status", sortable: true, width: "10%" },
-  { key: "size", label: "Size", sortable: true, width: "9%" },
-  { key: "type", label: "Type", sortable: true, width: "6%" },
-  { key: "routed", label: "Rule", sortable: true, width: "7%" },
-  { key: "file", label: "File", sortable: true, width: "18%" },
-  { key: "folder", label: "Folder", sortable: true, width: "16%" },
-  { key: "source", label: "Source", sortable: false, width: "20%" },
+type HistoryDisplayColumn = {
+  key: keyof HistoryRow | "index";
+  label: string;
+  sortable: boolean;
+  width: string;
+  defaultVisible: boolean;
+};
+
+export const HISTORY_COLUMNS: HistoryDisplayColumn[] = [
+  { key: "index", label: "#", sortable: false, width: "4%", defaultVisible: true },
+  { key: "time", label: "Initiated", sortable: true, width: "12%", defaultVisible: true },
+  { key: "source", label: "Source", sortable: true, width: "8%", defaultVisible: false },
+  { key: "status", label: "Status", sortable: true, width: "9%", defaultVisible: true },
+  { key: "size", label: "Size", sortable: true, width: "8%", defaultVisible: true },
+  { key: "type", label: "Type", sortable: true, width: "6%", defaultVisible: true },
+  { key: "routed", label: "Rule", sortable: true, width: "7%", defaultVisible: true },
+  { key: "file", label: "File", sortable: true, width: "16%", defaultVisible: true },
+  { key: "folder", label: "Folder", sortable: true, width: "15%", defaultVisible: true },
+  { key: "url", label: "URL", sortable: false, width: "19%", defaultVisible: true },
+  { key: "fullPath", label: "Full path", sortable: true, width: "20%", defaultVisible: false },
+  { key: "downloadId", label: "Download ID", sortable: true, width: "8%", defaultVisible: false },
+  { key: "menuItem", label: "Menu item", sortable: true, width: "12%", defaultVisible: false },
+  { key: "variables", label: "Variables", sortable: false, width: "24%", defaultVisible: false },
 ];
+
+const csvCell = (value: unknown): string => `"${String(value ?? "").replaceAll('"', '""')}"`;
+
+export const historyCsv = (entries: HistoryEntry[]): string => {
+  const columns = HISTORY_COLUMNS.filter(({ key }) => key !== "index");
+  const rows = entries.map(historyRow);
+  return [
+    columns.map(({ label }) => csvCell(label)).join(","),
+    ...rows.map((row) => columns.map(({ key }) => csvCell(row[key as keyof HistoryRow])).join(",")),
+  ].join("\n");
+};
 
 // Filter + sort + paginate the newest-first entries. Returns the requested
 // page (page is clamped into range) plus the counts the UI shows.
@@ -147,6 +177,9 @@ export const paginateHistory = (
     sort = { key: "time", dir: "desc" },
     page = 0,
     pageSize = 50,
+    sourceFilter = "",
+    statusFilter = "",
+    typeFilter = "",
   }: HistoryPageOptions = {},
 ) => {
   const query = String(filter || "")
@@ -157,11 +190,23 @@ export const paginateHistory = (
 
   if (query) {
     rows = rows.filter((r) =>
-      [r.status, r.type, r.file, r.folder, r.source].some((v) =>
+      [r.status, r.type, r.file, r.folder, r.source, r.url, r.menuItem, r.variables].some((v) =>
         String(v).toLowerCase().includes(query),
       ),
     );
   }
+
+  if (sourceFilter) {
+    rows = rows.filter((r) => r.source.toLowerCase().replaceAll(" ", "-") === sourceFilter);
+  }
+  if (statusFilter) {
+    rows = rows.filter((r) =>
+      statusFilter === "failed"
+        ? r.status !== "complete" && r.status !== "pending"
+        : r.status === statusFilter,
+    );
+  }
+  if (typeFilter) rows = rows.filter((r) => r.type === typeFilter);
 
   rows.sort((a, b) => {
     // String() so numeric columns (size) don't blow up localeCompare

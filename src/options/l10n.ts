@@ -4,6 +4,15 @@
 export const localizeString = (str: string): string =>
   str.replace(/__MSG_(.+?)__/g, (match, key) => chrome.i18n.getMessage(key) || match);
 
+export const hardenLinks = () => {
+  document.querySelectorAll<HTMLAnchorElement>("a.external").forEach((link) => {
+    link.target = "_blank";
+  });
+  document.querySelectorAll<HTMLAnchorElement>('a[target="_blank"]').forEach((link) => {
+    link.relList.add("noreferrer");
+  });
+};
+
 export const localizeDocument = () => {
   const walker = document.createTreeWalker(document.documentElement, NodeFilter.SHOW_TEXT);
   const texts: Node[] = [];
@@ -23,6 +32,7 @@ export const localizeDocument = () => {
       }
     }
   });
+  hardenLinks();
 };
 
 document.addEventListener("DOMContentLoaded", localizeDocument, { once: true });

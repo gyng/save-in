@@ -3,6 +3,7 @@
 
 import * as constants from "../src/shared/constants.ts";
 import type { RoutingRule } from "../src/routing/router.ts";
+import { backgroundRuntime } from "../src/background/runtime.ts";
 
 const routingRule = (name: string): RoutingRule => [
   { name, value: ".*", type: constants.RULE_TYPES.MATCHER },
@@ -48,7 +49,7 @@ const setupGlobals = () => {
   mocks.Path.mockReset();
   Object.assign(mocks.Download, { getRoutingMatches: vi.fn() });
   global.browser.storage.local.get = vi.fn(() => Promise.resolve({}));
-  delete global.window.SI_DEBUG;
+  backgroundRuntime.debug = false;
 };
 
 describe("OptionsManagement", () => {
@@ -91,6 +92,17 @@ describe("OptionsManagement", () => {
       OptionsManagement.OPTION_KEYS.forEach((k) => {
         expect(resolved[k.name]).toBe(k.default);
       });
+    });
+
+    test("disables Page Sources for new profiles", async () => {
+      const resolved = await OptionsManagement.loadOptions();
+      expect(resolved.sourcePanelEnabled).toBe(false);
+    });
+
+    test("preserves an existing enabled Page Sources preference", async () => {
+      global.browser.storage.local.get = vi.fn(() => Promise.resolve({ sourcePanelEnabled: true }));
+      const resolved = await OptionsManagement.loadOptions();
+      expect(resolved.sourcePanelEnabled).toBe(true);
     });
   });
 
@@ -299,13 +311,13 @@ describe("OptionsManagement", () => {
     test("sets window.SI_DEBUG when the stored debug flag is true", async () => {
       global.browser.storage.local.get = vi.fn(() => Promise.resolve({ debug: true }));
       await OptionsManagement.loadOptions();
-      expect(global.window.SI_DEBUG).toBe(1);
+      expect(backgroundRuntime.debug).toBe(true);
     });
 
     test("does not set window.SI_DEBUG when debug is false or absent", async () => {
       global.browser.storage.local.get = vi.fn(() => Promise.resolve({ debug: false }));
       await OptionsManagement.loadOptions();
-      expect(global.window.SI_DEBUG).toBeUndefined();
+      expect(backgroundRuntime.debug).toBe(false);
     });
 
     test("applies each stored value's onLoad transform, defaulting to identity", async () => {

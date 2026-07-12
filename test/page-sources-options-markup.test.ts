@@ -18,7 +18,11 @@ test("gives Page sources settings a clear heading and intro hierarchy", () => {
     "option-group-heading",
     "option-group-heading",
   ]);
-  expect(document.querySelector(".source-shortcut-controls #sourcePanelShortcut")).not.toBeNull();
+  expect(document.querySelector("#sourcePanelShortcutModifier")).not.toBeNull();
+  expect(document.querySelector("#sourcePanelShortcutModifier2")).not.toBeNull();
+  expect(
+    document.querySelector('#sourcePanelShortcutKey[list="sourcePanelShortcutKeys"]'),
+  ).not.toBeNull();
 });
 
 test("keeps variables in Live variables and clauses in their own disclosure", () => {

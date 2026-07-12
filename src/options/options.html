@@ -156,8 +156,8 @@
             <button type="button" class="apply-button" data-apply="paths" disabled>
               __MSG_o_bApply__
             </button>
+            <span class="caption manual-save-help">__MSG_o_lManualEditorSaveHelp__</span>
           </div>
-          <div class="caption manual-save-help">__MSG_o_lManualEditorSaveHelp__</div>
 
           <div id="paths-text-help">
             <p>
@@ -578,8 +578,8 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
               <button type="button" class="apply-button" data-apply="filenamePatterns" disabled>
                 __MSG_o_bApply__
               </button>
+              <span class="caption manual-save-help">__MSG_o_lManualEditorSaveHelp__</span>
             </div>
-            <div class="caption manual-save-help">__MSG_o_lManualEditorSaveHelp__</div>
 
             <div class="rule-builder" role="group" aria-labelledby="rule-builder-label">
               <div class="editor-field-label" id="rule-builder-label">__MSG_o_lRuleBuilder__</div>
@@ -839,9 +839,32 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
       <hr />
 
       <h2 id="section-page-sources">__MSG_o_sPageSources__</h2>
-      <div class="source-panel-intro">
-        <p class="section-lead">__MSG_o_lPageSourcesHelp__</p>
-        <p class="caption section-note">__MSG_o_lPageSourcesNetworkLimit__</p>
+      <div class="source-panel-overview">
+        <div class="source-panel-intro">
+          <p class="section-lead">__MSG_o_lPageSourcesHelp__</p>
+          <p class="caption section-note">__MSG_o_lPageSourcesNetworkLimit__</p>
+        </div>
+
+        <div class="source-panel-demo" aria-label="Preview of the Page sources drawer">
+          <div class="source-panel-demo-header">
+            <strong>Page sources</strong><span aria-hidden="true">⌕ &nbsp; ◫ &nbsp; ×</span>
+          </div>
+          <div class="source-panel-demo-search">Filter sources</div>
+          <div class="source-panel-demo-facets">
+            <span class="active">All <b>8</b></span
+            ><span>Images <b>5</b></span
+            ><span>Video <b>2</b></span
+            ><span>Links <b>1</b></span>
+          </div>
+          <div class="source-panel-demo-row">
+            <span class="source-panel-demo-thumb image-thumb" aria-hidden="true"></span>
+            <span><strong>hero.webp</strong><small>Image · 128 KB · #1</small></span>
+          </div>
+          <div class="source-panel-demo-row">
+            <span class="source-panel-demo-thumb video-thumb" aria-hidden="true">▶</span>
+            <span><strong>intro.mp4</strong><small>Video · 2.4 MB · #2</small></span>
+          </div>
+        </div>
       </div>
 
       <fieldset class="option-group source-panel-settings">
@@ -867,19 +890,60 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
       <fieldset class="option-group source-shortcut-settings">
         <legend class="option-group-heading">__MSG_o_lSourcePanelShortcut__</legend>
         <div class="source-shortcut-controls">
-          <input
-            type="text"
-            id="sourcePanelShortcut"
-            data-runtime-control="true"
-            aria-label="__MSG_o_lSourcePanelShortcut__"
-            placeholder="Ctrl+Shift+Y"
-            spellcheck="false"
-          />
+          <label>
+            <span class="visually-hidden">Primary modifier</span>
+            <select id="sourcePanelShortcutModifier" data-runtime-control="true">
+              <option value="Ctrl">Ctrl</option>
+              <option value="Alt">Alt / Option</option>
+              <option value="Command">Command</option>
+              <option value="MacCtrl">MacCtrl</option>
+            </select>
+          </label>
+          <span class="shortcut-plus" aria-hidden="true">+</span>
+          <label>
+            <span class="visually-hidden">Second modifier</span>
+            <select id="sourcePanelShortcutModifier2" data-runtime-control="true">
+              <option value="">None</option>
+              <option value="Shift">Shift</option>
+              <option value="Alt">Alt / Option</option>
+              <option value="Ctrl">Ctrl</option>
+              <option value="Command">Command</option>
+              <option value="MacCtrl">MacCtrl</option>
+            </select>
+          </label>
+          <span class="shortcut-plus" aria-hidden="true">+</span>
+          <label>
+            <span class="visually-hidden">Key</span>
+            <input
+              type="text"
+              id="sourcePanelShortcutKey"
+              data-runtime-control="true"
+              aria-label="Shortcut key"
+              placeholder="Y"
+              spellcheck="false"
+              autocomplete="off"
+              list="sourcePanelShortcutKeys"
+              aria-describedby="sourcePanelShortcutHelp sourcePanelShortcutStatus"
+            />
+          </label>
+          <datalist id="sourcePanelShortcutKeys">
+            <option value="Y"></option>
+            <option value="F1"></option>
+            <option value="F2"></option>
+            <option value="F12"></option>
+            <option value="Space"></option>
+            <option value="PageUp"></option>
+            <option value="PageDown"></option>
+            <option value="Home"></option>
+            <option value="End"></option>
+          </datalist>
           <button type="button" id="sourcePanelShortcutApply">__MSG_o_bApply__</button>
           <button type="button" id="sourcePanelShortcutReset">__MSG_o_bReset__</button>
-          <span id="sourcePanelShortcutStatus" role="status"></span>
+          <span id="sourcePanelShortcutStatus" role="status" aria-live="polite"></span>
         </div>
-        <div class="caption caption-line">__MSG_o_lSourcePanelShortcutHelp__</div>
+        <div class="caption caption-line" id="sourcePanelShortcutHelp">
+          __MSG_o_lSourcePanelShortcutHelp__
+        </div>
       </fieldset>
 
       <hr />
@@ -895,28 +959,30 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
           spellcheck="false"
         />
         <span id="history-count" class="caption"></span>
+        <button type="button" id="history-export-json">Export JSON</button>
+        <button type="button" id="history-export-csv">Export CSV</button>
         <button type="button" id="history-clear" class="button">__MSG_o_cClearHistory__</button>
       </div>
       <div class="history-facets" aria-label="__MSG_o_lHistoryFacets__">
-        <label>
-          __MSG_o_lHistorySource__
+        <div class="history-facet">
+          <label for="history-source-filter">__MSG_o_lHistorySource__</label>
           <select id="history-source-filter">
             <option value="">__MSG_o_lHistoryAllSources__</option>
             <option value="save-in">Save In</option>
             <option value="browser">__MSG_o_lHistoryBrowser__</option>
           </select>
-        </label>
-        <label>
-          __MSG_o_lHistoryStatus__
+        </div>
+        <div class="history-facet">
+          <label for="history-status-filter">__MSG_o_lHistoryStatus__</label>
           <select id="history-status-filter">
             <option value="">__MSG_o_lHistoryAllStatuses__</option>
             <option value="complete">__MSG_o_lHistorySaved__</option>
             <option value="pending">__MSG_o_lHistorySaving__</option>
             <option value="failed">__MSG_o_lHistoryFailed__</option>
           </select>
-        </label>
-        <label>
-          __MSG_o_lHistoryType__
+        </div>
+        <div class="history-facet">
+          <label for="history-type-filter">__MSG_o_lHistoryType__</label>
           <select id="history-type-filter">
             <option value="">__MSG_o_lHistoryAllTypes__</option>
             <option value="image">Image</option>
@@ -927,21 +993,14 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
             <option value="tab">Tab</option>
             <option value="browser">__MSG_o_lHistoryBrowser__</option>
           </select>
-        </label>
+        </div>
+        <details class="history-columns">
+          <summary>Columns</summary>
+          <div class="history-columns-menu" id="history-column-options"></div>
+        </details>
       </div>
       <p class="caption">__MSG_o_lHistoryHelp__</p>
       <div id="history-list"></div>
-
-      <details class="history-raw">
-        <summary>__MSG_o_lHistoryRaw__</summary>
-        <textarea
-          class="full-width history-raw-text"
-          id="history"
-          aria-label="__MSG_o_lHistoryRaw__"
-          spellcheck="false"
-          readonly
-        ></textarea>
-      </details>
 
       <hr />
 

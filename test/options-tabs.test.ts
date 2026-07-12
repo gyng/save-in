@@ -1,6 +1,6 @@
 import * as Tabs from "../src/options/tabs.ts";
 
-const { collectSections, headingLabel, setupTabs, TAB_STORAGE_KEY } = Tabs;
+const { collectSections, headingLabel, orderSections, setupTabs, TAB_STORAGE_KEY } = Tabs;
 
 const buildForm = () => {
   document.body.innerHTML = `
@@ -51,6 +51,36 @@ describe("headingLabel", () => {
   test("ignores nested controls (e.g. a reset button in the heading)", () => {
     document.body.innerHTML = '<h2 id="h">More Options<div id="reset">Restore</div></h2>';
     expect(headingLabel(document.getElementById("h") as HTMLElement)).toBe("More Options");
+  });
+});
+
+describe("orderSections", () => {
+  test("puts frequent workflows before passive preferences", () => {
+    const keys = [
+      "section-notifications",
+      "section-more-options",
+      "section-history",
+      "section-downloads",
+      "section-save-as-shortcuts",
+      "section-keyboard-shortcuts",
+      "section-dynamic-downloads",
+      "section-browser-downloads",
+    ];
+    const sections = keys.map((key) => ({
+      key,
+      heading: document.createElement("h2"),
+      nodes: [],
+    }));
+    expect(orderSections(sections).map(({ key }) => key)).toEqual([
+      "section-downloads",
+      "section-dynamic-downloads",
+      "section-browser-downloads",
+      "section-history",
+      "section-notifications",
+      "section-save-as-shortcuts",
+      "section-keyboard-shortcuts",
+      "section-more-options",
+    ]);
   });
 });
 
@@ -139,15 +169,32 @@ describe("setupTabs", () => {
   test("migrates the legacy numeric tab index", () => {
     buildForm();
     const headings = document.querySelectorAll("h2");
-    headings[0].id = "section-downloads";
-    headings[1].id = "section-notifications";
-    headings[2].id = "section-shortcuts";
+    headings[0].id = "section-a";
+    headings[1].id = "section-b";
+    headings[2].id = "section-c";
     localStorage.setItem(TAB_STORAGE_KEY, "2");
 
     setupTabs();
 
     expect(document.querySelectorAll<HTMLElement>('[role="tab"]')[2].ariaSelected).toBe("true");
-    expect(localStorage.getItem(TAB_STORAGE_KEY)).toBe("section-shortcuts");
+    expect(localStorage.getItem(TAB_STORAGE_KEY)).toBe("section-c");
+  });
+
+  test("preserves the old numeric History position after task-ordering tabs", () => {
+    document.body.innerHTML = `
+      <form id="options">
+        <h2 id="section-downloads">Downloads</h2>
+        <h2 id="section-dynamic-downloads">Routing</h2>
+        <h2 id="section-notifications">Notifications</h2>
+        <h2 id="section-save-as-shortcuts">Shortcuts</h2>
+        <h2 id="section-history">History</h2>
+        <h2 id="section-more-options">Advanced</h2>
+      </form>`;
+    localStorage.setItem(TAB_STORAGE_KEY, "5");
+
+    setupTabs();
+
+    expect(document.querySelector<HTMLElement>("#tab-section-history")?.ariaSelected).toBe("true");
   });
 
   test("arrow keys move between tabs", () => {

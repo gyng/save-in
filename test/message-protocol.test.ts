@@ -5,7 +5,7 @@ import {
   isExternalMessage,
   isInternalMessage,
   isStringKeyedRecord,
-} from "../src/background/message-protocol.ts";
+} from "../src/shared/message-protocol.ts";
 
 describe("message protocol runtime validation", () => {
   test("accepts valid internal and external message bodies", () => {
@@ -29,6 +29,8 @@ describe("message protocol runtime validation", () => {
     { type: MESSAGE_TYPES.PREVIEW_MENUS, body: { paths: 1 } },
     { type: MESSAGE_TYPES.CHECK_ROUTES, body: { state: { info: null } } },
     { type: MESSAGE_TYPES.VALIDATE, body: [] },
+    { type: MESSAGE_TYPES.VALIDATE, body: { info: { filename: 42 } } },
+    { type: MESSAGE_TYPES.VALIDATE, body: { info: { pageUrl: null } } },
     { type: MESSAGE_TYPES.APPLY_CONFIG, body: { config: [] } },
     { type: MESSAGE_TYPES.DOWNLOAD, body: { url: 1 } },
     { type: MESSAGE_TYPES.DOWNLOAD, body: { info: "not an object" } },
@@ -51,5 +53,13 @@ describe("message protocol runtime validation", () => {
     expect(isStringKeyedRecord({ paths: "images" })).toBe(true);
     expect(isStringKeyedRecord([])).toBe(false);
     expect(isStringKeyedRecord(null)).toBe(false);
+  });
+
+  test("never throws for adversarial structured-clone values", () => {
+    const values = [undefined, null, true, 0, "PING", [], new Date(), /x/, new Map(), new Set()];
+    for (const value of values) {
+      expect(() => isInternalMessage(value)).not.toThrow();
+      expect(() => isExternalMessage(value)).not.toThrow();
+    }
   });
 });

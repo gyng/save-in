@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-test("places manual-save guidance directly after each editor action row", () => {
+test("places manual-save guidance beside Apply in each editor action row", () => {
   const document = new DOMParser().parseFromString(
     readFileSync(resolve("src/options/options.html"), "utf8"),
     "text/html",
@@ -10,6 +10,10 @@ test("places manual-save guidance directly after each editor action row", () => 
 
   expect(helpers).toHaveLength(2);
   expect(
-    helpers.every((helper) => helper.previousElementSibling?.classList.contains("editor-actions")),
+    helpers.every(
+      (helper) =>
+        helper.closest(".editor-actions") &&
+        helper.previousElementSibling?.classList.contains("apply-button"),
+    ),
   ).toBe(true);
 });

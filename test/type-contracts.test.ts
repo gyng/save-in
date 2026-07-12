@@ -4,6 +4,7 @@ import type { CounterWriteState } from "../src/background/counter.ts";
 import type { RuleType } from "../src/shared/constants.ts";
 import type {
   AcquiredDownload,
+  DownloadExecutionResult,
   DownloadPipelineState,
   DownloadPlan,
   FinalizableDownloadState,
@@ -19,6 +20,9 @@ test("download stages expose distinct state contracts", () => {
     source: "direct" | "fetched" | "fetch-fallback-direct";
     ownedObjectUrl?: string;
   }>();
+  expectTypeOf<DownloadExecutionResult>().toEqualTypeOf<
+    { status: "started"; downloadId: number } | { status: "failed" }
+  >();
   expectTypeOf<FinalizableDownloadState>().toMatchTypeOf<{
     path: DownloadPipelineState["path"];
     info: DownloadPipelineState["info"];
@@ -31,7 +35,7 @@ test("routing clauses use the shared rule-type union", () => {
 
 test("functional state services expose explicit mutable state", () => {
   expectTypeOf<CounterWriteState["queue"]>().toEqualTypeOf<Promise<unknown>>();
-  expectTypeOf<SessionWriteState["queue"]>().toEqualTypeOf<Promise<unknown>>();
+  expectTypeOf<SessionWriteState["queues"]>().toEqualTypeOf<Map<string, Promise<unknown>>>();
   expectTypeOf<DownloadsState["records"]>().toEqualTypeOf<Map<number, DownloadRecord>>();
   expectTypeOf<DownloadsState["hydration"]>().toEqualTypeOf<Promise<void> | null>();
 });
