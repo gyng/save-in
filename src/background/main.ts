@@ -3,8 +3,10 @@ import { webExtensionApi } from "../platform/web-extension-api.ts";
 
 import { OptionsManagement } from "../config/option.ts";
 import { options } from "../config/options-data.ts";
-import { BackgroundState } from "./state.ts";
+import { downloadsState } from "./state.ts";
 import { hydrateDownloads } from "../downloads/download-state.ts";
+import { configureDownloadPorts } from "../downloads/ports.ts";
+import { SaveHistory } from "./history.ts";
 import { extensionSessionStorage } from "../platform/storage-areas.ts";
 import {
   addLastUsed,
@@ -24,20 +26,40 @@ import { splitLines } from "../shared/util.ts";
 import { MEDIA_TYPES } from "../shared/constants.ts";
 import { Log } from "./log.ts";
 import { currentTab, setCurrentTab } from "../platform/current-tab.ts";
+import { configureRoutingPorts } from "../routing/ports.ts";
+import { nextCounter, peekCounter } from "./counter.ts";
+import { counterWriteState } from "./state.ts";
+import { resolveContent } from "../downloads/content-fetch.ts";
+import { syncSourcePanelToTab, toggleSourcePanelForTab } from "./source-panel-state.ts";
+import {
+  backgroundRuntime,
+  installBackgroundRuntimeBridge,
+  resetRuntimeDiagnostics,
+} from "./runtime.ts";
 
-window.init = () => {
-  window.optionErrors = {
-    paths: [],
-    filenamePatterns: [],
-  };
+configureDownloadPorts({ runtime: backgroundRuntime, history: SaveHistory, log: Log });
+
+configureRoutingPorts({
+  getMessage: (key) => webExtensionApi.i18n.getMessage(key),
+  getCurrentTab: () => currentTab,
+  isDebug: () => backgroundRuntime.debug,
+  recordRuleErrors: (errors) => backgroundRuntime.optionErrors.filenamePatterns.push(...errors),
+  logDebug: (...values) => console.log(...values), // eslint-disable-line no-console
+  nextCounter: () => nextCounter(counterWriteState, webExtensionApi.storage.local),
+  peekCounter: () => peekCounter(webExtensionApi.storage.local),
+  resolveContent,
+});
+
+backgroundRuntime.init = () => {
+  resetRuntimeDiagnostics();
 
   return Promise.all([
     OptionsManagement.loadOptions(),
     webExtensionApi.storage.local.get(["lastUsedPath", "lastUsedMeta"]),
     webExtensionApi.contextMenus.removeAll(),
     // Rebuild the in-memory download records from storage.session before any
-    // download event handler (which awaits window.ready) touches them
-    hydrateDownloads(BackgroundState.downloads, extensionSessionStorage),
+    // download event handler (which awaits backgroundRuntime.ready) touches them
+    hydrateDownloads(downloadsState, extensionSessionStorage),
   ])
     .then((results) => {
       // MV3 service workers are stateless: restore last used path across restarts
@@ -77,27 +99,26 @@ window.init = () => {
     });
 };
 
-window.reset = () => {
+backgroundRuntime.reset = () => {
   // Serialize: overlapping inits interleave removeAll() with another
   // generation's create() calls, producing duplicate-id errors and
   // missing/duplicated menu items
-  window.ready = (window.ready ?? Promise.resolve()).catch(() => {}).then(() => window.init());
-  return window.ready;
+  backgroundRuntime.ready = (backgroundRuntime.ready ?? Promise.resolve())
+    .catch(() => {})
+    .then(() => backgroundRuntime.init());
+  return backgroundRuntime.ready;
 };
 
 // MV3: entry.background calls this synchronously at startup. Event listeners
 // must be registered synchronously, or MV3 service workers/event pages will not
 // wake up for the events they missed.
 export const start = () => {
+  installBackgroundRuntimeBridge(window);
   addDownloadListener();
   addTabMenuListener();
   addTabHighlightListener();
   const toggleSources = (tab: browser.tabs.Tab) => {
-    if (tab.id != null) {
-      void webExtensionApi.tabs
-        .sendMessage(tab.id, { type: "TOGGLE_SOURCE_PANEL" })
-        .catch(() => {});
-    }
+    if (tab.id != null) void toggleSourcePanelForTab(tab.id);
   };
   webExtensionApi.action?.onClicked.addListener(toggleSources);
   webExtensionApi.commands?.onCommand.addListener((command) => {
@@ -115,10 +136,13 @@ export const start = () => {
       }
     })
     .catch(() => {});
-  window.ready = Promise.all([window.init(), initialTab]).then(([ready]) => ready);
+  backgroundRuntime.ready = Promise.all([backgroundRuntime.init(), initialTab]).then(
+    ([ready]) => ready,
+  );
 
   webExtensionApi.tabs.onActivated.addListener(async (info) => {
     setCurrentTab(await webExtensionApi.tabs.get(info.tabId));
+    await syncSourcePanelToTab(info.tabId);
   });
 
   webExtensionApi.tabs.onUpdated.addListener(async (tabId, changeInfo) => {

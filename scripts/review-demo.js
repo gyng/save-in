@@ -45,6 +45,7 @@ const DEMO_PAGE = `<!doctype html>
       img { margin-right: 1rem; }
       code { background: #eee; padding: 1px 4px; border-radius: 3px; }
       li { margin-bottom: 0.5rem; }
+      .background-demo { width: 180px; height: 80px; background: ${svg("CSS background", "#5b6ee1")} center/cover; }
     </style>
   </head>
   <body>
@@ -59,16 +60,35 @@ const DEMO_PAGE = `<!doctype html>
       <li>Alt+click an image to exercise content-script click-to-save.</li>
       <li>Select this text, right-click &rarr; save selection; right-click the page background
         &rarr; save page. Check "Last used" appears in the menu afterwards.</li>
+      <li>Open Page Sources from the toolbar, the bottom of the Save In context menu, or
+        <code>Ctrl+Shift+Y</code>.</li>
+      <li>Filter, facet, sort, and resize the drawer. Alt+click a result to save immediately;
+        right-click its title to use the normal Save In menu. Use <b>Copy URLs</b> after
+        filtering and cycle the dock through right, bottom, left, and top.</li>
+      <li>Find the HLS manifest and use <b>Copy yt-dlp</b>. The demo playlist only exercises
+        manifest discovery; it is not a playable video.</li>
     </ol>
     <p>
       <img src="${svg("corgi.svg", "#b5651d")}" alt="corgi" />
-      <img src="${svg("shiba.svg", "#cc8b2c")}" alt="shiba" />
+      <img src="${svg("shiba.svg", "#cc8b2c")}" srcset="${svg("shiba-2x.svg", "#e0a14a")} 2x" alt="shiba" />
     </p>
+    <div class="background-demo" aria-label="CSS background image example"></div>
+    <video controls width="240" src="/demo.mp4"></video>
+    <audio controls src="/demo.ogg"></audio>
     <p>
       Links: <a href="/demo.pdf">a PDF (routes to pdfs/)</a> &middot;
       <a href="/archive.zip">a zip</a> &middot;
       <a href="/page2.html">another page</a>
     </p>
+    <script>fetch('/master.m3u8').catch(() => {});</script>
+    <script>
+      setTimeout(() => {
+        const link = document.createElement('a');
+        link.href = '/late-image.webp';
+        link.textContent = 'dynamically detected image';
+        document.body.append(' · ', link);
+      }, 1500);
+    </script>
   </body>
 </html>`;
 
@@ -85,6 +105,14 @@ const startDemoServer = () =>
       } else if (req.url === "/page2.html") {
         res.writeHead(200, { "Content-Type": "text/html" });
         res.end("<title>page two</title><p>Right-click here and save the page.</p>");
+      } else if (req.url === "/master.m3u8") {
+        res.writeHead(200, { "Content-Type": "application/vnd.apple.mpegurl" });
+        res.end("#EXTM3U\n#EXT-X-ENDLIST\n");
+      } else if (req.url === "/demo.mp4" || req.url === "/demo.ogg") {
+        res.writeHead(200, {
+          "Content-Type": req.url.endsWith("mp4") ? "video/mp4" : "audio/ogg",
+        });
+        res.end(Buffer.alloc(32));
       } else {
         res.writeHead(200, { "Content-Type": "text/html" });
         res.end(DEMO_PAGE);
@@ -120,6 +148,12 @@ const main = async () => {
       contentClickToSave: true,
       notifyOnSuccess: true,
       notifyOnRuleMatch: true,
+      sourcePanelEnabled: true,
+      sourcePanelBackgrounds: true,
+      sourcePanelLive: true,
+      sourcePanelPreviews: true,
+      sourcePanelResourceHints: true,
+      sourcePanelLinks: true,
     }).then(() => window.reset()).then(() => "seeded")`,
   );
   await cdp.evalInTarget(port, "options.html", "location.reload()");

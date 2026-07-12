@@ -37,7 +37,7 @@
           </div>
         </details>
       </div>
-      <div class="save-status caption">
+      <div class="save-status caption" role="status" aria-live="polite">
         <span>__MSG_o_cLastSavedAt__</span>
         <span id="lastSavedAt">__MSG_o_cLastSavedAtNever__</span>
       </div>
@@ -58,7 +58,7 @@
         <a href="#" class="help learn-more" data-help-for="help-symlink">__MSG_o_lGuideSymlink__</a>
       </p>
       <div class="help-text" id="help-symlink">
-        <h4>Saving outside the default download directory</h4>
+        <h4>__MSG_o_sGuideOutsideDownloadDirectory__</h4>
         <p>
           The WebExtensions API does not allow files to be saved outside of the default download
           directory. A
@@ -136,6 +136,7 @@
             aria-live="polite"
             aria-atomic="true"
           ></div>
+          <div class="caption manual-save-help">__MSG_o_lManualEditorSaveHelp__</div>
 
           <div class="editor-actions" id="paths-text-actions">
             <details class="insert-menu" id="paths-insert-menu" data-insert-target="paths">
@@ -144,6 +145,7 @@
                 <input
                   type="text"
                   class="insert-menu-filter"
+                  aria-label="__MSG_o_lInsertFilter__"
                   placeholder="__MSG_o_lInsertFilter__"
                   spellcheck="false"
                 />
@@ -173,7 +175,7 @@
               >
             </p>
             <div class="help-text" id="help-paths">
-              <h4>Creating context menu items</h4>
+              <h4>__MSG_o_sGuideCreatingMenuItems__</h4>
               <p>
                 To create a menu item to save <code>cat.jpg</code> into the directory
                 <code>~/downloads/i/cats</code>, with <code>~/downloads</code> as the default
@@ -223,7 +225,7 @@
                 <pre class="demo-pic menu-items-demo"></pre>
               </div>
 
-              <h4>Comments and aliases</h4>
+              <h4>__MSG_o_sGuideCommentsAliases__</h4>
 
               <p>
                 To add comments, add <code>//</code> to the end of a line. For example,
@@ -239,7 +241,7 @@
 
               <p>To change the shortcut key, use <code>(key: f)</code> to manually assign one.</p>
 
-              <h4>Submenus</h4>
+              <h4>__MSG_o_sGuideSubmenus__</h4>
 
               <p>
                 To create submenus, add <code>&gt;</code>s to the line itself. An example can be
@@ -316,6 +318,7 @@
             <textarea
               class="full-width"
               id="preferLinksFilter"
+              aria-label="__MSG_o_cPreferLinksFilter__"
               rows="3"
               placeholder=""
               spellcheck="false"
@@ -372,6 +375,69 @@
       <hr />
 
       <div class="column wide-column">
+        <h2 id="section-browser-downloads">__MSG_o_sBrowserDownloads__</h2>
+
+        <p class="caption caption-line">__MSG_o_lBrowserDownloadsHelp__</p>
+
+        <label class="filename-suggestion-only">
+          <input type="checkbox" id="routeBrowserDownloads" />
+          __MSG_o_cRouteBrowserDownloads__
+          <div class="caption caption-line">__MSG_o_cRouteBrowserDownloadsHelp__</div>
+        </label>
+
+        <label class="firefox-reroute-only">
+          <input type="checkbox" id="routeBrowserDownloadsFirefox" />
+          __MSG_o_cRouteBrowserDownloadsFirefox__
+          <span class="badge">Firefox</span>
+          <span class="badge warning">__MSG_o_lExperimental__</span>
+          <div class="caption caption-line warning">
+            __MSG_o_cRouteBrowserDownloadsFirefoxHelp__
+            <a
+              class="external"
+              href="https://bugzilla.mozilla.org/show_bug.cgi?id=1245652"
+              target="_blank"
+              rel="noreferrer"
+              >__MSG_o_lFirefoxFilenameApiBug__</a
+            >
+          </div>
+        </label>
+
+        <label>
+          <span>__MSG_o_cBrowserDownloadFilter__</span>
+          <textarea
+            class="full-width"
+            id="browserDownloadFilter"
+            rows="3"
+            placeholder="*://*.example.com/*"
+            spellcheck="false"
+          ></textarea>
+          <div class="caption caption-line">__MSG_o_cBrowserDownloadFilterHelp__</div>
+        </label>
+
+        <label>
+          <span>__MSG_o_cBrowserDownloadExcludeFilter__</span>
+          <textarea
+            class="full-width"
+            id="browserDownloadExcludeFilter"
+            rows="3"
+            placeholder="*://private.example.com/*"
+            spellcheck="false"
+          ></textarea>
+          <div class="caption caption-line">__MSG_o_cBrowserDownloadExcludeFilterHelp__</div>
+        </label>
+
+        <div class="caption caption-line">__MSG_o_lBrowserDownloadVariables__</div>
+
+        <label>
+          <input type="checkbox" id="trackBrowserDownloads" />
+          __MSG_o_cTrackBrowserDownloads__
+          <div class="caption caption-line">__MSG_o_cTrackBrowserDownloadsHelp__</div>
+        </label>
+      </div>
+
+      <hr />
+
+      <div class="column wide-column">
         <h2 id="section-dynamic-downloads">__MSG_o_sDynamicDownloads__</h2>
 
         <h3>__MSG_o_sRenameAndRouteDownloads__</h3>
@@ -383,7 +449,7 @@
         </p>
 
         <div class="help-text" id="help-filenames">
-          <h4>Renaming downloads</h4>
+          <h4>__MSG_o_sGuideRenamingDownloads__</h4>
           <p>
             Match downloads against
             <a
@@ -407,7 +473,7 @@ cat.<span class="demo g3">gif</span> ➡ <span class="demo g4">1512136516</span>
  </pre>
           </div>
 
-          <h4>Moving downloads into different directories</h4>
+          <h4>__MSG_o_sGuideMovingDownloads__</h4>
 
           <p>
             The following example moves all <code>.gif</code> files into the
@@ -492,6 +558,7 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
               aria-live="polite"
               aria-atomic="true"
             ></div>
+            <div class="caption manual-save-help">__MSG_o_lManualEditorSaveHelp__</div>
 
             <div class="editor-actions">
               <details
@@ -504,6 +571,7 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
                   <input
                     type="text"
                     class="insert-menu-filter"
+                    aria-label="__MSG_o_lInsertFilter__"
                     placeholder="__MSG_o_lInsertFilter__"
                     spellcheck="false"
                   />
@@ -726,27 +794,33 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
         <div class="caption caption-line">__MSG_o_cKeyboardShortcutClickToHelp__</div>
       </label>
 
-      <label>
-        __MSG_o_cKeyboardShotcutKeycode__
-        <span class="combo-wrap">
-          <input
-            type="text"
-            id="contentClickToSaveCombo"
-            placeholder="Alt"
-            spellcheck="false"
-            autocomplete="off"
-          />
-        </span>
-        +&nbsp;
-        <select id="contentClickToSaveButton">
-          <option value="LEFT_CLICK">__MSG_o_cKeyboardShortcutModifierLeftClick__</option>
-          <option value="MIDDLE_CLICK">__MSG_o_cKeyboardShortcutModifierMiddleClick__</option>
-          <option value="RIGHT_CLICK">__MSG_o_cKeyboardShortcutModifierRightClick__</option>
-          <option value="BACK_CLICK">__MSG_o_cKeyboardShortcutModifierBackClick__</option>
-          <option value="FORWARD_CLICK">__MSG_o_cKeyboardShortcutModifierForwardClick__</option>
-        </select>
+      <fieldset class="option-group inline-option-group">
+        <legend>__MSG_o_cKeyboardShotcutKeycode__</legend>
+        <label>
+          <span class="visually-hidden">__MSG_o_lClickToSaveModifier__</span>
+          <span class="combo-wrap">
+            <input
+              type="text"
+              id="contentClickToSaveCombo"
+              placeholder="Alt"
+              spellcheck="false"
+              autocomplete="off"
+            />
+          </span>
+        </label>
+        <span aria-hidden="true">+</span>
+        <label>
+          <span class="visually-hidden">__MSG_o_lClickToSaveButton__</span>
+          <select id="contentClickToSaveButton">
+            <option value="LEFT_CLICK">__MSG_o_cKeyboardShortcutModifierLeftClick__</option>
+            <option value="MIDDLE_CLICK">__MSG_o_cKeyboardShortcutModifierMiddleClick__</option>
+            <option value="RIGHT_CLICK">__MSG_o_cKeyboardShortcutModifierRightClick__</option>
+            <option value="BACK_CLICK">__MSG_o_cKeyboardShortcutModifierBackClick__</option>
+            <option value="FORWARD_CLICK">__MSG_o_cKeyboardShortcutModifierForwardClick__</option>
+          </select>
+        </label>
         <div class="caption caption-line">__MSG_o_cKeyboardShortcutModifierHelp__</div>
-      </label>
+      </fieldset>
 
       <hr />
 
@@ -754,26 +828,25 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
       <p>__MSG_o_lPageSourcesHelp__</p>
       <div class="caption">__MSG_o_lPageSourcesNetworkLimit__</div>
 
-      <label>
-        <input type="checkbox" id="sourcePanelEnabled" />
-        __MSG_o_cSourcePanelEnabled__
-      </label>
-      <label>
-        <input type="checkbox" id="sourcePanelBackgrounds" />
-        __MSG_o_cSourcePanelBackgrounds__
-      </label>
-      <label>
-        <input type="checkbox" id="sourcePanelLive" />
-        __MSG_o_cSourcePanelLive__
-      </label>
-      <label>
-        <input type="checkbox" id="sourcePanelPreviews" />
-        __MSG_o_cSourcePanelPreviews__
-      </label>
-      <label>
-        <input type="checkbox" id="sourcePanelResourceHints" />
-        __MSG_o_cSourcePanelResourceHints__
-      </label>
+      <fieldset class="option-group source-panel-settings">
+        <legend>__MSG_o_lSourcePanelDiscovery__</legend>
+        <label
+          ><input type="checkbox" id="sourcePanelEnabled" /> __MSG_o_cSourcePanelEnabled__</label
+        >
+        <label><input type="checkbox" id="sourcePanelLive" /> __MSG_o_cSourcePanelLive__</label>
+        <label
+          ><input type="checkbox" id="sourcePanelPreviews" /> __MSG_o_cSourcePanelPreviews__</label
+        >
+        <label
+          ><input type="checkbox" id="sourcePanelBackgrounds" />
+          __MSG_o_cSourcePanelBackgrounds__</label
+        >
+        <label
+          ><input type="checkbox" id="sourcePanelResourceHints" />
+          __MSG_o_cSourcePanelResourceHints__</label
+        >
+        <label><input type="checkbox" id="sourcePanelLinks" /> __MSG_o_cSourcePanelLinks__</label>
+      </fieldset>
 
       <fieldset class="option-group source-shortcut-settings">
         <legend>__MSG_o_lSourcePanelShortcut__</legend>
@@ -799,11 +872,44 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
           type="text"
           id="history-filter"
           class="history-filter"
+          aria-label="__MSG_o_lHistoryFilter__"
           placeholder="__MSG_o_lHistoryFilter__"
           spellcheck="false"
         />
         <span id="history-count" class="caption"></span>
         <button type="button" id="history-clear" class="button">__MSG_o_cClearHistory__</button>
+      </div>
+      <div class="history-facets" aria-label="__MSG_o_lHistoryFacets__">
+        <label>
+          __MSG_o_lHistorySource__
+          <select id="history-source-filter">
+            <option value="">__MSG_o_lHistoryAllSources__</option>
+            <option value="save-in">Save In</option>
+            <option value="browser">__MSG_o_lHistoryBrowser__</option>
+          </select>
+        </label>
+        <label>
+          __MSG_o_lHistoryStatus__
+          <select id="history-status-filter">
+            <option value="">__MSG_o_lHistoryAllStatuses__</option>
+            <option value="complete">__MSG_o_lHistorySaved__</option>
+            <option value="pending">__MSG_o_lHistorySaving__</option>
+            <option value="failed">__MSG_o_lHistoryFailed__</option>
+          </select>
+        </label>
+        <label>
+          __MSG_o_lHistoryType__
+          <select id="history-type-filter">
+            <option value="">__MSG_o_lHistoryAllTypes__</option>
+            <option value="image">Image</option>
+            <option value="link">Link</option>
+            <option value="page">Page</option>
+            <option value="selection">Selection</option>
+            <option value="click">Click</option>
+            <option value="tab">Tab</option>
+            <option value="browser">__MSG_o_lHistoryBrowser__</option>
+          </select>
+        </label>
       </div>
       <p class="caption">__MSG_o_lHistoryHelp__</p>
       <div id="history-list"></div>
@@ -813,6 +919,7 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
         <textarea
           class="full-width history-raw-text"
           id="history"
+          aria-label="__MSG_o_lHistoryRaw__"
           spellcheck="false"
           readonly
         ></textarea>
@@ -822,7 +929,7 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
 
       <h2 id="section-more-options">__MSG_o_sMoreOptions__</h2>
 
-      <h3>Filenames</h3>
+      <h3>__MSG_o_sAdvancedFilenames__</h3>
       <label>
         <input type="number" id="truncateLength" min="1" />__MSG_o_cTruncatePath__&nbsp;
         <div class="caption caption-line">__MSG_o_cTruncatePathHelp__</div>
@@ -839,7 +946,7 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
         <div class="caption caption-line">__MSG_o_cAppendMimeExtensionHelp__</div>
       </label>
 
-      <h3>Downloading</h3>
+      <h3>__MSG_o_sAdvancedDownloading__</h3>
       <label>
         <input type="checkbox" id="fallbackFetch" />
         <span>__MSG_o_cFallbackFetch__</span>
@@ -852,11 +959,13 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
         <div class="caption caption-line">__MSG_o_cFetchViaFetchAPIHelp__</div>
       </label>
 
-      <label>
-        <input type="checkbox" id="setRefererHeader" />
-        __MSG_o_cSetRefererHeader__
+      <div class="firefox-only">
+        <label>
+          <input type="checkbox" id="setRefererHeader" />
+          __MSG_o_cSetRefererHeader__
+        </label>
         <div class="caption caption-line">__MSG_o_cSetRefererHeaderHelp__</div>
-        <div class="caption-line">
+        <label class="caption-line">
           <div>__MSG_o_cSetRefererHeaderFilter__</div>
           <textarea
             class="full-width"
@@ -865,17 +974,7 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
             placeholder=""
             spellcheck="false"
           ></textarea>
-        </div>
-        <div class="caption-line chrome-only show">
-          <div>__MSG_o_cRefererProxyUrl__</div>
-          <input
-            class="full-width"
-            id="refererProxyUrl"
-            type="url"
-            placeholder="https://proxy.example/fetch?url={url}&amp;referer={referer}"
-          />
-          <div class="caption">__MSG_o_cRefererProxyUrlHelp__</div>
-        </div>
+        </label>
         <div class="caption caption-line">
           __MSG_o_cSetRefererHeaderFilterHelp__
           <a
@@ -883,9 +982,9 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
             >MDN: Match patterns</a
           >
         </div>
-      </label>
+      </div>
 
-      <h3>Counter</h3>
+      <h3>__MSG_o_sAdvancedCounter__</h3>
       <p class="caption caption-line">
         Current value of the <code>:counter:</code> variable. It advances once per saved download
         and persists across restarts.
@@ -898,7 +997,7 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
         </div>
       </div>
 
-      <h3>Backup &amp; reset</h3>
+      <h3>__MSG_o_sAdvancedBackupReset__</h3>
       <div class="settings-transfer-actions">
         <button type="button" id="settings-import" class="button">__MSG_o_cImportSettings__</button>
         <button type="button" id="settings-export" class="button settings-export-button">
@@ -911,7 +1010,7 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
 
       <textarea id="export-target" hidden spellcheck="false"></textarea>
 
-      <h3>External API</h3>
+      <h3>__MSG_o_sAdvancedExternalApi__</h3>
       <p class="caption caption-line">
         Other extensions can save a URL through save-in's routing and rename rules (issue #110).
         <a class="external" href="https://github.com/gyng/save-in/wiki/Integrations"
@@ -938,7 +1037,10 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
         </details>
       </div>
 
-      <h3>AI agent tools <span class="warning badge">Experimental</span></h3>
+      <h3>
+        __MSG_o_sAdvancedAgentTools__
+        <span class="warning badge">__MSG_o_lExperimental__</span>
+      </h3>
       <p class="caption caption-line">
         In a browser that supports
         <a class="external" href="https://developer.chrome.com/docs/ai/webmcp">WebMCP</a>, Save In
@@ -970,7 +1072,7 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
         </p>
       </div>
 
-      <h3>Diagnostics</h3>
+      <h3>__MSG_o_sAdvancedDiagnostics__</h3>
       <label> <input type="checkbox" id="debug" /> __MSG_o_cDebugMode__ </label>
 
       <div class="diagnostics-row">
@@ -979,6 +1081,7 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
           <textarea
             class="full-width debug-log-text"
             id="debug-log"
+            aria-label="__MSG_o_lDebugLog__"
             spellcheck="false"
             readonly
           ></textarea>

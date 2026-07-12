@@ -16,6 +16,7 @@ import "../options/options-logic.ts";
 import "../options/history-view.ts";
 import "../options/history-panel.ts";
 import "../options/options.ts";
+import "../options/dismissible-details.ts";
 import "../options/permissions-banner.ts";
 import "../options/clicktocopy.ts";
 import "../options/autocomplete.ts";

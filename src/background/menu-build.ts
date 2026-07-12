@@ -6,25 +6,20 @@ import { webExtensionApi } from "../platform/web-extension-api.ts";
 
 import { WEB_EXTENSION_CAPABILITIES } from "../platform/chrome-detector.ts";
 import { options } from "../config/options-data.ts";
-import { MEDIA_TYPES, SPECIAL_DIRS } from "../shared/constants.ts";
+import { MEDIA_TYPES } from "../shared/constants.ts";
 import { Path } from "../routing/path.ts";
+import { backgroundRuntime } from "./runtime.ts";
+import { buildTree } from "../menus/menu-tree.ts";
+
+export { buildTree, parseMeta, parsePath } from "../menus/menu-tree.ts";
 
 type MenuContext = `${chrome.contextMenus.ContextType}`;
 const asMenuContexts = (contexts: string[]) => contexts as MenuContext[];
-type LastUsedMeta = { comment: string; menuIndex: string };
+type LastUsedMeta = { comment?: string; menuIndex?: string };
 type StoredLastUsed = {
   lastUsedPath?: string | null;
   lastUsedMeta?: LastUsedMeta | null;
 } | null;
-type MenuMeta = Record<string, string>;
-type ParsedPath = {
-  raw: string;
-  comment: string;
-  depth: number;
-  meta: MenuMeta;
-  parsedDir: string;
-  validation: { valid: boolean; message?: string };
-};
 type MenuPathMapping = {
   parsedDir: string;
   // Kept permissive until menu-click's optional routing fields are strict-typed.
@@ -33,23 +28,6 @@ type MenuPathMapping = {
   title: string;
   depth: number;
 };
-type MenuSeparator = { kind: "separator"; parentId: string };
-type MenuPathItem = {
-  kind: "path";
-  id: string;
-  title: string;
-  number: number;
-  accessKeyOverride?: string;
-  parsedDir: string;
-  comment: string;
-  menuIndex: string;
-  depth: number;
-  parentId: string;
-  raw: string;
-};
-type MenuTreeItem = MenuSeparator | MenuPathItem;
-type MenuTreeError = OptionError & { parentId?: string };
-type MenuTree = { items: MenuTreeItem[]; errors: MenuTreeError[] };
 
 export const MENU_IDS = {
   TABSTRIP: {
@@ -85,12 +63,23 @@ export const menuState: {
 export const setLastUsed = (path: string, meta: LastUsedMeta) => {
   menuState.lastUsedPath = path;
   menuState.lastUsedMeta = meta;
-  webExtensionApi.storage.local.set({ lastUsedPath: path, lastUsedMeta: meta });
+  return webExtensionApi.storage.local
+    .set({ lastUsedPath: path, lastUsedMeta: meta })
+    .catch(() => {});
 };
 
 export const restoreLastUsed = (stored: StoredLastUsed) => {
-  menuState.lastUsedPath = (stored && stored.lastUsedPath) || null;
-  menuState.lastUsedMeta = (stored && stored.lastUsedMeta) || null;
+  const path = stored?.lastUsedPath;
+  const meta = stored?.lastUsedMeta;
+  menuState.lastUsedPath =
+    typeof path === "string" && path && new Path(path).validate().valid ? path : null;
+  menuState.lastUsedMeta =
+    menuState.lastUsedPath &&
+    meta != null &&
+    (meta.comment === undefined || typeof meta.comment === "string") &&
+    (meta.menuIndex === undefined || typeof meta.menuIndex === "string")
+      ? meta
+      : null;
 };
 
 export const makeSeparator = (() => {
@@ -242,148 +231,18 @@ export const addLastUsed = (contexts: string[]) => {
   }
 };
 
-export const parseMeta = (comment: string): MenuMeta => {
-  const matches = comment.match(/\(.+?:.+?\)+/g);
-
-  if (!matches) {
-    return {};
-  }
-
-  return matches
-    .map((pair) =>
-      pair
-        .replace(/(^\(|\)$)/g, "")
-        .split(":")
-        .map((val) => val.trim()),
-    )
-    .reduce<MenuMeta>((acc, kv) => {
-      const key = kv[0];
-      return Object.assign(acc, { [key]: kv.slice(1).join(" ") });
-    }, {});
-};
-
-export const parsePath = (dir: string): ParsedPath => {
-  const tokens = dir.split("//").map((tok) => tok.trim());
-  const depthMatch = tokens[0].match(/^(>+)?(.+)/)!;
-  const arrows = depthMatch[1] || "";
-  const depth = arrows.length;
-  const parsedDir = depthMatch[2].trim();
-  const validation = new Path(parsedDir).validate();
-  const comment = (tokens[1] || "").trim();
-  const meta = parseMeta(comment);
-
-  return {
-    raw: dir,
-    comment,
-    depth,
-    meta,
-    parsedDir,
-    validation,
-  };
-};
-
-// Pure: computes the menu tree for the paths option without touching browser
-// APIs or menu state.
-export const buildTree = (pathsArray: string[]): MenuTree => {
-  const items: MenuTreeItem[] = [];
-  const errors: MenuTreeError[] = [];
-  const menuItemCounter = [0]; // key: depth, val: index
-
-  // Stack of open parent ids for nested menus
-  let pathsNestingStack: string[] = [];
-  let lastDepth = 0;
-
-  pathsArray.forEach((dir, i) => {
-    if (dir === SPECIAL_DIRS.SEPARATOR) {
-      items.push({ kind: "separator", parentId: MENU_IDS.ROOT });
-      return;
-    }
-
-    const { comment, depth, meta, validation, parsedDir } = parsePath(dir);
-
-    if (!validation.valid) {
-      // Attribute the error to the submenu it would have belonged to, so the
-      // preview can show it in place (not orphaned at the root).
-      let errorParentId;
-      if (depth === 0) {
-        errorParentId = MENU_IDS.ROOT;
-      } else if (depth > pathsNestingStack.length) {
-        errorParentId = pathsNestingStack[pathsNestingStack.length - 1];
-      } else {
-        errorParentId = pathsNestingStack[depth - 1];
-      }
-      errors.push({
-        message: validation.message!,
-        error: `${dir}`,
-        parentId: errorParentId,
-      });
-      return;
-    }
-
-    // An empty alias `(alias: )` must not produce an empty menu title
-    const title = meta.alias ? meta.alias : parsedDir;
-
-    // splice the counter to fit current depth, resetting the farther depths
-    menuItemCounter.splice(depth + 1);
-    if (menuItemCounter[depth] != null) {
-      menuItemCounter[depth] += 1;
-    } else {
-      menuItemCounter[depth] = 1;
-    }
-    const id = `save-in-${i}`;
-
-    let parentId: string;
-    if (depth === 0) {
-      parentId = MENU_IDS.ROOT;
-    } else if (depth > pathsNestingStack.length) {
-      parentId = pathsNestingStack[pathsNestingStack.length - 1];
-    } else {
-      parentId = pathsNestingStack[depth - 1];
-    }
-
-    if (parsedDir === SPECIAL_DIRS.SEPARATOR) {
-      items.push({ kind: "separator", parentId });
-      return;
-    }
-
-    if (depth === 0) {
-      pathsNestingStack = [id];
-    } else if (depth <= lastDepth) {
-      pathsNestingStack[depth] = id;
-    } else if (depth > lastDepth) {
-      pathsNestingStack.push(id);
-    }
-    lastDepth = depth;
-    pathsNestingStack = pathsNestingStack.slice(0, depth + 1);
-
-    items.push({
-      kind: "path",
-      id,
-      title,
-      number: menuItemCounter[depth],
-      accessKeyOverride: meta.key,
-      parsedDir,
-      comment: `${i}${comment.replaceAll("-", "_")}`,
-      menuIndex: menuItemCounter.join("."),
-      depth,
-      parentId,
-      // The original textarea line, so the preview can jump back to it
-      raw: dir,
-    });
-  });
-
-  return { items, errors };
-};
-
 export const addPaths = (pathsArray: string[], contexts: string[]) => {
   for (const id of Object.keys(menuState.pathMappings)) {
     delete menuState.pathMappings[id];
+  }
+  for (const id of Object.keys(menuState.titles)) {
+    delete menuState.titles[id];
   }
 
   const { items, errors } = buildTree(pathsArray);
 
   errors.forEach((error) => {
-    window.optionErrors.paths.push(error);
+    backgroundRuntime.optionErrors.paths.push(error);
   });
 
   items.forEach((item) => {

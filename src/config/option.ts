@@ -16,6 +16,7 @@ import { Download } from "../downloads/download.ts";
 // (docs/ARCH-CYCLES.md, Cut 1).
 import { options } from "./options-data.ts";
 import type { DownloadInfo } from "../downloads/download-types.ts";
+import { backgroundRuntime } from "../background/runtime.ts";
 
 type RoutePreviewState = { info: DownloadInfo };
 type RoutePreview = {
@@ -54,6 +55,7 @@ export const OptionsManagement: OptionsManagementApi = {
     sourcePanelLive: "Refresh the source list when page DOM media changes.",
     sourcePanelPreviews: "Load image and video thumbnails in the source list.",
     sourcePanelResourceHints: "Best-effort discovery of HLS and DASH manifests in resource timing.",
+    sourcePanelLinks: "Include safe page links, classifying linked media and PDF documents.",
     debug: "Enable the session debug log.",
     enableLastLocation: "Show a 'last used' item at the top of the menu.",
     enableNumberedItems: "Add number-key access keys to submenu items.",
@@ -89,6 +91,15 @@ export const OptionsManagement: OptionsManagementApi = {
       "Append a file extension from the server's Content-Type when the filename has none.",
     fetchViaFetch: "Download via the Fetch API instead of the downloads API.",
     fallbackFetch: "Retry a failed download once via a background fetch.",
+    trackBrowserDownloads: "Include ordinary browser downloads in local Save In history.",
+    routeBrowserDownloads:
+      "Apply matching filename routing rules to ordinary browser downloads on Chrome.",
+    browserDownloadFilter:
+      "Optional URL match patterns limiting which ordinary browser downloads are handled.",
+    browserDownloadExcludeFilter:
+      "Optional URL match patterns excluding ordinary browser downloads from handling.",
+    routeBrowserDownloadsFirefox:
+      "Experimentally cancel and re-download matching ordinary downloads on Firefox.",
     tabEnabled: "Enable the tab-strip context menu (Firefox or Chrome 150+).",
     closeTabOnSave: "Close a tab after saving it.",
     setRefererHeader: "Set the Referer header to the page URL for matching sites.",
@@ -161,9 +172,7 @@ export const OptionsManagement: OptionsManagementApi = {
   loadOptions: () =>
     webExtensionApi.storage.local.get(OptionsManagement.getKeys()).then((loadedOptions) => {
       loadedOptions = loadedOptions && typeof loadedOptions === "object" ? loadedOptions : {};
-      if (loadedOptions.debug) {
-        window.SI_DEBUG = 1;
-      }
+      backgroundRuntime.debug = loadedOptions.debug === true;
 
       const localKeys = Object.keys(loadedOptions);
       localKeys.forEach((k) => {
@@ -212,7 +221,7 @@ export const OptionsManagement: OptionsManagementApi = {
 // only the fields they exercise).
 export const seedOptions = () => {
   // Mutate the shared bag in place (it's a `const` leaf export now) so every
-  // module's live reference stays valid across a re-seed (window.reset)
+  // module's live reference stays valid across a background runtime reset
   const mutableOptions = options as unknown as Record<string, unknown>;
   for (const k of Object.keys(mutableOptions)) {
     delete mutableOptions[k];

@@ -1,4 +1,4 @@
-import { toggleSourcePanel } from "./source-panel.ts";
+import { setSourcePanelOpen, toggleSourcePanel, type PageSource } from "./source-panel.ts";
 
 // Runs in every page. Uses callback-style chrome.* APIs: available in both
 // Chrome and Firefox content scripts (no polyfill is loaded here). try/catch
@@ -15,15 +15,20 @@ type ContentOptions = {
   sourcePanelLive?: boolean;
   sourcePanelPreviews?: boolean;
   sourcePanelResourceHints?: boolean;
+  sourcePanelLinks?: boolean;
 };
 
-const sourcePanelOptions: ContentOptions = {};
-const SOURCE_PANEL_OPTION_KEYS = [
+const CONTENT_OPTION_KEYS = [
+  "contentClickToSave",
+  "contentClickToSaveCombo",
+  "contentClickToSaveButton",
+  "links",
   "sourcePanelEnabled",
   "sourcePanelBackgrounds",
   "sourcePanelLive",
   "sourcePanelPreviews",
   "sourcePanelResourceHints",
+  "sourcePanelLinks",
 ] as const;
 
 const ClickToSave = {
@@ -81,8 +86,18 @@ const ClickToSave = {
   // (e.target can be an overlay), then the enclosing link (#226)
   findSource: (e: any, allowLinks: boolean): string | undefined => {
     let source;
+    const path = typeof e.composedPath === "function" ? e.composedPath() : [];
 
-    if (document.elementsFromPoint) {
+    // Shadow-DOM retargeting can hide the actual media element from e.target.
+    // Prefer the composed path, then retain the coordinate lookup for overlays.
+    if (path.length > 0) {
+      path.some((el: any) => {
+        source = el && (el.currentSrc || el.src);
+        return !!source;
+      });
+    }
+
+    if (!source && document.elementsFromPoint) {
       document.elementsFromPoint(e.clientX, e.clientY).some((el: any) => {
         source = el["currentSrc"] || el["src"]; // undefined for non-media elements
         return !!source;
@@ -90,11 +105,12 @@ const ClickToSave = {
     }
 
     if (!source) {
-      source = e.target.currentSrc || e.target.src;
+      source = e.target && (e.target.currentSrc || e.target.src);
     }
 
-    if (!source && allowLinks && e.target.closest) {
-      const anchor = e.target.closest("a[href]");
+    if (!source && allowLinks) {
+      const anchor =
+        path.find((el: any) => el?.matches?.("a[href]")) || e.target?.closest?.("a[href]");
       const href = anchor && anchor.href;
       if (href && /^(https?|ftp|blob|data):/i.test(href)) {
         source = href;
@@ -105,19 +121,28 @@ const ClickToSave = {
   },
 
   // Attached below; declared here so TypeScript allows the assignment
-  setupClickToSave: undefined as unknown as (options: ContentOptions) => void,
+  setupClickToSave: undefined as unknown as (options: ContentOptions) => () => void,
 };
 
 const setupClickToSave = (options: ContentOptions) => {
+  const controller = new AbortController();
+  const listenerOptions = { capture: true, signal: controller.signal };
   const shortcutOptions = {
     combo: ClickToSave.comboToKeyCodes(options.contentClickToSaveCombo),
     button: options.contentClickToSaveButton,
   };
 
   let active: Record<number, boolean> = {};
+  const retryTimers = new Set<number>();
+
+  const eventKeyCode = (e: KeyboardEvent) => {
+    const named: Record<string, number> = { Alt: 18, Control: 17, Shift: 16, Meta: 91 };
+    return named[e.key] || e.keyCode;
+  };
 
   // Retries cover the MV3 service worker still starting up on first send
   const sendDownload = (source: string, retries = 2) => {
+    if (controller.signal.aborted) return;
     try {
       chrome.runtime.sendMessage(
         {
@@ -129,7 +154,11 @@ const setupClickToSave = (options: ContentOptions) => {
         },
         () => {
           if (chrome.runtime.lastError && retries > 0) {
-            setTimeout(() => sendDownload(source, retries - 1), 300);
+            const timer = window.setTimeout(() => {
+              retryTimers.delete(timer);
+              sendDownload(source, retries - 1);
+            }, 300);
+            retryTimers.add(timer);
           }
         },
       );
@@ -141,11 +170,13 @@ const setupClickToSave = (options: ContentOptions) => {
   window.addEventListener(
     "keydown",
     (e) => {
-      active[e.keyCode] = true;
+      const code = eventKeyCode(e);
+      const wasActive = active[code] === true;
+      active[code] = true;
 
       // Wake the MV3 service worker as soon as the combo key is held so
       // it is warm by the time the click arrives
-      if (shortcutOptions.combo.includes(e.keyCode)) {
+      if (!wasActive && shortcutOptions.combo.includes(code)) {
         try {
           // Reading lastError stops Chrome logging an unchecked error
           chrome.runtime.sendMessage({ type: "WAKE_WARM" }, () => chrome.runtime.lastError);
@@ -154,26 +185,33 @@ const setupClickToSave = (options: ContentOptions) => {
         }
       }
     },
-    true,
+    listenerOptions,
   );
 
   window.addEventListener(
     "keyup",
     (e) => {
-      active[e.keyCode] = false;
+      active[eventKeyCode(e)] = false;
     },
-    true,
+    listenerOptions,
   );
 
-  window.addEventListener("focus", () => {
+  const resetActive = () => {
     active = {};
-  });
+  };
+  window.addEventListener("focus", resetActive, { signal: controller.signal });
+  window.addEventListener("blur", resetActive, { signal: controller.signal });
+  window.addEventListener("pagehide", resetActive, { signal: controller.signal });
 
-  document.addEventListener("visibilitychange", () => {
-    if (document.hidden) {
-      active = {};
-    }
-  });
+  document.addEventListener(
+    "visibilitychange",
+    () => {
+      if (document.hidden) {
+        resetActive();
+      }
+    },
+    { signal: controller.signal },
+  );
 
   window.addEventListener(
     "mousedown",
@@ -191,30 +229,54 @@ const setupClickToSave = (options: ContentOptions) => {
         }
       }
     },
-    true,
+    listenerOptions,
   );
+
+  return () => {
+    controller.abort();
+    retryTimers.forEach((timer) => window.clearTimeout(timer));
+    retryTimers.clear();
+  };
 };
 
 ClickToSave.setupClickToSave = setupClickToSave;
 
+let currentOptions: ContentOptions = {};
+let removeClickToSave: (() => void) | null = null;
+
+const applyOptions = (next: ContentOptions) => {
+  currentOptions = { ...currentOptions, ...next };
+  removeClickToSave?.();
+  removeClickToSave = currentOptions.contentClickToSave ? setupClickToSave(currentOptions) : null;
+};
+
 try {
+  let receivedStorageChange = false;
   chrome.runtime.sendMessage({ type: "OPTIONS" }, (response) => {
-    if (!response || !response.body) {
+    if (receivedStorageChange || !response || !response.body) {
       return;
     }
 
-    const options = response.body;
-    Object.assign(sourcePanelOptions, options);
-
-    if (options.contentClickToSave) {
-      setupClickToSave(options);
-    }
+    applyOptions(response.body);
   });
+
+  // Existing tabs outlive option-page changes and extension worker restarts.
+  // storage.onChanged is additive and works with old backgrounds because it
+  // does not require a new message type or atomic extension upgrade.
   chrome.storage?.onChanged?.addListener((changes, areaName) => {
-    if (areaName !== "local") return;
-    SOURCE_PANEL_OPTION_KEYS.forEach((key) => {
-      if (key in changes) sourcePanelOptions[key] = changes[key].newValue;
+    if (areaName !== "local") {
+      return;
+    }
+    const changed: ContentOptions = {};
+    CONTENT_OPTION_KEYS.forEach((key) => {
+      if (key in changes) {
+        changed[key] = changes[key].newValue as never;
+      }
     });
+    if (Object.keys(changed).length > 0) {
+      receivedStorageChange = true;
+      applyOptions(changed);
+    }
   });
 } catch (e) {
   // Extension context invalidated (extension reloaded/updated underneath us)
@@ -222,22 +284,29 @@ try {
 
 try {
   chrome.runtime.onMessage.addListener((message) => {
-    if (message?.type !== "TOGGLE_SOURCE_PANEL") return;
-    toggleSourcePanel(
-      ({ url, kind }) => {
-        chrome.runtime.sendMessage({
-          type: "DOWNLOAD",
-          body: { url, info: { pageUrl: `${window.location}`, srcUrl: url, sourceKind: kind } },
-        });
+    if (!["TOGGLE_SOURCE_PANEL", "SET_SOURCE_PANEL"].includes(message?.type)) return;
+    const sendDownload = ({ url, kind }: PageSource) => {
+      chrome.runtime.sendMessage({
+        type: "DOWNLOAD",
+        body: { url, info: { pageUrl: `${window.location}`, srcUrl: url, sourceKind: kind } },
+      });
+    };
+    const panelOptions = {
+      enabled: currentOptions.sourcePanelEnabled !== false,
+      includeBackgrounds: currentOptions.sourcePanelBackgrounds !== false,
+      live: currentOptions.sourcePanelLive !== false,
+      previews: currentOptions.sourcePanelPreviews !== false,
+      resourceHints: currentOptions.sourcePanelResourceHints !== false,
+      includeLinks: currentOptions.sourcePanelLinks !== false,
+      onOpenChange: (open: boolean) => {
+        void chrome.storage?.session?.set({ sourcePanelOpen: open });
       },
-      {
-        enabled: sourcePanelOptions.sourcePanelEnabled !== false,
-        includeBackgrounds: sourcePanelOptions.sourcePanelBackgrounds !== false,
-        live: sourcePanelOptions.sourcePanelLive !== false,
-        previews: sourcePanelOptions.sourcePanelPreviews !== false,
-        resourceHints: sourcePanelOptions.sourcePanelResourceHints !== false,
-      },
-    );
+    };
+    if (message.type === "SET_SOURCE_PANEL") {
+      setSourcePanelOpen(Boolean(message.body?.open), sendDownload, panelOptions);
+    } else {
+      toggleSourcePanel(sendDownload, panelOptions);
+    }
   });
 } catch {
   // Extension context invalidated.

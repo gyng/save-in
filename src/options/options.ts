@@ -1,21 +1,39 @@
 import { webExtensionApi } from "../platform/web-extension-api.ts";
 
-import { filterKeyComboOptions, normalizeKeyComboForDisplay } from "./options-logic.ts";
+import { normalizeKeyComboForDisplay } from "./options-logic.ts";
 import { renderHistory } from "./history-panel.ts";
 import { addClickToCopy } from "./clicktocopy.ts";
-import { PathEditor } from "./path-editor.ts";
 import {
   CURRENT_BROWSER,
   BROWSERS,
   WEB_EXTENSION_CAPABILITIES,
 } from "../platform/chrome-detector.ts";
-import { COUNTER_KEY } from "../background/counter.ts";
-import { isStringKeyedRecord } from "../background/message-protocol.ts";
 import { createManualEditorState } from "./manual-editor-state.ts";
 import { createLatestOnly } from "./latest-only.ts";
 import { assertApplySucceeded, collectOptionConfig, getAppliedValue } from "./options-save.ts";
 import { createFieldSaveState } from "./field-save-state.ts";
 import { setupOptionDependencies } from "./options-dependencies.ts";
+import { refreshCounterPanel, setupCounterPanel } from "./counter-panel.ts";
+import { setupDebugLogPanel, updateDebugLog } from "./debug-log-panel.ts";
+import { renderVariablesPreview, setupVariablesPreview } from "./variables-preview.ts";
+import { setupResetOptions } from "./reset-options.ts";
+import { configureRoutingPorts } from "../routing/ports.ts";
+import { buildTree } from "../menus/menu-tree.ts";
+import { splitLines } from "../shared/util.ts";
+import { setupKeyComboPicker } from "./key-combo-picker.ts";
+import { setupCheckboxRows } from "./checkbox-rows.ts";
+import { setupSettingsTransfer } from "./settings-transfer.ts";
+import { COUNTER_KEY } from "../shared/storage-keys.ts";
+import { markSavedNow } from "./saved-indicator.ts";
+
+configureRoutingPorts({
+  getMessage: (key) => webExtensionApi.i18n.getMessage(key),
+  peekCounter: async () => {
+    const stored = await webExtensionApi.storage.local.get(COUNTER_KEY);
+    const value = stored[COUNTER_KEY];
+    return typeof value === "number" && Number.isSafeInteger(value) && value >= 0 ? value : 0;
+  },
+});
 
 type JsonRecord = Record<string, any>;
 type OptionSchema = {
@@ -403,128 +421,15 @@ document.addEventListener("DOMContentLoaded", renderExternalApi);
 // More Options → Counter: show and reset the :counter: variable's value. The
 // options page shares storage.local with the background, so it reads/writes the
 // counter directly — no background round-trip needed.
-const renderCounter = () => {
-  const key = COUNTER_KEY;
-  const valueEl = document.querySelector("#counter-value");
-  const resetBtn = document.querySelector("#counter-reset");
-  if (!valueEl || !resetBtn) {
-    return;
-  }
-  const show = () =>
-    webExtensionApi.storage.local.get(key).then((res) => {
-      valueEl.textContent = String((res && res[key]) || 0);
-    });
-  show();
-  resetBtn.addEventListener("click", () => {
-    webExtensionApi.storage.local.set({ [key]: 0 }).then(show);
-  });
-};
-document.addEventListener("DOMContentLoaded", renderCounter);
+document.addEventListener("DOMContentLoaded", setupCounterPanel);
 
 // Live variable values, shown in the preview columns of the Downloads and
 // Dynamic tabs: each variable and its current interpolated value from the
 // last download (CHECK_ROUTES). Clicking a variable inserts it into the
 // panel's target editor; empty until there is a download to interpolate.
-const renderVariablesPreview = () => {
-  const panels = document.querySelectorAll(".variables-preview");
-  if (panels.length === 0) {
-    return;
-  }
+document.addEventListener("DOMContentLoaded", setupVariablesPreview);
 
-  Promise.all([
-    webExtensionApi.runtime.sendMessage({ type: "GET_KEYWORDS" }),
-    webExtensionApi.runtime.sendMessage({ type: "CHECK_ROUTES" }).catch(() => null),
-  ])
-    .then(([keywords, routes]) => {
-      const variables = (keywords && keywords.body && keywords.body.variables) || [];
-      const values = (routes && routes.body && routes.body.interpolatedVariables) || {};
-      const hasValues = Object.keys(values).length > 0;
-
-      panels.forEach((panel: any) => {
-        const container = panel.querySelector(".variables-preview-list");
-        if (!container) {
-          return;
-    // Manual editors may change again while getOptionsSchema resolves. Apply
-    // must persist the value that was visible when the user clicked, not a
-    // later edit that belongs to the next revision.
-    if (scope && typeof scopeValue === "string") config[scope] = scopeValue;
-        }
-        container.textContent = "";
-
-        if (!hasValues) {
-          const empty = document.createElement("p");
-          empty.className = "caption variables-preview-empty";
-          empty.textContent = "Values appear here after your next save.";
-          container.appendChild(empty);
-          return;
-        }
-
-        const targetId = panel.dataset.insertTarget;
-        const target = targetId
-          ? document.querySelector<HTMLTextAreaElement>(`#${targetId}`)
-          : null;
-
-        const table = document.createElement("table");
-        table.className = "variables-preview-table";
-
-        variables.forEach((variable: string) => {
-          const tr = document.createElement("tr");
-          tr.className = "variables-preview-row";
-          if (target) {
-            tr.classList.add("insertable");
-            tr.title = `Insert ${variable}`;
-            tr.addEventListener("click", () => PathEditor.insertAtCursor(target, variable));
-          }
-
-          const nameCell = document.createElement("td");
-          const name = document.createElement("code");
-          name.textContent = variable;
-          nameCell.appendChild(name);
-          tr.appendChild(nameCell);
-
-          const valueCell = document.createElement("td");
-          valueCell.className = "variables-preview-value";
-          valueCell.textContent = values[variable] || "";
-          valueCell.title = values[variable] || "";
-          tr.appendChild(valueCell);
-
-          table.appendChild(tr);
-        });
-
-        container.appendChild(table);
-      });
-    })
-    .catch(() => {});
-};
-document.addEventListener("DOMContentLoaded", renderVariablesPreview);
-
-const LOG_STORAGE_KEY = "si-log";
-
-const updateDebugLog = async () => {
-  const el = document.querySelector("#debug-log") as HTMLTextAreaElement;
-  if (!el) {
-    return;
-  }
-
-  try {
-    const res = await webExtensionApi.storage.session.get(LOG_STORAGE_KEY);
-    const entries = (res && res[LOG_STORAGE_KEY]) || [];
-    el.value = entries
-      .map((e: JsonRecord) => [e.at, e.message, e.data].filter(Boolean).join("  "))
-      .join("\n");
-  } catch (e) {
-    // storage.session unavailable (older browsers)
-    el.value = "(debug log unavailable in this browser)";
-  }
-};
-document.addEventListener("DOMContentLoaded", updateDebugLog);
-document.querySelector("#debug-log-refresh")?.addEventListener("click", updateDebugLog);
-document.querySelector("#debug-log-clear")?.addEventListener("click", () => {
-  webExtensionApi.storage.session
-    .remove(LOG_STORAGE_KEY)
-    .then(updateDebugLog)
-    .catch(() => {});
-});
+document.addEventListener("DOMContentLoaded", setupDebugLogPanel);
 
 webExtensionApi.runtime.onMessage.addListener((message) => {
   switch (message.type) {
@@ -533,6 +438,7 @@ webExtensionApi.runtime.onMessage.addListener((message) => {
       renderHistory();
       renderVariablesPreview();
       updateDebugLog();
+      refreshCounterPanel();
       break;
     default:
       break;
@@ -546,6 +452,10 @@ const saveOptions = (e?: Event, scope?: string, scopeValue?: string): Promise<an
   // Collect the raw form values, then let the background persist them.
   return getOptionsSchema.then((schema: OptionSchema) => {
     const config = collectOptionConfig(schema, scope);
+    // Manual editors may change again while getOptionsSchema resolves. Apply
+    // must persist the value that was visible when the user clicked, not a
+    // later edit that belongs to the next revision.
+    if (scope && typeof scopeValue === "string") config[scope] = scopeValue;
 
     // Route through APPLY_CONFIG so the background applies each option's onSave
     // (schema functions don't survive the OPTIONS_SCHEMA message, so the page
@@ -555,10 +465,7 @@ const saveOptions = (e?: Event, scope?: string, scopeValue?: string): Promise<an
       .sendMessage({ type: "APPLY_CONFIG", body: { config } })
       .then((response) => {
         assertApplySucceeded(response);
-        const lastSavedAt = document.querySelector("#lastSavedAt");
-        if (lastSavedAt) {
-          lastSavedAt.textContent = new Date().toLocaleTimeString();
-        }
+        markSavedNow();
         return response;
       });
   });
@@ -643,37 +550,22 @@ const addHelp = (el: Element) => {
 document.addEventListener("DOMContentLoaded", restoreOptions);
 document.querySelectorAll(".help").forEach(addHelp);
 
-document.querySelector("#reset")?.addEventListener("click", (e) => {
-  /* eslint-disable no-alert */
-  e.preventDefault();
-
-  const resetFn = (w: Window) => {
-    const reset = w.confirm("Reset settings to defaults?");
-
-    if (reset) {
-      webExtensionApi.storage.local.clear().then(() => {
-        webExtensionApi.runtime.sendMessage({ type: "OPTIONS_LOADED" });
-
-        const lastSavedAt = document.querySelector("#lastSavedAt");
-        if (lastSavedAt) {
-          lastSavedAt.textContent = new Date().toLocaleTimeString();
-        }
-
-        restoreOptions();
-        updateErrors();
-        w.alert("Settings have been reset to defaults.");
-      });
-    }
-  };
-  /* eslint-enable no-alert */
-
-  // On Chrome the options page opens in a tab (options_ui.open_in_tab),
-  // so dialogs work on the local window in both browsers
-  resetFn(window);
-});
+// On Chrome the options page opens in a tab (options_ui.open_in_tab), so
+// dialogs work on the local window in both browsers.
+setupResetOptions({ restoreOptions, updateErrors });
 
 const setupChromeDisables = () => {
+  document.querySelectorAll<HTMLElement>(".filename-suggestion-only").forEach((el) => {
+    el.hidden = !WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion;
+  });
+  document.querySelectorAll<HTMLElement>(".firefox-reroute-only").forEach((el) => {
+    el.hidden =
+      CURRENT_BROWSER !== BROWSERS.FIREFOX || WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion;
+  });
   if (CURRENT_BROWSER === BROWSERS.CHROME) {
+    document.querySelectorAll<HTMLElement>(".firefox-only").forEach((el) => {
+      el.hidden = true;
+    });
     document.querySelectorAll(".chrome-only").forEach((el) => {
       el.classList.toggle("show");
     });
@@ -681,12 +573,6 @@ const setupChromeDisables = () => {
     document.querySelectorAll(".chrome-enabled").forEach((el) => {
       el.removeAttribute("disabled");
     });
-
-    const html = document.querySelector("html");
-    if (html) {
-      html.style.minWidth = "600px";
-    }
-    // document.querySelector("body").style = "overflow-y: hidden;";
 
     document.querySelectorAll(".chrome-disabled").forEach((el: any) => {
       el.disabled = true;
@@ -1002,7 +888,6 @@ const renderMenuPreview = (container: Element, tree: MenuPreviewTree) => {
     const row = document.createElement("div");
     row.className = "menu-preview-row";
     const title = document.createElement("span");
-    const submittedValue = document.querySelector<HTMLTextAreaElement>(`#${id}`)?.value;
     title.className = "menu-preview-title";
     title.textContent = webExtensionApi.i18n.getMessage("contextMenuLastUsed");
     row.appendChild(title);
@@ -1046,19 +931,13 @@ const renderMenuPreview = (container: Element, tree: MenuPreviewTree) => {
 
 const updateMenuPreview = () => {
   const textarea = document.querySelector("#paths") as HTMLTextAreaElement;
-  const container = document.querySelector("#menu-preview-tree");
-  if (!textarea || !container) {
+  if (!textarea || !document.querySelector("#menu-preview-tree")) {
     return;
   }
-
-  webExtensionApi.runtime
-    .sendMessage({ type: "PREVIEW_MENUS", body: { paths: textarea.value } })
-    .then((response) => {
-      if (response && response.body) {
-        renderMenuPreview(container, response.body);
-      }
-    })
-    .catch(() => {}); // background not awake yet; the next input retries
+  renderMenuPreview(
+    document.querySelector("#menu-preview-tree")!,
+    buildTree(splitLines(textarea.value)),
+  );
 };
 
 (() => {
@@ -1109,130 +988,9 @@ const updateMenuPreview = () => {
 setupManualEditor("paths");
 setupManualEditor("filenamePatterns");
 
-// Click-to-open combobox for the click-to-save key: a dropdown of named keys
-// that still accepts a free-form keyCode (backward compat — the content script
-// resolves a name OR a number). A native <datalist> doesn't reliably open on
-// click, so this is a small custom one.
-(() => {
-  const input = document.querySelector("#contentClickToSaveCombo");
-  const wrap = input instanceof HTMLElement ? input.closest(".combo-wrap") : null;
-  if (!(input instanceof HTMLInputElement) || !wrap) {
-    return;
-  }
+setupKeyComboPicker();
 
-  const OPTIONS = [
-    { value: "", label: "No key — mouse button only" },
-    { value: "Alt", label: "Alt / Option" },
-    { value: "Ctrl", label: "Control" },
-    { value: "Shift", label: "Shift" },
-    { value: "Meta", label: "Command / Windows key" },
-  ];
-
-  const dropdown = document.createElement("ul");
-  // Its own class, NOT autocomplete-dropdown: that class is queried by the
-  // variables autocomplete (and its e2e), so sharing it makes this empty
-  // dropdown shadow the real one.
-  dropdown.className = "combo-dropdown";
-  dropdown.hidden = true;
-  wrap.appendChild(dropdown);
-
-  let activeIndex = -1;
-  const rows = () => [...dropdown.querySelectorAll("li")];
-
-  const highlight = (i: number) => {
-    activeIndex = i;
-    rows().forEach((li, idx) => li.classList.toggle("selected", idx === i));
-  };
-
-  const close = () => {
-    dropdown.hidden = true;
-    activeIndex = -1;
-  };
-
-  const choose = (value: string) => {
-    input.value = value;
-    input.dispatchEvent(new Event("change", { bubbles: true }));
-    close();
-  };
-
-  // filter=false (focus/click) shows every option; filter=true (typing) narrows
-  const open = (filter: boolean) => {
-    const list = filterKeyComboOptions(OPTIONS, filter ? input.value : "");
-    dropdown.innerHTML = "";
-    list.forEach((o) => {
-      const li = document.createElement("li");
-      const v = document.createElement("span");
-      v.className = "combo-value";
-      v.textContent = o.value || "None";
-      const l = document.createElement("span");
-      l.className = "combo-label";
-      l.textContent = o.label;
-      li.append(v, l);
-      li.dataset.value = o.value;
-      // preventDefault keeps focus on the input (the click doesn't blur it), so
-      // the dropdown stays closed after choosing rather than reopening on focus
-      li.addEventListener("mousedown", (e) => {
-        e.preventDefault();
-        choose(o.value);
-      });
-      dropdown.appendChild(li);
-    });
-    activeIndex = -1;
-    dropdown.hidden = false;
-  };
-
-  input.addEventListener("focus", () => open(false));
-  input.addEventListener("click", () => open(false));
-  input.addEventListener("input", () => open(true));
-  input.addEventListener("blur", () => window.setTimeout(close, 120));
-  input.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") {
-      close();
-      return;
-    }
-    if (dropdown.hidden) {
-      if (e.key === "ArrowDown") {
-        open(false);
-      }
-      return;
-    }
-    const items = rows();
-    if (e.key === "ArrowDown") {
-      e.preventDefault();
-      highlight(Math.min(activeIndex + 1, items.length - 1));
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault();
-      highlight(Math.max(activeIndex - 1, 0));
-    } else if (e.key === "Enter" && activeIndex >= 0) {
-      e.preventDefault();
-      choose(items[activeIndex].dataset.value || "");
-    }
-  });
-})();
-
-// Wrap each checkbox row's title (label text + any inline badges, up to the
-// first help / sub-option block) in a .opt-title span. It becomes the row's
-// first body-column cell, so the autosave check anchors right after the text
-// regardless of the help length below. Text nodes are moved, not recreated, so
-// the l10n walker still substitutes their __MSG_ placeholders in place.
-document.querySelectorAll('label:has(> input[type="checkbox"])').forEach((label) => {
-  const checkbox = label.querySelector(":scope > input[type=checkbox]");
-  if (!checkbox || label.querySelector(":scope > .opt-title")) {
-    return;
-  }
-  const title = document.createElement("span");
-  title.className = "opt-title";
-  let node = checkbox.nextSibling;
-  while (node) {
-    const next = node.nextSibling;
-    if (node instanceof Element && node.matches(".caption, .caption-line")) {
-      break;
-    }
-    title.appendChild(node);
-    node = next;
-  }
-  checkbox.after(title);
-});
+setupCheckboxRows();
 
 ["textarea", "input", "select"].forEach((type) => {
   document.querySelectorAll(type).forEach((el) => {
@@ -1245,49 +1003,12 @@ document.querySelectorAll('label:has(> input[type="checkbox"])').forEach((label)
   });
 });
 
-// Clicking the help text or sub-option area inside a checkbox row must not
-// toggle that row's checkbox — only the checkbox or its main label text should.
-// The help lives inside the <label> (so it aligns via the row grid), so cancel
-// the label's implicit toggle when a click lands on plain help text. Real
-// controls, links, and nested sub-option labels still work (clicking a labelable
-// element inside a label never toggles the ancestor checkbox anyway).
-document.addEventListener("click", (e) => {
-  if (!(e.target instanceof Element)) {
-    return;
-  }
-  // The blank stretch of a full-width checkbox row: the click lands on the
-  // <label> element itself (its title text lives in .opt-title, the checkbox is
-  // the input), so clicking empty space used to toggle the box. Only the
-  // checkbox and its title should toggle it.
-  if (e.target.tagName === "LABEL" && e.target.querySelector(":scope > input[type=checkbox]")) {
-    e.preventDefault();
-    return;
-  }
-  const help = e.target.closest(".caption, .caption-line");
-  if (!help) {
-    return;
-  }
-  // A control/link/sub-option label/disclosure *inside* the help region handles
-  // its own click (and never toggles the ancestor checkbox); only cancel the
-  // toggle for plain help text. `summary` matters here: a <details> can live in
-  // a checkbox label's help (e.g. the Prefer-links filter), and cancelling its
-  // click would stop it opening. The outer label is an ancestor of `help`, not
-  // inside it, so it is correctly ignored here.
-  const interactive = e.target.closest("a, button, input, select, textarea, label, summary");
-  if (interactive && help.contains(interactive)) {
-    return;
-  }
-  const label = help.closest("label");
-  if (label && label.querySelector(":scope > input[type=checkbox]")) {
-    e.preventDefault();
-  }
-});
-
 // Apply: persist the manual editors, re-baseline (dims Apply/Discard),
 // and refresh the validation + preview panes
 document.querySelectorAll("[data-apply]").forEach((button) => {
   button.addEventListener("click", async () => {
     const id = button.getAttribute("data-apply") || "";
+    const submittedValue = document.querySelector<HTMLTextAreaElement>(`#${id}`)?.value;
     const revision = manualEditorState.revision(id);
     manualEditorState.setSaving(
       id,
@@ -1330,52 +1051,13 @@ document.querySelectorAll("[data-discard]").forEach((button: any) => {
   });
 });
 
-const showJson = (obj: unknown) => {
-  const json = JSON.stringify(obj, null, 2);
-  const outputEl = document.querySelector("#export-target") as HTMLTextAreaElement;
-  outputEl.hidden = false;
-  outputEl.value = json;
-};
-
-document.querySelector("#settings-export")?.addEventListener("click", () => {
-  getOptionsSchema.then((schema: OptionSchema) => {
-    const keys = schema.keys.map((o) => o.name);
-    webExtensionApi.storage.local.get(keys).then((loaded) => showJson(loaded));
-  });
+setupSettingsTransfer({
+  getSchema: getOptionsSchema,
+  getStored: (keys) => webExtensionApi.storage.local.get(keys),
+  apply: (config) =>
+    webExtensionApi.runtime.sendMessage({ type: "APPLY_CONFIG", body: { config } }),
+  restore: () => void restoreOptions(),
 });
-
-const importSettings = () => {
-  const load = (w: Window) => {
-    getOptionsSchema.then(() => {
-      const json = w.prompt("Paste settings to import");
-      try {
-        if (json) {
-          const settings: unknown = JSON.parse(json);
-          if (!isStringKeyedRecord(settings)) {
-            throw new TypeError("Settings must be a JSON object");
-          }
-          webExtensionApi.runtime
-            .sendMessage({ type: "APPLY_CONFIG", body: { config: settings } })
-            .then((response: JsonRecord) => {
-              restoreOptions();
-              const rejected = response?.body?.rejected;
-              if (Array.isArray(rejected) && rejected.length > 0) {
-                w.alert(`Settings loaded with ${rejected.length} rejected value(s).`);
-              } else {
-                w.alert("Settings loaded.");
-              }
-            })
-            .catch((error: unknown) => w.alert(`Failed to load settings ${error}`));
-        }
-      } catch (e) {
-        w.alert(`Failed to load settings ${e}`);
-      }
-    });
-  };
-
-  load(window);
-};
-document.querySelector("#settings-import")?.addEventListener("click", importSettings);
 
 const updateOptionDependencies = setupOptionDependencies();
 

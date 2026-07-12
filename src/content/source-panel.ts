@@ -1,11 +1,19 @@
-export type PageSourceKind = "image" | "video" | "audio" | "stream";
-export type PageSource = { url: string; kind: PageSourceKind; element: Element };
+export type PageSourceKind = "image" | "video" | "audio" | "stream" | "document" | "link";
+export type PageSource = {
+  url: string;
+  kind: PageSourceKind;
+  element: Element;
+  bytes?: number;
+  detectedAt?: number;
+};
 export type SourcePanelOptions = {
   enabled?: boolean;
   includeBackgrounds?: boolean;
   live?: boolean;
   previews?: boolean;
   resourceHints?: boolean;
+  includeLinks?: boolean;
+  onOpenChange?: (open: boolean) => void;
 };
 
 const urlsFromCss = (value: string): string[] =>
@@ -23,6 +31,12 @@ const absoluteUrl = (value: string): string | null => {
 };
 
 export const ytDlpCommand = (url: string): string => `yt-dlp "${url.replaceAll('"', '\\"')}"`;
+export const formatSourceBytes = (bytes?: number): string => {
+  if (!bytes) return "size unknown";
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+};
 
 export const filterPageSources = (
   sources: PageSource[],
@@ -37,14 +51,33 @@ export const filterPageSources = (
   );
 };
 
+export type SourceSort = "detected-desc" | "detected-asc" | "size-desc" | "name-asc";
+export const sortPageSources = (sources: PageSource[], sort: SourceSort): PageSource[] =>
+  [...sources].toSorted((a, b) => {
+    if (sort === "detected-asc") return (a.detectedAt || 0) - (b.detectedAt || 0);
+    if (sort === "size-desc") return (b.bytes || 0) - (a.bytes || 0);
+    if (sort === "name-asc") return a.url.localeCompare(b.url);
+    return (b.detectedAt || 0) - (a.detectedAt || 0);
+  });
+
 export const collectPageSources = (
   root: ParentNode = document,
   options: SourcePanelOptions = {},
 ): PageSource[] => {
   const found: PageSource[] = [];
+  const resourceEntries = performance.getEntriesByType("resource") as PerformanceResourceTiming[];
+  const timingByUrl = new Map(resourceEntries.map((entry) => [entry.name, entry]));
   const add = (value: string | null | undefined, kind: PageSourceKind, element: Element) => {
     const url = value && absoluteUrl(value);
-    if (url) found.push({ url, kind, element });
+    if (url) {
+      const timing = timingByUrl.get(url);
+      found.push({
+        url,
+        kind,
+        element,
+        bytes: timing?.encodedBodySize || timing?.transferSize || undefined,
+      });
+    }
   };
 
   root.querySelectorAll<HTMLImageElement>("img").forEach((element) => {
@@ -65,15 +98,32 @@ export const collectPageSources = (
         .forEach((candidate) => add(candidate.trim().split(/\s+/)[0], kind, element));
     });
   });
+  if (options.includeLinks !== false) {
+    root.querySelectorAll<HTMLAnchorElement>("a[href]").forEach((element) => {
+      const path = new URL(element.href, document.baseURI).pathname.toLocaleLowerCase();
+      const kind: PageSourceKind = /\.(?:png|jpe?g|gif|webp|svg|avif)$/.test(path)
+        ? "image"
+        : /\.(?:mp4|webm|mov|mkv)$/.test(path)
+          ? "video"
+          : /\.(?:mp3|ogg|wav|m4a|flac)$/.test(path)
+            ? "audio"
+            : /\.(?:m3u8|mpd)$/.test(path)
+              ? "stream"
+              : path.endsWith(".pdf")
+                ? "document"
+                : "link";
+      add(element.href, kind, element);
+    });
+  }
   if (options.includeBackgrounds !== false) {
-    root.querySelectorAll<HTMLElement>("body, body *").forEach((element) => {
+    root.querySelectorAll<HTMLElement>("body, [style], [class], [id]").forEach((element) => {
       urlsFromCss(getComputedStyle(element).backgroundImage).forEach((url) =>
         add(url, "image", element),
       );
     });
   }
   if (options.resourceHints !== false) {
-    performance.getEntriesByType("resource").forEach((entry) => {
+    resourceEntries.forEach((entry) => {
       if (/\.(?:m3u8|mpd)(?:$|[?#])/i.test(entry.name)) add(entry.name, "stream", document.body);
     });
   }
@@ -92,7 +142,9 @@ export const toggleSourcePanel = (
   const existing = document.getElementById(PANEL_HOST_ID);
   if (existing) {
     panelObservers.get(existing)?.disconnect();
-    existing.remove();
+    existing.classList.add("closing");
+    window.setTimeout(() => existing.remove(), 90);
+    options.onOpenChange?.(false);
     return false;
   }
   if (options.enabled === false) return false;
@@ -101,37 +153,91 @@ export const toggleSourcePanel = (
   const previousFocus =
     document.activeElement instanceof HTMLElement ? document.activeElement : null;
   host.id = PANEL_HOST_ID;
-  const shadow = host.attachShadow({ mode: "closed" });
+  const shadow = host.attachShadow({ mode: "open" });
   const style = document.createElement("style");
   style.textContent = `
-    :host{all:initial;position:fixed;z-index:2147483647;inset:0 0 0 auto;width:min(420px,92vw);font:14px system-ui;color:#1f2328}
+    :host{all:initial;position:fixed;z-index:2147483647;isolation:isolate;inset:0 0 0 auto;width:min(360px,92vw);font:13px system-ui;color:#1f2328;animation:si-in 110ms ease-out both}
+    :host(.closing){pointer-events:none;animation:si-out 90ms ease-in both}@keyframes si-in{from{opacity:0;transform:translateX(8px)}to{opacity:1;transform:none}}@keyframes si-out{from{opacity:1;transform:none}to{opacity:0;transform:translateX(8px)}}
+    :host(.dock-left){inset:0 auto 0 0}:host(.dock-bottom){inset:auto 0 0;width:100vw;height:min(42vh,520px)}:host(.dock-top){inset:0 0 auto;width:100vw;height:min(42vh,520px)}
     .panel{height:100vh;box-sizing:border-box;background:#fff;box-shadow:-8px 0 28px #0003;display:flex;flex-direction:column}
-    header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px}h2{font-size:18px;margin:0}button,input,select{font:inherit}button{cursor:pointer}.close{border:0;background:none;font-size:20px;padding:4px 8px}
-    .toolbar{display:grid;grid-template-columns:1fr auto;gap:8px;padding:8px 16px 12px;border-bottom:1px solid #d7d7db}.toolbar input,.toolbar select{min-width:0;padding:7px 9px;border:1px solid #b1b1b3;border-radius:4px}
-    .list{overflow:auto;padding:4px 12px 16px}.row{display:grid;grid-template-columns:48px minmax(0,1fr);gap:10px;align-items:center;padding:10px 4px;border-bottom:1px solid #eee}
-    img,video{width:48px;height:48px;object-fit:contain;background:#eee;border-radius:4px}.audio{font-size:24px;text-align:center}.name,.url{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.name{font-weight:600}.url{font-size:12px;color:#737373}.kind{display:inline-block;margin-top:3px;font-size:10px;color:#555;text-transform:uppercase}
-    .actions{grid-column:2;display:flex;flex-wrap:wrap;gap:6px}.actions button{padding:5px 8px;border:1px solid #b1b1b3;border-radius:4px;background:#fff}.actions button:last-child{border-color:#0060df;color:#0060df}.empty{padding:32px 16px;color:#737373;text-align:center}
-    @media (prefers-color-scheme:dark){:host{color:#f9f9fa}.panel{background:#2a2a2e}.toolbar,.row{border-color:#4a4a4f}.toolbar input,.toolbar select,.actions button{color:#f9f9fa;background:#38383d;border-color:#737373}.url{color:#b1b1b3}.kind{color:#d7d7db}}
+    :host(.dock-bottom) .panel,:host(.dock-top) .panel{height:100%}.resize{position:absolute;inset:0 auto 0 -4px;width:8px;cursor:ew-resize}:host(.dock-left) .resize{inset:0 -4px 0 auto}:host(.dock-bottom) .resize{inset:-4px 0 auto;width:auto;height:8px;cursor:ns-resize}:host(.dock-top) .resize{inset:auto 0 -4px;width:auto;height:8px;cursor:ns-resize}header{display:flex;align-items:center;justify-content:space-between;padding:9px 12px 4px}h2{font-size:16px;margin:0}.header-actions{display:flex;align-items:center;gap:3px}button,input,select{font:inherit}button{cursor:pointer}.dock{border:1px solid #b1b1b3;border-radius:3px;background:none;padding:3px 6px}.close{border:0;background:none;font-size:19px;padding:2px 6px}
+    .toolbar{display:grid;grid-template-columns:1fr auto;gap:6px;padding:5px 12px 7px}.toolbar input,.toolbar select{min-width:0;padding:5px 7px;border:1px solid #b1b1b3;border-radius:4px}.copy-urls{padding:3px 6px;border:1px solid #b1b1b3;border-radius:3px;background:#fff;white-space:nowrap}.facets{display:flex;gap:4px;padding:0 12px 7px;border-bottom:1px solid #d7d7db;overflow:auto}.facet{white-space:nowrap;padding:3px 7px;border:1px solid #b1b1b3;border-radius:99px;background:#fff}.facet[aria-pressed=true]{color:#fff;background:#0060df;border-color:#0060df}
+    .list{overflow:auto;padding:2px 9px 12px}.row{display:grid;grid-template-columns:36px minmax(0,1fr);gap:7px;align-items:center;padding:7px 3px;border-bottom:1px solid #eee}
+    img,video{width:36px;height:36px;object-fit:contain;background:#eee;border-radius:3px}.audio{font-size:20px;text-align:center}.name,.url{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.name{font-weight:600;color:#0060df;text-decoration:none}.url{font-size:11px;color:#737373}.meta{display:flex;gap:6px;margin-top:2px;font-size:10px;color:#555;text-transform:uppercase}
+    .actions{grid-column:2;display:flex;flex-wrap:wrap;gap:4px}.actions button{padding:3px 6px;border:1px solid #b1b1b3;border-radius:3px;background:#fff}.actions button:last-child{border-color:#0060df;color:#0060df}.empty{padding:24px 12px;color:#737373;text-align:center}
+    @media (prefers-color-scheme:dark){:host{color:#f9f9fa}.panel{background:#2a2a2e}.toolbar,.row{border-color:#4a4a4f}.toolbar input,.toolbar select,.copy-urls,.actions button{color:#f9f9fa;background:#38383d;border-color:#737373}.url{color:#b1b1b3}.kind{color:#d7d7db}}@media(prefers-reduced-motion:reduce){:host,:host(.closing){animation:none}}
   `;
   const panel = document.createElement("div");
   panel.className = "panel";
   panel.setAttribute("role", "dialog");
   panel.setAttribute("aria-label", "Page sources");
+  const resize = document.createElement("div");
+  resize.className = "resize";
+  resize.setAttribute("role", "separator");
+  resize.setAttribute("aria-label", "Resize Page Sources");
+  resize.addEventListener("pointerdown", (event) => {
+    resize.setPointerCapture(event.pointerId);
+    const startX = event.clientX;
+    const startY = event.clientY;
+    const startWidth = host.getBoundingClientRect().width;
+    const startHeight = host.getBoundingClientRect().height;
+    const move = (moveEvent: PointerEvent) => {
+      const dock = host.dataset.dock || "right";
+      if (dock === "right" || dock === "left") {
+        const delta = dock === "right" ? startX - moveEvent.clientX : moveEvent.clientX - startX;
+        host.style.width = `${Math.min(window.innerWidth * 0.92, Math.max(280, startWidth + delta))}px`;
+      } else {
+        const delta = dock === "bottom" ? startY - moveEvent.clientY : moveEvent.clientY - startY;
+        host.style.height = `${Math.min(window.innerHeight * 0.85, Math.max(220, startHeight + delta))}px`;
+      }
+    };
+    resize.addEventListener("pointermove", move);
+    resize.addEventListener("pointerup", () => resize.removeEventListener("pointermove", move), {
+      once: true,
+    });
+  });
   const header = document.createElement("header");
   const title = document.createElement("h2");
   const close = document.createElement("button");
+  const dockButton = document.createElement("button");
   title.textContent = "Page sources";
   close.className = "close";
   close.textContent = "×";
   close.title = "Close";
   close.setAttribute("aria-label", "Close Page Sources");
+  const docks = ["right", "bottom", "left", "top"] as const;
+  let dockIndex = 0;
+  const updateDock = () => {
+    const dock = docks[dockIndex];
+    host.dataset.dock = dock;
+    host.className = dock === "right" ? "" : `dock-${dock}`;
+    host.style.width = "";
+    host.style.height = "";
+    dockButton.textContent = `Dock: ${dock[0].toUpperCase()}${dock.slice(1)}`;
+    dockButton.title = "Change panel alignment: Right → Bottom → Left → Top";
+  };
+  dockButton.className = "dock";
+  dockButton.addEventListener("click", () => {
+    dockIndex = (dockIndex + 1) % docks.length;
+    updateDock();
+  });
+  updateDock();
   const closePanel = () => {
     panelObservers.get(host)?.disconnect();
-    host.remove();
     previousFocus?.focus();
+    host.classList.add("closing");
+    window.setTimeout(() => host.remove(), 90);
+    options.onOpenChange?.(false);
   };
   close.addEventListener("click", closePanel);
-  header.append(title, close);
+  const headerActions = document.createElement("div");
+  headerActions.className = "header-actions";
+  const copyUrls = document.createElement("button");
+  copyUrls.className = "copy-urls";
+  copyUrls.textContent = "Copy URLs";
+  copyUrls.title = "Copy URLs in the current filter";
+  headerActions.append(copyUrls, dockButton, close);
+  header.append(title, headerActions);
   const list = document.createElement("div");
   list.className = "list";
   const toolbar = document.createElement("div");
@@ -140,42 +246,77 @@ export const toggleSourcePanel = (
   filter.type = "search";
   filter.placeholder = "Filter sources";
   filter.setAttribute("aria-label", "Filter page sources");
-  const type = document.createElement("select");
-  type.setAttribute("aria-label", "Source type");
+  const sort = document.createElement("select");
+  sort.setAttribute("aria-label", "Sort sources");
   [
-    ["all", "All types"],
-    ["image", "Images"],
-    ["video", "Video"],
-    ["audio", "Audio"],
-    ["stream", "Streams"],
+    ["detected-desc", "Newest"],
+    ["detected-asc", "Oldest"],
+    ["size-desc", "Largest"],
+    ["name-asc", "Name"],
   ].forEach(([value, label]) => {
     const option = document.createElement("option");
     option.value = value;
     option.textContent = label;
-    type.append(option);
+    sort.append(option);
   });
-  toolbar.append(filter, type);
+  toolbar.append(filter, sort);
+  const facets = document.createElement("div");
+  facets.className = "facets";
+  let activeKind: "all" | PageSourceKind = "all";
+  const firstSeen = new Map<string, number>();
+  const highlightedElements = new WeakSet<Element>();
+  let detectionSequence = 0;
+  let visibleSources: PageSource[] = [];
   const render = () => {
     const allSources = collectPageSources(document, options);
-    const sources = filterPageSources(
-      allSources,
-      filter.value,
-      type.value as "all" | PageSourceKind,
+    allSources.forEach((source) => {
+      if (!firstSeen.has(source.url)) firstSeen.set(source.url, ++detectionSequence);
+      source.detectedAt = firstSeen.get(source.url);
+    });
+    const sources = sortPageSources(
+      filterPageSources(allSources, filter.value, activeKind),
+      sort.value as SourceSort,
     );
+    visibleSources = sources;
     title.textContent = `Page sources (${sources.length}${sources.length === allSources.length ? "" : ` of ${allSources.length}`})`;
     list.replaceChildren();
+    facets.replaceChildren();
+    const searchedSources = filterPageSources(allSources, filter.value, "all");
+    (["all", "image", "video", "audio", "document", "stream", "link"] as const).forEach(
+      (kindName) => {
+        const count =
+          kindName === "all"
+            ? searchedSources.length
+            : searchedSources.filter(({ kind }) => kind === kindName).length;
+        const facet = document.createElement("button");
+        facet.className = "facet";
+        const label =
+          kindName === "all" ? "All" : `${kindName[0].toUpperCase()}${kindName.slice(1)}`;
+        facet.textContent = `${label} (${count})`;
+        facet.setAttribute("aria-pressed", String(activeKind === kindName));
+        facet.addEventListener("click", () => {
+          activeKind = kindName;
+          render();
+        });
+        facets.append(facet);
+      },
+    );
     if (!sources.length) {
       const empty = document.createElement("div");
       empty.className = "empty";
-      empty.textContent = "No image, video, or audio sources found.";
+      empty.textContent = allSources.length
+        ? `No ${activeKind === "all" ? "sources" : activeKind} match${filter.value ? ` “${filter.value}”` : " this facet"}.`
+        : "No DOM-visible media or stream manifests detected yet.";
       list.append(empty);
+      copyUrls.disabled = true;
       return;
     }
+    copyUrls.disabled = false;
     sources.forEach((source) => {
       const row = document.createElement("div");
       row.className = "row";
       const preview =
-        options.previews === false || source.kind === "audio"
+        options.previews === false || !["image", "video"].includes(source.kind)
           ? document.createElement("div")
           : document.createElement(source.kind === "image" ? "img" : "video");
       if (preview instanceof HTMLImageElement) {
@@ -190,17 +331,26 @@ export const toggleSourcePanel = (
         preview.textContent =
           source.kind === "stream"
             ? "≋"
-            : options.previews === false
-              ? source.kind === "image"
-                ? "▧"
-                : "▶"
-              : "♪";
+            : source.kind === "document"
+              ? "PDF"
+              : source.kind === "link"
+                ? "↗"
+                : options.previews === false
+                  ? source.kind === "image"
+                    ? "▧"
+                    : "▶"
+                  : source.kind === "audio"
+                    ? "♪"
+                    : "•";
       }
       const text = document.createElement("div");
-      const name = document.createElement("div");
+      const name = document.createElement("a");
       const url = document.createElement("div");
-      const kind = document.createElement("div");
+      const meta = document.createElement("div");
       name.className = "name";
+      name.href = source.url;
+      name.target = "_blank";
+      name.title = `${source.url}\nRight-click for the Save In menu; Alt+click to save immediately.`;
       try {
         const parsed = new URL(source.url);
         name.textContent = decodeURIComponent(
@@ -212,9 +362,39 @@ export const toggleSourcePanel = (
       url.className = "url";
       url.textContent = source.url;
       url.title = source.url;
-      kind.className = "kind";
-      kind.textContent = source.kind;
-      text.append(name, url, kind);
+      meta.className = "meta";
+      const mediaDetails: string[] = [];
+      const updateMeta = () => {
+        meta.textContent = [
+          source.kind,
+          formatSourceBytes(source.bytes),
+          ...mediaDetails,
+          `seen #${source.detectedAt}`,
+        ].join(" · ");
+      };
+      if (preview instanceof HTMLImageElement) {
+        preview.addEventListener("load", () => {
+          mediaDetails.splice(
+            0,
+            mediaDetails.length,
+            `${preview.naturalWidth}×${preview.naturalHeight}`,
+          );
+          updateMeta();
+        });
+      } else if (preview instanceof HTMLVideoElement) {
+        preview.addEventListener("loadedmetadata", () => {
+          const duration = Number.isFinite(preview.duration)
+            ? `${Math.round(preview.duration)}s`
+            : "";
+          const dimensions = preview.videoWidth
+            ? `${preview.videoWidth}×${preview.videoHeight}`
+            : "";
+          mediaDetails.splice(0, mediaDetails.length, ...[duration, dimensions].filter(Boolean));
+          updateMeta();
+        });
+      }
+      updateMeta();
+      text.append(name, url, meta);
       const actions = document.createElement("div");
       actions.className = "actions";
       const locate = document.createElement("button");
@@ -223,10 +403,12 @@ export const toggleSourcePanel = (
         source.element.scrollIntoView({ behavior: "smooth", block: "center" });
         if (source.element instanceof HTMLElement) {
           const target = source.element;
+          highlightedElements.add(target);
           const previous = target.style.outline;
           target.style.outline = "3px solid #0a84ff";
           window.setTimeout(() => {
             target.style.outline = previous;
+            window.setTimeout(() => highlightedElements.delete(target));
           }, 1600);
         }
       });
@@ -250,22 +432,60 @@ export const toggleSourcePanel = (
         });
         actions.append(copy);
       }
+      const highlight = (active: boolean) => {
+        if (!(source.element instanceof HTMLElement)) return;
+        const target = source.element;
+        if (active) {
+          highlightedElements.add(target);
+          target.dataset.saveInPreviousOutline = target.style.outline;
+          target.style.outline = "3px solid #0a84ff";
+          if (preview instanceof HTMLVideoElement) void preview.play().catch(() => {});
+        } else {
+          target.style.outline = target.dataset.saveInPreviousOutline || "";
+          delete target.dataset.saveInPreviousOutline;
+          if (preview instanceof HTMLVideoElement) preview.pause();
+          window.setTimeout(() => highlightedElements.delete(target));
+        }
+      };
+      row.addEventListener("mouseenter", () => highlight(true));
+      row.addEventListener("mouseleave", () => highlight(false));
+      row.addEventListener("click", (event) => {
+        if (!event.altKey || event.button !== 0) return;
+        event.preventDefault();
+        event.stopPropagation();
+        sendDownload(source);
+      });
+      row.title = "Alt+click to save; right-click the source title for Save In";
       row.append(preview, text, actions);
       list.append(row);
     });
   };
   filter.addEventListener("input", render);
-  type.addEventListener("change", render);
+  sort.addEventListener("change", render);
+  copyUrls.addEventListener("click", () => {
+    void navigator.clipboard
+      .writeText(visibleSources.map(({ url }) => url).join("\n"))
+      .then(() => {
+        copyUrls.textContent = `Copied ${visibleSources.length}`;
+        window.setTimeout(() => (copyUrls.textContent = "Copy URLs"), 1200);
+      })
+      .catch(() => (copyUrls.textContent = "Copy failed"));
+  });
   panel.addEventListener("keydown", (event) => {
     if (event.key === "Escape") closePanel();
   });
-  panel.append(header, toolbar, list);
+  panel.append(resize, header, toolbar, facets, list);
   shadow.append(style, panel);
   document.documentElement.append(host);
+  options.onOpenChange?.(true);
   render();
   filter.focus();
   let timer = 0;
-  const observer = new MutationObserver(() => {
+  const observer = new MutationObserver((mutations) => {
+    if (
+      mutations.every(({ target }) => target instanceof Element && highlightedElements.has(target))
+    )
+      return;
     window.clearTimeout(timer);
     timer = window.setTimeout(render, 200);
   });
@@ -279,4 +499,14 @@ export const toggleSourcePanel = (
     });
   }
   return true;
+};
+
+export const setSourcePanelOpen = (
+  open: boolean,
+  sendDownload: (source: PageSource) => void,
+  options: SourcePanelOptions = {},
+): boolean => {
+  const existing = document.getElementById(PANEL_HOST_ID);
+  if (open === Boolean(existing)) return open;
+  return toggleSourcePanel(sendDownload, options);
 };

@@ -50,14 +50,7 @@
       "js": ["src/content/content.js"]
     }
   ],
-  "permissions": [
-    "contextMenus",
-    "downloads",
-    "notifications",
-    "storage",
-    "declarativeNetRequestWithHostAccess",
-    "offscreen"
-  ],
+  "permissions": ["contextMenus", "downloads", "notifications", "storage", "offscreen"],
   "host_permissions": ["<all_urls>"],
   "options_ui": {
     "page": "src/options/options.html",
@@ -72,7 +65,10 @@
   },
   "commands": {
     "toggle-source-panel": {
-      "suggested_key": { "default": "Ctrl+Shift+Y", "mac": "Command+Shift+Y" },
+      "suggested_key": {
+        "default": "Ctrl+Shift+Y",
+        "mac": "Command+Shift+Y"
+      },
       "description": "Toggle the Page Sources browser"
     }
   },

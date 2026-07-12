@@ -19,10 +19,12 @@
     "description": "A generic error message used as a fallback"
   },
 
-  "contextMenuToggleSourcePanel": { "message": "Toggle Page Sources" },
   "contextMenuItemOptions": {
     "message": "Options",
     "description": "Title of context menu item that opens the options menu when clicked."
+  },
+  "contextMenuToggleSourcePanel": {
+    "message": "Toggle Page Sources"
   },
 
   "contextMenuExclusive": {
@@ -207,7 +209,63 @@
   },
 
   "o_sDynamicDownloads": {
-    "message": "Dynamic Downloads (Advanced)"
+    "message": "Routing rules"
+  },
+
+  "o_sBrowserDownloads": {
+    "message": "Browser downloads"
+  },
+
+  "o_lBrowserDownloadsHelp": {
+    "message": "Opt in to handling downloads started by web pages or the browser itself. Downloads started by Save In or another extension are excluded."
+  },
+
+  "o_cTrackBrowserDownloads": {
+    "message": "Include ordinary browser downloads in Save In history"
+  },
+
+  "o_cTrackBrowserDownloadsHelp": {
+    "message": "Available in Firefox and Chrome. This is passive tracking only: Save In never retries, prompts for, or sends notifications for these downloads."
+  },
+
+  "o_cRouteBrowserDownloads": {
+    "message": "Use routing rules for all browser downloads"
+  },
+
+  "o_cRouteBrowserDownloadsHelp": {
+    "message": "Uses downloads.onDeterminingFilename when the browser implements it. Matching rules may rename or place ordinary browser downloads into subdirectories. Unmatched downloads are unchanged."
+  },
+
+  "o_cRouteBrowserDownloadsFirefox": {
+    "message": "Experimentally reroute matching downloads on Firefox"
+  },
+
+  "o_cRouteBrowserDownloadsFirefoxHelp": {
+    "message": "Experimental and potentially disruptive. Firefox currently does not implement downloads.onDeterminingFilename, so Save In cancels the original and starts a replacement. This option will disappear automatically if Firefox adds the native API. POST downloads, expiring URLs, special request headers, and some authenticated downloads may fail."
+  },
+
+  "o_lFirefoxFilenameApiBug": {
+    "message": "Mozilla bug 1245652"
+  },
+
+  "o_cBrowserDownloadFilter": {
+    "message": "Only handle matching download URLs (optional)"
+  },
+
+  "o_cBrowserDownloadFilterHelp": {
+    "message": "Blank handles every ordinary browser download. Otherwise enter one WebExtension match pattern per line, such as *://*.example.com/* or https://example.com/files/*. The filter applies to history tracking and routing."
+  },
+
+  "o_cBrowserDownloadExcludeFilter": {
+    "message": "Exclude matching download URLs (optional)"
+  },
+
+  "o_cBrowserDownloadExcludeFilterHelp": {
+    "message": "Enter one WebExtension match pattern per line. Exclusions override the matching URLs above and apply to both history tracking and routing."
+  },
+
+  "o_lBrowserDownloadVariables": {
+    "message": "Browser downloads provide only the URL, proposed filename, current time, counter, UUID, and MIME variables. Page title, page URL, link text, selection, menu metadata, and key modifiers are unavailable."
   },
 
   "o_sRenameAndRouteDownloads": {
@@ -241,17 +299,45 @@
   "o_sHistory": {
     "message": "History"
   },
-  "o_sPageSources": { "message": "Page Sources" },
-  "o_lPageSourcesHelp": { "message": "Use the toolbar button to list images, video, and audio exposed by the current page. Saving a result uses your normal routing and renaming rules." },
-  "o_lPageSourcesNetworkLimit": { "message": "Some players hide video behind blob URLs or JavaScript requests. Without webRequest, Save In cannot see every request; Resource Timing can still reveal some HLS/DASH manifests, but saving a manifest does not assemble its video segments." },
-  "o_cSourcePanelEnabled": { "message": "Enable the toolbar source browser" },
-  "o_cSourcePanelBackgrounds": { "message": "Include CSS background images" },
-  "o_cSourcePanelLive": { "message": "Refresh when page media changes" },
-  "o_cSourcePanelPreviews": { "message": "Show image and video previews" },
-  "o_cSourcePanelResourceHints": { "message": "Look for HLS/DASH manifests in Resource Timing (best effort)" },
-  "o_lSourcePanelShortcut": { "message": "Keyboard shortcut" },
-  "o_lSourcePanelShortcutHelp": { "message": "Use browser shortcut syntax, for example Ctrl+Shift+Y or Command+Shift+Y. The browser rejects reserved shortcuts." },
-  "o_bReset": { "message": "Reset" },
+  "o_sPageSources": {
+    "message": "Page Sources"
+  },
+  "o_lPageSourcesHelp": {
+    "message": "Use the toolbar button to list images, video, and audio exposed by the current page. Saving a result uses your normal routing and renaming rules."
+  },
+  "o_lPageSourcesNetworkLimit": {
+    "message": "Some players hide video behind blob URLs or JavaScript requests. Without webRequest, Save In cannot see every request; Resource Timing can still reveal some HLS/DASH manifests, but saving a manifest does not assemble its video segments."
+  },
+  "o_cSourcePanelEnabled": {
+    "message": "Enable the toolbar source browser"
+  },
+  "o_cSourcePanelBackgrounds": {
+    "message": "Include CSS background images"
+  },
+  "o_cSourcePanelLive": {
+    "message": "Refresh when page media changes"
+  },
+  "o_cSourcePanelPreviews": {
+    "message": "Show image and video previews"
+  },
+  "o_cSourcePanelResourceHints": {
+    "message": "Look for HLS/DASH manifests in Resource Timing (best effort)"
+  },
+  "o_cSourcePanelLinks": {
+    "message": "Include links, linked media, and PDF documents"
+  },
+  "o_lSourcePanelDiscovery": {
+    "message": "Discovery and display"
+  },
+  "o_lSourcePanelShortcut": {
+    "message": "Keyboard shortcut"
+  },
+  "o_lSourcePanelShortcutHelp": {
+    "message": "Use browser shortcut syntax, for example Ctrl+Shift+Y or Command+Shift+Y. The browser rejects reserved shortcuts."
+  },
+  "o_bReset": {
+    "message": "Reset"
+  },
 
   "o_lHistoryHelp": {
     "message": "Your saved downloads. Click a column to sort, filter to search. Stored locally on this device, up to 10,000 entries."
@@ -260,6 +346,17 @@
   "o_lHistoryFilter": {
     "message": "Filter by file, folder, type, or source"
   },
+  "o_lHistoryFacets": { "message": "History filters" },
+  "o_lHistorySource": { "message": "Source" },
+  "o_lHistoryStatus": { "message": "Status" },
+  "o_lHistoryType": { "message": "Type" },
+  "o_lHistoryAllSources": { "message": "All sources" },
+  "o_lHistoryAllStatuses": { "message": "All statuses" },
+  "o_lHistoryAllTypes": { "message": "All types" },
+  "o_lHistoryBrowser": { "message": "Browser" },
+  "o_lHistorySaved": { "message": "Saved" },
+  "o_lHistorySaving": { "message": "Saving" },
+  "o_lHistoryFailed": { "message": "Failed" },
   "o_lSearchOptions": {
     "message": "Search options"
   },
@@ -595,7 +692,7 @@
   },
 
   "o_cHostPermissionMissing": {
-    "message": "Save in doesn't have access to page content. Click-to-save and the Referer feature won't work until you grant access to all sites."
+    "message": "Save in doesn't have access to page content. Click-to-save won't work until you grant access to all sites."
   },
 
   "o_cHostPermissionGrant": {
@@ -663,7 +760,7 @@
   },
 
   "o_cFallbackFetchHelp": {
-    "message": "When a download fails with a network or server error, retry it once by fetching in the background before reporting failure. Referer rules are applied to the retry."
+    "message": "When a download fails with a network or server error, retry it once by fetching in the background before reporting failure."
   },
 
   "o_cFetchViaFetchAPI": {
@@ -679,7 +776,7 @@
   },
 
   "o_cSetRefererHeaderHelp": {
-    "message": "Some sites (e.g. pixiv.net) reject downloads that arrive without an HTTP Referer header. For the sites listed below, this sets the Referer to the page URL — kept through redirects and automatic retries. Leave it off unless a site needs it."
+    "message": "Firefox only. Some sites (e.g. pixiv.net) reject downloads without an HTTP Referer header. For matching downloads, Firefox sends the page URL directly as the Referer. Leave it off unless a site needs it."
   },
 
   "o_cSetRefererHeaderFilter": {
@@ -778,5 +875,43 @@
 
   "o_cCloseTabOnSave": {
     "message": "Close tabs marked for saving"
+  },
+
+  "o_lClickToSaveModifier": {
+    "message": "Click-to-save keyboard modifier"
+  },
+
+  "o_lClickToSaveButton": {
+    "message": "Click-to-save mouse button"
+  },
+
+  "o_lDebugLog": {
+    "message": "Debug log"
+  },
+
+  "o_sGuideOutsideDownloadDirectory": {
+    "message": "Saving outside the default download directory"
+  },
+  "o_sGuideCreatingMenuItems": { "message": "Creating context menu items" },
+  "o_sGuideCommentsAliases": { "message": "Comments and aliases" },
+  "o_sGuideSubmenus": { "message": "Submenus" },
+  "o_sGuideRenamingDownloads": { "message": "Renaming downloads" },
+  "o_sGuideMovingDownloads": { "message": "Moving downloads into different directories" },
+  "o_sAdvancedFilenames": { "message": "Filenames" },
+  "o_sAdvancedDownloading": { "message": "Downloading" },
+  "o_sAdvancedCounter": { "message": "Counter" },
+  "o_sAdvancedBackupReset": { "message": "Backup & reset" },
+  "o_sAdvancedExternalApi": { "message": "External API" },
+  "o_sAdvancedAgentTools": { "message": "AI agent tools" },
+  "o_sAdvancedDiagnostics": { "message": "Diagnostics" },
+  "o_lExperimental": { "message": "Experimental" },
+  "o_lManualEditorSaveHelp": {
+    "message": "Changes in this editor are saved when you select Apply."
+  },
+  "o_lReferenceNavigation": {
+    "message": "Reference navigation"
+  },
+  "o_lFilterReference": {
+    "message": "Filter"
   }
 }

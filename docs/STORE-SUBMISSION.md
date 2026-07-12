@@ -39,12 +39,17 @@ non-minified JavaScript. No obfuscation or remote executable code is used.
   other background declaration.
 - `offscreen` is Chrome-only. It creates an extension offscreen document so a
   service worker can convert a fetched Blob to a temporary object URL.
-- `declarativeNetRequestWithHostAccess` installs a temporary session rule only
-  when the Referer option is used. The rule modifies the Referer header for the
-  selected download; it does not block requests.
+- Firefox can attach a Referer to a user-requested download through its native
+  downloads API. Chrome does not expose an equivalent supported mechanism; no
+  request-interception permission is requested.
 - `<all_urls>` is required because the extension saves resources selected by
   the user from arbitrary websites, optionally reads content metadata, and can
   run its click-to-save content listener on those pages.
+- Page Sources is a user-opened, DOM-only drawer implemented by that content
+  script. It reads media attributes, computed CSS backgrounds, and the page's
+  Resource Timing buffer for best-effort HLS/DASH manifest discovery. It does
+  not intercept browsing traffic and does not request `webRequest`. Copying a
+  `yt-dlp` command only writes text to the clipboard; Save In never executes it.
 - The extension makes no analytics or developer-server requests. Resource
   fetches go only to URLs involved in a user-requested save.
 - The external extension API accepts validated save requests from other
@@ -71,8 +76,6 @@ Permission justifications:
 - `notifications`: reports completed downloads and actionable failures.
 - `storage`: stores settings, routing rules, local history, and MV3 restart
   state.
-- `declarativeNetRequestWithHostAccess`: sets only the Referer header for a
-  user-requested download when that option is enabled.
 - `offscreen`: provides Chrome's service worker with temporary Blob URL
   conversion for downloads.
 - `<all_urls>`: identifies and fetches resources explicitly selected by the

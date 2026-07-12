@@ -42,6 +42,16 @@ Execution contexts:
 - **Options page** (`src/options/*`): talks to the background exclusively
   via `runtime.sendMessage` (never `getBackgroundPage()`, which MV3 lacks).
 
+Ordinary browser downloads are an explicit opt-in integration. Both browsers
+can record matching page/browser-owned downloads in Save In history without
+adopting them for retries, prompts, or notifications. Chrome can additionally
+route them through its synchronous `downloads.onDeterminingFilename` listener.
+Firefox has a separately labelled experimental path that cancels a matching
+HTTP(S) download and starts a routed replacement; this can lose POST bodies,
+temporary URLs, or special request context. Downloads initiated by Save In or
+another extension are excluded. A shared optional WebExtension match-pattern
+filter limits both tracking and routing.
+
 ### Single MV3 manifest, two background models
 
 One `manifest.json` (MV3) serves both browsers via dual `background` keys, both
@@ -54,17 +64,16 @@ a `self.window = self;` banner since the SW has no `window`) and ignores
 the two outputs. Add a background module by importing it from the relevant entry
 — there is no hand-maintained file list to keep in sync anymore.
 
-|                 | Firefox (event page)                                                   | Chrome (service worker)                                           |
-| --------------- | ---------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| Referer feature | `declarativeNetRequest` session rule (`RequestHeaders.prepareReferer`) | same — `declarativeNetRequest` session rule                       |
-| Blob downloads  | `URL.createObjectURL` (event pages have DOM)                           | data-URL fallbacks (`Download.makeObjectUrl` / `makeUrlFromBlob`) |
+|                 | Firefox (event page)                         | Chrome (service worker)                                           |
+| --------------- | -------------------------------------------- | ----------------------------------------------------------------- |
+| Referer feature | Native `downloads.download({ headers })`     | Unsupported                                                       |
+| Blob downloads  | `URL.createObjectURL` (event pages have DOM) | data-URL fallbacks (`Download.makeObjectUrl` / `makeUrlFromBlob`) |
 
-Both browsers set the Referer via a `declarativeNetRequest` session rule
-(`RequestHeaders.prepareReferer`, per download): Firefox and Chrome MV3 both
-support DNR `modifyHeaders` for the Referer header, so the extension no longer
-requests `webRequest`/`webRequestBlocking` at all. (Chrome MV3 forbids blocking
-`webRequest` for non-policy extensions anyway; requesting it risks a Web Store
-rejection.) Other shared code must **feature-detect, not sniff**:
+Firefox sets the Referer through its native downloads API. Chrome rejects that
+header as unsafe and extension-owned downloads do not match DNR request-header
+rules. Referer support is therefore Firefox-only.
+The extension does not request `webRequest`, `webRequestBlocking`, or DNR.
+Other shared code must **feature-detect, not sniff**:
 `URL.createObjectURL` and `browser.storage.session` are probed for presence.
 Both lifecycles are non-persistent, so all the service worker rules below apply
 to Firefox too.
@@ -90,6 +99,8 @@ to Firefox too.
    `self.window = self` so legacy `window.foo` globals keep working.
 4. **`chrome.downloads.onDeterminingFilename`** listeners must `return true`
    synchronously to call `suggest()` asynchronously.
+   The ordinary-browser routing branch always does this, awaits initialization,
+   and calls bare `suggest()` when disabled, unmatched, or unsuccessful.
 5. **Content scripts can outlive a reload** ("extension context
    invalidated") — wrap `runtime.sendMessage` in try/catch, retry on
    failure, and prewarm the worker (`WAKE_WARM` message on combo keydown)
@@ -106,7 +117,33 @@ to Firefox too.
   `chrome.*` (e.g. DNR).
 - `contextMenus.create` with an `icons` property throws on Chrome — wrapped
   in try/catch in `addLastUsed`.
-- Tab-strip context menus (`contexts: ["tab"]`) are Firefox-only.
+- Tab-strip context menus (`contexts: ["tab"]`) work on Firefox and Chrome
+  150+. Feature-detect `chrome.contextMenus.ContextType.TAB`; Chrome 123–149
+  remain supported and simply omit the tab-strip menu.
+
+### Backward compatibility
+
+Preserve backward compatibility unless the task explicitly authorizes a
+breaking change. Treat compatibility as part of correctness, not optional
+cleanup:
+
+- Continue accepting stored settings and persisted session/local data written
+  by older Save In versions. Normalize or migrate legacy shapes at their input
+  boundary, retain safe defaults for malformed values, and add regression tests
+  before removing a legacy path.
+- Preserve established message payloads, import/export configuration formats,
+  routing/path syntax, menu identifiers, and user-visible workflows. When an
+  internal refactor needs a new shape, adapt at the boundary instead of forcing
+  existing callers or profiles to change atomically.
+- Keep the declared minimum Firefox and Chrome versions working. Introduce newer
+  browser functionality through capability detection and progressive
+  enhancement unless a deliberate minimum-version increase is part of the task.
+- Content scripts from an older extension instance may remain alive after an
+  update. Background message handlers must tolerate stale/legacy callers, and
+  content scripts must tolerate a reloaded or unavailable extension context.
+- Do not silently reinterpret existing options. If behavior must change, prefer
+  an explicit migration with a documented fallback and coverage for both old
+  and new states.
 
 ## Iteration workflow
 
@@ -190,5 +227,5 @@ vitest specifics (`test/*.test.ts`, typed; `tsc` covers them):
    For the bundled build, run both e2e suites against it first:
    `npm run e2e` (it stages the bundled package once and runs both browser suites).
 4. Manual spot-check of anything the e2e can't reach: notifications
-   rendering, a pixiv Referer download (both browsers, via the shared DNR
-   path), options page dialogs.
+   rendering, a pixiv Referer download (Firefox via native download headers;
+   Firefox), options page dialogs.

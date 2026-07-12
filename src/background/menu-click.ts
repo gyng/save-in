@@ -1,4 +1,5 @@
 import { webExtensionApi } from "../platform/web-extension-api.ts";
+import { toggleSourcePanelForTab } from "./source-panel-state.ts";
 
 // Click handling for the save-in context menu: routes clicks on path
 // items (and last-used/route-exclusive) into Download.renameAndDownload.
@@ -16,6 +17,8 @@ import { options } from "../config/options-data.ts";
 import { currentTab } from "../platform/current-tab.ts";
 import type { CurrentTab } from "../platform/current-tab.ts";
 import type { DownloadInfo } from "../downloads/download-types.ts";
+import { backgroundRuntime } from "./runtime.ts";
+import { Log } from "./log.ts";
 
 type ClickInfo = {
   mediaType?: string;
@@ -55,10 +58,10 @@ type ClickTarget = {
 // notifications come back as `notifyLinkPreferred` / `badPatternError`.
 export const resolveClickTarget = (
   info: ClickInfo,
-  options: ClickOptions,
+  clickOptions: ClickOptions,
   clickTab: CurrentTab | null | undefined,
 ): ClickTarget | null => {
-  const hasLink = options.links && info.linkUrl;
+  const hasLink = clickOptions.links && info.linkUrl;
   const result: ClickTarget = {
     downloadType: DOWNLOAD_TYPES.UNKNOWN,
     url: undefined,
@@ -73,18 +76,18 @@ export const resolveClickTarget = (
     result.url = info.srcUrl;
 
     if (hasLink) {
-      if (options.preferLinks) {
+      if (clickOptions.preferLinks) {
         result.downloadType = DOWNLOAD_TYPES.LINK;
         result.url = info.linkUrl;
         result.notifyLinkPreferred = true;
       }
 
-      if (options.preferLinksFilterEnabled && options.preferLinksFilter) {
+      if (clickOptions.preferLinksFilterEnabled && clickOptions.preferLinksFilter) {
         let overrideUrls = false;
         try {
           // splitLines drops empty lines: an empty pattern would compile to
           // `new RegExp("")` and match every page
-          splitLines(options.preferLinksFilter)
+          splitLines(clickOptions.preferLinksFilter)
             .map((s) => new RegExp(s))
             .forEach((re) => {
               if (info.pageUrl?.match(re) != null) {
@@ -105,14 +108,14 @@ export const resolveClickTarget = (
   } else if (hasLink) {
     result.downloadType = DOWNLOAD_TYPES.LINK;
     result.url = info.linkUrl;
-  } else if (options.selection && info.selectionText) {
+  } else if (clickOptions.selection && info.selectionText) {
     result.downloadType = DOWNLOAD_TYPES.SELECTION;
     result.selectionText = info.selectionText;
     result.suggestedFilename = `${truncateIfLongerThan(
       (clickTab && clickTab.title) || info.selectionText,
-      options.truncateLength - 14,
+      clickOptions.truncateLength - 14,
     )}.selection.txt`;
-  } else if (options.page && info.pageUrl) {
+  } else if (clickOptions.page && info.pageUrl) {
     result.downloadType = DOWNLOAD_TYPES.PAGE;
     result.url = info.pageUrl;
     result.suggestedFilename = (clickTab && clickTab.title) || info.pageUrl;
@@ -135,11 +138,7 @@ export const addDownloadListener = () => {
     }
 
     if (info.menuItemId === "toggle-source-panel") {
-      if (tab?.id != null) {
-        void webExtensionApi.tabs
-          .sendMessage(tab.id, { type: "TOGGLE_SOURCE_PANEL" })
-          .catch(() => {});
-      }
+      if (tab?.id != null) void toggleSourcePanelForTab(tab.id);
       return;
     }
 
@@ -150,8 +149,8 @@ export const addDownloadListener = () => {
 
     // MV3 service workers restart between events: wait for options
     // and menus to be reinitialised before handling the click
-    if (window.ready) {
-      await window.ready;
+    if (backgroundRuntime.ready) {
+      await backgroundRuntime.ready;
     }
 
     // Prefer the tab the click happened in: the tracked global can lag
@@ -198,14 +197,17 @@ export const addDownloadListener = () => {
       }
 
       let saveIntoPath;
+      let selectedLocation:
+        | { path: string; meta: { comment: string; menuIndex: string }; title: string }
+        | undefined;
 
       if (info.menuItemId === MENU_IDS.ROUTE_EXCLUSIVE) {
         saveIntoPath = ".";
       } else if (info.menuItemId === MENU_IDS.LAST_USED) {
         saveIntoPath = menuState.lastUsedPath;
-        if (window.lastDownloadState && window.lastDownloadState.info) {
-          comment = window.lastDownloadState.info.comment;
-          menuIndex = window.lastDownloadState.info.menuIndex;
+        if (backgroundRuntime.lastDownloadState?.info) {
+          comment = backgroundRuntime.lastDownloadState.info.comment;
+          menuIndex = backgroundRuntime.lastDownloadState.info.menuIndex;
         } else if (menuState.lastUsedMeta) {
           // The in-memory lastDownloadState died with the service worker:
           // fall back to the persisted routing metadata so comment/menuindex
@@ -215,15 +217,8 @@ export const addDownloadListener = () => {
         }
       } else {
         saveIntoPath = menuInfo.parsedDir;
-        setLastUsed(saveIntoPath, { comment, menuIndex });
         const title = menuInfo.title || saveIntoPath;
-
-        if (options.enableLastLocation) {
-          webExtensionApi.contextMenus.update(MENU_IDS.LAST_USED, {
-            title: WEB_EXTENSION_CAPABILITIES.accessKeys ? `${title} (&a)` : title,
-            enabled: true,
-          });
-        }
+        selectedLocation = { path: saveIntoPath, meta: { comment, menuIndex }, title };
       }
 
       const parsedPath = new Path(saveIntoPath);
@@ -270,11 +265,24 @@ export const addDownloadListener = () => {
         path: parsedPath,
         scratch: {},
         info: opts,
+        needRouteMatch: info.menuItemId === MENU_IDS.ROUTE_EXCLUSIVE,
       };
 
       // Fire-and-forget (renameAndDownload is async); Download.launch logs and
       // reports a terminal failure to the user
-      Download.launch(state);
+      const result = await Download.launch(state);
+
+      if (result.status === "started" && selectedLocation) {
+        await setLastUsed(selectedLocation.path, selectedLocation.meta);
+        if (options.enableLastLocation) {
+          webExtensionApi.contextMenus.update(MENU_IDS.LAST_USED, {
+            title: WEB_EXTENSION_CAPABILITIES.accessKeys
+              ? `${selectedLocation.title} (&a)`
+              : selectedLocation.title,
+            enabled: true,
+          });
+        }
+      }
 
       // Close the tab a "save page" came from, mirroring the tab-strip
       // behavior (#115). Deliberately page-context only: closing the tab
@@ -286,9 +294,13 @@ export const addDownloadListener = () => {
         clickTab.id != null
       ) {
         const tabId = clickTab.id;
-        window.setTimeout(() => {
-          webExtensionApi.tabs.remove(tabId);
-        }, 500);
+        if (result.status === "started") {
+          try {
+            await webExtensionApi.tabs.remove(tabId);
+          } catch (error) {
+            Log.add("saved page tab close failed", String(error));
+          }
+        }
       }
     }
   });
