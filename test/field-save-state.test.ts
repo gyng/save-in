@@ -32,4 +32,16 @@ describe("per-field save state", () => {
     state.succeed("a", token);
     expect(state.anySaving()).toBe(false);
   });
+
+  test("keeps reporting an in-flight save after a newer edit marks the field dirty", () => {
+    const state = createFieldSaveState();
+    state.markDirty("a");
+    const saving = state.begin("a");
+    state.markDirty("a");
+    expect(state.status("a")).toBe("dirty");
+    expect(state.anySaving()).toBe(true);
+    state.succeed("a", saving);
+    expect(state.anySaving()).toBe(false);
+    expect(state.hasUnsaved()).toBe(true);
+  });
 });

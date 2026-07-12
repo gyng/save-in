@@ -27,6 +27,7 @@ import { setupSettingsTransfer } from "./settings-transfer.ts";
 import { COUNTER_KEY } from "../shared/storage-keys.ts";
 import { markSavedNow } from "./saved-indicator.ts";
 import { showUnsavedChangesDialog } from "./unsaved-changes-dialog.ts";
+import { createLatestTaskRunner } from "./latest-task.ts";
 
 configureRoutingPorts({
   getMessage: (key) => webExtensionApi.i18n.getMessage(key),
@@ -447,7 +448,7 @@ webExtensionApi.runtime.onMessage.addListener((message) => {
   }
 });
 
-const saveOptions = (e?: Event, scope?: string, scopeValue?: string): Promise<any> => {
+const saveOptions = (e?: Event, scope?: string, scopeValue?: unknown): Promise<any> => {
   if (e) {
     e.preventDefault();
   }
@@ -457,7 +458,7 @@ const saveOptions = (e?: Event, scope?: string, scopeValue?: string): Promise<an
     // Manual editors may change again while getOptionsSchema resolves. Apply
     // must persist the value that was visible when the user clicked, not a
     // later edit that belongs to the next revision.
-    if (scope && typeof scopeValue === "string") config[scope] = scopeValue;
+    if (scope && typeof scopeValue !== "undefined") config[scope] = scopeValue;
 
     // Route through APPLY_CONFIG so the background applies each option's onSave
     // (schema functions don't survive the OPTIONS_SCHEMA message, so the page
@@ -719,9 +720,15 @@ const setupAutosave = (el: Element) => {
     }, 100);
   };
 
-  const doSave = (e?: Event) => {
+  const valueNow = (): unknown =>
+    el instanceof HTMLInputElement && ["checkbox", "radio"].includes(el.type)
+      ? el.checked
+      : el.value;
+
+  const saveRunner = createLatestTaskRunner<unknown>(async (value) => {
     const token = fieldSaveState.begin(el.id);
-    void saveOptions(e, el.id)
+    clearAutosaveFailure(el);
+    await saveOptions(undefined, el.id, value)
       .then(() => {
         if (fieldSaveState.succeed(el.id, token)) {
           clearAutosaveFailure(el);
@@ -731,9 +738,10 @@ const setupAutosave = (el: Element) => {
       })
       .catch(() => {
         fieldSaveState.fail(el.id, token);
-        showAutosaveFailure(el, () => doSave());
+        showAutosaveFailure(el, () => saveRunner.schedule(valueNow()));
       });
-  };
+  });
+  const queueSave = () => saveRunner.schedule(valueNow());
 
   if (el.type === "textarea") {
     el.addEventListener("input", () => {
@@ -743,7 +751,7 @@ const setupAutosave = (el: Element) => {
         if (cancelPending) pendingSaveCancellers.delete(cancelPending);
         cancelPending = null;
         debounceTimer = null;
-        doSave();
+        queueSave();
       }, AUTOSAVE_DEBOUNCE_MS);
       debounceTimer = timer;
       cancelPending = () => {
@@ -761,17 +769,17 @@ const setupAutosave = (el: Element) => {
         return;
       }
       cancelPending?.();
-      doSave();
+      queueSave();
     });
   } else if (["text", "number"].includes(el.type)) {
-    el.addEventListener("input", (event) => {
+    el.addEventListener("input", () => {
       fieldSaveState.markDirty(el.id);
-      doSave(event);
+      queueSave();
     });
   } else {
-    el.addEventListener("change", (event) => {
+    el.addEventListener("change", () => {
       fieldSaveState.markDirty(el.id);
-      doSave(event);
+      queueSave();
     });
   }
 };
