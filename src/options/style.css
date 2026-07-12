@@ -1750,10 +1750,9 @@ button:disabled:hover {
 
 .path-editor-alias-toggle {
   flex: none;
-  max-width: 130px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  padding: 3px 6px;
+  font-size: var(--text-sm);
+  line-height: 1.2;
 }
 
 .path-editor-help {
@@ -1782,8 +1781,35 @@ button:disabled:hover {
 }
 
 .path-editor-alias {
-  flex: 0 1 130px;
+  flex: 0 0 0;
+  width: 0;
   min-width: 0;
+  padding-right: 0;
+  padding-left: 0;
+  border-right-width: 0;
+  border-left-width: 0;
+  opacity: 0;
+  transition:
+    flex-basis 90ms ease-out,
+    width 90ms ease-out,
+    padding 90ms ease-out,
+    opacity 70ms ease-out;
+}
+
+.path-editor-alias.is-open {
+  flex: 0 1 130px;
+  width: 130px;
+  padding-right: 5px;
+  padding-left: 5px;
+  border-right-width: 1px;
+  border-left-width: 1px;
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .path-editor-alias {
+    transition: none;
+  }
 }
 
 .tab-panel .path-editor-row input[type="text"] {

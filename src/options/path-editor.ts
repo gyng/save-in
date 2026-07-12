@@ -456,27 +456,32 @@ const PathEditorHelpers = {
           alias.className = "path-editor-alias";
           alias.value = PathEditorHelpers.getAlias(row.comment);
           alias.placeholder = "alias";
-          alias.hidden = true;
+          const aliasOpen = Boolean(alias.value);
+          alias.classList.toggle("is-open", aliasOpen);
+          alias.tabIndex = aliasOpen ? 0 : -1;
+          alias.setAttribute("aria-hidden", String(!aliasOpen));
           alias.setAttribute("aria-label", `Display name for directory ${index + 1}`);
           alias.addEventListener("input", () => {
             row.comment = PathEditorHelpers.setAlias(row.comment, alias.value);
-            aliasToggle.textContent = alias.value ? `Alias: ${alias.value}` : "+ Alias";
             commit();
           });
           const aliasToggle = document.createElement("button");
           aliasToggle.type = "button";
           aliasToggle.className = "path-editor-alias-toggle";
-          aliasToggle.textContent = alias.value ? `Alias: ${alias.value}` : "+ Alias";
-          aliasToggle.setAttribute("aria-expanded", "false");
+          aliasToggle.textContent = "Alias";
+          aliasToggle.setAttribute("aria-expanded", String(aliasOpen));
           aliasToggle.addEventListener("click", () => {
-            alias.hidden = !alias.hidden;
-            aliasToggle.setAttribute("aria-expanded", String(!alias.hidden));
-            if (!alias.hidden) {
+            const open = !alias.classList.contains("is-open");
+            alias.classList.toggle("is-open", open);
+            alias.tabIndex = open ? 0 : -1;
+            alias.setAttribute("aria-hidden", String(!open));
+            aliasToggle.setAttribute("aria-expanded", String(open));
+            if (open) {
               alias.focus();
               alias.select();
             }
           });
-          rowEl.append(aliasToggle, alias);
+          rowEl.append(alias, aliasToggle);
         }
 
         const controls: [string, string, () => void][] = [

@@ -166,15 +166,28 @@ describe("visual editor", () => {
 
   test("editing the alias field updates only the alias meta", () => {
     const alias = rows()[1]!.querySelector<HTMLInputElement>(".path-editor-alias")!;
-    expect(alias.hidden).toBe(true);
+    expect(alias.classList.contains("is-open")).toBe(true);
     const toggle = rows()[1]!.querySelector<HTMLButtonElement>(".path-editor-alias-toggle")!;
-    expect(toggle.textContent).toBe("Alias: B");
+    expect(toggle.textContent).toBe("Alias");
+    expect(alias.nextElementSibling).toBe(toggle);
     toggle.click();
-    expect(alias.hidden).toBe(false);
+    expect(alias.classList.contains("is-open")).toBe(false);
+    toggle.click();
+    expect(alias.classList.contains("is-open")).toBe(true);
     expect(document.activeElement).toBe(alias);
     alias.value = "Better";
     alias.dispatchEvent(new Event("input", { bubbles: true }));
     expect(textarea().value).toBe("a\n>b // (alias: Better)\n---");
+  });
+
+  test("keeps an empty alias collapsed until its compact toggle is used", () => {
+    const alias = rows()[0]!.querySelector<HTMLInputElement>(".path-editor-alias")!;
+    const toggle = rows()[0]!.querySelector<HTMLButtonElement>(".path-editor-alias-toggle")!;
+    expect(alias.classList.contains("is-open")).toBe(false);
+    expect(alias.tabIndex).toBe(-1);
+    toggle.click();
+    expect(alias.classList.contains("is-open")).toBe(true);
+    expect(alias.tabIndex).toBe(0);
   });
 
   test("toolbar buttons append rows", () => {
