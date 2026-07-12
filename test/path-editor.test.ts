@@ -156,7 +156,7 @@ describe("visual editor", () => {
 
   test("moving a row down reorders the lines", () => {
     controls(0, "move down").click();
-    expect(textarea().value).toBe(">b // (alias: B)\na\n---");
+    expect(textarea().value).toBe("b // (alias: B)\na\n---");
   });
 
   test("deleting a row removes its line", () => {
@@ -224,7 +224,7 @@ describe("visual editor", () => {
     const handle = rows()[1]!.querySelector<HTMLElement>(".path-editor-handle")!;
     expect(handle.getAttribute("aria-label")).toContain("B");
     handle.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp", altKey: true }));
-    expect(textarea().value).toBe(">b // (alias: B)\na\n---");
+    expect(textarea().value).toBe("b // (alias: B)\na\n---");
     expect(controls(0, "outdent").getAttribute("aria-label")).toBe("Outdent B");
   });
 
@@ -528,6 +528,18 @@ describe("visual editor drag and drop", () => {
 
     expect(textarea.value).toBe("group\n>child\n>>grandchild\n>>>sibling");
     expect(textarea.value).not.toContain(">>>>sibling");
+  });
+
+  test("moving a parent away promotes orphaned children instead of creating invalid nesting", () => {
+    const textarea = element<HTMLTextAreaElement>("#paths");
+    textarea.value = "parent\n>child\nsibling";
+    textarea.dispatchEvent(new InputEvent("input", { bubbles: true }));
+    vi.advanceTimersByTime(500);
+    const rows = document.querySelectorAll<HTMLElement>(".path-editor-row");
+    rows[0]!.querySelector(".path-editor-handle")!.dispatchEvent(new Event("dragstart"));
+    rows[2]!.dispatchEvent(new Event("drop"));
+
+    expect(textarea.value).toBe("child\nsibling\nparent");
   });
 });
 

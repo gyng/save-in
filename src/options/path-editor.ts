@@ -340,6 +340,11 @@ const PathEditorHelpers = {
     let dropInside = false;
     let committing = false;
     let deletedRows: PathRow[] | null = null;
+    const normalizeHierarchy = () => {
+      rows.forEach((row, index) => {
+        row.depth = index === 0 ? 0 : Math.min(row.depth, rows[index - 1]!.depth + 1);
+      });
+    };
     const undo = document.createElement("button");
     undo.type = "button";
     undo.className = "path-editor-undo";
@@ -433,6 +438,7 @@ const PathEditorHelpers = {
           event.preventDefault();
           const [moved] = rows.splice(index, 1);
           if (moved) rows.splice(destination, 0, moved);
+          normalizeHierarchy();
           commit();
           rebuild();
           container.querySelectorAll<HTMLElement>(".path-editor-handle")[destination]?.focus();
@@ -485,6 +491,7 @@ const PathEditorHelpers = {
             rows.splice(destination, 0, moved);
             moved.depth = dropInside ? (target?.depth ?? 0) + 1 : (target?.depth ?? 0);
           }
+          normalizeHierarchy();
           dragFrom = null;
           dropInside = false;
           commit();
@@ -618,6 +625,7 @@ const PathEditorHelpers = {
           if (title === "move down") button.disabled = index === rows.length - 1;
           button.addEventListener("click", () => {
             action();
+            if (title === "move up" || title === "move down") normalizeHierarchy();
             commit();
             rebuild();
           });
