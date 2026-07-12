@@ -23,6 +23,10 @@ test("missing legacy timestamps render as blank", () => {
   expect(formatHistoryTime()).toBe("");
 });
 
+test("date-only legacy timestamps retain their calendar date in every timezone", () => {
+  expect(localHistoryDate("2024-01-02")).toBe("2024-01-02");
+});
+
 test("history timestamps use ISO text and relative labels", () => {
   expect(formatHistoryTime("2024-01-01T00:00:00Z")).toBe("2024-01-01T00:00:00.000Z");
   expect(relativeHistoryTime("2024-01-01T11:59:00Z", Date.parse("2024-01-01T12:00:00Z"))).toContain(

@@ -58,6 +58,7 @@ const localDateValue = (date: Date): string =>
   ).padStart(2, "0")}`;
 
 export const localHistoryDate = (iso?: string): string => {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(iso || "")) return iso!;
   const date = new Date(iso || "");
   return Number.isNaN(date.getTime()) ? "" : localDateValue(date);
 };

@@ -102,6 +102,38 @@ describe("SaveHistory", () => {
     await expect(SaveHistory.get()).resolves.toEqual(store[HISTORY_KEY]);
   });
 
+  test("migrates legacy local calendar dates to UTC once", async () => {
+    store[HISTORY_KEY] = [
+      {
+        timestamp: "2024-01-02",
+        initiatedAt: "2024-01-03",
+        finalFullPath: "old.png",
+        mechanism: "downloads-api",
+        futureMetadata: { preserve: true },
+      },
+    ];
+    const expectedTimestamp = new Date(2024, 0, 2).toISOString();
+    const expectedInitiatedAt = new Date(2024, 0, 3).toISOString();
+
+    await expect(SaveHistory.get()).resolves.toEqual([
+      {
+        timestamp: expectedTimestamp,
+        initiatedAt: expectedInitiatedAt,
+        finalFullPath: "old.png",
+        mechanism: "downloads-api",
+      },
+    ]);
+    expect(store[HISTORY_KEY][0]).toMatchObject({
+      timestamp: expectedTimestamp,
+      initiatedAt: expectedInitiatedAt,
+      mechanism: "downloads-api",
+      futureMetadata: { preserve: true },
+    });
+    const writes = vi.mocked(global.browser.storage.local.set).mock.calls.length;
+    await SaveHistory.get();
+    expect(global.browser.storage.local.set).toHaveBeenCalledTimes(writes);
+  });
+
   test("get returns an empty list when nothing saved", async () => {
     await expect(SaveHistory.get()).resolves.toEqual([]);
   });

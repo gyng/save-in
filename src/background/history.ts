@@ -29,15 +29,47 @@ const normalizeStringRecord = (value: unknown): Record<string, string> | undefin
   return entries.length ? Object.fromEntries(entries) : undefined;
 };
 
+const LEGACY_DATE_ONLY = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+const normalizeHistoryTimestamp = (value: string): string => {
+  const match = value.match(LEGACY_DATE_ONLY);
+  if (!match) return value;
+  const year = Number(match[1]);
+  const month = Number(match[2]) - 1;
+  const day = Number(match[3]);
+  const localMidnight = new Date(year, month, day);
+  if (
+    localMidnight.getFullYear() !== year ||
+    localMidnight.getMonth() !== month ||
+    localMidnight.getDate() !== day
+  ) {
+    return value;
+  }
+  return localMidnight.toISOString();
+};
+
 const normalizeHistoryEntry = (value: unknown): HistoryEntry | null => {
   if (!isObject(value) || (value.id !== undefined && typeof value.id !== "string")) return null;
 
   const entry: HistoryEntry = {};
   for (const key of ["id", "status", "timestamp", "initiatedAt", "url", "finalFullPath"] as const) {
-    if (typeof value[key] === "string") entry[key] = value[key];
+    if (typeof value[key] === "string") {
+      entry[key] =
+        key === "timestamp" || key === "initiatedAt"
+          ? normalizeHistoryTimestamp(value[key])
+          : value[key];
+    }
   }
   for (const key of ["routed", "observedBrowserDownload"] as const) {
     if (typeof value[key] === "boolean") entry[key] = value[key];
+  }
+  if (
+    typeof value.mechanism === "string" &&
+    ["downloads-api", "fetch-downloads-api", "browser-download", "firefox-replacement"].includes(
+      value.mechanism,
+    )
+  ) {
+    entry.mechanism = value.mechanism as NonNullable<HistoryEntry["mechanism"]>;
   }
   if (typeof value.downloadId === "number" && Number.isSafeInteger(value.downloadId)) {
     entry.downloadId = value.downloadId;
@@ -66,6 +98,31 @@ const normalizeHistoryEntry = (value: unknown): HistoryEntry | null => {
 const normalizeHistory = (value: unknown): HistoryEntry[] =>
   Array.isArray(value)
     ? value.map(normalizeHistoryEntry).filter((entry): entry is HistoryEntry => entry != null)
+    : [];
+
+const hasLegacyDateOnlyTimestamp = (value: unknown): boolean =>
+  Array.isArray(value) &&
+  value.some(
+    (entry) =>
+      isObject(entry) &&
+      [entry.timestamp, entry.initiatedAt].some(
+        (timestamp) =>
+          typeof timestamp === "string" && normalizeHistoryTimestamp(timestamp) !== timestamp,
+      ),
+  );
+
+const migrateLegacyHistoryTimestamps = (value: unknown): unknown[] =>
+  Array.isArray(value)
+    ? value.map((entry) => {
+        if (!isObject(entry)) return entry;
+        const migrated = { ...entry };
+        for (const key of ["timestamp", "initiatedAt"] as const) {
+          if (typeof migrated[key] === "string") {
+            migrated[key] = normalizeHistoryTimestamp(migrated[key]);
+          }
+        }
+        return migrated;
+      })
     : [];
 
 export const SaveHistory = {
@@ -144,6 +201,21 @@ export const SaveHistory = {
 
   get: async (): Promise<HistoryEntry[]> => {
     const current = (await webExtensionApi.storage.local.get(HISTORY_KEY)) || {};
-    return normalizeHistory(current[HISTORY_KEY]);
+    const stored = current[HISTORY_KEY];
+    const history = normalizeHistory(stored);
+    if (hasLegacyDateOnlyTimestamp(stored)) {
+      SaveHistory.writeQueue = SaveHistory.writeQueue
+        .then(() => webExtensionApi.storage.local.get(HISTORY_KEY))
+        .then((latest) => {
+          const latestStored = latest?.[HISTORY_KEY];
+          if (!hasLegacyDateOnlyTimestamp(latestStored)) return;
+          return webExtensionApi.storage.local.set({
+            [HISTORY_KEY]: migrateLegacyHistoryTimestamps(latestStored),
+          });
+        })
+        .catch(() => {});
+      await SaveHistory.writeQueue;
+    }
+    return history;
   },
 };

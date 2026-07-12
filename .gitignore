@@ -6,3 +6,5 @@ web-ext-artifacts
 src/options/version.json
 yarn-error.log
 coverage
+.playwright-mcp/
+scripts/tmp-options-server.cjs

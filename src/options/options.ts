@@ -25,7 +25,11 @@ import { setupShortcutOptions } from "./shortcut-options.ts";
 import { setupCheckboxRows } from "./checkbox-rows.ts";
 import { setupSettingsTransfer } from "./settings-transfer.ts";
 import { COUNTER_KEY } from "../shared/storage-keys.ts";
-import { assertSettingsUndoSafe, markSavedNow } from "./saved-indicator.ts";
+import {
+  assertSettingsUndoCurrent,
+  assertSettingsUndoSafe,
+  markSavedNow,
+} from "./saved-indicator.ts";
 import { showUnsavedChangesDialog } from "./unsaved-changes-dialog.ts";
 import { createLatestTaskRunner } from "./latest-task.ts";
 
@@ -478,6 +482,8 @@ const saveOptions = (e?: Event, scope?: string, scopeValue?: unknown): Promise<a
         Object.assign(lastKnownOptions, applied);
         markSavedNow(changes, async () => {
           assertSettingsUndoSafe(fieldSaveState.hasUnsaved(), anyManualEditorDirty());
+          const current = await webExtensionApi.storage.local.get(changes.map(({ name }) => name));
+          assertSettingsUndoCurrent(changes, current || {});
           const undoConfig = Object.fromEntries(changes.map(({ name, before }) => [name, before]));
           const undoResponse = await webExtensionApi.runtime.sendMessage({
             type: "APPLY_CONFIG",
