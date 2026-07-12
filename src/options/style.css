@@ -2479,12 +2479,25 @@ code.click-to-copy {
 }
 
 [data-manual="true"] {
+  display: block;
   margin-bottom: 0;
 }
 
-.error-notification:empty {
+#path-editor-rows {
+  margin-bottom: 0;
+}
+
+.error-notification {
   display: none;
   margin: 0;
+}
+
+.error-notification:has(.error-row),
+.error-notification:has([data-error-channel="validation-service"]:not(:empty)) {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: var(--space-1) 0;
 }
 
 .editor-actions {
