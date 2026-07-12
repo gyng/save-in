@@ -20,41 +20,18 @@ const reloadExtension = async (extensionId) => {
   const extensionPages = targets.filter(
     (target) => target.type === "page" && target.url.startsWith(extensionUrl),
   );
-  const runtimeTarget =
-    targets.find(
-      (target) => target.type === "service_worker" && target.url.startsWith(extensionUrl),
-    ) || extensionPages[0];
 
-  if (!runtimeTarget) {
-    // A fully idle extension has no CDP target to evaluate in. Loading it is
-    // the only available fallback, but ordinary page tabs remain untouched.
-    await cdp.loadUnpacked(PORT, chrome.DIST);
-    return;
-  }
+  // Extensions loaded through the CDP Extensions domain are not reliably
+  // re-registered by chrome.runtime.reload(). Loading the staged directory
+  // again is reliable and leaves ordinary web tabs untouched.
+  await cdp.loadUnpacked(PORT, chrome.DIST);
 
-  const client = await cdp.Cdp.connect(runtimeTarget.webSocketDebuggerUrl);
-  try {
-    await client.send("Runtime.evaluate", { expression: "chrome.runtime.reload()" });
-  } finally {
-    client.close();
-  }
-
-  // Extension pages keep their tab when possible, but need a navigation to
-  // acquire the new extension context. Recreate only a page Chrome discarded.
-  await cdp.sleep(150);
-  const liveUrls = new Set(
-    (await cdp.listTargets(PORT))
-      .filter((target) => target.type === "page")
-      .map((target) => target.url),
-  );
+  // loadUnpacked closes extension-owned tabs. Restore them only after Chrome
+  // has registered the fresh context so they cannot become blocked pages.
+  await cdp.sleep(250);
   for (const page of extensionPages) {
-    if (liveUrls.has(page.url)) {
-      // eslint-disable-next-line no-await-in-loop
-      await cdp.reloadTargets(PORT, page.url);
-    } else {
-      // eslint-disable-next-line no-await-in-loop
-      await cdp.openTab(PORT, page.url);
-    }
+    // eslint-disable-next-line no-await-in-loop
+    await cdp.openTab(PORT, page.url);
   }
 };
 
