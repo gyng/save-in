@@ -356,6 +356,12 @@ describe("text/visual mode toggle", () => {
 });
 
 describe("visual editor drag and drop", () => {
+  const dragEvent = (type: string, clientX: number) => {
+    const event = new Event(type, { bubbles: true, cancelable: true });
+    Object.defineProperty(event, "clientX", { value: clientX });
+    return event;
+  };
+
   beforeEach(() => {
     vi.useFakeTimers();
     document.body.innerHTML = `
@@ -394,6 +400,35 @@ describe("visual editor drag and drop", () => {
     rows[0]!.dispatchEvent(new Event("drop"));
 
     expect(element<HTMLTextAreaElement>("#paths").value).toBe("a\nb\nc");
+  });
+
+  test("dragging right indents at the valid destination depth", () => {
+    element<HTMLTextAreaElement>("#paths").value = "a\n>b\nc";
+    element<HTMLTextAreaElement>("#paths").dispatchEvent(
+      new InputEvent("input", { bubbles: true }),
+    );
+    vi.advanceTimersByTime(500);
+    const rows = document.querySelectorAll(".path-editor-row");
+    rows[2]!.querySelector(".path-editor-handle")!.dispatchEvent(dragEvent("dragstart", 100));
+    rows[1]!.dispatchEvent(dragEvent("drop", 140));
+
+    expect(element<HTMLTextAreaElement>("#paths").value).toBe("a\n>b\n>>c");
+  });
+
+  test("drag indentation is constrained by the preceding parent", () => {
+    const rows = document.querySelectorAll(".path-editor-row");
+    rows[2]!.querySelector(".path-editor-handle")!.dispatchEvent(dragEvent("dragstart", 100));
+    rows[0]!.dispatchEvent(dragEvent("drop", 300));
+
+    expect(element<HTMLTextAreaElement>("#paths").value).toBe("a\n>c\nb");
+  });
+
+  test("a horizontal drag on the same row changes nesting without reordering", () => {
+    const rows = document.querySelectorAll(".path-editor-row");
+    rows[1]!.querySelector(".path-editor-handle")!.dispatchEvent(dragEvent("dragstart", 100));
+    rows[1]!.dispatchEvent(dragEvent("drop", 120));
+
+    expect(element<HTMLTextAreaElement>("#paths").value).toBe("a\n>b\nc");
   });
 });
 

@@ -279,6 +279,7 @@ const PathEditorHelpers = {
     let rows: PathRow[] = [];
     // Index being dragged via a row handle; null when no drag is active
     let dragFrom: number | null = null;
+    let dragStartX = 0;
     let dropAfter = true;
     let committing = false;
     let deletedRows: PathRow[] | null = null;
@@ -288,6 +289,11 @@ const PathEditorHelpers = {
     undo.textContent = "Undo delete";
     undo.hidden = true;
     container.after(undo);
+    const dragHint = document.createElement("p");
+    dragHint.className = "caption path-editor-drag-hint";
+    dragHint.textContent =
+      "Drag vertically to reorder and horizontally to change nesting. Alt+Arrow keys also work.";
+    container.before(dragHint);
 
     // Serialize rows back to the textarea (the source of truth) and let
     // the normal pipeline (autosave, previews) react
@@ -312,11 +318,12 @@ const PathEditorHelpers = {
         handle.type = "button";
         handle.className = "path-editor-handle";
         handle.textContent = "⠿";
-        handle.title = "drag to reorder";
-        handle.setAttribute("aria-label", `Reorder ${rowName}`);
+        handle.title = "Drag vertically to reorder; drag right or left to change nesting";
+        handle.setAttribute("aria-label", `Reorder or change nesting for ${rowName}`);
         handle.draggable = true;
         handle.addEventListener("dragstart", (e) => {
           dragFrom = index;
+          dragStartX = e.clientX;
           rowEl.classList.add("dragging");
           if (e.dataTransfer) {
             // Firefox requires data for a drag to start
@@ -329,7 +336,20 @@ const PathEditorHelpers = {
           rowEl.classList.remove("dragging");
         });
         handle.addEventListener("keydown", (event) => {
-          if (!event.altKey || !["ArrowUp", "ArrowDown"].includes(event.key)) return;
+          if (
+            !event.altKey ||
+            !["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(event.key)
+          )
+            return;
+          if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+            event.preventDefault();
+            if (event.key === "ArrowLeft") row.depth = Math.max(0, row.depth - 1);
+            else if (index > 0) row.depth = Math.min(row.depth + 1, rows[index - 1]!.depth + 1);
+            commit();
+            rebuild();
+            container.querySelectorAll<HTMLElement>(".path-editor-handle")[index]?.focus();
+            return;
+          }
           const destination = event.key === "ArrowUp" ? index - 1 : index + 1;
           if (destination < 0 || destination >= rows.length) return;
           event.preventDefault();
@@ -358,12 +378,27 @@ const PathEditorHelpers = {
         rowEl.addEventListener("drop", (e) => {
           e.preventDefault();
           rowEl.classList.remove("drag-before", "drag-after");
-          if (dragFrom === null || dragFrom === index) {
+          if (dragFrom === null) return;
+          const horizontalSteps = Math.round((e.clientX - dragStartX) / 20);
+          if (dragFrom === index) {
+            const maximumDepth = index === 0 ? 0 : rows[index - 1]!.depth + 1;
+            rows[index]!.depth = Math.max(
+              0,
+              Math.min(maximumDepth, rows[index]!.depth + horizontalSteps),
+            );
+            dragFrom = null;
+            commit();
+            rebuild();
             return;
           }
           const [moved] = rows.splice(dragFrom, 1);
           const adjustedTarget = dragFrom < index ? index - 1 : index;
-          if (moved) rows.splice(adjustedTarget + (dropAfter ? 1 : 0), 0, moved);
+          const destination = adjustedTarget + (dropAfter ? 1 : 0);
+          if (moved) {
+            rows.splice(destination, 0, moved);
+            const maximumDepth = destination === 0 ? 0 : rows[destination - 1]!.depth + 1;
+            moved.depth = Math.max(0, Math.min(maximumDepth, moved.depth + horizontalSteps));
+          }
           dragFrom = null;
           commit();
           rebuild();
