@@ -182,6 +182,19 @@ export const historyCsv = (entries: HistoryEntry[]): string => {
   ].join("\n");
 };
 
+export const historyTsv = (entries: HistoryEntry[]): string => {
+  const columns = HISTORY_COLUMNS.filter(({ key }) => key !== "index");
+  const rows = entries.map(historyRow);
+  const cell = (value: unknown) =>
+    String(value ?? "")
+      .replaceAll("\t", " ")
+      .replaceAll(/\r?\n/g, " ");
+  return [
+    columns.map(({ label }) => cell(label)).join("\t"),
+    ...rows.map((row) => columns.map(({ key }) => cell(row[key as keyof HistoryRow])).join("\t")),
+  ].join("\n");
+};
+
 // Filter + sort + paginate the newest-first entries. Returns the requested
 // page (page is clamped into range) plus the counts the UI shows.
 export const paginateHistory = (

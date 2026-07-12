@@ -18,6 +18,7 @@ import {
   formatHistoryTime,
   HISTORY_COLUMNS,
   historyCsv,
+  historyTsv,
   paginateHistory,
   progressCell,
   relativeHistoryTime,
@@ -449,11 +450,22 @@ HISTORY_COLUMNS.forEach(({ key, label }) => {
   columnOptions.appendChild(option);
 });
 
-const downloadHistoryExport = (format: "json" | "csv") => {
+const downloadHistoryExport = (format: "json" | "csv" | "tsv") => {
   const content =
-    format === "json" ? JSON.stringify(historyEntries, null, 2) : historyCsv(historyEntries);
+    format === "json"
+      ? JSON.stringify(historyEntries, null, 2)
+      : format === "tsv"
+        ? historyTsv(historyEntries)
+        : historyCsv(historyEntries);
   const url = URL.createObjectURL(
-    new Blob([content], { type: format === "json" ? "application/json" : "text/csv" }),
+    new Blob([content], {
+      type:
+        format === "json"
+          ? "application/json"
+          : format === "tsv"
+            ? "text/tab-separated-values"
+            : "text/csv",
+    }),
   );
   const link = document.createElement("a");
   link.href = url;
@@ -467,6 +479,9 @@ document
 document
   .querySelector("#history-export-csv")
   ?.addEventListener("click", () => downloadHistoryExport("csv"));
+document
+  .querySelector("#history-export-tsv")
+  ?.addEventListener("click", () => downloadHistoryExport("tsv"));
 
 const removeHistory = async () => {
   const clearButton = document.querySelector<HTMLButtonElement>("#history-clear");

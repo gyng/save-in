@@ -1735,6 +1735,37 @@ summary {
   border-radius: var(--radius);
 }
 
+.history-export-menu {
+  position: relative;
+  margin: 0;
+}
+
+.history-export-menu > summary {
+  padding: 4px 9px;
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  list-style: none;
+}
+
+.history-export-options {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + var(--space-1));
+  right: 0;
+  display: grid;
+  min-width: 180px;
+  padding: var(--space-1);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  background: var(--floating-bg);
+  box-shadow: var(--floating-shadow);
+}
+
+.history-export-options button {
+  border: 0;
+  text-align: left;
+}
+
 .rule-template-category + .rule-template-category {
   margin-top: var(--space-5);
 }

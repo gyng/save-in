@@ -9,5 +9,5 @@ export const setupOutsideDismiss = (
 };
 
 document
-  .querySelectorAll<HTMLDetailsElement>(".nav-resources, .history-columns")
+  .querySelectorAll<HTMLDetailsElement>(".nav-resources, .history-columns, .history-export-menu")
   .forEach((details) => setupOutsideDismiss(details));

@@ -979,8 +979,14 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
           spellcheck="false"
         />
         <span id="history-count" class="caption"></span>
-        <button type="button" id="history-export-json">Export JSON</button>
-        <button type="button" id="history-export-csv">Export CSV</button>
+        <details class="history-export-menu">
+          <summary>Export</summary>
+          <div class="history-export-options">
+            <button type="button" id="history-export-json">JSON — complete data</button>
+            <button type="button" id="history-export-csv">CSV</button>
+            <button type="button" id="history-export-tsv">TSV</button>
+          </div>
+        </details>
         <button type="button" id="history-clear" class="button">__MSG_o_cClearHistory__</button>
       </div>
       <div class="history-facets" aria-label="__MSG_o_lHistoryFacets__">

@@ -6,6 +6,7 @@ import {
   historyFilename,
   historyFolder,
   historyCsv,
+  historyTsv,
   HISTORY_COLUMNS,
   historyRow,
   historyStatus,
@@ -40,6 +41,13 @@ test("CSV export includes all flattened history fields and escapes values", () =
   expect(csv).toContain('"Initiated","Source","Status"');
   expect(csv).toContain('"a,""b"".txt"');
   expect(csv).toContain('"7"');
+});
+
+test("TSV export includes every flattened field and strips embedded tabs/newlines", () => {
+  const tsv = historyTsv([{ finalFullPath: "docs/a\tb\n.txt", variables: { title: "x" } }]);
+  expect(tsv.split("\n")[0]).toContain("Variables");
+  expect(tsv).not.toContain("a\tb");
+  expect(tsv).toContain("title=x");
 });
 
 test("history columns show row numbers and hide Source by default", () => {
