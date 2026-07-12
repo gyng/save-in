@@ -89,7 +89,7 @@ body:has(.reference-header) {
   padding-top: var(--space-3);
   padding-bottom: var(--space-2);
   border-bottom: 2px solid var(--grey40);
-  background: var(--page-bg);
+  background: color-mix(in srgb, var(--panel-bg) 55%, var(--page-bg));
   color: inherit;
   font-size: var(--text-sm);
   font-weight: 650;
