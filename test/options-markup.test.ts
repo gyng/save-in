@@ -47,6 +47,12 @@ describe("options form semantics", () => {
     expect(conditions?.querySelectorAll(":scope > label")).toHaveLength(3);
   });
 
+  test("keeps last-download details in the left side of the routing grid", () => {
+    const document = documentForOptions();
+    const row = document.querySelector(".last-download-row");
+    expect(row?.parentElement?.classList.contains("rules-editor")).toBe(true);
+  });
+
   test("keeps artifact shortcuts separate from keyboard behavior", () => {
     const document = documentForOptions();
     expect(

@@ -187,7 +187,7 @@ body:not(#settings-page) {
 .top-nav {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: baseline;
   gap: var(--space-4);
   flex-wrap: wrap;
   padding: var(--space-3) var(--space-5);
@@ -196,13 +196,17 @@ body:not(#settings-page) {
 
 .top-nav > div:first-child {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   flex-wrap: wrap;
   gap: var(--space-1) var(--space-2);
   min-width: 0;
 }
 
 .save-status {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-1);
+  align-self: baseline;
   color: var(--color-text-muted);
   white-space: nowrap;
   margin-left: var(--space-1);
@@ -215,11 +219,30 @@ body:not(#settings-page) {
   font-size: inherit;
 }
 
+#lastSavedAt.saved-confirmed {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--green60);
+  font-weight: 650;
+}
+
+#lastSavedAt.saved-confirmed::before {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  background: url(i/check-16.svg) center / contain no-repeat;
+  content: "";
+  transform-origin: 50% 50%;
+  animation: saved-check-pop 180ms cubic-bezier(0.2, 1.5, 0.5, 1);
+}
+
 .app-icon {
   width: 18px;
   height: 18px;
   vertical-align: text-bottom;
   margin-right: var(--space-2);
+  align-self: center;
 }
 
 .app-title {
@@ -1427,16 +1450,30 @@ summary {
 }
 
 .rules-editor {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: minmax(340px, 2fr) minmax(220px, 1fr);
   gap: var(--space-5);
   align-items: flex-start;
   width: 100%;
 }
 
 .rules-editor-main {
-  flex: 1 1 480px;
   min-width: 340px;
+}
+
+.rules-editor > .last-download-row,
+.rules-editor > .last-download-row + .caption-line {
+  grid-column: 1;
+}
+
+@media (max-width: 760px) {
+  .rules-editor {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .rules-editor-main {
+    min-width: 0;
+  }
 }
 
 .rule-templates-panel {
@@ -2422,11 +2459,6 @@ code.click-to-copy {
   .section-actions {
     flex-wrap: wrap;
   }
-}
-
-/* Scale the saved check around its visual center. */
-#lastSavedAt.saved-confirmed::before {
-  transform-origin: center;
 }
 
 .manual-save-help {
