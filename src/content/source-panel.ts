@@ -5,6 +5,7 @@ export type PageSource = {
   element: Element;
   bytes?: number;
   detectedAt?: number;
+  detectedOrder?: number;
 };
 export type SourcePanelOptions = {
   enabled?: boolean;
@@ -159,13 +160,14 @@ export const toggleSourcePanel = (
     :host{all:initial;position:fixed;z-index:2147483647;isolation:isolate;inset:0 0 0 auto;width:min(360px,92vw);font:13px system-ui;color:#1f2328;animation:si-in 110ms ease-out both}
     :host(.closing){pointer-events:none;animation:si-out 90ms ease-in both}@keyframes si-in{from{opacity:0;transform:translateX(8px)}to{opacity:1;transform:none}}@keyframes si-out{from{opacity:1;transform:none}to{opacity:0;transform:translateX(8px)}}
     :host(.dock-left){inset:0 auto 0 0}:host(.dock-bottom){inset:auto 0 0;width:100vw;height:min(42vh,520px)}:host(.dock-top){inset:0 0 auto;width:100vw;height:min(42vh,520px)}
+    :host(.floating){inset:80px auto auto 80px;width:min(520px,calc(100vw - 32px));height:min(70vh,620px)}
     .panel{height:100vh;box-sizing:border-box;background:#fff;box-shadow:-8px 0 28px #0003;display:flex;flex-direction:column}
-    :host(.dock-bottom) .panel,:host(.dock-top) .panel{height:100%}.resize{position:absolute;inset:0 auto 0 -4px;width:8px;cursor:ew-resize}:host(.dock-left) .resize{inset:0 -4px 0 auto}:host(.dock-bottom) .resize{inset:-4px 0 auto;width:auto;height:8px;cursor:ns-resize}:host(.dock-top) .resize{inset:auto 0 -4px;width:auto;height:8px;cursor:ns-resize}header{display:flex;align-items:center;justify-content:space-between;padding:9px 12px 4px}h2{font-size:16px;margin:0}.header-actions{display:flex;align-items:center;gap:3px}button,input,select{font:inherit}button{cursor:pointer}.dock{border:1px solid #b1b1b3;border-radius:3px;background:none;padding:3px 6px}.close{border:0;background:none;font-size:19px;padding:2px 6px}
-    .toolbar{display:grid;grid-template-columns:1fr auto;gap:6px;padding:5px 12px 7px}.toolbar input,.toolbar select{min-width:0;padding:5px 7px;border:1px solid #b1b1b3;border-radius:4px}.copy-urls{padding:3px 6px;border:1px solid #b1b1b3;border-radius:3px;background:#fff;white-space:nowrap}.facets{display:flex;gap:4px;padding:0 12px 7px;border-bottom:1px solid #d7d7db;overflow:auto}.facet{white-space:nowrap;padding:3px 7px;border:1px solid #b1b1b3;border-radius:99px;background:#fff}.facet[aria-pressed=true]{color:#fff;background:#0060df;border-color:#0060df}
+    :host(.dock-bottom) .panel,:host(.dock-top) .panel,:host(.floating) .panel{height:100%}:host(.floating) .panel{border:1px solid #b1b1b3;border-radius:6px;box-shadow:0 10px 36px #0005;overflow:hidden}:host(.floating) .resize{display:none}.resize{position:absolute;inset:0 auto 0 -4px;width:8px;cursor:ew-resize}:host(.dock-left) .resize{inset:0 -4px 0 auto}:host(.dock-bottom) .resize{inset:-4px 0 auto;width:auto;height:8px;cursor:ns-resize}:host(.dock-top) .resize{inset:auto 0 -4px;width:auto;height:8px;cursor:ns-resize}header{display:flex;align-items:center;justify-content:space-between;padding:9px 12px 4px}:host(.floating) header{cursor:grab;user-select:none}:host(.floating) header:active{cursor:grabbing}h2{font-size:16px;margin:0;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.header-actions{display:flex;align-items:center;gap:2px;flex:none}button,input,select{font:inherit}button{cursor:pointer}.header-button{display:grid;place-items:center;width:28px;height:28px;padding:0;border:1px solid transparent;border-radius:4px;background:none;font-size:17px;line-height:1}.header-button:hover{border-color:#b1b1b3;background:#f0f0f4}.close{font-size:20px}
+    .toolbar{display:grid;grid-template-columns:1fr auto;gap:6px;padding:5px 12px 7px}.toolbar input,.toolbar select{min-width:0;padding:5px 7px;border:1px solid #b1b1b3;border-radius:4px}.facets{display:flex;flex-wrap:wrap;gap:4px;padding:0 12px 7px;border-bottom:1px solid #d7d7db}.facet{white-space:nowrap;padding:3px 7px;border:1px solid #b1b1b3;border-radius:99px;background:#fff}.facet[aria-pressed=true]{color:#fff;background:#0060df;border-color:#0060df}
     .list{overflow:auto;padding:2px 9px 12px}.row{display:grid;grid-template-columns:36px minmax(0,1fr);gap:7px;align-items:center;padding:7px 3px;border-bottom:1px solid #eee}
     img,video{width:36px;height:36px;object-fit:contain;background:#eee;border-radius:3px}.audio{font-size:20px;text-align:center}.name,.url{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.name{font-weight:600;color:#0060df;text-decoration:none}.url{font-size:11px;color:#737373}.meta{display:flex;gap:6px;margin-top:2px;font-size:10px;color:#555;text-transform:uppercase}
     .actions{grid-column:2;display:flex;flex-wrap:wrap;gap:4px}.actions button{padding:3px 6px;border:1px solid #b1b1b3;border-radius:3px;background:#fff}.actions button:last-child{border-color:#0060df;color:#0060df}.empty{padding:24px 12px;color:#737373;text-align:center}
-    @media (prefers-color-scheme:dark){:host{color:#f9f9fa}.panel{background:#2a2a2e}.toolbar,.row{border-color:#4a4a4f}.toolbar input,.toolbar select,.copy-urls,.actions button{color:#f9f9fa;background:#38383d;border-color:#737373}.url{color:#b1b1b3}.kind{color:#d7d7db}}@media(prefers-reduced-motion:reduce){:host,:host(.closing){animation:none}}
+    @media (prefers-color-scheme:dark){:host{color:#f9f9fa}.panel{background:#2a2a2e}.toolbar,.row{border-color:#4a4a4f}.toolbar input,.toolbar select,.actions button{color:#f9f9fa;background:#38383d;border-color:#737373}.header-button{color:#f9f9fa}.header-button:hover{background:#38383d}.url{color:#b1b1b3}.kind{color:#d7d7db}}@media(prefers-reduced-motion:reduce){:host,:host(.closing){animation:none}}
   `;
   const panel = document.createElement("div");
   panel.className = "panel";
@@ -200,8 +202,9 @@ export const toggleSourcePanel = (
   const title = document.createElement("h2");
   const close = document.createElement("button");
   const dockButton = document.createElement("button");
+  const popoutButton = document.createElement("button");
   title.textContent = "Page sources";
-  close.className = "close";
+  close.className = "header-button close";
   close.textContent = "×";
   close.title = "Close";
   close.setAttribute("aria-label", "Close Page Sources");
@@ -210,16 +213,43 @@ export const toggleSourcePanel = (
   const updateDock = () => {
     const dock = docks[dockIndex];
     host.dataset.dock = dock;
-    host.className = dock === "right" ? "" : `dock-${dock}`;
+    host.classList.remove("dock-left", "dock-bottom", "dock-top");
+    if (dock !== "right") host.classList.add(`dock-${dock}`);
     host.style.width = "";
     host.style.height = "";
-    dockButton.textContent = `Dock: ${dock[0].toUpperCase()}${dock.slice(1)}`;
-    dockButton.title = "Change panel alignment: Right → Bottom → Left → Top";
+    dockButton.title = `Dock: ${dock[0].toUpperCase()} — change to the next position`;
   };
-  dockButton.className = "dock";
+  dockButton.className = "header-button dock";
+  dockButton.textContent = "◫";
+  dockButton.setAttribute("aria-label", "Change panel dock position");
   dockButton.addEventListener("click", () => {
+    host.classList.remove("floating");
+    popoutButton.setAttribute("aria-pressed", "false");
+    popoutButton.setAttribute("aria-label", "Pop out Page Sources");
     dockIndex = (dockIndex + 1) % docks.length;
     updateDock();
+  });
+  popoutButton.className = "header-button popout";
+  popoutButton.textContent = "↗";
+  popoutButton.title = "Pop out into a draggable panel";
+  popoutButton.setAttribute("aria-label", "Pop out Page Sources");
+  popoutButton.setAttribute("aria-pressed", "false");
+  popoutButton.addEventListener("click", () => {
+    const floating = host.classList.toggle("floating");
+    popoutButton.setAttribute("aria-pressed", String(floating));
+    popoutButton.setAttribute(
+      "aria-label",
+      floating ? "Dock Page Sources" : "Pop out Page Sources",
+    );
+    if (floating) {
+      host.classList.remove("dock-left", "dock-bottom", "dock-top");
+      host.style.width = "";
+      host.style.height = "";
+    } else {
+      host.style.left = "";
+      host.style.top = "";
+      updateDock();
+    }
   });
   updateDock();
   const closePanel = () => {
@@ -233,11 +263,36 @@ export const toggleSourcePanel = (
   const headerActions = document.createElement("div");
   headerActions.className = "header-actions";
   const copyUrls = document.createElement("button");
-  copyUrls.className = "copy-urls";
-  copyUrls.textContent = "Copy URLs";
+  copyUrls.className = "header-button copy-urls";
+  copyUrls.textContent = "⧉";
   copyUrls.title = "Copy URLs in the current filter";
-  headerActions.append(copyUrls, dockButton, close);
+  copyUrls.setAttribute("aria-label", "Copy filtered source URLs");
+  headerActions.append(copyUrls, dockButton, popoutButton, close);
   header.append(title, headerActions);
+  header.addEventListener("pointerdown", (event) => {
+    if (!host.classList.contains("floating") || event.button !== 0) return;
+    if (event.target instanceof Element && event.target.closest("button")) return;
+    header.setPointerCapture?.(event.pointerId);
+    const startX = event.clientX;
+    const startY = event.clientY;
+    const rect = host.getBoundingClientRect();
+    const move = (moveEvent: PointerEvent) => {
+      const left = Math.min(
+        window.innerWidth - rect.width - 8,
+        Math.max(8, rect.left + moveEvent.clientX - startX),
+      );
+      const top = Math.min(
+        window.innerHeight - rect.height - 8,
+        Math.max(8, rect.top + moveEvent.clientY - startY),
+      );
+      host.style.left = `${left}px`;
+      host.style.top = `${top}px`;
+    };
+    header.addEventListener("pointermove", move);
+    header.addEventListener("pointerup", () => header.removeEventListener("pointermove", move), {
+      once: true,
+    });
+  });
   const list = document.createElement("div");
   list.className = "list";
   const toolbar = document.createElement("div");
@@ -263,15 +318,19 @@ export const toggleSourcePanel = (
   const facets = document.createElement("div");
   facets.className = "facets";
   let activeKind: "all" | PageSourceKind = "all";
-  const firstSeen = new Map<string, number>();
+  const firstSeen = new Map<string, { at: number; order: number }>();
   const highlightedElements = new WeakSet<Element>();
   let detectionSequence = 0;
   let visibleSources: PageSource[] = [];
   const render = () => {
     const allSources = collectPageSources(document, options);
     allSources.forEach((source) => {
-      if (!firstSeen.has(source.url)) firstSeen.set(source.url, ++detectionSequence);
-      source.detectedAt = firstSeen.get(source.url);
+      if (!firstSeen.has(source.url)) {
+        firstSeen.set(source.url, { at: Date.now(), order: ++detectionSequence });
+      }
+      const detection = firstSeen.get(source.url)!;
+      source.detectedAt = detection.at;
+      source.detectedOrder = detection.order;
     });
     const sources = sortPageSources(
       filterPageSources(allSources, filter.value, activeKind),
@@ -365,12 +424,12 @@ export const toggleSourcePanel = (
       meta.className = "meta";
       const mediaDetails: string[] = [];
       const updateMeta = () => {
-        meta.textContent = [
-          source.kind,
-          formatSourceBytes(source.bytes),
-          ...mediaDetails,
-          `seen #${source.detectedAt}`,
-        ].join(" · ");
+        const details = [source.kind, formatSourceBytes(source.bytes), ...mediaDetails];
+        const detected = document.createElement("span");
+        detected.className = "detected";
+        detected.textContent = `#${source.detectedOrder}`;
+        detected.title = `Detected at ${new Date(source.detectedAt || Date.now()).toLocaleTimeString()}`;
+        meta.replaceChildren(document.createTextNode(`${details.join(" · ")} · `), detected);
       };
       if (preview instanceof HTMLImageElement) {
         preview.addEventListener("load", () => {
@@ -466,10 +525,17 @@ export const toggleSourcePanel = (
     void navigator.clipboard
       .writeText(visibleSources.map(({ url }) => url).join("\n"))
       .then(() => {
-        copyUrls.textContent = `Copied ${visibleSources.length}`;
-        window.setTimeout(() => (copyUrls.textContent = "Copy URLs"), 1200);
+        copyUrls.textContent = "✓";
+        copyUrls.title = `Copied ${visibleSources.length} URLs`;
+        window.setTimeout(() => {
+          copyUrls.textContent = "⧉";
+          copyUrls.title = "Copy URLs in the current filter";
+        }, 1200);
       })
-      .catch(() => (copyUrls.textContent = "Copy failed"));
+      .catch(() => {
+        copyUrls.textContent = "!";
+        copyUrls.title = "Copy failed";
+      });
   });
   panel.addEventListener("keydown", (event) => {
     if (event.key === "Escape") closePanel();

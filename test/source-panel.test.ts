@@ -157,4 +157,70 @@ describe("Page Sources panel interactions", () => {
     expect(document.getElementById("save-in-source-panel")).toBeNull();
     vi.useRealTimers();
   });
+
+  test("wraps facets and uses compact accessible header actions", () => {
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    const shadow = document.getElementById("save-in-source-panel")!.shadowRoot!;
+    const styles = shadow.querySelector("style")!.textContent!;
+
+    expect(styles).toMatch(/\.facets\{[^}]*flex-wrap:wrap/);
+    expect(styles).not.toMatch(/\.facets\{[^}]*overflow:auto/);
+    expect(
+      [...shadow.querySelectorAll<HTMLButtonElement>(".header-actions button")].map((button) => [
+        button.getAttribute("aria-label"),
+        button.textContent,
+      ]),
+    ).toEqual([
+      ["Copy filtered source URLs", "⧉"],
+      ["Change panel dock position", "◫"],
+      ["Pop out Page Sources", "↗"],
+      ["Close Page Sources", "×"],
+    ]);
+  });
+
+  test("pops the drawer into a draggable floating panel", () => {
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    const host = document.getElementById("save-in-source-panel")!;
+    const popout = host.shadowRoot!.querySelector<HTMLButtonElement>(".popout")!;
+
+    popout.click();
+
+    expect(host.classList.contains("floating")).toBe(true);
+    expect(popout.getAttribute("aria-pressed")).toBe("true");
+    expect(popout.getAttribute("aria-label")).toBe("Dock Page Sources");
+
+    vi.spyOn(host, "getBoundingClientRect").mockReturnValue({
+      left: 100,
+      top: 80,
+      width: 320,
+      height: 400,
+      right: 420,
+      bottom: 480,
+      x: 100,
+      y: 80,
+      toJSON: () => ({}),
+    });
+    const header = host.shadowRoot!.querySelector("header")!;
+    header.dispatchEvent(
+      new MouseEvent("pointerdown", { bubbles: true, button: 0, clientX: 120, clientY: 100 }),
+    );
+    header.dispatchEvent(
+      new MouseEvent("pointermove", { bubbles: true, clientX: 160, clientY: 130 }),
+    );
+
+    expect(host.style.left).toBe("140px");
+    expect(host.style.top).toBe("110px");
+  });
+
+  test("shows compact detection order with the detection time in a tooltip", () => {
+    document.body.innerHTML = `<img src="cat.jpg">`;
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    const detected = document
+      .getElementById("save-in-source-panel")!
+      .shadowRoot!.querySelector<HTMLElement>(".detected")!;
+
+    expect(detected.textContent).toBe("#1");
+    expect(detected.title).toMatch(/^Detected at /);
+    expect(detected.title).not.toContain("#1");
+  });
 });

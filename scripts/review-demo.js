@@ -35,6 +35,13 @@ const svg = (label, color) =>
       `</svg>`,
   )}`;
 
+// A valid 1x1 WebP keeps the dynamically discovered source preview honest:
+// returning the catch-all HTML here makes the Page Sources image look broken.
+const LATE_IMAGE = Buffer.from(
+  "UklGRiIAAABXRUJQVlA4IBYAAAAwAQCdASoBAAEADsD+JaQAA3AAAAAA",
+  "base64",
+);
+
 const DEMO_PAGE = `<!doctype html>
 <html>
   <head>
@@ -93,31 +100,37 @@ const DEMO_PAGE = `<!doctype html>
 </html>`;
 
 // Ephemeral port so multiple review sessions can coexist
+const createDemoServer = () =>
+  http.createServer((req, res) => {
+    if (req.url === "/demo.pdf") {
+      res.writeHead(200, { "Content-Type": "application/pdf" });
+      res.end("%PDF-1.4\n% save-in review demo pdf\n%%EOF\n");
+    } else if (req.url === "/archive.zip") {
+      res.writeHead(200, { "Content-Type": "application/zip" });
+      res.end(Buffer.from("PK\x05\x06" + "\x00".repeat(18), "binary"));
+    } else if (req.url === "/page2.html") {
+      res.writeHead(200, { "Content-Type": "text/html" });
+      res.end("<title>page two</title><p>Right-click here and save the page.</p>");
+    } else if (req.url === "/late-image.webp") {
+      res.writeHead(200, { "Content-Type": "image/webp" });
+      res.end(LATE_IMAGE);
+    } else if (req.url === "/master.m3u8") {
+      res.writeHead(200, { "Content-Type": "application/vnd.apple.mpegurl" });
+      res.end("#EXTM3U\n#EXT-X-ENDLIST\n");
+    } else if (req.url === "/demo.mp4" || req.url === "/demo.ogg") {
+      res.writeHead(200, {
+        "Content-Type": req.url.endsWith("mp4") ? "video/mp4" : "audio/ogg",
+      });
+      res.end(Buffer.alloc(32));
+    } else {
+      res.writeHead(200, { "Content-Type": "text/html" });
+      res.end(DEMO_PAGE);
+    }
+  });
+
 const startDemoServer = () =>
   new Promise((resolve) => {
-    const server = http.createServer((req, res) => {
-      if (req.url === "/demo.pdf") {
-        res.writeHead(200, { "Content-Type": "application/pdf" });
-        res.end("%PDF-1.4\n% save-in review demo pdf\n%%EOF\n");
-      } else if (req.url === "/archive.zip") {
-        res.writeHead(200, { "Content-Type": "application/zip" });
-        res.end(Buffer.from("PK\x05\x06" + "\x00".repeat(18), "binary"));
-      } else if (req.url === "/page2.html") {
-        res.writeHead(200, { "Content-Type": "text/html" });
-        res.end("<title>page two</title><p>Right-click here and save the page.</p>");
-      } else if (req.url === "/master.m3u8") {
-        res.writeHead(200, { "Content-Type": "application/vnd.apple.mpegurl" });
-        res.end("#EXTM3U\n#EXT-X-ENDLIST\n");
-      } else if (req.url === "/demo.mp4" || req.url === "/demo.ogg") {
-        res.writeHead(200, {
-          "Content-Type": req.url.endsWith("mp4") ? "video/mp4" : "audio/ogg",
-        });
-        res.end(Buffer.alloc(32));
-      } else {
-        res.writeHead(200, { "Content-Type": "text/html" });
-        res.end(DEMO_PAGE);
-      }
-    });
+    const server = createDemoServer();
     server.listen(0, "127.0.0.1", () => resolve(server.address().port));
   });
 
@@ -185,4 +198,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { startDemoServer };
+module.exports = { createDemoServer, startDemoServer };
