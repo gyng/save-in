@@ -558,11 +558,14 @@ body:not(#settings-page) {
 }
 
 .about-mascot-button.is-celebrating {
-  animation: party-cat-rainbow 600ms linear infinite;
+  animation: party-cat-rainbow 1.2s linear infinite;
+  will-change: filter;
 }
 
 .about-mascot-button.is-celebrating .about-mascot {
-  animation: party-cat-dance 160ms steps(2, jump-none) infinite alternate;
+  animation: party-cat-dance 900ms ease-in-out infinite;
+  transform-origin: 50% 85%;
+  will-change: transform;
 }
 
 @keyframes party-cat-rainbow {
@@ -575,11 +578,18 @@ body:not(#settings-page) {
 }
 
 @keyframes party-cat-dance {
-  from {
-    transform: translate(-7px, -5px) rotate(-9deg) scale(1.08);
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1.06);
   }
-  to {
-    transform: translate(7px, 2px) rotate(9deg) scale(1.13);
+  25% {
+    transform: translate3d(-7px, -8px, 0) rotate(-7deg) scale(1.1);
+  }
+  50% {
+    transform: translate3d(0, -13px, 0) rotate(0deg) scale(1.13);
+  }
+  75% {
+    transform: translate3d(7px, -8px, 0) rotate(7deg) scale(1.1);
   }
 }
 

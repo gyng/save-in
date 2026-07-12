@@ -85,3 +85,13 @@ test("About explains privacy and every requested permission", () => {
   }
   expect(about.querySelector('a[href="../../PRIVACY.md"]')).not.toBeNull();
 });
+
+test("party cat uses continuous easing instead of stepped frames", () => {
+  const css = readFileSync(resolve("src/options/style.css"), "utf8");
+  const celebration = css.match(
+    /\.about-mascot-button\.is-celebrating \.about-mascot\s*\{([^}]*)\}/,
+  )?.[1];
+  expect(celebration).toContain("ease-in-out");
+  expect(celebration).not.toContain("steps(");
+  expect(css).toContain("translate3d");
+});
