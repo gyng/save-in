@@ -189,6 +189,7 @@ describe("Page Sources panel interactions", () => {
     expect(host.classList.contains("floating")).toBe(true);
     expect(popout.getAttribute("aria-pressed")).toBe("true");
     expect(popout.getAttribute("aria-label")).toBe("Dock Page Sources");
+    expect(popout.title).toBe("Dock Page Sources");
 
     vi.spyOn(host, "getBoundingClientRect").mockReturnValue({
       left: 100,
@@ -211,6 +212,10 @@ describe("Page Sources panel interactions", () => {
 
     expect(host.style.left).toBe("140px");
     expect(host.style.top).toBe("110px");
+
+    popout.click();
+    expect(popout.getAttribute("aria-label")).toBe("Pop out Page Sources");
+    expect(popout.title).toBe("Pop out into a draggable panel");
   });
 
   test("shows compact detection order with the detection time in a tooltip", () => {

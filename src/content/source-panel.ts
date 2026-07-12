@@ -242,25 +242,26 @@ export const toggleSourcePanel = (
   dockButton.className = "header-button dock";
   setButtonIcon(dockButton, "dock");
   dockButton.setAttribute("aria-label", "Change panel dock position");
-  dockButton.addEventListener("click", () => {
-    host.classList.remove("floating");
-    popoutButton.setAttribute("aria-pressed", "false");
-    popoutButton.setAttribute("aria-label", "Pop out Page Sources");
-    dockIndex = (dockIndex + 1) % docks.length;
-    updateDock();
-  });
-  popoutButton.className = "header-button popout";
-  setButtonIcon(popoutButton, "popout");
-  popoutButton.title = "Pop out into a draggable panel";
-  popoutButton.setAttribute("aria-label", "Pop out Page Sources");
-  popoutButton.setAttribute("aria-pressed", "false");
-  popoutButton.addEventListener("click", () => {
-    const floating = host.classList.toggle("floating");
+  const updatePopoutButton = (floating: boolean) => {
     popoutButton.setAttribute("aria-pressed", String(floating));
     popoutButton.setAttribute(
       "aria-label",
       floating ? "Dock Page Sources" : "Pop out Page Sources",
     );
+    popoutButton.title = floating ? "Dock Page Sources" : "Pop out into a draggable panel";
+  };
+  dockButton.addEventListener("click", () => {
+    host.classList.remove("floating");
+    updatePopoutButton(false);
+    dockIndex = (dockIndex + 1) % docks.length;
+    updateDock();
+  });
+  popoutButton.className = "header-button popout";
+  setButtonIcon(popoutButton, "popout");
+  updatePopoutButton(false);
+  popoutButton.addEventListener("click", () => {
+    const floating = host.classList.toggle("floating");
+    updatePopoutButton(floating);
     if (floating) {
       host.classList.remove("dock-left", "dock-bottom", "dock-top");
       host.style.width = "";
