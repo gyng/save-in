@@ -583,8 +583,21 @@ export const toggleSourcePanel = (
         }
       };
       let richTooltip: HTMLElement | null = null;
-      row.addEventListener("mouseenter", () => {
-        highlight(true);
+      let hovered = false;
+      let focused = false;
+      let previewActive = false;
+      const syncPreview = () => {
+        const active = hovered || focused;
+        if (active === previewActive) return;
+        previewActive = active;
+        highlight(active);
+        if (!active) {
+          richTooltip?.querySelector<HTMLMediaElement>("video, audio")?.pause();
+          richTooltip?.remove();
+          richTooltip = null;
+          sourceLink.removeAttribute("aria-describedby");
+          return;
+        }
         if (!hasRichTooltip) return;
         richTooltip = createSourceTooltip(source);
         if (!richTooltip) return;
@@ -613,13 +626,23 @@ export const toggleSourcePanel = (
             once: true,
           });
         }
+      };
+      row.addEventListener("mouseenter", () => {
+        hovered = true;
+        syncPreview();
       });
       row.addEventListener("mouseleave", () => {
-        highlight(false);
-        richTooltip?.querySelector<HTMLMediaElement>("video, audio")?.pause();
-        richTooltip?.remove();
-        richTooltip = null;
-        sourceLink.removeAttribute("aria-describedby");
+        hovered = false;
+        syncPreview();
+      });
+      row.addEventListener("focusin", () => {
+        focused = true;
+        syncPreview();
+      });
+      row.addEventListener("focusout", (event) => {
+        if (event.relatedTarget instanceof Node && row.contains(event.relatedTarget)) return;
+        focused = false;
+        syncPreview();
       });
       row.addEventListener("click", (event) => {
         if (!event.altKey || event.button !== 0) return;

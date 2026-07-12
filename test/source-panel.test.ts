@@ -286,6 +286,22 @@ describe("Page Sources panel interactions", () => {
     expect(sourceLink.hasAttribute("aria-describedby")).toBe(false);
   });
 
+  test("shows the same preview and page outline for keyboard focus", () => {
+    document.body.innerHTML = `<img id="source" src="keyboard.jpg">`;
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    const source = document.querySelector<HTMLElement>("#source")!;
+    const shadow = document.getElementById("save-in-source-panel")!.shadowRoot!;
+    const row = shadow.querySelector<HTMLElement>(".row")!;
+    const sourceLink = row.querySelector<HTMLAnchorElement>(".source-link")!;
+
+    sourceLink.dispatchEvent(new FocusEvent("focusin", { bubbles: true }));
+    expect(shadow.querySelector(".media-tooltip")).not.toBeNull();
+    expect(source.style.outline).toContain("3px");
+    sourceLink.dispatchEvent(new FocusEvent("focusout", { bubbles: true, relatedTarget: null }));
+    expect(shadow.querySelector(".media-tooltip")).toBeNull();
+    expect(source.style.outline).toBe("");
+  });
+
   test("describes streaming playlists without relying on manifest jargon", () => {
     vi.spyOn(performance, "getEntriesByType").mockReturnValue([
       { name: "https://cdn.test/master.m3u8" } as PerformanceEntry,
