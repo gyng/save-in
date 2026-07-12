@@ -2478,12 +2478,27 @@ code.click-to-copy {
   line-height: 1.4;
 }
 
-.paths-editor #paths {
+[data-manual="true"] {
   margin-bottom: 0;
 }
 
-#paths-text-actions {
+.error-notification:empty {
+  display: none;
+  margin: 0;
+}
+
+.editor-actions {
+  margin: 0;
+}
+
+.path-editor-toolbar {
   margin-top: 0;
+}
+
+.editor-actions > *,
+.path-editor-toolbar > * {
+  margin-top: 0;
+  margin-bottom: 0;
 }
 
 .path-editor-help p {
@@ -2493,4 +2508,40 @@ code.click-to-copy {
 
 .path-editor-help .manual-save-help {
   margin: var(--space-1) 0 var(--space-2);
+}
+
+/* The insertion dropdown and Live variables use the same compact list rows as
+   the Page sources pop-out, so variable/value pairs scan the same way. */
+.insert-menu-panel {
+  overflow: hidden;
+  padding: 0;
+}
+
+.tab-panel .insert-menu-panel input[type="text"] {
+  width: calc(100% - 2 * var(--space-2));
+  margin: var(--space-2);
+}
+
+.insert-menu-panel > button,
+.insert-menu-variable {
+  min-height: 32px;
+  padding: var(--space-1) var(--space-3);
+  border-bottom: 1px solid var(--panel-border);
+  border-radius: 0;
+}
+
+.insert-menu-variables {
+  max-height: 230px;
+  overflow-y: auto;
+}
+
+.insert-menu-variables .insert-menu-variable:last-child,
+.variables-preview-table tr:last-child td {
+  border-bottom: none;
+}
+
+.variables-preview-table td {
+  height: 32px;
+  box-sizing: border-box;
+  padding: var(--space-1) var(--space-3);
 }
