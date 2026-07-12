@@ -843,7 +843,7 @@
 
   "o_lDirectoryDefinitions": { "message": "Directory menu definitions" },
   "o_lDirectoryDefinitionsHelp": {
-    "message": "One relative directory or menu instruction per line."
+    "message": "One relative directory or menu instruction per line. Downloads save relative to the default download directory. Add // at the end for a comment; start with > to create nested submenus, using one > per level."
   },
   "o_lTextRules": { "message": "Text rules" },
   "o_lMatcher": { "message": "Matcher" },

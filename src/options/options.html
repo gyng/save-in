@@ -276,13 +276,15 @@
                 Note: You can only save relative to the default download directory. See the next
                 guide for a workaround.
               </p>
+              <details class="agent-prompt-guide">
+                <summary>Ask an AI agent to draft a downloads menu</summary>
+                <p class="caption">
+                  Copy this prompt, then replace the examples with your folders.
+                </p>
+                <pre class="click-to-copy">
+Create a Save In downloads-menu definition for these destinations: images by website, PDFs in documents, and a dated inbox. Use only relative paths. Return one menu instruction per line, use --- for separators, &gt; for nesting, and // (alias: name) for display labels. Explain the result, then return a final copy-ready block.</pre>
+              </details>
             </div>
-            <p>
-              __MSG_o_lDirectoryInstructionOnePerLine__
-              <code>.</code> __MSG_o_lDirectoryInstructionDot__
-              <code>//</code> __MSG_o_lDirectoryInstructionComment__
-              <code>&gt;</code> __MSG_o_lSubdirectoryInstructionComment__
-            </p>
           </div>
 
           <div id="paths-visual" hidden>
@@ -532,6 +534,15 @@ into: <span class="demo g4">:unixdate:</span>.<span class="demo g3">:fileext:</s
 cat.<span class="demo g3">gif</span> ➡ <span class="demo g4">1512136516</span>.<span class="demo g3">gif</span>
  </pre>
           </div>
+
+          <details class="agent-prompt-guide">
+            <summary>Ask an AI agent to draft routing rules</summary>
+            <p class="caption">
+              Copy this prompt into an agent, or use WebMCP from External integrations.
+            </p>
+            <pre class="click-to-copy">
+Create Save In routing rules for this goal: [describe how files should be matched, renamed, and organized]. Use one clause per line and a blank line between rules. Every rule must include into:. Preserve :filename: unless I explicitly request renaming. Use only documented matchers and variables. Explain each rule, validate likely regex mistakes, then return a final copy-ready block.</pre>
+          </details>
 
           <h4>__MSG_o_sGuideMovingDownloads__</h4>
 

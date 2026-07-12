@@ -107,4 +107,12 @@ describe("options form semantics", () => {
     expect(guide?.textContent).toContain("not a regular expression");
     expect(guide?.textContent).toContain("<scheme>://<host>/<path>");
   });
+
+  test("offers copy-ready AI prompts in both editor guides", () => {
+    const document = documentForOptions();
+    const prompts = document.querySelectorAll(".agent-prompt-guide pre.click-to-copy");
+    expect(prompts).toHaveLength(2);
+    expect(prompts[0]?.textContent).toContain("one menu instruction per line");
+    expect(prompts[1]?.textContent).toContain("Every rule must include into:");
+  });
 });
