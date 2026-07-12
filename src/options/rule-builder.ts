@@ -85,6 +85,8 @@ export const RuleBuilder = {
       container.replaceChildren();
       const syncs: Array<() => void> = [];
       const rows: HTMLElement[] = [];
+      let filter: HTMLInputElement | null = null;
+      let applyFilter = () => {};
       let category = "";
       let categoryList: HTMLElement | null = null;
 
@@ -137,10 +139,16 @@ export const RuleBuilder = {
         syncs.push(sync);
         sync();
 
-        add.addEventListener("click", () => {
+        add.addEventListener("click", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
           // Prepend the description as a comment (parseRules strips //-lines)
           // so the added rule is self-documenting in the textarea
           RuleBuilder.appendRule(textarea, `// ${tpl.name}: ${tpl.description}\n${tpl.rule}`);
+          if (filter?.value) {
+            filter.value = "";
+            applyFilter();
+          }
           syncs.forEach((fn) => fn());
           const feedback =
             (container.id === "rule-templates"
@@ -170,15 +178,15 @@ export const RuleBuilder = {
         categoryList?.appendChild(row);
       });
 
-      const filter =
+      filter =
         container.id === "rule-templates"
           ? document.querySelector<HTMLInputElement>(
               "#reference-dialog .reference-dialog-filter.rule-template-filter",
             ) || document.querySelector<HTMLInputElement>(".rule-template-filter")
           : container
               .closest(".rule-template-surface")
-              ?.querySelector<HTMLInputElement>(".rule-template-filter");
-      const applyFilter = () => {
+              ?.querySelector<HTMLInputElement>(".rule-template-filter") || null;
+      applyFilter = () => {
         const query = filter?.value.trim().toLocaleLowerCase() || "";
         rows.forEach(
           (row) => (row.hidden = Boolean(query) && !row.dataset.search?.includes(query)),

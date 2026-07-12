@@ -2092,12 +2092,15 @@ summary {
 
 .rule-template-rule {
   display: block;
+  max-width: 100%;
+  overflow-x: auto;
   margin-top: 2px;
   padding: 0;
   background: none;
   font-size: 11px;
   color: var(--grey50);
-  white-space: pre-wrap;
+  white-space: pre;
+  scrollbar-width: thin;
 }
 
 .rule-template-add {

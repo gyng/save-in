@@ -201,6 +201,24 @@ describe("template list rendering", () => {
     expect(document.querySelector<HTMLTextAreaElement>("#filenamePatterns")!.value).toContain(
       "sites/:sourcedomain:",
     );
+    expect(filter.value).toBe("");
+    expect(document.querySelectorAll(".rule-template:not([hidden])")).toHaveLength(
+      RULE_TEMPLATES.length,
+    );
+  });
+
+  test("Add consumes the card click instead of bubbling into surrounding search UI", () => {
+    const library = document.querySelector("#rule-templates")!;
+    const bubbled = vi.fn();
+    library.addEventListener("click", bubbled);
+    RuleBuilder.renderTemplates();
+
+    document.querySelector<HTMLButtonElement>(".rule-template-add")!.click();
+
+    expect(bubbled).not.toHaveBeenCalled();
+    expect(document.querySelector<HTMLTextAreaElement>("#filenamePatterns")!.value).toContain(
+      RULE_TEMPLATES[0].rule,
+    );
   });
 
   test("renders and synchronizes inline and dialog libraries", () => {
