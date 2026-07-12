@@ -244,4 +244,22 @@ describe("Page Sources panel interactions", () => {
     expect(rowLink.querySelector("img")).toBeNull();
     expect(rowLink.querySelector(".preview-fallback")?.textContent).toBe("▧");
   });
+
+  test("describes streaming playlists without relying on manifest jargon", () => {
+    vi.spyOn(performance, "getEntriesByType").mockReturnValue([
+      { name: "https://cdn.test/master.m3u8" } as PerformanceEntry,
+    ]);
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    const shadow = document.getElementById("save-in-source-panel")!.shadowRoot!;
+    const playlistFacet = [...shadow.querySelectorAll<HTMLButtonElement>(".facet")].find(
+      (button) => button.childNodes[0]?.textContent === "Playlist",
+    );
+
+    expect(playlistFacet).toBeDefined();
+    playlistFacet!.click();
+    expect(shadow.querySelector(".meta")?.textContent).toContain("stream");
+    expect(
+      [...shadow.querySelectorAll(".actions button")].map((button) => button.textContent),
+    ).toEqual(["Locate", "Save playlist", "Copy yt-dlp command"]);
+  });
 });

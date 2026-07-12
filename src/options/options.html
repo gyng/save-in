@@ -856,11 +856,13 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
       <hr />
 
       <h2 id="section-page-sources">__MSG_o_sPageSources__</h2>
-      <p>__MSG_o_lPageSourcesHelp__</p>
-      <div class="caption">__MSG_o_lPageSourcesNetworkLimit__</div>
+      <div class="source-panel-intro">
+        <p class="section-lead">__MSG_o_lPageSourcesHelp__</p>
+        <p class="caption section-note">__MSG_o_lPageSourcesNetworkLimit__</p>
+      </div>
 
       <fieldset class="option-group source-panel-settings">
-        <legend>__MSG_o_lSourcePanelDiscovery__</legend>
+        <legend class="option-group-heading">__MSG_o_lSourcePanelDiscovery__</legend>
         <label
           ><input type="checkbox" id="sourcePanelEnabled" /> __MSG_o_cSourcePanelEnabled__</label
         >
@@ -880,18 +882,20 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
       </fieldset>
 
       <fieldset class="option-group source-shortcut-settings">
-        <legend>__MSG_o_lSourcePanelShortcut__</legend>
-        <input
-          type="text"
-          id="sourcePanelShortcut"
-          data-runtime-control="true"
-          aria-label="__MSG_o_lSourcePanelShortcut__"
-          placeholder="Ctrl+Shift+Y"
-          spellcheck="false"
-        />
-        <button type="button" id="sourcePanelShortcutApply">__MSG_o_bApply__</button>
-        <button type="button" id="sourcePanelShortcutReset">__MSG_o_bReset__</button>
-        <span id="sourcePanelShortcutStatus" role="status"></span>
+        <legend class="option-group-heading">__MSG_o_lSourcePanelShortcut__</legend>
+        <div class="source-shortcut-controls">
+          <input
+            type="text"
+            id="sourcePanelShortcut"
+            data-runtime-control="true"
+            aria-label="__MSG_o_lSourcePanelShortcut__"
+            placeholder="Ctrl+Shift+Y"
+            spellcheck="false"
+          />
+          <button type="button" id="sourcePanelShortcutApply">__MSG_o_bApply__</button>
+          <button type="button" id="sourcePanelShortcutReset">__MSG_o_bReset__</button>
+          <span id="sourcePanelShortcutStatus" role="status"></span>
+        </div>
         <div class="caption caption-line">__MSG_o_lSourcePanelShortcutHelp__</div>
       </fieldset>
 

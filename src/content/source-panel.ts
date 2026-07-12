@@ -371,7 +371,11 @@ export const toggleSourcePanel = (
         const facet = document.createElement("button");
         facet.className = "facet";
         const label =
-          kindName === "all" ? "All" : `${kindName[0].toUpperCase()}${kindName.slice(1)}`;
+          kindName === "all"
+            ? "All"
+            : kindName === "stream"
+              ? "Playlist"
+              : `${kindName[0].toUpperCase()}${kindName.slice(1)}`;
         const facetCount = document.createElement("span");
         facetCount.className = "facet-count";
         facetCount.textContent = String(count);
@@ -389,7 +393,7 @@ export const toggleSourcePanel = (
       empty.className = "empty";
       empty.textContent = allSources.length
         ? `No ${activeKind === "all" ? "sources" : activeKind} match${filter.value ? ` “${filter.value}”` : " this facet"}.`
-        : "No DOM-visible media or stream manifests detected yet.";
+        : "No page media or streaming-video playlists detected yet.";
       list.append(empty);
       copyUrls.disabled = true;
       return;
@@ -511,18 +515,19 @@ export const toggleSourcePanel = (
         }
       });
       const save = document.createElement("button");
-      save.textContent = source.kind === "stream" ? "Save manifest" : "Save";
+      save.textContent = source.kind === "stream" ? "Save playlist" : "Save";
       save.addEventListener("click", () => sendDownload(source));
       actions.append(locate, save);
       if (source.kind === "stream") {
         const copy = document.createElement("button");
-        copy.textContent = "Copy yt-dlp";
+        copy.textContent = "Copy yt-dlp command";
+        copy.title = "Copy a command for yt-dlp to download the complete video";
         copy.addEventListener("click", () => {
           void navigator.clipboard
             .writeText(ytDlpCommand(source.url))
             .then(() => {
               copy.textContent = "Copied";
-              window.setTimeout(() => (copy.textContent = "Copy yt-dlp"), 1200);
+              window.setTimeout(() => (copy.textContent = "Copy yt-dlp command"), 1200);
             })
             .catch(() => {
               copy.textContent = "Copy failed";

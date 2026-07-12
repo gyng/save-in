@@ -316,16 +316,16 @@
     "message": "History"
   },
   "o_sPageSources": {
-    "message": "Page Sources"
+    "message": "Page sources"
   },
   "o_lPageSourcesHelp": {
-    "message": "Use the toolbar button to list images, video, and audio exposed by the current page. Saving a result uses your normal routing and renaming rules."
+    "message": "Browse images, video, audio, documents, and downloadable links found on the current page. Saved items use your normal routing and renaming rules."
   },
   "o_lPageSourcesNetworkLimit": {
-    "message": "Some players hide video behind blob URLs or JavaScript requests. Without webRequest, Save In cannot see every request; Resource Timing can still reveal some HLS/DASH manifests, but saving a manifest does not assemble its video segments."
+    "message": "Some video players use temporary URLs or load media through scripts, so Save In may not detect every video. It can sometimes find streaming-video playlists (HLS/DASH), but these files only list the separate video pieces; saving one does not save the complete video."
   },
   "o_cSourcePanelEnabled": {
-    "message": "Enable the toolbar source browser"
+    "message": "Enable Page sources"
   },
   "o_cSourcePanelBackgrounds": {
     "message": "Include CSS background images"
@@ -337,13 +337,13 @@
     "message": "Show image and video previews"
   },
   "o_cSourcePanelResourceHints": {
-    "message": "Look for HLS/DASH manifests in Resource Timing (best effort)"
+    "message": "Look for streaming-video playlists (HLS/DASH; best effort)"
   },
   "o_cSourcePanelLinks": {
     "message": "Include links, linked media, and PDF documents"
   },
   "o_lSourcePanelDiscovery": {
-    "message": "Discovery and display"
+    "message": "Sources and previews"
   },
   "o_lSourcePanelShortcut": {
     "message": "Keyboard shortcut"

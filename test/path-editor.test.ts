@@ -120,6 +120,12 @@ describe("visual editor", () => {
   const controls = (row: number, title: string) =>
     rows()[row]!.querySelector<HTMLElement>(`[title="${title}"]`)!;
 
+  test("styles visual Apply guidance like the text editor helper", () => {
+    const helper = document.querySelector<HTMLElement>(".path-editor-help .manual-save-help");
+
+    expect(helper?.textContent).toBe("Changes in this editor are saved when you select Apply.");
+  });
+
   test("renders one row per line, separators included", () => {
     expect(rows()).toHaveLength(3);
     expect(rows()[0]!.querySelector<HTMLInputElement>(".path-editor-dir")!.value).toBe("a");

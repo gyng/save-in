@@ -72,8 +72,8 @@ const DEMO_PAGE = `<!doctype html>
       <li>Filter, facet, sort, and resize the drawer. Alt+click a result to save immediately;
         right-click its title to use the normal Save In menu. Use <b>Copy URLs</b> after
         filtering and cycle the dock through right, bottom, left, and top.</li>
-      <li>Find the HLS manifest and use <b>Copy yt-dlp</b>. The demo playlist only exercises
-        manifest discovery; it is not a playable video.</li>
+      <li>Find the streaming-video playlist and use <b>Copy yt-dlp command</b>. This demo only
+        checks playlist discovery; it does not contain a playable video.</li>
     </ol>
     <p>
       <img src="${svg("corgi.svg", "#b5651d")}" alt="corgi" />
