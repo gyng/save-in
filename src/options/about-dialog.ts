@@ -29,6 +29,11 @@ export const setupAboutDialog = () => {
 
   const mascot = dialog.querySelector<HTMLButtonElement>(".about-mascot-button");
   let mascotClicks = 0;
+  const stopCelebration = () => {
+    mascotClicks = 0;
+    mascot?.classList.remove("is-celebrating");
+  };
+  dialog.addEventListener("close", stopCelebration);
   mascot?.addEventListener("click", () => {
     mascotClicks += 1;
     if (mascotClicks < 5) return;
@@ -36,7 +41,6 @@ export const setupAboutDialog = () => {
     mascot.classList.remove("is-celebrating");
     void mascot.offsetWidth;
     mascot.classList.add("is-celebrating");
-    window.setTimeout(() => mascot.classList.remove("is-celebrating"), 1800);
   });
 };
 

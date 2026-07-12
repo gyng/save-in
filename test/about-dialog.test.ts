@@ -17,8 +17,7 @@ test("opens and closes the About dialog", () => {
   expect(dialog.close).toHaveBeenCalledOnce();
 });
 
-test("five mascot clicks trigger the lucky-cat celebration", () => {
-  vi.useFakeTimers();
+test("five mascot clicks celebrate until the dialog closes", () => {
   document.body.innerHTML = `
     <button id="about-open">About</button>
     <dialog id="about-dialog">
@@ -32,9 +31,8 @@ test("five mascot clicks trigger the lucky-cat celebration", () => {
   mascot.click();
   expect(mascot.classList).toContain("is-celebrating");
   expect(document.body.textContent).not.toContain("Lucky cat power activated");
-  vi.advanceTimersByTime(1800);
+  document.querySelector("#about-dialog")!.dispatchEvent(new Event("close"));
   expect(mascot.classList).not.toContain("is-celebrating");
-  vi.useRealTimers();
 });
 
 test("shows runtime version and generated build metadata", async () => {
