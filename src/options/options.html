@@ -30,9 +30,13 @@
             <a href="#" data-reference-tab="options-reference-variables">__MSG_o_lVariableList__</a>
             <a href="#" data-reference-tab="options-reference-clauses">__MSG_o_lClauseList__</a>
             <a class="external" href="https://github.com/gyng/save-in/">__MSG_o_lGithub__</a>
+            <a class="external" href="https://github.com/gyng/save-in/issues">Issues</a>
+            <a class="external" href="https://github.com/gyng/save-in/discussions">Discussions</a>
+            <a class="external" href="https://github.com/gyng/save-in/wiki">Wiki</a>
             <a class="external" href="https://github.com/gyng/save-in/blob/master/CHANGELOG.md"
               >__MSG_o_lChangelog__</a
             >
+            <button type="button" id="about-open" class="nav-menu-link">About Save In</button>
           </div>
         </details>
       </div>
@@ -1272,6 +1276,51 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
           <p>Choose Add to place a complete rule in the routing editor.</p>
           <div id="rule-templates" class="rule-template-library"></div>
         </section>
+      </div>
+    </dialog>
+
+    <dialog id="about-dialog" class="about-dialog" aria-labelledby="about-title">
+      <button type="button" class="about-close" aria-label="Close About Save In">×</button>
+      <div class="about-layout">
+        <img
+          class="about-mascot"
+          src="assets/save-in-mascot.webp"
+          alt="A watercolor lucky cat carefully organizing documents, photographs, film, and books"
+        />
+        <div class="about-copy">
+          <h2 id="about-title">About Save In</h2>
+          <p>
+            Save In is a local-first downloads helper for organizing files with context-menu
+            destinations, routing rules, renaming, Page Sources, and download history.
+          </p>
+          <p>
+            Save In has no analytics, advertising, developer-operated server, or remote executable
+            code. Settings and history stay in browser-managed extension storage.
+          </p>
+          <h3>Why these permissions are needed</h3>
+          <dl class="permission-rationale">
+            <dt>Context menus</dt>
+            <dd>Shows Save In commands on pages, links, media, and tabs.</dd>
+            <dt>Downloads</dt>
+            <dd>Starts saves, chooses filenames, monitors results, and supports retries.</dd>
+            <dt>Notifications</dt>
+            <dd>Reports completed saves and actionable failures when enabled.</dd>
+            <dt>Storage</dt>
+            <dd>Keeps settings, routing rules, local history, and restart-safe state.</dd>
+            <dt>Offscreen</dt>
+            <dd>Lets Chrome convert fetched file data into temporary download URLs.</dd>
+            <dt>Website access</dt>
+            <dd>Finds and saves resources the user chooses on arbitrary websites.</dd>
+          </dl>
+          <div class="about-links">
+            <a href="../../PRIVACY.md" target="_blank">Privacy policy</a>
+            <a class="external" href="https://github.com/gyng/save-in/issues">Report an issue</a>
+            <a class="external" href="https://github.com/gyng/save-in/discussions"
+              >Ask the community</a
+            >
+            <a class="external" href="https://github.com/gyng/save-in/wiki">Documentation</a>
+          </div>
+        </div>
       </div>
     </dialog>
 

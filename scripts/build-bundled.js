@@ -33,6 +33,7 @@ fs.cpSync(path.join(root, "src"), path.join(out, "src"), {
   fs.cpSync(path.join(root, dir), path.join(out, dir), { recursive: true });
 });
 fs.copyFileSync(path.join(root, "LICENSE"), path.join(out, "LICENSE"));
+fs.copyFileSync(path.join(root, "PRIVACY.md"), path.join(out, "PRIVACY.md"));
 
 // 3. Drop the bundles at the package root
 for (const f of fs.readdirSync(path.join(root, "dist", "bundled"))) {

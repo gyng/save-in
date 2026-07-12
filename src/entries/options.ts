@@ -27,3 +27,4 @@ import "../options/tabs.ts";
 import "../options/option-search.ts";
 import "../options/source-shortcut.ts";
 import "../options/webmcp.ts";
+import "../options/about-dialog.ts";

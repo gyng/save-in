@@ -39,7 +39,7 @@ discarded by the browser or removed after it is no longer needed.
 
 Save In requests access to websites because its purpose is to save resources
 from websites chosen by the user. It uses browser download, context-menu,
-notification, storage, declarative network request, and Chrome offscreen APIs
+notification, storage, and Chrome offscreen APIs
 only to provide the saving, routing, status, and retry features described in
 the extension and store listings.
 
