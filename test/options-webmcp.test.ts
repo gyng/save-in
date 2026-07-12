@@ -28,6 +28,7 @@ describe("buildTools", () => {
     expect(byName.save_in_download.inputSchema.required).toEqual(["url"]);
     expect(byName.save_in_download.inputSchema.additionalProperties).toBe(false);
     expect(byName.save_in_apply_config.annotations?.readOnlyHint).toBe(false);
+    expect(byName.save_in_apply_config.annotations?.untrustedContentHint).toBe(true);
     expect(byName.save_in_validate_config.annotations?.readOnlyHint).toBe(true);
     const validationInfo = byName.save_in_validate_config.inputSchema.properties.info as {
       description: string;
@@ -36,6 +37,29 @@ describe("buildTools", () => {
     expect(validationInfo.description).toContain("srcUrl");
     expect(validationInfo.properties).toHaveProperty("srcUrl");
     expect(validationInfo.properties).toHaveProperty("url");
+    expect((validationInfo as { additionalProperties?: boolean }).additionalProperties).toBe(false);
+  });
+
+  test("keeps discovery metadata cloneable and within WebMCP character budgets", () => {
+    const tools = SaveInWebMCP.buildTools(vi.fn());
+    const visitSchema = (value: unknown) => {
+      if (!value || typeof value !== "object") return;
+      const record = value as Record<string, unknown>;
+      if (typeof record.description === "string")
+        expect(record.description.length).toBeLessThanOrEqual(150);
+      if (record.properties && typeof record.properties === "object") {
+        for (const [name, child] of Object.entries(record.properties)) {
+          expect(name.length).toBeLessThanOrEqual(30);
+          visitSchema(child);
+        }
+      }
+    };
+    for (const tool of tools) {
+      expect(tool.name.length).toBeLessThanOrEqual(30);
+      expect(tool.description.length).toBeLessThanOrEqual(500);
+      expect(() => structuredClone(tool.inputSchema)).not.toThrow();
+      visitSchema(tool.inputSchema);
+    }
   });
 
   test("execute handlers message the right background type", () => {
@@ -113,7 +137,48 @@ describe("buildTools", () => {
 
     await expect(
       byName.save_in_validate_config.execute({ info: { surprise: true } }),
-    ).resolves.toEqual({ ok: "VALIDATE" });
+    ).resolves.toEqual({
+      status: "ERROR",
+      errors: [{ field: "info.surprise", message: "Unknown property" }],
+    });
+  });
+
+  test("rejects adversarial non-JSON inputs without invoking the background", async () => {
+    const { send, byName } = toolsByName();
+    for (const input of [null, [], "oops", 42, true]) {
+      await expect(byName.save_in_download.execute(input as never)).resolves.toEqual({
+        status: "ERROR",
+        errors: [{ field: "$", message: "Expected an object" }],
+      });
+    }
+    const cyclic: Record<string, unknown> = {};
+    cyclic.self = cyclic;
+    await expect(byName.save_in_validate_config.execute(cyclic)).resolves.toEqual({
+      status: "ERROR",
+      errors: [{ field: "$", message: "Expected a JSON-compatible object" }],
+    });
+    await expect(
+      byName.save_in_validate_config.execute({ paths: "x".repeat(1_000_001) }),
+    ).resolves.toEqual({
+      status: "ERROR",
+      errors: [{ field: "$", message: "Input is too large" }],
+    });
+    expect(send).not.toHaveBeenCalled();
+  });
+
+  test("turns synchronous and asynchronous transport failures into stable results", async () => {
+    const syncTools = SaveInWebMCP.buildTools(() => {
+      throw new Error("extension context invalidated: secret detail");
+    });
+    const asyncTools = SaveInWebMCP.buildTools(() => Promise.reject(new Error("worker gone")));
+    await expect(syncTools[0].execute({})).resolves.toEqual({
+      status: "ERROR",
+      errors: [{ field: "$", message: "Save In is temporarily unavailable" }],
+    });
+    await expect(asyncTools[0].execute({})).resolves.toEqual({
+      status: "ERROR",
+      errors: [{ field: "$", message: "Save In is temporarily unavailable" }],
+    });
   });
 
   test("register reports successful registrations and isolates failures", async () => {
