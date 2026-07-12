@@ -43,6 +43,9 @@ test("keeps variables in Live variables and clauses in their own disclosure", ()
   const references = document.querySelector(".rules-editor .reference-sections")!;
   expect(
     [...references.children].map((child) => child.querySelector("summary")?.textContent?.trim()),
-  ).toEqual(["__MSG_o_lLiveVariables__", "__MSG_o_lClauses__"]);
+  ).toEqual(["__MSG_o_lLiveVariables__", "__MSG_o_lClauses__", "__MSG_o_lRuleTemplates__"]);
+  expect(
+    document.querySelector(".rules-editor .inline-template-library [data-rule-template-library]"),
+  ).not.toBeNull();
   expect(document.querySelector("#options-reference-templates #rule-templates")).not.toBeNull();
 });

@@ -71,121 +71,142 @@ export const RuleBuilder = {
   },
 
   renderTemplates: () => {
-    const container = document.querySelector("#rule-templates");
+    const containers = [
+      ...new Set(
+        document.querySelectorAll<HTMLElement>("[data-rule-template-library], #rule-templates"),
+      ),
+    ];
     const textarea = document.querySelector("#filenamePatterns") as HTMLTextAreaElement;
-    if (!container || !textarea) {
+    if (containers.length === 0 || !textarea) {
       return;
     }
 
-    container.replaceChildren();
-    const syncs: Array<() => void> = [];
-    const rows: HTMLElement[] = [];
-    let category = "";
-    let categoryList: HTMLElement | null = null;
+    containers.forEach((container) => {
+      container.replaceChildren();
+      const syncs: Array<() => void> = [];
+      const rows: HTMLElement[] = [];
+      let category = "";
+      let categoryList: HTMLElement | null = null;
 
-    RULE_TEMPLATES.forEach((tpl) => {
-      if (tpl.category !== category) {
-        category = tpl.category;
-        const section = document.createElement("section");
-        section.className = "rule-template-category";
-        const heading = document.createElement("h3");
-        heading.textContent = category;
-        categoryList = document.createElement("div");
-        categoryList.className = "rule-template-category-list";
-        section.append(heading, categoryList);
-        container.append(section);
-      }
-      const row = document.createElement("div");
-      row.className = "rule-template";
-      row.dataset.search =
-        `${tpl.name} ${tpl.description} ${tpl.example} ${tpl.rule}`.toLocaleLowerCase();
-      rows.push(row);
-
-      const body = document.createElement("div");
-      body.className = "rule-template-body";
-
-      const name = document.createElement("div");
-      name.className = "rule-template-name";
-      name.textContent = tpl.name;
-      body.appendChild(name);
-
-      const description = document.createElement("div");
-      description.className = "caption rule-template-desc";
-      description.textContent = tpl.description;
-      body.appendChild(description);
-
-      const example = document.createElement("div");
-      example.className = "caption rule-template-example";
-      example.textContent = tpl.example;
-      body.appendChild(example);
-
-      // Preserve the matcher/destination line break so the preview teaches the
-      // same grammar users see in the rules editor.
-      const ruleEl = document.createElement("pre");
-      ruleEl.className = "rule-template-rule";
-      ruleEl.textContent = tpl.rule;
-      body.appendChild(ruleEl);
-
-      const add = document.createElement("button");
-      add.type = "button";
-      add.className = "rule-template-add";
-
-      const sync = () => {
-        const present = textarea.value.includes(tpl.rule);
-        add.disabled = present;
-        add.textContent = present ? "Added" : "Add";
-      };
-      syncs.push(sync);
-      sync();
-
-      add.addEventListener("click", () => {
-        // Prepend the description as a comment (parseRules strips //-lines)
-        // so the added rule is self-documenting in the textarea
-        RuleBuilder.appendRule(textarea, `// ${tpl.name}: ${tpl.description}\n${tpl.rule}`);
-        syncs.forEach((fn) => fn());
-        const feedback = document.querySelector<HTMLElement>(".template-feedback");
-        if (feedback) {
-          feedback.replaceChildren(`Added “${tpl.name}”. `);
-          const view = document.createElement("button");
-          view.type = "button";
-          view.textContent = "View in rules editor";
-          view.addEventListener("click", () => {
-            document.querySelector<HTMLDialogElement>("#reference-dialog")?.close();
-            document.dispatchEvent(
-              new CustomEvent("save-in:navigate-option", { detail: { target: textarea } }),
-            );
-          });
-          feedback.append(view);
-          feedback.hidden = false;
+      RULE_TEMPLATES.forEach((tpl) => {
+        if (tpl.category !== category) {
+          category = tpl.category;
+          const section = document.createElement("section");
+          section.className = "rule-template-category";
+          const heading = document.createElement("h3");
+          heading.textContent = category;
+          categoryList = document.createElement("div");
+          categoryList.className = "rule-template-category-list";
+          section.append(heading, categoryList);
+          container.append(section);
         }
+        const row = document.createElement("div");
+        row.className = "rule-template";
+        row.dataset.search =
+          `${tpl.name} ${tpl.description} ${tpl.example} ${tpl.rule}`.toLocaleLowerCase();
+        rows.push(row);
+
+        const body = document.createElement("div");
+        body.className = "rule-template-body";
+
+        const name = document.createElement("div");
+        name.className = "rule-template-name";
+        name.textContent = tpl.name;
+        body.appendChild(name);
+
+        const description = document.createElement("div");
+        description.className = "caption rule-template-desc";
+        description.textContent = tpl.description;
+        body.appendChild(description);
+
+        const example = document.createElement("div");
+        example.className = "caption rule-template-example";
+        example.textContent = tpl.example;
+        body.appendChild(example);
+
+        // Preserve the matcher/destination line break so the preview teaches the
+        // same grammar users see in the rules editor.
+        const ruleEl = document.createElement("pre");
+        ruleEl.className = "rule-template-rule";
+        ruleEl.textContent = tpl.rule;
+        body.appendChild(ruleEl);
+
+        const add = document.createElement("button");
+        add.type = "button";
+        add.className = "rule-template-add";
+
+        const sync = () => {
+          const present = textarea.value.includes(tpl.rule);
+          add.disabled = present;
+          add.textContent = present ? "Added" : "Add";
+        };
+        syncs.push(sync);
+        sync();
+
+        add.addEventListener("click", () => {
+          // Prepend the description as a comment (parseRules strips //-lines)
+          // so the added rule is self-documenting in the textarea
+          RuleBuilder.appendRule(textarea, `// ${tpl.name}: ${tpl.description}\n${tpl.rule}`);
+          syncs.forEach((fn) => fn());
+          const feedback =
+            (container.id === "rule-templates"
+              ? document.querySelector<HTMLElement>("#reference-dialog .template-feedback")
+              : container
+                  .closest(".rule-template-surface")
+                  ?.querySelector<HTMLElement>(".template-feedback")) ||
+            document.querySelector<HTMLElement>(".template-feedback");
+          if (feedback) {
+            feedback.replaceChildren(`Added “${tpl.name}”. `);
+            const view = document.createElement("button");
+            view.type = "button";
+            view.textContent = "View in rules editor";
+            view.addEventListener("click", () => {
+              document.querySelector<HTMLDialogElement>("#reference-dialog")?.close();
+              document.dispatchEvent(
+                new CustomEvent("save-in:navigate-option", { detail: { target: textarea } }),
+              );
+            });
+            feedback.append(view);
+            feedback.hidden = false;
+          }
+        });
+
+        row.appendChild(body);
+        row.appendChild(add);
+        categoryList?.appendChild(row);
       });
 
-      row.appendChild(body);
-      row.appendChild(add);
-      categoryList?.appendChild(row);
-    });
-
-    const filter = document.querySelector<HTMLInputElement>(".rule-template-filter");
-    const applyFilter = () => {
-      const query = filter?.value.trim().toLocaleLowerCase() || "";
-      rows.forEach((row) => (row.hidden = Boolean(query) && !row.dataset.search?.includes(query)));
-      container.querySelectorAll<HTMLElement>(".rule-template-category").forEach((section) => {
-        section.hidden = !section.querySelector(".rule-template:not([hidden])");
+      const filter =
+        container.id === "rule-templates"
+          ? document.querySelector<HTMLInputElement>(
+              "#reference-dialog .reference-dialog-filter.rule-template-filter",
+            ) || document.querySelector<HTMLInputElement>(".rule-template-filter")
+          : container
+              .closest(".rule-template-surface")
+              ?.querySelector<HTMLInputElement>(".rule-template-filter");
+      const applyFilter = () => {
+        const query = filter?.value.trim().toLocaleLowerCase() || "";
+        rows.forEach(
+          (row) => (row.hidden = Boolean(query) && !row.dataset.search?.includes(query)),
+        );
+        container.querySelectorAll<HTMLElement>(".rule-template-category").forEach((section) => {
+          section.hidden = !section.querySelector(".rule-template:not([hidden])");
+        });
+      };
+      filter?.addEventListener("input", applyFilter);
+      filter?.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter") return;
+        const first = rows.find((row) => !row.hidden)?.querySelector<HTMLButtonElement>("button");
+        if (!first) return;
+        event.preventDefault();
+        first.click();
       });
-    };
-    filter?.addEventListener("input", applyFilter);
-    filter?.addEventListener("keydown", (event) => {
-      if (event.key !== "Enter") return;
-      const first = rows.find((row) => !row.hidden)?.querySelector<HTMLButtonElement>("button");
-      if (!first) return;
-      event.preventDefault();
-      first.click();
-    });
 
-    textarea.addEventListener("input", () => syncs.forEach((fn) => fn()));
-    // restoreOptions fills the textarea programmatically (no input event);
-    // re-check the Added states once options have had a chance to load
-    window.setTimeout(() => syncs.forEach((fn) => fn()), 1000);
+      textarea.addEventListener("input", () => syncs.forEach((fn) => fn()));
+      // restoreOptions fills the textarea programmatically (no input event);
+      // re-check the Added states once options have had a chance to load
+      window.setTimeout(() => syncs.forEach((fn) => fn()), 1000);
+    });
   },
 };
 

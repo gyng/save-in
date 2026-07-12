@@ -203,4 +203,36 @@ describe("template list rendering", () => {
       "sites/:sourcedomain:",
     );
   });
+
+  test("renders and synchronizes inline and dialog libraries", () => {
+    document.body.innerHTML = `
+      <textarea id="filenamePatterns"></textarea>
+      <div class="rule-template-surface">
+        <input class="rule-template-filter">
+        <div class="template-feedback" hidden></div>
+        <div data-rule-template-library></div>
+      </div>
+      <dialog id="reference-dialog">
+        <input class="reference-dialog-filter rule-template-filter">
+        <div class="template-feedback" hidden></div>
+        <div id="rule-templates" data-rule-template-library></div>
+      </dialog>`;
+
+    RuleBuilder.renderTemplates();
+    expect(document.querySelectorAll(".rule-template")).toHaveLength(RULE_TEMPLATES.length * 2);
+
+    document
+      .querySelector<HTMLButtonElement>("[data-rule-template-library] .rule-template-add")!
+      .click();
+    const firstButtons = [
+      ...document.querySelectorAll<HTMLElement>("[data-rule-template-library]"),
+    ].map((library) => library.querySelector<HTMLButtonElement>(".rule-template-add")!);
+    expect(firstButtons).toHaveLength(2);
+    expect(firstButtons.every((button) => button.disabled && button.textContent === "Added")).toBe(
+      true,
+    );
+    expect(
+      document.querySelector<HTMLElement>(".rule-template-surface .template-feedback")?.hidden,
+    ).toBe(false);
+  });
 });

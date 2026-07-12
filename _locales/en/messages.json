@@ -293,19 +293,19 @@
   },
 
   "o_sSaveAsShortcuts": {
-    "message": "Save As Shortcuts"
+    "message": "Shortcut Files"
   },
 
   "o_sKeyboardShortcuts": {
-    "message": "Keyboard Shortcuts"
+    "message": "Keyboard and Mouse Shortcuts"
   },
 
   "o_sContextMenu": {
-    "message": "Context Menu"
+    "message": "Context Menu Access Keys"
   },
 
   "o_sClickToSave": {
-    "message": "Click To Save"
+    "message": "Click-to-save Gesture"
   },
 
   "o_sMoreOptions": {

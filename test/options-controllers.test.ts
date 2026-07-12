@@ -40,6 +40,7 @@ describe("shortcut option guidance", () => {
       <input type="checkbox" id="shortcutTab">
       <select id="shortcutType"><option value="MAC_WEBLOC" selected>webloc</option></select>
       <span id="shortcut-format-preview"></span>
+      <input type="checkbox" id="contentClickToSave" checked>
       <input id="contentClickToSaveCombo" value="">
       <select id="contentClickToSaveButton"><option value="LEFT_CLICK">left</option></select>
       <div id="click-to-save-warning" hidden></div>`;

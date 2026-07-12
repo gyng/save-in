@@ -708,6 +708,21 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
                   </button>
                 </div>
               </details>
+
+              <details class="inline-template-library rule-template-surface" open>
+                <summary>__MSG_o_lRuleTemplates__</summary>
+                <div class="inline-template-library-content">
+                  <input
+                    type="search"
+                    class="rule-template-filter"
+                    placeholder="Filter templates"
+                    aria-label="Filter routing templates"
+                    spellcheck="false"
+                  />
+                  <div class="template-feedback" role="status" aria-live="polite" hidden></div>
+                  <div class="rule-template-library" data-rule-template-library></div>
+                </div>
+              </details>
             </div>
           </div>
 
@@ -762,68 +777,77 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
       <hr />
 
       <h2 id="section-notifications">__MSG_o_sNotifications__</h2>
-      <label> <input type="checkbox" id="notifyOnSuccess" /> __MSG_o_cNotifySuccess__ </label>
-
-      <label> <input type="checkbox" id="notifyOnFailure" /> __MSG_o_cNotifyFailure__ </label>
-
-      <label> <input type="checkbox" id="notifyOnRuleMatch" /> __MSG_o_cNotifyMatch__ </label>
-
-      <label>
-        <input type="checkbox" id="notifyOnLinkPreferred" />
-        __MSG_o_cNotifyLinkPreferred__
-      </label>
-
-      <label>
-        __MSG_o_cNotifyCloseAfter__
-        <input type="number" id="notifyDuration" min="0" step="100" inputmode="numeric" /> ms
-        <div class="caption caption-line">0 uses the browser or operating system default.</div>
-      </label>
+      <p class="section-lead">Choose which download events should interrupt you.</p>
+      <fieldset class="option-group notification-options">
+        <legend class="option-group-heading">Notify me when</legend>
+        <div class="option-choice-grid">
+          <label> <input type="checkbox" id="notifyOnSuccess" /> __MSG_o_cNotifySuccess__ </label>
+          <label> <input type="checkbox" id="notifyOnFailure" /> __MSG_o_cNotifyFailure__ </label>
+          <label> <input type="checkbox" id="notifyOnRuleMatch" /> __MSG_o_cNotifyMatch__ </label>
+          <label>
+            <input type="checkbox" id="notifyOnLinkPreferred" />
+            __MSG_o_cNotifyLinkPreferred__
+          </label>
+        </div>
+        <div class="option-subcontrol notification-timing">
+          <label for="notifyDuration">Dismiss early after</label>
+          <span class="unit-control">
+            <input type="number" id="notifyDuration" min="0" step="100" inputmode="numeric" />
+            <span>ms</span>
+          </span>
+          <span class="caption">0 leaves dismissal to the browser or operating system.</span>
+        </div>
+      </fieldset>
 
       <hr />
 
       <h2 id="section-save-as-shortcuts">__MSG_o_sSaveAsShortcuts__</h2>
       <p class="section-lead">Save a small link file instead of downloading the target.</p>
       <fieldset class="option-group shortcut-file-options">
-        <legend class="option-group-heading">Use shortcut files for</legend>
-        <label>
-          <input type="checkbox" id="shortcutMedia" />
-          __MSG_o_cSaveShortcutsMediaInstead__
-        </label>
-        <label>
-          <input type="checkbox" id="shortcutLink" />
-          __MSG_o_cSaveShortcutsLinksInstead__
-        </label>
-        <label>
-          <input type="checkbox" id="shortcutPage" />
-          __MSG_o_cSaveShortcutsPagesInstead__
-        </label>
-        <label>
-          <input
-            type="checkbox"
-            id="shortcutTab"
-            class="tab-context-required"
-            aria-describedby="shortcut-tab-context-requirement"
-          />__MSG_o_cSaveShortcutsTabsInstead__
-          <span
-            class="warning badge chrome-tab-context-badge"
-            id="shortcut-tab-context-requirement"
-            hidden
-            >Chrome 150+</span
-          >
-        </label>
+        <legend class="option-group-heading">Shortcut file behavior</legend>
+        <div class="option-subcontrol shortcut-format-control">
+          <label for="shortcutType">__MSG_o_cSaveShortcutsAs__</label>
+          <select id="shortcutType">
+            <option value="HTML_REDIRECT">__MSG_o_cSaveShortcutsTypeHtml__</option>
+            <option value="MAC">__MSG_o_cSaveShortcutsTypeMac__</option>
+            <option value="MAC_WEBLOC">__MSG_o_cSaveShortcutsTypeMacWebloc__</option>
+            <option value="WINDOWS">__MSG_o_cSaveShortcutsTypeWindows__</option>
+            <option value="FREEDESKTOP">__MSG_o_cSaveShortcutsTypeFreedesktop__</option>
+          </select>
+          <span id="shortcut-format-preview" class="caption"></span>
+        </div>
+        <div class="option-subgroup">
+          <h3>Save these as shortcut files</h3>
+          <div class="option-choice-grid">
+            <label>
+              <input type="checkbox" id="shortcutMedia" />
+              __MSG_o_cSaveShortcutsMediaInstead__
+            </label>
+            <label>
+              <input type="checkbox" id="shortcutLink" />
+              __MSG_o_cSaveShortcutsLinksInstead__
+            </label>
+            <label>
+              <input type="checkbox" id="shortcutPage" />
+              __MSG_o_cSaveShortcutsPagesInstead__
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                id="shortcutTab"
+                class="tab-context-required"
+                aria-describedby="shortcut-tab-context-requirement"
+              />__MSG_o_cSaveShortcutsTabsInstead__
+              <span
+                class="warning badge chrome-tab-context-badge"
+                id="shortcut-tab-context-requirement"
+                hidden
+                >Chrome 150+</span
+              >
+            </label>
+          </div>
+        </div>
       </fieldset>
-
-      <label class="shortcut-format-control">
-        __MSG_o_cSaveShortcutsAs__
-        <select id="shortcutType">
-          <option value="HTML_REDIRECT">__MSG_o_cSaveShortcutsTypeHtml__</option>
-          <option value="MAC">__MSG_o_cSaveShortcutsTypeMac__</option>
-          <option value="MAC_WEBLOC">__MSG_o_cSaveShortcutsTypeMacWebloc__</option>
-          <option value="WINDOWS">__MSG_o_cSaveShortcutsTypeWindows__</option>
-          <option value="FREEDESKTOP">__MSG_o_cSaveShortcutsTypeFreedesktop__</option>
-        </select>
-        <span id="shortcut-format-preview" class="caption"></span>
-      </label>
 
       <hr />
 
@@ -1349,7 +1373,7 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
           hidden
         >
           <p>Choose Add to place a complete rule in the routing editor.</p>
-          <div id="rule-templates" class="rule-template-library"></div>
+          <div id="rule-templates" class="rule-template-library" data-rule-template-library></div>
         </section>
       </div>
     </dialog>
