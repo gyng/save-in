@@ -1,8 +1,66 @@
 import { clauseGroup, variableGroup } from "./vocabulary-groups.ts";
+import { webExtensionApi } from "../platform/web-extension-api.ts";
 
 type CopyText = (text: string) => Promise<void>;
+type ReferenceKind = "variables" | "clauses";
+type RuntimeVocabulary = { variables: string[]; matchers: string[] };
 
-export const groupReferenceRows = (root: ParentNode, kind: "variables" | "clauses") => {
+const referenceSyntax = (row: HTMLTableRowElement) =>
+  row.querySelector("code")?.textContent?.trim() || "";
+
+export const syncReferenceVocabulary = (
+  root: ParentNode,
+  kind: ReferenceKind,
+  runtimeTerms: string[],
+) => {
+  const rows = [
+    ...root.querySelectorAll<HTMLTableRowElement>("tbody tr:not(.reference-group-row), table > tr"),
+  ];
+  if (!rows.length) return;
+  const bySyntax = new Map(rows.map((row) => [referenceSyntax(row), row]));
+  const required = new Set(runtimeTerms);
+  if (kind === "variables") required.add(":$1:");
+  else {
+    required.add("into:");
+    required.add("capture:");
+  }
+
+  rows.forEach((row) => {
+    if (!required.has(referenceSyntax(row))) row.remove();
+  });
+
+  const target = rows[0].parentElement;
+  if (!target) return;
+  for (const syntax of required) {
+    if (bySyntax.has(syntax)) continue;
+    const row = target.ownerDocument.createElement("tr");
+    const syntaxCell = target.ownerDocument.createElement("td");
+    const code = target.ownerDocument.createElement("code");
+    code.className = "click-to-copy";
+    code.textContent = syntax;
+    syntaxCell.append(code);
+    const example = target.ownerDocument.createElement("td");
+    const meaning = target.ownerDocument.createElement("td");
+    meaning.textContent = kind === "variables" ? "Runtime variable" : "Runtime rule matcher";
+    row.append(syntaxCell, example, meaning);
+    target.append(row);
+  }
+};
+
+const loadRuntimeVocabulary = async (): Promise<RuntimeVocabulary | null> => {
+  try {
+    const response = await webExtensionApi.runtime.sendMessage({ type: "GET_KEYWORDS" });
+    const body = response?.body;
+    if (!Array.isArray(body?.variables) || !Array.isArray(body?.matchers)) return null;
+    return { variables: body.variables, matchers: body.matchers };
+  } catch {
+    // The authored rows remain a complete offline fallback if the background is unavailable.
+    return null;
+  }
+};
+
+export const groupReferenceRows = (root: ParentNode, kind: ReferenceKind) => {
+  root.querySelectorAll(".reference-group-row").forEach((row) => row.remove());
   root.querySelectorAll<HTMLTableElement>("table").forEach((table) => {
     let lastGroup = "";
     [...table.querySelectorAll<HTMLTableRowElement>(":scope > tbody > tr, :scope > tr")].forEach(
@@ -129,6 +187,7 @@ export const setupReferencePage = (root: Document = document, copy: CopyText = d
   };
 
   const tabs = [...root.querySelectorAll<HTMLButtonElement>('[role="tab"][aria-controls]')];
+  const runtimeVocabulary = loadRuntimeVocabulary();
   const selectTab = async (tab: HTMLButtonElement) => {
     const panel = root.querySelector<HTMLElement>(`#${tab.getAttribute("aria-controls")}`);
     if (!panel) return;
@@ -137,6 +196,8 @@ export const setupReferencePage = (root: Document = document, copy: CopyText = d
       const source = new DOMParser().parseFromString(await response.text(), "text/html");
       panel.innerHTML = source.querySelector("#help-clause-list")?.innerHTML || "";
       panel.dataset.loaded = "true";
+      const vocabulary = await runtimeVocabulary;
+      if (vocabulary) syncReferenceVocabulary(panel, "clauses", vocabulary.matchers.map((x) => `${x}:`));
       groupReferenceRows(panel, "clauses");
       enhanceReferenceTables(root);
     }
@@ -151,6 +212,13 @@ export const setupReferencePage = (root: Document = document, copy: CopyText = d
     updateFilter();
   };
   tabs.forEach((tab) => tab.addEventListener("click", () => void selectTab(tab)));
+  void runtimeVocabulary.then((vocabulary) => {
+    if (!vocabulary || !variablesPanel) return;
+    syncReferenceVocabulary(variablesPanel, "variables", vocabulary.variables);
+    groupReferenceRows(variablesPanel, "variables");
+    enhanceReferenceTables(root);
+    updateFilter();
+  });
   if (location.hash === "#clauses") {
     const clausesTab = tabs.find(
       (tab) => tab.getAttribute("aria-controls") === "reference-clauses",

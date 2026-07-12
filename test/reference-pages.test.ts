@@ -4,6 +4,7 @@ import {
   filterReferenceRows,
   groupReferenceRows,
   setupReferencePage,
+  syncReferenceVocabulary,
 } from "../src/options/reference-page.ts";
 
 const parse = (name: string) =>
@@ -15,7 +16,7 @@ const parse = (name: string) =>
 describe.each(["variablelist", "clauselist"])("%s reference surface", (name) => {
   test("has navigation, search, copy status, and responsive reference styling", () => {
     const document = parse(name);
-    expect(document.querySelector(".reference-nav")).not.toBeNull();
+    expect(document.querySelector('a[href="options.html"]')).toBeNull();
     expect(document.querySelector<HTMLInputElement>(".reference-search")?.type).toBe("search");
     expect(document.querySelector('[role="status"][aria-live="polite"]')).not.toBeNull();
     expect(document.querySelector('link[href="reference.css"]')).not.toBeNull();
@@ -33,6 +34,10 @@ describe.each(["variablelist", "clauselist"])("%s reference surface", (name) => 
       expect(table.querySelectorAll('thead th[scope="col"]').length).toBeGreaterThan(0);
       expect(table.querySelectorAll('tbody th[scope="row"]').length).toBeGreaterThan(0);
     }
+  });
+
+  test("does not repeat the active reference name as an in-panel heading", () => {
+    expect(parse(name).querySelector(".reference-panel > h2, #help-clause-list > h2")).toBeNull();
   });
 });
 
@@ -63,6 +68,16 @@ describe("reference controller", () => {
     expect(token.getAttribute("role")).toBe("button");
     token.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
     expect(token.getAttribute("aria-label")).toContain(":date:");
+  });
+
+  test("syncs rows to the runtime vocabulary and adds fallbacks for new terms", () => {
+    syncReferenceVocabulary(document, "variables", [":date:", ":newvalue:"]);
+    const tokens = [...document.querySelectorAll("tbody tr code:first-child")].map((node) =>
+      node.textContent?.trim(),
+    );
+    expect(tokens).toEqual([":date:", ":newvalue:", ":$1:"]);
+    expect(document.body.textContent).toContain("Runtime variable");
+    expect(document.body.textContent).not.toContain(":sourceurl:");
   });
 });
 
