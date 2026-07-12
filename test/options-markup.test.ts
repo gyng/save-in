@@ -130,6 +130,8 @@ describe("options form semantics", () => {
       expect.arrayContaining(["External download API", "WebMCP __MSG_o_lExperimental__"]),
     );
     expect(document.body.textContent).toContain("Greasemonkey");
+    expect(document.body.textContent).toContain("Video DownloadHelper");
+    expect(document.body.textContent).toContain("does not adopt downloads already started");
   });
 
   test("explains match patterns where browser-download filters are configured", () => {

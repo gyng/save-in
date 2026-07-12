@@ -98,6 +98,21 @@ toolbar action, or context-menu command fires. Firefox uses the stable Gecko ID
 shown above; Chrome callers should use the installed Web Store ID shown in Save
 In's **More options → External integrations** section.
 
+### Video DownloadHelper and downloader extensions
+
+The ordinary-browser-download integration does not adopt a download that was
+started by another extension. That boundary avoids stealing or duplicating a
+download whose initiating extension may own request state, retries, or a native
+companion workflow. It means a Video DownloadHelper download will not be routed
+merely by enabling **Browser downloads** in Save In.
+
+Video DownloadHelper does not expose a stable public inter-extension API that
+Save In can call directly. A cooperating downloader—or a small relay
+WebExtension—can instead send the versioned `DOWNLOAD` message above before it
+starts its own download, giving Save In the URL and page context explicitly.
+For streaming playlists discovered on a page, Page Sources also offers **Copy
+yt-dlp command** as a local hand-off that needs no native-messaging permission.
+
 ### Userscript relay shape
 
 If a page userscript is essential, keep the privileged part in a tiny companion

@@ -1325,6 +1325,12 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
             receive cross-extension messaging access. Use a small companion WebExtension as a relay,
             or have the userscript hand the URL to an extension that exposes that ability.
           </div>
+          <div class="caption caption-line">
+            Save In does not adopt downloads already started by another extension, including Video
+            DownloadHelper. The downloader must send Save In's <code>DOWNLOAD</code> message first,
+            or a small relay extension must do so; Video DownloadHelper does not expose a stable
+            integration API that Save In can call directly.
+          </div>
         </details>
       </div>
 
