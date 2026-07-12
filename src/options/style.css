@@ -1476,9 +1476,25 @@ summary {
 }
 
 .rule-templates-panel {
-  max-height: 40vh;
-  overflow-y: auto;
+  position: relative;
   margin: 0;
+}
+
+.rule-templates-dropdown {
+  position: absolute;
+  z-index: 20;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  box-sizing: border-box;
+  max-height: 320px;
+  overflow-y: auto;
+  margin-top: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  background: var(--page-bg);
+  box-shadow: 0 8px 24px rgba(20, 30, 50, 0.16);
 }
 
 .rule-template {
