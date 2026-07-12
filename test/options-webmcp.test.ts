@@ -123,9 +123,27 @@ describe("buildTools", () => {
       status: "ERROR",
       errors: [{ field: "config", message: "Expected an object" }],
     });
+    await expect(byName.save_in_apply_config.execute({ config: {} })).resolves.toEqual({
+      status: "ERROR",
+      errors: [{ field: "config", message: "Provide at least one setting" }],
+    });
+    await expect(byName.save_in_validate_config.execute({})).resolves.toEqual({
+      status: "ERROR",
+      errors: [{ field: "$", message: "Provide paths or filenamePatterns" }],
+    });
+    await expect(
+      byName.save_in_validate_config.execute({ info: { filename: "cat.jpg" } }),
+    ).resolves.toEqual({
+      status: "ERROR",
+      errors: [{ field: "$", message: "Provide paths or filenamePatterns" }],
+    });
     await expect(byName.save_in_download.execute({ url: "" })).resolves.toEqual({
       status: "ERROR",
       errors: [{ field: "url", message: "Expected a non-empty string" }],
+    });
+    await expect(byName.save_in_download.execute({ url: "javascript:alert(1)" })).resolves.toEqual({
+      status: "ERROR",
+      errors: [{ field: "url", message: "Use an http, https, ftp, data, or blob URL" }],
     });
     await expect(
       byName.save_in_download.execute({ url: "https://x/a.png", destination: "elsewhere" }),
@@ -140,6 +158,22 @@ describe("buildTools", () => {
     ).resolves.toEqual({
       status: "ERROR",
       errors: [{ field: "info.surprise", message: "Unknown property" }],
+    });
+  });
+
+  test("normalizes surrounding URL whitespace before starting a download", async () => {
+    const { send, byName } = toolsByName();
+    await byName.save_in_download.execute({
+      url: "  https://x/a.png  ",
+      pageUrl: "  https://x/page  ",
+    });
+    expect(send).toHaveBeenCalledWith({
+      type: "DOWNLOAD",
+      body: {
+        url: "https://x/a.png",
+        info: { pageUrl: "https://x/page", srcUrl: "https://x/a.png" },
+        comment: undefined,
+      },
     });
   });
 
@@ -179,6 +213,13 @@ describe("buildTools", () => {
       status: "ERROR",
       errors: [{ field: "$", message: "Save In is temporarily unavailable" }],
     });
+    for (const empty of [undefined, null]) {
+      const emptyTools = SaveInWebMCP.buildTools(() => Promise.resolve(empty));
+      await expect(emptyTools[0].execute({})).resolves.toEqual({
+        status: "ERROR",
+        errors: [{ field: "$", message: "Save In is temporarily unavailable" }],
+      });
+    }
   });
 
   test("register reports successful registrations and isolates failures", async () => {

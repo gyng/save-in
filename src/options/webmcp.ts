@@ -1,4 +1,5 @@
 import { webExtensionApi } from "../platform/web-extension-api.ts";
+import { withUrl } from "../shared/util.ts";
 
 type WebMcpInput = Record<string, unknown> | null | undefined;
 type WebMcpMessage = { type: string; body?: unknown };
@@ -92,6 +93,14 @@ const TRACE_STRING_FIELDS = [
   "comment",
 ];
 const TRACE_PROPERTIES = new Set(TRACE_STRING_FIELDS);
+const hasOwn = (input: Record<string, unknown>, key: string) =>
+  Object.prototype.hasOwnProperty.call(input, key);
+const isValidDownloadUrl = (url: string) =>
+  withUrl(
+    url,
+    (parsed) => ["http:", "https:", "ftp:", "data:", "blob:"].includes(parsed.protocol),
+    false,
+  );
 
 // EXPERIMENTAL — WebMCP (Chrome origin trial, https://developer.chrome.com/docs/ai/webmcp).
 // Registers save-in's config + download tools on this page's document so an
@@ -190,6 +199,9 @@ export const SaveInWebMCP = {
             );
             if (infoError) return inputError(`info.${infoError.field}`, infoError.message);
           }
+          if (!input || (!hasOwn(input, "paths") && !hasOwn(input, "filenamePatterns"))) {
+            return inputError("$", "Provide paths or filenamePatterns");
+          }
           return send({ type: "VALIDATE", body: input || {} });
         },
       },
@@ -220,6 +232,9 @@ export const SaveInWebMCP = {
           ) {
             return inputError("config", "Expected an object");
           }
+          if (Object.keys(input.config).length === 0) {
+            return inputError("config", "Provide at least one setting");
+          }
           return send({ type: "APPLY_CONFIG", body: { config: input.config } });
         },
       },
@@ -230,7 +245,10 @@ export const SaveInWebMCP = {
         inputSchema: {
           type: "object",
           properties: {
-            url: { type: "string", description: "The URL to save" },
+            url: {
+              type: "string",
+              description: "An http, https, ftp, data, or blob URL to save",
+            },
             pageUrl: { type: "string", description: "The page the URL came from" },
             comment: { type: "string", description: "Free text, targetable in routing rules" },
           },
@@ -246,11 +264,16 @@ export const SaveInWebMCP = {
           }
           const error = firstInvalidOptionalString(input, ["pageUrl", "comment"]);
           if (error) return inputError(error.field, error.message);
+          const url = input.url.trim();
+          if (!isValidDownloadUrl(url)) {
+            return inputError("url", "Use an http, https, ftp, data, or blob URL");
+          }
+          const pageUrl = typeof input.pageUrl === "string" ? input.pageUrl.trim() : undefined;
           return send({
             type: "DOWNLOAD",
             body: {
-              url: input.url,
-              info: { pageUrl: input.pageUrl, srcUrl: input.url },
+              url,
+              info: { pageUrl: pageUrl || undefined, srcUrl: url },
               comment: input.comment,
             },
           });
@@ -265,7 +288,9 @@ export const SaveInWebMCP = {
           return inputError(prepared.error.field, prepared.error.message);
         }
         try {
-          return Promise.resolve(tool.execute(prepared.input)).catch(unavailableError);
+          return Promise.resolve(tool.execute(prepared.input))
+            .then((result) => (result == null ? unavailableError() : result))
+            .catch(unavailableError);
         } catch {
           return Promise.resolve(unavailableError());
         }
