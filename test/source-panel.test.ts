@@ -139,8 +139,10 @@ describe("Page Sources panel interactions", () => {
     const imageFacet = [...shadow!.querySelectorAll<HTMLButtonElement>(".facet")].find((button) =>
       button.textContent?.startsWith("Image"),
     );
-    expect(imageFacet?.textContent).toBe("Image (1)");
+    expect(imageFacet?.childNodes[0]?.textContent).toBe("Image");
+    expect(imageFacet?.querySelector(".facet-count")?.textContent).toBe("1");
     imageFacet!.click();
+    expect(shadow!.querySelector("h2")?.textContent).toBe("Page sources");
     shadow!.querySelector<HTMLButtonElement>(".copy-urls")!.click();
     await Promise.resolve();
 
@@ -165,17 +167,16 @@ describe("Page Sources panel interactions", () => {
 
     expect(styles).toMatch(/\.facets\{[^}]*flex-wrap:wrap/);
     expect(styles).not.toMatch(/\.facets\{[^}]*overflow:auto/);
-    expect(
-      [...shadow.querySelectorAll<HTMLButtonElement>(".header-actions button")].map((button) => [
-        button.getAttribute("aria-label"),
-        button.textContent,
-      ]),
-    ).toEqual([
-      ["Copy filtered source URLs", "⧉"],
-      ["Change panel dock position", "◫"],
-      ["Pop out Page Sources", "↗"],
-      ["Close Page Sources", "×"],
+    const actions = [...shadow.querySelectorAll<HTMLButtonElement>(".header-actions button")];
+    expect(actions.map((button) => button.getAttribute("aria-label"))).toEqual([
+      "Copy filtered source URLs",
+      "Change panel dock position",
+      "Pop out Page Sources",
+      "Close Page Sources",
     ]);
+    expect(
+      actions.every((button) => button.textContent === "" && Boolean(button.querySelector("svg"))),
+    ).toBe(true);
   });
 
   test("pops the drawer into a draggable floating panel", () => {
@@ -222,5 +223,20 @@ describe("Page Sources panel interactions", () => {
     expect(detected.textContent).toBe("#1");
     expect(detected.title).toMatch(/^Detected at /);
     expect(detected.title).not.toContain("#1");
+  });
+
+  test("uses the full compact result body as a link and replaces broken previews", () => {
+    document.body.innerHTML = `<img src="missing.jpg">`;
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    const shadow = document.getElementById("save-in-source-panel")!.shadowRoot!;
+    const rowLink = shadow.querySelector<HTMLAnchorElement>(".source-link")!;
+    const preview = rowLink.querySelector<HTMLImageElement>("img")!;
+
+    expect(rowLink.href).toBe("http://localhost/missing.jpg");
+    expect(rowLink.querySelector(".name")?.tagName).toBe("SPAN");
+    preview.dispatchEvent(new Event("error"));
+
+    expect(rowLink.querySelector("img")).toBeNull();
+    expect(rowLink.querySelector(".preview-fallback")?.textContent).toBe("▧");
   });
 });

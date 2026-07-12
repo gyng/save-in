@@ -135,6 +135,26 @@ export const collectPageSources = (
 
 const PANEL_HOST_ID = "save-in-source-panel";
 const panelObservers = new WeakMap<Element, MutationObserver>();
+const ICON_PATHS = {
+  copy: ["M8 8h10v10H8z", "M5 15H3V3h12v2"],
+  dock: ["M3 4h18v16H3z", "M15 4v16"],
+  popout: ["M13 4h7v7", "M20 4 10 14", "M17 13v7H4V7h7"],
+  close: ["m6 6 12 12", "m18 6-12 12"],
+  check: ["m5 12 4 4L19 6"],
+  error: ["M12 8v5", "M12 17h.01", "M4 20h16L12 4z"],
+} as const;
+
+const setButtonIcon = (button: HTMLButtonElement, icon: keyof typeof ICON_PATHS) => {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("viewBox", "0 0 24 24");
+  svg.setAttribute("aria-hidden", "true");
+  ICON_PATHS[icon].forEach((pathData) => {
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", pathData);
+    svg.append(path);
+  });
+  button.replaceChildren(svg);
+};
 
 export const toggleSourcePanel = (
   sendDownload: (source: PageSource) => void,
@@ -162,11 +182,11 @@ export const toggleSourcePanel = (
     :host(.dock-left){inset:0 auto 0 0}:host(.dock-bottom){inset:auto 0 0;width:100vw;height:min(42vh,520px)}:host(.dock-top){inset:0 0 auto;width:100vw;height:min(42vh,520px)}
     :host(.floating){inset:80px auto auto 80px;width:min(520px,calc(100vw - 32px));height:min(70vh,620px)}
     .panel{height:100vh;box-sizing:border-box;background:#fff;box-shadow:-8px 0 28px #0003;display:flex;flex-direction:column}
-    :host(.dock-bottom) .panel,:host(.dock-top) .panel,:host(.floating) .panel{height:100%}:host(.floating) .panel{border:1px solid #b1b1b3;border-radius:6px;box-shadow:0 10px 36px #0005;overflow:hidden}:host(.floating) .resize{display:none}.resize{position:absolute;inset:0 auto 0 -4px;width:8px;cursor:ew-resize}:host(.dock-left) .resize{inset:0 -4px 0 auto}:host(.dock-bottom) .resize{inset:-4px 0 auto;width:auto;height:8px;cursor:ns-resize}:host(.dock-top) .resize{inset:auto 0 -4px;width:auto;height:8px;cursor:ns-resize}header{display:flex;align-items:center;justify-content:space-between;padding:9px 12px 4px}:host(.floating) header{cursor:grab;user-select:none}:host(.floating) header:active{cursor:grabbing}h2{font-size:16px;margin:0;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.header-actions{display:flex;align-items:center;gap:2px;flex:none}button,input,select{font:inherit}button{cursor:pointer}.header-button{display:grid;place-items:center;width:28px;height:28px;padding:0;border:1px solid transparent;border-radius:4px;background:none;font-size:17px;line-height:1}.header-button:hover{border-color:#b1b1b3;background:#f0f0f4}.close{font-size:20px}
-    .toolbar{display:grid;grid-template-columns:1fr auto;gap:6px;padding:5px 12px 7px}.toolbar input,.toolbar select{min-width:0;padding:5px 7px;border:1px solid #b1b1b3;border-radius:4px}.facets{display:flex;flex-wrap:wrap;gap:4px;padding:0 12px 7px;border-bottom:1px solid #d7d7db}.facet{white-space:nowrap;padding:3px 7px;border:1px solid #b1b1b3;border-radius:99px;background:#fff}.facet[aria-pressed=true]{color:#fff;background:#0060df;border-color:#0060df}
-    .list{overflow:auto;padding:2px 9px 12px}.row{display:grid;grid-template-columns:36px minmax(0,1fr);gap:7px;align-items:center;padding:7px 3px;border-bottom:1px solid #eee}
-    img,video{width:36px;height:36px;object-fit:contain;background:#eee;border-radius:3px}.audio{font-size:20px;text-align:center}.name,.url{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.name{font-weight:600;color:#0060df;text-decoration:none}.url{font-size:11px;color:#737373}.meta{display:flex;gap:6px;margin-top:2px;font-size:10px;color:#555;text-transform:uppercase}
-    .actions{grid-column:2;display:flex;flex-wrap:wrap;gap:4px}.actions button{padding:3px 6px;border:1px solid #b1b1b3;border-radius:3px;background:#fff}.actions button:last-child{border-color:#0060df;color:#0060df}.empty{padding:24px 12px;color:#737373;text-align:center}
+    :host(.dock-bottom) .panel,:host(.dock-top) .panel,:host(.floating) .panel{height:100%}:host(.floating) .panel{border:1px solid #b1b1b3;border-radius:6px;box-shadow:0 10px 36px #0005;overflow:hidden}:host(.floating) .resize{display:none}.resize{position:absolute;inset:0 auto 0 -4px;width:8px;cursor:ew-resize}:host(.dock-left) .resize{inset:0 -4px 0 auto}:host(.dock-bottom) .resize{inset:-4px 0 auto;width:auto;height:8px;cursor:ns-resize}:host(.dock-top) .resize{inset:auto 0 -4px;width:auto;height:8px;cursor:ns-resize}header{display:flex;align-items:center;justify-content:space-between;padding:8px 10px 3px}:host(.floating) header{cursor:grab;user-select:none}:host(.floating) header:active{cursor:grabbing}h2{font-size:16px;margin:0;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.header-actions{display:flex;align-items:center;gap:2px;flex:none}button,input,select{font:inherit}button{cursor:pointer}.header-button{display:grid;place-items:center;width:30px;height:30px;padding:0;border:1px solid transparent;border-radius:4px;background:none;line-height:1}.header-button svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.header-button:hover{border-color:#b1b1b3;background:#f0f0f4}
+    .toolbar{display:grid;grid-template-columns:1fr auto;gap:6px;padding:4px 10px 6px}.toolbar input,.toolbar select{min-width:0;padding:5px 7px;border:1px solid #b1b1b3;border-radius:4px}.facets{display:flex;flex-wrap:wrap;gap:4px;padding:0 10px 6px;border-bottom:1px solid #d7d7db}.facet{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;padding:2px 6px;border:1px solid #b1b1b3;border-radius:99px;background:#fff}.facet-count{min-width:15px;padding:0 3px;border-radius:99px;background:#e7e7ea;color:#555;font-size:10px;line-height:15px;text-align:center}.facet[aria-pressed=true]{color:#fff;background:#0060df;border-color:#0060df}.facet[aria-pressed=true] .facet-count{background:#fff3;color:#fff}
+    .list{overflow:auto;padding:0 7px 8px}.row{padding:2px 0;border-bottom:1px solid #eee}.source-link{display:grid;grid-template-columns:30px minmax(0,1fr);gap:7px;align-items:center;min-height:38px;padding:3px 5px;border-radius:4px;color:inherit;text-decoration:none}.source-link:hover,.source-link:focus-visible{background:#f0f6ff;outline:none}.source-text{min-width:0}
+    img,video,.preview-fallback{width:30px;height:30px;object-fit:contain;background:#eee;border-radius:3px}.preview-fallback,.audio{display:grid;place-items:center;color:#737373;font-size:17px}.name,.url{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.name{font-weight:600;color:#0060df}.url{font-size:11px;color:#737373}.meta{display:flex;gap:6px;margin-top:1px;font-size:10px;color:#555;text-transform:uppercase}
+    .actions{display:flex;flex-wrap:wrap;gap:4px;margin:1px 5px 3px 42px}.actions button{min-height:26px;padding:3px 7px;border:1px solid #b1b1b3;border-radius:3px;background:#fff}.actions button:last-child{border-color:#0060df;color:#0060df}.empty{padding:24px 12px;color:#737373;text-align:center}
     @media (prefers-color-scheme:dark){:host{color:#f9f9fa}.panel{background:#2a2a2e}.toolbar,.row{border-color:#4a4a4f}.toolbar input,.toolbar select,.actions button{color:#f9f9fa;background:#38383d;border-color:#737373}.header-button{color:#f9f9fa}.header-button:hover{background:#38383d}.url{color:#b1b1b3}.kind{color:#d7d7db}}@media(prefers-reduced-motion:reduce){:host,:host(.closing){animation:none}}
   `;
   const panel = document.createElement("div");
@@ -205,7 +225,7 @@ export const toggleSourcePanel = (
   const popoutButton = document.createElement("button");
   title.textContent = "Page sources";
   close.className = "header-button close";
-  close.textContent = "×";
+  setButtonIcon(close, "close");
   close.title = "Close";
   close.setAttribute("aria-label", "Close Page Sources");
   const docks = ["right", "bottom", "left", "top"] as const;
@@ -220,7 +240,7 @@ export const toggleSourcePanel = (
     dockButton.title = `Dock: ${dock[0].toUpperCase()} — change to the next position`;
   };
   dockButton.className = "header-button dock";
-  dockButton.textContent = "◫";
+  setButtonIcon(dockButton, "dock");
   dockButton.setAttribute("aria-label", "Change panel dock position");
   dockButton.addEventListener("click", () => {
     host.classList.remove("floating");
@@ -230,7 +250,7 @@ export const toggleSourcePanel = (
     updateDock();
   });
   popoutButton.className = "header-button popout";
-  popoutButton.textContent = "↗";
+  setButtonIcon(popoutButton, "popout");
   popoutButton.title = "Pop out into a draggable panel";
   popoutButton.setAttribute("aria-label", "Pop out Page Sources");
   popoutButton.setAttribute("aria-pressed", "false");
@@ -264,7 +284,7 @@ export const toggleSourcePanel = (
   headerActions.className = "header-actions";
   const copyUrls = document.createElement("button");
   copyUrls.className = "header-button copy-urls";
-  copyUrls.textContent = "⧉";
+  setButtonIcon(copyUrls, "copy");
   copyUrls.title = "Copy URLs in the current filter";
   copyUrls.setAttribute("aria-label", "Copy filtered source URLs");
   headerActions.append(copyUrls, dockButton, popoutButton, close);
@@ -337,7 +357,7 @@ export const toggleSourcePanel = (
       sort.value as SourceSort,
     );
     visibleSources = sources;
-    title.textContent = `Page sources (${sources.length}${sources.length === allSources.length ? "" : ` of ${allSources.length}`})`;
+    title.textContent = "Page sources";
     list.replaceChildren();
     facets.replaceChildren();
     const searchedSources = filterPageSources(allSources, filter.value, "all");
@@ -351,7 +371,10 @@ export const toggleSourcePanel = (
         facet.className = "facet";
         const label =
           kindName === "all" ? "All" : `${kindName[0].toUpperCase()}${kindName.slice(1)}`;
-        facet.textContent = `${label} (${count})`;
+        const facetCount = document.createElement("span");
+        facetCount.className = "facet-count";
+        facetCount.textContent = String(count);
+        facet.append(document.createTextNode(label), facetCount);
         facet.setAttribute("aria-pressed", String(activeKind === kindName));
         facet.addEventListener("click", () => {
           activeKind = kindName;
@@ -402,14 +425,17 @@ export const toggleSourcePanel = (
                     ? "♪"
                     : "•";
       }
+      const sourceLink = document.createElement("a");
+      sourceLink.className = "source-link";
+      sourceLink.href = source.url;
+      sourceLink.target = "_blank";
+      sourceLink.title = `${source.url}\nRight-click for the Save In menu; Alt+click to save immediately.`;
       const text = document.createElement("div");
-      const name = document.createElement("a");
+      text.className = "source-text";
+      const name = document.createElement("span");
       const url = document.createElement("div");
       const meta = document.createElement("div");
       name.className = "name";
-      name.href = source.url;
-      name.target = "_blank";
-      name.title = `${source.url}\nRight-click for the Save In menu; Alt+click to save immediately.`;
       try {
         const parsed = new URL(source.url);
         name.textContent = decodeURIComponent(
@@ -432,6 +458,17 @@ export const toggleSourcePanel = (
         meta.replaceChildren(document.createTextNode(`${details.join(" · ")} · `), detected);
       };
       if (preview instanceof HTMLImageElement) {
+        preview.addEventListener(
+          "error",
+          () => {
+            const fallback = document.createElement("div");
+            fallback.className = "preview-fallback";
+            fallback.textContent = "▧";
+            fallback.setAttribute("aria-label", "Preview unavailable");
+            preview.replaceWith(fallback);
+          },
+          { once: true },
+        );
         preview.addEventListener("load", () => {
           mediaDetails.splice(
             0,
@@ -454,6 +491,7 @@ export const toggleSourcePanel = (
       }
       updateMeta();
       text.append(name, url, meta);
+      sourceLink.append(preview, text);
       const actions = document.createElement("div");
       actions.className = "actions";
       const locate = document.createElement("button");
@@ -515,7 +553,7 @@ export const toggleSourcePanel = (
         sendDownload(source);
       });
       row.title = "Alt+click to save; right-click the source title for Save In";
-      row.append(preview, text, actions);
+      row.append(sourceLink, actions);
       list.append(row);
     });
   };
@@ -525,15 +563,15 @@ export const toggleSourcePanel = (
     void navigator.clipboard
       .writeText(visibleSources.map(({ url }) => url).join("\n"))
       .then(() => {
-        copyUrls.textContent = "✓";
+        setButtonIcon(copyUrls, "check");
         copyUrls.title = `Copied ${visibleSources.length} URLs`;
         window.setTimeout(() => {
-          copyUrls.textContent = "⧉";
+          setButtonIcon(copyUrls, "copy");
           copyUrls.title = "Copy URLs in the current filter";
         }, 1200);
       })
       .catch(() => {
-        copyUrls.textContent = "!";
+        setButtonIcon(copyUrls, "error");
         copyUrls.title = "Copy failed";
       });
   });

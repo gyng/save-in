@@ -1,0 +1,66 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
+const documentForOptions = () =>
+  new DOMParser().parseFromString(
+    readFileSync(resolve("src/options/options.html"), "utf8"),
+    "text/html",
+  );
+
+describe("options form semantics", () => {
+  test("each label contains at most one labelable control", () => {
+    const document = documentForOptions();
+    const invalid = [...document.querySelectorAll("label")]
+      .map((label) => [...label.querySelectorAll("input, select, textarea")].map((el) => el.id))
+      .filter((ids) => ids.length > 1);
+    expect(invalid).toEqual([]);
+  });
+
+  test("every visible form control has an accessible name", () => {
+    const document = documentForOptions();
+    const explicitLabels = new Set(
+      [...document.querySelectorAll<HTMLLabelElement>("label[for]")].map((label) => label.htmlFor),
+    );
+    const unnamed = [...document.querySelectorAll<HTMLInputElement>("input, select, textarea")]
+      .filter((control) => !control.hidden)
+      .filter(
+        (control) =>
+          !control.closest("label") &&
+          !explicitLabels.has(control.id) &&
+          !control.hasAttribute("aria-label") &&
+          !control.hasAttribute("aria-labelledby"),
+      )
+      .map((control) => control.id || control.className);
+    expect(unnamed).toEqual([]);
+  });
+
+  test("browser setup does not override the responsive viewport width", () => {
+    const source = readFileSync(resolve("src/options/options.ts"), "utf8");
+    expect(source).not.toMatch(/\.style\.minWidth\s*=/);
+  });
+
+  test("save-dialog conditions are grouped beneath a regular-size prompt", () => {
+    const document = documentForOptions();
+    const prompt = document.querySelector(".save-dialog-conditions-label");
+    const conditions = document.querySelector(".save-dialog-conditions");
+    expect(prompt?.classList.contains("caption")).toBe(false);
+    expect(conditions?.querySelectorAll(":scope > label")).toHaveLength(3);
+  });
+
+  test("keeps artifact shortcuts separate from keyboard behavior", () => {
+    const document = documentForOptions();
+    expect(
+      [...document.querySelectorAll("#options > h2, #options > .column > h2")].map((h) => h.id),
+    ).toEqual([
+      "section-downloads",
+      "section-browser-downloads",
+      "section-dynamic-downloads",
+      "section-notifications",
+      "section-save-as-shortcuts",
+      "section-keyboard-shortcuts",
+      "section-page-sources",
+      "section-history",
+      "section-more-options",
+    ]);
+  });
+});
