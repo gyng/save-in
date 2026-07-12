@@ -9,30 +9,38 @@ export const optionSearchEntries = (form: HTMLElement): SearchEntry[] => {
       label,
     ]),
   );
-  return [...form.querySelectorAll<HTMLElement>("input[id], select[id], textarea[id]")]
-    .filter((control) => control.dataset.optionSearch !== "false" && control.id !== "option-search")
-    .flatMap((control) => {
-      const label = explicitLabels.get(control.id);
-      const wrappingLabel = control.closest("label");
-      const labelElement = label || wrappingLabel;
-      const shortLabel = labelElement?.querySelector<HTMLElement>(":scope > .opt-title");
-      const labelText =
-        shortLabel?.textContent?.trim() || labelElement?.textContent?.replace(/\s+/g, " ").trim();
-      const accessibleName = control.getAttribute("aria-label")?.trim();
-      const name = labelText || accessibleName;
+  const sectionFor = (target: HTMLElement) => {
+    const panel = target.closest<HTMLElement>(".tab-panel");
+    const tab = panel ? document.querySelector<HTMLElement>(`[aria-controls="${panel.id}"]`) : null;
+    return tab?.textContent?.trim() || "";
+  };
+  return [
+    ...form.querySelectorAll<HTMLElement>("h3, h4, input[id], select[id], textarea[id]"),
+  ].flatMap((control) => {
+    if (control.matches("h3, h4")) {
+      const name = control.textContent?.replace(/\s+/g, " ").trim();
       if (!name) return [];
-      const panel = control.closest<HTMLElement>(".tab-panel");
-      const tab = panel
-        ? document.querySelector<HTMLElement>(`[aria-controls="${panel.id}"]`)
-        : null;
-      return [
-        {
-          control,
-          label: name,
-          section: tab?.textContent?.trim() || "",
-        },
-      ];
-    });
+      control.tabIndex = -1;
+      return [{ control, label: name, section: sectionFor(control) }];
+    }
+    if (control.dataset.optionSearch === "false" || control.id === "option-search") return [];
+    const label = explicitLabels.get(control.id);
+    const wrappingLabel = control.closest("label");
+    const labelElement = label || wrappingLabel;
+    const shortLabel = labelElement?.querySelector<HTMLElement>(":scope > .opt-title");
+    const labelText =
+      shortLabel?.textContent?.trim() || labelElement?.textContent?.replace(/\s+/g, " ").trim();
+    const accessibleName = control.getAttribute("aria-label")?.trim();
+    const name = labelText || accessibleName;
+    if (!name) return [];
+    return [
+      {
+        control,
+        label: name,
+        section: sectionFor(control),
+      },
+    ];
+  });
 };
 
 export const setupOptionSearch = (): void => {

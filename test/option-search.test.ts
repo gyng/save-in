@@ -6,6 +6,8 @@ describe("options search", () => {
     <form id="options">
       <div class="tablist"><button aria-controls="panel-downloads">Downloads</button></div>
       <section class="tab-panel" id="panel-downloads">
+        <h3>External integrations</h3>
+        <h4>WebMCP <span>Experimental</span></h4>
         <label><input id="prompt" type="checkbox"> Open save dialog</label>
         <label for="duration">Notification duration</label><input id="duration" type="number">
         <label><input id="verbose" type="text"><span class="opt-title">Short title</span><span class="caption-line">Long explanation</span></label>
@@ -21,10 +23,29 @@ describe("options search", () => {
         section,
       })),
     ).toEqual([
+      { label: "External integrations", section: "Downloads" },
+      { label: "WebMCP Experimental", section: "Downloads" },
       { label: "Open save dialog", section: "Downloads" },
       { label: "Notification duration", section: "Downloads" },
       { label: "Short title", section: "Downloads" },
     ]);
+  });
+
+  test("finds subsection headings and navigates to them", () => {
+    const navigate = vi.fn();
+    document.addEventListener("save-in:navigate-option", navigate, { once: true });
+    setupOptionSearch();
+    const input = document.getElementById("option-search") as HTMLInputElement;
+    input.value = "webmcp";
+    input.dispatchEvent(new InputEvent("input"));
+
+    expect(document.querySelectorAll('[role="option"]')).toHaveLength(1);
+    expect(document.querySelector(".option-search-result-label")?.textContent).toBe(
+      "WebMCP Experimental",
+    );
+    input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+    expect((navigate.mock.calls[0][0] as CustomEvent).detail.target.tagName).toBe("H4");
+    expect((navigate.mock.calls[0][0] as CustomEvent).detail.target.tabIndex).toBe(-1);
   });
 
   test("swaps search and save status positions in the top navigation", () => {
