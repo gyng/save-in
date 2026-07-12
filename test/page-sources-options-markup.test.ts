@@ -7,12 +7,11 @@ test("gives Page sources settings a clear heading and intro hierarchy", () => {
     "text/html",
   );
   const heading = document.querySelector("#section-page-sources")!;
-  const intro = heading.nextElementSibling!;
+  const intro = heading.nextElementSibling!.querySelector(".source-panel-intro")!;
   const groups = [
     ...document.querySelectorAll(".source-panel-settings, .source-shortcut-settings"),
   ];
 
-  expect(intro.classList.contains("source-panel-intro")).toBe(true);
   expect(intro.querySelector(".section-lead")).not.toBeNull();
   expect(intro.querySelector(".section-note")).not.toBeNull();
   expect(groups.map((group) => group.querySelector("legend")?.className)).toEqual([

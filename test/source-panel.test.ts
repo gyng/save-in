@@ -1,5 +1,6 @@
 import {
   collectPageSources,
+  createSourceTooltip,
   filterPageSources,
   formatSourceBytes,
   sortPageSources,
@@ -119,6 +120,27 @@ test("sorts by first-seen time, size, or name", () => {
   expect(sortPageSources([older, newer], "name-asc")).toEqual([newer, older]);
 });
 
+test("builds larger image and autoplaying media tooltips", () => {
+  const element = document.createElement("div");
+  const imageTooltip = createSourceTooltip({
+    url: "https://x.test/image.jpg",
+    kind: "image",
+    element,
+  })!;
+  expect(imageTooltip.getAttribute("role")).toBe("tooltip");
+  expect(imageTooltip.querySelector("img")?.src).toBe("https://x.test/image.jpg");
+
+  const audioTooltip = createSourceTooltip({
+    url: "https://x.test/audio.mp3",
+    kind: "audio",
+    element,
+  })!;
+  const audio = audioTooltip.querySelector("audio")!;
+  expect(audio.autoplay).toBe(true);
+  expect(audio.controls).toBe(true);
+  expect(createSourceTooltip({ url: "https://x.test/page", kind: "link", element })).toBeNull();
+});
+
 describe("Page Sources panel interactions", () => {
   afterEach(() => {
     document.getElementById("save-in-source-panel")?.remove();
@@ -226,8 +248,8 @@ describe("Page Sources panel interactions", () => {
       .shadowRoot!.querySelector<HTMLElement>(".detected")!;
 
     expect(detected.textContent).toBe("#1");
-    expect(detected.title).toMatch(/^Detected at /);
-    expect(detected.title).not.toContain("#1");
+    expect(detected.getAttribute("aria-label")).toMatch(/^Detected at /);
+    expect(detected.title).toBe("");
   });
 
   test("uses the full compact result body as a link and replaces broken previews", () => {
@@ -243,6 +265,25 @@ describe("Page Sources panel interactions", () => {
 
     expect(rowLink.querySelector("img")).toBeNull();
     expect(rowLink.querySelector(".preview-fallback")?.textContent).toBe("▧");
+  });
+
+  test("shows and removes a rich tooltip without competing native titles", () => {
+    document.body.innerHTML = `<img src="large.jpg">`;
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    const shadow = document.getElementById("save-in-source-panel")!.shadowRoot!;
+    const row = shadow.querySelector<HTMLElement>(".row")!;
+    const sourceLink = row.querySelector<HTMLAnchorElement>(".source-link")!;
+
+    expect(row.title).toBe("");
+    expect(sourceLink.title).toBe("");
+    row.dispatchEvent(new MouseEvent("mouseenter"));
+    expect(shadow.querySelector<HTMLImageElement>(".media-tooltip img")?.src).toBe(
+      "http://localhost/large.jpg",
+    );
+    expect(sourceLink.hasAttribute("aria-describedby")).toBe(true);
+    row.dispatchEvent(new MouseEvent("mouseleave"));
+    expect(shadow.querySelector(".media-tooltip")).toBeNull();
+    expect(sourceLink.hasAttribute("aria-describedby")).toBe(false);
   });
 
   test("describes streaming playlists without relying on manifest jargon", () => {
