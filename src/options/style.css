@@ -2022,13 +2022,15 @@ summary {
 
 .rule-template-category-list {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
   gap: var(--space-3);
 }
 
 .rule-template {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  min-width: 0;
+  overflow: hidden;
   gap: var(--space-2);
   padding: var(--space-3);
   border: 1px solid var(--panel-border);
