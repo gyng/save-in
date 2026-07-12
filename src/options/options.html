@@ -474,6 +474,18 @@
           <div class="caption caption-line">__MSG_o_cBrowserDownloadExcludeFilterHelp__</div>
         </label>
 
+        <details class="inline-guide">
+          <summary>What is a WebExtension match pattern?</summary>
+          <div class="caption caption-line">
+            It is a URL-shaped pattern, not a regular expression:
+            <code>&lt;scheme&gt;://&lt;host&gt;/&lt;path&gt;</code>. Use <code>*</code> for
+            HTTP or HTTPS, <code>*.example.com</code> for that domain and its subdomains, and
+            <code>/*</code> for every path. For example,
+            <code>https://*.example.com/files/*</code>. Write one complete pattern per line; do not
+            add regex slashes, backslashes, or an explicit port.
+          </div>
+        </details>
+
         <div class="caption caption-line">__MSG_o_lBrowserDownloadVariables__</div>
 
         <label>
@@ -762,17 +774,32 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
       <p class="section-lead">Save a small link file instead of downloading the target.</p>
       <fieldset class="option-group shortcut-file-options">
         <legend class="option-group-heading">Use shortcut files for</legend>
-
-      <label>
-        <input type="checkbox" id="shortcutMedia" />
-        __MSG_o_cSaveShortcutsMediaInstead__
-      </label>
-
-      <label>
-        <input type="checkbox" id="shortcutLink" />
-        __MSG_o_cSaveShortcutsLinksInstead__
-      </label>
-
+        <label>
+          <input type="checkbox" id="shortcutMedia" />
+          __MSG_o_cSaveShortcutsMediaInstead__
+        </label>
+        <label>
+          <input type="checkbox" id="shortcutLink" />
+          __MSG_o_cSaveShortcutsLinksInstead__
+        </label>
+        <label>
+          <input type="checkbox" id="shortcutPage" />
+          __MSG_o_cSaveShortcutsPagesInstead__
+        </label>
+        <label>
+          <input
+            type="checkbox"
+            id="shortcutTab"
+            class="tab-context-required"
+            aria-describedby="shortcut-tab-context-requirement"
+          />__MSG_o_cSaveShortcutsTabsInstead__
+          <span
+            class="warning badge chrome-tab-context-badge"
+            id="shortcut-tab-context-requirement"
+            hidden
+            >Chrome 150+</span
+          >
+        </label>
       </fieldset>
 
       <label class="shortcut-format-control">
@@ -785,26 +812,6 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
           <option value="FREEDESKTOP">__MSG_o_cSaveShortcutsTypeFreedesktop__</option>
         </select>
         <span id="shortcut-format-preview" class="caption"></span>
-      </label>
-
-      <label>
-        <input type="checkbox" id="shortcutPage" />
-        __MSG_o_cSaveShortcutsPagesInstead__
-      </label>
-
-      <label>
-        <input
-          type="checkbox"
-          id="shortcutTab"
-          class="tab-context-required"
-          aria-describedby="shortcut-tab-context-requirement"
-        />__MSG_o_cSaveShortcutsTabsInstead__
-        <span
-          class="warning badge chrome-tab-context-badge"
-          id="shortcut-tab-context-requirement"
-          hidden
-          >Chrome 150+</span
-        >
       </label>
 
       <hr />

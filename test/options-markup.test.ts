@@ -98,4 +98,13 @@ describe("options form semantics", () => {
     );
     expect(document.body.textContent).toContain("Greasemonkey");
   });
+
+  test("explains match patterns where browser-download filters are configured", () => {
+    const document = documentForOptions();
+    const guide = [...document.querySelectorAll("details")].find((details) =>
+      details.querySelector("summary")?.textContent?.includes("WebExtension match pattern"),
+    );
+    expect(guide?.textContent).toContain("not a regular expression");
+    expect(guide?.textContent).toContain("<scheme>://<host>/<path>");
+  });
 });
