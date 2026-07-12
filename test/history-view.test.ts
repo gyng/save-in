@@ -2,6 +2,7 @@
 import {
   formatBytes,
   formatHistoryTime,
+  relativeHistoryTime,
   historyFilename,
   historyFolder,
   historyCsv,
@@ -17,6 +18,13 @@ import {
 
 test("missing legacy timestamps render as blank", () => {
   expect(formatHistoryTime()).toBe("");
+});
+
+test("history timestamps use ISO text and relative labels", () => {
+  expect(formatHistoryTime("2024-01-01T00:00:00Z")).toBe("2024-01-01T00:00:00.000Z");
+  expect(relativeHistoryTime("2024-01-01T11:59:00Z", Date.parse("2024-01-01T12:00:00Z"))).toContain(
+    "minute",
+  );
 });
 
 test("CSV export includes all flattened history fields and escapes values", () => {
@@ -181,6 +189,12 @@ describe("paginateHistory", () => {
     expect(paginateHistory(faceted, { sourceFilter: "save-in" }).matchCount).toBe(3);
     expect(paginateHistory(faceted, { statusFilter: "failed" }).matchCount).toBe(2);
     expect(paginateHistory(faceted, { typeFilter: "image" }).matchCount).toBe(1);
+  });
+
+  test("filters inclusively by ISO calendar date", () => {
+    expect(
+      paginateHistory(entries, { dateFrom: "2024-01-02", dateTo: "2024-01-03" }).matchCount,
+    ).toBe(2);
   });
 
   test("sorts by the given key/direction", () => {

@@ -1014,12 +1014,17 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
             <option value="browser">__MSG_o_lHistoryBrowser__</option>
           </select>
         </div>
+        <div class="history-facet history-date-range">
+          <label for="history-date-from">From</label>
+          <input id="history-date-from" type="date" data-runtime-control="true" />
+          <label for="history-date-to">to</label>
+          <input id="history-date-to" type="date" data-runtime-control="true" />
+        </div>
         <details class="history-columns">
           <summary>Columns</summary>
           <div class="history-columns-menu" id="history-column-options"></div>
         </details>
       </div>
-      <p class="caption">__MSG_o_lHistoryHelp__</p>
       <div
         id="history-feedback"
         class="history-feedback"

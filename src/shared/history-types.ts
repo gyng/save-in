@@ -58,6 +58,8 @@ export type HistoryPageOptions = {
   sourceFilter?: string;
   statusFilter?: string;
   typeFilter?: string;
+  dateFrom?: string;
+  dateTo?: string;
   sort?: HistorySort;
   page?: number;
   pageSize?: number;

@@ -20,6 +20,7 @@ import {
   historyCsv,
   paginateHistory,
   progressCell,
+  relativeHistoryTime,
   statusClass,
   statusLabel,
 } from "./history-view.ts";
@@ -35,6 +36,8 @@ let historyFilter = "";
 let historySourceFilter = "";
 let historyStatusFilter = "";
 let historyTypeFilter = "";
+let historyDateFrom = "";
+let historyDateTo = "";
 let historyPage = 0;
 const HISTORY_COLUMNS_KEY = "si-history-columns";
 const defaultHistoryColumns = HISTORY_COLUMNS.filter(({ defaultVisible }) => defaultVisible).map(
@@ -163,11 +166,22 @@ const renderHistoryTable = () => {
     sourceFilter: historySourceFilter,
     statusFilter: historyStatusFilter,
     typeFilter: historyTypeFilter,
+    dateFrom: historyDateFrom,
+    dateTo: historyDateTo,
   });
   historyPage = page; // paginate clamped it into range
 
   if (countEl) {
-    countEl.textContent = query ? `${matchCount} of ${total}` : total ? `${total} saved` : "";
+    const filtered = Boolean(
+      query ||
+      historySourceFilter ||
+      historyStatusFilter ||
+      historyTypeFilter ||
+      historyDateFrom ||
+      historyDateTo,
+    );
+    countEl.textContent = filtered ? `${matchCount} of ${total}` : total ? `${total} saved` : "";
+    countEl.setAttribute("title", "History is stored locally, up to 10,000 entries");
   }
 
   container.textContent = "";
@@ -228,6 +242,7 @@ const renderHistoryTable = () => {
     const time = document.createElement("td");
     time.className = "history-time";
     time.textContent = formatHistoryTime(r.time);
+    time.title = relativeHistoryTime(r.time);
     if (visibleHistoryColumns.has("time")) appendCell("time", time);
 
     const source = document.createElement("td");
@@ -339,8 +354,8 @@ const renderHistoryTable = () => {
 
   container.appendChild(table);
 
-  // Pagination (only when there is more than one page)
-  if (pageCount > 1) {
+  // Keep location and disabled boundary controls visible even on one page.
+  {
     const pager = document.createElement("div");
     pager.className = "history-pager";
 
@@ -401,16 +416,20 @@ historyFilterInput?.addEventListener("input", () => {
 });
 
 const bindHistoryFacet = (id: string, update: (value: string) => void) => {
-  document.querySelector<HTMLSelectElement>(id)?.addEventListener("change", (event) => {
-    update((event.currentTarget as HTMLSelectElement).value);
-    historyPage = 0;
-    renderHistoryTable();
-  });
+  document
+    .querySelector<HTMLInputElement | HTMLSelectElement>(id)
+    ?.addEventListener("change", (event) => {
+      update((event.currentTarget as HTMLInputElement | HTMLSelectElement).value);
+      historyPage = 0;
+      renderHistoryTable();
+    });
 };
 
 bindHistoryFacet("#history-source-filter", (value) => (historySourceFilter = value));
 bindHistoryFacet("#history-status-filter", (value) => (historyStatusFilter = value));
 bindHistoryFacet("#history-type-filter", (value) => (historyTypeFilter = value));
+bindHistoryFacet("#history-date-from", (value) => (historyDateFrom = value));
+bindHistoryFacet("#history-date-to", (value) => (historyDateTo = value));
 
 const columnOptions = document.querySelector("#history-column-options");
 HISTORY_COLUMNS.forEach(({ key, label }) => {

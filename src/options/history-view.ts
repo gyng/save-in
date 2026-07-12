@@ -32,10 +32,24 @@ export const formatHistoryTime = (iso?: string): string => {
     return "";
   }
   try {
-    return new Date(iso).toLocaleString();
+    return new Date(iso).toISOString();
   } catch (e) {
     return iso || "";
   }
+};
+
+export const relativeHistoryTime = (iso?: string, now = Date.now()): string => {
+  if (!iso) return "";
+  const timestamp = new Date(iso).getTime();
+  if (!Number.isFinite(timestamp)) return "";
+  const seconds = Math.round((timestamp - now) / 1000);
+  const formatter = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" });
+  if (Math.abs(seconds) < 60) return formatter.format(seconds, "second");
+  const minutes = Math.round(seconds / 60);
+  if (Math.abs(minutes) < 60) return formatter.format(minutes, "minute");
+  const hours = Math.round(minutes / 60);
+  if (Math.abs(hours) < 24) return formatter.format(hours, "hour");
+  return formatter.format(Math.round(hours / 24), "day");
 };
 
 // info.context holds a DOWNLOAD_TYPES value; older entries kept the whole
@@ -180,6 +194,8 @@ export const paginateHistory = (
     sourceFilter = "",
     statusFilter = "",
     typeFilter = "",
+    dateFrom = "",
+    dateTo = "",
   }: HistoryPageOptions = {},
 ) => {
   const query = String(filter || "")
@@ -207,6 +223,8 @@ export const paginateHistory = (
     );
   }
   if (typeFilter) rows = rows.filter((r) => r.type === typeFilter);
+  if (dateFrom) rows = rows.filter((r) => r.time.slice(0, 10) >= dateFrom);
+  if (dateTo) rows = rows.filter((r) => r.time.slice(0, 10) <= dateTo);
 
   rows.sort((a, b) => {
     // String() so numeric columns (size) don't blow up localeCompare
