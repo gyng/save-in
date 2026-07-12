@@ -84,6 +84,15 @@ describe("options form semantics", () => {
     ]);
   });
 
+  test("keeps Alt + left click as the fresh-profile click-to-save default", () => {
+    const document = documentForOptions();
+    expect(document.querySelector<HTMLSelectElement>("#clickToSaveModifier")?.value).toBe("Alt");
+    expect(document.querySelector<HTMLSelectElement>("#clickToSaveModifier2")?.value).toBe("");
+    expect(document.querySelector<HTMLSelectElement>("#contentClickToSaveButton")?.value).toBe(
+      "LEFT_CLICK",
+    );
+  });
+
   test("groups external automation under one clear integrations heading", () => {
     const document = documentForOptions();
     const heading = [...document.querySelectorAll("h3")].find(

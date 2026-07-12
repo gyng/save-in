@@ -349,6 +349,14 @@ describe("OptionsManagement", () => {
       expect(resolved.paths).toContain("Downloads");
     });
 
+    test("keeps MV2 numeric click-to-save keycodes", async () => {
+      global.browser.storage.local.get = vi.fn(() =>
+        Promise.resolve({ contentClickToSaveCombo: 18 }),
+      );
+      const resolved = await OptionsManagement.loadOptions();
+      expect(resolved.contentClickToSaveCombo).toBe(18);
+    });
+
     test("falls back for unknown enum values and invalid numeric ranges", async () => {
       global.browser.storage.local.get = vi.fn(() =>
         Promise.resolve({
