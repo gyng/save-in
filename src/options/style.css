@@ -286,9 +286,9 @@ pre {
 
 .code,
 code {
-  /* Tight vertical padding so inline code on adjacent wrapped lines within a
-     paragraph doesn't overlap; clone keeps padding/radius on each line fragment
-     when a single code span wraps */
+  /* Inline padding does not enlarge a line box, so reserve enough line height
+     for adjacent code pills while keeping their visible padding compact. */
+  line-height: 1.5;
   padding: 1px 4px;
   -webkit-box-decoration-break: clone;
   box-decoration-break: clone;
@@ -1856,6 +1856,14 @@ button:disabled:hover {
   opacity: 1;
 }
 
+.path-editor-actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 1px;
+  margin-left: auto;
+}
+
 .path-editor-control:disabled {
   opacity: 0.25;
   cursor: default;
@@ -2363,4 +2371,9 @@ code.click-to-copy {
   .section-actions {
     flex-wrap: wrap;
   }
+}
+
+/* Scale the saved check around its visual center. */
+#lastSavedAt.saved-confirmed::before {
+  transform-origin: center;
 }

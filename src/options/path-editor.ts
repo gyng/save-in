@@ -432,6 +432,9 @@ const PathEditorHelpers = {
           rebuild();
         });
 
+        const actions = document.createElement("div");
+        actions.className = "path-editor-actions";
+
         if (row.body === SPECIAL_DIRS.SEPARATOR) {
           const sep = document.createElement("span");
           sep.className = "path-editor-separator";
@@ -481,7 +484,8 @@ const PathEditorHelpers = {
               alias.select();
             }
           });
-          rowEl.append(alias, aliasToggle);
+          rowEl.append(alias);
+          actions.append(aliasToggle);
         }
 
         const controls: [string, string, () => void][] = [
@@ -558,8 +562,10 @@ const PathEditorHelpers = {
             commit();
             rebuild();
           });
-          rowEl.appendChild(button);
+          actions.appendChild(button);
         });
+
+        rowEl.append(actions);
 
         container.appendChild(rowEl);
       });

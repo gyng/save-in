@@ -130,6 +130,8 @@ describe("visual editor", () => {
         .querySelector(".path-editor-indent")!
         .nextElementSibling?.classList.contains("path-editor-handle"),
     ).toBe(true);
+    expect(rows()[0]!.lastElementChild?.classList.contains("path-editor-actions")).toBe(true);
+    expect(rows()[2]!.lastElementChild?.classList.contains("path-editor-actions")).toBe(true);
   });
 
   test("indent and outdent rewrite the textarea", () => {
@@ -169,7 +171,8 @@ describe("visual editor", () => {
     expect(alias.classList.contains("is-open")).toBe(true);
     const toggle = rows()[1]!.querySelector<HTMLButtonElement>(".path-editor-alias-toggle")!;
     expect(toggle.textContent).toBe("Alias");
-    expect(alias.nextElementSibling).toBe(toggle);
+    expect(alias.nextElementSibling?.classList.contains("path-editor-actions")).toBe(true);
+    expect(alias.nextElementSibling?.firstElementChild).toBe(toggle);
     toggle.click();
     expect(alias.classList.contains("is-open")).toBe(false);
     toggle.click();
