@@ -32,3 +32,9 @@ test("shared controls use semantic geometry and interaction tokens", () => {
   expect(css.match(/^\.path-editor-toolbar \{/gm)).toHaveLength(1);
   expect(css.match(/^\.variables-preview-table td \{/gm)).toHaveLength(1);
 });
+
+test("reference data rows do not use divider lines", () => {
+  const reference = readStyle("reference.css");
+  expect(reference).toContain(".reference-table tbody td");
+  expect(reference).toContain("border-bottom: 0");
+});

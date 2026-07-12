@@ -102,7 +102,11 @@ body:has(.reference-header) {
   padding: var(--space-2) var(--space-3);
   text-align: left;
   vertical-align: top;
-  border-bottom: 1px solid var(--panel-border);
+}
+
+.reference-table tbody th,
+.reference-table tbody td {
+  border-bottom: 0;
 }
 
 .reference-table thead th {

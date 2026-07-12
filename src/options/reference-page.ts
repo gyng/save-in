@@ -40,6 +40,7 @@ export const syncReferenceVocabulary = (
     code.textContent = syntax;
     syntaxCell.append(code);
     const example = target.ownerDocument.createElement("td");
+    if (kind === "variables") example.textContent = "value";
     const meaning = target.ownerDocument.createElement("td");
     meaning.textContent = kind === "variables" ? "Runtime variable" : "Runtime rule matcher";
     row.append(syntaxCell, example, meaning);
@@ -137,6 +138,14 @@ export const enhanceReferenceTables = (root: Document) => {
       rows.forEach((row) => tbody.appendChild(row));
       table.appendChild(tbody);
     }
+    const dataRows = rows.filter((row) => !row.classList.contains("reference-group-row"));
+    if (table.closest("#help-clause-list, #reference-clauses")) {
+      dataRows.forEach((row) => {
+        row.cells[1]
+          ?.querySelectorAll("code")
+          .forEach((code) => code.replaceWith(code.textContent || ""));
+      });
+    }
     const sectionTitle = table.previousElementSibling?.textContent?.trim() || "Reference";
     if (!table.caption) {
       const caption = root.createElement("caption");
@@ -146,8 +155,8 @@ export const enhanceReferenceTables = (root: Document) => {
     if (!table.tHead) {
       const head = table.createTHead();
       const row = head.insertRow();
-      const labels =
-        rows[0].cells.length >= 3 ? ["Syntax", "Example", "Meaning"] : ["Syntax", "Meaning"];
+      const columnCount = Math.max(...dataRows.map((dataRow) => dataRow.cells.length));
+      const labels = columnCount >= 3 ? ["Syntax", "Example", "Meaning"] : ["Syntax", "Meaning"];
       labels.forEach((label) => {
         const th = root.createElement("th");
         th.scope = "col";

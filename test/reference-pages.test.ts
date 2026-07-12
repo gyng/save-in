@@ -31,8 +31,37 @@ describe.each(["variablelist", "clauselist"])("%s reference surface", (name) => 
     );
     for (const table of document.querySelectorAll("table")) {
       expect(table.querySelector("caption")).not.toBeNull();
-      expect(table.querySelectorAll('thead th[scope="col"]').length).toBeGreaterThan(0);
+      const columnCount = Math.max(
+        ...[
+          ...table.querySelectorAll<HTMLTableRowElement>("tbody tr:not(.reference-group-row)"),
+        ].map((row) => row.cells.length),
+      );
+      expect(table.querySelectorAll('thead th[scope="col"]')).toHaveLength(columnCount);
       expect(table.querySelectorAll('tbody th[scope="row"]').length).toBeGreaterThan(0);
+    }
+  });
+
+  test("uses three aligned columns and plain-text examples", () => {
+    const document = parse(name);
+    setupReferencePage(
+      document,
+      vi.fn(async () => {}),
+    );
+
+    for (const table of document.querySelectorAll("table")) {
+      expect([...table.tHead!.rows[0].cells].map((cell) => cell.textContent)).toEqual([
+        "Syntax",
+        "Example",
+        "Meaning",
+      ]);
+    }
+    if (name === "clauselist") {
+      expect(document.querySelector("tbody td:nth-child(2) code")).toBeNull();
+    } else {
+      const rows = document.querySelectorAll<HTMLTableRowElement>(
+        "tbody tr:not(.reference-group-row)",
+      );
+      expect([...rows].every((row) => row.cells[1]?.textContent?.trim())).toBe(true);
     }
   });
 
