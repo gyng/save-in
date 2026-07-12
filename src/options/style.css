@@ -361,6 +361,40 @@ details {
   margin: 5px 0 0 5px;
 }
 
+/* Modern engines can interpolate intrinsic sizes directly, so disclosure
+   panels do not need JavaScript measurements or a stale max-height guess. */
+@supports selector(details::details-content) {
+  #settings-page {
+    interpolate-size: allow-keywords;
+  }
+
+  #settings-page details:not(.nav-resources, .insert-menu)::details-content {
+    block-size: 0;
+    overflow: clip;
+    opacity: 0;
+    transition:
+      block-size 90ms ease-out,
+      opacity 70ms ease-out,
+      content-visibility 90ms allow-discrete;
+  }
+
+  #settings-page details[open]:not(.nav-resources, .insert-menu)::details-content {
+    block-size: auto;
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #settings-page details::details-content {
+    transition: none;
+  }
+
+  .saved,
+  #lastSavedAt.saved-confirmed::before {
+    animation: none;
+  }
+}
+
 li {
   margin-bottom: 4px;
 }
