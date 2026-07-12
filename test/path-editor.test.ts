@@ -311,6 +311,7 @@ describe("text/visual mode toggle", () => {
       <button type="button" class="editor-tab" id="paths-mode-visual">Visual</button>
       <div id="paths-text-help"></div>
       <div id="paths-text-actions"><details id="paths-insert-menu"></details></div>
+      <div class="manual-save-help"></div>
       <textarea id="paths">a</textarea>
       <div id="error-paths"></div>
       <div id="paths-visual" hidden></div>
@@ -330,6 +331,7 @@ describe("text/visual mode toggle", () => {
     expect(element<HTMLElement>("#paths").hidden).toBe(true);
     expect(element<HTMLElement>("#paths-text-actions").hidden).toBe(true);
     expect(element<HTMLElement>("#paths-text-help").hidden).toBe(true);
+    expect(element<HTMLElement>(".manual-save-help").hidden).toBe(true);
     expect(element<HTMLElement>("#paths-visual").hidden).toBe(false);
     expect(element<HTMLElement>("#error-paths").hidden).toBe(false);
     expect(element("#paths-mode-visual").classList.contains("active")).toBe(true);
