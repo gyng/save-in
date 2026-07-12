@@ -2417,3 +2417,62 @@ code.click-to-copy {
   font-size: var(--text-sm);
   line-height: 1.35;
 }
+
+.source-panel-intro {
+  max-width: 72ch;
+  margin-bottom: var(--space-5);
+}
+
+.source-panel-intro .section-lead {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-md);
+  line-height: 1.5;
+}
+
+.source-panel-intro .section-note {
+  margin: 0;
+  color: var(--grey50);
+  line-height: 1.45;
+}
+
+.source-panel-settings,
+.source-shortcut-settings {
+  margin-top: var(--space-5);
+}
+
+.option-group-heading {
+  margin-bottom: var(--space-2);
+  color: var(--color-text);
+  font-size: var(--text-md);
+  font-weight: 600;
+}
+
+.source-shortcut-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.source-shortcut-settings > .caption-line {
+  max-width: 68ch;
+  color: var(--grey50);
+  line-height: 1.4;
+}
+
+.paths-editor #paths {
+  margin-bottom: 0;
+}
+
+#paths-text-actions {
+  margin-top: 0;
+}
+
+.path-editor-help p {
+  font-size: inherit;
+  line-height: 1.35;
+}
+
+.path-editor-help .manual-save-help {
+  margin: var(--space-1) 0 var(--space-2);
+}
