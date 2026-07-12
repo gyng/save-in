@@ -184,6 +184,22 @@
     "message": "Gedrag"
   },
 
+  "o_sSaveDialog": {
+    "message": "Opslagdialoog"
+  },
+
+  "o_sExistingFiles": {
+    "message": "Bestaande bestanden"
+  },
+
+  "o_lContextMenuBehaviorHelp": {
+    "message": "Kies welke Save In-acties in contextmenu's verschijnen."
+  },
+
+  "o_lAlsoAskWhen": {
+    "message": "Ook vragen waar op te slaan wanneer:"
+  },
+
   "o_sDynamicDownloads": {
     "message": "Dynamische Downloads (Geavanceerd)"
   },

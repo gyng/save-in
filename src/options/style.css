@@ -652,6 +652,35 @@ label:has(> input[type="checkbox"]) > .caption-line {
   margin-top: 4px;
 }
 
+.behavior-group {
+  padding: var(--space-2) 0;
+}
+
+.behavior-group + .behavior-group {
+  margin-top: var(--space-3);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--grey30);
+}
+
+.behavior-group h4 {
+  margin-top: 0;
+}
+
+.behavior-group-intro {
+  margin-bottom: var(--space-2);
+}
+
+.behavior-group .option-group > .caption-line {
+  margin-left: var(--space-4);
+}
+
+.inline-control-label {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
 .float-right {
   align-self: flex-end !important;
   float: right;

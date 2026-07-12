@@ -189,6 +189,22 @@
     "message": "Beteende"
   },
 
+  "o_sSaveDialog": {
+    "message": "Dialogrutan Spara"
+  },
+
+  "o_sExistingFiles": {
+    "message": "Befintliga filer"
+  },
+
+  "o_lContextMenuBehaviorHelp": {
+    "message": "Välj vilka Save In-åtgärder som visas i snabbmenyer."
+  },
+
+  "o_lAlsoAskWhen": {
+    "message": "Fråga även var filen ska sparas när:"
+  },
+
   "o_sDynamicDownloads": {
     "message": "Dynamiska nerladdningar (Avancerat)"
   },

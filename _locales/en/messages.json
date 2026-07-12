@@ -208,6 +208,22 @@
     "message": "Behavior"
   },
 
+  "o_sSaveDialog": {
+    "message": "Save dialog"
+  },
+
+  "o_sExistingFiles": {
+    "message": "Existing files"
+  },
+
+  "o_lContextMenuBehaviorHelp": {
+    "message": "Choose which Save In actions appear in context menus."
+  },
+
+  "o_lAlsoAskWhen": {
+    "message": "Also ask where to save when:"
+  },
+
   "o_sDynamicDownloads": {
     "message": "Routing rules"
   },
@@ -544,27 +560,27 @@
   },
 
   "o_cSaveLinks": {
-    "message": "Enable saving of links. Prefers sources if available"
+    "message": "Show actions for links"
   },
 
   "o_cPreferLinks": {
-    "message": "Always prefer links over sources"
+    "message": "Save the link target instead of embedded media"
   },
 
   "o_cSaveText": {
-    "message": "Enable saving of selected text with a \".selection.txt\" extension"
+    "message": "Show an action for selected text"
   },
 
   "o_cSavePage": {
-    "message": "Enable saving of the current page"
+    "message": "Show an action for the current page"
   },
 
   "o_cSavePageHelp": {
-    "message": "Does not save external resources"
+    "message": "Saves the page document only; images, stylesheets, and other external files are not included."
   },
 
   "o_cSaveTabstrip": {
-    "message": "Enable saving from tabstrip"
+    "message": "Show Save In actions in the tab menu"
   },
 
   "o_cSaveTabstripHelp": {
@@ -572,23 +588,23 @@
   },
 
   "o_cOpenDialog": {
-    "message": "Open a save file dialog when saving"
+    "message": "Always ask where to save"
   },
 
   "o_cOpenDialogNoExt": {
-    "message": "Open a save file dialog if filename has no extension"
+    "message": "The filename has no extension"
   },
 
   "o_cOpenDialogShift": {
-    "message": "Open a save file dialog when menu item is clicked and SHIFT is held down"
+    "message": "Shift is held while choosing a menu item"
   },
 
   "o_cOpenDialogOnFailure": {
-    "message": "Open a save file dialog if download fails"
+    "message": "A download fails"
   },
 
   "o_cDupeUniquify": {
-    "message": "Uniquify"
+    "message": "Create a unique name"
   },
 
   "o_cDupeOverwrite": {
@@ -596,11 +612,11 @@
   },
 
   "o_cDupePrompt": {
-    "message": "Prompt"
+    "message": "Ask me"
   },
 
   "o_cDupeFilename": {
-    "message": "when a duplicate filename is encountered"
+    "message": "When a file already exists:"
   },
 
   "o_cOpenDialogIfNoRulesMatch": {
@@ -854,15 +870,15 @@
   },
 
   "o_cPreferLinksFilterEnabled": {
-    "message": "Prefer links for pages that match the following URLs"
+    "message": "Only on matching pages"
   },
 
   "o_cPreferLinksFilter": {
-    "message": "URL filters"
+    "message": "Matching page URLs"
   },
 
   "o_cPreferLinksFilterHelp": {
-    "message": "One regular expression to match against the page URL per line."
+    "message": "Enter one regular expression per line. Patterns are matched against the page URL."
   },
 
   "notificationBadPreferLinksPattern": {
@@ -874,7 +890,7 @@
   },
 
   "o_cCloseTabOnSave": {
-    "message": "Close tabs marked for saving"
+    "message": "Close each tab after it is saved"
   },
 
   "o_lClickToSaveModifier": {

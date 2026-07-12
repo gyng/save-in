@@ -301,85 +301,107 @@
         </div>
       </div>
 
-      <label> <input type="checkbox" id="enableLastLocation" />__MSG_o_cLastUsedMenu__ </label>
-
       <h3>__MSG_o_sBehavior__</h3>
 
-      <fieldset class="option-group">
-        <legend>
-          <label><input type="checkbox" id="links" />__MSG_o_cSaveLinks__</label>
-        </legend>
-        <div class="caption caption-line">
-          <label> <input type="checkbox" id="preferLinks" />__MSG_o_cPreferLinks__ </label>
-        </div>
+      <div class="behavior-group" data-behavior-group="context-menu">
+        <h4>__MSG_o_sContextMenu__</h4>
+        <div class="caption behavior-group-intro">__MSG_o_lContextMenuBehaviorHelp__</div>
 
-        <div class="caption caption-line">
-          <label>
-            <input
-              type="checkbox"
-              id="preferLinksFilterEnabled"
-            />__MSG_o_cPreferLinksFilterEnabled__
-          </label>
+        <label> <input type="checkbox" id="enableLastLocation" />__MSG_o_cLastUsedMenu__ </label>
 
-          <details class="caption caption-line">
-            <summary>__MSG_o_cPreferLinksFilter__</summary>
-            <div></div>
-            <textarea
-              class="full-width"
-              id="preferLinksFilter"
-              aria-label="__MSG_o_cPreferLinksFilter__"
-              rows="3"
-              placeholder=""
-              spellcheck="false"
-            ></textarea>
-            <div class="caption">__MSG_o_cPreferLinksFilterHelp__</div>
-          </details>
-        </div>
-      </fieldset>
+        <fieldset class="option-group">
+          <legend>
+            <label><input type="checkbox" id="links" />__MSG_o_cSaveLinks__</label>
+          </legend>
+          <div class="caption caption-line">
+            <label> <input type="checkbox" id="preferLinks" />__MSG_o_cPreferLinks__ </label>
+          </div>
 
-      <label> <input type="checkbox" id="selection" />__MSG_o_cSaveText__ </label>
+          <div class="caption caption-line">
+            <label>
+              <input
+                type="checkbox"
+                id="preferLinksFilterEnabled"
+              />__MSG_o_cPreferLinksFilterEnabled__
+            </label>
 
-      <label>
-        <input type="checkbox" id="page" />__MSG_o_cSavePage__
-        <div class="caption caption-line">__MSG_o_cSavePageHelp__</div>
-      </label>
+            <details class="caption caption-line">
+              <summary>__MSG_o_cPreferLinksFilter__</summary>
+              <div></div>
+              <textarea
+                class="full-width"
+                id="preferLinksFilter"
+                aria-label="__MSG_o_cPreferLinksFilter__"
+                rows="3"
+                placeholder=""
+                spellcheck="false"
+              ></textarea>
+              <div class="caption">__MSG_o_cPreferLinksFilterHelp__</div>
+            </details>
+          </div>
+        </fieldset>
 
-      <fieldset class="option-group">
-        <legend>
-          <label>
-            <input
-              type="checkbox"
-              id="tabEnabled"
-              class="tab-context-required"
-              aria-describedby="tab-context-requirement"
-            />__MSG_o_cSaveTabstrip__
-            <span class="warning badge chrome-tab-context-badge" id="tab-context-requirement" hidden
-              >Chrome 150+</span
-            >
-          </label>
-        </legend>
-        <div class="caption-line">
-          <label> <input type="checkbox" id="closeTabOnSave" />__MSG_o_cCloseTabOnSave__ </label>
-          <div class="caption">__MSG_o_cSaveTabstripHelp__</div>
-        </div>
-      </fieldset>
+        <label> <input type="checkbox" id="selection" />__MSG_o_cSaveText__ </label>
 
-      <label> <input type="checkbox" id="prompt" />__MSG_o_cOpenDialog__ </label>
+        <label>
+          <input type="checkbox" id="page" />__MSG_o_cSavePage__
+          <div class="caption caption-line">__MSG_o_cSavePageHelp__</div>
+        </label>
 
-      <label> <input type="checkbox" id="promptIfNoExtension" />__MSG_o_cOpenDialogNoExt__ </label>
+        <fieldset class="option-group">
+          <legend>
+            <label>
+              <input
+                type="checkbox"
+                id="tabEnabled"
+                class="tab-context-required"
+                aria-describedby="tab-context-requirement"
+              />__MSG_o_cSaveTabstrip__
+              <span
+                class="warning badge chrome-tab-context-badge"
+                id="tab-context-requirement"
+                hidden
+                >Chrome 150+</span
+              >
+            </label>
+          </legend>
+          <div class="caption-line">
+            <label> <input type="checkbox" id="closeTabOnSave" />__MSG_o_cCloseTabOnSave__ </label>
+            <div class="caption">__MSG_o_cSaveTabstripHelp__</div>
+          </div>
+        </fieldset>
+      </div>
 
-      <label> <input type="checkbox" id="promptOnShift" />__MSG_o_cOpenDialogShift__ </label>
+      <div class="behavior-group" data-behavior-group="save-dialog">
+        <h4>__MSG_o_sSaveDialog__</h4>
 
-      <label> <input type="checkbox" id="promptOnFailure" />__MSG_o_cOpenDialogOnFailure__ </label>
+        <label> <input type="checkbox" id="prompt" />__MSG_o_cOpenDialog__ </label>
+        <div class="caption behavior-group-intro">__MSG_o_lAlsoAskWhen__</div>
 
-      <label>
-        <select disabled class="chrome-enabled" id="conflictAction">
-          <option value="uniquify">__MSG_o_cDupeUniquify__</option>
-          <option value="overwrite">__MSG_o_cDupeOverwrite__</option>
-          <option value="prompt">__MSG_o_cDupePrompt__</option>
-        </select>
-        __MSG_o_cDupeFilename__ <span class="badge">Chrome</span>
-      </label>
+        <label>
+          <input type="checkbox" id="promptIfNoExtension" />__MSG_o_cOpenDialogNoExt__
+        </label>
+
+        <label> <input type="checkbox" id="promptOnShift" />__MSG_o_cOpenDialogShift__ </label>
+
+        <label>
+          <input type="checkbox" id="promptOnFailure" />__MSG_o_cOpenDialogOnFailure__
+        </label>
+      </div>
+
+      <div class="behavior-group" data-behavior-group="existing-files">
+        <h4>__MSG_o_sExistingFiles__</h4>
+
+        <label class="inline-control-label">
+          __MSG_o_cDupeFilename__
+          <select disabled class="chrome-enabled" id="conflictAction">
+            <option value="uniquify">__MSG_o_cDupeUniquify__</option>
+            <option value="overwrite">__MSG_o_cDupeOverwrite__</option>
+            <option value="prompt">__MSG_o_cDupePrompt__</option>
+          </select>
+          <span class="badge">Chrome</span>
+        </label>
+      </div>
 
       <hr />
 
