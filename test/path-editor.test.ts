@@ -124,6 +124,7 @@ describe("visual editor", () => {
     const helper = document.querySelector<HTMLElement>(".path-editor-help .manual-save-help");
 
     expect(helper?.textContent).toBe("Changes in this editor are saved when you select Apply.");
+    expect(helper?.dataset.manualHelpFor).toBe("paths");
     expect(document.querySelector(".path-editor-help")?.textContent).not.toContain(
       "One relative directory",
     );
@@ -363,13 +364,17 @@ describe("text/visual mode toggle", () => {
     expect(element<HTMLElement>("#paths-text-actions").hidden).toBe(true);
     expect(element<HTMLElement>("#paths-text-help").hidden).toBe(true);
     expect(element<HTMLElement>("#paths-editor-description").hidden).toBe(true);
-    expect(element<HTMLElement>(".manual-save-help").hidden).toBe(true);
     expect(element<HTMLElement>("#paths-visual").hidden).toBe(false);
     expect(element<HTMLElement>("#error-paths").hidden).toBe(false);
     expect(element("#paths-mode-visual").classList.contains("active")).toBe(true);
     expect(element("#paths-mode-visual").getAttribute("aria-selected")).toBe("true");
     expect(element("#paths-mode-text").getAttribute("aria-selected")).toBe("false");
     expect(editor.rebuildVisual).toHaveBeenCalled();
+  });
+
+  test("defaults new profiles to the visual editor", () => {
+    expect(element<HTMLElement>("#paths-visual").hidden).toBe(false);
+    expect(element("#paths-mode-visual").getAttribute("aria-selected")).toBe("true");
   });
 
   test("switching back restores the text input", () => {
@@ -383,16 +388,17 @@ describe("text/visual mode toggle", () => {
   });
 
   test("remembers the selected editor mode", () => {
-    element<HTMLElement>("#paths-mode-visual").click();
-    expect(localStorage.getItem("saveInPathsEditorMode")).toBe("visual");
+    element<HTMLElement>("#paths-mode-text").click();
+    expect(localStorage.getItem("saveInPathsEditorMode")).toBe("text");
 
     editor.setupModeToggle();
-    expect(element<HTMLElement>("#paths-visual").hidden).toBe(false);
+    expect(element<HTMLElement>("#paths-visual").hidden).toBe(true);
   });
 
   test("instances keep rebuild callbacks isolated", () => {
     const other = new PathEditor();
     other.rebuildVisual = vi.fn();
+    vi.mocked(editor.rebuildVisual!).mockClear();
 
     element<HTMLElement>("#paths-mode-visual").click();
 
@@ -494,6 +500,31 @@ describe("visual editor drag and drop", () => {
 
     rows[0]!.dispatchEvent(dragEvent("drop", 100, 130));
     expect(element<HTMLTextAreaElement>("#paths").value).toBe("a\n>c\nb");
+  });
+
+  test("nesting never creates a depth jump beneath a deeply nested target", () => {
+    const textarea = element<HTMLTextAreaElement>("#paths");
+    textarea.value = "group\n>child\n>>grandchild\nsibling";
+    textarea.dispatchEvent(new InputEvent("input", { bubbles: true }));
+    vi.advanceTimersByTime(500);
+    const rows = document.querySelectorAll<HTMLElement>(".path-editor-row");
+    vi.spyOn(rows[2]!, "getBoundingClientRect").mockReturnValue({
+      top: 100,
+      bottom: 160,
+      height: 60,
+      left: 0,
+      right: 300,
+      width: 300,
+      x: 0,
+      y: 100,
+      toJSON: () => ({}),
+    });
+    rows[3]!.querySelector(".path-editor-handle")!.dispatchEvent(dragEvent("dragstart", 100));
+    rows[2]!.dispatchEvent(dragEvent("dragover", 100, 130));
+    rows[2]!.dispatchEvent(dragEvent("drop", 100, 130));
+
+    expect(textarea.value).toBe("group\n>child\n>>grandchild\n>>>sibling");
+    expect(textarea.value).not.toContain(">>>>sibling");
   });
 });
 

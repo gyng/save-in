@@ -279,7 +279,7 @@ const PathEditorHelpers = {
   },
 
   // Text/Visual sub-tabs inside the Downloads Menu tab: both edit the same
-  // list; text is the default and stays the source of truth
+  // list; visual is the default while the textarea stays the source of truth
   setupModeToggle: (owner: EditorOwner): void => {
     const textButton = document.querySelector<HTMLElement>("#paths-mode-text");
     const visualButton = document.querySelector<HTMLElement>("#paths-mode-visual");
@@ -287,8 +287,6 @@ const PathEditorHelpers = {
       document.querySelector("#paths-text-help"),
       document.querySelector("#paths-text-actions"),
       document.querySelector("#paths"),
-      document.querySelector(".paths-editor .manual-save-help") ??
-        document.querySelector(".manual-save-help"),
     ] as (HTMLElement | null)[];
     const textDescription = document.querySelector<HTMLElement>("#paths-editor-description");
     if (textDescription) textElements.push(textDescription);
@@ -319,9 +317,9 @@ const PathEditorHelpers = {
 
     textButton.addEventListener("click", () => select(false));
     visualButton.addEventListener("click", () => select(true));
-    let visual = false;
+    let visual = true;
     try {
-      visual = localStorage.getItem("saveInPathsEditorMode") === "visual";
+      visual = localStorage.getItem("saveInPathsEditorMode") !== "text";
     } catch {}
     select(visual);
   },
@@ -358,6 +356,7 @@ const PathEditorHelpers = {
       const line = document.createElement("p");
       line.textContent = copy;
       line.className = className;
+      if (className === "manual-save-help") line.dataset.manualHelpFor = "paths";
       visualHelp.append(line);
     });
     (document.querySelector(".path-editor-toolbar") ?? container).after(visualHelp);
@@ -393,7 +392,7 @@ const PathEditorHelpers = {
         handle.type = "button";
         handle.className = "path-editor-handle";
         handle.textContent = "⠿";
-        handle.title = "Drag vertically to reorder; drag right or left to change nesting";
+        handle.title = "Drag to reorder. Drop on the middle of a row to nest under it.";
         handle.setAttribute("aria-label", `Reorder or change nesting for ${rowName}`);
         handle.draggable = true;
         handle.addEventListener("dragstart", (e) => {

@@ -19,6 +19,7 @@ export const createManualEditorState = (unsavedLabel: string) => {
   const setup = (id: string) => {
     const textarea = document.querySelector(`#${id}`) as HTMLTextAreaElement;
     const buttons = [...document.querySelectorAll(`[data-apply="${id}"], [data-discard="${id}"]`)];
+    const helpers = [...document.querySelectorAll<HTMLElement>(`[data-manual-help-for="${id}"]`)];
     if (!textarea || buttons.length === 0) {
       return;
     }
@@ -63,6 +64,9 @@ export const createManualEditorState = (unsavedLabel: string) => {
       statuses.forEach((status) => {
         status.hidden = !dirty;
         if (!editor.saving) status.textContent = unsavedLabel;
+      });
+      helpers.forEach((helper) => {
+        helper.hidden = !dirty;
       });
     };
 
