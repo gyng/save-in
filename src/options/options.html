@@ -103,16 +103,25 @@
 
       <div class="paths-editor">
         <div class="column">
-          <div class="editor-tabs">
+          <div class="editor-tabs" role="tablist" aria-label="Directory editor mode">
             <button
               type="button"
               class="editor-tab active"
               id="paths-mode-text"
-              aria-pressed="true"
+              role="tab"
+              aria-selected="true"
+              aria-controls="paths"
             >
               __MSG_o_lEditorModeText__
             </button>
-            <button type="button" class="editor-tab" id="paths-mode-visual" aria-pressed="false">
+            <button
+              type="button"
+              class="editor-tab"
+              id="paths-mode-visual"
+              role="tab"
+              aria-selected="false"
+              aria-controls="paths-visual"
+            >
               __MSG_o_sVisualEditor__
             </button>
           </div>

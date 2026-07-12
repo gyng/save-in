@@ -234,7 +234,6 @@ const PathEditorHelpers = {
       document.querySelector("#paths-text-help"),
       document.querySelector("#paths-text-actions"),
       document.querySelector("#paths"),
-      document.querySelector("#error-paths"),
     ] as (HTMLElement | null)[];
     const visualContainer = document.querySelector<HTMLElement>("#paths-visual");
     if (!textButton || !visualButton || !visualContainer || textElements.some((el) => !el)) {
@@ -245,6 +244,8 @@ const PathEditorHelpers = {
     const select = (visual: boolean): void => {
       textButton.classList.toggle("active", !visual);
       visualButton.classList.toggle("active", visual);
+      textButton.setAttribute("aria-selected", visual ? "false" : "true");
+      visualButton.setAttribute("aria-selected", visual ? "true" : "false");
       visibleTextElements.forEach((el) => {
         el.hidden = visual;
       });
@@ -252,10 +253,20 @@ const PathEditorHelpers = {
       if (visual && typeof owner.rebuildVisual === "function") {
         owner.rebuildVisual();
       }
+      try {
+        localStorage.setItem("saveInPathsEditorMode", visual ? "visual" : "text");
+      } catch {
+        // Storage may be unavailable in hardened extension contexts.
+      }
     };
 
     textButton.addEventListener("click", () => select(false));
     visualButton.addEventListener("click", () => select(true));
+    let visual = false;
+    try {
+      visual = localStorage.getItem("saveInPathsEditorMode") === "visual";
+    } catch {}
+    select(visual);
   },
 
   setupVisualEditor: (owner: EditorOwner): void => {
@@ -268,12 +279,23 @@ const PathEditorHelpers = {
     let rows: PathRow[] = [];
     // Index being dragged via a row handle; null when no drag is active
     let dragFrom: number | null = null;
+    let dropAfter = true;
+    let committing = false;
+    let deletedRows: PathRow[] | null = null;
+    const undo = document.createElement("button");
+    undo.type = "button";
+    undo.className = "path-editor-undo";
+    undo.textContent = "Undo delete";
+    undo.hidden = true;
+    container.after(undo);
 
     // Serialize rows back to the textarea (the source of truth) and let
     // the normal pipeline (autosave, previews) react
     const commit = () => {
       textarea.value = PathEditorHelpers.rowsToLines(rows).join("\n");
+      committing = true;
       textarea.dispatchEvent(new InputEvent("input", { bubbles: true }));
+      committing = false;
     };
 
     const render = () => {
@@ -285,10 +307,13 @@ const PathEditorHelpers = {
 
         // Drag to reorder: only the handle starts a drag (a draggable row
         // would fight text selection in the inputs); any row is a target
-        const handle = document.createElement("span");
+        const rowName = PathEditorHelpers.getAlias(row.comment) || row.body || `row ${index + 1}`;
+        const handle = document.createElement("button");
+        handle.type = "button";
         handle.className = "path-editor-handle";
         handle.textContent = "⠿";
         handle.title = "drag to reorder";
+        handle.setAttribute("aria-label", `Reorder ${rowName}`);
         handle.draggable = true;
         handle.addEventListener("dragstart", (e) => {
           dragFrom = index;
@@ -303,25 +328,42 @@ const PathEditorHelpers = {
           dragFrom = null;
           rowEl.classList.remove("dragging");
         });
+        handle.addEventListener("keydown", (event) => {
+          if (!event.altKey || !["ArrowUp", "ArrowDown"].includes(event.key)) return;
+          const destination = event.key === "ArrowUp" ? index - 1 : index + 1;
+          if (destination < 0 || destination >= rows.length) return;
+          event.preventDefault();
+          const [moved] = rows.splice(index, 1);
+          if (moved) rows.splice(destination, 0, moved);
+          commit();
+          rebuild();
+          container.querySelectorAll<HTMLElement>(".path-editor-handle")[destination]?.focus();
+        });
         rowEl.appendChild(handle);
 
         rowEl.addEventListener("dragover", (e) => {
           if (dragFrom !== null) {
             e.preventDefault();
-            rowEl.classList.add("drag-over");
+            dropAfter =
+              !("clientY" in e) ||
+              e.clientY >=
+                rowEl.getBoundingClientRect().top + rowEl.getBoundingClientRect().height / 2;
+            rowEl.classList.toggle("drag-before", !dropAfter);
+            rowEl.classList.toggle("drag-after", dropAfter);
           }
         });
         rowEl.addEventListener("dragleave", () => {
-          rowEl.classList.remove("drag-over");
+          rowEl.classList.remove("drag-before", "drag-after");
         });
         rowEl.addEventListener("drop", (e) => {
           e.preventDefault();
-          rowEl.classList.remove("drag-over");
+          rowEl.classList.remove("drag-before", "drag-after");
           if (dragFrom === null || dragFrom === index) {
             return;
           }
           const [moved] = rows.splice(dragFrom, 1);
-          if (moved) rows.splice(index, 0, moved);
+          const adjustedTarget = dragFrom < index ? index - 1 : index;
+          if (moved) rows.splice(adjustedTarget + (dropAfter ? 1 : 0), 0, moved);
           dragFrom = null;
           commit();
           rebuild();
@@ -344,8 +386,9 @@ const PathEditorHelpers = {
           dir.value = row.body;
           dir.placeholder = "directory/:variables:";
           dir.spellcheck = false;
-          dir.addEventListener("change", () => {
-            row.body = dir.value.trim();
+          dir.setAttribute("aria-label", `Directory ${index + 1}`);
+          dir.addEventListener("input", () => {
+            row.body = dir.value;
             commit();
           });
           rowEl.appendChild(dir);
@@ -355,8 +398,9 @@ const PathEditorHelpers = {
           alias.className = "path-editor-alias";
           alias.value = PathEditorHelpers.getAlias(row.comment);
           alias.placeholder = "alias";
-          alias.addEventListener("change", () => {
-            row.comment = PathEditorHelpers.setAlias(row.comment, alias.value.trim());
+          alias.setAttribute("aria-label", `Display name for directory ${index + 1}`);
+          alias.addEventListener("input", () => {
+            row.comment = PathEditorHelpers.setAlias(row.comment, alias.value);
             commit();
           });
           rowEl.appendChild(alias);
@@ -374,7 +418,7 @@ const PathEditorHelpers = {
             "▶",
             "indent",
             () => {
-              row.depth += 1;
+              if (index > 0 && row.depth < rows[index - 1]!.depth + 1) row.depth += 1;
             },
           ],
           [
@@ -401,7 +445,17 @@ const PathEditorHelpers = {
             "✕",
             "delete",
             () => {
+              deletedRows = rows.map((candidate) => ({ ...candidate }));
+              const deletedDepth = row.depth;
               rows.splice(index, 1);
+              for (
+                let child = index;
+                child < rows.length && rows[child]!.depth > deletedDepth;
+                child++
+              ) {
+                rows[child]!.depth -= 1;
+              }
+              undo.hidden = false;
             },
           ],
         ];
@@ -411,7 +465,16 @@ const PathEditorHelpers = {
           button.type = "button";
           button.className = "path-editor-control";
           button.title = title;
+          button.setAttribute(
+            "aria-label",
+            `${title[0]!.toUpperCase()}${title.slice(1)} ${rowName}`,
+          );
           button.textContent = glyph;
+          if (title === "outdent") button.disabled = row.depth === 0;
+          if (title === "indent")
+            button.disabled = index === 0 || row.depth >= rows[index - 1]!.depth + 1;
+          if (title === "move up") button.disabled = index === 0;
+          if (title === "move down") button.disabled = index === rows.length - 1;
           button.addEventListener("click", () => {
             action();
             commit();
@@ -431,10 +494,22 @@ const PathEditorHelpers = {
     // The mode toggle forces a rebuild when switching into visual mode
     owner.rebuildVisual = rebuild;
 
+    undo.addEventListener("click", () => {
+      if (!deletedRows) return;
+      rows = deletedRows;
+      deletedRows = null;
+      undo.hidden = true;
+      commit();
+      rebuild();
+    });
+
     document.querySelector("#path-editor-add-dir")?.addEventListener("click", () => {
       rows.push({ depth: 0, body: "new-folder", comment: "" });
       commit();
       rebuild();
+      const input = container.lastElementChild?.querySelector<HTMLInputElement>(".path-editor-dir");
+      input?.focus();
+      input?.select();
     });
     document.querySelector("#path-editor-add-sep")?.addEventListener("click", () => {
       rows.push({ depth: 0, body: SPECIAL_DIRS.SEPARATOR, comment: "" });
@@ -446,6 +521,7 @@ const PathEditorHelpers = {
     // templates, restore); our own commits also funnel through this
     let rebuildTimer: number | null = null;
     textarea.addEventListener("input", () => {
+      if (committing) return;
       if (rebuildTimer !== null) {
         window.clearTimeout(rebuildTimer);
       }

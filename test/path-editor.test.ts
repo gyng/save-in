@@ -128,11 +128,12 @@ describe("visual editor", () => {
   });
 
   test("indent and outdent rewrite the textarea", () => {
-    controls(0, "indent").click();
-    expect(textarea().value).toBe(">a\n>b // (alias: B)\n---");
+    expect((controls(0, "indent") as HTMLButtonElement).disabled).toBe(true);
+    controls(1, "outdent").click();
+    expect(textarea().value).toBe("a\nb // (alias: B)\n---");
 
     vi.advanceTimersByTime(500); // rebuild debounce
-    controls(0, "outdent").click();
+    controls(1, "indent").click();
     expect(textarea().value).toBe("a\n>b // (alias: B)\n---");
   });
 
@@ -144,12 +145,24 @@ describe("visual editor", () => {
   test("deleting a row removes its line", () => {
     controls(2, "delete").click();
     expect(textarea().value).toBe("a\n>b // (alias: B)");
+    element<HTMLButtonElement>(".path-editor-undo").click();
+    expect(textarea().value).toBe("a\n>b // (alias: B)\n---");
+  });
+
+  test("deleting a parent promotes its children and undo restores the hierarchy", () => {
+    textarea().value = "parent\n>child\n>>grandchild\nsibling";
+    textarea().dispatchEvent(new InputEvent("input", { bubbles: true }));
+    vi.advanceTimersByTime(500);
+    controls(0, "delete").click();
+    expect(textarea().value).toBe("child\n>grandchild\nsibling");
+    element<HTMLButtonElement>(".path-editor-undo").click();
+    expect(textarea().value).toBe("parent\n>child\n>>grandchild\nsibling");
   });
 
   test("editing the alias field updates only the alias meta", () => {
     const alias = rows()[1]!.querySelector<HTMLInputElement>(".path-editor-alias")!;
     alias.value = "Better";
-    alias.dispatchEvent(new Event("change", { bubbles: true }));
+    alias.dispatchEvent(new Event("input", { bubbles: true }));
     expect(textarea().value).toBe("a\n>b // (alias: Better)\n---");
   });
 
@@ -160,6 +173,22 @@ describe("visual editor", () => {
     vi.advanceTimersByTime(500);
     element<HTMLElement>("#path-editor-add-sep").click();
     expect(textarea().value).toBe("a\n>b // (alias: B)\n---\nnew-folder\n---");
+  });
+
+  test("new directories are focused with their placeholder selected", () => {
+    element<HTMLElement>("#path-editor-add-dir").click();
+    const input = rows()[3]!.querySelector<HTMLInputElement>(".path-editor-dir")!;
+    expect(document.activeElement).toBe(input);
+    expect(input.selectionStart).toBe(0);
+    expect(input.selectionEnd).toBe("new-folder".length);
+  });
+
+  test("row actions expose names and support keyboard reordering", () => {
+    const handle = rows()[1]!.querySelector<HTMLElement>(".path-editor-handle")!;
+    expect(handle.getAttribute("aria-label")).toContain("B");
+    handle.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp", altKey: true }));
+    expect(textarea().value).toBe(">b // (alias: B)\na\n---");
+    expect(controls(0, "outdent").getAttribute("aria-label")).toBe("Outdent B");
   });
 
   test("typing in the textarea rebuilds the rows (debounced)", () => {
@@ -265,6 +294,7 @@ describe("text/visual mode toggle", () => {
   let editor: PathEditor;
 
   beforeEach(() => {
+    localStorage.removeItem("saveInPathsEditorMode");
     document.body.innerHTML = `
       <button type="button" class="editor-tab active" id="paths-mode-text">Text</button>
       <button type="button" class="editor-tab" id="paths-mode-visual">Visual</button>
@@ -290,7 +320,10 @@ describe("text/visual mode toggle", () => {
     expect(element<HTMLElement>("#paths-text-actions").hidden).toBe(true);
     expect(element<HTMLElement>("#paths-text-help").hidden).toBe(true);
     expect(element<HTMLElement>("#paths-visual").hidden).toBe(false);
+    expect(element<HTMLElement>("#error-paths").hidden).toBe(false);
     expect(element("#paths-mode-visual").classList.contains("active")).toBe(true);
+    expect(element("#paths-mode-visual").getAttribute("aria-selected")).toBe("true");
+    expect(element("#paths-mode-text").getAttribute("aria-selected")).toBe("false");
     expect(editor.rebuildVisual).toHaveBeenCalled();
   });
 
@@ -301,6 +334,14 @@ describe("text/visual mode toggle", () => {
     expect(element<HTMLElement>("#paths").hidden).toBe(false);
     expect(element<HTMLElement>("#paths-visual").hidden).toBe(true);
     expect(element("#paths-mode-text").classList.contains("active")).toBe(true);
+  });
+
+  test("remembers the selected editor mode", () => {
+    element<HTMLElement>("#paths-mode-visual").click();
+    expect(localStorage.getItem("saveInPathsEditorMode")).toBe("visual");
+
+    editor.setupModeToggle();
+    expect(element<HTMLElement>("#paths-visual").hidden).toBe(false);
   });
 
   test("instances keep rebuild callbacks isolated", () => {
