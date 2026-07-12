@@ -8,7 +8,12 @@ export const setupOptionDependencies = () => {
   const dependencies: Dependency[] = [
     {
       parent: "contentClickToSave",
-      children: ["contentClickToSaveCombo", "contentClickToSaveButton"],
+      children: [
+        "contentClickToSaveCombo",
+        "clickToSaveModifier",
+        "clickToSaveModifier2",
+        "contentClickToSaveButton",
+      ],
     },
     { parent: "tabEnabled", children: ["closeTabOnSave"] },
     {

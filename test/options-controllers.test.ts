@@ -41,13 +41,33 @@ describe("shortcut option guidance", () => {
       <select id="shortcutType"><option value="MAC_WEBLOC" selected>webloc</option></select>
       <span id="shortcut-format-preview"></span>
       <input type="checkbox" id="contentClickToSave" checked>
-      <input id="contentClickToSaveCombo" value="">
+      <input id="contentClickToSaveCombo" value="Ctrl+Shift">
+      <select id="clickToSaveModifier"><option value=""></option><option value="Ctrl">Ctrl</option></select>
+      <select id="clickToSaveModifier2"><option value=""></option><option value="Shift">Shift</option></select>
       <select id="contentClickToSaveButton"><option value="LEFT_CLICK">left</option></select>
       <div id="click-to-save-warning" hidden></div>`;
     setupShortcutOptions();
-    expect(document.querySelector("#click-to-save-warning")?.hasAttribute("hidden")).toBe(false);
+    expect((document.querySelector("#clickToSaveModifier") as HTMLSelectElement).value).toBe(
+      "Ctrl",
+    );
+    expect((document.querySelector("#clickToSaveModifier2") as HTMLSelectElement).value).toBe(
+      "Shift",
+    );
+    expect(document.querySelector("#click-to-save-warning")?.hasAttribute("hidden")).toBe(true);
     expect(document.querySelector("#shortcut-format-preview")?.textContent).toContain(".webloc");
     expect((document.querySelector("#shortcutType") as HTMLSelectElement).disabled).toBe(false);
+  });
+
+  test("shows an unknown MV2 keycode as a preserved legacy value", () => {
+    document.body.innerHTML = `
+      <input id="contentClickToSaveCombo" value="90">
+      <select id="clickToSaveModifier"><option value=""></option><option value="Alt">Alt</option></select>
+      <select id="clickToSaveModifier2"><option value=""></option></select>`;
+    setupShortcutOptions();
+    const modifier = document.querySelector<HTMLSelectElement>("#clickToSaveModifier")!;
+    expect(modifier.value).toBe("90");
+    expect(modifier.selectedOptions[0].textContent).toBe("Legacy value: 90");
+    expect(document.querySelector<HTMLInputElement>("#contentClickToSaveCombo")!.value).toBe("90");
   });
 });
 

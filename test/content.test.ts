@@ -104,6 +104,7 @@ describe("input helpers", () => {
     expect(ClickToSave.comboToKeyCodes("Option")).toEqual([18]);
     expect(ClickToSave.comboToKeyCodes("ctrl")).toEqual([17]);
     expect(ClickToSave.comboToKeyCodes("Command")).toEqual([91]);
+    expect(ClickToSave.comboToKeyCodes("Ctrl+Shift")).toEqual([17, 16]);
     expect(ClickToSave.comboToKeyCodes(18)).toEqual([18]); // old numeric option
     expect(ClickToSave.comboToKeyCodes("18")).toEqual([18]);
     expect(ClickToSave.comboToKeyCodes(90)).toEqual([90]); // arbitrary custom key kept
@@ -362,6 +363,24 @@ describe("setupClickToSave", () => {
       },
       expect.any(Function),
     );
+  });
+
+  test("a two-modifier shortcut requires both modifiers", () => {
+    const remove = ClickToSave.setupClickToSave({
+      contentClickToSaveCombo: "Ctrl+Shift",
+      contentClickToSaveButton: "BACK_CLICK",
+      links: false,
+    });
+    const img = document.getElementById("i");
+
+    window.dispatchEvent(keyEvent("keydown", 17));
+    mousedown(img, 8);
+    expect(downloadsSent()).toHaveLength(0);
+
+    window.dispatchEvent(keyEvent("keydown", 16));
+    mousedown(img, 8);
+    expect(downloadsSent()).toHaveLength(1);
+    remove();
   });
 
   test("click without a resolvable source does nothing", () => {

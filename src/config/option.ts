@@ -48,7 +48,7 @@ export const OptionsManagement: OptionsManagementApi = {
     conflictAction: "Filename-collision behaviour: uniquify, overwrite, or prompt (Firefox only).",
     contentClickToSave: "Enable click-to-save: hold the modifier and click media to save it.",
     contentClickToSaveCombo:
-      "Key to hold for click-to-save: a name (Alt/Ctrl/Shift/Meta), a raw keyCode, or blank for none.",
+      "Modifiers to hold for click-to-save; legacy raw keyCodes remain supported.",
     contentClickToSaveButton: "Mouse button for click-to-save.",
     sourcePanelEnabled: "Enable the toolbar source browser for DOM-visible page media.",
     sourcePanelBackgrounds: "Include URLs found in computed CSS background images.",

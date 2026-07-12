@@ -50,9 +50,36 @@ export const setupShortcutOptions = () => {
   syncFormat();
 
   const combo = document.querySelector<HTMLInputElement>("#contentClickToSaveCombo");
+  const modifier = document.querySelector<HTMLSelectElement>("#clickToSaveModifier");
+  const modifier2 = document.querySelector<HTMLSelectElement>("#clickToSaveModifier2");
   const button = document.querySelector<HTMLSelectElement>("#contentClickToSaveButton");
   const clickToSave = document.querySelector<HTMLInputElement>("#contentClickToSave");
   const warning = document.querySelector<HTMLElement>("#click-to-save-warning");
+  const showClickCombo = () => {
+    if (!combo || !modifier || !modifier2) return;
+    const parts = combo.value.split("+").filter(Boolean);
+    const known = new Set(["Alt", "Ctrl", "Shift", "Meta"]);
+    const unknown = parts.find((part) => !known.has(part));
+    modifier.querySelector("[data-legacy]")?.remove();
+    if (unknown || (parts.length === 1 && combo.value && !known.has(combo.value))) {
+      const option = document.createElement("option");
+      option.value = combo.value;
+      option.textContent = `Legacy value: ${combo.value}`;
+      option.dataset.legacy = "true";
+      modifier.append(option);
+      modifier.value = combo.value;
+      modifier2.value = "";
+      return;
+    }
+    modifier.value = parts[0] || "";
+    modifier2.value = parts[1] || "";
+  };
+  const saveClickCombo = () => {
+    if (!combo || !modifier || !modifier2) return;
+    if (modifier2.value === modifier.value) modifier2.value = "";
+    combo.value = [modifier.value, modifier2.value].filter(Boolean).join("+");
+    combo.dispatchEvent(new Event("change", { bubbles: true }));
+  };
   const syncGestureWarning = () => {
     if (!warning || !combo || !button) return;
     warning.hidden =
@@ -62,6 +89,15 @@ export const setupShortcutOptions = () => {
   combo?.addEventListener("change", syncGestureWarning);
   button?.addEventListener("change", syncGestureWarning);
   clickToSave?.addEventListener("change", syncGestureWarning);
+  modifier?.addEventListener("change", () => {
+    saveClickCombo();
+    syncGestureWarning();
+  });
+  modifier2?.addEventListener("change", () => {
+    saveClickCombo();
+    syncGestureWarning();
+  });
+  showClickCombo();
   syncGestureWarning();
 
   const accessInputs = ["keyRoot", "keyLastUsed"]
@@ -88,6 +124,7 @@ export const setupShortcutOptions = () => {
   document.addEventListener("options-restored", () => {
     syncNotifications();
     syncFormat();
+    showClickCombo();
     syncGestureWarning();
     validateAccessKeys();
   });

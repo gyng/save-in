@@ -67,8 +67,8 @@ const ClickToSave = {
       windows: 91,
       super: 91,
     };
-    return ([] as (string | number | null | undefined)[])
-      .concat(value)
+    const values = typeof value === "string" && value.includes("+") ? value.split("+") : [value];
+    return values
       .map((v) => {
         const key = String(v == null ? "" : v)
           .trim()

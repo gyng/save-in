@@ -21,7 +21,6 @@ import { setupResetOptions } from "./reset-options.ts";
 import { configureRoutingPorts } from "../routing/ports.ts";
 import { buildTree } from "../menus/menu-tree.ts";
 import { splitLines } from "../shared/util.ts";
-import { setupKeyComboPicker } from "./key-combo-picker.ts";
 import { setupShortcutOptions } from "./shortcut-options.ts";
 import { setupCheckboxRows } from "./checkbox-rows.ts";
 import { setupSettingsTransfer } from "./settings-transfer.ts";
@@ -965,7 +964,6 @@ const updateMenuPreview = () => {
 setupManualEditor("paths");
 setupManualEditor("filenamePatterns");
 
-setupKeyComboPicker();
 setupShortcutOptions();
 
 setupCheckboxRows();

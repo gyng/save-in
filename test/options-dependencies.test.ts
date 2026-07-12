@@ -5,6 +5,8 @@ describe("option dependencies", () => {
     document.body.innerHTML = `
       <input type="checkbox" id="contentClickToSave">
       <input id="contentClickToSaveCombo">
+      <select id="clickToSaveModifier"></select>
+      <select id="clickToSaveModifier2"></select>
       <select id="contentClickToSaveButton"></select>
       <input type="checkbox" id="tabEnabled">
       <input type="checkbox" id="closeTabOnSave">
@@ -21,6 +23,9 @@ describe("option dependencies", () => {
   test("disables children until their parent feature is enabled", () => {
     setupOptionDependencies();
     expect((document.querySelector("#contentClickToSaveCombo") as HTMLInputElement).disabled).toBe(
+      true,
+    );
+    expect((document.querySelector("#clickToSaveModifier") as HTMLSelectElement).disabled).toBe(
       true,
     );
     expect((document.querySelector("#closeTabOnSave") as HTMLInputElement).disabled).toBe(true);

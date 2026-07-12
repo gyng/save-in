@@ -740,7 +740,7 @@
   },
 
   "o_cKeyboardShortcutModifierHelp": {
-    "message": "Hold this key while clicking the chosen mouse button to save. Type a key name (Alt, Ctrl…) or a raw keyCode, or leave it blank to save with the button alone. Changes apply to existing pages."
+    "message": "Hold the selected modifiers while clicking the chosen mouse button. Choose None in both modifier fields to use the mouse button alone. Changes apply to existing pages."
   },
 
   "o_cRestoreDefaults": {
