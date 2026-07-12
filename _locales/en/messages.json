@@ -554,10 +554,6 @@
     "message": "Click to reveal"
   },
 
-  "o_lRoutingLastDownloadHelp": {
-    "message": "Test your current rules, applied to the last downloaded file"
-  },
-
   "o_lRoutingTemplates": {
     "message": "Templates"
   },

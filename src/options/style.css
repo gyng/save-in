@@ -1461,8 +1461,7 @@ summary {
   min-width: 340px;
 }
 
-.rules-editor > .last-download-row,
-.rules-editor > .last-download-row + .caption-line {
+.rules-editor > .last-download-row {
   grid-column: 1;
 }
 
