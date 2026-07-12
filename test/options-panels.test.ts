@@ -16,13 +16,18 @@ beforeEach(() => {
 describe("counter panel", () => {
   test("renders persisted state and resets it", async () => {
     document.body.innerHTML =
-      '<span id="counter-value"></span><button id="counter-reset"></button>';
+      '<input id="counter-value"><button id="counter-set"></button><button id="counter-reset"></button>';
     vi.mocked(browser.storage.local.get).mockResolvedValue({ [COUNTER_KEY]: 7 });
     vi.mocked(browser.storage.local.set).mockResolvedValue();
 
     setupCounterPanel();
     await flush();
-    expect(document.querySelector("#counter-value")?.textContent).toBe("7");
+    expect(document.querySelector<HTMLInputElement>("#counter-value")?.value).toBe("7");
+
+    document.querySelector<HTMLInputElement>("#counter-value")!.value = "12";
+    document.querySelector<HTMLButtonElement>("#counter-set")!.click();
+    await flush();
+    expect(browser.storage.local.set).toHaveBeenCalledWith({ [COUNTER_KEY]: 12 });
 
     document.querySelector<HTMLButtonElement>("#counter-reset")!.click();
     await flush();
@@ -30,10 +35,10 @@ describe("counter panel", () => {
   });
 
   test("refreshes after a download advances the counter", async () => {
-    document.body.innerHTML = '<span id="counter-value">0</span>';
+    document.body.innerHTML = '<input id="counter-value" value="0">';
     vi.mocked(browser.storage.local.get).mockResolvedValue({ [COUNTER_KEY]: 8 });
     await refreshCounterPanel();
-    expect(document.querySelector("#counter-value")?.textContent).toBe("8");
+    expect(document.querySelector<HTMLInputElement>("#counter-value")?.value).toBe("8");
   });
 });
 
