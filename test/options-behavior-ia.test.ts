@@ -35,4 +35,17 @@ describe("options behavior information architecture", () => {
       ["conflictAction"],
     ]);
   });
+
+  test("nests matching-page controls together without spacer markup", () => {
+    const document = new DOMParser().parseFromString(
+      readFileSync(resolve("src/options/options.html"), "utf8"),
+      "text/html",
+    );
+    const group = document.querySelector(".prefer-links-filter")!;
+    expect(group.querySelector(":scope > label #preferLinksFilterEnabled")).not.toBeNull();
+    expect(
+      group.querySelector(":scope > details.prefer-links-filter-patterns #preferLinksFilter"),
+    ).not.toBeNull();
+    expect(group.querySelector(":scope > div:empty")).toBeNull();
+  });
 });

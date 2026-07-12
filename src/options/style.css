@@ -865,6 +865,25 @@ label:has(> input[type="checkbox"]) > .caption-line {
   margin-left: var(--space-4);
 }
 
+.prefer-links-filter {
+  display: grid;
+  gap: var(--space-1);
+  margin-left: var(--space-4);
+}
+
+.prefer-links-filter > label,
+.prefer-links-filter-patterns {
+  margin: 0;
+}
+
+.prefer-links-filter-patterns > summary {
+  padding-block: 0;
+}
+
+.prefer-links-filter-patterns[open] > textarea {
+  margin-top: var(--space-2);
+}
+
 .save-dialog-conditions {
   display: grid;
   gap: var(--space-1);
@@ -3303,6 +3322,7 @@ code.click-to-copy {
 }
 
 .source-shortcut-controls button,
+fieldset.inline-option-group:has(#contentClickToSaveCombo) button,
 .history-actions button,
 .history-actions .history-filter {
   min-height: var(--control-height);
@@ -3338,11 +3358,15 @@ code.click-to-copy {
   font-weight: 600;
 }
 
-#sourcePanelShortcutStatus:not(:empty) {
+#sourcePanelShortcutStatus:not(:empty),
+#clickToSaveStatus:not(:empty) {
   flex-basis: 100%;
-  margin-left: calc(15rem + 2 * var(--space-2));
   color: var(--grey50);
   font-size: var(--text-sm);
+}
+
+#sourcePanelShortcutStatus:not(:empty) {
+  margin-left: calc(15rem + 2 * var(--space-2));
 }
 
 #sourcePanelShortcutStatus.error {

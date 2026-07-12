@@ -334,7 +334,7 @@ Create a Save In downloads-menu definition for these destinations: images by web
             <label> <input type="checkbox" id="preferLinks" />__MSG_o_cPreferLinks__ </label>
           </div>
 
-          <div class="caption caption-line">
+          <div class="caption caption-line prefer-links-filter">
             <label>
               <input
                 type="checkbox"
@@ -342,9 +342,8 @@ Create a Save In downloads-menu definition for these destinations: images by web
               />__MSG_o_cPreferLinksFilterEnabled__
             </label>
 
-            <details class="caption caption-line">
+            <details class="prefer-links-filter-patterns">
               <summary>__MSG_o_cPreferLinksFilter__</summary>
-              <div></div>
               <textarea
                 class="full-width"
                 id="preferLinksFilter"
@@ -889,12 +888,20 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
         <div class="caption caption-line">__MSG_o_cKeyboardShortcutClickToHelp__</div>
       </label>
 
-      <fieldset class="option-group inline-option-group">
-        <legend>__MSG_o_cKeyboardShotcutKeycode__</legend>
+      <fieldset
+        class="option-group inline-option-group source-shortcut-controls click-to-save-controls"
+      >
+        <legend class="visually-hidden">Click-to-save shortcut</legend>
         <input
           type="hidden"
           id="contentClickToSaveCombo"
           aria-label="Click-to-save shortcut combination"
+        />
+        <input
+          type="hidden"
+          id="contentClickToSaveButton"
+          value="LEFT_CLICK"
+          aria-label="Click-to-save mouse button"
         />
         <label>
           <span class="visually-hidden">Primary modifier</span>
@@ -920,7 +927,7 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
         <span class="shortcut-plus" aria-hidden="true">+</span>
         <label>
           <span class="visually-hidden">__MSG_o_lClickToSaveButton__</span>
-          <select id="contentClickToSaveButton">
+          <select id="clickToSaveButton" data-runtime-control="true">
             <option value="LEFT_CLICK">__MSG_o_cKeyboardShortcutModifierLeftClick__</option>
             <option value="MIDDLE_CLICK">__MSG_o_cKeyboardShortcutModifierMiddleClick__</option>
             <option value="RIGHT_CLICK">__MSG_o_cKeyboardShortcutModifierRightClick__</option>
@@ -928,6 +935,9 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
             <option value="FORWARD_CLICK">__MSG_o_cKeyboardShortcutModifierForwardClick__</option>
           </select>
         </label>
+        <button type="button" id="clickToSaveApply">Apply shortcut</button>
+        <button type="button" id="clickToSaveReset">Reset</button>
+        <span id="clickToSaveStatus" role="status" aria-live="polite"></span>
         <div class="caption caption-line">__MSG_o_cKeyboardShortcutModifierHelp__</div>
         <div id="click-to-save-warning" class="warning notice" role="status" hidden>
           Mouse-only left click will replace normal clicks on savable media and links while this
