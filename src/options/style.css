@@ -2389,7 +2389,13 @@ button {
 }
 
 .counter-control {
-  max-width: 360px;
+  max-width: 520px;
+}
+
+.tab-panel .counter-control #counter-value {
+  width: 8rem;
+  max-width: 8rem;
+  box-sizing: border-box;
 }
 
 .dev-api-row {

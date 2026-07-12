@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { setupCheckboxRows } from "../src/options/checkbox-rows.ts";
 import { setupKeyComboPicker } from "../src/options/key-combo-picker.ts";
 import { setupSettingsTransfer } from "../src/options/settings-transfer.ts";
+import { parseCounterValue } from "../src/options/counter-panel.ts";
 
 beforeEach(() => {
   document.body.innerHTML = "";
@@ -68,5 +69,16 @@ describe("settings transfer", () => {
     document.querySelector<HTMLButtonElement>("#settings-import")!.click();
     await vi.waitFor(() => expect(alert).toHaveBeenCalled());
     expect(apply).not.toHaveBeenCalled();
+  });
+});
+
+describe("counter control", () => {
+  test("accepts only non-negative safe integers", () => {
+    expect(parseCounterValue("42")).toBe(42);
+    expect(parseCounterValue("0")).toBe(0);
+    expect(parseCounterValue("-1")).toBeNull();
+    expect(parseCounterValue("1.5")).toBeNull();
+    expect(parseCounterValue("not a number")).toBeNull();
+    expect(parseCounterValue("")).toBeNull();
   });
 });

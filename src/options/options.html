@@ -1092,7 +1092,18 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
       <div class="dev-api counter-control">
         <div class="dev-api-row">
           <span class="dev-api-label">Current</span>
-          <span id="counter-value" class="dev-api-value">0</span>
+          <input
+            id="counter-value"
+            class="dev-api-value"
+            type="number"
+            min="0"
+            step="1"
+            value="0"
+            inputmode="numeric"
+            data-runtime-control="true"
+            aria-label="Counter value"
+          />
+          <button type="button" id="counter-set">Set value</button>
           <button type="button" id="counter-reset">Reset to 0</button>
         </div>
       </div>
