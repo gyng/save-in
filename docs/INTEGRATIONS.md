@@ -73,8 +73,11 @@ filename or route.
 - The extension id above is stable; get it from `manifest.json`
   (`browser_specific_settings.gecko.id` on Firefox; the Web Store id on Chrome).
 - There is no `externally_connectable` block, so **web pages cannot message
-  save-in directly** — only other extensions can. A userscript needs a host
-  extension (Tampermonkey/Violentmonkey count) to relay the message.
+  save-in directly** — only other extensions can. Greasemonkey, Tampermonkey,
+  and Violentmonkey scripts do not automatically gain cross-extension
+  `runtime.sendMessage` access from their manager. A userscript therefore needs
+  a small companion WebExtension (or another extension with an explicit relay
+  API) to forward the request.
 - The MV3 service worker may be asleep; `sendMessage` wakes it. No prewarm is
   needed for external messages (unlike the content-script click path).
 - **Trust model:** `onMessageExternal` accepts from **any** installed
@@ -85,6 +88,24 @@ filename or route.
 - The `OK` response acknowledges that the save was **accepted and started**, not
   that the file landed — the pipeline is async. Watch the History tab (or a
   future `DOWNLOADED` push) for completion.
+
+### Foxy Gestures and other extensions
+
+Foxy Gestures can place the `DOWNLOAD` message above in a user script command.
+For any other WebExtension, add Save In's extension ID to its configuration,
+send `PING` once per browser session, then send `DOWNLOAD` when the gesture,
+toolbar action, or context-menu command fires. Firefox uses the stable Gecko ID
+shown above; Chrome callers should use the installed Web Store ID shown in Save
+In's **More options → External integrations** section.
+
+### Userscript relay shape
+
+If a page userscript is essential, keep the privileged part in a tiny companion
+WebExtension. The content script accepts a narrowly validated page event, sends
+`DOWNLOAD` to Save In from its extension context, and returns only the typed
+result. Allowlist origins and require `https:` URLs; do not expose an unrestricted
+page-to-extension forwarding bridge. The userscript itself cannot call Save In
+directly in a standard Firefox or Chrome installation.
 
 ## 2. Import / export (today)
 

@@ -83,4 +83,19 @@ describe("options form semantics", () => {
       "section-more-options",
     ]);
   });
+
+  test("groups external automation under one clear integrations heading", () => {
+    const document = documentForOptions();
+    const heading = [...document.querySelectorAll("h3")].find(
+      (node) => node.textContent?.trim() === "External integrations",
+    );
+    expect(heading).toBeDefined();
+    const subheadings = [...document.querySelectorAll("h4")].map((node) =>
+      node.textContent?.replaceAll(/\s+/g, " ").trim(),
+    );
+    expect(subheadings).toEqual(
+      expect.arrayContaining(["External download API", "WebMCP __MSG_o_lExperimental__"]),
+    );
+    expect(document.body.textContent).toContain("Greasemonkey");
+  });
 });

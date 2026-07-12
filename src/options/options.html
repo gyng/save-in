@@ -752,22 +752,16 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
 
       <label>
         __MSG_o_cNotifyCloseAfter__
-        <input type="number" id="notifyDuration" min="0" />ms
-        <div class="caption caption-line">__MSG_o_cNotifyCloseAfterHelp__</div>
+        <input type="number" id="notifyDuration" min="0" step="100" inputmode="numeric" /> ms
+        <div class="caption caption-line">0 uses the browser or operating system default.</div>
       </label>
 
       <hr />
 
       <h2 id="section-save-as-shortcuts">__MSG_o_sSaveAsShortcuts__</h2>
-      <label>
-        __MSG_o_cSaveShortcutsAs__
-        <select id="shortcutType">
-          <option value="HTML_REDIRECT">__MSG_o_cSaveShortcutsTypeHtml__</option>
-          <option value="MAC">__MSG_o_cSaveShortcutsTypeMac__</option>
-          <option value="WINDOWS">__MSG_o_cSaveShortcutsTypeWindows__</option>
-          <option value="FREEDESKTOP">__MSG_o_cSaveShortcutsTypeFreedesktop__</option>
-        </select>
-      </label>
+      <p class="section-lead">Save a small link file instead of downloading the target.</p>
+      <fieldset class="option-group shortcut-file-options">
+        <legend class="option-group-heading">Use shortcut files for</legend>
 
       <label>
         <input type="checkbox" id="shortcutMedia" />
@@ -777,6 +771,20 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
       <label>
         <input type="checkbox" id="shortcutLink" />
         __MSG_o_cSaveShortcutsLinksInstead__
+      </label>
+
+      </fieldset>
+
+      <label class="shortcut-format-control">
+        __MSG_o_cSaveShortcutsAs__
+        <select id="shortcutType">
+          <option value="HTML_REDIRECT">__MSG_o_cSaveShortcutsTypeHtml__</option>
+          <option value="MAC">__MSG_o_cSaveShortcutsTypeMac__</option>
+          <option value="MAC_WEBLOC">macOS .webloc</option>
+          <option value="WINDOWS">__MSG_o_cSaveShortcutsTypeWindows__</option>
+          <option value="FREEDESKTOP">__MSG_o_cSaveShortcutsTypeFreedesktop__</option>
+        </select>
+        <span id="shortcut-format-preview" class="caption"></span>
       </label>
 
       <label>
@@ -807,14 +815,15 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
       <p>__MSG_o_lAccessKeysInstruction__</p>
 
       <label>
-        <input class="key" type="text" id="keyRoot" maxlength="1" />
+        <input class="key" type="text" id="keyRoot" maxlength="1" aria-describedby="access-key-status" />
         __MSG_o_cKeyboardShortcutSaveInMenu__
       </label>
 
       <label>
-        <input class="key" type="text" id="keyLastUsed" maxlength="1" />
+        <input class="key" type="text" id="keyLastUsed" maxlength="1" aria-describedby="access-key-status" />
         __MSG_o_cKeyboardShortcutSubmenu__
       </label>
+      <div id="access-key-status" class="caption warning-text" role="status" aria-live="polite"></div>
 
       <label>
         <input type="checkbox" id="enableNumberedItems" />
@@ -854,6 +863,9 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
           </select>
         </label>
         <div class="caption caption-line">__MSG_o_cKeyboardShortcutModifierHelp__</div>
+        <div id="click-to-save-warning" class="warning notice" role="status" hidden>
+          Mouse-only left click will replace normal clicks on savable media and links while this feature is enabled.
+        </div>
       </fieldset>
 
       <hr />
@@ -1137,7 +1149,8 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
 
       <textarea id="export-target" hidden spellcheck="false"></textarea>
 
-      <h3>__MSG_o_sAdvancedExternalApi__</h3>
+      <h3>External integrations</h3>
+      <h4>External download API</h4>
       <p class="caption caption-line">
         Other extensions can save a URL through save-in's routing and rename rules (issue #110).
         <a class="external" href="https://github.com/gyng/save-in/wiki/Integrations"
@@ -1162,12 +1175,21 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
           <pre id="api-snippet" class="click-to-copy" title="Click to copy"></pre>
           <div class="caption">Click the snippet to copy it.</div>
         </details>
+        <details class="dev-api-snippet">
+          <summary>Where this works</summary>
+          <div class="caption">
+            WebExtensions such as Foxy Gestures can message Save In directly. A Greasemonkey,
+            Tampermonkey, or Violentmonkey userscript cannot do so by itself: userscripts do not
+            receive cross-extension messaging access. Use a small companion WebExtension as a
+            relay, or have the userscript hand the URL to an extension that exposes that ability.
+          </div>
+        </details>
       </div>
 
-      <h3>
-        __MSG_o_sAdvancedAgentTools__
+      <h4>
+        WebMCP
         <span class="warning badge">__MSG_o_lExperimental__</span>
-      </h3>
+      </h4>
       <p class="caption caption-line">
         In a browser that supports
         <a class="external" href="https://developer.chrome.com/docs/ai/webmcp">WebMCP</a>, Save In
