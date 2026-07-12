@@ -3,6 +3,26 @@ import { webExtensionApi } from "../platform/web-extension-api.ts";
 const COMMAND = "toggle-source-panel";
 const MODIFIERS = new Set(["ctrl", "alt", "command", "macctrl", "shift"]);
 const PRIMARY_MODIFIERS = new Set(["ctrl", "alt", "command", "macctrl"]);
+const NAMED_KEYS = new Set([
+  "comma",
+  "period",
+  "home",
+  "end",
+  "pageup",
+  "pagedown",
+  "space",
+  "insert",
+  "delete",
+  "up",
+  "down",
+  "left",
+  "right",
+]);
+
+const isShortcutKey = (key: string): boolean =>
+  /^[a-z0-9]$/i.test(key) ||
+  /^f(?:[1-9]|1[0-2])$/i.test(key) ||
+  NAMED_KEYS.has(key.toLocaleLowerCase());
 
 export const validateSourceShortcut = (shortcut: string): string => {
   const value = shortcut.trim();
@@ -16,6 +36,9 @@ export const validateSourceShortcut = (shortcut: string): string => {
   }
   if (keys.length === 0) return "Add a key after the modifier.";
   if (keys.length > 1) return "Use one key with your modifiers.";
+  if (!isShortcutKey(keys[0])) {
+    return "Choose a valid key, such as Y, 5, F12, or PageDown.";
+  }
   if (new Set(parts.map((part) => part.toLocaleLowerCase())).size !== parts.length) {
     return "Do not repeat keys or modifiers.";
   }

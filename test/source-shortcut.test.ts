@@ -51,6 +51,9 @@ describe("Page Sources shortcut control", () => {
     expect(validateSourceShortcut("Ctrl+Shift")).toContain("key");
     expect(validateSourceShortcut("Ctrl+Y+S")).toContain("one key");
     expect(validateSourceShortcut("Ctrl++Y")).toContain("format");
+    expect(validateSourceShortcut("Ctrl+Shift+Yyo")).toContain("valid key");
+    expect(validateSourceShortcut("Ctrl+F12")).toBe("");
+    expect(validateSourceShortcut("Ctrl+PageDown")).toBe("");
   });
 
   test("shows inline validation and only enables Apply for a valid change", async () => {
