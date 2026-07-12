@@ -280,6 +280,8 @@ const PathEditorHelpers = {
     // Index being dragged via a row handle; null when no drag is active
     let dragFrom: number | null = null;
     let dragStartX = 0;
+    let dragOriginalDepth = 0;
+    let dropDepth: number | null = null;
     let dropAfter = true;
     let committing = false;
     let deletedRows: PathRow[] | null = null;
@@ -324,6 +326,8 @@ const PathEditorHelpers = {
         handle.addEventListener("dragstart", (e) => {
           dragFrom = index;
           dragStartX = e.clientX;
+          dragOriginalDepth = row.depth;
+          dropDepth = null;
           rowEl.classList.add("dragging");
           if (e.dataTransfer) {
             // Firefox requires data for a drag to start
@@ -333,7 +337,9 @@ const PathEditorHelpers = {
         });
         handle.addEventListener("dragend", () => {
           dragFrom = null;
+          dropDepth = null;
           rowEl.classList.remove("dragging");
+          container.querySelectorAll(".path-editor-drop-indicator").forEach((el) => el.remove());
         });
         handle.addEventListener("keydown", (event) => {
           if (
@@ -370,23 +376,46 @@ const PathEditorHelpers = {
                 rowEl.getBoundingClientRect().top + rowEl.getBoundingClientRect().height / 2;
             rowEl.classList.toggle("drag-before", !dropAfter);
             rowEl.classList.toggle("drag-after", dropAfter);
+            const adjustedTarget = dragFrom < index ? index - 1 : index;
+            const destination = adjustedTarget + (dropAfter ? 1 : 0);
+            const previousIndex = destination > dragFrom ? destination : destination - 1;
+            const maximumDepth =
+              dragFrom === index
+                ? index === 0
+                  ? 0
+                  : rows[index - 1]!.depth + 1
+                : previousIndex < 0
+                  ? 0
+                  : rows[previousIndex]!.depth + 1;
+            dropDepth = Math.max(
+              0,
+              Math.min(maximumDepth, dragOriginalDepth + Math.round((e.clientX - dragStartX) / 16)),
+            );
+            container.querySelectorAll(".path-editor-drop-indicator").forEach((el) => el.remove());
+            const indicator = document.createElement("span");
+            indicator.className = "path-editor-drop-indicator";
+            indicator.textContent = `Drop here · level ${dropDepth}`;
+            indicator.style.setProperty("--drop-depth", String(dropDepth));
+            rowEl.append(indicator);
           }
         });
         rowEl.addEventListener("dragleave", () => {
           rowEl.classList.remove("drag-before", "drag-after");
+          rowEl.querySelector(".path-editor-drop-indicator")?.remove();
         });
         rowEl.addEventListener("drop", (e) => {
           e.preventDefault();
           rowEl.classList.remove("drag-before", "drag-after");
+          rowEl.querySelector(".path-editor-drop-indicator")?.remove();
           if (dragFrom === null) return;
-          const horizontalSteps = Math.round((e.clientX - dragStartX) / 20);
+          const horizontalSteps = Math.round((e.clientX - dragStartX) / 16);
           if (dragFrom === index) {
             const maximumDepth = index === 0 ? 0 : rows[index - 1]!.depth + 1;
-            rows[index]!.depth = Math.max(
-              0,
-              Math.min(maximumDepth, rows[index]!.depth + horizontalSteps),
-            );
+            rows[index]!.depth =
+              dropDepth ??
+              Math.max(0, Math.min(maximumDepth, rows[index]!.depth + horizontalSteps));
             dragFrom = null;
+            dropDepth = null;
             commit();
             rebuild();
             return;
@@ -397,9 +426,11 @@ const PathEditorHelpers = {
           if (moved) {
             rows.splice(destination, 0, moved);
             const maximumDepth = destination === 0 ? 0 : rows[destination - 1]!.depth + 1;
-            moved.depth = Math.max(0, Math.min(maximumDepth, moved.depth + horizontalSteps));
+            moved.depth =
+              dropDepth ?? Math.max(0, Math.min(maximumDepth, moved.depth + horizontalSteps));
           }
           dragFrom = null;
+          dropDepth = null;
           commit();
           rebuild();
         });

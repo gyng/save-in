@@ -430,6 +430,24 @@ describe("visual editor drag and drop", () => {
 
     expect(element<HTMLTextAreaElement>("#paths").value).toBe("a\n>b\nc");
   });
+
+  test("dragging left previews and applies an outdent", () => {
+    element<HTMLTextAreaElement>("#paths").value = "a\n>b\n>>c";
+    element<HTMLTextAreaElement>("#paths").dispatchEvent(
+      new InputEvent("input", { bubbles: true }),
+    );
+    vi.advanceTimersByTime(500);
+    const rows = document.querySelectorAll(".path-editor-row");
+    rows[2]!.querySelector(".path-editor-handle")!.dispatchEvent(dragEvent("dragstart", 100));
+    rows[2]!.dispatchEvent(dragEvent("dragover", 70));
+
+    const indicator = rows[2]!.querySelector<HTMLElement>(".path-editor-drop-indicator")!;
+    expect(indicator.textContent).toBe("Drop here · level 0");
+    expect(indicator.style.getPropertyValue("--drop-depth")).toBe("0");
+
+    rows[2]!.dispatchEvent(dragEvent("drop", 100));
+    expect(element<HTMLTextAreaElement>("#paths").value).toBe("a\n>b\nc");
+  });
 });
 
 describe("insert menu targets its editor via data-insert-target", () => {

@@ -1699,6 +1699,21 @@ button:disabled:hover {
   border-radius: var(--radius);
 }
 
+.path-editor-drop-indicator {
+  position: absolute;
+  z-index: 1;
+  left: calc(26px + var(--drop-depth) * 20px);
+  bottom: -11px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: var(--blue50);
+  color: white;
+  font-size: 10px;
+  line-height: 16px;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
 .path-editor-row:hover {
   background-color: var(--hover-bg);
 }
