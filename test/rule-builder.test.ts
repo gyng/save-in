@@ -26,6 +26,10 @@ describe("RULE_TEMPLATES", () => {
         "One folder per source site",
         "One folder per file extension",
         "Browser downloads inbox",
+        "Screenshots by month",
+        "E-books and comics",
+        "Apps and installers",
+        "One folder per page site",
       ]),
     );
   });

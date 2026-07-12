@@ -17,7 +17,7 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
   {
     category: "Media",
     name: "Videos into per-site folders",
-    description: "Does the same for video files",
+    description: "Sorts every saved video by the site it came from",
     example: "Example: videos/example.com/clip.mp4",
     rule: "mediatype: video\ninto: videos/:pagedomain:/:filename:",
   },
@@ -29,6 +29,13 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     rule: "mediatype: audio\ninto: audio/:pagedomain:/:filename:",
   },
   {
+    category: "Media",
+    name: "Screenshots by month",
+    description: "Keeps filenames beginning with screenshot in dated folders",
+    example: "Example: screenshots/2026/07/Screenshot 42.png",
+    rule: "filename/i: ^screen([ _-]?shot|capture)\ninto: screenshots/:year:/:month:/:filename:",
+  },
+  {
     category: "File types",
     name: "PDFs into a documents folder",
     description: "Collects every PDF in one place",
@@ -38,16 +45,37 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
   {
     category: "File types",
     name: "Archives into one folder",
-    description: "Collects zip, rar, 7z, and tar archives",
+    description: "Collects zip, rar, 7z, tar, and compressed archives",
     example: "Example: archives/project.zip",
-    rule: "fileext: (zip|rar|7z|gz|tgz)\ninto: archives/:filename:",
+    rule: "fileext/i: (zip|rar|7z|tar|gz|tgz|bz2|xz)\ninto: archives/:filename:",
   },
   {
     category: "File types",
     name: "Documents into one folder",
     description: "Collects common office and text documents",
-    example: "Example: documents/notes.txt",
-    rule: "fileext: (pdf|docx?|odt|rtf|txt)\ninto: documents/:filename:",
+    example: "Example: documents/notes.docx",
+    rule: "fileext/i: (pdf|docx?|xlsx?|pptx?|odt|ods|rtf|txt|csv)\ninto: documents/:filename:",
+  },
+  {
+    category: "File types",
+    name: "E-books and comics",
+    description: "Collects common e-book and digital comic formats",
+    example: "Example: books/novel.epub",
+    rule: "fileext/i: (epub|mobi|azw3?|pdf|cbz|cbr)\ninto: books/:filename:",
+  },
+  {
+    category: "File types",
+    name: "Apps and installers",
+    description: "Keeps desktop and mobile installation packages together",
+    example: "Example: installers/setup.msi",
+    rule: "fileext/i: (exe|msi|dmg|pkg|deb|rpm|appimage|apk)\ninto: installers/:filename:",
+  },
+  {
+    category: "File types",
+    name: "Fonts into one folder",
+    description: "Collects desktop and web font files",
+    example: "Example: fonts/inter.woff2",
+    rule: "fileext/i: (ttf|otf|woff2?|eot)\ninto: fonts/:filename:",
   },
   {
     category: "File types",
@@ -107,6 +135,13 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
   },
   {
     category: "Sites and URLs",
+    name: "One folder per page site",
+    description: "Groups files by the website you were browsing rather than the file host",
+    example: "Example: sites/example.com/photo.jpg",
+    rule: "pageurl: .*\ninto: sites/:pagedomain:/:filename:",
+  },
+  {
+    category: "Sites and URLs",
     name: "Page-title prefix",
     description: "Adds a filesystem-safe page title before the original filename",
     example: "Example: pages/an-interesting-page-report.pdf",
@@ -132,6 +167,13 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     description: "Separates files saved from links from embedded media",
     example: "Example: links/report.pdf",
     rule: "context: link\ninto: links/:filename:",
+  },
+  {
+    category: "Save context",
+    name: "Selected text inbox",
+    description: "Keeps files created from selected page text together",
+    example: "Example: selections/2026-07-12-selection.txt",
+    rule: "context: selection\ninto: selections/:date:-:filename:",
   },
   {
     category: "Save context",
