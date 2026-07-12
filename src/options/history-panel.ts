@@ -84,7 +84,12 @@ const updateHistoryFilterUi = () => {
   }
 
   const clear = document.querySelector<HTMLButtonElement>("#history-clear-filters");
-  if (clear) clear.hidden = active.length === 0;
+  if (clear) {
+    const inactive = active.length === 0;
+    clear.classList.toggle("history-clear-filters-inactive", inactive);
+    clear.disabled = inactive;
+    clear.setAttribute("aria-hidden", String(inactive));
+  }
   const summary = document.querySelector<HTMLElement>("#history-active-filters");
   if (summary) summary.textContent = active.length ? `Filtered by ${active.join(" · ")}` : "";
 
@@ -240,14 +245,6 @@ const renderHistoryTable = () => {
 
   container.textContent = "";
 
-  if (total === 0) {
-    const empty = document.createElement("p");
-    empty.className = "caption";
-    empty.textContent = "No downloads saved yet.";
-    container.appendChild(empty);
-    return;
-  }
-
   const table = document.createElement("table");
   table.className = "history-table";
 
@@ -280,6 +277,17 @@ const renderHistoryTable = () => {
     head.appendChild(th);
   });
   table.appendChild(head);
+
+  if (pageRows.length === 0) {
+    const emptyRow = document.createElement("tr");
+    emptyRow.className = "history-empty-row";
+    const empty = document.createElement("td");
+    empty.colSpan = visibleHistoryColumns.size;
+    empty.textContent =
+      total === 0 ? "No downloads saved yet." : "No history matches these filters.";
+    emptyRow.appendChild(empty);
+    table.appendChild(emptyRow);
+  }
 
   pageRows.forEach((r, rowIndex) => {
     const tr = document.createElement("tr");
@@ -414,7 +422,7 @@ const renderHistoryTable = () => {
   container.appendChild(table);
 
   // Keep location and disabled boundary controls visible even on one page.
-  {
+  if (total > 0) {
     const pager = document.createElement("div");
     pager.className = "history-pager";
 

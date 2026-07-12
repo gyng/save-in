@@ -38,7 +38,9 @@ test("offers configurable history columns and explicit exports", () => {
     "__MSG_o_lHistoryDateSaved__",
   );
   expect(document.querySelector("#history-custom-date-range")?.hasAttribute("hidden")).toBe(true);
-  expect(document.querySelector("#history-clear-filters")?.hasAttribute("hidden")).toBe(true);
+  expect(document.querySelector("#history-clear-filters")?.classList).toContain(
+    "history-clear-filters-inactive",
+  );
   expect(document.querySelector("#history-active-filters[aria-live]")).not.toBeNull();
   expect(document.querySelector("#history-clear")?.textContent).toContain(
     "__MSG_o_cDeleteAllHistory__",

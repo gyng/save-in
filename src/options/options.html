@@ -40,34 +40,36 @@
           </div>
         </details>
       </div>
-      <div class="reference-launcher-tabs" role="tablist" aria-label="Insertion references">
-        <button
-          type="button"
-          role="tab"
-          data-reference-tab="options-reference-variables"
-          aria-controls="options-reference-variables"
-          aria-selected="false"
-        >
-          Variables
-        </button>
-        <button
-          type="button"
-          role="tab"
-          data-reference-tab="options-reference-clauses"
-          aria-controls="options-reference-clauses"
-          aria-selected="false"
-        >
-          Clauses
-        </button>
-        <button
-          type="button"
-          role="tab"
-          data-reference-tab="options-reference-templates"
-          aria-controls="options-reference-templates"
-          aria-selected="false"
-        >
-          Templates
-        </button>
+      <div class="top-nav-tools">
+        <div class="reference-launcher-tabs" role="tablist" aria-label="Insertion references">
+          <button
+            type="button"
+            role="tab"
+            data-reference-tab="options-reference-variables"
+            aria-controls="options-reference-variables"
+            aria-selected="false"
+          >
+            Variables
+          </button>
+          <button
+            type="button"
+            role="tab"
+            data-reference-tab="options-reference-clauses"
+            aria-controls="options-reference-clauses"
+            aria-selected="false"
+          >
+            Clauses
+          </button>
+          <button
+            type="button"
+            role="tab"
+            data-reference-tab="options-reference-templates"
+            aria-controls="options-reference-templates"
+            aria-selected="false"
+          >
+            Templates
+          </button>
+        </div>
       </div>
       <div class="save-status caption" role="status" aria-live="polite">
         <span>__MSG_o_cLastSavedAt__</span>
@@ -1136,7 +1138,13 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
             <option value="custom">__MSG_o_lHistoryCustomRange__</option>
           </select>
         </div>
-        <button type="button" id="history-clear-filters" class="button" hidden>
+        <button
+          type="button"
+          id="history-clear-filters"
+          class="button history-clear-filters-inactive"
+          aria-hidden="true"
+          disabled
+        >
           __MSG_o_cClearHistoryFilters__
         </button>
       </div>

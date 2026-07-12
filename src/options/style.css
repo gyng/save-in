@@ -216,7 +216,7 @@ body:not(#settings-page) {
   display: inline-flex;
   align-items: center;
   gap: 1px;
-  margin-left: auto;
+  margin-left: 0;
   padding: 2px;
   border: 1px solid var(--panel-border);
   border-radius: var(--radius);
@@ -241,13 +241,21 @@ body:not(#settings-page) {
   display: inline-flex;
   align-items: baseline;
   gap: var(--space-1);
-  align-self: center;
+  align-self: baseline;
   color: var(--color-text-muted);
   white-space: nowrap;
   margin-left: var(--space-1);
   padding-left: var(--space-3);
   border-left: 1px solid var(--color-border);
   font-size: var(--text-sm);
+}
+
+.top-nav-tools {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  margin-left: auto;
 }
 
 .save-status span {
@@ -1385,7 +1393,7 @@ input.key {
   flex: 0 1 16rem;
   width: min(16rem, 28vw);
   max-width: 100%;
-  margin: 0 0 0 auto;
+  margin: 0;
   z-index: 20;
 }
 
@@ -2800,6 +2808,19 @@ code.click-to-copy {
   margin-top: var(--space-3);
 }
 
+.history-table-tools > details > summary {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--control-height);
+  box-sizing: border-box;
+  line-height: 1;
+}
+
+.history-clear-filters-inactive {
+  visibility: hidden;
+  pointer-events: none;
+}
+
 .history-custom-date-range {
   display: flex;
   flex-wrap: wrap;
@@ -2885,6 +2906,14 @@ code.click-to-copy {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.history-table .history-empty-row td {
+  height: 7rem;
+  color: var(--grey50);
+  text-align: center;
+  vertical-align: middle;
+  white-space: normal;
 }
 
 .history-time {
@@ -3278,6 +3307,12 @@ code.click-to-copy {
 
   .save-status {
     white-space: normal;
+  }
+
+  .top-nav-tools {
+    width: 100%;
+    flex-wrap: wrap;
+    margin-left: 0;
   }
 
   .option-search {

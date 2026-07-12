@@ -18,7 +18,7 @@ const markup = () => `
     <option value="7-days">Last 7 days</option><option value="30-days">Last 30 days</option>
     <option value="custom">Custom date range</option>
   </select>
-  <button id="history-clear-filters" hidden>Clear filters</button>
+  <button id="history-clear-filters" class="history-clear-filters-inactive" disabled>Clear filters</button>
   <div id="history-custom-date-range" hidden>
     <input id="history-date-from" type="date"><input id="history-date-to" type="date">
     <span id="history-date-error" hidden></span>
@@ -94,13 +94,25 @@ describe("history filter controls", () => {
     expect(document.querySelector("#history-active-filters")!.textContent).toContain("photo");
     expect(document.querySelector("#history-active-filters")!.textContent).toContain("Image");
     const clear = document.querySelector<HTMLButtonElement>("#history-clear-filters")!;
-    expect(clear.hidden).toBe(false);
+    expect(clear.classList).not.toContain("history-clear-filters-inactive");
+    expect(clear.disabled).toBe(false);
     clear.click();
 
     expect(search.value).toBe("");
     expect(type.value).toBe("");
-    expect(clear.hidden).toBe(true);
+    expect(clear.classList).toContain("history-clear-filters-inactive");
+    expect(clear.disabled).toBe(true);
     expect(document.querySelector("#history-active-filters")!.textContent).toBe("");
     expect(document.querySelector("#history-count")!.textContent).toBe("0 results");
+  });
+
+  test("keeps table headers and an empty-state row when history has no entries", async () => {
+    document.dispatchEvent(new Event("DOMContentLoaded"));
+    await vi.waitFor(() => expect(document.querySelector("#history-list table")).not.toBeNull());
+
+    expect(document.querySelectorAll("#history-list th").length).toBeGreaterThan(0);
+    expect(document.querySelector("#history-list .history-empty-row")?.textContent).toContain(
+      "No downloads saved yet",
+    );
   });
 });
