@@ -13,6 +13,7 @@ class Cdp {
     this.pending = new Map();
     ws.addEventListener("message", (ev) => {
       const msg = JSON.parse(ev.data);
+      if (process.env.CDP_DEBUG) console.error("CDP <-", ev.data);
       if (msg.id && this.pending.has(msg.id)) {
         const { resolve, reject } = this.pending.get(msg.id);
         this.pending.delete(msg.id);
@@ -34,7 +35,9 @@ class Cdp {
   send(method, params = {}, timeoutMs = 15000) {
     this.id += 1;
     const id = this.id;
-    this.ws.send(JSON.stringify({ id, method, params }));
+    const message = JSON.stringify({ id, method, params });
+    if (process.env.CDP_DEBUG) console.error("CDP ->", message);
+    this.ws.send(message);
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
         this.pending.delete(id);

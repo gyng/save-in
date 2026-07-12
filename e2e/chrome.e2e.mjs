@@ -80,7 +80,6 @@ test("service worker initialises cleanly", async () => {
       patternErrors: window.optionErrors.filenamePatterns.length,
       menuCount: Object.keys(menuState.pathMappings).length,
       noObjectUrl: typeof URL.createObjectURL === "undefined",
-      hasDnr: typeof chrome.declarativeNetRequest === "object",
     }))`),
   );
 
@@ -91,6 +90,7 @@ test("service worker initialises cleanly", async () => {
     downloadFilenameSuggestion: true,
     downloadDeltaFilename: true,
     conflictActionPrompt: false,
+    downloadRequestHeaders: false,
   });
   expect(state.promptConflictAction).toBe("uniquify");
   expect(state.pathErrors).toBe(0);
@@ -98,7 +98,6 @@ test("service worker initialises cleanly", async () => {
   expect(state.menuCount).toBeGreaterThan(0);
   // Running in a real service worker, with the MV3 fallbacks in play
   expect(state.noObjectUrl).toBe(true);
-  expect(state.hasDnr).toBe(true);
 });
 
 test("options page works under MV3 CSP with live first-party autocomplete", async () => {
@@ -115,13 +114,23 @@ test("options page works under MV3 CSP with live first-party autocomplete", asyn
       const suggestions = open ? dd.textContent : "";
       ta.value = "";
       ta.dispatchEvent(new InputEvent("input", { bubbles: true }));
-      return JSON.stringify({ form: !!ta, open, suggestions });
+      return JSON.stringify({
+        form: !!ta,
+        open,
+        suggestions,
+        refererHidden: document.querySelector("#setRefererHeader")?.closest(".firefox-only")?.hidden,
+        nativeBrowserRoutingHidden: document.querySelector("#routeBrowserDownloads")?.closest("label")?.hidden,
+        experimentalFirefoxRoutingHidden: document.querySelector("#routeBrowserDownloadsFirefox")?.closest("label")?.hidden,
+      });
     })()`),
   );
 
   expect(result.form).toBe(true);
   expect(result.open).toBe(true);
   expect(result.suggestions).toContain(":date:");
+  expect(result.refererHidden).toBe(true);
+  expect(result.nativeBrowserRoutingHidden).toBe(false);
+  expect(result.experimentalFirefoxRoutingHidden).toBe(true);
 });
 
 test("WAKE_WARM prewarm round-trips", async () => {
@@ -201,25 +210,65 @@ test("lastUsedPath survives re-initialisation", async () => {
   expect(lastUsed).toBe("e2e/persisted");
 });
 
-test("referer option creates a declarativeNetRequest session rule", async () => {
-  const rules = JSON.parse(
-    await evalSW(`(() => {
-      options.setRefererHeader = true;
-      options.setRefererHeaderFilter = "*://i.pximg.net/*";
-      return RequestHeaders.prepareReferer({
-        info: {
-          url: "https://i.pximg.net/img/e2e.png",
-          pageUrl: "https://www.pixiv.net/artworks/1",
+test("ordinary browser downloads can be routed and tracked without adoption", async () => {
+  const server = http.createServer((req, res) => {
+    if (req.url === "/native.bin") {
+      res.writeHead(200, {
+        "Content-Type": "application/octet-stream",
+        "Content-Disposition": 'attachment; filename="native.bin"',
+      });
+      res.end("ordinary browser download");
+      return;
+    }
+    res.writeHead(200, { "Content-Type": "text/html" });
+    res.end('<a id="native" href="/native.bin">download</a>');
+  });
+  const port = await listenLocal(server);
+  const pageUrl = `http://127.0.0.1:${port}/`;
+  const target = `127.0.0.1:${port}`;
+
+  try {
+    await evalSW(`browser.storage.local.set({
+      trackBrowserDownloads: true,
+      routeBrowserDownloads: true,
+      browserDownloadFilter: "*://127.0.0.1/*",
+      filenamePatterns: "filename: native\\.bin\\ninto: browser-routed/:filename:",
+    }).then(() => window.reset())`);
+    await cdp.openTab(PORT, pageUrl);
+    await poll(
+      async () =>
+        (await cdp.evalInTarget(PORT, target, "!!document.querySelector('#native')")) === true,
+      { description: "ordinary download page" },
+    );
+    await cdp.evalInTarget(PORT, target, "document.querySelector('#native').click(); true");
+
+    const rows = await waitForDownloads("browser-routed.*native\\.bin");
+    expect(rows.some((row) => row.state === "complete")).toBe(true);
+    const observed = JSON.parse(
+      await poll(
+        async () => {
+          const json = await evalSW(
+            `SaveHistory.get().then((entries) => JSON.stringify(entries.filter((entry) => entry.info?.context === "browser")))`,
+          );
+          return JSON.parse(json).some((entry) => entry.status === "complete") ? json : null;
         },
-      })
-      .then(() => chrome.declarativeNetRequest.getSessionRules())
-      .then((r) => JSON.stringify(r.map((rule) => ({
-        value: rule.action.requestHeaders[0].value,
-        scopedToExtension: rule.condition.initiatorDomains.includes(chrome.runtime.id),
-      }))));
-    })()`),
-  );
-  expect(rules).toEqual([{ value: "https://www.pixiv.net/artworks/1", scopedToExtension: true }]);
+        { description: "ordinary browser download history" },
+      ),
+    );
+    expect(observed.at(-1)).toMatchObject({
+      status: "complete",
+      finalFullPath: expect.stringContaining("browser-routed"),
+      info: { context: "browser" },
+    });
+  } finally {
+    await evalSW(`browser.storage.local.set({
+      trackBrowserDownloads: false,
+      routeBrowserDownloads: false,
+      browserDownloadFilter: "",
+      filenamePatterns: "",
+    }).then(() => window.reset())`);
+    server.close();
+  }
 });
 
 test("paths textarea renders a live menu-tree preview", async () => {
@@ -267,6 +316,8 @@ test("the paths editor saves manually: Apply/Discard track the dirty state", asy
       // Establish a clean baseline via Apply
       ta.value = "baseline";
       ta.dispatchEvent(new InputEvent("input", { bubbles: true }));
+      const validationDeadline = Date.now() + 3000;
+      while (apply.disabled && Date.now() < validationDeadline) await wait(25);
       apply.click();
       const saveDeadline = Date.now() + 3000;
       while ((!apply.disabled || !discard.disabled) && Date.now() < saveDeadline) await wait(25);
@@ -275,6 +326,8 @@ test("the paths editor saves manually: Apply/Discard track the dirty state", asy
       // Editing dirties both buttons; the value is not yet persisted
       ta.value = "baseline\\nunsaved";
       ta.dispatchEvent(new InputEvent("input", { bubbles: true }));
+      const dirtyValidationDeadline = Date.now() + 3000;
+      while (apply.disabled && Date.now() < dirtyValidationDeadline) await wait(25);
       const dirty = { apply: apply.disabled, discard: discard.disabled };
       const stored = await browser.storage.local.get("paths");
 
@@ -311,8 +364,6 @@ test("routing rules rename and route the download", async () => {
       .then(() => {
         Notifier.expectDownload();
         return Download.renameAndDownload({
-      const validationDeadline = Date.now() + 3000;
-      while (apply.disabled && Date.now() < validationDeadline) await wait(25);
           path: new Path("e2e"),
           scratch: {},
           info: {
@@ -320,8 +371,6 @@ test("routing rules rename and route the download", async () => {
             suggestedFilename: "routeme.txt",
             pageUrl: "https://example.com/",
             modifiers: [],
-      const dirtyValidationDeadline = Date.now() + 3000;
-      while (apply.disabled && Date.now() < dirtyValidationDeadline) await wait(25);
           },
         });
       }).then(() => "started")`);

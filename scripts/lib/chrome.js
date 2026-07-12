@@ -114,10 +114,17 @@ const launch = async ({ port: requestedPort, profileDir, downloadDir, fresh = tr
   args.push("about:blank");
 
   const proc = spawn(chromePath, args, { stdio: "ignore", detached: false });
-
-  await cdp.waitForCdp(port);
-  const extensionId = await cdp.loadUnpacked(port, DIST);
-  return { proc, extensionId, port, profileDir: resolvedProfile, downloadDir: resolvedDownloads };
+  try {
+    await cdp.waitForCdp(port);
+    const extensionId = await cdp.loadUnpacked(port, DIST);
+    return { proc, extensionId, port, profileDir: resolvedProfile, downloadDir: resolvedDownloads };
+  } catch (error) {
+    // beforeAll cannot clean up a session that launch() never returned.
+    // Make startup failure atomic so retries don't accumulate browser trees
+    // and eventually fail for unrelated resource/port reasons.
+    await killTree(proc);
+    throw error;
+  }
 };
 
 module.exports = { ROOT, DIST, findChrome, stageBuild, launch, killTree };

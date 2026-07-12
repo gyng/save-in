@@ -1,11 +1,13 @@
 import * as Variable from "../src/routing/variable.ts";
 import * as Path from "../src/routing/path.ts";
-import { HASH_MAX_BYTES } from "../src/downloads/content-fetch.ts";
+import { HASH_MAX_BYTES, resolveContent } from "../src/downloads/content-fetch.ts";
 import * as Counter from "../src/background/counter.ts";
+import { counterWriteState } from "../src/background/state.ts";
 // variable.ts reads options.replacementChar (via path.ts) at call time;
 // import the real options bag and mutate it (option.ts seeds
 // replacementChar "_" at load, so these just document the expectation).
 import { options } from "../src/config/options-data.ts";
+import { configureRoutingPorts } from "../src/routing/ports.ts";
 
 describe("variables", () => {
   const info = {
@@ -21,6 +23,11 @@ describe("variables", () => {
 
   beforeAll(() => {
     options.replacementChar = "_";
+    configureRoutingPorts({
+      nextCounter: () => Counter.nextCounter(counterWriteState, browser.storage.local),
+      peekCounter: () => Counter.peekCounter(browser.storage.local),
+      resolveContent,
+    });
   });
 
   describe("standard variables", () => {

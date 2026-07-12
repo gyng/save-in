@@ -11,7 +11,7 @@ describe("buildTools", () => {
 
   test("defines the save-in tools with input schemas", () => {
     const { byName } = toolsByName();
-    expect(Object.keys(byName).sort()).toEqual([
+    expect(Object.keys(byName).toSorted()).toEqual([
       "save_in_apply_config",
       "save_in_download",
       "save_in_get_schema",

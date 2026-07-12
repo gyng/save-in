@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const { hasBrowserListenerRegistration } = require("./lib/architecture-checks.js");
 
 const root = path.resolve(__dirname, "..");
 const srcRoot = path.join(root, "src");
@@ -13,6 +14,7 @@ const listFiles = (dir) =>
 const files = listFiles(srcRoot);
 const known = new Set(files);
 const graph = new Map(files.map((file) => [file, []]));
+const imports = new Map(files.map((file) => [file, []]));
 for (const file of files) {
   const source = fs.readFileSync(file, "utf8");
   const statements = [];
@@ -32,15 +34,79 @@ for (const file of files) {
   }
 
   for (const declaration of statements) {
-    // Type-only edges are erased and cannot participate in the runtime SCC.
-    if (/^\s*(?:import|export)\s+type\b/.test(declaration)) continue;
     const match =
       declaration.match(/\bfrom\s+["'](\.[^"']+)["']/) ||
       declaration.match(/^\s*import\s+["'](\.[^"']+)["']/);
     if (!match) continue;
     const resolved = path.resolve(path.dirname(file), match[1]);
     const target = path.extname(resolved) ? resolved : `${resolved}.ts`;
-    if (known.has(target)) graph.get(file).push(target);
+    if (known.has(target)) {
+      imports.get(file).push(target);
+      // Type-only edges are erased and cannot participate in the runtime SCC.
+      if (!/^\s*(?:import|export)\s+type\b/.test(declaration)) graph.get(file).push(target);
+    }
+  }
+}
+
+const relative = (file) => path.relative(root, file).replaceAll(path.sep, "/");
+const architectureViolations = [];
+const report = (file, rule, dependency) =>
+  architectureViolations.push(
+    `${relative(file)}: ${rule}${dependency ? ` (${relative(dependency)})` : ""}`,
+  );
+
+// Execution contexts communicate through shared contracts, never by importing
+// the background implementation that happens to serve them today.
+for (const [file, dependencies] of imports) {
+  if (!relative(file).startsWith("src/options/")) continue;
+  for (const dependency of dependencies) {
+    if (relative(dependency).startsWith("src/background/")) {
+      report(file, "options must not import background implementations", dependency);
+    }
+  }
+}
+
+for (const [file, dependencies] of imports) {
+  if (!relative(file).startsWith("src/routing/")) continue;
+  for (const dependency of dependencies) {
+    if (
+      ["src/background/", "src/downloads/", "src/platform/"].some((boundary) =>
+        relative(dependency).startsWith(boundary),
+      )
+    ) {
+      report(file, "routing must depend only on shared contracts and injected ports", dependency);
+    }
+  }
+}
+
+for (const [file, dependencies] of imports) {
+  if (!relative(file).startsWith("src/downloads/")) continue;
+  for (const dependency of dependencies) {
+    if (relative(dependency).startsWith("src/background/")) {
+      report(file, "downloads must not import background implementations", dependency);
+    }
+  }
+}
+
+// Browser listener ownership is intentionally small and reviewable. Feature
+// registration modules are composition boundaries even when called by an entry.
+const listenerOwners = new Set([
+  "src/background/main.ts",
+  "src/background/menu-click.ts",
+  "src/background/menu-tabs.ts",
+  "src/background/messaging.ts",
+  "src/content/content.ts",
+  "src/downloads/filename-listener.ts",
+  "src/downloads/notification.ts",
+  "src/entries/offscreen.ts",
+  "src/offscreen.ts",
+  "src/options/options.ts",
+  "src/options/permissions-banner.ts",
+]);
+for (const file of files) {
+  const source = fs.readFileSync(file, "utf8");
+  if (hasBrowserListenerRegistration(source) && !listenerOwners.has(relative(file))) {
+    report(file, "browser listeners may only be registered by composition modules");
   }
 }
 
@@ -85,12 +151,17 @@ for (const file of files) {
   if (!indexes.has(file)) visit(file);
 }
 
-if (cycles.length) {
+if (cycles.length || architectureViolations.length) {
   for (const component of cycles) {
-    const names = component.map((file) => path.relative(root, file)).sort();
+    const names = component.map((file) => path.relative(root, file)).toSorted();
     process.stderr.write(`Import cycle: ${names.join(" -> ")}\n`);
+  }
+  for (const violation of architectureViolations.toSorted()) {
+    process.stderr.write(`Architecture violation: ${violation}\n`);
   }
   process.exitCode = 1;
 } else {
-  process.stdout.write(`Import graph is acyclic (${files.length} modules).\n`);
+  process.stdout.write(
+    `Import graph is acyclic and architecture boundaries hold (${files.length} modules).\n`,
+  );
 }

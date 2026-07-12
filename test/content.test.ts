@@ -17,11 +17,25 @@ describe("findSource", () => {
     expect(ClickToSave.findSource(event(img), false)).toBe("http://x.test/pic.png");
   });
 
+  test("finds media in a composed event path before coordinate fallback", () => {
+    document.body.innerHTML = '<div id="host"></div><img id="i" src="http://x.test/path.png">';
+    const host = document.getElementById("host");
+    const img = document.getElementById("i");
+    document.elementsFromPoint = jest.fn(() => []);
+
+    expect(
+      ClickToSave.findSource(
+        { ...event(host), composedPath: () => [host, img, document, window] },
+        false,
+      ),
+    ).toBe("http://x.test/path.png");
+  });
+
   test("finds media below an overlay via elementsFromPoint", () => {
     document.body.innerHTML = '<div id="overlay"></div><img id="i" src="http://x.test/pic.png">';
     const overlay = document.getElementById("overlay");
     const img = document.getElementById("i");
-    document.elementsFromPoint = jest.fn((_x: number, _y: number) =>
+    document.elementsFromPoint = jest.fn(() =>
       [overlay, img].filter((element): element is HTMLElement => element != null),
     );
 
@@ -33,6 +47,20 @@ describe("findSource", () => {
     const span = document.getElementById("s");
 
     expect(ClickToSave.findSource(event(span), true)).toBe("http://localhost/files/doc.pdf");
+  });
+
+  test("finds a link in the composed path across a shadow boundary", () => {
+    document.body.innerHTML = '<div id="host"></div><a id="a" href="/shadow.pdf">PDF</a>';
+    const host = document.getElementById("host");
+    const anchor = document.getElementById("a");
+    document.elementsFromPoint = jest.fn(() => []);
+
+    expect(
+      ClickToSave.findSource(
+        { ...event(host), composedPath: () => [host, anchor, document, window] },
+        true,
+      ),
+    ).toBe("http://localhost/shadow.pdf");
   });
 
   test("does not fall back to links when links are disabled", () => {
@@ -149,6 +177,92 @@ describe("content.js initialisation", () => {
       expect.any(Function),
     );
   });
+
+  test("updates an existing page when click-to-save storage settings change", async () => {
+    let storageListener: ((changes: Record<string, any>, area: string) => void) | undefined;
+    (global.chrome.storage as any).onChanged = {
+      addListener: vi.fn((listener) => {
+        storageListener = listener;
+      }),
+    };
+    await importContentWithOptions({ contentClickToSave: false });
+    expect(storageListener).toBeTypeOf("function");
+
+    storageListener!(
+      {
+        contentClickToSave: { newValue: true },
+        contentClickToSaveCombo: { newValue: 90 },
+        contentClickToSaveButton: { newValue: "RIGHT_CLICK" },
+        links: { newValue: false },
+      },
+      "local",
+    );
+
+    vi.mocked(global.chrome.runtime.sendMessage).mockClear();
+    const keydown = new Event("keydown");
+    (keydown as any).keyCode = 90;
+    window.dispatchEvent(keydown);
+    expect(global.chrome.runtime.sendMessage).toHaveBeenCalledWith(
+      { type: "WAKE_WARM" },
+      expect.any(Function),
+    );
+
+    storageListener!({ contentClickToSave: { oldValue: true, newValue: false } }, "local");
+    vi.mocked(global.chrome.runtime.sendMessage).mockClear();
+    window.dispatchEvent(keydown);
+    expect(global.chrome.runtime.sendMessage).not.toHaveBeenCalled();
+  });
+
+  test("ignores option changes from non-local storage areas", async () => {
+    let storageListener: ((changes: Record<string, any>, area: string) => void) | undefined;
+    (global.chrome.storage as any).onChanged = {
+      addListener: vi.fn((listener) => {
+        storageListener = listener;
+      }),
+    };
+    await importContentWithOptions({ contentClickToSave: false });
+
+    storageListener!({ contentClickToSave: { newValue: true } }, "sync");
+    vi.mocked(global.chrome.runtime.sendMessage).mockClear();
+    const keydown = new Event("keydown");
+    (keydown as any).keyCode = 89;
+    window.dispatchEvent(keydown);
+    expect(global.chrome.runtime.sendMessage).not.toHaveBeenCalled();
+  });
+
+  test("does not let a late initial response overwrite newer storage settings", async () => {
+    vi.resetModules();
+    let optionsCallback: ((response: any) => void) | undefined;
+    let storageListener: ((changes: Record<string, any>, area: string) => void) | undefined;
+    global.chrome.runtime.sendMessage = vi.fn((_message, callback) => {
+      optionsCallback = callback;
+    }) as any;
+    (global.chrome.storage as any).onChanged = {
+      addListener: vi.fn((listener) => {
+        storageListener = listener;
+      }),
+    };
+    await import("../src/content/content.ts");
+
+    storageListener!(
+      {
+        contentClickToSave: { newValue: true },
+        contentClickToSaveCombo: { newValue: 89 },
+        contentClickToSaveButton: { newValue: "RIGHT_CLICK" },
+      },
+      "local",
+    );
+    optionsCallback!({ body: { contentClickToSave: false } });
+
+    vi.mocked(global.chrome.runtime.sendMessage).mockClear();
+    const keydown = new KeyboardEvent("keydown", { key: "y" });
+    Object.defineProperty(keydown, "keyCode", { value: 89 });
+    window.dispatchEvent(keydown);
+    expect(global.chrome.runtime.sendMessage).toHaveBeenCalledWith(
+      { type: "WAKE_WARM" },
+      expect.any(Function),
+    );
+  });
 });
 
 describe("setupClickToSave", () => {
@@ -203,6 +317,26 @@ describe("setupClickToSave", () => {
   test("holding the combo key wakes the service worker (WAKE_WARM)", () => {
     holdCombo();
     expect(sendMessage).toHaveBeenCalledWith({ type: "WAKE_WARM" }, expect.any(Function));
+  });
+
+  test("recognizes named Meta when Firefox reports a legacy keyCode", () => {
+    const remove = ClickToSave.setupClickToSave({
+      contentClickToSaveCombo: "Meta",
+      contentClickToSaveButton: "RIGHT_CLICK",
+      links: false,
+    });
+    const event = new KeyboardEvent("keydown", { key: "Meta" });
+    Object.defineProperty(event, "keyCode", { value: 224 });
+    window.dispatchEvent(event);
+    expect(sendMessage).toHaveBeenCalledWith({ type: "WAKE_WARM" }, expect.any(Function));
+    remove();
+  });
+
+  test("key repeat does not repeatedly wake the service worker", () => {
+    const first = keyEvent("keydown", 18);
+    window.dispatchEvent(first);
+    window.dispatchEvent(first);
+    expect(sendMessage.mock.calls.filter(([m]) => m.type === "WAKE_WARM")).toHaveLength(1);
   });
 
   test("unrelated keys do not wake the service worker", () => {
@@ -262,6 +396,13 @@ describe("setupClickToSave", () => {
     expect(downloadsSent()).toHaveLength(0);
   });
 
+  test.each(["blur", "pagehide"])("%s resets held keys", (eventName) => {
+    holdCombo();
+    window.dispatchEvent(new Event(eventName));
+    mousedown(document.getElementById("i"));
+    expect(downloadsSent()).toHaveLength(0);
+  });
+
   test("hiding the tab resets held keys", () => {
     holdCombo();
 
@@ -306,6 +447,28 @@ describe("setupClickToSave", () => {
     // Retries exhausted: no further attempts
     await vi.advanceTimersByTimeAsync(1000);
     expect(downloadsSent()).toHaveLength(3);
+  });
+
+  test("cancels pending retries when click-to-save is disabled", async () => {
+    vi.useFakeTimers();
+    const remove = ClickToSave.setupClickToSave({
+      contentClickToSaveCombo: 90,
+      contentClickToSaveButton: "LEFT_CLICK",
+      links: false,
+    });
+    sendMessage.mockImplementation((_message, cb) => {
+      (global.chrome.runtime as any).lastError = { message: "SW starting" };
+      cb?.();
+      delete (global.chrome.runtime as any).lastError;
+    });
+    window.dispatchEvent(keyEvent("keydown", 90));
+    mousedown(document.getElementById("i"));
+    const attempts = () => sendMessage.mock.calls.filter(([m]) => m.type === "DOWNLOAD").length;
+    expect(attempts()).toBe(1);
+
+    remove();
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(attempts()).toBe(1);
   });
 
   test("does not retry when the send succeeds", async () => {

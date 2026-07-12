@@ -17,6 +17,9 @@ export type DownloadInfo = {
   suggestedFilename?: string | null;
   context?: string;
   menuIndex?: string | null;
+  menuItemId?: string;
+  menuItemTitle?: string;
+  menuItemPath?: string;
   comment?: string | null;
   modifiers?: string[];
   legacyDownloadInfo?: unknown;
@@ -54,6 +57,12 @@ export type AcquiredDownload = {
   source: "direct" | "fetched" | "fetch-fallback-direct";
   ownedObjectUrl?: string;
 };
+
+export type DownloadExecutionResult =
+  | { status: "started"; downloadId: number }
+  | { status: "failed" };
+
+export type DownloadLaunchResult = DownloadExecutionResult | { status: "skipped" };
 
 export type FinalizableDownloadState = Pick<DownloadPipelineState, "path" | "info"> &
   Partial<Pick<DownloadPipelineState, "scratch" | "route" | "routeIsFolder">>;

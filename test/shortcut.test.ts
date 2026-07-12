@@ -31,6 +31,13 @@ describe("shortcut content creation", () => {
     expect(makeShortcutContent(SHORTCUT_TYPES.WINDOWS, "foo")).toBe(expected);
   });
 
+  test("creates a native macOS webloc without changing legacy MAC output", () => {
+    const content = makeShortcutContent(SHORTCUT_TYPES.MAC_WEBLOC, "https://example.com/?a&b");
+    expect(content).toContain("<key>URL</key>");
+    expect(content).toContain("https://example.com/?a&amp;b");
+    expect(makeShortcutContent(SHORTCUT_TYPES.MAC, "foo")).toBe("[InternetShortcut]\nURL=foo");
+  });
+
   test("creates a Freedesktop URL shortcut without a title", () => {
     const expected =
       "[Desktop Entry]\nEncoding=UTF-8\nIcon=text-html\nType=Link\nName=foo\nTitle=foo\nURL=foo\n[InternetShortcut]\nURL=foo";
@@ -41,6 +48,16 @@ describe("shortcut content creation", () => {
     const expected =
       "[Desktop Entry]\nEncoding=UTF-8\nIcon=text-html\nType=Link\nName=bar\nTitle=bar\nURL=foo\n[InternetShortcut]\nURL=foo";
     expect(makeShortcutContent(SHORTCUT_TYPES.FREEDESKTOP, "foo", "bar")).toBe(expected);
+  });
+
+  test("escapes control characters in Freedesktop shortcut fields", () => {
+    const content = makeShortcutContent(
+      SHORTCUT_TYPES.FREEDESKTOP,
+      "https://example.com/\nExec=bad",
+      "Title\nExec=bad",
+    );
+    expect(content).not.toContain("\nExec=bad");
+    expect(content).toContain("Name=Title\\nExec=bad");
   });
 
   test("falls back to the URL for an unknown/undefined shortcut type", () => {
@@ -255,6 +272,18 @@ describe("suggestShortcutFilename", () => {
     );
 
     expect(result).toBe("link");
+  });
+
+  test("uses a stable fallback instead of an undefined filename", () => {
+    expect(
+      shortcut.suggestShortcutFilename(
+        SHORTCUT_TYPES.WINDOWS,
+        DOWNLOAD_TYPES.MEDIA,
+        {},
+        undefined,
+        100,
+      ),
+    ).toBe("shortcut.url");
   });
 
   test("passes maxlen minus the extension length to Path.sanitizeFilename", () => {

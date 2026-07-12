@@ -1,6 +1,7 @@
 import type { StorageReader, StorageWriter } from "../platform/storage-areas.ts";
-
-export const COUNTER_KEY = "save-in-counter";
+export { COUNTER_KEY } from "../shared/storage-keys.ts";
+import { COUNTER_KEY } from "../shared/storage-keys.ts";
+import { normalizeSessionCounter } from "./session-state.ts";
 
 export type CounterWriteState = {
   queue: Promise<unknown>;
@@ -10,7 +11,7 @@ export const nextCounter = (writes: CounterWriteState, storage: StorageWriter): 
   const result = writes.queue
     .then(() => storage.get(COUNTER_KEY))
     .then((stored) => {
-      const value: number = ((stored && stored[COUNTER_KEY]) || 0) + 1;
+      const value = normalizeSessionCounter(stored?.[COUNTER_KEY]) + 1;
       return storage.set({ [COUNTER_KEY]: value }).then(() => value);
     });
   writes.queue = result;
@@ -18,7 +19,7 @@ export const nextCounter = (writes: CounterWriteState, storage: StorageWriter): 
 };
 
 export const peekCounter = (storage: StorageReader): Promise<number> =>
-  storage.get(COUNTER_KEY).then((stored) => (stored && stored[COUNTER_KEY]) || 0);
+  storage.get(COUNTER_KEY).then((stored) => normalizeSessionCounter(stored?.[COUNTER_KEY]));
 
 export const resetCounter = (writes: CounterWriteState, storage: StorageWriter) => {
   writes.queue = writes.queue.then(() => storage.set({ [COUNTER_KEY]: 0 }));

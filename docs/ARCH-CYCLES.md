@@ -218,3 +218,25 @@ graph rather than relying on a one-time audit.
   names, while retaining aliases for existing configurations.
 - Added byte-length diagnostics for browser/filesystem filename limits; Unicode-
   safe character truncation remains the compatibility baseline.
+
+## Runtime and boundary hardening — DONE
+
+- Background lifecycle and diagnostic state is owned by the typed
+  `BackgroundRuntime` record. The composition root installs a narrow legacy
+  `window` bridge solely for the e2e evaluation surface.
+- Message contracts, history contracts, and storage keys live under `shared`;
+  options and other clients no longer import background implementations.
+- Internal and external messages use exhaustive handler tables. One dispatcher
+  owns Chrome's synchronous `true` rule and converts rejected asynchronous
+  handlers into protocol errors.
+- Routing is browser-independent. Composition roots inject localization,
+  current-tab lookup, and counter storage through `routing/ports.ts`.
+- Session read-modify-write operations serialize per storage key. Download
+  records are normalized at hydration/read boundaries and accept both the
+  legacy raw map and the versioned envelope.
+- Download correlation and filename-event ownership, plus options-page panels,
+  are separate feature modules rather than responsibilities of their former
+  orchestration files.
+- `scripts/check-import-cycles.js` now also enforces architectural boundaries:
+  options cannot import background implementations, routing cannot import
+  platform adapters, and browser listeners have an explicit owner allowlist.

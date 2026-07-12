@@ -478,11 +478,11 @@
           <summary>What is a WebExtension match pattern?</summary>
           <div class="caption caption-line">
             It is a URL-shaped pattern, not a regular expression:
-            <code>&lt;scheme&gt;://&lt;host&gt;/&lt;path&gt;</code>. Use <code>*</code> for
-            HTTP or HTTPS, <code>*.example.com</code> for that domain and its subdomains, and
-            <code>/*</code> for every path. For example,
-            <code>https://*.example.com/files/*</code>. Write one complete pattern per line; do not
-            add regex slashes, backslashes, or an explicit port.
+            <code>&lt;scheme&gt;://&lt;host&gt;/&lt;path&gt;</code>. Use <code>*</code> for HTTP or
+            HTTPS, <code>*.example.com</code> for that domain and its subdomains, and
+            <code>/*</code> for every path. For example, <code>https://*.example.com/files/*</code>.
+            Write one complete pattern per line; do not add regex slashes, backslashes, or an
+            explicit port.
           </div>
         </details>
 
@@ -807,7 +807,7 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
         <select id="shortcutType">
           <option value="HTML_REDIRECT">__MSG_o_cSaveShortcutsTypeHtml__</option>
           <option value="MAC">__MSG_o_cSaveShortcutsTypeMac__</option>
-          <option value="MAC_WEBLOC">macOS .webloc</option>
+          <option value="MAC_WEBLOC">__MSG_o_cSaveShortcutsTypeMacWebloc__</option>
           <option value="WINDOWS">__MSG_o_cSaveShortcutsTypeWindows__</option>
           <option value="FREEDESKTOP">__MSG_o_cSaveShortcutsTypeFreedesktop__</option>
         </select>
@@ -822,15 +822,32 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
       <p>__MSG_o_lAccessKeysInstruction__</p>
 
       <label>
-        <input class="key" type="text" id="keyRoot" maxlength="1" aria-describedby="access-key-status" />
+        <input
+          class="key"
+          type="text"
+          id="keyRoot"
+          maxlength="1"
+          aria-describedby="access-key-status"
+        />
         __MSG_o_cKeyboardShortcutSaveInMenu__
       </label>
 
       <label>
-        <input class="key" type="text" id="keyLastUsed" maxlength="1" aria-describedby="access-key-status" />
+        <input
+          class="key"
+          type="text"
+          id="keyLastUsed"
+          maxlength="1"
+          aria-describedby="access-key-status"
+        />
         __MSG_o_cKeyboardShortcutSubmenu__
       </label>
-      <div id="access-key-status" class="caption warning-text" role="status" aria-live="polite"></div>
+      <div
+        id="access-key-status"
+        class="caption warning-text"
+        role="status"
+        aria-live="polite"
+      ></div>
 
       <label>
         <input type="checkbox" id="enableNumberedItems" />
@@ -871,7 +888,8 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
         </label>
         <div class="caption caption-line">__MSG_o_cKeyboardShortcutModifierHelp__</div>
         <div id="click-to-save-warning" class="warning notice" role="status" hidden>
-          Mouse-only left click will replace normal clicks on savable media and links while this feature is enabled.
+          Mouse-only left click will replace normal clicks on savable media and links while this
+          feature is enabled.
         </div>
       </fieldset>
 
@@ -1187,8 +1205,8 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
           <div class="caption">
             WebExtensions such as Foxy Gestures can message Save In directly. A Greasemonkey,
             Tampermonkey, or Violentmonkey userscript cannot do so by itself: userscripts do not
-            receive cross-extension messaging access. Use a small companion WebExtension as a
-            relay, or have the userscript hand the URL to an extension that exposes that ability.
+            receive cross-extension messaging access. Use a small companion WebExtension as a relay,
+            or have the userscript hand the URL to an extension that exposes that ability.
           </div>
         </details>
       </div>
@@ -1231,9 +1249,9 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
       <h3>__MSG_o_sAdvancedDiagnostics__</h3>
       <label> <input type="checkbox" id="debug" /> __MSG_o_cDebugMode__ </label>
       <div class="caption caption-line">
-        The session log below always keeps a small local record of recent failures. Enable this
-        only when troubleshooting with the browser developer console; it adds verbose internal
-        details and resets to the saved setting after restart.
+        The session log below always keeps a small local record of recent failures. Enable this only
+        when troubleshooting with the browser developer console; it adds verbose internal details
+        and resets to the saved setting after restart.
       </div>
 
       <div class="diagnostics-row">

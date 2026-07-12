@@ -22,6 +22,10 @@ Records a sortable, filterable download History.
 
 Rich path variables — dates, page/source parts, `:counter:`, `:uuid:`, and `:mime:`/`:mimeext:` (from the file's Content-Type). See the [wiki](https://github.com/gyng/save-in/wiki/Clause-and-Variable-list).
 
+Optionally include matching ordinary browser downloads in local history. Chrome
+can apply Dynamic Downloads rules before saving; Firefox offers a separately
+labelled experimental cancel-and-redownload mode for matching HTTP(S) downloads.
+
 A versioned external API plus config tools for scripts and AI agents (WebMCP). See [Integrations](https://github.com/gyng/save-in/wiki/Integrations).
 
 Version 4 is a [Manifest V3](https://github.com/gyng/save-in/wiki/Manifest-V3) extension on Firefox 121+ and Chrome 123+.

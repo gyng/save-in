@@ -1,5 +1,5 @@
 import { SaveHistory } from "../src/background/history.ts";
-import type { HistoryEntry } from "../src/background/history-types.ts";
+import type { HistoryEntry } from "../src/shared/history-types.ts";
 
 const HISTORY_KEY = "save-in-history";
 
@@ -91,21 +91,32 @@ describe("SaveHistory", () => {
     await expect(SaveHistory.get()).resolves.toEqual([{ url: "https://a/1" }]);
   });
 
+  test("normalizes extended diagnostic metadata", async () => {
+    store[HISTORY_KEY] = [
+      {
+        initiatedAt: "2024-01-01T00:00:00Z",
+        menu: { id: "save-1", title: "Images", path: "images" },
+        variables: { filename: "cat.png", counter: "4" },
+      },
+    ];
+    await expect(SaveHistory.get()).resolves.toEqual(store[HISTORY_KEY]);
+  });
+
   test("get returns an empty list when nothing saved", async () => {
     await expect(SaveHistory.get()).resolves.toEqual([]);
   });
 
   test("caps history length at SaveHistory.LIMIT", async () => {
     const limit = SaveHistory.LIMIT;
-    store[HISTORY_KEY] = Array.from({ length: limit }, (_, i) => ({ i }));
+    store[HISTORY_KEY] = Array.from({ length: limit }, (_, i) => ({ url: String(i) }));
 
-    SaveHistory.add({ i: limit });
+    SaveHistory.add({ url: String(limit) });
     await flushWrites();
 
     expect(store[HISTORY_KEY]).toHaveLength(limit);
     // The oldest entry was dropped; the newest is appended
-    expect(store[HISTORY_KEY][0]).toEqual({ i: 1 });
-    expect(store[HISTORY_KEY][limit - 1]).toMatchObject({ i: limit });
+    expect(store[HISTORY_KEY][0]).toEqual({ url: "1" });
+    expect(store[HISTORY_KEY][limit - 1]).toMatchObject({ url: String(limit) });
   });
 
   test("add tolerates a storage backend returning nothing", async () => {
@@ -121,6 +132,62 @@ describe("SaveHistory", () => {
     vi.mocked(global.browser.storage.local.get).mockResolvedValueOnce(undefined as never);
 
     await expect(SaveHistory.get()).resolves.toEqual([]);
+  });
+
+  test("get drops malformed persisted entries", async () => {
+    vi.mocked(global.browser.storage.local.get).mockResolvedValueOnce({
+      [HISTORY_KEY]: [null, "bad", { id: 4 }, { id: "ok", downloadId: 7 }],
+    } as never);
+    await expect(SaveHistory.get()).resolves.toEqual([{ id: "ok", downloadId: 7 }]);
+  });
+
+  test("get reconstructs persisted entries from correctly typed allowlisted fields", async () => {
+    vi.mocked(global.browser.storage.local.get).mockResolvedValueOnce({
+      [HISTORY_KEY]: [
+        {
+          id: "h1",
+          status: 7,
+          timestamp: "2026-01-02T03:04:05.000Z",
+          url: false,
+          finalFullPath: "images/a.png",
+          routed: "yes",
+          observedBrowserDownload: true,
+          downloadId: 42,
+          fileSize: Number.POSITIVE_INFINITY,
+          info: {
+            sourceUrl: "https://example.test/source",
+            pageUrl: 9,
+            context: "MEDIA",
+            secret: "discard",
+          },
+          state: {
+            info: {
+              sourceUrl: 4,
+              pageUrl: "https://example.test/page",
+              context: false,
+              secret: "discard",
+            },
+            scratch: { discard: true },
+          },
+          unknown: "discard",
+        },
+      ],
+    } as never);
+
+    await expect(SaveHistory.get()).resolves.toEqual([
+      {
+        id: "h1",
+        timestamp: "2026-01-02T03:04:05.000Z",
+        finalFullPath: "images/a.png",
+        observedBrowserDownload: true,
+        downloadId: 42,
+        info: {
+          sourceUrl: "https://example.test/source",
+          context: "MEDIA",
+        },
+        state: { info: { pageUrl: "https://example.test/page" } },
+      },
+    ]);
   });
 
   test("concurrent adds do not clobber each other (write-queue serialization)", async () => {

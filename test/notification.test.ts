@@ -120,4 +120,12 @@ describe("createExtensionNotification", () => {
     expect(global.browser.notifications.create).toHaveBeenCalled();
     expect(global.browser.notifications.clear).not.toHaveBeenCalled();
   });
+
+  test("treats zero as the browser default duration", () => {
+    jest.useFakeTimers();
+    setOptions({ notifyDuration: 0 });
+    notification.createExtensionNotification("T", "M");
+    jest.runAllTimers();
+    expect(global.browser.notifications.clear).not.toHaveBeenCalled();
+  });
 });

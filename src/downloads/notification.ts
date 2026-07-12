@@ -2,20 +2,49 @@ import { webExtensionApi } from "../platform/web-extension-api.ts";
 
 // https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/notifications
 
-import { BackgroundState } from "../background/state.ts";
+import { downloadsState, sessionWriteState } from "./state.ts";
 import { getDownload, hydrateDownloads, mergeDownload } from "./download-state.ts";
 import type { DownloadRecord } from "./download-state.ts";
-import { getSession, updateSession } from "../background/session-state.ts";
+import { getSession, normalizeSessionCounter, updateSession } from "../shared/session-state.ts";
 import { options } from "../config/options-data.ts";
-import { WEB_EXTENSION_CAPABILITIES } from "../platform/chrome-detector.ts";
+import {
+  BROWSERS,
+  CURRENT_BROWSER,
+  WEB_EXTENSION_CAPABILITIES,
+} from "../platform/chrome-detector.ts";
 import { DownloadRetry } from "./download-retry.ts";
-import { SaveHistory } from "../background/history.ts";
-import { Log } from "../background/log.ts";
+import {
+  BrowserDownloadRouting,
+  isOrdinaryBrowserDownload,
+  isReroutableBrowserDownload,
+  matchesBrowserDownloadFilter,
+} from "./browser-downloads.ts";
 import { extensionSessionStorage } from "../platform/storage-areas.ts";
+import { downloadPorts } from "./ports.ts";
 
 const INFO_ICON_URL = "icons/notification-info.svg";
 const SUCCESS_ICON_URL = "icons/notification-success.svg";
 const ERROR_ICON_URL = "icons/notification-error.svg";
+const historyPort = downloadPorts.history;
+const logPort = downloadPorts.log;
+const backgroundRuntime = downloadPorts.runtime;
+
+const createNotification = (
+  id: string,
+  details: browser.notifications.CreateNotificationOptions,
+  duration = options.notifyDuration,
+) => {
+  void Promise.resolve(webExtensionApi.notifications.create(id, details)).catch((error) =>
+    logPort.add("notification create failed", String(error)),
+  );
+  if (duration > 0) {
+    window.setTimeout(() => {
+      void Promise.resolve(webExtensionApi.notifications.clear(id)).catch((error) =>
+        logPort.add("notification clear failed", String(error)),
+      );
+    }, duration);
+  }
+};
 
 // Membership ("this download is ours, watch it for a completion notification")
 // lives on the DownloadState record as `adopted`, so there is no second
@@ -27,7 +56,7 @@ const ERROR_ICON_URL = "icons/notification-error.svg";
 // Downloads handed to downloads.download that onCreated has not yet seen.
 // URL correlation prevents a rejected or unrelated request from consuming a
 // different attempt; the persisted counter remains the worker-restart fallback.
-type ExpectedDownload = { url?: string };
+type ExpectedDownload = { url?: string; record?: Partial<DownloadRecord> };
 const expectedDownloads: ExpectedDownload[] = [];
 
 // A leftover siPendingDownloads (persisted before downloads.download) lets a
@@ -37,16 +66,10 @@ const expectedDownloads: ExpectedDownload[] = [];
 const PENDING_RECOVERY_GRACE_MS = 10000;
 
 const mergeTrackedDownload = (downloadId: number, partial: Partial<DownloadRecord>) =>
-  mergeDownload(
-    BackgroundState.downloads,
-    BackgroundState.sessionWrites,
-    extensionSessionStorage,
-    downloadId,
-    partial,
-  );
+  mergeDownload(downloadsState, sessionWriteState, extensionSessionStorage, downloadId, partial);
 
 const getTrackedDownload = (downloadId: number) =>
-  getDownload(BackgroundState.downloads, extensionSessionStorage, downloadId);
+  getDownload(downloadsState, extensionSessionStorage, downloadId);
 
 // SessionState (the storage.session wrapper) lives in session-state.js so
 // Notifier, Download and Log share one implementation.
@@ -58,9 +81,9 @@ const getTrackedDownload = (downloadId: number) =>
 // adoption is cleared — otherwise it would leak. A still-live download keeps its
 // adoption and recovers its completion/failure notification when it finishes.
 const reconcileAdoptedDownloads = async () => {
-  await hydrateDownloads(BackgroundState.downloads, extensionSessionStorage);
+  await hydrateDownloads(downloadsState, extensionSessionStorage);
   const adoptedIds: number[] = [];
-  BackgroundState.downloads.records.forEach((record, id) => {
+  downloadsState.records.forEach((record, id) => {
     if (record && record.adopted) {
       adoptedIds.push(id);
     }
@@ -88,14 +111,11 @@ const reconcileAdoptedDownloads = async () => {
 // download as ours.
 const reconcilePendingDownloads = async () => {
   const res = await getSession<number>(extensionSessionStorage, "siPendingDownloads");
-  const staleAtStartup = res.siPendingDownloads || 0;
+  const staleAtStartup = normalizeSessionCounter(res.siPendingDownloads);
   if (staleAtStartup > 0) {
     setTimeout(() => {
-      updateSession<number>(
-        BackgroundState.sessionWrites,
-        extensionSessionStorage,
-        "siPendingDownloads",
-        (n) => Math.max(0, (n || 0) - staleAtStartup),
+      updateSession<number>(sessionWriteState, extensionSessionStorage, "siPendingDownloads", (n) =>
+        Math.max(0, normalizeSessionCounter(n) - staleAtStartup),
       );
     }, PENDING_RECOVERY_GRACE_MS);
   }
@@ -109,18 +129,12 @@ export const notifierReady = Promise.all([
 export const Notifier = {
   createExtensionNotification: (title: string | null, message?: string | null, error?: unknown) => {
     const id = `save-in-not-${String(Math.floor(Math.random() * 100000))}`;
-    webExtensionApi.notifications.create(id, {
+    createNotification(id, {
       type: "basic",
       title: title || webExtensionApi.i18n.getMessage("extensionName"),
       iconUrl: error ? ERROR_ICON_URL : INFO_ICON_URL,
       message: message || webExtensionApi.i18n.getMessage("genericUnknownError"),
     });
-
-    if (options && options.notifyDuration) {
-      window.setTimeout(() => {
-        webExtensionApi.notifications.clear(id);
-      }, options.notifyDuration);
-    }
   },
 
   // Single user-facing path for a TERMINAL download failure that happens before
@@ -168,8 +182,8 @@ export const Notifier = {
   // global at event time, after awaiting init.
   // Call before webExtensionApi.downloads.download() so onDownloadCreated knows
   // the next created download is ours
-  expectDownload: (url?: string): ExpectedDownload => {
-    const expected = { url };
+  expectDownload: (url?: string, record?: Partial<DownloadRecord>): ExpectedDownload => {
+    const expected = { url, record };
     expectedDownloads.push(expected);
     return expected;
   },
@@ -180,8 +194,8 @@ export const Notifier = {
   },
 
   onDownloadCreated: async (item: browser.downloads.DownloadItem) => {
-    if (typeof window !== "undefined" && window.ready) {
-      await window.ready.catch(() => {});
+    if (backgroundRuntime.ready) {
+      await backgroundRuntime.ready.catch(() => {});
     }
 
     // Never adopt a download another extension initiated — a leaked pending
@@ -202,12 +216,17 @@ export const Notifier = {
       (expected) => expected.url == null || expected.url === item.url || expected.url === finalUrl,
     );
     if (expectedIndex !== -1) {
-      expectedDownloads.splice(expectedIndex, 1);
+      const [expected] = expectedDownloads.splice(expectedIndex, 1);
+      const observedBrowserDownload = expected.record?.observedBrowserDownload === true;
       await mergeTrackedDownload(item.id, {
-        adopted: true,
+        ...expected.record,
+        adopted: !observedBrowserDownload,
         currentFilename: item.filename,
         url: item.url,
       });
+      if (expected.record?.historyEntryId) {
+        void historyPort.setDownloadId(expected.record.historyEntryId, item.id);
+      }
       return;
     }
 
@@ -216,18 +235,95 @@ export const Notifier = {
     // COUNTER (not a boolean) so several downloads created after one restart
     // are all recovered — a boolean dropped every one past the first.
     const res = await getSession<number>(extensionSessionStorage, "siPendingDownloads");
-    if ((res.siPendingDownloads ?? 0) > 0) {
+    if (normalizeSessionCounter(res.siPendingDownloads) > 0) {
       await mergeTrackedDownload(item.id, {
         adopted: true,
         currentFilename: item.filename,
         url: item.url,
       });
       await updateSession<number>(
-        BackgroundState.sessionWrites,
+        sessionWriteState,
         extensionSessionStorage,
         "siPendingDownloads",
-        (n) => Math.max(0, (n || 0) - 1),
+        (n) => Math.max(0, normalizeSessionCounter(n) - 1),
       );
+      return;
+    }
+
+    const ordinaryBrowserDownload = isOrdinaryBrowserDownload(item, webExtensionApi.runtime?.id);
+    const browserDownloadUrl = finalUrl || item.url;
+    if (
+      !ordinaryBrowserDownload ||
+      !matchesBrowserDownloadFilter(
+        browserDownloadUrl,
+        options.browserDownloadFilter,
+        options.browserDownloadExcludeFilter,
+      )
+    ) {
+      return;
+    }
+
+    if (
+      CURRENT_BROWSER === BROWSERS.FIREFOX &&
+      !WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion &&
+      options.routeBrowserDownloadsFirefox &&
+      isReroutableBrowserDownload(item)
+    ) {
+      const filename = await BrowserDownloadRouting.route(item);
+      if (filename) {
+        const historyEntryId = historyPort.add({
+          timestamp: new Date().toISOString(),
+          url: browserDownloadUrl,
+          finalFullPath: filename,
+          routed: true,
+          mechanism: "firefox-replacement",
+          info: { context: "browser" },
+        });
+        const expected = Notifier.expectDownload(browserDownloadUrl, {
+          observedBrowserDownload: true,
+          adopted: false,
+          filename,
+          url: browserDownloadUrl,
+          historyEntryId,
+          allowOriginalUrlFallback: false,
+        });
+        try {
+          await webExtensionApi.downloads.cancel(item.id);
+          await webExtensionApi.downloads.erase({ id: item.id }).catch(() => {});
+          const replacementId = await webExtensionApi.downloads.download({
+            url: browserDownloadUrl,
+            filename,
+            conflictAction: options.conflictAction,
+          });
+          setTimeout(() => Notifier.cancelExpectedDownload(expected), 10000);
+          void historyPort.setDownloadId(historyEntryId, replacementId);
+        } catch (error) {
+          Notifier.cancelExpectedDownload(expected);
+          await historyPort.setStatus(historyEntryId, "FIREFOX_REROUTE_FAILED");
+          logPort.add("Firefox browser download reroute failed", String(error));
+        }
+        return;
+      }
+    }
+
+    if (options.trackBrowserDownloads) {
+      const historyEntryId = historyPort.add({
+        timestamp: new Date().toISOString(),
+        url: browserDownloadUrl,
+        finalFullPath: item.filename,
+        routed: false,
+        mechanism: "browser-download",
+        info: { context: "browser" },
+      });
+      await mergeTrackedDownload(item.id, {
+        observedBrowserDownload: true,
+        adopted: false,
+        currentFilename: item.filename,
+        url: browserDownloadUrl,
+        historyEntryId,
+        allowOriginalUrlFallback: false,
+      });
+      void historyPort.setDownloadId(historyEntryId, item.id);
     }
   },
 
@@ -241,8 +337,8 @@ export const Notifier = {
   },
 
   onDownloadChanged: async (downloadDelta: any) => {
-    if (typeof window !== "undefined" && window.ready) {
-      await window.ready.catch(() => {});
+    if (backgroundRuntime.ready) {
+      await backgroundRuntime.ready.catch(() => {});
     }
 
     const notifyOnSuccess = options && options.notifyOnSuccess;
@@ -257,7 +353,44 @@ export const Notifier = {
       // persisted copy — that is how a mid-restart download keeps its notification.
       const record = await getTrackedDownload(downloadDelta.id);
 
-      if (!record || !record.adopted) {
+      if (!record) {
+        return;
+      }
+
+      if (record.observedBrowserDownload) {
+        const currentFilename = downloadDelta.filename?.current;
+        if (currentFilename && record.historyEntryId) {
+          await mergeTrackedDownload(downloadDelta.id, { currentFilename });
+          await historyPort.patch(record.historyEntryId, { finalFullPath: currentFilename });
+        }
+        const complete = downloadDelta.state?.current === "complete";
+        const failed = Notifier.isDownloadFailure(
+          downloadDelta,
+          WEB_EXTENSION_CAPABILITIES.downloadDeltaFilename,
+        );
+        if (complete || failed) {
+          let fileSize: number | undefined;
+          if (complete) {
+            try {
+              const [item] = await webExtensionApi.downloads.search({ id: downloadDelta.id });
+              const bytes = item && (item.fileSize > 0 ? item.fileSize : item.totalBytes);
+              fileSize = bytes > 0 ? bytes : undefined;
+            } catch {
+              // Completion remains valid when size lookup is unavailable.
+            }
+          }
+          await historyPort.setStatus(
+            record.historyEntryId,
+            complete ? "complete" : failed.current || "failed",
+            downloadDelta.id,
+            fileSize,
+          );
+          await mergeTrackedDownload(downloadDelta.id, { observedBrowserDownload: false });
+        }
+        return;
+      }
+
+      if (!record.adopted) {
         return;
       }
 
@@ -300,18 +433,18 @@ export const Notifier = {
             const items = await webExtensionApi.downloads.search({ id: downloadDelta.id });
             const item = items && items[0];
             const size = item ? (item.fileSize > 0 ? item.fileSize : item.totalBytes) : 0;
-            await SaveHistory.setStatus(
+            await historyPort.setStatus(
               started.historyEntryId,
               status,
               downloadDelta.id,
               size > 0 ? size : undefined,
             );
           } catch {
-            await SaveHistory.setStatus(started.historyEntryId, status, downloadDelta.id);
+            await historyPort.setStatus(started.historyEntryId, status, downloadDelta.id);
           }
           return;
         }
-        await SaveHistory.setStatus(started.historyEntryId, status, downloadDelta.id);
+        await historyPort.setStatus(started.historyEntryId, status, downloadDelta.id);
       };
 
       if (
@@ -323,36 +456,40 @@ export const Notifier = {
         await recordHistoryStatus("complete");
       }
 
-      if (window.SI_DEBUG) {
+      if (backgroundRuntime.debug) {
         /* eslint-disable no-console */
         console.log("notification", failed, isFromSelf, record, downloadDelta, notifyOnSuccess);
         /* eslint-enable no-console */
       }
 
       if (isFromSelf && failed && !isUserCancelled) {
-        Log.add("download failed", {
+        logPort.add("download failed", {
           id: downloadDelta.id,
           error: failed.current || failed,
         });
 
         const notifyFailure = () => {
           if (notifyOnFailure) {
-            webExtensionApi.notifications.create(String(downloadDelta.id), {
-              type: "basic",
-              title: webExtensionApi.i18n.getMessage("notificationFailureTitle", [filename]),
-              iconUrl: ERROR_ICON_URL,
-              message: failed.current || webExtensionApi.i18n.getMessage("genericUnknownError"),
-            });
+            createNotification(
+              String(downloadDelta.id),
+              {
+                type: "basic",
+                title: webExtensionApi.i18n.getMessage("notificationFailureTitle", [filename]),
+                iconUrl: ERROR_ICON_URL,
+                message: failed.current || webExtensionApi.i18n.getMessage("genericUnknownError"),
+              },
+              notifyDuration,
+            );
           }
 
-          if (promptOnFailure) {
+          if (promptOnFailure && record.allowOriginalUrlFallback !== false) {
             webExtensionApi.downloads.download({
               url: record.url!,
               saveAs: true,
             });
           }
 
-          if (window.SI_DEBUG) {
+          if (backgroundRuntime.debug) {
             /* eslint-disable no-console */
             console.log(
               "notification: created failure",
@@ -361,12 +498,6 @@ export const Notifier = {
               downloadDelta.id,
             );
             /* eslint-enable no-console */
-          }
-
-          if (downloadDelta && downloadDelta.id) {
-            window.setTimeout(() => {
-              webExtensionApi.notifications.clear(String(downloadDelta.id));
-            }, notifyDuration);
           }
         };
 
@@ -378,7 +509,7 @@ export const Notifier = {
         if (canRetry) {
           const retried = await DownloadRetry.retry(downloadDelta.id);
           if (retried) {
-            Log.add("retrying failed download via fetch", { id: downloadDelta.id });
+            logPort.add("retrying failed download via fetch", { id: downloadDelta.id });
             await mergeTrackedDownload(downloadDelta.id, { adopted: false });
           } else {
             await recordHistoryStatus(errorName || "failed");
@@ -396,7 +527,7 @@ export const Notifier = {
         downloadDelta.state.current === "complete" &&
         downloadDelta.state.previous === "in_progress"
       ) {
-        Log.add("download complete", { id: downloadDelta.id, filename });
+        logPort.add("download complete", { id: downloadDelta.id, filename });
         const res = await webExtensionApi.downloads.search({ id: downloadDelta.id });
         let filesize = "";
         const mime = res.length > 0 && res[0].mime;
@@ -415,17 +546,20 @@ export const Notifier = {
         }
 
         const successfulLabel = webExtensionApi.i18n.getMessage("notificationSuccessTitle");
-        const title =
-          res.length > 0 ? `${successfulLabel} · ${filesize} · ${mime}` : successfulLabel;
+        const title = [successfulLabel, filesize, mime].filter(Boolean).join(" · ");
 
-        webExtensionApi.notifications.create(String(downloadDelta.id), {
-          type: "basic",
-          title,
-          iconUrl: SUCCESS_ICON_URL,
-          message: filename,
-        });
+        createNotification(
+          String(downloadDelta.id),
+          {
+            type: "basic",
+            title,
+            iconUrl: SUCCESS_ICON_URL,
+            message: filename,
+          },
+          notifyDuration,
+        );
 
-        if (window.SI_DEBUG) {
+        if (backgroundRuntime.debug) {
           /* eslint-disable no-console */
           console.log(
             "notification: created success",
@@ -435,10 +569,6 @@ export const Notifier = {
           );
           /* eslint-enable no-console */
         }
-
-        window.setTimeout(() => {
-          webExtensionApi.notifications.clear(String(downloadDelta.id));
-        }, notifyDuration);
       }
 
       const isComplete = downloadDelta.state && downloadDelta.state.current === "complete";

@@ -84,7 +84,6 @@ test("background event page initialises cleanly", async () => {
       pathErrors: window.optionErrors.paths.length,
       menuCount: Object.keys(menuState.pathMappings).length,
       hasObjectUrl: typeof URL.createObjectURL === "function",
-      hasDnr: typeof chrome.declarativeNetRequest === "object",
     }))`),
   );
 
@@ -95,14 +94,13 @@ test("background event page initialises cleanly", async () => {
     downloadFilenameSuggestion: false,
     downloadDeltaFilename: false,
     conflictActionPrompt: true,
+    downloadRequestHeaders: true,
   });
   expect(state.promptConflictAction).toBe("prompt");
   expect(state.pathErrors).toBe(0);
   expect(state.menuCount).toBeGreaterThan(0);
   // Event pages keep a real DOM (unlike Chrome's service worker)...
   expect(state.hasObjectUrl).toBe(true);
-  // ...and Firefox sets the Referer via declarativeNetRequest, same as Chrome
-  expect(state.hasDnr).toBe(true);
 });
 
 test("download completes through the real pipeline", async () => {
@@ -133,25 +131,37 @@ test("options reset re-initialises", async () => {
   expect(reset).toBe("reset-ok");
 });
 
-test("referer option creates a declarativeNetRequest session rule", async () => {
-  const rules = JSON.parse(
-    await session.evaluate(`(() => {
+test("downloads receive the configured Referer header", async () => {
+  let resolveReferer;
+  const receivedReferer = new Promise((resolve) => {
+    resolveReferer = resolve;
+  });
+  const server = http.createServer((req, res) => {
+    if (req.method === "GET") resolveReferer(req.headers.referer || null);
+    res.writeHead(200, { "Content-Type": "text/plain" });
+    res.end("referer probe");
+  });
+  const port = await listenLocal(server);
+  const url = `http://127.0.0.1:${port}/referer-probe.txt`;
+  const referer = "http://referrer.example/download-test";
+
+  try {
+    await session.evaluate(`window.ready.then(() => {
       options.setRefererHeader = true;
-      options.setRefererHeaderFilter = "*://i.pximg.net/*";
-      return RequestHeaders.prepareReferer({
-        info: {
-          url: "https://i.pximg.net/img/e2e.png",
-          pageUrl: "https://www.pixiv.net/artworks/1",
-        },
-      })
-      .then(() => chrome.declarativeNetRequest.getSessionRules())
-      .then((r) => JSON.stringify(r.map((rule) => ({
-        value: rule.action.requestHeaders[0].value,
-        scopedToExtension: rule.condition.initiatorDomains.includes(chrome.runtime.id),
-      }))));
-    })()`),
-  );
-  expect(rules).toEqual([{ value: "https://www.pixiv.net/artworks/1", scopedToExtension: true }]);
+      options.setRefererHeaderFilter = "*://127.0.0.1/*";
+      return Download.renameAndDownload({
+        path: new Path("e2e"), scratch: {},
+        info: { url: ${JSON.stringify(url)}, pageUrl: ${JSON.stringify(referer)},
+          suggestedFilename: "referer-probe-firefox.txt", modifiers: [] },
+      });
+    })`);
+    await expect(receivedReferer).resolves.toBe(referer);
+    expect(
+      (await waitForDownloads("referer-probe-firefox")).some((x) => x.state === "complete"),
+    ).toBe(true);
+  } finally {
+    server.close();
+  }
 });
 
 test("routing rules rename and route the download", async () => {
@@ -242,6 +252,68 @@ test("failed downloads are recorded in the debug log", async () => {
     `(e) => e.message === "download failed" || e.message === "downloads.download failed"`,
   );
   expect(entries.length).toBeGreaterThanOrEqual(1);
+});
+
+test("ordinary browser downloads can be tracked and experimentally rerouted on Firefox", async () => {
+  const server = http.createServer((req, res) => {
+    if (req.url === "/native-ff.bin") {
+      res.writeHead(200, {
+        "Content-Type": "application/octet-stream",
+        "Content-Disposition": 'attachment; filename="native-ff.bin"',
+      });
+      res.end("ordinary firefox download");
+      return;
+    }
+    res.writeHead(200, { "Content-Type": "text/html" });
+    res.end('<a id="native" href="/native-ff.bin">download</a>');
+  });
+  const port = await listenLocal(server);
+  const pageUrl = `http://127.0.0.1:${port}/`;
+  const target = `127.0.0.1:${port}`;
+
+  try {
+    await session.evaluate(`browser.storage.local.set({
+      trackBrowserDownloads: true,
+      routeBrowserDownloadsFirefox: true,
+      browserDownloadFilter: "*://127.0.0.1/*",
+      filenamePatterns: "filename: native-ff\\.bin\\ninto: browser-routed/:filename:",
+    }).then(() => window.reset())`);
+    await session.evaluate(`browser.tabs.create({ url: ${JSON.stringify(pageUrl)} })`);
+    await session.evaluate(`(async () => {
+      const deadline = Date.now() + 8000;
+      for (;;) {
+        const tabs = await browser.tabs.query({});
+        if (tabs.some((tab) => tab.url?.includes(${JSON.stringify(target)}) && tab.status === "complete")) return;
+        if (Date.now() >= deadline) throw new Error("ordinary download page timeout");
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+    })()`);
+    await session.evaluateInTab(target, `document.querySelector("#native").click()`);
+
+    const rows = await waitForDownloads("browser-routed");
+    expect(rows.some((row) => row.state === "complete")).toBe(true);
+    expect(rows.some((row) => row.filename.includes("browser-routed"))).toBe(true);
+    const observed = JSON.parse(
+      await session.evaluate(`(async () => {
+        const deadline = Date.now() + 8000;
+        for (;;) {
+          const entries = (await SaveHistory.get()).filter((entry) => entry.info?.context === "browser");
+          if (entries.some((entry) => entry.status === "complete")) return JSON.stringify(entries);
+          if (Date.now() >= deadline) return JSON.stringify(entries);
+          await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+      })()`),
+    );
+    expect(observed.at(-1)).toMatchObject({ status: "complete", info: { context: "browser" } });
+  } finally {
+    await session.evaluate(`browser.storage.local.set({
+      trackBrowserDownloads: false,
+      routeBrowserDownloadsFirefox: false,
+      browserDownloadFilter: "",
+      filenamePatterns: "",
+    }).then(() => window.reset())`);
+    server.close();
+  }
 });
 
 test("alt+click on a real page saves the image through the content script", async () => {

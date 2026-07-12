@@ -78,7 +78,7 @@ const seedDeps = () => {
     tabEnabled: true,
   });
   Object.assign(WEB_EXTENSION_CAPABILITIES, { accessKeys: false, tabContextMenus: false });
-  vi.spyOn(Download, "renameAndDownload").mockResolvedValue(undefined);
+  vi.spyOn(Download, "renameAndDownload").mockResolvedValue({ status: "started", downloadId: 1 });
   vi.spyOn(Download, "makeObjectUrl").mockReturnValue("data:text/plain;base64,eA==");
   vi.spyOn(Notifier, "createExtensionNotification").mockImplementation(() => {});
   vi.spyOn(Notifier, "expectDownload").mockImplementation(() => {});
@@ -125,6 +125,36 @@ describe("Menus last-used state", () => {
     expect(Menus.state.lastUsedMeta).toEqual({ comment: "c" });
 
     Menus.restoreLastUsed(undefined as unknown as Parameters<MenusFixture["restoreLastUsed"]>[0]);
+    expect(Menus.state.lastUsedPath).toBeNull();
+    expect(Menus.state.lastUsedMeta).toBeNull();
+  });
+
+  test("restoreLastUsed rejects malformed persisted values", () => {
+    Menus.restoreLastUsed({
+      lastUsedPath: { path: "legacy-object" },
+      lastUsedMeta: { comment: 4, menuIndex: [1] },
+    } as any);
+
+    expect(Menus.state.lastUsedPath).toBeNull();
+    expect(Menus.state.lastUsedMeta).toBeNull();
+  });
+
+  test("restoreLastUsed keeps a valid path but drops malformed routing metadata", () => {
+    Menus.restoreLastUsed({
+      lastUsedPath: "images",
+      lastUsedMeta: { comment: "ok", menuIndex: 2 },
+    } as any);
+
+    expect(Menus.state.lastUsedPath).toBe("images");
+    expect(Menus.state.lastUsedMeta).toBeNull();
+  });
+
+  test("restoreLastUsed rejects persisted paths that violate the path policy", () => {
+    Menus.restoreLastUsed({
+      lastUsedPath: "../escape",
+      lastUsedMeta: { comment: "old", menuIndex: "1" },
+    });
+
     expect(Menus.state.lastUsedPath).toBeNull();
     expect(Menus.state.lastUsedMeta).toBeNull();
   });
@@ -213,6 +243,34 @@ describe("addDownloadListener", () => {
       lastUsedPath: "dir1",
       lastUsedMeta: { comment: expect.anything(), menuIndex: expect.anything() },
     });
+  });
+
+  test("keeps the event handler alive until last-used persistence completes", async () => {
+    let finishWrite!: () => void;
+    vi.mocked(global.browser.storage.local.set).mockReturnValueOnce(
+      new Promise<void>((resolve) => {
+        finishWrite = resolve;
+      }) as any,
+    );
+    Menus.addPaths(["dir1"], ["link"]);
+    let handled = false;
+
+    const pending = (
+      listener({
+        menuItemId: "save-in-0",
+        linkUrl: "https://example.com/f.png",
+        pageUrl: "https://example.com/",
+      }) as unknown as Promise<void>
+    ).then(() => {
+      handled = true;
+    });
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(handled).toBe(false);
+
+    finishWrite();
+    await pending;
+    expect(handled).toBe(true);
   });
 
   test("uses the clicked tab for page title, not the stale global (#172/#188)", async () => {
@@ -481,24 +539,61 @@ describe("addDownloadListener", () => {
     expect(Download.renameAndDownload).not.toHaveBeenCalled();
   });
 
-  test("closeTabOnSave removes the tab shortly after a page save", async () => {
-    jest.useFakeTimers();
-    try {
-      options.closeTabOnSave = true;
-      (global.browser as any).tabs = { remove: jest.fn() };
+  test("closeTabOnSave removes the tab only after the browser accepts a page save", async () => {
+    options.closeTabOnSave = true;
+    (global.browser as any).tabs = { remove: jest.fn() };
 
-      Menus.addPaths(["dir1"], ["page"]);
-      await listener(
+    Menus.addPaths(["dir1"], ["page"]);
+    await listener(
+      { menuItemId: "save-in-0", pageUrl: "https://example.com/" },
+      { id: 42, title: "Title" },
+    );
+
+    expect(global.browser.tabs.remove).toHaveBeenCalledWith(42);
+  });
+
+  test("a page-save tab-close race does not reject the menu handler", async () => {
+    options.closeTabOnSave = true;
+    (global.browser as any).tabs = {
+      remove: jest.fn(() => Promise.reject(new Error("tab already closed"))),
+    };
+    Menus.addPaths(["dir1"], ["page"]);
+
+    await expect(
+      listener(
         { menuItemId: "save-in-0", pageUrl: "https://example.com/" },
         { id: 42, title: "Title" },
-      );
+      ),
+    ).resolves.toBeUndefined();
+  });
 
-      expect(global.browser.tabs.remove).not.toHaveBeenCalled();
-      await jest.advanceTimersByTimeAsync(500);
-      expect(global.browser.tabs.remove).toHaveBeenCalledWith(42);
-    } finally {
-      jest.useRealTimers();
-    }
+  test("closeTabOnSave keeps the tab when a page save fails", async () => {
+    options.closeTabOnSave = true;
+    (global.browser as any).tabs = { remove: jest.fn() };
+    vi.mocked(Download.renameAndDownload).mockResolvedValueOnce({ status: "failed" });
+    Menus.addPaths(["dir1"], ["page"]);
+
+    await listener(
+      { menuItemId: "save-in-0", pageUrl: "https://example.com/" },
+      { id: 42, title: "Title" },
+    );
+
+    expect(global.browser.tabs.remove).not.toHaveBeenCalled();
+  });
+
+  test("a failed save does not replace the last-used location", async () => {
+    vi.mocked(Download.renameAndDownload).mockResolvedValueOnce({ status: "failed" });
+    Menus.addPaths(["dir1"], ["link"]);
+
+    await listener({
+      menuItemId: "save-in-0",
+      linkUrl: "https://example.com/f.png",
+      pageUrl: "https://example.com/",
+    });
+
+    expect(Menus.state.lastUsedPath).toBeNull();
+    expect(global.browser.storage.local.set).not.toHaveBeenCalled();
+    expect(global.browser.contextMenus.update).not.toHaveBeenCalled();
   });
 
   test("does not close the tab for a non-page save even with closeTabOnSave", async () => {
@@ -533,6 +628,7 @@ describe("addDownloadListener", () => {
 
     expect(lastState().path.raw).toBe(".");
     expect(lastState().info.url).toBe("https://example.com/f.png");
+    expect(lastState().needRouteMatch).toBe(true);
     // Route-exclusive clicks do not update the last used path
     expect(global.browser.storage.local.set).not.toHaveBeenCalled();
   });
@@ -937,25 +1033,13 @@ describe("addTabMenuListener tabstrip downloads", () => {
     expect(state.path.raw).toBe(".");
   });
 
-  test("SELECTED_MULTIPLE_TABS staggers downloads of the highlighted tabs", async () => {
+  test("SELECTED_MULTIPLE_TABS queues every highlighted tab without background timers", async () => {
     await listener({ menuItemId: Menus.IDS.TABSTRIP.SELECTED_MULTIPLE_TABS }, fromTab);
 
     expect(global.browser.tabs.query).toHaveBeenCalledWith(
       expect.objectContaining({ highlighted: true }),
     );
 
-    // Downloads are staggered 500ms apart to avoid notification bugs
-    await jest.advanceTimersByTimeAsync(0);
-    expect(downloads()).toHaveLength(1);
-
-    await jest.advanceTimersByTimeAsync(499);
-    expect(downloads()).toHaveLength(1);
-
-    await jest.advanceTimersByTimeAsync(1);
-    expect(downloads()).toHaveLength(2);
-
-    // The about: tab is filtered out, so no third download
-    await jest.advanceTimersByTimeAsync(2000);
     expect(downloads()).toHaveLength(2);
     expect(downloads().map((s: any) => s.info.currentTab.id)).toEqual([1, 2]);
   });
@@ -1047,16 +1131,31 @@ describe("addTabMenuListener tabstrip downloads", () => {
     );
   });
 
-  test("closeTabOnSave removes each tab shortly after saving it", async () => {
+  test("closeTabOnSave removes each tab only after its save is accepted", async () => {
     options.closeTabOnSave = true;
 
     await listener({ menuItemId: Menus.IDS.TABSTRIP.SELECTED_TAB }, fromTab);
 
-    await jest.advanceTimersByTimeAsync(0);
     expect(downloads()).toHaveLength(1);
-    expect(global.browser.tabs.remove).not.toHaveBeenCalled();
-
-    await jest.advanceTimersByTimeAsync(500);
     expect(global.browser.tabs.remove).toHaveBeenCalledWith(2);
+  });
+
+  test("closeTabOnSave keeps a tab whose save is skipped", async () => {
+    options.closeTabOnSave = true;
+    vi.mocked(Download.renameAndDownload).mockResolvedValueOnce({ status: "skipped" });
+
+    await listener({ menuItemId: Menus.IDS.TABSTRIP.SELECTED_TAB }, fromTab);
+
+    expect(global.browser.tabs.remove).not.toHaveBeenCalled();
+  });
+
+  test("a tab-close failure does not abort the remaining batch", async () => {
+    options.closeTabOnSave = true;
+    vi.mocked(global.browser.tabs.remove).mockRejectedValueOnce(new Error("tab already closed"));
+
+    await listener({ menuItemId: Menus.IDS.TABSTRIP.SELECTED_MULTIPLE_TABS }, fromTab);
+
+    expect(downloads().map((s: any) => s.info.currentTab.id)).toEqual([1, 2]);
+    expect(global.browser.tabs.remove).toHaveBeenCalledTimes(2);
   });
 });

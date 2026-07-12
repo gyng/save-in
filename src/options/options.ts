@@ -22,6 +22,7 @@ import { configureRoutingPorts } from "../routing/ports.ts";
 import { buildTree } from "../menus/menu-tree.ts";
 import { splitLines } from "../shared/util.ts";
 import { setupKeyComboPicker } from "./key-combo-picker.ts";
+import { setupShortcutOptions } from "./shortcut-options.ts";
 import { setupCheckboxRows } from "./checkbox-rows.ts";
 import { setupSettingsTransfer } from "./settings-transfer.ts";
 import { COUNTER_KEY } from "../shared/storage-keys.ts";
@@ -550,6 +551,7 @@ const addHelp = (el: Element) => {
     targetEl.classList.toggle("show");
     el.setAttribute("aria-expanded", targetEl.classList.contains("show") ? "true" : "false");
   });
+  document.dispatchEvent(new Event("options-restored"));
 };
 
 document.addEventListener("DOMContentLoaded", restoreOptions);
@@ -964,6 +966,7 @@ setupManualEditor("paths");
 setupManualEditor("filenamePatterns");
 
 setupKeyComboPicker();
+setupShortcutOptions();
 
 setupCheckboxRows();
 

@@ -161,9 +161,7 @@ describe("template list rendering", () => {
     expect(firstAdd.textContent).toBe("Added");
     expect(firstAdd.disabled).toBe(true);
     expect(document.querySelector(".rule-template-rule")?.textContent).toContain("\ninto:");
-    expect(document.querySelectorAll(".rule-template-example")).toHaveLength(
-      RULE_TEMPLATES.length,
-    );
+    expect(document.querySelectorAll(".rule-template-example")).toHaveLength(RULE_TEMPLATES.length);
     expect(
       [...document.querySelectorAll(".rule-template-example")].every((node) =>
         node.textContent?.startsWith("Example: "),

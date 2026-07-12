@@ -38,7 +38,7 @@ test("CSV export includes all flattened history fields and escapes values", () =
     },
   ]);
 
-  expect(csv).toContain('"Initiated","Source","Status"');
+  expect(csv).toContain('"Initiated","Source","Method","Status"');
   expect(csv).toContain('"a,""b"".txt"');
   expect(csv).toContain('"7"');
 });
@@ -53,6 +53,7 @@ test("TSV export includes every flattened field and strips embedded tabs/newline
 test("history columns show row numbers and hide Source by default", () => {
   expect(HISTORY_COLUMNS.find(({ key }) => key === "index")?.defaultVisible).toBe(true);
   expect(HISTORY_COLUMNS.find(({ key }) => key === "source")?.defaultVisible).toBe(false);
+  expect(HISTORY_COLUMNS.find(({ key }) => key === "mechanism")?.defaultVisible).toBe(true);
   expect(HISTORY_COLUMNS.map(({ key }) => key)).toContain("fullPath");
   expect(HISTORY_COLUMNS.map(({ key }) => key)).toContain("downloadId");
   expect(HISTORY_COLUMNS.find(({ key }) => key === "menuItem")?.defaultVisible).toBe(false);
@@ -94,6 +95,7 @@ describe("history row flatteners", () => {
       info: { context: "MEDIA", sourceUrl: "https://x/k.png" },
       downloadId: 7,
       fileSize: 2048,
+      mechanism: "fetch-downloads-api",
     });
     expect(row).toMatchObject({
       time: "2024-01-01T00:00:00Z",
@@ -106,6 +108,7 @@ describe("history row flatteners", () => {
       url: "https://x/k.png",
       downloadId: 7,
       size: 2048,
+      mechanism: "Fetch + downloads API",
     });
   });
 

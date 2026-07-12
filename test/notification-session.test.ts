@@ -16,6 +16,9 @@ const downloadState = BackgroundState.downloads;
 const browserState = vi.hoisted(() => ({ current: "CHROME" }));
 vi.mock("../src/platform/chrome-detector.ts", () => ({
   BROWSERS: { CHROME: "CHROME", FIREFOX: "FIREFOX", UNKNOWN: "UNKNOWN" },
+  get CURRENT_BROWSER() {
+    return browserState.current;
+  },
   get WEB_EXTENSION_CAPABILITIES() {
     return { downloadDeltaFilename: browserState.current === "CHROME" };
   },
@@ -39,6 +42,7 @@ vi.mock("../src/downloads/download-retry.ts", () => ({
 let Notifier: any;
 let options: any;
 let Log: any;
+let SaveHistory: any;
 
 const loadNotification = async () => {
   const mod = await import("../src/downloads/notification.ts");
@@ -46,6 +50,9 @@ const loadNotification = async () => {
   Notifier = mod.Notifier;
   ({ options } = await import("../src/config/options-data.ts"));
   ({ Log } = await import("../src/background/log.ts"));
+  ({ SaveHistory } = await import("../src/background/history.ts"));
+  const { configureDownloadPorts } = await import("../src/downloads/ports.ts");
+  configureDownloadPorts({ history: SaveHistory, log: Log });
   // Reset the real options bag to empty; each test sets the fields it needs
   for (const k of Object.keys(options)) delete options[k];
   // Log is defensive (typeof Log !== "undefined"); spy it so its calls are
@@ -107,6 +114,8 @@ const setupGlobals = (sessionStore: Record<string, any>, searchResults: (query: 
   };
   (global.browser.downloads as any).show = jest.fn();
   (global.browser.downloads as any).download = jest.fn();
+  (global.browser.downloads as any).cancel = jest.fn(() => Promise.resolve());
+  (global.browser.downloads as any).erase = jest.fn(() => Promise.resolve([]));
   (global.browser as any).notifications = {
     create: jest.fn(),
     clear: jest.fn(),
@@ -242,6 +251,116 @@ describe("download lifecycle notifications", () => {
 
     expect(sessionStore.siPendingDownloads).toBe(0);
     expect(adoptedIds(sessionStore)).toEqual([7]);
+  });
+
+  test("records an ordinary browser download without adopting or retrying it", async () => {
+    options.trackBrowserDownloads = true;
+    const { SaveHistory: history } = await import("../src/background/history.ts");
+    vi.spyOn(history, "add").mockReturnValue("h-browser");
+    vi.spyOn(history, "setDownloadId").mockResolvedValue(undefined);
+    vi.spyOn(history, "setStatus").mockResolvedValue(undefined);
+
+    await onCreated({
+      id: 44,
+      filename: "C:\\Downloads\\browser.zip",
+      url: "https://example.com/browser.zip",
+    });
+
+    expect(sessionStore.siDownloads[44]).toMatchObject({
+      observedBrowserDownload: true,
+      adopted: false,
+      historyEntryId: "h-browser",
+      allowOriginalUrlFallback: false,
+    });
+    expect(SaveHistory.add).toHaveBeenCalledWith(
+      expect.objectContaining({
+        url: "https://example.com/browser.zip",
+        finalFullPath: "C:\\Downloads\\browser.zip",
+        info: { context: "browser" },
+      }),
+    );
+
+    await onChanged({ id: 44, state: { current: "complete", previous: "in_progress" } });
+
+    expect(SaveHistory.setStatus).toHaveBeenCalledWith("h-browser", "complete", 44, 2048);
+    expect(sessionStore.siDownloads[44].observedBrowserDownload).toBe(false);
+    expect(retryHolder.retry).not.toHaveBeenCalled();
+    expect(global.browser.notifications.create).not.toHaveBeenCalled();
+  });
+
+  test("does not track downloads initiated by another extension", async () => {
+    options.trackBrowserDownloads = true;
+    const { SaveHistory: history } = await import("../src/background/history.ts");
+    vi.spyOn(history, "add");
+
+    await onCreated({
+      id: 45,
+      byExtensionId: "another-extension",
+      filename: "C:\\Downloads\\other.zip",
+      url: "https://example.com/other.zip",
+    });
+
+    expect(history.add).not.toHaveBeenCalled();
+    expect(sessionStore.siDownloads?.[45]).toBeUndefined();
+  });
+
+  test("Firefox experimentally cancels and replaces a matching ordinary download", async () => {
+    browserState.current = "FIREFOX";
+    options.routeBrowserDownloadsFirefox = true;
+    options.browserDownloadFilter = "*://example.com/*";
+    const { BrowserDownloadRouting } = await import("../src/downloads/browser-downloads.ts");
+    vi.spyOn(BrowserDownloadRouting, "route").mockResolvedValue("sorted/native.bin");
+    const { SaveHistory: history } = await import("../src/background/history.ts");
+    vi.spyOn(history, "add").mockReturnValue("h-reroute");
+    vi.spyOn(history, "setDownloadId").mockResolvedValue(undefined);
+    vi.mocked(global.browser.downloads.download).mockImplementationOnce(async (downloadOptions) => {
+      await onCreated({
+        id: 99,
+        byExtensionId: "save-in",
+        filename: "C:\\Downloads\\sorted\\native.bin",
+        url: downloadOptions.url,
+      });
+      return 99;
+    });
+
+    await onCreated({
+      id: 46,
+      filename: "C:\\Downloads\\native.bin",
+      url: "https://example.com/native.bin",
+    });
+
+    expect(global.browser.downloads.cancel).toHaveBeenCalledWith(46);
+    expect(global.browser.downloads.erase).toHaveBeenCalledWith({ id: 46 });
+    expect(global.browser.downloads.download).toHaveBeenCalledWith({
+      url: "https://example.com/native.bin",
+      filename: "sorted/native.bin",
+      conflictAction: options.conflictAction,
+    });
+    expect(sessionStore.siDownloads[99]).toMatchObject({
+      observedBrowserDownload: true,
+      adopted: false,
+      historyEntryId: "h-reroute",
+      allowOriginalUrlFallback: false,
+    });
+    expect(BrowserDownloadRouting.route).toHaveBeenCalledTimes(1);
+  });
+
+  test("Firefox leaves nonmatching ordinary downloads untouched", async () => {
+    browserState.current = "FIREFOX";
+    options.routeBrowserDownloadsFirefox = true;
+    options.browserDownloadFilter = "*://allowed.example/*";
+    const { BrowserDownloadRouting } = await import("../src/downloads/browser-downloads.ts");
+    vi.spyOn(BrowserDownloadRouting, "route");
+
+    await onCreated({
+      id: 47,
+      filename: "C:\\Downloads\\native.bin",
+      url: "https://example.com/native.bin",
+    });
+
+    expect(BrowserDownloadRouting.route).not.toHaveBeenCalled();
+    expect(global.browser.downloads.cancel).not.toHaveBeenCalled();
+    expect(global.browser.downloads.download).not.toHaveBeenCalled();
   });
 
   test("recovers every download created after one restart (counter, not boolean)", async () => {
@@ -460,6 +579,24 @@ describe("notification variants", () => {
     expect(global.browser.notifications.create).not.toHaveBeenCalled();
   });
 
+  test("promptOnFailure does not bypass a protected original URL", async () => {
+    await install({ notifyOnFailure: false, promptOnFailure: true, notifyDuration: 1000 });
+    Notifier.expectDownload("https://x/p.png", {
+      url: "https://x/p.png",
+      allowOriginalUrlFallback: false,
+    });
+    await onCreated({
+      id: 7,
+      byExtensionId: "save-in",
+      filename: "/dl/pic.png",
+      url: "https://x/p.png",
+    });
+
+    await onChanged({ id: 7, error: { current: "NETWORK_FAILED" } });
+
+    expect(global.browser.downloads.download).not.toHaveBeenCalled();
+  });
+
   test("user-cancelled downloads are untracked without a notification", async () => {
     await install({ notifyOnSuccess: true, notifyOnFailure: true, notifyDuration: 1000 });
     await startTracked({ id: 7, filename: "/dl/pic.png", url: "https://x/p.png" });
@@ -507,7 +644,7 @@ describe("notification variants", () => {
     expect(global.browser.notifications.clear).toHaveBeenCalledWith("7");
   });
 
-  test("download id 0 never schedules a clear timer", async () => {
+  test("download id 0 uses the same clear timer as other notifications", async () => {
     await install({ notifyOnFailure: true, notifyDuration: 1000 });
     await startTracked({ id: 0, filename: "/dl/pic.png", url: "https://x/p.png" });
 
@@ -515,7 +652,7 @@ describe("notification variants", () => {
 
     expect(global.browser.notifications.create).toHaveBeenCalledWith("0", expect.anything());
     jest.runAllTimers();
-    expect(global.browser.notifications.clear).not.toHaveBeenCalled();
+    expect(global.browser.notifications.clear).toHaveBeenCalledWith("0");
   });
 
   test("successes are logged and show megabyte sizes", async () => {
@@ -564,7 +701,7 @@ describe("notification variants", () => {
     expect(global.browser.notifications.create).toHaveBeenCalledWith(
       "7",
       expect.objectContaining({
-        title: "Translated<notificationSuccessTitle> ·  · text/plain",
+        title: "Translated<notificationSuccessTitle> · text/plain",
       }),
     );
   });

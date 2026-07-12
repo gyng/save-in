@@ -32,6 +32,7 @@ const router = await import("../src/routing/router.ts");
 const Variable = await import("../src/routing/variable.ts");
 const { Path } = await import("../src/routing/path.ts");
 const { setCurrentTab } = await import("../src/platform/current-tab.ts");
+const { backgroundRuntime } = await import("../src/background/runtime.ts");
 
 // Import-time side effects are deferred (Task #2): messaging.ts no longer
 // registers its runtime listeners at load — the entry does, so call it here to
@@ -51,7 +52,7 @@ const setupGlobals = () => {
   trackedTab = { id: 1, title: "Tracked Tab" };
   setCurrentTab(trackedTab);
   Object.assign(options, { conflictAction: "uniquify" });
-  vi.spyOn(Download, "renameAndDownload").mockResolvedValue(undefined);
+  vi.spyOn(Download, "renameAndDownload").mockResolvedValue({ status: "started", downloadId: 1 });
   // Download.launch stays real: it just calls renameAndDownload (the rejection
   // path it also handles is covered in download-flow.test).
   vi.spyOn(Notifier, "expectDownload").mockImplementation((url?: string) => ({ url }));
@@ -94,10 +95,10 @@ const setupGlobals = () => {
     captures: null,
   } as any);
 
-  global.window.reset = vi.fn();
-  global.window.optionErrors = { paths: [], filenamePatterns: [] };
-  delete global.window.lastDownloadState;
-  delete global.window.SI_DEBUG;
+  backgroundRuntime.reset = vi.fn();
+  backgroundRuntime.optionErrors = { paths: [], filenamePatterns: [] };
+  backgroundRuntime.lastDownloadState = undefined;
+  backgroundRuntime.debug = false;
   global.browser.runtime.sendMessage = vi.fn();
   (global.browser as any).storage = { local: { set: vi.fn(() => Promise.resolve()) } };
   (global.browser.tabs as any).query = vi.fn(() => Promise.resolve([{ id: 42 }]));
@@ -127,7 +128,7 @@ describe("onMessage", () => {
   test("OPTIONS_LOADED resets the background page and responds OK", () => {
     const sendResponse = vi.fn();
     onMessage({ type: MESSAGE_TYPES.OPTIONS_LOADED }, {}, sendResponse);
-    expect(global.window.reset).toHaveBeenCalledTimes(1);
+    expect(backgroundRuntime.reset).toHaveBeenCalledTimes(1);
     expect(sendResponse).toHaveBeenCalledWith({ type: MESSAGE_TYPES.OK });
   });
 
@@ -210,7 +211,12 @@ describe("onMessage CHECK_ROUTES", () => {
     const state = { info: { filename: "f.png" } };
     const sendResponse = vi.fn();
 
-    onMessage({ type: MESSAGE_TYPES.CHECK_ROUTES, body: { state } }, {}, sendResponse);
+    const keepChannelOpen = onMessage(
+      { type: MESSAGE_TYPES.CHECK_ROUTES, body: { state } },
+      {},
+      sendResponse,
+    );
+    expect(keepChannelOpen).toBe(true);
     await settle();
 
     expect(OptionsManagement.checkRoutes).toHaveBeenCalledWith(state);
@@ -222,7 +228,7 @@ describe("onMessage CHECK_ROUTES", () => {
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.CHECK_ROUTES_RESPONSE,
       body: {
-        optionErrors: global.window.optionErrors,
+        optionErrors: backgroundRuntime.optionErrors,
         routeInfo: { path: "routed/dir", captures: null },
         lastDownload: undefined,
         interpolatedVariables: { ":date:": "interp::date:", ":year:": "interp::year:" },
@@ -230,9 +236,27 @@ describe("onMessage CHECK_ROUTES", () => {
     });
   });
 
+  test("turns an async handler rejection into a protocol error", async () => {
+    vi.mocked(OptionsManagement.checkRoutes).mockRejectedValue(new Error("preview failed"));
+    const sendResponse = vi.fn();
+
+    const keepChannelOpen = onMessage({ type: MESSAGE_TYPES.CHECK_ROUTES }, {}, sendResponse);
+    expect(keepChannelOpen).toBe(true);
+    await settle();
+
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.CHECK_ROUTES,
+      body: {
+        status: MESSAGE_TYPES.ERROR,
+        error: "INTERNAL_ERROR",
+        message: "Save In could not complete the request",
+      },
+    });
+  });
+
   test("falls back to window.lastDownloadState without a state in the body", async () => {
     const lastState = { info: { filename: "last.png" } };
-    (global.window as any).lastDownloadState = lastState;
+    backgroundRuntime.lastDownloadState = lastState as any;
     const sendResponse = vi.fn();
 
     onMessage({ type: MESSAGE_TYPES.CHECK_ROUTES, body: {} }, {}, sendResponse);
@@ -250,7 +274,7 @@ describe("onMessage CHECK_ROUTES", () => {
   });
 
   test("responds with null interpolations when there is no state at all", async () => {
-    global.window.lastDownloadState = null;
+    backgroundRuntime.lastDownloadState = null;
     const sendResponse = vi.fn();
 
     onMessage({ type: MESSAGE_TYPES.CHECK_ROUTES }, {}, sendResponse);
@@ -332,7 +356,7 @@ describe("handleDownloadMessage", () => {
 
   test("reuses the last path and routing metadata, never filenames or routes", () => {
     const lastPath = new Path("images/cats");
-    global.window.lastDownloadState = {
+    backgroundRuntime.lastDownloadState = {
       path: lastPath,
       scratch: { hasExtension: true },
       route: new Path("stale/route/from/other.png"),
@@ -361,7 +385,7 @@ describe("handleDownloadMessage", () => {
   });
 
   test("falls back to the default path when the last state has none", () => {
-    (global.window as any).lastDownloadState = { scratch: {}, info: {} };
+    backgroundRuntime.lastDownloadState = { scratch: {}, info: {} } as any;
 
     onMessage(request(), {}, vi.fn());
 
@@ -604,7 +628,7 @@ describe("config API", () => {
       prompt: true,
       paths: "images", // onSave trimmed it
     });
-    expect(global.window.reset).toHaveBeenCalled();
+    expect(backgroundRuntime.reset).toHaveBeenCalled();
     const { body } = sendResponse.mock.calls[0][0];
     expect(body.applied).toEqual({ prompt: true, paths: "images" });
     expect(body.rejected).toEqual([{ name: "bogus", reason: "unknown option" }]);

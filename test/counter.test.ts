@@ -64,4 +64,13 @@ describe("Counter", () => {
     expect(await peekCounter(browser.storage.local)).toBe(0);
     expect(await nextCounter(writes, browser.storage.local)).toBe(1);
   });
+
+  test("normalizes malformed persisted counters", async () => {
+    const storage = {
+      get: vi.fn(() => Promise.resolve({ "save-in-counter": "corrupt" })),
+      set: vi.fn(() => Promise.resolve()),
+    };
+    expect(await peekCounter(storage)).toBe(0);
+    expect(await nextCounter(writes, storage)).toBe(1);
+  });
 });

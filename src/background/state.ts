@@ -1,13 +1,11 @@
 import type { CounterWriteState } from "./counter.ts";
-import type { DownloadsState } from "../downloads/download-state.ts";
-import type { SessionWriteState } from "./session-state.ts";
+import { downloadsState, sessionWriteState } from "../downloads/state.ts";
 
-const sessionWrites: SessionWriteState = { queue: Promise.resolve() };
-const downloads: DownloadsState = { records: new Map(), hydration: null };
-const counterWrites: CounterWriteState = { queue: Promise.resolve() };
+export { sessionWriteState, downloadsState };
+export const counterWriteState: CounterWriteState = { queue: Promise.resolve() };
 
 export const BackgroundState = Object.freeze({
-  sessionWrites,
-  downloads,
-  counterWrites,
+  sessionWrites: sessionWriteState,
+  downloads: downloadsState,
+  counterWrites: counterWriteState,
 });

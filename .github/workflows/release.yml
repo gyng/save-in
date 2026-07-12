@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
 
 concurrency:
   group: release-${{ github.ref }}
@@ -30,8 +31,17 @@ jobs:
       - name: Install pinned dependencies
         run: npm ci
 
-      - name: Validate tag and manifest versions
-        run: node scripts/prepare-release.js --check "$GITHUB_REF_NAME"
+      - name: Resolve and validate release version
+        id: release
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+            RELEASE_TAG="v$(node -p "require('./package.json').version")"
+          else
+            RELEASE_TAG="$GITHUB_REF_NAME"
+          fi
+          echo "tag=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
+          echo "RELEASE_TAG=$RELEASE_TAG" >> "$GITHUB_ENV"
+          node scripts/prepare-release.js --check "$RELEASE_TAG"
 
       - name: Unit, type, lint, and browser gates
         run: |
@@ -49,9 +59,10 @@ jobs:
         run: |
           npm run build
           npm run build:source
-          npm run release:prepare -- "$GITHUB_REF_NAME"
+          npm run release:prepare -- "$RELEASE_TAG"
 
       - name: Attest release artifacts
+        if: github.event_name == 'push'
         uses: actions/attest@a1948c3f048ba23858d222213b7c278aabede763 # v4.1.1
         with:
           subject-path: web-ext-artifacts/release/*
@@ -59,12 +70,13 @@ jobs:
       - name: Preserve workflow artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: save-in-${{ github.ref_name }}
+          name: save-in-${{ steps.release.outputs.tag }}
           path: web-ext-artifacts/release/
           if-no-files-found: error
           compression-level: 0
 
   publish-draft:
+    if: github.event_name == 'push'
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 5

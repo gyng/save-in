@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { setupCheckboxRows } from "../src/options/checkbox-rows.ts";
 import { setupKeyComboPicker } from "../src/options/key-combo-picker.ts";
+import { setupShortcutOptions } from "../src/options/shortcut-options.ts";
 import { setupSettingsTransfer } from "../src/options/settings-transfer.ts";
 import { parseCounterValue } from "../src/options/counter-panel.ts";
 
@@ -14,16 +15,38 @@ describe("key combo picker", () => {
     document.body.innerHTML = '<div class="combo-wrap"><input id="contentClickToSaveCombo"></div>';
     setupKeyComboPicker();
     const input = document.querySelector("input")!;
+    expect(input.getAttribute("role")).toBe("combobox");
+    expect(input.getAttribute("aria-expanded")).toBe("false");
     const changed = vi.fn();
     input.addEventListener("change", changed);
     input.value = "sh";
     input.dispatchEvent(new Event("input"));
+    expect(input.getAttribute("aria-expanded")).toBe("true");
     const rows = document.querySelectorAll<HTMLLIElement>(".combo-dropdown li");
+    expect(document.querySelector(".combo-dropdown")?.getAttribute("role")).toBe("listbox");
     expect(rows).toHaveLength(1);
     expect(rows[0].dataset.value).toBe("Shift");
     rows[0].dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
     expect(input.value).toBe("Shift");
     expect(changed).toHaveBeenCalledOnce();
+  });
+});
+
+describe("shortcut option guidance", () => {
+  test("warns without blocking mouse-only left click and previews shortcut formats", () => {
+    document.body.innerHTML = `
+      <input type="checkbox" id="shortcutMedia" checked>
+      <input type="checkbox" id="shortcutLink"><input type="checkbox" id="shortcutPage">
+      <input type="checkbox" id="shortcutTab">
+      <select id="shortcutType"><option value="MAC_WEBLOC" selected>webloc</option></select>
+      <span id="shortcut-format-preview"></span>
+      <input id="contentClickToSaveCombo" value="">
+      <select id="contentClickToSaveButton"><option value="LEFT_CLICK">left</option></select>
+      <div id="click-to-save-warning" hidden></div>`;
+    setupShortcutOptions();
+    expect(document.querySelector("#click-to-save-warning")?.hasAttribute("hidden")).toBe(false);
+    expect(document.querySelector("#shortcut-format-preview")?.textContent).toContain(".webloc");
+    expect((document.querySelector("#shortcutType") as HTMLSelectElement).disabled).toBe(false);
   });
 });
 

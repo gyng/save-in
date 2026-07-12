@@ -21,6 +21,7 @@ import * as menuBuild from "../src/background/menu-build.ts";
 import * as menuTabs from "../src/background/menu-tabs.ts";
 import { SPECIAL_DIRS, MEDIA_TYPES } from "../src/shared/constants.ts";
 import { options } from "../src/config/options-data.ts";
+import { configureRoutingPorts } from "../src/routing/ports.ts";
 
 const menu = {
   ...menuBuild,
@@ -79,6 +80,7 @@ describe("menu parsing", () => {
 });
 
 const setupMenuCreationMocks = () => {
+  configureRoutingPorts({ getMessage: (key) => global.browser.i18n.getMessage(key) });
   detector.features = { accessKeys: true, tabContextMenus: true };
   Object.assign(options, {
     keyRoot: "q",
@@ -316,6 +318,16 @@ describe("menu creation", () => {
 
       expect(created()[0].title).toBe("dogs");
     });
+
+    test("drops stale mappings and titles when paths are rebuilt", () => {
+      menu.addPaths(["dogs", "cats"], ["link"]);
+      menu.addPaths(["birds"], ["link"]);
+
+      expect(menu.pathMappings).toEqual({
+        "save-in-0": expect.objectContaining({ parsedDir: "birds" }),
+      });
+      expect(menuBuild.menuState.titles).toEqual({ "save-in-0": "birds" });
+    });
   });
 
   describe("addTabMenus", () => {
@@ -402,6 +414,9 @@ describe("menu creation", () => {
 });
 
 describe("buildTree", () => {
+  beforeEach(() => {
+    configureRoutingPorts({ getMessage: (key) => global.browser.i18n.getMessage(key) });
+  });
   test("is pure: computes the tree without any browser calls", () => {
     (global.browser as any).contextMenus = { create: jest.fn() };
 

@@ -1,7 +1,6 @@
-import { webExtensionApi } from "../platform/web-extension-api.ts";
-
 import { SPECIAL_DIRS, FORBIDDEN_FILENAME_CHARS, PATH_SEGMENT_TYPES } from "../shared/constants.ts";
 import { options } from "../config/options-data.ts";
+import { routingPorts } from "./ports.ts";
 
 const specialDirVariables = Object.values(SPECIAL_DIRS);
 const specialDirRegexp = new RegExp(`(${specialDirVariables.join("|")})`);
@@ -207,7 +206,7 @@ export class Path {
     if (this.buf[0].type === PATH_SEGMENT_TYPES.SEPARATOR || this.buf[0].val === "..") {
       return {
         valid: false,
-        message: webExtensionApi.i18n.getMessage("rulePathStartsWithDot"),
+        message: routingPorts.getMessage("rulePathStartsWithDot"),
       };
     }
 
@@ -215,7 +214,7 @@ export class Path {
       if (item.type === PATH_SEGMENT_TYPES.STRING && sanitizeFilename(item.val) !== item.val) {
         return {
           valid: false,
-          message: webExtensionApi.i18n.getMessage("rulePathInvalidCharacter"),
+          message: routingPorts.getMessage("rulePathInvalidCharacter"),
         };
       }
     }

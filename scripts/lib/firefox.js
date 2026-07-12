@@ -86,6 +86,23 @@ const makeProfile = (baseProfileDir) => {
   return { profileDir, downloadDir };
 };
 
+const removeProfile = async (profileDir) => {
+  for (let i = 0; i < 5; i += 1) {
+    // taskkill can return while a child is completing its final profile write;
+    // removing immediately may succeed only for Firefox to recreate the tree.
+    // eslint-disable-next-line no-await-in-loop
+    await sleep(1500);
+    try {
+      fs.rmSync(profileDir, { recursive: true, force: true });
+      // eslint-disable-next-line no-await-in-loop
+      await sleep(100);
+      if (!fs.existsSync(profileDir)) return;
+    } catch (e) {
+      // Firefox may still be releasing files after its process tree exits.
+    }
+  }
+};
+
 const connectWithRetry = async (port, attempts = 30) => {
   for (let i = 0; i < attempts; i += 1) {
     try {
@@ -113,50 +130,48 @@ const launch = async () => {
   args.push("about:blank");
 
   const proc = spawn(findFirefox(), args, { stdio: "ignore" });
+  let rdp;
+  try {
+    rdp = await connectWithRetry(port);
+    const root = await rdp.getRoot();
+    await rdp.installTemporaryAddon(root.addonsActor, ROOT);
+    await sleep(2000);
 
-  const rdp = await connectWithRetry(port);
-  const root = await rdp.getRoot();
-  await rdp.installTemporaryAddon(root.addonsActor, ROOT);
-  await sleep(2000);
+    const addonActor = await rdp.findAddonActor(ADDON_ID);
+    const consoleActor = await rdp.getConsoleActor(addonActor);
 
-  const addonActor = await rdp.findAddonActor(ADDON_ID);
-  const consoleActor = await rdp.getConsoleActor(addonActor);
-
-  // Background scripts may still be loading right after install
-  for (let i = 0; i < 20; i += 1) {
-    // eslint-disable-next-line no-await-in-loop
-    const readyType = await rdp.evaluate(consoleActor, "typeof window.ready");
-    if (readyType === "object") break;
-    // eslint-disable-next-line no-await-in-loop
-    await sleep(500);
-    if (i === 19) throw new Error("background page never became ready");
-  }
-
-  const evaluate = (text, timeoutMs) => rdp.evaluate(consoleActor, text, timeoutMs);
-
-  // Evaluates in the content window of an open tab matching urlSubstr. The
-  // tab must already be open (e.g. via browser.tabs.create from evaluate()).
-  const evaluateInTab = async (urlSubstr, text, timeoutMs) => {
-    const tabConsole = await rdp.getTabConsoleActor(urlSubstr);
-    return rdp.evaluate(tabConsole, text, timeoutMs);
-  };
-
-  const cleanup = async () => {
-    rdp.close();
-    killTree(proc.pid);
-    for (let i = 0; i < 5; i += 1) {
+    // Background scripts may still be loading right after install
+    for (let i = 0; i < 20; i += 1) {
       // eslint-disable-next-line no-await-in-loop
-      await sleep(1500);
-      try {
-        fs.rmSync(profileDir, { recursive: true, force: true });
-        return;
-      } catch (e) {
-        // Firefox is still shutting down; the next run copes regardless
-      }
+      const readyType = await rdp.evaluate(consoleActor, "typeof window.ready");
+      if (readyType === "object") break;
+      // eslint-disable-next-line no-await-in-loop
+      await sleep(500);
+      if (i === 19) throw new Error("background page never became ready");
     }
-  };
 
-  return { proc, rdp, evaluate, evaluateInTab, profileDir, downloadDir, cleanup };
+    const evaluate = (text, timeoutMs) => rdp.evaluate(consoleActor, text, timeoutMs);
+
+    // Evaluates in the content window of an open tab matching urlSubstr. The
+    // tab must already be open (e.g. via browser.tabs.create from evaluate()).
+    const evaluateInTab = async (urlSubstr, text, timeoutMs) => {
+      const tabConsole = await rdp.getTabConsoleActor(urlSubstr);
+      return rdp.evaluate(tabConsole, text, timeoutMs);
+    };
+
+    const cleanup = async () => {
+      rdp.close();
+      killTree(proc.pid);
+      await removeProfile(profileDir);
+    };
+
+    return { proc, rdp, evaluate, evaluateInTab, profileDir, downloadDir, cleanup };
+  } catch (error) {
+    rdp?.close();
+    killTree(proc.pid);
+    await removeProfile(profileDir);
+    throw error;
+  }
 };
 
 module.exports = { ROOT, launch };

@@ -1,17 +1,14 @@
 import { withUrl as parseUrl } from "../shared/util.ts";
-import { resolveContent as fetchContent } from "../downloads/content-fetch.ts";
 import { EXTENSION_REGEX, getFilenameFromUrl } from "./filename.ts";
 import { SPECIAL_DIRS, PATH_SEGMENT_TYPES } from "../shared/constants.ts";
 import { stringSegment, type PathSegment } from "./path.ts";
-import { BackgroundState } from "../background/state.ts";
-import { nextCounter, peekCounter } from "../background/counter.ts";
-import { extensionLocalStorage } from "../platform/storage-areas.ts";
-import type { DownloadInfo } from "../downloads/download-types.ts";
+import type { RoutingDownloadInfo } from "./rule-types.ts";
+import { routingPorts } from "./ports.ts";
 
 type HeadResult = { contentType: string; finalUrl: string };
 type VariablePath = { buf?: PathSegment[] | null };
 type Transformer = (
-  opts: DownloadInfo,
+  opts: RoutingDownloadInfo,
   token?: PathSegment,
   index?: number,
   tokens?: PathSegment[],
@@ -164,7 +161,7 @@ export const mimeToExtension = (mime: string | null | undefined) => {
 // one request) and read its Content-Type and post-redirect URL. Times out so
 // a slow/hanging HEAD can't block the download, and resolves to blanks on any
 // failure (CORS, 405, network).
-export const resolveHead = (opts: DownloadInfo): Promise<HeadResult> => {
+export const resolveHead = (opts: RoutingDownloadInfo): Promise<HeadResult> => {
   if (opts.headPromise) {
     return opts.headPromise;
   }
@@ -191,18 +188,19 @@ export const resolveHead = (opts: DownloadInfo): Promise<HeadResult> => {
   return opts.headPromise;
 };
 
-export const resolveMime = async (opts: DownloadInfo) => (await resolveHead(opts)).contentType;
+export const resolveMime = async (opts: RoutingDownloadInfo) =>
+  (await resolveHead(opts)).contentType;
 
 // Fetch the file's content once per download (cached on the info bag so every
 // :sha256: shares it — and the download reuses the same fetch rather than
 // pulling the file down a second time, see content-fetch.ts). Resolves
 // to { sha256, downloadUrl } or null on failure/over-cap so a hash can never
 // block a save.
-export const resolveContent = (opts: DownloadInfo) => {
+export const resolveContent = (opts: RoutingDownloadInfo) => {
   if (opts.contentPromise) {
     return opts.contentPromise;
   }
-  opts.contentPromise = opts.url ? fetchContent(opts.url) : Promise.resolve(null);
+  opts.contentPromise = opts.url ? routingPorts.resolveContent(opts.url) : Promise.resolve(null);
   return opts.contentPromise;
 };
 
@@ -291,10 +289,10 @@ export const transformers = ({
     [SPECIAL_DIRS.COUNTER]:
       async opts => {
         if (opts.preview) {
-          return stringSegment((await peekCounter(extensionLocalStorage)) + 1);
+          return stringSegment((await routingPorts.peekCounter()) + 1);
         }
         if (opts.counter == null) {
-          opts.counter = await nextCounter(BackgroundState.counterWrites, extensionLocalStorage);
+          opts.counter = await routingPorts.nextCounter();
         }
         return stringSegment(opts.counter);
       },
@@ -335,7 +333,7 @@ export const transformers = ({
 // Async so a transformer may await (e.g. a :counter: read-modify-write or a
 // :mime: HEAD request). Sync transformers resolve instantly through
 // Promise.all, so paths built only from today's variables are byte-identical.
-export const applyVariables = async <P extends object>(path: P, opts: DownloadInfo = {}) => {
+export const applyVariables = async <P extends object>(path: P, opts: RoutingDownloadInfo = {}) => {
   const variablePath = path as P & VariablePath;
   return Object.assign(path, {
     buf:

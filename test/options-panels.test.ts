@@ -149,7 +149,10 @@ describe("variables preview", () => {
     await renderVariablesPreview();
     expect(document.querySelector(".variables-preview-empty")).toBeNull();
     const values = [...document.querySelectorAll<HTMLElement>(".variables-preview-value")];
-    expect(values.map((value) => value.textContent)).toEqual(["example", "https://example.com/file.jpg"]);
+    expect(values.map((value) => value.textContent)).toEqual([
+      "example",
+      "https://example.com/file.jpg",
+    ]);
     expect(values.every((value) => value.classList.contains("is-placeholder"))).toBe(true);
     expect(values.every((value) => value.title.startsWith("Example —"))).toBe(true);
   });

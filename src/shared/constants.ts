@@ -50,6 +50,7 @@ export const SPECIAL_DIRS = {
 export const SHORTCUT_TYPES = {
   HTML_REDIRECT: "HTML_REDIRECT",
   MAC: "MAC",
+  MAC_WEBLOC: "MAC_WEBLOC",
   FREEDESKTOP: "FREEDESKTOP",
   WINDOWS: "WINDOWS",
 } as const;
@@ -57,6 +58,7 @@ export const SHORTCUT_TYPES = {
 export const SHORTCUT_EXTENSIONS = {
   [SHORTCUT_TYPES.HTML_REDIRECT]: ".html",
   [SHORTCUT_TYPES.MAC]: ".url",
+  [SHORTCUT_TYPES.MAC_WEBLOC]: ".webloc",
   [SHORTCUT_TYPES.FREEDESKTOP]: ".desktop",
   [SHORTCUT_TYPES.WINDOWS]: ".url",
 } as const;

@@ -256,6 +256,11 @@ export const addDownloadListener = () => {
         suggestedFilename,
         context: downloadType,
         menuIndex,
+        menuItemId: String(info.menuItemId),
+        menuItemTitle:
+          selectedLocation?.title ||
+          (info.menuItemId === MENU_IDS.LAST_USED ? "Last used location" : "Routing rules"),
+        menuItemPath: saveIntoPath || undefined,
         comment,
         modifiers: info.modifiers,
       };

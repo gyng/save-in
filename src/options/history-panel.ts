@@ -251,6 +251,11 @@ const renderHistoryTable = () => {
     source.textContent = r.source;
     if (visibleHistoryColumns.has("source")) appendCell("source", source);
 
+    const mechanism = document.createElement("td");
+    mechanism.className = "history-mechanism";
+    mechanism.textContent = r.mechanism;
+    if (visibleHistoryColumns.has("mechanism")) appendCell("mechanism", mechanism);
+
     const status = document.createElement("td");
     status.className = "history-status";
     const badge = document.createElement("span");

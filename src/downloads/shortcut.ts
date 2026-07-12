@@ -10,15 +10,29 @@ type ShortcutInfo = {
   linkText?: string;
 };
 
+const escapeDesktopValue = (value: string): string =>
+  value
+    .replace(/\\/g, "\\\\")
+    .replace(/\r\n?|\n/g, "\\n")
+    .replace(/\t/g, "\\t");
+
+const escapeInternetShortcutUrl = (value: string): string => value.replace(/[\r\n]/g, "");
+
+const escapeXml = (value: string): string =>
+  value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
 export const Shortcut = {
   makeShortcutContent: (type: string | undefined, url: string, title?: string): string => {
     switch (type) {
       case SHORTCUT_TYPES.MAC:
-        return `[InternetShortcut]\nURL=${url}`;
+        return `[InternetShortcut]\nURL=${escapeInternetShortcutUrl(url)}`;
       case SHORTCUT_TYPES.WINDOWS:
-        return `[InternetShortcut]\r\nURL=${url}`;
+        return `[InternetShortcut]\r\nURL=${escapeInternetShortcutUrl(url)}`;
+      case SHORTCUT_TYPES.MAC_WEBLOC:
+        return `<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n<plist version="1.0"><dict><key>URL</key><string>${escapeXml(url)}</string></dict></plist>`;
       case SHORTCUT_TYPES.FREEDESKTOP: {
-        const name = title || url;
+        const name = escapeDesktopValue(title || url);
+        const safeUrl = escapeDesktopValue(url);
         return [
           "[Desktop Entry]",
           "Encoding=UTF-8",
@@ -26,9 +40,9 @@ export const Shortcut = {
           "Type=Link",
           `Name=${name}`,
           `Title=${name}`,
-          `URL=${url}`,
+          `URL=${safeUrl}`,
           "[InternetShortcut]",
-          `URL=${url}`,
+          `URL=${safeUrl}`,
         ].join("\n");
       }
       case SHORTCUT_TYPES.HTML_REDIRECT: {
@@ -54,6 +68,7 @@ export const Shortcut = {
       ({
         [SHORTCUT_TYPES.HTML_REDIRECT]: "text/html",
         [SHORTCUT_TYPES.MAC]: "application/octet-stream",
+        [SHORTCUT_TYPES.MAC_WEBLOC]: "application/x-apple-webloc",
         [SHORTCUT_TYPES.WINDOWS]: "application/octet-stream",
         [SHORTCUT_TYPES.FREEDESKTOP]: "application/octet-stream",
       }) as Record<string, string>
@@ -81,9 +96,10 @@ export const Shortcut = {
             (currentTab && currentTab.title) ||
             info.srcUrl ||
             info.linkUrl ||
-            info.pageUrl
+            info.pageUrl ||
+            "shortcut"
           }`
-        : `${suggestedFilename || info.linkText || info.srcUrl || info.linkUrl}`;
+        : `${suggestedFilename || info.linkText || info.srcUrl || info.linkUrl || "shortcut"}`;
 
     shortcutFilename = `${sanitizeFilename(
       shortcutFilename,

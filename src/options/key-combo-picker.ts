@@ -16,17 +16,31 @@ export const setupKeyComboPicker = () => {
   const dropdown = document.createElement("ul");
   // Autocomplete owns its similarly shaped dropdown and its e2e selector.
   dropdown.className = "combo-dropdown";
+  dropdown.id = "click-to-save-modifier-options";
+  dropdown.setAttribute("role", "listbox");
   dropdown.hidden = true;
   wrap.appendChild(dropdown);
+  input.setAttribute("role", "combobox");
+  input.setAttribute("aria-autocomplete", "list");
+  input.setAttribute("aria-controls", dropdown.id);
+  input.setAttribute("aria-expanded", "false");
 
   let activeIndex = -1;
   const rows = () => [...dropdown.querySelectorAll("li")];
   const highlight = (index: number) => {
     activeIndex = index;
-    rows().forEach((row, rowIndex) => row.classList.toggle("selected", rowIndex === index));
+    rows().forEach((row, rowIndex) => {
+      row.classList.toggle("selected", rowIndex === index);
+      row.setAttribute("aria-selected", String(rowIndex === index));
+    });
+    const active = rows()[index];
+    if (active) input.setAttribute("aria-activedescendant", active.id);
+    else input.removeAttribute("aria-activedescendant");
   };
   const close = () => {
     dropdown.hidden = true;
+    input.setAttribute("aria-expanded", "false");
+    input.removeAttribute("aria-activedescendant");
     activeIndex = -1;
   };
   const choose = (value: string) => {
@@ -38,6 +52,9 @@ export const setupKeyComboPicker = () => {
     dropdown.replaceChildren();
     filterKeyComboOptions(OPTIONS, filter ? input.value : "").forEach((option) => {
       const row = document.createElement("li");
+      row.id = `click-to-save-modifier-${dropdown.children.length}`;
+      row.setAttribute("role", "option");
+      row.setAttribute("aria-selected", "false");
       const value = document.createElement("span");
       value.className = "combo-value";
       value.textContent = option.value || "None";
@@ -54,6 +71,7 @@ export const setupKeyComboPicker = () => {
     });
     activeIndex = -1;
     dropdown.hidden = false;
+    input.setAttribute("aria-expanded", "true");
   };
 
   input.addEventListener("focus", () => open(false));

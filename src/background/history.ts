@@ -1,5 +1,5 @@
 import { webExtensionApi } from "../platform/web-extension-api.ts";
-import type { HistoryEntry, HistoryEntryInput } from "./history-types.ts";
+import type { HistoryEntry, HistoryEntryInput } from "../shared/history-types.ts";
 
 /* eslint-disable no-unused-vars */
 
@@ -8,6 +8,65 @@ const HISTORY_KEY = "save-in-history";
 // Entries store the whole download state: cap the list so storage.local
 // does not grow without bound
 const HISTORY_LIMIT = 10000;
+
+const isObject = (value: unknown): value is Record<string, unknown> =>
+  value != null && typeof value === "object" && !Array.isArray(value);
+
+const normalizeHistoryInfo = (value: unknown) => {
+  if (!isObject(value)) return undefined;
+  const info: NonNullable<HistoryEntry["info"]> = {};
+  for (const key of ["sourceUrl", "pageUrl", "context"] as const) {
+    if (typeof value[key] === "string") info[key] = value[key];
+  }
+  return Object.keys(info).length ? info : undefined;
+};
+
+const normalizeStringRecord = (value: unknown): Record<string, string> | undefined => {
+  if (!isObject(value)) return undefined;
+  const entries = Object.entries(value).filter(
+    (entry): entry is [string, string] => typeof entry[1] === "string",
+  );
+  return entries.length ? Object.fromEntries(entries) : undefined;
+};
+
+const normalizeHistoryEntry = (value: unknown): HistoryEntry | null => {
+  if (!isObject(value) || (value.id !== undefined && typeof value.id !== "string")) return null;
+
+  const entry: HistoryEntry = {};
+  for (const key of ["id", "status", "timestamp", "initiatedAt", "url", "finalFullPath"] as const) {
+    if (typeof value[key] === "string") entry[key] = value[key];
+  }
+  for (const key of ["routed", "observedBrowserDownload"] as const) {
+    if (typeof value[key] === "boolean") entry[key] = value[key];
+  }
+  if (typeof value.downloadId === "number" && Number.isSafeInteger(value.downloadId)) {
+    entry.downloadId = value.downloadId;
+  }
+  if (typeof value.fileSize === "number" && Number.isFinite(value.fileSize)) {
+    entry.fileSize = value.fileSize;
+  }
+  const info = normalizeHistoryInfo(value.info);
+  if (info) entry.info = info;
+  if (isObject(value.state)) {
+    const stateInfo = normalizeHistoryInfo(value.state.info);
+    if (stateInfo) entry.state = { info: stateInfo };
+  }
+  if (isObject(value.menu)) {
+    const menu: NonNullable<HistoryEntry["menu"]> = {};
+    for (const key of ["id", "title", "path"] as const) {
+      if (typeof value.menu[key] === "string") menu[key] = value.menu[key];
+    }
+    if (Object.keys(menu).length) entry.menu = menu;
+  }
+  const variables = normalizeStringRecord(value.variables);
+  if (variables) entry.variables = variables;
+  return entry;
+};
+
+const normalizeHistory = (value: unknown): HistoryEntry[] =>
+  Array.isArray(value)
+    ? value.map(normalizeHistoryEntry).filter((entry): entry is HistoryEntry => entry != null)
+    : [];
 
 export const SaveHistory = {
   LIMIT: HISTORY_LIMIT,
@@ -31,7 +90,7 @@ export const SaveHistory = {
     SaveHistory.writeQueue = SaveHistory.writeQueue
       .then(() => webExtensionApi.storage.local.get(HISTORY_KEY))
       .then((res) => {
-        const history: HistoryEntry[] = (res && res[HISTORY_KEY]) || [];
+        const history = normalizeHistory(res?.[HISTORY_KEY]);
         return webExtensionApi.storage.local.set({
           [HISTORY_KEY]: [...history, withMeta].slice(-HISTORY_LIMIT),
         });
@@ -50,7 +109,7 @@ export const SaveHistory = {
     SaveHistory.writeQueue = SaveHistory.writeQueue
       .then(() => webExtensionApi.storage.local.get(HISTORY_KEY))
       .then((res) => {
-        const history: HistoryEntry[] = (res && res[HISTORY_KEY]) || [];
+        const history = normalizeHistory(res?.[HISTORY_KEY]);
         const next = history.map((e) => (e.id === id ? Object.assign({}, e, fields) : e));
         return webExtensionApi.storage.local.set({ [HISTORY_KEY]: next });
       })
@@ -85,6 +144,6 @@ export const SaveHistory = {
 
   get: async (): Promise<HistoryEntry[]> => {
     const current = (await webExtensionApi.storage.local.get(HISTORY_KEY)) || {};
-    return (current[HISTORY_KEY] || []) as HistoryEntry[];
+    return normalizeHistory(current[HISTORY_KEY]);
   },
 };

@@ -14,17 +14,21 @@ import { Download } from "../downloads/download.ts";
 import { currentTab } from "../platform/current-tab.ts";
 import { DownloadEvents } from "../downloads/download-events.ts";
 import type { DownloadInfo, DownloadPipelineState } from "../downloads/download-types.ts";
+import { backgroundRuntime } from "./runtime.ts";
 import {
   getMessageType,
   EXTERNAL_MESSAGE_TYPES,
   isExternalMessage,
   isInternalMessage,
   type ExternalMessage,
+  type InternalMessage,
   type MessageOf,
-} from "./message-protocol.ts";
+} from "../shared/message-protocol.ts";
+import { respondAsync, type SendResponse } from "./message-dispatch.ts";
+import { Log } from "./log.ts";
 
 type MessageSender = browser.runtime.MessageSender;
-type SendResponse = (response: any) => void;
+type ProtocolSendResponse = SendResponse;
 
 export const Messaging = {
   // ─── External DOWNLOAD API (issue #110) ────────────────────────────────
@@ -68,7 +72,7 @@ export const Messaging = {
   handlePing: (
     _request: MessageOf<typeof MESSAGE_TYPES.PING>,
     _sender: MessageSender,
-    sendResponse: SendResponse,
+    sendResponse: ProtocolSendResponse,
   ): void => {
     sendResponse({
       type: MESSAGE_TYPES.PONG,
@@ -83,11 +87,11 @@ export const Messaging = {
   // Variable interpolation and route checking may await.
   handleCheckRoutes: async (
     request: MessageOf<typeof MESSAGE_TYPES.CHECK_ROUTES>,
-    sendResponse: SendResponse,
+    sendResponse: ProtocolSendResponse,
   ): Promise<void> => {
     const lastState =
       (request.body && request.body.state) ||
-      (window.lastDownloadState != null && window.lastDownloadState);
+      (backgroundRuntime.lastDownloadState != null && backgroundRuntime.lastDownloadState);
 
     let interpolatedVariables: Record<string, string> | null = null;
     if (lastState) {
@@ -117,9 +121,9 @@ export const Messaging = {
     sendResponse({
       type: MESSAGE_TYPES.CHECK_ROUTES_RESPONSE,
       body: {
-        optionErrors: window.optionErrors,
+        optionErrors: backgroundRuntime.optionErrors,
         routeInfo,
-        lastDownload: window.lastDownloadState,
+        lastDownload: backgroundRuntime.lastDownloadState,
         interpolatedVariables,
       },
     });
@@ -132,20 +136,18 @@ export const Messaging = {
   handleGetSchema: (
     _request: MessageOf<typeof MESSAGE_TYPES.GET_SCHEMA>,
     _sender: MessageSender,
-    sendResponse: SendResponse,
+    sendResponse: ProtocolSendResponse,
   ): void => {
     sendResponse({
       type: MESSAGE_TYPES.SCHEMA,
       body: {
         version: Messaging.API_VERSION,
-        options: OptionsManagement.OPTION_KEYS.map(
-          (k: { name: string; type: string; default: any }) => ({
-            name: k.name,
-            type: k.type,
-            default: k.default,
-            description: OptionsManagement.OPTION_DESCRIPTIONS[k.name] || "",
-          }),
-        ),
+        options: OptionsManagement.OPTION_KEYS.map((k) => ({
+          name: k.name,
+          type: k.type,
+          default: k.default,
+          description: OptionsManagement.OPTION_DESCRIPTIONS[k.name] || "",
+        })),
       },
     });
   },
@@ -156,10 +158,10 @@ export const Messaging = {
   handleValidate: (
     request: MessageOf<typeof MESSAGE_TYPES.VALIDATE>,
     _sender: MessageSender,
-    sendResponse: SendResponse,
+    sendResponse: ProtocolSendResponse,
   ): void => {
     const body = request.body || {};
-    const result: Record<string, any> = { version: Messaging.API_VERSION };
+    const result: Record<string, unknown> = { version: Messaging.API_VERSION };
 
     if (typeof body.paths === "string") {
       const pathsArray = splitLines(body.paths);
@@ -186,12 +188,12 @@ export const Messaging = {
   handleApplyConfig: async (
     request: MessageOf<typeof MESSAGE_TYPES.APPLY_CONFIG>,
     _sender: MessageSender,
-    sendResponse: SendResponse,
+    sendResponse: ProtocolSendResponse,
   ): Promise<void> => {
     const config = (request.body && request.body.config) || {};
-    const applied: Record<string, any> = {};
+    const applied: Record<string, unknown> = {};
     const rejected: Array<{ name: string; reason: string }> = [];
-    const toStore: Record<string, any> = {};
+    const toStore: Record<string, unknown> = {};
 
     Object.keys(config).forEach((name) => {
       const key = OptionsManagement.OPTION_KEYS.find((k: { name: string }) => k.name === name);
@@ -219,7 +221,7 @@ export const Messaging = {
       }
       try {
         if ("onSave" in key && typeof key.onSave === "function") {
-          value = (key.onSave as (stored: any) => any)(value);
+          value = (key.onSave as (stored: unknown) => unknown)(value);
         }
       } catch {
         rejected.push({ name, reason: "invalid value" });
@@ -231,9 +233,7 @@ export const Messaging = {
 
     if (Object.keys(toStore).length > 0) {
       await webExtensionApi.storage.local.set(toStore);
-      if (typeof window !== "undefined" && typeof window.reset === "function") {
-        window.reset();
-      }
+      backgroundRuntime.reset();
     }
 
     sendResponse({
@@ -289,7 +289,7 @@ export const Messaging = {
   handleDownloadMessage: (
     request: MessageOf<typeof MESSAGE_TYPES.DOWNLOAD>,
     sender: MessageSender,
-    sendResponse: SendResponse,
+    sendResponse: ProtocolSendResponse,
   ): void => {
     const requestBody = request.body || {};
     const { url, comment } = requestBody;
@@ -314,7 +314,7 @@ export const Messaging = {
 
     // The external DOWNLOAD API may omit info
     const info = requestBody.info || {};
-    const last = window.lastDownloadState;
+    const last = backgroundRuntime.lastDownloadState;
 
     const opts: DownloadInfo = {
       // Prefer the tab the message came from over the tracked global (#172)
@@ -364,6 +364,80 @@ export const Messaging = {
   },
 };
 
+type Handler<M extends InternalMessage> = (
+  request: M,
+  sender: MessageSender,
+  sendResponse: ProtocolSendResponse,
+) => void | Promise<void>;
+
+type HandlerTable<M extends InternalMessage> = {
+  [T in M["type"]]: Handler<Extract<M, { type: T }>>;
+};
+
+const internalHandlers = {
+  [MESSAGE_TYPES.WAKE_WARM]: (_request, _sender, sendResponse) => {
+    // Sent by content scripts on combo keydown purely to wake the MV3 worker.
+    sendResponse({ type: MESSAGE_TYPES.OK });
+  },
+  [MESSAGE_TYPES.OPTIONS_LOADED]: (_request, _sender, sendResponse) => {
+    backgroundRuntime.reset();
+    sendResponse({ type: MESSAGE_TYPES.OK });
+  },
+  [MESSAGE_TYPES.OPTIONS]: (_request, _sender, sendResponse) => {
+    sendResponse({ type: MESSAGE_TYPES.OPTIONS, body: options });
+  },
+  [MESSAGE_TYPES.OPTIONS_SCHEMA]: (_request, _sender, sendResponse) => {
+    sendResponse({
+      type: MESSAGE_TYPES.OPTIONS_SCHEMA,
+      body: { keys: OptionsManagement.OPTION_KEYS, types: OptionsManagement.OPTION_TYPES },
+    });
+  },
+  [MESSAGE_TYPES.GET_KEYWORDS]: (_request, _sender, sendResponse) => {
+    sendResponse({
+      type: MESSAGE_TYPES.KEYWORD_LIST,
+      body: { matchers: Object.keys(matcherFunctions), variables: Object.keys(transformers) },
+    });
+  },
+  [MESSAGE_TYPES.PREVIEW_MENUS]: (request, _sender, sendResponse) => {
+    const pathsArray = splitLines(request.body?.paths || "");
+    sendResponse({ type: MESSAGE_TYPES.MENU_PREVIEW, body: buildTree(pathsArray) });
+  },
+  [MESSAGE_TYPES.CHECK_ROUTES]: (request, _sender, sendResponse) =>
+    Messaging.handleCheckRoutes(request, sendResponse),
+  [MESSAGE_TYPES.PING]: Messaging.handlePing,
+  [MESSAGE_TYPES.GET_SCHEMA]: Messaging.handleGetSchema,
+  [MESSAGE_TYPES.VALIDATE]: Messaging.handleValidate,
+  [MESSAGE_TYPES.APPLY_CONFIG]: Messaging.handleApplyConfig,
+  [MESSAGE_TYPES.DOWNLOAD]: Messaging.handleDownloadMessage,
+} satisfies HandlerTable<InternalMessage>;
+
+const externalHandlers = {
+  [MESSAGE_TYPES.PING]: Messaging.handlePing,
+  [MESSAGE_TYPES.GET_SCHEMA]: Messaging.handleGetSchema,
+  [MESSAGE_TYPES.VALIDATE]: Messaging.handleValidate,
+  [MESSAGE_TYPES.DOWNLOAD]: Messaging.handleDownloadMessage,
+} satisfies HandlerTable<ExternalMessage>;
+
+const dispatchMessage = <M extends InternalMessage>(
+  request: M,
+  sender: MessageSender,
+  sendResponse: ProtocolSendResponse,
+  handlers: HandlerTable<M>,
+): true | void => {
+  // The table is exhaustive for M, so this lookup is safe even though TS cannot
+  // preserve the correlation between a union's discriminator and mapped value.
+  const handler = (handlers as unknown as Record<string, Handler<M>>)[request.type];
+  const result = handler(request, sender, sendResponse);
+  if (result instanceof Promise) {
+    return respondAsync(request.type, result, sendResponse, (error) => {
+      void Log.add("message handler failed", {
+        type: request.type,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    });
+  }
+};
+
 // MV3: entry.background calls this synchronously at startup so a worker woken BY
 // an incoming message still has the handlers attached.
 export const registerMessaging = () => {
@@ -387,98 +461,13 @@ export const registerMessaging = () => {
       }
       return;
     }
-    const request: ExternalMessage = rawRequest;
-    switch (request.type) {
-      case MESSAGE_TYPES.PING:
-        Messaging.handlePing(request, sender, sendResponse);
-        break;
-      case MESSAGE_TYPES.GET_SCHEMA:
-        Messaging.handleGetSchema(request, sender, sendResponse);
-        break;
-      case MESSAGE_TYPES.VALIDATE:
-        Messaging.handleValidate(request, sender, sendResponse);
-        break;
-      case MESSAGE_TYPES.DOWNLOAD:
-        Messaging.handleDownloadMessage(request, sender, sendResponse);
-        break;
-    }
+    return dispatchMessage(rawRequest, sender, sendResponse, externalHandlers);
   });
 
   webExtensionApi.runtime.onMessage.addListener((rawRequest, sender, sendResponse) => {
     if (!isInternalMessage(rawRequest)) {
       return;
     }
-    const request = rawRequest;
-    switch (request.type) {
-      case MESSAGE_TYPES.WAKE_WARM:
-        // Sent by content scripts on combo keydown purely to wake the MV3
-        // service worker before a click-to-save message arrives
-        sendResponse({ type: MESSAGE_TYPES.OK });
-        break;
-      case MESSAGE_TYPES.OPTIONS_LOADED:
-        // Sent by the options page after saving: reload options and menus.
-        // MV3 has no getBackgroundPage, so this goes over messaging instead.
-        window.reset();
-        sendResponse({ type: MESSAGE_TYPES.OK });
-        break;
-      case MESSAGE_TYPES.OPTIONS:
-        sendResponse({
-          type: MESSAGE_TYPES.OPTIONS,
-          body: options,
-        });
-        break;
-      case MESSAGE_TYPES.OPTIONS_SCHEMA:
-        sendResponse({
-          type: MESSAGE_TYPES.OPTIONS_SCHEMA,
-          body: {
-            keys: OptionsManagement.OPTION_KEYS,
-            types: OptionsManagement.OPTION_TYPES,
-          },
-        });
-        break;
-      case MESSAGE_TYPES.GET_KEYWORDS:
-        sendResponse({
-          type: MESSAGE_TYPES.KEYWORD_LIST,
-          body: {
-            matchers: Object.keys(matcherFunctions),
-            variables: Object.keys(transformers),
-          },
-        });
-        break;
-      case MESSAGE_TYPES.PREVIEW_MENUS: {
-        // Live menu-tree preview for the options page: runs the pure
-        // Build the tree over the (possibly unsaved) textarea content
-        const raw = (request.body && request.body.paths) || "";
-        const pathsArray = splitLines(raw);
-        sendResponse({
-          type: MESSAGE_TYPES.MENU_PREVIEW,
-          body: buildTree(pathsArray),
-        });
-        break;
-      }
-      case MESSAGE_TYPES.CHECK_ROUTES:
-        // async: interpolation and route checking may await.
-        // Returning true keeps the message channel open for the late sendResponse.
-        Messaging.handleCheckRoutes(request, sendResponse);
-        return true;
-      case MESSAGE_TYPES.PING:
-        Messaging.handlePing(request, sender, sendResponse);
-        break;
-      case MESSAGE_TYPES.GET_SCHEMA:
-        Messaging.handleGetSchema(request, sender, sendResponse);
-        break;
-      case MESSAGE_TYPES.VALIDATE:
-        Messaging.handleValidate(request, sender, sendResponse);
-        break;
-      case MESSAGE_TYPES.APPLY_CONFIG:
-        // async (awaits storage.set) — keep the channel open
-        Messaging.handleApplyConfig(request, sender, sendResponse);
-        return true;
-      case MESSAGE_TYPES.DOWNLOAD:
-        Messaging.handleDownloadMessage(request, sender, sendResponse);
-        break;
-      default:
-        break; // noop
-    }
+    return dispatchMessage(rawRequest, sender, sendResponse, internalHandlers);
   });
 };

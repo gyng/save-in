@@ -97,6 +97,7 @@ class FirefoxRdp {
 
   /** @param {RdpPacket} packet */
   dispatch(packet) {
+    if (process.env.RDP_DEBUG) console.error("RDP <-", JSON.stringify(packet));
     const waiterIdx = this.eventWaiters.findIndex((w) => w.predicate(packet));
     if (waiterIdx !== -1) {
       const [waiter] = this.eventWaiters.splice(waiterIdx, 1);
@@ -187,6 +188,7 @@ class FirefoxRdp {
       };
       this.queues.get(packet.to)?.push(entry);
       const json = JSON.stringify(packet);
+      if (process.env.RDP_DEBUG) console.error("RDP ->", json);
       this.socket.write(`${Buffer.byteLength(json)}:${json}`);
       entry.timer = setTimeout(() => {
         if (!entry.settled) {

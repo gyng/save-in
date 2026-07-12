@@ -228,6 +228,8 @@ describe("onDeterminingFilename listener (Chrome)", () => {
     suggest: (suggestion?: { filename: string; conflictAction: string }) => void,
   ) => boolean;
   let sessionStore: Record<string, any>;
+  let freshDownload: typeof import("../src/downloads/download.ts").Download;
+  let freshOptions: typeof import("../src/config/options-data.ts").options;
 
   beforeEach(async () => {
     vi.resetModules();
@@ -246,10 +248,10 @@ describe("onDeterminingFilename listener (Chrome)", () => {
     // options/SessionState must be re-imported here to get the SAME
     // instances that graph resolves to — the pre-reset top-level imports
     // above are a different, stale module instance after the reset.
-    const { options: freshOptions } = await import("../src/config/options-data.ts");
+    ({ options: freshOptions } = await import("../src/config/options-data.ts"));
     Object.assign(freshOptions, { conflictAction: "uniquify" });
 
-    const freshSessionState = await import("../src/background/session-state.ts");
+    const freshSessionState = await import("../src/shared/session-state.ts");
     vi.spyOn(freshSessionState, "getSession").mockImplementation((_storage: any, key: string) =>
       Promise.resolve({ [key]: sessionStore[key] }),
     );
@@ -268,7 +270,9 @@ describe("onDeterminingFilename listener (Chrome)", () => {
 
     // Side effects are deferred (Task #2): call registerDownloadListener() to
     // attach onDeterminingFilename against the fresh chrome stub, then capture.
-    const { registerDownloadListener } = await import("../src/downloads/download.ts");
+    const { Download: currentDownload, registerDownloadListener } =
+      await import("../src/downloads/download.ts");
+    freshDownload = currentDownload;
     registerDownloadListener();
     [[listener]] = (global.chrome.downloads.onDeterminingFilename.addListener as any).mock.calls;
   });
@@ -282,6 +286,45 @@ describe("onDeterminingFilename listener (Chrome)", () => {
     const returned = listener({ byExtensionId: "someone-else", filename: "x" }, suggest);
     expect(returned).toBe(false);
     expect(suggest).not.toHaveBeenCalled();
+  });
+
+  test("leaves ordinary browser downloads unchanged when global routing is disabled", async () => {
+    freshOptions.routeBrowserDownloads = false;
+    const suggest = jest.fn();
+
+    expect(
+      listener(
+        {
+          filename: "C:\\Downloads\\cat.jpg",
+          url: "https://cdn.example/cat.jpg",
+        },
+        suggest,
+      ),
+    ).toBe(true);
+    await vi.waitFor(() => expect(suggest).toHaveBeenCalledWith());
+  });
+
+  test("routes matching ordinary browser downloads when enabled", async () => {
+    freshOptions.routeBrowserDownloads = true;
+    vi.spyOn(freshDownload, "getRoutingMatches").mockReturnValue("sorted/:filename:");
+    vi.spyOn(freshDownload, "finalizeFullPath").mockReturnValue("sorted/cat.jpg");
+    const suggest = jest.fn();
+
+    expect(
+      listener(
+        {
+          filename: "C:\\Downloads\\cat.jpg",
+          url: "https://cdn.example/cat.jpg",
+        },
+        suggest,
+      ),
+    ).toBe(true);
+    await vi.waitFor(() =>
+      expect(suggest).toHaveBeenCalledWith({
+        filename: "sorted/cat.jpg",
+        conflictAction: "uniquify",
+      }),
+    );
   });
 
   test("recovers the persisted filename after a service worker restart", async () => {
@@ -352,5 +395,88 @@ describe("onDeterminingFilename listener (Chrome)", () => {
     expect(returned).toBe(true);
     await vi.waitFor(() => expect(suggest).toHaveBeenCalled());
     expect(suggest).toHaveBeenCalledWith();
+  });
+
+  test("falls back to default naming for malformed persisted filename maps", async () => {
+    sessionStore.siFinalFilenames = {
+      "https://x/recover.png": [{ filename: "not-a-string" }],
+    };
+    const suggest = jest.fn();
+
+    expect(
+      listener(
+        {
+          byExtensionId: "self-extension-id",
+          filename: "original.txt",
+          url: "https://x/recover.png",
+        },
+        suggest,
+      ),
+    ).toBe(true);
+    await vi.waitFor(() => expect(suggest).toHaveBeenCalledWith());
+    expect(suggest).toHaveBeenCalledTimes(1);
+  });
+
+  test("falls back to default naming when session recovery rejects", async () => {
+    const sessionState = await import("../src/shared/session-state.ts");
+    vi.mocked(sessionState.getSession).mockRejectedValueOnce(new Error("storage unavailable"));
+    const suggest = jest.fn();
+
+    expect(
+      listener({ byExtensionId: "self-extension-id", filename: "original.txt" }, suggest),
+    ).toBe(true);
+    await vi.waitFor(() => expect(suggest).toHaveBeenCalledWith());
+    expect(suggest).toHaveBeenCalledTimes(1);
+  });
+
+  test("falls back to default naming when actual-filename resolution rejects", async () => {
+    freshOptions.filenamePatterns = [{}] as any;
+    const state = {
+      path: { raw: ":filename:", finalize: () => "old.txt", toString: () => "old.txt" },
+      scratch: { pathTemplateRaw: ":filename:" },
+      info: { url: "https://x/file", filename: "old.txt" },
+    } as any;
+    freshDownload.rememberPendingState(state);
+    const variable = await import("../src/routing/variable.ts");
+    vi.spyOn(variable, "applyVariables").mockRejectedValueOnce(new Error("variable failed"));
+    const suggest = jest.fn();
+
+    expect(
+      listener(
+        {
+          byExtensionId: "self-extension-id",
+          filename: "server.txt",
+          url: "https://x/file",
+        },
+        suggest,
+      ),
+    ).toBe(true);
+    await vi.waitFor(() => expect(suggest).toHaveBeenCalledWith());
+    expect(suggest).toHaveBeenCalledTimes(1);
+  });
+
+  test("consuming a URL queue does not delete a distinct final-URL queue", () => {
+    const makeState = (url: string, filename: string) =>
+      ({
+        path: { finalize: () => "dir", toString: () => "dir" },
+        scratch: {},
+        info: { url, filename },
+      }) as any;
+    const requested = makeState("https://x/request", "request.txt");
+    const redirected = makeState("https://x/final", "final.txt");
+    freshDownload.rememberPendingState(requested);
+    freshDownload.rememberPendingState(redirected);
+
+    listener(
+      {
+        byExtensionId: "self-extension-id",
+        filename: "server.txt",
+        url: "https://x/request",
+        finalUrl: "https://x/final",
+      } as any,
+      jest.fn(),
+    );
+
+    expect(freshDownload.pendingStates.get("https://x/final")).toEqual([redirected]);
   });
 });

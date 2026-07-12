@@ -1,7 +1,7 @@
 // The active tab, shared across the background modules. It lives in its own
 // leaf module (not background-main.ts) so the readers — router / shortcut /
 // messaging / menu-click — don't import the composition root
-// cycle and run its eval-time `window.ready = window.init()` before option.ts
+// cycle and run background bootstrap before option.ts
 // finishes initializing (a TDZ on OptionsManagement). background-main.ts stays a pure
 // sink, evaluated last.
 //

@@ -60,6 +60,17 @@ export const setupSourceShortcut = () => {
     status.classList.toggle("error", error);
   };
   let savedShortcut = "";
+  const isMac = /mac/i.test(navigator.platform || navigator.userAgent);
+  const syncPlatformModifiers = () => {
+    [modifier, modifier2].forEach((select) => {
+      [...select.options].forEach((option) => {
+        const macOnly = option.value === "Command" || option.value === "MacCtrl";
+        const unavailable = macOnly && !isMac && option.value !== select.value;
+        option.hidden = unavailable;
+        option.disabled = unavailable;
+      });
+    });
+  };
   const shortcutValue = () => {
     const key = input.value.trim();
     return key ? [modifier.value, modifier2.value, key].filter(Boolean).join("+") : "";
@@ -72,6 +83,7 @@ export const setupSourceShortcut = () => {
       modifiers.find((part) => PRIMARY_MODIFIERS.has(part.toLocaleLowerCase())) || "Ctrl";
     modifier2.value = modifiers.find((part) => part !== modifier.value) || "";
     input.value = key;
+    syncPlatformModifiers();
   };
   const validate = () => {
     const shortcut = shortcutValue();
@@ -90,6 +102,7 @@ export const setupSourceShortcut = () => {
       savedShortcut = commands.find(({ name }) => name === COMMAND)?.shortcut || "";
       showShortcut(savedShortcut);
       validate();
+      return savedShortcut;
     });
 
   apply.addEventListener("click", () => {
@@ -99,7 +112,14 @@ export const setupSourceShortcut = () => {
     void webExtensionApi.commands
       .update({ name: COMMAND, shortcut })
       .then(() => load())
-      .then(() => announce("Shortcut updated."))
+      .then((retained) => {
+        if (retained.toLocaleLowerCase() !== shortcut.toLocaleLowerCase()) {
+          throw new Error(
+            "The browser did not accept this shortcut. It may be reserved or in use.",
+          );
+        }
+        announce("Shortcut updated.");
+      })
       .catch((error) => announce(String(error), true));
   });
   reset.addEventListener("click", () => {
@@ -112,6 +132,7 @@ export const setupSourceShortcut = () => {
   modifier.addEventListener("change", () => {
     if (modifier2.value === modifier.value) modifier2.value = "";
     validate();
+    syncPlatformModifiers();
   });
   modifier2.addEventListener("change", validate);
   input.addEventListener("input", validate);
@@ -125,6 +146,7 @@ export const setupSourceShortcut = () => {
     }
   });
   void load().catch((error) => announce(String(error), true));
+  syncPlatformModifiers();
 };
 
 document.addEventListener("DOMContentLoaded", setupSourceShortcut);

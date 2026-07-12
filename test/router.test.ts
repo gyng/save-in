@@ -8,6 +8,10 @@ import {
 import * as constants from "../src/shared/constants.ts";
 import { currentTab, setCurrentTab } from "../src/platform/current-tab.ts";
 import type { MockInstance } from "vitest";
+import { configureRoutingPorts } from "../src/routing/ports.ts";
+import { nextCounter, peekCounter } from "../src/background/counter.ts";
+import { counterWriteState } from "../src/background/state.ts";
+import { resolveContent } from "../src/downloads/content-fetch.ts";
 
 const fixtures = (await import("./fixtures/clickInfo")).default;
 
@@ -33,6 +37,15 @@ describe("filename rewrite and routing", () => {
     };
     setCurrentTab({
       title: "some title",
+    });
+    configureRoutingPorts({
+      getCurrentTab: () => currentTab,
+      isDebug: () => Boolean(window.SI_DEBUG),
+      recordRuleErrors: (errors) => window.optionErrors.filenamePatterns.push(...errors),
+      logDebug: (...values) => console.log(...values), // eslint-disable-line no-console
+      nextCounter: () => nextCounter(counterWriteState, browser.storage.local),
+      peekCounter: () => peekCounter(browser.storage.local),
+      resolveContent,
     });
     // Mock-boundary cast: router.ts only calls i18n.getMessage, so the test
     // stubs a minimal shape rather than the full @types Browser interface
@@ -465,10 +478,10 @@ describe("filename rewrite and routing", () => {
 
   describe("extension matcher aliases", () => {
     test("distinguishes URL and actual filename extensions", () => {
-      const info = { url: "https://x/opaque.bin", filename: "report.pdf" };
-      expect(router.matcherFunctions.urlfileext(/bin/)(info)).toBeTruthy();
-      expect(router.matcherFunctions.actualfileext(/pdf/)(info)).toBeTruthy();
-      expect(router.matcherFunctions.actualfileext(/bin/)(info)).toBeFalsy();
+      const extensionInfo = { url: "https://x/opaque.bin", filename: "report.pdf" };
+      expect(router.matcherFunctions.urlfileext(/bin/)(extensionInfo)).toBeTruthy();
+      expect(router.matcherFunctions.actualfileext(/pdf/)(extensionInfo)).toBeTruthy();
+      expect(router.matcherFunctions.actualfileext(/bin/)(extensionInfo)).toBeFalsy();
     });
   });
 

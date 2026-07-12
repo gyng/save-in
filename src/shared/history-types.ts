@@ -13,6 +13,7 @@ export type HistoryEntryInput = {
   info?: HistoryInfo;
   state?: { info?: HistoryInfo };
   observedBrowserDownload?: boolean;
+  mechanism?: "downloads-api" | "fetch-downloads-api" | "browser-download" | "firefox-replacement";
   menu?: { id?: string; title?: string; path?: string };
   variables?: Record<string, string>;
   [key: string]: unknown;
@@ -34,6 +35,7 @@ export type HistoryRow = {
   folder: string;
   fullPath: string;
   source: string;
+  mechanism: string;
   url: string;
   downloadId: number | null;
   size: number | null;

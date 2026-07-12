@@ -69,6 +69,13 @@ export const historyType = (entry: HistoryEntry): string => {
 // Older entries predate status tracking; treat them as complete
 export const historyStatus = (entry: HistoryEntry): string => entry.status || "complete";
 
+const HISTORY_MECHANISMS: Record<string, string> = {
+  "downloads-api": "Downloads API",
+  "fetch-downloads-api": "Fetch + downloads API",
+  "browser-download": "Browser download",
+  "firefox-replacement": "Firefox replacement",
+};
+
 export const statusLabel = (status: string): string => {
   if (status === "complete") {
     return "Saved";
@@ -105,6 +112,11 @@ export const historyRow = (entry: HistoryEntry): HistoryRow => {
     folder: historyFolder(entry.finalFullPath),
     fullPath: entry.finalFullPath || "",
     source: entry.observedBrowserDownload || info.context === "browser" ? "Browser" : "Save In",
+    mechanism:
+      HISTORY_MECHANISMS[entry.mechanism || ""] ||
+      (entry.observedBrowserDownload || info.context === "browser"
+        ? "Browser download"
+        : "Downloads API"),
     url: info.sourceUrl || entry.url || info.pageUrl || "",
     downloadId: typeof entry.downloadId === "number" ? entry.downloadId : null,
     size: typeof entry.fileSize === "number" ? entry.fileSize : null,
@@ -158,6 +170,13 @@ export const HISTORY_COLUMNS: HistoryDisplayColumn[] = [
   { key: "index", label: "#", sortable: false, width: "4%", defaultVisible: true },
   { key: "time", label: "Initiated", sortable: true, width: "12%", defaultVisible: true },
   { key: "source", label: "Source", sortable: true, width: "8%", defaultVisible: false },
+  {
+    key: "mechanism",
+    label: "Method",
+    sortable: true,
+    width: "12%",
+    defaultVisible: true,
+  },
   { key: "status", label: "Status", sortable: true, width: "9%", defaultVisible: true },
   { key: "size", label: "Size", sortable: true, width: "8%", defaultVisible: true },
   { key: "type", label: "Type", sortable: true, width: "6%", defaultVisible: true },
