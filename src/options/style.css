@@ -2590,3 +2590,78 @@ code.click-to-copy {
   box-sizing: border-box;
   padding: var(--space-1) var(--space-3);
 }
+
+.variables-preview-filter {
+  display: block;
+  width: calc(100% - 2 * var(--space-2));
+  max-width: none;
+  box-sizing: border-box;
+  margin: var(--space-2);
+}
+
+.variables-preview-structures,
+.clause-preview-list {
+  display: grid;
+}
+
+.variables-preview-structures {
+  grid-template-columns: 1fr 1fr;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.variables-preview-structures button,
+.clause-preview-list button {
+  min-height: 32px;
+  padding: var(--space-1) var(--space-3);
+  border: 0;
+  border-bottom: 1px solid var(--panel-border);
+  border-radius: 0;
+  background: transparent;
+  text-align: left;
+}
+
+.variables-preview-structures button:hover,
+.clause-preview-list button:hover {
+  background: var(--panel-bg);
+}
+
+.clause-preview {
+  margin: 0;
+}
+
+.unsaved-changes-dialog {
+  width: min(420px, calc(100vw - 2 * var(--space-5)));
+  padding: var(--space-5);
+  color: var(--color-text);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  background: var(--page-bg);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.28);
+}
+
+.unsaved-changes-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.38);
+}
+
+.unsaved-changes-dialog h2 {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-lg);
+  font-weight: 600;
+}
+
+.unsaved-changes-dialog p {
+  margin: 0 0 var(--space-5);
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.danger-button {
+  color: white;
+  border-color: var(--red50);
+  background: var(--red50);
+}
