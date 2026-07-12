@@ -239,6 +239,8 @@ const PathEditorHelpers = {
       document.querySelector(".paths-editor .manual-save-help") ??
         document.querySelector(".manual-save-help"),
     ] as (HTMLElement | null)[];
+    const textDescription = document.querySelector<HTMLElement>("#paths-editor-description");
+    if (textDescription) textElements.push(textDescription);
     const visualContainer = document.querySelector<HTMLElement>("#paths-visual");
     if (!textButton || !visualButton || !visualContainer || textElements.some((el) => !el)) {
       return;

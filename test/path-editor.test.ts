@@ -334,6 +334,7 @@ describe("text/visual mode toggle", () => {
     document.body.innerHTML = `
       <button type="button" class="editor-tab active" id="paths-mode-text">Text</button>
       <button type="button" class="editor-tab" id="paths-mode-visual">Visual</button>
+      <div id="paths-editor-description">One relative directory per line.</div>
       <div id="paths-text-help"></div>
       <div id="paths-text-actions"><details id="paths-insert-menu"></details></div>
       <div class="manual-save-help"></div>
@@ -356,6 +357,7 @@ describe("text/visual mode toggle", () => {
     expect(element<HTMLElement>("#paths").hidden).toBe(true);
     expect(element<HTMLElement>("#paths-text-actions").hidden).toBe(true);
     expect(element<HTMLElement>("#paths-text-help").hidden).toBe(true);
+    expect(element<HTMLElement>("#paths-editor-description").hidden).toBe(true);
     expect(element<HTMLElement>(".manual-save-help").hidden).toBe(true);
     expect(element<HTMLElement>("#paths-visual").hidden).toBe(false);
     expect(element<HTMLElement>("#error-paths").hidden).toBe(false);
@@ -370,6 +372,7 @@ describe("text/visual mode toggle", () => {
     element<HTMLElement>("#paths-mode-text").click();
 
     expect(element<HTMLElement>("#paths").hidden).toBe(false);
+    expect(element<HTMLElement>("#paths-editor-description").hidden).toBe(false);
     expect(element<HTMLElement>("#paths-visual").hidden).toBe(true);
     expect(element("#paths-mode-text").classList.contains("active")).toBe(true);
   });
