@@ -498,18 +498,6 @@
     "message": "Guide: Rename and route downloads"
   },
 
-  "o_lDirectoryInstructionOnePerLine": {
-    "message": "One path per line, relative to the default download directory."
-  },
-
-  "o_lDirectoryInstructionDot": {
-    "message": "downloads to the default download directory."
-  },
-
-  "o_lDirectoryInstructionComment": {
-    "message": "at the end of a line adds a comment."
-  },
-
   "o_lDirectoryInstructionSymlink": {
     "message": "A symlink is needed to save outside the default download directory."
   },
@@ -860,10 +848,6 @@
     }
   },
 
-  "o_lSubdirectoryInstructionComment": {
-    "message": "at the start creates nested submenus depending on the number of arrows."
-  },
-
   "notificationLinkPreferred": {
     "message": "A link was downloaded instead",
     "description": "Notification title when link was downloaded over a source"
@@ -917,8 +901,6 @@
   "o_sAdvancedDownloading": { "message": "Downloading" },
   "o_sAdvancedCounter": { "message": "Counter" },
   "o_sAdvancedBackupReset": { "message": "Backup & reset" },
-  "o_sAdvancedExternalApi": { "message": "External API" },
-  "o_sAdvancedAgentTools": { "message": "AI agent tools" },
   "o_sAdvancedDiagnostics": { "message": "Diagnostics" },
   "o_lExperimental": { "message": "Experimental" },
   "o_lManualEditorSaveHelp": {
