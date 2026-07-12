@@ -1259,14 +1259,23 @@ summary {
 /* Live variable values (current interpolation from the last download);
    collapsed by default */
 .variables-preview {
+  position: relative;
   margin: 0;
 }
 
 .variables-preview-list {
+  position: absolute;
+  z-index: 20;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  box-sizing: border-box;
   max-height: 240px;
   overflow-y: auto;
   border: 1px solid var(--panel-border);
   border-radius: var(--radius);
+  background: var(--page-bg);
+  box-shadow: 0 8px 24px rgba(20, 30, 50, 0.16);
   margin-top: var(--space-1);
 }
 
@@ -1310,15 +1319,24 @@ summary {
   font-family: var(--font-mono);
 }
 
-.variables-preview-row.insertable {
+.variables-preview-insert {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  text-align: left;
   cursor: pointer;
 }
 
-.variables-preview-row.insertable:hover {
+.variables-preview-row.insertable:has(.variables-preview-insert:hover),
+.variables-preview-row.insertable:has(.variables-preview-insert:focus-visible) {
   background-color: var(--panel-bg);
 }
 
-.variables-preview-row.insertable:hover code {
+.variables-preview-insert:hover code,
+.variables-preview-insert:focus-visible code {
   color: var(--link-color);
 }
 
