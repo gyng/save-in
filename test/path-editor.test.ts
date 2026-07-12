@@ -125,6 +125,11 @@ describe("visual editor", () => {
     expect(rows()[0]!.querySelector<HTMLInputElement>(".path-editor-dir")!.value).toBe("a");
     expect(rows()[1]!.querySelector<HTMLInputElement>(".path-editor-alias")!.value).toBe("B");
     expect(rows()[2]!.querySelector(".path-editor-separator")).not.toBeNull();
+    expect(
+      rows()[1]!
+        .querySelector(".path-editor-indent")!
+        .nextElementSibling?.classList.contains("path-editor-handle"),
+    ).toBe(true);
   });
 
   test("indent and outdent rewrite the textarea", () => {
@@ -356,9 +361,10 @@ describe("text/visual mode toggle", () => {
 });
 
 describe("visual editor drag and drop", () => {
-  const dragEvent = (type: string, clientX: number) => {
+  const dragEvent = (type: string, clientX: number, clientY = 0) => {
     const event = new Event(type, { bubbles: true, cancelable: true });
     Object.defineProperty(event, "clientX", { value: clientX });
+    Object.defineProperty(event, "clientY", { value: clientY });
     return event;
   };
 
@@ -442,11 +448,36 @@ describe("visual editor drag and drop", () => {
     rows[2]!.dispatchEvent(dragEvent("dragover", 70));
 
     const indicator = rows[2]!.querySelector<HTMLElement>(".path-editor-drop-indicator")!;
-    expect(indicator.textContent).toBe("Drop here · level 0");
+    expect(indicator.textContent).toBe("Drop here · Top level");
     expect(indicator.style.getPropertyValue("--drop-depth")).toBe("0");
 
     rows[2]!.dispatchEvent(dragEvent("drop", 100));
     expect(element<HTMLTextAreaElement>("#paths").value).toBe("a\n>b\nc");
+  });
+
+  test("the middle drop zone moves a row inside the highlighted group", () => {
+    const rows = document.querySelectorAll<HTMLElement>(".path-editor-row");
+    vi.spyOn(rows[0]!, "getBoundingClientRect").mockReturnValue({
+      top: 100,
+      bottom: 160,
+      height: 60,
+      left: 0,
+      right: 300,
+      width: 300,
+      x: 0,
+      y: 100,
+      toJSON: () => ({}),
+    });
+    rows[2]!.querySelector(".path-editor-handle")!.dispatchEvent(dragEvent("dragstart", 100));
+    rows[0]!.dispatchEvent(dragEvent("dragover", 100, 130));
+
+    expect(rows[0]!.classList.contains("drag-inside")).toBe(true);
+    expect(rows[0]!.querySelector(".path-editor-drop-indicator")?.textContent).toBe(
+      "Move inside a · Nested 1 level",
+    );
+
+    rows[0]!.dispatchEvent(dragEvent("drop", 100, 130));
+    expect(element<HTMLTextAreaElement>("#paths").value).toBe("a\n>c\nb");
   });
 });
 

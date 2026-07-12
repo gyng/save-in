@@ -1632,7 +1632,9 @@ button:disabled:hover {
 
 .path-editor-handle {
   flex: none;
-  padding: 0 var(--space-1);
+  width: 28px;
+  height: 28px;
+  padding: 0;
   color: var(--grey40);
   cursor: grab;
   user-select: none;
@@ -1684,6 +1686,17 @@ button:disabled:hover {
   box-shadow: 0 2px 0 var(--blue50);
 }
 
+.path-editor-row.drag-inside {
+  outline: 2px solid var(--blue50);
+  background-color: color-mix(in srgb, var(--blue50) 14%, var(--page-bg));
+}
+
+.path-editor-row.drag-inside .path-editor-drop-indicator {
+  top: 50%;
+  bottom: auto;
+  transform: translateY(-50%);
+}
+
 .path-editor-toolbar {
   display: flex;
   align-items: center;
@@ -1692,11 +1705,21 @@ button:disabled:hover {
 }
 
 .path-editor-row {
+  position: relative;
   display: flex;
   align-items: center;
   gap: var(--space-1);
   padding: var(--space-1);
   border-radius: var(--radius);
+  background-image: repeating-linear-gradient(
+    90deg,
+    transparent 0,
+    transparent 19px,
+    color-mix(in srgb, var(--panel-border) 60%, transparent) 19px,
+    color-mix(in srgb, var(--panel-border) 60%, transparent) 20px
+  );
+  background-size: calc(var(--row-depth) * 20px) 100%;
+  background-repeat: no-repeat;
 }
 
 .path-editor-drop-indicator {

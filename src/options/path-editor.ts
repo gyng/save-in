@@ -283,6 +283,7 @@ const PathEditorHelpers = {
     let dragOriginalDepth = 0;
     let dropDepth: number | null = null;
     let dropAfter = true;
+    let dropInside = false;
     let committing = false;
     let deletedRows: PathRow[] | null = null;
     const undo = document.createElement("button");
@@ -294,7 +295,7 @@ const PathEditorHelpers = {
     const dragHint = document.createElement("p");
     dragHint.className = "caption path-editor-drag-hint";
     dragHint.textContent =
-      "Drag vertically to reorder and horizontally to change nesting. Alt+Arrow keys also work.";
+      "Grab the dotted handle. Move up or down to reorder; slide the handle left or right to match the intended nesting guide.";
     container.before(dragHint);
 
     // Serialize rows back to the textarea (the source of truth) and let
@@ -312,6 +313,14 @@ const PathEditorHelpers = {
       rows.forEach((row, index) => {
         const rowEl = document.createElement("div");
         rowEl.className = "path-editor-row";
+        rowEl.dataset.depth = String(row.depth);
+        rowEl.style.setProperty("--row-depth", String(row.depth));
+
+        const indentEl = document.createElement("span");
+        indentEl.className = "path-editor-indent";
+        indentEl.style.width = `${row.depth * 20}px`;
+        indentEl.setAttribute("aria-hidden", "true");
+        rowEl.appendChild(indentEl);
 
         // Drag to reorder: only the handle starts a drag (a draggable row
         // would fight text selection in the inputs); any row is a target
@@ -328,6 +337,7 @@ const PathEditorHelpers = {
           dragStartX = e.clientX;
           dragOriginalDepth = row.depth;
           dropDepth = null;
+          dropInside = false;
           rowEl.classList.add("dragging");
           if (e.dataTransfer) {
             // Firefox requires data for a drag to start
@@ -338,6 +348,7 @@ const PathEditorHelpers = {
         handle.addEventListener("dragend", () => {
           dragFrom = null;
           dropDepth = null;
+          dropInside = false;
           rowEl.classList.remove("dragging");
           container.querySelectorAll(".path-editor-drop-indicator").forEach((el) => el.remove());
         });
@@ -370,14 +381,19 @@ const PathEditorHelpers = {
         rowEl.addEventListener("dragover", (e) => {
           if (dragFrom !== null) {
             e.preventDefault();
-            dropAfter =
-              !("clientY" in e) ||
-              e.clientY >=
-                rowEl.getBoundingClientRect().top + rowEl.getBoundingClientRect().height / 2;
-            rowEl.classList.toggle("drag-before", !dropAfter);
-            rowEl.classList.toggle("drag-after", dropAfter);
+            const bounds = rowEl.getBoundingClientRect();
+            const relativeY = bounds.height ? (e.clientY - bounds.top) / bounds.height : 1;
+            dropInside =
+              dragFrom !== index &&
+              row.body !== SPECIAL_DIRS.SEPARATOR &&
+              relativeY >= 1 / 3 &&
+              relativeY <= 2 / 3;
+            dropAfter = relativeY > 2 / 3;
+            rowEl.classList.toggle("drag-before", !dropAfter && !dropInside);
+            rowEl.classList.toggle("drag-after", dropAfter && !dropInside);
+            rowEl.classList.toggle("drag-inside", dropInside);
             const adjustedTarget = dragFrom < index ? index - 1 : index;
-            const destination = adjustedTarget + (dropAfter ? 1 : 0);
+            const destination = adjustedTarget + (dropAfter || dropInside ? 1 : 0);
             const previousIndex = destination > dragFrom ? destination : destination - 1;
             const maximumDepth =
               dragFrom === index
@@ -387,25 +403,36 @@ const PathEditorHelpers = {
                 : previousIndex < 0
                   ? 0
                   : rows[previousIndex]!.depth + 1;
-            dropDepth = Math.max(
-              0,
-              Math.min(maximumDepth, dragOriginalDepth + Math.round((e.clientX - dragStartX) / 16)),
-            );
+            dropDepth = dropInside
+              ? row.depth + 1
+              : Math.max(
+                  0,
+                  Math.min(
+                    maximumDepth,
+                    dragOriginalDepth + Math.round((e.clientX - dragStartX) / 16),
+                  ),
+                );
             container.querySelectorAll(".path-editor-drop-indicator").forEach((el) => el.remove());
             const indicator = document.createElement("span");
             indicator.className = "path-editor-drop-indicator";
-            indicator.textContent = `Drop here · level ${dropDepth}`;
+            const depthLabel =
+              dropDepth === 0
+                ? "Top level"
+                : `Nested ${dropDepth} ${dropDepth === 1 ? "level" : "levels"}`;
+            indicator.textContent = dropInside
+              ? `Move inside ${rowName} · ${depthLabel}`
+              : `Drop here · ${depthLabel}`;
             indicator.style.setProperty("--drop-depth", String(dropDepth));
             rowEl.append(indicator);
           }
         });
         rowEl.addEventListener("dragleave", () => {
-          rowEl.classList.remove("drag-before", "drag-after");
+          rowEl.classList.remove("drag-before", "drag-after", "drag-inside");
           rowEl.querySelector(".path-editor-drop-indicator")?.remove();
         });
         rowEl.addEventListener("drop", (e) => {
           e.preventDefault();
-          rowEl.classList.remove("drag-before", "drag-after");
+          rowEl.classList.remove("drag-before", "drag-after", "drag-inside");
           rowEl.querySelector(".path-editor-drop-indicator")?.remove();
           if (dragFrom === null) return;
           const horizontalSteps = Math.round((e.clientX - dragStartX) / 16);
@@ -416,29 +443,29 @@ const PathEditorHelpers = {
               Math.max(0, Math.min(maximumDepth, rows[index]!.depth + horizontalSteps));
             dragFrom = null;
             dropDepth = null;
+            dropInside = false;
             commit();
             rebuild();
             return;
           }
+          const target = rows[index];
           const [moved] = rows.splice(dragFrom, 1);
           const adjustedTarget = dragFrom < index ? index - 1 : index;
-          const destination = adjustedTarget + (dropAfter ? 1 : 0);
+          const targetIndex = target ? rows.indexOf(target) : -1;
+          const destination = dropInside ? targetIndex + 1 : adjustedTarget + (dropAfter ? 1 : 0);
           if (moved) {
             rows.splice(destination, 0, moved);
             const maximumDepth = destination === 0 ? 0 : rows[destination - 1]!.depth + 1;
-            moved.depth =
-              dropDepth ?? Math.max(0, Math.min(maximumDepth, moved.depth + horizontalSteps));
+            moved.depth = dropInside
+              ? Math.min(maximumDepth, (target?.depth ?? 0) + 1)
+              : (dropDepth ?? Math.max(0, Math.min(maximumDepth, moved.depth + horizontalSteps)));
           }
           dragFrom = null;
           dropDepth = null;
+          dropInside = false;
           commit();
           rebuild();
         });
-
-        const indentEl = document.createElement("span");
-        indentEl.className = "path-editor-indent";
-        indentEl.style.width = `${row.depth * 20}px`;
-        rowEl.appendChild(indentEl);
 
         if (row.body === SPECIAL_DIRS.SEPARATOR) {
           const sep = document.createElement("span");
