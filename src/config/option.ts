@@ -56,7 +56,7 @@ export const OptionsManagement: OptionsManagementApi = {
     sourcePanelPreviews: "Load image and video thumbnails in the source list.",
     sourcePanelResourceHints: "Best-effort discovery of HLS and DASH manifests in resource timing.",
     sourcePanelLinks: "Include safe page links, classifying linked media and PDF documents.",
-    debug: "Enable the session debug log.",
+    debug: "Write extra routing and download details to the browser developer console.",
     enableLastLocation: "Show a 'last used' item at the top of the menu.",
     enableNumberedItems: "Add number-key access keys to submenu items.",
     filenamePatterns: "Routing/rename rules (matcher / capture / into blocks).",
@@ -85,7 +85,7 @@ export const OptionsManagement: OptionsManagementApi = {
     shortcutMedia: "Save media as shortcut files instead of downloading.",
     shortcutPage: "Save pages as shortcut files.",
     shortcutTab: "Save tabs as shortcut files from the browser tab menu.",
-    shortcutType: "Shortcut file format (HTML redirect, .url, .desktop, .webloc).",
+    shortcutType: "Shortcut file format (HTML redirect, legacy .url, .desktop, or .webloc).",
     truncateLength: "Truncate each path segment to this many characters (0 = no limit).",
     appendMimeExtension:
       "Append a file extension from the server's Content-Type when the filename has none.",

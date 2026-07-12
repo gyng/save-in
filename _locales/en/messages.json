@@ -816,7 +816,7 @@
   },
 
   "o_cDebugMode": {
-    "message": "Enable debug logging"
+    "message": "Enable verbose developer logging"
   },
 
   "o_cLastSavedAt": {

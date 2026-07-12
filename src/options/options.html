@@ -976,12 +976,12 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
             <option value="Home"></option>
             <option value="End"></option>
           </datalist>
-          <button type="button" id="sourcePanelShortcutApply">__MSG_o_bApply__</button>
+          <button type="button" id="sourcePanelShortcutApply">Apply shortcut</button>
           <button type="button" id="sourcePanelShortcutReset">__MSG_o_bReset__</button>
           <span id="sourcePanelShortcutStatus" role="status" aria-live="polite"></span>
         </div>
         <div class="caption caption-line" id="sourcePanelShortcutHelp">
-          __MSG_o_lSourcePanelShortcutHelp__
+          __MSG_o_lSourcePanelShortcutHelp__ Reset restores the browser's suggested default.
         </div>
       </fieldset>
 
@@ -1230,6 +1230,11 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
 
       <h3>__MSG_o_sAdvancedDiagnostics__</h3>
       <label> <input type="checkbox" id="debug" /> __MSG_o_cDebugMode__ </label>
+      <div class="caption caption-line">
+        The session log below always keeps a small local record of recent failures. Enable this
+        only when troubleshooting with the browser developer console; it adds verbose internal
+        details and resets to the saved setting after restart.
+      </div>
 
       <div class="diagnostics-row">
         <details class="diagnostics-details">
