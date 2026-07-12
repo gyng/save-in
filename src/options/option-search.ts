@@ -47,6 +47,7 @@ export const setupOptionSearch = (): void => {
   const form = document.getElementById("options");
   const topNav = document.querySelector<HTMLElement>(".top-nav");
   const primaryNav = document.querySelector<HTMLElement>(".top-nav > div:first-child");
+  const toolsNav = document.querySelector<HTMLElement>(".top-nav-tools");
   if (!form || document.getElementById("option-search")) return;
 
   const entries = optionSearchEntries(form);
@@ -72,7 +73,7 @@ export const setupOptionSearch = (): void => {
   const saveStatus = topNav?.querySelector<HTMLElement>(":scope > .save-status");
   if (primaryNav && topNav) {
     if (saveStatus) primaryNav.append(saveStatus);
-    topNav.append(wrap);
+    (toolsNav || topNav).append(wrap);
   } else {
     form.prepend(wrap);
   }

@@ -1,6 +1,7 @@
 import { setupAboutDialog } from "../src/options/about-dialog.ts";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { webExtensionApi } from "../src/platform/web-extension-api.ts";
 
 test("opens and closes the About dialog", () => {
   document.body.innerHTML = `
@@ -31,9 +32,36 @@ test("five mascot clicks trigger the lucky-cat celebration", () => {
   mascot.click();
   expect(mascot.classList).toContain("is-celebrating");
   expect(document.body.textContent).not.toContain("Lucky cat power activated");
-  vi.advanceTimersByTime(3200);
+  vi.advanceTimersByTime(1800);
   expect(mascot.classList).not.toContain("is-celebrating");
   vi.useRealTimers();
+});
+
+test("shows runtime version and generated build metadata", async () => {
+  vi.spyOn(webExtensionApi.runtime, "getManifest").mockReturnValue({ version: "4.0.0" } as any);
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async () => ({
+      json: async () => ({ commit: "abc1234", date: "2026-07-12" }),
+    })),
+  );
+  document.body.innerHTML = `
+    <button id="about-open">About</button>
+    <dialog id="about-dialog">
+      <button class="about-close">Close</button>
+      <span id="about-version"></span><a id="about-commit"></a><span id="about-build-date"></span>
+    </dialog>`;
+
+  setupAboutDialog();
+  expect(document.querySelector("#about-version")?.textContent).toMatch(/^v\d/);
+  await vi.waitFor(() =>
+    expect(document.querySelector("#about-commit")?.textContent).toBe("abc1234"),
+  );
+  expect(document.querySelector<HTMLAnchorElement>("#about-commit")?.href).toContain(
+    "/commit/abc1234",
+  );
+  expect(document.querySelector("#about-build-date")?.textContent).toBe("2026-07-12");
+  vi.unstubAllGlobals();
 });
 
 test("About explains privacy and every requested permission", () => {

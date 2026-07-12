@@ -13,7 +13,7 @@ export const setupAboutDialog = () => {
 
   const version = webExtensionApi.runtime.getManifest().version;
   const versionEl = dialog.querySelector<HTMLElement>("#about-version");
-  if (versionEl) versionEl.textContent = `v${version}`;
+  if (versionEl) versionEl.textContent = version ? `v${version}` : "Unavailable";
   const commitEl = dialog.querySelector<HTMLAnchorElement>("#about-commit");
   fetch("version.json")
     .then((response) => response.json())
@@ -36,7 +36,7 @@ export const setupAboutDialog = () => {
     mascot.classList.remove("is-celebrating");
     void mascot.offsetWidth;
     mascot.classList.add("is-celebrating");
-    window.setTimeout(() => mascot.classList.remove("is-celebrating"), 3200);
+    window.setTimeout(() => mascot.classList.remove("is-celebrating"), 1800);
   });
 };
 

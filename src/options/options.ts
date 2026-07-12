@@ -25,7 +25,7 @@ import { setupShortcutOptions } from "./shortcut-options.ts";
 import { setupCheckboxRows } from "./checkbox-rows.ts";
 import { setupSettingsTransfer } from "./settings-transfer.ts";
 import { COUNTER_KEY } from "../shared/storage-keys.ts";
-import { markSavedNow } from "./saved-indicator.ts";
+import { assertSettingsUndoSafe, markSavedNow } from "./saved-indicator.ts";
 import { showUnsavedChangesDialog } from "./unsaved-changes-dialog.ts";
 import { createLatestTaskRunner } from "./latest-task.ts";
 
@@ -459,6 +459,9 @@ const saveOptions = (e?: Event, scope?: string, scopeValue?: unknown): Promise<a
     // must persist the value that was visible when the user clicked, not a
     // later edit that belongs to the next revision.
     if (scope && typeof scopeValue !== "undefined") config[scope] = scopeValue;
+    const previous = Object.fromEntries(
+      Object.keys(config).map((name) => [name, lastKnownOptions[name]]),
+    );
 
     // Route through APPLY_CONFIG so the background applies each option's onSave
     // (schema functions don't survive the OPTIONS_SCHEMA message, so the page
@@ -468,11 +471,29 @@ const saveOptions = (e?: Event, scope?: string, scopeValue?: unknown): Promise<a
       .sendMessage({ type: "APPLY_CONFIG", body: { config } })
       .then((response) => {
         assertApplySucceeded(response);
-        markSavedNow();
+        const applied = response?.body?.applied || config;
+        const changes = Object.entries(applied)
+          .filter(([name, value]) => JSON.stringify(previous[name]) !== JSON.stringify(value))
+          .map(([name, after]) => ({ name, before: previous[name], after }));
+        Object.assign(lastKnownOptions, applied);
+        markSavedNow(changes, async () => {
+          assertSettingsUndoSafe(fieldSaveState.hasUnsaved(), anyManualEditorDirty());
+          const undoConfig = Object.fromEntries(changes.map(({ name, before }) => [name, before]));
+          const undoResponse = await webExtensionApi.runtime.sendMessage({
+            type: "APPLY_CONFIG",
+            body: { config: undoConfig },
+          });
+          assertApplySucceeded(undoResponse);
+          Object.assign(lastKnownOptions, undoConfig);
+          await restoreOptions();
+          markSavedNow();
+        });
         return response;
       });
   });
 };
+
+const lastKnownOptions: JsonRecord = {};
 
 // Set UI elements' value/checked
 // Transforms applied to a stored value before it populates its options field.
@@ -489,6 +510,7 @@ const restoreOptionsHandler = (result: JsonRecord, schema: OptionSchema) => {
   const schemaWithValues = schema.keys.map((o) => Object.assign({}, o, { value: result[o.name] }));
 
   schemaWithValues.forEach((o) => {
+    lastKnownOptions[o.name] = typeof o.value === "undefined" ? o.default : o.value;
     const el = document.getElementById(o.name);
     if (!el) {
       return;
