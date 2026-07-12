@@ -32,9 +32,15 @@ export const assertApplySucceeded = <T extends ApplyResponse | null | undefined>
   if (!response || response.type !== "APPLY_CONFIG_RESULT" || !response.body) {
     throw new Error("No save acknowledgement was received");
   }
-  const rejected = Array.isArray(response.body.rejected)
-    ? (response.body.rejected as ApplyRejection[])
-    : [];
+  if (
+    !response.body.applied ||
+    typeof response.body.applied !== "object" ||
+    Array.isArray(response.body.applied) ||
+    !Array.isArray(response.body.rejected)
+  ) {
+    throw new Error("Invalid save acknowledgement was received");
+  }
+  const rejected = response.body.rejected as ApplyRejection[];
   if (rejected.length) {
     throw new Error(
       rejected
@@ -47,5 +53,7 @@ export const assertApplySucceeded = <T extends ApplyResponse | null | undefined>
 
 export const getAppliedValue = (response: ApplyResponse, name: string): unknown => {
   const applied = response.body?.applied;
-  return applied && typeof applied === "object" ? Reflect.get(applied, name) : undefined;
+  return applied && typeof applied === "object" && !Array.isArray(applied)
+    ? Reflect.get(applied, name)
+    : undefined;
 };

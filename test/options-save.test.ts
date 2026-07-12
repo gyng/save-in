@@ -22,6 +22,14 @@ describe("options apply response", () => {
       }),
     ).toThrow("paths: invalid value");
   });
+
+  test.each([
+    { type: "APPLY_CONFIG_RESULT", body: {} },
+    { type: "APPLY_CONFIG_RESULT", body: { applied: [], rejected: [] } },
+    { type: "APPLY_CONFIG_RESULT", body: { applied: {}, rejected: "none" } },
+  ])("rejects malformed acknowledgements %#", (response) => {
+    expect(() => assertApplySucceeded(response)).toThrow("Invalid save acknowledgement");
+  });
 });
 
 test("collects only the explicitly scoped editor", () => {
@@ -43,4 +51,7 @@ test("returns the normalized applied value", () => {
       "paths",
     ),
   ).toBe("cats");
+  expect(
+    getAppliedValue({ type: "APPLY_CONFIG_RESULT", body: { applied: [], rejected: [] } }, "paths"),
+  ).toBeUndefined();
 });
