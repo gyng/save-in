@@ -1609,9 +1609,12 @@ button:disabled:hover {
   user-select: none;
   /* The grip is quiet until you're working on a row */
   opacity: 0.4;
+  border: 0;
+  background: transparent;
 }
 
-.path-editor-row:hover .path-editor-handle {
+.path-editor-row:hover .path-editor-handle,
+.path-editor-row:focus-within .path-editor-handle {
   opacity: 1;
 }
 
@@ -1644,8 +1647,12 @@ button:disabled:hover {
   opacity: 0.5;
 }
 
-.path-editor-row.drag-over {
+.path-editor-row.drag-before {
   box-shadow: 0 -2px 0 var(--blue50);
+}
+
+.path-editor-row.drag-after {
+  box-shadow: 0 2px 0 var(--blue50);
 }
 
 .path-editor-toolbar {
@@ -1726,6 +1733,15 @@ button:disabled:hover {
   background-color: var(--hover-bg);
   color: inherit;
   opacity: 1;
+}
+
+.path-editor-control:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
+.path-editor-undo {
+  margin-top: var(--space-1);
 }
 
 .tab-heading-hidden {
