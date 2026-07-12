@@ -134,6 +134,15 @@ export const addDownloadListener = () => {
       return;
     }
 
+    if (info.menuItemId === "toggle-source-panel") {
+      if (tab?.id != null) {
+        void webExtensionApi.tabs
+          .sendMessage(tab.id, { type: "TOGGLE_SOURCE_PANEL" })
+          .catch(() => {});
+      }
+      return;
+    }
+
     if (info.menuItemId === "show-default-folder") {
       webExtensionApi.downloads.showDefaultFolder();
       return;

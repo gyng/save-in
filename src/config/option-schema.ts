@@ -54,6 +54,7 @@ export const OPTION_KEYS = [
   { name: "sourcePanelBackgrounds", type: OPTION_TYPES.BOOL, default: true },
   { name: "sourcePanelLive", type: OPTION_TYPES.BOOL, default: true },
   { name: "sourcePanelPreviews", type: OPTION_TYPES.BOOL, default: true },
+  { name: "sourcePanelResourceHints", type: OPTION_TYPES.BOOL, default: true },
   {
     name: "contentClickToSaveCombo",
     type: OPTION_TYPES.VALUE,

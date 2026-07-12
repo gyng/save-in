@@ -1,8 +1,13 @@
-import { collectPageSources } from "../src/content/source-panel.ts";
+import {
+  collectPageSources,
+  filterPageSources,
+  ytDlpCommand,
+} from "../src/content/source-panel.ts";
 
 describe("page source collection", () => {
   beforeEach(() => {
     document.head.innerHTML = "";
+    document.body.innerHTML = "";
   });
 
   test("collects and deduplicates media, source candidates, and backgrounds", () => {
@@ -34,4 +39,32 @@ describe("page source collection", () => {
       collectPageSources(document, { includeBackgrounds: false }).map(({ url }) => url),
     ).toEqual(["http://localhost/visible.png"]);
   });
+
+  test("discovers HLS and DASH manifests from resource timing", () => {
+    vi.spyOn(performance, "getEntriesByType").mockReturnValue([
+      { name: "https://cdn.test/master.m3u8?token=x" } as PerformanceEntry,
+      { name: "https://cdn.test/manifest.mpd" } as PerformanceEntry,
+      { name: "https://cdn.test/player.js" } as PerformanceEntry,
+    ]);
+    expect(collectPageSources().map(({ url, kind }) => [url, kind])).toEqual([
+      ["https://cdn.test/master.m3u8?token=x", "stream"],
+      ["https://cdn.test/manifest.mpd", "stream"],
+    ]);
+  });
+});
+
+test("builds a quoted yt-dlp command for a manifest URL", () => {
+  expect(ytDlpCommand('https://cdn.test/master.m3u8?name="demo"')).toBe(
+    'yt-dlp "https://cdn.test/master.m3u8?name=\\"demo\\""',
+  );
+});
+
+test("filters source results by URL and type", () => {
+  const element = document.createElement("div");
+  const sources = [
+    { url: "https://x.test/photo.jpg", kind: "image" as const, element },
+    { url: "https://x.test/master.m3u8", kind: "stream" as const, element },
+  ];
+  expect(filterPageSources(sources, "master", "all")).toEqual([sources[1]]);
+  expect(filterPageSources(sources, "", "image")).toEqual([sources[0]]);
 });

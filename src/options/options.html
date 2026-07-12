@@ -770,6 +770,26 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
         <input type="checkbox" id="sourcePanelPreviews" />
         __MSG_o_cSourcePanelPreviews__
       </label>
+      <label>
+        <input type="checkbox" id="sourcePanelResourceHints" />
+        __MSG_o_cSourcePanelResourceHints__
+      </label>
+
+      <fieldset class="option-group source-shortcut-settings">
+        <legend>__MSG_o_lSourcePanelShortcut__</legend>
+        <input
+          type="text"
+          id="sourcePanelShortcut"
+          data-runtime-control="true"
+          aria-label="__MSG_o_lSourcePanelShortcut__"
+          placeholder="Ctrl+Shift+Y"
+          spellcheck="false"
+        />
+        <button type="button" id="sourcePanelShortcutApply">__MSG_o_bApply__</button>
+        <button type="button" id="sourcePanelShortcutReset">__MSG_o_bReset__</button>
+        <span id="sourcePanelShortcutStatus" role="status"></span>
+        <div class="caption caption-line">__MSG_o_lSourcePanelShortcutHelp__</div>
+      </fieldset>
 
       <hr />
 

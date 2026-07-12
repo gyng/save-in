@@ -842,7 +842,7 @@ const setupAutosave = (el: Element) => {
     return;
   }
   // The two big editors save manually via Apply, not autosave
-  if (el.dataset && el.dataset.manual === "true") {
+  if (el.dataset && (el.dataset.manual === "true" || el.dataset.runtimeControl === "true")) {
     return;
   }
 

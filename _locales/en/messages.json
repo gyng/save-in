@@ -19,6 +19,7 @@
     "description": "A generic error message used as a fallback"
   },
 
+  "contextMenuToggleSourcePanel": { "message": "Toggle Page Sources" },
   "contextMenuItemOptions": {
     "message": "Options",
     "description": "Title of context menu item that opens the options menu when clicked."
@@ -242,11 +243,15 @@
   },
   "o_sPageSources": { "message": "Page Sources" },
   "o_lPageSourcesHelp": { "message": "Use the toolbar button to list images, video, and audio exposed by the current page. Saving a result uses your normal routing and renaming rules." },
-  "o_lPageSourcesNetworkLimit": { "message": "DOM sources only: network-only player requests and streaming segments are unavailable without the webRequest permission." },
+  "o_lPageSourcesNetworkLimit": { "message": "Some players hide video behind blob URLs or JavaScript requests. Without webRequest, Save In cannot see every request; Resource Timing can still reveal some HLS/DASH manifests, but saving a manifest does not assemble its video segments." },
   "o_cSourcePanelEnabled": { "message": "Enable the toolbar source browser" },
   "o_cSourcePanelBackgrounds": { "message": "Include CSS background images" },
   "o_cSourcePanelLive": { "message": "Refresh when page media changes" },
   "o_cSourcePanelPreviews": { "message": "Show image and video previews" },
+  "o_cSourcePanelResourceHints": { "message": "Look for HLS/DASH manifests in Resource Timing (best effort)" },
+  "o_lSourcePanelShortcut": { "message": "Keyboard shortcut" },
+  "o_lSourcePanelShortcutHelp": { "message": "Use browser shortcut syntax, for example Ctrl+Shift+Y or Command+Shift+Y. The browser rejects reserved shortcuts." },
+  "o_bReset": { "message": "Reset" },
 
   "o_lHistoryHelp": {
     "message": "Your saved downloads. Click a column to sort, filter to search. Stored locally on this device, up to 10,000 entries."

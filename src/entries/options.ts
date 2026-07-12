@@ -23,4 +23,5 @@ import "../options/path-editor.ts";
 import "../options/rule-builder.ts";
 import "../options/tabs.ts";
 import "../options/option-search.ts";
+import "../options/source-shortcut.ts";
 import "../options/webmcp.ts";

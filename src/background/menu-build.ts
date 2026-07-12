@@ -189,6 +189,15 @@ export const addOptions = (contexts: string[]) => {
   });
 };
 
+export const addSourcePanel = (contexts: string[]) => {
+  webExtensionApi.contextMenus.create({
+    id: "toggle-source-panel",
+    title: webExtensionApi.i18n.getMessage("contextMenuToggleSourcePanel") || "Toggle Page Sources",
+    contexts: asMenuContexts(contexts),
+    parentId: MENU_IDS.ROOT,
+  });
+};
+
 export const addShowDefaultFolder = (contexts: string[]) => {
   webExtensionApi.contextMenus.create({
     id: "show-default-folder",

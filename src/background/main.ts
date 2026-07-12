@@ -9,6 +9,7 @@ import { extensionSessionStorage } from "../platform/storage-areas.ts";
 import {
   addLastUsed,
   addOptions,
+  addSourcePanel,
   addPaths,
   addRoot,
   addRouteExclusive,
@@ -68,6 +69,7 @@ window.init = () => {
       addSelectionType(contexts);
       addShowDefaultFolder(contexts);
       addOptions(contexts);
+      addSourcePanel(contexts);
     })
     .catch((e) => {
       Log.add("init failed", String(e));
@@ -90,12 +92,19 @@ export const start = () => {
   addDownloadListener();
   addTabMenuListener();
   addTabHighlightListener();
-  webExtensionApi.action?.onClicked.addListener((tab) => {
+  const toggleSources = (tab: browser.tabs.Tab) => {
     if (tab.id != null) {
       void webExtensionApi.tabs
         .sendMessage(tab.id, { type: "TOGGLE_SOURCE_PANEL" })
         .catch(() => {});
     }
+  };
+  webExtensionApi.action?.onClicked.addListener(toggleSources);
+  webExtensionApi.commands?.onCommand.addListener((command) => {
+    if (command !== "toggle-source-panel") return;
+    void webExtensionApi.tabs
+      .query({ active: true, currentWindow: true })
+      .then(([tab]) => tab && toggleSources(tab));
   });
 
   const initialTab = webExtensionApi.tabs

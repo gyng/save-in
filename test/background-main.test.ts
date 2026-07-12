@@ -21,6 +21,7 @@ vi.mock("../src/background/menu-build.ts", async (importOriginal) => {
     addSelectionType: vi.fn(actual.addSelectionType),
     addShowDefaultFolder: vi.fn(actual.addShowDefaultFolder),
     addOptions: vi.fn(actual.addOptions),
+    addSourcePanel: vi.fn(actual.addSourcePanel),
     restoreLastUsed: vi.fn(actual.restoreLastUsed),
   };
 });
@@ -72,6 +73,7 @@ const setupGlobals = async ({
     "addSelectionType",
     "addShowDefaultFolder",
     "addOptions",
+    "addSourcePanel",
     "restoreLastUsed",
   ]) {
     Menus[name].mockImplementation(() => {});

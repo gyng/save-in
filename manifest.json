@@ -70,6 +70,12 @@
       "96": "icons/ic_archive_black_96px.png"
     }
   },
+  "commands": {
+    "toggle-source-panel": {
+      "suggested_key": { "default": "Ctrl+Shift+Y", "mac": "Command+Shift+Y" },
+      "description": "Toggle the Page Sources browser"
+    }
+  },
   "icons": {
     "48": "icons/ic_archive_black_48px.png",
     "96": "icons/ic_archive_black_96px.png",

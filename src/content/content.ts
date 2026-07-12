@@ -14,6 +14,7 @@ type ContentOptions = {
   sourcePanelBackgrounds?: boolean;
   sourcePanelLive?: boolean;
   sourcePanelPreviews?: boolean;
+  sourcePanelResourceHints?: boolean;
 };
 
 const sourcePanelOptions: ContentOptions = {};
@@ -22,6 +23,7 @@ const SOURCE_PANEL_OPTION_KEYS = [
   "sourcePanelBackgrounds",
   "sourcePanelLive",
   "sourcePanelPreviews",
+  "sourcePanelResourceHints",
 ] as const;
 
 const ClickToSave = {
@@ -233,6 +235,7 @@ try {
         includeBackgrounds: sourcePanelOptions.sourcePanelBackgrounds !== false,
         live: sourcePanelOptions.sourcePanelLive !== false,
         previews: sourcePanelOptions.sourcePanelPreviews !== false,
+        resourceHints: sourcePanelOptions.sourcePanelResourceHints !== false,
       },
     );
   });
