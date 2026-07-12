@@ -286,10 +286,9 @@ pre {
 
 .code,
 code {
-  /* Inline padding does not enlarge a line box, so reserve enough line height
-     for adjacent code pills while keeping their visible padding compact. */
-  line-height: 1.5;
-  padding: 1px 4px;
+  /* Vertical padding paints outside the line box and can overlap adjacent
+     lines; keep only horizontal padding so paragraph rhythm stays unchanged. */
+  padding: 0 4px;
   -webkit-box-decoration-break: clone;
   box-decoration-break: clone;
 }
