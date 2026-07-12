@@ -26,6 +26,7 @@ import { setupCheckboxRows } from "./checkbox-rows.ts";
 import { setupSettingsTransfer } from "./settings-transfer.ts";
 import { COUNTER_KEY } from "../shared/storage-keys.ts";
 import { markSavedNow } from "./saved-indicator.ts";
+import { showUnsavedChangesDialog } from "./unsaved-changes-dialog.ts";
 
 configureRoutingPorts({
   getMessage: (key) => webExtensionApi.i18n.getMessage(key),
@@ -524,7 +525,9 @@ const restoreOptionsHandler = (result: JsonRecord, schema: OptionSchema) => {
 const restoreOptions = () =>
   getOptionsSchema.then((schema: OptionSchema) => {
     const keys = schema.keys.map((o) => o.name);
-    webExtensionApi.storage.local.get(keys).then((loaded) => restoreOptionsHandler(loaded, schema));
+    return webExtensionApi.storage.local
+      .get(keys)
+      .then((loaded) => restoreOptionsHandler(loaded, schema));
   });
 
 const addHelp = (el: Element) => {
@@ -638,9 +641,8 @@ const showManualSaveError = (id: string, error: unknown) => {
   updateErrorSummary(panel);
 };
 
-// Called before an in-page tab switch (main tabs don't unload the page, so
-// beforeunload never fires). OK starts a save; Cancel keeps the editor open.
-window.confirmPendingChanges = () => {
+// Called before an in-page tab switch (main tabs don't unload the page).
+window.confirmPendingChanges = async () => {
   // An existing request already owns these values. Keep the current tab
   // visible until it settles instead of prompting and launching a duplicate.
   if (manualEditorState.anySaving() || fieldSaveState.anySaving()) {
@@ -649,52 +651,15 @@ window.confirmPendingChanges = () => {
   if (!fieldSaveState.hasUnsaved() && !anyManualEditorDirty()) {
     return true;
   }
-  // Literal fallback: getMessage returns "" if the extension context was
-  // invalidated (e.g. a reloaded dev build in a still-open tab), which
-  // would otherwise show a text-less confirm dialog
   const message =
     webExtensionApi.i18n.getMessage("optionsUnsavedChanges") ||
-    "You have unsaved changes. OK to save them, or Cancel to keep editing.";
-  // eslint-disable-next-line no-alert
-  const save = window.confirm(message);
-  if (save) {
-    pendingSaveCancellers.forEach((cancel) => cancel());
-    const ids = [...new Set([...fieldSaveState.unsavedIds(), ...manualEditorState.dirtyIds()])];
-    const blocked = manualEditorState.dirtyIds().find((id) => !manualEditorState.canSave(id));
-    if (blocked) {
-      showManualSaveError(
-        blocked,
-        webExtensionApi.i18n.getMessage("o_lFixValidationBeforeSave") ||
-          "Fix validation errors before saving.",
-      );
-      return Promise.resolve(false);
-    }
-    const revisions = new Map(ids.map((id) => [id, manualEditorState.revision(id)]));
-    return Promise.all(
-      ids.map(async (id) => {
-        const token = fieldSaveState.begin(id);
-        try {
-          const response = await saveOptions(undefined, id);
-          fieldSaveState.succeed(id, token);
-          if (manualEditorState.dirtyIds().includes(id)) {
-            return manualEditorState.markSaved(
-              id,
-              webExtensionApi.i18n.getMessage("o_lSaved") || "Saved",
-              getAppliedValue(response, id),
-              revisions.get(id),
-            );
-          }
-          return true;
-        } catch (error) {
-          fieldSaveState.fail(id, token);
-          showManualSaveError(id, error);
-          return false;
-        }
-      }),
-    ).then((results) => results.every(Boolean));
-  } else {
-    return false;
-  }
+    "Discard your unsaved changes, or keep editing?";
+  if ((await showUnsavedChangesDialog(message)) === "keep") return false;
+  pendingSaveCancellers.forEach((cancel) => cancel());
+  manualEditorState.dirtyIds().forEach((id) => manualEditorState.discard(id));
+  fieldSaveState.clear();
+  await restoreOptions();
+  return true;
 };
 
 const clearAutosaveFailure = (element: Element) => {

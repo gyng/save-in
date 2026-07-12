@@ -24,6 +24,7 @@ export const createFieldSaveState = () => {
     hasUnsaved: () => fields.size > 0,
     anySaving: () => [...fields.values()].some((field) => field.status === "saving"),
     unsavedIds: () => [...fields.keys()],
+    clear: () => fields.clear(),
     status: (id: string) => fields.get(id)?.status,
   };
 };

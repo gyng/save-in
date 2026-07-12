@@ -22,16 +22,15 @@ test("gives Page sources settings a clear heading and intro hierarchy", () => {
   expect(document.querySelector(".source-shortcut-controls #sourcePanelShortcut")).not.toBeNull();
 });
 
-test("labels insertion menus by what they add", () => {
+test("keeps variables in Live variables and clauses in their own disclosure", () => {
   const document = new DOMParser().parseFromString(
     readFileSync(resolve("src/options/options.html"), "utf8"),
     "text/html",
   );
 
-  expect(document.querySelector("#paths-insert-menu summary")?.textContent).toContain(
-    "__MSG_o_lInsertVariable__",
-  );
-  expect(document.querySelector("#rules-insert-menu summary")?.textContent).toContain(
-    "__MSG_o_lInsertVariableClause__",
+  expect(document.querySelector("#paths-insert-menu")).toBeNull();
+  expect(document.querySelector("#rules-insert-menu")).toBeNull();
+  expect(document.querySelector("#rules-clause-menu summary")?.textContent).toContain(
+    "__MSG_o_lClauses__",
   );
 });

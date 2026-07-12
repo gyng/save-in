@@ -424,6 +424,10 @@
     "message": "+ Variable / clause"
   },
 
+  "o_lClauses": {
+    "message": "Clauses"
+  },
+
   "o_bInsertSeparator": {
     "message": "Separator"
   },
@@ -832,8 +836,8 @@
   },
 
   "optionsUnsavedChanges": {
-    "message": "You have unsaved changes. OK to save them, or Cancel to keep editing.",
-    "description": "Confirm prompt when leaving a tab with unsaved editor changes"
+    "message": "Discard your unsaved changes, or keep editing?",
+    "description": "Dialog shown when leaving a tab with unsaved editor changes"
   },
 
   "optionsEditorUnsaved": {

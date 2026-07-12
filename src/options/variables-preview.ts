@@ -34,6 +34,29 @@ export const renderVariablesPreview = async () => {
       const target = panel.dataset.insertTarget
         ? document.querySelector<HTMLTextAreaElement>(`#${panel.dataset.insertTarget}`)
         : null;
+      const filter = document.createElement("input");
+      filter.type = "search";
+      filter.className = "variables-preview-filter";
+      filter.placeholder = "Filter variables";
+      filter.setAttribute("aria-label", "Filter variables");
+      filter.spellcheck = false;
+      container.appendChild(filter);
+
+      if (target?.id === "paths") {
+        const structures = document.createElement("div");
+        structures.className = "variables-preview-structures";
+        [
+          ["---", "Separator"],
+          [">subfolder", "Submenu item"],
+        ].forEach(([line, label]) => {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.textContent = label;
+          button.addEventListener("click", () => PathEditor.insertLine(target, line));
+          structures.appendChild(button);
+        });
+        container.appendChild(structures);
+      }
       const table = document.createElement("table");
       table.className = "variables-preview-table";
 
@@ -65,6 +88,27 @@ export const renderVariablesPreview = async () => {
         table.appendChild(row);
       });
       container.appendChild(table);
+
+      const rows = [...table.querySelectorAll<HTMLElement>(".variables-preview-row")];
+      const applyFilter = () => {
+        const query = filter.value.trim().toLocaleLowerCase();
+        rows.forEach((row) => {
+          row.hidden = Boolean(query) && !row.textContent?.toLocaleLowerCase().includes(query);
+        });
+      };
+      filter.addEventListener("input", applyFilter);
+      filter.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+          panel.removeAttribute("open");
+          return;
+        }
+        if (event.key !== "Enter") return;
+        event.preventDefault();
+        rows
+          .find((row) => !row.hidden)
+          ?.querySelector<HTMLButtonElement>(".variables-preview-insert")
+          ?.click();
+      });
     });
   } catch {
     // The background may be restarting; the next download refreshes the panel.

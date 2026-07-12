@@ -117,7 +117,7 @@ const PathEditorHelpers = {
     const textarea = target ? document.querySelector<HTMLTextAreaElement>(`#${target}`) : null;
     const variablesContainer = menu.querySelector<HTMLElement>(".insert-menu-variables");
     const filter = menu.querySelector<HTMLInputElement>(".insert-menu-filter");
-    if (!textarea || !variablesContainer) {
+    if (!textarea) {
       return;
     }
 
@@ -131,6 +131,8 @@ const PathEditorHelpers = {
         closeMenu();
       });
     });
+
+    if (!variablesContainer) return;
 
     const entries: InsertEntry[] = [];
 
@@ -652,8 +654,7 @@ export class PathEditor {
 
 document.addEventListener("DOMContentLoaded", () => {
   const editor = new PathEditor();
-  editor.setupInsertMenu("#paths-insert-menu");
-  editor.setupInsertMenu("#rules-insert-menu");
+  editor.setupInsertMenu("#rules-clause-menu");
   editor.setupVisualEditor();
   editor.setupModeToggle();
 });

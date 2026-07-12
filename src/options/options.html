@@ -146,24 +146,6 @@
             aria-atomic="true"
           ></div>
           <div class="editor-actions" id="paths-text-actions">
-            <details class="insert-menu" id="paths-insert-menu" data-insert-target="paths">
-              <summary>__MSG_o_lInsertVariable__</summary>
-              <div class="insert-menu-panel">
-                <input
-                  type="text"
-                  class="insert-menu-filter"
-                  aria-label="__MSG_o_lInsertFilter__"
-                  placeholder="__MSG_o_lInsertFilter__"
-                  spellcheck="false"
-                />
-                <button type="button" data-insert-line="---">--- __MSG_o_bInsertSeparator__</button>
-                <button type="button" data-insert-line=">subfolder">
-                  &gt; __MSG_o_bInsertSubmenuItem__
-                </button>
-                <div class="caption">__MSG_o_lInsertVariables__</div>
-                <div class="insert-menu-variables"></div>
-              </div>
-            </details>
             <a class="external toolbar-link" href="variablelist.html" target="_blank"
               >__MSG_o_lVariableList__</a
             >
@@ -590,25 +572,16 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
             ></div>
             <div class="editor-actions">
               <details
-                class="insert-menu"
-                id="rules-insert-menu"
+                class="variables-preview clause-preview"
+                id="rules-clause-menu"
                 data-insert-target="filenamePatterns"
               >
-                <summary>__MSG_o_lInsertVariableClause__</summary>
-                <div class="insert-menu-panel">
-                  <input
-                    type="text"
-                    class="insert-menu-filter"
-                    aria-label="__MSG_o_lInsertFilter__"
-                    placeholder="__MSG_o_lInsertFilter__"
-                    spellcheck="false"
-                  />
+                <summary>__MSG_o_lClauses__</summary>
+                <div class="variables-preview-list clause-preview-list">
                   <button type="button" data-insert-line="into: ">__MSG_o_bInsertInto__</button>
                   <button type="button" data-insert-line="capture: ">
                     __MSG_o_bInsertCapture__
                   </button>
-                  <div class="caption">__MSG_o_lInsertVariables__</div>
-                  <div class="insert-menu-variables"></div>
                 </div>
               </details>
               <button type="button" class="discard-button" data-discard="filenamePatterns" disabled>

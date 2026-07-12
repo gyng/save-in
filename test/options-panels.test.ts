@@ -101,6 +101,19 @@ describe("variables preview", () => {
       document.querySelector<HTMLTextAreaElement>("#paths"),
       ":url:",
     );
+
+    const filter = document.querySelector<HTMLInputElement>(".variables-preview-filter")!;
+    filter.value = "title";
+    filter.dispatchEvent(new InputEvent("input", { bubbles: true }));
+    expect(rows[0]!.hidden).toBe(true);
+    expect(rows[1]!.hidden).toBe(false);
+
+    const insertLine = vi.spyOn(PathEditor, "insertLine").mockImplementation(() => {});
+    document.querySelector<HTMLButtonElement>(".variables-preview-structures button")!.click();
+    expect(insertLine).toHaveBeenCalledWith(
+      document.querySelector<HTMLTextAreaElement>("#paths"),
+      "---",
+    );
   });
 
   test("shows known variables with blank values before a save", async () => {
