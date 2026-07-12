@@ -117,6 +117,7 @@ const PathEditorHelpers = {
     const textarea = target ? document.querySelector<HTMLTextAreaElement>(`#${target}`) : null;
     const variablesContainer = menu.querySelector<HTMLElement>(".insert-menu-variables");
     const filter = menu.querySelector<HTMLInputElement>(".insert-menu-filter");
+    const clauseFilter = menu.querySelector<HTMLInputElement>(".clause-preview-filter");
     if (!textarea) {
       return;
     }
@@ -125,12 +126,33 @@ const PathEditorHelpers = {
       menu.open = false;
     };
 
-    menu.querySelectorAll<HTMLElement>("[data-insert-line]").forEach((button) => {
+    const lineButtons = [...menu.querySelectorAll<HTMLElement>("[data-insert-line]")];
+    lineButtons.forEach((button) => {
       button.addEventListener("click", () => {
         PathEditorHelpers.insertLine(textarea, button.dataset.insertLine ?? "");
         closeMenu();
       });
     });
+
+    if (clauseFilter) {
+      const applyClauseFilter = () => {
+        const query = clauseFilter.value.trim().toLocaleLowerCase();
+        lineButtons.forEach((button) => {
+          button.hidden =
+            Boolean(query) && !button.textContent?.toLocaleLowerCase().includes(query);
+        });
+      };
+      clauseFilter.addEventListener("input", applyClauseFilter);
+      clauseFilter.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+          menu.removeAttribute("open");
+          return;
+        }
+        if (event.key !== "Enter") return;
+        event.preventDefault();
+        lineButtons.find((button) => !button.hidden)?.click();
+      });
+    }
 
     if (!variablesContainer) return;
 

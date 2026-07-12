@@ -13,4 +13,5 @@ test("places the directory definitions heading above the editor mode tabs", () =
   expect(document.querySelector("#paths")?.getAttribute("aria-labelledby")).toBe(
     "paths-editor-label",
   );
+  expect(document.querySelector("#paths-text-actions #paths-editor-description")).not.toBeNull();
 });

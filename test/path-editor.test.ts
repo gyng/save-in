@@ -503,6 +503,7 @@ describe("insert menu targets its editor via data-insert-target", () => {
       <details id="rules-insert-menu" data-insert-target="filenamePatterns">
         <summary>+ Add</summary>
         <div>
+          <input type="search" class="clause-preview-filter" />
           <input type="text" class="insert-menu-filter" />
           <button type="button" data-insert-line="into: ">into</button>
           <div class="insert-menu-variables"></div>
@@ -523,5 +524,10 @@ describe("insert menu targets its editor via data-insert-target", () => {
     expect(textarea.value).toBe("fileext: pdf\ninto: ");
     // Variables from the same GET_KEYWORDS source appear
     expect(document.querySelectorAll(".insert-menu-variable")).toHaveLength(1);
+
+    const clauseFilter = element<HTMLInputElement>(".clause-preview-filter");
+    clauseFilter.value = "no match";
+    clauseFilter.dispatchEvent(new InputEvent("input", { bubbles: true }));
+    expect(element<HTMLElement>('[data-insert-line="into: "]').hidden).toBe(true);
   });
 });

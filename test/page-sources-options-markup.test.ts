@@ -33,4 +33,8 @@ test("keeps variables in Live variables and clauses in their own disclosure", ()
   expect(document.querySelector("#rules-clause-menu summary")?.textContent).toContain(
     "__MSG_o_lClauses__",
   );
+  expect(
+    document.querySelector(".preview-column .reference-sections #rules-clause-menu"),
+  ).not.toBeNull();
+  expect(document.querySelector("#rules-clause-menu .clause-preview-filter")).not.toBeNull();
 });
