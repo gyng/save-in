@@ -2554,6 +2554,11 @@ code.click-to-copy {
   margin: var(--space-1) 0 var(--space-2);
 }
 
+.editor-action-help {
+  color: var(--grey50);
+  line-height: 1.35;
+}
+
 /* The insertion dropdown and Live variables use the same compact list rows as
    the Page sources pop-out, so variable/value pairs scan the same way. */
 .insert-menu-panel {
@@ -2626,6 +2631,19 @@ code.click-to-copy {
 
 .clause-preview {
   margin: 0;
+}
+
+.reference-sections {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.clause-preview-filter {
+  width: calc(100% - 2 * var(--space-2));
+  max-width: none;
+  box-sizing: border-box;
+  margin: var(--space-2);
 }
 
 .unsaved-changes-dialog {
