@@ -521,6 +521,7 @@ const restoreOptionsHandler = (result: JsonRecord, schema: OptionSchema) => {
   // Stored values are now in the editors: they are clean, Apply dims
   refreshManualEditorBaselines();
   updateOptionDependencies();
+  document.dispatchEvent(new Event("options-restored"));
 };
 
 const restoreOptions = () =>
@@ -550,7 +551,6 @@ const addHelp = (el: Element) => {
     targetEl.classList.toggle("show");
     el.setAttribute("aria-expanded", targetEl.classList.contains("show") ? "true" : "false");
   });
-  document.dispatchEvent(new Event("options-restored"));
 };
 
 document.addEventListener("DOMContentLoaded", restoreOptions);

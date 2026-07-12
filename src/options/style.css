@@ -944,7 +944,13 @@ fieldset.inline-option-group:has(#contentClickToSaveCombo) > legend {
 }
 
 fieldset.inline-option-group:has(#contentClickToSaveCombo) select {
-  min-width: 8.5rem;
+  width: 7.5rem;
+  min-width: 7.5rem;
+}
+
+fieldset.inline-option-group:has(#contentClickToSaveCombo) #clickToSaveButton {
+  width: 9rem;
+  min-width: 9rem;
 }
 
 fieldset.inline-option-group:has(#contentClickToSaveCombo):has(:disabled) {

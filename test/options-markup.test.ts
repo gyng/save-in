@@ -88,7 +88,7 @@ describe("options form semantics", () => {
     const document = documentForOptions();
     expect(document.querySelector<HTMLSelectElement>("#clickToSaveModifier")?.value).toBe("Alt");
     expect(document.querySelector<HTMLSelectElement>("#clickToSaveModifier2")?.value).toBe("");
-    expect(document.querySelector<HTMLSelectElement>("#contentClickToSaveButton")?.value).toBe(
+    expect(document.querySelector<HTMLSelectElement>("#clickToSaveButton")?.value).toBe(
       "LEFT_CLICK",
     );
   });

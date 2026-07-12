@@ -50,9 +50,13 @@ export const setupShortcutOptions = () => {
   syncFormat();
 
   const combo = document.querySelector<HTMLInputElement>("#contentClickToSaveCombo");
+  const storedButton = document.querySelector<HTMLInputElement>("#contentClickToSaveButton");
   const modifier = document.querySelector<HTMLSelectElement>("#clickToSaveModifier");
   const modifier2 = document.querySelector<HTMLSelectElement>("#clickToSaveModifier2");
-  const button = document.querySelector<HTMLSelectElement>("#contentClickToSaveButton");
+  const button = document.querySelector<HTMLSelectElement>("#clickToSaveButton");
+  const apply = document.querySelector<HTMLButtonElement>("#clickToSaveApply");
+  const reset = document.querySelector<HTMLButtonElement>("#clickToSaveReset");
+  const status = document.querySelector<HTMLElement>("#clickToSaveStatus");
   const clickToSave = document.querySelector<HTMLInputElement>("#contentClickToSave");
   const warning = document.querySelector<HTMLElement>("#click-to-save-warning");
   const showClickCombo = () => {
@@ -60,6 +64,7 @@ export const setupShortcutOptions = () => {
     const parts = combo.value.split("+").filter(Boolean);
     const known = new Set(["Alt", "Ctrl", "Shift", "Meta"]);
     const unknown = parts.find((part) => !known.has(part));
+    if (button) button.value = storedButton?.value || "LEFT_CLICK";
     modifier.querySelector("[data-legacy]")?.remove();
     if (unknown || (parts.length === 1 && combo.value && !known.has(combo.value))) {
       const option = document.createElement("option");
@@ -74,31 +79,46 @@ export const setupShortcutOptions = () => {
     modifier.value = parts[0] || "";
     modifier2.value = parts[1] || "";
   };
-  const saveClickCombo = () => {
-    if (!combo || !modifier || !modifier2) return;
+  const draftCombo = () => {
+    if (!modifier || !modifier2) return "";
     if (modifier2.value === modifier.value) modifier2.value = "";
-    combo.value = [modifier.value, modifier2.value].filter(Boolean).join("+");
-    combo.dispatchEvent(new Event("change", { bubbles: true }));
+    return [modifier.value, modifier2.value].filter(Boolean).join("+");
+  };
+  const syncClickControls = () => {
+    const changed =
+      draftCombo() !== combo?.value || (button?.value || "") !== (storedButton?.value || "");
+    if (apply) apply.disabled = !changed;
+    if (status) status.textContent = changed ? "Ready to apply." : "";
+    syncGestureWarning();
   };
   const syncGestureWarning = () => {
     if (!warning || !combo || !button) return;
     warning.hidden =
-      !clickToSave?.checked || Boolean(combo.value.trim()) || button.value !== "LEFT_CLICK";
+      !clickToSave?.checked || Boolean(draftCombo()) || button.value !== "LEFT_CLICK";
   };
-  combo?.addEventListener("input", syncGestureWarning);
-  combo?.addEventListener("change", syncGestureWarning);
-  button?.addEventListener("change", syncGestureWarning);
+  button?.addEventListener("change", syncClickControls);
   clickToSave?.addEventListener("change", syncGestureWarning);
-  modifier?.addEventListener("change", () => {
-    saveClickCombo();
-    syncGestureWarning();
+  modifier?.addEventListener("change", syncClickControls);
+  modifier2?.addEventListener("change", syncClickControls);
+  apply?.addEventListener("click", () => {
+    if (!combo || !storedButton || !button) return;
+    combo.value = draftCombo();
+    storedButton.value = button.value;
+    combo.dispatchEvent(new Event("change", { bubbles: true }));
+    storedButton.dispatchEvent(new Event("change", { bubbles: true }));
+    syncClickControls();
+    if (status) status.textContent = "Shortcut updated.";
   });
-  modifier2?.addEventListener("change", () => {
-    saveClickCombo();
-    syncGestureWarning();
+  reset?.addEventListener("click", () => {
+    if (!modifier || !modifier2 || !button) return;
+    modifier.value = "Alt";
+    modifier2.value = "";
+    button.value = "LEFT_CLICK";
+    apply?.click();
+    if (status) status.textContent = "Shortcut reset.";
   });
   showClickCombo();
-  syncGestureWarning();
+  syncClickControls();
 
   const accessInputs = ["keyRoot", "keyLastUsed"]
     .map((id) => document.querySelector<HTMLInputElement>(`#${id}`))
@@ -125,7 +145,7 @@ export const setupShortcutOptions = () => {
     syncNotifications();
     syncFormat();
     showClickCombo();
-    syncGestureWarning();
+    syncClickControls();
     validateAccessKeys();
   });
   syncNotifications();

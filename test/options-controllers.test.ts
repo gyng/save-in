@@ -33,6 +33,22 @@ describe("key combo picker", () => {
 });
 
 describe("shortcut option guidance", () => {
+  const clickShortcutMarkup = (combo = "Ctrl+Shift", storedButton = "RIGHT_CLICK") => `
+    <input type="checkbox" id="contentClickToSave" checked>
+    <input id="contentClickToSaveCombo" value="${combo}">
+    <input id="contentClickToSaveButton" value="${storedButton}">
+    <select id="clickToSaveModifier">
+      <option value=""></option><option value="Alt">Alt</option><option value="Ctrl">Ctrl</option>
+    </select>
+    <select id="clickToSaveModifier2">
+      <option value=""></option><option value="Shift">Shift</option>
+    </select>
+    <select id="clickToSaveButton">
+      <option value="LEFT_CLICK">left</option><option value="RIGHT_CLICK">right</option>
+    </select>
+    <button id="clickToSaveApply"></button><button id="clickToSaveReset"></button>
+    <span id="clickToSaveStatus"></span><div id="click-to-save-warning" hidden></div>`;
+
   test("warns without blocking mouse-only left click and previews shortcut formats", () => {
     document.body.innerHTML = `
       <input type="checkbox" id="shortcutMedia" checked>
@@ -42,9 +58,12 @@ describe("shortcut option guidance", () => {
       <span id="shortcut-format-preview"></span>
       <input type="checkbox" id="contentClickToSave" checked>
       <input id="contentClickToSaveCombo" value="Ctrl+Shift">
+      <input id="contentClickToSaveButton" value="LEFT_CLICK">
       <select id="clickToSaveModifier"><option value=""></option><option value="Ctrl">Ctrl</option></select>
       <select id="clickToSaveModifier2"><option value=""></option><option value="Shift">Shift</option></select>
-      <select id="contentClickToSaveButton"><option value="LEFT_CLICK">left</option></select>
+      <select id="clickToSaveButton"><option value="LEFT_CLICK">left</option><option value="MIDDLE_CLICK">middle</option></select>
+      <button id="clickToSaveApply"></button><button id="clickToSaveReset"></button>
+      <span id="clickToSaveStatus"></span>
       <div id="click-to-save-warning" hidden></div>`;
     setupShortcutOptions();
     expect((document.querySelector("#clickToSaveModifier") as HTMLSelectElement).value).toBe(
@@ -56,6 +75,14 @@ describe("shortcut option guidance", () => {
     expect(document.querySelector("#click-to-save-warning")?.hasAttribute("hidden")).toBe(true);
     expect(document.querySelector("#shortcut-format-preview")?.textContent).toContain(".webloc");
     expect((document.querySelector("#shortcutType") as HTMLSelectElement).disabled).toBe(false);
+    const button = document.querySelector<HTMLSelectElement>("#clickToSaveButton")!;
+    button.value = "MIDDLE_CLICK";
+    button.dispatchEvent(new Event("change"));
+    expect(document.querySelector<HTMLButtonElement>("#clickToSaveApply")!.disabled).toBe(false);
+    document.querySelector<HTMLButtonElement>("#clickToSaveApply")!.click();
+    expect(document.querySelector<HTMLInputElement>("#contentClickToSaveButton")!.value).toBe(
+      "MIDDLE_CLICK",
+    );
   });
 
   test("shows an unknown MV2 keycode as a preserved legacy value", () => {
@@ -68,6 +95,40 @@ describe("shortcut option guidance", () => {
     expect(modifier.value).toBe("90");
     expect(modifier.selectedOptions[0].textContent).toBe("Legacy value: 90");
     expect(document.querySelector<HTMLInputElement>("#contentClickToSaveCombo")!.value).toBe("90");
+  });
+
+  test("resynchronizes draft controls after an upgraded profile is restored", () => {
+    document.body.innerHTML = clickShortcutMarkup("", "LEFT_CLICK");
+    setupShortcutOptions();
+
+    document.querySelector<HTMLInputElement>("#contentClickToSaveCombo")!.value = "Ctrl+Shift";
+    document.querySelector<HTMLInputElement>("#contentClickToSaveButton")!.value = "RIGHT_CLICK";
+    document.dispatchEvent(new Event("options-restored"));
+
+    expect(document.querySelector<HTMLSelectElement>("#clickToSaveModifier")!.value).toBe("Ctrl");
+    expect(document.querySelector<HTMLSelectElement>("#clickToSaveModifier2")!.value).toBe("Shift");
+    expect(document.querySelector<HTMLSelectElement>("#clickToSaveButton")!.value).toBe(
+      "RIGHT_CLICK",
+    );
+    expect(document.querySelector<HTMLButtonElement>("#clickToSaveApply")!.disabled).toBe(true);
+  });
+
+  test("applying a modifier-only edit preserves the restored mouse button", () => {
+    document.body.innerHTML = clickShortcutMarkup();
+    setupShortcutOptions();
+    document.dispatchEvent(new Event("options-restored"));
+
+    const modifier2 = document.querySelector<HTMLSelectElement>("#clickToSaveModifier2")!;
+    modifier2.value = "";
+    modifier2.dispatchEvent(new Event("change"));
+    document.querySelector<HTMLButtonElement>("#clickToSaveApply")!.click();
+
+    expect(document.querySelector<HTMLInputElement>("#contentClickToSaveCombo")!.value).toBe(
+      "Ctrl",
+    );
+    expect(document.querySelector<HTMLInputElement>("#contentClickToSaveButton")!.value).toBe(
+      "RIGHT_CLICK",
+    );
   });
 });
 
