@@ -2377,3 +2377,10 @@ code.click-to-copy {
 #lastSavedAt.saved-confirmed::before {
   transform-origin: center;
 }
+
+.manual-save-help {
+  margin: 0 0 var(--space-2);
+  color: var(--grey50);
+  font-size: var(--text-sm);
+  line-height: 1.35;
+}
