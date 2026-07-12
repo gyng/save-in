@@ -18,6 +18,14 @@ test("offers configurable history columns and explicit exports", () => {
   expect(document.querySelector(".history-actions > #history-export-json")).not.toBeNull();
   expect(document.querySelector('label[for="history-type-filter"]')?.closest("details")).toBeNull();
   expect(document.querySelector(".history-facets > .history-columns")).not.toBeNull();
+  for (const id of [
+    "history-filter",
+    "history-source-filter",
+    "history-status-filter",
+    "history-type-filter",
+  ]) {
+    expect(document.getElementById(id)?.getAttribute("data-runtime-control")).toBe("true");
+  }
 });
 
 test("shows a Page sources drawer preview", () => {

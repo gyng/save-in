@@ -197,7 +197,7 @@ body:not(#settings-page) {
 .top-nav {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
+  align-items: center;
   gap: var(--space-4);
   flex-wrap: wrap;
   padding: var(--space-3) var(--space-5);
@@ -241,7 +241,7 @@ body:not(#settings-page) {
   display: inline-flex;
   align-items: baseline;
   gap: var(--space-1);
-  align-self: baseline;
+  align-self: center;
   color: var(--color-text-muted);
   white-space: nowrap;
   margin-left: var(--space-1);
@@ -431,7 +431,7 @@ details {
     interpolate-size: allow-keywords;
   }
 
-  #settings-page details:not(.nav-resources, .insert-menu)::details-content {
+  #settings-page details:not(.nav-resources, .insert-menu, .menu-preview)::details-content {
     block-size: 0;
     overflow: clip;
     opacity: 0;
@@ -441,7 +441,7 @@ details {
       content-visibility 90ms allow-discrete;
   }
 
-  #settings-page details[open]:not(.nav-resources, .insert-menu)::details-content {
+  #settings-page details[open]:not(.nav-resources, .insert-menu, .menu-preview)::details-content {
     block-size: auto;
     opacity: 1;
   }
@@ -817,6 +817,22 @@ fieldset.inline-option-group {
 fieldset.inline-option-group > legend,
 fieldset.inline-option-group > .caption-line {
   width: 100%;
+}
+
+fieldset.inline-option-group:has(#contentClickToSaveCombo) {
+  margin-left: var(--space-5);
+  flex-wrap: nowrap;
+  align-items: baseline;
+}
+
+fieldset.inline-option-group:has(#contentClickToSaveCombo) > legend {
+  width: auto;
+  margin: 0;
+  white-space: nowrap;
+}
+
+fieldset.inline-option-group:has(#contentClickToSaveCombo):has(:disabled) {
+  opacity: 0.48;
 }
 
 .editor-dirty-status {
@@ -1257,6 +1273,12 @@ input.key {
   max-width: none;
   padding: var(--space-2) var(--space-3);
   font-size: 14px;
+}
+
+.option-search:focus-within {
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--link-color) 8%, transparent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--link-color) 12%, transparent);
 }
 
 .option-search-results {
@@ -2214,6 +2236,7 @@ input[type="text"],
 input[type="number"],
 textarea,
 select {
+  border: 1px solid var(--panel-border);
   border-radius: var(--radius);
   transition:
     box-shadow 0.12s ease,
@@ -2433,6 +2456,10 @@ code.click-to-copy {
   align-items: baseline;
   gap: var(--space-3);
   margin-top: var(--space-3);
+}
+
+.history-facets .history-columns {
+  margin-left: auto;
 }
 
 .history-facet {
@@ -2853,13 +2880,36 @@ code.click-to-copy {
     width: calc(100% + 2 * var(--space-3));
     margin-inline: calc(-1 * var(--space-3));
     padding-inline: var(--space-3);
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    scrollbar-width: thin;
+    flex-wrap: wrap;
+    overflow: visible;
   }
 
   .tablist .tab {
-    flex: 0 0 auto;
+    flex: 0 1 auto;
+  }
+
+  #history-list {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  .history-table {
+    min-width: 760px;
+  }
+
+  .history-facet {
+    flex: 1 1 10rem;
+    align-items: center;
+  }
+
+  .history-facet select {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .history-columns {
+    flex: 1 1 100%;
+    text-align: right;
   }
 
   .editor-actions,

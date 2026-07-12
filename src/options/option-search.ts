@@ -46,6 +46,7 @@ export const setupOptionSearch = (): void => {
   wrap.className = "option-search";
   const input = document.createElement("input");
   input.id = "option-search";
+  input.dataset.runtimeControl = "true";
   input.type = "search";
   input.autocomplete = "off";
   input.placeholder = webExtensionApi.i18n.getMessage("o_lSearchOptions") || "Search options";

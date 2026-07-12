@@ -29,6 +29,7 @@ describe("options search", () => {
 
   test("swaps search and save status positions in the top navigation", () => {
     setupOptionSearch();
+    expect(document.getElementById("option-search")?.dataset.runtimeControl).toBe("true");
     expect(
       document.querySelector(".top-nav")?.lastElementChild?.querySelector("#option-search"),
     ).not.toBeNull();

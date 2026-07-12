@@ -8,4 +8,6 @@ export const setupOutsideDismiss = (
   });
 };
 
-setupOutsideDismiss();
+document
+  .querySelectorAll<HTMLDetailsElement>(".nav-resources, .history-columns")
+  .forEach((details) => setupOutsideDismiss(details));

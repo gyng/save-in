@@ -13,3 +13,13 @@ test("closes an open resources menu only when clicking outside", () => {
   document.querySelector("button")?.click();
   expect(details.open).toBe(false);
 });
+
+test("closes an open history columns menu when clicking outside", () => {
+  document.body.innerHTML = `
+    <details class="history-columns" open><summary>Columns</summary><label>File</label></details>
+    <button type="button">Outside</button>`;
+  const details = document.querySelector("details") as HTMLDetailsElement;
+  setupOutsideDismiss(details);
+  document.querySelector("button")?.click();
+  expect(details.open).toBe(false);
+});
