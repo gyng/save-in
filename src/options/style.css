@@ -378,13 +378,79 @@ body:not(#settings-page) {
 }
 
 .about-mascot {
+  display: block;
   width: 100%;
   height: auto;
 }
 
-.about-copy h2,
-.about-copy h3 {
+.about-mascot-button {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 18px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.about-mascot-button:hover {
+  background: color-mix(in srgb, var(--link-color) 7%, transparent);
+}
+
+.about-mascot-button:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--link-color) 55%, transparent);
+  outline-offset: 3px;
+}
+
+.about-mascot-status {
+  display: block;
+  min-height: 1.4em;
+  margin-top: var(--space-2);
+  color: var(--link-color);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  text-align: center;
+}
+
+.about-copy h2 {
   margin-top: 0;
+}
+
+.about-copy h3 {
+  margin: var(--space-6) 0 var(--space-2);
+}
+
+.about-build-info {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+  margin: var(--space-4) 0 0;
+  padding: var(--space-3);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--panel-bg) 65%, transparent);
+}
+
+.about-build-info > div {
+  min-width: 0;
+}
+
+.about-build-info dt {
+  color: var(--grey50);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.about-build-info dd {
+  overflow: hidden;
+  margin: 2px 0 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .permission-rationale {
@@ -410,6 +476,43 @@ body:not(#settings-page) {
   margin-top: var(--space-4);
 }
 
+.about-mascot-button.is-celebrating {
+  animation: party-cat-rainbow 600ms linear infinite;
+}
+
+.about-mascot-button.is-celebrating .about-mascot {
+  animation: party-cat-dance 160ms steps(2, jump-none) infinite alternate;
+}
+
+@keyframes party-cat-rainbow {
+  0% {
+    filter: hue-rotate(0deg) saturate(2) drop-shadow(0 0 14px #ff4d6d);
+  }
+  100% {
+    filter: hue-rotate(360deg) saturate(2) drop-shadow(0 0 24px #55d6ff);
+  }
+}
+
+@keyframes party-cat-dance {
+  from {
+    transform: translate(-7px, -5px) rotate(-9deg) scale(1.08);
+  }
+  to {
+    transform: translate(7px, 2px) rotate(9deg) scale(1.13);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .about-mascot-button.is-celebrating,
+  .about-mascot-button.is-celebrating .about-mascot {
+    animation: none;
+  }
+
+  .about-mascot-button.is-celebrating {
+    filter: saturate(1.8) drop-shadow(0 0 18px #ffcc3d);
+  }
+}
+
 @media (max-width: 620px) {
   .about-layout {
     grid-template-columns: 1fr;
@@ -421,6 +524,10 @@ body:not(#settings-page) {
   }
 
   .permission-rationale {
+    grid-template-columns: 1fr;
+  }
+
+  .about-build-info {
     grid-template-columns: 1fr;
   }
 }

@@ -102,8 +102,7 @@ export const RuleBuilder = {
         }
         const row = document.createElement("div");
         row.className = "rule-template";
-        row.dataset.search =
-          `${tpl.name} ${tpl.description} ${tpl.example} ${tpl.rule}`.toLocaleLowerCase();
+        row.dataset.search = `${tpl.name} ${tpl.description} ${tpl.rule}`.toLocaleLowerCase();
         rows.push(row);
 
         const body = document.createElement("div");
@@ -118,11 +117,6 @@ export const RuleBuilder = {
         description.className = "caption rule-template-desc";
         description.textContent = tpl.description;
         body.appendChild(description);
-
-        const example = document.createElement("div");
-        example.className = "caption rule-template-example";
-        example.textContent = tpl.example;
-        body.appendChild(example);
 
         // Preserve the matcher/destination line break so the preview teaches the
         // same grammar users see in the rules editor.

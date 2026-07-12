@@ -1454,7 +1454,6 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
           role="tabpanel"
           hidden
         >
-          <p>Choose Add to place a complete rule in the routing editor.</p>
           <div id="rule-templates" class="rule-template-library" data-rule-template-library></div>
         </section>
       </div>
@@ -1463,11 +1462,20 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
     <dialog id="about-dialog" class="about-dialog" aria-labelledby="about-title">
       <button type="button" class="about-close" aria-label="Close About Save In">×</button>
       <div class="about-layout">
-        <img
-          class="about-mascot"
-          src="assets/save-in-mascot.webp"
-          alt="A watercolor lucky cat carefully organizing documents, photographs, film, and books"
-        />
+        <div class="about-mascot-column">
+          <button
+            type="button"
+            class="about-mascot-button"
+            aria-label="Lucky organizing cat"
+            title="A very diligent organizer"
+          >
+            <img
+              class="about-mascot"
+              src="assets/save-in-mascot.webp"
+              alt="A watercolor lucky cat carefully organizing documents, photographs, film, and books"
+            />
+          </button>
+        </div>
         <div class="about-copy">
           <h2 id="about-title">About Save In</h2>
           <p>
@@ -1478,6 +1486,20 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
             Save In has no analytics, advertising, developer-operated server, or remote executable
             code. Settings and history stay in browser-managed extension storage.
           </p>
+          <dl class="about-build-info" aria-label="Build information">
+            <div>
+              <dt>Version</dt>
+              <dd id="about-version">—</dd>
+            </div>
+            <div>
+              <dt>Commit</dt>
+              <dd><a id="about-commit" class="external">Unavailable</a></dd>
+            </div>
+            <div>
+              <dt>Built</dt>
+              <dd id="about-build-date">—</dd>
+            </div>
+          </dl>
           <h3>Why these permissions are needed</h3>
           <dl class="permission-rationale">
             <dt>Context menus</dt>

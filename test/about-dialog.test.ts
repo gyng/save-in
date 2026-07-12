@@ -16,11 +16,34 @@ test("opens and closes the About dialog", () => {
   expect(dialog.close).toHaveBeenCalledOnce();
 });
 
+test("five mascot clicks trigger the lucky-cat celebration", () => {
+  vi.useFakeTimers();
+  document.body.innerHTML = `
+    <button id="about-open">About</button>
+    <dialog id="about-dialog">
+      <button class="about-close">Close</button>
+      <button class="about-mascot-button"></button>
+    </dialog>`;
+  setupAboutDialog();
+  const mascot = document.querySelector<HTMLButtonElement>(".about-mascot-button")!;
+  for (let i = 0; i < 4; i += 1) mascot.click();
+  expect(mascot.classList).not.toContain("is-celebrating");
+  mascot.click();
+  expect(mascot.classList).toContain("is-celebrating");
+  expect(document.body.textContent).not.toContain("Lucky cat power activated");
+  vi.advanceTimersByTime(3200);
+  expect(mascot.classList).not.toContain("is-celebrating");
+  vi.useRealTimers();
+});
+
 test("About explains privacy and every requested permission", () => {
   const html = readFileSync(resolve("src/options/options.html"), "utf8");
   const document = new DOMParser().parseFromString(html, "text/html");
   const about = document.querySelector("#about-dialog")!;
   expect(about.querySelector(".about-mascot")?.getAttribute("src")).toContain("mascot.webp");
+  expect(about.querySelector("#about-version")).not.toBeNull();
+  expect(about.querySelector("#about-commit")).not.toBeNull();
+  expect(about.querySelector("#about-build-date")).not.toBeNull();
   expect(about.textContent).toContain("no analytics");
   for (const permission of [
     "Context menus",

@@ -165,12 +165,7 @@ describe("template list rendering", () => {
     expect(firstAdd.textContent).toBe("Added");
     expect(firstAdd.disabled).toBe(true);
     expect(document.querySelector(".rule-template-rule")?.textContent).toContain("\ninto:");
-    expect(document.querySelectorAll(".rule-template-example")).toHaveLength(RULE_TEMPLATES.length);
-    expect(
-      [...document.querySelectorAll(".rule-template-example")].every((node) =>
-        node.textContent?.startsWith("Example: "),
-      ),
-    ).toBe(true);
+    expect(document.querySelectorAll(".rule-template-example")).toHaveLength(0);
     expect(document.querySelector<HTMLElement>(".template-feedback")?.hidden).toBe(false);
     expect(document.querySelector(".template-feedback button")?.textContent).toBe(
       "View in rules editor",
