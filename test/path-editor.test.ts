@@ -124,6 +124,9 @@ describe("visual editor", () => {
     const helper = document.querySelector<HTMLElement>(".path-editor-help .manual-save-help");
 
     expect(helper?.textContent).toBe("Changes in this editor are saved when you select Apply.");
+    expect(document.querySelector(".path-editor-help")?.textContent).not.toContain(
+      "One relative directory",
+    );
   });
 
   test("renders one row per line, separators included", () => {

@@ -103,6 +103,9 @@
 
       <div class="paths-editor">
         <div class="column">
+          <div class="editor-field-label" id="paths-editor-label">
+            __MSG_o_lDirectoryDefinitions__
+          </div>
           <div class="editor-tabs" role="tablist" aria-label="Directory editor mode">
             <button
               type="button"
@@ -126,7 +129,6 @@
             </button>
           </div>
 
-          <label class="editor-field-label" for="paths">__MSG_o_lDirectoryDefinitions__</label>
           <div class="caption" id="paths-editor-description">
             __MSG_o_lDirectoryDefinitionsHelp__
           </div>
@@ -137,6 +139,7 @@
             rows="10"
             placeholder="."
             spellcheck="false"
+            aria-labelledby="paths-editor-label"
             aria-describedby="paths-editor-description error-paths"
           ></textarea>
           <div
