@@ -1836,6 +1836,12 @@ summary {
   -webkit-line-clamp: 2;
 }
 
+.rule-template-example {
+  margin-top: 2px;
+  color: var(--grey50);
+  font-style: italic;
+}
+
 .rule-template-rule {
   display: block;
   margin-top: 2px;
@@ -1843,9 +1849,7 @@ summary {
   background: none;
   font-size: 11px;
   color: var(--grey50);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: pre-wrap;
 }
 
 .rule-template-add {
