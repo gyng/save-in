@@ -287,6 +287,11 @@ describe("insert menu typeahead", () => {
     expect(buttons()[0]!.querySelector(".insert-menu-value")!.textContent).toBe("2026-07-10");
     expect(buttons()[0]!.title).toBe("2026-07-10");
     expect(buttons()[1]!.querySelector(".insert-menu-value")!.textContent).toBe("");
+    expect(
+      [...document.querySelectorAll<HTMLElement>(".insert-menu-group-heading")].map(
+        (heading) => heading.textContent,
+      ),
+    ).toEqual(["Date and time", "Page context"]);
   });
 
   test("typing filters by name and by current value", () => {

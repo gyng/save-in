@@ -197,7 +197,19 @@ export const attachAutocomplete = (textarea: TextField, strategies: Autocomplete
     }
     const state = current;
     dropdown.innerHTML = "";
+    let previousGroup = "";
     state.result.suggestions.forEach((name, i) => {
+      if (name.startsWith(":")) {
+        const group = variableGroup(name);
+        if (group !== previousGroup) {
+          const heading = document.createElement("li");
+          heading.className = "autocomplete-group";
+          heading.setAttribute("role", "presentation");
+          heading.textContent = group;
+          dropdown.appendChild(heading);
+          previousGroup = group;
+        }
+      }
       const li = document.createElement("li");
       li.id = `${dropdownId}-option-${i}`;
       li.setAttribute("role", "option");
@@ -328,3 +340,4 @@ if (webExtensionApi?.runtime?.sendMessage) {
     )
     .catch(() => {});
 }
+import { variableGroup } from "./vocabulary-groups.ts";

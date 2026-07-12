@@ -1,0 +1,131 @@
+html:has(body.reference-page),
+html:has(.reference-header) {
+  min-width: 0;
+}
+
+body:has(.reference-header) {
+  display: block;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: var(--space-4) var(--space-5);
+}
+
+.reference-header {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--space-3) var(--space-5);
+  align-items: center;
+  margin: calc(-1 * var(--space-4)) calc(-1 * var(--space-5)) var(--space-5);
+  padding: var(--space-3) var(--space-5);
+  background: var(--page-bg);
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.reference-nav {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.reference-tabs {
+  display: flex;
+  gap: var(--space-1);
+  margin-bottom: var(--space-4);
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.reference-tabs [role="tab"] {
+  padding: var(--space-2) var(--space-4);
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+}
+
+.reference-tabs [aria-selected="true"] {
+  border-bottom-color: var(--link-color);
+  color: var(--link-color);
+}
+
+.reference-search-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.reference-search-label .reference-search {
+  width: min(28rem, 70vw);
+  max-width: none;
+}
+
+.reference-table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+}
+
+.reference-table caption {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+
+.reference-table th,
+.reference-table td {
+  padding: var(--space-2) var(--space-3);
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.reference-table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--panel-bg);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.reference-group-row th {
+  padding-top: var(--space-4);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-weight: 650;
+}
+
+.reference-table tbody th {
+  white-space: nowrap;
+  font-weight: 400;
+}
+
+.click-to-copy[role="button"]:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.click-to-copy.copied {
+  color: var(--green60);
+  outline: 2px solid currentColor;
+}
+
+@media (max-width: 640px) {
+  body:has(.reference-header) {
+    padding: var(--space-3);
+  }
+
+  .reference-header {
+    position: static;
+    grid-template-columns: 1fr;
+    margin: calc(-1 * var(--space-3)) calc(-1 * var(--space-3)) var(--space-4);
+    padding: var(--space-3);
+  }
+
+  .reference-search-label,
+  .reference-search-label .reference-search {
+    width: 100%;
+  }
+}

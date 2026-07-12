@@ -137,13 +137,16 @@ describe("attachAutocomplete", () => {
   test("opens with suggestions on input and closes when nothing matches", () => {
     type("a/:d");
     expect(dropdown().style.display).toBe("block");
-    expect(dropdown().textContent).toBe(":date::day:");
+    expect(dropdown().textContent).toBe("Date and time:date::day:");
+    expect(dropdown().querySelector(".autocomplete-group")?.textContent).toBe("Date and time");
     expect(textarea.getAttribute("role")).toBe("combobox");
     expect(textarea.getAttribute("aria-expanded")).toBe("true");
     expect(textarea.getAttribute("aria-controls")).toBe(dropdown().id);
     expect(dropdown().getAttribute("role")).toBe("listbox");
-    expect(dropdown().querySelector("li")?.getAttribute("role")).toBe("option");
-    expect(textarea.getAttribute("aria-activedescendant")).toBe(dropdown().querySelector("li")?.id);
+    expect(dropdown().querySelector('[role="option"]')?.getAttribute("role")).toBe("option");
+    expect(textarea.getAttribute("aria-activedescendant")).toBe(
+      dropdown().querySelector<HTMLElement>('[role="option"]')?.id,
+    );
 
     type("a/");
     expect(dropdown().style.display).toBe("none");
@@ -215,7 +218,7 @@ describe("attachAutocomplete", () => {
 
   test("mousedown on an entry inserts it", () => {
     type("a/:d");
-    const first = dropdown().querySelector("li");
+    const first = dropdown().querySelector('[role="option"]');
     first!.dispatchEvent(new window.MouseEvent("mousedown", { bubbles: true, cancelable: true }));
     expect(textarea.value).toBe("a/:date:");
   });
@@ -242,7 +245,7 @@ describe("setupRoutingAutocomplete wiring", () => {
 
     const dropdown = document.querySelector(".autocomplete-dropdown") as HTMLElement;
     expect(dropdown.style.display).toBe("block");
-    expect([...dropdown.querySelectorAll("li")].map((li) => li.textContent)).toEqual([
+    expect([...dropdown.querySelectorAll('[role="option"]')].map((li) => li.textContent)).toEqual([
       ":date:",
       ":day:",
     ]);

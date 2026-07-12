@@ -39,6 +39,13 @@ describe("options form semantics", () => {
     expect(source).not.toMatch(/\.style\.minWidth\s*=/);
   });
 
+  test("uses the combined vocabulary reference without an options popout link", () => {
+    const document = documentForOptions();
+    expect(document.querySelector(".open-settings-in-window")).toBeNull();
+    expect(document.querySelector('a[href="clauselist.html"]')).toBeNull();
+    expect(document.querySelector('a[href="variablelist.html#clauses"]')).not.toBeNull();
+  });
+
   test("save-dialog conditions are grouped beneath a regular-size prompt", () => {
     const document = documentForOptions();
     const prompt = document.querySelector(".save-dialog-conditions-label");

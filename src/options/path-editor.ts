@@ -9,6 +9,7 @@ import { webExtensionApi } from "../platform/web-extension-api.ts";
 // serializes back to it and fires the normal input/autosave pipeline.
 
 import { SPECIAL_DIRS } from "../shared/constants.ts";
+import { VARIABLE_GROUPS, type VariableGroup, variableGroup } from "./vocabulary-groups.ts";
 
 type PathRow = { depth: number; body: string; comment: string };
 type EditorOwner = { rebuildVisual?: () => void };
@@ -17,6 +18,7 @@ type InsertEntry = {
   value: string;
   button: HTMLButtonElement;
   valueEl: HTMLElement;
+  group: VariableGroup;
 };
 type MessageResponse = {
   body?: {
@@ -182,13 +184,31 @@ const PathEditorHelpers = {
           !query || entry.variable.includes(query) || entry.value.toLowerCase().includes(query);
         entry.button.style.display = match ? "" : "none";
       });
+      variablesContainer.querySelectorAll<HTMLElement>(".insert-menu-group").forEach((section) => {
+        section.hidden = ![...section.querySelectorAll<HTMLElement>(".insert-menu-variable")].some(
+          (button) => button.style.display !== "none",
+        );
+      });
     };
 
     webExtensionApi.runtime
       .sendMessage({ type: "GET_KEYWORDS" })
       .then((res: MessageResponse) => {
         const variables = (res && res.body && res.body.variables) || [];
+        const sections = new Map<VariableGroup, HTMLElement>();
+        VARIABLE_GROUPS.forEach((group) => {
+          if (!variables.some((variable) => variableGroup(variable) === group)) return;
+          const section = document.createElement("section");
+          section.className = "insert-menu-group";
+          const heading = document.createElement("div");
+          heading.className = "insert-menu-group-heading";
+          heading.textContent = group;
+          section.append(heading);
+          variablesContainer.append(section);
+          sections.set(group, section);
+        });
         variables.forEach((variable: string) => {
+          const group = variableGroup(variable);
           const button = document.createElement("button");
           button.type = "button";
           button.className = "insert-menu-variable";
@@ -205,8 +225,8 @@ const PathEditorHelpers = {
             PathEditorHelpers.insertAtCursor(textarea, variable);
             closeMenu();
           });
-          variablesContainer.appendChild(button);
-          entries.push({ variable, value: "", button, valueEl });
+          sections.get(group)?.appendChild(button);
+          entries.push({ variable, value: "", button, valueEl, group });
         });
         refreshValues();
       })

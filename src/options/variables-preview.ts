@@ -1,5 +1,6 @@
 import { webExtensionApi } from "../platform/web-extension-api.ts";
 import { PathEditor } from "./path-editor.ts";
+import { VARIABLE_GROUPS, variableGroup } from "./vocabulary-groups.ts";
 
 const stringRecord = (value: unknown): Record<string, string> => {
   if (typeof value !== "object" || value === null || Array.isArray(value)) return {};
@@ -60,32 +61,66 @@ export const renderVariablesPreview = async () => {
       const table = document.createElement("table");
       table.className = "variables-preview-table";
 
-      variables.forEach((variable) => {
-        const row = document.createElement("tr");
-        row.className = "variables-preview-row";
-        const nameCell = document.createElement("td");
-        const name = document.createElement("code");
-        name.textContent = variable;
-        if (target) {
-          row.classList.add("insertable");
+      if (target?.id === "paths") {
+        [
+          ["---", "Separator"],
+          [">submenu", "Submenu item"],
+        ].forEach(([syntax, label]) => {
+          const row = document.createElement("tr");
+          row.className = "variables-preview-row variables-preview-command";
+          const cell = document.createElement("td");
+          cell.colSpan = 2;
           const insert = document.createElement("button");
           insert.type = "button";
           insert.className = "variables-preview-insert";
-          insert.setAttribute("aria-label", `Insert ${variable}`);
-          insert.title = `Insert ${variable}`;
-          insert.addEventListener("click", () => PathEditor.insertAtCursor(target, variable));
-          insert.appendChild(name);
-          nameCell.appendChild(insert);
-        } else {
-          nameCell.appendChild(name);
-        }
-        row.appendChild(nameCell);
-        const valueCell = document.createElement("td");
-        valueCell.className = "variables-preview-value";
-        valueCell.textContent = values[variable] || "";
-        valueCell.title = values[variable] || "";
-        row.appendChild(valueCell);
-        table.appendChild(row);
+          insert.textContent = label;
+          insert.title = syntax;
+          insert.addEventListener("click", () => PathEditor.insertLine(target, syntax));
+          cell.append(insert);
+          row.append(cell);
+          table.append(row);
+        });
+      }
+
+      VARIABLE_GROUPS.forEach((group) => {
+        const groupedVariables = variables.filter((variable) => variableGroup(variable) === group);
+        if (groupedVariables.length === 0) return;
+        const headingRow = document.createElement("tr");
+        headingRow.className = "variables-preview-group";
+        const heading = document.createElement("th");
+        heading.colSpan = 2;
+        heading.scope = "colgroup";
+        heading.textContent = group;
+        headingRow.append(heading);
+        table.append(headingRow);
+
+        groupedVariables.forEach((variable) => {
+          const row = document.createElement("tr");
+          row.className = "variables-preview-row";
+          const nameCell = document.createElement("td");
+          const name = document.createElement("code");
+          name.textContent = variable;
+          if (target) {
+            row.classList.add("insertable");
+            const insert = document.createElement("button");
+            insert.type = "button";
+            insert.className = "variables-preview-insert";
+            insert.setAttribute("aria-label", `Insert ${variable}`);
+            insert.title = `Insert ${variable}`;
+            insert.addEventListener("click", () => PathEditor.insertAtCursor(target, variable));
+            insert.appendChild(name);
+            nameCell.appendChild(insert);
+          } else {
+            nameCell.appendChild(name);
+          }
+          row.appendChild(nameCell);
+          const valueCell = document.createElement("td");
+          valueCell.className = "variables-preview-value";
+          valueCell.textContent = values[variable] || "";
+          valueCell.title = values[variable] || "";
+          row.appendChild(valueCell);
+          table.appendChild(row);
+        });
       });
       container.appendChild(table);
 

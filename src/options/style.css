@@ -1080,6 +1080,21 @@ input.key {
   white-space: nowrap;
 }
 
+.autocomplete-dropdown .autocomplete-group {
+  padding-top: var(--space-2);
+  color: var(--grey50);
+  cursor: default;
+  font-family: system-ui;
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.autocomplete-dropdown .autocomplete-group:hover {
+  background: transparent;
+}
+
 .autocomplete-dropdown li:hover {
   background: rgba(128, 128, 128, 0.22);
 }
@@ -1321,6 +1336,26 @@ summary {
   text-overflow: ellipsis;
   white-space: nowrap;
   max-width: 0;
+}
+
+.variables-preview-group th,
+.insert-menu-group-heading {
+  padding: var(--space-2) var(--space-3) var(--space-1);
+  color: var(--grey50);
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.variables-preview-command + .variables-preview-command td {
+  border-top: 1px solid var(--panel-border);
+}
+
+.variables-preview-command .variables-preview-insert {
+  min-height: 30px;
+  padding: var(--space-1) var(--space-2);
 }
 
 .variables-preview-table tr:last-child td {
@@ -2598,6 +2633,10 @@ code.click-to-copy {
 .insert-menu-variables {
   max-height: 230px;
   overflow-y: auto;
+}
+
+.insert-menu-group + .insert-menu-group {
+  border-top: 1px solid var(--panel-border);
 }
 
 .insert-menu-variables .insert-menu-variable:last-child,

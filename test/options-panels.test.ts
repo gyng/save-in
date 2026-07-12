@@ -90,23 +90,41 @@ describe("variables preview", () => {
     const insert = vi.spyOn(PathEditor, "insertAtCursor").mockImplementation(() => {});
 
     await renderVariablesPreview();
-    const rows = [...document.querySelectorAll<HTMLElement>(".variables-preview-row")];
-    expect(rows.map((row) => row.textContent)).toEqual([":url:https://x/", ":title:"]);
-    const buttons = [...document.querySelectorAll<HTMLButtonElement>(".variables-preview-insert")];
+    const rows = [
+      ...document.querySelectorAll<HTMLElement>(
+        ".variables-preview-row:not(.variables-preview-command)",
+      ),
+    ];
+    expect(rows.map((row) => row.textContent)).toEqual([":title:", ":url:https://x/"]);
+    const buttons = [
+      ...document.querySelectorAll<HTMLButtonElement>(
+        ".variables-preview-row:not(.variables-preview-command) .variables-preview-insert",
+      ),
+    ];
     expect(buttons).toHaveLength(2);
     expect(buttons[0].type).toBe("button");
-    expect(buttons[0].getAttribute("aria-label")).toBe("Insert :url:");
+    expect(buttons[0].getAttribute("aria-label")).toBe("Insert :title:");
     buttons[0].click();
     expect(insert).toHaveBeenCalledWith(
       document.querySelector<HTMLTextAreaElement>("#paths"),
-      ":url:",
+      ":title:",
     );
+    expect(
+      [...document.querySelectorAll<HTMLElement>(".variables-preview-command")].map(
+        (row) => row.textContent,
+      ),
+    ).toEqual(["Separator", "Submenu item"]);
+    expect(
+      [...document.querySelectorAll<HTMLElement>(".variables-preview-group")].map(
+        (row) => row.textContent,
+      ),
+    ).toEqual(["Page context", "Source URL"]);
 
     const filter = document.querySelector<HTMLInputElement>(".variables-preview-filter")!;
     filter.value = "title";
     filter.dispatchEvent(new InputEvent("input", { bubbles: true }));
-    expect(rows[0]!.hidden).toBe(true);
-    expect(rows[1]!.hidden).toBe(false);
+    expect(rows[0]!.hidden).toBe(false);
+    expect(rows[1]!.hidden).toBe(true);
 
     const insertLine = vi.spyOn(PathEditor, "insertLine").mockImplementation(() => {});
     document.querySelector<HTMLButtonElement>(".variables-preview-structures button")!.click();
@@ -128,7 +146,7 @@ describe("variables preview", () => {
       [...document.querySelectorAll<HTMLElement>(".variables-preview-row")].map(
         (row) => row.textContent,
       ),
-    ).toEqual([":url:", ":title:"]);
+    ).toEqual([":title:", ":url:"]);
   });
 });
 

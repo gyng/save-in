@@ -2,12 +2,38 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>Variables &mdash; Save In</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>__MSG_o_lVariableList__ &mdash; Save In</title>
     <link href="style.css" rel="stylesheet" />
+    <link href="reference.css" rel="stylesheet" />
   </head>
 
   <body>
-    <div class="help-text show" id="help-standard-variables">
+    <header class="reference-header">
+      <div>
+        <strong>Save In</strong>
+        <span aria-hidden="true">/</span>
+        <span>__MSG_o_lVariableList__</span>
+      </div>
+      <nav class="reference-nav" aria-label="__MSG_o_lReferenceNavigation__">
+        <a href="options.html">__MSG_o_sMoreOptions__</a>
+      </nav>
+      <label class="reference-search-label">
+        <span>__MSG_o_lFilterReference__</span>
+        <input class="reference-search" type="search" autocomplete="off" />
+      </label>
+      <span class="reference-count caption"></span>
+      <span class="reference-copy-status visually-hidden" role="status" aria-live="polite"></span>
+    </header>
+    <div class="reference-tabs" role="tablist" aria-label="Reference type">
+      <button type="button" role="tab" aria-selected="true" aria-controls="reference-variables">
+        __MSG_o_lVariableList__
+      </button>
+      <button type="button" role="tab" aria-selected="false" aria-controls="reference-clauses">
+        __MSG_o_lClauseList__
+      </button>
+    </div>
+    <div class="help-text show reference-panel" id="reference-variables" role="tabpanel">
       <h2>Variables</h2>
 
       <p>Variables are used in directory and path patterns.</p>
@@ -346,9 +372,20 @@
           </td>
           <td>Creates a separator in the context menu</td>
         </tr>
+        <tr>
+          <td><code class="click-to-copy">&gt;submenu</code></td>
+          <td>Creates a submenu item; add more <code>&gt;</code> characters for deeper nesting</td>
+        </tr>
       </table>
     </div>
+    <div
+      class="help-text show reference-panel"
+      id="reference-clauses"
+      role="tabpanel"
+      data-source="clauselist.html"
+      hidden
+    ></div>
 
-    <script src="clicktocopy.js"></script>
+    <script src="reference-page.js"></script>
   </body>
 </html>
