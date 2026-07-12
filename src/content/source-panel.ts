@@ -1,5 +1,11 @@
 export type PageSourceKind = "image" | "video" | "audio";
 export type PageSource = { url: string; kind: PageSourceKind; element: Element };
+export type SourcePanelOptions = {
+  enabled?: boolean;
+  includeBackgrounds?: boolean;
+  live?: boolean;
+  previews?: boolean;
+};
 
 const urlsFromCss = (value: string): string[] =>
   [...value.matchAll(/url\((?:"([^"]+)"|'([^']+)'|([^)'"\s]+))\)/g)].map(
@@ -15,7 +21,10 @@ const absoluteUrl = (value: string): string | null => {
   }
 };
 
-export const collectPageSources = (root: ParentNode = document): PageSource[] => {
+export const collectPageSources = (
+  root: ParentNode = document,
+  options: SourcePanelOptions = {},
+): PageSource[] => {
   const found: PageSource[] = [];
   const add = (value: string | null | undefined, kind: PageSourceKind, element: Element) => {
     const url = value && absoluteUrl(value);
@@ -40,11 +49,13 @@ export const collectPageSources = (root: ParentNode = document): PageSource[] =>
         .forEach((candidate) => add(candidate.trim().split(/\s+/)[0], kind, element));
     });
   });
-  root.querySelectorAll<HTMLElement>("body, body *").forEach((element) => {
-    urlsFromCss(getComputedStyle(element).backgroundImage).forEach((url) =>
-      add(url, "image", element),
-    );
-  });
+  if (options.includeBackgrounds !== false) {
+    root.querySelectorAll<HTMLElement>("body, body *").forEach((element) => {
+      urlsFromCss(getComputedStyle(element).backgroundImage).forEach((url) =>
+        add(url, "image", element),
+      );
+    });
+  }
 
   const seen = new Set<string>();
   return found.filter(({ url }) => !seen.has(url) && Boolean(seen.add(url)));
@@ -53,13 +64,17 @@ export const collectPageSources = (root: ParentNode = document): PageSource[] =>
 const PANEL_HOST_ID = "save-in-source-panel";
 const panelObservers = new WeakMap<Element, MutationObserver>();
 
-export const toggleSourcePanel = (sendDownload: (source: PageSource) => void): boolean => {
+export const toggleSourcePanel = (
+  sendDownload: (source: PageSource) => void,
+  options: SourcePanelOptions = {},
+): boolean => {
   const existing = document.getElementById(PANEL_HOST_ID);
   if (existing) {
     panelObservers.get(existing)?.disconnect();
     existing.remove();
     return false;
   }
+  if (options.enabled === false) return false;
 
   const host = document.createElement("aside");
   host.id = PANEL_HOST_ID;
@@ -90,7 +105,7 @@ export const toggleSourcePanel = (sendDownload: (source: PageSource) => void): b
   const list = document.createElement("div");
   list.className = "list";
   const render = () => {
-    const sources = collectPageSources();
+    const sources = collectPageSources(document, options);
     title.textContent = `Page sources (${sources.length})`;
     list.replaceChildren();
     if (!sources.length) {
@@ -104,14 +119,15 @@ export const toggleSourcePanel = (sendDownload: (source: PageSource) => void): b
       const row = document.createElement("div");
       row.className = "row";
       const preview =
-        source.kind === "audio"
+        options.previews === false || source.kind === "audio"
           ? document.createElement("div")
           : document.createElement(source.kind === "image" ? "img" : "video");
       if (preview instanceof HTMLImageElement || preview instanceof HTMLVideoElement)
         preview.src = source.url;
       else {
         preview.className = "audio";
-        preview.textContent = "♪";
+        preview.textContent =
+          options.previews === false ? (source.kind === "image" ? "▧" : "▶") : "♪";
       }
       const text = document.createElement("div");
       const url = document.createElement("div");
@@ -155,11 +171,13 @@ export const toggleSourcePanel = (sendDownload: (source: PageSource) => void): b
     timer = window.setTimeout(render, 200);
   });
   panelObservers.set(host, observer);
-  observer.observe(document.documentElement, {
-    childList: true,
-    subtree: true,
-    attributes: true,
-    attributeFilter: ["src", "srcset", "style"],
-  });
+  if (options.live !== false) {
+    observer.observe(document.documentElement, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["src", "srcset", "style"],
+    });
+  }
   return true;
 };

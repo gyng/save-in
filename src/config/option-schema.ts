@@ -50,6 +50,10 @@ export const OPTION_KEYS = [
     default: CONFLICT_ACTION.UNIQUIFY,
   },
   { name: "contentClickToSave", type: OPTION_TYPES.BOOL, default: false },
+  { name: "sourcePanelEnabled", type: OPTION_TYPES.BOOL, default: true },
+  { name: "sourcePanelBackgrounds", type: OPTION_TYPES.BOOL, default: true },
+  { name: "sourcePanelLive", type: OPTION_TYPES.BOOL, default: true },
+  { name: "sourcePanelPreviews", type: OPTION_TYPES.BOOL, default: true },
   {
     name: "contentClickToSaveCombo",
     type: OPTION_TYPES.VALUE,

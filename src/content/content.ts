@@ -10,7 +10,19 @@ type ContentOptions = {
   contentClickToSaveCombo?: string | number | null;
   contentClickToSaveButton?: string;
   links?: boolean;
+  sourcePanelEnabled?: boolean;
+  sourcePanelBackgrounds?: boolean;
+  sourcePanelLive?: boolean;
+  sourcePanelPreviews?: boolean;
 };
+
+const sourcePanelOptions: ContentOptions = {};
+const SOURCE_PANEL_OPTION_KEYS = [
+  "sourcePanelEnabled",
+  "sourcePanelBackgrounds",
+  "sourcePanelLive",
+  "sourcePanelPreviews",
+] as const;
 
 const ClickToSave = {
   isKeyboardComboActive: (combo: number[], activeKeys: Record<number, boolean>) =>
@@ -190,10 +202,17 @@ try {
     }
 
     const options = response.body;
+    Object.assign(sourcePanelOptions, options);
 
     if (options.contentClickToSave) {
       setupClickToSave(options);
     }
+  });
+  chrome.storage?.onChanged?.addListener((changes, areaName) => {
+    if (areaName !== "local") return;
+    SOURCE_PANEL_OPTION_KEYS.forEach((key) => {
+      if (key in changes) sourcePanelOptions[key] = changes[key].newValue;
+    });
   });
 } catch (e) {
   // Extension context invalidated (extension reloaded/updated underneath us)
@@ -202,12 +221,20 @@ try {
 try {
   chrome.runtime.onMessage.addListener((message) => {
     if (message?.type !== "TOGGLE_SOURCE_PANEL") return;
-    toggleSourcePanel(({ url, kind }) => {
-      chrome.runtime.sendMessage({
-        type: "DOWNLOAD",
-        body: { url, info: { pageUrl: `${window.location}`, srcUrl: url, sourceKind: kind } },
-      });
-    });
+    toggleSourcePanel(
+      ({ url, kind }) => {
+        chrome.runtime.sendMessage({
+          type: "DOWNLOAD",
+          body: { url, info: { pageUrl: `${window.location}`, srcUrl: url, sourceKind: kind } },
+        });
+      },
+      {
+        enabled: sourcePanelOptions.sourcePanelEnabled !== false,
+        includeBackgrounds: sourcePanelOptions.sourcePanelBackgrounds !== false,
+        live: sourcePanelOptions.sourcePanelLive !== false,
+        previews: sourcePanelOptions.sourcePanelPreviews !== false,
+      },
+    );
   });
 } catch {
   // Extension context invalidated.

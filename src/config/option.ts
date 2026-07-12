@@ -49,6 +49,10 @@ export const OptionsManagement: OptionsManagementApi = {
     contentClickToSaveCombo:
       "Key to hold for click-to-save: a name (Alt/Ctrl/Shift/Meta), a raw keyCode, or blank for none.",
     contentClickToSaveButton: "Mouse button for click-to-save.",
+    sourcePanelEnabled: "Enable the toolbar source browser for DOM-visible page media.",
+    sourcePanelBackgrounds: "Include URLs found in computed CSS background images.",
+    sourcePanelLive: "Refresh the source list when page DOM media changes.",
+    sourcePanelPreviews: "Load image and video thumbnails in the source list.",
     debug: "Enable the session debug log.",
     enableLastLocation: "Show a 'last used' item at the top of the menu.",
     enableNumberedItems: "Add number-key access keys to submenu items.",

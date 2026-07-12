@@ -1,6 +1,10 @@
 import { collectPageSources } from "../src/content/source-panel.ts";
 
 describe("page source collection", () => {
+  beforeEach(() => {
+    document.head.innerHTML = "";
+  });
+
   test("collects and deduplicates media, source candidates, and backgrounds", () => {
     document.head.innerHTML = `<base href="https://example.com/page/">`;
     document.body.innerHTML = `
@@ -22,5 +26,12 @@ describe("page source collection", () => {
   test("rejects unsafe schemes", () => {
     document.body.innerHTML = `<img src="javascript:alert(1)">`;
     expect(collectPageSources()).toEqual([]);
+  });
+
+  test("can omit computed CSS background sources", () => {
+    document.body.innerHTML = `<img src="visible.png"><div style="background-image:url(hidden.png)"></div>`;
+    expect(
+      collectPageSources(document, { includeBackgrounds: false }).map(({ url }) => url),
+    ).toEqual(["http://localhost/visible.png"]);
   });
 });
