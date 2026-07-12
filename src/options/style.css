@@ -248,7 +248,6 @@ body:not(#settings-page) {
   white-space: nowrap;
   margin-left: var(--space-1);
   padding-left: var(--space-3);
-  padding-right: 3.25rem;
   border-left: 1px solid var(--color-border);
   font-size: var(--text-sm);
 }
@@ -309,9 +308,7 @@ body:not(#settings-page) {
 }
 
 .saved-change-undo {
-  position: absolute;
-  top: 50%;
-  right: 0;
+  flex: none;
   min-height: 0;
   margin: 0;
   padding: 1px var(--space-2);
@@ -319,7 +316,6 @@ body:not(#settings-page) {
   border: 0;
   background: transparent;
   font-size: var(--text-sm);
-  transform: translateY(-50%);
   cursor: pointer;
 }
 
@@ -343,11 +339,6 @@ body:not(#settings-page) {
   display: inline-flex;
   align-items: baseline;
   gap: 5px;
-  width: 8.5em;
-  min-width: 8.5em;
-  overflow: hidden;
-  text-overflow: clip;
-  white-space: nowrap;
 }
 
 #lastSavedAt.saved-confirmed {

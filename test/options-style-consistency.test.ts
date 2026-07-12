@@ -38,3 +38,13 @@ test("reference data rows do not use divider lines", () => {
   expect(reference).toContain(".reference-table tbody td");
   expect(reference).toContain("border-bottom: 0");
 });
+
+test("saved status keeps Undo in flow and animates around the icon center", () => {
+  const css = readStyle("style.css");
+  const undo = css.match(/\.saved-change-undo\s*\{([^}]*)\}/)?.[1] || "";
+  const confirmedIcon = css.match(/#lastSavedAt\.saved-confirmed::before\s*\{([^}]*)\}/)?.[1] || "";
+
+  expect(undo).not.toContain("position: absolute");
+  expect(undo).not.toContain("transform: translate");
+  expect(confirmedIcon).toContain("transform-origin: 50% 50%");
+});
