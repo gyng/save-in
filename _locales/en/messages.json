@@ -196,7 +196,7 @@
   },
 
   "o_sDownloads": {
-    "message": "Downloads Menu",
+    "message": "Downloads menu",
     "description": "o prefixes are for options page text, s prefix are for section/subsection titles"
   },
 
@@ -285,7 +285,7 @@
   },
 
   "o_sRenameAndRouteDownloads": {
-    "message": "Rename and Route Downloads"
+    "message": "Rename and route downloads"
   },
 
   "o_sNotifications": {
@@ -293,19 +293,19 @@
   },
 
   "o_sSaveAsShortcuts": {
-    "message": "Shortcut Files"
+    "message": "Shortcut files"
   },
 
   "o_sKeyboardShortcuts": {
-    "message": "Keyboard and Mouse Shortcuts"
+    "message": "Keyboard and mouse shortcuts"
   },
 
   "o_sContextMenu": {
-    "message": "Context Menu Access Keys"
+    "message": "Context menu access keys"
   },
 
   "o_sClickToSave": {
-    "message": "Click-to-save Gesture"
+    "message": "Click-to-save gesture"
   },
 
   "o_sMoreOptions": {
@@ -397,7 +397,7 @@
   },
 
   "o_sVisualEditor": {
-    "message": "Visual Editor"
+    "message": "Visual editor"
   },
 
   "o_bAddDirectory": {
