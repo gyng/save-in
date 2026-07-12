@@ -14,6 +14,7 @@ import {
   sortVariables,
   VARIABLE_GROUPS,
   type VariableGroup,
+  variableExample,
   variableGroup,
 } from "./vocabulary-groups.ts";
 
@@ -178,9 +179,10 @@ const PathEditorHelpers = {
           const values = (res && res.body && res.body.interpolatedVariables) || {};
           entries.forEach((entry) => {
             entry.value = values[entry.variable] || "";
-            entry.valueEl.textContent = entry.value;
+            entry.valueEl.textContent = entry.value || variableExample(entry.variable);
+            entry.valueEl.classList.toggle("is-placeholder", !entry.value);
             // Long values ellipsize; the tooltip carries the full value
-            entry.button.title = entry.value;
+            entry.button.title = entry.value || "Example — no live value yet";
           });
         })
         .catch(() => {});

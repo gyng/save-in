@@ -1,6 +1,11 @@
 import { webExtensionApi } from "../platform/web-extension-api.ts";
 import { PathEditor } from "./path-editor.ts";
-import { sortVariables, VARIABLE_GROUPS, variableGroup } from "./vocabulary-groups.ts";
+import {
+  sortVariables,
+  VARIABLE_GROUPS,
+  variableExample,
+  variableGroup,
+} from "./vocabulary-groups.ts";
 
 const stringRecord = (value: unknown): Record<string, string> => {
   if (typeof value !== "object" || value === null || Array.isArray(value)) return {};
@@ -103,8 +108,10 @@ export const renderVariablesPreview = async () => {
           row.appendChild(nameCell);
           const valueCell = document.createElement("td");
           valueCell.className = "variables-preview-value";
-          valueCell.textContent = values[variable] || "";
-          valueCell.title = values[variable] || "";
+          const liveValue = values[variable] || "";
+          valueCell.textContent = liveValue || variableExample(variable);
+          valueCell.classList.toggle("is-placeholder", !liveValue);
+          valueCell.title = liveValue || `Example — no live value yet`;
           row.appendChild(valueCell);
           table.appendChild(row);
         });

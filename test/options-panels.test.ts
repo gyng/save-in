@@ -100,7 +100,7 @@ describe("variables preview", () => {
         ".variables-preview-row:not(.variables-preview-command)",
       ),
     ];
-    expect(rows.map((row) => row.textContent)).toEqual([":title:", ":url:https://x/"]);
+    expect(rows.map((row) => row.textContent)).toEqual([":title:example", ":url:https://x/"]);
     const buttons = [
       ...document.querySelectorAll<HTMLButtonElement>(
         ".variables-preview-row:not(.variables-preview-command) .variables-preview-insert",
@@ -148,11 +148,10 @@ describe("variables preview", () => {
       .mockResolvedValueOnce({ body: { interpolatedVariables: { ":url:": false } } });
     await renderVariablesPreview();
     expect(document.querySelector(".variables-preview-empty")).toBeNull();
-    expect(
-      [...document.querySelectorAll<HTMLElement>(".variables-preview-row")].map(
-        (row) => row.textContent,
-      ),
-    ).toEqual([":title:", ":url:"]);
+    const values = [...document.querySelectorAll<HTMLElement>(".variables-preview-value")];
+    expect(values.map((value) => value.textContent)).toEqual(["example", "https://example.com/file.jpg"]);
+    expect(values.every((value) => value.classList.contains("is-placeholder"))).toBe(true);
+    expect(values.every((value) => value.title.startsWith("Example —"))).toBe(true);
   });
 });
 

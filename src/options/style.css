@@ -1594,6 +1594,12 @@ summary {
   font-family: var(--font-mono);
 }
 
+.variables-preview-value.is-placeholder,
+.insert-menu-value.is-placeholder {
+  opacity: 0.58;
+  font-style: italic;
+}
+
 .variables-preview-insert {
   display: block;
   width: 100%;
@@ -1928,6 +1934,31 @@ summary {
 
 button:disabled {
   opacity: 0.55;
+}
+
+.shortcut-file-options {
+  display: grid;
+  gap: var(--space-2);
+  max-width: 42rem;
+}
+
+.shortcut-format-control {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+#shortcut-format-preview {
+  min-width: 9rem;
+}
+
+.warning-text:not(:empty),
+#click-to-save-warning:not([hidden]) {
+  display: block;
+  margin-top: var(--space-2);
+  color: #8a5400;
 }
 
 button:disabled:hover {

@@ -149,3 +149,23 @@ export const compareClauses = (a: string, b: string): number => {
 export const sortVariables = (variables: string[]): string[] =>
   variables.toSorted(compareVariables);
 export const sortClauses = (clauses: string[]): string[] => clauses.toSorted(compareClauses);
+
+export const variableExample = (variable: string): string => {
+  const name = variableName(variable);
+  if (name === "date") return "2026-07-12";
+  if (name === "year") return "2026";
+  if (name === "month" || name === "day") return "07";
+  if (/^(hour|minute|second)$/.test(name)) return "09";
+  if (name === "counter") return "42";
+  if (/fileext|mimeext/.test(name)) return "jpg";
+  if (/filename/.test(name)) return "photo.jpg";
+  if (/domain|tld/.test(name)) return name === "tld" ? "com" : "example.com";
+  if (/url/.test(name)) return "https://example.com/file.jpg";
+  if (name === "pagetitle") return "Example page";
+  if (name === "pagetitleslug") return "example-page";
+  if (name === "pagetitlesnake") return "example_page";
+  if (/mime|contenttype/.test(name)) return "image/jpeg";
+  if (/^\$\d+$/.test(name)) return "captured-text";
+  if (name === "uuid") return "f47ac10b-…";
+  return "example";
+};
