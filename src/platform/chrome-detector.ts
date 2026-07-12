@@ -12,6 +12,7 @@ export type WebExtensionCapabilities = {
   downloadFilenameSuggestion: boolean;
   downloadDeltaFilename: boolean;
   conflictActionPrompt: boolean;
+  downloadRequestHeaders: boolean;
 };
 
 // Mutable cross-file state: reassigned only in this module (by the detection
@@ -23,24 +24,23 @@ export let WEB_EXTENSION_CAPABILITIES: WebExtensionCapabilities = {
   downloadFilenameSuggestion: false,
   downloadDeltaFilename: false,
   conflictActionPrompt: false,
+  downloadRequestHeaders: false,
 };
 export let CURRENT_BROWSER = BROWSERS.UNKNOWN;
 export let CURRENT_BROWSER_VERSION: number | undefined;
 
 export const detectCapabilities = (currentBrowser: string): WebExtensionCapabilities => ({
-  // Chrome exposes the enum from M150. Feature detection keeps M123–149
-  // installs working without attempting an unsupported context-menu value.
-  tabContextMenus:
-    currentBrowser === BROWSERS.FIREFOX ||
-    Boolean((globalThis.chrome?.contextMenus as any)?.ContextType?.TAB),
+  // `ContextType` is an API type, not a reliably exposed runtime enum. Both
+  // declared minimum browsers accept the documented literal `"tab"`.
+  tabContextMenus: currentBrowser === BROWSERS.FIREFOX || currentBrowser === BROWSERS.CHROME,
   accessKeys: true,
-  downloadFilenameSuggestion:
-    currentBrowser === BROWSERS.CHROME &&
-    Boolean(globalThis.chrome?.downloads?.onDeterminingFilename),
+  downloadFilenameSuggestion: Boolean(globalThis.chrome?.downloads?.onDeterminingFilename),
   // Chrome supplies the final filename through DownloadDelta; Firefox includes
   // it in the initial DownloadItem.
   downloadDeltaFilename: currentBrowser === BROWSERS.CHROME,
   conflictActionPrompt: currentBrowser === BROWSERS.FIREFOX,
+  // Chrome rejects Referer in downloads.DownloadOptions as an unsafe header.
+  downloadRequestHeaders: currentBrowser === BROWSERS.FIREFOX,
 });
 
 // The write-half of the browser identity/capability live bindings: they

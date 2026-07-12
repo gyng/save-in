@@ -1,13 +1,11 @@
 import { BROWSERS, detectCapabilities } from "../src/platform/chrome-detector.ts";
 
 describe("detectCapabilities", () => {
-  test("tabContextMenus supports Firefox and Chrome exposing the M150 enum", () => {
+  test("tabContextMenus supports Firefox and Chrome without requiring a runtime enum", () => {
     expect(detectCapabilities(BROWSERS.FIREFOX).tabContextMenus).toBe(true);
     const contextMenus = (global.chrome as any).contextMenus;
     try {
       (global.chrome as any).contextMenus = { ContextType: {} };
-      expect(detectCapabilities(BROWSERS.CHROME).tabContextMenus).toBe(false);
-      (global.chrome as any).contextMenus.ContextType.TAB = "tab";
       expect(detectCapabilities(BROWSERS.CHROME).tabContextMenus).toBe(true);
     } finally {
       (global.chrome as any).contextMenus = contextMenus;
@@ -28,6 +26,19 @@ describe("detectCapabilities", () => {
       downloadDeltaFilename: false,
       conflictActionPrompt: true,
     });
+  });
+
+  test("filename routing follows the host API rather than the browser name", () => {
+    const downloads = (global.chrome as any).downloads;
+    const original = downloads.onDeterminingFilename;
+    try {
+      downloads.onDeterminingFilename = undefined;
+      expect(detectCapabilities(BROWSERS.CHROME).downloadFilenameSuggestion).toBe(false);
+      downloads.onDeterminingFilename = { addListener: vi.fn() };
+      expect(detectCapabilities(BROWSERS.FIREFOX).downloadFilenameSuggestion).toBe(true);
+    } finally {
+      downloads.onDeterminingFilename = original;
+    }
   });
 });
 
