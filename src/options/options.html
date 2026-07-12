@@ -769,7 +769,6 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
       <hr />
 
       <h2 id="section-notifications">__MSG_o_sNotifications__</h2>
-      <p class="section-lead">Choose which download events should interrupt you.</p>
       <fieldset class="option-group notification-options">
         <legend class="option-group-heading">Notify me when</legend>
         <div class="option-choice-grid">
@@ -956,9 +955,26 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
 
         <div class="source-panel-demo" aria-label="Preview of the Page sources drawer">
           <div class="source-panel-demo-header">
-            <strong>Page sources</strong><span aria-hidden="true">⌕ &nbsp; ◫ &nbsp; ×</span>
+            <strong>Page sources</strong>
+            <span class="source-panel-demo-actions" aria-hidden="true">
+              <span
+                ><svg viewBox="0 0 24 24">
+                  <path d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z" /></svg
+              ></span>
+              <span
+                ><svg viewBox="0 0 24 24"><path d="M14 4h6v6m0-6-9 9M18 13v6H5V6h6" /></svg
+              ></span>
+              <span
+                ><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18" /></svg
+              ></span>
+            </span>
           </div>
-          <div class="source-panel-demo-search">Filter sources</div>
+          <div class="source-panel-demo-search">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z" />
+            </svg>
+            <span>Filter sources</span>
+          </div>
           <div class="source-panel-demo-facets">
             <span class="active">All <b>8</b></span
             ><span>Images <b>5</b></span
@@ -967,11 +983,15 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
           </div>
           <div class="source-panel-demo-row">
             <span class="source-panel-demo-thumb image-thumb" aria-hidden="true"></span>
-            <span><strong>hero.webp</strong><small>Image · 128 KB · #1</small></span>
+            <span class="source-panel-demo-details"
+              ><strong>hero.webp</strong><small>Image · 128 KB · #1</small></span
+            >
           </div>
           <div class="source-panel-demo-row">
             <span class="source-panel-demo-thumb video-thumb" aria-hidden="true">▶</span>
-            <span><strong>intro.mp4</strong><small>Video · 2.4 MB · #2</small></span>
+            <span class="source-panel-demo-details"
+              ><strong>intro.mp4</strong><small>Video · 2.4 MB · #2</small></span
+            >
           </div>
         </div>
       </div>

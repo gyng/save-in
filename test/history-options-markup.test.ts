@@ -38,4 +38,8 @@ test("shows a Page sources drawer preview", () => {
 
   expect(demo.getAttribute("aria-label")).toContain("Page sources");
   expect(demo.querySelectorAll(".source-panel-demo-row")).toHaveLength(2);
+  expect(demo.querySelectorAll(".source-panel-demo-actions svg")).toHaveLength(3);
+  expect(demo.querySelector(".source-panel-demo-search svg")).not.toBeNull();
+  expect(demo.querySelectorAll(".source-panel-demo-facets b")).toHaveLength(4);
+  expect(demo.querySelectorAll(".source-panel-demo-details")).toHaveLength(2);
 });
