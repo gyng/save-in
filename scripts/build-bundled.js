@@ -37,6 +37,9 @@ fs.copyFileSync(path.join(root, "PRIVACY.md"), path.join(out, "PRIVACY.md"));
 
 // 3. Drop the bundles at the package root
 for (const f of fs.readdirSync(path.join(root, "dist", "bundled"))) {
+  // Older builds emitted this standalone file. Reference pages now own their
+  // copy behavior, so never let a stale local bundle leak into a store ZIP.
+  if (f === "clicktocopy.js" || f === "clicktocopy.js.map") continue;
   fs.copyFileSync(path.join(root, "dist", "bundled", f), path.join(out, f));
 }
 

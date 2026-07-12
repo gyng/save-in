@@ -15,18 +15,3 @@ export const normalizeKeyComboForDisplay = (value: string | number): string | nu
   const key = String(value);
   return key in KEYCODE_NAMES ? KEYCODE_NAMES[key] : value;
 };
-
-// The full list is the fallback because the combobox must never render empty.
-export const filterKeyComboOptions = <T extends { value: string; label: string }>(
-  allOptions: T[],
-  query: string,
-): T[] => {
-  const normalizedQuery = (query || "").trim().toLowerCase();
-  const matched = allOptions.filter(
-    (option) =>
-      !normalizedQuery ||
-      option.value.toLowerCase().startsWith(normalizedQuery) ||
-      option.label.toLowerCase().includes(normalizedQuery),
-  );
-  return matched.length ? matched : allOptions;
-};

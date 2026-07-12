@@ -73,18 +73,6 @@ export default defineConfig([
       sourcemap: true,
     },
   },
-  // clicktocopy is loaded standalone by the variablelist/clauselist help pages
-  // (it auto-applies to `.click-to-copy` elements on load). Isolated → iife.
-  {
-    input: "src/options/clicktocopy.ts",
-    output: {
-      file: "dist/bundled/clicktocopy.js",
-      format: "iife",
-      name: "__saveInClickToCopy",
-      minify: false,
-      sourcemap: true,
-    },
-  },
   {
     input: "src/entries/reference-page.ts",
     output: {
