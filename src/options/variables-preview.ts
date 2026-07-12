@@ -45,21 +45,6 @@ export const renderVariablesPreview = async () => {
       filter.spellcheck = false;
       container.appendChild(filter);
 
-      if (target?.id === "paths") {
-        const structures = document.createElement("div");
-        structures.className = "variables-preview-structures";
-        [
-          ["---", "Separator"],
-          [">subfolder", "Submenu item"],
-        ].forEach(([line, label]) => {
-          const button = document.createElement("button");
-          button.type = "button";
-          button.textContent = label;
-          button.addEventListener("click", () => PathEditor.insertLine(target, line));
-          structures.appendChild(button);
-        });
-        container.appendChild(structures);
-      }
       const table = document.createElement("table");
       table.className = "variables-preview-table";
 

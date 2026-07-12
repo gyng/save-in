@@ -396,7 +396,7 @@
   },
 
   "o_lLiveVariables": {
-    "message": "Live variables",
+    "message": "Live variable list",
     "description": "Heading for the scrollable list of variables and their current values"
   },
 

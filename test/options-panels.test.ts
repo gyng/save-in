@@ -131,8 +131,9 @@ describe("variables preview", () => {
     expect(rows[0]!.hidden).toBe(false);
     expect(rows[1]!.hidden).toBe(true);
 
+    expect(document.querySelector(".variables-preview-structures")).toBeNull();
     const insertLine = vi.spyOn(PathEditor, "insertLine").mockImplementation(() => {});
-    document.querySelector<HTMLButtonElement>(".variables-preview-structures button")!.click();
+    document.querySelector<HTMLButtonElement>(".variables-preview-command button")!.click();
     expect(insertLine).toHaveBeenCalledWith(
       document.querySelector<HTMLTextAreaElement>("#paths"),
       "---",
