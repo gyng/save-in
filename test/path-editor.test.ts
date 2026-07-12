@@ -555,14 +555,12 @@ describe("insert menu targets its editor via data-insert-target", () => {
         <summary>+ Add</summary>
         <div>
           <input type="search" class="clause-preview-filter" />
-          <input type="text" class="insert-menu-filter" />
-          <button type="button" data-insert-line="into: ">into</button>
-          <div class="insert-menu-variables"></div>
+          <table class="variables-preview-table clause-preview-table"><tbody></tbody></table>
         </div>
       </details>
     `;
     global.browser.runtime.sendMessage = vi.fn(() =>
-      Promise.resolve({ body: { variables: [":filename:"] } }),
+      Promise.resolve({ body: { matchers: ["fileext", "pageurl", "context"] } }),
     );
     new PathEditor().setupInsertMenu("#rules-insert-menu");
     await Promise.resolve();
@@ -573,12 +571,26 @@ describe("insert menu targets its editor via data-insert-target", () => {
     element<HTMLElement>('[data-insert-line="into: "]').click();
 
     expect(textarea.value).toBe("fileext: pdf\ninto: ");
-    // Variables from the same GET_KEYWORDS source appear
-    expect(document.querySelectorAll(".insert-menu-variable")).toHaveLength(1);
+    expect(
+      [...document.querySelectorAll(".clause-preview-table code")].map((node) => node.textContent),
+    ).toEqual(["into:", "capture:", "context:", "pageurl:", "fileext:"]);
+    expect(
+      [...document.querySelectorAll(".variables-preview-group")].map((node) => node.textContent),
+    ).toEqual([
+      "Output",
+      "Capture setup",
+      "Page and menu context",
+      "URL and source matching",
+      "Filename and content matching",
+    ]);
 
     const clauseFilter = element<HTMLInputElement>(".clause-preview-filter");
     clauseFilter.value = "no match";
     clauseFilter.dispatchEvent(new InputEvent("input", { bubbles: true }));
-    expect(element<HTMLElement>('[data-insert-line="into: "]').hidden).toBe(true);
+    expect(
+      [...document.querySelectorAll<HTMLTableRowElement>(".variables-preview-row")].every(
+        (row) => row.hidden,
+      ),
+    ).toBe(true);
   });
 });

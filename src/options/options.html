@@ -702,10 +702,9 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
                     placeholder="Filter clauses"
                     spellcheck="false"
                   />
-                  <button type="button" data-insert-line="into: ">__MSG_o_bInsertInto__</button>
-                  <button type="button" data-insert-line="capture: ">
-                    __MSG_o_bInsertCapture__
-                  </button>
+                  <table class="variables-preview-table clause-preview-table">
+                    <tbody></tbody>
+                  </table>
                 </div>
               </details>
 
@@ -898,17 +897,31 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
 
       <fieldset class="option-group inline-option-group">
         <legend>__MSG_o_cKeyboardShotcutKeycode__</legend>
+        <input
+          type="hidden"
+          id="contentClickToSaveCombo"
+          aria-label="Click-to-save shortcut combination"
+        />
         <label>
-          <span class="visually-hidden">__MSG_o_lClickToSaveModifier__</span>
-          <span class="combo-wrap">
-            <input
-              type="text"
-              id="contentClickToSaveCombo"
-              placeholder="Alt"
-              spellcheck="false"
-              autocomplete="off"
-            />
-          </span>
+          <span class="visually-hidden">Primary modifier</span>
+          <select id="clickToSaveModifier" data-runtime-control="true">
+            <option value="">None</option>
+            <option value="Alt">Alt / Option</option>
+            <option value="Ctrl">Ctrl</option>
+            <option value="Shift">Shift</option>
+            <option value="Meta">Command / Windows key</option>
+          </select>
+        </label>
+        <span class="shortcut-plus" aria-hidden="true">+</span>
+        <label>
+          <span class="visually-hidden">Second modifier</span>
+          <select id="clickToSaveModifier2" data-runtime-control="true">
+            <option value="">None</option>
+            <option value="Shift">Shift</option>
+            <option value="Alt">Alt / Option</option>
+            <option value="Ctrl">Ctrl</option>
+            <option value="Meta">Command / Windows key</option>
+          </select>
         </label>
         <span aria-hidden="true">+</span>
         <label>

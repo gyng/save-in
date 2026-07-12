@@ -40,6 +40,12 @@ test("keeps variables in Live variables and clauses in their own disclosure", ()
     document.querySelector(".preview-column .reference-sections #rules-clause-menu"),
   ).not.toBeNull();
   expect(document.querySelector("#rules-clause-menu .clause-preview-filter")).not.toBeNull();
+  expect(
+    document.querySelector("#rules-clause-menu .variables-preview-table.clause-preview-table"),
+  ).not.toBeNull();
+  expect(
+    document.querySelector("#rules-clause-menu > .variables-preview-list > button"),
+  ).toBeNull();
   const references = document.querySelector(".rules-editor .reference-sections")!;
   expect(
     [...references.children].map((child) => child.querySelector("summary")?.textContent?.trim()),

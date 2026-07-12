@@ -3432,8 +3432,7 @@ code.click-to-copy {
   margin: var(--space-2);
 }
 
-.variables-preview-structures,
-.clause-preview-list {
+.variables-preview-structures {
   display: grid;
 }
 
@@ -3442,8 +3441,7 @@ code.click-to-copy {
   border-bottom: 1px solid var(--panel-border);
 }
 
-.variables-preview-structures button,
-.clause-preview-list button {
+.variables-preview-structures button {
   min-height: var(--compact-row-height);
   padding: var(--space-1) var(--space-3);
   border: 0;
@@ -3453,8 +3451,7 @@ code.click-to-copy {
   text-align: left;
 }
 
-.variables-preview-structures button:hover,
-.clause-preview-list button:hover {
+.variables-preview-structures button:hover {
   background: var(--panel-bg);
 }
 
@@ -3473,6 +3470,10 @@ code.click-to-copy {
   max-width: none;
   box-sizing: border-box;
   margin: var(--space-2);
+}
+
+.clause-preview-description {
+  font-family: inherit;
 }
 
 .unsaved-changes-dialog {
