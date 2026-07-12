@@ -4,7 +4,8 @@
 
 import * as constants from "../src/shared/constants.ts";
 import { parseRules } from "../src/routing/router.ts";
-import { RULE_TEMPLATES, RuleBuilder } from "../src/options/rule-builder.ts";
+import { RuleBuilder } from "../src/options/rule-builder.ts";
+import { RULE_TEMPLATES } from "../src/options/rule-templates.ts";
 
 Object.assign(global, constants);
 
@@ -15,6 +16,18 @@ describe("RULE_TEMPLATES", () => {
 
   beforeEach(() => {
     global.window.optionErrors.filenamePatterns = [];
+  });
+
+  test("covers a useful range of organization strategies", () => {
+    expect(RULE_TEMPLATES.length).toBeGreaterThanOrEqual(13);
+    expect(RULE_TEMPLATES.map(({ name }) => name)).toEqual(
+      expect.arrayContaining([
+        "Downloads by month",
+        "One folder per source site",
+        "One folder per file extension",
+        "Browser downloads inbox",
+      ]),
+    );
   });
 
   RULE_TEMPLATES.forEach((tpl) => {
@@ -118,6 +131,7 @@ describe("template list rendering", () => {
     vi.useFakeTimers();
     document.body.innerHTML = `
       <textarea id="filenamePatterns"></textarea>
+      <input type="search" class="rule-template-filter">
       <div id="rule-templates"></div>
     `;
   });
@@ -158,5 +172,23 @@ describe("template list rendering", () => {
     const adds = document.querySelectorAll<HTMLButtonElement>(".rule-template button");
     expect(adds[1].disabled).toBe(true);
     expect(adds[0].disabled).toBe(false);
+  });
+
+  test("groups and filters templates, with Enter adding the first match", () => {
+    RuleBuilder.renderTemplates();
+    expect(
+      [...document.querySelectorAll(".rule-template-category > h3")].map(
+        (heading) => heading.textContent,
+      ),
+    ).toEqual(["Media", "File types", "Date and sequence", "Sites and URLs", "Save context"]);
+
+    const filter = document.querySelector<HTMLInputElement>(".rule-template-filter")!;
+    filter.value = "source site";
+    filter.dispatchEvent(new InputEvent("input", { bubbles: true }));
+    expect(document.querySelectorAll(".rule-template:not([hidden])")).toHaveLength(1);
+    filter.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+    expect(document.querySelector<HTMLTextAreaElement>("#filenamePatterns")!.value).toContain(
+      "sites/:sourcedomain:",
+    );
   });
 });

@@ -7,58 +7,9 @@ import { webExtensionApi } from "../platform/web-extension-api.ts";
 
 import { PathEditor } from "./path-editor.ts";
 import { sortClauses } from "./vocabulary-groups.ts";
+import { RULE_TEMPLATES } from "./rule-templates.ts";
 
-type RuleTemplate = {
-  name: string;
-  description: string;
-  rule: string;
-};
-
-// Every `into:` must end in a filename component (it replaces the whole
-// path, not just the directory) — test/rule-builder.test.js parses each
-// template through the real routing parser to keep these valid.
-export const RULE_TEMPLATES: RuleTemplate[] = [
-  {
-    name: "Images into per-site folders",
-    description: "Sorts every saved image by the site it came from",
-    rule: "mediatype: image\ninto: images/:pagedomain:/:filename:",
-  },
-  {
-    name: "Videos into per-site folders",
-    description: "Same, for video",
-    rule: "mediatype: video\ninto: videos/:pagedomain:/:filename:",
-  },
-  {
-    name: "PDFs into a documents folder",
-    description: "Collects every PDF in one place",
-    rule: "fileext: pdf\ninto: documents/:filename:",
-  },
-  {
-    name: "Archives into one folder",
-    description: "zip/rar/7z/tar downloads land together",
-    rule: "fileext: (zip|rar|7z|gz|tgz)\ninto: archives/:filename:",
-  },
-  {
-    name: "Date-stamp every download",
-    description: "Keeps the original name, prefixed with the save date",
-    rule: "sourceurl: .*\ninto: :date:-:filename:",
-  },
-  {
-    name: "Weekly inbox",
-    description: "Everything into one folder per ISO week",
-    rule: "sourceurl: .*\ninto: inbox/:year:-w:isoweek:/:filename:",
-  },
-  {
-    name: "One site, one folder",
-    description: "Add it, then change example.com to the site you want",
-    rule: "pagedomain: example\\.com\ninto: example/:pagetitleslug:/:filename:",
-  },
-  {
-    name: "Capture part of the URL",
-    description: "Regex capture groups become :$1:, :$2:, … in the path",
-    rule: "sourceurl: imgur\\.com/(\\w+)\ncapture: sourceurl\ninto: imgur/:$1:-:filename:",
-  },
-];
+export { RULE_TEMPLATES } from "./rule-templates.ts";
 
 export const RuleBuilder = {
   // Appends a complete rule, separated by the blank line the parser uses
@@ -126,11 +77,28 @@ export const RuleBuilder = {
       return;
     }
 
+    container.replaceChildren();
     const syncs: Array<() => void> = [];
+    const rows: HTMLElement[] = [];
+    let category = "";
+    let categoryList: HTMLElement | null = null;
 
     RULE_TEMPLATES.forEach((tpl) => {
+      if (tpl.category !== category) {
+        category = tpl.category;
+        const section = document.createElement("section");
+        section.className = "rule-template-category";
+        const heading = document.createElement("h3");
+        heading.textContent = category;
+        categoryList = document.createElement("div");
+        categoryList.className = "rule-template-category-list";
+        section.append(heading, categoryList);
+        container.append(section);
+      }
       const row = document.createElement("div");
       row.className = "rule-template";
+      row.dataset.search = `${tpl.name} ${tpl.description} ${tpl.rule}`.toLocaleLowerCase();
+      rows.push(row);
 
       const body = document.createElement("div");
       body.className = "rule-template-body";
@@ -173,7 +141,24 @@ export const RuleBuilder = {
 
       row.appendChild(body);
       row.appendChild(add);
-      container.appendChild(row);
+      categoryList?.appendChild(row);
+    });
+
+    const filter = document.querySelector<HTMLInputElement>(".rule-template-filter");
+    const applyFilter = () => {
+      const query = filter?.value.trim().toLocaleLowerCase() || "";
+      rows.forEach((row) => (row.hidden = Boolean(query) && !row.dataset.search?.includes(query)));
+      container.querySelectorAll<HTMLElement>(".rule-template-category").forEach((section) => {
+        section.hidden = !section.querySelector(".rule-template:not([hidden])");
+      });
+    };
+    filter?.addEventListener("input", applyFilter);
+    filter?.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter") return;
+      const first = rows.find((row) => !row.hidden)?.querySelector<HTMLButtonElement>("button");
+      if (!first) return;
+      event.preventDefault();
+      first.click();
     });
 
     textarea.addEventListener("input", () => syncs.forEach((fn) => fn()));

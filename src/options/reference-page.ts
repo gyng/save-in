@@ -142,7 +142,7 @@ const defaultCopy: CopyText = async (text) => {
   textarea.remove();
 };
 
-export const enhanceReferenceTables = (root: Document) => {
+export const enhanceReferenceTables = (root: ParentNode) => {
   root.querySelectorAll<HTMLTableElement>("table").forEach((table) => {
     table.classList.add("reference-table");
     const rows = [
@@ -151,7 +151,7 @@ export const enhanceReferenceTables = (root: Document) => {
     if (rows.length === 0) return;
     let tbody = table.tBodies[0];
     if (!tbody) {
-      tbody = root.createElement("tbody");
+      tbody = table.ownerDocument.createElement("tbody");
       rows.forEach((row) => tbody.appendChild(row));
       table.appendChild(tbody);
     }
@@ -165,7 +165,7 @@ export const enhanceReferenceTables = (root: Document) => {
     }
     const sectionTitle = table.previousElementSibling?.textContent?.trim() || "Reference";
     if (!table.caption) {
-      const caption = root.createElement("caption");
+      const caption = table.ownerDocument.createElement("caption");
       caption.textContent = sectionTitle;
       table.prepend(caption);
     }
@@ -175,7 +175,7 @@ export const enhanceReferenceTables = (root: Document) => {
       const columnCount = Math.max(...dataRows.map((dataRow) => dataRow.cells.length));
       const labels = columnCount >= 3 ? ["Syntax", "Example", "Meaning"] : ["Syntax", "Meaning"];
       labels.forEach((label) => {
-        const th = root.createElement("th");
+        const th = table.ownerDocument.createElement("th");
         th.scope = "col";
         th.textContent = label;
         row.appendChild(th);
@@ -184,7 +184,7 @@ export const enhanceReferenceTables = (root: Document) => {
     rows.forEach((row) => {
       const first = row.cells[0];
       if (!first || (first instanceof HTMLTableCellElement && first.tagName === "TH")) return;
-      const th = root.createElement("th");
+      const th = table.ownerDocument.createElement("th");
       th.scope = "row";
       while (first.firstChild) th.appendChild(first.firstChild);
       first.replaceWith(th);
@@ -288,7 +288,3 @@ export const setupReferencePage = (root: Document = document, copy: CopyText = d
     link.relList.add("noreferrer");
   });
 };
-
-if (typeof document !== "undefined") {
-  document.addEventListener("DOMContentLoaded", () => setupReferencePage(), { once: true });
-}

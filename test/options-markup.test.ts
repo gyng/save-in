@@ -39,11 +39,18 @@ describe("options form semantics", () => {
     expect(source).not.toMatch(/\.style\.minWidth\s*=/);
   });
 
-  test("uses the combined vocabulary reference without an options popout link", () => {
+  test("opens vocabulary references from a separate top-bar tabstrip", () => {
     const document = documentForOptions();
     expect(document.querySelector(".open-settings-in-window")).toBeNull();
     expect(document.querySelector('a[href="clauselist.html"]')).toBeNull();
-    expect(document.querySelector('a[href="variablelist.html#clauses"]')).not.toBeNull();
+    expect(document.querySelector('a[href="variablelist.html#clauses"]')).toBeNull();
+    expect(document.querySelectorAll("[data-reference-tab]").length).toBeGreaterThan(1);
+    expect(document.querySelectorAll(".reference-launcher-tabs [role=tab]")).toHaveLength(3);
+    expect(document.querySelector("#reference-dialog #options-reference-variables")).not.toBeNull();
+    expect(document.querySelector("#reference-dialog #options-reference-clauses")).not.toBeNull();
+    expect(
+      document.querySelector("#reference-dialog #options-reference-templates #rule-templates"),
+    ).not.toBeNull();
   });
 
   test("save-dialog conditions are grouped beneath a regular-size prompt", () => {

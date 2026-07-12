@@ -1,2 +1,4 @@
 import "../options/l10n.ts";
-import "../options/reference-page.ts";
+import { setupReferencePage } from "../options/reference-page.ts";
+
+document.addEventListener("DOMContentLoaded", () => setupReferencePage(), { once: true });

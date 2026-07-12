@@ -8,6 +8,7 @@
     <script type="application/javascript" src="../chrome-detector.js"></script>
     <title>Settings &mdash; Save In</title>
     <link href="style.css" rel="stylesheet" />
+    <link href="reference.css" rel="stylesheet" />
     <link rel="icon" type="image/png" href="./favicon.png" />
   </head>
 
@@ -26,14 +27,43 @@
         <details class="nav-resources">
           <summary>__MSG_o_lHelpResources__</summary>
           <div class="nav-resources-menu">
-            <a href="variablelist.html" target="_blank">__MSG_o_lVariableList__</a>
-            <a href="variablelist.html#clauses" target="_blank">__MSG_o_lClauseList__</a>
+            <a href="#" data-reference-tab="options-reference-variables">__MSG_o_lVariableList__</a>
+            <a href="#" data-reference-tab="options-reference-clauses">__MSG_o_lClauseList__</a>
             <a class="external" href="https://github.com/gyng/save-in/">__MSG_o_lGithub__</a>
             <a class="external" href="https://github.com/gyng/save-in/blob/master/CHANGELOG.md"
               >__MSG_o_lChangelog__</a
             >
           </div>
         </details>
+      </div>
+      <div class="reference-launcher-tabs" role="tablist" aria-label="Insertion references">
+        <button
+          type="button"
+          role="tab"
+          data-reference-tab="options-reference-variables"
+          aria-controls="options-reference-variables"
+          aria-selected="false"
+        >
+          Variables
+        </button>
+        <button
+          type="button"
+          role="tab"
+          data-reference-tab="options-reference-clauses"
+          aria-controls="options-reference-clauses"
+          aria-selected="false"
+        >
+          Clauses
+        </button>
+        <button
+          type="button"
+          role="tab"
+          data-reference-tab="options-reference-templates"
+          aria-controls="options-reference-templates"
+          aria-selected="false"
+        >
+          Templates
+        </button>
       </div>
       <div class="save-status caption" role="status" aria-live="polite">
         <span>__MSG_o_cLastSavedAt__</span>
@@ -144,7 +174,7 @@
             aria-atomic="true"
           ></div>
           <div class="editor-actions" id="paths-text-actions">
-            <a class="external toolbar-link" href="variablelist.html" target="_blank"
+            <a class="toolbar-link" href="#" data-reference-tab="options-reference-variables"
               >__MSG_o_lVariableList__</a
             >
             <span class="caption editor-action-help" id="paths-editor-description"
@@ -257,7 +287,7 @@
             <div class="path-editor-toolbar">
               <button type="button" id="path-editor-add-dir">+ __MSG_o_bAddDirectory__</button>
               <button type="button" id="path-editor-add-sep">+ __MSG_o_bAddSeparator__</button>
-              <a class="external toolbar-link" href="variablelist.html" target="_blank"
+              <a class="toolbar-link" href="#" data-reference-tab="options-reference-variables"
                 >__MSG_o_lVariableList__</a
               >
               <button type="button" class="discard-button" data-discard="paths" disabled>
@@ -612,10 +642,10 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
                   Add
                 </button>
                 <span class="rule-builder-links">
-                  <a class="external toolbar-link" href="variablelist.html" target="_blank"
+                  <a class="toolbar-link" href="#" data-reference-tab="options-reference-variables"
                     >__MSG_o_lVariableList__</a
                   >
-                  <a class="external toolbar-link" href="variablelist.html#clauses" target="_blank"
+                  <a class="toolbar-link" href="#" data-reference-tab="options-reference-clauses"
                     >__MSG_o_lClauseList__</a
                   >
                 </span>
@@ -625,21 +655,6 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
 
           <div class="preview-column">
             <div class="reference-sections" aria-label="Insertion references">
-              <details class="rule-templates-panel">
-                <summary>__MSG_o_lRuleTemplates__</summary>
-                <div class="rule-templates-dropdown">
-                  <p class="rule-templates-links">
-                    <a
-                      class="external"
-                      href="https://github.com/gyng/save-in/wiki/Filename-rewrite"
-                      target="_blank"
-                      >__MSG_o_lRoutingTemplates__</a
-                    >
-                  </p>
-                  <div id="rule-templates"></div>
-                </div>
-              </details>
-
               <details class="variables-preview" data-insert-target="filenamePatterns">
                 <summary>__MSG_o_lLiveVariables__</summary>
                 <div class="variables-preview-list"></div>
@@ -1169,6 +1184,76 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
 
       <p>__MSG_translationCredits__</p>
     </form>
+
+    <dialog id="reference-dialog" class="reference-dialog" aria-labelledby="reference-dialog-title">
+      <div class="reference-dialog-header">
+        <strong id="reference-dialog-title">References</strong>
+        <button type="button" class="reference-dialog-close" aria-label="Close references">
+          ×
+        </button>
+      </div>
+      <div class="reference-dialog-tabs" role="tablist" aria-label="Reference type">
+        <button
+          type="button"
+          role="tab"
+          data-reference-tab="options-reference-variables"
+          aria-controls="options-reference-variables"
+          aria-selected="false"
+        >
+          Variables
+        </button>
+        <button
+          type="button"
+          role="tab"
+          data-reference-tab="options-reference-clauses"
+          aria-controls="options-reference-clauses"
+          aria-selected="false"
+        >
+          Clauses
+        </button>
+        <button
+          type="button"
+          role="tab"
+          data-reference-tab="options-reference-templates"
+          aria-controls="options-reference-templates"
+          aria-selected="false"
+        >
+          Templates
+        </button>
+      </div>
+      <label class="reference-dialog-filter-label">
+        <span class="visually-hidden">Filter current reference</span>
+        <input
+          type="search"
+          class="reference-dialog-filter rule-template-filter"
+          placeholder="Filter variables"
+          aria-label="Filter current reference"
+          spellcheck="false"
+        />
+      </label>
+      <div class="reference-dialog-body">
+        <section id="options-reference-variables" class="options-reference-panel" role="tabpanel">
+          <p class="caption">Loading variables…</p>
+        </section>
+        <section
+          id="options-reference-clauses"
+          class="options-reference-panel"
+          role="tabpanel"
+          hidden
+        >
+          <p class="caption">Loading clauses…</p>
+        </section>
+        <section
+          id="options-reference-templates"
+          class="options-reference-panel"
+          role="tabpanel"
+          hidden
+        >
+          <p>Choose Add to place a complete rule in the routing editor.</p>
+          <div id="rule-templates" class="rule-template-library"></div>
+        </section>
+      </div>
+    </dialog>
 
     <script src="options-logic.js"></script>
     <script src="history-view.js"></script>
