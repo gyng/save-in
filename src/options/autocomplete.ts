@@ -1,4 +1,5 @@
 import { webExtensionApi } from "../platform/web-extension-api.ts";
+import { sortClauses, sortVariables, variableGroup } from "./vocabulary-groups.ts";
 
 export type AutocompleteStrategy = {
   match: RegExp;
@@ -307,16 +308,18 @@ export const attachAutocomplete = (textarea: TextField, strategies: Autocomplete
 };
 
 export const setupRoutingAutocomplete = (keywords: RoutingKeywords) => {
+  const variables = sortVariables(keywords.variables);
+  const matchers = sortClauses([...keywords.matchers, "into"]);
   const pathTextarea = document.getElementById("paths");
   if (pathTextarea instanceof HTMLTextAreaElement) {
-    attachAutocomplete(pathTextarea, [pathVariableStrategy(keywords.variables)]);
+    attachAutocomplete(pathTextarea, [pathVariableStrategy(variables)]);
   }
 
   const routerTextarea = document.getElementById("filenamePatterns");
   if (routerTextarea instanceof HTMLTextAreaElement) {
     attachAutocomplete(routerTextarea, [
-      matcherStrategy([...keywords.matchers, "into"].toSorted()),
-      routerVariableStrategy(keywords.variables),
+      matcherStrategy(matchers),
+      routerVariableStrategy(variables),
     ]);
   }
 
@@ -324,7 +327,7 @@ export const setupRoutingAutocomplete = (keywords: RoutingKeywords) => {
   // the same :variable: autocomplete as the paths list
   const ruleBuilderInto = document.getElementById("rule-builder-into");
   if (ruleBuilderInto instanceof HTMLInputElement) {
-    attachAutocomplete(ruleBuilderInto, [pathVariableStrategy(keywords.variables)]);
+    attachAutocomplete(ruleBuilderInto, [pathVariableStrategy(variables)]);
   }
 };
 
@@ -332,12 +335,6 @@ if (webExtensionApi?.runtime?.sendMessage) {
   webExtensionApi.runtime
     .sendMessage({ type: "GET_KEYWORDS" })
     .then((res: KeywordsResponse) => res.body)
-    .then((keywords) =>
-      setupRoutingAutocomplete({
-        matchers: keywords.matchers.toSorted(),
-        variables: keywords.variables.toSorted(),
-      }),
-    )
+    .then(setupRoutingAutocomplete)
     .catch(() => {});
 }
-import { variableGroup } from "./vocabulary-groups.ts";

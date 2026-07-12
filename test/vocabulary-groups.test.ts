@@ -1,4 +1,9 @@
-import { clauseGroup, variableGroup } from "../src/options/vocabulary-groups.ts";
+import {
+  clauseGroup,
+  sortClauses,
+  sortVariables,
+  variableGroup,
+} from "../src/options/vocabulary-groups.ts";
 
 test("groups variables by user task rather than implementation scope", () => {
   expect(variableGroup(":date:")).toBe("Date and time");
@@ -15,4 +20,32 @@ test("groups clauses by routing intent", () => {
   expect(clauseGroup("context:")).toBe("Page and menu context");
   expect(clauseGroup("sourceurl:")).toBe("URL and source matching");
   expect(clauseGroup("filename:")).toBe("Filename and content matching");
+});
+
+test("orders variables by meaning within each task group", () => {
+  expect(
+    sortVariables([":day:", ":minute:", ":date:", ":monthname:", ":year:", ":month:", ":hour:"]),
+  ).toEqual([":date:", ":year:", ":month:", ":monthname:", ":day:", ":hour:", ":minute:"]);
+  expect(sortVariables([":sha256:", ":filename:", ":mimeext:", ":fileext:"])).toEqual([
+    ":filename:",
+    ":fileext:",
+    ":mimeext:",
+    ":sha256:",
+  ]);
+});
+
+test("orders clauses by routing workflow within each task group", () => {
+  expect(sortClauses(["selectiontext", "comment", "context", "menuindex", "linktext"])).toEqual([
+    "context",
+    "menuindex",
+    "comment",
+    "linktext",
+    "selectiontext",
+  ]);
+  expect(sortClauses(["actualfileext", "mediatype", "filename", "fileext"])).toEqual([
+    "filename",
+    "fileext",
+    "actualfileext",
+    "mediatype",
+  ]);
 });

@@ -94,7 +94,7 @@ describe("guided input", () => {
     const add = document.querySelector("#rule-builder-add") as HTMLButtonElement;
     const textarea = document.querySelector("#filenamePatterns") as HTMLTextAreaElement;
 
-    expect([...matcher.options].map((o) => o.value)).toEqual(["fileext", "pagedomain"]);
+    expect([...matcher.options].map((o) => o.value)).toEqual(["pagedomain", "fileext"]);
 
     // Disabled until every field is filled
     expect(add.disabled).toBe(true);

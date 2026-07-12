@@ -9,7 +9,13 @@ import { webExtensionApi } from "../platform/web-extension-api.ts";
 // serializes back to it and fires the normal input/autosave pipeline.
 
 import { SPECIAL_DIRS } from "../shared/constants.ts";
-import { VARIABLE_GROUPS, type VariableGroup, variableGroup } from "./vocabulary-groups.ts";
+import {
+  compareClauses,
+  sortVariables,
+  VARIABLE_GROUPS,
+  type VariableGroup,
+  variableGroup,
+} from "./vocabulary-groups.ts";
 
 type PathRow = { depth: number; body: string; comment: string };
 type EditorOwner = { rebuildVisual?: () => void };
@@ -129,6 +135,9 @@ const PathEditorHelpers = {
     };
 
     const lineButtons = [...menu.querySelectorAll<HTMLElement>("[data-insert-line]")];
+    lineButtons
+      .toSorted((a, b) => compareClauses(a.dataset.insertLine || "", b.dataset.insertLine || ""))
+      .forEach((button) => button.parentElement?.append(button));
     lineButtons.forEach((button) => {
       button.addEventListener("click", () => {
         PathEditorHelpers.insertLine(textarea, button.dataset.insertLine ?? "");
@@ -194,7 +203,7 @@ const PathEditorHelpers = {
     webExtensionApi.runtime
       .sendMessage({ type: "GET_KEYWORDS" })
       .then((res: MessageResponse) => {
-        const variables = (res && res.body && res.body.variables) || [];
+        const variables = sortVariables((res && res.body && res.body.variables) || []);
         const sections = new Map<VariableGroup, HTMLElement>();
         VARIABLE_GROUPS.forEach((group) => {
           if (!variables.some((variable) => variableGroup(variable) === group)) return;

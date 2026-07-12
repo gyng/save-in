@@ -1,4 +1,9 @@
-import { clauseGroup, variableGroup } from "./vocabulary-groups.ts";
+import {
+  clauseGroup,
+  compareClauses,
+  compareVariables,
+  variableGroup,
+} from "./vocabulary-groups.ts";
 import { webExtensionApi } from "../platform/web-extension-api.ts";
 
 type CopyText = (text: string) => Promise<void>;
@@ -63,6 +68,18 @@ const loadRuntimeVocabulary = async (): Promise<RuntimeVocabulary | null> => {
 export const groupReferenceRows = (root: ParentNode, kind: ReferenceKind) => {
   root.querySelectorAll(".reference-group-row").forEach((row) => row.remove());
   root.querySelectorAll<HTMLTableElement>("table").forEach((table) => {
+    const rows = [
+      ...table.querySelectorAll<HTMLTableRowElement>(":scope > tbody > tr, :scope > tr"),
+    ];
+    rows
+      .toSorted((a, b) => {
+        const aSyntax = referenceSyntax(a);
+        const bSyntax = referenceSyntax(b);
+        return kind === "variables"
+          ? compareVariables(aSyntax, bSyntax)
+          : compareClauses(aSyntax, bSyntax);
+      })
+      .forEach((row) => row.parentElement?.append(row));
     let lastGroup = "";
     [...table.querySelectorAll<HTMLTableRowElement>(":scope > tbody > tr, :scope > tr")].forEach(
       (row) => {

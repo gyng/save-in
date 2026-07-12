@@ -167,3 +167,37 @@ test("adds task-oriented group rows to both vocabularies", () => {
     [...clauses.querySelectorAll(".reference-group-row")].map((row) => row.textContent),
   ).toContain("Output");
 });
+
+test("orders reference rows semantically within groups", () => {
+  const variables = parse("variablelist");
+  groupReferenceRows(variables.querySelector("#reference-variables")!, "variables");
+  const dateRows = [
+    ...variables.querySelectorAll("table tbody tr:not(.reference-group-row) code:first-child"),
+  ]
+    .slice(0, 7)
+    .map((node) => node.textContent?.trim());
+  expect(dateRows).toEqual([
+    ":date:",
+    ":isodate:",
+    ":unixdate:",
+    ":year:",
+    ":month:",
+    ":monthname:",
+    ":day:",
+  ]);
+
+  const clauses = parse("clauselist");
+  groupReferenceRows(clauses, "clauses");
+  const contextTable = [...clauses.querySelectorAll("table")].find((table) =>
+    table.textContent?.includes("context:"),
+  )!;
+  expect(
+    [
+      ...contextTable.querySelectorAll(
+        "tr:not(.reference-group-row) td:first-child code:first-child",
+      ),
+    ]
+      .slice(0, 5)
+      .map((node) => node.textContent?.trim()),
+  ).toEqual(["context:", "menuindex:", "comment:", "linktext:", "selectiontext:"]);
+});

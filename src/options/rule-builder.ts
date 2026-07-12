@@ -6,6 +6,7 @@ import { webExtensionApi } from "../platform/web-extension-api.ts";
 // all react as if the user had typed the rule.
 
 import { PathEditor } from "./path-editor.ts";
+import { sortClauses } from "./vocabulary-groups.ts";
 
 type RuleTemplate = {
   name: string;
@@ -84,7 +85,7 @@ export const RuleBuilder = {
     webExtensionApi.runtime
       .sendMessage({ type: "GET_KEYWORDS" })
       .then((res: { body?: { matchers?: string[] } } | undefined) => {
-        (res?.body?.matchers || []).forEach((name) => {
+        sortClauses(res?.body?.matchers || []).forEach((name) => {
           const option = document.createElement("option");
           option.value = name;
           option.textContent = name;

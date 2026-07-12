@@ -1,6 +1,6 @@
 import { webExtensionApi } from "../platform/web-extension-api.ts";
 import { PathEditor } from "./path-editor.ts";
-import { VARIABLE_GROUPS, variableGroup } from "./vocabulary-groups.ts";
+import { sortVariables, VARIABLE_GROUPS, variableGroup } from "./vocabulary-groups.ts";
 
 const stringRecord = (value: unknown): Record<string, string> => {
   if (typeof value !== "object" || value === null || Array.isArray(value)) return {};
@@ -20,11 +20,13 @@ export const renderVariablesPreview = async () => {
       webExtensionApi.runtime.sendMessage({ type: "GET_KEYWORDS" }),
       webExtensionApi.runtime.sendMessage({ type: "CHECK_ROUTES" }).catch(() => null),
     ]);
-    const variables: string[] = Array.isArray(keywords?.body?.variables)
-      ? keywords.body.variables.filter(
-          (value: unknown): value is string => typeof value === "string",
-        )
-      : [];
+    const variables: string[] = sortVariables(
+      Array.isArray(keywords?.body?.variables)
+        ? keywords.body.variables.filter(
+            (value: unknown): value is string => typeof value === "string",
+          )
+        : [],
+    );
     const values = stringRecord(routes?.body?.interpolatedVariables);
 
     panels.forEach((panel) => {
