@@ -1,4 +1,5 @@
 import { RULE_TYPES } from "../shared/constants.ts";
+import { options } from "../config/options-data.ts";
 import { getFilenameDiagnostics, Path } from "./path.ts";
 import { parseRulesCollecting } from "./rule-parser.ts";
 import type { RoutingDownloadInfo, RoutingInfo, RoutingRule } from "./rule-types.ts";
@@ -133,7 +134,9 @@ export const traceRules = async (rules: RoutingRule[], info: RoutingInfo): Promi
     expandedDestination: expandedDestination || null,
     sanitizedDestination,
     finalPath: sanitizedDestination,
-    filenameDiagnostics: actualFilename ? getFilenameDiagnostics(actualFilename) : null,
+    filenameDiagnostics: actualFilename
+      ? getFilenameDiagnostics(actualFilename, options.truncateLength)
+      : null,
     rules: traced,
   };
 };

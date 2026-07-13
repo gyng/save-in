@@ -143,6 +143,14 @@ describe("filename byte diagnostics", () => {
       exceedsLimit: true,
     });
   });
+
+  test("treats a zero-byte configured limit as unlimited", () => {
+    expect(Path.getFilenameDiagnostics("é.txt", 0)).toEqual({
+      utf8Bytes: 6,
+      limitBytes: 0,
+      exceedsLimit: false,
+    });
+  });
 });
 
 describe("sanitizeFilename", () => {

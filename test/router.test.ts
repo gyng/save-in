@@ -12,6 +12,7 @@ import { configureRoutingPorts } from "../src/routing/ports.ts";
 import { nextCounter, peekCounter } from "../src/background/counter.ts";
 import { counterWriteState } from "../src/background/state.ts";
 import { resolveContent } from "../src/downloads/content-fetch.ts";
+import { options } from "../src/config/options-data.ts";
 import fixtures from "./fixtures/click-info.ts";
 
 let diagnostics: { filenamePatterns: RuleError[]; paths: RuleError[] } = {
@@ -576,6 +577,29 @@ describe("filename rewrite and routing", () => {
 
       expect(trace.expandedDestination).toBe("archive/2026/cat.jpg");
       expect(trace.finalPath).toBe("archive/2026/cat.jpg");
+    });
+
+    test("reports filename overflow against the active truncation setting", async () => {
+      const previous = options.truncateLength;
+      const filename = `${"a".repeat(246)}.txt`;
+
+      try {
+        options.truncateLength = 240;
+        expect((await router.traceRules([], { filename })).filenameDiagnostics).toEqual({
+          utf8Bytes: 250,
+          limitBytes: 240,
+          exceedsLimit: true,
+        });
+
+        options.truncateLength = 0;
+        expect((await router.traceRules([], { filename })).filenameDiagnostics).toEqual({
+          utf8Bytes: 250,
+          limitBytes: 0,
+          exceedsLimit: false,
+        });
+      } finally {
+        options.truncateLength = previous;
+      }
     });
   });
 

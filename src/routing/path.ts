@@ -99,7 +99,7 @@ function truncatePreservingExtension(value: string, max: number) {
 
 export function getFilenameDiagnostics(value: string, limitBytes = 255): FilenameDiagnostics {
   const utf8Bytes = utf8Encoder.encode(value).byteLength;
-  return { utf8Bytes, limitBytes, exceedsLimit: utf8Bytes > limitBytes };
+  return { utf8Bytes, limitBytes, exceedsLimit: limitBytes > 0 && utf8Bytes > limitBytes };
 }
 
 export function trimTrailingDotsAndSpaces(value: string) {
