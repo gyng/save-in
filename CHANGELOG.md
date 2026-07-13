@@ -36,7 +36,7 @@ tested the many fixes included in this release.
 - Page titles in filenames come from the tab that was clicked, fixing wrong
   or mutated titles (#172, #188)
 - Download history actually accumulates now (previously only the last entry
-  was kept) and is capped at 100 entries
+  was kept) and is capped at 10,000 entries
 - Click-to-save and external-extension downloads no longer inherit the
   previous download's filename or rename route
 - The external DOWNLOAD API is now official and versioned (v1, #110): send
@@ -133,14 +133,13 @@ tested the many fixes included in this release.
   it silently broke all downloads (#89, #217); a fresh install's default
   Downloads menu item shows a name instead of "." (#213)
 - HTML-redirect shortcuts escape the target URL
-- - Removed vendored libraries for easier store review: the webextension
-    polyfill is a 6-line first-party shim (Chrome minimum raised to 123 for
-    promise-capable contextMenus), the options-page autocomplete and l10n are
-    small first-party rewrites — this also revives autocomplete, whose event
-    wiring had been silently broken. Only readable, credited
-    content-disposition.js remains vendored
+- Removed vendored libraries for easier store review: the WebExtension API now
+  uses a small first-party native adapter, and the options-page autocomplete
+  and l10n are first-party rewrites. This also revives autocomplete, whose
+  event wiring had been silently broken. Only the readable, credited
+  `src/vendor/content-disposition.ts` remains vendored.
 - Dev: automated Chrome (CDP) and Firefox (RDP) end-to-end smoke tests,
-  watch-mode dev loop, 130-test vitest suite, oxlint + oxfmt, web-ext 10,
+  watch-mode dev loop, comprehensive Vitest suite, oxlint + oxfmt, web-ext 10,
   npm, CI on Node 24
 
 </details>
@@ -283,7 +282,7 @@ It's been difficult getting motivation to work on save-in, especially with the p
 
 - Add option to prefer links over media (#75)
 - Use @Rob--W's Content-Disposition parser (#73)
-  (source: Rob--W/open-in-browser)[https://github.com/Rob--W/open-in-browser/blob/master/extension/content-disposition.js]
+  [source: Rob--W/open-in-browser](https://github.com/Rob--W/open-in-browser/blob/master/extension/content-disposition.js)
 - Add localisation hooks to most things
 
 # 2.6.2

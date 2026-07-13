@@ -1,6 +1,16 @@
 # Save In integrations
 
-This document describes the shipped external Download API, internal configuration messages, and experimental WebMCP tools. The user-facing version is the [Integrations wiki](https://github.com/gyng/save-in/wiki/Integrations).
+This document is the source-controlled contract for the shipped external
+Download API, internal configuration messages, and experimental WebMCP tools.
+The [Integrations wiki](https://github.com/gyng/save-in/wiki/Integrations) is
+the user-facing guide and recipe collection; if its protocol details differ,
+this document is authoritative.
+
+External Download API v1 remains backward compatible within the declared
+version. Callers should negotiate capabilities with `PING` and ignore unknown
+response fields. The same-extension config messages are internal and may gain
+fields as the options schema evolves. WebMCP is experimental and may change
+with the browser API.
 
 Copy-and-paste recipes are available for [Foxy Gestures](https://github.com/gyng/save-in/wiki/Integrations#foxy-gestures), [Gesturefy](https://github.com/gyng/save-in/wiki/Integrations#gesturefy), and [Tridactyl](https://github.com/gyng/save-in/wiki/Integrations#tridactyl). Extension authors should use the separate [extension integration guide](https://github.com/gyng/save-in/wiki/Extension-integration-guide).
 
@@ -76,7 +86,11 @@ Unknown options and type mismatches are rejected. Omitted options remain unchang
 
 ## WebMCP
 
-When a compatible in-browser WebMCP context is available, the open options page registers five tools:
+WebMCP is an experimental browser API currently distributed through a Chrome
+origin trial. Its API and availability may change; see the
+[Chrome WebMCP documentation](https://developer.chrome.com/docs/ai/webmcp).
+When a compatible in-browser WebMCP context is available, the open options page
+registers five tools:
 
 | Tool | Mutation | Purpose |
 | --- | --- | --- |
