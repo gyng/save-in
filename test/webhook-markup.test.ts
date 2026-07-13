@@ -12,4 +12,7 @@ test("keeps webhook consent, field controls, preview, and status connected", () 
   expect(document.querySelector("#webhookIncludeSelectionText")).not.toBeNull();
   expect(document.querySelector("#webhook-payload-preview")).not.toBeNull();
   expect(document.querySelector("#webhook-status")?.getAttribute("role")).toBe("status");
+  expect(document.querySelector<HTMLAnchorElement>("#webhook-documentation")?.href).toBe(
+    "https://github.com/gyng/save-in/wiki/Webhooks",
+  );
 });

@@ -3248,6 +3248,12 @@ select {
   margin: 0;
 }
 
+.webhook-documentation {
+  display: inline-block;
+  margin-top: var(--space-1);
+  font-size: var(--text-sm);
+}
+
 .webhook-endpoint-label {
   display: grid;
   gap: 2px;
