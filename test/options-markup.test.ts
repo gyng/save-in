@@ -218,6 +218,9 @@ describe("options form semantics", () => {
       "Developer details",
     );
     expect(document.querySelector("#webmcp-status")?.closest(".webmcp-card")).not.toBeNull();
+    const webmcpCard = document.querySelector(".webmcp-card");
+    expect(webmcpCard?.querySelector("code")).toBeNull();
+    expect(webmcpCard?.querySelector(".webmcp-tool-list")).not.toBeNull();
     expect(integrationCard?.textContent).not.toContain("#110");
   });
 
