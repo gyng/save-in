@@ -39,6 +39,13 @@ test("reference data rows do not use divider lines", () => {
   expect(reference).toContain("border-bottom: 0");
 });
 
+test("language label and selector share a text baseline", () => {
+  const css = readStyle("style.css");
+  const selector = css.match(/\.language-selector\s*\{([^}]*)\}/)?.[1] || "";
+
+  expect(selector).toContain("align-items: baseline");
+});
+
 test("saved status keeps Undo and confirmation motion out of the baseline flow", () => {
   const css = readStyle("style.css");
   const undo = css.match(/\.saved-change-undo\s*\{([^}]*)\}/)?.[1] || "";

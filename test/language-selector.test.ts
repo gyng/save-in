@@ -1,10 +1,19 @@
+import { readFileSync } from "node:fs";
 import { setupLanguageSelector } from "../src/options/language-selector.ts";
 
 const render = () => {
   document.body.innerHTML = `
-    <select id="uiLocale"><option value="">Browser default</option><option value="fr">Français (AI)</option></select>
+    <select id="uiLocale"><option value="">Default</option><option value="fr">Français (AI)</option></select>
     <span id="language-error" hidden></span>`;
 };
+
+test("uses a concise label for the browser-controlled locale", () => {
+  const catalog = JSON.parse(readFileSync("_locales/en/messages.json", "utf8")) as Record<
+    string,
+    { message?: string }
+  >;
+  expect(catalog.o_lBrowserDefault?.message).toBe("Default");
+});
 
 test("saves the selected locale and reloads after acknowledgement", async () => {
   render();
