@@ -1,9 +1,17 @@
 const fs = require("fs");
 const JSZip = require("jszip");
 
-// ZIP timestamps are presentation metadata, not part of the extension. A
-// constant UTC date avoids timezone conversion changing the DOS date fields.
-const ARCHIVE_DATE = new Date(Date.UTC(1980, 0, 1, 0, 0, 0, 0));
+const UNIX_EPOCH = new Date(0);
+const ZIP_EPOCH = new Date(Date.UTC(1980, 0, 1, 0, 0, 0, 0));
+
+/** @param {Date} date */
+function zipDateFor(date) {
+  // JSZip writes a mandatory DOS date. Passing 1970 directly underflows its
+  // seven-bit year field to 2098, so clamp only at this format boundary.
+  return new Date(Math.max(date.getTime(), ZIP_EPOCH.getTime()));
+}
+
+const ARCHIVE_DATE = zipDateFor(UNIX_EPOCH);
 
 /** @param {string} archive */
 async function canonicalizeZip(archive) {
@@ -27,6 +35,7 @@ async function canonicalizeZip(archive) {
     type: "nodebuffer",
   });
   fs.writeFileSync(archive, contents);
+  fs.utimesSync(archive, UNIX_EPOCH, UNIX_EPOCH);
 }
 
-module.exports = { canonicalizeZip };
+module.exports = { canonicalizeZip, zipDateFor };

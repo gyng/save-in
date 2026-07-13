@@ -1,10 +1,14 @@
-import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { execFileSync } from "node:child_process";
 import JSZip from "jszip";
 
-const { canonicalizeZip } = require("../scripts/lib/canonicalize-zip.js");
+const { canonicalizeZip, zipDateFor } = require("../scripts/lib/canonicalize-zip.js");
+
+test("clamps Unix epoch to the earliest timestamp ZIP can encode", () => {
+  expect(zipDateFor(new Date(0)).toISOString()).toBe("1980-01-01T00:00:00.000Z");
+});
 
 test("canonicalizes ZIP entry order and volatile timestamps", async () => {
   const root = mkdtempSync(join(tmpdir(), "save-in-zip-"));
@@ -23,6 +27,8 @@ test("canonicalizes ZIP entry order and volatile timestamps", async () => {
   await canonicalizeZip(second);
 
   expect(readFileSync(second)).toEqual(readFileSync(first));
+  expect(statSync(first).mtimeMs).toBe(0);
+  expect(statSync(second).mtimeMs).toBe(0);
 });
 
 test("canonicalizes ZIP timestamps independently of the build timezone", async () => {
