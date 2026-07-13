@@ -484,16 +484,6 @@ body:not(#settings-page) {
   outline-offset: 3px;
 }
 
-.about-mascot-status {
-  display: block;
-  min-height: 1.4em;
-  margin-top: var(--space-2);
-  color: var(--link-color);
-  font-size: var(--text-sm);
-  font-weight: 600;
-  text-align: center;
-}
-
 .about-copy h2 {
   margin-top: 0;
 }
@@ -731,7 +721,7 @@ details {
     interpolate-size: allow-keywords;
   }
 
-  #settings-page details:not(.nav-resources, .insert-menu, .menu-preview)::details-content {
+  #settings-page details:not(.nav-resources, .menu-preview)::details-content {
     block-size: 0;
     overflow: clip;
     opacity: 0;
@@ -741,7 +731,7 @@ details {
       content-visibility 90ms allow-discrete;
   }
 
-  #settings-page details[open]:not(.nav-resources, .insert-menu, .menu-preview)::details-content {
+  #settings-page details[open]:not(.nav-resources, .menu-preview)::details-content {
     block-size: auto;
     opacity: 1;
   }
@@ -1103,11 +1093,6 @@ label:has(> input[type="checkbox"]) > .caption-line {
   gap: var(--space-2);
 }
 
-.float-right {
-  align-self: flex-end !important;
-  float: right;
-}
-
 .badge {
   padding: 4px;
   border-radius: 4px;
@@ -1256,10 +1241,6 @@ fieldset.inline-option-group:has(#contentClickToSaveCombo):has(:disabled) {
   word-break: break-all;
 }
 
-.history-raw-text {
-  min-height: 320px;
-}
-
 .settings-transfer-actions,
 .diagnostics-row {
   display: flex;
@@ -1395,66 +1376,6 @@ input.key {
   margin-right: 8px;
   text-align: center;
   padding: 4px 8px 4px 8px;
-}
-
-/* Click-to-save key combobox (options.js): opens a dropdown of named keys but
-   still accepts a free-form keyCode typed into the input */
-.combo-wrap {
-  position: relative;
-  display: inline-block;
-}
-
-/* Self-contained — must NOT reuse .autocomplete-dropdown (that class is queried
-   by the variables autocomplete and its e2e; sharing it shadows the real one) */
-.combo-dropdown {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  z-index: 100;
-  margin: 2px 0 0;
-  padding: var(--space-1);
-  list-style: none;
-  min-width: 14em;
-  max-height: 16em;
-  overflow-y: auto;
-  background: var(--floating-bg);
-  border: 1px solid var(--panel-border);
-  border-radius: var(--radius);
-  box-shadow: var(--floating-shadow);
-  font-size: var(--text-sm);
-}
-
-.combo-dropdown li {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--space-4);
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.combo-dropdown li:hover {
-  background: var(--hover-bg-strong);
-}
-
-.combo-dropdown li.selected {
-  background: var(--link-color);
-  color: #fff;
-}
-
-.combo-value {
-  font-weight: 600;
-}
-
-.combo-label {
-  color: var(--grey50);
-  font-size: var(--text-sm);
-}
-
-.combo-dropdown li.selected .combo-label {
-  color: rgba(255, 255, 255, 0.85);
 }
 
 .match-row {
@@ -1731,9 +1652,7 @@ input.key {
 }
 
 /* One consistent look for every collapsible section header across the options
-   UI (menu preview, live variables, rule templates, raw history, debug log,
-   examples…). The + Add opener (.insert-menu summary) is a button and overrides
-   this below. */
+   UI (menu preview, live variables, rule templates, debug log, examples…). */
 summary {
   cursor: pointer;
   user-select: none;
@@ -1794,8 +1713,7 @@ summary {
   max-width: 0;
 }
 
-.variables-preview-group th,
-.insert-menu-group-heading {
+.variables-preview-group th {
   padding: var(--space-2) var(--space-3) var(--space-1);
   color: var(--grey50);
   font-size: 10px;
@@ -1833,8 +1751,7 @@ summary {
   font-family: var(--font-mono);
 }
 
-.variables-preview-value.is-placeholder,
-.insert-menu-value.is-placeholder {
+.variables-preview-value.is-placeholder {
   opacity: 0.58;
   font-style: italic;
 }
@@ -2302,92 +2219,6 @@ button:disabled:hover {
   background-color: transparent;
 }
 
-/* ── Paths insert menu + visual editor (path-editor.js) ───────────── */
-
-.insert-menu {
-  position: relative;
-  margin: var(--space-1) 0;
-}
-
-/* Button-like affordance for the + Add opener: standard button box, not the
-   section-header summary style */
-.insert-menu summary {
-  display: inline-block;
-  list-style: none;
-  padding: 8px 16px;
-  color: var(--link-color);
-  border: 1px solid var(--grey30);
-  border-radius: var(--radius);
-  cursor: pointer;
-  user-select: none;
-  font-weight: 400;
-}
-
-.insert-menu summary::-webkit-details-marker {
-  display: none;
-}
-
-.insert-menu summary:hover {
-  background-color: var(--panel-bg);
-}
-
-.insert-menu-panel {
-  position: absolute;
-  z-index: 20;
-  left: 0;
-  margin-top: var(--space-1);
-  min-width: 300px;
-  max-width: 480px;
-  max-height: 320px;
-  overflow-y: auto;
-  padding: var(--space-2);
-  background-color: var(--page-bg);
-  border: 1px solid var(--panel-border);
-  border-radius: var(--radius);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
-}
-
-.insert-menu-panel button {
-  display: block;
-  width: 100%;
-  text-align: left;
-  border: none;
-  background: transparent;
-  padding: var(--space-1) var(--space-2);
-  border-radius: var(--radius);
-  cursor: pointer;
-}
-
-.insert-menu-panel button:hover {
-  background-color: var(--panel-bg);
-}
-
-.tab-panel .insert-menu-panel input[type="text"] {
-  width: 100%;
-  max-width: none;
-  box-sizing: border-box;
-  margin: 0 0 var(--space-1);
-}
-
-.insert-menu-panel .insert-menu-variable {
-  display: flex;
-  align-items: baseline;
-  gap: var(--space-2);
-}
-
-.insert-menu-variable code {
-  flex: none;
-}
-
-.insert-menu-value {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  color: var(--grey50);
-}
-
 /* Text/Visual sub-tabs above the directory editor: same underline idiom
    as the main tab strip, scaled down, so they read as tabs */
 .editor-tabs {
@@ -2443,12 +2274,7 @@ button:disabled:hover {
   margin-left: auto;
 }
 
-.editor-actions .insert-menu {
-  margin: 0;
-}
-
-/* Reference links (Variable/Clause list) that sit inline in an editor
-   toolbar or the rule builder, alongside the +Add / Add buttons */
+/* Reference links that sit inline in editor toolbars. */
 .toolbar-link {
   font-size: var(--text-sm);
   white-space: nowrap;
@@ -2965,14 +2791,6 @@ code.click-to-copy {
 
 /* ── History tab ──────────────────────────────────────────────────── */
 
-.section-actions {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: var(--space-3);
-  width: 100%;
-}
-
 /* History count sits left, the action button right */
 
 .history-table {
@@ -3459,12 +3277,6 @@ code.click-to-copy {
   margin-top: 0;
 }
 
-/* Section-level action rows (History count/clear, Restore Defaults) clear
-   the heading above them */
-.tab-panel .section-actions {
-  margin: var(--space-1) 0 var(--space-2);
-}
-
 /* Dynamic tab: the last-download routing test stays in the left column
    (aligned with the rules editor) instead of spanning the wide column */
 .last-download-row {
@@ -3478,16 +3290,6 @@ code.click-to-copy {
 .last-download-row .last-download-info,
 .last-download-row .last-download-table {
   width: 100%;
-}
-
-/* Deprecated options read as faded and struck through (the badge stays
-   legible so the reason is clear) */
-.deprecated {
-  opacity: 0.6;
-}
-
-.deprecated .deprecated-text {
-  text-decoration: line-through;
 }
 
 /* Host-permission banner (permissions-banner.js): shown only when <all_urls> is
@@ -3609,8 +3411,7 @@ code.click-to-copy {
   }
 
   .editor-actions,
-  .path-editor-toolbar,
-  .section-actions {
+  .path-editor-toolbar {
     flex-wrap: wrap;
   }
 }
@@ -3809,39 +3610,6 @@ fieldset.inline-option-group:has(#contentClickToSaveCombo) button,
   color: var(--grey50);
   font-size: 11px;
   line-height: 1.35;
-}
-
-/* The insertion dropdown and Live variables use the same compact list rows as
-   the Page sources pop-out, so variable/value pairs scan the same way. */
-.insert-menu-panel {
-  overflow: hidden;
-  padding: 0;
-}
-
-.tab-panel .insert-menu-panel input[type="text"] {
-  width: calc(100% - 2 * var(--space-2));
-  margin: var(--space-2);
-}
-
-.insert-menu-panel > button,
-.insert-menu-variable {
-  min-height: var(--compact-row-height);
-  padding: var(--space-1) var(--space-3);
-  border-bottom: 1px solid var(--panel-border);
-  border-radius: 0;
-}
-
-.insert-menu-variables {
-  max-height: 230px;
-  overflow-y: auto;
-}
-
-.insert-menu-group + .insert-menu-group {
-  border-top: 1px solid var(--panel-border);
-}
-
-.insert-menu-variables .insert-menu-variable:last-child {
-  border-bottom: none;
 }
 
 .variables-preview-filter {
