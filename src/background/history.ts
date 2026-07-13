@@ -1,5 +1,6 @@
 import { webExtensionApi } from "../platform/web-extension-api.ts";
 import type { HistoryEntry, HistoryEntryInput } from "../shared/history-types.ts";
+import { recordPersistenceFailure } from "../shared/persistence-diagnostics.ts";
 
 /* eslint-disable no-unused-vars */
 
@@ -8,6 +9,10 @@ const HISTORY_KEY = "save-in-history";
 // Entries store the whole download state: cap the list so storage.local
 // does not grow without bound
 const HISTORY_LIMIT = 10000;
+
+const recordHistoryFailure = (operation: "read" | "write" | "migrate", error: unknown): void => {
+  recordPersistenceFailure({ area: "local", operation, key: HISTORY_KEY }, error);
+};
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
   value != null && typeof value === "object" && !Array.isArray(value);
@@ -152,7 +157,7 @@ export const SaveHistory = {
           [HISTORY_KEY]: [...history, withMeta].slice(-HISTORY_LIMIT),
         });
       })
-      .catch(() => {});
+      .catch((error) => recordHistoryFailure("write", error));
 
     return id;
   },
@@ -170,7 +175,7 @@ export const SaveHistory = {
         const next = history.map((e) => (e.id === id ? Object.assign({}, e, fields) : e));
         return webExtensionApi.storage.local.set({ [HISTORY_KEY]: next });
       })
-      .catch(() => {});
+      .catch((error) => recordHistoryFailure("write", error));
 
     return SaveHistory.writeQueue;
   },
@@ -200,7 +205,16 @@ export const SaveHistory = {
     SaveHistory.patch(id, { downloadId }),
 
   get: async (): Promise<HistoryEntry[]> => {
-    const current = (await webExtensionApi.storage.local.get(HISTORY_KEY)) || {};
+    let current: Record<string, unknown>;
+    try {
+      current = ((await webExtensionApi.storage.local.get(HISTORY_KEY)) || {}) as Record<
+        string,
+        unknown
+      >;
+    } catch (error) {
+      recordHistoryFailure("read", error);
+      throw error;
+    }
     const stored = current[HISTORY_KEY];
     const history = normalizeHistory(stored);
     if (hasLegacyDateOnlyTimestamp(stored)) {
@@ -213,7 +227,7 @@ export const SaveHistory = {
             [HISTORY_KEY]: migrateLegacyHistoryTimestamps(latestStored),
           });
         })
-        .catch(() => {});
+        .catch((error) => recordHistoryFailure("migrate", error));
       await SaveHistory.writeQueue;
     }
     return history;

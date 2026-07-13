@@ -28,6 +28,7 @@ import { respondAsync, type SendResponse } from "./message-dispatch.ts";
 import { Log } from "./log.ts";
 import { applyConfigSerialized } from "./config-apply.ts";
 import { configWriteState } from "./state.ts";
+import { getPersistenceDiagnostics } from "../shared/persistence-diagnostics.ts";
 
 type MessageSender = browser.runtime.MessageSender;
 type ProtocolSendResponse = SendResponse;
@@ -127,6 +128,7 @@ export const Messaging = {
         routeInfo,
         lastDownload: backgroundRuntime.lastDownloadState,
         interpolatedVariables,
+        persistenceErrors: getPersistenceDiagnostics(),
       },
     });
   },

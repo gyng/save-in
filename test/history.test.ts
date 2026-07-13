@@ -1,5 +1,9 @@
 import { SaveHistory } from "../src/background/history.ts";
 import type { HistoryEntry } from "../src/shared/history-types.ts";
+import {
+  clearPersistenceDiagnostics,
+  getPersistenceDiagnostics,
+} from "../src/shared/persistence-diagnostics.ts";
 
 const HISTORY_KEY = "save-in-history";
 
@@ -11,6 +15,7 @@ describe("SaveHistory", () => {
   let store: Record<string, HistoryEntry[]>;
 
   beforeEach(() => {
+    clearPersistenceDiagnostics();
     store = {};
     global.browser.storage.local.get = jest.fn((key: string) =>
       Promise.resolve({ [key]: store[key] }),
@@ -256,5 +261,13 @@ describe("SaveHistory", () => {
     await flushWrites();
 
     expect(store[HISTORY_KEY].map((e) => e.url)).toEqual(["https://a/2"]);
+    expect(getPersistenceDiagnostics()).toEqual([
+      expect.objectContaining({
+        area: "local",
+        operation: "write",
+        key: HISTORY_KEY,
+        error: "Error: boom",
+      }),
+    ]);
   });
 });
