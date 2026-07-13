@@ -215,6 +215,7 @@ describe("options form semantics", () => {
     expect(integrationCard?.querySelector(".external-api-details summary")?.textContent).toContain(
       "Developer details",
     );
+    expect(document.querySelector("#webmcp-status")?.closest(".webmcp-card")).not.toBeNull();
     expect(integrationCard?.textContent).not.toContain("#110");
   });
 

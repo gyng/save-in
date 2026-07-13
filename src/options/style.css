@@ -3144,6 +3144,12 @@ button {
   background-color: var(--panel-bg);
 }
 
+.webmcp-card {
+  width: min(760px, 100%);
+  max-width: none;
+  box-sizing: border-box;
+}
+
 .counter-control {
   max-width: 520px;
 }
