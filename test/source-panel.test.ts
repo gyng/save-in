@@ -583,22 +583,41 @@ describe("Page Sources panel interactions", () => {
       resourceHints: false,
     });
 
-    performanceCallback!(
-      {
-        getEntries: () => [
-          {
-            name: "https://cdn.test/late-size.jpg",
-            encodedBodySize: 2048,
-            transferSize: 2200,
-          },
-        ],
-      } as unknown as PerformanceObserverEntryList,
-      {} as PerformanceObserver,
-    );
+    const reportSize = (bytes: number) =>
+      performanceCallback!(
+        {
+          getEntries: () => [
+            {
+              name: "https://cdn.test/late-size.jpg",
+              encodedBodySize: bytes,
+              transferSize: bytes,
+            },
+          ],
+        } as unknown as PerformanceObserverEntryList,
+        {} as PerformanceObserver,
+      );
+
+    reportSize(2048);
 
     expect(
       getSourcePanelHostForTesting()!.shadowRoot!.querySelector(".meta")?.textContent,
     ).toContain("2 KB");
+    expect(
+      getSourcePanelHostForTesting()!.shadowRoot!.querySelector<HTMLElement>(".source-size")
+        ?.dataset.sizeWeight,
+    ).toBe("regular");
+
+    reportSize(2 * 1024 * 1024);
+    expect(
+      getSourcePanelHostForTesting()!.shadowRoot!.querySelector<HTMLElement>(".source-size")
+        ?.dataset.sizeWeight,
+    ).toBe("medium");
+
+    reportSize(12 * 1024 * 1024);
+    expect(
+      getSourcePanelHostForTesting()!.shadowRoot!.querySelector<HTMLElement>(".source-size")
+        ?.dataset.sizeWeight,
+    ).toBe("bold");
   });
 
   test("gives every header action an accessible name", () => {

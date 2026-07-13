@@ -11,19 +11,27 @@ describe("shared Page Sources open state", () => {
     (global.browser as any).tabs.sendMessage = vi.fn(async () => undefined);
   });
 
-  test("persists toggles and restores the state when another tab activates", async () => {
-    const { syncSourcePanelToTab, toggleSourcePanelForTab } =
-      await import("../src/background/source-panel-state.ts");
+  test("sends explicit toggles as forced user overrides", async () => {
+    const { toggleSourcePanelForTab } = await import("../src/background/source-panel-state.ts");
 
     await toggleSourcePanelForTab(3);
+
+    expect(global.browser.storage.session.set).not.toHaveBeenCalled();
+    expect(global.browser.tabs.sendMessage).toHaveBeenCalledWith(3, {
+      type: "TOGGLE_SOURCE_PANEL",
+      body: { force: true },
+    });
+  });
+
+  test("restores content-reported open state when another tab activates", async () => {
+    const { setSourcePanelOpenState, syncSourcePanelToTab } =
+      await import("../src/background/source-panel-state.ts");
+
+    await setSourcePanelOpenState(true);
     await syncSourcePanelToTab(8);
 
     expect(global.browser.storage.session.set).toHaveBeenCalledWith({ sourcePanelOpen: true });
-    expect(global.browser.tabs.sendMessage).toHaveBeenNthCalledWith(1, 3, {
-      type: "SET_SOURCE_PANEL",
-      body: { open: true },
-    });
-    expect(global.browser.tabs.sendMessage).toHaveBeenNthCalledWith(2, 8, {
+    expect(global.browser.tabs.sendMessage).toHaveBeenCalledWith(8, {
       type: "SET_SOURCE_PANEL",
       body: { open: true },
     });

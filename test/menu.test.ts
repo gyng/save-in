@@ -164,6 +164,20 @@ describe("menu creation", () => {
       expect(menu.setAccesskey("cats", "")).toBe("cats");
       expect(menu.setAccesskey("cats", "1", "")).toBe("cats");
     });
+
+    test("uses only single-character access keys", () => {
+      expect(menu.setAccesskey("cats", 10)).toBe("cats");
+      expect(menu.setAccesskey("cats", "ab")).toBe("cats");
+    });
+
+    test("escapes literal ampersands before adding an access key", () => {
+      expect(menu.setAccesskey("Cats & Dogs", "d")).toBe("Cats && &Dogs");
+      expect(menu.setAccesskey("Cats & Dogs", "x")).toBe("Cats && Dogs (&x)");
+    });
+
+    test("matches access keys without changing title case", () => {
+      expect(menu.setAccesskey("Cats", "c")).toBe("&Cats");
+    });
   });
 
   describe("static menu items", () => {
@@ -383,6 +397,17 @@ describe("menu creation", () => {
       expect(created().map((c) => c.title)).toEqual(["dogs (&1)", "cats (&2)"]);
     });
 
+    test("does not reuse the first mnemonic for item ten", () => {
+      options.enableNumberedItems = true;
+
+      menu.addPaths(
+        Array.from({ length: 10 }, (_, index) => `path-${index + 1}`),
+        ["link"],
+      );
+
+      expect(created()[9]!.title).toBe("path-10");
+    });
+
     test("meta key overrides the numbered access key", () => {
       options.enableNumberedItems = true;
 
@@ -397,6 +422,14 @@ describe("menu creation", () => {
       menu.addPaths(["dogs"], ["link"]);
 
       expect(created()[0]!.title).toBe("dogs");
+    });
+
+    test("escapes ampersands in aliases when numbered access keys are off", () => {
+      options.enableNumberedItems = false;
+
+      menu.addPaths(["dogs // (alias: Cats & Dogs)"], ["link"]);
+
+      expect(created()[0]!.title).toBe("Cats && Dogs");
     });
 
     test("drops stale mappings without retaining parallel title state", () => {

@@ -197,6 +197,48 @@ describe("content.js initialisation", () => {
     expect(global.chrome.runtime.sendMessage).not.toHaveBeenCalled();
   });
 
+  test("lets an explicit user toggle open Page Sources while it is disabled", async () => {
+    let runtimeListener: ((message: any) => void) | undefined;
+    let storageListener: ((changes: Record<string, any>, area: string) => void) | undefined;
+    vi.resetModules();
+    global.chrome.runtime.sendMessage = vi.fn((_message, callback) => callback?.()) as any;
+    global.chrome.runtime.onMessage.addListener = vi.fn((listener) => {
+      runtimeListener = listener;
+    });
+    global.chrome.storage.local.get = vi.fn((_keys, callback) =>
+      callback({ sourcePanelEnabled: false }),
+    ) as any;
+    (global.chrome.storage as any).onChanged = {
+      addListener: vi.fn((listener) => {
+        storageListener = listener;
+      }),
+    };
+    await import("../src/content/content.ts");
+
+    runtimeListener!({ type: "TOGGLE_SOURCE_PANEL", body: { force: true } });
+    storageListener!({ sourcePanelLive: { oldValue: true, newValue: false } }, "local");
+
+    expect(document.getElementById("save-in-source-panel")).not.toBeNull();
+  });
+
+  test("keeps automatic Page Sources messages disabled without an override", async () => {
+    let runtimeListener: ((message: any) => void) | undefined;
+    vi.resetModules();
+    global.chrome.runtime.sendMessage = vi.fn((_message, callback) => callback?.()) as any;
+    global.chrome.runtime.onMessage.addListener = vi.fn((listener) => {
+      runtimeListener = listener;
+    });
+    global.chrome.storage.local.get = vi.fn((_keys, callback) =>
+      callback({ sourcePanelEnabled: false }),
+    ) as any;
+    (global.chrome.storage as any).onChanged = { addListener: vi.fn() };
+    await import("../src/content/content.ts");
+
+    runtimeListener!({ type: "SET_SOURCE_PANEL", body: { open: true } });
+
+    expect(document.getElementById("save-in-source-panel")).toBeNull();
+  });
+
   test("announces enabled Page Sources only after its message listener is installed", async () => {
     const calls: string[] = [];
     vi.resetModules();

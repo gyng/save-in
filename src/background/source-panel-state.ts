@@ -25,9 +25,9 @@ const write = async (open: boolean) => {
   }
 };
 
-const send = async (tabId: number, open: boolean) => {
+const send = async (tabId: number, message: object) => {
   try {
-    await webExtensionApi.tabs.sendMessage(tabId, { type: "SET_SOURCE_PANEL", body: { open } });
+    await webExtensionApi.tabs.sendMessage(tabId, message);
   } catch {
     // Restricted pages and tabs without the content script cannot host the drawer.
   }
@@ -39,15 +39,13 @@ export const setSourcePanelOpenState = (open: boolean): Promise<void> => {
 };
 
 export const toggleSourcePanelForTab = (tabId: number): Promise<void> => {
-  queue = queue.then(async () => {
-    const open = !(await read());
-    await write(open);
-    await send(tabId, open);
-  });
+  queue = queue.then(() => send(tabId, { type: "TOGGLE_SOURCE_PANEL", body: { force: true } }));
   return queue;
 };
 
 export const syncSourcePanelToTab = (tabId: number): Promise<void> => {
-  queue = queue.then(async () => send(tabId, await read()));
+  queue = queue.then(async () =>
+    send(tabId, { type: "SET_SOURCE_PANEL", body: { open: await read() } }),
+  );
   return queue;
 };

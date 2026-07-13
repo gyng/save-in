@@ -378,6 +378,7 @@ try {
     return request;
   };
   let sourcePanelIsOpen = false;
+  let sourcePanelForcedOpen = false;
   let panelLocalizationQueue = Promise.resolve();
   const createPanelOptions = (copy: SourcePanelCopy, locale: string) => ({
     enabled: currentOptions.sourcePanelEnabled === true,
@@ -394,6 +395,7 @@ try {
     onSaveIntent: warmBackground,
     onOpenChange: (open: boolean) => {
       sourcePanelIsOpen = open;
+      if (!open) sourcePanelForcedOpen = false;
       try {
         chrome.runtime.sendMessage(
           { type: "SOURCE_PANEL_STATE", body: { open } },
@@ -433,7 +435,7 @@ try {
   };
   reconfigureOpenSourcePanel = () => {
     if (!sourcePanelIsOpen) return;
-    if (currentOptions.sourcePanelEnabled !== true) {
+    if (currentOptions.sourcePanelEnabled !== true && !sourcePanelForcedOpen) {
       setSourcePanelOpen(
         false,
         sendDownload,
@@ -441,7 +443,12 @@ try {
       );
       return;
     }
-    withPanelCopy((panelOptions) => replaceSourcePanel(sendDownload, panelOptions));
+    withPanelCopy((panelOptions) =>
+      replaceSourcePanel(
+        sendDownload,
+        sourcePanelForcedOpen ? { ...panelOptions, enabled: true } : panelOptions,
+      ),
+    );
   };
   chrome.runtime.onMessage.addListener((message) => {
     if (!["TOGGLE_SOURCE_PANEL", "SET_SOURCE_PANEL"].includes(message?.type)) return;
@@ -454,8 +461,15 @@ try {
       return;
     }
     withPanelCopy((panelOptions) => {
-      if (message.type === "SET_SOURCE_PANEL") setSourcePanelOpen(true, sendDownload, panelOptions);
-      else toggleSourcePanel(sendDownload, panelOptions);
+      if (message.type === "SET_SOURCE_PANEL") {
+        setSourcePanelOpen(true, sendDownload, panelOptions);
+      } else {
+        sourcePanelForcedOpen = message.body?.force === true;
+        toggleSourcePanel(
+          sendDownload,
+          sourcePanelForcedOpen ? { ...panelOptions, enabled: true } : panelOptions,
+        );
+      }
     });
   });
   // Unlike timer retries in the service worker, this handshake is emitted

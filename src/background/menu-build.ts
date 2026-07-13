@@ -93,12 +93,15 @@ export const makeSeparator = (
 export const setAccesskey = (str: string, key: string | number, override?: string) => {
   const keyUsed = override != null ? override : key;
   const accessKey = String(keyUsed);
-  if (!accessKey) return str;
-  if (str.includes(accessKey)) {
-    return str.replace(accessKey, `&${accessKey}`);
-  } else {
-    return `${str} (&${accessKey})`;
-  }
+  const escapeAmpersands = (value: string) => value.replaceAll("&", "&&");
+  if ([...accessKey].length !== 1 || accessKey === "&") return escapeAmpersands(str);
+
+  const matchIndex = str.toLowerCase().indexOf(accessKey.toLowerCase());
+  if (matchIndex === -1) return `${escapeAmpersands(str)} (&${accessKey})`;
+  return `${escapeAmpersands(str.slice(0, matchIndex))}&${str.slice(
+    matchIndex,
+    matchIndex + accessKey.length,
+  )}${escapeAmpersands(str.slice(matchIndex + accessKey.length))}`;
 };
 
 export const addRoot = (contexts: string[]) => {
@@ -250,9 +253,11 @@ export const renderPathTree = ({ items, errors }: MenuTree, contexts: string[]) 
 
     webExtensionApi.contextMenus.create({
       id: item.id,
-      title: options.enableNumberedItems
-        ? setAccesskey(item.title, item.number, item.accessKeyOverride)
-        : item.title,
+      title: setAccesskey(
+        item.title,
+        options.enableNumberedItems ? item.number : "",
+        options.enableNumberedItems ? item.accessKeyOverride : "",
+      ),
       contexts: asMenuContexts(contexts),
       parentId: item.parentId,
     });

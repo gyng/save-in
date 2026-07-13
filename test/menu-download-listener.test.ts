@@ -41,16 +41,12 @@ describe("addDownloadListener", () => {
     expect(global.browser.downloads.showDefaultFolder).toHaveBeenCalled();
   });
 
-  test("keeps the Page Sources toggle alive until its storage and tab work completes", async () => {
-    let finishRead!: (value: Record<string, unknown>) => void;
-    const read = new Promise<Record<string, unknown>>((resolve) => {
-      finishRead = resolve;
+  test("keeps the Page Sources toggle alive until its tab message completes", async () => {
+    let finishSend!: () => void;
+    const send = new Promise<void>((resolve) => {
+      finishSend = resolve;
     });
-    (global.browser.storage as any).session = {
-      get: vi.fn(() => read),
-      set: vi.fn(() => Promise.resolve()),
-    };
-    (global.browser.tabs as any).sendMessage = vi.fn(() => Promise.resolve());
+    (global.browser.tabs as any).sendMessage = vi.fn(() => send);
 
     const pending = Promise.resolve(
       listener({ menuItemId: Menus.IDS.TOGGLE_SOURCE_PANEL }, { id: 17 }),
@@ -59,13 +55,16 @@ describe("addDownloadListener", () => {
     void pending.then(settled);
     await Promise.resolve();
     await Promise.resolve();
-    const settledBeforeRead = settled.mock.calls.length > 0;
+    const settledBeforeSend = settled.mock.calls.length > 0;
 
-    finishRead({});
+    finishSend();
     await pending;
-    await vi.waitFor(() => expect(global.browser.tabs.sendMessage).toHaveBeenCalled());
 
-    expect(settledBeforeRead).toBe(false);
+    expect(settledBeforeSend).toBe(false);
+    expect(global.browser.tabs.sendMessage).toHaveBeenCalledWith(17, {
+      type: "TOGGLE_SOURCE_PANEL",
+      body: { force: true },
+    });
   });
 
   test("ignores tabstrip menu items", async () => {
