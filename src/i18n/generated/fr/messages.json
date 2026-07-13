@@ -54,7 +54,7 @@
     }
   },
   "notificationRuleMatchedTitle": {
-    "message": "Save In : règle correspondante"
+    "message": "Save In : règle appliquée"
   },
   "notificationRuleMatchFailedExclusiveTitle": {
     "message": "Save In : échec de l'acheminement ou du renommage du téléchargement"
@@ -72,7 +72,7 @@
     "message": "Ajouter au moins une clause matcher"
   },
   "ruleCaptureMissingMatcher": {
-    "message": "La clause de capture ne cible pas un matcher"
+    "message": "La clause de capture ne cible aucun critère"
   },
   "ruleMissingCapture": {
     "message": "Ajouter une clause de capture pour utiliser les variables de capture"
@@ -87,7 +87,7 @@
     "message": "Une règle ne peut contenir qu'une seule clause into :"
   },
   "ruleUnknownMatcher": {
-    "message": "Correspondant inconnu"
+    "message": "Critère inconnu"
   },
   "ruleInvalidRegex": {
     "message": "Expression régulière invalide"
@@ -375,7 +375,7 @@
     "message": "Par défaut du navigateur"
   },
   "o_lLanguageChangeFailed": {
-    "message": "Impossible de changer la langue. Essayer à nouveau."
+    "message": "Impossible de changer la langue. Réessayez."
   },
   "o_lRoutingLastDownload": {
     "message": "Dernier téléchargement"
@@ -615,7 +615,7 @@
     "message": "Règles de texte"
   },
   "o_lMatcher": {
-    "message": "Correspondant"
+    "message": "Critère"
   },
   "o_lPattern": {
     "message": "Motif"
@@ -708,7 +708,7 @@
     "message": ", chemins absolus et segments de chemin cachés tels que"
   },
   "html_add": {
-    "message": ". Ajouter"
+    "message": ". Pour ajouter un commentaire, placez"
   },
   "html_addACommentThatIsNotDisplayed": {
     "message": "Ajouter un commentaire qui ne s'affiche pas"
@@ -729,7 +729,7 @@
     "message": "Attribuer une clé d'accès"
   },
   "html_atTheEndForACommentStartWith": {
-    "message": "à la fin pour un commentaire ; commencer par"
+    "message": "à la fin de la ligne. Pour créer des sous-menus imbriqués, commencez par"
   },
   "html_browsersOnlyLetExtensionsSaveInsideTheDefault": {
     "message": "Les navigateurs n’autorisent les extensions à enregistrer des fichiers que dans le"
@@ -801,7 +801,7 @@
     "message": "Chemins contenant"
   },
   "html_perLevel": {
-    "message": "par niveau."
+    "message": "pour chaque niveau."
   },
   "html_saveInWiki": {
     "message": "Wiki Save In"
@@ -825,7 +825,7 @@
     "message": "Le"
   },
   "html_toCreateNestedSubmenusUsingOne": {
-    "message": "pour créer des sous-menus imbriqués, en utilisant un"
+    "message": "et ajoutez un autre"
   },
   "html_toReachAnotherLocationCreateASymlinkInsideDownloads": {
     "message": ". Pour atteindre un autre emplacement, créez un lien symbolique dans les téléchargements et utilisez ce chemin de lien symbolique relatif comme destination. Le dossier cible doit déjà exister."
@@ -873,7 +873,7 @@
     "message": "Saisissez un modèle de correspondance de navigateur de type URL par ligne. Il a un schéma, un hôte et un chemin :"
   },
   "html_everyMatcherInARuleMustMatch": {
-    "message": "Chaque matcher dans une règle doit correspondre."
+    "message": "Tous les critères d’une règle doivent correspondre."
   },
   "html_everyRuleMustEndWithAn": {
     "message": "Chaque règle doit se terminer par un"
@@ -912,7 +912,7 @@
     "message": "Facultatif"
   },
   "html_parenthesesCapturePartsOfAMatcherSelectTheMatcher": {
-    "message": "Les parenthèses capturent des parties d'un matcher. Sélectionnez le matcher avec"
+    "message": "Les parenthèses capturent des parties d’un critère. Sélectionnez le critère avec"
   },
   "html_regularExpressionGuide": {
     "message": "guide des expressions régulières"
@@ -945,7 +945,7 @@
     "message": "Cliquez"
   },
   "html_clickToSaveShortcut": {
-    "message": "Raccourci cliquer pour enregistrer"
+    "message": "Raccourci d’enregistrement au clic"
   },
   "html_clickToSaveShortcutCombination": {
     "message": "Combinaison de raccourcis Cliquer pour enregistrer"
@@ -966,7 +966,7 @@
     "message": "Ctrl"
   },
   "html_dismissEarlyAfter": {
-    "message": "Licencier tôt après"
+    "message": "Masquer plus tôt après"
   },
   "html_export": {
     "message": "Exporter"
@@ -975,7 +975,7 @@
     "message": "Filtrer les sources"
   },
   "html_historyTableTools": {
-    "message": "Outils de table d'historique"
+    "message": "Outils du tableau d’historique"
   },
   "html_image": {
     "message": "Images"
@@ -1008,7 +1008,7 @@
     "message": "Le clic gauche de la souris uniquement remplacera les clics normaux sur les médias et les liens enregistrables tant que cette fonctionnalité est activée."
   },
   "html_ms": {
-    "message": "Mme"
+    "message": "ms"
   },
   "html_none": {
     "message": "Aucun"
@@ -1032,7 +1032,7 @@
     "message": "Sélection"
   },
   "html_shift": {
-    "message": "Changement"
+    "message": "Maj"
   },
   "html_shortcutFileBehavior": {
     "message": "Comportement du fichier de raccourci"
@@ -1158,7 +1158,7 @@
     "message": "Un chat porte-bonheur aquarelle organisant soigneusement des documents, des photographies, des films et des livres"
   },
   "html_buildInformation": {
-    "message": "Informations sur la construction"
+    "message": "Informations de compilation"
   },
   "html_checking": {
     "message": "vérification…"
@@ -1452,10 +1452,10 @@
     "message": "dans de nouvelles règles."
   },
   "html_matcherClausesUse": {
-    "message": "Utilisation des clauses Matcher"
+    "message": "Les clauses de correspondance utilisent"
   },
   "html_matchers": {
-    "message": "Matcheurs"
+    "message": "Critères"
   },
   "html_matchesTheCommentOfTheClickedMenuItem": {
     "message": "Correspond au commentaire de l'élément de menu sélectionné."
@@ -1524,13 +1524,13 @@
     "message": "Déplace un téléchargement vers le chemin indiqué ou le renomme selon le modèle indiqué. Terminez le modèle par"
   },
   "html_selectsTheMatcherForRegexCaptureGroupVariables": {
-    "message": "Sélectionne le matcher dont les groupes de capture d'expression régulière sont disponibles en tant que"
+    "message": "Sélectionne le critère dont les groupes de capture d’expression régulière sont disponibles sous la forme"
   },
   "html_splitMultipleCaptureTargetsWithA": {
     "message": ". Séparez plusieurs cibles de capture avec"
   },
   "html_stringsAddJavascriptRegexFlagsAfterTheMatcherName": {
-    "message": ". Ajoutez des indicateurs JavaScript après le nom du correspondant ; par exemple, utilisez"
+    "message": ". Ajoutez des indicateurs JavaScript après le nom du critère ; par exemple, utilisez"
   },
   "html_toRouteIntoAFolder": {
     "message": "pour le déplacer dans un dossier"

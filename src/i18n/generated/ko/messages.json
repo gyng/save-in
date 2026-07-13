@@ -69,10 +69,10 @@
     }
   },
   "ruleMissingMatcher": {
-    "message": "하나 이상의 일치자 절을 추가하세요."
+    "message": "매처 절을 하나 이상 추가하세요"
   },
   "ruleCaptureMissingMatcher": {
-    "message": "Capture 절이 일치자를 대상으로 하지 않습니다."
+    "message": "캡처 절이 매처를 가리키지 않습니다"
   },
   "ruleMissingCapture": {
     "message": "캡처 변수를 사용하려면 캡처 절을 추가하세요."
@@ -87,7 +87,7 @@
     "message": "규칙에는 into: 절이 하나만 포함될 수 있습니다."
   },
   "ruleUnknownMatcher": {
-    "message": "알 수 없는 일치자"
+    "message": "알 수 없는 매처"
   },
   "ruleInvalidRegex": {
     "message": "잘못된 정규 표현식"
@@ -615,13 +615,13 @@
     "message": "텍스트 규칙"
   },
   "o_lMatcher": {
-    "message": "일치자"
+    "message": "매처"
   },
   "o_lPattern": {
     "message": "패턴"
   },
   "o_lDestinationInto": {
-    "message": "목적지(into:)"
+    "message": "저장 위치(into:)"
   },
   "o_lSaving": {
     "message": "저장 중…"
@@ -660,7 +660,7 @@
     "message": "한 줄에 하나의 정규식을 입력하세요. 패턴은 페이지 URL과 일치됩니다."
   },
   "notificationBadPreferLinksPattern": {
-    "message": "기본 링크에 대한 정규 표현식이 잘못되었습니다."
+    "message": "선호 링크에 대한 정규식이 올바르지 않습니다."
   },
   "o_cNotifyLinkPreferred": {
     "message": "내장된 미디어 대신 링크 대상이 다운로드되면 알림"
@@ -708,13 +708,13 @@
     "message": ", 절대 경로 및 숨겨진 경로 세그먼트(예:"
   },
   "html_add": {
-    "message": ". 추가"
+    "message": ". 주석을 추가하려면 줄 끝에"
   },
   "html_addACommentThatIsNotDisplayed": {
     "message": "표시되지 않는 댓글을 추가하세요."
   },
   "html_addDestinations": {
-    "message": "목적지 추가"
+    "message": "저장 위치 추가"
   },
   "html_addsOneNestingLevel": {
     "message": "하나의 중첩 수준을 추가합니다."
@@ -729,13 +729,13 @@
     "message": "액세스 키 할당"
   },
   "html_atTheEndForACommentStartWith": {
-    "message": "마지막에 코멘트를 위해; 시작하다"
+    "message": "를 붙입니다. 중첩된 하위 메뉴를 만들려면 줄 앞에"
   },
   "html_browsersOnlyLetExtensionsSaveInsideTheDefault": {
     "message": "브라우저에서는 확장 프로그램이 다음 폴더 안에만 저장할 수 있습니다:"
   },
   "html_buildTheDestinationsAndSubmenusShownInSaveIn": {
-    "message": "Save In의 상황에 맞는 메뉴에 표시된 폴더와 하위 메뉴를 선택하세요."
+    "message": "Save In의 컨텍스트 메뉴에 표시할 폴더와 하위 메뉴를 선택하세요."
   },
   "html_butShowsCatPictures": {
     "message": ", '고양이 사진'이 표시됩니다."
@@ -777,7 +777,7 @@
     "message": "예를 들어,"
   },
   "html_howToCreateDestinations": {
-    "message": "목적지를 만드는 방법"
+    "message": "저장 위치를 만드는 방법"
   },
   "html_insertionReferences": {
     "message": "삽입 참고자료"
@@ -801,7 +801,7 @@
     "message": "다음을 포함하는 경로"
   },
   "html_perLevel": {
-    "message": "레벨당."
+    "message": "를 하나씩 더 붙입니다."
   },
   "html_saveInWiki": {
     "message": "Save In 위키"
@@ -825,7 +825,7 @@
     "message": "는"
   },
   "html_toCreateNestedSubmenusUsingOne": {
-    "message": "하나를 사용하여 중첩된 하위 메뉴를 만들려면"
+    "message": "를 붙이고, 단계가 깊어질 때마다"
   },
   "html_toReachAnotherLocationCreateASymlinkInsideDownloads": {
     "message": ". 다른 위치에 저장하려면 다운로드 폴더 안에 심볼릭 링크를 만들고 해당 상대 경로를 저장 위치로 사용하세요. 링크 대상 폴더는 미리 만들어져 있어야 합니다."
@@ -864,22 +864,22 @@
     "message": "이 프롬프트를 에이전트에 복사하거나 외부 통합에서 WebMCP를 사용하세요."
   },
   "html_destination": {
-    "message": "목적지."
+    "message": "저장 위치."
   },
   "html_destinationsAreRelativeToTheDownloadsMenuDestinationYou": {
-    "message": "대상은 선택한 폴더를 기준으로 합니다. 일치자 값은 정규식입니다. 참조"
+    "message": "저장 위치는 선택한 폴더를 기준으로 한 상대 경로입니다. 매처 값에는 정규식을 사용합니다. 자세한 내용은"
   },
   "html_enterOneUrlLikeBrowserMatchPatternPerLine": {
     "message": "URL과 유사한 브라우저 일치 패턴을 한 줄에 하나씩 입력하세요. 여기에는 구성표, 호스트 및 경로가 있습니다."
   },
   "html_everyMatcherInARuleMustMatch": {
-    "message": "규칙의 모든 일치자는 일치해야 합니다."
+    "message": "규칙의 모든 매처가 일치해야 합니다."
   },
   "html_everyRuleMustEndWithAn": {
     "message": "모든 규칙은 다음으로 끝나야 합니다."
   },
   "html_filterClauses": {
-    "message": "조항 필터링"
+    "message": "필터 절"
   },
   "html_filterRoutingTemplates": {
     "message": "라우팅 템플릿 필터링"
@@ -912,7 +912,7 @@
     "message": "선택사항"
   },
   "html_parenthesesCapturePartsOfAMatcherSelectTheMatcher": {
-    "message": "괄호는 일치자의 일부를 캡처합니다. 다음을 사용하여 일치자를 선택합니다."
+    "message": "괄호는 매처의 일부를 캡처합니다. 다음을 사용하여 매처를 선택하세요."
   },
   "html_regularExpressionGuide": {
     "message": "정규식 가이드"
@@ -945,7 +945,7 @@
     "message": "클릭"
   },
   "html_clickToSaveShortcut": {
-    "message": "클릭하여 저장하는 바로가기"
+    "message": "클릭 저장 바로가기"
   },
   "html_clickToSaveShortcutCombination": {
     "message": "클릭하여 저장하는 바로가기 조합"
@@ -966,7 +966,7 @@
     "message": "Ctrl"
   },
   "html_dismissEarlyAfter": {
-    "message": "이후 조기 종료"
+    "message": "조기에 닫기까지"
   },
   "html_export": {
     "message": "수출"
@@ -1032,7 +1032,7 @@
     "message": "선택"
   },
   "html_shift": {
-    "message": "교대"
+    "message": "Shift"
   },
   "html_shortcutFileBehavior": {
     "message": "바로가기 파일 동작"
@@ -1452,7 +1452,7 @@
     "message": "새로운 규칙에서."
   },
   "html_matcherClausesUse": {
-    "message": "일치자 절 사용"
+    "message": "매처 절에는"
   },
   "html_matchers": {
     "message": "매처"
@@ -1524,13 +1524,13 @@
     "message": "다운로드를 지정한 경로로 이동하거나 지정한 패턴으로 이름을 바꿉니다. 폴더로 이동하려면 패턴 끝에"
   },
   "html_selectsTheMatcherForRegexCaptureGroupVariables": {
-    "message": "정규식 캡처 그룹을 다음과 같이 사용할 수 있는 매처를 선택합니다."
+    "message": "정규식 캡처 그룹을 변수로 사용할 매처를 선택합니다."
   },
   "html_splitMultipleCaptureTargetsWithA": {
     "message": ". 여러 캡처 대상을 다음과 같이 구분합니다."
   },
   "html_stringsAddJavascriptRegexFlagsAfterTheMatcherName": {
-    "message": ". 일치자 이름 뒤에 JavaScript 플래그를 추가하십시오. 예를 들어"
+    "message": "을 사용합니다. 매처 이름 뒤에 JavaScript 플래그를 추가하세요. 예:"
   },
   "html_toRouteIntoAFolder": {
     "message": "를 붙이면 폴더로 이동합니다."
@@ -1596,7 +1596,7 @@
     "message": "기존 인터넷 바로가기"
   },
   "o_lShortcutFormatMac": {
-    "message": "기본 macOS 단축키"
+    "message": "macOS 네이티브 바로가기"
   },
   "o_lShortcutFormatWindows": {
     "message": "Windows 인터넷 바로가기"

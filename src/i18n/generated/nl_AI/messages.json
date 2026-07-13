@@ -54,7 +54,7 @@
     }
   },
   "notificationRuleMatchedTitle": {
-    "message": "Save In: Regel komt overeen"
+    "message": "Save In: regel toegepast"
   },
   "notificationRuleMatchFailedExclusiveTitle": {
     "message": "Save In: Kan de download niet routeren of hernoemen"
@@ -552,7 +552,7 @@
     "message": "Laat leeg om te verwijderen. Ongeldige vervangende tekens worden genegeerd."
   },
   "o_cAppendMimeExtension": {
-    "message": "Voeg een extensie toe als de bestandsnaam er geen heeft"
+    "message": "Een extensie toevoegen als de bestandsnaam er geen heeft"
   },
   "o_cAppendMimeExtensionHelp": {
     "message": "Voor URL's zonder extensie leidt u er een af van de Content-Type van de server. Dit voegt alleen een kleine vertraging toe als dat nodig is."
@@ -708,7 +708,7 @@
     "message": ", absolute paden en verborgen padsegmenten zoals"
   },
   "html_add": {
-    "message": ". Toevoegen"
+    "message": ". Plaats voor een opmerking"
   },
   "html_addACommentThatIsNotDisplayed": {
     "message": "Voeg een opmerking toe die niet wordt weergegeven"
@@ -729,7 +729,7 @@
     "message": "Wijs een toegangssleutel toe"
   },
   "html_atTheEndForACommentStartWith": {
-    "message": "aan het einde voor een commentaar; beginnen met"
+    "message": "aan het einde van de regel. Begin voor geneste submenu’s met"
   },
   "html_browsersOnlyLetExtensionsSaveInsideTheDefault": {
     "message": "Browsers staan extensies alleen toe bestanden op te slaan in de standaard"
@@ -801,7 +801,7 @@
     "message": "Paden bevatten"
   },
   "html_perLevel": {
-    "message": "per niveau."
+    "message": "toe."
   },
   "html_saveInWiki": {
     "message": "Save In-wiki"
@@ -825,7 +825,7 @@
     "message": "De"
   },
   "html_toCreateNestedSubmenusUsingOne": {
-    "message": "om geneste submenu's te maken, met behulp van één"
+    "message": "en voeg voor elk volgend niveau nog een"
   },
   "html_toReachAnotherLocationCreateASymlinkInsideDownloads": {
     "message": ". Om een andere locatie te bereiken, maakt u een symlink binnen Downloads en gebruikt u dat relatieve symlinkpad als bestemming. De doelmap moet al bestaan."
@@ -918,7 +918,7 @@
     "message": "gids voor reguliere expressies"
   },
   "html_separateRulesWithABlankLine": {
-    "message": "Aparte regels met een lege regel."
+    "message": "Scheid regels met een lege regel."
   },
   "html_thenUse": {
     "message": ", gebruik dan"
@@ -945,7 +945,7 @@
     "message": "Klik"
   },
   "html_clickToSaveShortcut": {
-    "message": "Snelkoppeling voor klikken om op te slaan"
+    "message": "Sneltoets voor opslaan met een klik"
   },
   "html_clickToSaveShortcutCombination": {
     "message": "Snelkoppelingscombinatie voor klikken om op te slaan"
@@ -966,7 +966,7 @@
     "message": "Ctrl"
   },
   "html_dismissEarlyAfter": {
-    "message": "Daarna vroegtijdig afwijzen"
+    "message": "Voortijdig sluiten na"
   },
   "html_export": {
     "message": "Exporteren"
@@ -975,7 +975,7 @@
     "message": "Bronnen filteren"
   },
   "html_historyTableTools": {
-    "message": "Gereedschappen voor geschiedenistabellen"
+    "message": "Hulpmiddelen voor de geschiedenistabel"
   },
   "html_image": {
     "message": "Afbeelding"
@@ -1008,7 +1008,7 @@
     "message": "Als u alleen met de muis klikt, vervangt u de normale klikken op media en koppelingen die u kunt opslaan als deze functie is ingeschakeld."
   },
   "html_ms": {
-    "message": "mevrouw"
+    "message": "ms"
   },
   "html_none": {
     "message": "Geen"
@@ -1017,7 +1017,7 @@
     "message": "Laat weten wanneer"
   },
   "html_previewOfThePageSourcesDrawer": {
-    "message": "Voorbeeld van de lade Paginabronnen"
+    "message": "Voorbeeld van het paneel Paginabronnen"
   },
   "html_primaryModifier": {
     "message": "Primaire modificator"
@@ -1032,7 +1032,7 @@
     "message": "Selectie"
   },
   "html_shift": {
-    "message": "Verschuiving"
+    "message": "Shift"
   },
   "html_shortcutFileBehavior": {
     "message": "Gedrag van snelkoppelingsbestanden"
@@ -1158,7 +1158,7 @@
     "message": "Een aquarelgelukskat die documenten, foto's, film en boeken zorgvuldig organiseert"
   },
   "html_buildInformation": {
-    "message": "Bouw informatie op"
+    "message": "Buildinformatie"
   },
   "html_checking": {
     "message": "controleren…"
@@ -1248,7 +1248,7 @@
     "message": "Toont Save In-opdrachten op pagina's, links, media en tabbladen."
   },
   "html_startsSavesChoosesFilenamesMonitorsResultsAndSupportsRetries": {
-    "message": "Start het opslaan, kiest bestandsnamen, bewaakt de resultaten en ondersteunt nieuwe pogingen."
+    "message": "Start opslagbewerkingen, kiest bestandsnamen, bewaakt resultaten en ondersteunt nieuwe pogingen."
   },
   "html_storage": {
     "message": "Opslag"

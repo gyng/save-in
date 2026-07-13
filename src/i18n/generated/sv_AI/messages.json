@@ -69,13 +69,13 @@
     }
   },
   "ruleMissingMatcher": {
-    "message": "Lägg till minst en matchningssats"
+    "message": "Lägg till minst ett matchningsvillkor"
   },
   "ruleCaptureMissingMatcher": {
     "message": "Capture-satsen riktar sig inte mot en matchare"
   },
   "ruleMissingCapture": {
-    "message": "Lägg till en fångstsats för att använda fångstvariabler"
+    "message": "Lägg till ett fångstvillkor för att använda fångstvariabler"
   },
   "ruleMultipleCapture": {
     "message": "En regel kan bara innehålla en fångstsats"
@@ -552,7 +552,7 @@
     "message": "Lämna tomt för att radera. Ogiltiga ersättningstecken ignoreras."
   },
   "o_cAppendMimeExtension": {
-    "message": "Lägg till ett tillägg när filnamnet inte har något"
+    "message": "Lägg till en filändelse när filnamnet saknar en"
   },
   "o_cAppendMimeExtensionHelp": {
     "message": "För webbadresser utan tillägg, härled en från serverns Content-Type. Detta lägger till en liten fördröjning endast när det behövs."
@@ -621,7 +621,7 @@
     "message": "Mönster"
   },
   "o_lDestinationInto": {
-    "message": "Destination (into:)"
+    "message": "Sparmål (into:)"
   },
   "o_lSaving": {
     "message": "Sparar…"
@@ -708,7 +708,7 @@
     "message": ", absoluta banor och dolda vägsegment som t.ex"
   },
   "html_add": {
-    "message": ". Lägg till"
+    "message": ". Lägg till en kommentar genom att skriva"
   },
   "html_addACommentThatIsNotDisplayed": {
     "message": "Lägg till en kommentar som inte visas"
@@ -729,13 +729,13 @@
     "message": "Tilldela en åtkomstnyckel"
   },
   "html_atTheEndForACommentStartWith": {
-    "message": "i slutet för en kommentar; börja med"
+    "message": "i slutet av raden. Skapa nästlade undermenyer genom att börja med"
   },
   "html_browsersOnlyLetExtensionsSaveInsideTheDefault": {
     "message": "Webbläsare tillåter bara tillägg att spara filer i webbläsarens förvalda"
   },
   "html_buildTheDestinationsAndSubmenusShownInSaveIn": {
-    "message": "Välj de mappar och undermenyer som visas i Save Ins sammanhangsmeny."
+    "message": "Välj de mappar och undermenyer som visas i Save Ins snabbmeny."
   },
   "html_butShowsCatPictures": {
     "message": ", men visar \"Kattbilder.\""
@@ -777,7 +777,7 @@
     "message": "Till exempel,"
   },
   "html_howToCreateDestinations": {
-    "message": "Hur man skapar resmål"
+    "message": "Så skapar du sparmål"
   },
   "html_insertionReferences": {
     "message": "Insättningsreferenser"
@@ -801,7 +801,7 @@
     "message": "Banor som innehåller"
   },
   "html_perLevel": {
-    "message": "per nivå."
+    "message": "för varje nivå."
   },
   "html_saveInWiki": {
     "message": "Save In-wiki"
@@ -825,7 +825,7 @@
     "message": "Den"
   },
   "html_toCreateNestedSubmenusUsingOne": {
-    "message": "för att skapa kapslade undermenyer med en"
+    "message": "och lägg till ytterligare ett"
   },
   "html_toReachAnotherLocationCreateASymlinkInsideDownloads": {
     "message": ". För att nå en annan plats, skapa en symbollänk i Downloads och använd den relativa symbollänkssökvägen som en destination. Målmappen måste redan finnas."
@@ -945,7 +945,7 @@
     "message": "Klicka"
   },
   "html_clickToSaveShortcut": {
-    "message": "Klicka för att spara genväg"
+    "message": "Genväg för att spara med ett klick"
   },
   "html_clickToSaveShortcutCombination": {
     "message": "Klicka för att spara genvägskombination"
@@ -966,7 +966,7 @@
     "message": "Ctrl"
   },
   "html_dismissEarlyAfter": {
-    "message": "Avskeda tidigt efter"
+    "message": "Stäng i förtid efter"
   },
   "html_export": {
     "message": "Exportera"
@@ -975,7 +975,7 @@
     "message": "Filtrera källor"
   },
   "html_historyTableTools": {
-    "message": "Historik tabell verktyg"
+    "message": "Verktyg för historiktabellen"
   },
   "html_image": {
     "message": "Bild"
@@ -1017,7 +1017,7 @@
     "message": "Meddela när"
   },
   "html_previewOfThePageSourcesDrawer": {
-    "message": "Förhandsgranskning av lådan Sidkällor"
+    "message": "Förhandsgranskning av panelen Sidkällor"
   },
   "html_primaryModifier": {
     "message": "Primär modifierare"
@@ -1026,7 +1026,7 @@
     "message": "Spara som genvägsfiler"
   },
   "html_secondModifier": {
-    "message": "Andra modifierare"
+    "message": "Andra modifierartangenten"
   },
   "html_selection": {
     "message": "Urval"
@@ -1158,7 +1158,7 @@
     "message": "En turkatt i akvarell som noggrant organiserar dokument, fotografier, film och böcker"
   },
   "html_buildInformation": {
-    "message": "Bygg information"
+    "message": "Bygginformation"
   },
   "html_checking": {
     "message": "kollar…"
@@ -1329,7 +1329,7 @@
     "message": "Sidans värdnamn utan underdomäner"
   },
   "html_pageTitleLowercasedAndDashed": {
-    "message": "Sidrubrik, gemener och streckade"
+    "message": "Sidrubrik, med gemener och bindestreck"
   },
   "html_pageTitleLowercasedWithUnderscores": {
     "message": "Sidrubrik, gemener med understreck"
@@ -1383,7 +1383,7 @@
     "message": "Text fångad av grupp"
   },
   "html_charactersForDeeperNesting": {
-    "message": "tecken för djupare häckning"
+    "message": "tecken för djupare nästling"
   },
   "html_createsASeparatorInTheContextMenu": {
     "message": "Skapar en avgränsare i snabbmenyn"

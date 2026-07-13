@@ -15,7 +15,7 @@
     "message": "Opções"
   },
   "contextMenuToggleSourcePanel": {
-    "message": "Mostrar ou ocultar fontes de páginas"
+    "message": "Mostrar ou ocultar os recursos da página"
   },
   "contextMenuExclusive": {
     "message": "Salvar com uma regra de roteamento…"
@@ -54,7 +54,7 @@
     }
   },
   "notificationRuleMatchedTitle": {
-    "message": "Save In: Regra correspondida"
+    "message": "Save In: regra aplicada"
   },
   "notificationRuleMatchFailedExclusiveTitle": {
     "message": "Save In: Falha ao rotear ou renomear download"
@@ -69,10 +69,10 @@
     }
   },
   "ruleMissingMatcher": {
-    "message": "Adicione pelo menos uma cláusula correspondente"
+    "message": "Adicione pelo menos uma cláusula de comparação"
   },
   "ruleCaptureMissingMatcher": {
-    "message": "A cláusula de captura não tem como alvo um matcher"
+    "message": "A cláusula de captura não aponta para um comparador"
   },
   "ruleMissingCapture": {
     "message": "Adicione uma cláusula de captura para usar variáveis de captura"
@@ -87,7 +87,7 @@
     "message": "Uma regra pode conter apenas uma cláusula into:"
   },
   "ruleUnknownMatcher": {
-    "message": "Correspondente desconhecido"
+    "message": "Comparador desconhecido"
   },
   "ruleInvalidRegex": {
     "message": "Expressão regular inválida"
@@ -213,7 +213,7 @@
     "message": "Histórico"
   },
   "o_sPageSources": {
-    "message": "Fontes de página"
+    "message": "Recursos da página"
   },
   "o_lPageSourcesHelp": {
     "message": "Navegue por imagens, vídeos, áudios, documentos e links para download encontrados na página atual. Os itens salvos usam suas regras normais de roteamento e renomeação."
@@ -222,7 +222,7 @@
     "message": "Alguns players de vídeo usam URLs temporários ou carregam mídia por meio de scripts, portanto, Save In pode não detectar todos os vídeos. Às vezes, ele pode encontrar listas de reprodução de streaming de vídeo (HLS/DASH), mas esses arquivos listam apenas as peças de vídeo separadas; salvar um não salva o vídeo completo."
   },
   "o_cSourcePanelEnabled": {
-    "message": "Habilitar fontes de página"
+    "message": "Habilitar os recursos da página"
   },
   "o_cSourcePanelBackgrounds": {
     "message": "Incluir imagens de fundo CSS"
@@ -327,7 +327,7 @@
     "message": "Visualização do menu"
   },
   "o_lLiveVariables": {
-    "message": "Lista de variáveis ativas"
+    "message": "Lista de variáveis em tempo real"
   },
   "o_sVisualEditor": {
     "message": "Editor visual"
@@ -552,7 +552,7 @@
     "message": "Deixe em branco para excluir. Caracteres de substituição inválidos são ignorados."
   },
   "o_cAppendMimeExtension": {
-    "message": "Adicione uma extensão quando o nome do arquivo não tiver nenhuma"
+    "message": "Adicionar uma extensão se o nome do arquivo não tiver nenhuma"
   },
   "o_cAppendMimeExtensionHelp": {
     "message": "Para URLs sem extensão, derive uma do Content-Type do servidor. Isso adiciona um pequeno atraso somente quando necessário."
@@ -615,7 +615,7 @@
     "message": "Regras de texto"
   },
   "o_lMatcher": {
-    "message": "Correspondente"
+    "message": "Comparador"
   },
   "o_lPattern": {
     "message": "Padrão"
@@ -648,7 +648,7 @@
     "message": "Sem erros de validação"
   },
   "notificationLinkPreferred": {
-    "message": "Destino do link baixado"
+    "message": "Destino do link baixado no lugar da mídia"
   },
   "o_cPreferLinksFilterEnabled": {
     "message": "Somente nas páginas correspondentes"
@@ -708,7 +708,7 @@
     "message": ", caminhos absolutos e segmentos de caminho ocultos, como"
   },
   "html_add": {
-    "message": ". Adicionar"
+    "message": ". Para adicionar um comentário, coloque"
   },
   "html_addACommentThatIsNotDisplayed": {
     "message": "Adicione um comentário que não é exibido"
@@ -729,7 +729,7 @@
     "message": "Atribuir uma chave de acesso"
   },
   "html_atTheEndForACommentStartWith": {
-    "message": "no final para um comentário; comece com"
+    "message": "no fim da linha. Para criar submenus aninhados, comece com"
   },
   "html_browsersOnlyLetExtensionsSaveInsideTheDefault": {
     "message": "Os navegadores só permitem que extensões salvem arquivos na"
@@ -801,7 +801,7 @@
     "message": "Caminhos contendo"
   },
   "html_perLevel": {
-    "message": "por nível."
+    "message": "a cada nível."
   },
   "html_saveInWiki": {
     "message": "Wiki Save In"
@@ -825,7 +825,7 @@
     "message": "O"
   },
   "html_toCreateNestedSubmenusUsingOne": {
-    "message": "para criar submenus aninhados, usando um"
+    "message": "e adicione outro"
   },
   "html_toReachAnotherLocationCreateASymlinkInsideDownloads": {
     "message": ". Para chegar a outro local, crie um link simbólico dentro de Downloads e use esse caminho do link simbólico relativo como destino. A pasta de destino já deve existir."
@@ -873,7 +873,7 @@
     "message": "Insira um padrão de correspondência de navegador semelhante a URL por linha. Possui um esquema, host e caminho:"
   },
   "html_everyMatcherInARuleMustMatch": {
-    "message": "Cada matcher em uma regra deve corresponder."
+    "message": "Todos os comparadores de uma regra devem corresponder."
   },
   "html_everyRuleMustEndWithAn": {
     "message": "Toda regra deve terminar com um"
@@ -912,7 +912,7 @@
     "message": "Opcional"
   },
   "html_parenthesesCapturePartsOfAMatcherSelectTheMatcher": {
-    "message": "Os parênteses capturam partes de um matcher. Selecione o matcher com"
+    "message": "Os parênteses capturam partes de um comparador. Selecione o comparador com"
   },
   "html_regularExpressionGuide": {
     "message": "guia de expressões regulares"
@@ -945,7 +945,7 @@
     "message": "Clique"
   },
   "html_clickToSaveShortcut": {
-    "message": "Atalho clique para salvar"
+    "message": "Atalho para salvar com um clique"
   },
   "html_clickToSaveShortcutCombination": {
     "message": "Combinação de atalhos clique para salvar"
@@ -966,7 +966,7 @@
     "message": "Ctrl"
   },
   "html_dismissEarlyAfter": {
-    "message": "Dispensar logo depois"
+    "message": "Dispensar antecipadamente após"
   },
   "html_export": {
     "message": "Exportar"
@@ -975,7 +975,7 @@
     "message": "Filtrar fontes"
   },
   "html_historyTableTools": {
-    "message": "Ferramentas de tabela de histórico"
+    "message": "Ferramentas da tabela de histórico"
   },
   "html_image": {
     "message": "Imagem"
@@ -1008,7 +1008,7 @@
     "message": "O clique esquerdo do mouse substituirá os cliques normais em mídias e links salváveis enquanto esse recurso estiver ativado."
   },
   "html_ms": {
-    "message": "senhora"
+    "message": "ms"
   },
   "html_none": {
     "message": "Nenhum"
@@ -1017,7 +1017,7 @@
     "message": "Notificar quando"
   },
   "html_previewOfThePageSourcesDrawer": {
-    "message": "Visualização da gaveta de fontes da página"
+    "message": "Visualização do painel Recursos da página"
   },
   "html_primaryModifier": {
     "message": "Modificador primário"
@@ -1032,7 +1032,7 @@
     "message": "Seleção"
   },
   "html_shift": {
-    "message": "Mudança"
+    "message": "Shift"
   },
   "html_shortcutFileBehavior": {
     "message": "Comportamento do arquivo de atalho"
@@ -1158,7 +1158,7 @@
     "message": "Um gato sortudo em aquarela organizando cuidadosamente documentos, fotografias, filmes e livros"
   },
   "html_buildInformation": {
-    "message": "Informações de construção"
+    "message": "Informações da compilação"
   },
   "html_checking": {
     "message": "verificando…"
@@ -1452,10 +1452,10 @@
     "message": "em novas regras."
   },
   "html_matcherClausesUse": {
-    "message": "Uso de cláusulas correspondentes"
+    "message": "As cláusulas de comparação usam"
   },
   "html_matchers": {
-    "message": "Correspondentes"
+    "message": "Comparadores"
   },
   "html_matchesTheCommentOfTheClickedMenuItem": {
     "message": "Corresponde ao comentário do item de menu selecionado."
@@ -1524,13 +1524,13 @@
     "message": "Move um download para o caminho indicado ou o renomeia com o padrão indicado. Termine o padrão com"
   },
   "html_selectsTheMatcherForRegexCaptureGroupVariables": {
-    "message": "Seleciona o matcher cujos grupos de captura de expressão regular estão disponíveis como"
+    "message": "Seleciona o comparador cujos grupos de captura de expressão regular ficam disponíveis como"
   },
   "html_splitMultipleCaptureTargetsWithA": {
     "message": ". Separe vários alvos de captura com"
   },
   "html_stringsAddJavascriptRegexFlagsAfterTheMatcherName": {
-    "message": ". Adicione sinalizadores JavaScript após o nome da correspondência; por exemplo, use"
+    "message": ". Adicione sinalizadores JavaScript após o nome do comparador; por exemplo, use"
   },
   "html_toRouteIntoAFolder": {
     "message": "para movê-lo para uma pasta"

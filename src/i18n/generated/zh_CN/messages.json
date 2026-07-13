@@ -621,7 +621,7 @@
     "message": "模式"
   },
   "o_lDestinationInto": {
-    "message": "目的地 (into:)"
+    "message": "保存位置 (into:)"
   },
   "o_lSaving": {
     "message": "保存中…"
@@ -708,13 +708,13 @@
     "message": "、绝对路径和隐藏路径段，例如"
   },
   "html_add": {
-    "message": "。添加"
+    "message": "。要添加注释，请在行末使用"
   },
   "html_addACommentThatIsNotDisplayed": {
     "message": "添加不显示的评论"
   },
   "html_addDestinations": {
-    "message": "添加目的地"
+    "message": "添加保存位置"
   },
   "html_addsOneNestingLevel": {
     "message": "添加一层嵌套。"
@@ -729,7 +729,7 @@
     "message": "分配访问密钥"
   },
   "html_atTheEndForACommentStartWith": {
-    "message": "最后发表评论；开始于"
+    "message": "作为注释标记。要创建嵌套子菜单，请在行首使用"
   },
   "html_browsersOnlyLetExtensionsSaveInsideTheDefault": {
     "message": "浏览器只允许扩展程序保存在以下文件夹内："
@@ -777,10 +777,10 @@
     "message": "例如，"
   },
   "html_howToCreateDestinations": {
-    "message": "如何创建目的地"
+    "message": "如何创建保存位置"
   },
   "html_insertionReferences": {
-    "message": "插入参考文献"
+    "message": "插入参考"
   },
   "html_issues": {
     "message": "问题"
@@ -801,7 +801,7 @@
     "message": "路径包含"
   },
   "html_perLevel": {
-    "message": "每个级别。"
+    "message": "符号。"
   },
   "html_saveInWiki": {
     "message": "Save In 维基"
@@ -825,7 +825,7 @@
     "message": "的"
   },
   "html_toCreateNestedSubmenusUsingOne": {
-    "message": "创建嵌套子菜单，使用"
+    "message": "；每深入一级，就多使用一个"
   },
   "html_toReachAnotherLocationCreateASymlinkInsideDownloads": {
     "message": "。要保存到其他位置，请在“下载”文件夹内创建符号链接，并将该链接的相对路径用作保存位置。链接指向的文件夹必须已经存在。"
@@ -864,10 +864,10 @@
     "message": "将此提示复制到代理中，或使用外部集成中的 WebMCP。"
   },
   "html_destination": {
-    "message": "目的地。"
+    "message": "保存位置。"
   },
   "html_destinationsAreRelativeToTheDownloadsMenuDestinationYou": {
-    "message": "目的地与您选择的文件夹相关。匹配器值是正则表达式；看到"
+    "message": "保存位置是相对于所选文件夹的路径。匹配器值是正则表达式；请参阅"
   },
   "html_enterOneUrlLikeBrowserMatchPatternPerLine": {
     "message": "每行输入一个类似 URL 的浏览器匹配模式。它有一个方案、主机和路径："
@@ -945,7 +945,7 @@
     "message": "点击"
   },
   "html_clickToSaveShortcut": {
-    "message": "单击保存快捷方式"
+    "message": "点击保存快捷键"
   },
   "html_clickToSaveShortcutCombination": {
     "message": "单击保存快捷方式组合"
@@ -966,7 +966,7 @@
     "message": "控制键"
   },
   "html_dismissEarlyAfter": {
-    "message": "之后尽早解雇"
+    "message": "提前关闭时间"
   },
   "html_export": {
     "message": "出口"
@@ -975,7 +975,7 @@
     "message": "过滤来源"
   },
   "html_historyTableTools": {
-    "message": "历史表工具"
+    "message": "历史记录表工具"
   },
   "html_image": {
     "message": "图片"
@@ -1008,7 +1008,7 @@
     "message": "启用此功能后，仅使用鼠标左键单击将取代对可保存媒体和链接的正常单击。"
   },
   "html_ms": {
-    "message": "女士"
+    "message": "ms"
   },
   "html_none": {
     "message": "无"
@@ -1017,7 +1017,7 @@
     "message": "通知时间"
   },
   "html_previewOfThePageSourcesDrawer": {
-    "message": "页面源抽屉的预览"
+    "message": "“页面来源”面板预览"
   },
   "html_primaryModifier": {
     "message": "主要修饰符"
@@ -1032,7 +1032,7 @@
     "message": "选择"
   },
   "html_shift": {
-    "message": "转变"
+    "message": "Shift"
   },
   "html_shortcutFileBehavior": {
     "message": "快捷方式文件行为"

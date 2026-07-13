@@ -54,7 +54,7 @@
     }
   },
   "notificationRuleMatchedTitle": {
-    "message": "Save In: Regel erfüllt"
+    "message": "Save In: Regel angewendet"
   },
   "notificationRuleMatchFailedExclusiveTitle": {
     "message": "Save In: Download konnte nicht weitergeleitet oder umbenannt werden"
@@ -336,7 +336,7 @@
     "message": "Ordner"
   },
   "o_bAddSeparator": {
-    "message": "Separator"
+    "message": "Trennlinie"
   },
   "o_lClauses": {
     "message": "Klauseln"
@@ -504,7 +504,7 @@
     "message": "Zuletzt verwendeter Kontext-Untermenüpunkt"
   },
   "o_cKeyboardShortcutNumbers": {
-    "message": "Fügen Sie Zifferntastenkürzel zu kontextbezogenen Untermenüelementen hinzu"
+    "message": "Zifferntasten-Kürzel zu Einträgen im Kontext-Untermenü hinzufügen"
   },
   "o_cKeyboardShortcutClickToSave": {
     "message": "Click-to-Save aktivieren"
@@ -552,7 +552,7 @@
     "message": "Zum Löschen leer lassen. Ungültige Ersatzzeichen werden ignoriert."
   },
   "o_cAppendMimeExtension": {
-    "message": "Fügen Sie eine Erweiterung hinzu, wenn der Dateiname keine hat"
+    "message": "Dateinamenerweiterung hinzufügen, wenn der Dateiname keine hat"
   },
   "o_cAppendMimeExtensionHelp": {
     "message": "Für URLs ohne Erweiterung leiten Sie eine vom Content-Type des Servers ab. Dadurch wird nur bei Bedarf eine kleine Verzögerung hinzugefügt."
@@ -690,7 +690,7 @@
     "message": "Diagnose"
   },
   "o_lExperimental": {
-    "message": "Experimental"
+    "message": "Experimentell"
   },
   "o_lManualEditorSaveHelp": {
     "message": "Änderungen in diesem Editor werden gespeichert, wenn Sie „Anwenden“ auswählen."
@@ -708,7 +708,7 @@
     "message": ", absolute Pfade und versteckte Pfadsegmente wie z"
   },
   "html_add": {
-    "message": ". Hinzufügen"
+    "message": ". Für einen Kommentar am Zeilenende"
   },
   "html_addACommentThatIsNotDisplayed": {
     "message": "Fügen Sie einen Kommentar hinzu, der nicht angezeigt wird"
@@ -729,7 +729,7 @@
     "message": "Weisen Sie einen Zugangsschlüssel zu"
   },
   "html_atTheEndForACommentStartWith": {
-    "message": "am Ende für einen Kommentar; Beginnen Sie mit"
+    "message": "hinzufügen. Für verschachtelte Untermenüs die Zeile mit"
   },
   "html_browsersOnlyLetExtensionsSaveInsideTheDefault": {
     "message": "Browser erlauben Erweiterungen das Speichern nur im standardmäßigen"
@@ -777,7 +777,7 @@
     "message": "Zum Beispiel,"
   },
   "html_howToCreateDestinations": {
-    "message": "So erstellen Sie Ziele"
+    "message": "Speicherziele erstellen"
   },
   "html_insertionReferences": {
     "message": "Einfügungsreferenzen"
@@ -801,7 +801,7 @@
     "message": "Pfade enthalten"
   },
   "html_perLevel": {
-    "message": "pro Level."
+    "message": "verwenden."
   },
   "html_saveInWiki": {
     "message": "Save In-Wiki"
@@ -825,7 +825,7 @@
     "message": "Die"
   },
   "html_toCreateNestedSubmenusUsingOne": {
-    "message": "um verschachtelte Untermenüs zu erstellen, indem Sie eines verwenden"
+    "message": "beginnen und pro zusätzlicher Ebene ein weiteres"
   },
   "html_toReachAnotherLocationCreateASymlinkInsideDownloads": {
     "message": ". Um einen anderen Speicherort zu erreichen, erstellen Sie einen Symlink in „Downloads“ und verwenden Sie diesen relativen Symlink-Pfad als Ziel. Der Zielordner muss bereits vorhanden sein."
@@ -945,7 +945,7 @@
     "message": "Klicken Sie"
   },
   "html_clickToSaveShortcut": {
-    "message": "Click-to-Save-Verknüpfung"
+    "message": "Click-to-Save-Tastenkombination"
   },
   "html_clickToSaveShortcutCombination": {
     "message": "Per Mausklick zu speichernde Verknüpfungskombination"
@@ -966,7 +966,7 @@
     "message": "Strg"
   },
   "html_dismissEarlyAfter": {
-    "message": "Danach frühzeitig entlassen"
+    "message": "Vorzeitig ausblenden nach"
   },
   "html_export": {
     "message": "Exportieren"
@@ -975,7 +975,7 @@
     "message": "Quellen filtern"
   },
   "html_historyTableTools": {
-    "message": "Tools für Verlaufstabellen"
+    "message": "Werkzeuge für die Verlaufstabelle"
   },
   "html_image": {
     "message": "Bild"
@@ -1008,7 +1008,7 @@
     "message": "Ein reiner Mausklick mit der linken Maustaste ersetzt normale Klicks auf speicherbare Medien und Links, solange diese Funktion aktiviert ist."
   },
   "html_ms": {
-    "message": "Frau"
+    "message": "ms"
   },
   "html_none": {
     "message": "Keine"
@@ -1017,7 +1017,7 @@
     "message": "Benachrichtigen Sie, wann"
   },
   "html_previewOfThePageSourcesDrawer": {
-    "message": "Vorschau der Schublade „Seitenquellen“."
+    "message": "Vorschau des Bereichs „Seitenquellen“"
   },
   "html_primaryModifier": {
     "message": "Primärer Modifikator"
@@ -1032,7 +1032,7 @@
     "message": "Auswahl"
   },
   "html_shift": {
-    "message": "Schicht"
+    "message": "Umschalt"
   },
   "html_shortcutFileBehavior": {
     "message": "Verhalten der Verknüpfungsdatei"

@@ -15,7 +15,7 @@
     "message": "Opciones"
   },
   "contextMenuToggleSourcePanel": {
-    "message": "Mostrar u ocultar fuentes de páginas"
+    "message": "Mostrar u ocultar los recursos de la página"
   },
   "contextMenuExclusive": {
     "message": "Guardar con una regla de enrutamiento…"
@@ -54,7 +54,7 @@
     }
   },
   "notificationRuleMatchedTitle": {
-    "message": "Save In: regla coincidente"
+    "message": "Save In: regla aplicada"
   },
   "notificationRuleMatchFailedExclusiveTitle": {
     "message": "Save In: No se pudo enrutar o cambiar el nombre de la descarga"
@@ -87,7 +87,7 @@
     "message": "Una regla sólo puede contener una cláusula into:"
   },
   "ruleUnknownMatcher": {
-    "message": "Emparejador desconocido"
+    "message": "Comparador desconocido"
   },
   "ruleInvalidRegex": {
     "message": "Expresión regular no válida"
@@ -213,7 +213,7 @@
     "message": "Historial"
   },
   "o_sPageSources": {
-    "message": "Fuentes de la página"
+    "message": "Recursos de la página"
   },
   "o_lPageSourcesHelp": {
     "message": "Explore imágenes, videos, audio, documentos y enlaces descargables que se encuentran en la página actual. Los elementos guardados utilizan sus reglas normales de enrutamiento y cambio de nombre."
@@ -222,7 +222,7 @@
     "message": "Algunos reproductores de video usan URL temporales o cargan medios a través de secuencias de comandos, por lo que es posible que Save In no detecte todos los videos. A veces puede encontrar listas de reproducción de vídeo en streaming (HLS/DASH), pero estos archivos sólo enumeran las piezas de vídeo separadas; guardar uno no guarda el video completo."
   },
   "o_cSourcePanelEnabled": {
-    "message": "Habilitar fuentes de página"
+    "message": "Habilitar los recursos de la página"
   },
   "o_cSourcePanelBackgrounds": {
     "message": "Incluir imágenes de fondo CSS"
@@ -552,7 +552,7 @@
     "message": "Déjelo en blanco para eliminarlo. Se ignoran los caracteres de reemplazo no válidos."
   },
   "o_cAppendMimeExtension": {
-    "message": "Agregue una extensión cuando el nombre del archivo no tenga ninguna"
+    "message": "Agregar una extensión si el nombre de archivo no tiene ninguna"
   },
   "o_cAppendMimeExtensionHelp": {
     "message": "Para las URL sin extensión, obtenga una del Content-Type del servidor. Esto añade un pequeño retraso sólo cuando es necesario."
@@ -615,7 +615,7 @@
     "message": "reglas de texto"
   },
   "o_lMatcher": {
-    "message": "igualador"
+    "message": "Comparador"
   },
   "o_lPattern": {
     "message": "Patrón"
@@ -708,7 +708,7 @@
     "message": ", rutas absolutas y segmentos de ruta ocultos como"
   },
   "html_add": {
-    "message": ". Añadir"
+    "message": ". Para añadir un comentario, escriba"
   },
   "html_addACommentThatIsNotDisplayed": {
     "message": "Añadir un comentario que no se muestra"
@@ -729,7 +729,7 @@
     "message": "Asignar una clave de acceso"
   },
   "html_atTheEndForACommentStartWith": {
-    "message": "al final para un comentario; empezar con"
+    "message": "al final de la línea. Para crear submenús anidados, empiece con"
   },
   "html_browsersOnlyLetExtensionsSaveInsideTheDefault": {
     "message": "Los navegadores solo permiten que las extensiones guarden archivos dentro de la"
@@ -801,7 +801,7 @@
     "message": "Rutas que contienen"
   },
   "html_perLevel": {
-    "message": "por nivel."
+    "message": "por cada nivel."
   },
   "html_saveInWiki": {
     "message": "wiki de Save In"
@@ -825,7 +825,7 @@
     "message": "el"
   },
   "html_toCreateNestedSubmenusUsingOne": {
-    "message": "para crear submenús anidados, usando uno"
+    "message": "y añada otro"
   },
   "html_toReachAnotherLocationCreateASymlinkInsideDownloads": {
     "message": ". Para llegar a otra ubicación, cree un enlace simbólico dentro de Descargas y use esa ruta relativa del enlace simbólico como destino. La carpeta de destino ya debe existir."
@@ -873,7 +873,7 @@
     "message": "Ingrese un patrón de coincidencia de navegador similar a una URL por línea. Tiene un esquema, host y ruta:"
   },
   "html_everyMatcherInARuleMustMatch": {
-    "message": "Cada comparador en una regla debe coincidir."
+    "message": "Todos los comparadores de una regla deben coincidir."
   },
   "html_everyRuleMustEndWithAn": {
     "message": "Toda regla debe terminar con una"
@@ -945,7 +945,7 @@
     "message": "Haga clic"
   },
   "html_clickToSaveShortcut": {
-    "message": "Atajo de hacer clic para guardar"
+    "message": "Atajo para guardar con un clic"
   },
   "html_clickToSaveShortcutCombination": {
     "message": "Combinación de atajos de hacer clic para guardar"
@@ -966,7 +966,7 @@
     "message": "control"
   },
   "html_dismissEarlyAfter": {
-    "message": "Despedir poco después"
+    "message": "Cerrar anticipadamente después de"
   },
   "html_export": {
     "message": "Exportar"
@@ -1008,7 +1008,7 @@
     "message": "El clic izquierdo solo con el mouse reemplazará los clics normales en enlaces y medios guardables mientras esta función esté habilitada."
   },
   "html_ms": {
-    "message": "señora"
+    "message": "ms"
   },
   "html_none": {
     "message": "Ninguno"
@@ -1017,7 +1017,7 @@
     "message": "Notificar cuando"
   },
   "html_previewOfThePageSourcesDrawer": {
-    "message": "Vista previa del cajón de fuentes de la página"
+    "message": "Vista previa del panel Recursos de la página"
   },
   "html_primaryModifier": {
     "message": "modificador primario"
@@ -1032,7 +1032,7 @@
     "message": "Selección"
   },
   "html_shift": {
-    "message": "turno"
+    "message": "Mayús"
   },
   "html_shortcutFileBehavior": {
     "message": "Comportamiento del archivo de acceso directo"
@@ -1158,7 +1158,7 @@
     "message": "Un gato de la suerte en acuarela que organiza cuidadosamente documentos, fotografías, películas y libros."
   },
   "html_buildInformation": {
-    "message": "Información de construcción"
+    "message": "Información de compilación"
   },
   "html_checking": {
     "message": "comprobando…"
@@ -1452,10 +1452,10 @@
     "message": "en nuevas reglas."
   },
   "html_matcherClausesUse": {
-    "message": "Uso de cláusulas de comparación"
+    "message": "Las cláusulas de comparación usan"
   },
   "html_matchers": {
-    "message": "Emparejadores"
+    "message": "Comparadores"
   },
   "html_matchesTheCommentOfTheClickedMenuItem": {
     "message": "Coincide con el comentario del elemento de menú seleccionado."
@@ -1530,7 +1530,7 @@
     "message": ". Separe múltiples objetivos de captura con"
   },
   "html_stringsAddJavascriptRegexFlagsAfterTheMatcherName": {
-    "message": ". Agregue indicadores de JavaScript después del nombre del comparador; por ejemplo, utilizar"
+    "message": ". Añada indicadores de JavaScript después del nombre del comparador; por ejemplo, use"
   },
   "html_toRouteIntoAFolder": {
     "message": "para moverla a una carpeta"

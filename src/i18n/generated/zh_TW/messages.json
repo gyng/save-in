@@ -75,10 +75,10 @@
     "message": "擷取子句未指定比對器"
   },
   "ruleMissingCapture": {
-    "message": "新增捕獲子句以使用捕獲變數"
+    "message": "請新增擷取子句以使用擷取變數"
   },
   "ruleMultipleCapture": {
-    "message": "一條規則只能包含一個捕獲子句"
+    "message": "一項規則只能包含一個擷取子句"
   },
   "ruleMissingInto": {
     "message": "至少增加一項到：子句中"
@@ -204,7 +204,7 @@
     "message": "點選儲存"
   },
   "o_sContextMenu": {
-    "message": "上下文選單存取鍵"
+    "message": "內容選單存取鍵"
   },
   "o_sMoreOptions": {
     "message": "進階"
@@ -246,7 +246,7 @@
     "message": "鍵盤快速鍵"
   },
   "o_lSourcePanelShortcutHelp": {
-    "message": "使用瀏覽器快速語法，例如 Ctrl+Shift+Y 或 Command+Shift+Y。瀏覽器拒絕保留的快捷方式。"
+    "message": "請使用瀏覽器快速鍵語法，例如 Ctrl+Shift+Y 或 Command+Shift+Y。瀏覽器會拒絕保留的快速鍵。"
   },
   "o_bReset": {
     "message": "重置"
@@ -390,13 +390,13 @@
     "message": "沒有相符項目"
   },
   "o_lRoutingCaptureGroups": {
-    "message": "捕獲組"
+    "message": "擷取群組"
   },
   "o_lRoutingVariables": {
     "message": "變數"
   },
   "o_lRoutingVariablesClickToSee": {
-    "message": "點擊顯示"
+    "message": "點選以顯示"
   },
   "o_lAccessKeysInstruction": {
     "message": "設定 Save In 選單項目的存取鍵。"
@@ -468,7 +468,7 @@
     "message": "路由規則相符時顯示通知"
   },
   "o_cSaveShortcutsAs": {
-    "message": "將快捷方式另存為"
+    "message": "捷徑儲存格式"
   },
   "o_cSaveShortcutsTypeHtml": {
     "message": "HTML 重定向"
@@ -486,16 +486,16 @@
     "message": "Freedesktop .desktop"
   },
   "o_cSaveShortcutsMediaInstead": {
-    "message": "將媒體另存為快捷方式"
+    "message": "改將媒體儲存為捷徑"
   },
   "o_cSaveShortcutsLinksInstead": {
-    "message": "將連結另存為快捷方式"
+    "message": "改將連結儲存為捷徑"
   },
   "o_cSaveShortcutsPagesInstead": {
-    "message": "將頁面另存為快捷方式"
+    "message": "改將頁面儲存為捷徑"
   },
   "o_cSaveShortcutsTabsInstead": {
-    "message": "將選項卡另存為快捷方式（從選項卡上下文選單）"
+    "message": "改將分頁儲存為捷徑（從分頁內容選單）"
   },
   "o_cKeyboardShortcutSaveInMenu": {
     "message": "Save In 上下文選單項目"
@@ -504,13 +504,13 @@
     "message": "最後使用的上下文子選單項"
   },
   "o_cKeyboardShortcutNumbers": {
-    "message": "將數字鍵快捷方式新增至上下文子選單項"
+    "message": "在內容子選單項目加入數字鍵快速鍵"
   },
   "o_cKeyboardShortcutClickToSave": {
-    "message": "啟用點擊儲存"
+    "message": "啟用點選儲存"
   },
   "o_cKeyboardShortcutClickToHelp": {
-    "message": "預設按住 Alt 並點擊圖像或媒體項目可將其儲存到上次使用的資料夾或預設下載資料夾。 Save In 為頁面新增點擊監聽器；有些變數不可用。"
+    "message": "預設按住 Alt 並點選圖片或媒體項目，即可將其儲存到上次使用的資料夾或預設下載資料夾。Save In 會在頁面加入點選事件監聽器；部分變數無法使用。"
   },
   "o_cHostPermissionMissing": {
     "message": "Save In 無法存取頁面內容。授予對所有網站的存取權限以使用「按一下儲存」。"
@@ -621,7 +621,7 @@
     "message": "模式"
   },
   "o_lDestinationInto": {
-    "message": "目的地 (into:)"
+    "message": "儲存位置 (into:)"
   },
   "o_lSaving": {
     "message": "儲存中…"
@@ -708,13 +708,13 @@
     "message": "、絕對路徑和隱藏路徑段，例如"
   },
   "html_add": {
-    "message": "。添加"
+    "message": "。若要加入註解，請在行末使用"
   },
   "html_addACommentThatIsNotDisplayed": {
     "message": "新增不顯示的評論"
   },
   "html_addDestinations": {
-    "message": "新增目的地"
+    "message": "新增儲存位置"
   },
   "html_addsOneNestingLevel": {
     "message": "新增一層嵌套。"
@@ -729,13 +729,13 @@
     "message": "分配存取密鑰"
   },
   "html_atTheEndForACommentStartWith": {
-    "message": "最後發表評論；開始於"
+    "message": "作為註解標記。若要建立巢狀子選單，請在行首使用"
   },
   "html_browsersOnlyLetExtensionsSaveInsideTheDefault": {
     "message": "瀏覽器只允許擴充功能儲存在以下資料夾內："
   },
   "html_buildTheDestinationsAndSubmenusShownInSaveIn": {
-    "message": "選擇 Save In 上下文選單中顯示的資料夾和子選單。"
+    "message": "選擇要顯示在 Save In 內容選單中的資料夾和子選單。"
   },
   "html_butShowsCatPictures": {
     "message": "，但顯示“貓的圖片”。"
@@ -777,10 +777,10 @@
     "message": "例如，"
   },
   "html_howToCreateDestinations": {
-    "message": "如何創建目的地"
+    "message": "如何建立儲存位置"
   },
   "html_insertionReferences": {
-    "message": "插入參考文獻"
+    "message": "插入參考"
   },
   "html_issues": {
     "message": "問題"
@@ -801,7 +801,7 @@
     "message": "路徑包含"
   },
   "html_perLevel": {
-    "message": "每個級別。"
+    "message": "符號。"
   },
   "html_saveInWiki": {
     "message": "Save In 維基"
@@ -825,7 +825,7 @@
     "message": "的"
   },
   "html_toCreateNestedSubmenusUsingOne": {
-    "message": "建立嵌套子選單，使用"
+    "message": "；每深入一個層級，就多使用一個"
   },
   "html_toReachAnotherLocationCreateASymlinkInsideDownloads": {
     "message": "。若要儲存到其他位置，請在「下載」資料夾內建立符號連結，並將該連結的相對路徑用作儲存位置。連結指向的資料夾必須已經存在。"
@@ -840,7 +840,7 @@
     "message": "添加"
   },
   "html_advancedUseCaptureGroups": {
-    "message": "進階：使用捕獲組"
+    "message": "進階：使用擷取群組"
   },
   "html_andItsSubdomainsUse": {
     "message": "及其子網域。使用"
@@ -864,7 +864,7 @@
     "message": "將此提示複製到代理程式中，或使用外部整合中的 WebMCP。"
   },
   "html_destination": {
-    "message": "目的地。"
+    "message": "儲存位置。"
   },
   "html_destinationsAreRelativeToTheDownloadsMenuDestinationYou": {
     "message": "儲存位置是相對於所選資料夾的路徑。比對器值是規則運算式；請參閱"
@@ -939,16 +939,16 @@
     "message": "替代/選項"
   },
   "html_applyShortcut": {
-    "message": "應用程式快捷方式"
+    "message": "套用快速鍵"
   },
   "html_click": {
     "message": "點選"
   },
   "html_clickToSaveShortcut": {
-    "message": "點擊儲存快捷方式"
+    "message": "點選儲存快速鍵"
   },
   "html_clickToSaveShortcutCombination": {
-    "message": "點選儲存快捷方式組合"
+    "message": "點選儲存快速鍵組合"
   },
   "html_columns": {
     "message": "專欄"
@@ -966,7 +966,7 @@
     "message": "控制鍵"
   },
   "html_dismissEarlyAfter": {
-    "message": "之後儘早解僱"
+    "message": "提前關閉時間"
   },
   "html_export": {
     "message": "出口"
@@ -975,7 +975,7 @@
     "message": "過濾來源"
   },
   "html_historyTableTools": {
-    "message": "歷史表工具"
+    "message": "記錄表工具"
   },
   "html_image": {
     "message": "圖片"
@@ -1008,7 +1008,7 @@
     "message": "啟用此功能後，僅使用滑鼠左鍵單擊將取代可儲存媒體和連結的正常單擊。"
   },
   "html_ms": {
-    "message": "女士"
+    "message": "ms"
   },
   "html_none": {
     "message": "無"
@@ -1017,13 +1017,13 @@
     "message": "通知時機"
   },
   "html_previewOfThePageSourcesDrawer": {
-    "message": "頁面來源抽屜的預覽"
+    "message": "「頁面來源」面板預覽"
   },
   "html_primaryModifier": {
     "message": "主要修飾符"
   },
   "html_saveTheseAsShortcutFiles": {
-    "message": "另存為快捷方式文件"
+    "message": "儲存為捷徑檔案"
   },
   "html_secondModifier": {
     "message": "第二個修飾符"
@@ -1032,10 +1032,10 @@
     "message": "選擇"
   },
   "html_shift": {
-    "message": "轉變"
+    "message": "Shift"
   },
   "html_shortcutFileBehavior": {
-    "message": "快捷方式檔案行為"
+    "message": "捷徑檔案行為"
   },
   "html_shortcutKey": {
     "message": "快速鍵"
@@ -1071,7 +1071,7 @@
     "message": "能力"
   },
   "html_clickTheSnippetToCopyIt": {
-    "message": "點擊該片段以複製它。"
+    "message": "點選程式碼片段即可複製。"
   },
   "html_counterValue": {
     "message": "計數器值"
@@ -1098,7 +1098,7 @@
     "message": "外部下載訪問"
   },
   "html_externalIntegrations": {
-    "message": "外部集成"
+    "message": "外部整合"
   },
   "html_integrationGuide": {
     "message": "整合指南"
@@ -1374,13 +1374,13 @@
     "message": "隨機 v4 UUID，每次使用都是唯一的"
   },
   "html_autoIncrementingNumberThatAdvancesOncePerSavedDownload": {
-    "message": "每次保存下載後增加的數字並在重新啟動後持續存在。在下載計數器下查看或重置它。"
+    "message": "每儲存一個下載項目，數字就會增加，並在重新啟動後保留。可在「下載計數器」下檢視或重設。"
   },
   "html_blankIfTheServerDoesnTAnswer": {
     "message": " 不可用時為空白。"
   },
   "html_captureGroupWhere": {
-    "message": "組捕獲的文本"
+    "message": "群組擷取的文字"
   },
   "html_charactersForDeeperNesting": {
     "message": "用於更深層嵌套的字符"
@@ -1503,13 +1503,13 @@
     "message": "符合目前框架 URL。"
   },
   "html_matchesWhatIsClicked": {
-    "message": "符合點擊的內容："
+    "message": "比對點選的內容："
   },
   "html_or": {
     "message": ", 或"
   },
   "html_outputAndCapture": {
-    "message": "輸出和捕獲"
+    "message": "輸出與擷取"
   },
   "html_regularExpression": {
     "message": "正規表示式"
@@ -1527,7 +1527,7 @@
     "message": "選擇要提供規則運算式擷取群組變數的比對器"
   },
   "html_splitMultipleCaptureTargetsWithA": {
-    "message": "。分隔多個捕獲目標"
+    "message": "。多個擷取目標之間請使用"
   },
   "html_stringsAddJavascriptRegexFlagsAfterTheMatcherName": {
     "message": "。在比對器名稱後加入 JavaScript 旗標；例如，使用"
@@ -1539,7 +1539,7 @@
     "message": "檔名"
   },
   "o_lShortcutEnterOrReset": {
-    "message": "輸入快捷方式或使用重置。"
+    "message": "輸入快速鍵或使用「重設」。"
   },
   "o_lShortcutFormat": {
     "message": "使用 Ctrl+Shift+G 等格式。"
@@ -1563,19 +1563,19 @@
     "message": "準備申請。"
   },
   "o_lShortcutChangeUnsupported": {
-    "message": "此瀏覽器不支援在此處變更快捷方式。"
+    "message": "此瀏覽器不支援在這裡變更快速鍵。"
   },
   "o_lShortcutRejected": {
-    "message": "瀏覽器不接受此快捷方式。它可能已被保留或正在使用。"
+    "message": "瀏覽器不接受此快速鍵。這組按鍵可能已保留或正在使用。"
   },
   "o_lShortcutUpdated": {
-    "message": "快捷方式已更新。"
+    "message": "快速鍵已更新。"
   },
   "o_lShortcutResetUnsupported": {
-    "message": "此瀏覽器不支援在此重置快捷方式。"
+    "message": "此瀏覽器不支援在這裡重設快速鍵。"
   },
   "o_lShortcutReset": {
-    "message": "快捷方式重置。"
+    "message": "快速鍵已重設。"
   },
   "o_lShortcutLegacyValue": {
     "message": "舊值：$VALUE$",
@@ -1599,7 +1599,7 @@
     "message": "原生 macOS 捷徑"
   },
   "o_lShortcutFormatWindows": {
-    "message": "Windows 網路快捷方式"
+    "message": "Windows 網際網路捷徑"
   },
   "o_lShortcutFormatLinux": {
     "message": "Linux 桌面捷徑"

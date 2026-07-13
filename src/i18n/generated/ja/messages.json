@@ -576,7 +576,7 @@
     "message": "リダイレクト後など、Save In がバックグラウンドでファイルを取得するときに、該当する Cookie とブラウザー管理のサインインが含まれます。プライベート ウィンドウのリクエストは匿名のままです。ブラウザーの直接ダウンロードでは、独自の資格情報が管理されます。"
   },
   "o_cSetRefererHeader": {
-    "message": "ページ URL が見つからない場合はリファラーとして使用します"
+    "message": "Referer がない場合は、ページ URL を Referer として使用します"
   },
   "o_cSetRefererHeaderHelp": {
     "message": "Firefoxのみ。一部のサイト (例: pixiv.net) は、HTTP Referer ヘッダーのないダウンロードを拒否します。一致するダウンロードの場合、Firefox はページ URL をリファラーとして直接送信します。サイトで必要でない限り、オフのままにしておきます。"
@@ -621,7 +621,7 @@
     "message": "パターン"
   },
   "o_lDestinationInto": {
-    "message": "宛先 (into:)"
+    "message": "保存先（into:）"
   },
   "o_lSaving": {
     "message": "保存中…"
@@ -708,13 +708,13 @@
     "message": "、絶対パス、および次のような非表示のパス セグメント"
   },
   "html_add": {
-    "message": "。追加"
+    "message": "。コメントを付けるには行末に"
   },
   "html_addACommentThatIsNotDisplayed": {
     "message": "表示されていないコメントを追加する"
   },
   "html_addDestinations": {
-    "message": "目的地を追加する"
+    "message": "保存先を追加"
   },
   "html_addsOneNestingLevel": {
     "message": "ネストレベルが 1 つ追加されます。"
@@ -729,7 +729,7 @@
     "message": "アクセスキーを割り当てる"
   },
   "html_atTheEndForACommentStartWith": {
-    "message": "最後にコメントを。から始める"
+    "message": "を追加します。サブメニューを入れ子にするには行頭に"
   },
   "html_browsersOnlyLetExtensionsSaveInsideTheDefault": {
     "message": "ブラウザでは、拡張機能の保存先が次のフォルダー内に限定されます："
@@ -777,7 +777,7 @@
     "message": "たとえば、"
   },
   "html_howToCreateDestinations": {
-    "message": "目的地の作成方法"
+    "message": "保存先の作成方法"
   },
   "html_insertionReferences": {
     "message": "挿入参照"
@@ -801,7 +801,7 @@
     "message": "を含むパス"
   },
   "html_perLevel": {
-    "message": "レベルごとに。"
+    "message": "を 1 つ追加します。"
   },
   "html_saveInWiki": {
     "message": "Save In ウィキ"
@@ -825,7 +825,7 @@
     "message": "の"
   },
   "html_toCreateNestedSubmenusUsingOne": {
-    "message": "ネストされたサブメニューを作成するには、1 つを使用します。"
+    "message": "を追加します。階層が深くなるごとに"
   },
   "html_toReachAnotherLocationCreateASymlinkInsideDownloads": {
     "message": "。別の場所へ保存するには、「ダウンロード」内にシンボリックリンクを作成し、その相対パスを保存先として使用します。リンク先のフォルダーはあらかじめ作成しておく必要があります。"
@@ -864,10 +864,10 @@
     "message": "このプロンプトをエージェントにコピーするか、外部統合から WebMCP を使用します。"
   },
   "html_destination": {
-    "message": "目的地。"
+    "message": "保存先。"
   },
   "html_destinationsAreRelativeToTheDownloadsMenuDestinationYou": {
-    "message": "宛先は、選択したフォルダーからの相対的なものになります。マッチャー値は正規表現です。を見てください"
+    "message": "保存先は選択したフォルダーからの相対パスです。マッチャーの値には正規表現を使用します。詳しくは"
   },
   "html_enterOneUrlLikeBrowserMatchPatternPerLine": {
     "message": "URL に似たブラウザ一致パターンを 1 行に 1 つ入力します。スキーム、ホスト、パスがあります。"
@@ -909,7 +909,7 @@
     "message": "一致するファイルを移動し、名前を維持する"
   },
   "html_optional": {
-    "message": "オプション"
+    "message": "任意"
   },
   "html_parenthesesCapturePartsOfAMatcherSelectTheMatcher": {
     "message": "括弧はマッチャーの一部をキャプチャします。でマッチャーを選択します"
@@ -945,7 +945,7 @@
     "message": "クリック"
   },
   "html_clickToSaveShortcut": {
-    "message": "クリックして保存するショートカット"
+    "message": "クリック保存のショートカット"
   },
   "html_clickToSaveShortcutCombination": {
     "message": "クリックして保存するショートカットの組み合わせ"
@@ -966,7 +966,7 @@
     "message": "Ctrl"
   },
   "html_dismissEarlyAfter": {
-    "message": "終わったら早めに解散"
+    "message": "早めに閉じるまでの時間"
   },
   "html_export": {
     "message": "エクスポート"
@@ -975,7 +975,7 @@
     "message": "ソースのフィルタリング"
   },
   "html_historyTableTools": {
-    "message": "履歴テーブルツール"
+    "message": "履歴テーブルのツール"
   },
   "html_image": {
     "message": "画像"
@@ -1017,7 +1017,7 @@
     "message": "いつ通知するか"
   },
   "html_previewOfThePageSourcesDrawer": {
-    "message": "ページソースドロワーのプレビュー"
+    "message": "「ページソース」パネルのプレビュー"
   },
   "html_primaryModifier": {
     "message": "主な修飾子"
@@ -1032,7 +1032,7 @@
     "message": "選択"
   },
   "html_shift": {
-    "message": "シフト"
+    "message": "Shift"
   },
   "html_shortcutFileBehavior": {
     "message": "ショートカットファイルの動作"
@@ -1053,7 +1053,7 @@
     "message": "ビデオ · 2.4 MB · #2"
   },
   "html_advancedEditIdsAsText": {
-    "message": "詳細: ID をテキストとして編集する"
+    "message": "上級者向け：ID をテキストとして編集"
   },
   "html_allow": {
     "message": "許可する"
@@ -1107,7 +1107,7 @@
     "message": "信頼できる拡張機能が Save In のルーティング ルールと名前変更ルールを介して URL を送信できるようにします。"
   },
   "html_mdnMatchPatterns": {
-    "message": "MDN: パターンの一致"
+    "message": "MDN：マッチパターン"
   },
   "html_noExtensionsAreApprovedExternalDownloadsAreBlockedBy": {
     "message": "延長は認められません。外部ダウンロードはデフォルトでブロックされます。"
