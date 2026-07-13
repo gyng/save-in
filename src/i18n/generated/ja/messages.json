@@ -69,7 +69,7 @@
     }
   },
   "ruleMissingMatcher": {
-    "message": "少なくとも 1 つの matcher 句を追加します"
+    "message": "マッチャー句を少なくとも 1 つ追加してください"
   },
   "ruleCaptureMissingMatcher": {
     "message": "Capture 句はマッチャーをターゲットにしていません"
@@ -81,7 +81,7 @@
     "message": "ルールにはキャプチャ句を 1 つだけ含めることができます"
   },
   "ruleMissingInto": {
-    "message": "少なくとも 1 つを into: 句に追加します"
+    "message": "into: 句を少なくとも 1 つ追加してください"
   },
   "ruleExtraInto": {
     "message": "ルールには into: 句を 1 つだけ含めることができます"
@@ -108,7 +108,7 @@
     "message": "選択したタブを保存する"
   },
   "tabstripMenuMultipleSelectedTab": {
-    "message": "強調表示されたタブを保存する ($COUNT$)",
+    "message": "選択したタブを保存（$COUNT$）",
     "placeholders": {
       "count": {
         "content": "$1",
@@ -168,7 +168,7 @@
     "message": "サポートされている場合、一致ルールはブラウザーのダウンロードの名前を変更したり、サブフォルダーに配置したりできます。一致しないダウンロードは変更されません。"
   },
   "o_cRouteBrowserDownloadsFirefox": {
-    "message": "Firefox で一致するダウンロードを実験的に再ルーティングする"
+    "message": "Firefox で一致するダウンロードを試験的に再ルーティング"
   },
   "o_cRouteBrowserDownloadsFirefoxHelp": {
     "message": "Firefox にはネイティブのファイル名ルーティング機能がないため、Save In は一致するダウンロードをキャンセルして代替ダウンロードを開始します。POST リクエスト、期限切れになる URL、カスタムヘッダー、認証が必要なダウンロードでは失敗することがあります。"
@@ -234,7 +234,7 @@
     "message": "画像とビデオのプレビューを表示する"
   },
   "o_cSourcePanelResourceHints": {
-    "message": "ストリーミングビデオのプレイリストを探します (HLS/DASH、ベストエフォート)"
+    "message": "ストリーミング動画のプレイリストを可能な範囲で検索します（HLS/DASH）"
   },
   "o_cSourcePanelLinks": {
     "message": "リンク、リンクされたメディア、PDF ドキュメントを含める"
@@ -573,7 +573,7 @@
     "message": "Web サイトのサインイン Cookie を含める"
   },
   "o_cIncludeFetchCredentialsHelp": {
-    "message": "リダイレクト後など、Save In がバックグラウンドでファイルを取得するときに、該当する Cookie とブラウザー管理のサインインが含まれます。プライベート ウィンドウのリクエストは匿名のままです。ブラウザーの直接ダウンロードでは、独自の資格情報が管理されます。"
+    "message": "リダイレクト後など、Save In がバックグラウンドでファイルを取得するときに、該当する Cookie とブラウザー管理のサインインが含まれます。プライベートウィンドウのリクエストは匿名のままです。ブラウザーから直接ダウンロードする場合、認証情報はブラウザーが管理します。"
   },
   "o_cSetRefererHeader": {
     "message": "Referer がない場合は、ページ URL を Referer として使用します"
@@ -792,7 +792,7 @@
     "message": "その他のメニュー構文"
   },
   "html_oneRelativeDirectoryOrMenuInstructionPerLineDownloads": {
-    "message": "1 行に 1 つの相対フォルダーまたはメニュー命令を入力します。ファイルは相対的に保存されます。"
+    "message": "相対フォルダーまたはメニュー命令を 1 行に 1 つ入力します。ファイルの保存先は次の場所を基準にします："
   },
   "html_openTheDefaultDownloadsDirectory": {
     "message": "デフォルトのダウンロードフォルダーを開きます"
@@ -1143,7 +1143,7 @@
     "message": "の現在値です。保存が完了するたびに 1 ずつ増え、再起動後も保持されます。"
   },
   "html_webextensionsSuchAsFoxyGesturesCanMessageSaveIn": {
-    "message": "Foxy Gestures などの WebExtensions は、Save In に直接メッセージを送信できます。 Greasemonkey、Tampermonkey、または Violentmonkey のユーザー スクリプトは、それ自体では実行できません。ユーザー スクリプトは、拡張間を越えたメッセージング アクセスを受け取りません。小さなコンパニオン WebExtension をリレーとして使用するか、ユーザースクリプトでその機能を公開する拡張機能に URL を渡します。"
+    "message": "Foxy Gestures などの WebExtensions は Save In に直接メッセージを送信できます。Greasemonkey、Tampermonkey、Violentmonkey のユーザースクリプトだけでは実行できません。ユーザースクリプトには拡張機能間メッセージングの権限がありません。小さな補助 WebExtension を中継として使うか、その機能を提供する拡張機能に URL を渡すようユーザースクリプトを設定してください。"
   },
   "html_whereThisWorks": {
     "message": "これが機能する場所"
@@ -1284,16 +1284,16 @@
     "message": "現在の日付"
   },
   "html_currentDatetimeAsAUnixTimestamp": {
-    "message": "Unix タイムスタンプとしての現在の日付と時刻"
+    "message": "現在の日時を表す Unix タイムスタンプ"
   },
   "html_currentDatetimeAsAUtcIso8601String": {
-    "message": "UTC ISO 8601 文字列としての現在の日付と時刻"
+    "message": "現在の日時を表す UTC ISO 8601 形式の文字列"
   },
   "html_currentDayOfMonth": {
-    "message": "今月の現在の日"
+    "message": "現在の日（1～31）"
   },
   "html_currentDayOfWeekEnglish": {
-    "message": "現在の曜日 (英語)"
+    "message": "現在の曜日（英語）"
   },
   "html_currentHour24Hour": {
     "message": "現在の時間 (24 時間制)"
@@ -1578,7 +1578,7 @@
     "message": "ショートカットをリセットしました。"
   },
   "o_lShortcutLegacyValue": {
-    "message": "従来の値: $VALUE$",
+    "message": "旧形式の値：$VALUE$",
     "placeholders": {
       "value": {
         "content": "$1",

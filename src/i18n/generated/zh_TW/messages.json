@@ -3,7 +3,7 @@
     "message": "Save In"
   },
   "extensionDescription": {
-    "message": "將圖像、影片、音訊、連結、選定文字和頁面儲存到預設下載資料夾內的資料夾。"
+    "message": "將圖片、影片、音訊、連結、選取的文字與頁面儲存至預設下載資料夾內的資料夾。"
   },
   "translationCredits": {
     "message": "​"
@@ -81,7 +81,7 @@
     "message": "一項規則只能包含一個擷取子句"
   },
   "ruleMissingInto": {
-    "message": "至少增加一項到：子句中"
+    "message": "請至少新增一個 into: 子句"
   },
   "ruleExtraInto": {
     "message": "一條規則只能包含一個 into: 子句"
@@ -96,10 +96,10 @@
     "message": "此規則永遠不會執行，因為前面的規則會比對相同或更多下載項目"
   },
   "ruleBadClause": {
-    "message": "無效條款"
+    "message": "無效子句"
   },
   "rulePathInvalidCharacter": {
-    "message": "路徑包含無效字符"
+    "message": "路徑包含無效字元"
   },
   "rulePathStartsWithDot": {
     "message": "路徑不能以 .. 或 / 開頭"
@@ -108,7 +108,7 @@
     "message": "儲存選取的分頁"
   },
   "tabstripMenuMultipleSelectedTab": {
-    "message": "儲存反白的分頁 ($COUNT$)",
+    "message": "儲存選取的分頁（$COUNT$）",
     "placeholders": {
       "count": {
         "content": "$1",
@@ -138,7 +138,7 @@
     "message": "儲存對話框"
   },
   "o_sExistingFiles": {
-    "message": "現有文件"
+    "message": "現有檔案"
   },
   "o_lContextMenuBehaviorHelp": {
     "message": "選擇上下文選單中顯示的 Save In 操作。"
@@ -168,13 +168,13 @@
     "message": "如果瀏覽器支援，比對規則可以重新命名瀏覽器下載項目或將其放入子資料夾。不相符的下載項目維持不變。"
   },
   "o_cRouteBrowserDownloadsFirefox": {
-    "message": "在 Firefox 上實驗性地重新路由配對下載"
+    "message": "在 Firefox 中嘗試重新路由相符的下載項目"
   },
   "o_cRouteBrowserDownloadsFirefoxHelp": {
     "message": "Firefox 缺少原生檔案名稱路由功能，因此 Save In 會取消每個符合的下載並啟動替代下載。POST 請求、即將過期的 URL、自訂標頭或需要驗證的下載可能會失敗。"
   },
   "o_lFirefoxFilenameApiBug": {
-    "message": "Mozilla 錯誤 1245652"
+    "message": "Mozilla Bug 1245652"
   },
   "o_cBrowserDownloadFilter": {
     "message": "僅包含符合的下載 URL（可選）"
@@ -198,7 +198,7 @@
     "message": "通知"
   },
   "o_sSaveAsShortcuts": {
-    "message": "捷徑文件"
+    "message": "捷徑檔案"
   },
   "o_sKeyboardShortcuts": {
     "message": "點選儲存"
@@ -216,7 +216,7 @@
     "message": "頁面來源"
   },
   "o_lPageSourcesHelp": {
-    "message": "瀏覽目前頁面中的圖片、影片、音訊、文件和可下載連結。儲存的項目會套用平常使用的路由和重新命名規則。"
+    "message": "瀏覽目前頁面中的圖片、影片、音訊、文件與可下載連結。儲存的項目會套用一般的路由與重新命名規則。"
   },
   "o_lPageSourcesNetworkLimit": {
     "message": "某些影片播放器使用暫時 URL，或透過指令碼載入媒體，因此 Save In 不一定能偵測到所有影片。有時可以找到串流播放清單（HLS/DASH），但這些檔案只列出個別影片片段；儲存播放清單並不會儲存完整影片。"
@@ -228,16 +228,16 @@
     "message": "包含 CSS 背景圖片"
   },
   "o_cSourcePanelLive": {
-    "message": "頁面媒體更改時刷新"
+    "message": "頁面媒體變更時重新整理"
   },
   "o_cSourcePanelPreviews": {
-    "message": "顯示圖像和影片預覽"
+    "message": "顯示圖片與影片預覽"
   },
   "o_cSourcePanelResourceHints": {
-    "message": "尋找串流影片播放清單（HLS/DASH；盡力而為）"
+    "message": "盡可能尋找串流影片播放清單（HLS/DASH）"
   },
   "o_cSourcePanelLinks": {
-    "message": "包括連結、連結媒體和 PDF 文檔"
+    "message": "包含連結、連結媒體與 PDF 文件"
   },
   "o_lSourcePanelDiscovery": {
     "message": "來源和預覽"
@@ -252,7 +252,7 @@
     "message": "重置"
   },
   "o_lHistoryFilter": {
-    "message": "依文件、資料夾、類型或來源過濾"
+    "message": "依檔案、資料夾、類型或來源篩選"
   },
   "o_lHistoryFacets": {
     "message": "歷史過濾器"
@@ -324,7 +324,7 @@
     "message": "變數列表"
   },
   "o_lMenuPreview": {
-    "message": "菜單預覽"
+    "message": "選單預覽"
   },
   "o_lLiveVariables": {
     "message": "即時變數列表"
@@ -351,22 +351,22 @@
     "message": "捨棄"
   },
   "o_lRuleBuilder": {
-    "message": "快速添加"
+    "message": "快速新增"
   },
   "o_lRuleTemplates": {
     "message": "範本庫"
   },
   "o_lClauseList": {
-    "message": "條款清單"
+    "message": "子句清單"
   },
   "o_lGithub": {
     "message": "GitHub"
   },
   "o_lChangelog": {
-    "message": "變更日誌"
+    "message": "變更記錄"
   },
   "o_lHelpResources": {
-    "message": "幫助和資源"
+    "message": "說明與資源"
   },
   "o_lLanguage": {
     "message": "語言"
@@ -417,7 +417,7 @@
     "message": "顯示目前頁面的操作"
   },
   "o_cSavePageHelp": {
-    "message": "僅儲存頁面文件；不包括圖像、樣式表和其他外部文件。"
+    "message": "僅儲存頁面文件；不包含圖片、樣式表與其他外部檔案。"
   },
   "o_cSaveTabstrip": {
     "message": "在分頁選單中顯示 Save In 動作"
@@ -447,7 +447,7 @@
     "message": "每次都詢問"
   },
   "o_cDupeFilename": {
-    "message": "當文件已經存在時："
+    "message": "檔案已存在時："
   },
   "o_cOpenDialogIfNoRulesMatch": {
     "message": "沒有路由規則相符時詢問儲存位置"
@@ -570,10 +570,10 @@
     "message": "Save In 會擷取檔案並交給瀏覽器。只有在一般下載失敗時才使用此選項。這種方式較慢，而且 Chrome 會在儲存期間將檔案保留在記憶體中，因此不適合非常大的檔案。"
   },
   "o_cIncludeFetchCredentials": {
-    "message": "包括網站登入 cookie"
+    "message": "包含網站登入 Cookie"
   },
   "o_cIncludeFetchCredentialsHelp": {
-    "message": "Save In 在背景擷取檔案時（包括重新導向後）會使用適用的 Cookie 和由瀏覽器管理的登入資訊。隱私視窗中的要求仍保持匿名。由瀏覽器直接下載時，瀏覽器會自行管理認證資訊。"
+    "message": "Save In 在背景擷取檔案時（包括重新導向後），會使用適用的 Cookie 與瀏覽器管理的登入資訊。隱私視窗中的請求仍維持匿名。由瀏覽器直接下載時，瀏覽器會自行管理登入憑證。"
   },
   "o_cSetRefererHeader": {
     "message": "缺失時使用頁面 URL 作為 Referer"
@@ -594,7 +594,7 @@
     "message": "匯出設定"
   },
   "o_cDebugMode": {
-    "message": "啟用詳細的開發人員日誌記錄"
+    "message": "啟用詳細的開發人員記錄"
   },
   "o_cLastSavedAt": {
     "message": "最後更新： "
@@ -672,7 +672,7 @@
     "message": "點選儲存滑鼠按鈕"
   },
   "o_lDebugLog": {
-    "message": "偵錯日誌"
+    "message": "偵錯記錄"
   },
   "o_sAdvancedFilenames": {
     "message": "檔案名稱"
@@ -690,7 +690,7 @@
     "message": "診斷"
   },
   "o_lExperimental": {
-    "message": "實驗性功能"
+    "message": "實驗功能"
   },
   "o_lManualEditorSaveHelp": {
     "message": "選擇「套用」後，此編輯器中的變更將會儲存。"
@@ -717,13 +717,13 @@
     "message": "新增儲存位置"
   },
   "html_addsOneNestingLevel": {
-    "message": "新增一層嵌套。"
+    "message": "新增一層巢狀結構。"
   },
   "html_areNotSupported": {
     "message": "不支援。"
   },
   "html_askAnAiAgentToDraftADownloadsMenu": {
-    "message": "請 AI 代理起草資料夾選單"
+    "message": "請 AI 代理程式起草資料夾選單"
   },
   "html_assignAnAccessKey": {
     "message": "分配存取密鑰"
@@ -789,10 +789,10 @@
     "message": "本身"
   },
   "html_moreMenuSyntax": {
-    "message": "更多菜單語法"
+    "message": "更多選單語法"
   },
   "html_oneRelativeDirectoryOrMenuInstructionPerLineDownloads": {
-    "message": "每行輸入一個相關資料夾或選單指令。文件是相對於"
+    "message": "每行輸入一個相對資料夾或選單指令。檔案儲存位置相對於"
   },
   "html_openTheDefaultDownloadsDirectory": {
     "message": "開啟預設下載資料夾"
@@ -837,7 +837,7 @@
     "message": "維基百科"
   },
   "html_add2": {
-    "message": "添加"
+    "message": "新增"
   },
   "html_advancedUseCaptureGroups": {
     "message": "進階：使用擷取群組"
@@ -849,7 +849,7 @@
     "message": "，以及後來的組"
   },
   "html_askAnAiAgentToDraftRoutingRules": {
-    "message": "要求 AI 代理起草路由規則"
+    "message": "請 AI 代理程式起草路由規則"
   },
   "html_automaticallyMoveOrRenameDownloadsWhenTheirFilenameSource": {
     "message": "當檔案名稱、來源、頁面或上下文符合時，自動移動或重新命名下載。"
@@ -987,7 +987,7 @@
     "message": "圖片"
   },
   "html_jsonCompleteData": {
-    "message": "JSON — 完整數據"
+    "message": "JSON — 完整資料"
   },
   "html_key": {
     "message": "鑰匙"
@@ -1143,7 +1143,7 @@
     "message": "的目前值。每儲存一個下載項目，該值就增加 1，並在重新啟動後保留。"
   },
   "html_webextensionsSuchAsFoxyGesturesCanMessageSaveIn": {
-    "message": "WebExtensions 例如 Foxy Gestures 可以直接傳送訊息給 Save In。 Greasemonkey、Tampermonkey 或 Violentmonkey 使用者腳本本身無法執行此操作：使用者腳本不會接收跨擴充訊息傳遞存取權限。使用小型同伴 WebExtension 作為中繼，或讓使用者腳本將 URL 傳遞給公開該功能的擴充。"
+    "message": "Foxy Gestures 等 WebExtensions 可以直接傳送訊息給 Save In。Greasemonkey、Tampermonkey 或 Violentmonkey 使用者腳本本身無法做到這點，因為使用者腳本沒有跨擴充功能訊息傳遞權限。請使用小型輔助 WebExtension 作為中繼，或讓使用者腳本將 URL 傳遞給提供此功能的擴充功能。"
   },
   "html_whereThisWorks": {
     "message": "這在哪裡有效"
@@ -1164,7 +1164,7 @@
     "message": "檢查…"
   },
   "html_clearLog": {
-    "message": "清除日誌"
+    "message": "清除記錄"
   },
   "html_closeAboutSaveIn": {
     "message": "關閉關於Save In"
@@ -1176,7 +1176,7 @@
     "message": "內容選單"
   },
   "html_documentation": {
-    "message": "文件"
+    "message": "說明文件"
   },
   "html_downloads": {
     "message": "下載"
@@ -1200,7 +1200,7 @@
     "message": "讓 Chrome 將取得的檔案資料轉換為臨時下載 URL。"
   },
   "html_loadingClauses": {
-    "message": "正在加載條款…"
+    "message": "正在載入子句…"
   },
   "html_loadingVariables": {
     "message": "正在載入變數…"
@@ -1224,7 +1224,7 @@
     "message": "參考類型"
   },
   "html_refreshLog": {
-    "message": "刷新日誌"
+    "message": "重新整理記錄"
   },
   "html_reportAnIssue": {
     "message": "報告問題"
@@ -1233,7 +1233,7 @@
     "message": "啟用後報告已完成的儲存和可操作的失敗。"
   },
   "html_saveInDoesNotAdoptDownloadsThatAnotherExtension": {
-    "message": "Save In 不會接管其他擴充功能已經開始的下載，包括 Video DownloadHelper。發起下載的擴充功能必須先向 Save In 傳送"
+    "message": "Save In 不會接管其他擴充功能已經開始的下載，包含 Video DownloadHelper。發起下載的擴充功能必須先向 Save In 傳送"
   },
   "html_saveInHasNoAnalyticsAdvertisingDeveloperOperatedServer": {
     "message": "Save In 沒有分析、廣告、開發人員操作的伺服器或遠端執行程式碼。設定和歷史記錄保留在瀏覽器管理的擴充儲存中。"
@@ -1245,7 +1245,7 @@
     "message": "，Save In 註冊 AI 代理程式在此選項頁面開啟時可以呼叫的工具，以變更設定、建立資料夾選單和編寫路由規則。"
   },
   "html_showsSaveInCommandsOnPagesLinksMediaAnd": {
-    "message": "在頁面、連結、媒體和標籤上顯示 Save In 指令。"
+    "message": "在頁面、連結、媒體與分頁上顯示 Save In 指令。"
   },
   "html_startsSavesChoosesFilenamesMonitorsResultsAndSupportsRetries": {
     "message": "開始儲存、選擇檔案名稱、監視結果並支援重試。"
@@ -1257,7 +1257,7 @@
     "message": "下方的工作階段記錄一律會在本機保留少量近期失敗記錄。只有在使用瀏覽器開發人員主控台排解問題時才啟用；它會加入詳細的內部資訊，並在重新啟動後恢復為已儲存的設定。"
   },
   "html_toConnectOpenThisPageInABrowserThat": {
-    "message": "若要連線：在支援 WebMCP 的瀏覽器中開啟此頁面，保持開啟狀態，然後將瀏覽器內代理程式指向此標籤。用簡單易懂的語言提問——例如“按網站和日期將我的下載內容分類到資料夾中，對每個文件進行編號，僅在文件失敗時通知我。”"
+    "message": "若要連線，請在支援 WebMCP 的瀏覽器中開啟此頁面並保持開啟，然後讓瀏覽器內的 AI 代理程式使用此分頁。您可以直接用自然語言提問，例如：「依網站和日期將下載項目整理到資料夾、為每個檔案編號，並且只有在失敗時才通知我。」"
   },
   "html_tools": {
     "message": "工具"
@@ -1284,16 +1284,16 @@
     "message": "目前日期"
   },
   "html_currentDatetimeAsAUnixTimestamp": {
-    "message": "當前日期和時間作為 Unix 時間戳"
+    "message": "目前日期與時間的 Unix 時間戳記"
   },
   "html_currentDatetimeAsAUtcIso8601String": {
-    "message": "當前日期和時間（UTC ISO 8601 字串）"
+    "message": "目前日期與時間的 UTC ISO 8601 字串"
   },
   "html_currentDayOfMonth": {
-    "message": "當月的當前日期"
+    "message": "目前日期中的日（1–31）"
   },
   "html_currentDayOfWeekEnglish": {
-    "message": "一周中的當前日期（英語）"
+    "message": "目前是星期幾（英文）"
   },
   "html_currentHour24Hour": {
     "message": "目前時間（24 小時）"
@@ -1383,13 +1383,13 @@
     "message": "群組擷取的文字"
   },
   "html_charactersForDeeperNesting": {
-    "message": "用於更深層嵌套的字符"
+    "message": "用於更深層巢狀結構的字元"
   },
   "html_createsASeparatorInTheContextMenu": {
     "message": "在上下文選單中建立分隔符"
   },
   "html_createsASubmenuItemAddMore": {
-    "message": "建立子選單項目；添加更多"
+    "message": "建立子選單項目；新增更多"
   },
   "html_fileExtensionDerivedFromThe": {
     "message": "檔案副檔名源自"
@@ -1401,10 +1401,10 @@
     "message": "完整的 64 個字元小寫 SHA-256。它與一起計算"
   },
   "html_fullActualFilenameAfterContentDisposition": {
-    "message": "解析的檔名，包括 Content-Disposition"
+    "message": "解析後的檔名，包含 Content-Disposition"
   },
   "html_handyForExtensionlessOrQuerySuffixedUrls": {
-    "message": "。對於沒有擴展名或帶有查詢後綴的 URL 很有用。"
+    "message": "。適用於沒有副檔名或帶有查詢字串後綴的 URL。"
   },
   "html_menuStructure": {
     "message": "選單結構"
@@ -1485,7 +1485,7 @@
     "message": "符合頁面主機名稱。"
   },
   "html_matchesTheResolvedFilenameExtensionAfterContentDisposition": {
-    "message": "比對解析後的副檔名，包括 Content-Disposition。"
+    "message": "比對解析後的副檔名，包含 Content-Disposition。"
   },
   "html_matchesTheSelectionText": {
     "message": "比對選取的文字。"
@@ -1578,7 +1578,7 @@
     "message": "快速鍵已重設。"
   },
   "o_lShortcutLegacyValue": {
-    "message": "舊值：$VALUE$",
+    "message": "舊格式值：$VALUE$",
     "placeholders": {
       "value": {
         "content": "$1",
@@ -1600,6 +1600,228 @@
   },
   "o_lShortcutFormatWindows": {
     "message": "Windows 網際網路捷徑"
+  },
+  "ruleTemplateCategoryMedia": {
+    "message": "媒體"
+  },
+  "ruleTemplateCategoryFileTypes": {
+    "message": "檔案類型"
+  },
+  "ruleTemplateCategoryDateAndSequence": {
+    "message": "日期與序號"
+  },
+  "ruleTemplateCategorySitesAndUrls": {
+    "message": "網站與 URL"
+  },
+  "ruleTemplateCategorySaveContext": {
+    "message": "儲存來源"
+  },
+  "ruleTemplateImagesPerSiteName": {
+    "message": "將圖片儲存至各網站的資料夾"
+  },
+  "ruleTemplateImagesPerSiteDescription": {
+    "message": "依來源網站整理儲存的圖片"
+  },
+  "ruleTemplateVideosPerSiteName": {
+    "message": "將影片儲存至各網站的資料夾"
+  },
+  "ruleTemplateVideosPerSiteDescription": {
+    "message": "依來源網站整理儲存的影片"
+  },
+  "ruleTemplateAudioPerSiteName": {
+    "message": "將音訊儲存至各網站的資料夾"
+  },
+  "ruleTemplateAudioPerSiteDescription": {
+    "message": "依發現音訊的頁面整理儲存的音訊"
+  },
+  "ruleTemplateScreenshotsByMonthName": {
+    "message": "依月份整理螢幕截圖"
+  },
+  "ruleTemplateScreenshotsByMonthDescription": {
+    "message": "將以 screenshot 開頭的檔名儲存至日期資料夾"
+  },
+  "ruleTemplatePdfsName": {
+    "message": "將 PDF 儲存至文件資料夾"
+  },
+  "ruleTemplatePdfsDescription": {
+    "message": "集中存放所有 PDF"
+  },
+  "ruleTemplateArchivesName": {
+    "message": "將壓縮檔儲存至單一資料夾"
+  },
+  "ruleTemplateArchivesDescription": {
+    "message": "集中存放 ZIP、RAR、7z、TAR 與其他壓縮檔"
+  },
+  "ruleTemplateDocumentsName": {
+    "message": "將文件儲存至單一資料夾"
+  },
+  "ruleTemplateDocumentsDescription": {
+    "message": "集中存放常見的辦公與文字文件"
+  },
+  "ruleTemplateEbooksName": {
+    "message": "電子書與漫畫"
+  },
+  "ruleTemplateEbooksDescription": {
+    "message": "集中存放常見的電子書與數位漫畫格式"
+  },
+  "ruleTemplateInstallersName": {
+    "message": "應用程式與安裝程式"
+  },
+  "ruleTemplateInstallersDescription": {
+    "message": "集中存放桌面與行動裝置安裝套件"
+  },
+  "ruleTemplateFontsName": {
+    "message": "將字型儲存至單一資料夾"
+  },
+  "ruleTemplateFontsDescription": {
+    "message": "集中存放桌面與網頁字型檔案"
+  },
+  "ruleTemplatePerExtensionName": {
+    "message": "依副檔名分資料夾"
+  },
+  "ruleTemplatePerExtensionDescription": {
+    "message": "擷取副檔名並將其用作資料夾名稱"
+  },
+  "ruleTemplateDateStampName": {
+    "message": "為每個下載項目加上日期"
+  },
+  "ruleTemplateDateStampDescription": {
+    "message": "在原始檔名前加上儲存日期"
+  },
+  "ruleTemplateDailyInboxName": {
+    "message": "每日收件匣"
+  },
+  "ruleTemplateDailyInboxDescription": {
+    "message": "每天建立一個資料夾"
+  },
+  "ruleTemplateDownloadsByMonthName": {
+    "message": "依月份整理下載項目"
+  },
+  "ruleTemplateDownloadsByMonthDescription": {
+    "message": "保留原始檔名，並建立年份與月份資料夾"
+  },
+  "ruleTemplateWeeklyInboxName": {
+    "message": "每週收件匣"
+  },
+  "ruleTemplateWeeklyInboxDescription": {
+    "message": "每個 ISO 週建立一個收件匣資料夾"
+  },
+  "ruleTemplateSequentialArchiveName": {
+    "message": "循序編號封存"
+  },
+  "ruleTemplateSequentialArchiveDescription": {
+    "message": "在檔名前加上 Save In 的永久下載計數器"
+  },
+  "ruleTemplateOneSiteName": {
+    "message": "一個網站一個資料夾"
+  },
+  "ruleTemplateOneSiteDescription": {
+    "message": "將所選網站路由至專用資料夾"
+  },
+  "ruleTemplatePerSourceSiteName": {
+    "message": "依檔案來源網站分資料夾"
+  },
+  "ruleTemplatePerSourceSiteDescription": {
+    "message": "依提供檔案的主機名稱整理下載項目"
+  },
+  "ruleTemplatePerPageSiteName": {
+    "message": "依瀏覽網站分資料夾"
+  },
+  "ruleTemplatePerPageSiteDescription": {
+    "message": "依瀏覽的網站而非檔案主機整理檔案"
+  },
+  "ruleTemplatePageTitlePrefixName": {
+    "message": "頁面標題前綴"
+  },
+  "ruleTemplatePageTitlePrefixDescription": {
+    "message": "在原始檔名前加上適用於檔案系統的安全頁面標題"
+  },
+  "ruleTemplateCaptureUrlName": {
+    "message": "擷取 URL 的一部分"
+  },
+  "ruleTemplateCaptureUrlDescription": {
+    "message": "在儲存的檔名中使用正規表示式擷取群組"
+  },
+  "ruleTemplateBrowserInboxName": {
+    "message": "瀏覽器下載收件匣"
+  },
+  "ruleTemplateBrowserInboxDescription": {
+    "message": "將追蹤的瀏覽器下載項目儲存至個別資料夾"
+  },
+  "ruleTemplateLinkInboxName": {
+    "message": "連結下載收件匣"
+  },
+  "ruleTemplateLinkInboxDescription": {
+    "message": "將透過連結儲存的檔案與嵌入媒體分開"
+  },
+  "ruleTemplateSelectionInboxName": {
+    "message": "選取文字收件匣"
+  },
+  "ruleTemplateSelectionInboxDescription": {
+    "message": "集中存放根據頁面選取文字建立的檔案"
+  },
+  "ruleTemplateTabInboxName": {
+    "message": "分頁儲存收件匣"
+  },
+  "ruleTemplateTabInboxDescription": {
+    "message": "集中存放透過分頁操作儲存的檔案"
+  },
+  "ruleTemplateAdded": {
+    "message": "已加入"
+  },
+  "ruleTemplateAdd": {
+    "message": "加入"
+  },
+  "ruleTemplateAddedFeedback": {
+    "message": "已加入"
+  },
+  "ruleTemplateViewInEditor": {
+    "message": "在規則編輯器中檢視"
+  },
+  "historyColumnInitiated": {
+    "message": "開始時間"
+  },
+  "historyColumnSource": {
+    "message": "來源"
+  },
+  "historyColumnMethod": {
+    "message": "方式"
+  },
+  "historyColumnStatus": {
+    "message": "狀態"
+  },
+  "historyColumnSize": {
+    "message": "大小"
+  },
+  "historyColumnType": {
+    "message": "類型"
+  },
+  "historyColumnRule": {
+    "message": "規則"
+  },
+  "historyColumnFile": {
+    "message": "檔案"
+  },
+  "historyColumnFolder": {
+    "message": "資料夾"
+  },
+  "historyColumnUrl": {
+    "message": "URL"
+  },
+  "historyColumnFullPath": {
+    "message": "完整路徑"
+  },
+  "historyColumnDownloadId": {
+    "message": "下載 ID"
+  },
+  "historyColumnMenuItem": {
+    "message": "選單項目"
+  },
+  "historyColumnVariables": {
+    "message": "變數"
+  },
+  "o_lSourcePanelShortcutResetHelp": {
+    "message": "重設會還原瀏覽器建議的預設值。"
   },
   "o_lShortcutFormatLinux": {
     "message": "Linux 桌面捷徑"

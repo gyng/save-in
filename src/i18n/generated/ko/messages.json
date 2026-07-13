@@ -81,7 +81,7 @@
     "message": "규칙에는 하나의 캡처 절만 포함될 수 있습니다."
   },
   "ruleMissingInto": {
-    "message": "다음 항목에 하나 이상 추가: 절"
+    "message": "into: 절을 하나 이상 추가하세요"
   },
   "ruleExtraInto": {
     "message": "규칙에는 into: 절이 하나만 포함될 수 있습니다."
@@ -108,7 +108,7 @@
     "message": "선택한 탭 저장"
   },
   "tabstripMenuMultipleSelectedTab": {
-    "message": "강조 표시된 탭 저장($COUNT$)",
+    "message": "선택한 탭 저장($COUNT$)",
     "placeholders": {
       "count": {
         "content": "$1",
@@ -168,10 +168,10 @@
     "message": "지원되는 경우 일치 규칙은 브라우저 다운로드의 이름을 바꾸거나 하위 폴더에 배치할 수 있습니다. 일치하지 않는 다운로드는 변경되지 않습니다."
   },
   "o_cRouteBrowserDownloadsFirefox": {
-    "message": "Firefox에서 일치하는 다운로드의 경로를 실험적으로 재설정"
+    "message": "Firefox에서 일치하는 다운로드를 실험적으로 다시 라우팅"
   },
   "o_cRouteBrowserDownloadsFirefoxHelp": {
-    "message": "Firefox에는 기본 파일 이름 라우팅이 부족하므로 Save In는 일치하는 각 다운로드를 취소하고 교체를 시작합니다. POST 요청, 만료되는 URL, 사용자 정의 헤더 또는 인증된 다운로드의 경우 실패할 수 있습니다."
+    "message": "Firefox에는 기본 파일명 라우팅 기능이 없으므로 Save In은 일치하는 다운로드를 취소하고 대체 다운로드를 시작합니다. POST 요청, 만료되는 URL, 사용자 지정 헤더 또는 인증이 필요한 다운로드에서는 실패할 수 있습니다."
   },
   "o_lFirefoxFilenameApiBug": {
     "message": "모질라 버그 1245652"
@@ -234,7 +234,7 @@
     "message": "이미지 및 비디오 미리보기 표시"
   },
   "o_cSourcePanelResourceHints": {
-    "message": "스트리밍 비디오 재생 목록을 찾습니다(HLS/DASH, 최선의 노력)"
+    "message": "스트리밍 비디오 재생 목록을 가능한 범위에서 찾습니다(HLS/DASH)"
   },
   "o_cSourcePanelLinks": {
     "message": "링크, 연결된 미디어, PDF 문서 포함"
@@ -573,7 +573,7 @@
     "message": "웹사이트 로그인 쿠키 포함"
   },
   "o_cIncludeFetchCredentialsHelp": {
-    "message": "리디렉션 후를 포함하여 Save In가 백그라운드에서 파일을 가져올 때 적용 가능한 쿠키 및 브라우저 관리 로그인을 포함합니다. 개인 창 요청은 익명으로 유지됩니다. 직접 브라우저 다운로드는 자체 자격 증명을 관리합니다."
+    "message": "리디렉션 후를 포함하여 Save In이 백그라운드에서 파일을 가져올 때 적용 가능한 쿠키와 브라우저 관리 로그인 정보를 사용합니다. 비공개 창의 요청은 익명으로 유지됩니다. 브라우저에서 직접 다운로드할 때는 브라우저가 로그인 정보를 관리합니다."
   },
   "o_cSetRefererHeader": {
     "message": "누락된 Referer에 페이지 URL 사용"
@@ -690,7 +690,7 @@
     "message": "진단"
   },
   "o_lExperimental": {
-    "message": "실험적"
+    "message": "실험 기능"
   },
   "o_lManualEditorSaveHelp": {
     "message": "“적용”을 선택하면 이 편집기의 변경 사항이 저장됩니다."
@@ -756,7 +756,7 @@
     "message": "위치 저장 메뉴에 두 개의 폴더를 생성합니다."
   },
   "html_defaultDownloadsDirectory": {
-    "message": "기본 Downloads 폴더"
+    "message": "기본 다운로드 폴더"
   },
   "html_directoryEditorMode": {
     "message": "폴더 편집 모드"
@@ -792,10 +792,10 @@
     "message": "추가 메뉴 구문"
   },
   "html_oneRelativeDirectoryOrMenuInstructionPerLineDownloads": {
-    "message": "한 줄에 하나의 관련 폴더 또는 메뉴 지침을 입력하십시오. 파일은 다음을 기준으로 저장됩니다."
+    "message": "상대 폴더 또는 메뉴 지시문을 한 줄에 하나씩 입력하세요. 파일 저장 위치는 다음을 기준으로 합니다:"
   },
   "html_openTheDefaultDownloadsDirectory": {
-    "message": "기본 Downloads 폴더를 엽니다."
+    "message": "기본 다운로드 폴더 열기"
   },
   "html_pathsContaining": {
     "message": "다음을 포함하는 경로"
@@ -1143,7 +1143,7 @@
     "message": "의 현재 값입니다. 다운로드가 저장될 때마다 1씩 증가하며 다시 시작해도 유지됩니다."
   },
   "html_webextensionsSuchAsFoxyGesturesCanMessageSaveIn": {
-    "message": "Foxy Gesture와 같은 WebExtensions는 Save In에 직접 메시지를 보낼 수 있습니다. Greasemonkey, Tampermonkey 또는 Violentmonkey 사용자 스크립트는 자체적으로 이를 수행할 수 없습니다. 사용자 스크립트는 교차 확장 메시징 액세스를 수신하지 않습니다. 작은 동반자 WebExtension를 릴레이로 사용하거나 사용자 스크립트가 해당 기능을 노출하는 확장에 URL을 전달하도록 합니다."
+    "message": "Foxy Gestures 같은 WebExtensions는 Save In에 직접 메시지를 보낼 수 있습니다. Greasemonkey, Tampermonkey 또는 Violentmonkey 사용자 스크립트만으로는 이 작업을 수행할 수 없습니다. 사용자 스크립트에는 확장 프로그램 간 메시지 접근 권한이 없습니다. 작은 보조 WebExtension을 중계로 사용하거나, 해당 기능을 제공하는 확장 프로그램에 URL을 전달하도록 사용자 스크립트를 설정하세요."
   },
   "html_whereThisWorks": {
     "message": "이것이 작동하는 곳"
@@ -1257,7 +1257,7 @@
     "message": "아래 세션 로그에는 최근 실패가 소량만 로컬에 기록됩니다. 브라우저 개발자 콘솔로 문제를 해결할 때만 활성화하세요. 자세한 내부 정보가 추가되며 다시 시작하면 저장된 설정으로 돌아갑니다."
   },
   "html_toConnectOpenThisPageInABrowserThat": {
-    "message": "연결하려면: WebMCP를 지원하는 브라우저에서 이 페이지를 열고 열어둔 다음 이 탭에서 브라우저 내 에이전트를 가리킵니다. 일반 언어로 물어보세요. \"내 다운로드를 웹 사이트 및 날짜별로 폴더로 정렬하고, 각 파일에 번호를 매기고, 하나가 실패하는 경우에만 나에게 알립니다.\""
+    "message": "연결하려면 WebMCP를 지원하는 브라우저에서 이 페이지를 열어 둔 다음, 브라우저 내 에이전트가 이 탭을 사용하도록 지정하세요. 자연어로 요청할 수 있습니다. 예: \"다운로드를 웹사이트와 날짜별 폴더로 정리하고, 각 파일에 번호를 매긴 뒤, 실패할 때만 알려 줘.\""
   },
   "html_tools": {
     "message": "도구"
@@ -1284,13 +1284,13 @@
     "message": "현재 날짜"
   },
   "html_currentDatetimeAsAUnixTimestamp": {
-    "message": "Unix 타임스탬프로 표시되는 현재 날짜 및 시간"
+    "message": "현재 날짜와 시간의 Unix 타임스탬프"
   },
   "html_currentDatetimeAsAUtcIso8601String": {
-    "message": "UTC ISO 8601 문자열로 표시된 현재 날짜 및 시간"
+    "message": "현재 날짜와 시간의 UTC ISO 8601 문자열"
   },
   "html_currentDayOfMonth": {
-    "message": "해당 월의 현재 날짜"
+    "message": "현재 일(1~31)"
   },
   "html_currentDayOfWeekEnglish": {
     "message": "현재 요일(영어)"
@@ -1554,7 +1554,7 @@
     "message": "수정자와 함께 하나의 키를 사용하십시오."
   },
   "o_lShortcutValidKey": {
-    "message": "Y, 5, F12 또는 PageDown와 같은 유효한 키를 선택하세요."
+    "message": "Y, 5, F12 또는 PageDown 같은 유효한 키를 선택하세요."
   },
   "o_lShortcutNoRepeats": {
     "message": "키나 수정자를 반복하지 마세요."
@@ -1578,7 +1578,7 @@
     "message": "단축키가 재설정되었습니다."
   },
   "o_lShortcutLegacyValue": {
-    "message": "기존 값: $VALUE$",
+    "message": "이전 형식 값: $VALUE$",
     "placeholders": {
       "value": {
         "content": "$1",
@@ -1600,6 +1600,228 @@
   },
   "o_lShortcutFormatWindows": {
     "message": "Windows 인터넷 바로가기"
+  },
+  "ruleTemplateCategoryMedia": {
+    "message": "미디어"
+  },
+  "ruleTemplateCategoryFileTypes": {
+    "message": "파일 형식"
+  },
+  "ruleTemplateCategoryDateAndSequence": {
+    "message": "날짜 및 일련번호"
+  },
+  "ruleTemplateCategorySitesAndUrls": {
+    "message": "사이트 및 URL"
+  },
+  "ruleTemplateCategorySaveContext": {
+    "message": "저장 출처"
+  },
+  "ruleTemplateImagesPerSiteName": {
+    "message": "사이트별 폴더에 이미지 저장"
+  },
+  "ruleTemplateImagesPerSiteDescription": {
+    "message": "저장한 이미지를 가져온 사이트별로 정리합니다"
+  },
+  "ruleTemplateVideosPerSiteName": {
+    "message": "사이트별 폴더에 비디오 저장"
+  },
+  "ruleTemplateVideosPerSiteDescription": {
+    "message": "저장한 비디오를 가져온 사이트별로 정리합니다"
+  },
+  "ruleTemplateAudioPerSiteName": {
+    "message": "사이트별 폴더에 오디오 저장"
+  },
+  "ruleTemplateAudioPerSiteDescription": {
+    "message": "저장한 오디오를 발견한 페이지별로 정리합니다"
+  },
+  "ruleTemplateScreenshotsByMonthName": {
+    "message": "월별 스크린샷"
+  },
+  "ruleTemplateScreenshotsByMonthDescription": {
+    "message": "screenshot으로 시작하는 파일명을 날짜별 폴더에 저장합니다"
+  },
+  "ruleTemplatePdfsName": {
+    "message": "PDF를 문서 폴더에 저장"
+  },
+  "ruleTemplatePdfsDescription": {
+    "message": "모든 PDF를 한곳에 모읍니다"
+  },
+  "ruleTemplateArchivesName": {
+    "message": "압축 파일을 한 폴더에 저장"
+  },
+  "ruleTemplateArchivesDescription": {
+    "message": "ZIP, RAR, 7z, TAR 및 기타 압축 파일을 모읍니다"
+  },
+  "ruleTemplateDocumentsName": {
+    "message": "문서를 한 폴더에 저장"
+  },
+  "ruleTemplateDocumentsDescription": {
+    "message": "일반적인 오피스 및 텍스트 문서를 모읍니다"
+  },
+  "ruleTemplateEbooksName": {
+    "message": "전자책 및 만화"
+  },
+  "ruleTemplateEbooksDescription": {
+    "message": "일반적인 전자책 및 디지털 만화 형식을 모읍니다"
+  },
+  "ruleTemplateInstallersName": {
+    "message": "앱 및 설치 파일"
+  },
+  "ruleTemplateInstallersDescription": {
+    "message": "데스크톱 및 모바일 설치 패키지를 한곳에 모읍니다"
+  },
+  "ruleTemplateFontsName": {
+    "message": "글꼴을 한 폴더에 저장"
+  },
+  "ruleTemplateFontsDescription": {
+    "message": "데스크톱 및 웹 글꼴 파일을 모읍니다"
+  },
+  "ruleTemplatePerExtensionName": {
+    "message": "확장자별 폴더"
+  },
+  "ruleTemplatePerExtensionDescription": {
+    "message": "확장자를 캡처하여 폴더 이름으로 사용합니다"
+  },
+  "ruleTemplateDateStampName": {
+    "message": "모든 다운로드에 날짜 표시"
+  },
+  "ruleTemplateDateStampDescription": {
+    "message": "원래 파일명 앞에 저장 날짜를 붙입니다"
+  },
+  "ruleTemplateDailyInboxName": {
+    "message": "일일 보관함"
+  },
+  "ruleTemplateDailyInboxDescription": {
+    "message": "날짜마다 폴더를 하나씩 만듭니다"
+  },
+  "ruleTemplateDownloadsByMonthName": {
+    "message": "월별 다운로드"
+  },
+  "ruleTemplateDownloadsByMonthDescription": {
+    "message": "원래 파일명을 유지하면서 연도 및 월별 폴더를 만듭니다"
+  },
+  "ruleTemplateWeeklyInboxName": {
+    "message": "주간 보관함"
+  },
+  "ruleTemplateWeeklyInboxDescription": {
+    "message": "ISO 주마다 보관함 폴더를 하나씩 만듭니다"
+  },
+  "ruleTemplateSequentialArchiveName": {
+    "message": "일련번호 아카이브"
+  },
+  "ruleTemplateSequentialArchiveDescription": {
+    "message": "Save In의 영구 다운로드 카운터를 파일명 앞에 붙입니다"
+  },
+  "ruleTemplateOneSiteName": {
+    "message": "사이트 하나당 폴더 하나"
+  },
+  "ruleTemplateOneSiteDescription": {
+    "message": "선택한 웹사이트를 전용 폴더로 라우팅합니다"
+  },
+  "ruleTemplatePerSourceSiteName": {
+    "message": "파일 제공 사이트별 폴더"
+  },
+  "ruleTemplatePerSourceSiteDescription": {
+    "message": "파일을 제공한 호스트 이름별로 다운로드를 정리합니다"
+  },
+  "ruleTemplatePerPageSiteName": {
+    "message": "탐색한 사이트별 폴더"
+  },
+  "ruleTemplatePerPageSiteDescription": {
+    "message": "파일 호스트가 아닌 탐색 중이던 웹사이트별로 파일을 정리합니다"
+  },
+  "ruleTemplatePageTitlePrefixName": {
+    "message": "페이지 제목 접두사"
+  },
+  "ruleTemplatePageTitlePrefixDescription": {
+    "message": "파일 시스템에 안전한 페이지 제목을 원래 파일명 앞에 붙입니다"
+  },
+  "ruleTemplateCaptureUrlName": {
+    "message": "URL 일부 캡처"
+  },
+  "ruleTemplateCaptureUrlDescription": {
+    "message": "정규식 캡처 그룹을 저장할 파일명에 사용합니다"
+  },
+  "ruleTemplateBrowserInboxName": {
+    "message": "브라우저 다운로드 보관함"
+  },
+  "ruleTemplateBrowserInboxDescription": {
+    "message": "추적 중인 브라우저 다운로드를 별도 폴더에 보관합니다"
+  },
+  "ruleTemplateLinkInboxName": {
+    "message": "링크 다운로드 보관함"
+  },
+  "ruleTemplateLinkInboxDescription": {
+    "message": "링크에서 저장한 파일을 포함된 미디어와 분리합니다"
+  },
+  "ruleTemplateSelectionInboxName": {
+    "message": "선택한 텍스트 보관함"
+  },
+  "ruleTemplateSelectionInboxDescription": {
+    "message": "페이지에서 선택한 텍스트로 만든 파일을 한곳에 모읍니다"
+  },
+  "ruleTemplateTabInboxName": {
+    "message": "탭 저장 보관함"
+  },
+  "ruleTemplateTabInboxDescription": {
+    "message": "탭 작업으로 저장한 파일을 한곳에 모읍니다"
+  },
+  "ruleTemplateAdded": {
+    "message": "추가됨"
+  },
+  "ruleTemplateAdd": {
+    "message": "추가"
+  },
+  "ruleTemplateAddedFeedback": {
+    "message": "추가됨"
+  },
+  "ruleTemplateViewInEditor": {
+    "message": "규칙 편집기에서 보기"
+  },
+  "historyColumnInitiated": {
+    "message": "시작 시각"
+  },
+  "historyColumnSource": {
+    "message": "출처"
+  },
+  "historyColumnMethod": {
+    "message": "방식"
+  },
+  "historyColumnStatus": {
+    "message": "상태"
+  },
+  "historyColumnSize": {
+    "message": "크기"
+  },
+  "historyColumnType": {
+    "message": "유형"
+  },
+  "historyColumnRule": {
+    "message": "규칙"
+  },
+  "historyColumnFile": {
+    "message": "파일"
+  },
+  "historyColumnFolder": {
+    "message": "폴더"
+  },
+  "historyColumnUrl": {
+    "message": "URL"
+  },
+  "historyColumnFullPath": {
+    "message": "전체 경로"
+  },
+  "historyColumnDownloadId": {
+    "message": "다운로드 ID"
+  },
+  "historyColumnMenuItem": {
+    "message": "메뉴 항목"
+  },
+  "historyColumnVariables": {
+    "message": "변수"
+  },
+  "o_lSourcePanelShortcutResetHelp": {
+    "message": "재설정하면 브라우저의 권장 기본값으로 돌아갑니다."
   },
   "o_lShortcutFormatLinux": {
     "message": "Linux 데스크탑 바로가기"

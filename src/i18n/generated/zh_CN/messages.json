@@ -81,7 +81,7 @@
     "message": "一条规则只能包含一个捕获子句"
   },
   "ruleMissingInto": {
-    "message": "至少添加一项到：子句中"
+    "message": "请至少添加一个 into: 子句"
   },
   "ruleExtraInto": {
     "message": "一条规则只能包含一个 into: 子句"
@@ -108,7 +108,7 @@
     "message": "保存选定的选项卡"
   },
   "tabstripMenuMultipleSelectedTab": {
-    "message": "保存突出显示的选项卡 ($COUNT$)",
+    "message": "保存选中的选项卡（$COUNT$）",
     "placeholders": {
       "count": {
         "content": "$1",
@@ -168,13 +168,13 @@
     "message": "如果浏览器支持，匹配规则可以重命名浏览器下载或将其放入子文件夹。不匹配的下载保持不变。"
   },
   "o_cRouteBrowserDownloadsFirefox": {
-    "message": "在 Firefox 上实验性地重新路由匹配下载"
+    "message": "在 Firefox 中尝试重新路由匹配的下载"
   },
   "o_cRouteBrowserDownloadsFirefoxHelp": {
     "message": "Firefox 缺少原生文件名路由功能，因此 Save In 会取消每个匹配的下载并启动替代下载。POST 请求、即将过期的 URL、自定义标头或需要身份验证的下载可能会失败。"
   },
   "o_lFirefoxFilenameApiBug": {
-    "message": "Mozilla 错误 1245652"
+    "message": "Mozilla Bug 1245652"
   },
   "o_cBrowserDownloadFilter": {
     "message": "仅包含匹配的下载 URL（可选）"
@@ -234,7 +234,7 @@
     "message": "显示图像和视频预览"
   },
   "o_cSourcePanelResourceHints": {
-    "message": "查找流视频播放列表（HLS/DASH；尽力而为）"
+    "message": "尽可能查找流媒体视频播放列表（HLS/DASH）"
   },
   "o_cSourcePanelLinks": {
     "message": "包括链接、链接媒体和 PDF 文档"
@@ -570,7 +570,7 @@
     "message": "Save In 获取文件并将其传递给浏览器。仅当正常下载失败时才使用此选项。它速度较慢，并且 Chrome 在保存时将文件保存在内存中，因此对于非常大的文件请避免使用它。"
   },
   "o_cIncludeFetchCredentials": {
-    "message": "包括网站登录 cookie"
+    "message": "包含网站登录 Cookie"
   },
   "o_cIncludeFetchCredentialsHelp": {
     "message": "Save In 在后台获取文件时（包括重定向后）会使用适用的 Cookie 和由浏览器管理的登录信息。隐私窗口中的请求仍保持匿名。由浏览器直接下载时，浏览器会自行管理凭据。"
@@ -690,7 +690,7 @@
     "message": "诊断"
   },
   "o_lExperimental": {
-    "message": "实验性功能"
+    "message": "实验功能"
   },
   "o_lManualEditorSaveHelp": {
     "message": "选择“应用”后，此编辑器中的更改将被保存。"
@@ -723,7 +723,7 @@
     "message": "不支持。"
   },
   "html_askAnAiAgentToDraftADownloadsMenu": {
-    "message": "要求 AI 代理起草文件夹菜单"
+    "message": "请 AI 智能体起草文件夹菜单"
   },
   "html_assignAnAccessKey": {
     "message": "分配访问密钥"
@@ -792,7 +792,7 @@
     "message": "更多菜单语法"
   },
   "html_oneRelativeDirectoryOrMenuInstructionPerLineDownloads": {
-    "message": "每行输入一个相关文件夹或菜单指令。文件是相对于"
+    "message": "每行输入一个相对文件夹或菜单指令。文件保存位置相对于"
   },
   "html_openTheDefaultDownloadsDirectory": {
     "message": "打开默认下载文件夹"
@@ -849,7 +849,7 @@
     "message": "，以及后来的组"
   },
   "html_askAnAiAgentToDraftRoutingRules": {
-    "message": "要求 AI 代理起草路由规则"
+    "message": "请 AI 智能体起草路由规则"
   },
   "html_automaticallyMoveOrRenameDownloadsWhenTheirFilenameSource": {
     "message": "当文件名、源、页面或上下文匹配时，自动移动或重命名下载。"
@@ -861,7 +861,7 @@
     "message": "子句和变量引用"
   },
   "html_copyThisPromptIntoAnAgentOrUseWebmcp": {
-    "message": "将此提示复制到代理中，或使用外部集成中的 WebMCP。"
+    "message": "将此提示复制到 AI 智能体中，或使用外部集成中的 WebMCP。"
   },
   "html_destination": {
     "message": "保存位置。"
@@ -1143,7 +1143,7 @@
     "message": "的当前值。每保存一个下载，该值就增加 1，并在重启后保留。"
   },
   "html_webextensionsSuchAsFoxyGesturesCanMessageSaveIn": {
-    "message": "WebExtensions 例如 Foxy Gestures 可以直接给 Save In 发消息。 Greasemonkey、Tampermonkey 或 Violentmonkey 用户脚本本身无法执行此操作：用户脚本不接收跨扩展消息传递访问权限。使用小型同伴 WebExtension 作为中继，或者让用户脚本将 URL 传递给公开该功能的扩展。"
+    "message": "Foxy Gestures 等 WebExtensions 可以直接向 Save In 发送消息。Greasemonkey、Tampermonkey 或 Violentmonkey 用户脚本本身无法做到这一点，因为用户脚本没有跨扩展消息传递权限。请使用小型辅助 WebExtension 作为中继，或让用户脚本把 URL 传递给提供此功能的扩展。"
   },
   "html_whereThisWorks": {
     "message": "这在哪里有效"
@@ -1242,7 +1242,7 @@
     "message": "Save In 是一款优先在本地处理的下载助手，可通过上下文菜单文件夹、路由规则、重命名、页面资源和下载历史来整理文件。"
   },
   "html_saveInRegistersToolsAnAiAgentCanCall": {
-    "message": "，Save In 注册 AI 代理在此选项页面打开时可以调用的工具，以更改设置、构建文件夹菜单和编写路由规则。"
+    "message": "，Save In 会注册 AI 智能体可在此选项页面打开时调用的工具，用于更改设置、构建文件夹菜单和编写路由规则。"
   },
   "html_showsSaveInCommandsOnPagesLinksMediaAnd": {
     "message": "在页面、链接、媒体和选项卡上显示 Save In 命令。"
@@ -1257,7 +1257,7 @@
     "message": "下方的会话日志始终在本地保留少量近期失败记录。仅在使用浏览器开发者控制台排查问题时启用；它会添加详细的内部信息，并在重启后恢复为已保存的设置。"
   },
   "html_toConnectOpenThisPageInABrowserThat": {
-    "message": "要连接：在支持 WebMCP 的浏览器中打开此页面，保持打开状态，然后将浏览器内代理指向此选项卡。用通俗易懂的语言提问——例如“按网站和日期将我的下载内容分类到文件夹中，对每个文件进行编号，仅在文件失败时通知我。”"
+    "message": "连接方法：在支持 WebMCP 的浏览器中打开此页面并保持打开，然后让浏览器内的 AI 智能体使用此选项卡。您可以直接用自然语言提问，例如：“按网站和日期将下载内容整理到文件夹中，为每个文件编号，并且只在失败时通知我。”"
   },
   "html_tools": {
     "message": "工具"
@@ -1284,16 +1284,16 @@
     "message": "当前日期"
   },
   "html_currentDatetimeAsAUnixTimestamp": {
-    "message": "当前日期和时间作为 Unix 时间戳"
+    "message": "当前日期和时间的 Unix 时间戳"
   },
   "html_currentDatetimeAsAUtcIso8601String": {
-    "message": "当前日期和时间（UTC ISO 8601 字符串）"
+    "message": "当前日期和时间的 UTC ISO 8601 字符串"
   },
   "html_currentDayOfMonth": {
-    "message": "当月的当前日期"
+    "message": "当前日期的日（1–31）"
   },
   "html_currentDayOfWeekEnglish": {
-    "message": "一周中的当前日期（英语）"
+    "message": "当前星期几（英语）"
   },
   "html_currentHour24Hour": {
     "message": "当前时间（24 小时）"
@@ -1578,7 +1578,7 @@
     "message": "快捷键已重置。"
   },
   "o_lShortcutLegacyValue": {
-    "message": "旧值：$VALUE$",
+    "message": "旧格式值：$VALUE$",
     "placeholders": {
       "value": {
         "content": "$1",
@@ -1600,6 +1600,228 @@
   },
   "o_lShortcutFormatWindows": {
     "message": "Windows 互联网快捷方式"
+  },
+  "ruleTemplateCategoryMedia": {
+    "message": "媒体"
+  },
+  "ruleTemplateCategoryFileTypes": {
+    "message": "文件类型"
+  },
+  "ruleTemplateCategoryDateAndSequence": {
+    "message": "日期和序号"
+  },
+  "ruleTemplateCategorySitesAndUrls": {
+    "message": "网站和 URL"
+  },
+  "ruleTemplateCategorySaveContext": {
+    "message": "保存来源"
+  },
+  "ruleTemplateImagesPerSiteName": {
+    "message": "按网站将图片存入文件夹"
+  },
+  "ruleTemplateImagesPerSiteDescription": {
+    "message": "按来源网站整理保存的图片"
+  },
+  "ruleTemplateVideosPerSiteName": {
+    "message": "按网站将视频存入文件夹"
+  },
+  "ruleTemplateVideosPerSiteDescription": {
+    "message": "按来源网站整理保存的视频"
+  },
+  "ruleTemplateAudioPerSiteName": {
+    "message": "按网站将音频存入文件夹"
+  },
+  "ruleTemplateAudioPerSiteDescription": {
+    "message": "按发现音频的页面整理保存的音频"
+  },
+  "ruleTemplateScreenshotsByMonthName": {
+    "message": "按月整理屏幕截图"
+  },
+  "ruleTemplateScreenshotsByMonthDescription": {
+    "message": "将以 screenshot 开头的文件名存入日期文件夹"
+  },
+  "ruleTemplatePdfsName": {
+    "message": "将 PDF 存入文档文件夹"
+  },
+  "ruleTemplatePdfsDescription": {
+    "message": "将所有 PDF 集中存放"
+  },
+  "ruleTemplateArchivesName": {
+    "message": "将压缩文件存入一个文件夹"
+  },
+  "ruleTemplateArchivesDescription": {
+    "message": "集中存放 ZIP、RAR、7z、TAR 和其他压缩文件"
+  },
+  "ruleTemplateDocumentsName": {
+    "message": "将文档存入一个文件夹"
+  },
+  "ruleTemplateDocumentsDescription": {
+    "message": "集中存放常见的办公和文本文档"
+  },
+  "ruleTemplateEbooksName": {
+    "message": "电子书和漫画"
+  },
+  "ruleTemplateEbooksDescription": {
+    "message": "集中存放常见的电子书和数字漫画格式"
+  },
+  "ruleTemplateInstallersName": {
+    "message": "应用和安装程序"
+  },
+  "ruleTemplateInstallersDescription": {
+    "message": "集中存放桌面和移动设备安装包"
+  },
+  "ruleTemplateFontsName": {
+    "message": "将字体存入一个文件夹"
+  },
+  "ruleTemplateFontsDescription": {
+    "message": "集中存放桌面和网页字体文件"
+  },
+  "ruleTemplatePerExtensionName": {
+    "message": "按扩展名分文件夹"
+  },
+  "ruleTemplatePerExtensionDescription": {
+    "message": "捕获扩展名并将其用作文件夹名称"
+  },
+  "ruleTemplateDateStampName": {
+    "message": "为每个下载添加日期"
+  },
+  "ruleTemplateDateStampDescription": {
+    "message": "在原始文件名前添加保存日期"
+  },
+  "ruleTemplateDailyInboxName": {
+    "message": "每日收件箱"
+  },
+  "ruleTemplateDailyInboxDescription": {
+    "message": "每天创建一个文件夹"
+  },
+  "ruleTemplateDownloadsByMonthName": {
+    "message": "按月整理下载"
+  },
+  "ruleTemplateDownloadsByMonthDescription": {
+    "message": "保留原始文件名，并创建年份和月份文件夹"
+  },
+  "ruleTemplateWeeklyInboxName": {
+    "message": "每周收件箱"
+  },
+  "ruleTemplateWeeklyInboxDescription": {
+    "message": "每个 ISO 周创建一个收件箱文件夹"
+  },
+  "ruleTemplateSequentialArchiveName": {
+    "message": "编号归档"
+  },
+  "ruleTemplateSequentialArchiveDescription": {
+    "message": "在文件名前添加 Save In 的永久下载计数器"
+  },
+  "ruleTemplateOneSiteName": {
+    "message": "一个网站一个文件夹"
+  },
+  "ruleTemplateOneSiteDescription": {
+    "message": "将所选网站路由到专用文件夹"
+  },
+  "ruleTemplatePerSourceSiteName": {
+    "message": "按文件来源网站分文件夹"
+  },
+  "ruleTemplatePerSourceSiteDescription": {
+    "message": "按提供文件的主机名整理下载"
+  },
+  "ruleTemplatePerPageSiteName": {
+    "message": "按浏览网站分文件夹"
+  },
+  "ruleTemplatePerPageSiteDescription": {
+    "message": "按浏览的网站而不是文件主机整理文件"
+  },
+  "ruleTemplatePageTitlePrefixName": {
+    "message": "页面标题前缀"
+  },
+  "ruleTemplatePageTitlePrefixDescription": {
+    "message": "在原始文件名前添加适用于文件系统的安全页面标题"
+  },
+  "ruleTemplateCaptureUrlName": {
+    "message": "捕获 URL 的一部分"
+  },
+  "ruleTemplateCaptureUrlDescription": {
+    "message": "在保存的文件名中使用正则表达式捕获组"
+  },
+  "ruleTemplateBrowserInboxName": {
+    "message": "浏览器下载收件箱"
+  },
+  "ruleTemplateBrowserInboxDescription": {
+    "message": "将跟踪的浏览器下载存入单独的文件夹"
+  },
+  "ruleTemplateLinkInboxName": {
+    "message": "链接下载收件箱"
+  },
+  "ruleTemplateLinkInboxDescription": {
+    "message": "将通过链接保存的文件与嵌入媒体分开"
+  },
+  "ruleTemplateSelectionInboxName": {
+    "message": "所选文本收件箱"
+  },
+  "ruleTemplateSelectionInboxDescription": {
+    "message": "集中存放根据页面所选文本创建的文件"
+  },
+  "ruleTemplateTabInboxName": {
+    "message": "选项卡保存收件箱"
+  },
+  "ruleTemplateTabInboxDescription": {
+    "message": "集中存放通过选项卡操作保存的文件"
+  },
+  "ruleTemplateAdded": {
+    "message": "已添加"
+  },
+  "ruleTemplateAdd": {
+    "message": "添加"
+  },
+  "ruleTemplateAddedFeedback": {
+    "message": "已添加"
+  },
+  "ruleTemplateViewInEditor": {
+    "message": "在规则编辑器中查看"
+  },
+  "historyColumnInitiated": {
+    "message": "开始时间"
+  },
+  "historyColumnSource": {
+    "message": "来源"
+  },
+  "historyColumnMethod": {
+    "message": "方式"
+  },
+  "historyColumnStatus": {
+    "message": "状态"
+  },
+  "historyColumnSize": {
+    "message": "大小"
+  },
+  "historyColumnType": {
+    "message": "类型"
+  },
+  "historyColumnRule": {
+    "message": "规则"
+  },
+  "historyColumnFile": {
+    "message": "文件"
+  },
+  "historyColumnFolder": {
+    "message": "文件夹"
+  },
+  "historyColumnUrl": {
+    "message": "URL"
+  },
+  "historyColumnFullPath": {
+    "message": "完整路径"
+  },
+  "historyColumnDownloadId": {
+    "message": "下载 ID"
+  },
+  "historyColumnMenuItem": {
+    "message": "菜单项"
+  },
+  "historyColumnVariables": {
+    "message": "变量"
+  },
+  "o_lSourcePanelShortcutResetHelp": {
+    "message": "重置会恢复浏览器建议的默认值。"
   },
   "o_lShortcutFormatLinux": {
     "message": "Linux 桌面快捷方式"
