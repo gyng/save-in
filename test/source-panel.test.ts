@@ -11,6 +11,7 @@ import {
   urlsFromSrcset,
   ytDlpCommand,
 } from "../src/content/source-panel.ts";
+import { createSourcePanelCopy } from "../src/shared/source-panel-copy.ts";
 
 describe("page source collection", () => {
   beforeEach(() => {
@@ -133,6 +134,34 @@ describe("page source collection", () => {
     const computed = vi.spyOn(window, "getComputedStyle");
     collectPageSources();
     expect(computed.mock.calls.length).toBeLessThanOrEqual(2);
+  });
+});
+
+describe("page source localization", () => {
+  afterEach(() => document.getElementById("save-in-source-panel")?.remove());
+
+  test("renders one resolved copy object without localizing during discovery", () => {
+    const french = new Map([
+      ["o_sPageSources", "Sources de la page"],
+      ["html_filterSources", "Filtrer les sources"],
+      ["sourcePanelLocate", "Repérer"],
+      ["sourcePanelSave", "Enregistrer"],
+    ]);
+    const copy = createSourcePanelCopy((key) => french.get(key) || "");
+    document.body.innerHTML = `<img src="cat.jpg">`;
+
+    toggleSourcePanel(vi.fn(), { copy, includeBackgrounds: false, live: false });
+
+    const shadow = document.getElementById("save-in-source-panel")!.shadowRoot!;
+    expect(shadow.querySelector("h2")?.textContent).toBe("Sources de la page");
+    expect(shadow.querySelector<HTMLInputElement>('input[type="search"]')?.placeholder).toBe(
+      "Filtrer les sources",
+    );
+    const actions = [...shadow.querySelectorAll(".actions button")].map(
+      (button) => button.textContent,
+    );
+    expect(actions).toContain("Repérer");
+    expect(actions).toContain("Enregistrer");
   });
 });
 
@@ -992,7 +1021,7 @@ describe("Page Sources panel interactions", () => {
 
     expect(playlistFacet).toBeDefined();
     playlistFacet!.click();
-    expect(shadow.querySelector(".meta")?.textContent).toContain("stream");
+    expect(shadow.querySelector(".meta")?.textContent).toContain("Playlist");
     expect(
       [...shadow.querySelectorAll(".actions button")].map((button) => button.textContent),
     ).toEqual(["Locate", "Save playlist", "Copy yt-dlp command"]);

@@ -54,6 +54,8 @@ tested the many fixes included in this release.
 - Options localization now covers rejected-download notifications, WebMCP
   availability, and empty History states. Option search also includes the
   language selector, and wrapped external-link icons retain a fixed size
+- Page Sources now follows the selected interface language. Its localized copy
+  is resolved lazily and cached without adding translation work to page scanning
 - CSV and TSV history exports neutralize formula-leading cells before they are
   opened in spreadsheet applications
 - New path variables: `:counter:` (atomic, persistent, per-download counter with

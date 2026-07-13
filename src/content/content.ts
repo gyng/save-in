@@ -14,6 +14,11 @@ import {
   type ContentOptions,
   type ResolvedContentOptions,
 } from "../config/content-options.ts";
+import {
+  DEFAULT_SOURCE_PANEL_COPY,
+  createSourcePanelCopy,
+  type SourcePanelCopy,
+} from "../shared/source-panel-copy.ts";
 
 // Runs in every page. Uses callback-style chrome.* APIs: available in both
 // Chrome and Firefox content scripts (no polyfill is loaded here). try/catch
@@ -268,6 +273,7 @@ const applyOptions = (next: ContentOptions) => {
       "sourcePanelPreviews",
       "sourcePanelResourceHints",
       "sourcePanelLinks",
+      "uiLocale",
       "uiTheme",
     ] as const
   ).some((key) => previous[key] !== currentOptions[key]);
@@ -328,16 +334,66 @@ try {
       info: { pageUrl: `${window.location}`, srcUrl: url, sourceKind: kind },
     });
   };
-  const createPanelOptions = () => ({
+  const resolvedPanelCopies = new Map<string, SourcePanelCopy>();
+  const pendingPanelCopies = new Map<string, Promise<SourcePanelCopy>>();
+  const nativePanelCopy = () =>
+    createSourcePanelCopy((key, substitutions) => chrome.i18n.getMessage(key, substitutions));
+  const isSourcePanelCopy = (value: unknown): value is SourcePanelCopy =>
+    Boolean(
+      value &&
+      typeof value === "object" &&
+      typeof Reflect.get(value, "title") === "string" &&
+      typeof Reflect.get(value, "filterSources") === "string" &&
+      typeof Reflect.get(value, "kinds") === "object",
+    );
+  const loadPanelCopy = (locale: string): Promise<SourcePanelCopy> => {
+    const cached = resolvedPanelCopies.get(locale);
+    if (cached) return Promise.resolve(cached);
+    const pending = pendingPanelCopies.get(locale);
+    if (pending) return pending;
+    if (!locale || locale === "en") {
+      const copy = nativePanelCopy();
+      resolvedPanelCopies.set(locale, copy);
+      return Promise.resolve(copy);
+    }
+    const request = new Promise<SourcePanelCopy>((resolve) => {
+      try {
+        chrome.runtime.sendMessage({ type: "SOURCE_PANEL_COPY" }, (response) => {
+          void chrome.runtime.lastError;
+          resolve(
+            response?.type === "SOURCE_PANEL_COPY" && isSourcePanelCopy(response.body)
+              ? response.body
+              : DEFAULT_SOURCE_PANEL_COPY,
+          );
+        });
+      } catch {
+        resolve(DEFAULT_SOURCE_PANEL_COPY);
+      }
+    }).then((copy) => {
+      pendingPanelCopies.delete(locale);
+      resolvedPanelCopies.set(locale, copy);
+      return copy;
+    });
+    pendingPanelCopies.set(locale, request);
+    return request;
+  };
+  let sourcePanelIsOpen = false;
+  let panelLocalizationQueue = Promise.resolve();
+  const createPanelOptions = (copy: SourcePanelCopy, locale: string) => ({
     enabled: currentOptions.sourcePanelEnabled === true,
     includeBackgrounds: currentOptions.sourcePanelBackgrounds !== false,
     live: currentOptions.sourcePanelLive !== false,
     previews: currentOptions.sourcePanelPreviews !== false,
     resourceHints: currentOptions.sourcePanelResourceHints !== false,
     includeLinks: currentOptions.sourcePanelLinks !== false,
+    copy,
+    locale:
+      locale ||
+      (typeof chrome.i18n.getUILanguage === "function" ? chrome.i18n.getUILanguage() : ""),
     theme: currentOptions.uiTheme || "system",
     onSaveIntent: warmBackground,
     onOpenChange: (open: boolean) => {
+      sourcePanelIsOpen = open;
       try {
         chrome.runtime.sendMessage(
           { type: "SOURCE_PANEL_STATE", body: { open } },
@@ -348,19 +404,59 @@ try {
       }
     },
   });
+  const withPanelCopy = (action: (panelOptions: ReturnType<typeof createPanelOptions>) => void) => {
+    const locale = currentOptions.uiLocale || "";
+    const cached = resolvedPanelCopies.get(locale);
+    if (cached) {
+      action(createPanelOptions(cached, locale));
+      return;
+    }
+    if (!locale || locale === "en") {
+      const copy = nativePanelCopy();
+      resolvedPanelCopies.set(locale, copy);
+      action(createPanelOptions(copy, locale));
+      return;
+    }
+    panelLocalizationQueue = panelLocalizationQueue
+      .then(() => loadPanelCopy(locale))
+      .then((copy) => {
+        const activeLocale = currentOptions.uiLocale || "";
+        if (activeLocale === locale) {
+          action(createPanelOptions(copy, locale));
+          return;
+        }
+        return loadPanelCopy(activeLocale).then((activeCopy) =>
+          action(createPanelOptions(activeCopy, activeLocale)),
+        );
+      })
+      .catch(() => {});
+  };
   reconfigureOpenSourcePanel = () => {
-    const panelOptions = createPanelOptions();
-    if (panelOptions.enabled) replaceSourcePanel(sendDownload, panelOptions);
-    else setSourcePanelOpen(false, sendDownload, panelOptions);
+    if (!sourcePanelIsOpen) return;
+    if (currentOptions.sourcePanelEnabled !== true) {
+      setSourcePanelOpen(
+        false,
+        sendDownload,
+        createPanelOptions(DEFAULT_SOURCE_PANEL_COPY, currentOptions.uiLocale || ""),
+      );
+      return;
+    }
+    withPanelCopy((panelOptions) => replaceSourcePanel(sendDownload, panelOptions));
   };
   chrome.runtime.onMessage.addListener((message) => {
     if (!["TOGGLE_SOURCE_PANEL", "SET_SOURCE_PANEL"].includes(message?.type)) return;
-    const panelOptions = createPanelOptions();
-    if (message.type === "SET_SOURCE_PANEL") {
-      setSourcePanelOpen(Boolean(message.body?.open), sendDownload, panelOptions);
-    } else {
-      toggleSourcePanel(sendDownload, panelOptions);
+    if (message.type === "SET_SOURCE_PANEL" && !message.body?.open) {
+      setSourcePanelOpen(
+        false,
+        sendDownload,
+        createPanelOptions(DEFAULT_SOURCE_PANEL_COPY, currentOptions.uiLocale || ""),
+      );
+      return;
     }
+    withPanelCopy((panelOptions) => {
+      if (message.type === "SET_SOURCE_PANEL") setSourcePanelOpen(true, sendDownload, panelOptions);
+      else toggleSourcePanel(sendDownload, panelOptions);
+    });
   });
   // Unlike timer retries in the service worker, this handshake is emitted
   // only after the receiving listener exists and reliably restores an open

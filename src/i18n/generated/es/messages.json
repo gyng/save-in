@@ -1759,6 +1759,144 @@
     "message": "No disponible — error al registrar las herramientas"
   },
   "webMcpStatusUnavailableBrowser": { "message": "No disponible en este navegador" },
+  "sourcePanelResizeLabel": {
+    "message": "Resize Page Sources"
+  },
+  "sourcePanelClose": {
+    "message": "Close"
+  },
+  "sourcePanelCloseLabel": {
+    "message": "Close Page Sources"
+  },
+  "sourcePanelDockPosition": {
+    "message": "Dock: $POSITION$ — change to the next position",
+    "placeholders": {
+      "position": {
+        "content": "$1",
+        "example": "Right"
+      }
+    }
+  },
+  "sourcePanelDockRight": {
+    "message": "Right"
+  },
+  "sourcePanelDockBottom": {
+    "message": "Bottom"
+  },
+  "sourcePanelDockLeft": {
+    "message": "Left"
+  },
+  "sourcePanelDockTop": {
+    "message": "Top"
+  },
+  "sourcePanelChangeDockLabel": {
+    "message": "Change panel dock position"
+  },
+  "sourcePanelDockPanel": {
+    "message": "Dock Page Sources"
+  },
+  "sourcePanelPopOutPanel": {
+    "message": "Pop out Page Sources"
+  },
+  "sourcePanelPopOutHelp": {
+    "message": "Pop out into a draggable panel"
+  },
+  "sourcePanelCopyFilteredUrls": {
+    "message": "Copy URLs in the current filter"
+  },
+  "sourcePanelCopyFilteredUrlsLabel": {
+    "message": "Copy filtered source URLs"
+  },
+  "sourcePanelFilterLabel": {
+    "message": "Filter page sources"
+  },
+  "sourcePanelSortLabel": {
+    "message": "Sort sources"
+  },
+  "sourcePanelSortNewest": {
+    "message": "Newest"
+  },
+  "sourcePanelSortOldest": {
+    "message": "Oldest"
+  },
+  "sourcePanelSortLargest": {
+    "message": "Largest"
+  },
+  "sourcePanelSortName": {
+    "message": "Name"
+  },
+  "sourcePanelKindAudio": {
+    "message": "Audio"
+  },
+  "sourcePanelKindDocument": {
+    "message": "Document"
+  },
+  "sourcePanelKindPlaylist": {
+    "message": "Playlist"
+  },
+  "sourcePanelNoMatches": {
+    "message": "No sources match the current filters."
+  },
+  "sourcePanelNoSources": {
+    "message": "No page media or streaming-video playlists detected yet."
+  },
+  "sourcePanelSourceInstructions": {
+    "message": "$URL$. Right-click for Save In; Alt+click to save immediately.",
+    "placeholders": {
+      "url": {
+        "content": "$1",
+        "example": "https://example.com/cat.jpg"
+      }
+    }
+  },
+  "sourcePanelSizeUnknown": {
+    "message": "size unknown"
+  },
+  "sourcePanelDetectedAt": {
+    "message": "Detected at $TIME$",
+    "placeholders": {
+      "time": {
+        "content": "$1",
+        "example": "14:30"
+      }
+    }
+  },
+  "sourcePanelPreviewUnavailable": {
+    "message": "Preview unavailable"
+  },
+  "sourcePanelLocate": {
+    "message": "Locate"
+  },
+  "sourcePanelSave": {
+    "message": "Save"
+  },
+  "sourcePanelSavePlaylist": {
+    "message": "Save playlist"
+  },
+  "sourcePanelCopyYtDlp": {
+    "message": "Copy yt-dlp command"
+  },
+  "sourcePanelCopyYtDlpHelp": {
+    "message": "Copy a command for yt-dlp to download the complete video"
+  },
+  "sourcePanelCopied": {
+    "message": "Copied"
+  },
+  "sourcePanelCopyFailed": {
+    "message": "Copy failed"
+  },
+  "sourcePanelRowInstructions": {
+    "message": "Alt+click to save; right-click the source title for Save In"
+  },
+  "sourcePanelCopiedUrls": {
+    "message": "Copied $COUNT$ URLs",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
   "o_lPathEditorDragHelp": {
     "message": "Arrastra una fila por el tirador de puntos. Suéltala encima o debajo de otra fila para colocarla en el mismo nivel, o sobre la fila para anidarla dentro."
   }

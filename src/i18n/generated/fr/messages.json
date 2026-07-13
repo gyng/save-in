@@ -1782,6 +1782,144 @@
   "o_lUiThemeHelp": {
     "message": "Suivez le thème du système ou gardez la page d’options et les sources des pages toujours en mode sombre ou clair."
   },
+  "sourcePanelResizeLabel": {
+    "message": "Redimensionner Sources de la page"
+  },
+  "sourcePanelClose": {
+    "message": "Fermer"
+  },
+  "sourcePanelCloseLabel": {
+    "message": "Fermer Sources de la page"
+  },
+  "sourcePanelDockPosition": {
+    "message": "Ancrage : $POSITION$ — passer à la position suivante",
+    "placeholders": {
+      "position": {
+        "content": "$1",
+        "example": "Right"
+      }
+    }
+  },
+  "sourcePanelDockRight": {
+    "message": "Droite"
+  },
+  "sourcePanelDockBottom": {
+    "message": "Bas"
+  },
+  "sourcePanelDockLeft": {
+    "message": "Gauche"
+  },
+  "sourcePanelDockTop": {
+    "message": "Haut"
+  },
+  "sourcePanelChangeDockLabel": {
+    "message": "Changer la position d’ancrage du panneau"
+  },
+  "sourcePanelDockPanel": {
+    "message": "Ancrer Sources de la page"
+  },
+  "sourcePanelPopOutPanel": {
+    "message": "Détacher Sources de la page"
+  },
+  "sourcePanelPopOutHelp": {
+    "message": "Détacher dans un panneau déplaçable"
+  },
+  "sourcePanelCopyFilteredUrls": {
+    "message": "Copier les URL du filtre actuel"
+  },
+  "sourcePanelCopyFilteredUrlsLabel": {
+    "message": "Copier les URL des sources filtrées"
+  },
+  "sourcePanelFilterLabel": {
+    "message": "Filtrer les sources de la page"
+  },
+  "sourcePanelSortLabel": {
+    "message": "Trier les sources"
+  },
+  "sourcePanelSortNewest": {
+    "message": "Plus récentes"
+  },
+  "sourcePanelSortOldest": {
+    "message": "Plus anciennes"
+  },
+  "sourcePanelSortLargest": {
+    "message": "Plus volumineuses"
+  },
+  "sourcePanelSortName": {
+    "message": "Nom"
+  },
+  "sourcePanelKindAudio": {
+    "message": "Audio"
+  },
+  "sourcePanelKindDocument": {
+    "message": "Document"
+  },
+  "sourcePanelKindPlaylist": {
+    "message": "Liste de lecture"
+  },
+  "sourcePanelNoMatches": {
+    "message": "Aucune source ne correspond aux filtres actuels."
+  },
+  "sourcePanelNoSources": {
+    "message": "Aucun média de page ni aucune liste de lecture de flux vidéo n’a encore été détecté."
+  },
+  "sourcePanelSourceInstructions": {
+    "message": "$URL$. Faites un clic droit pour Save In ; Alt+clic pour enregistrer immédiatement.",
+    "placeholders": {
+      "url": {
+        "content": "$1",
+        "example": "https://example.com/cat.jpg"
+      }
+    }
+  },
+  "sourcePanelSizeUnknown": {
+    "message": "taille inconnue"
+  },
+  "sourcePanelDetectedAt": {
+    "message": "Détecté à $TIME$",
+    "placeholders": {
+      "time": {
+        "content": "$1",
+        "example": "14:30"
+      }
+    }
+  },
+  "sourcePanelPreviewUnavailable": {
+    "message": "Aperçu indisponible"
+  },
+  "sourcePanelLocate": {
+    "message": "Repérer"
+  },
+  "sourcePanelSave": {
+    "message": "Enregistrer"
+  },
+  "sourcePanelSavePlaylist": {
+    "message": "Enregistrer la liste de lecture"
+  },
+  "sourcePanelCopyYtDlp": {
+    "message": "Copier la commande yt-dlp"
+  },
+  "sourcePanelCopyYtDlpHelp": {
+    "message": "Copier une commande permettant à yt-dlp de télécharger la vidéo complète"
+  },
+  "sourcePanelCopied": {
+    "message": "Copié"
+  },
+  "sourcePanelCopyFailed": {
+    "message": "Échec de la copie"
+  },
+  "sourcePanelRowInstructions": {
+    "message": "Alt+clic pour enregistrer ; faites un clic droit sur le titre de la source pour Save In"
+  },
+  "sourcePanelCopiedUrls": {
+    "message": "URL copiées : $COUNT$",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
   "o_lPathEditorDragHelp": {
     "message": "Faites glisser une ligne par la poignée en pointillés. Déposez-la au-dessus ou au-dessous d’une ligne pour la placer au même niveau, ou sur la ligne pour l’y imbriquer."
   }

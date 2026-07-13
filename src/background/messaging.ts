@@ -38,9 +38,12 @@ import { previewRoutes } from "./route-preview.ts";
 import { ActiveTransfers } from "../downloads/active-transfers.ts";
 import { OffscreenClient } from "../platform/offscreen-client.ts";
 import { ExternalDownloadRejections } from "./external-download-rejections.ts";
+import { getMessage } from "../platform/localization.ts";
+import { createSourcePanelCopy } from "../shared/source-panel-copy.ts";
 
 export type MessageSender = { id?: string | undefined; tab?: CurrentTab | undefined };
 type ProtocolSendResponse<Request extends InternalMessage> = SendResponse<ResponseFor<Request>>;
+const sourcePanelCopies = new Map<string, ReturnType<typeof createSourcePanelCopy>>();
 
 export const Messaging = {
   // ─── External DOWNLOAD API (issue #110) ────────────────────────────────
@@ -410,6 +413,18 @@ const internalHandlers = {
     await setSourcePanelOpenState(Boolean(request.body?.open));
     sendResponse({ type: MESSAGE_TYPES.OK });
   },
+  [MESSAGE_TYPES.SOURCE_PANEL_COPY]: (_request, _sender, sendResponse) => {
+    const locale = typeof options.uiLocale === "string" ? options.uiLocale : "";
+    let copy = sourcePanelCopies.get(locale);
+    if (!copy) {
+      copy = createSourcePanelCopy(getMessage);
+      sourcePanelCopies.set(locale, copy);
+    }
+    sendResponse({
+      type: MESSAGE_TYPES.SOURCE_PANEL_COPY,
+      body: copy,
+    });
+  },
   [MESSAGE_TYPES.HISTORY_GET]: async (_request, _sender, sendResponse) => {
     sendResponse({
       type: MESSAGE_TYPES.HISTORY_GET,
@@ -531,6 +546,7 @@ const externalHandlers = {
 
 const READY_MESSAGE_TYPES = new Set<InternalMessage["type"]>([
   MESSAGE_TYPES.OPTIONS,
+  MESSAGE_TYPES.SOURCE_PANEL_COPY,
   MESSAGE_TYPES.CHECK_ROUTES,
   MESSAGE_TYPES.DOWNLOAD,
 ]);

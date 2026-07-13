@@ -6,6 +6,7 @@ import type { OptionErrors } from "../background/runtime.ts";
 import type { RoutePreview } from "../background/route-preview.ts";
 import type { PersistenceFailure } from "./persistence-diagnostics.ts";
 import type { ExternalDownloadRejection } from "./external-download-rejection-types.ts";
+import type { SourcePanelCopy } from "./source-panel-copy.ts";
 
 export type WireCurrentTab = {
   id?: number | undefined;
@@ -157,6 +158,10 @@ export type InternalResponseMap = {
   [MESSAGE_TYPES.WAKE_WARM]: OkResponse;
   [MESSAGE_TYPES.SOURCE_PANEL_READY]: OkResponse;
   [MESSAGE_TYPES.SOURCE_PANEL_STATE]: OkResponse;
+  [MESSAGE_TYPES.SOURCE_PANEL_COPY]: Response<
+    typeof MESSAGE_TYPES.SOURCE_PANEL_COPY,
+    SourcePanelCopy
+  >;
   [MESSAGE_TYPES.HISTORY_GET]: Response<
     typeof MESSAGE_TYPES.HISTORY_GET,
     { entries: HistoryEntry[] }
@@ -252,6 +257,7 @@ export type InternalMessage =
   | Message<typeof MESSAGE_TYPES.WAKE_WARM>
   | Message<typeof MESSAGE_TYPES.SOURCE_PANEL_READY>
   | Message<typeof MESSAGE_TYPES.SOURCE_PANEL_STATE, { open?: boolean }>
+  | Message<typeof MESSAGE_TYPES.SOURCE_PANEL_COPY>
   | Message<typeof MESSAGE_TYPES.HISTORY_GET>
   | Message<typeof MESSAGE_TYPES.HISTORY_CLEAR>
   | Message<typeof MESSAGE_TYPES.HISTORY_CANCEL, { historyId: string }>
@@ -312,6 +318,7 @@ export const INTERNAL_MESSAGE_TYPES = new Set<InternalMessage["type"]>([
   MESSAGE_TYPES.WAKE_WARM,
   MESSAGE_TYPES.SOURCE_PANEL_READY,
   MESSAGE_TYPES.SOURCE_PANEL_STATE,
+  MESSAGE_TYPES.SOURCE_PANEL_COPY,
   MESSAGE_TYPES.HISTORY_GET,
   MESSAGE_TYPES.HISTORY_CLEAR,
   MESSAGE_TYPES.HISTORY_CANCEL,
@@ -472,6 +479,7 @@ const isMessageBodyValid = (message: Record<string, unknown>): boolean => {
       );
     case MESSAGE_TYPES.WAKE_WARM:
     case MESSAGE_TYPES.SOURCE_PANEL_READY:
+    case MESSAGE_TYPES.SOURCE_PANEL_COPY:
     case MESSAGE_TYPES.HISTORY_GET:
     case MESSAGE_TYPES.HISTORY_CLEAR:
     case MESSAGE_TYPES.EXTERNAL_DOWNLOAD_REJECTIONS_GET:

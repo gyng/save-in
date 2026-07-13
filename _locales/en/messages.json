@@ -301,7 +301,7 @@
   },
   "o_sPageSources": {
     "message": "Page sources",
-    "description": "Section heading on the options page. Used in src/options/options.html."
+    "description": "Section heading and Page Sources panel title. Used in src/options/options.html and src/shared/source-panel-copy.ts."
   },
   "o_lPageSourcesHelp": {
     "message": "Browse images, video, audio, documents, and downloadable links found on the current page. Saved items use your normal routing and renaming rules.",
@@ -1739,7 +1739,7 @@
   },
   "html_all": {
     "message": "All",
-    "description": "Text in the options page. Used in src/options/options.html."
+    "description": "Text in the options page and Page Sources panel. Used in src/options/options.html and src/shared/source-panel-copy.ts."
   },
   "html_altOption": {
     "message": "Alt / Option",
@@ -1791,7 +1791,7 @@
   },
   "html_filterSources": {
     "message": "Filter sources",
-    "description": "Text in the options page. Used in src/options/options.html."
+    "description": "Text in the options page and Page Sources panel. Used in src/options/options.html and src/shared/source-panel-copy.ts."
   },
   "html_historyTableTools": {
     "message": "History table tools",
@@ -1799,7 +1799,7 @@
   },
   "html_image": {
     "message": "Image",
-    "description": "Text in the options page. Used in src/options/options.html."
+    "description": "Text in the options page and Page Sources panel. Used in src/options/options.html and src/shared/source-panel-copy.ts."
   },
   "html_image128Kb1": {
     "message": "Image · 128 KB · #1",
@@ -1819,7 +1819,7 @@
   },
   "html_link": {
     "message": "Link",
-    "description": "Text in the options page. Used in src/options/options.html."
+    "description": "Text in the options page and Page Sources panel. Used in src/options/options.html and src/shared/source-panel-copy.ts."
   },
   "html_links": {
     "message": "Links",
@@ -1891,7 +1891,7 @@
   },
   "html_video": {
     "message": "Video",
-    "description": "Text in the options page. Used in src/options/options.html."
+    "description": "Text in the options page and Page Sources panel. Used in src/options/options.html and src/shared/source-panel-copy.ts."
   },
   "html_video24Mb2": {
     "message": "Video · 2.4 MB · #2",
@@ -2516,6 +2516,162 @@
   "o_lUiThemeHelp": {
     "message": "Follow your system theme, or keep the options page and Page Sources dark or light.",
     "description": "Help text for the shared interface theme override. Used in src/options/options.html."
+  },
+  "sourcePanelResizeLabel": {
+    "message": "Resize Page Sources",
+    "description": "Accessible label for the Page Sources resize handle. Used in src/shared/source-panel-copy.ts."
+  },
+  "sourcePanelClose": {
+    "message": "Close",
+    "description": "Tooltip for the Page Sources close button. Used in src/shared/source-panel-copy.ts."
+  },
+  "sourcePanelCloseLabel": {
+    "message": "Close Page Sources",
+    "description": "Accessible label for the Page Sources close button. Used in src/shared/source-panel-copy.ts."
+  },
+  "sourcePanelDockPosition": {
+    "message": "Dock: $POSITION$ — change to the next position",
+    "description": "Tooltip for the Page Sources dock-position button. Used in src/shared/source-panel-copy.ts.",
+    "placeholders": { "position": { "content": "$1", "example": "Right" } }
+  },
+  "sourcePanelDockRight": {
+    "message": "Right",
+    "description": "Right-hand Page Sources dock position. Used in src/shared/source-panel-copy.ts."
+  },
+  "sourcePanelDockBottom": {
+    "message": "Bottom",
+    "description": "Bottom Page Sources dock position. Used in src/shared/source-panel-copy.ts."
+  },
+  "sourcePanelDockLeft": {
+    "message": "Left",
+    "description": "Left-hand Page Sources dock position. Used in src/shared/source-panel-copy.ts."
+  },
+  "sourcePanelDockTop": {
+    "message": "Top",
+    "description": "Top Page Sources dock position. Used in src/shared/source-panel-copy.ts."
+  },
+  "sourcePanelChangeDockLabel": {
+    "message": "Change panel dock position",
+    "description": "Accessible label for the Page Sources dock-position button. Used in src/shared/source-panel-copy.ts."
+  },
+  "sourcePanelDockPanel": {
+    "message": "Dock Page Sources",
+    "description": "Label for returning the floating Page Sources panel to its dock. Used in src/shared/source-panel-copy.ts."
+  },
+  "sourcePanelPopOutPanel": {
+    "message": "Pop out Page Sources",
+    "description": "Accessible label for floating the Page Sources panel. Used in src/shared/source-panel-copy.ts."
+  },
+  "sourcePanelPopOutHelp": {
+    "message": "Pop out into a draggable panel",
+    "description": "Tooltip for floating the Page Sources panel. Used in src/shared/source-panel-copy.ts."
+  },
+  "sourcePanelCopyFilteredUrls": {
+    "message": "Copy URLs in the current filter",
+    "description": "Tooltip for copying filtered Page Sources URLs. Used in src/shared/source-panel-copy.ts."
+  },
+  "sourcePanelCopyFilteredUrlsLabel": {
+    "message": "Copy filtered source URLs",
+    "description": "Accessible label for copying filtered Page Sources URLs. Used in src/shared/source-panel-copy.ts."
+  },
+  "sourcePanelFilterLabel": {
+    "message": "Filter page sources",
+    "description": "Accessible label for the Page Sources filter. Used in src/shared/source-panel-copy.ts."
+  },
+  "sourcePanelSortLabel": {
+    "message": "Sort sources",
+    "description": "Accessible label for the Page Sources sort control. Used in src/shared/source-panel-copy.ts."
+  },
+  "sourcePanelSortNewest": {
+    "message": "Newest",
+    "description": "Page Sources sort option. Used in src/shared/source-panel-copy.ts."
+  },
+  "sourcePanelSortOldest": {
+    "message": "Oldest",
+    "description": "Page Sources sort option. Used in src/shared/source-panel-copy.ts."
+  },
+  "sourcePanelSortLargest": {
+    "message": "Largest",
+    "description": "Page Sources sort option. Used in src/shared/source-panel-copy.ts."
+  },
+  "sourcePanelSortName": {
+    "message": "Name",
+    "description": "Page Sources sort option. Used in src/shared/source-panel-copy.ts."
+  },
+  "sourcePanelKindAudio": {
+    "message": "Audio",
+    "description": "Audio source type in Page Sources. Used in src/shared/source-panel-copy.ts."
+  },
+  "sourcePanelKindDocument": {
+    "message": "Document",
+    "description": "Document source type in Page Sources. Used in src/shared/source-panel-copy.ts."
+  },
+  "sourcePanelKindPlaylist": {
+    "message": "Playlist",
+    "description": "Streaming playlist source type in Page Sources. Used in src/shared/source-panel-copy.ts."
+  },
+  "sourcePanelNoMatches": {
+    "message": "No sources match the current filters.",
+    "description": "Empty state for filtered Page Sources results. Used in src/shared/source-panel-copy.ts."
+  },
+  "sourcePanelNoSources": {
+    "message": "No page media or streaming-video playlists detected yet.",
+    "description": "Empty state before Page Sources detects anything. Used in src/shared/source-panel-copy.ts."
+  },
+  "sourcePanelSourceInstructions": {
+    "message": "$URL$. Right-click for Save In; Alt+click to save immediately.",
+    "description": "Accessible instructions for a Page Sources result. Used in src/shared/source-panel-copy.ts.",
+    "placeholders": { "url": { "content": "$1", "example": "https://example.com/cat.jpg" } }
+  },
+  "sourcePanelSizeUnknown": {
+    "message": "size unknown",
+    "description": "Page Sources metadata when resource size is unavailable. Used in src/shared/source-panel-copy.ts."
+  },
+  "sourcePanelDetectedAt": {
+    "message": "Detected at $TIME$",
+    "description": "Page Sources detection-time label. Used in src/shared/source-panel-copy.ts.",
+    "placeholders": { "time": { "content": "$1", "example": "14:30" } }
+  },
+  "sourcePanelPreviewUnavailable": {
+    "message": "Preview unavailable",
+    "description": "Accessible Page Sources preview-failure label. Used in src/shared/source-panel-copy.ts."
+  },
+  "sourcePanelLocate": {
+    "message": "Locate",
+    "description": "Page Sources action that locates a resource in the page. Used in src/shared/source-panel-copy.ts."
+  },
+  "sourcePanelSave": {
+    "message": "Save",
+    "description": "Page Sources save action. Used in src/shared/source-panel-copy.ts."
+  },
+  "sourcePanelSavePlaylist": {
+    "message": "Save playlist",
+    "description": "Page Sources streaming-playlist save action. Used in src/shared/source-panel-copy.ts."
+  },
+  "sourcePanelCopyYtDlp": {
+    "message": "Copy yt-dlp command",
+    "description": "Page Sources action for copying a yt-dlp command. Used in src/shared/source-panel-copy.ts."
+  },
+  "sourcePanelCopyYtDlpHelp": {
+    "message": "Copy a command for yt-dlp to download the complete video",
+    "description": "Tooltip for the Page Sources yt-dlp action. Used in src/shared/source-panel-copy.ts."
+  },
+  "sourcePanelCopied": {
+    "message": "Copied",
+    "description": "Page Sources copy-success status. Used in src/shared/source-panel-copy.ts."
+  },
+  "sourcePanelCopyFailed": {
+    "message": "Copy failed",
+    "description": "Page Sources copy-failure status. Used in src/shared/source-panel-copy.ts."
+  },
+  "sourcePanelRowInstructions": {
+    "message": "Alt+click to save; right-click the source title for Save In",
+    "description": "Tooltip instructions for a Page Sources result row. Used in src/shared/source-panel-copy.ts."
+  },
+  "sourcePanelCopiedUrls": {
+    "message": "Copied $COUNT$ URLs",
+    "description": "Page Sources URL-copy success status. Used in src/shared/source-panel-copy.ts.",
+    "placeholders": { "count": { "content": "$1", "example": "3" } }
   },
   "html_without": {
     "message": "without",

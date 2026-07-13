@@ -1,4 +1,5 @@
 import { CLICK_TYPES, type ClickType } from "../shared/constants.ts";
+import { isSelectableLocale, type SelectableLocale } from "../shared/generated-locales.ts";
 
 export const isClickType = (value: unknown): value is ClickType =>
   typeof value === "string" && Object.values(CLICK_TYPES).includes(value as ClickType);
@@ -67,6 +68,7 @@ export const CONTENT_OPTION_DEFAULTS = {
   sourcePanelPreviews: true,
   sourcePanelResourceHints: true,
   sourcePanelLinks: true,
+  uiLocale: "" as "" | SelectableLocale,
   uiTheme: "system" as UiTheme,
   contentClickToSaveCombo: DEFAULT_CONTENT_CLICK_COMBO as string | number,
   contentClickToSaveButton: CLICK_TYPES.LEFT_CLICK as ClickType,
@@ -94,6 +96,8 @@ export const normalizeContentOption = <Name extends ContentOptionName>(
     return (isClickType(stored) ? stored : defaultValue) as ResolvedContentOptions[Name];
   if (name === "uiTheme")
     return (isUiTheme(stored) ? stored : defaultValue) as ResolvedContentOptions[Name];
+  if (name === "uiLocale")
+    return (isSelectableLocale(stored) ? stored : defaultValue) as ResolvedContentOptions[Name];
   return (
     typeof stored === typeof defaultValue ? stored : defaultValue
   ) as ResolvedContentOptions[Name];

@@ -1,4 +1,5 @@
 import type { UiTheme } from "../config/content-options.ts";
+import type { SourcePanelCopy } from "../shared/source-panel-copy.ts";
 
 export type PageSourceKind = "image" | "video" | "audio" | "stream" | "document" | "link";
 export type PageSource = {
@@ -17,6 +18,8 @@ export type SourcePanelOptions = {
   previews?: boolean;
   resourceHints?: boolean;
   includeLinks?: boolean;
+  copy?: SourcePanelCopy;
+  locale?: string;
   theme?: UiTheme;
   onOpenChange?: (open: boolean) => void;
   onSaveIntent?: () => void;

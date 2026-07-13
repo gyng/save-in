@@ -53,7 +53,12 @@ test("falls back safely when a stored shortcut string contains unknown keys", ()
   expect("validate" in comboDefinition && comboDefinition.validate("Ctrl+Shift")).toBe(true);
 });
 
-test("normalizes interface theme overrides", () => {
+test("normalizes interface locale and theme overrides", () => {
+  expect(resolveContentOptions({}).uiLocale).toBe("");
+  expect(resolveContentOptions({ uiLocale: "fr" }).uiLocale).toBe("fr");
+  expect(resolveContentOptions({ uiLocale: "unknown" }).uiLocale).toBe("");
+  expect(resolveContentOptions({ uiLocale: true }).uiLocale).toBe("");
+
   expect(resolveContentOptions({}).uiTheme).toBe("system");
   expect(resolveContentOptions({ uiTheme: "dark" }).uiTheme).toBe("dark");
   expect(resolveContentOptions({ uiTheme: "light" }).uiTheme).toBe("light");

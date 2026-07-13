@@ -5,7 +5,6 @@ import {
   collectResourceHintSources,
   createSourceTooltip,
   filterPageSources,
-  formatSourceBytes,
   sortPageSources,
   resourceTimingByUrl,
   ytDlpCommand,
@@ -14,6 +13,12 @@ import {
   type SourcePanelOptions,
   type SourceSort,
 } from "./source-panel-model.ts";
+import {
+  DEFAULT_SOURCE_PANEL_COPY,
+  SOURCE_PANEL_COPY_URL_SLOT,
+  SOURCE_PANEL_COPY_VALUE_SLOT,
+  formatSourcePanelCopy,
+} from "../shared/source-panel-copy.ts";
 
 declare const SAVE_IN_CONTENT_E2E: boolean;
 
@@ -23,7 +28,6 @@ export {
   collectResourceHintSources,
   createSourceTooltip,
   filterPageSources,
-  formatSourceBytes,
   sortPageSources,
   resourceTimingByUrl,
   urlsFromSrcset,
@@ -33,6 +37,7 @@ export {
   type SourcePanelOptions,
   type SourceSort,
 } from "./source-panel-model.ts";
+export { formatSourceBytes } from "./source-panel-model.ts";
 
 const PANEL_HOST_ID = "save-in-source-panel";
 const panelCleanups = new WeakMap<Element, () => void>();
@@ -108,6 +113,35 @@ const setButtonIcon = (button: HTMLButtonElement, icon: keyof typeof ICON_PATHS)
 const resolvedPanelTheme = (theme: SourcePanelOptions["theme"]): "system" | "dark" | "light" =>
   theme === "dark" || theme === "light" ? theme : "system";
 
+const panelLocale = (locale?: string): string | undefined => {
+  if (!locale) return undefined;
+  if (locale.endsWith("_AI")) return locale.slice(0, -3);
+  return locale.replace("_", "-");
+};
+
+const panelFormatters = new Map<string, { date: Intl.DateTimeFormat; number: Intl.NumberFormat }>();
+const getPanelFormatters = (locale?: string) => {
+  const key = panelLocale(locale) || "default";
+  const cached = panelFormatters.get(key);
+  if (cached) return cached;
+  let formatters: { date: Intl.DateTimeFormat; number: Intl.NumberFormat };
+  try {
+    formatters = {
+      date: new Intl.DateTimeFormat(key === "default" ? undefined : key, { timeStyle: "short" }),
+      number: new Intl.NumberFormat(key === "default" ? undefined : key, {
+        maximumFractionDigits: 1,
+      }),
+    };
+  } catch {
+    formatters = {
+      date: new Intl.DateTimeFormat(undefined, { timeStyle: "short" }),
+      number: new Intl.NumberFormat(undefined, { maximumFractionDigits: 1 }),
+    };
+  }
+  panelFormatters.set(key, formatters);
+  return formatters;
+};
+
 export const toggleSourcePanel = (
   sendDownload: (source: PageSource) => void,
   options: SourcePanelOptions = {},
@@ -126,6 +160,8 @@ export const toggleSourcePanel = (
   }
   if (options.enabled === false) return false;
   let panelOptions = { ...options };
+  let copy = panelOptions.copy || DEFAULT_SOURCE_PANEL_COPY;
+  let formatters = getPanelFormatters(panelOptions.locale);
   let panelSendDownload = sendDownload;
 
   const host = document.createElement("aside");
@@ -157,11 +193,11 @@ export const toggleSourcePanel = (
   const panel = document.createElement("div");
   panel.className = "panel";
   panel.setAttribute("role", "dialog");
-  panel.setAttribute("aria-label", "Page sources");
+  panel.setAttribute("aria-label", copy.title);
   const resize = document.createElement("div");
   resize.className = "resize";
   resize.setAttribute("role", "separator");
-  resize.setAttribute("aria-label", "Resize Page Sources");
+  resize.setAttribute("aria-label", copy.resizeLabel);
   resize.addEventListener("pointerdown", (event) => {
     resize.setPointerCapture(event.pointerId);
     const startX = event.clientX;
@@ -188,11 +224,11 @@ export const toggleSourcePanel = (
   const close = document.createElement("button");
   const dockButton = document.createElement("button");
   const popoutButton = document.createElement("button");
-  title.textContent = "Page sources";
+  title.textContent = copy.title;
   close.className = "header-button close";
   setButtonIcon(close, "close");
-  close.title = "Close";
-  close.setAttribute("aria-label", "Close Page Sources");
+  close.title = copy.close;
+  close.setAttribute("aria-label", copy.closeLabel);
   const docks = ["right", "bottom", "left", "top"] as const;
   let dockIndex = 0;
   const updateDock = () => {
@@ -202,18 +238,19 @@ export const toggleSourcePanel = (
     if (dock !== "right") host.classList.add(`dock-${dock}`);
     host.style.width = "";
     host.style.height = "";
-    dockButton.title = `Dock: ${dock[0]!.toUpperCase()} — change to the next position`;
+    dockButton.title = formatSourcePanelCopy(
+      copy.dockPositionTemplate,
+      SOURCE_PANEL_COPY_VALUE_SLOT,
+      copy.dockPositions[dock],
+    );
   };
   dockButton.className = "header-button dock";
   setButtonIcon(dockButton, "dock");
-  dockButton.setAttribute("aria-label", "Change panel dock position");
+  dockButton.setAttribute("aria-label", copy.changeDockLabel);
   const updatePopoutButton = (floating: boolean) => {
     popoutButton.setAttribute("aria-pressed", String(floating));
-    popoutButton.setAttribute(
-      "aria-label",
-      floating ? "Dock Page Sources" : "Pop out Page Sources",
-    );
-    popoutButton.title = floating ? "Dock Page Sources" : "Pop out into a draggable panel";
+    popoutButton.setAttribute("aria-label", floating ? copy.dockPanel : copy.popOutPanel);
+    popoutButton.title = floating ? copy.dockPanel : copy.popOutHelp;
   };
   dockButton.addEventListener("click", () => {
     host.classList.remove("floating");
@@ -247,8 +284,8 @@ export const toggleSourcePanel = (
   const copyUrls = document.createElement("button");
   copyUrls.className = "header-button copy-urls";
   setButtonIcon(copyUrls, "copy");
-  copyUrls.title = "Copy URLs in the current filter";
-  copyUrls.setAttribute("aria-label", "Copy filtered source URLs");
+  copyUrls.title = copy.copyFilteredUrls;
+  copyUrls.setAttribute("aria-label", copy.copyFilteredUrlsLabel);
   headerActions.append(copyUrls, dockButton, popoutButton, close);
   header.append(title, headerActions);
   header.addEventListener("pointerdown", (event) => {
@@ -281,22 +318,46 @@ export const toggleSourcePanel = (
   toolbar.className = "toolbar";
   const filter = document.createElement("input");
   filter.type = "search";
-  filter.placeholder = "Filter sources";
-  filter.setAttribute("aria-label", "Filter page sources");
+  filter.placeholder = copy.filterSources;
+  filter.setAttribute("aria-label", copy.filterLabel);
   const sort = document.createElement("select");
-  sort.setAttribute("aria-label", "Sort sources");
-  const sortOptions: ReadonlyArray<readonly [SourceSort, string]> = [
-    ["detected-desc", "Newest"],
-    ["detected-asc", "Oldest"],
-    ["size-desc", "Largest"],
-    ["name-asc", "Name"],
+  sort.setAttribute("aria-label", copy.sortLabel);
+  const sortOptions: ReadonlyArray<readonly [SourceSort, keyof typeof copy.sort]> = [
+    ["detected-desc", "newest"],
+    ["detected-asc", "oldest"],
+    ["size-desc", "largest"],
+    ["name-asc", "name"],
   ];
   sortOptions.forEach(([value, label]) => {
     const option = document.createElement("option");
     option.value = value;
-    option.textContent = label;
+    option.textContent = copy.sort[label];
     sort.append(option);
   });
+  const applyStaticCopy = () => {
+    panel.setAttribute("aria-label", copy.title);
+    title.textContent = copy.title;
+    resize.setAttribute("aria-label", copy.resizeLabel);
+    close.title = copy.close;
+    close.setAttribute("aria-label", copy.closeLabel);
+    dockButton.setAttribute("aria-label", copy.changeDockLabel);
+    copyUrls.setAttribute("aria-label", copy.copyFilteredUrlsLabel);
+    copyUrls.title = copy.copyFilteredUrls;
+    filter.placeholder = copy.filterSources;
+    filter.setAttribute("aria-label", copy.filterLabel);
+    sort.setAttribute("aria-label", copy.sortLabel);
+    [...sort.options].forEach((option, index) => {
+      const key = sortOptions[index]?.[1];
+      if (key) option.textContent = copy.sort[key];
+    });
+    const dock = host.dataset.dock || "right";
+    dockButton.title = formatSourcePanelCopy(
+      copy.dockPositionTemplate,
+      SOURCE_PANEL_COPY_VALUE_SLOT,
+      copy.dockPositions[dock as keyof typeof copy.dockPositions],
+    );
+    updatePopoutButton(host.classList.contains("floating"));
+  };
   toolbar.append(filter, sort);
   const facets = document.createElement("div");
   facets.className = "facets";
@@ -493,7 +554,7 @@ export const toggleSourcePanel = (
       sort.value as SourceSort,
     );
     visibleSources = sources;
-    title.textContent = "Page sources";
+    title.textContent = copy.title;
     facets.replaceChildren();
     const presentUrls = new Set(allSources.map(({ url }) => url));
     rowCache.forEach((cached, url) => {
@@ -510,12 +571,7 @@ export const toggleSourcePanel = (
             : searchedSources.filter(({ kind }) => kind === kindName).length;
         const facet = document.createElement("button");
         facet.className = "facet";
-        const label =
-          kindName === "all"
-            ? "All"
-            : kindName === "stream"
-              ? "Playlist"
-              : `${kindName[0]!.toUpperCase()}${kindName.slice(1)}`;
+        const label = copy.kinds[kindName];
         const facetCount = document.createElement("span");
         facetCount.className = "facet-count";
         facetCount.textContent = String(count);
@@ -531,9 +587,7 @@ export const toggleSourcePanel = (
     if (!sources.length) {
       const empty = document.createElement("div");
       empty.className = "empty";
-      empty.textContent = allSources.length
-        ? `No ${activeKind === "all" ? "sources" : activeKind} match${filter.value ? ` “${filter.value}”` : " this facet"}.`
-        : "No page media or streaming-video playlists detected yet.";
+      empty.textContent = allSources.length ? copy.noMatches : copy.noSources;
       rowCache.forEach((cached) => {
         if (cached.row.isConnected) deactivateAndRemove(cached);
       });
@@ -606,10 +660,18 @@ export const toggleSourcePanel = (
       sourceLink.target = "_blank";
       sourceLink.setAttribute(
         "aria-label",
-        `${source.url}. Right-click for Save In; Alt+click to save immediately.`,
+        formatSourcePanelCopy(
+          copy.sourceInstructionsTemplate,
+          SOURCE_PANEL_COPY_URL_SLOT,
+          source.url,
+        ),
       );
       if (!hasRichTooltip)
-        sourceLink.title = `${source.url}\nRight-click for the Save In menu; Alt+click to save immediately.`;
+        sourceLink.title = formatSourcePanelCopy(
+          copy.sourceInstructionsTemplate,
+          SOURCE_PANEL_COPY_URL_SLOT,
+          source.url,
+        );
       const text = document.createElement("div");
       text.className = "source-text";
       const name = document.createElement("span");
@@ -630,11 +692,22 @@ export const toggleSourcePanel = (
       meta.className = "meta";
       const mediaDetails: string[] = [];
       const updateMeta = () => {
-        const details = [source.kind, formatSourceBytes(source.bytes), ...mediaDetails];
+        const sourceSize = !source.bytes
+          ? copy.sizeUnknown
+          : source.bytes < 1024
+            ? `${formatters.number.format(source.bytes)} B`
+            : source.bytes < 1024 * 1024
+              ? `${formatters.number.format(Math.round(source.bytes / 1024))} KB`
+              : `${formatters.number.format(source.bytes / (1024 * 1024))} MB`;
+        const details = [copy.kinds[source.kind], sourceSize, ...mediaDetails];
         const detected = document.createElement("span");
         detected.className = "detected";
         detected.textContent = `#${source.detectedOrder}`;
-        const detectedAt = `Detected at ${new Date(source.detectedAt || Date.now()).toLocaleTimeString()}`;
+        const detectedAt = formatSourcePanelCopy(
+          copy.detectedAtTemplate,
+          SOURCE_PANEL_COPY_VALUE_SLOT,
+          formatters.date.format(new Date(source.detectedAt || Date.now())),
+        );
         detected.setAttribute("aria-label", detectedAt);
         if (!hasRichTooltip) detected.title = detectedAt;
         meta.replaceChildren(document.createTextNode(`${details.join(" · ")} · `), detected);
@@ -646,7 +719,7 @@ export const toggleSourcePanel = (
             const fallback = document.createElement("div");
             fallback.className = "preview-fallback";
             fallback.textContent = "▧";
-            fallback.setAttribute("aria-label", "Preview unavailable");
+            fallback.setAttribute("aria-label", copy.previewUnavailable);
             preview.replaceWith(fallback);
           },
           { once: true },
@@ -679,7 +752,7 @@ export const toggleSourcePanel = (
       const locate = document.createElement("button");
       const locateHighlightOwner = {};
       let locateHighlightTimer = 0;
-      locate.textContent = "Locate";
+      locate.textContent = copy.locate;
       locate.addEventListener("click", () => {
         source.element.scrollIntoView?.({ behavior: "smooth", block: "center" });
         if (source.element instanceof HTMLElement) {
@@ -693,7 +766,7 @@ export const toggleSourcePanel = (
         }
       });
       const save = document.createElement("button");
-      save.textContent = source.kind === "stream" ? "Save playlist" : "Save";
+      save.textContent = source.kind === "stream" ? copy.savePlaylist : copy.save;
       save.addEventListener("pointerdown", (event) => {
         if (event.button === 0) panelOptions.onSaveIntent?.();
       });
@@ -703,21 +776,21 @@ export const toggleSourcePanel = (
       save.addEventListener("click", () => panelSendDownload(source));
       actions.append(locate, save);
       if (source.kind === "stream" || source.kind === "video") {
-        const copy = document.createElement("button");
-        copy.textContent = "Copy yt-dlp command";
-        copy.title = "Copy a command for yt-dlp to download the complete video";
-        copy.addEventListener("click", () => {
+        const copyCommand = document.createElement("button");
+        copyCommand.textContent = copy.copyYtDlp;
+        copyCommand.title = copy.copyYtDlpHelp;
+        copyCommand.addEventListener("click", () => {
           void navigator.clipboard
             .writeText(ytDlpCommand(source.url))
             .then(() => {
-              copy.textContent = "Copied";
-              window.setTimeout(() => (copy.textContent = "Copy yt-dlp command"), 1200);
+              copyCommand.textContent = copy.copied;
+              window.setTimeout(() => (copyCommand.textContent = copy.copyYtDlp), 1200);
             })
             .catch(() => {
-              copy.textContent = "Copy failed";
+              copyCommand.textContent = copy.copyFailed;
             });
         });
-        actions.append(copy);
+        actions.append(copyCommand);
       }
       const previewHighlightOwner = {};
       const highlight = (active: boolean) => {
@@ -822,8 +895,7 @@ export const toggleSourcePanel = (
           panelOptions.onSaveIntent?.();
         }
       });
-      if (!hasRichTooltip)
-        row.title = "Alt+click to save; right-click the source title for Save In";
+      if (!hasRichTooltip) row.title = copy.rowInstructions;
       row.append(sourceLink, actions);
       const deactivate = () => {
         hovered = false;
@@ -860,15 +932,19 @@ export const toggleSourcePanel = (
       .writeText(visibleSources.map(({ url }) => url).join("\n"))
       .then(() => {
         setButtonIcon(copyUrls, "check");
-        copyUrls.title = `Copied ${visibleSources.length} URLs`;
+        copyUrls.title = formatSourcePanelCopy(
+          copy.copiedUrlsTemplate,
+          SOURCE_PANEL_COPY_VALUE_SLOT,
+          visibleSources.length,
+        );
         window.setTimeout(() => {
           setButtonIcon(copyUrls, "copy");
-          copyUrls.title = "Copy URLs in the current filter";
+          copyUrls.title = copy.copyFilteredUrls;
         }, 1200);
       })
       .catch(() => {
         setButtonIcon(copyUrls, "error");
-        copyUrls.title = "Copy failed";
+        copyUrls.title = copy.copyFailed;
       });
   });
   panel.addEventListener("keydown", (event) => {
@@ -1024,6 +1100,10 @@ export const toggleSourcePanel = (
   panelUpdates.set(host, (nextSendDownload, nextOptions) => {
     const previousOptions = panelOptions;
     panelOptions = { ...nextOptions };
+    const nextCopy = panelOptions.copy || DEFAULT_SOURCE_PANEL_COPY;
+    const copyChanged = nextCopy !== copy || panelOptions.locale !== previousOptions.locale;
+    copy = nextCopy;
+    formatters = getPanelFormatters(panelOptions.locale);
     host.dataset.theme = resolvedPanelTheme(panelOptions.theme);
     panelSendDownload = nextSendDownload;
     panelOpenChanges.set(host, panelOptions.onOpenChange || (() => {}));
@@ -1037,16 +1117,17 @@ export const toggleSourcePanel = (
     const observerConfigChanged = previousOptions.live !== panelOptions.live || discoveryChanged;
     if (observerConfigChanged) configureLiveObservers();
     const previewsChanged = previousOptions.previews !== panelOptions.previews;
-    if (previewsChanged) {
+    if (previewsChanged || copyChanged) {
       rowCache.forEach((cached) => deactivateAndRemove(cached));
       rowCache.clear();
     }
+    if (copyChanged) applyStaticCopy();
     const liveEnabled = previousOptions.live === false && panelOptions.live !== false;
     if (discoveryChanged || liveEnabled) {
       refreshSources();
       return;
     }
-    if (previewsChanged) render();
+    if (previewsChanged || copyChanged) render();
   });
   configureLiveObservers();
   resourceTimingByUrl().forEach((entry, url) => timingByUrl.set(url, entry));
