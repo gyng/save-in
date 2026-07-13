@@ -51,8 +51,9 @@ const loadNotification = async () => {
   ({ options } = await import("../src/config/options-data.ts"));
   ({ Log } = await import("../src/background/log.ts"));
   ({ SaveHistory } = await import("../src/background/history.ts"));
+  const { backgroundRuntime } = await import("../src/background/runtime.ts");
   const { configureDownloadPorts } = await import("../src/downloads/ports.ts");
-  configureDownloadPorts({ history: SaveHistory, log: Log });
+  configureDownloadPorts({ runtime: backgroundRuntime, history: SaveHistory, log: Log });
   // Reset the real options bag to empty; each test sets the fields it needs
   for (const k of Object.keys(options)) delete options[k];
   // Log is defensive (typeof Log !== "undefined"); spy it so its calls are

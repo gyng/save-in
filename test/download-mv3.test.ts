@@ -272,6 +272,17 @@ describe("onDeterminingFilename listener (Chrome)", () => {
     // attach onDeterminingFilename against the fresh chrome stub, then capture.
     const { Download: currentDownload, registerDownloadListener } =
       await import("../src/downloads/download.ts");
+    const { configureDownloadPorts } = await import("../src/downloads/ports.ts");
+    configureDownloadPorts({
+      runtime: { ready: Promise.resolve(), debug: false },
+      history: {
+        add: () => "history-id",
+        patch: () => Promise.resolve(),
+        setDownloadId: () => Promise.resolve(),
+        setStatus: () => Promise.resolve(),
+      },
+      log: { add: vi.fn() },
+    });
     freshDownload = currentDownload;
     registerDownloadListener();
     [[listener]] = (global.chrome.downloads.onDeterminingFilename.addListener as any).mock.calls;

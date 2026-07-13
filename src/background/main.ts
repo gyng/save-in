@@ -37,18 +37,19 @@ import {
   resetRuntimeDiagnostics,
 } from "./runtime.ts";
 
-configureDownloadPorts({ runtime: backgroundRuntime, history: SaveHistory, log: Log });
-
-configureRoutingPorts({
-  getMessage: (key) => webExtensionApi.i18n.getMessage(key),
-  getCurrentTab: () => currentTab,
-  isDebug: () => backgroundRuntime.debug,
-  recordRuleErrors: (errors) => backgroundRuntime.optionErrors.filenamePatterns.push(...errors),
-  logDebug: (...values) => console.log(...values), // eslint-disable-line no-console
-  nextCounter: () => nextCounter(counterWriteState, webExtensionApi.storage.local),
-  peekCounter: () => peekCounter(webExtensionApi.storage.local),
-  resolveContent,
-});
+export const configureBackgroundPorts = () => {
+  configureDownloadPorts({ runtime: backgroundRuntime, history: SaveHistory, log: Log });
+  configureRoutingPorts({
+    getMessage: (key) => webExtensionApi.i18n.getMessage(key),
+    getCurrentTab: () => currentTab,
+    isDebug: () => backgroundRuntime.debug,
+    recordRuleErrors: (errors) => backgroundRuntime.optionErrors.filenamePatterns.push(...errors),
+    logDebug: (...values) => console.log(...values), // eslint-disable-line no-console
+    nextCounter: () => nextCounter(counterWriteState, webExtensionApi.storage.local),
+    peekCounter: () => peekCounter(webExtensionApi.storage.local),
+    resolveContent,
+  });
+};
 
 backgroundRuntime.init = () => {
   resetRuntimeDiagnostics();

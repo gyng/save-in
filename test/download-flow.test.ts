@@ -22,6 +22,7 @@ import { RULE_TYPES } from "../src/shared/constants.ts";
 import type { RoutingRule } from "../src/routing/router.ts";
 import type { SaveInOptions } from "../src/config/option-schema.ts";
 import { configureDownloadPorts } from "../src/downloads/ports.ts";
+import { backgroundRuntime } from "../src/background/runtime.ts";
 
 const downloadState = BackgroundState.downloads;
 const routingRule = (name = "rule"): RoutingRule => [
@@ -106,7 +107,7 @@ const makeState = (overrides: Record<string, any> = {}): any => ({
 });
 
 beforeEach(() => {
-  configureDownloadPorts({ history: SaveHistory, log: Log });
+  configureDownloadPorts({ runtime: backgroundRuntime, history: SaveHistory, log: Log });
   setCurrentBrowser("FIREFOX");
   Download.pendingStates.clear();
   Download.finalFilenamesByDownloadId.clear();
@@ -1196,6 +1197,16 @@ describe("concurrent downloads (pendingStates)", () => {
     // Side effects are deferred (Task #2): register onDeterminingFilename from
     // this fresh instance before capturing it.
     const dl = await import("../src/downloads/download.ts");
+    const { configureDownloadPorts: configureFreshDownloadPorts } =
+      await import("../src/downloads/ports.ts");
+    const { backgroundRuntime: freshRuntime } = await import("../src/background/runtime.ts");
+    const { SaveHistory: freshHistory } = await import("../src/background/history.ts");
+    const { Log: freshLog } = await import("../src/background/log.ts");
+    configureFreshDownloadPorts({
+      runtime: freshRuntime,
+      history: freshHistory,
+      log: freshLog,
+    });
     concurrentDownload = dl.Download;
     dl.registerDownloadListener();
     [[listener]] = vi.mocked(

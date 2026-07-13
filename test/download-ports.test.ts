@@ -1,6 +1,24 @@
-import { configureDownloadPorts, downloadPorts } from "../src/downloads/ports.ts";
+import {
+  configureDownloadPorts,
+  createDownloadPortRegistry,
+  downloadPorts,
+} from "../src/downloads/ports.ts";
 
 describe("download ports", () => {
+  test("fails loudly when a required port has not been configured", () => {
+    const registry = createDownloadPortRegistry();
+
+    expect(() => registry.ports.runtime.debug).toThrow(
+      "Download port has not been configured: runtime",
+    );
+    expect(() => registry.ports.history.add({})).toThrow(
+      "Download port has not been configured: history",
+    );
+    expect(() => registry.ports.log.add("message")).toThrow(
+      "Download port has not been configured: log",
+    );
+  });
+
   test("configuration preserves references captured during module evaluation", () => {
     const capturedRuntime = downloadPorts.runtime;
     const capturedHistory = downloadPorts.history;

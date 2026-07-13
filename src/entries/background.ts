@@ -40,7 +40,7 @@ import { options } from "../config/options-data.ts";
 import { Messaging, registerMessaging } from "../background/messaging.ts";
 import { registerNotifier } from "../downloads/notification.ts";
 import { registerDownloadListener } from "../downloads/download.ts";
-import { start } from "../background/main.ts";
+import { configureBackgroundPorts, start } from "../background/main.ts";
 
 Object.assign(globalThis, {
   // constants
@@ -86,6 +86,7 @@ Object.assign(globalThis, {
 // modules are otherwise import-side-effect-free so tests can import them without
 // registering anything. Order mirrors the former import-eval order.
 seedOptions();
+configureBackgroundPorts();
 registerNotifier();
 registerDownloadListener();
 registerMessaging();
