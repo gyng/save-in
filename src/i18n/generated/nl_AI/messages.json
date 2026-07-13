@@ -1,31 +1,31 @@
 {
-  "ruleTemplatePdfsByContentTypeName": { "message": "PDFs by content type" },
+  "ruleTemplatePdfsByContentTypeName": { "message": "PDF's op inhoudstype" },
   "ruleTemplatePdfsByContentTypeDescription": {
-    "message": "Catches PDFs by their reported content type instead of the filename"
+    "message": "Herkent PDF's aan het opgegeven inhoudstype in plaats van aan de bestandsnaam"
   },
   "ruleTemplatePerSourceRootDomainName": {
-    "message": "One folder per source root domain"
+    "message": "Eén map per hoofdbrondomein"
   },
   "ruleTemplatePerSourceRootDomainDescription": {
-    "message": "Combines downloads from subdomains of the same source site"
+    "message": "Voegt downloads van subdomeinen van dezelfde bronsite samen"
   },
   "ruleTemplateDownloadsFromSiteSectionName": {
-    "message": "Downloads from a site section"
+    "message": "Downloads uit een sitesectie"
   },
   "ruleTemplateDownloadsFromSiteSectionDescription": {
-    "message": "Routes downloads referred from one URL section into its own folder"
+    "message": "Plaatst downloads die vanuit één URL-sectie worden verwezen in een eigen map"
   },
   "html_matchesTheMimeContentType": {
-    "message": "Matches the resolved MIME Content-Type. Save In may request server headers."
+    "message": "Komt overeen met het vastgestelde MIME Content-Type. Save In kan serverheaders opvragen."
   },
   "html_matchesTheReferrerHostname": {
-    "message": "Matches the referring page hostname when the browser provides it."
+    "message": "Komt overeen met de hostnaam van de verwijzende pagina wanneer de browser deze verstrekt."
   },
   "html_matchesTheReferrerUrl": {
-    "message": "Matches the referring page URL when the browser provides it."
+    "message": "Komt overeen met de URL van de verwijzende pagina wanneer de browser deze verstrekt."
   },
   "html_matchesTheRootHostname": {
-    "message": "Matches the hostname without subdomains."
+    "message": "Komt overeen met de hostnaam zonder subdomeinen."
   },
 
   "extensionName": {
@@ -1677,82 +1677,82 @@
     "message": "Webhooks"
   },
   "html_webhooksHelp": {
-    "message": "Send one JSON request after Save In starts a download."
+    "message": "Stuur één JSON-aanvraag wanneer Save In een download start."
   },
   "html_webhookDocumentation": {
-    "message": "Read webhook documentation"
+    "message": "Webhookdocumentatie lezen"
   },
   "html_offByDefault": {
-    "message": "Off by default"
+    "message": "Standaard uitgeschakeld"
   },
   "html_webhookEndpoint": {
-    "message": "HTTPS endpoint"
+    "message": "HTTPS-eindpunt"
   },
   "html_webhookEndpointHelp": {
-    "message": "Requests go directly from your browser to this address."
+    "message": "Aanvragen gaan rechtstreeks vanuit uw browser naar dit adres."
   },
   "html_testWebhook": {
-    "message": "Send test"
+    "message": "Test verzenden"
   },
   "html_webhookTestHelp": {
-    "message": "The test contains only a test event and timestamp."
+    "message": "De test bevat alleen een testgebeurtenis en een tijdstempel."
   },
   "html_webhookEnabled": {
-    "message": "Send a webhook when a Save In download starts"
+    "message": "Een webhook verzenden wanneer een Save In-download start"
   },
   "html_webhookAlwaysIncludes": {
-    "message": "Each request includes the selected resource URL, a save event, and an ISO 8601 timestamp."
+    "message": "Elke aanvraag bevat de URL van de geselecteerde bron, een opslaggebeurtenis en een ISO 8601-tijdstempel."
   },
   "html_webhookAdditionalData": {
-    "message": "Additional data"
+    "message": "Aanvullende gegevens"
   },
   "html_webhookIncludePageUrl": {
-    "message": "Page URL"
+    "message": "Pagina-URL"
   },
   "html_webhookIncludePageTitle": {
-    "message": "Page title"
+    "message": "Paginatitel"
   },
   "html_webhookIncludeSelectionText": {
-    "message": "Selected text"
+    "message": "Geselecteerde tekst"
   },
   "html_webhookPrivacy": {
-    "message": "Save In sends no cookies or browser credentials, follows no endpoint redirects, retries no failed request, and sends nothing from private windows. Save In never receives the request."
+    "message": "Save In verzendt geen cookies of browserreferenties, volgt geen omleidingen van het eindpunt en probeert mislukte aanvragen niet opnieuw. Vanuit privévensters wordt niets verzonden. De aanvraag gaat rechtstreeks vanuit uw browser naar het eindpunt."
   },
   "html_webhookPayloadPreview": {
-    "message": "Payload preview"
+    "message": "Voorbeeld van nettolading"
   },
   "webhookPermissionDenied": {
-    "message": "Firefox did not allow the selected webhook data."
+    "message": "Firefox-toestemming voor de geselecteerde webhookgegevens is niet verleend."
   },
   "webhookPermissionMissing": {
-    "message": "Firefox data permission is off. Turn webhooks off and on to enable it."
+    "message": "De Firefox-toestemming voor gegevensoverdracht is uitgeschakeld. Schakel webhooks uit en weer in om toestemming te verlenen."
   },
   "webhookPermissionCheckFailed": {
-    "message": "Could not check browser data permission."
+    "message": "De browsertoestemming voor gegevensoverdracht kon niet worden gecontroleerd."
   },
   "webhookSendingTest": {
-    "message": "Sending test…"
+    "message": "Test verzenden…"
   },
   "webhookTestDelivered": {
-    "message": "Test delivered."
+    "message": "Het eindpunt heeft de test geaccepteerd."
   },
   "webhookTestRejected": {
-    "message": "Endpoint rejected the test."
+    "message": "Het eindpunt heeft de test geweigerd."
   },
   "webhookTestFailed": {
-    "message": "Could not deliver the test webhook."
+    "message": "De testwebhook kon niet worden afgeleverd."
   },
   "webhookEnabledSaved": {
-    "message": "Webhooks enabled."
+    "message": "Webhooks ingeschakeld."
   },
   "webhookDisabledSaved": {
-    "message": "Webhooks disabled."
+    "message": "Webhooks uitgeschakeld."
   },
   "webhookSaveFailed": {
-    "message": "Could not save the webhook setting."
+    "message": "De webhookinstelling kon niet worden opgeslagen."
   },
   "webhookFieldsSaved": {
-    "message": "Webhook data updated."
+    "message": "Webhookgegevens bijgewerkt."
   },
   "html_without": {
     "message": "zonder"

@@ -1,31 +1,31 @@
 {
-  "ruleTemplatePdfsByContentTypeName": { "message": "PDFs by content type" },
+  "ruleTemplatePdfsByContentTypeName": { "message": "PDF por tipo de contenido" },
   "ruleTemplatePdfsByContentTypeDescription": {
-    "message": "Catches PDFs by their reported content type instead of the filename"
+    "message": "Detecta los PDF por el tipo de contenido indicado en lugar de por el nombre del archivo"
   },
   "ruleTemplatePerSourceRootDomainName": {
-    "message": "One folder per source root domain"
+    "message": "Una carpeta por dominio raíz de origen"
   },
   "ruleTemplatePerSourceRootDomainDescription": {
-    "message": "Combines downloads from subdomains of the same source site"
+    "message": "Agrupa las descargas de subdominios del mismo sitio de origen"
   },
   "ruleTemplateDownloadsFromSiteSectionName": {
-    "message": "Downloads from a site section"
+    "message": "Descargas de una sección del sitio"
   },
   "ruleTemplateDownloadsFromSiteSectionDescription": {
-    "message": "Routes downloads referred from one URL section into its own folder"
+    "message": "Envía las descargas procedentes de una sección de URL concreta a su propia carpeta"
   },
   "html_matchesTheMimeContentType": {
-    "message": "Matches the resolved MIME Content-Type. Save In may request server headers."
+    "message": "Coincide con el MIME Content-Type determinado. Save In puede solicitar los encabezados del servidor."
   },
   "html_matchesTheReferrerHostname": {
-    "message": "Matches the referring page hostname when the browser provides it."
+    "message": "Coincide con el nombre de host de la página de referencia cuando el navegador lo proporciona."
   },
   "html_matchesTheReferrerUrl": {
-    "message": "Matches the referring page URL when the browser provides it."
+    "message": "Coincide con la URL de la página de referencia cuando el navegador la proporciona."
   },
   "html_matchesTheRootHostname": {
-    "message": "Matches the hostname without subdomains."
+    "message": "Coincide con el nombre de host sin subdominios."
   },
 
   "extensionName": {
@@ -1673,82 +1673,82 @@
     "message": "Webhooks"
   },
   "html_webhooksHelp": {
-    "message": "Send one JSON request after Save In starts a download."
+    "message": "Enviar una solicitud JSON cada vez que Save In inicia una descarga."
   },
   "html_webhookDocumentation": {
-    "message": "Read webhook documentation"
+    "message": "Leer la documentación sobre webhooks"
   },
   "html_offByDefault": {
-    "message": "Off by default"
+    "message": "Desactivado de forma predeterminada"
   },
   "html_webhookEndpoint": {
-    "message": "HTTPS endpoint"
+    "message": "Punto de conexión HTTPS"
   },
   "html_webhookEndpointHelp": {
-    "message": "Requests go directly from your browser to this address."
+    "message": "Las solicitudes se envían directamente desde su navegador a esta dirección."
   },
   "html_testWebhook": {
-    "message": "Send test"
+    "message": "Enviar prueba"
   },
   "html_webhookTestHelp": {
-    "message": "The test contains only a test event and timestamp."
+    "message": "La prueba solo contiene un evento de prueba y una marca de tiempo."
   },
   "html_webhookEnabled": {
-    "message": "Send a webhook when a Save In download starts"
+    "message": "Enviar un webhook cuando se inicia una descarga de Save In"
   },
   "html_webhookAlwaysIncludes": {
-    "message": "Each request includes the selected resource URL, a save event, and an ISO 8601 timestamp."
+    "message": "Cada solicitud incluye la URL del recurso seleccionado, un evento de guardado y una marca de tiempo ISO 8601."
   },
   "html_webhookAdditionalData": {
-    "message": "Additional data"
+    "message": "Datos adicionales"
   },
   "html_webhookIncludePageUrl": {
-    "message": "Page URL"
+    "message": "URL de la página"
   },
   "html_webhookIncludePageTitle": {
-    "message": "Page title"
+    "message": "Título de la página"
   },
   "html_webhookIncludeSelectionText": {
-    "message": "Selected text"
+    "message": "Texto seleccionado"
   },
   "html_webhookPrivacy": {
-    "message": "Save In sends no cookies or browser credentials, follows no endpoint redirects, retries no failed request, and sends nothing from private windows. Save In never receives the request."
+    "message": "Save In no envía cookies ni credenciales del navegador, no sigue redirecciones del punto de conexión, no reintenta solicitudes fallidas y no envía nada desde ventanas privadas. La solicitud se envía directamente desde su navegador al punto de conexión."
   },
   "html_webhookPayloadPreview": {
-    "message": "Payload preview"
+    "message": "Vista previa de la carga útil"
   },
   "webhookPermissionDenied": {
-    "message": "Firefox did not allow the selected webhook data."
+    "message": "No se concedió el permiso de Firefox para los datos de webhook seleccionados."
   },
   "webhookPermissionMissing": {
-    "message": "Firefox data permission is off. Turn webhooks off and on to enable it."
+    "message": "El permiso de datos de Firefox está desactivado. Desactive y vuelva a activar los webhooks para concederlo."
   },
   "webhookPermissionCheckFailed": {
-    "message": "Could not check browser data permission."
+    "message": "No se pudo comprobar el permiso de datos del navegador."
   },
   "webhookSendingTest": {
-    "message": "Sending test…"
+    "message": "Enviando prueba…"
   },
   "webhookTestDelivered": {
-    "message": "Test delivered."
+    "message": "El punto de conexión aceptó la prueba."
   },
   "webhookTestRejected": {
-    "message": "Endpoint rejected the test."
+    "message": "El punto de conexión rechazó la prueba."
   },
   "webhookTestFailed": {
-    "message": "Could not deliver the test webhook."
+    "message": "No se pudo entregar el webhook de prueba."
   },
   "webhookEnabledSaved": {
-    "message": "Webhooks enabled."
+    "message": "Webhooks activados."
   },
   "webhookDisabledSaved": {
-    "message": "Webhooks disabled."
+    "message": "Webhooks desactivados."
   },
   "webhookSaveFailed": {
-    "message": "Could not save the webhook setting."
+    "message": "No se pudo guardar la configuración del webhook."
   },
   "webhookFieldsSaved": {
-    "message": "Webhook data updated."
+    "message": "Datos del webhook actualizados."
   },
   "html_without": {
     "message": "sin"

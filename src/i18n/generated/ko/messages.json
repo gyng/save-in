@@ -1,31 +1,31 @@
 {
-  "ruleTemplatePdfsByContentTypeName": { "message": "PDFs by content type" },
+  "ruleTemplatePdfsByContentTypeName": { "message": "콘텐츠 유형별 PDF" },
   "ruleTemplatePdfsByContentTypeDescription": {
-    "message": "Catches PDFs by their reported content type instead of the filename"
+    "message": "파일 이름 대신 보고된 콘텐츠 유형으로 PDF를 감지합니다"
   },
   "ruleTemplatePerSourceRootDomainName": {
-    "message": "One folder per source root domain"
+    "message": "소스 루트 도메인별 폴더"
   },
   "ruleTemplatePerSourceRootDomainDescription": {
-    "message": "Combines downloads from subdomains of the same source site"
+    "message": "동일한 소스 사이트의 하위 도메인에서 받은 다운로드를 함께 분류합니다"
   },
   "ruleTemplateDownloadsFromSiteSectionName": {
-    "message": "Downloads from a site section"
+    "message": "사이트 섹션에서 받은 다운로드"
   },
   "ruleTemplateDownloadsFromSiteSectionDescription": {
-    "message": "Routes downloads referred from one URL section into its own folder"
+    "message": "특정 URL 섹션에서 참조된 다운로드를 전용 폴더로 라우팅합니다"
   },
   "html_matchesTheMimeContentType": {
-    "message": "Matches the resolved MIME Content-Type. Save In may request server headers."
+    "message": "확인된 MIME Content-Type과 일치시킵니다. Save In이 서버 헤더를 요청할 수 있습니다."
   },
   "html_matchesTheReferrerHostname": {
-    "message": "Matches the referring page hostname when the browser provides it."
+    "message": "브라우저에서 제공하는 경우 참조 페이지의 호스트 이름과 일치시킵니다."
   },
   "html_matchesTheReferrerUrl": {
-    "message": "Matches the referring page URL when the browser provides it."
+    "message": "브라우저에서 제공하는 경우 참조 페이지의 URL과 일치시킵니다."
   },
   "html_matchesTheRootHostname": {
-    "message": "Matches the hostname without subdomains."
+    "message": "하위 도메인을 제외한 호스트 이름과 일치시킵니다."
   },
 
   "extensionName": {
@@ -1571,85 +1571,85 @@
     "message": "를 붙이면 폴더로 이동합니다."
   },
   "html_webhooks": {
-    "message": "Webhooks"
+    "message": "웹후크"
   },
   "html_webhooksHelp": {
-    "message": "Send one JSON request after Save In starts a download."
+    "message": "Save In이 다운로드를 시작할 때마다 JSON 요청을 하나 보냅니다."
   },
   "html_webhookDocumentation": {
-    "message": "Read webhook documentation"
+    "message": "웹후크 문서 보기"
   },
   "html_offByDefault": {
-    "message": "Off by default"
+    "message": "기본적으로 사용 안 함"
   },
   "html_webhookEndpoint": {
-    "message": "HTTPS endpoint"
+    "message": "HTTPS 엔드포인트"
   },
   "html_webhookEndpointHelp": {
-    "message": "Requests go directly from your browser to this address."
+    "message": "요청은 브라우저에서 이 주소로 직접 전송됩니다."
   },
   "html_testWebhook": {
-    "message": "Send test"
+    "message": "테스트 보내기"
   },
   "html_webhookTestHelp": {
-    "message": "The test contains only a test event and timestamp."
+    "message": "테스트에는 테스트 이벤트와 타임스탬프만 포함됩니다."
   },
   "html_webhookEnabled": {
-    "message": "Send a webhook when a Save In download starts"
+    "message": "Save In 다운로드가 시작될 때 웹후크 보내기"
   },
   "html_webhookAlwaysIncludes": {
-    "message": "Each request includes the selected resource URL, a save event, and an ISO 8601 timestamp."
+    "message": "각 요청에는 선택한 리소스 URL, 저장 이벤트, ISO 8601 타임스탬프가 포함됩니다."
   },
   "html_webhookAdditionalData": {
-    "message": "Additional data"
+    "message": "추가 데이터"
   },
   "html_webhookIncludePageUrl": {
-    "message": "Page URL"
+    "message": "페이지 URL"
   },
   "html_webhookIncludePageTitle": {
-    "message": "Page title"
+    "message": "페이지 제목"
   },
   "html_webhookIncludeSelectionText": {
-    "message": "Selected text"
+    "message": "선택한 텍스트"
   },
   "html_webhookPrivacy": {
-    "message": "Save In sends no cookies or browser credentials, follows no endpoint redirects, retries no failed request, and sends nothing from private windows. Save In never receives the request."
+    "message": "Save In은 쿠키나 브라우저 자격 증명을 보내지 않고, 엔드포인트 리디렉션을 따르지 않으며, 실패한 요청을 재시도하지 않습니다. 비공개 창에서는 아무것도 보내지 않습니다. 요청은 브라우저에서 엔드포인트로 직접 전송됩니다."
   },
   "html_webhookPayloadPreview": {
-    "message": "Payload preview"
+    "message": "페이로드 미리보기"
   },
   "webhookPermissionDenied": {
-    "message": "Firefox did not allow the selected webhook data."
+    "message": "선택한 웹후크 데이터에 대한 Firefox 권한이 부여되지 않았습니다."
   },
   "webhookPermissionMissing": {
-    "message": "Firefox data permission is off. Turn webhooks off and on to enable it."
+    "message": "Firefox 데이터 전송 권한이 꺼져 있습니다. 권한을 부여하려면 웹후크를 껐다가 다시 켜세요."
   },
   "webhookPermissionCheckFailed": {
-    "message": "Could not check browser data permission."
+    "message": "브라우저 데이터 전송 권한을 확인할 수 없습니다."
   },
   "webhookSendingTest": {
-    "message": "Sending test…"
+    "message": "테스트 전송 중…"
   },
   "webhookTestDelivered": {
-    "message": "Test delivered."
+    "message": "엔드포인트가 테스트를 수락했습니다."
   },
   "webhookTestRejected": {
-    "message": "Endpoint rejected the test."
+    "message": "엔드포인트가 테스트를 거부했습니다."
   },
   "webhookTestFailed": {
-    "message": "Could not deliver the test webhook."
+    "message": "테스트 웹후크를 전송할 수 없습니다."
   },
   "webhookEnabledSaved": {
-    "message": "Webhooks enabled."
+    "message": "웹후크를 사용 설정했습니다."
   },
   "webhookDisabledSaved": {
-    "message": "Webhooks disabled."
+    "message": "웹후크를 사용 중지했습니다."
   },
   "webhookSaveFailed": {
-    "message": "Could not save the webhook setting."
+    "message": "웹후크 설정을 저장할 수 없습니다."
   },
   "webhookFieldsSaved": {
-    "message": "Webhook data updated."
+    "message": "웹후크 데이터를 업데이트했습니다."
   },
   "html_without": {
     "message": "파일 이름은"

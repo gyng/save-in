@@ -1,31 +1,31 @@
 {
-  "ruleTemplatePdfsByContentTypeName": { "message": "PDFs by content type" },
+  "ruleTemplatePdfsByContentTypeName": { "message": "コンテンツタイプで PDF を分類" },
   "ruleTemplatePdfsByContentTypeDescription": {
-    "message": "Catches PDFs by their reported content type instead of the filename"
+    "message": "ファイル名ではなく、報告されたコンテンツタイプで PDF を検出します"
   },
   "ruleTemplatePerSourceRootDomainName": {
-    "message": "One folder per source root domain"
+    "message": "ソースのルートドメインごとにフォルダーを作成"
   },
   "ruleTemplatePerSourceRootDomainDescription": {
-    "message": "Combines downloads from subdomains of the same source site"
+    "message": "同じソースサイトのサブドメインからのダウンロードをまとめます"
   },
   "ruleTemplateDownloadsFromSiteSectionName": {
-    "message": "Downloads from a site section"
+    "message": "サイト内のセクションからのダウンロード"
   },
   "ruleTemplateDownloadsFromSiteSectionDescription": {
-    "message": "Routes downloads referred from one URL section into its own folder"
+    "message": "特定の URL セクションから参照されたダウンロードを専用フォルダーに振り分けます"
   },
   "html_matchesTheMimeContentType": {
-    "message": "Matches the resolved MIME Content-Type. Save In may request server headers."
+    "message": "解決済みの MIME Content-Type と照合します。Save In がサーバーヘッダーを要求する場合があります。"
   },
   "html_matchesTheReferrerHostname": {
-    "message": "Matches the referring page hostname when the browser provides it."
+    "message": "ブラウザーから提供された場合、参照元ページのホスト名と照合します。"
   },
   "html_matchesTheReferrerUrl": {
-    "message": "Matches the referring page URL when the browser provides it."
+    "message": "ブラウザーから提供された場合、参照元ページの URL と照合します。"
   },
   "html_matchesTheRootHostname": {
-    "message": "Matches the hostname without subdomains."
+    "message": "サブドメインを除いたホスト名と照合します。"
   },
 
   "extensionName": {
@@ -1571,85 +1571,85 @@
     "message": "を付けるとフォルダーへ移動できます。"
   },
   "html_webhooks": {
-    "message": "Webhooks"
+    "message": "Webhook"
   },
   "html_webhooksHelp": {
-    "message": "Send one JSON request after Save In starts a download."
+    "message": "Save In がダウンロードを開始するたびに JSON リクエストを送信します。"
   },
   "html_webhookDocumentation": {
-    "message": "Read webhook documentation"
+    "message": "Webhook のドキュメントを読む"
   },
   "html_offByDefault": {
-    "message": "Off by default"
+    "message": "初期設定ではオフ"
   },
   "html_webhookEndpoint": {
-    "message": "HTTPS endpoint"
+    "message": "HTTPS エンドポイント"
   },
   "html_webhookEndpointHelp": {
-    "message": "Requests go directly from your browser to this address."
+    "message": "リクエストはブラウザーからこのアドレスへ直接送信されます。"
   },
   "html_testWebhook": {
-    "message": "Send test"
+    "message": "テストを送信"
   },
   "html_webhookTestHelp": {
-    "message": "The test contains only a test event and timestamp."
+    "message": "テストにはテストイベントとタイムスタンプのみが含まれます。"
   },
   "html_webhookEnabled": {
-    "message": "Send a webhook when a Save In download starts"
+    "message": "Save In のダウンロード開始時に Webhook を送信"
   },
   "html_webhookAlwaysIncludes": {
-    "message": "Each request includes the selected resource URL, a save event, and an ISO 8601 timestamp."
+    "message": "各リクエストには、選択したリソースの URL、保存イベント、ISO 8601 タイムスタンプが含まれます。"
   },
   "html_webhookAdditionalData": {
-    "message": "Additional data"
+    "message": "追加データ"
   },
   "html_webhookIncludePageUrl": {
-    "message": "Page URL"
+    "message": "ページ URL"
   },
   "html_webhookIncludePageTitle": {
-    "message": "Page title"
+    "message": "ページタイトル"
   },
   "html_webhookIncludeSelectionText": {
-    "message": "Selected text"
+    "message": "選択したテキスト"
   },
   "html_webhookPrivacy": {
-    "message": "Save In sends no cookies or browser credentials, follows no endpoint redirects, retries no failed request, and sends nothing from private windows. Save In never receives the request."
+    "message": "Save In は Cookie やブラウザーの認証情報を送信せず、エンドポイントのリダイレクトをたどらず、失敗したリクエストを再試行しません。プライベートウィンドウからは何も送信しません。リクエストはブラウザーからエンドポイントへ直接送信されます。"
   },
   "html_webhookPayloadPreview": {
-    "message": "Payload preview"
+    "message": "ペイロードのプレビュー"
   },
   "webhookPermissionDenied": {
-    "message": "Firefox did not allow the selected webhook data."
+    "message": "選択した Webhook データに対する Firefox の許可が得られませんでした。"
   },
   "webhookPermissionMissing": {
-    "message": "Firefox data permission is off. Turn webhooks off and on to enable it."
+    "message": "Firefox のデータ送信権限がオフです。権限を有効にするには、Webhook を一度オフにしてからオンに戻してください。"
   },
   "webhookPermissionCheckFailed": {
-    "message": "Could not check browser data permission."
+    "message": "ブラウザーのデータ送信権限を確認できませんでした。"
   },
   "webhookSendingTest": {
-    "message": "Sending test…"
+    "message": "テストを送信中…"
   },
   "webhookTestDelivered": {
-    "message": "Test delivered."
+    "message": "エンドポイントがテストを受け付けました。"
   },
   "webhookTestRejected": {
-    "message": "Endpoint rejected the test."
+    "message": "エンドポイントがテストを拒否しました。"
   },
   "webhookTestFailed": {
-    "message": "Could not deliver the test webhook."
+    "message": "テスト用 Webhook を送信できませんでした。"
   },
   "webhookEnabledSaved": {
-    "message": "Webhooks enabled."
+    "message": "Webhook を有効にしました。"
   },
   "webhookDisabledSaved": {
-    "message": "Webhooks disabled."
+    "message": "Webhook を無効にしました。"
   },
   "webhookSaveFailed": {
-    "message": "Could not save the webhook setting."
+    "message": "Webhook の設定を保存できませんでした。"
   },
   "webhookFieldsSaved": {
-    "message": "Webhook data updated."
+    "message": "Webhook のデータを更新しました。"
   },
   "html_without": {
     "message": "ファイル名は"

@@ -1,31 +1,31 @@
 {
-  "ruleTemplatePdfsByContentTypeName": { "message": "PDFs by content type" },
+  "ruleTemplatePdfsByContentTypeName": { "message": "依內容類型分類 PDF" },
   "ruleTemplatePdfsByContentTypeDescription": {
-    "message": "Catches PDFs by their reported content type instead of the filename"
+    "message": "依回報的內容類型而非檔案名稱識別 PDF"
   },
   "ruleTemplatePerSourceRootDomainName": {
-    "message": "One folder per source root domain"
+    "message": "每個來源根網域使用一個資料夾"
   },
   "ruleTemplatePerSourceRootDomainDescription": {
-    "message": "Combines downloads from subdomains of the same source site"
+    "message": "合併來自相同來源網站不同子網域的下載項目"
   },
   "ruleTemplateDownloadsFromSiteSectionName": {
-    "message": "Downloads from a site section"
+    "message": "來自網站區段的下載項目"
   },
   "ruleTemplateDownloadsFromSiteSectionDescription": {
-    "message": "Routes downloads referred from one URL section into its own folder"
+    "message": "將特定 URL 區段所參照的下載項目路由到專用資料夾"
   },
   "html_matchesTheMimeContentType": {
-    "message": "Matches the resolved MIME Content-Type. Save In may request server headers."
+    "message": "符合解析後的 MIME Content-Type。Save In 可能會要求伺服器標頭。"
   },
   "html_matchesTheReferrerHostname": {
-    "message": "Matches the referring page hostname when the browser provides it."
+    "message": "瀏覽器提供參照頁面的主機名稱時進行比對。"
   },
   "html_matchesTheReferrerUrl": {
-    "message": "Matches the referring page URL when the browser provides it."
+    "message": "瀏覽器提供參照頁面的 URL 時進行比對。"
   },
   "html_matchesTheRootHostname": {
-    "message": "Matches the hostname without subdomains."
+    "message": "符合不含子網域的主機名稱。"
   },
 
   "extensionName": {
@@ -1571,85 +1571,85 @@
     "message": "即可移至資料夾，"
   },
   "html_webhooks": {
-    "message": "Webhooks"
+    "message": "Webhook"
   },
   "html_webhooksHelp": {
-    "message": "Send one JSON request after Save In starts a download."
+    "message": "Save In 每次開始下載時傳送一項 JSON 要求。"
   },
   "html_webhookDocumentation": {
-    "message": "Read webhook documentation"
+    "message": "閱讀 Webhook 文件"
   },
   "html_offByDefault": {
-    "message": "Off by default"
+    "message": "預設關閉"
   },
   "html_webhookEndpoint": {
-    "message": "HTTPS endpoint"
+    "message": "HTTPS 端點"
   },
   "html_webhookEndpointHelp": {
-    "message": "Requests go directly from your browser to this address."
+    "message": "要求會從您的瀏覽器直接傳送到此位址。"
   },
   "html_testWebhook": {
-    "message": "Send test"
+    "message": "傳送測試"
   },
   "html_webhookTestHelp": {
-    "message": "The test contains only a test event and timestamp."
+    "message": "測試只包含測試事件與時間戳記。"
   },
   "html_webhookEnabled": {
-    "message": "Send a webhook when a Save In download starts"
+    "message": "Save In 開始下載時傳送 Webhook"
   },
   "html_webhookAlwaysIncludes": {
-    "message": "Each request includes the selected resource URL, a save event, and an ISO 8601 timestamp."
+    "message": "每項要求都包含所選資源的 URL、儲存事件與 ISO 8601 時間戳記。"
   },
   "html_webhookAdditionalData": {
-    "message": "Additional data"
+    "message": "其他資料"
   },
   "html_webhookIncludePageUrl": {
-    "message": "Page URL"
+    "message": "頁面 URL"
   },
   "html_webhookIncludePageTitle": {
-    "message": "Page title"
+    "message": "頁面標題"
   },
   "html_webhookIncludeSelectionText": {
-    "message": "Selected text"
+    "message": "選取的文字"
   },
   "html_webhookPrivacy": {
-    "message": "Save In sends no cookies or browser credentials, follows no endpoint redirects, retries no failed request, and sends nothing from private windows. Save In never receives the request."
+    "message": "Save In 不會傳送 Cookie 或瀏覽器認證資訊、不會跟隨端點重新導向，也不會重試失敗的要求；隱私視窗不會傳送任何內容。要求會從您的瀏覽器直接傳送到端點。"
   },
   "html_webhookPayloadPreview": {
-    "message": "Payload preview"
+    "message": "承載資料預覽"
   },
   "webhookPermissionDenied": {
-    "message": "Firefox did not allow the selected webhook data."
+    "message": "未取得傳送所選 Webhook 資料所需的 Firefox 權限。"
   },
   "webhookPermissionMissing": {
-    "message": "Firefox data permission is off. Turn webhooks off and on to enable it."
+    "message": "Firefox 資料傳輸權限已關閉。請關閉 Webhook 後再重新開啟以授予權限。"
   },
   "webhookPermissionCheckFailed": {
-    "message": "Could not check browser data permission."
+    "message": "無法檢查瀏覽器的資料傳輸權限。"
   },
   "webhookSendingTest": {
-    "message": "Sending test…"
+    "message": "正在傳送測試…"
   },
   "webhookTestDelivered": {
-    "message": "Test delivered."
+    "message": "端點已接受測試。"
   },
   "webhookTestRejected": {
-    "message": "Endpoint rejected the test."
+    "message": "端點拒絕了測試。"
   },
   "webhookTestFailed": {
-    "message": "Could not deliver the test webhook."
+    "message": "無法傳送測試 Webhook。"
   },
   "webhookEnabledSaved": {
-    "message": "Webhooks enabled."
+    "message": "Webhook 已啟用。"
   },
   "webhookDisabledSaved": {
-    "message": "Webhooks disabled."
+    "message": "Webhook 已停用。"
   },
   "webhookSaveFailed": {
-    "message": "Could not save the webhook setting."
+    "message": "無法儲存 Webhook 設定。"
   },
   "webhookFieldsSaved": {
-    "message": "Webhook data updated."
+    "message": "Webhook 資料已更新。"
   },
   "html_without": {
     "message": "檔名"

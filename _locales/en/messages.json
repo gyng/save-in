@@ -2726,7 +2726,7 @@
     "description": "Heading for the user-configured webhook integration in Options. Used in src/options/options.html."
   },
   "html_webhooksHelp": {
-    "message": "Send one JSON request after Save In starts a download.",
+    "message": "Send one JSON request whenever Save In starts a download.",
     "description": "Short explanation of when a configured webhook runs. Used in src/options/options.html."
   },
   "html_webhookDocumentation": {
@@ -2778,7 +2778,7 @@
     "description": "Webhook field option for user-selected page text when available. Used in src/options/options.html."
   },
   "html_webhookPrivacy": {
-    "message": "Save In sends no cookies or browser credentials, follows no endpoint redirects, retries no failed request, and sends nothing from private windows. Save In never receives the request.",
+    "message": "Save In sends no cookies or browser credentials, does not follow endpoint redirects or retry failed requests, and sends nothing from private windows. The request goes directly from your browser to the endpoint.",
     "description": "Privacy and delivery limits disclosed beside the webhook controls. Used in src/options/options.html."
   },
   "html_webhookPayloadPreview": {
@@ -2786,7 +2786,7 @@
     "description": "Expandable preview of the configured save webhook JSON. Used in src/options/options.html."
   },
   "webhookPermissionDenied": {
-    "message": "Firefox did not allow the selected webhook data.",
+    "message": "Firefox permission was not granted for the selected webhook data.",
     "description": "Status after the user declines Firefox data transmission permission. Used in src/options/webhook-panel.ts."
   },
   "webhookPermissionMissing": {
@@ -2802,7 +2802,7 @@
     "description": "Status while the webhook test request is in flight. Used in src/options/webhook-panel.ts."
   },
   "webhookTestDelivered": {
-    "message": "Test delivered.",
+    "message": "Endpoint accepted the test.",
     "description": "Status after the webhook endpoint accepts the test. Used in src/options/webhook-panel.ts."
   },
   "webhookTestRejected": {

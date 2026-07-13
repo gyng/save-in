@@ -1,31 +1,31 @@
 {
-  "ruleTemplatePdfsByContentTypeName": { "message": "PDFs by content type" },
+  "ruleTemplatePdfsByContentTypeName": { "message": "PDF-filer efter innehållstyp" },
   "ruleTemplatePdfsByContentTypeDescription": {
-    "message": "Catches PDFs by their reported content type instead of the filename"
+    "message": "Identifierar PDF-filer efter rapporterad innehållstyp i stället för filnamn"
   },
   "ruleTemplatePerSourceRootDomainName": {
-    "message": "One folder per source root domain"
+    "message": "En mapp per rotkälldomän"
   },
   "ruleTemplatePerSourceRootDomainDescription": {
-    "message": "Combines downloads from subdomains of the same source site"
+    "message": "Samlar hämtningar från underdomäner på samma källwebbplats"
   },
   "ruleTemplateDownloadsFromSiteSectionName": {
-    "message": "Downloads from a site section"
+    "message": "Hämtningar från en webbplatssektion"
   },
   "ruleTemplateDownloadsFromSiteSectionDescription": {
-    "message": "Routes downloads referred from one URL section into its own folder"
+    "message": "Dirigerar hämtningar som hänvisas från en viss URL-sektion till en egen mapp"
   },
   "html_matchesTheMimeContentType": {
-    "message": "Matches the resolved MIME Content-Type. Save In may request server headers."
+    "message": "Matchar fastställt MIME Content-Type. Save In kan begära serverhuvuden."
   },
   "html_matchesTheReferrerHostname": {
-    "message": "Matches the referring page hostname when the browser provides it."
+    "message": "Matchar den hänvisande sidans värdnamn när webbläsaren tillhandahåller det."
   },
   "html_matchesTheReferrerUrl": {
-    "message": "Matches the referring page URL when the browser provides it."
+    "message": "Matchar den hänvisande sidans URL när webbläsaren tillhandahåller den."
   },
   "html_matchesTheRootHostname": {
-    "message": "Matches the hostname without subdomains."
+    "message": "Matchar värdnamnet utan underdomäner."
   },
 
   "extensionName": {
@@ -1671,82 +1671,82 @@
     "message": "Webhooks"
   },
   "html_webhooksHelp": {
-    "message": "Send one JSON request after Save In starts a download."
+    "message": "Skicka en JSON-begäran varje gång Save In startar en hämtning."
   },
   "html_webhookDocumentation": {
-    "message": "Read webhook documentation"
+    "message": "Läs dokumentationen om webhooks"
   },
   "html_offByDefault": {
-    "message": "Off by default"
+    "message": "Av som standard"
   },
   "html_webhookEndpoint": {
-    "message": "HTTPS endpoint"
+    "message": "HTTPS-slutpunkt"
   },
   "html_webhookEndpointHelp": {
-    "message": "Requests go directly from your browser to this address."
+    "message": "Begäranden skickas direkt från webbläsaren till den här adressen."
   },
   "html_testWebhook": {
-    "message": "Send test"
+    "message": "Skicka test"
   },
   "html_webhookTestHelp": {
-    "message": "The test contains only a test event and timestamp."
+    "message": "Testet innehåller bara en testhändelse och en tidsstämpel."
   },
   "html_webhookEnabled": {
-    "message": "Send a webhook when a Save In download starts"
+    "message": "Skicka en webhook när en Save In-hämtning startar"
   },
   "html_webhookAlwaysIncludes": {
-    "message": "Each request includes the selected resource URL, a save event, and an ISO 8601 timestamp."
+    "message": "Varje begäran innehåller den valda resursens URL, en sparhändelse och en ISO 8601-tidsstämpel."
   },
   "html_webhookAdditionalData": {
-    "message": "Additional data"
+    "message": "Ytterligare data"
   },
   "html_webhookIncludePageUrl": {
-    "message": "Page URL"
+    "message": "Sid-URL"
   },
   "html_webhookIncludePageTitle": {
-    "message": "Page title"
+    "message": "Sidrubrik"
   },
   "html_webhookIncludeSelectionText": {
-    "message": "Selected text"
+    "message": "Markerad text"
   },
   "html_webhookPrivacy": {
-    "message": "Save In sends no cookies or browser credentials, follows no endpoint redirects, retries no failed request, and sends nothing from private windows. Save In never receives the request."
+    "message": "Save In skickar inga kakor eller webbläsarautentiseringsuppgifter, följer inte omdirigeringar från slutpunkten och försöker inte skicka misslyckade begäranden igen. Inget skickas från privata fönster. Begäran skickas direkt från webbläsaren till slutpunkten."
   },
   "html_webhookPayloadPreview": {
-    "message": "Payload preview"
+    "message": "Förhandsgranskning av nyttolast"
   },
   "webhookPermissionDenied": {
-    "message": "Firefox did not allow the selected webhook data."
+    "message": "Firefox-behörighet för valda webhookdata beviljades inte."
   },
   "webhookPermissionMissing": {
-    "message": "Firefox data permission is off. Turn webhooks off and on to enable it."
+    "message": "Firefox-behörigheten för dataöverföring är avstängd. Stäng av och slå på webhooks igen för att bevilja den."
   },
   "webhookPermissionCheckFailed": {
-    "message": "Could not check browser data permission."
+    "message": "Det gick inte att kontrollera webbläsarens behörighet för dataöverföring."
   },
   "webhookSendingTest": {
-    "message": "Sending test…"
+    "message": "Skickar test…"
   },
   "webhookTestDelivered": {
-    "message": "Test delivered."
+    "message": "Slutpunkten godkände testet."
   },
   "webhookTestRejected": {
-    "message": "Endpoint rejected the test."
+    "message": "Slutpunkten avvisade testet."
   },
   "webhookTestFailed": {
-    "message": "Could not deliver the test webhook."
+    "message": "Det gick inte att leverera testwebhooken."
   },
   "webhookEnabledSaved": {
-    "message": "Webhooks enabled."
+    "message": "Webhooks aktiverade."
   },
   "webhookDisabledSaved": {
-    "message": "Webhooks disabled."
+    "message": "Webhooks inaktiverade."
   },
   "webhookSaveFailed": {
-    "message": "Could not save the webhook setting."
+    "message": "Det gick inte att spara webhookinställningen."
   },
   "webhookFieldsSaved": {
-    "message": "Webhook data updated."
+    "message": "Webhookdata uppdaterade."
   },
   "html_without": {
     "message": "utan att"

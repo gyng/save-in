@@ -1,31 +1,31 @@
 {
-  "ruleTemplatePdfsByContentTypeName": { "message": "PDFs by content type" },
+  "ruleTemplatePdfsByContentTypeName": { "message": "按内容类型分类 PDF" },
   "ruleTemplatePdfsByContentTypeDescription": {
-    "message": "Catches PDFs by their reported content type instead of the filename"
+    "message": "根据报告的内容类型而不是文件名识别 PDF"
   },
   "ruleTemplatePerSourceRootDomainName": {
-    "message": "One folder per source root domain"
+    "message": "每个来源根域名使用一个文件夹"
   },
   "ruleTemplatePerSourceRootDomainDescription": {
-    "message": "Combines downloads from subdomains of the same source site"
+    "message": "合并来自同一来源网站不同子域名的下载"
   },
   "ruleTemplateDownloadsFromSiteSectionName": {
-    "message": "Downloads from a site section"
+    "message": "来自网站分区的下载"
   },
   "ruleTemplateDownloadsFromSiteSectionDescription": {
-    "message": "Routes downloads referred from one URL section into its own folder"
+    "message": "将由特定 URL 分区引荐的下载路由到单独的文件夹"
   },
   "html_matchesTheMimeContentType": {
-    "message": "Matches the resolved MIME Content-Type. Save In may request server headers."
+    "message": "匹配解析后的 MIME Content-Type。Save In 可能会请求服务器标头。"
   },
   "html_matchesTheReferrerHostname": {
-    "message": "Matches the referring page hostname when the browser provides it."
+    "message": "当浏览器提供引荐页面的主机名时进行匹配。"
   },
   "html_matchesTheReferrerUrl": {
-    "message": "Matches the referring page URL when the browser provides it."
+    "message": "当浏览器提供引荐页面的 URL 时进行匹配。"
   },
   "html_matchesTheRootHostname": {
-    "message": "Matches the hostname without subdomains."
+    "message": "匹配不含子域名的主机名。"
   },
 
   "extensionName": {
@@ -1571,85 +1571,85 @@
     "message": "即可移至文件夹，"
   },
   "html_webhooks": {
-    "message": "Webhooks"
+    "message": "Webhook"
   },
   "html_webhooksHelp": {
-    "message": "Send one JSON request after Save In starts a download."
+    "message": "Save In 每次开始下载时发送一项 JSON 请求。"
   },
   "html_webhookDocumentation": {
-    "message": "Read webhook documentation"
+    "message": "阅读 Webhook 文档"
   },
   "html_offByDefault": {
-    "message": "Off by default"
+    "message": "默认关闭"
   },
   "html_webhookEndpoint": {
-    "message": "HTTPS endpoint"
+    "message": "HTTPS 端点"
   },
   "html_webhookEndpointHelp": {
-    "message": "Requests go directly from your browser to this address."
+    "message": "请求会从您的浏览器直接发送到此地址。"
   },
   "html_testWebhook": {
-    "message": "Send test"
+    "message": "发送测试"
   },
   "html_webhookTestHelp": {
-    "message": "The test contains only a test event and timestamp."
+    "message": "测试仅包含测试事件和时间戳。"
   },
   "html_webhookEnabled": {
-    "message": "Send a webhook when a Save In download starts"
+    "message": "Save In 开始下载时发送 Webhook"
   },
   "html_webhookAlwaysIncludes": {
-    "message": "Each request includes the selected resource URL, a save event, and an ISO 8601 timestamp."
+    "message": "每项请求都包含所选资源的 URL、保存事件和 ISO 8601 时间戳。"
   },
   "html_webhookAdditionalData": {
-    "message": "Additional data"
+    "message": "其他数据"
   },
   "html_webhookIncludePageUrl": {
-    "message": "Page URL"
+    "message": "页面 URL"
   },
   "html_webhookIncludePageTitle": {
-    "message": "Page title"
+    "message": "页面标题"
   },
   "html_webhookIncludeSelectionText": {
-    "message": "Selected text"
+    "message": "所选文本"
   },
   "html_webhookPrivacy": {
-    "message": "Save In sends no cookies or browser credentials, follows no endpoint redirects, retries no failed request, and sends nothing from private windows. Save In never receives the request."
+    "message": "Save In 不会发送 Cookie 或浏览器凭据，不会跟随端点重定向，也不会重试失败的请求；隐私窗口不会发送任何内容。请求会从您的浏览器直接发送到端点。"
   },
   "html_webhookPayloadPreview": {
-    "message": "Payload preview"
+    "message": "有效负载预览"
   },
   "webhookPermissionDenied": {
-    "message": "Firefox did not allow the selected webhook data."
+    "message": "未获得发送所选 Webhook 数据所需的 Firefox 权限。"
   },
   "webhookPermissionMissing": {
-    "message": "Firefox data permission is off. Turn webhooks off and on to enable it."
+    "message": "Firefox 数据传输权限已关闭。请关闭 Webhook 后再重新开启以授予权限。"
   },
   "webhookPermissionCheckFailed": {
-    "message": "Could not check browser data permission."
+    "message": "无法检查浏览器的数据传输权限。"
   },
   "webhookSendingTest": {
-    "message": "Sending test…"
+    "message": "正在发送测试…"
   },
   "webhookTestDelivered": {
-    "message": "Test delivered."
+    "message": "端点已接受测试。"
   },
   "webhookTestRejected": {
-    "message": "Endpoint rejected the test."
+    "message": "端点拒绝了测试。"
   },
   "webhookTestFailed": {
-    "message": "Could not deliver the test webhook."
+    "message": "无法发送测试 Webhook。"
   },
   "webhookEnabledSaved": {
-    "message": "Webhooks enabled."
+    "message": "Webhook 已启用。"
   },
   "webhookDisabledSaved": {
-    "message": "Webhooks disabled."
+    "message": "Webhook 已停用。"
   },
   "webhookSaveFailed": {
-    "message": "Could not save the webhook setting."
+    "message": "无法保存 Webhook 设置。"
   },
   "webhookFieldsSaved": {
-    "message": "Webhook data updated."
+    "message": "Webhook 数据已更新。"
   },
   "html_without": {
     "message": "文件名"
