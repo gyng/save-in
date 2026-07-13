@@ -63,12 +63,15 @@ export const runTemplateLibraryScenario = async ({
 
     const persisted = await poll(
       async () => {
-        const state = JSON.parse(
-          await evaluate(`Promise.all([
-            api.getOption("filenamePatterns"),
-            browser.storage.local.get("filenamePatterns"),
-          ]).then(([live, stored]) => JSON.stringify({ live, stored: stored.filenamePatterns }))`),
-        );
+        const state =
+          /** @type {{live: Array<Array<{name?: string, value?: unknown}>>, stored: unknown}} */ (
+            JSON.parse(
+              await evaluate(`Promise.all([
+              api.getOption("filenamePatterns"),
+              browser.storage.local.get("filenamePatterns"),
+            ]).then(([live, stored]) => JSON.stringify({ live, stored: stored.filenamePatterns }))`),
+            )
+          );
         if (
           Array.isArray(state.live) &&
           state.live.some((rule) =>
