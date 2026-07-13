@@ -1,12 +1,30 @@
 import { SHORTCUT_EXTENSIONS } from "../shared/constants.ts";
+import { getMessage } from "../platform/localization.ts";
 
 const EFFECTIVE_ACCESS_KEY = /^[a-z0-9]$/i;
 const FORMAT_GUIDANCE: Record<string, { filename: string; meaning: string }> = {
-  HTML_REDIRECT: { filename: "page.html", meaning: "Works in any browser" },
-  MAC: { filename: "page.url", meaning: "Legacy Internet Shortcut" },
-  MAC_WEBLOC: { filename: "page.webloc", meaning: "Native macOS shortcut" },
-  WINDOWS: { filename: "page.url", meaning: "Windows Internet Shortcut" },
-  FREEDESKTOP: { filename: "page.desktop", meaning: "Linux desktop shortcut" },
+  HTML_REDIRECT: { filename: "page.html", meaning: "o_lShortcutFormatAnyBrowser" },
+  MAC: { filename: "page.url", meaning: "o_lShortcutFormatLegacyInternet" },
+  MAC_WEBLOC: { filename: "page.webloc", meaning: "o_lShortcutFormatMac" },
+  WINDOWS: { filename: "page.url", meaning: "o_lShortcutFormatWindows" },
+  FREEDESKTOP: { filename: "page.desktop", meaning: "o_lShortcutFormatLinux" },
+};
+
+const shortcutFormatMeaning = (key: string): string => {
+  switch (key) {
+    case "o_lShortcutFormatAnyBrowser":
+      return getMessage("o_lShortcutFormatAnyBrowser") || "Works in any browser";
+    case "o_lShortcutFormatLegacyInternet":
+      return getMessage("o_lShortcutFormatLegacyInternet") || "Legacy Internet Shortcut";
+    case "o_lShortcutFormatMac":
+      return getMessage("o_lShortcutFormatMac") || "Native macOS shortcut";
+    case "o_lShortcutFormatWindows":
+      return getMessage("o_lShortcutFormatWindows") || "Windows Internet Shortcut";
+    case "o_lShortcutFormatLinux":
+      return getMessage("o_lShortcutFormatLinux") || "Linux desktop shortcut";
+    default:
+      return "";
+  }
 };
 
 export const setupShortcutOptions = () => {
@@ -41,7 +59,7 @@ export const setupShortcutOptions = () => {
     const guidance = FORMAT_GUIDANCE[type.value];
     if (preview) {
       preview.textContent = guidance
-        ? `${guidance.filename} · ${guidance.meaning}`
+        ? `${guidance.filename} · ${shortcutFormatMeaning(guidance.meaning)}`
         : `page${extension || ".txt"}`;
     }
   };
@@ -69,7 +87,8 @@ export const setupShortcutOptions = () => {
     if (unknown || (parts.length === 1 && combo.value && !known.has(combo.value))) {
       const option = document.createElement("option");
       option.value = combo.value;
-      option.textContent = `Legacy value: ${combo.value}`;
+      option.textContent =
+        getMessage("o_lShortcutLegacyValue", combo.value) || `Legacy value: ${combo.value}`;
       option.dataset.legacy = "true";
       modifier.append(option);
       modifier.value = combo.value;
@@ -88,7 +107,8 @@ export const setupShortcutOptions = () => {
     const changed =
       draftCombo() !== combo?.value || (button?.value || "") !== (storedButton?.value || "");
     if (apply) apply.disabled = !changed;
-    if (status) status.textContent = changed ? "Ready to apply." : "";
+    if (status)
+      status.textContent = changed ? getMessage("o_lShortcutReady") || "Ready to apply." : "";
     syncGestureWarning();
   };
   const syncGestureWarning = () => {
@@ -107,7 +127,7 @@ export const setupShortcutOptions = () => {
     combo.dispatchEvent(new Event("change", { bubbles: true }));
     storedButton.dispatchEvent(new Event("change", { bubbles: true }));
     syncClickControls();
-    if (status) status.textContent = "Shortcut updated.";
+    if (status) status.textContent = getMessage("o_lShortcutUpdated") || "Shortcut updated.";
   });
   reset?.addEventListener("click", () => {
     if (!modifier || !modifier2 || !button) return;
@@ -115,7 +135,7 @@ export const setupShortcutOptions = () => {
     modifier2.value = "";
     button.value = "LEFT_CLICK";
     apply?.click();
-    if (status) status.textContent = "Shortcut reset.";
+    if (status) status.textContent = getMessage("o_lShortcutReset") || "Shortcut reset.";
   });
   showClickCombo();
   syncClickControls();
@@ -134,7 +154,8 @@ export const setupShortcutOptions = () => {
     );
     if (accessStatus) {
       accessStatus.textContent = invalid
-        ? "Use one letter or number. Existing saved values remain supported until changed."
+        ? getMessage("o_lAccessKeyInvalid") ||
+          "Use one letter or number. Existing saved values remain supported until changed."
         : "";
     }
   };

@@ -1,9 +1,9 @@
 {
   "extensionName": {
-    "message": "Save In…"
+    "message": "Save In"
   },
   "extensionDescription": {
-    "message": "Slaat {image, video, audio, links, selectie, pagina} op in mappen relatief aan de standaard downloadmap."
+    "message": "Slaat afbeeldingen, video's, audio, links, geselecteerde tekst en pagina's op in mappen binnen uw standaarddownloadmap."
   },
   "translationCredits": {
     "message": "​"
@@ -15,10 +15,10 @@
     "message": "Opties"
   },
   "contextMenuToggleSourcePanel": {
-    "message": "Schakel paginabronnen in"
+    "message": "Paginabronnen weergeven of verbergen"
   },
   "contextMenuExclusive": {
-    "message": "Routeren met Save In…"
+    "message": "Opslaan met een routeringsregel…"
   },
   "contextMenuRoot": {
     "message": "Save In…"
@@ -33,13 +33,13 @@
     "message": "Media of koppeling"
   },
   "contextMenuContextSelection": {
-    "message": "Selectie tekst"
+    "message": "Geselecteerde tekst"
   },
   "contextMenuContextPage": {
     "message": "Pagina"
   },
   "contextMenuShowDefaultFolder": {
-    "message": "Standaardmap openen"
+    "message": "Open de standaard downloadmap"
   },
   "notificationSuccessTitle": {
     "message": "Opgeslagen"
@@ -69,34 +69,34 @@
     }
   },
   "ruleMissingMatcher": {
-    "message": "Regel heeft minimaal één matcherclausule nodig"
+    "message": "Voeg ten minste één matcherclausule toe"
   },
   "ruleCaptureMissingMatcher": {
     "message": "De capture-clausule is niet gericht op een match"
   },
   "ruleMissingCapture": {
-    "message": "Regel heeft een capture-clausule nodig om capture-variabelen te gebruiken"
+    "message": "Voeg een capture-clausule toe om capture-variabelen te gebruiken"
   },
   "ruleMultipleCapture": {
-    "message": "Regel kan slechts één capture-clausule bevatten"
+    "message": "Een regel kan slechts één capture-clausule bevatten"
   },
   "ruleMissingInto": {
-    "message": "De regel heeft minstens één inclausule nodig"
+    "message": "Voeg er minstens één toe aan: -clausule"
   },
   "ruleExtraInto": {
-    "message": "Regel kan slechts één inclausule bevatten"
+    "message": "Een regel kan slechts één into:-clausule bevatten"
   },
   "ruleUnknownMatcher": {
     "message": "Onbekende matcher"
   },
   "ruleInvalidRegex": {
-    "message": "Ongeldige regex"
+    "message": "Ongeldige reguliere expressie"
   },
   "ruleShadowed": {
-    "message": "Regel kan nooit worden bereikt omdat een eerdere regel dezelfde of bredere overeenkomst heeft"
+    "message": "Deze regel wordt nooit uitgevoerd omdat een eerdere regel overeenkomt met dezelfde of meer downloads"
   },
   "ruleBadClause": {
-    "message": "Slechte clausule"
+    "message": "Ongeldige clausule"
   },
   "rulePathInvalidCharacter": {
     "message": "Pad bevat ongeldige tekens"
@@ -117,16 +117,16 @@
     }
   },
   "tabstripMenuSaveChildrenTabs": {
-    "message": "Bewaar andere tabbladen die vanaf dit tabblad zijn geopend"
+    "message": "Bewaar tabbladen die vanaf dit tabblad zijn geopend"
   },
   "tabstripMenuSaveRightTabs": {
-    "message": "Alle tabbladen rechts opslaan, inclusief dit tabblad"
+    "message": "Bewaar dit tabblad en alle tabbladen aan de rechterkant"
   },
   "tabstripMenuSaveRightTabsMatched": {
-    "message": "Alle tabbladen rechts opslaan, inclusief dit tabblad (moet overeenkomen met een routeringsregel)"
+    "message": "Sla dit tabblad en alle tabbladen aan de rechterkant op (routingregel vereist)"
   },
   "o_sDownloads": {
-    "message": "Downloadmenu"
+    "message": "Bewaar locaties"
   },
   "o_sDirectories": {
     "message": "Mappen"
@@ -153,7 +153,7 @@
     "message": "Browserdownloads"
   },
   "o_lBrowserDownloadsHelp": {
-    "message": "Meld u aan voor het afhandelen van downloads die zijn gestart door webpagina's of de browser zelf. Downloads die zijn gestart door Save In of een andere extensie zijn uitgesloten."
+    "message": "Volg of routeer optioneel downloads die zijn gestart door webpagina's of de browser. Downloads gestart door Save In of een andere extensie zijn uitgesloten."
   },
   "o_cTrackBrowserDownloads": {
     "message": "Voeg gewone browserdownloads toe aan de geschiedenis van Save In"
@@ -162,25 +162,25 @@
     "message": "Registreert overeenkomende downloads in de geschiedenis van Save In zonder er eigenaar van te worden. Ze worden niet opnieuw geprobeerd en veroorzaken geen Save In prompts of meldingen."
   },
   "o_cRouteBrowserDownloads": {
-    "message": "Gebruik routeringsregels voor alle browserdownloads"
+    "message": "Gebruik routeringsregels voor browserdownloads"
   },
   "o_cRouteBrowserDownloadsHelp": {
-    "message": "Gebruikt downloads.onDeterminingFilename wanneer de browser dit implementeert. Overeenkomende regels kunnen gewone browserdownloads hernoemen of in submappen plaatsen. Ongeëvenaarde downloads blijven ongewijzigd."
+    "message": "Indien ondersteund, kunnen overeenkomende regels de naam van browserdownloads wijzigen of deze in submappen plaatsen. Ongeëvenaarde downloads blijven ongewijzigd."
   },
   "o_cRouteBrowserDownloadsFirefox": {
     "message": "Experimenteel overeenkomende downloads omleiden in Firefox"
   },
   "o_cRouteBrowserDownloadsFirefoxHelp": {
-    "message": "Experimenteel en potentieel disruptief. Firefox implementeert momenteel geen downloads.onDeterminingFilename, dus Save In annuleert het origineel en start een vervanging. Deze optie verdwijnt automatisch als Firefox de native API toevoegt. POST-downloads, verlopende URL's, headers van speciale verzoeken en sommige geverifieerde downloads kunnen mislukken."
+    "message": "Firefox mist native bestandsnaamrouting, dus Save In annuleert elke overeenkomende download en start een vervanging. Dit kan mislukken voor POST-verzoeken, verlopende URL's, aangepaste headers of geverifieerde downloads."
   },
   "o_lFirefoxFilenameApiBug": {
     "message": "Mozilla-bug 1245652"
   },
   "o_cBrowserDownloadFilter": {
-    "message": "Verwerk alleen overeenkomende download-URL's (optioneel)"
+    "message": "Voeg alleen overeenkomende download-URL's toe (optioneel)"
   },
   "o_cBrowserDownloadFilterHelp": {
-    "message": "Blank verwerkt elke gewone browserdownload. Voer anders één WebExtension-overeenkomstpatroon per regel in, zoals *://*.example.com/* of https://example.com/files/*.. Het filter is van toepassing op het bijhouden en routeren van de geschiedenis."
+    "message": "Laat dit veld leeg om elke browserdownload af te handelen, of voer één WebExtension-overeenkomstpatroon per regel in. Dit filter is van toepassing op het bijhouden en routeren van de geschiedenis."
   },
   "o_cBrowserDownloadExcludeFilter": {
     "message": "Sluit overeenkomende download-URL's uit (optioneel)"
@@ -192,7 +192,7 @@
     "message": "Browserdownloads bieden alleen de URL, voorgestelde bestandsnaam, huidige tijd, teller, UUID en MIME-variabelen. Paginatitel, pagina-URL, linktekst, selectie, menumetagegevens en sleutelmodificatoren zijn niet beschikbaar."
   },
   "o_sRenameAndRouteDownloads": {
-    "message": "Downloads hernoemen en routeren"
+    "message": "Routing en hernoemen"
   },
   "o_sNotifications": {
     "message": "Meldingen"
@@ -222,7 +222,7 @@
     "message": "Sommige videospelers gebruiken tijdelijke URL's of laden media via scripts, dus Save In detecteert mogelijk niet elke video. Soms kan het streaming video-afspeellijsten (HLS/DASH) vinden, maar deze bestanden vermelden alleen de afzonderlijke videostukken; Als u er één opslaat, wordt niet de volledige video opgeslagen."
   },
   "o_cSourcePanelEnabled": {
-    "message": "Paginabronnen inschakelen"
+    "message": "Schakel paginabronnen in"
   },
   "o_cSourcePanelBackgrounds": {
     "message": "Voeg CSS-achtergrondafbeeldingen toe"
@@ -321,7 +321,7 @@
     "message": "Zoekopties"
   },
   "o_lVariableList": {
-    "message": "Variabelenlijst"
+    "message": "Variabele lijst"
   },
   "o_lMenuPreview": {
     "message": "Menuvoorbeeld"
@@ -357,7 +357,7 @@
     "message": "Sjabloonbibliotheek"
   },
   "o_lClauseList": {
-    "message": "Clausulelijst"
+    "message": "Clausule lijst"
   },
   "o_lGithub": {
     "message": "GitHub"
@@ -399,7 +399,7 @@
     "message": "Klik om te onthullen"
   },
   "o_lAccessKeysInstruction": {
-    "message": "Stel toegangssleutels in voor Save In menu-items."
+    "message": "Toegangstoetsen instellen voor menu-items Save In."
   },
   "o_cLastUsedMenu": {
     "message": "Toon het laatst gebruikte menu-item"
@@ -423,16 +423,16 @@
     "message": "Toon Save In acties in het tabbladmenu"
   },
   "o_cSaveTabstripHelp": {
-    "message": "Slaat een tabblad, tabbladgroep of tabbladen naar rechts op"
+    "message": "Slaat een tabblad, tabbladgroep of tabbladen aan de rechterkant op"
   },
   "o_cOpenDialog": {
     "message": "Altijd vragen waar moet worden opgeslagen"
   },
   "o_cOpenDialogNoExt": {
-    "message": "De bestandsnaam heeft geen extensie"
+    "message": "Bestandsnaam heeft geen extensie"
   },
   "o_cOpenDialogShift": {
-    "message": "Shift wordt vastgehouden tijdens het kiezen van een menu-item"
+    "message": "Je houdt Shift ingedrukt terwijl je een menu-item kiest"
   },
   "o_cOpenDialogOnFailure": {
     "message": "Een download mislukt"
@@ -444,28 +444,28 @@
     "message": "Overschrijven"
   },
   "o_cDupePrompt": {
-    "message": "Vraag het mij"
+    "message": "Vraag het elke keer"
   },
   "o_cDupeFilename": {
     "message": "Wanneer er al een bestand bestaat:"
   },
   "o_cOpenDialogIfNoRulesMatch": {
-    "message": "Open een dialoogvenster voor het opslaan van bestanden als er geen regels overeenkomen"
+    "message": "Vraag waar u wilt opslaan als er geen routeringsregels overeenkomen"
   },
   "o_cExclusiveMode": {
-    "message": "Gebruik uitsluitend regels voor routering en hernoemen"
+    "message": "Een overeenkomende routeringsregel vereisen"
   },
   "o_cExclusiveModeHelp": {
-    "message": "Schakelt het submenu uit voor downloads met twee klikken, slaat op ten opzichte van de standaard downloadmap"
+    "message": "Verbergt het submenu van de map en slaat relatief ten opzichte van de standaard downloadmap op"
   },
   "o_cNotifySuccess": {
-    "message": "Toon melding bij succesvolle download"
+    "message": "Melding wanneer een download slaagt"
   },
   "o_cNotifyFailure": {
-    "message": "Toon melding bij mislukte download"
+    "message": "Melding wanneer een download mislukt"
   },
   "o_cNotifyMatch": {
-    "message": "Toon melding bij een regelmatch"
+    "message": "Geef een melding wanneer een routeringsregel overeenkomt"
   },
   "o_cSaveShortcutsAs": {
     "message": "Snelkoppelingen opslaan als"
@@ -495,7 +495,7 @@
     "message": "Sla pagina's in plaats daarvan op als snelkoppelingen"
   },
   "o_cSaveShortcutsTabsInstead": {
-    "message": "Tabbladen opslaan als snelkoppelingen (via het contextmenu van een tabblad)"
+    "message": "Tabbladen opslaan als snelkoppelingen (vanuit het tabbladcontextmenu)"
   },
   "o_cKeyboardShortcutSaveInMenu": {
     "message": "Save In contextmenu-item"
@@ -507,13 +507,13 @@
     "message": "Voeg numerieke sneltoetsen toe aan contextsubmenu-items"
   },
   "o_cKeyboardShortcutClickToSave": {
-    "message": "Klik om op te slaan inschakelen"
+    "message": "Schakel klikken om op te slaan in"
   },
   "o_cKeyboardShortcutClickToHelp": {
-    "message": "Houd Alt (standaard) ingedrukt en klik op afbeeldingen of media om ze op te slaan in de laatst gebruikte map of de standaard downloadmap. Injecteert een script in pagina's om te luisteren naar klikgebeurtenissen. Bij gebruik hiervan zijn niet alle variabelen beschikbaar. Vereist paginavernieuwing om van kracht te worden."
+    "message": "Houd standaard Alt ingedrukt en klik op een afbeelding of media-item om het op te slaan in de laatst gebruikte map of de standaarddownloadmap. Save In voegt een klikluisteraar toe aan pagina's; sommige variabelen zijn niet beschikbaar."
   },
   "o_cHostPermissionMissing": {
-    "message": "Save In heeft geen toegang tot pagina-inhoud. Klikken om op te slaan werkt pas nadat u toegang tot alle websites hebt verleend."
+    "message": "Save In heeft geen toegang tot pagina-inhoud. Verleen toegang tot alle sites om click-to-save te gebruiken."
   },
   "o_cHostPermissionGrant": {
     "message": "Toegang verlenen"
@@ -534,16 +534,16 @@
     "message": "Vooruitknop (5)"
   },
   "o_cKeyboardShortcutModifierHelp": {
-    "message": "Houd de geselecteerde modifiers ingedrukt terwijl u op de gekozen muisknop klikt. Kies Geen in beide modificatievelden om alleen de muisknop te gebruiken. Wijzigingen zijn van toepassing op bestaande pagina's."
+    "message": "Houd de geselecteerde modificatietoetsen ingedrukt terwijl u op de gekozen muisknop klikt. Kies Geen voor beide modifiers om alleen de muisknop te gebruiken. Wijzigingen zijn van toepassing op bestaande pagina's."
   },
   "o_cRestoreDefaults": {
-    "message": "Standaardinstellingen herstellen"
+    "message": "Standaardwaarden herstellen"
   },
   "o_cTruncatePath": {
-    "message": "Kap de padcomponenten af tot zoveel tekens"
+    "message": "Maximaal aantal tekens per mapnaam"
   },
   "o_cTruncatePathHelp": {
-    "message": "0 = geen afkapping"
+    "message": "0 betekent geen limiet"
   },
   "o_cReplaceInvalidCharsWith": {
     "message": "Vervang ongeldige tekens door"
@@ -552,31 +552,31 @@
     "message": "Laat leeg om te verwijderen. Ongeldige vervangende tekens worden genegeerd."
   },
   "o_cAppendMimeExtension": {
-    "message": "Voeg een bestandsextensie toe als de bestandsnaam er geen heeft"
+    "message": "Voeg een extensie toe als de bestandsnaam er geen heeft"
   },
   "o_cAppendMimeExtensionHelp": {
-    "message": "Voor URL's zonder extensie of met een query-achtervoegsel leidt u de extensie af van het Content-Type van de server (via HEAD, met een door de hoofdtekst geannuleerde GET-fallback). Voegt alleen een kleine vertraging toe als de naam er geen heeft."
+    "message": "Voor URL's zonder extensie leidt u er een af van de Content-Type van de server. Dit voegt alleen een kleine vertraging toe als dat nodig is."
   },
   "o_cFallbackFetch": {
-    "message": "Probeer mislukte downloads opnieuw op de achtergrond"
+    "message": "Probeer mislukte downloads één keer opnieuw op de achtergrond"
   },
   "o_cFallbackFetchHelp": {
-    "message": "Wanneer een download mislukt vanwege een netwerk- of serverfout, probeer het dan één keer opnieuw door het op de achtergrond op te halen voordat u de fout meldt."
+    "message": "Probeert opnieuw netwerk- of serverfouten voordat de fout wordt gerapporteerd."
   },
   "o_cFetchViaFetchAPI": {
-    "message": "Downloaden via de extensie (Fetch API)"
+    "message": "Downloaden via Save In"
   },
   "o_cFetchViaFetchAPIHelp": {
-    "message": "Haalt het bestand zelf op en geeft het resultaat aan de browser, in plaats van de downloader van de browser naar de URL te verwijzen. Schakel het alleen in als normale downloads mislukken. Sommige servers blokkeren het verzoek van de browser of retourneren een leeg bestand. Het is langzamer en in Chrome wordt het bestand tijdens het opslaan in het geheugen bewaard, dus vermijd dit bij zeer grote downloads."
+    "message": "Save In haalt het bestand op en geeft het door aan de browser. Gebruik dit alleen als normale downloads mislukken. Het is langzamer en Chrome houdt het bestand in het geheugen tijdens het opslaan, dus vermijd dit voor zeer grote bestanden."
   },
   "o_cIncludeFetchCredentials": {
-    "message": "Website-inlogcookies gebruiken voor extensieverzoeken"
+    "message": "Inclusief aanmeldingscookies voor websites"
   },
   "o_cIncludeFetchCredentialsHelp": {
-    "message": "Standaard ingeschakeld voor niet-privé opslaan. Omvat toepasselijke cookies en browserbeheerde authenticatie bij Fetch- en HEAD-verzoeken op de achtergrond, inclusief op omleidingsbestemmingen; schakel dit uit om deze verzoeken anoniem te doen. Verzoeken om privévensterextensies zijn altijd anoniem omdat de gedeelde achtergrond geen privé-cookie-opslag kan selecteren. Directe browserdownloads beheren hun eigen cookies."
+    "message": "Omvat toepasselijke cookies en browserbeheerde aanmelding wanneer Save In bestanden op de achtergrond ophaalt, ook na omleidingen. Verzoeken in een privévenster blijven anoniem. Directe browserdownloads beheren hun eigen inloggegevens."
   },
   "o_cSetRefererHeader": {
-    "message": "Stel de header 'Referer' in op de pagina-URL als deze ontbreekt"
+    "message": "Gebruik de pagina-URL als verwijzing als deze ontbreekt"
   },
   "o_cSetRefererHeaderHelp": {
     "message": "Alleen Firefox. Sommige sites (bijvoorbeeld pixiv.net) weigeren downloads zonder een HTTP Referer-header. Voor overeenkomende downloads verzendt Firefox de pagina-URL rechtstreeks als verwijzing. Laat het uitgeschakeld tenzij een site dit nodig heeft."
@@ -597,10 +597,10 @@
     "message": "Schakel uitgebreide logboekregistratie voor ontwikkelaars in"
   },
   "o_cLastSavedAt": {
-    "message": "Instellingen bijgewerkt op: "
+    "message": "Laatst bijgewerkt: "
   },
   "o_cLastSavedAtNever": {
-    "message": "nooit"
+    "message": "Nooit"
   },
   "optionsUnsavedChanges": {
     "message": "Uw niet-opgeslagen wijzigingen negeren of doorgaan met bewerken?"
@@ -609,7 +609,7 @@
     "message": "Niet-opgeslagen wijzigingen"
   },
   "o_lDirectoryDefinitions": {
-    "message": "Definities van directorymenu's"
+    "message": "Definities van mapmenu's"
   },
   "o_lTextRules": {
     "message": "Tekstregels"
@@ -648,7 +648,7 @@
     "message": "Geen validatiefouten"
   },
   "notificationLinkPreferred": {
-    "message": "In plaats daarvan is een link gedownload"
+    "message": "In plaats daarvan het linkdoel gedownload"
   },
   "o_cPreferLinksFilterEnabled": {
     "message": "Alleen op overeenkomende pagina's"
@@ -660,13 +660,13 @@
     "message": "Voer één reguliere expressie per regel in. Patronen worden vergeleken met de pagina-URL."
   },
   "notificationBadPreferLinksPattern": {
-    "message": "Ongeldige regex voor voorkeurslinks"
+    "message": "Ongeldige reguliere expressie voor voorkeurslinks"
   },
   "o_cNotifyLinkPreferred": {
-    "message": "Toon melding wanneer een link is gedownload in plaats van de bron"
+    "message": "Waarschuw wanneer een linkdoel wordt gedownload in plaats van ingebedde media"
   },
   "o_cCloseTabOnSave": {
-    "message": "Sluit elk tabblad nadat het is opgeslagen"
+    "message": "Sluit elk tabblad nadat u het hebt opgeslagen"
   },
   "o_lClickToSaveButton": {
     "message": "Klik om op te slaan muisknop"
@@ -678,10 +678,10 @@
     "message": "Bestandsnamen"
   },
   "o_sAdvancedDownloading": {
-    "message": "Downloaden"
+    "message": "Afhandeling van downloaden"
   },
   "o_sAdvancedCounter": {
-    "message": "Teller"
+    "message": "Teller downloaden"
   },
   "o_sAdvancedBackupReset": {
     "message": "Back-up en reset"
@@ -696,9 +696,912 @@
     "message": "Wijzigingen in deze editor worden opgeslagen wanneer u Toepassen selecteert."
   },
   "o_lReferenceNavigation": {
-    "message": "Referentienavigatie"
+    "message": "Referentiepagina's"
   },
   "o_lFilterReference": {
     "message": "Filter"
+  },
+  "html_aboutSaveIn": {
+    "message": "Over Save In"
+  },
+  "html_absolutePathsAndHiddenPathSegmentsSuchAs": {
+    "message": ", absolute paden en verborgen padsegmenten zoals"
+  },
+  "html_add": {
+    "message": ". Toevoegen"
+  },
+  "html_addACommentThatIsNotDisplayed": {
+    "message": "Voeg een opmerking toe die niet wordt weergegeven"
+  },
+  "html_addDestinations": {
+    "message": "Bestemmingen toevoegen"
+  },
+  "html_addsOneNestingLevel": {
+    "message": "voegt één nestniveau toe."
+  },
+  "html_areNotSupported": {
+    "message": "worden niet ondersteund."
+  },
+  "html_askAnAiAgentToDraftADownloadsMenu": {
+    "message": "Vraag een AI-agent om een mapmenu op te stellen"
+  },
+  "html_assignAnAccessKey": {
+    "message": "Wijs een toegangssleutel toe"
+  },
+  "html_atTheEndForACommentStartWith": {
+    "message": "aan het einde voor een commentaar; beginnen met"
+  },
+  "html_browsersOnlyLetExtensionsSaveInsideTheDefault": {
+    "message": "Browsers laten extensies alleen binnen de standaardinstellingen opslaan"
+  },
+  "html_buildTheDestinationsAndSubmenusShownInSaveIn": {
+    "message": "Kies de mappen en submenu's die worden weergegeven in het contextmenu van Save In."
+  },
+  "html_butShowsCatPictures": {
+    "message": ", maar toont 'Kattenfoto's'."
+  },
+  "html_changeADisplayedName": {
+    "message": "Wijzig een weergegeven naam"
+  },
+  "html_changeTheDisplayedName": {
+    "message": "Wijzig de weergegeven naam"
+  },
+  "html_copyThisPromptThenReplaceTheExampleDestinations": {
+    "message": "Kopieer deze prompt en vervang vervolgens de voorbeeldbestemmingen."
+  },
+  "html_createASubmenu": {
+    "message": "Maak een submenu"
+  },
+  "html_createsTwoSelectableRowsInTheDownloadsMenu": {
+    "message": "Creëert twee mappen in het menu Locaties opslaan."
+  },
+  "html_defaultDownloadsDirectory": {
+    "message": "standaardmap Downloads"
+  },
+  "html_directoryEditorMode": {
+    "message": "Mapeditor-modus"
+  },
+  "html_discussions": {
+    "message": "Discussies"
+  },
+  "html_downloadsFolder": {
+    "message": "Map Downloads"
+  },
+  "html_each": {
+    "message": "Elk"
+  },
+  "html_eachLineAddsADestinationRelativeToYourBrowser": {
+    "message": "Elke regel voegt een bestemming toe ten opzichte van die van uw browser"
+  },
+  "html_forExample": {
+    "message": "Bijvoorbeeld"
+  },
+  "html_howToCreateDestinations": {
+    "message": "Bestemmingen aanmaken"
+  },
+  "html_insertionReferences": {
+    "message": "Invoegreferenties"
+  },
+  "html_issues": {
+    "message": "Problemen"
+  },
+  "html_itself": {
+    "message": "zelf"
+  },
+  "html_moreMenuSyntax": {
+    "message": "Meer menusyntaxis"
+  },
+  "html_oneRelativeDirectoryOrMenuInstructionPerLineDownloads": {
+    "message": "Voer één relatieve map- of menu-instructie per regel in. Bestanden worden relatief ten opzichte van de"
+  },
+  "html_openTheDefaultDownloadsDirectory": {
+    "message": "Open de standaardmap Downloads"
+  },
+  "html_pathsContaining": {
+    "message": "Paden bevatten"
+  },
+  "html_perLevel": {
+    "message": "per niveau."
+  },
+  "html_saveInWiki": {
+    "message": "Save In-wiki"
+  },
+  "html_savesTo": {
+    "message": "Opslaan naar"
+  },
+  "html_savingOutsideTheDownloadsFolder": {
+    "message": "Opslaan buiten de map Downloads"
+  },
+  "html_separateGroups": {
+    "message": "Aparte groepen"
+  },
+  "html_settingsSaveIn": {
+    "message": "Instellingen — Save In"
+  },
+  "html_templates": {
+    "message": "Sjablonen"
+  },
+  "html_the": {
+    "message": "De"
+  },
+  "html_toCreateNestedSubmenusUsingOne": {
+    "message": "om geneste submenu's te maken, met behulp van één"
+  },
+  "html_toReachAnotherLocationCreateASymlinkInsideDownloads": {
+    "message": ". Om een andere locatie te bereiken, maakt u een symlink binnen Downloads en gebruikt u dat relatieve symlinkpad als bestemming. De doelmap moet al bestaan."
+  },
+  "html_useAVariable": {
+    "message": "Gebruik een variabele"
+  },
+  "html_wiki": {
+    "message": "Wiki"
+  },
+  "html_add2": {
+    "message": "Toevoegen"
+  },
+  "html_advancedUseCaptureGroups": {
+    "message": "Geavanceerd: gebruik capture-groepen"
+  },
+  "html_andItsSubdomainsUse": {
+    "message": "en zijn subdomeinen. Gebruik"
+  },
+  "html_andLaterGroupsIn": {
+    "message": ", en later groepen erin"
+  },
+  "html_askAnAiAgentToDraftRoutingRules": {
+    "message": "Vraag een AI-agent om routeringsregels op te stellen"
+  },
+  "html_automaticallyMoveOrRenameDownloadsWhenTheirFilenameSource": {
+    "message": "Verplaats of hernoem downloads automatisch wanneer hun bestandsnaam, bron, pagina of context overeenkomt."
+  },
+  "html_becomes": {
+    "message": "wordt"
+  },
+  "html_clauseAndVariableReference": {
+    "message": "Clausule- en variabelereferentie"
+  },
+  "html_copyThisPromptIntoAnAgentOrUseWebmcp": {
+    "message": "Kopieer deze prompt naar een agent of gebruik WebMCP van externe integraties."
+  },
+  "html_destination": {
+    "message": "bestemming."
+  },
+  "html_destinationsAreRelativeToTheDownloadsMenuDestinationYou": {
+    "message": "Bestemmingen zijn relatief ten opzichte van de map die u hebt geselecteerd. Matcher-waarden zijn reguliere expressies; zie de"
+  },
+  "html_enterOneUrlLikeBrowserMatchPatternPerLine": {
+    "message": "Voer één URL-achtig browserovereenkomstpatroon per regel in. Het heeft een schema, host en pad:"
+  },
+  "html_everyMatcherInARuleMustMatch": {
+    "message": "Elke matcher in een regel moet matchen."
+  },
+  "html_everyRuleMustEndWithAn": {
+    "message": "Elke regel moet eindigen met een"
+  },
+  "html_filterClauses": {
+    "message": "Filterclausules"
+  },
+  "html_filterRoutingTemplates": {
+    "message": "Routeringssjablonen filteren"
+  },
+  "html_filterTemplates": {
+    "message": "Sjablonen filteren"
+  },
+  "html_forExample2": {
+    "message": ". Bijvoorbeeld"
+  },
+  "html_forHttpAndHttpsAndEndWith": {
+    "message": "voor HTTP en HTTPS, en eindig met"
+  },
+  "html_howDoDownloadUrlFiltersWork": {
+    "message": "Hoe werken download-URL-filters?"
+  },
+  "html_howRoutingRulesWork": {
+    "message": "Hoe routeringsregels werken"
+  },
+  "html_matchesHttpsFileUrlsOn": {
+    "message": "komt overeen met HTTPS-bestands-URL's aan"
+  },
+  "html_moveAndRenameMatchingFiles": {
+    "message": "Verplaats overeenkomende bestanden en hernoem ze"
+  },
+  "html_moveMatchingFilesAndKeepTheirNames": {
+    "message": "Verplaats overeenkomende bestanden en behoud hun namen"
+  },
+  "html_optional": {
+    "message": "Optioneel"
+  },
+  "html_parenthesesCapturePartsOfAMatcherSelectTheMatcher": {
+    "message": "Haakjes leggen delen van een matcher vast. Selecteer de matcher met"
+  },
+  "html_regularExpressionGuide": {
+    "message": "gids voor reguliere expressies"
+  },
+  "html_separateRulesWithABlankLine": {
+    "message": "Aparte regels met een lege regel."
+  },
+  "html_thenUse": {
+    "message": ", gebruik dan"
+  },
+  "html_toIncludeEveryPathThisIsNotARegular": {
+    "message": "om elk pad te omvatten. Dit is geen reguliere expressie en kan niet overeenkomen met queryparameters of een expliciete poort."
+  },
+  "html_trackAndRouteBrowserDownloads": {
+    "message": "Volg en routeer browserdownloads"
+  },
+  "html_writeOneClausePerLine": {
+    "message": "Schrijf één clausule per regel."
+  },
+  "html_all": {
+    "message": "Allemaal"
+  },
+  "html_altOption": {
+    "message": "Alt / Optie"
+  },
+  "html_applyShortcut": {
+    "message": "Snelkoppeling toepassen"
+  },
+  "html_click": {
+    "message": "Klik"
+  },
+  "html_clickToSaveShortcut": {
+    "message": "Snelkoppeling voor klikken om op te slaan"
+  },
+  "html_clickToSaveShortcutCombination": {
+    "message": "Snelkoppelingscombinatie voor klikken om op te slaan"
+  },
+  "html_columns": {
+    "message": "Kolommen"
+  },
+  "html_command": {
+    "message": "Commando"
+  },
+  "html_commandWindowsKey": {
+    "message": "Commando / Windows-toets"
+  },
+  "html_copy0LeavesDismissalToTheBrowserOrOperatingSystem": {
+    "message": "0 laat ontslag over aan de browser of het besturingssysteem."
+  },
+  "html_ctrl": {
+    "message": "Ctrl"
+  },
+  "html_dismissEarlyAfter": {
+    "message": "Daarna vroegtijdig afwijzen"
+  },
+  "html_export": {
+    "message": "Exporteren"
+  },
+  "html_filterSources": {
+    "message": "Bronnen filteren"
+  },
+  "html_historyTableTools": {
+    "message": "Gereedschappen voor geschiedenistabellen"
+  },
+  "html_image": {
+    "message": "Afbeelding"
+  },
+  "html_image128Kb1": {
+    "message": "Afbeelding · 128 KB · #1"
+  },
+  "html_images": {
+    "message": "Afbeeldingen"
+  },
+  "html_jsonCompleteData": {
+    "message": "JSON — volledige gegevens"
+  },
+  "html_key": {
+    "message": "Sleutel"
+  },
+  "html_link": {
+    "message": "Koppeling"
+  },
+  "html_links": {
+    "message": "Koppelingen"
+  },
+  "html_macctrl": {
+    "message": "MacCtrl"
+  },
+  "html_more": {
+    "message": "Meer"
+  },
+  "html_mouseOnlyLeftClickWillReplaceNormalClicksOn": {
+    "message": "Als u alleen met de muis klikt, vervangt u de normale klikken op media en koppelingen die u kunt opslaan als deze functie is ingeschakeld."
+  },
+  "html_ms": {
+    "message": "mevrouw"
+  },
+  "html_none": {
+    "message": "Geen"
+  },
+  "html_notifyMeWhen": {
+    "message": "Laat weten wanneer"
+  },
+  "html_previewOfThePageSourcesDrawer": {
+    "message": "Voorbeeld van de lade Paginabronnen"
+  },
+  "html_primaryModifier": {
+    "message": "Primaire modificator"
+  },
+  "html_saveTheseAsShortcutFiles": {
+    "message": "Opslaan als snelkoppelingsbestanden"
+  },
+  "html_secondModifier": {
+    "message": "Tweede modificator"
+  },
+  "html_selection": {
+    "message": "Selectie"
+  },
+  "html_shift": {
+    "message": "Verschuiving"
+  },
+  "html_shortcutFileBehavior": {
+    "message": "Gedrag van snelkoppelingsbestanden"
+  },
+  "html_shortcutKey": {
+    "message": "Sneltoets"
+  },
+  "html_streamHls3": {
+    "message": "Stream · HLS · #3"
+  },
+  "html_tab": {
+    "message": "Tab"
+  },
+  "html_video": {
+    "message": "Video"
+  },
+  "html_video24Mb2": {
+    "message": "Video · 2,4 MB · #2"
+  },
+  "html_advancedEditIdsAsText": {
+    "message": "Geavanceerd: bewerk ID's als tekst"
+  },
+  "html_allow": {
+    "message": "Toestaan"
+  },
+  "html_allowedExtensionIds": {
+    "message": "Toegestane extensie-ID's"
+  },
+  "html_apiVersion": {
+    "message": "API-versie"
+  },
+  "html_approvedExtensions": {
+    "message": "Goedgekeurde extensies"
+  },
+  "html_capabilities": {
+    "message": "Mogelijkheden"
+  },
+  "html_clickTheSnippetToCopyIt": {
+    "message": "Klik op het fragment om het te kopiëren."
+  },
+  "html_counterValue": {
+    "message": "Tegenwaarde"
+  },
+  "html_current": {
+    "message": "Huidig"
+  },
+  "html_currentValueOfThe": {
+    "message": "Huidige waarde van de"
+  },
+  "html_delete": {
+    "message": "verwijderen"
+  },
+  "html_developerDetails": {
+    "message": "Details van de ontwikkelaar"
+  },
+  "html_exampleNegotiateTheVersionThenSaveAUrl": {
+    "message": "Voorbeeld: onderhandel over de versie en sla vervolgens een URL op"
+  },
+  "html_extensionId": {
+    "message": "Extensie-ID"
+  },
+  "html_externalDownloadAccess": {
+    "message": "Externe downloadtoegang"
+  },
+  "html_externalIntegrations": {
+    "message": "Externe integraties"
+  },
+  "html_integrationGuide": {
+    "message": "Integratie gids"
+  },
+  "html_letTrustedExtensionsSendUrlsThroughSaveInS": {
+    "message": "Laat vertrouwde extensies URL's verzenden via de routerings- en hernoemingsregels van Save In."
+  },
+  "html_mdnMatchPatterns": {
+    "message": "MDN: Match-patronen"
+  },
+  "html_noExtensionsAreApprovedExternalDownloadsAreBlockedBy": {
+    "message": "Er worden geen verlengingen goedgekeurd. Externe downloads worden standaard geblokkeerd."
+  },
+  "html_noneApproved": {
+    "message": "Geen goedgekeurd"
+  },
+  "html_oneExtensionIdPerLine": {
+    "message": "Eén toestel-ID per lijn"
+  },
+  "html_onlyApprovedExtensionsCanStartDownloadsUseTheCalling": {
+    "message": "Alleen goedgekeurde extensies kunnen downloads starten. Gebruik de ID van het bellende toestel, niet de ID van Save In."
+  },
+  "html_pasteAnExtensionId": {
+    "message": "Plak een extensie-ID"
+  },
+  "html_pendingApproval": {
+    "message": "In afwachting van goedkeuring"
+  },
+  "html_resetTo0": {
+    "message": "Terugzetten naar 0"
+  },
+  "html_setValue": {
+    "message": "Waarde instellen"
+  },
+  "html_theseExtensionsTriedToStartADownloadAddOnly": {
+    "message": "Deze extensies probeerden een download te starten. Voeg alleen bellers toe die u vertrouwt. Opgevraagde URL's worden nooit opgeslagen."
+  },
+  "html_useOneExtensionIdPerLineForBulkChanges": {
+    "message": "Gebruik één extensie-ID per regel voor bulkwijzigingen."
+  },
+  "html_variableItAdvancesOncePerSavedDownloadAndPersists": {
+    "message": "variabel. Het gaat één keer per opgeslagen download vooruit en blijft bestaan bij opnieuw opstarten."
+  },
+  "html_webextensionsSuchAsFoxyGesturesCanMessageSaveIn": {
+    "message": "WebExtensions zoals Foxy Gestures kunnen Save In rechtstreeks een bericht sturen. Een Greasemonkey-, Tampermonkey- of Violentmonkey-gebruikersscript kan dit niet zelf doen: gebruikersscripts ontvangen geen berichtentoegang tussen verschillende extensies. Gebruik een kleine metgezel WebExtension als relay, of laat het gebruikersscript de URL doorgeven aan een extensie die die mogelijkheid blootlegt."
+  },
+  "html_whereThisWorks": {
+    "message": "Waar dit werkt"
+  },
+  "html_askTheCommunity": {
+    "message": "Vraag het aan de gemeenschap"
+  },
+  "html_aVeryDiligentOrganizer": {
+    "message": "Een zeer ijverige organisator"
+  },
+  "html_aWatercolorLuckyCatCarefullyOrganizingDocumentsPhotographsFilm": {
+    "message": "Een aquarelgelukskat die documenten, foto's, film en boeken zorgvuldig organiseert"
+  },
+  "html_buildInformation": {
+    "message": "Bouw informatie op"
+  },
+  "html_checking": {
+    "message": "controleren…"
+  },
+  "html_clearLog": {
+    "message": "Logboek wissen"
+  },
+  "html_closeAboutSaveIn": {
+    "message": "Sluiten Over Save In"
+  },
+  "html_closeReferences": {
+    "message": "Sluit referenties"
+  },
+  "html_contextMenus": {
+    "message": "Contextmenu's"
+  },
+  "html_documentation": {
+    "message": "Documentatie"
+  },
+  "html_downloads": {
+    "message": "Downloads"
+  },
+  "html_filterCurrentReference": {
+    "message": "Filter huidige referentie"
+  },
+  "html_filterVariables": {
+    "message": "Variabelen filteren"
+  },
+  "html_findsAndSavesResourcesTheUserChoosesOnArbitrary": {
+    "message": "Vindt en bewaart bronnen die de gebruiker op willekeurige websites kiest."
+  },
+  "html_inABrowserThatSupports": {
+    "message": "In een browser die dit ondersteunt"
+  },
+  "html_keepsSettingsRoutingRulesLocalHistoryAndRestartSafe": {
+    "message": "Behoudt instellingen, routeringsregels, lokale geschiedenis en herstartveilige status."
+  },
+  "html_letsChromeConvertFetchedFileDataIntoTemporaryDownload": {
+    "message": "Laat Chrome opgehaalde bestandsgegevens converteren naar tijdelijke download-URL's."
+  },
+  "html_loadingClauses": {
+    "message": "Clausules laden…"
+  },
+  "html_loadingVariables": {
+    "message": "Variabelen laden…"
+  },
+  "html_luckyOrganizingCat": {
+    "message": "Gelukkige organiserende kat"
+  },
+  "html_messageFirstOrASmallRelayExtensionMustDo": {
+    "message": " bericht, of een kleine relaisextensie moet dit doen. Video DownloadHelper biedt geen stabiele integratie-API die Save In rechtstreeks kan aanroepen."
+  },
+  "html_offscreen": {
+    "message": "Buiten het scherm"
+  },
+  "html_privacyPolicy": {
+    "message": "Privacybeleid"
+  },
+  "html_references": {
+    "message": "Referenties"
+  },
+  "html_referenceType": {
+    "message": "Referentietype"
+  },
+  "html_refreshLog": {
+    "message": "Vernieuw logboek"
+  },
+  "html_reportAnIssue": {
+    "message": "Rapporteer een probleem"
+  },
+  "html_reportsCompletedSavesAndActionableFailuresWhenEnabled": {
+    "message": "Rapporteert voltooide opslagbewerkingen en bruikbare fouten indien ingeschakeld."
+  },
+  "html_saveInDoesNotAdoptDownloadsThatAnotherExtension": {
+    "message": "Save In neemt geen downloads over die al door een andere extensie zijn gestart, inclusief Video DownloadHelper. De downloader moet eerst Save In een"
+  },
+  "html_saveInHasNoAnalyticsAdvertisingDeveloperOperatedServer": {
+    "message": "Save In heeft geen analyses, advertenties, door ontwikkelaars bediende servers of op afstand uitvoerbare code. Instellingen en geschiedenis blijven in de door de browser beheerde extensieopslag."
+  },
+  "html_saveInIsALocalFirstDownloadsHelperFor": {
+    "message": "Save In is een lokaal werkende downloadhulp voor het ordenen van bestanden met contextmenumappen, routeringsregels, hernoemen, paginabronnen en downloadgeschiedenis."
+  },
+  "html_saveInRegistersToolsAnAiAgentCanCall": {
+    "message": ", registreert Save In tools die een AI-agent kan aanroepen terwijl deze optiepagina geopend is: om instellingen te wijzigen, mapmenu's samen te stellen en routeringsregels te schrijven."
+  },
+  "html_showsSaveInCommandsOnPagesLinksMediaAnd": {
+    "message": "Toont Save In-opdrachten op pagina's, links, media en tabbladen."
+  },
+  "html_startsSavesChoosesFilenamesMonitorsResultsAndSupportsRetries": {
+    "message": "Start het opslaan, kiest bestandsnamen, bewaakt de resultaten en ondersteunt nieuwe pogingen."
+  },
+  "html_storage": {
+    "message": "Opslag"
+  },
+  "html_theSessionLogBelowAlwaysKeepsASmallLocal": {
+    "message": "In het onderstaande sessielogboek wordt altijd een klein lokaal overzicht bijgehouden van recente fouten. Schakel dit alleen in bij het oplossen van problemen met de browserontwikkelaarsconsole; het voegt uitgebreide interne details toe en wordt na het opnieuw opstarten gereset naar de opgeslagen instelling."
+  },
+  "html_toConnectOpenThisPageInABrowserThat": {
+    "message": "Om verbinding te maken: open deze pagina in een browser die WebMCP ondersteunt, houd deze open en wijs uw browseragent naar dit tabblad. Vraag het in gewone taal, b.v. “sorteer mijn downloads in mappen op website en datum, nummer elk bestand en laat het me alleen weten als er één mislukt.”"
+  },
+  "html_tools": {
+    "message": "Gereedschap"
+  },
+  "html_version": {
+    "message": "Versie"
+  },
+  "html_websiteAccess": {
+    "message": "Toegang tot websites"
+  },
+  "html_whyThesePermissionsAreNeeded": {
+    "message": "Waarom deze machtigingen nodig zijn"
+  },
+  "html_alsoWorks": {
+    "message": "werkt ook)"
+  },
+  "html_amOrPmLocalTime": {
+    "message": "am of pm (lokale tijd)"
+  },
+  "html_attributeOfElement": {
+    "message": "attribuut van element"
+  },
+  "html_currentDate": {
+    "message": "Huidige datum"
+  },
+  "html_currentDatetimeAsAUnixTimestamp": {
+    "message": "Huidige datum en tijd als Unix-tijdstempel"
+  },
+  "html_currentDatetimeAsAUtcIso8601String": {
+    "message": "Huidige datum en tijd als een UTC ISO 8601-tekenreeks"
+  },
+  "html_currentDayOfMonth": {
+    "message": "Huidige dag van de maand"
+  },
+  "html_currentDayOfWeekEnglish": {
+    "message": "Huidige dag van de week (Engels)"
+  },
+  "html_currentHour24Hour": {
+    "message": "Huidig uur (24 uur)"
+  },
+  "html_currentMinute": {
+    "message": "Huidige minuut"
+  },
+  "html_currentMonth": {
+    "message": "Huidige maand"
+  },
+  "html_currentMonthNameEnglish": {
+    "message": "Naam van de huidige maand (Engels)"
+  },
+  "html_currentSecond": {
+    "message": "Huidige tweede"
+  },
+  "html_currentYear": {
+    "message": "Huidig jaar"
+  },
+  "html_hostnameOfThePage": {
+    "message": "Hostnaam van de pagina"
+  },
+  "html_hostnameOfTheSource": {
+    "message": "Hostnaam van de bron"
+  },
+  "html_iso8601WeekNumber": {
+    "message": "ISO 8601 weeknummer ("
+  },
+  "html_lastLabelOfTheSourceHostname": {
+    "message": "Laatste label van de bronhostnaam"
+  },
+  "html_pageHostnameWithoutSubdomains": {
+    "message": "Hostnaam van pagina zonder subdomeinen"
+  },
+  "html_pageTitleLowercasedAndDashed": {
+    "message": "Paginatitel, in kleine letters en met streepjes"
+  },
+  "html_pageTitleLowercasedWithUnderscores": {
+    "message": "Paginatitel, kleine letters met onderstrepingstekens"
+  },
+  "html_pathPartOfTheSourceUrlSeparatorsAreSanitized": {
+    "message": "Padgedeelte van de bron-URL (scheidingstekens zijn opgeschoond)"
+  },
+  "html_sourceHostnameWithoutSubdomains": {
+    "message": "Bronhostnaam zonder subdomeinen"
+  },
+  "html_standard": {
+    "message": "Standaard"
+  },
+  "html_textOfTheLinkOr": {
+    "message": "Tekst van de link, of"
+  },
+  "html_theCurrentlySelectedTextOnThePage": {
+    "message": "De momenteel geselecteerde tekst op de pagina"
+  },
+  "html_theNaiveFilenameUrlBasedUseTheRoutingFeature": {
+    "message": "Bestandsnaam afgeleid van de URL. Gebruik routeringsregels als dit onnauwkeurig is."
+  },
+  "html_titleOfThePage": {
+    "message": "Titel van de pagina"
+  },
+  "html_urlOfThePage": {
+    "message": "URL van de pagina"
+  },
+  "html_urlOfTheSource": {
+    "message": "URL van de bron"
+  },
+  "html_usableEverywhere": {
+    "message": "Overal bruikbaar"
+  },
+  "html_variablesAreUsedInDirectoryAndPathPatterns": {
+    "message": "Variabelen worden gebruikt in map- en bestandsnaampatronen."
+  },
+  "html_actualResolvedFilenameExtensionAlias": {
+    "message": "Werkelijk opgeloste bestandsnaamextensie. Alias:"
+  },
+  "html_aRandomV4UuidUniquePerUse": {
+    "message": "Een willekeurige v4 UUID, uniek per gebruik"
+  },
+  "html_autoIncrementingNumberThatAdvancesOncePerSavedDownload": {
+    "message": "Aantal dat toeneemt na elke opgeslagen download en blijft bestaan bij opnieuw opstarten. Bekijk of reset het onder Downloadteller."
+  },
+  "html_blankIfTheServerDoesnTAnswer": {
+    "message": " en is leeg als deze niet beschikbaar is."
+  },
+  "html_captureGroupWhere": {
+    "message": "Tekst vastgelegd per groep"
+  },
+  "html_charactersForDeeperNesting": {
+    "message": "tekens voor diepere nesting"
+  },
+  "html_createsASeparatorInTheContextMenu": {
+    "message": "Creëert een scheidingsteken in het contextmenu"
+  },
+  "html_createsASubmenuItemAddMore": {
+    "message": "Creëert een submenu-item; voeg meer toe"
+  },
+  "html_fileExtensionDerivedFromThe": {
+    "message": "Bestandsextensie afgeleid van de"
+  },
+  "html_first12LowercaseHexCharactersOfTheDownloadedFile": {
+    "message": "Eerste 12 kleine hexadecimale tekens van de SHA-256 van het gedownloade bestand. Als u deze waarde voorbereidt, wordt het bestand opgehaald en gehasht voordat het wordt opgeslagen, zodat het leeg is in voorbeelden of wanneer het niet beschikbaar is. Het downloaden gaat door als het hashen mislukt. Je kunt een lange voorbereiding annuleren vanuit Geschiedenis."
+  },
+  "html_full64CharacterLowercaseSha256ItSharesThe": {
+    "message": "Volledige kleine letters van 64 tekens SHA-256. Het wordt samen met berekend"
+  },
+  "html_fullActualFilenameAfterContentDisposition": {
+    "message": "Bestandsnaam opgelost, inclusief Content-Disposition"
+  },
+  "html_handyForExtensionlessOrQuerySuffixedUrls": {
+    "message": ". Handig voor URL's zonder extensie of met een query-achtervoegsel."
+  },
+  "html_menuStructure": {
+    "message": "Menustructuur"
+  },
+  "html_onlyUsableWhenRoutingAndRewritingFilenames": {
+    "message": "Alleen beschikbaar bij het routeren of hernoemen van bestanden"
+  },
+  "html_routingAndFilenamesOnly": {
+    "message": "Alleen routering en bestandsnamen"
+  },
+  "html_specialRowsUsedOnlyInTheDownloadsMenu": {
+    "message": "Speciale rijen die alleen worden gebruikt in het menu Locaties opslaan"
+  },
+  "html_theN": {
+    "message": "; vervang 1 door het groepsnummer."
+  },
+  "html_theServerS": {
+    "message": "Van de server"
+  },
+  "html_theUrlAfterFollowingRedirectsViaTheSameHead": {
+    "message": "De URL na het volgen van omleidingen. Het gebruikt hetzelfde verzoek als"
+  },
+  "html_urlDerivedExtensionAlias": {
+    "message": "Van URL afkomstige extensie. Alias:"
+  },
+  "html_viaAHeadRequestAddsASmallDelayAnd": {
+    "message": ". Dit voegt een kleine vertraging toe en is leeg als het niet beschikbaar is."
+  },
+  "html_whenBothVariablesAreUsed": {
+    "message": "wanneer beide variabelen worden gebruikt."
+  },
+  "html_attribute": {
+    "message": "attribuut."
+  },
+  "html_clausesAreOnlyUsedInRuleDefinitionsForRouting": {
+    "message": "Routingregels gebruiken clausules om te beslissen welke downloads moeten worden verplaatst of hernoemd."
+  },
+  "html_firefox": {
+    "message": "(Alleen Firefox)."
+  },
+  "html_forCaseInsensitiveMatching": {
+    "message": "voor hoofdletterongevoelige overeenkomsten."
+  },
+  "html_forExplicitNewRules": {
+    "message": "bij nieuwe regels."
+  },
+  "html_matcherClausesUse": {
+    "message": "Matcher-clausules worden gebruikt"
+  },
+  "html_matchers": {
+    "message": "Matchers"
+  },
+  "html_matchesTheCommentOfTheClickedMenuItem": {
+    "message": "Komt overeen met de opmerking van het geselecteerde menu-item."
+  },
+  "html_matchesTheCurrentPageTitle": {
+    "message": "Komt overeen met de huidige paginatitel."
+  },
+  "html_matchesTheCurrentPageUrl": {
+    "message": "Komt overeen met de huidige pagina-URL."
+  },
+  "html_matchesTheFinalFilename": {
+    "message": "Komt overeen met de uiteindelijke bestandsnaam."
+  },
+  "html_matchesTheLinkTextOrElement": {
+    "message": "Komt overeen met de linktekst of die van het element"
+  },
+  "html_matchesTheMediaType": {
+    "message": "Komt overeen met het mediatype:"
+  },
+  "html_matchesTheMenuIndexOfTheClickedMenuItem": {
+    "message": "Komt overeen met de index van het geselecteerde menu-item (1, 2, 3…)."
+  },
+  "html_matchesTheNaiveFilename": {
+    "message": "Komt overeen met de bestandsnaam die is afgeleid van de URL."
+  },
+  "html_matchesThePageHostname": {
+    "message": "Komt overeen met de hostnaam van de pagina."
+  },
+  "html_matchesTheResolvedFilenameExtensionAfterContentDisposition": {
+    "message": "Komt overeen met de opgeloste bestandsnaamextensie, inclusief Content-Disposition."
+  },
+  "html_matchesTheSelectionText": {
+    "message": "Komt overeen met de geselecteerde tekst."
+  },
+  "html_matchesTheSourceHostnameForMedia": {
+    "message": "Komt overeen met de hostnaam van de mediabron."
+  },
+  "html_matchesTheSourceUrlForMedia": {
+    "message": "Komt overeen met de URL van de mediabron."
+  },
+  "html_matchesTheUrlDerivedExtensionLegacyNameUse": {
+    "message": "Komt overeen met de van de URL afkomstige extensie (verouderde naam). Gebruik"
+  },
+  "html_matchesTheUrlOfTheCurrentFrame": {
+    "message": "Komt overeen met de huidige frame-URL."
+  },
+  "html_matchesWhatIsClicked": {
+    "message": "Komt overeen met waarop is geklikt:"
+  },
+  "html_or": {
+    "message": ", of"
+  },
+  "html_outputAndCapture": {
+    "message": "Uitvoer en opname"
+  },
+  "html_regularExpression": {
+    "message": "reguliere expressies"
+  },
+  "html_renamingTheFileKeepsItsOwnNameEG": {
+    "message": "hernoemen: het bestand behoudt zijn huidige naam (bijvoorbeeld"
+  },
+  "html_required": {
+    "message": "Vereist"
+  },
+  "html_routesDownloadsToOrRewritesDownloadFilenamesIntoThe": {
+    "message": "Verplaatst een download naar het opgegeven pad of hernoemt deze met het opgegeven patroon. Eindig met"
+  },
+  "html_selectsTheMatcherForRegexCaptureGroupVariables": {
+    "message": "Selecteert de matcher waarvan de opnamegroepen met reguliere expressies beschikbaar zijn"
+  },
+  "html_splitMultipleCaptureTargetsWithA": {
+    "message": ". Scheid meerdere veroveringsdoelen met"
+  },
+  "html_stringsAddJavascriptRegexFlagsAfterTheMatcherName": {
+    "message": ". Voeg JavaScript-vlaggen toe na de naam van de matcher; gebruik bijvoorbeeld"
+  },
+  "html_toRouteIntoAFolder": {
+    "message": "om het naar een map te verplaatsen"
+  },
+  "html_without": {
+    "message": "zonder"
+  },
+  "o_lShortcutEnterOrReset": {
+    "message": "Voer een snelkoppeling in of gebruik Reset."
+  },
+  "o_lShortcutFormat": {
+    "message": "Gebruik een formaat zoals Ctrl+Shift+G."
+  },
+  "o_lShortcutPrimaryModifier": {
+    "message": "Neem Ctrl, Alt, Command of MacCtrl op als modifier."
+  },
+  "o_lShortcutAddKey": {
+    "message": "Voeg een sleutel toe na de modifier."
+  },
+  "o_lShortcutOneKey": {
+    "message": "Gebruik één sleutel met uw modifiers."
+  },
+  "o_lShortcutValidKey": {
+    "message": "Kies een geldige sleutel, zoals Y, 5, F12 of PageDown."
+  },
+  "o_lShortcutNoRepeats": {
+    "message": "Herhaal geen toetsen of modificatoren."
+  },
+  "o_lShortcutReady": {
+    "message": "Klaar om te solliciteren."
+  },
+  "o_lShortcutChangeUnsupported": {
+    "message": "Deze browser ondersteunt het wijzigen van snelkoppelingen hier niet."
+  },
+  "o_lShortcutRejected": {
+    "message": "De browser accepteerde deze snelkoppeling niet. Het kan gereserveerd zijn of in gebruik."
+  },
+  "o_lShortcutUpdated": {
+    "message": "Snelkoppeling bijgewerkt."
+  },
+  "o_lShortcutResetUnsupported": {
+    "message": "Deze browser ondersteunt het opnieuw instellen van snelkoppelingen hier niet."
+  },
+  "o_lShortcutReset": {
+    "message": "Sneltoets opnieuw instellen."
+  },
+  "o_lShortcutLegacyValue": {
+    "message": "Verouderde waarde: $VALUE$",
+    "placeholders": {
+      "value": {
+        "content": "$1",
+        "example": "Alt"
+      }
+    }
+  },
+  "o_lAccessKeyInvalid": {
+    "message": "Gebruik één letter of cijfer. Bestaande opgeslagen waarden blijven ondersteund totdat ze worden gewijzigd."
+  },
+  "o_lShortcutFormatAnyBrowser": {
+    "message": "Werkt in elke browser"
+  },
+  "o_lShortcutFormatLegacyInternet": {
+    "message": "Verouderde internetsnelkoppeling"
+  },
+  "o_lShortcutFormatMac": {
+    "message": "Native macOS-snelkoppeling"
+  },
+  "o_lShortcutFormatWindows": {
+    "message": "Windows Internetsnelkoppeling"
+  },
+  "o_lShortcutFormatLinux": {
+    "message": "Linux snelkoppeling op het bureaublad"
   }
 }

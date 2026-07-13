@@ -1,9 +1,9 @@
 {
   "extensionName": {
-    "message": "Save In…"
+    "message": "Save In"
   },
   "extensionDescription": {
-    "message": "Speichert {Bild, Video, Audio, Links, Auswahl, Seite} in Verzeichnissen relativ zum Standard-Download-Verzeichnis."
+    "message": "Speichert Bilder, Videos, Audio, Links, ausgewählten Text und Seiten in Ordnern innerhalb Ihres Standard-Download-Ordners."
   },
   "translationCredits": {
     "message": "​"
@@ -15,10 +15,10 @@
     "message": "Optionen"
   },
   "contextMenuToggleSourcePanel": {
-    "message": "Seitenquellen umschalten"
+    "message": "Seitenquellen ein- oder ausblenden"
   },
   "contextMenuExclusive": {
-    "message": "Mit Save In weiterleiten…"
+    "message": "Mit einer Routing-Regel speichern…"
   },
   "contextMenuRoot": {
     "message": "Save In…"
@@ -33,13 +33,13 @@
     "message": "Medien oder Link"
   },
   "contextMenuContextSelection": {
-    "message": "Auswahltext"
+    "message": "Ausgewählter Text"
   },
   "contextMenuContextPage": {
     "message": "Seite"
   },
   "contextMenuShowDefaultFolder": {
-    "message": "Standardordner öffnen"
+    "message": "Öffnen Sie den Standard-Download-Ordner"
   },
   "notificationSuccessTitle": {
     "message": "Gespeichert"
@@ -69,22 +69,22 @@
     }
   },
   "ruleMissingMatcher": {
-    "message": "Die Regel benötigt mindestens eine Matcher-Klausel"
+    "message": "Fügen Sie mindestens eine Matcher-Klausel hinzu"
   },
   "ruleCaptureMissingMatcher": {
     "message": "Die Capture-Klausel zielt nicht auf einen Matcher ab"
   },
   "ruleMissingCapture": {
-    "message": "Die Regel benötigt eine Capture-Klausel, um Capture-Variablen verwenden zu können"
+    "message": "Fügen Sie eine Capture-Klausel hinzu, um Capture-Variablen zu verwenden"
   },
   "ruleMultipleCapture": {
-    "message": "Die Regel kann nur eine Capture-Klausel haben"
+    "message": "Eine Regel kann nur eine Capture-Klausel enthalten"
   },
   "ruleMissingInto": {
-    "message": "Die Regel benötigt mindestens eine into-Klausel"
+    "message": "Fügen Sie mindestens eine into:-Klausel hinzu"
   },
   "ruleExtraInto": {
-    "message": "Die Regel kann nur eine into-Klausel haben"
+    "message": "Eine Regel kann nur eine into:-Klausel enthalten"
   },
   "ruleUnknownMatcher": {
     "message": "Unbekannter Matcher"
@@ -93,10 +93,10 @@
     "message": "Ungültiger regulärer Ausdruck"
   },
   "ruleShadowed": {
-    "message": "Die Regel kann nie erreicht werden, da eine frühere Regel die gleiche oder eine breitere Übereinstimmung aufweist"
+    "message": "Diese Regel wird nie ausgeführt, da eine frühere Regel mit denselben oder mehreren Downloads übereinstimmt"
   },
   "ruleBadClause": {
-    "message": "Schlechte Klausel"
+    "message": "Ungültige Klausel"
   },
   "rulePathInvalidCharacter": {
     "message": "Der Pfad enthält ungültige Zeichen"
@@ -117,19 +117,19 @@
     }
   },
   "tabstripMenuSaveChildrenTabs": {
-    "message": "Speichern Sie andere Registerkarten, die über diese Registerkarte geöffnet wurden"
+    "message": "Speichern Sie die über diese Registerkarte geöffneten Registerkarten"
   },
   "tabstripMenuSaveRightTabs": {
-    "message": "Alle Tabs rechts von diesem Tab speichern, einschließlich dieses Tabs"
+    "message": "Speichern Sie diese Registerkarte und alle Registerkarten rechts davon"
   },
   "tabstripMenuSaveRightTabsMatched": {
-    "message": "Alle Tabs rechts von diesem Tab speichern, einschließlich dieses Tabs (muss einer Routing-Regel entsprechen)"
+    "message": "Speichern Sie diese Registerkarte und alle Registerkarten rechts davon (Routing-Regel erforderlich)."
   },
   "o_sDownloads": {
-    "message": "Downloads-Menü"
+    "message": "Standorte speichern"
   },
   "o_sDirectories": {
-    "message": "Verzeichnisse"
+    "message": "Ordner"
   },
   "o_sBehavior": {
     "message": "Verhalten"
@@ -153,7 +153,7 @@
     "message": "Browser-Downloads"
   },
   "o_lBrowserDownloadsHelp": {
-    "message": "Aktivieren Sie die Verarbeitung von Downloads, die von Webseiten oder dem Browser selbst gestartet werden. Downloads, die mit Save In oder einer anderen Erweiterung gestartet wurden, sind ausgeschlossen."
+    "message": "Verfolgen oder leiten Sie optional Downloads, die von Webseiten oder dem Browser gestartet werden. Von Save In oder einer anderen Erweiterung gestartete Downloads sind ausgeschlossen."
   },
   "o_cTrackBrowserDownloads": {
     "message": "Nehmen Sie normale Browser-Downloads in den Save In-Verlauf auf"
@@ -162,25 +162,25 @@
     "message": "Zeichnet übereinstimmende Downloads im Save In-Verlauf auf, ohne das Eigentum an ihnen zu übernehmen. Sie werden nicht wiederholt und lösen keine Save In-Eingabeaufforderungen oder -Benachrichtigungen aus."
   },
   "o_cRouteBrowserDownloads": {
-    "message": "Verwenden Sie Routing-Regeln für alle Browser-Downloads"
+    "message": "Verwenden Sie Routing-Regeln für Browser-Downloads"
   },
   "o_cRouteBrowserDownloadsHelp": {
-    "message": "Verwendet downloads.onDeterminingFilename, wenn der Browser es implementiert. Übereinstimmungsregeln können normale Browser-Downloads umbenennen oder in Unterverzeichnissen ablegen. Nicht übereinstimmende Downloads bleiben unverändert."
+    "message": "Sofern unterstützt, können Abgleichsregeln Browser-Downloads umbenennen oder in Unterordnern ablegen. Nicht übereinstimmende Downloads bleiben unverändert."
   },
   "o_cRouteBrowserDownloadsFirefox": {
     "message": "Versuchen Sie, übereinstimmende Downloads in Firefox umzuleiten"
   },
   "o_cRouteBrowserDownloadsFirefoxHelp": {
-    "message": "Experimentell und möglicherweise disruptiv. Firefox implementiert derzeit downloads.onDeterminingFilename nicht, daher bricht Save In das Original ab und startet einen Ersatz. Diese Option verschwindet automatisch, wenn Firefox die native API hinzufügt. POST-Downloads, ablaufende URLs, spezielle Anforderungsheader und einige authentifizierte Downloads können fehlschlagen."
+    "message": "Firefox verfügt nicht über das native Dateinamen-Routing, daher bricht Save In jeden passenden Download ab und startet einen Ersatz. Dies kann bei POST-Anfragen, ablaufenden URLs, benutzerdefinierten Headern oder authentifizierten Downloads fehlschlagen."
   },
   "o_lFirefoxFilenameApiBug": {
     "message": "Mozilla-Fehler 1245652"
   },
   "o_cBrowserDownloadFilter": {
-    "message": "Nur passende Download-URLs verarbeiten (optional)"
+    "message": "Nur passende Download-URLs einschließen (optional)"
   },
   "o_cBrowserDownloadFilterHelp": {
-    "message": "Blank verarbeitet jeden gewöhnlichen Browser-Download. Andernfalls geben Sie ein WebExtension-Übereinstimmungsmuster pro Zeile ein, z. B. *://*.example.com/* oder https://example.com/files/*.. Der Filter gilt für die Verlaufsverfolgung und das Routing."
+    "message": "Lassen Sie das Feld leer, um jeden Browser-Download zu verarbeiten, oder geben Sie ein WebExtension-Übereinstimmungsmuster pro Zeile ein. Dieser Filter gilt für die Verlaufsverfolgung und -weiterleitung."
   },
   "o_cBrowserDownloadExcludeFilter": {
     "message": "Übereinstimmende Download-URLs ausschließen (optional)"
@@ -192,7 +192,7 @@
     "message": "Browser-Downloads stellen nur die URL, den vorgeschlagenen Dateinamen, die aktuelle Uhrzeit, den Zähler, die UUID und MIME-Variablen bereit. Seitentitel, Seiten-URL, Linktext, Auswahl, Menümetadaten und Tastenmodifikatoren sind nicht verfügbar."
   },
   "o_sRenameAndRouteDownloads": {
-    "message": "Downloads umbenennen und weiterleiten"
+    "message": "Routing und Umbenennen"
   },
   "o_sNotifications": {
     "message": "Benachrichtigungen"
@@ -222,7 +222,7 @@
     "message": "Einige Videoplayer verwenden temporäre URLs oder laden Medien über Skripte, sodass Save In möglicherweise nicht jedes Video erkennt. Es kann manchmal Streaming-Video-Wiedergabelisten (HLS/DASH) finden, aber diese Dateien listen nur die einzelnen Videostücke auf; Beim Speichern eines Videos wird nicht das gesamte Video gespeichert."
   },
   "o_cSourcePanelEnabled": {
-    "message": "Aktivieren Sie Seitenquellen"
+    "message": "Seitenquellen aktivieren"
   },
   "o_cSourcePanelBackgrounds": {
     "message": "Fügen Sie CSS-Hintergrundbilder ein"
@@ -333,7 +333,7 @@
     "message": "Visueller Editor"
   },
   "o_bAddDirectory": {
-    "message": "Verzeichnis"
+    "message": "Ordner"
   },
   "o_bAddSeparator": {
     "message": "Separator"
@@ -423,7 +423,7 @@
     "message": "Save In-Aktionen im Tab-Menü anzeigen"
   },
   "o_cSaveTabstripHelp": {
-    "message": "Speichert eine Registerkarte, eine Registerkartengruppe oder Registerkarten rechts"
+    "message": "Speichert rechts eine Registerkarte, eine Registerkartengruppe oder mehrere Registerkarten"
   },
   "o_cOpenDialog": {
     "message": "Immer nach dem Speicherort fragen"
@@ -432,7 +432,7 @@
     "message": "Der Dateiname hat keine Erweiterung"
   },
   "o_cOpenDialogShift": {
-    "message": "Beim Auswählen eines Menüelements wird die Umschalttaste gedrückt gehalten"
+    "message": "Sie halten die Umschalttaste gedrückt, während Sie einen Menüpunkt auswählen"
   },
   "o_cOpenDialogOnFailure": {
     "message": "Ein Download schlägt fehl"
@@ -444,28 +444,28 @@
     "message": "Überschreiben"
   },
   "o_cDupePrompt": {
-    "message": "Nachfragen"
+    "message": "Fragen Sie jedes Mal"
   },
   "o_cDupeFilename": {
     "message": "Wenn eine Datei bereits vorhanden ist:"
   },
   "o_cOpenDialogIfNoRulesMatch": {
-    "message": "Öffnen Sie ein Dialogfeld zum Speichern der Datei, wenn keine Regeln übereinstimmen"
+    "message": "Fragen Sie, wo gespeichert werden soll, wenn keine Routing-Regeln übereinstimmen"
   },
   "o_cExclusiveMode": {
-    "message": "Verwenden Sie ausschließlich Routing- und Umbenennungsregeln"
+    "message": "Erfordern eine passende Routing-Regel"
   },
   "o_cExclusiveModeHelp": {
-    "message": "Deaktiviert das Untermenü für Zwei-Klick-Downloads und speichert relativ zum Standard-Download-Verzeichnis"
+    "message": "Blendet das Ordner-Untermenü aus und speichert relativ zum Standard-Download-Ordner"
   },
   "o_cNotifySuccess": {
-    "message": "Benachrichtigung bei erfolgreichem Download anzeigen"
+    "message": "Benachrichtigen, wenn ein Download erfolgreich ist"
   },
   "o_cNotifyFailure": {
-    "message": "Benachrichtigung bei fehlgeschlagenem Download anzeigen"
+    "message": "Benachrichtigen Sie, wenn ein Download fehlschlägt"
   },
   "o_cNotifyMatch": {
-    "message": "Benachrichtigung bei einer Regelübereinstimmung anzeigen"
+    "message": "Benachrichtigen, wenn eine Routing-Regel übereinstimmt"
   },
   "o_cSaveShortcutsAs": {
     "message": "Verknüpfungen speichern unter"
@@ -495,7 +495,7 @@
     "message": "Speichern Sie Seiten stattdessen als Verknüpfungen"
   },
   "o_cSaveShortcutsTabsInstead": {
-    "message": "Speichern Sie stattdessen Registerkarten als Verknüpfungen (über die Registerkarte mit der rechten Maustaste klicken)"
+    "message": "Tabs als Verknüpfungen speichern (aus dem Tab-Kontextmenü)"
   },
   "o_cKeyboardShortcutSaveInMenu": {
     "message": "Save In Kontextmenüpunkt"
@@ -507,13 +507,13 @@
     "message": "Fügen Sie Zifferntastenkürzel zu kontextbezogenen Untermenüelementen hinzu"
   },
   "o_cKeyboardShortcutClickToSave": {
-    "message": "Zum Speichern klicken"
+    "message": "Aktivieren Sie Click-to-Save"
   },
   "o_cKeyboardShortcutClickToHelp": {
-    "message": "Halten Sie die Alt-Taste (Standard) gedrückt und klicken Sie auf Bilder oder Medien, um sie im zuletzt verwendeten Verzeichnis oder Standard-Download-Verzeichnis zu speichern. Fügt ein Skript in Seiten ein, um auf Klickereignisse zu warten. Bei dieser Verwendung sind nicht alle Variablen verfügbar. Erfordert eine Seitenaktualisierung, um wirksam zu werden."
+    "message": "Halten Sie standardmäßig die Alt-Taste gedrückt und klicken Sie auf ein Bild oder Medienelement, um es im zuletzt verwendeten Ordner oder Standard-Download-Ordner zu speichern. Save In fügt Seiten einen Klick-Listener hinzu; einige Variablen sind nicht verfügbar."
   },
   "o_cHostPermissionMissing": {
-    "message": "Save In hat keinen Zugriff auf den Seiteninhalt. „Klicken zum Speichern“ funktioniert erst, wenn Sie den Zugriff auf alle Websites erlauben."
+    "message": "Save In kann nicht auf den Seiteninhalt zugreifen. Gewähren Sie Zugriff auf alle Websites, um Click-to-Save zu verwenden."
   },
   "o_cHostPermissionGrant": {
     "message": "Zugriff gewähren"
@@ -534,16 +534,16 @@
     "message": "Vorwärtstaste (5)"
   },
   "o_cKeyboardShortcutModifierHelp": {
-    "message": "Halten Sie die ausgewählten Modifikatoren gedrückt, während Sie mit der gewählten Maustaste klicken. Wählen Sie in beiden Modifikatorfeldern „Keine“, um nur die Maustaste zu verwenden. Änderungen gelten für bestehende Seiten."
+    "message": "Halten Sie die ausgewählten Zusatztasten gedrückt, während Sie mit der gewählten Maustaste klicken. Wählen Sie „Keine“ für beide Modifikatoren, um nur die Maustaste zu verwenden. Änderungen gelten für bestehende Seiten."
   },
   "o_cRestoreDefaults": {
     "message": "Standardeinstellungen wiederherstellen"
   },
   "o_cTruncatePath": {
-    "message": "Pfadkomponenten auf diese Anzahl an Zeichen kürzen"
+    "message": "Maximale Zeichen pro Ordnername"
   },
   "o_cTruncatePathHelp": {
-    "message": "0 = keine Kürzung"
+    "message": "0 bedeutet keine Begrenzung"
   },
   "o_cReplaceInvalidCharsWith": {
     "message": "Ersetzen Sie ungültige Zeichen durch"
@@ -552,31 +552,31 @@
     "message": "Zum Löschen leer lassen. Ungültige Ersatzzeichen werden ignoriert."
   },
   "o_cAppendMimeExtension": {
-    "message": "Fügen Sie eine Dateierweiterung hinzu, wenn der Dateiname keine hat"
+    "message": "Fügen Sie eine Erweiterung hinzu, wenn der Dateiname keine hat"
   },
   "o_cAppendMimeExtensionHelp": {
-    "message": "Leiten Sie für URLs ohne Erweiterung oder mit Abfragesuffix die Erweiterung vom Content-Type des Servers ab (über HEAD, mit einem GET-Fallback ohne Textkörper). Fügt nur dann eine kleine Verzögerung hinzu, wenn dem Namen eine fehlt."
+    "message": "Für URLs ohne Erweiterung leiten Sie eine vom Content-Type des Servers ab. Dadurch wird nur bei Bedarf eine kleine Verzögerung hinzugefügt."
   },
   "o_cFallbackFetch": {
-    "message": "Versuchen Sie fehlgeschlagene Downloads im Hintergrund erneut"
+    "message": "Versuchen Sie fehlgeschlagene Downloads einmal im Hintergrund"
   },
   "o_cFallbackFetchHelp": {
-    "message": "Wenn ein Download aufgrund eines Netzwerk- oder Serverfehlers fehlschlägt, versuchen Sie es einmal erneut, indem Sie den Download im Hintergrund durchführen, bevor Sie den Fehler melden."
+    "message": "Wiederholt Netzwerk- oder Serverfehler, bevor ein Fehler gemeldet wird."
   },
   "o_cFetchViaFetchAPI": {
-    "message": "Herunterladen über die Erweiterung (Fetch API)"
+    "message": "Herunterladen über Save In"
   },
   "o_cFetchViaFetchAPIHelp": {
-    "message": "Ruft die Datei selbst ab und übergibt das Ergebnis an den Browser, anstatt den Downloader des Browsers auf die URL zu verweisen. Aktivieren Sie es nur, wenn normale Downloads fehlschlagen – einige Server blockieren die Anfrage des Browsers oder geben eine leere Datei zurück. Es ist langsamer und in Chrome bleibt die Datei beim Speichern im Speicher. Vermeiden Sie es daher bei sehr großen Downloads."
+    "message": "Save In ruft die Datei ab und übergibt sie an den Browser. Verwenden Sie dies nur, wenn normale Downloads fehlschlagen. Es ist langsamer und Chrome hält die Datei beim Speichern im Speicher. Vermeiden Sie es daher bei sehr großen Dateien."
   },
   "o_cIncludeFetchCredentials": {
-    "message": "Verwenden Sie Website-Anmeldecookies für Erweiterungsanfragen"
+    "message": "Fügen Sie Website-Anmeldecookies hinzu"
   },
   "o_cIncludeFetchCredentialsHelp": {
-    "message": "Standardmäßig für nicht private Speicherungen aktiviert. Beinhaltet anwendbare Cookies und eine vom Browser verwaltete Authentifizierung in Hintergrund-Abruf- und HEAD-Anfragen, auch an Umleitungszielen; Deaktivieren Sie diese Option, um diese Anfragen anonym zu stellen. Anfragen zur Erweiterung eines privaten Fensters sind immer anonym, da der gemeinsame Hintergrund keinen privaten Cookie-Speicher auswählen kann. Direkte Browser-Downloads verwalten ihre eigenen Cookies."
+    "message": "Beinhaltet anwendbare Cookies und eine vom Browser verwaltete Anmeldung, wenn Save In Dateien im Hintergrund abruft, auch nach Weiterleitungen. Anfragen für private Fenster bleiben anonym. Direkte Browser-Downloads verwalten ihre eigenen Anmeldeinformationen."
   },
   "o_cSetRefererHeader": {
-    "message": "Setzen Sie den „Referer“-Header auf die Seiten-URL, wenn dieser fehlt"
+    "message": "Verwenden Sie die Seiten-URL als Referrer, wenn diese fehlt"
   },
   "o_cSetRefererHeaderHelp": {
     "message": "Nur Firefox. Einige Websites (z. B. pixiv.net) lehnen Downloads ohne HTTP-Referer-Header ab. Bei passenden Downloads sendet Firefox die Seiten-URL direkt als Referrer. Lassen Sie es weg, es sei denn, eine Website benötigt es."
@@ -597,10 +597,10 @@
     "message": "Aktivieren Sie die ausführliche Entwicklerprotokollierung"
   },
   "o_cLastSavedAt": {
-    "message": "Einstellungen aktualisiert unter: "
+    "message": "Letzte Aktualisierung: "
   },
   "o_cLastSavedAtNever": {
-    "message": "niemals"
+    "message": "Niemals"
   },
   "optionsUnsavedChanges": {
     "message": "Ihre nicht gespeicherten Änderungen verwerfen oder mit der Bearbeitung fortfahren?"
@@ -609,7 +609,7 @@
     "message": "Nicht gespeicherte Änderungen"
   },
   "o_lDirectoryDefinitions": {
-    "message": "Definitionen des Verzeichnismenüs"
+    "message": "Ordnermenüdefinitionen"
   },
   "o_lTextRules": {
     "message": "Textregeln"
@@ -648,7 +648,7 @@
     "message": "Keine Validierungsfehler"
   },
   "notificationLinkPreferred": {
-    "message": "Stattdessen wurde ein Link heruntergeladen"
+    "message": "Stattdessen wurde das Linkziel heruntergeladen"
   },
   "o_cPreferLinksFilterEnabled": {
     "message": "Nur auf passenden Seiten"
@@ -663,10 +663,10 @@
     "message": "Ungültiger regulärer Ausdruck für bevorzugte Links"
   },
   "o_cNotifyLinkPreferred": {
-    "message": "Benachrichtigung anzeigen, wenn ein Link anstelle der Quelle heruntergeladen wurde"
+    "message": "Benachrichtigen Sie, wenn ein Linkziel anstelle eingebetteter Medien heruntergeladen wird"
   },
   "o_cCloseTabOnSave": {
-    "message": "Schließen Sie jede Registerkarte, nachdem sie gespeichert wurde"
+    "message": "Schließen Sie jede Registerkarte, nachdem Sie sie gespeichert haben"
   },
   "o_lClickToSaveButton": {
     "message": "Click-to-Save-Maustaste"
@@ -678,10 +678,10 @@
     "message": "Dateinamen"
   },
   "o_sAdvancedDownloading": {
-    "message": "Herunterladen"
+    "message": "Download-Handling"
   },
   "o_sAdvancedCounter": {
-    "message": "Zähler"
+    "message": "Zähler herunterladen"
   },
   "o_sAdvancedBackupReset": {
     "message": "Sichern und zurücksetzen"
@@ -696,9 +696,912 @@
     "message": "Änderungen in diesem Editor werden gespeichert, wenn Sie „Anwenden“ auswählen."
   },
   "o_lReferenceNavigation": {
-    "message": "Referenznavigation"
+    "message": "Referenzseiten"
   },
   "o_lFilterReference": {
     "message": "Filter"
+  },
+  "html_aboutSaveIn": {
+    "message": "Über Save In"
+  },
+  "html_absolutePathsAndHiddenPathSegmentsSuchAs": {
+    "message": ", absolute Pfade und versteckte Pfadsegmente wie z"
+  },
+  "html_add": {
+    "message": ". Hinzufügen"
+  },
+  "html_addACommentThatIsNotDisplayed": {
+    "message": "Fügen Sie einen Kommentar hinzu, der nicht angezeigt wird"
+  },
+  "html_addDestinations": {
+    "message": "Ziele hinzufügen"
+  },
+  "html_addsOneNestingLevel": {
+    "message": "fügt eine Verschachtelungsebene hinzu."
+  },
+  "html_areNotSupported": {
+    "message": "werden nicht unterstützt."
+  },
+  "html_askAnAiAgentToDraftADownloadsMenu": {
+    "message": "Bitten Sie einen KI-Agenten, ein Ordnermenü zu entwerfen"
+  },
+  "html_assignAnAccessKey": {
+    "message": "Weisen Sie einen Zugangsschlüssel zu"
+  },
+  "html_atTheEndForACommentStartWith": {
+    "message": "am Ende für einen Kommentar; Beginnen Sie mit"
+  },
+  "html_browsersOnlyLetExtensionsSaveInsideTheDefault": {
+    "message": "Browser lassen Erweiterungen nur innerhalb der Standardeinstellungen speichern"
+  },
+  "html_buildTheDestinationsAndSubmenusShownInSaveIn": {
+    "message": "Wählen Sie die im Kontextmenü von Save In angezeigten Ordner und Untermenüs aus."
+  },
+  "html_butShowsCatPictures": {
+    "message": ", zeigt aber „Katzenbilder“ an."
+  },
+  "html_changeADisplayedName": {
+    "message": "Ändern Sie einen angezeigten Namen"
+  },
+  "html_changeTheDisplayedName": {
+    "message": "Ändern Sie den angezeigten Namen"
+  },
+  "html_copyThisPromptThenReplaceTheExampleDestinations": {
+    "message": "Kopieren Sie diese Eingabeaufforderung und ersetzen Sie dann die Beispielziele."
+  },
+  "html_createASubmenu": {
+    "message": "Erstellen Sie ein Untermenü"
+  },
+  "html_createsTwoSelectableRowsInTheDownloadsMenu": {
+    "message": "Erstellt zwei Ordner im Menü „Speicherorte“."
+  },
+  "html_defaultDownloadsDirectory": {
+    "message": "Standardordner Downloads"
+  },
+  "html_directoryEditorMode": {
+    "message": "Ordnereditormodus"
+  },
+  "html_discussions": {
+    "message": "Diskussionen"
+  },
+  "html_downloadsFolder": {
+    "message": "Downloads-Ordner"
+  },
+  "html_each": {
+    "message": "Jeder"
+  },
+  "html_eachLineAddsADestinationRelativeToYourBrowser": {
+    "message": "Jede Zeile fügt ein Ziel relativ zu Ihrem Browser hinzu"
+  },
+  "html_forExample": {
+    "message": "Zum Beispiel,"
+  },
+  "html_howToCreateDestinations": {
+    "message": "So erstellen Sie Ziele"
+  },
+  "html_insertionReferences": {
+    "message": "Einfügungsreferenzen"
+  },
+  "html_issues": {
+    "message": "Probleme"
+  },
+  "html_itself": {
+    "message": "sich selbst"
+  },
+  "html_moreMenuSyntax": {
+    "message": "Mehr Menüsyntax"
+  },
+  "html_oneRelativeDirectoryOrMenuInstructionPerLineDownloads": {
+    "message": "Geben Sie pro Zeile einen relativen Ordner oder eine Menüanweisung ein. Dateien werden relativ zum gespeichert"
+  },
+  "html_openTheDefaultDownloadsDirectory": {
+    "message": "Öffnen Sie den Standardordner Downloads"
+  },
+  "html_pathsContaining": {
+    "message": "Pfade enthalten"
+  },
+  "html_perLevel": {
+    "message": "pro Level."
+  },
+  "html_saveInWiki": {
+    "message": "Save In-Wiki"
+  },
+  "html_savesTo": {
+    "message": "Speichert"
+  },
+  "html_savingOutsideTheDownloadsFolder": {
+    "message": "Speichern außerhalb des Download-Ordners"
+  },
+  "html_separateGroups": {
+    "message": "Getrennte Gruppen"
+  },
+  "html_settingsSaveIn": {
+    "message": "Einstellungen – Save In"
+  },
+  "html_templates": {
+    "message": "Vorlagen"
+  },
+  "html_the": {
+    "message": "Die"
+  },
+  "html_toCreateNestedSubmenusUsingOne": {
+    "message": "um verschachtelte Untermenüs zu erstellen, indem Sie eines verwenden"
+  },
+  "html_toReachAnotherLocationCreateASymlinkInsideDownloads": {
+    "message": ". Um einen anderen Speicherort zu erreichen, erstellen Sie einen Symlink in „Downloads“ und verwenden Sie diesen relativen Symlink-Pfad als Ziel. Der Zielordner muss bereits vorhanden sein."
+  },
+  "html_useAVariable": {
+    "message": "Verwenden Sie eine Variable"
+  },
+  "html_wiki": {
+    "message": "Wiki"
+  },
+  "html_add2": {
+    "message": "Hinzufügen"
+  },
+  "html_advancedUseCaptureGroups": {
+    "message": "Erweitert: Capture-Gruppen verwenden"
+  },
+  "html_andItsSubdomainsUse": {
+    "message": "und seine Subdomains. Benutzen"
+  },
+  "html_andLaterGroupsIn": {
+    "message": ", und später Gruppen in"
+  },
+  "html_askAnAiAgentToDraftRoutingRules": {
+    "message": "Bitten Sie einen KI-Agenten, Routing-Regeln zu entwerfen"
+  },
+  "html_automaticallyMoveOrRenameDownloadsWhenTheirFilenameSource": {
+    "message": "Verschieben oder benennen Sie Downloads automatisch um, wenn Dateiname, Quelle, Seite oder Kontext übereinstimmen."
+  },
+  "html_becomes": {
+    "message": "wird"
+  },
+  "html_clauseAndVariableReference": {
+    "message": "Klausel- und Variablenreferenz"
+  },
+  "html_copyThisPromptIntoAnAgentOrUseWebmcp": {
+    "message": "Kopieren Sie diese Eingabeaufforderung in einen Agenten oder verwenden Sie WebMCP aus Externe Integrationen."
+  },
+  "html_destination": {
+    "message": "Ziel."
+  },
+  "html_destinationsAreRelativeToTheDownloadsMenuDestinationYou": {
+    "message": "Ziele sind relativ zu dem von Ihnen ausgewählten Ordner. Matcher-Werte sind reguläre Ausdrücke; siehe die"
+  },
+  "html_enterOneUrlLikeBrowserMatchPatternPerLine": {
+    "message": "Geben Sie pro Zeile ein URL-ähnliches Browser-Übereinstimmungsmuster ein. Es hat ein Schema, einen Host und einen Pfad:"
+  },
+  "html_everyMatcherInARuleMustMatch": {
+    "message": "Jeder Matcher in einer Regel muss übereinstimmen."
+  },
+  "html_everyRuleMustEndWithAn": {
+    "message": "Jede Regel muss mit einem enden"
+  },
+  "html_filterClauses": {
+    "message": "Filterklauseln"
+  },
+  "html_filterRoutingTemplates": {
+    "message": "Routing-Vorlagen filtern"
+  },
+  "html_filterTemplates": {
+    "message": "Filtervorlagen"
+  },
+  "html_forExample2": {
+    "message": ". Zum Beispiel,"
+  },
+  "html_forHttpAndHttpsAndEndWith": {
+    "message": "für HTTP und HTTPS und enden mit"
+  },
+  "html_howDoDownloadUrlFiltersWork": {
+    "message": "Wie funktionieren Download-URL-Filter?"
+  },
+  "html_howRoutingRulesWork": {
+    "message": "So funktionieren Routing-Regeln"
+  },
+  "html_matchesHttpsFileUrlsOn": {
+    "message": "stimmt mit HTTPS-Datei-URLs überein"
+  },
+  "html_moveAndRenameMatchingFiles": {
+    "message": "Übereinstimmende Dateien verschieben und umbenennen"
+  },
+  "html_moveMatchingFilesAndKeepTheirNames": {
+    "message": "Verschieben Sie übereinstimmende Dateien und behalten Sie ihre Namen bei"
+  },
+  "html_optional": {
+    "message": "Optional"
+  },
+  "html_parenthesesCapturePartsOfAMatcherSelectTheMatcher": {
+    "message": "Klammern erfassen Teile eines Matchers. Wählen Sie den Matcher mit aus"
+  },
+  "html_regularExpressionGuide": {
+    "message": "Leitfaden für reguläre Ausdrücke"
+  },
+  "html_separateRulesWithABlankLine": {
+    "message": "Trennen Sie die Regeln durch eine Leerzeile."
+  },
+  "html_thenUse": {
+    "message": ", dann verwenden"
+  },
+  "html_toIncludeEveryPathThisIsNotARegular": {
+    "message": "jeden Weg einzubeziehen. Dies ist kein regulärer Ausdruck und er kann weder mit Abfrageparametern noch mit einem expliziten Port übereinstimmen."
+  },
+  "html_trackAndRouteBrowserDownloads": {
+    "message": "Verfolgen und leiten Sie Browser-Downloads weiter"
+  },
+  "html_writeOneClausePerLine": {
+    "message": "Schreiben Sie einen Satz pro Zeile."
+  },
+  "html_all": {
+    "message": "Alle"
+  },
+  "html_altOption": {
+    "message": "Alt / Option"
+  },
+  "html_applyShortcut": {
+    "message": "Verknüpfung anwenden"
+  },
+  "html_click": {
+    "message": "Klicken Sie"
+  },
+  "html_clickToSaveShortcut": {
+    "message": "Click-to-Save-Verknüpfung"
+  },
+  "html_clickToSaveShortcutCombination": {
+    "message": "Per Mausklick zu speichernde Verknüpfungskombination"
+  },
+  "html_columns": {
+    "message": "Spalten"
+  },
+  "html_command": {
+    "message": "Befehl"
+  },
+  "html_commandWindowsKey": {
+    "message": "Befehl / Windows-Taste"
+  },
+  "html_copy0LeavesDismissalToTheBrowserOrOperatingSystem": {
+    "message": "0 überlässt die Ablehnung dem Browser oder dem Betriebssystem."
+  },
+  "html_ctrl": {
+    "message": "Strg"
+  },
+  "html_dismissEarlyAfter": {
+    "message": "Danach frühzeitig entlassen"
+  },
+  "html_export": {
+    "message": "Exportieren"
+  },
+  "html_filterSources": {
+    "message": "Quellen filtern"
+  },
+  "html_historyTableTools": {
+    "message": "Tools für Verlaufstabellen"
+  },
+  "html_image": {
+    "message": "Bild"
+  },
+  "html_image128Kb1": {
+    "message": "Bild · 128 KB · #1"
+  },
+  "html_images": {
+    "message": "Bilder"
+  },
+  "html_jsonCompleteData": {
+    "message": "JSON – vollständige Daten"
+  },
+  "html_key": {
+    "message": "Schlüssel"
+  },
+  "html_link": {
+    "message": "Link"
+  },
+  "html_links": {
+    "message": "Links"
+  },
+  "html_macctrl": {
+    "message": "MacStrg"
+  },
+  "html_more": {
+    "message": "Mehr"
+  },
+  "html_mouseOnlyLeftClickWillReplaceNormalClicksOn": {
+    "message": "Ein reiner Mausklick mit der linken Maustaste ersetzt normale Klicks auf speicherbare Medien und Links, solange diese Funktion aktiviert ist."
+  },
+  "html_ms": {
+    "message": "Frau"
+  },
+  "html_none": {
+    "message": "Keine"
+  },
+  "html_notifyMeWhen": {
+    "message": "Benachrichtigen Sie, wann"
+  },
+  "html_previewOfThePageSourcesDrawer": {
+    "message": "Vorschau der Schublade „Seitenquellen“."
+  },
+  "html_primaryModifier": {
+    "message": "Primärer Modifikator"
+  },
+  "html_saveTheseAsShortcutFiles": {
+    "message": "Als Verknüpfungsdateien speichern"
+  },
+  "html_secondModifier": {
+    "message": "Zweiter Modifikator"
+  },
+  "html_selection": {
+    "message": "Auswahl"
+  },
+  "html_shift": {
+    "message": "Schicht"
+  },
+  "html_shortcutFileBehavior": {
+    "message": "Verhalten der Verknüpfungsdatei"
+  },
+  "html_shortcutKey": {
+    "message": "Tastenkombination"
+  },
+  "html_streamHls3": {
+    "message": "Stream · HLS · #3"
+  },
+  "html_tab": {
+    "message": "Tab"
+  },
+  "html_video": {
+    "message": "Video"
+  },
+  "html_video24Mb2": {
+    "message": "Video · 2,4 MB · #2"
+  },
+  "html_advancedEditIdsAsText": {
+    "message": "Erweitert: IDs als Text bearbeiten"
+  },
+  "html_allow": {
+    "message": "Erlauben"
+  },
+  "html_allowedExtensionIds": {
+    "message": "Zulässige Erweiterungs-IDs"
+  },
+  "html_apiVersion": {
+    "message": "API-Version"
+  },
+  "html_approvedExtensions": {
+    "message": "Genehmigte Erweiterungen"
+  },
+  "html_capabilities": {
+    "message": "Fähigkeiten"
+  },
+  "html_clickTheSnippetToCopyIt": {
+    "message": "Klicken Sie auf das Snippet, um es zu kopieren."
+  },
+  "html_counterValue": {
+    "message": "Zählerwert"
+  },
+  "html_current": {
+    "message": "Aktuell"
+  },
+  "html_currentValueOfThe": {
+    "message": "Aktueller Wert des"
+  },
+  "html_delete": {
+    "message": "löschen"
+  },
+  "html_developerDetails": {
+    "message": "Details zum Entwickler"
+  },
+  "html_exampleNegotiateTheVersionThenSaveAUrl": {
+    "message": "Beispiel: Verhandeln Sie die Version und speichern Sie dann eine URL"
+  },
+  "html_extensionId": {
+    "message": "Erweiterungs-ID"
+  },
+  "html_externalDownloadAccess": {
+    "message": "Externer Download-Zugriff"
+  },
+  "html_externalIntegrations": {
+    "message": "Externe Integrationen"
+  },
+  "html_integrationGuide": {
+    "message": "Integrationsleitfaden"
+  },
+  "html_letTrustedExtensionsSendUrlsThroughSaveInS": {
+    "message": "Lassen Sie vertrauenswürdige Erweiterungen URLs über die Routing- und Umbenennungsregeln von Save In senden."
+  },
+  "html_mdnMatchPatterns": {
+    "message": "MDN: Übereinstimmungsmuster"
+  },
+  "html_noExtensionsAreApprovedExternalDownloadsAreBlockedBy": {
+    "message": "Es werden keine Verlängerungen genehmigt. Externe Downloads sind standardmäßig blockiert."
+  },
+  "html_noneApproved": {
+    "message": "Keiner genehmigt"
+  },
+  "html_oneExtensionIdPerLine": {
+    "message": "Eine Erweiterungs-ID pro Zeile"
+  },
+  "html_onlyApprovedExtensionsCanStartDownloadsUseTheCalling": {
+    "message": "Nur genehmigte Erweiterungen können Downloads starten. Verwenden Sie die ID der anrufenden Nebenstelle – nicht die ID von Save In."
+  },
+  "html_pasteAnExtensionId": {
+    "message": "Fügen Sie eine Erweiterungs-ID ein"
+  },
+  "html_pendingApproval": {
+    "message": "Genehmigung ausstehend"
+  },
+  "html_resetTo0": {
+    "message": "Auf 0 zurücksetzen"
+  },
+  "html_setValue": {
+    "message": "Wert einstellen"
+  },
+  "html_theseExtensionsTriedToStartADownloadAddOnly": {
+    "message": "Diese Erweiterungen haben versucht, einen Download zu starten. Fügen Sie nur Anrufer hinzu, denen Sie vertrauen. Angefragte URLs werden niemals gespeichert."
+  },
+  "html_useOneExtensionIdPerLineForBulkChanges": {
+    "message": "Verwenden Sie für Massenänderungen eine Erweiterungs-ID pro Zeile."
+  },
+  "html_variableItAdvancesOncePerSavedDownloadAndPersists": {
+    "message": "variabel. Es schreitet einmal pro gespeichertem Download voran und bleibt über Neustarts hinweg bestehen."
+  },
+  "html_webextensionsSuchAsFoxyGesturesCanMessageSaveIn": {
+    "message": "WebExtensions wie Foxy Gestures können Save In direkt benachrichtigen. Ein Greasemonkey-, Tampermonkey- oder Violentmonkey-Benutzerskript kann dies nicht alleine tun: Benutzerskripte erhalten keinen erweiterungsübergreifenden Nachrichtenzugriff. Verwenden Sie einen kleinen Begleiter WebExtension als Relay, oder lassen Sie das Benutzerskript die URL an eine Erweiterung übergeben, die diese Funktion bereitstellt."
+  },
+  "html_whereThisWorks": {
+    "message": "Wo das funktioniert"
+  },
+  "html_askTheCommunity": {
+    "message": "Fragen Sie die Community"
+  },
+  "html_aVeryDiligentOrganizer": {
+    "message": "Ein sehr fleißiger Organisator"
+  },
+  "html_aWatercolorLuckyCatCarefullyOrganizingDocumentsPhotographsFilm": {
+    "message": "Eine Aquarell-Glückskatze, die sorgfältig Dokumente, Fotos, Filme und Bücher organisiert"
+  },
+  "html_buildInformation": {
+    "message": "Build-Informationen"
+  },
+  "html_checking": {
+    "message": "prüfen…"
+  },
+  "html_clearLog": {
+    "message": "Protokoll löschen"
+  },
+  "html_closeAboutSaveIn": {
+    "message": "Schließen Über Save In"
+  },
+  "html_closeReferences": {
+    "message": "Schließen Sie Referenzen"
+  },
+  "html_contextMenus": {
+    "message": "Kontextmenüs"
+  },
+  "html_documentation": {
+    "message": "Dokumentation"
+  },
+  "html_downloads": {
+    "message": "Downloads"
+  },
+  "html_filterCurrentReference": {
+    "message": "Aktuelle Referenz filtern"
+  },
+  "html_filterVariables": {
+    "message": "Variablen filtern"
+  },
+  "html_findsAndSavesResourcesTheUserChoosesOnArbitrary": {
+    "message": "Findet und speichert Ressourcen, die der Benutzer auf beliebigen Websites auswählt."
+  },
+  "html_inABrowserThatSupports": {
+    "message": "In einem Browser, der unterstützt"
+  },
+  "html_keepsSettingsRoutingRulesLocalHistoryAndRestartSafe": {
+    "message": "Behält Einstellungen, Routing-Regeln, den lokalen Verlauf und den Neustart-sicheren Status bei."
+  },
+  "html_letsChromeConvertFetchedFileDataIntoTemporaryDownload": {
+    "message": "Ermöglicht Chrome, abgerufene Dateidaten in temporäre Download-URLs zu konvertieren."
+  },
+  "html_loadingClauses": {
+    "message": "Ladeklauseln…"
+  },
+  "html_loadingVariables": {
+    "message": "Variablen werden geladen…"
+  },
+  "html_luckyOrganizingCat": {
+    "message": "Glückliche organisierende Katze"
+  },
+  "html_messageFirstOrASmallRelayExtensionMustDo": {
+    "message": " Nachricht oder eine kleine Relaiserweiterung muss dies tun. Video DownloadHelper stellt keine stabile Integrations-API zur Verfügung, die Save In direkt aufrufen kann."
+  },
+  "html_offscreen": {
+    "message": "Offscreen"
+  },
+  "html_privacyPolicy": {
+    "message": "Datenschutzrichtlinie"
+  },
+  "html_references": {
+    "message": "Referenzen"
+  },
+  "html_referenceType": {
+    "message": "Referenztyp"
+  },
+  "html_refreshLog": {
+    "message": "Protokoll aktualisieren"
+  },
+  "html_reportAnIssue": {
+    "message": "Melden Sie ein Problem"
+  },
+  "html_reportsCompletedSavesAndActionableFailuresWhenEnabled": {
+    "message": "Meldet abgeschlossene Speicherungen und umsetzbare Fehler, wenn diese Option aktiviert ist."
+  },
+  "html_saveInDoesNotAdoptDownloadsThatAnotherExtension": {
+    "message": "Save In übernimmt keine Downloads, die bereits von einer anderen Erweiterung gestartet wurden, einschließlich Video DownloadHelper. Der Downloader muss zunächst Save In a senden"
+  },
+  "html_saveInHasNoAnalyticsAdvertisingDeveloperOperatedServer": {
+    "message": "Save In verfügt über keine Analysen, keine Werbung, keinen vom Entwickler betriebenen Server oder keinen remote ausführbaren Code. Einstellungen und Verlauf bleiben im browserverwalteten Erweiterungsspeicher."
+  },
+  "html_saveInIsALocalFirstDownloadsHelperFor": {
+    "message": "Save In ist ein lokal arbeitender Download-Helfer zum Organisieren von Dateien mit Kontextmenü-Ordnern, Routing-Regeln, Umbenennung, Seitenquellen und Download-Verlauf."
+  },
+  "html_saveInRegistersToolsAnAiAgentCanCall": {
+    "message": ", Save In registriert Tools, die ein KI-Agent aufrufen kann, während diese Optionsseite geöffnet ist – um Einstellungen zu ändern, Ordnermenüs zu erstellen und Routing-Regeln zu schreiben."
+  },
+  "html_showsSaveInCommandsOnPagesLinksMediaAnd": {
+    "message": "Zeigt Save In-Befehle auf Seiten, Links, Medien und Registerkarten an."
+  },
+  "html_startsSavesChoosesFilenamesMonitorsResultsAndSupportsRetries": {
+    "message": "Startet Speicherungen, wählt Dateinamen, überwacht Ergebnisse und unterstützt Wiederholungsversuche."
+  },
+  "html_storage": {
+    "message": "Lagerung"
+  },
+  "html_theSessionLogBelowAlwaysKeepsASmallLocal": {
+    "message": "Das Sitzungsprotokoll unten führt immer eine kleine lokale Aufzeichnung der letzten Fehler. Aktivieren Sie dies nur bei der Fehlerbehebung mit der Browser-Entwicklerkonsole. Es fügt ausführliche interne Details hinzu und wird nach dem Neustart auf die gespeicherte Einstellung zurückgesetzt."
+  },
+  "html_toConnectOpenThisPageInABrowserThat": {
+    "message": "Um eine Verbindung herzustellen: Öffnen Sie diese Seite in einem Browser, der WebMCP unterstützt, lassen Sie sie geöffnet und zeigen Sie mit Ihrem In-Browser-Agenten auf diese Registerkarte. Fragen Sie es im Klartext – z.B. „Sortieren Sie meine Downloads nach Website und Datum in Ordnern, nummerieren Sie jede Datei und benachrichtigen Sie mich nur, wenn eine Datei fehlschlägt.“"
+  },
+  "html_tools": {
+    "message": "Werkzeuge"
+  },
+  "html_version": {
+    "message": "Version"
+  },
+  "html_websiteAccess": {
+    "message": "Website-Zugriff"
+  },
+  "html_whyThesePermissionsAreNeeded": {
+    "message": "Warum diese Berechtigungen benötigt werden"
+  },
+  "html_alsoWorks": {
+    "message": "funktioniert auch)"
+  },
+  "html_amOrPmLocalTime": {
+    "message": "vormittags oder nachmittags (Ortszeit)"
+  },
+  "html_attributeOfElement": {
+    "message": "Attribut des Elements"
+  },
+  "html_currentDate": {
+    "message": "Aktuelles Datum"
+  },
+  "html_currentDatetimeAsAUnixTimestamp": {
+    "message": "Aktuelles Datum und Uhrzeit als Unix-Zeitstempel"
+  },
+  "html_currentDatetimeAsAUtcIso8601String": {
+    "message": "Aktuelles Datum und aktuelle Uhrzeit als UTC-ISO 8601-Zeichenfolge"
+  },
+  "html_currentDayOfMonth": {
+    "message": "Aktueller Tag des Monats"
+  },
+  "html_currentDayOfWeekEnglish": {
+    "message": "Aktueller Wochentag (Englisch)"
+  },
+  "html_currentHour24Hour": {
+    "message": "Aktuelle Stunde (24 Stunden)"
+  },
+  "html_currentMinute": {
+    "message": "Aktuelle Minute"
+  },
+  "html_currentMonth": {
+    "message": "Aktueller Monat"
+  },
+  "html_currentMonthNameEnglish": {
+    "message": "Aktueller Monatsname (Englisch)"
+  },
+  "html_currentSecond": {
+    "message": "Aktuelle Sekunde"
+  },
+  "html_currentYear": {
+    "message": "Aktuelles Jahr"
+  },
+  "html_hostnameOfThePage": {
+    "message": "Hostname der Seite"
+  },
+  "html_hostnameOfTheSource": {
+    "message": "Hostname der Quelle"
+  },
+  "html_iso8601WeekNumber": {
+    "message": "ISO 8601 Wochennummer ("
+  },
+  "html_lastLabelOfTheSourceHostname": {
+    "message": "Letzte Bezeichnung des Quellhostnamens"
+  },
+  "html_pageHostnameWithoutSubdomains": {
+    "message": "Hostname der Seite ohne Subdomains"
+  },
+  "html_pageTitleLowercasedAndDashed": {
+    "message": "Seitentitel, kleingeschrieben und gestrichelt"
+  },
+  "html_pageTitleLowercasedWithUnderscores": {
+    "message": "Seitentitel, in Kleinbuchstaben mit Unterstrichen"
+  },
+  "html_pathPartOfTheSourceUrlSeparatorsAreSanitized": {
+    "message": "Pfadteil der Quell-URL (Trennzeichen werden bereinigt)"
+  },
+  "html_sourceHostnameWithoutSubdomains": {
+    "message": "Quellhostname ohne Subdomains"
+  },
+  "html_standard": {
+    "message": "Standard"
+  },
+  "html_textOfTheLinkOr": {
+    "message": "Text des Links, bzw"
+  },
+  "html_theCurrentlySelectedTextOnThePage": {
+    "message": "Der aktuell ausgewählte Text auf der Seite"
+  },
+  "html_theNaiveFilenameUrlBasedUseTheRoutingFeature": {
+    "message": "Von der URL abgeleiteter Dateiname. Verwenden Sie Routing-Regeln, wenn diese ungenau sind."
+  },
+  "html_titleOfThePage": {
+    "message": "Titel der Seite"
+  },
+  "html_urlOfThePage": {
+    "message": "URL der Seite"
+  },
+  "html_urlOfTheSource": {
+    "message": "URL der Quelle"
+  },
+  "html_usableEverywhere": {
+    "message": "Überall einsetzbar"
+  },
+  "html_variablesAreUsedInDirectoryAndPathPatterns": {
+    "message": "Variablen werden in Ordner- und Dateinamenmustern verwendet."
+  },
+  "html_actualResolvedFilenameExtensionAlias": {
+    "message": "Tatsächlich aufgelöste Dateinamenerweiterung. Alias:"
+  },
+  "html_aRandomV4UuidUniquePerUse": {
+    "message": "Eine zufällige v4-UUID, eindeutig pro Verwendung"
+  },
+  "html_autoIncrementingNumberThatAdvancesOncePerSavedDownload": {
+    "message": "Zahl, die sich nach jedem gespeicherten Download erhöht und über Neustarts hinweg bestehen bleibt. Sehen Sie sich den Download-Zähler an oder setzen Sie ihn zurück."
+  },
+  "html_blankIfTheServerDoesnTAnswer": {
+    "message": " und ist leer, wenn nicht verfügbar."
+  },
+  "html_captureGroupWhere": {
+    "message": "Von der Gruppe erfasster Text"
+  },
+  "html_charactersForDeeperNesting": {
+    "message": "Zeichen für eine tiefere Verschachtelung"
+  },
+  "html_createsASeparatorInTheContextMenu": {
+    "message": "Erstellt ein Trennzeichen im Kontextmenü"
+  },
+  "html_createsASubmenuItemAddMore": {
+    "message": "Erstellt einen Untermenüpunkt; mehr hinzufügen"
+  },
+  "html_fileExtensionDerivedFromThe": {
+    "message": "Dateierweiterung abgeleitet von"
+  },
+  "html_first12LowercaseHexCharactersOfTheDownloadedFile": {
+    "message": "Die ersten 12 kleingeschriebenen Hexadezimalzeichen des SHA-256 der heruntergeladenen Datei. Beim Vorbereiten dieses Werts wird die Datei vor dem Speichern abgerufen und gehasht; in Vorschauen oder bei Nichtverfügbarkeit bleibt er daher leer. Der Download wird fortgesetzt, wenn das Hashing fehlschlägt. Eine lange Vorbereitung können Sie im Verlauf abbrechen."
+  },
+  "html_full64CharacterLowercaseSha256ItSharesThe": {
+    "message": "Vollständiger 64-stelliger Kleinbuchstabe SHA-256. Es wird zusammen mit berechnet"
+  },
+  "html_fullActualFilenameAfterContentDisposition": {
+    "message": "Aufgelöster Dateiname, einschließlich Content-Disposition"
+  },
+  "html_handyForExtensionlessOrQuerySuffixedUrls": {
+    "message": ". Nützlich für URLs ohne Erweiterung oder mit Abfragesuffix."
+  },
+  "html_menuStructure": {
+    "message": "Menüstruktur"
+  },
+  "html_onlyUsableWhenRoutingAndRewritingFilenames": {
+    "message": "Nur beim Weiterleiten oder Umbenennen von Dateien verfügbar"
+  },
+  "html_routingAndFilenamesOnly": {
+    "message": "Nur Routing und Dateinamen"
+  },
+  "html_specialRowsUsedOnlyInTheDownloadsMenu": {
+    "message": "Spezielle Zeilen, die nur im Menü „Standorte speichern“ verwendet werden"
+  },
+  "html_theN": {
+    "message": "; Ersetzen Sie 1 durch die Gruppennummer."
+  },
+  "html_theServerS": {
+    "message": "Die des Servers"
+  },
+  "html_theUrlAfterFollowingRedirectsViaTheSameHead": {
+    "message": "Die URL nach folgenden Weiterleitungen. Es verwendet die gleiche Anfrage wie"
+  },
+  "html_urlDerivedExtensionAlias": {
+    "message": "URL-abgeleitete Erweiterung. Alias:"
+  },
+  "html_viaAHeadRequestAddsASmallDelayAnd": {
+    "message": ". Dies führt zu einer kleinen Verzögerung und ist leer, wenn nicht verfügbar."
+  },
+  "html_whenBothVariablesAreUsed": {
+    "message": "wenn beide Variablen verwendet werden."
+  },
+  "html_attribute": {
+    "message": "Attribut."
+  },
+  "html_clausesAreOnlyUsedInRuleDefinitionsForRouting": {
+    "message": "Routing-Regeln verwenden Klauseln, um zu entscheiden, welche Downloads verschoben oder umbenannt werden sollen."
+  },
+  "html_firefox": {
+    "message": "(Nur Firefox)."
+  },
+  "html_forCaseInsensitiveMatching": {
+    "message": "für den Vergleich ohne Berücksichtigung der Groß-/Kleinschreibung."
+  },
+  "html_forExplicitNewRules": {
+    "message": "in neuen Regeln."
+  },
+  "html_matcherClausesUse": {
+    "message": "Verwendung von Matcher-Klauseln"
+  },
+  "html_matchers": {
+    "message": "Matcher"
+  },
+  "html_matchesTheCommentOfTheClickedMenuItem": {
+    "message": "Entspricht dem Kommentar des ausgewählten Menüelements."
+  },
+  "html_matchesTheCurrentPageTitle": {
+    "message": "Entspricht dem aktuellen Seitentitel."
+  },
+  "html_matchesTheCurrentPageUrl": {
+    "message": "Entspricht der aktuellen Seiten-URL."
+  },
+  "html_matchesTheFinalFilename": {
+    "message": "Entspricht dem endgültigen Dateinamen."
+  },
+  "html_matchesTheLinkTextOrElement": {
+    "message": "Entspricht dem Linktext oder dem des Elements"
+  },
+  "html_matchesTheMediaType": {
+    "message": "Entspricht dem Medientyp:"
+  },
+  "html_matchesTheMenuIndexOfTheClickedMenuItem": {
+    "message": "Entspricht dem Index des ausgewählten Menüelements (1, 2, 3…)."
+  },
+  "html_matchesTheNaiveFilename": {
+    "message": "Entspricht dem aus der URL abgeleiteten Dateinamen."
+  },
+  "html_matchesThePageHostname": {
+    "message": "Entspricht dem Hostnamen der Seite."
+  },
+  "html_matchesTheResolvedFilenameExtensionAfterContentDisposition": {
+    "message": "Entspricht der aufgelösten Dateinamenerweiterung, einschließlich Content-Disposition."
+  },
+  "html_matchesTheSelectionText": {
+    "message": "Entspricht dem ausgewählten Text."
+  },
+  "html_matchesTheSourceHostnameForMedia": {
+    "message": "Entspricht dem Hostnamen der Medienquelle."
+  },
+  "html_matchesTheSourceUrlForMedia": {
+    "message": "Entspricht der Medienquellen-URL."
+  },
+  "html_matchesTheUrlDerivedExtensionLegacyNameUse": {
+    "message": "Entspricht der von der URL abgeleiteten Erweiterung (Legacy-Name). Benutzen"
+  },
+  "html_matchesTheUrlOfTheCurrentFrame": {
+    "message": "Entspricht der aktuellen Frame-URL."
+  },
+  "html_matchesWhatIsClicked": {
+    "message": "Entspricht dem, was angeklickt wurde:"
+  },
+  "html_or": {
+    "message": ", oder"
+  },
+  "html_outputAndCapture": {
+    "message": "Ausgabe und Erfassung"
+  },
+  "html_regularExpression": {
+    "message": "reguläre Ausdrücke"
+  },
+  "html_renamingTheFileKeepsItsOwnNameEG": {
+    "message": "Umbenennen – die Datei behält ihren aktuellen Namen (z. B."
+  },
+  "html_required": {
+    "message": "Erforderlich"
+  },
+  "html_routesDownloadsToOrRewritesDownloadFilenamesIntoThe": {
+    "message": "Verschiebt einen Download in den angegebenen Pfad oder benennt ihn nach dem angegebenen Muster um. Schluss mit"
+  },
+  "html_selectsTheMatcherForRegexCaptureGroupVariables": {
+    "message": "Wählt den Matcher aus, dessen Erfassungsgruppen für reguläre Ausdrücke verfügbar sind als"
+  },
+  "html_splitMultipleCaptureTargetsWithA": {
+    "message": ". Trennen Sie mehrere Erfassungsziele mit"
+  },
+  "html_stringsAddJavascriptRegexFlagsAfterTheMatcherName": {
+    "message": ". Fügen Sie nach dem Matcher-Namen JavaScript-Flags hinzu; zum Beispiel verwenden"
+  },
+  "html_toRouteIntoAFolder": {
+    "message": "um es in einen Ordner zu verschieben"
+  },
+  "html_without": {
+    "message": "ohne"
+  },
+  "o_lShortcutEnterOrReset": {
+    "message": "Geben Sie eine Verknüpfung ein oder verwenden Sie Zurücksetzen."
+  },
+  "o_lShortcutFormat": {
+    "message": "Verwenden Sie ein Format wie Ctrl+Shift+G."
+  },
+  "o_lShortcutPrimaryModifier": {
+    "message": "Fügen Sie Ctrl, Alt, Command oder MacCtrl als Modifikator ein."
+  },
+  "o_lShortcutAddKey": {
+    "message": "Fügen Sie nach dem Modifikator einen Schlüssel hinzu."
+  },
+  "o_lShortcutOneKey": {
+    "message": "Verwenden Sie eine Taste für Ihre Modifikatoren."
+  },
+  "o_lShortcutValidKey": {
+    "message": "Wählen Sie einen gültigen Schlüssel, z. B. Y, 5, F12 oder PageDown."
+  },
+  "o_lShortcutNoRepeats": {
+    "message": "Wiederholen Sie keine Tasten oder Modifikatoren."
+  },
+  "o_lShortcutReady": {
+    "message": "Bereit zur Bewerbung."
+  },
+  "o_lShortcutChangeUnsupported": {
+    "message": "Dieser Browser unterstützt das Ändern von Verknüpfungen hier nicht."
+  },
+  "o_lShortcutRejected": {
+    "message": "Der Browser hat diese Verknüpfung nicht akzeptiert. Es kann reserviert oder in Gebrauch sein."
+  },
+  "o_lShortcutUpdated": {
+    "message": "Verknüpfung aktualisiert."
+  },
+  "o_lShortcutResetUnsupported": {
+    "message": "Dieser Browser unterstützt das Zurücksetzen von Verknüpfungen hier nicht."
+  },
+  "o_lShortcutReset": {
+    "message": "Verknüpfung zurücksetzen."
+  },
+  "o_lShortcutLegacyValue": {
+    "message": "Legacy-Wert: $VALUE$",
+    "placeholders": {
+      "value": {
+        "content": "$1",
+        "example": "Alt"
+      }
+    }
+  },
+  "o_lAccessKeyInvalid": {
+    "message": "Verwenden Sie einen Buchstaben oder eine Zahl. Vorhandene gespeicherte Werte bleiben bis zur Änderung unterstützt."
+  },
+  "o_lShortcutFormatAnyBrowser": {
+    "message": "Funktioniert in jedem Browser"
+  },
+  "o_lShortcutFormatLegacyInternet": {
+    "message": "Legacy-Internetverknüpfung"
+  },
+  "o_lShortcutFormatMac": {
+    "message": "Native macOS-Verknüpfung"
+  },
+  "o_lShortcutFormatWindows": {
+    "message": "Windows Internetverknüpfung"
+  },
+  "o_lShortcutFormatLinux": {
+    "message": "Linux Desktop-Verknüpfung"
   }
 }

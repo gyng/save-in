@@ -1,9 +1,9 @@
 {
   "extensionName": {
-    "message": "Save In…"
+    "message": "Save In"
   },
   "extensionDescription": {
-    "message": "{画像、ビデオ、オーディオ、リンク、選択内容、ページ} をデフォルトのダウンロード ディレクトリに相対的なディレクトリに保存します。"
+    "message": "画像、ビデオ、オーディオ、リンク、選択したテキスト、ページをデフォルトのダウンロード フォルダー内のフォルダーに保存します。"
   },
   "translationCredits": {
     "message": "​"
@@ -15,16 +15,16 @@
     "message": "オプション"
   },
   "contextMenuToggleSourcePanel": {
-    "message": "ページソースの切り替え"
+    "message": "ページのソースを表示または非表示にする"
   },
   "contextMenuExclusive": {
-    "message": "Save In で振り分け…"
+    "message": "ルーティング ルールを付けて保存…"
   },
   "contextMenuRoot": {
     "message": "Save In…"
   },
   "contextMenuLastUsed": {
-    "message": "最後に使用したもの"
+    "message": "最後に使用した"
   },
   "contextMenuContextMedia": {
     "message": "メディア"
@@ -33,13 +33,13 @@
     "message": "メディアまたはリンク"
   },
   "contextMenuContextSelection": {
-    "message": "選択テキスト"
+    "message": "選択したテキスト"
   },
   "contextMenuContextPage": {
     "message": "ページ"
   },
   "contextMenuShowDefaultFolder": {
-    "message": "デフォルトフォルダーを開く"
+    "message": "デフォルトのダウンロードフォルダーを開く"
   },
   "notificationSuccessTitle": {
     "message": "保存されました"
@@ -69,34 +69,34 @@
     }
   },
   "ruleMissingMatcher": {
-    "message": "ルールには少なくとも 1 つの matcher 句が必要です"
+    "message": "少なくとも 1 つの matcher 句を追加します"
   },
   "ruleCaptureMissingMatcher": {
     "message": "Capture 句はマッチャーをターゲットにしていません"
   },
   "ruleMissingCapture": {
-    "message": "キャプチャ変数を使用するにはルールにキャプチャ句が必要です"
+    "message": "キャプチャ変数を使用するにはキャプチャ句を追加します"
   },
   "ruleMultipleCapture": {
     "message": "ルールにはキャプチャ句を 1 つだけ含めることができます"
   },
   "ruleMissingInto": {
-    "message": "ルールには少なくとも 1 つの into 句が必要です"
+    "message": "少なくとも 1 つを into: 句に追加します"
   },
   "ruleExtraInto": {
-    "message": "ルールには into 句を 1 つだけ含めることができます"
+    "message": "ルールには into: 句を 1 つだけ含めることができます"
   },
   "ruleUnknownMatcher": {
     "message": "不明なマッチャー"
   },
   "ruleInvalidRegex": {
-    "message": "無効な正規表現"
+    "message": "無効な正規表現です"
   },
   "ruleShadowed": {
-    "message": "以前のルールに同じまたはより広範囲の一致があるため、ルールに到達できません"
+    "message": "以前のルールが同じまたは複数のダウンロードに一致するため、このルールは実行されません"
   },
   "ruleBadClause": {
-    "message": "不正な句"
+    "message": "無効な条項"
   },
   "rulePathInvalidCharacter": {
     "message": "パスに無効な文字が含まれています"
@@ -117,19 +117,19 @@
     }
   },
   "tabstripMenuSaveChildrenTabs": {
-    "message": "このタブから開いた他のタブを保存する"
+    "message": "このタブから開いたタブを保存する"
   },
   "tabstripMenuSaveRightTabs": {
-    "message": "このタブを含め、右側にあるすべてのタブを保存"
+    "message": "このタブとその右側にあるすべてのタブを保存します"
   },
   "tabstripMenuSaveRightTabsMatched": {
-    "message": "このタブを含め、右側にあるすべてのタブを保存（振り分けルールとの一致が必要）"
+    "message": "このタブとその右側にあるすべてのタブを保存します (ルーティング ルールが必要です)"
   },
   "o_sDownloads": {
-    "message": "ダウンロードメニュー"
+    "message": "場所を保存する"
   },
   "o_sDirectories": {
-    "message": "ディレクトリ"
+    "message": "フォルダー"
   },
   "o_sBehavior": {
     "message": "動作"
@@ -153,7 +153,7 @@
     "message": "ブラウザのダウンロード"
   },
   "o_lBrowserDownloadsHelp": {
-    "message": "Web ページまたはブラウザ自体によって開始されたダウンロードの処理をオプトインします。 Save In または別の拡張機能によって開始されたダウンロードは除外されます。"
+    "message": "必要に応じて、Web ページまたはブラウザによって開始されたダウンロードを追跡またはルーティングします。 Save In または別の拡張機能によって開始されたダウンロードは除外されます。"
   },
   "o_cTrackBrowserDownloads": {
     "message": "通常のブラウザのダウンロードを Save In 履歴に含める"
@@ -162,25 +162,25 @@
     "message": "所有権を取得せずに、Save In 履歴に一致するダウンロードを記録します。これらは再試行されず、Save In プロンプトや通知もトリガーされません。"
   },
   "o_cRouteBrowserDownloads": {
-    "message": "すべてのブラウザーのダウンロードにルーティング ルールを使用する"
+    "message": "ブラウザのダウンロードにルーティング ルールを使用する"
   },
   "o_cRouteBrowserDownloadsHelp": {
-    "message": "ブラウザが実装する場合は、downloads.onDeterminingFilename を使用します。一致ルールにより、通常のブラウザ ダウンロードの名前が変更されたり、サブディレクトリに配置されたりする場合があります。一致しないダウンロードは変更されません。"
+    "message": "サポートされている場合、一致ルールはブラウザーのダウンロードの名前を変更したり、サブフォルダーに配置したりできます。一致しないダウンロードは変更されません。"
   },
   "o_cRouteBrowserDownloadsFirefox": {
     "message": "Firefox で一致するダウンロードを実験的に再ルーティングする"
   },
   "o_cRouteBrowserDownloadsFirefoxHelp": {
-    "message": "実験的であり、破壊的な可能性があります。現在、Firefox は downloads.onDeterminingFilename を実装していないため、Save In は元のファイルをキャンセルし、置換を開始します。 Firefox がネイティブ API を追加すると、このオプションは自動的に消えます。 POST ダウンロード、有効期限切れの URL、特別なリクエスト ヘッダー、および一部の認証されたダウンロードは失敗する可能性があります。"
+    "message": "Firefox にはネイティブのファイル名ルーティング機能がないため、Save In は一致するダウンロードをキャンセルして代替ダウンロードを開始します。POST リクエスト、期限切れになる URL、カスタムヘッダー、認証が必要なダウンロードでは失敗することがあります。"
   },
   "o_lFirefoxFilenameApiBug": {
     "message": "Mozilla バグ 1245652"
   },
   "o_cBrowserDownloadFilter": {
-    "message": "一致するダウンロード URL のみを処理します (オプション)"
+    "message": "一致するダウンロード URL のみを含めます (オプション)"
   },
   "o_cBrowserDownloadFilterHelp": {
-    "message": "Blank は、通常のブラウザーのダウンロードをすべて処理します。それ以外の場合は、*://*.example.com/* または https://example.com/files/*. など、1 行に 1 つの WebExtension 一致パターンを入力します。フィルターは履歴の追跡とルーティングに適用されます。"
+    "message": "すべてのブラウザーのダウンロードを処理するには空白のままにするか、1 行に 1 つの WebExtension 一致パターンを入力します。このフィルターは履歴の追跡とルーティングに適用されます。"
   },
   "o_cBrowserDownloadExcludeFilter": {
     "message": "一致するダウンロード URL を除外する (オプション)"
@@ -192,7 +192,7 @@
     "message": "ブラウザのダウンロードでは、URL、提案されたファイル名、現在時刻、カウンタ、UUID、および MIME 変数のみが提供されます。ページ タイトル、ページ URL、リンク テキスト、選択範囲、メニュー メタデータ、およびキー修飾子は使用できません。"
   },
   "o_sRenameAndRouteDownloads": {
-    "message": "ダウンロードの名前変更とルート指定"
+    "message": "ルーティングと名前変更"
   },
   "o_sNotifications": {
     "message": "通知"
@@ -333,7 +333,7 @@
     "message": "ビジュアルエディター"
   },
   "o_bAddDirectory": {
-    "message": "ディレクトリ"
+    "message": "フォルダー"
   },
   "o_bAddSeparator": {
     "message": "セパレータ"
@@ -357,7 +357,7 @@
     "message": "テンプレートライブラリ"
   },
   "o_lClauseList": {
-    "message": "句の一覧"
+    "message": "条項一覧"
   },
   "o_lGithub": {
     "message": "GitHub"
@@ -399,7 +399,7 @@
     "message": "クリックして表示"
   },
   "o_lAccessKeysInstruction": {
-    "message": "Save In メニュー項目のアクセスキーを設定します。"
+    "message": "Save In メニュー項目のアクセス キーを設定します。"
   },
   "o_cLastUsedMenu": {
     "message": "最後に使用したメニュー項目を表示"
@@ -423,7 +423,7 @@
     "message": "タブメニューにSave Inアクションを表示"
   },
   "o_cSaveTabstripHelp": {
-    "message": "タブ、タブ グループ、またはタブを右に保存します"
+    "message": "タブ、タブ グループ、またはタブを右側に保存します"
   },
   "o_cOpenDialog": {
     "message": "どこに保存するかを常に尋ねる"
@@ -432,7 +432,7 @@
     "message": "ファイル名には拡張子がありません"
   },
   "o_cOpenDialogShift": {
-    "message": "Shift キーを押しながらメニュー項目を選択する"
+    "message": "Shift キーを押したままメニュー項目を選択すると"
   },
   "o_cOpenDialogOnFailure": {
     "message": "ダウンロードが失敗する"
@@ -444,28 +444,28 @@
     "message": "上書き"
   },
   "o_cDupePrompt": {
-    "message": "私に聞いて"
+    "message": "毎回尋ねる"
   },
   "o_cDupeFilename": {
     "message": "ファイルがすでに存在する場合:"
   },
   "o_cOpenDialogIfNoRulesMatch": {
-    "message": "ルールが一致しない場合は、ファイルの保存ダイアログを開きます"
+    "message": "ルーティング ルールが一致しない場合に保存場所を尋ねる"
   },
   "o_cExclusiveMode": {
-    "message": "ルーティング ルールと名前変更ルールを排他的に使用する"
+    "message": "一致するルーティング ルールが必要"
   },
   "o_cExclusiveModeHelp": {
-    "message": "2 クリック ダウンロードのサブメニューを無効にし、デフォルトのダウンロード ディレクトリに相対的に保存します。"
+    "message": "フォルダーのサブメニューを非表示にし、デフォルトのダウンロード フォルダーを基準にして保存します。"
   },
   "o_cNotifySuccess": {
-    "message": "ダウンロードが成功したときに通知を表示する"
+    "message": "ダウンロードが成功したときに通知する"
   },
   "o_cNotifyFailure": {
-    "message": "ダウンロードに失敗した場合に通知を表示する"
+    "message": "ダウンロードが失敗した場合に通知する"
   },
   "o_cNotifyMatch": {
-    "message": "ルール一致時に通知を表示する"
+    "message": "ルーティング ルールが一致した場合に通知する"
   },
   "o_cSaveShortcutsAs": {
     "message": "ショートカットを名前を付けて保存"
@@ -495,7 +495,7 @@
     "message": "代わりにページをショートカットとして保存します"
   },
   "o_cSaveShortcutsTabsInstead": {
-    "message": "タブをショートカットとして保存（タブの右クリックメニューから）"
+    "message": "タブをショートカットとして保存 (タブのコンテキスト メニューから)"
   },
   "o_cKeyboardShortcutSaveInMenu": {
     "message": "Save In コンテキスト メニュー項目"
@@ -510,10 +510,10 @@
     "message": "クリックして保存を有効にする"
   },
   "o_cKeyboardShortcutClickToHelp": {
-    "message": "Alt (デフォルト) を押しながら画像またはメディアをクリックして、最後に使用したディレクトリまたはデフォルトのダウンロード ディレクトリに保存します。クリック イベントをリッスンするスクリプトをページに挿入します。これを使用する場合、すべての変数が使用できるわけではありません。有効にするにはページを更新する必要があります。"
+    "message": "デフォルトでは、Alt キーを押しながら画像またはメディア項目をクリックすると、最後に使用したフォルダーまたはデフォルトのダウンロード フォルダーに保存されます。 Save In は、クリック リスナーをページに追加します。一部の変数は使用できません。"
   },
   "o_cHostPermissionMissing": {
-    "message": "Save In はページの内容にアクセスできません。すべてのサイトへのアクセスを許可するまで、クリックして保存は機能しません。"
+    "message": "Save In はページのコンテンツにアクセスできません。クリックして保存を使用するには、すべてのサイトへのアクセスを許可します。"
   },
   "o_cHostPermissionGrant": {
     "message": "アクセスを許可する"
@@ -534,16 +534,16 @@
     "message": "進むボタン(5)"
   },
   "o_cKeyboardShortcutModifierHelp": {
-    "message": "選択したモディファイアを押したまま、選択したマウス ボタンをクリックします。マウス ボタンだけを使用するには、両方の修飾子フィールドで [なし] を選択します。変更は既存のページに適用されます。"
+    "message": "選択した修飾キーを押したまま、選択したマウス ボタンをクリックします。マウス ボタンのみを使用するには、両方のモディファイアに [なし] を選択します。変更は既存のページに適用されます。"
   },
   "o_cRestoreDefaults": {
     "message": "デフォルトに戻す"
   },
   "o_cTruncatePath": {
-    "message": "パスコンポーネントをこの文字数まで切り詰めます"
+    "message": "フォルダー名の最大文字数"
   },
   "o_cTruncatePathHelp": {
-    "message": "0 = 切り捨てなし"
+    "message": "0は制限なしを意味します"
   },
   "o_cReplaceInvalidCharsWith": {
     "message": "無効な文字を次のように置き換えます"
@@ -555,28 +555,28 @@
     "message": "ファイル名に拡張子がない場合は拡張子を追加します"
   },
   "o_cAppendMimeExtensionHelp": {
-    "message": "拡張子のない URL またはクエリサフィックス付きの URL の場合は、サーバーの Content-Type から拡張子を取得します (HEAD 経由、ボディキャンセルされた GET フォールバックを使用)。名前に遅延がない場合にのみ、小さな遅延を追加します。"
+    "message": "拡張子のない URL の場合は、サーバーの Content-Type から拡張子を取得します。これにより、必要な場合にのみ小さな遅延が追加されます。"
   },
   "o_cFallbackFetch": {
-    "message": "失敗したダウンロードをバックグラウンドで再試行する"
+    "message": "失敗したダウンロードをバックグラウンドで一度再試行します"
   },
   "o_cFallbackFetchHelp": {
-    "message": "ネットワークまたはサーバーのエラーによりダウンロードが失敗した場合は、失敗を報告する前にバックグラウンドで取得してダウンロードを 1 回再試行してください。"
+    "message": "失敗を報告する前に、ネットワークまたはサーバーのエラーを再試行します。"
   },
   "o_cFetchViaFetchAPI": {
-    "message": "拡張機能 (Fetch API) を使用してダウンロードする"
+    "message": "Save In からダウンロード"
   },
   "o_cFetchViaFetchAPIHelp": {
-    "message": "ブラウザのダウンローダーに URL を指定するのではなく、ファイル自体をフェッチし、結果をブラウザに渡します。通常のダウンロードが失敗する場合にのみ有効にしてください。一部のサーバーはブラウザのリクエストをブロックするか、空のファイルを返します。速度が遅くなり、Chrome では保存中にファイルがメモリに保持されるため、非常に大規模なダウンロードの場合は避けてください。"
+    "message": "Save In はファイルをフェッチし、ブラウザに渡します。これは、通常のダウンロードが失敗した場合にのみ使用してください。速度が遅く、Chrome は保存中にファイルをメモリに保持するため、非常に大きなファイルの場合は避けてください。"
   },
   "o_cIncludeFetchCredentials": {
-    "message": "拡張リクエストに Web サイトのサインイン Cookie を使用する"
+    "message": "Web サイトのサインイン Cookie を含める"
   },
   "o_cIncludeFetchCredentialsHelp": {
-    "message": "非プライベート保存ではデフォルトで有効になっています。リダイレクト先を含むバックグラウンドのフェッチおよび HEAD リクエストに、該当する Cookie とブラウザ管理の認証が含まれます。これらのリクエストを匿名で行うには、これをオフにします。共有バックグラウンドではプライベート Cookie ストアを選択できないため、プライベート ウィンドウ拡張リクエストは常に匿名です。ブラウザーの直接ダウンロードでは、独自の Cookie が管理されます。"
+    "message": "リダイレクト後など、Save In がバックグラウンドでファイルを取得するときに、該当する Cookie とブラウザー管理のサインインが含まれます。プライベート ウィンドウのリクエストは匿名のままです。ブラウザーの直接ダウンロードでは、独自の資格情報が管理されます。"
   },
   "o_cSetRefererHeader": {
-    "message": "ページ URL が見つからない場合は、「Referer」ヘッダーをページ URL に設定します"
+    "message": "ページ URL が見つからない場合はリファラーとして使用します"
   },
   "o_cSetRefererHeaderHelp": {
     "message": "Firefoxのみ。一部のサイト (例: pixiv.net) は、HTTP Referer ヘッダーのないダウンロードを拒否します。一致するダウンロードの場合、Firefox はページ URL をリファラーとして直接送信します。サイトで必要でない限り、オフのままにしておきます。"
@@ -588,7 +588,7 @@
     "message": "1 行に 1 つの一致パターン。例: *://i.pximg.net/*。リファラーは、URL がこれらのいずれかに一致するダウンロードに対してのみ設定されます。"
   },
   "o_cImportSettings": {
-    "message": "設定をインポート"
+    "message": "インポート設定"
   },
   "o_cExportSettings": {
     "message": "設定のエクスポート"
@@ -597,10 +597,10 @@
     "message": "詳細な開発者ログを有効にする"
   },
   "o_cLastSavedAt": {
-    "message": "設定は次の場所で更新されました: "
+    "message": "最終更新日: "
   },
   "o_cLastSavedAtNever": {
-    "message": "一度もない"
+    "message": "決してしない"
   },
   "optionsUnsavedChanges": {
     "message": "保存していない変更を破棄しますか、それとも編集を続けますか?"
@@ -609,7 +609,7 @@
     "message": "未保存の変更"
   },
   "o_lDirectoryDefinitions": {
-    "message": "ディレクトリメニューの定義"
+    "message": "フォルダーメニューの定義"
   },
   "o_lTextRules": {
     "message": "テキストのルール"
@@ -648,7 +648,7 @@
     "message": "検証エラーはありません"
   },
   "notificationLinkPreferred": {
-    "message": "代わりにリンクがダウンロードされました"
+    "message": "代わりにリンクターゲットをダウンロードしました"
   },
   "o_cPreferLinksFilterEnabled": {
     "message": "一致するページのみ"
@@ -663,7 +663,7 @@
     "message": "優先リンクの正規表現が無効です"
   },
   "o_cNotifyLinkPreferred": {
-    "message": "ソースではなくリンクがダウンロードされたときに通知を表示する"
+    "message": "埋め込みメディアの代わりにリンク ターゲットがダウンロードされたときに通知する"
   },
   "o_cCloseTabOnSave": {
     "message": "保存したら各タブを閉じます"
@@ -678,10 +678,10 @@
     "message": "ファイル名"
   },
   "o_sAdvancedDownloading": {
-    "message": "ダウンロード中"
+    "message": "ダウンロードの取り扱い"
   },
   "o_sAdvancedCounter": {
-    "message": "カウンター"
+    "message": "ダウンロードカウンター"
   },
   "o_sAdvancedBackupReset": {
     "message": "バックアップとリセット"
@@ -696,9 +696,912 @@
     "message": "このエディターでの変更は、「適用」を選択すると保存されます。"
   },
   "o_lReferenceNavigation": {
-    "message": "リファレンスナビゲーション"
+    "message": "参考ページ"
   },
   "o_lFilterReference": {
     "message": "フィルター"
+  },
+  "html_aboutSaveIn": {
+    "message": "Save Inについて"
+  },
+  "html_absolutePathsAndHiddenPathSegmentsSuchAs": {
+    "message": "、絶対パス、および次のような非表示のパス セグメント"
+  },
+  "html_add": {
+    "message": "。追加"
+  },
+  "html_addACommentThatIsNotDisplayed": {
+    "message": "表示されていないコメントを追加する"
+  },
+  "html_addDestinations": {
+    "message": "目的地を追加する"
+  },
+  "html_addsOneNestingLevel": {
+    "message": "ネストレベルが 1 つ追加されます。"
+  },
+  "html_areNotSupported": {
+    "message": "はサポートされていません。"
+  },
+  "html_askAnAiAgentToDraftADownloadsMenu": {
+    "message": "AI エージェントにフォルダー メニューの下書きを依頼する"
+  },
+  "html_assignAnAccessKey": {
+    "message": "アクセスキーを割り当てる"
+  },
+  "html_atTheEndForACommentStartWith": {
+    "message": "最後にコメントを。から始める"
+  },
+  "html_browsersOnlyLetExtensionsSaveInsideTheDefault": {
+    "message": "ブラウザでは拡張機能はデフォルト内にのみ保存できます"
+  },
+  "html_buildTheDestinationsAndSubmenusShownInSaveIn": {
+    "message": "Save In のコンテキスト メニューに表示されるフォルダーとサブメニューを選択します。"
+  },
+  "html_butShowsCatPictures": {
+    "message": "、ただし「猫の写真」が表示されます。"
+  },
+  "html_changeADisplayedName": {
+    "message": "表示名を変更する"
+  },
+  "html_changeTheDisplayedName": {
+    "message": "表示名を変更する"
+  },
+  "html_copyThisPromptThenReplaceTheExampleDestinations": {
+    "message": "このプロンプトをコピーし、宛先例を置き換えます。"
+  },
+  "html_createASubmenu": {
+    "message": "サブメニューを作成する"
+  },
+  "html_createsTwoSelectableRowsInTheDownloadsMenu": {
+    "message": "[保存場所] メニューに 2 つのフォルダーを作成します。"
+  },
+  "html_defaultDownloadsDirectory": {
+    "message": "デフォルトの Downloads フォルダー"
+  },
+  "html_directoryEditorMode": {
+    "message": "フォルダーエディターモード"
+  },
+  "html_discussions": {
+    "message": "ディスカッション"
+  },
+  "html_downloadsFolder": {
+    "message": "ダウンロードフォルダー"
+  },
+  "html_each": {
+    "message": "それぞれ"
+  },
+  "html_eachLineAddsADestinationRelativeToYourBrowser": {
+    "message": "各行はブラウザの相対的な宛先を追加します。"
+  },
+  "html_forExample": {
+    "message": "たとえば、"
+  },
+  "html_howToCreateDestinations": {
+    "message": "目的地の作成方法"
+  },
+  "html_insertionReferences": {
+    "message": "挿入参照"
+  },
+  "html_issues": {
+    "message": "問題点"
+  },
+  "html_itself": {
+    "message": "それ自体"
+  },
+  "html_moreMenuSyntax": {
+    "message": "その他のメニュー構文"
+  },
+  "html_oneRelativeDirectoryOrMenuInstructionPerLineDownloads": {
+    "message": "1 行に 1 つの相対フォルダーまたはメニュー命令を入力します。ファイルは相対的に保存されます。"
+  },
+  "html_openTheDefaultDownloadsDirectory": {
+    "message": "デフォルトの Downloads フォルダーを開きます"
+  },
+  "html_pathsContaining": {
+    "message": "を含むパス"
+  },
+  "html_perLevel": {
+    "message": "レベルごとに。"
+  },
+  "html_saveInWiki": {
+    "message": "Save In ウィキ"
+  },
+  "html_savesTo": {
+    "message": "保存先"
+  },
+  "html_savingOutsideTheDownloadsFolder": {
+    "message": "ダウンロードフォルダー以外に保存する"
+  },
+  "html_separateGroups": {
+    "message": "別々のグループ"
+  },
+  "html_settingsSaveIn": {
+    "message": "設定 — Save In"
+  },
+  "html_templates": {
+    "message": "テンプレート"
+  },
+  "html_the": {
+    "message": "の"
+  },
+  "html_toCreateNestedSubmenusUsingOne": {
+    "message": "ネストされたサブメニューを作成するには、1 つを使用します。"
+  },
+  "html_toReachAnotherLocationCreateASymlinkInsideDownloads": {
+    "message": "。別の場所にアクセスするには、Downloads 内にシンボリックリンクを作成し、その相対シンボリックリンク パスを宛先として使用します。ターゲットフォルダーはすでに存在している必要があります。"
+  },
+  "html_useAVariable": {
+    "message": "変数を使用する"
+  },
+  "html_wiki": {
+    "message": "ウィキ"
+  },
+  "html_add2": {
+    "message": "追加"
+  },
+  "html_advancedUseCaptureGroups": {
+    "message": "詳細: キャプチャ グループを使用する"
+  },
+  "html_andItsSubdomainsUse": {
+    "message": "およびそのサブドメイン。使用する"
+  },
+  "html_andLaterGroupsIn": {
+    "message": "、およびその後のグループ"
+  },
+  "html_askAnAiAgentToDraftRoutingRules": {
+    "message": "AI エージェントにルーティング ルールの草案を依頼する"
+  },
+  "html_automaticallyMoveOrRenameDownloadsWhenTheirFilenameSource": {
+    "message": "ファイル名、ソース、ページ、またはコンテキストが一致すると、ダウンロードの移動または名前変更が自動的に行われます。"
+  },
+  "html_becomes": {
+    "message": "になる"
+  },
+  "html_clauseAndVariableReference": {
+    "message": "句と変数の参照"
+  },
+  "html_copyThisPromptIntoAnAgentOrUseWebmcp": {
+    "message": "このプロンプトをエージェントにコピーするか、外部統合から WebMCP を使用します。"
+  },
+  "html_destination": {
+    "message": "目的地。"
+  },
+  "html_destinationsAreRelativeToTheDownloadsMenuDestinationYou": {
+    "message": "宛先は、選択したフォルダーからの相対的なものになります。マッチャー値は正規表現です。を見てください"
+  },
+  "html_enterOneUrlLikeBrowserMatchPatternPerLine": {
+    "message": "URL に似たブラウザ一致パターンを 1 行に 1 つ入力します。スキーム、ホスト、パスがあります。"
+  },
+  "html_everyMatcherInARuleMustMatch": {
+    "message": "ルール内のすべてのマッチャーが一致する必要があります。"
+  },
+  "html_everyRuleMustEndWithAn": {
+    "message": "すべてのルールは次の文字で終わる必要があります"
+  },
+  "html_filterClauses": {
+    "message": "フィルタ句"
+  },
+  "html_filterRoutingTemplates": {
+    "message": "ルーティングテンプレートのフィルタリング"
+  },
+  "html_filterTemplates": {
+    "message": "フィルターテンプレート"
+  },
+  "html_forExample2": {
+    "message": "。たとえば、"
+  },
+  "html_forHttpAndHttpsAndEndWith": {
+    "message": "HTTP および HTTPS の場合は次で終わります"
+  },
+  "html_howDoDownloadUrlFiltersWork": {
+    "message": "ダウンロード URL フィルターはどのように機能しますか?"
+  },
+  "html_howRoutingRulesWork": {
+    "message": "ルーティング ルールの仕組み"
+  },
+  "html_matchesHttpsFileUrlsOn": {
+    "message": "の HTTPS ファイル URL に一致します"
+  },
+  "html_moveAndRenameMatchingFiles": {
+    "message": "一致するファイルを移動して名前を変更する"
+  },
+  "html_moveMatchingFilesAndKeepTheirNames": {
+    "message": "一致するファイルを移動し、名前を維持する"
+  },
+  "html_optional": {
+    "message": "オプション"
+  },
+  "html_parenthesesCapturePartsOfAMatcherSelectTheMatcher": {
+    "message": "括弧はマッチャーの一部をキャプチャします。でマッチャーを選択します"
+  },
+  "html_regularExpressionGuide": {
+    "message": "正規表現ガイド"
+  },
+  "html_separateRulesWithABlankLine": {
+    "message": "ルールは空白行で区切ります。"
+  },
+  "html_thenUse": {
+    "message": "、次に使用します"
+  },
+  "html_toIncludeEveryPathThisIsNotARegular": {
+    "message": "すべてのパスを含めます。これは正規表現ではないため、クエリ パラメータや明示的なポートと一致することはできません。"
+  },
+  "html_trackAndRouteBrowserDownloads": {
+    "message": "ブラウザーのダウンロードを追跡およびルートする"
+  },
+  "html_writeOneClausePerLine": {
+    "message": "1 行に 1 つの句を記述します。"
+  },
+  "html_all": {
+    "message": "すべて"
+  },
+  "html_altOption": {
+    "message": "代替/オプション"
+  },
+  "html_applyShortcut": {
+    "message": "ショートカットを適用する"
+  },
+  "html_click": {
+    "message": "クリック"
+  },
+  "html_clickToSaveShortcut": {
+    "message": "クリックして保存するショートカット"
+  },
+  "html_clickToSaveShortcutCombination": {
+    "message": "クリックして保存するショートカットの組み合わせ"
+  },
+  "html_columns": {
+    "message": "コラム"
+  },
+  "html_command": {
+    "message": "コマンド"
+  },
+  "html_commandWindowsKey": {
+    "message": "コマンド / Windowsキー"
+  },
+  "html_copy0LeavesDismissalToTheBrowserOrOperatingSystem": {
+    "message": "0 は、ブラウザまたはオペレーティング システムに終了を残します。"
+  },
+  "html_ctrl": {
+    "message": "Ctrl"
+  },
+  "html_dismissEarlyAfter": {
+    "message": "終わったら早めに解散"
+  },
+  "html_export": {
+    "message": "エクスポート"
+  },
+  "html_filterSources": {
+    "message": "ソースのフィルタリング"
+  },
+  "html_historyTableTools": {
+    "message": "履歴テーブルツール"
+  },
+  "html_image": {
+    "message": "画像"
+  },
+  "html_image128Kb1": {
+    "message": "画像 · 128 KB · #1"
+  },
+  "html_images": {
+    "message": "画像"
+  },
+  "html_jsonCompleteData": {
+    "message": "JSON — 完全なデータ"
+  },
+  "html_key": {
+    "message": "キー"
+  },
+  "html_link": {
+    "message": "リンク"
+  },
+  "html_links": {
+    "message": "リンク"
+  },
+  "html_macctrl": {
+    "message": "MacCtrl"
+  },
+  "html_more": {
+    "message": "もっと見る"
+  },
+  "html_mouseOnlyLeftClickWillReplaceNormalClicksOn": {
+    "message": "この機能が有効になっている間は、保存可能なメディアとリンクに対する通常のクリックがマウスのみの左クリックに置き換えられます。"
+  },
+  "html_ms": {
+    "message": "ミリ秒"
+  },
+  "html_none": {
+    "message": "なし"
+  },
+  "html_notifyMeWhen": {
+    "message": "いつ通知するか"
+  },
+  "html_previewOfThePageSourcesDrawer": {
+    "message": "ページソースドロワーのプレビュー"
+  },
+  "html_primaryModifier": {
+    "message": "主な修飾子"
+  },
+  "html_saveTheseAsShortcutFiles": {
+    "message": "ショートカットファイルとして保存"
+  },
+  "html_secondModifier": {
+    "message": "2 番目の修飾子"
+  },
+  "html_selection": {
+    "message": "選択"
+  },
+  "html_shift": {
+    "message": "シフト"
+  },
+  "html_shortcutFileBehavior": {
+    "message": "ショートカットファイルの動作"
+  },
+  "html_shortcutKey": {
+    "message": "ショートカットキー"
+  },
+  "html_streamHls3": {
+    "message": "ストリーム · HLS · #3"
+  },
+  "html_tab": {
+    "message": "タブ"
+  },
+  "html_video": {
+    "message": "ビデオ"
+  },
+  "html_video24Mb2": {
+    "message": "ビデオ · 2.4 MB · #2"
+  },
+  "html_advancedEditIdsAsText": {
+    "message": "詳細: ID をテキストとして編集する"
+  },
+  "html_allow": {
+    "message": "許可する"
+  },
+  "html_allowedExtensionIds": {
+    "message": "許可される拡張機能 ID"
+  },
+  "html_apiVersion": {
+    "message": "APIバージョン"
+  },
+  "html_approvedExtensions": {
+    "message": "承認された拡張機能"
+  },
+  "html_capabilities": {
+    "message": "能力"
+  },
+  "html_clickTheSnippetToCopyIt": {
+    "message": "スニペットをクリックしてコピーします。"
+  },
+  "html_counterValue": {
+    "message": "カウンタ値"
+  },
+  "html_current": {
+    "message": "現在"
+  },
+  "html_currentValueOfThe": {
+    "message": "現在の値"
+  },
+  "html_delete": {
+    "message": "削除する"
+  },
+  "html_developerDetails": {
+    "message": "開発者の詳細"
+  },
+  "html_exampleNegotiateTheVersionThenSaveAUrl": {
+    "message": "例: バージョンをネゴシエートし、URL を保存します。"
+  },
+  "html_extensionId": {
+    "message": "内線ID"
+  },
+  "html_externalDownloadAccess": {
+    "message": "外部ダウンロードアクセス"
+  },
+  "html_externalIntegrations": {
+    "message": "外部統合"
+  },
+  "html_integrationGuide": {
+    "message": "統合ガイド"
+  },
+  "html_letTrustedExtensionsSendUrlsThroughSaveInS": {
+    "message": "信頼できる拡張機能が Save In のルーティング ルールと名前変更ルールを介して URL を送信できるようにします。"
+  },
+  "html_mdnMatchPatterns": {
+    "message": "MDN: パターンの一致"
+  },
+  "html_noExtensionsAreApprovedExternalDownloadsAreBlockedBy": {
+    "message": "延長は認められません。外部ダウンロードはデフォルトでブロックされます。"
+  },
+  "html_noneApproved": {
+    "message": "何も承認されていません"
+  },
+  "html_oneExtensionIdPerLine": {
+    "message": "1 行に 1 つの拡張 ID"
+  },
+  "html_onlyApprovedExtensionsCanStartDownloadsUseTheCalling": {
+    "message": "承認された拡張機能のみがダウンロードを開始できます。 Save In の ID ではなく、発信者内線番号の ID を使用します。"
+  },
+  "html_pasteAnExtensionId": {
+    "message": "拡張機能 ID を貼り付けます"
+  },
+  "html_pendingApproval": {
+    "message": "承認待ち"
+  },
+  "html_resetTo0": {
+    "message": "0にリセット"
+  },
+  "html_setValue": {
+    "message": "設定値"
+  },
+  "html_theseExtensionsTriedToStartADownloadAddOnly": {
+    "message": "これらの拡張機能はダウンロードを開始しようとしました。信頼できる発信者のみを追加してください。リクエストされた URL は保存されません。"
+  },
+  "html_useOneExtensionIdPerLineForBulkChanges": {
+    "message": "一括変更の場合は、1 行に 1 つの拡張 ID を使用します。"
+  },
+  "html_variableItAdvancesOncePerSavedDownloadAndPersists": {
+    "message": "変数。保存されたダウンロードごとに 1 回進み、再起動しても持続します。"
+  },
+  "html_webextensionsSuchAsFoxyGesturesCanMessageSaveIn": {
+    "message": "Foxy Gestures などの WebExtensions は、Save In に直接メッセージを送信できます。 Greasemonkey、Tampermonkey、または Violentmonkey のユーザー スクリプトは、それ自体では実行できません。ユーザー スクリプトは、拡張間を越えたメッセージング アクセスを受け取りません。小さなコンパニオン WebExtension をリレーとして使用するか、ユーザースクリプトでその機能を公開する拡張機能に URL を渡します。"
+  },
+  "html_whereThisWorks": {
+    "message": "これが機能する場所"
+  },
+  "html_askTheCommunity": {
+    "message": "コミュニティに質問する"
+  },
+  "html_aVeryDiligentOrganizer": {
+    "message": "とても熱心な主催者です"
+  },
+  "html_aWatercolorLuckyCatCarefullyOrganizingDocumentsPhotographsFilm": {
+    "message": "書類、写真、フィルム、本を丁寧に整理する水彩の招き猫"
+  },
+  "html_buildInformation": {
+    "message": "ビルド情報"
+  },
+  "html_checking": {
+    "message": "チェック中…"
+  },
+  "html_clearLog": {
+    "message": "ログをクリアする"
+  },
+  "html_closeAboutSaveIn": {
+    "message": "Save In について閉じる"
+  },
+  "html_closeReferences": {
+    "message": "参照を閉じる"
+  },
+  "html_contextMenus": {
+    "message": "コンテキストメニュー"
+  },
+  "html_documentation": {
+    "message": "ドキュメント"
+  },
+  "html_downloads": {
+    "message": "ダウンロード"
+  },
+  "html_filterCurrentReference": {
+    "message": "フィルタ電流基準"
+  },
+  "html_filterVariables": {
+    "message": "フィルター変数"
+  },
+  "html_findsAndSavesResourcesTheUserChoosesOnArbitrary": {
+    "message": "任意の Web サイト上でユーザーが選択したリソースを検索して保存します。"
+  },
+  "html_inABrowserThatSupports": {
+    "message": "をサポートするブラウザの場合"
+  },
+  "html_keepsSettingsRoutingRulesLocalHistoryAndRestartSafe": {
+    "message": "設定、ルーティング ルール、ローカル履歴、再起動しても安全な状態を保持します。"
+  },
+  "html_letsChromeConvertFetchedFileDataIntoTemporaryDownload": {
+    "message": "Chrome で、フェッチしたファイル データを一時的なダウンロード URL に変換します。"
+  },
+  "html_loadingClauses": {
+    "message": "条項をロード中…"
+  },
+  "html_loadingVariables": {
+    "message": "変数をロード中…"
+  },
+  "html_luckyOrganizingCat": {
+    "message": "幸運な整理猫"
+  },
+  "html_messageFirstOrASmallRelayExtensionMustDo": {
+    "message": " メッセージを送信するか、小さなリレー拡張機能でそうする必要があります。 Video DownloadHelper は、Save In が直接呼び出すことができる安定した統合 API を公開していません。"
+  },
+  "html_offscreen": {
+    "message": "オフスクリーン"
+  },
+  "html_privacyPolicy": {
+    "message": "プライバシーポリシー"
+  },
+  "html_references": {
+    "message": "参考文献"
+  },
+  "html_referenceType": {
+    "message": "参照タイプ"
+  },
+  "html_refreshLog": {
+    "message": "ログを更新する"
+  },
+  "html_reportAnIssue": {
+    "message": "問題を報告する"
+  },
+  "html_reportsCompletedSavesAndActionableFailuresWhenEnabled": {
+    "message": "有効になっている場合、完了した保存と対処可能な失敗をレポートします。"
+  },
+  "html_saveInDoesNotAdoptDownloadsThatAnotherExtension": {
+    "message": "Save In は、Video DownloadHelper など、別の拡張機能がすでに開始しているダウンロードを採用しません。ダウンローダーは最初に Save In を送信する必要があります。"
+  },
+  "html_saveInHasNoAnalyticsAdvertisingDeveloperOperatedServer": {
+    "message": "Save In には、分析、広告、開発者が運営するサーバー、またはリモート実行可能コードはありません。設定と履歴はブラウザー管理の拡張機能ストレージに残ります。"
+  },
+  "html_saveInIsALocalFirstDownloadsHelperFor": {
+    "message": "Save In は、コンテキスト メニュー フォルダー、ルーティング ルール、名前変更、ページ ソース、ダウンロード履歴を使用してファイルを整理するためのローカル ファースト ダウンロード ヘルパーです。"
+  },
+  "html_saveInRegistersToolsAnAiAgentCanCall": {
+    "message": ", Save In は、このオプション ページが開いているときに AI エージェントが呼び出せるツール (設定の変更、フォルダー メニューの構築、ルーティング ルールの作成など) を登録します。"
+  },
+  "html_showsSaveInCommandsOnPagesLinksMediaAnd": {
+    "message": "ページ、リンク、メディア、タブに Save In コマンドを表示します。"
+  },
+  "html_startsSavesChoosesFilenamesMonitorsResultsAndSupportsRetries": {
+    "message": "保存を開始し、ファイル名を選択し、結果を監視し、再試行をサポートします。"
+  },
+  "html_storage": {
+    "message": "ストレージ"
+  },
+  "html_theSessionLogBelowAlwaysKeepsASmallLocal": {
+    "message": "以下のセッション ログには、最近の失敗に関する小さなローカル記録が常に保存されます。これは、ブラウザ開発者コンソールを使用してトラブルシューティングを行う場合にのみ有効にしてください。詳細な内部詳細が追加され、再起動後に保存された設定にリセットされます。"
+  },
+  "html_toConnectOpenThisPageInABrowserThat": {
+    "message": "接続するには: WebMCP をサポートするブラウザでこのページを開き、開いたままにして、ブラウザ内エージェントにこのタブを指定します。わかりやすい言葉で質問してください — 例: 「ダウンロードしたファイルをウェブサイトと日付ごとにフォルダーに分類し、各ファイルに番号を付け、失敗した場合にのみ通知します。」"
+  },
+  "html_tools": {
+    "message": "ツール"
+  },
+  "html_version": {
+    "message": "バージョン"
+  },
+  "html_websiteAccess": {
+    "message": "ウェブサイトへのアクセス"
+  },
+  "html_whyThesePermissionsAreNeeded": {
+    "message": "これらの権限が必要な理由"
+  },
+  "html_alsoWorks": {
+    "message": "も動作します）"
+  },
+  "html_amOrPmLocalTime": {
+    "message": "午前または午後 (現地時間)"
+  },
+  "html_attributeOfElement": {
+    "message": "要素の属性"
+  },
+  "html_currentDate": {
+    "message": "現在の日付"
+  },
+  "html_currentDatetimeAsAUnixTimestamp": {
+    "message": "Unix タイムスタンプとしての現在の日付と時刻"
+  },
+  "html_currentDatetimeAsAUtcIso8601String": {
+    "message": "UTC ISO 8601 文字列としての現在の日付と時刻"
+  },
+  "html_currentDayOfMonth": {
+    "message": "今月の現在の日"
+  },
+  "html_currentDayOfWeekEnglish": {
+    "message": "現在の曜日 (英語)"
+  },
+  "html_currentHour24Hour": {
+    "message": "現在の時間 (24 時間制)"
+  },
+  "html_currentMinute": {
+    "message": "現在の分"
+  },
+  "html_currentMonth": {
+    "message": "当月"
+  },
+  "html_currentMonthNameEnglish": {
+    "message": "現在の月の名前 (英語)"
+  },
+  "html_currentSecond": {
+    "message": "現在の秒"
+  },
+  "html_currentYear": {
+    "message": "今年"
+  },
+  "html_hostnameOfThePage": {
+    "message": "ページのホスト名"
+  },
+  "html_hostnameOfTheSource": {
+    "message": "ソースのホスト名"
+  },
+  "html_iso8601WeekNumber": {
+    "message": "ISO 8601 週番号 ("
+  },
+  "html_lastLabelOfTheSourceHostname": {
+    "message": "ソースホスト名の最後のラベル"
+  },
+  "html_pageHostnameWithoutSubdomains": {
+    "message": "サブドメインのないページのホスト名"
+  },
+  "html_pageTitleLowercasedAndDashed": {
+    "message": "ページタイトル、小文字、破線"
+  },
+  "html_pageTitleLowercasedWithUnderscores": {
+    "message": "ページタイトル、小文字でアンダースコア付き"
+  },
+  "html_pathPartOfTheSourceUrlSeparatorsAreSanitized": {
+    "message": "ソース URL のパス部分 (区切り文字はサニタイズされます)"
+  },
+  "html_sourceHostnameWithoutSubdomains": {
+    "message": "サブドメインのないソースホスト名"
+  },
+  "html_standard": {
+    "message": "標準"
+  },
+  "html_textOfTheLinkOr": {
+    "message": "リンクのテキスト、または"
+  },
+  "html_theCurrentlySelectedTextOnThePage": {
+    "message": "ページ上で現在選択されているテキスト"
+  },
+  "html_theNaiveFilenameUrlBasedUseTheRoutingFeature": {
+    "message": "URL から派生したファイル名。これが不正確な場合は、ルーティング ルールを使用してください。"
+  },
+  "html_titleOfThePage": {
+    "message": "ページのタイトル"
+  },
+  "html_urlOfThePage": {
+    "message": "ページのURL"
+  },
+  "html_urlOfTheSource": {
+    "message": "ソースのURL"
+  },
+  "html_usableEverywhere": {
+    "message": "どこでも使える"
+  },
+  "html_variablesAreUsedInDirectoryAndPathPatterns": {
+    "message": "変数はフォルダー名とファイル名のパターンで使用されます。"
+  },
+  "html_actualResolvedFilenameExtensionAlias": {
+    "message": "実際に解決されたファイル名拡張子。別名:"
+  },
+  "html_aRandomV4UuidUniquePerUse": {
+    "message": "使用ごとに一意のランダムな v4 UUID"
+  },
+  "html_autoIncrementingNumberThatAdvancesOncePerSavedDownload": {
+    "message": "ダウンロードが保存されるたびに増加し、再起動しても維持される数値。ダウンロードカウンターの下で表示またはリセットします。"
+  },
+  "html_blankIfTheServerDoesnTAnswer": {
+    "message": " 利用できない場合は空白になります。"
+  },
+  "html_captureGroupWhere": {
+    "message": "グループごとにキャプチャされたテキスト"
+  },
+  "html_charactersForDeeperNesting": {
+    "message": "より深いネストのための文字"
+  },
+  "html_createsASeparatorInTheContextMenu": {
+    "message": "コンテキストメニューにセパレータを作成します"
+  },
+  "html_createsASubmenuItemAddMore": {
+    "message": "サブメニュー項目を作成します。さらに追加"
+  },
+  "html_fileExtensionDerivedFromThe": {
+    "message": "ファイル拡張子は、"
+  },
+  "html_first12LowercaseHexCharactersOfTheDownloadedFile": {
+    "message": "ダウンロードしたファイルの SHA-256 の最初の 12 文字の小文字 16 進数。この値を準備すると、保存する前にファイルがフェッチされてハッシュ化されるため、プレビューまたは使用できない場合は空白になります。ハッシュが失敗してもダウンロードは続行されます。長い準備は履歴からキャンセルできます。"
+  },
+  "html_full64CharacterLowercaseSha256ItSharesThe": {
+    "message": "完全な 64 文字の小文字 SHA-256。と合わせて計算されます。"
+  },
+  "html_fullActualFilenameAfterContentDisposition": {
+    "message": "解決されたファイル名 (Content-Disposition を含む)"
+  },
+  "html_handyForExtensionlessOrQuerySuffixedUrls": {
+    "message": "。拡張子のない URL またはクエリ サフィックスのある URL に便利です。"
+  },
+  "html_menuStructure": {
+    "message": "メニュー構成"
+  },
+  "html_onlyUsableWhenRoutingAndRewritingFilenames": {
+    "message": "ファイルのルーティング時または名前変更時にのみ使用可能"
+  },
+  "html_routingAndFilenamesOnly": {
+    "message": "ルーティングとファイル名のみ"
+  },
+  "html_specialRowsUsedOnlyInTheDownloadsMenu": {
+    "message": "[保存場所] メニューでのみ使用される特別な行"
+  },
+  "html_theN": {
+    "message": "; 1 をグループ番号に置き換えます。"
+  },
+  "html_theServerS": {
+    "message": "サーバーの"
+  },
+  "html_theUrlAfterFollowingRedirectsViaTheSameHead": {
+    "message": "リダイレクト後の URL。と同じリクエストを使用します"
+  },
+  "html_urlDerivedExtensionAlias": {
+    "message": "URL から派生した拡張子。別名:"
+  },
+  "html_viaAHeadRequestAddsASmallDelayAnd": {
+    "message": "。これによりわずかな遅延が発生し、使用できない場合は空白になります。"
+  },
+  "html_whenBothVariablesAreUsed": {
+    "message": "両方の変数が使用される場合。"
+  },
+  "html_attribute": {
+    "message": "属性。"
+  },
+  "html_clausesAreOnlyUsedInRuleDefinitionsForRouting": {
+    "message": "ルーティング ルールは、句を使用して、どのダウンロードを移動または名前変更するかを決定します。"
+  },
+  "html_firefox": {
+    "message": "(Firefoxのみ)。"
+  },
+  "html_forCaseInsensitiveMatching": {
+    "message": "大文字と小文字を区別しないマッチングの場合。"
+  },
+  "html_forExplicitNewRules": {
+    "message": "新しいルールで。"
+  },
+  "html_matcherClausesUse": {
+    "message": "マッチャー句が使用する"
+  },
+  "html_matchers": {
+    "message": "マッチャー"
+  },
+  "html_matchesTheCommentOfTheClickedMenuItem": {
+    "message": "選択したメニュー項目のコメントと一致します。"
+  },
+  "html_matchesTheCurrentPageTitle": {
+    "message": "現在のページのタイトルと一致します。"
+  },
+  "html_matchesTheCurrentPageUrl": {
+    "message": "現在のページの URL と一致します。"
+  },
+  "html_matchesTheFinalFilename": {
+    "message": "最終的なファイル名と一致します。"
+  },
+  "html_matchesTheLinkTextOrElement": {
+    "message": "リンクテキストまたは要素と一致します"
+  },
+  "html_matchesTheMediaType": {
+    "message": "メディア タイプと一致します:"
+  },
+  "html_matchesTheMenuIndexOfTheClickedMenuItem": {
+    "message": "選択したメニュー項目のインデックス (1、2、3…) と一致します。"
+  },
+  "html_matchesTheNaiveFilename": {
+    "message": "URL から派生したファイル名と一致します。"
+  },
+  "html_matchesThePageHostname": {
+    "message": "ページのホスト名と一致します。"
+  },
+  "html_matchesTheResolvedFilenameExtensionAfterContentDisposition": {
+    "message": "Content-Disposition など、解決されたファイル名拡張子と一致します。"
+  },
+  "html_matchesTheSelectionText": {
+    "message": "選択したテキストと一致します。"
+  },
+  "html_matchesTheSourceHostnameForMedia": {
+    "message": "メディア ソースのホスト名と一致します。"
+  },
+  "html_matchesTheSourceUrlForMedia": {
+    "message": "メディア ソース URL と一致します。"
+  },
+  "html_matchesTheUrlDerivedExtensionLegacyNameUse": {
+    "message": "URL 由来の拡張子 (従来の名前) と一致します。使用する"
+  },
+  "html_matchesTheUrlOfTheCurrentFrame": {
+    "message": "現在のフレーム URL と一致します。"
+  },
+  "html_matchesWhatIsClicked": {
+    "message": "クリックされた内容と一致します:"
+  },
+  "html_or": {
+    "message": "、または"
+  },
+  "html_outputAndCapture": {
+    "message": "出力とキャプチャ"
+  },
+  "html_regularExpression": {
+    "message": "正規表現"
+  },
+  "html_renamingTheFileKeepsItsOwnNameEG": {
+    "message": "名前変更 - ファイルは現在の名前を維持します (たとえば、"
+  },
+  "html_required": {
+    "message": "必須"
+  },
+  "html_routesDownloadsToOrRewritesDownloadFilenamesIntoThe": {
+    "message": "ダウンロードを指定されたパスに移動するか、指定されたパターンで名前を変更します。で終わる"
+  },
+  "html_selectsTheMatcherForRegexCaptureGroupVariables": {
+    "message": "正規表現キャプチャ グループが利用可能なマッチャーを選択します。"
+  },
+  "html_splitMultipleCaptureTargetsWithA": {
+    "message": "。複数のキャプチャ対象を区切る"
+  },
+  "html_stringsAddJavascriptRegexFlagsAfterTheMatcherName": {
+    "message": "。マッチャー名の後に JavaScript フラグを追加します。たとえば、使用します"
+  },
+  "html_toRouteIntoAFolder": {
+    "message": "フォルダーに移動するには"
+  },
+  "html_without": {
+    "message": "なしで"
+  },
+  "o_lShortcutEnterOrReset": {
+    "message": "ショートカットを入力するか、「リセット」を使用します。"
+  },
+  "o_lShortcutFormat": {
+    "message": "Ctrl+Shift+G のような形式を使用します。"
+  },
+  "o_lShortcutPrimaryModifier": {
+    "message": "修飾子として Ctrl、Alt、Command、または MacCtrl を含めます。"
+  },
+  "o_lShortcutAddKey": {
+    "message": "修飾子の後にキーを追加します。"
+  },
+  "o_lShortcutOneKey": {
+    "message": "修飾子には 1 つのキーを使用します。"
+  },
+  "o_lShortcutValidKey": {
+    "message": "Y、5、F12、PageDown などの有効なキーを選択します。"
+  },
+  "o_lShortcutNoRepeats": {
+    "message": "キーや修飾子を繰り返さないでください。"
+  },
+  "o_lShortcutReady": {
+    "message": "申請する準備ができました。"
+  },
+  "o_lShortcutChangeUnsupported": {
+    "message": "このブラウザは、ここでのショートカットの変更をサポートしていません。"
+  },
+  "o_lShortcutRejected": {
+    "message": "ブラウザはこのショートカットを受け入れませんでした。予約されているか使用中の可能性があります。"
+  },
+  "o_lShortcutUpdated": {
+    "message": "ショートカットが更新されました。"
+  },
+  "o_lShortcutResetUnsupported": {
+    "message": "このブラウザは、ここでのショートカットのリセットをサポートしていません。"
+  },
+  "o_lShortcutReset": {
+    "message": "ショートカットリセット。"
+  },
+  "o_lShortcutLegacyValue": {
+    "message": "従来の値: $VALUE$",
+    "placeholders": {
+      "value": {
+        "content": "$1",
+        "example": "Alt"
+      }
+    }
+  },
+  "o_lAccessKeyInvalid": {
+    "message": "1 つの文字または数字を使用します。既存の保存された値は、変更されるまでサポートされ続けます。"
+  },
+  "o_lShortcutFormatAnyBrowser": {
+    "message": "どのブラウザでも動作します"
+  },
+  "o_lShortcutFormatLegacyInternet": {
+    "message": "従来のインターネット ショートカット"
+  },
+  "o_lShortcutFormatMac": {
+    "message": "ネイティブ macOS ショートカット"
+  },
+  "o_lShortcutFormatWindows": {
+    "message": "Windows インターネット ショートカット"
+  },
+  "o_lShortcutFormatLinux": {
+    "message": "Linux デスクトップ ショートカット"
   }
 }

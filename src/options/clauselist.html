@@ -26,11 +26,8 @@
       <span class="reference-copy-status visually-hidden" role="status" aria-live="polite"></span>
     </header>
     <div class="help-text show" id="help-clause-list">
-      <p>
-        Clauses are only used in rule definitions for routing and renaming to determine if a
-        download should be renamed or routed.
-      </p>
-      <h3>Output and Capture</h3>
+      <p>__MSG_html_clausesAreOnlyUsedInRuleDefinitionsForRouting__</p>
+      <h3>__MSG_html_outputAndCapture__</h3>
       <table class="box">
         <tr>
           <td>
@@ -40,9 +37,10 @@
             <code>:fileext:/foo</code>
           </td>
           <td>
-            <span class="badge warning">Required</span> Routes downloads to, or rewrites download
-            filenames into the given pattern. End with a <code>/</code> to route into a folder
-            <em>without</em> renaming &mdash; the file keeps its own name (e.g.
+            <span class="badge warning">__MSG_html_required__</span>
+            __MSG_html_routesDownloadsToOrRewritesDownloadFilenamesIntoThe__
+            <code>/</code> __MSG_html_toRouteIntoAFolder__
+            <em>__MSG_html_without__</em> __MSG_html_renamingTheFileKeepsItsOwnNameEG__
             <code>into: pdfs/</code>).
           </td>
         </tr>
@@ -55,24 +53,25 @@
             <code>pageurl,sourceurl</code>
           </td>
           <td>
-            <span class="badge">Optional</span> Selects the matcher for regex capture group
-            variables ( <code class="click-to-copy">:$1:</code>,
-            <code class="click-to-copy">:$2:</code>&hellip;). Split multiple capture targets with a
+            <span class="badge">__MSG_html_optional__</span>
+            __MSG_html_selectsTheMatcherForRegexCaptureGroupVariables__
+            <code class="click-to-copy">:$1:</code>,
+            <code class="click-to-copy">:$2:</code>__MSG_html_splitMultipleCaptureTargetsWithA__
             <code>,</code>.
           </td>
         </tr>
       </table>
 
-      <h3>Matchers</h3>
-      Matcher clauses use
+      <h3>__MSG_html_matchers__</h3>
+      __MSG_html_matcherClausesUse__
       <a
         class="external"
         href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions"
         target="_blank"
-        >regular expression</a
+        >__MSG_html_regularExpression__</a
       >
-      strings. Add JavaScript regex flags after the matcher name, for example
-      <code class="click-to-copy">filename/i:</code> for case-insensitive matching.
+      __MSG_html_stringsAddJavascriptRegexFlagsAfterTheMatcherName__
+      <code class="click-to-copy">filename/i:</code> __MSG_html_forCaseInsensitiveMatching__
 
       <table class="box">
         <tr>
@@ -83,8 +82,9 @@
             <code>page</code>
           </td>
           <td>
-            Matches what is clicked { <code>media</code>, <code>link</code>, <code>selection</code>,
-            <code>page</code>, <code>click</code>, <code>tab</code> (Firefox)}
+            __MSG_html_matchesWhatIsClicked__ <code>media</code>, <code>link</code>,
+            <code>selection</code>, <code>page</code>, <code>click</code>,
+            <code>tab</code> __MSG_html_firefox__
           </td>
         </tr>
         <tr>
@@ -94,7 +94,7 @@
           <td>
             <code>1</code>
           </td>
-          <td>Matches the menu index of the clicked menu item (1, 2, 3&hellip;)</td>
+          <td>__MSG_html_matchesTheMenuIndexOfTheClickedMenuItem__</td>
         </tr>
         <tr>
           <td>
@@ -103,7 +103,7 @@
           <td>
             <code>a menu item comment</code>
           </td>
-          <td>Matches the comment of the clicked menu item</td>
+          <td>__MSG_html_matchesTheCommentOfTheClickedMenuItem__</td>
         </tr>
         <tr>
           <td>
@@ -113,14 +113,14 @@
             <code>jpg</code>
           </td>
           <td>
-            Matches the URL-derived extension (legacy name). Use
-            <code class="click-to-copy">urlfileext:</code> for explicit new rules.
+            __MSG_html_matchesTheUrlDerivedExtensionLegacyNameUse__
+            <code class="click-to-copy">urlfileext:</code> __MSG_html_forExplicitNewRules__
           </td>
         </tr>
         <tr>
           <td><code class="click-to-copy">actualfileext:</code></td>
           <td><code>pdf</code></td>
-          <td>Matches the resolved filename extension after Content-Disposition.</td>
+          <td>__MSG_html_matchesTheResolvedFilenameExtensionAfterContentDisposition__</td>
         </tr>
         <tr>
           <td>
@@ -129,7 +129,7 @@
           <td>
             <code>actual_filename.jpg</code>
           </td>
-          <td>Matches the final filename</td>
+          <td>__MSG_html_matchesTheFinalFilename__</td>
         </tr>
         <tr>
           <td>
@@ -138,7 +138,7 @@
           <td>
             <code>http://www.google.com</code>
           </td>
-          <td>Matches the URL of the current frame</td>
+          <td>__MSG_html_matchesTheUrlOfTheCurrentFrame__</td>
         </tr>
         <tr>
           <td>
@@ -148,8 +148,8 @@
             <code>Click here to download</code>
           </td>
           <td>
-            <span class="badge">Firefox</span> Matches the link text or element
-            <code>title</code> attribute
+            <span class="badge">Firefox</span> __MSG_html_matchesTheLinkTextOrElement__
+            <code>title</code> __MSG_html_attribute__
           </td>
         </tr>
         <tr>
@@ -160,7 +160,7 @@
             <code>image</code>
           </td>
           <td>
-            Matches the media type: <code>audio</code>, <code>video</code>, or
+            __MSG_html_matchesTheMediaType__ <code>audio</code>, <code>video</code>__MSG_html_or__
             <code>image</code>
           </td>
         </tr>
@@ -171,7 +171,7 @@
           <td>
             <code>cat.jpg</code>
           </td>
-          <td>Matches the naive filename</td>
+          <td>__MSG_html_matchesTheNaiveFilename__</td>
         </tr>
         <tr>
           <td>
@@ -180,7 +180,7 @@
           <td>
             <code>xyz.com</code>
           </td>
-          <td>Matches the page hostname</td>
+          <td>__MSG_html_matchesThePageHostname__</td>
         </tr>
         <tr>
           <td>
@@ -189,7 +189,7 @@
           <td>
             <code>Welcome to my page!</code>
           </td>
-          <td>Matches the current page title</td>
+          <td>__MSG_html_matchesTheCurrentPageTitle__</td>
         </tr>
         <tr>
           <td>
@@ -198,7 +198,7 @@
           <td>
             <code>http://www.google.com</code>
           </td>
-          <td>Matches the current page URL</td>
+          <td>__MSG_html_matchesTheCurrentPageUrl__</td>
         </tr>
         <tr>
           <td>
@@ -207,7 +207,7 @@
           <td>
             <code>"X-Cops" is the twelfth</code>
           </td>
-          <td>Matches the selection text</td>
+          <td>__MSG_html_matchesTheSelectionText__</td>
         </tr>
         <tr>
           <td>
@@ -216,7 +216,7 @@
           <td>
             <code>cdn.xyz.com</code>
           </td>
-          <td>Matches the source hostname for media</td>
+          <td>__MSG_html_matchesTheSourceHostnameForMedia__</td>
         </tr>
         <tr>
           <td>
@@ -225,7 +225,7 @@
           <td>
             <code>http://cdn.xyz.com/pic.jpg</code>
           </td>
-          <td>Matches the source URL for media</td>
+          <td>__MSG_html_matchesTheSourceUrlForMedia__</td>
         </tr>
       </table>
     </div>

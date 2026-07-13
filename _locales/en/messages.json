@@ -1,11 +1,11 @@
 {
   "extensionName": {
-    "message": "Save In…",
+    "message": "Save In",
     "description": "Name of the extension."
   },
 
   "extensionDescription": {
-    "message": "Saves {image, video, audio, links, selection, page} in directories relative to the default download directory.",
+    "message": "Saves images, videos, audio, links, selected text, and pages to folders inside your default download folder.",
     "description": "Description of the add-on."
   },
 
@@ -24,11 +24,11 @@
     "description": "Title of context menu item that opens the options menu when clicked."
   },
   "contextMenuToggleSourcePanel": {
-    "message": "Toggle Page Sources"
+    "message": "Show or hide page sources"
   },
 
   "contextMenuExclusive": {
-    "message": "Save In route…",
+    "message": "Save with a routing rule…",
     "description": "Name for menu item when in exclusive mode."
   },
 
@@ -38,7 +38,7 @@
   },
 
   "contextMenuLastUsed": {
-    "message": "Last Used",
+    "message": "Last used",
     "description": "Placeholder title for last used option."
   },
 
@@ -48,12 +48,12 @@
   },
 
   "contextMenuContextMediaOrLink": {
-    "message": "Media or Link",
+    "message": "Media or link",
     "description": "Indicator that Save In is saving a media or link."
   },
 
   "contextMenuContextSelection": {
-    "message": "Selection Text",
+    "message": "Selected text",
     "description": "Indicator that Save In is saving a selection."
   },
 
@@ -63,7 +63,7 @@
   },
 
   "contextMenuShowDefaultFolder": {
-    "message": "Open Default Folder",
+    "message": "Open default download folder",
     "description": "Title of context menu item that opens the default downloads directory in the system file manager when clicked."
   },
 
@@ -105,32 +105,32 @@
   },
 
   "ruleMissingMatcher": {
-    "message": "Rule needs at least one matcher clause",
+    "message": "Add at least one matcher clause",
     "description": "Error message for missing matcher in rule"
   },
 
   "ruleCaptureMissingMatcher": {
-    "message": "Capture clause is not targeting a matcher",
+    "message": "Capture clause does not target a matcher",
     "description": "Error message for capture targeting missing matcher"
   },
 
   "ruleMissingCapture": {
-    "message": "Rule needs a capture clause to use capture variables",
+    "message": "Add a capture clause to use capture variables",
     "description": "Error message for missing capture clause in rule"
   },
 
   "ruleMultipleCapture": {
-    "message": "Rule can only have one capture clause",
+    "message": "A rule can contain only one capture clause",
     "description": "Error message for multiple capture clauses in rule"
   },
 
   "ruleMissingInto": {
-    "message": "Rule needs at least one into clause",
+    "message": "Add at least one into: clause",
     "description": "Error message for missing into clause in rule"
   },
 
   "ruleExtraInto": {
-    "message": "Rule can only have one into clause",
+    "message": "A rule can contain only one into: clause",
     "description": "Error message for multiple into clauses in rule"
   },
 
@@ -140,17 +140,17 @@
   },
 
   "ruleInvalidRegex": {
-    "message": "Invalid regex",
+    "message": "Invalid regular expression",
     "description": "Error message for a rule with invalid regex"
   },
 
   "ruleShadowed": {
-    "message": "Rule can never be reached because an earlier rule has the same or broader match",
+    "message": "This rule never runs because an earlier rule matches the same or more downloads",
     "description": "Warning for a routing rule shadowed by an earlier rule"
   },
 
   "ruleBadClause": {
-    "message": "Bad clause",
+    "message": "Invalid clause",
     "description": "Error message for lines in rule with syntax errors"
   },
 
@@ -181,27 +181,27 @@
   },
 
   "tabstripMenuSaveChildrenTabs": {
-    "message": "Save other tabs opened from this tab",
+    "message": "Save tabs opened from this tab",
     "description": "Tabstrip context menu label for saving child tabs"
   },
 
   "tabstripMenuSaveRightTabs": {
-    "message": "Save all tabs to right including this",
+    "message": "Save this tab and all tabs to its right",
     "description": "Tabstrip context menu label for saving tabs to the right (inclusive)"
   },
 
   "tabstripMenuSaveRightTabsMatched": {
-    "message": "Save all tabs to right including this (must match a route)",
+    "message": "Save this tab and all tabs to its right (routing rule required)",
     "description": "Tabstrip context menu label for saving tabs to the right (inclusive) that match a route"
   },
 
   "o_sDownloads": {
-    "message": "Downloads menu",
+    "message": "Save locations",
     "description": "o prefixes are for options page text, s prefix are for section/subsection titles"
   },
 
   "o_sDirectories": {
-    "message": "Directories"
+    "message": "Folders"
   },
 
   "o_sBehavior": {
@@ -233,7 +233,7 @@
   },
 
   "o_lBrowserDownloadsHelp": {
-    "message": "Opt in to handling downloads started by web pages or the browser itself. Downloads started by Save In or another extension are excluded."
+    "message": "Optionally track or route downloads started by web pages or the browser. Downloads started by Save In or another extension are excluded."
   },
 
   "o_cTrackBrowserDownloads": {
@@ -245,11 +245,11 @@
   },
 
   "o_cRouteBrowserDownloads": {
-    "message": "Use routing rules for all browser downloads"
+    "message": "Use routing rules for browser downloads"
   },
 
   "o_cRouteBrowserDownloadsHelp": {
-    "message": "Uses downloads.onDeterminingFilename when the browser implements it. Matching rules may rename or place ordinary browser downloads into subdirectories. Unmatched downloads are unchanged."
+    "message": "When supported, matching rules can rename browser downloads or place them in subfolders. Unmatched downloads are unchanged."
   },
 
   "o_cRouteBrowserDownloadsFirefox": {
@@ -257,7 +257,7 @@
   },
 
   "o_cRouteBrowserDownloadsFirefoxHelp": {
-    "message": "Experimental and potentially disruptive. Firefox currently does not implement downloads.onDeterminingFilename, so Save In cancels the original and starts a replacement. This option will disappear automatically if Firefox adds the native API. POST downloads, expiring URLs, special request headers, and some authenticated downloads may fail."
+    "message": "Firefox lacks native filename routing, so Save In cancels each matching download and starts a replacement. This can fail for POST requests, expiring URLs, custom headers, or authenticated downloads."
   },
 
   "o_lFirefoxFilenameApiBug": {
@@ -265,11 +265,11 @@
   },
 
   "o_cBrowserDownloadFilter": {
-    "message": "Only handle matching download URLs (optional)"
+    "message": "Include only matching download URLs (optional)"
   },
 
   "o_cBrowserDownloadFilterHelp": {
-    "message": "Blank handles every ordinary browser download. Otherwise enter one WebExtension match pattern per line, such as *://*.example.com/* or https://example.com/files/*. The filter applies to history tracking and routing."
+    "message": "Leave blank to handle every browser download, or enter one WebExtension match pattern per line. This filter applies to history tracking and routing."
   },
 
   "o_cBrowserDownloadExcludeFilter": {
@@ -285,7 +285,7 @@
   },
 
   "o_sRenameAndRouteDownloads": {
-    "message": "Rename and route downloads"
+    "message": "Routing and renaming"
   },
 
   "o_sNotifications": {
@@ -321,7 +321,7 @@
     "message": "Some video players use temporary URLs or load media through scripts, so Save In may not detect every video. It can sometimes find streaming-video playlists (HLS/DASH), but these files only list the separate video pieces; saving one does not save the complete video."
   },
   "o_cSourcePanelEnabled": {
-    "message": "Enable Page sources"
+    "message": "Enable page sources"
   },
   "o_cSourcePanelBackgrounds": {
     "message": "Include CSS background images"
@@ -380,7 +380,7 @@
   },
 
   "o_lVariableList": {
-    "message": "Variable List",
+    "message": "Variable list",
     "description": "l prefixes are for labels"
   },
 
@@ -399,7 +399,7 @@
   },
 
   "o_bAddDirectory": {
-    "message": "Directory"
+    "message": "Folder"
   },
 
   "o_bAddSeparator": {
@@ -433,7 +433,7 @@
   },
 
   "o_lClauseList": {
-    "message": "Clause List"
+    "message": "Clause list"
   },
 
   "o_lGithub": {
@@ -489,7 +489,7 @@
   },
 
   "o_lAccessKeysInstruction": {
-    "message": "Set accesskeys for Save In menu items."
+    "message": "Set access keys for Save In menu items."
   },
 
   "o_cLastUsedMenu": {
@@ -522,7 +522,7 @@
   },
 
   "o_cSaveTabstripHelp": {
-    "message": "Saves a tab, tab group, or tabs to right"
+    "message": "Saves a tab, tab group, or tabs to the right"
   },
 
   "o_cOpenDialog": {
@@ -530,11 +530,11 @@
   },
 
   "o_cOpenDialogNoExt": {
-    "message": "The filename has no extension"
+    "message": "Filename has no extension"
   },
 
   "o_cOpenDialogShift": {
-    "message": "Shift is held while choosing a menu item"
+    "message": "You hold Shift while choosing a menu item"
   },
 
   "o_cOpenDialogOnFailure": {
@@ -550,7 +550,7 @@
   },
 
   "o_cDupePrompt": {
-    "message": "Ask me"
+    "message": "Ask each time"
   },
 
   "o_cDupeFilename": {
@@ -558,27 +558,27 @@
   },
 
   "o_cOpenDialogIfNoRulesMatch": {
-    "message": "Open a save file dialog if no rules match"
+    "message": "Ask where to save when no routing rules match"
   },
 
   "o_cExclusiveMode": {
-    "message": "Exclusively use routing and renaming rules"
+    "message": "Require a matching routing rule"
   },
 
   "o_cExclusiveModeHelp": {
-    "message": "Disables submenu for two-click downloads, saves relative to default downloads directory"
+    "message": "Hides the folder submenu and saves relative to the default download folder"
   },
 
   "o_cNotifySuccess": {
-    "message": "Show notification on successful download"
+    "message": "Notify when a download succeeds"
   },
 
   "o_cNotifyFailure": {
-    "message": "Show notification on failed download"
+    "message": "Notify when a download fails"
   },
 
   "o_cNotifyMatch": {
-    "message": "Show notification on a rule match"
+    "message": "Notify when a routing rule matches"
   },
 
   "o_cSaveShortcutsAs": {
@@ -618,7 +618,7 @@
   },
 
   "o_cSaveShortcutsTabsInstead": {
-    "message": "Save tabs as shortcuts instead (from right-click tab)"
+    "message": "Save tabs as shortcuts (from the tab context menu)"
   },
 
   "o_cKeyboardShortcutSaveInMenu": {
@@ -626,23 +626,23 @@
   },
 
   "o_cKeyboardShortcutSubmenu": {
-    "message": "Last used context submenu item"
+    "message": "Last-used context submenu item"
   },
 
   "o_cKeyboardShortcutNumbers": {
-    "message": "Add number key shortcuts to context submenu items"
+    "message": "Add number-key shortcuts to context submenu items"
   },
 
   "o_cKeyboardShortcutClickToSave": {
-    "message": "Enable click to save"
+    "message": "Enable click-to-save"
   },
 
   "o_cKeyboardShortcutClickToHelp": {
-    "message": "Hold down Alt (default) and click images or media to save them in the last used directory or default download directory. Injects a script into pages to listen for click events. Not all variables are available when using this. Requires page refresh to take effect."
+    "message": "Hold Alt by default and click an image or media item to save it to the last-used folder or default download folder. Save In adds a click listener to pages; some variables are unavailable."
   },
 
   "o_cHostPermissionMissing": {
-    "message": "Save In doesn't have access to page content. Click-to-save won't work until you grant access to all sites."
+    "message": "Save In cannot access page content. Grant access to all sites to use click-to-save."
   },
 
   "o_cHostPermissionGrant": {
@@ -670,19 +670,19 @@
   },
 
   "o_cKeyboardShortcutModifierHelp": {
-    "message": "Hold the selected modifiers while clicking the chosen mouse button. Choose None in both modifier fields to use the mouse button alone. Changes apply to existing pages."
+    "message": "Hold the selected modifier keys while clicking the chosen mouse button. Choose None for both modifiers to use the mouse button alone. Changes apply to existing pages."
   },
 
   "o_cRestoreDefaults": {
-    "message": "Restore Defaults"
+    "message": "Restore defaults"
   },
 
   "o_cTruncatePath": {
-    "message": "Truncate path components to this many characters"
+    "message": "Maximum characters per folder name"
   },
 
   "o_cTruncatePathHelp": {
-    "message": "0 = no truncation"
+    "message": "0 means no limit"
   },
 
   "o_cReplaceInvalidCharsWith": {
@@ -694,39 +694,39 @@
   },
 
   "o_cAppendMimeExtension": {
-    "message": "Add a file extension when the filename has none"
+    "message": "Add an extension when the filename has none"
   },
 
   "o_cAppendMimeExtensionHelp": {
-    "message": "For extensionless or query-suffixed URLs, derive the extension from the server's Content-Type (via HEAD, with a body-cancelled GET fallback). Adds a small delay only when the name lacks one."
+    "message": "For URLs without an extension, derive one from the server's Content-Type. This adds a small delay only when needed."
   },
 
   "o_cFallbackFetch": {
-    "message": "Retry failed downloads in the background"
+    "message": "Retry failed downloads once in the background"
   },
 
   "o_cFallbackFetchHelp": {
-    "message": "When a download fails with a network or server error, retry it once by fetching in the background before reporting failure."
+    "message": "Retries network or server errors before reporting failure."
   },
 
   "o_cFetchViaFetchAPI": {
-    "message": "Download through the extension (Fetch API)"
+    "message": "Download through Save In"
   },
 
   "o_cFetchViaFetchAPIHelp": {
-    "message": "Fetches the file itself and hands the browser the result, instead of pointing the browser's downloader at the URL. Turn it on only where normal downloads fail — some servers block the browser's request or return an empty file. It's slower, and on Chrome the file is held in memory while saving, so avoid it for very large downloads."
+    "message": "Save In fetches the file and passes it to the browser. Use this only when normal downloads fail. It is slower, and Chrome holds the file in memory while saving, so avoid it for very large files."
   },
 
   "o_cIncludeFetchCredentials": {
-    "message": "Use website sign-in cookies for extension requests"
+    "message": "Include website sign-in cookies"
   },
 
   "o_cIncludeFetchCredentialsHelp": {
-    "message": "Enabled by default for non-private saves. Includes applicable cookies and browser-managed authentication in background Fetch and HEAD requests, including at redirect destinations; turn this off to make those requests anonymously. Private-window extension requests are always anonymous because the shared background cannot select a private cookie store. Direct browser downloads manage their own cookies."
+    "message": "Includes applicable cookies and browser-managed sign-in when Save In fetches files in the background, including after redirects. Private-window requests remain anonymous. Direct browser downloads manage their own credentials."
   },
 
   "o_cSetRefererHeader": {
-    "message": "Set the \"Referer\" header to the page URL when missing"
+    "message": "Use the page URL as the Referer when missing"
   },
 
   "o_cSetRefererHeaderHelp": {
@@ -742,11 +742,11 @@
   },
 
   "o_cImportSettings": {
-    "message": "Import Settings"
+    "message": "Import settings"
   },
 
   "o_cExportSettings": {
-    "message": "Export Settings"
+    "message": "Export settings"
   },
 
   "o_cDebugMode": {
@@ -754,11 +754,11 @@
   },
 
   "o_cLastSavedAt": {
-    "message": "Settings updated at: "
+    "message": "Last updated: "
   },
 
   "o_cLastSavedAtNever": {
-    "message": "never"
+    "message": "Never"
   },
 
   "optionsUnsavedChanges": {
@@ -771,7 +771,7 @@
     "description": "Status shown beside Apply and Discard for a modified manual editor"
   },
 
-  "o_lDirectoryDefinitions": { "message": "Directory menu definitions" },
+  "o_lDirectoryDefinitions": { "message": "Folder menu definitions" },
   "o_lTextRules": { "message": "Text rules" },
   "o_lMatcher": { "message": "Matcher" },
   "o_lPattern": { "message": "Pattern" },
@@ -788,7 +788,7 @@
   "o_lNoValidationErrors": { "message": "No validation errors" },
 
   "notificationLinkPreferred": {
-    "message": "A link was downloaded instead",
+    "message": "Downloaded the link target instead",
     "description": "Notification title when link was downloaded over a source"
   },
 
@@ -805,15 +805,15 @@
   },
 
   "notificationBadPreferLinksPattern": {
-    "message": "Invalid regex for prefer links"
+    "message": "Invalid regular expression for preferred links"
   },
 
   "o_cNotifyLinkPreferred": {
-    "message": "Show notification when a link was downloaded instead of the source"
+    "message": "Notify when a link target is downloaded instead of embedded media"
   },
 
   "o_cCloseTabOnSave": {
-    "message": "Close each tab after it is saved"
+    "message": "Close each tab after saving it"
   },
 
   "o_lClickToSaveButton": {
@@ -825,8 +825,8 @@
   },
 
   "o_sAdvancedFilenames": { "message": "Filenames" },
-  "o_sAdvancedDownloading": { "message": "Downloading" },
-  "o_sAdvancedCounter": { "message": "Counter" },
+  "o_sAdvancedDownloading": { "message": "Download handling" },
+  "o_sAdvancedCounter": { "message": "Download counter" },
   "o_sAdvancedBackupReset": { "message": "Backup & reset" },
   "o_sAdvancedDiagnostics": { "message": "Diagnostics" },
   "o_lExperimental": { "message": "Experimental" },
@@ -834,9 +834,469 @@
     "message": "Changes in this editor are saved when you select Apply."
   },
   "o_lReferenceNavigation": {
-    "message": "Reference navigation"
+    "message": "Reference pages"
   },
   "o_lFilterReference": {
     "message": "Filter"
-  }
+  },
+
+  "o_lShortcutEnterOrReset": { "message": "Enter a shortcut or use Reset." },
+  "o_lShortcutFormat": { "message": "Use a format like Ctrl+Shift+G." },
+  "o_lShortcutPrimaryModifier": {
+    "message": "Include Ctrl, Alt, Command, or MacCtrl as a modifier."
+  },
+  "o_lShortcutAddKey": { "message": "Add a key after the modifier." },
+  "o_lShortcutOneKey": { "message": "Use one key with your modifiers." },
+  "o_lShortcutValidKey": { "message": "Choose a valid key, such as Y, 5, F12, or PageDown." },
+  "o_lShortcutNoRepeats": { "message": "Do not repeat keys or modifiers." },
+  "o_lShortcutReady": { "message": "Ready to apply." },
+  "o_lShortcutChangeUnsupported": {
+    "message": "This browser does not support changing shortcuts here."
+  },
+  "o_lShortcutRejected": {
+    "message": "The browser did not accept this shortcut. It may be reserved or in use."
+  },
+  "o_lShortcutUpdated": { "message": "Shortcut updated." },
+  "o_lShortcutResetUnsupported": {
+    "message": "This browser does not support resetting shortcuts here."
+  },
+  "o_lShortcutReset": { "message": "Shortcut reset." },
+  "o_lShortcutLegacyValue": {
+    "message": "Legacy value: $VALUE$",
+    "placeholders": {
+      "value": {
+        "content": "$1",
+        "example": "Alt"
+      }
+    }
+  },
+  "o_lAccessKeyInvalid": {
+    "message": "Use one letter or number. Existing saved values remain supported until changed."
+  },
+  "o_lShortcutFormatAnyBrowser": { "message": "Works in any browser" },
+  "o_lShortcutFormatLegacyInternet": { "message": "Legacy Internet Shortcut" },
+  "o_lShortcutFormatMac": { "message": "Native macOS shortcut" },
+  "o_lShortcutFormatWindows": { "message": "Windows Internet Shortcut" },
+  "o_lShortcutFormatLinux": { "message": "Linux desktop shortcut" },
+
+  "html_aboutSaveIn": { "message": "About Save In" },
+  "html_absolutePathsAndHiddenPathSegmentsSuchAs": {
+    "message": ", absolute paths, and hidden path segments such as"
+  },
+  "html_add": { "message": ". Add" },
+  "html_addACommentThatIsNotDisplayed": { "message": "Add a comment that is not displayed" },
+  "html_addDestinations": { "message": "Add destinations" },
+  "html_addsOneNestingLevel": { "message": "adds one nesting level." },
+  "html_areNotSupported": { "message": "are not supported." },
+  "html_askAnAiAgentToDraftADownloadsMenu": { "message": "Ask an AI agent to draft a folder menu" },
+  "html_assignAnAccessKey": { "message": "Assign an access key" },
+  "html_atTheEndForACommentStartWith": { "message": "at the end for a comment; start with" },
+  "html_browsersOnlyLetExtensionsSaveInsideTheDefault": {
+    "message": "Browsers only let extensions save inside the default"
+  },
+  "html_buildTheDestinationsAndSubmenusShownInSaveIn": {
+    "message": "Choose the folders and submenus shown in Save In's context menu."
+  },
+  "html_butShowsCatPictures": { "message": ", but shows “Cat pictures.”" },
+  "html_changeADisplayedName": { "message": "Change a displayed name" },
+  "html_changeTheDisplayedName": { "message": "Change the displayed name" },
+  "html_copyThisPromptThenReplaceTheExampleDestinations": {
+    "message": "Copy this prompt, then replace the example destinations."
+  },
+  "html_createASubmenu": { "message": "Create a submenu" },
+  "html_createsTwoSelectableRowsInTheDownloadsMenu": {
+    "message": "Creates two folders in the Save locations menu."
+  },
+  "html_defaultDownloadsDirectory": { "message": "default Downloads folder" },
+  "html_directoryEditorMode": { "message": "Folder editor mode" },
+  "html_discussions": { "message": "Discussions" },
+  "html_downloadsFolder": { "message": "Downloads folder" },
+  "html_each": { "message": "Each" },
+  "html_eachLineAddsADestinationRelativeToYourBrowser": {
+    "message": "Each line adds a destination relative to your browser's"
+  },
+  "html_forExample": { "message": "For example," },
+  "html_howToCreateDestinations": { "message": "How to create destinations" },
+  "html_insertionReferences": { "message": "Insertion references" },
+  "html_issues": { "message": "Issues" },
+  "html_itself": { "message": "itself" },
+  "html_moreMenuSyntax": { "message": "More menu syntax" },
+  "html_oneRelativeDirectoryOrMenuInstructionPerLineDownloads": {
+    "message": "Enter one relative folder or menu instruction per line. Files are saved relative to the"
+  },
+  "html_openTheDefaultDownloadsDirectory": { "message": "Open the default Downloads folder" },
+  "html_pathsContaining": { "message": "Paths containing" },
+  "html_perLevel": { "message": "per level." },
+  "html_saveInWiki": { "message": "Save In wiki" },
+  "html_savesTo": { "message": "Saves to" },
+  "html_savingOutsideTheDownloadsFolder": { "message": "Saving outside the Downloads folder" },
+  "html_separateGroups": { "message": "Separate groups" },
+  "html_settingsSaveIn": { "message": "Settings — Save In" },
+  "html_templates": { "message": "Templates" },
+  "html_the": { "message": "The" },
+  "html_toCreateNestedSubmenusUsingOne": { "message": "to create nested submenus, using one" },
+  "html_toReachAnotherLocationCreateASymlinkInsideDownloads": {
+    "message": ". To reach another location, create a symlink inside Downloads and use that relative symlink path as a destination. The target folder must already exist."
+  },
+  "html_useAVariable": { "message": "Use a variable" },
+  "html_wiki": { "message": "Wiki" },
+
+  "html_add2": { "message": "Add" },
+  "html_advancedUseCaptureGroups": { "message": "Advanced: use capture groups" },
+  "html_andItsSubdomainsUse": { "message": "and its subdomains. Use" },
+  "html_andLaterGroupsIn": { "message": ", and later groups in" },
+  "html_askAnAiAgentToDraftRoutingRules": { "message": "Ask an AI agent to draft routing rules" },
+  "html_automaticallyMoveOrRenameDownloadsWhenTheirFilenameSource": {
+    "message": "Move or rename downloads automatically when their filename, source, page, or context matches."
+  },
+  "html_becomes": { "message": "becomes" },
+  "html_clauseAndVariableReference": { "message": "Clause and variable reference" },
+  "html_copyThisPromptIntoAnAgentOrUseWebmcp": {
+    "message": "Copy this prompt into an agent, or use WebMCP from External integrations."
+  },
+  "html_destination": { "message": "destination." },
+  "html_destinationsAreRelativeToTheDownloadsMenuDestinationYou": {
+    "message": "Destinations are relative to the folder you selected. Matcher values are regular expressions; see the"
+  },
+  "html_enterOneUrlLikeBrowserMatchPatternPerLine": {
+    "message": "Enter one URL-like browser match pattern per line. It has a scheme, host, and path:"
+  },
+  "html_everyMatcherInARuleMustMatch": { "message": "Every matcher in a rule must match." },
+  "html_everyRuleMustEndWithAn": { "message": "Every rule must end with an" },
+  "html_filterClauses": { "message": "Filter clauses" },
+  "html_filterRoutingTemplates": { "message": "Filter routing templates" },
+  "html_filterTemplates": { "message": "Filter templates" },
+  "html_forExample2": { "message": ". For example," },
+  "html_forHttpAndHttpsAndEndWith": { "message": "for HTTP and HTTPS, and end with" },
+  "html_howDoDownloadUrlFiltersWork": { "message": "How do download URL filters work?" },
+  "html_howRoutingRulesWork": { "message": "How routing rules work" },
+  "html_matchesHttpsFileUrlsOn": { "message": "matches HTTPS file URLs on" },
+  "html_moveAndRenameMatchingFiles": { "message": "Move and rename matching files" },
+  "html_moveMatchingFilesAndKeepTheirNames": {
+    "message": "Move matching files and keep their names"
+  },
+  "html_optional": { "message": "Optional" },
+  "html_parenthesesCapturePartsOfAMatcherSelectTheMatcher": {
+    "message": "Parentheses capture parts of a matcher. Select the matcher with"
+  },
+  "html_regularExpressionGuide": { "message": "regular-expression guide" },
+  "html_separateRulesWithABlankLine": { "message": "Separate rules with a blank line." },
+  "html_thenUse": { "message": ", then use" },
+  "html_toIncludeEveryPathThisIsNotARegular": {
+    "message": "to include every path. This is not a regular expression, and it cannot match query parameters or an explicit port."
+  },
+  "html_trackAndRouteBrowserDownloads": { "message": "Track and route browser downloads" },
+  "html_writeOneClausePerLine": { "message": "Write one clause per line." },
+
+  "html_all": { "message": "All" },
+  "html_altOption": { "message": "Alt / Option" },
+  "html_applyShortcut": { "message": "Apply shortcut" },
+  "html_click": { "message": "Click" },
+  "html_clickToSaveShortcut": { "message": "Click-to-save shortcut" },
+  "html_clickToSaveShortcutCombination": { "message": "Click-to-save shortcut combination" },
+  "html_columns": { "message": "Columns" },
+  "html_command": { "message": "Command" },
+  "html_commandWindowsKey": { "message": "Command / Windows key" },
+  "html_copy0LeavesDismissalToTheBrowserOrOperatingSystem": {
+    "message": "0 leaves dismissal to the browser or operating system."
+  },
+  "html_ctrl": { "message": "Ctrl" },
+  "html_dismissEarlyAfter": { "message": "Dismiss early after" },
+  "html_export": { "message": "Export" },
+  "html_filterSources": { "message": "Filter sources" },
+  "html_historyTableTools": { "message": "History table tools" },
+  "html_image": { "message": "Image" },
+  "html_image128Kb1": { "message": "Image · 128 KB · #1" },
+  "html_images": { "message": "Images" },
+  "html_jsonCompleteData": { "message": "JSON — complete data" },
+  "html_key": { "message": "Key" },
+  "html_link": { "message": "Link" },
+  "html_links": { "message": "Links" },
+  "html_macctrl": { "message": "MacCtrl" },
+  "html_more": { "message": "More" },
+  "html_mouseOnlyLeftClickWillReplaceNormalClicksOn": {
+    "message": "Mouse-only left click will replace normal clicks on savable media and links while this feature is enabled."
+  },
+  "html_ms": { "message": "ms" },
+  "html_none": { "message": "None" },
+  "html_notifyMeWhen": { "message": "Notify when" },
+  "html_previewOfThePageSourcesDrawer": { "message": "Preview of the Page sources drawer" },
+  "html_primaryModifier": { "message": "Primary modifier" },
+  "html_saveTheseAsShortcutFiles": { "message": "Save as shortcut files" },
+  "html_secondModifier": { "message": "Second modifier" },
+  "html_selection": { "message": "Selection" },
+  "html_shift": { "message": "Shift" },
+  "html_shortcutFileBehavior": { "message": "Shortcut file behavior" },
+  "html_shortcutKey": { "message": "Shortcut key" },
+  "html_streamHls3": { "message": "Stream · HLS · #3" },
+  "html_tab": { "message": "Tab" },
+  "html_video": { "message": "Video" },
+  "html_video24Mb2": { "message": "Video · 2.4 MB · #2" },
+
+  "html_advancedEditIdsAsText": { "message": "Advanced: edit IDs as text" },
+  "html_allow": { "message": "Allow" },
+  "html_allowedExtensionIds": { "message": "Allowed extension IDs" },
+  "html_apiVersion": { "message": "API version" },
+  "html_approvedExtensions": { "message": "Approved extensions" },
+  "html_capabilities": { "message": "Capabilities" },
+  "html_clickTheSnippetToCopyIt": { "message": "Click the snippet to copy it." },
+  "html_counterValue": { "message": "Counter value" },
+  "html_current": { "message": "Current" },
+  "html_currentValueOfThe": { "message": "Current value of the" },
+  "html_delete": { "message": "delete" },
+  "html_developerDetails": { "message": "Developer details" },
+  "html_exampleNegotiateTheVersionThenSaveAUrl": {
+    "message": "Example: negotiate the version, then save a URL"
+  },
+  "html_extensionId": { "message": "Extension ID" },
+  "html_externalDownloadAccess": { "message": "External download access" },
+  "html_externalIntegrations": { "message": "External integrations" },
+  "html_integrationGuide": { "message": "Integration guide" },
+  "html_letTrustedExtensionsSendUrlsThroughSaveInS": {
+    "message": "Let trusted extensions send URLs through Save In's routing and renaming rules."
+  },
+  "html_mdnMatchPatterns": { "message": "MDN: Match patterns" },
+  "html_noExtensionsAreApprovedExternalDownloadsAreBlockedBy": {
+    "message": "No extensions are approved. External downloads are blocked by default."
+  },
+  "html_noneApproved": { "message": "None approved" },
+  "html_oneExtensionIdPerLine": { "message": "One extension ID per line" },
+  "html_onlyApprovedExtensionsCanStartDownloadsUseTheCalling": {
+    "message": "Only approved extensions can start downloads. Use the calling extension's ID—not Save In's ID."
+  },
+  "html_pasteAnExtensionId": { "message": "Paste an extension ID" },
+  "html_pendingApproval": { "message": "Pending approval" },
+  "html_resetTo0": { "message": "Reset to 0" },
+  "html_setValue": { "message": "Set value" },
+  "html_theseExtensionsTriedToStartADownloadAddOnly": {
+    "message": "These extensions tried to start a download. Add only callers you trust. Requested URLs are never stored."
+  },
+  "html_useOneExtensionIdPerLineForBulkChanges": {
+    "message": "Use one extension ID per line for bulk changes."
+  },
+  "html_variableItAdvancesOncePerSavedDownloadAndPersists": {
+    "message": "variable. It advances once per saved download and persists across restarts."
+  },
+  "html_webextensionsSuchAsFoxyGesturesCanMessageSaveIn": {
+    "message": "WebExtensions such as Foxy Gestures can message Save In directly. A Greasemonkey, Tampermonkey, or Violentmonkey userscript cannot do so by itself: userscripts do not receive cross-extension messaging access. Use a small companion WebExtension as a relay, or have the userscript hand the URL to an extension that exposes that ability."
+  },
+  "html_whereThisWorks": { "message": "Where this works" },
+
+  "html_askTheCommunity": { "message": "Ask the community" },
+  "html_aVeryDiligentOrganizer": { "message": "A very diligent organizer" },
+  "html_aWatercolorLuckyCatCarefullyOrganizingDocumentsPhotographsFilm": {
+    "message": "A watercolor lucky cat carefully organizing documents, photographs, film, and books"
+  },
+  "html_buildInformation": { "message": "Build information" },
+  "html_checking": { "message": "checking…" },
+  "html_clearLog": { "message": "Clear log" },
+  "html_closeAboutSaveIn": { "message": "Close About Save In" },
+  "html_closeReferences": { "message": "Close references" },
+  "html_contextMenus": { "message": "Context menus" },
+  "html_documentation": { "message": "Documentation" },
+  "html_downloads": { "message": "Downloads" },
+  "html_filterCurrentReference": { "message": "Filter current reference" },
+  "html_filterVariables": { "message": "Filter variables" },
+  "html_findsAndSavesResourcesTheUserChoosesOnArbitrary": {
+    "message": "Finds and saves resources the user chooses on arbitrary websites."
+  },
+  "html_inABrowserThatSupports": { "message": "In a browser that supports" },
+  "html_keepsSettingsRoutingRulesLocalHistoryAndRestartSafe": {
+    "message": "Keeps settings, routing rules, local history, and restart-safe state."
+  },
+  "html_letsChromeConvertFetchedFileDataIntoTemporaryDownload": {
+    "message": "Lets Chrome convert fetched file data into temporary download URLs."
+  },
+  "html_loadingClauses": { "message": "Loading clauses…" },
+  "html_loadingVariables": { "message": "Loading variables…" },
+  "html_luckyOrganizingCat": { "message": "Lucky organizing cat" },
+  "html_messageFirstOrASmallRelayExtensionMustDo": {
+    "message": " message, or a small relay extension must do so. Video DownloadHelper does not expose a stable integration API that Save In can call directly."
+  },
+  "html_offscreen": { "message": "Offscreen" },
+  "html_privacyPolicy": { "message": "Privacy policy" },
+  "html_references": { "message": "References" },
+  "html_referenceType": { "message": "Reference type" },
+  "html_refreshLog": { "message": "Refresh log" },
+  "html_reportAnIssue": { "message": "Report an issue" },
+  "html_reportsCompletedSavesAndActionableFailuresWhenEnabled": {
+    "message": "Reports completed saves and actionable failures when enabled."
+  },
+  "html_saveInDoesNotAdoptDownloadsThatAnotherExtension": {
+    "message": "Save In does not adopt downloads that another extension has already started, including Video DownloadHelper. The downloader must first send Save In a"
+  },
+  "html_saveInHasNoAnalyticsAdvertisingDeveloperOperatedServer": {
+    "message": "Save In has no analytics, advertising, developer-operated server, or remote executable code. Settings and history stay in browser-managed extension storage."
+  },
+  "html_saveInIsALocalFirstDownloadsHelperFor": {
+    "message": "Save In is a local-first download helper for organizing files with context-menu folders, routing rules, renaming, page sources, and download history."
+  },
+  "html_saveInRegistersToolsAnAiAgentCanCall": {
+    "message": ", Save In registers tools that an AI agent can call while this options page is open—to change settings, build folder menus, and write routing rules."
+  },
+  "html_showsSaveInCommandsOnPagesLinksMediaAnd": {
+    "message": "Shows Save In commands on pages, links, media, and tabs."
+  },
+  "html_startsSavesChoosesFilenamesMonitorsResultsAndSupportsRetries": {
+    "message": "Starts saves, chooses filenames, monitors results, and supports retries."
+  },
+  "html_storage": { "message": "Storage" },
+  "html_theSessionLogBelowAlwaysKeepsASmallLocal": {
+    "message": "The session log below always keeps a small local record of recent failures. Enable this only when troubleshooting with the browser developer console; it adds verbose internal details and resets to the saved setting after restart."
+  },
+  "html_toConnectOpenThisPageInABrowserThat": {
+    "message": "To connect: open this page in a browser that supports WebMCP, keep it open, and point your in-browser agent at this tab. Ask it in plain language — e.g. “sort my downloads into folders by website and date, number each file, and notify me only when one fails.”"
+  },
+  "html_tools": { "message": "Tools" },
+  "html_version": { "message": "Version" },
+  "html_websiteAccess": { "message": "Website access" },
+  "html_whyThesePermissionsAreNeeded": { "message": "Why these permissions are needed" },
+
+  "html_alsoWorks": { "message": "also works)" },
+  "html_amOrPmLocalTime": { "message": "am or pm (local time)" },
+  "html_attributeOfElement": { "message": "attribute of element" },
+  "html_currentDate": { "message": "Current date" },
+  "html_currentDatetimeAsAUnixTimestamp": {
+    "message": "Current date and time as a Unix timestamp"
+  },
+  "html_currentDatetimeAsAUtcIso8601String": {
+    "message": "Current date and time as a UTC ISO 8601 string"
+  },
+  "html_currentDayOfMonth": { "message": "Current day of the month" },
+  "html_currentDayOfWeekEnglish": { "message": "Current day of the week (English)" },
+  "html_currentHour24Hour": { "message": "Current hour (24-hour)" },
+  "html_currentMinute": { "message": "Current minute" },
+  "html_currentMonth": { "message": "Current month" },
+  "html_currentMonthNameEnglish": { "message": "Current month name (English)" },
+  "html_currentSecond": { "message": "Current second" },
+  "html_currentYear": { "message": "Current year" },
+  "html_hostnameOfThePage": { "message": "Hostname of the page" },
+  "html_hostnameOfTheSource": { "message": "Hostname of the source" },
+  "html_iso8601WeekNumber": { "message": "ISO 8601 week number (" },
+  "html_lastLabelOfTheSourceHostname": { "message": "Last label of the source hostname" },
+  "html_pageHostnameWithoutSubdomains": { "message": "Page hostname without subdomains" },
+  "html_pageTitleLowercasedAndDashed": { "message": "Page title, lowercased and dashed" },
+  "html_pageTitleLowercasedWithUnderscores": {
+    "message": "Page title, lowercased with underscores"
+  },
+  "html_pathPartOfTheSourceUrlSeparatorsAreSanitized": {
+    "message": "Path part of the source URL (separators are sanitized)"
+  },
+  "html_sourceHostnameWithoutSubdomains": { "message": "Source hostname without subdomains" },
+  "html_standard": { "message": "Standard" },
+  "html_textOfTheLinkOr": { "message": "Text of the link, or" },
+  "html_theCurrentlySelectedTextOnThePage": {
+    "message": "The currently selected text on the page"
+  },
+  "html_theNaiveFilenameUrlBasedUseTheRoutingFeature": {
+    "message": "Filename derived from the URL. Use routing rules if this is inaccurate."
+  },
+  "html_titleOfThePage": { "message": "Title of the page" },
+  "html_urlOfThePage": { "message": "URL of the page" },
+  "html_urlOfTheSource": { "message": "URL of the source" },
+  "html_usableEverywhere": { "message": "Usable everywhere" },
+  "html_variablesAreUsedInDirectoryAndPathPatterns": {
+    "message": "Variables are used in folder and filename patterns."
+  },
+
+  "html_actualResolvedFilenameExtensionAlias": {
+    "message": "Actual resolved filename extension. Alias:"
+  },
+  "html_aRandomV4UuidUniquePerUse": { "message": "A random v4 UUID, unique per use" },
+  "html_autoIncrementingNumberThatAdvancesOncePerSavedDownload": {
+    "message": "Number that increases after each saved download and persists across restarts. View or reset it under Download counter."
+  },
+  "html_blankIfTheServerDoesnTAnswer": { "message": " and is blank when unavailable." },
+  "html_captureGroupWhere": { "message": "Text captured by group" },
+  "html_charactersForDeeperNesting": { "message": "characters for deeper nesting" },
+  "html_createsASeparatorInTheContextMenu": {
+    "message": "Creates a separator in the context menu"
+  },
+  "html_createsASubmenuItemAddMore": { "message": "Creates a submenu item; add more" },
+  "html_fileExtensionDerivedFromThe": { "message": "File extension derived from the" },
+  "html_first12LowercaseHexCharactersOfTheDownloadedFile": {
+    "message": "First 12 lowercase hexadecimal characters of the downloaded file's SHA-256. Preparing this value fetches and hashes the file before saving, so it is blank in previews or when unavailable. The download continues if hashing fails. You can cancel a long preparation from History."
+  },
+  "html_full64CharacterLowercaseSha256ItSharesThe": {
+    "message": "Full 64-character lowercase SHA-256. It is calculated together with"
+  },
+  "html_fullActualFilenameAfterContentDisposition": {
+    "message": "Resolved filename, including Content-Disposition"
+  },
+  "html_handyForExtensionlessOrQuerySuffixedUrls": {
+    "message": ". Useful for URLs without an extension or with a query suffix."
+  },
+  "html_menuStructure": { "message": "Menu structure" },
+  "html_onlyUsableWhenRoutingAndRewritingFilenames": {
+    "message": "Available only when routing or renaming files"
+  },
+  "html_routingAndFilenamesOnly": { "message": "Routing and filenames only" },
+  "html_specialRowsUsedOnlyInTheDownloadsMenu": {
+    "message": "Special rows used only in the Save locations menu"
+  },
+  "html_theN": { "message": "; replace 1 with the group number." },
+  "html_theServerS": { "message": "The server's" },
+  "html_theUrlAfterFollowingRedirectsViaTheSameHead": {
+    "message": "The URL after following redirects. It uses the same request as"
+  },
+  "html_urlDerivedExtensionAlias": { "message": "URL-derived extension. Alias:" },
+  "html_viaAHeadRequestAddsASmallDelayAnd": {
+    "message": ". This adds a small delay and is blank when unavailable."
+  },
+  "html_whenBothVariablesAreUsed": { "message": "when both variables are used." },
+
+  "html_attribute": { "message": "attribute." },
+  "html_clausesAreOnlyUsedInRuleDefinitionsForRouting": {
+    "message": "Routing rules use clauses to decide which downloads to move or rename."
+  },
+  "html_firefox": { "message": "(Firefox only)." },
+  "html_forCaseInsensitiveMatching": { "message": "for case-insensitive matching." },
+  "html_forExplicitNewRules": { "message": "in new rules." },
+  "html_matcherClausesUse": { "message": "Matcher clauses use" },
+  "html_matchers": { "message": "Matchers" },
+  "html_matchesTheCommentOfTheClickedMenuItem": {
+    "message": "Matches the selected menu item's comment."
+  },
+  "html_matchesTheCurrentPageTitle": { "message": "Matches the current page title." },
+  "html_matchesTheCurrentPageUrl": { "message": "Matches the current page URL." },
+  "html_matchesTheFinalFilename": { "message": "Matches the final filename." },
+  "html_matchesTheLinkTextOrElement": { "message": "Matches the link text or the element's" },
+  "html_matchesTheMediaType": { "message": "Matches the media type:" },
+  "html_matchesTheMenuIndexOfTheClickedMenuItem": {
+    "message": "Matches the selected menu item's index (1, 2, 3…)."
+  },
+  "html_matchesTheNaiveFilename": { "message": "Matches the filename derived from the URL." },
+  "html_matchesThePageHostname": { "message": "Matches the page hostname." },
+  "html_matchesTheResolvedFilenameExtensionAfterContentDisposition": {
+    "message": "Matches the resolved filename extension, including Content-Disposition."
+  },
+  "html_matchesTheSelectionText": { "message": "Matches the selected text." },
+  "html_matchesTheSourceHostnameForMedia": { "message": "Matches the media source hostname." },
+  "html_matchesTheSourceUrlForMedia": { "message": "Matches the media source URL." },
+  "html_matchesTheUrlDerivedExtensionLegacyNameUse": {
+    "message": "Matches the URL-derived extension (legacy name). Use"
+  },
+  "html_matchesTheUrlOfTheCurrentFrame": { "message": "Matches the current frame URL." },
+  "html_matchesWhatIsClicked": { "message": "Matches what was clicked:" },
+  "html_or": { "message": ", or" },
+  "html_outputAndCapture": { "message": "Output and capture" },
+  "html_regularExpression": { "message": "regular expressions" },
+  "html_renamingTheFileKeepsItsOwnNameEG": {
+    "message": "renaming—the file keeps its current name (for example,"
+  },
+  "html_required": { "message": "Required" },
+  "html_routesDownloadsToOrRewritesDownloadFilenamesIntoThe": {
+    "message": "Moves a download to the given path or renames it with the given pattern. End with"
+  },
+  "html_selectsTheMatcherForRegexCaptureGroupVariables": {
+    "message": "Selects the matcher whose regular-expression capture groups are available as"
+  },
+  "html_splitMultipleCaptureTargetsWithA": {
+    "message": ". Separate multiple capture targets with"
+  },
+  "html_stringsAddJavascriptRegexFlagsAfterTheMatcherName": {
+    "message": ". Add JavaScript flags after the matcher name; for example, use"
+  },
+  "html_toRouteIntoAFolder": { "message": "to move it into a folder" },
+  "html_without": { "message": "without" }
 }

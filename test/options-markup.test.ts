@@ -166,7 +166,7 @@ describe("options form semantics", () => {
     const editorHelp = document.querySelector("#paths-editor-description")!;
     expect(editorHelp.tagName).toBe("SPAN");
     expect(editorHelp.querySelectorAll("a[data-open-default-downloads-folder]")).toHaveLength(1);
-    expect(editorHelp.querySelector("a")?.textContent?.trim()).toBe("default Downloads directory");
+    expect(editorHelp.querySelector("a")?.textContent?.trim()).toBe("default Downloads folder");
     expect([...links].every((link) => link.getAttribute("href") === "#")).toBe(true);
   });
 
@@ -193,7 +193,9 @@ describe("options form semantics", () => {
     );
     expect(document.body.textContent).toContain("Greasemonkey");
     expect(document.body.textContent).toContain("Video DownloadHelper");
-    expect(document.body.textContent).toContain("does not adopt downloads already started");
+    expect(document.body.textContent).toContain(
+      "does not adopt downloads that another extension has already started",
+    );
     const allowlist = document.querySelector<HTMLTextAreaElement>("#externalDownloadAllowlist");
     expect(allowlist).not.toBeNull();
     expect(allowlist?.closest("label")?.querySelector(".external-control-label")?.textContent).toBe(

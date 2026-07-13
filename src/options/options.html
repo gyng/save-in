@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>Settings &mdash; Save In</title>
+    <title>__MSG_html_settingsSaveIn__</title>
     <link href="style.css" rel="stylesheet" />
     <link href="reference.css" rel="stylesheet" />
     <link rel="icon" type="image/png" href="./favicon.png" />
@@ -26,13 +26,19 @@
             <a href="#" data-reference-tab="options-reference-variables">__MSG_o_lVariableList__</a>
             <a href="#" data-reference-tab="options-reference-clauses">__MSG_o_lClauseList__</a>
             <a class="external" href="https://github.com/gyng/save-in/">__MSG_o_lGithub__</a>
-            <a class="external" href="https://github.com/gyng/save-in/issues">Issues</a>
-            <a class="external" href="https://github.com/gyng/save-in/discussions">Discussions</a>
-            <a class="external" href="https://github.com/gyng/save-in/wiki">Wiki</a>
+            <a class="external" href="https://github.com/gyng/save-in/issues"
+              >__MSG_html_issues__</a
+            >
+            <a class="external" href="https://github.com/gyng/save-in/discussions"
+              >__MSG_html_discussions__</a
+            >
+            <a class="external" href="https://github.com/gyng/save-in/wiki">__MSG_html_wiki__</a>
             <a class="external" href="https://github.com/gyng/save-in/blob/master/CHANGELOG.md"
               >__MSG_o_lChangelog__</a
             >
-            <button type="button" id="about-open" class="nav-menu-link">About Save In</button>
+            <button type="button" id="about-open" class="nav-menu-link">
+              __MSG_html_aboutSaveIn__
+            </button>
           </div>
         </details>
       </div>
@@ -55,7 +61,11 @@
           </select>
         </label>
         <span id="language-error" class="language-error" role="alert" hidden></span>
-        <div class="reference-launcher-tabs" role="tablist" aria-label="Insertion references">
+        <div
+          class="reference-launcher-tabs"
+          role="tablist"
+          aria-label="__MSG_html_insertionReferences__"
+        >
           <button
             type="button"
             role="tab"
@@ -63,7 +73,7 @@
             aria-controls="options-reference-variables"
             aria-selected="false"
           >
-            Variables
+            __MSG_o_lRoutingVariables__
           </button>
           <button
             type="button"
@@ -72,7 +82,7 @@
             aria-controls="options-reference-clauses"
             aria-selected="false"
           >
-            Clauses
+            __MSG_o_lClauses__
           </button>
           <button
             type="button"
@@ -81,7 +91,7 @@
             aria-controls="options-reference-templates"
             aria-selected="false"
           >
-            Templates
+            __MSG_html_templates__
           </button>
         </div>
       </div>
@@ -102,16 +112,14 @@
       <h2 id="section-downloads">__MSG_o_sDownloads__</h2>
 
       <h3 class="section-task-heading">__MSG_o_sDirectories__</h3>
-      <p class="section-lead">
-        Build the destinations and submenus shown in Save In's context menu.
-      </p>
+      <p class="section-lead">__MSG_html_buildTheDestinationsAndSubmenusShownInSaveIn__</p>
 
       <div class="paths-editor">
         <div class="column">
           <div class="editor-field-label" id="paths-editor-label">
             __MSG_o_lDirectoryDefinitions__
           </div>
-          <div class="editor-tabs" role="tablist" aria-label="Directory editor mode">
+          <div class="editor-tabs" role="tablist" aria-label="__MSG_html_directoryEditorMode__">
             <button
               type="button"
               class="editor-tab active"
@@ -152,14 +160,15 @@
           ></div>
           <div class="editor-actions" id="paths-text-actions">
             <span class="caption editor-action-help" id="paths-editor-description">
-              One relative directory or menu instruction per line. Downloads save relative to the
+              __MSG_html_oneRelativeDirectoryOrMenuInstructionPerLineDownloads__
               <a
                 href="#"
                 data-open-default-downloads-folder
-                title="Open the default Downloads directory"
-                >default Downloads directory</a
-              >. Add <code>//</code> at the end for a comment; start with <code>&gt;</code> to
-              create nested submenus, using one <code>&gt;</code> per level.
+                title="__MSG_html_openTheDefaultDownloadsDirectory__"
+                >__MSG_html_defaultDownloadsDirectory__</a
+              >__MSG_html_add__ <code>//</code> __MSG_html_atTheEndForACommentStartWith__
+              <code>&gt;</code> __MSG_html_toCreateNestedSubmenusUsingOne__
+              <code>&gt;</code> __MSG_html_perLevel__
             </span>
             <button type="button" class="discard-button" data-discard="paths" disabled>
               __MSG_o_bDiscard__
@@ -173,78 +182,86 @@
           </div>
 
           <details id="paths-text-help" class="inline-guide editor-guide">
-            <summary>How to create destinations</summary>
+            <summary>__MSG_html_howToCreateDestinations__</summary>
             <div class="guide-body">
               <p>
-                Each line adds a destination relative to your browser's
-                <a href="#" data-open-default-downloads-folder>Downloads folder</a>.
+                __MSG_html_eachLineAddsADestinationRelativeToYourBrowser__
+                <a href="#" data-open-default-downloads-folder>__MSG_html_downloadsFolder__</a>.
               </p>
               <div class="guide-steps">
                 <div class="guide-step">
-                  <strong>Add destinations</strong>
+                  <strong>__MSG_html_addDestinations__</strong>
                   <pre class="click-to-copy">
 images
 documents</pre>
-                  <span class="caption">Creates two selectable rows in the Downloads menu.</span>
-                </div>
-                <div class="guide-step">
-                  <strong>Change a displayed name</strong>
-                  <pre class="click-to-copy">images/cats // (alias: Cat pictures)</pre>
                   <span class="caption"
-                    >Saves to <code>images/cats</code>, but shows “Cat pictures.”</span
+                    >__MSG_html_createsTwoSelectableRowsInTheDownloadsMenu__</span
                   >
                 </div>
                 <div class="guide-step">
-                  <strong>Separate groups</strong>
+                  <strong>__MSG_html_changeADisplayedName__</strong>
+                  <pre class="click-to-copy">images/cats // (alias: Cat pictures)</pre>
+                  <span class="caption"
+                    >__MSG_html_savesTo__
+                    <code>images/cats</code>__MSG_html_butShowsCatPictures__</span
+                  >
+                </div>
+                <div class="guide-step">
+                  <strong>__MSG_html_separateGroups__</strong>
                   <pre class="click-to-copy">
 images
 ---
 documents</pre>
                 </div>
                 <div class="guide-step">
-                  <strong>Create a submenu</strong>
+                  <strong>__MSG_html_createASubmenu__</strong>
                   <pre class="click-to-copy">
 Media
 &gt;images
 &gt;videos</pre>
-                  <span class="caption">Each <code>&gt;</code> adds one nesting level.</span>
+                  <span class="caption"
+                    >__MSG_html_each__ <code>&gt;</code> __MSG_html_addsOneNestingLevel__</span
+                  >
                 </div>
                 <div class="guide-step">
-                  <strong>Use a variable</strong>
+                  <strong>__MSG_html_useAVariable__</strong>
                   <pre class="click-to-copy">images/:year:/:month:</pre>
-                  <span class="caption">For example, <code>images/2026/07</code>.</span>
+                  <span class="caption">__MSG_html_forExample__ <code>images/2026/07</code>.</span>
                 </div>
               </div>
               <details class="guide-more">
-                <summary>More menu syntax</summary>
+                <summary>__MSG_html_moreMenuSyntax__</summary>
                 <dl class="guide-syntax">
                   <div>
                     <dt><code>.</code></dt>
                     <dd>
-                      The
-                      <a href="#" data-open-default-downloads-folder>Downloads folder</a> itself
+                      __MSG_html_the__
+                      <a href="#" data-open-default-downloads-folder
+                        >__MSG_html_downloadsFolder__</a
+                      >
+                      __MSG_html_itself__
                     </dd>
                   </div>
                   <div>
                     <dt><code>// note</code></dt>
-                    <dd>Add a comment that is not displayed</dd>
+                    <dd>__MSG_html_addACommentThatIsNotDisplayed__</dd>
                   </div>
                   <div>
                     <dt><code>(alias: Name)</code></dt>
-                    <dd>Change the displayed name</dd>
+                    <dd>__MSG_html_changeTheDisplayedName__</dd>
                   </div>
                   <div>
                     <dt><code>(key: f)</code></dt>
-                    <dd>Assign an access key</dd>
+                    <dd>__MSG_html_assignAnAccessKey__</dd>
                   </div>
                 </dl>
               </details>
               <details class="agent-prompt-guide">
-                <summary>Ask an AI agent to draft a Downloads menu</summary>
+                <summary>__MSG_html_askAnAiAgentToDraftADownloadsMenu__</summary>
                 <p class="caption">
-                  Copy this prompt, then replace the example destinations.
+                  __MSG_html_copyThisPromptThenReplaceTheExampleDestinations__
                   <a class="external" href="https://github.com/gyng/save-in/wiki" target="_blank"
-                    >Save In wiki</a
+                    >__MSG_html_saveInWiki__</a
                   >
                 </p>
                 <pre class="click-to-copy">
@@ -302,17 +319,17 @@ Briefly explain the structure, check that every line follows this syntax, then p
       </div>
 
       <details class="inline-guide edge-case-guide">
-        <summary>Saving outside the Downloads folder</summary>
+        <summary>__MSG_html_savingOutsideTheDownloadsFolder__</summary>
         <div class="guide-body">
           <p>
-            Browsers only let extensions save inside the default
-            <a href="#" data-open-default-downloads-folder>Downloads folder</a>. To reach another
-            location, create a symlink inside Downloads and use that relative symlink path as a
-            destination. The target folder must already exist.
+            __MSG_html_browsersOnlyLetExtensionsSaveInsideTheDefault__
+            <a href="#" data-open-default-downloads-folder>__MSG_html_downloadsFolder__</a
+            >__MSG_html_toReachAnotherLocationCreateASymlinkInsideDownloads__
           </p>
           <p>
-            Paths containing <code>..</code>, absolute paths, and hidden path segments such as
-            <code>.private</code> are not supported.
+            __MSG_html_pathsContaining__
+            <code>..</code>__MSG_html_absolutePathsAndHiddenPathSegmentsSuchAs__
+            <code>.private</code> __MSG_html_areNotSupported__
           </p>
           <div class="guide-command-grid">
             <div>
@@ -473,7 +490,7 @@ Briefly explain the structure, check that every line follows this syntax, then p
       <div class="column wide-column">
         <h2 id="section-browser-downloads">__MSG_o_sBrowserDownloads__</h2>
 
-        <h3 class="section-task-heading">Track and route browser downloads</h3>
+        <h3 class="section-task-heading">__MSG_html_trackAndRouteBrowserDownloads__</h3>
 
         <p class="section-lead">__MSG_o_lBrowserDownloadsHelp__</p>
 
@@ -525,14 +542,14 @@ Briefly explain the structure, check that every line follows this syntax, then p
         </label>
 
         <details class="inline-guide">
-          <summary>How do download URL filters work?</summary>
+          <summary>__MSG_html_howDoDownloadUrlFiltersWork__</summary>
           <div class="caption caption-line">
-            Enter one URL-like browser match pattern per line. It has a scheme, host, and path:
-            <code>&lt;scheme&gt;://&lt;host&gt;/&lt;path&gt;</code>. For example,
-            <code>https://*.example.com/files/*</code> matches HTTPS file URLs on
-            <code>example.com</code> and its subdomains. Use <code>*://</code> for HTTP and HTTPS,
-            and end with <code>/*</code> to include every path. This is not a regular expression,
-            and it cannot match query parameters or an explicit port.
+            __MSG_html_enterOneUrlLikeBrowserMatchPatternPerLine__
+            <code>&lt;scheme&gt;://&lt;host&gt;/&lt;path&gt;</code>__MSG_html_forExample2__
+            <code>https://*.example.com/files/*</code> __MSG_html_matchesHttpsFileUrlsOn__
+            <code>example.com</code> __MSG_html_andItsSubdomainsUse__
+            <code>*://</code> __MSG_html_forHttpAndHttpsAndEndWith__
+            <code>/*</code> __MSG_html_toIncludeEveryPathThisIsNotARegular__
           </div>
         </details>
 
@@ -553,52 +570,54 @@ Briefly explain the structure, check that every line follows this syntax, then p
         <h3 class="section-task-heading">__MSG_o_sRenameAndRouteDownloads__</h3>
 
         <p class="section-lead">
-          Automatically move or rename downloads when their filename, source, page, or context
-          matches.
+          __MSG_html_automaticallyMoveOrRenameDownloadsWhenTheirFilenameSource__
         </p>
 
         <details class="inline-guide editor-guide">
-          <summary>How routing rules work</summary>
+          <summary>__MSG_html_howRoutingRulesWork__</summary>
           <div class="guide-body">
             <ul class="guide-rules">
-              <li>Write one clause per line.</li>
-              <li>Separate rules with a blank line.</li>
-              <li>Every matcher in a rule must match.</li>
-              <li>Every rule must end with an <code>into:</code> destination.</li>
+              <li>__MSG_html_writeOneClausePerLine__</li>
+              <li>__MSG_html_separateRulesWithABlankLine__</li>
+              <li>__MSG_html_everyMatcherInARuleMustMatch__</li>
+              <li>
+                __MSG_html_everyRuleMustEndWithAn__ <code>into:</code> __MSG_html_destination__
+              </li>
             </ul>
             <div class="guide-steps guide-steps-routing">
               <div class="guide-step">
-                <strong>Move matching files and keep their names</strong>
+                <strong>__MSG_html_moveMatchingFilesAndKeepTheirNames__</strong>
                 <pre class="click-to-copy">
 fileext: gif
 into: gifs/</pre>
-                <span class="caption"><code>cat.gif</code> becomes <code>gifs/cat.gif</code>.</span>
+                <span class="caption"
+                  ><code>cat.gif</code> __MSG_html_becomes__ <code>gifs/cat.gif</code>.</span
+                >
               </div>
               <div class="guide-step">
-                <strong>Move and rename matching files</strong>
+                <strong>__MSG_html_moveAndRenameMatchingFiles__</strong>
                 <pre class="click-to-copy">
 fileext: gif
 into: gifs/:unixdate:.:fileext:</pre>
                 <span class="caption"
-                  ><code>cat.gif</code> becomes <code>gifs/1783929600.gif</code>.</span
+                  ><code>cat.gif</code> __MSG_html_becomes__ <code>gifs/1783929600.gif</code>.</span
                 >
               </div>
             </div>
             <p class="caption">
-              Destinations are relative to the Downloads-menu destination you selected. Matcher
-              values are regular expressions; see the
+              __MSG_html_destinationsAreRelativeToTheDownloadsMenuDestinationYou__
               <a
                 class="external"
                 href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions"
-                >regular-expression guide</a
+                >__MSG_html_regularExpressionGuide__</a
               >.
             </p>
             <details class="guide-more">
-              <summary>Advanced: use capture groups</summary>
+              <summary>__MSG_html_advancedUseCaptureGroups__</summary>
               <p class="caption">
-                Parentheses capture parts of a matcher. Select the matcher with
-                <code>capture:</code>, then use <code>:$1:</code>, <code>:$2:</code>, and later
-                groups in <code>into:</code>.
+                __MSG_html_parenthesesCapturePartsOfAMatcherSelectTheMatcher__
+                <code>capture:</code>__MSG_html_thenUse__ <code>:$1:</code>,
+                <code>:$2:</code>__MSG_html_andLaterGroupsIn__ <code>into:</code>.
               </p>
               <pre class="click-to-copy">
 filename: (.*)\.(v[0-9]+)\.(tar|gz)
@@ -606,18 +625,18 @@ pageurl: example\.com
 capture: filename
 into: :$2:/:$1:.:$3:</pre>
               <span class="caption"
-                ><code>ubuntu.v2.tar</code> becomes <code>v2/ubuntu.tar</code>.</span
+                ><code>ubuntu.v2.tar</code> __MSG_html_becomes__ <code>v2/ubuntu.tar</code>.</span
               >
             </details>
             <details class="agent-prompt-guide">
-              <summary>Ask an AI agent to draft routing rules</summary>
+              <summary>__MSG_html_askAnAiAgentToDraftRoutingRules__</summary>
               <p class="caption">
-                Copy this prompt into an agent, or use WebMCP from External integrations.
+                __MSG_html_copyThisPromptIntoAnAgentOrUseWebmcp__
                 <a
                   class="external"
                   href="https://github.com/gyng/save-in/wiki/Clause-and-Variable-list"
                   target="_blank"
-                  >Clause and variable reference</a
+                  >__MSG_html_clauseAndVariableReference__</a
                 >
               </p>
               <pre class="click-to-copy">
@@ -651,7 +670,7 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
               id="filenamePatterns"
               data-manual="true"
               rows="12"
-              placeholder="Optional"
+              placeholder="__MSG_html_optional__"
               spellcheck="false"
               aria-labelledby="rules-text-label"
               aria-describedby="error-filenamePatterns"
@@ -702,7 +721,7 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                   />
                 </label>
                 <button type="button" class="apply-button" id="rule-builder-add" disabled>
-                  Add
+                  __MSG_html_add2__
                 </button>
               </div>
             </div>
@@ -761,7 +780,7 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
           </div>
 
           <div class="preview-column">
-            <div class="reference-sections" aria-label="Insertion references">
+            <div class="reference-sections" aria-label="__MSG_html_insertionReferences__">
               <details class="variables-preview" data-insert-target="filenamePatterns">
                 <summary>__MSG_o_lLiveVariables__</summary>
                 <div class="variables-preview-list"></div>
@@ -777,8 +796,8 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                   <input
                     type="search"
                     class="clause-preview-filter"
-                    aria-label="Filter clauses"
-                    placeholder="Filter clauses"
+                    aria-label="__MSG_html_filterClauses__"
+                    placeholder="__MSG_html_filterClauses__"
                     spellcheck="false"
                   />
                   <table class="variables-preview-table clause-preview-table">
@@ -793,8 +812,8 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                   <input
                     type="search"
                     class="rule-template-filter"
-                    placeholder="Filter templates"
-                    aria-label="Filter routing templates"
+                    placeholder="__MSG_html_filterTemplates__"
+                    aria-label="__MSG_html_filterRoutingTemplates__"
                     spellcheck="false"
                   />
                   <div class="template-feedback" role="status" aria-live="polite" hidden></div>
@@ -810,7 +829,7 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
 
       <h2 id="section-notifications">__MSG_o_sNotifications__</h2>
       <fieldset class="option-group notification-options">
-        <legend class="option-group-heading">Notify me when</legend>
+        <legend class="option-group-heading">__MSG_html_notifyMeWhen__</legend>
         <div class="option-choice-grid">
           <label> <input type="checkbox" id="notifyOnSuccess" /> __MSG_o_cNotifySuccess__ </label>
           <label> <input type="checkbox" id="notifyOnFailure" /> __MSG_o_cNotifyFailure__ </label>
@@ -821,12 +840,14 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
           </label>
         </div>
         <div class="option-subcontrol notification-timing">
-          <label for="notifyDuration">Dismiss early after</label>
+          <label for="notifyDuration">__MSG_html_dismissEarlyAfter__</label>
           <span class="unit-control">
             <input type="number" id="notifyDuration" min="0" step="100" inputmode="numeric" />
-            <span>ms</span>
+            <span>__MSG_html_ms__</span>
           </span>
-          <span class="caption">0 leaves dismissal to the browser or operating system.</span>
+          <span class="caption"
+            >__MSG_html_copy0LeavesDismissalToTheBrowserOrOperatingSystem__</span
+          >
         </div>
       </fieldset>
 
@@ -834,7 +855,7 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
 
       <h2 id="section-save-as-shortcuts">__MSG_o_sSaveAsShortcuts__</h2>
       <fieldset class="option-group shortcut-file-options">
-        <legend class="option-group-heading">Shortcut file behavior</legend>
+        <legend class="option-group-heading">__MSG_html_shortcutFileBehavior__</legend>
         <div class="option-subcontrol shortcut-format-control">
           <label for="shortcutType">__MSG_o_cSaveShortcutsAs__</label>
           <select id="shortcutType">
@@ -847,7 +868,7 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
           <span id="shortcut-format-preview" class="caption"></span>
         </div>
         <div class="option-subgroup">
-          <h3>Save these as shortcut files</h3>
+          <h3>__MSG_html_saveTheseAsShortcutFiles__</h3>
           <div class="option-choice-grid">
             <label>
               <input type="checkbox" id="shortcutMedia" />
@@ -891,37 +912,37 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
       <fieldset
         class="option-group inline-option-group source-shortcut-controls click-to-save-controls"
       >
-        <legend class="visually-hidden">Click-to-save shortcut</legend>
+        <legend class="visually-hidden">__MSG_html_clickToSaveShortcut__</legend>
         <input
           type="hidden"
           id="contentClickToSaveCombo"
-          aria-label="Click-to-save shortcut combination"
+          aria-label="__MSG_html_clickToSaveShortcutCombination__"
         />
         <input
           type="hidden"
           id="contentClickToSaveButton"
           value="LEFT_CLICK"
-          aria-label="Click-to-save mouse button"
+          aria-label="__MSG_o_lClickToSaveButton__"
         />
         <label>
-          <span class="visually-hidden">Primary modifier</span>
+          <span class="visually-hidden">__MSG_html_primaryModifier__</span>
           <select id="clickToSaveModifier" data-runtime-control="true">
-            <option value="">None</option>
-            <option value="Alt" selected>Alt / Option</option>
-            <option value="Ctrl">Ctrl</option>
-            <option value="Shift">Shift</option>
-            <option value="Meta">Command / Windows key</option>
+            <option value="">__MSG_html_none__</option>
+            <option value="Alt" selected>__MSG_html_altOption__</option>
+            <option value="Ctrl">__MSG_html_ctrl__</option>
+            <option value="Shift">__MSG_html_shift__</option>
+            <option value="Meta">__MSG_html_commandWindowsKey__</option>
           </select>
         </label>
         <span class="shortcut-plus" aria-hidden="true">+</span>
         <label>
-          <span class="visually-hidden">Second modifier</span>
+          <span class="visually-hidden">__MSG_html_secondModifier__</span>
           <select id="clickToSaveModifier2" data-runtime-control="true">
-            <option value="">None</option>
-            <option value="Shift">Shift</option>
-            <option value="Alt">Alt / Option</option>
-            <option value="Ctrl">Ctrl</option>
-            <option value="Meta">Command / Windows key</option>
+            <option value="">__MSG_html_none__</option>
+            <option value="Shift">__MSG_html_shift__</option>
+            <option value="Alt">__MSG_html_altOption__</option>
+            <option value="Ctrl">__MSG_html_ctrl__</option>
+            <option value="Meta">__MSG_html_commandWindowsKey__</option>
           </select>
         </label>
         <span class="shortcut-plus" aria-hidden="true">+</span>
@@ -936,12 +957,11 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
           </select>
         </label>
         <button type="button" id="clickToSaveApply">__MSG_o_bApply__</button>
-        <button type="button" id="clickToSaveReset">Reset</button>
+        <button type="button" id="clickToSaveReset">__MSG_o_bReset__</button>
         <span id="clickToSaveStatus" role="status" aria-live="polite"></span>
         <div class="caption caption-line">__MSG_o_cKeyboardShortcutModifierHelp__</div>
         <div id="click-to-save-warning" class="warning notice" role="status" hidden>
-          Mouse-only left click will replace normal clicks on savable media and links while this
-          feature is enabled.
+          __MSG_html_mouseOnlyLeftClickWillReplaceNormalClicksOn__
         </div>
       </fieldset>
 
@@ -954,9 +974,9 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
           <p class="caption section-note">__MSG_o_lPageSourcesNetworkLimit__</p>
         </div>
 
-        <div class="source-panel-demo" aria-label="Preview of the Page sources drawer">
+        <div class="source-panel-demo" aria-label="__MSG_html_previewOfThePageSourcesDrawer__">
           <div class="source-panel-demo-header">
-            <strong>Page sources</strong>
+            <strong>__MSG_o_sPageSources__</strong>
             <span class="source-panel-demo-actions" aria-hidden="true">
               <span
                 ><svg viewBox="0 0 24 24">
@@ -974,30 +994,30 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z" />
             </svg>
-            <span>Filter sources</span>
+            <span>__MSG_html_filterSources__</span>
           </div>
           <div class="source-panel-demo-facets">
-            <span class="active">All <b>8</b></span
-            ><span>Images <b>5</b></span
-            ><span>Video <b>2</b></span
-            ><span>Links <b>1</b></span>
+            <span class="active">__MSG_html_all__ <b>8</b></span
+            ><span>__MSG_html_images__ <b>5</b></span
+            ><span>__MSG_html_video__ <b>2</b></span
+            ><span>__MSG_html_links__ <b>1</b></span>
           </div>
           <div class="source-panel-demo-row">
             <span class="source-panel-demo-thumb image-thumb" aria-hidden="true"></span>
             <span class="source-panel-demo-details"
-              ><strong>hero.webp</strong><small>Image · 128 KB · #1</small></span
+              ><strong>hero.webp</strong><small>__MSG_html_image128Kb1__</small></span
             >
           </div>
           <div class="source-panel-demo-row">
             <span class="source-panel-demo-thumb video-thumb" aria-hidden="true">▶</span>
             <span class="source-panel-demo-details"
-              ><strong>intro.mp4</strong><small>Video · 2.4 MB · #2</small></span
+              ><strong>intro.mp4</strong><small>__MSG_html_video24Mb2__</small></span
             >
           </div>
           <div class="source-panel-demo-row">
             <span class="source-panel-demo-thumb stream-thumb" aria-hidden="true">≈</span>
             <span class="source-panel-demo-details"
-              ><strong>playlist.m3u8</strong><small>Stream · HLS · #3</small></span
+              ><strong>playlist.m3u8</strong><small>__MSG_html_streamHls3__</small></span
             >
           </div>
         </div>
@@ -1027,34 +1047,34 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
         <legend class="option-group-heading">__MSG_o_lSourcePanelShortcut__</legend>
         <div class="source-shortcut-controls">
           <label>
-            <span class="visually-hidden">Primary modifier</span>
+            <span class="visually-hidden">__MSG_html_primaryModifier__</span>
             <select id="sourcePanelShortcutModifier" data-runtime-control="true">
-              <option value="Ctrl">Ctrl</option>
-              <option value="Alt">Alt / Option</option>
-              <option value="Command">Command</option>
-              <option value="MacCtrl">MacCtrl</option>
+              <option value="Ctrl">__MSG_html_ctrl__</option>
+              <option value="Alt">__MSG_html_altOption__</option>
+              <option value="Command">__MSG_html_command__</option>
+              <option value="MacCtrl">__MSG_html_macctrl__</option>
             </select>
           </label>
           <span class="shortcut-plus" aria-hidden="true">+</span>
           <label>
-            <span class="visually-hidden">Second modifier</span>
+            <span class="visually-hidden">__MSG_html_secondModifier__</span>
             <select id="sourcePanelShortcutModifier2" data-runtime-control="true">
-              <option value="">None</option>
-              <option value="Shift">Shift</option>
-              <option value="Alt">Alt / Option</option>
-              <option value="Ctrl">Ctrl</option>
-              <option value="Command">Command</option>
-              <option value="MacCtrl">MacCtrl</option>
+              <option value="">__MSG_html_none__</option>
+              <option value="Shift">__MSG_html_shift__</option>
+              <option value="Alt">__MSG_html_altOption__</option>
+              <option value="Ctrl">__MSG_html_ctrl__</option>
+              <option value="Command">__MSG_html_command__</option>
+              <option value="MacCtrl">__MSG_html_macctrl__</option>
             </select>
           </label>
           <span class="shortcut-plus" aria-hidden="true">+</span>
           <label>
-            <span class="visually-hidden">Key</span>
+            <span class="visually-hidden">__MSG_html_key__</span>
             <input
               type="text"
               id="sourcePanelShortcutKey"
               data-runtime-control="true"
-              aria-label="Shortcut key"
+              aria-label="__MSG_html_shortcutKey__"
               placeholder="Y"
               spellcheck="false"
               autocomplete="off"
@@ -1073,7 +1093,7 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
             <option value="Home"></option>
             <option value="End"></option>
           </datalist>
-          <button type="button" id="sourcePanelShortcutApply">Apply shortcut</button>
+          <button type="button" id="sourcePanelShortcutApply">__MSG_html_applyShortcut__</button>
           <button type="button" id="sourcePanelShortcutReset">__MSG_o_bReset__</button>
           <span id="sourcePanelShortcutStatus" role="status" aria-live="polite"></span>
         </div>
@@ -1119,12 +1139,12 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
           <label for="history-type-filter">__MSG_o_lHistoryType__</label>
           <select id="history-type-filter" data-runtime-control="true">
             <option value="">__MSG_o_lHistoryAllTypes__</option>
-            <option value="image">Image</option>
-            <option value="link">Link</option>
-            <option value="page">Page</option>
-            <option value="selection">Selection</option>
-            <option value="click">Click</option>
-            <option value="tab">Tab</option>
+            <option value="image">__MSG_html_image__</option>
+            <option value="link">__MSG_html_link__</option>
+            <option value="page">__MSG_contextMenuContextPage__</option>
+            <option value="selection">__MSG_html_selection__</option>
+            <option value="click">__MSG_html_click__</option>
+            <option value="tab">__MSG_html_tab__</option>
             <option value="browser">__MSG_o_lHistoryBrowser__</option>
           </select>
         </div>
@@ -1164,21 +1184,21 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
         <span id="history-date-error" class="history-date-error" role="alert" hidden></span>
       </div>
       <div id="history-active-filters" class="history-active-filters" aria-live="polite"></div>
-      <div class="history-table-tools" aria-label="History table tools">
+      <div class="history-table-tools" aria-label="__MSG_html_historyTableTools__">
         <details class="history-columns">
-          <summary>Columns</summary>
+          <summary>__MSG_html_columns__</summary>
           <div class="history-columns-menu" id="history-column-options"></div>
         </details>
         <details class="history-export-menu">
-          <summary>Export</summary>
+          <summary>__MSG_html_export__</summary>
           <div class="history-export-options">
-            <button type="button" id="history-export-json">JSON — complete data</button>
+            <button type="button" id="history-export-json">__MSG_html_jsonCompleteData__</button>
             <button type="button" id="history-export-csv">CSV</button>
             <button type="button" id="history-export-tsv">TSV</button>
           </div>
         </details>
         <details class="history-more-menu">
-          <summary>More</summary>
+          <summary>__MSG_html_more__</summary>
           <div class="history-more-options">
             <button type="button" id="history-clear" class="danger-button">
               __MSG_o_cDeleteAllHistory__
@@ -1207,7 +1227,12 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
 
       <label>
         __MSG_o_cReplaceInvalidCharsWith__
-        <input type="text" id="replacementChar" placeholder="delete" class="mono-input" />
+        <input
+          type="text"
+          id="replacementChar"
+          placeholder="__MSG_html_delete__"
+          class="mono-input"
+        />
         <div class="caption caption-line">__MSG_o_cReplaceInvalidCharsWithHelp__</div>
       </label>
 
@@ -1255,19 +1280,19 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
           __MSG_o_cSetRefererHeaderFilterHelp__
           <a
             href="https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Match_patterns"
-            >MDN: Match patterns</a
+            >__MSG_html_mdnMatchPatterns__</a
           >
         </div>
       </div>
 
       <h3>__MSG_o_sAdvancedCounter__</h3>
       <p class="caption caption-line">
-        Current value of the <code>:counter:</code> variable. It advances once per saved download
-        and persists across restarts.
+        __MSG_html_currentValueOfThe__
+        <code>:counter:</code> __MSG_html_variableItAdvancesOncePerSavedDownloadAndPersists__
       </p>
       <div class="dev-api counter-control">
         <div class="dev-api-row">
-          <span class="dev-api-label">Current</span>
+          <span class="dev-api-label">__MSG_html_current__</span>
           <input
             id="counter-value"
             class="dev-api-value"
@@ -1277,10 +1302,10 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
             value="0"
             inputmode="numeric"
             data-runtime-control="true"
-            aria-label="Counter value"
+            aria-label="__MSG_html_counterValue__"
           />
-          <button type="button" id="counter-set">Set value</button>
-          <button type="button" id="counter-reset">Reset to 0</button>
+          <button type="button" id="counter-set">__MSG_html_setValue__</button>
+          <button type="button" id="counter-reset">__MSG_html_resetTo0__</button>
         </div>
       </div>
 
@@ -1297,52 +1322,53 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
 
       <textarea id="export-target" hidden spellcheck="false"></textarea>
 
-      <h3 id="external-integrations-heading">External integrations</h3>
+      <h3 id="external-integrations-heading">__MSG_html_externalIntegrations__</h3>
       <section class="external-integrations-card" aria-labelledby="external-integrations-heading">
         <div class="external-integrations-header">
           <div>
-            <h4>External download access</h4>
-            <p class="caption">
-              Let trusted extensions send URLs through Save In's routing and rename rules.
-            </p>
+            <h4>__MSG_html_externalDownloadAccess__</h4>
+            <p class="caption">__MSG_html_letTrustedExtensionsSendUrlsThroughSaveInS__</p>
           </div>
           <a class="external" href="https://github.com/gyng/save-in/wiki/Integrations"
-            >Integration guide</a
+            >__MSG_html_integrationGuide__</a
           >
         </div>
 
         <section class="external-access-control" aria-labelledby="external-approved-heading">
           <div class="external-access-heading">
             <div>
-              <h5 id="external-approved-heading">Approved extensions</h5>
+              <h5 id="external-approved-heading">__MSG_html_approvedExtensions__</h5>
               <p class="caption external-control-help">
-                Only approved extensions can start downloads. Use the calling extension's ID—not
-                Save In's ID.
+                __MSG_html_onlyApprovedExtensionsCanStartDownloadsUseTheCalling__
               </p>
             </div>
-            <span id="external-approved-count" class="external-approved-count">None approved</span>
+            <span id="external-approved-count" class="external-approved-count"
+              >__MSG_html_noneApproved__</span
+            >
           </div>
 
           <div class="external-extension-add-row">
-            <label class="visually-hidden" for="external-extension-id-draft">Extension ID</label>
+            <label class="visually-hidden" for="external-extension-id-draft"
+              >__MSG_html_extensionId__</label
+            >
             <input
               id="external-extension-id-draft"
               class="external-extension-id-draft"
               type="text"
-              placeholder="Paste an extension ID"
+              placeholder="__MSG_html_pasteAnExtensionId__"
               autocomplete="off"
               autocapitalize="none"
               spellcheck="false"
               data-runtime-control="true"
             />
             <button id="external-extension-id-add" class="button" type="button" disabled>
-              Allow
+              __MSG_html_allow__
             </button>
           </div>
 
           <div id="external-approved-list" class="external-approved-list" role="list"></div>
           <p id="external-approved-empty" class="caption external-approved-empty">
-            No extensions are approved. External downloads are blocked by default.
+            __MSG_html_noExtensionsAreApprovedExternalDownloadsAreBlockedBy__
           </p>
           <p
             id="external-approved-status"
@@ -1351,15 +1377,17 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
           ></p>
 
           <details class="external-raw-editor">
-            <summary>Advanced: edit IDs as text</summary>
-            <p class="caption">Use one extension ID per line for bulk changes.</p>
+            <summary>__MSG_html_advancedEditIdsAsText__</summary>
+            <p class="caption">__MSG_html_useOneExtensionIdPerLineForBulkChanges__</p>
             <label>
-              <span class="external-control-label visually-hidden">Allowed extension IDs</span>
+              <span class="external-control-label visually-hidden"
+                >__MSG_html_allowedExtensionIds__</span
+              >
               <textarea
                 class="full-width external-allowlist-input"
                 id="externalDownloadAllowlist"
                 rows="4"
-                placeholder="One extension ID per line"
+                placeholder="__MSG_html_oneExtensionIdPerLine__"
                 spellcheck="false"
               ></textarea>
             </label>
@@ -1374,51 +1402,41 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
           hidden
         >
           <h5 id="external-pending-heading" class="external-download-rejections-title">
-            Pending approval
+            __MSG_html_pendingApproval__
           </h5>
-          <div class="caption">
-            These extensions tried to start a download. Add only callers you trust. Requested URLs
-            are never stored.
-          </div>
+          <div class="caption">__MSG_html_theseExtensionsTriedToStartADownloadAddOnly__</div>
           <div id="external-download-rejection-list"></div>
           <div id="external-download-rejection-status" class="caption" role="status"></div>
         </section>
 
         <details class="external-api-details">
-          <summary>Developer details</summary>
+          <summary>__MSG_html_developerDetails__</summary>
           <div class="dev-api">
             <div class="dev-api-row">
-              <span class="dev-api-label">Extension ID</span>
+              <span class="dev-api-label">__MSG_html_extensionId__</span>
               <code id="ext-id" class="click-to-copy dev-api-value" title="Click to copy">…</code>
             </div>
             <div class="dev-api-row">
-              <span class="dev-api-label">API version</span>
+              <span class="dev-api-label">__MSG_html_apiVersion__</span>
               <span id="api-version" class="dev-api-value">…</span>
             </div>
             <div class="dev-api-row">
-              <span class="dev-api-label">Capabilities</span>
+              <span class="dev-api-label">__MSG_html_capabilities__</span>
               <span id="api-capabilities" class="dev-api-value">…</span>
             </div>
             <details class="dev-api-snippet">
-              <summary>Example: negotiate the version, then save a URL</summary>
+              <summary>__MSG_html_exampleNegotiateTheVersionThenSaveAUrl__</summary>
               <pre id="api-snippet" class="click-to-copy" title="Click to copy"></pre>
-              <div class="caption">Click the snippet to copy it.</div>
+              <div class="caption">__MSG_html_clickTheSnippetToCopyIt__</div>
             </details>
             <details class="dev-api-snippet">
-              <summary>Where this works</summary>
+              <summary>__MSG_html_whereThisWorks__</summary>
               <div class="caption">
-                WebExtensions such as Foxy Gestures can message Save In directly. A Greasemonkey,
-                Tampermonkey, or Violentmonkey userscript cannot do so by itself: userscripts do not
-                receive cross-extension messaging access. Use a small companion WebExtension as a
-                relay, or have the userscript hand the URL to an extension that exposes that
-                ability.
+                __MSG_html_webextensionsSuchAsFoxyGesturesCanMessageSaveIn__
               </div>
               <div class="caption caption-line">
-                Save In does not adopt downloads already started by another extension, including
-                Video DownloadHelper. The downloader must send Save In's
-                <code>DOWNLOAD</code> message first, or a small relay extension must do so; Video
-                DownloadHelper does not expose a stable integration API that Save In can call
-                directly.
+                __MSG_html_saveInDoesNotAdoptDownloadsThatAnotherExtension__
+                <code>DOWNLOAD</code> __MSG_html_messageFirstOrASmallRelayExtensionMustDo__
               </div>
             </details>
           </div>
@@ -1430,43 +1448,33 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
         <span class="warning badge">__MSG_o_lExperimental__</span>
       </h4>
       <p class="caption caption-line">
-        In a browser that supports
-        <a class="external" href="https://developer.chrome.com/docs/ai/webmcp">WebMCP</a>, Save In
-        registers tools an AI agent can call while this options page is open &mdash; to change any
-        setting, build directory menus, and write Dynamic Downloads routing rules.
+        __MSG_html_inABrowserThatSupports__
+        <a class="external" href="https://developer.chrome.com/docs/ai/webmcp">WebMCP</a
+        >__MSG_html_saveInRegistersToolsAnAiAgentCanCall__
       </p>
       <div class="dev-api webmcp-card">
         <div class="dev-api-row">
-          <span class="dev-api-label">Status</span>
-          <span id="webmcp-status" class="dev-api-value">checking&hellip;</span>
+          <span class="dev-api-label">__MSG_o_lHistoryStatus__</span>
+          <span id="webmcp-status" class="dev-api-value">__MSG_html_checking__</span>
         </div>
         <div class="dev-api-row">
-          <span class="dev-api-label">Tools</span>
+          <span class="dev-api-label">__MSG_html_tools__</span>
           <span class="dev-api-value"
             ><code>save_in_get_schema</code>, <code>save_in_list_vocabulary</code>,
             <code>save_in_validate_config</code>, <code>save_in_apply_config</code>,
             <code>save_in_download</code></span
           >
         </div>
-        <p class="caption">
-          To connect: open this page in a browser that supports WebMCP, keep it open, and point your
-          in-browser agent at this tab. Ask it in plain language &mdash; e.g. &ldquo;sort my
-          downloads into folders by website and date, number each file, and notify me only when one
-          fails.&rdquo;
-        </p>
+        <p class="caption">__MSG_html_toConnectOpenThisPageInABrowserThat__</p>
       </div>
 
       <h3>__MSG_o_sAdvancedDiagnostics__</h3>
       <label> <input type="checkbox" id="debug" /> __MSG_o_cDebugMode__ </label>
-      <div class="caption caption-line">
-        The session log below always keeps a small local record of recent failures. Enable this only
-        when troubleshooting with the browser developer console; it adds verbose internal details
-        and resets to the saved setting after restart.
-      </div>
+      <div class="caption caption-line">__MSG_html_theSessionLogBelowAlwaysKeepsASmallLocal__</div>
 
       <div class="diagnostics-row">
         <details class="diagnostics-details">
-          <summary>Debug log</summary>
+          <summary>__MSG_o_lDebugLog__</summary>
           <textarea
             class="full-width debug-log-text"
             id="debug-log"
@@ -1474,8 +1482,10 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
             spellcheck="false"
             readonly
           ></textarea>
-          <button type="button" id="debug-log-refresh" class="button">Refresh log</button>
-          <button type="button" id="debug-log-clear" class="button">Clear log</button>
+          <button type="button" id="debug-log-refresh" class="button">
+            __MSG_html_refreshLog__
+          </button>
+          <button type="button" id="debug-log-clear" class="button">__MSG_html_clearLog__</button>
         </details>
       </div>
 
@@ -1484,12 +1494,16 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
 
     <dialog id="reference-dialog" class="reference-dialog" aria-labelledby="reference-dialog-title">
       <div class="reference-dialog-header">
-        <strong id="reference-dialog-title">References</strong>
-        <button type="button" class="reference-dialog-close" aria-label="Close references">
+        <strong id="reference-dialog-title">__MSG_html_references__</strong>
+        <button
+          type="button"
+          class="reference-dialog-close"
+          aria-label="__MSG_html_closeReferences__"
+        >
           ×
         </button>
       </div>
-      <div class="reference-dialog-tabs" role="tablist" aria-label="Reference type">
+      <div class="reference-dialog-tabs" role="tablist" aria-label="__MSG_html_referenceType__">
         <button
           type="button"
           role="tab"
@@ -1497,7 +1511,7 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
           aria-controls="options-reference-variables"
           aria-selected="false"
         >
-          Variables
+          __MSG_o_lRoutingVariables__
         </button>
         <button
           type="button"
@@ -1506,7 +1520,7 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
           aria-controls="options-reference-clauses"
           aria-selected="false"
         >
-          Clauses
+          __MSG_o_lClauses__
         </button>
         <button
           type="button"
@@ -1515,23 +1529,23 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
           aria-controls="options-reference-templates"
           aria-selected="false"
         >
-          Templates
+          __MSG_html_templates__
         </button>
       </div>
       <label class="reference-dialog-filter-label">
-        <span class="visually-hidden">Filter current reference</span>
+        <span class="visually-hidden">__MSG_html_filterCurrentReference__</span>
         <input
           type="search"
           class="reference-dialog-filter rule-template-filter"
-          placeholder="Filter variables"
-          aria-label="Filter current reference"
+          placeholder="__MSG_html_filterVariables__"
+          aria-label="__MSG_html_filterCurrentReference__"
           spellcheck="false"
         />
       </label>
       <div class="template-feedback" role="status" aria-live="polite" hidden></div>
       <div class="reference-dialog-body">
         <section id="options-reference-variables" class="options-reference-panel" role="tabpanel">
-          <p class="caption">Loading variables…</p>
+          <p class="caption">__MSG_html_loadingVariables__</p>
         </section>
         <section
           id="options-reference-clauses"
@@ -1539,7 +1553,7 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
           role="tabpanel"
           hidden
         >
-          <p class="caption">Loading clauses…</p>
+          <p class="caption">__MSG_html_loadingClauses__</p>
         </section>
         <section
           id="options-reference-templates"
@@ -1553,60 +1567,60 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
     </dialog>
 
     <dialog id="about-dialog" class="about-dialog" aria-labelledby="about-title">
-      <button type="button" class="about-close" aria-label="Close About Save In">×</button>
+      <button type="button" class="about-close" aria-label="__MSG_html_closeAboutSaveIn__">
+        ×
+      </button>
       <div class="about-layout">
         <div class="about-mascot-column">
           <button
             type="button"
             class="about-mascot-button"
-            aria-label="Lucky organizing cat"
-            title="A very diligent organizer"
+            aria-label="__MSG_html_luckyOrganizingCat__"
+            title="__MSG_html_aVeryDiligentOrganizer__"
           >
             <img
               class="about-mascot"
               src="assets/save-in-mascot.webp"
-              alt="A watercolor lucky cat carefully organizing documents, photographs, film, and books"
+              alt="__MSG_html_aWatercolorLuckyCatCarefullyOrganizingDocumentsPhotographsFilm__"
             />
           </button>
         </div>
         <div class="about-copy">
-          <h2 id="about-title">About Save In</h2>
-          <p>
-            Save In is a local-first downloads helper for organizing files with context-menu
-            destinations, routing rules, renaming, Page Sources, and download history.
-          </p>
-          <p>
-            Save In has no analytics, advertising, developer-operated server, or remote executable
-            code. Settings and history stay in browser-managed extension storage.
-          </p>
-          <dl class="about-build-info" aria-label="Build information">
+          <h2 id="about-title">__MSG_html_aboutSaveIn__</h2>
+          <p>__MSG_html_saveInIsALocalFirstDownloadsHelperFor__</p>
+          <p>__MSG_html_saveInHasNoAnalyticsAdvertisingDeveloperOperatedServer__</p>
+          <dl class="about-build-info" aria-label="__MSG_html_buildInformation__">
             <div>
-              <dt>Version</dt>
+              <dt>__MSG_html_version__</dt>
               <dd id="about-version">—</dd>
             </div>
           </dl>
-          <h3>Why these permissions are needed</h3>
+          <h3>__MSG_html_whyThesePermissionsAreNeeded__</h3>
           <dl class="permission-rationale">
-            <dt>Context menus</dt>
-            <dd>Shows Save In commands on pages, links, media, and tabs.</dd>
-            <dt>Downloads</dt>
-            <dd>Starts saves, chooses filenames, monitors results, and supports retries.</dd>
-            <dt>Notifications</dt>
-            <dd>Reports completed saves and actionable failures when enabled.</dd>
-            <dt>Storage</dt>
-            <dd>Keeps settings, routing rules, local history, and restart-safe state.</dd>
-            <dt>Offscreen</dt>
-            <dd>Lets Chrome convert fetched file data into temporary download URLs.</dd>
-            <dt>Website access</dt>
-            <dd>Finds and saves resources the user chooses on arbitrary websites.</dd>
+            <dt>__MSG_html_contextMenus__</dt>
+            <dd>__MSG_html_showsSaveInCommandsOnPagesLinksMediaAnd__</dd>
+            <dt>__MSG_html_downloads__</dt>
+            <dd>__MSG_html_startsSavesChoosesFilenamesMonitorsResultsAndSupportsRetries__</dd>
+            <dt>__MSG_o_sNotifications__</dt>
+            <dd>__MSG_html_reportsCompletedSavesAndActionableFailuresWhenEnabled__</dd>
+            <dt>__MSG_html_storage__</dt>
+            <dd>__MSG_html_keepsSettingsRoutingRulesLocalHistoryAndRestartSafe__</dd>
+            <dt>__MSG_html_offscreen__</dt>
+            <dd>__MSG_html_letsChromeConvertFetchedFileDataIntoTemporaryDownload__</dd>
+            <dt>__MSG_html_websiteAccess__</dt>
+            <dd>__MSG_html_findsAndSavesResourcesTheUserChoosesOnArbitrary__</dd>
           </dl>
           <div class="about-links">
-            <a href="../../PRIVACY.md" target="_blank">Privacy policy</a>
-            <a class="external" href="https://github.com/gyng/save-in/issues">Report an issue</a>
-            <a class="external" href="https://github.com/gyng/save-in/discussions"
-              >Ask the community</a
+            <a href="../../PRIVACY.md" target="_blank">__MSG_html_privacyPolicy__</a>
+            <a class="external" href="https://github.com/gyng/save-in/issues"
+              >__MSG_html_reportAnIssue__</a
             >
-            <a class="external" href="https://github.com/gyng/save-in/wiki">Documentation</a>
+            <a class="external" href="https://github.com/gyng/save-in/discussions"
+              >__MSG_html_askTheCommunity__</a
+            >
+            <a class="external" href="https://github.com/gyng/save-in/wiki"
+              >__MSG_html_documentation__</a
+            >
           </div>
         </div>
       </div>

@@ -41,11 +41,44 @@ const collectRuntimeMessageKeys = (): Set<string> => {
 
   for (const file of listSourceFiles(resolve("src")).filter((path) => extname(path) === ".ts")) {
     const source = readFileSync(file, "utf8");
-    for (const match of source.matchAll(/\bgetMessage\(\s*["']([A-Za-z0-9_]+)["']/g)) {
+    for (const match of source.matchAll(/\b(?:getMessage|localize)\(\s*["']([A-Za-z0-9_]+)["']/g)) {
       keys.add(match[1]);
     }
   }
   return keys;
+};
+
+const intentionallyLiteralText = new Set([
+  "Chrome",
+  "Chrome 150+",
+  "CSV",
+  "Firefox",
+  "GitHub",
+  "JSON",
+  "macOS / Linux",
+  "MDN",
+  "Save In",
+  "TSV",
+  "WebMCP",
+  "Windows",
+]);
+
+const isReferenceExample = (node: Node): boolean => {
+  const cell = node.parentElement?.closest("td");
+  const row = cell?.parentElement;
+  return Boolean(cell && row?.closest("table.box") && [...row.children].indexOf(cell) === 1);
+};
+
+const isIntentionalLiteral = (node: Node): boolean => {
+  const text = node.textContent?.replace(/\s+/g, " ").trim() ?? "";
+  return (
+    !/[A-Za-z]/.test(text) ||
+    text.includes("__MSG_") ||
+    Boolean(node.parentElement?.closest("code, pre, #uiLocale")) ||
+    isReferenceExample(node) ||
+    intentionallyLiteralText.has(text) ||
+    /^(?:https?:\/\/|[A-Za-z0-9_.-]+\.(?:gif|jpe?g|m3u8|mp4|png|webp))/.test(text)
+  );
 };
 
 const locales = readdirSync(resolve("_locales"), { withFileTypes: true })
@@ -87,6 +120,40 @@ test("English is the exact schema for runtime message keys", () => {
   expect(Object.keys(readCatalog("en")).toSorted()).toEqual(
     [...collectRuntimeMessageKeys()].toSorted(),
   );
+});
+
+test("static options copy is localized or explicitly technical", () => {
+  const attributes = ["alt", "aria-label", "placeholder", "title"] as const;
+  for (const file of listSourceFiles(resolve("src/options")).filter(
+    (path) => extname(path) === ".html",
+  )) {
+    const document = new DOMParser().parseFromString(readFileSync(file, "utf8"), "text/html");
+    const walker = document.createTreeWalker(document.documentElement, NodeFilter.SHOW_TEXT);
+    const rawText: string[] = [];
+    while (walker.nextNode()) {
+      if (!isIntentionalLiteral(walker.currentNode)) {
+        rawText.push(walker.currentNode.textContent?.replace(/\s+/g, " ").trim() ?? "");
+      }
+    }
+    expect(rawText, file).toEqual([]);
+
+    const rawAttributes = [...document.querySelectorAll("*")].flatMap((element) =>
+      attributes.flatMap((attribute) => {
+        const value = element.getAttribute(attribute);
+        if (
+          !value ||
+          !/[A-Za-z]/.test(value) ||
+          value.includes("__MSG_") ||
+          element.closest("#uiLocale, code, pre") ||
+          /^(?:\*:\/\/|images\/|jpg\|png$|Y$)/.test(value)
+        ) {
+          return [];
+        }
+        return [`${attribute}=${JSON.stringify(value)}`];
+      }),
+    );
+    expect(rawAttributes, file).toEqual([]);
+  }
 });
 
 test("English is the only browser-native catalog", () => {
@@ -141,9 +208,8 @@ test("AI-generated catalogs preserve technical tokens and localized UI terminolo
     "o_cSaveShortcutsTypeWindows",
     "o_cSaveShortcutsTypeFreedesktop",
   ];
-  const brandedKeys = Object.keys(canonical).filter((key) =>
-    canonical[key]?.message.includes("Save In"),
-  );
+  const protectedTokenPattern =
+    /Save In|WebMCP|WebExtensions?|Content-(?:Disposition|Type)|SHA-256|ISO 8601|Ctrl\+Shift\+Y|Command\+Shift\+Y|\*:\/\/[^\s]+?\/\*|:[A-Za-z0-9$]+:|\$[A-Z0-9_]+\$/g;
 
   for (const { locale } of GENERATED_LOCALES) {
     const catalog = readGeneratedCatalog(locale);
@@ -164,8 +230,14 @@ test("AI-generated catalogs preserve technical tokens and localized UI terminolo
     expect(catalog.o_lManualEditorSaveHelp?.message, `${locale} Apply terminology`).toContain(
       catalog.o_bApply?.message,
     );
-    for (const key of brandedKeys) {
-      expect(catalog[key]?.message, `${locale}.${key} branding`).toContain("Save In");
+    for (const [key, definition] of Object.entries(catalog)) {
+      const canonicalMessage = canonical[key]?.message ?? "";
+      for (const token of canonicalMessage.match(protectedTokenPattern) ?? []) {
+        expect(definition.message, `${locale}.${key} technical token ${token}`).toContain(token);
+      }
+      if (canonicalMessage.endsWith("…")) {
+        expect(definition.message, `${locale}.${key} ellipsis`).toMatch(/…$/);
+      }
     }
   }
 });

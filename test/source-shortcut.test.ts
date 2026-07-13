@@ -73,11 +73,11 @@ describe("Page Sources shortcut control", () => {
     input.value = "S";
     input.dispatchEvent(new InputEvent("input"));
     apply.click();
-    expect(status.textContent).toContain("does not support changing shortcuts");
+    expect(status.textContent).toBe("Translated<o_lShortcutChangeUnsupported>");
     expect(apply.disabled).toBe(false);
 
     document.querySelector<HTMLButtonElement>("#sourcePanelShortcutReset")!.click();
-    expect(status.textContent).toContain("does not support resetting shortcuts");
+    expect(status.textContent).toBe("Translated<o_lShortcutResetUnsupported>");
   });
 
   test("validates a modifier plus one key", () => {
@@ -104,7 +104,7 @@ describe("Page Sources shortcut control", () => {
     input.value = "Yyo";
     input.dispatchEvent(new InputEvent("input"));
     expect(input.getAttribute("aria-invalid")).toBe("true");
-    expect(status.textContent).toContain("valid key");
+    expect(status.textContent).toBe("Translated<o_lShortcutValidKey>");
     expect(apply.disabled).toBe(true);
 
     input.value = "S";

@@ -1,4 +1,5 @@
 import { webExtensionApi } from "../platform/web-extension-api.ts";
+import { getMessage } from "../platform/localization.ts";
 
 const COMMAND = "toggle-source-panel";
 const MODIFIERS = new Set(["ctrl", "alt", "command", "macctrl", "shift"]);
@@ -24,24 +25,34 @@ const isShortcutKey = (key: string): boolean =>
   /^f(?:[1-9]|1[0-2])$/i.test(key) ||
   NAMED_KEYS.has(key.toLocaleLowerCase());
 
-export const validateSourceShortcut = (shortcut: string): string => {
+type ShortcutLocalizer = (key: string, fallback: string) => string;
+const englishShortcutMessage: ShortcutLocalizer = (_key, fallback) => fallback;
+
+export const validateSourceShortcut = (
+  shortcut: string,
+  localize: ShortcutLocalizer = englishShortcutMessage,
+): string => {
   const value = shortcut.trim();
-  if (!value) return "Enter a shortcut or use Reset.";
+  if (!value) return localize("o_lShortcutEnterOrReset", "Enter a shortcut or use Reset.");
   const parts = value.split("+").map((part) => part.trim());
-  if (parts.some((part) => !part)) return "Use a format like Ctrl+Shift+G.";
+  if (parts.some((part) => !part))
+    return localize("o_lShortcutFormat", "Use a format like Ctrl+Shift+G.");
   const modifiers = parts.filter((part) => MODIFIERS.has(part.toLocaleLowerCase()));
   const keys = parts.filter((part) => !MODIFIERS.has(part.toLocaleLowerCase()));
   if (!modifiers.some((part) => PRIMARY_MODIFIERS.has(part.toLocaleLowerCase()))) {
-    return "Include Ctrl, Alt, Command, or MacCtrl as a modifier.";
+    return localize(
+      "o_lShortcutPrimaryModifier",
+      "Include Ctrl, Alt, Command, or MacCtrl as a modifier.",
+    );
   }
-  if (keys.length === 0) return "Add a key after the modifier.";
-  if (keys.length > 1) return "Use one key with your modifiers.";
+  if (keys.length === 0) return localize("o_lShortcutAddKey", "Add a key after the modifier.");
+  if (keys.length > 1) return localize("o_lShortcutOneKey", "Use one key with your modifiers.");
   const key = keys[0];
   if (key === undefined || !isShortcutKey(key)) {
-    return "Choose a valid key, such as Y, 5, F12, or PageDown.";
+    return localize("o_lShortcutValidKey", "Choose a valid key, such as Y, 5, F12, or PageDown.");
   }
   if (new Set(parts.map((part) => part.toLocaleLowerCase())).size !== parts.length) {
-    return "Do not repeat keys or modifiers.";
+    return localize("o_lShortcutNoRepeats", "Do not repeat keys or modifiers.");
   }
   return "";
 };
@@ -88,13 +99,13 @@ export const setupSourceShortcut = () => {
   };
   const validate = () => {
     const shortcut = shortcutValue();
-    const error = validateSourceShortcut(shortcut);
+    const error = validateSourceShortcut(shortcut, (key, fallback) => getMessage(key) || fallback);
     const changed = shortcut !== savedShortcut;
     if (error && changed) input.setAttribute("aria-invalid", "true");
     else input.removeAttribute("aria-invalid");
     apply.disabled = Boolean(error) || !changed;
     if (error && changed) announce(error, true);
-    else if (changed) announce("Ready to apply.");
+    else if (changed) announce(getMessage("o_lShortcutReady") || "Ready to apply.");
     else announce("");
     return !error;
   };
@@ -112,7 +123,11 @@ export const setupSourceShortcut = () => {
     apply.disabled = true;
     const updateValue: unknown = Reflect.get(webExtensionApi.commands, "update");
     if (typeof updateValue !== "function") {
-      announce("This browser does not support changing shortcuts here.", true);
+      announce(
+        getMessage("o_lShortcutChangeUnsupported") ||
+          "This browser does not support changing shortcuts here.",
+        true,
+      );
       apply.disabled = false;
       return;
     }
@@ -124,17 +139,22 @@ export const setupSourceShortcut = () => {
       .then((retained) => {
         if (retained.toLocaleLowerCase() !== shortcut.toLocaleLowerCase()) {
           throw new Error(
-            "The browser did not accept this shortcut. It may be reserved or in use.",
+            getMessage("o_lShortcutRejected") ||
+              "The browser did not accept this shortcut. It may be reserved or in use.",
           );
         }
-        announce("Shortcut updated.");
+        announce(getMessage("o_lShortcutUpdated") || "Shortcut updated.");
       })
       .catch((error) => announce(String(error), true));
   });
   reset.addEventListener("click", () => {
     const resetValue: unknown = Reflect.get(webExtensionApi.commands, "reset");
     if (typeof resetValue !== "function") {
-      announce("This browser does not support resetting shortcuts here.", true);
+      announce(
+        getMessage("o_lShortcutResetUnsupported") ||
+          "This browser does not support resetting shortcuts here.",
+        true,
+      );
       return;
     }
     const resetShortcut = Reflect.apply(resetValue, webExtensionApi.commands, [
@@ -142,7 +162,7 @@ export const setupSourceShortcut = () => {
     ]) as Promise<void>;
     void resetShortcut
       .then(() => load())
-      .then(() => announce("Shortcut reset."))
+      .then(() => announce(getMessage("o_lShortcutReset") || "Shortcut reset."))
       .catch((error) => announce(String(error), true));
   });
   modifier.addEventListener("change", () => {
