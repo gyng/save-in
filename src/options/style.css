@@ -3248,9 +3248,11 @@ select {
   margin: 0;
 }
 
-.webhook-documentation {
-  display: inline-block;
-  margin-top: var(--space-1);
+.integration-documentation-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  margin: calc(-1 * var(--space-2)) 0 var(--space-4);
   font-size: var(--text-sm);
 }
 
