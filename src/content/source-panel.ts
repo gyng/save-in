@@ -566,7 +566,7 @@ export const toggleSourcePanel = (
       });
       save.addEventListener("click", () => sendDownload(source));
       actions.append(locate, save);
-      if (source.kind === "stream") {
+      if (source.kind === "stream" || source.kind === "video") {
         const copy = document.createElement("button");
         copy.textContent = "Copy yt-dlp command";
         copy.title = "Copy a command for yt-dlp to download the complete video";

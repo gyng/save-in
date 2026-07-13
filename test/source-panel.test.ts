@@ -755,4 +755,14 @@ describe("Page Sources panel interactions", () => {
       [...shadow.querySelectorAll(".actions button")].map((button) => button.textContent),
     ).toEqual(["Locate", "Save playlist", "Copy yt-dlp command"]);
   });
+
+  test("offers a yt-dlp command for direct video sources", () => {
+    document.body.innerHTML = `<video src="https://cdn.test/movie.mp4"></video>`;
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    const shadow = document.getElementById("save-in-source-panel")!.shadowRoot!;
+
+    expect(
+      [...shadow.querySelectorAll(".actions button")].map((button) => button.textContent),
+    ).toEqual(["Locate", "Save", "Copy yt-dlp command"]);
+  });
 });
