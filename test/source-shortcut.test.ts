@@ -1,4 +1,14 @@
 import { setupSourceShortcut, validateSourceShortcut } from "../src/options/source-shortcut.ts";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
+test("Page Sources has an ergonomic cross-platform default shortcut", () => {
+  const manifest = JSON.parse(readFileSync(resolve("manifest.json"), "utf8"));
+  expect(manifest.commands["toggle-source-panel"].suggested_key).toEqual({
+    default: "Ctrl+Shift+G",
+    mac: "Command+Shift+G",
+  });
+});
 
 describe("Page Sources shortcut control", () => {
   beforeEach(() => {
@@ -11,7 +21,7 @@ describe("Page Sources shortcut control", () => {
       <span id="sourcePanelShortcutStatus"></span>`;
     (global.browser as any).commands = {
       getAll: vi.fn(() =>
-        Promise.resolve([{ name: "toggle-source-panel", shortcut: "Ctrl+Shift+Y" }]),
+        Promise.resolve([{ name: "toggle-source-panel", shortcut: "Ctrl+Shift+G" }]),
       ),
       update: vi.fn(() => Promise.resolve()),
       reset: vi.fn(() => Promise.resolve()),
@@ -22,7 +32,7 @@ describe("Page Sources shortcut control", () => {
     setupSourceShortcut();
     await vi.waitFor(() =>
       expect((document.querySelector("#sourcePanelShortcutKey") as HTMLInputElement).value).toBe(
-        "Y",
+        "G",
       ),
     );
     const modifier = document.querySelector("#sourcePanelShortcutModifier") as HTMLSelectElement;
@@ -49,7 +59,7 @@ describe("Page Sources shortcut control", () => {
   });
 
   test("validates a modifier plus one key", () => {
-    expect(validateSourceShortcut("Ctrl+Shift+Y")).toBe("");
+    expect(validateSourceShortcut("Ctrl+Shift+G")).toBe("");
     expect(validateSourceShortcut("Alt+S")).toBe("");
     expect(validateSourceShortcut("")).toContain("Enter");
     expect(validateSourceShortcut("Y")).toContain("modifier");
@@ -66,7 +76,7 @@ describe("Page Sources shortcut control", () => {
     const input = document.querySelector<HTMLInputElement>("#sourcePanelShortcutKey")!;
     const apply = document.querySelector<HTMLButtonElement>("#sourcePanelShortcutApply")!;
     const status = document.querySelector<HTMLElement>("#sourcePanelShortcutStatus")!;
-    await vi.waitFor(() => expect(input.value).toBe("Y"));
+    await vi.waitFor(() => expect(input.value).toBe("G"));
     expect(apply.disabled).toBe(true);
 
     input.value = "Yyo";

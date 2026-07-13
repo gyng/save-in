@@ -66,8 +66,8 @@
   "commands": {
     "toggle-source-panel": {
       "suggested_key": {
-        "default": "Ctrl+Shift+Y",
-        "mac": "Command+Shift+Y"
+        "default": "Ctrl+Shift+G",
+        "mac": "Command+Shift+G"
       },
       "description": "Toggle the Page Sources browser"
     }

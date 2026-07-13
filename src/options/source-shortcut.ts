@@ -28,7 +28,7 @@ export const validateSourceShortcut = (shortcut: string): string => {
   const value = shortcut.trim();
   if (!value) return "Enter a shortcut or use Reset.";
   const parts = value.split("+").map((part) => part.trim());
-  if (parts.some((part) => !part)) return "Use a format like Ctrl+Shift+Y.";
+  if (parts.some((part) => !part)) return "Use a format like Ctrl+Shift+G.";
   const modifiers = parts.filter((part) => MODIFIERS.has(part.toLocaleLowerCase()));
   const keys = parts.filter((part) => !MODIFIERS.has(part.toLocaleLowerCase()));
   if (!modifiers.some((part) => PRIMARY_MODIFIERS.has(part.toLocaleLowerCase()))) {

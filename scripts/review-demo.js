@@ -68,7 +68,7 @@ const DEMO_PAGE = `<!doctype html>
       <li>Select this text, right-click &rarr; save selection; right-click the page background
         &rarr; save page. Check "Last used" appears in the menu afterwards.</li>
       <li>Open Page Sources from the toolbar, the bottom of the Save In context menu, or
-        <code>Ctrl+Shift+Y</code>.</li>
+        <code>Ctrl+Shift+G</code>.</li>
       <li>Filter, facet, sort, and resize the drawer. Alt+click a result to save immediately;
         right-click its title to use the normal Save In menu. Use <b>Copy URLs</b> after
         filtering and cycle the dock through right, bottom, left, and top.</li>
