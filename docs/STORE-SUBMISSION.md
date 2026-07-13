@@ -21,9 +21,9 @@ manually to AMO and the Chrome Web Store. Both browsers use
 
 Run `npm run build:source` and upload the resulting `*-source.zip` as the AMO
 source-code attachment. It contains the TypeScript source, lockfile, build
-configuration, scripts, types, tests, and the generated `version.json` used by
-the submitted runtime package. A reviewer can reproduce the runtime package
-from the extracted source archive with:
+configuration, scripts, types, and tests used by the submitted runtime package.
+A reviewer can reproduce the runtime package from the extracted source archive
+with:
 
 ```sh
 npm ci
@@ -32,6 +32,8 @@ npm run build
 
 Rolldown transpiles and scope-hoists the TypeScript into readable,
 non-minified JavaScript. No obfuscation or remote executable code is used.
+Both archives are canonicalized to sorted entries with fixed ZIP timestamps, so
+repeated builds of the same source produce byte-identical ZIPs.
 
 ## Reviewer implementation notes
 
@@ -123,11 +125,10 @@ Push a `vX.Y.Z` tag only after `package.json` and `manifest.json` both contain
 1. validates the tag against both manifests;
 2. runs unit tests, typecheck, lint, and the serial Chrome and Firefox e2e
    suites;
-3. derives `SOURCE_COMMIT` and `SOURCE_DATE` from the tagged commit;
-4. builds the runtime and AMO source ZIPs;
-5. copies them to stable `save-in-X.Y.Z*.zip` names and writes `SHA256SUMS`;
-6. creates GitHub provenance attestations for the runtime and source files; and
-7. creates a draft GitHub Release with those assets.
+3. builds and canonicalizes the runtime and AMO source ZIPs;
+4. copies them to stable `save-in-X.Y.Z*.zip` names and writes `SHA256SUMS`;
+5. creates GitHub provenance attestations for the runtime and source files; and
+6. creates a draft GitHub Release with those assets.
 
 Inspect the draft and publish it manually. A rerun may replace assets while the
 release remains a draft, but the workflow refuses to modify an already

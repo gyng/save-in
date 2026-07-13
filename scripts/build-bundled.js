@@ -9,11 +9,10 @@ const fs = require("fs");
 const path = require("path");
 const { execFileSync } = require("child_process");
 
-const writeVersion = require("./write-version");
-
-writeVersion();
+const { assertPackageVersion } = require("./lib/package-metadata");
 
 const root = path.join(__dirname, "..");
+assertPackageVersion(root);
 const expectE2EBridge = process.env.SAVE_IN_E2E === "1";
 const bundleDir = path.join(root, "dist", expectE2EBridge ? "bundled-e2e" : "bundled");
 const out = path.join(root, "dist", expectE2EBridge ? "bundled-pkg-e2e" : "bundled-pkg");
@@ -31,6 +30,7 @@ const bundleFiles = [
   "reference-page.js",
   "reference-page.js.map",
 ];
+const excludedRuntimeFiles = new Set(["src/options/version.json"]);
 
 // Remove artifacts from the short-lived per-browser packaging scheme so an
 // obsolete ZIP cannot be mistaken for the current shared store package.
@@ -87,7 +87,10 @@ fs.rmSync(out, { recursive: true, force: true });
 fs.mkdirSync(out, { recursive: true });
 fs.cpSync(path.join(root, "src"), path.join(out, "src"), {
   recursive: true,
-  filter: (source) => path.extname(source) !== ".ts",
+  filter: (source) => {
+    const relative = path.relative(root, source).replaceAll(path.sep, "/");
+    return path.extname(source) !== ".ts" && !excludedRuntimeFiles.has(relative);
+  },
 });
 ["icons", "_locales"].forEach((dir) => {
   fs.cpSync(path.join(root, dir), path.join(out, dir), { recursive: true });

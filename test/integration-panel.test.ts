@@ -15,11 +15,6 @@ test("renders build identity and the live external API contract", async () => {
   vi.spyOn(webExtensionApi.runtime, "sendMessage").mockResolvedValue({
     body: { version: 1, capabilities: ["download", "active_tab"] },
   });
-  vi.stubGlobal(
-    "fetch",
-    vi.fn(async () => ({ json: async () => ({ commit: "abc1234" }) })),
-  );
-
   setupIntegrationPanel();
 
   expect(document.querySelector("#version-label")?.textContent).toBe("v4.0.0");
@@ -33,5 +28,4 @@ test("renders build identity and the live external API contract", async () => {
     configurable: true,
     value: originalId,
   });
-  vi.unstubAllGlobals();
 });

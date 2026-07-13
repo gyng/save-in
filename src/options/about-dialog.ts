@@ -14,18 +14,6 @@ export const setupAboutDialog = () => {
   const version = webExtensionApi.runtime.getManifest().version;
   const versionEl = dialog.querySelector<HTMLElement>("#about-version");
   if (versionEl) versionEl.textContent = version ? `v${version}` : "Unavailable";
-  const commitEl = dialog.querySelector<HTMLAnchorElement>("#about-commit");
-  fetch("version.json")
-    .then((response) => response.json())
-    .then(({ commit, date }) => {
-      if (commitEl && commit && commit !== "unknown") {
-        commitEl.textContent = commit;
-        commitEl.href = `https://github.com/gyng/save-in/commit/${commit}`;
-      }
-      const dateEl = dialog.querySelector<HTMLElement>("#about-build-date");
-      if (dateEl && date) dateEl.textContent = date;
-    })
-    .catch(() => {});
 
   const mascot = dialog.querySelector<HTMLButtonElement>(".about-mascot-button");
   let mascotClicks = 0;

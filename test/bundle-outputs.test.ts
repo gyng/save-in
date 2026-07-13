@@ -38,10 +38,30 @@ test("ships a self-verifying Mozilla source attachment", () => {
     '"!.oxfmtrc.json"',
     '"!.github/**/*"',
     "verifyArchive",
+    "canonicalizeZip",
+    '"src/options/version.json"',
   ]) {
     expect(sourceBuild).toContain(required);
   }
   expect(ci).toContain("npm run build:source");
+});
+
+test("creates stable archives without generated checkout metadata", () => {
+  const runtimeBuild = readFileSync(resolve("scripts/build-bundled.js"), "utf8");
+  const runtimePackage = readFileSync(resolve("scripts/package-runtime.js"), "utf8");
+  const sourceBuild = readFileSync(resolve("scripts/build-source-package.js"), "utf8");
+  const packageJson = JSON.parse(readFileSync(resolve("package.json"), "utf8"));
+
+  expect(runtimeBuild).toContain("assertPackageVersion(root)");
+  expect(runtimeBuild).toContain('"src/options/version.json"');
+  expect(runtimeBuild).not.toContain("writeVersion");
+  expect(runtimePackage).toContain("canonicalizeZip");
+  expect(runtimePackage).toContain("assertPackageVersion(root)");
+  expect(runtimePackage).toContain('"--no-config-discovery"');
+  expect(runtimePackage).toContain('"save-in-{version}.zip"');
+  expect(sourceBuild).toContain("assertPackageVersion(root)");
+  expect(sourceBuild).not.toContain("writeVersion");
+  expect(packageJson.scripts["build:bundled"]).toContain("scripts/package-runtime.js");
 });
 
 test("isolates E2E bundles from store and dev builds", () => {
@@ -58,10 +78,12 @@ test("uses one spanning package for both stores", () => {
   const manifest = JSON.parse(readFileSync(resolve("manifest.json"), "utf8"));
   const stage = readFileSync(resolve("scripts/build-bundled.js"), "utf8");
   const packageJson = readFileSync(resolve("package.json"), "utf8");
+  const runtimePackage = readFileSync(resolve("scripts/package-runtime.js"), "utf8");
 
   expect(manifest.incognito).toBe("spanning");
   expect(stage).not.toContain("SAVE_IN_BROWSER");
   expect(stage).toContain('"save-in-chrome-mv3.zip"');
   expect(packageJson).not.toContain("bundled-pkg-firefox");
-  expect(packageJson).toContain("--artifacts-dir web-ext-artifacts --overwrite-dest");
+  expect(runtimePackage).toContain('"--artifacts-dir"');
+  expect(runtimePackage).toContain('"--overwrite-dest"');
 });

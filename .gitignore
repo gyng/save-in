@@ -3,7 +3,6 @@ dist
 node_modules
 .DS_Store
 web-ext-artifacts
-src/options/version.json
 yarn-error.log
 coverage
 .playwright-mcp/

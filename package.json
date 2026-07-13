@@ -5,7 +5,7 @@
   "scripts": {
     "build": "npm run build:bundled",
     "bundle": "rolldown -c rolldown.config.mjs",
-    "build:bundled": "node scripts/build-bundled.js && node scripts/with-env.js -u WEB_EXT_API_KEY -u WEB_EXT_API_SECRET -- web-ext build --source-dir dist/bundled-pkg --artifacts-dir web-ext-artifacts --overwrite-dest",
+    "build:bundled": "node scripts/build-bundled.js && node scripts/package-runtime.js",
     "build:source": "node scripts/build-source-package.js",
     "release:prepare": "node scripts/prepare-release.js",
     "d": "node scripts/dev-firefox.js",
@@ -36,6 +36,7 @@
     "@vitest/coverage-v8": "4.1.9",
     "jest-webextension-mock": "^4.2.0",
     "jsdom": "^29.1.1",
+    "jszip": "3.10.1",
     "oxfmt": "^0.58.0",
     "oxlint": "^1.73.0",
     "rolldown": "^1.1.5",

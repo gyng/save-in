@@ -50,11 +50,6 @@ jobs:
           npm run lint
           HEADLESS=1 npm run e2e:serial
 
-      - name: Set deterministic release metadata
-        run: |
-          echo "SOURCE_COMMIT=$(git rev-parse --short=7 HEAD)" >> "$GITHUB_ENV"
-          echo "SOURCE_DATE=$(git show -s --format=%cs HEAD)" >> "$GITHUB_ENV"
-
       - name: Build runtime and source archives
         run: |
           npm run build

@@ -35,30 +35,20 @@ test("five mascot clicks celebrate until the dialog closes", () => {
   expect(mascot.classList).not.toContain("is-celebrating");
 });
 
-test("shows runtime version and generated build metadata", async () => {
+test("shows the runtime manifest version without generated checkout metadata", () => {
   vi.spyOn(webExtensionApi.runtime, "getManifest").mockReturnValue({ version: "4.0.0" } as any);
-  vi.stubGlobal(
-    "fetch",
-    vi.fn(async () => ({
-      json: async () => ({ commit: "abc1234", date: "2026-07-12" }),
-    })),
-  );
+  const fetch = vi.fn();
+  vi.stubGlobal("fetch", fetch);
   document.body.innerHTML = `
     <button id="about-open">About</button>
     <dialog id="about-dialog">
       <button class="about-close">Close</button>
-      <span id="about-version"></span><a id="about-commit"></a><span id="about-build-date"></span>
+      <span id="about-version"></span>
     </dialog>`;
 
   setupAboutDialog();
-  expect(document.querySelector("#about-version")?.textContent).toMatch(/^v\d/);
-  await vi.waitFor(() =>
-    expect(document.querySelector("#about-commit")?.textContent).toBe("abc1234"),
-  );
-  expect(document.querySelector<HTMLAnchorElement>("#about-commit")?.href).toContain(
-    "/commit/abc1234",
-  );
-  expect(document.querySelector("#about-build-date")?.textContent).toBe("2026-07-12");
+  expect(document.querySelector("#about-version")?.textContent).toBe("v4.0.0");
+  expect(fetch).not.toHaveBeenCalled();
   vi.unstubAllGlobals();
 });
 
@@ -68,8 +58,8 @@ test("About explains privacy and every requested permission", () => {
   const about = document.querySelector("#about-dialog")!;
   expect(about.querySelector(".about-mascot")?.getAttribute("src")).toContain("mascot.webp");
   expect(about.querySelector("#about-version")).not.toBeNull();
-  expect(about.querySelector("#about-commit")).not.toBeNull();
-  expect(about.querySelector("#about-build-date")).not.toBeNull();
+  expect(about.querySelector("#about-commit")).toBeNull();
+  expect(about.querySelector("#about-build-date")).toBeNull();
   expect(about.textContent).toContain("no analytics");
   for (const permission of [
     "Context menus",
