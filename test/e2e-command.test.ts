@@ -3,11 +3,8 @@ import { Notifier } from "../src/downloads/notification.ts";
 import {
   BACKGROUND_E2E_COMMAND,
   BACKGROUND_E2E_CONTEXT_MENU_COMMAND,
-  BACKGROUND_E2E_NOTIFICATION_COMMAND,
   handleBackgroundE2ECommand,
   handleBackgroundE2EContextMenuCommand,
-  handleBackgroundE2ENotificationCommand,
-  installBackgroundE2ENotificationObserver,
 } from "../src/background/e2e-command.ts";
 
 test("starts one pipeline download without registering a duplicate expectation", async () => {
@@ -129,36 +126,5 @@ test("returns a command error when context-menu dispatch fails", async () => {
   ).resolves.toEqual({
     type: BACKGROUND_E2E_CONTEXT_MENU_COMMAND,
     body: { status: "ERROR", message: "click failed" },
-  });
-});
-
-test("observes notification calls while preserving the native API call", async () => {
-  const create = vi.mocked(global.browser.notifications.create);
-  create.mockResolvedValue("download-7");
-  installBackgroundE2ENotificationObserver();
-  handleBackgroundE2ENotificationCommand({
-    type: BACKGROUND_E2E_NOTIFICATION_COMMAND,
-    body: { action: "reset" },
-  });
-
-  await global.browser.notifications.create("7", {
-    type: "basic",
-    iconUrl: "icons/save.png",
-    title: "Saved",
-    message: "notification-e2e.txt",
-  });
-
-  expect(create).toHaveBeenCalledOnce();
-  expect(
-    handleBackgroundE2ENotificationCommand({
-      type: BACKGROUND_E2E_NOTIFICATION_COMMAND,
-      body: { action: "get" },
-    }),
-  ).toEqual({
-    type: BACKGROUND_E2E_NOTIFICATION_COMMAND,
-    body: {
-      status: "OK",
-      calls: [{ id: "7", title: "Saved", message: "notification-e2e.txt" }],
-    },
   });
 });

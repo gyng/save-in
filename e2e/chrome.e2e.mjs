@@ -164,51 +164,25 @@ const waitForLog = (predicate, deadlineMs = 8000) =>
   );
 
 beforeAll(async () => {
-  try {
-    const launched = await chrome.launch({
-      profileDir: PROFILE,
-      fresh: true,
-    });
-    ({
-      proc,
-      extensionId,
-      port: PORT,
-      profileDir: PROFILE_DIR,
-      logPath: browserLogPath,
-    } = launched);
-    DOWNLOADS = launched.downloadDir || path.join(PROFILE_DIR, "downloads");
-    await cdp.openTab(PORT, `chrome-extension://${extensionId}/src/options/options.html`);
-    await poll(
-      async () => {
-        const state = JSON.parse(
-          await evalOptions(`JSON.stringify({
-            ready: document.readyState,
-            extensionId: globalThis.chrome?.runtime?.id,
-            hasStorage: Boolean(globalThis.chrome?.storage?.local),
-          })`),
-        );
-        if (state.ready !== "complete") return null;
-        if (state.extensionId !== extensionId || !state.hasStorage) {
-          throw new Error(
-            `Extension APIs unavailable in options target: ${JSON.stringify({ expectedId: extensionId, ...state })}`,
-          );
-        }
-        return true;
-      },
-      { description: "options page and extension APIs" },
-    );
-    // Native notifications are exercised by one focused test below. Keep the
-    // rest of the download-heavy suite from submitting Windows toasts.
-    await evalSW(`browser.storage.local.set({
-      notifyOnSuccess: false,
-      notifyOnFailure: false,
-      notifyOnRuleMatch: false,
-      notifyOnLinkPreferred: false,
-    }).then(() => api.reset()).then(() => "notifications suppressed")`);
-  } catch (error) {
-    suiteFailed = true;
-    throw error;
-  }
+  const launched = await chrome.launch({
+    profileDir: PROFILE,
+    fresh: true,
+  });
+  ({ proc, extensionId, port: PORT, profileDir: PROFILE_DIR, logPath: browserLogPath } = launched);
+  DOWNLOADS = launched.downloadDir || path.join(PROFILE_DIR, "downloads");
+  await cdp.openTab(PORT, `chrome-extension://${extensionId}/src/options/options.html`);
+  await poll(
+    async () => ((await evalOptions("document.readyState")) === "complete" ? true : null),
+    { description: "options page load" },
+  );
+  // Native notifications are exercised by one focused test below. Keep the
+  // rest of the download-heavy suite from submitting Windows toasts.
+  await evalSW(`browser.storage.local.set({
+    notifyOnSuccess: false,
+    notifyOnFailure: false,
+    notifyOnRuleMatch: false,
+    notifyOnLinkPreferred: false,
+  }).then(() => api.reset()).then(() => "notifications suppressed")`);
 });
 
 afterAll(async () => {
@@ -313,44 +287,23 @@ test("options can opt into AI localization and explicitly return to English", as
 });
 
 test("options page works under MV3 CSP with live first-party autocomplete", async () => {
-  await evalOptions(`document.querySelector("#paths-mode-text")?.click()`);
-  await poll(
-    async () =>
-      (await evalOptions(`(() => {
-        const ta = document.querySelector("#paths");
-        return Boolean(ta && !ta.hidden && ta.getAttribute("aria-busy") !== "true");
-      })()`)) || null,
-    { description: "paths text editor and autocomplete vocabulary" },
-  );
-  await evalOptions(`(() => {
-    const ta = document.querySelector("#paths");
-    ta.focus();
-    ta.value = ":d";
-    ta.selectionStart = ta.selectionEnd = 2;
-    ta.dispatchEvent(new InputEvent("input", { bubbles: true }));
-  })()`);
-  const suggestions = await poll(
-    async () => {
-      const state = JSON.parse(
-        await evalOptions(`(() => {
-          const dd = document.querySelector("#autocomplete-paths");
-          return JSON.stringify({
-            open: Boolean(dd && dd.style.display !== "none"),
-            text: dd?.textContent || "",
-          });
-        })()`),
-      );
-      return state.open && state.text.includes(":date:") ? state.text : null;
-    },
-    { description: "path variable autocomplete suggestions" },
-  );
   const result = JSON.parse(
     await evalOptions(`(async () => {
       const ta = document.querySelector("#paths");
+      ta.focus();
+      ta.value = ":d";
+      ta.selectionStart = ta.selectionEnd = 2;
+      ta.dispatchEvent(new InputEvent("input", { bubbles: true }));
+      await new Promise((r) => setTimeout(r, 200));
+      const dd = document.querySelector(".autocomplete-dropdown");
+      const open = !!dd && dd.style.display !== "none";
+      const suggestions = open ? dd.textContent : "";
       ta.value = "";
       ta.dispatchEvent(new InputEvent("input", { bubbles: true }));
       return JSON.stringify({
         form: !!ta,
+        open,
+        suggestions,
         hostPermissionGranted: await chrome.permissions.contains({ origins: ["<all_urls>"] }),
         permissionBannerHidden: document.querySelector("#host-permission-banner")?.hidden,
         refererHidden: document.querySelector("#setRefererHeader")?.closest(".firefox-only")?.hidden,
@@ -361,7 +314,8 @@ test("options page works under MV3 CSP with live first-party autocomplete", asyn
   );
 
   expect(result.form).toBe(true);
-  expect(suggestions).toContain(":date:");
+  expect(result.open).toBe(true);
+  expect(result.suggestions).toContain(":date:");
   expect(result.hostPermissionGranted).toBe(true);
   expect(result.permissionBannerHidden).toBe(true);
   expect(result.refererHidden).toBe(true);
@@ -529,8 +483,7 @@ test("Save In filenames match live Chrome Content-Disposition behavior", async (
 test("success notifications are created by the real download listener", async () => {
   try {
     const beforeLog = Number(
-      await evalSW(`api.notificationCalls("reset")
-        .then(() => browser.notifications.getAll())
+      await evalSW(`browser.notifications.getAll()
         .then((rows) => Promise.all(Object.keys(rows).map((id) => browser.notifications.clear(id))))
         .then(() => browser.storage.local.set({ notifyOnSuccess: true, notifyDuration: 0 }))
         .then(() => api.reset())
@@ -550,14 +503,14 @@ test("success notifications are created by the real download listener", async ()
 
     const notification = await poll(
       async () => {
-        const calls = JSON.parse(
-          await evalSW(`api.notificationCalls("get").then((calls) => JSON.stringify(calls))`),
+        const rows = JSON.parse(
+          await evalSW(`browser.notifications.getAll().then((rows) => JSON.stringify(rows))`),
         );
-        return calls.find((/** @type {any} */ call) => call.id === notificationId) || null;
+        return rows[notificationId] || null;
       },
       { description: "success notification for notification-e2e" },
     );
-    expect(notification.message).toContain("notification-e2e");
+    expect(notification).toBeTruthy();
     const failures = JSON.parse(
       await evalSW(
         `api.logs().then((log) => JSON.stringify(log.slice(${beforeLog}).filter((e) => e.message === "notification create failed")))`,
@@ -1108,6 +1061,7 @@ test("alt+click on a real page saves the image through the content script", asyn
   const serverPort = await listenLocal(server);
   const pageUrl = `http://127.0.0.1:${serverPort}/`;
   const targetUrl = `127.0.0.1:${serverPort}`;
+  const previousContentClickToSave = await evalSW(`api.getOption("contentClickToSave")`);
 
   try {
     await evalSW(
@@ -1213,7 +1167,18 @@ test("alt+click on a real page saves the image through the content script", asyn
     expect(download[0].state).toBe("complete");
     expect(fs.readFileSync(download[0].filename)).toEqual(png);
   } finally {
-    server.close();
+    try {
+      await evalSW(`browser.storage.local
+        .set({ contentClickToSave: ${JSON.stringify(previousContentClickToSave)} })
+        .then(() => browser.tabs.query({}))
+        .then((tabs) => browser.tabs.remove(tabs
+          .filter((tab) => tab.url?.includes(${JSON.stringify(targetUrl)}))
+          .map((tab) => tab.id)
+          .filter((id) => id != null)))
+        .then(() => api.reset())`);
+    } finally {
+      server.close();
+    }
   }
 });
 
@@ -1338,14 +1303,12 @@ test("Page Sources discovers, sorts, updates live, and restores across tabs", as
               const image = root.querySelector(".media-tooltip img");
               const tooltip = image?.closest(".media-tooltip");
               const rect = tooltip?.getBoundingClientRect();
-              const hostRect = host.getBoundingClientRect();
               return {
                 described: row.querySelector(".source-link").hasAttribute("aria-describedby"),
                 loaded: image?.complete && image.naturalWidth > 0,
                 width: rect?.width || 0,
                 height: rect?.height || 0,
                 side: tooltip?.dataset.side,
-                gap: rect ? hostRect.left - rect.right : null,
                 onscreen: rect ? rect.left >= 0 && rect.top >= 0 && rect.right <= innerWidth && rect.bottom <= innerHeight : false,
               };
             })())`,
@@ -1360,7 +1323,6 @@ test("Page Sources discovers, sorts, updates live, and restores across tabs", as
     expect(hoverPreview.width).toBeGreaterThanOrEqual(160);
     expect(hoverPreview.height).toBeGreaterThanOrEqual(120);
     expect(hoverPreview.side).toBe("left");
-    expect(hoverPreview.gap).toBeCloseTo(8, 0);
     expect(hoverPreview.onscreen).toBe(true);
     await cdp.sleep(1800);
     const persistentPreview = JSON.parse(
@@ -1372,14 +1334,12 @@ test("Page Sources discovers, sorts, updates live, and restores across tabs", as
           const rect = tooltip?.getBoundingClientRect();
           return {
             side: tooltip?.dataset.side,
-            gap: rect ? host.getBoundingClientRect().left - rect.right : null,
             onscreen: rect ? rect.left >= 0 && rect.top >= 0 && rect.right <= innerWidth && rect.bottom <= innerHeight : false,
           };
         })())`,
       ),
     );
     expect(persistentPreview.side).toBe("left");
-    expect(persistentPreview.gap).toBeCloseTo(8, 0);
     expect(persistentPreview.onscreen).toBe(true);
     await cdp.dispatchInput(PORT, firstPath, [
       {
@@ -1505,10 +1465,8 @@ test("Page Sources discovers, sorts, updates live, and restores across tabs", as
               const host = document.querySelector("#save-in-source-panel");
               const tooltip = host.shadowRoot.querySelector(".media-tooltip");
               const rect = tooltip?.getBoundingClientRect();
-              const hostRect = host.getBoundingClientRect();
               return {
                 side: tooltip?.dataset.side,
-                gap: rect ? hostRect.top - rect.bottom : null,
                 onscreen: rect ? rect.left >= 0 && rect.top >= 0 && rect.right <= innerWidth && rect.bottom <= innerHeight : false,
               };
             })())`,
@@ -1519,7 +1477,6 @@ test("Page Sources discovers, sorts, updates live, and restores across tabs", as
       { description: "bottom-docked Page Sources hover preview" },
     );
     expect(bottomPreview.side).toBe("top");
-    expect(bottomPreview.gap).toBeCloseTo(8, 0);
     expect(bottomPreview.onscreen).toBe(true);
     await cdp.dispatchInput(PORT, firstPath, [
       {

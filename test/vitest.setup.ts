@@ -5,10 +5,10 @@ installHostProperty(globalThis, "browser", host.browser);
 installHostProperty(globalThis, "chrome", host.chrome);
 installHostProperty(globalThis, "SAVE_IN_CONTENT_E2E", true);
 
-// Node 26 exposes an unavailable Web Storage global in some WSL hosts, which
-// can shadow jsdom's implementation. Keep DOM suites on the same synchronous
-// storage contract regardless of the host Node build.
-if (typeof document !== "undefined" && globalThis.localStorage == null) {
+// Node 26 exposes an unavailable Web Storage getter in some WSL hosts. Do not
+// invoke that getter: DOM suites only need this deterministic synchronous
+// storage contract.
+if (typeof document !== "undefined") {
   const values = new Map<string, string>();
   const storage: Storage = {
     get length() {

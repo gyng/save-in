@@ -355,22 +355,7 @@ class FirefoxRdp {
     }
     let value = result.result;
     if (value && typeof value === "object" && value.type === "longString") {
-      const initial = typeof value.initial === "string" ? value.initial : "";
-      const length = typeof value.length === "number" ? value.length : initial.length;
-      if (typeof value.actor !== "string" || length <= initial.length) {
-        value = initial;
-      } else {
-        const remainder = await this.request(
-          {
-            to: value.actor,
-            type: "substring",
-            start: initial.length,
-            end: length,
-          },
-          timeoutMs,
-        );
-        value = initial + (typeof remainder?.substring === "string" ? remainder.substring : "");
-      }
+      value = value.initial;
     }
     return value;
   }

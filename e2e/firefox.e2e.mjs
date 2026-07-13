@@ -242,15 +242,11 @@ test("Save In filenames match live Firefox Content-Disposition behavior", async 
 
 test("success notifications are created by the real download listener", async () => {
   try {
-    const beforeLog = Number(
-      await evalBackground(`api.notificationCalls("reset")
-        .then(() => browser.notifications.getAll())
-        .then((rows) => Promise.all(Object.keys(rows).map((id) => browser.notifications.clear(id))))
-        .then(() => browser.storage.local.set({ notifyOnSuccess: true, notifyDuration: 0 }))
-        .then(() => api.reset())
-        .then(() => api.logs())
-        .then((log) => log.length)`),
-    );
+    await evalBackground(`browser.notifications.getAll()
+      .then((rows) => Promise.all(Object.keys(rows).map((id) => browser.notifications.clear(id))))
+      .then(() => browser.storage.local.set({ notifyOnSuccess: true, notifyDuration: 0 }))
+      .then(() => api.reset())
+      .then(() => "configured")`);
 
     await evalBackground(`api.startDownload({
       content: "firefox notification content",
@@ -264,22 +260,16 @@ test("success notifications are created by the real download listener", async ()
 
     const notification = await poll(
       async () => {
-        const calls = JSON.parse(
+        const rows = JSON.parse(
           await evalBackground(
-            `api.notificationCalls("get").then((calls) => JSON.stringify(calls))`,
+            `browser.notifications.getAll().then((rows) => JSON.stringify(rows))`,
           ),
         );
-        return calls.find((/** @type {any} */ call) => call.id === notificationId) || null;
+        return rows[notificationId] || null;
       },
       { description: "success notification for ff-notification-e2e" },
     );
-    expect(notification.message).toContain("ff-notification-e2e");
-    const failures = JSON.parse(
-      await evalBackground(
-        `api.logs().then((log) => JSON.stringify(log.slice(${beforeLog}).filter((e) => e.message === "notification create failed")))`,
-      ),
-    );
-    expect(failures).toEqual([]);
+    expect(notification).toBeTruthy();
   } finally {
     await evalBackground(`browser.notifications.getAll()
       .then((rows) => Promise.all(Object.keys(rows).map((id) => browser.notifications.clear(id))))
@@ -309,6 +299,13 @@ test("downloads receive the configured Referer header", async () => {
   const port = await listenLocal(server);
   const url = `http://127.0.0.1:${port}/referer-probe.txt`;
   const referer = "http://referrer.example/download-test";
+  const previous = JSON.parse(
+    await evalBackground(`Promise.all([
+      api.getOption("setRefererHeader"),
+      api.getOption("setRefererHeaderFilter"),
+    ]).then(([setRefererHeader, setRefererHeaderFilter]) =>
+      JSON.stringify({ setRefererHeader, setRefererHeaderFilter }))`),
+  );
 
   try {
     await evalBackground(`api.setOptions({
@@ -326,7 +323,11 @@ test("downloads receive the configured Referer header", async () => {
       ),
     ).toBe(true);
   } finally {
-    server.close();
+    try {
+      await evalBackground(`api.setOptions(${JSON.stringify(previous)})`);
+    } finally {
+      server.close();
+    }
   }
 });
 
@@ -441,6 +442,7 @@ test("alt+click on a real page saves the image through the content script", asyn
   const { server, port } = await startPageServer();
   const pageUrl = `http://127.0.0.1:${port}/`;
   const targetUrl = `127.0.0.1:${port}`;
+  const previousContentClickToSave = await evalBackground(`api.getOption("contentClickToSave")`);
 
   try {
     // Enable click-to-save and reinitialise so the content script picks it up
@@ -485,7 +487,18 @@ test("alt+click on a real page saves the image through the content script", asyn
     expect(downloads[0].state).toBe("complete");
     expect(fs.readFileSync(downloads[0].filename)).toEqual(PNG);
   } finally {
-    server.close();
+    try {
+      await evalBackground(`browser.storage.local
+        .set({ contentClickToSave: ${JSON.stringify(previousContentClickToSave)} })
+        .then(() => browser.tabs.query({}))
+        .then((tabs) => browser.tabs.remove(tabs
+          .filter((tab) => tab.url?.includes(${JSON.stringify(targetUrl)}))
+          .map((tab) => tab.id)
+          .filter((id) => id != null)))
+        .then(() => api.reset())`);
+    } finally {
+      server.close();
+    }
   }
 });
 

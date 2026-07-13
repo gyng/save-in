@@ -1,15 +1,12 @@
 import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
-const { Cdp, extensionIdFromTargets, getJson } = require("../scripts/lib/cdp.js") as {
+const { Cdp, getJson } = require("../scripts/lib/cdp.js") as {
   Cdp: new (socket: FakeSocket) => {
     send: (method: string, params?: object, timeoutMs?: number) => Promise<unknown>;
     close: () => void;
   };
   getJson: (port: number, path: string, timeoutMs?: number) => Promise<unknown>;
-  extensionIdFromTargets: (
-    targets: Array<{ type: string; url: string; webSocketDebuggerUrl: string }>,
-  ) => string | undefined;
 };
 
 type SocketEvent = { data?: string };
@@ -68,17 +65,4 @@ describe("CDP transport", () => {
     );
     expect(fetchMock.mock.calls[0]![1]!).toMatchObject({ signal: expect.any(AbortSignal) });
   });
-});
-
-test("discovers a legacy-loaded unpacked extension from its browser target", () => {
-  expect(
-    extensionIdFromTargets([
-      { type: "page", url: "about:blank", webSocketDebuggerUrl: "ws://page" },
-      {
-        type: "service_worker",
-        url: `chrome-extension://${"a".repeat(32)}/background.sw.js`,
-        webSocketDebuggerUrl: "ws://worker",
-      },
-    ]),
-  ).toBe("a".repeat(32));
 });

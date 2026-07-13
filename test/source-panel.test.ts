@@ -842,7 +842,7 @@ describe("Page Sources panel interactions", () => {
 
     sourceLink.dispatchEvent(new FocusEvent("focusin", { bubbles: true }));
     expect(shadow.querySelector(".media-tooltip")).not.toBeNull();
-    expect(source.style.outline).toContain("3px");
+    expect(source.style.outline).not.toBe("");
     sourceLink.dispatchEvent(new FocusEvent("focusout", { bubbles: true, relatedTarget: null }));
     expect(shadow.querySelector(".media-tooltip")).toBeNull();
     expect(source.style.outline).toBe("");

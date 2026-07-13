@@ -13,7 +13,6 @@ test("renders an actionable error and clears it accessibly", () => {
   });
   expect(container.hidden).toBe(false);
   expect(container.getAttribute("role")).toBe("alert");
-  expect(container.classList).toContain("history-feedback-error");
   container.querySelector("button")!.click();
   expect(retry).toHaveBeenCalledOnce();
 

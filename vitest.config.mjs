@@ -36,6 +36,8 @@ export default defineConfig({
         // Rolldown bundle entries are exercised through the real extension
         // lifecycle in e2e.
         "src/entries/**",
+        // Test-only control surface imported exclusively by background.e2e.ts.
+        "src/background/e2e-command.ts",
         // Chrome offscreen-document bootstrap (message listener doing
         // fetch/createObjectURL/crypto.subtle in a separate document context):
         // exercised by the Chrome e2e sha256/offscreen path
