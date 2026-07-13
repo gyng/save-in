@@ -1326,17 +1326,20 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
       <textarea id="export-target" hidden spellcheck="false"></textarea>
 
       <h3 id="external-integrations-heading">__MSG_html_externalIntegrations__</h3>
-      <section class="external-integrations-card" aria-labelledby="external-integrations-heading">
-        <div class="external-integrations-header">
-          <div>
-            <h4>__MSG_html_externalDownloadAccess__</h4>
-            <p class="caption">__MSG_html_letTrustedExtensionsSendUrlsThroughSaveInS__</p>
-          </div>
-          <a class="external" href="https://github.com/gyng/save-in/wiki/Integrations"
-            >__MSG_html_integrationGuide__</a
-          >
+      <div class="external-integrations-header">
+        <div>
+          <h4 id="external-download-access-heading">__MSG_html_externalDownloadAccess__</h4>
+          <p class="caption">__MSG_html_letTrustedExtensionsSendUrlsThroughSaveInS__</p>
         </div>
+        <a class="external" href="https://github.com/gyng/save-in/wiki/Integrations"
+          >__MSG_html_integrationGuide__</a
+        >
+      </div>
 
+      <section
+        class="external-integrations-card"
+        aria-labelledby="external-download-access-heading"
+      >
         <section class="external-access-control" aria-labelledby="external-approved-heading">
           <div class="external-access-heading">
             <div>

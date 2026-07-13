@@ -2913,6 +2913,8 @@ select {
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--space-4);
+  width: min(760px, 100%);
+  box-sizing: border-box;
 }
 
 .external-integrations-header h4,
