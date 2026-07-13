@@ -17,6 +17,20 @@ const root = path.join(__dirname, "..");
 const expectE2EBridge = process.env.SAVE_IN_E2E === "1";
 const bundleDir = path.join(root, "dist", expectE2EBridge ? "bundled-e2e" : "bundled");
 const out = path.join(root, "dist", expectE2EBridge ? "bundled-pkg-e2e" : "bundled-pkg");
+const bundleFiles = [
+  "background.js",
+  "background.js.map",
+  "background.sw.js",
+  "background.sw.js.map",
+  "content.js",
+  "content.js.map",
+  "offscreen.js",
+  "offscreen.js.map",
+  "options.js",
+  "options.js.map",
+  "reference-page.js",
+  "reference-page.js.map",
+];
 
 // Remove artifacts from the short-lived per-browser packaging scheme so an
 // obsolete ZIP cannot be mistaken for the current shared store package.
@@ -34,12 +48,20 @@ if (!expectE2EBridge) {
   }
 }
 
-// 1. Build the bundles without going through a platform shell.
+// 1. Build the bundles without going through a platform shell. Rolldown does
+// not remove outputs for entries deleted from its config, so start clean to
+// keep local/manual release artifacts as reproducible as clean CI builds.
+fs.rmSync(bundleDir, { recursive: true, force: true });
+fs.mkdirSync(bundleDir, { recursive: true });
 execFileSync(
   process.execPath,
   [path.join(root, "node_modules", "rolldown", "bin", "cli.mjs"), "-c", "rolldown.config.mjs"],
   { cwd: root, stdio: "inherit" },
 );
+const actualBundleFiles = fs.readdirSync(bundleDir).toSorted();
+if (JSON.stringify(actualBundleFiles) !== JSON.stringify(bundleFiles.toSorted())) {
+  throw new Error(`Unexpected rolldown outputs: ${actualBundleFiles.join(", ")}`);
+}
 
 // The store bundle must never expose the privileged browser-test command API.
 // Conversely, fail e2e staging early if its bridge was accidentally omitted.
@@ -73,11 +95,8 @@ fs.cpSync(path.join(root, "src"), path.join(out, "src"), {
 fs.copyFileSync(path.join(root, "LICENSE"), path.join(out, "LICENSE"));
 fs.copyFileSync(path.join(root, "PRIVACY.md"), path.join(out, "PRIVACY.md"));
 
-// 3. Drop the bundles at the package root
-for (const f of fs.readdirSync(bundleDir)) {
-  // Older builds emitted this standalone file. Reference pages now own their
-  // copy behavior, so never let a stale local bundle leak into a store ZIP.
-  if (f === "clicktocopy.js" || f === "clicktocopy.js.map") continue;
+// 3. Drop only the declared bundles at the package root.
+for (const f of bundleFiles) {
   fs.copyFileSync(path.join(bundleDir, f), path.join(out, f));
 }
 

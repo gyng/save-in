@@ -6,7 +6,40 @@ test("does not ship a redundant standalone click-to-copy bundle", () => {
   const stage = readFileSync(resolve("scripts/build-bundled.js"), "utf8");
 
   expect(config).not.toContain('file: "dist/bundled/clicktocopy.js"');
-  expect(stage).toContain('f === "clicktocopy.js"');
+  expect(stage).not.toContain('"clicktocopy.js"');
+});
+
+test("cleans bundle output and stages only declared rolldown artifacts", () => {
+  const stage = readFileSync(resolve("scripts/build-bundled.js"), "utf8");
+  const cleanup = stage.indexOf("fs.rmSync(bundleDir");
+  const bundle = stage.indexOf("execFileSync(");
+
+  expect(cleanup).toBeGreaterThan(-1);
+  expect(cleanup).toBeLessThan(bundle);
+  expect(stage).toContain("const bundleFiles = [");
+  expect(stage).toContain("for (const f of bundleFiles)");
+  expect(stage).not.toContain("for (const f of fs.readdirSync(bundleDir))");
+});
+
+test("ships a self-verifying Mozilla source attachment", () => {
+  const sourceBuild = readFileSync(resolve("scripts/build-source-package.js"), "utf8");
+  const ci = readFileSync(resolve(".github/workflows/ci.yml"), "utf8");
+
+  for (const required of [
+    '"e2e"',
+    '"CHANGELOG.md"',
+    '"tsconfig.chrome.json"',
+    '"tsconfig.worker.json"',
+    '"tsconfig.tools.json"',
+    '"tsconfig.tools-legacy.json"',
+    '"tsconfig.test.json"',
+    '"!.oxlintrc.json"',
+    '"!.github/**/*"',
+    "verifyArchive",
+  ]) {
+    expect(sourceBuild).toContain(required);
+  }
+  expect(ci).toContain("npm run build:source");
 });
 
 test("isolates E2E bundles from store and dev builds", () => {

@@ -30,7 +30,9 @@ jobs:
       - name: Unit tests and coverage
         run: npm run test:coverage
       - name: Verify store packaging
-        run: npm run build
+        run: |
+          npm run build
+          npm run build:source
       - name: Preserve store package
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
