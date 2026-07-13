@@ -3165,11 +3165,14 @@ button {
   box-sizing: border-box;
 }
 
-.dev-api-value.webmcp-tool-list {
+.webmcp-card .dev-api-value {
   font-family: var(--font-stack);
-  line-height: 1.5;
   word-break: normal;
   overflow-wrap: anywhere;
+}
+
+.dev-api-value.webmcp-tool-list {
+  line-height: 1.5;
 }
 
 .counter-control {
