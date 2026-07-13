@@ -1,0 +1,443 @@
+import { parsePathLineAst } from "../config/path-syntax.ts";
+import { parseRoutingRuleAst, type RoutingLineNode } from "../routing/rule-syntax.ts";
+
+export type SyntaxEditorLanguage = "directories" | "routing";
+
+export type SyntaxTokenKind =
+  | "nesting"
+  | "path"
+  | "separator"
+  | "variable"
+  | "comment-delimiter"
+  | "comment"
+  | "metadata"
+  | "matcher"
+  | "capture"
+  | "destination"
+  | "flags"
+  | "punctuation"
+  | "regex"
+  | "capture-value"
+  | "destination-value"
+  | "invalid";
+
+export type SyntaxToken = {
+  readonly kind: SyntaxTokenKind;
+  readonly start: number;
+  readonly end: number;
+};
+
+export type SyntaxLine = {
+  readonly number: number;
+  readonly start: number;
+  readonly end: number;
+};
+
+export type SyntaxEditorDiagnostic = {
+  readonly start: number;
+  readonly end: number;
+  readonly line: number;
+  readonly column: number;
+  readonly message: string;
+  readonly severity: "error" | "warning";
+};
+
+export type SyntaxSnapshot = {
+  readonly source: string;
+  readonly lines: readonly SyntaxLine[];
+  readonly tokens: readonly SyntaxToken[];
+  readonly diagnostics: readonly SyntaxEditorDiagnostic[];
+};
+
+export type SyntaxCompletion = {
+  readonly start: number;
+  readonly end: number;
+  readonly suggestions: readonly string[];
+  readonly suffix: string;
+};
+
+export type EditorValidationError = {
+  readonly message: string;
+  readonly error: string;
+  readonly warning?: boolean;
+  readonly sourceIndex?: number;
+  readonly location?: {
+    readonly start: number;
+    readonly end: number;
+    readonly line: number;
+    readonly column: number;
+  };
+};
+
+type CompletionVocabulary = {
+  readonly matchers: readonly string[];
+  readonly variables: readonly string[];
+};
+
+const sourceLines = (source: string): SyntaxLine[] => {
+  let start = 0;
+  return source.split("\n").map((line, index) => {
+    const result = { number: index + 1, start, end: start + line.length };
+    start = result.end + 1;
+    return result;
+  });
+};
+
+const token = (kind: SyntaxTokenKind, start: number, end: number): SyntaxToken => ({
+  kind,
+  start,
+  end,
+});
+
+const addVariableTokens = (
+  source: string,
+  start: number,
+  end: number,
+  tokens: SyntaxToken[],
+): void => {
+  for (const match of source.slice(start, end).matchAll(/:[a-zA-Z0-9$]+:/g)) {
+    const offset = start + (match.index ?? 0);
+    tokens.push(token("variable", offset, offset + match[0].length));
+  }
+};
+
+const visibleDiagnosticRange = (
+  source: string,
+  start: number,
+  end: number,
+  line: SyntaxLine,
+): { start: number; end: number } => {
+  if (end > start) return { start, end };
+  if (line.end > line.start) {
+    const bounded = Math.min(Math.max(start, line.start), line.end - 1);
+    return { start: bounded, end: bounded + 1 };
+  }
+  if (source.length > 0) {
+    const bounded = Math.min(start, source.length - 1);
+    return { start: bounded, end: bounded + 1 };
+  }
+  return { start: 0, end: 0 };
+};
+
+const directorySnapshot = (source: string, lines: readonly SyntaxLine[]): SyntaxSnapshot => {
+  const tokens: SyntaxToken[] = [];
+  const diagnostics: SyntaxEditorDiagnostic[] = [];
+  for (const line of lines) {
+    const raw = source.slice(line.start, line.end);
+    if (!raw.trim()) continue;
+    const parsed = parsePathLineAst(raw);
+    const { ast } = parsed;
+    const absolute = (offset: number) => line.start + offset;
+    if (ast.cst.nesting.raw) {
+      tokens.push(
+        token(
+          "nesting",
+          absolute(ast.cst.nesting.span.start.offset),
+          absolute(ast.cst.nesting.span.end.offset),
+        ),
+      );
+    }
+    if (ast.path.value) {
+      const pathKind = ast.path.value === "---" ? "separator" : "path";
+      tokens.push(
+        token(pathKind, absolute(ast.path.span.start.offset), absolute(ast.path.span.end.offset)),
+      );
+      addVariableTokens(
+        source,
+        absolute(ast.path.span.start.offset),
+        absolute(ast.path.span.end.offset),
+        tokens,
+      );
+    }
+    if (ast.cst.comment) {
+      tokens.push(
+        token(
+          "comment-delimiter",
+          absolute(ast.cst.comment.delimiter.span.start.offset),
+          absolute(ast.cst.comment.delimiter.span.end.offset),
+        ),
+        token(
+          "comment",
+          absolute(ast.cst.comment.leadingTrivia.span.start.offset),
+          absolute(ast.cst.comment.trailingTrivia.span.end.offset),
+        ),
+      );
+      ast.metadata.forEach((metadata) => {
+        tokens.push(
+          token(
+            "metadata",
+            absolute(metadata.span.start.offset),
+            absolute(metadata.span.end.offset),
+          ),
+        );
+      });
+    }
+    parsed.issues.forEach(() => {
+      const range = visibleDiagnosticRange(
+        source,
+        absolute(ast.path.span.start.offset),
+        absolute(ast.path.span.end.offset),
+        line,
+      );
+      diagnostics.push({
+        ...range,
+        line: line.number,
+        column: ast.path.span.start.column,
+        message: "html_required",
+        severity: "error",
+      });
+    });
+  }
+  return { source, lines, tokens, diagnostics };
+};
+
+const addRoutingClauseTokens = (
+  source: string,
+  line: Extract<RoutingLineNode, { kind: "clause" }>,
+  tokens: SyntaxToken[],
+): void => {
+  const nameKind =
+    line.clauseKind === "destination"
+      ? "destination"
+      : line.clauseKind === "capture"
+        ? "capture"
+        : "matcher";
+  tokens.push(token(nameKind, line.nameSpan.start.offset, line.nameSpan.end.offset));
+  if (line.cst.flagsSeparator) {
+    tokens.push(
+      token(
+        "punctuation",
+        line.cst.flagsSeparator.span.start.offset,
+        line.cst.flagsSeparator.span.end.offset,
+      ),
+    );
+  }
+  if (line.flagsSpan)
+    tokens.push(token("flags", line.flagsSpan.start.offset, line.flagsSpan.end.offset));
+  tokens.push(
+    token("punctuation", line.cst.colon.span.start.offset, line.cst.colon.span.end.offset),
+  );
+
+  const valueKind =
+    line.clauseKind === "destination"
+      ? "destination-value"
+      : line.clauseKind === "capture"
+        ? "capture-value"
+        : "regex";
+  tokens.push(token(valueKind, line.valueSpan.start.offset, line.valueSpan.end.offset));
+  if (line.clauseKind === "destination") {
+    addVariableTokens(source, line.valueSpan.start.offset, line.valueSpan.end.offset, tokens);
+  }
+};
+
+const routingSnapshot = (source: string, lines: readonly SyntaxLine[]): SyntaxSnapshot => {
+  const parsed = parseRoutingRuleAst(source);
+  const tokens: SyntaxToken[] = [];
+  for (const line of parsed.ast.lines) {
+    if (line.kind === "clause") {
+      addRoutingClauseTokens(source, line, tokens);
+    } else if (line.kind === "comment") {
+      if (line.cst.delimiter) {
+        tokens.push(
+          token(
+            "comment-delimiter",
+            line.cst.delimiter.span.start.offset,
+            line.cst.delimiter.span.end.offset,
+          ),
+        );
+      }
+      if (line.cst.content) {
+        tokens.push(
+          token("comment", line.cst.content.span.start.offset, line.cst.content.span.end.offset),
+        );
+      }
+    } else if (line.kind === "invalid") {
+      tokens.push(
+        token("invalid", line.cst.content.span.start.offset, line.cst.content.span.end.offset),
+      );
+    }
+  }
+  const diagnostics = parsed.issues.map((issue) => {
+    const line = lines[issue.line - 1] ?? lines[0] ?? { number: 1, start: 0, end: 0 };
+    const range = visibleDiagnosticRange(
+      source,
+      issue.span.start.offset,
+      issue.span.end.offset,
+      line,
+    );
+    return {
+      ...range,
+      line: issue.line,
+      column: issue.column,
+      message: "ruleBadClause",
+      severity: "error" as const,
+    };
+  });
+  return { source, lines, tokens, diagnostics };
+};
+
+export const analyzeSyntax = (language: SyntaxEditorLanguage, source: string): SyntaxSnapshot => {
+  const lines = sourceLines(source);
+  return language === "directories"
+    ? directorySnapshot(source, lines)
+    : routingSnapshot(source, lines);
+};
+
+const directorySourceRange = (
+  source: string,
+  sourceIndex: number,
+): { start: number; end: number } | null => {
+  let offset = 0;
+  let current = 0;
+  for (const line of source.split("\n")) {
+    const leading = line.length - line.trimStart().length;
+    const trimmed = line.trim();
+    if (trimmed) {
+      if (current === sourceIndex) {
+        return { start: offset + leading, end: offset + leading + trimmed.length };
+      }
+      current += 1;
+    }
+    offset += line.length + 1;
+  }
+  return null;
+};
+
+export const validationErrorsToDiagnostics = (
+  language: SyntaxEditorLanguage,
+  source: string,
+  errors: readonly EditorValidationError[],
+): SyntaxEditorDiagnostic[] =>
+  errors.flatMap((error): SyntaxEditorDiagnostic[] => {
+    const range =
+      language === "directories"
+        ? error.sourceIndex === undefined
+          ? null
+          : directorySourceRange(source, error.sourceIndex)
+        : error.location
+          ? { start: error.location.start, end: error.location.end }
+          : null;
+    if (!range) return [];
+    const line = source.slice(0, range.start).split("\n").length;
+    const lineStart = source.lastIndexOf("\n", Math.max(0, range.start - 1)) + 1;
+    return [
+      {
+        start: range.start,
+        end: range.end,
+        line,
+        column: range.start - lineStart,
+        message: error.error ? `${error.message}: ${error.error}` : error.message,
+        severity: error.warning ? "warning" : "error",
+      },
+    ];
+  });
+
+const lineAt = (source: string, caret: number): { start: number; end: number } => {
+  const bounded = Math.max(0, Math.min(caret, source.length));
+  const start = source.lastIndexOf("\n", Math.max(0, bounded - 1)) + 1;
+  const nextBreak = source.indexOf("\n", bounded);
+  return { start, end: nextBreak < 0 ? source.length : nextBreak };
+};
+
+const variableCompletion = (
+  source: string,
+  caret: number,
+  lowerBound: number,
+  variables: readonly string[],
+): SyntaxCompletion | null => {
+  const before = source.slice(lowerBound, caret);
+  const match = before.match(/(?<![a-zA-Z0-9]):[a-zA-Z0-9$]*$/);
+  if (!match) return null;
+  const prefix = match[0].toLocaleLowerCase();
+  const suggestions = variables.filter((name) => name.toLocaleLowerCase().startsWith(prefix));
+  return suggestions.length
+    ? { start: caret - match[0].length, end: caret, suggestions, suffix: "" }
+    : null;
+};
+
+export const completeDirectorySyntax = (
+  source: string,
+  caret: number,
+  variables: readonly string[],
+): SyntaxCompletion | null => {
+  const currentLine = lineAt(source, caret);
+  const parsed = parsePathLineAst(source.slice(currentLine.start, currentLine.end)).ast;
+  const localCaret = caret - currentLine.start;
+  if (parsed.comment && localCaret >= parsed.comment.span.start.offset) return null;
+  if (localCaret < parsed.path.span.start.offset) return null;
+  return variableCompletion(
+    source,
+    caret,
+    currentLine.start + parsed.path.span.start.offset,
+    variables,
+  );
+};
+
+const matcherCompletion = (
+  source: string,
+  caret: number,
+  lineStart: number,
+  matchers: readonly string[],
+  explicit: boolean,
+): SyntaxCompletion | null => {
+  const rawPrefix = source.slice(lineStart, caret);
+  const leading = rawPrefix.length - rawPrefix.trimStart().length;
+  const prefix = rawPrefix.slice(leading);
+  if (!/^[a-z]*$/i.test(prefix) || (!prefix && !explicit)) return null;
+  const normalized = prefix.toLocaleLowerCase();
+  const suggestions = matchers.filter((name) => name.toLocaleLowerCase().startsWith(normalized));
+  return suggestions.length
+    ? { start: lineStart + leading, end: caret, suggestions, suffix: ": " }
+    : null;
+};
+
+const captureMatcherCompletion = (
+  source: string,
+  caret: number,
+  valueStart: number,
+  matchers: readonly string[],
+  explicit: boolean,
+): SyntaxCompletion | null => {
+  const before = source.slice(valueStart, caret);
+  const match = before.match(/(?:^|,\s*)([a-z]*)$/i);
+  const prefix = match?.[1];
+  if (prefix === undefined || (!prefix && !explicit)) return null;
+  const suggestions = matchers.filter((name) =>
+    name.toLocaleLowerCase().startsWith(prefix.toLocaleLowerCase()),
+  );
+  return suggestions.length
+    ? { start: caret - prefix.length, end: caret, suggestions, suffix: "" }
+    : null;
+};
+
+export const completeRoutingSyntax = (
+  source: string,
+  caret: number,
+  vocabulary: CompletionVocabulary,
+  explicit = false,
+): SyntaxCompletion | null => {
+  const currentLine = lineAt(source, caret);
+  const parsed = parseRoutingRuleAst(source).ast;
+  const node = parsed.lines.find(
+    (line) =>
+      line.cst.line.span.start.offset === currentLine.start &&
+      line.cst.line.span.end.offset === currentLine.end,
+  );
+  if (!node || node.kind === "comment") return null;
+  if (node.kind !== "clause" || caret <= node.cst.colon.span.start.offset) {
+    return matcherCompletion(source, caret, currentLine.start, vocabulary.matchers, explicit);
+  }
+  if (node.name === "into") {
+    return variableCompletion(source, caret, node.valueSpan.start.offset, vocabulary.variables);
+  }
+  if (node.name === "capture" || node.name === "capturegroups") {
+    return captureMatcherCompletion(
+      source,
+      caret,
+      node.valueSpan.start.offset,
+      vocabulary.matchers.filter((name) => name !== "into" && !name.startsWith("capture")),
+      explicit,
+    );
+  }
+  return null;
+};

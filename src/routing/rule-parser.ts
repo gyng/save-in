@@ -1,20 +1,47 @@
 import { RULE_TYPES } from "../shared/constants.ts";
 import { matcherFunctions } from "./matchers.ts";
 import { routingPorts } from "./ports.ts";
-import {
-  parseRoutingRuleAst,
-  type RoutingClauseNode,
-  type RuleSyntaxIssue,
-} from "./rule-syntax.ts";
-import type { MatcherClause, RuleClause, RuleError, RoutingRule } from "./rule-types.ts";
+import { parseRoutingRuleAst, type RoutingRuleNode, type RuleSyntaxIssue } from "./rule-syntax.ts";
+import type { SourceSpan } from "../shared/syntax-parser.ts";
+import type {
+  MatcherClause,
+  RuleClause,
+  RuleError,
+  RuleErrorLocation,
+  RoutingRule,
+} from "./rule-types.ts";
+
+const errorLocation = (span: SourceSpan): RuleErrorLocation => ({
+  start: span.start.offset,
+  end: span.end.offset,
+  line: span.start.line,
+  column: span.start.column,
+});
+
+const appendError = (
+  errors: RuleError[],
+  message: string,
+  error: string,
+  span: SourceSpan,
+  warning = false,
+): void => {
+  errors.push({
+    message,
+    error,
+    location: errorLocation(span),
+    ...(warning ? { warning: true } : {}),
+  });
+};
 
 const appendSyntaxErrors = (issues: RuleSyntaxIssue[], errors: RuleError[]): void => {
-  issues.forEach((issue) =>
-    errors.push({
-      message: routingPorts.getMessage("ruleBadClause"),
-      error: issue.source || "invalid line syntax",
-    }),
-  );
+  issues.forEach((issue) => {
+    appendError(
+      errors,
+      routingPorts.getMessage("ruleBadClause"),
+      issue.source || "invalid line syntax",
+      issue.span,
+    );
+  });
 };
 
 const captureGroupCount = (regex: RegExp): number => {
@@ -34,13 +61,13 @@ const captureGroupCount = (regex: RegExp): number => {
 
 const isPlainMatchAll = (regex: RegExp): boolean => /^(?:\.\*|\^\.\*\$)$/.test(regex.source);
 
-type SemanticClause = Pick<RoutingClauseNode, "raw" | "name" | "flags" | "value">;
-
 const parseSemanticRule = (
-  lines: SemanticClause[],
+  rule: RoutingRuleNode,
   errors: RuleError[] = [],
 ): RoutingRule | false => {
-  const clauses: (RuleClause | false)[] = lines.map(({ name, flags, value: rawValue }) => {
+  const lines = rule.clauses;
+  const clauses: (RuleClause | false)[] = lines.map((line) => {
+    const { name, flags, value: rawValue } = line;
     if (name === "into") {
       return {
         name,
@@ -56,17 +83,19 @@ const parseSemanticRule = (
     try {
       value = new RegExp(rawValue, flags);
     } catch (error) {
-      errors.push({
-        message: routingPorts.getMessage("ruleInvalidRegex"),
-        error: flags ? `invalid regex flags: ${flags} (${error})` : `${error}`,
-      });
+      appendError(
+        errors,
+        routingPorts.getMessage("ruleInvalidRegex"),
+        flags ? `invalid regex flags: ${flags} (${error})` : `${error}`,
+        flags ? (line.flagsSpan ?? line.valueSpan) : line.valueSpan,
+      );
       return false;
     }
     const factory = Object.hasOwn(matcherFunctions, name)
       ? matcherFunctions[name as keyof typeof matcherFunctions]
       : undefined;
     if (!factory) {
-      errors.push({ message: routingPorts.getMessage("ruleUnknownMatcher"), error: `${name}:` });
+      appendError(errors, routingPorts.getMessage("ruleUnknownMatcher"), `${name}:`, line.nameSpan);
       return false;
     }
     return { name, value, type: RULE_TYPES.MATCHER, matcher: factory(value) };
@@ -74,47 +103,63 @@ const parseSemanticRule = (
   const valid = clauses.filter((clause): clause is RuleClause => clause !== false);
   if (valid.length !== clauses.length) return false;
   const destinations = valid.filter((clause) => clause.type === RULE_TYPES.DESTINATION);
+  const destinationNodes = lines.filter((line) => line.name === "into");
   const destination = destinations[0];
+  const destinationNode = destinationNodes[0];
   if (!destination || !destination.value.trim()) {
-    errors.push({
-      message: routingPorts.getMessage("ruleMissingInto"),
-      error: destination ? destination.value : "",
-    });
+    appendError(
+      errors,
+      routingPorts.getMessage("ruleMissingInto"),
+      destination ? destination.value : "",
+      destinationNode?.valueSpan ?? rule.span,
+    );
     return false;
   }
   if (
     destination.value.match(/:\$\d+:/) &&
     !valid.some((clause) => clause.type === RULE_TYPES.CAPTURE)
   )
-    errors.push({
-      message: routingPorts.getMessage("ruleMissingCapture"),
-      error: destination.value,
-    });
+    appendError(
+      errors,
+      routingPorts.getMessage("ruleMissingCapture"),
+      destination.value,
+      destinationNode?.valueSpan ?? rule.span,
+    );
   if (!valid.some((clause) => clause.type === RULE_TYPES.MATCHER)) {
-    errors.push({
-      message: routingPorts.getMessage("ruleMissingMatcher"),
-      error: JSON.stringify(lines.map((line) => line.raw)),
-    });
+    appendError(
+      errors,
+      routingPorts.getMessage("ruleMissingMatcher"),
+      JSON.stringify(lines.map((line) => line.raw)),
+      rule.span,
+    );
     return false;
   }
   if (destinations.length >= 2) {
-    errors.push({
-      message: routingPorts.getMessage("ruleExtraInto"),
-      error: JSON.stringify(lines.map((line) => line.raw)),
-    });
+    appendError(
+      errors,
+      routingPorts.getMessage("ruleExtraInto"),
+      JSON.stringify(lines.map((line) => line.raw)),
+      destinationNodes[1]?.span ?? rule.span,
+    );
     return false;
   }
   const captures = valid.filter((clause) => clause.type === RULE_TYPES.CAPTURE);
+  const captureNodes = lines.filter(
+    (line) => line.name === "capture" || line.name === "capturegroups",
+  );
   if (captures.length >= 2) {
-    errors.push({
-      message: routingPorts.getMessage("ruleMultipleCapture"),
-      error: JSON.stringify(lines.map((line) => line.raw)),
-    });
+    appendError(
+      errors,
+      routingPorts.getMessage("ruleMultipleCapture"),
+      JSON.stringify(lines.map((line) => line.raw)),
+      captureNodes[1]?.span ?? rule.span,
+    );
     return false;
   }
   if (captures.length === 1) {
     const capture = captures[0];
     if (!capture) return false;
+    const captureNode = captureNodes[0];
     const names = capture.value.split(",").map((name) => name.trim().toLowerCase());
     const matcherCandidates = names.map((name) =>
       valid.filter((clause) => clause.type === RULE_TYPES.MATCHER && clause.name === name),
@@ -124,17 +169,21 @@ const parseSemanticRule = (
     names.forEach((name, index) => {
       const candidates = matcherCandidates[index] || [];
       if (!capturedMatchers[index] || (capture.name === "capturegroups" && candidates.length > 1)) {
-        errors.push({
-          message: routingPorts.getMessage("ruleCaptureMissingMatcher"),
-          error: `${capture.name}: ${name}`,
-        });
+        appendError(
+          errors,
+          routingPorts.getMessage("ruleCaptureMissingMatcher"),
+          `${capture.name}: ${name}`,
+          captureNode?.valueSpan ?? rule.span,
+        );
         missing = true;
       } else if (capture.name === "capture" && candidates.length > 1) {
-        errors.push({
-          message: routingPorts.getMessage("ruleCaptureAmbiguousMatcher"),
-          error: `capture: ${name}`,
-          warning: true,
-        });
+        appendError(
+          errors,
+          routingPorts.getMessage("ruleCaptureAmbiguousMatcher"),
+          `capture: ${name}`,
+          captureNode?.valueSpan ?? rule.span,
+          true,
+        );
       }
     });
     if (missing) return false;
@@ -147,10 +196,12 @@ const parseSemanticRule = (
     );
     const indexes = [...destination.value.matchAll(/:\$(\d+):/g)].map((match) => Number(match[1]));
     if (indexes.some((index) => index >= availableIndexes)) {
-      errors.push({
-        message: routingPorts.getMessage("ruleMissingCapture"),
-        error: destination.value,
-      });
+      appendError(
+        errors,
+        routingPorts.getMessage("ruleMissingCapture"),
+        destination.value,
+        destinationNode?.valueSpan ?? rule.span,
+      );
       return false;
     }
   }
@@ -165,13 +216,15 @@ export const parseRulesCollecting = (
   const syntax = parseRoutingRuleAst(raw);
   const errors: RuleError[] = [];
   appendSyntaxErrors(syntax.issues, errors);
-  const rules = syntax.ast.rules
-    .map((rule) => parseSemanticRule(rule.clauses, errors))
-    .filter((rule): rule is RoutingRule => Boolean(rule));
-  for (let index = 1; index < rules.length; index += 1) {
-    const laterRule = rules[index];
-    if (!laterRule) continue;
-    const shadowed = rules.slice(0, index).some((earlier) => {
+  const parsedRules = syntax.ast.rules
+    .map((ast) => ({ ast, rule: parseSemanticRule(ast, errors) }))
+    .filter((entry): entry is { ast: RoutingRuleNode; rule: RoutingRule } => Boolean(entry.rule));
+  const rules = parsedRules.map((entry) => entry.rule);
+  for (let index = 1; index < parsedRules.length; index += 1) {
+    const laterEntry = parsedRules[index];
+    if (!laterEntry) continue;
+    const laterRule = laterEntry.rule;
+    const shadowed = parsedRules.slice(0, index).some(({ rule: earlier }) => {
       const earlierMatchers = earlier.filter((clause) => clause.type === RULE_TYPES.MATCHER);
       const laterMatchers = laterRule.filter((clause) => clause.type === RULE_TYPES.MATCHER);
       return earlierMatchers.every((earlierClause) =>
@@ -185,12 +238,15 @@ export const parseRulesCollecting = (
             }),
       );
     });
-    if (shadowed)
-      errors.push({
-        message: routingPorts.getMessage("ruleShadowed"),
-        error: `rule ${index + 1}`,
-        warning: true,
-      });
+    if (shadowed) {
+      appendError(
+        errors,
+        routingPorts.getMessage("ruleShadowed"),
+        `rule ${index + 1}`,
+        laterEntry.ast.span,
+        true,
+      );
+    }
   }
   return { rules, errors };
 };

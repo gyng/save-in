@@ -1521,6 +1521,206 @@ input.key {
 }
 
 /* First-party autocomplete dropdown (autocomplete.js) */
+.syntax-editor {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  margin: var(--space-2) 0;
+  overflow: hidden;
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius);
+  background: var(--input-background);
+  transition:
+    box-shadow 0.12s ease,
+    border-color 0.12s ease;
+}
+
+.syntax-editor:focus-within {
+  border-color: var(--blue50);
+  box-shadow: var(--focus-ring);
+}
+
+.syntax-editor-gutter-viewport {
+  flex: 0 0 3.35rem;
+  overflow: hidden;
+  border-right: 1px solid var(--panel-border);
+  background: color-mix(in srgb, var(--panel-bg) 72%, transparent);
+  color: var(--color-text-muted);
+  user-select: none;
+}
+
+.syntax-editor-gutter {
+  box-sizing: border-box;
+  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-1);
+  font-family: var(--font-mono);
+  font-size: var(--text-md);
+  line-height: 1.6;
+  text-align: right;
+  will-change: transform;
+}
+
+.syntax-editor-line-number {
+  position: relative;
+  display: block;
+  height: 1.6em;
+  padding-right: var(--space-2);
+  cursor: text;
+}
+
+.syntax-editor-line-number.has-diagnostic::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: -1px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--red50);
+  transform: translateY(-50%);
+}
+
+.syntax-editor-line-number.has-diagnostic-warning::after {
+  background: var(--warning-fg);
+}
+
+.syntax-editor-stage {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+}
+
+textarea.syntax-editor-input {
+  position: relative;
+  z-index: 2;
+  display: block;
+  width: 100%;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: transparent;
+  caret-color: var(--color-text);
+  line-height: 1.6;
+  white-space: pre;
+  -webkit-text-fill-color: transparent;
+}
+
+textarea.syntax-editor-input:focus-visible {
+  border-color: transparent;
+  box-shadow: none;
+}
+
+textarea.syntax-editor-input::placeholder {
+  color: var(--color-text-muted);
+  -webkit-text-fill-color: var(--color-text-muted);
+}
+
+.syntax-editor-overlay {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  left: 0;
+  box-sizing: border-box;
+  min-width: 100%;
+  min-height: 100%;
+  margin: 0;
+  padding: var(--space-2);
+  border: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-md);
+  line-height: 1.6;
+  white-space: pre;
+  color: var(--color-text);
+  pointer-events: none;
+  will-change: transform;
+}
+
+.syntax-token-nesting,
+.syntax-token-capture,
+.syntax-token-metadata {
+  color: var(--purple50);
+  font-weight: 650;
+}
+
+.syntax-token-variable,
+.syntax-token-matcher {
+  color: var(--link-color);
+  font-weight: 650;
+}
+
+.syntax-token-destination,
+.syntax-token-destination-value {
+  color: var(--success-fg);
+}
+
+.syntax-token-comment,
+.syntax-token-comment-delimiter {
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.syntax-token-separator,
+.syntax-token-punctuation {
+  color: var(--color-text-muted);
+  font-weight: 700;
+}
+
+.syntax-token-flags,
+.syntax-token-capture-value {
+  color: var(--warning-fg);
+}
+
+.syntax-token-invalid {
+  color: var(--error-fg);
+}
+
+.syntax-diagnostic {
+  text-decoration-line: underline;
+  text-decoration-style: wavy;
+  text-decoration-thickness: 1.5px;
+  text-decoration-skip-ink: none;
+  text-underline-offset: 3px;
+}
+
+.syntax-diagnostic-error {
+  text-decoration-color: var(--red50);
+}
+
+.syntax-diagnostic-warning {
+  text-decoration-color: var(--warning-fg);
+}
+
+.syntax-editor-end-marker {
+  display: inline-block;
+  width: 0;
+}
+
+.syntax-editor-tooltip {
+  position: fixed;
+  z-index: 120;
+  max-width: min(32rem, calc(100vw - 24px));
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--error-border);
+  border-radius: var(--radius);
+  color: var(--error-fg);
+  background: var(--floating-bg);
+  box-shadow: var(--floating-shadow);
+  font-size: var(--text-sm);
+  line-height: 1.4;
+  white-space: pre-wrap;
+  pointer-events: none;
+}
+
+.syntax-editor-character-probe {
+  position: fixed;
+  visibility: hidden;
+  font-family: var(--font-mono);
+  font-size: var(--text-md);
+  white-space: pre;
+}
+
 .autocomplete-dropdown {
   position: absolute;
   z-index: 100;

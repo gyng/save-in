@@ -1,7 +1,12 @@
 import { webExtensionApi } from "../platform/web-extension-api.ts";
 import { MESSAGE_TYPES } from "../shared/constants.ts";
 import { sendInternalMessage } from "../shared/message-protocol.ts";
-import { sortClauses, sortVariables, variableGroup } from "./vocabulary-groups.ts";
+import { clauseGroup, sortClauses, sortVariables, variableGroup } from "./vocabulary-groups.ts";
+import {
+  completeDirectorySyntax,
+  completeRoutingSyntax,
+  type SyntaxCompletion,
+} from "./syntax-editor-model.ts";
 
 export type AutocompleteStrategy = {
   match: RegExp;
@@ -21,6 +26,17 @@ type RoutingKeywords = {
 };
 
 type TextField = HTMLInputElement | HTMLTextAreaElement;
+type AutocompleteProvider = (
+  value: string,
+  caret: number,
+  explicit: boolean,
+) => SyntaxCompletion | null;
+
+type ActiveCompletion = {
+  suggestions: readonly string[];
+  selected: number;
+  apply: (name: string) => { value: string; caret: number };
+};
 
 // First-party autocomplete for the paths and rules textareas (replaces the
 // vendored textcomplete library): suggests routing matchers and :variables:
@@ -154,7 +170,10 @@ export const applySuggestion = (
   };
 };
 
-export const attachAutocomplete = (textarea: TextField, strategies: AutocompleteStrategy[]) => {
+export const attachAutocomplete = (
+  textarea: TextField,
+  source: AutocompleteStrategy[] | AutocompleteProvider,
+) => {
   const dropdown = document.createElement("ul");
   const dropdownId = `autocomplete-${textarea.id || document.querySelectorAll(".autocomplete-dropdown").length}`;
   dropdown.id = dropdownId;
@@ -170,7 +189,32 @@ export const attachAutocomplete = (textarea: TextField, strategies: Autocomplete
   // field — keep focus so the list stays open and scrollable
   dropdown.addEventListener("mousedown", (e) => e.preventDefault());
 
-  let current: { result: AutocompleteResult; selected: number } | null = null;
+  let current: ActiveCompletion | null = null;
+
+  const completionAtCaret = (explicit: boolean): ActiveCompletion | null => {
+    const caret = textarea.selectionStart ?? textarea.value.length;
+    if (Array.isArray(source)) {
+      const result = suggestFor(textarea.value.slice(0, caret), source);
+      return result
+        ? {
+            suggestions: result.suggestions,
+            selected: 0,
+            apply: (name) => applySuggestion(textarea.value, caret, result, name),
+          }
+        : null;
+    }
+    const result = source(textarea.value, caret, explicit);
+    return result
+      ? {
+          suggestions: result.suggestions,
+          selected: 0,
+          apply: (name) => ({
+            value: `${textarea.value.slice(0, result.start)}${name}${result.suffix}${textarea.value.slice(result.end)}`,
+            caret: result.start + name.length + result.suffix.length,
+          }),
+        }
+      : null;
+  };
 
   const close = () => {
     current = null;
@@ -184,8 +228,7 @@ export const attachAutocomplete = (textarea: TextField, strategies: Autocomplete
     if (!current) {
       return;
     }
-    const caret = textarea.selectionStart ?? textarea.value.length;
-    const applied = applySuggestion(textarea.value, caret, current.result, name);
+    const applied = current.apply(name);
     textarea.value = applied.value;
     textarea.selectionStart = applied.caret;
     textarea.selectionEnd = applied.caret;
@@ -201,17 +244,15 @@ export const attachAutocomplete = (textarea: TextField, strategies: Autocomplete
     const state = current;
     dropdown.innerHTML = "";
     let previousGroup = "";
-    state.result.suggestions.forEach((name, i) => {
-      if (name.startsWith(":")) {
-        const group = variableGroup(name);
-        if (group !== previousGroup) {
-          const heading = document.createElement("li");
-          heading.className = "autocomplete-group";
-          heading.setAttribute("role", "presentation");
-          heading.textContent = group;
-          dropdown.appendChild(heading);
-          previousGroup = group;
-        }
+    state.suggestions.forEach((name, i) => {
+      const group = name.startsWith(":") ? variableGroup(name) : clauseGroup(name);
+      if (group !== previousGroup) {
+        const heading = document.createElement("li");
+        heading.className = "autocomplete-group";
+        heading.setAttribute("role", "presentation");
+        heading.textContent = group;
+        dropdown.appendChild(heading);
+        previousGroup = group;
       }
       const li = document.createElement("li");
       li.id = `${dropdownId}-option-${i}`;
@@ -260,10 +301,9 @@ export const attachAutocomplete = (textarea: TextField, strategies: Autocomplete
   };
 
   textarea.addEventListener("input", () => {
-    const selectionStart = textarea.selectionStart ?? textarea.value.length;
-    const result = suggestFor(textarea.value.slice(0, selectionStart), strategies);
+    const result = completionAtCaret(false);
     if (result) {
-      current = { result, selected: 0 };
+      current = result;
       render();
     } else {
       close();
@@ -271,24 +311,36 @@ export const attachAutocomplete = (textarea: TextField, strategies: Autocomplete
   });
 
   textarea.addEventListener("keydown", (e) => {
-    if (!(e instanceof KeyboardEvent) || !current) {
+    if (!(e instanceof KeyboardEvent)) {
       return;
     }
     const key = (e as KeyboardEvent).key;
 
+    if ((e.ctrlKey || e.metaKey) && key === " ") {
+      const result = completionAtCaret(true);
+      if (result) {
+        e.preventDefault();
+        current = result;
+        render();
+      }
+      return;
+    }
+
+    if (!current) return;
+
     if (key === "ArrowDown" || key === "ArrowUp") {
       e.preventDefault();
-      const count = current.result.suggestions.length;
+      const count = current.suggestions.length;
       const delta = key === "ArrowDown" ? 1 : -1;
       current.selected = (current.selected + delta + count) % count;
       render();
     } else if (key === "Home" || key === "End") {
       e.preventDefault();
-      current.selected = key === "Home" ? 0 : current.result.suggestions.length - 1;
+      current.selected = key === "Home" ? 0 : current.suggestions.length - 1;
       render();
     } else if (key === "Enter" || key === "Tab") {
       e.preventDefault();
-      const suggestion = current.result.suggestions[current.selected];
+      const suggestion = current.suggestions[current.selected];
       if (suggestion !== undefined) accept(suggestion);
     } else if (key === "Escape") {
       close();
@@ -315,22 +367,25 @@ export const setupRoutingAutocomplete = (keywords: RoutingKeywords) => {
   const matchers = sortClauses([...keywords.matchers, "into"]);
   const pathTextarea = document.getElementById("paths");
   if (pathTextarea instanceof HTMLTextAreaElement) {
-    attachAutocomplete(pathTextarea, [pathVariableStrategy(variables)]);
+    attachAutocomplete(pathTextarea, (value, caret) =>
+      completeDirectorySyntax(value, caret, variables),
+    );
   }
 
   const routerTextarea = document.getElementById("filenamePatterns");
   if (routerTextarea instanceof HTMLTextAreaElement) {
-    attachAutocomplete(routerTextarea, [
-      matcherStrategy(matchers),
-      routerVariableStrategy(variables),
-    ]);
+    attachAutocomplete(routerTextarea, (value, caret, explicit) =>
+      completeRoutingSyntax(value, caret, { matchers, variables }, explicit),
+    );
   }
 
   // The quick-add builder's destination field is a plain path, so it gets
   // the same :variable: autocomplete as the paths list
   const ruleBuilderInto = document.getElementById("rule-builder-into");
   if (ruleBuilderInto instanceof HTMLInputElement) {
-    attachAutocomplete(ruleBuilderInto, [pathVariableStrategy(variables)]);
+    attachAutocomplete(ruleBuilderInto, (value, caret) =>
+      completeDirectorySyntax(value, caret, variables),
+    );
   }
 };
 

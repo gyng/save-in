@@ -90,6 +90,7 @@ export type ClauseGroup = (typeof CLAUSE_GROUPS)[number];
 const CLAUSE_ORDER = [
   "into",
   "capture",
+  "capturegroups",
   "context",
   "menuindex",
   "comment",
@@ -114,7 +115,7 @@ const clauseName = (clause: string) => clause.replace(/[:/].*/, "").toLocaleLowe
 export const clauseGroup = (clause: string): ClauseGroup => {
   const name = clauseName(clause);
   if (name === "into") return "Output";
-  if (name === "capture") return "Capture setup";
+  if (name === "capture" || name === "capturegroups") return "Capture setup";
   if (/^(context|menuindex|comment|linktext|selectiontext)$/.test(name))
     return "Page and menu context";
   if (/^(page|source|frame)/.test(name)) return "URL and source matching";

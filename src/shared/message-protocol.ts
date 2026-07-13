@@ -2,6 +2,7 @@ import { MESSAGE_TYPES } from "./constants.ts";
 import type { DownloadInfo, DownloadPipelineState } from "../downloads/download-types.ts";
 import type { HistoryEntry } from "./history-types.ts";
 import type { MenuTree, MenuTreeError, MenuTreeItem } from "../menus/menu-tree.ts";
+import type { RuleError } from "../routing/rule-types.ts";
 import type { OptionErrors } from "../background/runtime.ts";
 import type { RoutePreview } from "../background/route-preview.ts";
 import type { PersistenceFailure } from "./persistence-diagnostics.ts";
@@ -238,7 +239,7 @@ export type InternalResponseMap = {
       version: number;
       menuPreview?: MenuTreeItem[] | undefined;
       pathErrors?: MenuTreeError[] | undefined;
-      ruleErrors?: Array<{ message: string; error: string; warning?: boolean | undefined }>;
+      ruleErrors?: RuleError[] | undefined;
       ruleTrace?: unknown;
     }
   >;
