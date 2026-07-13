@@ -9,7 +9,7 @@ describe("options apply response", () => {
   test("accepts a successful background acknowledgement", () => {
     const response = {
       type: "APPLY_CONFIG_RESULT",
-      body: { applied: { paths: "." }, rejected: [] },
+      body: { version: 1, applied: { paths: "." }, rejected: [] },
     };
     expect(assertApplySucceeded(response)).toBe(response);
   });
@@ -19,15 +19,24 @@ describe("options apply response", () => {
     expect(() =>
       assertApplySucceeded({
         type: "APPLY_CONFIG_RESULT",
-        body: { applied: {}, rejected: [{ name: "paths", reason: "invalid value" }] },
+        body: {
+          version: 1,
+          applied: {},
+          rejected: [{ name: "paths", reason: "invalid value" }],
+        },
       }),
     ).toThrow("paths: invalid value");
   });
 
   test.each([
     { type: "APPLY_CONFIG_RESULT", body: {} },
-    { type: "APPLY_CONFIG_RESULT", body: { applied: [], rejected: [] } },
-    { type: "APPLY_CONFIG_RESULT", body: { applied: {}, rejected: "none" } },
+    { type: "APPLY_CONFIG_RESULT", body: { version: 1, applied: [], rejected: [] } },
+    { type: "APPLY_CONFIG_RESULT", body: { version: 1, applied: {}, rejected: "none" } },
+    { type: "APPLY_CONFIG_RESULT", body: { version: 1, applied: {}, rejected: [null] } },
+    {
+      type: "APPLY_CONFIG_RESULT",
+      body: { version: 1, applied: {}, rejected: [{ name: "paths" }] },
+    },
   ])("rejects malformed acknowledgements %#", (response) => {
     expect(() => assertApplySucceeded(response)).toThrow("Invalid save acknowledgement");
   });
@@ -48,11 +57,17 @@ test("collects only the explicitly scoped editor", () => {
 test("returns the normalized applied value", () => {
   expect(
     getAppliedValue(
-      { type: "APPLY_CONFIG_RESULT", body: { applied: { paths: "cats" }, rejected: [] } },
+      {
+        type: "APPLY_CONFIG_RESULT",
+        body: { version: 1, applied: { paths: "cats" }, rejected: [] },
+      },
       "paths",
     ),
   ).toBe("cats");
   expect(
-    getAppliedValue({ type: "APPLY_CONFIG_RESULT", body: { applied: [], rejected: [] } }, "paths"),
+    getAppliedValue(
+      { type: "APPLY_CONFIG_RESULT", body: { version: 1, applied: [], rejected: [] } },
+      "paths",
+    ),
   ).toBeUndefined();
 });

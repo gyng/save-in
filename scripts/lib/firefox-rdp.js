@@ -8,7 +8,7 @@
 
 const net = require("net");
 
-/** @typedef {Record<string, any>} RdpPacket */
+/** @typedef {Record<string, unknown>} RdpPacket */
 /**
  * @typedef {object} EventWaiter
  * @property {(packet: RdpPacket) => boolean} predicate
@@ -34,6 +34,22 @@ const EVENT_TYPES = new Set([
   "resources-available-array",
   "target-available-form",
 ]);
+
+/** @param {unknown} value @returns {value is RdpPacket} */
+const isRdpPacket = (value) => value != null && typeof value === "object" && !Array.isArray(value);
+
+/** @param {RdpPacket | undefined} packet @param {string} operation @returns {RdpPacket} */
+const requirePacket = (packet, operation) => {
+  if (!packet) throw new Error(`${operation} was cancelled`);
+  return packet;
+};
+
+/** @param {RdpPacket} packet @param {string} key @param {string} operation */
+const requireString = (packet, key, operation) => {
+  const value = packet[key];
+  if (typeof value !== "string") throw new Error(`${operation} did not return ${key}`);
+  return value;
+};
 
 class FirefoxRdp {
   /** @param {import("net").Socket} socket */
@@ -97,7 +113,10 @@ class FirefoxRdp {
       if (this.buffer.length < sep + 1 + length) return;
       const json = this.buffer.slice(sep + 1, sep + 1 + length).toString();
       this.buffer = this.buffer.slice(sep + 1 + length);
-      this.dispatch(JSON.parse(json));
+      /** @type {unknown} */
+      const parsed = JSON.parse(json);
+      if (!isRdpPacket(parsed)) throw new Error("RDP packet must be an object");
+      this.dispatch(parsed);
     }
   }
 
@@ -126,9 +145,9 @@ class FirefoxRdp {
     // Other lifecycle events only describe the instant at which they arrive.
     // Retaining them lets a later operation consume stale state as if it were
     // a fresh browser event.
-    if (EVENT_TYPES.has(packet.type)) return;
+    if (typeof packet.type === "string" && EVENT_TYPES.has(packet.type)) return;
 
-    const queue = this.queues.get(packet.from);
+    const queue = typeof packet.from === "string" ? this.queues.get(packet.from) : undefined;
     if (queue && queue.length > 0) {
       // Skip entries already settled by a timeout: leaving them in the queue
       // would desync every later reply for this actor
@@ -138,8 +157,10 @@ class FirefoxRdp {
       }
       if (!pending) return;
       pending.settled = true;
-      if (packet.error) {
-        pending.reject(new Error(`${packet.error}: ${packet.message || ""}`));
+      if (typeof packet.error === "string") {
+        pending.reject(
+          new Error(`${packet.error}: ${typeof packet.message === "string" ? packet.message : ""}`),
+        );
       } else {
         pending.resolve(packet);
       }
@@ -185,7 +206,7 @@ class FirefoxRdp {
   /**
    * @param {RdpPacket & {to: string, type: string}} packet
    * @param {number} [timeoutMs]
-   * @returns {Promise<any>}
+   * @returns {Promise<RdpPacket | undefined>}
    */
   request(packet, timeoutMs = 30000) {
     return new Promise((resolve, reject) => {
@@ -227,20 +248,29 @@ class FirefoxRdp {
   }
 
   async getRoot() {
-    return this.request({ to: "root", type: "getRoot" });
+    const root = requirePacket(await this.request({ to: "root", type: "getRoot" }), "getRoot");
+    const addonsActor = requireString(root, "addonsActor", "getRoot");
+    return { ...root, addonsActor };
   }
 
   /** @param {string} addonsActor @param {string} addonPath */
   async installTemporaryAddon(addonsActor, addonPath) {
-    return this.request({ to: addonsActor, type: "installTemporaryAddon", addonPath }, 60000);
+    return requirePacket(
+      await this.request({ to: addonsActor, type: "installTemporaryAddon", addonPath }, 60000),
+      "installTemporaryAddon",
+    );
   }
 
   /** @param {string} addonId */
   async findAddonActor(addonId) {
-    const { addons } = await this.request({ to: "root", type: "listAddons" });
-    const addon = addons.find(/** @param {RdpPacket} a */ (a) => a.id === addonId);
+    const response = requirePacket(
+      await this.request({ to: "root", type: "listAddons" }),
+      "listAddons",
+    );
+    const addons = Array.isArray(response.addons) ? response.addons.filter(isRdpPacket) : [];
+    const addon = addons.find((candidate) => candidate.id === addonId);
     if (!addon) throw new Error(`Addon ${addonId} not in listAddons`);
-    return addon.actor;
+    return requireString(addon, "actor", "listAddons");
   }
 
   // Collects the frame targets a descriptor actor (addon or tab) exposes.
@@ -249,17 +279,26 @@ class FirefoxRdp {
   /** @param {string} descriptorActor */
   async watchFrameTargets(descriptorActor) {
     try {
-      const { form } = await this.request({ to: descriptorActor, type: "getTarget" });
-      if (form && form.consoleActor) return [form];
+      const response = requirePacket(
+        await this.request({ to: descriptorActor, type: "getTarget" }),
+        "getTarget",
+      );
+      if (isRdpPacket(response.form) && typeof response.form.consoleActor === "string") {
+        return [response.form];
+      }
     } catch (e) {
       if (!String(e instanceof Error ? e.message : e).includes("unrecognizedPacketType")) throw e;
     }
 
-    const { actor: watcher } = await this.request({
-      to: descriptorActor,
-      type: "getWatcher",
-      isServerTargetSwitchingEnabled: true,
-    });
+    const watcherResponse = requirePacket(
+      await this.request({
+        to: descriptorActor,
+        type: "getWatcher",
+        isServerTargetSwitchingEnabled: true,
+      }),
+      "getWatcher",
+    );
+    const watcher = requireString(watcherResponse, "actor", "getWatcher");
 
     /** @type {RdpPacket[]} */
     const targets = [];
@@ -270,7 +309,7 @@ class FirefoxRdp {
     /** @param {RdpPacket} p */
     const collector = (p) => {
       if (!collecting) return false;
-      if (p.type === "target-available-form" && p.from === watcher) {
+      if (p.type === "target-available-form" && p.from === watcher && isRdpPacket(p.target)) {
         targets.push(p.target);
         this.eventWaiters.push({ predicate: collector, resolve: () => {} });
         return true;
@@ -293,12 +332,14 @@ class FirefoxRdp {
     // Several frame targets can arrive (background page, options page, ...):
     // prefer the generated background page
     const background = targets.find(
-      (t) => t && t.url && t.url.includes("_generated_background_page"),
+      (target) =>
+        typeof target.url === "string" && target.url.includes("_generated_background_page"),
     );
-    const target = background || targets.find((t) => t && t.consoleActor);
-    if (!target || !target.consoleActor) {
+    const target =
+      background || targets.find((candidate) => typeof candidate.consoleActor === "string");
+    if (!target || typeof target.consoleActor !== "string") {
       throw new Error(
-        `No background target found (saw: ${targets.map((t) => t && t.url).join(", ")})`,
+        `No background target found (saw: ${targets.map((candidate) => String(candidate.url || "")).join(", ")})`,
       );
     }
     return target.consoleActor;
@@ -309,23 +350,35 @@ class FirefoxRdp {
   // so they see the real DOM but not content-script variables.
   /** @param {string} urlSubstr */
   async getTabConsoleActor(urlSubstr) {
-    const { tabs } = await this.request({ to: "root", type: "listTabs" });
-    const tab = (tabs || []).find(/** @param {RdpPacket} t */ (t) => t.url?.includes(urlSubstr));
+    const response = requirePacket(
+      await this.request({ to: "root", type: "listTabs" }),
+      "listTabs",
+    );
+    const tabs = Array.isArray(response.tabs) ? response.tabs.filter(isRdpPacket) : [];
+    const tab = tabs.find(
+      (candidate) => typeof candidate.url === "string" && candidate.url.includes(urlSubstr),
+    );
     if (!tab) {
       throw new Error(
-        `No tab matching "${urlSubstr}" (saw: ${(tabs || []).map(/** @param {RdpPacket} t */ (t) => t.url).join(", ")})`,
+        `No tab matching "${urlSubstr}" (saw: ${tabs.map((candidate) => String(candidate.url || "")).join(", ")})`,
       );
     }
+    const tabActor = requireString(tab, "actor", "listTabs");
 
-    const cached = this.tabConsoleActors.get(tab.actor);
+    const cached = this.tabConsoleActors.get(tabActor);
     if (cached) return cached;
 
-    const targets = await this.watchFrameTargets(tab.actor);
-    const target = targets.find((t) => t && t.url && t.url.includes(urlSubstr) && t.consoleActor);
-    if (!target) {
+    const targets = await this.watchFrameTargets(tabActor);
+    const target = targets.find(
+      (candidate) =>
+        typeof candidate.url === "string" &&
+        candidate.url.includes(urlSubstr) &&
+        typeof candidate.consoleActor === "string",
+    );
+    if (!target || typeof target.consoleActor !== "string") {
       throw new Error(`No console actor for tab "${urlSubstr}"`);
     }
-    this.tabConsoleActors.set(tab.actor, target.consoleActor);
+    this.tabConsoleActors.set(tabActor, target.consoleActor);
     return target.consoleActor;
   }
 
@@ -337,39 +390,47 @@ class FirefoxRdp {
    * @param {string} consoleActor
    * @param {string} text
    * @param {number} [timeoutMs]
+   * @returns {Promise<any>}
    */
   async evaluate(consoleActor, text, timeoutMs = 30000) {
-    const { resultID } = await this.request({
-      to: consoleActor,
-      type: "evaluateJSAsync",
-      text: `(async () => (${text}))()`,
-      mapped: { await: true },
-    });
+    const request = requirePacket(
+      await this.request({
+        to: consoleActor,
+        type: "evaluateJSAsync",
+        text: `(async () => (${text}))()`,
+        mapped: { await: true },
+      }),
+      "evaluateJSAsync",
+    );
+    const resultID = requireString(request, "resultID", "evaluateJSAsync");
     const result = await this.waitForEvent(
       (p) => p.type === "evaluationResult" && p.resultID === resultID,
       timeoutMs,
     );
     if (!result) throw new Error("Evaluation cancelled");
-    if (result.exceptionMessage) {
+    if (typeof result.exceptionMessage === "string") {
       throw new Error(`Evaluation failed: ${result.exceptionMessage}`);
     }
     let value = result.result;
-    if (value && typeof value === "object" && value.type === "longString") {
+    if (isRdpPacket(value) && value.type === "longString") {
       const initial = typeof value.initial === "string" ? value.initial : "";
       const length = typeof value.length === "number" ? value.length : initial.length;
       if (typeof value.actor !== "string" || length <= initial.length) {
         value = initial;
       } else {
-        const remainder = await this.request(
-          {
-            to: value.actor,
-            type: "substring",
-            start: initial.length,
-            end: length,
-          },
-          timeoutMs,
+        const remainder = requirePacket(
+          await this.request(
+            {
+              to: value.actor,
+              type: "substring",
+              start: initial.length,
+              end: length,
+            },
+            timeoutMs,
+          ),
+          "substring",
         );
-        value = initial + (typeof remainder?.substring === "string" ? remainder.substring : "");
+        value = initial + (typeof remainder.substring === "string" ? remainder.substring : "");
       }
     }
     return value;

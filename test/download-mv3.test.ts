@@ -235,7 +235,7 @@ describe("offscreen document fetch (Chrome MV3)", () => {
         type: "OFFSCREEN_FETCH",
         url: "https://x/a",
         hash: "SHA-256",
-        credentials: "omit",
+        credentials: "include",
       }),
     );
     expect(content).toEqual({

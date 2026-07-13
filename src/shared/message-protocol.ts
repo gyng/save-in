@@ -320,6 +320,13 @@ export type ResponseFor<Request extends InternalMessage> =
   | InternalResponseMap[Request["type"]]
   | ProtocolErrorResponse<Request["type"]>;
 
+export type ApplyConfigRequest = MessageOf<typeof MESSAGE_TYPES.APPLY_CONFIG>;
+export type ApplyConfigResponse = ResponseFor<ApplyConfigRequest>;
+export type SuccessfulApplyConfigResponse = Extract<
+  ApplyConfigResponse,
+  { type: typeof MESSAGE_TYPES.APPLY_CONFIG_RESULT }
+>;
+
 type RuntimeMessenger = {
   sendMessage(message: unknown): Promise<unknown>;
 };

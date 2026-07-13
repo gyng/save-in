@@ -1,7 +1,6 @@
 import {
   CONFLICT_ACTION,
   FORBIDDEN_FILENAME_CHARS,
-  SHORTCUT_TYPES,
   isShortcutType,
   type ConflictAction,
   type ShortcutType,
@@ -13,6 +12,9 @@ import {
   CONTENT_FEATURE_OPTION_DEFINITIONS,
   LINKS_OPTION_DEFINITION,
 } from "./content-option-schema.ts";
+import { OPTION_DEFAULTS, defaultOptions } from "./option-defaults.ts";
+
+export { defaultOptions };
 
 export const OPTION_TYPES = { BOOL: "BOOL", VALUE: "VALUE" } as const;
 
@@ -121,35 +123,47 @@ export const OPTION_KEYS = defineOptions([
         : v,
     validate: (value: unknown): value is ConflictAction =>
       typeof value === "string" && Object.values(CONFLICT_ACTION).includes(value as ConflictAction),
-    default: CONFLICT_ACTION.UNIQUIFY,
+    default: OPTION_DEFAULTS.conflictAction,
   },
   ...CONTENT_FEATURE_OPTION_DEFINITIONS,
-  { name: "debug", type: OPTION_TYPES.BOOL, fn: null, default: false },
+  { name: "debug", type: OPTION_TYPES.BOOL, fn: null, default: OPTION_DEFAULTS.debug },
   {
     name: "uiLocale",
     type: OPTION_TYPES.VALUE,
     validate: (value: unknown): value is "" | SelectableLocale =>
       typeof value === "string" && (value === "" || isSelectableLocale(value)),
-    default: "",
+    default: OPTION_DEFAULTS.uiLocale,
   },
-  { name: "enableLastLocation", type: OPTION_TYPES.BOOL, default: true },
-  { name: "enableNumberedItems", type: OPTION_TYPES.BOOL, default: true },
+  {
+    name: "enableLastLocation",
+    type: OPTION_TYPES.BOOL,
+    default: OPTION_DEFAULTS.enableLastLocation,
+  },
+  {
+    name: "enableNumberedItems",
+    type: OPTION_TYPES.BOOL,
+    default: OPTION_DEFAULTS.enableNumberedItems,
+  },
   {
     name: "filenamePatterns",
     type: OPTION_TYPES.VALUE,
     onSave: (v: string) => v.trim(),
     onLoad: (v: string) => parseRules(v),
-    default: "",
+    default: OPTION_DEFAULTS.filenamePatterns,
   },
-  { name: "keyLastUsed", type: OPTION_TYPES.VALUE, default: "e" },
-  { name: "keyRoot", type: OPTION_TYPES.VALUE, default: "e" },
+  { name: "keyLastUsed", type: OPTION_TYPES.VALUE, default: OPTION_DEFAULTS.keyLastUsed },
+  { name: "keyRoot", type: OPTION_TYPES.VALUE, default: OPTION_DEFAULTS.keyRoot },
   LINKS_OPTION_DEFINITION,
-  { name: "preferLinks", type: OPTION_TYPES.BOOL, default: false },
-  { name: "preferLinksFilterEnabled", type: OPTION_TYPES.BOOL, default: false },
+  { name: "preferLinks", type: OPTION_TYPES.BOOL, default: OPTION_DEFAULTS.preferLinks },
+  {
+    name: "preferLinksFilterEnabled",
+    type: OPTION_TYPES.BOOL,
+    default: OPTION_DEFAULTS.preferLinksFilterEnabled,
+  },
   {
     name: "preferLinksFilter",
     type: OPTION_TYPES.VALUE,
-    default: ".*commons.wikimedia.org/wiki/File:.*",
+    default: OPTION_DEFAULTS.preferLinksFilter,
   },
   {
     name: "notifyDuration",
@@ -157,44 +171,64 @@ export const OPTION_KEYS = defineOptions([
     onLoad: normalizeWholeNumber,
     onSave: normalizeWholeNumber,
     validate: isNonnegativeNumber,
-    default: 7000,
+    default: OPTION_DEFAULTS.notifyDuration,
   },
-  { name: "notifyOnFailure", type: OPTION_TYPES.BOOL, default: true },
-  { name: "notifyOnRuleMatch", type: OPTION_TYPES.BOOL, default: true },
-  { name: "notifyOnSuccess", type: OPTION_TYPES.BOOL, default: true },
-  { name: "notifyOnLinkPreferred", type: OPTION_TYPES.BOOL, default: true },
-  { name: "page", type: OPTION_TYPES.BOOL, default: true },
+  {
+    name: "notifyOnFailure",
+    type: OPTION_TYPES.BOOL,
+    default: OPTION_DEFAULTS.notifyOnFailure,
+  },
+  {
+    name: "notifyOnRuleMatch",
+    type: OPTION_TYPES.BOOL,
+    default: OPTION_DEFAULTS.notifyOnRuleMatch,
+  },
+  { name: "notifyOnSuccess", type: OPTION_TYPES.BOOL, default: OPTION_DEFAULTS.notifyOnSuccess },
+  {
+    name: "notifyOnLinkPreferred",
+    type: OPTION_TYPES.BOOL,
+    default: OPTION_DEFAULTS.notifyOnLinkPreferred,
+  },
+  { name: "page", type: OPTION_TYPES.BOOL, default: OPTION_DEFAULTS.page },
   {
     name: "paths",
     type: OPTION_TYPES.VALUE,
     onSave: (v: string) => v.trim() || ".",
-    default: ". // (alias: Downloads)\nimages\nimages/cats\n>images/cats/tabby\nvideos",
+    default: OPTION_DEFAULTS.paths,
   },
-  { name: "prompt", type: OPTION_TYPES.BOOL, default: false },
-  { name: "promptIfNoExtension", type: OPTION_TYPES.BOOL, default: false },
-  { name: "promptOnFailure", type: OPTION_TYPES.BOOL, default: true },
-  { name: "promptOnShift", type: OPTION_TYPES.BOOL, default: true },
+  { name: "prompt", type: OPTION_TYPES.BOOL, default: OPTION_DEFAULTS.prompt },
+  {
+    name: "promptIfNoExtension",
+    type: OPTION_TYPES.BOOL,
+    default: OPTION_DEFAULTS.promptIfNoExtension,
+  },
+  { name: "promptOnFailure", type: OPTION_TYPES.BOOL, default: OPTION_DEFAULTS.promptOnFailure },
+  { name: "promptOnShift", type: OPTION_TYPES.BOOL, default: OPTION_DEFAULTS.promptOnShift },
   {
     name: "replacementChar",
     type: OPTION_TYPES.VALUE,
     // Empty means deletion; invalid replacements must not poison every path.
     onLoad: (v: string) =>
       v && (FORBIDDEN_FILENAME_CHARS.test(v) || v === "." || v === "..") ? "_" : v,
-    default: "_",
+    default: OPTION_DEFAULTS.replacementChar,
   },
-  { name: "routeExclusive", type: OPTION_TYPES.BOOL, default: false },
-  { name: "routeFailurePrompt", type: OPTION_TYPES.BOOL, default: false },
-  { name: "selection", type: OPTION_TYPES.BOOL, default: true },
-  { name: "shortcutLink", type: OPTION_TYPES.BOOL, default: false },
-  { name: "shortcutMedia", type: OPTION_TYPES.BOOL, default: false },
-  { name: "shortcutPage", type: OPTION_TYPES.BOOL, default: false },
-  { name: "shortcutTab", type: OPTION_TYPES.BOOL, default: false },
+  { name: "routeExclusive", type: OPTION_TYPES.BOOL, default: OPTION_DEFAULTS.routeExclusive },
+  {
+    name: "routeFailurePrompt",
+    type: OPTION_TYPES.BOOL,
+    default: OPTION_DEFAULTS.routeFailurePrompt,
+  },
+  { name: "selection", type: OPTION_TYPES.BOOL, default: OPTION_DEFAULTS.selection },
+  { name: "shortcutLink", type: OPTION_TYPES.BOOL, default: OPTION_DEFAULTS.shortcutLink },
+  { name: "shortcutMedia", type: OPTION_TYPES.BOOL, default: OPTION_DEFAULTS.shortcutMedia },
+  { name: "shortcutPage", type: OPTION_TYPES.BOOL, default: OPTION_DEFAULTS.shortcutPage },
+  { name: "shortcutTab", type: OPTION_TYPES.BOOL, default: OPTION_DEFAULTS.shortcutTab },
   {
     name: "shortcutType",
     type: OPTION_TYPES.VALUE,
     onLoad: (v: ShortcutType) => v,
     validate: isShortcutType,
-    default: SHORTCUT_TYPES.HTML_REDIRECT,
+    default: OPTION_DEFAULTS.shortcutType,
   },
   {
     name: "truncateLength",
@@ -202,27 +236,59 @@ export const OPTION_KEYS = defineOptions([
     onLoad: normalizeWholeNumber,
     onSave: normalizeWholeNumber,
     validate: isNonnegativeNumber,
-    default: 240,
+    default: OPTION_DEFAULTS.truncateLength,
   },
-  { name: "appendMimeExtension", type: OPTION_TYPES.BOOL, default: true },
-  { name: "fetchViaFetch", type: OPTION_TYPES.BOOL, default: false },
-  { name: "fallbackFetch", type: OPTION_TYPES.BOOL, default: true },
-  { name: "includeFetchCredentials", type: OPTION_TYPES.BOOL, default: true },
+  {
+    name: "appendMimeExtension",
+    type: OPTION_TYPES.BOOL,
+    default: OPTION_DEFAULTS.appendMimeExtension,
+  },
+  { name: "fetchViaFetch", type: OPTION_TYPES.BOOL, default: OPTION_DEFAULTS.fetchViaFetch },
+  { name: "fallbackFetch", type: OPTION_TYPES.BOOL, default: OPTION_DEFAULTS.fallbackFetch },
+  {
+    name: "includeFetchCredentials",
+    type: OPTION_TYPES.BOOL,
+    default: OPTION_DEFAULTS.includeFetchCredentials,
+  },
   {
     name: "externalDownloadAllowlist",
     type: OPTION_TYPES.VALUE,
     onSave: (v: string) => v.trim(),
-    default: "",
+    default: OPTION_DEFAULTS.externalDownloadAllowlist,
   },
-  { name: "trackBrowserDownloads", type: OPTION_TYPES.BOOL, default: false },
-  { name: "routeBrowserDownloads", type: OPTION_TYPES.BOOL, default: false },
-  { name: "browserDownloadFilter", type: OPTION_TYPES.VALUE, default: "" },
-  { name: "browserDownloadExcludeFilter", type: OPTION_TYPES.VALUE, default: "" },
-  { name: "routeBrowserDownloadsFirefox", type: OPTION_TYPES.BOOL, default: false },
-  { name: "tabEnabled", type: OPTION_TYPES.BOOL, default: false },
-  { name: "closeTabOnSave", type: OPTION_TYPES.BOOL, default: false },
-  { name: "setRefererHeader", type: OPTION_TYPES.BOOL, default: false },
-  { name: "setRefererHeaderFilter", type: OPTION_TYPES.VALUE, default: "*://i.pximg.net/*" },
+  {
+    name: "trackBrowserDownloads",
+    type: OPTION_TYPES.BOOL,
+    default: OPTION_DEFAULTS.trackBrowserDownloads,
+  },
+  {
+    name: "routeBrowserDownloads",
+    type: OPTION_TYPES.BOOL,
+    default: OPTION_DEFAULTS.routeBrowserDownloads,
+  },
+  {
+    name: "browserDownloadFilter",
+    type: OPTION_TYPES.VALUE,
+    default: OPTION_DEFAULTS.browserDownloadFilter,
+  },
+  {
+    name: "browserDownloadExcludeFilter",
+    type: OPTION_TYPES.VALUE,
+    default: OPTION_DEFAULTS.browserDownloadExcludeFilter,
+  },
+  {
+    name: "routeBrowserDownloadsFirefox",
+    type: OPTION_TYPES.BOOL,
+    default: OPTION_DEFAULTS.routeBrowserDownloadsFirefox,
+  },
+  { name: "tabEnabled", type: OPTION_TYPES.BOOL, default: OPTION_DEFAULTS.tabEnabled },
+  { name: "closeTabOnSave", type: OPTION_TYPES.BOOL, default: OPTION_DEFAULTS.closeTabOnSave },
+  { name: "setRefererHeader", type: OPTION_TYPES.BOOL, default: OPTION_DEFAULTS.setRefererHeader },
+  {
+    name: "setRefererHeaderFilter",
+    type: OPTION_TYPES.VALUE,
+    default: OPTION_DEFAULTS.setRefererHeaderFilter,
+  },
 ] as const);
 
 export type SaveInOptions = {
@@ -230,8 +296,3 @@ export type SaveInOptions = {
 };
 
 export type SaveInOptionName = keyof SaveInOptions;
-
-export const defaultOptions = (): SaveInOptions =>
-  Object.fromEntries(
-    OPTION_KEYS.map(({ name, default: defaultValue }) => [name, defaultValue]),
-  ) as SaveInOptions;

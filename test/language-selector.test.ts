@@ -20,7 +20,7 @@ test("saves the selected locale and reloads after acknowledgement", async () => 
   render();
   const apply = vi.fn(async () => ({
     type: "APPLY_CONFIG_RESULT",
-    body: { applied: { uiLocale: "fr" }, rejected: [] },
+    body: { version: 1, applied: { uiLocale: "fr" }, rejected: [] },
   }));
   const reload = vi.fn();
   setupLanguageSelector({ apply, reload, getMessage: vi.fn() });

@@ -4,6 +4,7 @@ import { configureRoutingPorts } from "../routing/ports.ts";
 import { COUNTER_KEY } from "../shared/storage-keys.ts";
 import { MESSAGE_TYPES } from "../shared/constants.ts";
 import { sendInternalMessage } from "../shared/message-protocol.ts";
+import type { ApplyConfigResponse } from "../shared/message-protocol.ts";
 import type { OptionSchema } from "./options-persistence.ts";
 
 export type OptionsRuntimeApi = {
@@ -75,7 +76,10 @@ export const createOptionsRuntime = (api: OptionsRuntimeApi) => {
       }
       return schema;
     },
-    apply(config: Record<string, unknown>, expected?: Record<string, unknown>): Promise<unknown> {
+    apply(
+      config: Record<string, unknown>,
+      expected?: Record<string, unknown>,
+    ): Promise<ApplyConfigResponse> {
       return sendInternalMessage(api.runtime, {
         type: MESSAGE_TYPES.APPLY_CONFIG,
         body: { config, ...(expected ? { expected } : {}) },

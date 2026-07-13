@@ -1,4 +1,5 @@
 import { createOptionsPersistence } from "../src/options/options-persistence.ts";
+import { assertApplySucceeded } from "../src/options/options-save.ts";
 
 const schema = {
   keys: [
@@ -8,15 +9,20 @@ const schema = {
   types: { BOOL: "BOOL", VALUE: "VALUE" },
 };
 
+const acknowledgement = (applied: Record<string, unknown>) => ({
+  type: "APPLY_CONFIG_RESULT" as const,
+  body: { version: 1, applied, rejected: [] },
+});
+
 describe("options persistence", () => {
   test("restores schema keys and updates the known persisted snapshot", async () => {
     const onRestore = vi.fn();
     const persistence = createOptionsPersistence({
       getSchema: () => Promise.resolve(schema),
       getStored: vi.fn(() => Promise.resolve({ paths: "images" })),
-      apply: vi.fn(),
+      apply: vi.fn(async () => acknowledgement({})),
       collect: vi.fn(),
-      assertApplied: vi.fn(),
+      assertApplied: assertApplySucceeded,
       markSaved: vi.fn(),
       assertUndoSafe: vi.fn(),
       onRestore,
@@ -32,8 +38,8 @@ describe("options persistence", () => {
     let undo: (() => Promise<void>) | undefined;
     const apply = vi
       .fn()
-      .mockResolvedValueOnce({ body: { applied: { paths: "images" } } })
-      .mockResolvedValueOnce({ body: { applied: { paths: "." } } });
+      .mockResolvedValueOnce(acknowledgement({ paths: "images" }))
+      .mockResolvedValueOnce(acknowledgement({ paths: "." }));
     const markSaved = vi.fn((_changes, callback?: () => Promise<void>) => {
       undo = callback;
     });
@@ -42,7 +48,7 @@ describe("options persistence", () => {
       getStored: vi.fn(() => Promise.resolve({ paths: ".", links: true })),
       apply,
       collect: vi.fn(() => ({ paths: "images" })),
-      assertApplied: vi.fn(),
+      assertApplied: assertApplySucceeded,
       markSaved,
       assertUndoSafe: vi.fn(),
       onRestore: vi.fn(),
@@ -62,13 +68,13 @@ describe("options persistence", () => {
     const schemaReady = new Promise<typeof schema>((resolve) => {
       resolveSchema = resolve;
     });
-    const apply = vi.fn(() => Promise.resolve({ body: { applied: { paths: "captured" } } }));
+    const apply = vi.fn(() => Promise.resolve(acknowledgement({ paths: "captured" })));
     const persistence = createOptionsPersistence({
       getSchema: () => schemaReady,
       getStored: vi.fn(),
       apply,
       collect: vi.fn(() => ({ paths: "later-dom-value" })),
-      assertApplied: vi.fn(),
+      assertApplied: assertApplySucceeded,
       markSaved: vi.fn(),
       assertUndoSafe: vi.fn(),
       onRestore: vi.fn(),

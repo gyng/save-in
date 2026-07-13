@@ -136,6 +136,16 @@ describe("FirefoxRdp request", () => {
 });
 
 describe("FirefoxRdp evaluate", () => {
+  test("rejects a malformed asynchronous evaluation acknowledgement", async () => {
+    const sock = makeSocket();
+    const client = new FirefoxRdp(sock);
+    const evaluated = client.evaluate("console1", '"hello"');
+
+    sock.emit("data", frame({ from: "console1", resultID: 42 }));
+
+    await expect(evaluated).rejects.toThrow("evaluateJSAsync did not return resultID");
+  });
+
   test("retrieves the complete value represented by a long-string grip", async () => {
     const sock = makeSocket();
     const client = new FirefoxRdp(sock);

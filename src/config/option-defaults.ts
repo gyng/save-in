@@ -1,0 +1,56 @@
+import { CONFLICT_ACTION, SHORTCUT_TYPES } from "../shared/constants.ts";
+import { CONTENT_OPTION_DEFAULTS } from "./content-options.ts";
+
+// Keep raw defaults in a dependency-leaf module. The live options bag needs
+// them synchronously, while the full schema depends on routing validators that
+// already read that bag.
+export const OPTION_DEFAULTS = {
+  ...CONTENT_OPTION_DEFAULTS,
+  conflictAction: CONFLICT_ACTION.UNIQUIFY,
+  debug: false,
+  enableLastLocation: true,
+  enableNumberedItems: true,
+  filenamePatterns: "",
+  keyLastUsed: "e",
+  keyRoot: "e",
+  preferLinks: false,
+  preferLinksFilterEnabled: false,
+  preferLinksFilter: ".*commons.wikimedia.org/wiki/File:.*",
+  notifyDuration: 7000,
+  notifyOnFailure: true,
+  notifyOnRuleMatch: true,
+  notifyOnSuccess: true,
+  notifyOnLinkPreferred: true,
+  page: true,
+  paths: ". // (alias: Downloads)\nimages\nimages/cats\n>images/cats/tabby\nvideos",
+  prompt: false,
+  promptIfNoExtension: false,
+  promptOnFailure: true,
+  promptOnShift: true,
+  replacementChar: "_",
+  routeExclusive: false,
+  routeFailurePrompt: false,
+  selection: true,
+  shortcutLink: false,
+  shortcutMedia: false,
+  shortcutPage: false,
+  shortcutTab: false,
+  shortcutType: SHORTCUT_TYPES.HTML_REDIRECT,
+  truncateLength: 240,
+  appendMimeExtension: true,
+  fetchViaFetch: false,
+  fallbackFetch: true,
+  includeFetchCredentials: true,
+  externalDownloadAllowlist: "",
+  trackBrowserDownloads: false,
+  routeBrowserDownloads: false,
+  browserDownloadFilter: "",
+  browserDownloadExcludeFilter: "",
+  routeBrowserDownloadsFirefox: false,
+  tabEnabled: false,
+  closeTabOnSave: false,
+  setRefererHeader: false,
+  setRefererHeaderFilter: "*://i.pximg.net/*",
+} as const;
+
+export const defaultOptions = () => ({ ...OPTION_DEFAULTS });

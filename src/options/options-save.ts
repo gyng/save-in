@@ -1,13 +1,6 @@
-type ApplyRejection = { name?: unknown; reason?: unknown };
-type ApplyResponse = {
-  type?: unknown;
-  body?: { applied?: unknown; rejected?: unknown };
-};
-
-type SuccessfulApplyResponse = ApplyResponse & {
-  type: "APPLY_CONFIG_RESULT";
-  body: { applied: Record<string, unknown>; rejected: ApplyRejection[] };
-};
+import { MESSAGE_TYPES } from "../shared/constants.ts";
+import { isStringKeyedRecord } from "../shared/message-protocol.ts";
+import type { SuccessfulApplyConfigResponse } from "../shared/message-protocol.ts";
 
 type OptionSchema = {
   keys: Array<{ name: string; type: string }>;
@@ -31,27 +24,38 @@ export const collectOptionConfig = (schema: OptionSchema, scope?: string) =>
     return config;
   }, {});
 
-export const assertApplySucceeded = (response: unknown): SuccessfulApplyResponse => {
+const isApplyRejection = (value: unknown): value is { name: string; reason: string } =>
+  isStringKeyedRecord(value) && typeof value.name === "string" && typeof value.reason === "string";
+
+const isSuccessfulApplyResponse = (response: unknown): response is SuccessfulApplyConfigResponse =>
+  isStringKeyedRecord(response) &&
+  response.type === MESSAGE_TYPES.APPLY_CONFIG_RESULT &&
+  isStringKeyedRecord(response.body) &&
+  typeof response.body.version === "number" &&
+  Number.isSafeInteger(response.body.version) &&
+  isStringKeyedRecord(response.body.applied) &&
+  Array.isArray(response.body.rejected) &&
+  response.body.rejected.every(isApplyRejection);
+
+export const assertApplySucceeded = (response: unknown): SuccessfulApplyConfigResponse => {
   if (
     !isStringKeyedRecord(response) ||
-    response.type !== "APPLY_CONFIG_RESULT" ||
+    response.type !== MESSAGE_TYPES.APPLY_CONFIG_RESULT ||
     !isStringKeyedRecord(response.body)
   ) {
     throw new Error("No save acknowledgement was received");
   }
-  const body = response.body;
-  if (!isStringKeyedRecord(body.applied) || !Array.isArray(body.rejected)) {
+  if (!isSuccessfulApplyResponse(response)) {
     throw new Error("Invalid save acknowledgement was received");
   }
-  const rejected = body.rejected as ApplyRejection[];
-  if (rejected.length) {
+  if (response.body.rejected.length) {
     throw new Error(
-      rejected
-        .map((item) => `${String(item.name || "option")}: ${String(item.reason || "rejected")}`)
+      response.body.rejected
+        .map((item) => `${item.name || "option"}: ${item.reason || "rejected"}`)
         .join(", "),
     );
   }
-  return response as SuccessfulApplyResponse;
+  return response;
 };
 
 export const getAppliedValue = (response: unknown, name: string): unknown => {
@@ -63,4 +67,3 @@ export const getAppliedValue = (response: unknown, name: string): unknown => {
     ? Reflect.get(applied, name)
     : undefined;
 };
-import { isStringKeyedRecord } from "../shared/message-protocol.ts";

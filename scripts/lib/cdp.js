@@ -4,9 +4,53 @@
 // the global WebSocket). Used by dev-chrome.js and e2e-chrome.js.
 
 /** @typedef {{id: string, type: string, url: string, webSocketDebuggerUrl: string}} CdpTarget */
-/** @typedef {{resolve: (value: any) => void, reject: (error: unknown) => void}} PendingCommand */
+/** @typedef {{resolve: (value: unknown) => void, reject: (error: unknown) => void}} PendingCommand */
+/**
+ * @typedef {{
+ *   "Runtime.enable": {params: Record<string, never>, result: Record<string, unknown>},
+ *   "Runtime.evaluate": {
+ *     params: {expression: string, awaitPromise?: boolean, returnByValue?: boolean},
+ *     result: {
+ *       result: {value: unknown},
+ *       exceptionDetails?: {exception?: {description?: string}}
+ *     }
+ *   },
+ *   "Target.createTarget": {params: {url: string}, result: {targetId: string}},
+ *   "Target.closeTarget": {params: {targetId: string}, result: {success?: boolean}},
+ *   "Extensions.loadUnpacked": {params: {path: string}, result: {id: string}},
+ *   "Emulation.setDeviceMetricsOverride": {
+ *     params: {
+ *       width: number, height: number, deviceScaleFactor: number, mobile: boolean,
+ *       screenWidth: number, screenHeight: number
+ *     },
+ *     result: Record<string, unknown>
+ *   },
+ *   "Emulation.setDefaultBackgroundColorOverride": {
+ *     params: {color: {r: number, g: number, b: number, a: number}},
+ *     result: Record<string, unknown>
+ *   },
+ *   "Emulation.setEmulatedMedia": {
+ *     params: {features: Array<{name: string, value: string}>},
+ *     result: Record<string, unknown>
+ *   },
+ *   "Page.enable": {params: Record<string, never>, result: Record<string, unknown>},
+ *   "Page.bringToFront": {params: Record<string, never>, result: Record<string, unknown>},
+ *   "Page.reload": {params: {ignoreCache?: boolean}, result: Record<string, unknown>},
+ *   "Page.captureScreenshot": {
+ *     params: {
+ *       format: "png", fromSurface: boolean, captureBeyondViewport: boolean
+ *     },
+ *     result: {data: string}
+ *   },
+ *   "Input.dispatchKeyEvent": {params: Record<string, unknown>, result: Record<string, unknown>},
+ *   "Input.dispatchMouseEvent": {params: Record<string, unknown>, result: Record<string, unknown>}
+ * }} CdpCommandMap
+ */
 
-/** @param {number} port @param {string} path @param {number} [timeoutMs] @returns {Promise<any>} */
+/** @param {unknown} value @returns {value is Record<string, unknown>} */
+const isRecord = (value) => value != null && typeof value === "object" && !Array.isArray(value);
+
+/** @param {number} port @param {string} path @param {number} [timeoutMs] @returns {Promise<unknown>} */
 const getJson = async (port, path, timeoutMs = 5000) => {
   const res = await fetch(`http://127.0.0.1:${port}${path}`, {
     signal: AbortSignal.timeout(timeoutMs),
@@ -25,15 +69,23 @@ class Cdp {
     /** @type {Map<number, PendingCommand>} */
     this.pending = new Map();
     ws.addEventListener("message", (ev) => {
-      const msg = JSON.parse(String(ev.data));
+      /** @type {unknown} */
+      const parsed = JSON.parse(String(ev.data));
       if (process.env.CDP_DEBUG) console.error("CDP <-", ev.data);
-      if (msg.id && this.pending.has(msg.id)) {
-        const pending = this.pending.get(msg.id);
-        if (!pending) return;
+      if (!isRecord(parsed) || typeof parsed.id !== "number") return;
+      const pending = this.pending.get(parsed.id);
+      if (pending) {
         const { resolve, reject } = pending;
-        this.pending.delete(msg.id);
-        if (msg.error) reject(new Error(msg.error.message || "CDP error"));
-        else resolve(msg.result);
+        this.pending.delete(parsed.id);
+        if (isRecord(parsed.error)) {
+          reject(
+            new Error(
+              typeof parsed.error.message === "string" ? parsed.error.message : "CDP error",
+            ),
+          );
+        } else {
+          resolve(parsed.result);
+        }
       }
     });
     ws.addEventListener("close", () => this.failPending(new Error("CDP connection closed")));
@@ -69,13 +121,20 @@ class Cdp {
     return new Cdp(ws);
   }
 
-  /** @param {string} method @param {Record<string, any>} [params] @param {number} [timeoutMs] @returns {Promise<any>} */
-  send(method, params = {}, timeoutMs = 15000) {
+  /**
+   * @template {keyof CdpCommandMap} Method
+   * @param {Method} method
+   * @param {CdpCommandMap[Method]["params"]} [params]
+   * @param {number} [timeoutMs]
+   * @returns {Promise<CdpCommandMap[Method]["result"]>}
+   */
+  send(method, params, timeoutMs = 15000) {
     this.id += 1;
     const id = this.id;
-    const message = JSON.stringify({ id, method, params });
+    const message = JSON.stringify({ id, method, params: params ?? {} });
     if (process.env.CDP_DEBUG) console.error("CDP ->", message);
-    return new Promise((resolve, reject) => {
+    /** @type {Promise<CdpCommandMap[Method]["result"]>} */
+    const command = new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
         this.pending.delete(id);
         reject(new Error(`CDP timeout: ${method}`));
@@ -84,7 +143,7 @@ class Cdp {
       this.pending.set(id, {
         resolve: (value) => {
           clearTimeout(timer);
-          resolve(value);
+          resolve(/** @type {CdpCommandMap[Method]["result"]} */ (value));
         },
         reject: (error) => {
           clearTimeout(timer);
@@ -99,6 +158,7 @@ class Cdp {
         reject(error);
       }
     });
+    return command;
   }
 
   close() {
@@ -119,6 +179,9 @@ const connectBrowser = async (port, attempts = 5) => {
       // Refresh the browser endpoint on every attempt; Chrome can replace it
       // while finishing startup.
       const version = await getJson(port, "/json/version");
+      if (!isRecord(version) || typeof version.webSocketDebuggerUrl !== "string") {
+        throw new Error("CDP version endpoint did not include a WebSocket debugger URL");
+      }
       return await Cdp.connect(version.webSocketDebuggerUrl);
     } catch (error) {
       lastError = error;
@@ -128,8 +191,22 @@ const connectBrowser = async (port, attempts = 5) => {
   throw lastError;
 };
 
+/** @param {unknown} value @returns {value is CdpTarget} */
+const isCdpTarget = (value) =>
+  isRecord(value) &&
+  typeof value.id === "string" &&
+  typeof value.type === "string" &&
+  typeof value.url === "string" &&
+  typeof value.webSocketDebuggerUrl === "string";
+
 /** @param {number} port @returns {Promise<CdpTarget[]>} */
-const listTargets = (port) => getJson(port, "/json");
+const listTargets = async (port) => {
+  const targets = await getJson(port, "/json");
+  if (!Array.isArray(targets) || !targets.every(isCdpTarget)) {
+    throw new Error("CDP target endpoint returned an invalid target list");
+  }
+  return targets;
+};
 
 /** @param {CdpTarget[]} targets @param {string} [expectedResource] */
 const extensionIdFromTargets = (targets, expectedResource = "background.sw.js") => {
@@ -226,7 +303,16 @@ const evalInServiceWorker = async (port, extensionId, expression) => {
 // Dispatches trusted input events (Input domain) to the first target whose
 // URL contains urlSubstr. Synthetic DOM events don't carry legacy fields
 // like keyCode across content-script world boundaries; real input does.
-/** @param {number} port @param {string} urlSubstr @param {Array<{method: string, params: Record<string, any>}>} events */
+/**
+ * @typedef {"Input.dispatchKeyEvent" | "Input.dispatchMouseEvent"} InputCommand
+ * @typedef {{
+ *   [Method in InputCommand]: {
+ *     method: Method,
+ *     params: CdpCommandMap[Method]["params"]
+ *   }
+ * }[InputCommand]} InputEvent
+ */
+/** @param {number} port @param {string} urlSubstr @param {InputEvent[]} events */
 const dispatchInput = async (port, urlSubstr, events) => {
   const target = (await listTargets(port)).find((t) => t.url.includes(urlSubstr));
   if (!target) {

@@ -207,10 +207,11 @@ const launch = async () => {
       let ready = false;
       try {
         const tabConsole = await connectedRdp.getTabConsoleActor("src/options/options.html");
-        ready = await connectedRdp.evaluate(
-          tabConsole,
-          'browser.runtime.sendMessage({ type: "WAKE_WARM" }).then((response) => response?.type === "OK", () => false)',
-        );
+        ready =
+          (await connectedRdp.evaluate(
+            tabConsole,
+            'browser.runtime.sendMessage({ type: "WAKE_WARM" }).then((response) => response?.type === "OK", () => false)',
+          )) === true;
       } catch {
         // The options target may not be attachable until its first document loads.
       }

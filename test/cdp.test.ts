@@ -1,12 +1,15 @@
 import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
-const { Cdp, extensionIdFromTargets, getJson } = require("../scripts/lib/cdp.js") as {
+const { Cdp, extensionIdFromTargets, getJson, listTargets } = require("../scripts/lib/cdp.js") as {
   Cdp: new (socket: FakeSocket) => {
     send: (method: string, params?: object, timeoutMs?: number) => Promise<unknown>;
     close: () => void;
   };
   getJson: (port: number, path: string, timeoutMs?: number) => Promise<unknown>;
+  listTargets: (
+    port: number,
+  ) => Promise<Array<{ id: string; type: string; url: string; webSocketDebuggerUrl: string }>>;
   extensionIdFromTargets: (
     targets: Array<{ type: string; url: string; webSocketDebuggerUrl: string }>,
     expectedResource?: string,
@@ -68,6 +71,18 @@ describe("CDP transport", () => {
       "CDP endpoint /json/version returned 503 Unavailable",
     );
     expect(fetchMock.mock.calls[0]![1]!).toMatchObject({ signal: expect.any(AbortSignal) });
+  });
+
+  test("rejects malformed target discovery payloads", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve([{ type: "page", url: "about:blank" }]),
+      }),
+    );
+
+    await expect(listTargets(9555)).rejects.toThrow("invalid target list");
   });
 });
 
