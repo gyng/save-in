@@ -69,11 +69,12 @@ export const RuleBuilder = {
           option.textContent = name;
           matcher.appendChild(option);
         });
-        // fileext is the most common matcher; context (first in the routing
-        // object order) is an obscure default
-        if ([...matcher.options].some((o) => o.value === "fileext")) {
-          matcher.value = "fileext";
-        }
+        // Prefer URL-path extension matching for new rules because it ignores
+        // query strings and fragments. Keep fileext as a compatibility fallback
+        // when an older background does not advertise urlfileext yet.
+        const matcherNames = [...matcher.options].map((option) => option.value);
+        if (matcherNames.includes("urlfileext")) matcher.value = "urlfileext";
+        else if (matcherNames.includes("fileext")) matcher.value = "fileext";
         updatePatternPlaceholder();
         sync();
       })

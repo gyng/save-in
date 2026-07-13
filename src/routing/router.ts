@@ -95,10 +95,11 @@ export const traceRules = async (rules: RoutingRule[], info: RoutingInfo): Promi
   const selected = selectedIndex >= 0 ? rules[selectedIndex] : undefined;
   const destination = selected ? matchRule(selected, info) || null : null;
   const actualFilename = info.filename || "";
-  const sourceUrl = info.sourceUrl || info.srcUrl || info.linkUrl || info.pageUrl;
+  const sourceUrl = info.sourceUrl || info.srcUrl;
+  const downloadUrl = info.url || sourceUrl || info.linkUrl || info.pageUrl;
   const traceInfo: RoutingDownloadInfo = {
     ...(info as RoutingDownloadInfo),
-    url: info.url || sourceUrl,
+    url: downloadUrl,
     sourceUrl,
     now: info.now instanceof Date ? info.now : new Date(),
     preview: true,

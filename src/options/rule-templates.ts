@@ -63,7 +63,7 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     name: "PDFs into a documents folder",
     description: "Collects every PDF in one place",
     example: "Example: documents/report.pdf",
-    rule: "fileext: pdf\ninto: documents/:filename:",
+    rule: "urlfileext: pdf\ninto: documents/:filename:",
     proof: {
       info: { sourceUrl: "https://example.test/report.pdf" },
       destination: "documents/:filename:",
@@ -74,7 +74,7 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     name: "Archives into one folder",
     description: "Collects zip, rar, 7z, tar, and compressed archives",
     example: "Example: archives/project.zip",
-    rule: "fileext/i: (zip|rar|7z|tar|gz|tgz|bz2|xz)\ninto: archives/:filename:",
+    rule: "urlfileext/i: (zip|rar|7z|tar|gz|tgz|bz2|xz)\ninto: archives/:filename:",
     proof: {
       info: { sourceUrl: "https://example.test/project.zip", filename: "project.zip" },
       destination: "archives/:filename:",
@@ -85,7 +85,7 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     name: "Documents into one folder",
     description: "Collects common office and text documents",
     example: "Example: documents/notes.docx",
-    rule: "fileext/i: (pdf|docx?|xlsx?|pptx?|odt|ods|rtf|txt|csv)\ninto: documents/:filename:",
+    rule: "urlfileext/i: (pdf|docx?|xlsx?|pptx?|odt|ods|rtf|txt|csv)\ninto: documents/:filename:",
     proof: {
       info: { sourceUrl: "https://example.test/notes.docx", filename: "notes.docx" },
       destination: "documents/:filename:",
@@ -96,7 +96,7 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     name: "E-books and comics",
     description: "Collects common e-book and digital comic formats",
     example: "Example: books/novel.epub",
-    rule: "fileext/i: (epub|mobi|azw3?|pdf|cbz|cbr)\ninto: books/:filename:",
+    rule: "urlfileext/i: (epub|mobi|azw3?|pdf|cbz|cbr)\ninto: books/:filename:",
     proof: {
       info: { sourceUrl: "https://example.test/novel.epub", filename: "novel.epub" },
       destination: "books/:filename:",
@@ -107,7 +107,7 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     name: "Apps and installers",
     description: "Keeps desktop and mobile installation packages together",
     example: "Example: installers/setup.msi",
-    rule: "fileext/i: (exe|msi|dmg|pkg|deb|rpm|appimage|apk)\ninto: installers/:filename:",
+    rule: "urlfileext/i: (exe|msi|dmg|pkg|deb|rpm|appimage|apk)\ninto: installers/:filename:",
     proof: {
       info: { sourceUrl: "https://example.test/setup.msi", filename: "setup.msi" },
       destination: "installers/:filename:",
@@ -118,7 +118,7 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     name: "Fonts into one folder",
     description: "Collects desktop and web font files",
     example: "Example: fonts/inter.woff2",
-    rule: "fileext/i: (ttf|otf|woff2?|eot)\ninto: fonts/:filename:",
+    rule: "urlfileext/i: (ttf|otf|woff2?|eot)\ninto: fonts/:filename:",
     proof: {
       info: { sourceUrl: "https://example.test/inter.woff2", filename: "inter.woff2" },
       destination: "fonts/:filename:",
@@ -129,7 +129,7 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     name: "One folder per file extension",
     description: "Captures the extension and uses it as a folder name",
     example: "Example: files/png/screenshot.png",
-    rule: "fileext: (.+)\ncapture: fileext\ninto: files/:$1:/:filename:",
+    rule: "urlfileext: (.+)\ncapture: urlfileext\ninto: files/:$1:/:filename:",
     proof: {
       info: { sourceUrl: "https://example.test/screenshot.png", filename: "screenshot.png" },
       destination: "files/png/:filename:",
@@ -140,7 +140,7 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     name: "Date-stamp every download",
     description: "Prefixes the original filename with the save date",
     example: "Example: 2026-07-12-report.pdf",
-    rule: "sourceurl: .*\ninto: :date:-:filename:",
+    rule: "filename: .*\ninto: :date:-:filename:",
     proof: {
       info: { sourceUrl: "https://example.test/report.pdf" },
       destination: ":date:-:filename:",
@@ -151,7 +151,7 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     name: "Daily inbox",
     description: "Creates one folder for each calendar day",
     example: "Example: inbox/2026/07/12/report.pdf",
-    rule: "sourceurl: .*\ninto: inbox/:year:/:month:/:day:/:filename:",
+    rule: "filename: .*\ninto: inbox/:year:/:month:/:day:/:filename:",
     proof: {
       info: { sourceUrl: "https://example.test/report.pdf" },
       destination: "inbox/:year:/:month:/:day:/:filename:",
@@ -162,7 +162,7 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     name: "Downloads by month",
     description: "Creates year and month folders while keeping the original filename",
     example: "Example: archive/2026/07/report.pdf",
-    rule: "sourceurl: .*\ninto: archive/:year:/:month:/:filename:",
+    rule: "filename: .*\ninto: archive/:year:/:month:/:filename:",
     proof: {
       info: { sourceUrl: "https://example.test/report.pdf" },
       destination: "archive/:year:/:month:/:filename:",
@@ -173,7 +173,7 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     name: "Weekly inbox",
     description: "Creates one inbox folder for each ISO week",
     example: "Example: inbox/2026-w28/report.pdf",
-    rule: "sourceurl: .*\ninto: inbox/:year:-w:isoweek:/:filename:",
+    rule: "filename: .*\ninto: inbox/:year:-w:isoweek:/:filename:",
     proof: {
       info: { sourceUrl: "https://example.test/report.pdf" },
       destination: "inbox/:year:-w:isoweek:/:filename:",
@@ -184,7 +184,7 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     name: "Sequential archive",
     description: "Prefixes files with Save In's persistent download counter",
     example: "Example: archive/42-report.pdf",
-    rule: "sourceurl: .*\ninto: archive/:counter:-:filename:",
+    rule: "filename: .*\ninto: archive/:counter:-:filename:",
     proof: {
       info: { sourceUrl: "https://example.test/report.pdf" },
       destination: "archive/:counter:-:filename:",
@@ -195,7 +195,7 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     name: "One site, one folder",
     description: "Routes one chosen website into its own folder",
     example: "Example: example/an-interesting-page/report.pdf",
-    rule: "pagedomain: example\\.com\ninto: example/:pagetitleslug:/:filename:",
+    rule: "pagedomain: (^|\\.)example\\.com$\ninto: example/:pagetitleslug:/:filename:",
     proof: {
       info: { pageUrl: "https://example.com/an-interesting-page" },
       destination: "example/:pagetitleslug:/:filename:",
@@ -232,7 +232,7 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     name: "Page-title prefix",
     description: "Adds a filesystem-safe page title before the original filename",
     example: "Example: pages/an-interesting-page-report.pdf",
-    rule: "sourceurl: .*\ninto: pages/:pagetitleslug:-:filename:",
+    rule: "pagetitle: .+\ninto: pages/:pagetitleslug:-:filename:",
     proof: {
       info: { sourceUrl: "https://example.test/report.pdf" },
       destination: "pages/:pagetitleslug:-:filename:",
