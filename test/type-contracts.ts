@@ -2,6 +2,7 @@
 import { expectTypeOf } from "vitest";
 
 import type { CounterWriteState } from "../src/background/counter.ts";
+import { handleContextMenuClick } from "../src/background/menu-click.ts";
 import type { SaveInOptions } from "../src/config/option-schema.ts";
 import type { UiTheme } from "../src/config/content-options.ts";
 import type {
@@ -48,6 +49,7 @@ expectTypeOf<CounterWriteState["queue"]>().toEqualTypeOf<Promise<unknown>>();
 expectTypeOf<SessionWriteState["queues"]>().toEqualTypeOf<Map<string, Promise<unknown>>>();
 expectTypeOf<DownloadsState["records"]>().toEqualTypeOf<Map<number, DownloadRecord>>();
 expectTypeOf<DownloadsState["hydration"]>().toEqualTypeOf<Promise<void> | null>();
+expectTypeOf(handleContextMenuClick({ menuItemId: "save-in-0" })).toEqualTypeOf<Promise<void>>();
 
 type CheckRoutesRequest = Extract<InternalMessage, { type: "CHECK_ROUTES" }>;
 type CheckRoutesSuccess = Extract<
