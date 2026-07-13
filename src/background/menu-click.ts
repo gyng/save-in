@@ -1,4 +1,5 @@
 import { webExtensionApi } from "../platform/web-extension-api.ts";
+import { getMessage } from "../platform/localization.ts";
 import { toggleSourcePanelForTab } from "./source-panel-state.ts";
 
 // Click handling for the save-in context menu: routes clicks on path
@@ -187,7 +188,7 @@ export const addDownloadListener = () => {
         // Fire the notifications the pure decision flagged
         if (target.notifyLinkPreferred && options.notifyOnLinkPreferred) {
           Notifier.createExtensionNotification(
-            webExtensionApi.i18n.getMessage("notificationLinkPreferred"),
+            getMessage("notificationLinkPreferred"),
             url,
             undefined,
             EXTENSION_NOTIFICATION_STREAMS.LINK_PREFERRED,
@@ -195,7 +196,7 @@ export const addDownloadListener = () => {
         }
         if (target.badPatternError) {
           Notifier.createExtensionNotification(
-            webExtensionApi.i18n.getMessage("notificationBadPreferLinksPattern"),
+            getMessage("notificationBadPreferLinksPattern"),
             target.badPatternError as string,
             undefined,
             EXTENSION_NOTIFICATION_STREAMS.PREFER_LINKS_PATTERN_ERROR,

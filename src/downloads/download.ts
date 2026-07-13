@@ -1,4 +1,5 @@
 import { webExtensionApi } from "../platform/web-extension-api.ts";
+import { getMessage } from "../platform/localization.ts";
 
 /* eslint-disable no-unused-vars */
 
@@ -579,10 +580,8 @@ export const Download = {
       if (url && Download.generatedObjectUrls.delete(url)) URL.revokeObjectURL(url);
       if ((state.needRouteMatch || options.routeExclusive) && options.notifyOnFailure) {
         Notifier.createExtensionNotification(
-          webExtensionApi.i18n.getMessage("notificationRuleMatchFailedExclusiveTitle"),
-          webExtensionApi.i18n.getMessage("notificationRuleMatchFailedExclusiveMessage", [
-            state.info.url ?? "",
-          ]),
+          getMessage("notificationRuleMatchFailedExclusiveTitle"),
+          getMessage("notificationRuleMatchFailedExclusiveMessage", [state.info.url ?? ""]),
           true,
           EXTENSION_NOTIFICATION_STREAMS.ROUTE_MISS,
         );
@@ -611,7 +610,7 @@ export const Download = {
     if (state.route) {
       if (options.notifyOnRuleMatch) {
         Notifier.createExtensionNotification(
-          webExtensionApi.i18n.getMessage("notificationRuleMatchedTitle"),
+          getMessage("notificationRuleMatchedTitle"),
           `${state.info.initialFilename}\n⬇\n${state.route}`,
           false,
           EXTENSION_NOTIFICATION_STREAMS.ROUTE_MATCH,

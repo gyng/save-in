@@ -53,6 +53,26 @@ describe("options form semantics", () => {
     ).not.toBeNull();
   });
 
+  test("places the opt-in language selector before reference tools and labels AI choices", () => {
+    const document = documentForOptions();
+    const selector = document.querySelector<HTMLSelectElement>("#uiLocale")!;
+    const tools = document.querySelector(".reference-launcher-tabs")!;
+    expect(selector.compareDocumentPosition(tools) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(selector.closest(".top-nav-tools")).not.toBeNull();
+    expect(selector.options[0]?.value).toBe("");
+    expect(selector.options[0]?.textContent).toContain("__MSG_o_lBrowserDefault__");
+    expect(selector.options[1]?.value).toBe("en");
+    expect(selector.options[1]?.textContent).toBe("English");
+    expect([...selector.options].slice(2)).toHaveLength(10);
+    expect([...selector.options].slice(2).every((option) => option.text.endsWith("(AI)"))).toBe(
+      true,
+    );
+    expect([...selector.options].map((option) => option.value)).toEqual(
+      expect.arrayContaining(["nl_AI", "sv_AI"]),
+    );
+    expect([...selector.options].map((option) => option.value)).toContain("zh_TW");
+  });
+
   test("save-dialog conditions are grouped beneath a regular-size prompt", () => {
     const document = documentForOptions();
     const prompt = document.querySelector(".save-dialog-conditions-label");

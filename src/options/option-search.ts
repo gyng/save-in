@@ -1,4 +1,4 @@
-import { webExtensionApi } from "../platform/web-extension-api.ts";
+import { getMessage } from "../platform/localization.ts";
 
 type SearchEntry = { control: HTMLElement; label: string; section: string };
 
@@ -58,7 +58,7 @@ export const setupOptionSearch = (): void => {
   input.dataset.runtimeControl = "true";
   input.type = "search";
   input.autocomplete = "off";
-  input.placeholder = webExtensionApi.i18n.getMessage("o_lSearchOptions") || "Search options";
+  input.placeholder = getMessage("o_lSearchOptions") || "Search options";
   input.setAttribute("aria-label", input.placeholder);
   input.setAttribute("role", "combobox");
   input.setAttribute("aria-autocomplete", "list");

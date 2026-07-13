@@ -207,6 +207,52 @@ test("service worker initialises cleanly", async () => {
   expect(state.noObjectUrl).toBe(true);
 });
 
+test("options can opt into AI localization and explicitly return to English", async () => {
+  const choices = JSON.parse(
+    await evalOptions(`JSON.stringify([...document.querySelectorAll("#uiLocale option")].map((option) => ({
+      value: option.value,
+      label: option.textContent,
+    })))`),
+  );
+  expect(choices.filter(({ label }) => label.endsWith("(AI)"))).toHaveLength(10);
+  expect(choices).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({ value: "en", label: "English" }),
+      expect.objectContaining({ value: "zh_TW", label: "繁體中文 (AI)" }),
+    ]),
+  );
+
+  await evalOptions(`(() => {
+    const select = document.querySelector("#uiLocale");
+    select.value = "de";
+    select.dispatchEvent(new Event("change"));
+  })()`);
+  await poll(
+    async () =>
+      (await evalOptions(`document.querySelector("#section-downloads")?.textContent.trim()`)) ===
+      "Downloads-Menü",
+    { description: "German AI locale reload" },
+  );
+
+  await evalOptions(`(() => {
+    const select = document.querySelector("#uiLocale");
+    select.value = "en";
+    select.dispatchEvent(new Event("change"));
+  })()`);
+  await poll(
+    async () =>
+      (await evalOptions(`document.querySelector("#section-downloads")?.textContent.trim()`)) ===
+      "Downloads menu",
+    { description: "explicit English locale reload" },
+  );
+
+  await evalOptions(`chrome.storage.local.set({ uiLocale: "" }).then(() => location.reload())`);
+  await poll(async () => (await evalOptions(`document.querySelector("#uiLocale")?.value`)) === "", {
+    description: "browser-default locale restore",
+  });
+  await evalSW(`api.reset().then(() => "browser-default locale restored")`);
+});
+
 test("options page works under MV3 CSP with live first-party autocomplete", async () => {
   const result = JSON.parse(
     await evalOptions(`(async () => {

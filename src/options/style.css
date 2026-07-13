@@ -337,6 +337,26 @@ body:not(#settings-page) {
   margin-left: auto;
 }
 
+.language-selector {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  white-space: nowrap;
+}
+
+.language-selector > span,
+.language-error {
+  font-size: var(--text-sm);
+}
+
+.language-selector select {
+  max-width: 230px;
+}
+
+.language-error {
+  color: var(--error-fg);
+}
+
 .save-status span {
   font-size: inherit;
 }
@@ -2884,6 +2904,40 @@ button {
 }
 
 /* ── More Options → External API (issue #110) ─────────────────────── */
+
+.external-download-rejections {
+  max-width: 640px;
+  margin: var(--space-2) 0;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--error-border);
+  border-radius: var(--radius);
+  background: var(--error-bg);
+}
+
+.external-download-rejections-title {
+  font-weight: 600;
+}
+
+.external-download-rejection {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  border-top: 1px solid var(--panel-border);
+}
+
+.external-download-rejection-details {
+  min-width: 0;
+}
+
+.external-download-rejection-details code {
+  overflow-wrap: anywhere;
+}
+
+.external-download-rejection-add {
+  flex: 0 0 auto;
+}
 
 .dev-api {
   max-width: 640px;

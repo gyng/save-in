@@ -1,5 +1,6 @@
 // Background composition root; listener registration remains synchronous.
 import { webExtensionApi } from "../platform/web-extension-api.ts";
+import { getMessage, initializeLocalization } from "../platform/localization.ts";
 
 import { OptionsManagement } from "../config/option.ts";
 import { options } from "../config/options-data.ts";
@@ -45,7 +46,7 @@ export const configureBackgroundPorts = () => {
     retry: Download.retryViaFetch,
   });
   configureRoutingPorts({
-    getMessage: (key) => webExtensionApi.i18n.getMessage(key),
+    getMessage,
     getCurrentTab: () => currentTab,
     isDebug: () => backgroundRuntime.debug,
     recordRuleErrors: (errors) => backgroundRuntime.optionErrors.filenamePatterns.push(...errors),
@@ -61,7 +62,10 @@ backgroundRuntime.init = () => {
   resetRuntimeDiagnostics();
 
   return Promise.all([
-    OptionsManagement.loadOptions(),
+    OptionsManagement.loadOptions().then(async (loaded) => {
+      await initializeLocalization(loaded.uiLocale);
+      return loaded;
+    }),
     webExtensionApi.storage.local.get([LAST_USED_PATH_STORAGE_KEY, LAST_USED_META_STORAGE_KEY]),
     webExtensionApi.contextMenus.removeAll(),
     // Rebuild the in-memory download records from storage.session before any

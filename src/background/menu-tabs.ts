@@ -1,4 +1,5 @@
 import { webExtensionApi } from "../platform/web-extension-api.ts";
+import { getMessage } from "../platform/localization.ts";
 
 // Tab-strip context menus (`tab` context): menu creation,
 // the multi-select highlight counter, and the tab-save click handler.
@@ -23,31 +24,31 @@ export const addTabMenus = () => {
 
   webExtensionApi.contextMenus.create({
     id: MENU_IDS.TABSTRIP.SELECTED_TAB,
-    title: webExtensionApi.i18n.getMessage("tabstripMenuSelectedTab"),
+    title: getMessage("tabstripMenuSelectedTab"),
     contexts: ["tab"],
   });
 
   webExtensionApi.contextMenus.create({
     id: MENU_IDS.TABSTRIP.SELECTED_MULTIPLE_TABS,
-    title: webExtensionApi.i18n.getMessage("tabstripMenuMultipleSelectedTab", [1]),
+    title: getMessage("tabstripMenuMultipleSelectedTab", [1]),
     contexts: ["tab"],
   });
 
   webExtensionApi.contextMenus.create({
     id: MENU_IDS.TABSTRIP.OPENED_FROM_TAB,
-    title: webExtensionApi.i18n.getMessage("tabstripMenuSaveChildrenTabs"),
+    title: getMessage("tabstripMenuSaveChildrenTabs"),
     contexts: ["tab"],
   });
 
   webExtensionApi.contextMenus.create({
     id: MENU_IDS.TABSTRIP.TO_RIGHT,
-    title: webExtensionApi.i18n.getMessage("tabstripMenuSaveRightTabs"),
+    title: getMessage("tabstripMenuSaveRightTabs"),
     contexts: ["tab"],
   });
 
   webExtensionApi.contextMenus.create({
     id: MENU_IDS.TABSTRIP.TO_RIGHT_MATCH,
-    title: webExtensionApi.i18n.getMessage("tabstripMenuSaveRightTabsMatched"),
+    title: getMessage("tabstripMenuSaveRightTabsMatched"),
     contexts: ["tab"],
   });
 };
@@ -73,7 +74,7 @@ export const addTabHighlightListener = () => {
       const length = highlightInfo.tabIds.length;
       await Promise.resolve(
         webExtensionApi.contextMenus.update(MENU_IDS.TABSTRIP.SELECTED_MULTIPLE_TABS, {
-          title: webExtensionApi.i18n.getMessage("tabstripMenuMultipleSelectedTab", [length]),
+          title: getMessage("tabstripMenuMultipleSelectedTab", [length]),
           contexts: ["tab"],
         }),
       ).catch(() => {});

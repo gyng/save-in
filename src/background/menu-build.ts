@@ -1,4 +1,5 @@
 import { webExtensionApi } from "../platform/web-extension-api.ts";
+import { getMessage } from "../platform/localization.ts";
 
 // Context menu construction: parses the paths option into a menu tree
 // (`buildTree`, pure) and renders it with webExtensionApi.contextMenus.create.
@@ -124,7 +125,7 @@ export const setAccesskey = (str: string, key: string | number, override?: strin
 export const addRoot = (contexts: string[]) => {
   webExtensionApi.contextMenus.create({
     id: MENU_IDS.ROOT,
-    title: setAccesskey(webExtensionApi.i18n.getMessage("contextMenuRoot"), options.keyRoot),
+    title: setAccesskey(getMessage("contextMenuRoot"), options.keyRoot),
     contexts: asMenuContexts(contexts),
   });
 };
@@ -132,7 +133,7 @@ export const addRoot = (contexts: string[]) => {
 export const addRouteExclusive = (contexts: string[]) => {
   webExtensionApi.contextMenus.create({
     id: MENU_IDS.ROUTE_EXCLUSIVE,
-    title: setAccesskey(webExtensionApi.i18n.getMessage("contextMenuExclusive"), options.keyRoot),
+    title: setAccesskey(getMessage("contextMenuExclusive"), options.keyRoot),
     contexts: asMenuContexts(contexts),
   });
 };
@@ -141,7 +142,7 @@ export const addSelectionType = (contexts: string[]) => {
   if (contexts.includes("link")) {
     webExtensionApi.contextMenus.create({
       id: "download-context-media-link",
-      title: webExtensionApi.i18n.getMessage("contextMenuContextMediaOrLink"),
+      title: getMessage("contextMenuContextMediaOrLink"),
       enabled: false,
       contexts: asMenuContexts(MEDIA_TYPES.concat("link")),
       parentId: MENU_IDS.ROOT,
@@ -149,7 +150,7 @@ export const addSelectionType = (contexts: string[]) => {
   } else {
     webExtensionApi.contextMenus.create({
       id: "download-context-media",
-      title: webExtensionApi.i18n.getMessage("contextMenuContextMedia"),
+      title: getMessage("contextMenuContextMedia"),
       enabled: false,
       contexts: asMenuContexts(MEDIA_TYPES),
       parentId: MENU_IDS.ROOT,
@@ -159,7 +160,7 @@ export const addSelectionType = (contexts: string[]) => {
   if (contexts.includes("selection")) {
     webExtensionApi.contextMenus.create({
       id: "download-context-selection",
-      title: webExtensionApi.i18n.getMessage("contextMenuContextSelection"),
+      title: getMessage("contextMenuContextSelection"),
       enabled: false,
       contexts: ["selection"],
       parentId: MENU_IDS.ROOT,
@@ -169,7 +170,7 @@ export const addSelectionType = (contexts: string[]) => {
   if (contexts.includes("page")) {
     webExtensionApi.contextMenus.create({
       id: "download-context-page",
-      title: webExtensionApi.i18n.getMessage("contextMenuContextPage"),
+      title: getMessage("contextMenuContextPage"),
       enabled: false,
       contexts: ["page"],
       parentId: MENU_IDS.ROOT,
@@ -180,7 +181,7 @@ export const addSelectionType = (contexts: string[]) => {
 export const addOptions = (contexts: string[]) => {
   webExtensionApi.contextMenus.create({
     id: "options",
-    title: webExtensionApi.i18n.getMessage("contextMenuItemOptions"),
+    title: getMessage("contextMenuItemOptions"),
     contexts: asMenuContexts(contexts),
     parentId: "save-in-root",
   });
@@ -189,7 +190,7 @@ export const addOptions = (contexts: string[]) => {
 export const addSourcePanel = (contexts: string[]) => {
   webExtensionApi.contextMenus.create({
     id: "toggle-source-panel",
-    title: webExtensionApi.i18n.getMessage("contextMenuToggleSourcePanel") || "Toggle Page Sources",
+    title: getMessage("contextMenuToggleSourcePanel") || "Toggle Page Sources",
     contexts: asMenuContexts(contexts),
     parentId: MENU_IDS.ROOT,
   });
@@ -198,15 +199,14 @@ export const addSourcePanel = (contexts: string[]) => {
 export const addShowDefaultFolder = (contexts: string[]) => {
   webExtensionApi.contextMenus.create({
     id: "show-default-folder",
-    title: webExtensionApi.i18n.getMessage("contextMenuShowDefaultFolder"),
+    title: getMessage("contextMenuShowDefaultFolder"),
     contexts: asMenuContexts(contexts),
     parentId: MENU_IDS.ROOT,
   });
 };
 
 export const addLastUsed = (contexts: string[]) => {
-  const lastUsedTitle =
-    menuState.lastUsedPath || webExtensionApi.i18n.getMessage("contextMenuLastUsed");
+  const lastUsedTitle = menuState.lastUsedPath || getMessage("contextMenuLastUsed");
   const lastUsedMenuOptions = {
     id: MENU_IDS.LAST_USED,
     title: setAccesskey(lastUsedTitle, options.keyLastUsed),

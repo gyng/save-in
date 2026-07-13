@@ -1,5 +1,6 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { extname, join, resolve } from "node:path";
+import { GENERATED_LOCALES } from "../src/shared/generated-locales.ts";
 
 type Message = {
   message: string;
@@ -32,7 +33,7 @@ const collectRuntimeMessageKeys = (): Set<string> => {
 
   for (const file of listSourceFiles(resolve("src")).filter((path) => extname(path) === ".ts")) {
     const source = readFileSync(file, "utf8");
-    for (const match of source.matchAll(/\.getMessage\(\s*["']([A-Za-z0-9_]+)["']/g)) {
+    for (const match of source.matchAll(/\bgetMessage\(\s*["']([A-Za-z0-9_]+)["']/g)) {
       keys.add(match[1]);
     }
   }
@@ -85,5 +86,32 @@ test("partial legacy translations do not retain keys outside the English schema"
   for (const locale of locales.filter((candidate) => candidate !== "en")) {
     const extraKeys = Object.keys(readCatalog(locale)).filter((key) => !canonicalKeys.has(key));
     expect(extraKeys, locale).toEqual([]);
+  }
+});
+
+test("AI-generated catalogs completely implement the English schema", () => {
+  const canonical = readCatalog("en");
+  const canonicalKeys = Object.keys(canonical).toSorted();
+  for (const { locale } of GENERATED_LOCALES) {
+    const catalog = JSON.parse(
+      readFileSync(resolve(`src/i18n/generated/${locale}/messages.json`), "utf8"),
+    ) as Catalog;
+    expect(Object.keys(catalog).toSorted(), locale).toEqual(canonicalKeys);
+    expect(
+      canonicalKeys.filter(
+        (key) =>
+          JSON.stringify(catalog[key]?.placeholders ?? {}) !==
+          JSON.stringify(canonical[key]?.placeholders ?? {}),
+      ),
+      `${locale} placeholders`,
+    ).toEqual([]);
+    expect(
+      canonicalKeys.filter((key) => catalog[key]?.message.includes("__SI_TOKEN_")),
+      `${locale} protected translation tokens`,
+    ).toEqual([]);
+    expect(
+      canonicalKeys.filter((key) => catalog[key]?.message !== canonical[key]?.message).length,
+      `${locale} translated messages`,
+    ).toBeGreaterThan(canonicalKeys.length * 0.8);
   }
 });

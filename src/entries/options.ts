@@ -8,6 +8,8 @@
 // <head> scripts
 import "../platform/web-extension-api.ts";
 import { localizeDocument } from "../options/l10n.ts";
+import { getMessage, initializeLocalization } from "../platform/localization.ts";
+import { webExtensionApi } from "../platform/web-extension-api.ts";
 import "../shared/constants.ts";
 import "../platform/chrome-detector.ts";
 
@@ -28,11 +30,14 @@ import { setupOptionSearch } from "../options/option-search.ts";
 import { setupSourceShortcut } from "../options/source-shortcut.ts";
 import "../options/webmcp.ts";
 import { setupAboutDialog } from "../options/about-dialog.ts";
+import { setupLanguageSelector } from "../options/language-selector.ts";
 
 document.addEventListener(
   "DOMContentLoaded",
-  () => {
-    localizeDocument();
+  async () => {
+    const stored = await webExtensionApi.storage.local.get("uiLocale").catch(() => ({}));
+    await initializeLocalization(Reflect.get(stored, "uiLocale"));
+    localizeDocument(getMessage);
     void renderHistory();
     setupOptionsPage();
     void setupPermissionsBanner();
@@ -43,6 +48,7 @@ document.addEventListener(
     setupOptionSearch();
     setupSourceShortcut();
     setupAboutDialog();
+    setupLanguageSelector();
   },
   { once: true },
 );

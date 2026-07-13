@@ -13,8 +13,10 @@ type ManualEditor = {
 // Owns the dirty/baseline state shared by the text and visual representations
 // of the two manual-save editors. DOM ids and Apply/Discard attributes remain
 // the stable boundary used by the existing options page and older profiles.
-export const createManualEditorState = (unsavedLabel: string) => {
+export const createManualEditorState = (unsavedLabel: string | (() => string)) => {
   const editors: ManualEditor[] = [];
+  const getUnsavedLabel = () =>
+    typeof unsavedLabel === "function" ? unsavedLabel() : unsavedLabel;
 
   const setup = (id: string) => {
     const textarea = document.querySelector(`#${id}`) as HTMLTextAreaElement;
@@ -29,7 +31,7 @@ export const createManualEditorState = (unsavedLabel: string) => {
       const status = document.createElement("span");
       status.className = "editor-dirty-status";
       status.setAttribute("aria-hidden", "true");
-      status.textContent = unsavedLabel;
+      status.textContent = getUnsavedLabel();
       status.hidden = true;
       row!.insertBefore(status, row!.querySelector(`[data-discard="${id}"]`));
       return status;
@@ -63,7 +65,7 @@ export const createManualEditorState = (unsavedLabel: string) => {
       });
       statuses.forEach((status) => {
         status.hidden = !dirty;
-        if (!editor.saving) status.textContent = unsavedLabel;
+        if (!editor.saving) status.textContent = getUnsavedLabel();
       });
       helpers.forEach((helper) => {
         helper.hidden = !dirty;
@@ -181,7 +183,7 @@ export const createManualEditorState = (unsavedLabel: string) => {
     editor.saved = editor.textarea.value;
     editor.saving = false;
     editor.statuses.forEach((status) => {
-      status.textContent = label || unsavedLabel;
+      status.textContent = label || getUnsavedLabel();
     });
     editor.sync();
     editor.saveStatus.textContent = label || "";

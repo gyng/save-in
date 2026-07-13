@@ -1,4 +1,5 @@
 import { webExtensionApi } from "../platform/web-extension-api.ts";
+import { getMessage } from "../platform/localization.ts";
 import { configureRoutingPorts } from "../routing/ports.ts";
 import { COUNTER_KEY } from "../shared/storage-keys.ts";
 import type { OptionSchema } from "./options-persistence.ts";
@@ -40,7 +41,7 @@ export const createOptionsRuntime = (api: typeof webExtensionApi) => {
   return {
     configure() {
       configureRoutingPorts({
-        getMessage: (key) => api.i18n.getMessage(key),
+        getMessage,
         peekCounter: async () => {
           const stored = await api.storage.local.get(COUNTER_KEY);
           const value = stored[COUNTER_KEY];

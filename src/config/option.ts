@@ -45,6 +45,7 @@ export const OptionsManagement: OptionsManagementApi = {
     sourcePanelResourceHints: "Best-effort discovery of HLS and DASH manifests in resource timing.",
     sourcePanelLinks: "Include safe page links, classifying linked media and PDF documents.",
     debug: "Write extra routing and download details to the browser developer console.",
+    uiLocale: "Options, menu, and notification language (blank = browser default).",
     enableLastLocation: "Show a 'last used' item at the top of the menu.",
     enableNumberedItems: "Add number-key access keys to submenu items.",
     filenamePatterns: "Routing/rename rules (matcher / capture / into blocks).",

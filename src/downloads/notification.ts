@@ -1,4 +1,5 @@
 import { webExtensionApi } from "../platform/web-extension-api.ts";
+import { getMessage } from "../platform/localization.ts";
 
 // https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/notifications
 
@@ -156,9 +157,9 @@ export const Notifier = {
     const id = `save-in-not-${stream}`;
     queueExtensionNotification(id, {
       type: "basic",
-      title: title || webExtensionApi.i18n.getMessage("extensionName"),
+      title: title || getMessage("extensionName"),
       iconUrl: error ? ERROR_ICON_URL : INFO_ICON_URL,
-      message: message || webExtensionApi.i18n.getMessage("genericUnknownError"),
+      message: message || getMessage("genericUnknownError"),
     });
   },
 
@@ -172,8 +173,8 @@ export const Notifier = {
       return;
     }
     Notifier.createExtensionNotification(
-      webExtensionApi.i18n.getMessage("notificationFailureTitle", [name || ""]),
-      message || webExtensionApi.i18n.getMessage("genericUnknownError"),
+      getMessage("notificationFailureTitle", [name || ""]),
+      message || getMessage("genericUnknownError"),
       true,
       EXTENSION_NOTIFICATION_STREAMS.DOWNLOAD_FAILURE,
     );
@@ -497,11 +498,9 @@ export const Notifier = {
               String(downloadDelta.id),
               {
                 type: "basic",
-                title: webExtensionApi.i18n.getMessage("notificationFailureTitle", [filename]),
+                title: getMessage("notificationFailureTitle", [filename]),
                 iconUrl: ERROR_ICON_URL,
-                message:
-                  downloadFailureReason(failed) ||
-                  webExtensionApi.i18n.getMessage("genericUnknownError"),
+                message: downloadFailureReason(failed) || getMessage("genericUnknownError"),
               },
               notifyDuration,
             );
@@ -569,7 +568,7 @@ export const Notifier = {
         const res = await webExtensionApi.downloads.search({ id: downloadDelta.id });
         const completedItem = res[0];
         const mime = completedItem?.mime;
-        const successfulLabel = webExtensionApi.i18n.getMessage("notificationSuccessTitle");
+        const successfulLabel = getMessage("notificationSuccessTitle");
         const title = buildSuccessNotificationTitle(successfulLabel, completedItem?.fileSize, mime);
 
         createNotification(

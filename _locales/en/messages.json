@@ -448,6 +448,18 @@
     "message": "Help & resources"
   },
 
+  "o_lLanguage": {
+    "message": "Language"
+  },
+
+  "o_lBrowserDefault": {
+    "message": "Browser default"
+  },
+
+  "o_lLanguageChangeFailed": {
+    "message": "Could not change the language. Try again."
+  },
+
   "o_lRoutingLastDownload": {
     "message": "Last download"
   },

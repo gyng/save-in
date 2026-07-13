@@ -103,6 +103,16 @@ describe("OptionsManagement", () => {
       expect(resolved.includeFetchCredentials).toBe(true);
     });
 
+    test("uses the browser locale unless an available AI locale is selected", async () => {
+      expect((await OptionsManagement.loadOptions()).uiLocale).toBe("");
+      global.browser.storage.local.get = vi.fn(() => Promise.resolve({ uiLocale: "en" }));
+      expect((await OptionsManagement.loadOptions()).uiLocale).toBe("en");
+      global.browser.storage.local.get = vi.fn(() => Promise.resolve({ uiLocale: "zh_TW" }));
+      expect((await OptionsManagement.loadOptions()).uiLocale).toBe("zh_TW");
+      global.browser.storage.local.get = vi.fn(() => Promise.resolve({ uiLocale: "unknown" }));
+      expect((await OptionsManagement.loadOptions()).uiLocale).toBe("");
+    });
+
     test("enables credentials for legacy profiles without a stored preference", async () => {
       global.browser.storage.local.get = vi.fn(() => Promise.resolve({ fallbackFetch: true }));
       global.browser.storage.local.set = vi.fn(() => Promise.resolve());

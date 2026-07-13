@@ -1,4 +1,5 @@
 import { webExtensionApi } from "../platform/web-extension-api.ts";
+import { getMessage } from "../platform/localization.ts";
 
 import { normalizeKeyComboForDisplay } from "./options-logic.ts";
 import { renderHistory } from "./history-panel.ts";
@@ -184,9 +185,7 @@ const errorChannel = (panel: Element, name: string) => {
 const updateErrorSummary = (panel: Element) => {
   panel.setAttribute(
     "aria-label",
-    panel.textContent?.trim() ||
-      webExtensionApi.i18n.getMessage("o_lNoValidationErrors") ||
-      "No validation errors",
+    panel.textContent?.trim() || getMessage("o_lNoValidationErrors") || "No validation errors",
   );
 };
 
@@ -237,15 +236,13 @@ const validationRequests = createLatestOnly(
       channel.innerHTML = "";
       const retry = document.createElement("button");
       retry.type = "button";
-      retry.textContent =
-        webExtensionApi.i18n.getMessage("o_bRetryValidation") || "Retry validation";
+      retry.textContent = getMessage("o_bRetryValidation") || "Retry validation";
       retry.addEventListener("click", () => {
         manualEditorState.setValidationPending(id);
         renderValidationErrors(id);
       });
       channel.append(
-        webExtensionApi.i18n.getMessage("o_lValidationUnavailable") ||
-          "Validation is temporarily unavailable. ",
+        getMessage("o_lValidationUnavailable") || "Validation is temporarily unavailable. ",
         retry,
       );
       updateErrorSummary(panel);
@@ -506,7 +503,7 @@ window.addEventListener("beforeunload", (e) => {
 // differs from what is stored, and dims once applied. Every other control
 // still autosaves.
 const manualEditorState = createManualEditorState(
-  webExtensionApi.i18n.getMessage("optionsEditorUnsaved") || "Unsaved changes",
+  () => getMessage("optionsEditorUnsaved") || "Unsaved changes",
 );
 const setupManualEditor = manualEditorState.setup;
 const refreshManualEditorBaselines = manualEditorState.refreshBaselines;
@@ -520,7 +517,7 @@ const showManualSaveError = (id: string, error: unknown) => {
   channel.appendChild(
     renderErrorRow(
       {
-        message: webExtensionApi.i18n.getMessage("o_lSaveFailed") || "Could not save changes",
+        message: getMessage("o_lSaveFailed") || "Could not save changes",
         error: String(error),
         warning: false,
       },
@@ -541,8 +538,7 @@ export const confirmPendingChanges = async (): Promise<boolean> => {
     return true;
   }
   const message =
-    webExtensionApi.i18n.getMessage("optionsUnsavedChanges") ||
-    "Discard your unsaved changes, or keep editing?";
+    getMessage("optionsUnsavedChanges") || "Discard your unsaved changes, or keep editing?";
   if ((await showUnsavedChangesDialog(message)) === "keep") return false;
   pendingSaveCancellers.forEach((cancel) => cancel());
   manualEditorState.dirtyIds().forEach((id) => manualEditorState.discard(id));
@@ -561,18 +557,17 @@ const showAutosaveFailure = (element: Element, retrySave: () => void) => {
   status.className = "autosave-error";
   status.dataset.autosaveError = element.id;
   status.setAttribute("role", "alert");
-  status.append(
-    webExtensionApi.i18n.getMessage("o_lAutosaveFailed") || "Could not save this setting. ",
-  );
+  status.append(getMessage("o_lAutosaveFailed") || "Could not save this setting. ");
   const retry = document.createElement("button");
   retry.type = "button";
-  retry.textContent = webExtensionApi.i18n.getMessage("o_bRetrySave") || "Retry save";
+  retry.textContent = getMessage("o_bRetrySave") || "Retry save";
   retry.addEventListener("click", retrySave);
   status.appendChild(retry);
   element.insertAdjacentElement("afterend", status);
 };
 
 const setupAutosave = (el: Element) => {
+  if (el.hasAttribute("data-no-autosave")) return;
   if (
     !(
       el instanceof HTMLInputElement ||
@@ -751,7 +746,7 @@ const renderMenuPreview = (container: Element, tree: MenuPreviewTree) => {
     row.className = "menu-preview-row";
     const title = document.createElement("span");
     title.className = "menu-preview-title";
-    title.textContent = webExtensionApi.i18n.getMessage("contextMenuLastUsed");
+    title.textContent = getMessage("contextMenuLastUsed");
     row.appendChild(title);
     linkOptionPreview(row, lastUsed, "Show the Last used menu setting");
     li.appendChild(row);
@@ -873,16 +868,12 @@ document.querySelectorAll("[data-apply]").forEach((button) => {
     const id = button.getAttribute("data-apply") || "";
     const submittedValue = document.querySelector<HTMLTextAreaElement>(`#${id}`)?.value;
     const revision = manualEditorState.revision(id);
-    manualEditorState.setSaving(
-      id,
-      true,
-      webExtensionApi.i18n.getMessage("o_lSaving") || "Saving…",
-    );
+    manualEditorState.setSaving(id, true, getMessage("o_lSaving") || "Saving…");
     try {
       const response = await saveOptions(undefined, id, submittedValue);
       manualEditorState.markSaved(
         id,
-        webExtensionApi.i18n.getMessage("o_lSaved") || "Saved",
+        getMessage("o_lSaved") || "Saved",
         getAppliedValue(response, id),
         revision,
       );

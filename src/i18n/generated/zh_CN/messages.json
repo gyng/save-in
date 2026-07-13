@@ -1,0 +1,704 @@
+{
+  "extensionName": {
+    "message": "Save In…"
+  },
+  "extensionDescription": {
+    "message": "将{图像、视频、音频、链接、选择、页面}保存在相对于默认下载目录的目录中。"
+  },
+  "translationCredits": {
+    "message": "​"
+  },
+  "genericUnknownError": {
+    "message": "未知错误"
+  },
+  "contextMenuItemOptions": {
+    "message": "选项"
+  },
+  "contextMenuToggleSourcePanel": {
+    "message": "切换页面源"
+  },
+  "contextMenuExclusive": {
+    "message": "Save In 路线..."
+  },
+  "contextMenuRoot": {
+    "message": "Save In…"
+  },
+  "contextMenuLastUsed": {
+    "message": "最后使用"
+  },
+  "contextMenuContextMedia": {
+    "message": "媒体"
+  },
+  "contextMenuContextMediaOrLink": {
+    "message": "媒体或链接"
+  },
+  "contextMenuContextSelection": {
+    "message": "选择文本"
+  },
+  "contextMenuContextPage": {
+    "message": "页"
+  },
+  "contextMenuShowDefaultFolder": {
+    "message": "打开默认文件夹"
+  },
+  "notificationSuccessTitle": {
+    "message": "已保存"
+  },
+  "notificationFailureTitle": {
+    "message": "无法保存 $FILENAME$。",
+    "placeholders": {
+      "filename": {
+        "content": "$1",
+        "example": "my_filename.jpg"
+      }
+    }
+  },
+  "notificationRuleMatchedTitle": {
+    "message": "Save In：规则匹配"
+  },
+  "notificationRuleMatchFailedExclusiveTitle": {
+    "message": "Save In：无法路由或重命名下载"
+  },
+  "notificationRuleMatchFailedExclusiveMessage": {
+    "message": "找不到 $URL$ 的匹配规则",
+    "placeholders": {
+      "url": {
+        "content": "$1",
+        "example": "www.google.jpg"
+      }
+    }
+  },
+  "ruleMissingMatcher": {
+    "message": "规则需要至少一个匹配子句"
+  },
+  "ruleCaptureMissingMatcher": {
+    "message": "捕获子句不是针对匹配器"
+  },
+  "ruleMissingCapture": {
+    "message": "规则需要捕获子句才能使用捕获变量"
+  },
+  "ruleMultipleCapture": {
+    "message": "规则只能有一个捕获子句"
+  },
+  "ruleMissingInto": {
+    "message": "规则需要至少一个 into 子句"
+  },
+  "ruleExtraInto": {
+    "message": "规则只能有一个 into 子句"
+  },
+  "ruleUnknownMatcher": {
+    "message": "未知匹配器"
+  },
+  "ruleInvalidRegex": {
+    "message": "正则表达式无效"
+  },
+  "ruleShadowed": {
+    "message": "永远无法达到规则，因为较早的规则具有相同或更广泛的匹配"
+  },
+  "ruleBadClause": {
+    "message": "坏条款"
+  },
+  "rulePathInvalidCharacter": {
+    "message": "路径包含无效字符"
+  },
+  "rulePathStartsWithDot": {
+    "message": "路径不能以 .. 或 / 开头"
+  },
+  "tabstripMenuSelectedTab": {
+    "message": "保存选定的选项卡"
+  },
+  "tabstripMenuMultipleSelectedTab": {
+    "message": "保存突出显示的选项卡 ($COUNT$)",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "5"
+      }
+    }
+  },
+  "tabstripMenuSaveChildrenTabs": {
+    "message": "保存从此选项卡打开的其他选项卡"
+  },
+  "tabstripMenuSaveRightTabs": {
+    "message": "将所有选项卡保存到右侧，包括这个"
+  },
+  "tabstripMenuSaveRightTabsMatched": {
+    "message": "将所有选项卡保存到右侧，包括此选项卡（必须与路线匹配）"
+  },
+  "o_sDownloads": {
+    "message": "下载菜单"
+  },
+  "o_sDirectories": {
+    "message": "目录"
+  },
+  "o_sBehavior": {
+    "message": "行为"
+  },
+  "o_sSaveDialog": {
+    "message": "保存对话框"
+  },
+  "o_sExistingFiles": {
+    "message": "现有文件"
+  },
+  "o_lContextMenuBehaviorHelp": {
+    "message": "选择上下文菜单中显示的 Save In 操作。"
+  },
+  "o_lAlsoAskWhen": {
+    "message": "还询问在以下情况下保存在哪里："
+  },
+  "o_sDynamicDownloads": {
+    "message": "路由规则"
+  },
+  "o_sBrowserDownloads": {
+    "message": "浏览器下载"
+  },
+  "o_lBrowserDownloadsHelp": {
+    "message": "选择处理由网页或浏览器本身启动的下载。排除由 Save In 或其他扩展名启动的下载。"
+  },
+  "o_cTrackBrowserDownloads": {
+    "message": "将普通浏览器下载包含在 Save In 历史记录中"
+  },
+  "o_cTrackBrowserDownloadsHelp": {
+    "message": "在 Save In 历史记录中记录匹配的下载，而不获取它们的所有权。它们不会重试，也不会触发 Save In 提示或通知。"
+  },
+  "o_cRouteBrowserDownloads": {
+    "message": "对所有浏览器下载使用路由规则"
+  },
+  "o_cRouteBrowserDownloadsHelp": {
+    "message": "当浏览器实现时使用 downloads.onDeterminingFilename 。匹配规则可能会重命名普通浏览器下载或将其放入子目录中。无与伦比的下载量保持不变。"
+  },
+  "o_cRouteBrowserDownloadsFirefox": {
+    "message": "在 Firefox 上实验性地重新路由匹配下载"
+  },
+  "o_cRouteBrowserDownloadsFirefoxHelp": {
+    "message": "实验性且具有潜在的破坏性。 Firefox 目前没有实现 downloads.onDeterminingFilename，因此 Save In 取消了原来的并开始替换。如果 Firefox 添加了原生 API，该选项将自动消失。 POST 下载、过期 URL、特殊请求标头和某些经过身份验证的下载可能会失败。"
+  },
+  "o_lFirefoxFilenameApiBug": {
+    "message": "Mozilla 错误 1245652"
+  },
+  "o_cBrowserDownloadFilter": {
+    "message": "只处理匹配的下载 URL（可选）"
+  },
+  "o_cBrowserDownloadFilterHelp": {
+    "message": "Blank 可以处理所有普通浏览器的下载。否则，每行输入一个 WebExtension 匹配模式，例如 *://*.example.com/* 或 https://example.com/files/*. 该过滤器适用于历史记录跟踪和路由。"
+  },
+  "o_cBrowserDownloadExcludeFilter": {
+    "message": "排除匹配的下载 URL（可选）"
+  },
+  "o_cBrowserDownloadExcludeFilterHelp": {
+    "message": "每行输入一个 WebExtension 匹配模式。排除会覆盖上面的匹配 URL，并适用于历史记录跟踪和路由。"
+  },
+  "o_lBrowserDownloadVariables": {
+    "message": "浏览器下载仅提供 URL、建议的文件名、当前时间、计数器、UUID 和 MIME 变量。页面标题、页面 URL、链接文本、选择、菜单元数据和按键修饰符不可用。"
+  },
+  "o_sRenameAndRouteDownloads": {
+    "message": "重命名和路由下载"
+  },
+  "o_sNotifications": {
+    "message": "通知"
+  },
+  "o_sSaveAsShortcuts": {
+    "message": "快捷方式文件"
+  },
+  "o_sKeyboardShortcuts": {
+    "message": "点击保存"
+  },
+  "o_sContextMenu": {
+    "message": "上下文菜单访问键"
+  },
+  "o_sMoreOptions": {
+    "message": "先进的"
+  },
+  "o_sHistory": {
+    "message": "历史"
+  },
+  "o_sPageSources": {
+    "message": "页面来源"
+  },
+  "o_lPageSourcesHelp": {
+    "message": "浏览当前页面上的图像、视频、音频、文档和可下载链接。保存的项目使用正常的路由和重命名规则。"
+  },
+  "o_lPageSourcesNetworkLimit": {
+    "message": "某些视频播放器使用临时 URL 或通过脚本加载媒体，因此 Save In 可能无法检测到每个视频。有时它可以找到流视频播放列表（HLS/DASH），但这些文件仅列出单独的视频片段；保存一个视频并不会保存完整的视频。"
+  },
+  "o_cSourcePanelEnabled": {
+    "message": "启用页面源"
+  },
+  "o_cSourcePanelBackgrounds": {
+    "message": "包含 CSS 背景图像"
+  },
+  "o_cSourcePanelLive": {
+    "message": "页面媒体更改时刷新"
+  },
+  "o_cSourcePanelPreviews": {
+    "message": "显示图像和视频预览"
+  },
+  "o_cSourcePanelResourceHints": {
+    "message": "查找流视频播放列表（HLS/DASH；尽力而为）"
+  },
+  "o_cSourcePanelLinks": {
+    "message": "包括链接、链接媒体和 PDF 文档"
+  },
+  "o_lSourcePanelDiscovery": {
+    "message": "来源和预览"
+  },
+  "o_lSourcePanelShortcut": {
+    "message": "键盘快捷键"
+  },
+  "o_lSourcePanelShortcutHelp": {
+    "message": "使用浏览器快捷语法，例如 Ctrl+Shift+Y 或 Command+Shift+Y。浏览器拒绝保留的快捷方式。"
+  },
+  "o_bReset": {
+    "message": "重置"
+  },
+  "o_lHistoryFilter": {
+    "message": "按文件、文件夹、类型或来源过滤"
+  },
+  "o_lHistoryFacets": {
+    "message": "历史过滤器"
+  },
+  "o_lHistorySource": {
+    "message": "来源"
+  },
+  "o_lHistoryStatus": {
+    "message": "地位"
+  },
+  "o_lHistoryType": {
+    "message": "类型"
+  },
+  "o_lHistoryAllSources": {
+    "message": "所有来源"
+  },
+  "o_lHistoryAllStatuses": {
+    "message": "所有状态"
+  },
+  "o_lHistoryAllTypes": {
+    "message": "所有类型"
+  },
+  "o_lHistoryBrowser": {
+    "message": "浏览器"
+  },
+  "o_lHistorySaved": {
+    "message": "已保存"
+  },
+  "o_lHistorySaving": {
+    "message": "保存"
+  },
+  "o_lHistoryFailed": {
+    "message": "失败的"
+  },
+  "o_lHistoryDateSaved": {
+    "message": "保存日期"
+  },
+  "o_lHistoryAnyTime": {
+    "message": "任何时间"
+  },
+  "o_lHistoryToday": {
+    "message": "今天"
+  },
+  "o_lHistoryLast7Days": {
+    "message": "过去 7 天"
+  },
+  "o_lHistoryLast30Days": {
+    "message": "过去 30 天"
+  },
+  "o_lHistoryCustomRange": {
+    "message": "自定义日期范围"
+  },
+  "o_lHistoryStartDate": {
+    "message": "开始日期"
+  },
+  "o_lHistoryEndDate": {
+    "message": "结束日期"
+  },
+  "o_cClearHistoryFilters": {
+    "message": "清除过滤器"
+  },
+  "o_cDeleteAllHistory": {
+    "message": "删除所有历史记录..."
+  },
+  "o_lSearchOptions": {
+    "message": "搜索选项"
+  },
+  "o_lVariableList": {
+    "message": "变量列表"
+  },
+  "o_lMenuPreview": {
+    "message": "菜单预览"
+  },
+  "o_lLiveVariables": {
+    "message": "实时变量列表"
+  },
+  "o_sVisualEditor": {
+    "message": "可视化编辑器"
+  },
+  "o_bAddDirectory": {
+    "message": "目录"
+  },
+  "o_bAddSeparator": {
+    "message": "分离器"
+  },
+  "o_lClauses": {
+    "message": "条款"
+  },
+  "o_lEditorModeText": {
+    "message": "文本"
+  },
+  "o_bApply": {
+    "message": "申请"
+  },
+  "o_bDiscard": {
+    "message": "丢弃"
+  },
+  "o_lRuleBuilder": {
+    "message": "快速添加"
+  },
+  "o_lRuleTemplates": {
+    "message": "模板库"
+  },
+  "o_lClauseList": {
+    "message": "条款列表"
+  },
+  "o_lGithub": {
+    "message": "GitHub"
+  },
+  "o_lChangelog": {
+    "message": "变更日志"
+  },
+  "o_lHelpResources": {
+    "message": "帮助和资源"
+  },
+  "o_lLanguage": {
+    "message": "语言"
+  },
+  "o_lBrowserDefault": {
+    "message": "浏览器默认"
+  },
+  "o_lLanguageChangeFailed": {
+    "message": "无法更改语言。再试一次。"
+  },
+  "o_lRoutingLastDownload": {
+    "message": "上次下载"
+  },
+  "o_lRoutingLastDownloadEmpty": {
+    "message": "还没有"
+  },
+  "o_lRoutingRenamedTo": {
+    "message": "重命名为"
+  },
+  "o_lRoutingNoMatches": {
+    "message": "没有匹配项"
+  },
+  "o_lRoutingCaptureGroups": {
+    "message": "捕获组"
+  },
+  "o_lRoutingVariables": {
+    "message": "变量"
+  },
+  "o_lRoutingVariablesClickToSee": {
+    "message": "点击显示"
+  },
+  "o_lAccessKeysInstruction": {
+    "message": "设置 Save In 菜单项的访问键。"
+  },
+  "o_cLastUsedMenu": {
+    "message": "显示上次使用的菜单项"
+  },
+  "o_cSaveLinks": {
+    "message": "显示链接的操作"
+  },
+  "o_cPreferLinks": {
+    "message": "保存链接目标而不是嵌入媒体"
+  },
+  "o_cSaveText": {
+    "message": "显示所选文本的操作"
+  },
+  "o_cSavePage": {
+    "message": "显示当前页面的操作"
+  },
+  "o_cSavePageHelp": {
+    "message": "仅保存页面文档；不包括图像、样式表和其他外部文件。"
+  },
+  "o_cSaveTabstrip": {
+    "message": "在选项卡菜单中显示 Save In 操作"
+  },
+  "o_cSaveTabstripHelp": {
+    "message": "将选项卡、选项卡组或选项卡保存到右侧"
+  },
+  "o_cOpenDialog": {
+    "message": "总是询问保存在哪里"
+  },
+  "o_cOpenDialogNoExt": {
+    "message": "文件名没有扩展名"
+  },
+  "o_cOpenDialogShift": {
+    "message": "选择菜单项时按住 Shift 键"
+  },
+  "o_cOpenDialogOnFailure": {
+    "message": "下载失败"
+  },
+  "o_cDupeUniquify": {
+    "message": "创造一个独特的名字"
+  },
+  "o_cDupeOverwrite": {
+    "message": "覆盖"
+  },
+  "o_cDupePrompt": {
+    "message": "问我"
+  },
+  "o_cDupeFilename": {
+    "message": "当文件已经存在时："
+  },
+  "o_cOpenDialogIfNoRulesMatch": {
+    "message": "如果没有规则匹配，则打开保存文件对话框"
+  },
+  "o_cExclusiveMode": {
+    "message": "独占使用路由和重命名规则"
+  },
+  "o_cExclusiveModeHelp": {
+    "message": "禁用两次单击下载的子菜单，相对于默认下载目录保存"
+  },
+  "o_cNotifySuccess": {
+    "message": "下载成功时显示通知"
+  },
+  "o_cNotifyFailure": {
+    "message": "显示下载失败的通知"
+  },
+  "o_cNotifyMatch": {
+    "message": "显示有关规则匹配的通知"
+  },
+  "o_cSaveShortcutsAs": {
+    "message": "将快捷方式另存为"
+  },
+  "o_cSaveShortcutsTypeHtml": {
+    "message": "HTML 重定向"
+  },
+  "o_cSaveShortcutsTypeMac": {
+    "message": "Mac .url"
+  },
+  "o_cSaveShortcutsTypeMacWebloc": {
+    "message": "macOS .webloc"
+  },
+  "o_cSaveShortcutsTypeWindows": {
+    "message": "Windows .url"
+  },
+  "o_cSaveShortcutsTypeFreedesktop": {
+    "message": "自由桌面.desktop"
+  },
+  "o_cSaveShortcutsMediaInstead": {
+    "message": "将媒体另存为快捷方式"
+  },
+  "o_cSaveShortcutsLinksInstead": {
+    "message": "将链接另存为快捷方式"
+  },
+  "o_cSaveShortcutsPagesInstead": {
+    "message": "将页面另存为快捷方式"
+  },
+  "o_cSaveShortcutsTabsInstead": {
+    "message": "将选项卡另存为快捷方式（通过右键单击选项卡）"
+  },
+  "o_cKeyboardShortcutSaveInMenu": {
+    "message": "Save In 上下文菜单项"
+  },
+  "o_cKeyboardShortcutSubmenu": {
+    "message": "上次使用的上下文子菜单项"
+  },
+  "o_cKeyboardShortcutNumbers": {
+    "message": "将数字键快捷方式添加到上下文子菜单项"
+  },
+  "o_cKeyboardShortcutClickToSave": {
+    "message": "启用点击保存"
+  },
+  "o_cKeyboardShortcutClickToHelp": {
+    "message": "按住 Alt（默认）并单击图像或媒体，将其保存在上次使用的目录或默认下载目录中。将脚本插入页面以侦听单击事件。使用此方法时并非所有变量都可用。需要刷新页面才能生效。"
+  },
+  "o_cHostPermissionMissing": {
+    "message": "Save in 无权访问页面内容。在您授予对所有站点的访问权限之前，“单击保存”功能将不起作用。"
+  },
+  "o_cHostPermissionGrant": {
+    "message": "授予访问权限"
+  },
+  "o_cKeyboardShortcutModifierLeftClick": {
+    "message": "左键单击"
+  },
+  "o_cKeyboardShortcutModifierMiddleClick": {
+    "message": "中键单击"
+  },
+  "o_cKeyboardShortcutModifierRightClick": {
+    "message": "右键单击"
+  },
+  "o_cKeyboardShortcutModifierBackClick": {
+    "message": "返回按钮 (4)"
+  },
+  "o_cKeyboardShortcutModifierForwardClick": {
+    "message": "前进按钮 (5)"
+  },
+  "o_cKeyboardShortcutModifierHelp": {
+    "message": "按住选定的修改器，同时单击选定的鼠标按钮。在两个修饰符字段中选择“无”以单独使用鼠标按钮。更改适用于现有页面。"
+  },
+  "o_cRestoreDefaults": {
+    "message": "恢复默认值"
+  },
+  "o_cTruncatePath": {
+    "message": "将路径组件截断为这么多字符"
+  },
+  "o_cTruncatePathHelp": {
+    "message": "0 = 不截断"
+  },
+  "o_cReplaceInvalidCharsWith": {
+    "message": "将无效字符替换为"
+  },
+  "o_cReplaceInvalidCharsWithHelp": {
+    "message": "留空即可删除。无效的替换字符将被忽略。"
+  },
+  "o_cAppendMimeExtension": {
+    "message": "当文件名没有扩展名时添加文件扩展名"
+  },
+  "o_cAppendMimeExtensionHelp": {
+    "message": "对于无扩展名或带有查询后缀的 URL，从服务器的 Content-Type 派生扩展名（通过 HEAD，使用正文取消的 GET 后备）。仅当名称缺少时才添加一小段延迟。"
+  },
+  "o_cFallbackFetch": {
+    "message": "在后台重试失败的下载"
+  },
+  "o_cFallbackFetchHelp": {
+    "message": "当下载因网络或服务器错误而失败时，请在报告失败之前通过在后台获取来重试一次。"
+  },
+  "o_cFetchViaFetchAPI": {
+    "message": "通过扩展程序下载（Fetch API）"
+  },
+  "o_cFetchViaFetchAPIHelp": {
+    "message": "获取文件本身并将结果交给浏览器，而不是将浏览器的下载程序指向 URL。仅在正常下载失败时才打开它 - 某些服务器会阻止浏览器的请求或返回空文件。它速度较慢，并且在 Chrome 上，文件在保存时保存在内存中，因此在下载量很大时请避免使用它。"
+  },
+  "o_cIncludeFetchCredentials": {
+    "message": "使用网站登录 cookie 进行扩展请求"
+  },
+  "o_cIncludeFetchCredentialsHelp": {
+    "message": "默认情况下启用非私人保存。在后台 Fetch 和 HEAD 请求中包括适用的 cookie 和浏览器管理的身份验证，包括在重定向目的地；关闭此功能以匿名发出这些请求。私有窗口扩展请求始终是匿名的，因为共享后台无法选择私有 cookie 存储。直接浏览器下载管理自己的cookie。"
+  },
+  "o_cSetRefererHeader": {
+    "message": "缺失时将“Referer”标头设置为页面 URL"
+  },
+  "o_cSetRefererHeaderHelp": {
+    "message": "仅限火狐浏览器。某些网站（例如 pixiv.net）会拒绝没有 HTTP Referer 标头的下载。为了匹配下载，Firefox 直接发送页面 URL 作为 Referer。除非网站需要它，否则请将其关闭。"
+  },
+  "o_cSetRefererHeaderFilter": {
+    "message": "为这些网站设置 Referer"
+  },
+  "o_cSetRefererHeaderFilterHelp": {
+    "message": "每行一个匹配模式，例如*://i.pximg.net/*。 Referer 仅为 URL 与其中之一匹配的下载设置。"
+  },
+  "o_cImportSettings": {
+    "message": "导入设置"
+  },
+  "o_cExportSettings": {
+    "message": "导出设置"
+  },
+  "o_cDebugMode": {
+    "message": "启用详细的开发人员日志记录"
+  },
+  "o_cLastSavedAt": {
+    "message": "设置更新于："
+  },
+  "o_cLastSavedAtNever": {
+    "message": "绝不"
+  },
+  "optionsUnsavedChanges": {
+    "message": "放弃未保存的更改，还是继续编辑？"
+  },
+  "optionsEditorUnsaved": {
+    "message": "未保存的更改"
+  },
+  "o_lDirectoryDefinitions": {
+    "message": "目录菜单定义"
+  },
+  "o_lTextRules": {
+    "message": "文本规则"
+  },
+  "o_lMatcher": {
+    "message": "匹配器"
+  },
+  "o_lPattern": {
+    "message": "图案"
+  },
+  "o_lDestinationInto": {
+    "message": "目的地 (into:)"
+  },
+  "o_lSaving": {
+    "message": "保存…"
+  },
+  "o_lSaved": {
+    "message": "已保存"
+  },
+  "o_lSaveFailed": {
+    "message": "无法保存更改"
+  },
+  "o_lValidationUnavailable": {
+    "message": "暂时无法验证。"
+  },
+  "o_bRetryValidation": {
+    "message": "重试验证"
+  },
+  "o_lAutosaveFailed": {
+    "message": "无法保存此设置。"
+  },
+  "o_bRetrySave": {
+    "message": "重试保存"
+  },
+  "o_lNoValidationErrors": {
+    "message": "无验证错误"
+  },
+  "notificationLinkPreferred": {
+    "message": "而是下载了一个链接"
+  },
+  "o_cPreferLinksFilterEnabled": {
+    "message": "仅在匹配的页面上"
+  },
+  "o_cPreferLinksFilter": {
+    "message": "匹配页面 URL"
+  },
+  "o_cPreferLinksFilterHelp": {
+    "message": "每行输入一个正则表达式。模式与页面 URL 进行匹配。"
+  },
+  "notificationBadPreferLinksPattern": {
+    "message": "首选链接的正则表达式无效"
+  },
+  "o_cNotifyLinkPreferred": {
+    "message": "下载链接而不是源时显示通知"
+  },
+  "o_cCloseTabOnSave": {
+    "message": "保存后关闭每个选项卡"
+  },
+  "o_lClickToSaveButton": {
+    "message": "单击保存鼠标按钮"
+  },
+  "o_lDebugLog": {
+    "message": "调试日志"
+  },
+  "o_sAdvancedFilenames": {
+    "message": "文件名"
+  },
+  "o_sAdvancedDownloading": {
+    "message": "正在下载"
+  },
+  "o_sAdvancedCounter": {
+    "message": "柜台"
+  },
+  "o_sAdvancedBackupReset": {
+    "message": "备份与重置"
+  },
+  "o_sAdvancedDiagnostics": {
+    "message": "诊断"
+  },
+  "o_lExperimental": {
+    "message": "实验性的"
+  },
+  "o_lManualEditorSaveHelp": {
+    "message": "当您选择“应用”时，将保存此编辑器中的更改。"
+  },
+  "o_lReferenceNavigation": {
+    "message": "参考导航"
+  },
+  "o_lFilterReference": {
+    "message": "筛选"
+  }
+}

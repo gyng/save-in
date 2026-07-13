@@ -37,6 +37,24 @@
         </details>
       </div>
       <div class="top-nav-tools">
+        <label class="language-selector" for="uiLocale">
+          <span>__MSG_o_lLanguage__</span>
+          <select id="uiLocale" data-no-autosave aria-describedby="language-error">
+            <option value="">__MSG_o_lBrowserDefault__</option>
+            <option value="en">English</option>
+            <option value="de">Deutsch (AI)</option>
+            <option value="es">Español (AI)</option>
+            <option value="fr">Français (AI)</option>
+            <option value="nl_AI">Nederlands (AI)</option>
+            <option value="pt_BR">Português (Brasil) (AI)</option>
+            <option value="sv_AI">Svenska (AI)</option>
+            <option value="ja">日本語 (AI)</option>
+            <option value="ko">한국어 (AI)</option>
+            <option value="zh_CN">简体中文 (AI)</option>
+            <option value="zh_TW">繁體中文 (AI)</option>
+          </select>
+        </label>
+        <span id="language-error" class="language-error" role="alert" hidden></span>
         <div class="reference-launcher-tabs" role="tablist" aria-label="Insertion references">
           <button
             type="button"

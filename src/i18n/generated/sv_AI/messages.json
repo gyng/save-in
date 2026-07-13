@@ -1,0 +1,704 @@
+{
+  "extensionName": {
+    "message": "Save In…"
+  },
+  "extensionDescription": {
+    "message": "Sparar {bild, video, ljud, länkar, urval, sida} i kataloger i förhållande till standard nedladdningskatalog."
+  },
+  "translationCredits": {
+    "message": "​"
+  },
+  "genericUnknownError": {
+    "message": "Okänt fel"
+  },
+  "contextMenuItemOptions": {
+    "message": "Alternativ"
+  },
+  "contextMenuToggleSourcePanel": {
+    "message": "Växla sidkällor"
+  },
+  "contextMenuExclusive": {
+    "message": "Save In rutt..."
+  },
+  "contextMenuRoot": {
+    "message": "Save In…"
+  },
+  "contextMenuLastUsed": {
+    "message": "Senast använd"
+  },
+  "contextMenuContextMedia": {
+    "message": "Media"
+  },
+  "contextMenuContextMediaOrLink": {
+    "message": "Media eller länk"
+  },
+  "contextMenuContextSelection": {
+    "message": "Markeringstext"
+  },
+  "contextMenuContextPage": {
+    "message": "Sida"
+  },
+  "contextMenuShowDefaultFolder": {
+    "message": "Öppna standardmapp"
+  },
+  "notificationSuccessTitle": {
+    "message": "Sparad"
+  },
+  "notificationFailureTitle": {
+    "message": "Det gick inte att spara $FILENAME$.",
+    "placeholders": {
+      "filename": {
+        "content": "$1",
+        "example": "my_filename.jpg"
+      }
+    }
+  },
+  "notificationRuleMatchedTitle": {
+    "message": "Save In: Regel matchad"
+  },
+  "notificationRuleMatchFailedExclusiveTitle": {
+    "message": "Save In: Det gick inte att dirigera eller byta namn på nedladdningen"
+  },
+  "notificationRuleMatchFailedExclusiveMessage": {
+    "message": "Ingen matchande regel hittades för $URL$",
+    "placeholders": {
+      "url": {
+        "content": "$1",
+        "example": "www.google.jpg"
+      }
+    }
+  },
+  "ruleMissingMatcher": {
+    "message": "Regeln behöver minst en matchningsklausul"
+  },
+  "ruleCaptureMissingMatcher": {
+    "message": "Capture-satsen är inte inriktad på en matchare"
+  },
+  "ruleMissingCapture": {
+    "message": "Regel behöver en fångstsats för att använda fångstvariabler"
+  },
+  "ruleMultipleCapture": {
+    "message": "Regel kan bara ha en fångstsats"
+  },
+  "ruleMissingInto": {
+    "message": "Regel behöver minst en i klausul"
+  },
+  "ruleExtraInto": {
+    "message": "Regel kan bara ha en i klausul"
+  },
+  "ruleUnknownMatcher": {
+    "message": "Okänd matchare"
+  },
+  "ruleInvalidRegex": {
+    "message": "Ogiltigt regex"
+  },
+  "ruleShadowed": {
+    "message": "Regel kan aldrig nås eftersom en tidigare regel har samma eller bredare matchning"
+  },
+  "ruleBadClause": {
+    "message": "Dålig klausul"
+  },
+  "rulePathInvalidCharacter": {
+    "message": "Sökvägen innehåller ogiltiga tecken"
+  },
+  "rulePathStartsWithDot": {
+    "message": "Sökvägen kan inte börja med .. eller /"
+  },
+  "tabstripMenuSelectedTab": {
+    "message": "Spara vald flik"
+  },
+  "tabstripMenuMultipleSelectedTab": {
+    "message": "Spara markerade flikar ($COUNT$)",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "5"
+      }
+    }
+  },
+  "tabstripMenuSaveChildrenTabs": {
+    "message": "Spara andra flikar som öppnats från den här fliken"
+  },
+  "tabstripMenuSaveRightTabs": {
+    "message": "Spara alla flikar till höger inklusive detta"
+  },
+  "tabstripMenuSaveRightTabsMatched": {
+    "message": "Spara alla flikar till höger inklusive denna (måste matcha en rutt)"
+  },
+  "o_sDownloads": {
+    "message": "Nedladdningsmeny"
+  },
+  "o_sDirectories": {
+    "message": "Kataloger"
+  },
+  "o_sBehavior": {
+    "message": "Beteende"
+  },
+  "o_sSaveDialog": {
+    "message": "Spara dialogrutan"
+  },
+  "o_sExistingFiles": {
+    "message": "Befintliga filer"
+  },
+  "o_lContextMenuBehaviorHelp": {
+    "message": "Välj vilka Save In-åtgärder som ska visas i snabbmenyer."
+  },
+  "o_lAlsoAskWhen": {
+    "message": "Fråga också var du kan spara när:"
+  },
+  "o_sDynamicDownloads": {
+    "message": "Rutningsregler"
+  },
+  "o_sBrowserDownloads": {
+    "message": "Nedladdningar av webbläsare"
+  },
+  "o_lBrowserDownloadsHelp": {
+    "message": "Välj att hantera nedladdningar som startas av webbsidor eller webbläsaren själv. Nedladdningar som startas av Save In eller ett annat tillägg exkluderas."
+  },
+  "o_cTrackBrowserDownloads": {
+    "message": "Inkludera vanliga webbläsarnedladdningar i historiken Save In"
+  },
+  "o_cTrackBrowserDownloadsHelp": {
+    "message": "Registrerar matchande nedladdningar i historiken Save In utan att ta äganderätten till dem. De testas inte igen och utlöser inte Save In uppmaningar eller meddelanden."
+  },
+  "o_cRouteBrowserDownloads": {
+    "message": "Använd routingregler för alla webbläsarnedladdningar"
+  },
+  "o_cRouteBrowserDownloadsHelp": {
+    "message": "Använder downloads.onDeterminingFilename när webbläsaren implementerar det. Matchningsregler kan byta namn på eller placera vanliga webbläsarnedladdningar i underkataloger. Omatchade nedladdningar är oförändrade."
+  },
+  "o_cRouteBrowserDownloadsFirefox": {
+    "message": "Experimentellt omdirigera matchande nedladdningar på Firefox"
+  },
+  "o_cRouteBrowserDownloadsFirefoxHelp": {
+    "message": "Experimentell och potentiellt störande. Firefox implementerar för närvarande inte downloads.onDeterminingFilename, så Save In avbryter originalet och startar en ersättning. Det här alternativet försvinner automatiskt om Firefox lägger till det inbyggda API:et. POST-nedladdningar, webbadresser som löper ut, rubriker för speciella begäranden och vissa autentiserade nedladdningar kan misslyckas."
+  },
+  "o_lFirefoxFilenameApiBug": {
+    "message": "Mozilla bugg 1245652"
+  },
+  "o_cBrowserDownloadFilter": {
+    "message": "Hantera endast matchande nedladdningsadresser (valfritt)"
+  },
+  "o_cBrowserDownloadFilterHelp": {
+    "message": "Blank hanterar alla vanliga webbläsarnedladdningar. Ange annars ett WebExtension-matchningsmönster per rad, t.ex. *://*.example.com/* eller https://example.com/files/*. Filtret gäller historikspårning och routing."
+  },
+  "o_cBrowserDownloadExcludeFilter": {
+    "message": "Uteslut matchande nedladdningsadresser (valfritt)"
+  },
+  "o_cBrowserDownloadExcludeFilterHelp": {
+    "message": "Ange ett WebExtension-matchningsmönster per rad. Uteslutningar åsidosätter de matchande webbadresserna ovan och gäller både historikspårning och routing."
+  },
+  "o_lBrowserDownloadVariables": {
+    "message": "Webbläsarnedladdningar tillhandahåller endast URL, föreslagna filnamn, aktuell tid, räknare, UUID och MIME-variabler. Sidrubrik, sidadress, länktext, urval, menymetadata och nyckelmodifierare är inte tillgängliga."
+  },
+  "o_sRenameAndRouteDownloads": {
+    "message": "Byt namn och rutt nedladdningar"
+  },
+  "o_sNotifications": {
+    "message": "Aviseringar"
+  },
+  "o_sSaveAsShortcuts": {
+    "message": "Genvägsfiler"
+  },
+  "o_sKeyboardShortcuts": {
+    "message": "Klicka för att spara"
+  },
+  "o_sContextMenu": {
+    "message": "Åtkomsttangenter för snabbmeny"
+  },
+  "o_sMoreOptions": {
+    "message": "Avancerad"
+  },
+  "o_sHistory": {
+    "message": "Historia"
+  },
+  "o_sPageSources": {
+    "message": "Sidkällor"
+  },
+  "o_lPageSourcesHelp": {
+    "message": "Bläddra bland bilder, video, ljud, dokument och nedladdningsbara länkar som finns på den aktuella sidan. Sparade objekt använder dina vanliga regler för routing och byte av namn."
+  },
+  "o_lPageSourcesNetworkLimit": {
+    "message": "Vissa videospelare använder tillfälliga webbadresser eller laddar media genom skript, så Save In kanske inte upptäcker varje video. Det kan ibland hitta strömmande videospellistor (HLS/DASH), men dessa filer listar bara de separata videostyckena; Att spara en sparar inte hela videon."
+  },
+  "o_cSourcePanelEnabled": {
+    "message": "Aktivera sidkällor"
+  },
+  "o_cSourcePanelBackgrounds": {
+    "message": "Inkludera CSS-bakgrundsbilder"
+  },
+  "o_cSourcePanelLive": {
+    "message": "Uppdatera när sidans media ändras"
+  },
+  "o_cSourcePanelPreviews": {
+    "message": "Visa förhandsvisningar av bilder och videor"
+  },
+  "o_cSourcePanelResourceHints": {
+    "message": "Leta efter strömmande videospellistor (HLS/DASH; bästa möjliga försök)"
+  },
+  "o_cSourcePanelLinks": {
+    "message": "Inkludera länkar, länkade media och PDF-dokument"
+  },
+  "o_lSourcePanelDiscovery": {
+    "message": "Källor och förhandsvisningar"
+  },
+  "o_lSourcePanelShortcut": {
+    "message": "Kortkommando"
+  },
+  "o_lSourcePanelShortcutHelp": {
+    "message": "Använd webbläsarens genvägssyntax, till exempel Ctrl+Skift+Y eller Kommando+Skift+Y. Webbläsaren avvisar reserverade genvägar."
+  },
+  "o_bReset": {
+    "message": "Återställa"
+  },
+  "o_lHistoryFilter": {
+    "message": "Filtrera efter fil, mapp, typ eller källa"
+  },
+  "o_lHistoryFacets": {
+    "message": "Historikfilter"
+  },
+  "o_lHistorySource": {
+    "message": "Källa"
+  },
+  "o_lHistoryStatus": {
+    "message": "Status"
+  },
+  "o_lHistoryType": {
+    "message": "Typ"
+  },
+  "o_lHistoryAllSources": {
+    "message": "Alla källor"
+  },
+  "o_lHistoryAllStatuses": {
+    "message": "Alla statusar"
+  },
+  "o_lHistoryAllTypes": {
+    "message": "Alla typer"
+  },
+  "o_lHistoryBrowser": {
+    "message": "Webbläsare"
+  },
+  "o_lHistorySaved": {
+    "message": "Sparad"
+  },
+  "o_lHistorySaving": {
+    "message": "Sparande"
+  },
+  "o_lHistoryFailed": {
+    "message": "Misslyckades"
+  },
+  "o_lHistoryDateSaved": {
+    "message": "Datum sparat"
+  },
+  "o_lHistoryAnyTime": {
+    "message": "När som helst"
+  },
+  "o_lHistoryToday": {
+    "message": "I dag"
+  },
+  "o_lHistoryLast7Days": {
+    "message": "Senaste 7 dagarna"
+  },
+  "o_lHistoryLast30Days": {
+    "message": "Senaste 30 dagarna"
+  },
+  "o_lHistoryCustomRange": {
+    "message": "Anpassat datumintervall"
+  },
+  "o_lHistoryStartDate": {
+    "message": "Startdatum"
+  },
+  "o_lHistoryEndDate": {
+    "message": "Slutdatum"
+  },
+  "o_cClearHistoryFilters": {
+    "message": "Rensa filter"
+  },
+  "o_cDeleteAllHistory": {
+    "message": "Radera all historik..."
+  },
+  "o_lSearchOptions": {
+    "message": "Sökalternativ"
+  },
+  "o_lVariableList": {
+    "message": "Variabel lista"
+  },
+  "o_lMenuPreview": {
+    "message": "Menyförhandsgranskning"
+  },
+  "o_lLiveVariables": {
+    "message": "Live variabel lista"
+  },
+  "o_sVisualEditor": {
+    "message": "Visuell redaktör"
+  },
+  "o_bAddDirectory": {
+    "message": "Katalog"
+  },
+  "o_bAddSeparator": {
+    "message": "Separator"
+  },
+  "o_lClauses": {
+    "message": "Klausuler"
+  },
+  "o_lEditorModeText": {
+    "message": "Text"
+  },
+  "o_bApply": {
+    "message": "Tillämpas"
+  },
+  "o_bDiscard": {
+    "message": "Kassera"
+  },
+  "o_lRuleBuilder": {
+    "message": "Snabbt tillägg"
+  },
+  "o_lRuleTemplates": {
+    "message": "Mallbibliotek"
+  },
+  "o_lClauseList": {
+    "message": "Klausullista"
+  },
+  "o_lGithub": {
+    "message": "GitHub"
+  },
+  "o_lChangelog": {
+    "message": "Ändringslogg"
+  },
+  "o_lHelpResources": {
+    "message": "Hjälp & resurser"
+  },
+  "o_lLanguage": {
+    "message": "Språk"
+  },
+  "o_lBrowserDefault": {
+    "message": "Webbläsare som standard"
+  },
+  "o_lLanguageChangeFailed": {
+    "message": "Det gick inte att ändra språket. Försök igen."
+  },
+  "o_lRoutingLastDownload": {
+    "message": "Senaste nedladdningen"
+  },
+  "o_lRoutingLastDownloadEmpty": {
+    "message": "ingen ännu"
+  },
+  "o_lRoutingRenamedTo": {
+    "message": "Bytt namn till"
+  },
+  "o_lRoutingNoMatches": {
+    "message": "inga träffar"
+  },
+  "o_lRoutingCaptureGroups": {
+    "message": "Fånga grupper"
+  },
+  "o_lRoutingVariables": {
+    "message": "Variabler"
+  },
+  "o_lRoutingVariablesClickToSee": {
+    "message": "Klicka för att avslöja"
+  },
+  "o_lAccessKeysInstruction": {
+    "message": "Ställ in åtkomstnycklar för Save In menyalternativ."
+  },
+  "o_cLastUsedMenu": {
+    "message": "Visa senast använda menyalternativ"
+  },
+  "o_cSaveLinks": {
+    "message": "Visa åtgärder för länkar"
+  },
+  "o_cPreferLinks": {
+    "message": "Spara länkmålet istället för inbäddade media"
+  },
+  "o_cSaveText": {
+    "message": "Visa en åtgärd för markerad text"
+  },
+  "o_cSavePage": {
+    "message": "Visa en åtgärd för den aktuella sidan"
+  },
+  "o_cSavePageHelp": {
+    "message": "Sparar endast siddokumentet; bilder, stilmallar och andra externa filer ingår inte."
+  },
+  "o_cSaveTabstrip": {
+    "message": "Visa Save In åtgärder i flikmenyn"
+  },
+  "o_cSaveTabstripHelp": {
+    "message": "Sparar en flik, flikgrupp eller flikar till höger"
+  },
+  "o_cOpenDialog": {
+    "message": "Fråga alltid var du ska spara"
+  },
+  "o_cOpenDialogNoExt": {
+    "message": "Filnamnet har inget tillägg"
+  },
+  "o_cOpenDialogShift": {
+    "message": "Skift hålls nedtryckt medan du väljer ett menyalternativ"
+  },
+  "o_cOpenDialogOnFailure": {
+    "message": "En nedladdning misslyckas"
+  },
+  "o_cDupeUniquify": {
+    "message": "Skapa ett unikt namn"
+  },
+  "o_cDupeOverwrite": {
+    "message": "Skriva över"
+  },
+  "o_cDupePrompt": {
+    "message": "Fråga mig"
+  },
+  "o_cDupeFilename": {
+    "message": "När en fil redan finns:"
+  },
+  "o_cOpenDialogIfNoRulesMatch": {
+    "message": "Öppna en dialogruta för spara fil om inga regler matchar"
+  },
+  "o_cExclusiveMode": {
+    "message": "Använd exklusivt routing och byta namn på regler"
+  },
+  "o_cExclusiveModeHelp": {
+    "message": "Inaktiverar undermenyn för nedladdningar med två klick, sparar i förhållande till standardkatalogen för nedladdningar"
+  },
+  "o_cNotifySuccess": {
+    "message": "Visa meddelande om lyckad nedladdning"
+  },
+  "o_cNotifyFailure": {
+    "message": "Visa avisering om misslyckad nedladdning"
+  },
+  "o_cNotifyMatch": {
+    "message": "Visa avisering om en regelmatchning"
+  },
+  "o_cSaveShortcutsAs": {
+    "message": "Spara genvägar som"
+  },
+  "o_cSaveShortcutsTypeHtml": {
+    "message": "HTML-omdirigering"
+  },
+  "o_cSaveShortcutsTypeMac": {
+    "message": "Mac .url"
+  },
+  "o_cSaveShortcutsTypeMacWebloc": {
+    "message": "macOS .webloc"
+  },
+  "o_cSaveShortcutsTypeWindows": {
+    "message": "Windows .url"
+  },
+  "o_cSaveShortcutsTypeFreedesktop": {
+    "message": "Freedesktop .desktop"
+  },
+  "o_cSaveShortcutsMediaInstead": {
+    "message": "Spara media som genvägar istället"
+  },
+  "o_cSaveShortcutsLinksInstead": {
+    "message": "Spara länkar som genvägar istället"
+  },
+  "o_cSaveShortcutsPagesInstead": {
+    "message": "Spara sidor som genvägar istället"
+  },
+  "o_cSaveShortcutsTabsInstead": {
+    "message": "Spara flikar som genvägar istället (från högerklicksfliken)"
+  },
+  "o_cKeyboardShortcutSaveInMenu": {
+    "message": "Save In snabbmenyalternativ"
+  },
+  "o_cKeyboardShortcutSubmenu": {
+    "message": "Senast använda kontextundermenyobjekt"
+  },
+  "o_cKeyboardShortcutNumbers": {
+    "message": "Lägg till sifferknappsgenvägar till kontextundermenyobjekt"
+  },
+  "o_cKeyboardShortcutClickToSave": {
+    "message": "Aktivera klicka för att spara"
+  },
+  "o_cKeyboardShortcutClickToHelp": {
+    "message": "Håll ned Alt (standard) och klicka på bilder eller media för att spara dem i den senast använda katalogen eller standardnedladdningskatalogen. Infogar ett skript på sidor för att lyssna efter klickhändelser. Alla variabler är inte tillgängliga när du använder detta. Kräver att sidan uppdateras för att träda i kraft."
+  },
+  "o_cHostPermissionMissing": {
+    "message": "Save in har inte åtkomst till sidinnehåll. Klicka för att spara fungerar inte förrän du ger åtkomst till alla webbplatser."
+  },
+  "o_cHostPermissionGrant": {
+    "message": "Bevilja åtkomst"
+  },
+  "o_cKeyboardShortcutModifierLeftClick": {
+    "message": "Vänsterklicka"
+  },
+  "o_cKeyboardShortcutModifierMiddleClick": {
+    "message": "Mellanklick"
+  },
+  "o_cKeyboardShortcutModifierRightClick": {
+    "message": "Högerklicka"
+  },
+  "o_cKeyboardShortcutModifierBackClick": {
+    "message": "Bakåtknapp (4)"
+  },
+  "o_cKeyboardShortcutModifierForwardClick": {
+    "message": "Framåtknapp (5)"
+  },
+  "o_cKeyboardShortcutModifierHelp": {
+    "message": "Håll ned de valda modifierarna medan du klickar på den valda musknappen. Välj Ingen i båda modifieringsfälten för att bara använda musknappen. Ändringar gäller för befintliga sidor."
+  },
+  "o_cRestoreDefaults": {
+    "message": "Återställ standardvärden"
+  },
+  "o_cTruncatePath": {
+    "message": "Trunkera sökvägskomponenter till så många karaktärer"
+  },
+  "o_cTruncatePathHelp": {
+    "message": "0 = ingen trunkering"
+  },
+  "o_cReplaceInvalidCharsWith": {
+    "message": "Ersätt ogiltiga tecken med"
+  },
+  "o_cReplaceInvalidCharsWithHelp": {
+    "message": "Lämna tomt för att radera. Ogiltiga ersättningstecken ignoreras."
+  },
+  "o_cAppendMimeExtension": {
+    "message": "Lägg till ett filtillägg när filnamnet inte har något"
+  },
+  "o_cAppendMimeExtensionHelp": {
+    "message": "För tilläggslösa webbadresser eller webbadresser med frågetillägg, härled tillägget från serverns Content-Type (via HEAD, med en body-cancelled GET reserv). Lägger till en liten fördröjning endast när namnet saknar en."
+  },
+  "o_cFallbackFetch": {
+    "message": "Försök igen misslyckade nedladdningar i bakgrunden"
+  },
+  "o_cFallbackFetchHelp": {
+    "message": "När en nedladdning misslyckas med ett nätverks- eller serverfel, försök igen en gång genom att hämta i bakgrunden innan du rapporterar fel."
+  },
+  "o_cFetchViaFetchAPI": {
+    "message": "Ladda ner via tillägget (Fetch API)"
+  },
+  "o_cFetchViaFetchAPIHelp": {
+    "message": "Hämtar själva filen och ger webbläsaren resultatet, istället för att peka webbläsarens nedladdare på URL:en. Aktivera den endast där normala nedladdningar misslyckas — vissa servrar blockerar webbläsarens begäran eller returnerar en tom fil. Det är långsammare, och på Chrome hålls filen i minnet medan den sparas, så undvik den för mycket stora nedladdningar."
+  },
+  "o_cIncludeFetchCredentials": {
+    "message": "Använd cookies för inloggning på webbplatsen för begäranden om tillägg"
+  },
+  "o_cIncludeFetchCredentialsHelp": {
+    "message": "Aktiverad som standard för icke-privata lagringar. Inkluderar tillämpliga cookies och webbläsarhanterad autentisering i bakgrundsförfrågningar för hämtning och HEAD, inklusive vid omdirigeringsdestinationer; stäng av detta för att göra dessa förfrågningar anonymt. Förfrågningar om förlängning av privata fönster är alltid anonyma eftersom den delade bakgrunden inte kan välja en privat cookie-butik. Direkta webbläsarnedladdningar hanterar sina egna cookies."
+  },
+  "o_cSetRefererHeader": {
+    "message": "Ställ in rubriken \"Referer\" till sidans URL när den saknas"
+  },
+  "o_cSetRefererHeaderHelp": {
+    "message": "Endast Firefox. Vissa webbplatser (t.ex. pixiv.net) avvisar nedladdningar utan en HTTP Referer-huvud. För matchande nedladdningar skickar Firefox sidans URL direkt som referent. Lämna det av om inte en webbplats behöver det."
+  },
+  "o_cSetRefererHeaderFilter": {
+    "message": "Ställ in Referer för dessa webbplatser"
+  },
+  "o_cSetRefererHeaderFilterHelp": {
+    "message": "Ett matchmönster per rad, t.ex. *://i.pximg.net/*. Refereraren är endast inställd för nedladdningar vars URL matchar en av dessa."
+  },
+  "o_cImportSettings": {
+    "message": "Importera inställningar"
+  },
+  "o_cExportSettings": {
+    "message": "Exportinställningar"
+  },
+  "o_cDebugMode": {
+    "message": "Aktivera utförlig utvecklarloggning"
+  },
+  "o_cLastSavedAt": {
+    "message": "Inställningar uppdaterade på:"
+  },
+  "o_cLastSavedAtNever": {
+    "message": "aldrig"
+  },
+  "optionsUnsavedChanges": {
+    "message": "Släng dina osparade ändringar eller fortsätta redigera?"
+  },
+  "optionsEditorUnsaved": {
+    "message": "Osparade ändringar"
+  },
+  "o_lDirectoryDefinitions": {
+    "message": "Katalogmenydefinitioner"
+  },
+  "o_lTextRules": {
+    "message": "Textregler"
+  },
+  "o_lMatcher": {
+    "message": "Matcher"
+  },
+  "o_lPattern": {
+    "message": "Mönster"
+  },
+  "o_lDestinationInto": {
+    "message": "Destination (into:)"
+  },
+  "o_lSaving": {
+    "message": "Sparande…"
+  },
+  "o_lSaved": {
+    "message": "Sparad"
+  },
+  "o_lSaveFailed": {
+    "message": "Det gick inte att spara ändringarna"
+  },
+  "o_lValidationUnavailable": {
+    "message": "Validering är inte tillgänglig för tillfället."
+  },
+  "o_bRetryValidation": {
+    "message": "Försök validering igen"
+  },
+  "o_lAutosaveFailed": {
+    "message": "Det gick inte att spara den här inställningen."
+  },
+  "o_bRetrySave": {
+    "message": "Försök att spara igen"
+  },
+  "o_lNoValidationErrors": {
+    "message": "Inga valideringsfel"
+  },
+  "notificationLinkPreferred": {
+    "message": "En länk laddades ner istället"
+  },
+  "o_cPreferLinksFilterEnabled": {
+    "message": "Endast på matchande sidor"
+  },
+  "o_cPreferLinksFilter": {
+    "message": "Matchande webbadresser"
+  },
+  "o_cPreferLinksFilterHelp": {
+    "message": "Ange ett reguljärt uttryck per rad. Mönster matchas mot sidans URL."
+  },
+  "notificationBadPreferLinksPattern": {
+    "message": "Ogiltigt regex för föredragna länkar"
+  },
+  "o_cNotifyLinkPreferred": {
+    "message": "Visa meddelande när en länk laddades ner istället för källan"
+  },
+  "o_cCloseTabOnSave": {
+    "message": "Stäng varje flik efter att den har sparats"
+  },
+  "o_lClickToSaveButton": {
+    "message": "Klicka för att spara musknapp"
+  },
+  "o_lDebugLog": {
+    "message": "Felsökningslogg"
+  },
+  "o_sAdvancedFilenames": {
+    "message": "Filnamn"
+  },
+  "o_sAdvancedDownloading": {
+    "message": "Laddar ner"
+  },
+  "o_sAdvancedCounter": {
+    "message": "Disk"
+  },
+  "o_sAdvancedBackupReset": {
+    "message": "Säkerhetskopiera och återställa"
+  },
+  "o_sAdvancedDiagnostics": {
+    "message": "Diagnostik"
+  },
+  "o_lExperimental": {
+    "message": "Experimentell"
+  },
+  "o_lManualEditorSaveHelp": {
+    "message": "Ändringar i denna editor sparas när du väljer Använd."
+  },
+  "o_lReferenceNavigation": {
+    "message": "Referensnavigering"
+  },
+  "o_lFilterReference": {
+    "message": "Filtrera"
+  }
+}

@@ -202,6 +202,17 @@ vitest specifics (`test/*.test.ts`, typed; `tsc` covers them):
 ## Conventions
 
 - oxfmt (prettier-compatible) + oxlint; `npm run lint:fix` before commit.
+- UI copy must be concise, concrete, and action-oriented. Use sentence case for headings,
+  labels, and buttons; name the user-visible outcome rather than the implementation; avoid
+  jargon, idioms, unnecessary punctuation, and text assembled from translated fragments.
+- Keep terminology consistent across settings, menus, notifications, help text, and
+  accessibility labels. Give translators enough context in message descriptions when a label
+  is ambiguous, preserve placeholders exactly, and write complete strings that allow languages
+  to reorder words naturally. Accessible names must communicate the same action as visible copy.
+- English is the canonical i18n key schema. Existing human translations must not be replaced by
+  generated copy. Machine-generated catalogs are opt-in, clearly labelled in the language
+  selector, bundled locally without runtime AI or network access, and fall back to English for
+  missing messages. Add or update catalog-schema and runtime-key coverage when UI copy changes.
 - When the user asks for repository changes, commit the completed, verified
   work before handing it back unless they explicitly ask to leave it uncommitted.
   Stage only task-related changes when the worktree contains unrelated edits.

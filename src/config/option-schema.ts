@@ -1,5 +1,6 @@
 import { CONFLICT_ACTION, FORBIDDEN_FILENAME_CHARS, SHORTCUT_TYPES } from "../shared/constants.ts";
 import type { ConflictAction, ShortcutType } from "../shared/constants.ts";
+import { isSelectableLocale } from "../shared/generated-locales.ts";
 import { WEB_EXTENSION_CAPABILITIES } from "../platform/chrome-detector.ts";
 import { parseRules } from "../routing/router.ts";
 import {
@@ -59,6 +60,12 @@ export const OPTION_KEYS = [
   },
   ...CONTENT_FEATURE_OPTION_DEFINITIONS,
   { name: "debug", type: OPTION_TYPES.BOOL, fn: null, default: false },
+  {
+    name: "uiLocale",
+    type: OPTION_TYPES.VALUE,
+    validate: (value: string) => value === "" || isSelectableLocale(value),
+    default: "",
+  },
   { name: "enableLastLocation", type: OPTION_TYPES.BOOL, default: true },
   { name: "enableNumberedItems", type: OPTION_TYPES.BOOL, default: true },
   {
