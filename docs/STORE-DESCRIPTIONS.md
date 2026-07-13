@@ -32,6 +32,7 @@ Features
 - Search and filter local download history, with JSON and spreadsheet-safe CSV/TSV export.
 - Optionally record matching ordinary Firefox downloads in Save In history.
 - Connect other extensions through an explicitly approved, versioned integration API.
+- Optionally send selected save data to a user-configured HTTPS webhook after a Save In download starts.
 
 Firefox can set a Referer header for Save In downloads when you enable that option. Experimental routing of ordinary Firefox downloads works by cancelling a matching HTTP(S) download and starting a replacement. That replacement can lose POST bodies, temporary URLs, custom request context, or authentication, so enable it only for compatible downloads.
 
@@ -39,7 +40,7 @@ Browser security limits extensions to folders inside the configured default down
 
 Privacy and permissions
 
-Save In uses site access only to identify and fetch resources that you choose to save. Settings, history, recovery state, and diagnostics remain on your device and are not sent to the developer. Save In contains no telemetry, advertising, remote code, or developer-operated service. Private Browsing activity is excluded from Save In history and diagnostics.
+Save In uses site access only to identify and fetch resources that you choose to save. Settings, history, recovery state, and diagnostics remain on your device and are not sent to the developer. Save In contains no telemetry, advertising, remote code, or developer-operated service. Private Browsing activity is excluded from Save In history, diagnostics, and webhooks. Optional webhooks go directly to the HTTPS endpoint chosen by the user; the options page states and previews the selected data before the feature is enabled.
 
 Requires Firefox 121 or later.
 ```
@@ -59,6 +60,7 @@ Features
 - Search and filter local download history, with JSON and spreadsheet-safe CSV/TSV export.
 - Optionally record or route matching ordinary Chrome downloads before they are saved.
 - Connect other extensions through an explicitly approved, versioned integration API.
+- Optionally send selected save data to a user-configured HTTPS webhook after a Save In download starts.
 
 Chrome does not allow extensions to set a Referer header for their own downloads, so that Firefox feature is unavailable. Chrome also cannot assign an extension-started download to its Incognito download context. A download requested through Save In from Incognito may therefore appear in the regular Chrome download manager, although Save In still excludes private activity from its own history and diagnostics.
 
@@ -66,7 +68,7 @@ Browser security limits extensions to folders inside the configured default down
 
 Privacy and permissions
 
-Save In uses site access only to identify and fetch resources that you choose to save. Settings, history, recovery state, and diagnostics remain on your device and are not sent to the developer. Save In contains no telemetry, advertising, remote code, or developer-operated service.
+Save In uses site access only to identify and fetch resources that you choose to save. Settings, history, recovery state, and diagnostics remain on your device and are not sent to the developer. Save In contains no telemetry, advertising, remote code, or developer-operated service. Optional webhooks go directly to the HTTPS endpoint chosen by the user; the options page states and previews the selected data before the feature is enabled. Incognito activity is never sent to webhooks.
 
 Requires Chrome 123 or later.
 ```
@@ -78,6 +80,26 @@ release history.
 
 ```text
 Version 4 is Save In's largest update. It adds a redesigned Options page, visual destination and rule editing, previews, search, Page Sources, more routing variables, improved click-to-save, searchable local history, safer external integrations, and more reliable downloads across browser restarts. The extension now uses Manifest V3 and requires Firefox 121+ or Chrome 123+. Existing settings and routing rules remain supported.
+```
+
+## Firefox reviewer note: user-configured webhooks
+
+```text
+Webhooks are disabled by default and have no developer-operated endpoint. A user
+must enter a direct HTTPS URL, choose any optional page fields, and affirmatively
+enable the feature. The same panel states the always-sent fields and shows the
+resulting JSON payload. A request is sent only as a consequence of a Save In save
+command after Firefox accepts the download. Ordinary browser downloads and
+external-extension requests do not trigger delivery. Private Browsing activity
+never triggers delivery.
+
+The purpose-limited payload always contains the selected resource URL, the
+"save" event, and an ISO 8601 timestamp. Page URL, page title, and selected text
+are separate user choices. Requests omit credentials and referrers, reject
+redirects, are never retried, and response bodies are never read. Save In never
+receives this data. Firefox 140+ optional data permissions are requested from the
+enabling user action and are checked again before delivery; older supported
+Firefox versions use the labelled in-product opt-in.
 ```
 
 ## Maintenance

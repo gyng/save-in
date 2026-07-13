@@ -1,6 +1,6 @@
 # Save In Privacy Policy
 
-Last updated: July 13, 2026
+Last updated: July 14, 2026
 
 ## What information does Save In collect?
 
@@ -28,6 +28,19 @@ requests are anonymous.
 External extensions can request a save only after the user allows their ID.
 Extension permissions support only the features described above.
 
+Webhooks are off by default. If the user supplies an HTTPS endpoint and enables
+the feature, Save In sends one JSON request after a non-private download starts
+from a direct Save In save command. Automated external-extension requests and
+ordinary browser downloads are excluded. Every request contains the selected
+resource URL, a save event, and a timestamp. The user can separately include the
+containing page URL, page title, and selected text. The options page shows the
+resulting payload before the feature is enabled.
+
+Webhook requests go directly from the browser to the endpoint selected by the
+user. They contain no cookies or browser credentials, do not follow endpoint
+redirects, are not retried, and never include private-window activity. Save In
+does not read response bodies or expose endpoint URLs in its diagnostic log.
+
 Chrome may show an Incognito save in its regular download manager; Save In does
 not retain it in its own history or log. Firefox keeps the download in its
 Private Browsing session.
@@ -35,8 +48,9 @@ Private Browsing session.
 ## What information does Save In share?
 
 Save In sends no user data to the developer, analytics providers, advertisers,
-data brokers, or other unrelated parties. Necessary requests go only to hosts
-selected by the user and their redirects.
+data brokers, or other unrelated parties. Necessary download requests go only
+to hosts selected by the user and their redirects. Optional webhook requests go
+only to the exact HTTPS endpoint configured by the user.
 
 Local data remains until the user clears it or uninstalls Save In; temporary
 transfer state is removed when no longer needed.

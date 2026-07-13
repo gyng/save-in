@@ -1341,6 +1341,72 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
       <textarea id="export-target" hidden spellcheck="false"></textarea>
 
       <h3 id="external-integrations-heading">__MSG_html_externalIntegrations__</h3>
+      <section class="webhook-card" aria-labelledby="webhook-heading">
+        <div class="webhook-heading-row">
+          <div>
+            <h4 id="webhook-heading">__MSG_html_webhooks__</h4>
+            <p class="caption">__MSG_html_webhooksHelp__</p>
+          </div>
+          <span class="external-approved-count">__MSG_html_offByDefault__</span>
+        </div>
+
+        <label class="webhook-endpoint-label" for="webhookUrl">
+          <span class="external-control-label">__MSG_html_webhookEndpoint__</span>
+          <span class="caption">__MSG_html_webhookEndpointHelp__</span>
+        </label>
+        <div class="webhook-endpoint-row">
+          <input
+            id="webhookUrl"
+            type="url"
+            data-no-autosave
+            inputmode="url"
+            placeholder="https://hooks.example.com/save"
+            data-technical-literal
+            autocomplete="off"
+            autocapitalize="none"
+            spellcheck="false"
+            aria-describedby="webhook-endpoint-note webhook-status"
+          />
+          <button id="webhook-test" class="button" type="button" disabled>
+            __MSG_html_testWebhook__
+          </button>
+        </div>
+        <p id="webhook-endpoint-note" class="caption webhook-endpoint-note">
+          __MSG_html_webhookTestHelp__
+        </p>
+
+        <label class="webhook-enable-row">
+          <input type="checkbox" id="webhookEnabled" data-no-autosave disabled />
+          <span>
+            <strong>__MSG_html_webhookEnabled__</strong>
+            <span class="caption caption-line">__MSG_html_webhookAlwaysIncludes__</span>
+          </span>
+        </label>
+
+        <fieldset class="webhook-fields">
+          <legend>__MSG_html_webhookAdditionalData__</legend>
+          <label>
+            <input type="checkbox" id="webhookIncludePageUrl" data-no-autosave />
+            __MSG_html_webhookIncludePageUrl__
+          </label>
+          <label>
+            <input type="checkbox" id="webhookIncludePageTitle" data-no-autosave />
+            __MSG_html_webhookIncludePageTitle__
+          </label>
+          <label>
+            <input type="checkbox" id="webhookIncludeSelectionText" data-no-autosave />
+            __MSG_html_webhookIncludeSelectionText__
+          </label>
+        </fieldset>
+
+        <div class="webhook-disclosure" role="note">__MSG_html_webhookPrivacy__</div>
+        <details class="webhook-preview-details">
+          <summary>__MSG_html_webhookPayloadPreview__</summary>
+          <pre id="webhook-payload-preview"></pre>
+        </details>
+        <div id="webhook-status" class="webhook-status" role="status" aria-live="polite"></div>
+      </section>
+
       <div class="external-integrations-header">
         <div>
           <h4 id="external-download-access-heading">__MSG_html_externalDownloadAccess__</h4>

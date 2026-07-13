@@ -2725,6 +2725,110 @@
     "description": "Page Sources URL-copy success status. Used in src/shared/source-panel-copy.ts.",
     "placeholders": { "count": { "content": "$1", "example": "3" } }
   },
+  "html_webhooks": {
+    "message": "Webhooks",
+    "description": "Heading for the user-configured webhook integration in Options. Used in src/options/options.html."
+  },
+  "html_webhooksHelp": {
+    "message": "Send one JSON request after Save In starts a download.",
+    "description": "Short explanation of when a configured webhook runs. Used in src/options/options.html."
+  },
+  "html_offByDefault": {
+    "message": "Off by default",
+    "description": "Badge confirming that webhooks require user configuration. Used in src/options/options.html."
+  },
+  "html_webhookEndpoint": {
+    "message": "HTTPS endpoint",
+    "description": "Label for the user-provided webhook destination URL. Used in src/options/options.html."
+  },
+  "html_webhookEndpointHelp": {
+    "message": "Requests go directly from your browser to this address.",
+    "description": "Explains that the developer does not receive webhook requests. Used in src/options/options.html."
+  },
+  "html_testWebhook": {
+    "message": "Send test",
+    "description": "Button that sends a body-free-of-browsing-data webhook test. Used in src/options/options.html."
+  },
+  "html_webhookTestHelp": {
+    "message": "The test contains only a test event and timestamp.",
+    "description": "Privacy explanation beneath the webhook test button. Used in src/options/options.html."
+  },
+  "html_webhookEnabled": {
+    "message": "Send a webhook when a Save In download starts",
+    "description": "Explicit opt-in label that enables save webhooks. Used in src/options/options.html."
+  },
+  "html_webhookAlwaysIncludes": {
+    "message": "Each request includes the selected resource URL, a save event, and an ISO 8601 timestamp.",
+    "description": "Disclosure of fields always sent in a save webhook. Used in src/options/options.html."
+  },
+  "html_webhookAdditionalData": {
+    "message": "Additional data",
+    "description": "Legend for optional webhook payload fields. Used in src/options/options.html."
+  },
+  "html_webhookIncludePageUrl": {
+    "message": "Page URL",
+    "description": "Webhook field option for the page containing the saved resource. Used in src/options/options.html."
+  },
+  "html_webhookIncludePageTitle": {
+    "message": "Page title",
+    "description": "Webhook field option for the title of the page containing the saved resource. Used in src/options/options.html."
+  },
+  "html_webhookIncludeSelectionText": {
+    "message": "Selected text",
+    "description": "Webhook field option for user-selected page text when available. Used in src/options/options.html."
+  },
+  "html_webhookPrivacy": {
+    "message": "Save In sends no cookies or browser credentials, follows no endpoint redirects, retries no failed request, and sends nothing from private windows. Save In never receives the request.",
+    "description": "Privacy and delivery limits disclosed beside the webhook controls. Used in src/options/options.html."
+  },
+  "html_webhookPayloadPreview": {
+    "message": "Payload preview",
+    "description": "Expandable preview of the configured save webhook JSON. Used in src/options/options.html."
+  },
+  "webhookPermissionDenied": {
+    "message": "Firefox did not allow the selected webhook data.",
+    "description": "Status after the user declines Firefox data transmission permission. Used in src/options/webhook-panel.ts."
+  },
+  "webhookPermissionMissing": {
+    "message": "Firefox data permission is off. Turn webhooks off and on to enable it.",
+    "description": "Status when stored webhook settings no longer have Firefox data transmission permission. Used in src/options/webhook-panel.ts."
+  },
+  "webhookPermissionCheckFailed": {
+    "message": "Could not check browser data permission.",
+    "description": "Status when browser permission state cannot be checked safely. Used in src/options/webhook-panel.ts."
+  },
+  "webhookSendingTest": {
+    "message": "Sending test…",
+    "description": "Status while the webhook test request is in flight. Used in src/options/webhook-panel.ts."
+  },
+  "webhookTestDelivered": {
+    "message": "Test delivered.",
+    "description": "Status after the webhook endpoint accepts the test. Used in src/options/webhook-panel.ts."
+  },
+  "webhookTestRejected": {
+    "message": "Endpoint rejected the test.",
+    "description": "Status after the webhook endpoint returns a non-success response. Used in src/options/webhook-panel.ts."
+  },
+  "webhookTestFailed": {
+    "message": "Could not deliver the test webhook.",
+    "description": "Status after the webhook test fails at the network boundary. Used in src/options/webhook-panel.ts."
+  },
+  "webhookEnabledSaved": {
+    "message": "Webhooks enabled.",
+    "description": "Status after webhook delivery is enabled. Used in src/options/webhook-panel.ts."
+  },
+  "webhookDisabledSaved": {
+    "message": "Webhooks disabled.",
+    "description": "Status after webhook delivery is disabled. Used in src/options/webhook-panel.ts."
+  },
+  "webhookSaveFailed": {
+    "message": "Could not save the webhook setting.",
+    "description": "Status when a webhook configuration change cannot be persisted. Used in src/options/webhook-panel.ts."
+  },
+  "webhookFieldsSaved": {
+    "message": "Webhook data updated.",
+    "description": "Status after the selected webhook payload fields are saved. Used in src/options/webhook-panel.ts."
+  },
   "html_without": {
     "message": "without",
     "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."

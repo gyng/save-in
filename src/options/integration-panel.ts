@@ -3,6 +3,7 @@ import { MESSAGE_TYPES } from "../shared/constants.ts";
 import { sendInternalMessage } from "../shared/message-protocol.ts";
 import type { ExternalDownloadRejection } from "../shared/external-download-rejection-types.ts";
 import { splitLines } from "../shared/util.ts";
+import { setupWebhookPanel } from "./webhook-panel.ts";
 
 const renderVersionLabel = () => {
   const element = document.querySelector<HTMLAnchorElement>("#version-label");
@@ -255,6 +256,7 @@ const renderExternalDownloadRejections = async () => {
 export const setupIntegrationPanel = () => {
   renderVersionLabel();
   renderExternalApi();
+  setupWebhookPanel();
   // Approval composes with the restored allowlist value. Rendering before the
   // asynchronous options restore could replace an existing legacy allowlist.
   document.addEventListener(

@@ -1676,6 +1676,84 @@
   "html_toRouteIntoAFolder": {
     "message": "para movê-lo para uma pasta"
   },
+  "html_webhooks": {
+    "message": "Webhooks"
+  },
+  "html_webhooksHelp": {
+    "message": "Send one JSON request after Save In starts a download."
+  },
+  "html_offByDefault": {
+    "message": "Off by default"
+  },
+  "html_webhookEndpoint": {
+    "message": "HTTPS endpoint"
+  },
+  "html_webhookEndpointHelp": {
+    "message": "Requests go directly from your browser to this address."
+  },
+  "html_testWebhook": {
+    "message": "Send test"
+  },
+  "html_webhookTestHelp": {
+    "message": "The test contains only a test event and timestamp."
+  },
+  "html_webhookEnabled": {
+    "message": "Send a webhook when a Save In download starts"
+  },
+  "html_webhookAlwaysIncludes": {
+    "message": "Each request includes the selected resource URL, a save event, and an ISO 8601 timestamp."
+  },
+  "html_webhookAdditionalData": {
+    "message": "Additional data"
+  },
+  "html_webhookIncludePageUrl": {
+    "message": "Page URL"
+  },
+  "html_webhookIncludePageTitle": {
+    "message": "Page title"
+  },
+  "html_webhookIncludeSelectionText": {
+    "message": "Selected text"
+  },
+  "html_webhookPrivacy": {
+    "message": "Save In sends no cookies or browser credentials, follows no endpoint redirects, retries no failed request, and sends nothing from private windows. Save In never receives the request."
+  },
+  "html_webhookPayloadPreview": {
+    "message": "Payload preview"
+  },
+  "webhookPermissionDenied": {
+    "message": "Firefox did not allow the selected webhook data."
+  },
+  "webhookPermissionMissing": {
+    "message": "Firefox data permission is off. Turn webhooks off and on to enable it."
+  },
+  "webhookPermissionCheckFailed": {
+    "message": "Could not check browser data permission."
+  },
+  "webhookSendingTest": {
+    "message": "Sending test…"
+  },
+  "webhookTestDelivered": {
+    "message": "Test delivered."
+  },
+  "webhookTestRejected": {
+    "message": "Endpoint rejected the test."
+  },
+  "webhookTestFailed": {
+    "message": "Could not deliver the test webhook."
+  },
+  "webhookEnabledSaved": {
+    "message": "Webhooks enabled."
+  },
+  "webhookDisabledSaved": {
+    "message": "Webhooks disabled."
+  },
+  "webhookSaveFailed": {
+    "message": "Could not save the webhook setting."
+  },
+  "webhookFieldsSaved": {
+    "message": "Webhook data updated."
+  },
   "html_without": {
     "message": "sem"
   },

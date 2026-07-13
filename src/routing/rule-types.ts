@@ -15,6 +15,8 @@ export type RoutingDownloadInfo = LazyDownloadMetadata<RoutingContent> & {
   pageUrl?: string | undefined;
   referrerUrl?: string | undefined;
   selectionText?: string | undefined;
+  selectedUrl?: string | undefined;
+  webhookEligible?: boolean | undefined;
   sourceUrl?: string | undefined;
   url?: string | undefined;
   suggestedFilename?: string | null | undefined;

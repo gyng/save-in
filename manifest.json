@@ -9,7 +9,8 @@
       "id": "{72d92df5-2aa0-4b06-b807-aa21767545cd}",
       "strict_min_version": "121.0",
       "data_collection_permissions": {
-        "required": ["none"]
+        "required": ["none"],
+        "optional": ["browsingActivity", "websiteActivity", "websiteContent"]
       }
     }
   },

@@ -276,6 +276,8 @@ export const handleContextMenuClick = async (
       now: new Date(),
       pageUrl: info.pageUrl,
       selectionText: info.selectionText,
+      selectedUrl: target.url || info.pageUrl,
+      webhookEligible: true,
       sourceUrl: info.srcUrl,
       url, // Changes based off context
       suggestedFilename,

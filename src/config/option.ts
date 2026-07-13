@@ -88,6 +88,11 @@ export const OptionsManagement: OptionsManagementApi = {
       "Include applicable website cookies and browser-managed authentication in non-private extension fetches.",
     externalDownloadAllowlist:
       "Extension IDs allowed to start downloads through the external API, one per line.",
+    webhookEnabled: "Send one HTTPS webhook after a non-private direct Save In save command.",
+    webhookUrl: "User-selected HTTPS endpoint for save webhooks.",
+    webhookIncludePageUrl: "Include the containing page URL in save webhooks.",
+    webhookIncludePageTitle: "Include the containing page title in save webhooks.",
+    webhookIncludeSelectionText: "Include selected text in save webhooks when available.",
     trackBrowserDownloads: "Include ordinary browser downloads in local Save In history.",
     routeBrowserDownloads:
       "Apply matching filename routing rules to ordinary browser downloads on Chrome.",

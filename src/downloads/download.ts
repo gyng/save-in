@@ -49,6 +49,7 @@ import { BrowserDownloadRouting, routeBrowserDownload } from "./browser-download
 import { resolveFirefoxDownloadContext } from "./auth-context.ts";
 import { ActiveTransfers } from "./active-transfers.ts";
 import type { HistoryEntryInput } from "../shared/history-types.ts";
+import { deliverSaveWebhook } from "./webhook-delivery.ts";
 
 const FIREFOX_CONTENT_DISPOSITION_COMPATIBILITY: ContentDispositionParseOptions = {
   // Firefox's native HTTP path accepts quoted ext-values and URI-unescapes a
@@ -788,6 +789,10 @@ export const Download = {
     );
     finishPreparation();
     if (result.status !== "started") return result;
+
+    // Webhooks are an optional side effect of the user's save command. They
+    // never change, delay, or retry the browser download that already started.
+    void deliverSaveWebhook(options, plan, logPort);
 
     // Trigger notifications
     if (state.route) {

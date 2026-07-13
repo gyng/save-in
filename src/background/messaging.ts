@@ -317,6 +317,8 @@ export const Messaging = {
         now: new Date(),
         pageUrl: info.pageUrl,
         selectionText: info.selectionText,
+        selectedUrl: url,
+        webhookEligible: sender.id === webExtensionApi.runtime.id,
         linkText: info.linkText,
         sourceUrl: info.srcUrl,
         menuIndex: info.menuIndex,

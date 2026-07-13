@@ -13,6 +13,7 @@ import {
   LINKS_OPTION_DEFINITION,
 } from "./content-option-schema.ts";
 import { OPTION_DEFAULTS, defaultOptions } from "./option-defaults.ts";
+import { validateWebhookUrl } from "../shared/webhook.ts";
 
 export { defaultOptions };
 
@@ -255,6 +256,34 @@ export const OPTION_KEYS = defineOptions([
     type: OPTION_TYPES.VALUE,
     onSave: (v: string) => v.trim(),
     default: OPTION_DEFAULTS.externalDownloadAllowlist,
+  },
+  {
+    name: "webhookEnabled",
+    type: OPTION_TYPES.BOOL,
+    default: OPTION_DEFAULTS.webhookEnabled,
+  },
+  {
+    name: "webhookUrl",
+    type: OPTION_TYPES.VALUE,
+    onSave: (v: string) => v.trim(),
+    validate: (value: unknown): value is string =>
+      typeof value === "string" && (value.trim() === "" || validateWebhookUrl(value).ok),
+    default: OPTION_DEFAULTS.webhookUrl,
+  },
+  {
+    name: "webhookIncludePageUrl",
+    type: OPTION_TYPES.BOOL,
+    default: OPTION_DEFAULTS.webhookIncludePageUrl,
+  },
+  {
+    name: "webhookIncludePageTitle",
+    type: OPTION_TYPES.BOOL,
+    default: OPTION_DEFAULTS.webhookIncludePageTitle,
+  },
+  {
+    name: "webhookIncludeSelectionText",
+    type: OPTION_TYPES.BOOL,
+    default: OPTION_DEFAULTS.webhookIncludeSelectionText,
   },
   {
     name: "trackBrowserDownloads",

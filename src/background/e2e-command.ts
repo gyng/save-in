@@ -145,6 +145,8 @@ export const handleBackgroundE2ECommand = async (
     const request = rawRequest.body;
     const info: DownloadInfo = {
       url: resolveDownloadUrl(request),
+      selectedUrl: request.shortcutUrl || request.url,
+      webhookEligible: true,
       suggestedFilename: request.suggestedFilename,
       pageUrl: request.pageUrl,
       modifiers: request.modifiers ?? [],

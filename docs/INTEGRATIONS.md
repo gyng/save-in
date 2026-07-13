@@ -110,6 +110,37 @@ Recommended agent flow:
 
 Tools exist only while the options page is open and the browser provides WebMCP. Inputs may contain untrusted page data; tool annotations distinguish read-only and mutating operations.
 
+## Webhooks
+
+Webhooks are an optional, user-configured notification for Save In downloads.
+They are disabled by default. A webhook is sent once after the browser accepts a
+non-private download started by a direct Save In command. Ordinary browser
+downloads, external Download API requests, private-window activity, failed
+preparations, and rejected downloads do not trigger one. Webhook failure never
+changes the download result, and Save In does not retry delivery.
+
+The endpoint must be a direct HTTPS URL without embedded username/password
+credentials or a fragment. Save In sends a `POST` with `Content-Type:
+application/json`, omits cookies and browser credentials, supplies no referrer,
+and rejects redirects. It checks only the HTTP status and never reads the
+response body.
+
+Save payload version 1 always contains:
+
+```json
+{
+  "version": 1,
+  "event": "save",
+  "timestamp": "2026-07-14T10:00:00.000Z",
+  "url": "https://cdn.example.com/image.jpg"
+}
+```
+
+The user can separately add `pageUrl`, `pageTitle`, and `selectionText` in
+Options. Local destination paths, cookies, persistent identifiers, diagnostics,
+and other browser state are never added. **Send test** uses the same transport
+but sends only `version`, `event: "test"`, and `timestamp`.
+
 ## Downloader hand-offs
 
 Save In deliberately does not adopt downloads initiated by another extension. A cooperating downloader can call the Download API before starting its own workflow. For HLS/DASH sources, Page Sources can copy a `yt-dlp` command as a local hand-off without adding native-messaging permissions.

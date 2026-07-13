@@ -151,6 +151,8 @@ export const addTabMenuListener = () => {
             now: new Date(),
             pageUrl: t.url,
             selectionText: info.selectionText,
+            selectedUrl: t.url,
+            webhookEligible: true,
             sourceUrl: t.url,
             url, // Changes based off context
             suggestedFilename,
