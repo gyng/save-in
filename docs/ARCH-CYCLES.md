@@ -241,9 +241,15 @@ graph rather than relying on a one-time audit.
 - Download correlation and filename-event ownership, plus options-page panels,
   are separate feature modules rather than responsibilities of their former
   orchestration files.
+- Notification recovery is an explicit initialization task awaited by the
+  background runtime. Download retry and completion callbacks are installed
+  through typed ports/configuration functions rather than mutable exported
+  function slots.
 - Options persistence, runtime adaptation, and DOM/runtime bootstrap are
-  explicit services. Conditional Undo is a serialized compare-and-set in the
-  background, so a stale options page cannot overwrite a newer setting.
+  explicit services. The options bootstrap is deferred and idempotent, and
+  rejected or malformed schema loads can be retried. Conditional Undo is a
+  serialized compare-and-set in the background, so a stale options page cannot
+  overwrite a newer setting.
 - `scripts/check-import-cycles.js` now also enforces architectural boundaries:
   options cannot import background implementations, routing cannot import
   platform adapters, low-level runtime dependencies point downward, browser

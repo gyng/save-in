@@ -12,7 +12,7 @@ import { buildTree } from "./menu-build.ts";
 import { matcherFunctions, parseRulesCollecting, traceRules } from "../routing/router.ts";
 import { Download } from "../downloads/download.ts";
 import { currentTab } from "../platform/current-tab.ts";
-import { DownloadEvents } from "../downloads/download-events.ts";
+import { configureDownloadEvents } from "../downloads/download-events.ts";
 import type { DownloadInfo, DownloadPipelineState } from "../downloads/download-types.ts";
 import { backgroundRuntime } from "./runtime.ts";
 import {
@@ -472,7 +472,7 @@ const dispatchMessage = <M extends InternalMessage>(
 // MV3: entry.background calls this synchronously at startup so a worker woken BY
 // an incoming message still has the handlers attached.
 export const registerMessaging = () => {
-  DownloadEvents.downloaded = Messaging.emit.downloaded;
+  configureDownloadEvents({ downloaded: Messaging.emit.downloaded });
   webExtensionApi.runtime.onMessageExternal.addListener((rawRequest, sender, sendResponse) => {
     if (!isExternalMessage(rawRequest)) {
       const type = getMessageType(rawRequest);

@@ -19,6 +19,7 @@ import { setupDebugLogPanel, updateDebugLog } from "./debug-log-panel.ts";
 import { renderVariablesPreview, setupVariablesPreview } from "./variables-preview.ts";
 import { setupResetOptions } from "./reset-options.ts";
 import { buildTree } from "../menus/menu-tree.ts";
+import type { MenuTree } from "../menus/menu-tree.ts";
 import { splitLines } from "../shared/util.ts";
 import { setupShortcutOptions } from "./shortcut-options.ts";
 import { setupCheckboxRows } from "./checkbox-rows.ts";
@@ -34,16 +35,20 @@ import {
 import { optionsRuntime } from "./options-runtime.ts";
 import { bootstrapOptionsPage } from "./options-bootstrap.ts";
 import { setupIntegrationPanel } from "./integration-panel.ts";
+import { isStringKeyedRecord } from "../shared/message-protocol.ts";
 
 const setupLastDownloadState = () => {
   document.querySelector("#last-dl-url")?.classList.add("is-empty");
 };
 
 type ValidationError = { message: string; error: string; warning?: boolean };
-type MenuPreviewTree = {
-  items: JsonRecord[];
-  errors: Array<ValidationError & { parentId?: string }>;
-};
+type MenuPreviewTree = MenuTree;
+
+const isValidationError = (value: unknown): value is ValidationError =>
+  isStringKeyedRecord(value) &&
+  typeof value.message === "string" &&
+  typeof value.error === "string" &&
+  (typeof value.warning === "undefined" || typeof value.warning === "boolean");
 
 const getOptionsSchema = () => optionsRuntime.getSchema();
 
@@ -191,8 +196,14 @@ const updateErrorSummary = (panel: Element) => {
 const validationRequests = createLatestOnly(
   (request: { body: { paths: string; filenamePatterns: string }; initiator?: string }) =>
     webExtensionApi.runtime.sendMessage({ type: "VALIDATE", body: request.body }),
-  (res: any) => {
-    const body = (res && res.body) || {};
+  (res: unknown) => {
+    const body = isStringKeyedRecord(res) && isStringKeyedRecord(res.body) ? res.body : {};
+    const pathErrors = Array.isArray(body.pathErrors)
+      ? body.pathErrors.filter(isValidationError)
+      : [];
+    const ruleErrors = Array.isArray(body.ruleErrors)
+      ? body.ruleErrors.filter(isValidationError)
+      : [];
     const pathsErrors = document.querySelector("#error-paths");
     const rulesErrors = document.querySelector("#error-filenamePatterns");
     const updatePanel = (panel: Element, errors: ValidationError[], textareaId: string) => {
@@ -206,21 +217,15 @@ const validationRequests = createLatestOnly(
     };
     if (pathsErrors) {
       errorChannel(pathsErrors, "validation-service").innerHTML = "";
-      updatePanel(pathsErrors, body.pathErrors || [], "#paths");
+      updatePanel(pathsErrors, pathErrors, "#paths");
       updateErrorSummary(pathsErrors);
-      manualEditorState.setValidity(
-        "paths",
-        !(body.pathErrors || []).some((err: ValidationError) => !err.warning),
-      );
+      manualEditorState.setValidity("paths", !pathErrors.some((err) => !err.warning));
     }
     if (rulesErrors) {
       errorChannel(rulesErrors, "validation-service").innerHTML = "";
-      updatePanel(rulesErrors, body.ruleErrors || [], "#filenamePatterns");
+      updatePanel(rulesErrors, ruleErrors, "#filenamePatterns");
       updateErrorSummary(rulesErrors);
-      manualEditorState.setValidity(
-        "filenamePatterns",
-        !(body.ruleErrors || []).some((err: ValidationError) => !err.warning),
-      );
+      manualEditorState.setValidity("filenamePatterns", !ruleErrors.some((err) => !err.warning));
     }
   },
   (_error, request) => {
@@ -402,7 +407,7 @@ const optionsPersistence = createOptionsPersistence({
 });
 
 const restoreOptions = () => optionsPersistence.restore();
-const saveOptions = (e?: Event, scope?: string, scopeValue?: unknown): Promise<any> => {
+const saveOptions = (e?: Event, scope?: string, scopeValue?: unknown): Promise<unknown> => {
   e?.preventDefault();
   return optionsPersistence.save(scope, scopeValue);
 };
@@ -458,9 +463,13 @@ const setupChromeDisables = () => {
       el.removeAttribute("disabled");
     });
 
-    document.querySelectorAll(".chrome-disabled").forEach((el: any) => {
-      el.disabled = true;
-    });
+    document
+      .querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLButtonElement>(
+        ".chrome-disabled",
+      )
+      .forEach((el) => {
+        el.disabled = true;
+      });
 
     const tabContextMenus = WEB_EXTENSION_CAPABILITIES.tabContextMenus;
     document.querySelectorAll<HTMLInputElement>(".tab-context-required").forEach((el) => {
@@ -673,7 +682,7 @@ const renderMenuPreview = (container: Element, tree: MenuPreviewTree) => {
   const rootUl = document.createElement("ul");
   const listsByParent = new Map<string, HTMLUListElement>();
 
-  tree.items.forEach((item: JsonRecord) => {
+  tree.items.forEach((item) => {
     const parentUl = listsByParent.get(item.parentId) || rootUl;
     const li = document.createElement("li");
 
@@ -895,10 +904,10 @@ document.querySelectorAll("[data-apply]").forEach((button) => {
 });
 
 // Discard: revert the editor to its stored value without saving
-document.querySelectorAll("[data-discard]").forEach((button: any) => {
+document.querySelectorAll<HTMLElement>("[data-discard]").forEach((button) => {
   button.addEventListener("click", () => {
     const id = button.dataset.discard;
-    if (!manualEditorState.discard(id)) {
+    if (!id || !manualEditorState.discard(id)) {
       return;
     }
     updateMenuPreview();

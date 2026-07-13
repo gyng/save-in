@@ -70,7 +70,8 @@ const router = await import("../src/routing/router.ts");
 const Variable = await import("../src/routing/variable.ts");
 const { Notifier } = await import("../src/downloads/notification.ts");
 const Path = await import("../src/routing/path.ts");
-const { DownloadEvents } = await import("../src/downloads/download-events.ts");
+const { configureDownloadEvents } = await import("../src/downloads/download-events.ts");
+let downloaded = vi.fn();
 // download.ts already loaded chrome-detector into the graph; this is the same
 // instance it reads CURRENT_BROWSER from. global.browser (above) has no
 // getBrowserInfo, so its load-time detection settled on Chrome.
@@ -107,7 +108,12 @@ const makeState = (overrides: Record<string, any> = {}): any => ({
 });
 
 beforeEach(() => {
-  configureDownloadPorts({ runtime: backgroundRuntime, history: SaveHistory, log: Log });
+  configureDownloadPorts({
+    runtime: backgroundRuntime,
+    history: SaveHistory,
+    log: Log,
+    retry: Download.retryViaFetch,
+  });
   setCurrentBrowser("FIREFOX");
   Download.pendingStates.clear();
   Download.finalFilenamesByDownloadId.clear();
@@ -166,7 +172,8 @@ beforeEach(() => {
   vi.spyOn(Log, "add").mockImplementation(() => Promise.resolve());
 
   // Reset the emit stub between tests (it is a mock-factory vi.fn, not a spy)
-  DownloadEvents.downloaded = vi.fn();
+  downloaded = vi.fn();
+  configureDownloadEvents({ downloaded });
 
   vi.mocked(getFilenameFromContentDispositionHeader).mockReset();
   vi.mocked(getFilenameFromContentDispositionHeader).mockReturnValue("");
@@ -634,7 +641,7 @@ describe("renameAndDownload: needRouteMatch", () => {
     await Download.renameAndDownload(state);
 
     expect(global.browser.downloads.download).not.toHaveBeenCalled();
-    expect(DownloadEvents.downloaded).not.toHaveBeenCalled();
+    expect(downloaded).not.toHaveBeenCalled();
     expect(SaveHistory.add).not.toHaveBeenCalled();
     expect(Download.pendingStates.get(state.info.url) || []).not.toContain(state);
   });
@@ -877,7 +884,7 @@ describe("renameAndDownload: browserDownload", () => {
 
     await Download.renameAndDownload(state);
 
-    expect(DownloadEvents.downloaded).toHaveBeenCalledWith(state);
+    expect(downloaded).toHaveBeenCalledWith(state);
     expect(backgroundRuntime.lastDownloadState).toBe(state);
     expect(SaveHistory.add).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -1206,6 +1213,7 @@ describe("concurrent downloads (pendingStates)", () => {
       runtime: freshRuntime,
       history: freshHistory,
       log: freshLog,
+      retry: dl.Download.retryViaFetch,
     });
     concurrentDownload = dl.Download;
     dl.registerDownloadListener();

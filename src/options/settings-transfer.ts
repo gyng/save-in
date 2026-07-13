@@ -5,7 +5,7 @@ type OptionSchema = { keys: Array<{ name: string }> };
 type SettingsTransferDependencies = {
   getSchema: () => Promise<OptionSchema>;
   getStored: (keys: string[]) => Promise<Record<string, unknown>>;
-  apply: (config: Record<string, unknown>) => Promise<any>;
+  apply: (config: Record<string, unknown>) => Promise<unknown>;
   restore: () => void;
 };
 
@@ -30,7 +30,11 @@ export const setupSettingsTransfer = (dependencies: SettingsTransferDependencies
         if (!isStringKeyedRecord(settings)) throw new TypeError("Settings must be a JSON object");
         const response = await dependencies.apply(settings);
         dependencies.restore();
-        const rejected = response?.body?.rejected;
+        const body =
+          isStringKeyedRecord(response) && isStringKeyedRecord(response.body)
+            ? response.body
+            : undefined;
+        const rejected = body?.rejected;
         window.alert(
           Array.isArray(rejected) && rejected.length > 0
             ? `Settings loaded with ${rejected.length} rejected value(s).`

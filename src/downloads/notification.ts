@@ -13,7 +13,6 @@ import {
   CURRENT_BROWSER,
   WEB_EXTENSION_CAPABILITIES,
 } from "../platform/chrome-detector.ts";
-import { DownloadRetry } from "./download-retry.ts";
 import {
   BrowserDownloadRouting,
   isOrdinaryBrowserDownload,
@@ -28,7 +27,8 @@ import {
   getDownloadFailure,
   isRetryableDownloadFailure,
 } from "./notification-model.ts";
-export { notifierReady } from "./notification-recovery.ts";
+import { runEventTask } from "../shared/event-task.ts";
+export { recoverNotificationState } from "./notification-recovery.ts";
 
 // Chrome's notifications API can reject SVG iconUrl values with "Unable to
 // download all specified images". Use the shipped raster app icon for the
@@ -265,7 +265,7 @@ export const Notifier = {
     }
 
     // notification ID should be set to download ID on download creation
-    webExtensionApi.downloads.show(Number(notId));
+    return webExtensionApi.downloads.show(Number(notId));
   },
 
   onDownloadChanged: async (downloadDelta: browser.downloads._OnChangedDownloadDelta) => {
@@ -441,7 +441,7 @@ export const Notifier = {
         const canRetry = isRetryableDownloadFailure(failed);
 
         if (canRetry) {
-          const retried = await DownloadRetry.retry(downloadDelta.id);
+          const retried = await downloadPorts.retry(downloadDelta.id);
           if (retried) {
             logPort.add("retrying failed download via fetch", { id: downloadDelta.id });
             await mergeTrackedDownload(downloadDelta.id, { adopted: false });
@@ -513,10 +513,25 @@ export const registerNotifier = () => {
     webExtensionApi.downloads.onCreated &&
     webExtensionApi.downloads.onChanged
   ) {
-    webExtensionApi.downloads.onCreated.addListener(Notifier.onDownloadCreated);
-    webExtensionApi.downloads.onChanged.addListener(Notifier.onDownloadChanged);
+    webExtensionApi.downloads.onCreated.addListener((item) =>
+      runEventTask(
+        () => Notifier.onDownloadCreated(item),
+        (error) => logPort.add("download created event failed", String(error)),
+      ),
+    );
+    webExtensionApi.downloads.onChanged.addListener((delta) =>
+      runEventTask(
+        () => Notifier.onDownloadChanged(delta),
+        (error) => logPort.add("download changed event failed", String(error)),
+      ),
+    );
   }
   if (webExtensionApi.notifications && webExtensionApi.notifications.onClicked) {
-    webExtensionApi.notifications.onClicked.addListener(Notifier.onNotificationClicked);
+    webExtensionApi.notifications.onClicked.addListener((notificationId) =>
+      runEventTask(
+        () => Notifier.onNotificationClicked(notificationId),
+        (error) => logPort.add("notification click event failed", String(error)),
+      ),
+    );
   }
 };

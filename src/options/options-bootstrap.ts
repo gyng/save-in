@@ -8,10 +8,15 @@ type OptionsBootstrapPorts = {
 };
 
 export const bootstrapOptionsPage = (ports: OptionsBootstrapPorts): (() => void) => {
-  ports.configureRuntime();
-  ports.addMessageListener((message) => {
-    if (message.type === "DOWNLOADED") ports.onDownloaded();
-  });
-  ports.startBrowserDetection();
-  return () => ports.ready.forEach((callback) => callback());
+  let started = false;
+  return () => {
+    if (started) return;
+    started = true;
+    ports.configureRuntime();
+    ports.addMessageListener((message) => {
+      if (message.type === "DOWNLOADED") ports.onDownloaded();
+    });
+    ports.startBrowserDetection();
+    ports.ready.forEach((callback) => callback());
+  };
 };

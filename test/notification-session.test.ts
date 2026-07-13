@@ -30,12 +30,6 @@ const retryHolder = vi.hoisted(() => ({
     return Promise.resolve(false);
   }),
 }));
-vi.mock("../src/downloads/download-retry.ts", () => ({
-  DownloadRetry: {
-    retry: (downloadId: any) => retryHolder.retry(downloadId),
-  },
-}));
-
 // notification.ts and its remaining deps (option, log) are re-imported after
 // each resetModules; grab the fresh singletons the notifier binds to so the
 // tests mutate/assert the same instances.
@@ -47,7 +41,7 @@ let Runtime: any;
 
 const loadNotification = async () => {
   const mod = await import("../src/downloads/notification.ts");
-  await mod.notifierReady;
+  await mod.recoverNotificationState();
   Notifier = mod.Notifier;
   ({ options } = await import("../src/config/options-data.ts"));
   ({ Log } = await import("../src/background/log.ts"));
@@ -55,7 +49,12 @@ const loadNotification = async () => {
   const { backgroundRuntime } = await import("../src/background/runtime.ts");
   Runtime = backgroundRuntime;
   const { configureDownloadPorts } = await import("../src/downloads/ports.ts");
-  configureDownloadPorts({ runtime: backgroundRuntime, history: SaveHistory, log: Log });
+  configureDownloadPorts({
+    runtime: backgroundRuntime,
+    history: SaveHistory,
+    log: Log,
+    retry: (downloadId) => retryHolder.retry(downloadId),
+  });
   // Reset the real options bag to empty; each test sets the fields it needs
   for (const k of Object.keys(options)) delete options[k];
   // Log is defensive (typeof Log !== "undefined"); spy it so its calls are
@@ -130,6 +129,7 @@ const setupGlobals = (sessionStore: Record<string, any>, searchResults: (query: 
 
 afterEach(() => {
   vi.restoreAllMocks();
+  jest.useRealTimers();
 });
 
 describe("startup restore", () => {
@@ -137,7 +137,17 @@ describe("startup restore", () => {
     jest.resetModules();
   });
 
+  test("does not touch persisted recovery state merely by importing the notifier", async () => {
+    const sessionStore = { siPendingDownloads: 2 };
+    setupGlobals(sessionStore, () => []);
+
+    await import("../src/downloads/notification.ts");
+
+    expect(global.browser.storage.session.get).not.toHaveBeenCalled();
+  });
+
   test("prunes downloads that completed while the worker was dead", async () => {
+    jest.useFakeTimers();
     const sessionStore = {
       siDownloads: {
         11: { adopted: true, historyEntryId: "h11" },
@@ -152,6 +162,7 @@ describe("startup restore", () => {
     });
 
     await loadNotification();
+    await jest.advanceTimersByTimeAsync(10000);
 
     // only the still-live download stays adopted; the record (and its
     // historyEntryId) is retained, just no longer watched
@@ -167,10 +178,12 @@ describe("startup restore", () => {
   });
 
   test("keeps adoption when every download is still live", async () => {
+    jest.useFakeTimers();
     const sessionStore = { siDownloads: { 12: { adopted: true, historyEntryId: "h12" } } };
     setupGlobals(sessionStore, () => [{ id: 12, state: "in_progress" }]);
 
     await loadNotification();
+    await jest.advanceTimersByTimeAsync(10000);
 
     // A live download keeps its adoption; storage.session is not written at all
     // (nothing to prune)
@@ -179,11 +192,13 @@ describe("startup restore", () => {
   });
 
   test("clears adoption when the download lookup fails", async () => {
+    jest.useFakeTimers();
     const sessionStore = { siDownloads: { 21: { adopted: true } } };
     setupGlobals(sessionStore, () => []);
     (global.browser.downloads as any).search = jest.fn(() => Promise.reject(new Error("boom")));
 
     await loadNotification();
+    await jest.advanceTimersByTimeAsync(10000);
 
     expect(adoptedIds(sessionStore)).toEqual([]);
   });
@@ -518,22 +533,25 @@ describe("download lifecycle notifications", () => {
 });
 
 describe("listener registration", () => {
-  test("registers download and notification listeners at import (MV3 requirement)", async () => {
+  test("registers bounded download and notification listeners synchronously", async () => {
     jest.resetModules();
     setupGlobals({}, () => []);
     await loadNotification();
 
-    // Registered synchronously at module load with stable named handlers, so
-    // a service worker woken BY one of these events still handles it
     expect(global.browser.downloads.onCreated.addListener).toHaveBeenCalledWith(
-      Notifier.onDownloadCreated,
+      expect.any(Function),
     );
     expect(global.browser.downloads.onChanged.addListener).toHaveBeenCalledWith(
-      Notifier.onDownloadChanged,
+      expect.any(Function),
     );
     expect(global.browser.notifications.onClicked.addListener).toHaveBeenCalledWith(
-      Notifier.onNotificationClicked,
+      expect.any(Function),
     );
+
+    Notifier.onDownloadCreated = vi.fn(() => Promise.reject(new Error("broken event")));
+    const [[onCreated]] = vi.mocked(global.browser.downloads.onCreated.addListener).mock.calls;
+    await expect(onCreated({ id: 7 } as browser.downloads.DownloadItem)).resolves.toBeUndefined();
+    expect(Log.add).toHaveBeenCalledWith("download created event failed", "Error: broken event");
   });
 });
 

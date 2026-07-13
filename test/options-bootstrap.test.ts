@@ -18,6 +18,13 @@ describe("options bootstrap", () => {
       startBrowserDetection,
     });
 
+    expect(configureRuntime).not.toHaveBeenCalled();
+    expect(addMessageListener).not.toHaveBeenCalled();
+    expect(startBrowserDetection).not.toHaveBeenCalled();
+
+    onReady();
+    onReady();
+
     expect(configureRuntime).toHaveBeenCalledTimes(1);
     expect(addMessageListener).toHaveBeenCalledTimes(1);
     const listener = addMessageListener.mock.calls[0][0];
@@ -25,7 +32,6 @@ describe("options bootstrap", () => {
     expect(onDownloaded).not.toHaveBeenCalled();
     listener({ type: "DOWNLOADED" });
     expect(onDownloaded).toHaveBeenCalledTimes(1);
-    onReady();
     expect(readyA).toHaveBeenCalledTimes(1);
     expect(readyB).toHaveBeenCalledTimes(1);
     expect(startBrowserDetection).toHaveBeenCalledTimes(1);

@@ -27,8 +27,8 @@ jobs:
         run: npm run lint
       - name: Typecheck
         run: npm run typecheck
-      - name: Unit tests
-        run: npm test
+      - name: Unit tests and coverage
+        run: npm run test:coverage
       - name: Verify store packaging
         run: npm run build
       - name: Preserve store package

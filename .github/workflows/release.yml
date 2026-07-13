@@ -45,7 +45,7 @@ jobs:
 
       - name: Unit, type, lint, and browser gates
         run: |
-          npm test
+          npm run test:coverage
           npm run typecheck
           npm run lint
           HEADLESS=1 npm run e2e:serial

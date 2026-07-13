@@ -26,4 +26,14 @@ describe("test runner resource limits", () => {
     expect(manifest.scripts["e2e:chrome"]).toContain("HEADLESS=1");
     expect(manifest.scripts["e2e:firefox"]).toContain("HEADLESS=1");
   });
+
+  test("excludes current bundle and service-worker bootstrap paths from core coverage", () => {
+    const exclude = config.test?.coverage?.exclude ?? [];
+
+    expect(exclude).toContain("src/entries/**");
+    expect(exclude).toContain("src/background/main.ts");
+    expect(exclude).toContain("src/content/source-panel.ts");
+    expect(exclude).toContain("src/downloads/notification.ts");
+    expect(exclude).not.toContain("src/entry.*.ts");
+  });
 });

@@ -6,6 +6,7 @@ import { hydrateDownloads, mergeDownload } from "./download-state.ts";
 import { PENDING_DOWNLOADS_SESSION_KEY } from "../shared/storage-keys.ts";
 
 const PENDING_RECOVERY_GRACE_MS = 10000;
+let recovery: Promise<void> | null = null;
 
 const reconcileAdoptedDownloads = async () => {
   await hydrateDownloads(downloadsState, extensionSessionStorage);
@@ -14,22 +15,26 @@ const reconcileAdoptedDownloads = async () => {
     if (record?.adopted) adoptedIds.push(id);
   });
 
-  await Promise.all(
-    adoptedIds.map(async (id) => {
-      try {
-        const [item] = await webExtensionApi.downloads.search({ id });
-        if (!item || item.state === "complete") {
-          await mergeDownload(downloadsState, sessionWriteState, extensionSessionStorage, id, {
-            adopted: false,
-          });
+  if (adoptedIds.length === 0) return;
+  // A terminal downloads.onChanged event may be the event that woke this
+  // worker. Give its synchronously registered handler time to consume the
+  // adopted record before pruning records whose browser download is no longer
+  // live. Otherwise startup recovery can suppress the completion event.
+  setTimeout(() => {
+    void Promise.all(
+      adoptedIds.map(async (id) => {
+        try {
+          const [item] = await webExtensionApi.downloads.search({ id });
+          if (item?.state === "in_progress") return;
+        } catch {
+          // A missing/forgotten download is stale too.
         }
-      } catch {
         await mergeDownload(downloadsState, sessionWriteState, extensionSessionStorage, id, {
           adopted: false,
         });
-      }
-    }),
-  );
+      }),
+    );
+  }, PENDING_RECOVERY_GRACE_MS);
 };
 
 const reconcilePendingDownloads = async () => {
@@ -47,7 +52,12 @@ const reconcilePendingDownloads = async () => {
   }
 };
 
-export const notifierReady = Promise.all([
-  reconcileAdoptedDownloads(),
-  reconcilePendingDownloads(),
-]);
+export const recoverNotificationState = (): Promise<void> => {
+  recovery ??= Promise.all([reconcileAdoptedDownloads(), reconcilePendingDownloads()])
+    .then(() => undefined)
+    .catch((error) => {
+      recovery = null;
+      throw error;
+    });
+  return recovery;
+};

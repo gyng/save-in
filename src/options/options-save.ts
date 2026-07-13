@@ -4,6 +4,11 @@ type ApplyResponse = {
   body?: { applied?: unknown; rejected?: unknown };
 };
 
+type SuccessfulApplyResponse = ApplyResponse & {
+  type: "APPLY_CONFIG_RESULT";
+  body: { applied: Record<string, unknown>; rejected: ApplyRejection[] };
+};
+
 type OptionSchema = {
   keys: Array<{ name: string; type: string }>;
   types: { BOOL: string; VALUE: string };
@@ -26,21 +31,19 @@ export const collectOptionConfig = (schema: OptionSchema, scope?: string) =>
     return config;
   }, {});
 
-export const assertApplySucceeded = <T extends ApplyResponse | null | undefined>(
-  response: T,
-): T => {
-  if (!response || response.type !== "APPLY_CONFIG_RESULT" || !response.body) {
+export const assertApplySucceeded = (response: unknown): SuccessfulApplyResponse => {
+  if (
+    !isStringKeyedRecord(response) ||
+    response.type !== "APPLY_CONFIG_RESULT" ||
+    !isStringKeyedRecord(response.body)
+  ) {
     throw new Error("No save acknowledgement was received");
   }
-  if (
-    !response.body.applied ||
-    typeof response.body.applied !== "object" ||
-    Array.isArray(response.body.applied) ||
-    !Array.isArray(response.body.rejected)
-  ) {
+  const body = response.body;
+  if (!isStringKeyedRecord(body.applied) || !Array.isArray(body.rejected)) {
     throw new Error("Invalid save acknowledgement was received");
   }
-  const rejected = response.body.rejected as ApplyRejection[];
+  const rejected = body.rejected as ApplyRejection[];
   if (rejected.length) {
     throw new Error(
       rejected
@@ -48,12 +51,16 @@ export const assertApplySucceeded = <T extends ApplyResponse | null | undefined>
         .join(", "),
     );
   }
-  return response;
+  return response as SuccessfulApplyResponse;
 };
 
-export const getAppliedValue = (response: ApplyResponse, name: string): unknown => {
-  const applied = response.body?.applied;
+export const getAppliedValue = (response: unknown, name: string): unknown => {
+  const applied =
+    isStringKeyedRecord(response) && isStringKeyedRecord(response.body)
+      ? response.body.applied
+      : undefined;
   return applied && typeof applied === "object" && !Array.isArray(applied)
     ? Reflect.get(applied, name)
     : undefined;
 };
+import { isStringKeyedRecord } from "../shared/message-protocol.ts";

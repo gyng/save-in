@@ -38,6 +38,10 @@ vi.mock("../src/downloads/download-state.ts", () => ({
   getDownload: () => Promise.resolve(null),
   mergeDownload: () => Promise.resolve(),
 }));
+const recoveryMocks = vi.hoisted(() => ({ recover: vi.fn(() => Promise.resolve()) }));
+vi.mock("../src/downloads/notification-recovery.ts", () => ({
+  recoverNotificationState: recoveryMocks.recover,
+}));
 
 import type { CurrentTab } from "../src/platform/current-tab.ts";
 import type { SaveInOptions } from "../src/config/option-schema.ts";
@@ -172,6 +176,7 @@ describe("init", () => {
     expect(OptionsManagement.loadOptions).toHaveBeenCalledTimes(1);
     expect(global.browser.storage.local.get).toHaveBeenCalledWith(["lastUsedPath", "lastUsedMeta"]);
     expect(global.browser.contextMenus.removeAll).toHaveBeenCalledTimes(1);
+    expect(recoveryMocks.recover).toHaveBeenCalledTimes(1);
 
     const contexts = ["image", "video", "audio", "link", "selection", "page"];
     expect(Menus.addTabMenus).toHaveBeenCalledTimes(1);
@@ -362,6 +367,18 @@ describe("current tab tracking", () => {
     (onUpdated as any)(2, { title: "Updated Title" });
     expect(activatedTab.title).toBe("Updated Title");
     expect(startupTab.title).toBe("Startup Tab");
+  });
+
+  test("contains and logs rejected work from a browser event listener", async () => {
+    await setupGlobals();
+    (global.browser.tabs as any).get = vi.fn(() => Promise.reject(new Error("tab closed")));
+
+    await importIndex();
+    await Runtime.ready;
+
+    const [[onActivated]] = vi.mocked(global.browser.tabs.onActivated.addListener).mock.calls;
+    await expect((onActivated as any)({ tabId: 9 })).resolves.toBeUndefined();
+    expect(Log.add).toHaveBeenCalledWith("tab activation failed", "Error: tab closed");
   });
 
   test("onUpdated fetches the tab when none is tracked yet", async () => {

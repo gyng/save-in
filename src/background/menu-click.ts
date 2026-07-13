@@ -19,6 +19,7 @@ import type { CurrentTab } from "../platform/current-tab.ts";
 import type { DownloadInfo } from "../downloads/download-types.ts";
 import { backgroundRuntime } from "./runtime.ts";
 import { Log } from "./log.ts";
+import { runBackgroundTask } from "./event-task.ts";
 
 type ClickInfo = {
   mediaType?: string;
@@ -127,186 +128,192 @@ export const resolveClickTarget = (
 };
 
 export const addDownloadListener = () => {
-  webExtensionApi.contextMenus.onClicked.addListener(async (info, tab) => {
-    if (Object.values(MENU_IDS.TABSTRIP).some((id) => id === info.menuItemId)) {
-      return;
-    }
-
-    if (info.menuItemId === "options") {
-      webExtensionApi.runtime.openOptionsPage();
-      return;
-    }
-
-    if (info.menuItemId === "toggle-source-panel") {
-      if (tab?.id != null) void toggleSourcePanelForTab(tab.id);
-      return;
-    }
-
-    if (info.menuItemId === "show-default-folder") {
-      webExtensionApi.downloads.showDefaultFolder();
-      return;
-    }
-
-    // MV3 service workers restart between events: wait for options
-    // and menus to be reinitialised before handling the click
-    if (backgroundRuntime.ready) {
-      await backgroundRuntime.ready;
-    }
-
-    // Prefer the tab the click happened in: the tracked global can lag
-    // behind or belong to another window, and its title is mutated by
-    // later tab updates (#172, #188)
-    const clickTab = tab || currentTab;
-
-    const menuInfo = menuState.pathMappings[info.menuItemId];
-
-    if (
-      menuInfo ||
-      [MENU_IDS.ROUTE_EXCLUSIVE, MENU_IDS.LAST_USED].includes(info.menuItemId as any)
-    ) {
-      let menuIndex = menuInfo && menuInfo.menuIndex;
-      let comment = menuInfo && menuInfo.comment;
-
-      const target = resolveClickTarget(info, options, clickTab);
-      if (!target) {
+  webExtensionApi.contextMenus.onClicked.addListener((info, tab) =>
+    runBackgroundTask("context menu click failed", async () => {
+      if (Object.values(MENU_IDS.TABSTRIP).some((id) => id === info.menuItemId)) {
         return;
       }
 
-      const downloadType = target.downloadType;
-      // A text selection is saved as an object URL of its text (the pure
-      // decision only reports the text)
-      let url =
-        target.selectionText != null ? Download.makeObjectUrl(target.selectionText) : target.url;
-      let suggestedFilename = target.suggestedFilename;
-      if (!url) {
+      if (info.menuItemId === "options") {
+        webExtensionApi.runtime.openOptionsPage();
         return;
       }
 
-      // Fire the notifications the pure decision flagged
-      if (target.notifyLinkPreferred && options.notifyOnLinkPreferred) {
-        Notifier.createExtensionNotification(
-          webExtensionApi.i18n.getMessage("notificationLinkPreferred"),
-          url,
-        );
-      }
-      if (target.badPatternError) {
-        Notifier.createExtensionNotification(
-          webExtensionApi.i18n.getMessage("notificationBadPreferLinksPattern"),
-          target.badPatternError as string,
-        );
+      if (info.menuItemId === "toggle-source-panel") {
+        if (tab?.id != null) void toggleSourcePanelForTab(tab.id);
+        return;
       }
 
-      let saveIntoPath;
-      let selectedLocation:
-        | { path: string; meta: { comment: string; menuIndex: string }; title: string }
-        | undefined;
-
-      if (info.menuItemId === MENU_IDS.ROUTE_EXCLUSIVE) {
-        saveIntoPath = ".";
-      } else if (info.menuItemId === MENU_IDS.LAST_USED) {
-        saveIntoPath = menuState.lastUsedPath;
-        if (backgroundRuntime.lastDownloadState?.info) {
-          comment = backgroundRuntime.lastDownloadState.info.comment;
-          menuIndex = backgroundRuntime.lastDownloadState.info.menuIndex;
-        } else if (menuState.lastUsedMeta) {
-          // The in-memory lastDownloadState died with the service worker:
-          // fall back to the persisted routing metadata so comment/menuindex
-          // rules still match after a restart
-          comment = menuState.lastUsedMeta.comment;
-          menuIndex = menuState.lastUsedMeta.menuIndex;
-        }
-      } else {
-        saveIntoPath = menuInfo.parsedDir;
-        const title = menuInfo.title || saveIntoPath;
-        selectedLocation = { path: saveIntoPath, meta: { comment, menuIndex }, title };
+      if (info.menuItemId === "show-default-folder") {
+        webExtensionApi.downloads.showDefaultFolder();
+        return;
       }
 
-      const parsedPath = new Path(saveIntoPath);
-
-      const saveAsShortcut =
-        (downloadType === DOWNLOAD_TYPES.MEDIA && options.shortcutMedia) ||
-        (downloadType === DOWNLOAD_TYPES.LINK && options.shortcutLink) ||
-        (downloadType === DOWNLOAD_TYPES.PAGE && options.shortcutPage);
-
-      if (saveAsShortcut) {
-        url = Shortcut.makeShortcut(options.shortcutType, url);
-
-        suggestedFilename = Shortcut.suggestShortcutFilename(
-          options.shortcutType,
-          downloadType,
-          info,
-          suggestedFilename,
-          options.truncateLength,
-        );
+      // MV3 service workers restart between events: wait for options
+      // and menus to be reinitialised before handling the click
+      if (backgroundRuntime.ready) {
+        await backgroundRuntime.ready;
       }
 
-      if (suggestedFilename) {
-        suggestedFilename = sanitizeFilename(suggestedFilename, options.truncateLength);
-      }
+      // Prefer the tab the click happened in: the tracked global can lag
+      // behind or belong to another window, and its title is mutated by
+      // later tab updates (#172, #188)
+      const clickTab = tab || currentTab;
 
-      // Organise things by flattening the info struct and only keeping needed info
-      const opts: DownloadInfo = {
-        currentTab: clickTab,
-        linkText: info.linkText,
-        now: new Date(),
-        pageUrl: info.pageUrl,
-        selectionText: info.selectionText,
-        sourceUrl: info.srcUrl,
-        url, // Changes based off context
-        suggestedFilename,
-        context: downloadType,
-        menuIndex,
-        menuItemId: String(info.menuItemId),
-        menuItemTitle:
-          selectedLocation?.title ||
-          (info.menuItemId === MENU_IDS.LAST_USED ? "Last used location" : "Routing rules"),
-        menuItemPath: saveIntoPath || undefined,
-        comment,
-        modifiers: info.modifiers,
-      };
+      const menuInfo = menuState.pathMappings[info.menuItemId];
 
-      // keeps track of state of the final path
-      const state = {
-        path: parsedPath,
-        scratch: {},
-        info: opts,
-        needRouteMatch: info.menuItemId === MENU_IDS.ROUTE_EXCLUSIVE,
-      };
-
-      // Fire-and-forget (renameAndDownload is async); Download.launch logs and
-      // reports a terminal failure to the user
-      const result = await Download.launch(state);
-
-      if (result.status === "started" && selectedLocation) {
-        await setLastUsed(selectedLocation.path, selectedLocation.meta);
-        if (options.enableLastLocation) {
-          webExtensionApi.contextMenus.update(MENU_IDS.LAST_USED, {
-            title: WEB_EXTENSION_CAPABILITIES.accessKeys
-              ? `${selectedLocation.title} (&a)`
-              : selectedLocation.title,
-            enabled: true,
-          });
-        }
-      }
-
-      // Close the tab a "save page" came from, mirroring the tab-strip
-      // behavior (#115). Deliberately page-context only: closing the tab
-      // under an image/link save would be a surprise.
       if (
-        options.closeTabOnSave &&
-        downloadType === DOWNLOAD_TYPES.PAGE &&
-        clickTab &&
-        clickTab.id != null
+        menuInfo ||
+        [MENU_IDS.ROUTE_EXCLUSIVE, MENU_IDS.LAST_USED].includes(info.menuItemId as any)
       ) {
-        const tabId = clickTab.id;
-        if (result.status === "started") {
-          try {
-            await webExtensionApi.tabs.remove(tabId);
-          } catch (error) {
-            Log.add("saved page tab close failed", String(error));
+        let menuIndex: string | null | undefined = menuInfo?.menuIndex;
+        let comment: string | null | undefined = menuInfo?.comment;
+
+        const target = resolveClickTarget(info, options, clickTab);
+        if (!target) {
+          return;
+        }
+
+        const downloadType = target.downloadType;
+        // A text selection is saved as an object URL of its text (the pure
+        // decision only reports the text)
+        let url =
+          target.selectionText != null ? Download.makeObjectUrl(target.selectionText) : target.url;
+        let suggestedFilename = target.suggestedFilename;
+        if (!url) {
+          return;
+        }
+
+        // Fire the notifications the pure decision flagged
+        if (target.notifyLinkPreferred && options.notifyOnLinkPreferred) {
+          Notifier.createExtensionNotification(
+            webExtensionApi.i18n.getMessage("notificationLinkPreferred"),
+            url,
+          );
+        }
+        if (target.badPatternError) {
+          Notifier.createExtensionNotification(
+            webExtensionApi.i18n.getMessage("notificationBadPreferLinksPattern"),
+            target.badPatternError as string,
+          );
+        }
+
+        let saveIntoPath;
+        let selectedLocation:
+          | { path: string; meta: { comment: string; menuIndex: string }; title: string }
+          | undefined;
+
+        if (info.menuItemId === MENU_IDS.ROUTE_EXCLUSIVE) {
+          saveIntoPath = ".";
+        } else if (info.menuItemId === MENU_IDS.LAST_USED) {
+          saveIntoPath = menuState.lastUsedPath;
+          if (backgroundRuntime.lastDownloadState?.info) {
+            comment = backgroundRuntime.lastDownloadState.info.comment;
+            menuIndex = backgroundRuntime.lastDownloadState.info.menuIndex;
+          } else if (menuState.lastUsedMeta) {
+            // The in-memory lastDownloadState died with the service worker:
+            // fall back to the persisted routing metadata so comment/menuindex
+            // rules still match after a restart
+            comment = menuState.lastUsedMeta.comment;
+            menuIndex = menuState.lastUsedMeta.menuIndex;
+          }
+        } else {
+          saveIntoPath = menuInfo.parsedDir;
+          const title = menuInfo.title || saveIntoPath;
+          selectedLocation = {
+            path: saveIntoPath,
+            meta: { comment: menuInfo.comment, menuIndex: menuInfo.menuIndex },
+            title,
+          };
+        }
+
+        const parsedPath = new Path(saveIntoPath);
+
+        const saveAsShortcut =
+          (downloadType === DOWNLOAD_TYPES.MEDIA && options.shortcutMedia) ||
+          (downloadType === DOWNLOAD_TYPES.LINK && options.shortcutLink) ||
+          (downloadType === DOWNLOAD_TYPES.PAGE && options.shortcutPage);
+
+        if (saveAsShortcut) {
+          url = Shortcut.makeShortcut(options.shortcutType, url);
+
+          suggestedFilename = Shortcut.suggestShortcutFilename(
+            options.shortcutType,
+            downloadType,
+            info,
+            suggestedFilename,
+            options.truncateLength,
+          );
+        }
+
+        if (suggestedFilename) {
+          suggestedFilename = sanitizeFilename(suggestedFilename, options.truncateLength);
+        }
+
+        // Organise things by flattening the info struct and only keeping needed info
+        const opts: DownloadInfo = {
+          currentTab: clickTab,
+          linkText: info.linkText,
+          now: new Date(),
+          pageUrl: info.pageUrl,
+          selectionText: info.selectionText,
+          sourceUrl: info.srcUrl,
+          url, // Changes based off context
+          suggestedFilename,
+          context: downloadType,
+          menuIndex,
+          menuItemId: String(info.menuItemId),
+          menuItemTitle:
+            selectedLocation?.title ||
+            (info.menuItemId === MENU_IDS.LAST_USED ? "Last used location" : "Routing rules"),
+          menuItemPath: saveIntoPath || undefined,
+          comment,
+          modifiers: info.modifiers,
+        };
+
+        // keeps track of state of the final path
+        const state = {
+          path: parsedPath,
+          scratch: {},
+          info: opts,
+          needRouteMatch: info.menuItemId === MENU_IDS.ROUTE_EXCLUSIVE,
+        };
+
+        // Fire-and-forget (renameAndDownload is async); Download.launch logs and
+        // reports a terminal failure to the user
+        const result = await Download.launch(state);
+
+        if (result.status === "started" && selectedLocation) {
+          await setLastUsed(selectedLocation.path, selectedLocation.meta);
+          if (options.enableLastLocation) {
+            webExtensionApi.contextMenus.update(MENU_IDS.LAST_USED, {
+              title: WEB_EXTENSION_CAPABILITIES.accessKeys
+                ? `${selectedLocation.title} (&a)`
+                : selectedLocation.title,
+              enabled: true,
+            });
+          }
+        }
+
+        // Close the tab a "save page" came from, mirroring the tab-strip
+        // behavior (#115). Deliberately page-context only: closing the tab
+        // under an image/link save would be a surprise.
+        if (
+          options.closeTabOnSave &&
+          downloadType === DOWNLOAD_TYPES.PAGE &&
+          clickTab &&
+          clickTab.id != null
+        ) {
+          const tabId = clickTab.id;
+          if (result.status === "started") {
+            try {
+              await webExtensionApi.tabs.remove(tabId);
+            } catch (error) {
+              Log.add("saved page tab close failed", String(error));
+            }
           }
         }
       }
-    }
-  });
+    }),
+  );
 };

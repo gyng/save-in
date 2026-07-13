@@ -7,7 +7,6 @@ import { extensionSessionStorage } from "../platform/storage-areas.ts";
 import { Path } from "../routing/path.ts";
 import { applyVariables } from "../routing/variable.ts";
 import { mergeDownload } from "./download-state.ts";
-import { DownloadRetry } from "./download-retry.ts";
 import { downloadPorts } from "./ports.ts";
 import {
   isOrdinaryBrowserDownload,
@@ -72,7 +71,6 @@ const rememberFilename = (downloadId: number, filename: string) =>
   });
 
 export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload): void => {
-  DownloadRetry.retry = Download.retryViaFetch;
   webExtensionApi.downloads?.onChanged?.addListener((delta) => {
     if (delta.state?.current !== "complete" && !delta.error) return;
     const objectUrl = Download.ownedObjectUrls.get(delta.id);

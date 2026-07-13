@@ -7,7 +7,7 @@ const backgroundEntry =
 // Each target has one module under src/entries; rolldown strips the types (oxc), resolves the imports and
 // scope-hoists every module into ONE readable, NON-minified file per target — so
 // top-level side effects and synchronous MV3 listener registration are preserved,
-// and the shared-object-mutation idiom (Menus.addDownloadListener = …) survives.
+// while explicit composition calls preserve synchronous listener registration.
 //
 // Output format is per-target and load-bearing:
 //   - background / background.sw / options / offscreen use `esm`: an entry with

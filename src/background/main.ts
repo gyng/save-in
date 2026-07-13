@@ -33,9 +33,17 @@ import { counterWriteState } from "./state.ts";
 import { resolveContent } from "../downloads/content-fetch.ts";
 import { syncSourcePanelToTab, toggleSourcePanelForTab } from "./source-panel-state.ts";
 import { backgroundRuntime, resetRuntimeDiagnostics } from "./runtime.ts";
+import { recoverNotificationState } from "../downloads/notification-recovery.ts";
+import { runBackgroundTask } from "./event-task.ts";
+import { Download } from "../downloads/download.ts";
 
 export const configureBackgroundPorts = () => {
-  configureDownloadPorts({ runtime: backgroundRuntime, history: SaveHistory, log: Log });
+  configureDownloadPorts({
+    runtime: backgroundRuntime,
+    history: SaveHistory,
+    log: Log,
+    retry: Download.retryViaFetch,
+  });
   configureRoutingPorts({
     getMessage: (key) => webExtensionApi.i18n.getMessage(key),
     getCurrentTab: () => currentTab,
@@ -58,6 +66,7 @@ backgroundRuntime.init = () => {
     // Rebuild the in-memory download records from storage.session before any
     // download event handler (which awaits backgroundRuntime.ready) touches them
     hydrateDownloads(downloadsState, extensionSessionStorage),
+    recoverNotificationState(),
   ])
     .then((results) => {
       backgroundRuntime.debug = results[0].debug;
@@ -116,14 +125,17 @@ export const start = () => {
   addTabMenuListener();
   addTabHighlightListener();
   const toggleSources = (tab: browser.tabs.Tab) => {
-    if (tab.id != null) void toggleSourcePanelForTab(tab.id);
+    const tabId = tab.id;
+    if (tabId != null)
+      return runBackgroundTask("source panel toggle failed", () => toggleSourcePanelForTab(tabId));
   };
   webExtensionApi.action?.onClicked.addListener(toggleSources);
   webExtensionApi.commands?.onCommand.addListener((command) => {
     if (command !== "toggle-source-panel") return;
-    void webExtensionApi.tabs
-      .query({ active: true, currentWindow: true })
-      .then(([tab]) => tab && toggleSources(tab));
+    return runBackgroundTask("source panel command failed", async () => {
+      const [tab] = await webExtensionApi.tabs.query({ active: true, currentWindow: true });
+      if (tab) await toggleSources(tab);
+    });
   });
 
   const initialTab = webExtensionApi.tabs
@@ -138,25 +150,29 @@ export const start = () => {
     ([ready]) => ready,
   );
 
-  webExtensionApi.tabs.onActivated.addListener(async (info) => {
-    setCurrentTab(await webExtensionApi.tabs.get(info.tabId));
-    await syncSourcePanelToTab(info.tabId);
-  });
+  webExtensionApi.tabs.onActivated.addListener((info) =>
+    runBackgroundTask("tab activation failed", async () => {
+      setCurrentTab(await webExtensionApi.tabs.get(info.tabId));
+      await syncSourcePanelToTab(info.tabId);
+    }),
+  );
 
-  webExtensionApi.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
-    if (!currentTab) {
-      const candidate = tab || (await webExtensionApi.tabs.get(tabId));
-      // A background tab can update before the startup active-tab query
-      // resolves. It must not become the global fallback for unrelated saves.
-      if (candidate.active !== false) setCurrentTab(candidate);
-    } else if (currentTab.id === tabId && changeInfo.title) {
-      // Mutating a property of the shared tab object (not reassigning the binding)
-      currentTab.title = changeInfo.title;
-    }
-    // A new tab can finish loading its content script after an activation-time
-    // restore message. Apply the shared state whenever any tab becomes ready.
-    if (changeInfo.status === "complete") {
-      await syncSourcePanelToTab(tabId);
-    }
-  });
+  webExtensionApi.tabs.onUpdated.addListener((tabId, changeInfo, tab) =>
+    runBackgroundTask("tab update failed", async () => {
+      if (!currentTab) {
+        const candidate = tab || (await webExtensionApi.tabs.get(tabId));
+        // A background tab can update before the startup active-tab query
+        // resolves. It must not become the global fallback for unrelated saves.
+        if (candidate.active !== false) setCurrentTab(candidate);
+      } else if (currentTab.id === tabId && changeInfo.title) {
+        // Mutating a property of the shared tab object (not reassigning the binding)
+        currentTab.title = changeInfo.title;
+      }
+      // A new tab can finish loading its content script after an activation-time
+      // restore message. Apply the shared state whenever any tab becomes ready.
+      if (changeInfo.status === "complete") {
+        await syncSourcePanelToTab(tabId);
+      }
+    }),
+  );
 };

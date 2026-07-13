@@ -19,6 +19,7 @@ export type DownloadPorts = {
     ): Promise<unknown>;
   };
   log: { add(message: string, data?: unknown): unknown };
+  retry(downloadId: number): Promise<boolean>;
 };
 
 export type DownloadPortRegistry = {
@@ -58,6 +59,7 @@ export const createDownloadPortRegistry = (): DownloadPortRegistry => {
       setStatus: (...args) => requirePort("history").setStatus(...args),
     },
     log: { add: (...args) => requirePort("log").add(...args) },
+    retry: (...args) => requirePort("retry")(...args),
   };
 
   return {

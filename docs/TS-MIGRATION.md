@@ -108,7 +108,7 @@ Work happened on branch **`ts-migration`** (off `mv3`).
 - **`c748dec`** Phase 1: `content.ts` (iife); `build`/`lint`/`e2e:*` switched to
   the bundled pkg (`dist/bundled-pkg`); `tsconfig` includes `src/**/*.ts`.
 - **`2a8b4ed`** all 40 source files → ESM/TS (`module.exports`→`export`, globals→
-  imports); per-target entries `src/entry.{background,options,offscreen}.ts`;
+  imports); per-target entries under `src/entries/`;
   `rolldown.config.mjs` reworked to real module resolution (concat helpers
   deleted). Extracted **`src/current-tab.ts`** as a leaf so nothing imports
   the former `index.ts` composition root (now `background/main.ts`, after the

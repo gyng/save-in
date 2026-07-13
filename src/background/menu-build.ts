@@ -23,9 +23,8 @@ type StoredLastUsed = {
 } | null;
 type MenuPathMapping = {
   parsedDir: string;
-  // Kept permissive until menu-click's optional routing fields are strict-typed.
-  comment: any;
-  menuIndex: any;
+  comment: string;
+  menuIndex: string;
   title: string;
   depth: number;
 };

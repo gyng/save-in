@@ -17,9 +17,10 @@ describe("download ports", () => {
     expect(() => registry.ports.log.add("message")).toThrow(
       "Download port has not been configured: log",
     );
+    expect(() => registry.ports.retry(1)).toThrow("Download port has not been configured: retry");
   });
 
-  test("configuration preserves references captured during module evaluation", () => {
+  test("configuration preserves references captured during module evaluation", async () => {
     const capturedRuntime = downloadPorts.runtime;
     const capturedHistory = downloadPorts.history;
     const capturedLog = downloadPorts.log;
@@ -30,12 +31,15 @@ describe("download ports", () => {
       setStatus: vi.fn(() => Promise.resolve()),
     };
     const log = { add: vi.fn() };
+    const retry = vi.fn(() => Promise.resolve(true));
 
-    configureDownloadPorts({ runtime: { debug: true }, history, log });
+    configureDownloadPorts({ runtime: { debug: true }, history, log, retry });
 
     expect(capturedRuntime.debug).toBe(true);
     expect(capturedHistory.add({})).toBe("history-id");
     capturedLog.add("configured");
     expect(log.add).toHaveBeenCalledWith("configured");
+    await expect(downloadPorts.retry(7)).resolves.toBe(true);
+    expect(retry).toHaveBeenCalledWith(7);
   });
 });

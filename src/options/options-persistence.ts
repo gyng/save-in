@@ -1,4 +1,6 @@
-export type JsonRecord = Record<string, any>;
+import { isStringKeyedRecord } from "../shared/message-protocol.ts";
+
+export type JsonRecord = Record<string, unknown>;
 
 export type OptionSchema = {
   keys: Array<JsonRecord & { name: string; type: string; default?: unknown }>;
@@ -10,7 +12,7 @@ export type SavedChange = { name: string; before: unknown; after: unknown };
 type OptionsPersistencePorts = {
   getSchema(): Promise<OptionSchema>;
   getStored(keys: string[]): Promise<JsonRecord>;
-  apply(config: JsonRecord, expected?: JsonRecord): Promise<any>;
+  apply(config: JsonRecord, expected?: JsonRecord): Promise<unknown>;
   collect(schema: OptionSchema, scope?: string): JsonRecord;
   assertApplied(response: unknown): void;
   markSaved(changes?: SavedChange[], undo?: () => Promise<void>): void;
@@ -31,7 +33,7 @@ export const createOptionsPersistence = (ports: OptionsPersistencePorts) => {
     ports.onRestore(stored, schema);
   };
 
-  const save = async (scope?: string, scopeValue?: unknown): Promise<any> => {
+  const save = async (scope?: string, scopeValue?: unknown): Promise<unknown> => {
     const schema = await ports.getSchema();
     const config = ports.collect(schema, scope);
     if (scope && typeof scopeValue !== "undefined") config[scope] = scopeValue;
@@ -39,7 +41,11 @@ export const createOptionsPersistence = (ports: OptionsPersistencePorts) => {
 
     const response = await ports.apply(config, undefined);
     ports.assertApplied(response);
-    const applied = response?.body?.applied || config;
+    const body =
+      isStringKeyedRecord(response) && isStringKeyedRecord(response.body)
+        ? response.body
+        : undefined;
+    const applied = body && isStringKeyedRecord(body.applied) ? body.applied : config;
     const changes: SavedChange[] = Object.entries(applied)
       .filter(([name, value]) => JSON.stringify(previous[name]) !== JSON.stringify(value))
       .map(([name, after]) => ({ name, before: previous[name], after }));

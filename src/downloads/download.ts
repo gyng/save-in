@@ -23,7 +23,7 @@ import {
   FINAL_FILENAMES_SESSION_KEY,
   PENDING_DOWNLOADS_SESSION_KEY,
 } from "../shared/storage-keys.ts";
-import { DownloadEvents } from "./download-events.ts";
+import { emitDownloaded } from "./download-events.ts";
 import { retryViaFetch } from "./download-retry.ts";
 import { extensionSessionStorage } from "../platform/storage-areas.ts";
 import type {
@@ -93,7 +93,7 @@ const recordDownloadRequest = (plan: DownloadPlan): void => {
   });
   if (backgroundRuntime.debug) console.log(state, plan.finalFullPath); // eslint-disable-line
 
-  DownloadEvents.downloaded(state);
+  emitDownloaded(state);
   backgroundRuntime.lastDownloadState = state;
 };
 

@@ -282,6 +282,7 @@ describe("onDeterminingFilename listener (Chrome)", () => {
         setStatus: () => Promise.resolve(),
       },
       log: { add: vi.fn() },
+      retry: currentDownload.retryViaFetch,
     });
     freshDownload = currentDownload;
     registerDownloadListener();

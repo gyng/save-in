@@ -1,0 +1,17 @@
+import { Log } from "./log.ts";
+import { runEventTask } from "../shared/event-task.ts";
+
+// Browser event dispatch does not consistently observe returned promises.
+// Always contain rejections here so tab-close races and failed initialization
+// are diagnostic events rather than unhandled worker rejections.
+export const runBackgroundTask = (
+  label: string,
+  work: () => void | Promise<unknown>,
+): Promise<void> =>
+  runEventTask(work, (error) => {
+    try {
+      return Log.add(label, String(error));
+    } catch {
+      // Logging must never recreate the event rejection it is containing.
+    }
+  });

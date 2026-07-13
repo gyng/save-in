@@ -34,9 +34,17 @@ export default defineConfig({
         // vendored libraries
         "src/vendor/**",
         "src/options/vendor/**",
-        // rolldown bundle entries (side-effect import lists + globalThis
-        // exposure): exercised by the e2e, not unit tests
-        "src/entry.*.ts",
+        // Rolldown bundle entries and the background composition/bootstrap
+        // are exercised through the real extension lifecycle in e2e.
+        "src/entries/**",
+        "src/background/main.ts",
+        "src/background/e2e-api.ts",
+        "src/background/e2e-bridge.ts",
+        // Browser/DOM event adapters are exercised end-to-end; their pure
+        // decision models and persistence services remain in unit coverage.
+        "src/content/source-panel.ts",
+        "src/downloads/filename-listener.ts",
+        "src/downloads/notification.ts",
         // Chrome offscreen-document bootstrap (message listener doing
         // fetch/createObjectURL/crypto.subtle in a separate document context):
         // exercised by the Chrome e2e sha256/offscreen path
