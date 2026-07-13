@@ -436,9 +436,9 @@ const internalHandlers = {
     sendResponse({ type: MESSAGE_TYPES.OK });
   },
   [MESSAGE_TYPES.HISTORY_CANCEL]: async (request, _sender, sendResponse) => {
-    const historyId = request.body?.historyId;
-    const active = typeof historyId === "string" ? ActiveTransfers.get(historyId) : undefined;
-    let canceled = typeof historyId === "string" && ActiveTransfers.cancel(historyId);
+    const { historyId } = request.body;
+    const active = ActiveTransfers.get(historyId);
+    let canceled = ActiveTransfers.cancel(historyId);
     if (active?.requestId && OffscreenClient.canUse()) {
       await OffscreenClient.cancel(active.requestId).catch(() => {});
     }
@@ -472,7 +472,7 @@ const internalHandlers = {
     });
   },
   [MESSAGE_TYPES.EXTERNAL_DOWNLOAD_REJECTION_CLEAR]: async (request, _sender, sendResponse) => {
-    await ExternalDownloadRejections.clear(request.body!.senderId);
+    await ExternalDownloadRejections.clear(request.body.senderId);
     sendResponse({ type: MESSAGE_TYPES.OK });
   },
   [MESSAGE_TYPES.OPTIONS_LOADED]: async (_request, _sender, sendResponse) => {

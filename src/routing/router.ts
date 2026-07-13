@@ -44,10 +44,9 @@ export const traceRules = async (rules: RoutingRule[], info: RoutingInfo): Promi
       .map((clause) => ({
         name: clause.name,
         pattern: String(clause.value),
-        matched: Boolean(clause.matcher?.(info, info)),
+        matched: Boolean(clause.matcher(info, info)),
       }));
-    const destination = rule.find((clause) => clause.type === RULE_TYPES.DESTINATION)!
-      .value as string;
+    const destination = rule.find((clause) => clause.type === RULE_TYPES.DESTINATION)?.value ?? "";
     return {
       index: index + 1,
       matched: Boolean(matchedDestinations[index]),

@@ -6,7 +6,7 @@ import {
   type ConflictAction,
   type ShortcutType,
 } from "../shared/constants.ts";
-import { isSelectableLocale } from "../shared/generated-locales.ts";
+import { isSelectableLocale, type SelectableLocale } from "../shared/generated-locales.ts";
 import { WEB_EXTENSION_CAPABILITIES } from "../platform/chrome-detector.ts";
 import { parseRules } from "../routing/router.ts";
 import {
@@ -37,20 +37,28 @@ type HookInput<Hook> =
     ? Value
     : never;
 type HookOutput<Hook> = HookSignature<Hook> extends { output: infer Output } ? Output : never;
+type GuardedValue<Hook> = Hook extends ((value: unknown) => value is infer Value) ? Value : never;
+type ValidatedOptionValue<Definition extends OptionKey> = Definition extends {
+  validate: infer Validate;
+}
+  ? GuardedValue<Validate>
+  : never;
 type StoredOptionValue<Definition extends OptionKey> = Definition extends {
   onLoad: infer Hook;
 }
   ? HookInput<Hook>
-  : WidenDefault<Definition["default"]>;
+  : [ValidatedOptionValue<Definition>] extends [never]
+    ? WidenDefault<Definition["default"]>
+    : ValidatedOptionValue<Definition>;
 type RuntimeOptionValue<Definition extends OptionKey> = Definition extends {
   onLoad: infer Hook;
 }
   ? HookOutput<Hook> | Definition["default"]
-  : WidenDefault<Definition["default"]>;
+  : StoredOptionValue<Definition>;
 type CheckedSaveHook<Definition extends OptionKey> = Definition extends {
   onSave: infer Save;
 }
-  ? Definition["default"] extends HookInput<Save>
+  ? StoredOptionValue<Definition> extends HookInput<Save>
     ? HookOutput<Save> extends StoredOptionValue<Definition>
       ? Definition
       : never
@@ -60,7 +68,7 @@ type CheckedOptionHooks<Definition extends OptionKey> =
   Definition["default"] extends StoredOptionValue<Definition>
     ? Definition extends { validate: infer Validate }
       ? HookOutput<Validate> extends boolean
-        ? Definition["default"] extends HookInput<Validate>
+        ? StoredOptionValue<Definition> extends HookInput<Validate>
           ? CheckedSaveHook<Definition>
           : never
         : never
@@ -120,7 +128,7 @@ export const OPTION_KEYS = defineOptions([
   {
     name: "uiLocale",
     type: OPTION_TYPES.VALUE,
-    validate: (value: unknown): value is string =>
+    validate: (value: unknown): value is "" | SelectableLocale =>
       typeof value === "string" && (value === "" || isSelectableLocale(value)),
     default: "",
   },

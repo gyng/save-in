@@ -19,14 +19,19 @@ import { SaveHistory } from "../src/background/history.ts";
 import { getFilenameFromContentDispositionHeader } from "../src/vendor/content-disposition.ts";
 import { extensionSessionStorage } from "../src/platform/storage-areas.ts";
 import { RULE_TYPES } from "../src/shared/constants.ts";
-import type { RoutingRule } from "../src/routing/router.ts";
+import type { RoutingRule, RuleClause } from "../src/routing/router.ts";
 import { configureDownloadPorts } from "../src/downloads/ports.ts";
 import { backgroundRuntime } from "../src/background/runtime.ts";
 
 const downloadState = BackgroundState.downloads;
-const routingRule = (name = "rule"): RoutingRule => [
-  { name, value: ".*", type: RULE_TYPES.MATCHER },
-];
+const routingRule = (name = "rule"): RoutingRule => {
+  const clauses = [
+    { name, value: /.*/, type: RULE_TYPES.MATCHER, matcher: () => null },
+    { name: "into", value: "routed", type: RULE_TYPES.DESTINATION },
+  ] satisfies RuleClause[];
+  // This fixture supplies post-parse rules while the routing service itself is mocked.
+  return clauses as RoutingRule;
+};
 
 // chrome-detector's CURRENT_BROWSER is a load-time-detected constant, but this
 // suite flips it per test via the real setCurrentBrowser setter (grabbed below,

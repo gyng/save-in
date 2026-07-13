@@ -1,4 +1,4 @@
-import type { RuleType } from "../shared/constants.ts";
+import { RULE_TYPES } from "../shared/constants.ts";
 import type { ContentFetchResult } from "../shared/content-fetch-types.ts";
 import type { LazyDownloadMetadata } from "../shared/lazy-download-metadata.ts";
 
@@ -44,10 +44,23 @@ export type RoutingInfo = Omit<RoutingDownloadInfo, "currentTab"> & {
 };
 export type RuleMatcher = (info: RoutingInfo, metadata?: Partial<RoutingInfo>) => MatcherResult;
 export type MatcherFactory = (regex: RegExp) => RuleMatcher;
-export type RuleClause = {
+export type MatcherClause = {
   name: string;
-  value: string | RegExp;
-  type: RuleType;
-  matcher?: RuleMatcher;
+  value: RegExp;
+  type: typeof RULE_TYPES.MATCHER;
+  matcher: RuleMatcher;
 };
-export type RoutingRule = RuleClause[];
+export type CaptureClause = {
+  name: "capture" | "capturegroups";
+  value: string;
+  type: typeof RULE_TYPES.CAPTURE;
+};
+export type DestinationClause = {
+  name: "into";
+  value: string;
+  type: typeof RULE_TYPES.DESTINATION;
+};
+export type RuleClause = MatcherClause | CaptureClause | DestinationClause;
+
+declare const validatedRoutingRule: unique symbol;
+export type RoutingRule = RuleClause[] & { readonly [validatedRoutingRule]: true };

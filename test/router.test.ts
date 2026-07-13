@@ -232,6 +232,19 @@ describe("filename rewrite and routing", () => {
       const match = router.matchRules(rules, info);
       expect(match).toBe(null);
     });
+
+    test("does not throw when an untyped caller supplies a malformed rule", () => {
+      expect(router.matchRule([] as unknown as RoutingRule, info)).toBe(false);
+      expect(
+        router.matchRule(
+          [
+            { name: "filename", value: /.+/, type: constants.RULE_TYPES.MATCHER },
+            { name: "into", value: "images", type: constants.RULE_TYPES.DESTINATION },
+          ] as unknown as RoutingRule,
+          info,
+        ),
+      ).toBe(false);
+    });
   });
 
   describe("browser context menu click integration", () => {

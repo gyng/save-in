@@ -1,8 +1,7 @@
 import { RULE_TYPES } from "../shared/constants.ts";
-import type { RuleType } from "../shared/constants.ts";
 import { matcherFunctions } from "./matchers.ts";
 import { routingPorts } from "./ports.ts";
-import type { RuleClause, RuleError, RoutingRule, RuleToken } from "./rule-types.ts";
+import type { MatcherClause, RuleClause, RuleError, RoutingRule, RuleToken } from "./rule-types.ts";
 
 export const tokenizeLines = (lines: string, errors: RuleError[] = []): RuleToken[] =>
   lines
@@ -46,12 +45,20 @@ export const parseRule = (lines: RuleToken[], errors: RuleError[] = []): Routing
     const flagSeparator = rawName.lastIndexOf("/");
     const name = (flagSeparator > 0 ? rawName.slice(0, flagSeparator) : rawName).toLowerCase();
     const flags = flagSeparator > 0 ? rawName.slice(flagSeparator + 1) : "";
-    let value: string | RegExp;
+    if (name === "into") {
+      return {
+        name,
+        value: rawValue.replace(/^\.\//, ""),
+        type: RULE_TYPES.DESTINATION,
+      };
+    }
+    if (name === "capture" || name === "capturegroups") {
+      return { name, value: rawValue, type: RULE_TYPES.CAPTURE };
+    }
+
+    let value: RegExp;
     try {
-      value =
-        name === "into" || name === "capture" || name === "capturegroups"
-          ? rawValue
-          : new RegExp(rawValue, flags);
+      value = new RegExp(rawValue, flags);
     } catch (error) {
       errors.push({
         message: routingPorts.getMessage("ruleInvalidRegex"),
@@ -59,12 +66,6 @@ export const parseRule = (lines: RuleToken[], errors: RuleError[] = []): Routing
       });
       return false;
     }
-    let type: RuleType = RULE_TYPES.MATCHER;
-    if (name === "into") {
-      type = RULE_TYPES.DESTINATION;
-      value = (value as string).replace(/^\.\//, "");
-    } else if (name === "capture" || name === "capturegroups") type = RULE_TYPES.CAPTURE;
-    if (type !== RULE_TYPES.MATCHER) return { name, value, type };
     const factory = Object.hasOwn(matcherFunctions, name)
       ? matcherFunctions[name as keyof typeof matcherFunctions]
       : undefined;
@@ -72,26 +73,26 @@ export const parseRule = (lines: RuleToken[], errors: RuleError[] = []): Routing
       errors.push({ message: routingPorts.getMessage("ruleUnknownMatcher"), error: `${name}:` });
       return false;
     }
-    return { name, value, type, matcher: factory(value as RegExp) };
+    return { name, value, type: RULE_TYPES.MATCHER, matcher: factory(value) };
   });
-  if (clauses.some((clause) => clause === false)) return false;
-  const valid = clauses as RuleClause[];
+  const valid = clauses.filter((clause): clause is RuleClause => clause !== false);
+  if (valid.length !== clauses.length) return false;
   const destinations = valid.filter((clause) => clause.type === RULE_TYPES.DESTINATION);
   const destination = destinations[0];
-  if (!destination || !(destination.value as string).trim()) {
+  if (!destination || !destination.value.trim()) {
     errors.push({
       message: routingPorts.getMessage("ruleMissingInto"),
-      error: destination ? (destination.value as string) : "",
+      error: destination ? destination.value : "",
     });
     return false;
   }
   if (
-    (destination.value as string).match(/:\$\d+:/) &&
+    destination.value.match(/:\$\d+:/) &&
     !valid.some((clause) => clause.type === RULE_TYPES.CAPTURE)
   )
     errors.push({
       message: routingPorts.getMessage("ruleMissingCapture"),
-      error: destination.value as string,
+      error: destination.value,
     });
   if (!valid.some((clause) => clause.type === RULE_TYPES.MATCHER)) {
     errors.push({
@@ -118,7 +119,7 @@ export const parseRule = (lines: RuleToken[], errors: RuleError[] = []): Routing
   if (captures.length === 1) {
     const capture = captures[0];
     if (!capture) return false;
-    const names = (capture.value as string).split(",").map((name) => name.trim().toLowerCase());
+    const names = capture.value.split(",").map((name) => name.trim().toLowerCase());
     const matcherCandidates = names.map((name) =>
       valid.filter((clause) => clause.type === RULE_TYPES.MATCHER && clause.name === name),
     );
@@ -141,22 +142,25 @@ export const parseRule = (lines: RuleToken[], errors: RuleError[] = []): Routing
       }
     });
     if (missing) return false;
-    const availableIndexes = capturedMatchers.reduce(
-      (total, clause) => total + captureGroupCount(clause!.value as RegExp) + 1,
+    const definiteCapturedMatchers = capturedMatchers.filter(
+      (clause): clause is MatcherClause => clause !== undefined,
+    );
+    const availableIndexes = definiteCapturedMatchers.reduce(
+      (total, clause) => total + captureGroupCount(clause.value) + 1,
       capture.name === "capturegroups" ? 1 - capturedMatchers.length : 0,
     );
-    const indexes = [...(destination.value as string).matchAll(/:\$(\d+):/g)].map((match) =>
-      Number(match[1]),
-    );
+    const indexes = [...destination.value.matchAll(/:\$(\d+):/g)].map((match) => Number(match[1]));
     if (indexes.some((index) => index >= availableIndexes)) {
       errors.push({
         message: routingPorts.getMessage("ruleMissingCapture"),
-        error: destination.value as string,
+        error: destination.value,
       });
       return false;
     }
   }
-  return valid;
+  // Whole-rule cardinality and capture references cannot be expressed by the
+  // clause union; issue the brand only after those invariants have been checked.
+  return valid as RoutingRule;
 };
 
 export const parseRulesCollecting = (
@@ -183,13 +187,12 @@ export const parseRulesCollecting = (
       const earlierMatchers = earlier.filter((clause) => clause.type === RULE_TYPES.MATCHER);
       const laterMatchers = laterRule.filter((clause) => clause.type === RULE_TYPES.MATCHER);
       return earlierMatchers.every((earlierClause) =>
-        earlierClause.name.toLowerCase() === "filename" &&
-        isPlainMatchAll(earlierClause.value as RegExp)
+        earlierClause.name.toLowerCase() === "filename" && isPlainMatchAll(earlierClause.value)
           ? true
           : laterMatchers.some((laterClause) => {
               if (laterClause.name !== earlierClause.name) return false;
-              const a = earlierClause.value as RegExp;
-              const b = laterClause.value as RegExp;
+              const a = earlierClause.value;
+              const b = laterClause.value;
               return isPlainMatchAll(a) || (a.source === b.source && a.flags === b.flags);
             }),
       );

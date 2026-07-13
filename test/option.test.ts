@@ -3,15 +3,20 @@
 // dependency fakes because it consumes the normalized options bag.
 
 import * as constants from "../src/shared/constants.ts";
-import type { RoutingRule } from "../src/routing/router.ts";
+import type { RoutingRule, RuleClause } from "../src/routing/router.ts";
 import {
   PATH_TRUNCATION_MIGRATION_STORAGE_KEY,
   PATH_TRUNCATION_MIGRATION_VERSION,
 } from "../src/shared/storage-keys.ts";
 
-const routingRule = (name: string): RoutingRule => [
-  { name, value: ".*", type: constants.RULE_TYPES.MATCHER },
-];
+const routingRule = (name: string): RoutingRule => {
+  const clauses = [
+    { name, value: /.*/, type: constants.RULE_TYPES.MATCHER, matcher: () => null },
+    { name: "into", value: name, type: constants.RULE_TYPES.DESTINATION },
+  ] satisfies RuleClause[];
+  // This fixture supplies post-parse rules while the routing service itself is mocked.
+  return clauses as RoutingRule;
+};
 
 // Routing, variable interpolation, path, and download logic are exercised elsewhere;
 // option.ts only needs to call specific methods on them, so mock those with

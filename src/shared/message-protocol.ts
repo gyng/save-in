@@ -135,9 +135,12 @@ export const fromWireDownloadState = (state: WireDownloadState): { info: Downloa
   };
 };
 
-type Message<T extends string, B = never> = [B] extends [never]
-  ? { type: T }
-  : { type: T; body?: B | undefined };
+type Message<T extends string> = { type: T };
+type OptionalBodyMessage<T extends string, Body> = {
+  type: T;
+  body?: Body | undefined;
+};
+type RequiredBodyMessage<T extends string, Body> = { type: T; body: Body };
 
 type Response<T extends string, Body = never> = [Body] extends [never]
   ? { type: T }
@@ -268,22 +271,25 @@ export type DownloadRequestBody = {
 export type InternalMessage =
   | Message<typeof MESSAGE_TYPES.WAKE_WARM>
   | Message<typeof MESSAGE_TYPES.SOURCE_PANEL_READY>
-  | Message<typeof MESSAGE_TYPES.SOURCE_PANEL_STATE, { open?: boolean }>
+  | OptionalBodyMessage<typeof MESSAGE_TYPES.SOURCE_PANEL_STATE, { open: boolean }>
   | Message<typeof MESSAGE_TYPES.SOURCE_PANEL_COPY>
   | Message<typeof MESSAGE_TYPES.HISTORY_GET>
   | Message<typeof MESSAGE_TYPES.HISTORY_CLEAR>
-  | Message<typeof MESSAGE_TYPES.HISTORY_CANCEL, { historyId: string }>
+  | RequiredBodyMessage<typeof MESSAGE_TYPES.HISTORY_CANCEL, { historyId: string }>
   | Message<typeof MESSAGE_TYPES.EXTERNAL_DOWNLOAD_REJECTIONS_GET>
-  | Message<typeof MESSAGE_TYPES.EXTERNAL_DOWNLOAD_REJECTION_CLEAR, { senderId: string }>
+  | RequiredBodyMessage<
+      typeof MESSAGE_TYPES.EXTERNAL_DOWNLOAD_REJECTION_CLEAR,
+      { senderId: string }
+    >
   | Message<typeof MESSAGE_TYPES.OPTIONS_LOADED>
   | Message<typeof MESSAGE_TYPES.OPTIONS>
   | Message<typeof MESSAGE_TYPES.OPTIONS_SCHEMA>
   | Message<typeof MESSAGE_TYPES.GET_KEYWORDS>
-  | Message<typeof MESSAGE_TYPES.PREVIEW_MENUS, { paths?: string }>
-  | Message<typeof MESSAGE_TYPES.CHECK_ROUTES, { state?: WireDownloadState }>
+  | OptionalBodyMessage<typeof MESSAGE_TYPES.PREVIEW_MENUS, { paths?: string }>
+  | OptionalBodyMessage<typeof MESSAGE_TYPES.CHECK_ROUTES, { state?: WireDownloadState }>
   | Message<typeof MESSAGE_TYPES.PING>
   | Message<typeof MESSAGE_TYPES.GET_SCHEMA>
-  | Message<
+  | OptionalBodyMessage<
       typeof MESSAGE_TYPES.VALIDATE,
       {
         paths?: string;
@@ -291,11 +297,11 @@ export type InternalMessage =
         info?: Partial<DownloadInfo> & { srcUrl?: string };
       }
     >
-  | Message<
+  | OptionalBodyMessage<
       typeof MESSAGE_TYPES.APPLY_CONFIG,
       { config?: Record<string, unknown>; expected?: Record<string, unknown> }
     >
-  | Message<typeof MESSAGE_TYPES.DOWNLOAD, DownloadRequestBody>;
+  | OptionalBodyMessage<typeof MESSAGE_TYPES.DOWNLOAD, DownloadRequestBody>;
 
 export type ExternalMessage = Extract<
   InternalMessage,
