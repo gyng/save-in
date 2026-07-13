@@ -168,6 +168,11 @@ describe("createExtensionNotification", () => {
 
   test("reports a rejected external download immediately with a stable notification id", async () => {
     setOptions({ notifyDuration: 0 });
+    vi.mocked(global.browser.i18n.getMessage)
+      .mockReturnValueOnce("External download blocked")
+      .mockReturnValueOnce(
+        "Blocked a request from blocked-extension. Click to review it in Options.",
+      );
 
     await notification.reportExternalDownloadRejection("blocked-extension");
 

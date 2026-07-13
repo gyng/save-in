@@ -1735,6 +1735,33 @@
   "o_lUiThemeHelp": {
     "message": "Sigue el tema del sistema o mantén la página de opciones y los recursos de la página siempre en modo oscuro o claro."
   },
+  "notificationExternalDownloadBlockedTitle": { "message": "Descarga externa bloqueada" },
+  "notificationExternalDownloadBlockedMessage": {
+    "message": "Se bloqueó una solicitud de $SENDER_ID$. Haz clic para revisarla en Opciones.",
+    "placeholders": {
+      "sender_id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" }
+    }
+  },
+  "historyEmptyNoDownloads": { "message": "Aún no hay descargas guardadas." },
+  "historyEmptyNoMatches": {
+    "message": "Ningún elemento del historial coincide con estos filtros."
+  },
+  "webMcpStatusRegistering": { "message": "Registrando…" },
+  "webMcpStatusActive": {
+    "message": "Activo — $COUNT$ herramientas registradas",
+    "placeholders": { "count": { "content": "$1", "example": "5" } }
+  },
+  "webMcpStatusLimited": {
+    "message": "Limitado — $REGISTERED$ de $TOTAL$ herramientas registradas",
+    "placeholders": {
+      "registered": { "content": "$1", "example": "4" },
+      "total": { "content": "$2", "example": "5" }
+    }
+  },
+  "webMcpStatusRegistrationFailed": {
+    "message": "No disponible — error al registrar las herramientas"
+  },
+  "webMcpStatusUnavailableBrowser": { "message": "No disponible en este navegador" },
   "o_lPathEditorDragHelp": {
     "message": "Arrastra una fila por el tirador de puntos. Suéltala encima o debajo de otra fila para colocarla en el mismo nivel, o sobre la fila para anidarla dentro."
   }

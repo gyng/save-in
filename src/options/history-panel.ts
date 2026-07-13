@@ -64,11 +64,11 @@ const HISTORY_COLUMNS_KEY = "si-history-columns";
 const defaultHistoryColumns = HISTORY_COLUMNS.filter(({ defaultVisible }) => defaultVisible).map(
   ({ key }) => key,
 );
-let historyGetMessage: (key: string) => string = () => "";
-export const setHistoryLocalizer = (localize: (key: string) => string): void => {
-  historyGetMessage = localize;
+let localize: (key: string) => string = () => "";
+export const setHistoryLocalizer = (getLocalizedMessage: (key: string) => string): void => {
+  localize = getLocalizedMessage;
 };
-const historyColumns = () => localizeHistoryColumns(historyGetMessage);
+const historyColumns = () => localizeHistoryColumns(localize);
 const historyColumnOptionLabels = new Map<string, Text>();
 let visibleHistoryColumns = new Set<string>(defaultHistoryColumns);
 try {
@@ -312,7 +312,9 @@ const renderHistoryTable = () => {
     const empty = document.createElement("td");
     empty.colSpan = visibleHistoryColumns.size;
     empty.textContent =
-      total === 0 ? "No downloads saved yet." : "No history matches these filters.";
+      total === 0
+        ? localize("historyEmptyNoDownloads") || "No downloads saved yet."
+        : localize("historyEmptyNoMatches") || "No history matches these filters.";
     emptyRow.appendChild(empty);
     table.appendChild(emptyRow);
   }

@@ -1841,6 +1841,29 @@
   "o_lUiThemeHelp": {
     "message": "跟隨系統主題，或讓選項頁面和頁面來源一律使用深色或淺色主題。"
   },
+  "notificationExternalDownloadBlockedTitle": { "message": "已封鎖外部下載" },
+  "notificationExternalDownloadBlockedMessage": {
+    "message": "已封鎖來自 $SENDER_ID$ 的請求。按一下即可在選項中檢視。",
+    "placeholders": {
+      "sender_id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" }
+    }
+  },
+  "historyEmptyNoDownloads": { "message": "尚未儲存任何下載。" },
+  "historyEmptyNoMatches": { "message": "沒有符合這些篩選條件的歷史記錄。" },
+  "webMcpStatusRegistering": { "message": "正在註冊…" },
+  "webMcpStatusActive": {
+    "message": "已啟用 — 已註冊 $COUNT$ 個工具",
+    "placeholders": { "count": { "content": "$1", "example": "5" } }
+  },
+  "webMcpStatusLimited": {
+    "message": "受限 — 已註冊 $TOTAL$ 個工具中的 $REGISTERED$ 個",
+    "placeholders": {
+      "registered": { "content": "$1", "example": "4" },
+      "total": { "content": "$2", "example": "5" }
+    }
+  },
+  "webMcpStatusRegistrationFailed": { "message": "無法使用 — 工具註冊失敗" },
+  "webMcpStatusUnavailableBrowser": { "message": "此瀏覽器不支援" },
   "o_lPathEditorDragHelp": {
     "message": "拖曳點狀控點。放在某列的上方或下方可置於同一層級，放在該列上則會巢狀置於其中。"
   }

@@ -1739,6 +1739,31 @@
   "o_lUiThemeHelp": {
     "message": "Siga o tema do sistema ou mantenha a página de opções e os recursos da página sempre no modo escuro ou claro."
   },
+  "notificationExternalDownloadBlockedTitle": { "message": "Download externo bloqueado" },
+  "notificationExternalDownloadBlockedMessage": {
+    "message": "Uma solicitação de $SENDER_ID$ foi bloqueada. Clique para analisá-la nas Opções.",
+    "placeholders": {
+      "sender_id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" }
+    }
+  },
+  "historyEmptyNoDownloads": { "message": "Nenhum download salvo ainda." },
+  "historyEmptyNoMatches": { "message": "Nenhum item do histórico corresponde a estes filtros." },
+  "webMcpStatusRegistering": { "message": "Registrando…" },
+  "webMcpStatusActive": {
+    "message": "Ativo — $COUNT$ ferramentas registradas",
+    "placeholders": { "count": { "content": "$1", "example": "5" } }
+  },
+  "webMcpStatusLimited": {
+    "message": "Limitado — $REGISTERED$ de $TOTAL$ ferramentas registradas",
+    "placeholders": {
+      "registered": { "content": "$1", "example": "4" },
+      "total": { "content": "$2", "example": "5" }
+    }
+  },
+  "webMcpStatusRegistrationFailed": {
+    "message": "Indisponível — falha ao registrar as ferramentas"
+  },
+  "webMcpStatusUnavailableBrowser": { "message": "Não disponível neste navegador" },
   "o_lPathEditorDragHelp": {
     "message": "Arraste pela alça pontilhada. Solte acima ou abaixo de uma linha para colocá-la no mesmo nível, ou sobre a linha para aninhá-la dentro dela."
   }

@@ -33,6 +33,9 @@ testing on Chromium!
   External integrations panel lists blocked caller IDs with an Approve action;
   approved IDs can be added or removed without editing raw settings, and
   rejected URLs are not retained
+- Options localization now covers rejected-download notifications, WebMCP
+  availability, and empty History states. Option search also includes the
+  language selector, and wrapped external-link icons retain a fixed size
 - CSV and TSV history exports neutralize formula-leading cells before they are
   opened in spreadsheet applications
 - New path variables: `:counter:` (atomic, persistent, per-download counter with

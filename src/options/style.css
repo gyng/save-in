@@ -147,9 +147,9 @@ a:active {
 }
 
 a.external {
-  padding-right: var(--space-4);
+  padding-right: calc(16px + var(--space-1));
   background-image: url(i/open-in-new-16.svg);
-  background-size: auto 60%;
+  background-size: 16px 16px;
   background-position: right center;
   background-repeat: no-repeat;
 }
@@ -200,7 +200,7 @@ body:not(#settings-page) {
 .top-nav {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: baseline;
   gap: var(--space-4);
   flex-wrap: wrap;
   padding: var(--space-3) var(--space-5);
@@ -332,7 +332,7 @@ body:not(#settings-page) {
 
 .top-nav-tools {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: var(--space-2);
   min-width: 0;
   margin-left: auto;
@@ -1171,13 +1171,10 @@ fieldset.inline-option-group > .caption-line {
 }
 
 fieldset.click-to-save-controls {
-  display: grid;
-  grid-template-areas: "primary plus-one secondary plus-two pointer apply reset";
-  grid-template-columns:
-    minmax(0, 7.5rem) auto minmax(0, 7.5rem) auto minmax(0, 9rem) auto
-    auto;
-  justify-content: start;
-  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  align-items: baseline;
   gap: var(--space-2);
   width: 100%;
   max-width: 100%;
@@ -1187,6 +1184,7 @@ fieldset.click-to-save-controls {
 }
 
 .click-to-save-controls > label {
+  flex: 0 1 7.5rem;
   min-width: 0;
   margin: 0;
 }
@@ -1195,32 +1193,12 @@ fieldset.click-to-save-controls {
   width: 1px;
 }
 
-.click-to-save-controls > label:has(#clickToSaveModifier) {
-  grid-area: primary;
-}
-
-.click-to-save-controls > label:has(#clickToSaveModifier) + .shortcut-plus {
-  grid-area: plus-one;
-}
-
-.click-to-save-controls > label:has(#clickToSaveModifier2) {
-  grid-area: secondary;
-}
-
-.click-to-save-controls > label:has(#clickToSaveModifier2) + .shortcut-plus {
-  grid-area: plus-two;
-}
-
 .click-to-save-controls > label:has(#clickToSaveButton) {
-  grid-area: pointer;
+  flex-basis: 9rem;
 }
 
-#clickToSaveApply {
-  grid-area: apply;
-}
-
-#clickToSaveReset {
-  grid-area: reset;
+.click-to-save-controls > button {
+  flex: none;
 }
 
 .click-to-save-controls select {
@@ -1232,7 +1210,8 @@ fieldset.click-to-save-controls {
 .click-to-save-controls > .caption-line,
 .click-to-save-controls > #click-to-save-warning,
 .click-to-save-controls > #clickToSaveStatus {
-  grid-column: 1 / -1;
+  flex-basis: 100%;
+  max-width: 100%;
 }
 
 .click-to-save-controls:has(:disabled) {
@@ -1241,20 +1220,6 @@ fieldset.click-to-save-controls {
 
 #clickToSaveStatus:empty {
   display: none;
-}
-
-@media (max-width: 640px) {
-  fieldset.click-to-save-controls {
-    grid-template-areas:
-      "primary plus-one secondary"
-      "pointer pointer pointer"
-      "apply . reset";
-    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-  }
-
-  .click-to-save-controls > label:has(#clickToSaveModifier2) + .shortcut-plus {
-    display: none;
-  }
 }
 
 .editor-dirty-status {

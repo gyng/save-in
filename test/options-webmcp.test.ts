@@ -253,7 +253,7 @@ describe("buildTools", () => {
   });
 });
 
-describe("auto-registration on import", () => {
+describe("options-page registration", () => {
   afterEach(() => {
     delete document.modelContext;
     Reflect.deleteProperty(global, "browser");
@@ -269,7 +269,8 @@ describe("auto-registration on import", () => {
     };
 
     vi.resetModules();
-    await import("../src/options/webmcp.ts");
+    const { setupWebMcpStatus } = await import("../src/options/webmcp.ts");
+    setupWebMcpStatus(() => "");
 
     expect(registerTool).toHaveBeenCalledTimes(5);
     await vi.waitFor(() =>
@@ -291,7 +292,8 @@ describe("auto-registration on import", () => {
     };
 
     vi.resetModules();
-    await import("../src/options/webmcp.ts");
+    const { setupWebMcpStatus } = await import("../src/options/webmcp.ts");
+    setupWebMcpStatus(() => "");
 
     await vi.waitFor(() =>
       expect(document.getElementById("webmcp-status")?.textContent).toBe(
@@ -305,7 +307,8 @@ describe("auto-registration on import", () => {
     delete document.modelContext;
 
     vi.resetModules();
-    await import("../src/options/webmcp.ts");
+    const { setupWebMcpStatus } = await import("../src/options/webmcp.ts");
+    setupWebMcpStatus(() => "");
 
     expect(document.getElementById("webmcp-status")?.textContent).toBe(
       "Not available in this browser",

@@ -1841,6 +1841,29 @@
   "o_lUiThemeHelp": {
     "message": "跟随系统主题，或让选项页面和页面来源始终使用深色或浅色主题。"
   },
+  "notificationExternalDownloadBlockedTitle": { "message": "外部下载已阻止" },
+  "notificationExternalDownloadBlockedMessage": {
+    "message": "已阻止来自 $SENDER_ID$ 的请求。点击可在选项中查看。",
+    "placeholders": {
+      "sender_id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" }
+    }
+  },
+  "historyEmptyNoDownloads": { "message": "尚未保存任何下载。" },
+  "historyEmptyNoMatches": { "message": "没有符合这些筛选条件的历史记录。" },
+  "webMcpStatusRegistering": { "message": "正在注册…" },
+  "webMcpStatusActive": {
+    "message": "已启用 — 已注册 $COUNT$ 个工具",
+    "placeholders": { "count": { "content": "$1", "example": "5" } }
+  },
+  "webMcpStatusLimited": {
+    "message": "受限 — 已注册 $TOTAL$ 个工具中的 $REGISTERED$ 个",
+    "placeholders": {
+      "registered": { "content": "$1", "example": "4" },
+      "total": { "content": "$2", "example": "5" }
+    }
+  },
+  "webMcpStatusRegistrationFailed": { "message": "不可用 — 工具注册失败" },
+  "webMcpStatusUnavailableBrowser": { "message": "此浏览器不支持" },
   "o_lPathEditorDragHelp": {
     "message": "拖动点状手柄。将其放在某一行的上方或下方可置于同一级别，放在该行上则会嵌套到其中。"
   }

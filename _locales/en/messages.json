@@ -77,6 +77,20 @@
       }
     }
   },
+  "notificationExternalDownloadBlockedTitle": {
+    "message": "External download blocked",
+    "description": "Notification title for a rejected external-extension download request. Used in src/downloads/notification.ts."
+  },
+  "notificationExternalDownloadBlockedMessage": {
+    "message": "Blocked a request from $SENDER_ID$. Click to review it in Options.",
+    "description": "Notification message for a rejected external-extension download request. Used in src/downloads/notification.ts.",
+    "placeholders": {
+      "sender_id": {
+        "content": "$1",
+        "example": "abcdefghijklmnopabcdefghijklmnop"
+      }
+    }
+  },
   "notificationRuleMatchedTitle": {
     "message": "Save In: Rule matched",
     "description": "Notification title for a rule match. Used in src/downloads/download.ts."
@@ -2434,6 +2448,50 @@
   "historyColumnVariables": {
     "message": "Variables",
     "description": "History table and export column heading. Used in src/options/history-view.ts."
+  },
+  "historyEmptyNoDownloads": {
+    "message": "No downloads saved yet.",
+    "description": "History table empty state when no downloads have been saved. Used in src/options/history-panel.ts."
+  },
+  "historyEmptyNoMatches": {
+    "message": "No history matches these filters.",
+    "description": "History table empty state when filters have no matches. Used in src/options/history-panel.ts."
+  },
+  "webMcpStatusRegistering": {
+    "message": "Registering…",
+    "description": "WebMCP registration status. Used in src/options/webmcp.ts."
+  },
+  "webMcpStatusActive": {
+    "message": "Active — $COUNT$ tools registered",
+    "description": "WebMCP successful registration status. Used in src/options/webmcp.ts.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "5"
+      }
+    }
+  },
+  "webMcpStatusLimited": {
+    "message": "Limited — $REGISTERED$ of $TOTAL$ tools registered",
+    "description": "WebMCP partial registration status. Used in src/options/webmcp.ts.",
+    "placeholders": {
+      "registered": {
+        "content": "$1",
+        "example": "4"
+      },
+      "total": {
+        "content": "$2",
+        "example": "5"
+      }
+    }
+  },
+  "webMcpStatusRegistrationFailed": {
+    "message": "Unavailable — tool registration failed",
+    "description": "WebMCP failed registration status. Used in src/options/webmcp.ts."
+  },
+  "webMcpStatusUnavailableBrowser": {
+    "message": "Not available in this browser",
+    "description": "WebMCP status when the browser does not expose WebMCP. Used in src/options/webmcp.ts."
   },
   "o_lSourcePanelShortcutResetHelp": {
     "message": "Reset restores the browser's suggested default.",

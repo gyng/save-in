@@ -1739,6 +1739,31 @@
   "o_lUiThemeHelp": {
     "message": "Volg het systeemthema of houd de optiepagina en paginabronnen altijd donker of licht."
   },
+  "notificationExternalDownloadBlockedTitle": { "message": "Externe download geblokkeerd" },
+  "notificationExternalDownloadBlockedMessage": {
+    "message": "Een verzoek van $SENDER_ID$ is geblokkeerd. Klik om het in Opties te bekijken.",
+    "placeholders": {
+      "sender_id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" }
+    }
+  },
+  "historyEmptyNoDownloads": { "message": "Nog geen downloads opgeslagen." },
+  "historyEmptyNoMatches": { "message": "Geen geschiedenis komt overeen met deze filters." },
+  "webMcpStatusRegistering": { "message": "Registreren…" },
+  "webMcpStatusActive": {
+    "message": "Actief — $COUNT$ tools geregistreerd",
+    "placeholders": { "count": { "content": "$1", "example": "5" } }
+  },
+  "webMcpStatusLimited": {
+    "message": "Beperkt — $REGISTERED$ van $TOTAL$ tools geregistreerd",
+    "placeholders": {
+      "registered": { "content": "$1", "example": "4" },
+      "total": { "content": "$2", "example": "5" }
+    }
+  },
+  "webMcpStatusRegistrationFailed": {
+    "message": "Niet beschikbaar — registreren van tools mislukt"
+  },
+  "webMcpStatusUnavailableBrowser": { "message": "Niet beschikbaar in deze browser" },
   "o_lPathEditorDragHelp": {
     "message": "Sleep aan de gestippelde greep. Zet de rij boven of onder een andere rij neer om hem op hetzelfde niveau te plaatsen, of op de rij om hem daarin te nesten."
   }

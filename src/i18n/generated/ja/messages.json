@@ -1841,6 +1841,29 @@
   "o_lUiThemeHelp": {
     "message": "システムテーマに合わせるか、オプションページとページソースを常にダークまたはライトに設定します。"
   },
+  "notificationExternalDownloadBlockedTitle": { "message": "外部ダウンロードをブロックしました" },
+  "notificationExternalDownloadBlockedMessage": {
+    "message": "$SENDER_ID$ からのリクエストをブロックしました。クリックしてオプションで確認してください。",
+    "placeholders": {
+      "sender_id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" }
+    }
+  },
+  "historyEmptyNoDownloads": { "message": "保存されたダウンロードはまだありません。" },
+  "historyEmptyNoMatches": { "message": "これらのフィルターに一致する履歴はありません。" },
+  "webMcpStatusRegistering": { "message": "登録中…" },
+  "webMcpStatusActive": {
+    "message": "有効 — $COUNT$ 個のツールを登録済み",
+    "placeholders": { "count": { "content": "$1", "example": "5" } }
+  },
+  "webMcpStatusLimited": {
+    "message": "制限あり — $TOTAL$ 個中 $REGISTERED$ 個のツールを登録済み",
+    "placeholders": {
+      "registered": { "content": "$1", "example": "4" },
+      "total": { "content": "$2", "example": "5" }
+    }
+  },
+  "webMcpStatusRegistrationFailed": { "message": "利用不可 — ツールの登録に失敗しました" },
+  "webMcpStatusUnavailableBrowser": { "message": "このブラウザーでは利用できません" },
   "o_lPathEditorDragHelp": {
     "message": "点線のハンドルをドラッグします。行の上または下にドロップすると同じ階層に配置され、行の上にドロップするとその内側に入れ子になります。"
   }

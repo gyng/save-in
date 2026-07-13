@@ -99,8 +99,9 @@ test("click-to-save controls stay packed and wrap without overflowing their pane
   const selects = css.match(/\.click-to-save-controls select\s*\{([^}]*)\}/)?.[1] || "";
   const warning = css.match(/#click-to-save-warning\s*\{([^}]*)\}/)?.[1] || "";
 
-  expect(controls).toContain("display: grid");
-  expect(controls).toContain("justify-content: start");
+  expect(controls).toContain("display: flex");
+  expect(controls).toContain("flex-wrap: wrap");
+  expect(controls).toContain("justify-content: flex-start");
   expect(controls).toContain("width: 100%");
   expect(controls).toContain("min-width: 0");
   expect(hiddenLegend).toContain("width: 1px");

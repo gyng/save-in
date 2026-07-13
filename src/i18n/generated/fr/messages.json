@@ -170,6 +170,18 @@
       }
     }
   },
+  "notificationExternalDownloadBlockedTitle": {
+    "message": "Téléchargement externe bloqué"
+  },
+  "notificationExternalDownloadBlockedMessage": {
+    "message": "Une requête de $SENDER_ID$ a été bloquée. Cliquez pour l’examiner dans les options.",
+    "placeholders": {
+      "sender_id": {
+        "content": "$1",
+        "example": "abcdefghijklmnopabcdefghijklmnop"
+      }
+    }
+  },
   "notificationRuleMatchedTitle": {
     "message": "Save In : règle appliquée"
   },
@@ -1736,6 +1748,32 @@
   "historyColumnDownloadId": { "message": "ID du téléchargement" },
   "historyColumnMenuItem": { "message": "Élément de menu" },
   "historyColumnVariables": { "message": "Variables" },
+  "historyEmptyNoDownloads": {
+    "message": "Aucun téléchargement enregistré pour le moment."
+  },
+  "historyEmptyNoMatches": {
+    "message": "Aucun élément de l’historique ne correspond à ces filtres."
+  },
+  "webMcpStatusRegistering": { "message": "Enregistrement…" },
+  "webMcpStatusActive": {
+    "message": "Actif — $COUNT$ outils enregistrés",
+    "placeholders": {
+      "count": { "content": "$1", "example": "5" }
+    }
+  },
+  "webMcpStatusLimited": {
+    "message": "Limité — $REGISTERED$ outils sur $TOTAL$ enregistrés",
+    "placeholders": {
+      "registered": { "content": "$1", "example": "4" },
+      "total": { "content": "$2", "example": "5" }
+    }
+  },
+  "webMcpStatusRegistrationFailed": {
+    "message": "Indisponible — échec de l’enregistrement des outils"
+  },
+  "webMcpStatusUnavailableBrowser": {
+    "message": "Non disponible dans ce navigateur"
+  },
   "o_lSourcePanelShortcutResetHelp": {
     "message": "Réinitialiser restaure la valeur par défaut suggérée par le navigateur."
   },

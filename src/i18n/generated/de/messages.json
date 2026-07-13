@@ -1737,6 +1737,31 @@
   "o_lUiThemeHelp": {
     "message": "Folgen Sie dem Systemdesign oder verwenden Sie für die Optionsseite und die Seitenquellen immer ein dunkles oder helles Design."
   },
+  "notificationExternalDownloadBlockedTitle": { "message": "Externer Download blockiert" },
+  "notificationExternalDownloadBlockedMessage": {
+    "message": "Eine Anfrage von $SENDER_ID$ wurde blockiert. Klicken Sie, um sie in den Optionen zu prüfen.",
+    "placeholders": {
+      "sender_id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" }
+    }
+  },
+  "historyEmptyNoDownloads": { "message": "Noch keine Downloads gespeichert." },
+  "historyEmptyNoMatches": { "message": "Kein Verlauf entspricht diesen Filtern." },
+  "webMcpStatusRegistering": { "message": "Wird registriert…" },
+  "webMcpStatusActive": {
+    "message": "Aktiv — $COUNT$ Tools registriert",
+    "placeholders": { "count": { "content": "$1", "example": "5" } }
+  },
+  "webMcpStatusLimited": {
+    "message": "Eingeschränkt — $REGISTERED$ von $TOTAL$ Tools registriert",
+    "placeholders": {
+      "registered": { "content": "$1", "example": "4" },
+      "total": { "content": "$2", "example": "5" }
+    }
+  },
+  "webMcpStatusRegistrationFailed": {
+    "message": "Nicht verfügbar — Tool-Registrierung fehlgeschlagen"
+  },
+  "webMcpStatusUnavailableBrowser": { "message": "In diesem Browser nicht verfügbar" },
   "o_lPathEditorDragHelp": {
     "message": "Ziehen Sie eine Zeile am gepunkteten Griff. Legen Sie sie oberhalb oder unterhalb einer Zeile ab, um sie auf derselben Ebene zu platzieren, oder direkt auf einer Zeile, um sie dieser unterzuordnen."
   }

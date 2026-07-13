@@ -1,4 +1,5 @@
 import { webExtensionApi } from "../platform/web-extension-api.ts";
+import { getMessage } from "../platform/localization.ts";
 import { withUrl } from "../shared/util.ts";
 
 type WebMcpInput = Record<string, unknown> | null | undefined;
@@ -320,9 +321,7 @@ export const SaveInWebMCP = {
   },
 };
 
-// Auto-register on the options page when a WebMCP context is present, and
-// reflect the outcome in the options-page status line
-(() => {
+export const setupWebMcpStatus = (localize: typeof getMessage = getMessage): void => {
   const ctx = SaveInWebMCP.getModelContext();
   const statusEl =
     typeof document !== "undefined" && document.getElementById
@@ -331,19 +330,22 @@ export const SaveInWebMCP = {
 
   if (ctx && typeof ctx.registerTool === "function" && webExtensionApi) {
     const count = SaveInWebMCP.buildTools(() => {}).length;
-    if (statusEl) statusEl.textContent = "Registering…";
+    if (statusEl) statusEl.textContent = localize("webMcpStatusRegistering") || "Registering…";
     void SaveInWebMCP.register(ctx, (message: WebMcpMessage) =>
       webExtensionApi.runtime.sendMessage(message).then((res) => (res && res.body) || res),
     ).then((registered) => {
       if (!statusEl) return;
       statusEl.textContent =
         registered === count
-          ? `Active — ${count} tools registered`
+          ? localize("webMcpStatusActive", [count]) || `Active — ${count} tools registered`
           : registered > 0
-            ? `Limited — ${registered} of ${count} tools registered`
-            : "Unavailable — tool registration failed";
+            ? localize("webMcpStatusLimited", [registered, count]) ||
+              `Limited — ${registered} of ${count} tools registered`
+            : localize("webMcpStatusRegistrationFailed") ||
+              "Unavailable — tool registration failed";
     });
   } else if (statusEl) {
-    statusEl.textContent = "Not available in this browser";
+    statusEl.textContent =
+      localize("webMcpStatusUnavailableBrowser") || "Not available in this browser";
   }
-})();
+};

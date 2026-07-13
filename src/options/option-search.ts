@@ -2,9 +2,12 @@ import { getMessage } from "../platform/localization.ts";
 
 type SearchEntry = { control: HTMLElement; label: string; section: string };
 
-export const optionSearchEntries = (form: HTMLElement): SearchEntry[] => {
+export const optionSearchEntries = (
+  form: HTMLElement,
+  additionalControls: readonly HTMLElement[] = [],
+): SearchEntry[] => {
   const explicitLabels = new Map(
-    [...form.querySelectorAll<HTMLLabelElement>("label[for]")].map((label) => [
+    [...form.ownerDocument.querySelectorAll<HTMLLabelElement>("label[for]")].map((label) => [
       label.htmlFor,
       label,
     ]),
@@ -16,6 +19,7 @@ export const optionSearchEntries = (form: HTMLElement): SearchEntry[] => {
   };
   return [
     ...form.querySelectorAll<HTMLElement>("h3, h4, input[id], select[id], textarea[id]"),
+    ...additionalControls,
   ].flatMap((control) => {
     if (control.matches("h3, h4")) {
       const name = control.textContent?.replace(/\s+/g, " ").trim();
@@ -50,7 +54,8 @@ export const setupOptionSearch = (): void => {
   const toolsNav = document.querySelector<HTMLElement>(".top-nav-tools");
   if (!form || document.getElementById("option-search")) return;
 
-  const entries = optionSearchEntries(form);
+  const language = document.getElementById("uiLocale");
+  const entries = optionSearchEntries(form, language ? [language] : []);
   const wrap = document.createElement("div");
   wrap.className = "option-search";
   const input = document.createElement("input");

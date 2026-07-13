@@ -1841,6 +1841,29 @@
   "o_lUiThemeHelp": {
     "message": "시스템 테마를 따르거나 옵션 페이지와 페이지 소스를 항상 어둡게 또는 밝게 표시합니다."
   },
+  "notificationExternalDownloadBlockedTitle": { "message": "외부 다운로드 차단됨" },
+  "notificationExternalDownloadBlockedMessage": {
+    "message": "$SENDER_ID$의 요청을 차단했습니다. 클릭하여 옵션에서 검토하세요.",
+    "placeholders": {
+      "sender_id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" }
+    }
+  },
+  "historyEmptyNoDownloads": { "message": "아직 저장된 다운로드가 없습니다." },
+  "historyEmptyNoMatches": { "message": "이 필터와 일치하는 기록이 없습니다." },
+  "webMcpStatusRegistering": { "message": "등록 중…" },
+  "webMcpStatusActive": {
+    "message": "활성 — 도구 $COUNT$개 등록됨",
+    "placeholders": { "count": { "content": "$1", "example": "5" } }
+  },
+  "webMcpStatusLimited": {
+    "message": "제한됨 — 도구 $TOTAL$개 중 $REGISTERED$개 등록됨",
+    "placeholders": {
+      "registered": { "content": "$1", "example": "4" },
+      "total": { "content": "$2", "example": "5" }
+    }
+  },
+  "webMcpStatusRegistrationFailed": { "message": "사용할 수 없음 — 도구 등록 실패" },
+  "webMcpStatusUnavailableBrowser": { "message": "이 브라우저에서는 사용할 수 없음" },
   "o_lPathEditorDragHelp": {
     "message": "점으로 된 핸들을 끌어 이동합니다. 행의 위나 아래에 놓으면 같은 단계에 배치되고, 행 위에 놓으면 그 안에 중첩됩니다."
   }

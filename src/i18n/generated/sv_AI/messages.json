@@ -1733,6 +1733,31 @@
   "o_lUiThemeHelp": {
     "message": "Följ systemtemat eller använd alltid mörkt eller ljust tema på alternativsidan och i sidkällor."
   },
+  "notificationExternalDownloadBlockedTitle": { "message": "Extern nedladdning blockerad" },
+  "notificationExternalDownloadBlockedMessage": {
+    "message": "En begäran från $SENDER_ID$ blockerades. Klicka för att granska den i Alternativ.",
+    "placeholders": {
+      "sender_id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" }
+    }
+  },
+  "historyEmptyNoDownloads": { "message": "Inga nedladdningar har sparats ännu." },
+  "historyEmptyNoMatches": { "message": "Ingen historik matchar dessa filter." },
+  "webMcpStatusRegistering": { "message": "Registrerar…" },
+  "webMcpStatusActive": {
+    "message": "Aktiv — $COUNT$ verktyg registrerade",
+    "placeholders": { "count": { "content": "$1", "example": "5" } }
+  },
+  "webMcpStatusLimited": {
+    "message": "Begränsad — $REGISTERED$ av $TOTAL$ verktyg registrerade",
+    "placeholders": {
+      "registered": { "content": "$1", "example": "4" },
+      "total": { "content": "$2", "example": "5" }
+    }
+  },
+  "webMcpStatusRegistrationFailed": {
+    "message": "Inte tillgänglig — verktygsregistreringen misslyckades"
+  },
+  "webMcpStatusUnavailableBrowser": { "message": "Inte tillgänglig i den här webbläsaren" },
   "o_lPathEditorDragHelp": {
     "message": "Dra i det prickade handtaget. Släpp raden ovanför eller nedanför en annan rad för att placera den på samma nivå, eller på raden för att nästla den inuti."
   }

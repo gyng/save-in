@@ -174,9 +174,9 @@ export const Notifier = {
       `save-in-not-${EXTENSION_NOTIFICATION_STREAMS.EXTERNAL_DOWNLOAD_REJECTION}`,
       {
         type: "basic",
-        title: "External download blocked",
+        title: getMessage("notificationExternalDownloadBlockedTitle"),
         iconUrl: ERROR_ICON_URL,
-        message: `Blocked a request from ${senderId}. Click to review it in Options.`,
+        message: getMessage("notificationExternalDownloadBlockedMessage", [senderId]),
       },
     ),
 
