@@ -25,7 +25,27 @@ export {
 } from "./source-panel-model.ts";
 
 const PANEL_HOST_ID = "save-in-source-panel";
-const panelObservers = new WeakMap<Element, MutationObserver>();
+const panelCleanups = new WeakMap<Element, () => void>();
+const panelCloseTimers = new WeakMap<Element, number>();
+
+const cancelPanelRemoval = (host: Element) => {
+  const timer = panelCloseTimers.get(host);
+  if (timer !== undefined) window.clearTimeout(timer);
+  panelCloseTimers.delete(host);
+};
+
+const schedulePanelRemoval = (host: Element) => {
+  cancelPanelRemoval(host);
+  panelCloseTimers.set(
+    host,
+    window.setTimeout(() => {
+      panelCloseTimers.delete(host);
+      panelCleanups.get(host)?.();
+      panelCleanups.delete(host);
+      host.remove();
+    }, 90),
+  );
+};
 const ICON_PATHS = {
   copy: ["M8 8h10v10H8z", "M5 15H3V3h12v2"],
   dock: ["M3 4h18v16H3z", "M15 4v16"],
@@ -53,9 +73,14 @@ export const toggleSourcePanel = (
 ): boolean => {
   const existing = document.getElementById(PANEL_HOST_ID);
   if (existing) {
-    panelObservers.get(existing)?.disconnect();
+    if (existing.classList.contains("closing")) {
+      cancelPanelRemoval(existing);
+      existing.classList.remove("closing");
+      options.onOpenChange?.(true);
+      return true;
+    }
     existing.classList.add("closing");
-    window.setTimeout(() => existing.remove(), 90);
+    schedulePanelRemoval(existing);
     options.onOpenChange?.(false);
     return false;
   }
@@ -165,10 +190,9 @@ export const toggleSourcePanel = (
   });
   updateDock();
   const closePanel = () => {
-    panelObservers.get(host)?.disconnect();
     previousFocus?.focus();
     host.classList.add("closing");
-    window.setTimeout(() => host.remove(), 90);
+    schedulePanelRemoval(host);
     options.onOpenChange?.(false);
   };
   close.addEventListener("click", closePanel);
@@ -233,9 +257,45 @@ export const toggleSourcePanel = (
   const firstSeen = new Map<string, { at: number; order: number }>();
   const highlightedElements = new WeakSet<Element>();
   let detectionSequence = 0;
+  let allSources: PageSource[] = [];
   let visibleSources: PageSource[] = [];
-  const render = () => {
-    const allSources = collectPageSources(document, options);
+  const pendingPreviewSources = new WeakMap<Element, string>();
+  const previewObserver =
+    typeof IntersectionObserver === "function"
+      ? new IntersectionObserver(
+          (entries, observer) => {
+            entries.forEach((entry) => {
+              if (
+                !entry.isIntersecting ||
+                (!(entry.target instanceof HTMLImageElement) &&
+                  !(entry.target instanceof HTMLMediaElement))
+              )
+                return;
+              const source = pendingPreviewSources.get(entry.target);
+              if (source) {
+                entry.target.src = source;
+                pendingPreviewSources.delete(entry.target);
+              }
+              observer.unobserve(entry.target);
+            });
+          },
+          { root: list, rootMargin: "200px" },
+        )
+      : null;
+  const queuePreview = (preview: HTMLImageElement | HTMLMediaElement, source: string) => {
+    if (!previewObserver) {
+      preview.src = source;
+      return;
+    }
+    pendingPreviewSources.set(preview, source);
+    previewObserver.observe(preview);
+  };
+  const refreshSources = () => {
+    allSources = collectPageSources(document, options);
+    const presentUrls = new Set(allSources.map(({ url }) => url));
+    firstSeen.forEach((_value, url) => {
+      if (!presentUrls.has(url)) firstSeen.delete(url);
+    });
     allSources.forEach((source) => {
       if (!firstSeen.has(source.url)) {
         firstSeen.set(source.url, { at: Date.now(), order: ++detectionSequence });
@@ -244,6 +304,10 @@ export const toggleSourcePanel = (
       source.detectedAt = detection.at;
       source.detectedOrder = detection.order;
     });
+    render();
+  };
+  const render = () => {
+    previewObserver?.disconnect();
     const sources = sortPageSources(
       filterPageSources(allSources, filter.value, activeKind),
       sort.value as SourceSort,
@@ -299,11 +363,11 @@ export const toggleSourcePanel = (
           : document.createElement(source.kind === "image" ? "img" : "video");
       if (preview instanceof HTMLImageElement) {
         preview.loading = "lazy";
-        preview.src = source.url;
+        queuePreview(preview, source.url);
       } else if (preview instanceof HTMLVideoElement) {
         preview.preload = "metadata";
         preview.muted = true;
-        preview.src = source.url;
+        queuePreview(preview, source.url);
       } else {
         preview.className = "audio";
         preview.textContent =
@@ -524,7 +588,11 @@ export const toggleSourcePanel = (
       list.append(row);
     });
   };
-  filter.addEventListener("input", render);
+  let filterTimer = 0;
+  filter.addEventListener("input", () => {
+    window.clearTimeout(filterTimer);
+    filterTimer = window.setTimeout(render, 80);
+  });
   sort.addEventListener("change", render);
   copyUrls.addEventListener("click", () => {
     void navigator.clipboard
@@ -549,25 +617,62 @@ export const toggleSourcePanel = (
   shadow.append(style, panel);
   document.documentElement.append(host);
   options.onOpenChange?.(true);
-  render();
+  refreshSources();
   filter.focus();
-  let timer = 0;
+  let refreshTimer = 0;
+  const scheduleRefresh = () => {
+    window.clearTimeout(refreshTimer);
+    refreshTimer = window.setTimeout(refreshSources, 200);
+  };
   const observer = new MutationObserver((mutations) => {
+    if (!host.isConnected) {
+      panelCleanups.get(host)?.();
+      panelCleanups.delete(host);
+      return;
+    }
     if (
-      mutations.every(({ target }) => target instanceof Element && highlightedElements.has(target))
+      mutations.every(
+        ({ target }) =>
+          target === host ||
+          (target instanceof Element &&
+            (highlightedElements.has(target) || target.closest(`#${PANEL_HOST_ID}`) === host)),
+      )
     )
       return;
-    window.clearTimeout(timer);
-    timer = window.setTimeout(render, 200);
+    scheduleRefresh();
   });
-  panelObservers.set(host, observer);
+  const resourceObserver =
+    options.live !== false &&
+    options.resourceHints !== false &&
+    typeof PerformanceObserver === "function"
+      ? new PerformanceObserver((entries) => {
+          if (entries.getEntries().some(({ name }) => /\.(?:m3u8|mpd)(?:$|[?#])/i.test(name))) {
+            scheduleRefresh();
+          }
+        })
+      : null;
+  panelCleanups.set(host, () => {
+    observer.disconnect();
+    resourceObserver?.disconnect();
+    previewObserver?.disconnect();
+    window.clearTimeout(filterTimer);
+    window.clearTimeout(refreshTimer);
+  });
   if (options.live !== false) {
+    const attributeFilter = ["src", "srcset", "style"];
+    if (options.includeLinks !== false) attributeFilter.push("href");
+    if (options.includeBackgrounds !== false) attributeFilter.push("class", "id");
     observer.observe(document.documentElement, {
       childList: true,
       subtree: true,
       attributes: true,
-      attributeFilter: ["src", "srcset", "style"],
+      attributeFilter,
     });
+    try {
+      resourceObserver?.observe({ entryTypes: ["resource"] });
+    } catch {
+      // Some older engines expose PerformanceObserver without resource entries.
+    }
   }
   return true;
 };
@@ -578,6 +683,9 @@ export const setSourcePanelOpen = (
   options: SourcePanelOptions = {},
 ): boolean => {
   const existing = document.getElementById(PANEL_HOST_ID);
+  if (existing?.classList.contains("closing")) {
+    return open ? toggleSourcePanel(sendDownload, options) : false;
+  }
   if (open === Boolean(existing)) return open;
   return toggleSourcePanel(sendDownload, options);
 };

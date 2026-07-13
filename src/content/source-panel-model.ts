@@ -127,7 +127,9 @@ export const collectPageSources = (
   });
   if (options.includeLinks !== false) {
     root.querySelectorAll<HTMLAnchorElement>("a[href]").forEach((element) => {
-      const path = new URL(element.href, document.baseURI).pathname.toLocaleLowerCase();
+      const href = absoluteUrl(element.href);
+      if (!href) return;
+      const path = new URL(href).pathname.toLocaleLowerCase();
       const kind: PageSourceKind = /\.(?:png|jpe?g|gif|webp|svg|avif)$/.test(path)
         ? "image"
         : /\.(?:mp4|webm|mov|mkv)$/.test(path)
@@ -139,7 +141,7 @@ export const collectPageSources = (
               : path.endsWith(".pdf")
                 ? "document"
                 : "link";
-      add(element.href, kind, element);
+      add(href, kind, element);
     });
   }
   if (options.includeBackgrounds !== false) {

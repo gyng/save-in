@@ -3,6 +3,7 @@ import {
   createSourceTooltip,
   filterPageSources,
   formatSourceBytes,
+  setSourcePanelOpen,
   sortPageSources,
   toggleSourcePanel,
   ytDlpCommand,
@@ -47,6 +48,12 @@ describe("page source collection", () => {
       "document",
       "link",
     ]);
+  });
+
+  test("ignores malformed link URLs without aborting collection", () => {
+    document.body.innerHTML = `<a href="http://[">broken</a><img src="valid.png">`;
+
+    expect(collectPageSources().map(({ url }) => url)).toEqual(["http://localhost/valid.png"]);
   });
 
   test("can omit computed CSS background sources", () => {
@@ -166,10 +173,13 @@ test("builds larger image and autoplaying media tooltips", () => {
 describe("Page Sources panel interactions", () => {
   afterEach(() => {
     document.getElementById("save-in-source-panel")?.remove();
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
     vi.restoreAllMocks();
   });
 
   test("copies only URLs in the active text and type filters", async () => {
+    vi.useFakeTimers();
     document.body.innerHTML = `
       <img src="cat.jpg"><img src="dog.jpg"><a href="cat.pdf">cat paper</a>`;
     const writeText = vi.fn(async () => undefined);
@@ -180,6 +190,7 @@ describe("Page Sources panel interactions", () => {
     const filter = shadow?.querySelector<HTMLInputElement>('input[type="search"]');
     filter!.value = "cat";
     filter!.dispatchEvent(new Event("input"));
+    vi.advanceTimersByTime(80);
     const imageFacet = [...shadow!.querySelectorAll<HTMLButtonElement>(".facet")].find((button) =>
       button.textContent?.startsWith("Image"),
     );
@@ -202,6 +213,144 @@ describe("Page Sources panel interactions", () => {
     vi.advanceTimersByTime(90);
     expect(document.getElementById("save-in-source-panel")).toBeNull();
     vi.useRealTimers();
+  });
+
+  test("cancels delayed removal when the panel is reopened during its exit transition", () => {
+    vi.useFakeTimers();
+    const onOpenChange = vi.fn();
+    const options = { includeBackgrounds: false, live: false, onOpenChange };
+    toggleSourcePanel(vi.fn(), options);
+    expect(toggleSourcePanel(vi.fn(), options)).toBe(false);
+
+    expect(setSourcePanelOpen(true, vi.fn(), options)).toBe(true);
+    vi.advanceTimersByTime(90);
+
+    expect(document.getElementById("save-in-source-panel")).not.toBeNull();
+    expect(onOpenChange).toHaveBeenLastCalledWith(true);
+    vi.useRealTimers();
+  });
+
+  test("filters cached sources without rescanning the page on every keystroke", () => {
+    vi.useFakeTimers();
+    document.body.innerHTML = `<img src="cat.jpg"><img src="dog.jpg">`;
+    const resourceReads = vi.spyOn(performance, "getEntriesByType");
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    resourceReads.mockClear();
+    const shadow = document.getElementById("save-in-source-panel")!.shadowRoot!;
+    const filter = shadow.querySelector<HTMLInputElement>('input[type="search"]')!;
+
+    filter.value = "c";
+    filter.dispatchEvent(new Event("input"));
+    filter.value = "cat";
+    filter.dispatchEvent(new Event("input"));
+    vi.advanceTimersByTime(80);
+
+    expect(resourceReads).not.toHaveBeenCalled();
+    expect(shadow.querySelectorAll(".row")).toHaveLength(1);
+    vi.useRealTimers();
+  });
+
+  test("loads list previews only when they approach the panel viewport", () => {
+    let intersectionCallback: IntersectionObserverCallback | undefined;
+    const observe = vi.fn();
+    const unobserve = vi.fn();
+    class IntersectionObserverStub {
+      constructor(callback: IntersectionObserverCallback) {
+        intersectionCallback = callback;
+      }
+      observe = observe;
+      disconnect = vi.fn();
+      unobserve = unobserve;
+      takeRecords = vi.fn(() => []);
+      root = null;
+      rootMargin = "";
+      thresholds = [];
+    }
+    vi.stubGlobal("IntersectionObserver", IntersectionObserverStub);
+    document.body.innerHTML = `<a href="movie.mp4">movie</a>`;
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    const video = document
+      .getElementById("save-in-source-panel")!
+      .shadowRoot!.querySelector<HTMLVideoElement>(".source-link video")!;
+
+    expect(video.hasAttribute("src")).toBe(false);
+    expect(observe).toHaveBeenCalledWith(video);
+    intersectionCallback!(
+      [{ isIntersecting: true, target: video } as unknown as IntersectionObserverEntry],
+      { unobserve } as unknown as IntersectionObserver,
+    );
+
+    expect(video.src).toBe("http://localhost/movie.mp4");
+  });
+
+  test("ignores panel style mutations but refreshes changed link targets", async () => {
+    vi.useFakeTimers();
+    document.body.innerHTML = `<a id="dynamic" href="first.html">first</a>`;
+    const resourceReads = vi.spyOn(performance, "getEntriesByType");
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: true });
+    const host = document.getElementById("save-in-source-panel")!;
+    resourceReads.mockClear();
+
+    host.style.width = "400px";
+    await Promise.resolve();
+    vi.advanceTimersByTime(250);
+    expect(resourceReads).not.toHaveBeenCalled();
+
+    document.querySelector<HTMLAnchorElement>("#dynamic")!.href = "second.html";
+    await Promise.resolve();
+    vi.advanceTimersByTime(250);
+    expect(resourceReads).toHaveBeenCalledOnce();
+    expect(host.shadowRoot!.querySelector<HTMLAnchorElement>(".source-link")!.href).toBe(
+      "http://localhost/second.html",
+    );
+    vi.useRealTimers();
+  });
+
+  test("refreshes computed backgrounds after a class change", async () => {
+    vi.useFakeTimers();
+    document.head.innerHTML = `<style>.poster { background-image: url(poster.jpg) }</style>`;
+    document.body.innerHTML = `<div id="dynamic-background"></div>`;
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: true, live: true, includeLinks: false });
+    const host = document.getElementById("save-in-source-panel")!;
+
+    document.querySelector("#dynamic-background")!.className = "poster";
+    await Promise.resolve();
+    vi.advanceTimersByTime(200);
+
+    expect(host.shadowRoot!.querySelector<HTMLAnchorElement>(".source-link")!.href).toBe(
+      "http://localhost/poster.jpg",
+    );
+  });
+
+  test("refreshes when a new streaming resource is observed", () => {
+    vi.useFakeTimers();
+    let performanceCallback: PerformanceObserverCallback | undefined;
+    const observe = vi.fn();
+    class PerformanceObserverStub {
+      constructor(callback: PerformanceObserverCallback) {
+        performanceCallback = callback;
+      }
+      observe = observe;
+      disconnect = vi.fn();
+      takeRecords = vi.fn(() => []);
+    }
+    vi.stubGlobal("PerformanceObserver", PerformanceObserverStub);
+    const resourceReads = vi.spyOn(performance, "getEntriesByType");
+    toggleSourcePanel(vi.fn(), {
+      includeBackgrounds: false,
+      live: true,
+      resourceHints: true,
+    });
+    resourceReads.mockClear();
+
+    performanceCallback!(
+      { getEntries: () => [{ name: "https://cdn.test/new.m3u8" }] } as PerformanceObserverEntryList,
+      {} as PerformanceObserver,
+    );
+    vi.advanceTimersByTime(200);
+
+    expect(observe).toHaveBeenCalledWith({ entryTypes: ["resource"] });
+    expect(resourceReads).toHaveBeenCalledOnce();
   });
 
   test("wraps facets and uses compact accessible header actions", () => {
