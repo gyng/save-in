@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import http from "node:http";
 
 import { expect } from "vitest";
 
@@ -6,6 +7,7 @@ import {
   CONTENT_DISPOSITION_CASES,
   startContentDispositionServer,
 } from "./content-disposition-cases.mjs";
+import { closeLocal, listenLocal } from "./helpers.mjs";
 
 /**
  * @param {{
@@ -139,4 +141,54 @@ export const runFailedDownloadLogScenario = async ({
       (entry.message === "download failed" || entry.message === "downloads.download failed")`,
   );
   expect(entries.length).toBeGreaterThanOrEqual(1);
+};
+
+/**
+ * @param {{
+ *   evaluate: (expression: string) => Promise<any>,
+ *   waitForDownloads: (filename: string, deadlineMs?: number) => Promise<any[]>,
+ *   filename: string,
+ * }} adapters
+ */
+export const runAutomaticRetryScenario = async ({ evaluate, waitForDownloads, filename }) => {
+  const body = `recovered ${filename}`;
+  let hits = 0;
+  const server = http.createServer((req, res) => {
+    hits += 1;
+    if (hits === 1) {
+      req.socket.destroy();
+      return;
+    }
+    res.writeHead(200, { "Content-Type": "application/octet-stream" });
+    res.end(body);
+  });
+  const port = await listenLocal(server);
+  const previous = JSON.parse(
+    await evaluate(`Promise.all([
+      api.getOption("fallbackFetch"),
+      api.getOption("filenamePatterns"),
+    ]).then(([fallbackFetch, filenamePatterns]) =>
+      JSON.stringify({ fallbackFetch, filenamePatterns }))`),
+  );
+
+  try {
+    await evaluate(`api.setOptions({ fallbackFetch: true, filenamePatterns: "" })
+      .then(() => api.startDownload({
+        url: "http://127.0.0.1:${port}/${filename}",
+        suggestedFilename: ${JSON.stringify(filename)},
+        pageUrl: "http://127.0.0.1:${port}/",
+      })).then(() => "started")`);
+
+    const rows = await waitForDownloads(filename, 10000);
+    const completed = rows.find((row) => row.state === "complete");
+    expect(completed).toBeTruthy();
+    expect(fs.readFileSync(completed.filename, "utf8")).toBe(body);
+    expect(hits).toBeGreaterThanOrEqual(2);
+  } finally {
+    try {
+      await evaluate(`api.setOptions(${JSON.stringify(previous)})`);
+    } finally {
+      await closeLocal(server);
+    }
+  }
 };

@@ -273,6 +273,20 @@ class FirefoxRdp {
     return requireString(addon, "actor", "listAddons");
   }
 
+  /** @param {string} addonId */
+  async reloadAddon(addonId) {
+    const actor = await this.findAddonActor(addonId);
+    const supported = requirePacket(
+      await this.request({ to: actor, type: "requestTypes" }),
+      "requestTypes",
+    );
+    if (!Array.isArray(supported.requestTypes) || !supported.requestTypes.includes("reload")) {
+      throw new Error("Firefox add-on actor does not support reload");
+    }
+    requirePacket(await this.request({ to: actor, type: "reload" }, 60000), "reload");
+    this.tabConsoleActors.clear();
+  }
+
   // Collects the frame targets a descriptor actor (addon or tab) exposes.
   // Firefox < 129 answers getTarget directly; >= 129 needs a watcher and
   // emits target-available-form events.

@@ -44,3 +44,9 @@ export const listenLocal = (server) =>
       resolve(address.port);
     });
   });
+
+/** @param {import("node:http").Server} server @returns {Promise<void>} */
+export const closeLocal = (server) =>
+  new Promise((resolve, reject) => {
+    server.close((error) => (error ? reject(error) : resolve()));
+  });

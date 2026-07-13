@@ -10,6 +10,7 @@ import path from "path";
 import firefox from "../scripts/lib/firefox.js";
 import { inBackgroundContext } from "./background-context.mjs";
 import {
+  runAutomaticRetryScenario,
   runContentDispositionScenario,
   runContextMenuScenario,
   runFailedDownloadLogScenario,
@@ -17,7 +18,7 @@ import {
   runShortcutScenario,
 } from "./shared-scenarios.mjs";
 import { runTemplateLibraryScenario } from "./template-library-scenario.mjs";
-import { listenLocal, poll } from "./helpers.mjs";
+import { closeLocal, listenLocal, poll } from "./helpers.mjs";
 
 /** @type {Awaited<ReturnType<typeof firefox.launch>>} */
 let session;
@@ -219,6 +220,70 @@ test("background event page initialises cleanly", async () => {
   ).toBe(false);
 });
 
+test("options page autosaves through Firefox host APIs", async () => {
+  const original = await evalBackground(`api.getOption("promptOnShift")`);
+  const changed = !original;
+  try {
+    await poll(
+      async () =>
+        (await session.evaluateInTab(
+          "src/options/options.html",
+          `(() => {
+            const checkbox = document.querySelector("#promptOnShift");
+            return document.readyState === "complete" && checkbox && !checkbox.disabled;
+          })()`,
+        )) === true
+          ? true
+          : null,
+      { description: "Firefox options controls" },
+    );
+    await session.evaluateInTab(
+      "src/options/options.html",
+      `(() => {
+        const checkbox = document.querySelector("#promptOnShift");
+        checkbox.checked = ${JSON.stringify(changed)};
+        checkbox.dispatchEvent(new Event("change", { bubbles: true }));
+        return true;
+      })()`,
+    );
+
+    const state = await poll(
+      async () => {
+        const candidate = JSON.parse(
+          await evalBackground(`Promise.all([
+            browser.storage.local.get("promptOnShift"),
+            api.getOption("promptOnShift"),
+          ]).then(([stored, live]) => JSON.stringify({ stored: stored.promptOnShift, live }))`),
+        );
+        return candidate.stored === changed && candidate.live === changed ? candidate : null;
+      },
+      { description: "Firefox options autosave" },
+    );
+    expect(state).toEqual({ stored: changed, live: changed });
+  } finally {
+    await evalBackground(`api.setOptions({ promptOnShift: ${JSON.stringify(original)} })`);
+  }
+});
+
+test("event-page reload hydrates persisted options before replying", async () => {
+  const original = await evalBackground(`api.getOption("promptOnShift")`);
+  const persisted = !original;
+  try {
+    await evalBackground(
+      `browser.storage.local.set({ promptOnShift: ${JSON.stringify(persisted)} })`,
+    );
+    await session.reloadAddon();
+    expect(await evalBackground(`api.getOption("promptOnShift")`)).toBe(persisted);
+  } finally {
+    await evalBackground(`api.setOptions({ promptOnShift: ${JSON.stringify(original)} })`).catch(
+      () =>
+        session
+          .evaluate(`browser.storage.local.set({ promptOnShift: ${JSON.stringify(original)} })`)
+          .catch(() => {}),
+    );
+  }
+});
+
 test("download completes through the real pipeline", async () => {
   await evalBackground(
     `api.startDownload({
@@ -302,13 +367,14 @@ test("options reset re-initialises", async () => {
 });
 
 test("downloads receive the configured Referer header", async () => {
-  /** @type {(value: string | null) => void} */
-  let resolveReferer = () => {};
-  const receivedReferer = new Promise((resolve) => {
-    resolveReferer = resolve;
-  });
+  let received = false;
+  /** @type {string | null} */
+  let receivedReferer = null;
   const server = http.createServer((req, res) => {
-    if (req.method === "GET") resolveReferer(req.headers.referer || null);
+    if (req.method === "GET") {
+      received = true;
+      receivedReferer = req.headers.referer || null;
+    }
     res.writeHead(200, { "Content-Type": "text/plain" });
     res.end("referer probe");
   });
@@ -332,17 +398,22 @@ test("downloads receive the configured Referer header", async () => {
         pageUrl: ${JSON.stringify(referer)},
         suggestedFilename: "referer-probe-firefox.txt",
       }))`);
-    await expect(receivedReferer).resolves.toBe(referer);
     expect(
       (await waitForDownloads("referer-probe-firefox")).some(
         (/** @type {any} */ x) => x.state === "complete",
       ),
     ).toBe(true);
+    const observedReferer = /** @type {{value: string | null}} */ (
+      await poll(() => (received ? { value: receivedReferer } : null), {
+        description: "Firefox Referer request",
+      })
+    );
+    expect(observedReferer.value).toBe(referer);
   } finally {
     try {
       await evalBackground(`api.setOptions(${JSON.stringify(previous)})`);
     } finally {
-      server.close();
+      await closeLocal(server);
     }
   }
 });
@@ -398,6 +469,14 @@ test("shortcut files keep their extension and redirect content", async () => {
 
 test("failed downloads are recorded in the debug log", async () => {
   await runFailedDownloadLogScenario({ evaluate: evalBackground, waitForLog });
+});
+
+test("a failed download is retried automatically via background fetch", async () => {
+  await runAutomaticRetryScenario({
+    evaluate: evalBackground,
+    waitForDownloads,
+    filename: "flaky-firefox.bin",
+  });
 });
 
 test("ordinary browser downloads can be tracked and experimentally rerouted on Firefox", async () => {

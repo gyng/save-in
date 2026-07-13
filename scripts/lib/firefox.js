@@ -189,36 +189,47 @@ const launch = async () => {
   let rdp;
   try {
     rdp = await connectWithRetry(port);
-    const connectedRdp = rdp;
+    let connectedRdp = rdp;
     const root = await connectedRdp.getRoot();
     await connectedRdp.installTemporaryAddon(root.addonsActor, ROOT);
     await sleep(2000);
 
     const addonActor = await connectedRdp.findAddonActor(ADDON_ID);
-    const consoleActor = await connectedRdp.getConsoleActor(addonActor);
-    await connectedRdp.evaluate(
-      consoleActor,
-      'browser.tabs.create({ url: browser.runtime.getURL("src/options/options.html") }).then(() => true)',
-    );
+    let consoleActor = await connectedRdp.getConsoleActor(addonActor);
 
-    // Send the readiness probe from an extension page. A background context's
-    // runtime.sendMessage does not loop back to its own onMessage listener.
-    for (let i = 0; i < 20; i += 1) {
-      let ready = false;
-      try {
-        const tabConsole = await connectedRdp.getTabConsoleActor("src/options/options.html");
-        ready =
-          (await connectedRdp.evaluate(
-            tabConsole,
-            'browser.runtime.sendMessage({ type: "WAKE_WARM" }).then((response) => response?.type === "OK", () => false)',
-          )) === true;
-      } catch {
-        // The options target may not be attachable until its first document loads.
+    const openOptionsAndWaitForReady = async () => {
+      await connectedRdp.evaluate(
+        consoleActor,
+        `(async () => {
+          const url = browser.runtime.getURL("src/options/options.html");
+          const existing = (await browser.tabs.query({})).find((tab) => tab.url === url);
+          if (existing?.id) await browser.tabs.reload(existing.id);
+          else await browser.tabs.create({ url });
+          return true;
+        })()`,
+      );
+
+      // Send the readiness probe from an extension page. A background context's
+      // runtime.sendMessage does not loop back to its own onMessage listener.
+      for (let i = 0; i < 20; i += 1) {
+        let ready = false;
+        try {
+          const tabConsole = await connectedRdp.getTabConsoleActor("src/options/options.html");
+          ready =
+            (await connectedRdp.evaluate(
+              tabConsole,
+              'browser.runtime.sendMessage({ type: "WAKE_WARM" }).then((response) => response?.type === "OK", () => false)',
+            )) === true;
+        } catch {
+          // The options target may not be attachable until its first document loads.
+        }
+        if (ready === true) return;
+        await sleep(500);
       }
-      if (ready === true) break;
-      await sleep(500);
-      if (i === 19) throw new Error("background page never became ready");
-    }
+      throw new Error("background page never became ready");
+    };
+
+    await openOptionsAndWaitForReady();
 
     /** @param {string} text @param {number} [timeoutMs] */
     const evaluate = (text, timeoutMs) => connectedRdp.evaluate(consoleActor, text, timeoutMs);
@@ -231,6 +242,28 @@ const launch = async () => {
       return connectedRdp.evaluate(tabConsole, text, timeoutMs);
     };
 
+    const reloadAddon = async () => {
+      await connectedRdp.reloadAddon(ADDON_ID);
+      connectedRdp.close();
+      connectedRdp = await connectWithRetry(port);
+      let lastError;
+      for (let attempt = 0; attempt < 10; attempt += 1) {
+        await sleep(500);
+        try {
+          const candidateAddonActor = await connectedRdp.findAddonActor(ADDON_ID);
+          const candidateConsoleActor = await connectedRdp.getConsoleActor(candidateAddonActor);
+          consoleActor = candidateConsoleActor;
+          await openOptionsAndWaitForReady();
+          return;
+        } catch (error) {
+          lastError = error;
+        }
+      }
+      throw new Error("Firefox add-on reload did not expose a fresh background page", {
+        cause: lastError,
+      });
+    };
+
     const cleanup = async () => {
       connectedRdp.close();
       killTree(proc.pid);
@@ -240,9 +273,12 @@ const launch = async () => {
 
     return {
       proc,
-      rdp: connectedRdp,
+      get rdp() {
+        return connectedRdp;
+      },
       evaluate,
       evaluateInTab,
+      reloadAddon,
       profileDir,
       downloadDir,
       logPath,

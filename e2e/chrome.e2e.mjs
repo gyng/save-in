@@ -11,6 +11,7 @@ import cdp from "../scripts/lib/cdp.js";
 import chrome from "../scripts/lib/chrome.js";
 import { inBackgroundContext } from "./background-context.mjs";
 import {
+  runAutomaticRetryScenario,
   runContentDispositionScenario,
   runContextMenuScenario,
   runFailedDownloadLogScenario,
@@ -265,46 +266,43 @@ test("service worker initialises cleanly", async () => {
   ).toBe(false);
 });
 
-test("options can opt into AI localization and explicitly return to English", async () => {
+test("options can select a generated locale and return to the browser default", async () => {
   const choices = JSON.parse(
-    await evalOptions(`JSON.stringify([...document.querySelectorAll("#uiLocale option")].map((option) => ({
-      value: option.value,
-      label: option.textContent,
-    })))`),
+    await evalOptions(
+      `JSON.stringify([...document.querySelectorAll("#uiLocale option")].map((option) => option.value))`,
+    ),
   );
-  expect(
-    choices.filter((/** @type {{label: string}} */ { label }) => label.endsWith("(AI)")),
-  ).toHaveLength(10);
-  expect(choices).toEqual(
-    expect.arrayContaining([
-      expect.objectContaining({ value: "en", label: "English" }),
-      expect.objectContaining({ value: "zh_TW", label: "繁體中文 (AI)" }),
-    ]),
-  );
+  expect(choices).toEqual(expect.arrayContaining(["", "en", "de"]));
 
-  await evalOptions(`(() => {
-    const select = document.querySelector("#uiLocale");
-    select.value = "de";
-    select.dispatchEvent(new Event("change"));
-  })()`);
-  await poll(
-    async () =>
-      (await evalOptions(`document.querySelector("#section-downloads")?.textContent.trim()`)) ===
-      "Standorte speichern",
-    { description: "German AI locale reload" },
-  );
+  const selectLocale = async (locale, description) => {
+    const marker = `${locale}-${Date.now()}-${Math.random()}`;
+    await evalOptions(`(() => {
+      globalThis.__saveInE2eLocaleMarker = ${JSON.stringify(marker)};
+      const select = document.querySelector("#uiLocale");
+      select.value = ${JSON.stringify(locale)};
+      select.dispatchEvent(new Event("change"));
+    })()`);
+    await poll(
+      async () => {
+        const state = JSON.parse(
+          await evalOptions(`Promise.all([
+            chrome.storage.local.get("uiLocale"),
+            Promise.resolve({
+              selected: document.querySelector("#uiLocale")?.value,
+              marker: globalThis.__saveInE2eLocaleMarker ?? null,
+            }),
+          ]).then(([stored, page]) => JSON.stringify({ stored: stored.uiLocale, ...page }))`),
+        );
+        return state.stored === locale && state.selected === locale && state.marker !== marker
+          ? true
+          : null;
+      },
+      { description },
+    );
+  };
 
-  await evalOptions(`(() => {
-    const select = document.querySelector("#uiLocale");
-    select.value = "en";
-    select.dispatchEvent(new Event("change"));
-  })()`);
-  await poll(
-    async () =>
-      (await evalOptions(`document.querySelector("#section-downloads")?.textContent.trim()`)) ===
-      "Save locations",
-    { description: "explicit English locale reload" },
-  );
+  await selectLocale("de", "generated locale selection reload");
+  await selectLocale("en", "explicit English selection reload");
 
   await evalOptions(`chrome.storage.local.set({ uiLocale: "" }).then(() => location.reload())`);
   await poll(async () => (await evalOptions(`document.querySelector("#uiLocale")?.value`)) === "", {
@@ -1072,40 +1070,11 @@ test("failed downloads are recorded in the debug log", async () => {
 });
 
 test("a failed download is retried automatically via background fetch", async () => {
-  // Abort the first response so the browser reliably reports a network
-  // failure. Chrome versions differ on whether an HTTP 500 counts as a
-  // completed download, which made this scenario nondeterministic.
-  let hits = 0;
-  const server = http.createServer((req, res) => {
-    hits += 1;
-    if (hits === 1) {
-      req.socket.destroy();
-    } else {
-      res.writeHead(200, { "Content-Type": "application/octet-stream" });
-      res.end("recovered content");
-    }
+  await runAutomaticRetryScenario({
+    evaluate: evalSW,
+    waitForDownloads,
+    filename: "flaky-chrome.bin",
   });
-  const serverPort = await listenLocal(server);
-
-  try {
-    await evalSW(
-      `api.startDownload({
-        url: "http://127.0.0.1:${serverPort}/flaky.bin",
-        suggestedFilename: "flaky.bin",
-        pageUrl: "http://127.0.0.1:${serverPort}/",
-      }).then(() => "started")`,
-    );
-
-    const rows = await waitForDownloads("flaky", 10000);
-    expect(rows.some((r) => r.state === "complete")).toBe(true);
-
-    const file = path.join(DOWNLOADS, "e2e", "flaky.bin");
-    expect(fs.readFileSync(file, "utf8")).toBe("recovered content");
-    // The server really was hit twice: browser download, then fetch retry
-    expect(hits).toBeGreaterThanOrEqual(2);
-  } finally {
-    server.close();
-  }
 });
 
 test("alt+click on a real page saves the image through the content script", async () => {

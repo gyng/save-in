@@ -135,6 +135,30 @@ describe("FirefoxRdp request", () => {
   });
 });
 
+describe("FirefoxRdp reloadAddon", () => {
+  test("checks reload support, reloads the current actor, and clears tab actors", async () => {
+    const sock = makeSocket();
+    const client = new FirefoxRdp(sock);
+    client.tabConsoleActors.set("tab-actor", "console-actor");
+
+    const reloaded = client.reloadAddon("save-in@example");
+    sock.emit(
+      "data",
+      frame({
+        from: "root",
+        addons: [{ id: "save-in@example", actor: "addon-actor" }],
+      }),
+    );
+    await vi.waitFor(() => expect(sock.write).toHaveBeenCalledTimes(2));
+    sock.emit("data", frame({ from: "addon-actor", requestTypes: ["requestTypes", "reload"] }));
+    await vi.waitFor(() => expect(sock.write).toHaveBeenCalledTimes(3));
+    sock.emit("data", frame({ from: "addon-actor", reloaded: true }));
+
+    await expect(reloaded).resolves.toBeUndefined();
+    expect(client.tabConsoleActors).toHaveLength(0);
+  });
+});
+
 describe("FirefoxRdp evaluate", () => {
   test("rejects a malformed asynchronous evaluation acknowledgement", async () => {
     const sock = makeSocket();
