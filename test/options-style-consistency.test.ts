@@ -39,6 +39,23 @@ test("reference data rows do not use divider lines", () => {
   expect(reference).toContain("border-bottom: 0");
 });
 
+test("reference tables share one column grid across sections", () => {
+  const reference = readStyle("reference.css");
+  const table = reference.match(/\.reference-table\s*\{([^}]*)\}/)?.[1] || "";
+  const syntax =
+    reference.match(/\.reference-table thead th:nth-child\(1\)\s*\{([^}]*)\}/)?.[1] || "";
+  const example =
+    reference.match(/\.reference-table thead th:nth-child\(2\)\s*\{([^}]*)\}/)?.[1] || "";
+  const meaning =
+    reference.match(/\.reference-table thead th:nth-child\(3\)\s*\{([^}]*)\}/)?.[1] || "";
+
+  expect(table).toContain("table-layout: fixed");
+  expect(table).toContain("width: 100%");
+  expect(syntax).toContain("width: 22%");
+  expect(example).toContain("width: 28%");
+  expect(meaning).toContain("width: 50%");
+});
+
 test("language label and selector share a text baseline", () => {
   const css = readStyle("style.css");
   const selector = css.match(/\.language-selector\s*\{([^}]*)\}/)?.[1] || "";

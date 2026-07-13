@@ -68,9 +68,9 @@ body:has(.reference-header) {
 }
 
 .reference-table {
-  display: block;
+  width: 100%;
   max-width: 100%;
-  overflow-x: auto;
+  table-layout: fixed;
   border-collapse: collapse;
 }
 
@@ -121,6 +121,18 @@ body:has(.reference-header) {
   font-size: var(--text-sm);
   font-weight: 650;
   letter-spacing: 0.02em;
+}
+
+.reference-table thead th:nth-child(1) {
+  width: 22%;
+}
+
+.reference-table thead th:nth-child(2) {
+  width: 28%;
+}
+
+.reference-table thead th:nth-child(3) {
+  width: 50%;
 }
 
 .reference-group-row th {
