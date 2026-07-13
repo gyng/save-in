@@ -380,13 +380,37 @@ export const Download = {
       }
     }
 
+    const filenamePatterns = Array.isArray(options.filenamePatterns)
+      ? options.filenamePatterns
+      : [];
+    const usesResolvedFilename = filenamePatterns.some((rule) =>
+      rule.some((clause) => clause.name === "filename" || clause.name === "actualfileext"),
+    );
+    const usesActualFileExtension = filenamePatterns.some((rule) =>
+      rule.some((clause) => clause.name === "actualfileext"),
+    );
+    if (options.appendMimeExtension !== false && usesActualFileExtension) {
+      const extension = mimeToExtension(await resolveMime(state.info));
+      if (extension) {
+        state.info.mimeExtension = extension;
+        state.scratch.mimeExtension = extension;
+      }
+    }
+
     state.path = await applyVariables(state.path, state.info);
     const routeMatches = Download.getRoutingMatches(state);
     if (routeMatches) {
       state.routeIsFolder = typeof routeMatches === "string" && /\/\s*$/.test(routeMatches);
       state.route = await applyVariables(new Path(routeMatches), state.info);
     }
-    if ((state.needRouteMatch || options.routeExclusive) && !routeMatches) {
+    const routeRequired = state.needRouteMatch || options.routeExclusive;
+    const deferRouteRequirement =
+      routeRequired &&
+      WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion &&
+      isHttpDownloadUrl(url) &&
+      usesResolvedFilename;
+    if (deferRouteRequirement) state.scratch.deferredRouteRequirement = true;
+    if (routeRequired && !routeMatches && !deferRouteRequirement) {
       Download.forgetPendingState(state);
       return null;
     }
@@ -400,7 +424,10 @@ export const Download = {
             : undefined;
       if (tentative && !EXTENSION_REGEX.test(tentative)) {
         const ext = mimeToExtension(await resolveMime(state.info));
-        if (ext) state.scratch.mimeExtension = ext;
+        if (ext) {
+          state.info.mimeExtension = ext;
+          state.scratch.mimeExtension = ext;
+        }
       }
     }
 

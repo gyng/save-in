@@ -80,6 +80,9 @@
   "ruleCaptureMissingMatcher": {
     "message": "캡처 절이 매처를 가리키지 않습니다"
   },
+  "ruleCaptureAmbiguousMatcher": {
+    "message": "레거시 캡처는 첫 번째로 일치하는 절을 사용합니다"
+  },
   "ruleMissingCapture": {
     "message": "캡처 변수를 사용하려면 캡처 절을 추가하세요."
   },

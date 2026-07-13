@@ -120,8 +120,10 @@ export const matcherFunctions = {
     return match;
   },
   actualfileext: (regex) => (info) => {
-    if (!info.filename) return false;
-    const match = matchValue(info.filename.match(EXTENSION_REGEX)?.[1] || "", regex);
+    const extension =
+      (info.resolvedFilename || info.filename)?.match(EXTENSION_REGEX)?.[1] || info.mimeExtension;
+    if (!extension) return false;
+    const match = matchValue(extension, regex);
     logMatch(match, regex, info);
     return match;
   },

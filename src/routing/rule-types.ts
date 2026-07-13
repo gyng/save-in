@@ -9,6 +9,7 @@ export type RoutingDownloadInfo = LazyDownloadMetadata<RoutingContent> & {
   frameUrl?: string | undefined;
   linkText?: string | undefined;
   mediaType?: string | undefined;
+  mimeExtension?: string | undefined;
   now?: Date | undefined;
   pageUrl?: string | undefined;
   selectionText?: string | undefined;
@@ -26,6 +27,7 @@ export type RoutingDownloadInfo = LazyDownloadMetadata<RoutingContent> & {
   naiveFilename?: string | undefined;
   initialFilename?: string | undefined;
   preview?: boolean | undefined;
+  resolvedFilename?: string | undefined;
   counter?: number | undefined;
   abortSignal?: AbortSignal | undefined;
   onContentFetchStart?: ((requestId: string) => void | Promise<void>) | undefined;

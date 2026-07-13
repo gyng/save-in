@@ -16,6 +16,8 @@ import {
 import type { DownloadRuntimeState } from "./download-runtime-state.ts";
 import type { DownloadPipelineState } from "./download-types.ts";
 import { FINAL_FILENAMES_SESSION_KEY } from "../shared/storage-keys.ts";
+import { getMessage } from "../platform/localization.ts";
+import { EXTENSION_NOTIFICATION_STREAMS, Notifier } from "./notification.ts";
 
 const historyPort = downloadPorts.history;
 const logPort = downloadPorts.log;
@@ -176,8 +178,25 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
 
     const pathTemplateRaw = pendingState.scratch?.pathTemplateRaw;
     const filenameChanged = pendingState.info.filename !== previousFilename;
+    const rejectDeferredRoute = async (): Promise<void> => {
+      suggest();
+      if (typeof downloadItem.id === "number") {
+        await webExtensionApi.downloads.cancel(downloadItem.id).catch(() => {});
+        await historyPort
+          .setStatus(pendingState.scratch?.historyEntryId, "RULE_NO_MATCH", downloadItem.id)
+          .catch((error) => logPort.add("route-miss history update failed", String(error)));
+      }
+      if (options.notifyOnFailure) {
+        Notifier.createExtensionNotification(
+          getMessage("notificationRuleMatchFailedExclusiveTitle"),
+          getMessage("notificationRuleMatchFailedExclusiveMessage", [pendingState.info.url ?? ""]),
+          true,
+          EXTENSION_NOTIFICATION_STREAMS.ROUTE_MISS,
+        );
+      }
+    };
     const needsActualFilenameResolution =
-      filenameChanged &&
+      (filenameChanged || pendingState.scratch?.deferredRouteRequirement === true) &&
       ((Array.isArray(options.filenamePatterns) && options.filenamePatterns.length > 0) ||
         (typeof pathTemplateRaw === "string" && /:(?:filename|fileext):/.test(pathTemplateRaw)));
     if (needsActualFilenameResolution) {
@@ -192,6 +211,11 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
           pendingState.routeIsFolder = /\/\s*$/.test(routeMatches);
           pendingState.route = await applyVariables(new Path(routeMatches), pendingState.info);
         }
+        if (pendingState.scratch?.deferredRouteRequirement && !routeMatches) {
+          await rejectDeferredRoute();
+          return;
+        }
+        pendingState.scratch.deferredRouteRequirement = false;
         const filename = Download.finalizeFullPath(pendingState);
         if (typeof downloadItem.id === "number") {
           Download.finalFilenamesByDownloadId.set(downloadItem.id, filename);
@@ -208,7 +232,8 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
         suggest({ filename, conflictAction: options.conflictAction });
       })().catch((error) => {
         logPort.add("filename resolution failed", String(error));
-        suggest();
+        if (pendingState.scratch?.deferredRouteRequirement) void rejectDeferredRoute();
+        else suggest();
       });
       return true;
     }

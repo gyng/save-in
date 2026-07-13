@@ -181,6 +181,9 @@
   "ruleCaptureMissingMatcher": {
     "message": "Die Capture-Klausel zielt nicht auf einen Matcher ab"
   },
+  "ruleCaptureAmbiguousMatcher": {
+    "message": "Die veraltete Capture-Klausel verwendet die erste passende Klausel"
+  },
   "ruleMissingCapture": {
     "message": "Fügen Sie eine Capture-Klausel hinzu, um Capture-Variablen zu verwenden"
   },

@@ -111,6 +111,44 @@ describe("renameAndDownload: MIME extension append (§8.1)", () => {
     expect(Download.finalizeFullPath(state)).toMatch(/12345\.jpg$/);
   });
 
+  test("makes a MIME-derived extension available before exclusive routing", async () => {
+    setCurrentBrowser("CHROME");
+    options.appendMimeExtension = true;
+    options.routeExclusive = true;
+    options.filenamePatterns = [routingRule("actualfileext")];
+    vi.spyOn(Variable, "resolveMime").mockResolvedValue("application/pdf");
+    vi.spyOn(Variable, "mimeToExtension").mockReturnValue("pdf");
+    vi.mocked(router.matchRules).mockImplementation((_rules, info) =>
+      info.mimeExtension === "pdf" ? "documents/:filename:" : null,
+    );
+
+    const state = makeState({ info: { url: "https://cdn.example.com/download/12345" } });
+    await expect(Download.renameAndDownload(state)).resolves.toEqual({
+      status: "started",
+      downloadId: 101,
+    });
+
+    expect(router.matchRules).toHaveBeenCalledWith(
+      options.filenamePatterns,
+      expect.objectContaining({ mimeExtension: "pdf" }),
+    );
+    expect(state.route).toBeDefined();
+  });
+
+  test("keeps the MIME fallback when Chrome may replace an existing extension", async () => {
+    setCurrentBrowser("CHROME");
+    options.appendMimeExtension = true;
+    options.filenamePatterns = [routingRule("actualfileext")];
+    vi.spyOn(Variable, "resolveMime").mockResolvedValue("application/pdf");
+    vi.spyOn(Variable, "mimeToExtension").mockReturnValue("pdf");
+
+    const state = makeState({ info: { url: "https://cdn.example.com/file.pdf" } });
+    await Download.renameAndDownload(state);
+
+    expect(Variable.resolveMime).toHaveBeenCalledWith(state.info);
+    expect(state.info.mimeExtension).toBe("pdf");
+  });
+
   test("skips the HEAD and leaves a filename that already has an extension", async () => {
     setCurrentBrowser("CHROME");
     options.appendMimeExtension = true;

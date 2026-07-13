@@ -117,6 +117,10 @@
     "message": "Capture clause does not target a matcher",
     "description": "Error message for capture targeting missing matcher. Used in src/routing/rule-parser.ts."
   },
+  "ruleCaptureAmbiguousMatcher": {
+    "message": "Legacy capture uses the first matching clause",
+    "description": "Warning when a legacy capture target names more than one matcher clause. Used in src/routing/rule-parser.ts."
+  },
   "ruleMissingCapture": {
     "message": "Add a capture clause to use capture variables",
     "description": "Error message for missing capture clause in rule. Used in src/routing/rule-parser.ts."

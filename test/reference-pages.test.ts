@@ -100,7 +100,7 @@ test("every runtime variable and matcher is documented", () => {
     const token = variable.startsWith(":") ? variable : `:${variable}:`;
     expect(variables).toContain(token);
   }
-  for (const clause of [...Object.keys(matcherFunctions), "capture", "into"])
+  for (const clause of [...Object.keys(matcherFunctions), "capture", "capturegroups", "into"])
     expect(clauses).toContain(`${clause}:`);
 });
 

@@ -80,6 +80,9 @@
   "ruleCaptureMissingMatcher": {
     "message": "捕获子句不针对匹配器"
   },
+  "ruleCaptureAmbiguousMatcher": {
+    "message": "旧版捕获使用第一个匹配子句"
+  },
   "ruleMissingCapture": {
     "message": "添加捕获子句以使用捕获变量"
   },

@@ -464,7 +464,7 @@ describe("insert menu targets its editor via data-insert-target", () => {
     expect(textarea.value).toBe("fileext: pdf\ninto: ");
     expect(
       [...document.querySelectorAll(".clause-preview-table code")].map((node) => node.textContent),
-    ).toEqual(["into:", "capture:", "context:", "pageurl:", "fileext:"]);
+    ).toEqual(["into:", "capture:", "context:", "pageurl:", "fileext:", "capturegroups:"]);
     expect(
       [...document.querySelectorAll(".variables-preview-group")].map((node) => node.textContent),
     ).toEqual([

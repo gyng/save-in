@@ -53,6 +53,17 @@ describe("built-in matcher templates", () => {
     },
   } as const;
 
+  test.each(RULE_TEMPLATES)("$name has a self-contained proof", async (template) => {
+    expect(template.rule).not.toMatch(/^capture:/m);
+    const rules = parseRulesCollecting(template.rule).rules;
+    const destination = matchRules(rules, template.proof.info);
+
+    expect(destination).toBe(template.proof.destination);
+    expect((await applyVariables(new Path(destination), template.proof.info)).finalize()).toBe(
+      template.example.replace(/^Example: /, ""),
+    );
+  });
+
   test.each(genericTemplates)("%s applies across non-media save contexts", (name) => {
     const rules = rulesFor(name);
     for (const info of Object.values(saveContexts)) {
@@ -141,6 +152,25 @@ describe("built-in matcher templates", () => {
         url: "https://files.example/REPORT.PDF",
         sourceUrl: "https://files.example/REPORT.PDF",
         filename: "REPORT.PDF",
+      }),
+    ).toBe("documents/:filename:");
+  });
+
+  test("the PDF template matches a MIME-derived resolved extension", () => {
+    expect(
+      matchRules(rulesFor("PDFs into a documents folder"), {
+        url: "https://files.example/download/42",
+        filename: "download",
+        mimeExtension: "pdf",
+      }),
+    ).toBe("documents/:filename:");
+  });
+
+  test("actual extension matching can use a resolved preview filename", () => {
+    expect(
+      matchRules(rulesFor("PDFs into a documents folder"), {
+        filename: "download",
+        resolvedFilename: "report.pdf",
       }),
     ).toBe("documents/:filename:");
   });
@@ -241,7 +271,7 @@ describe("matcher authoring and validation", () => {
       [
         "pageurl: users/(alice)",
         "sourceurl: files/(report)",
-        "capture: pageurl,sourceurl",
+        "capturegroups: pageurl,sourceurl",
         "into: :$1:-:$2:",
       ].join("\n"),
     );
@@ -255,11 +285,11 @@ describe("matcher authoring and validation", () => {
     expect(matchRules(parsed.rules, info)).toBe("alice-report");
   });
 
-  test("keeps legacy high capture indexes working for stored multi-target rules", () => {
+  test("keeps the complete legacy capture index layout for stored multi-target rules", () => {
     const parsed = parseRulesCollecting(
       [
         "pageurl: users/(alice)",
-        "sourceurl: files/(report)",
+        "sourceurl: files/(reports)/(q2)",
         "capture: pageurl,sourceurl",
         "into: :$1:-:$3:",
       ].join("\n"),
@@ -269,9 +299,55 @@ describe("matcher authoring and validation", () => {
     expect(
       matchRules(parsed.rules, {
         pageUrl: "https://site.example/users/alice",
-        sourceUrl: "https://cdn.example/files/report",
+        sourceUrl: "https://cdn.example/files/reports/q2",
       }),
-    ).toBe("alice-report");
+    ).toBe("alice-reports");
+  });
+
+  test("canonicalizes matcher names for capture and shadow analysis", () => {
+    const captured = parseRulesCollecting(
+      "SourceURL: files/(report)\ncapturegroups: sourceurl\ninto: :$1:",
+    );
+    expect(captured.errors).toEqual([]);
+    expect(matchRules(captured.rules, { sourceUrl: "https://cdn.example/files/report" })).toBe(
+      "report",
+    );
+
+    const shadowed = parseRulesCollecting(
+      "SourceURL: .*\ninto: first\n\nsourceurl: cat\ninto: second",
+    );
+    expect(shadowed.errors).toContainEqual(
+      expect.objectContaining({ warning: true, error: "rule 2" }),
+    );
+  });
+
+  test("rejects an ambiguous continuous capture target", () => {
+    const parsed = parseRulesCollecting(
+      [
+        "sourceurl: files/(reports)",
+        "sourceurl: /(q2)$",
+        "capturegroups: sourceurl",
+        "into: :$1:",
+      ].join("\n"),
+    );
+
+    expect(parsed.rules).toEqual([]);
+    expect(parsed.errors).toEqual([expect.objectContaining({ error: "capturegroups: sourceurl" })]);
+  });
+
+  test("warns while preserving the first-target behavior of an ambiguous legacy capture", () => {
+    const parsed = parseRulesCollecting(
+      ["sourceurl: files/(reports)", "sourceurl: /(q2)$", "capture: sourceurl", "into: :$1:"].join(
+        "\n",
+      ),
+    );
+
+    expect(parsed.errors).toContainEqual(
+      expect.objectContaining({ error: "capture: sourceurl", warning: true }),
+    );
+    expect(matchRules(parsed.rules, { sourceUrl: "https://cdn.example/files/reports/q2" })).toBe(
+      "reports",
+    );
   });
 
   test("URL-derived matchers prefer the selected download URL over an embedded source", () => {

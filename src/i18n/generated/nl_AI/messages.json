@@ -183,6 +183,9 @@
   "ruleCaptureMissingMatcher": {
     "message": "De capture-clausule verwijst niet naar een matcher"
   },
+  "ruleCaptureAmbiguousMatcher": {
+    "message": "Verouderde capture gebruikt de eerste overeenkomende clausule"
+  },
   "ruleMissingCapture": {
     "message": "Voeg een capture-clausule toe om capture-variabelen te gebruiken"
   },

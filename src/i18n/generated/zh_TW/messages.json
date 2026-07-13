@@ -80,6 +80,9 @@
   "ruleCaptureMissingMatcher": {
     "message": "擷取子句未指定比對器"
   },
+  "ruleCaptureAmbiguousMatcher": {
+    "message": "舊版擷取使用第一個相符子句"
+  },
   "ruleMissingCapture": {
     "message": "請新增擷取子句以使用擷取變數"
   },

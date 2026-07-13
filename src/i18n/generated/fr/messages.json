@@ -203,6 +203,9 @@
   "ruleCaptureMissingMatcher": {
     "message": "La clause de capture ne cible aucun critère"
   },
+  "ruleCaptureAmbiguousMatcher": {
+    "message": "La capture héritée utilise la première clause correspondante"
+  },
   "ruleMissingCapture": {
     "message": "Ajouter une clause de capture pour utiliser les variables de capture"
   },

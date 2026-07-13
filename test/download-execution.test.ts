@@ -320,6 +320,85 @@ describe("onDeterminingFilename listener: sync path", () => {
     );
   });
 
+  test("defers an exclusive actual-filename rule until Chrome resolves the filename", async () => {
+    setCurrentBrowser("CHROME");
+    options.routeExclusive = true;
+    options.filenamePatterns = [routingRule("actualfileext")];
+    vi.mocked(router.matchRules).mockImplementation((_rules, info) =>
+      info.filename === "server-name.pdf" ? "pdf/:filename:" : null,
+    );
+    const state = makeState({
+      path: new Path.Path("downloads"),
+      info: { url: "https://example.com/download" },
+    });
+
+    await expect(Download.renameAndDownload(state)).resolves.toEqual({
+      status: "started",
+      downloadId: 101,
+    });
+    expect(state.scratch.deferredRouteRequirement).toBe(true);
+
+    const suggest = vi.fn();
+    expect(
+      capturedListener(
+        {
+          id: 101,
+          byExtensionId: global.browser.runtime.id,
+          url: state.info.url,
+          filename: "server-name.pdf",
+        },
+        suggest,
+      ),
+    ).toBe(true);
+    await vi.waitFor(() =>
+      expect(suggest).toHaveBeenCalledWith(
+        expect.objectContaining({ filename: "downloads/pdf/server-name.pdf" }),
+      ),
+    );
+  });
+
+  test("cancels a deferred exclusive download when the resolved filename still misses", async () => {
+    setCurrentBrowser("CHROME");
+    options.routeExclusive = true;
+    options.notifyOnFailure = true;
+    options.filenamePatterns = [routingRule("actualfileext")];
+    vi.mocked(router.matchRules).mockImplementation((_rules, info) =>
+      info.filename === "file.pdf" ? "pdf/:filename:" : null,
+    );
+    const cancel = vi.fn(() => Promise.resolve());
+    global.browser.downloads.cancel = cancel;
+    const state = makeState({
+      path: new Path.Path("downloads"),
+      info: { url: "https://example.com/file.pdf" },
+    });
+
+    await expect(Download.renameAndDownload(state)).resolves.toEqual({
+      status: "started",
+      downloadId: 101,
+    });
+
+    const suggest = vi.fn();
+    capturedListener(
+      {
+        id: 101,
+        byExtensionId: global.browser.runtime.id,
+        url: state.info.url,
+        filename: "server-name.exe",
+      },
+      suggest,
+    );
+
+    await vi.waitFor(() => expect(cancel).toHaveBeenCalledWith(101));
+    expect(suggest).toHaveBeenCalledWith();
+    expect(SaveHistory.setStatus).toHaveBeenCalledWith("h-test", "RULE_NO_MATCH", 101);
+    expect(Notifier.createExtensionNotification).toHaveBeenCalledWith(
+      "notificationRuleMatchFailedExclusiveTitle",
+      "notificationRuleMatchFailedExclusiveMessage",
+      true,
+      "route-miss",
+    );
+  });
+
   test("keeps the state's filename when the download item has none", async () => {
     setCurrentBrowser("CHROME");
     const state = makeState();

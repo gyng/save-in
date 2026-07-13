@@ -179,6 +179,9 @@
   "ruleCaptureMissingMatcher": {
     "message": "La cláusula de captura no está dirigida a un comparador"
   },
+  "ruleCaptureAmbiguousMatcher": {
+    "message": "La captura heredada usa la primera cláusula coincidente"
+  },
   "ruleMissingCapture": {
     "message": "Agregue una cláusula de captura para usar variables de captura"
   },

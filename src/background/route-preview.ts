@@ -17,8 +17,9 @@ export const previewRoutes = async (state?: RoutePreviewState | null): Promise<R
   const info = {
     ...state.info,
     filenamePatterns: options.filenamePatterns,
-    // Chrome replaces special filename characters with `_`; previews match
-    // against the original browser filename when it is still available.
+    resolvedFilename: state.info.filename,
+    // Preserve the original unsanitized name for established filename: rules;
+    // actualfileext: reads resolvedFilename when the browser supplied one.
     filename: state.info.initialFilename || state.info.filename,
     preview: true,
   };

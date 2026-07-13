@@ -44,11 +44,14 @@ export const parseRule = (lines: RuleToken[], errors: RuleError[] = []): Routing
   const clauses: (RuleClause | false)[] = lines.map((tokens) => {
     const [, rawName, rawValue] = tokens;
     const flagSeparator = rawName.lastIndexOf("/");
-    const name = flagSeparator > 0 ? rawName.slice(0, flagSeparator) : rawName;
+    const name = (flagSeparator > 0 ? rawName.slice(0, flagSeparator) : rawName).toLowerCase();
     const flags = flagSeparator > 0 ? rawName.slice(flagSeparator + 1) : "";
     let value: string | RegExp;
     try {
-      value = name === "into" || name === "capture" ? rawValue : new RegExp(rawValue, flags);
+      value =
+        name === "into" || name === "capture" || name === "capturegroups"
+          ? rawValue
+          : new RegExp(rawValue, flags);
     } catch (error) {
       errors.push({
         message: routingPorts.getMessage("ruleInvalidRegex"),
@@ -60,11 +63,10 @@ export const parseRule = (lines: RuleToken[], errors: RuleError[] = []): Routing
     if (name === "into") {
       type = RULE_TYPES.DESTINATION;
       value = (value as string).replace(/^\.\//, "");
-    } else if (name === "capture") type = RULE_TYPES.CAPTURE;
+    } else if (name === "capture" || name === "capturegroups") type = RULE_TYPES.CAPTURE;
     if (type !== RULE_TYPES.MATCHER) return { name, value, type };
-    const matcherName = name.toLowerCase();
-    const factory = Object.hasOwn(matcherFunctions, matcherName)
-      ? matcherFunctions[matcherName as keyof typeof matcherFunctions]
+    const factory = Object.hasOwn(matcherFunctions, name)
+      ? matcherFunctions[name as keyof typeof matcherFunctions]
       : undefined;
     if (!factory) {
       errors.push({ message: routingPorts.getMessage("ruleUnknownMatcher"), error: `${name}:` });
@@ -85,7 +87,7 @@ export const parseRule = (lines: RuleToken[], errors: RuleError[] = []): Routing
   }
   if (
     (destination.value as string).match(/:\$\d+:/) &&
-    !valid.some((clause) => clause.name === "capture")
+    !valid.some((clause) => clause.type === RULE_TYPES.CAPTURE)
   )
     errors.push({
       message: routingPorts.getMessage("ruleMissingCapture"),
@@ -105,7 +107,7 @@ export const parseRule = (lines: RuleToken[], errors: RuleError[] = []): Routing
     });
     return false;
   }
-  const captures = valid.filter((clause) => clause.name === "capture");
+  const captures = valid.filter((clause) => clause.type === RULE_TYPES.CAPTURE);
   if (captures.length >= 2) {
     errors.push({
       message: routingPorts.getMessage("ruleMultipleCapture"),
@@ -116,35 +118,33 @@ export const parseRule = (lines: RuleToken[], errors: RuleError[] = []): Routing
   if (captures.length === 1) {
     const capture = captures[0];
     if (!capture) return false;
-    const names = (capture.value as string).split(",").map((name) => name.trim());
-    const capturedMatchers = names.map((name) =>
-      valid.find((clause) => clause.type === RULE_TYPES.MATCHER && clause.name === name),
+    const names = (capture.value as string).split(",").map((name) => name.trim().toLowerCase());
+    const matcherCandidates = names.map((name) =>
+      valid.filter((clause) => clause.type === RULE_TYPES.MATCHER && clause.name === name),
     );
+    const capturedMatchers = matcherCandidates.map((matches) => matches[0]);
     let missing = false;
     names.forEach((name, index) => {
-      if (!capturedMatchers[index]) {
+      const candidates = matcherCandidates[index] || [];
+      if (!capturedMatchers[index] || (capture.name === "capturegroups" && candidates.length > 1)) {
         errors.push({
           message: routingPorts.getMessage("ruleCaptureMissingMatcher"),
-          error: `capture: ${name}`,
+          error: `${capture.name}: ${name}`,
         });
         missing = true;
+      } else if (capture.name === "capture" && candidates.length > 1) {
+        errors.push({
+          message: routingPorts.getMessage("ruleCaptureAmbiguousMatcher"),
+          error: `capture: ${name}`,
+          warning: true,
+        });
       }
     });
     if (missing) return false;
-    const standardIndexes =
-      1 +
-      capturedMatchers.reduce(
-        (total, clause) => total + captureGroupCount(clause!.value as RegExp),
-        0,
-      );
-    // Older rules may use indexes from the previous flattened RegExpMatchArray
-    // layout. Keep those high indexes valid so matchRule can evaluate them in
-    // compatibility mode, while new rules get continuous capture-group indexes.
-    const legacyIndexes = capturedMatchers.reduce(
+    const availableIndexes = capturedMatchers.reduce(
       (total, clause) => total + captureGroupCount(clause!.value as RegExp) + 1,
-      0,
+      capture.name === "capturegroups" ? 1 - capturedMatchers.length : 0,
     );
-    const availableIndexes = Math.max(standardIndexes, legacyIndexes);
     const indexes = [...(destination.value as string).matchAll(/:\$(\d+):/g)].map((match) =>
       Number(match[1]),
     );

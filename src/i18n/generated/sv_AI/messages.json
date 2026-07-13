@@ -177,6 +177,9 @@
   "ruleCaptureMissingMatcher": {
     "message": "Capture-satsen riktar sig inte mot en matchare"
   },
+  "ruleCaptureAmbiguousMatcher": {
+    "message": "Äldre capture använder den första matchande satsen"
+  },
   "ruleMissingCapture": {
     "message": "Lägg till ett fångstvillkor för att använda fångstvariabler"
   },

@@ -33,6 +33,7 @@ export const setupPathInsertMenu = (
   const descriptions: Record<string, string> = {
     into: "Set the destination path",
     capture: "Choose regex capture source",
+    capturegroups: "Choose continuous regex capture groups",
     context: "Match how the save started",
     menuindex: "Match the selected menu position",
     comment: "Match menu-item metadata",
@@ -57,7 +58,7 @@ export const setupPathInsertMenu = (
     if (!clauseBody) return;
     clauseBody.replaceChildren();
     clauseButtons.length = 0;
-    const clauses = ["into", "capture", ...matchers].toSorted((a, b) =>
+    const clauses = ["into", "capture", "capturegroups", ...matchers].toSorted((a, b) =>
       compareClauses(`${a}:`, `${b}:`),
     );
     CLAUSE_GROUPS.forEach((group) => {

@@ -80,6 +80,9 @@
   "ruleCaptureMissingMatcher": {
     "message": "Capture 句はマッチャーをターゲットにしていません"
   },
+  "ruleCaptureAmbiguousMatcher": {
+    "message": "従来の capture は最初に一致する句を使用します"
+  },
   "ruleMissingCapture": {
     "message": "キャプチャ変数を使用するにはキャプチャ句を追加します"
   },

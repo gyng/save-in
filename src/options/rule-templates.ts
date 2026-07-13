@@ -21,7 +21,11 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     example: "Example: images/example.com/photo.jpg",
     rule: "mediatype: image\ninto: images/:pagedomain:/:filename:",
     proof: {
-      info: { mediaType: "image", filename: "photo.jpg" },
+      info: {
+        mediaType: "image",
+        pageUrl: "https://example.com/gallery",
+        filename: "photo.jpg",
+      },
       destination: "images/:pagedomain:/:filename:",
     },
   },
@@ -32,7 +36,11 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     example: "Example: videos/example.com/clip.mp4",
     rule: "mediatype: video\ninto: videos/:pagedomain:/:filename:",
     proof: {
-      info: { mediaType: "video", filename: "clip.mp4" },
+      info: {
+        mediaType: "video",
+        pageUrl: "https://example.com/gallery",
+        filename: "clip.mp4",
+      },
       destination: "videos/:pagedomain:/:filename:",
     },
   },
@@ -43,7 +51,11 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     example: "Example: audio/example.com/podcast.mp3",
     rule: "mediatype: audio\ninto: audio/:pagedomain:/:filename:",
     proof: {
-      info: { mediaType: "audio", filename: "podcast.mp3" },
+      info: {
+        mediaType: "audio",
+        pageUrl: "https://example.com/gallery",
+        filename: "podcast.mp3",
+      },
       destination: "audio/:pagedomain:/:filename:",
     },
   },
@@ -54,7 +66,7 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     example: "Example: screenshots/2026/07/Screenshot 42.png",
     rule: "filename/i: ^screen([ _-]?shot|capture)\ninto: screenshots/:year:/:month:/:filename:",
     proof: {
-      info: { filename: "Screenshot 42.png" },
+      info: { filename: "Screenshot 42.png", now: new Date(2026, 6, 12, 12) },
       destination: "screenshots/:year:/:month:/:filename:",
     },
   },
@@ -129,7 +141,7 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     name: "One folder per file extension",
     description: "Captures the extension and uses it as a folder name",
     example: "Example: files/png/screenshot.png",
-    rule: "actualfileext: ^(.+)$\ncapture: actualfileext\ninto: files/:$1:/:filename:",
+    rule: "actualfileext: ^(.+)$\ncapturegroups: actualfileext\ninto: files/:$1:/:filename:",
     proof: {
       info: { sourceUrl: "https://example.test/screenshot.png", filename: "screenshot.png" },
       destination: "files/png/:filename:",
@@ -142,7 +154,11 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     example: "Example: 2026-07-12-report.pdf",
     rule: "filename: .*\ninto: :date:-:filename:",
     proof: {
-      info: { sourceUrl: "https://example.test/report.pdf" },
+      info: {
+        sourceUrl: "https://example.test/report.pdf",
+        filename: "report.pdf",
+        now: new Date(2026, 6, 12, 12),
+      },
       destination: ":date:-:filename:",
     },
   },
@@ -153,7 +169,11 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     example: "Example: inbox/2026/07/12/report.pdf",
     rule: "filename: .*\ninto: inbox/:year:/:month:/:day:/:filename:",
     proof: {
-      info: { sourceUrl: "https://example.test/report.pdf" },
+      info: {
+        sourceUrl: "https://example.test/report.pdf",
+        filename: "report.pdf",
+        now: new Date(2026, 6, 12, 12),
+      },
       destination: "inbox/:year:/:month:/:day:/:filename:",
     },
   },
@@ -164,7 +184,11 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     example: "Example: archive/2026/07/report.pdf",
     rule: "filename: .*\ninto: archive/:year:/:month:/:filename:",
     proof: {
-      info: { sourceUrl: "https://example.test/report.pdf" },
+      info: {
+        sourceUrl: "https://example.test/report.pdf",
+        filename: "report.pdf",
+        now: new Date(2026, 6, 12, 12),
+      },
       destination: "archive/:year:/:month:/:filename:",
     },
   },
@@ -175,7 +199,11 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     example: "Example: inbox/2026-w28/report.pdf",
     rule: "filename: .*\ninto: inbox/:year:-w:isoweek:/:filename:",
     proof: {
-      info: { sourceUrl: "https://example.test/report.pdf" },
+      info: {
+        sourceUrl: "https://example.test/report.pdf",
+        filename: "report.pdf",
+        now: new Date(2026, 6, 12, 12),
+      },
       destination: "inbox/:year:-w:isoweek:/:filename:",
     },
   },
@@ -186,7 +214,11 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     example: "Example: archive/42-report.pdf",
     rule: "filename: .*\ninto: archive/:counter:-:filename:",
     proof: {
-      info: { sourceUrl: "https://example.test/report.pdf" },
+      info: {
+        sourceUrl: "https://example.test/report.pdf",
+        filename: "report.pdf",
+        counter: 42,
+      },
       destination: "archive/:counter:-:filename:",
     },
   },
@@ -197,7 +229,11 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     example: "Example: example/an-interesting-page/report.pdf",
     rule: "pagedomain: (^|\\.)example\\.com$\ninto: example/:pagetitleslug:/:filename:",
     proof: {
-      info: { pageUrl: "https://example.com/an-interesting-page" },
+      info: {
+        pageUrl: "https://example.com/an-interesting-page",
+        filename: "report.pdf",
+        currentTab: { title: "An Interesting Page" },
+      },
       destination: "example/:pagetitleslug:/:filename:",
     },
   },
@@ -234,7 +270,11 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     example: "Example: pages/an-interesting-page-report.pdf",
     rule: "pagetitle: .+\ninto: pages/:pagetitleslug:-:filename:",
     proof: {
-      info: { sourceUrl: "https://example.test/report.pdf" },
+      info: {
+        sourceUrl: "https://example.test/report.pdf",
+        filename: "report.pdf",
+        currentTab: { title: "An Interesting Page" },
+      },
       destination: "pages/:pagetitleslug:-:filename:",
     },
   },
@@ -243,7 +283,7 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     name: "Capture part of the URL",
     description: "Uses a regex capture group in the saved filename",
     example: "Example: imgur/abc123-photo.jpg",
-    rule: "sourceurl: imgur\\.com/(\\w+)\ncapture: sourceurl\ninto: imgur/:$1:-:filename:",
+    rule: "sourceurl: imgur\\.com/(\\w+)\ncapturegroups: sourceurl\ninto: imgur/:$1:-:filename:",
     proof: {
       info: { sourceUrl: "https://imgur.com/abc123", filename: "photo.jpg" },
       destination: "imgur/abc123-:filename:",
@@ -275,7 +315,11 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     example: "Example: selections/2026-07-12-selection.txt",
     rule: "context: selection\ninto: selections/:date:-:filename:",
     proof: {
-      info: { context: "selection", filename: "selection.txt" },
+      info: {
+        context: "selection",
+        filename: "selection.txt",
+        now: new Date(2026, 6, 12, 12),
+      },
       destination: "selections/:date:-:filename:",
     },
   },

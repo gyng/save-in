@@ -18,6 +18,7 @@ export type DownloadScratch = {
   pathTemplateRaw?: string | undefined;
   historyEntryId?: string | null | undefined;
   browserFilenameResolution?: boolean | undefined;
+  deferredRouteRequirement?: boolean | undefined;
 };
 
 export type DownloadPipelineState = {
