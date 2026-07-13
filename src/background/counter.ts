@@ -12,7 +12,9 @@ export const nextCounter = (writes: CounterWriteState, storage: StorageWriter): 
   const result = writes.queue
     .then(() => storage.get(COUNTER_KEY))
     .then((stored) => {
-      const value = normalizeSessionCounter(stored?.[COUNTER_KEY]) + 1;
+      const persisted = normalizeSessionCounter(stored?.[COUNTER_KEY]);
+      const value = Math.max(persisted, writes.privateValue || 0) + 1;
+      writes.privateValue = value;
       return storage.set({ [COUNTER_KEY]: value }).then(() => value);
     });
   writes.queue = result;

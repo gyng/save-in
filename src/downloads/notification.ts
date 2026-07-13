@@ -29,6 +29,7 @@ import {
   isRetryableDownloadFailure,
 } from "./notification-model.ts";
 import { runEventTask } from "../shared/event-task.ts";
+import { resolveFirefoxDownloadContext } from "./auth-context.ts";
 export { recoverNotificationState } from "./notification-recovery.ts";
 
 type HostDownloadItem = Parameters<
@@ -435,7 +436,7 @@ export const Notifier = {
           error: downloadFailureReason(failed) || failed,
         });
 
-        const notifyFailure = () => {
+        const notifyFailure = async (): Promise<void> => {
           if (notifyOnFailure) {
             createNotification(
               String(downloadDelta.id),
@@ -452,10 +453,21 @@ export const Notifier = {
           }
 
           if (promptOnFailure && record.allowOriginalUrlFallback !== false) {
-            webExtensionApi.downloads.download({
+            const downloadOptions: Parameters<typeof webExtensionApi.downloads.download>[0] = {
               url: record.url!,
               saveAs: true,
-            });
+            };
+            Object.assign(
+              downloadOptions,
+              await resolveFirefoxDownloadContext({
+                incognito: isPrivateDownloadRecord(record),
+              }),
+            );
+            try {
+              await webExtensionApi.downloads.download(downloadOptions);
+            } catch (error) {
+              addDownloadLog(record, "failure Save As download failed", String(error));
+            }
           }
 
           if (backgroundRuntime.debug && !isPrivateDownloadRecord(record)) {
@@ -484,11 +496,11 @@ export const Notifier = {
             await mergeTrackedDownload(downloadDelta.id, { adopted: false });
           } else {
             await recordHistoryStatus(errorName || "failed");
-            notifyFailure();
+            await notifyFailure();
           }
         } else {
           await recordHistoryStatus(errorName || "failed");
-          notifyFailure();
+          await notifyFailure();
         }
       } else if (
         notifyOnSuccess &&

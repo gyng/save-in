@@ -1494,6 +1494,39 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
     await expect(Download.retryViaFetch(101)).resolves.toBe(false);
   });
 
+  test("keeps a Firefox private retry private and clears its transient filename", async () => {
+    setCurrentBrowser("FIREFOX");
+    const state = makeState({
+      info: {
+        url: "https://example.com/private/file.png",
+        pageUrl: "https://example.com/private",
+        currentTab: { incognito: true },
+      },
+    });
+    await Download.renameAndDownload(state);
+    options.includeFetchCredentials = true;
+    vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:private-retry");
+    global.fetch = vi.fn(() =>
+      Promise.resolve({ ok: true, blob: () => Promise.resolve(new Blob(["bytes"])) }),
+    ) as any;
+    (global.browser.downloads as any).download = vi.fn(() => Promise.resolve(202));
+
+    await expect(Download.retryViaFetch(101)).resolves.toBe(true);
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      "https://example.com/private/file.png",
+      expect.objectContaining({ credentials: "omit", redirect: "follow" }),
+    );
+    expect(global.browser.downloads.download).toHaveBeenCalledWith({
+      url: "blob:private-retry",
+      filename: "downloads/file.png",
+      conflictAction: "uniquify",
+      incognito: true,
+    });
+    expect(Download.pendingRetryFilenames.has("blob:private-retry")).toBe(false);
+    expect(sessionStore.siDownloads?.[202]).toBeUndefined();
+  });
+
   test("omits credentials from fallback fetching unless enabled", async () => {
     await seedStartedDownload();
     global.fetch = vi.fn(() =>

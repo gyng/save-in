@@ -37,8 +37,12 @@ function prepare(root, tag) {
   const output = path.join(artifacts, "release");
   const files = [
     {
-      source: path.join(artifacts, `save_in_-${version}.zip`),
-      name: `save-in-${version}.zip`,
+      source: path.join(artifacts, "chrome", `save_in_-${version}.zip`),
+      name: `save-in-${version}-chrome.zip`,
+    },
+    {
+      source: path.join(artifacts, "firefox", `save_in_-${version}.zip`),
+      name: `save-in-${version}-firefox.zip`,
     },
     {
       source: path.join(artifacts, "source", `save-in-${version}-source.zip`),

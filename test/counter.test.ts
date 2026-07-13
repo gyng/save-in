@@ -60,6 +60,15 @@ describe("Counter", () => {
     expect(await peekCounter(browser.storage.local)).toBe(1);
   });
 
+  test("a regular counter advances past values used privately", async () => {
+    expect(await nextCounter(writes, browser.storage.local)).toBe(1);
+    expect(await nextPrivateCounter(writes, browser.storage.local)).toBe(2);
+    expect(await nextPrivateCounter(writes, browser.storage.local)).toBe(3);
+
+    expect(await nextCounter(writes, browser.storage.local)).toBe(4);
+    expect(await peekCounter(browser.storage.local)).toBe(4);
+  });
+
   test("concurrent next() calls get distinct, gapless values", async () => {
     const results = await Promise.all([
       nextCounter(writes, browser.storage.local),

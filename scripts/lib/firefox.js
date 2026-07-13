@@ -10,7 +10,7 @@ const { spawn, execFileSync } = require("child_process");
 const { FirefoxRdp } = require("./firefox-rdp");
 
 // EXT_DIR (repo-relative) overrides the loaded package, e.g. to run the e2e
-// against the bundled build (dist/bundled-pkg) instead of the repo root.
+// against the bundled build (dist/bundled-pkg-firefox) instead of the repo root.
 const REPO = path.join(__dirname, "..", "..");
 const ARTIFACTS = process.env.E2E_ARTIFACT_DIR
   ? path.resolve(REPO, process.env.E2E_ARTIFACT_DIR)

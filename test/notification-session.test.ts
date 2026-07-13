@@ -647,6 +647,26 @@ describe("notification variants", () => {
     expect(global.browser.notifications.create).not.toHaveBeenCalled();
   });
 
+  test("promptOnFailure keeps a Firefox private download off the record", async () => {
+    await install({ notifyOnFailure: false, promptOnFailure: true, notifyDuration: 1000 });
+    browserState.current = "FIREFOX";
+    Notifier.expectDownload("https://private.example/p.png", { privateContext: true });
+    await onCreated({
+      id: 8,
+      incognito: true,
+      filename: "/dl/private.png",
+      url: "https://private.example/p.png",
+    });
+
+    await onChanged({ id: 8, error: { current: "NETWORK_FAILED" } });
+
+    expect(global.browser.downloads.download).toHaveBeenCalledWith({
+      url: "https://private.example/p.png",
+      saveAs: true,
+      incognito: true,
+    });
+  });
+
   test("promptOnFailure does not bypass a protected original URL", async () => {
     await install({ notifyOnFailure: false, promptOnFailure: true, notifyDuration: 1000 });
     Notifier.expectDownload("https://x/p.png", {

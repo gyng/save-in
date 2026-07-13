@@ -26,10 +26,11 @@ owned by one module. Bundle output format is per-target: `esm` (bare,
 scope-hoisted, no `export` statements) for the SW/event-page/options/offscreen
 classic contexts; `iife` for the content script + reference-page controller.
 
-**Build/ship/test all target the bundle** (`dist/bundled-pkg`, staged by
-`scripts/build-bundled.js`): `npm run build`, `npm run lint`
-(`web-ext lint --source-dir dist/bundled-pkg`), and `npm run e2e:*` all stage +
-use it. The old individual-scripts build is retired. `npm run typecheck`
+**Build/ship/test all target browser-specific staged bundles**, produced by
+`scripts/build-bundled.js`: Chrome uses `dist/bundled-pkg`; Firefox uses
+`dist/bundled-pkg-firefox`. `npm run build`, `npm run lint`, and
+`npm run e2e:*` stage the matching package. The old individual-scripts build
+is retired. `npm run typecheck`
 (`tsc --noEmit`) covers `src/**` AND `test/**`.
 
 Execution contexts:
@@ -52,16 +53,17 @@ temporary URLs, or special request context. Downloads initiated by Save In or
 another extension are excluded. A shared optional WebExtension match-pattern
 filter limits both tracking and routing.
 
-### Single MV3 manifest, two background models
+### One MV3 source manifest, two staged manifests and background models
 
-One `manifest.json` (MV3) serves both browsers via dual `background` keys, both
-pointing at bundles: Firefox (≥ 121) uses `background.scripts: ["background.js"]`
+The source `manifest.json` (MV3) carries dual `background` keys, both pointing
+at bundles: Firefox (≥ 121) uses `background.scripts: ["background.js"]`
 (an **event page**, real `window`) and ignores `service_worker`; Chrome (≥ 123)
 uses `background.service_worker: "background.sw.js"` (the same worker-safe
 modules, without a `window` shim) and ignores
-`scripts`. Both bundles come from the SAME `src/entries/background.ts`; the staged
-`dist/bundled-pkg` manifest (via `scripts/build-bundled.js`) points the keys at
-the two outputs. Add a background module by importing it from the relevant entry
+`scripts`. Both bundles come from the SAME `src/entries/background.ts`.
+Staging sets Chrome to `incognito: split` and Firefox to `incognito: spanning`;
+Firefox otherwise treats the unsupported `split` value as `not_allowed`.
+Add a background module by importing it from the relevant entry
 — there is no hand-maintained file list to keep in sync anymore.
 
 |                 | Firefox (event page)                         | Chrome (service worker)                                           |
@@ -159,7 +161,7 @@ cleanup:
 | `npm run d`                       | bundled Firefox dev loop with automatic rebuilds and web-ext reloads                                                                                                                                                                                                                                                                                            |
 | `npm run build`                   | alias for `build:bundled` — builds the store zip                                                                                                                                                                                                                                                                                                                |
 | `npm run bundle`                  | rolldown resolves `src/entries/*.ts` → `dist/bundled/*.js`: one readable, NON-minified scope-hoisted file per target (background + SW, options, offscreen, content, reference page). Store builds use `background.ts`; e2e builds use `background.e2e.ts` to add the test-only command bridge. `esm` is bare for classic contexts; isolated scripts use `iife`. |
-| `npm run build:bundled`           | stage `dist/bundled-pkg` (bundles + a manifest/HTML pointing at them) and zip it for the stores. `build`/`lint`/`e2e:*` all stage + target this                                                                                                                                                                                                                 |
+| `npm run build:bundled`           | stage `dist/bundled-pkg` for Chrome and `dist/bundled-pkg-firefox` for Firefox, then create one ZIP per store. `build`/`lint`/`e2e:*` target the matching staged package.                                                                                                                                                                                       |
 
 Chrome ≥ 137 ignores `--load-extension`; the scripts load the staged bundled
 package from `dist/bundled-pkg` via the CDP `Extensions.loadUnpacked` command (needs
@@ -221,13 +223,13 @@ vitest specifics (`test/*.test.ts`, typed; `tsc` covers them):
 
 1. `npm test && npm run lint && npm run typecheck && npm run e2e`
 2. Bump version in `manifest.json` and `package.json`.
-3. `npm run build` → upload the same store-reviewable bundled zip to AMO and
-   the Chrome Web Store.
+3. `npm run build` → upload the ZIP in `web-ext-artifacts/chrome` to the
+   Chrome Web Store and the ZIP in `web-ext-artifacts/firefox` to AMO.
    For AMO, also run `npm run build:source` and attach the resulting source ZIP
    from `web-ext-artifacts/source` so reviewers can reproduce the TypeScript
    build with `npm ci && npm run build`.
    For the bundled build, run both e2e suites against it first:
-   `npm run e2e` (it stages the bundled package once and runs both browser suites).
+   `npm run e2e` (it stages each browser's bundled package and runs both suites).
 4. Manual spot-check of anything the e2e can't reach: notifications
    rendering, a pixiv Referer download (Firefox via native download headers;
    Firefox), options page dialogs.

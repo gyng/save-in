@@ -15,7 +15,7 @@
   },
   "homepage_url": "https://github.com/gyng/save-in",
   "minimum_chrome_version": "123",
-  "incognito": "split",
+  "incognito": "spanning",
   "background": {
     "scripts": ["background.js"],
     "service_worker": "background.sw.js"

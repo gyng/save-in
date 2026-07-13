@@ -11,8 +11,18 @@ type InfoStringKey = {
   [Key in keyof RoutingInfo]-?: RoutingInfo[Key] extends string | undefined ? Key : never;
 }[keyof RoutingInfo];
 
+const isPrivateInfo = (info: RoutingInfo | undefined): boolean => {
+  const currentTab = info?.currentTab;
+  return (
+    currentTab != null &&
+    typeof currentTab === "object" &&
+    Reflect.get(currentTab, "incognito") === true
+  );
+};
+
 const logMatch = (match: MatcherResult, regex: RegExp, info: RoutingInfo | undefined): void => {
-  if (routingPorts.isDebug() && match) routingPorts.logDebug("matched", match, regex, info);
+  if (routingPorts.isDebug() && match && !isPrivateInfo(info))
+    routingPorts.logDebug("matched", match, regex, info);
 };
 
 const makeInfoMatcherFactory =
@@ -49,7 +59,7 @@ const makeHostnameMatcherFactory =
       logMatch(match, regex, info);
       return match;
     } catch (error) {
-      if (routingPorts.isDebug())
+      if (routingPorts.isDebug() && !isPrivateInfo(info))
         routingPorts.logDebug("bad page domain in matcher", info.pageUrl, error);
       return null;
     }

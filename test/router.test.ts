@@ -19,6 +19,7 @@ let diagnostics: { filenamePatterns: RuleError[]; paths: RuleError[] } = {
   paths: [],
 };
 let debug = false;
+const logRoutingDebug = (...values: unknown[]) => console.log(...values); // eslint-disable-line no-console
 
 const expectMatch = (result: MatcherResult): RegExpMatchArray => {
   expect(result).toBeTruthy();
@@ -45,7 +46,7 @@ describe("filename rewrite and routing", () => {
       getCurrentTab: () => currentTab,
       isDebug: () => debug,
       recordRuleErrors: (errors) => diagnostics.filenamePatterns.push(...errors),
-      logDebug: (...values) => console.log(...values), // eslint-disable-line no-console
+      logDebug: logRoutingDebug,
       nextCounter: () => nextCounter(counterWriteState, browser.storage.local),
       peekCounter: () => peekCounter(browser.storage.local),
       resolveContent,
@@ -117,6 +118,26 @@ describe("filename rewrite and routing", () => {
     test("tabMatcherFactory negative", () => {
       const matcher = router.matcherFunctions.pagetitle(new RegExp("notvalid"));
       expect(matcher(info)).toBe(null);
+    });
+
+    test("debug matching does not emit private routing metadata", () => {
+      const logDebug = vi.fn();
+      configureRoutingPorts({ isDebug: () => true, logDebug });
+      const matcher = router.matcherFunctions.pageurl(new RegExp("page\\.com"));
+
+      expect(
+        matcher({
+          ...info,
+          currentTab: { incognito: true },
+          selectionText: "private selection",
+        }),
+      ).toBeTruthy();
+      expect(logDebug).not.toHaveBeenCalled();
+
+      configureRoutingPorts({
+        isDebug: () => debug,
+        logDebug: logRoutingDebug,
+      });
     });
   });
 

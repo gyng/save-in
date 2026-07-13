@@ -1,4 +1,5 @@
 import { webExtensionApi } from "../platform/web-extension-api.ts";
+import { WEB_EXTENSION_CAPABILITIES } from "../platform/chrome-detector.ts";
 import { downloadsState, sessionWriteState } from "./state.ts";
 import { normalizeSessionCounter, updateSession } from "../shared/session-state.ts";
 import { extensionSessionStorage } from "../platform/storage-areas.ts";
@@ -8,6 +9,7 @@ import {
   DEFAULT_FETCH_RESPONSE_TIMEOUT_MS,
   fetchFollowingRedirects,
 } from "../shared/redirect-fetch.ts";
+import { resolveFirefoxDownloadContext } from "./auth-context.ts";
 import { makeUrlFromBlob } from "./content-fetch.ts";
 import { getDownload, mergeDownload } from "./download-state.ts";
 import { isPrivateDownloadRecord } from "./download-state.ts";
@@ -79,7 +81,11 @@ export const retryViaFetch = async (
   try {
     const response = await fetchFollowingRedirects(
       url,
-      { credentials: getExtensionFetchCredentials() },
+      {
+        // A spanning Firefox background cannot access the private cookie jar.
+        // Never attach the regular session to a private-window retry.
+        credentials: privateContext ? "omit" : getExtensionFetchCredentials(),
+      },
       DEFAULT_FETCH_RESPONSE_TIMEOUT_MS,
     );
     if (response.ok === false) throw new Error(`HTTP ${response.status}`);
@@ -104,11 +110,16 @@ export const retryViaFetch = async (
             ),
           ],
     );
-    newId = await webExtensionApi.downloads.download({
+    const downloadOptions: Parameters<typeof webExtensionApi.downloads.download>[0] = {
       url: blobUrl,
       filename,
       conflictAction: record.conflictAction,
-    });
+    };
+    Object.assign(
+      downloadOptions,
+      await resolveFirefoxDownloadContext({ incognito: privateContext }),
+    );
+    newId = await webExtensionApi.downloads.download(downloadOptions);
     services.notifier.cancelExpectedDownload(expected);
     expected = undefined;
     if (blobUrl.startsWith("blob:")) runtime.ownedObjectUrls.set(newId, blobUrl);
@@ -125,8 +136,12 @@ export const retryViaFetch = async (
     } else services.log.add("fallback fetch failed", String(error));
     return false;
   } finally {
+    if (blobUrl) {
+      const filenameListenerWillConsume =
+        newId != null && WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion;
+      if (!filenameListenerWillConsume) runtime.pendingRetryFilenames.delete(blobUrl);
+    }
     if (blobUrl && !privateContext) {
-      runtime.pendingRetryFilenames.delete(blobUrl);
       const cleanup: Promise<unknown>[] = [
         updateSession<number>(
           sessionWriteState,

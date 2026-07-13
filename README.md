@@ -94,18 +94,19 @@ save. `PING` first to negotiate the version and capabilities.
 
 ### ZIP file
 
-1. `npm run build` to create the zip in the `web-ext-artifacts` directory — the
-   same Manifest V3 zip is uploaded to both AMO and the Chrome Web Store
+1. `npm run build` creates browser-specific runtime ZIPs under
+   `web-ext-artifacts/chrome` and `web-ext-artifacts/firefox`.
 
-The single `manifest.json` declares both `background.scripts` (Firefox event
-page, Firefox ≥ 121) and `background.service_worker` (Chrome). To load the
+The source `manifest.json` declares both background models. Staging keeps
+Firefox's supported `spanning` private-browsing mode and gives Chrome the
+`split` mode it needs for a separate Incognito service worker. To load the
 extension unpacked in Chrome, run `node scripts/build-bundled.js` and load
 `dist/bundled-pkg` (or use `npm run d:chrome` for automatic rebuilds and reloads).
 
 ### Firefox
 
 1. Run `npm run build`.
-2. Manually upload the generated ZIP from `web-ext-artifacts` at
+2. Manually upload the ZIP from `web-ext-artifacts/firefox` at
    [Firefox Add-ons](https://addons.mozilla.org/en-US/developers/addons).
 3. Run `npm run build:source` and attach the resulting source ZIP from
    `web-ext-artifacts/source` when AMO requests the source for review.
@@ -113,13 +114,14 @@ extension unpacked in Chrome, run `node scripts/build-bundled.js` and load
 The source build requires Node 24 and the dependencies pinned by
 `package-lock.json`; no Docker image or nonstandard system dependency is
 required. After extracting the source ZIP, run `npm ci` followed by
-`npm run build`. The reproduced runtime ZIP is written to `web-ext-artifacts`.
+`npm run build`. The reproduced runtime ZIPs are written to the browser
+subdirectories under `web-ext-artifacts`.
 
 ### Chrome
 
 1. `npm run build`
 2. Go [here](https://chrome.google.com/webstore/developer/dashboard)
-3. Upload the zip from `web-ext-artifacts`
+3. Upload the ZIP from `web-ext-artifacts/chrome`
 
 ### Notes for reviewers
 

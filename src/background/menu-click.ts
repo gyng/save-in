@@ -288,12 +288,9 @@ export const addDownloadListener = () => {
         // reports a terminal failure to the user
         const result = await Download.launch(state);
 
-        if (result.status === "started" && selectedLocation) {
-          await setLastUsed(
-            selectedLocation.path,
-            selectedLocation.meta,
-            clickTab?.incognito === true,
-          );
+        const privateContext = clickTab?.incognito === true;
+        if (result.status === "started" && selectedLocation && !privateContext) {
+          await setLastUsed(selectedLocation.path, selectedLocation.meta);
           if (options.enableLastLocation) {
             webExtensionApi.contextMenus.update(MENU_IDS.LAST_USED, {
               title: WEB_EXTENSION_CAPABILITIES.accessKeys

@@ -254,6 +254,23 @@ describe("addDownloadListener", () => {
     });
   });
 
+  test("a private path click does not publish last-used state or menu UI", async () => {
+    Menus.addPaths(["private/path"], ["link"]);
+
+    await listener(
+      {
+        menuItemId: "save-in-0",
+        linkUrl: "https://example.com/private.png",
+        pageUrl: "https://example.com/",
+      },
+      { id: 8, incognito: true },
+    );
+
+    expect(Menus.state.lastUsedPath).toBeNull();
+    expect(global.browser.storage.local.set).not.toHaveBeenCalled();
+    expect(global.browser.contextMenus.update).not.toHaveBeenCalled();
+  });
+
   test("keeps the event handler alive until last-used persistence completes", async () => {
     let finishWrite!: () => void;
     vi.mocked(global.browser.storage.local.set).mockReturnValueOnce(
