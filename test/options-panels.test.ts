@@ -1,7 +1,7 @@
 import { PathEditor } from "../src/options/path-editor.ts";
 import { refreshCounterPanel, setupCounterPanel } from "../src/options/counter-panel.ts";
 import { setupDebugLogPanel, updateDebugLog } from "../src/options/debug-log-panel.ts";
-import { renderVariablesPreview } from "../src/options/variables-preview.ts";
+import { renderVariablesPreview, setupVariablesPreview } from "../src/options/variables-preview.ts";
 import { setupResetOptions } from "../src/options/reset-options.ts";
 import { COUNTER_KEY, LOG_STORAGE_KEY } from "../src/shared/storage-keys.ts";
 
@@ -81,6 +81,21 @@ describe("debug log panel", () => {
 });
 
 describe("variables preview", () => {
+  test("closes an open live-variable list when clicking outside", () => {
+    document.body.innerHTML = `
+      <details class="variables-preview" open>
+        <summary>Live variable list</summary>
+        <div class="variables-preview-list"></div>
+      </details>
+      <button id="outside">Outside</button>`;
+    vi.mocked(browser.runtime.sendMessage).mockResolvedValue({ body: { variables: [] } });
+
+    setupVariablesPreview();
+    document.querySelector<HTMLButtonElement>("#outside")!.click();
+
+    expect(document.querySelector<HTMLDetailsElement>(".variables-preview")!.open).toBe(false);
+  });
+
   test("renders only string variables and values and supports insertion", async () => {
     document.body.innerHTML = `
       <textarea id="paths"></textarea>

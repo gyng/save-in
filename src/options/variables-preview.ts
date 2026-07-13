@@ -145,5 +145,9 @@ export const renderVariablesPreview = async () => {
 };
 
 export const setupVariablesPreview = () => {
+  document
+    .querySelectorAll<HTMLDetailsElement>("details.variables-preview")
+    .forEach((panel) => setupOutsideDismiss(panel));
   void renderVariablesPreview();
 };
+import { setupOutsideDismiss } from "./dismissible-details.ts";

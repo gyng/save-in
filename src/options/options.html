@@ -516,14 +516,14 @@ Create a Save In downloads-menu definition for these destinations: images by web
         </label>
 
         <details class="inline-guide">
-          <summary>What is a WebExtension match pattern?</summary>
+          <summary>How do download URL filters work?</summary>
           <div class="caption caption-line">
-            It is a URL-shaped pattern, not a regular expression:
-            <code>&lt;scheme&gt;://&lt;host&gt;/&lt;path&gt;</code>. Use <code>*</code> for HTTP or
-            HTTPS, <code>*.example.com</code> for that domain and its subdomains, and
-            <code>/*</code> for every path. For example, <code>https://*.example.com/files/*</code>.
-            Write one complete pattern per line; do not add regex slashes, backslashes, or an
-            explicit port.
+            Enter one URL-like browser match pattern per line. It has a scheme, host, and path:
+            <code>&lt;scheme&gt;://&lt;host&gt;/&lt;path&gt;</code>. For example,
+            <code>https://*.example.com/files/*</code> matches HTTPS file URLs on
+            <code>example.com</code> and its subdomains. Use <code>*://</code> for HTTP and HTTPS,
+            and end with <code>/*</code> to include every path. This is not a regular expression,
+            and it cannot match query parameters or an explicit port.
           </div>
         </details>
 

@@ -9,33 +9,10 @@ import { webExtensionApi } from "../platform/web-extension-api.ts";
 // serializes back to it and fires the normal input/autosave pipeline.
 
 import { SPECIAL_DIRS } from "../shared/constants.ts";
-import {
-  compareClauses,
-  CLAUSE_GROUPS,
-  clauseGroup,
-  sortVariables,
-  VARIABLE_GROUPS,
-  type VariableGroup,
-  variableExample,
-  variableGroup,
-} from "./vocabulary-groups.ts";
+import { compareClauses, CLAUSE_GROUPS, clauseGroup } from "./vocabulary-groups.ts";
 
 type PathRow = { depth: number; body: string; comment: string };
 type EditorOwner = { rebuildVisual?: () => void };
-type InsertEntry = {
-  variable: string;
-  value: string;
-  button: HTMLButtonElement;
-  valueEl: HTMLElement;
-  group: VariableGroup;
-};
-type MessageResponse = {
-  body?: {
-    variables?: string[];
-    interpolatedVariables?: Record<string, string>;
-  };
-};
-
 const PathEditorHelpers = {
   // "  >>i/cats // cute (alias: Cats)" -> { depth: 2, body: "i/cats",
   // comment: "cute (alias: Cats)" }. Round-trips through serializeLine
@@ -115,10 +92,8 @@ const PathEditorHelpers = {
     PathEditorHelpers.insertText(textarea, `${glue}${line}`, lineEnd, lineEnd);
   },
 
-  // An insertion menu for an editor: line-insert buttons (data-insert-line)
-  // and a filterable variable list. The menu targets the textarea named
-  // by its data-insert-target; children are found by class so the same
-  // markup shape works for the paths and rules editors.
+  // An insertion menu for an editor. The menu targets the textarea named by
+  // data-insert-target and supports static line buttons or the clause list.
   setupInsertMenu: (menuSelector: string): void => {
     const menu = document.querySelector<HTMLDetailsElement>(menuSelector);
     if (!menu) {
@@ -126,8 +101,6 @@ const PathEditorHelpers = {
     }
     const target = menu.dataset.insertTarget;
     const textarea = target ? document.querySelector<HTMLTextAreaElement>(`#${target}`) : null;
-    const variablesContainer = menu.querySelector<HTMLElement>(".insert-menu-variables");
-    const filter = menu.querySelector<HTMLInputElement>(".insert-menu-filter");
     const clauseFilter = menu.querySelector<HTMLInputElement>(".clause-preview-filter");
     if (!textarea) {
       return;
@@ -272,119 +245,6 @@ const PathEditorHelpers = {
         })
         .catch(() => renderClauses([]));
     }
-
-    if (!variablesContainer) return;
-
-    const entries: InsertEntry[] = [];
-
-    // Interpolated values come from the last download and change with
-    // every save, so they are re-fetched each time the menu opens
-    const refreshValues = () => {
-      webExtensionApi.runtime
-        .sendMessage({ type: "CHECK_ROUTES" })
-        .then((res: MessageResponse) => {
-          const values = (res && res.body && res.body.interpolatedVariables) || {};
-          entries.forEach((entry) => {
-            entry.value = values[entry.variable] || "";
-            entry.valueEl.textContent = entry.value || variableExample(entry.variable);
-            entry.valueEl.classList.toggle("is-placeholder", !entry.value);
-            // Long values ellipsize; the tooltip carries the full value
-            entry.button.title = entry.value || "Example — no live value yet";
-          });
-        })
-        .catch(() => {});
-    };
-
-    const applyFilter = () => {
-      const query = filter ? filter.value.trim().toLowerCase() : "";
-      entries.forEach((entry) => {
-        const match =
-          !query || entry.variable.includes(query) || entry.value.toLowerCase().includes(query);
-        entry.button.style.display = match ? "" : "none";
-      });
-      variablesContainer.querySelectorAll<HTMLElement>(".insert-menu-group").forEach((section) => {
-        section.hidden = ![...section.querySelectorAll<HTMLElement>(".insert-menu-variable")].some(
-          (button) => button.style.display !== "none",
-        );
-      });
-    };
-
-    webExtensionApi.runtime
-      .sendMessage({ type: "GET_KEYWORDS" })
-      .then((res: MessageResponse) => {
-        const variables = sortVariables((res && res.body && res.body.variables) || []);
-        const sections = new Map<VariableGroup, HTMLElement>();
-        VARIABLE_GROUPS.forEach((group) => {
-          if (!variables.some((variable) => variableGroup(variable) === group)) return;
-          const section = document.createElement("section");
-          section.className = "insert-menu-group";
-          const heading = document.createElement("div");
-          heading.className = "insert-menu-group-heading";
-          heading.textContent = group;
-          section.append(heading);
-          variablesContainer.append(section);
-          sections.set(group, section);
-        });
-        variables.forEach((variable: string) => {
-          const group = variableGroup(variable);
-          const button = document.createElement("button");
-          button.type = "button";
-          button.className = "insert-menu-variable";
-
-          const name = document.createElement("code");
-          name.textContent = variable;
-          button.appendChild(name);
-
-          const valueEl = document.createElement("span");
-          valueEl.className = "caption insert-menu-value";
-          button.appendChild(valueEl);
-
-          button.addEventListener("click", () => {
-            PathEditorHelpers.insertAtCursor(textarea, variable);
-            closeMenu();
-          });
-          sections.get(group)?.appendChild(button);
-          entries.push({ variable, value: "", button, valueEl, group });
-        });
-        refreshValues();
-      })
-      .catch(() => {});
-
-    if (filter) {
-      filter.addEventListener("input", applyFilter);
-      filter.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") {
-          // Typeahead: Enter inserts the first visible match
-          e.preventDefault();
-          const first = entries.find((entry) => entry.button.style.display !== "none");
-          if (first) {
-            first.button.click();
-          }
-        } else if (e.key === "Escape") {
-          closeMenu();
-        }
-      });
-    }
-
-    menu.addEventListener("toggle", () => {
-      if (menu.open) {
-        refreshValues();
-        if (filter) {
-          filter.value = "";
-          applyFilter();
-          filter.focus();
-        }
-      }
-    });
-
-    // A native <details> only toggles from its summary, so an open menu stays
-    // open when you click elsewhere. Close it on any click outside the menu
-    // (the summary click that opens it is inside the menu, so it survives).
-    document.addEventListener("click", (e) => {
-      if (menu.open && e.target instanceof Node && !menu.contains(e.target)) {
-        closeMenu();
-      }
-    });
   },
 
   // Text/Visual sub-tabs inside the Downloads Menu tab: both edit the same

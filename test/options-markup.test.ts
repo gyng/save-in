@@ -64,7 +64,8 @@ describe("options form semantics", () => {
   test("keeps last-download details in the left side of the routing grid", () => {
     const document = documentForOptions();
     const row = document.querySelector(".last-download-row");
-    expect(row?.parentElement?.classList.contains("rules-editor")).toBe(true);
+    expect(row?.parentElement?.classList.contains("rules-editor-main")).toBe(true);
+    expect(document.querySelector(".routing-post-options")?.parentElement).toBe(row?.parentElement);
   });
 
   test("keeps artifact shortcuts separate from keyboard behavior", () => {
@@ -137,10 +138,11 @@ describe("options form semantics", () => {
   test("explains match patterns where browser-download filters are configured", () => {
     const document = documentForOptions();
     const guide = [...document.querySelectorAll("details")].find((details) =>
-      details.querySelector("summary")?.textContent?.includes("WebExtension match pattern"),
+      details.querySelector("summary")?.textContent?.includes("download URL filters"),
     );
     expect(guide?.textContent).toContain("not a regular expression");
     expect(guide?.textContent).toContain("<scheme>://<host>/<path>");
+    expect(guide?.textContent).toContain("cannot match query parameters");
   });
 
   test("offers copy-ready AI prompts in both editor guides", () => {
