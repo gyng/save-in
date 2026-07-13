@@ -3171,10 +3171,6 @@ button {
   overflow-wrap: anywhere;
 }
 
-.dev-api-value.webmcp-tool-list {
-  line-height: 1.5;
-}
-
 .counter-control {
   max-width: 520px;
 }
@@ -3957,7 +3953,6 @@ code.click-to-copy {
 
 .source-panel-intro .section-lead {
   margin: 0 0 var(--space-2);
-  line-height: 1.5;
 }
 
 .source-panel-intro .section-note {
