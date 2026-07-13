@@ -7,6 +7,7 @@ type Message<T extends string, B = never> = [B] extends [never]
 
 export type DownloadRequestBody = {
   url?: string;
+  target?: "activeTab";
   info?: Pick<
     DownloadInfo,
     | "pageUrl"
@@ -130,6 +131,7 @@ const isDownloadBody = (value: unknown): value is DownloadRequestBody => {
   }
   return (
     hasOptionalString(value, "url") &&
+    (typeof value.target === "undefined" || value.target === "activeTab") &&
     hasOptionalString(value, "comment") &&
     (typeof value.version === "undefined" ||
       (typeof value.version === "number" && Number.isFinite(value.version))) &&

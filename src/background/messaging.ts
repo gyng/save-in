@@ -43,6 +43,7 @@ export const Messaging = {
   API_VERSION: 1,
   API_CAPABILITIES: [
     "download", // { type: "DOWNLOAD", body: { url, info?, comment?, version? } }
+    "active_tab", // body.target:"activeTab" resolves the originating or active browser tab
     "ping", // { type: "PING" } -> { version, capabilities }
     "routing", // the URL runs through the user's rename/route rules
     "comment", // body.comment is targetable in routing rules
@@ -259,9 +260,9 @@ export const Messaging = {
     request: MessageOf<typeof MESSAGE_TYPES.DOWNLOAD>,
     sender: MessageSender,
     sendResponse: ProtocolSendResponse,
-  ): void => {
+  ): Promise<void> | void => {
     const requestBody = request.body || {};
-    const { url, comment } = requestBody;
+    const { url: requestedUrl, target, comment } = requestBody;
     // Callers may pin a version; default to the current one
     const version = requestBody.version || Messaging.API_VERSION;
 
@@ -272,64 +273,94 @@ export const Messaging = {
         type: MESSAGE_TYPES.DOWNLOAD,
         body: { status: MESSAGE_TYPES.ERROR, error, message, version },
       });
-    if (!url || typeof url !== "string") {
+    const launch = (
+      url: string,
+      resolvedTab: Partial<browser.tabs.Tab> | null = (sender && sender.tab) || currentTab,
+    ): void => {
+      if (!Messaging.isValidDownloadUrl(url)) {
+        fail(Messaging.API_ERRORS.INVALID_URL, "URL must be http(s), ftp, data or blob");
+        return;
+      }
+
+      // The external DOWNLOAD API may omit info
+      const info = requestBody.info || {};
+      const last = backgroundRuntime.lastDownloadState;
+
+      const opts: DownloadInfo = {
+        // Prefer the tab the message came from over the tracked global (#172).
+        currentTab: resolvedTab,
+        now: new Date(),
+        pageUrl: info.pageUrl,
+        selectionText: info.selectionText,
+        linkText: info.linkText,
+        sourceUrl: info.srcUrl,
+        menuIndex: info.menuIndex,
+        comment: info.comment,
+        modifiers: info.modifiers,
+        suggestedFilename: info.suggestedFilename,
+        url,
+        context: DOWNLOAD_TYPES.CLICK,
+      };
+
+      // Useful for passing in from external extensions
+      if (comment) {
+        opts.comment = comment;
+      }
+
+      // Reuse the last download's directory and routing metadata
+      // (comment/menuindex rules stay usable), but never its route, filenames,
+      // or scratch: those describe a different URL, and inheriting them names
+      // this download after the previous one. renameAndDownload re-evaluates
+      // the routing rules and filenames for this URL.
+      const clickState: DownloadPipelineState = {
+        path: last?.path || new Path("."),
+        scratch: {},
+        info: {
+          ...opts,
+          menuIndex: opts.menuIndex ?? last?.info.menuIndex,
+          comment: opts.comment ?? last?.info.comment,
+        },
+      };
+
+      // Fire-and-forget async (the OK below acknowledges acceptance, not
+      // completion); Download.launch logs and reports a terminal failure.
+      void Download.launch(clickState);
+
+      // status:"OK" is unchanged for back-compat; version/url are additive
+      sendResponse({
+        type: MESSAGE_TYPES.DOWNLOAD,
+        body: { status: MESSAGE_TYPES.OK, version, url },
+      });
+    };
+
+    // An explicit URL always wins, even when a reusable recipe also includes a
+    // target. This keeps existing callers deterministic.
+    if (typeof requestedUrl === "string" && requestedUrl) {
+      return launch(requestedUrl);
+    }
+    if (target !== "activeTab") {
       fail(Messaging.API_ERRORS.BAD_REQUEST, "Missing or non-string 'url'");
       return;
     }
-    if (!Messaging.isValidDownloadUrl(url)) {
-      fail(Messaging.API_ERRORS.INVALID_URL, "URL must be http(s), ftp, data or blob");
-      return;
+
+    // Cross-add-on commands such as Gesturefy's are sent from the other
+    // extension's background context, so sender.tab is often absent. Query the
+    // last-focused window instead of relying on Save In's lifecycle-bound tab
+    // mirror; prefer sender.tab when the caller did originate in a tab.
+    if (sender && sender.tab && sender.tab.url) {
+      return launch(sender.tab.url, sender.tab);
     }
-
-    // The external DOWNLOAD API may omit info
-    const info = requestBody.info || {};
-    const last = backgroundRuntime.lastDownloadState;
-
-    const opts: DownloadInfo = {
-      // Prefer the tab the message came from over the tracked global (#172)
-      currentTab: (sender && sender.tab) || currentTab,
-      now: new Date(),
-      pageUrl: info.pageUrl,
-      selectionText: info.selectionText,
-      linkText: info.linkText,
-      sourceUrl: info.srcUrl,
-      menuIndex: info.menuIndex,
-      comment: info.comment,
-      modifiers: info.modifiers,
-      suggestedFilename: info.suggestedFilename,
-      url,
-      context: DOWNLOAD_TYPES.CLICK,
-    };
-
-    // Useful for passing in from external extensions
-    if (comment) {
-      opts.comment = comment;
-    }
-
-    // Reuse the last download's directory and routing metadata
-    // (comment/menuindex rules stay usable), but never its route, filenames,
-    // or scratch: those describe a different URL, and inheriting them names
-    // this download after the previous one. renameAndDownload re-evaluates
-    // the routing rules and filenames for this URL.
-    const clickState: DownloadPipelineState = {
-      path: last?.path || new Path("."),
-      scratch: {},
-      info: {
-        ...opts,
-        menuIndex: opts.menuIndex ?? last?.info.menuIndex,
-        comment: opts.comment ?? last?.info.comment,
-      },
-    };
-
-    // Fire-and-forget async (the OK below acknowledges acceptance, not
-    // completion); Download.launch logs and reports a terminal failure
-    Download.launch(clickState);
-
-    // status:"OK" is unchanged for back-compat; version/url are additive
-    sendResponse({
-      type: MESSAGE_TYPES.DOWNLOAD,
-      body: { status: MESSAGE_TYPES.OK, version, url },
-    });
+    return webExtensionApi.tabs
+      .query({ active: true, lastFocusedWindow: true })
+      .then((tabs) => {
+        const tab = tabs[0];
+        if (!tab || !tab.url) {
+          fail(Messaging.API_ERRORS.BAD_REQUEST, "No active tab with a URL was found");
+          return;
+        }
+        return launch(tab.url, tab);
+      })
+      .then(() => undefined);
   },
 };
 

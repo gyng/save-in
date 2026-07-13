@@ -28,6 +28,12 @@ describe("message protocol runtime validation", () => {
         },
       }),
     ).toBe(true);
+    expect(
+      isExternalMessage({
+        type: MESSAGE_TYPES.DOWNLOAD,
+        body: { target: "activeTab", comment: "gesturefy", version: 1 },
+      }),
+    ).toBe(true);
   });
 
   test.each([
@@ -42,6 +48,8 @@ describe("message protocol runtime validation", () => {
     { type: MESSAGE_TYPES.DOWNLOAD, body: { url: 1 } },
     { type: MESSAGE_TYPES.DOWNLOAD, body: { info: "not an object" } },
     { type: MESSAGE_TYPES.DOWNLOAD, body: { version: Number.NaN } },
+    { type: MESSAGE_TYPES.DOWNLOAD, body: { target: "currentTab" } },
+    { type: MESSAGE_TYPES.DOWNLOAD, body: { target: 1 } },
   ])("rejects malformed internal message %#", (message) => {
     expect(isInternalMessage(message)).toBe(false);
   });

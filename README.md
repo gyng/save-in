@@ -54,20 +54,23 @@ Save-in exposes a versioned external API (`PING` + `DOWNLOAD`), a config API
 AI agents. Full docs, a Foxy Gestures example, and the trust model are on the
 [Integrations wiki](https://github.com/gyng/save-in/wiki/Integrations).
 
+Ready-to-use recipes: [Foxy Gestures](https://github.com/gyng/save-in/wiki/Integrations#foxy-gestures), [Gesturefy](https://github.com/gyng/save-in/wiki/Integrations#gesturefy), and [Tridactyl](https://github.com/gyng/save-in/wiki/Integrations#tridactyl). Extension developers should start with the [integration guide](https://github.com/gyng/save-in/wiki/Extension-integration-guide).
+
 Minimal example — another extension triggers a routed download:
 
 ```js
-browser.runtime.sendMessage(
-  "{72d92df5-2aa0-4b06-b807-aa21767545cd}", // save-in's extension ID (Web Store ID on Chrome)
-  {
-    type: "DOWNLOAD",
-    body: {
-      url: sourceUrl,
-      // `comment` can be used for targeting in routing rules
-      info: { pageUrl: `${window.location}`, srcUrl: sourceUrl, comment: "foo" },
-    },
+// Choose the ID for the browser running the calling extension.
+const SAVE_IN_ID = "jpblofcpgfjikaapfedldfeilmpgkedf"; // Chrome
+// const SAVE_IN_ID = "{72d92df5-2aa0-4b06-b807-aa21767545cd}"; // Firefox
+
+browser.runtime.sendMessage(SAVE_IN_ID, {
+  type: "DOWNLOAD",
+  body: {
+    url: sourceUrl,
+    // `comment` can be used for targeting in routing rules
+    info: { pageUrl: `${window.location}`, srcUrl: sourceUrl, comment: "foo" },
   },
-);
+});
 // -> { type: "DOWNLOAD", body: { status: "OK", version: 1, url } }
 ```
 

@@ -2,12 +2,14 @@
 
 This document describes the shipped external Download API, internal configuration messages, and experimental WebMCP tools. The user-facing version is the [Integrations wiki](https://github.com/gyng/save-in/wiki/Integrations).
 
+Copy-and-paste recipes are available for [Foxy Gestures](https://github.com/gyng/save-in/wiki/Integrations#foxy-gestures), [Gesturefy](https://github.com/gyng/save-in/wiki/Integrations#gesturefy), and [Tridactyl](https://github.com/gyng/save-in/wiki/Integrations#tridactyl). Extension authors should use the separate [extension integration guide](https://github.com/gyng/save-in/wiki/Extension-integration-guide).
+
 ## Extension IDs
 
 Extension IDs are platform-specific.
 
-- Firefox: `{72d92df5-2aa0-4b06-b807-aa21767545cd}`
 - Chrome Web Store: `jpblofcpgfjikaapfedldfeilmpgkedf`
+- Firefox: `{72d92df5-2aa0-4b06-b807-aa21767545cd}`
 
 The options page shows the ID for the installed build. External callers must use the ID for their current browser.
 
@@ -39,6 +41,17 @@ const response = await browser.runtime.sendMessage(SAVE_IN_ID, {
   },
 });
 ```
+
+An extension with a static cross-add-on command can ask Save In to resolve the active tab instead of supplying a URL:
+
+```js
+const response = await browser.runtime.sendMessage(SAVE_IN_ID, {
+  type: "DOWNLOAD",
+  body: { version: 1, target: "activeTab", comment: "my-extension" },
+});
+```
+
+An explicit `url` takes precedence if both fields are present. For `target: "activeTab"`, Save In prefers the originating tab when the message came from a tab; otherwise it queries the active tab in the last-focused browser window. Check for the `active_tab` capability returned by `PING` before using this target.
 
 Accepted URL schemes are `http`, `https`, `ftp`, `data`, and `blob`. A successful response means the save was accepted, not completed. Completion appears asynchronously in History/notifications.
 
@@ -80,3 +93,5 @@ Tools exist only while the options page is open and the browser provides WebMCP.
 ## Downloader hand-offs
 
 Save In deliberately does not adopt downloads initiated by another extension. A cooperating downloader can call the Download API before starting its own workflow. For HLS/DASH sources, Page Sources can copy a `yt-dlp` command as a local hand-off without adding native-messaging permissions.
+
+The [extension integration guide](https://github.com/gyng/save-in/wiki/Extension-integration-guide) covers capability negotiation, metadata, batches, ownership, and direct-media limitations.
