@@ -14,8 +14,10 @@ import {
   runContentDispositionScenario,
   runContextMenuScenario,
   runFailedDownloadLogScenario,
+  runLegacyProfileRoutingScenario,
   runRoutingScenario,
   runShortcutScenario,
+  runSymlinkDestinationScenario,
 } from "./shared-scenarios.mjs";
 import { runTemplateLibraryScenario } from "./template-library-scenario.mjs";
 import { closeLocal, listenLocal, poll } from "./helpers.mjs";
@@ -426,6 +428,23 @@ test("routing rules rename and route the download", async () => {
   });
 });
 
+test("a 3.7 profile keeps its custom folder and repairs an extensionless filename", async () => {
+  await runLegacyProfileRoutingScenario({
+    evaluate: evalBackground,
+    waitForDownloads,
+    filename: "legacy-profile-firefox",
+  });
+});
+
+test("a configured symlink destination reaches its target", async () => {
+  await runSymlinkDestinationScenario({
+    evaluate: evalBackground,
+    waitForDownloads,
+    downloadDir: session.downloadDir,
+    filename: "symlink-firefox.txt",
+  });
+});
+
 test("a template added in Options persists and routes a matching download", async () => {
   await runTemplateLibraryScenario({
     evaluate: evalBackground,
@@ -548,11 +567,14 @@ test("alt+click on a real page saves the image through the content script", asyn
   const pageUrl = `http://127.0.0.1:${port}/`;
   const targetUrl = `127.0.0.1:${port}`;
   const previousContentClickToSave = await evalBackground(`api.getOption("contentClickToSave")`);
+  const previousContentClickToSaveCombo = await evalBackground(
+    `api.getOption("contentClickToSaveCombo")`,
+  );
 
   try {
     // Enable click-to-save and reinitialise so the content script picks it up
     await evalBackground(
-      `browser.storage.local.set({ contentClickToSave: true })
+      `browser.storage.local.set({ contentClickToSave: true, contentClickToSaveCombo: 18 })
         .then(() => api.reset())
         .then(() => "enabled")`,
     );
@@ -594,7 +616,10 @@ test("alt+click on a real page saves the image through the content script", asyn
   } finally {
     try {
       await evalBackground(`browser.storage.local
-        .set({ contentClickToSave: ${JSON.stringify(previousContentClickToSave)} })
+        .set({
+          contentClickToSave: ${JSON.stringify(previousContentClickToSave)},
+          contentClickToSaveCombo: ${JSON.stringify(previousContentClickToSaveCombo)},
+        })
         .then(() => browser.tabs.query({}))
         .then((tabs) => browser.tabs.remove(tabs
           .filter((tab) => tab.url?.includes(${JSON.stringify(targetUrl)}))

@@ -69,6 +69,10 @@ describe("Chrome Web Store screenshot plan", () => {
         filename: "04-history.png",
         description: "Searchable download history with routed results",
       },
+      {
+        filename: "05-rule-debugger.png",
+        description: "Route debugger showing why a rule matched and the final filename",
+      },
     ]);
   });
 

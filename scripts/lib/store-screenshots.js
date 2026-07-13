@@ -22,6 +22,10 @@ const SCREENSHOTS = Object.freeze([
     filename: "04-history.png",
     description: "Searchable download history with routed results",
   }),
+  Object.freeze({
+    filename: "05-rule-debugger.png",
+    description: "Route debugger showing why a rule matched and the final filename",
+  }),
 ]);
 
 const PNG_SIGNATURE = Buffer.from("89504e470d0a1a0a", "hex");

@@ -15,8 +15,10 @@ import {
   runContentDispositionScenario,
   runContextMenuScenario,
   runFailedDownloadLogScenario,
+  runLegacyProfileRoutingScenario,
   runRoutingScenario,
   runShortcutScenario,
+  runSymlinkDestinationScenario,
 } from "./shared-scenarios.mjs";
 import { runTemplateLibraryScenario } from "./template-library-scenario.mjs";
 import { listenLocal, poll } from "./helpers.mjs";
@@ -727,6 +729,24 @@ test("routing rules rename and route the download", async () => {
   expect(fs.readFileSync(file, "utf8")).toBe("routed content");
 });
 
+test("a 3.7 profile keeps its custom folder and repairs an extensionless filename", async () => {
+  await runLegacyProfileRoutingScenario({
+    evaluate: evalSW,
+    waitForDownloads,
+    filename: "legacy-profile-chrome",
+  });
+});
+
+test("Chrome safely rejects a configured symlink destination", async () => {
+  await runSymlinkDestinationScenario({
+    evaluate: evalSW,
+    waitForDownloads,
+    downloadDir: DOWNLOADS,
+    filename: "symlink-chrome.txt",
+    supported: false,
+  });
+});
+
 test("a template added in Options persists and routes a matching download", async () => {
   await runTemplateLibraryScenario({
     evaluate: evalSW,
@@ -1077,10 +1097,11 @@ test("alt+click on a real page saves the image through the content script", asyn
   const pageUrl = `http://127.0.0.1:${serverPort}/`;
   const targetUrl = `127.0.0.1:${serverPort}`;
   const previousContentClickToSave = await evalSW(`api.getOption("contentClickToSave")`);
+  const previousContentClickToSaveCombo = await evalSW(`api.getOption("contentClickToSaveCombo")`);
 
   try {
     await evalSW(
-      `browser.storage.local.set({ contentClickToSave: true })
+      `browser.storage.local.set({ contentClickToSave: true, contentClickToSaveCombo: 18 })
         .then(() => api.reset())
         .then(() => "enabled")`,
     );
@@ -1184,7 +1205,10 @@ test("alt+click on a real page saves the image through the content script", asyn
   } finally {
     try {
       await evalSW(`browser.storage.local
-        .set({ contentClickToSave: ${JSON.stringify(previousContentClickToSave)} })
+        .set({
+          contentClickToSave: ${JSON.stringify(previousContentClickToSave)},
+          contentClickToSaveCombo: ${JSON.stringify(previousContentClickToSaveCombo)},
+        })
         .then(() => browser.tabs.query({}))
         .then((tabs) => browser.tabs.remove(tabs
           .filter((tab) => tab.url?.includes(${JSON.stringify(targetUrl)}))

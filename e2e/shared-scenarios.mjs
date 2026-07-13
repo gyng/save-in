@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import http from "node:http";
+import path from "node:path";
 
 import { expect } from "vitest";
 
@@ -64,6 +65,142 @@ export const runRoutingScenario = async ({ evaluate, waitForDownloads, content }
   const downloads = await waitForDownloads("renamed-routeme");
   expect(downloads.map((entry) => entry.state)).toEqual(["complete"]);
   return downloads;
+};
+
+/**
+ * Replays the durable settings that matter most when a 3.7 profile first runs
+ * version 4, then proves that an extensionless response still reaches its
+ * configured folder with the MIME-derived extension.
+ *
+ * @param {{
+ *   evaluate: (expression: string) => Promise<any>,
+ *   waitForDownloads: (filename: string) => Promise<any[]>,
+ *   filename: string,
+ * }} adapters
+ */
+export const runLegacyProfileRoutingScenario = async ({ evaluate, waitForDownloads, filename }) => {
+  const body = Buffer.from("legacy profile png");
+  const server = http.createServer((req, res) => {
+    res.writeHead(200, {
+      "Content-Type": "image/png",
+      "Content-Length": body.length,
+    });
+    res.end(body);
+  });
+  const port = await listenLocal(server);
+  const url = `http://127.0.0.1:${port}/${filename}`;
+  const previous = JSON.parse(
+    await evaluate(`browser.storage.local.get([
+      "paths", "filenamePatterns", "contentClickToSaveCombo"
+    ]).then((stored) => JSON.stringify(stored))`),
+  );
+  const legacyKeys = ["paths", "filenamePatterns", "contentClickToSaveCombo"];
+  const missingLegacyKeys = legacyKeys.filter((key) => !(key in previous));
+
+  try {
+    const resolved = JSON.parse(
+      await evaluate(`browser.storage.local.set({
+        paths: "e2e/legacy-custom",
+        filenamePatterns: "mime: ^image/png$\\ninto: legacy-custom/:filename:",
+        contentClickToSaveCombo: 18,
+      })
+        .then(() => api.reset())
+        .then(() => Promise.all([
+          api.getOption("paths"),
+          api.getOption("contentClickToSaveCombo"),
+        ]))
+        .then(([paths, combo]) => JSON.stringify({ paths, combo }))`),
+    );
+    expect(resolved).toEqual({ paths: "e2e/legacy-custom", combo: 18 });
+
+    await evaluate(`api.startDownload({
+      url: ${JSON.stringify(url)},
+      suggestedFilename: ${JSON.stringify(filename)},
+      pageUrl: "https://legacy-profile.example/",
+    }).then(() => "started")`);
+    const downloads = await waitForDownloads(`${filename}.png`);
+    expect(downloads).toHaveLength(1);
+    expect(downloads[0].state).toBe("complete");
+    expect(downloads[0].filename).toMatch(
+      new RegExp(`e2e[\\\\/]legacy-custom[\\\\/]${filename}\\.png$`),
+    );
+    expect(fs.readFileSync(downloads[0].filename)).toEqual(body);
+  } finally {
+    try {
+      await evaluate(`Promise.all([
+        browser.storage.local.set(${JSON.stringify(previous)}),
+        browser.storage.local.remove(${JSON.stringify(missingLegacyKeys)}),
+      ]).then(() => api.reset())`);
+    } finally {
+      await closeLocal(server);
+    }
+  }
+};
+
+/**
+ * @param {{
+ *   evaluate: (expression: string) => Promise<any>,
+ *   waitForDownloads: (filename: string) => Promise<any[]>,
+ *   downloadDir: string,
+ *   filename: string,
+ *   supported?: boolean,
+ * }} adapters
+ */
+export const runSymlinkDestinationScenario = async ({
+  evaluate,
+  waitForDownloads,
+  downloadDir,
+  filename,
+  supported = true,
+}) => {
+  const linkParent = path.join(downloadDir, "e2e");
+  const link = path.join(linkParent, "release-symlink");
+  const target = path.join(path.dirname(downloadDir), `release-symlink-target-${filename}`);
+  fs.mkdirSync(linkParent, { recursive: true });
+  fs.mkdirSync(target, { recursive: true });
+  fs.rmSync(link, { recursive: true, force: true });
+  fs.symlinkSync(target, link, process.platform === "win32" ? "junction" : "dir");
+
+  try {
+    await evaluate(`api.startDownload({
+      content: "symlink destination smoke",
+      suggestedFilename: ${JSON.stringify(filename)},
+      pageUrl: "https://symlink-smoke.example/",
+      path: "e2e/release-symlink",
+    }).then(() => "started")`);
+    if (!supported) {
+      const rejected = JSON.parse(
+        await evaluate(`(async () => {
+          const deadline = Date.now() + 8000;
+          for (;;) {
+            const rows = await api.history();
+            const match = rows.findLast(
+              (row) => row.finalFullPath === ${JSON.stringify(`e2e/release-symlink/${filename}`)},
+            );
+            if (match?.status === "USER_CANCELED") {
+              return JSON.stringify(match);
+            }
+            if (Date.now() >= deadline) return JSON.stringify(null);
+            await new Promise((resolve) => setTimeout(resolve, 100));
+          }
+        })()`),
+      );
+      expect(rejected).toMatchObject({
+        finalFullPath: `e2e/release-symlink/${filename}`,
+        status: "USER_CANCELED",
+      });
+      expect(fs.existsSync(path.join(target, filename))).toBe(false);
+      return;
+    }
+    const downloads = await waitForDownloads(filename);
+    expect(downloads).toHaveLength(1);
+    expect(downloads[0].state).toBe("complete");
+    expect(fs.realpathSync(path.dirname(downloads[0].filename))).toBe(fs.realpathSync(target));
+    expect(fs.readFileSync(path.join(target, filename), "utf8")).toBe("symlink destination smoke");
+  } finally {
+    fs.rmSync(link, { recursive: true, force: true });
+    fs.rmSync(target, { recursive: true, force: true });
+  }
 };
 
 /**

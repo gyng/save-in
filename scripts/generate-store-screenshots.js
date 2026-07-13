@@ -237,6 +237,37 @@ const main = async () => {
     await activateOptionsTab(port, optionsTarget, "section-dynamic-downloads");
     await capture(port, optionsTarget, outputDir, SCREENSHOTS[1]);
 
+    await cdp.evalInTarget(
+      port,
+      optionsTarget,
+      `(() => {
+        document.querySelector("#route-debugger-filename").value = "report.pdf";
+        document.querySelector("#route-debugger-source-url").value = "https://docs.example/report.pdf";
+        document.querySelector("#route-debugger-page-url").value = "https://example.com/reports";
+        document.querySelector("#route-debugger-mime").value = "application/pdf";
+        document.querySelector("#route-debugger-context").value = "link";
+        document.querySelector("#route-debugger-run").click();
+        return "running";
+      })()`,
+    );
+    await waitFor(
+      () =>
+        cdp.evalInTarget(
+          port,
+          optionsTarget,
+          `document.querySelector("#route-debugger-result")?.dataset.state === "matched"`,
+        ),
+      "route debugger result",
+    );
+    await cdp.evalInTarget(
+      port,
+      optionsTarget,
+      `document.querySelector(".route-debugger")?.scrollIntoView({ block: "start" });
+       scrollBy(0, -112);
+       document.activeElement?.blur();`,
+    );
+    await capture(port, optionsTarget, outputDir, SCREENSHOTS[4]);
+
     await cdp.openTab(port, `http://${demoTarget}/store-demo`);
     await waitFor(
       () => cdp.evalInTarget(port, demoTarget, "document.readyState === 'complete'"),

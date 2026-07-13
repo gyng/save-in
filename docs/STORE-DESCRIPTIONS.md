@@ -6,7 +6,7 @@ date below. Keep the short description aligned with `extensionDescription` in
 `_locales/en/messages.json`.
 
 - Version: 4.0.0
-- Last reviewed: 2026-07-13
+- Last reviewed: 2026-07-14
 - Listing name: Save In
 
 ## Short description
@@ -26,7 +26,8 @@ Features
 
 - Build a hierarchical destination menu with aliases, separators, submenus, and a last-used location.
 - Route and rename downloads with rules based on the page, source URL, filename, media type, date, counters, and other variables.
-- Preview menus and rules while editing them.
+- Start from searchable rule templates, add common matchers with Quick add, insert variables and clauses with autocomplete, and test unsaved rules in the route debugger.
+- Preview the destination menu and final routed filename while editing.
 - Use click-to-save for quick downloads and Page Sources to find media exposed by the current page.
 - Save links or pages as .url, .desktop, or HTML redirect shortcuts.
 - Search and filter local download history, with JSON and spreadsheet-safe CSV/TSV export.
@@ -54,7 +55,8 @@ Features
 
 - Build a hierarchical destination menu with aliases, separators, submenus, and a last-used location.
 - Route and rename downloads with rules based on the page, source URL, filename, media type, date, counters, and other variables.
-- Preview menus and rules while editing them.
+- Start from searchable rule templates, add common matchers with Quick add, insert variables and clauses with autocomplete, and test unsaved rules in the route debugger.
+- Preview the destination menu and final routed filename while editing.
 - Use click-to-save for quick downloads and Page Sources to find media exposed by the current page.
 - Save links or pages as .url, .desktop, or HTML redirect shortcuts.
 - Search and filter local download history, with JSON and spreadsheet-safe CSV/TSV export.
@@ -64,7 +66,7 @@ Features
 
 Chrome does not allow extensions to set a Referer header for their own downloads, so that Firefox feature is unavailable. Chrome also cannot assign an extension-started download to its Incognito download context. A download requested through Save In from Incognito may therefore appear in the regular Chrome download manager, although Save In still excludes private activity from its own history and diagnostics.
 
-Browser security limits extensions to folders inside the configured default download directory. Open Save In's Options after installation to configure destinations, and make sure the destination folders exist. A filesystem symlink can point a destination to another location.
+Browser security limits extensions to folders inside the configured default download directory. Open Save In's Options after installation to configure destinations, and make sure the destination folders exist. Current Chrome versions reject downloads through symlinked destinations, so Chrome cannot use a symlink to escape that directory.
 
 Privacy and permissions
 
@@ -79,7 +81,7 @@ Use this as the store-facing release note. `CHANGELOG.md` remains the complete
 release history.
 
 ```text
-Version 4 is Save In's largest update. It adds a redesigned Options page, visual destination and rule editing, previews, search, Page Sources, more routing variables, improved click-to-save, searchable local history, safer external integrations, and more reliable downloads across browser restarts. The extension now uses Manifest V3 and requires Firefox 121+ or Chrome 123+. Existing settings and routing rules remain supported.
+Version 4 is Save In's largest update. You no longer need to write every configuration from scratch: build destination menus visually, start routing rules from searchable templates or Quick add, use autocomplete for variables and clauses, preview results, and test unsaved rules against real download details in the route debugger. This release also adds Page Sources, more routing variables, improved click-to-save, searchable local history, safer external integrations, and more reliable downloads across browser restarts. The extension now uses Manifest V3 and requires Firefox 121+ or Chrome 123+. Existing settings and routing rules remain supported.
 ```
 
 ## Firefox reviewer note: user-configured webhooks

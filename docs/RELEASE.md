@@ -77,7 +77,10 @@ current Chrome and Firefox:
 5. Check options and Page Sources at normal and narrow widths in System, Dark,
    and Light modes, including focus indicators and a forced theme opposite the
    operating-system preference.
-6. In Chrome Incognito and Firefox Private Browsing, perform a Save In download
+6. Create the same destination symlink inside each browser's download folder.
+   Verify Firefox reaches the target and Chrome reports a failed download
+   without writing outside its download folder.
+7. In Chrome Incognito and Firefox Private Browsing, perform a Save In download
    and an ordinary browser download. Verify neither enters Save In history or
    the debug log, and ordinary-download routing does not rename the private
    browser download.
@@ -101,10 +104,11 @@ npm run screenshots:store
 ```
 
 The command launches isolated headless Chrome, seeds the review configuration,
-and writes four 1280×800 PNGs to `docs/store-screenshots/`:
+and writes five 1280×800 PNGs to `docs/store-screenshots/`:
 
 - configured directories with the live context-menu preview;
 - routing and renaming rules;
+- the route debugger explaining a matching rule and final filename;
 - Page Sources on the in-repo demo page; and
 - searchable history with representative routed downloads.
 
