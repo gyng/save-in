@@ -148,7 +148,4 @@ file per execution target; the shipped bundle remains suitable for review.
 
 Pull requests, bug reports, and issues are welcome.
 
-Localisations kindly contributed by
-
-- nl [@80486dx](https://github.com/80486dx)
-- sv [@Sopor-](https://github.com/Sopor-)
+Translation contributors are documented in [docs/CONTRIBUTORS.md](docs/CONTRIBUTORS.md).

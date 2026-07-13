@@ -81,12 +81,8 @@ test("English is the exact schema for runtime message keys", () => {
   );
 });
 
-test("partial legacy translations do not retain keys outside the English schema", () => {
-  const canonicalKeys = new Set(Object.keys(readCatalog("en")));
-  for (const locale of locales.filter((candidate) => candidate !== "en")) {
-    const extraKeys = Object.keys(readCatalog(locale)).filter((key) => !canonicalKeys.has(key));
-    expect(extraKeys, locale).toEqual([]);
-  }
+test("English is the only browser-native catalog", () => {
+  expect(locales).toEqual(["en"]);
 });
 
 test("AI-generated catalogs completely implement the English schema", () => {

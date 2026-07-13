@@ -209,10 +209,10 @@ vitest specifics (`test/*.test.ts`, typed; `tsc` covers them):
   accessibility labels. Give translators enough context in message descriptions when a label
   is ambiguous, preserve placeholders exactly, and write complete strings that allow languages
   to reorder words naturally. Accessible names must communicate the same action as visible copy.
-- English is the canonical i18n key schema. Existing human translations must not be replaced by
-  generated copy. Machine-generated catalogs are opt-in, clearly labelled in the language
-  selector, bundled locally without runtime AI or network access, and fall back to English for
-  missing messages. Add or update catalog-schema and runtime-key coverage when UI copy changes.
+- English is the canonical i18n key schema and the only browser-native catalog. Generated catalogs
+  stay outside `_locales`: they are opt-in, clearly labelled in the language selector, bundled
+  locally without runtime AI or network access, and fall back to English for missing messages. Add
+  or update catalog-schema and runtime-key coverage when UI copy changes.
 - When the user asks for repository changes, commit the completed, verified
   work before handing it back unless they explicitly ask to leave it uncommitted.
   Stage only task-related changes when the worktree contains unrelated edits.
