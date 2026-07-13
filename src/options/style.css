@@ -1178,29 +1178,90 @@ fieldset.inline-option-group > .caption-line {
   width: 100%;
 }
 
-fieldset.inline-option-group:has(#contentClickToSaveCombo) {
-  margin-top: var(--space-2);
-  flex-wrap: wrap;
-  align-items: baseline;
-}
-
-fieldset.inline-option-group:has(#contentClickToSaveCombo) > legend {
+fieldset.click-to-save-controls {
+  display: grid;
+  grid-template-areas: "primary plus-one secondary plus-two pointer apply reset";
+  grid-template-columns:
+    minmax(0, 7.5rem) auto minmax(0, 7.5rem) auto minmax(0, 9rem) auto
+    auto;
+  align-items: center;
+  gap: var(--space-2);
   width: 100%;
-  margin: 0 0 var(--space-1);
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  margin-top: var(--space-2);
 }
 
-fieldset.inline-option-group:has(#contentClickToSaveCombo) select {
-  width: 7.5rem;
-  min-width: 7.5rem;
+.click-to-save-controls > label {
+  min-width: 0;
+  margin: 0;
 }
 
-fieldset.inline-option-group:has(#contentClickToSaveCombo) #clickToSaveButton {
-  width: 9rem;
-  min-width: 9rem;
+.click-to-save-controls > legend.visually-hidden {
+  width: 1px;
 }
 
-fieldset.inline-option-group:has(#contentClickToSaveCombo):has(:disabled) {
+.click-to-save-controls > label:has(#clickToSaveModifier) {
+  grid-area: primary;
+}
+
+.click-to-save-controls > label:has(#clickToSaveModifier) + .shortcut-plus {
+  grid-area: plus-one;
+}
+
+.click-to-save-controls > label:has(#clickToSaveModifier2) {
+  grid-area: secondary;
+}
+
+.click-to-save-controls > label:has(#clickToSaveModifier2) + .shortcut-plus {
+  grid-area: plus-two;
+}
+
+.click-to-save-controls > label:has(#clickToSaveButton) {
+  grid-area: pointer;
+}
+
+#clickToSaveApply {
+  grid-area: apply;
+}
+
+#clickToSaveReset {
+  grid-area: reset;
+}
+
+.click-to-save-controls select {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.click-to-save-controls > .caption-line,
+.click-to-save-controls > #click-to-save-warning,
+.click-to-save-controls > #clickToSaveStatus {
+  grid-column: 1 / -1;
+}
+
+.click-to-save-controls:has(:disabled) {
   opacity: 0.48;
+}
+
+#clickToSaveStatus:empty {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  fieldset.click-to-save-controls {
+    grid-template-areas:
+      "primary plus-one secondary"
+      "pointer pointer pointer"
+      "apply . reset";
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  }
+
+  .click-to-save-controls > label:has(#clickToSaveModifier2) + .shortcut-plus {
+    display: none;
+  }
 }
 
 .editor-dirty-status {
@@ -2409,6 +2470,12 @@ button:disabled {
   padding: var(--space-2) var(--space-3);
   border-left: 3px solid currentColor;
   color: #8a5400;
+}
+
+#click-to-save-warning {
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-wrap: anywhere;
 }
 
 @media (max-width: 720px) {
@@ -4016,7 +4083,7 @@ code.click-to-copy {
 }
 
 .source-shortcut-controls button,
-fieldset.inline-option-group:has(#contentClickToSaveCombo) button,
+.click-to-save-controls button,
 .history-query-row .history-filter,
 .history-facets button,
 .history-table-tools summary {
@@ -4038,7 +4105,7 @@ fieldset.inline-option-group:has(#contentClickToSaveCombo) button,
   margin-left: var(--space-2);
 }
 
-.source-shortcut-controls select {
+.source-shortcut-settings .source-shortcut-controls select {
   width: auto;
   min-width: 7.5rem;
 }
@@ -4056,6 +4123,8 @@ fieldset.inline-option-group:has(#contentClickToSaveCombo) button,
 #sourcePanelShortcutStatus:not(:empty),
 #clickToSaveStatus:not(:empty) {
   flex-basis: 100%;
+  max-width: 100%;
+  overflow-wrap: anywhere;
   color: var(--grey50);
   font-size: var(--text-sm);
 }
