@@ -672,33 +672,130 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
 
         <div class="rules-editor">
           <div class="rules-editor-main">
-            <div class="editor-field-label" id="rules-text-label">__MSG_o_lTextRules__</div>
-            <textarea
-              id="filenamePatterns"
-              data-manual="true"
-              rows="12"
-              placeholder="__MSG_html_optional__"
-              spellcheck="false"
-              aria-labelledby="rules-text-label"
-              aria-describedby="error-filenamePatterns"
-            ></textarea>
-            <div
-              class="error-notification"
-              id="error-filenamePatterns"
-              aria-live="polite"
-              aria-atomic="true"
-            ></div>
-            <div class="editor-actions">
-              <button type="button" class="discard-button" data-discard="filenamePatterns" disabled>
-                __MSG_o_bDiscard__
-              </button>
-              <button type="button" class="apply-button" data-apply="filenamePatterns" disabled>
-                __MSG_o_bApply__
-              </button>
-              <span class="caption manual-save-help" data-manual-help-for="filenamePatterns"
-                >__MSG_o_lManualEditorSaveHelp__</span
-              >
-            </div>
+            <section class="routing-ide" aria-labelledby="rules-text-label">
+              <header class="routing-ide-header">
+                <div>
+                  <div class="editor-field-label" id="rules-text-label">__MSG_o_lTextRules__</div>
+                  <p class="caption routing-ide-description">__MSG_routeIdeDescription__</p>
+                </div>
+                <span class="routing-ide-badge">__MSG_routeIdeBadge__</span>
+              </header>
+              <textarea
+                id="filenamePatterns"
+                data-manual="true"
+                rows="12"
+                placeholder="__MSG_html_optional__"
+                spellcheck="false"
+                aria-labelledby="rules-text-label"
+                aria-describedby="error-filenamePatterns"
+              ></textarea>
+              <div
+                class="error-notification"
+                id="error-filenamePatterns"
+                aria-live="polite"
+                aria-atomic="true"
+              ></div>
+              <div class="editor-actions routing-ide-actions">
+                <button
+                  type="button"
+                  class="discard-button"
+                  data-discard="filenamePatterns"
+                  disabled
+                >
+                  __MSG_o_bDiscard__
+                </button>
+                <button type="button" class="apply-button" data-apply="filenamePatterns" disabled>
+                  __MSG_o_bApply__
+                </button>
+                <span class="caption manual-save-help" data-manual-help-for="filenamePatterns"
+                  >__MSG_o_lManualEditorSaveHelp__</span
+                >
+              </div>
+            </section>
+
+            <section class="route-debugger" aria-labelledby="route-debugger-title">
+              <header class="route-debugger-header">
+                <div>
+                  <h3 id="route-debugger-title">__MSG_routeDebuggerTitle__</h3>
+                  <p class="caption">__MSG_routeDebuggerDescription__</p>
+                </div>
+                <button type="button" class="button" id="route-debugger-use-last" disabled>
+                  __MSG_routeDebuggerUseLastDownload__
+                </button>
+              </header>
+              <div id="route-debugger-form" role="group" aria-label="__MSG_routeDebuggerTitle__">
+                <div class="route-debugger-fields">
+                  <label class="route-debugger-field route-debugger-field-filename">
+                    <span>__MSG_routeDebuggerFilename__</span>
+                    <input
+                      type="text"
+                      id="route-debugger-filename"
+                      placeholder="report.pdf"
+                      data-technical-literal
+                      data-no-autosave
+                      spellcheck="false"
+                    />
+                  </label>
+                  <label class="route-debugger-field route-debugger-field-source">
+                    <span>__MSG_routeDebuggerSourceUrl__</span>
+                    <input
+                      type="text"
+                      id="route-debugger-source-url"
+                      placeholder="https://cdn.example.com/report.pdf"
+                      data-technical-literal
+                      data-no-autosave
+                      spellcheck="false"
+                    />
+                  </label>
+                  <label class="route-debugger-field route-debugger-field-page">
+                    <span>__MSG_routeDebuggerPageUrl__</span>
+                    <input
+                      type="text"
+                      id="route-debugger-page-url"
+                      placeholder="https://example.com/reports"
+                      data-technical-literal
+                      data-no-autosave
+                      spellcheck="false"
+                    />
+                  </label>
+                  <label class="route-debugger-field">
+                    <span>__MSG_routeDebuggerContentType__</span>
+                    <input
+                      type="text"
+                      id="route-debugger-mime"
+                      placeholder="application/pdf"
+                      data-technical-literal
+                      data-no-autosave
+                      spellcheck="false"
+                    />
+                  </label>
+                  <label class="route-debugger-field">
+                    <span>__MSG_routeDebuggerContext__</span>
+                    <select id="route-debugger-context" data-no-autosave>
+                      <option value="">__MSG_routeDebuggerAnyContext__</option>
+                      <option value="link">__MSG_html_link__</option>
+                      <option value="image">__MSG_html_image__</option>
+                      <option value="video">__MSG_html_video__</option>
+                      <option value="audio">__MSG_sourcePanelKindAudio__</option>
+                      <option value="page">__MSG_contextMenuContextPage__</option>
+                      <option value="selection">__MSG_contextMenuContextSelection__</option>
+                    </select>
+                  </label>
+                </div>
+                <div class="route-debugger-actions">
+                  <span class="caption">__MSG_routeDebuggerUnsavedNote__</span>
+                  <button type="button" class="apply-button" id="route-debugger-run">
+                    __MSG_routeDebuggerRun__
+                  </button>
+                </div>
+              </div>
+              <div
+                class="route-debugger-result"
+                id="route-debugger-result"
+                role="status"
+                aria-live="polite"
+              ></div>
+            </section>
 
             <div class="rule-builder" role="group" aria-labelledby="rule-builder-label">
               <div class="editor-field-label" id="rule-builder-label">__MSG_o_lRuleBuilder__</div>

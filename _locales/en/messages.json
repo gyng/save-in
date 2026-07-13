@@ -2833,6 +2833,132 @@
     "message": "Webhook data updated.",
     "description": "Status after the selected webhook payload fields are saved. Used in src/options/webhook-panel.ts."
   },
+  "routeIdeDescription": {
+    "message": "Write, inspect, and test routing rules before applying them.",
+    "description": "Description below the routing rules editor heading. Used in src/options/options.html."
+  },
+  "routeIdeBadge": {
+    "message": "Grammar-aware",
+    "description": "Compact badge describing the routing rules editor. Used in src/options/options.html."
+  },
+  "routeDebuggerTitle": {
+    "message": "Route debugger",
+    "description": "Heading for the routing rules test workbench. Used in src/options/options.html."
+  },
+  "routeDebuggerDescription": {
+    "message": "Test the current rules against sample download details.",
+    "description": "Description of the routing rules debugger. Used in src/options/options.html."
+  },
+  "routeDebuggerUseLastDownload": {
+    "message": "Use last download",
+    "description": "Button that fills the route debugger with the most recent download. Used in src/options/options.html."
+  },
+  "routeDebuggerFilename": {
+    "message": "Filename",
+    "description": "Label for the route debugger filename input. Used in src/options/options.html."
+  },
+  "routeDebuggerSourceUrl": {
+    "message": "Source URL",
+    "description": "Label for the route debugger resource URL input. Used in src/options/options.html."
+  },
+  "routeDebuggerPageUrl": {
+    "message": "Page URL",
+    "description": "Label for the route debugger containing page URL input. Used in src/options/options.html."
+  },
+  "routeDebuggerContentType": {
+    "message": "Content type",
+    "description": "Label for the route debugger MIME type input. Used in src/options/options.html."
+  },
+  "routeDebuggerContext": {
+    "message": "Context",
+    "description": "Label for the route debugger context selector. Used in src/options/options.html."
+  },
+  "routeDebuggerAnyContext": {
+    "message": "Any context",
+    "description": "Empty context choice in the route debugger. Used in src/options/options.html."
+  },
+  "routeDebuggerUnsavedNote": {
+    "message": "Tests include edits you have not applied.",
+    "description": "Note explaining what source the route debugger evaluates. Used in src/options/options.html."
+  },
+  "routeDebuggerRun": {
+    "message": "Run test",
+    "description": "Button that evaluates routing rules in the route debugger. Used in src/options/options.html."
+  },
+  "routeDebuggerNoMatch": {
+    "message": "No routing rule matched.",
+    "description": "Route debugger outcome when no rule matches. Used in src/options/route-debugger.ts."
+  },
+  "routeDebuggerMatched": {
+    "message": "Rule $NUMBER$ matched.",
+    "description": "Route debugger outcome naming the selected matching rule. Used in src/options/route-debugger.ts.",
+    "placeholders": {
+      "number": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "routeDebuggerTemplate": {
+    "message": "Template",
+    "description": "Route debugger pipeline label for the configured destination. Used in src/options/route-debugger.ts."
+  },
+  "routeDebuggerExpanded": {
+    "message": "Expanded",
+    "description": "Route debugger pipeline label after variables are expanded. Used in src/options/route-debugger.ts."
+  },
+  "routeDebuggerFinalPath": {
+    "message": "Final path",
+    "description": "Route debugger pipeline label after path sanitization. Used in src/options/route-debugger.ts."
+  },
+  "routeDebuggerRule": {
+    "message": "Rule $NUMBER$",
+    "description": "Route debugger heading for one rule. Used in src/options/route-debugger.ts.",
+    "placeholders": {
+      "number": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "routeDebuggerSelected": {
+    "message": "Selected",
+    "description": "Badge on the route chosen by the debugger. Used in src/options/route-debugger.ts."
+  },
+  "routeDebuggerAlsoMatches": {
+    "message": "Also matches",
+    "description": "Badge on a later matching route that was not selected. Used in src/options/route-debugger.ts."
+  },
+  "routeDebuggerDidNotMatch": {
+    "message": "Did not match",
+    "description": "Badge on a route whose matchers failed. Used in src/options/route-debugger.ts."
+  },
+  "routeDebuggerRunning": {
+    "message": "Testing routes…",
+    "description": "Status while the route debugger is evaluating rules. Used in src/options/route-debugger.ts."
+  },
+  "routeDebuggerFixErrors": {
+    "message": "Fix $COUNT$ routing error(s) before testing.",
+    "description": "Route debugger status when the rules cannot be evaluated. Used in src/options/route-debugger.ts.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "routeDebuggerUnavailable": {
+    "message": "Could not run the route debugger.",
+    "description": "Route debugger status after an unexpected failure. Used in src/options/route-debugger.ts."
+  },
+  "routeDebuggerNoLastDownload": {
+    "message": "No recent download is available.",
+    "description": "Route debugger status when no recent download can populate its inputs. Used in src/options/route-debugger.ts."
+  },
+  "routeDebuggerEmpty": {
+    "message": "Enter download details, then run the current rules.",
+    "description": "Initial instruction in the route debugger result area. Used in src/options/route-debugger.ts."
+  },
   "html_without": {
     "message": "without",
     "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."

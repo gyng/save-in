@@ -24,6 +24,9 @@ test("keeps stable controls for each options workflow", () => {
     "section-more-options",
     "paths",
     "filenamePatterns",
+    "route-debugger-form",
+    "route-debugger-run",
+    "route-debugger-result",
     "contentClickToSave",
     "sourcePanelEnabled",
     "history-filter",
@@ -133,4 +136,17 @@ test("keeps editor controls connected to their stable labels", () => {
     "rules-text-label",
   );
   requireIds(document, ["paths-editor-label", "rules-text-label", "paths-text-actions"]);
+});
+
+test("keeps route debugger inputs out of persisted option handling", () => {
+  const document = documentForOptions();
+  for (const id of [
+    "route-debugger-filename",
+    "route-debugger-source-url",
+    "route-debugger-page-url",
+    "route-debugger-mime",
+    "route-debugger-context",
+  ]) {
+    expect(document.getElementById(id)?.hasAttribute("data-no-autosave"), id).toBe(true);
+  }
 });

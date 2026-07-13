@@ -2120,5 +2120,104 @@
   },
   "o_lPathEditorDragHelp": {
     "message": "拖动点状手柄。将其放在某一行的上方或下方可置于同一级别，放在该行上则会嵌套到其中。"
+  },
+  "routeIdeDescription": {
+    "message": "Write, inspect, and test routing rules before applying them."
+  },
+  "routeIdeBadge": {
+    "message": "Grammar-aware"
+  },
+  "routeDebuggerTitle": {
+    "message": "Route debugger"
+  },
+  "routeDebuggerDescription": {
+    "message": "Test the current rules against sample download details."
+  },
+  "routeDebuggerUseLastDownload": {
+    "message": "Use last download"
+  },
+  "routeDebuggerFilename": {
+    "message": "Filename"
+  },
+  "routeDebuggerSourceUrl": {
+    "message": "Source URL"
+  },
+  "routeDebuggerPageUrl": {
+    "message": "Page URL"
+  },
+  "routeDebuggerContentType": {
+    "message": "Content type"
+  },
+  "routeDebuggerContext": {
+    "message": "Context"
+  },
+  "routeDebuggerAnyContext": {
+    "message": "Any context"
+  },
+  "routeDebuggerUnsavedNote": {
+    "message": "Tests include edits you have not applied."
+  },
+  "routeDebuggerRun": {
+    "message": "Run test"
+  },
+  "routeDebuggerNoMatch": {
+    "message": "No routing rule matched."
+  },
+  "routeDebuggerMatched": {
+    "message": "Rule $NUMBER$ matched.",
+    "placeholders": {
+      "number": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "routeDebuggerTemplate": {
+    "message": "Template"
+  },
+  "routeDebuggerExpanded": {
+    "message": "Expanded"
+  },
+  "routeDebuggerFinalPath": {
+    "message": "Final path"
+  },
+  "routeDebuggerRule": {
+    "message": "Rule $NUMBER$",
+    "placeholders": {
+      "number": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "routeDebuggerSelected": {
+    "message": "Selected"
+  },
+  "routeDebuggerAlsoMatches": {
+    "message": "Also matches"
+  },
+  "routeDebuggerDidNotMatch": {
+    "message": "Did not match"
+  },
+  "routeDebuggerRunning": {
+    "message": "Testing routes…"
+  },
+  "routeDebuggerFixErrors": {
+    "message": "Fix $COUNT$ routing error(s) before testing.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "routeDebuggerUnavailable": {
+    "message": "Could not run the route debugger."
+  },
+  "routeDebuggerNoLastDownload": {
+    "message": "No recent download is available."
+  },
+  "routeDebuggerEmpty": {
+    "message": "Enter download details, then run the current rules."
   }
 }

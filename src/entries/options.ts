@@ -33,6 +33,7 @@ import { setupPrivacyDialog } from "../options/privacy-dialog.ts";
 import { setupLanguageSelector } from "../options/language-selector.ts";
 import { applyUiTheme } from "../options/theme.ts";
 import { setupSyntaxEditors } from "../options/syntax-editor.ts";
+import { setupRouteDebugger } from "../options/route-debugger.ts";
 
 document.addEventListener(
   "DOMContentLoaded",
@@ -46,6 +47,7 @@ document.addEventListener(
     setHistoryLocalizer(getMessage);
     void renderHistory();
     setupSyntaxEditors();
+    setupRouteDebugger();
     setupOptionsPage();
     void setupPermissionsBanner();
     setupPathEditor();
