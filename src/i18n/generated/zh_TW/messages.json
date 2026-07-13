@@ -54,7 +54,7 @@
     }
   },
   "notificationRuleMatchedTitle": {
-    "message": "Save In：規則匹配"
+    "message": "Save In：規則相符"
   },
   "notificationRuleMatchFailedExclusiveTitle": {
     "message": "Save In：無法路由或重新命名下載"
@@ -69,10 +69,10 @@
     }
   },
   "ruleMissingMatcher": {
-    "message": "新增至少一個匹配子句"
+    "message": "請至少新增一個比對子句"
   },
   "ruleCaptureMissingMatcher": {
-    "message": "捕獲子句不針對匹配器"
+    "message": "擷取子句未指定比對器"
   },
   "ruleMissingCapture": {
     "message": "新增捕獲子句以使用捕獲變數"
@@ -87,13 +87,13 @@
     "message": "一條規則只能包含一個 into: 子句"
   },
   "ruleUnknownMatcher": {
-    "message": "未知匹配器"
+    "message": "未知的比對器"
   },
   "ruleInvalidRegex": {
     "message": "正規表示式無效"
   },
   "ruleShadowed": {
-    "message": "此規則永遠不會運行，因為較早的規則匹配相同或多個下載"
+    "message": "此規則永遠不會執行，因為前面的規則會比對相同或更多下載項目"
   },
   "ruleBadClause": {
     "message": "無效條款"
@@ -126,7 +126,7 @@
     "message": "儲存此選項卡及其右側的所有選項卡（需要路由規則）"
   },
   "o_sDownloads": {
-    "message": "保存地點"
+    "message": "儲存位置"
   },
   "o_sDirectories": {
     "message": "資料夾"
@@ -144,7 +144,7 @@
     "message": "選擇上下文選單中顯示的 Save In 操作。"
   },
   "o_lAlsoAskWhen": {
-    "message": "也詢問在以下情況下保存在哪裡："
+    "message": "同時在以下情況詢問儲存位置："
   },
   "o_sDynamicDownloads": {
     "message": "路由規則"
@@ -159,13 +159,13 @@
     "message": "將普通瀏覽器下載包含在 Save In 歷史記錄中"
   },
   "o_cTrackBrowserDownloadsHelp": {
-    "message": "在 Save In 歷史記錄中記錄符合的下載，而不取得它們的所有權。它們不會重試，也不會觸發 Save In 提示或通知。"
+    "message": "在 Save In 記錄中記下相符的下載項目，但不接管這些下載。Save In 不會重試，也不會顯示提示或通知。"
   },
   "o_cRouteBrowserDownloads": {
     "message": "使用瀏覽器下載的路由規則"
   },
   "o_cRouteBrowserDownloadsHelp": {
-    "message": "如果支持，匹配規則可以重新命名瀏覽器下載或將它們放置在子資料夾中。無與倫比的下載量保持不變。"
+    "message": "如果瀏覽器支援，比對規則可以重新命名瀏覽器下載項目或將其放入子資料夾。不相符的下載項目維持不變。"
   },
   "o_cRouteBrowserDownloadsFirefox": {
     "message": "在 Firefox 上實驗性地重新路由配對下載"
@@ -180,19 +180,19 @@
     "message": "僅包含符合的下載 URL（可選）"
   },
   "o_cBrowserDownloadFilterHelp": {
-    "message": "留空以處理每個瀏覽器下載，或每行輸入一個 WebExtension 匹配模式。此過濾器適用於歷史追蹤和路由。"
+    "message": "留空即可處理所有瀏覽器下載項目；也可以每行輸入一個 WebExtension 比對模式。此篩選條件同時套用於記錄追蹤和路由。"
   },
   "o_cBrowserDownloadExcludeFilter": {
     "message": "排除符合的下載 URL（可選）"
   },
   "o_cBrowserDownloadExcludeFilterHelp": {
-    "message": "每行輸入一個 WebExtension 匹配模式。排除會覆寫上面的符合 URL，並適用於歷史記錄追蹤和路由。"
+    "message": "每行輸入一個 WebExtension 比對模式。排除項目會優先於上方相符的 URL，並同時套用於記錄追蹤和路由。"
   },
   "o_lBrowserDownloadVariables": {
     "message": "瀏覽器下載僅提供 URL、建議的檔案名稱、目前時間、計數器、UUID 和 MIME 變數。頁面標題、頁面 URL、連結文字、選擇、選單元資料和按鍵修飾符不可用。"
   },
   "o_sRenameAndRouteDownloads": {
-    "message": "路由和重命名"
+    "message": "路由和重新命名"
   },
   "o_sNotifications": {
     "message": "通知"
@@ -216,10 +216,10 @@
     "message": "頁面來源"
   },
   "o_lPageSourcesHelp": {
-    "message": "瀏覽目前頁面上的圖像、影片、音訊、文件和可下載連結。儲存的項目使用正常的路由和重新命名規則。"
+    "message": "瀏覽目前頁面中的圖片、影片、音訊、文件和可下載連結。儲存的項目會套用平常使用的路由和重新命名規則。"
   },
   "o_lPageSourcesNetworkLimit": {
-    "message": "某些影片播放器使用臨時 URL 或透過腳本載入媒體，因此 Save In 可能無法偵測到每個影片。有時它可以找到串流影片播放清單（HLS/DASH），但這些檔案僅列出單獨的影片片段；保存一個影片並不會保存完整的影片。"
+    "message": "某些影片播放器使用暫時 URL，或透過指令碼載入媒體，因此 Save In 不一定能偵測到所有影片。有時可以找到串流播放清單（HLS/DASH），但這些檔案只列出個別影片片段；儲存播放清單並不會儲存完整影片。"
   },
   "o_cSourcePanelEnabled": {
     "message": "啟用頁面來源"
@@ -387,7 +387,7 @@
     "message": "重新命名為"
   },
   "o_lRoutingNoMatches": {
-    "message": "沒有匹配項"
+    "message": "沒有相符項目"
   },
   "o_lRoutingCaptureGroups": {
     "message": "捕獲組"
@@ -408,7 +408,7 @@
     "message": "顯示連結的操作"
   },
   "o_cPreferLinks": {
-    "message": "保存連結目標而不是嵌入媒體"
+    "message": "儲存連結目標，而不是內嵌媒體"
   },
   "o_cSaveText": {
     "message": "顯示所選文字的操作"
@@ -426,7 +426,7 @@
     "message": "將選項卡、選項卡組或選項卡儲存到右側"
   },
   "o_cOpenDialog": {
-    "message": "總是詢問保存在哪裡"
+    "message": "一律詢問儲存位置"
   },
   "o_cOpenDialogNoExt": {
     "message": "檔案名稱沒有副檔名"
@@ -450,22 +450,22 @@
     "message": "當文件已經存在時："
   },
   "o_cOpenDialogIfNoRulesMatch": {
-    "message": "當沒有路由規則匹配時詢問保存在哪裡"
+    "message": "沒有路由規則相符時詢問儲存位置"
   },
   "o_cExclusiveMode": {
     "message": "需要符合的路由規則"
   },
   "o_cExclusiveModeHelp": {
-    "message": "隱藏資料夾子選單並相對於預設下載資料夾保存"
+    "message": "隱藏資料夾子選單，並以預設下載資料夾為基準儲存"
   },
   "o_cNotifySuccess": {
-    "message": "下載成功時通知"
+    "message": "下載成功時顯示通知"
   },
   "o_cNotifyFailure": {
-    "message": "下載失敗時通知"
+    "message": "下載失敗時顯示通知"
   },
   "o_cNotifyMatch": {
-    "message": "當路由規則符合時發出通知"
+    "message": "路由規則相符時顯示通知"
   },
   "o_cSaveShortcutsAs": {
     "message": "將快捷方式另存為"
@@ -567,25 +567,25 @@
     "message": "透過Save In下載"
   },
   "o_cFetchViaFetchAPIHelp": {
-    "message": "Save In 取得檔案並將其傳遞給瀏覽器。僅當正常下載失敗時才使用此選項。它速度較慢，並且 Chrome 在保存時將檔案保存在記憶體中，因此對於非常大的檔案請避免使用它。"
+    "message": "Save In 會擷取檔案並交給瀏覽器。只有在一般下載失敗時才使用此選項。這種方式較慢，而且 Chrome 會在儲存期間將檔案保留在記憶體中，因此不適合非常大的檔案。"
   },
   "o_cIncludeFetchCredentials": {
     "message": "包括網站登入 cookie"
   },
   "o_cIncludeFetchCredentialsHelp": {
-    "message": "當 Save In 在背景取得檔案時（包括重定向後），包括適用的 cookie 和瀏覽器管理的登入。私人視窗請求保持匿名。直接瀏覽器下載管理自己的憑證。"
+    "message": "Save In 在背景擷取檔案時（包括重新導向後）會使用適用的 Cookie 和由瀏覽器管理的登入資訊。隱私視窗中的要求仍保持匿名。由瀏覽器直接下載時，瀏覽器會自行管理認證資訊。"
   },
   "o_cSetRefererHeader": {
     "message": "缺失時使用頁面 URL 作為 Referer"
   },
   "o_cSetRefererHeaderHelp": {
-    "message": "僅限火狐瀏覽器。某些網站（例如 pixiv.net）會拒絕沒有 HTTP Referer 標頭的下載。為了匹配下載，Firefox 直接發送頁面 URL 作為 Referer。除非網站需要它，否則請將其關閉。"
+    "message": "僅限 Firefox。部分網站（例如 pixiv.net）會拒絕缺少 HTTP Referer 標頭的下載。對於符合篩選條件的下載，Firefox 會直接將頁面 URL 當作 Referer 傳送。除非網站需要，否則請保持關閉。"
   },
   "o_cSetRefererHeaderFilter": {
     "message": "為這些網站設定 Referer"
   },
   "o_cSetRefererHeaderFilterHelp": {
-    "message": "每行一個匹配模式，例如*://i.pximg.net/*。 Referer 僅為 URL 與其中一個相符的下載設定。"
+    "message": "每行輸入一個比對模式，例如 *://i.pximg.net/*。只有 URL 符合其中一個模式的下載才會設定 Referer。"
   },
   "o_cImportSettings": {
     "message": "導入設定"
@@ -615,7 +615,7 @@
     "message": "文字規則"
   },
   "o_lMatcher": {
-    "message": "匹配器"
+    "message": "比對器"
   },
   "o_lPattern": {
     "message": "模式"
@@ -642,7 +642,7 @@
     "message": "無法儲存此設定。 "
   },
   "o_bRetrySave": {
-    "message": "重試保存"
+    "message": "重試儲存"
   },
   "o_lNoValidationErrors": {
     "message": "無驗證錯誤"
@@ -663,7 +663,7 @@
     "message": "首選連結的正規表示式無效"
   },
   "o_cNotifyLinkPreferred": {
-    "message": "當下載連結目標而不是嵌入媒體時發出通知"
+    "message": "改為下載連結目標時顯示通知"
   },
   "o_cCloseTabOnSave": {
     "message": "儲存後關閉每個選項卡"
@@ -732,7 +732,7 @@
     "message": "最後發表評論；開始於"
   },
   "html_browsersOnlyLetExtensionsSaveInsideTheDefault": {
-    "message": "瀏覽器只允許擴充功能保存在預設值中"
+    "message": "瀏覽器只允許擴充功能儲存在以下資料夾內："
   },
   "html_buildTheDestinationsAndSubmenusShownInSaveIn": {
     "message": "選擇 Save In 上下文選單中顯示的資料夾和子選單。"
@@ -771,7 +771,7 @@
     "message": "每個"
   },
   "html_eachLineAddsADestinationRelativeToYourBrowser": {
-    "message": "每行都會新增一個相對於您的瀏覽器的目的地"
+    "message": "每行新增一個儲存位置，路徑相對於瀏覽器的"
   },
   "html_forExample": {
     "message": "例如，"
@@ -807,10 +807,10 @@
     "message": "Save In 維基"
   },
   "html_savesTo": {
-    "message": "保存至"
+    "message": "儲存至"
   },
   "html_savingOutsideTheDownloadsFolder": {
-    "message": "保存在“下載”資料夾之外"
+    "message": "儲存到「下載」資料夾以外的位置"
   },
   "html_separateGroups": {
     "message": "單獨分組"
@@ -828,7 +828,7 @@
     "message": "建立嵌套子選單，使用"
   },
   "html_toReachAnotherLocationCreateASymlinkInsideDownloads": {
-    "message": "。若要到達另一個位置，請在「下載」內建立符號連結並使用該相對符號連結路徑作為目標。目標資料夾必須已存在。"
+    "message": "。若要儲存到其他位置，請在「下載」資料夾內建立符號連結，並將該連結的相對路徑用作儲存位置。連結指向的資料夾必須已經存在。"
   },
   "html_useAVariable": {
     "message": "使用變數"
@@ -867,13 +867,13 @@
     "message": "目的地。"
   },
   "html_destinationsAreRelativeToTheDownloadsMenuDestinationYou": {
-    "message": "目的地與您選擇的資料夾相關。匹配器值是正規表示式；看到"
+    "message": "儲存位置是相對於所選資料夾的路徑。比對器值是規則運算式；請參閱"
   },
   "html_enterOneUrlLikeBrowserMatchPatternPerLine": {
-    "message": "每行輸入類似 URL 的瀏覽器匹配模式。它有一個方案、主機和路徑："
+    "message": "每行輸入一個類似 URL 的瀏覽器比對模式。模式包含通訊協定、主機和路徑："
   },
   "html_everyMatcherInARuleMustMatch": {
-    "message": "規則中的每個匹配器都必須匹配。"
+    "message": "規則中的每個比對器都必須相符。"
   },
   "html_everyRuleMustEndWithAn": {
     "message": "每條規則都必須以"
@@ -900,19 +900,19 @@
     "message": "路由規則如何運作"
   },
   "html_matchesHttpsFileUrlsOn": {
-    "message": "匹配 HTTPS 檔 URL"
+    "message": "比對以下網站的 HTTPS 檔案 URL"
   },
   "html_moveAndRenameMatchingFiles": {
-    "message": "移動並重命名匹配的文件"
+    "message": "移動並重新命名相符的檔案"
   },
   "html_moveMatchingFilesAndKeepTheirNames": {
-    "message": "移動匹配的檔案並保留其名稱"
+    "message": "移動相符的檔案並保留檔名"
   },
   "html_optional": {
     "message": "可選"
   },
   "html_parenthesesCapturePartsOfAMatcherSelectTheMatcher": {
-    "message": "括號捕獲匹配器的一部分。選擇匹配器"
+    "message": "括號會擷取比對器的一部分。請選擇比對器"
   },
   "html_regularExpressionGuide": {
     "message": "正規表示式指南"
@@ -924,7 +924,7 @@
     "message": "，然後使用"
   },
   "html_toIncludeEveryPathThisIsNotARegular": {
-    "message": "包括每條路徑。這不是正規表示式，它無法匹配查詢參數或顯式連接埠。"
+    "message": "即可包含所有路徑。這不是規則運算式，無法比對查詢參數或明確指定的連接埠。"
   },
   "html_trackAndRouteBrowserDownloads": {
     "message": "追蹤和路由瀏覽器下載"
@@ -960,7 +960,7 @@
     "message": "指令 / Windows 鍵"
   },
   "html_copy0LeavesDismissalToTheBrowserOrOperatingSystem": {
-    "message": "0 將解僱留給瀏覽器或作業系統。"
+    "message": "設為 0 時，由瀏覽器或作業系統決定何時關閉通知。"
   },
   "html_ctrl": {
     "message": "控制鍵"
@@ -1014,7 +1014,7 @@
     "message": "無"
   },
   "html_notifyMeWhen": {
-    "message": "通知時間"
+    "message": "通知時機"
   },
   "html_previewOfThePageSourcesDrawer": {
     "message": "頁面來源抽屜的預覽"
@@ -1080,7 +1080,7 @@
     "message": "目前"
   },
   "html_currentValueOfThe": {
-    "message": "目前值"
+    "message": "變數"
   },
   "html_delete": {
     "message": "刪除"
@@ -1107,7 +1107,7 @@
     "message": "讓受信任的擴充功能透過 Save In 的路由和重新命名規則發送 URL。"
   },
   "html_mdnMatchPatterns": {
-    "message": "MDN：匹配模式"
+    "message": "MDN：比對模式"
   },
   "html_noExtensionsAreApprovedExternalDownloadsAreBlockedBy": {
     "message": "沒有批准延期。預設情況下阻止外部下載。"
@@ -1140,7 +1140,7 @@
     "message": "每行使用一個分機 ID 進行批次變更。"
   },
   "html_variableItAdvancesOncePerSavedDownloadAndPersists": {
-    "message": "變數。每次保存的下載都會前進一次，並在重新啟動後持續存在。"
+    "message": "的目前值。每儲存一個下載項目，該值就增加 1，並在重新啟動後保留。"
   },
   "html_webextensionsSuchAsFoxyGesturesCanMessageSaveIn": {
     "message": "WebExtensions 例如 Foxy Gestures 可以直接傳送訊息給 Save In。 Greasemonkey、Tampermonkey 或 Violentmonkey 使用者腳本本身無法執行此操作：使用者腳本不會接收跨擴充訊息傳遞存取權限。使用小型同伴 WebExtension 作為中繼，或讓使用者腳本將 URL 傳遞給公開該功能的擴充。"
@@ -1188,7 +1188,7 @@
     "message": "篩選變數"
   },
   "html_findsAndSavesResourcesTheUserChoosesOnArbitrary": {
-    "message": "尋找並保存使用者在任意網站上選擇的資源。"
+    "message": "尋找並儲存使用者在任何網站上選擇的資源。"
   },
   "html_inABrowserThatSupports": {
     "message": "在支援的瀏覽器中"
@@ -1209,7 +1209,7 @@
     "message": "幸運的組織貓"
   },
   "html_messageFirstOrASmallRelayExtensionMustDo": {
-    "message": " 訊息，或者小型中繼分機必須這樣做。 Video DownloadHelper沒有公開Save In可以直接呼叫的穩定整合API。"
+    "message": " 訊息，否則必須由小型中繼擴充功能代為傳送。Video DownloadHelper 沒有提供可供 Save In 直接呼叫的穩定整合 API。"
   },
   "html_offscreen": {
     "message": "銀幕外"
@@ -1233,13 +1233,13 @@
     "message": "啟用後報告已完成的儲存和可操作的失敗。"
   },
   "html_saveInDoesNotAdoptDownloadsThatAnotherExtension": {
-    "message": "Save In 不採用其他擴充功能已經開始的下載，包括 Video DownloadHelper。下載者必須先發送Save In"
+    "message": "Save In 不會接管其他擴充功能已經開始的下載，包括 Video DownloadHelper。發起下載的擴充功能必須先向 Save In 傳送"
   },
   "html_saveInHasNoAnalyticsAdvertisingDeveloperOperatedServer": {
     "message": "Save In 沒有分析、廣告、開發人員操作的伺服器或遠端執行程式碼。設定和歷史記錄保留在瀏覽器管理的擴充儲存中。"
   },
   "html_saveInIsALocalFirstDownloadsHelperFor": {
-    "message": "Save In 是一個本地優先下載幫助程序，用於透過上下文選單資料夾、路由規則、重新命名、頁面來源和下載歷史記錄來組織檔案。"
+    "message": "Save In 是一款以本機處理為優先的下載輔助工具，可透過內容選單資料夾、路由規則、重新命名、頁面資源和下載記錄來整理檔案。"
   },
   "html_saveInRegistersToolsAnAiAgentCanCall": {
     "message": "，Save In 註冊 AI 代理程式在此選項頁面開啟時可以呼叫的工具，以變更設定、建立資料夾選單和編寫路由規則。"
@@ -1254,7 +1254,7 @@
     "message": "儲存"
   },
   "html_theSessionLogBelowAlwaysKeepsASmallLocal": {
-    "message": "下面的會話日誌始終保留最近失敗的小型本機記錄。僅在使用瀏覽器開發人員控制台進行故障排除時啟用此功能；它添加了詳細的內部詳細信息，並在重新啟動後重置為保存的設定。"
+    "message": "下方的工作階段記錄一律會在本機保留少量近期失敗記錄。只有在使用瀏覽器開發人員主控台排解問題時才啟用；它會加入詳細的內部資訊，並在重新啟動後恢復為已儲存的設定。"
   },
   "html_toConnectOpenThisPageInABrowserThat": {
     "message": "若要連線：在支援 WebMCP 的瀏覽器中開啟此頁面，保持開啟狀態，然後將瀏覽器內代理程式指向此標籤。用簡單易懂的語言提問——例如“按網站和日期將我的下載內容分類到資料夾中，對每個文件進行編號，僅在文件失敗時通知我。”"
@@ -1446,16 +1446,16 @@
     "message": "（僅限 Firefox）。"
   },
   "html_forCaseInsensitiveMatching": {
-    "message": "用於不區分大小寫的匹配。"
+    "message": "以進行不區分大小寫的比對。"
   },
   "html_forExplicitNewRules": {
     "message": "在新規則中。"
   },
   "html_matcherClausesUse": {
-    "message": "匹配子句的使用"
+    "message": "比對子句使用"
   },
   "html_matchers": {
-    "message": "匹配器"
+    "message": "比對器"
   },
   "html_matchesTheCommentOfTheClickedMenuItem": {
     "message": "與所選選單項目的註釋相符。"
@@ -1467,13 +1467,13 @@
     "message": "符合目前頁面 URL。"
   },
   "html_matchesTheFinalFilename": {
-    "message": "匹配最終檔名。"
+    "message": "比對最終檔名。"
   },
   "html_matchesTheLinkTextOrElement": {
-    "message": "匹配連結文字或元素的"
+    "message": "比對連結文字或元素的"
   },
   "html_matchesTheMediaType": {
-    "message": "匹配媒體類型："
+    "message": "比對媒體類型："
   },
   "html_matchesTheMenuIndexOfTheClickedMenuItem": {
     "message": "符合所選選單項目的索引（1、2、3…）。"
@@ -1485,16 +1485,16 @@
     "message": "符合頁面主機名稱。"
   },
   "html_matchesTheResolvedFilenameExtensionAfterContentDisposition": {
-    "message": "匹配已解析的檔案副檔名，包括 Content-Disposition。"
+    "message": "比對解析後的副檔名，包括 Content-Disposition。"
   },
   "html_matchesTheSelectionText": {
-    "message": "匹配選定的文字。"
+    "message": "比對選取的文字。"
   },
   "html_matchesTheSourceHostnameForMedia": {
     "message": "符合媒體來源主機名稱。"
   },
   "html_matchesTheSourceUrlForMedia": {
-    "message": "匹配媒體來源 URL。"
+    "message": "比對媒體來源 URL。"
   },
   "html_matchesTheUrlDerivedExtensionLegacyNameUse": {
     "message": "符合源自 URL 的副檔名（舊名稱）。使用"
@@ -1515,28 +1515,28 @@
     "message": "正規表示式"
   },
   "html_renamingTheFileKeepsItsOwnNameEG": {
-    "message": "重新命名—檔案保留其目前名稱（例如，"
+    "message": "不會被重新命名，因此會保留原名稱（例如"
   },
   "html_required": {
     "message": "必填"
   },
   "html_routesDownloadsToOrRewritesDownloadFilenamesIntoThe": {
-    "message": "將下載內容移至給定路徑或使用給定模式重新命名。結束於"
+    "message": "將下載項目移至指定路徑，或依指定模式重新命名。若要移至資料夾，請在模式末尾加入"
   },
   "html_selectsTheMatcherForRegexCaptureGroupVariables": {
-    "message": "選擇其正規表示式捕獲組可用的匹配器"
+    "message": "選擇要提供規則運算式擷取群組變數的比對器"
   },
   "html_splitMultipleCaptureTargetsWithA": {
     "message": "。分隔多個捕獲目標"
   },
   "html_stringsAddJavascriptRegexFlagsAfterTheMatcherName": {
-    "message": "。在匹配器名稱後新增 JavaScript 標誌；例如，使用"
+    "message": "。在比對器名稱後加入 JavaScript 旗標；例如，使用"
   },
   "html_toRouteIntoAFolder": {
-    "message": "將其移動到資料夾中"
+    "message": "即可移至資料夾，"
   },
   "html_without": {
-    "message": "沒有"
+    "message": "檔名"
   },
   "o_lShortcutEnterOrReset": {
     "message": "輸入快捷方式或使用重置。"

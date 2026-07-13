@@ -732,7 +732,7 @@
     "message": "最後にコメントを。から始める"
   },
   "html_browsersOnlyLetExtensionsSaveInsideTheDefault": {
-    "message": "ブラウザでは拡張機能はデフォルト内にのみ保存できます"
+    "message": "ブラウザでは、拡張機能の保存先が次のフォルダー内に限定されます："
   },
   "html_buildTheDestinationsAndSubmenusShownInSaveIn": {
     "message": "Save In のコンテキスト メニューに表示されるフォルダーとサブメニューを選択します。"
@@ -771,7 +771,7 @@
     "message": "それぞれ"
   },
   "html_eachLineAddsADestinationRelativeToYourBrowser": {
-    "message": "各行はブラウザの相対的な宛先を追加します。"
+    "message": "各行に保存先を追加します。基準はブラウザの"
   },
   "html_forExample": {
     "message": "たとえば、"
@@ -828,7 +828,7 @@
     "message": "ネストされたサブメニューを作成するには、1 つを使用します。"
   },
   "html_toReachAnotherLocationCreateASymlinkInsideDownloads": {
-    "message": "。別の場所にアクセスするには、Downloads 内にシンボリックリンクを作成し、その相対シンボリックリンク パスを宛先として使用します。ターゲットフォルダーはすでに存在している必要があります。"
+    "message": "。別の場所へ保存するには、「ダウンロード」内にシンボリックリンクを作成し、その相対パスを保存先として使用します。リンク先のフォルダーはあらかじめ作成しておく必要があります。"
   },
   "html_useAVariable": {
     "message": "変数を使用する"
@@ -960,7 +960,7 @@
     "message": "コマンド / Windowsキー"
   },
   "html_copy0LeavesDismissalToTheBrowserOrOperatingSystem": {
-    "message": "0 は、ブラウザまたはオペレーティング システムに終了を残します。"
+    "message": "0 にすると、通知を閉じるタイミングはブラウザまたは OS に任されます。"
   },
   "html_ctrl": {
     "message": "Ctrl"
@@ -1080,7 +1080,7 @@
     "message": "現在"
   },
   "html_currentValueOfThe": {
-    "message": "現在の値"
+    "message": "変数"
   },
   "html_delete": {
     "message": "削除する"
@@ -1140,7 +1140,7 @@
     "message": "一括変更の場合は、1 行に 1 つの拡張 ID を使用します。"
   },
   "html_variableItAdvancesOncePerSavedDownloadAndPersists": {
-    "message": "変数。保存されたダウンロードごとに 1 回進み、再起動しても持続します。"
+    "message": "の現在値です。保存が完了するたびに 1 ずつ増え、再起動後も保持されます。"
   },
   "html_webextensionsSuchAsFoxyGesturesCanMessageSaveIn": {
     "message": "Foxy Gestures などの WebExtensions は、Save In に直接メッセージを送信できます。 Greasemonkey、Tampermonkey、または Violentmonkey のユーザー スクリプトは、それ自体では実行できません。ユーザー スクリプトは、拡張間を越えたメッセージング アクセスを受け取りません。小さなコンパニオン WebExtension をリレーとして使用するか、ユーザースクリプトでその機能を公開する拡張機能に URL を渡します。"
@@ -1209,7 +1209,7 @@
     "message": "幸運な整理猫"
   },
   "html_messageFirstOrASmallRelayExtensionMustDo": {
-    "message": " メッセージを送信するか、小さなリレー拡張機能でそうする必要があります。 Video DownloadHelper は、Save In が直接呼び出すことができる安定した統合 API を公開していません。"
+    "message": " メッセージを送信するか、小さな中継用拡張機能が代わりに送信する必要があります。Video DownloadHelper には、Save In から直接呼び出せる安定した連携 API がありません。"
   },
   "html_offscreen": {
     "message": "オフスクリーン"
@@ -1233,13 +1233,13 @@
     "message": "有効になっている場合、完了した保存と対処可能な失敗をレポートします。"
   },
   "html_saveInDoesNotAdoptDownloadsThatAnotherExtension": {
-    "message": "Save In は、Video DownloadHelper など、別の拡張機能がすでに開始しているダウンロードを採用しません。ダウンローダーは最初に Save In を送信する必要があります。"
+    "message": "Save In は、Video DownloadHelper など、別の拡張機能がすでに開始したダウンロードを引き継ぎません。ダウンロード元の拡張機能は、まず Save In に"
   },
   "html_saveInHasNoAnalyticsAdvertisingDeveloperOperatedServer": {
     "message": "Save In には、分析、広告、開発者が運営するサーバー、またはリモート実行可能コードはありません。設定と履歴はブラウザー管理の拡張機能ストレージに残ります。"
   },
   "html_saveInIsALocalFirstDownloadsHelperFor": {
-    "message": "Save In は、コンテキスト メニュー フォルダー、ルーティング ルール、名前変更、ページ ソース、ダウンロード履歴を使用してファイルを整理するためのローカル ファースト ダウンロード ヘルパーです。"
+    "message": "Save In はローカル処理を優先するダウンロード支援ツールです。コンテキストメニューのフォルダー、ルーティングルール、名前変更、ページのリソース、ダウンロード履歴を使ってファイルを整理できます。"
   },
   "html_saveInRegistersToolsAnAiAgentCanCall": {
     "message": ", Save In は、このオプション ページが開いているときに AI エージェントが呼び出せるツール (設定の変更、フォルダー メニューの構築、ルーティング ルールの作成など) を登録します。"
@@ -1254,7 +1254,7 @@
     "message": "ストレージ"
   },
   "html_theSessionLogBelowAlwaysKeepsASmallLocal": {
-    "message": "以下のセッション ログには、最近の失敗に関する小さなローカル記録が常に保存されます。これは、ブラウザ開発者コンソールを使用してトラブルシューティングを行う場合にのみ有効にしてください。詳細な内部詳細が追加され、再起動後に保存された設定にリセットされます。"
+    "message": "以下のセッションログには、最近の失敗が少量だけローカルに記録されます。ブラウザの開発者コンソールで問題を調査するときだけ有効にしてください。詳細な内部情報が追加され、再起動後は保存済みの設定に戻ります。"
   },
   "html_toConnectOpenThisPageInABrowserThat": {
     "message": "接続するには: WebMCP をサポートするブラウザでこのページを開き、開いたままにして、ブラウザ内エージェントにこのタブを指定します。わかりやすい言葉で質問してください — 例: 「ダウンロードしたファイルをウェブサイトと日付ごとにフォルダーに分類し、各ファイルに番号を付け、失敗した場合にのみ通知します。」"
@@ -1437,7 +1437,7 @@
     "message": "両方の変数が使用される場合。"
   },
   "html_attribute": {
-    "message": "属性。"
+    "message": "属性に一致します。"
   },
   "html_clausesAreOnlyUsedInRuleDefinitionsForRouting": {
     "message": "ルーティング ルールは、句を使用して、どのダウンロードを移動または名前変更するかを決定します。"
@@ -1470,7 +1470,7 @@
     "message": "最終的なファイル名と一致します。"
   },
   "html_matchesTheLinkTextOrElement": {
-    "message": "リンクテキストまたは要素と一致します"
+    "message": "リンクテキストまたは要素の"
   },
   "html_matchesTheMediaType": {
     "message": "メディア タイプと一致します:"
@@ -1515,13 +1515,13 @@
     "message": "正規表現"
   },
   "html_renamingTheFileKeepsItsOwnNameEG": {
-    "message": "名前変更 - ファイルは現在の名前を維持します (たとえば、"
+    "message": "変更されないため、元の名前が維持されます（例："
   },
   "html_required": {
     "message": "必須"
   },
   "html_routesDownloadsToOrRewritesDownloadFilenamesIntoThe": {
-    "message": "ダウンロードを指定されたパスに移動するか、指定されたパターンで名前を変更します。で終わる"
+    "message": "ダウンロードを指定したパスへ移動するか、指定したパターンで名前を変更します。フォルダーへ移動するには、パターンの末尾に"
   },
   "html_selectsTheMatcherForRegexCaptureGroupVariables": {
     "message": "正規表現キャプチャ グループが利用可能なマッチャーを選択します。"
@@ -1533,10 +1533,10 @@
     "message": "。マッチャー名の後に JavaScript フラグを追加します。たとえば、使用します"
   },
   "html_toRouteIntoAFolder": {
-    "message": "フォルダーに移動するには"
+    "message": "を付けるとフォルダーへ移動できます。"
   },
   "html_without": {
-    "message": "なしで"
+    "message": "ファイル名は"
   },
   "o_lShortcutEnterOrReset": {
     "message": "ショートカットを入力するか、「リセット」を使用します。"

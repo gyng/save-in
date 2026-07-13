@@ -39,7 +39,7 @@
     "message": "Página"
   },
   "contextMenuShowDefaultFolder": {
-    "message": "Abra a pasta de download padrão"
+    "message": "Abrir a pasta padrão de downloads"
   },
   "notificationSuccessTitle": {
     "message": "Salvo"
@@ -216,7 +216,7 @@
     "message": "Fontes de página"
   },
   "o_lPageSourcesHelp": {
-    "message": "Navegue por imagens, vídeos, áudio, documentos e links para download encontrados na página atual. Os itens salvos usam suas regras normais de roteamento e renomeação."
+    "message": "Navegue por imagens, vídeos, áudios, documentos e links para download encontrados na página atual. Os itens salvos usam suas regras normais de roteamento e renomeação."
   },
   "o_lPageSourcesNetworkLimit": {
     "message": "Alguns players de vídeo usam URLs temporários ou carregam mídia por meio de scripts, portanto, Save In pode não detectar todos os vídeos. Às vezes, ele pode encontrar listas de reprodução de streaming de vídeo (HLS/DASH), mas esses arquivos listam apenas as peças de vídeo separadas; salvar um não salva o vídeo completo."
@@ -408,7 +408,7 @@
     "message": "Mostrar ações para links"
   },
   "o_cPreferLinks": {
-    "message": "Salve o destino do link em vez da mídia incorporada"
+    "message": "Salvar o destino do link em vez da mídia incorporada"
   },
   "o_cSaveText": {
     "message": "Mostrar uma ação para o texto selecionado"
@@ -585,7 +585,7 @@
     "message": "Defina o referenciador para esses sites"
   },
   "o_cSetRefererHeaderFilterHelp": {
-    "message": "Um padrão de correspondência por linha, por ex. *://i.pximg.net/*. O Referer só é definido para downloads cujo URL corresponda a um destes."
+    "message": "Um padrão de correspondência por linha, por exemplo, *://i.pximg.net/*. O Referer só é definido para downloads cuja URL corresponde a um desses padrões."
   },
   "o_cImportSettings": {
     "message": "Importar configurações"
@@ -648,7 +648,7 @@
     "message": "Sem erros de validação"
   },
   "notificationLinkPreferred": {
-    "message": "Baixei o destino do link"
+    "message": "Destino do link baixado"
   },
   "o_cPreferLinksFilterEnabled": {
     "message": "Somente nas páginas correspondentes"
@@ -732,7 +732,7 @@
     "message": "no final para um comentário; comece com"
   },
   "html_browsersOnlyLetExtensionsSaveInsideTheDefault": {
-    "message": "Os navegadores só permitem que as extensões sejam salvas dentro do padrão"
+    "message": "Os navegadores só permitem que extensões salvem arquivos na"
   },
   "html_buildTheDestinationsAndSubmenusShownInSaveIn": {
     "message": "Escolha as pastas e submenus mostrados no menu de contexto do Save In."
@@ -765,13 +765,13 @@
     "message": "Discussões"
   },
   "html_downloadsFolder": {
-    "message": "Pasta de downloads"
+    "message": "pasta padrão de downloads"
   },
   "html_each": {
     "message": "Cada"
   },
   "html_eachLineAddsADestinationRelativeToYourBrowser": {
-    "message": "Cada linha adiciona um destino relativo ao seu navegador"
+    "message": "Cada linha adiciona um destino relativo à"
   },
   "html_forExample": {
     "message": "Por exemplo,"
@@ -960,7 +960,7 @@
     "message": "Tecla Comando / Windows"
   },
   "html_copy0LeavesDismissalToTheBrowserOrOperatingSystem": {
-    "message": "0 deixa a dispensa para o navegador ou sistema operacional."
+    "message": "Com 0, o navegador ou o sistema operacional decide quando dispensar a notificação."
   },
   "html_ctrl": {
     "message": "Ctrl"
@@ -1080,7 +1080,7 @@
     "message": "Atual"
   },
   "html_currentValueOfThe": {
-    "message": "Valor atual do"
+    "message": "Valor atual da variável"
   },
   "html_delete": {
     "message": "excluir"
@@ -1134,13 +1134,13 @@
     "message": "Definir valor"
   },
   "html_theseExtensionsTriedToStartADownloadAddOnly": {
-    "message": "Essas extensões tentaram iniciar um download. Adicione apenas chamadores em quem você confia. URLs solicitados nunca são armazenados."
+    "message": "Estas extensões tentaram iniciar um download. Adicione apenas extensões solicitantes em que você confia. As URLs solicitadas nunca são armazenadas."
   },
   "html_useOneExtensionIdPerLineForBulkChanges": {
     "message": "Use um ID de extensão por linha para alterações em massa."
   },
   "html_variableItAdvancesOncePerSavedDownloadAndPersists": {
-    "message": "variável. Ele avança uma vez por download salvo e persiste nas reinicializações."
+    "message": "— o valor aumenta a cada download salvo e persiste após reinicializações."
   },
   "html_webextensionsSuchAsFoxyGesturesCanMessageSaveIn": {
     "message": "WebExtensions, como Foxy Gestures, pode enviar mensagens diretamente para Save In. Um userscript Greasemonkey, Tampermonkey ou Violentmonkey não pode fazer isso sozinho: os userscripts não recebem acesso de mensagens de extensão cruzada. Use um pequeno companheiro WebExtension como retransmissão ou faça com que o script do usuário entregue a URL para uma extensão que expõe essa capacidade."
@@ -1209,7 +1209,7 @@
     "message": "Gato organizador sortudo"
   },
   "html_messageFirstOrASmallRelayExtensionMustDo": {
-    "message": " mensagem, ou uma pequena extensão de relé deve fazê-lo. Video DownloadHelper não expõe uma API de integração estável que Save In possa chamar diretamente."
+    "message": " ao Save In, ou uma pequena extensão de retransmissão deve fazer isso. O Video DownloadHelper não oferece uma API de integração estável que o Save In possa chamar diretamente."
   },
   "html_offscreen": {
     "message": "Fora da tela"
@@ -1233,13 +1233,13 @@
     "message": "Relata salvamentos concluídos e falhas acionáveis quando ativado."
   },
   "html_saveInDoesNotAdoptDownloadsThatAnotherExtension": {
-    "message": "Save In não adota downloads que outra extensão já tenha iniciado, incluindo Video DownloadHelper. O downloader deve primeiro enviar a Save In um"
+    "message": "O Save In não assume downloads já iniciados por outra extensão, incluindo o Video DownloadHelper. A extensão responsável pelo download deve primeiro enviar uma mensagem do tipo"
   },
   "html_saveInHasNoAnalyticsAdvertisingDeveloperOperatedServer": {
     "message": "Save In não possui análises, publicidade, servidor operado por desenvolvedor ou código executável remoto. As configurações e o histórico permanecem no armazenamento de extensões gerenciado pelo navegador."
   },
   "html_saveInIsALocalFirstDownloadsHelperFor": {
-    "message": "Save In é um assistente de downloads que funciona localmente e organiza arquivos com pastas no menu de contexto, regras de roteamento, renomeação, fontes de página e histórico de downloads."
+    "message": "O Save In é um assistente de downloads que prioriza o processamento local e organiza arquivos com pastas do menu de contexto, regras de roteamento, renomeação, recursos da página e histórico de downloads."
   },
   "html_saveInRegistersToolsAnAiAgentCanCall": {
     "message": ", Save In registra ferramentas que um agente de IA pode chamar enquanto esta página de opções está aberta – para alterar configurações, criar menus de pastas e escrever regras de roteamento."
@@ -1254,7 +1254,7 @@
     "message": "Armazenamento"
   },
   "html_theSessionLogBelowAlwaysKeepsASmallLocal": {
-    "message": "O log de sessão abaixo sempre mantém um pequeno registro local das falhas recentes. Habilite isto somente ao solucionar problemas com o console do desenvolvedor do navegador; ele adiciona detalhes internos detalhados e redefine a configuração salva após a reinicialização."
+    "message": "O log da sessão mantém localmente um pequeno registro das falhas recentes. Ative-o somente ao solucionar problemas com o console de desenvolvedor do navegador; ele adiciona informações internas detalhadas e volta à configuração salva após a reinicialização."
   },
   "html_toConnectOpenThisPageInABrowserThat": {
     "message": "Para conectar: abra esta página em um navegador compatível com WebMCP, mantenha-a aberta e aponte seu agente no navegador para esta guia. Pergunte em linguagem simples - por ex. “classifique meus downloads em pastas por site e data, numere cada arquivo e me avise apenas quando um falhar.”"
@@ -1395,7 +1395,7 @@
     "message": "Extensão de arquivo derivada do"
   },
   "html_first12LowercaseHexCharactersOfTheDownloadedFile": {
-    "message": "Os primeiros 12 caracteres hexadecimais minúsculos do SHA-256 do arquivo baixado. A preparação desse valor busca e faz o hash do arquivo antes de salvá-lo, para que ele fique em branco nas visualizações ou quando não estiver disponível. O download continua se o hash falhar. Você pode cancelar uma preparação longa do Histórico."
+    "message": "Os primeiros 12 caracteres hexadecimais minúsculos do SHA-256 do arquivo baixado. A preparação desse valor busca o arquivo e calcula o hash antes de salvá-lo; por isso, ele fica em branco nas visualizações ou quando não está disponível. O download continua se o cálculo falhar. Você pode cancelar uma preparação demorada no Histórico."
   },
   "html_full64CharacterLowercaseSha256ItSharesThe": {
     "message": "SHA-256 em letras minúsculas com 64 caracteres. É calculado junto com"
@@ -1437,7 +1437,7 @@
     "message": "quando ambas as variáveis são usadas."
   },
   "html_attribute": {
-    "message": "atributo."
+    "message": "do elemento."
   },
   "html_clausesAreOnlyUsedInRuleDefinitionsForRouting": {
     "message": "As regras de roteamento usam cláusulas para decidir quais downloads serão movidos ou renomeados."
@@ -1470,7 +1470,7 @@
     "message": "Corresponde ao nome do arquivo final."
   },
   "html_matchesTheLinkTextOrElement": {
-    "message": "Corresponde ao texto do link ou ao elemento"
+    "message": "Corresponde ao texto do link ou ao atributo"
   },
   "html_matchesTheMediaType": {
     "message": "Corresponde ao tipo de mídia:"
@@ -1515,13 +1515,13 @@
     "message": "expressões regulares"
   },
   "html_renamingTheFileKeepsItsOwnNameEG": {
-    "message": "renomeação — o arquivo mantém seu nome atual (por exemplo,"
+    "message": "renomeá-lo; o arquivo mantém seu nome atual (por exemplo,"
   },
   "html_required": {
     "message": "Obrigatório"
   },
   "html_routesDownloadsToOrRewritesDownloadFilenamesIntoThe": {
-    "message": "Move um download para o caminho determinado ou o renomeia com o padrão determinado. Terminar com"
+    "message": "Move um download para o caminho indicado ou o renomeia com o padrão indicado. Termine o padrão com"
   },
   "html_selectsTheMatcherForRegexCaptureGroupVariables": {
     "message": "Seleciona o matcher cujos grupos de captura de expressão regular estão disponíveis como"

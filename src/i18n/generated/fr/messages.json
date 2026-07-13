@@ -189,7 +189,7 @@
     "message": "Entrez un modèle de correspondance WebExtension par ligne. Les exclusions remplacent les URL correspondantes ci-dessus et s'appliquent à la fois au suivi de l'historique et au routage."
   },
   "o_lBrowserDownloadVariables": {
-    "message": "Les téléchargements par navigateur fournissent uniquement l'URL, le nom de fichier proposé, l'heure actuelle, le compteur, l'UUID et les variables MIME. Le titre de la page, l'URL de la page, le texte du lien, la sélection, les métadonnées du menu et les modificateurs clés ne sont pas disponibles."
+    "message": "Les téléchargements du navigateur fournissent uniquement l’URL, le nom de fichier proposé, l’heure actuelle, le compteur, l’UUID et les variables MIME. Le titre et l’URL de la page, le texte du lien, la sélection, les métadonnées du menu et les touches de modification ne sont pas disponibles."
   },
   "o_sRenameAndRouteDownloads": {
     "message": "Routage et changement de nom"
@@ -228,7 +228,7 @@
     "message": "Inclure des images d'arrière-plan CSS"
   },
   "o_cSourcePanelLive": {
-    "message": "Actualiser lorsque le support de la page change"
+    "message": "Actualiser lorsque le contenu multimédia de la page change"
   },
   "o_cSourcePanelPreviews": {
     "message": "Afficher des aperçus d'images et de vidéos"
@@ -417,7 +417,7 @@
     "message": "Afficher une action pour la page actuelle"
   },
   "o_cSavePageHelp": {
-    "message": "Enregistre uniquement le document de page ; les images, feuilles de style et autres fichiers externes ne sont pas inclus."
+    "message": "Enregistre uniquement le document de la page ; les images, feuilles de style et autres fichiers externes ne sont pas inclus."
   },
   "o_cSaveTabstrip": {
     "message": "Afficher les actions Save In dans le menu de l'onglet"
@@ -576,7 +576,7 @@
     "message": "Inclut les cookies applicables et la connexion gérée par le navigateur lorsque Save In récupère des fichiers en arrière-plan, y compris après des redirections. Les demandes de fenêtre privée restent anonymes. Les téléchargements directs du navigateur gèrent leurs propres informations d'identification."
   },
   "o_cSetRefererHeader": {
-    "message": "Utiliser l'URL de la page comme référent en cas d'absence"
+    "message": "Utiliser l’URL de la page comme Referer s’il est absent"
   },
   "o_cSetRefererHeaderHelp": {
     "message": "Firefox uniquement. Certains sites (par exemple pixiv.net) rejettent les téléchargements sans en-tête HTTP Referer. Pour les téléchargements correspondants, Firefox envoie l'URL de la page directement en tant que référent. Laissez-le désactivé sauf si un site en a besoin."
@@ -732,7 +732,7 @@
     "message": "à la fin pour un commentaire ; commencer par"
   },
   "html_browsersOnlyLetExtensionsSaveInsideTheDefault": {
-    "message": "Les navigateurs autorisent uniquement les extensions à être enregistrées dans les valeurs par défaut"
+    "message": "Les navigateurs n’autorisent les extensions à enregistrer des fichiers que dans le"
   },
   "html_buildTheDestinationsAndSubmenusShownInSaveIn": {
     "message": "Choisissez les dossiers et sous-menus affichés dans le menu contextuel de Save In."
@@ -765,13 +765,13 @@
     "message": "Discussions"
   },
   "html_downloadsFolder": {
-    "message": "Dossier de téléchargements"
+    "message": "dossier de téléchargements"
   },
   "html_each": {
     "message": "Chacun"
   },
   "html_eachLineAddsADestinationRelativeToYourBrowser": {
-    "message": "Chaque ligne ajoute une destination relative à celle de votre navigateur"
+    "message": "Chaque ligne ajoute une destination relative au"
   },
   "html_forExample": {
     "message": "Par exemple,"
@@ -960,7 +960,7 @@
     "message": "Commande / Touche Windows"
   },
   "html_copy0LeavesDismissalToTheBrowserOrOperatingSystem": {
-    "message": "0 laisse le rejet au navigateur ou au système d’exploitation."
+    "message": "Avec 0, le navigateur ou le système d’exploitation décide quand masquer la notification."
   },
   "html_ctrl": {
     "message": "Ctrl"
@@ -1017,7 +1017,7 @@
     "message": "Avertir quand"
   },
   "html_previewOfThePageSourcesDrawer": {
-    "message": "Aperçu du tiroir Sources de la page"
+    "message": "Aperçu du panneau Sources de la page"
   },
   "html_primaryModifier": {
     "message": "Modificateur principal"
@@ -1080,7 +1080,7 @@
     "message": "Actuel"
   },
   "html_currentValueOfThe": {
-    "message": "Valeur actuelle du"
+    "message": "Valeur actuelle de la variable"
   },
   "html_delete": {
     "message": "supprimer"
@@ -1140,7 +1140,7 @@
     "message": "Utilisez un ID d'extension par ligne pour les modifications groupées."
   },
   "html_variableItAdvancesOncePerSavedDownloadAndPersists": {
-    "message": "variable. Il avance une fois par téléchargement enregistré et persiste lors des redémarrages."
+    "message": "— elle augmente après chaque téléchargement enregistré et persiste après un redémarrage."
   },
   "html_webextensionsSuchAsFoxyGesturesCanMessageSaveIn": {
     "message": "WebExtensions tel que Foxy Gestures peut envoyer un message directement à Save In. Un script utilisateur Greasemonkey, Tampermonkey ou Violentmonkey ne peut pas le faire par lui-même : les scripts utilisateur ne reçoivent pas d'accès à la messagerie entre extensions. Utilisez un petit compagnon WebExtension comme relais, ou demandez au script utilisateur de transmettre l'URL à une extension qui expose cette capacité."
@@ -1209,7 +1209,7 @@
     "message": "Chat organisateur chanceux"
   },
   "html_messageFirstOrASmallRelayExtensionMustDo": {
-    "message": " message, ou une petite extension de relais doit le faire. Video DownloadHelper n'expose pas d'API d'intégration stable que Save In peut appeler directement."
+    "message": " à Save In, ou une petite extension relais doit le faire. Video DownloadHelper ne fournit pas d’API d’intégration stable que Save In puisse appeler directement."
   },
   "html_offscreen": {
     "message": "Hors écran"
@@ -1233,13 +1233,13 @@
     "message": "Signale les sauvegardes terminées et les échecs exploitables lorsqu'il est activé."
   },
   "html_saveInDoesNotAdoptDownloadsThatAnotherExtension": {
-    "message": "Save In n'adopte pas les téléchargements qu'une autre extension a déjà démarrés, notamment Video DownloadHelper. Le téléchargeur doit d'abord envoyer à Save In un"
+    "message": "Save In ne reprend pas les téléchargements déjà lancés par une autre extension, notamment Video DownloadHelper. Le téléchargeur doit d’abord envoyer un message de type"
   },
   "html_saveInHasNoAnalyticsAdvertisingDeveloperOperatedServer": {
     "message": "Save In n'a pas d'analyse, de publicité, de serveur exploité par un développeur ou de code exécutable à distance. Les paramètres et l'historique restent dans le stockage des extensions gérées par le navigateur."
   },
   "html_saveInIsALocalFirstDownloadsHelperFor": {
-    "message": "Save In est un assistant de téléchargement local qui organise les fichiers avec des dossiers de menu contextuel, des règles de routage, le renommage, les sources de page et l’historique des téléchargements."
+    "message": "Save In est un assistant de téléchargement qui privilégie le traitement local et organise les fichiers à l’aide de dossiers du menu contextuel, de règles de routage, du renommage, des ressources de la page et de l’historique des téléchargements."
   },
   "html_saveInRegistersToolsAnAiAgentCanCall": {
     "message": ", Save In enregistre les outils qu'un agent IA peut appeler lorsque cette page d'options est ouverte : pour modifier les paramètres, créer des menus de dossiers et écrire des règles de routage."
@@ -1254,7 +1254,7 @@
     "message": "Stockage"
   },
   "html_theSessionLogBelowAlwaysKeepsASmallLocal": {
-    "message": "Le journal de session ci-dessous conserve toujours un petit enregistrement local des échecs récents. Activez cette option uniquement lors du dépannage avec la console du développeur du navigateur ; il ajoute des détails internes détaillés et réinitialise le paramètre enregistré après le redémarrage."
+    "message": "Le journal de session conserve localement un bref historique des échecs récents. Activez-le uniquement pour résoudre un problème avec la console de développement du navigateur ; il ajoute des informations internes détaillées et revient au réglage enregistré après un redémarrage."
   },
   "html_toConnectOpenThisPageInABrowserThat": {
     "message": "Pour vous connecter : ouvrez cette page dans un navigateur prenant en charge WebMCP, laissez-la ouverte et pointez votre agent dans le navigateur vers cet onglet. Demandez-le dans un langage simple – par ex. \"trier mes téléchargements dans des dossiers par site Web et par date, numéroter chaque fichier et m'avertir uniquement en cas d'échec.\""
@@ -1329,7 +1329,7 @@
     "message": "Nom d'hôte de la page sans sous-domaines"
   },
   "html_pageTitleLowercasedAndDashed": {
-    "message": "Titre de la page, en minuscules et en pointillés"
+    "message": "Titre de la page, en minuscules et séparé par des tirets"
   },
   "html_pageTitleLowercasedWithUnderscores": {
     "message": "Titre de la page, en minuscules avec traits de soulignement"
@@ -1437,7 +1437,7 @@
     "message": "lorsque les deux variables sont utilisées."
   },
   "html_attribute": {
-    "message": "attribut."
+    "message": "de l’élément."
   },
   "html_clausesAreOnlyUsedInRuleDefinitionsForRouting": {
     "message": "Les règles de routage utilisent des clauses pour décider quels téléchargements déplacer ou renommer."
@@ -1470,7 +1470,7 @@
     "message": "Correspond au nom de fichier final."
   },
   "html_matchesTheLinkTextOrElement": {
-    "message": "Correspond au texte du lien ou à celui de l'élément"
+    "message": "Correspond au texte du lien ou à l’attribut"
   },
   "html_matchesTheMediaType": {
     "message": "Correspond au type de média :"
@@ -1515,13 +1515,13 @@
     "message": "expressions régulières"
   },
   "html_renamingTheFileKeepsItsOwnNameEG": {
-    "message": "Renommer : le fichier conserve son nom actuel (par exemple,"
+    "message": "le renommer : le fichier conserve son nom actuel (par exemple"
   },
   "html_required": {
     "message": "Obligatoire"
   },
   "html_routesDownloadsToOrRewritesDownloadFilenamesIntoThe": {
-    "message": "Déplace un téléchargement vers le chemin donné ou le renomme avec le modèle donné. Terminer par"
+    "message": "Déplace un téléchargement vers le chemin indiqué ou le renomme selon le modèle indiqué. Terminez le modèle par"
   },
   "html_selectsTheMatcherForRegexCaptureGroupVariables": {
     "message": "Sélectionne le matcher dont les groupes de capture d'expression régulière sont disponibles en tant que"

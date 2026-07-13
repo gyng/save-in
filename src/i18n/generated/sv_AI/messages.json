@@ -336,7 +336,7 @@
     "message": "Mapp"
   },
   "o_bAddSeparator": {
-    "message": "Separator"
+    "message": "Avgränsare"
   },
   "o_lClauses": {
     "message": "Klausuler"
@@ -615,7 +615,7 @@
     "message": "Textregler"
   },
   "o_lMatcher": {
-    "message": "Matcher"
+    "message": "Matchare"
   },
   "o_lPattern": {
     "message": "Mönster"
@@ -732,7 +732,7 @@
     "message": "i slutet för en kommentar; börja med"
   },
   "html_browsersOnlyLetExtensionsSaveInsideTheDefault": {
-    "message": "Webbläsare låter bara tillägg sparas inom standardinställningen"
+    "message": "Webbläsare tillåter bara tillägg att spara filer i webbläsarens förvalda"
   },
   "html_buildTheDestinationsAndSubmenusShownInSaveIn": {
     "message": "Välj de mappar och undermenyer som visas i Save Ins sammanhangsmeny."
@@ -765,7 +765,7 @@
     "message": "Diskussioner"
   },
   "html_downloadsFolder": {
-    "message": "Mapp för nedladdningar"
+    "message": "hämtningsmapp"
   },
   "html_each": {
     "message": "Varje"
@@ -804,7 +804,7 @@
     "message": "per nivå."
   },
   "html_saveInWiki": {
-    "message": "Save In wiki"
+    "message": "Save In-wiki"
   },
   "html_savesTo": {
     "message": "Sparar till"
@@ -864,7 +864,7 @@
     "message": "Kopiera denna prompt till en agent eller använd WebMCP från externa integrationer."
   },
   "html_destination": {
-    "message": "destination."
+    "message": "mål."
   },
   "html_destinationsAreRelativeToTheDownloadsMenuDestinationYou": {
     "message": "Destinationerna är relativa till den mapp du valde. Matchningsvärden är reguljära uttryck; se"
@@ -960,7 +960,7 @@
     "message": "Kommando / Windows tangent"
   },
   "html_copy0LeavesDismissalToTheBrowserOrOperatingSystem": {
-    "message": "0 lämnar avvisning till webbläsaren eller operativsystemet."
+    "message": "Med 0 avgör webbläsaren eller operativsystemet när aviseringen stängs."
   },
   "html_ctrl": {
     "message": "Ctrl"
@@ -1080,7 +1080,7 @@
     "message": "Aktuell"
   },
   "html_currentValueOfThe": {
-    "message": "Nuvarande värde av"
+    "message": "Aktuellt värde för variabeln"
   },
   "html_delete": {
     "message": "ta bort"
@@ -1140,7 +1140,7 @@
     "message": "Använd ett tilläggs-ID per rad för massändringar."
   },
   "html_variableItAdvancesOncePerSavedDownloadAndPersists": {
-    "message": "variabel. Den avancerar en gång per sparad nedladdning och fortsätter under omstarter."
+    "message": "— värdet ökar efter varje sparad nedladdning och behålls efter omstarter."
   },
   "html_webextensionsSuchAsFoxyGesturesCanMessageSaveIn": {
     "message": "WebExtensions såsom Foxy Gestures kan skicka meddelanden till Save In direkt. Ett Greasemonkey-, Tampermonkey- eller Violentmonkey-användarskript kan inte göra det själv: användarskript får inte åtkomst till korsextensionsmeddelanden. Använd en liten följeslagare WebExtension som ett relä, eller låt användarskriptet lämna URL:en till ett tillägg som exponerar den förmågan."
@@ -1209,7 +1209,7 @@
     "message": "Tur att organisera katt"
   },
   "html_messageFirstOrASmallRelayExtensionMustDo": {
-    "message": " meddelande, eller en liten reläförlängning måste göra det. Video DownloadHelper exponerar inte ett stabilt integrations-API som Save In kan anropa direkt."
+    "message": " till Save In, eller så måste ett litet relätillägg göra det. Video DownloadHelper erbjuder inget stabilt integrations-API som Save In kan anropa direkt."
   },
   "html_offscreen": {
     "message": "Offscreen"
@@ -1233,7 +1233,7 @@
     "message": "Rapporterar slutförda besparingar och åtgärdsbara misslyckanden när aktiverat."
   },
   "html_saveInDoesNotAdoptDownloadsThatAnotherExtension": {
-    "message": "Save In använder inte nedladdningar som en annan tillägg redan har startat, inklusive Video DownloadHelper. Laddaren måste först skicka Save In en"
+    "message": "Save In tar inte över nedladdningar som ett annat tillägg redan har startat, inklusive Video DownloadHelper. Nedladdningstillägget måste först skicka ett meddelande av typen"
   },
   "html_saveInHasNoAnalyticsAdvertisingDeveloperOperatedServer": {
     "message": "Save In har ingen analys, reklam, utvecklarstyrd server eller fjärrkörbar kod. Inställningar och historik finns kvar i webbläsarhanterad tilläggslagring."
@@ -1254,7 +1254,7 @@
     "message": "Förvaring"
   },
   "html_theSessionLogBelowAlwaysKeepsASmallLocal": {
-    "message": "Sessionsloggen nedan håller alltid ett litet lokalt register över de senaste felen. Aktivera detta endast vid felsökning med webbläsarens utvecklarkonsol; den lägger till detaljerade interna detaljer och återställer till den sparade inställningen efter omstart."
+    "message": "Sessionsloggen sparar alltid en liten lokal historik över de senaste felen. Aktivera den bara vid felsökning med webbläsarens utvecklarkonsol; den lägger till utförlig intern information och återgår till den sparade inställningen efter omstart."
   },
   "html_toConnectOpenThisPageInABrowserThat": {
     "message": "För att ansluta: öppna den här sidan i en webbläsare som stöder WebMCP, håll den öppen och peka din webbläsaragent på den här fliken. Fråga det i klartext — t.ex. \"Sortera mina nedladdningar i mappar efter webbplats och datum, numrera varje fil och meddela mig bara när en misslyckas.\""
@@ -1515,13 +1515,13 @@
     "message": "reguljära uttryck"
   },
   "html_renamingTheFileKeepsItsOwnNameEG": {
-    "message": "byter namn – filen behåller sitt nuvarande namn (t.ex."
+    "message": "byta namn på den; filen behåller sitt nuvarande namn (t.ex."
   },
   "html_required": {
     "message": "Obligatoriskt"
   },
   "html_routesDownloadsToOrRewritesDownloadFilenamesIntoThe": {
-    "message": "Flyttar en nedladdning till den givna sökvägen eller byter namn på den med det givna mönstret. Avsluta med"
+    "message": "Flyttar en nedladdning till den angivna sökvägen eller byter namn på den enligt det angivna mönstret. Avsluta mönstret med"
   },
   "html_selectsTheMatcherForRegexCaptureGroupVariables": {
     "message": "Väljer matcharen vars infångningsgrupper med reguljära uttryck är tillgängliga som"
@@ -1533,10 +1533,10 @@
     "message": ". Lägg till JavaScript-flaggor efter matchningsnamnet; till exempel använda"
   },
   "html_toRouteIntoAFolder": {
-    "message": "för att flytta den till en mapp"
+    "message": "för att flytta filen till en mapp"
   },
   "html_without": {
-    "message": "utan"
+    "message": "utan att"
   },
   "o_lShortcutEnterOrReset": {
     "message": "Ange en genväg eller använd Återställ."

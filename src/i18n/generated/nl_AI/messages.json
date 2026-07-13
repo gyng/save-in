@@ -72,7 +72,7 @@
     "message": "Voeg ten minste één matcherclausule toe"
   },
   "ruleCaptureMissingMatcher": {
-    "message": "De capture-clausule is niet gericht op een match"
+    "message": "De capture-clausule verwijst niet naar een matcher"
   },
   "ruleMissingCapture": {
     "message": "Voeg een capture-clausule toe om capture-variabelen te gebruiken"
@@ -372,7 +372,7 @@
     "message": "Taal"
   },
   "o_lBrowserDefault": {
-    "message": "Standaard browser"
+    "message": "Browserstandaard"
   },
   "o_lLanguageChangeFailed": {
     "message": "Kon de taal niet wijzigen. Probeer het opnieuw."
@@ -732,7 +732,7 @@
     "message": "aan het einde voor een commentaar; beginnen met"
   },
   "html_browsersOnlyLetExtensionsSaveInsideTheDefault": {
-    "message": "Browsers laten extensies alleen binnen de standaardinstellingen opslaan"
+    "message": "Browsers staan extensies alleen toe bestanden op te slaan in de standaard"
   },
   "html_buildTheDestinationsAndSubmenusShownInSaveIn": {
     "message": "Kies de mappen en submenu's die worden weergegeven in het contextmenu van Save In."
@@ -765,13 +765,13 @@
     "message": "Discussies"
   },
   "html_downloadsFolder": {
-    "message": "Map Downloads"
+    "message": "map Downloads"
   },
   "html_each": {
     "message": "Elk"
   },
   "html_eachLineAddsADestinationRelativeToYourBrowser": {
-    "message": "Elke regel voegt een bestemming toe ten opzichte van die van uw browser"
+    "message": "Elke regel voegt een bestemming toe ten opzichte van de"
   },
   "html_forExample": {
     "message": "Bijvoorbeeld"
@@ -960,7 +960,7 @@
     "message": "Commando / Windows-toets"
   },
   "html_copy0LeavesDismissalToTheBrowserOrOperatingSystem": {
-    "message": "0 laat ontslag over aan de browser of het besturingssysteem."
+    "message": "Bij 0 bepaalt de browser of het besturingssysteem wanneer de melding verdwijnt."
   },
   "html_ctrl": {
     "message": "Ctrl"
@@ -1080,7 +1080,7 @@
     "message": "Huidig"
   },
   "html_currentValueOfThe": {
-    "message": "Huidige waarde van de"
+    "message": "Huidige waarde van de variabele"
   },
   "html_delete": {
     "message": "verwijderen"
@@ -1107,7 +1107,7 @@
     "message": "Laat vertrouwde extensies URL's verzenden via de routerings- en hernoemingsregels van Save In."
   },
   "html_mdnMatchPatterns": {
-    "message": "MDN: Match-patronen"
+    "message": "MDN: matchpatronen"
   },
   "html_noExtensionsAreApprovedExternalDownloadsAreBlockedBy": {
     "message": "Er worden geen verlengingen goedgekeurd. Externe downloads worden standaard geblokkeerd."
@@ -1140,7 +1140,7 @@
     "message": "Gebruik één extensie-ID per regel voor bulkwijzigingen."
   },
   "html_variableItAdvancesOncePerSavedDownloadAndPersists": {
-    "message": "variabel. Het gaat één keer per opgeslagen download vooruit en blijft bestaan bij opnieuw opstarten."
+    "message": "— deze wordt na elke opgeslagen download verhoogd en blijft na opnieuw opstarten behouden."
   },
   "html_webextensionsSuchAsFoxyGesturesCanMessageSaveIn": {
     "message": "WebExtensions zoals Foxy Gestures kunnen Save In rechtstreeks een bericht sturen. Een Greasemonkey-, Tampermonkey- of Violentmonkey-gebruikersscript kan dit niet zelf doen: gebruikersscripts ontvangen geen berichtentoegang tussen verschillende extensies. Gebruik een kleine metgezel WebExtension als relay, of laat het gebruikersscript de URL doorgeven aan een extensie die die mogelijkheid blootlegt."
@@ -1209,7 +1209,7 @@
     "message": "Gelukkige organiserende kat"
   },
   "html_messageFirstOrASmallRelayExtensionMustDo": {
-    "message": " bericht, of een kleine relaisextensie moet dit doen. Video DownloadHelper biedt geen stabiele integratie-API die Save In rechtstreeks kan aanroepen."
+    "message": " naar Save In sturen, of een kleine relay-extensie moet dat doen. Video DownloadHelper biedt geen stabiele integratie-API die Save In rechtstreeks kan aanroepen."
   },
   "html_offscreen": {
     "message": "Buiten het scherm"
@@ -1233,7 +1233,7 @@
     "message": "Rapporteert voltooide opslagbewerkingen en bruikbare fouten indien ingeschakeld."
   },
   "html_saveInDoesNotAdoptDownloadsThatAnotherExtension": {
-    "message": "Save In neemt geen downloads over die al door een andere extensie zijn gestart, inclusief Video DownloadHelper. De downloader moet eerst Save In een"
+    "message": "Save In neemt geen downloads over die al door een andere extensie zijn gestart, waaronder Video DownloadHelper. De downloadextensie moet eerst een bericht van het type"
   },
   "html_saveInHasNoAnalyticsAdvertisingDeveloperOperatedServer": {
     "message": "Save In heeft geen analyses, advertenties, door ontwikkelaars bediende servers of op afstand uitvoerbare code. Instellingen en geschiedenis blijven in de door de browser beheerde extensieopslag."
@@ -1257,7 +1257,7 @@
     "message": "In het onderstaande sessielogboek wordt altijd een klein lokaal overzicht bijgehouden van recente fouten. Schakel dit alleen in bij het oplossen van problemen met de browserontwikkelaarsconsole; het voegt uitgebreide interne details toe en wordt na het opnieuw opstarten gereset naar de opgeslagen instelling."
   },
   "html_toConnectOpenThisPageInABrowserThat": {
-    "message": "Om verbinding te maken: open deze pagina in een browser die WebMCP ondersteunt, houd deze open en wijs uw browseragent naar dit tabblad. Vraag het in gewone taal, b.v. “sorteer mijn downloads in mappen op website en datum, nummer elk bestand en laat het me alleen weten als er één mislukt.”"
+    "message": "Verbinding maken: open deze pagina in een browser die WebMCP ondersteunt, laat de pagina open en wijs uw browseragent naar dit tabblad. Geef de agent een opdracht in gewone taal, bijvoorbeeld: “sorteer mijn downloads in mappen op website en datum, nummer elk bestand en meld het alleen als er één mislukt.”"
   },
   "html_tools": {
     "message": "Gereedschap"
@@ -1437,7 +1437,7 @@
     "message": "wanneer beide variabelen worden gebruikt."
   },
   "html_attribute": {
-    "message": "attribuut."
+    "message": "van het element."
   },
   "html_clausesAreOnlyUsedInRuleDefinitionsForRouting": {
     "message": "Routingregels gebruiken clausules om te beslissen welke downloads moeten worden verplaatst of hernoemd."
@@ -1470,7 +1470,7 @@
     "message": "Komt overeen met de uiteindelijke bestandsnaam."
   },
   "html_matchesTheLinkTextOrElement": {
-    "message": "Komt overeen met de linktekst of die van het element"
+    "message": "Komt overeen met de linktekst of het attribuut"
   },
   "html_matchesTheMediaType": {
     "message": "Komt overeen met het mediatype:"
@@ -1515,13 +1515,13 @@
     "message": "reguliere expressies"
   },
   "html_renamingTheFileKeepsItsOwnNameEG": {
-    "message": "hernoemen: het bestand behoudt zijn huidige naam (bijvoorbeeld"
+    "message": "de naam te wijzigen; het bestand behoudt zijn huidige naam (bijvoorbeeld"
   },
   "html_required": {
     "message": "Vereist"
   },
   "html_routesDownloadsToOrRewritesDownloadFilenamesIntoThe": {
-    "message": "Verplaatst een download naar het opgegeven pad of hernoemt deze met het opgegeven patroon. Eindig met"
+    "message": "Verplaatst een download naar het opgegeven pad of hernoemt deze met het opgegeven patroon. Eindig het patroon met"
   },
   "html_selectsTheMatcherForRegexCaptureGroupVariables": {
     "message": "Selecteert de matcher waarvan de opnamegroepen met reguliere expressies beschikbaar zijn"
@@ -1533,7 +1533,7 @@
     "message": ". Voeg JavaScript-vlaggen toe na de naam van de matcher; gebruik bijvoorbeeld"
   },
   "html_toRouteIntoAFolder": {
-    "message": "om het naar een map te verplaatsen"
+    "message": "om de download naar een map te verplaatsen"
   },
   "html_without": {
     "message": "zonder"
@@ -1563,16 +1563,16 @@
     "message": "Klaar om te solliciteren."
   },
   "o_lShortcutChangeUnsupported": {
-    "message": "Deze browser ondersteunt het wijzigen van snelkoppelingen hier niet."
+    "message": "Deze browser ondersteunt het wijzigen van toetscombinaties hier niet."
   },
   "o_lShortcutRejected": {
-    "message": "De browser accepteerde deze snelkoppeling niet. Het kan gereserveerd zijn of in gebruik."
+    "message": "De browser accepteerde deze toetscombinatie niet. Deze is mogelijk gereserveerd of al in gebruik."
   },
   "o_lShortcutUpdated": {
     "message": "Snelkoppeling bijgewerkt."
   },
   "o_lShortcutResetUnsupported": {
-    "message": "Deze browser ondersteunt het opnieuw instellen van snelkoppelingen hier niet."
+    "message": "Deze browser ondersteunt het opnieuw instellen van toetscombinaties hier niet."
   },
   "o_lShortcutReset": {
     "message": "Sneltoets opnieuw instellen."

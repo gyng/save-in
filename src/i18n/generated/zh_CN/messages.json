@@ -165,7 +165,7 @@
     "message": "使用浏览器下载的路由规则"
   },
   "o_cRouteBrowserDownloadsHelp": {
-    "message": "如果支持，匹配规则可以重命名浏览器下载或将它们放置在子文件夹中。无与伦比的下载量保持不变。"
+    "message": "如果浏览器支持，匹配规则可以重命名浏览器下载或将其放入子文件夹。不匹配的下载保持不变。"
   },
   "o_cRouteBrowserDownloadsFirefox": {
     "message": "在 Firefox 上实验性地重新路由匹配下载"
@@ -216,7 +216,7 @@
     "message": "页面来源"
   },
   "o_lPageSourcesHelp": {
-    "message": "浏览当前页面上的图像、视频、音频、文档和可下载链接。保存的项目使用正常的路由和重命名规则。"
+    "message": "浏览当前页面中的图片、视频、音频、文档和可下载链接。保存的项目会使用常规的路由和重命名规则。"
   },
   "o_lPageSourcesNetworkLimit": {
     "message": "某些视频播放器使用临时 URL 或通过脚本加载媒体，因此 Save In 可能无法检测到每个视频。有时它可以找到流视频播放列表（HLS/DASH），但这些文件仅列出单独的视频片段；保存一个视频并不会保存完整的视频。"
@@ -573,7 +573,7 @@
     "message": "包括网站登录 cookie"
   },
   "o_cIncludeFetchCredentialsHelp": {
-    "message": "当 Save In 在后台获取文件时（包括重定向后），包括适用的 cookie 和浏览器管理的登录。私人窗口请求保持匿名。直接浏览器下载管理自己的凭据。"
+    "message": "Save In 在后台获取文件时（包括重定向后）会使用适用的 Cookie 和由浏览器管理的登录信息。隐私窗口中的请求仍保持匿名。由浏览器直接下载时，浏览器会自行管理凭据。"
   },
   "o_cSetRefererHeader": {
     "message": "缺失时使用页面 URL 作为 Referer"
@@ -732,7 +732,7 @@
     "message": "最后发表评论；开始于"
   },
   "html_browsersOnlyLetExtensionsSaveInsideTheDefault": {
-    "message": "浏览器只允许扩展保存在默认值中"
+    "message": "浏览器只允许扩展程序保存在以下文件夹内："
   },
   "html_buildTheDestinationsAndSubmenusShownInSaveIn": {
     "message": "选择 Save In 上下文菜单中显示的文件夹和子菜单。"
@@ -771,7 +771,7 @@
     "message": "每个"
   },
   "html_eachLineAddsADestinationRelativeToYourBrowser": {
-    "message": "每行都会添加一个相对于您的浏览器的目的地"
+    "message": "每行添加一个保存位置，路径相对于浏览器的"
   },
   "html_forExample": {
     "message": "例如，"
@@ -828,7 +828,7 @@
     "message": "创建嵌套子菜单，使用"
   },
   "html_toReachAnotherLocationCreateASymlinkInsideDownloads": {
-    "message": "。要到达另一个位置，请在“下载”内创建符号链接并使用该相对符号链接路径作为目标。目标文件夹必须已存在。"
+    "message": "。要保存到其他位置，请在“下载”文件夹内创建符号链接，并将该链接的相对路径用作保存位置。链接指向的文件夹必须已经存在。"
   },
   "html_useAVariable": {
     "message": "使用变量"
@@ -960,7 +960,7 @@
     "message": "命令 / Windows 键"
   },
   "html_copy0LeavesDismissalToTheBrowserOrOperatingSystem": {
-    "message": "0 将解雇留给浏览器或操作系统。"
+    "message": "设为 0 时，由浏览器或操作系统决定何时关闭通知。"
   },
   "html_ctrl": {
     "message": "控制键"
@@ -1080,7 +1080,7 @@
     "message": "当前"
   },
   "html_currentValueOfThe": {
-    "message": "当前值"
+    "message": "变量"
   },
   "html_delete": {
     "message": "删除"
@@ -1140,7 +1140,7 @@
     "message": "每行使用一个分机 ID 进行批量更改。"
   },
   "html_variableItAdvancesOncePerSavedDownloadAndPersists": {
-    "message": "变量。每次保存的下载都会前进一次，并在重新启动后持续存在。"
+    "message": "的当前值。每保存一个下载，该值就增加 1，并在重启后保留。"
   },
   "html_webextensionsSuchAsFoxyGesturesCanMessageSaveIn": {
     "message": "WebExtensions 例如 Foxy Gestures 可以直接给 Save In 发消息。 Greasemonkey、Tampermonkey 或 Violentmonkey 用户脚本本身无法执行此操作：用户脚本不接收跨扩展消息传递访问权限。使用小型同伴 WebExtension 作为中继，或者让用户脚本将 URL 传递给公开该功能的扩展。"
@@ -1209,7 +1209,7 @@
     "message": "幸运的组织猫"
   },
   "html_messageFirstOrASmallRelayExtensionMustDo": {
-    "message": " 消息，或者小型中继分机必须这样做。 Video DownloadHelper没有公开Save In可以直接调用的稳定集成API。"
+    "message": " 消息，否则必须由小型中继扩展程序代为发送。Video DownloadHelper 没有提供可供 Save In 直接调用的稳定集成 API。"
   },
   "html_offscreen": {
     "message": "银幕外"
@@ -1233,13 +1233,13 @@
     "message": "启用后报告已完成的保存和可操作的失败。"
   },
   "html_saveInDoesNotAdoptDownloadsThatAnotherExtension": {
-    "message": "Save In 不采用其他扩展已经开始的下载，包括 Video DownloadHelper。下载者必须首先发送Save In"
+    "message": "Save In 不会接管其他扩展程序已经开始的下载，包括 Video DownloadHelper。发起下载的扩展程序必须先向 Save In 发送"
   },
   "html_saveInHasNoAnalyticsAdvertisingDeveloperOperatedServer": {
     "message": "Save In 没有分析、广告、开发人员操作的服务器或远程可执行代码。设置和历史记录保留在浏览器管理的扩展存储中。"
   },
   "html_saveInIsALocalFirstDownloadsHelperFor": {
-    "message": "Save In 是一个本地优先下载帮助程序，用于通过上下文菜单文件夹、路由规则、重命名、页面源和下载历史记录来组织文件。"
+    "message": "Save In 是一款优先在本地处理的下载助手，可通过上下文菜单文件夹、路由规则、重命名、页面资源和下载历史来整理文件。"
   },
   "html_saveInRegistersToolsAnAiAgentCanCall": {
     "message": "，Save In 注册 AI 代理在此选项页面打开时可以调用的工具，以更改设置、构建文件夹菜单和编写路由规则。"
@@ -1254,7 +1254,7 @@
     "message": "存储"
   },
   "html_theSessionLogBelowAlwaysKeepsASmallLocal": {
-    "message": "下面的会话日志始终保留最近失败的小型本地记录。仅在使用浏览器开发人员控制台进行故障排除时启用此功能；它添加了详细的内部详细信息，并在重新启动后重置为保存的设置。"
+    "message": "下方的会话日志始终在本地保留少量近期失败记录。仅在使用浏览器开发者控制台排查问题时启用；它会添加详细的内部信息，并在重启后恢复为已保存的设置。"
   },
   "html_toConnectOpenThisPageInABrowserThat": {
     "message": "要连接：在支持 WebMCP 的浏览器中打开此页面，保持打开状态，然后将浏览器内代理指向此选项卡。用通俗易懂的语言提问——例如“按网站和日期将我的下载内容分类到文件夹中，对每个文件进行编号，仅在文件失败时通知我。”"
@@ -1515,13 +1515,13 @@
     "message": "正则表达式"
   },
   "html_renamingTheFileKeepsItsOwnNameEG": {
-    "message": "重命名—文件保留其当前名称（例如，"
+    "message": "不会被重命名，因此会保留原名称（例如"
   },
   "html_required": {
     "message": "必填"
   },
   "html_routesDownloadsToOrRewritesDownloadFilenamesIntoThe": {
-    "message": "将下载内容移动到给定路径或使用给定模式重命名。结束于"
+    "message": "将下载移动到指定路径，或按指定模式重命名。若要移至文件夹，请在模式末尾添加"
   },
   "html_selectsTheMatcherForRegexCaptureGroupVariables": {
     "message": "选择其正则表达式捕获组可用的匹配器"
@@ -1533,10 +1533,10 @@
     "message": "。在匹配器名称后添加 JavaScript 标志；例如，使用"
   },
   "html_toRouteIntoAFolder": {
-    "message": "将其移动到文件夹中"
+    "message": "即可移至文件夹，"
   },
   "html_without": {
-    "message": "没有"
+    "message": "文件名"
   },
   "o_lShortcutEnterOrReset": {
     "message": "输入快捷方式或使用重置。"

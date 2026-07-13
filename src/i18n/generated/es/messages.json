@@ -732,7 +732,7 @@
     "message": "al final para un comentario; empezar con"
   },
   "html_browsersOnlyLetExtensionsSaveInsideTheDefault": {
-    "message": "Los navegadores solo permiten que las extensiones se guarden dentro del valor predeterminado"
+    "message": "Los navegadores solo permiten que las extensiones guarden archivos dentro de la"
   },
   "html_buildTheDestinationsAndSubmenusShownInSaveIn": {
     "message": "Elija las carpetas y submenús que se muestran en el menú contextual de Save In."
@@ -765,13 +765,13 @@
     "message": "Discusiones"
   },
   "html_downloadsFolder": {
-    "message": "Carpeta de descargas"
+    "message": "carpeta de descargas"
   },
   "html_each": {
     "message": "cada uno"
   },
   "html_eachLineAddsADestinationRelativeToYourBrowser": {
-    "message": "Cada línea agrega un destino relativo al de su navegador."
+    "message": "Cada línea añade un destino relativo a la"
   },
   "html_forExample": {
     "message": "Por ejemplo,"
@@ -960,7 +960,7 @@
     "message": "Tecla Comando/Windows"
   },
   "html_copy0LeavesDismissalToTheBrowserOrOperatingSystem": {
-    "message": "0 deja el despido al navegador o al sistema operativo."
+    "message": "Con 0, el navegador o el sistema operativo decide cuándo se cierra la notificación."
   },
   "html_ctrl": {
     "message": "control"
@@ -1080,7 +1080,7 @@
     "message": "Actual"
   },
   "html_currentValueOfThe": {
-    "message": "Valor actual de la"
+    "message": "Valor actual de la variable"
   },
   "html_delete": {
     "message": "eliminar"
@@ -1140,7 +1140,7 @@
     "message": "Utilice una ID de extensión por línea para cambios masivos."
   },
   "html_variableItAdvancesOncePerSavedDownloadAndPersists": {
-    "message": "variable. Avanza una vez por descarga guardada y persiste durante los reinicios."
+    "message": "— aumenta con cada descarga guardada y se conserva tras reiniciar."
   },
   "html_webextensionsSuchAsFoxyGesturesCanMessageSaveIn": {
     "message": "WebExtensions como Foxy Gestures pueden enviar mensajes a Save In directamente. Un script de usuario de Greasemonkey, Tampermonkey o Violentmonkey no puede hacerlo por sí solo: los scripts de usuario no reciben acceso a mensajes entre extensiones. Utilice un pequeño compañero WebExtension como retransmisión, o haga que el script de usuario entregue la URL a una extensión que exponga esa capacidad."
@@ -1209,7 +1209,7 @@
     "message": "Gato organizador afortunado"
   },
   "html_messageFirstOrASmallRelayExtensionMustDo": {
-    "message": " mensaje, o una pequeña extensión de retransmisión debe hacerlo. Video DownloadHelper no expone una API de integración estable a la que Save In pueda llamar directamente."
+    "message": " a Save In, o bien debe hacerlo una pequeña extensión de retransmisión. Video DownloadHelper no ofrece una API de integración estable que Save In pueda llamar directamente."
   },
   "html_offscreen": {
     "message": "Fuera de pantalla"
@@ -1233,13 +1233,13 @@
     "message": "Informa de guardados completados y errores procesables cuando está habilitado."
   },
   "html_saveInDoesNotAdoptDownloadsThatAnotherExtension": {
-    "message": "Save In no adopta descargas que ya haya iniciado otra extensión, incluido Video DownloadHelper. El descargador primero debe enviar a Save In un"
+    "message": "Save In no adopta descargas que ya haya iniciado otra extensión, incluido Video DownloadHelper. El descargador debe enviar primero un mensaje de tipo"
   },
   "html_saveInHasNoAnalyticsAdvertisingDeveloperOperatedServer": {
     "message": "Save In no tiene análisis, publicidad, servidor operado por desarrolladores ni código ejecutable remoto. La configuración y el historial permanecen en el almacenamiento de extensión administrado por el navegador."
   },
   "html_saveInIsALocalFirstDownloadsHelperFor": {
-    "message": "Save In es un asistente de descarga local para organizar archivos con carpetas de menú contextual, reglas de enrutamiento, cambio de nombre, fuentes de páginas e historial de descargas."
+    "message": "Save In es un asistente de descargas que prioriza el procesamiento local y organiza archivos con carpetas del menú contextual, reglas de enrutamiento, cambio de nombre, recursos de la página e historial de descargas."
   },
   "html_saveInRegistersToolsAnAiAgentCanCall": {
     "message": ", Save In registra herramientas a las que un agente de IA puede llamar mientras esta página de opciones está abierta para cambiar configuraciones, crear menús de carpetas y escribir reglas de enrutamiento."
@@ -1254,7 +1254,7 @@
     "message": "Almacenamiento"
   },
   "html_theSessionLogBelowAlwaysKeepsASmallLocal": {
-    "message": "El registro de sesión a continuación siempre mantiene un pequeño registro local de fallas recientes. Habilite esto solo cuando solucione problemas con la consola de desarrollador del navegador; agrega detalles internos detallados y restablece la configuración guardada después del reinicio."
+    "message": "El registro de sesión conserva localmente un breve historial de los fallos recientes. Actívelo solo para solucionar problemas con la consola de desarrollo del navegador; añade información interna detallada y vuelve a la configuración guardada después de reiniciar."
   },
   "html_toConnectOpenThisPageInABrowserThat": {
     "message": "Para conectarse: abra esta página en un navegador que admita WebMCP, manténgala abierta y apunte su agente en el navegador a esta pestaña. Pregúntelo en un lenguaje sencillo, p. \"ordene mis descargas en carpetas por sitio web y fecha, numere cada archivo y notifíqueme sólo cuando uno falle\"."
@@ -1437,7 +1437,7 @@
     "message": "cuando se utilizan ambas variables."
   },
   "html_attribute": {
-    "message": "atributo."
+    "message": "del elemento."
   },
   "html_clausesAreOnlyUsedInRuleDefinitionsForRouting": {
     "message": "Las reglas de enrutamiento utilizan cláusulas para decidir qué descargas mover o cambiar de nombre."
@@ -1470,7 +1470,7 @@
     "message": "Coincide con el nombre del archivo final."
   },
   "html_matchesTheLinkTextOrElement": {
-    "message": "Coincide con el texto del enlace o el del elemento."
+    "message": "Coincide con el texto del enlace o con el atributo"
   },
   "html_matchesTheMediaType": {
     "message": "Coincide con el tipo de medio:"
@@ -1515,13 +1515,13 @@
     "message": "expresiones regulares"
   },
   "html_renamingTheFileKeepsItsOwnNameEG": {
-    "message": "cambiar el nombre: el archivo mantiene su nombre actual (por ejemplo,"
+    "message": "cambiarle el nombre; el archivo conserva su nombre actual (por ejemplo,"
   },
   "html_required": {
     "message": "Requerido"
   },
   "html_routesDownloadsToOrRewritesDownloadFilenamesIntoThe": {
-    "message": "Mueve una descarga a la ruta indicada o le cambia el nombre con el patrón indicado. Terminar con"
+    "message": "Mueve una descarga a la ruta indicada o la renombra con el patrón indicado. Termine el patrón con"
   },
   "html_selectsTheMatcherForRegexCaptureGroupVariables": {
     "message": "Selecciona el comparador cuyos grupos de captura de expresiones regulares están disponibles como"
@@ -1533,7 +1533,7 @@
     "message": ". Agregue indicadores de JavaScript después del nombre del comparador; por ejemplo, utilizar"
   },
   "html_toRouteIntoAFolder": {
-    "message": "para moverlo a una carpeta"
+    "message": "para moverla a una carpeta"
   },
   "html_without": {
     "message": "sin"

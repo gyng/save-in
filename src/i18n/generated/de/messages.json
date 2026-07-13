@@ -39,7 +39,7 @@
     "message": "Seite"
   },
   "contextMenuShowDefaultFolder": {
-    "message": "Öffnen Sie den Standard-Download-Ordner"
+    "message": "Standard-Download-Ordner öffnen"
   },
   "notificationSuccessTitle": {
     "message": "Gespeichert"
@@ -462,7 +462,7 @@
     "message": "Benachrichtigen, wenn ein Download erfolgreich ist"
   },
   "o_cNotifyFailure": {
-    "message": "Benachrichtigen Sie, wenn ein Download fehlschlägt"
+    "message": "Benachrichtigen, wenn ein Download fehlschlägt"
   },
   "o_cNotifyMatch": {
     "message": "Benachrichtigen, wenn eine Routing-Regel übereinstimmt"
@@ -507,7 +507,7 @@
     "message": "Fügen Sie Zifferntastenkürzel zu kontextbezogenen Untermenüelementen hinzu"
   },
   "o_cKeyboardShortcutClickToSave": {
-    "message": "Aktivieren Sie Click-to-Save"
+    "message": "Click-to-Save aktivieren"
   },
   "o_cKeyboardShortcutClickToHelp": {
     "message": "Halten Sie standardmäßig die Alt-Taste gedrückt und klicken Sie auf ein Bild oder Medienelement, um es im zuletzt verwendeten Ordner oder Standard-Download-Ordner zu speichern. Save In fügt Seiten einen Klick-Listener hinzu; einige Variablen sind nicht verfügbar."
@@ -576,7 +576,7 @@
     "message": "Beinhaltet anwendbare Cookies und eine vom Browser verwaltete Anmeldung, wenn Save In Dateien im Hintergrund abruft, auch nach Weiterleitungen. Anfragen für private Fenster bleiben anonym. Direkte Browser-Downloads verwalten ihre eigenen Anmeldeinformationen."
   },
   "o_cSetRefererHeader": {
-    "message": "Verwenden Sie die Seiten-URL als Referrer, wenn diese fehlt"
+    "message": "Fehlenden Referer durch die Seiten-URL ersetzen"
   },
   "o_cSetRefererHeaderHelp": {
     "message": "Nur Firefox. Einige Websites (z. B. pixiv.net) lehnen Downloads ohne HTTP-Referer-Header ab. Bei passenden Downloads sendet Firefox die Seiten-URL direkt als Referrer. Lassen Sie es weg, es sei denn, eine Website benötigt es."
@@ -732,7 +732,7 @@
     "message": "am Ende für einen Kommentar; Beginnen Sie mit"
   },
   "html_browsersOnlyLetExtensionsSaveInsideTheDefault": {
-    "message": "Browser lassen Erweiterungen nur innerhalb der Standardeinstellungen speichern"
+    "message": "Browser erlauben Erweiterungen das Speichern nur im standardmäßigen"
   },
   "html_buildTheDestinationsAndSubmenusShownInSaveIn": {
     "message": "Wählen Sie die im Kontextmenü von Save In angezeigten Ordner und Untermenüs aus."
@@ -771,7 +771,7 @@
     "message": "Jeder"
   },
   "html_eachLineAddsADestinationRelativeToYourBrowser": {
-    "message": "Jede Zeile fügt ein Ziel relativ zu Ihrem Browser hinzu"
+    "message": "Jede Zeile fügt ein Ziel relativ zum"
   },
   "html_forExample": {
     "message": "Zum Beispiel,"
@@ -960,7 +960,7 @@
     "message": "Befehl / Windows-Taste"
   },
   "html_copy0LeavesDismissalToTheBrowserOrOperatingSystem": {
-    "message": "0 überlässt die Ablehnung dem Browser oder dem Betriebssystem."
+    "message": "Bei 0 übernimmt der Browser oder das Betriebssystem das Ausblenden der Benachrichtigung."
   },
   "html_ctrl": {
     "message": "Strg"
@@ -1080,7 +1080,7 @@
     "message": "Aktuell"
   },
   "html_currentValueOfThe": {
-    "message": "Aktueller Wert des"
+    "message": "Aktueller Wert der Variable"
   },
   "html_delete": {
     "message": "löschen"
@@ -1140,7 +1140,7 @@
     "message": "Verwenden Sie für Massenänderungen eine Erweiterungs-ID pro Zeile."
   },
   "html_variableItAdvancesOncePerSavedDownloadAndPersists": {
-    "message": "variabel. Es schreitet einmal pro gespeichertem Download voran und bleibt über Neustarts hinweg bestehen."
+    "message": "— sie erhöht sich nach jedem gespeicherten Download und bleibt über Neustarts hinweg erhalten."
   },
   "html_webextensionsSuchAsFoxyGesturesCanMessageSaveIn": {
     "message": "WebExtensions wie Foxy Gestures können Save In direkt benachrichtigen. Ein Greasemonkey-, Tampermonkey- oder Violentmonkey-Benutzerskript kann dies nicht alleine tun: Benutzerskripte erhalten keinen erweiterungsübergreifenden Nachrichtenzugriff. Verwenden Sie einen kleinen Begleiter WebExtension als Relay, oder lassen Sie das Benutzerskript die URL an eine Erweiterung übergeben, die diese Funktion bereitstellt."
@@ -1209,7 +1209,7 @@
     "message": "Glückliche organisierende Katze"
   },
   "html_messageFirstOrASmallRelayExtensionMustDo": {
-    "message": " Nachricht oder eine kleine Relaiserweiterung muss dies tun. Video DownloadHelper stellt keine stabile Integrations-API zur Verfügung, die Save In direkt aufrufen kann."
+    "message": " senden, oder eine kleine Relay-Erweiterung muss dies übernehmen. Video DownloadHelper stellt keine stabile Integrations-API bereit, die Save In direkt aufrufen kann."
   },
   "html_offscreen": {
     "message": "Offscreen"
@@ -1233,7 +1233,7 @@
     "message": "Meldet abgeschlossene Speicherungen und umsetzbare Fehler, wenn diese Option aktiviert ist."
   },
   "html_saveInDoesNotAdoptDownloadsThatAnotherExtension": {
-    "message": "Save In übernimmt keine Downloads, die bereits von einer anderen Erweiterung gestartet wurden, einschließlich Video DownloadHelper. Der Downloader muss zunächst Save In a senden"
+    "message": "Save In übernimmt keine Downloads, die bereits von einer anderen Erweiterung gestartet wurden, einschließlich Video DownloadHelper. Der Downloader muss Save In zunächst eine Nachricht des Typs"
   },
   "html_saveInHasNoAnalyticsAdvertisingDeveloperOperatedServer": {
     "message": "Save In verfügt über keine Analysen, keine Werbung, keinen vom Entwickler betriebenen Server oder keinen remote ausführbaren Code. Einstellungen und Verlauf bleiben im browserverwalteten Erweiterungsspeicher."
@@ -1437,7 +1437,7 @@
     "message": "wenn beide Variablen verwendet werden."
   },
   "html_attribute": {
-    "message": "Attribut."
+    "message": "des Elements."
   },
   "html_clausesAreOnlyUsedInRuleDefinitionsForRouting": {
     "message": "Routing-Regeln verwenden Klauseln, um zu entscheiden, welche Downloads verschoben oder umbenannt werden sollen."
@@ -1470,7 +1470,7 @@
     "message": "Entspricht dem endgültigen Dateinamen."
   },
   "html_matchesTheLinkTextOrElement": {
-    "message": "Entspricht dem Linktext oder dem des Elements"
+    "message": "Entspricht dem Linktext oder dem Attribut"
   },
   "html_matchesTheMediaType": {
     "message": "Entspricht dem Medientyp:"
@@ -1515,13 +1515,13 @@
     "message": "reguläre Ausdrücke"
   },
   "html_renamingTheFileKeepsItsOwnNameEG": {
-    "message": "Umbenennen – die Datei behält ihren aktuellen Namen (z. B."
+    "message": "umzubenennen – sie behält ihren aktuellen Namen (z. B."
   },
   "html_required": {
     "message": "Erforderlich"
   },
   "html_routesDownloadsToOrRewritesDownloadFilenamesIntoThe": {
-    "message": "Verschiebt einen Download in den angegebenen Pfad oder benennt ihn nach dem angegebenen Muster um. Schluss mit"
+    "message": "Verschiebt einen Download in den angegebenen Pfad oder benennt ihn nach dem angegebenen Muster um. Lassen Sie das Muster auf"
   },
   "html_selectsTheMatcherForRegexCaptureGroupVariables": {
     "message": "Wählt den Matcher aus, dessen Erfassungsgruppen für reguläre Ausdrücke verfügbar sind als"
@@ -1533,10 +1533,10 @@
     "message": ". Fügen Sie nach dem Matcher-Namen JavaScript-Flags hinzu; zum Beispiel verwenden"
   },
   "html_toRouteIntoAFolder": {
-    "message": "um es in einen Ordner zu verschieben"
+    "message": "enden, um die Datei in einen Ordner zu verschieben,"
   },
   "html_without": {
-    "message": "ohne"
+    "message": "ohne sie"
   },
   "o_lShortcutEnterOrReset": {
     "message": "Geben Sie eine Verknüpfung ein oder verwenden Sie Zurücksetzen."
@@ -1563,16 +1563,16 @@
     "message": "Bereit zur Bewerbung."
   },
   "o_lShortcutChangeUnsupported": {
-    "message": "Dieser Browser unterstützt das Ändern von Verknüpfungen hier nicht."
+    "message": "Dieser Browser unterstützt das Ändern von Tastenkombinationen hier nicht."
   },
   "o_lShortcutRejected": {
-    "message": "Der Browser hat diese Verknüpfung nicht akzeptiert. Es kann reserviert oder in Gebrauch sein."
+    "message": "Der Browser hat diese Tastenkombination nicht akzeptiert. Sie ist möglicherweise reserviert oder bereits belegt."
   },
   "o_lShortcutUpdated": {
     "message": "Verknüpfung aktualisiert."
   },
   "o_lShortcutResetUnsupported": {
-    "message": "Dieser Browser unterstützt das Zurücksetzen von Verknüpfungen hier nicht."
+    "message": "Dieser Browser unterstützt das Zurücksetzen von Tastenkombinationen hier nicht."
   },
   "o_lShortcutReset": {
     "message": "Verknüpfung zurücksetzen."
