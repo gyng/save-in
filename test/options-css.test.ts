@@ -78,7 +78,8 @@ test("dark links and accent backgrounds use separate contrast-safe roles", () =>
 
   expect(darkRoot).toContain("--link-color: var(--blue40)");
   expect(darkRoot).toContain("--link-color-active: var(--blue40)");
-  expect(darkRoot).toContain("--color-accent-active: var(--blue60)");
+  expect(stylesheet).toMatch(/^:root\s*\{[^}]*--color-accent-active:\s*var\(--blue70\)/s);
+  expect(darkRoot).not.toContain("--color-accent-active");
   expect(darkSettings).not.toContain("--link-color");
   expect(stylesheet).toMatch(
     /\.apply-button:hover\s*\{[^}]*background-color:\s*var\(--color-accent-active\)/,
@@ -105,5 +106,39 @@ test("interactive states retain theme-aware contrast", () => {
   expect(handle).not.toMatch(/opacity:\s*0?\.[0-9]+/);
   expect(stylesheet).toMatch(
     /\.path-editor-row:hover \.path-editor-handle,\s*\.path-editor-row:focus-within \.path-editor-handle\s*\{[^}]*color:\s*var\(--color-text\)/,
+  );
+});
+
+test("solid controls do not reuse text-link colors", () => {
+  for (const selector of [
+    ".autocomplete-dropdown li.selected",
+    ".apply-button",
+    ".source-panel-demo-facets .active",
+    ".path-editor-drop-indicator",
+  ]) {
+    const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    expect(stylesheet).toMatch(
+      new RegExp(`${escaped}\\s*\\{[^}]*background(?:-color)?:\\s*var\\(--color-accent\\)`),
+    );
+  }
+  expect(stylesheet).not.toMatch(/background(?:-color)?:\s*var\(--link-color\)/);
+});
+
+test("danger actions preserve their solid contrast on hover and active", () => {
+  expect(stylesheet).toContain("--color-danger:");
+  expect(stylesheet).toContain("--color-danger-active:");
+  expect(stylesheet).toMatch(
+    /\.danger-button\s*\{[^}]*border-color:\s*var\(--color-danger\)[^}]*background:\s*var\(--color-danger\)/,
+  );
+  expect(stylesheet).toMatch(
+    /\.danger-button:hover,\s*\.danger-button:active\s*\{[^}]*background:\s*var\(--color-danger-active\)/,
+  );
+});
+
+test("resting form controls use an accessible boundary role", () => {
+  expect(stylesheet).toContain("--control-border:");
+  expect(stylesheet).toMatch(/button\s*\{[^}]*border:\s*solid 1px var\(--control-border\)/);
+  expect(stylesheet).toMatch(
+    /input\[type="text"\],[\s\S]*?select\s*\{[^}]*border:\s*1px solid var\(--control-border\)/,
   );
 });

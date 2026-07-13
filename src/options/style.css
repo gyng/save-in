@@ -24,6 +24,7 @@
   --radius-sm: calc(var(--radius) - 1px);
   --control-height: 34px;
   --compact-row-height: 32px;
+  --control-border: #939395;
   --focus-ring: 0 0 0 2px var(--blue50);
   --content-max-width: 760px;
   --blue40: #45a1ff;
@@ -45,6 +46,8 @@
   /* Components use semantic roles; the base palette centralizes shared values. */
   --color-accent: var(--blue60);
   --color-accent-active: var(--blue70);
+  --color-danger: #c5002f;
+  --color-danger-active: #a40027;
   --color-on-accent: #ffffff;
   --color-border: var(--grey30);
   --color-surface-page: #ffffff;
@@ -76,7 +79,8 @@
     --color-surface-raised: var(--grey70);
     --color-text: #ffffff;
     --color-text-muted: var(--grey40);
-    --color-accent-active: var(--blue60);
+    --color-danger: #e60038;
+    --color-danger-active: #d50033;
     --link-color: var(--blue40);
     --link-color-active: var(--blue40);
     --page-bg: #2a2a2e;
@@ -846,7 +850,7 @@ td {
 button {
   border-radius: var(--radius);
   padding: 8px;
-  border: solid 1px var(--grey30);
+  border: solid 1px var(--control-border);
   background-color: transparent;
   font-size: var(--text-md);
   font-weight: 400;
@@ -1571,7 +1575,7 @@ input.key {
 /* Keyboard selection is the strong cue and outranks hover so the two never
    disagree when the pointer rests on a different row */
 .autocomplete-dropdown li.selected {
-  background: var(--link-color);
+  background: var(--color-accent);
   color: var(--color-on-accent);
 }
 
@@ -2442,8 +2446,8 @@ button:disabled:hover {
   padding: 8px 20px;
   font-weight: 500;
   color: var(--color-on-accent);
-  background-color: var(--link-color);
-  border-color: var(--link-color);
+  background-color: var(--color-accent);
+  border-color: var(--color-accent);
 }
 
 .apply-button:hover {
@@ -2577,7 +2581,7 @@ button:disabled:hover {
   bottom: -11px;
   padding: 1px 5px;
   border-radius: 3px;
-  background: var(--blue50);
+  background: var(--color-accent);
   color: var(--color-on-accent);
   font-size: 10px;
   line-height: 16px;
@@ -2754,7 +2758,7 @@ input[type="number"],
 input[type="search"],
 textarea,
 select {
-  border: 1px solid var(--panel-border);
+  border: 1px solid var(--control-border);
   border-radius: var(--radius);
   transition:
     box-shadow 0.12s ease,
@@ -3560,8 +3564,8 @@ code.click-to-copy {
 
 .source-panel-demo-facets .active {
   color: var(--color-on-accent);
-  border-color: var(--link-color);
-  background: var(--link-color);
+  border-color: var(--color-accent);
+  background: var(--color-accent);
 }
 
 .source-panel-demo-row {
@@ -4095,6 +4099,12 @@ code.click-to-copy {
 
 .danger-button {
   color: var(--color-on-accent);
-  border-color: var(--red50);
-  background: var(--red50);
+  border-color: var(--color-danger);
+  background: var(--color-danger);
+}
+
+.danger-button:hover,
+.danger-button:active {
+  border-color: var(--color-danger-active);
+  background: var(--color-danger-active);
 }
