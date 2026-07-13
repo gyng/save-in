@@ -81,6 +81,8 @@ export const OptionsManagement: OptionsManagementApi = {
     fallbackFetch: "Retry a failed download once via a background fetch.",
     includeFetchCredentials:
       "Include applicable website cookies and browser-managed authentication in non-private extension fetches.",
+    externalDownloadAllowlist:
+      "Extension IDs allowed to start downloads through the external API, one per line.",
     trackBrowserDownloads: "Include ordinary browser downloads in local Save In history.",
     routeBrowserDownloads:
       "Apply matching filename routing rules to ordinary browser downloads on Chrome.",

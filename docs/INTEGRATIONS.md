@@ -17,6 +17,8 @@ The options page shows the ID for the installed build. External callers must use
 
 Only other extensions can call `runtime.sendMessage(extensionId, …)`; ordinary web pages and userscripts do not automatically gain cross-extension messaging privileges.
 
+Before an extension can start a download, add its exact runtime ID under **Advanced → External integrations → Allowed extension IDs**. The allowlist is empty by default. `PING`, `GET_SCHEMA`, and `VALIDATE` remain available for discovery, but `DOWNLOAD` returns `UNAUTHORIZED` until the caller is explicitly allowed.
+
 Discover capabilities first:
 
 ```js
@@ -55,7 +57,7 @@ An explicit `url` takes precedence if both fields are present. For `target: "act
 
 Accepted URL schemes are `http`, `https`, `ftp`, `data`, and `blob`. A successful response means the save was accepted, not completed. Completion appears asynchronously in History/notifications.
 
-The external listener accepts requests from any installed extension. It validates message shape and URL scheme but does not allowlist senders. Installing extensions is the trust boundary.
+The browser may deliver external messages from any installed extension, but Save In checks `sender.id` against the user's allowlist before resolving an active tab or starting a download. Allow only extensions you trust with those capabilities.
 
 There is no `externally_connectable` declaration, so web pages cannot call Save In directly. A userscript needs a narrowly scoped companion extension or another explicit relay; do not expose a general page-to-extension forwarding bridge.
 

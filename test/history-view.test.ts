@@ -61,10 +61,29 @@ test("CSV export includes all flattened history fields and escapes values", () =
 });
 
 test("TSV export includes every flattened field and strips embedded tabs/newlines", () => {
-  const tsv = historyTsv([{ finalFullPath: "docs/a\tb\n.txt", variables: { title: "x" } }]);
+  const tsv = historyTsv([{ finalFullPath: "docs/a\tb\r\n.txt", variables: { title: "x" } }]);
   expect(tsv.split("\n")[0]).toContain("Variables");
   expect(tsv).not.toContain("a\tb");
+  expect(tsv).not.toContain("b\r");
   expect(tsv).toContain("title=x");
+});
+
+test("spreadsheet exports neutralize formula-leading history values", () => {
+  const entries = [
+    { finalFullPath: "downloads/=2+2.csv" },
+    { finalFullPath: "downloads/@SUM(1,1).csv" },
+    { finalFullPath: "downloads/＝2+2.csv" },
+  ];
+
+  const csv = historyCsv(entries);
+  const tsv = historyTsv(entries);
+
+  expect(csv).toContain('"\'=2+2.csv"');
+  expect(csv).toContain('"\'@SUM(1,1).csv"');
+  expect(csv).toContain('"\'＝2+2.csv"');
+  expect(tsv).toContain("\t'=2+2.csv\t");
+  expect(tsv).toContain("\t'@SUM(1,1).csv\t");
+  expect(tsv).toContain("\t'＝2+2.csv\t");
 });
 
 test("history columns show row numbers and hide Source by default", () => {

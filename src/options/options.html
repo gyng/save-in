@@ -1287,6 +1287,20 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
           >Integration guide</a
         >.
       </p>
+      <label class="caption-line">
+        <div>Allowed extension IDs</div>
+        <textarea
+          class="full-width"
+          id="externalDownloadAllowlist"
+          rows="3"
+          placeholder="One extension ID per line"
+          spellcheck="false"
+        ></textarea>
+        <div class="caption caption-line">
+          Enter one allowed extension ID per line. An empty list blocks all external download
+          requests; discovery and validation requests remain available.
+        </div>
+      </label>
       <div class="dev-api">
         <div class="dev-api-row">
           <span class="dev-api-label">Extension ID</span>

@@ -51,14 +51,22 @@ export const Messaging = {
     "info", // body.info fields: pageUrl, srcUrl, selectionText, menuIndex, ...
     "schema", // { type: "GET_SCHEMA" } -> the option schema (read-only)
     "validate", // { type: "VALIDATE", body: { paths?, filenamePatterns? } } (read-only)
+    "sender_allowlist", // DOWNLOAD requires the browser-authenticated sender.id to be allowed
     // apply_config (mutating) is intentionally NOT advertised: it is reachable
     // only from same-extension callers, not onMessageExternal
   ],
   API_ERRORS: {
     BAD_REQUEST: "BAD_REQUEST", // malformed message (e.g. missing url)
     INVALID_URL: "INVALID_URL", // url is not a fetchable http(s)/ftp/data URL
+    UNAUTHORIZED: "UNAUTHORIZED", // caller is not in the user's external-download allowlist
     UNKNOWN_TYPE: "UNKNOWN_TYPE", // unrecognised message type
   },
+
+  // The manifest stays open so users can choose integrations dynamically;
+  // sender.id is browser-authenticated and enforces that choice at runtime.
+  isExternalDownloadAllowed: (sender: MessageSender): boolean =>
+    typeof sender.id === "string" &&
+    splitLines(options.externalDownloadAllowlist).some((id) => id === sender.id),
 
   // Only schemes the downloads pipeline can actually fetch are accepted from
   // external callers — this keeps javascript:/file:/extension: URLs from being
@@ -434,7 +442,21 @@ const externalHandlers = {
   [MESSAGE_TYPES.PING]: Messaging.handlePing,
   [MESSAGE_TYPES.GET_SCHEMA]: Messaging.handleGetSchema,
   [MESSAGE_TYPES.VALIDATE]: Messaging.handleValidate,
-  [MESSAGE_TYPES.DOWNLOAD]: Messaging.handleDownloadMessage,
+  [MESSAGE_TYPES.DOWNLOAD]: (request, sender, sendResponse) => {
+    if (!Messaging.isExternalDownloadAllowed(sender)) {
+      sendResponse({
+        type: MESSAGE_TYPES.DOWNLOAD,
+        body: {
+          status: MESSAGE_TYPES.ERROR,
+          error: Messaging.API_ERRORS.UNAUTHORIZED,
+          message: "Allow this extension ID in Save In before requesting downloads",
+          version: request.body?.version || Messaging.API_VERSION,
+        },
+      });
+      return;
+    }
+    return Messaging.handleDownloadMessage(request, sender, sendResponse);
+  },
 } satisfies HandlerTable<ExternalMessage>;
 
 const READY_MESSAGE_TYPES = new Set<InternalMessage["type"]>([

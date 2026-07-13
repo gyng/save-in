@@ -45,6 +45,8 @@ anonymous because a spanning background cannot select a private cookie store.
 Authenticated resources that require extension-side fetching may therefore fail
 from a private window. Firefox direct downloads instead use the private session
 through the browser's native download API.
+External-extension download requests are accepted only from extension IDs the
+user has explicitly allowed in Save In's settings.
 Save In does not transmit this information to the developer or to an analytics,
 advertising, or data-broker service.
 

@@ -217,7 +217,16 @@ export const HISTORY_COLUMNS: HistoryDisplayColumn[] = [
   { key: "variables", label: "Variables", sortable: false, width: "24%", defaultVisible: false },
 ];
 
-const csvCell = (value: unknown): string => `"${String(value ?? "").replaceAll('"', '""')}"`;
+const SPREADSHEET_FORMULA_PREFIX = /^[=+\-@\t\r\n\uFF1D\uFF0B\uFF0D\uFF20]/;
+
+const spreadsheetSafeText = (value: unknown): string => {
+  const text = String(value ?? "");
+  // CSV quoting protects delimiters, but spreadsheet programs still execute
+  // quoted formula-leading cells. The apostrophe forces a text cell on import.
+  return SPREADSHEET_FORMULA_PREFIX.test(text) ? `'${text}` : text;
+};
+
+const csvCell = (value: unknown): string => `"${spreadsheetSafeText(value).replaceAll('"', '""')}"`;
 
 export const historyCsv = (entries: HistoryEntry[]): string => {
   const columns = HISTORY_COLUMNS.filter(({ key }) => key !== "index");
@@ -232,9 +241,7 @@ export const historyTsv = (entries: HistoryEntry[]): string => {
   const columns = HISTORY_COLUMNS.filter(({ key }) => key !== "index");
   const rows = entries.map(historyRow);
   const cell = (value: unknown) =>
-    String(value ?? "")
-      .replaceAll("\t", " ")
-      .replaceAll(/\r?\n/g, " ");
+    spreadsheetSafeText(String(value ?? "").replaceAll(/[\t\r\n]/g, " "));
   return [
     columns.map(({ label }) => cell(label)).join("\t"),
     ...rows.map((row) => columns.map(({ key }) => cell(row[key as keyof HistoryRow])).join("\t")),

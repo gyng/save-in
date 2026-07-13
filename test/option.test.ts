@@ -231,6 +231,13 @@ describe("OptionsManagement", () => {
       expect(key.onSave("   ")).toBe(".");
     });
 
+    test("external download allowlists are trimmed on save", () => {
+      const key = OptionsManagement.OPTION_KEYS.find(
+        (k) => k.name === "externalDownloadAllowlist",
+      )! as SaveKey;
+      expect(key.onSave("  extension-one\nextension-two  \n")).toBe("extension-one\nextension-two");
+    });
+
     test.each([
       ["truncateLength", "239.6", 240],
       ["notifyDuration", "7000.4", 7000],

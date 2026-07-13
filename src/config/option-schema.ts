@@ -135,6 +135,12 @@ export const OPTION_KEYS = [
   { name: "fetchViaFetch", type: OPTION_TYPES.BOOL, default: false },
   { name: "fallbackFetch", type: OPTION_TYPES.BOOL, default: true },
   { name: "includeFetchCredentials", type: OPTION_TYPES.BOOL, default: true },
+  {
+    name: "externalDownloadAllowlist",
+    type: OPTION_TYPES.VALUE,
+    onSave: (v: string) => v.trim(),
+    default: "",
+  },
   { name: "trackBrowserDownloads", type: OPTION_TYPES.BOOL, default: false },
   { name: "routeBrowserDownloads", type: OPTION_TYPES.BOOL, default: false },
   { name: "browserDownloadFilter", type: OPTION_TYPES.VALUE, default: "" },

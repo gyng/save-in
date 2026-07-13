@@ -174,6 +174,9 @@ describe("options form semantics", () => {
     expect(document.body.textContent).toContain("Greasemonkey");
     expect(document.body.textContent).toContain("Video DownloadHelper");
     expect(document.body.textContent).toContain("does not adopt downloads already started");
+    const allowlist = document.querySelector<HTMLTextAreaElement>("#externalDownloadAllowlist");
+    expect(allowlist).not.toBeNull();
+    expect(allowlist?.closest("label")?.textContent).toContain("allowed extension ID");
   });
 
   test("explains match patterns where browser-download filters are configured", () => {

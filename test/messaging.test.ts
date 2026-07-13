@@ -56,7 +56,10 @@ const setupGlobals = () => {
 
   trackedTab = { id: 1, title: "Tracked Tab" };
   setCurrentTab(trackedTab);
-  Object.assign(options, { conflictAction: "uniquify" });
+  Object.assign(options, {
+    conflictAction: "uniquify",
+    externalDownloadAllowlist: "trusted-extension",
+  });
   vi.spyOn(Download, "renameAndDownload").mockResolvedValue({ status: "started", downloadId: 1 });
   // Download.launch stays real: it just calls renameAndDownload (the rejection
   // path it also handles is covered in download-flow.test).
@@ -580,7 +583,9 @@ describe("handleDownloadMessage", () => {
 
   test("is reachable from external extensions via onMessageExternal", async () => {
     const sendResponse = vi.fn();
-    expect(onMessageExternal(request(), { tab: { id: 9 } }, sendResponse)).toBe(true);
+    expect(
+      onMessageExternal(request(), { id: "trusted-extension", tab: { id: 9 } }, sendResponse),
+    ).toBe(true);
 
     expect(Download.renameAndDownload).toHaveBeenCalledTimes(1);
     await vi.waitFor(() =>
@@ -598,7 +603,9 @@ describe("handleDownloadMessage", () => {
     });
     const sendResponse = vi.fn();
 
-    expect(onMessageExternal(request(), { tab: { id: 9 } }, sendResponse)).toBe(true);
+    expect(
+      onMessageExternal(request(), { id: "trusted-extension", tab: { id: 9 } }, sendResponse),
+    ).toBe(true);
     expect(Download.renameAndDownload).not.toHaveBeenCalled();
     expect(sendResponse).not.toHaveBeenCalled();
 
@@ -631,7 +638,11 @@ describe("external DOWNLOAD API v1", () => {
   test("echoes a caller-supplied version back", async () => {
     const sendResponse = vi.fn();
     expect(
-      onMessageExternal(download({ url: "https://x/f.png", version: 1 }), {}, sendResponse),
+      onMessageExternal(
+        download({ url: "https://x/f.png", version: 1 }),
+        { id: "trusted-extension" },
+        sendResponse,
+      ),
     ).toBe(true);
     await vi.waitFor(() =>
       expect(sendResponse).toHaveBeenCalledWith({
@@ -643,7 +654,7 @@ describe("external DOWNLOAD API v1", () => {
 
   test("rejects a missing url with BAD_REQUEST and does not download", () => {
     const sendResponse = vi.fn();
-    onMessageExternal(download({ info: {} }), {}, sendResponse);
+    onMessageExternal(download({ info: {} }), { id: "trusted-extension" }, sendResponse);
     expect(Download.renameAndDownload).not.toHaveBeenCalled();
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.DOWNLOAD,
@@ -658,7 +669,11 @@ describe("external DOWNLOAD API v1", () => {
 
   test("rejects an unfetchable scheme with INVALID_URL", () => {
     const sendResponse = vi.fn();
-    onMessageExternal(download({ url: "javascript:alert(1)" }), {}, sendResponse);
+    onMessageExternal(
+      download({ url: "javascript:alert(1)" }),
+      { id: "trusted-extension" },
+      sendResponse,
+    );
     expect(Download.renameAndDownload).not.toHaveBeenCalled();
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.DOWNLOAD,
@@ -681,6 +696,46 @@ describe("external DOWNLOAD API v1", () => {
     expect(Messaging.isValidDownloadUrl("javascript:1")).toBe(false);
     expect(Messaging.isValidDownloadUrl("not a url")).toBe(false);
     expect(Messaging.isValidDownloadUrl(undefined)).toBe(false);
+  });
+
+  test("rejects downloads from extensions the user has not allowed", () => {
+    const sendResponse = vi.fn();
+    vi.mocked(global.browser.tabs.query).mockResolvedValueOnce([
+      { id: 7, url: "https://private.example/account?token=secret" },
+    ] as any);
+
+    onMessageExternal(
+      download({ target: "activeTab" }),
+      { id: "untrusted-extension" },
+      sendResponse,
+    );
+
+    expect(Download.renameAndDownload).not.toHaveBeenCalled();
+    expect(global.browser.tabs.query).not.toHaveBeenCalled();
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.DOWNLOAD,
+      body: {
+        status: MESSAGE_TYPES.ERROR,
+        error: "UNAUTHORIZED",
+        message: expect.any(String),
+        version: 1,
+      },
+    });
+  });
+
+  test("matches external extension ids as trimmed, exact allowlist lines", async () => {
+    options.externalDownloadAllowlist = "other-extension\n  trusted-extension  \n";
+    const sendResponse = vi.fn();
+
+    expect(
+      onMessageExternal(
+        download({ url: "https://x/allowed.png" }),
+        { id: "trusted-extension" },
+        sendResponse,
+      ),
+    ).toBe(true);
+    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    expect(Download.renameAndDownload).toHaveBeenCalledOnce();
   });
 
   test("an unknown external message type returns UNKNOWN_TYPE", () => {

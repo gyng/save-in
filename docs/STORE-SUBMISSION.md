@@ -70,9 +70,9 @@ non-minified JavaScript. No obfuscation or remote executable code is used.
   requested from Chrome Incognito may therefore appear in Chrome's regular
   download manager even though Save In does not retain it in extension history.
   Firefox associates the download with its Private Browsing session.
-- The external extension API accepts validated save requests from other
-  installed extensions. It does not expose user configuration mutation to
-  external callers and does not execute received code.
+- The external extension API accepts validated save requests only from extension
+  IDs the user has explicitly allowed. It does not expose user configuration
+  mutation to external callers and does not execute received code.
 
 ## Chrome Web Store privacy fields
 

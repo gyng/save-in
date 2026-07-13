@@ -26,6 +26,11 @@ testing on Chromium!
   now returns a typed `OK`/`ERROR` response and validates the URL scheme, and
   Advanced → External integrations shows the extension id, live version, and a
   copy-paste snippet
+- External DOWNLOAD callers must now be explicitly allowed by extension ID;
+  the default empty allowlist blocks active-tab URL access and download requests
+  from other installed extensions
+- CSV and TSV history exports neutralize formula-leading cells before they are
+  opened in spreadsheet applications
 - New path variables: `:counter:` (atomic, persistent, per-download counter with
   a reset control), `:uuid:`, and `:mime:`/`:contenttype:`/`:mimeext:` (from a
   HEAD request) for naming extensionless URLs
