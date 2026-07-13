@@ -431,7 +431,7 @@ test("a template added in Options persists and routes a matching download", asyn
     evaluate: evalBackground,
     evaluateOptions: (expression) => session.evaluateInTab("src/options/options.html", expression),
     waitForDownloads,
-    filename: "template-library-firefox.pdf",
+    filename: "template-library-firefox",
     content: "firefox template library e2e",
   });
 });

@@ -2237,6 +2237,14 @@
     "message": "Collects every PDF in one place",
     "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
   },
+  "ruleTemplatePdfsByContentTypeName": {
+    "message": "PDFs by content type",
+    "description": "Title of a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplatePdfsByContentTypeDescription": {
+    "message": "Catches PDFs by their reported content type instead of the filename",
+    "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
   "ruleTemplateArchivesName": {
     "message": "Archives into one folder",
     "description": "Title of a built-in routing-template card. Used in src/options/rule-templates.ts."
@@ -2341,6 +2349,14 @@
     "message": "Groups downloads by the hostname serving the file",
     "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
   },
+  "ruleTemplatePerSourceRootDomainName": {
+    "message": "One folder per source root domain",
+    "description": "Title of a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplatePerSourceRootDomainDescription": {
+    "message": "Combines downloads from subdomains of the same source site",
+    "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
   "ruleTemplatePerPageSiteName": {
     "message": "One folder per page site",
     "description": "Title of a built-in routing-template card. Used in src/options/rule-templates.ts."
@@ -2363,6 +2379,14 @@
   },
   "ruleTemplateCaptureUrlDescription": {
     "message": "Uses a regex capture group in the saved filename",
+    "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateDownloadsFromSiteSectionName": {
+    "message": "Downloads from a site section",
+    "description": "Title of a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateDownloadsFromSiteSectionDescription": {
+    "message": "Routes downloads referred from one URL section into its own folder",
     "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
   },
   "ruleTemplateBrowserInboxName": {

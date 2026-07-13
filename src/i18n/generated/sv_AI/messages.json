@@ -1,4 +1,20 @@
 {
+  "ruleTemplatePdfsByContentTypeName": { "message": "PDFs by content type" },
+  "ruleTemplatePdfsByContentTypeDescription": {
+    "message": "Catches PDFs by their reported content type instead of the filename"
+  },
+  "ruleTemplatePerSourceRootDomainName": {
+    "message": "One folder per source root domain"
+  },
+  "ruleTemplatePerSourceRootDomainDescription": {
+    "message": "Combines downloads from subdomains of the same source site"
+  },
+  "ruleTemplateDownloadsFromSiteSectionName": {
+    "message": "Downloads from a site section"
+  },
+  "ruleTemplateDownloadsFromSiteSectionDescription": {
+    "message": "Routes downloads referred from one URL section into its own folder"
+  },
   "html_matchesTheMimeContentType": {
     "message": "Matches the resolved MIME Content-Type. Save In may request server headers."
   },

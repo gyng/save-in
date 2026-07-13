@@ -77,7 +77,7 @@ describe("built-in matcher templates", () => {
     }
   });
 
-  test.each(RULE_TEMPLATES.filter((template) => template.category === "File types"))(
+  test.each(RULE_TEMPLATES.filter((template) => template.rule.includes("actualfileext")))(
     "$name handles an extension before a query string",
     (template) => {
       const sourceUrl = template.proof.info.sourceUrl;
@@ -94,7 +94,7 @@ describe("built-in matcher templates", () => {
     },
   );
 
-  test.each(RULE_TEMPLATES.filter((template) => template.category === "File types"))(
+  test.each(RULE_TEMPLATES.filter((template) => template.rule.includes("actualfileext")))(
     "$name classifies an opaque URL from the resolved filename",
     (template) => {
       const filename = template.proof.info.filename;
@@ -197,6 +197,47 @@ describe("built-in matcher templates", () => {
         mimeExtension: "pdf",
       }),
     ).toBe("documents/:filename:");
+  });
+
+  test("the MIME PDF template handles opaque URLs without matching other content", () => {
+    const rules = rulesFor("PDFs by content type");
+    const info = {
+      url: "https://files.example/download/42",
+      filename: "report",
+    };
+
+    expect(matchRules(rules, { ...info, mime: "application/pdf" })).toBe("documents/:filename:");
+    expect(matchRules(rules, { ...info, mime: "image/png" })).toBeNull();
+  });
+
+  test("the source root-domain template combines CDN subdomains", () => {
+    const rules = rulesFor("One folder per source root domain");
+
+    expect(
+      matchRules(rules, {
+        sourceUrl: "https://media.cdn.example.co.uk/report.pdf",
+        filename: "report.pdf",
+      }),
+    ).toBe("sites/:sourcerootdomain:/:filename:");
+    expect(matchRules(rules, { filename: "report.pdf" })).toBeNull();
+  });
+
+  test("the referrer-section template matches only that URL section", () => {
+    const rules = rulesFor("Downloads from a site section");
+    const info = { filename: "report.pdf" };
+
+    expect(
+      matchRules(rules, {
+        ...info,
+        referrerUrl: "https://example.com/projects/quarterly/report",
+      }),
+    ).toBe("projects/:filename:");
+    expect(
+      matchRules(rules, { ...info, pageUrl: "https://example.com/projects/quarterly/report" }),
+    ).toBe("projects/:filename:");
+    expect(
+      matchRules(rules, { ...info, referrerUrl: "https://example.com/profile/projects/report" }),
+    ).toBeNull();
   });
 
   test("actual extension matching can use a resolved preview filename", () => {

@@ -83,6 +83,21 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
   },
   {
     category: "File types",
+    name: "PDFs by content type",
+    description: "Catches PDFs by their reported content type instead of the filename",
+    example: "Example: documents/report",
+    rule: "mime: ^application/pdf$\ninto: documents/:filename:",
+    proof: {
+      info: {
+        url: "https://files.example/download/42",
+        filename: "report",
+        mime: "application/pdf",
+      },
+      destination: "documents/:filename:",
+    },
+  },
+  {
+    category: "File types",
     name: "Archives into one folder",
     description: "Collects zip, rar, 7z, tar, and compressed archives",
     example: "Example: archives/project.zip",
@@ -227,10 +242,10 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     name: "One site, one folder",
     description: "Routes one chosen website into its own folder",
     example: "Example: example/an-interesting-page/report.pdf",
-    rule: "pagedomain: (^|\\.)example\\.com$\ninto: example/:pagetitleslug:/:filename:",
+    rule: "pagerootdomain: ^example\\.com$\ninto: example/:pagetitleslug:/:filename:",
     proof: {
       info: {
-        pageUrl: "https://example.com/an-interesting-page",
+        pageUrl: "https://news.example.com/an-interesting-page",
         filename: "report.pdf",
         currentTab: { title: "An Interesting Page" },
       },
@@ -250,6 +265,21 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
         filename: "photo.jpg",
       },
       destination: "sites/:sourcedomain:/:filename:",
+    },
+  },
+  {
+    category: "Sites and URLs",
+    name: "One folder per source root domain",
+    description: "Combines downloads from subdomains of the same source site",
+    example: "Example: sites/example.com/photo.jpg",
+    rule: "sourcerootdomain: .+\ninto: sites/:sourcerootdomain:/:filename:",
+    proof: {
+      info: {
+        sourceUrl: "https://media.cdn.example.com/photo.jpg",
+        url: "https://media.cdn.example.com/photo.jpg",
+        filename: "photo.jpg",
+      },
+      destination: "sites/:sourcerootdomain:/:filename:",
     },
   },
   {
@@ -287,6 +317,20 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     proof: {
       info: { sourceUrl: "https://imgur.com/abc123", filename: "photo.jpg" },
       destination: "imgur/abc123-:filename:",
+    },
+  },
+  {
+    category: "Sites and URLs",
+    name: "Downloads from a site section",
+    description: "Routes downloads referred from one URL section into its own folder",
+    example: "Example: projects/report.pdf",
+    rule: "referrerurl: ^https://example\\.com/projects/\ninto: projects/:filename:",
+    proof: {
+      info: {
+        referrerUrl: "https://example.com/projects/quarterly/report",
+        filename: "report.pdf",
+      },
+      destination: "projects/:filename:",
     },
   },
   {
@@ -383,6 +427,15 @@ export const localizeRuleTemplates = (getMessage: GetMessage): LocalizedRuleTemp
       {
         name: getMessage("ruleTemplatePdfsName") || "PDFs into a documents folder",
         description: getMessage("ruleTemplatePdfsDescription") || "Collects every PDF in one place",
+      },
+    ],
+    [
+      "PDFs by content type",
+      {
+        name: getMessage("ruleTemplatePdfsByContentTypeName") || "PDFs by content type",
+        description:
+          getMessage("ruleTemplatePdfsByContentTypeDescription") ||
+          "Catches PDFs by their reported content type instead of the filename",
       },
     ],
     [
@@ -502,6 +555,16 @@ export const localizeRuleTemplates = (getMessage: GetMessage): LocalizedRuleTemp
       },
     ],
     [
+      "One folder per source root domain",
+      {
+        name:
+          getMessage("ruleTemplatePerSourceRootDomainName") || "One folder per source root domain",
+        description:
+          getMessage("ruleTemplatePerSourceRootDomainDescription") ||
+          "Combines downloads from subdomains of the same source site",
+      },
+    ],
+    [
       "One folder per page site",
       {
         name: getMessage("ruleTemplatePerPageSiteName") || "One folder per page site",
@@ -526,6 +589,16 @@ export const localizeRuleTemplates = (getMessage: GetMessage): LocalizedRuleTemp
         description:
           getMessage("ruleTemplateCaptureUrlDescription") ||
           "Uses a regex capture group in the saved filename",
+      },
+    ],
+    [
+      "Downloads from a site section",
+      {
+        name:
+          getMessage("ruleTemplateDownloadsFromSiteSectionName") || "Downloads from a site section",
+        description:
+          getMessage("ruleTemplateDownloadsFromSiteSectionDescription") ||
+          "Routes downloads referred from one URL section into its own folder",
       },
     ],
     [

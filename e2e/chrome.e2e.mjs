@@ -732,7 +732,7 @@ test("a template added in Options persists and routes a matching download", asyn
     evaluate: evalSW,
     evaluateOptions: evalOptions,
     waitForDownloads,
-    filename: "template-library-chrome.pdf",
+    filename: "template-library-chrome",
     content: "chrome template library e2e",
   });
 });

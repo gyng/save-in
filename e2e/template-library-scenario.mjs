@@ -5,7 +5,7 @@ import { expect } from "vitest";
 
 import { closeLocal, listenLocal, poll } from "./helpers.mjs";
 
-const PDF_TEMPLATE_MATCHER = "actualfileext/i: ^pdf$";
+const PDF_TEMPLATE_MATCHER = "mime: ^application/pdf$";
 const PDF_TEMPLATE_DESTINATION = "into: documents/:filename:";
 
 /**
@@ -108,9 +108,8 @@ export const runTemplateLibraryScenario = async ({
       const completed = downloads.find((entry) => entry.state === "complete");
 
       expect(completed).toBeDefined();
-      expect(completed.filename.replaceAll("\\", "/").endsWith(`/documents/${filename}`)).toBe(
-        true,
-      );
+      const routedName = completed.filename.replaceAll("\\", "/").split("/documents/")[1];
+      expect([filename, `${filename}.pdf`]).toContain(routedName);
       expect(fs.readFileSync(completed.filename, "utf8")).toBe(content);
     } finally {
       await closeLocal(server);
