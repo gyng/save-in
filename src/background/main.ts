@@ -27,7 +27,7 @@ import { splitLines } from "../shared/util.ts";
 import { MEDIA_TYPES } from "../shared/constants.ts";
 import { LAST_USED_META_STORAGE_KEY, LAST_USED_PATH_STORAGE_KEY } from "../shared/storage-keys.ts";
 import { Log } from "./log.ts";
-import { currentTab, setCurrentTab } from "../platform/current-tab.ts";
+import { currentTab, setCurrentTab, type CurrentTab } from "../platform/current-tab.ts";
 import { configureRoutingPorts } from "../routing/ports.ts";
 import { nextCounter, nextPrivateCounter, peekCounter } from "./counter.ts";
 import { counterWriteState } from "./state.ts";
@@ -129,7 +129,7 @@ export const start = () => {
   addDownloadListener();
   addTabMenuListener();
   addTabHighlightListener();
-  const toggleSources = (tab: browser.tabs.Tab): Promise<void> | undefined => {
+  const toggleSources = (tab: CurrentTab): Promise<void> | undefined => {
     const tabId = tab.id;
     if (tabId != null)
       return runBackgroundTask("source panel toggle failed", () => toggleSourcePanelForTab(tabId));

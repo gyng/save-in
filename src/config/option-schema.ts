@@ -16,10 +16,66 @@ type OptionKey = {
   type: OptionType;
   default: unknown;
   fn?: null;
-  onLoad?: (...args: never[]) => unknown;
-  onSave?: (...args: never[]) => unknown;
-  validate?: (...args: never[]) => boolean;
+  onLoad?: unknown;
+  onSave?: unknown;
+  validate?: unknown;
 };
+
+type HookSignature<Hook> = Hook extends (...args: infer Parameters) => infer Output
+  ? { parameters: Parameters; output: Output }
+  : never;
+type HookInput<Hook> =
+  HookSignature<Hook> extends {
+    parameters: [infer Value, ...unknown[]];
+  }
+    ? Value
+    : never;
+type HookOutput<Hook> = HookSignature<Hook> extends { output: infer Output } ? Output : never;
+type StoredOptionValue<Definition extends OptionKey> = Definition extends {
+  onLoad: infer Hook;
+}
+  ? HookInput<Hook>
+  : WidenDefault<Definition["default"]>;
+type RuntimeOptionValue<Definition extends OptionKey> = Definition extends {
+  onLoad: infer Hook;
+}
+  ? HookOutput<Hook> | Definition["default"]
+  : WidenDefault<Definition["default"]>;
+type CheckedSaveHook<Definition extends OptionKey> = Definition extends {
+  onSave: infer Save;
+}
+  ? Definition["default"] extends HookInput<Save>
+    ? HookOutput<Save> extends StoredOptionValue<Definition>
+      ? Definition
+      : never
+    : never
+  : Definition;
+type CheckedOptionHooks<Definition extends OptionKey> =
+  Definition["default"] extends StoredOptionValue<Definition>
+    ? Definition extends { validate: infer Validate }
+      ? HookOutput<Validate> extends boolean
+        ? Definition["default"] extends HookInput<Validate>
+          ? CheckedSaveHook<Definition>
+          : never
+        : never
+      : CheckedSaveHook<Definition>
+    : never;
+type CheckedOptionDefinition<Definition extends OptionKey> =
+  Definition["type"] extends typeof OPTION_TYPES.BOOL
+    ? Definition["default"] extends boolean
+      ? CheckedOptionHooks<Definition>
+      : never
+    : Definition["default"] extends string | number
+      ? CheckedOptionHooks<Definition>
+      : never;
+
+const defineOptions = <const Definitions extends readonly OptionKey[]>(
+  definitions: Definitions & {
+    readonly [Index in keyof Definitions]: Definitions[Index] extends OptionKey
+      ? CheckedOptionDefinition<Definitions[Index]>
+      : never;
+  },
+): Definitions => definitions;
 
 type WidenDefault<Value> = Value extends boolean
   ? boolean
@@ -29,16 +85,10 @@ type WidenDefault<Value> = Value extends boolean
       ? string
       : Value;
 
-type LoadedOptionValue<Definition> = Definition extends {
-  onLoad: (...args: never[]) => infer Loaded;
-}
-  ? Loaded
-  : Definition extends { default: infer Default }
-    ? WidenDefault<Default>
-    : never;
+type LoadedOptionValue<Definition extends OptionKey> = RuntimeOptionValue<Definition>;
 
 const normalizeWholeNumber = (value: string | number): number => Math.round(Number(value));
-const isNonnegativeNumber = (value: unknown): boolean => {
+const isNonnegativeNumber = (value: unknown): value is string | number => {
   if ((typeof value !== "number" && typeof value !== "string") || String(value).trim() === "") {
     return false;
   }
@@ -46,7 +96,7 @@ const isNonnegativeNumber = (value: unknown): boolean => {
   return Number.isFinite(number) && number >= 0;
 };
 
-export const OPTION_KEYS = [
+export const OPTION_KEYS = defineOptions([
   {
     name: "conflictAction",
     type: OPTION_TYPES.VALUE,
@@ -55,7 +105,8 @@ export const OPTION_KEYS = [
       v === CONFLICT_ACTION.PROMPT && !WEB_EXTENSION_CAPABILITIES.conflictActionPrompt
         ? CONFLICT_ACTION.UNIQUIFY
         : v,
-    validate: (v: string) => Object.values(CONFLICT_ACTION).includes(v as ConflictAction),
+    validate: (value: unknown): value is ConflictAction =>
+      typeof value === "string" && Object.values(CONFLICT_ACTION).includes(value as ConflictAction),
     default: CONFLICT_ACTION.UNIQUIFY,
   },
   ...CONTENT_FEATURE_OPTION_DEFINITIONS,
@@ -63,7 +114,8 @@ export const OPTION_KEYS = [
   {
     name: "uiLocale",
     type: OPTION_TYPES.VALUE,
-    validate: (value: string) => value === "" || isSelectableLocale(value),
+    validate: (value: unknown): value is string =>
+      typeof value === "string" && (value === "" || isSelectableLocale(value)),
     default: "",
   },
   { name: "enableLastLocation", type: OPTION_TYPES.BOOL, default: true },
@@ -127,7 +179,8 @@ export const OPTION_KEYS = [
     name: "shortcutType",
     type: OPTION_TYPES.VALUE,
     onLoad: (v: ShortcutType) => v,
-    validate: (v: string) => Object.values(SHORTCUT_TYPES).includes(v as ShortcutType),
+    validate: (value: unknown): value is ShortcutType =>
+      typeof value === "string" && Object.values(SHORTCUT_TYPES).includes(value as ShortcutType),
     default: SHORTCUT_TYPES.HTML_REDIRECT,
   },
   {
@@ -157,10 +210,15 @@ export const OPTION_KEYS = [
   { name: "closeTabOnSave", type: OPTION_TYPES.BOOL, default: false },
   { name: "setRefererHeader", type: OPTION_TYPES.BOOL, default: false },
   { name: "setRefererHeaderFilter", type: OPTION_TYPES.VALUE, default: "*://i.pximg.net/*" },
-] as const satisfies readonly OptionKey[];
+] as const);
 
 export type SaveInOptions = {
   [Definition in (typeof OPTION_KEYS)[number] as Definition["name"]]: LoadedOptionValue<Definition>;
 };
 
 export type SaveInOptionName = keyof SaveInOptions;
+
+export const defaultOptions = (): SaveInOptions =>
+  Object.fromEntries(
+    OPTION_KEYS.map(({ name, default: defaultValue }) => [name, defaultValue]),
+  ) as SaveInOptions;

@@ -1,4 +1,6 @@
 import { webExtensionApi } from "../platform/web-extension-api.ts";
+import { MESSAGE_TYPES } from "../shared/constants.ts";
+import { sendInternalMessage } from "../shared/message-protocol.ts";
 import { markSavedNow } from "./saved-indicator.ts";
 
 type ResetOptionsDependencies = {
@@ -22,7 +24,7 @@ export const setupResetOptions = ({
     void (async () => {
       const names = await getOptionNames();
       await webExtensionApi.storage.local.remove(names);
-      await webExtensionApi.runtime.sendMessage({ type: "OPTIONS_LOADED" });
+      await sendInternalMessage(webExtensionApi.runtime, { type: MESSAGE_TYPES.OPTIONS_LOADED });
 
       markSavedNow();
       restoreOptions();

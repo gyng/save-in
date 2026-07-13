@@ -11,13 +11,13 @@ export type SessionWriteState = { queues: Map<string, Promise<unknown>> };
 export const normalizeSessionCounter = (value: unknown): number =>
   typeof value === "number" && Number.isSafeInteger(value) && value >= 0 ? value : 0;
 
-export const getSession = <T>(
+export const getSession = (
   storage: StorageReader | undefined,
   key: string,
-): Promise<Record<string, T | undefined>> =>
+): Promise<Record<string, unknown>> =>
   storage
     ? storage.get(key).then(
-        (stored) => stored as Record<string, T | undefined>,
+        (stored) => stored,
         (error) => {
           recordPersistenceFailure({ area: "session", operation: "read", key }, error);
           return {};
@@ -47,10 +47,10 @@ export const updateSession = <T>(
   writes: SessionWriteState,
   storage: StorageWriter | undefined,
   key: string,
-  update: (value: T | undefined) => T,
+  update: (value: unknown) => T,
 ) => {
   const queue = (writes.queues.get(key) || Promise.resolve())
-    .then(() => getSession<T>(storage, key))
+    .then(() => getSession(storage, key))
     .then((stored) => setSession(storage, { [key]: update(stored[key]) }, key))
     .catch((error) => {
       recordPersistenceFailure({ area: "session", operation: "update", key }, error);

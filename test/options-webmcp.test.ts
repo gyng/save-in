@@ -180,7 +180,7 @@ describe("buildTools", () => {
   test("rejects adversarial non-JSON inputs without invoking the background", async () => {
     const { send, byName } = toolsByName();
     for (const input of [null, [], "oops", 42, true]) {
-      await expect(byName.save_in_download.execute(input as never)).resolves.toEqual({
+      await expect(byName.save_in_download.execute(input)).resolves.toEqual({
         status: "ERROR",
         errors: [{ field: "$", message: "Expected an object" }],
       });

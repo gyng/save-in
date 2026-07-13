@@ -83,10 +83,11 @@ export const createLocalization = (ports: LocalizationPorts) => {
 };
 
 const localization = createLocalization({
-  nativeGetMessage: (key, substitutions) =>
-    typeof substitutions === "undefined"
-      ? webExtensionApi.i18n.getMessage(key)
-      : webExtensionApi.i18n.getMessage(key, substitutions as never),
+  nativeGetMessage: (key, substitutions) => {
+    if (typeof substitutions === "undefined") return webExtensionApi.i18n.getMessage(key);
+    const normalized = typeof substitutions === "number" ? String(substitutions) : substitutions;
+    return webExtensionApi.i18n.getMessage(key, normalized);
+  },
   loadCatalog: async (path) => {
     const response = await fetch(webExtensionApi.runtime.getURL(path));
     if (!response.ok) throw new Error(`Could not load ${path}`);

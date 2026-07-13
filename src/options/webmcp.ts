@@ -19,7 +19,10 @@ type WebMcpTool = {
   description: string;
   inputSchema: WebMcpSchema;
   annotations: WebMcpAnnotations;
-  execute: (input?: WebMcpInput) => unknown;
+  execute: (input?: unknown) => unknown;
+};
+type PreparedWebMcpTool = Omit<WebMcpTool, "execute"> & {
+  execute: (input: WebMcpInput) => unknown;
 };
 type WebMcpContext = { registerTool: (tool: WebMcpTool) => unknown };
 
@@ -123,7 +126,7 @@ export const SaveInWebMCP = {
   // `send` messages the background and resolves to the response body; injected
   // so the tools stay testable
   buildTools: (send: WebMcpSend): WebMcpTool[] => {
-    const tools: WebMcpTool[] = [
+    const tools: PreparedWebMcpTool[] = [
       {
         name: "save_in_get_schema",
         description: "List Save In's configurable options (name, type, default, description).",
@@ -285,7 +288,7 @@ export const SaveInWebMCP = {
     ];
     return tools.map((tool) => ({
       ...tool,
-      execute: (value?: WebMcpInput) => {
+      execute: (value?: unknown) => {
         const prepared = prepareInput(value);
         if ("error" in prepared) {
           return inputError(prepared.error.field, prepared.error.message);

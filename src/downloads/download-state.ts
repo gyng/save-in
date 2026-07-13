@@ -2,6 +2,7 @@ import { getSession, updateSession } from "../shared/session-state.ts";
 import type { SessionWriteState } from "../shared/session-state.ts";
 import type { StorageReader, StorageWriter } from "../platform/storage-areas.ts";
 import { DOWNLOADS_SESSION_KEY } from "../shared/storage-keys.ts";
+import type { ConflictAction } from "../shared/constants.ts";
 
 const MAX_RECORDS = 50;
 
@@ -10,7 +11,7 @@ export type DownloadRecord = {
   pageUrl?: string | undefined;
   filename?: string | undefined;
   currentFilename?: string | undefined;
-  conflictAction?: browser.downloads.FilenameConflictAction | undefined;
+  conflictAction?: ConflictAction | undefined;
   viaFetch?: boolean | undefined;
   retried?: boolean | undefined;
   allowOriginalUrlFallback?: boolean | undefined;
@@ -89,10 +90,7 @@ const storedDownloadEntries = (value: unknown): Array<[number, DownloadRecord]> 
 
 export const hydrateDownloads = (state: DownloadsState, storage: StorageReader | undefined) => {
   if (!state.hydration) {
-    state.hydration = getSession<Record<string, DownloadRecord>>(
-      storage,
-      DOWNLOADS_SESSION_KEY,
-    ).then((res) => {
+    state.hydration = getSession(storage, DOWNLOADS_SESSION_KEY).then((res) => {
       storedDownloadEntries(res[DOWNLOADS_SESSION_KEY]).forEach(([id, record]) => {
         if (!state.records.has(id)) state.records.set(id, record);
       });
@@ -136,7 +134,7 @@ export const getDownload = (
 ): Promise<DownloadRecord | null> => {
   const inMemory = state.records.get(downloadId);
   if (inMemory) return Promise.resolve(inMemory);
-  return getSession<Record<string, DownloadRecord>>(storage, DOWNLOADS_SESSION_KEY).then((res) => {
+  return getSession(storage, DOWNLOADS_SESSION_KEY).then((res) => {
     const stored = unwrapDownloadRecords(res[DOWNLOADS_SESSION_KEY]);
     const record = isObject(stored) ? stored[downloadId] : undefined;
     return normalizeDownloadRecord(record);

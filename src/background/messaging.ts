@@ -12,18 +12,22 @@ import { buildTree } from "./menu-build.ts";
 import { matcherFunctions, parseRulesCollecting, traceRules } from "../routing/router.ts";
 import { Download } from "../downloads/download.ts";
 import { Notifier } from "../downloads/notification.ts";
-import { currentTab } from "../platform/current-tab.ts";
+import { currentTab, type CurrentTab } from "../platform/current-tab.ts";
 import { configureDownloadEvents } from "../downloads/download-events.ts";
 import type { DownloadInfo, DownloadPipelineState } from "../downloads/download-types.ts";
 import { backgroundRuntime } from "./runtime.ts";
 import {
   getMessageType,
+  fromWireDownloadState,
   EXTERNAL_MESSAGE_TYPES,
   isExternalMessage,
   isInternalMessage,
+  toWireDownloadState,
   type ExternalMessage,
+  type InternalEvent,
   type InternalMessage,
   type MessageOf,
+  type ResponseFor,
 } from "../shared/message-protocol.ts";
 import { respondAsync, type SendResponse } from "./message-dispatch.ts";
 import { Log } from "./log.ts";
@@ -36,8 +40,8 @@ import { previewRoutes } from "./route-preview.ts";
 import { ActiveTransfers } from "../downloads/active-transfers.ts";
 import { ExternalDownloadRejections } from "./external-download-rejections.ts";
 
-type MessageSender = browser.runtime.MessageSender;
-type ProtocolSendResponse = SendResponse;
+export type MessageSender = { id?: string | undefined; tab?: CurrentTab | undefined };
+type ProtocolSendResponse<Request extends InternalMessage> = SendResponse<ResponseFor<Request>>;
 
 export const Messaging = {
   // ─── External DOWNLOAD API (issue #110) ────────────────────────────────
@@ -90,7 +94,7 @@ export const Messaging = {
   handlePing: (
     _request: MessageOf<typeof MESSAGE_TYPES.PING>,
     _sender: MessageSender,
-    sendResponse: ProtocolSendResponse,
+    sendResponse: ProtocolSendResponse<MessageOf<typeof MESSAGE_TYPES.PING>>,
   ): void => {
     sendResponse({
       type: MESSAGE_TYPES.PONG,
@@ -105,10 +109,10 @@ export const Messaging = {
   // Variable interpolation and route checking may await.
   handleCheckRoutes: async (
     request: MessageOf<typeof MESSAGE_TYPES.CHECK_ROUTES>,
-    sendResponse: ProtocolSendResponse,
+    sendResponse: ProtocolSendResponse<MessageOf<typeof MESSAGE_TYPES.CHECK_ROUTES>>,
   ): Promise<void> => {
     const lastState =
-      (request.body && request.body.state) ||
+      (request.body?.state && fromWireDownloadState(request.body.state)) ||
       (backgroundRuntime.lastDownloadState != null && backgroundRuntime.lastDownloadState);
 
     let interpolatedVariables: Record<string, string> | null = null;
@@ -140,7 +144,10 @@ export const Messaging = {
       body: {
         optionErrors: backgroundRuntime.optionErrors,
         routeInfo,
-        lastDownload: backgroundRuntime.lastDownloadState,
+        lastDownload:
+          backgroundRuntime.lastDownloadState == null
+            ? backgroundRuntime.lastDownloadState
+            : toWireDownloadState(backgroundRuntime.lastDownloadState),
         interpolatedVariables,
         persistenceErrors: getPersistenceDiagnostics(),
       },
@@ -154,7 +161,7 @@ export const Messaging = {
   handleGetSchema: (
     _request: MessageOf<typeof MESSAGE_TYPES.GET_SCHEMA>,
     _sender: MessageSender,
-    sendResponse: ProtocolSendResponse,
+    sendResponse: ProtocolSendResponse<MessageOf<typeof MESSAGE_TYPES.GET_SCHEMA>>,
   ): void => {
     sendResponse({
       type: MESSAGE_TYPES.SCHEMA,
@@ -176,10 +183,13 @@ export const Messaging = {
   handleValidate: (
     request: MessageOf<typeof MESSAGE_TYPES.VALIDATE>,
     _sender: MessageSender,
-    sendResponse: ProtocolSendResponse,
+    sendResponse: ProtocolSendResponse<MessageOf<typeof MESSAGE_TYPES.VALIDATE>>,
   ): void => {
     const body = request.body || {};
-    const result: Record<string, unknown> = { version: Messaging.API_VERSION };
+    const result: Extract<
+      ResponseFor<MessageOf<typeof MESSAGE_TYPES.VALIDATE>>,
+      { type: typeof MESSAGE_TYPES.VALIDATE_RESULT }
+    >["body"] = { version: Messaging.API_VERSION };
 
     if (typeof body.paths === "string") {
       const pathsArray = splitLines(body.paths);
@@ -206,7 +216,7 @@ export const Messaging = {
   handleApplyConfig: async (
     request: MessageOf<typeof MESSAGE_TYPES.APPLY_CONFIG>,
     _sender: MessageSender,
-    sendResponse: ProtocolSendResponse,
+    sendResponse: ProtocolSendResponse<MessageOf<typeof MESSAGE_TYPES.APPLY_CONFIG>>,
   ): Promise<void> => {
     const config = (request.body && request.body.config) || {};
     const { applied, rejected } = await applyConfigSerialized(
@@ -228,12 +238,11 @@ export const Messaging = {
     downloaded: (state: DownloadPipelineState): void => {
       // In MV3 sendMessage rejects when no receiver (options page) is open;
       // that is expected, so swallow it rather than leak an unhandled rejection
-      webExtensionApi.runtime
-        .sendMessage({
-          type: MESSAGE_TYPES.DOWNLOADED,
-          body: { state },
-        })
-        .catch(() => {});
+      const event: InternalEvent = {
+        type: MESSAGE_TYPES.DOWNLOADED,
+        body: { state: toWireDownloadState(state) },
+      };
+      webExtensionApi.runtime.sendMessage(event).catch(() => {});
     },
   },
 
@@ -273,7 +282,7 @@ export const Messaging = {
   handleDownloadMessage: (
     request: MessageOf<typeof MESSAGE_TYPES.DOWNLOAD>,
     sender: MessageSender,
-    sendResponse: ProtocolSendResponse,
+    sendResponse: ProtocolSendResponse<MessageOf<typeof MESSAGE_TYPES.DOWNLOAD>>,
   ): Promise<void> | void => {
     const requestBody = request.body || {};
     const { url: requestedUrl, target, comment } = requestBody;
@@ -289,7 +298,7 @@ export const Messaging = {
       });
     const launch = (
       url: string,
-      resolvedTab: Partial<browser.tabs.Tab> | null = (sender && sender.tab) || currentTab,
+      resolvedTab: CurrentTab | null = (sender && sender.tab) || currentTab,
     ): Promise<void> | void => {
       if (!Messaging.isValidDownloadUrl(url)) {
         fail(Messaging.API_ERRORS.INVALID_URL, "URL must be http(s), ftp, data or blob");
@@ -382,7 +391,7 @@ export const Messaging = {
 type Handler<M extends InternalMessage> = (
   request: M,
   sender: MessageSender,
-  sendResponse: ProtocolSendResponse,
+  sendResponse: ProtocolSendResponse<M>,
 ) => void | Promise<void>;
 
 type HandlerTable<M extends InternalMessage> = {
@@ -450,7 +459,14 @@ const internalHandlers = {
   [MESSAGE_TYPES.OPTIONS_SCHEMA]: (_request, _sender, sendResponse) => {
     sendResponse({
       type: MESSAGE_TYPES.OPTIONS_SCHEMA,
-      body: { keys: OptionsManagement.OPTION_KEYS, types: OptionsManagement.OPTION_TYPES },
+      body: {
+        keys: OptionsManagement.OPTION_KEYS.map(({ name, type, default: defaultValue }) => ({
+          name,
+          type,
+          default: defaultValue,
+        })),
+        types: OptionsManagement.OPTION_TYPES,
+      },
     });
   },
   [MESSAGE_TYPES.GET_KEYWORDS]: (_request, _sender, sendResponse) => {
@@ -511,7 +527,7 @@ const READY_MESSAGE_TYPES = new Set<InternalMessage["type"]>([
 const dispatchMessage = <M extends InternalMessage>(
   request: M,
   sender: MessageSender,
-  sendResponse: ProtocolSendResponse,
+  sendResponse: ProtocolSendResponse<M>,
   handlers: HandlerTable<M>,
 ): true | void => {
   // The table is exhaustive for M, so this lookup is safe even though TS cannot

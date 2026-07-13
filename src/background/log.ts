@@ -18,6 +18,19 @@ export type LogEntry = {
   data?: string | undefined;
 };
 
+const normalizeLogEntries = (value: unknown): LogEntry[] =>
+  Array.isArray(value)
+    ? value.filter(
+        (entry): entry is LogEntry =>
+          entry != null &&
+          typeof entry === "object" &&
+          typeof Reflect.get(entry, "at") === "string" &&
+          typeof Reflect.get(entry, "message") === "string" &&
+          (typeof Reflect.get(entry, "data") === "undefined" ||
+            typeof Reflect.get(entry, "data") === "string"),
+      )
+    : [];
+
 export const Log = {
   LIMIT: 200,
 
@@ -48,13 +61,13 @@ export const Log = {
       sessionWriteState,
       extensionSessionStorage,
       LOG_STORAGE_KEY,
-      (entries) => [...(entries || []), entry].slice(-Log.LIMIT),
+      (stored) => [...normalizeLogEntries(stored), entry].slice(-Log.LIMIT),
     );
   },
 
   get: async () => {
-    const res = await getSession<LogEntry[]>(extensionSessionStorage, LOG_STORAGE_KEY);
-    return (res && res[LOG_STORAGE_KEY]) || [];
+    const res = await getSession(extensionSessionStorage, LOG_STORAGE_KEY);
+    return normalizeLogEntries(res[LOG_STORAGE_KEY]);
   },
 
   clear: () => removeSession(extensionSessionStorage, LOG_STORAGE_KEY),

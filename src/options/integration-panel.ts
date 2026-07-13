@@ -1,5 +1,6 @@
 import { webExtensionApi } from "../platform/web-extension-api.ts";
 import { MESSAGE_TYPES } from "../shared/constants.ts";
+import { sendInternalMessage } from "../shared/message-protocol.ts";
 import type { ExternalDownloadRejection } from "../shared/external-download-rejection-types.ts";
 import { splitLines } from "../shared/util.ts";
 
@@ -40,10 +41,12 @@ const renderExternalApi = () => {
 
   const versionElement = document.querySelector("#api-version");
   const capabilitiesElement = document.querySelector("#api-capabilities");
-  webExtensionApi.runtime
-    .sendMessage({ type: "PING" })
+  sendInternalMessage(webExtensionApi.runtime, { type: MESSAGE_TYPES.PING })
     .then((pong) => {
-      const body = (pong && pong.body) || {};
+      if (!("version" in pong.body) || !("capabilities" in pong.body)) {
+        throw new Error("External API handshake failed");
+      }
+      const body = pong.body;
       if (versionElement) {
         versionElement.textContent = body.version != null ? `v${body.version}` : "unknown";
       }

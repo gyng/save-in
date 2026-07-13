@@ -5,6 +5,7 @@ import {
   isExternalMessage,
   isInternalMessage,
   isStringKeyedRecord,
+  toWireDownloadState,
 } from "../src/shared/message-protocol.ts";
 
 describe("message protocol runtime validation", () => {
@@ -76,5 +77,34 @@ describe("message protocol runtime validation", () => {
       expect(() => isInternalMessage(value)).not.toThrow();
       expect(() => isExternalMessage(value)).not.toThrow();
     }
+  });
+
+  test("converts live download state into a clone-safe wire snapshot", () => {
+    const path = { finalize: () => "images/photo.png", toString: () => "images/photo.png" };
+    const snapshot = toWireDownloadState({
+      path,
+      route: { finalize: () => "routed/photo.png", toString: () => "routed/photo.png" },
+      routeIsFolder: false,
+      scratch: { historyEntryId: "h1", hasExtension: [".png"] as RegExpMatchArray },
+      info: {
+        url: "https://x/photo.png",
+        now: new Date("2026-01-02T03:04:05.000Z"),
+        currentTab: { id: 7, title: "Photo", incognito: false },
+        contentPromise: Promise.resolve(null),
+      },
+    });
+
+    expect(snapshot).toEqual({
+      path: "images/photo.png",
+      route: "routed/photo.png",
+      routeIsFolder: false,
+      info: {
+        url: "https://x/photo.png",
+        now: "2026-01-02T03:04:05.000Z",
+        currentTab: { id: 7, title: "Photo", incognito: false },
+      },
+    });
+    expect(structuredClone(snapshot)).toEqual(snapshot);
+    expect(JSON.parse(JSON.stringify(snapshot))).toEqual(snapshot);
   });
 });

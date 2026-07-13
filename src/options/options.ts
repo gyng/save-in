@@ -22,6 +22,7 @@ import { setupResetOptions } from "./reset-options.ts";
 import { buildTree } from "../menus/menu-tree.ts";
 import type { MenuTree } from "../menus/menu-tree.ts";
 import { splitLines } from "../shared/util.ts";
+import { MESSAGE_TYPES } from "../shared/constants.ts";
 import { setupShortcutOptions } from "./shortcut-options.ts";
 import { setupCheckboxRows } from "./checkbox-rows.ts";
 import { setupSettingsTransfer } from "./settings-transfer.ts";
@@ -36,7 +37,7 @@ import {
 import { optionsRuntime } from "./options-runtime.ts";
 import { bootstrapOptionsPage } from "./options-bootstrap.ts";
 import { setupIntegrationPanel } from "./integration-panel.ts";
-import { isStringKeyedRecord } from "../shared/message-protocol.ts";
+import { isStringKeyedRecord, sendInternalMessage } from "../shared/message-protocol.ts";
 
 const setupLastDownloadState = () => {
   document.querySelector("#last-dl-url")?.classList.add("is-empty");
@@ -194,7 +195,10 @@ const updateErrorSummary = (panel: Element) => {
 // preview (which also validates live) instead of the last-saved state.
 const validationRequests = createLatestOnly(
   (request: { body: { paths: string; filenamePatterns: string }; initiator?: string }) =>
-    webExtensionApi.runtime.sendMessage({ type: "VALIDATE", body: request.body }),
+    sendInternalMessage(webExtensionApi.runtime, {
+      type: MESSAGE_TYPES.VALIDATE,
+      body: request.body,
+    }),
   (res: unknown) => {
     const body = isStringKeyedRecord(res) && isStringKeyedRecord(res.body) ? res.body : {};
     const pathErrors = Array.isArray(body.pathErrors)
@@ -278,68 +282,75 @@ const updateErrors = () => {
   // last-download / variables panes below.
   renderValidationErrors();
 
-  webExtensionApi.runtime.sendMessage({ type: "CHECK_ROUTES" }).then(({ body }) => {
-    // Last download
-    const hasLastDownload =
-      body.lastDownload && body.lastDownload.info && body.lastDownload.info.url;
-    if (hasLastDownload) {
-      const lastDlUrl = document.querySelector("#last-dl-url");
-      if (lastDlUrl) {
-        lastDlUrl.textContent = body.lastDownload.info.url;
-        lastDlUrl.classList.remove("is-empty");
+  sendInternalMessage(webExtensionApi.runtime, { type: MESSAGE_TYPES.CHECK_ROUTES }).then(
+    (response) => {
+      if (!("routeInfo" in response.body)) {
+        throw new Error("Invalid routing preview response");
       }
-    }
+      const { body } = response;
+      // Last download
+      const lastDownloadUrl = body.lastDownload?.info.url;
+      const hasLastDownload = typeof lastDownloadUrl === "string" && lastDownloadUrl.length > 0;
+      if (hasLastDownload) {
+        const lastDlUrl = document.querySelector("#last-dl-url");
+        if (lastDlUrl) {
+          lastDlUrl.textContent = lastDownloadUrl;
+          lastDlUrl.classList.remove("is-empty");
+        }
+      }
 
-    document.querySelector("#rules-applied-row")?.classList.toggle("hide", !hasLastDownload);
+      document.querySelector("#rules-applied-row")?.classList.toggle("hide", !hasLastDownload);
 
-    // Routing result
-    if (lastDlMatch) {
-      lastDlMatch.innerHTML = "no matches";
-    }
-    if (lastDlMatch && body.routeInfo.path) {
-      lastDlMatch.textContent = body.routeInfo.path;
-    }
+      // Routing result
+      if (lastDlMatch) {
+        lastDlMatch.innerHTML = "no matches";
+      }
+      if (lastDlMatch && body.routeInfo.path) {
+        lastDlMatch.textContent = body.routeInfo.path;
+      }
 
-    // Variables
-    if (hasLastDownload) {
-      document.querySelector("#variables-table-row")?.classList.toggle("hide", !hasLastDownload);
-    }
-    // The #see-variables-btn click handler is bound once below; updateErrors
-    // only refreshes the data it reads. Binding here would leak a listener on
-    // every autosave and make the toggle unpredictable.
-    latestInterpolatedVariables = body.interpolatedVariables;
+      // Variables
+      if (hasLastDownload) {
+        document.querySelector("#variables-table-row")?.classList.toggle("hide", !hasLastDownload);
+      }
+      // The #see-variables-btn click handler is bound once below; updateErrors
+      // only refreshes the data it reads. Binding here would leak a listener on
+      // every autosave and make the toggle unpredictable.
+      latestInterpolatedVariables = body.interpolatedVariables;
 
-    // Capture groups
-    const hasCaptureMatches = body.routeInfo && Array.isArray(body.routeInfo.captures);
+      // Capture groups
+      const captures = body.routeInfo.captures;
+      const hasCaptureMatches = Array.isArray(captures);
 
-    document.querySelector("#capture-group-rows")?.classList.toggle("hide", !hasCaptureMatches);
+      document.querySelector("#capture-group-rows")?.classList.toggle("hide", !hasCaptureMatches);
 
-    if (hasCaptureMatches && lastDlCapture) {
-      lastDlCapture.textContent = "";
+      if (hasCaptureMatches && lastDlCapture) {
+        lastDlCapture.textContent = "";
 
-      // Skip first match as it's just the entire input
-      body.routeInfo.captures
-        .slice(1)
-        .map((_capture: string, i: number) => {
-          const div = document.createElement("div");
-          div.className = "match-row";
+        // Skip first match as it's just the entire input
+        captures
+          .slice(1)
+          .map((capture, i) => {
+            const div = document.createElement("div");
+            div.className = "match-row";
 
-          const code = document.createElement("code");
-          code.innerText = `:$${i + 1}:`;
-          code.classList.add("click-to-copy");
-          addClickToCopy(code);
-          div.appendChild(code);
+            const code = document.createElement("code");
+            code.innerText = `:$${i + 1}:`;
+            code.classList.add("click-to-copy");
+            addClickToCopy(code);
+            div.appendChild(code);
 
-          const value = document.createElement("div");
-          value.className = "match-row-result";
-          value.textContent = body.routeInfo.captures[i + 1];
-          div.appendChild(value);
+            const value = document.createElement("div");
+            value.className = "match-row-result";
+            value.textContent = capture ?? "";
+            div.appendChild(value);
 
-          return div;
-        })
-        .forEach((rowDiv: HTMLElement) => lastDlCapture.appendChild(rowDiv));
-    }
-  });
+            return div;
+          })
+          .forEach((rowDiv: HTMLElement) => lastDlCapture.appendChild(rowDiv));
+      }
+    },
+  );
 };
 
 // Set UI elements' value/checked

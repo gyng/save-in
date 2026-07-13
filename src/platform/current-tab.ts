@@ -8,7 +8,17 @@
 // Reassigned only here (via setCurrentTab); readers import a read-only live
 // binding. background-main.ts's tab listeners call setCurrentTab to update it.
 
-export type CurrentTab = Partial<browser.tabs.Tab>;
+// Shared code only depends on this cross-browser subset. Keeping the domain
+// model independent of either ambient host package prevents Firefox-only tab
+// fields from leaking into the Chrome typecheck (and vice versa).
+export type CurrentTab = {
+  id?: number | undefined;
+  title?: string | undefined;
+  url?: string | undefined;
+  incognito?: boolean | undefined;
+  active?: boolean | undefined;
+  cookieStoreId?: string | undefined;
+};
 
 export let currentTab: CurrentTab | null = null;
 

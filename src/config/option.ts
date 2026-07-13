@@ -3,6 +3,7 @@ import { webExtensionApi } from "../platform/web-extension-api.ts";
 import {
   OPTION_KEYS,
   OPTION_TYPES,
+  defaultOptions,
   type SaveInOptionName,
   type SaveInOptions,
 } from "./option-schema.ts";
@@ -16,7 +17,7 @@ import { isContentOptionName, normalizeContentOption } from "./content-options.t
 export interface OptionsManagementApi {
   OPTION_TYPES: typeof OPTION_TYPES;
   OPTION_KEYS: typeof OPTION_KEYS;
-  OPTION_DESCRIPTIONS: Record<string, string>;
+  OPTION_DESCRIPTIONS: Record<SaveInOptionName, string>;
   getKeys(): SaveInOptionName[];
   setOption<Name extends SaveInOptionName>(
     name: Name,
@@ -97,7 +98,7 @@ export const OptionsManagement: OptionsManagementApi = {
     closeTabOnSave: "Close a tab after saving it.",
     setRefererHeader: "Set the Referer header to the page URL for matching sites.",
     setRefererHeaderFilter: "URL match patterns for the Referer header.",
-  },
+  } satisfies Record<SaveInOptionName, string>,
 
   getKeys: () => OptionsManagement.OPTION_KEYS.map((option) => option.name),
 
@@ -112,24 +113,19 @@ export const OptionsManagement: OptionsManagementApi = {
 
   loadOptions: () =>
     webExtensionApi.storage.local.get(OptionsManagement.getKeys()).then((loadedOptions) => {
-      loadedOptions = loadedOptions && typeof loadedOptions === "object" ? loadedOptions : {};
-      const nextOptions = {} as SaveInOptions;
-
-      OptionsManagement.OPTION_KEYS.forEach((optionType) => {
+      const storedOptions: Record<string, unknown> =
+        loadedOptions && typeof loadedOptions === "object" && !Array.isArray(loadedOptions)
+          ? loadedOptions
+          : {};
+      const callHook = (hook: unknown, value: unknown): unknown =>
+        typeof hook === "function" ? Reflect.apply(hook, undefined, [value]) : value;
+      const normalizeOption = (
+        optionType: (typeof OPTION_KEYS)[number],
+        stored: unknown,
+      ): unknown => {
         const k = optionType.name;
-        const stored = loadedOptions[k];
-        if (isContentOptionName(k)) {
-          nextOptions[k] = normalizeContentOption(k, stored) as never;
-          return;
-        }
-        if (typeof stored === "undefined") {
-          nextOptions[k] = optionType.default as never;
-          return;
-        }
-        const validate =
-          "validate" in optionType
-            ? (optionType.validate as (value: unknown) => boolean)
-            : undefined;
+        if (isContentOptionName(k)) return normalizeContentOption(k, stored);
+        if (typeof stored === "undefined") return optionType.default;
         const validType =
           optionType.type === OPTION_TYPES.BOOL
             ? typeof stored === "boolean"
@@ -138,26 +134,28 @@ export const OptionsManagement: OptionsManagementApi = {
                 typeof stored === "string" &&
                 stored.trim() !== "" &&
                 Number.isFinite(Number(stored)));
+        const validate = "validate" in optionType ? optionType.validate : undefined;
         if (
           !validType ||
           (typeof stored === "number" && !Number.isFinite(stored)) ||
-          (validate && !validate(stored))
+          (validate && callHook(validate, stored) !== true)
         ) {
-          nextOptions[k] = optionType.default as never;
-          return;
+          return optionType.default;
         }
-        const fn: (value: unknown) => unknown =
-          "onLoad" in optionType
-            ? (optionType.onLoad as (value: unknown) => unknown)
-            : (value) => value;
         try {
-          nextOptions[k] = fn(stored) as never;
+          return callHook("onLoad" in optionType ? optionType.onLoad : undefined, stored);
         } catch {
           // Profiles and imported settings can outlive their parser/migration.
           // One corrupt option must not prevent the background page from starting.
-          nextOptions[k] = optionType.default as never;
+          return optionType.default;
         }
-      });
+      };
+      const nextOptions = Object.fromEntries(
+        OptionsManagement.OPTION_KEYS.map((optionType) => [
+          optionType.name,
+          normalizeOption(optionType, storedOptions[optionType.name]),
+        ]),
+      ) as SaveInOptions;
 
       // Commit a complete snapshot only after every stored value has been
       // normalized. Keys removed by reset therefore return to their defaults,
@@ -175,6 +173,6 @@ export const OptionsManagement: OptionsManagementApi = {
 export const seedOptions = () => {
   // Mutate the shared bag in place (it's a `const` leaf export now) so every
   // module's live reference stays valid across a background runtime reset
-  resetOptions(OptionsManagement.OPTION_KEYS.map((val) => [val.name, val.default] as const));
+  resetOptions(defaultOptions());
   return options;
 };

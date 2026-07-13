@@ -10,7 +10,9 @@ import {
   contentClickComboToKeyCodes,
   normalizeContentOption,
   resolveContentOptions,
+  type ContentOptionName,
   type ContentOptions,
+  type ResolvedContentOptions,
 } from "../config/content-options.ts";
 
 // Runs in every page. Uses callback-style chrome.* APIs: available in both
@@ -96,6 +98,14 @@ const ClickToSave = {
 
     return source || undefined;
   },
+};
+
+const setContentOption = <Name extends ContentOptionName>(
+  target: ContentOptions,
+  name: Name,
+  value: ResolvedContentOptions[Name],
+): void => {
+  target[name] = value;
 };
 
 const warmBackground = () => {
@@ -285,7 +295,7 @@ try {
       if (key in changes) {
         if (!receivedInitialOptions) changedDuringRead.add(key);
         const change = changes[key];
-        if (change) changed[key] = normalizeContentOption(key, change.newValue) as never;
+        if (change) setContentOption(changed, key, normalizeContentOption(key, change.newValue));
       }
     });
     if (Object.keys(changed).length > 0) {
@@ -300,7 +310,7 @@ try {
     const snapshot = resolveContentOptions(stored);
     const unchangedSnapshot: ContentOptions = {};
     CONTENT_OPTION_KEYS.forEach((key) => {
-      if (!changedDuringRead.has(key)) unchangedSnapshot[key] = snapshot[key] as never;
+      if (!changedDuringRead.has(key)) setContentOption(unchangedSnapshot, key, snapshot[key]);
     });
     applyOptions(unchangedSnapshot);
     receivedInitialOptions = true;

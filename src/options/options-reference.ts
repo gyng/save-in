@@ -6,6 +6,8 @@ import {
 } from "./reference-page.ts";
 import { webExtensionApi } from "../platform/web-extension-api.ts";
 import { addClickToCopy } from "./clicktocopy.ts";
+import { MESSAGE_TYPES } from "../shared/constants.ts";
+import { sendInternalMessage } from "../shared/message-protocol.ts";
 
 type ReferenceKind = "variables" | "clauses";
 
@@ -17,7 +19,10 @@ const loadReference = async (kind: ReferenceKind, file: string, sourceSelector: 
   target.innerHTML = source.querySelector(sourceSelector)?.innerHTML || "";
 
   try {
-    const keywords = (await webExtensionApi.runtime.sendMessage({ type: "GET_KEYWORDS" }))?.body;
+    const keywordResponse = await sendInternalMessage(webExtensionApi.runtime, {
+      type: MESSAGE_TYPES.GET_KEYWORDS,
+    });
+    const keywords = "matchers" in keywordResponse.body ? keywordResponse.body : undefined;
     const terms = kind === "variables" ? keywords?.variables : keywords?.matchers;
     if (Array.isArray(terms)) {
       syncReferenceVocabulary(

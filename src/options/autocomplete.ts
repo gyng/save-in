@@ -1,4 +1,6 @@
 import { webExtensionApi } from "../platform/web-extension-api.ts";
+import { MESSAGE_TYPES } from "../shared/constants.ts";
+import { sendInternalMessage } from "../shared/message-protocol.ts";
 import { sortClauses, sortVariables, variableGroup } from "./vocabulary-groups.ts";
 
 export type AutocompleteStrategy = {
@@ -17,8 +19,6 @@ type RoutingKeywords = {
   matchers: string[];
   variables: string[];
 };
-
-type KeywordsResponse = { body: RoutingKeywords };
 
 type TextField = HTMLInputElement | HTMLTextAreaElement;
 
@@ -334,10 +334,12 @@ export const setupRoutingAutocomplete = (keywords: RoutingKeywords) => {
   }
 };
 
-if (webExtensionApi?.runtime?.sendMessage) {
-  webExtensionApi.runtime
-    .sendMessage({ type: "GET_KEYWORDS" })
-    .then((res: KeywordsResponse) => res.body)
-    .then(setupRoutingAutocomplete)
-    .catch(() => {});
-}
+sendInternalMessage(webExtensionApi.runtime, { type: MESSAGE_TYPES.GET_KEYWORDS })
+  .then((response) => {
+    if (!("matchers" in response.body) || !("variables" in response.body)) {
+      throw new Error("Keyword lookup failed");
+    }
+    return response.body;
+  })
+  .then(setupRoutingAutocomplete)
+  .catch(() => {});

@@ -1,9 +1,15 @@
-type DownloadChange = Omit<Partial<browser.downloads._OnChangedDownloadDelta>, "error"> & {
+type StringDelta = { current?: string | undefined; previous?: string | undefined };
+type BooleanDelta = { current?: boolean | undefined; previous?: boolean | undefined };
+
+type DownloadChange = {
+  state?: StringDelta | undefined;
+  paused?: BooleanDelta | undefined;
+  canResume?: BooleanDelta | undefined;
   // Older Chromium typings and mocks exposed the reason directly.
-  error?: browser.downloads.StringDelta | string | undefined;
+  error?: StringDelta | string | undefined;
 };
 
-export type DownloadFailure = browser.downloads.StringDelta | string | boolean;
+export type DownloadFailure = StringDelta | string | boolean;
 
 export const getDownloadFailure = (
   downloadDelta: DownloadChange,

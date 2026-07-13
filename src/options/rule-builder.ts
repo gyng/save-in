@@ -1,4 +1,6 @@
 import { webExtensionApi } from "../platform/web-extension-api.ts";
+import { MESSAGE_TYPES } from "../shared/constants.ts";
+import { sendInternalMessage } from "../shared/message-protocol.ts";
 
 // Guided rule input and template library for the Dynamic Downloads rules
 // textarea. Both compose complete rules and append them through the normal
@@ -57,10 +59,10 @@ export const RuleBuilder = {
 
     // The matcher list comes from the background routing module, like the
     // autocomplete keywords do
-    webExtensionApi.runtime
-      .sendMessage({ type: "GET_KEYWORDS" })
-      .then((res: { body?: { matchers?: string[] } } | undefined) => {
-        sortClauses(res?.body?.matchers || []).forEach((name) => {
+    sendInternalMessage(webExtensionApi.runtime, { type: MESSAGE_TYPES.GET_KEYWORDS })
+      .then((response) => {
+        const matchers = "matchers" in response.body ? response.body.matchers : [];
+        sortClauses(matchers).forEach((name) => {
           const option = document.createElement("option");
           option.value = name;
           option.textContent = name;

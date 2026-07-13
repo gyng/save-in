@@ -21,7 +21,12 @@ describe("state service instances", () => {
       set: vi.fn(() => Promise.resolve()),
     };
 
-    await updateSession<number>(first, storage, "value", (value) => (value || 0) + 1);
+    await updateSession<number>(
+      first,
+      storage,
+      "value",
+      (value) => normalizeSessionCounter(value) + 1,
+    );
 
     expect(storage.set).toHaveBeenCalledWith({ value: 2 });
     expect(second.queues).not.toBe(first.queues);
@@ -38,8 +43,18 @@ describe("state service instances", () => {
       set: vi.fn(() => Promise.resolve()),
     };
 
-    const slowWrite = updateSession<number>(writes, storage, "slow", (value) => (value || 0) + 1);
-    await updateSession<number>(writes, storage, "fast", (value) => (value || 0) + 1);
+    const slowWrite = updateSession<number>(
+      writes,
+      storage,
+      "slow",
+      (value) => normalizeSessionCounter(value) + 1,
+    );
+    await updateSession<number>(
+      writes,
+      storage,
+      "fast",
+      (value) => normalizeSessionCounter(value) + 1,
+    );
 
     expect(storage.set).toHaveBeenCalledWith({ fast: 2 });
     expect(storage.set).not.toHaveBeenCalledWith({ slow: 2 });

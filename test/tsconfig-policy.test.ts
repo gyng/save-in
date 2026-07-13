@@ -56,7 +56,11 @@ describe("TypeScript policy", () => {
     expect(readConfig("tsconfig.tools-legacy.json").extends).toBe("./tsconfig.tools.json");
     expect(legacyTools).toMatchObject({ strict: false });
     expect(readConfig("tsconfig.tools.json").include).not.toContain("e2e/**/*.mjs");
+    expect(readConfig("tsconfig.tools.json").include).toContain("scripts/prepare-release.js");
     expect(readConfig("tsconfig.tools-legacy.json").include).toContain("e2e/**/*.mjs");
+    expect(readConfig("tsconfig.tools-legacy.json").exclude).toContain(
+      "scripts/prepare-release.js",
+    );
 
     const pkg = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8")) as {
       scripts?: Record<string, string>;
@@ -65,6 +69,7 @@ describe("TypeScript policy", () => {
     expect(pkg.scripts?.typecheck).toContain("tsconfig.tools.json");
     expect(pkg.scripts?.typecheck).toContain("tsconfig.tools-legacy.json");
     expect(pkg.scripts?.typecheck).toContain("tsconfig.test.json");
+    expect(pkg.scripts?.typecheck).toContain("tsconfig.test-strict.json");
   });
 
   test("checks application source against both host API declarations", () => {
@@ -76,5 +81,20 @@ describe("TypeScript policy", () => {
       scripts?: Record<string, string>;
     };
     expect(pkg.scripts?.typecheck).toContain("tsconfig.chrome.json");
+  });
+
+  test("keeps a strict migration boundary for typed test helpers and protocol contracts", () => {
+    const strictTests = compilerOptions("tsconfig.test-strict.json");
+    expect(strictTests).toMatchObject({
+      exactOptionalPropertyTypes: true,
+      noUncheckedIndexedAccess: true,
+    });
+    expect(readConfig("tsconfig.test-strict.json").include).toEqual(
+      expect.arrayContaining([
+        "test/type-contracts.test.ts",
+        "test/message-protocol.test.ts",
+        "test/webextension-test-helpers.ts",
+      ]),
+    );
   });
 });

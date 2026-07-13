@@ -14,6 +14,7 @@ test("renders build identity and the live external API contract", async () => {
     <span id="api-version"></span><span id="api-capabilities"></span>`;
   vi.spyOn(webExtensionApi.runtime, "getManifest").mockReturnValue({ version: "4.0.0" } as any);
   vi.spyOn(webExtensionApi.runtime, "sendMessage").mockResolvedValue({
+    type: MESSAGE_TYPES.PONG,
     body: { version: 1, capabilities: ["download", "active_tab"] },
   });
   setupIntegrationPanel();

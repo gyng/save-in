@@ -287,7 +287,11 @@ describe("onMessage", () => {
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.OPTIONS_SCHEMA,
       body: {
-        keys: OptionsManagement.OPTION_KEYS,
+        keys: OptionsManagement.OPTION_KEYS.map(({ name, type, default: defaultValue }) => ({
+          name,
+          type,
+          default: defaultValue,
+        })),
         types: OptionsManagement.OPTION_TYPES,
       },
     });
@@ -423,7 +427,7 @@ describe("onMessage CHECK_ROUTES", () => {
     expect(sendResponse).toHaveBeenCalledWith(
       expect.objectContaining({
         body: expect.objectContaining({
-          lastDownload: lastState,
+          lastDownload: { info: { filename: "last.png" } },
           interpolatedVariables: { ":date:": "interp::date:", ":year:": "interp::year:" },
         }),
       }),
@@ -1067,7 +1071,7 @@ describe("emit.downloaded", () => {
     expect(() => Messaging.emit.downloaded(state)).not.toThrow();
     expect(global.browser.runtime.sendMessage).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.DOWNLOADED,
-      body: { state },
+      body: { state: { path: ".", info: { url: "https://x/file.png" } } },
     });
     // The rejection is caught, not left unhandled
     await Promise.resolve();

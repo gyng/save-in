@@ -45,16 +45,8 @@ export const retryViaFetch = async (
   runtime: RetryRuntime,
   services: RetryServices,
   downloadId: number,
-  enqueueFilename: (
-    map: FinalFilenameMap | undefined,
-    url: string,
-    filename: string,
-  ) => FinalFilenameMap,
-  removeFilename: (
-    map: FinalFilenameMap | undefined,
-    url: string,
-    filename: string,
-  ) => FinalFilenameMap,
+  enqueueFilename: (map: unknown, url: string, filename: string) => FinalFilenameMap,
+  removeFilename: (map: unknown, url: string, filename: string) => FinalFilenameMap,
 ): Promise<boolean> => {
   const record = await getDownload(downloadsState, extensionSessionStorage, downloadId);
   if (

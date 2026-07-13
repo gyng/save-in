@@ -2,13 +2,29 @@ import { webExtensionApi } from "../platform/web-extension-api.ts";
 import { getMessage } from "../platform/localization.ts";
 import { configureRoutingPorts } from "../routing/ports.ts";
 import { COUNTER_KEY } from "../shared/storage-keys.ts";
+import { MESSAGE_TYPES } from "../shared/constants.ts";
+import { sendInternalMessage } from "../shared/message-protocol.ts";
 import type { OptionSchema } from "./options-persistence.ts";
 
-export const createOptionsRuntime = (api: typeof webExtensionApi) => {
+export type OptionsRuntimeApi = {
+  runtime: {
+    sendMessage(message: unknown): Promise<unknown>;
+  };
+  i18n: { getMessage(key: string): string };
+  storage: {
+    local: {
+      get(keys: string): Promise<Record<string, unknown>>;
+    };
+  };
+};
+
+export const createOptionsRuntime = (api: OptionsRuntimeApi) => {
   let schema: Promise<OptionSchema> | undefined;
 
   const loadSchema = async (): Promise<OptionSchema> => {
-    const response: unknown = await api.runtime.sendMessage({ type: "OPTIONS_SCHEMA" });
+    const response: unknown = await sendInternalMessage(api.runtime, {
+      type: MESSAGE_TYPES.OPTIONS_SCHEMA,
+    });
     const body =
       response != null && typeof response === "object" ? Reflect.get(response, "body") : undefined;
     if (
@@ -28,7 +44,8 @@ export const createOptionsRuntime = (api: typeof webExtensionApi) => {
           key != null &&
           typeof key === "object" &&
           typeof Reflect.get(key, "name") === "string" &&
-          typeof Reflect.get(key, "type") === "string",
+          typeof Reflect.get(key, "type") === "string" &&
+          ["string", "number", "boolean"].includes(typeof Reflect.get(key, "default")),
       ) ||
       typeof types.BOOL !== "string" ||
       typeof types.VALUE !== "string"
@@ -59,8 +76,8 @@ export const createOptionsRuntime = (api: typeof webExtensionApi) => {
       return schema;
     },
     apply(config: Record<string, unknown>, expected?: Record<string, unknown>): Promise<unknown> {
-      return api.runtime.sendMessage({
-        type: "APPLY_CONFIG",
+      return sendInternalMessage(api.runtime, {
+        type: MESSAGE_TYPES.APPLY_CONFIG,
         body: { config, ...(expected ? { expected } : {}) },
       });
     },

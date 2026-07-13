@@ -3,7 +3,9 @@ import { applyVariables } from "../routing/variable.ts";
 import { matchesAnyPattern } from "../shared/match-pattern.ts";
 import type { DownloadPipelineState } from "./download-types.ts";
 
-type BrowserDownloadItem = Pick<browser.downloads.DownloadItem, "url" | "filename"> & {
+export type BrowserDownloadItem = {
+  url: string;
+  filename: string;
   finalUrl?: string | undefined;
   byExtensionId?: string | undefined;
 };
@@ -30,7 +32,7 @@ const proposedFilename = (filename: string): string =>
   filename.split(/[\\/]/).filter(Boolean).at(-1) || filename;
 
 export const isOrdinaryBrowserDownload = (
-  item: Pick<browser.downloads.DownloadItem, "byExtensionId">,
+  item: Pick<BrowserDownloadItem, "byExtensionId">,
   runtimeId?: string,
 ): boolean => {
   void runtimeId;

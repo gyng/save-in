@@ -1,9 +1,10 @@
 import { isStringKeyedRecord } from "../shared/message-protocol.ts";
+import type { WireOptionSchemaKey } from "../shared/message-protocol.ts";
 
 export type JsonRecord = Record<string, unknown>;
 
 export type OptionSchema = {
-  keys: Array<JsonRecord & { name: string; type: string; default?: unknown }>;
+  keys: Array<JsonRecord & WireOptionSchemaKey>;
   types: { BOOL: string; VALUE: string };
 };
 

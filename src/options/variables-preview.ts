@@ -1,4 +1,6 @@
 import { webExtensionApi } from "../platform/web-extension-api.ts";
+import { MESSAGE_TYPES } from "../shared/constants.ts";
+import { sendInternalMessage } from "../shared/message-protocol.ts";
 import { PathEditor } from "./path-editor.ts";
 import {
   sortVariables,
@@ -23,17 +25,24 @@ export const renderVariablesPreview = async () => {
 
   try {
     const [keywords, routes] = await Promise.all([
-      webExtensionApi.runtime.sendMessage({ type: "GET_KEYWORDS" }),
-      webExtensionApi.runtime.sendMessage({ type: "CHECK_ROUTES" }).catch(() => null),
+      sendInternalMessage(webExtensionApi.runtime, { type: MESSAGE_TYPES.GET_KEYWORDS }),
+      sendInternalMessage(webExtensionApi.runtime, { type: MESSAGE_TYPES.CHECK_ROUTES }).catch(
+        () => null,
+      ),
     ]);
+    const keywordBody = "variables" in keywords.body ? keywords.body : undefined;
     const variables: string[] = sortVariables(
-      Array.isArray(keywords?.body?.variables)
-        ? keywords.body.variables.filter(
+      Array.isArray(keywordBody?.variables)
+        ? keywordBody.variables.filter(
             (value: unknown): value is string => typeof value === "string",
           )
         : [],
     );
-    const values = stringRecord(routes?.body?.interpolatedVariables);
+    const values = stringRecord(
+      routes && "interpolatedVariables" in routes.body
+        ? routes.body.interpolatedVariables
+        : undefined,
+    );
 
     panels.forEach((panel) => {
       const container = panel.querySelector(".variables-preview-list");

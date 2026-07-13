@@ -1,14 +1,15 @@
 import { MESSAGE_TYPES } from "../shared/constants.ts";
+import type { InternalMessage, ProtocolErrorResponse } from "../shared/message-protocol.ts";
 
-export type SendResponse = (response: unknown) => void;
+export type SendResponse<Response = unknown> = (response: Response) => void;
 
 // Chrome requires a literal synchronous `true` when sendResponse will be used
 // after the listener returns. Keeping that rule here makes async error handling
 // identical for every message handler.
-export const respondAsync = (
-  type: string,
+export const respondAsync = <Type extends InternalMessage["type"]>(
+  type: Type,
   task: Promise<void>,
-  sendResponse: SendResponse,
+  sendResponse: SendResponse<ProtocolErrorResponse<Type>>,
   onError: (error: unknown) => void = () => {},
 ): true => {
   void task.catch((error: unknown) => {

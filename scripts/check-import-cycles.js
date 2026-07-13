@@ -10,6 +10,7 @@ const {
 const root = path.resolve(__dirname, "..");
 const srcRoot = path.join(root, "src");
 
+/** @param {string} dir @returns {string[]} */
 const listFiles = (dir) =>
   fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
     const file = path.join(dir, entry.name);
@@ -18,10 +19,13 @@ const listFiles = (dir) =>
 
 const files = listFiles(srcRoot);
 const known = new Set(files);
+/** @type {Map<string, string[]>} */
 const graph = new Map(files.map((file) => [file, []]));
+/** @type {Map<string, string[]>} */
 const imports = new Map(files.map((file) => [file, []]));
 for (const file of files) {
   const source = fs.readFileSync(file, "utf8");
+  /** @type {string[]} */
   const statements = [];
   let statement = "";
   for (const line of source.split(/\r?\n/)) {
@@ -46,15 +50,18 @@ for (const file of files) {
     const resolved = path.resolve(path.dirname(file), match[1]);
     const target = path.extname(resolved) ? resolved : `${resolved}.ts`;
     if (known.has(target)) {
-      imports.get(file).push(target);
+      imports.get(file)?.push(target);
       // Type-only edges are erased and cannot participate in the runtime SCC.
-      if (!/^\s*(?:import|export)\s+type\b/.test(declaration)) graph.get(file).push(target);
+      if (!/^\s*(?:import|export)\s+type\b/.test(declaration)) graph.get(file)?.push(target);
     }
   }
 }
 
+/** @param {string} file */
 const relative = (file) => path.relative(root, file).replaceAll(path.sep, "/");
+/** @type {string[]} */
 const architectureViolations = [];
+/** @param {string} file @param {string} rule @param {string} [dependency] */
 const report = (file, rule, dependency) =>
   architectureViolations.push(
     `${relative(file)}: ${rule}${dependency ? ` (${relative(dependency)})` : ""}`,
@@ -174,12 +181,18 @@ for (const file of files) {
 }
 
 let nextIndex = 0;
+/** @type {Map<string, number>} */
 const indexes = new Map();
+/** @type {Map<string, number>} */
 const lowLinks = new Map();
+/** @type {string[]} */
 const stack = [];
+/** @type {Set<string>} */
 const onStack = new Set();
+/** @type {string[][]} */
 const cycles = [];
 
+/** @param {string} file */
 const visit = (file) => {
   indexes.set(file, nextIndex);
   lowLinks.set(file, nextIndex);
@@ -187,26 +200,29 @@ const visit = (file) => {
   stack.push(file);
   onStack.add(file);
 
-  for (const dependency of graph.get(file)) {
+  for (const dependency of graph.get(file) || []) {
     if (!indexes.has(dependency)) {
       visit(dependency);
-      lowLinks.set(file, Math.min(lowLinks.get(file), lowLinks.get(dependency)));
+      lowLinks.set(file, Math.min(lowLinks.get(file) ?? 0, lowLinks.get(dependency) ?? 0));
     } else if (onStack.has(dependency)) {
-      lowLinks.set(file, Math.min(lowLinks.get(file), indexes.get(dependency)));
+      lowLinks.set(file, Math.min(lowLinks.get(file) ?? 0, indexes.get(dependency) ?? 0));
     }
   }
 
   if (lowLinks.get(file) !== indexes.get(file)) return;
 
+  /** @type {string[]} */
   const component = [];
+  /** @type {string | undefined} */
   let member;
   do {
     member = stack.pop();
+    if (member === undefined) throw new Error(`Invalid component stack while visiting ${file}`);
     onStack.delete(member);
     component.push(member);
   } while (member !== file);
 
-  const selfCycle = component.length === 1 && graph.get(file).includes(file);
+  const selfCycle = component.length === 1 && Boolean(graph.get(file)?.includes(file));
   if (component.length > 1 || selfCycle) cycles.push(component);
 };
 

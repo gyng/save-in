@@ -5,6 +5,11 @@ const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
 
+/**
+ * @param {string} tag
+ * @param {string} packageVersion
+ * @param {string} manifestVersion
+ */
 function releaseVersion(tag, packageVersion, manifestVersion) {
   if (!/^v\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/.test(tag)) {
     throw new Error(`Release tag must be v-prefixed semver, received: ${tag}`);
@@ -21,6 +26,7 @@ function releaseVersion(tag, packageVersion, manifestVersion) {
   return version;
 }
 
+/** @param {string} root @param {string} tag */
 function readVersion(root, tag) {
   const packageVersion = JSON.parse(
     fs.readFileSync(path.join(root, "package.json"), "utf8"),
@@ -31,6 +37,7 @@ function readVersion(root, tag) {
   return releaseVersion(tag, packageVersion, manifestVersion);
 }
 
+/** @param {string} root @param {string} tag */
 function prepare(root, tag) {
   const version = readVersion(root, tag);
   const artifacts = path.join(root, "web-ext-artifacts");

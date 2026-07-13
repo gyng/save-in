@@ -41,22 +41,14 @@ const safeFilenameMap = (value: unknown): FinalFilenameMap => {
   return Object.fromEntries(entries);
 };
 
-export const enqueueFilename = (
-  map: FinalFilenameMap | undefined,
-  url: string,
-  filename: string,
-): FinalFilenameMap => {
-  map = safeFilenameMap(map);
-  const queue = [...filenameQueue(map[url]), filename];
+export const enqueueFilename = (map: unknown, url: string, filename: string): FinalFilenameMap => {
+  const safeMap = safeFilenameMap(map);
+  const queue = [...filenameQueue(safeMap[url]), filename];
   const first = queue[0];
-  return { ...map, [url]: queue.length === 1 && first !== undefined ? first : queue };
+  return { ...safeMap, [url]: queue.length === 1 && first !== undefined ? first : queue };
 };
 
-export const removeFilename = (
-  map: FinalFilenameMap | undefined,
-  url: string,
-  filename?: string,
-): FinalFilenameMap => {
+export const removeFilename = (map: unknown, url: string, filename?: string): FinalFilenameMap => {
   const copy = { ...safeFilenameMap(map) };
   const queue = filenameQueue(copy[url]);
   const index = filename == null ? 0 : queue.indexOf(filename);
@@ -144,9 +136,9 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
     if (pendingUrl && pendingQueue?.length === 0) Download.pendingStates.delete(pendingUrl);
 
     if (!pendingState || !pendingState.path) {
-      getSession<FinalFilenameMap>(extensionSessionStorage, FINAL_FILENAMES_SESSION_KEY)
+      getSession(extensionSessionStorage, FINAL_FILENAMES_SESSION_KEY)
         .then((res) => {
-          const map = res[FINAL_FILENAMES_SESSION_KEY] || {};
+          const map = safeFilenameMap(res[FINAL_FILENAMES_SESSION_KEY]);
           const recoveredUrl = map[downloadItem.url]
             ? downloadItem.url
             : map[downloadItem.finalUrl]

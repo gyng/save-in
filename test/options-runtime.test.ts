@@ -1,21 +1,21 @@
-import { createOptionsRuntime } from "../src/options/options-runtime.ts";
+import { createOptionsRuntime, type OptionsRuntimeApi } from "../src/options/options-runtime.ts";
 import { routingPorts } from "../src/routing/ports.ts";
 import { COUNTER_KEY } from "../src/shared/storage-keys.ts";
 
 describe("options runtime adapter", () => {
   test("caches schema requests and preserves conditional apply payloads", async () => {
-    const sendMessage = vi.fn(({ type }) =>
+    const sendMessage = vi.fn((message: unknown) =>
       Promise.resolve(
-        type === "OPTIONS_SCHEMA"
+        Reflect.get(message as object, "type") === "OPTIONS_SCHEMA"
           ? { body: { keys: [], types: { BOOL: "BOOL", VALUE: "VALUE" } } }
           : { body: {} },
       ),
     );
     const api = {
-      runtime: { sendMessage, onMessage: { addListener: vi.fn() } },
+      runtime: { sendMessage },
       i18n: { getMessage: (key: string) => key },
       storage: { local: { get: vi.fn(() => Promise.resolve({ [COUNTER_KEY]: 7 })) } },
-    } as any;
+    } satisfies OptionsRuntimeApi;
     const runtime = createOptionsRuntime(api);
 
     await Promise.all([runtime.getSchema(), runtime.getSchema()]);
@@ -40,7 +40,7 @@ describe("options runtime adapter", () => {
       runtime: { sendMessage },
       i18n: { getMessage: (key: string) => key },
       storage: { local: { get: vi.fn() } },
-    } as any;
+    } satisfies OptionsRuntimeApi;
     const runtime = createOptionsRuntime(api);
 
     await expect(runtime.getSchema()).rejects.toThrow("worker restarting");
@@ -58,10 +58,26 @@ describe("options runtime adapter", () => {
       runtime: { sendMessage },
       i18n: { getMessage: (key: string) => key },
       storage: { local: { get: vi.fn() } },
-    } as any;
+    } satisfies OptionsRuntimeApi;
     const runtime = createOptionsRuntime(api);
 
     await expect(runtime.getSchema()).rejects.toThrow("Invalid option schema");
     await expect(runtime.getSchema()).resolves.toEqual(schema);
+  });
+
+  test("rejects non-primitive option defaults at the message boundary", async () => {
+    const sendMessage = vi.fn().mockResolvedValue({
+      body: {
+        keys: [{ name: "paths", type: "VALUE", default: { nested: true } }],
+        types: { BOOL: "BOOL", VALUE: "VALUE" },
+      },
+    });
+    const api = {
+      runtime: { sendMessage },
+      i18n: { getMessage: (key: string) => key },
+      storage: { local: { get: vi.fn() } },
+    } satisfies OptionsRuntimeApi;
+
+    await expect(createOptionsRuntime(api).getSchema()).rejects.toThrow("Invalid option schema");
   });
 });

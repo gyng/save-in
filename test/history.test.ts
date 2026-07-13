@@ -6,13 +6,18 @@ import {
 } from "../src/shared/persistence-diagnostics.ts";
 
 const HISTORY_KEY = "save-in-history";
+type PersistedHistoryEntry = HistoryEntry & Record<string, unknown>;
 
 // add() returns the entry id synchronously; the write is queued, so tests
 // await SaveHistory.writeQueue to observe it
 const flushWrites = () => SaveHistory.writeQueue;
+const returnRawStorageValueOnce = (value: unknown): void => {
+  const get = vi.mocked(global.browser.storage.local.get);
+  Reflect.apply(get.mockResolvedValueOnce, get, [value]);
+};
 
 describe("SaveHistory", () => {
-  let store: Record<string, HistoryEntry[]>;
+  let store: Record<string, PersistedHistoryEntry[]>;
 
   beforeEach(() => {
     clearPersistenceDiagnostics();
@@ -20,7 +25,7 @@ describe("SaveHistory", () => {
     global.browser.storage.local.get = jest.fn((key: string) =>
       Promise.resolve({ [key]: store[key] }),
     );
-    global.browser.storage.local.set = jest.fn((obj: Record<string, HistoryEntry[]>) => {
+    global.browser.storage.local.set = jest.fn((obj: Record<string, PersistedHistoryEntry[]>) => {
       Object.assign(store, obj);
       return Promise.resolve();
     });
@@ -183,7 +188,7 @@ describe("SaveHistory", () => {
   });
 
   test("add tolerates a storage backend returning nothing", async () => {
-    vi.mocked(global.browser.storage.local.get).mockResolvedValueOnce(undefined as never);
+    returnRawStorageValueOnce(undefined);
 
     SaveHistory.add({ url: "https://a/1" });
     await flushWrites();
@@ -192,20 +197,20 @@ describe("SaveHistory", () => {
   });
 
   test("get tolerates a storage backend returning nothing", async () => {
-    vi.mocked(global.browser.storage.local.get).mockResolvedValueOnce(undefined as never);
+    returnRawStorageValueOnce(undefined);
 
     await expect(SaveHistory.get()).resolves.toEqual([]);
   });
 
   test("get drops malformed persisted entries", async () => {
-    vi.mocked(global.browser.storage.local.get).mockResolvedValueOnce({
+    returnRawStorageValueOnce({
       [HISTORY_KEY]: [null, "bad", { id: 4 }, { id: "ok", downloadId: 7 }],
-    } as never);
+    });
     await expect(SaveHistory.get()).resolves.toEqual([{ id: "ok", downloadId: 7 }]);
   });
 
   test("get reconstructs persisted entries from correctly typed allowlisted fields", async () => {
-    vi.mocked(global.browser.storage.local.get).mockResolvedValueOnce({
+    returnRawStorageValueOnce({
       [HISTORY_KEY]: [
         {
           id: "h1",
@@ -235,7 +240,7 @@ describe("SaveHistory", () => {
           unknown: "discard",
         },
       ],
-    } as never);
+    });
 
     await expect(SaveHistory.get()).resolves.toEqual([
       {
@@ -257,7 +262,7 @@ describe("SaveHistory", () => {
     global.browser.storage.local.get = jest.fn((key: string) =>
       Promise.resolve().then(() => ({ [key]: store[key] })),
     );
-    global.browser.storage.local.set = jest.fn((obj: Record<string, HistoryEntry[]>) =>
+    global.browser.storage.local.set = jest.fn((obj: Record<string, PersistedHistoryEntry[]>) =>
       Promise.resolve().then(() => {
         Object.assign(store, obj);
       }),
@@ -277,7 +282,7 @@ describe("SaveHistory", () => {
     global.browser.storage.local.set = jest
       .fn()
       .mockRejectedValueOnce(new Error("boom"))
-      .mockImplementation((obj: Record<string, HistoryEntry[]>) => {
+      .mockImplementation((obj: Record<string, PersistedHistoryEntry[]>) => {
         Object.assign(store, obj);
         return Promise.resolve();
       });

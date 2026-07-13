@@ -268,7 +268,7 @@ export const Notifier = {
     // between requesting the download and this event. siPendingDownloads is a
     // COUNTER (not a boolean) so several downloads created after one restart
     // are all recovered — a boolean dropped every one past the first.
-    const res = await getSession<number>(extensionSessionStorage, PENDING_DOWNLOADS_SESSION_KEY);
+    const res = await getSession(extensionSessionStorage, PENDING_DOWNLOADS_SESSION_KEY);
     if (normalizeSessionCounter(res[PENDING_DOWNLOADS_SESSION_KEY]) > 0) {
       await mergeTrackedDownload(item.id, {
         adopted: true,

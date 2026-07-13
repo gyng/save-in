@@ -9,7 +9,7 @@ export const replaceOptions = (next: SaveInOptions): void => {
   Object.assign(options, next);
 };
 
-export const resetOptions = (entries: Iterable<readonly [string, unknown]>): void => {
+export const resetOptions = (next: SaveInOptions): void => {
   Object.keys(options).forEach((key) => Reflect.deleteProperty(options, key));
-  for (const [key, value] of entries) Reflect.set(options, key, value);
+  Object.assign(options, next);
 };

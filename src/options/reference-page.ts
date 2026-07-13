@@ -5,6 +5,8 @@ import {
   variableGroup,
 } from "./vocabulary-groups.ts";
 import { webExtensionApi } from "../platform/web-extension-api.ts";
+import { MESSAGE_TYPES } from "../shared/constants.ts";
+import { sendInternalMessage } from "../shared/message-protocol.ts";
 
 type CopyText = (text: string) => Promise<void>;
 type ReferenceKind = "variables" | "clauses";
@@ -55,9 +57,12 @@ export const syncReferenceVocabulary = (
 
 const loadRuntimeVocabulary = async (): Promise<RuntimeVocabulary | null> => {
   try {
-    const response = await webExtensionApi.runtime.sendMessage({ type: "GET_KEYWORDS" });
-    const body = response?.body;
-    if (!Array.isArray(body?.variables) || !Array.isArray(body?.matchers)) return null;
+    const response = await sendInternalMessage(webExtensionApi.runtime, {
+      type: MESSAGE_TYPES.GET_KEYWORDS,
+    });
+    if (!("variables" in response.body) || !("matchers" in response.body)) return null;
+    const body = response.body;
+    if (!Array.isArray(body.variables) || !Array.isArray(body.matchers)) return null;
     return { variables: body.variables, matchers: body.matchers };
   } catch {
     // The authored rows remain a complete offline fallback if the background is unavailable.

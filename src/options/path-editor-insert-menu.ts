@@ -1,4 +1,6 @@
 import { webExtensionApi } from "../platform/web-extension-api.ts";
+import { MESSAGE_TYPES } from "../shared/constants.ts";
+import { sendInternalMessage } from "../shared/message-protocol.ts";
 import { compareClauses, CLAUSE_GROUPS, clauseGroup } from "./vocabulary-groups.ts";
 
 export const setupPathInsertMenu = (
@@ -135,14 +137,12 @@ export const setupPathInsertMenu = (
       })
       ?.click();
   });
-  webExtensionApi.runtime
-    .sendMessage({ type: "GET_KEYWORDS" })
-    .then((res: { body?: { matchers?: string[] } } | undefined) => {
+  sendInternalMessage(webExtensionApi.runtime, { type: MESSAGE_TYPES.GET_KEYWORDS })
+    .then((response) => {
+      const matchers = "matchers" in response.body ? response.body.matchers : [];
       renderClauses(
-        Array.isArray(res?.body?.matchers)
-          ? res.body.matchers.filter(
-              (matcher: unknown): matcher is string => typeof matcher === "string",
-            )
+        Array.isArray(matchers)
+          ? matchers.filter((matcher: unknown): matcher is string => typeof matcher === "string")
           : [],
       );
       applyClauseFilter();

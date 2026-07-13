@@ -1,7 +1,7 @@
 const LOG_KEY = "si-log";
 import type { LogEntry } from "../src/background/log.ts";
 
-type LogStore = Record<string, LogEntry[] | undefined>;
+type LogStore = Record<string, unknown>;
 
 const setupSession = () => {
   const store: LogStore = {};
@@ -24,7 +24,8 @@ const setupSession = () => {
 describe("Log", () => {
   let Log: typeof import("../src/background/log.ts").Log;
   let store: LogStore;
-  const entries = (): LogEntry[] => store[LOG_KEY] ?? [];
+  const entries = (): LogEntry[] =>
+    Array.isArray(store[LOG_KEY]) ? (store[LOG_KEY] as LogEntry[]) : [];
 
   beforeEach(async () => {
     jest.resetModules();
@@ -91,6 +92,27 @@ describe("Log", () => {
     await expect(Log.get()).resolves.toEqual([]);
     await Log.add("one");
     await expect(Log.get()).resolves.toHaveLength(1);
+  });
+
+  test("normalizes malformed and legacy session entries", async () => {
+    store[LOG_KEY] = [
+      { at: "2026-01-01T00:00:00.000Z", message: "kept", data: "details" },
+      { at: 7, message: "bad timestamp" },
+      { at: "2026-01-01T00:00:00.000Z", message: 8 },
+      null,
+    ];
+
+    await expect(Log.get()).resolves.toEqual([
+      { at: "2026-01-01T00:00:00.000Z", message: "kept", data: "details" },
+    ]);
+
+    await Log.add("new");
+    expect(entries().map(({ message }) => message)).toEqual(["kept", "new"]);
+
+    store[LOG_KEY] = { legacy: true };
+    await expect(Log.get()).resolves.toEqual([]);
+    await Log.add("recovered");
+    expect(entries().map(({ message }) => message)).toEqual(["recovered"]);
   });
 
   test("clear empties the log", async () => {

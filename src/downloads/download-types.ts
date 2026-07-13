@@ -12,14 +12,16 @@ export type DownloadInfo = LazyDownloadMetadata &
     currentTab?: CurrentTab | null | undefined;
   };
 
+export type DownloadScratch = {
+  hasExtension?: boolean | RegExpMatchArray | "" | null | undefined;
+  mimeExtension?: string | undefined;
+  pathTemplateRaw?: string | undefined;
+  historyEntryId?: string | null | undefined;
+};
+
 export type DownloadPipelineState = {
   path: PathValue;
-  scratch: {
-    hasExtension?: boolean | RegExpMatchArray | "" | null;
-    mimeExtension?: string;
-    historyEntryId?: string | null | undefined;
-    [key: string]: unknown;
-  };
+  scratch: DownloadScratch;
   info: DownloadInfo;
   needRouteMatch?: boolean | undefined;
   route?: PathValue | undefined;
