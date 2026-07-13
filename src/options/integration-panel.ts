@@ -62,6 +62,82 @@ const renderExternalApi = () => {
 
 let approvalQueue: Promise<unknown> = Promise.resolve();
 
+const allowedExtensionIds = (value: string): string[] => [...new Set(splitLines(value))];
+
+const setAllowedExtensionIds = (textarea: HTMLTextAreaElement, ids: string[]): void => {
+  textarea.value = ids.join("\n");
+  textarea.dispatchEvent(new Event("input", { bubbles: true }));
+};
+
+const setupApprovedExtensions = () => {
+  const textarea = document.querySelector<HTMLTextAreaElement>("#externalDownloadAllowlist");
+  const draft = document.querySelector<HTMLInputElement>("#external-extension-id-draft");
+  const add = document.querySelector<HTMLButtonElement>("#external-extension-id-add");
+  const list = document.querySelector<HTMLElement>("#external-approved-list");
+  const empty = document.querySelector<HTMLElement>("#external-approved-empty");
+  const count = document.querySelector<HTMLElement>("#external-approved-count");
+  const status = document.querySelector<HTMLElement>("#external-approved-status");
+  if (!textarea || !draft || !add || !list || !empty || !count) return;
+
+  const refreshAddState = () => {
+    const candidate = draft.value.trim();
+    add.disabled = !candidate || allowedExtensionIds(textarea.value).includes(candidate);
+  };
+
+  const render = () => {
+    const ids = allowedExtensionIds(textarea.value);
+    list.textContent = "";
+    ids.forEach((id) => {
+      const row = document.createElement("div");
+      row.className = "external-approved-row";
+      row.dataset.approvedSenderId = id;
+      row.setAttribute("role", "listitem");
+
+      const code = document.createElement("code");
+      code.textContent = id;
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "button external-approved-remove";
+      remove.textContent = "Remove";
+      remove.setAttribute("aria-label", `Remove ${id}`);
+      remove.addEventListener("click", () => {
+        setAllowedExtensionIds(
+          textarea,
+          allowedExtensionIds(textarea.value).filter((candidate) => candidate !== id),
+        );
+        if (status) status.textContent = `Removed ${id}.`;
+      });
+
+      row.append(code, remove);
+      list.appendChild(row);
+    });
+
+    empty.hidden = ids.length > 0;
+    count.textContent = ids.length === 0 ? "None approved" : `${ids.length} approved`;
+    refreshAddState();
+  };
+
+  add.addEventListener("click", () => {
+    const candidate = draft.value.trim();
+    const ids = allowedExtensionIds(textarea.value);
+    if (!candidate || ids.includes(candidate)) return;
+    setAllowedExtensionIds(textarea, [...ids, candidate]);
+    draft.value = "";
+    if (status) status.textContent = `Allowed ${candidate}.`;
+    refreshAddState();
+    draft.focus();
+  });
+  draft.addEventListener("input", refreshAddState);
+  draft.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" && !add.disabled) {
+      event.preventDefault();
+      add.click();
+    }
+  });
+  textarea.addEventListener("input", render);
+  render();
+};
+
 const rejectionAttemptLabel = (attempts: number): string =>
   `${attempts} blocked ${attempts === 1 ? "attempt" : "attempts"}`;
 
@@ -95,10 +171,10 @@ const renderRejectedCaller = (
   const add = document.createElement("button");
   add.type = "button";
   add.className = "button external-download-rejection-add";
-  add.textContent = "Add";
+  add.textContent = "Approve";
   add.addEventListener("click", () => {
     add.disabled = true;
-    add.textContent = "Adding…";
+    add.textContent = "Approving…";
     if (status) status.textContent = "";
     approvalQueue = approvalQueue
       .catch(() => {})
@@ -140,7 +216,7 @@ const renderRejectedCaller = (
       })
       .catch((error) => {
         add.disabled = false;
-        add.textContent = "Add";
+        add.textContent = "Approve";
         if (status) status.textContent = `Could not add ${rejection.senderId}: ${String(error)}`;
       });
   });
@@ -181,7 +257,12 @@ export const setupIntegrationPanel = () => {
   renderExternalApi();
   // Approval composes with the restored allowlist value. Rendering before the
   // asynchronous options restore could replace an existing legacy allowlist.
-  document.addEventListener("options-restored", () => void renderExternalDownloadRejections(), {
-    once: true,
-  });
+  document.addEventListener(
+    "options-restored",
+    () => {
+      setupApprovedExtensions();
+      void renderExternalDownloadRejections();
+    },
+    { once: true },
+  );
 };

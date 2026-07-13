@@ -85,6 +85,7 @@ test("lists rejected callers and adds an approved caller to the allowlist", asyn
   );
   const row = document.querySelector<HTMLElement>("[data-rejected-sender-id='blocked-extension']")!;
   expect(row.textContent).toContain("3 blocked attempts");
+  expect(row.querySelector("button")?.textContent).toBe("Approve");
 
   row.querySelector<HTMLButtonElement>("button")?.click();
 
@@ -102,4 +103,63 @@ test("lists rejected callers and adds an approved caller to the allowlist", asyn
     type: MESSAGE_TYPES.EXTERNAL_DOWNLOAD_REJECTION_CLEAR,
     body: { senderId: "blocked-extension" },
   });
+});
+
+test("manages approved extension IDs without exposing the raw editor", async () => {
+  document.body.innerHTML = `
+    <a id="version-label"></a><span id="ext-id"></span><pre id="api-snippet"></pre>
+    <span id="api-version"></span><span id="api-capabilities"></span>
+    <input id="external-extension-id-draft" />
+    <button id="external-extension-id-add" type="button">Allow</button>
+    <span id="external-approved-count"></span>
+    <div id="external-approved-list"></div>
+    <div id="external-approved-empty"></div>
+    <div id="external-approved-status"></div>
+    <textarea id="externalDownloadAllowlist">existing-extension\nsecond-extension</textarea>
+    <section id="external-download-rejections" hidden>
+      <div id="external-download-rejection-list"></div>
+    </section>`;
+  vi.spyOn(webExtensionApi.runtime, "getManifest").mockReturnValue({ version: "4.0.0" } as any);
+  vi.spyOn(webExtensionApi.runtime, "sendMessage").mockImplementation(async (message: any) => {
+    if (message.type === MESSAGE_TYPES.PING) {
+      return { type: MESSAGE_TYPES.PONG, body: { version: 1, capabilities: [] } };
+    }
+    if (message.type === MESSAGE_TYPES.EXTERNAL_DOWNLOAD_REJECTIONS_GET) {
+      return {
+        type: MESSAGE_TYPES.EXTERNAL_DOWNLOAD_REJECTIONS_GET,
+        body: { rejections: [] },
+      };
+    }
+    throw new Error(`Unexpected message: ${message.type}`);
+  });
+
+  setupIntegrationPanel();
+  document.dispatchEvent(new Event("options-restored"));
+
+  await vi.waitFor(() =>
+    expect(document.querySelectorAll("[data-approved-sender-id]")).toHaveLength(2),
+  );
+  expect(document.querySelector("#external-approved-count")?.textContent).toBe("2 approved");
+
+  const draft = document.querySelector<HTMLInputElement>("#external-extension-id-draft")!;
+  draft.value = "new-extension";
+  draft.dispatchEvent(new Event("input", { bubbles: true }));
+  document.querySelector<HTMLButtonElement>("#external-extension-id-add")?.click();
+
+  expect(document.querySelector<HTMLTextAreaElement>("#externalDownloadAllowlist")?.value).toBe(
+    "existing-extension\nsecond-extension\nnew-extension",
+  );
+  expect(document.querySelectorAll("[data-approved-sender-id]")).toHaveLength(3);
+
+  document
+    .querySelector<HTMLElement>("[data-approved-sender-id='existing-extension']")
+    ?.querySelector<HTMLButtonElement>("button")
+    ?.click();
+
+  expect(document.querySelector<HTMLTextAreaElement>("#externalDownloadAllowlist")?.value).toBe(
+    "second-extension\nnew-extension",
+  );
+  expect(document.querySelector("#external-approved-status")?.textContent).toContain(
+    "Removed existing-extension",
+  );
 });

@@ -1311,28 +1311,71 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
           >
         </div>
 
-        <label class="external-allowlist-control">
-          <span class="external-control-label">Allowed extension IDs</span>
-          <span class="caption external-control-help">
-            Add the calling extension's ID—not Save In's ID—one per line. Leave this empty to block
-            external downloads; API discovery remains available.
-          </span>
-          <textarea
-            class="full-width external-allowlist-input"
-            id="externalDownloadAllowlist"
-            rows="4"
-            placeholder="One extension ID per line"
-            spellcheck="false"
-          ></textarea>
-        </label>
+        <section class="external-access-control" aria-labelledby="external-approved-heading">
+          <div class="external-access-heading">
+            <div>
+              <h5 id="external-approved-heading">Approved extensions</h5>
+              <p class="caption external-control-help">
+                Only approved extensions can start downloads. Use the calling extension's ID—not
+                Save In's ID.
+              </p>
+            </div>
+            <span id="external-approved-count" class="external-approved-count">None approved</span>
+          </div>
+
+          <div class="external-extension-add-row">
+            <label class="visually-hidden" for="external-extension-id-draft">Extension ID</label>
+            <input
+              id="external-extension-id-draft"
+              class="external-extension-id-draft"
+              type="text"
+              placeholder="Paste an extension ID"
+              autocomplete="off"
+              autocapitalize="none"
+              spellcheck="false"
+              data-runtime-control="true"
+            />
+            <button id="external-extension-id-add" class="button" type="button" disabled>
+              Allow
+            </button>
+          </div>
+
+          <div id="external-approved-list" class="external-approved-list" role="list"></div>
+          <p id="external-approved-empty" class="caption external-approved-empty">
+            No extensions are approved. External downloads are blocked by default.
+          </p>
+          <p
+            id="external-approved-status"
+            class="caption external-approved-status"
+            role="status"
+          ></p>
+
+          <details class="external-raw-editor">
+            <summary>Advanced: edit IDs as text</summary>
+            <p class="caption">Use one extension ID per line for bulk changes.</p>
+            <label>
+              <span class="external-control-label visually-hidden">Allowed extension IDs</span>
+              <textarea
+                class="full-width external-allowlist-input"
+                id="externalDownloadAllowlist"
+                rows="4"
+                placeholder="One extension ID per line"
+                spellcheck="false"
+              ></textarea>
+            </label>
+          </details>
+        </section>
 
         <section
           id="external-download-rejections"
           class="external-download-rejections"
           aria-live="polite"
+          aria-labelledby="external-pending-heading"
           hidden
         >
-          <div class="external-download-rejections-title">Requests awaiting approval</div>
+          <h5 id="external-pending-heading" class="external-download-rejections-title">
+            Pending approval
+          </h5>
           <div class="caption">
             These extensions tried to start a download. Add only callers you trust. Requested URLs
             are never stored.

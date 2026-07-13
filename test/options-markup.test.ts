@@ -202,6 +202,12 @@ describe("options form semantics", () => {
     const integrationCard = document.querySelector(".external-integrations-card");
     expect(integrationCard).not.toBeNull();
     expect(integrationCard?.contains(allowlist)).toBe(true);
+    expect(integrationCard?.querySelector("#external-extension-id-draft")).not.toBeNull();
+    expect(integrationCard?.querySelector("#external-extension-id-add")?.textContent).toContain(
+      "Allow",
+    );
+    expect(integrationCard?.querySelector("#external-approved-list")).not.toBeNull();
+    expect(allowlist?.closest(".external-raw-editor")).not.toBeNull();
     const rejections = document.querySelector("#external-download-rejections");
     expect(rejections).not.toBeNull();
     expect(integrationCard?.contains(rejections)).toBe(true);
