@@ -51,6 +51,14 @@ describe("application global surface", () => {
     }
   });
 
+  test("keeps the content panel closed outside explicit e2e builds", () => {
+    const bundler = read("rolldown.config.mjs");
+    const staging = read("scripts/build-bundled.js");
+
+    expect(bundler).toContain("SAVE_IN_CONTENT_E2E");
+    expect(staging).toContain("Unexpected content panel shadow mode");
+  });
+
   test("gives the options entry sole DOM-ready ownership", () => {
     expect(read("src/entries/options.ts")).toMatch(/addEventListener\(\s*"DOMContentLoaded"/);
     for (const path of [

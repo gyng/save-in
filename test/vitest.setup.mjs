@@ -3,6 +3,7 @@ import { vi } from "vitest";
 // jest-webextension-mock (and the odd test helper) calls jest.fn at import
 // time; vitest's vi API is compatible
 globalThis.jest = vi;
+globalThis.SAVE_IN_CONTENT_E2E = true;
 
 await import("jest-webextension-mock");
 

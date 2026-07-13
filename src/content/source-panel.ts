@@ -1,4 +1,6 @@
 import {
+  collectBackgroundElements,
+  collectBackgroundSourceCandidates,
   collectPageSourceCandidates,
   collectResourceHintSources,
   createSourceTooltip,
@@ -12,6 +14,8 @@ import {
   type SourcePanelOptions,
   type SourceSort,
 } from "./source-panel-model.ts";
+
+declare const SAVE_IN_CONTENT_E2E: boolean;
 
 export {
   collectPageSources,
@@ -34,6 +38,25 @@ const PANEL_HOST_ID = "save-in-source-panel";
 const panelCleanups = new WeakMap<Element, () => void>();
 const panelCloseTimers = new WeakMap<Element, number>();
 const panelPreviousFocus = new WeakMap<Element, HTMLElement>();
+const panelRoots = new WeakMap<HTMLElement, ShadowRoot>();
+const panelOpenChanges = new WeakMap<HTMLElement, (open: boolean) => void>();
+const panelUpdates = new WeakMap<
+  HTMLElement,
+  (sendDownload: (source: PageSource) => void, options: SourcePanelOptions) => void
+>();
+let activePanelHost: HTMLElement | null = null;
+
+export const getSourcePanelHostForTesting = (): HTMLElement | null => activePanelHost;
+
+const cleanupPanelHost = (host: HTMLElement) => {
+  panelCleanups.get(host)?.();
+  panelCleanups.delete(host);
+  panelPreviousFocus.delete(host);
+  panelRoots.delete(host);
+  panelOpenChanges.delete(host);
+  panelUpdates.delete(host);
+  if (activePanelHost === host) activePanelHost = null;
+};
 
 const cancelPanelRemoval = (host: Element) => {
   const timer = panelCloseTimers.get(host);
@@ -41,18 +64,25 @@ const cancelPanelRemoval = (host: Element) => {
   panelCloseTimers.delete(host);
 };
 
-const schedulePanelRemoval = (host: Element) => {
+const schedulePanelRemoval = (host: HTMLElement) => {
   cancelPanelRemoval(host);
   panelCloseTimers.set(
     host,
     window.setTimeout(() => {
       panelCloseTimers.delete(host);
-      panelCleanups.get(host)?.();
-      panelCleanups.delete(host);
-      panelPreviousFocus.delete(host);
+      cleanupPanelHost(host);
       host.remove();
     }, 90),
   );
+};
+
+const closePanelHost = (host: HTMLElement): false => {
+  if (host.classList.contains("closing")) return false;
+  panelPreviousFocus.get(host)?.focus();
+  host.classList.add("closing");
+  schedulePanelRemoval(host);
+  panelOpenChanges.get(host)?.(false);
+  return false;
 };
 const ICON_PATHS = {
   copy: ["M8 8h10v10H8z", "M5 15H3V3h12v2"],
@@ -79,27 +109,32 @@ export const toggleSourcePanel = (
   sendDownload: (source: PageSource) => void,
   options: SourcePanelOptions = {},
 ): boolean => {
-  const existing = document.getElementById(PANEL_HOST_ID);
+  if (activePanelHost && !activePanelHost.isConnected) cleanupPanelHost(activePanelHost);
+  const existing = activePanelHost;
   if (existing) {
     if (existing.classList.contains("closing")) {
       cancelPanelRemoval(existing);
       existing.classList.remove("closing");
-      options.onOpenChange?.(true);
+      panelOpenChanges.get(existing)?.(true);
+      panelRoots.get(existing)?.querySelector<HTMLInputElement>('input[type="search"]')?.focus();
       return true;
     }
-    existing.classList.add("closing");
-    schedulePanelRemoval(existing);
-    options.onOpenChange?.(false);
-    return false;
+    return closePanelHost(existing);
   }
   if (options.enabled === false) return false;
+  let panelOptions = { ...options };
+  let panelSendDownload = sendDownload;
 
   const host = document.createElement("aside");
   const previousFocus =
     document.activeElement instanceof HTMLElement ? document.activeElement : null;
   if (previousFocus) panelPreviousFocus.set(host, previousFocus);
   host.id = PANEL_HOST_ID;
-  const shadow = host.attachShadow({ mode: "open" });
+  const exposeShadowForTests = SAVE_IN_CONTENT_E2E === true;
+  const shadow = host.attachShadow({ mode: exposeShadowForTests ? "open" : "closed" });
+  panelRoots.set(host, shadow);
+  panelOpenChanges.set(host, panelOptions.onOpenChange || (() => {}));
+  activePanelHost = host;
   const style = document.createElement("style");
   style.textContent = `
     :host{all:initial;position:fixed;z-index:2147483647;isolation:isolate;inset:0 0 0 auto;width:min(360px,92vw);font:13px system-ui;color:#1f2328;animation:si-in 110ms ease-out both}
@@ -156,13 +191,13 @@ export const toggleSourcePanel = (
   const docks = ["right", "bottom", "left", "top"] as const;
   let dockIndex = 0;
   const updateDock = () => {
-    const dock = docks[dockIndex];
+    const dock = docks[dockIndex]!;
     host.dataset.dock = dock;
     host.classList.remove("dock-left", "dock-bottom", "dock-top");
     if (dock !== "right") host.classList.add(`dock-${dock}`);
     host.style.width = "";
     host.style.height = "";
-    dockButton.title = `Dock: ${dock[0].toUpperCase()} — change to the next position`;
+    dockButton.title = `Dock: ${dock[0]!.toUpperCase()} — change to the next position`;
   };
   dockButton.className = "header-button dock";
   setButtonIcon(dockButton, "dock");
@@ -199,10 +234,7 @@ export const toggleSourcePanel = (
   });
   updateDock();
   const closePanel = () => {
-    panelPreviousFocus.get(host)?.focus();
-    host.classList.add("closing");
-    schedulePanelRemoval(host);
-    options.onOpenChange?.(false);
+    closePanelHost(host);
   };
   close.addEventListener("click", closePanel);
   const headerActions = document.createElement("div");
@@ -248,12 +280,13 @@ export const toggleSourcePanel = (
   filter.setAttribute("aria-label", "Filter page sources");
   const sort = document.createElement("select");
   sort.setAttribute("aria-label", "Sort sources");
-  [
+  const sortOptions: ReadonlyArray<readonly [SourceSort, string]> = [
     ["detected-desc", "Newest"],
     ["detected-asc", "Oldest"],
     ["size-desc", "Largest"],
     ["name-asc", "Name"],
-  ].forEach(([value, label]) => {
+  ];
+  sortOptions.forEach(([value, label]) => {
     const option = document.createElement("option");
     option.value = value;
     option.textContent = label;
@@ -265,9 +298,30 @@ export const toggleSourcePanel = (
   let activeKind: "all" | PageSourceKind = "all";
   const firstSeen = new Map<string, { at: number; order: number }>();
   const highlightedElements = new WeakSet<Element>();
+  const highlightStates = new WeakMap<HTMLElement, { outline: string; owners: Set<object> }>();
+  const acquireHighlight = (target: HTMLElement, owner: object) => {
+    let state = highlightStates.get(target);
+    if (!state) {
+      state = { outline: target.style.outline, owners: new Set() };
+      highlightStates.set(target, state);
+    }
+    state.owners.add(owner);
+    highlightedElements.add(target);
+    target.style.outline = "3px solid #0a84ff";
+  };
+  const releaseHighlight = (target: HTMLElement, owner: object) => {
+    const state = highlightStates.get(target);
+    if (!state) return;
+    state.owners.delete(owner);
+    if (state.owners.size > 0) return;
+    target.style.outline = state.outline;
+    highlightStates.delete(target);
+    window.setTimeout(() => highlightedElements.delete(target));
+  };
   const timingByUrl = resourceTimingByUrl();
   let detectionSequence = 0;
   let sourceCandidates: PageSource[] = [];
+  let backgroundCandidates: PageSource[] = [];
   let allSources: PageSource[] = [];
   let visibleSources: PageSource[] = [];
   let resourceHintSources: PageSource[] = [];
@@ -311,7 +365,7 @@ export const toggleSourcePanel = (
   };
   const commitSources = () => {
     const seen = new Set<string>();
-    allSources = [sourceCandidates, resourceHintSources]
+    allSources = [sourceCandidates, backgroundCandidates, resourceHintSources]
       .flat()
       .filter(({ url }) => !seen.has(url) && Boolean(seen.add(url)));
     const presentUrls = new Set(allSources.map(({ url }) => url));
@@ -328,18 +382,80 @@ export const toggleSourcePanel = (
     });
     render();
   };
+  let backgroundScanGeneration = 0;
+  let backgroundScanHandle = 0;
+  let backgroundScanUsesIdleCallback = false;
+  let backgroundScanActive = false;
+  const cancelBackgroundScan = () => {
+    backgroundScanGeneration += 1;
+    backgroundScanActive = false;
+    if (!backgroundScanHandle) return;
+    if (backgroundScanUsesIdleCallback && typeof window.cancelIdleCallback === "function")
+      window.cancelIdleCallback(backgroundScanHandle);
+    else window.clearTimeout(backgroundScanHandle);
+    backgroundScanHandle = 0;
+  };
+  const scheduleBackgroundRefresh = () => {
+    cancelBackgroundScan();
+    if (panelOptions.includeBackgrounds === false) {
+      backgroundCandidates = [];
+      return;
+    }
+    const generation = backgroundScanGeneration;
+    backgroundScanActive = true;
+    const elements = collectBackgroundElements(document).filter((element) => element !== host);
+    const nextBackgroundCandidates: PageSource[] = [];
+    let index = 0;
+    const runChunk = (deadline?: IdleDeadline) => {
+      backgroundScanHandle = 0;
+      let processed = 0;
+      while (index < elements.length) {
+        const element = elements[index++]!;
+        if (element.isConnected)
+          nextBackgroundCandidates.push(
+            ...collectBackgroundSourceCandidates([element], timingByUrl),
+          );
+        processed += 1;
+        if (processed >= 50 && (!deadline || deadline.timeRemaining() <= 1)) break;
+      }
+      if (generation !== backgroundScanGeneration) return;
+      if (index >= elements.length) {
+        backgroundScanActive = false;
+        backgroundCandidates = nextBackgroundCandidates;
+        commitSources();
+        return;
+      }
+      queueChunk();
+    };
+    const queueChunk = () => {
+      if (typeof window.requestIdleCallback === "function") {
+        backgroundScanUsesIdleCallback = true;
+        backgroundScanHandle = window.requestIdleCallback(runChunk, { timeout: 100 });
+      } else {
+        backgroundScanUsesIdleCallback = false;
+        backgroundScanHandle = window.setTimeout(() => runChunk(), 0);
+      }
+    };
+    queueChunk();
+  };
   const refreshSources = () => {
     sourceCandidates = collectPageSourceCandidates(
       document,
-      { ...options, resourceHints: false },
+      { ...panelOptions, includeBackgrounds: false, resourceHints: false },
       timingByUrl,
     );
     resourceHintSources =
-      options.resourceHints === false ? [] : collectResourceHintSources(timingByUrl, document.body);
+      panelOptions.resourceHints === false
+        ? []
+        : collectResourceHintSources(timingByUrl, document.body);
+    scheduleBackgroundRefresh();
     commitSources();
   };
   const removeSourcesUnder = (root: Element) => {
     sourceCandidates = sourceCandidates.filter(
+      ({ element }) => element !== root && !root.contains(element),
+    );
+    backgroundCandidates = backgroundCandidates.filter(
       ({ element }) => element !== root && !root.contains(element),
     );
   };
@@ -351,8 +467,19 @@ export const toggleSourcePanel = (
     const root = mediaOwner || pictureOwner || changedRoot;
     removeSourcesUnder(root);
     sourceCandidates.push(
-      ...collectPageSourceCandidates(root, { ...options, resourceHints: false }, timingByUrl),
+      ...collectPageSourceCandidates(
+        root,
+        { ...panelOptions, includeBackgrounds: false, resourceHints: false },
+        timingByUrl,
+      ),
     );
+    if (panelOptions.includeBackgrounds !== false) {
+      if (backgroundScanActive) scheduleBackgroundRefresh();
+      else
+        backgroundCandidates.push(
+          ...collectBackgroundSourceCandidates(collectBackgroundElements(root), timingByUrl),
+        );
+    }
   };
   const render = () => {
     previewObserver?.disconnect();
@@ -383,7 +510,7 @@ export const toggleSourcePanel = (
             ? "All"
             : kindName === "stream"
               ? "Playlist"
-              : `${kindName[0].toUpperCase()}${kindName.slice(1)}`;
+              : `${kindName[0]!.toUpperCase()}${kindName.slice(1)}`;
         const facetCount = document.createElement("span");
         facetCount.className = "facet-count";
         facetCount.textContent = String(count);
@@ -423,7 +550,8 @@ export const toggleSourcePanel = (
         cached &&
         cached.source.kind === source.kind &&
         cached.source.element === source.element &&
-        cached.source.bytes === source.bytes
+        cached.source.bytes === source.bytes &&
+        cached.source.previewable === source.previewable
       ) {
         const preview = cached.row.querySelector<HTMLImageElement | HTMLMediaElement>("img, video");
         if (previewObserver && preview && !preview.hasAttribute("src")) {
@@ -436,7 +564,9 @@ export const toggleSourcePanel = (
       const row = document.createElement("div");
       row.className = "row";
       const preview =
-        options.previews === false || !["image", "video"].includes(source.kind)
+        panelOptions.previews === false ||
+        source.previewable === false ||
+        !["image", "video"].includes(source.kind)
           ? document.createElement("div")
           : document.createElement(source.kind === "image" ? "img" : "video");
       if (preview instanceof HTMLImageElement) {
@@ -455,7 +585,7 @@ export const toggleSourcePanel = (
               ? "PDF"
               : source.kind === "link"
                 ? "↗"
-                : options.previews === false
+                : panelOptions.previews === false
                   ? source.kind === "image"
                     ? "▧"
                     : "▶"
@@ -465,7 +595,7 @@ export const toggleSourcePanel = (
       }
       const sourceLink = document.createElement("a");
       const hasRichTooltip =
-        options.previews !== false && ["image", "video", "audio"].includes(source.kind);
+        panelOptions.previews !== false && ["image", "video", "audio"].includes(source.kind);
       sourceLink.className = "source-link";
       sourceLink.href = source.url;
       sourceLink.target = "_blank";
@@ -542,29 +672,30 @@ export const toggleSourcePanel = (
       const actions = document.createElement("div");
       actions.className = "actions";
       const locate = document.createElement("button");
+      const locateHighlightOwner = {};
+      let locateHighlightTimer = 0;
       locate.textContent = "Locate";
       locate.addEventListener("click", () => {
-        source.element.scrollIntoView({ behavior: "smooth", block: "center" });
+        source.element.scrollIntoView?.({ behavior: "smooth", block: "center" });
         if (source.element instanceof HTMLElement) {
           const target = source.element;
-          highlightedElements.add(target);
-          const previous = target.style.outline;
-          target.style.outline = "3px solid #0a84ff";
-          window.setTimeout(() => {
-            target.style.outline = previous;
-            window.setTimeout(() => highlightedElements.delete(target));
-          }, 1600);
+          window.clearTimeout(locateHighlightTimer);
+          acquireHighlight(target, locateHighlightOwner);
+          locateHighlightTimer = window.setTimeout(
+            () => releaseHighlight(target, locateHighlightOwner),
+            1600,
+          );
         }
       });
       const save = document.createElement("button");
       save.textContent = source.kind === "stream" ? "Save playlist" : "Save";
       save.addEventListener("pointerdown", (event) => {
-        if (event.button === 0) options.onSaveIntent?.();
+        if (event.button === 0) panelOptions.onSaveIntent?.();
       });
       save.addEventListener("keydown", (event) => {
-        if (event.key === "Enter" || event.key === " ") options.onSaveIntent?.();
+        if (event.key === "Enter" || event.key === " ") panelOptions.onSaveIntent?.();
       });
-      save.addEventListener("click", () => sendDownload(source));
+      save.addEventListener("click", () => panelSendDownload(source));
       actions.append(locate, save);
       if (source.kind === "stream" || source.kind === "video") {
         const copy = document.createElement("button");
@@ -583,19 +714,16 @@ export const toggleSourcePanel = (
         });
         actions.append(copy);
       }
+      const previewHighlightOwner = {};
       const highlight = (active: boolean) => {
         if (!(source.element instanceof HTMLElement)) return;
         const target = source.element;
         if (active) {
-          highlightedElements.add(target);
-          target.dataset.saveInPreviousOutline = target.style.outline;
-          target.style.outline = "3px solid #0a84ff";
+          acquireHighlight(target, previewHighlightOwner);
           if (preview instanceof HTMLVideoElement) void preview.play().catch(() => {});
         } else {
-          target.style.outline = target.dataset.saveInPreviousOutline || "";
-          delete target.dataset.saveInPreviousOutline;
+          releaseHighlight(target, previewHighlightOwner);
           if (preview instanceof HTMLVideoElement) preview.pause();
-          window.setTimeout(() => highlightedElements.delete(target));
         }
       };
       let richTooltip: HTMLElement | null = null;
@@ -669,7 +797,7 @@ export const toggleSourcePanel = (
           return;
         event.preventDefault();
         event.stopPropagation();
-        sendDownload(source);
+        panelSendDownload(source);
       });
       row.addEventListener("pointerdown", (event) => {
         if (
@@ -677,7 +805,7 @@ export const toggleSourcePanel = (
           event.button === 0 &&
           !(event.target instanceof Element && event.target.closest("button"))
         ) {
-          options.onSaveIntent?.();
+          panelOptions.onSaveIntent?.();
         }
       });
       row.addEventListener("keydown", (event) => {
@@ -686,7 +814,7 @@ export const toggleSourcePanel = (
           (event.key === "Enter" || event.key === " ") &&
           !(event.target instanceof Element && event.target.closest("button"))
         ) {
-          options.onSaveIntent?.();
+          panelOptions.onSaveIntent?.();
         }
       });
       if (!hasRichTooltip)
@@ -696,6 +824,9 @@ export const toggleSourcePanel = (
         hovered = false;
         focused = false;
         syncPreview();
+        window.clearTimeout(locateHighlightTimer);
+        if (source.element instanceof HTMLElement)
+          releaseHighlight(source.element, locateHighlightOwner);
       };
       const cachedRow = { source, row, deactivate };
       rowCache.set(source.url, cachedRow);
@@ -741,9 +872,7 @@ export const toggleSourcePanel = (
   panel.append(resize, header, toolbar, facets, list);
   shadow.append(style, panel);
   document.documentElement.append(host);
-  options.onOpenChange?.(true);
-  refreshSources();
-  filter.focus();
+  panelOptions.onOpenChange?.(true);
   let refreshTimer = 0;
   const pendingRoots = new Set<Element>();
   const removedRoots = new Set<Element>();
@@ -776,9 +905,8 @@ export const toggleSourcePanel = (
   };
   const observer = new MutationObserver((mutations) => {
     if (!host.isConnected) {
-      panelCleanups.get(host)?.();
-      panelCleanups.delete(host);
-      panelPreviousFocus.delete(host);
+      panelOpenChanges.get(host)?.(false);
+      cleanupPanelHost(host);
       return;
     }
     if (
@@ -793,7 +921,7 @@ export const toggleSourcePanel = (
     mutations.forEach((mutation) => {
       if (!(mutation.target instanceof Element)) return;
       const affectsStylesheet =
-        options.includeBackgrounds !== false &&
+        panelOptions.includeBackgrounds !== false &&
         (mutation.target.closest("style") ||
           mutation.target.matches('link[rel~="stylesheet"]') ||
           [...mutation.addedNodes, ...mutation.removedNodes].some(
@@ -802,7 +930,14 @@ export const toggleSourcePanel = (
               (node.matches('style, link[rel~="stylesheet"]') ||
                 Boolean(node.querySelector('style, link[rel~="stylesheet"]'))),
           ));
-      if (affectsStylesheet) {
+      const affectsBase =
+        mutation.target.matches("base") ||
+        [...mutation.addedNodes, ...mutation.removedNodes].some(
+          (node) =>
+            node instanceof Element &&
+            (node.matches("base") || Boolean(node.querySelector("base"))),
+        );
+      if (affectsStylesheet || affectsBase) {
         fullRefreshPending = true;
         return;
       }
@@ -821,29 +956,41 @@ export const toggleSourcePanel = (
     scheduleRefresh();
   });
   const resourceObserver =
-    options.live !== false &&
-    options.resourceHints !== false &&
     typeof PerformanceObserver === "function"
       ? new PerformanceObserver((entries) => {
           const observed = entries.getEntries() as PerformanceResourceTiming[];
           observed.forEach((entry) => timingByUrl.set(entry.name, entry));
-          if (!observed.some(({ name }) => /\.(?:m3u8|mpd)(?:$|[?#])/i.test(name))) return;
-          resourceHintSources = collectResourceHintSources(timingByUrl, document.body);
-          commitSources();
+          let changed = false;
+          sourceCandidates = sourceCandidates.map((source) => {
+            const timing = timingByUrl.get(source.url);
+            const bytes = timing?.encodedBodySize || timing?.transferSize || undefined;
+            if (source.bytes === bytes) return source;
+            changed = true;
+            return { ...source, bytes };
+          });
+          backgroundCandidates = backgroundCandidates.map((source) => {
+            const timing = timingByUrl.get(source.url);
+            const bytes = timing?.encodedBodySize || timing?.transferSize || undefined;
+            if (source.bytes === bytes) return source;
+            changed = true;
+            return { ...source, bytes };
+          });
+          if (
+            panelOptions.resourceHints !== false &&
+            observed.some(({ name }) => /\.(?:m3u8|mpd)(?:$|[?#])/i.test(name))
+          ) {
+            resourceHintSources = collectResourceHintSources(timingByUrl, document.body);
+            changed = true;
+          }
+          if (changed) commitSources();
         })
       : null;
-  panelCleanups.set(host, () => {
+  const configureLiveObservers = () => {
     observer.disconnect();
     resourceObserver?.disconnect();
-    previewObserver?.disconnect();
-    window.clearTimeout(filterTimer);
-    window.clearTimeout(refreshTimer);
-    rowCache.forEach(({ deactivate }) => deactivate());
-  });
-  if (options.live !== false) {
-    const attributeFilter = ["src", "srcset", "style"];
-    if (options.includeLinks !== false) attributeFilter.push("href");
-    if (options.includeBackgrounds !== false) attributeFilter.push("class", "id");
+    if (panelOptions.live === false) return;
+    const attributeFilter = ["src", "srcset", "style", "href"];
+    if (panelOptions.includeBackgrounds !== false) attributeFilter.push("class", "id");
     observer.observe(document.documentElement, {
       childList: true,
       subtree: true,
@@ -851,11 +998,54 @@ export const toggleSourcePanel = (
       attributeFilter,
     });
     try {
-      resourceObserver?.observe({ entryTypes: ["resource"] });
+      resourceObserver?.observe({ type: "resource", buffered: true });
     } catch {
-      // Some older engines expose PerformanceObserver without resource entries.
+      try {
+        resourceObserver?.observe({ entryTypes: ["resource"] });
+      } catch {
+        // Some older engines expose PerformanceObserver without resource entries.
+      }
     }
-  }
+  };
+  panelCleanups.set(host, () => {
+    observer.disconnect();
+    resourceObserver?.disconnect();
+    previewObserver?.disconnect();
+    window.clearTimeout(filterTimer);
+    window.clearTimeout(refreshTimer);
+    cancelBackgroundScan();
+    rowCache.forEach(({ deactivate }) => deactivate());
+  });
+  panelUpdates.set(host, (nextSendDownload, nextOptions) => {
+    const previousOptions = panelOptions;
+    panelOptions = { ...nextOptions };
+    panelSendDownload = nextSendDownload;
+    panelOpenChanges.set(host, panelOptions.onOpenChange || (() => {}));
+    if (panelOptions.enabled === false) {
+      closePanelHost(host);
+      return;
+    }
+    const discoveryChanged = (
+      ["includeBackgrounds", "resourceHints", "includeLinks"] as const
+    ).some((key) => previousOptions[key] !== panelOptions[key]);
+    const observerConfigChanged = previousOptions.live !== panelOptions.live || discoveryChanged;
+    if (observerConfigChanged) configureLiveObservers();
+    const previewsChanged = previousOptions.previews !== panelOptions.previews;
+    if (previewsChanged) {
+      rowCache.forEach((cached) => deactivateAndRemove(cached));
+      rowCache.clear();
+    }
+    const liveEnabled = previousOptions.live === false && panelOptions.live !== false;
+    if (discoveryChanged || liveEnabled) {
+      refreshSources();
+      return;
+    }
+    if (previewsChanged) render();
+  });
+  configureLiveObservers();
+  resourceTimingByUrl().forEach((entry, url) => timingByUrl.set(url, entry));
+  refreshSources();
+  filter.focus();
   return true;
 };
 
@@ -863,18 +1053,10 @@ export const replaceSourcePanel = (
   sendDownload: (source: PageSource) => void,
   options: SourcePanelOptions = {},
 ): boolean => {
-  const existing = document.getElementById(PANEL_HOST_ID);
+  const existing = activePanelHost?.isConnected ? activePanelHost : null;
   if (!existing || existing.classList.contains("closing")) return false;
-  const previousFocus = panelPreviousFocus.get(existing);
-  cancelPanelRemoval(existing);
-  panelCleanups.get(existing)?.();
-  panelCleanups.delete(existing);
-  panelPreviousFocus.delete(existing);
-  existing.remove();
-  const open = toggleSourcePanel(sendDownload, options);
-  const replacement = document.getElementById(PANEL_HOST_ID);
-  if (open && replacement && previousFocus) panelPreviousFocus.set(replacement, previousFocus);
-  return open;
+  panelUpdates.get(existing)?.(sendDownload, options);
+  return !existing.classList.contains("closing");
 };
 
 export const setSourcePanelOpen = (
@@ -882,7 +1064,7 @@ export const setSourcePanelOpen = (
   sendDownload: (source: PageSource) => void,
   options: SourcePanelOptions = {},
 ): boolean => {
-  const existing = document.getElementById(PANEL_HOST_ID);
+  const existing = activePanelHost?.isConnected ? activePanelHost : null;
   if (existing?.classList.contains("closing")) {
     return open ? toggleSourcePanel(sendDownload, options) : false;
   }

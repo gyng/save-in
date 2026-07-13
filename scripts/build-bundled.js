@@ -30,6 +30,15 @@ for (const filename of ["background.js", "background.sw.js"]) {
     throw new Error(`Unexpected e2e bridge surface in ${filename}`);
   }
 }
+const contentBundle = fs.readFileSync(path.join(root, "dist", "bundled", "content.js"), "utf8");
+const contentShadowMode = contentBundle.match(/attachShadow\(\{\s*mode:\s*"(open|closed)"/)?.[1];
+const expectedContentShadowMode = expectE2EBridge ? "open" : "closed";
+if (
+  contentShadowMode !== expectedContentShadowMode ||
+  contentBundle.includes("SAVE_IN_CONTENT_E2E")
+) {
+  throw new Error("Unexpected content panel shadow mode");
+}
 
 // 2. Stage runtime assets. Original TypeScript belongs in the separate AMO
 // source attachment, not in the executable store package.

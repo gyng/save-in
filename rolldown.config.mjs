@@ -62,6 +62,11 @@ export default defineConfig([
   // private and, unlike esm, emits no top-level `export` statements
   {
     input: "src/content/content.ts",
+    transform: {
+      define: {
+        SAVE_IN_CONTENT_E2E: JSON.stringify(process.env.SAVE_IN_E2E === "1"),
+      },
+    },
     output: {
       file: "dist/bundled/content.js",
       format: "iife",

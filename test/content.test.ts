@@ -414,11 +414,11 @@ describe("content.js initialisation", () => {
 
     storageListener!({ sourcePanelLive: { oldValue: true, newValue: false } }, "local");
     const liveReconfiguredHost = document.getElementById("save-in-source-panel")!;
-    expect(liveReconfiguredHost).not.toBe(originalHost);
+    expect(liveReconfiguredHost).toBe(originalHost);
 
     storageListener!({ sourcePanelPreviews: { oldValue: true, newValue: false } }, "local");
     const reconfiguredHost = document.getElementById("save-in-source-panel")!;
-    expect(reconfiguredHost).not.toBe(liveReconfiguredHost);
+    expect(reconfiguredHost).toBe(liveReconfiguredHost);
     expect(reconfiguredHost.shadowRoot!.querySelector(".source-link img")).toBeNull();
 
     storageListener!({ sourcePanelEnabled: { oldValue: true, newValue: false } }, "local");

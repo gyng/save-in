@@ -3,6 +3,7 @@ import {
   createSourceTooltip,
   filterPageSources,
   formatSourceBytes,
+  getSourcePanelHostForTesting,
   replaceSourcePanel,
   setSourcePanelOpen,
   sortPageSources,
@@ -62,6 +63,25 @@ describe("page source collection", () => {
       "http://localhost/mobile@2x.jpg",
       "data:image/png;base64,AAAA",
       "http://localhost/desktop.jpg",
+    ]);
+  });
+
+  test("keeps img src fallback when currentSrc selects a responsive candidate", () => {
+    document.body.innerHTML = `<img src="fallback.jpg" srcset="selected.jpg 1x, large.jpg 2x">`;
+    const image = document.querySelector("img")!;
+    Object.defineProperty(image, "currentSrc", {
+      configurable: true,
+      value: "http://localhost/selected.jpg",
+    });
+
+    expect(
+      collectPageSources(document, { includeBackgrounds: false, resourceHints: false }).map(
+        ({ url }) => url,
+      ),
+    ).toEqual([
+      "http://localhost/selected.jpg",
+      "http://localhost/fallback.jpg",
+      "http://localhost/large.jpg",
     ]);
   });
 
@@ -205,10 +225,29 @@ test("builds larger image and autoplaying media tooltips", () => {
 
 describe("Page Sources panel interactions", () => {
   afterEach(() => {
-    document.getElementById("save-in-source-panel")?.remove();
+    getSourcePanelHostForTesting()?.remove();
+    document.querySelectorAll("#save-in-source-panel").forEach((host) => host.remove());
+    document.head.innerHTML = "";
+    document.body.innerHTML = "";
+    (globalThis as { SAVE_IN_CONTENT_E2E?: boolean }).SAVE_IN_CONTENT_E2E = true;
     vi.useRealTimers();
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
+  });
+
+  test("uses a closed owned host without removing a page ID collision", () => {
+    (globalThis as { SAVE_IN_CONTENT_E2E?: boolean }).SAVE_IN_CONTENT_E2E = false;
+    const impostor = document.createElement("div");
+    impostor.id = "save-in-source-panel";
+    document.body.append(impostor);
+
+    expect(toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false })).toBe(true);
+    const ownedHost = getSourcePanelHostForTesting();
+
+    expect(ownedHost).not.toBe(impostor);
+    expect(ownedHost?.shadowRoot).toBeNull();
+    expect(impostor.isConnected).toBe(true);
+    expect(impostor.classList.contains("closing")).toBe(false);
   });
 
   test("copies only URLs in the active text and type filters", async () => {
@@ -280,6 +319,68 @@ describe("Page Sources panel interactions", () => {
     expect(document.activeElement).toBe(pageButton);
   });
 
+  test("restores page focus when background state closes the panel", () => {
+    vi.useFakeTimers();
+    const pageButton = document.createElement("button");
+    document.body.append(pageButton);
+    pageButton.focus();
+    const options = { includeBackgrounds: false, live: false };
+
+    toggleSourcePanel(vi.fn(), options);
+    expect(setSourcePanelOpen(false, vi.fn(), options)).toBe(false);
+
+    expect(document.activeElement).toBe(pageButton);
+  });
+
+  test("updates options without resetting the open panel view state", () => {
+    document.body.innerHTML = `<img src="cat.jpg"><img src="dog.jpg">`;
+    const options = { includeBackgrounds: false, live: false };
+    toggleSourcePanel(vi.fn(), options);
+    const host = getSourcePanelHostForTesting()!;
+    const shadow = host.shadowRoot!;
+    const filter = shadow.querySelector<HTMLInputElement>('input[type="search"]')!;
+    const sort = shadow.querySelector<HTMLSelectElement>("select")!;
+    filter.value = "cat";
+    sort.value = "name-asc";
+    shadow.querySelector<HTMLButtonElement>(".dock")!.click();
+
+    expect(replaceSourcePanel(vi.fn(), { ...options, previews: false })).toBe(true);
+
+    expect(getSourcePanelHostForTesting()).toBe(host);
+    expect(filter.value).toBe("cat");
+    expect(sort.value).toBe("name-asc");
+    expect(host.dataset.dock).toBe("bottom");
+    expect(shadow.querySelector(".source-link img")).toBeNull();
+  });
+
+  test("starts and stops live reconciliation without replacing the panel", async () => {
+    vi.useFakeTimers();
+    document.body.innerHTML = `<img src="initial.jpg">`;
+    const sendDownload = vi.fn();
+    const options = { includeBackgrounds: false, live: false };
+    toggleSourcePanel(sendDownload, options);
+    const host = getSourcePanelHostForTesting()!;
+    const urls = () =>
+      [...host.shadowRoot!.querySelectorAll<HTMLAnchorElement>(".source-link")].map(
+        ({ href }) => href,
+      );
+
+    const discovered = document.createElement("img");
+    discovered.src = "discovered.jpg";
+    document.body.append(discovered);
+    replaceSourcePanel(sendDownload, { ...options, live: true });
+    expect(urls()).toContain("http://localhost/discovered.jpg");
+
+    replaceSourcePanel(sendDownload, options);
+    const ignored = document.createElement("img");
+    ignored.src = "ignored.jpg";
+    document.body.append(ignored);
+    await Promise.resolve();
+    vi.advanceTimersByTime(200);
+    expect(urls()).not.toContain("http://localhost/ignored.jpg");
+    expect(getSourcePanelHostForTesting()).toBe(host);
+  });
+
   test("filters cached sources without rescanning the page on every keystroke", () => {
     vi.useFakeTimers();
     document.body.innerHTML = `<img src="cat.jpg"><img src="dog.jpg">`;
@@ -347,6 +448,24 @@ describe("Page Sources panel interactions", () => {
     ).toBe(catRow);
   });
 
+  test("restores a shared source element outline after overlapping rows deactivate", () => {
+    vi.useFakeTimers();
+    document.body.innerHTML = `<img id="responsive" style="outline: 1px solid red" src="one.jpg" srcset="one.jpg 1x, two.jpg 2x">`;
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    const source = document.querySelector<HTMLElement>("#responsive")!;
+    const shadow = getSourcePanelHostForTesting()!.shadowRoot!;
+    const rows = [...shadow.querySelectorAll<HTMLElement>(".row")];
+    const firstLink = rows[0].querySelector<HTMLAnchorElement>(".source-link")!;
+    firstLink.dispatchEvent(new FocusEvent("focusin", { bubbles: true }));
+    rows[1].dispatchEvent(new MouseEvent("mouseenter"));
+
+    setSourcePanelOpen(false, vi.fn(), { includeBackgrounds: false, live: false });
+    vi.advanceTimersByTime(90);
+
+    expect(source.style.outline).toBe("1px solid red");
+    expect(source.hasAttribute("data-save-in-previous-outline")).toBe(false);
+  });
+
   test("loads list previews only when they approach the panel viewport", () => {
     let intersectionCallback: IntersectionObserverCallback | undefined;
     const observe = vi.fn();
@@ -378,6 +497,24 @@ describe("Page Sources panel interactions", () => {
     );
 
     expect(video.src).toBe("http://localhost/movie.mp4");
+  });
+
+  test("does not preload unselected responsive-image candidates", () => {
+    document.body.innerHTML = `<img src="fallback.jpg" srcset="selected.jpg 1x, large.jpg 2x">`;
+    Object.defineProperty(document.querySelector("img")!, "currentSrc", {
+      configurable: true,
+      value: "http://localhost/selected.jpg",
+    });
+
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    const rows = [
+      ...getSourcePanelHostForTesting()!.shadowRoot!.querySelectorAll<HTMLElement>(".row"),
+    ];
+    const rowFor = (name: string) => rows.find((row) => row.textContent?.includes(name))!;
+
+    expect(rowFor("selected.jpg").querySelector("img")).not.toBeNull();
+    expect(rowFor("fallback.jpg").querySelector("img")).toBeNull();
+    expect(rowFor("large.jpg").querySelector("img")).toBeNull();
   });
 
   test("ignores panel mutations and incrementally reconciles changed link targets", async () => {
@@ -513,6 +650,52 @@ describe("Page Sources panel interactions", () => {
     );
   });
 
+  test("scans initial computed backgrounds in idle chunks", () => {
+    const idleCallbacks: IdleRequestCallback[] = [];
+    vi.stubGlobal("requestIdleCallback", (callback: IdleRequestCallback) => {
+      idleCallbacks.push(callback);
+      return idleCallbacks.length;
+    });
+    vi.stubGlobal("cancelIdleCallback", vi.fn());
+    document.body.innerHTML = `<div class="poster" style="background-image: url(poster.jpg)"></div>`;
+    const computedStyle = vi.spyOn(window, "getComputedStyle");
+
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: true, live: false });
+
+    expect(computedStyle).not.toHaveBeenCalled();
+    idleCallbacks.shift()!({ didTimeout: false, timeRemaining: () => 50 } as IdleDeadline);
+    expect(computedStyle).toHaveBeenCalled();
+    expect(
+      getSourcePanelHostForTesting()!.shadowRoot!.querySelector<HTMLAnchorElement>(".source-link")!
+        .href,
+    ).toBe("http://localhost/poster.jpg");
+  });
+
+  test("re-resolves relative sources after the document base changes", async () => {
+    vi.useFakeTimers();
+    document.head.innerHTML = `<base href="http://localhost/one/">`;
+    document.body.innerHTML = `<img src="image.jpg">`;
+    toggleSourcePanel(vi.fn(), {
+      includeBackgrounds: false,
+      includeLinks: false,
+      live: true,
+    });
+    const urls = () =>
+      [
+        ...getSourcePanelHostForTesting()!.shadowRoot!.querySelectorAll<HTMLAnchorElement>(
+          ".source-link",
+        ),
+      ].map(({ href }) => href);
+    expect(urls()).toContain("http://localhost/one/image.jpg");
+
+    document.querySelector("base")!.setAttribute("href", "http://localhost/two/");
+    await Promise.resolve();
+    vi.advanceTimersByTime(200);
+
+    expect(urls()).toContain("http://localhost/two/image.jpg");
+    expect(urls()).not.toContain("http://localhost/one/image.jpg");
+  });
+
   test("refreshes when a new streaming resource is observed", () => {
     vi.useFakeTimers();
     let performanceCallback: PerformanceObserverCallback | undefined;
@@ -540,13 +723,49 @@ describe("Page Sources panel interactions", () => {
     );
     vi.advanceTimersByTime(200);
 
-    expect(observe).toHaveBeenCalledWith({ entryTypes: ["resource"] });
+    expect(observe).toHaveBeenCalledWith({ type: "resource", buffered: true });
     expect(resourceReads).not.toHaveBeenCalled();
     expect(
       document
         .getElementById("save-in-source-panel")!
         .shadowRoot!.querySelector<HTMLAnchorElement>(".source-link")!.href,
     ).toBe("https://cdn.test/new.m3u8");
+  });
+
+  test("updates displayed sizes for ordinary resources observed after opening", () => {
+    let performanceCallback: PerformanceObserverCallback | undefined;
+    class PerformanceObserverStub {
+      constructor(callback: PerformanceObserverCallback) {
+        performanceCallback = callback;
+      }
+      observe = vi.fn();
+      disconnect = vi.fn();
+      takeRecords = vi.fn(() => []);
+    }
+    vi.stubGlobal("PerformanceObserver", PerformanceObserverStub);
+    document.body.innerHTML = `<img src="https://cdn.test/late-size.jpg">`;
+    toggleSourcePanel(vi.fn(), {
+      includeBackgrounds: false,
+      live: true,
+      resourceHints: false,
+    });
+
+    performanceCallback!(
+      {
+        getEntries: () => [
+          {
+            name: "https://cdn.test/late-size.jpg",
+            encodedBodySize: 2048,
+            transferSize: 2200,
+          },
+        ],
+      } as unknown as PerformanceObserverEntryList,
+      {} as PerformanceObserver,
+    );
+
+    expect(
+      getSourcePanelHostForTesting()!.shadowRoot!.querySelector(".meta")?.textContent,
+    ).toContain("2 KB");
   });
 
   test("wraps facets and uses compact accessible header actions", () => {

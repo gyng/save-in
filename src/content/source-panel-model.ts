@@ -3,9 +3,10 @@ export type PageSource = {
   url: string;
   kind: PageSourceKind;
   element: Element;
-  bytes?: number;
-  detectedAt?: number;
-  detectedOrder?: number;
+  bytes?: number | undefined;
+  previewable?: boolean | undefined;
+  detectedAt?: number | undefined;
+  detectedOrder?: number | undefined;
 };
 export type SourcePanelOptions = {
   enabled?: boolean;
@@ -21,9 +22,10 @@ export type SourcePanelOptions = {
 export type ResourceTimingByUrl = ReadonlyMap<string, PerformanceResourceTiming>;
 
 const urlsFromCss = (value: string): string[] =>
-  [...value.matchAll(/url\((?:"([^"]+)"|'([^']+)'|([^)'"\s]+))\)/g)].map(
-    (match) => match[1] || match[2] || match[3],
-  );
+  [...value.matchAll(/url\((?:"([^"]+)"|'([^']+)'|([^)'"\s]+))\)/g)].flatMap((match) => {
+    const url = match[1] || match[2] || match[3];
+    return url ? [url] : [];
+  });
 
 const isAsciiWhitespace = (value: string): boolean => /[\t\n\f\r ]/.test(value);
 
@@ -35,13 +37,13 @@ export const urlsFromSrcset = (input: string): string[] => {
   while (position < input.length) {
     while (
       position < input.length &&
-      (isAsciiWhitespace(input[position]) || input[position] === ",")
+      (isAsciiWhitespace(input[position]!) || input[position] === ",")
     )
       position += 1;
     if (position >= input.length) break;
 
     const start = position;
-    while (position < input.length && !isAsciiWhitespace(input[position])) position += 1;
+    while (position < input.length && !isAsciiWhitespace(input[position]!)) position += 1;
     let url = input.slice(start, position);
     if (url.endsWith(",")) {
       url = url.replace(/,+$/, "");
@@ -162,13 +164,42 @@ const queryIncludingRoot = <ElementType extends Element>(
   return elements;
 };
 
+export const collectBackgroundElements = (root: ParentNode = document): HTMLElement[] =>
+  queryIncludingRoot<HTMLElement>(root, "body, [style], [class], [id]");
+
+export const collectBackgroundSourceCandidates = (
+  elements: Iterable<HTMLElement>,
+  timingByUrl: ResourceTimingByUrl = resourceTimingByUrl(),
+): PageSource[] => {
+  const found: PageSource[] = [];
+  for (const element of elements) {
+    urlsFromCss(getComputedStyle(element).backgroundImage).forEach((value) => {
+      const url = absoluteUrl(value);
+      if (!url) return;
+      const timing = timingByUrl.get(url);
+      found.push({
+        url,
+        kind: "image",
+        element,
+        bytes: timing?.encodedBodySize || timing?.transferSize || undefined,
+      });
+    });
+  }
+  return found;
+};
+
 export const collectPageSourceCandidates = (
   root: ParentNode = document,
   options: SourcePanelOptions = {},
   timingByUrl: ResourceTimingByUrl = resourceTimingByUrl(),
 ): PageSource[] => {
   const found: PageSource[] = [];
-  const add = (value: string | null | undefined, kind: PageSourceKind, element: Element) => {
+  const add = (
+    value: string | null | undefined,
+    kind: PageSourceKind,
+    element: Element,
+    previewable = true,
+  ) => {
     const url = value && absoluteUrl(value);
     if (url) {
       const timing = timingByUrl.get(url);
@@ -177,21 +208,30 @@ export const collectPageSourceCandidates = (
         kind,
         element,
         bytes: timing?.encodedBodySize || timing?.transferSize || undefined,
+        previewable,
       });
     }
   };
 
   queryIncludingRoot<HTMLImageElement>(root, "img").forEach((element) => {
-    add(element.currentSrc || element.src, "image", element);
+    const selectedUrl = element.currentSrc ? absoluteUrl(element.currentSrc) : null;
+    const fallbackSource = element.getAttribute("src") || element.src;
+    add(element.currentSrc, "image", element);
+    add(
+      fallbackSource,
+      "image",
+      element,
+      !selectedUrl || absoluteUrl(fallbackSource) === selectedUrl,
+    );
     urlsFromSrcset(element.getAttribute("srcset") || "").forEach((candidate) =>
-      add(candidate, "image", element),
+      add(candidate, "image", element, absoluteUrl(candidate) === selectedUrl),
     );
     if (element.parentElement?.matches("picture")) {
       for (const sibling of element.parentElement.children) {
         if (sibling === element) break;
         if (sibling instanceof HTMLSourceElement) {
           urlsFromSrcset(sibling.getAttribute("srcset") || "").forEach((candidate) =>
-            add(candidate, "image", element),
+            add(candidate, "image", element, absoluteUrl(candidate) === selectedUrl),
           );
         }
       }
@@ -199,17 +239,21 @@ export const collectPageSourceCandidates = (
   });
   queryIncludingRoot<HTMLMediaElement>(root, "video, audio").forEach((element) => {
     const kind = element instanceof HTMLVideoElement ? "video" : "audio";
-    add(element.currentSrc || element.src, kind, element);
+    const selectedUrl = element.currentSrc ? absoluteUrl(element.currentSrc) : null;
+    const fallbackSource = element.getAttribute("src") || element.src;
+    add(element.currentSrc, kind, element);
+    add(fallbackSource, kind, element, !selectedUrl || absoluteUrl(fallbackSource) === selectedUrl);
     element.querySelectorAll<HTMLSourceElement>("source").forEach((source) => {
-      add(source.src, kind, element);
+      const sourceUrl = source.getAttribute("src") || source.src;
+      add(sourceUrl, kind, element, absoluteUrl(sourceUrl) === selectedUrl);
       urlsFromSrcset(source.getAttribute("srcset") || "").forEach((candidate) =>
-        add(candidate, kind, element),
+        add(candidate, kind, element, absoluteUrl(candidate) === selectedUrl),
       );
     });
   });
   if (options.includeLinks !== false) {
     queryIncludingRoot<HTMLAnchorElement>(root, "a[href]").forEach((element) => {
-      const href = absoluteUrl(element.href);
+      const href = absoluteUrl(element.getAttribute("href") || element.href);
       if (!href) return;
       const path = new URL(href).pathname.toLocaleLowerCase();
       const kind: PageSourceKind = /\.(?:png|jpe?g|gif|webp|svg|avif)$/.test(path)
@@ -227,11 +271,7 @@ export const collectPageSourceCandidates = (
     });
   }
   if (options.includeBackgrounds !== false) {
-    queryIncludingRoot<HTMLElement>(root, "body, [style], [class], [id]").forEach((element) => {
-      urlsFromCss(getComputedStyle(element).backgroundImage).forEach((url) =>
-        add(url, "image", element),
-      );
-    });
+    found.push(...collectBackgroundSourceCandidates(collectBackgroundElements(root), timingByUrl));
   }
   if (options.resourceHints !== false) {
     found.push(...collectResourceHintSources(timingByUrl));
