@@ -1,4 +1,5 @@
 import {
+  applySourceEdits,
   choice,
   defineGrammar,
   end,
@@ -11,6 +12,7 @@ import {
   repeat,
   rest,
   sequence,
+  sourceSpan,
   token,
   type SyntaxParser,
 } from "../src/shared/syntax-parser.ts";
@@ -90,5 +92,28 @@ describe("syntax parser combinators", () => {
     expect(parseSyntax(grammar, "route trailing")).toEqual(
       expect.objectContaining({ ok: false, offset: 5 }),
     );
+  });
+
+  test("applies non-overlapping source edits without shifting earlier spans", () => {
+    const source = "abcdef";
+
+    expect(
+      applySourceEdits(source, [
+        { span: sourceSpan(source, 1, 3), text: "XX" },
+        { span: sourceSpan(source, 4, 6), text: "" },
+      ]),
+    ).toBe("aXXd");
+    expect(
+      applySourceEdits(source, [
+        { span: sourceSpan(source, 1, 1), text: ">" },
+        { span: sourceSpan(source, 1, 3), text: "XX" },
+      ]),
+    ).toBe("a>XXdef");
+    expect(() =>
+      applySourceEdits(source, [
+        { span: sourceSpan(source, 1, 4), text: "x" },
+        { span: sourceSpan(source, 3, 5), text: "y" },
+      ]),
+    ).toThrow("Source edits must not overlap");
   });
 });

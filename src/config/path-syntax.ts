@@ -1,4 +1,5 @@
 import {
+  applySourceEdits,
   choice,
   defineGrammar,
   end as endOfInput,
@@ -9,9 +10,12 @@ import {
   parseSyntax,
   repeat,
   sequence,
+  sourceFragment,
   sourceSpan,
   token,
+  type SourceEdit,
   type SyntaxParser,
+  type SourceFragment,
   type SourceSpan,
 } from "../shared/syntax-parser.ts";
 
@@ -44,6 +48,25 @@ export type DirectoryMetadataNode = {
   readonly span: SourceSpan;
 };
 
+export type DirectoryCommentCst = {
+  readonly kind: "comment-cst";
+  readonly delimiter: SourceFragment<"comment-delimiter">;
+  readonly leadingTrivia: SourceFragment<"comment-leading-trivia">;
+  readonly content: SourceFragment<"comment-content">;
+  readonly trailingTrivia: SourceFragment<"comment-trailing-trivia">;
+};
+
+export type DirectoryLineCst = {
+  readonly kind: "directory-line-cst";
+  readonly valid: boolean;
+  readonly body: SourceFragment<"directory-body">;
+  readonly leadingTrivia: SourceFragment<"line-leading-trivia">;
+  readonly nesting: SourceFragment<"nesting-token">;
+  readonly pathLeadingTrivia: SourceFragment<"path-leading-trivia">;
+  readonly pathTrailingTrivia: SourceFragment<"path-trailing-trivia">;
+  readonly comment: DirectoryCommentCst | null;
+};
+
 export type DirectoryLineNode = {
   readonly kind: "directory-line";
   readonly raw: string;
@@ -56,6 +79,7 @@ export type DirectoryLineNode = {
     readonly contentSpan: SourceSpan;
   } | null;
   readonly metadata: readonly DirectoryMetadataNode[];
+  readonly cst: DirectoryLineCst;
   readonly span: SourceSpan;
 };
 
@@ -74,11 +98,11 @@ const directoryLineParser = defineGrammar(
   map(
     sequence(
       located(token(/>*/, "directory nesting")),
-      token(/\s*/, "whitespace"),
+      located(token(/\s*/, "whitespace")),
       located(token(/[^\n\r\u2028\u2029]*/, "path")),
       endOfInput(),
     ),
-    ([nesting, , path]) => ({ nesting, path }),
+    ([nesting, whitespace, path]) => ({ nesting, whitespace, path }),
   ),
 );
 
@@ -130,6 +154,33 @@ const commentNode = (line: string, commentIndex: number): DirectoryLineNode["com
   };
 };
 
+const commentCst = (
+  line: string,
+  commentIndex: number,
+  comment: NonNullable<DirectoryLineNode["comment"]>,
+): DirectoryCommentCst => ({
+  kind: "comment-cst",
+  delimiter: sourceFragment(line, "comment-delimiter", commentIndex, commentIndex + 2),
+  leadingTrivia: sourceFragment(
+    line,
+    "comment-leading-trivia",
+    commentIndex + 2,
+    comment.contentSpan.start.offset,
+  ),
+  content: sourceFragment(
+    line,
+    "comment-content",
+    comment.contentSpan.start.offset,
+    comment.contentSpan.end.offset,
+  ),
+  trailingTrivia: sourceFragment(
+    line,
+    "comment-trailing-trivia",
+    comment.contentSpan.end.offset,
+    line.length,
+  ),
+});
+
 export const parsePathLineAst = (line: string): ParsedDirectoryAst => {
   const commentIndex = line.indexOf("//");
   const rawBody = commentIndex === -1 ? line : line.slice(0, commentIndex);
@@ -139,6 +190,7 @@ export const parsePathLineAst = (line: string): ParsedDirectoryAst => {
     limit: bounds.end,
   });
   const comment = commentNode(line, commentIndex);
+  const bodyEnd = commentIndex < 0 ? line.length : commentIndex;
   const metadata = comment
     ? parseMetadataEntries(comment.value).map((entry) => ({
         kind: "metadata" as const,
@@ -162,6 +214,36 @@ export const parsePathLineAst = (line: string): ParsedDirectoryAst => {
     },
     comment,
     metadata,
+    cst: {
+      kind: "directory-line-cst",
+      valid: parsed.ok,
+      body: sourceFragment(line, "directory-body", 0, bodyEnd),
+      leadingTrivia: sourceFragment(
+        line,
+        "line-leading-trivia",
+        0,
+        parsed.ok ? parsed.value.nesting.span.start.offset : bounds.start,
+      ),
+      nesting: sourceFragment(
+        line,
+        "nesting-token",
+        parsed.ok ? parsed.value.nesting.span.start.offset : bounds.start,
+        parsed.ok ? parsed.value.nesting.span.end.offset : bounds.start,
+      ),
+      pathLeadingTrivia: sourceFragment(
+        line,
+        "path-leading-trivia",
+        parsed.ok ? parsed.value.whitespace.span.start.offset : bounds.start,
+        parsed.ok ? parsed.value.whitespace.span.end.offset : bounds.start,
+      ),
+      pathTrailingTrivia: sourceFragment(
+        line,
+        "path-trailing-trivia",
+        parsed.ok ? parsed.value.path.span.end.offset : bounds.start,
+        bodyEnd,
+      ),
+      comment: comment && commentIndex >= 0 ? commentCst(line, commentIndex, comment) : null,
+    },
     span: sourceSpan(line, 0, line.length),
   };
   return {
@@ -173,19 +255,50 @@ export const parsePathLineAst = (line: string): ParsedDirectoryAst => {
 export const validatePathLineSyntax = (line: string): readonly PathSyntaxIssue[] =>
   parsePathLineAst(line).issues;
 
-export const serializeDirectoryLine = (node: DirectoryLineNode): string => {
-  const comment = node.comment?.value ?? "";
-  return `${">".repeat(node.depth)}${node.path.value}${comment ? ` // ${comment}` : ""}`;
+export const serializeDirectoryLine = (node: DirectoryLineNode): string => node.raw;
+
+const canonicalDirectoryLine = (node: DirectoryLineNode, update: DirectoryLineUpdate): string => {
+  const depth = update.depth ?? node.depth;
+  const path = update.path ?? node.path.value;
+  const comment = update.comment ?? node.comment?.value ?? "";
+  return `${">".repeat(depth)}${path}${comment ? ` // ${comment}` : ""}`;
 };
 
 export const updateDirectoryLine = (
   node: DirectoryLineNode,
   update: DirectoryLineUpdate,
 ): DirectoryLineNode => {
-  const depth = update.depth ?? node.depth;
-  const path = update.path ?? node.path.value;
-  const comment = update.comment ?? node.comment?.value ?? "";
-  return parsePathLineAst(`${">".repeat(depth)}${path}${comment ? ` // ${comment}` : ""}`).ast;
+  if (!node.cst.valid) return parsePathLineAst(canonicalDirectoryLine(node, update)).ast;
+  const edits: SourceEdit[] = [];
+  if (update.depth !== undefined && update.depth !== node.depth) {
+    edits.push({ span: node.cst.nesting.span, text: ">".repeat(update.depth) });
+  }
+  if (update.path !== undefined && update.path !== node.path.value) {
+    edits.push({ span: node.path.span, text: update.path });
+  }
+  if (update.comment !== undefined && update.comment !== (node.comment?.value ?? "")) {
+    if (node.cst.comment) {
+      edits.push(
+        update.comment
+          ? { span: node.cst.comment.content.span, text: update.comment }
+          : {
+              span: sourceSpan(
+                node.raw,
+                node.cst.comment.delimiter.span.start.offset,
+                node.raw.length,
+              ),
+              text: "",
+            },
+      );
+    } else if (update.comment) {
+      const separator = node.cst.pathTrailingTrivia.raw ? "" : " ";
+      edits.push({
+        span: sourceSpan(node.raw, node.raw.length, node.raw.length),
+        text: `${separator}// ${update.comment}`,
+      });
+    }
+  }
+  return parsePathLineAst(applySourceEdits(node.raw, edits)).ast;
 };
 
 const parseMetadataEntries = (comment: string): ParsedMetadataEntry[] => {

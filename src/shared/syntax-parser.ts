@@ -1,12 +1,23 @@
 export type SourcePoint = {
-  offset: number;
-  line: number;
-  column: number;
+  readonly offset: number;
+  readonly line: number;
+  readonly column: number;
 };
 
 export type SourceSpan = {
-  start: SourcePoint;
-  end: SourcePoint;
+  readonly start: SourcePoint;
+  readonly end: SourcePoint;
+};
+
+export type SourceFragment<Kind extends string> = {
+  readonly kind: Kind;
+  readonly raw: string;
+  readonly span: SourceSpan;
+};
+
+export type SourceEdit = {
+  readonly span: SourceSpan;
+  readonly text: string;
 };
 
 export type SyntaxDiagnostic = {
@@ -62,6 +73,33 @@ export const sourceSpan = (source: string, start: number, end: number): SourceSp
   start: sourcePointAt(source, start),
   end: sourcePointAt(source, end),
 });
+
+export const sourceFragment = <Kind extends string>(
+  source: string,
+  kind: Kind,
+  start: number,
+  end: number,
+): SourceFragment<Kind> => ({
+  kind,
+  raw: source.slice(start, end),
+  span: sourceSpan(source, start, end),
+});
+
+export const applySourceEdits = (source: string, edits: readonly SourceEdit[]): string => {
+  let result = source;
+  let nextStart = source.length;
+  for (const edit of edits.toSorted(
+    (left, right) =>
+      right.span.start.offset - left.span.start.offset ||
+      right.span.end.offset - left.span.end.offset,
+  )) {
+    const { start, end } = edit.span;
+    if (end.offset > nextStart) throw new Error("Source edits must not overlap");
+    result = `${result.slice(0, start.offset)}${edit.text}${result.slice(end.offset)}`;
+    nextStart = start.offset;
+  }
+  return result;
+};
 
 const success = <Value>(
   state: ParseState,

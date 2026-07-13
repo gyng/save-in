@@ -1,9 +1,10 @@
 import {
   parsePathLineAst,
   serializeDirectoryLine,
+  updateDirectoryLine,
   updateDirectoryMetadata,
 } from "../src/config/path-syntax.ts";
-import { parseRoutingRuleAst } from "../src/routing/rule-syntax.ts";
+import { parseRoutingRuleAst, serializeRoutingDocument } from "../src/routing/rule-syntax.ts";
 
 type LegacyRuleToken = [fullClause: string, name: string, value: string];
 type LegacyPathRow = { depth: number; body: string; comment: string };
@@ -20,9 +21,6 @@ const legacyParsePathLine = (line: string): LegacyPathRow => {
     comment,
   };
 };
-
-const legacySerializePathLine = (row: LegacyPathRow): string =>
-  `${">".repeat(row.depth)}${row.body}${row.comment ? ` // ${row.comment}` : ""}`;
 
 const legacyParseMetadataEntries = (comment: string): LegacyMetadataEntry[] => {
   const entries: LegacyMetadataEntry[] = [];
@@ -171,9 +169,24 @@ describe("legacy parser compatibility", () => {
         },
         JSON.stringify(source),
       ).toEqual(legacy);
-      expect(serializeDirectoryLine(parsed), JSON.stringify(source)).toBe(
-        legacySerializePathLine(legacy),
-      );
+      expect(serializeDirectoryLine(parsed), JSON.stringify(source)).toBe(source);
+      if (parsed.cst.valid) {
+        const comment = parsed.cst.comment;
+        expect(
+          [
+            parsed.cst.leadingTrivia.raw,
+            parsed.cst.nesting.raw,
+            parsed.cst.pathLeadingTrivia.raw,
+            parsed.path.value,
+            parsed.cst.pathTrailingTrivia.raw,
+            comment?.delimiter.raw ?? "",
+            comment?.leadingTrivia.raw ?? "",
+            comment?.content.raw ?? "",
+            comment?.trailingTrivia.raw ?? "",
+          ].join(""),
+          JSON.stringify(source),
+        ).toBe(source);
+      }
     });
   });
 
@@ -228,6 +241,44 @@ describe("legacy parser compatibility", () => {
     });
   });
 
+  test("AST edits preserve generated directory trivia combinations", () => {
+    const comments = [
+      { raw: "", updated: null },
+      { raw: "//note", updated: "//changed" },
+      { raw: " //  note  ", updated: " //  changed  " },
+      { raw: "\t//\tnote\t", updated: "\t//\tchanged\t" },
+    ] as const;
+    for (const leading of ["", " ", " \t"] as const) {
+      for (const nesting of ["", ">", ">>>"] as const) {
+        for (const spacing of ["", " ", "\t"] as const) {
+          for (const trailing of ["", " ", "  "] as const) {
+            for (const comment of comments) {
+              const source = `${leading}${nesting}${spacing}path${trailing}${comment.raw}`;
+              const parsed = parsePathLineAst(source).ast;
+              const updated = updateDirectoryLine(parsed, {
+                depth: 2,
+                path: "archive",
+                comment: "changed",
+              });
+              const updatedComment = comment.updated ?? `${trailing ? "" : " "}// changed`;
+              const expectedLeading = nesting ? leading : `${leading}${spacing}`;
+              const expectedSpacing = nesting ? spacing : "";
+              expect(serializeDirectoryLine(updated), JSON.stringify(source)).toBe(
+                `${expectedLeading}>>${expectedSpacing}archive${trailing}${updatedComment}`,
+              );
+              if (parsed.cst.comment) {
+                expect(
+                  serializeDirectoryLine(updateDirectoryLine(parsed, { comment: "" })),
+                  JSON.stringify(source),
+                ).toBe(source.slice(0, parsed.cst.comment.delimiter.span.start.offset));
+              }
+            }
+          }
+        }
+      }
+    }
+  });
+
   test("routing rule grouping and tokens match normalized legacy documents", () => {
     const cases = [
       "",
@@ -241,6 +292,11 @@ describe("legacy parser compatibility", () => {
     cases.forEach((source) => {
       const legacy = legacyParseRouting(source);
       const parsed = parseRoutingRuleAst(source);
+      expect(serializeRoutingDocument(parsed.ast), JSON.stringify(source)).toBe(source);
+      expect(
+        parsed.ast.lines.map((line) => `${line.cst.line.raw}${line.cst.terminator.raw}`).join(""),
+        JSON.stringify(source),
+      ).toBe(source);
       const tokens = parsed.ast.rules.map((rule) =>
         rule.clauses.map((clause): LegacyRuleToken => [clause.raw, clause.rawName, clause.value]),
       );

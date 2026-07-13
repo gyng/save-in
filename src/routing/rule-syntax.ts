@@ -6,9 +6,11 @@ import {
   optional,
   parseSyntax,
   sequence,
+  sourceFragment,
   sourcePointAt,
   sourceSpan,
   token,
+  type SourceFragment,
   type SourceSpan,
 } from "../shared/syntax-parser.ts";
 export const ROUTING_RULE_GRAMMAR = String.raw`
@@ -28,6 +30,36 @@ export type RuleSyntaxIssue = {
   source: string;
 };
 
+export type RoutingLineEnvelopeCst = {
+  readonly line: SourceFragment<"routing-line">;
+  readonly terminator: SourceFragment<"line-terminator">;
+};
+
+export type RoutingClauseCst = RoutingLineEnvelopeCst & {
+  readonly kind: "routing-clause-cst";
+  readonly leadingTrivia: SourceFragment<"clause-leading-trivia">;
+  readonly rawName: SourceFragment<"clause-name-token">;
+  readonly flagsSeparator: SourceFragment<"flags-separator"> | null;
+  readonly colon: SourceFragment<"clause-colon">;
+  readonly valueLeadingTrivia: SourceFragment<"value-leading-trivia">;
+  readonly value: SourceFragment<"clause-value-token">;
+  readonly trailingTrivia: SourceFragment<"clause-trailing-trivia">;
+};
+
+export type RoutingTriviaCst = RoutingLineEnvelopeCst & {
+  readonly kind: "routing-trivia-cst";
+  readonly leadingTrivia: SourceFragment<"trivia-leading-whitespace">;
+  readonly delimiter: SourceFragment<"comment-delimiter"> | null;
+  readonly content: SourceFragment<"comment-content"> | null;
+};
+
+export type RoutingInvalidCst = RoutingLineEnvelopeCst & {
+  readonly kind: "routing-invalid-cst";
+  readonly leadingTrivia: SourceFragment<"invalid-leading-trivia">;
+  readonly content: SourceFragment<"invalid-content">;
+  readonly trailingTrivia: SourceFragment<"invalid-trailing-trivia">;
+};
+
 export type RoutingClauseNode = {
   kind: "clause";
   clauseKind: "matcher" | "capture" | "destination";
@@ -40,18 +72,21 @@ export type RoutingClauseNode = {
   nameSpan: SourceSpan;
   flagsSpan: SourceSpan | null;
   valueSpan: SourceSpan;
+  cst: RoutingClauseCst;
 };
 
 export type RoutingTriviaNode = {
   kind: "blank" | "comment";
   raw: string;
   span: SourceSpan;
+  cst: RoutingTriviaCst;
 };
 
 export type RoutingInvalidNode = {
   kind: "invalid";
   raw: string;
   span: SourceSpan;
+  cst: RoutingInvalidCst;
 };
 
 export type RoutingLineNode = RoutingClauseNode | RoutingTriviaNode | RoutingInvalidNode;
@@ -82,27 +117,44 @@ type SourceLine = {
   end: number;
   parseStart: number;
   parseEnd: number;
+  terminatorEnd: number;
 };
 
 const clauseParser = defineGrammar(
   map(
     sequence(
       located(token(/\S*(?=:)/, "clause name")),
-      literal(":"),
-      optional(literal(" ")),
+      located(literal(":")),
+      located(optional(literal(" "))),
       located(token(/.*/, "clause value")),
     ),
-    ([rawName, , , value], span) => ({ rawName, value, span }),
+    ([rawName, colon, valueLeadingTrivia, value], span) => ({
+      rawName,
+      colon,
+      valueLeadingTrivia,
+      value,
+      span,
+    }),
   ),
 );
 
 const sourceLines = (source: string): SourceLine[] => {
   let offset = 0;
-  return source.split("\n").map((raw, index) => {
+  const rawLines = source.split("\n");
+  return rawLines.map((raw, index) => {
     const start = offset;
     const end = start + raw.length;
-    offset = end + 1;
-    return { raw, line: index + 1, start, end, parseStart: start, parseEnd: end };
+    const terminatorEnd = end + (index < rawLines.length - 1 ? 1 : 0);
+    offset = terminatorEnd;
+    return {
+      raw,
+      line: index + 1,
+      start,
+      end,
+      parseStart: start,
+      parseEnd: end,
+      terminatorEnd,
+    };
   });
 };
 
@@ -112,6 +164,11 @@ const clauseKind = (name: string): RoutingClauseNode["clauseKind"] =>
     : name === "capture" || name === "capturegroups"
       ? "capture"
       : "matcher";
+
+const lineEnvelope = (source: string, line: SourceLine): RoutingLineEnvelopeCst => ({
+  line: sourceFragment(source, "routing-line", line.start, line.end),
+  terminator: sourceFragment(source, "line-terminator", line.end, line.terminatorEnd),
+});
 
 const parseClauseNode = (
   source: string,
@@ -165,16 +222,80 @@ const parseClauseNode = (
       nameSpan: sourceSpan(source, parsed.value.rawName.span.start.offset, nameEnd),
       flagsSpan,
       valueSpan: parsed.value.value.span,
+      cst: {
+        kind: "routing-clause-cst",
+        ...lineEnvelope(source, sourceLine),
+        leadingTrivia: sourceFragment(
+          source,
+          "clause-leading-trivia",
+          sourceLine.start,
+          parsed.span.start.offset,
+        ),
+        rawName: sourceFragment(
+          source,
+          "clause-name-token",
+          parsed.value.rawName.span.start.offset,
+          parsed.value.rawName.span.end.offset,
+        ),
+        flagsSeparator:
+          separator > 0 ? sourceFragment(source, "flags-separator", nameEnd, nameEnd + 1) : null,
+        colon: sourceFragment(
+          source,
+          "clause-colon",
+          parsed.value.colon.span.start.offset,
+          parsed.value.colon.span.end.offset,
+        ),
+        valueLeadingTrivia: sourceFragment(
+          source,
+          "value-leading-trivia",
+          parsed.value.valueLeadingTrivia.span.start.offset,
+          parsed.value.valueLeadingTrivia.span.end.offset,
+        ),
+        value: sourceFragment(
+          source,
+          "clause-value-token",
+          parsed.value.value.span.start.offset,
+          parsed.value.value.span.end.offset,
+        ),
+        trailingTrivia: sourceFragment(
+          source,
+          "clause-trailing-trivia",
+          parsed.span.end.offset,
+          sourceLine.end,
+        ),
+      },
     },
     issue: null,
   };
 };
 
-const triviaNode = (source: string, line: SourceLine): RoutingTriviaNode => ({
-  kind: line.raw.trimStart().startsWith("//") ? "comment" : "blank",
-  raw: line.raw,
-  span: sourceSpan(source, line.start, line.end),
-});
+const triviaNode = (source: string, line: SourceLine): RoutingTriviaNode => {
+  const comment = line.raw.trimStart().startsWith("//");
+  const delimiterStart = comment
+    ? line.start + (line.raw.length - line.raw.trimStart().length)
+    : line.end;
+  return {
+    kind: comment ? "comment" : "blank",
+    raw: line.raw,
+    span: sourceSpan(source, line.start, line.end),
+    cst: {
+      kind: "routing-trivia-cst",
+      ...lineEnvelope(source, line),
+      leadingTrivia: sourceFragment(
+        source,
+        "trivia-leading-whitespace",
+        line.start,
+        delimiterStart,
+      ),
+      delimiter: comment
+        ? sourceFragment(source, "comment-delimiter", delimiterStart, delimiterStart + 2)
+        : null,
+      content: comment
+        ? sourceFragment(source, "comment-content", delimiterStart + 2, line.end)
+        : null,
+    },
+  };
+};
 
 export const parseRoutingRuleAst = (source: string): ParsedRoutingAst => {
   const lines = sourceLines(source);
@@ -229,6 +350,23 @@ export const parseRoutingRuleAst = (source: string): ParsedRoutingAst => {
         kind: "invalid",
         raw: source.slice(line.parseStart, line.parseEnd),
         span: sourceSpan(source, line.parseStart, line.parseEnd),
+        cst: {
+          kind: "routing-invalid-cst",
+          ...lineEnvelope(source, line),
+          leadingTrivia: sourceFragment(
+            source,
+            "invalid-leading-trivia",
+            line.start,
+            line.parseStart,
+          ),
+          content: sourceFragment(source, "invalid-content", line.parseStart, line.parseEnd),
+          trailingTrivia: sourceFragment(
+            source,
+            "invalid-trailing-trivia",
+            line.parseEnd,
+            line.end,
+          ),
+        },
       });
     }
   });
@@ -249,3 +387,5 @@ export const parseRoutingRuleAst = (source: string): ParsedRoutingAst => {
 
 export const validateRoutingRuleSyntax = (source: string): RuleSyntaxIssue[] =>
   parseRoutingRuleAst(source).issues;
+
+export const serializeRoutingDocument = (node: RoutingDocumentNode): string => node.source;

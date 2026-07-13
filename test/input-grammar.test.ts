@@ -4,7 +4,11 @@ import {
   updateDirectoryLine,
   validatePathLineSyntax,
 } from "../src/config/path-syntax.ts";
-import { parseRoutingRuleAst, validateRoutingRuleSyntax } from "../src/routing/rule-syntax.ts";
+import {
+  parseRoutingRuleAst,
+  serializeRoutingDocument,
+  validateRoutingRuleSyntax,
+} from "../src/routing/rule-syntax.ts";
 
 describe("directory-line grammar", () => {
   test("builds a spanned AST for paths, comments, and metadata", () => {
@@ -27,6 +31,21 @@ describe("directory-line grammar", () => {
       }),
     );
     expect(source.slice(ast.path.span.start.offset, ast.path.span.end.offset)).toBe("work");
+    expect(ast.cst).toEqual(
+      expect.objectContaining({
+        valid: true,
+        leadingTrivia: expect.objectContaining({ raw: "  " }),
+        nesting: expect.objectContaining({ raw: ">>" }),
+        pathLeadingTrivia: expect.objectContaining({ raw: " " }),
+        pathTrailingTrivia: expect.objectContaining({ raw: " " }),
+        comment: expect.objectContaining({
+          delimiter: expect.objectContaining({ raw: "//" }),
+          leadingTrivia: expect.objectContaining({ raw: " " }),
+          content: expect.objectContaining({ raw: "notes (alias: Work (shared))" }),
+          trailingTrivia: expect.objectContaining({ raw: "" }),
+        }),
+      }),
+    );
     const metadata = ast.metadata[0]!;
     expect(source.slice(metadata.span.start.offset, metadata.span.end.offset)).toBe(
       "(alias: Work (shared))",
@@ -56,7 +75,7 @@ describe("directory-line grammar", () => {
     const parsed = parsePathLineAst(source).ast;
     const updated = updateDirectoryLine(parsed, { depth: 2, path: "archive" });
 
-    expect(serializeDirectoryLine(updated)).toBe(">>archive // notes (alias: Images)");
+    expect(serializeDirectoryLine(updated)).toBe(">> archive // notes (alias: Images)");
     expect(updated).not.toBe(parsed);
     expect(updated.raw.slice(updated.path.span.start.offset, updated.path.span.end.offset)).toBe(
       "archive",
@@ -86,6 +105,37 @@ describe("directory-line grammar", () => {
 });
 
 describe("routing-rule grammar", () => {
+  test("retains a lossless CST for clause and line trivia", () => {
+    const source = "  filename/i:  \\.png$\r\n  // note  \ninto: images  ";
+    const parsed = parseRoutingRuleAst(source).ast;
+    const matcher = parsed.rules[0]!.clauses[0]!;
+    const comment = parsed.lines.find((line) => line.kind === "comment")!;
+    const destination = parsed.rules[0]!.clauses[1]!;
+
+    expect(serializeRoutingDocument(parsed)).toBe(source);
+    expect(matcher.cst).toEqual(
+      expect.objectContaining({
+        leadingTrivia: expect.objectContaining({ raw: "  " }),
+        rawName: expect.objectContaining({ raw: "filename/i" }),
+        flagsSeparator: expect.objectContaining({ raw: "/" }),
+        colon: expect.objectContaining({ raw: ":" }),
+        valueLeadingTrivia: expect.objectContaining({ raw: " " }),
+        value: expect.objectContaining({ raw: " \\.png$" }),
+        trailingTrivia: expect.objectContaining({ raw: "\r" }),
+        terminator: expect.objectContaining({ raw: "\n" }),
+      }),
+    );
+    expect(comment.cst).toEqual(
+      expect.objectContaining({
+        leadingTrivia: expect.objectContaining({ raw: "  " }),
+        delimiter: expect.objectContaining({ raw: "//" }),
+        content: expect.objectContaining({ raw: " note  " }),
+        terminator: expect.objectContaining({ raw: "\n" }),
+      }),
+    );
+    expect(destination.cst.trailingTrivia.raw).toBe("  ");
+  });
+
   test("builds a source-backed document AST with typed clauses and trivia", () => {
     const source = "// image rule\nfilename/i: \\.png$\ninto: images/:filename:\n\nnot a clause";
     const { ast, issues } = parseRoutingRuleAst(source);

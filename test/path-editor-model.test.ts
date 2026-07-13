@@ -8,7 +8,7 @@ import {
 } from "../src/options/path-editor-model.ts";
 
 describe("path editor model", () => {
-  test("parses and serializes normalized directory AST nodes", () => {
+  test("parses and serializes lossless directory AST nodes", () => {
     const node = parseDirectoryLine(">>i/cats // cute (alias: Cats)");
     expect(node).toEqual(
       expect.objectContaining({
@@ -20,6 +20,10 @@ describe("path editor model", () => {
     );
     expect(serializeDirectoryLine(node)).toBe(">>i/cats // cute (alias: Cats)");
     expect(pathLinesToNodes("a\n\n>b")).toHaveLength(2);
+    expect(pathLinesToNodes("  a  \n\n\t>b // c  ").map(serializeDirectoryLine)).toEqual([
+      "  a  ",
+      "\t>b // c  ",
+    ]);
   });
 
   test("updates aliases without disturbing other comment metadata", () => {
@@ -33,6 +37,11 @@ describe("path editor model", () => {
         setPathAlias(parseDirectoryLine("path // cute  notes (alias: Cats) (key: c)"), "Dogs"),
       ),
     ).toBe("path // cute  notes (key: c) (alias: Dogs)");
+    expect(
+      serializeDirectoryLine(
+        setPathAlias(parseDirectoryLine("  path\t //  cute (alias: Cats)  "), "Dogs"),
+      ),
+    ).toBe("  path\t //  cute (alias: Dogs)  ");
   });
 
   test("maps a menu source index to the matching non-empty text line", () => {

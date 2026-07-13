@@ -14,13 +14,18 @@ export { parseRulesCollecting } from "./rule-parser.ts";
 export {
   parseRoutingRuleAst,
   ROUTING_RULE_GRAMMAR,
+  serializeRoutingDocument,
   validateRoutingRuleSyntax,
 } from "./rule-syntax.ts";
 export type {
   ParsedRoutingAst,
+  RoutingClauseCst,
   RoutingClauseNode,
   RoutingDocumentNode,
+  RoutingInvalidCst,
+  RoutingLineEnvelopeCst,
   RoutingRuleNode,
+  RoutingTriviaCst,
 } from "./rule-syntax.ts";
 
 export const parseRules = (raw: string): RoutingRule[] => {

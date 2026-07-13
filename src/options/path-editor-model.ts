@@ -16,8 +16,7 @@ export const parseDirectoryLine = (line: string): DirectoryLineNode => parsePath
 export const pathLinesToNodes = (text: string): DirectoryLineNode[] =>
   text
     .split("\n")
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0)
+    .filter((line) => line.trim().length > 0)
     .map(parseDirectoryLine);
 
 export const pathNodesToLines = (nodes: DirectoryLineNode[]): string[] =>
