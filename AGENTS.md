@@ -231,6 +231,10 @@ vitest specifics (`test/*.test.ts`, typed; `tsc` covers them):
 
 ## Release checklist
 
+When preparing a release or changing release automation, provenance, store
+screenshots, or browser-owned checks, read [docs/RELEASE.md](docs/RELEASE.md).
+It contains useful on-demand detail that is not required for ordinary tasks.
+
 1. `npm test && npm run lint && npm run typecheck && npm run e2e`
 2. Bump version in `manifest.json` and `package.json`.
 3. `npm run build` → upload the same store-reviewable bundled ZIP to AMO and

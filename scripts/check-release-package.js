@@ -171,6 +171,7 @@ for (const required of [
   '"assets/README.md"',
   '"assets/icons/notification-info.svg"',
   '"docs/ARCH-CYCLES.md"',
+  '"docs/RELEASE.md"',
   '"docs/STORE-SUBMISSION.md"',
   '"docs/TS-MIGRATION.md"',
   '"e2e"',
