@@ -3988,7 +3988,7 @@ code.click-to-copy {
 }
 
 #path-editor-rows {
-  margin-bottom: 0;
+  margin-bottom: var(--space-2);
 }
 
 .path-editor-help .manual-save-help {
