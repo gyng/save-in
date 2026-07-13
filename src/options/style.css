@@ -44,6 +44,7 @@
 
   /* Components use semantic roles; the base palette centralizes shared values. */
   --color-accent: var(--blue60);
+  --color-accent-active: var(--blue70);
   --color-on-accent: #ffffff;
   --color-border: var(--grey30);
   --color-surface-page: #ffffff;
@@ -75,6 +76,9 @@
     --color-surface-raised: var(--grey70);
     --color-text: #ffffff;
     --color-text-muted: var(--grey40);
+    --color-accent-active: var(--blue60);
+    --link-color: var(--blue40);
+    --link-color-active: var(--blue40);
     --page-bg: #2a2a2e;
     --panel-bg: var(--grey70);
     --panel-border: var(--grey60);
@@ -89,8 +93,6 @@
 
   #settings-page {
     --input-background: #474749;
-    --link-color: var(--blue40);
-    --link-color-active: var(--blue60);
   }
 
   body {
@@ -220,7 +222,7 @@ body:not(#settings-page) {
   padding: var(--space-1) var(--space-2);
   border: 0;
   background: transparent;
-  color: var(--grey50);
+  color: var(--color-text-muted);
   font-size: var(--text-md);
 }
 
@@ -296,7 +298,7 @@ body:not(#settings-page) {
 
 .saved-change-popover li > span:last-child {
   overflow-wrap: anywhere;
-  color: var(--grey50);
+  color: var(--color-text-muted);
   font-family: var(--font-mono);
   font-size: 11px;
 }
@@ -378,7 +380,7 @@ body:not(#settings-page) {
 .version-label {
   margin-left: var(--space-2);
   margin-right: var(--space-1);
-  color: var(--grey50);
+  color: var(--color-text-muted);
   font-size: 12px;
 }
 
@@ -550,7 +552,7 @@ body:not(#settings-page) {
 }
 
 .about-build-info dt {
-  color: var(--grey50);
+  color: var(--color-text-muted);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.04em;
@@ -691,12 +693,7 @@ h3 {
   margin: 0 0 var(--space-1);
 }
 
-h4 {
-  font-size: var(--text-base);
-  font-weight: 600;
-  margin: 0 0 var(--space-1);
-}
-
+h4,
 h5 {
   font-size: var(--text-base);
   font-weight: 600;
@@ -910,7 +907,7 @@ button:active {
   content: "→";
   margin-left: auto;
   align-self: center;
-  color: var(--red50);
+  color: var(--error-fg);
   opacity: 0.5;
 }
 
@@ -1554,7 +1551,7 @@ input.key {
 
 .autocomplete-dropdown .autocomplete-group {
   padding-top: var(--space-2);
-  color: var(--grey50);
+  color: var(--color-text-muted);
   cursor: default;
   font-family: system-ui;
   font-size: var(--text-sm);
@@ -1615,7 +1612,7 @@ input.key {
   margin-bottom: -1px;
   font-size: var(--text-md);
   font-weight: 500;
-  color: var(--grey50);
+  color: var(--color-text-muted);
   cursor: pointer;
   transition:
     color 0.12s ease,
@@ -1715,7 +1712,7 @@ input.key {
 
 .option-search-result-location {
   overflow: hidden;
-  color: var(--grey50);
+  color: var(--color-text-muted);
   font-size: 11px;
   font-weight: 400;
   text-overflow: ellipsis;
@@ -1866,7 +1863,7 @@ summary {
 
 .variables-preview-group th {
   padding: var(--space-2) var(--space-3) var(--space-1);
-  color: var(--grey50);
+  color: var(--color-text-muted);
   font-size: 10px;
   font-weight: 650;
   letter-spacing: 0.04em;
@@ -1898,7 +1895,7 @@ summary {
 }
 
 .variables-preview-value {
-  color: var(--grey50);
+  color: var(--color-text-muted);
   font-family: var(--font-mono);
 }
 
@@ -2137,7 +2134,7 @@ summary {
   margin: 2px 0 0;
   padding: 0;
   border: 0;
-  color: var(--grey50);
+  color: var(--color-text-muted);
   background: none;
   font-size: 11px;
   line-height: 1.45;
@@ -2343,7 +2340,7 @@ button:disabled {
 }
 
 #shortcut-format-preview {
-  color: var(--grey50);
+  color: var(--color-text-muted);
 }
 
 .option-subgroup {
@@ -2400,7 +2397,7 @@ button:disabled:hover {
   border-radius: var(--radius) var(--radius) 0 0;
   margin-bottom: -1px;
   background: transparent;
-  color: var(--grey50);
+  color: var(--color-text-muted);
   cursor: pointer;
 }
 
@@ -2450,12 +2447,12 @@ button:disabled:hover {
 }
 
 .apply-button:hover {
-  background-color: var(--link-color-active);
-  border-color: var(--link-color-active);
+  background-color: var(--color-accent-active);
+  border-color: var(--color-accent-active);
 }
 
 .apply-button:disabled {
-  color: var(--grey50);
+  color: var(--color-text-muted);
   background-color: transparent;
   border-color: var(--grey30);
   opacity: 1;
@@ -2463,18 +2460,18 @@ button:disabled:hover {
 
 .discard-button {
   padding: 8px 16px;
-  color: var(--grey60);
+  color: var(--color-text);
 }
 
 .discard-button:not(:disabled):hover {
-  color: var(--red50);
+  color: var(--error-fg);
   border-color: var(--red50);
   background-color: transparent;
 }
 
 .discard-button:disabled {
   opacity: 1;
-  color: var(--grey50);
+  color: var(--color-text-muted);
   border-color: var(--grey30);
 }
 
@@ -2666,7 +2663,7 @@ button:disabled:hover {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  color: var(--grey50);
+  color: var(--color-text-muted);
   font-size: var(--text-sm);
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -2689,7 +2686,7 @@ button:disabled:hover {
   line-height: 1;
   border: none;
   background-color: transparent;
-  color: var(--grey50);
+  color: var(--color-text-muted);
   border-radius: 3px;
   opacity: 0.75;
 }
@@ -2832,7 +2829,7 @@ select {
 }
 
 .menu-preview-dir {
-  color: var(--grey50);
+  color: var(--color-text-muted);
   font-family: var(--font-mono);
   font-size: 11px;
   overflow: hidden;
@@ -2841,7 +2838,7 @@ select {
 }
 
 .menu-preview-lastused .menu-preview-title {
-  color: var(--grey50);
+  color: var(--color-text-muted);
   font-style: italic;
 }
 
@@ -3101,7 +3098,8 @@ select {
 }
 
 @media (max-width: 640px) {
-  .external-integrations-header {
+  .external-integrations-header,
+  .external-access-heading {
     display: grid;
     gap: var(--space-2);
   }
@@ -3109,11 +3107,6 @@ select {
   .external-integrations-header .external {
     justify-self: start;
     margin-top: 0;
-  }
-
-  .external-access-heading {
-    display: grid;
-    gap: var(--space-2);
   }
 
   .external-approved-count {
@@ -3165,7 +3158,7 @@ select {
 
 .dev-api-label {
   flex: 0 0 7em;
-  color: var(--grey50);
+  color: var(--color-text-muted);
   font-size: var(--text-md);
 }
 
@@ -3276,20 +3269,20 @@ code.click-to-copy {
 
 #history-custom-date-label {
   flex: 1 1 100%;
-  color: var(--grey50);
+  color: var(--color-text-muted);
   font-weight: 600;
 }
 
 .history-date-error {
   flex: 1 1 100%;
-  color: var(--red50);
+  color: var(--error-fg);
   font-size: var(--text-sm);
 }
 
 .history-active-filters {
   min-height: 1.4em;
   margin-top: var(--space-2);
-  color: var(--grey50);
+  color: var(--color-text-muted);
   font-size: var(--text-sm);
 }
 
@@ -3301,7 +3294,7 @@ code.click-to-copy {
 
 .history-facet > label {
   margin: 0;
-  color: var(--grey50);
+  color: var(--color-text-muted);
   font-size: var(--text-md);
 }
 
@@ -3310,7 +3303,7 @@ code.click-to-copy {
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--grey50);
+  color: var(--color-text-muted);
   font-weight: 600;
   padding: 0 var(--space-3) var(--space-1) 0;
   border-bottom: 1px solid var(--panel-border);
@@ -3341,14 +3334,14 @@ code.click-to-copy {
 
 .history-table .history-empty-row td {
   height: 7rem;
-  color: var(--grey50);
+  color: var(--color-text-muted);
   text-align: center;
   vertical-align: middle;
   white-space: normal;
 }
 
 .history-time {
-  color: var(--grey50);
+  color: var(--color-text-muted);
   font-variant-numeric: tabular-nums;
 }
 
@@ -3428,7 +3421,7 @@ code.click-to-copy {
 
 .history-index,
 .history-download-id {
-  color: var(--grey50);
+  color: var(--color-text-muted);
   font-variant-numeric: tabular-nums;
   text-align: right;
 }
@@ -3460,7 +3453,7 @@ code.click-to-copy {
 }
 
 .history-variable-list dt {
-  color: var(--grey50);
+  color: var(--color-text-muted);
   font-family: var(--font-mono);
   font-size: 11px;
 }
@@ -3516,7 +3509,7 @@ code.click-to-copy {
   place-items: center;
   width: 26px;
   height: 26px;
-  color: var(--grey50);
+  color: var(--color-text-muted);
   border-radius: var(--radius-sm);
 }
 
@@ -3536,7 +3529,7 @@ code.click-to-copy {
   gap: 6px;
   margin: var(--space-2) var(--space-3);
   padding: 6px 8px;
-  color: var(--grey50);
+  color: var(--color-text-muted);
   border: 1px solid var(--panel-border);
   border-radius: var(--radius);
 }
@@ -3598,7 +3591,7 @@ code.click-to-copy {
 }
 
 .source-panel-demo-row small {
-  color: var(--grey50);
+  color: var(--color-text-muted);
   font-size: var(--text-sm);
 }
 
@@ -3630,7 +3623,7 @@ code.click-to-copy {
 }
 
 .history-size {
-  color: var(--grey50);
+  color: var(--color-text-muted);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -3693,7 +3686,7 @@ code.click-to-copy {
 }
 
 .status-badge.status-fail {
-  color: var(--red50);
+  color: var(--error-fg);
   background-color: color-mix(in srgb, var(--red50) 12%, transparent);
   text-transform: capitalize;
 }
@@ -3703,7 +3696,7 @@ code.click-to-copy {
 }
 
 .history-folder {
-  color: var(--grey50);
+  color: var(--color-text-muted);
   font-family: var(--font-mono);
 }
 
@@ -3866,7 +3859,7 @@ code.click-to-copy {
 
 .manual-save-help {
   margin: 0;
-  color: var(--grey50);
+  color: var(--color-text-muted);
   font-size: var(--text-sm);
   line-height: 1.35;
 }
@@ -3879,7 +3872,7 @@ code.click-to-copy {
   bottom: calc(100% + 6px);
   max-width: 22rem;
   padding: var(--space-1) var(--space-2);
-  color: var(--grey70);
+  color: var(--color-text);
   border: 1px solid var(--panel-border);
   border-radius: var(--radius);
   background: var(--floating-bg);
@@ -3927,7 +3920,7 @@ code.click-to-copy {
 
 .source-panel-intro .section-note {
   margin: 0;
-  color: var(--grey50);
+  color: var(--color-text-muted);
   line-height: 1.45;
 }
 
@@ -3976,7 +3969,7 @@ code.click-to-copy {
 }
 
 .history-feedback-error {
-  color: var(--red50);
+  color: var(--error-fg);
 }
 
 .history-feedback button {
@@ -3994,7 +3987,7 @@ code.click-to-copy {
 }
 
 .shortcut-plus {
-  color: var(--grey50);
+  color: var(--color-text-muted);
   font-weight: 600;
 }
 
@@ -4003,7 +3996,7 @@ code.click-to-copy {
   flex-basis: 100%;
   max-width: 100%;
   overflow-wrap: anywhere;
-  color: var(--grey50);
+  color: var(--color-text-muted);
   font-size: var(--text-sm);
 }
 
@@ -4017,7 +4010,7 @@ code.click-to-copy {
 
 .source-shortcut-settings > .caption-line {
   max-width: 68ch;
-  color: var(--grey50);
+  color: var(--color-text-muted);
   line-height: 1.4;
 }
 
@@ -4037,7 +4030,7 @@ code.click-to-copy {
 .editor-action-help {
   flex: 1 1 7rem;
   min-width: 6rem;
-  color: var(--grey50);
+  color: var(--color-text-muted);
   font-size: var(--text-sm);
   line-height: 1.35;
 }

@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 const stylesheet = readFileSync(resolve("src/options/style.css"), "utf8");
+const referenceStylesheet = readFileSync(resolve("src/options/reference.css"), "utf8");
 const selectorCount = (selector: string) => {
   const lines = stylesheet.split(/\r?\n/);
   return lines.filter(
@@ -58,4 +59,35 @@ test("warning and status colors use the semantic palette", () => {
   ]) {
     expect(stylesheet).not.toContain(literal);
   }
+});
+
+test("text colors stay on theme-aware semantic roles", () => {
+  expect(stylesheet).not.toMatch(/^\s*color:\s*var\(--grey(?:50|60|70)\)/gm);
+  expect(stylesheet).not.toMatch(/^\s*color:\s*var\(--red50\)/gm);
+  expect(stylesheet).toMatch(/\.discard-button\s*\{[^}]*color:\s*var\(--color-text\)/);
+  expect(stylesheet).toMatch(
+    /\.editor-actions > \.manual-save-help\s*\{[^}]*color:\s*var\(--color-text\)/,
+  );
+});
+
+test("dark links and accent backgrounds use separate contrast-safe roles", () => {
+  const darkTheme = stylesheet.match(/@media \(prefers-color-scheme: dark\)\s*\{([\s\S]*?)\n\}/)?.[1] ?? "";
+  const darkRoot = darkTheme.match(/:root\s*\{([^}]*)\}/)?.[1] ?? "";
+  const darkSettings = darkTheme.match(/#settings-page\s*\{([^}]*)\}/)?.[1] ?? "";
+
+  expect(darkRoot).toContain("--link-color: var(--blue40)");
+  expect(darkRoot).toContain("--link-color-active: var(--blue40)");
+  expect(darkRoot).toContain("--color-accent-active: var(--blue60)");
+  expect(darkSettings).not.toContain("--link-color");
+  expect(stylesheet).toMatch(
+    /\.apply-button:hover\s*\{[^}]*background-color:\s*var\(--color-accent-active\)/,
+  );
+});
+
+test("identical heading, integration-header, and reference-focus rules stay consolidated", () => {
+  expect(stylesheet).toMatch(/h4,\s*h5\s*\{/);
+  expect(stylesheet).toMatch(/\.external-integrations-header,\s*\.external-access-heading\s*\{/);
+  expect(referenceStylesheet).toMatch(
+    /\.reference-search-label \.reference-search:focus-visible,\s*\.click-to-copy\[role="button"\]:focus-visible\s*\{/,
+  );
 });

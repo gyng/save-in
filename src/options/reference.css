@@ -55,7 +55,8 @@ body:has(.reference-header) {
   font-size: 14px;
 }
 
-.reference-search-label .reference-search:focus-visible {
+.reference-search-label .reference-search:focus-visible,
+.click-to-copy[role="button"]:focus-visible {
   outline: none;
   box-shadow: var(--focus-ring);
 }
@@ -132,11 +133,6 @@ body:has(.reference-header) {
 .reference-table tbody th {
   white-space: nowrap;
   font-weight: 400;
-}
-
-.click-to-copy[role="button"]:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
 }
 
 .click-to-copy.copied {
