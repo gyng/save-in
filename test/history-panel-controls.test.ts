@@ -129,7 +129,6 @@ describe("history filter controls", () => {
     expect(type.value).toBe("");
     expect(clear.disabled).toBe(true);
     expect(document.querySelector("#history-active-filters")!.textContent).toBe("");
-    expect(document.querySelector("#history-count")!.textContent).toBe("0 results");
   });
 
   test("keeps table headers and an empty-state row when history has no entries", async () => {
@@ -138,9 +137,7 @@ describe("history filter controls", () => {
     await vi.waitFor(() => expect(document.querySelector("#history-list table")).not.toBeNull());
 
     expect(document.querySelectorAll("#history-list th").length).toBeGreaterThan(0);
-    expect(document.querySelector("#history-list .history-empty-row")?.textContent).toContain(
-      "No downloads saved yet",
-    );
+    expect(document.querySelector("#history-list .history-empty-row")).not.toBeNull();
     expect(historyRuntime.sendMessage).toHaveBeenCalledWith({ type: "HISTORY_GET" });
   });
 

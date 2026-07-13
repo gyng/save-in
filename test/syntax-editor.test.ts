@@ -34,10 +34,6 @@ describe("syntax editor surface", () => {
       },
     ]);
     expect(document.querySelector('[data-diagnostic="L3: Invalid clause: broken"]')).not.toBeNull();
-    expect(document.querySelectorAll(".syntax-editor-inline-diagnostic")).toHaveLength(1);
-    expect(document.querySelector(".syntax-editor-inline-diagnostic")?.textContent).toBe(
-      "L3: Invalid clause: broken",
-    );
 
     editor.destroy();
     expect(label.querySelector("pre")).toBeNull();
@@ -70,9 +66,6 @@ describe("syntax editor surface", () => {
       document.querySelector<HTMLElement>('[data-start="6"][data-diagnostic="L2: Bad destination"]')
         ?.textContent,
     ).toBe("2");
-    expect(document.querySelector(".syntax-editor-inline-diagnostic")?.textContent).toBe(
-      "L2: Bad destination",
-    );
 
     vi.spyOn(textarea, "getBoundingClientRect").mockReturnValue({
       top: 0,

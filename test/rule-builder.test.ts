@@ -1,65 +1,8 @@
 // @vitest-environment jsdom
-// Guided rule input + template library on the options page. Every built-in
-// template must parse cleanly through the real routing parser and only reference
-// variables that actually exist.
+// Guided rule input + template library on the options page.
 
-import * as constants from "../src/shared/constants.ts";
-import { matchRules, parseRulesCollecting } from "../src/routing/router.ts";
-import { Path } from "../src/routing/path.ts";
-import { applyVariables } from "../src/routing/variable.ts";
 import { RuleBuilder } from "../src/options/rule-builder.ts";
 import { RULE_TEMPLATES } from "../src/options/rule-templates.ts";
-
-describe("RULE_TEMPLATES", () => {
-  RULE_TEMPLATES.forEach((tpl) => {
-    test(`"${tpl.name}" parses as exactly one valid rule`, () => {
-      const { rules, errors } = parseRulesCollecting(tpl.rule);
-      expect(errors).toEqual([]);
-      expect(rules).toHaveLength(1);
-    });
-
-    test(`"${tpl.name}" only references variables that exist`, () => {
-      const intoLine = tpl.rule.split("\n").find((l) => l.startsWith("into:"));
-      if (!intoLine) {
-        throw new Error("Template has no into rule");
-      }
-      const known = new Set<string>(Object.values(constants.SPECIAL_DIRS));
-      const tokens = intoLine.match(/:[a-z$][a-z0-9$]*:/gi) || [];
-      tokens.forEach((token) => {
-        const isCapture = /^:\$\d+:$/.test(token);
-        expect(isCapture || known.has(token)).toBe(true);
-      });
-    });
-
-    test(`"${tpl.name}" routes to a filename, not a bare directory`, () => {
-      const intoLine = tpl.rule.split("\n").find((l) => l.startsWith("into:"));
-      // into: replaces the whole path; a template that ends in a directory
-      // would save the file AS that directory name
-      expect(intoLine).toMatch(/:(filename|\$\d+):$/);
-    });
-
-    test(`"${tpl.name}" produces its advertised example`, async () => {
-      const { rules, errors } = parseRulesCollecting(tpl.rule);
-      const proofInfo = {
-        url: "https://cdn.example.com/report.pdf",
-        sourceUrl: "https://example.test/report.pdf",
-        pageUrl: "https://example.com/an-interesting-page",
-        filename: "report.pdf",
-        currentTab: { title: "An Interesting Page" },
-        now: new Date(2026, 6, 12, 12),
-        counter: 42,
-        ...tpl.proof.info,
-      };
-      expect(errors).toEqual([]);
-
-      const destination = matchRules(rules, proofInfo);
-      expect(destination).toBe(tpl.proof.destination);
-      expect((await applyVariables(new Path(destination), proofInfo)).finalize()).toBe(
-        tpl.example.replace(/^Example: /, ""),
-      );
-    });
-  });
-});
 
 describe("RuleBuilder.appendRule", () => {
   test("appends with a blank-line rule separator and fires input", () => {

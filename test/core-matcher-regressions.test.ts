@@ -8,6 +8,7 @@ import {
   traceRules,
 } from "../src/routing/router.ts";
 import { applyVariables } from "../src/routing/variable.ts";
+import { SPECIAL_DIRS } from "../src/shared/constants.ts";
 
 const templateNamed = (name: string) => {
   const template = RULE_TEMPLATES.find((candidate) => candidate.name === name);
@@ -54,6 +55,13 @@ describe("built-in matcher templates", () => {
     expect(template.rule).not.toMatch(/^capture:/m);
     const parsed = parseRulesCollecting(template.rule);
     expect(parsed.errors).toEqual([]);
+    expect(parsed.rules).toHaveLength(1);
+    const intoLine = template.rule.split("\n").find((line) => line.startsWith("into:"));
+    expect(intoLine).toMatch(/:(filename|\$\d+):$/);
+    const knownVariables = new Set<string>(Object.values(SPECIAL_DIRS));
+    for (const token of intoLine?.match(/:[a-z$][a-z0-9$]*:/gi) ?? []) {
+      expect(/^:\$\d+:$/.test(token) || knownVariables.has(token)).toBe(true);
+    }
     const rules = parsed.rules;
     const destination = matchRules(rules, template.proof.info);
 

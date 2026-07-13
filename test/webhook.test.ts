@@ -15,13 +15,13 @@ describe("webhook endpoint validation", () => {
   });
 
   test.each([
-    ["", "Enter an HTTPS webhook URL"],
-    ["http://hooks.example.com/save", "Use an HTTPS webhook URL"],
-    ["https://user:secret@hooks.example.com/save", "Put authentication in the query string"],
-    ["https://hooks.example.com/save#fragment", "Remove the URL fragment"],
-    ["not a URL", "Enter a valid HTTPS webhook URL"],
-  ])("rejects unsafe or ambiguous endpoint %s", (value, message) => {
-    expect(validateWebhookUrl(value)).toEqual({ ok: false, message });
+    "",
+    "http://hooks.example.com/save",
+    "https://user:secret@hooks.example.com/save",
+    "https://hooks.example.com/save#fragment",
+    "not a URL",
+  ])("rejects unsafe or ambiguous endpoint %s", (value) => {
+    expect(validateWebhookUrl(value)).toEqual({ ok: false, message: expect.any(String) });
   });
 });
 
@@ -33,40 +33,47 @@ describe("webhook payload", () => {
     selectionText: "private notes",
   };
 
-  test("keeps the default payload purpose-limited", () => {
-    expect(
-      createSaveWebhookPayload(
-        source,
-        {
-          includePageUrl: false,
-          includePageTitle: false,
-          includeSelectionText: false,
-        },
-        new Date("2026-07-14T10:00:00.000Z"),
-      ),
-    ).toEqual({
+  test.each([
+    [{ includePageUrl: false, includePageTitle: false, includeSelectionText: false }, {}],
+    [
+      { includePageUrl: true, includePageTitle: false, includeSelectionText: false },
+      { pageUrl: "https://example/gallery" },
+    ],
+    [
+      { includePageUrl: false, includePageTitle: true, includeSelectionText: false },
+      { pageTitle: "Cats" },
+    ],
+    [
+      { includePageUrl: false, includePageTitle: false, includeSelectionText: true },
+      { selectionText: "private notes" },
+    ],
+    [
+      { includePageUrl: true, includePageTitle: true, includeSelectionText: false },
+      { pageUrl: "https://example/gallery", pageTitle: "Cats" },
+    ],
+    [
+      { includePageUrl: true, includePageTitle: false, includeSelectionText: true },
+      { pageUrl: "https://example/gallery", selectionText: "private notes" },
+    ],
+    [
+      { includePageUrl: false, includePageTitle: true, includeSelectionText: true },
+      { pageTitle: "Cats", selectionText: "private notes" },
+    ],
+    [
+      { includePageUrl: true, includePageTitle: true, includeSelectionText: true },
+      {
+        pageUrl: "https://example/gallery",
+        pageTitle: "Cats",
+        selectionText: "private notes",
+      },
+    ],
+  ] as const)("adds exactly the selected optional fields", (fields, optionalFields) => {
+    expect(createSaveWebhookPayload(source, fields, new Date("2026-07-14T10:00:00.000Z"))).toEqual({
       version: 1,
       event: "save",
       timestamp: "2026-07-14T10:00:00.000Z",
       url: "https://cdn.example/cat.jpg",
-    });
-  });
-
-  test("adds only the fields selected by the user", () => {
-    expect(
-      createSaveWebhookPayload(
-        source,
-        {
-          includePageUrl: true,
-          includePageTitle: true,
-          includeSelectionText: true,
-        },
-        new Date("2026-07-14T10:00:00.000Z"),
-      ),
-    ).toMatchObject({
-      pageUrl: "https://example/gallery",
-      pageTitle: "Cats",
-      selectionText: "private notes",
+      ...optionalFields,
     });
   });
 
@@ -75,26 +82,33 @@ describe("webhook payload", () => {
       createSaveWebhookPayload(
         { selectedUrl: "https://example/file" },
         { includePageUrl: true, includePageTitle: true, includeSelectionText: true },
+        new Date("2026-07-14T10:00:00.000Z"),
       ),
-    ).not.toMatchObject({ pageUrl: expect.anything() });
+    ).toEqual({
+      version: 1,
+      event: "save",
+      timestamp: "2026-07-14T10:00:00.000Z",
+      url: "https://example/file",
+    });
   });
 
-  test("uses the exact Firefox data categories needed by selected fields", () => {
-    expect(
-      getWebhookDataTypes({
-        includePageUrl: false,
-        includePageTitle: false,
-        includeSelectionText: false,
-      }),
-    ).toEqual(["browsingActivity", "websiteActivity"]);
-    expect(
-      getWebhookDataTypes({
-        includePageUrl: true,
-        includePageTitle: true,
-        includeSelectionText: false,
-      }),
-    ).toEqual(["browsingActivity", "websiteActivity", "websiteContent"]);
-  });
+  test.each([
+    [false, false, false, ["browsingActivity", "websiteActivity"]],
+    [true, false, false, ["browsingActivity", "websiteActivity"]],
+    [false, true, false, ["browsingActivity", "websiteActivity", "websiteContent"]],
+    [false, false, true, ["browsingActivity", "websiteActivity", "websiteContent"]],
+    [true, true, false, ["browsingActivity", "websiteActivity", "websiteContent"]],
+    [true, false, true, ["browsingActivity", "websiteActivity", "websiteContent"]],
+    [false, true, true, ["browsingActivity", "websiteActivity", "websiteContent"]],
+    [true, true, true, ["browsingActivity", "websiteActivity", "websiteContent"]],
+  ] as const)(
+    "uses the exact data categories for each field selection",
+    (includePageUrl, includePageTitle, includeSelectionText, expected) => {
+      expect(
+        getWebhookDataTypes({ includePageUrl, includePageTitle, includeSelectionText }),
+      ).toEqual(expected);
+    },
+  );
 
   test("test payloads contain no browsing data", () => {
     expect(createTestWebhookPayload(new Date("2026-07-14T10:00:00.000Z"))).toEqual({

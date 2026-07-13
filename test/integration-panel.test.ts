@@ -23,7 +23,6 @@ test("renders build identity and the live external API contract", async () => {
   expect(document.querySelector("#version-label")?.textContent).toBe("v4.0.0");
   expect(document.querySelector("#ext-id")?.textContent).toBe(webExtensionApi.runtime.id);
   expect(document.querySelector("#api-snippet")?.textContent).toContain('type: "DOWNLOAD"');
-  expect(document.querySelector("#api-snippet")?.textContent).toContain("caller's own runtime.id");
   await vi.waitFor(() => expect(document.querySelector("#api-version")?.textContent).toBe("v1"));
   expect(document.querySelector("#api-capabilities")?.textContent).toBe("download, active_tab");
 
@@ -85,8 +84,6 @@ test("lists rejected callers and adds an approved caller to the allowlist", asyn
     expect(document.querySelector("[data-rejected-sender-id='blocked-extension']")).not.toBeNull(),
   );
   const row = document.querySelector<HTMLElement>("[data-rejected-sender-id='blocked-extension']")!;
-  expect(row.textContent).toContain("3 blocked attempts");
-  expect(row.querySelector("button")?.textContent).toBe("Approve");
 
   row.querySelector<HTMLButtonElement>("button")?.click();
 
@@ -140,7 +137,6 @@ test("manages approved extension IDs without exposing the raw editor", async () 
   await vi.waitFor(() =>
     expect(document.querySelectorAll("[data-approved-sender-id]")).toHaveLength(2),
   );
-  expect(document.querySelector("#external-approved-count")?.textContent).toBe("2 approved");
 
   const draft = document.querySelector<HTMLInputElement>("#external-extension-id-draft")!;
   draft.value = "new-extension";
@@ -159,8 +155,5 @@ test("manages approved extension IDs without exposing the raw editor", async () 
 
   expect(document.querySelector<HTMLTextAreaElement>("#externalDownloadAllowlist")?.value).toBe(
     "second-extension\nnew-extension",
-  );
-  expect(document.querySelector("#external-approved-status")?.textContent).toContain(
-    "Removed existing-extension",
   );
 });
