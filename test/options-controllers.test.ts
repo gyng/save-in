@@ -70,7 +70,7 @@ describe("shortcut option guidance", () => {
     setupShortcutOptions();
     const modifier = document.querySelector<HTMLSelectElement>("#clickToSaveModifier")!;
     expect(modifier.value).toBe("90");
-    expect(modifier.selectedOptions[0].textContent).toBe("Translated<o_lShortcutLegacyValue>");
+    expect(modifier.selectedOptions[0]!.textContent).toBe("Translated<o_lShortcutLegacyValue>");
     expect(document.querySelector<HTMLInputElement>("#contentClickToSaveCombo")!.value).toBe("90");
   });
 

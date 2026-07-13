@@ -38,10 +38,10 @@ describe("Log", () => {
     await Log.add("download complete", { id: 7 });
 
     expect(entries()).toHaveLength(2);
-    expect(entries()[0].message).toBe("download requested");
-    expect(entries()[0].data).toBe('{"url":"https://a/1"}');
-    expect(entries()[0].at).toEqual(expect.any(String));
-    expect(entries()[1].message).toBe("download complete");
+    expect(entries()[0]!.message).toBe("download requested");
+    expect(entries()[0]!.data).toBe('{"url":"https://a/1"}');
+    expect(entries()[0]!.at).toEqual(expect.any(String));
+    expect(entries()[1]!.message).toBe("download complete");
   });
 
   test("does not persist diagnostics from private browsing", async () => {
@@ -65,8 +65,8 @@ describe("Log", () => {
     await Log.add("newest");
 
     expect(entries()).toHaveLength(Log.LIMIT);
-    expect(entries()[0].message).toBe("m1");
-    expect(entries()[Log.LIMIT - 1].message).toBe("newest");
+    expect(entries()[0]!.message).toBe("m1");
+    expect(entries()[Log.LIMIT - 1]!.message).toBe("newest");
   });
 
   test("serializes unstringifiable data without throwing", async () => {
@@ -74,13 +74,13 @@ describe("Log", () => {
     circular.self = circular;
 
     await Log.add("weird", circular);
-    expect(entries()[0].message).toBe("weird");
-    expect(typeof entries()[0].data).toBe("string");
+    expect(entries()[0]!.message).toBe("weird");
+    expect(typeof entries()[0]!.data).toBe("string");
   });
 
   test("truncates oversized data payloads", async () => {
     await Log.add("big", { blob: "x".repeat(5000) });
-    expect(entries()[0].data?.length).toBeLessThanOrEqual(501);
+    expect(entries()[0]!.data?.length).toBeLessThanOrEqual(501);
   });
 
   test("concurrent adds do not lose entries", async () => {

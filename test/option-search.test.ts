@@ -44,8 +44,8 @@ describe("options search", () => {
       "WebMCP Experimental",
     );
     input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
-    expect((navigate.mock.calls[0][0] as CustomEvent).detail.target.tagName).toBe("H4");
-    expect((navigate.mock.calls[0][0] as CustomEvent).detail.target.tabIndex).toBe(-1);
+    expect((navigate.mock.calls[0]![0]! as CustomEvent).detail.target.tagName).toBe("H4");
+    expect((navigate.mock.calls[0]![0]! as CustomEvent).detail.target.tabIndex).toBe(-1);
   });
 
   test("swaps search and save status positions in the top navigation", () => {
@@ -72,7 +72,7 @@ describe("options search", () => {
     expect(document.querySelector<HTMLElement>('[role="option"]')?.tabIndex).toBe(-1);
     input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
     expect(navigate).toHaveBeenCalledOnce();
-    expect((navigate.mock.calls[0][0] as CustomEvent).detail.target.id).toBe("duration");
+    expect((navigate.mock.calls[0]![0]! as CustomEvent).detail.target.id).toBe("duration");
   });
 
   test("renders compact two-row results with the section as location", () => {

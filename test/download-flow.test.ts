@@ -3,7 +3,7 @@
 // notification triggers, and the onDeterminingFilename sync path.
 //
 // The MV3 data-URL fallbacks and the onDeterminingFilename async
-// session-recovery path are covered by test/download-mv3.test.js and are not
+// session-recovery path are covered by test/download-mv3.test.ts and are not
 // duplicated here.
 
 // DownloadState / OffscreenClient / SessionState / Log / SaveHistory are real
@@ -87,9 +87,8 @@ const setCurrentBrowser = (browser: string) => {
   setDetectedBrowser(browser);
 };
 
-// Import-time side effects are deferred (Task #2): download.ts no longer
-// registers onDeterminingFilename at load — the entry does, so call it here to
-// attach the listener against the chrome.downloads stub, then capture it.
+// The entry owns listener registration, so attach it explicitly against the
+// chrome.downloads stub before capturing it.
 registerDownloadListener();
 const [[capturedListener]] = vi.mocked(
   (global.chrome as any).downloads.onDeterminingFilename.addListener,
@@ -190,7 +189,7 @@ beforeEach(() => {
   ) as any;
 
   backgroundRuntime.debug = false;
-  backgroundRuntime.lastDownloadState = undefined;
+  delete backgroundRuntime.lastDownloadState;
   downloadState.records.clear();
 });
 
@@ -385,7 +384,7 @@ describe("getFilenameFromContentDisposition", () => {
 
 describe("getRoutingMatches", () => {
   test("returns null when there are no filename patterns", () => {
-    (options as Partial<SaveInOptions>).filenamePatterns = undefined;
+    delete (options as Partial<SaveInOptions>).filenamePatterns;
     expect(Download.getRoutingMatches({ info: {} })).toBe(null);
 
     options.filenamePatterns = [];
@@ -930,7 +929,7 @@ describe("renameAndDownload: browserDownload", () => {
     // the filename-map update stores "_" for this download's URL
     const fnameUpdate = vi
       .mocked(SessionState.updateSession)
-      .mock.calls.find((c: any) => c[2] === "siFinalFilenames");
+      .mock.calls.find((call: any) => call[2] === "siFinalFilenames");
     expect(fnameUpdate![3]({})).toEqual({ [state.info.url]: "_" });
     expect(global.browser.downloads.download).toHaveBeenCalledWith(
       expect.objectContaining({ filename: "_" }),
@@ -1343,8 +1342,7 @@ describe("concurrent downloads (pendingStates)", () => {
 
     // A fresh module graph (real deps at their defaults): filenamePatterns "" so
     // nothing routes, conflictAction "uniquify", and the identity-ish real Path.
-    // Side effects are deferred (Task #2): register onDeterminingFilename from
-    // this fresh instance before capturing it.
+    // Register onDeterminingFilename from this fresh instance before capture.
     const dl = await import("../src/downloads/download.ts");
     const { configureDownloadPorts: configureFreshDownloadPorts } =
       await import("../src/downloads/ports.ts");
@@ -1658,7 +1656,7 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
     await seedStartedDownload();
 
     // the record is persisted to storage.session alongside the in-memory map
-    expect(sessionStore.siDownloads[101]).toMatchObject({
+    expect(sessionStore.siDownloads[101]!).toMatchObject({
       url: "https://example.com/dir/file.png",
       filename: "downloads/file.png",
     });
@@ -1735,7 +1733,7 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
     await Download.renameAndDownload(makeState());
 
     expect(global.browser.downloads.download).toHaveBeenCalledTimes(2);
-    expect(vi.mocked(global.browser.downloads.download).mock.calls[1][0].url).toMatch(/^blob:/);
+    expect(vi.mocked(global.browser.downloads.download).mock.calls[1]![0]!.url).toMatch(/^blob:/);
     expect(downloadState.records.get(303)).toMatchObject({ viaFetch: true });
   });
 

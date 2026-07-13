@@ -156,7 +156,7 @@ describe("template list rendering", () => {
     firstAdd.click();
 
     const textarea = document.querySelector("#filenamePatterns") as HTMLTextAreaElement;
-    expect(textarea.value).toContain(RULE_TEMPLATES[0].rule);
+    expect(textarea.value).toContain(RULE_TEMPLATES[0]!.rule);
     expect(firstAdd.textContent).toBe("Added");
     expect(firstAdd.disabled).toBe(true);
     expect(document.querySelector(".rule-template-rule")?.textContent).toContain("\ninto:");
@@ -172,12 +172,12 @@ describe("template list rendering", () => {
     const textarea = document.querySelector("#filenamePatterns") as HTMLTextAreaElement;
 
     // Programmatic fill, as restoreOptions does (no input event)
-    textarea.value = RULE_TEMPLATES[1].rule;
+    textarea.value = RULE_TEMPLATES[1]!.rule;
     vi.advanceTimersByTime(1500);
 
     const adds = document.querySelectorAll<HTMLButtonElement>(".rule-template button");
-    expect(adds[1].disabled).toBe(true);
-    expect(adds[0].disabled).toBe(false);
+    expect(adds[1]!.disabled).toBe(true);
+    expect(adds[0]!.disabled).toBe(false);
   });
 
   test("groups and filters templates, with Enter adding the first match", () => {
@@ -212,7 +212,7 @@ describe("template list rendering", () => {
 
     expect(bubbled).not.toHaveBeenCalled();
     expect(document.querySelector<HTMLTextAreaElement>("#filenamePatterns")!.value).toContain(
-      RULE_TEMPLATES[0].rule,
+      RULE_TEMPLATES[0]!.rule,
     );
   });
 

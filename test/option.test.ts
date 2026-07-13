@@ -62,8 +62,7 @@ describe("OptionsManagement", () => {
     const optionModule = await import("../src/config/option.ts");
     ({ previewRoutes } = await import("../src/background/route-preview.ts"));
     OptionsManagement = optionModule.OptionsManagement;
-    // Seeding is deferred out of module eval (Task #2); seed defaults here the
-    // way the entry does at startup, so loadOptions overlays storage onto them.
+    // Seed defaults the way the entry does before loadOptions overlays storage.
     optionModule.seedOptions();
   });
 

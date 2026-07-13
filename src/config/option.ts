@@ -7,10 +7,8 @@ import {
   type SaveInOptionName,
   type SaveInOptions,
 } from "./option-schema.ts";
-// The options bag is a pure leaf (options-data.ts) so modules that only READ
-// settings (path/headers/menu-*/notification/download) import it directly and
-// don't pull in this validator-heavy module — breaking the option↔* cycles
-// (docs/ARCH-CYCLES.md, Cut 1).
+// The options bag is a pure leaf so read-only consumers do not pull this
+// validator-heavy module into the background dependency graph.
 import { options, replaceOptions, resetOptions } from "./options-data.ts";
 import { isContentOptionName, normalizeContentOption } from "./content-options.ts";
 
@@ -165,14 +163,11 @@ export const OptionsManagement: OptionsManagementApi = {
     }),
 };
 
-// Seed the options bag with every key's default. loadOptions() only overlays
-// the keys present in storage, so the defaults must be in place first. Deferred
-// out of module eval (Task #2): the entry calls it synchronously at startup, so
-// importing option.ts is side-effect-free (tests import the real bag and set
-// only the fields they exercise).
+// loadOptions() overlays only stored keys, so the entry seeds every default
+// synchronously before initialization. Keeping this explicit also makes the
+// module safe to import without mutating shared state.
 export const seedOptions = () => {
-  // Mutate the shared bag in place (it's a `const` leaf export now) so every
-  // module's live reference stays valid across a background runtime reset
+  // Mutate in place so every module's live reference survives a runtime reset.
   resetOptions(defaultOptions());
   return options;
 };

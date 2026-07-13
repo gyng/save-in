@@ -2,11 +2,23 @@
 
 import { SaveInWebMCP } from "../src/options/webmcp.ts";
 
+type SaveInTool = ReturnType<typeof SaveInWebMCP.buildTools>[number];
+type SaveInToolName =
+  | "save_in_apply_config"
+  | "save_in_download"
+  | "save_in_get_schema"
+  | "save_in_list_vocabulary"
+  | "save_in_validate_config";
+
 describe("buildTools", () => {
   const toolsByName = () => {
     const send = vi.fn((m) => Promise.resolve({ ok: m.type }));
     const tools = SaveInWebMCP.buildTools(send);
-    return { send, byName: Object.fromEntries(tools.map((t) => [t.name, t])) };
+    const byName = Object.fromEntries(tools.map((tool) => [tool.name, tool])) as Record<
+      SaveInToolName,
+      SaveInTool
+    >;
+    return { send, byName };
   };
 
   test("defines the save-in tools with input schemas", () => {
@@ -205,17 +217,17 @@ describe("buildTools", () => {
       throw new Error("extension context invalidated: secret detail");
     });
     const asyncTools = SaveInWebMCP.buildTools(() => Promise.reject(new Error("worker gone")));
-    await expect(syncTools[0].execute({})).resolves.toEqual({
+    await expect(syncTools[0]!.execute({})).resolves.toEqual({
       status: "ERROR",
       errors: [{ field: "$", message: "Save In is temporarily unavailable" }],
     });
-    await expect(asyncTools[0].execute({})).resolves.toEqual({
+    await expect(asyncTools[0]!.execute({})).resolves.toEqual({
       status: "ERROR",
       errors: [{ field: "$", message: "Save In is temporarily unavailable" }],
     });
     for (const empty of [undefined, null]) {
       const emptyTools = SaveInWebMCP.buildTools(() => Promise.resolve(empty));
-      await expect(emptyTools[0].execute({})).resolves.toEqual({
+      await expect(emptyTools[0]!.execute({})).resolves.toEqual({
         status: "ERROR",
         errors: [{ field: "$", message: "Save In is temporarily unavailable" }],
       });

@@ -161,9 +161,8 @@ const capturedOnUpdated = (): OnUpdated => {
 
 const mockTab = browserTab;
 
-// background-main.ts's bootstrap is an exported start() the entry calls synchronously
-// at startup (Task #2), rather than an import-time side effect. Re-import fresh
-// (after resetModules) and run start() to reproduce the startup sequence.
+// The entry calls start() synchronously. Re-import after resetModules and call
+// it explicitly to reproduce the startup sequence.
 const importIndex = async () => {
   const { start } = await import("../src/background/main.ts");
   start();

@@ -40,9 +40,8 @@ const { ExternalDownloadRejections } =
 const SourcePanelState = await import("../src/background/source-panel-state.ts");
 const RoutePreview = await import("../src/background/route-preview.ts");
 
-// Import-time side effects are deferred (Task #2): messaging.ts no longer
-// registers its runtime listeners at load — the entry does, so call it here to
-// attach them against the fakes above, then capture.
+// The entry owns registration, so attach the listeners explicitly against the
+// fakes above before capturing them.
 registerMessaging();
 const [[onMessage]] = (global.browser.runtime.onMessage.addListener as any).mock.calls;
 const [[onMessageExternal]] = (global.browser.runtime.onMessageExternal.addListener as any).mock
@@ -114,9 +113,9 @@ const setupGlobals = () => {
   vi.spyOn(SourcePanelState, "setSourcePanelOpenState").mockResolvedValue();
 
   backgroundRuntime.reset = vi.fn();
-  backgroundRuntime.ready = undefined;
+  delete backgroundRuntime.ready;
   backgroundRuntime.optionErrors = { paths: [], filenamePatterns: [] };
-  backgroundRuntime.lastDownloadState = undefined;
+  delete backgroundRuntime.lastDownloadState;
   backgroundRuntime.debug = false;
   global.browser.runtime.sendMessage = vi.fn();
   (global.browser as any).storage = {
@@ -490,7 +489,7 @@ describe("handleDownloadMessage", () => {
 
     expect(Download.renameAndDownload).toHaveBeenCalledTimes(1);
 
-    const state = vi.mocked(Download.renameAndDownload).mock.calls[0][0];
+    const state = vi.mocked(Download.renameAndDownload).mock.calls[0]![0]!;
     expect(state.path).toMatchObject({ raw: "." });
     expect(state.path.finalize()).toBe(".");
     expect(state.scratch).toEqual({});
@@ -536,7 +535,7 @@ describe("handleDownloadMessage", () => {
       vi.fn(),
     );
 
-    const state = vi.mocked(Download.renameAndDownload).mock.calls[0][0];
+    const state = vi.mocked(Download.renameAndDownload).mock.calls[0]![0]!;
     expect(state.info.suggestedFilename).toBe("caller-name.png");
   });
 
@@ -556,7 +555,7 @@ describe("handleDownloadMessage", () => {
 
     onMessage(request(), {}, vi.fn());
 
-    const state = vi.mocked(Download.renameAndDownload).mock.calls[0][0];
+    const state = vi.mocked(Download.renameAndDownload).mock.calls[0]![0]!;
     expect(state.path).toBe(lastPath);
     // Inheriting the previous route, filename, or scratch would name this
     // download after the previous one (found live by the alt+click e2e)
@@ -575,7 +574,7 @@ describe("handleDownloadMessage", () => {
 
     onMessage(request(), {}, vi.fn());
 
-    const state = vi.mocked(Download.renameAndDownload).mock.calls[0][0];
+    const state = vi.mocked(Download.renameAndDownload).mock.calls[0]![0]!;
     expect(state.path).toMatchObject({ raw: "." });
     expect(state.path.finalize()).toBe(".");
   });
@@ -584,21 +583,21 @@ describe("handleDownloadMessage", () => {
     const senderTab = { id: 5, title: "Sender Tab" };
     onMessage(request(), { tab: senderTab }, vi.fn());
 
-    const state = vi.mocked(Download.renameAndDownload).mock.calls[0][0];
+    const state = vi.mocked(Download.renameAndDownload).mock.calls[0]![0]!;
     expect(state.info.currentTab).toBe(senderTab);
   });
 
   test("falls back to the tracked tab when the sender has none", () => {
     onMessage(request(), {}, vi.fn());
 
-    const state = vi.mocked(Download.renameAndDownload).mock.calls[0][0];
+    const state = vi.mocked(Download.renameAndDownload).mock.calls[0]![0]!;
     expect(state.info.currentTab).toBe(trackedTab);
   });
 
   test("passes through a comment for routing rules (external extensions)", () => {
     onMessage(request({ comment: "from-foxy-gestures" }), {}, vi.fn());
 
-    const state = vi.mocked(Download.renameAndDownload).mock.calls[0][0];
+    const state = vi.mocked(Download.renameAndDownload).mock.calls[0]![0]!;
     expect(state.info.comment).toBe("from-foxy-gestures");
   });
 
@@ -616,7 +615,7 @@ describe("handleDownloadMessage", () => {
       vi.fn(),
     );
 
-    const state = vi.mocked(Download.renameAndDownload).mock.calls[0][0];
+    const state = vi.mocked(Download.renameAndDownload).mock.calls[0]![0]!;
     expect(state.info.context).toBe(DOWNLOAD_TYPES.CLICK);
     expect(state.info.url).toBe("https://x/file.png");
     expect(state.info.currentTab).toBe(trackedTab);
@@ -625,7 +624,7 @@ describe("handleDownloadMessage", () => {
   test("omits the comment when none is supplied", () => {
     onMessage(request(), {}, vi.fn());
 
-    const state = vi.mocked(Download.renameAndDownload).mock.calls[0][0];
+    const state = vi.mocked(Download.renameAndDownload).mock.calls[0]![0]!;
     expect(state.info.comment).toBeUndefined();
   });
 
@@ -832,7 +831,7 @@ describe("external DOWNLOAD API v1", () => {
   test("PING advertises the schema and validate capabilities", () => {
     const sendResponse = vi.fn();
     onMessageExternal({ type: MESSAGE_TYPES.PING }, {}, sendResponse);
-    const { capabilities } = sendResponse.mock.calls[0][0].body;
+    const { capabilities } = sendResponse.mock.calls[0]![0]!.body;
     expect(capabilities).toEqual(expect.arrayContaining(["schema", "validate"]));
     expect(capabilities).not.toContain("apply_config");
   });
@@ -868,7 +867,7 @@ describe("config API", () => {
     );
     expect(Menus.buildTree).toHaveBeenCalledWith(["dogs", ">cats"]);
     expect(router.parseRulesCollecting).toHaveBeenCalledWith("x");
-    const { body } = sendResponse.mock.calls[0][0];
+    const { body } = sendResponse.mock.calls[0]![0]!;
     expect(body.pathErrors).toEqual([]);
     expect(body.ruleErrors).toEqual([{ message: "bad rule", error: "bad rule" }]);
     expect(body.menuPreview).toHaveLength(2);
@@ -886,7 +885,7 @@ describe("config API", () => {
       sendResponse,
     );
     expect(router.traceRules).toHaveBeenCalledWith(rules, info);
-    expect(sendResponse.mock.calls[0][0].body.ruleTrace).toEqual({ selectedRule: 1 });
+    expect(sendResponse.mock.calls[0]![0]!.body.ruleTrace).toEqual({ selectedRule: 1 });
   });
 
   test("VALIDATE is exposed on the internal listener too", () => {
@@ -914,7 +913,7 @@ describe("config API", () => {
       paths: "images", // onSave trimmed it
     });
     expect(backgroundRuntime.reset).toHaveBeenCalled();
-    const { body } = sendResponse.mock.calls[0][0];
+    const { body } = sendResponse.mock.calls[0]![0]!;
     expect(body.applied).toEqual({ prompt: true, paths: "images" });
     expect(body.rejected).toEqual([{ name: "bogus", reason: "unknown option" }]);
   });
@@ -934,7 +933,7 @@ describe("config API", () => {
 
     expect(global.browser.storage.local.set).not.toHaveBeenCalled();
     expect(backgroundRuntime.reset).not.toHaveBeenCalled();
-    expect(sendResponse.mock.calls[0][0].body).toMatchObject({
+    expect(sendResponse.mock.calls[0]![0]!.body).toMatchObject({
       applied: {},
       rejected: [{ name: "prompt", reason: "changed since save" }],
     });
@@ -978,7 +977,7 @@ describe("config API", () => {
     await vi.waitFor(() => expect(secondResponse).toHaveBeenCalled());
 
     expect(storedPrompt).toBe(false);
-    expect(secondResponse.mock.calls[0][0].body).toMatchObject({
+    expect(secondResponse.mock.calls[0]![0]!.body).toMatchObject({
       applied: { prompt: false },
       rejected: [],
     });
@@ -994,7 +993,7 @@ describe("config API", () => {
     await new Promise((r) => setTimeout(r, 0));
 
     expect(global.browser.storage.local.set).not.toHaveBeenCalled();
-    expect(sendResponse.mock.calls[0][0].body.rejected).toEqual([
+    expect(sendResponse.mock.calls[0]![0]!.body.rejected).toEqual([
       { name: "prompt", reason: "expected a boolean" },
     ]);
   });
@@ -1026,7 +1025,7 @@ describe("config API", () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(global.browser.storage.local.set).not.toHaveBeenCalled();
-    expect(sendResponse.mock.calls[0][0].body.rejected).toEqual([
+    expect(sendResponse.mock.calls[0]![0]!.body.rejected).toEqual([
       { name: "conflictAction", reason: "invalid value" },
       { name: "notifyDuration", reason: "invalid value" },
     ]);
@@ -1053,7 +1052,7 @@ describe("config API", () => {
     );
     expect(global.browser.storage.local.set).not.toHaveBeenCalled();
     // falls through to the UNKNOWN_TYPE reply
-    expect(sendResponse.mock.calls[0][0].body.error).toBe("UNKNOWN_TYPE");
+    expect(sendResponse.mock.calls[0]![0]!.body.error).toBe("UNKNOWN_TYPE");
   });
 });
 

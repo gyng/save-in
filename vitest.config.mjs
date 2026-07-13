@@ -26,14 +26,13 @@ export default defineConfig({
       },
     },
     setupFiles: ["./test/vitest.setup.ts"],
-    include: ["test/**/*.test.{js,ts}"],
+    include: ["test/**/*.test.ts"],
     coverage: {
       provider: "v8",
       include: ["src/**/*.ts"],
       exclude: [
         // vendored libraries
         "src/vendor/**",
-        "src/options/vendor/**",
         // Rolldown bundle entries and the background composition/bootstrap
         // are exercised through the real extension lifecycle in e2e.
         "src/entries/**",

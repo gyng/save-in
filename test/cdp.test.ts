@@ -63,6 +63,6 @@ describe("CDP transport", () => {
     await expect(getJson(9555, "/json/version", 25)).rejects.toThrow(
       "CDP endpoint /json/version returned 503 Unavailable",
     );
-    expect(fetchMock.mock.calls[0][1]).toMatchObject({ signal: expect.any(AbortSignal) });
+    expect(fetchMock.mock.calls[0]![1]!).toMatchObject({ signal: expect.any(AbortSignal) });
   });
 });

@@ -191,7 +191,7 @@ describe("addDownloadListener", () => {
 
     Menus = await importMenus();
     Menus.addDownloadListener();
-    [[listener]] = vi.mocked(global.browser.contextMenus.onClicked.addListener).mock.calls;
+    [listener] = vi.mocked(global.browser.contextMenus.onClicked.addListener).mock.calls[0]!;
   });
 
   test("registers the listener synchronously (MV3 requirement)", () => {
@@ -245,7 +245,7 @@ describe("addDownloadListener", () => {
     });
 
     expect(Download.renameAndDownload).toHaveBeenCalledTimes(1);
-    const state = Download.renameAndDownload.mock.calls[0][0];
+    const state = Download.renameAndDownload.mock.calls[0]![0]!;
     expect(state.info.url).toBe("https://example.com/f.png");
 
     expect(global.browser.storage.local.set).toHaveBeenCalledWith({
@@ -313,7 +313,7 @@ describe("addDownloadListener", () => {
       { id: 5, title: "Clicked Tab" },
     );
 
-    const state = Download.renameAndDownload.mock.calls[0][0];
+    const state = Download.renameAndDownload.mock.calls[0]![0]!;
     expect(state.info.currentTab.title).toBe("Clicked Tab");
   });
 
@@ -327,7 +327,7 @@ describe("addDownloadListener", () => {
       pageUrl: "https://example.com/",
     });
 
-    const state = Download.renameAndDownload.mock.calls[0][0];
+    const state = Download.renameAndDownload.mock.calls[0]![0]!;
     expect(state.info.currentTab.title).toBe("Tracked Tab");
   });
 
@@ -1035,7 +1035,7 @@ describe("addTabMenuListener tabstrip downloads", () => {
 
     Menus = await importMenus();
     Menus.addTabMenuListener();
-    [[listener]] = vi.mocked(global.browser.contextMenus.onClicked.addListener).mock.calls;
+    [listener] = vi.mocked(global.browser.contextMenus.onClicked.addListener).mock.calls[0]!;
   });
 
   afterEach(() => {
@@ -1081,8 +1081,8 @@ describe("addTabMenuListener tabstrip downloads", () => {
     await vi.advanceTimersByTimeAsync(2000);
 
     expect(downloads()).toHaveLength(1);
-    expect(downloads()[0].info.currentTab.id).toBe(2);
-    expect(downloads()[0].needRouteMatch).toBe(false);
+    expect(downloads()[0]!.info.currentTab.id).toBe(2);
+    expect(downloads()[0]!.needRouteMatch).toBe(false);
   });
 
   test("TO_RIGHT_MATCH additionally requires a routing match", async () => {
@@ -1124,8 +1124,8 @@ describe("addTabMenuListener tabstrip downloads", () => {
       "Two",
       240,
     );
-    expect(downloads()[0].info.url).toBe("blob:mock-shortcut");
-    expect(downloads()[0].info.suggestedFilename).toBe("shortcut.url");
+    expect(downloads()[0]!.info.url).toBe("blob:mock-shortcut");
+    expect(downloads()[0]!.info.suggestedFilename).toBe("shortcut.url");
   });
 
   test("handles tabstrip clicks when init already completed (no pending Runtime.ready)", async () => {

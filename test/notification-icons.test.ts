@@ -7,7 +7,7 @@ const ICONS = {
   error: { file: "notification-error.svg", color: "#dc2626" },
 } as const;
 
-const readIcon = (file: string) => readFileSync(resolve("icons", file), "utf8");
+const readIcon = (file: string) => readFileSync(resolve("assets", "icons", file), "utf8");
 
 const luminance = (hex: string) => {
   const channels = hex
@@ -15,23 +15,28 @@ const luminance = (hex: string) => {
     .match(/.{2}/g)!
     .map((part) => parseInt(part, 16) / 255)
     .map((channel) => (channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4));
-  return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2];
+  return 0.2126 * channels[0]! + 0.7152 * channels[1]! + 0.0722 * channels[2]!;
 };
 
 const contrast = (a: string, b: string) => {
-  const [lighter, darker] = [luminance(a), luminance(b)].toSorted((x, y) => y - x);
+  const values = [luminance(a), luminance(b)].toSorted((x, y) => y - x);
+  const lighter = values[0]!;
+  const darker = values[1]!;
   return (lighter + 0.05) / (darker + 0.05);
 };
 
 describe("notification status icons", () => {
-  test.each(Object.entries(ICONS))("%s is a complete, theme-neutral SVG", (_status, icon) => {
-    const svg = readIcon(icon.file);
-    expect(svg).toContain('<svg xmlns="http://www.w3.org/2000/svg"');
-    expect(svg).toContain('width="128" height="128" viewBox="0 0 128 128"');
-    expect(svg).toContain(`fill="${icon.color}"`);
-    expect(svg).toContain('stroke="#fff"');
-    expect(svg).not.toMatch(/prefers-color-scheme|<style|currentColor/);
-  });
+  test.each(Object.entries(ICONS))(
+    "%s has a complete, theme-neutral raster source",
+    (_status, icon) => {
+      const svg = readIcon(icon.file);
+      expect(svg).toContain('<svg xmlns="http://www.w3.org/2000/svg"');
+      expect(svg).toContain('width="128" height="128" viewBox="0 0 128 128"');
+      expect(svg).toContain(`fill="${icon.color}"`);
+      expect(svg).toContain('stroke="#fff"');
+      expect(svg).not.toMatch(/prefers-color-scheme|<style|currentColor/);
+    },
+  );
 
   test("runtime native notifications use Chrome-compatible raster icons", () => {
     const source = readFileSync(resolve("src", "downloads", "notification.ts"), "utf8");

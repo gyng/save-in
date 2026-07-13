@@ -27,7 +27,7 @@ describe("options bootstrap", () => {
 
     expect(configureRuntime).toHaveBeenCalledTimes(1);
     expect(addMessageListener).toHaveBeenCalledTimes(1);
-    const listener = addMessageListener.mock.calls[0][0];
+    const listener = addMessageListener.mock.calls[0]![0]!;
     listener({ type: "IGNORED" });
     expect(onDownloaded).not.toHaveBeenCalled();
     listener({ type: "DOWNLOADED" });

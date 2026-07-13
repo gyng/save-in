@@ -26,7 +26,7 @@ describe("collectSections", () => {
       "Notifications",
       "Shortcuts",
     ]);
-    expect(sections[0].nodes.map((n) => n.id).filter(Boolean)).toEqual([
+    expect(sections[0]!.nodes.map((n) => n.id).filter(Boolean)).toEqual([
       "section-downloads",
       "opt-a",
       "downloads-extra",
@@ -43,7 +43,7 @@ describe("collectSections", () => {
     const sections = collectSections(document.getElementById("options") as HTMLFormElement);
 
     expect(sections.map((s) => s.heading.textContent)).toEqual(["Downloads", "Dynamic"]);
-    expect(sections[1].nodes[0].querySelector("#rules")).not.toBeNull();
+    expect(sections[1]!.nodes[0]!.querySelector("#rules")).not.toBeNull();
   });
 });
 
@@ -102,11 +102,11 @@ describe("setupTabs", () => {
   test("builds a tab per section and shows the first by default", () => {
     const tabs = document.querySelectorAll<HTMLElement>(".tablist .tab");
     expect(tabs).toHaveLength(3);
-    expect(tabs[0].textContent).toBe("Downloads");
+    expect(tabs[0]!.textContent).toBe("Downloads");
 
     const panels = document.querySelectorAll(".tab-panel");
-    expect(panels[0].classList.contains("active")).toBe(true);
-    expect(panels[1].classList.contains("active")).toBe(false);
+    expect(panels[0]!.classList.contains("active")).toBe(true);
+    expect(panels[1]!.classList.contains("active")).toBe(false);
   });
 
   test("preserves every option element and its id", () => {
@@ -121,19 +121,19 @@ describe("setupTabs", () => {
     const tabs = document.querySelectorAll<HTMLElement>(".tablist .tab");
     const panels = document.querySelectorAll(".tab-panel");
 
-    tabs[1].click();
+    tabs[1]!.click();
 
-    expect(panels[0].classList.contains("active")).toBe(false);
-    expect(panels[1].classList.contains("active")).toBe(true);
-    expect(tabs[1].getAttribute("aria-selected")).toBe("true");
-    expect(tabs[1].getAttribute("aria-controls")).toBe(panels[1].id);
-    expect(panels[1].getAttribute("aria-labelledby")).toBe(tabs[1].id);
+    expect(panels[0]!.classList.contains("active")).toBe(false);
+    expect(panels[1]!.classList.contains("active")).toBe(true);
+    expect(tabs[1]!.getAttribute("aria-selected")).toBe("true");
+    expect(tabs[1]!.getAttribute("aria-controls")).toBe(panels[1]!.id);
+    expect(panels[1]!.getAttribute("aria-labelledby")).toBe(tabs[1]!.id);
   });
 
   test("option navigation activates its panel before focusing the control", () => {
     const target = document.getElementById("b") as HTMLInputElement;
     document.dispatchEvent(new CustomEvent("save-in:navigate-option", { detail: { target } }));
-    expect(document.querySelectorAll(".tab-panel")[1].classList.contains("active")).toBe(true);
+    expect(document.querySelectorAll(".tab-panel")[1]!.classList.contains("active")).toBe(true);
     expect(document.activeElement).toBe(target);
     expect(target.classList.contains("option-search-target")).toBe(false);
     expect(target.closest("label")?.classList.contains("option-search-target-row")).toBe(true);
@@ -142,42 +142,42 @@ describe("setupTabs", () => {
   test("Home and End move to the first and last tab", () => {
     const tabs = [...document.querySelectorAll<HTMLElement>('[role="tab"]')];
 
-    tabs[0].dispatchEvent(new window.KeyboardEvent("keydown", { key: "End", bubbles: true }));
+    tabs[0]!.dispatchEvent(new window.KeyboardEvent("keydown", { key: "End", bubbles: true }));
     expect(document.activeElement).toBe(tabs.at(-1));
     expect(tabs.at(-1)?.getAttribute("aria-selected")).toBe("true");
 
     tabs.at(-1)?.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Home", bubbles: true }));
-    expect(document.activeElement).toBe(tabs[0]);
-    expect(tabs[0].getAttribute("aria-selected")).toBe("true");
+    expect(document.activeElement).toBe(tabs[0]!);
+    expect(tabs[0]!.getAttribute("aria-selected")).toBe("true");
   });
 
   test("remembers the selected tab across setups", () => {
-    document.querySelectorAll<HTMLElement>(".tablist .tab")[2].click();
+    document.querySelectorAll<HTMLElement>(".tablist .tab")[2]!.click();
 
     // Rebuild the page and re-run
     buildForm();
     setupTabs();
 
     const panels = document.querySelectorAll(".tab-panel");
-    expect(panels[2].classList.contains("active")).toBe(true);
+    expect(panels[2]!.classList.contains("active")).toBe(true);
   });
 
   test("persists a stable section id instead of a positional index", () => {
-    document.querySelectorAll<HTMLElement>(".tablist .tab")[1].click();
+    document.querySelectorAll<HTMLElement>(".tablist .tab")[1]!.click();
     expect(localStorage.getItem(TAB_STORAGE_KEY)).toBe("section-notifications");
   });
 
   test("migrates the legacy numeric tab index", () => {
     buildForm();
     const headings = document.querySelectorAll("h2");
-    headings[0].id = "section-a";
-    headings[1].id = "section-b";
-    headings[2].id = "section-c";
+    headings[0]!.id = "section-a";
+    headings[1]!.id = "section-b";
+    headings[2]!.id = "section-c";
     localStorage.setItem(TAB_STORAGE_KEY, "2");
 
     setupTabs();
 
-    expect(document.querySelectorAll<HTMLElement>('[role="tab"]')[2].ariaSelected).toBe("true");
+    expect(document.querySelectorAll<HTMLElement>('[role="tab"]')[2]!.ariaSelected).toBe("true");
     expect(localStorage.getItem(TAB_STORAGE_KEY)).toBe("section-c");
   });
 
@@ -200,12 +200,12 @@ describe("setupTabs", () => {
 
   test("arrow keys move between tabs", () => {
     const tabs = document.querySelectorAll<HTMLElement>(".tablist .tab");
-    tabs[0].focus();
-    tabs[0].dispatchEvent(
+    tabs[0]!.focus();
+    tabs[0]!.dispatchEvent(
       new window.KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }),
     );
 
-    expect(document.querySelectorAll(".tab-panel")[1].classList.contains("active")).toBe(true);
+    expect(document.querySelectorAll(".tab-panel")[1]!.classList.contains("active")).toBe(true);
   });
 });
 
@@ -247,14 +247,14 @@ describe("unsaved-changes guard on tab switch", () => {
     confirmPendingChanges = vi.fn(() => true);
     const tabs = document.querySelectorAll<HTMLElement>(".tablist .tab");
 
-    tabs[1].click();
+    tabs[1]!.click();
     expect(confirmPendingChanges).toHaveBeenCalledTimes(1);
 
     // Re-clicking the active tab is not a switch
-    tabs[1].click();
+    tabs[1]!.click();
     expect(confirmPendingChanges).toHaveBeenCalledTimes(1);
 
-    tabs[0].click();
+    tabs[0]!.click();
     expect(confirmPendingChanges).toHaveBeenCalledTimes(2);
   });
 
@@ -263,11 +263,11 @@ describe("unsaved-changes guard on tab switch", () => {
     const tabs = document.querySelectorAll<HTMLElement>(".tablist .tab");
     const panels = document.querySelectorAll(".tab-panel");
 
-    tabs[1].click();
+    tabs[1]!.click();
 
-    expect(tabs[0].getAttribute("aria-selected")).toBe("true");
-    expect(panels[0].classList.contains("active")).toBe(true);
-    expect(panels[1].classList.contains("active")).toBe(false);
+    expect(tabs[0]!.getAttribute("aria-selected")).toBe("true");
+    expect(panels[0]!.classList.contains("active")).toBe(true);
+    expect(panels[1]!.classList.contains("active")).toBe(false);
   });
 
   test("waits for asynchronous persistence before switching tabs", async () => {
@@ -278,12 +278,12 @@ describe("unsaved-changes guard on tab switch", () => {
     const tabs = document.querySelectorAll<HTMLElement>(".tablist .tab");
     const panels = document.querySelectorAll(".tab-panel");
 
-    tabs[1].click();
-    expect(panels[0].classList.contains("active")).toBe(true);
+    tabs[1]!.click();
+    expect(panels[0]!.classList.contains("active")).toBe(true);
 
     finish(true);
     await Promise.resolve();
-    expect(panels[1].classList.contains("active")).toBe(true);
+    expect(panels[1]!.classList.contains("active")).toBe(true);
   });
 
   test("stays on the current tab when asynchronous persistence detects a newer edit", async () => {
@@ -294,13 +294,13 @@ describe("unsaved-changes guard on tab switch", () => {
     const tabs = document.querySelectorAll<HTMLElement>(".tablist .tab");
     const panels = document.querySelectorAll(".tab-panel");
 
-    tabs[1].click();
+    tabs[1]!.click();
     finish(false);
     await Promise.resolve();
 
-    expect(tabs[0].getAttribute("aria-selected")).toBe("true");
-    expect(panels[0].classList.contains("active")).toBe(true);
-    expect(panels[1].classList.contains("active")).toBe(false);
+    expect(tabs[0]!.getAttribute("aria-selected")).toBe("true");
+    expect(panels[0]!.classList.contains("active")).toBe(true);
+    expect(panels[1]!.classList.contains("active")).toBe(false);
   });
 
   test("waits for an asynchronous save guard before switching", async () => {
@@ -309,10 +309,10 @@ describe("unsaved-changes guard on tab switch", () => {
       () => new Promise<boolean>((resolve) => (finish = resolve)),
     ) as any;
     const tabs = document.querySelectorAll<HTMLElement>(".tablist .tab");
-    tabs[1].click();
-    expect(tabs[0].getAttribute("aria-selected")).toBe("true");
+    tabs[1]!.click();
+    expect(tabs[0]!.getAttribute("aria-selected")).toBe("true");
     finish(true);
-    await vi.waitFor(() => expect(tabs[1].getAttribute("aria-selected")).toBe("true"));
+    await vi.waitFor(() => expect(tabs[1]!.getAttribute("aria-selected")).toBe("true"));
   });
 
   test("only the latest pending tab request may activate", async () => {
@@ -321,13 +321,13 @@ describe("unsaved-changes guard on tab switch", () => {
       () => new Promise<boolean>((resolve) => finishes.push(resolve)),
     ) as any;
     const tabs = document.querySelectorAll<HTMLElement>(".tablist .tab");
-    tabs[1].click();
-    tabs[2].click();
-    finishes[1](true);
-    await vi.waitFor(() => expect(tabs[2].getAttribute("aria-selected")).toBe("true"));
-    finishes[0](true);
+    tabs[1]!.click();
+    tabs[2]!.click();
+    finishes[1]!(true);
+    await vi.waitFor(() => expect(tabs[2]!.getAttribute("aria-selected")).toBe("true"));
+    finishes[0]!(true);
     await Promise.resolve();
-    expect(tabs[2].getAttribute("aria-selected")).toBe("true");
+    expect(tabs[2]!.getAttribute("aria-selected")).toBe("true");
   });
 
   test("keyboard focus follows activation and returns on failure", async () => {
@@ -336,17 +336,17 @@ describe("unsaved-changes guard on tab switch", () => {
       () => new Promise<boolean>((resolve) => (finish = resolve)),
     ) as any;
     const tabs = [...document.querySelectorAll<HTMLElement>('[role="tab"]')];
-    tabs[0].focus();
-    tabs[0].dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
-    expect(document.activeElement).toBe(tabs[0]);
+    tabs[0]!.focus();
+    tabs[0]!.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+    expect(document.activeElement).toBe(tabs[0]!);
     finish(false);
-    await vi.waitFor(() => expect(document.activeElement).toBe(tabs[0]));
+    await vi.waitFor(() => expect(document.activeElement).toBe(tabs[0]!));
   });
 
   test("still switches when no guard is registered", () => {
     const tabs = document.querySelectorAll<HTMLElement>(".tablist .tab");
     const panels = document.querySelectorAll(".tab-panel");
-    tabs[1].click();
-    expect(panels[1].classList.contains("active")).toBe(true);
+    tabs[1]!.click();
+    expect(panels[1]!.classList.contains("active")).toBe(true);
   });
 });

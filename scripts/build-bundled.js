@@ -32,23 +32,16 @@ const bundleFiles = [
   "reference-page.js",
   "reference-page.js.map",
 ];
-const excludedRuntimeFiles = new Set(["src/options/version.json"]);
-
-// Remove artifacts from the short-lived per-browser packaging scheme so an
-// obsolete ZIP cannot be mistaken for the current shared store package.
-if (!expectE2EControl) {
-  for (const legacyArtifact of [
-    "chrome",
-    "firefox",
-    "save-in-chrome-mv3.zip",
-    "save-in-firefox-mv3.zip",
-  ]) {
-    fs.rmSync(path.join(root, "web-ext-artifacts", legacyArtifact), {
-      recursive: true,
-      force: true,
-    });
-  }
-}
+const runtimeAssetDirectories = ["src/i18n/generated", "src/options/assets", "src/options/i"];
+const runtimeAssetFiles = [
+  "src/offscreen.html",
+  "src/options/clauselist.html",
+  "src/options/favicon.png",
+  "src/options/options.html",
+  "src/options/reference.css",
+  "src/options/style.css",
+  "src/options/variablelist.html",
+];
 
 // 1. Build the bundles without going through a platform shell. Rolldown does
 // not remove outputs for entries deleted from its config, so start clean to
@@ -77,17 +70,19 @@ if (
   throw new Error("Unexpected content panel shadow mode");
 }
 
-// 2. Stage runtime assets. Original TypeScript belongs in the separate AMO
-// source attachment, not in the executable store package.
+// 2. Stage only declared runtime assets. Original TypeScript and editable
+// design sources belong in the separate AMO source attachment, not in the
+// executable store package.
 fs.rmSync(out, { recursive: true, force: true });
 fs.mkdirSync(out, { recursive: true });
-fs.cpSync(path.join(root, "src"), path.join(out, "src"), {
-  recursive: true,
-  filter: (source) => {
-    const relative = path.relative(root, source).replaceAll(path.sep, "/");
-    return path.extname(source) !== ".ts" && !excludedRuntimeFiles.has(relative);
-  },
-});
+for (const directory of runtimeAssetDirectories) {
+  fs.cpSync(path.join(root, directory), path.join(out, directory), { recursive: true });
+}
+for (const file of runtimeAssetFiles) {
+  const destination = path.join(out, file);
+  fs.mkdirSync(path.dirname(destination), { recursive: true });
+  fs.copyFileSync(path.join(root, file), destination);
+}
 ["icons", "_locales"].forEach((dir) => {
   fs.cpSync(path.join(root, dir), path.join(out, dir), { recursive: true });
 });

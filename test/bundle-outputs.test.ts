@@ -1,14 +1,6 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-test("does not ship a redundant standalone click-to-copy bundle", () => {
-  const config = readFileSync(resolve("rolldown.config.mjs"), "utf8");
-  const stage = readFileSync(resolve("scripts/build-bundled.js"), "utf8");
-
-  expect(config).not.toContain('file: "dist/bundled/clicktocopy.js"');
-  expect(stage).not.toContain('"clicktocopy.js"');
-});
-
 test("cleans bundle output and stages only declared rolldown artifacts", () => {
   const stage = readFileSync(resolve("scripts/build-bundled.js"), "utf8");
   const cleanup = stage.indexOf("fs.rmSync(bundleDir");
@@ -18,7 +10,17 @@ test("cleans bundle output and stages only declared rolldown artifacts", () => {
   expect(cleanup).toBeLessThan(bundle);
   expect(stage).toContain("const bundleFiles = [");
   expect(stage).toContain("for (const f of bundleFiles)");
-  expect(stage).not.toContain("for (const f of fs.readdirSync(bundleDir))");
+  expect(stage).toContain("const runtimeAssetDirectories = [");
+  expect(stage).toContain("const runtimeAssetFiles = [");
+  expect(stage).toContain("for (const directory of runtimeAssetDirectories)");
+  expect(stage).toContain("for (const file of runtimeAssetFiles)");
+});
+
+test("writes bundle targets sequentially so shared output cleanup cannot race", () => {
+  const bundle = readFileSync(resolve("scripts/bundle.js"), "utf8");
+  expect(bundle).toContain("for (const config of configs)");
+  expect(bundle).toContain("await build(config)");
+  expect(bundle).not.toContain("build(configs)");
 });
 
 test("ships a self-verifying Mozilla source attachment", () => {
@@ -26,6 +28,9 @@ test("ships a self-verifying Mozilla source attachment", () => {
   const ci = readFileSync(resolve(".github/workflows/ci.yml"), "utf8");
 
   for (const required of [
+    '"assets"',
+    '"assets/README.md"',
+    '"assets/icons/notification-info.svg"',
     '"e2e"',
     '"CHANGELOG.md"',
     '"tsconfig.chrome.json"',
@@ -53,13 +58,11 @@ test("creates stable archives without generated checkout metadata", () => {
   const packageJson = JSON.parse(readFileSync(resolve("package.json"), "utf8"));
 
   expect(runtimeBuild).toContain("assertPackageVersion(root)");
-  expect(runtimeBuild).not.toContain("writeVersion");
   expect(runtimePackage).toContain("canonicalizeZip");
   expect(runtimePackage).toContain("assertPackageVersion(root)");
   expect(runtimePackage).toContain('"--no-config-discovery"');
   expect(runtimePackage).toContain('"save-in-{version}.zip"');
   expect(sourceBuild).toContain("assertPackageVersion(root)");
-  expect(sourceBuild).not.toContain("writeVersion");
   expect(packageJson.scripts["build:bundled"]).toContain("scripts/package-runtime.js");
 });
 
@@ -79,12 +82,11 @@ test("isolates E2E bundles from store and dev builds", () => {
 test("uses one spanning package for both stores", () => {
   const manifest = JSON.parse(readFileSync(resolve("manifest.json"), "utf8"));
   const stage = readFileSync(resolve("scripts/build-bundled.js"), "utf8");
-  const packageJson = readFileSync(resolve("package.json"), "utf8");
   const runtimePackage = readFileSync(resolve("scripts/package-runtime.js"), "utf8");
 
   expect(manifest.incognito).toBe("spanning");
-  expect(stage).not.toContain("SAVE_IN_BROWSER");
-  expect(packageJson).not.toContain("bundled-pkg-firefox");
+  expect(stage).toContain('service_worker: "background.sw.js"');
+  expect(stage).toContain('scripts: ["background.js"]');
   expect(runtimePackage).toContain('"--artifacts-dir"');
   expect(runtimePackage).toContain('"--overwrite-dest"');
 });

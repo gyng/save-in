@@ -18,13 +18,13 @@ describe("persistence diagnostics", () => {
 
     const failures = getPersistenceDiagnostics();
     expect(failures).toHaveLength(50);
-    expect(failures[0]).toMatchObject({
+    expect(failures[0]!).toMatchObject({
       area: "local",
       operation: "write",
       key: "key-5",
       error: "Error: failure-5",
     });
-    expect(failures[0].at).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+    expect(failures[0]!.at).toMatch(/^\d{4}-\d{2}-\d{2}T/);
   });
 
   test("session failures remain non-fatal but are observable", async () => {

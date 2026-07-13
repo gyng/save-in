@@ -60,9 +60,8 @@ const loadNotification = async () => {
   // Log is defensive (typeof Log !== "undefined"); spy it so its calls are
   // assertable and it never writes to the session store
   vi.spyOn(Log, "add").mockImplementation(() => Promise.resolve());
-  // Side effects are deferred (Task #2): notification.ts no longer registers the
-  // download/notification listeners at import — the entry does, so register them
-  // here against the browser stubs setupGlobals installed above.
+  // Mirror the entry's synchronous listener registration against the browser
+  // stubs installed above.
   mod.registerNotifier();
   return Notifier;
 };
@@ -169,7 +168,7 @@ describe("startup restore", () => {
     // only the still-live download stays adopted; the record (and its
     // historyEntryId) is retained, just no longer watched
     expect(adoptedIds(sessionStore)).toEqual([12]);
-    expect(sessionStore.siDownloads[11]).toMatchObject({ adopted: false, historyEntryId: "h11" });
+    expect(sessionStore.siDownloads[11]!).toMatchObject({ adopted: false, historyEntryId: "h11" });
   });
 
   test("does not throw when storage.session is unavailable (older Firefox)", async () => {
@@ -317,8 +316,10 @@ describe("download lifecycle notifications", () => {
       promptOnFailure: false,
     });
 
-    const [[createdHandler]] = vi.mocked(global.browser.downloads.onCreated.addListener).mock.calls;
-    const [[changedHandler]] = vi.mocked(global.browser.downloads.onChanged.addListener).mock.calls;
+    const [createdHandler] = vi.mocked(global.browser.downloads.onCreated.addListener).mock
+      .calls[0]!;
+    const [changedHandler] = vi.mocked(global.browser.downloads.onChanged.addListener).mock
+      .calls[0]!;
     onCreated = createdHandler;
     onChanged = changedHandler;
   });
@@ -369,7 +370,7 @@ describe("download lifecycle notifications", () => {
       url: "https://example.com/browser.zip",
     });
 
-    expect(sessionStore.siDownloads[44]).toMatchObject({
+    expect(sessionStore.siDownloads[44]!).toMatchObject({
       observedBrowserDownload: true,
       adopted: false,
       historyEntryId: "h-browser",
@@ -387,7 +388,7 @@ describe("download lifecycle notifications", () => {
     await onChanged({ id: 44, state: { current: "complete", previous: "in_progress" } });
 
     expect(SaveHistory.setStatus).toHaveBeenCalledWith("h-browser", "complete", 44, 2048);
-    expect(sessionStore.siDownloads[44].observedBrowserDownload).toBe(false);
+    expect(sessionStore.siDownloads[44]!.observedBrowserDownload).toBe(false);
     expect(retryHolder.retry).not.toHaveBeenCalled();
     expect(global.browser.notifications.create).not.toHaveBeenCalled();
   });
@@ -475,7 +476,7 @@ describe("download lifecycle notifications", () => {
       filename: "sorted/native.bin",
       conflictAction: options.conflictAction,
     });
-    expect(sessionStore.siDownloads[99]).toMatchObject({
+    expect(sessionStore.siDownloads[99]!).toMatchObject({
       observedBrowserDownload: true,
       adopted: false,
       historyEntryId: "h-reroute",
@@ -575,7 +576,7 @@ describe("download lifecycle notifications", () => {
     });
 
     // the record — and its adoption — was persisted
-    expect(sessionStore.siDownloads[7]).toMatchObject({ adopted: true });
+    expect(sessionStore.siDownloads[7]!).toMatchObject({ adopted: true });
 
     // a restart wipes the in-memory mirror; the persisted record survives
     downloadState.records.clear();
@@ -587,7 +588,7 @@ describe("download lifecycle notifications", () => {
       expect.objectContaining({ type: "basic" }),
     );
     // adoption is cleared at the terminal delta, but the record is retained
-    expect(sessionStore.siDownloads[7]).toMatchObject({ adopted: false });
+    expect(sessionStore.siDownloads[7]!).toMatchObject({ adopted: false });
   });
 
   test("ignores downloads it did not initiate", async () => {
@@ -615,7 +616,8 @@ describe("download lifecycle notifications", () => {
   });
 
   test("clicking a download notification opens its file", () => {
-    const [[onClicked]] = vi.mocked(global.browser.notifications.onClicked.addListener).mock.calls;
+    const [onClicked] = vi.mocked(global.browser.notifications.onClicked.addListener).mock
+      .calls[0]!;
 
     onClicked("save-in-not-123"); // extension notifications are not downloads
     expect(global.browser.downloads.show).not.toHaveBeenCalled();
@@ -672,7 +674,7 @@ describe("listener registration", () => {
     );
 
     Notifier.onDownloadCreated = vi.fn(() => Promise.reject(new Error("broken event")));
-    const [[onCreated]] = vi.mocked(global.browser.downloads.onCreated.addListener).mock.calls;
+    const [onCreated] = vi.mocked(global.browser.downloads.onCreated.addListener).mock.calls[0]!;
     await expect(onCreated({ id: 7 } as browser.downloads.DownloadItem)).resolves.toBeUndefined();
     expect(Log.add).toHaveBeenCalledWith("download created event failed", "Error: broken event");
   });
@@ -693,8 +695,10 @@ describe("notification variants", () => {
     setupGlobals(sessionStore, searchResults);
     await loadNotification();
     Object.assign(options, opts);
-    const [[createdHandler]] = vi.mocked(global.browser.downloads.onCreated.addListener).mock.calls;
-    const [[changedHandler]] = vi.mocked(global.browser.downloads.onChanged.addListener).mock.calls;
+    const [createdHandler] = vi.mocked(global.browser.downloads.onCreated.addListener).mock
+      .calls[0]!;
+    const [changedHandler] = vi.mocked(global.browser.downloads.onChanged.addListener).mock
+      .calls[0]!;
     onCreated = createdHandler;
     onChanged = changedHandler;
   };
@@ -912,7 +916,7 @@ describe("notification variants", () => {
       await startTracked({ id: 8, filename: "/dl/pic2.png", url: "https://x/p2.png" });
       await onChanged({ id: 8, state: { current: "complete", previous: "in_progress" } });
 
-      const logged = logSpy.mock.calls.map((c) => c[0]);
+      const logged = logSpy.mock.calls.map((c) => c[0]!);
       expect(logged).toContain("notification");
       expect(logged).toContain("notification: created failure");
       expect(logged).toContain("notification: created success");
@@ -1034,8 +1038,10 @@ describe("automatic fetch fallback gating", () => {
       return Promise.resolve(retryResult === true);
     });
 
-    const [[createdHandler]] = vi.mocked(global.browser.downloads.onCreated.addListener).mock.calls;
-    const [[changedHandler]] = vi.mocked(global.browser.downloads.onChanged.addListener).mock.calls;
+    const [createdHandler] = vi.mocked(global.browser.downloads.onCreated.addListener).mock
+      .calls[0]!;
+    const [changedHandler] = vi.mocked(global.browser.downloads.onChanged.addListener).mock
+      .calls[0]!;
     onCreated = createdHandler;
     onChanged = changedHandler;
 

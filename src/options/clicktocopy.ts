@@ -1,24 +1,13 @@
-export const addClickToCopy = (el: HTMLElement): void => {
-  let clicked: HTMLElement | null = null;
+import { copyText, type CopyText } from "./clipboard.ts";
 
+export const addClickToCopy = (el: HTMLElement, copy: CopyText = copyText): void => {
   el.title = `Click to copy ${el.textContent} to clipboard`; // eslint-disable-line
 
   el.addEventListener("click", () => {
-    clicked = el;
-    document.execCommand("copy");
-  });
-
-  document.addEventListener("copy", (e) => {
-    if (clicked !== el) {
-      return;
-    }
-
-    e.preventDefault();
-    if (e.clipboardData) {
-      e.clipboardData.setData("text/plain", el.textContent ?? "");
-      clicked = null;
-    }
+    void copy(el.textContent ?? "").catch(() => {});
   });
 };
 
-document.querySelectorAll<HTMLElement>(".click-to-copy").forEach(addClickToCopy);
+document.querySelectorAll<HTMLElement>(".click-to-copy").forEach((element) => {
+  addClickToCopy(element);
+});

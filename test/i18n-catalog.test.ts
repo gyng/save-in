@@ -36,13 +36,13 @@ const collectRuntimeMessageKeys = (): Set<string> => {
   ];
   for (const file of manifestAndHtml) {
     const source = readFileSync(file, "utf8");
-    for (const match of source.matchAll(/__MSG_([A-Za-z0-9_]+)__/g)) keys.add(match[1]);
+    for (const match of source.matchAll(/__MSG_([A-Za-z0-9_]+)__/g)) keys.add(match[1]!);
   }
 
   for (const file of listSourceFiles(resolve("src")).filter((path) => extname(path) === ".ts")) {
     const source = readFileSync(file, "utf8");
     for (const match of source.matchAll(/\b(?:getMessage|localize)\(\s*["']([A-Za-z0-9_]+)["']/g)) {
-      keys.add(match[1]);
+      keys.add(match[1]!);
     }
   }
   return keys;

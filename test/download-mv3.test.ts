@@ -6,10 +6,8 @@ import { Blob as NodeBlob } from "buffer";
 
 global.TextEncoder = global.TextEncoder || TextEncoder;
 
-// messaging.ts used to register its runtime listeners at eval, which forced a
-// vi.mock here so the recovery-path describe's minimal browser stub wouldn't
-// throw on import. Those side effects are now deferred to the entry (Task #2),
-// so messaging imports cleanly for real — no mock needed.
+// Listener registration belongs to the entry, so these worker-safe modules can
+// be imported against the minimal host fixture without messaging side effects.
 
 import { Download } from "../src/downloads/download.ts";
 import { OffscreenClient } from "../src/platform/offscreen-client.ts";
@@ -19,7 +17,7 @@ const decodeDataUrl = (url: string) => {
   const [meta, b64] = url.split(",");
   return {
     meta,
-    content: Buffer.from(b64, "base64").toString("utf8"),
+    content: Buffer.from(b64 ?? "", "base64").toString("utf8"),
   };
 };
 
@@ -66,7 +64,7 @@ describe("makeObjectUrl", () => {
     expect(meta).toBe("data:text/html;charset=utf-8;base64");
   });
 
-  test("uses URL.createObjectURL when available (MV2)", () => {
+  test("uses URL.createObjectURL in a DOM-capable background", () => {
     URL.createObjectURL = vi.fn(() => "blob:fake-object-url");
 
     const url = Download.makeObjectUrl("hello");
@@ -120,7 +118,7 @@ describe("makeUrlFromBlob", () => {
     expect(content).toBe(big);
   });
 
-  test("uses URL.createObjectURL when available (MV2)", async () => {
+  test("uses URL.createObjectURL in a DOM-capable background", async () => {
     URL.createObjectURL = vi.fn(() => "blob:fake-object-url");
     const blob = new NodeBlob(["x"]);
     await expect(makeUrlFromBlob(blob)).resolves.toBe("blob:fake-object-url");
@@ -140,7 +138,6 @@ describe("offscreen document fetch (Chrome MV3)", () => {
     });
     global.chrome = {
       offscreen: {
-        hasDocument: vi.fn(() => Promise.resolve(false)),
         createDocument: vi.fn(() => Promise.resolve()),
       },
       runtime: {
@@ -353,8 +350,7 @@ describe("onDeterminingFilename listener (Chrome)", () => {
       },
     );
 
-    // Side effects are deferred (Task #2): call registerDownloadListener() to
-    // attach onDeterminingFilename against the fresh chrome stub, then capture.
+    // Attach onDeterminingFilename against the fresh Chrome stub, then capture.
     const { Download: currentDownload, registerDownloadListener } =
       await import("../src/downloads/download.ts");
     const { configureDownloadPorts } = await import("../src/downloads/ports.ts");

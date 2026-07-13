@@ -90,9 +90,8 @@ describe("E2E lifecycle cleanup", () => {
     ).rejects.toThrow("E2E profile cleanup failed");
   });
 
-  test("keeps the newest diagnostic runs and removes legacy flat artifacts", () => {
+  test("keeps the newest diagnostic runs", () => {
     const artifacts = tempRoot("save-in-artifacts-");
-    writeFileSync(join(artifacts, "legacy.log"), "old");
     for (let index = 1; index <= 5; index += 1) {
       const run = join(artifacts, `run-${index}`);
       mkdirSync(run);

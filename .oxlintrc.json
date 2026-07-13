@@ -17,14 +17,7 @@
     ],
     "unicorn/consistent-function-scoping": "off"
   },
-  "ignorePatterns": [
-    "src/vendor",
-    "src/options/vendor",
-    "web-ext-artifacts",
-    "dist",
-    "docs",
-    "test/mockserver"
-  ],
+  "ignorePatterns": ["src/vendor", "web-ext-artifacts", "dist", "docs"],
   "overrides": [
     {
       "files": ["scripts/**/*.js", "scripts/**/*.mjs"],
@@ -33,16 +26,6 @@
       },
       "rules": {
         "no-console": "off"
-      }
-    },
-    {
-      "files": ["test/**/*.js", "test/**/*.mjs"],
-      "env": {
-        "node": true,
-        "vitest": true
-      },
-      "globals": {
-        "jest": "readonly"
       }
     },
     {

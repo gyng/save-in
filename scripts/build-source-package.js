@@ -13,7 +13,6 @@ const { resolveLocalBin } = require("./with-env");
 const root = path.join(__dirname, "..");
 const stage = path.join(root, "dist", "source-pkg");
 const artifacts = path.join(root, "web-ext-artifacts", "source");
-const excludedSourceFiles = new Set(["src/options/version.json"]);
 
 /** @param {Buffer} contents */
 function zipEntries(contents) {
@@ -64,6 +63,7 @@ async function main() {
 
   for (const dir of [
     ".github",
+    "assets",
     "src",
     "scripts",
     "test",
@@ -73,13 +73,7 @@ async function main() {
     "_locales",
     "docs",
   ]) {
-    fs.cpSync(path.join(root, dir), path.join(stage, dir), {
-      recursive: true,
-      filter: (source) => {
-        const relative = path.relative(root, source).replaceAll(path.sep, "/");
-        return !excludedSourceFiles.has(relative);
-      },
-    });
+    fs.cpSync(path.join(root, dir), path.join(stage, dir), { recursive: true });
   }
 
   const files = [
@@ -148,6 +142,8 @@ async function main() {
     ".oxfmtrc.json",
     ".oxlintrc.json",
     ".github/workflows/ci.yml",
+    "assets/README.md",
+    "assets/icons/notification-info.svg",
     "CHANGELOG.md",
     "e2e/chrome.e2e.mjs",
     "e2e/firefox.e2e.mjs",

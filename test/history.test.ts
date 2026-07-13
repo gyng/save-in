@@ -41,7 +41,7 @@ describe("SaveHistory", () => {
     SaveHistory.add({ url: "https://a/3" });
     await flushWrites();
 
-    expect(store[HISTORY_KEY].map((e) => e.url)).toEqual([
+    expect(store[HISTORY_KEY]!.map((e) => e.url)).toEqual([
       "https://a/1",
       "https://a/2",
       "https://a/3",
@@ -53,7 +53,7 @@ describe("SaveHistory", () => {
     await flushWrites();
 
     expect(typeof id).toBe("string");
-    expect(store[HISTORY_KEY][0]).toMatchObject({ id, url: "https://a/1", status: "pending" });
+    expect(store[HISTORY_KEY]![0]!).toMatchObject({ id, url: "https://a/1", status: "pending" });
   });
 
   test("does not persist entries from private browsing contexts", async () => {
@@ -77,7 +77,7 @@ describe("SaveHistory", () => {
     SaveHistory.setStatus(id2, "complete");
     await flushWrites();
 
-    const byId = Object.fromEntries(store[HISTORY_KEY].map((e) => [e.id, e.status]));
+    const byId = Object.fromEntries(store[HISTORY_KEY]!.map((e) => [e.id, e.status]));
     expect(byId[id1!]).toBe("pending");
     expect(byId[id2!]).toBe("complete");
   });
@@ -86,7 +86,7 @@ describe("SaveHistory", () => {
     SaveHistory.add({ url: "https://a/1" });
     await flushWrites();
     await SaveHistory.setStatus(null, "complete");
-    expect(store[HISTORY_KEY][0].status).toBe("pending");
+    expect(store[HISTORY_KEY]![0]!.status).toBe("pending");
   });
 
   test("setStatus records the download id and file size", async () => {
@@ -96,7 +96,7 @@ describe("SaveHistory", () => {
     SaveHistory.setStatus(id, "complete", 42, 123456);
     await flushWrites();
 
-    expect(store[HISTORY_KEY][0]).toMatchObject({
+    expect(store[HISTORY_KEY]![0]!).toMatchObject({
       status: "complete",
       downloadId: 42,
       fileSize: 123456,
@@ -110,7 +110,7 @@ describe("SaveHistory", () => {
     SaveHistory.setDownloadId(id, 7);
     await flushWrites();
 
-    expect(store[HISTORY_KEY][0]).toMatchObject({ status: "pending", downloadId: 7 });
+    expect(store[HISTORY_KEY]![0]!).toMatchObject({ status: "pending", downloadId: 7 });
   });
 
   test("get returns the entry list", async () => {
@@ -150,7 +150,7 @@ describe("SaveHistory", () => {
         mechanism: "downloads-api",
       },
     ]);
-    expect(store[HISTORY_KEY][0]).toMatchObject({
+    expect(store[HISTORY_KEY][0]!).toMatchObject({
       timestamp: expectedTimestamp,
       initiatedAt: expectedInitiatedAt,
       mechanism: "downloads-api",
@@ -183,7 +183,7 @@ describe("SaveHistory", () => {
 
     expect(store[HISTORY_KEY]).toHaveLength(limit);
     // The oldest entry was dropped; the newest is appended
-    expect(store[HISTORY_KEY][0]).toEqual({ url: "1" });
+    expect(store[HISTORY_KEY][0]!).toEqual({ url: "1" });
     expect(store[HISTORY_KEY][limit - 1]).toMatchObject({ url: String(limit) });
   });
 
@@ -193,7 +193,7 @@ describe("SaveHistory", () => {
     SaveHistory.add({ url: "https://a/1" });
     await flushWrites();
 
-    expect(store[HISTORY_KEY][0]).toMatchObject({ url: "https://a/1" });
+    expect(store[HISTORY_KEY]![0]!).toMatchObject({ url: "https://a/1" });
   });
 
   test("get tolerates a storage backend returning nothing", async () => {
@@ -273,7 +273,7 @@ describe("SaveHistory", () => {
     SaveHistory.add({ url: "https://a/3" });
     await flushWrites();
 
-    expect(new Set(store[HISTORY_KEY].map((entry) => entry.url))).toEqual(
+    expect(new Set(store[HISTORY_KEY]!.map((entry) => entry.url))).toEqual(
       new Set(["https://a/1", "https://a/2", "https://a/3"]),
     );
   });
@@ -291,7 +291,7 @@ describe("SaveHistory", () => {
     SaveHistory.add({ url: "https://a/2" });
     await flushWrites();
 
-    expect(store[HISTORY_KEY].map((e) => e.url)).toEqual(["https://a/2"]);
+    expect(store[HISTORY_KEY]!.map((e) => e.url)).toEqual(["https://a/2"]);
     expect(getPersistenceDiagnostics()).toEqual([
       expect.objectContaining({
         area: "local",

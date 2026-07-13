@@ -128,9 +128,6 @@ const removeOwnedProfiles = async (
 const pruneArtifactRuns = (artifacts, keep = 3) => {
   fs.mkdirSync(artifacts, { recursive: true });
   const entries = fs.readdirSync(artifacts, { withFileTypes: true });
-  for (const legacy of entries) {
-    if (legacy.isFile()) fs.rmSync(path.join(artifacts, legacy.name), { force: true });
-  }
   /** @type {Array<{path: string, mtime: number}>} */
   const runs = [];
   for (const entry of entries) {

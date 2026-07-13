@@ -104,7 +104,8 @@ class FirefoxRdp {
     if (process.env.RDP_DEBUG) console.error("RDP <-", JSON.stringify(packet));
     const waiterIdx = this.eventWaiters.findIndex((w) => w.predicate(packet));
     if (waiterIdx !== -1) {
-      const [waiter] = this.eventWaiters.splice(waiterIdx, 1);
+      const waiter = this.eventWaiters.splice(waiterIdx, 1)[0];
+      if (!waiter) throw new Error("RDP waiter disappeared during dispatch");
       waiter.resolve(packet);
       return;
     }

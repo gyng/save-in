@@ -46,7 +46,7 @@ describe("external active-tab downloads", () => {
       active: true,
       lastFocusedWindow: true,
     });
-    const state = vi.mocked(Download.launch).mock.calls[0][0];
+    const state = vi.mocked(Download.launch).mock.calls[0]![0]!;
     expect(state.info.url).toBe("https://x/active");
     expect(state.info.currentTab).toBe(activeTab);
     expect(state.info.comment).toBe("gesturefy");
@@ -66,7 +66,7 @@ describe("external active-tab downloads", () => {
     );
 
     expect(webExtensionApi.tabs.query).not.toHaveBeenCalled();
-    const state = vi.mocked(Download.launch).mock.calls[0][0];
+    const state = vi.mocked(Download.launch).mock.calls[0]![0]!;
     expect(state.info.url).toBe("https://x/origin");
     expect(state.info.currentTab).toBe(senderTab);
   });
@@ -79,7 +79,7 @@ describe("external active-tab downloads", () => {
     );
 
     expect(webExtensionApi.tabs.query).not.toHaveBeenCalled();
-    expect(vi.mocked(Download.launch).mock.calls[0][0].info.url).toBe("https://x/explicit");
+    expect(vi.mocked(Download.launch).mock.calls[0]![0]!.info.url).toBe("https://x/explicit");
   });
 
   test("reports a missing active tab without launching", async () => {

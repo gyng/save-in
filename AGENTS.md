@@ -30,7 +30,8 @@ classic contexts; `iife` for the content script + reference-page controller.
 `scripts/build-bundled.js`): `npm run build`, `npm run lint`, and
 `npm run e2e:*` all stage and use it. The old individual-scripts build is
 retired. `npm run typecheck`
-(`tsc --noEmit`) covers `src/**` AND `test/**`.
+(`tsc --noEmit`) covers `src/**` and the complete TypeScript test suite with
+`exactOptionalPropertyTypes` and `noUncheckedIndexedAccess` enabled.
 
 Execution contexts:
 
@@ -193,7 +194,7 @@ vitest specifics (`test/*.test.ts`, typed; `tsc` covers them):
 - Module-reset tests use `vi.resetModules()` + `await import(...)`. vitest jsdom
   provides `URL.createObjectURL`: stub it away to exercise MV3 paths.
 - Capture browser event handlers via
-  `vi.mocked(browser.x.onY.addListener).mock.calls[0][0]` and invoke them.
+  `vi.mocked(browser.x.onY.addListener).mock.calls[0]![0]` and invoke them.
 
 ## Conventions
 
@@ -212,8 +213,10 @@ vitest specifics (`test/*.test.ts`, typed; `tsc` covers them):
 - When the user asks for repository changes, commit the completed, verified
   work before handing it back unless they explicitly ask to leave it uncommitted.
   Stage only task-related changes when the worktree contains unrelated edits.
-- No runtime dependencies; scripts under `scripts/` use Node built-ins only
-  (Node ≥ 24, npm).
+- No extension runtime dependencies. Build tooling targets Node ≥ 24 and uses
+  JSZip only to canonicalize `web-ext` archives for reproducible bytes.
+- Editable SVG masters live under `assets/icons/` and are included only in the
+  Mozilla source attachment. Regenerated runtime rasters belong under `icons/`.
 - Comments explain _constraints_ (why something must be this way — usually
   an MV3/cross-browser rule), not what the code does.
 - Version lives in `manifest.json` and `package.json` — bump together.

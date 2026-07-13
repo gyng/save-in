@@ -1,7 +1,5 @@
-// option.ts is import-side-effect-free now (Task #2: the seed is deferred out of
-// module eval), so import the real options bag and mutate it directly instead of
-// bridging through a globalThis getter. It starts empty; each test sets what it
-// needs and clears afterwards.
+// option.ts is import-side-effect-free, so tests can mutate the real options bag
+// directly. Each test sets the fields it needs and clears them afterwards.
 import { options } from "../src/config/options-data.ts";
 import type { SaveInOptions } from "../src/config/option-schema.ts";
 import { Notifier as notification } from "../src/downloads/notification.ts";
@@ -87,7 +85,7 @@ describe("createExtensionNotification", () => {
     notification.createExtensionNotification("Title", "Message", false, "route-match");
     vi.advanceTimersByTime(250);
 
-    const [id, spec] = vi.mocked(global.browser.notifications.create).mock.calls[0];
+    const [id, spec] = vi.mocked(global.browser.notifications.create).mock.calls[0]!;
     expect(id).toBe("save-in-not-route-match");
     expect(spec).toEqual({
       type: "basic",
@@ -108,7 +106,7 @@ describe("createExtensionNotification", () => {
     notification.createExtensionNotification(null, null, true, "download-failure");
     vi.advanceTimersByTime(250);
 
-    const [, spec] = vi.mocked(global.browser.notifications.create).mock.calls[0];
+    const [, spec] = vi.mocked(global.browser.notifications.create).mock.calls[0]!;
     expect(spec.title).toBe("Translated<extensionName>");
     expect(spec.message).toBe("Translated<genericUnknownError>");
     expect(spec.iconUrl).toBe("icons/ic_archive_black_128px.png");

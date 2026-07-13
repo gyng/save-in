@@ -115,7 +115,8 @@ describe("menu creation", () => {
       menu.makeSeparator(["link"]);
       menu.makeSeparator(["link"], "custom-parent");
 
-      const [first, second] = created();
+      const first = created()[0]!;
+      const second = created()[1]!;
       expect(first).toMatchObject({
         type: "separator",
         contexts: ["link"],
@@ -152,7 +153,7 @@ describe("menu creation", () => {
     test("addRoot creates the root item with the root access key", () => {
       menu.addRoot(["link"]);
 
-      const [root] = created();
+      const root = created()[0]!;
       expect(root.id).toBe(menu.IDS.ROOT);
       expect(root.contexts).toEqual(["link"]);
       expect(root.title).toContain("(&q)");
@@ -161,7 +162,7 @@ describe("menu creation", () => {
     test("addRouteExclusive creates a standalone routing item", () => {
       menu.addRouteExclusive(["link"]);
 
-      const [item] = created();
+      const item = created()[0]!;
       expect(item.id).toBe(menu.IDS.ROUTE_EXCLUSIVE);
       expect(item.contexts).toEqual(["link"]);
     });
@@ -175,7 +176,7 @@ describe("menu creation", () => {
         "download-context-selection",
         "download-context-page",
       ]);
-      expect(created()[0].contexts).toEqual(MEDIA_TYPES.concat("link"));
+      expect(created()[0]!.contexts).toEqual(MEDIA_TYPES.concat("link"));
       expect(created().every((c) => c.enabled === false)).toBe(true);
     });
 
@@ -184,14 +185,15 @@ describe("menu creation", () => {
 
       const ids = created().map((c) => c.id);
       expect(ids).toEqual(["download-context-media"]);
-      expect(created()[0].contexts).toEqual(MEDIA_TYPES);
+      expect(created()[0]!.contexts).toEqual(MEDIA_TYPES);
     });
 
     test("addOptions and addShowDefaultFolder create items under the root", () => {
       menu.addOptions(["link"]);
       menu.addShowDefaultFolder(["link"]);
 
-      const [optionsItem, defaultFolder] = created();
+      const optionsItem = created()[0]!;
+      const defaultFolder = created()[1]!;
       expect(optionsItem).toMatchObject({ id: "options", parentId: "save-in-root" });
       expect(defaultFolder).toMatchObject({
         id: "show-default-folder",
@@ -217,14 +219,14 @@ describe("menu creation", () => {
       }
 
       expect(matchMedia).toHaveBeenCalledWith("(prefers-color-scheme: dark)");
-      expect(created()[0].icons).toEqual({ 16: "icons/ic_update_white_24px.svg" });
+      expect(created()[0]!.icons).toEqual({ 16: "icons/ic_update_white_24px.svg" });
     });
 
     test("creates a disabled placeholder with icons when nothing was used yet", () => {
       menu.addLastUsed(["link"]);
 
       expect(created()).toHaveLength(1);
-      const [item] = created();
+      const item = created()[0]!;
       expect(item).toMatchObject({
         id: menu.IDS.LAST_USED,
         enabled: false,
@@ -243,9 +245,9 @@ describe("menu creation", () => {
       menu.addLastUsed(["link"]);
 
       expect(created()).toHaveLength(2);
-      expect(created()[0].icons).toBeDefined();
-      expect(created()[1].icons).toBeUndefined();
-      expect(created()[1].id).toBe(menu.IDS.LAST_USED);
+      expect(created()[0]!.icons).toBeDefined();
+      expect(created()[1]!.icons).toBeUndefined();
+      expect(created()[1]!.id).toBe(menu.IDS.LAST_USED);
     });
   });
 
@@ -253,7 +255,8 @@ describe("menu creation", () => {
     test("creates top-level separators for ---", () => {
       menu.addPaths([SPECIAL_DIRS.SEPARATOR, "a"], ["link"]);
 
-      const [separator, item] = created();
+      const separator = created()[0]!;
+      const item = created()[1]!;
       expect(separator).toMatchObject({ type: "separator", parentId: menu.IDS.ROOT });
       expect(item).toMatchObject({ id: "save-in-1", title: "a", parentId: menu.IDS.ROOT });
     });
@@ -261,7 +264,8 @@ describe("menu creation", () => {
     test("creates nested separators under the current parent", () => {
       menu.addPaths(["a", ">---"], ["link"]);
 
-      const [item, separator] = created();
+      const item = created()[0]!;
+      const separator = created()[1]!;
       expect(item.id).toBe("save-in-0");
       expect(separator).toMatchObject({ type: "separator", parentId: "save-in-0" });
     });
@@ -283,7 +287,7 @@ describe("menu creation", () => {
     test("uses the alias as the menu title", () => {
       menu.addPaths(["dogs/corgi // (alias: Nice Name)"], ["link"]);
 
-      expect(created()[0].title).toBe("Nice Name");
+      expect(created()[0]!.title).toBe("Nice Name");
       expect(menu.pathMappings["save-in-0"]).toMatchObject({
         parsedDir: "dogs/corgi",
         title: "Nice Name",
@@ -293,8 +297,8 @@ describe("menu creation", () => {
     test("keeps the comment (with dash munging) and menu index for routing", () => {
       menu.addPaths(["a // some-comment-x"], ["link"]);
 
-      expect(menu.pathMappings["save-in-0"].comment).toBe("0some_comment_x");
-      expect(menu.pathMappings["save-in-0"].menuIndex).toBe("1");
+      expect(menu.pathMappings["save-in-0"]!.comment).toBe("0some_comment_x");
+      expect(menu.pathMappings["save-in-0"]!.menuIndex).toBe("1");
     });
 
     test("nests items by depth arrows: deeper, back out, and back to root", () => {
@@ -331,7 +335,7 @@ describe("menu creation", () => {
 
       menu.addPaths(["dogs // (key: g)"], ["link"]);
 
-      expect(created()[0].title).toBe("do&gs");
+      expect(created()[0]!.title).toBe("do&gs");
     });
 
     test("plain titles when enableNumberedItems is off", () => {
@@ -339,7 +343,7 @@ describe("menu creation", () => {
 
       menu.addPaths(["dogs"], ["link"]);
 
-      expect(created()[0].title).toBe("dogs");
+      expect(created()[0]!.title).toBe("dogs");
     });
 
     test("drops stale mappings and titles when paths are rebuilt", () => {
@@ -373,7 +377,7 @@ describe("menu creation", () => {
         menu.IDS.TABSTRIP.TO_RIGHT,
         menu.IDS.TABSTRIP.TO_RIGHT_MATCH,
       ]);
-      expect(created().every((c) => c.contexts[0] === "tab")).toBe(true);
+      expect(created().every((item) => item.contexts[0] === "tab")).toBe(true);
     });
 
     test("creates no tab items when tabContextMenus is unsupported", () => {
@@ -497,15 +501,15 @@ describe("buildTree", () => {
     const { items } = menu.buildTree([SPECIAL_DIRS.SEPARATOR, "a", ">---"]);
 
     expect(items.map((i) => i.kind)).toEqual(["separator", "path", "separator"]);
-    expect(items[0].parentId).toBe(menu.IDS.ROOT);
-    expect(items[2].parentId).toBe("save-in-1");
+    expect(items[0]!.parentId).toBe(menu.IDS.ROOT);
+    expect(items[2]!.parentId).toBe("save-in-1");
   });
 
   test("collects invalid paths as errors instead of items", () => {
     const { items, errors } = menu.buildTree(["<invalid>", "ok"]);
 
     expect(items).toHaveLength(1);
-    expect("parsedDir" in items[0] && items[0].parsedDir).toBe("ok");
+    expect("parsedDir" in items[0]! && items[0]!.parsedDir).toBe("ok");
     expect(errors).toEqual([
       {
         message: "Translated<rulePathInvalidCharacter>",
@@ -518,8 +522,8 @@ describe("buildTree", () => {
   test("carries alias titles and access key overrides", () => {
     const { items } = menu.buildTree(["dogs/corgi // (alias: Nice Name) (key: g)"]);
 
-    expect("title" in items[0] && items[0].title).toBe("Nice Name");
-    expect("accessKeyOverride" in items[0] && items[0].accessKeyOverride).toBe("g");
+    expect("title" in items[0]! && items[0]!.title).toBe("Nice Name");
+    expect("accessKeyOverride" in items[0]! && items[0]!.accessKeyOverride).toBe("g");
   });
 
   test("numbers items per depth for menuIndex routing", () => {

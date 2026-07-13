@@ -1,9 +1,5 @@
-// Small shared helpers, consolidated here to kill the copies scattered across
-// the background scripts (the standing "// TODO: Move into utils").
-
 // Parse `str` as a URL and return `cb(url)`; on a parse failure return
-// `fallback`. Callers choose the fallback because their historical failure
-// values differ.
+// `fallback`. Callers choose the fallback because their failure values differ.
 export const withUrl = <T, F = null>(
   str: string,
   cb: (url: URL) => T,

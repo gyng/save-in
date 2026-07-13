@@ -26,25 +26,11 @@ type OffscreenClientApi = {
 let ensurePromise: Promise<void | null> | null = null;
 
 const hasOffscreenDocument = async (): Promise<boolean> => {
-  const runtime = chrome.runtime as typeof chrome.runtime & {
-    getContexts?: (filter: {
-      contextTypes: string[];
-      documentUrls: string[];
-    }) => Promise<unknown[]>;
-  };
-  if (typeof runtime.getContexts === "function") {
-    const contexts = await runtime.getContexts({
-      contextTypes: ["OFFSCREEN_DOCUMENT"],
-      documentUrls: [chrome.runtime.getURL("src/offscreen.html")],
-    });
-    return contexts.length > 0;
-  }
-  // hasDocument was added much later than offscreen documents. Keep this
-  // compatibility path for unusual Chromium hosts, but prefer getContexts on
-  // every supported Chrome version.
-  return typeof chrome.offscreen.hasDocument === "function"
-    ? chrome.offscreen.hasDocument()
-    : false;
+  const contexts = await chrome.runtime.getContexts({
+    contextTypes: ["OFFSCREEN_DOCUMENT"],
+    documentUrls: [chrome.runtime.getURL("src/offscreen.html")],
+  });
+  return contexts.length > 0;
 };
 
 export const OffscreenClient: OffscreenClientApi = {

@@ -1,8 +1,7 @@
 import * as Path from "../src/routing/path.ts";
 import { PATH_SEGMENT_TYPES } from "../src/shared/constants.ts";
-// path.ts reads options.replacementChar at call time; import the real options
-// bag and mutate it. Seeding is deferred out of module eval (Task #2), so seed
-// the defaults here (replacementChar "_") the way the entry does at startup.
+// path.ts reads options.replacementChar at call time; seed the real options bag
+// here (replacementChar "_") the way the entry does at startup.
 import { options } from "../src/config/options-data.ts";
 import { seedOptions } from "../src/config/option.ts";
 
@@ -99,7 +98,7 @@ describe("sanitisation", () => {
 
     test("empty segments fall back to underscore without a replacementChar", () => {
       // Exercise the runtime fallback for older/incomplete persisted options.
-      (options as { replacementChar?: string }).replacementChar = undefined;
+      delete (options as { replacementChar?: string }).replacementChar;
       try {
         const p = new Path.Path("a");
         p.buf = [Path.stringSegment("")];
@@ -253,7 +252,7 @@ describe("sanitizeBufStrings", () => {
   test("passes unknown-type segments through unchanged", () => {
     const seg = { type: undefined, val: "anything" };
     const out = Path.sanitizeBufStrings([seg]);
-    expect(out[0]).toBe(seg);
+    expect(out[0]!).toBe(seg);
   });
 });
 
@@ -268,7 +267,7 @@ describe("parsePathStr", () => {
     // always returns an array
     const parsed = Path.parsePathStr({ split: () => "abc" });
     expect(parsed).toHaveLength(1);
-    expect(parsed[0].val).toBe("abc");
-    expect(parsed[0].type).toBe(PATH_SEGMENT_TYPES.STRING);
+    expect(parsed[0]!.val).toBe("abc");
+    expect(parsed[0]!.type).toBe(PATH_SEGMENT_TYPES.STRING);
   });
 });

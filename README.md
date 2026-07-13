@@ -6,7 +6,7 @@
 
 [Privacy policy](PRIVACY.md)
 
-![Screenshot](docs/screenshot.png)
+![Save In options](docs/store-screenshots/01-downloads-menu.png)
 
 A web extension for Firefox and Chrome.
 

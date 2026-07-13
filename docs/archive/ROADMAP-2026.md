@@ -555,7 +555,7 @@ gates on `Download.canUseOffscreen()` (feature-detects `chrome.offscreen` +
 absent `createObjectURL`) and falls back to the `data:` URL path if the offscreen
 doc can't be created; Firefox keeps `createObjectURL` on its event page.
 Implemented in `src/offscreen.{html,js}` + `Download.fetchViaOffscreen`;
-covered by `test/download-mv3.test.js` and a Chrome e2e case.
+covered by `test/download-mv3.test.ts` and a Chrome e2e case.
 
 ---
 

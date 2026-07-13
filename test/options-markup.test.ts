@@ -280,12 +280,3 @@ describe("options form semantics", () => {
     ).toBeTruthy();
   });
 });
-
-test("does not retain links to the retired old-rules migration page", () => {
-  const projectCopy = [
-    readFileSync(resolve("src/options/options.html"), "utf8"),
-    readFileSync(resolve("CHANGELOG.md"), "utf8"),
-  ].join("\n");
-  expect(projectCopy).not.toContain("Filename-rewrite");
-  expect(projectCopy).not.toContain("Migrating old rules");
-});

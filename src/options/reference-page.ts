@@ -7,8 +7,8 @@ import {
 import { webExtensionApi } from "../platform/web-extension-api.ts";
 import { MESSAGE_TYPES } from "../shared/constants.ts";
 import { sendInternalMessage } from "../shared/message-protocol.ts";
+import { copyText, type CopyText } from "./clipboard.ts";
 
-type CopyText = (text: string) => Promise<void>;
 type ReferenceKind = "variables" | "clauses";
 type RuntimeVocabulary = { variables: string[]; matchers: string[] };
 
@@ -133,20 +133,6 @@ export const filterReferenceRows = (root: ParentNode, query: string): number => 
   return visible;
 };
 
-const defaultCopy: CopyText = async (text) => {
-  if (navigator.clipboard?.writeText) {
-    await navigator.clipboard.writeText(text);
-    return;
-  }
-  const textarea = document.createElement("textarea");
-  textarea.value = text;
-  textarea.hidden = true;
-  document.body.appendChild(textarea);
-  textarea.select();
-  document.execCommand("copy");
-  textarea.remove();
-};
-
 export const enhanceReferenceTables = (root: ParentNode) => {
   root.querySelectorAll<HTMLTableElement>("table").forEach((table) => {
     table.classList.add("reference-table");
@@ -197,7 +183,7 @@ export const enhanceReferenceTables = (root: ParentNode) => {
   });
 };
 
-export const setupReferencePage = (root: Document = document, copy: CopyText = defaultCopy) => {
+export const setupReferencePage = (root: Document = document, copy: CopyText = copyText) => {
   const variablesPanel = root.querySelector("#reference-variables");
   groupReferenceRows(
     variablesPanel || root,

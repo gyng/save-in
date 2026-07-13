@@ -2,11 +2,9 @@
   "$schema": "./node_modules/oxfmt/configuration_schema.json",
   "ignorePatterns": [
     "src/vendor/**",
-    "src/options/vendor/**",
     "dist/**",
     "web-ext-artifacts/**",
     "docs/**",
-    "test/mockserver/**",
     "package-lock.json"
   ]
 }

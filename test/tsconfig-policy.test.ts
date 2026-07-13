@@ -70,7 +70,6 @@ describe("TypeScript policy", () => {
     expect(pkg.scripts?.typecheck).toContain("tsconfig.dev-tools.json");
     expect(pkg.scripts?.typecheck).toContain("tsconfig.e2e.json");
     expect(pkg.scripts?.typecheck).toContain("tsconfig.test.json");
-    expect(pkg.scripts?.typecheck).toContain("tsconfig.test-strict.json");
   });
 
   test("checks application source against both host API declarations", () => {
@@ -84,19 +83,16 @@ describe("TypeScript policy", () => {
     expect(pkg.scripts?.typecheck).toContain("tsconfig.chrome.json");
   });
 
-  test("keeps a strict migration boundary for typed test helpers and protocol contracts", () => {
-    const strictTests = compilerOptions("tsconfig.test-strict.json");
-    expect(strictTests).toMatchObject({
+  test("checks the complete TypeScript test suite with production strictness", () => {
+    const tests = compilerOptions("tsconfig.test.json");
+    expect(tests).toMatchObject({
+      allowJs: true,
+      checkJs: true,
+    });
+    expect(compilerOptions("tsconfig.browser.json")).toMatchObject({
       exactOptionalPropertyTypes: true,
       noUncheckedIndexedAccess: true,
     });
-    expect(readConfig("tsconfig.test-strict.json").include).toEqual(
-      expect.arrayContaining([
-        "test/type-contracts.test.ts",
-        "test/message-protocol.test.ts",
-        "test/vitest.setup.ts",
-        "test/webextension-test-helpers.ts",
-      ]),
-    );
+    expect(readConfig("tsconfig.test.json").include).toContain("test/**/*.ts");
   });
 });

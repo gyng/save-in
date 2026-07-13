@@ -10,9 +10,9 @@ describe("latest-only async results", () => {
     );
     const old = latest.run();
     const current = latest.run();
-    resolvers[1]("current result");
+    resolvers[1]!("current result");
     await current;
-    resolvers[0]("old result");
+    resolvers[0]!("old result");
     await old;
     expect(applied).toEqual(["current result"]);
   });
@@ -28,9 +28,9 @@ test("only reports a rejection from the latest request", async () => {
   );
   const old = latest.run();
   const current = latest.run();
-  rejecters[0](new Error("old"));
+  rejecters[0]!(new Error("old"));
   await old;
-  rejecters[1](new Error("current"));
+  rejecters[1]!(new Error("current"));
   await current;
   expect(failures).toEqual(["Error: current"]);
 });

@@ -155,8 +155,8 @@ test("filters source results by URL and type", () => {
     { url: "https://x.test/photo.jpg", kind: "image" as const, element },
     { url: "https://x.test/master.m3u8", kind: "stream" as const, element },
   ];
-  expect(filterPageSources(sources, "master", "all")).toEqual([sources[1]]);
-  expect(filterPageSources(sources, "", "image")).toEqual([sources[0]]);
+  expect(filterPageSources(sources, "master", "all")).toEqual([sources[1]!]);
+  expect(filterPageSources(sources, "", "image")).toEqual([sources[0]!]);
 });
 
 test("sorts by first-seen time, size, or name", () => {
@@ -455,9 +455,9 @@ describe("Page Sources panel interactions", () => {
     const source = document.querySelector<HTMLElement>("#responsive")!;
     const shadow = getSourcePanelHostForTesting()!.shadowRoot!;
     const rows = [...shadow.querySelectorAll<HTMLElement>(".row")];
-    const firstLink = rows[0].querySelector<HTMLAnchorElement>(".source-link")!;
+    const firstLink = rows[0]!.querySelector<HTMLAnchorElement>(".source-link")!;
     firstLink.dispatchEvent(new FocusEvent("focusin", { bubbles: true }));
-    rows[1].dispatchEvent(new MouseEvent("mouseenter"));
+    rows[1]!.dispatchEvent(new MouseEvent("mouseenter"));
 
     setSourcePanelOpen(false, vi.fn(), { includeBackgrounds: false, live: false });
     vi.advanceTimersByTime(90);
@@ -797,7 +797,9 @@ describe("Page Sources panel interactions", () => {
     });
     const shadow = document.getElementById("save-in-source-panel")!.shadowRoot!;
     const row = shadow.querySelector<HTMLElement>(".row")!;
-    const [locate, save] = [...row.querySelectorAll<HTMLButtonElement>(".actions button")];
+    const buttons = [...row.querySelectorAll<HTMLButtonElement>(".actions button")];
+    const locate = buttons[0]!;
+    const save = buttons[1]!;
 
     locate.dispatchEvent(new MouseEvent("pointerdown", { bubbles: true, button: 0 }));
     expect(onSaveIntent).not.toHaveBeenCalled();

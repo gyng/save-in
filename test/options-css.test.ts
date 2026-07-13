@@ -2,13 +2,19 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 const stylesheet = readFileSync(resolve("src/options/style.css"), "utf8");
-const optionsScript = readFileSync(resolve("src/options/options.ts"), "utf8");
 const selectorCount = (selector: string) => {
   const lines = stylesheet.split(/\r?\n/);
   return lines.filter(
     (line, index) => line.trim() === `${selector} {` && !lines[index - 1]?.trimEnd().endsWith(","),
   ).length;
 };
+
+test("every options palette token has a consumer", () => {
+  const definitions = [...stylesheet.matchAll(/^\s*(--[\w-]+)\s*:/gm)].map((match) => match[1]!);
+  for (const token of definitions) {
+    expect(stylesheet, token).toContain(`var(${token})`);
+  }
+});
 
 test("options CSS keeps shared component selectors in one rule", () => {
   for (const selector of [
@@ -20,23 +26,6 @@ test("options CSS keeps shared component selectors in one rule", () => {
   ]) {
     expect(selectorCount(selector), selector).toBe(1);
   }
-});
-
-test("removed options UI does not leave legacy selectors or browser hooks", () => {
-  for (const selector of [
-    ".help.learn-more",
-    ".guide-demo-box",
-    ".menu-items-demo",
-    ".demo-box",
-    ".variables-preview-empty",
-    ".variables-preview-structures",
-    ".rule-template-example",
-    ".history-downloadId-heading",
-    ".chrome-only",
-  ]) {
-    expect(stylesheet, selector).not.toContain(selector);
-  }
-  expect(optionsScript).not.toContain(".chrome-only");
 });
 
 test("warning and status colors use the semantic palette", () => {

@@ -44,8 +44,7 @@
   --teal50: #00feff;
   --purple50: #9400ff;
 
-  /* Semantic aliases: components depend on roles, while the legacy palette
-     remains available during incremental migration. */
+  /* Components use semantic roles; the base palette centralizes shared values. */
   --color-accent: var(--blue60);
   --color-border: var(--grey30);
   --color-surface-page: #ffffff;

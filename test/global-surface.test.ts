@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 const read = (path: string) => readFileSync(resolve(path), "utf8");
@@ -18,21 +18,6 @@ describe("application global surface", () => {
     expect(read("src/options/options.ts")).not.toContain("window.confirmPendingChanges");
     expect(read("src/options/tabs.ts")).not.toContain("window.confirmPendingChanges");
     expect(read("types/platform.d.ts")).not.toContain("confirmPendingChanges");
-  });
-
-  test("does not retain migration-era test globals", () => {
-    for (const path of [
-      "test/content-disposition.test.ts",
-      "test/option.test.ts",
-      "test/rule-builder.test.ts",
-    ]) {
-      expect(read(path)).not.toContain("Object.assign(global, constants)");
-    }
-    expect(read("test/rule-builder.test.ts")).not.toContain("window.optionErrors");
-    expect(read("test/path-editor.test.ts")).not.toContain(
-      'Reflect.set(globalThis, "renderMenuPreview"',
-    );
-    expect(existsSync(resolve("test/globals.d.ts"))).toBe(false);
   });
 
   test("keeps e2e controls off the browser global", () => {

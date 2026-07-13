@@ -49,7 +49,7 @@ describe.each(["variablelist", "clauselist"])("%s reference surface", (name) => 
     );
 
     for (const table of document.querySelectorAll("table")) {
-      expect([...table.tHead!.rows[0].cells].map((cell) => cell.textContent)).toEqual([
+      expect([...table.tHead!.rows[0]!.cells].map((cell) => cell.textContent)).toEqual([
         "Syntax",
         "Example",
         "Meaning",
