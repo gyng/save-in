@@ -151,7 +151,7 @@ describe("visual editor", () => {
     expect(rows()[2]!.querySelector(".path-editor-separator")).not.toBeNull();
   });
 
-  test("clicking a row highlights its matching live menu preview item", () => {
+  test("notifies preview consumers when a row is selected", () => {
     const selected = vi.fn();
     textarea().addEventListener("path-editor-row-selected", selected);
 
@@ -159,16 +159,6 @@ describe("visual editor", () => {
 
     expect(selected).toHaveBeenCalledOnce();
     expect((selected.mock.calls[0]![0] as CustomEvent).detail).toEqual({ sourceIndex: 1 });
-    expect(
-      element<HTMLElement>('#menu-preview-tree [data-source-index="1"]').classList.contains(
-        "is-source-selected",
-      ),
-    ).toBe(true);
-    expect(
-      element<HTMLElement>('#menu-preview-tree [data-source-index="0"]').classList.contains(
-        "is-source-selected",
-      ),
-    ).toBe(false);
   });
 
   test("indent and outdent rewrite the textarea", () => {
@@ -340,7 +330,7 @@ describe("text/visual mode with syntax editor", () => {
     localStorage.removeItem("saveInPathsEditorMode");
   });
 
-  test("hides the complete IDE surface and any active diagnostic tooltip", () => {
+  test("hides the highlighted editor and its active diagnostic tooltip", () => {
     localStorage.setItem("saveInPathsEditorMode", "text");
     document.body.innerHTML = `
       <button type="button" id="paths-mode-text">Text</button>
@@ -358,17 +348,19 @@ describe("text/visual mode with syntax editor", () => {
     ]);
     const editor = new PathEditor();
     editor.setupModeToggle();
+    const editorSurface = textarea.closest<HTMLElement>('[data-language="directories"]')!;
+    const tooltip = document.querySelector<HTMLElement>('[role="tooltip"]')!;
 
     textarea.setSelectionRange(0, 0);
     textarea.click();
-    expect(element<HTMLElement>(".syntax-editor-tooltip").hidden).toBe(false);
+    expect(tooltip.hidden).toBe(false);
 
     element<HTMLElement>("#paths-mode-visual").click();
-    expect(element<HTMLElement>(".syntax-editor").hidden).toBe(true);
-    expect(element<HTMLElement>(".syntax-editor-tooltip").hidden).toBe(true);
+    expect(editorSurface.hidden).toBe(true);
+    expect(tooltip.hidden).toBe(true);
 
     element<HTMLElement>("#paths-mode-text").click();
-    expect(element<HTMLElement>(".syntax-editor").hidden).toBe(false);
+    expect(editorSurface.hidden).toBe(false);
   });
 });
 

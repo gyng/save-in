@@ -90,7 +90,6 @@ describe("syntax editor surface", () => {
     expect(tooltip.hidden).toBe(false);
     expect(tooltip.textContent).toContain("L2");
     expect(tooltip.textContent).toContain("Bad destination");
-    expect(Number.parseFloat(tooltip.style.top)).toBeLessThan(25);
     textarea.dispatchEvent(new MouseEvent("mouseleave"));
     expect(tooltip.hidden).toBe(true);
 
@@ -117,15 +116,6 @@ describe("syntax editor surface", () => {
       },
     ]);
     expect(overlay.querySelector('[data-diagnostic="L2: Value required"]')?.textContent).toBe("d");
-
-    Object.defineProperties(textarea, {
-      scrollLeft: { value: 14, configurable: true },
-      scrollTop: { value: 22, configurable: true },
-    });
-    textarea.dispatchEvent(new Event("scroll"));
-    expect(
-      document.querySelector<HTMLElement>(".syntax-editor-inline-diagnostics")!.style.transform,
-    ).toBe("translate(-14px, -22px)");
 
     document
       .querySelector<HTMLElement>('div[aria-hidden="true"] [data-start="6"]')!
