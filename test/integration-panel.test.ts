@@ -25,6 +25,7 @@ test("renders build identity and the live external API contract", async () => {
   expect(document.querySelector("#version-label")?.textContent).toBe("v4.0.0");
   expect(document.querySelector("#ext-id")?.textContent).toBe(webExtensionApi.runtime.id);
   expect(document.querySelector("#api-snippet")?.textContent).toContain('type: "DOWNLOAD"');
+  expect(document.querySelector("#api-snippet")?.textContent).toContain("caller's own runtime.id");
   await vi.waitFor(() => expect(document.querySelector("#api-version")?.textContent).toBe("v1"));
   expect(document.querySelector("#api-capabilities")?.textContent).toBe("download, active_tab");
 

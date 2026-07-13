@@ -237,7 +237,9 @@ export const Messaging = {
   /**
    * Official, versioned DOWNLOAD API for external extensions (issue #110).
    * Other extensions push a URL into save-in's routing/rename pipeline by
-   * sending this message; PING first to negotiate the version.
+   * sending this message; PING first to negotiate the version. The user must
+   * allow the caller's browser-authenticated sender.id before DOWNLOAD reaches
+   * this handler.
    *
    * Request:  { type: "DOWNLOAD", body: { url, info?, comment?, version? } }
    * Response: { type: "DOWNLOAD", body: { status: "OK", version, url } }
@@ -260,7 +262,8 @@ export const Messaging = {
    *       }
    *   };
    *
-   *   // ID obtained from manifest.json
+   *   // The user must first allow Foxy Gestures' own extension ID in Save In.
+   *   // The destination ID below is Save In's ID, obtained from manifest.json.
    *   webExtensionApi.runtime.sendMessage("{72d92df5-2aa0-4b06-b807-aa21767545cd}", payload);
    * }
    */

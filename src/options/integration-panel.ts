@@ -29,6 +29,7 @@ const renderExternalApi = () => {
       `const ID = "${id}";`,
       `const pong = await webExtensionApi.runtime.sendMessage(ID, { type: "PING" });`,
       `// pong.body -> { version, capabilities }`,
+      `// Before DOWNLOAD, add the caller's own runtime.id to Save In's allowlist.`,
       ``,
       `const res = await webExtensionApi.runtime.sendMessage(ID, {`,
       `  type: "DOWNLOAD",`,

@@ -218,8 +218,9 @@ with no install burden and no store-review risk. Ship it first.
 VDH is itself a separate extension with its own native companion. There is no
 public, documented inter-extension API to rely on, so building a bespoke VDH
 integration is fragile. **But save-in already has the right primitive**:
-`browser.runtime.onMessageExternal` (`messaging.js:116`) accepts
-`{ type: "DOWNLOAD", body: { url, info, comment } }` from any extension. The
+`browser.runtime.onMessageExternal` accepts
+`{ type: "DOWNLOAD", body: { url, info, comment } }` from extensions the user
+has explicitly allowlisted. The
 realistic story is the inverse of "integrate VDH": **formalize save-in's
 external API (§7)** so VDH-like extensions (or a small glue extension) can
 _push_ a media URL into save-in's routing/renaming pipeline. Recommend
@@ -434,8 +435,9 @@ the **one plumbing investment**: convert `Variable.applyVariables` to async.
 click, and replies `{ type: "DOWNLOAD", body: { status: "OK" } }`. It's
 documented as "unofficial and unsupported" in `README.md` and the Foxy
 Gestures wiki, keyed to the gecko id `{72d92df5-2aa0-4b06-b807-aa21767545cd}`
-(Chrome uses the Web Store id). `onMessageExternal` accepts from **any**
-extension by default.
+(Chrome uses the Web Store id). Discovery requests remain public to installed
+extensions, while `DOWNLOAD` is denied by default until the caller ID is added
+under Advanced → External integrations.
 
 ### Recommendation: formalize and version it (v1). S–M.
 
@@ -450,9 +452,10 @@ extension by default.
 3. **Response contract.** Today only `OK` is returned. Add typed errors
    (`INVALID_URL`, `BAD_REQUEST`) and echo the resolved final path so callers
    can confirm/routes. Keep back-compat: old `{ status: OK }` shape stays.
-4. **Security note in the guide.** `onMessageExternal` is open to all
-   extensions and _triggers downloads_ — a mild abuse vector. Consider an
-   optional sender allowlist option, and document the trust model plainly.
+4. **Security note in the guide.** Keep discovery available to installed
+   extensions, but require an exact, user-configured sender-ID allowlist before
+   resolving the active tab or triggering a download. Document the trust model
+   and `UNAUTHORIZED` response plainly.
 5. **Examples**: Foxy Gestures (existing), a minimal 20-line standalone driver
    extension, and — tying to §3 — "how a media-extraction extension (VDH-like)
    pushes a URL into save-in." Add a couple of e2e assertions; the harness
@@ -464,7 +467,9 @@ example — cheap to do before an ecosystem forms, expensive after.
 
 **Status: shipped (v1, v4.0.0).** `PING` → `{ version, capabilities }`;
 `DOWNLOAD` validates the URL scheme and returns typed `OK`/`ERROR`; More
-Options → External API surfaces the id + snippet. Remaining: `RESOLVE_PATH`
+Options → External API surfaces the id, sender allowlist, and snippet. External
+downloads are default-deny and return `UNAUTHORIZED` for callers the user has
+not allowed. Remaining: `RESOLVE_PATH`
 (compute the save path without downloading, for downloader hand-offs) and the
 scriptable-config messages in §9.
 

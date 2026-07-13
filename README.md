@@ -18,7 +18,7 @@ Flexible rules-based download renaming and routing.
 
 Option to save as shortcuts {.url, .desktop, .html redirect}.
 
-Records a sortable, filterable download History.
+Records a sortable, filterable download History with JSON and formula-safe CSV/TSV exports.
 
 Rich path variables — dates, page/source parts, `:counter:`, `:uuid:`, and `:mime:`/`:mimeext:` (from the file's Content-Type). See the [wiki](https://github.com/gyng/save-in/wiki/Clause-and-Variable-list).
 
