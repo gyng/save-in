@@ -2,6 +2,7 @@
 
 import { RuleBuilder } from "../src/options/rule-builder.ts";
 import { RULE_TEMPLATES } from "../src/options/rule-templates.ts";
+import { applyConfigSerialized } from "../src/background/config-apply.ts";
 import { Path } from "../src/routing/path.ts";
 import { matchRules, parseRulesCollecting, traceRules } from "../src/routing/router.ts";
 import { applyVariables } from "../src/routing/variable.ts";
@@ -92,9 +93,73 @@ describe("built-in matcher templates", () => {
     expect(matches("notexample.com")).toBeNull();
     expect(matches("example.com.evil.test")).toBeNull();
   });
+
+  test("the PDF template matches mixed-case extensions", () => {
+    const rules = rulesFor("PDFs into a documents folder");
+
+    expect(
+      matchRules(rules, {
+        url: "https://files.example/REPORT.PDF",
+        sourceUrl: "https://files.example/REPORT.PDF",
+        filename: "REPORT.PDF",
+      }),
+    ).toBe("documents/:filename:");
+  });
 });
 
 describe("matcher authoring and validation", () => {
+  test("config apply rejects malformed routing grammar before persistence", async () => {
+    const storage = { get: vi.fn(async () => ({})), set: vi.fn(async () => {}) };
+    const reset = vi.fn(async () => {});
+
+    const result = await applyConfigSerialized(
+      { queue: Promise.resolve() },
+      storage,
+      { filenamePatterns: "not a matcher clause" },
+      undefined,
+      reset,
+    );
+
+    expect(result).toEqual({
+      applied: {},
+      rejected: [{ name: "filenamePatterns", reason: "invalid value" }],
+    });
+    expect(storage.set).not.toHaveBeenCalled();
+    expect(reset).not.toHaveBeenCalled();
+  });
+
+  test("config apply preserves valid rules that only have ordering warnings", async () => {
+    const storage = { get: vi.fn(async () => ({})), set: vi.fn(async () => {}) };
+    const reset = vi.fn(async () => {});
+    const filenamePatterns =
+      "filename: .*\ninto: dated/:filename:\n\ncontext: browser\ninto: browser/:filename:";
+
+    const result = await applyConfigSerialized(
+      { queue: Promise.resolve() },
+      storage,
+      { filenamePatterns },
+      undefined,
+      reset,
+    );
+
+    expect(result).toEqual({ applied: { filenamePatterns }, rejected: [] });
+    expect(storage.set).toHaveBeenCalledWith({ filenamePatterns });
+    expect(reset).toHaveBeenCalledOnce();
+  });
+
+  test("warns when a catch-all filename rule shadows a different matcher", () => {
+    const parsed = parseRulesCollecting(
+      "filename: .*\ninto: dated/:filename:\n\ncontext: browser\ninto: browser/:filename:",
+    );
+
+    expect(parsed.errors).toContainEqual(
+      expect.objectContaining({ warning: true, error: "rule 2" }),
+    );
+    expect(matchRules(parsed.rules, { filename: "report.pdf", context: "browser" })).toBe(
+      "dated/:filename:",
+    );
+  });
+
   test("guided input defaults new extension rules to URL-path matching", async () => {
     document.body.innerHTML = `
       <textarea id="filenamePatterns"></textarea>
@@ -124,5 +189,28 @@ describe("matcher authoring and validation", () => {
 
     expect(trace.expandedDestination).toBe(runtimePath.toString() || null);
     expect(trace.finalPath).toBe(runtimePath.finalize());
+  });
+
+  test("trace selects the same fallback rule when a capture destination is empty", async () => {
+    const parsed = parseRulesCollecting(
+      [
+        "sourceurl: example(?:/(foo))?",
+        "capture: sourceurl",
+        "into: :$1:",
+        "",
+        "sourceurl: example",
+        "into: fallback/:filename:",
+      ].join("\n"),
+    );
+    const info = { sourceUrl: "https://example", filename: "report.pdf" };
+
+    expect(matchRules(parsed.rules, info)).toBe("fallback/:filename:");
+    await expect(traceRules(parsed.rules, info)).resolves.toEqual(
+      expect.objectContaining({
+        selectedRule: 2,
+        destination: "fallback/:filename:",
+        finalPath: "fallback/report.pdf",
+      }),
+    );
   });
 });

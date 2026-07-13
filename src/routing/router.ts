@@ -73,6 +73,7 @@ export type RuleTrace = {
 };
 
 export const traceRules = async (rules: RoutingRule[], info: RoutingInfo): Promise<RuleTrace> => {
+  const matchedDestinations = rules.map((rule) => matchRule(rule, info));
   const traced = rules.map((rule, index) => {
     const clauses = rule
       .filter((clause) => clause.type === RULE_TYPES.MATCHER)
@@ -85,15 +86,15 @@ export const traceRules = async (rules: RoutingRule[], info: RoutingInfo): Promi
       .value as string;
     return {
       index: index + 1,
-      matched: clauses.every((clause) => clause.matched),
+      matched: Boolean(matchedDestinations[index]),
       destination,
       clauses,
     };
   });
-  const selectedIndex = traced.findIndex((rule) => rule.matched);
+  const selectedIndex = matchedDestinations.findIndex((destination) => Boolean(destination));
   const selectedRule = selectedIndex >= 0 ? selectedIndex + 1 : null;
-  const selected = selectedIndex >= 0 ? rules[selectedIndex] : undefined;
-  const destination = selected ? matchRule(selected, info) || null : null;
+  const matchedDestination = selectedIndex >= 0 ? matchedDestinations[selectedIndex] : false;
+  const destination = matchedDestination || null;
   const actualFilename = info.filename || "";
   const sourceUrl = info.sourceUrl || info.srcUrl;
   const downloadUrl = info.url || sourceUrl || info.linkUrl || info.pageUrl;

@@ -1,4 +1,5 @@
 import { OptionsManagement } from "../config/option.ts";
+import { parseRulesCollecting } from "../routing/rule-parser.ts";
 
 export type ConfigWriteState = { queue: Promise<unknown> };
 export type ConfigApplyResult = {
@@ -44,6 +45,14 @@ const validateConfig = (config: Record<string, unknown>): ConfigApplyResult => {
     try {
       if ("onSave" in key && typeof key.onSave === "function") {
         value = (key.onSave as (stored: unknown) => unknown)(value);
+      }
+      if (
+        name === "filenamePatterns" &&
+        typeof value === "string" &&
+        parseRulesCollecting(value).errors.some((error) => !error.warning)
+      ) {
+        rejected.push({ name, reason: "invalid value" });
+        return;
       }
     } catch {
       rejected.push({ name, reason: "invalid value" });

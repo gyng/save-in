@@ -38,6 +38,9 @@ const captureGroupCount = (regex: RegExp): number => {
   return groups;
 };
 
+const isPlainMatchAll = (regex: RegExp): boolean =>
+  /^(?:\.\*|\^\.\*\$)$/.test(regex.source) && !regex.flags;
+
 export const parseRule = (lines: RuleToken[], errors: RuleError[] = []): RoutingRule | false => {
   const clauses: (RuleClause | false)[] = lines.map((tokens) => {
     const [, rawName, rawValue] = tokens;
@@ -172,15 +175,15 @@ export const parseRulesCollecting = (
       const earlierMatchers = earlier.filter((clause) => clause.type === RULE_TYPES.MATCHER);
       const laterMatchers = laterRule.filter((clause) => clause.type === RULE_TYPES.MATCHER);
       return earlierMatchers.every((earlierClause) =>
-        laterMatchers.some((laterClause) => {
-          if (laterClause.name !== earlierClause.name) return false;
-          const a = earlierClause.value as RegExp;
-          const b = laterClause.value as RegExp;
-          return (
-            (/^(?:\.\*|\^\.\*\$)$/.test(a.source) && !a.flags) ||
-            (a.source === b.source && a.flags === b.flags)
-          );
-        }),
+        earlierClause.name.toLowerCase() === "filename" &&
+        isPlainMatchAll(earlierClause.value as RegExp)
+          ? true
+          : laterMatchers.some((laterClause) => {
+              if (laterClause.name !== earlierClause.name) return false;
+              const a = earlierClause.value as RegExp;
+              const b = laterClause.value as RegExp;
+              return isPlainMatchAll(a) || (a.source === b.source && a.flags === b.flags);
+            }),
       );
     });
     if (shadowed)

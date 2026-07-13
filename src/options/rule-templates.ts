@@ -63,7 +63,7 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     name: "PDFs into a documents folder",
     description: "Collects every PDF in one place",
     example: "Example: documents/report.pdf",
-    rule: "urlfileext: pdf\ninto: documents/:filename:",
+    rule: "urlfileext/i: pdf\ninto: documents/:filename:",
     proof: {
       info: { sourceUrl: "https://example.test/report.pdf" },
       destination: "documents/:filename:",
