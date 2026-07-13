@@ -42,6 +42,10 @@ configureRoutingPorts({
   },
 });
 
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelector("#last-dl-url")?.classList.add("is-empty");
+});
+
 type JsonRecord = Record<string, any>;
 type OptionSchema = {
   keys: Array<JsonRecord & { name: string; type: string }>;
@@ -295,6 +299,7 @@ const updateErrors = () => {
       const lastDlUrl = document.querySelector("#last-dl-url");
       if (lastDlUrl) {
         lastDlUrl.textContent = body.lastDownload.info.url;
+        lastDlUrl.classList.remove("is-empty");
       }
     }
 

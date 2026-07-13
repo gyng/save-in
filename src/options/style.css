@@ -1238,6 +1238,11 @@ fieldset.inline-option-group:has(#contentClickToSaveCombo):has(:disabled) {
 .last-download-url,
 .last-download-value {
   font-family: var(--font-mono);
+  text-align: left;
+}
+
+.last-download-url.is-empty {
+  font-family: inherit;
 }
 
 .last-download-url {
@@ -3466,7 +3471,13 @@ code.click-to-copy {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  max-width: var(--content-max-width);
+  width: 100%;
+  max-width: none;
+}
+
+.last-download-row .last-download-info,
+.last-download-row .last-download-table {
+  width: 100%;
 }
 
 /* Deprecated options read as faded and struck through (the badge stays
