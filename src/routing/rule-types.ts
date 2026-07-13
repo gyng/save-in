@@ -26,7 +26,9 @@ export type RoutingDownloadInfo = {
   preview?: boolean;
   counter?: number;
   headPromise?: Promise<{ contentType: string; finalUrl: string }>;
+  resolvedHead?: { contentType: string; finalUrl: string };
   contentPromise?: Promise<RoutingContent | null>;
+  sha256?: string;
 };
 
 export type RuleError = { message: string; error: string; warning?: boolean };

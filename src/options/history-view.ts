@@ -32,7 +32,15 @@ export const formatHistoryTime = (iso?: string): string => {
     return "";
   }
   try {
-    return new Date(iso).toISOString();
+    const date = new Date(iso);
+    if (!Number.isFinite(date.getTime())) {
+      return iso;
+    }
+    const pad = (value: number, length = 2): string => String(value).padStart(length, "0");
+    const offsetMinutes = -date.getTimezoneOffset();
+    const offsetSign = offsetMinutes >= 0 ? "+" : "-";
+    const offset = Math.abs(offsetMinutes);
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}.${pad(date.getMilliseconds(), 3)}${offsetSign}${pad(Math.floor(offset / 60))}:${pad(offset % 60)}`;
   } catch (e) {
     return iso || "";
   }
@@ -123,6 +131,7 @@ export const statusClass = (status: string): string => {
 // Flatten an entry into the fields the table shows and sorts/filters on
 export const historyRow = (entry: HistoryEntry): HistoryRow => {
   const info = historyInfo(entry);
+  const variableEntries = Object.entries(entry.variables || {}).filter(([, value]) => value !== "");
   return {
     time: entry.initiatedAt || entry.timestamp || "",
     status: historyStatus(entry),
@@ -141,10 +150,8 @@ export const historyRow = (entry: HistoryEntry): HistoryRow => {
     downloadId: typeof entry.downloadId === "number" ? entry.downloadId : null,
     size: typeof entry.fileSize === "number" ? entry.fileSize : null,
     menuItem: entry.menu?.title || entry.menu?.path || entry.menu?.id || "",
-    variables: Object.entries(entry.variables || {})
-      .filter(([, value]) => value !== "")
-      .map(([key, value]) => `${key}=${value}`)
-      .join(" · "),
+    variables: variableEntries.map(([key, value]) => `${key}=${value}`).join(" · "),
+    variableEntries,
   };
 };
 
@@ -205,7 +212,7 @@ export const HISTORY_COLUMNS: HistoryDisplayColumn[] = [
   { key: "folder", label: "Folder", sortable: true, width: "15%", defaultVisible: true },
   { key: "url", label: "URL", sortable: false, width: "19%", defaultVisible: true },
   { key: "fullPath", label: "Full path", sortable: true, width: "20%", defaultVisible: false },
-  { key: "downloadId", label: "Download ID", sortable: true, width: "8%", defaultVisible: false },
+  { key: "downloadId", label: "Download ID", sortable: true, width: "6rem", defaultVisible: false },
   { key: "menuItem", label: "Menu item", sortable: true, width: "12%", defaultVisible: false },
   { key: "variables", label: "Variables", sortable: false, width: "24%", defaultVisible: false },
 ];

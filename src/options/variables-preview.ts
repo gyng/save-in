@@ -3,6 +3,7 @@ import { PathEditor } from "./path-editor.ts";
 import {
   sortVariables,
   VARIABLE_GROUPS,
+  isLazyVariable,
   variableExample,
   variableGroup,
 } from "./vocabulary-groups.ts";
@@ -109,9 +110,14 @@ export const renderVariablesPreview = async () => {
           const valueCell = document.createElement("td");
           valueCell.className = "variables-preview-value";
           const liveValue = values[variable] || "";
-          valueCell.textContent = liveValue || variableExample(variable);
+          const placeholder = isLazyVariable(variable) ? "(lazy)" : variableExample(variable);
+          valueCell.textContent = liveValue || placeholder;
           valueCell.classList.toggle("is-placeholder", !liveValue);
-          valueCell.title = liveValue || `Example — no live value yet`;
+          valueCell.title =
+            liveValue ||
+            (isLazyVariable(variable)
+              ? "Calculated only when this variable is used in a download"
+              : "Example — no live value yet");
           row.appendChild(valueCell);
           table.appendChild(row);
         });

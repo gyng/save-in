@@ -541,6 +541,19 @@ describe(":mime: / :contenttype: / :mimeext: (async HEAD)", () => {
     expect(out).toBe("_"); // empty in preview -> replacement char
   });
 
+  test("preview mode reuses resolved file metadata from the completed download", async () => {
+    mockHead("image/jpeg");
+    const info = { url: "https://x/a" };
+    await Variable.applyVariables(new Path.Path(":mime:"), info);
+
+    (info as { preview?: boolean }).preview = true;
+    (info as { headPromise?: unknown }).headPromise = undefined;
+    const out = (await Variable.applyVariables(new Path.Path(":mime:/:mimeext:"), info)).finalize();
+
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(out).toBe("image_jpeg/jpg");
+  });
+
   test("mimeToExtension maps common types and falls back to the subtype", () => {
     expect(Variable.mimeToExtension("image/jpeg")).toBe("jpg");
     expect(Variable.mimeToExtension("image/png")).toBe("png");
@@ -631,6 +644,22 @@ describe(":sha256: (async content hash)", () => {
     ).finalize();
     expect(global.fetch).not.toHaveBeenCalled();
     expect(out).toBe("_");
+  });
+
+  test("preview mode reuses a hash retained from the completed download", async () => {
+    mockBody("abc");
+    const info = { url: "https://x/a" };
+    await Variable.applyVariables(new Path.Path(":sha256:"), info);
+    expect((info as { sha256?: string }).sha256).toBe(
+      "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+    );
+
+    (info as { preview?: boolean }).preview = true;
+    (info as { contentPromise?: unknown }).contentPromise = undefined;
+    const out = (await Variable.applyVariables(new Path.Path(":sha256:"), info)).finalize();
+
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(out).toBe("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad");
   });
 });
 

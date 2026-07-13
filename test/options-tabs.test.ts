@@ -135,7 +135,8 @@ describe("setupTabs", () => {
     document.dispatchEvent(new CustomEvent("save-in:navigate-option", { detail: { target } }));
     expect(document.querySelectorAll(".tab-panel")[1].classList.contains("active")).toBe(true);
     expect(document.activeElement).toBe(target);
-    expect(target.classList.contains("option-search-target")).toBe(true);
+    expect(target.classList.contains("option-search-target")).toBe(false);
+    expect(target.closest("label")?.classList.contains("option-search-target-row")).toBe(true);
   });
 
   test("Home and End move to the first and last tab", () => {

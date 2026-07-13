@@ -83,53 +83,10 @@
     <form id="options">
       <h2 id="section-downloads">__MSG_o_sDownloads__</h2>
 
-      <h3>__MSG_o_sDirectories__</h3>
-      <p>
-        <a href="#" class="help learn-more" data-help-for="help-symlink">__MSG_o_lGuideSymlink__</a>
+      <h3 class="section-task-heading">__MSG_o_sDirectories__</h3>
+      <p class="section-lead">
+        Build the destinations and submenus shown in Save In's context menu.
       </p>
-      <div class="help-text" id="help-symlink">
-        <h4>__MSG_o_sGuideOutsideDownloadDirectory__</h4>
-        <p>
-          The WebExtensions API does not allow files to be saved outside of the default download
-          directory. A
-          <a class="external" href="https://en.wikipedia.org/wiki/Symbolic_link" target="_blank"
-            >symlink</a
-          >
-          inside the default download directory can be used to get around this limitation.
-        </p>
-
-        <p>
-          Invalid paths ( <code>..</code> and <code>/</code>) are ignored. Files and directories
-          with leading dots ( <code>foo/.hidden</code>) are considered invalid by Firefox and
-          Chrome.
-        </p>
-
-        <br />
-        <a
-          class="external"
-          href="https://technet.microsoft.com/en-us/library/cc753194(v=ws.11).aspx"
-          target="_blank"
-        >
-          Windows
-        </a>
-        <pre class="click-to-copy">mklink /D C:\path\to\symlink D:\path\to\actual</pre>
-
-        <a
-          class="external"
-          href="http://manpages.ubuntu.com/manpages/xenial/man1/ln.1.html"
-          target="_blank"
-        >
-          macOS/Unix
-        </a>
-        <pre class="click-to-copy">ln -s /path/to/actual /path/to/symlink</pre>
-
-        <p>
-          Make sure the target directories actually exist, or the extension will silently fail to
-          download.
-        </p>
-      </div>
-
-      <p>__MSG_o_lDirectoryInstructionSymlink__</p>
 
       <div class="paths-editor">
         <div class="column">
@@ -163,7 +120,7 @@
             required
             id="paths"
             data-manual="true"
-            rows="10"
+            rows="16"
             placeholder="."
             spellcheck="false"
             aria-labelledby="paths-editor-label"
@@ -176,9 +133,16 @@
             aria-atomic="true"
           ></div>
           <div class="editor-actions" id="paths-text-actions">
-            <span class="caption editor-action-help" id="paths-editor-description"
-              >__MSG_o_lDirectoryDefinitionsHelp__</span
-            >
+            <span class="caption editor-action-help" id="paths-editor-description">
+              One relative directory or menu instruction per line. Downloads save relative to the
+              <a
+                href="#"
+                data-open-default-downloads-folder
+                title="Open the default Downloads directory"
+                >default Downloads directory</a
+              >. Add <code>//</code> at the end for a comment; start with <code>&gt;</code> to
+              create nested submenus, using one <code>&gt;</code> per level.
+            </span>
             <button type="button" class="discard-button" data-discard="paths" disabled>
               __MSG_o_bDiscard__
             </button>
@@ -190,100 +154,103 @@
             >
           </div>
 
-          <div id="paths-text-help">
-            <p>
-              <a href="#" class="help learn-more" data-help-for="help-paths"
-                >__MSG_o_lGuideCreateMenuItems__</a
-              >
-            </p>
-            <div class="help-text" id="help-paths">
-              <h4>__MSG_o_sGuideCreatingMenuItems__</h4>
+          <details id="paths-text-help" class="inline-guide editor-guide">
+            <summary>How to create destinations</summary>
+            <div class="guide-body">
               <p>
-                To create a menu item to save <code>cat.jpg</code> into the directory
-                <code>~/downloads/i/cats</code>, with <code>~/downloads</code> as the default
-                download directory, add the line <code>i/cats</code>.
+                Each line adds a destination relative to your browser's
+                <a href="#" data-open-default-downloads-folder>Downloads folder</a>.
               </p>
-
-              <div class="demo-box guide-demo-box">
-                <div class="demo-code left">
+              <div class="guide-steps">
+                <div class="guide-step">
+                  <strong>Add destinations</strong>
                   <pre class="click-to-copy">
-    .
-    i/dogs
-    i/cats // cute!
-    ---
-    v/cats
-    :date:/:day:/foo
-    ---
-    submenu
-    >mammals
-    >>i/cats // (alias: cute cats)
-    >>i/dogs
-    >i/others
-    </pre>
-                  <div class="caption">Settings</div>
+images
+documents</pre>
+                  <span class="caption">Creates two selectable rows in the Downloads menu.</span>
                 </div>
-                <div class="demo-arrow">➡</div>
-
-                <div class="demo-code">
-                  <pre>
-    ~/downloads/
-    ~/downloads/i/dogs
-    ~/downloads/i/cats
-    ---
-    ~/downloads/v/cats
-    ~/downloads/2000-01-01/01/foo
-    ---
-    (submenu)
-    (submenu)
-    ~/downloads/i/cats (shows up as "cute cats")
-    ~/downloads/i/dogs
-    ~/downloads/i/others
-    </pre>
-                  <div class="caption">Default download dir <code>~/downloads</code></div>
+                <div class="guide-step">
+                  <strong>Change a displayed name</strong>
+                  <pre class="click-to-copy">images/cats // (alias: Cat pictures)</pre>
+                  <span class="caption"
+                    >Saves to <code>images/cats</code>, but shows “Cat pictures.”</span
+                  >
                 </div>
-
-                <div class="demo-arrow">➡</div>
-
-                <pre class="demo-pic menu-items-demo"></pre>
+                <div class="guide-step">
+                  <strong>Separate groups</strong>
+                  <pre class="click-to-copy">
+images
+---
+documents</pre>
+                </div>
+                <div class="guide-step">
+                  <strong>Create a submenu</strong>
+                  <pre class="click-to-copy">
+Media
+&gt;images
+&gt;videos</pre>
+                  <span class="caption">Each <code>&gt;</code> adds one nesting level.</span>
+                </div>
+                <div class="guide-step">
+                  <strong>Use a variable</strong>
+                  <pre class="click-to-copy">images/:year:/:month:</pre>
+                  <span class="caption">For example, <code>images/2026/07</code>.</span>
+                </div>
               </div>
-
-              <h4>__MSG_o_sGuideCommentsAliases__</h4>
-
-              <p>
-                To add comments, add <code>//</code> to the end of a line. For example,
-                <code>cats // very cute!</code>.
-              </p>
-
-              <p>
-                To change display names of menu items, add
-                <code>(alias: display name)</code> to comments. For example,
-                <code>cats // very cute! (alias: cute cats)</code>. The menu item will then show
-                "cute cats" instead of "cats".
-              </p>
-
-              <p>To change the shortcut key, use <code>(key: f)</code> to manually assign one.</p>
-
-              <h4>__MSG_o_sGuideSubmenus__</h4>
-
-              <p>
-                To create submenus, add <code>&gt;</code>s to the line itself. An example can be
-                seen above.
-              </p>
-
-              <p>
-                Note: You can only save relative to the default download directory. See the next
-                guide for a workaround.
-              </p>
+              <details class="guide-more">
+                <summary>More menu syntax</summary>
+                <dl class="guide-syntax">
+                  <div>
+                    <dt><code>.</code></dt>
+                    <dd>
+                      The
+                      <a href="#" data-open-default-downloads-folder>Downloads folder</a> itself
+                    </dd>
+                  </div>
+                  <div>
+                    <dt><code>// note</code></dt>
+                    <dd>Add a comment that is not displayed</dd>
+                  </div>
+                  <div>
+                    <dt><code>(alias: Name)</code></dt>
+                    <dd>Change the displayed name</dd>
+                  </div>
+                  <div>
+                    <dt><code>(key: f)</code></dt>
+                    <dd>Assign an access key</dd>
+                  </div>
+                </dl>
+              </details>
               <details class="agent-prompt-guide">
-                <summary>Ask an AI agent to draft a downloads menu</summary>
+                <summary>Ask an AI agent to draft a Downloads menu</summary>
                 <p class="caption">
-                  Copy this prompt, then replace the examples with your folders.
+                  Copy this prompt, then replace the example destinations.
+                  <a class="external" href="https://github.com/gyng/save-in/wiki" target="_blank"
+                    >Save In wiki</a
+                  >
                 </p>
                 <pre class="click-to-copy">
-Create a Save In downloads-menu definition for these destinations: images by website, PDFs in documents, and a dated inbox. Use only relative paths. Return one menu instruction per line, use --- for separators, &gt; for nesting, and // (alias: name) for display labels. Explain the result, then return a final copy-ready block.</pre>
+You are writing a Downloads-menu definition for the Save In browser extension.
+
+Create destinations for: images grouped by website, PDFs in documents, and a dated inbox.
+
+Save In syntax:
+- Write one menu instruction per line.
+- A relative path such as images/cats creates a destination with that folder path.
+- A line containing --- creates a separator.
+- Prefix a child with &gt;; use one additional &gt; for each deeper submenu level.
+- Add // (alias: Display name) to show a different menu label without changing the folder path.
+- Add // comments after an instruction; add (key: f) inside the comment to assign an access key.
+- Variables use :name: syntax. Useful choices include :sourcedomain:, :year:, :month:, :day:, and :filename:.
+- A single . means the browser's Downloads folder.
+- Paths must be relative. Never use an absolute path, .., or a leading slash.
+
+If more Save In context is needed, consult https://github.com/gyng/save-in/wiki before answering.
+
+Briefly explain the structure, check that every line follows this syntax, then provide one final plain-text, copy-ready definition in a fenced code block.</pre>
               </details>
             </div>
-          </div>
+          </details>
 
           <div id="paths-visual" hidden>
             <div id="path-editor-rows"></div>
@@ -315,6 +282,32 @@ Create a Save In downloads-menu definition for these destinations: images by web
           </details>
         </div>
       </div>
+
+      <details class="inline-guide edge-case-guide">
+        <summary>Saving outside the Downloads folder</summary>
+        <div class="guide-body">
+          <p>
+            Browsers only let extensions save inside the default
+            <a href="#" data-open-default-downloads-folder>Downloads folder</a>. To reach another
+            location, create a symlink inside Downloads and use that relative symlink path as a
+            destination. The target folder must already exist.
+          </p>
+          <p>
+            Paths containing <code>..</code>, absolute paths, and hidden path segments such as
+            <code>.private</code> are not supported.
+          </p>
+          <div class="guide-command-grid">
+            <div>
+              <strong>Windows</strong>
+              <pre class="click-to-copy">mklink /D C:\Downloads\archive D:\Archive</pre>
+            </div>
+            <div>
+              <strong>macOS / Linux</strong>
+              <pre class="click-to-copy">ln -s /path/to/archive ~/Downloads/archive</pre>
+            </div>
+          </div>
+        </div>
+      </details>
 
       <h3>__MSG_o_sBehavior__</h3>
 
@@ -462,7 +455,9 @@ Create a Save In downloads-menu definition for these destinations: images by web
       <div class="column wide-column">
         <h2 id="section-browser-downloads">__MSG_o_sBrowserDownloads__</h2>
 
-        <p class="caption caption-line">__MSG_o_lBrowserDownloadsHelp__</p>
+        <h3 class="section-task-heading">Track and route browser downloads</h3>
+
+        <p class="section-lead">__MSG_o_lBrowserDownloadsHelp__</p>
 
         <label class="filename-suggestion-only">
           <input type="checkbox" id="routeBrowserDownloads" />
@@ -537,106 +532,99 @@ Create a Save In downloads-menu definition for these destinations: images by web
       <div class="column wide-column">
         <h2 id="section-dynamic-downloads">__MSG_o_sDynamicDownloads__</h2>
 
-        <h3>__MSG_o_sRenameAndRouteDownloads__</h3>
+        <h3 class="section-task-heading">__MSG_o_sRenameAndRouteDownloads__</h3>
 
-        <p>
-          <a href="#" class="help learn-more" data-help-for="help-filenames"
-            >__MSG_o_lGuideRouting__</a
-          >
+        <p class="section-lead">
+          Automatically move or rename downloads when their filename, source, page, or context
+          matches.
         </p>
 
-        <div class="help-text" id="help-filenames">
-          <h4>__MSG_o_sGuideRenamingDownloads__</h4>
-          <p>
-            Match downloads against
-            <a
-              class="external"
-              href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions"
-              >regex patterns</a
-            >. When a download matches all patterns, rename it according to
-            <code class="click-to-copy">into:</code>.
-          </p>
-
-          <p>This renames all gif files to a UNIX timestamp.</p>
-          <div class="demo-box">
-            <pre class="demo-code left click-to-copy">
-fileext: <span class="demo g3">gif</span>
-into: <span class="demo g4">:unixdate:</span>.<span class="demo g3">:fileext:</span></pre>
-
-            <div class="demo-arrow">=</div>
-
-            <pre class="demo-code right">
-cat.<span class="demo g3">gif</span> ➡ <span class="demo g4">1512136516</span>.<span class="demo g3">gif</span>
- </pre>
-          </div>
-
-          <details class="agent-prompt-guide">
-            <summary>Ask an AI agent to draft routing rules</summary>
+        <details class="inline-guide editor-guide">
+          <summary>How routing rules work</summary>
+          <div class="guide-body">
+            <ul class="guide-rules">
+              <li>Write one clause per line.</li>
+              <li>Separate rules with a blank line.</li>
+              <li>Every matcher in a rule must match.</li>
+              <li>Every rule must end with an <code>into:</code> destination.</li>
+            </ul>
+            <div class="guide-steps guide-steps-routing">
+              <div class="guide-step">
+                <strong>Move matching files and keep their names</strong>
+                <pre class="click-to-copy">
+fileext: gif
+into: gifs/</pre>
+                <span class="caption"><code>cat.gif</code> becomes <code>gifs/cat.gif</code>.</span>
+              </div>
+              <div class="guide-step">
+                <strong>Move and rename matching files</strong>
+                <pre class="click-to-copy">
+fileext: gif
+into: gifs/:unixdate:.:fileext:</pre>
+                <span class="caption"
+                  ><code>cat.gif</code> becomes <code>gifs/1783929600.gif</code>.</span
+                >
+              </div>
+            </div>
             <p class="caption">
-              Copy this prompt into an agent, or use WebMCP from External integrations.
+              Destinations are relative to the Downloads-menu destination you selected. Matcher
+              values are regular expressions; see the
+              <a
+                class="external"
+                href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions"
+                >regular-expression guide</a
+              >.
             </p>
-            <pre class="click-to-copy">
-Create Save In routing rules for this goal: [describe how files should be matched, renamed, and organized]. Use one clause per line and a blank line between rules. Every rule must include into:. Preserve :filename: unless I explicitly request renaming. Use only documented matchers and variables. Explain each rule, validate likely regex mistakes, then return a final copy-ready block.</pre>
-          </details>
+            <details class="guide-more">
+              <summary>Advanced: use capture groups</summary>
+              <p class="caption">
+                Parentheses capture parts of a matcher. Select the matcher with
+                <code>capture:</code>, then use <code>:$1:</code>, <code>:$2:</code>, and later
+                groups in <code>into:</code>.
+              </p>
+              <pre class="click-to-copy">
+filename: (.*)\.(v[0-9]+)\.(tar|gz)
+pageurl: example\.com
+capture: filename
+into: :$2:/:$1:.:$3:</pre>
+              <span class="caption"
+                ><code>ubuntu.v2.tar</code> becomes <code>v2/ubuntu.tar</code>.</span
+              >
+            </details>
+            <details class="agent-prompt-guide">
+              <summary>Ask an AI agent to draft routing rules</summary>
+              <p class="caption">
+                Copy this prompt into an agent, or use WebMCP from External integrations.
+                <a
+                  class="external"
+                  href="https://github.com/gyng/save-in/wiki/Clause-and-Variable-list"
+                  target="_blank"
+                  >Clause and variable reference</a
+                >
+              </p>
+              <pre class="click-to-copy">
+You are writing Dynamic Downloads routing rules for the Save In browser extension.
 
-          <h4>__MSG_o_sGuideMovingDownloads__</h4>
+Goal: [describe which downloads to match and where they should be saved]
 
-          <p>
-            The following example moves all <code>.gif</code> files into the
-            <code>gifs</code> subdirectory and renames the moved files to a timestamp.
-          </p>
+Save In syntax:
+- Write one clause per line and separate rules with a blank line.
+- Every matcher in one rule must match. Matcher values are JavaScript regular expressions.
+- Common matchers are filename:, fileext:, sourceurl:, sourcedomain:, pageurl:, pagedomain:, pagetitle:, context:, and mediatype:.
+- Add /i to a matcher name for case-insensitive matching, for example filename/i: \.pdf$.
+- Every rule must contain exactly one into: clause. Its value is a relative destination or filename template.
+- End into: with / to move the file while preserving its resolved filename.
+- Otherwise include :filename: unless the goal explicitly requests renaming.
+- Variables use :name: syntax. Useful choices include :filename:, :fileext:, :sourcedomain:, :year:, :month:, :day:, :counter:, and :uuid:.
+- To reuse regex groups, add capture: followed by the matcher name, then use :$1:, :$2:, and so on in into:.
+- Lines beginning with // are comments. Never use absolute paths, .., or unsupported clause names.
 
-          <div class="demo-box">
-            <pre class="demo-code left click-to-copy">
-fileext: <span class="demo g3">gif</span>
-into: <span class="demo g2">gifs</span>/<span class="demo g4">:unixdate:</span>.<span class="demo g3">:fileext:</span></pre>
+If more syntax detail is needed, consult https://github.com/gyng/save-in/wiki/Clause-and-Variable-list before answering.
 
-            <div class="demo-arrow">=</div>
-
-            <pre class="demo-code right">
-cat.<span class="demo g3">gif</span> ➡ <span class="demo g2">gifs</span>/<span class="demo g4">1512136516</span>.<span class="demo g3">gif</span>
-cat.jpg ✘ (no match)</pre>
+Explain each rule briefly, check for regex and path mistakes, then provide one final plain-text, copy-ready ruleset in a fenced code block.</pre>
+            </details>
           </div>
-
-          <p>
-            Routing is relative to the selected menu item. When you download a cat gif using the
-            <code>images</code> context menu, the above example will save it as
-            <code>~/downloads/images/gif/946684800.gif</code>.
-          </p>
-
-          <p>
-            End <code>into:</code> with a <code>/</code> to route into a folder
-            <em>without</em> renaming &mdash; the file keeps its own name (the server's
-            Content-Disposition/MIME name where available). For example
-            <code>into: gifs/</code> saves <code>cat.gif</code> as <code>gifs/cat.gif</code>.
-          </p>
-
-          <p>
-            This advanced example renames downloads based off captured regex groups &mdash; the
-            stuff inside <code>()</code> &mdash; and moves them into different directories.
-            <code class="click-to-copy">capture:&nbsp;filename</code> selects the filename&rsquo;s
-            capture groups, and finally <code class="click-to-copy">into:</code> renames the files
-            based off them using <code class="click-to-copy">:$1:</code>,
-            <code class="click-to-copy">:$2:</code>, and <code class="click-to-copy">:$3:</code>.
-          </p>
-
-          <div class="demo-box">
-            <pre class="demo-code left click-to-copy">
-// Move downloads based off versions
-<span class="demo g1">filename:</span> <span class="demo g2">(.*)</span>\.<span class="demo g4">(v.)</span>\.<span class="demo g3">(tar|gz)</span>
-pageurl: example.com
-capture: <span class="demo g1">filename</span>
-into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span class="demo g3">:$3:</span></pre>
-            <div class="demo-arrow">=</div>
-
-            <pre class="demo-code right">
-
-<span class="demo g2">ubuntu</span>.<span class="demo g4">v1</span>.<span class="demo g3">tar</span> ➡ <span class="demo g4">v1</span>/<span class="demo g2">ubuntu</span>.<span class="demo g3">tar</span>
-<span class="demo g2">debian</span>.<span class="demo g4">v2</span>.<span class="demo g3">gz</span>  ➡ <span class="demo g4">v2</span>/<span class="demo g2">debian</span>.<span class="demo g3">gz</span>
-<span class="demo g2">debian</span>.zip    ✘ (no match)
- </pre>
-          </div>
-        </div>
+        </details>
 
         <div class="rules-editor">
           <div class="rules-editor-main">
@@ -644,7 +632,7 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
             <textarea
               id="filenamePatterns"
               data-manual="true"
-              rows="7"
+              rows="12"
               placeholder="Optional"
               spellcheck="false"
               aria-labelledby="rules-text-label"
@@ -680,14 +668,14 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
                   <input
                     type="text"
                     id="rule-builder-pattern"
-                    placeholder=".*\.jpg"
+                    placeholder="jpg|png"
                     spellcheck="false"
                   />
                 </label>
               </div>
               <div class="rule-builder-row">
                 <label>
-                  <span class="rule-builder-into-label">__MSG_o_lDestinationInto__</span>
+                  <span>__MSG_o_lDestinationInto__</span>
                   <input
                     type="text"
                     id="rule-builder-into"
@@ -698,15 +686,59 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
                 <button type="button" class="apply-button" id="rule-builder-add" disabled>
                   Add
                 </button>
-                <span class="rule-builder-links">
-                  <a class="toolbar-link" href="#" data-reference-tab="options-reference-variables"
-                    >__MSG_o_lVariableList__</a
-                  >
-                  <a class="toolbar-link" href="#" data-reference-tab="options-reference-clauses"
-                    >__MSG_o_lClauseList__</a
-                  >
-                </span>
               </div>
+            </div>
+
+            <div class="last-download-row">
+              <div class="info-row last-download-info">
+                <table class="last-download-table">
+                  <tbody>
+                    <tr>
+                      <th scope="row" class="last-download-label">
+                        __MSG_o_lRoutingLastDownload__
+                      </th>
+                      <td class="last-download-url" id="last-dl-url">
+                        __MSG_o_lRoutingLastDownloadEmpty__
+                      </td>
+                    </tr>
+                    <tr id="rules-applied-row">
+                      <th scope="row" class="last-download-label">__MSG_o_lRoutingRenamedTo__</th>
+                      <td class="last-download-value" id="last-dl-match">
+                        __MSG_o_lRoutingNoMatches__
+                      </td>
+                    </tr>
+                    <tr class="hide" id="capture-group-rows">
+                      <th scope="row" class="last-download-label">
+                        __MSG_o_lRoutingCaptureGroups__
+                      </th>
+                      <td class="last-download-value" id="last-dl-capture"></td>
+                    </tr>
+                    <tr class="hide" id="variables-table-row">
+                      <th scope="row" class="last-download-label">__MSG_o_lRoutingVariables__</th>
+                      <td>
+                        <button type="button" class="button" id="see-variables-btn">
+                          __MSG_o_lRoutingVariablesClickToSee__
+                        </button>
+                        <table id="variables-table">
+                          <tbody class="hide" id="variables-body"></tbody>
+                        </table>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="routing-post-options">
+              <label>
+                <input type="checkbox" id="routeFailurePrompt" />
+                __MSG_o_cOpenDialogIfNoRulesMatch__
+              </label>
+
+              <label>
+                <input type="checkbox" id="routeExclusive" /> __MSG_o_cExclusiveMode__
+                <div class="caption caption-line">__MSG_o_cExclusiveModeHelp__</div>
+              </label>
             </div>
           </div>
 
@@ -753,54 +785,8 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
               </details>
             </div>
           </div>
-
-          <div class="last-download-row">
-            <div class="info-row last-download-info">
-              <table class="last-download-table">
-                <tbody>
-                  <tr>
-                    <th scope="row" class="last-download-label">__MSG_o_lRoutingLastDownload__</th>
-                    <td class="last-download-url" id="last-dl-url">
-                      __MSG_o_lRoutingLastDownloadEmpty__
-                    </td>
-                  </tr>
-                  <tr id="rules-applied-row">
-                    <th scope="row" class="last-download-label">__MSG_o_lRoutingRenamedTo__</th>
-                    <td class="last-download-value" id="last-dl-match">
-                      __MSG_o_lRoutingNoMatches__
-                    </td>
-                  </tr>
-                  <tr class="hide" id="capture-group-rows">
-                    <th scope="row" class="last-download-label">__MSG_o_lRoutingCaptureGroups__</th>
-                    <td class="last-download-value" id="last-dl-capture"></td>
-                  </tr>
-                  <tr class="hide" id="variables-table-row">
-                    <th scope="row" class="last-download-label">__MSG_o_lRoutingVariables__</th>
-                    <td>
-                      <button type="button" class="button" id="see-variables-btn">
-                        __MSG_o_lRoutingVariablesClickToSee__
-                      </button>
-                      <table id="variables-table">
-                        <tbody class="hide" id="variables-body"></tbody>
-                      </table>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
         </div>
       </div>
-
-      <label>
-        <input type="checkbox" id="routeFailurePrompt" />
-        __MSG_o_cOpenDialogIfNoRulesMatch__
-      </label>
-
-      <label>
-        <input type="checkbox" id="routeExclusive" /> __MSG_o_cExclusiveMode__
-        <div class="caption caption-line">__MSG_o_cExclusiveModeHelp__</div>
-      </label>
 
       <hr />
 
@@ -1197,7 +1183,7 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
 
       <h3>__MSG_o_sAdvancedFilenames__</h3>
       <label>
-        <input type="number" id="truncateLength" min="1" />__MSG_o_cTruncatePath__&nbsp;
+        <input type="number" id="truncateLength" min="0" step="1" />__MSG_o_cTruncatePath__&nbsp;
         <div class="caption caption-line">__MSG_o_cTruncatePathHelp__</div>
       </label>
 
@@ -1354,14 +1340,10 @@ into: <span class="demo g4">:$2:</span>/<span class="demo g2">:$1:</span>.<span 
           >
         </div>
         <p class="caption">
-          To connect: open this page in a WebMCP-enabled Chrome (the WebMCP origin trial or
-          <code>chrome://flags</code>), keep it open, and point your in-browser agent at this tab.
-          Ask it in plain language &mdash; e.g. &ldquo;sort my downloads into folders by website and
-          date, number each file, and notify me only when one fails.&rdquo; The agent reads
-          <code>save_in_get_schema</code> and <code>save_in_list_vocabulary</code> to learn the
-          settings and syntax, then <code>save_in_validate_config</code> and
-          <code>save_in_apply_config</code> &mdash; you never touch the <code>:variable:</code>
-          codes yourself.
+          To connect: open this page in a browser that supports WebMCP, keep it open, and point your
+          in-browser agent at this tab. Ask it in plain language &mdash; e.g. &ldquo;sort my
+          downloads into folders by website and date, number each file, and notify me only when one
+          fails.&rdquo;
         </p>
       </div>
 

@@ -171,6 +171,27 @@ describe("variables preview", () => {
     expect(values.every((value) => value.classList.contains("is-placeholder"))).toBe(true);
     expect(values.every((value) => value.title.startsWith("Example —"))).toBe(true);
   });
+
+  test("labels unresolved network-derived variables as lazy", async () => {
+    document.body.innerHTML =
+      '<section class="variables-preview"><div class="variables-preview-list"></div></section>';
+    vi.mocked(browser.runtime.sendMessage)
+      .mockResolvedValueOnce({ body: { variables: [":sha256:", ":mime:", ":filename:"] } })
+      .mockResolvedValueOnce({ body: { interpolatedVariables: {} } });
+
+    await renderVariablesPreview();
+
+    const rows = [...document.querySelectorAll<HTMLElement>(".variables-preview-row")];
+    expect(rows.find((row) => row.textContent?.includes(":sha256:"))?.textContent).toContain(
+      "(lazy)",
+    );
+    expect(rows.find((row) => row.textContent?.includes(":mime:"))?.textContent).toContain(
+      "(lazy)",
+    );
+    expect(rows.find((row) => row.textContent?.includes(":filename:"))?.textContent).toContain(
+      "photo.jpg",
+    );
+  });
 });
 
 describe("reset options", () => {

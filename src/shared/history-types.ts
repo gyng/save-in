@@ -41,6 +41,7 @@ export type HistoryRow = {
   size: number | null;
   menuItem: string;
   variables: string;
+  variableEntries: Array<[string, string]>;
 };
 
 export type HistorySort = {

@@ -267,6 +267,7 @@ const renderHistoryTable = () => {
   const head = document.createElement("tr");
   HISTORY_COLUMNS.filter(({ key }) => visibleHistoryColumns.has(key)).forEach((col) => {
     const th = document.createElement("th");
+    th.classList.add(`history-${col.key}-heading`);
     th.textContent = col.label;
     if (col.width) {
       th.style.width = col.width;
@@ -427,8 +428,21 @@ const renderHistoryTable = () => {
     if (visibleHistoryColumns.has("variables")) {
       const variables = document.createElement("td");
       variables.className = "history-variables";
-      variables.textContent = r.variables;
       variables.title = r.variables;
+      if (r.variableEntries.length > 0) {
+        const list = document.createElement("dl");
+        list.className = "history-variable-list";
+        r.variableEntries.forEach(([key, value]) => {
+          const row = document.createElement("div");
+          const term = document.createElement("dt");
+          term.textContent = `:${key}:`;
+          const description = document.createElement("dd");
+          description.textContent = value;
+          row.append(term, description);
+          list.append(row);
+        });
+        variables.append(list);
+      }
       appendCell("variables", variables);
     }
 

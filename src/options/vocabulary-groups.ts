@@ -169,3 +169,6 @@ export const variableExample = (variable: string): string => {
   if (name === "uuid") return "f47ac10b-…";
   return "example";
 };
+
+export const isLazyVariable = (variable: string): boolean =>
+  /^(mime|contenttype|mimeext|finalurl|redirecturl|sha256)$/.test(variableName(variable));

@@ -28,7 +28,18 @@ test("date-only legacy timestamps retain their calendar date in every timezone",
 });
 
 test("history timestamps use ISO text and relative labels", () => {
-  expect(formatHistoryTime("2024-01-01T00:00:00Z")).toBe("2024-01-01T00:00:00.000Z");
+  const instant = new Date("2024-01-01T00:00:00Z");
+  const offsetMinutes = -instant.getTimezoneOffset();
+  const offsetSign = offsetMinutes >= 0 ? "+" : "-";
+  const offsetHours = String(Math.floor(Math.abs(offsetMinutes) / 60)).padStart(2, "0");
+  const offsetRemainder = String(Math.abs(offsetMinutes) % 60).padStart(2, "0");
+  const expectedPrefix = [
+    instant.getFullYear(),
+    String(instant.getMonth() + 1).padStart(2, "0"),
+    String(instant.getDate()).padStart(2, "0"),
+  ].join("-");
+  const expected = `${expectedPrefix}T${String(instant.getHours()).padStart(2, "0")}:${String(instant.getMinutes()).padStart(2, "0")}:${String(instant.getSeconds()).padStart(2, "0")}.000${offsetSign}${offsetHours}:${offsetRemainder}`;
+  expect(formatHistoryTime(instant.toISOString())).toBe(expected);
   expect(relativeHistoryTime("2024-01-01T11:59:00Z", Date.parse("2024-01-01T12:00:00Z"))).toContain(
     "minute",
   );

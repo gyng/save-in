@@ -118,6 +118,33 @@ describe("options form semantics", () => {
     );
   });
 
+  test("allows the documented zero value to disable path truncation", () => {
+    const document = documentForOptions();
+    expect(document.querySelector<HTMLInputElement>("#truncateLength")?.min).toBe("0");
+  });
+
+  test("makes default Downloads-folder help directly openable", () => {
+    const document = documentForOptions();
+    const links = document.querySelectorAll<HTMLAnchorElement>(
+      "[data-open-default-downloads-folder]",
+    );
+    expect(links).toHaveLength(4);
+    const editorHelp = document.querySelector("#paths-editor-description")!;
+    expect(editorHelp.tagName).toBe("SPAN");
+    expect(editorHelp.querySelectorAll("a[data-open-default-downloads-folder]")).toHaveLength(1);
+    expect(editorHelp.querySelector("a")?.textContent?.trim()).toBe("default Downloads directory");
+    expect([...links].every((link) => link.getAttribute("href") === "#")).toBe(true);
+  });
+
+  test("uses one heading-and-lead pattern for the three download workflows", () => {
+    const document = documentForOptions();
+    const headings = [...document.querySelectorAll<HTMLElement>(".section-task-heading")];
+    expect(headings).toHaveLength(3);
+    expect(headings.every((heading) => heading.nextElementSibling?.matches("p.section-lead"))).toBe(
+      true,
+    );
+  });
+
   test("groups external automation under one clear integrations heading", () => {
     const document = documentForOptions();
     const heading = [...document.querySelectorAll("h3")].find(
@@ -150,7 +177,45 @@ describe("options form semantics", () => {
     const prompts = document.querySelectorAll(".agent-prompt-guide pre.click-to-copy");
     expect(prompts).toHaveLength(2);
     expect(prompts[0]?.textContent).toContain("one menu instruction per line");
-    expect(prompts[1]?.textContent).toContain("Every rule must include into:");
+    expect(prompts[0]?.textContent).toContain("Variables use :name: syntax");
+    expect(prompts[0]?.textContent).toContain("Never use an absolute path");
+    expect(prompts[1]?.textContent).toContain("Every rule must contain exactly one into:");
+    expect(prompts[1]?.textContent).toContain("Common matchers are filename:");
+    expect(prompts[1]?.textContent).toContain("Matcher values are JavaScript regular expressions");
+    expect(document.querySelectorAll(".agent-prompt-guide a.external")).toHaveLength(2);
+  });
+
+  test("uses progressive native disclosures for both editor guides", () => {
+    const document = documentForOptions();
+    const guides = [...document.querySelectorAll<HTMLDetailsElement>("details.editor-guide")];
+    expect(guides).toHaveLength(2);
+    expect(
+      guides.map((guide) => guide.querySelector(":scope > summary")?.textContent?.trim()),
+    ).toEqual(["How to create destinations", "How routing rules work"]);
+    expect(document.querySelectorAll("[data-help-for]")).toHaveLength(0);
+
+    const menuGuide = guides[0]!;
+    expect(
+      menuGuide.querySelectorAll(":scope > .guide-body > .guide-steps .guide-step"),
+    ).toHaveLength(5);
+    expect(menuGuide.textContent).toContain("Each > adds one nesting level");
+    expect(menuGuide.textContent).toContain("More menu syntax");
+
+    const routingGuide = guides[1]!;
+    expect(routingGuide.textContent).toContain("Separate rules with a blank line");
+    expect(routingGuide.textContent).toContain("Every matcher in a rule must match");
+    expect(routingGuide.textContent).toContain("Advanced: use capture groups");
+
+    const edgeCase = [
+      ...document.querySelectorAll<HTMLDetailsElement>("details.edge-case-guide"),
+    ].find((guide) =>
+      guide.querySelector("summary")?.textContent?.includes("outside the Downloads"),
+    );
+    expect(edgeCase).toBeDefined();
+    expect(
+      document.querySelector(".paths-editor")!.compareDocumentPosition(edgeCase!) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
   });
 });
 

@@ -11,6 +11,26 @@ import { RULE_TEMPLATES } from "./rule-templates.ts";
 
 export { RULE_TEMPLATES } from "./rule-templates.ts";
 
+const MATCHER_PATTERN_PLACEHOLDERS: Record<string, string> = {
+  context: "media|link|page|tab",
+  menuindex: "images|documents",
+  comment: "favorites|work",
+  fileext: "jpg|png",
+  urlfileext: "pdf|epub",
+  actualfileext: "jpg|png",
+  filename: "^invoice.*\\.pdf$",
+  frameurl: "example\\.com/embed",
+  linktext: "download|save",
+  mediatype: "image|video",
+  naivefilename: "^photo-",
+  pagedomain: "(^|\\.)example\\.com$",
+  sourcedomain: "(^|\\.)cdn\\.example\\.com$",
+  pagetitle: "invoice|receipt",
+  pageurl: "example\\.com/gallery",
+  selectiontext: "invoice|receipt",
+  sourceurl: "/images/|/media/",
+};
+
 export const RuleBuilder = {
   // Appends a complete rule, separated by the blank line the parser uses
   // as a rule boundary. Goes through PathEditor.insertText so the edit
@@ -31,6 +51,10 @@ export const RuleBuilder = {
       return;
     }
 
+    const updatePatternPlaceholder = () => {
+      pattern.placeholder = MATCHER_PATTERN_PLACEHOLDERS[matcher.value] || ".*";
+    };
+
     // The matcher list comes from the background routing module, like the
     // autocomplete keywords do
     webExtensionApi.runtime
@@ -47,6 +71,7 @@ export const RuleBuilder = {
         if ([...matcher.options].some((o) => o.value === "fileext")) {
           matcher.value = "fileext";
         }
+        updatePatternPlaceholder();
         sync();
       })
       .catch(() => {});
@@ -58,6 +83,8 @@ export const RuleBuilder = {
       el.addEventListener("input", sync);
       el.addEventListener("change", sync);
     });
+    matcher.addEventListener("change", updatePatternPlaceholder);
+    updatePatternPlaceholder();
     sync();
 
     add.addEventListener("click", () => {

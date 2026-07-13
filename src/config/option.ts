@@ -189,6 +189,10 @@ export const OptionsManagement: OptionsManagementApi = {
           optionType.type === OPTION_TYPES.BOOL
             ? typeof stored === "boolean"
             : typeof stored === typeof optionType.default ||
+              (typeof optionType.default === "number" &&
+                typeof stored === "string" &&
+                stored.trim() !== "" &&
+                Number.isFinite(Number(stored))) ||
               (k === "contentClickToSaveCombo" && typeof stored === "number");
         if (
           !validType ||

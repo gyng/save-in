@@ -162,6 +162,9 @@ export const mimeToExtension = (mime: string | null | undefined) => {
 // a slow/hanging HEAD can't block the download, and resolves to blanks on any
 // failure (CORS, 405, network).
 export const resolveHead = (opts: RoutingDownloadInfo): Promise<HeadResult> => {
+  if (opts.resolvedHead) {
+    return Promise.resolve(opts.resolvedHead);
+  }
   if (opts.headPromise) {
     return opts.headPromise;
   }
@@ -174,11 +177,13 @@ export const resolveHead = (opts: RoutingDownloadInfo): Promise<HeadResult> => {
         credentials: "include",
         signal: controller.signal,
       });
-      return {
+      const result = {
         contentType: (res.headers.get("Content-Type") || "").split(";")[0].trim().toLowerCase(),
         // res.url is the URL after redirects (fetch follows them by default)
         finalUrl: res.url || "",
       };
+      opts.resolvedHead = result;
+      return result;
     } catch {
       return { contentType: "", finalUrl: "" };
     } finally {
@@ -190,6 +195,9 @@ export const resolveHead = (opts: RoutingDownloadInfo): Promise<HeadResult> => {
 
 export const resolveMime = async (opts: RoutingDownloadInfo) =>
   (await resolveHead(opts)).contentType;
+
+const resolvedHeadPreview = (opts: RoutingDownloadInfo): HeadResult | null =>
+  opts.resolvedHead || null;
 
 // Fetch the file's content once per download (cached on the info bag so every
 // :sha256: shares it — and the download reuses the same fetch rather than
@@ -303,31 +311,32 @@ export const transformers = ({
     // Async: the server's Content-Type from a HEAD request (see resolveMime).
     // The options-page preview skips the network and shows nothing.
     [SPECIAL_DIRS.MIME]:
-      async opts => stringSegment(opts.preview ? "" : await resolveMime(opts)),
+      async opts => stringSegment(opts.preview ? resolvedHeadPreview(opts)?.contentType : await resolveMime(opts)),
     [SPECIAL_DIRS.CONTENT_TYPE]:
-      async opts => stringSegment(opts.preview ? "" : await resolveMime(opts)),
+      async opts => stringSegment(opts.preview ? resolvedHeadPreview(opts)?.contentType : await resolveMime(opts)),
     // The extension derived from that Content-Type ("image/jpeg" -> "jpg") —
     // useful for naming extensionless CDN/query-suffix URLs (#126/#135/#43)
     [SPECIAL_DIRS.MIME_EXT]:
       async opts =>
         stringSegment(
-          opts.preview ? "" : mimeToExtension(await resolveMime(opts)),
+          opts.preview ? mimeToExtension(resolvedHeadPreview(opts)?.contentType) : mimeToExtension(await resolveMime(opts)),
         ),
     // Async: SHA-256 of the file's content (fetches the bytes once — see
     // resolveContent). Useful for content-addressed / dedup names. Blank in preview.
     [SPECIAL_DIRS.SHA256]:
       async opts => {
         if (opts.preview) {
-          return stringSegment("");
+          return stringSegment(opts.sha256);
         }
         const content = await resolveContent(opts);
-        return stringSegment(content ? content.sha256 : "");
+        opts.sha256 = content ? content.sha256 : "";
+        return stringSegment(opts.sha256);
       },
     // Async: the URL after following redirects, from the same HEAD as :mime:.
     [SPECIAL_DIRS.FINAL_URL]:
-      async opts => stringSegment(opts.preview ? "" : (await resolveHead(opts)).finalUrl),
+      async opts => stringSegment(opts.preview ? resolvedHeadPreview(opts)?.finalUrl : (await resolveHead(opts)).finalUrl),
     [SPECIAL_DIRS.REDIRECT_URL]:
-      async opts => stringSegment(opts.preview ? "" : (await resolveHead(opts)).finalUrl)
+      async opts => stringSegment(opts.preview ? resolvedHeadPreview(opts)?.finalUrl : (await resolveHead(opts)).finalUrl)
   }) as Record<string, Transformer>;
 
 // Async so a transformer may await (e.g. a :counter: read-modify-write or a

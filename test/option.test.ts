@@ -98,6 +98,13 @@ describe("OptionsManagement", () => {
       expect(resolved.sourcePanelEnabled).toBe(false);
     });
 
+    test("starts new profiles with a small useful Downloads menu", async () => {
+      const resolved = await OptionsManagement.loadOptions();
+      expect(resolved.paths).toBe(
+        ". // (alias: Downloads)\nimages\nimages/cats\n>images/cats/tabby\nvideos",
+      );
+    });
+
     test("preserves an existing enabled Page Sources preference", async () => {
       global.browser.storage.local.get = vi.fn(() => Promise.resolve({ sourcePanelEnabled: true }));
       const resolved = await OptionsManagement.loadOptions();
@@ -196,6 +203,23 @@ describe("OptionsManagement", () => {
       expect(key.onSave("  images  ")).toBe("images");
       expect(key.onSave("   ")).toBe(".");
     });
+
+    test.each([
+      ["truncateLength", "239.6", 240],
+      ["notifyDuration", "7000.4", 7000],
+    ])("normalizes %s input to a whole number", (name, input, expected) => {
+      const key = OptionsManagement.OPTION_KEYS.find((k) => k.name === name)! as SaveKey;
+      expect(key.onSave(input)).toBe(expected);
+    });
+  });
+
+  test("loads legacy numeric strings and fractional numbers as whole values", async () => {
+    global.browser.storage.local.get = vi.fn(() =>
+      Promise.resolve({ truncateLength: "239.6", notifyDuration: 7000.4 }),
+    );
+    const resolved = await OptionsManagement.loadOptions();
+    expect(resolved.truncateLength).toBe(240);
+    expect(resolved.notifyDuration).toBe(7000);
   });
 
   describe("setOption", () => {

@@ -102,6 +102,11 @@ describe("guided input", () => {
     const textarea = document.querySelector("#filenamePatterns") as HTMLTextAreaElement;
 
     expect([...matcher.options].map((o) => o.value)).toEqual(["pagedomain", "fileext"]);
+    expect(pattern.placeholder).toBe("jpg|png");
+    matcher.value = "pagedomain";
+    matcher.dispatchEvent(new Event("change"));
+    expect(pattern.placeholder).toBe("(^|\\.)example\\.com$");
+    matcher.value = "fileext";
 
     // Disabled until every field is filled
     expect(add.disabled).toBe(true);

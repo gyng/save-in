@@ -29,7 +29,9 @@ export type DownloadInfo = {
   preview?: boolean;
   counter?: number;
   headPromise?: Promise<{ contentType: string; finalUrl: string }>;
+  resolvedHead?: { contentType: string; finalUrl: string };
   contentPromise?: Promise<ContentFetchResult | null>;
+  sha256?: string;
 };
 
 export type DownloadPipelineState = {

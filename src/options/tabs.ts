@@ -194,10 +194,20 @@ export const setupTabs = ({ confirmPendingChanges }: TabsOptions = {}): void => 
     const index = panel ? panels.indexOf(panel) : -1;
     if (!target || index < 0) return;
     select(index, false, () => {
+      const rowTarget =
+        target instanceof HTMLInputElement && ["checkbox", "radio"].includes(target.type)
+          ? target.closest<HTMLElement>("label")
+          : null;
+      const highlightTarget = rowTarget || target;
       target.focus({ preventScroll: true });
-      target.scrollIntoView?.({ block: "center", behavior: "smooth" });
-      target.classList.add("option-search-target");
-      window.setTimeout(() => target.classList.remove("option-search-target"), 1600);
+      highlightTarget.scrollIntoView?.({ block: "center", behavior: "smooth" });
+      highlightTarget.classList.add(
+        rowTarget ? "option-search-target-row" : "option-search-target",
+      );
+      window.setTimeout(
+        () => highlightTarget.classList.remove("option-search-target", "option-search-target-row"),
+        1600,
+      );
     });
   });
 

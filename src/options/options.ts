@@ -985,6 +985,17 @@ setupSettingsTransfer({
 
 const updateOptionDependencies = setupOptionDependencies();
 
+const setupDefaultDownloadsFolderLinks = () => {
+  document
+    .querySelectorAll<HTMLAnchorElement>("[data-open-default-downloads-folder]")
+    .forEach((link) =>
+      link.addEventListener("click", (event) => {
+        event.preventDefault();
+        Promise.resolve(webExtensionApi.downloads.showDefaultFolder()).catch(() => {});
+      }),
+    );
+};
+
 // Detection can complete synchronously (Chrome), so this must be defined
 // after setupChromeDisables
 const waitForBrowserDetection = () => {
@@ -1003,6 +1014,7 @@ export const setupOptionsPage = bootstrapOptionsPage({
     renderVersionLabel,
     renderExternalApi,
     setupCounterPanel,
+    setupDefaultDownloadsFolderLinks,
     setupVariablesPreview,
     setupDebugLogPanel,
     () => void restoreOptions(),

@@ -330,10 +330,11 @@
           </td>
           <td>ba7816bf&hellip;</td>
           <td>
-            SHA-256 of the file's content, as lowercase hex &mdash; for content-addressed or
-            deduplicated names. <strong>Fetches the file to hash it</strong>, then saves from that
-            same fetch (no second download); adds a small delay, is skipped for very large files,
-            and is blank if it can't be fetched.
+            SHA-256 of the downloaded file, as lowercase hex. Available during an actual Save In
+            download, so it is blank in previews. Save In must be able to fetch the URL with a
+            normal GET request within 30 seconds; files over 256 MiB are not hashed. The fetched
+            copy is also saved, so the file is downloaded only once. If fetching or hashing fails,
+            this variable is blank and the download continues.
           </td>
         </tr>
 

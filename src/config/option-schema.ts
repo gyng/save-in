@@ -37,6 +37,15 @@ type LoadedOptionValue<Definition> = Definition extends {
     ? WidenDefault<Default>
     : never;
 
+const normalizeWholeNumber = (value: string | number): number => Math.round(Number(value));
+const isNonnegativeNumber = (value: unknown): boolean => {
+  if ((typeof value !== "number" && typeof value !== "string") || String(value).trim() === "") {
+    return false;
+  }
+  const number = Number(value);
+  return Number.isFinite(number) && number >= 0;
+};
+
 export const OPTION_KEYS = [
   {
     name: "conflictAction",
@@ -92,7 +101,9 @@ export const OPTION_KEYS = [
   {
     name: "notifyDuration",
     type: OPTION_TYPES.VALUE,
-    validate: (v: number) => v >= 0,
+    onLoad: normalizeWholeNumber,
+    onSave: normalizeWholeNumber,
+    validate: isNonnegativeNumber,
     default: 7000,
   },
   { name: "notifyOnFailure", type: OPTION_TYPES.BOOL, default: true },
@@ -104,8 +115,7 @@ export const OPTION_KEYS = [
     name: "paths",
     type: OPTION_TYPES.VALUE,
     onSave: (v: string) => v.trim() || ".",
-    default:
-      ". // (alias: Downloads)\nimages\nimages/cute\nvideos // (key: h)\n\nsubmenu\n>submenu/subdir\n>>submenu/subdir/2 // (alias: actual display name)\n>submenu/subdir2 // comments",
+    default: ". // (alias: Downloads)\nimages\nimages/cats\n>images/cats/tabby\nvideos",
   },
   { name: "prompt", type: OPTION_TYPES.BOOL, default: false },
   { name: "promptIfNoExtension", type: OPTION_TYPES.BOOL, default: false },
@@ -136,7 +146,9 @@ export const OPTION_KEYS = [
   {
     name: "truncateLength",
     type: OPTION_TYPES.VALUE,
-    validate: (v: number) => v >= 0,
+    onLoad: normalizeWholeNumber,
+    onSave: normalizeWholeNumber,
+    validate: isNonnegativeNumber,
     default: 240,
   },
   { name: "appendMimeExtension", type: OPTION_TYPES.BOOL, default: true },
