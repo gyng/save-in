@@ -1,29 +1,44 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { setupOptionsReferences } from "../src/options/options-reference.ts";
 
-const response = (html: string) => Promise.resolve({ text: () => Promise.resolve(html) });
+test("ships variable and clause reference content inside the options dialog", () => {
+  const document = new DOMParser().parseFromString(
+    readFileSync(resolve("src/options/options.html"), "utf8"),
+    "text/html",
+  );
 
-test("loads live variable and clause references into main option tabs", async () => {
+  expect(document.querySelector("#options-reference-variables table")).not.toBeNull();
+  expect(document.querySelector("#options-reference-clauses table")).not.toBeNull();
+  expect(
+    document.querySelector(
+      "#options-reference-variables .reference-loading-status.visually-hidden",
+    ),
+  ).not.toBeNull();
+  expect(
+    document.querySelector("#options-reference-clauses .reference-loading-status.visually-hidden"),
+  ).not.toBeNull();
+  expect(document.querySelector(".reference-loading-status.caption")).toBeNull();
+});
+
+test("enhances inline variable and clause references in the main option tabs", async () => {
   document.body.innerHTML = `
     <a href="#" data-reference-tab="options-reference-variables">Variables</a>
     <dialog id="reference-dialog">
       <button class="reference-dialog-close"></button>
       <input class="reference-dialog-filter">
-      <section id="options-reference-variables" role="tabpanel"></section>
-      <section id="options-reference-clauses" role="tabpanel" hidden></section>
+      <section id="options-reference-variables" role="tabpanel">
+        <span class="reference-loading-status visually-hidden">Loading variables</span>
+        <table><tr><td><code class="click-to-copy">:date:</code></td><td>2000-01-01</td><td>Date</td></tr></table>
+      </section>
+      <section id="options-reference-clauses" role="tabpanel" hidden>
+        <span class="reference-loading-status visually-hidden">Loading clauses</span>
+        <table><tr><td><code class="click-to-copy">into:</code></td><td>folder/:filename:</td><td>Destination</td></tr></table>
+      </section>
       <section id="options-reference-templates" role="tabpanel" hidden></section>
     </dialog>`;
-  vi.stubGlobal(
-    "fetch",
-    vi.fn((file: string) =>
-      file.includes("variablelist")
-        ? response(
-            `<div id="reference-variables"><table><tr><td><code class="click-to-copy">:date:</code></td><td>2000-01-01</td><td>Date</td></tr></table></div>`,
-          )
-        : response(
-            `<div id="help-clause-list"><table><tr><td><code class="click-to-copy">into:</code></td><td>folder/:filename:</td><td>Destination</td></tr></table></div>`,
-          ),
-    ),
-  );
+  const fetch = vi.fn();
+  vi.stubGlobal("fetch", fetch);
   vi.mocked(browser.runtime.sendMessage).mockResolvedValue({
     body: { variables: [":date:"], matchers: ["into"] },
   });
@@ -32,6 +47,8 @@ test("loads live variable and clause references into main option tabs", async ()
     expect(document.querySelectorAll("#options-reference-variables thead th")).toHaveLength(3),
   );
   expect(document.querySelectorAll("#options-reference-clauses thead th")).toHaveLength(3);
+  expect(fetch).not.toHaveBeenCalled();
+  expect(document.querySelector(".reference-loading-status")).toBeNull();
   expect(
     document.querySelector("#options-reference-variables .click-to-copy")?.getAttribute("role"),
   ).toBe("button");

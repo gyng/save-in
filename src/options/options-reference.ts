@@ -11,12 +11,9 @@ import { sendInternalMessage } from "../shared/message-protocol.ts";
 
 type ReferenceKind = "variables" | "clauses";
 
-const loadReference = async (kind: ReferenceKind, file: string, sourceSelector: string) => {
+const enhanceReference = async (kind: ReferenceKind) => {
   const target = document.querySelector<HTMLElement>(`#options-reference-${kind}`);
   if (!target) return;
-  const response = await fetch(file);
-  const source = new DOMParser().parseFromString(await response.text(), "text/html");
-  target.innerHTML = source.querySelector(sourceSelector)?.innerHTML || "";
 
   try {
     const keywordResponse = await sendInternalMessage(webExtensionApi.runtime, {
@@ -34,6 +31,7 @@ const loadReference = async (kind: ReferenceKind, file: string, sourceSelector: 
   } catch {}
   groupReferenceRows(target, kind);
   enhanceReferenceTables(target);
+  target.querySelector(".reference-loading-status")?.remove();
   target.querySelectorAll<HTMLElement>(".click-to-copy").forEach((token) => {
     token.tabIndex = 0;
     token.setAttribute("role", "button");
@@ -42,8 +40,8 @@ const loadReference = async (kind: ReferenceKind, file: string, sourceSelector: 
 };
 
 export const setupOptionsReferences = () => {
-  void loadReference("variables", "variablelist.html", "#reference-variables");
-  void loadReference("clauses", "clauselist.html", "#help-clause-list");
+  void enhanceReference("variables");
+  void enhanceReference("clauses");
 
   const dialog = document.querySelector<HTMLDialogElement>("#reference-dialog");
   const filter = document.querySelector<HTMLInputElement>(".reference-dialog-filter");

@@ -1547,7 +1547,366 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
       <div class="template-feedback" role="status" aria-live="polite" hidden></div>
       <div class="reference-dialog-body">
         <section id="options-reference-variables" class="options-reference-panel" role="tabpanel">
-          <p class="caption">__MSG_html_loadingVariables__</p>
+          <span class="reference-loading-status visually-hidden" role="status"
+            >__MSG_html_loadingVariables__</span
+          >
+          <p>__MSG_html_variablesAreUsedInDirectoryAndPathPatterns__</p>
+          <h3>__MSG_html_standard__</h3>
+          <div class="caption">__MSG_html_usableEverywhere__</div>
+          <table class="box">
+            <tbody>
+              <tr>
+                <td>
+                  <code class="click-to-copy">:date:</code>
+                </td>
+                <td>2000-01-01</td>
+                <td>__MSG_html_currentDate__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:isodate:</code>
+                </td>
+                <td>20170123T123040Z</td>
+                <td>__MSG_html_currentDatetimeAsAUtcIso8601String__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:unixdate:</code>
+                </td>
+                <td>946684800</td>
+                <td>__MSG_html_currentDatetimeAsAUnixTimestamp__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:year:</code>
+                </td>
+                <td>2000</td>
+                <td>__MSG_html_currentYear__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:month:</code>
+                </td>
+                <td>01</td>
+                <td>__MSG_html_currentMonth__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:day:</code>
+                </td>
+                <td>24</td>
+                <td>__MSG_html_currentDayOfMonth__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:hour:</code>
+                </td>
+                <td>13</td>
+                <td>__MSG_html_currentHour24Hour__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:minute:</code>
+                </td>
+                <td>46</td>
+                <td>__MSG_html_currentMinute__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:second:</code>
+                </td>
+                <td>05</td>
+                <td>__MSG_html_currentSecond__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:weekday:</code>
+                </td>
+                <td>friday</td>
+                <td>__MSG_html_currentDayOfWeekEnglish__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:monthname:</code>
+                </td>
+                <td>july</td>
+                <td>__MSG_html_currentMonthNameEnglish__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:ampm:</code>
+                </td>
+                <td>pm</td>
+                <td>__MSG_html_amOrPmLocalTime__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:isoweek:</code>
+                </td>
+                <td>28</td>
+                <td>__MSG_html_iso8601WeekNumber__<code>:week:</code> __MSG_html_alsoWorks__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:pageurl:</code>
+                </td>
+                <td>https://xyz.com/abc</td>
+                <td>__MSG_html_urlOfThePage__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:sourcedomain:</code>
+                </td>
+                <td>cdn.xyz.com</td>
+                <td>__MSG_html_hostnameOfTheSource__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:sourcerootdomain:</code>
+                </td>
+                <td>xyz.com</td>
+                <td>__MSG_html_sourceHostnameWithoutSubdomains__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:sourceurl:</code>
+                </td>
+                <td>http://xyz.com/pic.jpg</td>
+                <td>__MSG_html_urlOfTheSource__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:sourcepath:</code>
+                </td>
+                <td>img_gallery_pic.jpg</td>
+                <td>__MSG_html_pathPartOfTheSourceUrlSeparatorsAreSanitized__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:tld:</code>
+                </td>
+                <td>com</td>
+                <td>__MSG_html_lastLabelOfTheSourceHostname__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:pagedomain:</code>
+                </td>
+                <td>xyz.com</td>
+                <td>__MSG_html_hostnameOfThePage__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:pagerootdomain:</code>
+                </td>
+                <td>xyz.com</td>
+                <td>__MSG_html_pageHostnameWithoutSubdomains__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:pagetitle:</code>
+                </td>
+                <td>My Webpage Title!</td>
+                <td>__MSG_html_titleOfThePage__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:pagetitleslug:</code>
+                </td>
+                <td>my-webpage-title</td>
+                <td>__MSG_html_pageTitleLowercasedAndDashed__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:pagetitlesnake:</code>
+                </td>
+                <td>my_webpage_title</td>
+                <td>__MSG_html_pageTitleLowercasedWithUnderscores__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:linktext:</code>
+                </td>
+                <td>Direct link to image</td>
+                <td>
+                  <span class="badge">Firefox</span> __MSG_html_textOfTheLinkOr__
+                  <code>title</code> __MSG_html_attributeOfElement__
+                </td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:selectiontext:</code>
+                </td>
+                <td>A swan created using</td>
+                <td>__MSG_html_theCurrentlySelectedTextOnThePage__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:naivefilename:</code>
+                </td>
+                <td>file.jpg</td>
+                <td>__MSG_html_theNaiveFilenameUrlBasedUseTheRoutingFeature__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:naivefileext:</code>
+                </td>
+                <td>jpg</td>
+                <td>__MSG_html_urlDerivedExtensionAlias__ <code>:urlfileext:</code>.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>__MSG_html_routingAndFilenamesOnly__</h3>
+          <div class="caption">__MSG_html_onlyUsableWhenRoutingAndRewritingFilenames__</div>
+          <table class="box">
+            <tbody>
+              <tr>
+                <td>
+                  <code class="click-to-copy">:filename:</code>
+                </td>
+                <td>my_image.jpg</td>
+                <td>__MSG_html_fullActualFilenameAfterContentDisposition__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:fileext:</code>
+                </td>
+                <td>jpg</td>
+                <td>
+                  __MSG_html_actualResolvedFilenameExtensionAlias__ <code>:actualfileext:</code>.
+                </td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:counter:</code>
+                </td>
+                <td>1, 2, 3…</td>
+                <td>__MSG_html_autoIncrementingNumberThatAdvancesOncePerSavedDownload__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:uuid:</code>
+                </td>
+                <td>f47ac10b-58cc-4372-a567-0e02b2c3d479</td>
+                <td>__MSG_html_aRandomV4UuidUniquePerUse__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:mime:</code>,
+                  <code class="click-to-copy">:contenttype:</code>
+                </td>
+                <td>image/jpeg</td>
+                <td>
+                  __MSG_html_theServerS__
+                  <code>Content-Type</code> __MSG_html_viaAHeadRequestAddsASmallDelayAnd__
+                </td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:mimeext:</code>
+                </td>
+                <td>jpg</td>
+                <td>
+                  __MSG_html_fileExtensionDerivedFromThe__
+                  <code>Content-Type</code> __MSG_html_handyForExtensionlessOrQuerySuffixedUrls__
+                </td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:sha256:</code>
+                </td>
+                <td>ba7816bf8f01…</td>
+                <td>__MSG_html_first12LowercaseHexCharactersOfTheDownloadedFile__</td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:sha256full:</code>
+                </td>
+                <td>ba7816bf8f01cfea…</td>
+                <td>
+                  __MSG_html_full64CharacterLowercaseSha256ItSharesThe__
+                  <code>:sha256:</code> __MSG_html_whenBothVariablesAreUsed__
+                </td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:finalurl:</code>,
+                  <code class="click-to-copy">:redirecturl:</code>
+                </td>
+                <td>https://cdn.example.com/…</td>
+                <td>
+                  __MSG_html_theUrlAfterFollowingRedirectsViaTheSameHead__
+                  <code>:mime:</code>__MSG_html_blankIfTheServerDoesnTAnswer__
+                </td>
+              </tr>
+
+              <tr>
+                <td>
+                  <code class="click-to-copy">:$1:</code>, <code class="click-to-copy">:$2:</code>…
+                </td>
+                <td>cats</td>
+                <td>__MSG_html_captureGroupWhere__ <code>1</code> __MSG_html_theN__</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>__MSG_html_menuStructure__</h3>
+          <div class="caption">__MSG_html_specialRowsUsedOnlyInTheDownloadsMenu__</div>
+          <table class="box">
+            <tbody>
+              <tr>
+                <td>
+                  <code class="click-to-copy">---</code>
+                </td>
+                <td>Separator</td>
+                <td>__MSG_html_createsASeparatorInTheContextMenu__</td>
+              </tr>
+              <tr>
+                <td><code class="click-to-copy">&gt;submenu</code></td>
+                <td>submenu</td>
+                <td>
+                  __MSG_html_createsASubmenuItemAddMore__
+                  <code>&gt;</code> __MSG_html_charactersForDeeperNesting__
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </section>
         <section
           id="options-reference-clauses"
@@ -1555,7 +1914,216 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
           role="tabpanel"
           hidden
         >
-          <p class="caption">__MSG_html_loadingClauses__</p>
+          <span class="reference-loading-status visually-hidden" role="status"
+            >__MSG_html_loadingClauses__</span
+          >
+          <p>__MSG_html_clausesAreOnlyUsedInRuleDefinitionsForRouting__</p>
+          <h3>__MSG_html_outputAndCapture__</h3>
+          <table class="box">
+            <tbody>
+              <tr>
+                <td>
+                  <code class="click-to-copy">into:</code>
+                </td>
+                <td>
+                  <code>:fileext:/foo</code>
+                </td>
+                <td>
+                  <span class="badge warning">__MSG_html_required__</span>
+                  __MSG_html_routesDownloadsToOrRewritesDownloadFilenamesIntoThe__
+                  <code>/</code> __MSG_html_toRouteIntoAFolder__
+                  <em>__MSG_html_without__</em> __MSG_html_renamingTheFileKeepsItsOwnNameEG__
+                  <code>into: pdfs/</code>).
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <code class="click-to-copy">capture:</code>
+                </td>
+                <td>
+                  <code>pageurl</code>
+                  <code>pageurl,sourceurl</code>
+                </td>
+                <td>
+                  <span class="badge">__MSG_html_optional__</span>
+                  __MSG_html_selectsTheMatcherForRegexCaptureGroupVariables__
+                  <code class="click-to-copy">:$1:</code>,
+                  <code class="click-to-copy">:$2:</code
+                  >__MSG_html_splitMultipleCaptureTargetsWithA__ <code>,</code>.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>__MSG_html_matchers__</h3>
+          __MSG_html_matcherClausesUse__
+          <a
+            class="external"
+            href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions"
+            target="_blank"
+            >__MSG_html_regularExpression__</a
+          >
+          __MSG_html_stringsAddJavascriptRegexFlagsAfterTheMatcherName__
+          <code class="click-to-copy">filename/i:</code> __MSG_html_forCaseInsensitiveMatching__
+
+          <table class="box">
+            <tbody>
+              <tr>
+                <td>
+                  <code class="click-to-copy">context:</code>
+                </td>
+                <td>
+                  <code>page</code>
+                </td>
+                <td>
+                  __MSG_html_matchesWhatIsClicked__ <code>media</code>, <code>link</code>,
+                  <code>selection</code>, <code>page</code>, <code>click</code>,
+                  <code>tab</code> __MSG_html_firefox__
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <code class="click-to-copy">menuindex:</code>
+                </td>
+                <td>
+                  <code>1</code>
+                </td>
+                <td>__MSG_html_matchesTheMenuIndexOfTheClickedMenuItem__</td>
+              </tr>
+              <tr>
+                <td>
+                  <code class="click-to-copy">comment:</code>
+                </td>
+                <td>
+                  <code>a menu item comment</code>
+                </td>
+                <td>__MSG_html_matchesTheCommentOfTheClickedMenuItem__</td>
+              </tr>
+              <tr>
+                <td>
+                  <code class="click-to-copy">fileext:</code>
+                </td>
+                <td>
+                  <code>jpg</code>
+                </td>
+                <td>
+                  __MSG_html_matchesTheUrlDerivedExtensionLegacyNameUse__
+                  <code class="click-to-copy">urlfileext:</code> __MSG_html_forExplicitNewRules__
+                </td>
+              </tr>
+              <tr>
+                <td><code class="click-to-copy">actualfileext:</code></td>
+                <td><code>pdf</code></td>
+                <td>__MSG_html_matchesTheResolvedFilenameExtensionAfterContentDisposition__</td>
+              </tr>
+              <tr>
+                <td>
+                  <code class="click-to-copy">filename:</code>
+                </td>
+                <td>
+                  <code>actual_filename.jpg</code>
+                </td>
+                <td>__MSG_html_matchesTheFinalFilename__</td>
+              </tr>
+              <tr>
+                <td>
+                  <code class="click-to-copy">frameurl:</code>
+                </td>
+                <td>
+                  <code>http://www.google.com</code>
+                </td>
+                <td>__MSG_html_matchesTheUrlOfTheCurrentFrame__</td>
+              </tr>
+              <tr>
+                <td>
+                  <code class="click-to-copy">linktext:</code>
+                </td>
+                <td>
+                  <code>Click here to download</code>
+                </td>
+                <td>
+                  <span class="badge">Firefox</span> __MSG_html_matchesTheLinkTextOrElement__
+                  <code>title</code> __MSG_html_attribute__
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <code class="click-to-copy">mediatype:</code>
+                </td>
+                <td>
+                  <code>image</code>
+                </td>
+                <td>
+                  __MSG_html_matchesTheMediaType__ <code>audio</code>,
+                  <code>video</code>__MSG_html_or__
+                  <code>image</code>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <code class="click-to-copy">naivefilename:</code>
+                </td>
+                <td>
+                  <code>cat.jpg</code>
+                </td>
+                <td>__MSG_html_matchesTheNaiveFilename__</td>
+              </tr>
+              <tr>
+                <td>
+                  <code class="click-to-copy">pagedomain:</code>
+                </td>
+                <td>
+                  <code>xyz.com</code>
+                </td>
+                <td>__MSG_html_matchesThePageHostname__</td>
+              </tr>
+              <tr>
+                <td>
+                  <code class="click-to-copy">pagetitle:</code>
+                </td>
+                <td>
+                  <code>Welcome to my page!</code>
+                </td>
+                <td>__MSG_html_matchesTheCurrentPageTitle__</td>
+              </tr>
+              <tr>
+                <td>
+                  <code class="click-to-copy">pageurl:</code>
+                </td>
+                <td>
+                  <code>http://www.google.com</code>
+                </td>
+                <td>__MSG_html_matchesTheCurrentPageUrl__</td>
+              </tr>
+              <tr>
+                <td>
+                  <code class="click-to-copy">selectiontext:</code>
+                </td>
+                <td>
+                  <code>"X-Cops" is the twelfth</code>
+                </td>
+                <td>__MSG_html_matchesTheSelectionText__</td>
+              </tr>
+              <tr>
+                <td>
+                  <code class="click-to-copy">sourcedomain:</code>
+                </td>
+                <td>
+                  <code>cdn.xyz.com</code>
+                </td>
+                <td>__MSG_html_matchesTheSourceHostnameForMedia__</td>
+              </tr>
+              <tr>
+                <td>
+                  <code class="click-to-copy">sourceurl:</code>
+                </td>
+                <td>
+                  <code>http://cdn.xyz.com/pic.jpg</code>
+                </td>
+                <td>__MSG_html_matchesTheSourceUrlForMedia__</td>
+              </tr>
+            </tbody>
+          </table>
         </section>
         <section
           id="options-reference-templates"
