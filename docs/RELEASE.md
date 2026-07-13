@@ -1,8 +1,30 @@
 # Release workflow reference
 
 This is on-demand guidance for release preparation and release-tooling changes.
-Ordinary development tasks do not need it. Store form answers and required
-uploads remain in `docs/STORE-SUBMISSION.md`.
+Ordinary development tasks do not need it.
+
+## Store upload
+
+Run the release gates in `AGENTS.md`, then upload the same reviewed runtime ZIP
+to AMO and the Chrome Web Store. Attach the source ZIP to the AMO submission.
+Keep store data-use answers aligned with `PRIVACY.md`: Save In processes website
+content and browsing activity locally for user-requested saves and history,
+sends neither to the developer, and executes no remote code.
+
+Chrome's listing should disclose that Incognito activity is excluded from Save
+In history and diagnostics, while Chrome may show an Incognito save in its
+regular download manager because the downloads API cannot select an Incognito
+context. Use these permission rationales:
+
+- `contextMenus`: show Save In commands on pages and tabs.
+- `downloads`: start, name, monitor, retry, and record downloads locally.
+- `notifications`: report completion and actionable failures.
+- `storage`: store settings, rules, local history, and recovery state.
+- `offscreen`: create temporary Blob URLs for Chrome downloads.
+- `<all_urls>`: identify and fetch user-selected resources on arbitrary sites.
+
+Before upload, confirm listing metadata, support/privacy links, screenshots,
+permission justifications, and data-use answers are current.
 
 ## GitHub release provenance
 

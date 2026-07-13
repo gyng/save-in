@@ -170,10 +170,6 @@ const sourceBuild = read("scripts/build-source-package.js");
 for (const required of [
   '"assets/README.md"',
   '"assets/icons/notification-info.svg"',
-  '"docs/ARCH-CYCLES.md"',
-  '"docs/RELEASE.md"',
-  '"docs/STORE-SUBMISSION.md"',
-  '"docs/TS-MIGRATION.md"',
   '"e2e"',
   '"CHANGELOG.md"',
   '"tsconfig.worker.json"',
@@ -189,7 +185,7 @@ for (const required of [
   check(sourceBuild.includes(required), `source attachment is missing policy entry ${required}`);
 }
 check(!/^\s+"docs",$/m.test(sourceBuild), "source attachment must not include all documentation");
-for (const excluded of ['"docs/archive/"', '"docs/store-assets/"', '"docs/store-screenshots/"']) {
+for (const excluded of ['"docs/"']) {
   check(sourceBuild.includes(excluded), `source attachment must exclude ${excluded}`);
 }
 contains(".github/workflows/ci.yml", "npm run build:source");

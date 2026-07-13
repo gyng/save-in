@@ -1,9 +1,27 @@
 # 4.0.0
 
-save-in is now a Manifest V3 extension on both Firefox and Chrome (#225,
-#227), from a single manifest: Firefox ≥ 121 runs the background as an event
-page, Chrome ≥ 123 as a service worker. Thanks @rudolphos for #230 and
-testing on Chromium!
+Version 4 is the largest Save In release to date. It modernizes browser
+support and makes complex download organization easier while preserving
+existing settings and rules.
+
+- Rebuilt for current Firefox and Chrome extension platforms; now requires
+  Firefox 121+ or Chrome 123+.
+- Redesigned Options with clearer navigation, visual directory editing, rule
+  templates, previews, search, improved localization, and better dark mode.
+- Made downloads resilient to background restarts, with reliable filenames,
+  notifications, history, retries, and private-browsing safeguards.
+- Expanded routing and renaming with many new variables, safer filename
+  handling, Page Sources, and more dependable click-to-save behavior.
+- Added explicitly approved external integrations and validated configuration
+  tools without adding remote code or broader interception permissions.
+- Unified both browser releases into one readable, reproducible package backed
+  by automated Firefox and Chrome end-to-end tests.
+
+Thanks @rudolphos for #230 and Chromium testing, and everyone who reported and
+tested the many fixes included in this release.
+
+<details>
+<summary>Detailed changes</summary>
 
 - Migrate to Manifest V3; requires Firefox 121+ / Chrome 123+
 - Wake the service worker as soon as the click-to-save combo key is held, so
@@ -124,6 +142,8 @@ testing on Chromium!
 - Dev: automated Chrome (CDP) and Firefox (RDP) end-to-end smoke tests,
   watch-mode dev loop, 130-test vitest suite, oxlint + oxfmt, web-ext 10,
   npm, CI on Node 24
+
+</details>
 
 # 3.7.3
 

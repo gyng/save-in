@@ -4,7 +4,7 @@ const e2eBuild = process.env.SAVE_IN_BUILD_MODE === "e2e";
 const backgroundEntry = e2eBuild ? "src/entries/background.e2e.ts" : "src/entries/background.ts";
 const bundleDir = e2eBuild ? "dist/bundled-e2e" : "dist/bundled";
 
-// Store-submission bundler for the TypeScript/ESM codebase (docs/TS-MIGRATION.md).
+// Store-submission bundler for the TypeScript/ESM codebase.
 // Each target has one module under src/entries; rolldown strips the types (oxc), resolves the imports and
 // scope-hoists every module into ONE readable, NON-minified file per target — so
 // top-level side effects and synchronous MV3 listener registration are preserved,

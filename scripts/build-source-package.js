@@ -89,10 +89,6 @@ async function main() {
     ".oxlintrc.json",
     "AGENTS.md",
     "CHANGELOG.md",
-    "docs/ARCH-CYCLES.md",
-    "docs/RELEASE.md",
-    "docs/STORE-SUBMISSION.md",
-    "docs/TS-MIGRATION.md",
     "LICENSE",
     "PRIVACY.md",
     "README.md",
@@ -158,10 +154,6 @@ async function main() {
       "assets/README.md",
       "assets/icons/notification-info.svg",
       "CHANGELOG.md",
-      "docs/ARCH-CYCLES.md",
-      "docs/RELEASE.md",
-      "docs/STORE-SUBMISSION.md",
-      "docs/TS-MIGRATION.md",
       "e2e/chrome.e2e.mjs",
       "e2e/firefox.e2e.mjs",
       "tsconfig.chrome.json",
@@ -171,7 +163,7 @@ async function main() {
       "tsconfig.tools.json",
       "tsconfig.worker.json",
     ],
-    ["docs/archive/", "docs/store-assets/", "docs/store-screenshots/"],
+    ["docs/"],
   );
   process.stdout.write(`Mozilla source attachment ready: ${destination}\n`);
 }

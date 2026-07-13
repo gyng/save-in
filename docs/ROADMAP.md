@@ -1,8 +1,7 @@
 # save-in roadmap
 
-This document tracks current work only. The completed TypeScript/ESM migration
-and its design constraints are documented in `AGENTS.md`, `ARCH-CYCLES.md`, and
-`TS-MIGRATION.md`. Git history retains the completed planning record.
+This document tracks current work only. `AGENTS.md` documents the current
+architecture and contributor constraints; Git history retains completed plans.
 
 ## Current priorities
 
