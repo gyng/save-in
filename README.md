@@ -42,8 +42,8 @@ Windows:
 
 Make sure the actual directories exist, or downloads will silently fail.
 
-- `<all_urls>` is used to get around CORS on HTTP HEAD requests (to read Content-Disposition and Content-Type for `:mime:`) and to fetch downloads via the Fetch API.
-- `declarativeNetRequest` injects the Referer header on downloads (disabled by default).
+- `<all_urls>` is used for page features and extension-context HEAD/fetch requests.
+- Firefox can set a Referer through `downloads.download({ headers })`; Chrome does not support this option. Save In does not request `webRequest` or declarativeNetRequest.
 
 Configure before use.
 

@@ -2,17 +2,17 @@
 
 save-in is now a Manifest V3 extension on both Firefox and Chrome (#225,
 #227), from a single manifest: Firefox ≥ 121 runs the background as an event
-page, Chrome ≥ 121 as a service worker. Thanks @rudolphos for #230 and
+page, Chrome ≥ 123 as a service worker. Thanks @rudolphos for #230 and
 testing on Chromium!
 
-- Migrate to Manifest V3; requires Firefox 121+ / Chrome 121+
+- Migrate to Manifest V3; requires Firefox 121+ / Chrome 123+
 - Wake the service worker as soon as the click-to-save combo key is held, so
   alt+click saves work reliably on Chrome (thanks @rudolphos, #230)
 - Download notifications and filenames now survive the background
   terminating mid-download (session storage tracking)
-- The "Set Referer header" option uses declarativeNetRequest on Chrome
-  (blocking webRequest stays on Firefox), and no longer breaks the context
-  menu when the filter has an empty or invalid line (#222)
+- The "Set Referer header" option uses Firefox's native downloads headers;
+  Chrome does not support it. Empty or invalid filter lines no longer break
+  the context menu (#222)
 - Click-to-save now falls back to the link under the cursor (respects the
   "links" option), so alt+click on PDF/file links works (#226)
 - Page titles in filenames come from the tab that was clicked, fixing wrong
@@ -24,7 +24,7 @@ testing on Chromium!
 - The external DOWNLOAD API is now official and versioned (v1, #110): send
   `{ type: "PING" }` to negotiate the version and capabilities, `DOWNLOAD`
   now returns a typed `OK`/`ERROR` response and validates the URL scheme, and
-  More Options → External API shows the extension id, live version, and a
+  Advanced → External integrations shows the extension id, live version, and a
   copy-paste snippet
 - New path variables: `:counter:` (atomic, persistent, per-download counter with
   a reset control), `:uuid:`, and `:mime:`/`:contenttype:`/`:mimeext:` (from a
@@ -32,7 +32,7 @@ testing on Chromium!
 - Scriptable / AI-assisted configuration: `GET_SCHEMA`, `VALIDATE` and (internal)
   `APPLY_CONFIG` messages validate a config against the schema before applying
   (#89), plus an experimental WebMCP adapter that exposes them as AI-agent tools
-  on the options page (More Options → AI agent tools)
+  on the options page (Advanced → External integrations → WebMCP)
 - Reliability: `Variable.applyVariables` is async; concurrent downloads survive a
   service-worker restart without losing notifications (pending counter, per-URL
   filename recovery, per-download Referer rule ids)
@@ -46,8 +46,8 @@ testing on Chromium!
   (#159, #216)
 - Options page opens in a tab
 - "Fetch via Fetch API" is now available on Chrome too
-- "Fetch via content script" is deprecated: MV3 content scripts cannot make
-  cross-origin requests, so it only helps for same-origin/CORS downloads
+- Remove the old content-script fetch path; MV3 cross-origin fetching runs in
+  an extension context with host permission
 - Waterfox and other Gecko forks are now detected as Firefox, and browser
   detection is synchronous (#186)
 - Concurrent downloads (e.g. tab-strip batch saves) no longer misattribute
