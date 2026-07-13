@@ -34,6 +34,21 @@ test("loads a selected AI catalog with canonical English fallback", async () => 
   expect(localization.getMessage("failure", ["photo.jpg"])).toBe("Failed to save photo.jpg.");
 });
 
+test("matches placeholder identifiers independently of the host locale", async () => {
+  const localeLowerCase = String.prototype.toLocaleLowerCase;
+  vi.spyOn(String.prototype, "toLocaleLowerCase").mockImplementation(function (this: string) {
+    return localeLowerCase.call(this, "tr");
+  });
+  const localization = createLocalization({
+    nativeGetMessage: (key) => `native:${key}`,
+    loadCatalog: vi.fn(async () => english),
+  });
+
+  await localization.initialize("en");
+
+  expect(localization.getMessage("failure", ["photo.jpg"])).toBe("Failed to save photo.jpg.");
+});
+
 test("allows an explicit English override without loading an AI catalog", async () => {
   const loadCatalog = vi.fn(async () => english);
   const localization = createLocalization({

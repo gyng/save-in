@@ -251,6 +251,28 @@ describe("startup restore", () => {
     expect(sessionStore.siPendingDownloads).toBe(0);
   });
 
+  test("does not fold newer downloads into an expired recovery lease", async () => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date("2026-01-01T00:00:00Z"));
+    const sessionStore = { siPendingDownloads: 1 } as Record<string, any>;
+    setupGlobals(sessionStore, () => []);
+
+    await loadNotification();
+    expect(sessionStore.siNotificationRecovery).toMatchObject({ pendingDownloads: 1 });
+
+    // A second request starts after the lease snapshot, then the worker dies
+    // before its downloads.onCreated event arrives.
+    sessionStore.siPendingDownloads = 2;
+    jest.clearAllTimers();
+    jest.setSystemTime(new Date("2026-01-01T00:00:11Z"));
+    jest.resetModules();
+    setupGlobals(sessionStore, () => []);
+
+    await loadNotification();
+
+    expect(sessionStore.siPendingDownloads).toBe(1);
+  });
+
   test("finishes adopted-record recovery after the worker died before its timer", async () => {
     jest.useFakeTimers();
     jest.setSystemTime(new Date("2026-01-01T00:00:00Z"));

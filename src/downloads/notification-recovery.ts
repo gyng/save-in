@@ -152,13 +152,9 @@ const initializeRecovery = async (): Promise<void> => {
     adoptedDownloadIds.forEach((id) => adoptedIds.add(id));
     const merged: NotificationRecovery = {
       ...expected,
-      pendingDownloads: Math.max(expected.pendingDownloads, pendingDownloads),
       adoptedDownloadIds: [...adoptedIds],
     };
-    if (
-      merged.pendingDownloads !== expected.pendingDownloads ||
-      merged.adoptedDownloadIds.length !== expected.adoptedDownloadIds.length
-    ) {
+    if (merged.adoptedDownloadIds.length !== expected.adoptedDownloadIds.length) {
       expected = merged;
       await setSession(extensionSessionStorage, {
         [NOTIFICATION_RECOVERY_SESSION_KEY]: expected,

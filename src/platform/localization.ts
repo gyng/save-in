@@ -38,7 +38,7 @@ const formatMessage = (definition: MessageDefinition, substitutions?: Substituti
       ? []
       : [substitutions];
   return definition.message.replace(/\$([A-Za-z0-9_]+)\$/g, (token, name: string) => {
-    const placeholder = definition.placeholders?.[name.toLocaleLowerCase()];
+    const placeholder = definition.placeholders?.[name.toLowerCase()];
     if (!placeholder) return token;
     return placeholder.content.replace(/\$(\d+)/g, (_match, index: string) => {
       return String(values[Number(index) - 1] ?? "");

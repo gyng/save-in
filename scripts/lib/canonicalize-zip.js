@@ -2,8 +2,8 @@ const fs = require("fs");
 const JSZip = require("jszip");
 
 // ZIP timestamps are presentation metadata, not part of the extension. A
-// constant local date avoids timezone conversion changing the DOS date fields.
-const ARCHIVE_DATE = new Date(1980, 0, 1, 0, 0, 0, 0);
+// constant UTC date avoids timezone conversion changing the DOS date fields.
+const ARCHIVE_DATE = new Date(Date.UTC(1980, 0, 1, 0, 0, 0, 0));
 
 /** @param {string} archive */
 async function canonicalizeZip(archive) {
