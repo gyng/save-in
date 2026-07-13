@@ -6,7 +6,7 @@ import { MENU_IDS } from "../menus/menu-ids.ts";
 import {
   addLastUsed,
   addOptions,
-  addPaths,
+  buildTree,
   addRoot,
   addRouteExclusive,
   addSelectionType,
@@ -14,6 +14,7 @@ import {
   addSourcePanel,
   clearPathMappings,
   makeSeparator,
+  renderPathTree,
 } from "./menu-build.ts";
 import { addTabMenus } from "./menu-tabs.ts";
 
@@ -34,13 +35,20 @@ export const rebuildMenus = async (): Promise<void> => {
 
   addRoot(contexts);
 
+  const pathTree = buildTree(splitLines(options.paths));
+  const hasPathSection = pathTree.items.length > 0;
+
   if (options.enableLastLocation) {
     addLastUsed(contexts);
+  }
+  if (options.enableLastLocation && hasPathSection) {
     makeSeparator(contexts, MENU_IDS.SEPARATOR.LAST_USED);
   }
 
-  addPaths(splitLines(options.paths), contexts);
-  makeSeparator(contexts, MENU_IDS.SEPARATOR.ACTIONS);
+  renderPathTree(pathTree, contexts);
+  if (options.enableLastLocation || hasPathSection) {
+    makeSeparator(contexts, MENU_IDS.SEPARATOR.ACTIONS);
+  }
 
   addSelectionType(contexts);
   addShowDefaultFolder(contexts);

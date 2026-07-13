@@ -13,9 +13,10 @@ export type ParsedPath = {
   validation: { valid: boolean; message?: string | undefined };
 };
 export type MenuTreeItem =
-  | { kind: "separator"; id: string; parentId: string }
+  | { kind: "separator"; sourceIndex?: number; id: string; parentId: string }
   | {
       kind: "path";
+      sourceIndex?: number;
       id: string;
       title: string;
       number: number;
@@ -27,11 +28,20 @@ export type MenuTreeItem =
       raw: string;
     };
 export type MenuTreeError = {
+  sourceIndex?: number;
   message: string;
   error: string;
   parentId?: string | undefined;
 };
 export type MenuTree = { items: MenuTreeItem[]; errors: MenuTreeError[] };
+export type MenuTreeEntry = MenuTreeItem | MenuTreeError;
+
+export const getMenuTreeEntries = ({ items, errors }: MenuTree): MenuTreeEntry[] =>
+  [...items, ...errors].sort(
+    (left, right) =>
+      (left.sourceIndex ?? Number.MAX_SAFE_INTEGER) -
+      (right.sourceIndex ?? Number.MAX_SAFE_INTEGER),
+  );
 
 export const parseMeta = (comment: string): MenuMeta => {
   const matches = comment.match(/\(.+?:.+?\)+/g);
@@ -66,6 +76,7 @@ export const buildTree = (pathsArray: string[]): MenuTree => {
     if (dir === SPECIAL_DIRS.SEPARATOR) {
       items.push({
         kind: "separator",
+        sourceIndex: index,
         id: `save-in-separator-path-${index}`,
         parentId: MENU_IDS.ROOT,
       });
@@ -80,7 +91,12 @@ export const buildTree = (pathsArray: string[]): MenuTree => {
     const parentId =
       effectiveDepth === 0 ? MENU_IDS.ROOT : pathsNestingStack[effectiveDepth - 1] || MENU_IDS.ROOT;
     if (!validation.valid) {
-      errors.push({ message: validation.message || "Invalid path", error: dir, parentId });
+      errors.push({
+        sourceIndex: index,
+        message: validation.message || "Invalid path",
+        error: dir,
+        parentId,
+      });
       return;
     }
 
@@ -90,7 +106,12 @@ export const buildTree = (pathsArray: string[]): MenuTree => {
     menuItemCounter[effectiveDepth] = number;
     const id = `save-in-${index}`;
     if (parsedDir === SPECIAL_DIRS.SEPARATOR) {
-      items.push({ kind: "separator", id: `save-in-separator-path-${index}`, parentId });
+      items.push({
+        kind: "separator",
+        sourceIndex: index,
+        id: `save-in-separator-path-${index}`,
+        parentId,
+      });
       return;
     }
     if (effectiveDepth === 0) pathsNestingStack = [id];
@@ -98,6 +119,7 @@ export const buildTree = (pathsArray: string[]): MenuTree => {
     pathsNestingStack = pathsNestingStack.slice(0, effectiveDepth + 1);
     items.push({
       kind: "path",
+      sourceIndex: index,
       id,
       title,
       number,

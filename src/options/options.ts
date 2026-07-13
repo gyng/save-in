@@ -19,7 +19,7 @@ import { refreshCounterPanel, setupCounterPanel } from "./counter-panel.ts";
 import { setupDebugLogPanel, updateDebugLog } from "./debug-log-panel.ts";
 import { renderVariablesPreview, setupVariablesPreview } from "./variables-preview.ts";
 import { setupResetOptions } from "./reset-options.ts";
-import { buildTree } from "../menus/menu-tree.ts";
+import { buildTree, getMenuTreeEntries } from "../menus/menu-tree.ts";
 import type { MenuTree } from "../menus/menu-tree.ts";
 import { splitLines } from "../shared/util.ts";
 import { MESSAGE_TYPES } from "../shared/constants.ts";
@@ -687,11 +687,33 @@ const renderMenuPreview = (container: Element, tree: MenuPreviewTree) => {
   const rootUl = document.createElement("ul");
   const listsByParent = new Map<string, HTMLUListElement>();
 
-  tree.items.forEach((item) => {
-    const parentUl = listsByParent.get(item.parentId) || rootUl;
+  getMenuTreeEntries(tree).forEach((entry) => {
+    const parentUl = (entry.parentId && listsByParent.get(entry.parentId)) || rootUl;
     const li = document.createElement("li");
 
-    if (item.kind === "separator") {
+    if (!("kind" in entry)) {
+      li.className = "menu-preview-item menu-preview-error";
+      li.title = entry.message;
+      li.setAttribute("role", "button");
+      li.setAttribute("tabindex", "0");
+
+      const row = document.createElement("div");
+      row.className = "menu-preview-row";
+      const title = document.createElement("span");
+      title.className = "menu-preview-title";
+      title.textContent = entry.error;
+      row.appendChild(title);
+      li.appendChild(row);
+
+      const jump = () => jumpToError("#paths", entry.error);
+      li.addEventListener("click", jump);
+      li.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          jump();
+        }
+      });
+    } else if (entry.kind === "separator") {
       li.className = "menu-preview-separator";
       li.appendChild(document.createElement("hr"));
     } else {
@@ -704,24 +726,24 @@ const renderMenuPreview = (container: Element, tree: MenuPreviewTree) => {
 
       const title = document.createElement("span");
       title.className = "menu-preview-title";
-      title.textContent = item.title;
+      title.textContent = entry.title;
       row.appendChild(title);
 
       // Aliased items also show the directory they save into
-      if (item.title !== item.parsedDir) {
+      if (entry.title !== entry.parsedDir) {
         const dir = document.createElement("span");
         dir.className = "menu-preview-dir";
-        dir.textContent = item.parsedDir;
+        dir.textContent = entry.parsedDir;
         row.appendChild(dir);
       }
 
       // Any row jumps to its line in the editor (the row only, so clicking a
       // nested child jumps to the child, not its parent)
-      if (item.raw) {
+      if (entry.raw) {
         row.setAttribute("role", "button");
         row.setAttribute("tabindex", "0");
         row.title = "Jump to this line";
-        const jump = () => jumpToError("#paths", item.raw);
+        const jump = () => jumpToError("#paths", entry.raw);
         row.addEventListener("click", jump);
         row.addEventListener("keydown", (e) => {
           if (e.key === "Enter" || e.key === " ") {
@@ -735,7 +757,7 @@ const renderMenuPreview = (container: Element, tree: MenuPreviewTree) => {
 
       const childUl = document.createElement("ul");
       li.appendChild(childUl);
-      listsByParent.set(item.id, childUl);
+      listsByParent.set(entry.id, childUl);
     }
 
     parentUl.appendChild(li);
@@ -762,37 +784,6 @@ const renderMenuPreview = (container: Element, tree: MenuPreviewTree) => {
     li.appendChild(row);
     rootUl.insertBefore(li, rootUl.firstChild);
   }
-
-  // Invalid paths can't be a menu item, so show them as a red row in place (in
-  // the submenu they'd belong to). The row shows the offending line; the message
-  // is a tooltip. Click jumps to (and selects) the line in the editor.
-  tree.errors.forEach((error) => {
-    const parentUl = (error.parentId && listsByParent.get(error.parentId)) || rootUl;
-    const li = document.createElement("li");
-    li.className = "menu-preview-item menu-preview-error";
-    li.title = error.message;
-    li.setAttribute("role", "button");
-    li.setAttribute("tabindex", "0");
-
-    const row = document.createElement("div");
-    row.className = "menu-preview-row";
-    const title = document.createElement("span");
-    title.className = "menu-preview-title";
-    title.textContent = error.error;
-    row.appendChild(title);
-    li.appendChild(row);
-
-    const jump = () => jumpToError("#paths", error.error);
-    li.addEventListener("click", jump);
-    li.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        jump();
-      }
-    });
-
-    parentUl.appendChild(li);
-  });
 
   container.appendChild(rootUl);
 };

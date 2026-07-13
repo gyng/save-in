@@ -326,6 +326,7 @@ describe("menu creation", () => {
       expect(menu.pathMappings).toEqual({});
       expect(backgroundRuntime.optionErrors.paths).toEqual([
         {
+          sourceIndex: 0,
           message: "Translated<rulePathInvalidCharacter>",
           error: "<invalid>",
           parentId: menu.IDS.ROOT,
@@ -560,6 +561,7 @@ describe("buildTree", () => {
     expect(items).toEqual([
       {
         kind: "path",
+        sourceIndex: 0,
         id: "save-in-0",
         title: "a",
         number: 1,
@@ -572,6 +574,7 @@ describe("buildTree", () => {
       },
       {
         kind: "path",
+        sourceIndex: 1,
         id: "save-in-1",
         title: "b",
         number: 1,
@@ -600,11 +603,18 @@ describe("buildTree", () => {
     expect("parsedDir" in items[0]! && items[0]!.parsedDir).toBe("ok");
     expect(errors).toEqual([
       {
+        sourceIndex: 0,
         message: "Translated<rulePathInvalidCharacter>",
         error: "<invalid>",
         parentId: menu.IDS.ROOT,
       },
     ]);
+  });
+
+  test("merges valid items and errors in source order for previews", () => {
+    const tree = menu.buildTree(["first", "<invalid>", "second"]);
+
+    expect(menu.getMenuTreeEntries(tree).map((entry) => entry.sourceIndex)).toEqual([0, 1, 2]);
   });
 
   test("carries alias titles and access key overrides", () => {

@@ -21,11 +21,13 @@ vi.mock("../src/background/menu-build.ts", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../src/background/menu-build.ts")>();
   return {
     ...actual,
+    buildTree: vi.fn(actual.buildTree),
     addRoot: vi.fn(actual.addRoot),
     addRouteExclusive: vi.fn(actual.addRouteExclusive),
     addLastUsed: vi.fn(actual.addLastUsed),
     makeSeparator: vi.fn(actual.makeSeparator),
     addPaths: vi.fn(actual.addPaths),
+    renderPathTree: vi.fn(actual.renderPathTree),
     addSelectionType: vi.fn(actual.addSelectionType),
     addShowDefaultFolder: vi.fn(actual.addShowDefaultFolder),
     addOptions: vi.fn(actual.addOptions),
@@ -92,6 +94,7 @@ const setupGlobals = async ({
   vi.mocked(Menus.addLastUsed).mockImplementation(() => undefined);
   vi.mocked(Menus.makeSeparator).mockImplementation(() => undefined);
   vi.mocked(Menus.addPaths).mockImplementation(() => undefined);
+  vi.mocked(Menus.renderPathTree).mockImplementation(() => undefined);
   vi.mocked(Menus.addSelectionType).mockImplementation(() => undefined);
   vi.mocked(Menus.addShowDefaultFolder).mockImplementation(() => undefined);
   vi.mocked(Menus.addOptions).mockImplementation(() => undefined);
@@ -245,7 +248,11 @@ describe("init", () => {
     expect(Menus.addLastUsed).toHaveBeenCalledWith(contexts);
     expect(Menus.makeSeparator).toHaveBeenCalledTimes(2);
 
-    expect(Menus.addPaths).toHaveBeenCalledWith([".", "images", "images/cute"], contexts);
+    expect(Menus.buildTree).toHaveBeenCalledWith([".", "images", "images/cute"]);
+    expect(Menus.renderPathTree).toHaveBeenCalledWith(
+      expect.objectContaining({ items: expect.any(Array), errors: [] }),
+      contexts,
+    );
     expect(Menus.addSelectionType).toHaveBeenCalledWith(contexts);
     expect(Menus.addShowDefaultFolder).toHaveBeenCalledWith(contexts);
     expect(Menus.addOptions).toHaveBeenCalledWith(contexts);
@@ -264,7 +271,7 @@ describe("init", () => {
     await importIndex();
     await Runtime.ready;
 
-    expect(Menus.addPaths).toHaveBeenCalledWith([".", "images"], expect.any(Array));
+    expect(Menus.buildTree).toHaveBeenCalledWith([".", "images"]);
   });
 
   test("restricts contexts to media when links/selection/page are disabled", async () => {
@@ -291,7 +298,7 @@ describe("init", () => {
     ]);
     expect(Menus.addRoot).not.toHaveBeenCalled();
     expect(Menus.addLastUsed).not.toHaveBeenCalled();
-    expect(Menus.addPaths).not.toHaveBeenCalled();
+    expect(Menus.renderPathTree).not.toHaveBeenCalled();
     expect(Menus.addOptions).not.toHaveBeenCalled();
   });
 
@@ -303,8 +310,34 @@ describe("init", () => {
     expect(Menus.addLastUsed).not.toHaveBeenCalled();
     // Only the separator after the paths remains
     expect(Menus.makeSeparator).toHaveBeenCalledTimes(1);
-    expect(Menus.addPaths).toHaveBeenCalled();
+    expect(Menus.renderPathTree).toHaveBeenCalled();
   });
+
+  test.each(["", "<invalid>"])(
+    "uses one separator between Last Used and actions when paths are %j",
+    async (paths) => {
+      await setupGlobals({ options: { paths } });
+      await importIndex();
+      await Runtime.ready;
+
+      expect(Menus.makeSeparator).toHaveBeenCalledTimes(1);
+      expect(Menus.makeSeparator).toHaveBeenCalledWith(
+        expect.any(Array),
+        Menus.MENU_IDS.SEPARATOR.ACTIONS,
+      );
+    },
+  );
+
+  test.each(["", "<invalid>"])(
+    "does not lead actions with a separator when Last Used is off and paths are %j",
+    async (paths) => {
+      await setupGlobals({ options: { paths, enableLastLocation: false } });
+      await importIndex();
+      await Runtime.ready;
+
+      expect(Menus.makeSeparator).not.toHaveBeenCalled();
+    },
+  );
 
   test("restores lastUsedPath from storage (MV3 service workers are stateless)", async () => {
     await setupGlobals({ storedLocal: { lastUsedPath: "images/cute" } });
