@@ -162,6 +162,25 @@ describe("finalizeFullPath: folder-only route keeps the real filename (§8.1)", 
 
     expect(Download.finalizeFullPath(s)).toBe(expected);
   });
+
+  test("does not turn a fully deleted unlimited filename into a directory-only path", () => {
+    const previous = {
+      replacementChar: options.replacementChar,
+      truncateLength: options.truncateLength,
+    };
+    Object.assign(options, { replacementChar: "", truncateLength: 0 });
+    try {
+      const s = {
+        path: { finalize: () => "menu" },
+        info: { filename: ":" },
+        scratch: {},
+      };
+
+      expect(Download.finalizeFullPath(s)).toBe("menu/_");
+    } finally {
+      Object.assign(options, previous);
+    }
+  });
 });
 
 describe("filename from URL", () => {

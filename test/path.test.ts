@@ -177,6 +177,13 @@ describe("sanitizeFilename", () => {
     expect(Path.sanitizeFilename("con.txt", 0, false)).toBe("_con.txt");
   });
 
+  test.each(["COM¹", "com².txt", "LPT³"])(
+    "neutralizes the superscript-digit Windows device name %s",
+    (name) => {
+      expect(Path.sanitizeFilename(name, 0, false)).toBe(`_${name}`);
+    },
+  );
+
   test("keeps the configured maximum after neutralizing a reserved name", () => {
     expect(Path.sanitizeFilename("CON.txt", 7, false)).toHaveLength(7);
   });
@@ -200,8 +207,32 @@ describe("sanitizeFilename", () => {
     expect(Path.getFilenameDiagnostics("界.txt", 8).exceedsLimit).toBe(false);
   });
 
+  test("uses a safe stem when the extension fits but the first stem code point does not", () => {
+    expect(Path.sanitizeFilename("界界界.txt", 5, true, true)).toBe("_.txt");
+  });
+
   test("keeps a nonempty safe component when the first code point exceeds the byte limit", () => {
     expect(Path.sanitizeFilename("界", 1, false)).toBe("_");
+  });
+
+  test("keeps a nonempty safe component when unlimited sanitization deletes the input", () => {
+    const previous = options.replacementChar;
+    options.replacementChar = "";
+    try {
+      expect(Path.sanitizeFilename(":", 0, true, true)).toBe("_");
+    } finally {
+      options.replacementChar = previous;
+    }
+  });
+
+  test("reasserts the leading-dot policy after applying an empty replacement", () => {
+    const previous = options.replacementChar;
+    options.replacementChar = "";
+    try {
+      expect(Path.sanitizeFilename("..secret", 0, true, true)).toBe("_secret");
+    } finally {
+      options.replacementChar = previous;
+    }
   });
 });
 

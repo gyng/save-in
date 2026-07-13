@@ -35,7 +35,7 @@ export type PathFinalizeOptions = { finalComponentIsFilename?: boolean };
 export const SPECIAL_CHARACTERS_REGEX = new RegExp(FORBIDDEN_FILENAME_CHARS.source, "g");
 export const BAD_LEADING_CHARACTERS = /^[./\\]/g;
 export const TRAILING_DOTS_AND_SPACES_REGEX = /[. ]+$/;
-export const RESERVED_DEVICE_NAME_REGEX = /^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])$/i;
+export const RESERVED_DEVICE_NAME_REGEX = /^(CON|PRN|AUX|NUL|COM[1-9¹²³]|LPT[1-9¹²³])$/i;
 export const SEPARATOR_REGEX_INCLUSIVE = /([/\\])/g;
 
 function segment(type: PathSegmentType, val: string): PathSegment {
@@ -93,7 +93,8 @@ function truncatePreservingExtension(value: string, max: number) {
   const extensionBytes = utf8Encoder.encode(extension).byteLength;
   const stemBudget = max - extensionBytes;
   if (stemBudget <= 0) return truncateIfLongerThan(value, max);
-  return `${truncateIfLongerThan(value.slice(0, -extension.length), stemBudget)}${extension}`;
+  const stem = truncateIfLongerThan(value.slice(0, -extension.length), stemBudget) || "_";
+  return `${stem}${extension}`;
 }
 
 export function getFilenameDiagnostics(value: string, limitBytes = 255): FilenameDiagnostics {
@@ -154,7 +155,8 @@ export function sanitizeFilename(
     ? truncatePreservingExtension(deviceSafe, max)
     : truncateIfLongerThan(deviceSafe, max);
   const result = trimTrailingDotsAndSpaces(boundedDeviceSafe);
-  return result || (max >= 1 ? "_" : result);
+  const leadingSafe = leadingDotsForbidden ? replaceLeadingDots(result, "_") : result;
+  return leadingSafe || "_";
 }
 
 export function sanitizeBufStrings(buf: PathSegment[]) {
