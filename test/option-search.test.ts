@@ -17,6 +17,8 @@ describe("options search", () => {
     </form>`;
   });
 
+  afterEach(() => vi.useRealTimers());
+
   test("indexes wrapping and explicit labels with their section", () => {
     expect(
       optionSearchEntries(document.getElementById("options")!).map(({ label, section }) => ({
@@ -101,6 +103,7 @@ describe("options search", () => {
   });
 
   test("reopens a populated query on focus and keyboard navigation", async () => {
+    vi.useFakeTimers();
     setupOptionSearch();
     const input = document.getElementById("option-search") as HTMLInputElement;
     const results = document.getElementById("option-search-results") as HTMLElement;
@@ -108,7 +111,7 @@ describe("options search", () => {
     input.dispatchEvent(new InputEvent("input"));
 
     input.dispatchEvent(new FocusEvent("blur"));
-    await new Promise((resolve) => window.setTimeout(resolve, 120));
+    await vi.advanceTimersByTimeAsync(100);
     expect(results.hidden).toBe(true);
 
     input.dispatchEvent(new FocusEvent("focus"));

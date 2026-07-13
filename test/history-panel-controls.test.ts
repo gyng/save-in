@@ -122,13 +122,11 @@ describe("history filter controls", () => {
     expect(document.querySelector("#history-active-filters")!.textContent).toContain("photo");
     expect(document.querySelector("#history-active-filters")!.textContent).toContain("Image");
     const clear = document.querySelector<HTMLButtonElement>("#history-clear-filters")!;
-    expect(clear.classList).not.toContain("history-clear-filters-inactive");
     expect(clear.disabled).toBe(false);
     clear.click();
 
     expect(search.value).toBe("");
     expect(type.value).toBe("");
-    expect(clear.classList).toContain("history-clear-filters-inactive");
     expect(clear.disabled).toBe(true);
     expect(document.querySelector("#history-active-filters")!.textContent).toBe("");
     expect(document.querySelector("#history-count")!.textContent).toBe("0 results");

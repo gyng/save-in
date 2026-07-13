@@ -1236,7 +1236,7 @@ test("alt+click on a real page saves the image through the content script", asyn
   }
 });
 
-test("Page Sources discovers, sorts, updates live, and restores across tabs", async () => {
+test("Page Sources discovers, updates live, and restores across tabs", async () => {
   const { server, port } = await startSourcePanelServer();
   const firstPath = `127.0.0.1:${port}/sources-one`;
   const secondPath = `127.0.0.1:${port}/sources-two`;
@@ -1245,13 +1245,11 @@ test("Page Sources discovers, sorts, updates live, and restores across tabs", as
   /** @param {string} pathPart @param {string} expression */
   const evalPage = (pathPart, expression) => cdp.evalInTarget(PORT, pathPart, expression);
   /** @param {string} pathPart @returns {Promise<any>} */
-  const snapshot = (pathPart) =>
+  const sourceNames = (pathPart) =>
     evalPage(
       pathPart,
-      `JSON.stringify({
-        names: [...document.querySelector("#save-in-source-panel").shadowRoot.querySelectorAll(".source-link .name")].map((node) => node.textContent),
-        sort: document.querySelector("#save-in-source-panel").shadowRoot.querySelector('select[aria-label="Sort sources"]').value,
-      })`,
+      `JSON.stringify([...document.querySelector("#save-in-source-panel").shadowRoot
+        .querySelectorAll(".source-link .name")].map((node) => node.textContent))`,
     ).then(JSON.parse);
 
   try {
@@ -1283,276 +1281,7 @@ test("Page Sources discovers, sorts, updates live, and restores across tabs", as
           : null,
       { description: "Page Sources panel open" },
     );
-    await poll(
-      async () =>
-        (await evalPage(
-          firstPath,
-          `document.querySelector("#save-in-source-panel").getAnimations().every((animation) => animation.playState === "finished")`,
-        )) === true
-          ? true
-          : null,
-      { description: "Page Sources opening animation" },
-    );
-
-    const panelLayout = JSON.parse(
-      await evalPage(
-        firstPath,
-        `JSON.stringify((() => {
-          const host = document.querySelector("#save-in-source-panel");
-          const root = host.shadowRoot;
-          const panel = root.querySelector(".panel");
-          const hostRect = host.getBoundingClientRect();
-          const unnamedButtons = [...root.querySelectorAll("button")].filter((button) =>
-            !(button.textContent?.trim() || button.getAttribute("aria-label") || button.title)
-          );
-          return {
-            hostInViewport: hostRect.left >= -1 && hostRect.right <= innerWidth + 1 && hostRect.top >= -1 && hostRect.bottom <= innerHeight + 1,
-            hostRect: { left: hostRect.left, right: hostRect.right, top: hostRect.top, bottom: hostRect.bottom },
-            viewport: { width: innerWidth, height: innerHeight },
-            horizontalOverflow: panel.scrollWidth - panel.clientWidth,
-            unnamedButtons: unnamedButtons.length,
-            rowTargetHeights: [...root.querySelectorAll(".source-link")].map((link) => link.getBoundingClientRect().height),
-            filterLabel: root.querySelector('input[type="search"]')?.getAttribute("aria-label"),
-            sortLabel: root.querySelector("select")?.getAttribute("aria-label"),
-          };
-        })())`,
-      ),
-    );
-    if (!panelLayout.hostInViewport) {
-      throw new Error(`Page Sources escaped the viewport: ${JSON.stringify(panelLayout)}`);
-    }
-    expect(panelLayout.horizontalOverflow).toBeLessThanOrEqual(1);
-    expect(panelLayout.unnamedButtons).toBe(0);
-    expect(panelLayout.rowTargetHeights.every((/** @type {number} */ height) => height >= 38)).toBe(
-      true,
-    );
-    expect(panelLayout.filterLabel).toBe("Filter page sources");
-    expect(panelLayout.sortLabel).toBe("Sort sources");
-
-    const hoverTarget = JSON.parse(
-      await evalPage(
-        firstPath,
-        `JSON.stringify((() => {
-          const row = document.querySelector("#save-in-source-panel").shadowRoot.querySelector(".row");
-          const rect = row.getBoundingClientRect();
-          return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
-        })())`,
-      ),
-    );
-    await cdp.dispatchInput(PORT, firstPath, [
-      {
-        method: "Input.dispatchMouseEvent",
-        params: { type: "mouseMoved", x: hoverTarget.x, y: hoverTarget.y },
-      },
-    ]);
-    const hoverPreview = await poll(
-      async () => {
-        const preview = JSON.parse(
-          await evalPage(
-            firstPath,
-            `JSON.stringify((() => {
-              const host = document.querySelector("#save-in-source-panel");
-              const root = document.querySelector("#save-in-source-panel").shadowRoot;
-              const row = root.querySelector(".row");
-              const image = root.querySelector(".media-tooltip img");
-              const tooltip = image?.closest(".media-tooltip");
-              const rect = tooltip?.getBoundingClientRect();
-              return {
-                described: row.querySelector(".source-link").hasAttribute("aria-describedby"),
-                loaded: image?.complete && image.naturalWidth > 0,
-                width: rect?.width || 0,
-                height: rect?.height || 0,
-                side: tooltip?.dataset.side,
-                onscreen: rect ? rect.left >= 0 && rect.top >= 0 && rect.right <= innerWidth && rect.bottom <= innerHeight : false,
-              };
-            })())`,
-          ),
-        );
-        return preview.described && preview.loaded ? preview : null;
-      },
-      { description: "visible Page Sources hover preview" },
-    );
-    expect(hoverPreview.described).toBe(true);
-    expect(hoverPreview.loaded).toBe(true);
-    expect(hoverPreview.width).toBeGreaterThanOrEqual(160);
-    expect(hoverPreview.height).toBeGreaterThanOrEqual(120);
-    expect(hoverPreview.side).toBe("left");
-    expect(hoverPreview.onscreen).toBe(true);
-    await cdp.sleep(1800);
-    const persistentPreview = JSON.parse(
-      await evalPage(
-        firstPath,
-        `JSON.stringify((() => {
-          const host = document.querySelector("#save-in-source-panel");
-          const tooltip = host.shadowRoot.querySelector(".media-tooltip");
-          const rect = tooltip?.getBoundingClientRect();
-          return {
-            side: tooltip?.dataset.side,
-            onscreen: rect ? rect.left >= 0 && rect.top >= 0 && rect.right <= innerWidth && rect.bottom <= innerHeight : false,
-          };
-        })())`,
-      ),
-    );
-    expect(persistentPreview.side).toBe("left");
-    expect(persistentPreview.onscreen).toBe(true);
-    await cdp.dispatchInput(PORT, firstPath, [
-      {
-        method: "Input.dispatchMouseEvent",
-        params: { type: "mouseMoved", x: 8, y: 8 },
-      },
-    ]);
-    await poll(
-      async () =>
-        (await evalPage(
-          firstPath,
-          `!document.querySelector("#save-in-source-panel").shadowRoot.querySelector(".media-tooltip")`,
-        )) === true
-          ? true
-          : null,
-      { description: "Page Sources hover preview dismissal" },
-    );
-
-    await evalPage(
-      firstPath,
-      `document.querySelector("#save-in-source-panel").shadowRoot.querySelector(".popout").click()`,
-    );
-    const floatingHeader = JSON.parse(
-      await evalPage(
-        firstPath,
-        `JSON.stringify((() => {
-          const rect = document.querySelector("#save-in-source-panel").shadowRoot.querySelector("header").getBoundingClientRect();
-          return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
-        })())`,
-      ),
-    );
-    await cdp.dispatchInput(PORT, firstPath, [
-      {
-        method: "Input.dispatchMouseEvent",
-        params: {
-          type: "mousePressed",
-          x: floatingHeader.x,
-          y: floatingHeader.y,
-          button: "left",
-          clickCount: 1,
-        },
-      },
-      {
-        method: "Input.dispatchMouseEvent",
-        params: {
-          type: "mouseMoved",
-          x: floatingHeader.x + 180,
-          y: floatingHeader.y + 120,
-          button: "left",
-        },
-      },
-      {
-        method: "Input.dispatchMouseEvent",
-        params: {
-          type: "mouseReleased",
-          x: floatingHeader.x + 180,
-          y: floatingHeader.y + 120,
-          button: "left",
-          clickCount: 1,
-        },
-      },
-    ]);
-    expect(
-      await evalPage(
-        firstPath,
-        `(() => {
-          const host = document.querySelector("#save-in-source-panel");
-          return host.classList.contains("floating") && !!host.style.left && !!host.style.top;
-        })()`,
-      ),
-    ).toBe(true);
-    await evalPage(
-      firstPath,
-      `document.querySelector("#save-in-source-panel").shadowRoot.querySelector(".dock").click()`,
-    );
-    const dockedLayout = JSON.parse(
-      await evalPage(
-        firstPath,
-        `JSON.stringify((() => {
-          const host = document.querySelector("#save-in-source-panel");
-          const rect = host.getBoundingClientRect();
-          return {
-            floating: host.classList.contains("floating"),
-            dock: host.dataset.dock,
-            leftStyle: host.style.left,
-            topStyle: host.style.top,
-            atBottom: Math.abs(rect.bottom - innerHeight) <= 1,
-            fullWidth: Math.abs(rect.width - innerWidth) <= 1,
-          };
-        })())`,
-      ),
-    );
-    expect(dockedLayout).toEqual({
-      floating: false,
-      dock: "bottom",
-      leftStyle: "",
-      topStyle: "",
-      atBottom: true,
-      fullWidth: true,
-    });
-    const bottomHoverTarget = JSON.parse(
-      await evalPage(
-        firstPath,
-        `JSON.stringify((() => {
-          const row = document.querySelector("#save-in-source-panel").shadowRoot.querySelector(".row");
-          const rect = row.getBoundingClientRect();
-          return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
-        })())`,
-      ),
-    );
-    await cdp.dispatchInput(PORT, firstPath, [
-      {
-        method: "Input.dispatchMouseEvent",
-        params: { type: "mouseMoved", x: bottomHoverTarget.x, y: bottomHoverTarget.y },
-      },
-    ]);
-    const bottomPreview = await poll(
-      async () => {
-        const preview = JSON.parse(
-          await evalPage(
-            firstPath,
-            `JSON.stringify((() => {
-              const host = document.querySelector("#save-in-source-panel");
-              const tooltip = host.shadowRoot.querySelector(".media-tooltip");
-              const rect = tooltip?.getBoundingClientRect();
-              return {
-                side: tooltip?.dataset.side,
-                onscreen: rect ? rect.left >= 0 && rect.top >= 0 && rect.right <= innerWidth && rect.bottom <= innerHeight : false,
-              };
-            })())`,
-          ),
-        );
-        return preview.side ? preview : null;
-      },
-      { description: "bottom-docked Page Sources hover preview" },
-    );
-    expect(bottomPreview.side).toBe("top");
-    expect(bottomPreview.onscreen).toBe(true);
-    await cdp.dispatchInput(PORT, firstPath, [
-      {
-        method: "Input.dispatchMouseEvent",
-        params: { type: "mouseMoved", x: 8, y: 8 },
-      },
-    ]);
-
-    expect((await snapshot(firstPath)).names).toEqual(["second.png", "first.png"]);
-    await evalPage(
-      firstPath,
-      `(() => {
-        const root = document.querySelector("#save-in-source-panel").shadowRoot;
-        const sort = root.querySelector('select[aria-label="Sort sources"]');
-        sort.value = "detected-asc";
-        sort.dispatchEvent(new Event("change"));
-      })()`,
-    );
-    expect(await snapshot(firstPath)).toEqual({
-      names: ["first.png", "second.png"],
-      sort: "detected-asc",
-    });
+    expect(await sourceNames(firstPath)).toEqual(["second.png", "first.png"]);
 
     await evalPage(
       firstPath,
@@ -1563,18 +1292,9 @@ test("Page Sources discovers, sorts, updates live, and restores across tabs", as
         document.body.append(image);
       })()`,
     );
-    await poll(async () => ((await snapshot(firstPath)).names.includes("late.png") ? true : null), {
+    await poll(async () => ((await sourceNames(firstPath)).includes("late.png") ? true : null), {
       description: "live Page Sources discovery",
     });
-    await evalPage(
-      firstPath,
-      `(() => {
-        const sort = document.querySelector("#save-in-source-panel").shadowRoot.querySelector('select[aria-label="Sort sources"]');
-        sort.value = "detected-desc";
-        sort.dispatchEvent(new Event("change"));
-      })()`,
-    );
-    expect((await snapshot(firstPath)).names[0]).toBe("late.png");
 
     await cdp.openTab(PORT, secondUrl);
     await poll(

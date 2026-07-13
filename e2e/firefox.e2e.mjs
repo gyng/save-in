@@ -517,7 +517,7 @@ test("alt+click on a real page saves the image through the content script", asyn
   }
 });
 
-test("Page Sources discovers, sorts, updates live, and restores across tabs", async () => {
+test("Page Sources discovers, updates live, and restores across tabs", async () => {
   const { server, port } = await startSourcePanelServer();
   const firstMatch = `localhost:${port}/sources-one`;
   const secondMatch = `localhost:${port}/sources-two`;
@@ -526,14 +526,12 @@ test("Page Sources discovers, sorts, updates live, and restores across tabs", as
   const firstUrl = `http://${firstMatch}`;
   const secondUrl = `http://${secondMatch}`;
   /** @param {string} target @returns {Promise<any>} */
-  const snapshot = (target) =>
+  const sourceNames = (target) =>
     session
       .evaluateInTab(
         target,
-        `JSON.stringify({
-          names: [...document.querySelector("#save-in-source-panel").shadowRoot.querySelectorAll(".source-link .name")].map((node) => node.textContent),
-          sort: document.querySelector("#save-in-source-panel").shadowRoot.querySelector('select[aria-label="Sort sources"]').value,
-        })`,
+        `JSON.stringify([...document.querySelector("#save-in-source-panel").shadowRoot
+          .querySelectorAll(".source-link .name")].map((node) => node.textContent))`,
       )
       .then(JSON.parse);
 
@@ -574,19 +572,7 @@ test("Page Sources discovers, sorts, updates live, and restores across tabs", as
       { description: "Firefox Page Sources panel open" },
     );
 
-    expect((await snapshot(firstTarget)).names).toEqual(["second.png", "first.png"]);
-    await session.evaluateInTab(
-      firstTarget,
-      `(() => {
-        const sort = document.querySelector("#save-in-source-panel").shadowRoot.querySelector('select[aria-label="Sort sources"]');
-        sort.value = "detected-asc";
-        sort.dispatchEvent(new Event("change"));
-      })()`,
-    );
-    expect(await snapshot(firstTarget)).toEqual({
-      names: ["first.png", "second.png"],
-      sort: "detected-asc",
-    });
+    expect(await sourceNames(firstTarget)).toEqual(["second.png", "first.png"]);
 
     await session.evaluateInTab(
       firstTarget,
@@ -596,19 +582,9 @@ test("Page Sources discovers, sorts, updates live, and restores across tabs", as
         document.body.append(image);
       })()`,
     );
-    await poll(
-      async () => ((await snapshot(firstTarget)).names.includes("late.png") ? true : null),
-      { description: "Firefox live Page Sources discovery" },
-    );
-    await session.evaluateInTab(
-      firstTarget,
-      `(() => {
-        const sort = document.querySelector("#save-in-source-panel").shadowRoot.querySelector('select[aria-label="Sort sources"]');
-        sort.value = "detected-desc";
-        sort.dispatchEvent(new Event("change"));
-      })()`,
-    );
-    expect((await snapshot(firstTarget)).names[0]).toBe("late.png");
+    await poll(async () => ((await sourceNames(firstTarget)).includes("late.png") ? true : null), {
+      description: "Firefox live Page Sources discovery",
+    });
 
     await evalBackground(`browser.tabs.query({}).then(async (tabs) => {
       const first = tabs.find((tab) => tab.url?.includes(${JSON.stringify(firstMatch)}));

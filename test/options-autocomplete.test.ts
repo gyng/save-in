@@ -137,7 +137,6 @@ describe("attachAutocomplete", () => {
 
   test("opens with suggestions on input and closes when nothing matches", () => {
     type("a/:d");
-    expect(dropdown().style.display).toBe("block");
     expect(dropdown().textContent).toBe("Date and time:date::day:");
     expect(dropdown().querySelector(".autocomplete-group")?.textContent).toBe("Date and time");
     expect(textarea.getAttribute("role")).toBe("combobox");
@@ -150,7 +149,6 @@ describe("attachAutocomplete", () => {
     );
 
     type("a/");
-    expect(dropdown().style.display).toBe("none");
     expect(textarea.getAttribute("aria-expanded")).toBe("false");
     expect(textarea.hasAttribute("aria-activedescendant")).toBe(false);
   });
@@ -164,7 +162,7 @@ describe("attachAutocomplete", () => {
 
     expect(textarea.value).toBe("a/:date:");
     expect(textarea.selectionStart).toBe(8);
-    expect(dropdown().style.display).toBe("none");
+    expect(textarea.getAttribute("aria-expanded")).toBe("false");
     expect(input).toHaveBeenCalledOnce();
   });
 
@@ -196,25 +194,25 @@ describe("attachAutocomplete", () => {
   test("Escape and blur close the dropdown", () => {
     type("a/:d");
     key("Escape");
-    expect(dropdown().style.display).toBe("none");
+    expect(textarea.getAttribute("aria-expanded")).toBe("false");
 
     type("a/:d");
     textarea.dispatchEvent(new window.FocusEvent("blur"));
-    expect(dropdown().style.display).toBe("none");
+    expect(textarea.getAttribute("aria-expanded")).toBe("false");
   });
 
   test("a press outside the field and dropdown closes it", () => {
     type("a/:d");
-    expect(dropdown().style.display).toBe("block");
+    expect(textarea.getAttribute("aria-expanded")).toBe("true");
 
     document.body.dispatchEvent(new window.MouseEvent("mousedown", { bubbles: true }));
-    expect(dropdown().style.display).toBe("none");
+    expect(textarea.getAttribute("aria-expanded")).toBe("false");
   });
 
   test("a press inside the dropdown keeps it open", () => {
     type("a/:d");
     dropdown().dispatchEvent(new window.MouseEvent("mousedown", { bubbles: true }));
-    expect(dropdown().style.display).toBe("block");
+    expect(textarea.getAttribute("aria-expanded")).toBe("true");
   });
 
   test("mousedown on an entry inserts it", () => {
@@ -245,7 +243,7 @@ describe("setupRoutingAutocomplete wiring", () => {
     input.dispatchEvent(new window.InputEvent("input", { bubbles: true }));
 
     const dropdown = document.querySelector(".autocomplete-dropdown") as HTMLElement;
-    expect(dropdown.style.display).toBe("block");
+    expect(input.getAttribute("aria-expanded")).toBe("true");
     expect([...dropdown.querySelectorAll('[role="option"]')].map((li) => li.textContent)).toEqual([
       ":date:",
       ":day:",
