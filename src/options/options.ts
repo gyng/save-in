@@ -33,6 +33,7 @@ import {
 } from "./options-persistence.ts";
 import { optionsRuntime } from "./options-runtime.ts";
 import { bootstrapOptionsPage } from "./options-bootstrap.ts";
+import { setupIntegrationPanel } from "./integration-panel.ts";
 
 const setupLastDownloadState = () => {
   document.querySelector("#last-dl-url")?.classList.add("is-empty");
@@ -339,78 +340,6 @@ const updateErrors = () => {
   });
 };
 
-// Version from the live manifest; commit + stamp date from version.json
-// (written by scripts/write-version.js at build/stage time — absent in a
-// bare checkout, where just the version shows)
-const renderVersionLabel = () => {
-  const el = document.querySelector("#version-label") as HTMLAnchorElement;
-  if (!el) {
-    return;
-  }
-
-  const version = webExtensionApi.runtime.getManifest().version;
-  el.textContent = `v${version}`;
-  el.title = `save-in v${version} — view releases`;
-
-  fetch("version.json")
-    .then((res) => res.json())
-    .then(({ commit }) => {
-      el.title = `save-in v${version} (${commit}) — view releases`;
-    })
-    .catch(() => {});
-};
-
-// More Options → External API: show the live extension id and a ready-to-paste
-// integration snippet, and PING the running background so the displayed version
-// and capabilities are the real ones this build serves. See docs/INTEGRATIONS.md.
-const renderExternalApi = () => {
-  const idEl = document.querySelector("#ext-id");
-  if (!idEl) {
-    return;
-  }
-  const id = webExtensionApi.runtime.id;
-  idEl.textContent = id;
-
-  const snippet = document.querySelector("#api-snippet");
-  if (snippet) {
-    snippet.textContent = [
-      `const ID = "${id}";`,
-      `const pong = await webExtensionApi.runtime.sendMessage(ID, { type: "PING" });`,
-      `// pong.body -> { version, capabilities }`,
-      ``,
-      `const res = await webExtensionApi.runtime.sendMessage(ID, {`,
-      `  type: "DOWNLOAD",`,
-      `  body: {`,
-      `    url: "https://example.com/pic.jpg",`,
-      `    info: { pageUrl: location.href, srcUrl: "https://example.com/pic.jpg" },`,
-      `  },`,
-      `});`,
-      `// res.body -> { status: "OK", version, url } | { status: "ERROR", error, message }`,
-    ].join("\n");
-  }
-
-  const versionEl = document.querySelector("#api-version");
-  const capsEl = document.querySelector("#api-capabilities");
-  webExtensionApi.runtime
-    .sendMessage({ type: "PING" })
-    .then((pong) => {
-      const body = (pong && pong.body) || {};
-      if (versionEl) {
-        versionEl.textContent = body.version != null ? `v${body.version}` : "unknown";
-      }
-      if (capsEl) {
-        capsEl.textContent = (body.capabilities || []).join(", ") || "—";
-      }
-    })
-    .catch(() => {
-      if (versionEl) {
-        versionEl.textContent = "unavailable";
-      }
-      if (capsEl) {
-        capsEl.textContent = "—";
-      }
-    });
-};
 // Set UI elements' value/checked
 // Transforms applied to a stored value before it populates its options field.
 // These would belong on the option schema as onOptionsLoad, but the schema
@@ -1011,8 +940,7 @@ export const setupOptionsPage = bootstrapOptionsPage({
   document,
   ready: [
     setupLastDownloadState,
-    renderVersionLabel,
-    renderExternalApi,
+    setupIntegrationPanel,
     setupCounterPanel,
     setupDefaultDownloadsFolderLinks,
     setupVariablesPreview,

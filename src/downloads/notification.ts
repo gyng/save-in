@@ -24,6 +24,7 @@ import { extensionSessionStorage } from "../platform/storage-areas.ts";
 import { downloadPorts } from "./ports.ts";
 import {
   buildSuccessNotificationTitle,
+  downloadFailureReason,
   getDownloadFailure,
   isRetryableDownloadFailure,
 } from "./notification-model.ts";
@@ -104,8 +105,7 @@ export const Notifier = {
     );
   },
 
-  // Returns Firefox/Chrome error deltas ({ current }) or a boolean
-  /** @returns {any} */
+  // Returns Firefox/Chrome error deltas ({ current }) or a boolean.
   isDownloadFailure: getDownloadFailure,
 
   // Handlers are registered once at load (bottom of this file): MV3 workers
@@ -268,7 +268,7 @@ export const Notifier = {
     webExtensionApi.downloads.show(Number(notId));
   },
 
-  onDownloadChanged: async (downloadDelta: any) => {
+  onDownloadChanged: async (downloadDelta: browser.downloads._OnChangedDownloadDelta) => {
     if (backgroundRuntime.ready) {
       await backgroundRuntime.ready.catch(() => {});
     }
@@ -313,7 +313,7 @@ export const Notifier = {
           }
           await historyPort.setStatus(
             record.historyEntryId,
-            complete ? "complete" : failed.current || "failed",
+            complete ? "complete" : downloadFailureReason(failed) || "failed",
             downloadDelta.id,
             fileSize,
           );
@@ -397,7 +397,7 @@ export const Notifier = {
       if (isFromSelf && failed && !isUserCancelled) {
         logPort.add("download failed", {
           id: downloadDelta.id,
-          error: failed.current || failed,
+          error: downloadFailureReason(failed) || failed,
         });
 
         const notifyFailure = () => {
@@ -408,7 +408,9 @@ export const Notifier = {
                 type: "basic",
                 title: webExtensionApi.i18n.getMessage("notificationFailureTitle", [filename]),
                 iconUrl: ERROR_ICON_URL,
-                message: failed.current || webExtensionApi.i18n.getMessage("genericUnknownError"),
+                message:
+                  downloadFailureReason(failed) ||
+                  webExtensionApi.i18n.getMessage("genericUnknownError"),
               },
               notifyDuration,
             );
@@ -435,7 +437,7 @@ export const Notifier = {
 
         // Automatic fallback chain: network/server failures get one retry
         // through the background fetch before the user sees a failure
-        const errorName = (failed && failed.current) || "";
+        const errorName = downloadFailureReason(failed) || "";
         const canRetry = isRetryableDownloadFailure(failed);
 
         if (canRetry) {

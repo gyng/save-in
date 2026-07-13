@@ -36,6 +36,7 @@ const { setCurrentTab } = await import("../src/platform/current-tab.ts");
 const { backgroundRuntime } = await import("../src/background/runtime.ts");
 const { SaveHistory } = await import("../src/background/history.ts");
 const SourcePanelState = await import("../src/background/source-panel-state.ts");
+const RoutePreview = await import("../src/background/route-preview.ts");
 
 // Import-time side effects are deferred (Task #2): messaging.ts no longer
 // registers its runtime listeners at load — the entry does, so call it here to
@@ -94,7 +95,7 @@ const setupGlobals = () => {
     OPTION_TYPES: { BOOL: "BOOL", VALUE: "VALUE" },
     OPTION_DESCRIPTIONS: { prompt: "Always open Save As", paths: "The menu structure" },
   });
-  vi.spyOn(OptionsManagement, "checkRoutes").mockReturnValue({
+  vi.spyOn(RoutePreview, "previewRoutes").mockReturnValue({
     path: "routed/dir",
     captures: null,
   } as any);
@@ -307,12 +308,12 @@ describe("onMessage CHECK_ROUTES", () => {
     const sendResponse = vi.fn();
 
     expect(onMessage({ type: MESSAGE_TYPES.CHECK_ROUTES }, {}, sendResponse)).toBe(true);
-    expect(OptionsManagement.checkRoutes).not.toHaveBeenCalled();
+    expect(RoutePreview.previewRoutes).not.toHaveBeenCalled();
 
     finish();
     await backgroundRuntime.ready;
     await settle();
-    expect(OptionsManagement.checkRoutes).toHaveBeenCalledTimes(1);
+    expect(RoutePreview.previewRoutes).toHaveBeenCalledTimes(1);
   });
 
   test("uses the state supplied in the request body", async () => {
@@ -327,7 +328,7 @@ describe("onMessage CHECK_ROUTES", () => {
     expect(keepChannelOpen).toBe(true);
     await settle();
 
-    expect(OptionsManagement.checkRoutes).toHaveBeenCalledWith(state);
+    expect(RoutePreview.previewRoutes).toHaveBeenCalledWith(state);
     // interpolation runs in preview mode (a copy of info with preview:true)
     expect(Variable.applyVariables).toHaveBeenCalledWith(
       expect.any(Path),
@@ -346,7 +347,7 @@ describe("onMessage CHECK_ROUTES", () => {
   });
 
   test("turns an async handler rejection into a protocol error", async () => {
-    vi.mocked(OptionsManagement.checkRoutes).mockRejectedValue(new Error("preview failed"));
+    vi.mocked(RoutePreview.previewRoutes).mockRejectedValue(new Error("preview failed"));
     const sendResponse = vi.fn();
 
     const keepChannelOpen = onMessage({ type: MESSAGE_TYPES.CHECK_ROUTES }, {}, sendResponse);
@@ -371,7 +372,7 @@ describe("onMessage CHECK_ROUTES", () => {
     onMessage({ type: MESSAGE_TYPES.CHECK_ROUTES, body: {} }, {}, sendResponse);
     await settle();
 
-    expect(OptionsManagement.checkRoutes).toHaveBeenCalledWith(lastState);
+    expect(RoutePreview.previewRoutes).toHaveBeenCalledWith(lastState);
     expect(sendResponse).toHaveBeenCalledWith(
       expect.objectContaining({
         body: expect.objectContaining({
@@ -389,7 +390,7 @@ describe("onMessage CHECK_ROUTES", () => {
     onMessage({ type: MESSAGE_TYPES.CHECK_ROUTES }, {}, sendResponse);
     await settle();
 
-    expect(OptionsManagement.checkRoutes).toHaveBeenCalledWith(false);
+    expect(RoutePreview.previewRoutes).toHaveBeenCalledWith(null);
     expect(Variable.applyVariables).not.toHaveBeenCalled();
     expect(sendResponse).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -414,25 +415,27 @@ describe("handleDownloadMessage", () => {
     ),
   });
 
-  test("tolerates an external message with no info object", () => {
+  test("tolerates an external message with no info object", async () => {
     const sendResponse = vi.fn();
-    expect(() =>
+    expect(
       onMessage(
         { type: MESSAGE_TYPES.DOWNLOAD, body: { url: "https://x/file.png" } },
         {},
         sendResponse,
       ),
-    ).not.toThrow();
+    ).toBe(true);
     expect(Download.renameAndDownload).toHaveBeenCalledTimes(1);
-    expect(sendResponse).toHaveBeenCalledWith({
-      type: MESSAGE_TYPES.DOWNLOAD,
-      body: { status: MESSAGE_TYPES.OK, version: 1, url: "https://x/file.png" },
-    });
+    await vi.waitFor(() =>
+      expect(sendResponse).toHaveBeenCalledWith({
+        type: MESSAGE_TYPES.DOWNLOAD,
+        body: { status: MESSAGE_TYPES.OK, version: 1, url: "https://x/file.png" },
+      }),
+    );
   });
 
-  test("downloads with defaults when no previous download state exists", () => {
+  test("downloads with defaults when no previous download state exists", async () => {
     const sendResponse = vi.fn();
-    onMessage(request(), {}, sendResponse);
+    expect(onMessage(request(), {}, sendResponse)).toBe(true);
 
     expect(Download.renameAndDownload).toHaveBeenCalledTimes(1);
 
@@ -446,10 +449,33 @@ describe("handleDownloadMessage", () => {
     expect(state.info.context).toBe(DOWNLOAD_TYPES.CLICK);
     expect(state.info.now).toEqual(expect.any(Date));
 
-    expect(sendResponse).toHaveBeenCalledWith({
-      type: MESSAGE_TYPES.DOWNLOAD,
-      body: { status: MESSAGE_TYPES.OK, version: 1, url: "https://x/file.png" },
-    });
+    await vi.waitFor(() =>
+      expect(sendResponse).toHaveBeenCalledWith({
+        type: MESSAGE_TYPES.DOWNLOAD,
+        body: { status: MESSAGE_TYPES.OK, version: 1, url: "https://x/file.png" },
+      }),
+    );
+  });
+
+  test("keeps the message channel alive until the browser accepts the download", async () => {
+    let finish!: (value: { status: "started"; downloadId: number }) => void;
+    vi.mocked(Download.renameAndDownload).mockReturnValueOnce(
+      new Promise((resolve) => {
+        finish = resolve;
+      }),
+    );
+    const sendResponse = vi.fn();
+
+    expect(onMessage(request(), {}, sendResponse)).toBe(true);
+    expect(sendResponse).not.toHaveBeenCalled();
+
+    finish({ status: "started", downloadId: 7 });
+    await vi.waitFor(() =>
+      expect(sendResponse).toHaveBeenCalledWith({
+        type: MESSAGE_TYPES.DOWNLOAD,
+        body: { status: MESSAGE_TYPES.OK, version: 1, url: "https://x/file.png" },
+      }),
+    );
   });
 
   test("preserves a caller-supplied suggested filename", () => {
@@ -552,15 +578,17 @@ describe("handleDownloadMessage", () => {
     expect(state.info.comment).toBeUndefined();
   });
 
-  test("is reachable from external extensions via onMessageExternal", () => {
+  test("is reachable from external extensions via onMessageExternal", async () => {
     const sendResponse = vi.fn();
-    onMessageExternal(request(), { tab: { id: 9 } }, sendResponse);
+    expect(onMessageExternal(request(), { tab: { id: 9 } }, sendResponse)).toBe(true);
 
     expect(Download.renameAndDownload).toHaveBeenCalledTimes(1);
-    expect(sendResponse).toHaveBeenCalledWith({
-      type: MESSAGE_TYPES.DOWNLOAD,
-      body: { status: MESSAGE_TYPES.OK, version: 1, url: "https://x/file.png" },
-    });
+    await vi.waitFor(() =>
+      expect(sendResponse).toHaveBeenCalledWith({
+        type: MESSAGE_TYPES.DOWNLOAD,
+        body: { status: MESSAGE_TYPES.OK, version: 1, url: "https://x/file.png" },
+      }),
+    );
   });
 
   test("external downloads wait for cold-start initialization", async () => {
@@ -576,7 +604,7 @@ describe("handleDownloadMessage", () => {
 
     finish();
     await backgroundRuntime.ready;
-    await Promise.resolve();
+    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
     expect(Download.renameAndDownload).toHaveBeenCalledTimes(1);
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.DOWNLOAD,
@@ -600,13 +628,17 @@ describe("external DOWNLOAD API v1", () => {
     }
   });
 
-  test("echoes a caller-supplied version back", () => {
+  test("echoes a caller-supplied version back", async () => {
     const sendResponse = vi.fn();
-    onMessageExternal(download({ url: "https://x/f.png", version: 1 }), {}, sendResponse);
-    expect(sendResponse).toHaveBeenCalledWith({
-      type: MESSAGE_TYPES.DOWNLOAD,
-      body: { status: MESSAGE_TYPES.OK, version: 1, url: "https://x/f.png" },
-    });
+    expect(
+      onMessageExternal(download({ url: "https://x/f.png", version: 1 }), {}, sendResponse),
+    ).toBe(true);
+    await vi.waitFor(() =>
+      expect(sendResponse).toHaveBeenCalledWith({
+        type: MESSAGE_TYPES.DOWNLOAD,
+        body: { status: MESSAGE_TYPES.OK, version: 1, url: "https://x/f.png" },
+      }),
+    );
   });
 
   test("rejects a missing url with BAD_REQUEST and does not download", () => {

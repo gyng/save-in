@@ -46,7 +46,7 @@ const acquireDirectoryLock = (
         }
       }
       if (Date.now() >= deadline)
-        throw new Error(`Timed out waiting for E2E staging lock: ${lockDir}`);
+        throw new Error(`Timed out waiting for E2E staging lock: ${lockDir}`, { cause: error });
       sleepSync(pollMs);
     }
   }

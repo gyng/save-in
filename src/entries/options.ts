@@ -27,7 +27,7 @@ import { setupTabs } from "../options/tabs.ts";
 import { setupOptionSearch } from "../options/option-search.ts";
 import { setupSourceShortcut } from "../options/source-shortcut.ts";
 import "../options/webmcp.ts";
-import "../options/about-dialog.ts";
+import { setupAboutDialog } from "../options/about-dialog.ts";
 
 document.addEventListener(
   "DOMContentLoaded",
@@ -42,6 +42,7 @@ document.addEventListener(
     setupTabs({ confirmPendingChanges });
     setupOptionSearch();
     setupSourceShortcut();
+    setupAboutDialog();
   },
   { once: true },
 );

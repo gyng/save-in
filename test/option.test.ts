@@ -1,5 +1,6 @@
-// OptionsManagement: option schema/defaults, storage load, and the routing
-// dry-run used by the options page's "check routes" preview
+// OptionsManagement: option schema/defaults and storage normalization. The
+// background route-preview service is exercised here against the same routing
+// dependency fakes because it consumes the normalized options bag.
 
 import * as constants from "../src/shared/constants.ts";
 import type { RoutingRule } from "../src/routing/router.ts";
@@ -50,7 +51,7 @@ const setupGlobals = () => {
 
 describe("OptionsManagement", () => {
   let OptionsManagement: (typeof import("../src/config/option.ts"))["OptionsManagement"];
-  let backgroundRuntime: (typeof import("../src/background/runtime.ts"))["backgroundRuntime"];
+  let previewRoutes: (typeof import("../src/background/route-preview.ts"))["previewRoutes"];
   type SchemaKey = (typeof OptionsManagement)["OPTION_KEYS"][number];
   type LoadKey = SchemaKey & { onLoad(value: any): any };
   type SaveKey = SchemaKey & { onSave(value: any): any };
@@ -59,8 +60,7 @@ describe("OptionsManagement", () => {
     jest.resetModules();
     setupGlobals();
     const optionModule = await import("../src/config/option.ts");
-    ({ backgroundRuntime } = await import("../src/background/runtime.ts"));
-    backgroundRuntime.debug = false;
+    ({ previewRoutes } = await import("../src/background/route-preview.ts"));
     OptionsManagement = optionModule.OptionsManagement;
     // Seeding is deferred out of module eval (Task #2); seed defaults here the
     // way the entry does at startup, so loadOptions overlays storage onto them.
@@ -239,8 +239,8 @@ describe("OptionsManagement", () => {
 
   describe("checkRoutes", () => {
     test("returns nulls when there is no state (SW restart, nothing downloaded yet)", async () => {
-      expect(await OptionsManagement.checkRoutes(null)).toEqual({ path: null, captures: null });
-      expect(await OptionsManagement.checkRoutes(undefined)).toEqual({
+      expect(await previewRoutes(null)).toEqual({ path: null, captures: null });
+      expect(await previewRoutes(undefined)).toEqual({
         path: null,
         captures: null,
       });
@@ -267,7 +267,7 @@ describe("OptionsManagement", () => {
 
       const state = { info: { filename: "photo.png", url: "https://x/photo.png" } };
 
-      const result = await OptionsManagement.checkRoutes(state);
+      const result = await previewRoutes(state);
 
       expect(mocks.Download.getRoutingMatches).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -313,7 +313,7 @@ describe("OptionsManagement", () => {
         info: { filename: "sanitized_.png", initialFilename: "café.png", url: "https://x/f.png" },
       };
 
-      await OptionsManagement.checkRoutes(state);
+      await previewRoutes(state);
 
       expect(mocks.Download.getRoutingMatches).toHaveBeenCalledWith(
         expect.objectContaining({ info: expect.objectContaining({ filename: "café.png" }) }),
@@ -335,7 +335,7 @@ describe("OptionsManagement", () => {
 
       const state = { info: { url: "https://x/nofilename" } };
 
-      const result = await OptionsManagement.checkRoutes(state);
+      const result = await previewRoutes(state);
 
       expect(mocks.router.getCaptureMatches).toHaveBeenCalledWith(
         onlyRule,
@@ -349,18 +349,6 @@ describe("OptionsManagement", () => {
     test("requests every option key from storage", async () => {
       await OptionsManagement.loadOptions();
       expect(global.browser.storage.local.get).toHaveBeenCalledWith(OptionsManagement.getKeys());
-    });
-
-    test("sets runtime debug when the stored debug flag is true", async () => {
-      global.browser.storage.local.get = vi.fn(() => Promise.resolve({ debug: true }));
-      await OptionsManagement.loadOptions();
-      expect(backgroundRuntime.debug).toBe(true);
-    });
-
-    test("does not set runtime debug when debug is false or absent", async () => {
-      global.browser.storage.local.get = vi.fn(() => Promise.resolve({ debug: false }));
-      await OptionsManagement.loadOptions();
-      expect(backgroundRuntime.debug).toBe(false);
     });
 
     test("applies each stored value's onLoad transform, defaulting to identity", async () => {

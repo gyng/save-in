@@ -7,4 +7,5 @@ src/options/version.json
 yarn-error.log
 coverage
 .playwright-mcp/
+.wiki-work/
 scripts/tmp-options-server.cjs

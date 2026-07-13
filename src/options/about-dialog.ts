@@ -43,5 +43,3 @@ export const setupAboutDialog = () => {
     mascot.classList.add("is-celebrating");
   });
 };
-
-setupAboutDialog();

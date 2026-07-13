@@ -71,6 +71,26 @@ for (const [file, dependencies] of imports) {
   }
 }
 
+// Config owns schemas, normalization and stored values. Application services
+// may consume config, but config must not reach upward into execution-context
+// or download/background implementations.
+for (const [file, dependencies] of imports) {
+  if (!relative(file).startsWith("src/config/")) continue;
+  for (const dependency of dependencies) {
+    if (
+      ["src/background/", "src/content/", "src/downloads/", "src/entries/", "src/options/"].some(
+        (boundary) => relative(dependency).startsWith(boundary),
+      )
+    ) {
+      report(
+        file,
+        "config must not import application or execution-context implementations",
+        dependency,
+      );
+    }
+  }
+}
+
 // Low-level runtime layers cannot point back into feature or composition
 // layers. Type-only contract references remain erased from this graph.
 const runtimeLayerRules = [

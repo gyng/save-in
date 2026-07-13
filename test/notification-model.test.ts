@@ -1,5 +1,6 @@
 import {
   buildSuccessNotificationTitle,
+  downloadFailureReason,
   formatNotificationFileSize,
   getDownloadFailure,
   isRetryableDownloadFailure,
@@ -27,5 +28,9 @@ describe("notification model", () => {
     );
     expect(isRetryableDownloadFailure({ current: "SERVER_UNREACHABLE" })).toBe(true);
     expect(isRetryableDownloadFailure({ current: "FILE_FAILED" })).toBe(false);
+    expect(isRetryableDownloadFailure("SERVER_FAILED")).toBe(false);
+    expect(downloadFailureReason({ current: "NETWORK_FAILED" })).toBe("NETWORK_FAILED");
+    expect(downloadFailureReason("SERVER_FAILED")).toBe("SERVER_FAILED");
+    expect(downloadFailureReason(true)).toBeUndefined();
   });
 });

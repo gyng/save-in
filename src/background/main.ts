@@ -60,6 +60,7 @@ backgroundRuntime.init = () => {
     hydrateDownloads(downloadsState, extensionSessionStorage),
   ])
     .then((results) => {
+      backgroundRuntime.debug = results[0].debug;
       // MV3 service workers are stateless: restore last used path across restarts
       restoreLastUsed(results[1]);
 

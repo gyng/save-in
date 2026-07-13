@@ -31,6 +31,7 @@ import { applyConfigSerialized } from "./config-apply.ts";
 import { configWriteState } from "./state.ts";
 import { getPersistenceDiagnostics } from "../shared/persistence-diagnostics.ts";
 import { syncSourcePanelToTab, setSourcePanelOpenState } from "./source-panel-state.ts";
+import { previewRoutes } from "./route-preview.ts";
 
 type MessageSender = browser.runtime.MessageSender;
 type ProtocolSendResponse = SendResponse;
@@ -120,9 +121,7 @@ export const Messaging = {
 
     // The legacy no-state path evaluates to false; checkRoutes treats every
     // nullish/falsy input as an empty preview.
-    const routeInfo = await OptionsManagement.checkRoutes(
-      lastState as Parameters<typeof OptionsManagement.checkRoutes>[0],
-    );
+    const routeInfo = await previewRoutes(lastState || null);
 
     sendResponse({
       type: MESSAGE_TYPES.CHECK_ROUTES_RESPONSE,
@@ -276,7 +275,7 @@ export const Messaging = {
     const launch = (
       url: string,
       resolvedTab: Partial<browser.tabs.Tab> | null = (sender && sender.tab) || currentTab,
-    ): void => {
+    ): Promise<void> | void => {
       if (!Messaging.isValidDownloadUrl(url)) {
         fail(Messaging.API_ERRORS.INVALID_URL, "URL must be http(s), ftp, data or blob");
         return;
@@ -322,14 +321,15 @@ export const Messaging = {
         },
       };
 
-      // Fire-and-forget async (the OK below acknowledges acceptance, not
-      // completion); Download.launch logs and reports a terminal failure.
-      void Download.launch(clickState);
-
-      // status:"OK" is unchanged for back-compat; version/url are additive
-      sendResponse({
-        type: MESSAGE_TYPES.DOWNLOAD,
-        body: { status: MESSAGE_TYPES.OK, version, url },
+      // Keep the MV3 message event alive through routing, lazy variables and the
+      // downloads API call. The response still acknowledges browser acceptance,
+      // not eventual download completion.
+      return Download.launch(clickState).then(() => {
+        // status:"OK" is unchanged for back-compat; version/url are additive
+        sendResponse({
+          type: MESSAGE_TYPES.DOWNLOAD,
+          body: { status: MESSAGE_TYPES.OK, version, url },
+        });
       });
     };
 

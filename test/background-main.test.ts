@@ -187,6 +187,14 @@ describe("init", () => {
     expect(Menus.addOptions).toHaveBeenCalledWith(contexts);
   });
 
+  test("applies the loaded debug option at the background composition boundary", async () => {
+    await setupGlobals({ options: { debug: true } });
+    await importIndex();
+    await Runtime.ready;
+
+    expect(Runtime.debug).toBe(true);
+  });
+
   test("drops blank lines and trims whitespace in the configured paths", async () => {
     await setupGlobals({ options: { paths: " . \n\n  \nimages\n" } });
     await importIndex();

@@ -1,4 +1,14 @@
-export const getDownloadFailure = (downloadDelta: any, isChrome: boolean): any => {
+type DownloadChange = Omit<Partial<browser.downloads._OnChangedDownloadDelta>, "error"> & {
+  // Older Chromium typings and mocks exposed the reason directly.
+  error?: browser.downloads.StringDelta | string;
+};
+
+export type DownloadFailure = browser.downloads.StringDelta | string | boolean;
+
+export const getDownloadFailure = (
+  downloadDelta: DownloadChange,
+  isChrome: boolean,
+): DownloadFailure => {
   if (isChrome) return downloadDelta.error || false;
   const paused = downloadDelta.paused?.current === true;
   const resumable = downloadDelta.canResume?.current === true;
@@ -19,5 +29,8 @@ export const buildSuccessNotificationTitle = (
   mime?: string | false,
 ): string => [label, formatNotificationFileSize(bytes), mime].filter(Boolean).join(" · ");
 
-export const isRetryableDownloadFailure = (failure: any): boolean =>
-  /^(NETWORK_|SERVER_)/.test((failure && failure.current) || "");
+export const isRetryableDownloadFailure = (failure: DownloadFailure): boolean =>
+  typeof failure === "object" && /^(NETWORK_|SERVER_)/.test(failure.current || "");
+
+export const downloadFailureReason = (failure: DownloadFailure): string | undefined =>
+  typeof failure === "string" ? failure : typeof failure === "object" ? failure.current : undefined;

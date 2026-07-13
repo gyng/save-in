@@ -13,11 +13,11 @@ type OptionType = (typeof OPTION_TYPES)[keyof typeof OPTION_TYPES];
 type OptionKey = {
   name: string;
   type: OptionType;
-  default: any;
+  default: unknown;
   fn?: null;
-  onLoad?: (value: any) => any;
-  onSave?: (value: any) => any;
-  validate?: (value: any) => boolean;
+  onLoad?: (...args: never[]) => unknown;
+  onSave?: (...args: never[]) => unknown;
+  validate?: (...args: never[]) => boolean;
 };
 
 type WidenDefault<Value> = Value extends boolean
@@ -29,7 +29,7 @@ type WidenDefault<Value> = Value extends boolean
       : Value;
 
 type LoadedOptionValue<Definition> = Definition extends {
-  onLoad: (...args: any[]) => infer Loaded;
+  onLoad: (...args: never[]) => infer Loaded;
 }
   ? Loaded
   : Definition extends { default: infer Default }

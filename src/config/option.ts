@@ -1,29 +1,17 @@
 import { webExtensionApi } from "../platform/web-extension-api.ts";
 
-import { getCaptureMatches } from "../routing/router.ts";
 import {
   OPTION_KEYS,
   OPTION_TYPES,
   type SaveInOptionName,
   type SaveInOptions,
 } from "./option-schema.ts";
-import { applyVariables } from "../routing/variable.ts";
-import { Path } from "../routing/path.ts";
-import { Download } from "../downloads/download.ts";
 // The options bag is a pure leaf (options-data.ts) so modules that only READ
 // settings (path/headers/menu-*/notification/download) import it directly and
 // don't pull in this validator-heavy module — breaking the option↔* cycles
 // (docs/ARCH-CYCLES.md, Cut 1).
 import { options } from "./options-data.ts";
-import type { DownloadInfo } from "../downloads/download-types.ts";
-import { backgroundRuntime } from "../background/runtime.ts";
 import { isContentOptionName, normalizeContentOption } from "./content-options.ts";
-
-type RoutePreviewState = { info: DownloadInfo };
-type RoutePreview = {
-  path: string | null;
-  captures: (string | undefined)[] | null;
-};
 
 export interface OptionsManagementApi {
   OPTION_TYPES: typeof OPTION_TYPES;
@@ -34,7 +22,6 @@ export interface OptionsManagementApi {
     name: Name,
     value: SaveInOptions[Name] | undefined,
   ): void;
-  checkRoutes(state?: RoutePreviewState | null): Promise<RoutePreview>;
   loadOptions(): Promise<SaveInOptions>;
 }
 
@@ -118,58 +105,6 @@ export const OptionsManagement: OptionsManagementApi = {
     }
   },
 
-  // async because variable interpolation may await
-  checkRoutes: async (state?: RoutePreviewState | null) => {
-    if (!state) {
-      return {
-        path: null,
-        captures: null,
-      };
-    }
-
-    // webext linter does not support spread
-    // const last = {
-    //   ...state,
-    //   info: {
-    //     ...state.info,
-    //     filenamePatterns: options.filenamePatterns
-    //   }
-    // };
-
-    const newInfo = Object.assign({}, state.info, {
-      filenamePatterns: options.filenamePatterns,
-      // Chrome hack for filename: Chrome replaces special characters with `_`
-      // This mutates(?) the last object and ruins it
-      filename: state.info.initialFilename || state.info.filename,
-      // Preview only: don't consume a :counter: value while dry-running rules
-      preview: true,
-    });
-    const last = Object.assign({}, state, { info: newInfo });
-
-    const lastInterpolated = await applyVariables(
-      new Path(Download.getRoutingMatches(last)),
-      last.info,
-    );
-    const testLastResult = lastInterpolated.finalize();
-
-    const filenamePatterns = Array.isArray(options.filenamePatterns)
-      ? options.filenamePatterns
-      : [];
-    let testLastCapture: (string | undefined)[] | null = null;
-    for (let i = 0; i < filenamePatterns.length; i += 1) {
-      testLastCapture = getCaptureMatches(filenamePatterns[i], last.info);
-
-      if (testLastCapture) {
-        break;
-      }
-    }
-
-    return {
-      path: testLastResult,
-      captures: testLastCapture,
-    };
-  },
-
   loadOptions: () =>
     webExtensionApi.storage.local.get(OptionsManagement.getKeys()).then((loadedOptions) => {
       loadedOptions = loadedOptions && typeof loadedOptions === "object" ? loadedOptions : {};
@@ -206,8 +141,10 @@ export const OptionsManagement: OptionsManagementApi = {
           nextOptions[k] = optionType.default as never;
           return;
         }
-        const fn: (value: any) => any =
-          "onLoad" in optionType ? (optionType.onLoad as (value: any) => any) : (value) => value;
+        const fn: (value: unknown) => unknown =
+          "onLoad" in optionType
+            ? (optionType.onLoad as (value: unknown) => unknown)
+            : (value) => value;
         try {
           nextOptions[k] = fn(stored) as never;
         } catch {
@@ -223,8 +160,6 @@ export const OptionsManagement: OptionsManagementApi = {
       const mutableOptions = options as unknown as Record<string, unknown>;
       Object.keys(mutableOptions).forEach((key) => delete mutableOptions[key]);
       Object.assign(mutableOptions, nextOptions);
-      backgroundRuntime.debug = nextOptions.debug;
-
       return options;
     }),
 };

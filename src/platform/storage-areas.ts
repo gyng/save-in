@@ -1,11 +1,11 @@
 import { webExtensionApi } from "./web-extension-api.ts";
 
 export type StorageReader = {
-  get(keys?: string | string[] | Record<string, any> | null): Promise<Record<string, any>>;
+  get(keys?: string | string[] | Record<string, unknown> | null): Promise<Record<string, unknown>>;
 };
 
 export type StorageSetter = {
-  set(items: Record<string, any>): Promise<void>;
+  set(items: Record<string, unknown>): Promise<void>;
 };
 
 export type StorageRemover = {
