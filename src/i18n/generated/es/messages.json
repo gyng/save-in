@@ -14,6 +14,105 @@
   "referenceRuntimeRuleMatcher": {
     "message": "Criterio de regla en tiempo de ejecución"
   },
+  "ruleTemplateCategoryMedia": { "message": "Medios" },
+  "ruleTemplateCategoryFileTypes": { "message": "Tipos de archivo" },
+  "ruleTemplateCategoryDateAndSequence": { "message": "Fecha y secuencia" },
+  "ruleTemplateCategorySitesAndUrls": { "message": "Sitios y URL" },
+  "ruleTemplateCategorySaveContext": { "message": "Contexto de guardado" },
+  "ruleTemplateImagesPerSiteName": { "message": "Imágenes en carpetas por sitio" },
+  "ruleTemplateImagesPerSiteDescription": {
+    "message": "Clasifica cada imagen guardada según su sitio de origen"
+  },
+  "ruleTemplateVideosPerSiteName": { "message": "Vídeos en carpetas por sitio" },
+  "ruleTemplateVideosPerSiteDescription": {
+    "message": "Clasifica cada vídeo guardado según su sitio de origen"
+  },
+  "ruleTemplateAudioPerSiteName": { "message": "Audio en carpetas por sitio" },
+  "ruleTemplateAudioPerSiteDescription": {
+    "message": "Agrupa el audio guardado según la página donde se encontró"
+  },
+  "ruleTemplateScreenshotsByMonthName": { "message": "Capturas de pantalla por mes" },
+  "ruleTemplateScreenshotsByMonthDescription": {
+    "message": "Guarda en carpetas con fecha los nombres de archivo que empiezan por screenshot"
+  },
+  "ruleTemplatePdfsName": { "message": "PDFs en una carpeta de documentos" },
+  "ruleTemplatePdfsDescription": { "message": "Reúne todos los PDF en un solo lugar" },
+  "ruleTemplateArchivesName": { "message": "Archivos comprimidos en una carpeta" },
+  "ruleTemplateArchivesDescription": {
+    "message": "Reúne archivos zip, rar, 7z, tar y otros archivos comprimidos"
+  },
+  "ruleTemplateDocumentsName": { "message": "Documentos en una carpeta" },
+  "ruleTemplateDocumentsDescription": { "message": "Reúne documentos comunes de oficina y texto" },
+  "ruleTemplateEbooksName": { "message": "Libros electrónicos y cómics" },
+  "ruleTemplateEbooksDescription": {
+    "message": "Reúne formatos comunes de libros electrónicos y cómics digitales"
+  },
+  "ruleTemplateInstallersName": { "message": "Aplicaciones e instaladores" },
+  "ruleTemplateInstallersDescription": {
+    "message": "Mantiene juntos los paquetes de instalación para escritorio y móvil"
+  },
+  "ruleTemplateFontsName": { "message": "Fuentes en una carpeta" },
+  "ruleTemplateFontsDescription": { "message": "Reúne archivos de fuentes de escritorio y web" },
+  "ruleTemplatePerExtensionName": { "message": "Una carpeta por extensión de archivo" },
+  "ruleTemplatePerExtensionDescription": {
+    "message": "Captura la extensión del archivo y la usa como nombre de carpeta"
+  },
+  "ruleTemplateDateStampName": { "message": "Añadir la fecha a cada descarga" },
+  "ruleTemplateDateStampDescription": {
+    "message": "Antepone la fecha de guardado al nombre de archivo original"
+  },
+  "ruleTemplateDailyInboxName": { "message": "Bandeja diaria" },
+  "ruleTemplateDailyInboxDescription": { "message": "Crea una carpeta para cada día natural" },
+  "ruleTemplateDownloadsByMonthName": { "message": "Descargas por mes" },
+  "ruleTemplateDownloadsByMonthDescription": {
+    "message": "Crea carpetas de año y mes conservando el nombre de archivo original"
+  },
+  "ruleTemplateWeeklyInboxName": { "message": "Bandeja semanal" },
+  "ruleTemplateWeeklyInboxDescription": {
+    "message": "Crea una carpeta de entrada para cada semana ISO"
+  },
+  "ruleTemplateSequentialArchiveName": { "message": "Archivo secuencial" },
+  "ruleTemplateSequentialArchiveDescription": {
+    "message": "Antepone a los archivos el contador persistente de descargas de Save In"
+  },
+  "ruleTemplateOneSiteName": { "message": "Un sitio, una carpeta" },
+  "ruleTemplateOneSiteDescription": { "message": "Envía un sitio web elegido a su propia carpeta" },
+  "ruleTemplatePerSourceSiteName": { "message": "Una carpeta por sitio de origen" },
+  "ruleTemplatePerSourceSiteDescription": {
+    "message": "Agrupa las descargas por el nombre de host que sirve el archivo"
+  },
+  "ruleTemplatePerPageSiteName": { "message": "Una carpeta por sitio de la página" },
+  "ruleTemplatePerPageSiteDescription": {
+    "message": "Agrupa los archivos por el sitio web visitado, no por el host del archivo"
+  },
+  "ruleTemplatePageTitlePrefixName": { "message": "Prefijo con el título de la página" },
+  "ruleTemplatePageTitlePrefixDescription": {
+    "message": "Añade un título de página seguro para el sistema de archivos antes del nombre original"
+  },
+  "ruleTemplateCaptureUrlName": { "message": "Capturar parte de la URL" },
+  "ruleTemplateCaptureUrlDescription": {
+    "message": "Usa un grupo de captura de expresión regular en el nombre de archivo guardado"
+  },
+  "ruleTemplateBrowserInboxName": { "message": "Bandeja de descargas del navegador" },
+  "ruleTemplateBrowserInboxDescription": {
+    "message": "Mantiene en una carpeta separada las descargas rastreadas que pertenecen al navegador"
+  },
+  "ruleTemplateLinkInboxName": { "message": "Bandeja de descargas de enlaces" },
+  "ruleTemplateLinkInboxDescription": {
+    "message": "Separa los archivos guardados desde enlaces del contenido multimedia incrustado"
+  },
+  "ruleTemplateSelectionInboxName": { "message": "Bandeja de texto seleccionado" },
+  "ruleTemplateSelectionInboxDescription": {
+    "message": "Mantiene juntos los archivos creados a partir del texto seleccionado de la página"
+  },
+  "ruleTemplateTabInboxName": { "message": "Bandeja de guardados de pestañas" },
+  "ruleTemplateTabInboxDescription": {
+    "message": "Mantiene juntos los archivos guardados mediante acciones de pestaña"
+  },
+  "ruleTemplateAdded": { "message": "Añadido" },
+  "ruleTemplateAdd": { "message": "Añadir" },
+  "ruleTemplateAddedFeedback": { "message": "Añadido" },
+  "ruleTemplateViewInEditor": { "message": "Ver en el editor de reglas" },
   "genericUnknownError": {
     "message": "Error desconocido"
   },

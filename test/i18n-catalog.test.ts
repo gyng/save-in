@@ -205,6 +205,7 @@ test("AI-generated partial catalogs match the English schema and fall back for n
 
 test("AI-generated catalogs preserve technical tokens and localized UI terminology", () => {
   const canonical = readCatalog("en");
+  const ruleTemplateKeys = Object.keys(canonical).filter((key) => key.startsWith("ruleTemplate"));
   const fileFormatKeys = [
     "o_cSaveShortcutsTypeMac",
     "o_cSaveShortcutsTypeMacWebloc",
@@ -235,6 +236,10 @@ test("AI-generated catalogs preserve technical tokens and localized UI terminolo
 
   for (const { locale } of GENERATED_LOCALES) {
     const catalog = readGeneratedCatalog(locale);
+    expect(
+      ruleTemplateKeys.filter((key) => !catalog[key]),
+      `${locale} routing-template translations`,
+    ).toEqual([]);
     for (const key of fileFormatKeys) {
       expect(catalog[key]?.message, `${locale}.${key}`).toBe(canonical[key]?.message);
     }

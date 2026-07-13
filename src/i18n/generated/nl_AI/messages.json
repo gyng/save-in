@@ -14,6 +14,109 @@
   "referenceRuntimeRuleMatcher": {
     "message": "Runtime-regelmatcher"
   },
+  "ruleTemplateCategoryMedia": { "message": "Media" },
+  "ruleTemplateCategoryFileTypes": { "message": "Bestandstypen" },
+  "ruleTemplateCategoryDateAndSequence": { "message": "Datum en volgorde" },
+  "ruleTemplateCategorySitesAndUrls": { "message": "Sites en URL's" },
+  "ruleTemplateCategorySaveContext": { "message": "Opslagcontext" },
+  "ruleTemplateImagesPerSiteName": { "message": "Afbeeldingen in mappen per site" },
+  "ruleTemplateImagesPerSiteDescription": {
+    "message": "Sorteert elke opgeslagen afbeelding op de site van herkomst"
+  },
+  "ruleTemplateVideosPerSiteName": { "message": "Video's in mappen per site" },
+  "ruleTemplateVideosPerSiteDescription": {
+    "message": "Sorteert elke opgeslagen video op de site van herkomst"
+  },
+  "ruleTemplateAudioPerSiteName": { "message": "Audio in mappen per site" },
+  "ruleTemplateAudioPerSiteDescription": {
+    "message": "Groepeert opgeslagen audio op de pagina waar deze is gevonden"
+  },
+  "ruleTemplateScreenshotsByMonthName": { "message": "Schermafbeeldingen per maand" },
+  "ruleTemplateScreenshotsByMonthDescription": {
+    "message": "Plaatst bestandsnamen die met screenshot beginnen in gedateerde mappen"
+  },
+  "ruleTemplatePdfsName": { "message": "PDF's in een documentenmap" },
+  "ruleTemplatePdfsDescription": { "message": "Verzamelt alle PDF's op één plek" },
+  "ruleTemplateArchivesName": { "message": "Archieven in één map" },
+  "ruleTemplateArchivesDescription": {
+    "message": "Verzamelt zip-, rar-, 7z-, tar- en andere gecomprimeerde archieven"
+  },
+  "ruleTemplateDocumentsName": { "message": "Documenten in één map" },
+  "ruleTemplateDocumentsDescription": {
+    "message": "Verzamelt gangbare kantoor- en tekstdocumenten"
+  },
+  "ruleTemplateEbooksName": { "message": "E-books en strips" },
+  "ruleTemplateEbooksDescription": {
+    "message": "Verzamelt gangbare e-book- en digitale stripformaten"
+  },
+  "ruleTemplateInstallersName": { "message": "Apps en installatieprogramma's" },
+  "ruleTemplateInstallersDescription": {
+    "message": "Houdt installatiepakketten voor desktop en mobiel bij elkaar"
+  },
+  "ruleTemplateFontsName": { "message": "Lettertypen in één map" },
+  "ruleTemplateFontsDescription": {
+    "message": "Verzamelt lettertypebestanden voor desktop en web"
+  },
+  "ruleTemplatePerExtensionName": { "message": "Eén map per bestandsextensie" },
+  "ruleTemplatePerExtensionDescription": {
+    "message": "Legt de bestandsextensie vast en gebruikt deze als mapnaam"
+  },
+  "ruleTemplateDateStampName": { "message": "Elke download van een datum voorzien" },
+  "ruleTemplateDateStampDescription": {
+    "message": "Plaatst de opslagdatum vóór de oorspronkelijke bestandsnaam"
+  },
+  "ruleTemplateDailyInboxName": { "message": "Dagelijkse inbox" },
+  "ruleTemplateDailyInboxDescription": { "message": "Maakt één map voor elke kalenderdag" },
+  "ruleTemplateDownloadsByMonthName": { "message": "Downloads per maand" },
+  "ruleTemplateDownloadsByMonthDescription": {
+    "message": "Maakt jaar- en maandmappen met behoud van de oorspronkelijke bestandsnaam"
+  },
+  "ruleTemplateWeeklyInboxName": { "message": "Wekelijkse inbox" },
+  "ruleTemplateWeeklyInboxDescription": { "message": "Maakt één inboxmap voor elke ISO-week" },
+  "ruleTemplateSequentialArchiveName": { "message": "Opeenvolgend archief" },
+  "ruleTemplateSequentialArchiveDescription": {
+    "message": "Plaatst de permanente downloadteller van Save In vóór bestandsnamen"
+  },
+  "ruleTemplateOneSiteName": { "message": "Eén site, één map" },
+  "ruleTemplateOneSiteDescription": {
+    "message": "Routeert één gekozen website naar een eigen map"
+  },
+  "ruleTemplatePerSourceSiteName": { "message": "Eén map per bronsite" },
+  "ruleTemplatePerSourceSiteDescription": {
+    "message": "Groepeert downloads op de hostnaam die het bestand aanbiedt"
+  },
+  "ruleTemplatePerPageSiteName": { "message": "Eén map per paginasite" },
+  "ruleTemplatePerPageSiteDescription": {
+    "message": "Groepeert bestanden op de bezochte website in plaats van op de bestandshost"
+  },
+  "ruleTemplatePageTitlePrefixName": { "message": "Paginatitel als voorvoegsel" },
+  "ruleTemplatePageTitlePrefixDescription": {
+    "message": "Plaatst een bestandssysteemveilige paginatitel vóór de oorspronkelijke bestandsnaam"
+  },
+  "ruleTemplateCaptureUrlName": { "message": "Deel van de URL vastleggen" },
+  "ruleTemplateCaptureUrlDescription": {
+    "message": "Gebruikt een regex-vanggroep in de opgeslagen bestandsnaam"
+  },
+  "ruleTemplateBrowserInboxName": { "message": "Inbox voor browserdownloads" },
+  "ruleTemplateBrowserInboxDescription": {
+    "message": "Houdt bijgehouden downloads van de browser zelf in een aparte map"
+  },
+  "ruleTemplateLinkInboxName": { "message": "Inbox voor linkdownloads" },
+  "ruleTemplateLinkInboxDescription": {
+    "message": "Scheidt bestanden die via links zijn opgeslagen van ingesloten media"
+  },
+  "ruleTemplateSelectionInboxName": { "message": "Inbox voor geselecteerde tekst" },
+  "ruleTemplateSelectionInboxDescription": {
+    "message": "Houdt bestanden bij elkaar die uit geselecteerde paginatekst zijn gemaakt"
+  },
+  "ruleTemplateTabInboxName": { "message": "Inbox voor opgeslagen tabbladen" },
+  "ruleTemplateTabInboxDescription": {
+    "message": "Houdt bestanden bij elkaar die via tabbladacties zijn opgeslagen"
+  },
+  "ruleTemplateAdded": { "message": "Toegevoegd" },
+  "ruleTemplateAdd": { "message": "Toevoegen" },
+  "ruleTemplateAddedFeedback": { "message": "Toegevoegd" },
+  "ruleTemplateViewInEditor": { "message": "In de regeleditor bekijken" },
   "genericUnknownError": {
     "message": "Onbekende fout"
   },

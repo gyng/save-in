@@ -14,6 +14,117 @@
   "referenceRuntimeRuleMatcher": {
     "message": "Critère de règle à l’exécution"
   },
+  "ruleTemplateCategoryMedia": { "message": "Médias" },
+  "ruleTemplateCategoryFileTypes": { "message": "Types de fichiers" },
+  "ruleTemplateCategoryDateAndSequence": { "message": "Date et séquence" },
+  "ruleTemplateCategorySitesAndUrls": { "message": "Sites et URL" },
+  "ruleTemplateCategorySaveContext": { "message": "Contexte d’enregistrement" },
+  "ruleTemplateImagesPerSiteName": { "message": "Images dans des dossiers par site" },
+  "ruleTemplateImagesPerSiteDescription": {
+    "message": "Classe chaque image enregistrée selon son site d’origine"
+  },
+  "ruleTemplateVideosPerSiteName": { "message": "Vidéos dans des dossiers par site" },
+  "ruleTemplateVideosPerSiteDescription": {
+    "message": "Classe chaque vidéo enregistrée selon son site d’origine"
+  },
+  "ruleTemplateAudioPerSiteName": { "message": "Audio dans des dossiers par site" },
+  "ruleTemplateAudioPerSiteDescription": {
+    "message": "Regroupe les fichiers audio enregistrés selon la page où ils ont été trouvés"
+  },
+  "ruleTemplateScreenshotsByMonthName": { "message": "Captures d’écran par mois" },
+  "ruleTemplateScreenshotsByMonthDescription": {
+    "message": "Range dans des dossiers datés les noms de fichiers commençant par screenshot"
+  },
+  "ruleTemplatePdfsName": { "message": "PDF dans un dossier de documents" },
+  "ruleTemplatePdfsDescription": { "message": "Regroupe tous les PDF au même endroit" },
+  "ruleTemplateArchivesName": { "message": "Archives dans un seul dossier" },
+  "ruleTemplateArchivesDescription": {
+    "message": "Regroupe les archives zip, rar, 7z, tar et autres formats compressés"
+  },
+  "ruleTemplateDocumentsName": { "message": "Documents dans un seul dossier" },
+  "ruleTemplateDocumentsDescription": {
+    "message": "Regroupe les documents bureautiques et texte courants"
+  },
+  "ruleTemplateEbooksName": { "message": "Livres numériques et bandes dessinées" },
+  "ruleTemplateEbooksDescription": {
+    "message": "Regroupe les formats courants de livres numériques et de bandes dessinées numériques"
+  },
+  "ruleTemplateInstallersName": { "message": "Applications et programmes d’installation" },
+  "ruleTemplateInstallersDescription": {
+    "message": "Conserve ensemble les paquets d’installation pour ordinateur et mobile"
+  },
+  "ruleTemplateFontsName": { "message": "Polices dans un seul dossier" },
+  "ruleTemplateFontsDescription": {
+    "message": "Regroupe les fichiers de polices pour ordinateur et pour le Web"
+  },
+  "ruleTemplatePerExtensionName": { "message": "Un dossier par extension de fichier" },
+  "ruleTemplatePerExtensionDescription": {
+    "message": "Capture l’extension du fichier et l’utilise comme nom de dossier"
+  },
+  "ruleTemplateDateStampName": { "message": "Dater chaque téléchargement" },
+  "ruleTemplateDateStampDescription": {
+    "message": "Ajoute la date d’enregistrement avant le nom de fichier d’origine"
+  },
+  "ruleTemplateDailyInboxName": { "message": "Boîte de réception quotidienne" },
+  "ruleTemplateDailyInboxDescription": {
+    "message": "Crée un dossier pour chaque jour du calendrier"
+  },
+  "ruleTemplateDownloadsByMonthName": { "message": "Téléchargements par mois" },
+  "ruleTemplateDownloadsByMonthDescription": {
+    "message": "Crée des dossiers par année et par mois en conservant le nom de fichier d’origine"
+  },
+  "ruleTemplateWeeklyInboxName": { "message": "Boîte de réception hebdomadaire" },
+  "ruleTemplateWeeklyInboxDescription": {
+    "message": "Crée un dossier de réception pour chaque semaine ISO"
+  },
+  "ruleTemplateSequentialArchiveName": { "message": "Archive séquentielle" },
+  "ruleTemplateSequentialArchiveDescription": {
+    "message": "Ajoute le compteur persistant de téléchargements de Save In au début des noms de fichiers"
+  },
+  "ruleTemplateOneSiteName": { "message": "Un site, un dossier" },
+  "ruleTemplateOneSiteDescription": {
+    "message": "Achemine un site Web choisi vers son propre dossier"
+  },
+  "ruleTemplatePerSourceSiteName": { "message": "Un dossier par site source" },
+  "ruleTemplatePerSourceSiteDescription": {
+    "message": "Regroupe les téléchargements selon le nom d’hôte qui fournit le fichier"
+  },
+  "ruleTemplatePerPageSiteName": { "message": "Un dossier par site de la page" },
+  "ruleTemplatePerPageSiteDescription": {
+    "message": "Regroupe les fichiers selon le site Web consulté plutôt que selon l’hôte du fichier"
+  },
+  "ruleTemplatePageTitlePrefixName": { "message": "Titre de page comme préfixe" },
+  "ruleTemplatePageTitlePrefixDescription": {
+    "message": "Ajoute un titre de page compatible avec le système de fichiers avant le nom d’origine"
+  },
+  "ruleTemplateCaptureUrlName": { "message": "Capturer une partie de l’URL" },
+  "ruleTemplateCaptureUrlDescription": {
+    "message": "Utilise un groupe de capture d’expression régulière dans le nom de fichier enregistré"
+  },
+  "ruleTemplateBrowserInboxName": {
+    "message": "Boîte de réception des téléchargements du navigateur"
+  },
+  "ruleTemplateBrowserInboxDescription": {
+    "message": "Conserve dans un dossier séparé les téléchargements suivis appartenant au navigateur"
+  },
+  "ruleTemplateLinkInboxName": {
+    "message": "Boîte de réception des téléchargements depuis des liens"
+  },
+  "ruleTemplateLinkInboxDescription": {
+    "message": "Sépare les fichiers enregistrés depuis des liens des médias intégrés"
+  },
+  "ruleTemplateSelectionInboxName": { "message": "Boîte de réception du texte sélectionné" },
+  "ruleTemplateSelectionInboxDescription": {
+    "message": "Conserve ensemble les fichiers créés à partir du texte sélectionné sur la page"
+  },
+  "ruleTemplateTabInboxName": { "message": "Boîte de réception des enregistrements d’onglets" },
+  "ruleTemplateTabInboxDescription": {
+    "message": "Conserve ensemble les fichiers enregistrés par les actions d’onglet"
+  },
+  "ruleTemplateAdded": { "message": "Ajouté" },
+  "ruleTemplateAdd": { "message": "Ajouter" },
+  "ruleTemplateAddedFeedback": { "message": "Ajouté" },
+  "ruleTemplateViewInEditor": { "message": "Afficher dans l’éditeur de règles" },
   "genericUnknownError": {
     "message": "Erreur inconnue"
   },

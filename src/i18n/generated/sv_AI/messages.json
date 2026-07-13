@@ -14,6 +14,103 @@
   "referenceRuntimeRuleMatcher": {
     "message": "Regelmatchare vid körning"
   },
+  "ruleTemplateCategoryMedia": { "message": "Media" },
+  "ruleTemplateCategoryFileTypes": { "message": "Filtyper" },
+  "ruleTemplateCategoryDateAndSequence": { "message": "Datum och ordning" },
+  "ruleTemplateCategorySitesAndUrls": { "message": "Webbplatser och URL:er" },
+  "ruleTemplateCategorySaveContext": { "message": "Sparsammanhang" },
+  "ruleTemplateImagesPerSiteName": { "message": "Bilder i mappar per webbplats" },
+  "ruleTemplateImagesPerSiteDescription": {
+    "message": "Sorterar varje sparad bild efter ursprungswebbplats"
+  },
+  "ruleTemplateVideosPerSiteName": { "message": "Videor i mappar per webbplats" },
+  "ruleTemplateVideosPerSiteDescription": {
+    "message": "Sorterar varje sparad video efter ursprungswebbplats"
+  },
+  "ruleTemplateAudioPerSiteName": { "message": "Ljud i mappar per webbplats" },
+  "ruleTemplateAudioPerSiteDescription": {
+    "message": "Grupperar sparat ljud efter sidan där det hittades"
+  },
+  "ruleTemplateScreenshotsByMonthName": { "message": "Skärmbilder per månad" },
+  "ruleTemplateScreenshotsByMonthDescription": {
+    "message": "Lägger filnamn som börjar med screenshot i daterade mappar"
+  },
+  "ruleTemplatePdfsName": { "message": "PDF-filer i en dokumentmapp" },
+  "ruleTemplatePdfsDescription": { "message": "Samlar alla PDF-filer på ett ställe" },
+  "ruleTemplateArchivesName": { "message": "Arkiv i en mapp" },
+  "ruleTemplateArchivesDescription": {
+    "message": "Samlar zip-, rar-, 7z-, tar- och andra komprimerade arkiv"
+  },
+  "ruleTemplateDocumentsName": { "message": "Dokument i en mapp" },
+  "ruleTemplateDocumentsDescription": { "message": "Samlar vanliga kontors- och textdokument" },
+  "ruleTemplateEbooksName": { "message": "E-böcker och serier" },
+  "ruleTemplateEbooksDescription": {
+    "message": "Samlar vanliga format för e-böcker och digitala serier"
+  },
+  "ruleTemplateInstallersName": { "message": "Appar och installationsprogram" },
+  "ruleTemplateInstallersDescription": {
+    "message": "Håller installationspaket för dator och mobil samlade"
+  },
+  "ruleTemplateFontsName": { "message": "Typsnitt i en mapp" },
+  "ruleTemplateFontsDescription": { "message": "Samlar typsnittsfiler för dator och webb" },
+  "ruleTemplatePerExtensionName": { "message": "En mapp per filändelse" },
+  "ruleTemplatePerExtensionDescription": {
+    "message": "Fångar filändelsen och använder den som mappnamn"
+  },
+  "ruleTemplateDateStampName": { "message": "Datumstämpla varje nedladdning" },
+  "ruleTemplateDateStampDescription": {
+    "message": "Lägger sparandedatumet före det ursprungliga filnamnet"
+  },
+  "ruleTemplateDailyInboxName": { "message": "Daglig inkorg" },
+  "ruleTemplateDailyInboxDescription": { "message": "Skapar en mapp för varje kalenderdag" },
+  "ruleTemplateDownloadsByMonthName": { "message": "Nedladdningar per månad" },
+  "ruleTemplateDownloadsByMonthDescription": {
+    "message": "Skapar års- och månadsmappar och behåller det ursprungliga filnamnet"
+  },
+  "ruleTemplateWeeklyInboxName": { "message": "Veckovis inkorg" },
+  "ruleTemplateWeeklyInboxDescription": { "message": "Skapar en inkorgsmapp för varje ISO-vecka" },
+  "ruleTemplateSequentialArchiveName": { "message": "Sekventiellt arkiv" },
+  "ruleTemplateSequentialArchiveDescription": {
+    "message": "Lägger Save Ins beständiga nedladdningsräknare före filnamnen"
+  },
+  "ruleTemplateOneSiteName": { "message": "En webbplats, en mapp" },
+  "ruleTemplateOneSiteDescription": { "message": "Dirigerar en vald webbplats till en egen mapp" },
+  "ruleTemplatePerSourceSiteName": { "message": "En mapp per källwebbplats" },
+  "ruleTemplatePerSourceSiteDescription": {
+    "message": "Grupperar nedladdningar efter värdnamnet som levererar filen"
+  },
+  "ruleTemplatePerPageSiteName": { "message": "En mapp per sidwebbplats" },
+  "ruleTemplatePerPageSiteDescription": {
+    "message": "Grupperar filer efter webbplatsen du besökte i stället för filvärden"
+  },
+  "ruleTemplatePageTitlePrefixName": { "message": "Sidtitel som prefix" },
+  "ruleTemplatePageTitlePrefixDescription": {
+    "message": "Lägger en filsystemsäkert formaterad sidtitel före det ursprungliga filnamnet"
+  },
+  "ruleTemplateCaptureUrlName": { "message": "Fånga en del av URL:en" },
+  "ruleTemplateCaptureUrlDescription": {
+    "message": "Använder en regex-fångstgrupp i det sparade filnamnet"
+  },
+  "ruleTemplateBrowserInboxName": { "message": "Inkorg för webbläsarnedladdningar" },
+  "ruleTemplateBrowserInboxDescription": {
+    "message": "Håller spårade nedladdningar som ägs av webbläsaren i en separat mapp"
+  },
+  "ruleTemplateLinkInboxName": { "message": "Inkorg för länknedladdningar" },
+  "ruleTemplateLinkInboxDescription": {
+    "message": "Skiljer filer som sparats från länkar från inbäddade medier"
+  },
+  "ruleTemplateSelectionInboxName": { "message": "Inkorg för markerad text" },
+  "ruleTemplateSelectionInboxDescription": {
+    "message": "Håller filer som skapats från markerad sidtext samlade"
+  },
+  "ruleTemplateTabInboxName": { "message": "Inkorg för fliksparningar" },
+  "ruleTemplateTabInboxDescription": {
+    "message": "Håller filer som sparats via flikåtgärder samlade"
+  },
+  "ruleTemplateAdded": { "message": "Tillagd" },
+  "ruleTemplateAdd": { "message": "Lägg till" },
+  "ruleTemplateAddedFeedback": { "message": "Tillagd" },
+  "ruleTemplateViewInEditor": { "message": "Visa i regelredigeraren" },
   "genericUnknownError": {
     "message": "Okänt fel"
   },

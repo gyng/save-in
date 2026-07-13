@@ -14,6 +14,107 @@
   "referenceRuntimeRuleMatcher": {
     "message": "Laufzeit-Regel-Matcher"
   },
+  "ruleTemplateCategoryMedia": { "message": "Medien" },
+  "ruleTemplateCategoryFileTypes": { "message": "Dateitypen" },
+  "ruleTemplateCategoryDateAndSequence": { "message": "Datum und Reihenfolge" },
+  "ruleTemplateCategorySitesAndUrls": { "message": "Websites und URLs" },
+  "ruleTemplateCategorySaveContext": { "message": "Speicherkontext" },
+  "ruleTemplateImagesPerSiteName": { "message": "Bilder in Ordnern pro Website" },
+  "ruleTemplateImagesPerSiteDescription": {
+    "message": "Sortiert jedes gespeicherte Bild nach seiner Herkunftswebsite"
+  },
+  "ruleTemplateVideosPerSiteName": { "message": "Videos in Ordnern pro Website" },
+  "ruleTemplateVideosPerSiteDescription": {
+    "message": "Sortiert jedes gespeicherte Video nach seiner Herkunftswebsite"
+  },
+  "ruleTemplateAudioPerSiteName": { "message": "Audio in Ordnern pro Website" },
+  "ruleTemplateAudioPerSiteDescription": {
+    "message": "Gruppiert gespeicherte Audiodateien nach der Seite, auf der sie gefunden wurden"
+  },
+  "ruleTemplateScreenshotsByMonthName": { "message": "Screenshots nach Monat" },
+  "ruleTemplateScreenshotsByMonthDescription": {
+    "message": "Legt Dateinamen, die mit screenshot beginnen, in datierten Ordnern ab"
+  },
+  "ruleTemplatePdfsName": { "message": "PDFs in einem Dokumentenordner" },
+  "ruleTemplatePdfsDescription": { "message": "Sammelt alle PDFs an einem Ort" },
+  "ruleTemplateArchivesName": { "message": "Archive in einem Ordner" },
+  "ruleTemplateArchivesDescription": {
+    "message": "Sammelt zip-, rar-, 7z-, tar- und komprimierte Archive"
+  },
+  "ruleTemplateDocumentsName": { "message": "Dokumente in einem Ordner" },
+  "ruleTemplateDocumentsDescription": { "message": "Sammelt gängige Büro- und Textdokumente" },
+  "ruleTemplateEbooksName": { "message": "E-Books und Comics" },
+  "ruleTemplateEbooksDescription": {
+    "message": "Sammelt gängige E-Book- und digitale Comicformate"
+  },
+  "ruleTemplateInstallersName": { "message": "Apps und Installationsprogramme" },
+  "ruleTemplateInstallersDescription": {
+    "message": "Bewahrt Installationspakete für Desktop- und Mobilgeräte zusammen auf"
+  },
+  "ruleTemplateFontsName": { "message": "Schriftarten in einem Ordner" },
+  "ruleTemplateFontsDescription": { "message": "Sammelt Desktop- und Webschriftdateien" },
+  "ruleTemplatePerExtensionName": { "message": "Ein Ordner pro Dateierweiterung" },
+  "ruleTemplatePerExtensionDescription": {
+    "message": "Erfasst die Dateierweiterung und verwendet sie als Ordnernamen"
+  },
+  "ruleTemplateDateStampName": { "message": "Jeden Download mit Datum versehen" },
+  "ruleTemplateDateStampDescription": {
+    "message": "Stellt dem ursprünglichen Dateinamen das Speicherdatum voran"
+  },
+  "ruleTemplateDailyInboxName": { "message": "Täglicher Ablageordner" },
+  "ruleTemplateDailyInboxDescription": { "message": "Erstellt für jeden Kalendertag einen Ordner" },
+  "ruleTemplateDownloadsByMonthName": { "message": "Downloads nach Monat" },
+  "ruleTemplateDownloadsByMonthDescription": {
+    "message": "Erstellt Jahres- und Monatsordner und behält den ursprünglichen Dateinamen bei"
+  },
+  "ruleTemplateWeeklyInboxName": { "message": "Wöchentlicher Ablageordner" },
+  "ruleTemplateWeeklyInboxDescription": {
+    "message": "Erstellt für jede ISO-Woche einen Ablageordner"
+  },
+  "ruleTemplateSequentialArchiveName": { "message": "Fortlaufendes Archiv" },
+  "ruleTemplateSequentialArchiveDescription": {
+    "message": "Setzt den dauerhaften Download-Zähler von Save In vor die Dateinamen"
+  },
+  "ruleTemplateOneSiteName": { "message": "Eine Website, ein Ordner" },
+  "ruleTemplateOneSiteDescription": {
+    "message": "Leitet eine ausgewählte Website in einen eigenen Ordner"
+  },
+  "ruleTemplatePerSourceSiteName": { "message": "Ein Ordner pro Quellwebsite" },
+  "ruleTemplatePerSourceSiteDescription": {
+    "message": "Gruppiert Downloads nach dem Hostnamen, der die Datei bereitstellt"
+  },
+  "ruleTemplatePerPageSiteName": { "message": "Ein Ordner pro Seitenwebsite" },
+  "ruleTemplatePerPageSiteDescription": {
+    "message": "Gruppiert Dateien nach der besuchten Website statt nach dem Dateihost"
+  },
+  "ruleTemplatePageTitlePrefixName": { "message": "Seitentitel als Präfix" },
+  "ruleTemplatePageTitlePrefixDescription": {
+    "message": "Stellt dem ursprünglichen Dateinamen einen dateisystemsicheren Seitentitel voran"
+  },
+  "ruleTemplateCaptureUrlName": { "message": "Teil der URL erfassen" },
+  "ruleTemplateCaptureUrlDescription": {
+    "message": "Verwendet eine Regex-Erfassungsgruppe im gespeicherten Dateinamen"
+  },
+  "ruleTemplateBrowserInboxName": { "message": "Ablageordner für Browser-Downloads" },
+  "ruleTemplateBrowserInboxDescription": {
+    "message": "Bewahrt erfasste browsereigene Downloads in einem separaten Ordner auf"
+  },
+  "ruleTemplateLinkInboxName": { "message": "Ablageordner für Link-Downloads" },
+  "ruleTemplateLinkInboxDescription": {
+    "message": "Trennt über Links gespeicherte Dateien von eingebetteten Medien"
+  },
+  "ruleTemplateSelectionInboxName": { "message": "Ablageordner für ausgewählten Text" },
+  "ruleTemplateSelectionInboxDescription": {
+    "message": "Bewahrt aus ausgewähltem Seitentext erstellte Dateien zusammen auf"
+  },
+  "ruleTemplateTabInboxName": { "message": "Ablageordner für Tab-Speicherungen" },
+  "ruleTemplateTabInboxDescription": {
+    "message": "Bewahrt über Tab-Aktionen gespeicherte Dateien zusammen auf"
+  },
+  "ruleTemplateAdded": { "message": "Hinzugefügt" },
+  "ruleTemplateAdd": { "message": "Hinzufügen" },
+  "ruleTemplateAddedFeedback": { "message": "Hinzugefügt" },
+  "ruleTemplateViewInEditor": { "message": "Im Regeleditor anzeigen" },
   "genericUnknownError": {
     "message": "Unbekannter Fehler"
   },
