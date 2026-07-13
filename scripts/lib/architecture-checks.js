@@ -25,4 +25,22 @@ const hasBrowserListenerRegistration = (source) => {
   );
 };
 
-module.exports = { hasBrowserListenerRegistration };
+/** @param {string} source */
+const hasDynamicImport = (source) => /\bimport\s*\(/.test(source);
+
+/** @param {string} source */
+const hasGlobalNamespaceMutation = (source) =>
+  /\bObject\.(?:assign|defineProperty)\s*\(\s*globalThis\b/.test(source) ||
+  /\bReflect\.set\s*\(\s*globalThis\b/.test(source) ||
+  /\bglobalThis\s*(?:\.[A-Za-z_$][\w$]*|\[[^\]]+\])\s*=/.test(source);
+
+/** @param {string} source @param {string} identifier */
+const callsIdentifier = (source, identifier) =>
+  new RegExp(`\\b${identifier.replace(/[$]/g, "\\$")}\\s*\\(`).test(source);
+
+module.exports = {
+  callsIdentifier,
+  hasBrowserListenerRegistration,
+  hasDynamicImport,
+  hasGlobalNamespaceMutation,
+};

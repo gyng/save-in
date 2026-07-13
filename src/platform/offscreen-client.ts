@@ -6,7 +6,7 @@
 // reused. The Firefox event page has createObjectURL and never uses any of this.
 
 import { MESSAGE_TYPES } from "../shared/constants.ts";
-import { isOffscreenFetchResponse } from "../downloads/content-fetch-types.ts";
+import { isOffscreenFetchResponse } from "../shared/content-fetch-types.ts";
 
 type OffscreenClientApi = {
   canUse: () => boolean;

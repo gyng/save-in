@@ -1,6 +1,11 @@
 const fs = require("fs");
 const path = require("path");
-const { hasBrowserListenerRegistration } = require("./lib/architecture-checks.js");
+const {
+  callsIdentifier,
+  hasBrowserListenerRegistration,
+  hasDynamicImport,
+  hasGlobalNamespaceMutation,
+} = require("./lib/architecture-checks.js");
 
 const root = path.resolve(__dirname, "..");
 const srcRoot = path.join(root, "src");
@@ -66,6 +71,22 @@ for (const [file, dependencies] of imports) {
   }
 }
 
+// Low-level runtime layers cannot point back into feature or composition
+// layers. Type-only contract references remain erased from this graph.
+const runtimeLayerRules = [
+  ["src/shared/", ["src/shared/", "src/vendor/"]],
+  ["src/platform/", ["src/platform/", "src/shared/", "src/vendor/"]],
+];
+for (const [file, dependencies] of graph) {
+  const sourceLayer = runtimeLayerRules.find(([prefix]) => relative(file).startsWith(prefix));
+  if (!sourceLayer) continue;
+  for (const dependency of dependencies) {
+    if (!sourceLayer[1].some((prefix) => relative(dependency).startsWith(prefix))) {
+      report(file, `${sourceLayer[0]} runtime imports must point downward`, dependency);
+    }
+  }
+}
+
 for (const [file, dependencies] of imports) {
   if (!relative(file).startsWith("src/routing/")) continue;
   for (const dependency of dependencies) {
@@ -107,6 +128,27 @@ for (const file of files) {
   const source = fs.readFileSync(file, "utf8");
   if (hasBrowserListenerRegistration(source) && !listenerOwners.has(relative(file))) {
     report(file, "browser listeners may only be registered by composition modules");
+  }
+
+  if (hasDynamicImport(source)) {
+    report(file, "dynamic imports are forbidden because they bypass the static module graph");
+  }
+  if (hasGlobalNamespaceMutation(source)) {
+    report(file, "source modules must not mutate the global namespace directly");
+  }
+}
+
+const compositionCallOwners = new Map([
+  ["configureDownloadPorts", new Set(["src/background/main.ts"])],
+  ["configureRoutingPorts", new Set(["src/background/main.ts", "src/options/options-runtime.ts"])],
+  ["installBackgroundE2EBridge", new Set(["src/entries/background.ts"])],
+]);
+for (const file of files) {
+  const source = fs.readFileSync(file, "utf8");
+  for (const [call, owners] of compositionCallOwners) {
+    if (callsIdentifier(source, call) && !owners.has(relative(file))) {
+      report(file, `${call} may only be called by its composition owner`);
+    }
   }
 }
 
