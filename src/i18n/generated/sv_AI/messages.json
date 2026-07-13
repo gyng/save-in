@@ -118,7 +118,7 @@
     "message": "Alternativ"
   },
   "contextMenuToggleSourcePanel": {
-    "message": "Visa eller dölj sidkällor"
+    "message": "Visa eller dölj sidresurser"
   },
   "contextMenuExclusive": {
     "message": "Spara med en routningsregel…"
@@ -316,16 +316,16 @@
     "message": "Historik"
   },
   "o_sPageSources": {
-    "message": "Sidkällor"
+    "message": "Sidresurser"
   },
   "o_lPageSourcesHelp": {
     "message": "Bläddra bland bilder, video, ljud, dokument och nedladdningsbara länkar på den aktuella sidan. Sparade objekt använder dina vanliga routnings- och namnbytesregler."
   },
   "o_lPageSourcesNetworkLimit": {
-    "message": "Vissa videospelare använder tillfälliga URL:er eller laddar media genom skript, så Save In kanske inte upptäcker varje video. Det kan ibland hitta strömmande videospellistor (HLS/DASH), men dessa filer listar bara de separata videodelarna; att spara en av dem sparar inte hela videon."
+    "message": "Vissa videospelare använder tillfälliga URL:er eller läser in media via skript, så Save In kanske inte hittar alla videor. Ibland hittas spellistor för strömmande video (HLS/DASH), men de innehåller bara separata videosegment; att spara en spellista hämtar inte hela videon."
   },
   "o_cSourcePanelEnabled": {
-    "message": "Aktivera sidkällor"
+    "message": "Aktivera sidresurser"
   },
   "o_cSourcePanelBackgrounds": {
     "message": "Inkludera CSS-bakgrundsbilder"
@@ -337,7 +337,7 @@
     "message": "Visa förhandsvisningar av bilder och videor"
   },
   "o_cSourcePanelResourceHints": {
-    "message": "Leta efter strömmande videospellistor (HLS/DASH; bästa möjliga försök)"
+    "message": "Sök efter spellistor för strömmande video när det är möjligt (HLS/DASH)"
   },
   "o_cSourcePanelLinks": {
     "message": "Inkludera länkar, länkade media och PDF-dokument"
@@ -1072,7 +1072,7 @@
     "message": "Exportera"
   },
   "html_filterSources": {
-    "message": "Filtrera källor"
+    "message": "Filtrera resurser"
   },
   "html_historyTableTools": {
     "message": "Verktyg för historiktabellen"
@@ -1728,7 +1728,7 @@
   "o_lUiThemeDark": { "message": "Mörkt" },
   "o_lUiThemeLight": { "message": "Ljust" },
   "o_lUiThemeHelp": {
-    "message": "Följ systemtemat eller använd alltid mörkt eller ljust tema på alternativsidan och i sidkällor."
+    "message": "Följ systemtemat eller använd alltid mörkt eller ljust tema på alternativsidan och för sidresurser."
   },
   "notificationExternalDownloadBlockedTitle": { "message": "Extern nedladdning blockerad" },
   "notificationExternalDownloadBlockedMessage": {
@@ -1756,13 +1756,13 @@
   },
   "webMcpStatusUnavailableBrowser": { "message": "Inte tillgänglig i den här webbläsaren" },
   "sourcePanelResizeLabel": {
-    "message": "Ändra storlek på panelen Sidkällor"
+    "message": "Ändra storlek på panelen Sidresurser"
   },
   "sourcePanelClose": {
     "message": "Stäng"
   },
   "sourcePanelCloseLabel": {
-    "message": "Stäng Sidkällor"
+    "message": "Stäng Sidresurser"
   },
   "sourcePanelDockPosition": {
     "message": "Position: $POSITION$ — byt till nästa",
@@ -1789,25 +1789,25 @@
     "message": "Ändra panelens fästposition"
   },
   "sourcePanelDockPanel": {
-    "message": "Fäst Sidkällor"
+    "message": "Fäst Sidresurser"
   },
   "sourcePanelPopOutPanel": {
-    "message": "Visa Sidkällor som flytande panel"
+    "message": "Visa Sidresurser som flytande panel"
   },
   "sourcePanelPopOutHelp": {
     "message": "Visa som en flyttbar, flytande panel"
   },
   "sourcePanelCopyFilteredUrls": {
-    "message": "Kopiera URL:er för källorna i det aktuella filtret"
+    "message": "Kopiera URL:er för resurserna i det aktuella filtret"
   },
   "sourcePanelCopyFilteredUrlsLabel": {
-    "message": "Kopiera URL:er för filtrerade källor"
+    "message": "Kopiera URL:er för filtrerade resurser"
   },
   "sourcePanelFilterLabel": {
-    "message": "Filtrera sidkällor"
+    "message": "Filtrera sidresurser"
   },
   "sourcePanelSortLabel": {
-    "message": "Sortera källor"
+    "message": "Sortera resurser"
   },
   "sourcePanelSortNewest": {
     "message": "Nyaste först"
@@ -1831,7 +1831,7 @@
     "message": "Spellista"
   },
   "sourcePanelNoMatches": {
-    "message": "Inga källor matchar de aktuella filtren."
+    "message": "Inga resurser matchar de aktuella filtren."
   },
   "sourcePanelNoSources": {
     "message": "Inga medier eller spellistor för strömmande video har ännu upptäckts på sidan."
@@ -1882,7 +1882,7 @@
     "message": "Kopieringen misslyckades"
   },
   "sourcePanelRowInstructions": {
-    "message": "Alt-klick: spara; högerklick på källans titel: Save In"
+    "message": "Alt-klick: spara; högerklick på resursens titel: Save In"
   },
   "sourcePanelCopiedUrls": {
     "message": "$COUNT$ URL:er kopierade",

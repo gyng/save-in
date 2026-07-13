@@ -132,7 +132,7 @@
     "message": "Options"
   },
   "contextMenuToggleSourcePanel": {
-    "message": "Afficher ou masquer les sources des pages"
+    "message": "Afficher ou masquer les ressources de la page"
   },
   "contextMenuExclusive": {
     "message": "Enregistrer avec une règle de routage…"
@@ -342,16 +342,16 @@
     "message": "Historique"
   },
   "o_sPageSources": {
-    "message": "Sources de la page"
+    "message": "Ressources de la page"
   },
   "o_lPageSourcesHelp": {
     "message": "Parcourez les images, vidéos, audio, documents et liens téléchargeables trouvés sur la page actuelle. Les éléments enregistrés utilisent vos règles normales de routage et de renommage."
   },
   "o_lPageSourcesNetworkLimit": {
-    "message": "Certains lecteurs vidéo utilisent des URL temporaires ou chargent des médias via des scripts. Il est donc possible que Save In ne détecte pas toutes les vidéos. Il peut parfois trouver des listes de lecture de vidéos en streaming (HLS/DASH), mais ces fichiers ne répertorient que les morceaux vidéo séparés ; en enregistrer un ne sauvegarde pas la vidéo complète."
+    "message": "Certains lecteurs vidéo utilisent des URL temporaires ou chargent les médias par script. Save In peut donc ne pas détecter toutes les vidéos. Il trouve parfois des listes de lecture vidéo en streaming (HLS/DASH), mais celles-ci ne répertorient que des segments distincts ; enregistrer une telle liste ne télécharge pas la vidéo complète."
   },
   "o_cSourcePanelEnabled": {
-    "message": "Activer les sources de pages"
+    "message": "Activer les ressources de la page"
   },
   "o_cSourcePanelBackgrounds": {
     "message": "Inclure des images d'arrière-plan CSS"
@@ -363,7 +363,7 @@
     "message": "Afficher des aperçus d'images et de vidéos"
   },
   "o_cSourcePanelResourceHints": {
-    "message": "Recherchez des listes de lecture de vidéos en streaming (HLS/DASH ; meilleur effort)"
+    "message": "Rechercher des listes de lecture vidéo en streaming dans la mesure du possible (HLS/DASH)"
   },
   "o_cSourcePanelLinks": {
     "message": "Inclure des liens, des médias liés et des documents PDF"
@@ -1098,7 +1098,7 @@
     "message": "Exporter"
   },
   "html_filterSources": {
-    "message": "Filtrer les sources"
+    "message": "Filtrer les ressources"
   },
   "html_historyTableTools": {
     "message": "Outils du tableau d’historique"
@@ -1780,16 +1780,16 @@
   "o_lUiThemeDark": { "message": "Sombre" },
   "o_lUiThemeLight": { "message": "Clair" },
   "o_lUiThemeHelp": {
-    "message": "Suivez le thème du système ou gardez la page d’options et les sources des pages toujours en mode sombre ou clair."
+    "message": "Suivre le thème du système ou toujours utiliser le thème sombre ou clair pour la page d’options et les ressources de la page."
   },
   "sourcePanelResizeLabel": {
-    "message": "Redimensionner le panneau Sources de la page"
+    "message": "Redimensionner le panneau Ressources de la page"
   },
   "sourcePanelClose": {
     "message": "Fermer"
   },
   "sourcePanelCloseLabel": {
-    "message": "Fermer le panneau Sources de la page"
+    "message": "Fermer le panneau Ressources de la page"
   },
   "sourcePanelDockPosition": {
     "message": "Position : $POSITION$ — passer à la suivante",
@@ -1816,10 +1816,10 @@
     "message": "Changer la position d’ancrage du panneau"
   },
   "sourcePanelDockPanel": {
-    "message": "Ancrer le panneau Sources de la page"
+    "message": "Ancrer le panneau Ressources de la page"
   },
   "sourcePanelPopOutPanel": {
-    "message": "Détacher le panneau Sources de la page"
+    "message": "Désancrer le panneau Ressources de la page"
   },
   "sourcePanelPopOutHelp": {
     "message": "Afficher dans un panneau flottant et déplaçable"
@@ -1828,13 +1828,13 @@
     "message": "Copier les URL du filtre actuel"
   },
   "sourcePanelCopyFilteredUrlsLabel": {
-    "message": "Copier les URL des sources filtrées"
+    "message": "Copier les URL des ressources filtrées"
   },
   "sourcePanelFilterLabel": {
-    "message": "Filtrer les sources de la page"
+    "message": "Filtrer les ressources de la page"
   },
   "sourcePanelSortLabel": {
-    "message": "Trier les sources"
+    "message": "Trier les ressources"
   },
   "sourcePanelSortNewest": {
     "message": "Plus récentes"
@@ -1858,7 +1858,7 @@
     "message": "Liste de lecture"
   },
   "sourcePanelNoMatches": {
-    "message": "Aucune source ne correspond aux filtres actuels."
+    "message": "Aucune ressource ne correspond aux filtres actuels."
   },
   "sourcePanelNoSources": {
     "message": "Aucun média ni aucune liste de lecture vidéo en streaming n’ont encore été détectés sur la page."
@@ -1909,7 +1909,7 @@
     "message": "Échec de la copie"
   },
   "sourcePanelRowInstructions": {
-    "message": "Alt+clic : enregistrer ; clic droit sur le titre de la source : Save In"
+    "message": "Alt+clic : enregistrer ; clic droit sur le titre de la ressource : Save In"
   },
   "sourcePanelCopiedUrls": {
     "message": "$COUNT$ URL copiées",

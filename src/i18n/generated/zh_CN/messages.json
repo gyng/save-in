@@ -21,7 +21,7 @@
     "message": "选项"
   },
   "contextMenuToggleSourcePanel": {
-    "message": "显示或隐藏页面源"
+    "message": "显示或隐藏页面资源"
   },
   "contextMenuExclusive": {
     "message": "使用路由规则保存…"
@@ -219,16 +219,16 @@
     "message": "历史记录"
   },
   "o_sPageSources": {
-    "message": "页面来源"
+    "message": "页面资源"
   },
   "o_lPageSourcesHelp": {
     "message": "浏览当前页面中的图片、视频、音频、文档和可下载链接。保存的项目会使用常规的路由和重命名规则。"
   },
   "o_lPageSourcesNetworkLimit": {
-    "message": "某些视频播放器使用临时 URL 或通过脚本加载媒体，因此 Save In 可能无法检测到每个视频。有时它可以找到流视频播放列表（HLS/DASH），但这些文件仅列出单独的视频片段；保存一个视频并不会保存完整的视频。"
+    "message": "某些视频播放器使用临时 URL 或通过脚本加载媒体，因此 Save In 可能无法检测到所有视频。有时可以找到流媒体视频播放列表（HLS/DASH），但其中仅列出单独的视频片段；保存播放列表并不会保存完整视频。"
   },
   "o_cSourcePanelEnabled": {
-    "message": "启用页面源"
+    "message": "启用页面资源"
   },
   "o_cSourcePanelBackgrounds": {
     "message": "包含 CSS 背景图像"
@@ -243,7 +243,7 @@
     "message": "尽可能查找流媒体视频播放列表（HLS/DASH）"
   },
   "o_cSourcePanelLinks": {
-    "message": "包括链接、链接媒体和 PDF 文档"
+    "message": "包括链接、链接指向的媒体和 PDF 文档"
   },
   "o_lSourcePanelDiscovery": {
     "message": "来源和预览"
@@ -975,7 +975,7 @@
     "message": "出口"
   },
   "html_filterSources": {
-    "message": "过滤来源"
+    "message": "筛选资源"
   },
   "html_historyTableTools": {
     "message": "历史记录表工具"
@@ -1836,7 +1836,7 @@
   "o_lUiThemeDark": { "message": "深色" },
   "o_lUiThemeLight": { "message": "浅色" },
   "o_lUiThemeHelp": {
-    "message": "跟随系统主题，或让选项页面和页面来源始终使用深色或浅色主题。"
+    "message": "跟随系统主题，或让选项页面和页面资源始终使用深色或浅色主题。"
   },
   "notificationExternalDownloadBlockedTitle": { "message": "外部下载已阻止" },
   "notificationExternalDownloadBlockedMessage": {
@@ -1862,13 +1862,13 @@
   "webMcpStatusRegistrationFailed": { "message": "不可用 — 工具注册失败" },
   "webMcpStatusUnavailableBrowser": { "message": "此浏览器不支持" },
   "sourcePanelResizeLabel": {
-    "message": "调整“页面来源”的大小"
+    "message": "调整“页面资源”的大小"
   },
   "sourcePanelClose": {
     "message": "关闭"
   },
   "sourcePanelCloseLabel": {
-    "message": "关闭“页面来源”"
+    "message": "关闭“页面资源”"
   },
   "sourcePanelDockPosition": {
     "message": "停靠：$POSITION$ — 切换至下一位置",
@@ -1895,10 +1895,10 @@
     "message": "更改面板停靠位置"
   },
   "sourcePanelDockPanel": {
-    "message": "停靠“页面来源”"
+    "message": "停靠“页面资源”"
   },
   "sourcePanelPopOutPanel": {
-    "message": "浮动显示“页面来源”"
+    "message": "浮动显示“页面资源”"
   },
   "sourcePanelPopOutHelp": {
     "message": "显示为可拖动的浮动面板"
@@ -1907,13 +1907,13 @@
     "message": "复制当前筛选结果的 URL"
   },
   "sourcePanelCopyFilteredUrlsLabel": {
-    "message": "复制已筛选来源的 URL"
+    "message": "复制已筛选资源的 URL"
   },
   "sourcePanelFilterLabel": {
-    "message": "筛选页面来源"
+    "message": "筛选页面资源"
   },
   "sourcePanelSortLabel": {
-    "message": "来源排序"
+    "message": "资源排序"
   },
   "sourcePanelSortNewest": {
     "message": "最新"
@@ -1937,7 +1937,7 @@
     "message": "播放列表"
   },
   "sourcePanelNoMatches": {
-    "message": "没有符合当前筛选条件的来源。"
+    "message": "没有符合当前筛选条件的资源。"
   },
   "sourcePanelNoSources": {
     "message": "尚未检测到页面中的媒体或流式视频播放列表。"
@@ -1988,7 +1988,7 @@
     "message": "复制失败"
   },
   "sourcePanelRowInstructions": {
-    "message": "Alt+单击：保存；右键单击来源标题：Save In"
+    "message": "Alt+单击：保存；右键单击资源标题：Save In"
   },
   "sourcePanelCopiedUrls": {
     "message": "已复制 $COUNT$ 个 URL",

@@ -21,7 +21,7 @@
     "message": "選項"
   },
   "contextMenuToggleSourcePanel": {
-    "message": "顯示或隱藏頁面來源"
+    "message": "顯示或隱藏頁面資源"
   },
   "contextMenuExclusive": {
     "message": "使用路由規則儲存…"
@@ -219,7 +219,7 @@
     "message": "歷史記錄"
   },
   "o_sPageSources": {
-    "message": "頁面來源"
+    "message": "頁面資源"
   },
   "o_lPageSourcesHelp": {
     "message": "瀏覽目前頁面中的圖片、影片、音訊、文件與可下載連結。儲存的項目會套用一般的路由與重新命名規則。"
@@ -228,7 +228,7 @@
     "message": "某些影片播放器使用暫時 URL，或透過指令碼載入媒體，因此 Save In 不一定能偵測到所有影片。有時可以找到串流播放清單（HLS/DASH），但這些檔案只列出個別影片片段；儲存播放清單並不會儲存完整影片。"
   },
   "o_cSourcePanelEnabled": {
-    "message": "啟用頁面來源"
+    "message": "啟用頁面資源"
   },
   "o_cSourcePanelBackgrounds": {
     "message": "包含 CSS 背景圖片"
@@ -243,7 +243,7 @@
     "message": "盡可能尋找串流影片播放清單（HLS/DASH）"
   },
   "o_cSourcePanelLinks": {
-    "message": "包含連結、連結媒體與 PDF 文件"
+    "message": "包含連結、連結指向的媒體與 PDF 文件"
   },
   "o_lSourcePanelDiscovery": {
     "message": "來源和預覽"
@@ -975,7 +975,7 @@
     "message": "出口"
   },
   "html_filterSources": {
-    "message": "過濾來源"
+    "message": "篩選資源"
   },
   "html_historyTableTools": {
     "message": "記錄表工具"
@@ -1836,7 +1836,7 @@
   "o_lUiThemeDark": { "message": "深色" },
   "o_lUiThemeLight": { "message": "淺色" },
   "o_lUiThemeHelp": {
-    "message": "跟隨系統主題，或讓選項頁面和頁面來源一律使用深色或淺色主題。"
+    "message": "跟隨系統主題，或讓選項頁面和頁面資源一律使用深色或淺色主題。"
   },
   "notificationExternalDownloadBlockedTitle": { "message": "已封鎖外部下載" },
   "notificationExternalDownloadBlockedMessage": {
@@ -1862,13 +1862,13 @@
   "webMcpStatusRegistrationFailed": { "message": "無法使用 — 工具註冊失敗" },
   "webMcpStatusUnavailableBrowser": { "message": "此瀏覽器不支援" },
   "sourcePanelResizeLabel": {
-    "message": "調整「頁面來源」大小"
+    "message": "調整「頁面資源」大小"
   },
   "sourcePanelClose": {
     "message": "關閉"
   },
   "sourcePanelCloseLabel": {
-    "message": "關閉「頁面來源」"
+    "message": "關閉「頁面資源」"
   },
   "sourcePanelDockPosition": {
     "message": "停駐：$POSITION$ — 切換至下一個位置",
@@ -1895,10 +1895,10 @@
     "message": "變更面板停駐位置"
   },
   "sourcePanelDockPanel": {
-    "message": "停駐「頁面來源」"
+    "message": "停駐「頁面資源」"
   },
   "sourcePanelPopOutPanel": {
-    "message": "浮動顯示「頁面來源」"
+    "message": "浮動顯示「頁面資源」"
   },
   "sourcePanelPopOutHelp": {
     "message": "顯示為可拖曳的浮動面板"
@@ -1907,13 +1907,13 @@
     "message": "複製目前篩選結果的 URL"
   },
   "sourcePanelCopyFilteredUrlsLabel": {
-    "message": "複製已篩選來源的 URL"
+    "message": "複製已篩選資源的 URL"
   },
   "sourcePanelFilterLabel": {
-    "message": "篩選頁面來源"
+    "message": "篩選頁面資源"
   },
   "sourcePanelSortLabel": {
-    "message": "來源排序"
+    "message": "資源排序"
   },
   "sourcePanelSortNewest": {
     "message": "最新"
@@ -1937,7 +1937,7 @@
     "message": "播放清單"
   },
   "sourcePanelNoMatches": {
-    "message": "沒有符合目前篩選條件的來源。"
+    "message": "沒有符合目前篩選條件的資源。"
   },
   "sourcePanelNoSources": {
     "message": "尚未偵測到頁面中的媒體或串流影片播放清單。"
@@ -1988,7 +1988,7 @@
     "message": "複製失敗"
   },
   "sourcePanelRowInstructions": {
-    "message": "Alt+按一下：儲存；在來源標題上按一下滑鼠右鍵：Save In"
+    "message": "Alt+按一下：儲存；在資源標題上按一下滑鼠右鍵：Save In"
   },
   "sourcePanelCopiedUrls": {
     "message": "已複製 $COUNT$ 個 URL",

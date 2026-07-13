@@ -324,25 +324,25 @@
     "message": "Explore imágenes, videos, audio, documentos y enlaces descargables que se encuentran en la página actual. Los elementos guardados utilizan sus reglas normales de enrutamiento y cambio de nombre."
   },
   "o_lPageSourcesNetworkLimit": {
-    "message": "Algunos reproductores de video usan URL temporales o cargan medios a través de secuencias de comandos, por lo que es posible que Save In no detecte todos los videos. A veces puede encontrar listas de reproducción de vídeo en streaming (HLS/DASH), pero estos archivos sólo enumeran las piezas de vídeo separadas; guardar uno no guarda el video completo."
+    "message": "Algunos reproductores usan URL temporales o cargan contenido multimedia mediante scripts, por lo que Save In puede no detectar todos los vídeos. A veces encuentra listas de reproducción de vídeo en streaming (HLS/DASH), pero solo contienen segmentos individuales; guardar una lista no descarga el vídeo completo."
   },
   "o_cSourcePanelEnabled": {
-    "message": "Habilitar los recursos de la página"
+    "message": "Activar los recursos de la página"
   },
   "o_cSourcePanelBackgrounds": {
     "message": "Incluir imágenes de fondo CSS"
   },
   "o_cSourcePanelLive": {
-    "message": "Actualizar cuando cambie el medio de la página"
+    "message": "Actualizar cuando cambie el contenido multimedia de la página"
   },
   "o_cSourcePanelPreviews": {
     "message": "Mostrar vistas previas de imágenes y vídeos"
   },
   "o_cSourcePanelResourceHints": {
-    "message": "Busque listas de reproducción de transmisión de video (HLS/DASH; mejor esfuerzo)"
+    "message": "Buscar listas de reproducción de vídeo en streaming cuando sea posible (HLS/DASH)"
   },
   "o_cSourcePanelLinks": {
-    "message": "Incluir enlaces, medios vinculados y documentos PDF."
+    "message": "Incluir enlaces, contenido multimedia enlazado y documentos PDF"
   },
   "o_lSourcePanelDiscovery": {
     "message": "Fuentes y vistas previas"
@@ -1820,7 +1820,7 @@
     "message": "Más antiguos"
   },
   "sourcePanelSortLargest": {
-    "message": "Mayor tamaño"
+    "message": "Más grandes primero"
   },
   "sourcePanelSortName": {
     "message": "Nombre"

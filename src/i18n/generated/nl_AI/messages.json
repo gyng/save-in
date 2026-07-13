@@ -328,10 +328,10 @@
     "message": "Blader door afbeeldingen, video, audio, documenten en downloadbare links op de huidige pagina. Voor opgeslagen items worden uw normale regels voor routering en hernoeming gebruikt."
   },
   "o_lPageSourcesNetworkLimit": {
-    "message": "Sommige videospelers gebruiken tijdelijke URL's of laden media via scripts, dus Save In detecteert mogelijk niet elke video. Soms kan het streaming video-afspeellijsten (HLS/DASH) vinden, maar deze bestanden vermelden alleen de afzonderlijke videostukken; Als u er één opslaat, wordt niet de volledige video opgeslagen."
+    "message": "Sommige videospelers gebruiken tijdelijke URL's of laden media via scripts, waardoor Save In mogelijk niet elke video detecteert. Soms worden afspeellijsten voor streamingvideo (HLS/DASH) gevonden, maar die bevatten alleen afzonderlijke videosegmenten; als u een afspeellijst opslaat, wordt niet de volledige video gedownload."
   },
   "o_cSourcePanelEnabled": {
-    "message": "Schakel paginabronnen in"
+    "message": "Paginabronnen inschakelen"
   },
   "o_cSourcePanelBackgrounds": {
     "message": "Voeg CSS-achtergrondafbeeldingen toe"
@@ -343,7 +343,7 @@
     "message": "Toon afbeeldings- en videovoorbeelden"
   },
   "o_cSourcePanelResourceHints": {
-    "message": "Zoek naar afspeellijsten met streaming video (HLS/DASH; beste poging)"
+    "message": "Zoeken naar afspeellijsten voor streamingvideo indien mogelijk (HLS/DASH)"
   },
   "o_cSourcePanelLinks": {
     "message": "Voeg links, gekoppelde media en PDF-documenten toe"
@@ -1734,7 +1734,7 @@
   "o_lUiThemeDark": { "message": "Donker" },
   "o_lUiThemeLight": { "message": "Licht" },
   "o_lUiThemeHelp": {
-    "message": "Volg het systeemthema of houd de optiepagina en paginabronnen altijd donker of licht."
+    "message": "Het systeemthema volgen of voor de optiepagina en Paginabronnen altijd een donker of licht thema gebruiken."
   },
   "notificationExternalDownloadBlockedTitle": { "message": "Externe download geblokkeerd" },
   "notificationExternalDownloadBlockedMessage": {
@@ -1771,7 +1771,7 @@
     "message": "Paginabronnen sluiten"
   },
   "sourcePanelDockPosition": {
-    "message": "Vastgezet: $POSITION$ — naar de volgende positie",
+    "message": "Positie: $POSITION$ — naar de volgende",
     "placeholders": {
       "position": {
         "content": "$1",
@@ -1792,7 +1792,7 @@
     "message": "Boven"
   },
   "sourcePanelChangeDockLabel": {
-    "message": "Vastzetpositie van het paneel wijzigen"
+    "message": "Positie van het paneel wijzigen"
   },
   "sourcePanelDockPanel": {
     "message": "Paginabronnen vastzetten"

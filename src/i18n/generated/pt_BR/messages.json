@@ -328,25 +328,25 @@
     "message": "Navegue por imagens, vídeos, áudios, documentos e links para download encontrados na página atual. Os itens salvos usam suas regras normais de roteamento e renomeação."
   },
   "o_lPageSourcesNetworkLimit": {
-    "message": "Alguns players de vídeo usam URLs temporários ou carregam mídia por meio de scripts, portanto, Save In pode não detectar todos os vídeos. Às vezes, ele pode encontrar listas de reprodução de streaming de vídeo (HLS/DASH), mas esses arquivos listam apenas as peças de vídeo separadas; salvar um não salva o vídeo completo."
+    "message": "Alguns players usam URLs temporárias ou carregam mídia por scripts, por isso o Save In talvez não detecte todos os vídeos. Às vezes, ele encontra playlists de vídeo por streaming (HLS/DASH), mas elas contêm apenas segmentos separados; salvar uma playlist não baixa o vídeo completo."
   },
   "o_cSourcePanelEnabled": {
-    "message": "Habilitar os recursos da página"
+    "message": "Ativar os recursos da página"
   },
   "o_cSourcePanelBackgrounds": {
     "message": "Incluir imagens de fundo CSS"
   },
   "o_cSourcePanelLive": {
-    "message": "Atualizar quando a mídia da página for alterada"
+    "message": "Atualizar quando a mídia da página mudar"
   },
   "o_cSourcePanelPreviews": {
     "message": "Mostrar visualizações de imagens e vídeos"
   },
   "o_cSourcePanelResourceHints": {
-    "message": "Procure playlists de streaming de vídeo (HLS/DASH; melhor esforço)"
+    "message": "Procurar playlists de vídeo por streaming quando possível (HLS/DASH)"
   },
   "o_cSourcePanelLinks": {
-    "message": "Incluir links, mídia vinculada e documentos PDF"
+    "message": "Incluir links, mídias vinculadas e documentos PDF"
   },
   "o_lSourcePanelDiscovery": {
     "message": "Fontes e visualizações"
@@ -1834,13 +1834,13 @@
     "message": "Documento"
   },
   "sourcePanelKindPlaylist": {
-    "message": "Lista de reprodução"
+    "message": "Playlist"
   },
   "sourcePanelNoMatches": {
     "message": "Nenhum recurso corresponde aos filtros atuais."
   },
   "sourcePanelNoSources": {
-    "message": "Ainda não foram detectadas mídias da página nem listas de reprodução de vídeo por streaming."
+    "message": "Ainda não foram detectadas mídias da página nem playlists de vídeo por streaming."
   },
   "sourcePanelSourceInstructions": {
     "message": "$URL$. Botão direito: Save In; Alt+clique: salvar imediatamente.",
@@ -1873,7 +1873,7 @@
     "message": "Salvar"
   },
   "sourcePanelSavePlaylist": {
-    "message": "Salvar a lista de reprodução"
+    "message": "Salvar playlist"
   },
   "sourcePanelCopyYtDlp": {
     "message": "Copiar o comando do yt-dlp"

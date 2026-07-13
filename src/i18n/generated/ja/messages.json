@@ -21,7 +21,7 @@
     "message": "オプション"
   },
   "contextMenuToggleSourcePanel": {
-    "message": "ページのソースを表示または非表示にする"
+    "message": "ページリソースを表示または非表示にする"
   },
   "contextMenuExclusive": {
     "message": "ルーティング ルールを付けて保存…"
@@ -219,16 +219,16 @@
     "message": "履歴"
   },
   "o_sPageSources": {
-    "message": "ページソース"
+    "message": "ページリソース"
   },
   "o_lPageSourcesHelp": {
     "message": "現在のページにある画像、ビデオ、オーディオ、ドキュメント、およびダウンロード可能なリンクを参照します。保存されたアイテムには、通常のルーティングおよび名前変更ルールが使用されます。"
   },
   "o_lPageSourcesNetworkLimit": {
-    "message": "一部のビデオ プレーヤーは一時 URL を使用したり、スクリプトを通じてメディアをロードしたりするため、Save In がすべてのビデオを検出できるわけではありません。ストリーミング ビデオ プレイリスト (HLS/DASH) が見つかる場合もありますが、これらのファイルには個別のビデオ部分がリストされているだけです。 1 つを保存しても、ビデオ全体は保存されません。"
+    "message": "一部の動画プレーヤーは一時 URL を使用したり、スクリプトでメディアを読み込んだりするため、Save In ですべての動画を検出できるとは限りません。ストリーミング動画のプレイリスト（HLS/DASH）が見つかる場合もありますが、記載されているのは個別の動画セグメントだけです。プレイリストを保存しても動画全体は保存されません。"
   },
   "o_cSourcePanelEnabled": {
-    "message": "ページソースを有効にする"
+    "message": "ページリソースを有効にする"
   },
   "o_cSourcePanelBackgrounds": {
     "message": "CSS 背景画像を含める"
@@ -240,7 +240,7 @@
     "message": "画像とビデオのプレビューを表示する"
   },
   "o_cSourcePanelResourceHints": {
-    "message": "ストリーミング動画のプレイリストを可能な範囲で検索します（HLS/DASH）"
+    "message": "ストリーミング動画のプレイリストを可能な範囲で検出する（HLS/DASH）"
   },
   "o_cSourcePanelLinks": {
     "message": "リンク、リンクされたメディア、PDF ドキュメントを含める"
@@ -975,7 +975,7 @@
     "message": "エクスポート"
   },
   "html_filterSources": {
-    "message": "ソースを絞り込む"
+    "message": "リソースを絞り込む"
   },
   "html_historyTableTools": {
     "message": "履歴テーブルのツール"
@@ -1836,7 +1836,7 @@
   "o_lUiThemeDark": { "message": "ダーク" },
   "o_lUiThemeLight": { "message": "ライト" },
   "o_lUiThemeHelp": {
-    "message": "システムテーマに合わせるか、オプションページとページソースを常にダークまたはライトに設定します。"
+    "message": "システムテーマに合わせるか、オプションページとページリソースを常にダークまたはライトに設定します。"
   },
   "notificationExternalDownloadBlockedTitle": { "message": "外部ダウンロードをブロックしました" },
   "notificationExternalDownloadBlockedMessage": {
@@ -1862,13 +1862,13 @@
   "webMcpStatusRegistrationFailed": { "message": "利用不可 — ツールの登録に失敗しました" },
   "webMcpStatusUnavailableBrowser": { "message": "このブラウザーでは利用できません" },
   "sourcePanelResizeLabel": {
-    "message": "ページソースのサイズを変更"
+    "message": "ページリソースのサイズを変更"
   },
   "sourcePanelClose": {
     "message": "閉じる"
   },
   "sourcePanelCloseLabel": {
-    "message": "ページソースを閉じる"
+    "message": "ページリソースを閉じる"
   },
   "sourcePanelDockPosition": {
     "message": "ドッキング位置：$POSITION$ — 次の位置に切り替え",
@@ -1895,25 +1895,25 @@
     "message": "パネルの配置を変更"
   },
   "sourcePanelDockPanel": {
-    "message": "ページソースをドッキング"
+    "message": "ページリソースをドッキング"
   },
   "sourcePanelPopOutPanel": {
-    "message": "ページソースをフローティング表示"
+    "message": "ページリソースをフローティング表示"
   },
   "sourcePanelPopOutHelp": {
     "message": "ドラッグできるフローティングパネルで表示"
   },
   "sourcePanelCopyFilteredUrls": {
-    "message": "表示中のソース URL をコピー"
+    "message": "表示中のリソース URL をコピー"
   },
   "sourcePanelCopyFilteredUrlsLabel": {
-    "message": "絞り込んだソースの URL をコピー"
+    "message": "絞り込んだリソースの URL をコピー"
   },
   "sourcePanelFilterLabel": {
-    "message": "ページソースを絞り込む"
+    "message": "ページリソースを絞り込む"
   },
   "sourcePanelSortLabel": {
-    "message": "ソースを並べ替え"
+    "message": "リソースを並べ替え"
   },
   "sourcePanelSortNewest": {
     "message": "新しい順"
@@ -1937,7 +1937,7 @@
     "message": "プレイリスト"
   },
   "sourcePanelNoMatches": {
-    "message": "現在のフィルターに一致するソースはありません。"
+    "message": "現在のフィルターに一致するリソースはありません。"
   },
   "sourcePanelNoSources": {
     "message": "ページ上のメディアやストリーミング動画のプレイリストはまだ検出されていません。"
@@ -1988,7 +1988,7 @@
     "message": "コピーに失敗しました"
   },
   "sourcePanelRowInstructions": {
-    "message": "Alt+クリックで保存。ソース名を右クリックすると Save In を使用できます"
+    "message": "Alt+クリックで保存。リソース名を右クリックすると Save In を使用できます"
   },
   "sourcePanelCopiedUrls": {
     "message": "$COUNT$ 件の URL をコピーしました",

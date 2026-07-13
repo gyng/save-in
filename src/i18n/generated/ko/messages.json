@@ -21,7 +21,7 @@
     "message": "옵션"
   },
   "contextMenuToggleSourcePanel": {
-    "message": "페이지 소스 표시 또는 숨기기"
+    "message": "페이지 리소스 표시 또는 숨기기"
   },
   "contextMenuExclusive": {
     "message": "라우팅 규칙으로 저장…"
@@ -219,16 +219,16 @@
     "message": "기록"
   },
   "o_sPageSources": {
-    "message": "페이지 소스"
+    "message": "페이지 리소스"
   },
   "o_lPageSourcesHelp": {
     "message": "현재 페이지에 있는 이미지, 비디오, 오디오, 문서 및 다운로드 가능한 링크를 찾아보세요. 저장된 항목은 일반적인 라우팅 및 이름 변경 규칙을 사용합니다."
   },
   "o_lPageSourcesNetworkLimit": {
-    "message": "일부 비디오 플레이어는 임시 URL을 사용하거나 스크립트를 통해 미디어를 로드하므로 Save In이 모든 비디오를 감지하지 못할 수도 있습니다. 때때로 스트리밍 비디오 재생 목록(HLS/DASH)을 찾을 수 있지만 이러한 파일에는 별도의 비디오 조각만 나열됩니다. 하나를 저장해도 전체 비디오가 저장되지는 않습니다."
+    "message": "일부 동영상 플레이어는 임시 URL을 사용하거나 스크립트로 미디어를 불러오므로 Save In이 모든 동영상을 감지하지 못할 수 있습니다. 스트리밍 동영상 재생목록(HLS/DASH)을 찾는 경우도 있지만 여기에는 개별 동영상 세그먼트만 나열됩니다. 재생목록을 저장해도 전체 동영상은 저장되지 않습니다."
   },
   "o_cSourcePanelEnabled": {
-    "message": "페이지 소스 활성화"
+    "message": "페이지 리소스 활성화"
   },
   "o_cSourcePanelBackgrounds": {
     "message": "CSS 배경 이미지 포함"
@@ -240,7 +240,7 @@
     "message": "이미지 및 비디오 미리보기 표시"
   },
   "o_cSourcePanelResourceHints": {
-    "message": "스트리밍 비디오 재생 목록을 가능한 범위에서 찾습니다(HLS/DASH)"
+    "message": "가능한 범위에서 스트리밍 동영상 재생목록 찾기(HLS/DASH)"
   },
   "o_cSourcePanelLinks": {
     "message": "링크, 연결된 미디어, PDF 문서 포함"
@@ -975,7 +975,7 @@
     "message": "수출"
   },
   "html_filterSources": {
-    "message": "소스 필터링"
+    "message": "리소스 필터링"
   },
   "html_historyTableTools": {
     "message": "기록 테이블 도구"
@@ -1836,7 +1836,7 @@
   "o_lUiThemeDark": { "message": "어둡게" },
   "o_lUiThemeLight": { "message": "밝게" },
   "o_lUiThemeHelp": {
-    "message": "시스템 테마를 따르거나 옵션 페이지와 페이지 소스를 항상 어둡게 또는 밝게 표시합니다."
+    "message": "시스템 테마를 따르거나 옵션 페이지와 페이지 리소스를 항상 어둡게 또는 밝게 표시합니다."
   },
   "notificationExternalDownloadBlockedTitle": { "message": "외부 다운로드 차단됨" },
   "notificationExternalDownloadBlockedMessage": {
@@ -1862,13 +1862,13 @@
   "webMcpStatusRegistrationFailed": { "message": "사용할 수 없음 — 도구 등록 실패" },
   "webMcpStatusUnavailableBrowser": { "message": "이 브라우저에서는 사용할 수 없음" },
   "sourcePanelResizeLabel": {
-    "message": "페이지 소스 크기 조절"
+    "message": "페이지 리소스 크기 조절"
   },
   "sourcePanelClose": {
     "message": "닫기"
   },
   "sourcePanelCloseLabel": {
-    "message": "페이지 소스 닫기"
+    "message": "페이지 리소스 닫기"
   },
   "sourcePanelDockPosition": {
     "message": "도킹 위치: $POSITION$ — 다음 위치로 변경",
@@ -1895,10 +1895,10 @@
     "message": "패널 도킹 위치 변경"
   },
   "sourcePanelDockPanel": {
-    "message": "페이지 소스 도킹"
+    "message": "페이지 리소스 도킹"
   },
   "sourcePanelPopOutPanel": {
-    "message": "페이지 소스 분리"
+    "message": "페이지 리소스 분리"
   },
   "sourcePanelPopOutHelp": {
     "message": "드래그 가능한 플로팅 패널로 분리"
@@ -1907,13 +1907,13 @@
     "message": "현재 필터의 URL 복사"
   },
   "sourcePanelCopyFilteredUrlsLabel": {
-    "message": "필터링된 소스 URL 복사"
+    "message": "필터링된 리소스 URL 복사"
   },
   "sourcePanelFilterLabel": {
-    "message": "페이지 소스 필터링"
+    "message": "페이지 리소스 필터링"
   },
   "sourcePanelSortLabel": {
-    "message": "소스 정렬"
+    "message": "리소스 정렬"
   },
   "sourcePanelSortNewest": {
     "message": "최신순"
@@ -1937,7 +1937,7 @@
     "message": "재생목록"
   },
   "sourcePanelNoMatches": {
-    "message": "현재 필터와 일치하는 소스가 없습니다."
+    "message": "현재 필터와 일치하는 리소스가 없습니다."
   },
   "sourcePanelNoSources": {
     "message": "페이지의 미디어 또는 스트리밍 동영상 재생목록이 아직 감지되지 않았습니다."
@@ -1988,7 +1988,7 @@
     "message": "복사 실패"
   },
   "sourcePanelRowInstructions": {
-    "message": "Alt+클릭: 저장, 소스 제목을 오른쪽 클릭: Save In"
+    "message": "Alt+클릭: 저장, 리소스 제목을 오른쪽 클릭: Save In"
   },
   "sourcePanelCopiedUrls": {
     "message": "$COUNT$개 URL 복사됨",

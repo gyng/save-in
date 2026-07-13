@@ -122,7 +122,7 @@
     "message": "Optionen"
   },
   "contextMenuToggleSourcePanel": {
-    "message": "Seitenquellen ein- oder ausblenden"
+    "message": "Seitenressourcen ein- oder ausblenden"
   },
   "contextMenuExclusive": {
     "message": "Mit einer Routing-Regel speichern…"
@@ -320,28 +320,28 @@
     "message": "Verlauf"
   },
   "o_sPageSources": {
-    "message": "Seitenquellen"
+    "message": "Seitenressourcen"
   },
   "o_lPageSourcesHelp": {
     "message": "Durchsuchen Sie die Bilder, Videos, Audiodateien, Dokumente und herunterladbaren Links auf der aktuellen Seite. Gespeicherte Elemente verwenden Ihre normalen Routing- und Umbenennungsregeln."
   },
   "o_lPageSourcesNetworkLimit": {
-    "message": "Einige Videoplayer verwenden temporäre URLs oder laden Medien über Skripte, sodass Save In möglicherweise nicht jedes Video erkennt. Es kann manchmal Streaming-Video-Wiedergabelisten (HLS/DASH) finden, aber diese Dateien listen nur die einzelnen Videostücke auf; Beim Speichern eines Videos wird nicht das gesamte Video gespeichert."
+    "message": "Einige Videoplayer verwenden temporäre URLs oder laden Medien über Skripte. Daher erkennt Save In möglicherweise nicht jedes Video. Manchmal werden Wiedergabelisten für Streamingvideos (HLS/DASH) gefunden. Diese Dateien führen jedoch nur die einzelnen Videosegmente auf; das Speichern einer solchen Liste speichert nicht das vollständige Video."
   },
   "o_cSourcePanelEnabled": {
-    "message": "Seitenquellen aktivieren"
+    "message": "Seitenressourcen aktivieren"
   },
   "o_cSourcePanelBackgrounds": {
     "message": "Fügen Sie CSS-Hintergrundbilder ein"
   },
   "o_cSourcePanelLive": {
-    "message": "Aktualisieren, wenn sich das Seitenmedium ändert"
+    "message": "Aktualisieren, wenn sich Medien auf der Seite ändern"
   },
   "o_cSourcePanelPreviews": {
     "message": "Bild- und Videovorschauen anzeigen"
   },
   "o_cSourcePanelResourceHints": {
-    "message": "Suchen Sie nach Streaming-Video-Playlists (HLS/DASH; bestmöglich)"
+    "message": "Nach Wiedergabelisten für Streamingvideos suchen (HLS/DASH; bestmöglich)"
   },
   "o_cSourcePanelLinks": {
     "message": "Fügen Sie Links, verknüpfte Medien und PDF-Dokumente hinzu"
@@ -1076,7 +1076,7 @@
     "message": "Exportieren"
   },
   "html_filterSources": {
-    "message": "Quellen filtern"
+    "message": "Ressourcen filtern"
   },
   "html_historyTableTools": {
     "message": "Werkzeuge für die Verlaufstabelle"
@@ -1732,7 +1732,7 @@
   "o_lUiThemeDark": { "message": "Dunkel" },
   "o_lUiThemeLight": { "message": "Hell" },
   "o_lUiThemeHelp": {
-    "message": "Folgen Sie dem Systemdesign oder verwenden Sie für die Optionsseite und die Seitenquellen immer ein dunkles oder helles Design."
+    "message": "Dem Systemdesign folgen oder für die Optionsseite und die Seitenressourcen immer ein dunkles oder helles Design verwenden."
   },
   "notificationExternalDownloadBlockedTitle": { "message": "Externer Download blockiert" },
   "notificationExternalDownloadBlockedMessage": {
@@ -1760,13 +1760,13 @@
   },
   "webMcpStatusUnavailableBrowser": { "message": "In diesem Browser nicht verfügbar" },
   "sourcePanelResizeLabel": {
-    "message": "Größe der Seitenquellen ändern"
+    "message": "Größe der Seitenressourcen ändern"
   },
   "sourcePanelClose": {
     "message": "Schließen"
   },
   "sourcePanelCloseLabel": {
-    "message": "Seitenquellen schließen"
+    "message": "Seitenressourcen schließen"
   },
   "sourcePanelDockPosition": {
     "message": "Andockposition: $POSITION$ — zur nächsten Position wechseln",
@@ -1790,28 +1790,28 @@
     "message": "Oben"
   },
   "sourcePanelChangeDockLabel": {
-    "message": "Andockposition der Seitenquellen ändern"
+    "message": "Andockposition der Seitenressourcen ändern"
   },
   "sourcePanelDockPanel": {
-    "message": "Seitenquellen andocken"
+    "message": "Seitenressourcen andocken"
   },
   "sourcePanelPopOutPanel": {
-    "message": "Seitenquellen schwebend anzeigen"
+    "message": "Seitenressourcen abdocken"
   },
   "sourcePanelPopOutHelp": {
-    "message": "Als verschiebbaren Bereich anzeigen"
+    "message": "Als verschiebbaren, schwebenden Bereich anzeigen"
   },
   "sourcePanelCopyFilteredUrls": {
-    "message": "URLs der aktuell gefilterten Quellen kopieren"
+    "message": "URLs der aktuell gefilterten Ressourcen kopieren"
   },
   "sourcePanelCopyFilteredUrlsLabel": {
-    "message": "URLs der gefilterten Quellen kopieren"
+    "message": "URLs der gefilterten Ressourcen kopieren"
   },
   "sourcePanelFilterLabel": {
-    "message": "Seitenquellen filtern"
+    "message": "Seitenressourcen filtern"
   },
   "sourcePanelSortLabel": {
-    "message": "Quellen sortieren"
+    "message": "Ressourcen sortieren"
   },
   "sourcePanelSortNewest": {
     "message": "Neueste zuerst"
@@ -1835,7 +1835,7 @@
     "message": "Wiedergabeliste"
   },
   "sourcePanelNoMatches": {
-    "message": "Keine Quellen entsprechen den aktuellen Filtern."
+    "message": "Keine Ressourcen entsprechen den aktuellen Filtern."
   },
   "sourcePanelNoSources": {
     "message": "Es wurden noch keine Medien oder Wiedergabelisten für Streamingvideos auf der Seite erkannt."
@@ -1886,7 +1886,7 @@
     "message": "Kopieren fehlgeschlagen"
   },
   "sourcePanelRowInstructions": {
-    "message": "Alt+Klick: speichern; Rechtsklick auf den Quellentitel: Save In"
+    "message": "Alt+Klick: speichern; Rechtsklick auf den Ressourcentitel: Save In"
   },
   "sourcePanelCopiedUrls": {
     "message": "$COUNT$ URLs kopiert",
