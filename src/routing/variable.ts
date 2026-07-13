@@ -43,8 +43,11 @@ const fetchHeadMetadata = async (url: string): Promise<HeadResult> => {
   }
 
   // Some download servers reject HEAD even though GET works. Fetch resolves as
-  // soon as the GET headers arrive; metadataFromResponse cancels the body so
-  // resolving :mime:/:finalurl: does not download the file a second time.
+  // soon as the GET headers arrive, and metadataFromResponse deliberately
+  // cancels the body instead of retaining it for acquisition: routing may still
+  // reject this candidate, so consuming the body here could turn a metadata
+  // lookup into a speculative full download of a large file. If routing accepts
+  // it, the acquisition stage performs the actual download later.
   return metadataFromResponse(
     await fetchFollowingRedirects(url, { method: "GET", credentials }, 5000),
   );
