@@ -2,14 +2,6 @@ import { options } from "../src/config/options-data.ts";
 import { getExtensionFetchCredentials } from "../src/config/fetch-credentials.ts";
 import { resolveFirefoxDownloadContext } from "../src/downloads/auth-context.ts";
 import { setCurrentBrowser } from "../src/platform/chrome-detector.ts";
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
-
-test("does not request cookie access", () => {
-  const manifest = JSON.parse(readFileSync(resolve("manifest.json"), "utf8"));
-  expect(manifest.optional_permissions || []).not.toContain("cookies");
-  expect(manifest.permissions).not.toContain("cookies");
-});
 
 describe("extension fetch credentials", () => {
   test("omits credentials unless the user enables them", () => {

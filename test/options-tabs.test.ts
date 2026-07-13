@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import * as Tabs from "../src/options/tabs.ts";
 
 const { collectSections, headingLabel, orderSections, setupTabs, TAB_STORAGE_KEY } = Tabs;

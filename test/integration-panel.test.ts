@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { setupIntegrationPanel } from "../src/options/integration-panel.ts";
 import { webExtensionApi } from "../src/platform/web-extension-api.ts";
 import { MESSAGE_TYPES } from "../src/shared/constants.ts";

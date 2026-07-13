@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { setupCheckboxRows } from "../src/options/checkbox-rows.ts";
 import { setupShortcutOptions } from "../src/options/shortcut-options.ts";

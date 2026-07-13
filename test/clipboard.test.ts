@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { copyText } from "../src/options/clipboard.ts";
 import { addClickToCopy } from "../src/options/click-to-copy.ts";
 

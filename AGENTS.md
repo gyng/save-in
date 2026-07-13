@@ -147,8 +147,8 @@ cleanup:
 
 - `npm test`, `npm run test:watch`, and `npm run test:coverage`: unit tests;
   coverage enforces the configured source thresholds.
-- `npm run lint`: stage the bundle, run `web-ext` lint, oxlint, and formatting
-  checks.
+- `npm run lint`: run architecture, CSS, i18n, and release-package policy
+  checks; stage and lint the bundle; then run oxlint and formatting checks.
 - `npm run typecheck`: check Firefox, Chrome, the DOM-free worker, tooling,
   e2e drivers, and the source/test project.
 - `npm run e2e`: stage once and run Chrome and Firefox in parallel. Use
@@ -200,6 +200,9 @@ the two manifests.
 
 vitest specifics (`test/*.test.ts`, typed; `tsc` covers them):
 
+- Vitest defaults to the lightweight Node environment. Put
+  `// @vitest-environment jsdom` at the top of tests that actually exercise the
+  DOM; do not make pure model, protocol, or tooling tests pay for jsdom.
 - `test/vitest.setup.ts` installs typed `browser`/`chrome` fixtures from
   `test/webextension-test-helpers.ts`. Replace only the host boundary a test
   exercises; `browser`/`chrome` stay ambient host globals and cross-module
@@ -207,8 +210,10 @@ vitest specifics (`test/*.test.ts`, typed; `tsc` covers them):
 - Tests import the real `.ts` modules and mock deps via `vi.mock` /
   `vi.spyOn`. Prefer the typed builders in `test/webextension-test-helpers.ts`,
   import-real + `vi.spyOn`, and typed listener capture.
-- Module-reset tests use `vi.resetModules()` + `await import(...)`. vitest jsdom
-  provides `URL.createObjectURL`: stub it away to exercise MV3 paths.
+- Module-reset tests use `vi.resetModules()` + `await import(...)`. In jsdom
+  tests, stub away `URL.createObjectURL` to exercise MV3 paths.
+- Compile-only API relationships belong in `test/type-contracts.ts`; do not
+  wrap `expectTypeOf` assertions in runtime tests.
 - Capture browser event handlers via
   `vi.mocked(browser.x.onY.addListener).mock.calls[0]![0]` and invoke them.
 
@@ -225,7 +230,7 @@ vitest specifics (`test/*.test.ts`, typed; `tsc` covers them):
 - English is the canonical i18n key schema and the only browser-native catalog. Generated catalogs
   stay outside `_locales`: they are opt-in, clearly labelled in the language selector, bundled
   locally without runtime AI or network access, and fall back to English for missing messages. Add
-  or update catalog-schema and runtime-key coverage when UI copy changes.
+  or update the `check:i18n` catalog/runtime-key policy when UI copy changes.
 - When the user asks for repository changes, commit the completed, verified
   work before handing it back unless they explicitly ask to leave it uncommitted.
   Stage only task-related changes when the worktree contains unrelated edits.

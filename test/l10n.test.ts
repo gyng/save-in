@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { hardenLinks, localizeString, localizeDocument } from "../src/options/l10n.ts";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";

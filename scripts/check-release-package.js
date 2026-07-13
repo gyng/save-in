@@ -32,6 +32,16 @@ check(manifest.version === packageJson.version, "manifest.json and package.json 
 check(manifest.minimum_chrome_version === "123", "manifest minimum Chrome version must be 123");
 check(manifest.incognito === "spanning", "manifest incognito mode must remain spanning");
 check(
+  !(manifest.permissions || []).includes("cookies") &&
+    !(manifest.optional_permissions || []).includes("cookies"),
+  "manifest must not request cookie access",
+);
+check(
+  JSON.stringify(manifest.commands?.["toggle-source-panel"]?.suggested_key) ===
+    JSON.stringify({ default: "Ctrl+Shift+Y", mac: "Command+Shift+Y" }),
+  "Page Sources must keep its cross-platform default shortcut",
+);
+check(
   JSON.stringify(manifest.background) ===
     JSON.stringify({ scripts: ["background.js"], service_worker: "background.sw.js" }),
   "manifest background templates must target both bundled entry files",
@@ -246,9 +256,14 @@ const finish = async () => {
     "src/background/main.ts",
     "src/content/source-panel.ts",
     "src/downloads/notification.ts",
+    "src/options/options.ts",
   ]) {
     check(coverageExclude.includes(excluded), `Vitest coverage must exclude ${excluded}`);
   }
+  check(
+    !coverageExclude.includes("src/options/**"),
+    "pure options modules must remain in coverage",
+  );
   check(!coverageExclude.includes("src/entry.*.ts"), "Vitest coverage uses a retired entry glob");
 
   if (violations.length) {

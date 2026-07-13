@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { readFileSync } from "node:fs";
 import { setupLanguageSelector } from "../src/options/language-selector.ts";
 

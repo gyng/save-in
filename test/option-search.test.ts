@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { optionSearchEntries, setupOptionSearch } from "../src/options/option-search.ts";
 
 describe("options search", () => {

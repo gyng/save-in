@@ -54,11 +54,7 @@ describe("Page Sources relevance sorting", () => {
       bytes: 43,
     });
 
-    expect(sortPageSources([pixel, page, playlist], "relevance")).toEqual([
-      playlist,
-      page,
-      pixel,
-    ]);
+    expect(sortPageSources([pixel, page, playlist], "relevance")).toEqual([playlist, page, pixel]);
   });
 
   test("uses size and then detection order as stable tie-breakers", () => {

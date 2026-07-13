@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { parseOptionsDocument } from "./options-markup-helpers.ts";
 
 const documentForOptions = parseOptionsDocument;
@@ -27,6 +28,16 @@ test("keeps stable controls for each options workflow", () => {
     "sourcePanelEnabled",
     "history-filter",
     "externalDownloadAllowlist",
+    "uiTheme",
+    "privacy-open",
+    "privacy-dialog",
+    "privacy-content",
+    "about-open",
+    "about-dialog",
+    "about-version",
+    "reference-dialog",
+    "options-reference-variables",
+    "options-reference-clauses",
   ]);
 });
 
@@ -67,6 +78,9 @@ test("preserves backward-compatible option defaults", () => {
   expect(document.querySelector<HTMLSelectElement>("#clickToSaveButton")?.value).toBe("LEFT_CLICK");
   expect(document.querySelector<HTMLInputElement>("#truncateLength")?.min).toBe("0");
   expect(document.querySelector<HTMLInputElement>("#truncateLength")?.max).toBe("");
+  expect(
+    [...document.querySelectorAll<HTMLOptionElement>("#uiTheme option")].map(({ value }) => value),
+  ).toEqual(["system", "dark", "light"]);
   expect(document.querySelector("#includeFetchCredentials")).not.toBeNull();
   expect(document.querySelector("#containerAuthPermission")).toBeNull();
 });

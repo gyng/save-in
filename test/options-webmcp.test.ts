@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 // EXPERIMENTAL WebMCP adapter: tool definitions + auto-registration guard
 
 import { SaveInWebMCP } from "../src/options/webmcp.ts";

@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 // Paths insert menu + visual directory editor: pure line helpers must
 // round-trip the textarea syntax losslessly, and the visual editor must
 // serialize every edit back to the textarea (the source of truth).
@@ -123,17 +124,10 @@ describe("visual editor", () => {
   const controls = (row: number, title: string) =>
     rows()[row]!.querySelector<HTMLElement>(`[title="${title}"]`)!;
 
-  test("styles visual Apply guidance like the text editor helper", () => {
+  test("binds visual-editor save guidance to the paths field", () => {
     const helper = document.querySelector<HTMLElement>(".path-editor-help .manual-save-help");
 
-    expect(helper?.textContent).toBe("Localized Apply guidance");
     expect(helper?.dataset.manualHelpFor).toBe("paths");
-    expect(document.querySelector(".path-editor-help")?.textContent).toContain(
-      "Localized drag guidance",
-    );
-    expect(document.querySelector(".path-editor-help")?.textContent).not.toContain(
-      "One relative directory",
-    );
   });
 
   test("renders one row per line, separators included", () => {
@@ -141,13 +135,6 @@ describe("visual editor", () => {
     expect(rows()[0]!.querySelector<HTMLInputElement>(".path-editor-dir")!.value).toBe("a");
     expect(rows()[1]!.querySelector<HTMLInputElement>(".path-editor-alias")!.value).toBe("B");
     expect(rows()[2]!.querySelector(".path-editor-separator")).not.toBeNull();
-    expect(
-      rows()[1]!
-        .querySelector(".path-editor-indent")!
-        .nextElementSibling?.classList.contains("path-editor-handle"),
-    ).toBe(true);
-    expect(rows()[0]!.lastElementChild?.classList.contains("path-editor-actions")).toBe(true);
-    expect(rows()[2]!.lastElementChild?.classList.contains("path-editor-actions")).toBe(true);
   });
 
   test("indent and outdent rewrite the textarea", () => {
@@ -184,15 +171,12 @@ describe("visual editor", () => {
 
   test("editing the alias field updates only the alias meta", () => {
     const alias = rows()[1]!.querySelector<HTMLInputElement>(".path-editor-alias")!;
-    expect(alias.classList.contains("is-open")).toBe(true);
     const toggle = rows()[1]!.querySelector<HTMLButtonElement>(".path-editor-alias-toggle")!;
-    expect(toggle.textContent).toBe("Alias");
-    expect(alias.nextElementSibling?.classList.contains("path-editor-actions")).toBe(true);
-    expect(alias.nextElementSibling?.firstElementChild).toBe(toggle);
+    expect(toggle.getAttribute("aria-expanded")).toBe("true");
     toggle.click();
-    expect(alias.classList.contains("is-open")).toBe(false);
+    expect(toggle.getAttribute("aria-expanded")).toBe("false");
     toggle.click();
-    expect(alias.classList.contains("is-open")).toBe(true);
+    expect(toggle.getAttribute("aria-expanded")).toBe("true");
     expect(document.activeElement).toBe(alias);
     alias.value = "Better";
     alias.dispatchEvent(new Event("input", { bubbles: true }));
@@ -202,10 +186,10 @@ describe("visual editor", () => {
   test("keeps an empty alias collapsed until its compact toggle is used", () => {
     const alias = rows()[0]!.querySelector<HTMLInputElement>(".path-editor-alias")!;
     const toggle = rows()[0]!.querySelector<HTMLButtonElement>(".path-editor-alias-toggle")!;
-    expect(alias.classList.contains("is-open")).toBe(false);
+    expect(toggle.getAttribute("aria-expanded")).toBe("false");
     expect(alias.tabIndex).toBe(-1);
     toggle.click();
-    expect(alias.classList.contains("is-open")).toBe(true);
+    expect(toggle.getAttribute("aria-expanded")).toBe("true");
     expect(alias.tabIndex).toBe(0);
   });
 

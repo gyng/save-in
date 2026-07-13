@@ -1,14 +1,5 @@
+// @vitest-environment jsdom
 import { setupSourceShortcut, validateSourceShortcut } from "../src/options/source-shortcut.ts";
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
-
-test("Page Sources has an ergonomic cross-platform default shortcut", () => {
-  const manifest = JSON.parse(readFileSync(resolve("manifest.json"), "utf8"));
-  expect(manifest.commands["toggle-source-panel"].suggested_key).toEqual({
-    default: "Ctrl+Shift+Y",
-    mac: "Command+Shift+Y",
-  });
-});
 
 describe("Page Sources shortcut control", () => {
   beforeEach(() => {

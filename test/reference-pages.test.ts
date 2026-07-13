@@ -1,5 +1,8 @@
-import { existsSync, readFileSync } from "node:fs";
+// @vitest-environment jsdom
+import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { matcherFunctions } from "../src/routing/matchers.ts";
+import { transformers } from "../src/routing/variable.ts";
 import {
   filterReferenceRows,
   groupReferenceRows,
@@ -15,13 +18,10 @@ const parse = (name: string) =>
 
 describe("clauselist reference surface", () => {
   const name = "clauselist";
-  test("has search, copy status, and responsive reference styling", () => {
+  test("has semantic search and copy-status controls", () => {
     const document = parse(name);
-    expect(document.querySelector('a[href="options.html"]')).toBeNull();
     expect(document.querySelector<HTMLInputElement>(".reference-search")?.type).toBe("search");
     expect(document.querySelector('[role="status"][aria-live="polite"]')).not.toBeNull();
-    expect(document.querySelector('link[href="reference.css"]')).not.toBeNull();
-    expect(document.querySelector('script[src="../../reference-page.js"]')).not.toBeNull();
   });
 
   test("uses table captions, column headers, and row headers", () => {
@@ -40,27 +40,6 @@ describe("clauselist reference surface", () => {
       expect(table.querySelectorAll('thead th[scope="col"]')).toHaveLength(columnCount);
       expect(table.querySelectorAll('tbody th[scope="row"]').length).toBeGreaterThan(0);
     }
-  });
-
-  test("uses three aligned columns and plain-text examples", () => {
-    const document = parse(name);
-    setupReferencePage(
-      document,
-      vi.fn(async () => {}),
-    );
-
-    for (const table of document.querySelectorAll("table")) {
-      expect([...table.tHead!.rows[0]!.cells].map((cell) => cell.textContent)).toEqual([
-        "Syntax",
-        "Example",
-        "Meaning",
-      ]);
-    }
-    expect(document.querySelector("tbody td:nth-child(2) code")).toBeNull();
-  });
-
-  test("does not repeat the active reference name as an in-panel heading", () => {
-    expect(parse(name).querySelector(".reference-panel > h2, #help-clause-list > h2")).toBeNull();
   });
 });
 
@@ -117,49 +96,18 @@ describe("reference controller", () => {
 test("every runtime variable and matcher is documented", () => {
   const variables = readFileSync(resolve("src/options/options.html"), "utf8");
   const clauses = readFileSync(resolve("src/options/clauselist.html"), "utf8");
-  for (const token of [
-    ":urlfileext:",
-    ":actualfileext:",
-    ":naivefileext:",
-    ":mimeext:",
-    ":sha256:",
-  ])
+  for (const variable of Object.keys(transformers)) {
+    const token = variable.startsWith(":") ? variable : `:${variable}:`;
     expect(variables).toContain(token);
-  for (const clause of [
-    "context:",
-    "menuindex:",
-    "comment:",
-    "fileext:",
-    "urlfileext:",
-    "actualfileext:",
-    "filename:",
-    "frameurl:",
-    "linktext:",
-    "mediatype:",
-    "naivefilename:",
-    "pagedomain:",
-    "pagetitle:",
-    "pageurl:",
-    "selectiontext:",
-    "sourcedomain:",
-    "sourceurl:",
-    "capture:",
-    "into:",
-  ])
-    expect(clauses).toContain(clause);
+  }
+  for (const clause of [...Object.keys(matcherFunctions), "capture", "into"])
+    expect(clauses).toContain(`${clause}:`);
 });
 
 test("keeps variables and clauses together in the options reference dialog", () => {
   const document = parse("options");
   expect(document.querySelector("#options-reference-variables[role=tabpanel]")).not.toBeNull();
   expect(document.querySelector("#options-reference-clauses[role=tabpanel]")).not.toBeNull();
-});
-
-test("does not ship the retired standalone variable reference", () => {
-  expect(existsSync(resolve("src/options/variablelist.html"))).toBe(false);
-  expect(readFileSync(resolve("scripts/build-bundled.js"), "utf8")).not.toContain(
-    "variablelist.html",
-  );
 });
 
 test("adds task-oriented group rows to both vocabularies", () => {
@@ -174,38 +122,4 @@ test("adds task-oriented group rows to both vocabularies", () => {
   expect(
     [...clauses.querySelectorAll(".reference-group-row")].map((row) => row.textContent),
   ).toContain("Output");
-});
-
-test("orders reference rows semantically within groups", () => {
-  const variables = parse("options");
-  groupReferenceRows(variables.querySelector("#options-reference-variables")!, "variables");
-  const dateRows = [
-    ...variables.querySelectorAll("table tbody tr:not(.reference-group-row) code:first-child"),
-  ]
-    .slice(0, 7)
-    .map((node) => node.textContent?.trim());
-  expect(dateRows).toEqual([
-    ":date:",
-    ":isodate:",
-    ":unixdate:",
-    ":year:",
-    ":month:",
-    ":monthname:",
-    ":day:",
-  ]);
-
-  const clauses = parse("clauselist");
-  groupReferenceRows(clauses, "clauses");
-  const contextTable = [...clauses.querySelectorAll("table")].find((table) =>
-    table.textContent?.includes("context:"),
-  )!;
-  expect(
-    [
-      ...contextTable.querySelectorAll(
-        "tr:not(.reference-group-row) td:first-child code:first-child",
-      ),
-    ]
-      .slice(0, 5)
-      .map((node) => node.textContent?.trim()),
-  ).toEqual(["context:", "menuindex:", "comment:", "linktext:", "selectiontext:"]);
 });

@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { linkOptionPreview } from "../src/options/option-navigation.ts";
 
 test("preview links navigate to their option by click or keyboard", () => {

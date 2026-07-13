@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { setupOptionDependencies } from "../src/options/options-dependencies.ts";
 
 describe("option dependencies", () => {

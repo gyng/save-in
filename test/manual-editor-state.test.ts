@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { createManualEditorState } from "../src/options/manual-editor-state.ts";
 
 describe("manual editor state", () => {

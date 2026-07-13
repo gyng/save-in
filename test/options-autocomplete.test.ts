@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import * as Autocomplete from "../src/options/autocomplete.ts";
 
 const {

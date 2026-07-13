@@ -10,9 +10,11 @@ import path from "path";
 import firefox from "../scripts/lib/firefox.js";
 import { inBackgroundContext } from "./background-context.mjs";
 import {
-  CONTENT_DISPOSITION_CASES,
-  startContentDispositionServer,
-} from "./content-disposition-cases.mjs";
+  runContentDispositionScenario,
+  runFailedDownloadLogScenario,
+  runRoutingScenario,
+  runShortcutScenario,
+} from "./shared-scenarios.mjs";
 import { listenLocal, poll } from "./helpers.mjs";
 
 /** @type {Awaited<ReturnType<typeof firefox.launch>>} */
@@ -225,26 +227,11 @@ test("download completes through the real pipeline", async () => {
 });
 
 test("Save In filenames match live Firefox Content-Disposition behavior", async () => {
-  const { server, port } = await startContentDispositionServer();
-  try {
-    for (const fixture of CONTENT_DISPOSITION_CASES) {
-      const nativeUrl = `http://127.0.0.1:${port}/${fixture.id}?source=native`;
-      const saveInUrl = `http://127.0.0.1:${port}/${fixture.id}?source=save-in`;
-      const nativeFilename = await downloadUsingBrowserFilename(nativeUrl);
-      await evalBackground(
-        `api.startDownload({
-          url: ${JSON.stringify(saveInUrl)},
-          suggestedFilename: ${JSON.stringify(`${fixture.id}-url-fallback.bin`)},
-          pageUrl: ${JSON.stringify(`http://127.0.0.1:${port}/`)},
-          path: "e2e/content-disposition",
-        }).then(() => true)`,
-      );
-      const saveInFilename = await waitForDownloadUrl(saveInUrl);
-      expect.soft(saveInFilename, fixture.id).toBe(nativeFilename);
-    }
-  } finally {
-    server.close();
-  }
+  await runContentDispositionScenario({
+    evaluate: evalBackground,
+    downloadUsingBrowserFilename,
+    waitForDownloadUrl,
+  });
 });
 
 test("success notifications are created by the real download listener", async () => {
@@ -325,20 +312,11 @@ test("downloads receive the configured Referer header", async () => {
 });
 
 test("routing rules rename and route the download", async () => {
-  await evalBackground(
-    `browser.storage.local.set({
-        filenamePatterns: "filename: routeme\\ninto: routed/renamed-:filename:",
-      })
-        .then(() => api.reset())
-        .then(() => api.startDownload({
-          content: "ff routed content",
-          suggestedFilename: "routeme.txt",
-          pageUrl: "https://example.com/",
-        })).then(() => "started")`,
-  );
-  expect(
-    (await waitForDownloads("renamed-routeme")).map((/** @type {any} */ x) => x.state),
-  ).toEqual(["complete"]);
+  await runRoutingScenario({
+    evaluate: evalBackground,
+    waitForDownloads,
+    content: "ff routed content",
+  });
 });
 
 test("message-driven downloads work and never inherit a stale route", async () => {
@@ -359,35 +337,11 @@ test("message-driven downloads work and never inherit a stale route", async () =
 });
 
 test("shortcut files keep their extension and redirect content", async () => {
-  await evalBackground(
-    `api.startDownload({
-        shortcutUrl: "https://example.com/target",
-        suggestedFilename: "page-shortcut.html",
-        pageUrl: "https://example.com/",
-      }).then(() => "started")`,
-  );
-  const downloads = await waitForDownloads("page-shortcut");
-
-  expect(downloads).toHaveLength(1);
-  expect(downloads[0].state).toBe("complete");
-  expect(downloads[0].filename.endsWith("page-shortcut.html")).toBe(true);
-  expect(fs.readFileSync(downloads[0].filename, "utf8")).toContain(
-    'window.location.href = "https://example.com/target"',
-  );
+  await runShortcutScenario({ evaluate: evalBackground, waitForDownloads });
 });
 
 test("failed downloads are recorded in the debug log", async () => {
-  await evalBackground(
-    `api.startDownload({
-        url: "http://127.0.0.1:1/unreachable.bin",
-        suggestedFilename: "unreachable.bin",
-        pageUrl: "https://example.com/",
-      }).then(() => "started")`,
-  );
-  const entries = await waitForLog(
-    `(e) => e.message === "download failed" || e.message === "downloads.download failed"`,
-  );
-  expect(entries.length).toBeGreaterThanOrEqual(1);
+  await runFailedDownloadLogScenario({ evaluate: evalBackground, waitForLog });
 });
 
 test("ordinary browser downloads can be tracked and experimentally rerouted on Firefox", async () => {

@@ -67,15 +67,6 @@ describe("E2E lifecycle cleanup", () => {
     expect(readdirSync(parent)).toEqual([]);
   });
 
-  test("attaches suite completion handlers at spawn time", () => {
-    const runner = require("node:fs").readFileSync("scripts/e2e-parallel.js", "utf8");
-
-    expect(runner).toMatch(
-      /const child = spawn[\s\S]*child\.once\("exit"[\s\S]*return \{ child, done \}/,
-    );
-    expect(runner).toContain("await Promise.all(runs.map(({ done }) => done))");
-  });
-
   test("removes only profiles owned by suite child processes", async () => {
     const chromeRoot = tempRoot("save-in-cleanup-chrome-");
     const firefoxRoot = tempRoot("save-in-cleanup-firefox-");

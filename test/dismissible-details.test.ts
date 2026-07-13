@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { setupOutsideDismiss } from "../src/options/dismissible-details.ts";
 
 test("closes an open resources menu only when clicking outside", () => {

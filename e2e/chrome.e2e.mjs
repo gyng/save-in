@@ -11,9 +11,11 @@ import cdp from "../scripts/lib/cdp.js";
 import chrome from "../scripts/lib/chrome.js";
 import { inBackgroundContext } from "./background-context.mjs";
 import {
-  CONTENT_DISPOSITION_CASES,
-  startContentDispositionServer,
-} from "./content-disposition-cases.mjs";
+  runContentDispositionScenario,
+  runFailedDownloadLogScenario,
+  runRoutingScenario,
+  runShortcutScenario,
+} from "./shared-scenarios.mjs";
 import { listenLocal, poll } from "./helpers.mjs";
 
 const PROFILE = path.join(chrome.ROOT, "dist", "e2e-profile");
@@ -367,6 +369,22 @@ test("options page keeps keyboard focus and core layout accessible", async () =>
   expect(result.active.name).toBeTruthy();
   expect(result.active.focusVisible).toBe(true);
   expect(result.active.inViewport).toBe(true);
+
+  try {
+    for (const viewport of [
+      { width: 1280, height: 800 },
+      { width: 768, height: 700 },
+      { width: 480, height: 800 },
+    ]) {
+      await cdp.setViewport(PORT, "options.html", viewport.width, viewport.height);
+      const overflow = await evalOptions(
+        `document.documentElement.scrollWidth - document.documentElement.clientWidth`,
+      );
+      expect(Number(overflow), `${viewport.width}x${viewport.height}`).toBeLessThanOrEqual(1);
+    }
+  } finally {
+    await cdp.setViewport(PORT, "options.html", 1280, 800);
+  }
 });
 
 test("WAKE_WARM prewarm round-trips", async () => {
@@ -448,26 +466,11 @@ test("download completes through the real pipeline with session tracking", async
 });
 
 test("Save In filenames match live Chrome Content-Disposition behavior", async () => {
-  const { server, port } = await startContentDispositionServer();
-  try {
-    for (const fixture of CONTENT_DISPOSITION_CASES) {
-      const nativeUrl = `http://127.0.0.1:${port}/${fixture.id}?source=native`;
-      const saveInUrl = `http://127.0.0.1:${port}/${fixture.id}?source=save-in`;
-      const nativeFilename = await downloadUsingBrowserFilename(nativeUrl);
-      await evalSW(
-        `api.startDownload({
-          url: ${JSON.stringify(saveInUrl)},
-          suggestedFilename: ${JSON.stringify(`${fixture.id}-url-fallback.bin`)},
-          pageUrl: ${JSON.stringify(`http://127.0.0.1:${port}/`)},
-          path: "e2e/content-disposition",
-        }).then(() => true)`,
-      );
-      const saveInFilename = await waitForDownloadUrl(saveInUrl);
-      expect.soft(saveInFilename, fixture.id).toBe(nativeFilename);
-    }
-  } finally {
-    server.close();
-  }
+  await runContentDispositionScenario({
+    evaluate: evalSW,
+    downloadUsingBrowserFilename,
+    waitForDownloadUrl,
+  });
 });
 
 test("success notifications are created by the real download listener", async () => {
@@ -668,16 +671,7 @@ test("changing paths is visible after background reinitialisation", async () => 
 });
 
 test("routing rules rename and route the download", async () => {
-  await evalSW(`browser.storage.local.set({
-      filenamePatterns: "filename: routeme\\ninto: routed/renamed-:filename:",
-    })
-      .then(() => api.reset())
-      .then(() => api.startDownload({
-        content: "routed content",
-        suggestedFilename: "routeme.txt",
-        pageUrl: "https://example.com/",
-      })).then(() => "started")`);
-  expect((await waitForDownloads("renamed-routeme")).map((x) => x.state)).toEqual(["complete"]);
+  await runRoutingScenario({ evaluate: evalSW, waitForDownloads, content: "routed content" });
 
   const file = path.join(DOWNLOADS, "e2e", "routed", "renamed-routeme.txt");
   expect(fs.readFileSync(file, "utf8")).toBe("routed content");
@@ -977,34 +971,15 @@ test("removing option keys restores live defaults before reset acknowledgement",
 });
 
 test("shortcut files download with redirect content", async () => {
-  await evalSW(`api.startDownload({
-      shortcutUrl: "https://example.com/target",
-      suggestedFilename: "page-shortcut.html",
-      pageUrl: "https://example.com/",
-    }).then(() => "started")`);
-  const downloads = await waitForDownloads("page-shortcut");
-  expect(downloads).toHaveLength(1);
-  expect(downloads[0].state).toBe("complete");
-  // text/html mime keeps Chrome from rewriting the extension (#161)
-  expect(downloads[0].filename.endsWith("page-shortcut.html")).toBe(true);
-  expect(fs.readFileSync(downloads[0].filename, "utf8")).toContain(
-    'window.location.href = "https://example.com/target"',
-  );
+  await runShortcutScenario({ evaluate: evalSW, waitForDownloads });
 });
 
 test("failed downloads are recorded in the debug log", async () => {
-  await evalSW(`api.startDownload({
-      url: "http://127.0.0.1:1/si-unreachable.bin",
-      suggestedFilename: "si-unreachable.bin",
-      pageUrl: "https://example.com/",
-    }).then(() => "started")`);
-  const entries = await waitForLog(
-    `(e) => e.message === "download failed" || e.message === "downloads.download failed"`,
-  );
-
-  // A failure entry exists and references THIS download, not noise from
-  // earlier tests
-  expect(entries.length).toBeGreaterThanOrEqual(1);
+  await runFailedDownloadLogScenario({
+    evaluate: evalSW,
+    waitForLog,
+    filename: "si-unreachable.bin",
+  });
   const requested = JSON.parse(
     await evalSW(
       `api.logs().then((log) => JSON.stringify(

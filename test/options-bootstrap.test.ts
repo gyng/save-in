@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { bootstrapOptionsPage } from "../src/options/options-bootstrap.ts";
 
 describe("options bootstrap", () => {

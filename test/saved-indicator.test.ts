@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { assertSettingsUndoSafe, markSavedNow } from "../src/options/saved-indicator.ts";
 
 test("marks the top status as successfully saved", () => {

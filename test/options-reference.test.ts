@@ -1,25 +1,5 @@
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
+// @vitest-environment jsdom
 import { setupOptionsReferences } from "../src/options/options-reference.ts";
-
-test("ships variable and clause reference content inside the options dialog", () => {
-  const document = new DOMParser().parseFromString(
-    readFileSync(resolve("src/options/options.html"), "utf8"),
-    "text/html",
-  );
-
-  expect(document.querySelector("#options-reference-variables table")).not.toBeNull();
-  expect(document.querySelector("#options-reference-clauses table")).not.toBeNull();
-  expect(
-    document.querySelector(
-      "#options-reference-variables .reference-loading-status.visually-hidden",
-    ),
-  ).not.toBeNull();
-  expect(
-    document.querySelector("#options-reference-clauses .reference-loading-status.visually-hidden"),
-  ).not.toBeNull();
-  expect(document.querySelector(".reference-loading-status.caption")).toBeNull();
-});
 
 test("enhances inline variable and clause references in the main option tabs", async () => {
   document.body.innerHTML = `

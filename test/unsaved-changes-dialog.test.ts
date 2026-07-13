@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { showUnsavedChangesDialog } from "../src/options/unsaved-changes-dialog.ts";
 
 test.each([

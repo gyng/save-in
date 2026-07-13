@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { vi } from "vitest";
 
 const ClickToSave = (await import("../src/content/content.ts")).default;

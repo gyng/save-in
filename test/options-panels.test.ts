@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { PathEditor } from "../src/options/path-editor.ts";
 import { refreshCounterPanel, setupCounterPanel } from "../src/options/counter-panel.ts";
 import { setupDebugLogPanel, updateDebugLog } from "../src/options/debug-log-panel.ts";

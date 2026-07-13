@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 // Guided rule input + template library on the options page. Every built-in
 // template must parse cleanly through the real routing parser and only reference
 // variables that actually exist.

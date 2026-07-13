@@ -228,6 +228,27 @@ const openTab = async (port, url) => {
   }
 };
 
+/** @param {number} port @param {string} urlSubstr @param {number} width @param {number} height */
+const setViewport = async (port, urlSubstr, width, height) => {
+  const target = (await listTargets(port)).find(
+    (candidate) => candidate.type === "page" && candidate.url.includes(urlSubstr),
+  );
+  if (!target) throw new Error(`No page target matching "${urlSubstr}"`);
+  const page = await Cdp.connect(target.webSocketDebuggerUrl);
+  try {
+    await page.send("Emulation.setDeviceMetricsOverride", {
+      width,
+      height,
+      deviceScaleFactor: 1,
+      mobile: false,
+      screenWidth: width,
+      screenHeight: height,
+    });
+  } finally {
+    page.close();
+  }
+};
+
 /**
  * @param {number} port
  * @param {string} urlSubstr
@@ -354,6 +375,7 @@ module.exports = {
   evalInServiceWorker,
   dispatchInput,
   openTab,
+  setViewport,
   captureScreenshot,
   loadUnpacked,
   stopServiceWorker,
