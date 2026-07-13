@@ -83,8 +83,8 @@
     --success-fg: var(--green60);
     --color-danger: #e60038;
     --color-danger-active: #d50033;
-    --link-color: var(--blue40);
-    --link-color-active: var(--blue40);
+    --link-color: #4da5ff;
+    --link-color-active: #4da5ff;
     --page-bg: #2a2a2e;
     --panel-bg: var(--grey70);
     --panel-border: var(--grey60);
@@ -530,7 +530,7 @@ body:not(#settings-page) {
 }
 
 .about-mascot-button:focus-visible {
-  outline: 3px solid color-mix(in srgb, var(--link-color) 55%, transparent);
+  outline: 3px solid var(--link-color);
   outline-offset: 3px;
 }
 

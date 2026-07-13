@@ -76,8 +76,8 @@ test("dark links and accent backgrounds use separate contrast-safe roles", () =>
   const darkRoot = darkTheme.match(/:root\s*\{([^}]*)\}/)?.[1] ?? "";
   const darkSettings = darkTheme.match(/#settings-page\s*\{([^}]*)\}/)?.[1] ?? "";
 
-  expect(darkRoot).toContain("--link-color: var(--blue40)");
-  expect(darkRoot).toContain("--link-color-active: var(--blue40)");
+  expect(darkRoot).toContain("--link-color: #4da5ff");
+  expect(darkRoot).toContain("--link-color-active: #4da5ff");
   expect(stylesheet).toMatch(/^:root\s*\{[^}]*--color-accent-active:\s*var\(--blue70\)/s);
   expect(darkRoot).not.toContain("--color-accent-active");
   expect(darkSettings).not.toContain("--link-color");
@@ -163,4 +163,10 @@ test("success and muted text roles retain contrast on raised surfaces", () => {
   );
   expect(stylesheet).not.toMatch(/^\s*color:\s*var\(--green60\)/gm);
   expect(referenceStylesheet).not.toMatch(/^\s*color:\s*var\(--green60\)/gm);
+});
+
+test("focus indicators remain opaque enough for every surface", () => {
+  expect(stylesheet).toMatch(
+    /\.about-mascot-button:focus-visible\s*\{[^}]*outline:\s*3px solid var\(--link-color\)/,
+  );
 });
