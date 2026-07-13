@@ -1,8 +1,8 @@
 # Store submission notes
 
-Save In uses one Manifest V3 package for Firefox and Chrome. It requires Node
-24 and the dependencies pinned by `package-lock.json`, with no Docker image or
-additional system dependency. Build it with:
+Save In ships one Manifest V3 package for Firefox and Chrome. Building requires
+Node 24 and the dependencies pinned in `package-lock.json`; no Docker image or
+other system dependency is needed.
 
 ```sh
 npm ci
@@ -13,199 +13,151 @@ npm run e2e
 npm run build
 ```
 
-The runtime ZIP is written to `web-ext-artifacts/`. Upload that same ZIP
-manually to AMO and the Chrome Web Store. Both browsers use
-`incognito: spanning`.
+Upload the runtime ZIP from `web-ext-artifacts/` to both AMO and the Chrome Web
+Store. The shared manifest uses `incognito: spanning`.
 
 ## Mozilla source submission
 
-Run `npm run build:source` and upload the resulting `*-source.zip` as the AMO
-source-code attachment. It contains the TypeScript source, lockfile, build
-configuration, scripts, types, and tests used by the submitted runtime package.
-A reviewer can reproduce the runtime package from the extracted source archive
-with:
+Run `npm run build:source` and attach the resulting `*-source.zip` in AMO. It
+contains the TypeScript source, lockfile, build files, scripts, types, and tests.
+To reproduce the runtime ZIP after extraction:
 
 ```sh
 npm ci
 npm run build
 ```
 
-Rolldown transpiles and scope-hoists the TypeScript into readable,
-non-minified JavaScript. No obfuscation or remote executable code is used.
-Both archives are canonicalized to sorted entries with fixed ZIP timestamps, so
-repeated builds of the same source produce byte-identical ZIPs.
+Rolldown produces readable, non-minified JavaScript. There is no obfuscation or
+remote executable code. Runtime and source ZIPs use sorted entries and fixed
+timestamps, making identical source builds byte-for-byte reproducible.
 
 ## Reviewer implementation notes
 
 - Firefox uses `background.scripts: ["background.js"]`; Chrome uses
-  `background.service_worker: "background.sw.js"`. Each browser ignores the
-  other background declaration.
-- `offscreen` is Chrome-only. It creates an extension offscreen document so a
-  service worker can convert a fetched Blob to a temporary object URL.
-- Firefox can attach a Referer to a user-requested download through its native
-  downloads API. Chrome does not expose an equivalent supported mechanism; no
-  request-interception permission is requested.
-- Extension-side Fetch and HEAD requests include applicable website cookies and
-  browser-managed authentication by default for non-private user-requested
-  saves, matching normal authenticated downloads. Users can turn this off to
-  make those extension requests anonymous. Private-window extension requests
-  are always anonymous because the shared spanning background cannot select a
-  private cookie store; authenticated resources requiring Fetch mode may fail.
-- No cookie API permission is requested. Unless the user disables authenticated
-  extension requests, the browser attaches applicable credentials to non-private
-  requests; Save In never reads cookie values. Extension Fetch cannot select a
-  Firefox Container or private cookie store.
-- `<all_urls>` is required because the extension saves resources selected by
-  the user from arbitrary websites, optionally reads content metadata, and can
-  run its click-to-save content listener on those pages.
-- Page Sources is a user-opened, DOM-only drawer implemented by that content
-  script. It reads media attributes, computed CSS backgrounds, and the page's
-  Resource Timing buffer for best-effort HLS/DASH manifest discovery. It does
-  not intercept browsing traffic and does not request `webRequest`. Copying a
-  `yt-dlp` command only writes text to the clipboard; Save In never executes it.
-  Its Advanced theme setting can follow the operating-system preference or
-  force the drawer's own dark or light palette without changing the host page.
-- The extension makes no analytics or developer-server requests. Resource
-  fetches go only to URLs involved in a user-requested save.
-- Chrome Incognito and Firefox Private Browsing activity is excluded from local
-  history, restart-recovery storage, and the extension debug log. Private saves
-  use memory-only transient state.
-- Chrome's downloads API cannot select an Incognito context. A Save In download
-  requested from Chrome Incognito may therefore appear in Chrome's regular
-  download manager even though Save In does not retain it in extension history.
-  Firefox associates the download with its Private Browsing session.
-- The external extension API accepts validated save requests only from extension
-  IDs the user has explicitly allowed. It does not expose user configuration
-  mutation to external callers and does not execute received code. Rejected
-  non-private callers are shown in a bounded local review list containing the
-  caller ID, request kind, count, and time, but not the rejected URL.
+  `background.service_worker: "background.sw.js"`. Each ignores the other key.
+- Chrome alone uses an offscreen document to convert fetched Blobs into
+  temporary object URLs for its service worker.
+- Firefox can set a Referer through its downloads API. Chrome has no supported
+  equivalent; Save In requests no interception permission.
+- For non-private, user-requested saves, extension Fetch and HEAD requests use
+  applicable browser-managed cookies and authentication by default. Users can
+  make them anonymous. Save In has no cookie permission and never reads cookie
+  values. Extension Fetch cannot select a Firefox Container or private cookie
+  store, so private requests are always anonymous and some authenticated saves
+  may fail.
+- `<all_urls>` lets users save from arbitrary sites, read optional content
+  metadata, and use click-to-save.
+- Page Sources is a user-opened, DOM-only drawer. It reads media attributes,
+  computed backgrounds, and Resource Timing entries for best-effort HLS/DASH
+  discovery. It neither intercepts traffic nor requests `webRequest`. Copying a
+  `yt-dlp` command writes text only; Save In never executes it. Its Advanced
+  theme setting can follow the system or force a drawer-only light/dark palette
+  without changing the host page.
+- Save In sends no analytics or developer-server requests. It fetches only URLs
+  involved in user-requested saves.
+- Private/Incognito activity is excluded from Save In history, recovery state,
+  and debug logs; transient state stays in memory. Chrome's downloads API cannot
+  select Incognito, so a private-tab download may appear in Chrome's regular
+  download manager. Firefox keeps it in the Private Browsing session.
+- The external API accepts validated save requests only from extension IDs the
+  user allows. It cannot change configuration or execute received code.
+  Rejected non-private callers appear in a bounded local list containing caller
+  ID, request kind, count, and time—not the URL.
 
 ## Chrome Web Store privacy fields
 
-Use this single-purpose statement:
+Single-purpose statement:
 
 > Save user-selected web resources into configurable download subdirectories,
 > with local routing, renaming, status, retry, and download history features.
 
-Declare handling of website content and web browsing activity. Explain that it
-is processed and stored locally only for user-requested saving and history, and
-is not transmitted to the developer. Select **No** for remote code. Use the
-public repository copy of `PRIVACY.md` as the privacy-policy URL.
+Declare website content and browsing activity. State that Save In processes and
+stores them locally only for user-requested saves and history, and never sends
+them to the developer. Select **No** for remote code. Use the public repository
+copy of `PRIVACY.md` as the privacy-policy URL.
 
-The Chrome listing and privacy answers must also disclose:
+Incognito disclosure:
 
 > Save In excludes Incognito activity from its own history and diagnostic log.
-> Because Chrome's extension downloads API has no Incognito selector, a
-> Save In download requested from an Incognito tab may appear in Chrome's
-> regular download manager.
+> Because Chrome's extension downloads API has no Incognito selector, a Save In
+> download requested from an Incognito tab may appear in Chrome's regular
+> download manager.
 
 Permission justifications:
 
-- `contextMenus`: provides the primary Save In command on pages and tabs.
-- `downloads`: starts downloads, determines filenames, monitors completion,
-  and supports retry and local history actions.
-- `notifications`: reports completed downloads and actionable failures.
-- `storage`: stores settings, routing rules, local history, and MV3 restart
-  state.
-- `offscreen`: provides Chrome's service worker with temporary Blob URL
-  conversion for downloads.
-- `<all_urls>`: identifies and fetches resources explicitly selected by the
-  user on arbitrary websites, including resources requiring the user's
-  existing session.
+- `contextMenus`: show Save In commands on pages and tabs.
+- `downloads`: start, name, monitor, retry, and record downloads locally.
+- `notifications`: report completed downloads and actionable failures.
+- `storage`: store settings, rules, local history, and MV3 recovery state.
+- `offscreen`: create temporary Blob URLs for Chrome service-worker downloads.
+- `<all_urls>`: identify and fetch user-selected resources on arbitrary sites,
+  including resources that use the user's existing session.
 
-Before submitting, verify that the listing has an accurate description,
-category, icon, screenshots, support link, privacy-policy link, and the same
-data-use answers as `PRIVACY.md`.
-
-The listing and in-product Advanced downloading copy must disclose that
-extension requests include applicable site credentials by default and that
-users can turn this off.
+Before submission, verify the description, category, icon, screenshots, support
+and privacy links, and that data-use answers match `PRIVACY.md`. The listing and
+Advanced downloading copy must say that extension requests use applicable site
+credentials by default and can be made anonymous.
 
 ## GitHub release provenance
 
-Push a `vX.Y.Z` tag only after `package.json` and `manifest.json` both contain
-`X.Y.Z`. The release workflow:
+Tag `vX.Y.Z` only when `package.json` and `manifest.json` both contain `X.Y.Z`.
+The release workflow verifies the tag, runs tests/typecheck/lint/serial e2e,
+builds reproducible runtime and source ZIPs, writes `SHA256SUMS`, creates GitHub
+attestations, and opens a draft release with stable filenames.
 
-1. validates the tag against both manifests;
-2. runs unit tests, typecheck, lint, and the serial Chrome and Firefox e2e
-   suites;
-3. builds and canonicalizes the runtime and AMO source ZIPs;
-4. copies them to stable `save-in-X.Y.Z*.zip` names and writes `SHA256SUMS`;
-5. creates GitHub provenance attestations for the runtime and source files; and
-6. creates a draft GitHub Release with those assets.
-
-Inspect the draft and publish it manually. A rerun may replace assets while the
-release remains a draft, but the workflow refuses to modify an already
-published release. Store uploads remain manual and use the files from the
-reviewed draft. Consumers can verify an asset with:
+Inspect and publish the draft manually. Reruns may replace draft assets but not
+published assets. Upload the reviewed draft files to the stores. Verify an asset
+with:
 
 ```sh
 gh attestation verify save-in-X.Y.Z.zip -R gyng/save-in
 ```
 
-Configure a GitHub tag ruleset for `v*` so only maintainers can create or
-delete release tags. The workflow checks that the tag exists and matches both
-manifests; repository rules protect who may create or move it. Release actions
-are pinned to immutable commits and should be updated deliberately during
-normal workflow maintenance.
+Protect `v*` tags with a maintainer-only GitHub ruleset. Release actions are
+pinned to immutable commits and should be updated deliberately.
 
 ## Browser-owned surface checks
 
-The parallel E2E suites cover the bundled extension, downloads, routing,
-notifications, options-page keyboard/layout invariants, Page Sources, and
-Chrome service-worker restarts. CDP and Firefox RDP cannot reliably inspect or
-select browser-owned context menus, OS Save As windows, or operating-system
-notification actions. Before publishing a store build, manually check these
-surfaces in current Chrome and Firefox:
+E2E covers the bundled extension, downloads, routing, notifications, options
+layout/keyboard behavior, Page Sources, and Chrome worker restarts. CDP and RDP
+cannot reliably operate browser context menus, native Save As windows, or OS
+notification actions. Before publishing, manually check current Chrome and
+Firefox:
 
-1. Right-click an image and a link, choose a configured Save In destination,
-   and confirm the expected directory and Last used location behavior.
-2. Enable each Save As prompt condition and confirm both accepting and
-   cancelling the native picker leave the extension responsive.
-3. Enable success and failure notifications, select a download notification,
-   and confirm the browser reveals the corresponding download.
-4. Revoke Save In's site access, confirm the options permission banner appears
-   and click-to-save is unavailable, then grant access and confirm both recover.
-5. Check the options page and Page Sources dock/popout at normal and narrow
-   widths in System, Dark, and Light panel modes, including keyboard focus
-   indicators and a forced theme opposite to the operating-system preference.
-6. In both a Chrome Incognito window and a Firefox Private Browsing window,
-   perform a Save In download and an ordinary browser download, then confirm
-   neither appears in Save In history or the debug log after returning to a
-   normal window. Confirm ordinary-download routing does not alter the private
-   download filename.
+1. Save an image and link from the context menu; verify destination and Last
+   used location.
+2. Test every Save As condition, accepting and cancelling the picker.
+3. Test success/failure notifications and opening the related download.
+4. Revoke site access, verify the permission banner and disabled click-to-save,
+   then restore access and verify recovery.
+5. Check options and Page Sources at normal/narrow widths in System, Dark, and
+   Light modes, including focus indicators and a forced theme opposite the OS.
+6. In Chrome Incognito and Firefox Private Browsing, perform Save In and ordinary
+   downloads. Verify Save In retains no history/debug entry and does not reroute
+   the ordinary private download.
 
-CI uploads `dist/e2e-artifacts` when a browser suite fails. The bundle contains
-browser logs plus JSON snapshots of targets, storage, history, debug logs, and
-the options DOM; Chrome also attempts a current-page screenshot.
+Failed browser suites upload `dist/e2e-artifacts` with logs and JSON snapshots;
+Chrome also attempts a screenshot.
 
 ## Chrome Web Store screenshots
-
-Generate listing-ready screenshots from the real bundled extension with:
 
 ```sh
 npm run screenshots:store
 ```
 
-The command stages the E2E bundle, launches an isolated headless Chrome, seeds
-the same representative configuration used by `npm run review`, and updates four
-canonical 1280x800 PNGs in `docs/store-screenshots/`:
+This builds four 1280×800 PNGs in `docs/store-screenshots/`: configured
+directories/menu preview, routing rules, Page Sources on the demo page, and
+searchable download history. The command losslessly recompresses and validates
+each image. Override the destination with:
 
-- configured directories with the live context-menu preview;
-- pattern-based routing and renaming rules;
-- Page Sources open on a realistic editorial page built around the in-repo demo photo;
-- searchable download history with representative routed results.
-
-Each PNG is recompressed losslessly, then its dimensions are validated before
-the command succeeds. Pass a different destination when preparing an upload with
-`npm run screenshots:store -- --output-dir <path>`.
+```sh
+npm run screenshots:store -- --output-dir <path>
+```
 
 ## Chrome tab-strip context menus
 
-Chrome 150 introduces the `"tab"` context, but Save In does not enable it on
-Chrome yet. The extension supports Chrome 123+, the API has no portable
-feature-test property, and the Chrome 150 rollout has a known crash when an
-extension registers multiple tab-context items. Save In registers five such
-items on Firefox. Keep the capability Firefox-only until Chromium fixes the
-crash and a safe version/capability gate is available; then add Chrome e2e
-coverage before enabling it.
+Chrome 150 adds the `"tab"` context, but Save In keeps it Firefox-only for now.
+The extension supports Chrome 123+, the API lacks a portable feature test, and
+Chrome 150 can crash when an extension registers multiple tab-context items.
+Enable it on Chrome only after Chromium fixes the crash and a safe gate plus e2e
+coverage exists.
