@@ -242,11 +242,15 @@ test("Save In filenames match live Firefox Content-Disposition behavior", async 
 
 test("success notifications are created by the real download listener", async () => {
   try {
-    await evalBackground(`browser.notifications.getAll()
-      .then((rows) => Promise.all(Object.keys(rows).map((id) => browser.notifications.clear(id))))
-      .then(() => browser.storage.local.set({ notifyOnSuccess: true, notifyDuration: 0 }))
-      .then(() => api.reset())
-      .then(() => "configured")`);
+    const beforeLog = Number(
+      await evalBackground(`api.notificationCalls("reset")
+        .then(() => browser.notifications.getAll())
+        .then((rows) => Promise.all(Object.keys(rows).map((id) => browser.notifications.clear(id))))
+        .then(() => browser.storage.local.set({ notifyOnSuccess: true, notifyDuration: 0 }))
+        .then(() => api.reset())
+        .then(() => api.logs())
+        .then((log) => log.length)`),
+    );
 
     await evalBackground(`api.startDownload({
       content: "firefox notification content",
@@ -260,16 +264,22 @@ test("success notifications are created by the real download listener", async ()
 
     const notification = await poll(
       async () => {
-        const rows = JSON.parse(
+        const calls = JSON.parse(
           await evalBackground(
-            `browser.notifications.getAll().then((rows) => JSON.stringify(rows))`,
+            `api.notificationCalls("get").then((calls) => JSON.stringify(calls))`,
           ),
         );
-        return rows[notificationId] || null;
+        return calls.find((/** @type {any} */ call) => call.id === notificationId) || null;
       },
       { description: "success notification for ff-notification-e2e" },
     );
-    expect(notification).toBeTruthy();
+    expect(notification.message).toContain("ff-notification-e2e");
+    const failures = JSON.parse(
+      await evalBackground(
+        `api.logs().then((log) => JSON.stringify(log.slice(${beforeLog}).filter((e) => e.message === "notification create failed")))`,
+      ),
+    );
+    expect(failures).toEqual([]);
   } finally {
     await evalBackground(`browser.notifications.getAll()
       .then((rows) => Promise.all(Object.keys(rows).map((id) => browser.notifications.clear(id))))

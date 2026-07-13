@@ -134,3 +134,27 @@ describe("FirefoxRdp request", () => {
     await expect(p).rejects.toThrow(/badRequest/);
   });
 });
+
+describe("FirefoxRdp evaluate", () => {
+  test("retrieves the complete value represented by a long-string grip", async () => {
+    const sock = makeSocket();
+    const client = new FirefoxRdp(sock);
+    const evaluated = client.evaluate("console1", '"hello world"');
+
+    sock.emit("data", frame({ from: "console1", resultID: "result1" }));
+    await Promise.resolve();
+    sock.emit(
+      "data",
+      frame({
+        from: "console1",
+        type: "evaluationResult",
+        resultID: "result1",
+        result: { type: "longString", actor: "long1", initial: "hello", length: 11 },
+      }),
+    );
+    await vi.waitFor(() => expect(sock.write).toHaveBeenCalledTimes(2));
+    sock.emit("data", frame({ from: "long1", substring: " world" }));
+
+    await expect(evaluated).resolves.toBe("hello world");
+  });
+});

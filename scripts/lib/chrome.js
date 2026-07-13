@@ -26,8 +26,10 @@ const buildOutputForMode = (mode = "production") =>
   path.join(ROOT, "dist", mode === "e2e" ? "bundled-pkg-e2e" : "bundled-pkg");
 
 const findChrome = () => {
+  const pathChrome = findChromeOnPath();
   const candidates = [
     process.env.CHROME_PATH,
+    pathChrome,
     "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
     "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
     path.join(os.homedir(), "AppData", "Local", "Google", "Chrome", "Application", "chrome.exe"),
@@ -42,6 +44,39 @@ const findChrome = () => {
   }
   return found;
 };
+
+/** @param {string | undefined} [pathValue] @param {NodeJS.Platform} [platform] */
+function findChromeOnPath(pathValue = process.env.PATH, platform = process.platform) {
+  if (!pathValue) return undefined;
+  const names =
+    platform === "win32"
+      ? ["google-chrome.exe", "chrome.exe", "chromium.exe"]
+      : ["google-chrome", "chromium", "chromium-browser"];
+  for (const directory of pathValue.split(path.delimiter)) {
+    if (!directory) continue;
+    for (const name of names) {
+      const candidate = path.join(directory, name);
+      try {
+        fs.accessSync(candidate, fs.constants.X_OK);
+        if (fs.statSync(candidate).isFile()) return candidate;
+      } catch {
+        continue;
+      }
+    }
+  }
+  return undefined;
+}
+
+/** @param {string} version */
+const parseChromeMajorVersion = (version) => {
+  const match = version.match(/(?:Chrome|Chromium)\s+(\d+)\./i);
+  if (!match?.[1]) throw new Error(`Unable to determine Chrome version from: ${version.trim()}`);
+  return Number(match[1]);
+};
+
+/** @param {string} chromePath */
+const getChromeMajorVersion = (chromePath) =>
+  parseChromeMajorVersion(execFileSync(chromePath, ["--version"], { encoding: "utf8" }));
 
 /** @param {"production" | "e2e"} [mode] */
 const stageBuild = (mode = "production") => {
@@ -130,8 +165,14 @@ const makeProfile = (baseProfileDir, downloadDir, unique = false) => {
   return { profileDir, downloadDir: downloads };
 };
 
-/** @param {string} profileDir @param {number} port @param {boolean} [headless] @param {boolean} [noSandbox] */
-const chromeArgs = (profileDir, port, headless = false, noSandbox = false) => {
+/** @param {string} profileDir @param {number} port @param {boolean} [headless] @param {boolean} [noSandbox] @param {string} [legacyExtensionDir] */
+const chromeArgs = (
+  profileDir,
+  port,
+  headless = false,
+  noSandbox = false,
+  legacyExtensionDir = undefined,
+) => {
   const args = [
     `--user-data-dir=${profileDir}`,
     `--remote-debugging-port=${port}`,
@@ -148,6 +189,7 @@ const chromeArgs = (profileDir, port, headless = false, noSandbox = false) => {
   // sandboxed; CODEX_SHELL or the explicit override opts into nesting support.
   if (noSandbox) args.push("--no-sandbox");
   if (headless) args.push("--headless=new");
+  if (legacyExtensionDir) args.push(`--load-extension=${legacyExtensionDir}`);
   args.push("about:blank");
   return args;
 };
@@ -201,11 +243,14 @@ const launch = async ({
   const port = requestedPort || 9400 + Math.floor(Math.random() * 400);
 
   const chromePath = findChrome();
+  const chromeMajorVersion = getChromeMajorVersion(chromePath);
+  const legacyExtensionDir = chromeMajorVersion < 137 ? extensionDir : undefined;
   const args = chromeArgs(
     resolvedProfile,
     port,
     Boolean(process.env.HEADLESS),
     Boolean(process.env.CODEX_SHELL || process.env.CHROME_E2E_NO_SANDBOX),
+    legacyExtensionDir,
   );
   fs.mkdirSync(ARTIFACTS, { recursive: true });
   const logPath = path.join(ARTIFACTS, `chrome-${port}.log`);
@@ -214,7 +259,10 @@ const launch = async ({
   fs.closeSync(log);
   try {
     await cdp.waitForCdp(port);
-    const extensionId = await cdp.loadUnpacked(port, extensionDir);
+    const extensionId =
+      chromeMajorVersion < 137
+        ? await cdp.waitForExtensionId(port)
+        : await cdp.loadUnpacked(port, extensionDir);
     // Loading an invalid package can make Chrome terminate just after the CDP
     // command succeeds. Verify the endpoint remains usable before handing the
     // process to a suite, so startup errors include the browser log.
@@ -250,6 +298,9 @@ module.exports = {
   DIST,
   buildOutputForMode,
   findChrome,
+  findChromeOnPath,
+  getChromeMajorVersion,
+  parseChromeMajorVersion,
   stageBuild,
   chromeArgs,
   launch,

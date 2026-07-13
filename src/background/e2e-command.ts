@@ -10,6 +10,7 @@ import { handleContextMenuClick, type ContextMenuClickInfo } from "./menu-click.
 
 export const BACKGROUND_E2E_COMMAND = "SAVE_IN_E2E_START_DOWNLOAD";
 export const BACKGROUND_E2E_CONTEXT_MENU_COMMAND = "SAVE_IN_E2E_CONTEXT_MENU_CLICK";
+export const BACKGROUND_E2E_NOTIFICATION_COMMAND = "SAVE_IN_E2E_NOTIFICATION_CALLS";
 
 type BackgroundE2EDownload = {
   path?: string;
@@ -34,6 +35,17 @@ type BackgroundE2EContextMenuRequest = {
   };
 };
 
+type BackgroundE2ENotificationRequest = {
+  type: typeof BACKGROUND_E2E_NOTIFICATION_COMMAND;
+  body: { action: "get" | "reset" };
+};
+
+export type BackgroundE2ENotificationCall = {
+  id: string;
+  title?: string;
+  message?: string;
+};
+
 type BackgroundE2ECommandResponse = {
   type: typeof BACKGROUND_E2E_COMMAND;
   body: { status: "OK"; result: DownloadLaunchResult } | { status: "ERROR"; message: string };
@@ -43,6 +55,14 @@ type BackgroundE2EContextMenuResponse = {
   type: typeof BACKGROUND_E2E_CONTEXT_MENU_COMMAND;
   body: { status: "OK" } | { status: "ERROR"; message: string };
 };
+
+type BackgroundE2ENotificationResponse = {
+  type: typeof BACKGROUND_E2E_NOTIFICATION_COMMAND;
+  body: { status: "OK"; calls: BackgroundE2ENotificationCall[] };
+};
+
+const notificationCalls: BackgroundE2ENotificationCall[] = [];
+let notificationObserverInstalled = false;
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   value != null && typeof value === "object" && !Array.isArray(value);
@@ -99,6 +119,14 @@ const isBackgroundE2EContextMenuCommand = (
   isBackgroundE2EContextMenuInfo(value.body.info) &&
   (value.body.tab === undefined || isBackgroundE2EContextMenuTab(value.body.tab));
 
+const isBackgroundE2ENotificationCommand = (
+  value: unknown,
+): value is BackgroundE2ENotificationRequest =>
+  isRecord(value) &&
+  value.type === BACKGROUND_E2E_NOTIFICATION_COMMAND &&
+  isRecord(value.body) &&
+  (value.body.action === "get" || value.body.action === "reset");
+
 const resolveDownloadUrl = (request: BackgroundE2EDownload): string => {
   if (request.shortcutUrl) {
     return Shortcut.makeShortcut(SHORTCUT_TYPES.HTML_REDIRECT, request.shortcutUrl);
@@ -154,8 +182,41 @@ export const handleBackgroundE2EContextMenuCommand = async (
   }
 };
 
+export const handleBackgroundE2ENotificationCommand = (
+  rawRequest: unknown,
+): BackgroundE2ENotificationResponse | null => {
+  if (!isBackgroundE2ENotificationCommand(rawRequest)) return null;
+  if (rawRequest.body.action === "reset") notificationCalls.length = 0;
+  return {
+    type: BACKGROUND_E2E_NOTIFICATION_COMMAND,
+    body: { status: "OK", calls: structuredClone(notificationCalls) },
+  };
+};
+
+export const installBackgroundE2ENotificationObserver = (): void => {
+  if (notificationObserverInstalled) return;
+  notificationObserverInstalled = true;
+  const notifications = webExtensionApi.notifications;
+  const originalCreate = notifications.create;
+  Reflect.set(notifications, "create", (...args: unknown[]) => {
+    const id = typeof args[0] === "string" ? args[0] : "";
+    const details = isRecord(args[1]) ? args[1] : isRecord(args[0]) ? args[0] : {};
+    notificationCalls.push({
+      id,
+      ...(typeof details.title === "string" ? { title: details.title } : {}),
+      ...(typeof details.message === "string" ? { message: details.message } : {}),
+    });
+    return Reflect.apply(originalCreate, notifications, args);
+  });
+};
+
 export const registerBackgroundE2ECommand = (): void => {
+  installBackgroundE2ENotificationObserver();
   webExtensionApi.runtime.onMessage.addListener((rawRequest, _sender, sendResponse) => {
+    if (isBackgroundE2ENotificationCommand(rawRequest)) {
+      sendResponse(handleBackgroundE2ENotificationCommand(rawRequest));
+      return;
+    }
     if (isBackgroundE2EContextMenuCommand(rawRequest)) {
       void handleBackgroundE2EContextMenuCommand(rawRequest).then(sendResponse);
       return true;
