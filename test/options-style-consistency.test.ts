@@ -64,6 +64,15 @@ test("sticky reference headers use an opaque surface", () => {
   expect(header).toContain("background: var(--page-bg)");
 });
 
+test("reference modal has no scrollport gap above sticky headers", () => {
+  const css = readStyle("style.css");
+  const body = css.match(/\.reference-dialog-body\s*\{([^}]*)\}/)?.[1] || "";
+  const panel = css.match(/\.reference-dialog \.options-reference-panel\s*\{([^}]*)\}/)?.[1] || "";
+
+  expect(body).toContain("padding: 0 var(--space-4) var(--space-4)");
+  expect(panel).toContain("padding: var(--space-4) 0 0");
+});
+
 test("language label and selector share a text baseline", () => {
   const css = readStyle("style.css");
   const selector = css.match(/\.language-selector\s*\{([^}]*)\}/)?.[1] || "";

@@ -2278,13 +2278,13 @@ summary {
   height: calc(100% - 144px);
   box-sizing: border-box;
   overflow: auto;
-  padding: var(--space-4);
+  padding: 0 var(--space-4) var(--space-4);
 }
 
 .reference-dialog .options-reference-panel {
   max-width: none;
   margin: 0;
-  padding: 0;
+  padding: var(--space-4) 0 0;
 }
 
 button:disabled {
