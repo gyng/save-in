@@ -1,5 +1,6 @@
 import { SPECIAL_DIRS } from "../shared/constants.ts";
 import { Path } from "../routing/path.ts";
+import { parsePathLine } from "../config/path-lines.ts";
 import { MENU_IDS } from "./menu-ids.ts";
 
 export type MenuMeta = Record<string, string>;
@@ -12,7 +13,7 @@ export type ParsedPath = {
   validation: { valid: boolean; message?: string | undefined };
 };
 export type MenuTreeItem =
-  | { kind: "separator"; parentId: string }
+  | { kind: "separator"; id: string; parentId: string }
   | {
       kind: "path";
       id: string;
@@ -22,7 +23,6 @@ export type MenuTreeItem =
       parsedDir: string;
       comment: string;
       menuIndex: string;
-      depth: number;
       parentId: string;
       raw: string;
     };
@@ -36,26 +36,16 @@ export type MenuTree = { items: MenuTreeItem[]; errors: MenuTreeError[] };
 export const parseMeta = (comment: string): MenuMeta => {
   const matches = comment.match(/\(.+?:.+?\)+/g);
   if (!matches) return {};
-  return matches
-    .map((pair) =>
-      pair
-        .replace(/(^\(|\)$)/g, "")
-        .split(":")
-        .map((value) => value.trim()),
-    )
-    .reduce<MenuMeta>((acc, values) => {
-      const key = values[0];
-      return key ? Object.assign(acc, { [key]: values.slice(1).join(" ") }) : acc;
-    }, {});
+  return matches.reduce<MenuMeta>((acc, pair) => {
+    const value = pair.replace(/(^\(|\)$)/g, "");
+    const separatorIndex = value.indexOf(":");
+    const key = value.slice(0, separatorIndex).trim();
+    return key ? Object.assign(acc, { [key]: value.slice(separatorIndex + 1).trim() }) : acc;
+  }, {});
 };
 
 export const parsePath = (dir: string): ParsedPath => {
-  const tokens = dir.split("//").map((token) => token.trim());
-  const [head = "", commentToken = ""] = tokens;
-  const depthMatch = head.match(/^(>+)?(.+)/);
-  const depth = (depthMatch?.[1] || "").length;
-  const parsedDir = (depthMatch?.[2] || "").trim();
-  const comment = commentToken.trim();
+  const { depth, body: parsedDir, comment } = parsePathLine(dir);
   return {
     raw: dir,
     comment,
@@ -74,7 +64,11 @@ export const buildTree = (pathsArray: string[]): MenuTree => {
 
   pathsArray.forEach((dir, index) => {
     if (dir === SPECIAL_DIRS.SEPARATOR) {
-      items.push({ kind: "separator", parentId: MENU_IDS.ROOT });
+      items.push({
+        kind: "separator",
+        id: `save-in-separator-path-${index}`,
+        parentId: MENU_IDS.ROOT,
+      });
       return;
     }
     const { comment, depth, meta, validation, parsedDir } = parsePath(dir);
@@ -96,7 +90,7 @@ export const buildTree = (pathsArray: string[]): MenuTree => {
     menuItemCounter[effectiveDepth] = number;
     const id = `save-in-${index}`;
     if (parsedDir === SPECIAL_DIRS.SEPARATOR) {
-      items.push({ kind: "separator", parentId });
+      items.push({ kind: "separator", id: `save-in-separator-path-${index}`, parentId });
       return;
     }
     if (effectiveDepth === 0) pathsNestingStack = [id];
@@ -111,7 +105,6 @@ export const buildTree = (pathsArray: string[]): MenuTree => {
       parsedDir,
       comment: `${index}${comment.replaceAll("-", "_")}`,
       menuIndex: menuItemCounter.join("."),
-      depth: effectiveDepth,
       parentId,
       raw: dir,
     });

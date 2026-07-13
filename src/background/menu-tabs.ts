@@ -63,11 +63,7 @@ export const addTabHighlightListener = () => {
           return;
         }
       }
-      if (
-        !options.tabEnabled ||
-        !WEB_EXTENSION_CAPABILITIES ||
-        !WEB_EXTENSION_CAPABILITIES.tabContextMenus
-      ) {
+      if (!options.tabEnabled || !WEB_EXTENSION_CAPABILITIES.tabContextMenus) {
         return;
       }
 

@@ -18,4 +18,8 @@ export const MENU_IDS = {
   OPTIONS: "options",
   TOGGLE_SOURCE_PANEL: "toggle-source-panel",
   SHOW_DEFAULT_FOLDER: "show-default-folder",
+  SEPARATOR: {
+    LAST_USED: "save-in-separator-last-used",
+    ACTIONS: "save-in-separator-actions",
+  },
 } as const;

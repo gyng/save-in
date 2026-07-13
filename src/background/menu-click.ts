@@ -206,7 +206,11 @@ export const addDownloadListener = () => {
 
         let saveIntoPath;
         let selectedLocation:
-          | { path: string; meta: { comment: string; menuIndex: string }; title: string }
+          | {
+              path: string;
+              meta: { comment: string; menuIndex: string; title: string };
+              title: string;
+            }
           | undefined;
 
         if (info.menuItemId === MENU_IDS.ROUTE_EXCLUSIVE) {
@@ -226,7 +230,11 @@ export const addDownloadListener = () => {
           const title = menuInfo.title || saveIntoPath;
           selectedLocation = {
             path: saveIntoPath,
-            meta: { comment: menuInfo.comment, menuIndex: menuInfo.menuIndex },
+            meta: {
+              comment: menuInfo.comment,
+              menuIndex: menuInfo.menuIndex,
+              title,
+            },
             title,
           };
         }

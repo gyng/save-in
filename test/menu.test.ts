@@ -2,8 +2,7 @@
 // handlers' Download/Notifier/Shortcut/currentTab deps are never exercised here,
 // so those modules import for real (unused). chrome-detector is the one mock:
 // its WEB_EXTENSION_CAPABILITIES is a read-only live binding, and tests need to swap it
-// per case (including to undefined, for the pre-detection guard), so a hoisted
-// holder backs it.
+// per tab-menu case, so a hoisted holder backs it.
 const detector = vi.hoisted(() => ({ features: undefined as any }));
 vi.mock("../src/platform/chrome-detector.ts", () => ({
   BROWSERS: { CHROME: "CHROME", FIREFOX: "FIREFOX", UNKNOWN: "UNKNOWN" },
@@ -14,7 +13,7 @@ vi.mock("../src/platform/chrome-detector.ts", () => ({
     return "CHROME";
   },
   CURRENT_BROWSER_VERSION: undefined,
-  detectCapabilities: (b: string) => ({ tabContextMenus: b === "FIREFOX", accessKeys: true }),
+  detectCapabilities: (b: string) => ({ tabContextMenus: b === "FIREFOX" }),
 }));
 
 import * as menuBuild from "../src/background/menu-build.ts";
@@ -69,6 +68,17 @@ describe("menu parsing", () => {
     expect(menu.parseMeta("")).toEqual({});
   });
 
+  test("parseMeta preserves colons inside metadata values", () => {
+    expect(menu.parseMeta("(alias: Work: 2026)")).toEqual({ alias: "Work: 2026" });
+  });
+
+  test("parsePath preserves additional comment delimiters", () => {
+    const parsed = menu.parsePath("images // (alias: https://example.test/gallery)");
+
+    expect(parsed.comment).toBe("(alias: https://example.test/gallery)");
+    expect(parsed.meta).toEqual({ alias: "https://example.test/gallery" });
+  });
+
   test("parsePath counts depth arrows", () => {
     expect(menu.parsePath("a").depth).toBe(0);
     expect(menu.parsePath(">>> deep/dir").depth).toBe(3);
@@ -86,7 +96,7 @@ const setupMenuCreationMocks = () => {
     getMessage: (key) => global.browser.i18n.getMessage(key),
     recordRuleErrors: (errors) => backgroundRuntime.optionErrors.filenamePatterns.push(...errors),
   });
-  detector.features = { accessKeys: true, tabContextMenus: true };
+  detector.features = { tabContextMenus: true };
   Object.assign(options, {
     keyRoot: "q",
     keyLastUsed: "a",
@@ -105,6 +115,7 @@ const setupMenuCreationMocks = () => {
     removeAll: vi.fn(() => Promise.resolve()),
     onClicked: { addListener: vi.fn() },
   };
+  menu.clearPathMappings();
   backgroundRuntime.optionErrors = { paths: [], filenamePatterns: [] };
 };
 
@@ -119,9 +130,9 @@ describe("menu creation", () => {
     );
 
   describe("makeSeparator", () => {
-    test("creates separators with an incrementing id under the given parent", () => {
-      menu.makeSeparator(["link"]);
-      menu.makeSeparator(["link"], "custom-parent");
+    test("creates separators with explicit ids under the given parent", () => {
+      menu.makeSeparator(["link"], "first-separator");
+      menu.makeSeparator(["link"], "second-separator", "custom-parent");
 
       const first = created()[0]!;
       const second = created()[1]!;
@@ -131,19 +142,12 @@ describe("menu creation", () => {
         parentId: menu.IDS.ROOT,
       });
       expect(second.parentId).toBe("custom-parent");
-
-      const firstN = Number(first.id.replace("separator-", ""));
-      const secondN = Number(second.id.replace("separator-", ""));
-      expect(secondN).toBe(firstN + 1);
+      expect(first.id).toBe("first-separator");
+      expect(second.id).toBe("second-separator");
     });
   });
 
   describe("setAccesskey", () => {
-    test("passes the title through when access keys are unsupported", () => {
-      detector.features = { accessKeys: false };
-      expect(menu.setAccesskey("cats", "c")).toBe("cats");
-    });
-
     test("marks the key in place when the title contains it", () => {
       expect(menu.setAccesskey("cats", "c")).toBe("&cats");
     });
@@ -154,6 +158,11 @@ describe("menu creation", () => {
 
     test("prefers the override key", () => {
       expect(menu.setAccesskey("cats", "x", "a")).toBe("c&ats");
+    });
+
+    test("leaves the title unchanged when the configured key is empty", () => {
+      expect(menu.setAccesskey("cats", "")).toBe("cats");
+      expect(menu.setAccesskey("cats", "1", "")).toBe("cats");
     });
   });
 
@@ -257,6 +266,38 @@ describe("menu creation", () => {
       expect(created()[1]!.icons).toBeUndefined();
       expect(created()[1]!.id).toBe(menu.IDS.LAST_USED);
     });
+
+    test("restores an aliased last-used title after persistence", async () => {
+      await menu.setLastUsed("dir1", {
+        comment: "0(alias: Friendly folder)",
+        menuIndex: "1",
+        title: "Friendly folder",
+      });
+      expect(global.browser.storage.local.set).toHaveBeenCalledWith({
+        lastUsedPath: "dir1",
+        lastUsedMeta: {
+          comment: "0(alias: Friendly folder)",
+          menuIndex: "1",
+          title: "Friendly folder",
+        },
+      });
+      menu.restoreLastUsed({
+        lastUsedPath: "dir1",
+        lastUsedMeta: {
+          comment: "0(alias: Friendly folder)",
+          menuIndex: "1",
+          title: "Friendly folder",
+        },
+      });
+
+      menu.addLastUsed(["link"]);
+
+      expect(created().at(-1)).toMatchObject({
+        id: menu.IDS.LAST_USED,
+        title: "Friendly folder (&a)",
+        enabled: true,
+      });
+    });
   });
 
   describe("addPaths", () => {
@@ -359,6 +400,7 @@ describe("menu creation", () => {
 
     test("drops stale mappings without retaining parallel title state", () => {
       menu.addPaths(["dogs", "cats"], ["link"]);
+      menu.clearPathMappings();
       menu.addPaths(["birds"], ["link"]);
 
       expect(menu.pathMappings).toEqual({
@@ -386,6 +428,22 @@ describe("menu creation", () => {
       expect(menu.pathMappings).toEqual({});
       expect(created().map((item) => item.id)).toContain(menu.IDS.ROUTE_EXCLUSIVE);
       expect(created().map((item) => item.id)).not.toContain(menu.IDS.ROOT);
+    });
+
+    test("uses deterministic separator ids for every rebuild", async () => {
+      await rebuildMenus();
+      const firstIds = created()
+        .filter((item) => item.type === "separator")
+        .map((item) => item.id);
+      vi.mocked(global.browser.contextMenus.create).mockClear();
+
+      await rebuildMenus();
+      const secondIds = created()
+        .filter((item) => item.type === "separator")
+        .map((item) => item.id);
+
+      expect(firstIds).toEqual(["save-in-separator-last-used", "save-in-separator-actions"]);
+      expect(secondIds).toEqual(firstIds);
     });
   });
 
@@ -509,7 +567,6 @@ describe("buildTree", () => {
         parsedDir: "a",
         comment: "0",
         menuIndex: "1",
-        depth: 0,
         parentId: menu.IDS.ROOT,
         raw: "a",
       },
@@ -522,7 +579,6 @@ describe("buildTree", () => {
         parsedDir: "b",
         comment: "1",
         menuIndex: "1.1",
-        depth: 1,
         parentId: "save-in-0",
         raw: ">b",
       },

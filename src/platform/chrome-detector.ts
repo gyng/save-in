@@ -8,7 +8,6 @@ export const BROWSERS = {
 
 export type WebExtensionCapabilities = {
   tabContextMenus: boolean;
-  accessKeys: boolean;
   downloadFilenameSuggestion: boolean;
   downloadDeltaFilename: boolean;
   conflictActionPrompt: boolean;
@@ -20,7 +19,6 @@ export type WebExtensionCapabilities = {
 // binding and read it at call time.
 export let WEB_EXTENSION_CAPABILITIES: WebExtensionCapabilities = {
   tabContextMenus: false,
-  accessKeys: true,
   downloadFilenameSuggestion: false,
   downloadDeltaFilename: false,
   conflictActionPrompt: false,
@@ -46,7 +44,6 @@ export const detectCapabilities = (currentBrowser: string): WebExtensionCapabili
   tabContextMenus:
     currentBrowser === BROWSERS.FIREFOX ||
     (currentBrowser === BROWSERS.CHROME && supportsChromeTabContextMenus()),
-  accessKeys: true,
   downloadFilenameSuggestion: Boolean(globalThis.chrome?.downloads?.onDeterminingFilename),
   // Chrome supplies the final filename through DownloadDelta; Firefox includes
   // it in the initial DownloadItem.

@@ -14,11 +14,6 @@ describe("detectCapabilities", () => {
     }
   });
 
-  test("access keys are supported everywhere (min versions >= 121)", () => {
-    expect(detectCapabilities(BROWSERS.FIREFOX).accessKeys).toBe(true);
-    expect(detectCapabilities(BROWSERS.CHROME).accessKeys).toBe(true);
-  });
-
   test("normalizes browser-specific download semantics", () => {
     expect(detectCapabilities(BROWSERS.CHROME)).toMatchObject({
       downloadDeltaFilename: true,

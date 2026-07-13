@@ -5,7 +5,6 @@ import { getMessage } from "../platform/localization.ts";
 // (`buildTree`, pure) and renders it with webExtensionApi.contextMenus.create.
 // Click handling lives in menu-click.ts and tab-strip menus in menu-tabs.ts.
 
-import { WEB_EXTENSION_CAPABILITIES } from "../platform/chrome-detector.ts";
 import { options } from "../config/options-data.ts";
 import { LAST_USED_META_STORAGE_KEY, LAST_USED_PATH_STORAGE_KEY } from "../shared/storage-keys.ts";
 import { MEDIA_TYPES } from "../shared/constants.ts";
@@ -26,7 +25,7 @@ const asMenuContexts = (contexts: readonly string[]): MenuContexts => {
   const [first = "all" as MenuContext, ...rest] = normalized;
   return [first, ...rest] as MenuContexts;
 };
-type LastUsedMeta = { comment?: string; menuIndex?: string };
+type LastUsedMeta = { comment?: string; menuIndex?: string; title?: string };
 type StoredLastUsed = {
   lastUsedPath?: string | null;
   lastUsedMeta?: LastUsedMeta | null;
@@ -72,35 +71,29 @@ export const restoreLastUsed = (stored: StoredLastUsed) => {
     menuState.lastUsedPath &&
     meta != null &&
     (meta.comment === undefined || typeof meta.comment === "string") &&
-    (meta.menuIndex === undefined || typeof meta.menuIndex === "string")
+    (meta.menuIndex === undefined || typeof meta.menuIndex === "string") &&
+    (meta.title === undefined || typeof meta.title === "string")
       ? meta
       : null;
 };
 
-export const makeSeparator = (() => {
-  let separatorCounter = 0;
-
-  const makeSeparatorInner = (contexts: string[], parentId: string = MENU_IDS.ROOT): void => {
-    webExtensionApi.contextMenus.create({
-      id: `separator-${separatorCounter}`,
-      type: "separator",
-      contexts: asMenuContexts(contexts),
-      parentId,
-    });
-    separatorCounter += 1;
-  };
-
-  return makeSeparatorInner;
-})();
+export const makeSeparator = (
+  contexts: string[],
+  id: string,
+  parentId: string = MENU_IDS.ROOT,
+): void => {
+  webExtensionApi.contextMenus.create({
+    id,
+    type: "separator",
+    contexts: asMenuContexts(contexts),
+    parentId,
+  });
+};
 
 export const setAccesskey = (str: string, key: string | number, override?: string) => {
-  if (!WEB_EXTENSION_CAPABILITIES.accessKeys) {
-    return str;
-  }
-
   const keyUsed = override != null ? override : key;
-
   const accessKey = String(keyUsed);
+  if (!accessKey) return str;
   if (str.includes(accessKey)) {
     return str.replace(accessKey, `&${accessKey}`);
   } else {
@@ -192,7 +185,8 @@ export const addShowDefaultFolder = (contexts: string[]) => {
 };
 
 export const addLastUsed = (contexts: string[]) => {
-  const lastUsedTitle = menuState.lastUsedPath || getMessage("contextMenuLastUsed");
+  const lastUsedTitle =
+    menuState.lastUsedMeta?.title || menuState.lastUsedPath || getMessage("contextMenuLastUsed");
   const lastUsedMenuOptions = {
     id: MENU_IDS.LAST_USED,
     title: setAccesskey(lastUsedTitle, options.keyLastUsed),
@@ -237,8 +231,6 @@ export const clearPathMappings = () => {
 };
 
 export const addPaths = (pathsArray: string[], contexts: string[]) => {
-  clearPathMappings();
-
   const { items, errors } = buildTree(pathsArray);
 
   errors.forEach((error) => {
@@ -247,7 +239,7 @@ export const addPaths = (pathsArray: string[], contexts: string[]) => {
 
   items.forEach((item) => {
     if (item.kind === "separator") {
-      makeSeparator(contexts, item.parentId);
+      makeSeparator(contexts, item.id, item.parentId);
       return;
     }
 
