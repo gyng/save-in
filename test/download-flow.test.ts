@@ -179,8 +179,8 @@ beforeEach(() => {
     Promise.resolve({ headers: { has: () => false, get: () => null } }),
   ) as any;
 
-  window.SI_DEBUG = false;
-  window.lastDownloadState = undefined;
+  backgroundRuntime.debug = false;
+  backgroundRuntime.lastDownloadState = undefined;
   downloadState.records.clear();
 });
 
@@ -878,7 +878,7 @@ describe("renameAndDownload: browserDownload", () => {
     await Download.renameAndDownload(state);
 
     expect(DownloadEvents.downloaded).toHaveBeenCalledWith(state);
-    expect(window.lastDownloadState).toBe(state);
+    expect(backgroundRuntime.lastDownloadState).toBe(state);
     expect(SaveHistory.add).toHaveBeenCalledWith(
       expect.objectContaining({
         url: state.info.url,
@@ -1038,17 +1038,17 @@ describe("renameAndDownload: Log integration", () => {
   });
 });
 
-describe("renameAndDownload: window.SI_DEBUG", () => {
-  test("logs debug info when window.SI_DEBUG is set", async () => {
+describe("renameAndDownload: backgroundRuntime.debug", () => {
+  test("logs debug info when backgroundRuntime.debug is set", async () => {
     setCurrentBrowser("CHROME");
-    window.SI_DEBUG = true;
+    backgroundRuntime.debug = true;
     const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
 
     await Download.renameAndDownload(makeState());
 
     expect(consoleSpy).toHaveBeenCalled();
     consoleSpy.mockRestore();
-    window.SI_DEBUG = false;
+    backgroundRuntime.debug = false;
   });
 });
 

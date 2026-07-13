@@ -43,6 +43,7 @@ let Menus: Record<string, any>;
 let options: typeof import("../src/config/options-data.ts").options;
 let OptionsManagement: typeof import("../src/config/option.ts").OptionsManagement;
 let Log: typeof import("../src/background/log.ts").Log;
+let Runtime: typeof import("../src/background/runtime.ts").backgroundRuntime;
 
 type SetupOptions = {
   options?: Partial<SaveInOptions>;
@@ -63,6 +64,7 @@ const setupGlobals = async ({
   ({ OptionsManagement } = await import("../src/config/option.ts"));
   ({ options } = await import("../src/config/options-data.ts"));
   ({ Log } = await import("../src/background/log.ts"));
+  ({ backgroundRuntime: Runtime } = await import("../src/background/runtime.ts"));
 
   for (const name of [
     "addRoot",
@@ -107,11 +109,6 @@ const setupGlobals = async ({
   (global.browser.tabs as any).get = vi.fn((id) => Promise.resolve({ id, title: `Tab ${id}` }));
   (global.browser.tabs as any).onActivated = { addListener: vi.fn() };
   (global.browser.tabs as any).onUpdated = { addListener: vi.fn() };
-
-  Reflect.deleteProperty(global.window, "ready");
-  Reflect.deleteProperty(global.window, "init");
-  Reflect.deleteProperty(global.window, "reset");
-  Reflect.deleteProperty(global.window, "optionErrors");
 };
 
 // background-main.ts's bootstrap is an exported start() the entry calls synchronously
@@ -138,20 +135,20 @@ describe("startup", () => {
     expect(global.browser.tabs.onActivated.addListener).toHaveBeenCalledTimes(1);
     expect(global.browser.tabs.onUpdated.addListener).toHaveBeenCalledTimes(1);
 
-    expect(global.window.init).toEqual(expect.any(Function));
-    expect(global.window.reset).toEqual(expect.any(Function));
-    expect(global.window.ready).toEqual(expect.any(Promise));
-    await global.window.ready;
+    expect(Runtime.init).toEqual(expect.any(Function));
+    expect(Runtime.reset).toEqual(expect.any(Function));
+    expect(Runtime.ready).toEqual(expect.any(Promise));
+    await Runtime.ready;
   });
 
-  test("window.reset re-runs init and replaces window.ready", async () => {
+  test("runtime.reset re-runs init and replaces runtime.ready", async () => {
     await setupGlobals();
     await importIndex();
-    await global.window.ready;
+    await Runtime.ready;
     expect(OptionsManagement.loadOptions).toHaveBeenCalledTimes(1);
 
-    const p = global.window.reset();
-    expect(global.window.ready).toBe(p);
+    const p = Runtime.reset();
+    expect(Runtime.ready).toBe(p);
     await p;
     expect(OptionsManagement.loadOptions).toHaveBeenCalledTimes(2);
   });
@@ -161,9 +158,9 @@ describe("init", () => {
   test("loads options, then builds the full menu", async () => {
     await setupGlobals();
     await importIndex();
-    await global.window.ready;
+    await Runtime.ready;
 
-    expect(global.window.optionErrors).toEqual({ paths: [], filenamePatterns: [] });
+    expect(Runtime.optionErrors).toEqual({ paths: [], filenamePatterns: [] });
     expect(OptionsManagement.loadOptions).toHaveBeenCalledTimes(1);
     expect(global.browser.storage.local.get).toHaveBeenCalledWith(["lastUsedPath", "lastUsedMeta"]);
     expect(global.browser.contextMenus.removeAll).toHaveBeenCalledTimes(1);
@@ -185,7 +182,7 @@ describe("init", () => {
   test("drops blank lines and trims whitespace in the configured paths", async () => {
     await setupGlobals({ options: { paths: " . \n\n  \nimages\n" } });
     await importIndex();
-    await global.window.ready;
+    await Runtime.ready;
 
     expect(Menus.addPaths).toHaveBeenCalledWith([".", "images"], expect.any(Array));
   });
@@ -193,7 +190,7 @@ describe("init", () => {
   test("restricts contexts to media when links/selection/page are disabled", async () => {
     await setupGlobals({ options: { links: false, selection: false, page: false } });
     await importIndex();
-    await global.window.ready;
+    await Runtime.ready;
 
     expect(Menus.addRoot).toHaveBeenCalledWith(["image", "video", "audio"]);
   });
@@ -201,7 +198,7 @@ describe("init", () => {
   test("routeExclusive builds only the exclusive item and stops", async () => {
     await setupGlobals({ options: { routeExclusive: true } });
     await importIndex();
-    await global.window.ready;
+    await Runtime.ready;
 
     expect(Menus.addTabMenus).toHaveBeenCalledTimes(1);
     expect(Menus.addRouteExclusive).toHaveBeenCalledWith([
@@ -221,7 +218,7 @@ describe("init", () => {
   test("skips the last-used item when enableLastLocation is off", async () => {
     await setupGlobals({ options: { enableLastLocation: false } });
     await importIndex();
-    await global.window.ready;
+    await Runtime.ready;
 
     expect(Menus.addLastUsed).not.toHaveBeenCalled();
     // Only the separator after the paths remains
@@ -232,7 +229,7 @@ describe("init", () => {
   test("restores lastUsedPath from storage (MV3 service workers are stateless)", async () => {
     await setupGlobals({ storedLocal: { lastUsedPath: "images/cute" } });
     await importIndex();
-    await global.window.ready;
+    await Runtime.ready;
 
     // the stored local object is handed to Menus.restoreLastUsed (its mapping is
     // covered in menu.test.js)
@@ -242,7 +239,7 @@ describe("init", () => {
   test("restores from an empty storage result", async () => {
     await setupGlobals();
     await importIndex();
-    await global.window.ready;
+    await Runtime.ready;
 
     expect(Menus.restoreLastUsed).toHaveBeenCalledWith({});
   });
@@ -261,7 +258,7 @@ describe("init", () => {
 
     await importIndex();
     // Attach the handler before rejecting so the rejection is never unhandled
-    const readyRejects = expect(global.window.ready).rejects.toThrow("storage broke");
+    const readyRejects = expect(Runtime.ready).rejects.toThrow("storage broke");
     rejectLoad(new Error("storage broke"));
     await readyRejects;
 
@@ -275,7 +272,7 @@ describe("current tab tracking", () => {
     const tab = { id: 3, title: "Seeded Tab" };
     await setupGlobals({ tabsQueryResult: [tab] });
     await importIndex();
-    await global.window.ready;
+    await Runtime.ready;
 
     expect(global.browser.tabs.query).toHaveBeenCalledWith({
       active: true,
@@ -313,7 +310,7 @@ describe("current tab tracking", () => {
     expect(global.browser.tabs.get).toHaveBeenCalledWith(9);
 
     resolveQuery([{ id: 1, title: "Startup Tab" }]);
-    await global.window.ready;
+    await Runtime.ready;
 
     (onUpdated as any)(9, { title: "Still Activated" });
     expect(activatedTab.title).toBe("Still Activated");
@@ -324,7 +321,7 @@ describe("current tab tracking", () => {
     global.browser.tabs.query = vi.fn(() => Promise.reject(new Error("no window")));
 
     await importIndex();
-    await global.window.ready;
+    await Runtime.ready;
 
     // The rejection is swallowed; nothing was tracked
     const [[onUpdated]] = vi.mocked(global.browser.tabs.onUpdated.addListener).mock.calls;
@@ -339,7 +336,7 @@ describe("current tab tracking", () => {
     (global.browser.tabs as any).get = vi.fn(() => Promise.resolve(activatedTab));
 
     await importIndex();
-    await global.window.ready;
+    await Runtime.ready;
 
     const [[onActivated]] = vi.mocked(global.browser.tabs.onActivated.addListener).mock.calls;
     const [[onUpdated]] = vi.mocked(global.browser.tabs.onUpdated.addListener).mock.calls;
@@ -357,7 +354,7 @@ describe("current tab tracking", () => {
     (global.browser.tabs as any).get = vi.fn(() => Promise.resolve(fetchedTab));
 
     await importIndex();
-    await global.window.ready;
+    await Runtime.ready;
 
     const [[onUpdated]] = vi.mocked(global.browser.tabs.onUpdated.addListener).mock.calls;
     await (onUpdated as any)(4, {});
@@ -372,7 +369,7 @@ describe("current tab tracking", () => {
     const tab = { id: 3, title: "Seeded Tab" };
     await setupGlobals({ tabsQueryResult: [tab] });
     await importIndex();
-    await global.window.ready;
+    await Runtime.ready;
 
     const [[onUpdated]] = vi.mocked(global.browser.tabs.onUpdated.addListener).mock.calls;
 

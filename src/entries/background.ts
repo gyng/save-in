@@ -4,36 +4,16 @@
 // The bundle is emitted as bare scope-hoisted ESM so both classic hosts can
 // execute it.
 
-// Named imports for the globals evalSW (and other execution contexts) touch by
-// bare name on the worker/event-page scope.
-import {
-  MEDIA_TYPES,
-  SPECIAL_DIRS,
-  SHORTCUT_TYPES,
-  SHORTCUT_EXTENSIONS,
-  DOWNLOAD_TYPES,
-  CONFLICT_ACTION,
-  RULE_TYPES,
-  MESSAGE_TYPES,
-  PATH_SEGMENT_TYPES,
-  CLICK_TYPES,
-  FORBIDDEN_FILENAME_CHARS,
-} from "../shared/constants.ts";
-import {
-  BROWSERS,
-  CURRENT_BROWSER,
-  WEB_EXTENSION_CAPABILITIES,
-} from "../platform/chrome-detector.ts";
+import { SHORTCUT_TYPES } from "../shared/constants.ts";
+import { CURRENT_BROWSER, WEB_EXTENSION_CAPABILITIES } from "../platform/chrome-detector.ts";
 import { BackgroundState } from "../background/state.ts";
 import { peekCounter, resetCounter } from "../background/counter.ts";
 import { Log } from "../background/log.ts";
 import { SaveHistory } from "../background/history.ts";
 import { Notifier } from "../downloads/notification.ts";
 import { Path } from "../routing/path.ts";
-import { OffscreenClient } from "../platform/offscreen-client.ts";
 import { Download } from "../downloads/download.ts";
 import { Shortcut } from "../downloads/shortcut.ts";
-import { RequestHeaders } from "../downloads/headers.ts";
 import { menuState } from "../background/menu-build.ts";
 import { OptionsManagement, seedOptions } from "../config/option.ts";
 import { options } from "../config/options-data.ts";
@@ -41,39 +21,23 @@ import { Messaging, registerMessaging } from "../background/messaging.ts";
 import { registerNotifier } from "../downloads/notification.ts";
 import { registerDownloadListener } from "../downloads/download.ts";
 import { configureBackgroundPorts, start } from "../background/main.ts";
+import { backgroundRuntime } from "../background/runtime.ts";
+import { installBackgroundE2EBridge } from "../background/e2e-bridge.ts";
 
-Object.assign(globalThis, {
-  // constants
-  MEDIA_TYPES,
-  SPECIAL_DIRS,
+installBackgroundE2EBridge(globalThis, {
+  runtime: backgroundRuntime,
   SHORTCUT_TYPES,
-  SHORTCUT_EXTENSIONS,
-  DOWNLOAD_TYPES,
-  CONFLICT_ACTION,
-  RULE_TYPES,
-  MESSAGE_TYPES,
-  PATH_SEGMENT_TYPES,
-  CLICK_TYPES,
-  FORBIDDEN_FILENAME_CHARS,
-  // browser detection
-  BROWSERS,
   CURRENT_BROWSER,
   WEB_EXTENSION_CAPABILITIES,
-  // core
   Log,
   SaveHistory,
   BackgroundState,
   peekCounter,
   resetCounter,
   Notifier,
-  // The browser e2e harness constructs route values through evalSW.
   Path,
-  OffscreenClient,
   Download,
   Shortcut,
-  RequestHeaders,
-  // Minimal state surface used by the browser harness; menu behavior remains
-  // ordinary module functions rather than a runtime namespace object.
   menuState,
   OptionsManagement,
   options,

@@ -10,9 +10,19 @@ import { listenLocal } from "./helpers.mjs";
 
 let session;
 
+const inE2EBridge = (expr) => `(() => {
+  const {
+    runtime: window, SHORTCUT_TYPES, CURRENT_BROWSER, WEB_EXTENSION_CAPABILITIES,
+    Log, SaveHistory, BackgroundState, peekCounter, resetCounter, Notifier,
+    Path, Download, Shortcut, menuState, OptionsManagement, options, Messaging
+  } = globalThis.__SAVE_IN_E2E__;
+  return (${expr});
+})()`;
+const evalBackground = (expr, timeoutMs) => session.evaluate(inE2EBridge(expr), timeoutMs);
+
 const waitForDownloads = async (filenamePart, deadlineMs = 8000) =>
   JSON.parse(
-    await session.evaluate(
+    await evalBackground(
       `(async () => {
         const deadline = Date.now() + ${deadlineMs};
         for (;;) {
@@ -33,7 +43,7 @@ const waitForDownloads = async (filenamePart, deadlineMs = 8000) =>
 
 const waitForLog = async (predicate, deadlineMs = 8000) =>
   JSON.parse(
-    await session.evaluate(
+    await evalBackground(
       `(async () => {
         const deadline = Date.now() + ${deadlineMs};
         for (;;) {
@@ -76,7 +86,7 @@ afterAll(async () => {
 
 test("background event page initialises cleanly", async () => {
   const state = JSON.parse(
-    await session.evaluate(`window.ready.then(() => JSON.stringify({
+    await evalBackground(`window.ready.then(() => JSON.stringify({
       browser: CURRENT_BROWSER,
       capabilities: WEB_EXTENSION_CAPABILITIES,
       promptConflictAction: OptionsManagement.OPTION_KEYS
@@ -104,7 +114,7 @@ test("background event page initialises cleanly", async () => {
 });
 
 test("download completes through the real pipeline", async () => {
-  await session.evaluate(
+  await evalBackground(
     `window.ready.then(() => {
         Notifier.expectDownload();
         return Download.renameAndDownload({
@@ -127,7 +137,7 @@ test("download completes through the real pipeline", async () => {
 });
 
 test("options reset re-initialises", async () => {
-  const reset = await session.evaluate(`Promise.resolve(window.reset()).then(() => "reset-ok")`);
+  const reset = await evalBackground(`Promise.resolve(window.reset()).then(() => "reset-ok")`);
   expect(reset).toBe("reset-ok");
 });
 
@@ -146,7 +156,7 @@ test("downloads receive the configured Referer header", async () => {
   const referer = "http://referrer.example/download-test";
 
   try {
-    await session.evaluate(`window.ready.then(() => {
+    await evalBackground(`window.ready.then(() => {
       options.setRefererHeader = true;
       options.setRefererHeaderFilter = "*://127.0.0.1/*";
       return Download.renameAndDownload({
@@ -165,7 +175,7 @@ test("downloads receive the configured Referer header", async () => {
 });
 
 test("routing rules rename and route the download", async () => {
-  await session.evaluate(
+  await evalBackground(
     `browser.storage.local.set({
         filenamePatterns: "filename: routeme\\ninto: routed/renamed-:filename:",
       })
@@ -188,7 +198,7 @@ test("routing rules rename and route the download", async () => {
 });
 
 test("message-driven downloads work and never inherit a stale route", async () => {
-  await session.evaluate(
+  await evalBackground(
     `new Promise((resolve) => {
         Messaging.handleDownloadMessage({
           body: {
@@ -206,7 +216,7 @@ test("message-driven downloads work and never inherit a stale route", async () =
 });
 
 test("shortcut files keep their extension and redirect content", async () => {
-  await session.evaluate(
+  await evalBackground(
     `window.ready.then(() => {
         Notifier.expectDownload();
         return Download.renameAndDownload({
@@ -232,7 +242,7 @@ test("shortcut files keep their extension and redirect content", async () => {
 });
 
 test("failed downloads are recorded in the debug log", async () => {
-  await session.evaluate(
+  await evalBackground(
     `window.ready.then(() => {
         Notifier.expectDownload();
         return Download.renameAndDownload({
@@ -272,14 +282,14 @@ test("ordinary browser downloads can be tracked and experimentally rerouted on F
   const target = `127.0.0.1:${port}`;
 
   try {
-    await session.evaluate(`browser.storage.local.set({
+    await evalBackground(`browser.storage.local.set({
       trackBrowserDownloads: true,
       routeBrowserDownloadsFirefox: true,
       browserDownloadFilter: "*://127.0.0.1/*",
       filenamePatterns: "filename: native-ff\\.bin\\ninto: browser-routed/:filename:",
     }).then(() => window.reset())`);
-    await session.evaluate(`browser.tabs.create({ url: ${JSON.stringify(pageUrl)} })`);
-    await session.evaluate(`(async () => {
+    await evalBackground(`browser.tabs.create({ url: ${JSON.stringify(pageUrl)} })`);
+    await evalBackground(`(async () => {
       const deadline = Date.now() + 8000;
       for (;;) {
         const tabs = await browser.tabs.query({});
@@ -294,7 +304,7 @@ test("ordinary browser downloads can be tracked and experimentally rerouted on F
     expect(rows.some((row) => row.state === "complete")).toBe(true);
     expect(rows.some((row) => row.filename.includes("browser-routed"))).toBe(true);
     const observed = JSON.parse(
-      await session.evaluate(`(async () => {
+      await evalBackground(`(async () => {
         const deadline = Date.now() + 8000;
         for (;;) {
           const entries = (await SaveHistory.get()).filter((entry) => entry.info?.context === "browser");
@@ -306,7 +316,7 @@ test("ordinary browser downloads can be tracked and experimentally rerouted on F
     );
     expect(observed.at(-1)).toMatchObject({ status: "complete", info: { context: "browser" } });
   } finally {
-    await session.evaluate(`browser.storage.local.set({
+    await evalBackground(`browser.storage.local.set({
       trackBrowserDownloads: false,
       routeBrowserDownloadsFirefox: false,
       browserDownloadFilter: "",
@@ -323,16 +333,16 @@ test("alt+click on a real page saves the image through the content script", asyn
 
   try {
     // Enable click-to-save and reinitialise so the content script picks it up
-    await session.evaluate(
+    await evalBackground(
       `browser.storage.local.set({ contentClickToSave: true })
         .then(() => window.reset())
         .then(() => "enabled")`,
     );
 
-    await session.evaluate(
+    await evalBackground(
       `browser.tabs.create({ url: ${JSON.stringify(pageUrl)} }).then(() => "opened")`,
     );
-    await session.evaluate(`(async () => {
+    await evalBackground(`(async () => {
       const deadline = Date.now() + 8000;
       for (;;) {
         const tabs = await browser.tabs.query({});
@@ -370,7 +380,7 @@ test("alt+click on a real page saves the image through the content script", asyn
 
 test("history and the debug log record the session's downloads", async () => {
   const records = JSON.parse(
-    await session.evaluate(
+    await evalBackground(
       `Promise.all([SaveHistory.get(), Log.get()]).then(([history, log]) => JSON.stringify({
         history: history.length,
         logRequested: log.filter((e) => e.message === "download requested").length,

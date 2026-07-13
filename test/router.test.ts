@@ -14,6 +14,11 @@ import { counterWriteState } from "../src/background/state.ts";
 import { resolveContent } from "../src/downloads/content-fetch.ts";
 
 const fixtures = (await import("./fixtures/clickInfo")).default;
+let diagnostics: { filenamePatterns: RuleError[]; paths: RuleError[] } = {
+  filenamePatterns: [],
+  paths: [],
+};
+let debug = false;
 
 const expectMatch = (result: MatcherResult): RegExpMatchArray => {
   expect(result).toBeTruthy();
@@ -31,17 +36,15 @@ describe("filename rewrite and routing", () => {
   };
 
   beforeAll(() => {
-    window.optionErrors = {
-      filenamePatterns: [],
-      paths: [],
-    };
+    diagnostics.filenamePatterns = [];
+    diagnostics.paths = [];
     setCurrentTab({
       title: "some title",
     });
     configureRoutingPorts({
       getCurrentTab: () => currentTab,
-      isDebug: () => Boolean(window.SI_DEBUG),
-      recordRuleErrors: (errors) => window.optionErrors.filenamePatterns.push(...errors),
+      isDebug: () => debug,
+      recordRuleErrors: (errors) => diagnostics.filenamePatterns.push(...errors),
       logDebug: (...values) => console.log(...values), // eslint-disable-line no-console
       nextCounter: () => nextCounter(counterWriteState, browser.storage.local),
       peekCounter: () => peekCounter(browser.storage.local),
@@ -325,7 +328,7 @@ describe("filename rewrite and routing", () => {
 
   describe("rule parsing errors", () => {
     beforeEach(() => {
-      window.optionErrors = { filenamePatterns: [], paths: [] };
+      diagnostics = { filenamePatterns: [], paths: [] };
     });
 
     test("empty and comment-only rulesets parse to nothing", () => {
@@ -336,7 +339,7 @@ describe("filename rewrite and routing", () => {
     test("bad clause syntax is reported", () => {
       const rules = router.parseRules("not a clause\ninto: x");
       expect(rules).toEqual([]);
-      expect(window.optionErrors.filenamePatterns[0].error).toBe("not a clause");
+      expect(diagnostics.filenamePatterns[0].error).toBe("not a clause");
     });
 
     test("an empty line inside a rule is reported as invalid syntax", () => {
@@ -344,7 +347,7 @@ describe("filename rewrite and routing", () => {
       const errors: RuleError[] = [];
       expect(router.tokenizeLines("", errors)).toEqual([]);
       expect(errors[0].error).toBe("invalid line syntax");
-      expect(window.optionErrors.filenamePatterns).toEqual([]);
+      expect(diagnostics.filenamePatterns).toEqual([]);
     });
 
     test("invalid matcher regex is reported and drops the rule", () => {
@@ -352,18 +355,18 @@ describe("filename rewrite and routing", () => {
       // A bad regex would compile to a match-everything matcher, so the whole
       // rule is dropped rather than routing every download by it
       expect(rules.length).toBe(0);
-      expect(window.optionErrors.filenamePatterns[0].error).toMatch(/SyntaxError/);
+      expect(diagnostics.filenamePatterns[0].error).toMatch(/SyntaxError/);
     });
 
     test("supports backward-compatible matcher flags in the clause name", () => {
       const rules = router.parseRules("filename/i: CAT\\.JPG$\ninto: cats/:filename:");
       expect(router.matchRules(rules, { filename: "cat.jpg" })).toBe("cats/:filename:");
-      expect(window.optionErrors.filenamePatterns).toEqual([]);
+      expect(diagnostics.filenamePatterns).toEqual([]);
     });
 
     test("rejects unsupported or duplicate matcher flags", () => {
       expect(router.parseRules("filename/ii: cat\ninto: cats")).toEqual([]);
-      expect(window.optionErrors.filenamePatterns[0].error).toContain("flags");
+      expect(diagnostics.filenamePatterns[0].error).toContain("flags");
     });
 
     test("warns when a later rule duplicates an earlier rule's matchers", () => {
@@ -388,25 +391,25 @@ describe("filename rewrite and routing", () => {
     test("a capture destination without a capture clause warns", () => {
       const rules = router.parseRules("sourceurl: (dog)\ninto: cat:$1:");
       expect(rules.length).toBe(1);
-      expect(window.optionErrors.filenamePatterns[0].warning).toBe(true);
-      expect(window.optionErrors.filenamePatterns[0].error).toBe("cat:$1:");
+      expect(diagnostics.filenamePatterns[0].warning).toBe(true);
+      expect(diagnostics.filenamePatterns[0].error).toBe("cat:$1:");
     });
 
     test("rejects a destination that references a capture index that cannot exist", () => {
       const rules = router.parseRules("sourceurl: (dog)\ncapture: sourceurl\ninto: cat/:$2:");
       expect(rules).toEqual([]);
-      expect(window.optionErrors.filenamePatterns[0].error).toBe("cat/:$2:");
+      expect(diagnostics.filenamePatterns[0].error).toBe("cat/:$2:");
     });
 
     test("rejects an empty destination", () => {
       expect(router.parseRules("sourceurl: dog\ninto: ")).toEqual([]);
-      expect(window.optionErrors.filenamePatterns.length).toBe(1);
+      expect(diagnostics.filenamePatterns.length).toBe(1);
     });
 
     test("multiple into clauses are rejected", () => {
       const rules = router.parseRules("sourceurl: a\ninto: x\ninto: y");
       expect(rules).toEqual([]);
-      expect(window.optionErrors.filenamePatterns.length).toBe(1);
+      expect(diagnostics.filenamePatterns.length).toBe(1);
     });
 
     test("multiple capture clauses are rejected", () => {
@@ -414,7 +417,7 @@ describe("filename rewrite and routing", () => {
         "sourceurl: a\ncapture: sourceurl\ncapture: sourceurl\ninto: x",
       );
       expect(rules).toEqual([]);
-      expect(window.optionErrors.filenamePatterns.length).toBe(1);
+      expect(diagnostics.filenamePatterns.length).toBe(1);
     });
   });
 
@@ -489,11 +492,11 @@ describe("filename rewrite and routing", () => {
     let logSpy: MockInstance;
 
     beforeAll(() => {
-      window.SI_DEBUG = 1;
+      debug = true;
     });
 
     afterAll(() => {
-      window.SI_DEBUG = 0;
+      debug = false;
     });
 
     beforeEach(() => {

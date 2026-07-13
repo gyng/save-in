@@ -1,8 +1,5 @@
-import {
-  backgroundRuntime,
-  installBackgroundRuntimeBridge,
-  resetRuntimeDiagnostics,
-} from "../src/background/runtime.ts";
+import { backgroundRuntime, resetRuntimeDiagnostics } from "../src/background/runtime.ts";
+import { BACKGROUND_E2E_BRIDGE, installBackgroundE2EBridge } from "../src/background/e2e-bridge.ts";
 
 describe("BackgroundRuntime", () => {
   test("owns diagnostics independently of the browser global", () => {
@@ -13,16 +10,14 @@ describe("BackgroundRuntime", () => {
     expect(backgroundRuntime.optionErrors).toEqual({ paths: [], filenamePatterns: [] });
   });
 
-  test("provides a narrow read/write bridge for the browser e2e harness", () => {
-    const host = {} as Window;
-    installBackgroundRuntimeBridge(host);
+  test("installs one non-enumerable, read-only e2e bridge", () => {
+    const host = {} as typeof globalThis;
+    const bridge = { runtime: backgroundRuntime };
 
-    const state = { scratch: {}, info: {} } as any;
-    host.lastDownloadState = state;
-    host.SI_DEBUG = 1;
+    installBackgroundE2EBridge(host, bridge);
 
-    expect(backgroundRuntime.lastDownloadState).toBe(state);
-    expect(backgroundRuntime.debug).toBe(true);
-    expect(host.lastDownloadState).toBe(state);
+    expect(Reflect.get(host, BACKGROUND_E2E_BRIDGE)).toBe(bridge);
+    expect(Object.keys(host)).not.toContain(BACKGROUND_E2E_BRIDGE);
+    expect(Object.isFrozen(bridge)).toBe(true);
   });
 });

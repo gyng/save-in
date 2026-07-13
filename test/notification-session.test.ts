@@ -43,6 +43,7 @@ let Notifier: any;
 let options: any;
 let Log: any;
 let SaveHistory: any;
+let Runtime: any;
 
 const loadNotification = async () => {
   const mod = await import("../src/downloads/notification.ts");
@@ -52,6 +53,7 @@ const loadNotification = async () => {
   ({ Log } = await import("../src/background/log.ts"));
   ({ SaveHistory } = await import("../src/background/history.ts"));
   const { backgroundRuntime } = await import("../src/background/runtime.ts");
+  Runtime = backgroundRuntime;
   const { configureDownloadPorts } = await import("../src/downloads/ports.ts");
   configureDownloadPorts({ runtime: backgroundRuntime, history: SaveHistory, log: Log });
   // Reset the real options bag to empty; each test sets the fields it needs
@@ -85,8 +87,6 @@ const adoptedIds = (store: Record<string, any>) =>
     .map(Number);
 
 const setupGlobals = (sessionStore: Record<string, any>, searchResults: (query: any) => any) => {
-  // Handlers await window.ready when set; none of these tests want that
-  delete global.window.ready;
   // downloadState.records is a module singleton; clear the in-memory mirror and
   // the memoized hydration so each test rebuilds the records from its own
   // sessionStore
@@ -731,11 +731,11 @@ describe("notification variants", () => {
 
   test("debug mode logs listener decisions", async () => {
     const logSpy = jest.spyOn(console, "log").mockImplementation(() => {});
-    window.SI_DEBUG = 1;
     try {
       // The "Bad notify duration" preamble died with addNotifications;
       // per-event debug logging remains
       await install({ notifyOnSuccess: true, notifyOnFailure: true });
+      Runtime.debug = true;
 
       await startTracked({ id: 7, filename: "/dl/pic.png", url: "https://x/p.png" });
       await onChanged({ id: 7, error: { current: "NETWORK_FAILED" } });
@@ -748,7 +748,7 @@ describe("notification variants", () => {
       expect(logged).toContain("notification: created failure");
       expect(logged).toContain("notification: created success");
     } finally {
-      window.SI_DEBUG = 0;
+      Runtime.debug = false;
       logSpy.mockRestore();
     }
   });

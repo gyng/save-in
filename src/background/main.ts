@@ -31,11 +31,7 @@ import { nextCounter, peekCounter } from "./counter.ts";
 import { counterWriteState } from "./state.ts";
 import { resolveContent } from "../downloads/content-fetch.ts";
 import { syncSourcePanelToTab, toggleSourcePanelForTab } from "./source-panel-state.ts";
-import {
-  backgroundRuntime,
-  installBackgroundRuntimeBridge,
-  resetRuntimeDiagnostics,
-} from "./runtime.ts";
+import { backgroundRuntime, resetRuntimeDiagnostics } from "./runtime.ts";
 
 export const configureBackgroundPorts = () => {
   configureDownloadPorts({ runtime: backgroundRuntime, history: SaveHistory, log: Log });
@@ -114,7 +110,6 @@ backgroundRuntime.reset = () => {
 // must be registered synchronously, or MV3 service workers/event pages will not
 // wake up for the events they missed.
 export const start = () => {
-  installBackgroundRuntimeBridge(window);
   addDownloadListener();
   addTabMenuListener();
   addTabHighlightListener();

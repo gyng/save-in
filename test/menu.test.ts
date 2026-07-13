@@ -22,6 +22,7 @@ import * as menuTabs from "../src/background/menu-tabs.ts";
 import { SPECIAL_DIRS, MEDIA_TYPES } from "../src/shared/constants.ts";
 import { options } from "../src/config/options-data.ts";
 import { configureRoutingPorts } from "../src/routing/ports.ts";
+import { backgroundRuntime } from "../src/background/runtime.ts";
 
 const menu = {
   ...menuBuild,
@@ -80,7 +81,10 @@ describe("menu parsing", () => {
 });
 
 const setupMenuCreationMocks = () => {
-  configureRoutingPorts({ getMessage: (key) => global.browser.i18n.getMessage(key) });
+  configureRoutingPorts({
+    getMessage: (key) => global.browser.i18n.getMessage(key),
+    recordRuleErrors: (errors) => backgroundRuntime.optionErrors.filenamePatterns.push(...errors),
+  });
   detector.features = { accessKeys: true, tabContextMenus: true };
   Object.assign(options, {
     keyRoot: "q",
@@ -93,7 +97,7 @@ const setupMenuCreationMocks = () => {
     update: jest.fn(),
     onClicked: { addListener: jest.fn() },
   };
-  window.optionErrors = { paths: [], filenamePatterns: [] };
+  backgroundRuntime.optionErrors = { paths: [], filenamePatterns: [] };
 };
 
 describe("menu creation", () => {
@@ -248,7 +252,7 @@ describe("menu creation", () => {
 
       expect(global.browser.contextMenus.create).not.toHaveBeenCalled();
       expect(menu.pathMappings).toEqual({});
-      expect(window.optionErrors.paths).toEqual([
+      expect(backgroundRuntime.optionErrors.paths).toEqual([
         {
           message: "Translated<rulePathInvalidCharacter>",
           error: "<invalid>",

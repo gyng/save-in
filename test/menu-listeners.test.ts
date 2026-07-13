@@ -35,6 +35,7 @@ let Notifier: any;
 let Shortcut: any;
 let WEB_EXTENSION_CAPABILITIES: any;
 let setCurrentTab: (tab: CurrentTab | null) => void;
+let Runtime: typeof import("../src/background/runtime.ts").backgroundRuntime;
 
 const setupBrowserMocks = () => {
   (global.browser as any).contextMenus = {
@@ -96,6 +97,7 @@ const importMenus = async () => {
   ({ Shortcut } = await import("../src/downloads/shortcut.ts"));
   ({ WEB_EXTENSION_CAPABILITIES } = await import("../src/platform/chrome-detector.ts"));
   ({ setCurrentTab } = await import("../src/platform/current-tab.ts"));
+  ({ backgroundRuntime: Runtime } = await import("../src/background/runtime.ts"));
   seedDeps();
   return {
     ...menuBuild,
@@ -177,8 +179,8 @@ describe("addDownloadListener", () => {
   beforeEach(async () => {
     jest.resetModules();
     setupBrowserMocks();
-    window.ready = Promise.resolve();
-    delete window.lastDownloadState;
+    Runtime.ready = Promise.resolve();
+    delete Runtime.lastDownloadState;
 
     Menus = await importMenus();
     Menus.addDownloadListener();
@@ -205,9 +207,9 @@ describe("addDownloadListener", () => {
     expect(Download.renameAndDownload).not.toHaveBeenCalled();
   });
 
-  test("waits for init (window.ready) before handling a download click", async () => {
+  test("waits for init (Runtime.ready) before handling a download click", async () => {
     let resolveReady!: (value?: unknown) => void;
-    window.ready = new Promise((res) => {
+    Runtime.ready = new Promise((res) => {
       resolveReady = res;
     });
 
@@ -313,7 +315,7 @@ describe("addDownloadListener", () => {
       pageUrl: "https://example.com/",
     });
 
-    // window.lastDownloadState is gone after a service worker restart
+    // Runtime.lastDownloadState is gone after a service worker restart
     await expect(
       listener({
         menuItemId: Menus.IDS.LAST_USED,
@@ -335,8 +337,8 @@ describe("addDownloadListener", () => {
     pageUrl: "https://example.com/page",
   };
 
-  test("handles a click when init already completed (no pending window.ready)", async () => {
-    delete window.ready;
+  test("handles a click when init already completed (no pending Runtime.ready)", async () => {
+    delete Runtime.ready;
 
     Menus.addPaths(["dir1"], ["link"]);
     await listener({
@@ -643,7 +645,7 @@ describe("addDownloadListener", () => {
 
     // A restart-survivor fixture: only the fields the handler reads are set,
     // so cast past the full DownloadState shape.
-    window.lastDownloadState = { info: { comment: "0route_comment", menuIndex: "1" } } as any;
+    Runtime.lastDownloadState = { info: { comment: "0route_comment", menuIndex: "1" } } as any;
 
     await listener({
       menuItemId: Menus.IDS.LAST_USED,
@@ -958,7 +960,7 @@ describe("addTabMenuListener", () => {
     jest.resetModules();
     setupBrowserMocks();
     (global.browser as any).tabs = { query: jest.fn(() => Promise.resolve([])) };
-    window.ready = Promise.resolve();
+    Runtime.ready = Promise.resolve();
 
     const Menus = await importMenus();
     Menus.addTabMenuListener();
@@ -998,7 +1000,7 @@ describe("addTabMenuListener tabstrip downloads", () => {
       query: jest.fn(() => Promise.resolve(tabFixtures())),
       remove: jest.fn(),
     };
-    window.ready = Promise.resolve();
+    Runtime.ready = Promise.resolve();
     jest.useFakeTimers();
 
     Menus = await importMenus();
@@ -1096,8 +1098,8 @@ describe("addTabMenuListener tabstrip downloads", () => {
     expect(downloads()[0].info.suggestedFilename).toBe("shortcut.url");
   });
 
-  test("handles tabstrip clicks when init already completed (no pending window.ready)", async () => {
-    delete window.ready;
+  test("handles tabstrip clicks when init already completed (no pending Runtime.ready)", async () => {
+    delete Runtime.ready;
 
     await listener({ menuItemId: Menus.IDS.TABSTRIP.SELECTED_TAB }, fromTab);
     await jest.advanceTimersByTimeAsync(2000);

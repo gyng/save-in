@@ -143,7 +143,10 @@ const launch = async () => {
     // Background scripts may still be loading right after install
     for (let i = 0; i < 20; i += 1) {
       // eslint-disable-next-line no-await-in-loop
-      const readyType = await rdp.evaluate(consoleActor, "typeof window.ready");
+      const readyType = await rdp.evaluate(
+        consoleActor,
+        "typeof globalThis.__SAVE_IN_E2E__?.runtime?.ready",
+      );
       if (readyType === "object") break;
       // eslint-disable-next-line no-await-in-loop
       await sleep(500);

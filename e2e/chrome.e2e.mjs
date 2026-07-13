@@ -18,7 +18,15 @@ let extensionId;
 let PORT;
 let DOWNLOADS;
 
-const evalSW = (expr, wake) => cdp.evalInServiceWorker(PORT, extensionId, expr, wake);
+const inE2EBridge = (expr) => `(() => {
+  const {
+    runtime: window, SHORTCUT_TYPES, CURRENT_BROWSER, WEB_EXTENSION_CAPABILITIES,
+    Log, SaveHistory, BackgroundState, peekCounter, resetCounter, Notifier,
+    Path, Download, Shortcut, menuState, OptionsManagement, options, Messaging
+  } = globalThis.__SAVE_IN_E2E__;
+  return (${expr});
+})()`;
+const evalSW = (expr, wake) => cdp.evalInServiceWorker(PORT, extensionId, inE2EBridge(expr), wake);
 const evalOptions = (expr) => cdp.evalInTarget(PORT, "options.html", expr);
 
 // Polls a service-worker expression that returns a JSON array until it is

@@ -30,31 +30,3 @@ export const backgroundRuntime: BackgroundRuntime = (runtimeHost[RUNTIME_KEY] ??
 export const resetRuntimeDiagnostics = () => {
   backgroundRuntime.optionErrors = emptyOptionErrors();
 };
-
-// Browser e2e evaluates these historical names on the background global.
-// Keep that compatibility surface at the composition boundary only.
-export const installBackgroundRuntimeBridge = (host: Window) => {
-  const bridge = (name: keyof BackgroundRuntime) => {
-    Object.defineProperty(host, name, {
-      configurable: true,
-      enumerable: true,
-      get: () => backgroundRuntime[name],
-      set: (value) => {
-        Reflect.set(backgroundRuntime, name, value);
-      },
-    });
-  };
-  bridge("ready");
-  bridge("init");
-  bridge("reset");
-  bridge("optionErrors");
-  bridge("lastDownloadState");
-  Object.defineProperty(host, "SI_DEBUG", {
-    configurable: true,
-    enumerable: true,
-    get: () => (backgroundRuntime.debug ? 1 : undefined),
-    set: (value: boolean | number | undefined) => {
-      backgroundRuntime.debug = Boolean(value);
-    },
-  });
-};
