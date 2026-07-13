@@ -161,7 +161,12 @@ describe("routing-rule grammar", () => {
     expect(source.slice(matcher.span.start.offset, matcher.span.end.offset)).toBe(
       "filename/i: \\.png$",
     );
-    expect(issues).toEqual([{ code: "bad-clause", line: 5, column: 3, source: "not a clause" }]);
+    expect(issues).toEqual([
+      expect.objectContaining({ code: "bad-clause", line: 5, column: 3, source: "not a clause" }),
+    ]);
+    expect(source.slice(issues[0]!.span.start.offset, issues[0]!.span.end.offset)).toBe(
+      "not a clause",
+    );
   });
 
   test("parses comments, blank-line rule boundaries, flags, and values", () => {
@@ -201,7 +206,7 @@ describe("routing-rule grammar", () => {
       ["into", "saved"],
     ]);
     expect(parsed.issues).toEqual([
-      { code: "bad-clause", line: 2, column: 3, source: "not a clause" },
+      expect.objectContaining({ code: "bad-clause", line: 2, column: 3, source: "not a clause" }),
     ]);
     expect(validateRoutingRuleSyntax("sourceurl: ok\nnot a clause\ninto: saved")).toEqual(
       parsed.issues,

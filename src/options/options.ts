@@ -40,6 +40,8 @@ import { setupIntegrationPanel } from "./integration-panel.ts";
 import { isStringKeyedRecord, sendInternalMessage } from "../shared/message-protocol.ts";
 import { applyUiTheme, setupUiThemeControl } from "./theme.ts";
 import { getPathSourceRange } from "./path-editor-model.ts";
+import { setSyntaxEditorDiagnostics } from "./syntax-editor.ts";
+import { validationErrorsToDiagnostics } from "./syntax-editor-model.ts";
 
 const setupLastDownloadState = () => {
   document.querySelector("#last-dl-url")?.classList.add("is-empty");
@@ -49,6 +51,12 @@ type ValidationError = {
   message: string;
   error: string;
   warning?: boolean;
+  location?: {
+    start: number;
+    end: number;
+    line: number;
+    column: number;
+  };
 };
 type IndexedValidationError = ValidationError & { sourceIndex: number };
 type MenuPreviewTree = MenuTree;
@@ -57,7 +65,13 @@ const isValidationError = (value: unknown): value is ValidationError =>
   isStringKeyedRecord(value) &&
   typeof value.message === "string" &&
   typeof value.error === "string" &&
-  (typeof value.warning === "undefined" || typeof value.warning === "boolean");
+  (typeof value.warning === "undefined" || typeof value.warning === "boolean") &&
+  (typeof value.location === "undefined" ||
+    (isStringKeyedRecord(value.location) &&
+      typeof value.location.start === "number" &&
+      typeof value.location.end === "number" &&
+      typeof value.location.line === "number" &&
+      typeof value.location.column === "number"));
 
 const isIndexedValidationError = (value: unknown): value is IndexedValidationError =>
   isStringKeyedRecord(value) &&
@@ -109,7 +123,12 @@ document.querySelector("#see-variables-btn")?.addEventListener("click", renderVa
 
 // Reveal + select the offending text in its editor. Best-effort: the error
 // string is usually the offending line/clause, so we find and select it.
-const jumpToError = (textareaId: string, needle: string, sourceIndex?: number) => {
+const jumpToError = (
+  textareaId: string,
+  needle: string,
+  sourceIndex?: number,
+  location?: ValidationError["location"],
+) => {
   // Paths in Visual mode: jump to the matching visual row instead of switching
   // back to the textarea. Match the row whose directory field is contained in
   // the (raw) line; fall back to Text mode if nothing matches (e.g. a line the
@@ -157,9 +176,9 @@ const jumpToError = (textareaId: string, needle: string, sourceIndex?: number) =
     textareaId === "#paths" && sourceIndex !== undefined
       ? getPathSourceRange(ta.value, sourceIndex)
       : null;
-  const idx = sourceRange?.start ?? (needle ? ta.value.indexOf(needle) : -1);
+  const idx = location?.start ?? sourceRange?.start ?? (needle ? ta.value.indexOf(needle) : -1);
   if (idx >= 0) {
-    ta.setSelectionRange(idx, sourceRange?.end ?? idx + needle.length);
+    ta.setSelectionRange(idx, location?.end ?? sourceRange?.end ?? idx + needle.length);
     // Nudge the caret into view (setSelectionRange alone may not scroll)
     const lineHeight = parseFloat(getComputedStyle(ta).lineHeight) || 18;
     const line = ta.value.slice(0, idx).split("\n").length - 1;
@@ -186,7 +205,7 @@ const renderErrorRow = (err: ValidationError, textareaId: string) => {
 
   const sourceIndex =
     "sourceIndex" in err && typeof err.sourceIndex === "number" ? err.sourceIndex : undefined;
-  const jump = () => jumpToError(textareaId, err.error, sourceIndex);
+  const jump = () => jumpToError(textareaId, err.error, sourceIndex, err.location);
   r.addEventListener("click", jump);
   r.addEventListener("keydown", (e) => {
     if (e.key === "Enter" || e.key === " ") {
@@ -232,6 +251,8 @@ const validationRequests = createLatestOnly(
     const ruleErrors = Array.isArray(body.ruleErrors)
       ? body.ruleErrors.filter(isValidationError)
       : [];
+    const pathsTextarea = document.querySelector("#paths");
+    const rulesTextarea = document.querySelector("#filenamePatterns");
     const pathsErrors = document.querySelector("#error-paths");
     const rulesErrors = document.querySelector("#error-filenamePatterns");
     const updatePanel = (panel: Element, errors: ValidationError[], textareaId: string) => {
@@ -248,12 +269,24 @@ const validationRequests = createLatestOnly(
       updatePanel(pathsErrors, pathErrors, "#paths");
       updateErrorSummary(pathsErrors);
       manualEditorState.setValidity("paths", !pathErrors.some((err) => !err.warning));
+      if (pathsTextarea instanceof HTMLTextAreaElement) {
+        setSyntaxEditorDiagnostics(
+          pathsTextarea,
+          validationErrorsToDiagnostics("directories", pathsTextarea.value, pathErrors),
+        );
+      }
     }
     if (rulesErrors) {
       errorChannel(rulesErrors, "validation-service").innerHTML = "";
       updatePanel(rulesErrors, ruleErrors, "#filenamePatterns");
       updateErrorSummary(rulesErrors);
       manualEditorState.setValidity("filenamePatterns", !ruleErrors.some((err) => !err.warning));
+      if (rulesTextarea instanceof HTMLTextAreaElement) {
+        setSyntaxEditorDiagnostics(
+          rulesTextarea,
+          validationErrorsToDiagnostics("routing", rulesTextarea.value, ruleErrors),
+        );
+      }
     }
   },
   (_error, request) => {
@@ -704,6 +737,24 @@ const setupAutosave = (el: Element) => {
 // Live context-menu tree preview: mirrors what the paths textarea will
 // produce, updating as the user types (before autosave persists it)
 const MENU_PREVIEW_DEBOUNCE_MS = 250;
+let selectedMenuPreviewSourceIndex: number | null = null;
+
+const markMenuPreviewSource = (element: HTMLElement, sourceIndex: number): void => {
+  element.dataset.sourceIndex = String(sourceIndex);
+  element.classList.toggle("is-source-selected", sourceIndex === selectedMenuPreviewSourceIndex);
+};
+
+const highlightMenuPreviewSource = (sourceIndex: number): void => {
+  selectedMenuPreviewSourceIndex = sourceIndex;
+  document
+    .querySelectorAll<HTMLElement>("#menu-preview-tree [data-source-index]")
+    .forEach((element) => {
+      element.classList.toggle(
+        "is-source-selected",
+        Number(element.dataset.sourceIndex) === sourceIndex,
+      );
+    });
+};
 
 const renderMenuPreview = (container: Element, tree: MenuPreviewTree) => {
   container.textContent = "";
@@ -723,6 +774,7 @@ const renderMenuPreview = (container: Element, tree: MenuPreviewTree) => {
 
       const row = document.createElement("div");
       row.className = "menu-preview-row";
+      markMenuPreviewSource(row, entry.sourceIndex);
       const title = document.createElement("span");
       title.className = "menu-preview-title";
       title.textContent = entry.error;
@@ -739,6 +791,7 @@ const renderMenuPreview = (container: Element, tree: MenuPreviewTree) => {
       });
     } else if (entry.kind === "separator") {
       li.className = "menu-preview-separator";
+      markMenuPreviewSource(li, entry.sourceIndex);
       li.appendChild(document.createElement("hr"));
     } else {
       li.className = "menu-preview-item";
@@ -747,6 +800,7 @@ const renderMenuPreview = (container: Element, tree: MenuPreviewTree) => {
       // it as a block; hover highlights just the row
       const row = document.createElement("div");
       row.className = "menu-preview-row";
+      markMenuPreviewSource(row, entry.sourceIndex);
 
       const title = document.createElement("span");
       title.className = "menu-preview-title";
@@ -835,6 +889,13 @@ const updateMenuPreview = () => {
   document
     .querySelector("#enableLastLocation")
     ?.addEventListener("change", () => updateMenuPreview());
+
+  textarea.addEventListener("path-editor-row-selected", (event) => {
+    const sourceIndex = (event as CustomEvent<{ sourceIndex?: unknown }>).detail?.sourceIndex;
+    if (typeof sourceIndex === "number" && Number.isInteger(sourceIndex) && sourceIndex >= 0) {
+      highlightMenuPreviewSource(sourceIndex);
+    }
+  });
 
   let previewTimer: number | null = null;
   textarea.addEventListener("input", () => {

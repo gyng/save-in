@@ -28,6 +28,7 @@ export type RuleSyntaxIssue = {
   line: number;
   column: number;
   source: string;
+  span: SourceSpan;
 };
 
 export type RoutingLineEnvelopeCst = {
@@ -195,6 +196,7 @@ const parseClauseNode = (
         line: position.line,
         column: position.column,
         source: source.slice(sourceLine.parseStart, sourceLine.parseEnd),
+        span: sourceSpan(source, sourceLine.parseStart, sourceLine.parseEnd),
       },
     };
   }

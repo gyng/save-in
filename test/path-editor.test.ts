@@ -4,6 +4,7 @@
 // serialize every edit back to the textarea (the source of truth).
 
 import { PathEditor } from "../src/options/path-editor.ts";
+import { createSyntaxEditor, setSyntaxEditorDiagnostics } from "../src/options/syntax-editor.ts";
 
 const element = <T extends Element>(selector: string): T => {
   const match = document.querySelector<T>(selector);
@@ -109,7 +110,11 @@ describe("visual editor", () => {
       <button type="button" id="path-editor-add-dir"></button>
       <button type="button" id="path-editor-add-sep"></button>
       <div id="path-editor-rows"></div>
-      <div id="menu-preview-tree-visual"></div>
+      <div id="menu-preview-tree">
+        <div data-source-index="0"></div>
+        <div data-source-index="1"></div>
+        <div data-source-index="2"></div>
+      </div>
     `;
     global.browser.runtime.sendMessage = vi.fn(() =>
       Promise.resolve({ body: { items: [], errors: [] } }),
@@ -144,6 +149,26 @@ describe("visual editor", () => {
     expect(rows()[0]!.querySelector<HTMLInputElement>(".path-editor-dir")!.value).toBe("a");
     expect(rows()[1]!.querySelector<HTMLInputElement>(".path-editor-alias")!.value).toBe("B");
     expect(rows()[2]!.querySelector(".path-editor-separator")).not.toBeNull();
+  });
+
+  test("clicking a row highlights its matching live menu preview item", () => {
+    const selected = vi.fn();
+    textarea().addEventListener("path-editor-row-selected", selected);
+
+    rows()[1]!.click();
+
+    expect(selected).toHaveBeenCalledOnce();
+    expect((selected.mock.calls[0]![0] as CustomEvent).detail).toEqual({ sourceIndex: 1 });
+    expect(
+      element<HTMLElement>('#menu-preview-tree [data-source-index="1"]').classList.contains(
+        "is-source-selected",
+      ),
+    ).toBe(true);
+    expect(
+      element<HTMLElement>('#menu-preview-tree [data-source-index="0"]').classList.contains(
+        "is-source-selected",
+      ),
+    ).toBe(false);
   });
 
   test("indent and outdent rewrite the textarea", () => {
@@ -309,6 +334,44 @@ describe("text/visual mode toggle", () => {
   });
 });
 
+describe("text/visual mode with syntax editor", () => {
+  afterEach(() => {
+    document.body.innerHTML = "";
+    localStorage.removeItem("saveInPathsEditorMode");
+  });
+
+  test("hides the complete IDE surface and any active diagnostic tooltip", () => {
+    localStorage.setItem("saveInPathsEditorMode", "text");
+    document.body.innerHTML = `
+      <button type="button" id="paths-mode-text">Text</button>
+      <button type="button" id="paths-mode-visual">Visual</button>
+      <div id="paths-text-help"></div>
+      <div id="paths-text-actions"></div>
+      <div id="paths-editor-description"></div>
+      <textarea id="paths">a</textarea>
+      <div id="paths-visual" hidden></div>
+    `;
+    const textarea = element<HTMLTextAreaElement>("#paths");
+    createSyntaxEditor(textarea, "directories");
+    setSyntaxEditorDiagnostics(textarea, [
+      { start: 0, end: 1, line: 1, column: 0, message: "Invalid path", severity: "error" },
+    ]);
+    const editor = new PathEditor();
+    editor.setupModeToggle();
+
+    textarea.setSelectionRange(0, 0);
+    textarea.click();
+    expect(element<HTMLElement>(".syntax-editor-tooltip").hidden).toBe(false);
+
+    element<HTMLElement>("#paths-mode-visual").click();
+    expect(element<HTMLElement>(".syntax-editor").hidden).toBe(true);
+    expect(element<HTMLElement>(".syntax-editor-tooltip").hidden).toBe(true);
+
+    element<HTMLElement>("#paths-mode-text").click();
+    expect(element<HTMLElement>(".syntax-editor").hidden).toBe(false);
+  });
+});
+
 describe("visual editor drag and drop", () => {
   const dragEvent = (type: string, clientX: number, clientY = 0) => {
     const event = new Event(type, { bubbles: true, cancelable: true });
@@ -467,7 +530,7 @@ describe("insert menu targets its editor via data-insert-target", () => {
     expect(textarea.value).toBe("fileext: pdf\ninto: ");
     expect(
       [...document.querySelectorAll(".clause-preview-table code")].map((node) => node.textContent),
-    ).toEqual(["into:", "capture:", "context:", "pageurl:", "fileext:", "capturegroups:"]);
+    ).toEqual(["into:", "capture:", "capturegroups:", "context:", "pageurl:", "fileext:"]);
     expect(
       [...document.querySelectorAll(".variables-preview-group")].map((node) => node.textContent),
     ).toEqual([

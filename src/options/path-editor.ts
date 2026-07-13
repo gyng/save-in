@@ -75,10 +75,13 @@ const PathEditorHelpers = {
   setupModeToggle: (owner: EditorOwner): void => {
     const textButton = document.querySelector<HTMLElement>("#paths-mode-text");
     const visualButton = document.querySelector<HTMLElement>("#paths-mode-visual");
+    const pathsTextarea = document.querySelector<HTMLElement>("#paths");
+    const textEditorSurface =
+      pathsTextarea?.closest<HTMLElement>(".syntax-editor") ?? pathsTextarea;
     const textElements = [
       document.querySelector("#paths-text-help"),
       document.querySelector("#paths-text-actions"),
-      document.querySelector("#paths"),
+      textEditorSurface,
     ] as (HTMLElement | null)[];
     const textDescription = document.querySelector<HTMLElement>("#paths-editor-description");
     if (textDescription) textElements.push(textDescription);
@@ -96,6 +99,11 @@ const PathEditorHelpers = {
       visibleTextElements.forEach((el) => {
         el.hidden = visual;
       });
+      pathsTextarea?.dispatchEvent(
+        new CustomEvent("syntax-editor-visibility", {
+          detail: { visible: !visual },
+        }),
+      );
       visualContainer.hidden = !visual;
       if (visual && typeof owner.rebuildVisual === "function") {
         owner.rebuildVisual();
@@ -186,7 +194,28 @@ const PathEditorHelpers = {
         const rowEl = document.createElement("div");
         rowEl.className = "path-editor-row";
         rowEl.dataset.depth = String(node.depth);
+        rowEl.dataset.sourceIndex = String(index);
         rowEl.style.setProperty("--row-depth", String(node.depth));
+        rowEl.addEventListener("click", () => {
+          container
+            .querySelectorAll(".path-editor-row.is-preview-selected")
+            .forEach((row) => row.classList.remove("is-preview-selected"));
+          rowEl.classList.add("is-preview-selected");
+          document
+            .querySelectorAll<HTMLElement>("#menu-preview-tree [data-source-index]")
+            .forEach((previewRow) => {
+              previewRow.classList.toggle(
+                "is-source-selected",
+                Number(previewRow.dataset.sourceIndex) === index,
+              );
+            });
+          textarea.dispatchEvent(
+            new CustomEvent("path-editor-row-selected", {
+              bubbles: true,
+              detail: { sourceIndex: index },
+            }),
+          );
+        });
 
         const indentEl = document.createElement("span");
         indentEl.className = "path-editor-indent";
