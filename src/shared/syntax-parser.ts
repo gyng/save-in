@@ -96,6 +96,11 @@ export const literal =
       : failure(state, JSON.stringify(value));
   };
 
+export const end = (): SyntaxParser<undefined> => (state) =>
+  state.offset === state.limit
+    ? success(state, state.offset, state.offset, undefined)
+    : failure(state, "end of input");
+
 export const token = (pattern: RegExp, expected = pattern.toString()): SyntaxParser<string> => {
   const flags = pattern.flags.replaceAll("g", "").replaceAll("y", "");
   const anchored = new RegExp(`^(?:${pattern.source})`, flags);
@@ -144,6 +149,11 @@ export const choice =
     }
     return best ?? failure(state, "alternative");
   };
+
+export const lazy =
+  <Value>(getParser: () => SyntaxParser<Value>): SyntaxParser<Value> =>
+  (state) =>
+    getParser()(state);
 
 export const optional =
   <Value>(parser: SyntaxParser<Value>): SyntaxParser<Value | undefined> =>

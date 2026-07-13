@@ -1,4 +1,4 @@
-import { parsePathLineSyntax, parsePathMetadata } from "../config/path-lines.ts";
+import { parsePathLineAst, parsePathMetadata } from "../config/path-lines.ts";
 import { Path } from "../routing/path.ts";
 import { SPECIAL_DIRS } from "../shared/constants.ts";
 import { MENU_IDS } from "./menu-ids.ts";
@@ -6,7 +6,6 @@ import { MENU_IDS } from "./menu-ids.ts";
 export {
   DIRECTORY_LINE_GRAMMAR,
   parsePathLineAst,
-  parsePathLineSyntax,
   validatePathLineSyntax,
 } from "../config/path-lines.ts";
 export type {
@@ -81,8 +80,10 @@ const normalizeMenuTreeItems = (items: MenuTreeItem[]): MenuTreeItem[] => {
 };
 
 export const parsePath = (dir: string): ParsedPath => {
-  const { row, issues } = parsePathLineSyntax(dir);
-  const { depth, body: parsedDir, comment } = row;
+  const { ast, issues } = parsePathLineAst(dir);
+  const { depth } = ast;
+  const parsedDir = ast.path.value;
+  const comment = ast.comment?.value ?? "";
   return {
     raw: dir,
     comment,

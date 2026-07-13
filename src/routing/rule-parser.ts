@@ -1,25 +1,20 @@
 import { RULE_TYPES } from "../shared/constants.ts";
 import { matcherFunctions } from "./matchers.ts";
 import { routingPorts } from "./ports.ts";
-import { parseRoutingRuleSyntax, tokenizeRuleLines } from "./rule-syntax.ts";
-import type { MatcherClause, RuleClause, RuleError, RoutingRule, RuleToken } from "./rule-types.ts";
+import {
+  parseRoutingRuleAst,
+  type RoutingClauseNode,
+  type RuleSyntaxIssue,
+} from "./rule-syntax.ts";
+import type { MatcherClause, RuleClause, RuleError, RoutingRule } from "./rule-types.ts";
 
-const appendSyntaxErrors = (
-  issues: ReturnType<typeof tokenizeRuleLines>["issues"],
-  errors: RuleError[],
-): void => {
+const appendSyntaxErrors = (issues: RuleSyntaxIssue[], errors: RuleError[]): void => {
   issues.forEach((issue) =>
     errors.push({
       message: routingPorts.getMessage("ruleBadClause"),
       error: issue.source || "invalid line syntax",
     }),
   );
-};
-
-export const tokenizeLines = (lines: string, errors: RuleError[] = []): RuleToken[] => {
-  const parsed = tokenizeRuleLines(lines);
-  appendSyntaxErrors(parsed.issues, errors);
-  return parsed.tokens;
 };
 
 const captureGroupCount = (regex: RegExp): number => {
@@ -39,12 +34,13 @@ const captureGroupCount = (regex: RegExp): number => {
 
 const isPlainMatchAll = (regex: RegExp): boolean => /^(?:\.\*|\^\.\*\$)$/.test(regex.source);
 
-export const parseRule = (lines: RuleToken[], errors: RuleError[] = []): RoutingRule | false => {
-  const clauses: (RuleClause | false)[] = lines.map((tokens) => {
-    const [, rawName, rawValue] = tokens;
-    const flagSeparator = rawName.lastIndexOf("/");
-    const name = (flagSeparator > 0 ? rawName.slice(0, flagSeparator) : rawName).toLowerCase();
-    const flags = flagSeparator > 0 ? rawName.slice(flagSeparator + 1) : "";
+type SemanticClause = Pick<RoutingClauseNode, "raw" | "name" | "flags" | "value">;
+
+const parseSemanticRule = (
+  lines: SemanticClause[],
+  errors: RuleError[] = [],
+): RoutingRule | false => {
+  const clauses: (RuleClause | false)[] = lines.map(({ name, flags, value: rawValue }) => {
     if (name === "into") {
       return {
         name,
@@ -97,14 +93,14 @@ export const parseRule = (lines: RuleToken[], errors: RuleError[] = []): Routing
   if (!valid.some((clause) => clause.type === RULE_TYPES.MATCHER)) {
     errors.push({
       message: routingPorts.getMessage("ruleMissingMatcher"),
-      error: JSON.stringify(lines.map((line) => line[0])),
+      error: JSON.stringify(lines.map((line) => line.raw)),
     });
     return false;
   }
   if (destinations.length >= 2) {
     errors.push({
       message: routingPorts.getMessage("ruleExtraInto"),
-      error: JSON.stringify(lines.map((line) => line[0])),
+      error: JSON.stringify(lines.map((line) => line.raw)),
     });
     return false;
   }
@@ -112,7 +108,7 @@ export const parseRule = (lines: RuleToken[], errors: RuleError[] = []): Routing
   if (captures.length >= 2) {
     errors.push({
       message: routingPorts.getMessage("ruleMultipleCapture"),
-      error: JSON.stringify(lines.map((line) => line[0])),
+      error: JSON.stringify(lines.map((line) => line.raw)),
     });
     return false;
   }
@@ -166,11 +162,11 @@ export const parseRule = (lines: RuleToken[], errors: RuleError[] = []): Routing
 export const parseRulesCollecting = (
   raw: string,
 ): { rules: RoutingRule[]; errors: RuleError[] } => {
-  const syntax = parseRoutingRuleSyntax(raw);
+  const syntax = parseRoutingRuleAst(raw);
   const errors: RuleError[] = [];
   appendSyntaxErrors(syntax.issues, errors);
-  const rules = syntax.rules
-    .map((tokens) => parseRule(tokens, errors))
+  const rules = syntax.ast.rules
+    .map((rule) => parseSemanticRule(rule.clauses, errors))
     .filter((rule): rule is RoutingRule => Boolean(rule));
   for (let index = 1; index < rules.length; index += 1) {
     const laterRule = rules[index];

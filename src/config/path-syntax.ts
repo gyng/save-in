@@ -1,12 +1,17 @@
 import {
+  choice,
   defineGrammar,
+  end as endOfInput,
+  lazy,
+  literal,
   located,
   map,
   parseSyntax,
-  rest,
+  repeat,
   sequence,
   sourceSpan,
   token,
+  type SyntaxParser,
   type SourceSpan,
 } from "../shared/syntax-parser.ts";
 
@@ -33,11 +38,6 @@ export type PathSyntaxIssue = {
   column: number;
   source: string;
 };
-export type ParsedPathLine = {
-  row: PathRow;
-  issues: PathSyntaxIssue[];
-};
-
 export type DirectoryMetadataNode = {
   kind: "metadata";
   key: string;
@@ -70,9 +70,38 @@ const directoryLineParser = defineGrammar(
     sequence(
       located(token(/>*/, "directory nesting")),
       token(/\s*/, "whitespace"),
-      located(rest()),
+      located(token(/[^\n\r\u2028\u2029]*/, "path")),
+      endOfInput(),
     ),
     ([nesting, , path]) => ({ nesting, path }),
+  ),
+);
+
+const metadataValueParser: SyntaxParser<string> = lazy(() =>
+  map(
+    repeat(
+      choice(
+        token(/[^()]+/, "metadata text"),
+        map(
+          sequence(literal("("), metadataValueParser, literal(")")),
+          ([open, value, close]) => `${open}${value}${close}`,
+        ),
+      ),
+    ),
+    (parts) => parts.join(""),
+  ),
+);
+
+const metadataParser = defineGrammar(
+  map(
+    sequence(
+      literal("("),
+      located(token(/[^:()]*/, "metadata key")),
+      literal(":"),
+      located(metadataValueParser),
+      literal(")"),
+    ),
+    ([, key, , value], span) => ({ key, value, span }),
   ),
 );
 
@@ -104,7 +133,6 @@ export const parsePathLineAst = (line: string): ParsedDirectoryAst => {
     offset: bounds.start,
     limit: bounds.end,
   });
-  if (!parsed.ok) throw new Error("Directory grammar must accept every bounded line");
   const comment = commentNode(line, commentIndex);
   const metadata = comment
     ? parsePathMetadataEntries(comment.value).map((entry) => ({
@@ -121,11 +149,11 @@ export const parsePathLineAst = (line: string): ParsedDirectoryAst => {
   const ast: DirectoryLineNode = {
     kind: "directory-line",
     raw: line,
-    depth: parsed.value.nesting.value.length,
+    depth: parsed.ok ? parsed.value.nesting.value.length : 0,
     path: {
       kind: "path",
-      value: parsed.value.path.value,
-      span: parsed.value.path.span,
+      value: parsed.ok ? parsed.value.path.value : "",
+      span: parsed.ok ? parsed.value.path.span : sourceSpan(line, bounds.start, bounds.start),
     },
     comment,
     metadata,
@@ -137,20 +165,16 @@ export const parsePathLineAst = (line: string): ParsedDirectoryAst => {
   };
 };
 
-export const parsePathLineSyntax = (line: string): ParsedPathLine => {
-  const { ast, issues } = parsePathLineAst(line);
-  const row = {
-    depth: ast.depth,
-    body: ast.path.value,
-    comment: ast.comment?.value ?? "",
-  };
-  return { row, issues };
-};
+const pathRowFromAst = (ast: DirectoryLineNode): PathRow => ({
+  depth: ast.depth,
+  body: ast.path.value,
+  comment: ast.comment?.value ?? "",
+});
 
-export const parsePathLine = (line: string): PathRow => parsePathLineSyntax(line).row;
+export const parsePathLine = (line: string): PathRow => pathRowFromAst(parsePathLineAst(line).ast);
 
 export const validatePathLineSyntax = (line: string): PathSyntaxIssue[] =>
-  parsePathLineSyntax(line).issues;
+  parsePathLineAst(line).issues;
 
 export const serializePathLine = (row: PathRow): string =>
   `${">".repeat(row.depth)}${row.body}${row.comment ? ` // ${row.comment}` : ""}`;
@@ -162,47 +186,19 @@ export const parsePathMetadataEntries = (comment: string): PathMetadataEntry[] =
   while (cursor < comment.length) {
     const start = comment.indexOf("(", cursor);
     if (start === -1) break;
-
-    let separator = -1;
-    for (let index = start + 1; index < comment.length; index += 1) {
-      const char = comment[index];
-      if (char === ":") {
-        separator = index;
-        break;
-      }
-      if (char === "(" || char === ")") break;
-    }
-
-    const key = separator === -1 ? "" : comment.slice(start + 1, separator).trim();
-    if (!key) {
+    const parsed = parseSyntax(metadataParser, comment, { offset: start });
+    const key = parsed.ok ? parsed.value.key.value.trim() : "";
+    if (!parsed.ok || !key) {
       cursor = start + 1;
       continue;
     }
-
-    let depth = 1;
-    let closing = -1;
-    for (let index = separator + 1; index < comment.length; index += 1) {
-      if (comment[index] === "(") depth += 1;
-      if (comment[index] === ")") {
-        depth -= 1;
-        if (depth === 0) {
-          closing = index;
-          break;
-        }
-      }
-    }
-    if (closing === -1) {
-      cursor = start + 1;
-      continue;
-    }
-
     entries.push({
       key,
-      value: comment.slice(separator + 1, closing).trim(),
-      start,
-      end: closing + 1,
+      value: parsed.value.value.value.trim(),
+      start: parsed.span.start.offset,
+      end: parsed.span.end.offset,
     });
-    cursor = closing + 1;
+    cursor = parsed.span.end.offset;
   }
 
   return entries;

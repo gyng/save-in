@@ -5,15 +5,12 @@ import {
   map,
   optional,
   parseSyntax,
-  rest,
   sequence,
   sourcePointAt,
   sourceSpan,
   token,
   type SourceSpan,
 } from "../shared/syntax-parser.ts";
-import type { RuleToken } from "./rule-types.ts";
-
 export const ROUTING_RULE_GRAMMAR = String.raw`
 routing-document = { ignored-line | rule } ;
 rule             = clause, { clause } ;
@@ -39,7 +36,6 @@ export type RoutingClauseNode = {
   name: string;
   flags: string;
   value: string;
-  token: RuleToken;
   span: SourceSpan;
   nameSpan: SourceSpan;
   flagsSpan: SourceSpan | null;
@@ -79,11 +75,6 @@ export type ParsedRoutingAst = {
   issues: RuleSyntaxIssue[];
 };
 
-export type ParsedRuleSyntax = {
-  rules: RuleToken[][];
-  issues: RuleSyntaxIssue[];
-};
-
 type SourceLine = {
   raw: string;
   line: number;
@@ -99,7 +90,7 @@ const clauseParser = defineGrammar(
       located(token(/\S*(?=:)/, "clause name")),
       literal(":"),
       optional(literal(" ")),
-      located(rest("clause value")),
+      located(token(/.*/, "clause value")),
     ),
     ([rawName, , , value], span) => ({ rawName, value, span }),
   ),
@@ -170,7 +161,6 @@ const parseClauseNode = (
       name,
       flags,
       value,
-      token: [raw, rawName, value],
       span: parsed.span,
       nameSpan: sourceSpan(source, parsed.value.rawName.span.start.offset, nameEnd),
       flagsSpan,
@@ -254,27 +244,6 @@ export const parseRoutingRuleAst = (source: string): ParsedRoutingAst => {
       span: sourceSpan(source, 0, source.length),
     },
     issues,
-  };
-};
-
-export const tokenizeRuleLines = (
-  source: string,
-): { tokens: RuleToken[]; issues: RuleSyntaxIssue[] } => {
-  const tokens: RuleToken[] = [];
-  const issues: RuleSyntaxIssue[] = [];
-  sourceLines(source).forEach((line) => {
-    const parsed = parseClauseNode(source, line);
-    if (parsed.node) tokens.push(parsed.node.token);
-    if (parsed.issue) issues.push(parsed.issue);
-  });
-  return { tokens, issues };
-};
-
-export const parseRoutingRuleSyntax = (source: string): ParsedRuleSyntax => {
-  const parsed = parseRoutingRuleAst(source);
-  return {
-    rules: parsed.ast.rules.map((rule) => rule.clauses.map((clause) => clause.token)),
-    issues: parsed.issues,
   };
 };
 

@@ -35,7 +35,6 @@ export type RoutingDownloadInfo = LazyDownloadMetadata<RoutingContent> & {
 };
 
 export type RuleError = { message: string; error: string; warning?: boolean };
-export type RuleToken = [fullClause: string, name: string, value: string];
 export type MatcherResult = RegExpMatchArray | null | false;
 export type RoutingInfo = Omit<RoutingDownloadInfo, "currentTab"> & {
   currentTab?: unknown;

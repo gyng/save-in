@@ -391,14 +391,6 @@ describe("filename rewrite and routing", () => {
       expect(diagnostics.filenamePatterns[0]!.error).toBe("not a clause");
     });
 
-    test("an empty line inside a rule is reported as invalid syntax", () => {
-      // tokenizeLines is pure: it reports into the passed collector
-      const errors: RuleError[] = [];
-      expect(router.tokenizeLines("", errors)).toEqual([]);
-      expect(errors[0]!.error).toBe("invalid line syntax");
-      expect(diagnostics.filenamePatterns).toEqual([]);
-    });
-
     test("invalid matcher regex is reported and drops the rule", () => {
       const rules = router.parseRules("sourceurl: [[\ninto: x");
       // A bad regex would compile to a match-everything matcher, so the whole

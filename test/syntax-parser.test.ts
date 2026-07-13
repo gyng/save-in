@@ -1,6 +1,8 @@
 import {
   choice,
   defineGrammar,
+  end,
+  lazy,
   literal,
   located,
   map,
@@ -10,6 +12,7 @@ import {
   rest,
   sequence,
   token,
+  type SyntaxParser,
 } from "../src/shared/syntax-parser.ts";
 
 describe("syntax parser combinators", () => {
@@ -66,6 +69,26 @@ describe("syntax parser combinators", () => {
 
     expect(parsed).toEqual(
       expect.objectContaining({ ok: true, value: [">", ">", ">"], offset: 3 }),
+    );
+  });
+
+  test("supports recursive grammars with explicit full-input validation", () => {
+    const expression: SyntaxParser<string> = lazy(() =>
+      choice(
+        token(/[a-z]+/, "name"),
+        map(
+          sequence(literal("("), expression, literal(")")),
+          ([open, value, close]) => `${open}${value}${close}`,
+        ),
+      ),
+    );
+    const grammar = sequence(expression, end());
+
+    expect(parseSyntax(grammar, "((route))")).toEqual(
+      expect.objectContaining({ ok: true, value: ["((route))", undefined] }),
+    );
+    expect(parseSyntax(grammar, "route trailing")).toEqual(
+      expect.objectContaining({ ok: false, offset: 5 }),
     );
   });
 });

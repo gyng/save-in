@@ -1,16 +1,11 @@
 import {
+  parsePathLine,
   parsePathLineAst,
-  parsePathLineSyntax,
   parsePathMetadata,
   serializePathLine,
   validatePathLineSyntax,
 } from "../src/config/path-syntax.ts";
-import {
-  parseRoutingRuleAst,
-  parseRoutingRuleSyntax,
-  tokenizeRuleLines,
-  validateRoutingRuleSyntax,
-} from "../src/routing/rule-syntax.ts";
+import { parseRoutingRuleAst, validateRoutingRuleSyntax } from "../src/routing/rule-syntax.ts";
 
 describe("directory-line grammar", () => {
   test("builds a spanned AST for paths, comments, and metadata", () => {
@@ -47,10 +42,8 @@ describe("directory-line grammar", () => {
       { depth: 2, body: "work", comment: "notes (alias: Work (shared))" },
     ],
   ])("parses and serializes %s", (source, row) => {
-    const parsed = parsePathLineSyntax(source);
-
-    expect(parsed).toEqual({ row, issues: [] });
-    expect(parsePathLineSyntax(serializePathLine(row))).toEqual({ row, issues: [] });
+    expect(parsePathLine(source)).toEqual(row);
+    expect(parsePathLine(serializePathLine(row))).toEqual(row);
   });
 
   test.each(["", "   ", ">>>", "> // comment only"])(
@@ -100,7 +93,7 @@ describe("routing-rule grammar", () => {
   });
 
   test("parses comments, blank-line rule boundaries, flags, and values", () => {
-    const parsed = parseRoutingRuleSyntax(
+    const parsed = parseRoutingRuleAst(
       [
         "// image rule",
         "filename/i: \\.png$",
@@ -113,27 +106,27 @@ describe("routing-rule grammar", () => {
     );
 
     expect(parsed.issues).toEqual([]);
-    expect(parsed.rules).toEqual([
+    expect(
+      parsed.ast.rules.map((rule) => rule.clauses.map((clause) => [clause.rawName, clause.value])),
+    ).toEqual([
       [
-        ["filename/i: \\.png$", "filename/i", "\\.png$"],
-        ["into: images/:filename:", "into", "images/:filename:"],
+        ["filename/i", "\\.png$"],
+        ["into", "images/:filename:"],
       ],
       [
-        ["sourceurl: files/(report)", "sourceurl", "files/(report)"],
-        ["capturegroups: sourceurl", "capturegroups", "sourceurl"],
-        ["into: reports/:$1:", "into", "reports/:$1:"],
+        ["sourceurl", "files/(report)"],
+        ["capturegroups", "sourceurl"],
+        ["into", "reports/:$1:"],
       ],
     ]);
   });
 
   test("reports malformed clauses with their source locations", () => {
-    const parsed = parseRoutingRuleSyntax("sourceurl: ok\nnot a clause\ninto: saved");
+    const parsed = parseRoutingRuleAst("sourceurl: ok\nnot a clause\ninto: saved");
 
-    expect(parsed.rules).toEqual([
-      [
-        ["sourceurl: ok", "sourceurl", "ok"],
-        ["into: saved", "into", "saved"],
-      ],
+    expect(parsed.ast.rules[0]!.clauses.map((clause) => [clause.name, clause.value])).toEqual([
+      ["sourceurl", "ok"],
+      ["into", "saved"],
     ]);
     expect(parsed.issues).toEqual([
       { code: "bad-clause", line: 2, column: 3, source: "not a clause" },
@@ -144,27 +137,11 @@ describe("routing-rule grammar", () => {
   });
 
   test("preserves legacy whole-document whitespace normalization", () => {
-    expect(parseRoutingRuleSyntax("  filename: jpg\ninto: images  ")).toEqual({
-      rules: [
-        [
-          ["filename: jpg", "filename", "jpg"],
-          ["into: images", "into", "images"],
-        ],
-      ],
-      issues: [],
-    });
-  });
-
-  test("validates standalone rule blocks through the same tokenizer", () => {
-    expect(tokenizeRuleLines("filename: jpg\ninto: images")).toEqual({
-      tokens: [
-        ["filename: jpg", "filename", "jpg"],
-        ["into: images", "into", "images"],
-      ],
-      issues: [],
-    });
-    expect(tokenizeRuleLines("").issues).toEqual([
-      { code: "bad-clause", line: 1, column: 0, source: "" },
+    const parsed = parseRoutingRuleAst("  filename: jpg\ninto: images  ");
+    expect(parsed.issues).toEqual([]);
+    expect(parsed.ast.rules[0]!.clauses.map((clause) => clause.raw)).toEqual([
+      "filename: jpg",
+      "into: images",
     ]);
   });
 });
