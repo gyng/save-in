@@ -1,3 +1,5 @@
+// @ts-check
+
 // Creates the separate source attachment Mozilla requires for transpiled code.
 // The attachment is not an installable extension; reviewers run npm ci and
 // npm run build inside it to reproduce the executable store package.

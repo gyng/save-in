@@ -1,3 +1,5 @@
+// @ts-check
+
 // Minimal Firefox Remote Debugging Protocol client (the protocol behind
 // about:debugging and web-ext). Packets are `<byteLength>:<json>` over TCP.
 // Responses carry no request IDs: requests to one actor are answered in

@@ -1,3 +1,5 @@
+// @ts-check
+
 // Stages a store-submission package that loads the rolldown bundles (one
 // readable, non-minified file per target) instead of the many source scripts.
 // Reference pages share their own bundle. E2E builds use isolated output

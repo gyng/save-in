@@ -1,3 +1,5 @@
+// @ts-check
+
 const CHROME_DEV_PORT = 9378;
 const CHROME_DISCOVERY_PORTS = [
   9222,

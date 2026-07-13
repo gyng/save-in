@@ -1,3 +1,5 @@
+// @ts-check
+
 // Development loop for the Chrome MV3 build: stages the bundled package, launches an
 // isolated Chrome with the extension loaded, and (with --watch) re-stages and
 // reloads the extension whenever src/ or manifest.json changes.

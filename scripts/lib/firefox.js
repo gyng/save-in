@@ -1,3 +1,5 @@
+// @ts-check
+
 // Launches an isolated Firefox with a throwaway profile, installs the
 // extension temporarily over RDP (the about:debugging mechanism), and hands
 // back an evaluate() bound to the extension's background console.

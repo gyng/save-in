@@ -1,3 +1,5 @@
+// @ts-check
+
 // Validates the release tag, gives build artifacts stable public names, and
 // writes checksums for GitHub Release upload and provenance attestation.
 

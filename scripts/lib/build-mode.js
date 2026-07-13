@@ -1,3 +1,5 @@
+// @ts-check
+
 const BUILD_MODES = new Set(["production", "e2e"]);
 
 /** @param {string[]} args */

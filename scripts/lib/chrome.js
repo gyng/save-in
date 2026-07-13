@@ -1,3 +1,5 @@
+// @ts-check
+
 // Launches an isolated Chrome instance with CDP enabled and the staged MV3
 // build loaded. Branded Chrome >= 137 ignores --load-extension, so the
 // extension is loaded via the CDP Extensions.loadUnpacked command instead

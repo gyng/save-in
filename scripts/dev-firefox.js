@@ -1,3 +1,5 @@
+// @ts-check
+
 // Builds the bundled package, lets web-ext run/watch that package, and
 // rebuilds it when its source inputs change.
 

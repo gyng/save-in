@@ -1,3 +1,5 @@
+// @ts-check
+
 // Generates reproducible Chrome Web Store screenshots from the real staged
 // extension. Output is 1280x800 PNG: the preferred store-listing size.
 

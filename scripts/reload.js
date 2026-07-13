@@ -1,3 +1,5 @@
+// @ts-check
+
 // Restages the build and hot-reloads it into any running review/dev Chrome:
 // loads the fresh unpacked extension and reloads every open options tab in
 // place (so locale/HTML/CSS/JS changes show without opening a new tab).

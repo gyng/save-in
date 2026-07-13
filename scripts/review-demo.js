@@ -1,3 +1,5 @@
+// @ts-check
+
 // Review harness: launches an isolated Chrome with the extension loaded,
 // seeds a showcase configuration (nested menus, aliases, separators, the
 // new :variables:, a routing rule), and opens the options page plus a

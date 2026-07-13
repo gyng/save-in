@@ -1,3 +1,5 @@
+// @ts-check
+
 const { deflateSync, inflateSync } = require("zlib");
 
 const SCREENSHOT_WIDTH = 1280;

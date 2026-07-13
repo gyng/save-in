@@ -1,3 +1,5 @@
+// @ts-check
+
 const fs = require("fs");
 const path = require("path");
 const { pathToFileURL } = require("node:url");
@@ -102,6 +104,13 @@ check(
     tools.compilerOptions?.strict === true,
   "tooling config must strictly check JavaScript without emitting",
 );
+check(
+  tools.include?.includes("scripts/**/*.js"),
+  "tooling config must check every repository script",
+);
+for (const script of fs.globSync("scripts/**/*.js", { cwd: root })) {
+  check(read(script).startsWith("// @ts-check"), `${script}: missing // @ts-check`);
+}
 check(
   readJson("tsconfig.dev-tools.json").extends === "./tsconfig.tools.json" &&
     readJson("tsconfig.e2e.json").extends === "./tsconfig.tools.json",

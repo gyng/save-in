@@ -1,3 +1,5 @@
+// @ts-check
+
 // Lightweight lexical fitness checks. This is deliberately independent of the
 // TypeScript compiler so repository scripts continue to use Node built-ins only.
 

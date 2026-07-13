@@ -1,3 +1,5 @@
+// @ts-check
+
 // Minimal Chrome DevTools Protocol client (no dependencies, Node >= 22 for
 // the global WebSocket). Used by dev-chrome.js and e2e-chrome.js.
 
