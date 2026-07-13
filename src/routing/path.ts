@@ -1,4 +1,9 @@
-import { SPECIAL_DIRS, FORBIDDEN_FILENAME_CHARS, PATH_SEGMENT_TYPES } from "../shared/constants.ts";
+import {
+  SPECIAL_DIRS,
+  FORBIDDEN_FILENAME_CHARS,
+  PATH_SEGMENT_TYPES,
+  UNSAFE_INVISIBLE_FILENAME_CHARS,
+} from "../shared/constants.ts";
 import { options } from "../config/options-data.ts";
 import { routingPorts } from "./ports.ts";
 import { EXTENSION_REGEX } from "./filename.ts";
@@ -33,6 +38,7 @@ export type PathFinalizeOptions = { finalComponentIsFilename?: boolean };
 // These regexes are exported because they define the platform-neutral path
 // policy; callers should normally use the sanitizing functions below.
 export const SPECIAL_CHARACTERS_REGEX = new RegExp(FORBIDDEN_FILENAME_CHARS.source, "g");
+export const INVISIBLE_CHARACTERS_REGEX = new RegExp(UNSAFE_INVISIBLE_FILENAME_CHARS.source, "g");
 export const BAD_LEADING_CHARACTERS = /^[./\\]/g;
 export const TRAILING_DOTS_AND_SPACES_REGEX = /[. ]+$/;
 export const RESERVED_DEVICE_NAME_REGEX = /^(CON|PRN|AUX|NUL|COM[1-9¹²³]|LPT[1-9¹²³])$/i;
@@ -66,6 +72,10 @@ export function replacementChar(override?: string, fallback = "") {
 
 export function replaceFsBadChars(value: string, replacement?: string) {
   return value.replace(SPECIAL_CHARACTERS_REGEX, replacementChar(replacement));
+}
+
+export function removeUnsafeInvisibleChars(value: string) {
+  return value.replace(INVISIBLE_CHARACTERS_REGEX, "");
 }
 
 export function replaceLeadingDots(value: string, replacement?: string) {
@@ -137,7 +147,7 @@ export function sanitizeFilename(
     return value;
   }
 
-  const fsSafe = replaceFsBadChars(value);
+  const fsSafe = replaceFsBadChars(removeUnsafeInvisibleChars(value));
   const dotsHandled = leadingDotsForbidden ? replaceLeadingDots(fsSafe) : fsSafe;
   const trimmed = trimTrailingDotsAndSpaces(dotsHandled);
   const truncated = preserveExtension

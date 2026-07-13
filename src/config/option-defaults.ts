@@ -1,6 +1,8 @@
 import { CONFLICT_ACTION, SHORTCUT_TYPES } from "../shared/constants.ts";
 import { CONTENT_OPTION_DEFAULTS } from "./content-options.ts";
 
+export const LEGACY_REFERER_HEADER_FILTER = "*://i.pximg.net/*";
+
 // Keep raw defaults in a dependency-leaf module. The live options bag needs
 // them synchronously, while the full schema depends on routing validators that
 // already read that bag.
@@ -55,7 +57,7 @@ export const OPTION_DEFAULTS = {
   tabEnabled: false,
   closeTabOnSave: false,
   setRefererHeader: false,
-  setRefererHeaderFilter: "*://i.pximg.net/*",
+  setRefererHeaderFilter: `${LEGACY_REFERER_HEADER_FILTER}\n*://*.mangadex.network/*`,
 } as const;
 
 export const defaultOptions = () => ({ ...OPTION_DEFAULTS });

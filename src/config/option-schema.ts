@@ -1,6 +1,7 @@
 import {
   CONFLICT_ACTION,
   FORBIDDEN_FILENAME_CHARS,
+  UNSAFE_INVISIBLE_FILENAME_CHARS,
   isShortcutType,
   type ConflictAction,
   type ShortcutType,
@@ -12,7 +13,11 @@ import {
   CONTENT_FEATURE_OPTION_DEFINITIONS,
   LINKS_OPTION_DEFINITION,
 } from "./content-option-schema.ts";
-import { OPTION_DEFAULTS, defaultOptions } from "./option-defaults.ts";
+import {
+  LEGACY_REFERER_HEADER_FILTER,
+  OPTION_DEFAULTS,
+  defaultOptions,
+} from "./option-defaults.ts";
 import { validateWebhookUrl } from "../shared/webhook.ts";
 
 export { defaultOptions };
@@ -210,7 +215,13 @@ export const OPTION_KEYS = defineOptions([
     type: OPTION_TYPES.VALUE,
     // Empty means deletion; invalid replacements must not poison every path.
     onLoad: (v: string) =>
-      v && (FORBIDDEN_FILENAME_CHARS.test(v) || v === "." || v === "..") ? "_" : v,
+      v &&
+      (FORBIDDEN_FILENAME_CHARS.test(v) ||
+        UNSAFE_INVISIBLE_FILENAME_CHARS.test(v) ||
+        v === "." ||
+        v === "..")
+        ? "_"
+        : v,
     default: OPTION_DEFAULTS.replacementChar,
   },
   { name: "routeExclusive", type: OPTION_TYPES.BOOL, default: OPTION_DEFAULTS.routeExclusive },
@@ -316,6 +327,10 @@ export const OPTION_KEYS = defineOptions([
   {
     name: "setRefererHeaderFilter",
     type: OPTION_TYPES.VALUE,
+    // Preserve customized filters; extend only the untouched pre-v4 preset so
+    // upgraded Firefox profiles gain the verified MangaDex host (#218).
+    onLoad: (value: string) =>
+      value === LEGACY_REFERER_HEADER_FILTER ? OPTION_DEFAULTS.setRefererHeaderFilter : value,
     default: OPTION_DEFAULTS.setRefererHeaderFilter,
   },
 ] as const);

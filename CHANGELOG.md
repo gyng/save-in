@@ -29,7 +29,9 @@ support and makes complex download organization easier while preserving existing
   terminating mid-download (session storage tracking)
 - The "Set Referer header" option uses Firefox's native downloads headers;
   Chrome does not support it. Empty or invalid filter lines no longer break
-  the context menu (#222)
+  the context menu (#222). Protected Firefox downloads bypass extension HEAD
+  and Fetch requests so redirects keep the browser's native request context
+  (#193); the preset now also covers MangaDex image hosts (#218).
 - Click-to-save now falls back to the link under the cursor (respects the
   "links" option), so alt+click on PDF/file links works (#226)
 - Page titles in filenames come from the tab that was clicked, fixing wrong
@@ -37,7 +39,8 @@ support and makes complex download organization easier while preserving existing
 - Download history actually accumulates now (previously only the last entry
   was kept) and is capped at 10,000 entries
 - Click-to-save and external-extension downloads no longer inherit the
-  previous download's filename or rename route
+  previous download's filename or rename route. A matching click-to-save rule
+  is rooted at Downloads instead of the previous menu directory (#190).
 - The external DOWNLOAD API is now official and versioned (v1, #110): send
   `{ type: "PING" }` to negotiate the version and capabilities, `DOWNLOAD`
   now returns a typed `OK`/`ERROR` response and validates the URL scheme, and
@@ -70,7 +73,8 @@ support and makes complex download organization easier while preserving existing
 - Shortcut files keep their extensions instead of being saved as .txt
   (#161): the download mime now matches the shortcut type
 - Server-provided filenames containing a literal % no longer error out and
-  fall back to the URL filename
+  fall back to the URL filename. Content-Disposition names are resolved before
+  routing, including extensionless or PHP download URLs (#178).
 - Empty menu aliases (`alias:` with no value) fall back to the path instead of a blank
   menu item; multi-dash comments are munged consistently
 - New session-scoped debug log, viewable at the bottom of the options page
@@ -118,7 +122,8 @@ support and makes complex download organization easier while preserving existing
   page prompts to save or discard. Every other setting still autosaves.
 - Options page refresh: full-width tabbed layout, live save indicator in
   the top bar, system font stack, dark-mode fixes
-- Filenames are hardened for Windows: control characters, trailing
+- Filenames are hardened for Windows: control and invisible format characters,
+  variation selectors (#220), trailing
   dots/spaces, and reserved device names (CON, NUL, ...) are neutralized;
   a broken replacement character can no longer defeat the sanitizer
 - Dark-mode last-used menu icon on Firefox (#184); "close tab on save" now

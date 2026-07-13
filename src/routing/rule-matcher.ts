@@ -57,6 +57,8 @@ export const matchRule = (rule: RoutingRule, info: RoutingInfo): string | false 
 };
 
 export const matchRules = (rules: RoutingRule[], info: RoutingInfo): string | null => {
+  // Routing is ordered and intentionally non-chaining: the first complete
+  // match owns the destination, and later rules never inspect its output.
   for (const rule of rules) {
     const result = matchRule(rule, info);
     if (result) return result;

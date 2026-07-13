@@ -117,25 +117,25 @@ describe("renameAndDownload: Chrome vs Firefox entry", () => {
     );
   });
 
-  test("Firefox matches filename rules after resolving Content-Disposition", async () => {
+  test("Firefox routes an extensionless PHP download by its Content-Disposition name (#178)", async () => {
     setCurrentBrowser("FIREFOX");
-    options.filenamePatterns = [routingRule()];
-    vi.mocked(getFilenameFromContentDispositionHeader).mockReturnValue("server-name.pdf");
+    options.filenamePatterns = [routingRule("actualfileext")];
+    vi.mocked(getFilenameFromContentDispositionHeader).mockReturnValue("release.torrent");
     global.fetch = vi.fn(() =>
       Promise.resolve({
-        headers: { has: () => true, get: () => 'attachment; filename="server-name.pdf"' },
+        headers: { has: () => true, get: () => 'attachment; filename="release.torrent"' },
       }),
     ) as any;
     vi.mocked(router.matchRules).mockImplementation((_rules, info) =>
-      info.filename === "server-name.pdf" ? "pdf/:filename:" : null,
+      info.filename === "release.torrent" ? "_torrents/:filename:" : null,
     );
 
-    const state = makeState();
+    const state = makeState({ info: { url: "https://downloads.example/td.php?token=secret" } });
     await Download.renameAndDownload(state);
 
     expect(router.matchRules).toHaveBeenCalledWith(options.filenamePatterns, state.info);
     expect(global.browser.downloads.download).toHaveBeenCalledWith(
-      expect.objectContaining({ filename: "downloads/pdf/server-name.pdf" }),
+      expect.objectContaining({ filename: "downloads/_torrents/release.torrent" }),
     );
   });
 

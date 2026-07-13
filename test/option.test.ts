@@ -266,6 +266,11 @@ describe("OptionsManagement", () => {
       expect(replacementCharKey().onLoad("\x00")).toBe("_");
     });
 
+    test("falls back to '_' for invisible format characters", () => {
+      expect(replacementCharKey().onLoad("\u200b")).toBe("_");
+      expect(replacementCharKey().onLoad("\ufe0f")).toBe("_");
+    });
+
     test("falls back to '_' for dot-segments", () => {
       expect(replacementCharKey().onLoad(".")).toBe("_");
       expect(replacementCharKey().onLoad("..")).toBe("_");
@@ -479,6 +484,26 @@ describe("OptionsManagement", () => {
       global.browser.storage.local.get = vi.fn(() => Promise.resolve({ replacementChar: "/" }));
       const resolved = await OptionsManagement.loadOptions();
       expect(resolved.replacementChar).toBe("_");
+    });
+
+    test("extends the untouched Pixiv Referer preset for MangaDex (#218)", async () => {
+      global.browser.storage.local.get = vi.fn(() =>
+        Promise.resolve({ setRefererHeaderFilter: "*://i.pximg.net/*" }),
+      );
+
+      const resolved = await OptionsManagement.loadOptions();
+
+      expect(resolved.setRefererHeaderFilter).toBe("*://i.pximg.net/*\n*://*.mangadex.network/*");
+    });
+
+    test("preserves a customized Referer filter", async () => {
+      global.browser.storage.local.get = vi.fn(() =>
+        Promise.resolve({ setRefererHeaderFilter: "*://media.example/*" }),
+      );
+
+      const resolved = await OptionsManagement.loadOptions();
+
+      expect(resolved.setRefererHeaderFilter).toBe("*://media.example/*");
     });
 
     test("falls back to defaults for malformed stored value types", async () => {

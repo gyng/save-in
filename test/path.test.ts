@@ -180,6 +180,14 @@ describe("sanitizeFilename", () => {
     expect(Path.sanitizeFilename("a\x01b\x1fc", 0, false)).toBe("a_b_c");
   });
 
+  test("removes invisible format controls and variation selectors", () => {
+    const invisible =
+      "\u00ad\u200b\u200c\u200d\u200e\u200f\u202a\u202b\u202c\u202d\u202e\u2060\ufeff\ufe0f\u{e0100}";
+
+    expect(Path.sanitizeFilename(`page${invisible} title.txt`, 0, false)).toBe("page title.txt");
+    expect(Path.sanitizeFilename(invisible, 0, false)).toBe("_");
+  });
+
   test("neutralizes reserved device names", () => {
     expect(Path.sanitizeFilename("CON", 0, false)).toBe("_CON");
     expect(Path.sanitizeFilename("con.txt", 0, false)).toBe("_con.txt");

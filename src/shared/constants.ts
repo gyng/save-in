@@ -155,3 +155,11 @@ export type ClickType = (typeof CLICK_TYPES)[keyof typeof CLICK_TYPES];
 // replacementChar validator (#221). No flags — callers add `g` where needed.
 // eslint-disable-next-line no-control-regex -- control chars \x00-\x1f are intentionally forbidden
 export const FORBIDDEN_FILENAME_CHARS = /[<>:"/\\|?*\x00-\x1f]/;
+
+// Format controls and variation selectors are legal on some filesystems but
+// can make downloads fail or produce deceptive/inaccessible names in browser
+// filename APIs (#220). The surrogate-pair alternative covers the supplemental
+// variation-selector block without requiring mutable RegExp flags.
+export const UNSAFE_INVISIBLE_FILENAME_CHARS =
+  // eslint-disable-next-line no-misleading-character-class -- combining variation selectors are intentionally matched as code points
+  /[\u00ad\u061c\u180e\u200b-\u200f\u202a-\u202e\u2060-\u2064\u2066-\u206f\ufeff\ufe00-\ufe0f]|\udb40[\udd00-\uddef]/;

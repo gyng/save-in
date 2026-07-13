@@ -91,7 +91,7 @@ describe("pipeline stages", () => {
     expect(fetchSpy).not.toHaveBeenCalledWith(state.info.url, { credentials: "include" });
   });
 
-  test("preserves Firefox Referer when extension fetch falls back to the original URL", async () => {
+  test("bypasses extension metadata/fetch when Firefox Referer must survive redirects (#193)", async () => {
     setCurrentBrowser("FIREFOX");
     options.setRefererHeader = true;
     options.setRefererHeaderFilter = "*://example.com/*";

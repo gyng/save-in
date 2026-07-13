@@ -1,5 +1,6 @@
 // Focused plan coverage extracted from the pipeline suite.
 import type { SaveInOptions } from "../src/config/option-schema.ts";
+import { DOWNLOAD_TYPES } from "../src/shared/constants.ts";
 import {
   Download,
   downloaded,
@@ -352,6 +353,26 @@ describe("renameAndDownload: route matching", () => {
     expect(state.route).toBeDefined();
     expect(String(state.route.finalize())).toBe("matched/route.txt");
     expect(Download.finalizeFullPath(state)).toContain("matched/route.txt");
+  });
+
+  test("anchors a click-to-save route at Downloads instead of the previous menu path", async () => {
+    setCurrentBrowser("FIREFOX");
+    options.filenamePatterns = [routingRule()];
+    vi.mocked(router.matchRules).mockReturnValue("Plants/Trees/:filename:");
+    const state = makeState({
+      path: new Path.Path("Plants/Trees/Baobabs"),
+      info: {
+        context: DOWNLOAD_TYPES.CLICK,
+        url: "https://example.com/tree.png",
+        suggestedFilename: "tree.png",
+      },
+    });
+
+    await Download.renameAndDownload(state);
+
+    expect(global.browser.downloads.download).toHaveBeenCalledWith(
+      expect.objectContaining({ filename: "Plants/Trees/tree.png" }),
+    );
   });
 });
 

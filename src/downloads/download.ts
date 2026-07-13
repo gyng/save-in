@@ -4,6 +4,7 @@ import { getMessage } from "../platform/localization.ts";
 import { downloadsState, sessionWriteState } from "./state.ts";
 import { getDownload, mergeDownload } from "./download-state.ts";
 import type { DownloadRecord, PrivateDownloadContext } from "./download-state.ts";
+import { DOWNLOAD_TYPES } from "../shared/constants.ts";
 import { normalizeSessionCounter, updateSession } from "../shared/session-state.ts";
 import { RequestHeaders } from "./headers.ts";
 import { EXTENSION_NOTIFICATION_STREAMS, Notifier } from "./notification.ts";
@@ -406,8 +407,12 @@ export const Download = {
       }
     }
 
-    state.path = await applyVariables(state.path, state.info);
     const routeMatches = Download.getRoutingMatches(state);
+    // Click-to-save reuses the previous menu directory only as its unmatched
+    // fallback. A matched `into:` route is rooted at Downloads so an earlier
+    // folder choice cannot be prefixed onto every later dynamic route (#190).
+    if (routeMatches && state.info.context === DOWNLOAD_TYPES.CLICK) state.path = new Path(".");
+    state.path = await applyVariables(state.path, state.info);
     if (routeMatches) {
       state.routeIsFolder = typeof routeMatches === "string" && /\/\s*$/.test(routeMatches);
       state.route = await applyVariables(new Path(routeMatches), state.info);
