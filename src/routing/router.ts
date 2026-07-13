@@ -12,9 +12,16 @@ export { matcherFunctions } from "./matchers.ts";
 export { getCaptureMatches, matchRule, matchRules } from "./rule-matcher.ts";
 export { parseRule, parseRulesCollecting, tokenizeLines } from "./rule-parser.ts";
 export {
+  parseRoutingRuleAst,
   parseRoutingRuleSyntax,
   ROUTING_RULE_GRAMMAR,
   validateRoutingRuleSyntax,
+} from "./rule-syntax.ts";
+export type {
+  ParsedRoutingAst,
+  RoutingClauseNode,
+  RoutingDocumentNode,
+  RoutingRuleNode,
 } from "./rule-syntax.ts";
 
 export const parseRules = (raw: string): RoutingRule[] => {

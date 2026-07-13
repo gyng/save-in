@@ -5,8 +5,14 @@ import { MENU_IDS } from "./menu-ids.ts";
 
 export {
   DIRECTORY_LINE_GRAMMAR,
+  parsePathLineAst,
   parsePathLineSyntax,
   validatePathLineSyntax,
+} from "../config/path-lines.ts";
+export type {
+  DirectoryLineNode,
+  DirectoryMetadataNode,
+  ParsedDirectoryAst,
 } from "../config/path-lines.ts";
 
 export type MenuMeta = Record<string, string>;

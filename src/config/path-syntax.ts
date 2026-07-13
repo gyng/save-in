@@ -1,3 +1,15 @@
+import {
+  defineGrammar,
+  located,
+  map,
+  parseSyntax,
+  rest,
+  sequence,
+  sourceSpan,
+  token,
+  type SourceSpan,
+} from "../shared/syntax-parser.ts";
+
 export const DIRECTORY_LINE_GRAMMAR = String.raw`
 directory-line = nesting, path, [ comment ] ;
 nesting        = { ">" }, { whitespace } ;
@@ -26,20 +38,113 @@ export type ParsedPathLine = {
   issues: PathSyntaxIssue[];
 };
 
-export const parsePathLineSyntax = (line: string): ParsedPathLine => {
-  const commentIdx = line.indexOf("//");
-  const rawBody = commentIdx === -1 ? line : line.slice(0, commentIdx);
-  const comment = commentIdx === -1 ? "" : line.slice(commentIdx + 2).trim();
-  const depthMatch = rawBody.trim().match(/^(>*)\s*(.*)$/);
-  const row = {
-    depth: depthMatch?.[1]?.length ?? 0,
-    body: depthMatch?.[2]?.trim() ?? "",
+export type DirectoryMetadataNode = {
+  kind: "metadata";
+  key: string;
+  value: string;
+  span: SourceSpan;
+};
+
+export type DirectoryLineNode = {
+  kind: "directory-line";
+  raw: string;
+  depth: number;
+  path: { kind: "path"; value: string; span: SourceSpan };
+  comment: {
+    kind: "comment";
+    value: string;
+    span: SourceSpan;
+    contentSpan: SourceSpan;
+  } | null;
+  metadata: DirectoryMetadataNode[];
+  span: SourceSpan;
+};
+
+export type ParsedDirectoryAst = {
+  ast: DirectoryLineNode;
+  issues: PathSyntaxIssue[];
+};
+
+const directoryLineParser = defineGrammar(
+  map(
+    sequence(
+      located(token(/>*/, "directory nesting")),
+      token(/\s*/, "whitespace"),
+      located(rest()),
+    ),
+    ([nesting, , path]) => ({ nesting, path }),
+  ),
+);
+
+const trimmedBounds = (value: string): { start: number; end: number } => {
+  const start = value.length - value.trimStart().length;
+  const end = value.trimEnd().length;
+  return { start, end: Math.max(start, end) };
+};
+
+const commentNode = (line: string, commentIndex: number): DirectoryLineNode["comment"] => {
+  if (commentIndex < 0) return null;
+  const rawComment = line.slice(commentIndex + 2);
+  const bounds = trimmedBounds(rawComment);
+  const start = commentIndex + 2 + bounds.start;
+  const end = commentIndex + 2 + bounds.end;
+  return {
+    kind: "comment",
+    value: line.slice(start, end),
+    span: sourceSpan(line, commentIndex, line.length),
+    contentSpan: sourceSpan(line, start, end),
+  };
+};
+
+export const parsePathLineAst = (line: string): ParsedDirectoryAst => {
+  const commentIndex = line.indexOf("//");
+  const rawBody = commentIndex === -1 ? line : line.slice(0, commentIndex);
+  const bounds = trimmedBounds(rawBody);
+  const parsed = parseSyntax(directoryLineParser, line, {
+    offset: bounds.start,
+    limit: bounds.end,
+  });
+  if (!parsed.ok) throw new Error("Directory grammar must accept every bounded line");
+  const comment = commentNode(line, commentIndex);
+  const metadata = comment
+    ? parsePathMetadataEntries(comment.value).map((entry) => ({
+        kind: "metadata" as const,
+        key: entry.key,
+        value: entry.value,
+        span: sourceSpan(
+          line,
+          comment.contentSpan.start.offset + entry.start,
+          comment.contentSpan.start.offset + entry.end,
+        ),
+      }))
+    : [];
+  const ast: DirectoryLineNode = {
+    kind: "directory-line",
+    raw: line,
+    depth: parsed.value.nesting.value.length,
+    path: {
+      kind: "path",
+      value: parsed.value.path.value,
+      span: parsed.value.path.span,
+    },
     comment,
+    metadata,
+    span: sourceSpan(line, 0, line.length),
   };
   return {
-    row,
-    issues: row.body ? [] : [{ code: "missing-path", column: rawBody.length, source: line }],
+    ast,
+    issues: ast.path.value ? [] : [{ code: "missing-path", column: rawBody.length, source: line }],
   };
+};
+
+export const parsePathLineSyntax = (line: string): ParsedPathLine => {
+  const { ast, issues } = parsePathLineAst(line);
+  const row = {
+    depth: ast.depth,
+    body: ast.path.value,
+    comment: ast.comment?.value ?? "",
+  };
+  return { row, issues };
 };
 
 export const parsePathLine = (line: string): PathRow => parsePathLineSyntax(line).row;
