@@ -189,6 +189,67 @@ export const createSourceTooltip = (source: PageSource): HTMLElement | null => {
   return tooltip;
 };
 
+export type SourceTooltipDock = "right" | "bottom" | "left" | "top" | "floating";
+export type SourceTooltipSide = "left" | "right" | "top" | "bottom";
+type SourceTooltipRect = Pick<DOMRectReadOnly, "left" | "top" | "right" | "bottom">;
+type SourceTooltipSize = { width: number; height: number };
+
+export const positionSourceTooltip = (
+  anchor: SourceTooltipRect,
+  panel: SourceTooltipRect,
+  tooltip: SourceTooltipSize,
+  viewport: SourceTooltipSize,
+  dock: SourceTooltipDock,
+): { left: number; top: number; side: SourceTooltipSide } => {
+  const gap = 8;
+  const margin = 8;
+  const available: Record<SourceTooltipSide, number> = {
+    left: panel.left - gap - margin,
+    right: viewport.width - panel.right - gap - margin,
+    top: panel.top - gap - margin,
+    bottom: viewport.height - panel.bottom - gap - margin,
+  };
+  const required: Record<SourceTooltipSide, number> = {
+    left: tooltip.width,
+    right: tooltip.width,
+    top: tooltip.height,
+    bottom: tooltip.height,
+  };
+  const dockSide: Record<Exclude<SourceTooltipDock, "floating">, SourceTooltipSide> = {
+    right: "left",
+    bottom: "top",
+    left: "right",
+    top: "bottom",
+  };
+  const side =
+    dock === "floating"
+      ? (["left", "right", "top", "bottom"] as const).toSorted(
+          (a, b) => available[b] - required[b] - (available[a] - required[a]),
+        )[0]!
+      : dockSide[dock];
+  const clamp = (value: number, size: number, viewportSize: number) =>
+    Math.max(margin, Math.min(value, Math.max(margin, viewportSize - size - margin)));
+  const centeredLeft = (anchor.left + anchor.right - tooltip.width) / 2;
+  const centeredTop = (anchor.top + anchor.bottom - tooltip.height) / 2;
+  const left =
+    side === "left"
+      ? panel.left - tooltip.width - gap
+      : side === "right"
+        ? panel.right + gap
+        : centeredLeft;
+  const top =
+    side === "top"
+      ? panel.top - tooltip.height - gap
+      : side === "bottom"
+        ? panel.bottom + gap
+        : centeredTop;
+  return {
+    left: clamp(left, tooltip.width, viewport.width),
+    top: clamp(top, tooltip.height, viewport.height),
+    side,
+  };
+};
+
 export const resourceTimingByUrl = (
   entries: PerformanceResourceTiming[] = performance.getEntriesByType(
     "resource",

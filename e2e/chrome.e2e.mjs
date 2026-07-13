@@ -1269,15 +1269,21 @@ test("Page Sources discovers, sorts, updates live, and restores across tabs", as
           await evalPage(
             firstPath,
             `JSON.stringify((() => {
+              const host = document.querySelector("#save-in-source-panel");
               const root = document.querySelector("#save-in-source-panel").shadowRoot;
               const row = root.querySelector(".row");
               const image = root.querySelector(".media-tooltip img");
-              const rect = image?.closest(".media-tooltip")?.getBoundingClientRect();
+              const tooltip = image?.closest(".media-tooltip");
+              const rect = tooltip?.getBoundingClientRect();
+              const hostRect = host.getBoundingClientRect();
               return {
                 described: row.querySelector(".source-link").hasAttribute("aria-describedby"),
                 loaded: image?.complete && image.naturalWidth > 0,
                 width: rect?.width || 0,
                 height: rect?.height || 0,
+                side: tooltip?.dataset.side,
+                gap: rect ? hostRect.left - rect.right : null,
+                onscreen: rect ? rect.left >= 0 && rect.top >= 0 && rect.right <= innerWidth && rect.bottom <= innerHeight : false,
               };
             })())`,
           ),
@@ -1290,6 +1296,28 @@ test("Page Sources discovers, sorts, updates live, and restores across tabs", as
     expect(hoverPreview.loaded).toBe(true);
     expect(hoverPreview.width).toBeGreaterThanOrEqual(160);
     expect(hoverPreview.height).toBeGreaterThanOrEqual(120);
+    expect(hoverPreview.side).toBe("left");
+    expect(hoverPreview.gap).toBeCloseTo(8, 0);
+    expect(hoverPreview.onscreen).toBe(true);
+    await cdp.sleep(1800);
+    const persistentPreview = JSON.parse(
+      await evalPage(
+        firstPath,
+        `JSON.stringify((() => {
+          const host = document.querySelector("#save-in-source-panel");
+          const tooltip = host.shadowRoot.querySelector(".media-tooltip");
+          const rect = tooltip?.getBoundingClientRect();
+          return {
+            side: tooltip?.dataset.side,
+            gap: rect ? host.getBoundingClientRect().left - rect.right : null,
+            onscreen: rect ? rect.left >= 0 && rect.top >= 0 && rect.right <= innerWidth && rect.bottom <= innerHeight : false,
+          };
+        })())`,
+      ),
+    );
+    expect(persistentPreview.side).toBe("left");
+    expect(persistentPreview.gap).toBeCloseTo(8, 0);
+    expect(persistentPreview.onscreen).toBe(true);
     await cdp.dispatchInput(PORT, firstPath, [
       {
         method: "Input.dispatchMouseEvent",
@@ -1306,6 +1334,136 @@ test("Page Sources discovers, sorts, updates live, and restores across tabs", as
           : null,
       { description: "Page Sources hover preview dismissal" },
     );
+
+    await evalPage(
+      firstPath,
+      `document.querySelector("#save-in-source-panel").shadowRoot.querySelector(".popout").click()`,
+    );
+    const floatingHeader = JSON.parse(
+      await evalPage(
+        firstPath,
+        `JSON.stringify((() => {
+          const rect = document.querySelector("#save-in-source-panel").shadowRoot.querySelector("header").getBoundingClientRect();
+          return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+        })())`,
+      ),
+    );
+    await cdp.dispatchInput(PORT, firstPath, [
+      {
+        method: "Input.dispatchMouseEvent",
+        params: {
+          type: "mousePressed",
+          x: floatingHeader.x,
+          y: floatingHeader.y,
+          button: "left",
+          clickCount: 1,
+        },
+      },
+      {
+        method: "Input.dispatchMouseEvent",
+        params: {
+          type: "mouseMoved",
+          x: floatingHeader.x + 180,
+          y: floatingHeader.y + 120,
+          button: "left",
+        },
+      },
+      {
+        method: "Input.dispatchMouseEvent",
+        params: {
+          type: "mouseReleased",
+          x: floatingHeader.x + 180,
+          y: floatingHeader.y + 120,
+          button: "left",
+          clickCount: 1,
+        },
+      },
+    ]);
+    expect(
+      await evalPage(
+        firstPath,
+        `(() => {
+          const host = document.querySelector("#save-in-source-panel");
+          return host.classList.contains("floating") && !!host.style.left && !!host.style.top;
+        })()`,
+      ),
+    ).toBe(true);
+    await evalPage(
+      firstPath,
+      `document.querySelector("#save-in-source-panel").shadowRoot.querySelector(".dock").click()`,
+    );
+    const dockedLayout = JSON.parse(
+      await evalPage(
+        firstPath,
+        `JSON.stringify((() => {
+          const host = document.querySelector("#save-in-source-panel");
+          const rect = host.getBoundingClientRect();
+          return {
+            floating: host.classList.contains("floating"),
+            dock: host.dataset.dock,
+            leftStyle: host.style.left,
+            topStyle: host.style.top,
+            atBottom: Math.abs(rect.bottom - innerHeight) <= 1,
+            fullWidth: Math.abs(rect.width - innerWidth) <= 1,
+          };
+        })())`,
+      ),
+    );
+    expect(dockedLayout).toEqual({
+      floating: false,
+      dock: "bottom",
+      leftStyle: "",
+      topStyle: "",
+      atBottom: true,
+      fullWidth: true,
+    });
+    const bottomHoverTarget = JSON.parse(
+      await evalPage(
+        firstPath,
+        `JSON.stringify((() => {
+          const row = document.querySelector("#save-in-source-panel").shadowRoot.querySelector(".row");
+          const rect = row.getBoundingClientRect();
+          return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+        })())`,
+      ),
+    );
+    await cdp.dispatchInput(PORT, firstPath, [
+      {
+        method: "Input.dispatchMouseEvent",
+        params: { type: "mouseMoved", x: bottomHoverTarget.x, y: bottomHoverTarget.y },
+      },
+    ]);
+    const bottomPreview = await poll(
+      async () => {
+        const preview = JSON.parse(
+          await evalPage(
+            firstPath,
+            `JSON.stringify((() => {
+              const host = document.querySelector("#save-in-source-panel");
+              const tooltip = host.shadowRoot.querySelector(".media-tooltip");
+              const rect = tooltip?.getBoundingClientRect();
+              const hostRect = host.getBoundingClientRect();
+              return {
+                side: tooltip?.dataset.side,
+                gap: rect ? hostRect.top - rect.bottom : null,
+                onscreen: rect ? rect.left >= 0 && rect.top >= 0 && rect.right <= innerWidth && rect.bottom <= innerHeight : false,
+              };
+            })())`,
+          ),
+        );
+        return preview.side ? preview : null;
+      },
+      { description: "bottom-docked Page Sources hover preview" },
+    );
+    expect(bottomPreview.side).toBe("top");
+    expect(bottomPreview.gap).toBeCloseTo(8, 0);
+    expect(bottomPreview.onscreen).toBe(true);
+    await cdp.dispatchInput(PORT, firstPath, [
+      {
+        method: "Input.dispatchMouseEvent",
+        params: { type: "mouseMoved", x: 8, y: 8 },
+      },
+    ]);
 
     expect((await snapshot(firstPath)).names).toEqual(["second.png", "first.png"]);
     await evalPage(

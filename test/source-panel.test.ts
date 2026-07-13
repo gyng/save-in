@@ -582,6 +582,10 @@ describe("Page Sources panel interactions", () => {
       live: true,
       resourceHints: false,
     });
+    const shadow = getSourcePanelHostForTesting()!.shadowRoot!;
+    const row = shadow.querySelector<HTMLElement>(".row")!;
+    row.dispatchEvent(new MouseEvent("mouseenter"));
+    const tooltip = shadow.querySelector<HTMLElement>(".media-tooltip")!;
 
     const reportSize = (bytes: number) =>
       performanceCallback!(
@@ -599,9 +603,9 @@ describe("Page Sources panel interactions", () => {
 
     reportSize(2048);
 
-    expect(
-      getSourcePanelHostForTesting()!.shadowRoot!.querySelector(".meta")?.textContent,
-    ).toContain("2 KB");
+    expect(shadow.querySelector(".row")).toBe(row);
+    expect(shadow.querySelector(".media-tooltip")).toBe(tooltip);
+    expect(shadow.querySelector(".meta")?.textContent).toContain("2 KB");
     expect(
       getSourcePanelHostForTesting()!.shadowRoot!.querySelector<HTMLElement>(".source-size")
         ?.dataset.sizeWeight,
@@ -719,7 +723,10 @@ describe("Page Sources panel interactions", () => {
     expect(host.style.left).toBe("140px");
     expect(host.style.top).toBe("110px");
 
-    popout.click();
+    host.shadowRoot!.querySelector<HTMLButtonElement>(".dock")!.click();
+    expect(host.classList.contains("floating")).toBe(false);
+    expect(host.style.left).toBe("");
+    expect(host.style.top).toBe("");
     expect(popout.getAttribute("aria-label")).toBe("Pop out Page Sources");
     expect(popout.title).toBe("Pop out into a draggable panel");
   });

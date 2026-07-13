@@ -4,6 +4,7 @@ import {
   createSourceTooltip,
   filterPageSources,
   formatSourceBytes,
+  positionSourceTooltip,
   sortPageSources,
   urlsFromSrcset,
   ytDlpCommand,
@@ -218,4 +219,42 @@ test("builds larger image and autoplaying media tooltips", () => {
   expect(audio.autoplay).toBe(true);
   expect(audio.controls).toBe(true);
   expect(createSourceTooltip({ url: "https://x.test/page", kind: "link", element })).toBeNull();
+});
+
+test.each([
+  ["right", { left: 900, top: 0, right: 1200, bottom: 800 }, "left", 592, 125],
+  ["left", { left: 0, top: 0, right: 300, bottom: 800 }, "right", 308, 125],
+  ["bottom", { left: 0, top: 600, right: 1200, bottom: 800 }, "top", 450, 392],
+  ["top", { left: 0, top: 0, right: 1200, bottom: 200 }, "bottom", 450, 208],
+] as const)("places source tooltips outside a %s-docked panel", (dock, panel, side, left, top) => {
+  expect(
+    positionSourceTooltip(
+      { left: 300, top: 200, right: 900, bottom: 250 },
+      panel,
+      { width: 300, height: 200 },
+      { width: 1200, height: 800 },
+      dock,
+    ),
+  ).toEqual({ left, top, side });
+});
+
+test("chooses usable floating-panel space and clamps the tooltip to the viewport", () => {
+  expect(
+    positionSourceTooltip(
+      { left: 710, top: 200, right: 1090, bottom: 250 },
+      { left: 700, top: 100, right: 1100, bottom: 600 },
+      { width: 300, height: 200 },
+      { width: 1200, height: 800 },
+      "floating",
+    ),
+  ).toEqual({ left: 392, top: 125, side: "left" });
+  expect(
+    positionSourceTooltip(
+      { left: 185, top: 50, right: 295, bottom: 90 },
+      { left: 180, top: 0, right: 300, bottom: 200 },
+      { width: 200, height: 100 },
+      { width: 300, height: 200 },
+      "right",
+    ).left,
+  ).toBe(8);
 });
