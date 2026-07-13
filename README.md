@@ -94,19 +94,21 @@ save. `PING` first to negotiate the version and capabilities.
 
 ### ZIP file
 
-1. `npm run build` creates browser-specific runtime ZIPs under
-   `web-ext-artifacts/chrome` and `web-ext-artifacts/firefox`.
+1. `npm run build` creates the shared Manifest V3 ZIP in
+   `web-ext-artifacts`; upload the same ZIP to both stores.
 
-The source `manifest.json` declares both background models. Staging keeps
-Firefox's supported `spanning` private-browsing mode and gives Chrome the
-`split` mode it needs for a separate Incognito service worker. To load the
-extension unpacked in Chrome, run `node scripts/build-bundled.js` and load
-`dist/bundled-pkg` (or use `npm run d:chrome` for automatic rebuilds and reloads).
+The manifest declares both background models and uses the cross-browser
+`spanning` private-browsing mode. Save In excludes private activity from its
+own history and debug log. Chrome cannot assign extension-started downloads to
+its Incognito download context, so those downloads may appear in Chrome's
+regular download manager; see `PRIVACY.md`. To load the extension unpacked in
+Chrome, run `node scripts/build-bundled.js` and load `dist/bundled-pkg` (or use
+`npm run d:chrome` for automatic rebuilds and reloads).
 
 ### Firefox
 
 1. Run `npm run build`.
-2. Manually upload the ZIP from `web-ext-artifacts/firefox` at
+2. Manually upload the generated ZIP from `web-ext-artifacts` at
    [Firefox Add-ons](https://addons.mozilla.org/en-US/developers/addons).
 3. Run `npm run build:source` and attach the resulting source ZIP from
    `web-ext-artifacts/source` when AMO requests the source for review.
@@ -114,14 +116,14 @@ extension unpacked in Chrome, run `node scripts/build-bundled.js` and load
 The source build requires Node 24 and the dependencies pinned by
 `package-lock.json`; no Docker image or nonstandard system dependency is
 required. After extracting the source ZIP, run `npm ci` followed by
-`npm run build`. The reproduced runtime ZIPs are written to the browser
-subdirectories under `web-ext-artifacts`.
+`npm run build`. The reproduced runtime ZIP is written to
+`web-ext-artifacts`.
 
 ### Chrome
 
 1. `npm run build`
 2. Go [here](https://chrome.google.com/webstore/developer/dashboard)
-3. Upload the ZIP from `web-ext-artifacts/chrome`
+3. Upload the ZIP from `web-ext-artifacts`
 
 ### Notes for reviewers
 

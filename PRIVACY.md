@@ -22,6 +22,14 @@ Activity from Chrome Incognito windows and Firefox Private Browsing windows is
 not added to local history, session recovery state, or the extension debug log.
 Temporary state needed to perform a private-window save is kept in memory only.
 
+The shared Chrome and Firefox package uses the browsers' supported
+`incognito: spanning` mode. Chrome does not let an extension select an
+Incognito download context when calling its downloads API. A download that Save
+In starts from a Chrome Incognito tab may therefore appear in Chrome's regular
+download manager and remain visible after the Incognito window closes. Save In
+does not copy that browser-owned record into its own history or debug log.
+Firefox supports associating the download with its Private Browsing session.
+
 ## Network requests
 
 Save In makes requests only as needed for its user-facing features, including

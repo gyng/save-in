@@ -11,7 +11,6 @@ const root = path.join(__dirname, "..");
 const build = () =>
   execFileSync(process.execPath, [path.join(__dirname, "build-bundled.js")], {
     cwd: root,
-    env: { ...process.env, SAVE_IN_BROWSER: "firefox" },
     stdio: "inherit",
   });
 
@@ -28,7 +27,7 @@ const child = spawn(
     webExt,
     "run",
     "--source-dir",
-    "dist/bundled-pkg-firefox",
+    "dist/bundled-pkg",
     "--verbose",
     "--start-url",
     "about:debugging",

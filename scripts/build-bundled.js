@@ -15,10 +15,24 @@ writeVersion();
 
 const root = path.join(__dirname, "..");
 const expectE2EBridge = process.env.SAVE_IN_E2E === "1";
-const targetBrowser = process.env.SAVE_IN_BROWSER === "firefox" ? "firefox" : "chrome";
 const bundleDir = path.join(root, "dist", expectE2EBridge ? "bundled-e2e" : "bundled");
-const packageName = `${expectE2EBridge ? "bundled-pkg-e2e" : "bundled-pkg"}${targetBrowser === "firefox" ? "-firefox" : ""}`;
-const out = path.join(root, "dist", packageName);
+const out = path.join(root, "dist", expectE2EBridge ? "bundled-pkg-e2e" : "bundled-pkg");
+
+// Remove artifacts from the short-lived per-browser packaging scheme so an
+// obsolete ZIP cannot be mistaken for the current shared store package.
+if (!expectE2EBridge) {
+  for (const legacyArtifact of [
+    "chrome",
+    "firefox",
+    "save-in-chrome-mv3.zip",
+    "save-in-firefox-mv3.zip",
+  ]) {
+    fs.rmSync(path.join(root, "web-ext-artifacts", legacyArtifact), {
+      recursive: true,
+      force: true,
+    });
+  }
+}
 
 // 1. Build the bundles without going through a platform shell.
 execFileSync(
@@ -69,10 +83,6 @@ for (const f of fs.readdirSync(bundleDir)) {
 
 // 4. Point the manifest at the bundles
 const manifest = JSON.parse(fs.readFileSync(path.join(root, "manifest.json"), "utf8"));
-// Firefox does not implement split extension processes and treats "split" as
-// "not_allowed". Chrome needs split mode so private downloads originate from a
-// private service worker rather than the regular profile.
-manifest.incognito = targetBrowser === "firefox" ? "spanning" : "split";
 manifest.background = {
   scripts: ["background.js"],
   service_worker: "background.sw.js",
@@ -101,4 +111,4 @@ rewriteHtml("src/offscreen.html", "../offscreen.js");
 rewriteHtml("src/options/variablelist.html", "../../reference-page.js");
 rewriteHtml("src/options/clauselist.html", "../../reference-page.js");
 
-process.stdout.write(`Staged ${targetBrowser} bundled package in ${out}\n`);
+process.stdout.write(`Staged bundled package in ${out}\n`);

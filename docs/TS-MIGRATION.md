@@ -52,9 +52,9 @@ Output is readable + non-minified (the AMO "reviewable source" property becomes
 3. Switch that target's `rolldown.config.mjs` bundle from concat → `{ input: entry }`.
 4. Fix that target's tests: drop `global.X =` seeding, `await import` the modules directly; `vi.resetModules` where load-order matters.
 5. Shrink `.oxlintrc globals` + `types/globals.d.ts` for the now-imported names.
-6. Verify: `vitest` for the target plus E2E against `dist/bundled-pkg`
-   (Chrome) and `dist/bundled-pkg-firefox` (Firefox) once background is done;
-   earlier targets ride the existing bundled E2E.
+6. Verify: `vitest` for the target plus `EXT_DIR=dist/bundled-pkg` E2E
+   (both browsers) once background is done; earlier targets ride the existing
+   bundled E2E.
 
 ## Background dependency contract (leaf-first order)
 
@@ -85,7 +85,7 @@ imports) so the handlers attach before `index` calls them. Keep `index` last.
   installs one frozen command API.
 - **The individual-scripts build is retired from the first `.ts` file** (a `.ts`
   can't be a classic script and the source manifest can't list it). So `build`,
-  `lint` (`web-ext lint --source-dir dist/bundled-pkg-firefox -i "src/**"`), and
+  `lint` (`web-ext lint --source-dir dist/bundled-pkg -i "src/**"`), and
   `e2e:*` now stage + target the bundled pkg. `build:unpacked` / `e2e:source`
   kept for reference. Windows: use `env VAR=val cmd` (git's env.exe), not inline
   `VAR=val` (npm runs scripts via CMD).
@@ -107,9 +107,9 @@ The section below is the historical resume-point from during the migration.
 Work happened on branch **`ts-migration`** (off `mv3`).
 
 ### Done + committed (on `ts-migration`)
-- **`c748dec`** Phase 1: `content.ts` (iife); `build`/`lint`/`e2e:*` switched to
-  the browser-specific bundled packages (`dist/bundled-pkg` and
-  `dist/bundled-pkg-firefox`); `tsconfig` includes `src/**/*.ts`.
+- **`c748dec`** Phase 1: `content.ts` (iife); `build`/`lint`/`e2e:*`
+  switched to the bundled package (`dist/bundled-pkg`); `tsconfig` includes
+  `src/**/*.ts`.
 - **`2a8b4ed`** all 40 source files → ESM/TS (`module.exports`→`export`, globals→
   imports); per-target entries under `src/entries/`;
   `rolldown.config.mjs` reworked to real module resolution (concat helpers

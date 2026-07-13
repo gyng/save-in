@@ -16,10 +16,7 @@ const config = "vitest.e2e.config.mjs";
 const artifacts = path.join(root, "dist", "e2e-artifacts");
 const runRoot = path.join(root, "dist", "e2e-runs");
 const runDir = path.join(runRoot, String(process.pid));
-const stagedRuns = {
-  chrome: path.join(runDir, "bundled-pkg-chrome"),
-  firefox: path.join(runDir, "bundled-pkg-firefox"),
-};
+const stagedRun = path.join(runDir, "bundled-pkg");
 const stagingLockDir = path.join(root, "dist", "e2e-staging.lock");
 const runArtifacts = path.join(artifacts, `run-${Date.now()}-${process.pid}`);
 /** @type {NodeJS.ProcessEnv} */
@@ -43,33 +40,25 @@ pruneRunDirectories(runRoot);
 
 const stagingLock = acquireDirectoryLock(stagingLockDir);
 try {
-  for (const browser of ["chrome", "firefox"]) {
-    execFileSync(process.execPath, [path.join(__dirname, "build-bundled.js")], {
-      cwd: root,
-      env: { ...e2eEnv, SAVE_IN_BROWSER: browser },
-      stdio: "inherit",
-    });
+  execFileSync(process.execPath, [path.join(__dirname, "build-bundled.js")], {
+    cwd: root,
+    env: e2eEnv,
+    stdio: "inherit",
+  });
 
-    // Browsers load immutable per-run copies; the lock serializes concurrent
-    // E2E builds and snapshots while store/dev builds use separate directories.
-    fs.mkdirSync(runDir, { recursive: true });
-    const stagedPackage = `bundled-pkg-e2e${browser === "firefox" ? "-firefox" : ""}`;
-    fs.cpSync(path.join(root, "dist", stagedPackage), stagedRuns[browser], {
-      recursive: true,
-    });
-  }
+  // Browsers load this immutable per-run copy; the lock serializes concurrent
+  // E2E builds and snapshots while store/dev builds use separate directories.
+  fs.mkdirSync(runDir, { recursive: true });
+  fs.cpSync(path.join(root, "dist", "bundled-pkg-e2e"), stagedRun, { recursive: true });
 } finally {
   releaseDirectoryLock(stagingLock);
 }
 
-const suites = [
-  { browser: "chrome", suite: "e2e/chrome.e2e.mjs" },
-  { browser: "firefox", suite: "e2e/firefox.e2e.mjs" },
-];
-const runs = suites.map(({ browser, suite }) => {
+const suites = ["e2e/chrome.e2e.mjs", "e2e/firefox.e2e.mjs"];
+const runs = suites.map((suite) => {
   const child = spawn(process.execPath, [vitest, "run", "--config", config, suite], {
     cwd: root,
-    env: { ...e2eEnv, EXT_DIR: path.relative(root, stagedRuns[browser]) },
+    env: { ...e2eEnv, EXT_DIR: path.relative(root, stagedRun) },
     stdio: "inherit",
     detached: process.platform !== "win32",
   });

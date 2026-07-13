@@ -1,8 +1,8 @@
 # Store submission notes
 
-Save In uses one Manifest V3 codebase with browser-specific staged manifests.
-It requires Node 24 and the dependencies pinned by `package-lock.json`, with
-no Docker image or additional system dependency. Build it with:
+Save In uses one Manifest V3 package for Firefox and Chrome. It requires Node
+24 and the dependencies pinned by `package-lock.json`, with no Docker image or
+additional system dependency. Build it with:
 
 ```sh
 npm ci
@@ -13,10 +13,9 @@ npm run e2e
 npm run build
 ```
 
-The Chrome runtime ZIP is written to `web-ext-artifacts/chrome/`; the Firefox
-runtime ZIP is written to `web-ext-artifacts/firefox/`. Upload each ZIP only
-to its matching store. Chrome uses `incognito: split`; Firefox uses its
-supported `incognito: spanning` value.
+The runtime ZIP is written to `web-ext-artifacts/`. Upload that same ZIP
+manually to AMO and the Chrome Web Store. Both browsers use
+`incognito: spanning`.
 
 ## Mozilla source submission
 
@@ -65,6 +64,10 @@ non-minified JavaScript. No obfuscation or remote executable code is used.
 - Chrome Incognito and Firefox Private Browsing activity is excluded from local
   history, restart-recovery storage, and the extension debug log. Private saves
   use memory-only transient state.
+- Chrome's downloads API cannot select an Incognito context. A Save In download
+  requested from Chrome Incognito may therefore appear in Chrome's regular
+  download manager even though Save In does not retain it in extension history.
+  Firefox associates the download with its Private Browsing session.
 - The external extension API accepts validated save requests from other
   installed extensions. It does not expose user configuration mutation to
   external callers and does not execute received code.
@@ -80,6 +83,13 @@ Declare handling of website content and web browsing activity. Explain that it
 is processed and stored locally only for user-requested saving and history, and
 is not transmitted to the developer. Select **No** for remote code. Use the
 public repository copy of `PRIVACY.md` as the privacy-policy URL.
+
+The Chrome listing and privacy answers must also disclose:
+
+> Save In excludes Incognito activity from its own history and diagnostic log.
+> Because Chrome's extension downloads API has no Incognito selector, a
+> Save In download requested from an Incognito tab may appear in Chrome's
+> regular download manager.
 
 Permission justifications:
 
@@ -114,8 +124,7 @@ Push a `vX.Y.Z` tag only after `package.json` and `manifest.json` both contain
 3. derives `SOURCE_COMMIT` and `SOURCE_DATE` from the tagged commit;
 4. builds the runtime and AMO source ZIPs;
 5. copies them to stable `save-in-X.Y.Z*.zip` names and writes `SHA256SUMS`;
-6. creates GitHub provenance attestations for both runtime files and the source
-   package; and
+6. creates GitHub provenance attestations for the runtime and source files; and
 7. creates a draft GitHub Release with those assets.
 
 Inspect the draft and publish it manually. A rerun may replace assets while the
@@ -124,7 +133,7 @@ published release. Store uploads remain manual and use the files from the
 reviewed draft. Consumers can verify an asset with:
 
 ```sh
-gh attestation verify save-in-X.Y.Z-chrome.zip -R gyng/save-in
+gh attestation verify save-in-X.Y.Z.zip -R gyng/save-in
 ```
 
 Configure a GitHub tag ruleset for `v*` so only maintainers can create or
