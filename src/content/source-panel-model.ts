@@ -18,6 +18,8 @@ export type SourcePanelOptions = {
   onSaveIntent?: () => void;
 };
 
+export type ResourceTimingByUrl = ReadonlyMap<string, PerformanceResourceTiming>;
+
 const urlsFromCss = (value: string): string[] =>
   [...value.matchAll(/url\((?:"([^"]+)"|'([^']+)'|([^)'"\s]+))\)/g)].map(
     (match) => match[1] || match[2] || match[3],
@@ -88,13 +90,47 @@ export const createSourceTooltip = (source: PageSource): HTMLElement | null => {
   return tooltip;
 };
 
-export const collectPageSources = (
+export const resourceTimingByUrl = (
+  entries: PerformanceResourceTiming[] = performance.getEntriesByType(
+    "resource",
+  ) as PerformanceResourceTiming[],
+): Map<string, PerformanceResourceTiming> => new Map(entries.map((entry) => [entry.name, entry]));
+
+export const collectResourceHintSources = (
+  timingByUrl: ResourceTimingByUrl,
+  element: Element = document.body,
+): PageSource[] =>
+  [...timingByUrl.values()]
+    .filter(({ name }) => /\.(?:m3u8|mpd)(?:$|[?#])/i.test(name))
+    .flatMap((entry) => {
+      const url = absoluteUrl(entry.name);
+      return url
+        ? [
+            {
+              url,
+              kind: "stream" as const,
+              element,
+              bytes: entry.encodedBodySize || entry.transferSize || undefined,
+            },
+          ]
+        : [];
+    });
+
+const queryIncludingRoot = <ElementType extends Element>(
+  root: ParentNode,
+  selector: string,
+): ElementType[] => {
+  const elements = [...root.querySelectorAll<ElementType>(selector)];
+  if (root instanceof Element && root.matches(selector)) elements.unshift(root as ElementType);
+  return elements;
+};
+
+export const collectPageSourceCandidates = (
   root: ParentNode = document,
   options: SourcePanelOptions = {},
+  timingByUrl: ResourceTimingByUrl = resourceTimingByUrl(),
 ): PageSource[] => {
   const found: PageSource[] = [];
-  const resourceEntries = performance.getEntriesByType("resource") as PerformanceResourceTiming[];
-  const timingByUrl = new Map(resourceEntries.map((entry) => [entry.name, entry]));
   const add = (value: string | null | undefined, kind: PageSourceKind, element: Element) => {
     const url = value && absoluteUrl(value);
     if (url) {
@@ -108,14 +144,14 @@ export const collectPageSources = (
     }
   };
 
-  root.querySelectorAll<HTMLImageElement>("img").forEach((element) => {
+  queryIncludingRoot<HTMLImageElement>(root, "img").forEach((element) => {
     add(element.currentSrc || element.src, "image", element);
     element
       .getAttribute("srcset")
       ?.split(",")
       .forEach((candidate) => add(candidate.trim().split(/\s+/)[0], "image", element));
   });
-  root.querySelectorAll<HTMLMediaElement>("video, audio").forEach((element) => {
+  queryIncludingRoot<HTMLMediaElement>(root, "video, audio").forEach((element) => {
     const kind = element instanceof HTMLVideoElement ? "video" : "audio";
     add(element.currentSrc || element.src, kind, element);
     element.querySelectorAll<HTMLSourceElement>("source").forEach((source) => {
@@ -127,7 +163,7 @@ export const collectPageSources = (
     });
   });
   if (options.includeLinks !== false) {
-    root.querySelectorAll<HTMLAnchorElement>("a[href]").forEach((element) => {
+    queryIncludingRoot<HTMLAnchorElement>(root, "a[href]").forEach((element) => {
       const href = absoluteUrl(element.href);
       if (!href) return;
       const path = new URL(href).pathname.toLocaleLowerCase();
@@ -146,18 +182,25 @@ export const collectPageSources = (
     });
   }
   if (options.includeBackgrounds !== false) {
-    root.querySelectorAll<HTMLElement>("body, [style], [class], [id]").forEach((element) => {
+    queryIncludingRoot<HTMLElement>(root, "body, [style], [class], [id]").forEach((element) => {
       urlsFromCss(getComputedStyle(element).backgroundImage).forEach((url) =>
         add(url, "image", element),
       );
     });
   }
   if (options.resourceHints !== false) {
-    resourceEntries.forEach((entry) => {
-      if (/\.(?:m3u8|mpd)(?:$|[?#])/i.test(entry.name)) add(entry.name, "stream", document.body);
-    });
+    found.push(...collectResourceHintSources(timingByUrl));
   }
 
+  return found;
+};
+
+export const collectPageSources = (
+  root: ParentNode = document,
+  options: SourcePanelOptions = {},
+): PageSource[] => {
   const seen = new Set<string>();
-  return found.filter(({ url }) => !seen.has(url) && Boolean(seen.add(url)));
+  return collectPageSourceCandidates(root, options).filter(
+    ({ url }) => !seen.has(url) && Boolean(seen.add(url)),
+  );
 };

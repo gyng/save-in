@@ -114,6 +114,11 @@ describe("input helpers", () => {
     expect(ClickToSave.comboToKeyCodes(undefined)).toEqual([]);
   });
 
+  test("comboToKeyCodes fails safely instead of weakening malformed shortcuts", () => {
+    expect(ClickToSave.comboToKeyCodes("garbage")).toEqual([18]);
+    expect(ClickToSave.comboToKeyCodes("Ctrl+garbage")).toEqual([18]);
+  });
+
   test("isMouseButtonActive maps buttons bitmask to configured button", () => {
     expect(ClickToSave.isMouseButtonActive("LEFT_CLICK", 1)).toBe(true);
     expect(ClickToSave.isMouseButtonActive("RIGHT_CLICK", 2)).toBe(true);

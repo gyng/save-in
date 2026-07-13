@@ -2,6 +2,7 @@ import { setSourcePanelOpen, toggleSourcePanel, type PageSource } from "./source
 import {
   CONTENT_OPTION_DEFAULTS,
   CONTENT_OPTION_KEYS,
+  contentClickComboToKeyCodes,
   normalizeContentOption,
   resolveContentOptions,
   type ContentOptions,
@@ -30,38 +31,10 @@ const ClickToSave = {
     return Boolean(bit) && (buttons & bit!) === bit;
   },
 
-  // Resolve the stored combo option to keyCodes. Accepts a raw keyCode number
-  // (old stored values — backward compat), a key name (Alt/Ctrl/Shift/Meta),
-  // or "none"/blank. Unknown / non-positive values drop out so the combo can be
-  // empty — an empty combo is always active (the mouse button alone saves).
-  comboToKeyCodes: (value: string | number | null | undefined): number[] => {
-    const names: Record<string, number> = {
-      alt: 18,
-      option: 18,
-      ctrl: 17,
-      control: 17,
-      shift: 16,
-      meta: 91,
-      cmd: 91,
-      command: 91,
-      win: 91,
-      windows: 91,
-      super: 91,
-    };
-    const values = typeof value === "string" && value.includes("+") ? value.split("+") : [value];
-    return values
-      .map((v) => {
-        const key = String(v == null ? "" : v)
-          .trim()
-          .toLowerCase();
-        if (key in names) {
-          return names[key];
-        }
-        const num = Number(v);
-        return Number.isFinite(num) ? num : 0;
-      })
-      .filter((k) => k > 0);
-  },
+  // Resolve the stored combo option to keyCodes. Raw keyCode numbers remain
+  // backward compatible, while malformed strings fall back to Alt instead of
+  // silently weakening the shortcut to mouse-button-only.
+  comboToKeyCodes: contentClickComboToKeyCodes,
 
   // Resolves what to download for a click: media under the cursor first
   // (e.target can be an overlay), then the enclosing link (#226)

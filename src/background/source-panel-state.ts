@@ -47,5 +47,7 @@ export const toggleSourcePanelForTab = (tabId: number): Promise<void> => {
   return queue;
 };
 
-export const syncSourcePanelToTab = async (tabId: number): Promise<void> =>
-  send(tabId, await read());
+export const syncSourcePanelToTab = (tabId: number): Promise<void> => {
+  queue = queue.then(async () => send(tabId, await read()));
+  return queue;
+};

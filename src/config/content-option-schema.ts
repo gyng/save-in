@@ -1,4 +1,4 @@
-import { CONTENT_OPTION_DEFAULTS, isClickType } from "./content-options.ts";
+import { CONTENT_OPTION_DEFAULTS, isClickType, isContentClickCombo } from "./content-options.ts";
 
 // Background-only schema metadata. The content bundle imports the shared
 // defaults/normalizer, but not these definition objects.
@@ -27,6 +27,7 @@ export const CONTENT_FEATURE_OPTION_DEFINITIONS = [
     type: "VALUE",
     // Numeric keyCodes remain valid for settings created by older releases.
     onLoad: (value: string | number) => value,
+    validate: isContentClickCombo,
     default: CONTENT_OPTION_DEFAULTS.contentClickToSaveCombo,
   },
   {

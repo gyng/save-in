@@ -68,6 +68,7 @@ describe("page source collection", () => {
       { name: "https://cdn.test/master.m3u8?token=x" } as PerformanceEntry,
       { name: "https://cdn.test/manifest.mpd" } as PerformanceEntry,
       { name: "https://cdn.test/player.js" } as PerformanceEntry,
+      { name: "javascript:unsafe.m3u8" } as PerformanceEntry,
     ]);
     expect(collectPageSources().map(({ url, kind }) => [url, kind])).toEqual([
       ["https://cdn.test/master.m3u8?token=x", "stream"],
@@ -238,6 +239,9 @@ describe("Page Sources panel interactions", () => {
     resourceReads.mockClear();
     const shadow = document.getElementById("save-in-source-panel")!.shadowRoot!;
     const filter = shadow.querySelector<HTMLInputElement>('input[type="search"]')!;
+    const dogRow = [...shadow.querySelectorAll<HTMLElement>(".row")].find((row) =>
+      row.textContent?.includes("dog.jpg"),
+    );
 
     filter.value = "c";
     filter.dispatchEvent(new Event("input"));
@@ -247,6 +251,15 @@ describe("Page Sources panel interactions", () => {
 
     expect(resourceReads).not.toHaveBeenCalled();
     expect(shadow.querySelectorAll(".row")).toHaveLength(1);
+
+    filter.value = "";
+    filter.dispatchEvent(new Event("input"));
+    vi.advanceTimersByTime(80);
+    expect(
+      [...shadow.querySelectorAll<HTMLElement>(".row")].find((row) =>
+        row.textContent?.includes("dog.jpg"),
+      ),
+    ).toBe(dogRow);
     vi.useRealTimers();
   });
 
@@ -283,12 +296,15 @@ describe("Page Sources panel interactions", () => {
     expect(video.src).toBe("http://localhost/movie.mp4");
   });
 
-  test("ignores panel style mutations but refreshes changed link targets", async () => {
+  test("ignores panel mutations and incrementally reconciles changed link targets", async () => {
     vi.useFakeTimers();
-    document.body.innerHTML = `<a id="dynamic" href="first.html">first</a>`;
+    document.body.innerHTML = `<a id="dynamic" href="first.html">first</a><a href="stable.html">stable</a>`;
     const resourceReads = vi.spyOn(performance, "getEntriesByType");
     toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: true });
     const host = document.getElementById("save-in-source-panel")!;
+    const stableRow = [...host.shadowRoot!.querySelectorAll<HTMLElement>(".row")].find((row) =>
+      row.textContent?.includes("stable.html"),
+    );
     resourceReads.mockClear();
 
     host.style.width = "400px";
@@ -299,11 +315,57 @@ describe("Page Sources panel interactions", () => {
     document.querySelector<HTMLAnchorElement>("#dynamic")!.href = "second.html";
     await Promise.resolve();
     vi.advanceTimersByTime(250);
-    expect(resourceReads).toHaveBeenCalledOnce();
-    expect(host.shadowRoot!.querySelector<HTMLAnchorElement>(".source-link")!.href).toBe(
-      "http://localhost/second.html",
-    );
+    expect(resourceReads).not.toHaveBeenCalled();
+    expect(
+      [...host.shadowRoot!.querySelectorAll<HTMLAnchorElement>(".source-link")].map(
+        ({ href }) => href,
+      ),
+    ).toContain("http://localhost/second.html");
+    expect(
+      [...host.shadowRoot!.querySelectorAll<HTMLElement>(".row")].find((row) =>
+        row.textContent?.includes("stable.html"),
+      ),
+    ).toBe(stableRow);
+    expect(
+      [...host.shadowRoot!.querySelectorAll<HTMLAnchorElement>(".source-link")].map(
+        ({ href }) => href,
+      ),
+    ).not.toContain("http://localhost/first.html");
+    expect(
+      [...host.shadowRoot!.querySelectorAll<HTMLAnchorElement>(".source-link")].map(
+        ({ href }) => href,
+      ),
+    ).toContain("http://localhost/stable.html");
     vi.useRealTimers();
+  });
+
+  test("incrementally adds and removes sources while retaining duplicate URL fallbacks", async () => {
+    vi.useFakeTimers();
+    document.body.innerHTML = `<img id="first" src="shared.jpg"><img id="second" src="shared.jpg">`;
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: true });
+    const host = document.getElementById("save-in-source-panel")!;
+
+    document.querySelector("#first")!.remove();
+    const added = document.createElement("img");
+    added.src = "new.jpg";
+    document.body.append(added);
+    await Promise.resolve();
+    vi.advanceTimersByTime(200);
+
+    expect(
+      [...host.shadowRoot!.querySelectorAll<HTMLAnchorElement>(".source-link")].map(
+        ({ href }) => href,
+      ),
+    ).toEqual(expect.arrayContaining(["http://localhost/shared.jpg", "http://localhost/new.jpg"]));
+
+    document.querySelector("#second")!.remove();
+    await Promise.resolve();
+    vi.advanceTimersByTime(200);
+    expect(
+      [...host.shadowRoot!.querySelectorAll<HTMLAnchorElement>(".source-link")].map(
+        ({ href }) => href,
+      ),
+    ).not.toContain("http://localhost/shared.jpg");
   });
 
   test("refreshes computed backgrounds after a class change", async () => {
@@ -350,7 +412,12 @@ describe("Page Sources panel interactions", () => {
     vi.advanceTimersByTime(200);
 
     expect(observe).toHaveBeenCalledWith({ entryTypes: ["resource"] });
-    expect(resourceReads).toHaveBeenCalledOnce();
+    expect(resourceReads).not.toHaveBeenCalled();
+    expect(
+      document
+        .getElementById("save-in-source-panel")!
+        .shadowRoot!.querySelector<HTMLAnchorElement>(".source-link")!.href,
+    ).toBe("https://cdn.test/new.m3u8");
   });
 
   test("wraps facets and uses compact accessible header actions", () => {
@@ -393,6 +460,33 @@ describe("Page Sources panel interactions", () => {
     row.dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, key: "Enter", altKey: true }));
 
     expect(onSaveIntent).toHaveBeenCalledTimes(4);
+  });
+
+  test("Alt-clicking the Save action triggers only its button download", () => {
+    document.body.innerHTML = `<img src="cat.jpg">`;
+    const sendDownload = vi.fn();
+    toggleSourcePanel(sendDownload, { includeBackgrounds: false, live: false });
+    const save = document
+      .getElementById("save-in-source-panel")!
+      .shadowRoot!.querySelector<HTMLButtonElement>(".actions button:last-child")!;
+
+    save.dispatchEvent(new MouseEvent("click", { bubbles: true, button: 0, altKey: true }));
+
+    expect(sendDownload).toHaveBeenCalledOnce();
+  });
+
+  test("Alt-clicking non-save action buttons does not trigger a row download", () => {
+    document.body.innerHTML = `<img src="cat.jpg">`;
+    const sendDownload = vi.fn();
+    toggleSourcePanel(sendDownload, { includeBackgrounds: false, live: false });
+    const locate = document
+      .getElementById("save-in-source-panel")!
+      .shadowRoot!.querySelector<HTMLButtonElement>(".actions button")!;
+    document.querySelector<HTMLImageElement>("img")!.scrollIntoView = vi.fn();
+
+    locate.dispatchEvent(new MouseEvent("click", { bubbles: true, button: 0, altKey: true }));
+
+    expect(sendDownload).not.toHaveBeenCalled();
   });
 
   test("pops the drawer into a draggable floating panel", () => {

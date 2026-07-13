@@ -3,6 +3,53 @@ import { CLICK_TYPES, type ClickType } from "../shared/constants.ts";
 export const isClickType = (value: unknown): value is ClickType =>
   typeof value === "string" && Object.values(CLICK_TYPES).includes(value as ClickType);
 
+const CONTENT_CLICK_COMBO_KEY_CODES: Record<string, number> = {
+  alt: 18,
+  option: 18,
+  ctrl: 17,
+  control: 17,
+  shift: 16,
+  meta: 91,
+  cmd: 91,
+  command: 91,
+  win: 91,
+  windows: 91,
+  super: 91,
+};
+const DEFAULT_CONTENT_CLICK_COMBO = "Alt";
+
+const contentClickComboParts = (value: string | number): string[] | null => {
+  if (typeof value === "number") return Number.isFinite(value) ? [String(value)] : null;
+  const normalized = value.trim();
+  if (!normalized || normalized.toLocaleLowerCase() === "none") return [];
+  const parts = normalized.split("+").map((part) => part.trim().toLocaleLowerCase());
+  return parts.every(
+    (part) =>
+      Boolean(part) && (part in CONTENT_CLICK_COMBO_KEY_CODES || Number.isFinite(Number(part))),
+  )
+    ? parts
+    : null;
+};
+
+export const isContentClickCombo = (value: unknown): value is string | number =>
+  (typeof value === "string" || typeof value === "number") &&
+  contentClickComboParts(value) !== null;
+
+export const contentClickComboToKeyCodes = (
+  value: string | number | null | undefined,
+): number[] => {
+  if (value == null) return [];
+  const parts = contentClickComboParts(value);
+  // Invalid imported/profile values must not silently weaken the shortcut to
+  // button-only. The normalizer uses the same parser, but this also keeps the
+  // exported input helper safe when called directly.
+  if (parts === null)
+    return [CONTENT_CLICK_COMBO_KEY_CODES[DEFAULT_CONTENT_CLICK_COMBO.toLocaleLowerCase()]];
+  return parts
+    .map((part) => CONTENT_CLICK_COMBO_KEY_CODES[part] ?? Number(part))
+    .filter((keyCode) => keyCode > 0);
+};
+
 // These defaults are the single source of truth for both the background schema
 // and the lightweight direct-storage content path.
 export const CONTENT_OPTION_DEFAULTS = {
@@ -13,7 +60,7 @@ export const CONTENT_OPTION_DEFAULTS = {
   sourcePanelPreviews: true,
   sourcePanelResourceHints: true,
   sourcePanelLinks: true,
-  contentClickToSaveCombo: "Alt" as string | number,
+  contentClickToSaveCombo: DEFAULT_CONTENT_CLICK_COMBO as string | number,
   contentClickToSaveButton: CLICK_TYPES.LEFT_CLICK as ClickType,
   links: true,
 };
@@ -34,11 +81,7 @@ export const normalizeContentOption = <Name extends ContentOptionName>(
   const defaultValue = CONTENT_OPTION_DEFAULTS[name];
   if (typeof stored === "undefined") return defaultValue;
   if (name === "contentClickToSaveCombo")
-    return (
-      typeof stored === "string" || (typeof stored === "number" && Number.isFinite(stored))
-        ? stored
-        : defaultValue
-    ) as ResolvedContentOptions[Name];
+    return (isContentClickCombo(stored) ? stored : defaultValue) as ResolvedContentOptions[Name];
   if (name === "contentClickToSaveButton")
     return (isClickType(stored) ? stored : defaultValue) as ResolvedContentOptions[Name];
   return (

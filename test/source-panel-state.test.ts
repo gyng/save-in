@@ -43,4 +43,25 @@ describe("shared Page Sources open state", () => {
       body: { open: true },
     });
   });
+
+  test("serializes activation sync after a pending panel-state write", async () => {
+    let stored = true;
+    (global.browser as any).storage.session.get = vi.fn(() =>
+      Promise.resolve({ sourcePanelOpen: stored }),
+    );
+    (global.browser as any).storage.session.set = vi.fn(async (value) => {
+      stored = value.sourcePanelOpen;
+    });
+    const { setSourcePanelOpenState, syncSourcePanelToTab } =
+      await import("../src/background/source-panel-state.ts");
+
+    const close = setSourcePanelOpenState(false);
+    const sync = syncSourcePanelToTab(11);
+    await Promise.all([close, sync]);
+
+    expect(global.browser.tabs.sendMessage).toHaveBeenCalledWith(11, {
+      type: "SET_SOURCE_PANEL",
+      body: { open: false },
+    });
+  });
 });

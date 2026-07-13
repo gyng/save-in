@@ -28,3 +28,27 @@ test("normalizes malformed values and preserves legacy numeric shortcut keycodes
     sourcePanelEnabled: true,
   });
 });
+
+test("falls back safely when a stored shortcut string contains unknown keys", () => {
+  expect(
+    resolveContentOptions({
+      contentClickToSaveCombo: "garbage",
+    }).contentClickToSaveCombo,
+  ).toBe(CONTENT_OPTION_DEFAULTS.contentClickToSaveCombo);
+  expect(
+    resolveContentOptions({
+      contentClickToSaveCombo: "Ctrl+garbage",
+    }).contentClickToSaveCombo,
+  ).toBe(CONTENT_OPTION_DEFAULTS.contentClickToSaveCombo);
+
+  expect(resolveContentOptions({ contentClickToSaveCombo: "None" }).contentClickToSaveCombo).toBe(
+    "None",
+  );
+  expect(resolveContentOptions({ contentClickToSaveCombo: "90" }).contentClickToSaveCombo).toBe(
+    "90",
+  );
+
+  const comboDefinition = OPTION_KEYS.find(({ name }) => name === "contentClickToSaveCombo")!;
+  expect("validate" in comboDefinition && comboDefinition.validate("garbage")).toBe(false);
+  expect("validate" in comboDefinition && comboDefinition.validate("Ctrl+Shift")).toBe(true);
+});

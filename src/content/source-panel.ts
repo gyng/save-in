@@ -1,9 +1,11 @@
 import {
-  collectPageSources,
+  collectPageSourceCandidates,
+  collectResourceHintSources,
   createSourceTooltip,
   filterPageSources,
   formatSourceBytes,
   sortPageSources,
+  resourceTimingByUrl,
   ytDlpCommand,
   type PageSource,
   type PageSourceKind,
@@ -13,10 +15,13 @@ import {
 
 export {
   collectPageSources,
+  collectPageSourceCandidates,
+  collectResourceHintSources,
   createSourceTooltip,
   filterPageSources,
   formatSourceBytes,
   sortPageSources,
+  resourceTimingByUrl,
   ytDlpCommand,
   type PageSource,
   type PageSourceKind,
@@ -256,9 +261,13 @@ export const toggleSourcePanel = (
   let activeKind: "all" | PageSourceKind = "all";
   const firstSeen = new Map<string, { at: number; order: number }>();
   const highlightedElements = new WeakSet<Element>();
+  const timingByUrl = resourceTimingByUrl();
   let detectionSequence = 0;
+  let sourceCandidates: PageSource[] = [];
   let allSources: PageSource[] = [];
   let visibleSources: PageSource[] = [];
+  let resourceHintSources: PageSource[] = [];
+  const rowCache = new Map<string, { source: PageSource; row: HTMLElement }>();
   const pendingPreviewSources = new WeakMap<Element, string>();
   const previewObserver =
     typeof IntersectionObserver === "function"
@@ -290,8 +299,11 @@ export const toggleSourcePanel = (
     pendingPreviewSources.set(preview, source);
     previewObserver.observe(preview);
   };
-  const refreshSources = () => {
-    allSources = collectPageSources(document, options);
+  const commitSources = () => {
+    const seen = new Set<string>();
+    allSources = [sourceCandidates, resourceHintSources]
+      .flat()
+      .filter(({ url }) => !seen.has(url) && Boolean(seen.add(url)));
     const presentUrls = new Set(allSources.map(({ url }) => url));
     firstSeen.forEach((_value, url) => {
       if (!presentUrls.has(url)) firstSeen.delete(url);
@@ -306,6 +318,31 @@ export const toggleSourcePanel = (
     });
     render();
   };
+  const refreshSources = () => {
+    sourceCandidates = collectPageSourceCandidates(
+      document,
+      { ...options, resourceHints: false },
+      timingByUrl,
+    );
+    resourceHintSources =
+      options.resourceHints === false ? [] : collectResourceHintSources(timingByUrl, document.body);
+    commitSources();
+  };
+  const removeSourcesUnder = (root: Element) => {
+    sourceCandidates = sourceCandidates.filter(
+      ({ element }) => element !== root && !root.contains(element),
+    );
+  };
+  const reconcileRoot = (changedRoot: Element) => {
+    const root =
+      changedRoot.matches("source") && changedRoot.closest("video, audio")
+        ? changedRoot.closest("video, audio")!
+        : changedRoot;
+    removeSourcesUnder(root);
+    sourceCandidates.push(
+      ...collectPageSourceCandidates(root, { ...options, resourceHints: false }, timingByUrl),
+    );
+  };
   const render = () => {
     previewObserver?.disconnect();
     const sources = sortPageSources(
@@ -314,8 +351,13 @@ export const toggleSourcePanel = (
     );
     visibleSources = sources;
     title.textContent = "Page sources";
-    list.replaceChildren();
     facets.replaceChildren();
+    const presentUrls = new Set(allSources.map(({ url }) => url));
+    rowCache.forEach(({ row }, url) => {
+      if (presentUrls.has(url)) return;
+      row.remove();
+      rowCache.delete(url);
+    });
     const searchedSources = filterPageSources(allSources, filter.value, "all");
     (["all", "image", "video", "audio", "document", "stream", "link"] as const).forEach(
       (kindName) => {
@@ -354,7 +396,29 @@ export const toggleSourcePanel = (
       return;
     }
     copyUrls.disabled = false;
+    list.querySelector(":scope > .empty")?.remove();
+    let rowIndex = 0;
+    const placeRow = (row: HTMLElement) => {
+      const current = list.children[rowIndex] || null;
+      if (current !== row) list.insertBefore(row, current);
+      rowIndex += 1;
+    };
     sources.forEach((source) => {
+      const cached = rowCache.get(source.url);
+      if (
+        cached &&
+        cached.source.kind === source.kind &&
+        cached.source.element === source.element &&
+        cached.source.bytes === source.bytes
+      ) {
+        const preview = cached.row.querySelector<HTMLImageElement | HTMLMediaElement>("img, video");
+        if (previewObserver && preview && !preview.hasAttribute("src")) {
+          previewObserver.observe(preview);
+        }
+        placeRow(cached.row);
+        return;
+      }
+      cached?.row.remove();
       const row = document.createElement("div");
       row.className = "row";
       const preview =
@@ -583,7 +647,12 @@ export const toggleSourcePanel = (
         syncPreview();
       });
       row.addEventListener("click", (event) => {
-        if (!event.altKey || event.button !== 0) return;
+        if (
+          !event.altKey ||
+          event.button !== 0 ||
+          (event.target instanceof Element && event.target.closest("button"))
+        )
+          return;
         event.preventDefault();
         event.stopPropagation();
         sendDownload(source);
@@ -609,8 +678,10 @@ export const toggleSourcePanel = (
       if (!hasRichTooltip)
         row.title = "Alt+click to save; right-click the source title for Save In";
       row.append(sourceLink, actions);
-      list.append(row);
+      rowCache.set(source.url, { source, row });
+      placeRow(row);
     });
+    while (list.children.length > rowIndex) list.lastElementChild?.remove();
   };
   let filterTimer = 0;
   filter.addEventListener("input", () => {
@@ -644,9 +715,27 @@ export const toggleSourcePanel = (
   refreshSources();
   filter.focus();
   let refreshTimer = 0;
+  const pendingRoots = new Set<Element>();
+  const removedRoots = new Set<Element>();
+  let fullRefreshPending = false;
   const scheduleRefresh = () => {
     window.clearTimeout(refreshTimer);
-    refreshTimer = window.setTimeout(refreshSources, 200);
+    refreshTimer = window.setTimeout(() => {
+      if (fullRefreshPending) {
+        fullRefreshPending = false;
+        pendingRoots.clear();
+        removedRoots.clear();
+        refreshSources();
+        return;
+      }
+      removedRoots.forEach(removeSourcesUnder);
+      removedRoots.clear();
+      pendingRoots.forEach((root) => {
+        if (root.isConnected) reconcileRoot(root);
+      });
+      pendingRoots.clear();
+      commitSources();
+    }, 200);
   };
   const observer = new MutationObserver((mutations) => {
     if (!host.isConnected) {
@@ -663,6 +752,34 @@ export const toggleSourcePanel = (
       )
     )
       return;
+    mutations.forEach((mutation) => {
+      if (!(mutation.target instanceof Element)) return;
+      const affectsStylesheet =
+        options.includeBackgrounds !== false &&
+        (mutation.target.closest("style") ||
+          mutation.target.matches('link[rel~="stylesheet"]') ||
+          [...mutation.addedNodes, ...mutation.removedNodes].some(
+            (node) =>
+              node instanceof Element &&
+              (node.matches('style, link[rel~="stylesheet"]') ||
+                Boolean(node.querySelector('style, link[rel~="stylesheet"]'))),
+          ));
+      if (affectsStylesheet) {
+        fullRefreshPending = true;
+        return;
+      }
+      if (mutation.type === "attributes") {
+        pendingRoots.add(mutation.target);
+        return;
+      }
+      mutation.removedNodes.forEach((node) => {
+        if (node instanceof Element) removedRoots.add(node);
+      });
+      mutation.addedNodes.forEach((node) => {
+        if (node instanceof Element) pendingRoots.add(node);
+      });
+      if (mutation.target.matches("video, audio")) pendingRoots.add(mutation.target);
+    });
     scheduleRefresh();
   });
   const resourceObserver =
@@ -670,9 +787,11 @@ export const toggleSourcePanel = (
     options.resourceHints !== false &&
     typeof PerformanceObserver === "function"
       ? new PerformanceObserver((entries) => {
-          if (entries.getEntries().some(({ name }) => /\.(?:m3u8|mpd)(?:$|[?#])/i.test(name))) {
-            scheduleRefresh();
-          }
+          const observed = entries.getEntries() as PerformanceResourceTiming[];
+          observed.forEach((entry) => timingByUrl.set(entry.name, entry));
+          if (!observed.some(({ name }) => /\.(?:m3u8|mpd)(?:$|[?#])/i.test(name))) return;
+          resourceHintSources = collectResourceHintSources(timingByUrl, document.body);
+          commitSources();
         })
       : null;
   panelCleanups.set(host, () => {
