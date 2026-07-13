@@ -1831,5 +1831,14 @@
   },
   "o_lShortcutFormatLinux": {
     "message": "Linux デスクトップ ショートカット"
+  },
+  "html_closePrivacyPolicy": { "message": "プライバシーポリシーを閉じる" },
+  "o_sAppearance": { "message": "外観" },
+  "o_lUiTheme": { "message": "テーマ" },
+  "o_lUiThemeSystem": { "message": "システム" },
+  "o_lUiThemeDark": { "message": "ダーク" },
+  "o_lUiThemeLight": { "message": "ライト" },
+  "o_lUiThemeHelp": {
+    "message": "システムテーマに合わせるか、オプションページとページソースを常にダークまたはライトに設定します。"
   }
 }

@@ -160,7 +160,7 @@ test("English is the only browser-native catalog", () => {
   expect(locales).toEqual(["en"]);
 });
 
-test("AI-generated partial catalogs match the English schema and fall back for new keys", () => {
+test("AI-generated catalogs match the complete English schema", () => {
   const canonical = readCatalog("en");
   for (const { locale } of GENERATED_LOCALES) {
     const catalog = readGeneratedCatalog(locale);
@@ -168,6 +168,10 @@ test("AI-generated partial catalogs match the English schema and fall back for n
     expect(
       catalogKeys.filter((key) => !canonical[key]),
       `${locale} unknown keys`,
+    ).toEqual([]);
+    expect(
+      Object.keys(canonical).filter((key) => !catalog[key]),
+      `${locale} missing keys`,
     ).toEqual([]);
     expect(
       catalogKeys.filter(

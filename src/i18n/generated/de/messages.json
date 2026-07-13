@@ -1710,5 +1710,31 @@
   },
   "o_lShortcutFormatLinux": {
     "message": "Linux Desktop-Verknüpfung"
+  },
+  "html_closePrivacyPolicy": { "message": "Datenschutzerklärung schließen" },
+  "historyColumnInitiated": { "message": "Gestartet" },
+  "historyColumnSource": { "message": "Quelle" },
+  "historyColumnMethod": { "message": "Methode" },
+  "historyColumnStatus": { "message": "Status" },
+  "historyColumnSize": { "message": "Größe" },
+  "historyColumnType": { "message": "Typ" },
+  "historyColumnRule": { "message": "Regel" },
+  "historyColumnFile": { "message": "Datei" },
+  "historyColumnFolder": { "message": "Ordner" },
+  "historyColumnUrl": { "message": "URL" },
+  "historyColumnFullPath": { "message": "Vollständiger Pfad" },
+  "historyColumnDownloadId": { "message": "Download-ID" },
+  "historyColumnMenuItem": { "message": "Menüeintrag" },
+  "historyColumnVariables": { "message": "Variablen" },
+  "o_lSourcePanelShortcutResetHelp": {
+    "message": "Zurücksetzen stellt die vom Browser vorgeschlagene Standardeinstellung wieder her."
+  },
+  "o_sAppearance": { "message": "Erscheinungsbild" },
+  "o_lUiTheme": { "message": "Design" },
+  "o_lUiThemeSystem": { "message": "System" },
+  "o_lUiThemeDark": { "message": "Dunkel" },
+  "o_lUiThemeLight": { "message": "Hell" },
+  "o_lUiThemeHelp": {
+    "message": "Folgen Sie dem Systemdesign oder verwenden Sie für die Optionsseite und die Seitenquellen immer ein dunkles oder helles Design."
   }
 }

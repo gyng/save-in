@@ -1831,5 +1831,14 @@
   },
   "o_lShortcutFormatLinux": {
     "message": "Linux 데스크탑 바로가기"
+  },
+  "html_closePrivacyPolicy": { "message": "개인정보 처리방침 닫기" },
+  "o_sAppearance": { "message": "화면 표시" },
+  "o_lUiTheme": { "message": "테마" },
+  "o_lUiThemeSystem": { "message": "시스템" },
+  "o_lUiThemeDark": { "message": "어둡게" },
+  "o_lUiThemeLight": { "message": "밝게" },
+  "o_lUiThemeHelp": {
+    "message": "시스템 테마를 따르거나 옵션 페이지와 페이지 소스를 항상 어둡게 또는 밝게 표시합니다."
   }
 }

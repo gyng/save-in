@@ -1712,5 +1712,31 @@
   },
   "o_lShortcutFormatLinux": {
     "message": "Atalho Linux na área de trabalho"
+  },
+  "html_closePrivacyPolicy": { "message": "Fechar política de privacidade" },
+  "historyColumnInitiated": { "message": "Iniciado" },
+  "historyColumnSource": { "message": "Origem" },
+  "historyColumnMethod": { "message": "Método" },
+  "historyColumnStatus": { "message": "Status" },
+  "historyColumnSize": { "message": "Tamanho" },
+  "historyColumnType": { "message": "Tipo" },
+  "historyColumnRule": { "message": "Regra" },
+  "historyColumnFile": { "message": "Arquivo" },
+  "historyColumnFolder": { "message": "Pasta" },
+  "historyColumnUrl": { "message": "URL" },
+  "historyColumnFullPath": { "message": "Caminho completo" },
+  "historyColumnDownloadId": { "message": "ID do download" },
+  "historyColumnMenuItem": { "message": "Item de menu" },
+  "historyColumnVariables": { "message": "Variáveis" },
+  "o_lSourcePanelShortcutResetHelp": {
+    "message": "Redefinir restaura o padrão sugerido pelo navegador."
+  },
+  "o_sAppearance": { "message": "Aparência" },
+  "o_lUiTheme": { "message": "Tema" },
+  "o_lUiThemeSystem": { "message": "Sistema" },
+  "o_lUiThemeDark": { "message": "Escuro" },
+  "o_lUiThemeLight": { "message": "Claro" },
+  "o_lUiThemeHelp": {
+    "message": "Siga o tema do sistema ou mantenha a página de opções e os recursos da página sempre no modo escuro ou claro."
   }
 }

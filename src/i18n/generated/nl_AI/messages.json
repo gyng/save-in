@@ -1712,5 +1712,31 @@
   },
   "o_lShortcutFormatLinux": {
     "message": "Linux snelkoppeling op het bureaublad"
+  },
+  "html_closePrivacyPolicy": { "message": "Privacybeleid sluiten" },
+  "historyColumnInitiated": { "message": "Gestart" },
+  "historyColumnSource": { "message": "Bron" },
+  "historyColumnMethod": { "message": "Methode" },
+  "historyColumnStatus": { "message": "Status" },
+  "historyColumnSize": { "message": "Grootte" },
+  "historyColumnType": { "message": "Type" },
+  "historyColumnRule": { "message": "Regel" },
+  "historyColumnFile": { "message": "Bestand" },
+  "historyColumnFolder": { "message": "Map" },
+  "historyColumnUrl": { "message": "URL" },
+  "historyColumnFullPath": { "message": "Volledig pad" },
+  "historyColumnDownloadId": { "message": "Download-ID" },
+  "historyColumnMenuItem": { "message": "Menu-item" },
+  "historyColumnVariables": { "message": "Variabelen" },
+  "o_lSourcePanelShortcutResetHelp": {
+    "message": "Opnieuw instellen herstelt de door de browser voorgestelde standaardwaarde."
+  },
+  "o_sAppearance": { "message": "Uiterlijk" },
+  "o_lUiTheme": { "message": "Thema" },
+  "o_lUiThemeSystem": { "message": "Systeem" },
+  "o_lUiThemeDark": { "message": "Donker" },
+  "o_lUiThemeLight": { "message": "Licht" },
+  "o_lUiThemeHelp": {
+    "message": "Volg het systeemthema of houd de optiepagina en paginabronnen altijd donker of licht."
   }
 }

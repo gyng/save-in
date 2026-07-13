@@ -1831,5 +1831,14 @@
   },
   "o_lShortcutFormatLinux": {
     "message": "Linux 桌面捷徑"
+  },
+  "html_closePrivacyPolicy": { "message": "關閉隱私權政策" },
+  "o_sAppearance": { "message": "外觀" },
+  "o_lUiTheme": { "message": "主題" },
+  "o_lUiThemeSystem": { "message": "系統" },
+  "o_lUiThemeDark": { "message": "深色" },
+  "o_lUiThemeLight": { "message": "淺色" },
+  "o_lUiThemeHelp": {
+    "message": "跟隨系統主題，或讓選項頁面和頁面來源一律使用深色或淺色主題。"
   }
 }

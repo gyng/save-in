@@ -1706,5 +1706,31 @@
   },
   "o_lShortcutFormatLinux": {
     "message": "Linux skrivbordsgenväg"
+  },
+  "html_closePrivacyPolicy": { "message": "Stäng integritetspolicyn" },
+  "historyColumnInitiated": { "message": "Startad" },
+  "historyColumnSource": { "message": "Källa" },
+  "historyColumnMethod": { "message": "Metod" },
+  "historyColumnStatus": { "message": "Status" },
+  "historyColumnSize": { "message": "Storlek" },
+  "historyColumnType": { "message": "Typ" },
+  "historyColumnRule": { "message": "Regel" },
+  "historyColumnFile": { "message": "Fil" },
+  "historyColumnFolder": { "message": "Mapp" },
+  "historyColumnUrl": { "message": "URL" },
+  "historyColumnFullPath": { "message": "Fullständig sökväg" },
+  "historyColumnDownloadId": { "message": "Nedladdnings-ID" },
+  "historyColumnMenuItem": { "message": "Menyalternativ" },
+  "historyColumnVariables": { "message": "Variabler" },
+  "o_lSourcePanelShortcutResetHelp": {
+    "message": "Med Återställ återställs webbläsarens föreslagna standardvärde."
+  },
+  "o_sAppearance": { "message": "Utseende" },
+  "o_lUiTheme": { "message": "Tema" },
+  "o_lUiThemeSystem": { "message": "System" },
+  "o_lUiThemeDark": { "message": "Mörkt" },
+  "o_lUiThemeLight": { "message": "Ljust" },
+  "o_lUiThemeHelp": {
+    "message": "Följ systemtemat eller använd alltid mörkt eller ljust tema på alternativsidan och i sidkällor."
   }
 }

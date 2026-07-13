@@ -1831,5 +1831,14 @@
   },
   "o_lShortcutFormatLinux": {
     "message": "Linux 桌面快捷方式"
+  },
+  "html_closePrivacyPolicy": { "message": "关闭隐私政策" },
+  "o_sAppearance": { "message": "外观" },
+  "o_lUiTheme": { "message": "主题" },
+  "o_lUiThemeSystem": { "message": "系统" },
+  "o_lUiThemeDark": { "message": "深色" },
+  "o_lUiThemeLight": { "message": "浅色" },
+  "o_lUiThemeHelp": {
+    "message": "跟随系统主题，或让选项页面和页面来源始终使用深色或浅色主题。"
   }
 }
