@@ -936,7 +936,7 @@
     "message": "Allemaal"
   },
   "html_altOption": {
-    "message": "Alt / Optie"
+    "message": "Alt / Option"
   },
   "html_applyShortcut": {
     "message": "Sneltoets toepassen"
@@ -954,10 +954,10 @@
     "message": "Kolommen"
   },
   "html_command": {
-    "message": "Commando"
+    "message": "Command"
   },
   "html_commandWindowsKey": {
-    "message": "Commando / Windows-toets"
+    "message": "Command / Windows key"
   },
   "html_copy0LeavesDismissalToTheBrowserOrOperatingSystem": {
     "message": "Bij 0 bepaalt de browser of het besturingssysteem wanneer de melding verdwijnt."

@@ -211,13 +211,40 @@ test("AI-generated catalogs preserve technical tokens and localized UI terminolo
     "o_cSaveShortcutsTypeWindows",
     "o_cSaveShortcutsTypeFreedesktop",
   ];
+  const keyLabelKeys = [
+    "html_altOption",
+    "html_command",
+    "html_commandWindowsKey",
+    "html_ctrl",
+    "html_macctrl",
+    "html_shift",
+  ];
+  const keyboardTokenKeys = [
+    "o_cKeyboardShortcutClickToHelp",
+    "o_cOpenDialogShift",
+    "o_lShortcutFormat",
+    "o_lShortcutPrimaryModifier",
+    "o_lShortcutValidKey",
+    "o_lSourcePanelShortcutHelp",
+  ];
+  const keyboardTokenPattern = /\b(?:Alt|Shift|Ctrl|Command|MacCtrl|PageDown)\b/g;
   const protectedTokenPattern =
-    /Save In|WebMCP|WebExtensions?|Content-(?:Disposition|Type)|SHA-256|ISO 8601|Ctrl\+Shift\+Y|Command\+Shift\+Y|\*:\/\/[^\s]+?\/\*|:[A-Za-z0-9$]+:|\$[A-Z0-9_]+\$/g;
+    /Save In|WebMCP|WebExtensions?|Content-(?:Disposition|Type)|SHA-256|ISO 8601|JavaScript|HTTP\(S\)|HTTPS?|POST|MIME|UUID|JSON|CSV|TSV|HLS|DASH|API|CSS|UTC|PDF|\bURL(?=s?\b)|Ctrl\+Shift\+Y|Command\+Shift\+Y|\*:\/\/[^\s]+?\/\*|:[A-Za-z0-9$]+:|\$[A-Z0-9_]+\$/g;
 
   for (const { locale } of GENERATED_LOCALES) {
     const catalog = readGeneratedCatalog(locale);
     for (const key of fileFormatKeys) {
       expect(catalog[key]?.message, `${locale}.${key}`).toBe(canonical[key]?.message);
+    }
+    for (const key of keyLabelKeys) {
+      expect(catalog[key]?.message, `${locale}.${key} physical key label`).toBe(
+        canonical[key]?.message,
+      );
+    }
+    for (const key of keyboardTokenKeys) {
+      for (const token of canonical[key]?.message.match(keyboardTokenPattern) ?? []) {
+        expect(catalog[key]?.message, `${locale}.${key} keyboard token ${token}`).toContain(token);
+      }
     }
     expect(catalog.o_lSourcePanelShortcutHelp?.message, `${locale} shortcut Ctrl syntax`).toContain(
       "Ctrl+Shift+Y",

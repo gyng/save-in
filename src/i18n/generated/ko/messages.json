@@ -936,7 +936,7 @@
     "message": "모두"
   },
   "html_altOption": {
-    "message": "대체/옵션"
+    "message": "Alt / Option"
   },
   "html_applyShortcut": {
     "message": "단축키 적용"
@@ -954,10 +954,10 @@
     "message": "열"
   },
   "html_command": {
-    "message": "명령"
+    "message": "Command"
   },
   "html_commandWindowsKey": {
-    "message": "명령/Windows 키"
+    "message": "Command / Windows key"
   },
   "html_copy0LeavesDismissalToTheBrowserOrOperatingSystem": {
     "message": "0으로 설정하면 알림을 닫는 시점은 브라우저나 운영 체제가 결정합니다."

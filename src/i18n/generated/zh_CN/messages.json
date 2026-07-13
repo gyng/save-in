@@ -936,7 +936,7 @@
     "message": "全部"
   },
   "html_altOption": {
-    "message": "替代/选项"
+    "message": "Alt / Option"
   },
   "html_applyShortcut": {
     "message": "应用快捷键"
@@ -954,16 +954,16 @@
     "message": "专栏"
   },
   "html_command": {
-    "message": "命令"
+    "message": "Command"
   },
   "html_commandWindowsKey": {
-    "message": "命令 / Windows 键"
+    "message": "Command / Windows key"
   },
   "html_copy0LeavesDismissalToTheBrowserOrOperatingSystem": {
     "message": "设为 0 时，由浏览器或操作系统决定何时关闭通知。"
   },
   "html_ctrl": {
-    "message": "控制键"
+    "message": "Ctrl"
   },
   "html_dismissEarlyAfter": {
     "message": "提前关闭时间"
@@ -1092,7 +1092,7 @@
     "message": "示例：协商版本，然后保存 URL"
   },
   "html_extensionId": {
-    "message": "分机号"
+    "message": "扩展程序 ID"
   },
   "html_externalDownloadAccess": {
     "message": "外部下载访问"
@@ -1356,10 +1356,10 @@
     "message": "页面标题"
   },
   "html_urlOfThePage": {
-    "message": "页面的网址"
+    "message": "页面 URL"
   },
   "html_urlOfTheSource": {
-    "message": "来源网址"
+    "message": "来源 URL"
   },
   "html_usableEverywhere": {
     "message": "随处可用"

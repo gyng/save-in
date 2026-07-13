@@ -432,7 +432,7 @@
     "message": "Der Dateiname hat keine Erweiterung"
   },
   "o_cOpenDialogShift": {
-    "message": "Sie halten die Umschalttaste gedrückt, während Sie einen Menüpunkt auswählen"
+    "message": "Sie halten Shift gedrückt, während Sie einen Menüpunkt auswählen"
   },
   "o_cOpenDialogOnFailure": {
     "message": "Ein Download schlägt fehl"
@@ -954,16 +954,16 @@
     "message": "Spalten"
   },
   "html_command": {
-    "message": "Befehl"
+    "message": "Command"
   },
   "html_commandWindowsKey": {
-    "message": "Befehl / Windows-Taste"
+    "message": "Command / Windows key"
   },
   "html_copy0LeavesDismissalToTheBrowserOrOperatingSystem": {
     "message": "Bei 0 übernimmt der Browser oder das Betriebssystem das Ausblenden der Benachrichtigung."
   },
   "html_ctrl": {
-    "message": "Strg"
+    "message": "Ctrl"
   },
   "html_dismissEarlyAfter": {
     "message": "Vorzeitig ausblenden nach"
@@ -999,7 +999,7 @@
     "message": "Links"
   },
   "html_macctrl": {
-    "message": "MacStrg"
+    "message": "MacCtrl"
   },
   "html_more": {
     "message": "Mehr"
@@ -1032,7 +1032,7 @@
     "message": "Auswahl"
   },
   "html_shift": {
-    "message": "Umschalt"
+    "message": "Shift"
   },
   "html_shortcutFileBehavior": {
     "message": "Verhalten der Verknüpfungsdatei"

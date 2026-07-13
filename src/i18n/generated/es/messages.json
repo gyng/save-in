@@ -936,7 +936,7 @@
     "message": "Todos"
   },
   "html_altOption": {
-    "message": "Alt / Opción"
+    "message": "Alt / Option"
   },
   "html_applyShortcut": {
     "message": "Aplicar atajo"
@@ -954,16 +954,16 @@
     "message": "columnas"
   },
   "html_command": {
-    "message": "Comando"
+    "message": "Command"
   },
   "html_commandWindowsKey": {
-    "message": "Tecla Comando/Windows"
+    "message": "Command / Windows key"
   },
   "html_copy0LeavesDismissalToTheBrowserOrOperatingSystem": {
     "message": "Con 0, el navegador o el sistema operativo decide cuándo se cierra la notificación."
   },
   "html_ctrl": {
-    "message": "control"
+    "message": "Ctrl"
   },
   "html_dismissEarlyAfter": {
     "message": "Cerrar anticipadamente después de"
@@ -1032,7 +1032,7 @@
     "message": "Selección"
   },
   "html_shift": {
-    "message": "Mayús"
+    "message": "Shift"
   },
   "html_shortcutFileBehavior": {
     "message": "Comportamiento del archivo de acceso directo"

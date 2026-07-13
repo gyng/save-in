@@ -936,7 +936,7 @@
     "message": "Todos"
   },
   "html_altOption": {
-    "message": "Alt/Opção"
+    "message": "Alt / Option"
   },
   "html_applyShortcut": {
     "message": "Aplicar atalho"
@@ -954,10 +954,10 @@
     "message": "Colunas"
   },
   "html_command": {
-    "message": "Comando"
+    "message": "Command"
   },
   "html_commandWindowsKey": {
-    "message": "Tecla Comando / Windows"
+    "message": "Command / Windows key"
   },
   "html_copy0LeavesDismissalToTheBrowserOrOperatingSystem": {
     "message": "Com 0, o navegador ou o sistema operacional decide quando dispensar a notificação."

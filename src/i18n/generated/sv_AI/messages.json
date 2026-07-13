@@ -171,22 +171,22 @@
     "message": "Experimentellt omdirigera matchande nedladdningar på Firefox"
   },
   "o_cRouteBrowserDownloadsFirefoxHelp": {
-    "message": "Firefox saknar inbyggd filnamnsroutning, så Save In avbryter varje matchande nedladdning och startar en ersättningsnedladdning. Detta kan misslyckas för POST-begäranden, webbadresser som löper ut, anpassade rubriker eller autentiserade nedladdningar."
+    "message": "Firefox saknar inbyggd filnamnsroutning, så Save In avbryter varje matchande nedladdning och startar en ersättningsnedladdning. Detta kan misslyckas för POST-begäranden, URL:er som löper ut, anpassade rubriker eller autentiserade nedladdningar."
   },
   "o_lFirefoxFilenameApiBug": {
     "message": "Mozilla bugg 1245652"
   },
   "o_cBrowserDownloadFilter": {
-    "message": "Inkludera endast matchande nedladdningsadresser (valfritt)"
+    "message": "Inkludera endast matchande URL:er för nedladdningar (valfritt)"
   },
   "o_cBrowserDownloadFilterHelp": {
     "message": "Lämna tomt för att hantera alla webbläsarnedladdningar, eller ange ett WebExtension-matchningsmönster per rad. Filtret gäller både historikspårning och routning."
   },
   "o_cBrowserDownloadExcludeFilter": {
-    "message": "Uteslut matchande nedladdningsadresser (valfritt)"
+    "message": "Uteslut matchande URL:er för nedladdningar (valfritt)"
   },
   "o_cBrowserDownloadExcludeFilterHelp": {
-    "message": "Ange ett WebExtension-matchningsmönster per rad. Undantag åsidosätter de matchande webbadresserna ovan och gäller både historikspårning och routning."
+    "message": "Ange ett WebExtension-matchningsmönster per rad. Undantag åsidosätter de matchande URL:erna ovan och gäller både historikspårning och routning."
   },
   "o_lBrowserDownloadVariables": {
     "message": "Webbläsarnedladdningar tillhandahåller endast URL, föreslagna filnamn, aktuell tid, räknare, UUID och MIME-variabler. Sidrubrik, sidadress, länktext, urval, menymetadata och nyckelmodifierare är inte tillgängliga."
@@ -219,7 +219,7 @@
     "message": "Bläddra bland bilder, video, ljud, dokument och nedladdningsbara länkar på den aktuella sidan. Sparade objekt använder dina vanliga routnings- och namnbytesregler."
   },
   "o_lPageSourcesNetworkLimit": {
-    "message": "Vissa videospelare använder tillfälliga webbadresser eller laddar media genom skript, så Save In kanske inte upptäcker varje video. Det kan ibland hitta strömmande videospellistor (HLS/DASH), men dessa filer listar bara de separata videostyckena; Att spara en sparar inte hela videon."
+    "message": "Vissa videospelare använder tillfälliga URL:er eller laddar media genom skript, så Save In kanske inte upptäcker varje video. Det kan ibland hitta strömmande videospellistor (HLS/DASH), men dessa filer listar bara de separata videodelarna; att spara en av dem sparar inte hela videon."
   },
   "o_cSourcePanelEnabled": {
     "message": "Aktivera sidkällor"
@@ -555,7 +555,7 @@
     "message": "Lägg till en filändelse när filnamnet saknar en"
   },
   "o_cAppendMimeExtensionHelp": {
-    "message": "För webbadresser utan tillägg, härled en från serverns Content-Type. Detta lägger till en liten fördröjning endast när det behövs."
+    "message": "För URL:er utan filändelse, härled en från serverns Content-Type. Detta medför en liten fördröjning endast när det behövs."
   },
   "o_cFallbackFetch": {
     "message": "Försök misslyckade nedladdningar igen en gång i bakgrunden"
@@ -654,7 +654,7 @@
     "message": "Endast på matchande sidor"
   },
   "o_cPreferLinksFilter": {
-    "message": "Matchande webbadresser"
+    "message": "Matchande URL:er för sidor"
   },
   "o_cPreferLinksFilterHelp": {
     "message": "Ange ett reguljärt uttryck per rad. Mönster matchas mot sidans URL."
@@ -870,7 +870,7 @@
     "message": "Destinationerna är relativa till den mapp du valde. Matchningsvärden är reguljära uttryck; se"
   },
   "html_enterOneUrlLikeBrowserMatchPatternPerLine": {
-    "message": "Ange ett webbläsarliknande matchningsmönster per rad. Den har ett schema, värd och sökväg:"
+    "message": "Ange ett URL-liknande matchningsmönster för webbläsaren per rad. Det har ett schema, en värd och en sökväg:"
   },
   "html_everyMatcherInARuleMustMatch": {
     "message": "Varje matchare i en regel måste matcha."
@@ -936,7 +936,7 @@
     "message": "Alla"
   },
   "html_altOption": {
-    "message": "Alt / Alternativ"
+    "message": "Alt / Option"
   },
   "html_applyShortcut": {
     "message": "Använd kortkommando"
@@ -954,10 +954,10 @@
     "message": "Kolumner"
   },
   "html_command": {
-    "message": "Kommando"
+    "message": "Command"
   },
   "html_commandWindowsKey": {
-    "message": "Kommando / Windows tangent"
+    "message": "Command / Windows key"
   },
   "html_copy0LeavesDismissalToTheBrowserOrOperatingSystem": {
     "message": "Med 0 avgör webbläsaren eller operativsystemet när aviseringen stängs."
@@ -1032,7 +1032,7 @@
     "message": "Urval"
   },
   "html_shift": {
-    "message": "Skift"
+    "message": "Shift"
   },
   "html_shortcutFileBehavior": {
     "message": "Genvägsfilens beteende"
@@ -1104,7 +1104,7 @@
     "message": "Integrationsguide"
   },
   "html_letTrustedExtensionsSendUrlsThroughSaveInS": {
-    "message": "Låt betrodda tillägg skicka webbadresser genom Save In:s routnings- och namnbytesregler."
+    "message": "Låt betrodda tillägg skicka URL:er genom Save In:s routnings- och namnbytesregler."
   },
   "html_mdnMatchPatterns": {
     "message": "MDN: Matcha mönster"
@@ -1134,7 +1134,7 @@
     "message": "Ställ in värde"
   },
   "html_theseExtensionsTriedToStartADownloadAddOnly": {
-    "message": "Dessa tillägg försökte starta en nedladdning. Lägg bara till uppringare du litar på. Begärda webbadresser lagras aldrig."
+    "message": "Dessa tillägg försökte starta en nedladdning. Lägg bara till uppringare du litar på. Begärda URL:er lagras aldrig."
   },
   "html_useOneExtensionIdPerLineForBulkChanges": {
     "message": "Använd ett tilläggs-ID per rad för massändringar."
@@ -1197,7 +1197,7 @@
     "message": "Behåller inställningar, routningsregler, lokal historik och tillstånd som överlever omstarter."
   },
   "html_letsChromeConvertFetchedFileDataIntoTemporaryDownload": {
-    "message": "Låter Chrome konvertera hämtade fildata till temporära nedladdningsadresser."
+    "message": "Låter Chrome konvertera hämtade fildata till tillfälliga URL:er för nedladdning."
   },
   "html_loadingClauses": {
     "message": "Laddar klausuler…"
@@ -1335,7 +1335,7 @@
     "message": "Sidrubrik, gemener med understreck"
   },
   "html_pathPartOfTheSourceUrlSeparatorsAreSanitized": {
-    "message": "Sökvägsdel av källwebbadressen (separatorer saneras)"
+    "message": "Sökvägsdelen av källans URL (separatorer saneras)"
   },
   "html_sourceHostnameWithoutSubdomains": {
     "message": "Källvärdnamn utan underdomäner"
@@ -1404,7 +1404,7 @@
     "message": "Löst filnamn, inklusive Content-Disposition"
   },
   "html_handyForExtensionlessOrQuerySuffixedUrls": {
-    "message": ". Användbar för webbadresser utan tillägg eller med frågeändelse."
+    "message": ". Användbar för URL:er utan filändelse eller med frågesuffix."
   },
   "html_menuStructure": {
     "message": "Menystruktur"
@@ -1425,7 +1425,7 @@
     "message": "Serverns"
   },
   "html_theUrlAfterFollowingRedirectsViaTheSameHead": {
-    "message": "Webbadressen efter följande omdirigeringar. Den använder samma begäran som"
+    "message": "URL:en efter omdirigeringar. Den använder samma begäran som"
   },
   "html_urlDerivedExtensionAlias": {
     "message": "URL-härlett tillägg. Alias:"

@@ -936,7 +936,7 @@
     "message": "全部"
   },
   "html_altOption": {
-    "message": "替代/選項"
+    "message": "Alt / Option"
   },
   "html_applyShortcut": {
     "message": "套用快速鍵"
@@ -954,16 +954,16 @@
     "message": "專欄"
   },
   "html_command": {
-    "message": "命令"
+    "message": "Command"
   },
   "html_commandWindowsKey": {
-    "message": "指令 / Windows 鍵"
+    "message": "Command / Windows key"
   },
   "html_copy0LeavesDismissalToTheBrowserOrOperatingSystem": {
     "message": "設為 0 時，由瀏覽器或作業系統決定何時關閉通知。"
   },
   "html_ctrl": {
-    "message": "控制鍵"
+    "message": "Ctrl"
   },
   "html_dismissEarlyAfter": {
     "message": "提前關閉時間"
@@ -1092,7 +1092,7 @@
     "message": "範例：協商版本，然後儲存 URL"
   },
   "html_extensionId": {
-    "message": "分機號"
+    "message": "擴充功能 ID"
   },
   "html_externalDownloadAccess": {
     "message": "外部下載訪問"
@@ -1356,10 +1356,10 @@
     "message": "頁面標題"
   },
   "html_urlOfThePage": {
-    "message": "頁面的網址"
+    "message": "頁面 URL"
   },
   "html_urlOfTheSource": {
-    "message": "來源網址"
+    "message": "來源 URL"
   },
   "html_usableEverywhere": {
     "message": "隨處可用"

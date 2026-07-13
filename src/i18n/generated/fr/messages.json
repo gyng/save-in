@@ -936,7 +936,7 @@
     "message": "Tout"
   },
   "html_altOption": {
-    "message": "Alt/Options"
+    "message": "Alt / Option"
   },
   "html_applyShortcut": {
     "message": "Appliquer un raccourci"
@@ -954,10 +954,10 @@
     "message": "Colonnes"
   },
   "html_command": {
-    "message": "Commande"
+    "message": "Command"
   },
   "html_commandWindowsKey": {
-    "message": "Commande / Touche Windows"
+    "message": "Command / Windows key"
   },
   "html_copy0LeavesDismissalToTheBrowserOrOperatingSystem": {
     "message": "Avec 0, le navigateur ou le système d’exploitation décide quand masquer la notification."
@@ -1032,7 +1032,7 @@
     "message": "Sélection"
   },
   "html_shift": {
-    "message": "Maj"
+    "message": "Shift"
   },
   "html_shortcutFileBehavior": {
     "message": "Comportement du fichier de raccourci"
@@ -1092,7 +1092,7 @@
     "message": "Exemple : négocier la version, puis enregistrer une URL"
   },
   "html_extensionId": {
-    "message": "ID de poste"
+    "message": "ID d’extension"
   },
   "html_externalDownloadAccess": {
     "message": "Accès au téléchargement externe"

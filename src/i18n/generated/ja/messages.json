@@ -936,7 +936,7 @@
     "message": "すべて"
   },
   "html_altOption": {
-    "message": "代替/オプション"
+    "message": "Alt / Option"
   },
   "html_applyShortcut": {
     "message": "ショートカットを適用する"
@@ -954,10 +954,10 @@
     "message": "コラム"
   },
   "html_command": {
-    "message": "コマンド"
+    "message": "Command"
   },
   "html_commandWindowsKey": {
-    "message": "コマンド / Windowsキー"
+    "message": "Command / Windows key"
   },
   "html_copy0LeavesDismissalToTheBrowserOrOperatingSystem": {
     "message": "0 にすると、通知を閉じるタイミングはブラウザまたは OS に任されます。"
@@ -1092,7 +1092,7 @@
     "message": "例: バージョンをネゴシエートし、URL を保存します。"
   },
   "html_extensionId": {
-    "message": "内線ID"
+    "message": "拡張機能 ID"
   },
   "html_externalDownloadAccess": {
     "message": "外部ダウンロードアクセス"
