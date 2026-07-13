@@ -151,15 +151,20 @@ const startSourcePanelServer = async () => {
 };
 
 beforeAll(async () => {
-  session = await firefox.launch();
-  // Native notifications are exercised by one focused test below. Keep the
-  // rest of the download-heavy suite from submitting Windows toasts.
-  await evalBackground(`browser.storage.local.set({
-    notifyOnSuccess: false,
-    notifyOnFailure: false,
-    notifyOnRuleMatch: false,
-    notifyOnLinkPreferred: false,
-  }).then(() => api.reset()).then(() => "notifications suppressed")`);
+  try {
+    session = await firefox.launch();
+    // Native notifications are exercised by one focused test below. Keep the
+    // rest of the download-heavy suite from submitting Windows toasts.
+    await evalBackground(`browser.storage.local.set({
+      notifyOnSuccess: false,
+      notifyOnFailure: false,
+      notifyOnRuleMatch: false,
+      notifyOnLinkPreferred: false,
+    }).then(() => api.reset()).then(() => "notifications suppressed")`);
+  } catch (error) {
+    suiteFailed = true;
+    throw error;
+  }
 });
 
 afterAll(async () => {

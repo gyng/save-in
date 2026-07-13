@@ -20,11 +20,13 @@ const runRoot = path.join(root, "dist", "e2e-runs");
 const runDir = path.join(runRoot, String(process.pid));
 const stagedRun = path.join(runDir, "bundled-pkg");
 const stagingLockDir = path.join(root, "dist", "e2e-staging.lock");
-const runArtifacts = path.join(artifacts, `run-${Date.now()}-${process.pid}`);
+const runId = `${process.pid}-${Date.now()}`;
+const runArtifacts = path.join(artifacts, `run-${runId}`);
 /** @type {NodeJS.ProcessEnv} */
 const e2eEnv = {
   ...process.env,
   E2E_ARTIFACT_DIR: path.relative(root, runArtifacts),
+  E2E_RUN_ID: runId,
 };
 if (process.env.HEADED === "1" || process.env.HEADLESS === "0") {
   delete e2eEnv.HEADLESS;
@@ -99,12 +101,11 @@ process.once("SIGTERM", () => stop("SIGTERM"));
 
 const main = async () => {
   const codes = await Promise.all(runs.map(({ done }) => done));
-  const childPids = children.map((child) => child.pid).filter((pid) => typeof pid === "number");
   children.forEach(terminate);
   /** @type {unknown[]} */
   const cleanupErrors = [];
   try {
-    await removeOwnedProfiles(childPids, {
+    await removeOwnedProfiles([runId], {
       chromeRoot: path.join(root, "dist"),
       firefoxRoot: os.tmpdir(),
     });

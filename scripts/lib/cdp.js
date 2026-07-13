@@ -131,10 +131,15 @@ const connectBrowser = async (port, attempts = 5) => {
 /** @param {number} port @returns {Promise<CdpTarget[]>} */
 const listTargets = (port) => getJson(port, "/json");
 
-/** @param {CdpTarget[]} targets */
-const extensionIdFromTargets = (targets) => {
+/** @param {CdpTarget[]} targets @param {string} [expectedResource] */
+const extensionIdFromTargets = (targets, expectedResource = "background.sw.js") => {
   for (const target of targets) {
-    const match = target.url.match(/^chrome-extension:\/\/([a-p]{32})(?:\/|$)/);
+    if (target.type !== "service_worker") continue;
+    const match = target.url.match(
+      new RegExp(
+        `^chrome-extension://([a-p]{32})/${expectedResource.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?:[?#]|$)`,
+      ),
+    );
     if (match?.[1]) return match[1];
   }
   return undefined;
@@ -147,7 +152,7 @@ const waitForExtensionId = async (port, attempts = 30) => {
     if (extensionId) return extensionId;
     await sleep(500);
   }
-  throw new Error("Chrome did not expose a target for the unpacked extension");
+  throw new Error("Chrome did not expose the unpacked extension background target");
 };
 
 // Evaluates an expression in the first live target whose URL contains

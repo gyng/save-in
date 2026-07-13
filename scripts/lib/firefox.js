@@ -10,6 +10,12 @@ const os = require("os");
 const { spawn, execFileSync } = require("child_process");
 
 const { FirefoxRdp } = require("./firefox-rdp");
+const {
+  FIREFOX_E2E_PORT_COUNT,
+  FIREFOX_E2E_PORT_START,
+  findAvailablePort,
+} = require("./debug-port");
+const { currentE2ERunId } = require("./e2e-run-id");
 
 // EXT_DIR (repo-relative) overrides the loaded package, e.g. to run the e2e
 // against the bundled build (dist/bundled-pkg) instead of the repo root.
@@ -97,14 +103,15 @@ const killProfileProcesses = (profileDir) => {
 
 /** @param {string} baseProfileDir */
 const makeProfile = (baseProfileDir) => {
-  let profileDir = `${baseProfileDir}-${process.pid}-${Date.now()}-${Math.random()
+  const owner = currentE2ERunId();
+  let profileDir = `${baseProfileDir}-${owner}-${Date.now()}-${Math.random()
     .toString(16)
     .slice(2)}`;
   try {
     fs.rmSync(profileDir, { recursive: true, force: true });
   } catch (e) {
     // A previous run's Firefox still holds the directory: use a fresh one
-    profileDir = `${baseProfileDir}-${Date.now()}`;
+    profileDir = `${baseProfileDir}-${owner}-${Date.now()}`;
   }
   const downloadDir = path.join(profileDir, "downloads");
   fs.mkdirSync(profileDir, { recursive: true });
@@ -165,9 +172,7 @@ const connectWithRetry = async (port, attempts = 30) => {
 const launch = async () => {
   const { profileDir, downloadDir } = makeProfile(path.join(os.tmpdir(), "save-in-ff-e2e"));
 
-  // Random port so a stale instance from an aborted run can't be mistaken
-  // for the one we just launched
-  const port = 9380 + Math.floor(Math.random() * 200);
+  const port = await findAvailablePort(FIREFOX_E2E_PORT_START, FIREFOX_E2E_PORT_COUNT);
 
   const args = ["-profile", profileDir, "-no-remote", "-start-debugger-server", String(port)];
   if (process.env.HEADLESS) {

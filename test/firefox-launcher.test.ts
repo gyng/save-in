@@ -5,18 +5,22 @@ import { join } from "node:path";
 import { afterEach, describe, expect, test } from "vitest";
 
 const require = createRequire(import.meta.url);
-const { findFirefox } = require("../scripts/lib/firefox.js") as {
+const { findFirefox, makeProfile } = require("../scripts/lib/firefox.js") as {
   findFirefox: () => string;
+  makeProfile: (baseProfileDir: string) => { profileDir: string; downloadDir: string };
 };
 
 const originalFirefoxPath = process.env.FIREFOX_PATH;
 const originalPath = process.env.PATH;
+const originalE2ERunId = process.env.E2E_RUN_ID;
 
 afterEach(() => {
   if (originalFirefoxPath === undefined) delete process.env.FIREFOX_PATH;
   else process.env.FIREFOX_PATH = originalFirefoxPath;
   if (originalPath === undefined) delete process.env.PATH;
   else process.env.PATH = originalPath;
+  if (originalE2ERunId === undefined) delete process.env.E2E_RUN_ID;
+  else process.env.E2E_RUN_ID = originalE2ERunId;
 });
 
 describe("isolated Firefox launcher", () => {
@@ -32,6 +36,18 @@ describe("isolated Firefox launcher", () => {
       expect(findFirefox()).toBe(executable);
     } finally {
       rmSync(directory, { recursive: true, force: true });
+    }
+  });
+
+  test("names disposable profiles for the outer E2E run", () => {
+    const root = mkdtempSync(join(tmpdir(), "save-in-firefox-profile-"));
+    process.env.E2E_RUN_ID = "runner-123";
+
+    try {
+      const { profileDir } = makeProfile(join(root, "save-in-ff-e2e"));
+      expect(profileDir).toMatch(/save-in-ff-e2e-runner-123-\d+-[a-f\d]+$/);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
     }
   });
 });

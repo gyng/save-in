@@ -127,11 +127,11 @@ const removeWithRetries = async (target, { attempts = 6, delayMs = 500 } = {}) =
 };
 
 /**
- * @param {number[]} childPids
+ * @param {string[]} ownerIds
  * @param {{chromeRoot: string, firefoxRoot: string, attempts?: number, delayMs?: number}} options
  */
 const removeOwnedProfiles = async (
-  childPids,
+  ownerIds,
   { chromeRoot, firefoxRoot, attempts = 6, delayMs = 500 },
 ) => {
   const roots = [
@@ -144,7 +144,7 @@ const removeOwnedProfiles = async (
     for (const entry of fs.existsSync(dir) ? fs.readdirSync(dir, { withFileTypes: true }) : []) {
       if (
         entry.isDirectory() &&
-        childPids.some((pid) => entry.name.startsWith(`${prefix}${pid}-`))
+        ownerIds.some((ownerId) => entry.name.startsWith(`${prefix}${ownerId}-`))
       ) {
         try {
           await removeWithRetries(path.join(dir, entry.name), { attempts, delayMs });

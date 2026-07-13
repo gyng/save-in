@@ -9,6 +9,7 @@ const { Cdp, extensionIdFromTargets, getJson } = require("../scripts/lib/cdp.js"
   getJson: (port: number, path: string, timeoutMs?: number) => Promise<unknown>;
   extensionIdFromTargets: (
     targets: Array<{ type: string; url: string; webSocketDebuggerUrl: string }>,
+    expectedResource?: string,
   ) => string | undefined;
 };
 
@@ -75,10 +76,32 @@ test("discovers a legacy-loaded unpacked extension from its browser target", () 
     extensionIdFromTargets([
       { type: "page", url: "about:blank", webSocketDebuggerUrl: "ws://page" },
       {
+        type: "background_page",
+        url: `chrome-extension://${"b".repeat(32)}/background.html`,
+        webSocketDebuggerUrl: "ws://built-in",
+      },
+      {
         type: "service_worker",
         url: `chrome-extension://${"a".repeat(32)}/background.sw.js`,
         webSocketDebuggerUrl: "ws://worker",
       },
     ]),
   ).toBe("a".repeat(32));
+});
+
+test("does not mistake another extension target for the legacy-loaded package", () => {
+  expect(
+    extensionIdFromTargets([
+      {
+        type: "service_worker",
+        url: `chrome-extension://${"b".repeat(32)}/service_worker.js`,
+        webSocketDebuggerUrl: "ws://built-in",
+      },
+      {
+        type: "page",
+        url: `chrome-extension://${"c".repeat(32)}/background.sw.js`,
+        webSocketDebuggerUrl: "ws://page",
+      },
+    ]),
+  ).toBeUndefined();
 });

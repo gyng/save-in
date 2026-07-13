@@ -21,7 +21,7 @@ const {
   pruneRunDirectories: (directory: string) => void;
   releaseDirectoryLock: (lock: { lockDir: string; token: string }) => void;
   removeOwnedProfiles: (
-    pids: number[],
+    ownerIds: string[],
     options: { chromeRoot: string; firefoxRoot: string; attempts?: number; delayMs?: number },
   ) => Promise<void>;
   tryReclaimDirectoryLock: (
@@ -67,12 +67,12 @@ describe("E2E lifecycle cleanup", () => {
     expect(readdirSync(parent)).toEqual([]);
   });
 
-  test("removes only profiles owned by suite child processes", async () => {
+  test("removes only profiles owned by the outer E2E run", async () => {
     const chromeRoot = tempRoot("save-in-cleanup-chrome-");
     const firefoxRoot = tempRoot("save-in-cleanup-firefox-");
     const owned = [
-      join(chromeRoot, "e2e-profile-123-1-a"),
-      join(firefoxRoot, "save-in-ff-e2e-456-2-b"),
+      join(chromeRoot, "e2e-profile-run-123-1-a"),
+      join(firefoxRoot, "save-in-ff-e2e-run-123-2-b"),
     ];
     const unrelated = [
       join(chromeRoot, "e2e-profile-999-1-c"),
@@ -83,7 +83,7 @@ describe("E2E lifecycle cleanup", () => {
       writeFileSync(join(profile, "downloads", "fixture.txt"), "fixture");
     }
 
-    await removeOwnedProfiles([123, 456], { chromeRoot, firefoxRoot, delayMs: 0 });
+    await removeOwnedProfiles(["run-123"], { chromeRoot, firefoxRoot, delayMs: 0 });
 
     expect(readdirSync(chromeRoot)).toEqual(["e2e-profile-999-1-c"]);
     expect(readdirSync(firefoxRoot)).toEqual(["normal-firefox-profile"]);
@@ -97,7 +97,7 @@ describe("E2E lifecycle cleanup", () => {
 
     // A zero-attempt removal deterministically exercises error aggregation.
     await expect(
-      removeOwnedProfiles([123], { chromeRoot, firefoxRoot, attempts: 0, delayMs: 0 }),
+      removeOwnedProfiles(["123"], { chromeRoot, firefoxRoot, attempts: 0, delayMs: 0 }),
     ).rejects.toThrow("E2E profile cleanup failed");
   });
 

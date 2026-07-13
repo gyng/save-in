@@ -11,6 +11,8 @@ const os = require("os");
 const { spawn, execFileSync } = require("child_process");
 
 const cdp = require("./cdp");
+const { CHROME_E2E_PORT_COUNT, CHROME_E2E_PORT_START, findAvailablePort } = require("./debug-port");
+const { currentE2ERunId } = require("./e2e-run-id");
 
 const ROOT = path.join(__dirname, "..", "..");
 const ARTIFACTS = process.env.E2E_ARTIFACT_DIR
@@ -140,15 +142,16 @@ const removeProfile = async (profileDir) => {
 
 /** @param {string} baseProfileDir @param {string | undefined} downloadDir @param {boolean} [unique] */
 const makeProfile = (baseProfileDir, downloadDir, unique = false) => {
+  const owner = currentE2ERunId();
   let profileDir = unique
-    ? `${baseProfileDir}-${process.pid}-${Date.now()}-${Math.random().toString(16).slice(2)}`
+    ? `${baseProfileDir}-${owner}-${Date.now()}-${Math.random().toString(16).slice(2)}`
     : baseProfileDir;
   try {
     // force:true only suppresses ENOENT, not EPERM/EBUSY from a Chrome that
     // hasn't fully exited: fall back to a fresh dir rather than crash
     fs.rmSync(profileDir, { recursive: true, force: true });
   } catch (e) {
-    profileDir = `${baseProfileDir}-${Date.now()}`;
+    profileDir = `${baseProfileDir}-${owner}-${Date.now()}`;
   }
   const downloads = downloadDir || path.join(profileDir, "downloads");
   fs.mkdirSync(path.join(profileDir, "Default"), { recursive: true });
@@ -238,9 +241,8 @@ const launch = async ({
     ));
   }
 
-  // Random port so a stale instance from an aborted run can't be mistaken
-  // for the one we just launched
-  const port = requestedPort || 9400 + Math.floor(Math.random() * 400);
+  const port =
+    requestedPort ?? (await findAvailablePort(CHROME_E2E_PORT_START, CHROME_E2E_PORT_COUNT));
 
   const chromePath = findChrome();
   const chromeMajorVersion = getChromeMajorVersion(chromePath);
