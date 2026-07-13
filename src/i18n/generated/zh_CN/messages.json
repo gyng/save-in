@@ -546,10 +546,10 @@
     "message": "恢复默认设置"
   },
   "o_cTruncatePath": {
-    "message": "每个文件夹名称的最大字符数"
+    "message": "每个文件或文件夹名称的最大 UTF-8 字节数"
   },
   "o_cTruncatePathHelp": {
-    "message": "0表示无限制"
+    "message": "使用可移植的文件系统限制。0 表示无限制。现有字符限制会自动升级。"
   },
   "o_cReplaceInvalidCharsWith": {
     "message": "将无效字符替换为"
@@ -1917,6 +1917,9 @@
   },
   "sourcePanelSortNewest": {
     "message": "最新"
+  },
+  "sourcePanelSortRelevance": {
+    "message": "相关性"
   },
   "sourcePanelSortOldest": {
     "message": "最早"

@@ -4,6 +4,10 @@
 
 import * as constants from "../src/shared/constants.ts";
 import type { RoutingRule } from "../src/routing/router.ts";
+import {
+  PATH_TRUNCATION_MIGRATION_STORAGE_KEY,
+  PATH_TRUNCATION_MIGRATION_VERSION,
+} from "../src/shared/storage-keys.ts";
 
 const routingRule = (name: string): RoutingRule => [
   { name, value: ".*", type: constants.RULE_TYPES.MATCHER },
@@ -117,7 +121,12 @@ describe("OptionsManagement", () => {
     });
 
     test("enables credentials for legacy profiles without a stored preference", async () => {
-      global.browser.storage.local.get = vi.fn(() => Promise.resolve({ fallbackFetch: true }));
+      global.browser.storage.local.get = vi.fn(() =>
+        Promise.resolve({
+          fallbackFetch: true,
+          [PATH_TRUNCATION_MIGRATION_STORAGE_KEY]: PATH_TRUNCATION_MIGRATION_VERSION,
+        }),
+      );
       global.browser.storage.local.set = vi.fn(() => Promise.resolve());
 
       const resolved = await OptionsManagement.loadOptions();
@@ -128,13 +137,43 @@ describe("OptionsManagement", () => {
 
     test("preserves an explicit fetch-credentials preference without migration", async () => {
       global.browser.storage.local.get = vi.fn(() =>
-        Promise.resolve({ fallbackFetch: true, includeFetchCredentials: false }),
+        Promise.resolve({
+          fallbackFetch: true,
+          includeFetchCredentials: false,
+          [PATH_TRUNCATION_MIGRATION_STORAGE_KEY]: PATH_TRUNCATION_MIGRATION_VERSION,
+        }),
       );
       global.browser.storage.local.set = vi.fn(() => Promise.resolve());
 
       const resolved = await OptionsManagement.loadOptions();
 
       expect(resolved.includeFetchCredentials).toBe(false);
+      expect(global.browser.storage.local.set).not.toHaveBeenCalled();
+    });
+
+    test("automatically records the UTF-8 byte migration for a legacy truncation setting", async () => {
+      global.browser.storage.local.get = vi.fn(() => Promise.resolve({ truncateLength: 999 }));
+      global.browser.storage.local.set = vi.fn(() => Promise.resolve());
+
+      const resolved = await OptionsManagement.loadOptions();
+
+      expect(resolved.truncateLength).toBe(255);
+      expect(global.browser.storage.local.set).toHaveBeenCalledWith({
+        truncateLength: 255,
+        [PATH_TRUNCATION_MIGRATION_STORAGE_KEY]: PATH_TRUNCATION_MIGRATION_VERSION,
+      });
+    });
+
+    test("does not repeat the path truncation migration", async () => {
+      global.browser.storage.local.get = vi.fn(() =>
+        Promise.resolve({
+          truncateLength: 200,
+          [PATH_TRUNCATION_MIGRATION_STORAGE_KEY]: PATH_TRUNCATION_MIGRATION_VERSION,
+        }),
+      );
+      global.browser.storage.local.set = vi.fn(() => Promise.resolve());
+
+      expect((await OptionsManagement.loadOptions()).truncateLength).toBe(200);
       expect(global.browser.storage.local.set).not.toHaveBeenCalled();
     });
 
@@ -253,6 +292,7 @@ describe("OptionsManagement", () => {
 
     test.each([
       ["truncateLength", "239.6", 240],
+      ["truncateLength", 999, 255],
       ["notifyDuration", "7000.4", 7000],
     ])("normalizes %s input to a whole number", (name, input, expected) => {
       const key = OptionsManagement.OPTION_KEYS.find((k) => k.name === name)! as SaveKey;
@@ -399,7 +439,10 @@ describe("OptionsManagement", () => {
   describe("loadOptions", () => {
     test("requests every option key from storage", async () => {
       await OptionsManagement.loadOptions();
-      expect(global.browser.storage.local.get).toHaveBeenCalledWith(OptionsManagement.getKeys());
+      expect(global.browser.storage.local.get).toHaveBeenCalledWith([
+        ...OptionsManagement.getKeys(),
+        PATH_TRUNCATION_MIGRATION_STORAGE_KEY,
+      ]);
     });
 
     test("applies each stored value's onLoad transform, defaulting to identity", async () => {

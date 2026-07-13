@@ -23,7 +23,8 @@ export const previewRoutes = async (state?: RoutePreviewState | null): Promise<R
     preview: true,
   };
   const previewState = { ...state, info };
-  const path = await applyVariables(new Path(Download.getRoutingMatches(previewState)), info);
+  const matchedRoute = Download.getRoutingMatches(previewState);
+  const path = await applyVariables(new Path(matchedRoute), info);
 
   const filenamePatterns = Array.isArray(options.filenamePatterns) ? options.filenamePatterns : [];
   let captures: (string | undefined)[] | null = null;
@@ -33,5 +34,8 @@ export const previewRoutes = async (state?: RoutePreviewState | null): Promise<R
     break;
   }
 
-  return { path: path.finalize(), captures };
+  return {
+    path: path.finalize({ finalComponentIsFilename: !/\/\s*$/.test(matchedRoute || "") }),
+    captures,
+  };
 };

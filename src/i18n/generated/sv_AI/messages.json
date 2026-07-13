@@ -643,10 +643,10 @@
     "message": "Återställ standardinställningar"
   },
   "o_cTruncatePath": {
-    "message": "Maximalt antal tecken per mappnamn"
+    "message": "Maximalt antal UTF-8-byte per fil- eller mappnamn"
   },
   "o_cTruncatePathHelp": {
-    "message": "0 betyder ingen gräns"
+    "message": "Använder en portabel filsystemsgräns. 0 betyder ingen gräns. Befintliga teckengränser uppgraderas automatiskt."
   },
   "o_cReplaceInvalidCharsWith": {
     "message": "Ersätt ogiltiga tecken med"
@@ -1811,6 +1811,9 @@
   },
   "sourcePanelSortNewest": {
     "message": "Nyaste först"
+  },
+  "sourcePanelSortRelevance": {
+    "message": "Relevans"
   },
   "sourcePanelSortOldest": {
     "message": "Äldsta först"

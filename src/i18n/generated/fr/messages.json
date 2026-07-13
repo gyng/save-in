@@ -669,10 +669,10 @@
     "message": "Restaurer les valeurs par défaut"
   },
   "o_cTruncatePath": {
-    "message": "Nombre maximum de caractères par nom de dossier"
+    "message": "Nombre maximal d’octets UTF-8 par nom de fichier ou de dossier"
   },
   "o_cTruncatePathHelp": {
-    "message": "0 signifie aucune limite"
+    "message": "Utilise une limite de système de fichiers portable. 0 signifie aucune limite. Les limites de caractères existantes sont mises à niveau automatiquement."
   },
   "o_cReplaceInvalidCharsWith": {
     "message": "Remplacez les caractères invalides par"
@@ -1838,6 +1838,9 @@
   },
   "sourcePanelSortNewest": {
     "message": "Plus récentes"
+  },
+  "sourcePanelSortRelevance": {
+    "message": "Pertinence"
   },
   "sourcePanelSortOldest": {
     "message": "Plus anciennes"

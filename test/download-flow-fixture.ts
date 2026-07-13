@@ -134,6 +134,7 @@ beforeEach(() => {
     conflictAction: "uniquify",
     fetchViaFetch: false,
     includeFetchCredentials: false,
+    truncateLength: 240,
     // Off by default here; a dedicated suite exercises the MIME-append path
     appendMimeExtension: false,
   });

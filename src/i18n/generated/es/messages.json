@@ -645,10 +645,10 @@
     "message": "Restaurar valores predeterminados"
   },
   "o_cTruncatePath": {
-    "message": "Máximo de caracteres por nombre de carpeta"
+    "message": "Máximo de bytes UTF-8 por nombre de archivo o carpeta"
   },
   "o_cTruncatePathHelp": {
-    "message": "0 significa sin límite"
+    "message": "Usa un límite de sistema de archivos portable. 0 significa sin límite. Los límites de caracteres existentes se actualizan automáticamente."
   },
   "o_cReplaceInvalidCharsWith": {
     "message": "Reemplazar caracteres no válidos con"
@@ -1815,6 +1815,9 @@
   },
   "sourcePanelSortNewest": {
     "message": "Más recientes"
+  },
+  "sourcePanelSortRelevance": {
+    "message": "Relevancia"
   },
   "sourcePanelSortOldest": {
     "message": "Más antiguos"

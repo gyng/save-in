@@ -546,10 +546,10 @@
     "message": "恢復預設設定"
   },
   "o_cTruncatePath": {
-    "message": "每個資料夾名稱的最大字元數"
+    "message": "每個檔案或資料夾名稱的最大 UTF-8 位元組數"
   },
   "o_cTruncatePathHelp": {
-    "message": "0表示無限制"
+    "message": "使用可攜式檔案系統限制。0 表示無限制。現有字元限制會自動升級。"
   },
   "o_cReplaceInvalidCharsWith": {
     "message": "將無效字元替換為"
@@ -1917,6 +1917,9 @@
   },
   "sourcePanelSortNewest": {
     "message": "最新"
+  },
+  "sourcePanelSortRelevance": {
+    "message": "相關性"
   },
   "sourcePanelSortOldest": {
     "message": "最早"

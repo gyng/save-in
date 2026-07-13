@@ -1128,11 +1128,11 @@
     "description": "Option control label or related help text. Used in src/options/options.html."
   },
   "o_cTruncatePath": {
-    "message": "Maximum characters per folder name",
+    "message": "Maximum UTF-8 bytes per file or folder name",
     "description": "Option control label or related help text. Used in src/options/options.html."
   },
   "o_cTruncatePathHelp": {
-    "message": "0 means no limit",
+    "message": "Uses a portable filesystem limit. 0 means no limit. Existing character limits are upgraded automatically.",
     "description": "Option control label or related help text. Used in src/options/options.html."
   },
   "o_cReplaceInvalidCharsWith": {
@@ -2585,6 +2585,10 @@
   "sourcePanelSortNewest": {
     "message": "Newest",
     "description": "Page Sources sort option. Used in src/shared/source-panel-copy.ts."
+  },
+  "sourcePanelSortRelevance": {
+    "message": "Relevance",
+    "description": "Page Sources sort option that prioritizes prominent media and deprioritizes low-value assets. Used in src/shared/source-panel-copy.ts."
   },
   "sourcePanelSortOldest": {
     "message": "Oldest",

@@ -647,10 +647,10 @@
     "message": "Standardeinstellungen wiederherstellen"
   },
   "o_cTruncatePath": {
-    "message": "Maximale Zeichen pro Ordnername"
+    "message": "Maximale UTF-8-Bytes pro Datei- oder Ordnername"
   },
   "o_cTruncatePathHelp": {
-    "message": "0 bedeutet keine Begrenzung"
+    "message": "Verwendet eine portable Dateisystemgrenze. 0 bedeutet keine Begrenzung. Bestehende Zeichengrenzen werden automatisch aktualisiert."
   },
   "o_cReplaceInvalidCharsWith": {
     "message": "Ersetzen Sie ungültige Zeichen durch"
@@ -1815,6 +1815,9 @@
   },
   "sourcePanelSortNewest": {
     "message": "Neueste zuerst"
+  },
+  "sourcePanelSortRelevance": {
+    "message": "Relevanz"
   },
   "sourcePanelSortOldest": {
     "message": "Älteste zuerst"

@@ -1235,7 +1235,13 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
 
       <h3>__MSG_o_sAdvancedFilenames__</h3>
       <label>
-        <input type="number" id="truncateLength" min="0" step="1" />__MSG_o_cTruncatePath__&nbsp;
+        <input
+          type="number"
+          id="truncateLength"
+          min="0"
+          max="255"
+          step="1"
+        />__MSG_o_cTruncatePath__&nbsp;
         <div class="caption caption-line">__MSG_o_cTruncatePathHelp__</div>
       </label>
 

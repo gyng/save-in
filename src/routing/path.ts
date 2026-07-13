@@ -1,9 +1,11 @@
 import { SPECIAL_DIRS, FORBIDDEN_FILENAME_CHARS, PATH_SEGMENT_TYPES } from "../shared/constants.ts";
 import { options } from "../config/options-data.ts";
 import { routingPorts } from "./ports.ts";
+import { EXTENSION_REGEX } from "./filename.ts";
 
 const specialDirVariables = Object.values(SPECIAL_DIRS);
 const specialDirRegexp = new RegExp(`(${specialDirVariables.join("|")})`);
+const utf8Encoder = new TextEncoder();
 
 export type PathSegmentType =
   | (typeof PATH_SEGMENT_TYPES)[keyof typeof PATH_SEGMENT_TYPES]
@@ -26,6 +28,7 @@ export type FilenameDiagnostics = {
   limitBytes: number;
   exceedsLimit: boolean;
 };
+export type PathFinalizeOptions = { finalComponentIsFilename?: boolean };
 
 // These regexes are exported because they define the platform-neutral path
 // policy; callers should normally use the sanitizing functions below.
@@ -70,17 +73,31 @@ export function replaceLeadingDots(value: string, replacement?: string) {
 }
 
 export function truncateIfLongerThan(value: string, max: number) {
-  if (!value || max <= 0 || value.length <= max) return value;
+  if (!value || max <= 0) return value;
+  if (utf8Encoder.encode(value).byteLength <= max) return value;
   let result = "";
+  let bytes = 0;
   for (const character of value) {
-    if (result.length + character.length > max) break;
+    const characterBytes = utf8Encoder.encode(character).byteLength;
+    if (bytes + characterBytes > max) break;
     result += character;
+    bytes += characterBytes;
   }
   return result;
 }
 
+function truncatePreservingExtension(value: string, max: number) {
+  if (!value || max <= 0 || !getFilenameDiagnostics(value, max).exceedsLimit) return value;
+  const extension = value.match(EXTENSION_REGEX)?.[0];
+  if (!extension) return truncateIfLongerThan(value, max);
+  const extensionBytes = utf8Encoder.encode(extension).byteLength;
+  const stemBudget = max - extensionBytes;
+  if (stemBudget <= 0) return truncateIfLongerThan(value, max);
+  return `${truncateIfLongerThan(value.slice(0, -extension.length), stemBudget)}${extension}`;
+}
+
 export function getFilenameDiagnostics(value: string, limitBytes = 255): FilenameDiagnostics {
-  const utf8Bytes = new TextEncoder().encode(value).byteLength;
+  const utf8Bytes = utf8Encoder.encode(value).byteLength;
   return { utf8Bytes, limitBytes, exceedsLimit: utf8Bytes > limitBytes };
 }
 
@@ -97,25 +114,39 @@ export function neutralizeReservedDeviceName(value: string, replacement?: string
   return `${replacementChar(replacement, "_")}${value}`;
 }
 
-export function sanitizeFilename(value: null, max?: number, leadingDotsForbidden?: boolean): null;
+export function sanitizeFilename(
+  value: null,
+  max?: number,
+  leadingDotsForbidden?: boolean,
+  preserveExtension?: boolean,
+): null;
 export function sanitizeFilename(
   value: string,
   max?: number,
   leadingDotsForbidden?: boolean,
+  preserveExtension?: boolean,
 ): string;
 export function sanitizeFilename(
   value: string | null,
   max = 0,
   leadingDotsForbidden = true,
+  preserveExtension = false,
 ): string | null {
   if (!value) {
     return value;
   }
 
-  const fsSafe = truncateIfLongerThan(replaceFsBadChars(value), max);
+  const fsSafe = replaceFsBadChars(value);
   const dotsHandled = leadingDotsForbidden ? replaceLeadingDots(fsSafe) : fsSafe;
   const trimmed = trimTrailingDotsAndSpaces(dotsHandled);
-  return truncateIfLongerThan(neutralizeReservedDeviceName(trimmed), max);
+  const truncated = preserveExtension
+    ? truncatePreservingExtension(trimmed, max)
+    : truncateIfLongerThan(trimmed, max);
+  const safeName = neutralizeReservedDeviceName(trimTrailingDotsAndSpaces(truncated));
+  const finalName = preserveExtension
+    ? truncatePreservingExtension(safeName, max)
+    : truncateIfLongerThan(safeName, max);
+  return trimTrailingDotsAndSpaces(finalName);
 }
 
 export function sanitizeBufStrings(buf: PathSegment[]) {
@@ -171,17 +202,12 @@ export class Path {
     return this.buf!.join("");
   }
 
-  finalize() {
+  finalize(finalizeOptions: PathFinalizeOptions = {}) {
     const completed: PathSegment[] = [];
     let component = "";
     const flush = () => {
       if (!component) return;
-      const isLeadingDot = completed.length === 0 && component === ".";
-      completed.push(
-        stringSegment(
-          isLeadingDot ? component : sanitizeFilename(component, options.truncateLength, true),
-        ),
-      );
+      completed.push(stringSegment(component));
       component = "";
     };
 
@@ -194,7 +220,29 @@ export class Path {
       }
     }
     flush();
-    return completed.join("");
+    let finalComponentIndex = -1;
+    for (let index = completed.length - 1; index >= 0; index -= 1) {
+      if (completed[index]?.type === PATH_SEGMENT_TYPES.STRING) {
+        finalComponentIndex = index;
+        break;
+      }
+    }
+    return completed
+      .map((item, index) => {
+        if (item.type === PATH_SEGMENT_TYPES.SEPARATOR) return item;
+        const isLeadingDot = index === 0 && item.val === ".";
+        return stringSegment(
+          isLeadingDot
+            ? item.val
+            : sanitizeFilename(
+                item.val,
+                options.truncateLength,
+                true,
+                finalizeOptions.finalComponentIsFilename && index === finalComponentIndex,
+              ),
+        );
+      })
+      .join("");
   }
 
   validate(): PathValidation {

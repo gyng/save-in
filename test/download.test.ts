@@ -1,6 +1,7 @@
 import { Download } from "../src/downloads/download.ts";
 import { EXTENSION_REGEX, getFilenameFromUrl } from "../src/routing/filename.ts";
 import { options } from "../src/config/options-data.ts";
+import { Path } from "../src/routing/path.ts";
 
 test("extension detection regex", () => {
   const match = "abc.xyz".match(EXTENSION_REGEX);
@@ -59,6 +60,18 @@ describe("finalizeFullPath: MIME extension append (§8.1)", () => {
   test("is a no-op when no extension was resolved", () => {
     expect(Download.finalizeFullPath(state("image", {}))).toBe("dir/image");
   });
+
+  test("budgets a MIME-derived extension inside the component byte limit", () => {
+    const previous = options.truncateLength;
+    options.truncateLength = 12;
+    try {
+      expect(Download.finalizeFullPath(state("123456789012", { mimeExtension: "jpg" }))).toBe(
+        "dir/12345678.jpg",
+      );
+    } finally {
+      options.truncateLength = previous;
+    }
+  });
 });
 
 describe("finalizeFullPath: folder-only route keeps the real filename (§8.1)", () => {
@@ -88,6 +101,23 @@ describe("finalizeFullPath: folder-only route keeps the real filename (§8.1)", 
     expect(Download.finalizeFullPath(s)).toBe("menu/renamed.pdf");
   });
 
+  test("preserves the extension of a byte-limited full-name route", () => {
+    const previous = options.truncateLength;
+    options.truncateLength = 8;
+    try {
+      const s = {
+        path: new Path("menu"),
+        route: new Path("renamed/界界界.txt"),
+        routeIsFolder: false,
+        info: { filename: "report.pdf" },
+        scratch: {},
+      };
+      expect(Download.finalizeFullPath(s)).toBe("menu/renamed/界.txt");
+    } finally {
+      options.truncateLength = previous;
+    }
+  });
+
   test("folder route still appends a MIME extension to an extensionless name", () => {
     const s = {
       path: { finalize: () => "menu" },
@@ -97,6 +127,21 @@ describe("finalizeFullPath: folder-only route keeps the real filename (§8.1)", 
       scratch: { mimeExtension: "jpg" },
     };
     expect(Download.finalizeFullPath(s)).toBe("menu/images/12345.jpg");
+  });
+
+  test("truncates a server-resolved filename by bytes and preserves its extension", () => {
+    const previous = options.truncateLength;
+    options.truncateLength = 12;
+    try {
+      const s = {
+        path: { finalize: () => "menu" },
+        info: { filename: "界界界界.txt" },
+        scratch: {},
+      };
+      expect(Download.finalizeFullPath(s)).toBe("menu/界界.txt");
+    } finally {
+      options.truncateLength = previous;
+    }
   });
 });
 

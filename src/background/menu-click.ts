@@ -259,7 +259,12 @@ export const addDownloadListener = () => {
         }
 
         if (suggestedFilename) {
-          suggestedFilename = sanitizeFilename(suggestedFilename, options.truncateLength);
+          suggestedFilename = sanitizeFilename(
+            suggestedFilename,
+            options.truncateLength,
+            true,
+            true,
+          );
         }
 
         // Organise things by flattening the info struct and only keeping needed info

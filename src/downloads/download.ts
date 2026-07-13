@@ -183,7 +183,9 @@ const recordDownloadRequest = (plan: DownloadPlan): void => {
     logPort.add("download requested", {
       url: state.info.url && String(state.info.url).slice(0, 200),
       path: plan.finalFullPath,
-      route: state.route ? String(state.route.finalize()) : null,
+      route: state.route
+        ? String(state.route.finalize({ finalComponentIsFilename: !state.routeIsFolder }))
+        : null,
     });
   }
   if (backgroundRuntime.debug && !privateContext) console.log(state, plan.finalFullPath); // eslint-disable-line
@@ -260,18 +262,12 @@ export const Download = {
       // Firefox) — instead of naming the file after the folder.
       const routeDir = String(_state.route.finalize()).replace(/\/+$/, "");
       finalDir = [finalDir, routeDir].filter((x) => x != null && x !== "").join("/");
-      finalFilename =
-        typeof _state.info.filename === "string"
-          ? sanitizeFilename(_state.info.filename)
-          : undefined;
+      finalFilename = typeof _state.info.filename === "string" ? _state.info.filename : undefined;
     } else if (_state.route) {
       // The rule sets the whole name (which may itself include subdirectories)
-      finalFilename = _state.route.finalize();
+      finalFilename = _state.route.finalize({ finalComponentIsFilename: true });
     } else {
-      finalFilename =
-        typeof _state.info.filename === "string"
-          ? sanitizeFilename(_state.info.filename)
-          : undefined;
+      finalFilename = typeof _state.info.filename === "string" ? _state.info.filename : undefined;
     }
 
     // §8.1: append a MIME-derived extension when the resolved filename has none
@@ -284,6 +280,15 @@ export const Download = {
       !EXTENSION_REGEX.test(finalFilename)
     ) {
       finalFilename = `${finalFilename}.${_state.scratch.mimeExtension}`;
+    }
+
+    if (finalFilename) {
+      const components = finalFilename.split("/");
+      const filename = components.pop();
+      if (filename != null) {
+        components.push(sanitizeFilename(filename, options.truncateLength, true, true));
+        finalFilename = components.join("/");
+      }
     }
 
     const finalFullPath = [finalDir, finalFilename].filter((x) => x != null).join("/");
@@ -381,9 +386,9 @@ export const Download = {
     if (options.appendMimeExtension !== false) {
       const tentative =
         state.route && !state.routeIsFolder
-          ? state.route.finalize()
+          ? state.route.finalize({ finalComponentIsFilename: true })
           : typeof state.info.filename === "string"
-            ? sanitizeFilename(state.info.filename)
+            ? sanitizeFilename(state.info.filename, options.truncateLength, true, true)
             : undefined;
       if (tentative && !EXTENSION_REGEX.test(tentative)) {
         const ext = mimeToExtension(await resolveMime(state.info));

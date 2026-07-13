@@ -546,10 +546,10 @@
     "message": "기본값 복원"
   },
   "o_cTruncatePath": {
-    "message": "폴더 이름당 최대 문자 수"
+    "message": "파일 또는 폴더 이름당 최대 UTF-8 바이트"
   },
   "o_cTruncatePathHelp": {
-    "message": "0은 제한이 없음을 의미합니다."
+    "message": "이식 가능한 파일 시스템 제한을 사용합니다. 0은 제한 없음을 의미합니다. 기존 문자 제한은 자동으로 업그레이드됩니다."
   },
   "o_cReplaceInvalidCharsWith": {
     "message": "유효하지 않은 문자를 다음으로 바꾸십시오."
@@ -1917,6 +1917,9 @@
   },
   "sourcePanelSortNewest": {
     "message": "최신순"
+  },
+  "sourcePanelSortRelevance": {
+    "message": "관련성"
   },
   "sourcePanelSortOldest": {
     "message": "오래된순"

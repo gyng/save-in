@@ -546,10 +546,10 @@
     "message": "デフォルトに戻す"
   },
   "o_cTruncatePath": {
-    "message": "フォルダー名の最大文字数"
+    "message": "ファイル名またはフォルダー名あたりの最大 UTF-8 バイト数"
   },
   "o_cTruncatePathHelp": {
-    "message": "0は制限なしを意味します"
+    "message": "移植性のあるファイルシステム制限を使用します。0 は制限なしです。既存の文字数制限は自動的にアップグレードされます。"
   },
   "o_cReplaceInvalidCharsWith": {
     "message": "無効な文字を次のように置き換えます"
@@ -1917,6 +1917,9 @@
   },
   "sourcePanelSortNewest": {
     "message": "新しい順"
+  },
+  "sourcePanelSortRelevance": {
+    "message": "関連性"
   },
   "sourcePanelSortOldest": {
     "message": "古い順"

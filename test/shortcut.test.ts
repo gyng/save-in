@@ -286,7 +286,7 @@ describe("suggestShortcutFilename", () => {
     ).toBe("shortcut.url");
   });
 
-  test("passes maxlen minus the extension length to Path.sanitizeFilename", () => {
+  test("sanitizes the completed filename while preserving its extension", () => {
     const info = { linkUrl: "link" };
 
     shortcut.suggestShortcutFilename(
@@ -297,7 +297,7 @@ describe("suggestShortcutFilename", () => {
       100,
     );
 
-    expect(vi.mocked(Path.sanitizeFilename)).toHaveBeenCalledWith("link", 100 - 4); // ".url" is 4 chars
+    expect(vi.mocked(Path.sanitizeFilename)).toHaveBeenCalledWith("link.url", 100, true, true);
   });
 });
 

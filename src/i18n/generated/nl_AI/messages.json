@@ -649,10 +649,10 @@
     "message": "Standaardwaarden herstellen"
   },
   "o_cTruncatePath": {
-    "message": "Maximaal aantal tekens per mapnaam"
+    "message": "Maximaal aantal UTF-8-bytes per bestands- of mapnaam"
   },
   "o_cTruncatePathHelp": {
-    "message": "0 betekent geen limiet"
+    "message": "Gebruikt een overdraagbare bestandssysteemlimiet. 0 betekent geen limiet. Bestaande tekenlimieten worden automatisch bijgewerkt."
   },
   "o_cReplaceInvalidCharsWith": {
     "message": "Vervang ongeldige tekens door"
@@ -1817,6 +1817,9 @@
   },
   "sourcePanelSortNewest": {
     "message": "Nieuwste eerst"
+  },
+  "sourcePanelSortRelevance": {
+    "message": "Relevantie"
   },
   "sourcePanelSortOldest": {
     "message": "Oudste eerst"

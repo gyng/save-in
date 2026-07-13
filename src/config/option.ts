@@ -11,6 +11,10 @@ import {
 // validator-heavy module into the background dependency graph.
 import { options, replaceOptions, resetOptions } from "./options-data.ts";
 import { isContentOptionName, normalizeContentOption } from "./content-options.ts";
+import {
+  PATH_TRUNCATION_MIGRATION_STORAGE_KEY,
+  PATH_TRUNCATION_MIGRATION_VERSION,
+} from "../shared/storage-keys.ts";
 
 export interface OptionsManagementApi {
   OPTION_TYPES: typeof OPTION_TYPES;
@@ -75,7 +79,7 @@ export const OptionsManagement: OptionsManagementApi = {
     shortcutPage: "Save pages as shortcut files.",
     shortcutTab: "Save tabs as shortcut files from the browser tab menu.",
     shortcutType: "Shortcut file format (HTML redirect, legacy .url, .desktop, or .webloc).",
-    truncateLength: "Truncate each path segment to this many characters (0 = no limit).",
+    truncateLength: "Limit each file or folder name to this many UTF-8 bytes (0 = no limit).",
     appendMimeExtension:
       "Append a file extension from the server's Content-Type when the filename has none.",
     fetchViaFetch: "Download via the Fetch API instead of the downloads API.",
@@ -111,57 +115,79 @@ export const OptionsManagement: OptionsManagementApi = {
   },
 
   loadOptions: () =>
-    webExtensionApi.storage.local.get(OptionsManagement.getKeys()).then((loadedOptions) => {
-      const storedOptions: Record<string, unknown> =
-        loadedOptions && typeof loadedOptions === "object" && !Array.isArray(loadedOptions)
-          ? loadedOptions
-          : {};
-      const callHook = (hook: unknown, value: unknown): unknown =>
-        typeof hook === "function" ? Reflect.apply(hook, undefined, [value]) : value;
-      const normalizeOption = (
-        optionType: (typeof OPTION_KEYS)[number],
-        stored: unknown,
-      ): unknown => {
-        const k = optionType.name;
-        if (isContentOptionName(k)) return normalizeContentOption(k, stored);
-        if (typeof stored === "undefined") return optionType.default;
-        const validType =
-          optionType.type === OPTION_TYPES.BOOL
-            ? typeof stored === "boolean"
-            : typeof stored === typeof optionType.default ||
-              (typeof optionType.default === "number" &&
-                typeof stored === "string" &&
-                stored.trim() !== "" &&
-                Number.isFinite(Number(stored)));
-        const validate = "validate" in optionType ? optionType.validate : undefined;
-        if (
-          !validType ||
-          (typeof stored === "number" && !Number.isFinite(stored)) ||
-          (validate && callHook(validate, stored) !== true)
-        ) {
-          return optionType.default;
-        }
-        try {
-          return callHook("onLoad" in optionType ? optionType.onLoad : undefined, stored);
-        } catch {
-          // Profiles and imported settings can outlive their parser/migration.
-          // One corrupt option must not prevent the background page from starting.
-          return optionType.default;
-        }
-      };
-      const nextOptions = Object.fromEntries(
-        OptionsManagement.OPTION_KEYS.map((optionType) => [
-          optionType.name,
-          normalizeOption(optionType, storedOptions[optionType.name]),
-        ]),
-      ) as SaveInOptions;
+    webExtensionApi.storage.local
+      .get([...OptionsManagement.getKeys(), PATH_TRUNCATION_MIGRATION_STORAGE_KEY])
+      .then((loadedOptions) => {
+        const storedOptions: Record<string, unknown> =
+          loadedOptions && typeof loadedOptions === "object" && !Array.isArray(loadedOptions)
+            ? loadedOptions
+            : {};
+        const callHook = (hook: unknown, value: unknown): unknown =>
+          typeof hook === "function" ? Reflect.apply(hook, undefined, [value]) : value;
+        const normalizeOption = (
+          optionType: (typeof OPTION_KEYS)[number],
+          stored: unknown,
+        ): unknown => {
+          const k = optionType.name;
+          if (isContentOptionName(k)) return normalizeContentOption(k, stored);
+          if (typeof stored === "undefined") return optionType.default;
+          const validType =
+            optionType.type === OPTION_TYPES.BOOL
+              ? typeof stored === "boolean"
+              : typeof stored === typeof optionType.default ||
+                (typeof optionType.default === "number" &&
+                  typeof stored === "string" &&
+                  stored.trim() !== "" &&
+                  Number.isFinite(Number(stored)));
+          const validate = "validate" in optionType ? optionType.validate : undefined;
+          if (
+            !validType ||
+            (typeof stored === "number" && !Number.isFinite(stored)) ||
+            (validate && callHook(validate, stored) !== true)
+          ) {
+            return optionType.default;
+          }
+          try {
+            return callHook("onLoad" in optionType ? optionType.onLoad : undefined, stored);
+          } catch {
+            // Profiles and imported settings can outlive their parser/migration.
+            // One corrupt option must not prevent the background page from starting.
+            return optionType.default;
+          }
+        };
+        const nextOptions = Object.fromEntries(
+          OptionsManagement.OPTION_KEYS.map((optionType) => [
+            optionType.name,
+            normalizeOption(optionType, storedOptions[optionType.name]),
+          ]),
+        ) as SaveInOptions;
+        const commit = () => {
+          // Commit a complete snapshot only after every stored value has been
+          // normalized. Keys removed by reset therefore return to their defaults,
+          // and readers never observe a half-reloaded options bag.
+          replaceOptions(nextOptions);
+          return options;
+        };
 
-      // Commit a complete snapshot only after every stored value has been
-      // normalized. Keys removed by reset therefore return to their defaults,
-      // and readers never observe a half-reloaded options bag.
-      replaceOptions(nextOptions);
-      return options;
-    }),
+        const migrationVersion = storedOptions[PATH_TRUNCATION_MIGRATION_STORAGE_KEY];
+        if (
+          typeof migrationVersion === "number" &&
+          Number.isFinite(migrationVersion) &&
+          migrationVersion >= PATH_TRUNCATION_MIGRATION_VERSION
+        ) {
+          return commit();
+        }
+
+        // v1 counted UTF-16 code units and could exceed byte-limited filesystems.
+        // Persist the normalized value with a separate version marker so event-page
+        // and service-worker restarts never reinterpret the same profile twice.
+        return webExtensionApi.storage.local
+          .set({
+            truncateLength: nextOptions.truncateLength,
+            [PATH_TRUNCATION_MIGRATION_STORAGE_KEY]: PATH_TRUNCATION_MIGRATION_VERSION,
+          })
+          .then(commit);
+      }),
 };
 
 // loadOptions() overlays only stored keys, so the entry seeds every default

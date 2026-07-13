@@ -81,7 +81,7 @@ describe("finalizeFullPath", () => {
     };
 
     expect(Download.finalizeFullPath(state)).toBe("some/dir/sanitized.txt");
-    expect(Path.sanitizeFilename).toHaveBeenCalledWith("raw.txt");
+    expect(Path.sanitizeFilename).toHaveBeenCalledWith("raw.txt", 240, true, true);
   });
 
   test("strips a leading / and prefers the route's finalized filename", () => {

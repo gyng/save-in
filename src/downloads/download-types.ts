@@ -3,7 +3,7 @@ import type { LazyDownloadMetadata } from "../shared/lazy-download-metadata.ts";
 import type { RoutingDownloadInfo } from "../routing/rule-types.ts";
 
 export type PathValue = {
-  finalize: () => string;
+  finalize: (options?: { finalComponentIsFilename?: boolean }) => string;
   toString: () => string;
 };
 

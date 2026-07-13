@@ -107,7 +107,8 @@ export const traceRules = async (rules: RoutingRule[], info: RoutingInfo): Promi
   };
   const expandedPath = destination ? await applyVariables(new Path(destination), traceInfo) : null;
   const expandedDestination = expandedPath?.toString() ?? null;
-  const sanitizedDestination = expandedPath?.finalize() ?? null;
+  const sanitizedDestination =
+    expandedPath?.finalize({ finalComponentIsFilename: !/\/\s*$/.test(destination || "") }) ?? null;
   return {
     initialFilename: info.initialFilename,
     actualFilename: info.filename,

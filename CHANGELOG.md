@@ -16,6 +16,9 @@ existing settings and rules.
   tools without adding remote code or broader interception permissions.
 - Unified both browser releases into one readable, reproducible package backed
   by automated Firefox and Chrome end-to-end tests.
+- Automatically migrate path-component truncation from character counts to
+  UTF-8 byte limits, apply it consistently to files and folders, and preserve
+  filename extensions within the configured limit.
 
 Thanks @rudolphos for #230 and Chromium testing, and everyone who reported and
 tested the many fixes included in this release.

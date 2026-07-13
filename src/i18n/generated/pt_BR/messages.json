@@ -649,10 +649,10 @@
     "message": "Restaurar padrões"
   },
   "o_cTruncatePath": {
-    "message": "Máximo de caracteres por nome de pasta"
+    "message": "Máximo de bytes UTF-8 por nome de arquivo ou pasta"
   },
   "o_cTruncatePathHelp": {
-    "message": "0 significa sem limite"
+    "message": "Usa um limite portátil do sistema de arquivos. 0 significa sem limite. Os limites de caracteres existentes são atualizados automaticamente."
   },
   "o_cReplaceInvalidCharsWith": {
     "message": "Substitua caracteres inválidos por"
@@ -1817,6 +1817,9 @@
   },
   "sourcePanelSortNewest": {
     "message": "Mais recentes"
+  },
+  "sourcePanelSortRelevance": {
+    "message": "Relevância"
   },
   "sourcePanelSortOldest": {
     "message": "Mais antigos"

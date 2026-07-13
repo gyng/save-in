@@ -123,6 +123,11 @@ describe("truncateIfLongerThan", () => {
     expect(Path.truncateIfLongerThan("abcdef", 3)).toBe("abc");
   });
 
+  test("uses UTF-8 bytes rather than JavaScript string length", () => {
+    expect(Path.truncateIfLongerThan("éé", 3)).toBe("é");
+    expect(Path.truncateIfLongerThan("a😀b", 5)).toBe("a😀");
+  });
+
   test("leaves short strings and unlimited maxes alone", () => {
     expect(Path.truncateIfLongerThan("ab", 5)).toBe("ab");
     expect(Path.truncateIfLongerThan("ab", 0)).toBe("ab");
@@ -179,6 +184,11 @@ describe("sanitizeFilename", () => {
   test("does not split a Unicode surrogate pair when truncating", () => {
     expect(Path.sanitizeFilename("ab😀cd", 3, false)).toBe("ab");
   });
+
+  test("preserves a file extension within the UTF-8 byte budget", () => {
+    expect(Path.sanitizeFilename("界界界.txt", 8, false, true)).toBe("界.txt");
+    expect(Path.getFilenameDiagnostics("界.txt", 8).exceedsLimit).toBe(false);
+  });
 });
 
 describe("Path.finalize component semantics", () => {
@@ -198,6 +208,28 @@ describe("Path.finalize component semantics", () => {
     const path = new Path.Path("");
     path.buf = [Path.stringSegment("name."), Path.stringSegment("-final")];
     expect(path.finalize()).toBe("name.-final");
+  });
+
+  test("limits every completed component by UTF-8 bytes", () => {
+    const previous = options.truncateLength;
+    options.truncateLength = 8;
+    try {
+      expect(new Path.Path("目录目录/file").finalize()).toBe("目录/file");
+    } finally {
+      options.truncateLength = previous;
+    }
+  });
+
+  test("can preserve the final component's extension", () => {
+    const previous = options.truncateLength;
+    options.truncateLength = 8;
+    try {
+      expect(new Path.Path("folder/界界界.txt").finalize({ finalComponentIsFilename: true })).toBe(
+        "folder/界.txt",
+      );
+    } finally {
+      options.truncateLength = previous;
+    }
   });
 });
 

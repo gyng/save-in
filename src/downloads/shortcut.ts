@@ -107,10 +107,12 @@ export const Shortcut = {
           }`
         : `${suggestedFilename || info.linkText || info.srcUrl || info.linkUrl || "shortcut"}`;
 
-    shortcutFilename = `${sanitizeFilename(
-      shortcutFilename,
-      maxlen - shortcutExtension.length,
-    )}${shortcutExtension}`;
+    shortcutFilename = sanitizeFilename(
+      `${shortcutFilename}${shortcutExtension}`,
+      maxlen,
+      true,
+      true,
+    );
 
     return shortcutFilename;
   },

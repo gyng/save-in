@@ -95,7 +95,7 @@ export const toWireDownloadState = (state: DownloadPipelineState): WireDownloadS
   const wire: WireDownloadState = { info };
   if (state.path && typeof state.path.finalize === "function") wire.path = state.path.finalize();
   if (state.route && typeof state.route.finalize === "function")
-    wire.route = state.route.finalize();
+    wire.route = state.route.finalize({ finalComponentIsFilename: !state.routeIsFolder });
   if (typeof state.routeIsFolder === "boolean") wire.routeIsFolder = state.routeIsFolder;
   return wire;
 };

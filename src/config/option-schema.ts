@@ -94,6 +94,10 @@ type WidenDefault<Value> = Value extends boolean
 type LoadedOptionValue<Definition extends OptionKey> = RuntimeOptionValue<Definition>;
 
 const normalizeWholeNumber = (value: string | number): number => Math.round(Number(value));
+const normalizeTruncateBytes = (value: string | number): number => {
+  const rounded = normalizeWholeNumber(value);
+  return rounded === 0 ? 0 : Math.min(rounded, 255);
+};
 const isNonnegativeNumber = (value: unknown): value is string | number => {
   if ((typeof value !== "number" && typeof value !== "string") || String(value).trim() === "") {
     return false;
@@ -191,8 +195,8 @@ export const OPTION_KEYS = defineOptions([
   {
     name: "truncateLength",
     type: OPTION_TYPES.VALUE,
-    onLoad: normalizeWholeNumber,
-    onSave: normalizeWholeNumber,
+    onLoad: normalizeTruncateBytes,
+    onSave: normalizeTruncateBytes,
     validate: isNonnegativeNumber,
     default: 240,
   },
