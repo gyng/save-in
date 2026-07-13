@@ -29,10 +29,23 @@ export let WEB_EXTENSION_CAPABILITIES: WebExtensionCapabilities = {
 export let CURRENT_BROWSER = BROWSERS.UNKNOWN;
 export let CURRENT_BROWSER_VERSION: number | undefined;
 
+const supportsChromeTabContextMenus = (): boolean => {
+  const contextMenus = globalThis.chrome?.contextMenus;
+  const contextTypes = contextMenus && Reflect.get(contextMenus, "ContextType");
+  return (
+    contextTypes != null &&
+    typeof contextTypes === "object" &&
+    Reflect.get(contextTypes, "TAB") === "tab"
+  );
+};
+
 export const detectCapabilities = (currentBrowser: string): WebExtensionCapabilities => ({
-  // `ContextType` is an API type, not a reliably exposed runtime enum. Both
-  // declared minimum browsers accept the documented literal `"tab"`.
-  tabContextMenus: currentBrowser === BROWSERS.FIREFOX || currentBrowser === BROWSERS.CHROME,
+  // Chrome only exposed tab-strip context menus well after our minimum
+  // version. Its runtime enum is the synchronous feature probe available
+  // before listeners and menus must be registered.
+  tabContextMenus:
+    currentBrowser === BROWSERS.FIREFOX ||
+    (currentBrowser === BROWSERS.CHROME && supportsChromeTabContextMenus()),
   accessKeys: true,
   downloadFilenameSuggestion: Boolean(globalThis.chrome?.downloads?.onDeterminingFilename),
   // Chrome supplies the final filename through DownloadDelta; Firefox includes

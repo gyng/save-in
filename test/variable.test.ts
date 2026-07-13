@@ -242,6 +242,12 @@ describe("variables", () => {
       expect(Variable.toRootDomain("example.com")).toBe("example.com");
     });
 
+    test("keeps the registrable label for common multi-label public suffixes", async () => {
+      expect(Variable.toRootDomain("media.example.co.uk")).toBe("example.co.uk");
+      expect(Variable.toRootDomain("cdn.example.com.au")).toBe("example.com.au");
+      expect(Variable.toRootDomain("assets.example.co.jp")).toBe("example.co.jp");
+    });
+
     test("leaves single-label hosts unchanged", async () => {
       expect(Variable.toRootDomain("localhost")).toBe("localhost");
     });

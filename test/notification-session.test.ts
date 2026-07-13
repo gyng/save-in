@@ -75,6 +75,10 @@ const makeSessionMock = (store: Record<string, any>) => ({
     Object.assign(store, obj);
     return Promise.resolve();
   }),
+  remove: jest.fn((keys: string | string[]) => {
+    for (const key of Array.isArray(keys) ? keys : [keys]) delete store[key];
+    return Promise.resolve();
+  }),
 });
 
 // Membership is now the `adopted` flag on each persisted DownloadState record;
@@ -185,10 +189,14 @@ describe("startup restore", () => {
     await loadNotification();
     await jest.advanceTimersByTimeAsync(10000);
 
-    // A live download keeps its adoption; storage.session is not written at all
-    // (nothing to prune)
+    // A live download keeps its adoption; only the durable recovery lease is
+    // written, not the download record itself.
     expect(adoptedIds(sessionStore)).toEqual([12]);
-    expect(global.browser.storage.session.set).not.toHaveBeenCalled();
+    expect(
+      (global.browser.storage.session.set as ReturnType<typeof vi.fn>).mock.calls.some(
+        ([update]) => "siDownloads" in update,
+      ),
+    ).toBe(false);
   });
 
   test("clears adoption when the download lookup fails", async () => {
@@ -220,6 +228,52 @@ describe("startup restore", () => {
     } finally {
       jest.useRealTimers();
     }
+  });
+
+  test("finishes an expired pending recovery after the worker died before its timer", async () => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date("2026-01-01T00:00:00Z"));
+    const sessionStore = { siPendingDownloads: 3 } as Record<string, any>;
+    setupGlobals(sessionStore, () => []);
+
+    await loadNotification();
+    expect(sessionStore.siPendingDownloads).toBe(3);
+    expect(sessionStore.siNotificationRecovery).toMatchObject({ pendingDownloads: 3 });
+
+    // Suspending an MV3 background discards its timers but not storage.session.
+    jest.clearAllTimers();
+    jest.setSystemTime(new Date("2026-01-01T00:00:11Z"));
+    jest.resetModules();
+    setupGlobals(sessionStore, () => []);
+
+    await loadNotification();
+
+    expect(sessionStore.siPendingDownloads).toBe(0);
+  });
+
+  test("finishes adopted-record recovery after the worker died before its timer", async () => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date("2026-01-01T00:00:00Z"));
+    const sessionStore = {
+      siDownloads: { 11: { adopted: true, historyEntryId: "h11" } },
+    } as Record<string, any>;
+    setupGlobals(sessionStore, () => [{ id: 11, state: "complete" }]);
+
+    await loadNotification();
+    expect(sessionStore.siNotificationRecovery).toMatchObject({ adoptedDownloadIds: [11] });
+
+    jest.clearAllTimers();
+    jest.setSystemTime(new Date("2026-01-01T00:00:11Z"));
+    jest.resetModules();
+    setupGlobals(sessionStore, () => [{ id: 11, state: "complete" }]);
+
+    await loadNotification();
+    // Startup leaves the waking onChanged task first in line.
+    expect(adoptedIds(sessionStore)).toEqual([11]);
+    await jest.advanceTimersByTimeAsync(0);
+
+    expect(adoptedIds(sessionStore)).toEqual([]);
+    expect(sessionStore.siNotificationRecovery).toBeUndefined();
   });
 });
 

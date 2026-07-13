@@ -135,19 +135,84 @@ export const toTld = (hostname: string | null | undefined) => {
   return labels.length >= 2 ? labels[labels.length - 1] : "";
 };
 
-// Strips a hostname down to its registrable domain using a simple
-// last-two-labels heuristic (no public suffix list): "sub.cdn.example.com"
-// -> "example.com". This mishandles multi-part public suffixes (e.g.
-// "example.co.uk" -> "co.uk" instead of "example.co.uk"). IPv4 addresses
-// and single-label hosts (e.g. "localhost") are left unchanged since they
-// have no subdomain to strip.
+// Common registry-operated second-level suffixes. WebExtensions do not expose
+// the browser's public-suffix service, so keep the compact ICANN subset that
+// otherwise produces actively misleading results ("co.uk", "com.au", etc.)
+// without shipping a large, frequently changing private-domain database.
+const MULTI_LABEL_PUBLIC_SUFFIXES = new Set([
+  "ac.in",
+  "ac.jp",
+  "ac.nz",
+  "ac.uk",
+  "asn.au",
+  "co.in",
+  "co.jp",
+  "co.nz",
+  "co.uk",
+  "com.au",
+  "com.br",
+  "com.cn",
+  "com.mx",
+  "com.sg",
+  "com.tr",
+  "edu.au",
+  "edu.cn",
+  "edu.in",
+  "edu.mx",
+  "edu.sg",
+  "firm.in",
+  "gen.in",
+  "go.jp",
+  "gob.mx",
+  "gov.au",
+  "gov.br",
+  "gov.cn",
+  "gov.in",
+  "gov.sg",
+  "gov.uk",
+  "govt.nz",
+  "id.au",
+  "ind.in",
+  "ltd.uk",
+  "me.uk",
+  "mil.in",
+  "ne.jp",
+  "net.au",
+  "net.br",
+  "net.cn",
+  "net.in",
+  "net.mx",
+  "net.nz",
+  "net.sg",
+  "net.tr",
+  "net.uk",
+  "nhs.uk",
+  "or.jp",
+  "org.au",
+  "org.br",
+  "org.cn",
+  "org.in",
+  "org.mx",
+  "org.nz",
+  "org.sg",
+  "org.tr",
+  "org.uk",
+  "plc.uk",
+  "res.in",
+  "sch.uk",
+]);
+
+// Strips a hostname down to its registrable domain. IPv4 addresses and
+// single-label hosts (e.g. "localhost") are left unchanged.
 export const toRootDomain = (hostname: string | undefined) => {
   if (!hostname || IPV4_REGEX.test(hostname)) {
     return hostname;
   }
 
   const labels = hostname.split(".");
-  return labels.length <= 2 ? hostname : labels.slice(-2).join(".");
+  if (labels.length <= 2) return hostname;
+  const publicSuffix = labels.slice(-2).join(".").toLocaleLowerCase();
+  return labels.slice(MULTI_LABEL_PUBLIC_SUFFIXES.has(publicSuffix) ? -3 : -2).join(".");
 };
 
 // Common Content-Type -> file extension. The subtype fallback in

@@ -1,11 +1,13 @@
 import { BROWSERS, detectCapabilities } from "../src/platform/chrome-detector.ts";
 
 describe("detectCapabilities", () => {
-  test("tabContextMenus supports Firefox and Chrome without requiring a runtime enum", () => {
+  test("tabContextMenus supports Firefox and feature-detects Chrome's runtime enum", () => {
     expect(detectCapabilities(BROWSERS.FIREFOX).tabContextMenus).toBe(true);
     const contextMenus = (global.chrome as any).contextMenus;
     try {
       (global.chrome as any).contextMenus = { ContextType: {} };
+      expect(detectCapabilities(BROWSERS.CHROME).tabContextMenus).toBe(false);
+      (global.chrome as any).contextMenus.ContextType.TAB = "tab";
       expect(detectCapabilities(BROWSERS.CHROME).tabContextMenus).toBe(true);
     } finally {
       (global.chrome as any).contextMenus = contextMenus;

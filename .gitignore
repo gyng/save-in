@@ -9,4 +9,5 @@ coverage
 .playwright-mcp/
 .wiki-work/
 .task-build/
+.source-verify-*/
 scripts/tmp-options-server.cjs
