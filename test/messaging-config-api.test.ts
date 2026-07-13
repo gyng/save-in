@@ -88,7 +88,7 @@ describe("config API", () => {
       {},
       sendResponse,
     );
-    await new Promise((r) => setTimeout(r, 0));
+    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
 
     expect(global.browser.storage.local.set).toHaveBeenCalledWith({
       prompt: true,
@@ -172,7 +172,7 @@ describe("config API", () => {
       {},
       sendResponse,
     );
-    await new Promise((r) => setTimeout(r, 0));
+    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
 
     expect(global.browser.storage.local.set).not.toHaveBeenCalled();
     expect(sendResponse.mock.calls[0]![0]!.body.rejected).toEqual([
@@ -204,7 +204,7 @@ describe("config API", () => {
       {},
       sendResponse,
     );
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
 
     expect(global.browser.storage.local.set).not.toHaveBeenCalled();
     expect(sendResponse.mock.calls[0]![0]!.body.rejected).toEqual([

@@ -249,33 +249,4 @@ describe("setupRoutingAutocomplete wiring", () => {
       ":day:",
     ]);
   });
-
-  test("uses routing grammar context and supports explicit completion", () => {
-    document.body.innerHTML = '<textarea id="filenamePatterns"></textarea>';
-    setupRoutingAutocomplete({
-      matchers: ["fileext", "filename"],
-      variables: [":date:", ":day:"],
-    });
-
-    const textarea = document.querySelector("textarea")!;
-    textarea.value = "fil";
-    textarea.selectionStart = textarea.value.length;
-    textarea.dispatchEvent(new window.InputEvent("input", { bubbles: true }));
-    let dropdown = document.getElementById(textarea.getAttribute("aria-controls")!)!;
-    expect(
-      [...dropdown.querySelectorAll('[role="option"]')].map((item) => item.textContent),
-    ).toEqual(["filename", "fileext"]);
-
-    textarea.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", cancelable: true }));
-    expect(textarea.value).toBe("filename: ");
-
-    textarea.value = "";
-    textarea.setSelectionRange(0, 0);
-    textarea.dispatchEvent(
-      new KeyboardEvent("keydown", { key: " ", ctrlKey: true, cancelable: true }),
-    );
-    dropdown = document.getElementById(textarea.getAttribute("aria-controls")!)!;
-    expect(textarea.getAttribute("aria-expanded")).toBe("true");
-    expect(dropdown.querySelectorAll('[role="option"]')).toHaveLength(3);
-  });
 });

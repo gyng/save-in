@@ -6,8 +6,6 @@ import { renderVariablesPreview, setupVariablesPreview } from "../src/options/va
 import { setupResetOptions } from "../src/options/reset-options.ts";
 import { COUNTER_KEY, LOG_STORAGE_KEY } from "../src/shared/storage-keys.ts";
 
-const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
-
 beforeEach(() => {
   document.body.innerHTML = "";
   vi.restoreAllMocks();
@@ -22,17 +20,20 @@ describe("counter panel", () => {
     vi.mocked(browser.storage.local.set).mockResolvedValue();
 
     setupCounterPanel();
-    await flush();
-    expect(document.querySelector<HTMLInputElement>("#counter-value")?.value).toBe("7");
+    await vi.waitFor(() =>
+      expect(document.querySelector<HTMLInputElement>("#counter-value")?.value).toBe("7"),
+    );
 
     document.querySelector<HTMLInputElement>("#counter-value")!.value = "12";
     document.querySelector<HTMLButtonElement>("#counter-set")!.click();
-    await flush();
-    expect(browser.storage.local.set).toHaveBeenCalledWith({ [COUNTER_KEY]: 12 });
+    await vi.waitFor(() =>
+      expect(browser.storage.local.set).toHaveBeenCalledWith({ [COUNTER_KEY]: 12 }),
+    );
 
     document.querySelector<HTMLButtonElement>("#counter-reset")!.click();
-    await flush();
-    expect(browser.storage.local.set).toHaveBeenCalledWith({ [COUNTER_KEY]: 0 });
+    await vi.waitFor(() =>
+      expect(browser.storage.local.set).toHaveBeenCalledWith({ [COUNTER_KEY]: 0 }),
+    );
   });
 
   test("refreshes after a download advances the counter", async () => {
@@ -71,13 +72,16 @@ describe("debug log panel", () => {
       .mockRejectedValueOnce(new Error("unsupported"));
     vi.mocked(browser.storage.session.remove).mockResolvedValue();
     setupDebugLogPanel();
-    await flush();
-    document.querySelector<HTMLButtonElement>("#debug-log-clear")!.click();
-    await flush();
-    expect(browser.storage.session.remove).toHaveBeenCalledWith(LOG_STORAGE_KEY);
-    expect(document.querySelector<HTMLTextAreaElement>("#debug-log")!.value).toContain(
-      "unavailable",
+    await vi.waitFor(() =>
+      expect(document.querySelector<HTMLTextAreaElement>("#debug-log")!.value).toContain("old"),
     );
+    document.querySelector<HTMLButtonElement>("#debug-log-clear")!.click();
+    await vi.waitFor(() =>
+      expect(document.querySelector<HTMLTextAreaElement>("#debug-log")!.value).toContain(
+        "unavailable",
+      ),
+    );
+    expect(browser.storage.session.remove).toHaveBeenCalledWith(LOG_STORAGE_KEY);
   });
 });
 
@@ -213,8 +217,9 @@ describe("reset options", () => {
     });
 
     document.querySelector<HTMLButtonElement>("#reset")!.click();
-    await flush();
-    expect(browser.storage.local.remove).toHaveBeenCalledWith(["paths", "prompt"]);
+    await vi.waitFor(() =>
+      expect(browser.storage.local.remove).toHaveBeenCalledWith(["paths", "prompt"]),
+    );
     expect(browser.storage.local.clear).not.toHaveBeenCalled();
     expect(browser.runtime.sendMessage).toHaveBeenCalledWith({ type: "OPTIONS_LOADED" });
     expect(restoreOptions).toHaveBeenCalled();

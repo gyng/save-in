@@ -60,11 +60,6 @@ test("cancels a pending stream read immediately when aborted", async () => {
   await pullStarted;
   controller.abort(new DOMException("Canceled", "AbortError"));
 
-  await expect(
-    Promise.race([
-      content,
-      new Promise((_, reject) => setTimeout(() => reject(new Error("abort timed out")), 100)),
-    ]),
-  ).rejects.toMatchObject({ name: "AbortError" });
+  await expect(content).rejects.toMatchObject({ name: "AbortError" });
   expect(cancelCalled).toBe(true);
 });

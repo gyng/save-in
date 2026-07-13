@@ -4,7 +4,6 @@
 // serialize every edit back to the textarea (the source of truth).
 
 import { PathEditor } from "../src/options/path-editor.ts";
-import { createSyntaxEditor } from "../src/options/syntax-editor.ts";
 
 const element = <T extends Element>(selector: string): T => {
   const match = document.querySelector<T>(selector);
@@ -270,6 +269,7 @@ describe("text/visual mode toggle", () => {
     expect(element<HTMLElement>("#paths-editor-description").hidden).toBe(true);
     expect(element<HTMLElement>("#paths-visual").hidden).toBe(false);
     expect(element<HTMLElement>("#error-paths").hidden).toBe(false);
+    expect(element("#paths-mode-visual").classList.contains("active")).toBe(true);
     expect(element("#paths-mode-visual").getAttribute("aria-selected")).toBe("true");
     expect(element("#paths-mode-text").getAttribute("aria-selected")).toBe("false");
     expect(editor.rebuildVisual).toHaveBeenCalled();
@@ -287,7 +287,7 @@ describe("text/visual mode toggle", () => {
     expect(element<HTMLElement>("#paths").hidden).toBe(false);
     expect(element<HTMLElement>("#paths-editor-description").hidden).toBe(false);
     expect(element<HTMLElement>("#paths-visual").hidden).toBe(true);
-    expect(element("#paths-mode-text").getAttribute("aria-selected")).toBe("true");
+    expect(element("#paths-mode-text").classList.contains("active")).toBe(true);
   });
 
   test("remembers the selected editor mode", () => {
@@ -307,34 +307,6 @@ describe("text/visual mode toggle", () => {
 
     expect(editor.rebuildVisual).toHaveBeenCalledOnce();
     expect(other.rebuildVisual).not.toHaveBeenCalled();
-  });
-});
-
-describe("text/visual mode with syntax editor", () => {
-  afterEach(() => {
-    document.body.innerHTML = "";
-    localStorage.removeItem("saveInPathsEditorMode");
-  });
-
-  test("hides and restores the complete highlighted editor surface", () => {
-    localStorage.setItem("saveInPathsEditorMode", "text");
-    document.body.innerHTML = `
-      <button type="button" id="paths-mode-text">Text</button>
-      <button type="button" id="paths-mode-visual">Visual</button>
-      <div id="paths-text-help"></div>
-      <div id="paths-text-actions"></div>
-      <div id="paths-editor-description"></div>
-      <textarea id="paths">a</textarea>
-      <div id="paths-visual" hidden></div>
-    `;
-    createSyntaxEditor(element<HTMLTextAreaElement>("#paths"), "directories");
-    const editor = new PathEditor();
-    editor.setupModeToggle();
-
-    element<HTMLElement>("#paths-mode-visual").click();
-    expect(element<HTMLElement>(".syntax-editor").hidden).toBe(true);
-    element<HTMLElement>("#paths-mode-text").click();
-    expect(element<HTMLElement>(".syntax-editor").hidden).toBe(false);
   });
 });
 
@@ -424,6 +396,7 @@ describe("visual editor drag and drop", () => {
     rows[2]!.querySelector(".path-editor-handle")!.dispatchEvent(dragEvent("dragstart", 100));
     rows[0]!.dispatchEvent(dragEvent("dragover", 100, 130));
 
+    expect(rows[0]!.classList.contains("drag-inside")).toBe(true);
     expect(rows[0]!.querySelector(".path-editor-drop-indicator")?.textContent).toBe(
       "Nest under “a”",
     );
@@ -500,7 +473,7 @@ describe("insert menu targets its editor via data-insert-target", () => {
     expect(textarea.value).toBe("fileext: pdf\ninto: ");
     expect(
       [...document.querySelectorAll(".clause-preview-table code")].map((node) => node.textContent),
-    ).toEqual(["into:", "capture:", "capturegroups:", "context:", "pageurl:", "fileext:"]);
+    ).toEqual(["into:", "capture:", "context:", "pageurl:", "fileext:", "capturegroups:"]);
     expect(
       [...document.querySelectorAll(".variables-preview-group")].map((node) => node.textContent),
     ).toEqual([

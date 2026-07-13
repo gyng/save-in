@@ -232,10 +232,6 @@ describe("onMessage", () => {
 });
 
 describe("onMessage CHECK_ROUTES", () => {
-  // CHECK_ROUTES is now async (interpolation + checkRoutes await); let the
-  // handler's microtasks settle before asserting the response
-  const settle = () => new Promise((r) => setTimeout(r, 0));
-
   test("waits for cold-start initialization before previewing routes", async () => {
     let finish!: () => void;
     backgroundRuntime.ready = new Promise<void>((resolve) => {
@@ -248,8 +244,7 @@ describe("onMessage CHECK_ROUTES", () => {
 
     finish();
     await backgroundRuntime.ready;
-    await settle();
-    expect(RoutePreview.previewRoutes).toHaveBeenCalledTimes(1);
+    await vi.waitFor(() => expect(RoutePreview.previewRoutes).toHaveBeenCalledTimes(1));
   });
 
   test("uses the state supplied in the request body", async () => {
@@ -262,7 +257,7 @@ describe("onMessage CHECK_ROUTES", () => {
       sendResponse,
     );
     expect(keepChannelOpen).toBe(true);
-    await settle();
+    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
 
     expect(RoutePreview.previewRoutes).toHaveBeenCalledWith(state);
     // interpolation runs in preview mode (a copy of info with preview:true)
@@ -288,7 +283,7 @@ describe("onMessage CHECK_ROUTES", () => {
 
     const keepChannelOpen = onMessage({ type: MESSAGE_TYPES.CHECK_ROUTES }, {}, sendResponse);
     expect(keepChannelOpen).toBe(true);
-    await settle();
+    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
 
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.CHECK_ROUTES,
@@ -306,7 +301,7 @@ describe("onMessage CHECK_ROUTES", () => {
     const sendResponse = vi.fn();
 
     onMessage({ type: MESSAGE_TYPES.CHECK_ROUTES, body: {} }, {}, sendResponse);
-    await settle();
+    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
 
     expect(RoutePreview.previewRoutes).toHaveBeenCalledWith(lastState);
     expect(sendResponse).toHaveBeenCalledWith(
@@ -324,7 +319,7 @@ describe("onMessage CHECK_ROUTES", () => {
     const sendResponse = vi.fn();
 
     onMessage({ type: MESSAGE_TYPES.CHECK_ROUTES }, {}, sendResponse);
-    await settle();
+    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
 
     expect(RoutePreview.previewRoutes).toHaveBeenCalledWith(null);
     expect(Variable.applyVariables).not.toHaveBeenCalled();

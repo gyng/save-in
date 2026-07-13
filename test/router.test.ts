@@ -389,12 +389,6 @@ describe("filename rewrite and routing", () => {
       const rules = router.parseRules("not a clause\ninto: x");
       expect(rules).toEqual([]);
       expect(diagnostics.filenamePatterns[0]!.error).toBe("not a clause");
-      expect(diagnostics.filenamePatterns[0]!.location).toEqual({
-        start: 0,
-        end: 12,
-        line: 1,
-        column: 0,
-      });
     });
 
     test("invalid matcher regex is reported and drops the rule", () => {
@@ -403,12 +397,6 @@ describe("filename rewrite and routing", () => {
       // rule is dropped rather than routing every download by it
       expect(rules.length).toBe(0);
       expect(diagnostics.filenamePatterns[0]!.error).toMatch(/SyntaxError/);
-      expect(diagnostics.filenamePatterns[0]!.location).toEqual({
-        start: 11,
-        end: 13,
-        line: 1,
-        column: 11,
-      });
     });
 
     test("supports backward-compatible matcher flags in the clause name", () => {
@@ -428,11 +416,7 @@ describe("filename rewrite and routing", () => {
       );
       expect(result.rules).toHaveLength(2);
       expect(result.errors).toContainEqual(
-        expect.objectContaining({
-          warning: true,
-          error: "rule 2",
-          location: expect.objectContaining({ line: 4, column: 0 }),
-        }),
+        expect.objectContaining({ warning: true, error: "rule 2" }),
       );
     });
 

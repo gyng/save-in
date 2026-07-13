@@ -18,7 +18,6 @@ test("groups variables by user task rather than implementation scope", () => {
 test("groups clauses by routing intent", () => {
   expect(clauseGroup("into:")).toBe("Output");
   expect(clauseGroup("capture:")).toBe("Capture setup");
-  expect(clauseGroup("capturegroups:")).toBe("Capture setup");
   expect(clauseGroup("context:")).toBe("Page and menu context");
   expect(clauseGroup("sourceurl:")).toBe("URL and source matching");
   expect(clauseGroup("filename:")).toBe("Filename and content matching");

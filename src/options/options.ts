@@ -40,8 +40,6 @@ import { setupIntegrationPanel } from "./integration-panel.ts";
 import { isStringKeyedRecord, sendInternalMessage } from "../shared/message-protocol.ts";
 import { applyUiTheme, setupUiThemeControl } from "./theme.ts";
 import { getPathSourceRange } from "./path-editor-model.ts";
-import { setSyntaxEditorDiagnostics } from "./syntax-editor.ts";
-import { validationErrorsToDiagnostics } from "./syntax-editor-model.ts";
 
 const setupLastDownloadState = () => {
   document.querySelector("#last-dl-url")?.classList.add("is-empty");
@@ -51,12 +49,6 @@ type ValidationError = {
   message: string;
   error: string;
   warning?: boolean;
-  location?: {
-    start: number;
-    end: number;
-    line: number;
-    column: number;
-  };
 };
 type IndexedValidationError = ValidationError & { sourceIndex: number };
 type MenuPreviewTree = MenuTree;
@@ -65,13 +57,7 @@ const isValidationError = (value: unknown): value is ValidationError =>
   isStringKeyedRecord(value) &&
   typeof value.message === "string" &&
   typeof value.error === "string" &&
-  (typeof value.warning === "undefined" || typeof value.warning === "boolean") &&
-  (typeof value.location === "undefined" ||
-    (isStringKeyedRecord(value.location) &&
-      typeof value.location.start === "number" &&
-      typeof value.location.end === "number" &&
-      typeof value.location.line === "number" &&
-      typeof value.location.column === "number"));
+  (typeof value.warning === "undefined" || typeof value.warning === "boolean");
 
 const isIndexedValidationError = (value: unknown): value is IndexedValidationError =>
   isStringKeyedRecord(value) &&
@@ -123,12 +109,7 @@ document.querySelector("#see-variables-btn")?.addEventListener("click", renderVa
 
 // Reveal + select the offending text in its editor. Best-effort: the error
 // string is usually the offending line/clause, so we find and select it.
-const jumpToError = (
-  textareaId: string,
-  needle: string,
-  sourceIndex?: number,
-  location?: ValidationError["location"],
-) => {
+const jumpToError = (textareaId: string, needle: string, sourceIndex?: number) => {
   // Paths in Visual mode: jump to the matching visual row instead of switching
   // back to the textarea. Match the row whose directory field is contained in
   // the (raw) line; fall back to Text mode if nothing matches (e.g. a line the
@@ -176,9 +157,9 @@ const jumpToError = (
     textareaId === "#paths" && sourceIndex !== undefined
       ? getPathSourceRange(ta.value, sourceIndex)
       : null;
-  const idx = location?.start ?? sourceRange?.start ?? (needle ? ta.value.indexOf(needle) : -1);
+  const idx = sourceRange?.start ?? (needle ? ta.value.indexOf(needle) : -1);
   if (idx >= 0) {
-    ta.setSelectionRange(idx, location?.end ?? sourceRange?.end ?? idx + needle.length);
+    ta.setSelectionRange(idx, sourceRange?.end ?? idx + needle.length);
     // Nudge the caret into view (setSelectionRange alone may not scroll)
     const lineHeight = parseFloat(getComputedStyle(ta).lineHeight) || 18;
     const line = ta.value.slice(0, idx).split("\n").length - 1;
@@ -205,7 +186,7 @@ const renderErrorRow = (err: ValidationError, textareaId: string) => {
 
   const sourceIndex =
     "sourceIndex" in err && typeof err.sourceIndex === "number" ? err.sourceIndex : undefined;
-  const jump = () => jumpToError(textareaId, err.error, sourceIndex, err.location);
+  const jump = () => jumpToError(textareaId, err.error, sourceIndex);
   r.addEventListener("click", jump);
   r.addEventListener("keydown", (e) => {
     if (e.key === "Enter" || e.key === " ") {
@@ -251,8 +232,6 @@ const validationRequests = createLatestOnly(
     const ruleErrors = Array.isArray(body.ruleErrors)
       ? body.ruleErrors.filter(isValidationError)
       : [];
-    const pathsTextarea = document.querySelector("#paths");
-    const rulesTextarea = document.querySelector("#filenamePatterns");
     const pathsErrors = document.querySelector("#error-paths");
     const rulesErrors = document.querySelector("#error-filenamePatterns");
     const updatePanel = (panel: Element, errors: ValidationError[], textareaId: string) => {
@@ -269,24 +248,12 @@ const validationRequests = createLatestOnly(
       updatePanel(pathsErrors, pathErrors, "#paths");
       updateErrorSummary(pathsErrors);
       manualEditorState.setValidity("paths", !pathErrors.some((err) => !err.warning));
-      if (pathsTextarea instanceof HTMLTextAreaElement) {
-        setSyntaxEditorDiagnostics(
-          pathsTextarea,
-          validationErrorsToDiagnostics("directories", pathsTextarea.value, pathErrors),
-        );
-      }
     }
     if (rulesErrors) {
       errorChannel(rulesErrors, "validation-service").innerHTML = "";
       updatePanel(rulesErrors, ruleErrors, "#filenamePatterns");
       updateErrorSummary(rulesErrors);
       manualEditorState.setValidity("filenamePatterns", !ruleErrors.some((err) => !err.warning));
-      if (rulesTextarea instanceof HTMLTextAreaElement) {
-        setSyntaxEditorDiagnostics(
-          rulesTextarea,
-          validationErrorsToDiagnostics("routing", rulesTextarea.value, ruleErrors),
-        );
-      }
     }
   },
   (_error, request) => {

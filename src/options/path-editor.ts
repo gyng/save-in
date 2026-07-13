@@ -75,13 +75,10 @@ const PathEditorHelpers = {
   setupModeToggle: (owner: EditorOwner): void => {
     const textButton = document.querySelector<HTMLElement>("#paths-mode-text");
     const visualButton = document.querySelector<HTMLElement>("#paths-mode-visual");
-    const pathsTextarea = document.querySelector<HTMLElement>("#paths");
-    const textEditorSurface =
-      pathsTextarea?.closest<HTMLElement>(".syntax-editor") ?? pathsTextarea;
     const textElements = [
       document.querySelector("#paths-text-help"),
       document.querySelector("#paths-text-actions"),
-      textEditorSurface,
+      document.querySelector("#paths"),
     ] as (HTMLElement | null)[];
     const textDescription = document.querySelector<HTMLElement>("#paths-editor-description");
     if (textDescription) textElements.push(textDescription);

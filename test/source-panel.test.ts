@@ -59,7 +59,6 @@ describe("Page Sources panel interactions", () => {
     expect(ownedHost).not.toBe(impostor);
     expect(ownedHost?.shadowRoot).toBeNull();
     expect(impostor.isConnected).toBe(true);
-    expect(impostor.classList.contains("closing")).toBe(false);
   });
 
   test("copies only URLs in the active text and type filters", async () => {
@@ -88,12 +87,12 @@ describe("Page Sources panel interactions", () => {
     expect(writeText).toHaveBeenCalledWith("http://localhost/cat.jpg");
   });
 
-  test("marks the panel closing before its short exit transition removes it", () => {
+  test("keeps the panel mounted for its short exit transition before removing it", () => {
     vi.useFakeTimers();
     toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
     expect(toggleSourcePanel(vi.fn())).toBe(false);
     const host = document.getElementById("save-in-source-panel");
-    expect(host?.classList.contains("closing")).toBe(true);
+    expect(host?.isConnected).toBe(true);
     vi.advanceTimersByTime(90);
     expect(document.getElementById("save-in-source-panel")).toBeNull();
     vi.useRealTimers();
