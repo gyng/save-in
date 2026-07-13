@@ -32,8 +32,8 @@ const metadataFromResponse = async (res: Response): Promise<HeadResult> => {
   }
 };
 
-const fetchHeadMetadata = async (url: string): Promise<HeadResult> => {
-  const credentials = getExtensionFetchCredentials();
+const fetchHeadMetadata = async (url: string, privateContext = false): Promise<HeadResult> => {
+  const credentials = getExtensionFetchCredentials(privateContext);
   try {
     const headResponse = await fetchFollowingRedirects(url, { method: "HEAD", credentials }, 5000);
     if (headResponse.ok !== false) return metadataFromResponse(headResponse);
@@ -209,7 +209,7 @@ export const resolveHead = (opts: RoutingDownloadInfo): Promise<HeadResult> => {
   }
   opts.headPromise = (async () => {
     try {
-      const result = await fetchHeadMetadata(opts.url ?? "");
+      const result = await fetchHeadMetadata(opts.url ?? "", opts.currentTab?.incognito === true);
       opts.resolvedHead = result;
       return result;
     } catch {
@@ -234,7 +234,9 @@ export const resolveContent = (opts: RoutingDownloadInfo) => {
   if (opts.contentPromise) {
     return opts.contentPromise;
   }
-  opts.contentPromise = opts.url ? routingPorts.resolveContent(opts.url) : Promise.resolve(null);
+  opts.contentPromise = opts.url
+    ? routingPorts.resolveContent(opts.url, opts.currentTab?.incognito === true)
+    : Promise.resolve(null);
   return opts.contentPromise;
 };
 

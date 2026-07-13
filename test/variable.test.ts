@@ -525,6 +525,21 @@ describe(":mime: / :contenttype: / :mimeext: (async HEAD)", () => {
     );
   });
 
+  test("omits credentials from private metadata requests even when enabled", async () => {
+    options.includeFetchCredentials = true;
+    mockHead("image/png");
+
+    await Variable.applyVariables(new Path.Path(":mime:"), {
+      url: "https://x/private",
+      currentTab: { incognito: true },
+    });
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      "https://x/private",
+      expect.objectContaining({ method: "HEAD", credentials: "omit", redirect: "follow" }),
+    );
+  });
+
   test(":contenttype: is an alias for :mime:", async () => {
     mockHead("application/pdf");
     const out = (
@@ -628,6 +643,21 @@ describe(":sha256: (async content hash)", () => {
     expect(out).toBe("h/ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad");
     expect(global.fetch).toHaveBeenCalledWith(
       "https://x/a",
+      expect.objectContaining({ credentials: "omit", redirect: "follow" }),
+    );
+  });
+
+  test("omits credentials from private content hashing even when enabled", async () => {
+    options.includeFetchCredentials = true;
+    mockBody("abc");
+
+    await Variable.applyVariables(new Path.Path(":sha256:"), {
+      url: "https://x/private",
+      currentTab: { incognito: true },
+    });
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      "https://x/private",
       expect.objectContaining({ credentials: "omit", redirect: "follow" }),
     );
   });

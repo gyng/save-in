@@ -11,7 +11,7 @@ export type RoutingPorts = {
   nextCounter(): Promise<number>;
   nextPrivateCounter(): Promise<number>;
   peekCounter(): Promise<number>;
-  resolveContent(url: string): Promise<RoutingContent | null>;
+  resolveContent(url: string, privateContext?: boolean): Promise<RoutingContent | null>;
 };
 
 const ports: RoutingPorts = {

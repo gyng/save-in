@@ -710,7 +710,7 @@
   },
 
   "o_cIncludeFetchCredentialsHelp": {
-    "message": "Enabled by default. Includes applicable cookies and browser-managed authentication in background Fetch and HEAD requests, including at redirect destinations; turn this off to make those requests anonymously. Direct browser downloads manage their own cookies."
+    "message": "Enabled by default for non-private saves. Includes applicable cookies and browser-managed authentication in background Fetch and HEAD requests, including at redirect destinations; turn this off to make those requests anonymously. Private-window extension requests are always anonymous because the shared background cannot select a private cookie store. Direct browser downloads manage their own cookies."
   },
 
   "o_cSetRefererHeader": {

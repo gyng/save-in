@@ -385,7 +385,7 @@ export const Download = {
     if (OffscreenClient.canUse()) {
       try {
         return {
-          url: await OffscreenClient.fetch(url, getExtensionFetchCredentials()),
+          url: await OffscreenClient.fetch(url, getExtensionFetchCredentials(privateContext)),
           source: "fetched",
         };
       } catch (e) {
@@ -399,7 +399,7 @@ export const Download = {
     try {
       const response = await fetchFollowingRedirects(
         url,
-        { credentials: getExtensionFetchCredentials() },
+        { credentials: getExtensionFetchCredentials(privateContext) },
         DEFAULT_FETCH_RESPONSE_TIMEOUT_MS,
       );
       if (response.ok === false) throw new Error(`HTTP ${response.status}`);

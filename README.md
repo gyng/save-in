@@ -46,8 +46,10 @@ Make sure the actual directories exist, or downloads will silently fail.
 - Firefox can set a Referer through `downloads.download({ headers })`; Chrome does not support this option. Save In does not request `webRequest` or declarativeNetRequest.
 - Extension-side Fetch/HEAD requests include applicable credentials by default,
   including at redirect destinations. They can be made anonymous in Advanced
-  downloading and require no cookie-reading permission. Extension Fetch cannot
-  select a Firefox Container or private cookie store.
+  downloading and require no cookie-reading permission. Private-window
+  extension requests are always anonymous because the shared background cannot
+  select a private cookie store, so authenticated resources that require Fetch
+  mode may fail there. Firefox direct downloads use the private session.
 
 Configure before use.
 

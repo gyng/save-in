@@ -84,7 +84,7 @@ export const retryViaFetch = async (
       {
         // A spanning Firefox background cannot access the private cookie jar.
         // Never attach the regular session to a private-window retry.
-        credentials: privateContext ? "omit" : getExtensionFetchCredentials(),
+        credentials: getExtensionFetchCredentials(privateContext),
       },
       DEFAULT_FETCH_RESPONSE_TIMEOUT_MS,
     );

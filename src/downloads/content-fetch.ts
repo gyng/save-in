@@ -28,7 +28,11 @@ export const makeUrlFromBlob = (blob: BlobContent): Promise<string> => {
   });
 };
 
-export const resolveContent = (url: string): Promise<ContentFetchResult | null> => {
+export const resolveContent = (
+  url: string,
+  privateContext = false,
+): Promise<ContentFetchResult | null> => {
+  const credentials = getExtensionFetchCredentials(privateContext);
   if (OffscreenClient.canUse()) {
     return OffscreenClient.ensure()
       .then(() =>
@@ -37,7 +41,7 @@ export const resolveContent = (url: string): Promise<ContentFetchResult | null> 
           url,
           hash: "SHA-256",
           maxBytes: HASH_MAX_BYTES,
-          credentials: getExtensionFetchCredentials(),
+          credentials,
         }),
       )
       .then((res: OffscreenFetchResponse) =>
@@ -49,7 +53,7 @@ export const resolveContent = (url: string): Promise<ContentFetchResult | null> 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), HASH_FETCH_TIMEOUT_MS);
   return fetchFollowingRedirects(url, {
-    credentials: getExtensionFetchCredentials(),
+    credentials,
     signal: controller.signal,
   })
     .then((res) => {

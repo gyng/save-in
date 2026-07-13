@@ -44,13 +44,15 @@ non-minified JavaScript. No obfuscation or remote executable code is used.
   downloads API. Chrome does not expose an equivalent supported mechanism; no
   request-interception permission is requested.
 - Extension-side Fetch and HEAD requests include applicable website cookies and
-  browser-managed authentication by default for user-requested saves, matching
-  normal authenticated downloads. Users can turn this off to make those
-  extension requests anonymous.
+  browser-managed authentication by default for non-private user-requested
+  saves, matching normal authenticated downloads. Users can turn this off to
+  make those extension requests anonymous. Private-window extension requests
+  are always anonymous because the shared spanning background cannot select a
+  private cookie store; authenticated resources requiring Fetch mode may fail.
 - No cookie API permission is requested. Unless the user disables authenticated
-  extension requests, the browser attaches applicable credentials; Save In never
-  reads cookie values. Extension Fetch cannot select a Firefox Container or
-  private cookie store.
+  extension requests, the browser attaches applicable credentials to non-private
+  requests; Save In never reads cookie values. Extension Fetch cannot select a
+  Firefox Container or private cookie store.
 - `<all_urls>` is required because the extension saves resources selected by
   the user from arbitrary websites, optionally reads content metadata, and can
   run its click-to-save content listener on those pages.

@@ -49,7 +49,8 @@ testing on Chromium!
 - Extension-side Fetch and HEAD requests now have a website credentials option.
   Applicable credentials are included by default to support signed-in downloads;
   this includes redirect destinations, and users can turn the option off for
-  anonymous extension requests.
+  anonymous extension requests. Private-window extension requests always omit
+  credentials because the shared background cannot select a private cookie store.
 - Extension fetches now use one explicit redirect policy and response-header
   timeout. Metadata lookup falls back to a body-cancelled GET when HEAD is rejected.
 - Firefox direct downloads retain private-download-manager isolation. Extension

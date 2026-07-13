@@ -39,7 +39,12 @@ resource servers selected by the user and any destinations to which those
 servers redirect. Direct browser downloads use the browser's normal cookie
 handling. Extension-side Fetch and HEAD requests include applicable website
 cookies and browser-managed authentication by default, including credentials
-applicable to redirect destinations; the user can turn this off in Advanced downloading.
+applicable to redirect destinations; the user can turn this off in Advanced
+downloading. Extension-side requests made for private-window saves are always
+anonymous because a spanning background cannot select a private cookie store.
+Authenticated resources that require extension-side fetching may therefore fail
+from a private window. Firefox direct downloads instead use the private session
+through the browser's native download API.
 Save In does not transmit this information to the developer or to an analytics,
 advertising, or data-broker service.
 

@@ -89,6 +89,18 @@ describe("Counter", () => {
     expect(await nextCounter(writes, browser.storage.local)).toBe(1);
   });
 
+  test("reset() is serialized after an already queued private increment", async () => {
+    await nextCounter(writes, browser.storage.local);
+
+    const privateIncrement = nextPrivateCounter(writes, browser.storage.local);
+    const reset = resetCounter(writes, browser.storage.local);
+
+    expect(await privateIncrement).toBe(2);
+    await reset;
+    expect(await peekCounter(browser.storage.local)).toBe(0);
+    expect(await nextCounter(writes, browser.storage.local)).toBe(1);
+  });
+
   test("normalizes malformed persisted counters", async () => {
     const storage = {
       get: vi.fn(() => Promise.resolve({ "save-in-counter": "corrupt" })),

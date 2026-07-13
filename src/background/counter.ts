@@ -39,7 +39,9 @@ export const nextPrivateCounter = (
 };
 
 export const resetCounter = (writes: CounterWriteState, storage: StorageWriter) => {
-  writes.privateValue = 0;
-  writes.queue = writes.queue.then(() => storage.set({ [COUNTER_KEY]: 0 }));
+  writes.queue = writes.queue.then(() => {
+    writes.privateValue = 0;
+    return storage.set({ [COUNTER_KEY]: 0 });
+  });
   return writes.queue;
 };

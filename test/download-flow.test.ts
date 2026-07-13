@@ -939,6 +939,7 @@ describe("renameAndDownload: fetchViaFetch", () => {
   test("keeps a fetched blob associated with Firefox private downloads", async () => {
     setCurrentBrowser("FIREFOX");
     options.fetchViaFetch = true;
+    options.includeFetchCredentials = true;
     global.fetch = vi.fn(() =>
       Promise.resolve({ blob: () => Promise.resolve(new Blob(["file contents"])) }),
     ) as any;
@@ -952,6 +953,10 @@ describe("renameAndDownload: fetchViaFetch", () => {
     const [downloadOptions] = vi.mocked(global.browser.downloads.download).mock.calls[0]!;
     expect(downloadOptions).toHaveProperty("incognito", true);
     expect(downloadOptions).not.toHaveProperty("cookieStoreId");
+    expect(global.fetch).toHaveBeenCalledWith(
+      state.info.url,
+      expect.objectContaining({ credentials: "omit", redirect: "follow" }),
+    );
   });
 
   test("fetches the URL, converts the blob to an object URL, then downloads it", async () => {
@@ -990,6 +995,25 @@ describe("renameAndDownload: fetchViaFetch", () => {
       expect(global.browser.downloads.download).toHaveBeenCalledWith(
         expect.objectContaining({ url: "blob:offscreen-url" }),
       );
+    } finally {
+      OffscreenClient.canUse = origCanUse;
+      OffscreenClient.fetch = origFetch;
+    }
+  });
+
+  test("Chrome offscreen: omits credentials for private fetches even when enabled", async () => {
+    setCurrentBrowser("CHROME");
+    options.fetchViaFetch = true;
+    options.includeFetchCredentials = true;
+    const origCanUse = OffscreenClient.canUse;
+    const origFetch = OffscreenClient.fetch;
+    OffscreenClient.canUse = vi.fn(() => true);
+    OffscreenClient.fetch = vi.fn(() => Promise.resolve("blob:private-offscreen-url"));
+    try {
+      const state = makeState({ info: { currentTab: { incognito: true } } });
+      await Download.renameAndDownload(state);
+
+      expect(OffscreenClient.fetch).toHaveBeenCalledWith(state.info.url, "omit");
     } finally {
       OffscreenClient.canUse = origCanUse;
       OffscreenClient.fetch = origFetch;
