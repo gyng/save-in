@@ -118,6 +118,14 @@ const startSourcePanelServer = async () => {
 
 beforeAll(async () => {
   session = await firefox.launch();
+  // Native notifications are exercised by one focused test below. Keep the
+  // rest of the download-heavy suite from submitting Windows toasts.
+  await evalBackground(`browser.storage.local.set({
+    notifyOnSuccess: false,
+    notifyOnFailure: false,
+    notifyOnRuleMatch: false,
+    notifyOnLinkPreferred: false,
+  }).then(() => api.reset()).then(() => "notifications suppressed")`);
 });
 
 afterAll(async () => {
@@ -184,12 +192,8 @@ test("download completes through the real pipeline", async () => {
 
 test("success notifications are created by the real download listener", async () => {
   try {
-    await evalBackground(`Promise.all([
-      browser.storage.local.set({ notifyOnSuccess: true, notifyDuration: 0 }),
-      browser.notifications.getAll().then((rows) =>
-        Promise.all(Object.keys(rows).map((id) => browser.notifications.clear(id)))
-      ),
-    ]).then(() => api.reset()).then(() => "configured")`);
+    await evalBackground(`browser.storage.local.set({ notifyOnSuccess: true, notifyDuration: 0 })
+      .then(() => api.reset()).then(() => "configured")`);
 
     await evalBackground(`api.startDownload({
       content: "firefox notification content",
@@ -216,7 +220,8 @@ test("success notifications are created by the real download listener", async ()
   } finally {
     await evalBackground(`browser.notifications.getAll()
       .then((rows) => Promise.all(Object.keys(rows).map((id) => browser.notifications.clear(id))))
-      .then(() => browser.storage.local.remove(["notifyOnSuccess", "notifyDuration"]))
+      .then(() => browser.storage.local.set({ notifyOnSuccess: false }))
+      .then(() => browser.storage.local.remove("notifyDuration"))
       .then(() => api.reset())
       .then(() => "restored")`);
   }

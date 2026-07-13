@@ -143,6 +143,14 @@ beforeAll(async () => {
     async () => ((await evalOptions("document.readyState")) === "complete" ? true : null),
     { description: "options page load" },
   );
+  // Native notifications are exercised by one focused test below. Keep the
+  // rest of the download-heavy suite from submitting Windows toasts.
+  await evalSW(`browser.storage.local.set({
+    notifyOnSuccess: false,
+    notifyOnFailure: false,
+    notifyOnRuleMatch: false,
+    notifyOnLinkPreferred: false,
+  }).then(() => api.reset()).then(() => "notifications suppressed")`);
 });
 
 afterAll(async () => {
@@ -367,12 +375,8 @@ test("download completes through the real pipeline with session tracking", async
 
 test("success notifications are created by the real download listener", async () => {
   try {
-    await evalSW(`Promise.all([
-      browser.storage.local.set({ notifyOnSuccess: true, notifyDuration: 0 }),
-      browser.notifications.getAll().then((rows) =>
-        Promise.all(Object.keys(rows).map((id) => browser.notifications.clear(id)))
-      ),
-    ]).then(() => api.reset()).then(() => "configured")`);
+    await evalSW(`browser.storage.local.set({ notifyOnSuccess: true, notifyDuration: 0 })
+      .then(() => api.reset()).then(() => "configured")`);
 
     await evalSW(`api.startDownload({
       content: "notification e2e content",
@@ -400,7 +404,8 @@ test("success notifications are created by the real download listener", async ()
   } finally {
     await evalSW(`browser.notifications.getAll()
       .then((rows) => Promise.all(Object.keys(rows).map((id) => browser.notifications.clear(id))))
-      .then(() => browser.storage.local.remove(["notifyOnSuccess", "notifyDuration"]))
+      .then(() => browser.storage.local.set({ notifyOnSuccess: false }))
+      .then(() => browser.storage.local.remove("notifyDuration"))
       .then(() => api.reset())
       .then(() => "restored")`);
   }

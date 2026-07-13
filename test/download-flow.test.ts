@@ -1035,6 +1035,7 @@ describe("renameAndDownload: notification triggers", () => {
       "notificationRuleMatchedTitle",
       "file.png\n⬇\nmatched/route.txt",
       false,
+      "route-match",
     );
   });
 
@@ -1060,6 +1061,7 @@ describe("renameAndDownload: notification triggers", () => {
       "notificationRuleMatchFailedExclusiveTitle",
       "notificationRuleMatchFailedExclusiveMessage",
       true,
+      "route-miss",
     );
     expect(global.browser.downloads.download).not.toHaveBeenCalled();
   });

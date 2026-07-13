@@ -10,7 +10,7 @@ import { DOWNLOAD_TYPES, MEDIA_TYPES } from "../shared/constants.ts";
 import { splitLines } from "../shared/util.ts";
 import { Path, sanitizeFilename, truncateIfLongerThan } from "../routing/path.ts";
 import { Download } from "../downloads/download.ts";
-import { Notifier } from "../downloads/notification.ts";
+import { EXTENSION_NOTIFICATION_STREAMS, Notifier } from "../downloads/notification.ts";
 import { WEB_EXTENSION_CAPABILITIES } from "../platform/chrome-detector.ts";
 import { Shortcut } from "../downloads/shortcut.ts";
 import { options } from "../config/options-data.ts";
@@ -189,12 +189,16 @@ export const addDownloadListener = () => {
           Notifier.createExtensionNotification(
             webExtensionApi.i18n.getMessage("notificationLinkPreferred"),
             url,
+            undefined,
+            EXTENSION_NOTIFICATION_STREAMS.LINK_PREFERRED,
           );
         }
         if (target.badPatternError) {
           Notifier.createExtensionNotification(
             webExtensionApi.i18n.getMessage("notificationBadPreferLinksPattern"),
             target.badPatternError as string,
+            undefined,
+            EXTENSION_NOTIFICATION_STREAMS.PREFER_LINKS_PATTERN_ERROR,
           );
         }
 

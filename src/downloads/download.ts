@@ -7,7 +7,7 @@ import { getDownload, mergeDownload } from "./download-state.ts";
 import type { DownloadRecord, PrivateDownloadContext } from "./download-state.ts";
 import { normalizeSessionCounter, updateSession } from "../shared/session-state.ts";
 import { RequestHeaders } from "./headers.ts";
-import { Notifier } from "./notification.ts";
+import { EXTENSION_NOTIFICATION_STREAMS, Notifier } from "./notification.ts";
 import { matchRules } from "../routing/router.ts";
 import { Path, sanitizeFilename } from "../routing/path.ts";
 import { applyVariables, mimeToExtension, resolveHead, resolveMime } from "../routing/variable.ts";
@@ -584,6 +584,7 @@ export const Download = {
             state.info.url ?? "",
           ]),
           true,
+          EXTENSION_NOTIFICATION_STREAMS.ROUTE_MISS,
         );
       }
       return { status: "skipped" };
@@ -613,6 +614,7 @@ export const Download = {
           webExtensionApi.i18n.getMessage("notificationRuleMatchedTitle"),
           `${state.info.initialFilename}\n⬇\n${state.route}`,
           false,
+          EXTENSION_NOTIFICATION_STREAMS.ROUTE_MATCH,
         );
       }
     }

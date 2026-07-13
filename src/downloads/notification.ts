@@ -46,9 +46,26 @@ type HostDownloadDelta = Parameters<
 const INFO_ICON_URL = "icons/ic_archive_black_128px.png";
 const SUCCESS_ICON_URL = "icons/ic_archive_black_128px.png";
 const ERROR_ICON_URL = "icons/ic_archive_black_128px.png";
+const EXTENSION_NOTIFICATION_DEBOUNCE_MS = 250;
+
+export const EXTENSION_NOTIFICATION_STREAMS = Object.freeze({
+  DOWNLOAD_FAILURE: "download-failure",
+  LINK_PREFERRED: "link-preferred",
+  PREFER_LINKS_PATTERN_ERROR: "prefer-links-pattern-error",
+  ROUTE_MATCH: "route-match",
+  ROUTE_MISS: "route-miss",
+});
+
+type ExtensionNotificationStream =
+  | (typeof EXTENSION_NOTIFICATION_STREAMS)[keyof typeof EXTENSION_NOTIFICATION_STREAMS]
+  | "general";
+type TimerHandle = ReturnType<typeof globalThis.setTimeout>;
+
 const historyPort = downloadPorts.history;
 const logPort = downloadPorts.log;
 const backgroundRuntime = downloadPorts.runtime;
+const notificationClearTimers = new Map<string, TimerHandle>();
+const extensionNotificationDebounceTimers = new Map<string, TimerHandle>();
 
 const addDownloadLog = (record: DownloadRecord, message: string, data?: unknown): unknown =>
   isPrivateDownloadRecord(record)
@@ -60,16 +77,45 @@ const createNotification = (
   details: SaveInNotificationOptions,
   duration = options.notifyDuration,
 ) => {
+  const previousClearTimer = notificationClearTimers.get(id);
+  if (previousClearTimer !== undefined) {
+    globalThis.clearTimeout(previousClearTimer);
+    notificationClearTimers.delete(id);
+  }
+
   void Promise.resolve(webExtensionApi.notifications.create(id, details)).catch((error) =>
     logPort.add("notification create failed", String(error)),
   );
   if (duration > 0) {
-    globalThis.setTimeout(() => {
+    const clearTimer = globalThis.setTimeout(() => {
+      notificationClearTimers.delete(id);
       void Promise.resolve(webExtensionApi.notifications.clear(id)).catch((error) =>
         logPort.add("notification clear failed", String(error)),
       );
     }, duration);
+    notificationClearTimers.set(id, clearTimer);
   }
+};
+
+const queueExtensionNotification = (
+  id: string,
+  details: SaveInNotificationOptions,
+  duration = options.notifyDuration,
+) => {
+  const previousClearTimer = notificationClearTimers.get(id);
+  if (previousClearTimer !== undefined) {
+    globalThis.clearTimeout(previousClearTimer);
+    notificationClearTimers.delete(id);
+  }
+
+  const previousDebounceTimer = extensionNotificationDebounceTimers.get(id);
+  if (previousDebounceTimer !== undefined) globalThis.clearTimeout(previousDebounceTimer);
+
+  const debounceTimer = globalThis.setTimeout(() => {
+    extensionNotificationDebounceTimers.delete(id);
+    createNotification(id, details, duration);
+  }, EXTENSION_NOTIFICATION_DEBOUNCE_MS);
+  extensionNotificationDebounceTimers.set(id, debounceTimer);
 };
 
 // Membership ("this download is ours, watch it for a completion notification")
@@ -98,9 +144,17 @@ const getTrackedDownload = (downloadId: number) =>
   getDownload(downloadsState, extensionSessionStorage, downloadId);
 
 export const Notifier = {
-  createExtensionNotification: (title: string | null, message?: string | null, error?: unknown) => {
-    const id = `save-in-not-${String(Math.floor(Math.random() * 100000))}`;
-    createNotification(id, {
+  createExtensionNotification: (
+    title: string | null,
+    message?: string | null,
+    error?: unknown,
+    stream: ExtensionNotificationStream = "general",
+  ) => {
+    // WebExtension notifications use their caller-supplied ID as the stable
+    // replacement key (the equivalent of a Service Worker notification tag).
+    // Keep streams distinct while coalescing bursts before they reach the OS.
+    const id = `save-in-not-${stream}`;
+    queueExtensionNotification(id, {
       type: "basic",
       title: title || webExtensionApi.i18n.getMessage("extensionName"),
       iconUrl: error ? ERROR_ICON_URL : INFO_ICON_URL,
@@ -121,6 +175,7 @@ export const Notifier = {
       webExtensionApi.i18n.getMessage("notificationFailureTitle", [name || ""]),
       message || webExtensionApi.i18n.getMessage("genericUnknownError"),
       true,
+      EXTENSION_NOTIFICATION_STREAMS.DOWNLOAD_FAILURE,
     );
   },
 

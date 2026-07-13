@@ -411,6 +411,8 @@ describe("addDownloadListener", () => {
       expect(Notifier.createExtensionNotification).toHaveBeenCalledWith(
         "Translated<notificationLinkPreferred>",
         "https://example.com/gallery.html",
+        undefined,
+        "link-preferred",
       );
     });
 
@@ -435,6 +437,8 @@ describe("addDownloadListener", () => {
       expect(Notifier.createExtensionNotification).toHaveBeenCalledWith(
         "Translated<notificationLinkPreferred>",
         "https://example.com/gallery.html",
+        undefined,
+        "link-preferred",
       );
     });
 
@@ -479,6 +483,8 @@ describe("addDownloadListener", () => {
       expect(Notifier.createExtensionNotification).toHaveBeenCalledWith(
         "Translated<notificationBadPreferLinksPattern>",
         expect.any(SyntaxError),
+        undefined,
+        "prefer-links-pattern-error",
       );
       expect(lastState().info.url).toBe("https://example.com/i.png");
       expect(lastState().info.context).toBe(DOWNLOAD_TYPES.MEDIA);

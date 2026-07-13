@@ -848,13 +848,15 @@ describe("reportFailure", () => {
   });
 
   test("fires a failure notification when notifyOnFailure is on", async () => {
+    jest.useFakeTimers();
     await loadNotification();
     Object.assign(options, { notifyOnFailure: true, notifyDuration: 0 });
 
     Notifier.reportFailure("file.png", "boom");
+    jest.advanceTimersByTime(250);
 
     expect(global.browser.notifications.create).toHaveBeenCalledWith(
-      expect.any(String),
+      "save-in-not-download-failure",
       expect.objectContaining({ iconUrl: "icons/ic_archive_black_128px.png" }),
     );
   });
