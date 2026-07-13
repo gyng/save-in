@@ -53,14 +53,14 @@ test("falls back safely when a stored shortcut string contains unknown keys", ()
   expect("validate" in comboDefinition && comboDefinition.validate("Ctrl+Shift")).toBe(true);
 });
 
-test("normalizes Page Sources theme overrides without reinterpreting legacy profiles", () => {
-  expect(resolveContentOptions({}).sourcePanelTheme).toBe("system");
-  expect(resolveContentOptions({ sourcePanelTheme: "dark" }).sourcePanelTheme).toBe("dark");
-  expect(resolveContentOptions({ sourcePanelTheme: "light" }).sourcePanelTheme).toBe("light");
-  expect(resolveContentOptions({ sourcePanelTheme: "auto" }).sourcePanelTheme).toBe("system");
-  expect(resolveContentOptions({ sourcePanelTheme: true }).sourcePanelTheme).toBe("system");
+test("normalizes interface theme overrides", () => {
+  expect(resolveContentOptions({}).uiTheme).toBe("system");
+  expect(resolveContentOptions({ uiTheme: "dark" }).uiTheme).toBe("dark");
+  expect(resolveContentOptions({ uiTheme: "light" }).uiTheme).toBe("light");
+  expect(resolveContentOptions({ uiTheme: "auto" }).uiTheme).toBe("system");
+  expect(resolveContentOptions({ uiTheme: true }).uiTheme).toBe("system");
 
-  const themeDefinition = OPTION_KEYS.find(({ name }) => name === "sourcePanelTheme")!;
+  const themeDefinition = OPTION_KEYS.find(({ name }) => name === "uiTheme")!;
   expect("validate" in themeDefinition && themeDefinition.validate("system")).toBe(true);
   expect("validate" in themeDefinition && themeDefinition.validate("dark")).toBe(true);
   expect("validate" in themeDefinition && themeDefinition.validate("auto")).toBe(false);

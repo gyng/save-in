@@ -38,6 +38,7 @@ import { optionsRuntime } from "./options-runtime.ts";
 import { bootstrapOptionsPage } from "./options-bootstrap.ts";
 import { setupIntegrationPanel } from "./integration-panel.ts";
 import { isStringKeyedRecord, sendInternalMessage } from "../shared/message-protocol.ts";
+import { applyUiTheme, setupUiThemeControl } from "./theme.ts";
 
 const setupLastDownloadState = () => {
   document.querySelector("#last-dl-url")?.classList.add("is-empty");
@@ -394,6 +395,8 @@ const restoreOptionsHandler = (result: JsonRecord, schema: OptionSchema) => {
       el.value = String(val);
     }
   });
+
+  applyUiTheme(document.querySelector<HTMLSelectElement>("#uiTheme")?.value);
 
   updateErrors();
   updateMenuPreview();
@@ -856,6 +859,9 @@ setupManualEditor("filenamePatterns");
 setupShortcutOptions();
 
 setupCheckboxRows();
+
+const uiThemeControl = document.querySelector<HTMLSelectElement>("#uiTheme");
+if (uiThemeControl) setupUiThemeControl(uiThemeControl);
 
 ["textarea", "input", "select"].forEach((type) => {
   document.querySelectorAll(type).forEach((el) => {

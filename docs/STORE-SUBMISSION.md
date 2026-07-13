@@ -50,6 +50,8 @@ timestamps, making identical source builds byte-for-byte reproducible.
 - Page Sources is a user-opened, DOM-only drawer. It reads media attributes,
   computed backgrounds, and Resource Timing entries for best-effort HLS/DASH
   discovery. It neither intercepts traffic nor requests `webRequest`.
+  Advanced → Appearance can follow the system theme or force light/dark colors
+  for both the options page and drawer without changing the host page.
 - Save In sends no analytics or developer-server requests. It fetches only URLs
   involved in user-requested saves.
 - Private/Incognito activity is excluded from Save In history, recovery state,

@@ -32,11 +32,15 @@ import "../options/webmcp.ts";
 import { setupAboutDialog } from "../options/about-dialog.ts";
 import { setupPrivacyDialog } from "../options/privacy-dialog.ts";
 import { setupLanguageSelector } from "../options/language-selector.ts";
+import { applyUiTheme } from "../options/theme.ts";
 
 document.addEventListener(
   "DOMContentLoaded",
   async () => {
-    const stored = await webExtensionApi.storage.local.get("uiLocale").catch(() => ({}));
+    const stored = await webExtensionApi.storage.local
+      .get(["uiLocale", "uiTheme"])
+      .catch(() => ({}));
+    applyUiTheme(Reflect.get(stored, "uiTheme"));
     await initializeLocalization(Reflect.get(stored, "uiLocale"));
     localizeDocument(getMessage);
     setHistoryLocalizer(getMessage);

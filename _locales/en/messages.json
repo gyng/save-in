@@ -2435,25 +2435,29 @@
     "message": "Reset restores the browser's suggested default.",
     "description": "Help text below the page-sources keyboard shortcut control. Used in src/options/options.html."
   },
-  "o_lSourcePanelTheme": {
-    "message": "Panel theme",
-    "description": "Label for the Page Sources theme override in Advanced options. Used in src/options/options.html."
+  "o_sAppearance": {
+    "message": "Appearance",
+    "description": "Advanced options subsection heading for visual preferences. Used in src/options/options.html."
   },
-  "o_lSourcePanelThemeSystem": {
+  "o_lUiTheme": {
+    "message": "Theme",
+    "description": "Label for the options-page and Page Sources theme override. Used in src/options/options.html."
+  },
+  "o_lUiThemeSystem": {
     "message": "System",
-    "description": "Page Sources theme option that follows the operating-system preference. Used in src/options/options.html."
+    "description": "Theme option that follows the operating-system preference. Used in src/options/options.html."
   },
-  "o_lSourcePanelThemeDark": {
+  "o_lUiThemeDark": {
     "message": "Dark",
-    "description": "Page Sources theme option that always uses dark colors. Used in src/options/options.html."
+    "description": "Theme option that always uses dark colors. Used in src/options/options.html."
   },
-  "o_lSourcePanelThemeLight": {
+  "o_lUiThemeLight": {
     "message": "Light",
-    "description": "Page Sources theme option that always uses light colors. Used in src/options/options.html."
+    "description": "Theme option that always uses light colors. Used in src/options/options.html."
   },
-  "o_lSourcePanelThemeHelp": {
-    "message": "Follow your system theme, or keep Page Sources dark or light on every site.",
-    "description": "Help text for the Page Sources theme override in Advanced options. Used in src/options/options.html."
+  "o_lUiThemeHelp": {
+    "message": "Follow your system theme, or keep the options page and Page Sources dark or light.",
+    "description": "Help text for the shared interface theme override. Used in src/options/options.html."
   },
   "html_without": {
     "message": "without",

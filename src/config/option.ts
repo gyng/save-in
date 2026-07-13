@@ -43,7 +43,7 @@ export const OptionsManagement: OptionsManagementApi = {
     sourcePanelPreviews: "Load image and video thumbnails in the source list.",
     sourcePanelResourceHints: "Best-effort discovery of HLS and DASH manifests in resource timing.",
     sourcePanelLinks: "Include safe page links, classifying linked media and PDF documents.",
-    sourcePanelTheme: "Page Sources color theme: follow the system, always dark, or always light.",
+    uiTheme: "Options page and Page Sources color theme: follow the system, dark, or light.",
     debug: "Write extra routing and download details to the browser developer console.",
     uiLocale: "Options, menu, and notification language (blank = browser default).",
     enableLastLocation: "Show a 'last used' item at the top of the menu.",

@@ -2,7 +2,7 @@ import {
   CONTENT_OPTION_DEFAULTS,
   isClickType,
   isContentClickCombo,
-  isSourcePanelTheme,
+  isUiTheme,
 } from "./content-options.ts";
 
 // Background-only schema metadata. The content bundle imports the shared
@@ -28,10 +28,10 @@ export const CONTENT_FEATURE_OPTION_DEFINITIONS = [
   },
   { name: "sourcePanelLinks", type: "BOOL", default: CONTENT_OPTION_DEFAULTS.sourcePanelLinks },
   {
-    name: "sourcePanelTheme",
+    name: "uiTheme",
     type: "VALUE",
-    validate: isSourcePanelTheme,
-    default: CONTENT_OPTION_DEFAULTS.sourcePanelTheme,
+    validate: isUiTheme,
+    default: CONTENT_OPTION_DEFAULTS.uiTheme,
   },
   {
     name: "contentClickToSaveCombo",

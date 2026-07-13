@@ -1,4 +1,4 @@
-import type { SourcePanelTheme } from "../config/content-options.ts";
+import type { UiTheme } from "../config/content-options.ts";
 
 export type PageSourceKind = "image" | "video" | "audio" | "stream" | "document" | "link";
 export type PageSource = {
@@ -17,7 +17,7 @@ export type SourcePanelOptions = {
   previews?: boolean;
   resourceHints?: boolean;
   includeLinks?: boolean;
-  theme?: SourcePanelTheme;
+  theme?: UiTheme;
   onOpenChange?: (open: boolean) => void;
   onSaveIntent?: () => void;
 };

@@ -71,10 +71,40 @@
   --error-border: #f1c0ca;
   --error-fg: #a3122a;
   --warning-fg: #8a5400;
+  --disabled-control-color: var(--grey50);
+  --app-icon-filter: none;
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --color-border: var(--grey60);
+  --color-surface-page: #2a2a2e;
+  --color-surface-raised: var(--grey70);
+  --color-text: #ffffff;
+  --color-text-muted: var(--grey40);
+  --success-fg: var(--green60);
+  --color-danger: #e60038;
+  --color-danger-active: #d50033;
+  --link-color: #4da5ff;
+  --link-color-active: #4da5ff;
+  --page-bg: #2a2a2e;
+  --panel-bg: var(--grey70);
+  --panel-border: var(--grey60);
+  --hover-bg: rgba(255, 255, 255, 0.07);
+  --hover-bg-strong: rgba(255, 255, 255, 0.14);
+  --chip-bg: rgba(255, 255, 255, 0.1);
+  --error-bg: rgba(255, 0, 57, 0.14);
+  --error-border: rgba(255, 0, 57, 0.4);
+  --error-fg: #ff9fb0;
+  --warning-fg: #ffcc66;
+  --input-background: #474749;
+  --disabled-control-color: var(--grey40);
+  --app-icon-filter: invert(1) brightness(0.85);
+  color-scheme: dark;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]):not([data-theme="dark"]) {
     --color-border: var(--grey60);
     --color-surface-page: #2a2a2e;
     --color-surface-raised: var(--grey70);
@@ -95,47 +125,10 @@
     --error-border: rgba(255, 0, 57, 0.4);
     --error-fg: #ff9fb0;
     --warning-fg: #ffcc66;
-  }
-
-  #settings-page {
     --input-background: #474749;
-  }
-
-  body {
-    color: white;
-    background-color: var(--page-bg);
-  }
-
-  .badge {
-    color: black;
-  }
-
-  input,
-  textarea,
-  select {
-    color: white;
-  }
-
-  /* Buttons aren't in the color rule above, so a disabled one falls back to the
-     UA's light-theme grey (near-black) and vanishes on the dark page — e.g. the
-     quick-add "Add" button. Give it the same legible grey as the other controls. */
-  input:disabled,
-  textarea:disabled,
-  select:disabled,
-  button:disabled {
-    color: var(--grey40);
-  }
-
-  /* The mono app icon is authored dark (#474747); lift it onto the dark page */
-  .app-icon {
-    filter: invert(1) brightness(0.85);
-  }
-
-  /* Chromium overrides */
-  h1,
-  h2,
-  h3 {
-    color: white;
+    --disabled-control-color: var(--grey40);
+    --app-icon-filter: invert(1) brightness(0.85);
+    color-scheme: dark;
   }
 }
 
@@ -178,6 +171,14 @@ input,
 select,
 textarea {
   font: inherit;
+  color: var(--color-text);
+}
+
+input:disabled,
+textarea:disabled,
+select:disabled,
+button:disabled {
+  color: var(--disabled-control-color);
 }
 
 /* Full-bleed shell: the page owns the viewport; content width is capped
@@ -186,6 +187,7 @@ body {
   margin: 0;
   min-height: 100vh;
   box-sizing: border-box;
+  color: var(--color-text);
   background-color: var(--page-bg);
 }
 
@@ -375,6 +377,7 @@ body:not(#settings-page) {
   vertical-align: text-bottom;
   margin-right: var(--space-2);
   align-self: center;
+  filter: var(--app-icon-filter);
 }
 
 .app-title {
@@ -690,6 +693,12 @@ h2 {
   font-size: var(--text-xl);
   font-weight: 300;
   margin: 0 0 var(--space-4);
+}
+
+h1,
+h2,
+h3 {
+  color: var(--color-text);
 }
 
 h3 {
@@ -1134,6 +1143,7 @@ label:has(> input[type="checkbox"]) > .caption-line {
   padding: 4px;
   border-radius: 4px;
   font-weight: 700;
+  color: black;
   background-color: var(--grey30);
 }
 
@@ -1598,7 +1608,7 @@ input.key {
   box-sizing: border-box;
   margin: 0 calc(-1 * var(--space-5)) var(--space-5);
   padding: 0 var(--space-5);
-  border-bottom: 1px solid var(--grey30);
+  border-bottom: 1px solid var(--panel-border);
   position: sticky;
   top: 0;
   /* Solid, not inherit: content must not show through while scrolling */
@@ -2720,15 +2730,6 @@ button:disabled:hover {
 
 .tab-heading-hidden {
   display: none;
-}
-
-@media (prefers-color-scheme: dark) {
-  .tablist {
-    border-bottom-color: var(--grey60);
-  }
-  .tablist .tab {
-    color: var(--grey40);
-  }
 }
 
 /* ── Refined atoms ────────────────────────────────────────────────── */

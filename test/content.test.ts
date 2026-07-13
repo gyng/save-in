@@ -421,7 +421,7 @@ describe("content.js initialisation", () => {
     expect(reconfiguredHost).toBe(liveReconfiguredHost);
     expect(reconfiguredHost.shadowRoot!.querySelector(".source-link img")).toBeNull();
 
-    storageListener!({ sourcePanelTheme: { oldValue: "system", newValue: "dark" } }, "local");
+    storageListener!({ uiTheme: { oldValue: "system", newValue: "dark" } }, "local");
     expect(document.getElementById("save-in-source-panel")).toBe(reconfiguredHost);
     expect(reconfiguredHost.dataset.theme).toBe("dark");
 
