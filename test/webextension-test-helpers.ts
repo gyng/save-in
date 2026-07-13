@@ -153,11 +153,16 @@ export const createWebExtensionTestHost = (): {
     onAdded: webExtensionEvent(),
     onRemoved: webExtensionEvent(),
   };
+  const declarativeNetRequest = {
+    getSessionRules: vi.fn(async () => []),
+    updateSessionRules: vi.fn(async () => undefined),
+  };
   const host = {
     contextMenus,
     menus: contextMenus,
     commands: { getAll: vi.fn(async () => []), onCommand: webExtensionEvent() },
     downloads,
+    declarativeNetRequest,
     i18n: {
       getAcceptLanguages: vi.fn(async () => ["en"]),
       getMessage: vi.fn((key: string) => `Translated<${key}>`),

@@ -68,13 +68,18 @@ importing it from the relevant entry
 
 |                 | Firefox (event page)                         | Chrome (service worker)                                           |
 | --------------- | -------------------------------------------- | ----------------------------------------------------------------- |
-| Referer feature | Native `downloads.download({ headers })`     | Unsupported                                                       |
+| Referer feature | Native `downloads.download({ headers })`     | Scoped DNR offscreen fetch, then a blob download                  |
 | Blob downloads  | `URL.createObjectURL` (event pages have DOM) | data-URL fallbacks (`Download.makeObjectUrl` / `makeUrlFromBlob`) |
 
 Firefox sets the Referer through its native downloads API. Chrome rejects that
-header as unsafe and extension-owned downloads do not match DNR request-header
-rules. Referer support is therefore Firefox-only.
-The extension does not request `webRequest`, `webRequestBlocking`, or DNR.
+header as unsafe on `downloads.download`, and a DNR rule cannot repair the
+download request itself. For matching opt-in downloads, Chrome temporarily sets
+the Referer on one exact extension fetch, creates the blob in the offscreen
+document, removes the session rule, and passes the blob URL to the downloads API.
+Protected fetches are serialized because the shared session rule cannot safely
+carry two Referer values at once. The extension requests
+`declarativeNetRequestWithHostAccess`, but not `webRequest` or
+`webRequestBlocking`.
 Other shared code must **feature-detect, not sniff**:
 `URL.createObjectURL` and `browser.storage.session` are probed for presence.
 Both lifecycles are non-persistent, so all the service worker rules below apply
@@ -103,6 +108,11 @@ to Firefox too.
    invalidated") — wrap `runtime.sendMessage` in try/catch, retry on
    failure, and prewarm the worker (`WAKE_WARM` message on combo keydown)
    so clicks don't race SW cold starts.
+6. **Referer DNR rules are temporary shared state.** Chrome protects one
+   extension-origin GET with an exact session rule, serializes protected fetches,
+   removes the rule in `finally`, and clears the reserved rule ID during cold
+   start recovery. Do not broaden the rule to page traffic or allow concurrent
+   protected fetches to overwrite it.
 
 ### Cross-browser gotchas
 

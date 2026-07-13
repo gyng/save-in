@@ -35,7 +35,7 @@ Features
 - Connect other extensions through an explicitly approved, versioned integration API.
 - Optionally send selected save data to a user-configured HTTPS webhook after a Save In download starts.
 
-Firefox can set a Referer header for Save In downloads when you enable that option. Experimental routing of ordinary Firefox downloads works by cancelling a matching HTTP(S) download and starting a replacement. That replacement can lose POST bodies, temporary URLs, custom request context, or authentication, so enable it only for compatible downloads.
+Save In can use the page URL as the Referer for matching downloads when you enable that option. Firefox attaches it directly to the browser download. Experimental routing of ordinary Firefox downloads works by cancelling a matching HTTP(S) download and starting a replacement. That replacement can lose POST bodies, temporary URLs, custom request context, or authentication, so enable it only for compatible downloads.
 
 Browser security limits extensions to folders inside the configured default download directory. Open Save In's Options after installation to configure destinations, and make sure the destination folders exist. A filesystem symlink can point a destination to another location.
 
@@ -64,7 +64,7 @@ Features
 - Connect other extensions through an explicitly approved, versioned integration API.
 - Optionally send selected save data to a user-configured HTTPS webhook after a Save In download starts.
 
-Chrome does not allow extensions to set a Referer header for their own downloads, so that Firefox feature is unavailable. Chrome also cannot assign an extension-started download to its Incognito download context. A download requested through Save In from Incognito may therefore appear in the regular Chrome download manager, although Save In still excludes private activity from its own history and diagnostics.
+Chrome does not allow extensions to set a Referer directly on their own downloads. When the optional Referer filter matches, Save In instead applies the page URL only to its protected fetch, holds that file in memory, and passes the resulting file to Chrome. Chrome also cannot assign an extension-started download to its Incognito download context. A download requested through Save In from Incognito may therefore appear in the regular Chrome download manager, although Save In still excludes private activity from its own history and diagnostics.
 
 Browser security limits extensions to folders inside the configured default download directory. Open Save In's Options after installation to configure destinations, and make sure the destination folders exist. Current Chrome versions reject downloads through symlinked destinations, so Chrome cannot use a symlink to escape that directory.
 

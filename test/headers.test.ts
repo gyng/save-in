@@ -108,6 +108,19 @@ describe("getDownloadHeaders", () => {
     expect(RequestHeaders.getDownloadHeaders(state)).toBeUndefined();
   });
 
+  test("returns the sanitized Referer for Chrome's protected fetch", () => {
+    setCurrentBrowser(BROWSERS.CHROME);
+    expect(RequestHeaders.getFetchReferer(state)).toBe(state.info.pageUrl);
+    expect(
+      RequestHeaders.getFetchReferer({
+        info: {
+          url: state.info.url,
+          pageUrl: "https://user:secret@www.pixiv.net/artworks/123#private",
+        },
+      }),
+    ).toBe("https://www.pixiv.net/artworks/123");
+  });
+
   test("returns nothing when disabled, incomplete, or unmatched", () => {
     options.setRefererHeader = false;
     expect(RequestHeaders.getDownloadHeaders(state)).toBeUndefined();

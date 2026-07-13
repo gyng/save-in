@@ -1204,7 +1204,7 @@
     "description": "Option control label or related help text. Used in src/options/options.html."
   },
   "o_cSetRefererHeaderHelp": {
-    "message": "Firefox only. Some sites (e.g. pixiv.net) reject downloads without an HTTP Referer header. For matching downloads, Firefox sends the page URL directly as the Referer. Leave it off unless a site needs it.",
+    "message": "Some sites (e.g. pixiv.net) reject downloads without an HTTP Referer header. Firefox sends the page URL directly. Chrome fetches matching files through Save In and holds each file in memory while saving. Leave this off unless a site needs it.",
     "description": "Option control label or related help text. Used in src/options/options.html."
   },
   "o_cSetRefererHeaderFilter": {

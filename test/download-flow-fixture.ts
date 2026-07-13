@@ -52,6 +52,10 @@ const sessionStore: Record<string, any> = {};
 // download.ts registers its onDeterminingFilename listener and reads
 // chrome.downloads at load, so the host globals must exist before it is imported.
 global.chrome = {
+  runtime: { id: "self-extension-id" },
+  declarativeNetRequest: {
+    updateSessionRules: vi.fn(() => Promise.resolve()),
+  },
   downloads: {
     onDeterminingFilename: { addListener: vi.fn() },
   },

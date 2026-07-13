@@ -45,7 +45,10 @@ Windows:
 Make sure the actual directories exist, or downloads will silently fail.
 
 - `<all_urls>` is used for page features and extension-context HEAD/fetch requests.
-- Firefox can set a Referer through `downloads.download({ headers })`; Chrome does not support this option. Save In does not request `webRequest` or declarativeNetRequest.
+- The optional Referer filter supports anti-hotlink downloads. Firefox attaches
+  the page URL through `downloads.download({ headers })`; Chrome uses a temporary,
+  exact declarativeNetRequest rule around an extension fetch and then saves its
+  blob. Save In does not request `webRequest` or `webRequestBlocking`.
 - Extension-side Fetch/HEAD requests include applicable credentials by default,
   including at redirect destinations. They can be made anonymous in Advanced
   downloading and require no cookie-reading permission. Private-window

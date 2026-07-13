@@ -2,6 +2,7 @@ import { options } from "../config/options-data.ts";
 import { WEB_EXTENSION_CAPABILITIES } from "../platform/chrome-detector.ts";
 import { matchPatternToRegExp } from "../shared/match-pattern.ts";
 import { splitLines } from "../shared/util.ts";
+import { ChromeRefererRules } from "./chrome-referer-rules.ts";
 import type { DownloadInfo } from "./download-types.ts";
 
 type RefererState = { info?: Pick<DownloadInfo, "url" | "pageUrl"> } | null | undefined;
@@ -33,13 +34,22 @@ export const RequestHeaders = {
       }
     }),
 
-  getDownloadHeaders: (state: RefererState): DownloadHeader[] | undefined => {
-    if (!WEB_EXTENSION_CAPABILITIES.downloadRequestHeaders || !options.setRefererHeader) {
-      return undefined;
-    }
+  getReferer: (state: RefererState): string | undefined => {
+    if (!options.setRefererHeader) return undefined;
     const pageUrl = getHttpReferer(state?.info?.pageUrl);
     const url = state?.info?.url;
     if (!pageUrl || !url || !RequestHeaders.matchesRefererFilter(url)) return undefined;
-    return [{ name: "Referer", value: pageUrl }];
+    return pageUrl;
   },
+
+  getDownloadHeaders: (state: RefererState): DownloadHeader[] | undefined => {
+    if (!WEB_EXTENSION_CAPABILITIES.downloadRequestHeaders) return undefined;
+    const referer = RequestHeaders.getReferer(state);
+    return referer ? [{ name: "Referer", value: referer }] : undefined;
+  },
+
+  // Chrome rejects Referer in downloads.download(), but DNR can attach it to
+  // the extension-owned fetch whose blob is passed to the downloads API.
+  getFetchReferer: (state: RefererState): string | undefined =>
+    ChromeRefererRules.canUse() ? RequestHeaders.getReferer(state) : undefined,
 };

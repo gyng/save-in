@@ -179,6 +179,59 @@ describe("renameAndDownload: Chrome vs Firefox entry", () => {
 });
 
 describe("renameAndDownload: fetchViaFetch", () => {
+  test("Chrome fetches a matching Referer-protected download through DNR and offscreen", async () => {
+    setCurrentBrowser("CHROME");
+    options.setRefererHeader = true;
+    options.setRefererHeaderFilter = "*://example.com/*";
+    const updateRules = vi.mocked(global.chrome.declarativeNetRequest.updateSessionRules);
+    updateRules.mockClear();
+    const origCanUse = OffscreenClient.canUse;
+    const origFetch = OffscreenClient.fetchContent;
+    OffscreenClient.canUse = vi.fn(() => true);
+    OffscreenClient.fetchContent = vi.fn(() =>
+      Promise.resolve({
+        sha256: "",
+        downloadUrl: "blob:referer-protected",
+        offscreenRequestId: "referer-r1",
+      }),
+    );
+    try {
+      const state = makeState({ info: { pageUrl: "https://gallery.example/view#private" } });
+      await Download.renameAndDownload(state);
+
+      expect(state.info.contentFetchDisabled).toBe(true);
+      expect(global.fetch).not.toHaveBeenCalled();
+      expect(OffscreenClient.fetchContent).toHaveBeenCalledWith(
+        state.info.url,
+        "omit",
+        expect.objectContaining({ signal: expect.any(AbortSignal) }),
+      );
+      expect(updateRules).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({
+          addRules: [
+            expect.objectContaining({
+              action: expect.objectContaining({
+                requestHeaders: [
+                  expect.objectContaining({ value: "https://gallery.example/view" }),
+                ],
+              }),
+            }),
+          ],
+        }),
+      );
+      expect(updateRules).toHaveBeenLastCalledWith({
+        removeRuleIds: [66_000_001],
+      });
+      expect(global.browser.downloads.download).toHaveBeenCalledWith(
+        expect.objectContaining({ url: "blob:referer-protected" }),
+      );
+    } finally {
+      OffscreenClient.canUse = origCanUse;
+      OffscreenClient.fetchContent = origFetch;
+    }
+  });
+
   test("History cancellation aborts fetch acquisition before downloads.download", async () => {
     setCurrentBrowser("CHROME");
     options.fetchViaFetch = true;

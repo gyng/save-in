@@ -3,6 +3,7 @@ import { getExtensionFetchCredentials } from "../config/fetch-credentials.ts";
 import { fetchFollowingRedirects } from "../shared/redirect-fetch.ts";
 import { readResponseContent } from "../shared/streaming-content.ts";
 import type { BlobContent, ContentFetchResult } from "../shared/content-fetch-types.ts";
+import { ChromeRefererRules } from "./chrome-referer-rules.ts";
 
 export const HASH_FETCH_TIMEOUT_MS = 30000;
 
@@ -67,25 +68,29 @@ export const fetchUrlForDownload = async (
   privateContext = false,
   signal?: AbortSignal,
   requestId: string = crypto.randomUUID(),
+  referer?: string,
 ): Promise<ContentFetchResult> => {
   const credentials = getExtensionFetchCredentials(privateContext);
-  if (OffscreenClient.canUse()) {
-    return OffscreenClient.fetchContent(url, credentials, {
-      requestId,
-      ...(signal ? { signal } : {}),
-    });
-  }
-  const response = await fetchFollowingRedirects(
-    url,
-    { credentials, ...(signal ? { signal } : {}) },
-    HASH_FETCH_TIMEOUT_MS,
-  );
-  if (response.ok === false) throw new Error(`HTTP ${response.status}`);
-  const content = await readResponseContent(response, false, signal);
-  const downloadUrl = await makeUrlFromBlob(content.blob);
-  return {
-    sha256: "",
-    downloadUrl,
-    ...(downloadUrl.startsWith("blob:") ? { ownedObjectUrl: downloadUrl } : {}),
+  const fetchContent = async (): Promise<ContentFetchResult> => {
+    if (OffscreenClient.canUse()) {
+      return OffscreenClient.fetchContent(url, credentials, {
+        requestId,
+        ...(signal ? { signal } : {}),
+      });
+    }
+    const response = await fetchFollowingRedirects(
+      url,
+      { credentials, ...(signal ? { signal } : {}) },
+      HASH_FETCH_TIMEOUT_MS,
+    );
+    if (response.ok === false) throw new Error(`HTTP ${response.status}`);
+    const content = await readResponseContent(response, false, signal);
+    const downloadUrl = await makeUrlFromBlob(content.blob);
+    return {
+      sha256: "",
+      downloadUrl,
+      ...(downloadUrl.startsWith("blob:") ? { ownedObjectUrl: downloadUrl } : {}),
+    };
   };
+  return referer ? ChromeRefererRules.withReferer(url, referer, fetchContent) : fetchContent();
 };

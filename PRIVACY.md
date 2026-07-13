@@ -25,6 +25,12 @@ applicable site credentials by default; this can be disabled under Advanced
 downloading. Save In never reads or stores cookie values, and private extension
 requests are anonymous.
 
+The optional Referer feature is off by default and limited to user-configured
+URL patterns. Firefox attaches the containing page URL directly to the selected
+download. Chrome installs a temporary exact session rule only while Save In
+fetches the selected resource, removes that rule afterward, and saves the
+resulting local Blob. The rule does not apply to ordinary page traffic.
+
 External extensions can request a save only after the user allows their ID.
 Extension permissions support only the features described above.
 

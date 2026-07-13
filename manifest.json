@@ -27,7 +27,14 @@
       "js": ["content.js"]
     }
   ],
-  "permissions": ["contextMenus", "downloads", "notifications", "storage", "offscreen"],
+  "permissions": [
+    "contextMenus",
+    "declarativeNetRequestWithHostAccess",
+    "downloads",
+    "notifications",
+    "storage",
+    "offscreen"
+  ],
   "host_permissions": ["<all_urls>"],
   "options_ui": {
     "page": "src/options/options.html",

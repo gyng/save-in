@@ -215,7 +215,7 @@ for (const fact of [
   "Chrome 123+",
   "Firefox",
   "downloads.download({ headers })",
-  "Chrome does not support",
+  "declarativeNetRequest",
   "{72d92df5-2aa0-4b06-b807-aa21767545cd}",
   "jpblofcpgfjikaapfedldfeilmpgkedf",
   "platform-specific",
@@ -223,8 +223,8 @@ for (const fact of [
   check(docs.includes(fact), `documentation is missing release fact ${JSON.stringify(fact)}`);
 }
 check(
-  !/declarativeNetRequest (?:injects|session rule)/i.test(docs),
-  "documentation describes the retired DNR Referer path",
+  /temporary,\s+exact declarativeNetRequest rule/i.test(docs),
+  "documentation must describe the scoped Chrome Referer path",
 );
 
 const stageRoot = path.join(root, "dist", "bundled-pkg");

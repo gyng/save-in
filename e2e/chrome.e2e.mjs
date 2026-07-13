@@ -362,7 +362,7 @@ test("options page works under MV3 CSP with live first-party autocomplete", asyn
         form: !!ta,
         hostPermissionGranted: await chrome.permissions.contains({ origins: ["<all_urls>"] }),
         permissionBannerHidden: document.querySelector("#host-permission-banner")?.hidden,
-        refererHidden: document.querySelector("#setRefererHeader")?.closest(".firefox-only")?.hidden,
+        refererHidden: document.querySelector("#setRefererHeader")?.closest("label")?.hidden,
         nativeBrowserRoutingHidden: document.querySelector("#routeBrowserDownloads")?.closest("label")?.hidden,
         experimentalFirefoxRoutingHidden: document.querySelector("#routeBrowserDownloadsFirefox")?.closest("label")?.hidden,
       });
@@ -373,7 +373,7 @@ test("options page works under MV3 CSP with live first-party autocomplete", asyn
   expect(suggestions).toContain(":date:");
   expect(result.hostPermissionGranted).toBe(true);
   expect(result.permissionBannerHidden).toBe(true);
-  expect(result.refererHidden).toBe(true);
+  expect(result.refererHidden).toBe(false);
   expect(result.nativeBrowserRoutingHidden).toBe(false);
   expect(result.experimentalFirefoxRoutingHidden).toBe(true);
 });
@@ -859,6 +859,57 @@ test("fetchViaFetch downloads via an offscreen document (Chrome MV3)", async () 
 
   const file = path.join(DOWNLOADS, "e2e", "viafetch.txt");
   expect(fs.readFileSync(file, "utf8")).toBe("via fetch content");
+});
+
+test("Referer-protected downloads use a scoped DNR offscreen fetch", async () => {
+  /** @type {string[]} */
+  const receivedReferers = [];
+  const expectedReferer = "http://gallery.example/artwork/66";
+  const server = http.createServer((req, res) => {
+    receivedReferers.push(req.headers.referer || "");
+    if (req.headers.referer !== expectedReferer) {
+      res.writeHead(403, { "Content-Type": "text/plain" });
+      res.end("missing referer");
+      return;
+    }
+    res.writeHead(200, { "Content-Type": "text/plain" });
+    res.end("chrome referer protected content");
+  });
+  const port = await listenLocal(server);
+  const url = `http://127.0.0.1:${port}/referer-protected.txt`;
+  const previous = JSON.parse(
+    await evalSW(`Promise.all([
+      api.getOption("setRefererHeader"),
+      api.getOption("setRefererHeaderFilter"),
+    ]).then(([setRefererHeader, setRefererHeaderFilter]) =>
+      JSON.stringify({ setRefererHeader, setRefererHeaderFilter }))`),
+  );
+
+  try {
+    await evalSW(`api.setOptions({
+        setRefererHeader: true,
+        setRefererHeaderFilter: "*://127.0.0.1/*",
+        fetchViaFetch: false,
+      }).then(() => api.startDownload({
+        url: ${JSON.stringify(url)},
+        pageUrl: ${JSON.stringify(expectedReferer)},
+        suggestedFilename: "referer-protected-chrome.txt",
+      }))`);
+    expect(
+      (await waitForDownloads("referer-protected-chrome")).some((x) => x.state === "complete"),
+    ).toBe(true);
+    expect(receivedReferers).toContain(expectedReferer);
+    expect(
+      fs.readFileSync(path.join(DOWNLOADS, "e2e", "referer-protected-chrome.txt"), "utf8"),
+    ).toBe("chrome referer protected content");
+    const remainingRules = await evalSW(
+      `chrome.declarativeNetRequest.getSessionRules().then((rules) => rules.map((rule) => rule.id))`,
+    );
+    expect(remainingRules).not.toContain(66_000_001);
+  } finally {
+    await evalSW(`api.setOptions(${JSON.stringify({ ...previous, fetchViaFetch: false })})`);
+    server.close();
+  }
 });
 
 test("extension fetch credentials are preserved across cross-origin redirects", async () => {

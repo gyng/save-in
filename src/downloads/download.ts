@@ -355,11 +355,13 @@ export const Download = {
       Download.rememberPendingState(state);
     }
 
-    // A Firefox native Referer header is attached by downloads.download. An
-    // extension-origin fetch cannot reproduce the browser request's protected
-    // header/cookie/private context reliably, so lazy metadata/content
-    // variables are deliberately blank and fetch-via-fetch is bypassed.
-    state.info.contentFetchDisabled = Boolean(RequestHeaders.getDownloadHeaders(state));
+    // Firefox attaches the Referer to downloads.download; Chrome uses a scoped
+    // DNR rule around the final extension fetch. Earlier metadata/content
+    // requests cannot carry the same protection safely, so their lazy
+    // variables stay blank and the normal fetch-via-fetch choice is bypassed.
+    state.info.contentFetchDisabled = Boolean(
+      RequestHeaders.getDownloadHeaders(state) || RequestHeaders.getFetchReferer(state),
+    );
 
     // Firefox resolves a server-provided filename before finalizing the plan.
     // Chrome must defer this to onDeterminingFilename, which runs after the
@@ -469,10 +471,11 @@ export const Download = {
     privateContext = false,
     signal?: AbortSignal,
     requestId?: string,
+    referer?: string,
   ): Promise<AcquiredDownload> => {
     const usingOffscreen = OffscreenClient.canUse();
     try {
-      const content = await fetchUrlForDownload(url, privateContext, signal, requestId);
+      const content = await fetchUrlForDownload(url, privateContext, signal, requestId, referer);
       return {
         url: content.downloadUrl,
         source: "fetched",
@@ -519,6 +522,16 @@ export const Download = {
       state.info.contentPromise = undefined;
     }
     const url = requireDownloadUrl(state);
+    const fetchReferer = RequestHeaders.getFetchReferer(state);
+    if (fetchReferer) {
+      return Download.acquireFetchedUrl(
+        url,
+        isPrivateDownloadState(state),
+        signal,
+        requestId,
+        fetchReferer,
+      );
+    }
     if (options.fetchViaFetch && !RequestHeaders.getDownloadHeaders(state))
       return Download.acquireFetchedUrl(url, isPrivateDownloadState(state), signal, requestId);
     const ownedObjectUrl = Download.generatedObjectUrls.delete(url) ? url : undefined;
