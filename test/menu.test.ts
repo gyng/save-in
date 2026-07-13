@@ -93,9 +93,9 @@ const setupMenuCreationMocks = () => {
     tabEnabled: true,
   });
   (global.browser as any).contextMenus = {
-    create: jest.fn(),
-    update: jest.fn(),
-    onClicked: { addListener: jest.fn() },
+    create: vi.fn(),
+    update: vi.fn(),
+    onClicked: { addListener: vi.fn() },
   };
   backgroundRuntime.optionErrors = { paths: [], filenamePatterns: [] };
 };
@@ -389,7 +389,7 @@ describe("menu creation", () => {
     let highlightListener: (info: { tabIds: number[] }) => void | Promise<void>;
 
     beforeEach(() => {
-      (global.browser as any).tabs = { onHighlighted: { addListener: jest.fn() } };
+      (global.browser as any).tabs = { onHighlighted: { addListener: vi.fn() } };
       menu.addTabHighlightListener();
       [[highlightListener]] = (global.browser.tabs.onHighlighted.addListener as any).mock.calls;
     });
@@ -457,7 +457,7 @@ describe("buildTree", () => {
     configureRoutingPorts({ getMessage: (key) => global.browser.i18n.getMessage(key) });
   });
   test("is pure: computes the tree without any browser calls", () => {
-    (global.browser as any).contextMenus = { create: jest.fn() };
+    (global.browser as any).contextMenus = { create: vi.fn() };
 
     const { items, errors } = menu.buildTree(["a", ">b"]);
 

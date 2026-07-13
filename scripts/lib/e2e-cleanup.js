@@ -1,18 +1,31 @@
 const fs = require("fs");
 const path = require("path");
 
+/** @param {number} ms */
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+/** @param {number} ms */
 const sleepSync = (ms) => Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
 
+/** @param {unknown} error @returns {string | undefined} */
+const errorCode = (error) =>
+  error && typeof error === "object" && "code" in error && typeof error.code === "string"
+    ? error.code
+    : undefined;
+
+/** @param {number} pid */
 const processIsAlive = (pid) => {
   try {
     process.kill(pid, 0);
     return true;
   } catch (error) {
-    return error?.code === "EPERM";
+    return errorCode(error) === "EPERM";
   }
 };
 
+/**
+ * @param {string} lockDir
+ * @param {{timeoutMs?: number, pollMs?: number, pid?: number}} [options]
+ */
 const acquireDirectoryLock = (
   lockDir,
   { timeoutMs = 120_000, pollMs = 100, pid = process.pid } = {},
@@ -25,7 +38,7 @@ const acquireDirectoryLock = (
       fs.writeFileSync(path.join(lockDir, "owner.json"), JSON.stringify({ pid, token }));
       return { lockDir, token };
     } catch (error) {
-      if (error?.code !== "EEXIST") throw error;
+      if (errorCode(error) !== "EEXIST") throw error;
       try {
         const owner = JSON.parse(fs.readFileSync(path.join(lockDir, "owner.json"), "utf8"));
         if (!processIsAlive(owner.pid)) {
@@ -41,7 +54,7 @@ const acquireDirectoryLock = (
             continue;
           }
         } catch (statError) {
-          if (statError?.code === "ENOENT") continue;
+          if (errorCode(statError) === "ENOENT") continue;
           throw statError;
         }
       }
@@ -52,6 +65,7 @@ const acquireDirectoryLock = (
   }
 };
 
+/** @param {{lockDir: string, token: string}} lock */
 const releaseDirectoryLock = ({ lockDir, token }) => {
   try {
     const owner = JSON.parse(fs.readFileSync(path.join(lockDir, "owner.json"), "utf8"));
@@ -59,10 +73,11 @@ const releaseDirectoryLock = ({ lockDir, token }) => {
       throw new Error(`Refusing to release an E2E lock owned by another process: ${lockDir}`);
     fs.rmSync(lockDir, { recursive: true, force: true });
   } catch (error) {
-    if (error?.code !== "ENOENT") throw error;
+    if (errorCode(error) !== "ENOENT") throw error;
   }
 };
 
+/** @param {string} target @param {{attempts?: number, delayMs?: number}} [options] */
 const removeWithRetries = async (target, { attempts = 6, delayMs = 500 } = {}) => {
   for (let attempt = 0; attempt < attempts; attempt += 1) {
     try {
@@ -77,6 +92,10 @@ const removeWithRetries = async (target, { attempts = 6, delayMs = 500 } = {}) =
   throw new Error(`Unable to remove interrupted E2E profile: ${target}`);
 };
 
+/**
+ * @param {number[]} childPids
+ * @param {{chromeRoot: string, firefoxRoot: string, attempts?: number, delayMs?: number}} options
+ */
 const removeOwnedProfiles = async (
   childPids,
   { chromeRoot, firefoxRoot, attempts = 6, delayMs = 500 },
@@ -85,6 +104,7 @@ const removeOwnedProfiles = async (
     { dir: chromeRoot, prefix: "e2e-profile-" },
     { dir: firefoxRoot, prefix: "save-in-ff-e2e-" },
   ];
+  /** @type {unknown[]} */
   const failures = [];
   for (const { dir, prefix } of roots) {
     for (const entry of fs.existsSync(dir) ? fs.readdirSync(dir, { withFileTypes: true }) : []) {
@@ -104,12 +124,14 @@ const removeOwnedProfiles = async (
   if (failures.length) throw new AggregateError(failures, "E2E profile cleanup failed");
 };
 
+/** @param {string} artifacts @param {number} [keep] */
 const pruneArtifactRuns = (artifacts, keep = 3) => {
   fs.mkdirSync(artifacts, { recursive: true });
   const entries = fs.readdirSync(artifacts, { withFileTypes: true });
   for (const legacy of entries) {
     if (legacy.isFile()) fs.rmSync(path.join(artifacts, legacy.name), { force: true });
   }
+  /** @type {Array<{path: string, mtime: number}>} */
   const runs = [];
   for (const entry of entries) {
     if (!entry.isDirectory() || !entry.name.startsWith("run-")) continue;
@@ -129,6 +151,7 @@ const pruneArtifactRuns = (artifacts, keep = 3) => {
   }
 };
 
+/** @param {string} runRoot */
 const pruneRunDirectories = (runRoot) => {
   if (!fs.existsSync(runRoot)) return;
   for (const entry of fs.readdirSync(runRoot, { withFileTypes: true })) {

@@ -18,6 +18,7 @@ const ARTIFACTS = process.env.E2E_ARTIFACT_DIR
 const ROOT = process.env.EXT_DIR ? path.join(REPO, process.env.EXT_DIR) : REPO;
 const ADDON_ID = "{72d92df5-2aa0-4b06-b807-aa21767545cd}"; // manifest.json gecko id
 
+/** @param {number} ms */
 const sleep = (ms) =>
   new Promise((res) => {
     setTimeout(res, ms);
@@ -30,7 +31,7 @@ const findFirefox = () => {
     "C:\\Program Files (x86)\\Mozilla Firefox\\firefox.exe",
     "/usr/bin/firefox",
     "/Applications/Firefox.app/Contents/MacOS/firefox",
-  ].filter(Boolean);
+  ].filter((candidate) => typeof candidate === "string");
   const found = candidates.find((p) => fs.existsSync(p));
   if (!found) {
     throw new Error("Firefox not found: set FIREFOX_PATH to your firefox executable");
@@ -38,7 +39,9 @@ const findFirefox = () => {
   return found;
 };
 
+/** @param {number | undefined} pid */
 const killTree = (pid) => {
+  if (pid === undefined) return;
   if (process.platform === "win32") {
     try {
       execFileSync("taskkill", ["/pid", String(pid), "/T", "/F"], { stdio: "ignore" });
@@ -54,6 +57,7 @@ const killTree = (pid) => {
   }
 };
 
+/** @param {string} profileDir */
 const killProfileProcesses = (profileDir) => {
   if (process.platform !== "win32") return;
   const escaped = profileDir.replace(/'/g, "''");
@@ -69,6 +73,7 @@ const killProfileProcesses = (profileDir) => {
   }
 };
 
+/** @param {string} baseProfileDir */
 const makeProfile = (baseProfileDir) => {
   let profileDir = `${baseProfileDir}-${process.pid}-${Date.now()}-${Math.random()
     .toString(16)
@@ -106,6 +111,7 @@ const makeProfile = (baseProfileDir) => {
   return { profileDir, downloadDir };
 };
 
+/** @param {string} profileDir */
 const removeProfile = async (profileDir) => {
   for (let i = 0; i < 5; i += 1) {
     // taskkill can return while a child is completing its final profile write;
@@ -124,6 +130,7 @@ const removeProfile = async (profileDir) => {
   throw new Error(`Unable to remove disposable Firefox profile: ${profileDir}`);
 };
 
+/** @param {number} port @param {number} [attempts] */
 const connectWithRetry = async (port, attempts = 30) => {
   for (let i = 0; i < attempts; i += 1) {
     try {
@@ -155,16 +162,18 @@ const launch = async () => {
   const log = fs.openSync(logPath, "w");
   const proc = spawn(findFirefox(), args, { stdio: ["ignore", log, log] });
   fs.closeSync(log);
+  /** @type {InstanceType<typeof FirefoxRdp> | undefined} */
   let rdp;
   try {
     rdp = await connectWithRetry(port);
-    const root = await rdp.getRoot();
-    await rdp.installTemporaryAddon(root.addonsActor, ROOT);
+    const connectedRdp = rdp;
+    const root = await connectedRdp.getRoot();
+    await connectedRdp.installTemporaryAddon(root.addonsActor, ROOT);
     await sleep(2000);
 
-    const addonActor = await rdp.findAddonActor(ADDON_ID);
-    const consoleActor = await rdp.getConsoleActor(addonActor);
-    await rdp.evaluate(
+    const addonActor = await connectedRdp.findAddonActor(ADDON_ID);
+    const consoleActor = await connectedRdp.getConsoleActor(addonActor);
+    await connectedRdp.evaluate(
       consoleActor,
       'browser.tabs.create({ url: browser.runtime.getURL("src/options/options.html") }).then(() => true)',
     );
@@ -175,9 +184,9 @@ const launch = async () => {
       let ready = false;
       try {
         // eslint-disable-next-line no-await-in-loop
-        const tabConsole = await rdp.getTabConsoleActor("src/options/options.html");
+        const tabConsole = await connectedRdp.getTabConsoleActor("src/options/options.html");
         // eslint-disable-next-line no-await-in-loop
-        ready = await rdp.evaluate(
+        ready = await connectedRdp.evaluate(
           tabConsole,
           'browser.runtime.sendMessage({ type: "WAKE_WARM" }).then((response) => response?.type === "OK", () => false)',
         );
@@ -190,23 +199,34 @@ const launch = async () => {
       if (i === 19) throw new Error("background page never became ready");
     }
 
-    const evaluate = (text, timeoutMs) => rdp.evaluate(consoleActor, text, timeoutMs);
+    /** @param {string} text @param {number} [timeoutMs] */
+    const evaluate = (text, timeoutMs) => connectedRdp.evaluate(consoleActor, text, timeoutMs);
 
     // Evaluates in the content window of an open tab matching urlSubstr. The
     // tab must already be open (e.g. via browser.tabs.create from evaluate()).
+    /** @param {string} urlSubstr @param {string} text @param {number} [timeoutMs] */
     const evaluateInTab = async (urlSubstr, text, timeoutMs) => {
-      const tabConsole = await rdp.getTabConsoleActor(urlSubstr);
-      return rdp.evaluate(tabConsole, text, timeoutMs);
+      const tabConsole = await connectedRdp.getTabConsoleActor(urlSubstr);
+      return connectedRdp.evaluate(tabConsole, text, timeoutMs);
     };
 
     const cleanup = async () => {
-      rdp.close();
+      connectedRdp.close();
       killTree(proc.pid);
       killProfileProcesses(profileDir);
       await removeProfile(profileDir);
     };
 
-    return { proc, rdp, evaluate, evaluateInTab, profileDir, downloadDir, logPath, cleanup };
+    return {
+      proc,
+      rdp: connectedRdp,
+      evaluate,
+      evaluateInTab,
+      profileDir,
+      downloadDir,
+      logPath,
+      cleanup,
+    };
   } catch (error) {
     rdp?.close();
     killTree(proc.pid);
@@ -221,16 +241,17 @@ const launch = async () => {
     try {
       tail = fs.readFileSync(logPath, "utf8").slice(-12000).trim();
     } catch (readError) {
-      tail = `Unable to read Firefox log: ${readError.message}`;
+      tail = `Unable to read Firefox log: ${readError instanceof Error ? readError.message : String(readError)}`;
     }
+    const cause = error instanceof Error ? error : new Error(String(error));
     const launchError = new Error(
-      `${error.message}\nFirefox process: ${proc.exitCode === null ? "still running" : `exit code ${proc.exitCode}`}\nFirefox log: ${logPath}${tail ? `\n--- log tail ---\n${tail}` : ""}`,
-      { cause: error },
+      `${cause.message}\nFirefox process: ${proc.exitCode === null ? "still running" : `exit code ${proc.exitCode}`}\nFirefox log: ${logPath}${tail ? `\n--- log tail ---\n${tail}` : ""}`,
+      { cause },
     );
     if (cleanupError) {
       // eslint-disable-next-line preserve-caught-error -- AggregateError includes both failures and explicitly preserves the launch cause.
       throw new AggregateError([launchError, cleanupError], "Firefox launch and cleanup failed", {
-        cause: error,
+        cause,
       });
     }
     throw launchError;

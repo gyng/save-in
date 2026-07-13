@@ -70,22 +70,22 @@ test("a paused or resumable interruption is not a failure on Firefox (§8.4, #28
 describe("createExtensionNotification", () => {
   beforeEach(() => {
     (global.browser as any).notifications = {
-      create: jest.fn(),
-      clear: jest.fn(),
+      create: vi.fn(),
+      clear: vi.fn(),
     };
   });
 
   afterEach(() => {
     setOptions();
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   test("creates a notification and clears it after notifyDuration", () => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
     setOptions({ notifyDuration: 500 });
 
     notification.createExtensionNotification("Title", "Message", false, "route-match");
-    jest.advanceTimersByTime(250);
+    vi.advanceTimersByTime(250);
 
     const [id, spec] = vi.mocked(global.browser.notifications.create).mock.calls[0];
     expect(id).toBe("save-in-not-route-match");
@@ -97,16 +97,16 @@ describe("createExtensionNotification", () => {
     });
 
     expect(global.browser.notifications.clear).not.toHaveBeenCalled();
-    jest.runAllTimers();
+    vi.runAllTimers();
     expect(global.browser.notifications.clear).toHaveBeenCalledWith(id);
   });
 
   test("falls back to i18n title/message and the error icon", () => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
     setOptions({});
 
     notification.createExtensionNotification(null, null, true, "download-failure");
-    jest.advanceTimersByTime(250);
+    vi.advanceTimersByTime(250);
 
     const [, spec] = vi.mocked(global.browser.notifications.create).mock.calls[0];
     expect(spec.title).toBe("Translated<extensionName>");
@@ -116,26 +116,26 @@ describe("createExtensionNotification", () => {
   });
 
   test("skips the auto-clear timer when notifyDuration is unset", () => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
     setOptions({});
 
     notification.createExtensionNotification("T", "M", false, "link-preferred");
-    jest.advanceTimersByTime(250);
+    vi.advanceTimersByTime(250);
 
     expect(global.browser.notifications.create).toHaveBeenCalled();
     expect(global.browser.notifications.clear).not.toHaveBeenCalled();
   });
 
   test("treats zero as the browser default duration", () => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
     setOptions({ notifyDuration: 0 });
     notification.createExtensionNotification("T", "M", undefined, "link-preferred");
-    jest.runAllTimers();
+    vi.runAllTimers();
     expect(global.browser.notifications.clear).not.toHaveBeenCalled();
   });
 
   test("coalesces rapid updates to one stable notification stream", () => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
     setOptions({ notifyDuration: 0 });
 
     notification.createExtensionNotification("Routing", "first", false, "route-match");
@@ -143,9 +143,9 @@ describe("createExtensionNotification", () => {
     notification.createExtensionNotification("Routing", "latest", false, "route-match");
 
     expect(global.browser.notifications.create).not.toHaveBeenCalled();
-    jest.advanceTimersByTime(249);
+    vi.advanceTimersByTime(249);
     expect(global.browser.notifications.create).not.toHaveBeenCalled();
-    jest.advanceTimersByTime(1);
+    vi.advanceTimersByTime(1);
     expect(global.browser.notifications.create).toHaveBeenCalledTimes(1);
     expect(global.browser.notifications.create).toHaveBeenCalledWith(
       "save-in-not-route-match",
@@ -154,12 +154,12 @@ describe("createExtensionNotification", () => {
   });
 
   test("keeps independent notification streams separate", () => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
     setOptions({ notifyDuration: 0 });
 
     notification.createExtensionNotification("Routing", "matched", false, "route-match");
     notification.createExtensionNotification("Download", "failed", true, "download-failure");
-    jest.advanceTimersByTime(250);
+    vi.advanceTimersByTime(250);
 
     expect(global.browser.notifications.create).toHaveBeenCalledTimes(2);
     expect(vi.mocked(global.browser.notifications.create).mock.calls.map(([id]) => id)).toEqual([
@@ -192,38 +192,38 @@ describe("createExtensionNotification", () => {
   });
 
   test("restarts auto-clear timing when a stream is updated", () => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
     setOptions({ notifyDuration: 500 });
 
     notification.createExtensionNotification("Routing", "first", false, "route-match");
-    jest.advanceTimersByTime(250);
-    jest.advanceTimersByTime(300);
+    vi.advanceTimersByTime(250);
+    vi.advanceTimersByTime(300);
     notification.createExtensionNotification("Routing", "updated", false, "route-match");
-    jest.advanceTimersByTime(250);
+    vi.advanceTimersByTime(250);
 
     expect(global.browser.notifications.clear).not.toHaveBeenCalled();
-    jest.advanceTimersByTime(499);
+    vi.advanceTimersByTime(499);
     expect(global.browser.notifications.clear).not.toHaveBeenCalled();
-    jest.advanceTimersByTime(1);
+    vi.advanceTimersByTime(1);
     expect(global.browser.notifications.clear).toHaveBeenCalledTimes(1);
     expect(global.browser.notifications.clear).toHaveBeenCalledWith("save-in-not-route-match");
   });
 
   test("keeps the same stream id after the background module reloads", async () => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
     setOptions({ notifyDuration: 0 });
 
     notification.createExtensionNotification("Routing", "before reload", false, "route-match");
-    jest.advanceTimersByTime(250);
+    vi.advanceTimersByTime(250);
 
-    jest.resetModules();
+    vi.resetModules();
     const [{ Notifier: reloadedNotifier }, { options: reloadedOptions }] = await Promise.all([
       import("../src/downloads/notification.ts"),
       import("../src/config/options-data.ts"),
     ]);
     Object.assign(reloadedOptions, { notifyDuration: 0 });
     reloadedNotifier.createExtensionNotification("Routing", "after reload", false, "route-match");
-    jest.advanceTimersByTime(250);
+    vi.advanceTimersByTime(250);
 
     expect(vi.mocked(global.browser.notifications.create).mock.calls.map(([id]) => id)).toEqual([
       "save-in-not-route-match",

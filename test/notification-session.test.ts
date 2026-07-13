@@ -68,14 +68,12 @@ const loadNotification = async () => {
 };
 
 const makeSessionMock = (store: Record<string, any>) => ({
-  get: jest.fn((key: string) =>
-    Promise.resolve(key == null ? { ...store } : { [key]: store[key] }),
-  ),
-  set: jest.fn((obj: Record<string, any>) => {
+  get: vi.fn((key: string) => Promise.resolve(key == null ? { ...store } : { [key]: store[key] })),
+  set: vi.fn((obj: Record<string, any>) => {
     Object.assign(store, obj);
     return Promise.resolve();
   }),
-  remove: jest.fn((keys: string | string[]) => {
+  remove: vi.fn((keys: string | string[]) => {
     for (const key of Array.isArray(keys) ? keys : [keys]) delete store[key];
     return Promise.resolve();
   }),
@@ -103,42 +101,42 @@ const setupGlobals = (sessionStore: Record<string, any>, searchResults: (query: 
 
   (global.browser as any).runtime = Object.assign(global.browser.runtime || {}, { id: "save-in" });
   (global.browser.storage as any).session = makeSessionMock(sessionStore);
-  (global.browser.downloads as any).search = jest.fn((query: any) =>
+  (global.browser.downloads as any).search = vi.fn((query: any) =>
     Promise.resolve(searchResults(query)),
   );
   (global.browser.downloads as any).onCreated = {
-    addListener: jest.fn(),
-    removeListener: jest.fn(),
-    hasListener: jest.fn(() => true),
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    hasListener: vi.fn(() => true),
   };
   (global.browser.downloads as any).onChanged = {
-    addListener: jest.fn(),
-    removeListener: jest.fn(),
-    hasListener: jest.fn(() => true),
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    hasListener: vi.fn(() => true),
   };
-  (global.browser.downloads as any).show = jest.fn();
-  (global.browser.downloads as any).download = jest.fn();
-  (global.browser.downloads as any).cancel = jest.fn(() => Promise.resolve());
-  (global.browser.downloads as any).erase = jest.fn(() => Promise.resolve([]));
+  (global.browser.downloads as any).show = vi.fn();
+  (global.browser.downloads as any).download = vi.fn();
+  (global.browser.downloads as any).cancel = vi.fn(() => Promise.resolve());
+  (global.browser.downloads as any).erase = vi.fn(() => Promise.resolve([]));
   (global.browser as any).notifications = {
-    create: jest.fn(),
-    clear: jest.fn(),
+    create: vi.fn(),
+    clear: vi.fn(),
     onClicked: {
-      addListener: jest.fn(),
-      removeListener: jest.fn(),
-      hasListener: jest.fn(() => true),
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      hasListener: vi.fn(() => true),
     },
   };
 };
 
 afterEach(() => {
   vi.restoreAllMocks();
-  jest.useRealTimers();
+  vi.useRealTimers();
 });
 
 describe("startup restore", () => {
   beforeEach(() => {
-    jest.resetModules();
+    vi.resetModules();
   });
 
   test("does not touch persisted recovery state merely by importing the notifier", async () => {
@@ -151,7 +149,7 @@ describe("startup restore", () => {
   });
 
   test("prunes downloads that completed while the worker was dead", async () => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
     const sessionStore = {
       siDownloads: {
         11: { adopted: true, historyEntryId: "h11" },
@@ -166,7 +164,7 @@ describe("startup restore", () => {
     });
 
     await loadNotification();
-    await jest.advanceTimersByTimeAsync(10000);
+    await vi.advanceTimersByTimeAsync(10000);
 
     // only the still-live download stays adopted; the record (and its
     // historyEntryId) is retained, just no longer watched
@@ -182,12 +180,12 @@ describe("startup restore", () => {
   });
 
   test("keeps adoption when every download is still live", async () => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
     const sessionStore = { siDownloads: { 12: { adopted: true, historyEntryId: "h12" } } };
     setupGlobals(sessionStore, () => [{ id: 12, state: "in_progress" }]);
 
     await loadNotification();
-    await jest.advanceTimersByTimeAsync(10000);
+    await vi.advanceTimersByTimeAsync(10000);
 
     // A live download keeps its adoption; only the durable recovery lease is
     // written, not the download record itself.
@@ -200,19 +198,19 @@ describe("startup restore", () => {
   });
 
   test("clears adoption when the download lookup fails", async () => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
     const sessionStore = { siDownloads: { 21: { adopted: true } } };
     setupGlobals(sessionStore, () => []);
-    (global.browser.downloads as any).search = jest.fn(() => Promise.reject(new Error("boom")));
+    (global.browser.downloads as any).search = vi.fn(() => Promise.reject(new Error("boom")));
 
     await loadNotification();
-    await jest.advanceTimersByTimeAsync(10000);
+    await vi.advanceTimersByTimeAsync(10000);
 
     expect(adoptedIds(sessionStore)).toEqual([]);
   });
 
   test("clears a stale pending count after the grace window", async () => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
     try {
       const sessionStore = { siPendingDownloads: 3 };
       setupGlobals(sessionStore, () => []);
@@ -223,16 +221,16 @@ describe("startup restore", () => {
       expect(sessionStore.siPendingDownloads).toBe(3);
 
       // ...but a stale leak is cleared once the grace window elapses
-      await jest.advanceTimersByTimeAsync(10000);
+      await vi.advanceTimersByTimeAsync(10000);
       expect(sessionStore.siPendingDownloads).toBe(0);
     } finally {
-      jest.useRealTimers();
+      vi.useRealTimers();
     }
   });
 
   test("finishes an expired pending recovery after the worker died before its timer", async () => {
-    jest.useFakeTimers();
-    jest.setSystemTime(new Date("2026-01-01T00:00:00Z"));
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-01-01T00:00:00Z"));
     const sessionStore = { siPendingDownloads: 3 } as Record<string, any>;
     setupGlobals(sessionStore, () => []);
 
@@ -241,9 +239,9 @@ describe("startup restore", () => {
     expect(sessionStore.siNotificationRecovery).toMatchObject({ pendingDownloads: 3 });
 
     // Suspending an MV3 background discards its timers but not storage.session.
-    jest.clearAllTimers();
-    jest.setSystemTime(new Date("2026-01-01T00:00:11Z"));
-    jest.resetModules();
+    vi.clearAllTimers();
+    vi.setSystemTime(new Date("2026-01-01T00:00:11Z"));
+    vi.resetModules();
     setupGlobals(sessionStore, () => []);
 
     await loadNotification();
@@ -252,8 +250,8 @@ describe("startup restore", () => {
   });
 
   test("does not fold newer downloads into an expired recovery lease", async () => {
-    jest.useFakeTimers();
-    jest.setSystemTime(new Date("2026-01-01T00:00:00Z"));
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-01-01T00:00:00Z"));
     const sessionStore = { siPendingDownloads: 1 } as Record<string, any>;
     setupGlobals(sessionStore, () => []);
 
@@ -263,9 +261,9 @@ describe("startup restore", () => {
     // A second request starts after the lease snapshot, then the worker dies
     // before its downloads.onCreated event arrives.
     sessionStore.siPendingDownloads = 2;
-    jest.clearAllTimers();
-    jest.setSystemTime(new Date("2026-01-01T00:00:11Z"));
-    jest.resetModules();
+    vi.clearAllTimers();
+    vi.setSystemTime(new Date("2026-01-01T00:00:11Z"));
+    vi.resetModules();
     setupGlobals(sessionStore, () => []);
 
     await loadNotification();
@@ -274,8 +272,8 @@ describe("startup restore", () => {
   });
 
   test("finishes adopted-record recovery after the worker died before its timer", async () => {
-    jest.useFakeTimers();
-    jest.setSystemTime(new Date("2026-01-01T00:00:00Z"));
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-01-01T00:00:00Z"));
     const sessionStore = {
       siDownloads: { 11: { adopted: true, historyEntryId: "h11" } },
     } as Record<string, any>;
@@ -284,15 +282,15 @@ describe("startup restore", () => {
     await loadNotification();
     expect(sessionStore.siNotificationRecovery).toMatchObject({ adoptedDownloadIds: [11] });
 
-    jest.clearAllTimers();
-    jest.setSystemTime(new Date("2026-01-01T00:00:11Z"));
-    jest.resetModules();
+    vi.clearAllTimers();
+    vi.setSystemTime(new Date("2026-01-01T00:00:11Z"));
+    vi.resetModules();
     setupGlobals(sessionStore, () => [{ id: 11, state: "complete" }]);
 
     await loadNotification();
     // Startup leaves the waking onChanged task first in line.
     expect(adoptedIds(sessionStore)).toEqual([11]);
-    await jest.advanceTimersByTimeAsync(0);
+    await vi.advanceTimersByTimeAsync(0);
 
     expect(adoptedIds(sessionStore)).toEqual([]);
     expect(sessionStore.siNotificationRecovery).toBeUndefined();
@@ -305,8 +303,8 @@ describe("download lifecycle notifications", () => {
   let onChanged: any;
 
   beforeEach(async () => {
-    jest.resetModules();
-    jest.useFakeTimers();
+    vi.resetModules();
+    vi.useFakeTimers();
     sessionStore = {};
     setupGlobals(sessionStore, () => [{ id: 7, fileSize: 2048, mime: "image/png" }]);
 
@@ -326,7 +324,7 @@ describe("download lifecycle notifications", () => {
   });
 
   afterEach(() => {
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   test("tracks a download recorded via the persisted pending flag", async () => {
@@ -652,14 +650,14 @@ describe("download lifecycle notifications", () => {
     await onChanged({ id: 7, state: { current: "complete", previous: "in_progress" } });
 
     expect(global.browser.notifications.clear).not.toHaveBeenCalled();
-    jest.runAllTimers();
+    vi.runAllTimers();
     expect(global.browser.notifications.clear).toHaveBeenCalledWith("7");
   });
 });
 
 describe("listener registration", () => {
   test("registers bounded download and notification listeners synchronously", async () => {
-    jest.resetModules();
+    vi.resetModules();
     setupGlobals({}, () => []);
     await loadNotification();
 
@@ -689,8 +687,8 @@ describe("notification variants", () => {
     opts: Record<string, any>,
     searchResults: (query: any) => any = () => [],
   ) => {
-    jest.resetModules();
-    jest.useFakeTimers();
+    vi.resetModules();
+    vi.useFakeTimers();
     sessionStore = {};
     setupGlobals(sessionStore, searchResults);
     await loadNotification();
@@ -707,7 +705,7 @@ describe("notification variants", () => {
   };
 
   afterEach(() => {
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   test("promptOnFailure re-prompts with saveAs", async () => {
@@ -812,7 +810,7 @@ describe("notification variants", () => {
     await onChanged({ id: 7, error: { current: "NETWORK_FAILED" } });
 
     expect(global.browser.notifications.clear).not.toHaveBeenCalled();
-    jest.runAllTimers();
+    vi.runAllTimers();
     expect(global.browser.notifications.clear).toHaveBeenCalledWith("7");
   });
 
@@ -823,7 +821,7 @@ describe("notification variants", () => {
     await onChanged({ id: 0, error: { current: "NETWORK_FAILED" } });
 
     expect(global.browser.notifications.create).toHaveBeenCalledWith("0", expect.anything());
-    jest.runAllTimers();
+    vi.runAllTimers();
     expect(global.browser.notifications.clear).toHaveBeenCalledWith("0");
   });
 
@@ -901,7 +899,7 @@ describe("notification variants", () => {
   });
 
   test("debug mode logs listener decisions", async () => {
-    const logSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+    const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
     try {
       // The "Bad notify duration" preamble died with addNotifications;
       // per-event debug logging remains
@@ -927,17 +925,17 @@ describe("notification variants", () => {
 
 describe("reportFailure", () => {
   beforeEach(() => {
-    jest.resetModules();
+    vi.resetModules();
     setupGlobals({}, () => []);
   });
 
   test("fires a failure notification when notifyOnFailure is on", async () => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
     await loadNotification();
     Object.assign(options, { notifyOnFailure: true, notifyDuration: 0 });
 
     Notifier.reportFailure("file.png", "boom");
-    jest.advanceTimersByTime(250);
+    vi.advanceTimersByTime(250);
 
     expect(global.browser.notifications.create).toHaveBeenCalledWith(
       "save-in-not-download-failure",
@@ -957,7 +955,7 @@ describe("reportFailure", () => {
 
 describe("expectDownload", () => {
   test("an expected download is tracked without the session fallback", async () => {
-    jest.resetModules();
+    vi.resetModules();
     const sessionStore = {};
     setupGlobals(sessionStore, () => []);
     await loadNotification();
@@ -974,7 +972,7 @@ describe("expectDownload", () => {
   });
 
   test("two expected downloads are both tracked (counter semantics)", async () => {
-    jest.resetModules();
+    vi.resetModules();
     const sessionStore = {};
     setupGlobals(sessionStore, () => []);
     await loadNotification();
@@ -988,7 +986,7 @@ describe("expectDownload", () => {
   });
 
   test("matches expected downloads by URL and supports cancellation", async () => {
-    jest.resetModules();
+    vi.resetModules();
     const sessionStore = {};
     setupGlobals(sessionStore, () => []);
     await loadNotification();
@@ -1021,7 +1019,7 @@ describe("automatic fetch fallback gating", () => {
   let sessionStore: Record<string, any>;
 
   const setupWithDownload = async (retryResult: boolean) => {
-    jest.resetModules();
+    vi.resetModules();
     sessionStore = {};
     setupGlobals(sessionStore, () => [{ id: 7, fileSize: 2048, mime: "image/png" }]);
     await loadNotification();

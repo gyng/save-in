@@ -5,10 +5,10 @@
     "noUncheckedIndexedAccess": true
   },
   "include": [
-    "test/globals.d.ts",
     "test/type-contracts.test.ts",
     "test/message-protocol.test.ts",
     "test/options-runtime.test.ts",
+    "test/vitest.setup.ts",
     "test/webextension-test-helpers.ts",
     "types/**/*.d.ts"
   ]

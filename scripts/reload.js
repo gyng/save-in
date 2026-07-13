@@ -10,6 +10,7 @@ const chrome = require("./lib/chrome");
 // is the conventional default for a manually-launched Chrome
 const CANDIDATE_PORTS = [9222, ...Array.from({ length: 400 }, (_, i) => 9400 + i)];
 
+/** @param {number} port */
 const isChromeCdp = async (port) => {
   try {
     const res = await fetch(`http://127.0.0.1:${port}/json/version`, {
@@ -47,7 +48,7 @@ const main = async () => {
       console.log(`port ${port}: reloaded ${id} (${count} options tab${count === 1 ? "" : "s"})`);
       reloaded += 1;
     } catch (e) {
-      console.log(`port ${port}: ${e.message}`);
+      console.log(`port ${port}: ${e instanceof Error ? e.message : String(e)}`);
     }
   }
 

@@ -13,9 +13,9 @@ const bundleDir = e2eBuild ? "dist/bundled-e2e" : "dist/bundled";
 // Output format is per-target and load-bearing:
 //   - background / background.sw / options / offscreen use `esm`: an entry with
 //     NO exports emits bare top-level code (no `export` statements), valid as a
-//     classic script in the SW / event page / page. The background entry then
-//     e2e-only entry installs one same-extension command; store builds use the
-//     production entry and contain no test-control surface.
+//     classic script in the SW / event page / page. The e2e-only background
+//     entry installs one same-extension command; store builds use the production
+//     entry and contain no test-control surface.
 //   - content uses `iife`: it runs as a classic content script and is isolated
 //     (nothing outside reads its bindings), so a function wrapper is fine; `esm`
 //     would emit `export` statements (a syntax error when injected).

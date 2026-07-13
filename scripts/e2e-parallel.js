@@ -72,7 +72,9 @@ const runs = suites.map((suite) => {
 });
 const children = runs.map(({ child }) => child);
 
+/** @type {NodeJS.Signals | undefined} */
 let interruptedSignal;
+/** @param {import("node:child_process").ChildProcess} child */
 const terminate = (child) => {
   if (!child.pid) return;
   try {
@@ -85,6 +87,7 @@ const terminate = (child) => {
     // The suite may have completed while interruption was being handled.
   }
 };
+/** @param {NodeJS.Signals} signal */
 const stop = (signal) => {
   interruptedSignal ||= signal;
   children.forEach(terminate);
@@ -94,8 +97,9 @@ process.once("SIGTERM", () => stop("SIGTERM"));
 
 const main = async () => {
   const codes = await Promise.all(runs.map(({ done }) => done));
-  const childPids = children.map((child) => child.pid).filter(Boolean);
+  const childPids = children.map((child) => child.pid).filter((pid) => typeof pid === "number");
   children.forEach(terminate);
+  /** @type {unknown[]} */
   const cleanupErrors = [];
   try {
     await removeOwnedProfiles(childPids, {

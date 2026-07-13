@@ -46,7 +46,7 @@ describe("detectCapabilities", () => {
 
 // The module detects the browser as a side effect of being loaded (there is
 // no init function to call), so each scenario below deletes/mutates the
-// jest-webextension-mock browser global, resets the module registry, and
+// shared WebExtension test host, resets the module registry, and
 // re-imports a fresh copy to observe the detection logic run again.
 describe("browser detection at load time", () => {
   const originalBrowser = global.browser;

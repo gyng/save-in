@@ -21,20 +21,18 @@
     "fmt:check": "oxfmt --check",
     "lint": "node scripts/check-import-cycles.js && node scripts/build-bundled.js && web-ext lint --source-dir dist/bundled-pkg -i \"src/**\" && oxlint && oxfmt --check",
     "lint:fix": "oxlint --fix && oxfmt",
-    "mockserve": "node test/mockserver",
     "review": "node scripts/review-demo.js",
     "screenshots:store": "node scripts/generate-store-screenshots.js",
     "reload": "node scripts/reload.js",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit -p tsconfig.browser.json && tsc --noEmit -p tsconfig.chrome.json && tsc --noEmit -p tsconfig.worker.json && tsc --noEmit -p tsconfig.tools.json && tsc --noEmit -p tsconfig.tools-legacy.json && tsc --noEmit -p tsconfig.test.json && tsc --noEmit -p tsconfig.test-strict.json"
+    "typecheck": "tsc --noEmit -p tsconfig.browser.json && tsc --noEmit -p tsconfig.chrome.json && tsc --noEmit -p tsconfig.worker.json && tsc --noEmit -p tsconfig.tools.json && tsc --noEmit -p tsconfig.dev-tools.json && tsc --noEmit -p tsconfig.e2e.json && tsc --noEmit -p tsconfig.test.json && tsc --noEmit -p tsconfig.test-strict.json"
   },
   "devDependencies": {
     "@types/chrome": "^0.2.2",
     "@types/firefox-webext-browser": "^143.0.0",
     "@vitest/coverage-v8": "4.1.9",
-    "jest-webextension-mock": "^4.2.0",
     "jsdom": "^29.1.1",
     "jszip": "3.10.1",
     "oxfmt": "^0.58.0",

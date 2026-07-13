@@ -22,14 +22,14 @@ describe("SaveHistory", () => {
   beforeEach(() => {
     clearPersistenceDiagnostics();
     store = {};
-    global.browser.storage.local.get = jest.fn((key: string) =>
+    global.browser.storage.local.get = vi.fn((key: string) =>
       Promise.resolve({ [key]: store[key] }),
     );
-    global.browser.storage.local.set = jest.fn((obj: Record<string, PersistedHistoryEntry[]>) => {
+    global.browser.storage.local.set = vi.fn((obj: Record<string, PersistedHistoryEntry[]>) => {
       Object.assign(store, obj);
       return Promise.resolve();
     });
-    global.browser.storage.local.remove = jest.fn((key: string) => {
+    global.browser.storage.local.remove = vi.fn((key: string) => {
       delete store[key];
       return Promise.resolve();
     });
@@ -259,10 +259,10 @@ describe("SaveHistory", () => {
   });
 
   test("concurrent adds do not clobber each other (write-queue serialization)", async () => {
-    global.browser.storage.local.get = jest.fn((key: string) =>
+    global.browser.storage.local.get = vi.fn((key: string) =>
       Promise.resolve().then(() => ({ [key]: store[key] })),
     );
-    global.browser.storage.local.set = jest.fn((obj: Record<string, PersistedHistoryEntry[]>) =>
+    global.browser.storage.local.set = vi.fn((obj: Record<string, PersistedHistoryEntry[]>) =>
       Promise.resolve().then(() => {
         Object.assign(store, obj);
       }),
@@ -279,7 +279,7 @@ describe("SaveHistory", () => {
   });
 
   test("a failing set does not break subsequent adds", async () => {
-    global.browser.storage.local.set = jest
+    global.browser.storage.local.set = vi
       .fn()
       .mockRejectedValueOnce(new Error("boom"))
       .mockImplementation((obj: Record<string, PersistedHistoryEntry[]>) => {

@@ -31,6 +31,7 @@ const SHOWCASE_PATHS = [
 // page routing section and fires on the demo page's PDF link
 const SHOWCASE_RULES = ["fileext: pdf", "into: pdfs/:weekday:-:naivefilename:"].join("\n");
 
+/** @param {string} label @param {string} color */
 const svg = (label, color) =>
   `data:image/svg+xml,${encodeURIComponent(
     `<svg xmlns="http://www.w3.org/2000/svg" width="320" height="200">` +
@@ -204,6 +205,7 @@ const createDemoServer = () =>
     }
   });
 
+/** @returns {Promise<number>} */
 const startDemoServer = () =>
   new Promise((resolve, reject) => {
     const server = createDemoServer();

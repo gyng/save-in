@@ -1,5 +1,5 @@
 // Options-page host-permission banner: detect a missing <all_urls> grant and
-// offer a one-click request. jest-webextension-mock has no permissions API, so
+// offer a one-click request. The shared host is replaced here so
 // it's defined per test.
 import { PermissionsBanner } from "../src/options/permissions-banner.ts";
 

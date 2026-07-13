@@ -52,22 +52,23 @@ describe("TypeScript policy", () => {
       expect(tools[strictCheck], strictCheck).not.toBe(false);
     }
 
-    const legacyTools = compilerOptions("tsconfig.tools-legacy.json");
-    expect(readConfig("tsconfig.tools-legacy.json").extends).toBe("./tsconfig.tools.json");
-    expect(legacyTools).toMatchObject({ strict: false });
-    expect(readConfig("tsconfig.tools.json").include).not.toContain("e2e/**/*.mjs");
+    const devTools = compilerOptions("tsconfig.dev-tools.json");
+    const e2eTools = compilerOptions("tsconfig.e2e.json");
+    expect(readConfig("tsconfig.dev-tools.json").extends).toBe("./tsconfig.tools.json");
+    expect(readConfig("tsconfig.e2e.json").extends).toBe("./tsconfig.tools.json");
+    expect(devTools.strict).not.toBe(false);
+    expect(e2eTools.strict).not.toBe(false);
     expect(readConfig("tsconfig.tools.json").include).toContain("scripts/prepare-release.js");
-    expect(readConfig("tsconfig.tools-legacy.json").include).toContain("e2e/**/*.mjs");
-    expect(readConfig("tsconfig.tools-legacy.json").exclude).toContain(
-      "scripts/prepare-release.js",
-    );
+    expect(readConfig("tsconfig.dev-tools.json").include).toContain("scripts/lib/cdp.js");
+    expect(readConfig("tsconfig.e2e.json").include).toContain("e2e/**/*.mjs");
 
     const pkg = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8")) as {
       scripts?: Record<string, string>;
     };
     expect(pkg.scripts?.typecheck).toContain("tsconfig.worker.json");
     expect(pkg.scripts?.typecheck).toContain("tsconfig.tools.json");
-    expect(pkg.scripts?.typecheck).toContain("tsconfig.tools-legacy.json");
+    expect(pkg.scripts?.typecheck).toContain("tsconfig.dev-tools.json");
+    expect(pkg.scripts?.typecheck).toContain("tsconfig.e2e.json");
     expect(pkg.scripts?.typecheck).toContain("tsconfig.test.json");
     expect(pkg.scripts?.typecheck).toContain("tsconfig.test-strict.json");
   });
@@ -93,6 +94,7 @@ describe("TypeScript policy", () => {
       expect.arrayContaining([
         "test/type-contracts.test.ts",
         "test/message-protocol.test.ts",
+        "test/vitest.setup.ts",
         "test/webextension-test-helpers.ts",
       ]),
     );

@@ -521,7 +521,7 @@ describe("filename rewrite and routing", () => {
     });
 
     beforeEach(() => {
-      logSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+      logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
     });
 
     afterEach(() => {

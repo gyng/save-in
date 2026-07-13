@@ -11,22 +11,27 @@ import firefox from "../scripts/lib/firefox.js";
 import { inBackgroundContext } from "./background-context.mjs";
 import { listenLocal, poll } from "./helpers.mjs";
 
+/** @type {Awaited<ReturnType<typeof firefox.launch>>} */
 let session;
 let suiteFailed = false;
 const ARTIFACTS = process.env.E2E_ARTIFACT_DIR
   ? path.resolve(process.env.E2E_ARTIFACT_DIR)
   : path.resolve("dist", "e2e-artifacts");
 
+/** @param {string} expr @param {number} [timeoutMs] */
 const evalBackground = (expr, timeoutMs) =>
   session.evaluateInTab("src/options/options.html", inBackgroundContext(expr), timeoutMs);
+/** @param {string} name */
 const artifactName = (name) =>
   name
     .replace(/[^a-z0-9]+/gi, "-")
     .replace(/(^-|-$)/g, "")
     .toLowerCase();
 
+/** @param {string} testName */
 const captureFailureArtifacts = async (testName) => {
   fs.mkdirSync(ARTIFACTS, { recursive: true });
+  /** @type {Record<string, any>} */
   const report = { testName, capturedAt: new Date().toISOString() };
   try {
     report.background = JSON.parse(
@@ -44,6 +49,7 @@ const captureFailureArtifacts = async (testName) => {
   );
 };
 
+/** @param {string} filenamePart @param {number} [deadlineMs] @returns {Promise<any[]>} */
 const waitForDownloads = async (filenamePart, deadlineMs = 8000) =>
   JSON.parse(
     await evalBackground(
@@ -65,6 +71,7 @@ const waitForDownloads = async (filenamePart, deadlineMs = 8000) =>
     ),
   );
 
+/** @param {string} predicate @param {number} [deadlineMs] @returns {Promise<any[]>} */
 const waitForLog = async (predicate, deadlineMs = 8000) =>
   JSON.parse(
     await evalBackground(
@@ -235,7 +242,8 @@ test("options reset re-initialises", async () => {
 });
 
 test("downloads receive the configured Referer header", async () => {
-  let resolveReferer;
+  /** @type {(value: string | null) => void} */
+  let resolveReferer = () => {};
   const receivedReferer = new Promise((resolve) => {
     resolveReferer = resolve;
   });
@@ -259,7 +267,9 @@ test("downloads receive the configured Referer header", async () => {
       }))`);
     await expect(receivedReferer).resolves.toBe(referer);
     expect(
-      (await waitForDownloads("referer-probe-firefox")).some((x) => x.state === "complete"),
+      (await waitForDownloads("referer-probe-firefox")).some(
+        (/** @type {any} */ x) => x.state === "complete",
+      ),
     ).toBe(true);
   } finally {
     server.close();
@@ -278,7 +288,9 @@ test("routing rules rename and route the download", async () => {
           pageUrl: "https://example.com/",
         })).then(() => "started")`,
   );
-  expect((await waitForDownloads("renamed-routeme")).map((x) => x.state)).toEqual(["complete"]);
+  expect(
+    (await waitForDownloads("renamed-routeme")).map((/** @type {any} */ x) => x.state),
+  ).toEqual(["complete"]);
 });
 
 test("message-driven downloads work and never inherit a stale route", async () => {
@@ -293,7 +305,9 @@ test("message-driven downloads work and never inherit a stale route", async () =
         sender: { tab: { id: 1, title: "E2E Tab" } },
       }).then(() => "started")`,
   );
-  expect((await waitForDownloads("ff-msg-download")).map((x) => x.state)).toEqual(["complete"]);
+  expect(
+    (await waitForDownloads("ff-msg-download")).map((/** @type {any} */ x) => x.state),
+  ).toEqual(["complete"]);
 });
 
 test("shortcut files keep their extension and redirect content", async () => {
@@ -365,8 +379,10 @@ test("ordinary browser downloads can be tracked and experimentally rerouted on F
     await session.evaluateInTab(target, `document.querySelector("#native").click()`);
 
     const rows = await waitForDownloads("browser-routed");
-    expect(rows.some((row) => row.state === "complete")).toBe(true);
-    expect(rows.some((row) => row.filename.includes("browser-routed"))).toBe(true);
+    expect(rows.some((/** @type {any} */ row) => row.state === "complete")).toBe(true);
+    expect(rows.some((/** @type {any} */ row) => row.filename.includes("browser-routed"))).toBe(
+      true,
+    );
     const observed = JSON.parse(
       await evalBackground(`(async () => {
         const deadline = Date.now() + 8000;
@@ -450,6 +466,7 @@ test("Page Sources discovers, sorts, updates live, and restores across tabs", as
   const secondTarget = `localhost:${port}`;
   const firstUrl = `http://${firstMatch}`;
   const secondUrl = `http://${secondMatch}`;
+  /** @param {string} target @returns {Promise<any>} */
   const snapshot = (target) =>
     session
       .evaluateInTab(

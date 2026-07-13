@@ -14,7 +14,7 @@ import { MESSAGE_TYPES, DOWNLOAD_TYPES } from "../src/shared/constants.ts";
 import type { CurrentTab } from "../src/platform/current-tab.ts";
 import { clearPersistenceDiagnostics } from "../src/shared/persistence-diagnostics.ts";
 
-// Capture the listeners registerMessaging() attaches (jest-webextension-mock's
+// Capture the listeners registerMessaging() attaches (the shared host fixture's
 // runtime events dispatch through their own internal lists, so replace them).
 // These must exist before registerMessaging() runs.
 (global.browser.runtime as any).onMessage = { addListener: vi.fn() };

@@ -57,7 +57,7 @@ describe("OptionsManagement", () => {
   type SaveKey = SchemaKey & { onSave(value: any): any };
 
   beforeEach(async () => {
-    jest.resetModules();
+    vi.resetModules();
     setupGlobals();
     const optionModule = await import("../src/config/option.ts");
     ({ previewRoutes } = await import("../src/background/route-preview.ts"));
@@ -475,7 +475,7 @@ describe("loadOptions resilience", () => {
     vi.resetModules();
     setupGlobals();
     const OptionsManagement = (await import("../src/config/option.ts")).OptionsManagement;
-    global.browser.storage.local.get = jest.fn(() =>
+    global.browser.storage.local.get = vi.fn(() =>
       Promise.resolve({ conflictAction: "overwrite", someRemovedOption: 1 }),
     );
 

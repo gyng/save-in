@@ -48,7 +48,7 @@ import type { SaveInOptions } from "../src/config/option-schema.ts";
 import { browserTab, installHostProperty } from "./webextension-test-helpers.ts";
 
 // background-main.ts, menu-build.ts, option.ts and log.ts are all real modules, freshly
-// re-imported after every jest.resetModules() below (mirroring test/log.test.ts
+// re-imported after every vi.resetModules() below (mirroring test/log.test.ts
 // and test/option.test.ts): a top-level static import would keep pointing at
 // the first module instance, not the fresh one background-main.ts actually wires up on
 // each re-import.
@@ -171,7 +171,7 @@ const importIndex = async () => {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  jest.resetModules();
+  vi.resetModules();
 });
 
 describe("startup", () => {

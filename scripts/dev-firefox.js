@@ -37,14 +37,17 @@ const child = spawn(
   { cwd: root, env, stdio: "inherit" },
 );
 
-let timer = null;
+/** @type {ReturnType<typeof setTimeout> | undefined} */
+let timer;
 const rebuild = () => {
   clearTimeout(timer);
   timer = setTimeout(() => {
     try {
       build();
     } catch (error) {
-      console.error(`Bundle rebuild failed: ${error.message}`);
+      console.error(
+        `Bundle rebuild failed: ${error instanceof Error ? error.message : String(error)}`,
+      );
     }
   }, 300);
 };

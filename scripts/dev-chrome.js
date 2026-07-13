@@ -15,11 +15,13 @@ const PROFILE = path.join(chrome.ROOT, "dist", "dev-profile");
 const DOWNLOADS = path.join(PROFILE, "downloads");
 const WATCH = process.argv.includes("--watch");
 
+/** @param {string} extensionId */
 const reloadExtension = async (extensionId) => {
   const extensionUrl = `chrome-extension://${extensionId}/`;
   const targets = await cdp.listTargets(PORT);
   const extensionPages = targets.filter(
-    (target) => target.type === "page" && target.url.startsWith(extensionUrl),
+    (/** @type {{type: string, url: string}} */ target) =>
+      target.type === "page" && target.url.startsWith(extensionUrl),
   );
 
   // Extensions loaded through the CDP Extensions domain are not reliably
@@ -55,7 +57,8 @@ const main = async () => {
   console.log(`CDP port: ${PORT} | Profile: ${PROFILE}`);
 
   if (WATCH) {
-    let timer = null;
+    /** @type {ReturnType<typeof setTimeout> | undefined} */
+    let timer;
     let reloading = false;
     let pending = false;
 
@@ -75,7 +78,7 @@ const main = async () => {
         } catch (e) {
           console.log(
             `[${new Date().toLocaleTimeString()}] restaged; auto-reload failed (${
-              e.message
+              e instanceof Error ? e.message : String(e)
             }) — reload manually via chrome://extensions`,
           );
         }

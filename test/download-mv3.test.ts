@@ -67,7 +67,7 @@ describe("makeObjectUrl", () => {
   });
 
   test("uses URL.createObjectURL when available (MV2)", () => {
-    URL.createObjectURL = jest.fn(() => "blob:fake-object-url");
+    URL.createObjectURL = vi.fn(() => "blob:fake-object-url");
 
     const url = Download.makeObjectUrl("hello");
     expect(url).toBe("blob:fake-object-url");
@@ -121,7 +121,7 @@ describe("makeUrlFromBlob", () => {
   });
 
   test("uses URL.createObjectURL when available (MV2)", async () => {
-    URL.createObjectURL = jest.fn(() => "blob:fake-object-url");
+    URL.createObjectURL = vi.fn(() => "blob:fake-object-url");
     const blob = new NodeBlob(["x"]);
     await expect(makeUrlFromBlob(blob)).resolves.toBe("blob:fake-object-url");
   });
@@ -323,7 +323,7 @@ describe("onDeterminingFilename listener (Chrome)", () => {
     global.chrome = {
       downloads: {
         onDeterminingFilename: {
-          addListener: jest.fn(),
+          addListener: vi.fn(),
         },
       },
     } as any;
@@ -379,7 +379,7 @@ describe("onDeterminingFilename listener (Chrome)", () => {
   });
 
   test("ignores downloads from other extensions", () => {
-    const suggest = jest.fn();
+    const suggest = vi.fn();
     const returned = listener({ byExtensionId: "someone-else", filename: "x" }, suggest);
     expect(returned).toBe(false);
     expect(suggest).not.toHaveBeenCalled();
@@ -387,7 +387,7 @@ describe("onDeterminingFilename listener (Chrome)", () => {
 
   test("leaves ordinary browser downloads unchanged when global routing is disabled", async () => {
     freshOptions.routeBrowserDownloads = false;
-    const suggest = jest.fn();
+    const suggest = vi.fn();
 
     expect(
       listener(
@@ -405,7 +405,7 @@ describe("onDeterminingFilename listener (Chrome)", () => {
     freshOptions.routeBrowserDownloads = true;
     vi.spyOn(freshDownload, "getRoutingMatches").mockReturnValue("sorted/:filename:");
     vi.spyOn(freshDownload, "finalizeFullPath").mockReturnValue("sorted/cat.jpg");
-    const suggest = jest.fn();
+    const suggest = vi.fn();
 
     expect(
       listener(
@@ -427,7 +427,7 @@ describe("onDeterminingFilename listener (Chrome)", () => {
   test("leaves private ordinary browser downloads untouched", () => {
     freshOptions.routeBrowserDownloads = true;
     const route = vi.spyOn(freshDownload, "getRoutingMatches");
-    const suggest = jest.fn();
+    const suggest = vi.fn();
 
     expect(
       listener(
@@ -450,7 +450,7 @@ describe("onDeterminingFilename listener (Chrome)", () => {
     // is keyed by the download URL so overlapping downloads don't clobber it.
     sessionStore.siFinalFilenames = { "https://x/recover.png": "route/recovered.txt" };
 
-    const suggest = jest.fn();
+    const suggest = vi.fn();
     const returned = listener(
       {
         byExtensionId: "self-extension-id",
@@ -474,7 +474,7 @@ describe("onDeterminingFilename listener (Chrome)", () => {
     const url = "blob:retry-url";
     freshDownload.pendingRetryFilenames.set(url, "route/retried.txt");
     sessionStore.siFinalFilenames = { [url]: "route/retried.txt" };
-    const suggest = jest.fn();
+    const suggest = vi.fn();
 
     expect(
       listener({ byExtensionId: "self-extension-id", filename: "download", url }, suggest),
@@ -491,7 +491,7 @@ describe("onDeterminingFilename listener (Chrome)", () => {
       "https://x/same.png": ["first/a.png", "second/b.png"],
     };
 
-    const first = jest.fn();
+    const first = vi.fn();
     expect(
       listener(
         { byExtensionId: "self-extension-id", filename: "original", url: "https://x/same.png" },
@@ -505,7 +505,7 @@ describe("onDeterminingFilename listener (Chrome)", () => {
     });
     expect(sessionStore.siFinalFilenames).toEqual({ "https://x/same.png": "second/b.png" });
 
-    const second = jest.fn();
+    const second = vi.fn();
     listener(
       { byExtensionId: "self-extension-id", filename: "original", url: "https://x/same.png" },
       second,
@@ -519,7 +519,7 @@ describe("onDeterminingFilename listener (Chrome)", () => {
   });
 
   test("falls back to default naming when nothing was persisted", async () => {
-    const suggest = jest.fn();
+    const suggest = vi.fn();
     const returned = listener(
       { byExtensionId: "self-extension-id", filename: "original.txt" },
       suggest,
@@ -534,7 +534,7 @@ describe("onDeterminingFilename listener (Chrome)", () => {
     sessionStore.siFinalFilenames = {
       "https://x/recover.png": [{ filename: "not-a-string" }],
     };
-    const suggest = jest.fn();
+    const suggest = vi.fn();
 
     expect(
       listener(
@@ -553,7 +553,7 @@ describe("onDeterminingFilename listener (Chrome)", () => {
   test("falls back to default naming when session recovery rejects", async () => {
     const sessionState = await import("../src/shared/session-state.ts");
     vi.mocked(sessionState.getSession).mockRejectedValueOnce(new Error("storage unavailable"));
-    const suggest = jest.fn();
+    const suggest = vi.fn();
 
     expect(
       listener({ byExtensionId: "self-extension-id", filename: "original.txt" }, suggest),
@@ -572,7 +572,7 @@ describe("onDeterminingFilename listener (Chrome)", () => {
     freshDownload.rememberPendingState(state);
     const variable = await import("../src/routing/variable.ts");
     vi.spyOn(variable, "applyVariables").mockRejectedValueOnce(new Error("variable failed"));
-    const suggest = jest.fn();
+    const suggest = vi.fn();
 
     expect(
       listener(
@@ -607,7 +607,7 @@ describe("onDeterminingFilename listener (Chrome)", () => {
         url: "https://x/request",
         finalUrl: "https://x/final",
       } as any,
-      jest.fn(),
+      vi.fn(),
     );
 
     expect(freshDownload.pendingStates.get("https://x/final")).toEqual([redirected]);

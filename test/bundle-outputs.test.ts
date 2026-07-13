@@ -29,9 +29,10 @@ test("ships a self-verifying Mozilla source attachment", () => {
     '"e2e"',
     '"CHANGELOG.md"',
     '"tsconfig.chrome.json"',
+    '"tsconfig.dev-tools.json"',
+    '"tsconfig.e2e.json"',
     '"tsconfig.worker.json"',
     '"tsconfig.tools.json"',
-    '"tsconfig.tools-legacy.json"',
     '"tsconfig.test.json"',
     '"!.gitignore"',
     '"!.oxlintrc.json"',
@@ -39,7 +40,6 @@ test("ships a self-verifying Mozilla source attachment", () => {
     '"!.github/**/*"',
     "verifyArchive",
     "canonicalizeZip",
-    '"src/options/version.json"',
   ]) {
     expect(sourceBuild).toContain(required);
   }
@@ -53,7 +53,6 @@ test("creates stable archives without generated checkout metadata", () => {
   const packageJson = JSON.parse(readFileSync(resolve("package.json"), "utf8"));
 
   expect(runtimeBuild).toContain("assertPackageVersion(root)");
-  expect(runtimeBuild).toContain('"src/options/version.json"');
   expect(runtimeBuild).not.toContain("writeVersion");
   expect(runtimePackage).toContain("canonicalizeZip");
   expect(runtimePackage).toContain("assertPackageVersion(root)");
@@ -85,7 +84,6 @@ test("uses one spanning package for both stores", () => {
 
   expect(manifest.incognito).toBe("spanning");
   expect(stage).not.toContain("SAVE_IN_BROWSER");
-  expect(stage).toContain('"save-in-chrome-mv3.zip"');
   expect(packageJson).not.toContain("bundled-pkg-firefox");
   expect(runtimePackage).toContain('"--artifacts-dir"');
   expect(runtimePackage).toContain('"--overwrite-dest"');

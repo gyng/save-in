@@ -1,0 +1,4 @@
+{
+  "extends": "./tsconfig.tools.json",
+  "include": ["e2e/**/*.mjs"]
+}

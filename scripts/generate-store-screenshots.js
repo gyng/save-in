@@ -20,6 +20,7 @@ const {
 
 const PROFILE = path.join(chrome.ROOT, "dist", "store-screenshot-profile");
 const DEFAULT_OUTPUT = path.join(chrome.ROOT, "docs", "store-screenshots");
+/** @typedef {{filename: string, description: string}} Screenshot */
 
 const outputArgument = () => {
   const index = process.argv.indexOf("--output-dir");
@@ -28,6 +29,7 @@ const outputArgument = () => {
   return process.argv[index + 1];
 };
 
+/** @param {() => unknown | Promise<unknown>} callback @param {string} description @param {number} [timeoutMs] */
 const waitFor = async (callback, description, timeoutMs = 10_000) => {
   const deadline = Date.now() + timeoutMs;
   let lastError;
@@ -44,15 +46,22 @@ const waitFor = async (callback, description, timeoutMs = 10_000) => {
   throw new Error(`Timed out waiting for ${description}`, { cause: lastError });
 };
 
+/** @param {import("node:http").Server} server @returns {Promise<number>} */
 const listen = (server) =>
   new Promise((resolve, reject) => {
     server.once("error", reject);
     server.listen(0, "127.0.0.1", () => {
       server.off("error", reject);
-      resolve(server.address().port);
+      const address = server.address();
+      if (!address || typeof address === "string") {
+        reject(new Error("Screenshot server did not bind to a TCP port"));
+        return;
+      }
+      resolve(address.port);
     });
   });
 
+/** @param {number} port @param {string} target @param {string} outputDir @param {Screenshot} screenshot */
 const capture = async (port, target, outputDir, screenshot) => {
   const captured = Buffer.from(
     await cdp.captureScreenshot(port, target, {
@@ -71,6 +80,7 @@ const capture = async (port, target, outputDir, screenshot) => {
   );
 };
 
+/** @param {number} port @param {string} optionsTarget @param {string} section @param {string | undefined} [focusSelector] */
 const activateOptionsTab = async (port, optionsTarget, section, focusSelector) => {
   const tabSelector = `#tab-${section}`;
   await cdp.evalInTarget(
@@ -104,6 +114,7 @@ const activateOptionsTab = async (port, optionsTarget, section, focusSelector) =
   );
 };
 
+/** @param {number} port @param {string} optionsTarget */
 const seedShowcase = (port, optionsTarget) =>
   cdp.evalInTarget(
     port,

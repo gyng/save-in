@@ -30,22 +30,18 @@
   --blue50: #0a84ff;
   --blue60: #0060df;
   --blue70: #003eaa;
-  --blue80: #002275;
   --grey20: #ededf0;
   --grey30: #d7d7db;
   --grey40: #b1b1b3;
   --grey50: #737373;
   --grey60: #4a4a4f;
   --grey70: #38383d;
-  --grey80: #2a2a2e;
   --grey-90: #0c0c0d;
   --yellow50: #ffe900;
   --orange50: #ff9400;
   --red50: #ff0039;
-  --green50: #30e60b;
   --green60: #12bc00;
   --teal50: #00feff;
-  --magenta50: #ff1ad9;
   --purple50: #9400ff;
 
   /* Semantic aliases: components depend on roles, while the legacy palette
@@ -94,7 +90,6 @@
   #settings-page {
     --input-background: #474749;
     --link-color: var(--blue40);
-    --link-color-hover: var(--blue50);
     --link-color-active: var(--blue60);
   }
 

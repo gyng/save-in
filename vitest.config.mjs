@@ -25,7 +25,7 @@ export default defineConfig({
         url: "http://localhost/",
       },
     },
-    setupFiles: ["./test/vitest.setup.mjs"],
+    setupFiles: ["./test/vitest.setup.ts"],
     include: ["test/**/*.test.{js,ts}"],
     coverage: {
       provider: "v8",
@@ -38,8 +38,6 @@ export default defineConfig({
         // are exercised through the real extension lifecycle in e2e.
         "src/entries/**",
         "src/background/main.ts",
-        "src/background/e2e-api.ts",
-        "src/background/e2e-bridge.ts",
         // Browser/DOM event adapters are exercised end-to-end; their pure
         // decision models and persistence services remain in unit coverage.
         "src/content/source-panel.ts",

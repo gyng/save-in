@@ -39,14 +39,14 @@ let Runtime: typeof import("../src/background/runtime.ts").backgroundRuntime;
 
 const setupBrowserMocks = () => {
   (global.browser as any).contextMenus = {
-    create: jest.fn(),
-    update: jest.fn(),
-    removeAll: jest.fn(() => Promise.resolve()),
-    onClicked: { addListener: jest.fn() },
+    create: vi.fn(),
+    update: vi.fn(),
+    removeAll: vi.fn(() => Promise.resolve()),
+    onClicked: { addListener: vi.fn() },
   };
-  (global.browser.runtime as any).openOptionsPage = jest.fn();
-  (global.browser.downloads as any).showDefaultFolder = jest.fn();
-  global.browser.storage.local.set = jest.fn(() => Promise.resolve());
+  (global.browser.runtime as any).openOptionsPage = vi.fn();
+  (global.browser.downloads as any).showDefaultFolder = vi.fn();
+  global.browser.storage.local.set = vi.fn(() => Promise.resolve());
 };
 
 // Seed the freshly-imported deps: spy the click-handler collaborators, mutate
@@ -113,7 +113,7 @@ describe("Menus last-used state", () => {
   let Menus: MenusFixture;
 
   beforeEach(async () => {
-    jest.resetModules();
+    vi.resetModules();
     setupBrowserMocks();
     Menus = await importMenus();
   });
@@ -184,7 +184,7 @@ describe("addDownloadListener", () => {
   let listener: TestMenuListener;
 
   beforeEach(async () => {
-    jest.resetModules();
+    vi.resetModules();
     setupBrowserMocks();
     Runtime.ready = Promise.resolve();
     delete Runtime.lastDownloadState;
@@ -573,7 +573,7 @@ describe("addDownloadListener", () => {
 
   test("closeTabOnSave removes the tab only after the browser accepts a page save", async () => {
     options.closeTabOnSave = true;
-    (global.browser as any).tabs = { remove: jest.fn() };
+    (global.browser as any).tabs = { remove: vi.fn() };
 
     Menus.addPaths(["dir1"], ["page"]);
     await listener(
@@ -587,7 +587,7 @@ describe("addDownloadListener", () => {
   test("a page-save tab-close race does not reject the menu handler", async () => {
     options.closeTabOnSave = true;
     (global.browser as any).tabs = {
-      remove: jest.fn(() => Promise.reject(new Error("tab already closed"))),
+      remove: vi.fn(() => Promise.reject(new Error("tab already closed"))),
     };
     Menus.addPaths(["dir1"], ["page"]);
 
@@ -601,7 +601,7 @@ describe("addDownloadListener", () => {
 
   test("closeTabOnSave keeps the tab when a page save fails", async () => {
     options.closeTabOnSave = true;
-    (global.browser as any).tabs = { remove: jest.fn() };
+    (global.browser as any).tabs = { remove: vi.fn() };
     vi.mocked(Download.renameAndDownload).mockResolvedValueOnce({ status: "failed" });
     Menus.addPaths(["dir1"], ["page"]);
 
@@ -629,10 +629,10 @@ describe("addDownloadListener", () => {
   });
 
   test("does not close the tab for a non-page save even with closeTabOnSave", async () => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
     try {
       options.closeTabOnSave = true;
-      (global.browser as any).tabs = { remove: jest.fn() };
+      (global.browser as any).tabs = { remove: vi.fn() };
 
       Menus.addPaths(["dir1"], ["link"]);
       await listener(
@@ -644,10 +644,10 @@ describe("addDownloadListener", () => {
         { id: 42, title: "Title" },
       );
 
-      await jest.advanceTimersByTimeAsync(1000);
+      await vi.advanceTimersByTimeAsync(1000);
       expect(global.browser.tabs.remove).not.toHaveBeenCalled();
     } finally {
-      jest.useRealTimers();
+      vi.useRealTimers();
     }
   });
 
@@ -824,7 +824,7 @@ describe("resolveClickTarget (pure decision)", () => {
   });
 
   beforeEach(async () => {
-    jest.resetModules();
+    vi.resetModules();
     setupBrowserMocks();
     Menus = await importMenus();
   });
@@ -987,9 +987,9 @@ describe("resolveClickTarget (pure decision)", () => {
 
 describe("addTabMenuListener", () => {
   test("registers a synchronous listener that ignores non-tabstrip items", async () => {
-    jest.resetModules();
+    vi.resetModules();
     setupBrowserMocks();
-    (global.browser as any).tabs = { query: jest.fn(() => Promise.resolve([])) };
+    (global.browser as any).tabs = { query: vi.fn(() => Promise.resolve([])) };
     Runtime.ready = Promise.resolve();
 
     const Menus = await importMenus();
@@ -1024,14 +1024,14 @@ describe("addTabMenuListener tabstrip downloads", () => {
   const fromTab = { id: 2, index: 1, windowId: 7 };
 
   beforeEach(async () => {
-    jest.resetModules();
+    vi.resetModules();
     setupBrowserMocks();
     (global.browser as any).tabs = {
-      query: jest.fn(() => Promise.resolve(tabFixtures())),
-      remove: jest.fn(),
+      query: vi.fn(() => Promise.resolve(tabFixtures())),
+      remove: vi.fn(),
     };
     Runtime.ready = Promise.resolve();
-    jest.useFakeTimers();
+    vi.useFakeTimers();
 
     Menus = await importMenus();
     Menus.addTabMenuListener();
@@ -1039,7 +1039,7 @@ describe("addTabMenuListener tabstrip downloads", () => {
   });
 
   afterEach(() => {
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   const downloads = () =>
@@ -1047,7 +1047,7 @@ describe("addTabMenuListener tabstrip downloads", () => {
 
   test("SELECTED_TAB downloads only the clicked tab", async () => {
     await listener({ menuItemId: Menus.IDS.TABSTRIP.SELECTED_TAB }, fromTab);
-    await jest.advanceTimersByTimeAsync(2000);
+    await vi.advanceTimersByTimeAsync(2000);
 
     expect(global.browser.tabs.query).toHaveBeenCalledWith({
       pinned: false,
@@ -1078,7 +1078,7 @@ describe("addTabMenuListener tabstrip downloads", () => {
 
   test("TO_RIGHT downloads tabs at and after the clicked index", async () => {
     await listener({ menuItemId: Menus.IDS.TABSTRIP.TO_RIGHT }, { id: 1, index: 1, windowId: 7 });
-    await jest.advanceTimersByTimeAsync(2000);
+    await vi.advanceTimersByTimeAsync(2000);
 
     expect(downloads()).toHaveLength(1);
     expect(downloads()[0].info.currentTab.id).toBe(2);
@@ -1090,7 +1090,7 @@ describe("addTabMenuListener tabstrip downloads", () => {
       { menuItemId: Menus.IDS.TABSTRIP.TO_RIGHT_MATCH },
       { id: 1, index: 0, windowId: 7 },
     );
-    await jest.advanceTimersByTimeAsync(2000);
+    await vi.advanceTimersByTimeAsync(2000);
 
     expect(downloads()).toHaveLength(2);
     expect(downloads().every((s: any) => s.needRouteMatch === true)).toBe(true);
@@ -1098,7 +1098,7 @@ describe("addTabMenuListener tabstrip downloads", () => {
 
   test("OPENED_FROM_TAB queries for children of the clicked tab", async () => {
     await listener({ menuItemId: Menus.IDS.TABSTRIP.OPENED_FROM_TAB }, fromTab);
-    await jest.advanceTimersByTimeAsync(2000);
+    await vi.advanceTimersByTimeAsync(2000);
 
     expect(global.browser.tabs.query).toHaveBeenCalledWith(
       expect.objectContaining({ openerTabId: 2 }),
@@ -1110,7 +1110,7 @@ describe("addTabMenuListener tabstrip downloads", () => {
     options.shortcutTab = true;
 
     await listener({ menuItemId: Menus.IDS.TABSTRIP.SELECTED_TAB }, fromTab);
-    await jest.advanceTimersByTimeAsync(2000);
+    await vi.advanceTimersByTimeAsync(2000);
 
     expect(Shortcut.makeShortcut).toHaveBeenCalledWith(
       "HTML_REDIRECT",
@@ -1132,14 +1132,14 @@ describe("addTabMenuListener tabstrip downloads", () => {
     delete Runtime.ready;
 
     await listener({ menuItemId: Menus.IDS.TABSTRIP.SELECTED_TAB }, fromTab);
-    await jest.advanceTimersByTimeAsync(2000);
+    await vi.advanceTimersByTimeAsync(2000);
 
     expect(downloads()).toHaveLength(1);
   });
 
   test("shortcutTab falls back to the url for tabs without a title", async () => {
     options.shortcutTab = true;
-    (global.browser.tabs as any).query = jest.fn(() =>
+    (global.browser.tabs as any).query = vi.fn(() =>
       Promise.resolve([{ id: 9, index: 0, url: "https://c.test/nine" }]),
     );
 
@@ -1147,7 +1147,7 @@ describe("addTabMenuListener tabstrip downloads", () => {
       { menuItemId: Menus.IDS.TABSTRIP.SELECTED_TAB },
       { id: 9, index: 0, windowId: 7 },
     );
-    await jest.advanceTimersByTimeAsync(2000);
+    await vi.advanceTimersByTimeAsync(2000);
 
     expect(Shortcut.makeShortcut).toHaveBeenCalledWith(
       "HTML_REDIRECT",

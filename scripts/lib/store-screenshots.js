@@ -24,6 +24,7 @@ const SCREENSHOTS = Object.freeze([
 
 const PNG_SIGNATURE = Buffer.from("89504e470d0a1a0a", "hex");
 
+/** @param {Buffer} png @param {string} [filename] */
 const assertPngDimensions = (png, filename = "Screenshot") => {
   if (
     !Buffer.isBuffer(png) ||
@@ -51,12 +52,14 @@ const CRC_TABLE = Array.from({ length: 256 }, (_, value) => {
   return current >>> 0;
 });
 
+/** @param {Buffer} buffer */
 const crc32 = (buffer) => {
   let crc = 0xffffffff;
   for (const byte of buffer) crc = CRC_TABLE[(crc ^ byte) & 0xff] ^ (crc >>> 8);
   return (crc ^ 0xffffffff) >>> 0;
 };
 
+/** @param {string} type @param {Buffer} data */
 const pngChunk = (type, data) => {
   const typeBytes = Buffer.from(type, "ascii");
   const chunk = Buffer.alloc(12 + data.length);
@@ -67,6 +70,7 @@ const pngChunk = (type, data) => {
   return chunk;
 };
 
+/** @param {Buffer} png */
 const optimizePngLosslessly = (png) => {
   if (
     !Buffer.isBuffer(png) ||

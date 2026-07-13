@@ -1,3 +1,9 @@
+/**
+ * @template T
+ * @param {() => T | Promise<T>} check
+ * @param {{timeoutMs?: number, intervalMs?: number, description?: string, ignoreErrors?: boolean}} [options]
+ * @returns {Promise<T>}
+ */
 export const poll = async (
   check,
   { timeoutMs = 8000, intervalMs = 100, description = "condition", ignoreErrors = true } = {},
@@ -16,7 +22,9 @@ export const poll = async (
     }
 
     if (Date.now() >= deadline) {
-      const detail = lastError ? `: ${lastError.message || lastError}` : "";
+      const detail = lastError
+        ? `: ${lastError instanceof Error ? lastError.message : String(lastError)}`
+        : "";
       throw new Error(`Timed out waiting for ${description}${detail}`);
     }
     // eslint-disable-next-line no-await-in-loop
@@ -24,11 +32,17 @@ export const poll = async (
   }
 };
 
+/** @param {import("node:http").Server} server @returns {Promise<number>} */
 export const listenLocal = (server) =>
   new Promise((resolve, reject) => {
     server.once("error", reject);
     server.listen(0, "127.0.0.1", () => {
       server.removeListener("error", reject);
-      resolve(server.address().port);
+      const address = server.address();
+      if (!address || typeof address === "string") {
+        reject(new Error("Local test server did not bind to a TCP port"));
+        return;
+      }
+      resolve(address.port);
     });
   });

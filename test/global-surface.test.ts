@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 const read = (path: string) => readFileSync(resolve(path), "utf8");
@@ -32,7 +32,7 @@ describe("application global surface", () => {
     expect(read("test/path-editor.test.ts")).not.toContain(
       'Reflect.set(globalThis, "renderMenuPreview"',
     );
-    expect(read("test/globals.d.ts")).not.toContain("optionErrors");
+    expect(existsSync(resolve("test/globals.d.ts"))).toBe(false);
   });
 
   test("keeps e2e controls off the browser global", () => {

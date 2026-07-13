@@ -22,7 +22,7 @@ describe("findSource", () => {
     document.body.innerHTML = '<div id="host"></div><img id="i" src="http://x.test/path.png">';
     const host = document.getElementById("host");
     const img = document.getElementById("i");
-    document.elementsFromPoint = jest.fn(() => []);
+    document.elementsFromPoint = vi.fn(() => []);
 
     expect(
       ClickToSave.findSource(
@@ -36,7 +36,7 @@ describe("findSource", () => {
     document.body.innerHTML = '<div id="overlay"></div><img id="i" src="http://x.test/pic.png">';
     const overlay = document.getElementById("overlay");
     const img = document.getElementById("i");
-    document.elementsFromPoint = jest.fn(() =>
+    document.elementsFromPoint = vi.fn(() =>
       [overlay, img].filter((element): element is HTMLElement => element != null),
     );
 
@@ -54,7 +54,7 @@ describe("findSource", () => {
     document.body.innerHTML = '<div id="host"></div><a id="a" href="/shadow.pdf">PDF</a>';
     const host = document.getElementById("host");
     const anchor = document.getElementById("a");
-    document.elementsFromPoint = jest.fn(() => []);
+    document.elementsFromPoint = vi.fn(() => []);
 
     expect(
       ClickToSave.findSource(

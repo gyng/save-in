@@ -153,9 +153,9 @@ cleanup:
 
 | Command                           | What it does                                                                                                                                                                                                                                                                                                                                                                                 |
 | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `npm test` / `npm run test:watch` | vitest unit tests (jsdom + jest-webextension-mock via a vi alias); npm run test:coverage enforces 95%-line thresholds on src/ (vendor, options page, SW bootstrap excluded)                                                                                                                                                                                                                  |
+| `npm test` / `npm run test:watch` | vitest unit tests (jsdom + typed Firefox/Chrome host fixtures); npm run test:coverage enforces 95%-line thresholds on src/ (vendor, options page, SW bootstrap excluded)                                                                                                                                                                                                                     |
 | `npm run lint`                    | stage the bundle, run web-ext lint against it, then oxlint and oxfmt --check                                                                                                                                                                                                                                                                                                                 |
-| `npm run typecheck`               | checks application source independently against Firefox and Chrome API declarations, then the DOM-free Chrome worker, strict build/config tooling, explicitly isolated legacy JS drivers, and source+test projects. Production source additionally enables `exactOptionalPropertyTypes` and `noUncheckedIndexedAccess`.                                                                      |
+| `npm run typecheck`               | checks application source independently against Firefox and Chrome API declarations, then the DOM-free Chrome worker, strict build/config tooling, strict browser/e2e drivers, and source+test projects. Production source additionally enables `exactOptionalPropertyTypes` and `noUncheckedIndexedAccess`.                                                                                 |
 | `npm run e2e:chrome`              | vitest e2e suite (~15s): isolated Chrome over CDP, drives the real download pipeline — SW lifecycle, CSP, routing rules, messaging, session persistence (e2e/chrome.e2e.mjs)                                                                                                                                                                                                                 |
 | `npm run e2e:firefox`             | vitest e2e suite for Firefox on a throwaway profile via RDP (e2e/firefox.e2e.mjs)                                                                                                                                                                                                                                                                                                            |
 | `npm run e2e`                     | stages once, then runs the Chrome and Firefox suites in parallel; use `npm run e2e:serial` when diagnosing shared machine-resource issues                                                                                                                                                                                                                                                    |
@@ -183,17 +183,13 @@ regression net for the two manifests.
 
 vitest specifics (`test/*.test.ts`, typed; `tsc` covers them):
 
-- `jest-webextension-mock` provides partial `browser`/`chrome` globals; it
-  lacks `contextMenus`, download events, and `storage.session` — define
-  those per test (see `test/menu-listeners.test.ts`,
-  `test/notification-session.test.ts`). `browser`/`chrome` stay ambient host
-  globals; only cross-MODULE deps are imported/mocked.
+- `test/vitest.setup.ts` installs typed `browser`/`chrome` fixtures from
+  `test/webextension-test-helpers.ts`. Replace only the host boundary a test
+  exercises; `browser`/`chrome` stay ambient host globals and cross-module
+  dependencies are imported or mocked normally.
 - Tests import the real `.ts` modules and mock deps via `vi.mock` /
-  `vi.spyOn`. HISTORICAL WART: some suites still install partial browser mocks
-  through `globalThis`; prefer the typed builders in
-  `test/webextension-test-helpers.ts`, import-real + `vi.spyOn`, and typed
-  listener capture (docs/ARCH-CYCLES.md). `jest` is aliased to `vi` in
-  `test/vitest.setup.mjs`; `test/globals.d.ts` types the test-only ambients.
+  `vi.spyOn`. Prefer the typed builders in `test/webextension-test-helpers.ts`,
+  import-real + `vi.spyOn`, and typed listener capture.
 - Module-reset tests use `vi.resetModules()` + `await import(...)`. vitest jsdom
   provides `URL.createObjectURL`: stub it away to exercise MV3 paths.
 - Capture browser event handlers via
@@ -224,11 +220,9 @@ vitest specifics (`test/*.test.ts`, typed; `tsc` covers them):
 - TypeScript application source is `strict: true` and checked independently
   against the Firefox and Chrome API declarations. Keep both host projects,
   the DOM-free Chrome worker project, and the combined source/test project
-  green. The TS-native sweep remains queued in `docs/ARCH-CYCLES.md`.
-  Release-critical build/config scripts are strict; `tsconfig.tools-legacy.json`
-  is the explicit migration boundary for the remaining checked-JS and e2e
-  drivers. `test/globals.d.ts` contains only test-facing ambients; prefer real
-  imports and typed host-boundary helpers.
+  green. Release-critical build/config scripts, browser-control tooling, and
+  e2e drivers are checked in separate strict projects. Prefer real imports and
+  typed host-boundary helpers in tests.
   Runtime globals must not reuse platform class names (that is why they are
   `Notifier`/`RequestHeaders`, not `Notification`/`Headers`).
 

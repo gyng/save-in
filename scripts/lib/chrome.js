@@ -28,7 +28,7 @@ const findChrome = () => {
     "/usr/bin/google-chrome",
     "/usr/bin/chromium",
     "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-  ].filter(Boolean);
+  ].filter((candidate) => typeof candidate === "string");
 
   const found = candidates.find((p) => fs.existsSync(p));
   if (!found) {
@@ -47,6 +47,7 @@ const stageBuild = (mode = "production") => {
   );
 };
 
+/** @param {import("node:child_process").ChildProcess | null | undefined} proc */
 const killTree = (proc) => {
   if (!proc || !proc.pid) return Promise.resolve();
   if (process.platform === "win32") {
@@ -79,6 +80,7 @@ const killTree = (proc) => {
   });
 };
 
+/** @param {string | undefined} profileDir */
 const removeProfile = async (profileDir) => {
   if (!profileDir) return;
   for (let attempt = 0; attempt < 6; attempt += 1) {
@@ -94,6 +96,7 @@ const removeProfile = async (profileDir) => {
   throw new Error(`Unable to remove disposable Chrome profile: ${profileDir}`);
 };
 
+/** @param {string} baseProfileDir @param {string | undefined} downloadDir @param {boolean} [unique] */
 const makeProfile = (baseProfileDir, downloadDir, unique = false) => {
   let profileDir = unique
     ? `${baseProfileDir}-${process.pid}-${Date.now()}-${Math.random().toString(16).slice(2)}`
@@ -120,6 +123,7 @@ const makeProfile = (baseProfileDir, downloadDir, unique = false) => {
   return { profileDir, downloadDir: downloads };
 };
 
+/** @param {string} profileDir @param {number} port @param {boolean} [headless] @param {boolean} [noSandbox] */
 const chromeArgs = (profileDir, port, headless = false, noSandbox = false) => {
   const args = [
     `--user-data-dir=${profileDir}`,
@@ -141,6 +145,7 @@ const chromeArgs = (profileDir, port, headless = false, noSandbox = false) => {
   return args;
 };
 
+/** @param {string} logPath @param {number} [maxBytes] */
 const logTail = (logPath, maxBytes = 12000) => {
   try {
     const size = fs.statSync(logPath).size;
@@ -151,19 +156,22 @@ const logTail = (logPath, maxBytes = 12000) => {
     fs.closeSync(fd);
     return buffer.toString("utf8").trim();
   } catch (error) {
-    return `Unable to read Chrome log: ${error.message}`;
+    return `Unable to read Chrome log: ${error instanceof Error ? error.message : String(error)}`;
   }
 };
 
+/** @param {unknown} error @param {import("node:child_process").ChildProcess} proc @param {string} logPath */
 const startupError = (error, proc, logPath) => {
+  const cause = error instanceof Error ? error : new Error(String(error));
   const exit = proc.exitCode === null ? "still running" : `exit code ${proc.exitCode}`;
   const tail = logTail(logPath);
   return new Error(
-    `${error.message}\nChrome process: ${exit}\nChrome log: ${logPath}${tail ? `\n--- log tail ---\n${tail}` : ""}`,
-    { cause: error },
+    `${cause.message}\nChrome process: ${exit}\nChrome log: ${logPath}${tail ? `\n--- log tail ---\n${tail}` : ""}`,
+    { cause },
   );
 };
 
+/** @param {{port?: number, profileDir: string, downloadDir?: string, fresh?: boolean}} settings */
 const launch = async ({
   port: requestedPort = undefined,
   profileDir,

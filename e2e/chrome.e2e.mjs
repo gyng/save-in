@@ -17,28 +17,35 @@ const ARTIFACTS = process.env.E2E_ARTIFACT_DIR
   ? path.resolve(chrome.ROOT, process.env.E2E_ARTIFACT_DIR)
   : path.join(chrome.ROOT, "dist", "e2e-artifacts");
 
+/** @type {import("node:child_process").ChildProcess | undefined} */
 let proc;
-let extensionId;
-let PORT;
-let DOWNLOADS;
-let PROFILE_DIR;
-let browserLogPath;
+let extensionId = "";
+let PORT = 0;
+let DOWNLOADS = "";
+let PROFILE_DIR = "";
+let browserLogPath = "";
 let suiteFailed = false;
 
+/** @param {string} expr @returns {Promise<any>} */
 const evalOptions = (expr) => cdp.evalInTarget(PORT, "options.html", expr);
 // App control travels through production runtime messages from an extension
 // page. Raw worker evaluation remains only for worker-specific assertions.
+/** @param {string} expr @returns {Promise<any>} */
 const evalSW = (expr) => evalOptions(inBackgroundContext(expr));
+/** @param {string} expr @returns {Promise<any>} */
 const evalWorker = (expr) => cdp.evalInServiceWorker(PORT, extensionId, expr);
+/** @param {string} name */
 const artifactName = (name) =>
   name
     .replace(/[^a-z0-9]+/gi, "-")
     .replace(/(^-|-$)/g, "")
     .toLowerCase();
 
+/** @param {string} testName */
 const captureFailureArtifacts = async (testName) => {
   const prefix = path.join(ARTIFACTS, `chrome-failure-${artifactName(testName)}`);
   fs.mkdirSync(ARTIFACTS, { recursive: true });
+  /** @type {Record<string, any>} */
   const report = { testName, capturedAt: new Date().toISOString() };
   try {
     report.targets = await cdp.listTargets(PORT);
@@ -102,6 +109,7 @@ const startSourcePanelServer = async () => {
 
 // Polls a service-worker expression that returns a JSON array until it is
 // non-empty or the deadline passes, instead of a single fixed sleep
+/** @param {string} regex @param {number} [deadlineMs] @returns {Promise<any[]>} */
 const waitForDownloads = (regex, deadlineMs = 8000) =>
   poll(
     async () => {
@@ -110,11 +118,12 @@ const waitForDownloads = (regex, deadlineMs = 8000) =>
         .then((d) => JSON.stringify(d.map((x) => ({ state: x.state, filename: x.filename }))))`,
       );
       const rows = JSON.parse(json);
-      return rows.some((r) => r.state === "complete") ? rows : null;
+      return rows.some((/** @type {any} */ r) => r.state === "complete") ? rows : null;
     },
     { timeoutMs: deadlineMs, description: `download matching ${regex}` },
   );
 
+/** @param {string} predicate @param {number} [deadlineMs] @returns {Promise<any[]>} */
 const waitForLog = (predicate, deadlineMs = 8000) =>
   poll(
     async () => {
@@ -127,17 +136,12 @@ const waitForLog = (predicate, deadlineMs = 8000) =>
   );
 
 beforeAll(async () => {
-  ({
-    proc,
-    extensionId,
-    port: PORT,
-    downloadDir: DOWNLOADS,
-    profileDir: PROFILE_DIR,
-    logPath: browserLogPath,
-  } = await chrome.launch({
+  const launched = await chrome.launch({
     profileDir: PROFILE,
     fresh: true,
-  }));
+  });
+  ({ proc, extensionId, port: PORT, profileDir: PROFILE_DIR, logPath: browserLogPath } = launched);
+  DOWNLOADS = launched.downloadDir || path.join(PROFILE_DIR, "downloads");
   await cdp.openTab(PORT, `chrome-extension://${extensionId}/src/options/options.html`);
   await poll(
     async () => ((await evalOptions("document.readyState")) === "complete" ? true : null),
@@ -154,6 +158,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
+  /** @type {unknown[]} */
   const failures = [];
   try {
     await chrome.killTree(proc);
@@ -210,7 +215,9 @@ test("options can opt into AI localization and explicitly return to English", as
       label: option.textContent,
     })))`),
   );
-  expect(choices.filter(({ label }) => label.endsWith("(AI)"))).toHaveLength(10);
+  expect(
+    choices.filter((/** @type {{label: string}} */ { label }) => label.endsWith("(AI)")),
+  ).toHaveLength(10);
   expect(choices).toEqual(
     expect.arrayContaining([
       expect.objectContaining({ value: "en", label: "English" }),
@@ -226,7 +233,7 @@ test("options can opt into AI localization and explicitly return to English", as
   await poll(
     async () =>
       (await evalOptions(`document.querySelector("#section-downloads")?.textContent.trim()`)) ===
-      "Downloads-Menü",
+      "Standorte speichern",
     { description: "German AI locale reload" },
   );
 
@@ -238,7 +245,7 @@ test("options can opt into AI localization and explicitly return to English", as
   await poll(
     async () =>
       (await evalOptions(`document.querySelector("#section-downloads")?.textContent.trim()`)) ===
-      "Downloads menu",
+      "Save locations",
     { description: "explicit English locale reload" },
   );
 
@@ -503,7 +510,9 @@ test("ordinary browser downloads can be routed and tracked without adoption", as
           const json = await evalSW(
             `api.history().then((entries) => JSON.stringify(entries.filter((entry) => entry.info?.context === "browser")))`,
           );
-          return JSON.parse(json).some((entry) => entry.status === "complete") ? json : null;
+          return JSON.parse(json).some((/** @type {any} */ entry) => entry.status === "complete")
+            ? json
+            : null;
         },
         { description: "ordinary browser download history" },
       ),
@@ -549,7 +558,7 @@ test("paths textarea renders a live menu-tree preview", async () => {
   );
 
   expect(items).toEqual([
-    { separator: false, title: "Last Used", dir: null, depth: 0 },
+    { separator: false, title: "Last used", dir: null, depth: 0 },
     { separator: true, title: null, dir: null, depth: 0 },
     { separator: false, title: "Dogs!", dir: "dogs", depth: 0 },
     { separator: false, title: "corgi", dir: null, depth: 1 },
@@ -733,7 +742,9 @@ test("fetchViaFetch downloads via an offscreen document (Chrome MV3)", async () 
 });
 
 test("extension fetch credentials are preserved across cross-origin redirects", async () => {
+  /** @type {string[]} */
   const protectedRequests = [];
+  /** @type {string[]} */
   const redirectRequests = [];
   const destinationServer = http.createServer((req, res) => {
     if (req.url === "/protected.bin") {
@@ -1128,7 +1139,9 @@ test("Page Sources discovers, sorts, updates live, and restores across tabs", as
   const secondPath = `127.0.0.1:${port}/sources-two`;
   const firstUrl = `http://${firstPath}`;
   const secondUrl = `http://${secondPath}`;
+  /** @param {string} pathPart @param {string} expression */
   const evalPage = (pathPart, expression) => cdp.evalInTarget(PORT, pathPart, expression);
+  /** @param {string} pathPart @returns {Promise<any>} */
   const snapshot = (pathPart) =>
     evalPage(
       pathPart,
@@ -1207,7 +1220,9 @@ test("Page Sources discovers, sorts, updates live, and restores across tabs", as
     }
     expect(panelLayout.horizontalOverflow).toBeLessThanOrEqual(1);
     expect(panelLayout.unnamedButtons).toBe(0);
-    expect(panelLayout.rowTargetHeights.every((height) => height >= 38)).toBe(true);
+    expect(panelLayout.rowTargetHeights.every((/** @type {number} */ height) => height >= 38)).toBe(
+      true,
+    );
     expect(panelLayout.filterLabel).toBe("Filter page sources");
     expect(panelLayout.sortLabel).toBe("Sort sources");
 

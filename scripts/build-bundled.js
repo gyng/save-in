@@ -1,9 +1,8 @@
 // Stages a store-submission package that loads the rolldown bundles (one
 // readable, non-minified file per target) instead of the many source scripts.
-// Secondary pages (variablelist/clauselist) keep their few source scripts, so
-// the staged tree stays complete. E2E builds use isolated output directories
-// so a store/dev build cannot replace the test-control bundle between build
-// verification and browser startup.
+// Reference pages share their own bundle. E2E builds use isolated output
+// directories so a store/dev build cannot replace the test-control bundle
+// between build verification and browser startup.
 
 const fs = require("fs");
 const path = require("path");

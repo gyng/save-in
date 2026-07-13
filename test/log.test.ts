@@ -8,12 +8,12 @@ const setupSession = () => {
   // @types type storage.session as read-only; assigning a partial mock is the
   // test's job, so cast the container
   (global.browser.storage as any).session = {
-    get: jest.fn((key: string) => Promise.resolve({ [key]: store[key] })),
-    set: jest.fn((obj: Record<string, LogEntry[]>) => {
+    get: vi.fn((key: string) => Promise.resolve({ [key]: store[key] })),
+    set: vi.fn((obj: Record<string, LogEntry[]>) => {
       Object.assign(store, obj);
       return Promise.resolve();
     }),
-    remove: jest.fn((key: string) => {
+    remove: vi.fn((key: string) => {
       delete store[key];
       return Promise.resolve();
     }),
@@ -28,7 +28,7 @@ describe("Log", () => {
     Array.isArray(store[LOG_KEY]) ? (store[LOG_KEY] as LogEntry[]) : [];
 
   beforeEach(async () => {
-    jest.resetModules();
+    vi.resetModules();
     store = setupSession();
     Log = (await import("../src/background/log.ts")).Log;
   });
@@ -123,7 +123,7 @@ describe("Log", () => {
 
   test("is a no-op without storage.session (older Firefox)", async () => {
     (global.browser.storage as any).session = undefined;
-    jest.resetModules();
+    vi.resetModules();
     const BareLog = (await import("../src/background/log.ts")).Log;
 
     await expect(BareLog.add("x")).resolves.toBeUndefined();
