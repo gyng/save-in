@@ -1,8 +1,8 @@
-import { SHORTCUT_EXTENSIONS } from "../shared/constants.ts";
+import { SHORTCUT_EXTENSIONS, isShortcutType, type ShortcutType } from "../shared/constants.ts";
 import { getMessage } from "../platform/localization.ts";
 
 const EFFECTIVE_ACCESS_KEY = /^[a-z0-9]$/i;
-const FORMAT_GUIDANCE: Record<string, { filename: string; meaning: string }> = {
+const FORMAT_GUIDANCE: Record<ShortcutType, { filename: string; meaning: string }> = {
   HTML_REDIRECT: { filename: "page.html", meaning: "o_lShortcutFormatAnyBrowser" },
   MAC: { filename: "page.url", meaning: "o_lShortcutFormatLegacyInternet" },
   MAC_WEBLOC: { filename: "page.webloc", meaning: "o_lShortcutFormatMac" },
@@ -55,8 +55,9 @@ export const setupShortcutOptions = () => {
     .filter((input): input is HTMLInputElement => Boolean(input));
   const syncFormat = () => {
     if (!type) return;
-    const extension = (SHORTCUT_EXTENSIONS as Record<string, string>)[type.value] || "";
-    const guidance = FORMAT_GUIDANCE[type.value];
+    const shortcutType = isShortcutType(type.value) ? type.value : null;
+    const extension = shortcutType ? SHORTCUT_EXTENSIONS[shortcutType] : "";
+    const guidance = shortcutType ? FORMAT_GUIDANCE[shortcutType] : undefined;
     if (preview) {
       preview.textContent = guidance
         ? `${guidance.filename} · ${shortcutFormatMeaning(guidance.meaning)}`

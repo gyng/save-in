@@ -124,13 +124,13 @@ export const addRouteExclusive = (contexts: string[]) => {
   });
 };
 
-export const addSelectionType = (contexts: string[]) => {
+export const addSelectionType = (contexts: readonly string[]) => {
   if (contexts.includes("link")) {
     webExtensionApi.contextMenus.create({
       id: MENU_IDS.CONTEXT.MEDIA_LINK,
       title: getMessage("contextMenuContextMediaOrLink"),
       enabled: false,
-      contexts: asMenuContexts(MEDIA_TYPES.concat("link")),
+      contexts: asMenuContexts([...MEDIA_TYPES, "link"]),
       parentId: MENU_IDS.ROOT,
     });
   } else {

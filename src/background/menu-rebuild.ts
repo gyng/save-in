@@ -20,7 +20,7 @@ export const rebuildMenus = async (): Promise<void> => {
   await webExtensionApi.contextMenus.removeAll();
   clearPathMappings();
 
-  let contexts = options.links ? MEDIA_TYPES.concat(["link"]) : MEDIA_TYPES;
+  let contexts: string[] = options.links ? [...MEDIA_TYPES, "link"] : [...MEDIA_TYPES];
   contexts = options.selection ? contexts.concat(["selection"]) : contexts;
   contexts = options.page ? contexts.concat(["page"]) : contexts;
 

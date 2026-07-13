@@ -1,4 +1,10 @@
-import { SHORTCUT_TYPES, SHORTCUT_EXTENSIONS, DOWNLOAD_TYPES } from "../shared/constants.ts";
+import {
+  SHORTCUT_TYPES,
+  SHORTCUT_EXTENSIONS,
+  DOWNLOAD_TYPES,
+  isShortcutType,
+  type ShortcutType,
+} from "../shared/constants.ts";
 import { Download } from "./download.ts";
 import { sanitizeFilename } from "../routing/path.ts";
 import { currentTab } from "../platform/current-tab.ts";
@@ -9,6 +15,14 @@ type ShortcutInfo = {
   pageUrl?: string | undefined;
   linkText?: string | undefined;
 };
+
+const SHORTCUT_MIME_TYPES = {
+  [SHORTCUT_TYPES.HTML_REDIRECT]: "text/html",
+  [SHORTCUT_TYPES.MAC]: "application/octet-stream",
+  [SHORTCUT_TYPES.MAC_WEBLOC]: "application/x-apple-webloc",
+  [SHORTCUT_TYPES.WINDOWS]: "application/octet-stream",
+  [SHORTCUT_TYPES.FREEDESKTOP]: "application/octet-stream",
+} as const satisfies Record<ShortcutType, string>;
 
 const escapeDesktopValue = (value: string): string =>
   value
@@ -64,15 +78,7 @@ export const Shortcut = {
   // The download URL's mime must match the intended extension, or browsers
   // rewrite it (e.g. .desktop/.html shortcuts saved as .txt, #161)
   mimeForType: (type: string | undefined): string =>
-    (
-      ({
-        [SHORTCUT_TYPES.HTML_REDIRECT]: "text/html",
-        [SHORTCUT_TYPES.MAC]: "application/octet-stream",
-        [SHORTCUT_TYPES.MAC_WEBLOC]: "application/x-apple-webloc",
-        [SHORTCUT_TYPES.WINDOWS]: "application/octet-stream",
-        [SHORTCUT_TYPES.FREEDESKTOP]: "application/octet-stream",
-      }) as Record<string, string>
-    )[type || ""] || "text/plain",
+    isShortcutType(type) ? SHORTCUT_MIME_TYPES[type] : "text/plain",
 
   makeShortcut: (type: string | undefined, url: string, title = currentTab?.title): string =>
     Download.makeObjectUrl(
@@ -87,7 +93,7 @@ export const Shortcut = {
     suggestedFilename: string | null | undefined,
     maxlen: number,
   ): string => {
-    const shortcutExtension = (SHORTCUT_EXTENSIONS as Record<string, string>)[shortcutType] || "";
+    const shortcutExtension = isShortcutType(shortcutType) ? SHORTCUT_EXTENSIONS[shortcutType] : "";
 
     let shortcutFilename =
       downloadType === DOWNLOAD_TYPES.PAGE

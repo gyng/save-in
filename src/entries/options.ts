@@ -10,7 +10,6 @@ import "../platform/web-extension-api.ts";
 import { localizeDocument } from "../options/l10n.ts";
 import { getMessage, initializeLocalization } from "../platform/localization.ts";
 import { webExtensionApi } from "../platform/web-extension-api.ts";
-import "../shared/constants.ts";
 import "../platform/chrome-detector.ts";
 
 // <body> scripts (options.html load order)

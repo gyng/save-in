@@ -184,7 +184,7 @@ describe("menu creation", () => {
         "download-context-selection",
         "download-context-page",
       ]);
-      expect(created()[0]!.contexts).toEqual(MEDIA_TYPES.concat("link"));
+      expect(created()[0]!.contexts).toEqual([...MEDIA_TYPES, "link"]);
       expect(created().every((c) => c.enabled === false)).toBe(true);
     });
 

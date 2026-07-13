@@ -1,5 +1,11 @@
-import { CONFLICT_ACTION, FORBIDDEN_FILENAME_CHARS, SHORTCUT_TYPES } from "../shared/constants.ts";
-import type { ConflictAction, ShortcutType } from "../shared/constants.ts";
+import {
+  CONFLICT_ACTION,
+  FORBIDDEN_FILENAME_CHARS,
+  SHORTCUT_TYPES,
+  isShortcutType,
+  type ConflictAction,
+  type ShortcutType,
+} from "../shared/constants.ts";
 import { isSelectableLocale } from "../shared/generated-locales.ts";
 import { WEB_EXTENSION_CAPABILITIES } from "../platform/chrome-detector.ts";
 import { parseRules } from "../routing/router.ts";
@@ -179,8 +185,7 @@ export const OPTION_KEYS = defineOptions([
     name: "shortcutType",
     type: OPTION_TYPES.VALUE,
     onLoad: (v: ShortcutType) => v,
-    validate: (value: unknown): value is ShortcutType =>
-      typeof value === "string" && Object.values(SHORTCUT_TYPES).includes(value as ShortcutType),
+    validate: isShortcutType,
     default: SHORTCUT_TYPES.HTML_REDIRECT,
   },
   {

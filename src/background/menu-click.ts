@@ -8,7 +8,7 @@ import { toggleSourcePanelForTab } from "./source-panel-state.ts";
 
 import { menuState, setAccesskey, setLastUsed } from "./menu-build.ts";
 import { MENU_IDS } from "../menus/menu-ids.ts";
-import { DOWNLOAD_TYPES, MEDIA_TYPES } from "../shared/constants.ts";
+import { DOWNLOAD_TYPES, isMediaType } from "../shared/constants.ts";
 import { splitLines } from "../shared/util.ts";
 import { Path, sanitizeFilename, truncateIfLongerThan } from "../routing/path.ts";
 import { Download } from "../downloads/download.ts";
@@ -74,7 +74,7 @@ export const resolveClickTarget = (
     badPatternError: null,
   };
 
-  if (info.mediaType && MEDIA_TYPES.includes(info.mediaType)) {
+  if (isMediaType(info.mediaType)) {
     result.downloadType = DOWNLOAD_TYPES.MEDIA;
     result.url = info.srcUrl;
 

@@ -1,4 +1,8 @@
-export const MEDIA_TYPES = ["image", "video", "audio"];
+export const MEDIA_TYPES = ["image", "video", "audio"] as const;
+export type MediaType = (typeof MEDIA_TYPES)[number];
+
+export const isMediaType = (value: unknown): value is MediaType =>
+  typeof value === "string" && MEDIA_TYPES.some((mediaType) => mediaType === value);
 
 export const SPECIAL_DIRS = {
   SEPARATOR: "---",
@@ -53,6 +57,11 @@ export const SHORTCUT_TYPES = {
   FREEDESKTOP: "FREEDESKTOP",
   WINDOWS: "WINDOWS",
 } as const;
+export type ShortcutType = (typeof SHORTCUT_TYPES)[keyof typeof SHORTCUT_TYPES];
+
+export const isShortcutType = (value: unknown): value is ShortcutType =>
+  typeof value === "string" &&
+  Object.values(SHORTCUT_TYPES).some((shortcutType) => shortcutType === value);
 
 export const SHORTCUT_EXTENSIONS = {
   [SHORTCUT_TYPES.HTML_REDIRECT]: ".html",
@@ -60,7 +69,7 @@ export const SHORTCUT_EXTENSIONS = {
   [SHORTCUT_TYPES.MAC_WEBLOC]: ".webloc",
   [SHORTCUT_TYPES.FREEDESKTOP]: ".desktop",
   [SHORTCUT_TYPES.WINDOWS]: ".url",
-} as const;
+} as const satisfies Record<ShortcutType, string>;
 
 export const DOWNLOAD_TYPES = {
   UNKNOWN: "UNKNOWN",
@@ -77,12 +86,14 @@ export const CONFLICT_ACTION = {
   OVERWRITE: "overwrite",
   PROMPT: "prompt",
 } as const;
+export type ConflictAction = (typeof CONFLICT_ACTION)[keyof typeof CONFLICT_ACTION];
 
 export const RULE_TYPES = {
   MATCHER: "MATCHER",
   CAPTURE: "CAPTURE",
   DESTINATION: "DESTINATION",
 } as const;
+export type RuleType = (typeof RULE_TYPES)[keyof typeof RULE_TYPES];
 
 export const MESSAGE_TYPES = {
   OPTIONS: "OPTIONS",
@@ -137,18 +148,10 @@ export const CLICK_TYPES = {
   BACK_CLICK: "BACK_CLICK",
   FORWARD_CLICK: "FORWARD_CLICK",
 } as const;
-
-export type SpecialDirectory = (typeof SPECIAL_DIRS)[keyof typeof SPECIAL_DIRS];
-export type ShortcutType = (typeof SHORTCUT_TYPES)[keyof typeof SHORTCUT_TYPES];
-export type DownloadType = (typeof DOWNLOAD_TYPES)[keyof typeof DOWNLOAD_TYPES];
-export type ConflictAction = (typeof CONFLICT_ACTION)[keyof typeof CONFLICT_ACTION];
-export type RuleType = (typeof RULE_TYPES)[keyof typeof RULE_TYPES];
-export type MessageType = (typeof MESSAGE_TYPES)[keyof typeof MESSAGE_TYPES];
-export type PathSegmentType = (typeof PATH_SEGMENT_TYPES)[keyof typeof PATH_SEGMENT_TYPES];
 export type ClickType = (typeof CLICK_TYPES)[keyof typeof CLICK_TYPES];
 
 // Characters invalid in a filename/path segment (Windows as the lowest common
-// denominator). One source of truth for Path's sanitizer and option.js's
+// denominator). One source of truth for Path's sanitizer and the option schema's
 // replacementChar validator (#221). No flags — callers add `g` where needed.
 // eslint-disable-next-line no-control-regex -- control chars \x00-\x1f are intentionally forbidden
 export const FORBIDDEN_FILENAME_CHARS = /[<>:"/\\|?*\x00-\x1f]/;
