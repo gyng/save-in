@@ -10,10 +10,10 @@ import { LAST_USED_META_STORAGE_KEY, LAST_USED_PATH_STORAGE_KEY } from "../share
 import { MEDIA_TYPES } from "../shared/constants.ts";
 import { Path } from "../routing/path.ts";
 import { backgroundRuntime } from "./runtime.ts";
-import { buildTree, type MenuTree } from "../menus/menu-tree.ts";
+import type { MenuTree } from "../menus/menu-tree.ts";
 import { MENU_IDS } from "../menus/menu-ids.ts";
 
-export { buildTree, getMenuTreeEntries, parseMeta, parsePath } from "../menus/menu-tree.ts";
+export { buildTree, parseMeta, parsePath } from "../menus/menu-tree.ts";
 export { MENU_IDS } from "../menus/menu-ids.ts";
 
 type MenuContexts = NonNullable<
@@ -112,11 +112,12 @@ export const addRoot = (contexts: string[]) => {
   });
 };
 
-export const addRouteExclusive = (contexts: string[]) => {
+export const addRouteExclusive = (contexts: string[], parentId?: string) => {
   webExtensionApi.contextMenus.create({
     id: MENU_IDS.ROUTE_EXCLUSIVE,
     title: setAccesskey(getMessage("contextMenuExclusive"), options.keyRoot),
     contexts: asMenuContexts(contexts),
+    ...(parentId ? { parentId } : {}),
   });
 };
 
@@ -262,8 +263,4 @@ export const renderPathTree = ({ items, errors }: MenuTree, contexts: string[]) 
       parentId: item.parentId,
     });
   });
-};
-
-export const addPaths = (pathsArray: string[], contexts: string[]) => {
-  renderPathTree(buildTree(pathsArray), contexts);
 };

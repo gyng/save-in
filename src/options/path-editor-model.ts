@@ -1,4 +1,10 @@
-import { parsePathLine, serializePathLine, type PathRow } from "../config/path-lines.ts";
+import {
+  parsePathLine,
+  parsePathMetadata,
+  serializePathLine,
+  setPathMetadata,
+  type PathRow,
+} from "../config/path-lines.ts";
 
 export { parsePathLine, serializePathLine };
 export type { PathRow };
@@ -12,13 +18,31 @@ export const pathLinesToRows = (text: string): PathRow[] =>
 
 export const pathRowsToLines = (rows: PathRow[]): string[] => rows.map(serializePathLine);
 
-export const getPathAlias = (comment: string): string => {
-  const match = (comment || "").match(/\(alias:\s*([^)]*)\)/);
-  return match?.[1]?.trim() ?? "";
-};
+export const getPathAlias = (comment: string): string =>
+  parsePathMetadata(comment || "").alias ?? "";
 
-export const setPathAlias = (comment: string, alias: string): string => {
-  const cleaned = (comment || "").replace(/\s*\(alias:\s*[^)]*\)/, "").trim();
-  if (!alias) return cleaned;
-  return cleaned ? `${cleaned} (alias: ${alias})` : `(alias: ${alias})`;
+export const setPathAlias = (comment: string, alias: string): string =>
+  setPathMetadata(comment || "", "alias", alias);
+
+export const getPathSourceRange = (
+  text: string,
+  sourceIndex: number,
+): { start: number; end: number } | null => {
+  let offset = 0;
+  let currentSourceIndex = 0;
+  for (const line of text.split("\n")) {
+    const leadingWhitespace = line.length - line.trimStart().length;
+    const trimmed = line.trim();
+    if (trimmed) {
+      if (currentSourceIndex === sourceIndex) {
+        return {
+          start: offset + leadingWhitespace,
+          end: offset + leadingWhitespace + trimmed.length,
+        };
+      }
+      currentSourceIndex += 1;
+    }
+    offset += line.length + 1;
+  }
+  return null;
 };

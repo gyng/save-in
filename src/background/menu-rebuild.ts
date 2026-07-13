@@ -22,36 +22,40 @@ export const rebuildMenus = async (): Promise<void> => {
   await webExtensionApi.contextMenus.removeAll();
   clearPathMappings();
 
-  let contexts: string[] = options.links ? [...MEDIA_TYPES, "link"] : [...MEDIA_TYPES];
-  contexts = options.selection ? contexts.concat(["selection"]) : contexts;
-  contexts = options.page ? contexts.concat(["page"]) : contexts;
+  let downloadContexts: string[] = options.links ? [...MEDIA_TYPES, "link"] : [...MEDIA_TYPES];
+  downloadContexts = options.selection ? downloadContexts.concat(["selection"]) : downloadContexts;
+  downloadContexts = options.page ? downloadContexts.concat(["page"]) : downloadContexts;
+  const actionContexts = downloadContexts.includes("page")
+    ? downloadContexts
+    : downloadContexts.concat(["page"]);
 
   addTabMenus();
+  addRoot(actionContexts);
 
   if (options.routeExclusive) {
-    addRouteExclusive(contexts);
+    addRouteExclusive(downloadContexts, MENU_IDS.ROOT);
+    makeSeparator(downloadContexts, MENU_IDS.SEPARATOR.ACTIONS);
+    addSourcePanel(actionContexts);
     return;
   }
 
-  addRoot(contexts);
-
   const pathTree = buildTree(splitLines(options.paths));
-  const hasPathSection = pathTree.items.length > 0;
+  const hasPathSection = pathTree.items.some((item) => item.kind === "path");
 
   if (options.enableLastLocation) {
-    addLastUsed(contexts);
+    addLastUsed(downloadContexts);
   }
   if (options.enableLastLocation && hasPathSection) {
-    makeSeparator(contexts, MENU_IDS.SEPARATOR.LAST_USED);
+    makeSeparator(downloadContexts, MENU_IDS.SEPARATOR.LAST_USED);
   }
 
-  renderPathTree(pathTree, contexts);
+  renderPathTree(pathTree, downloadContexts);
   if (options.enableLastLocation || hasPathSection) {
-    makeSeparator(contexts, MENU_IDS.SEPARATOR.ACTIONS);
+    makeSeparator(downloadContexts, MENU_IDS.SEPARATOR.ACTIONS);
   }
 
-  addSelectionType(contexts);
-  addShowDefaultFolder(contexts);
-  addOptions(contexts);
-  addSourcePanel(contexts);
+  addSelectionType(downloadContexts);
+  addShowDefaultFolder(downloadContexts);
+  addOptions(downloadContexts);
+  addSourcePanel(actionContexts);
 };

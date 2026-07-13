@@ -23,10 +23,13 @@ import { options } from "../src/config/options-data.ts";
 import { configureRoutingPorts } from "../src/routing/ports.ts";
 import { backgroundRuntime } from "../src/background/runtime.ts";
 import { rebuildMenus } from "../src/background/menu-rebuild.ts";
+import { getMenuTreeEntries } from "../src/menus/menu-tree.ts";
 
 const menu = {
   ...menuBuild,
   ...menuTabs,
+  addPaths: (paths: string[], contexts: string[]) =>
+    menuBuild.renderPathTree(menuBuild.buildTree(paths), contexts),
   IDS: menuBuild.MENU_IDS,
   pathMappings: menuBuild.menuState.pathMappings,
 };
@@ -70,6 +73,13 @@ describe("menu parsing", () => {
 
   test("parseMeta preserves colons inside metadata values", () => {
     expect(menu.parseMeta("(alias: Work: 2026)")).toEqual({ alias: "Work: 2026" });
+  });
+
+  test("parseMeta ignores ordinary parentheses before metadata", () => {
+    expect(menu.parseMeta("photo (edited) (alias: Work) (key: w)")).toEqual({
+      alias: "Work",
+      key: "w",
+    });
   });
 
   test("parsePath preserves additional comment delimiters", () => {
@@ -315,20 +325,20 @@ describe("menu creation", () => {
   });
 
   describe("addPaths", () => {
-    test("creates top-level separators for ---", () => {
-      menu.addPaths([SPECIAL_DIRS.SEPARATOR, "a"], ["link"]);
+    test("creates top-level separators between path sections", () => {
+      menu.addPaths(["a", SPECIAL_DIRS.SEPARATOR, "b"], ["link"]);
 
-      const separator = created()[0]!;
-      const item = created()[1]!;
+      const separator = created()[1]!;
       expect(separator).toMatchObject({ type: "separator", parentId: menu.IDS.ROOT });
-      expect(item).toMatchObject({ id: "save-in-1", title: "a", parentId: menu.IDS.ROOT });
+      expect(created()[0]).toMatchObject({ id: "save-in-0", title: "a" });
+      expect(created()[2]).toMatchObject({ id: "save-in-2", title: "b" });
     });
 
-    test("creates nested separators under the current parent", () => {
-      menu.addPaths(["a", ">---"], ["link"]);
+    test("creates nested separators between children under the current parent", () => {
+      menu.addPaths(["a", ">b", ">---", ">c"], ["link"]);
 
       const item = created()[0]!;
-      const separator = created()[1]!;
+      const separator = created()[2]!;
       expect(item.id).toBe("save-in-0");
       expect(separator).toMatchObject({ type: "separator", parentId: "save-in-0" });
     });
@@ -461,7 +471,8 @@ describe("menu creation", () => {
       expect(global.browser.contextMenus.removeAll).toHaveBeenCalledOnce();
       expect(menu.pathMappings).toEqual({});
       expect(created().map((item) => item.id)).toContain(menu.IDS.ROUTE_EXCLUSIVE);
-      expect(created().map((item) => item.id)).not.toContain(menu.IDS.ROOT);
+      expect(created().map((item) => item.id)).toContain(menu.IDS.ROOT);
+      expect(created().map((item) => item.id)).toContain(menu.IDS.TOGGLE_SOURCE_PANEL);
     });
 
     test("uses deterministic separator ids for every rebuild", async () => {
@@ -621,12 +632,26 @@ describe("buildTree", () => {
     ]);
   });
 
-  test("emits separator items for --- at the top level and nested", () => {
-    const { items } = menu.buildTree([SPECIAL_DIRS.SEPARATOR, "a", ">---"]);
+  test("emits separator items between paths at the top level and nested", () => {
+    const { items } = menu.buildTree(["a", ">b", ">---", ">c", "---", "d"]);
 
-    expect(items.map((i) => i.kind)).toEqual(["separator", "path", "separator"]);
-    expect(items[0]!.parentId).toBe(menu.IDS.ROOT);
-    expect(items[2]!.parentId).toBe("save-in-1");
+    expect(items.map((i) => i.kind)).toEqual([
+      "path",
+      "path",
+      "separator",
+      "path",
+      "separator",
+      "path",
+    ]);
+    expect(items[2]!.parentId).toBe("save-in-0");
+    expect(items[4]!.parentId).toBe(menu.IDS.ROOT);
+  });
+
+  test("removes leading, trailing, consecutive, and separator-only sections", () => {
+    const { items } = menu.buildTree(["---", "a", "---", "---", "b", "---"]);
+
+    expect(items.map((item) => item.sourceIndex)).toEqual([1, 2, 4]);
+    expect(menu.buildTree(["---", "---"]).items).toEqual([]);
   });
 
   test("collects invalid paths as errors instead of items", () => {
@@ -647,7 +672,7 @@ describe("buildTree", () => {
   test("merges valid items and errors in source order for previews", () => {
     const tree = menu.buildTree(["first", "<invalid>", "second"]);
 
-    expect(menu.getMenuTreeEntries(tree).map((entry) => entry.sourceIndex)).toEqual([0, 1, 2]);
+    expect(getMenuTreeEntries(tree).map((entry) => entry.sourceIndex)).toEqual([0, 1, 2]);
   });
 
   test("carries alias titles and access key overrides", () => {

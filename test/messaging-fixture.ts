@@ -68,13 +68,13 @@ const setupGlobals = () => {
   vi.spyOn(Menus, "buildTree").mockImplementation((paths: string[]) => ({
     items: paths.map((path, index) => ({
       kind: "path",
+      sourceIndex: index,
       id: `save-in-${index}`,
       title: path,
       number: index,
       parsedDir: path,
       comment: "",
       menuIndex: String(index),
-      depth: 0,
       parentId: "save-in-root",
       raw: path,
     })),

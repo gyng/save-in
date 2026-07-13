@@ -1,6 +1,6 @@
 import { SPECIAL_DIRS } from "../shared/constants.ts";
 import { Path } from "../routing/path.ts";
-import { parsePathLine } from "../config/path-lines.ts";
+import { parsePathLine, parsePathMetadata } from "../config/path-lines.ts";
 import { MENU_IDS } from "./menu-ids.ts";
 
 export type MenuMeta = Record<string, string>;
@@ -13,10 +13,10 @@ export type ParsedPath = {
   validation: { valid: boolean; message?: string | undefined };
 };
 export type MenuTreeItem =
-  | { kind: "separator"; sourceIndex?: number; id: string; parentId: string }
+  | { kind: "separator"; sourceIndex: number; id: string; parentId: string }
   | {
       kind: "path";
-      sourceIndex?: number;
+      sourceIndex: number;
       id: string;
       title: string;
       number: number;
@@ -28,7 +28,7 @@ export type MenuTreeItem =
       raw: string;
     };
 export type MenuTreeError = {
-  sourceIndex?: number;
+  sourceIndex: number;
   message: string;
   error: string;
   parentId?: string | undefined;
@@ -37,21 +37,35 @@ export type MenuTree = { items: MenuTreeItem[]; errors: MenuTreeError[] };
 export type MenuTreeEntry = MenuTreeItem | MenuTreeError;
 
 export const getMenuTreeEntries = ({ items, errors }: MenuTree): MenuTreeEntry[] =>
-  [...items, ...errors].sort(
-    (left, right) =>
-      (left.sourceIndex ?? Number.MAX_SAFE_INTEGER) -
-      (right.sourceIndex ?? Number.MAX_SAFE_INTEGER),
-  );
+  [...items, ...errors].sort((left, right) => left.sourceIndex - right.sourceIndex);
 
-export const parseMeta = (comment: string): MenuMeta => {
-  const matches = comment.match(/\(.+?:.+?\)+/g);
-  if (!matches) return {};
-  return matches.reduce<MenuMeta>((acc, pair) => {
-    const value = pair.replace(/(^\(|\)$)/g, "");
-    const separatorIndex = value.indexOf(":");
-    const key = value.slice(0, separatorIndex).trim();
-    return key ? Object.assign(acc, { [key]: value.slice(separatorIndex + 1).trim() }) : acc;
-  }, {});
+export const parseMeta = (comment: string): MenuMeta => parsePathMetadata(comment);
+
+const normalizeMenuTreeItems = (items: MenuTreeItem[]): MenuTreeItem[] => {
+  const siblingsByParent = new Map<string, MenuTreeItem[]>();
+  items.forEach((item) => {
+    const siblings = siblingsByParent.get(item.parentId) ?? [];
+    siblings.push(item);
+    siblingsByParent.set(item.parentId, siblings);
+  });
+
+  const keptSeparators = new Set<string>();
+  siblingsByParent.forEach((siblings) => {
+    let hasPathBefore = false;
+    siblings.forEach((item, index) => {
+      if (item.kind === "path") {
+        hasPathBefore = true;
+        return;
+      }
+      const hasPathAfter = siblings.slice(index + 1).some((sibling) => sibling.kind === "path");
+      if (hasPathBefore && hasPathAfter) {
+        keptSeparators.add(item.id);
+        hasPathBefore = false;
+      }
+    });
+  });
+
+  return items.filter((item) => item.kind === "path" || keptSeparators.has(item.id));
 };
 
 export const parsePath = (dir: string): ParsedPath => {
@@ -131,5 +145,5 @@ export const buildTree = (pathsArray: string[]): MenuTree => {
       raw: dir,
     });
   });
-  return { items, errors };
+  return { items: normalizeMenuTreeItems(items), errors };
 };

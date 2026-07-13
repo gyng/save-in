@@ -17,6 +17,7 @@ type MenusFixture = typeof import("../src/background/menu-build.ts") &
     IDS: typeof import("../src/background/menu-build.ts").MENU_IDS;
     state: typeof import("../src/background/menu-build.ts").menuState;
     pathMappings: typeof import("../src/background/menu-build.ts").menuState.pathMappings;
+    addPaths: (paths: string[], contexts: string[]) => void;
   };
 // Browser listener mocks intentionally accept partial event payloads: each test
 // supplies only the host fields relevant to the branch it exercises.
@@ -104,6 +105,8 @@ const importMenus = async () => {
     ...menuBuild,
     ...menuClick,
     ...menuTabs,
+    addPaths: (paths: string[], contexts: string[]) =>
+      menuBuild.renderPathTree(menuBuild.buildTree(paths), contexts),
     IDS: menuBuild.MENU_IDS,
     state: menuBuild.menuState,
     pathMappings: menuBuild.menuState.pathMappings,

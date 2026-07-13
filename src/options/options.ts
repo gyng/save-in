@@ -39,19 +39,26 @@ import { bootstrapOptionsPage } from "./options-bootstrap.ts";
 import { setupIntegrationPanel } from "./integration-panel.ts";
 import { isStringKeyedRecord, sendInternalMessage } from "../shared/message-protocol.ts";
 import { applyUiTheme, setupUiThemeControl } from "./theme.ts";
+import { getPathSourceRange } from "./path-editor-model.ts";
 
 const setupLastDownloadState = () => {
   document.querySelector("#last-dl-url")?.classList.add("is-empty");
 };
 
-type ValidationError = { message: string; error: string; warning?: boolean };
+type ValidationError = {
+  message: string;
+  error: string;
+  warning?: boolean;
+  sourceIndex?: number;
+};
 type MenuPreviewTree = MenuTree;
 
 const isValidationError = (value: unknown): value is ValidationError =>
   isStringKeyedRecord(value) &&
   typeof value.message === "string" &&
   typeof value.error === "string" &&
-  (typeof value.warning === "undefined" || typeof value.warning === "boolean");
+  (typeof value.warning === "undefined" || typeof value.warning === "boolean") &&
+  (typeof value.sourceIndex === "undefined" || Number.isInteger(value.sourceIndex));
 
 const getOptionsSchema = () => optionsRuntime.getSchema();
 
@@ -96,7 +103,7 @@ document.querySelector("#see-variables-btn")?.addEventListener("click", renderVa
 
 // Reveal + select the offending text in its editor. Best-effort: the error
 // string is usually the offending line/clause, so we find and select it.
-const jumpToError = (textareaId: string, needle: string) => {
+const jumpToError = (textareaId: string, needle: string, sourceIndex?: number) => {
   // Paths in Visual mode: jump to the matching visual row instead of switching
   // back to the textarea. Match the row whose directory field is contained in
   // the (raw) line; fall back to Text mode if nothing matches (e.g. a line the
@@ -105,12 +112,17 @@ const jumpToError = (textareaId: string, needle: string) => {
     const visual = document.querySelector("#paths-visual");
     if (visual instanceof HTMLElement && !visual.hidden) {
       const rows = [...document.querySelectorAll("#path-editor-rows .path-editor-row")];
-      const target = rows.find((r) => {
-        const dir = r.querySelector(".path-editor-dir");
-        return (
-          dir instanceof HTMLInputElement && dir.value.trim() && needle.includes(dir.value.trim())
-        );
-      });
+      const target =
+        sourceIndex === undefined
+          ? rows.find((r) => {
+              const dir = r.querySelector(".path-editor-dir");
+              return (
+                dir instanceof HTMLInputElement &&
+                dir.value.trim() &&
+                needle.includes(dir.value.trim())
+              );
+            })
+          : rows[sourceIndex];
       if (target) {
         target.scrollIntoView({ block: "center" });
         const dir = target.querySelector(".path-editor-dir");
@@ -135,9 +147,13 @@ const jumpToError = (textareaId: string, needle: string) => {
   }
   ta.scrollIntoView({ block: "center" });
   ta.focus();
-  const idx = needle ? ta.value.indexOf(needle) : -1;
+  const sourceRange =
+    textareaId === "#paths" && sourceIndex !== undefined
+      ? getPathSourceRange(ta.value, sourceIndex)
+      : null;
+  const idx = sourceRange?.start ?? (needle ? ta.value.indexOf(needle) : -1);
   if (idx >= 0) {
-    ta.setSelectionRange(idx, idx + needle.length);
+    ta.setSelectionRange(idx, sourceRange?.end ?? idx + needle.length);
     // Nudge the caret into view (setSelectionRange alone may not scroll)
     const lineHeight = parseFloat(getComputedStyle(ta).lineHeight) || 18;
     const line = ta.value.slice(0, idx).split("\n").length - 1;
@@ -162,7 +178,7 @@ const renderErrorRow = (err: ValidationError, textareaId: string) => {
   error.textContent = err.error;
   r.appendChild(error);
 
-  const jump = () => jumpToError(textareaId, err.error);
+  const jump = () => jumpToError(textareaId, err.error, err.sourceIndex);
   r.addEventListener("click", jump);
   r.addEventListener("keydown", (e) => {
     if (e.key === "Enter" || e.key === " ") {
@@ -705,7 +721,7 @@ const renderMenuPreview = (container: Element, tree: MenuPreviewTree) => {
       row.appendChild(title);
       li.appendChild(row);
 
-      const jump = () => jumpToError("#paths", entry.error);
+      const jump = () => jumpToError("#paths", entry.error, entry.sourceIndex);
       li.addEventListener("click", jump);
       li.addEventListener("keydown", (e) => {
         if (e.key === "Enter" || e.key === " ") {
@@ -743,7 +759,7 @@ const renderMenuPreview = (container: Element, tree: MenuPreviewTree) => {
         row.setAttribute("role", "button");
         row.setAttribute("tabindex", "0");
         row.title = "Jump to this line";
-        const jump = () => jumpToError("#paths", entry.raw);
+        const jump = () => jumpToError("#paths", entry.raw, entry.sourceIndex);
         row.addEventListener("click", jump);
         row.addEventListener("keydown", (e) => {
           if (e.key === "Enter" || e.key === " ") {
@@ -767,10 +783,12 @@ const renderMenuPreview = (container: Element, tree: MenuPreviewTree) => {
   // the configured paths when the option is enabled
   const lastUsed = document.querySelector("#enableLastLocation") as HTMLInputElement;
   if (lastUsed && lastUsed.checked) {
-    const sep = document.createElement("li");
-    sep.className = "menu-preview-separator";
-    sep.appendChild(document.createElement("hr"));
-    rootUl.insertBefore(sep, rootUl.firstChild);
+    if (tree.items.some((item) => item.kind === "path")) {
+      const sep = document.createElement("li");
+      sep.className = "menu-preview-separator";
+      sep.appendChild(document.createElement("hr"));
+      rootUl.insertBefore(sep, rootUl.firstChild);
+    }
 
     const li = document.createElement("li");
     li.className = "menu-preview-item menu-preview-lastused";

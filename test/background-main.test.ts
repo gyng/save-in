@@ -26,7 +26,6 @@ vi.mock("../src/background/menu-build.ts", async (importOriginal) => {
     addRouteExclusive: vi.fn(actual.addRouteExclusive),
     addLastUsed: vi.fn(actual.addLastUsed),
     makeSeparator: vi.fn(actual.makeSeparator),
-    addPaths: vi.fn(actual.addPaths),
     renderPathTree: vi.fn(actual.renderPathTree),
     addSelectionType: vi.fn(actual.addSelectionType),
     addShowDefaultFolder: vi.fn(actual.addShowDefaultFolder),
@@ -93,7 +92,6 @@ const setupGlobals = async ({
   vi.mocked(Menus.addRouteExclusive).mockImplementation(() => undefined);
   vi.mocked(Menus.addLastUsed).mockImplementation(() => undefined);
   vi.mocked(Menus.makeSeparator).mockImplementation(() => undefined);
-  vi.mocked(Menus.addPaths).mockImplementation(() => undefined);
   vi.mocked(Menus.renderPathTree).mockImplementation(() => undefined);
   vi.mocked(Menus.addSelectionType).mockImplementation(() => undefined);
   vi.mocked(Menus.addShowDefaultFolder).mockImplementation(() => undefined);
@@ -279,27 +277,31 @@ describe("init", () => {
     await importIndex();
     await Runtime.ready;
 
-    expect(Menus.addRoot).toHaveBeenCalledWith(["image", "video", "audio"]);
+    expect(Menus.addRoot).toHaveBeenCalledWith(["image", "video", "audio", "page"]);
+    expect(Menus.addSourcePanel).toHaveBeenCalledWith(["image", "video", "audio", "page"]);
+    expect(Menus.renderPathTree).toHaveBeenCalledWith(expect.any(Object), [
+      "image",
+      "video",
+      "audio",
+    ]);
+    expect(Menus.addOptions).toHaveBeenCalledWith(["image", "video", "audio"]);
+    expect(Menus.addShowDefaultFolder).toHaveBeenCalledWith(["image", "video", "audio"]);
   });
 
-  test("routeExclusive builds only the exclusive item and stops", async () => {
+  test("routeExclusive keeps Page Sources available under the root", async () => {
     await setupGlobals({ options: { routeExclusive: true } });
     await importIndex();
     await Runtime.ready;
 
     expect(Menus.addTabMenus).toHaveBeenCalledTimes(1);
-    expect(Menus.addRouteExclusive).toHaveBeenCalledWith([
-      "image",
-      "video",
-      "audio",
-      "link",
-      "selection",
-      "page",
-    ]);
-    expect(Menus.addRoot).not.toHaveBeenCalled();
+    const contexts = ["image", "video", "audio", "link", "selection", "page"];
+    expect(Menus.addRouteExclusive).toHaveBeenCalledWith(contexts, Menus.MENU_IDS.ROOT);
+    expect(Menus.addRoot).toHaveBeenCalledWith(contexts);
+    expect(Menus.makeSeparator).toHaveBeenCalledWith(contexts, Menus.MENU_IDS.SEPARATOR.ACTIONS);
     expect(Menus.addLastUsed).not.toHaveBeenCalled();
     expect(Menus.renderPathTree).not.toHaveBeenCalled();
     expect(Menus.addOptions).not.toHaveBeenCalled();
+    expect(Menus.addSourcePanel).toHaveBeenCalledWith(contexts);
   });
 
   test("skips the last-used item when enableLastLocation is off", async () => {
@@ -313,7 +315,7 @@ describe("init", () => {
     expect(Menus.renderPathTree).toHaveBeenCalled();
   });
 
-  test.each(["", "<invalid>"])(
+  test.each(["", "<invalid>", "---"])(
     "uses one separator between Last Used and actions when paths are %j",
     async (paths) => {
       await setupGlobals({ options: { paths } });
@@ -328,7 +330,7 @@ describe("init", () => {
     },
   );
 
-  test.each(["", "<invalid>"])(
+  test.each(["", "<invalid>", "---"])(
     "does not lead actions with a separator when Last Used is off and paths are %j",
     async (paths) => {
       await setupGlobals({ options: { paths, enableLastLocation: false } });

@@ -1,5 +1,6 @@
 import {
   getPathAlias,
+  getPathSourceRange,
   parsePathLine,
   pathLinesToRows,
   serializePathLine,
@@ -15,7 +16,20 @@ describe("path editor model", () => {
   });
 
   test("updates aliases without disturbing other comment metadata", () => {
-    expect(getPathAlias("cute (alias: Cats) (key: c)")).toBe("Cats");
-    expect(setPathAlias("cute (alias: Cats) (key: c)", "Dogs")).toBe("cute (key: c) (alias: Dogs)");
+    expect(getPathAlias("cute (edited) (alias: Cats (tabby)) (key: c)")).toBe("Cats (tabby)");
+    expect(setPathAlias("cute (edited) (alias: Cats (tabby)) (key: c)", "Dogs")).toBe(
+      "cute (edited) (key: c) (alias: Dogs)",
+    );
+    expect(setPathAlias("cute  notes (alias: Cats) (key: c)", "Dogs")).toBe(
+      "cute  notes (key: c) (alias: Dogs)",
+    );
+  });
+
+  test("maps a menu source index to the matching non-empty text line", () => {
+    const text = "  images  \n\nimages\n  >images/cats  ";
+
+    expect(getPathSourceRange(text, 1)).toEqual({ start: 12, end: 18 });
+    expect(getPathSourceRange(text, 2)).toEqual({ start: 21, end: 33 });
+    expect(getPathSourceRange(text, 3)).toBeNull();
   });
 });
