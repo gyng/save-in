@@ -42,7 +42,11 @@ vi.mock("../src/downloads/download.ts", () => ({ Download: mocks.Download }));
 
 const setupGlobals = () => {
   mocks.currentBrowser = "UNKNOWN";
-  Object.assign(mocks.router, { parseRules: vi.fn((v) => v), getCaptureMatches: vi.fn() });
+  Object.assign(mocks.router, {
+    parseRules: vi.fn((v) => v),
+    matchRule: vi.fn(),
+    getCaptureMatches: vi.fn(),
+  });
   mocks.applyVariables.mockReset();
   mocks.Path.mockReset();
   Object.assign(mocks.Download, { getRoutingMatches: vi.fn() });
@@ -304,9 +308,8 @@ describe("OptionsManagement", () => {
       mocks.applyVariables.mockImplementation((path: { routingMatches: unknown }) => ({
         finalize: () => `finalized:${path.routingMatches}`,
       }));
-      mocks.router.getCaptureMatches
-        .mockReturnValueOnce(null) // rule-a: no match, loop continues
-        .mockReturnValueOnce(["cap1"]); // rule-b: match, loop breaks
+      mocks.router.matchRule.mockReturnValueOnce(false).mockReturnValueOnce("routed/dir");
+      mocks.router.getCaptureMatches.mockReturnValueOnce(["cap1"]);
 
       const state = { info: { filename: "photo.png", url: "https://x/photo.png" } };
 
@@ -326,14 +329,18 @@ describe("OptionsManagement", () => {
         expect.objectContaining({ filename: "photo.png" }),
       );
 
-      expect(mocks.router.getCaptureMatches).toHaveBeenCalledTimes(2);
-      expect(mocks.router.getCaptureMatches).toHaveBeenNthCalledWith(
+      expect(mocks.router.matchRule).toHaveBeenNthCalledWith(
         1,
         ruleA,
         expect.objectContaining({ filename: "photo.png" }),
       );
-      expect(mocks.router.getCaptureMatches).toHaveBeenNthCalledWith(
+      expect(mocks.router.matchRule).toHaveBeenNthCalledWith(
         2,
+        ruleB,
+        expect.objectContaining({ filename: "photo.png" }),
+      );
+      expect(mocks.router.getCaptureMatches).toHaveBeenCalledOnce();
+      expect(mocks.router.getCaptureMatches).toHaveBeenCalledWith(
         ruleB,
         expect.objectContaining({ filename: "photo.png" }),
       );
@@ -375,6 +382,7 @@ describe("OptionsManagement", () => {
       });
       mocks.applyVariables.mockImplementation(() => ({ finalize: () => "x" }));
       mocks.router.getCaptureMatches.mockReturnValue(null);
+      mocks.router.matchRule.mockReturnValue("routed/dir");
 
       const state = { info: { url: "https://x/nofilename" } };
 

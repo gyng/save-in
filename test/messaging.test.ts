@@ -81,7 +81,7 @@ const setupGlobals = () => {
     errors: [],
   }));
   vi.spyOn(router, "parseRulesCollecting").mockReturnValue({ rules: [], errors: [] });
-  vi.spyOn(router, "traceRules").mockReturnValue({ selectedRule: null } as any);
+  vi.spyOn(router, "traceRules").mockResolvedValue({ selectedRule: null } as any);
   Object.keys(Variable.transformers).forEach((key) => delete Variable.transformers[key]);
   Object.assign(Variable.transformers, { ":date:": () => {}, ":year:": () => {} });
   vi.spyOn(Variable, "applyVariables").mockImplementation((path: any) =>
@@ -854,17 +854,20 @@ describe("config API", () => {
     });
   });
 
-  test("VALIDATE dry-runs paths and rules and returns errors + preview", () => {
+  test("VALIDATE dry-runs paths and rules and returns errors + preview", async () => {
     vi.mocked(router.parseRulesCollecting).mockReturnValue({
       rules: [],
       errors: [{ message: "bad rule", error: "bad rule" }],
     });
     const sendResponse = vi.fn();
-    onMessageExternal(
-      { type: MESSAGE_TYPES.VALIDATE, body: { paths: " dogs \n>cats", filenamePatterns: "x" } },
-      {},
-      sendResponse,
-    );
+    expect(
+      onMessageExternal(
+        { type: MESSAGE_TYPES.VALIDATE, body: { paths: " dogs \n>cats", filenamePatterns: "x" } },
+        {},
+        sendResponse,
+      ),
+    ).toBe(true);
+    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
     expect(Menus.buildTree).toHaveBeenCalledWith(["dogs", ">cats"]);
     expect(router.parseRulesCollecting).toHaveBeenCalledWith("x");
     const { body } = sendResponse.mock.calls[0]![0]!;
@@ -873,24 +876,30 @@ describe("config API", () => {
     expect(body.menuPreview).toHaveLength(2);
   });
 
-  test("VALIDATE returns a rule trace when sample download info is supplied", () => {
+  test("VALIDATE returns a rule trace when sample download info is supplied", async () => {
     const rules = [{ name: "into", value: "images/:filename:", type: "DESTINATION" }] as any;
     vi.mocked(router.parseRulesCollecting).mockReturnValue({ rules, errors: [] });
-    vi.mocked(router.traceRules).mockReturnValue({ selectedRule: 1 } as any);
+    vi.mocked(router.traceRules).mockResolvedValue({ selectedRule: 1 } as any);
     const info = { url: "https://x/cat.jpg", filename: "cat.jpg" };
     const sendResponse = vi.fn();
-    onMessage(
-      { type: MESSAGE_TYPES.VALIDATE, body: { filenamePatterns: "x", info } },
-      {},
-      sendResponse,
-    );
+    expect(
+      onMessage(
+        { type: MESSAGE_TYPES.VALIDATE, body: { filenamePatterns: "x", info } },
+        {},
+        sendResponse,
+      ),
+    ).toBe(true);
+    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
     expect(router.traceRules).toHaveBeenCalledWith(rules, info);
     expect(sendResponse.mock.calls[0]![0]!.body.ruleTrace).toEqual({ selectedRule: 1 });
   });
 
-  test("VALIDATE is exposed on the internal listener too", () => {
+  test("VALIDATE is exposed on the internal listener too", async () => {
     const sendResponse = vi.fn();
-    onMessage({ type: MESSAGE_TYPES.VALIDATE, body: { paths: "dogs" } }, {}, sendResponse);
+    expect(
+      onMessage({ type: MESSAGE_TYPES.VALIDATE, body: { paths: "dogs" } }, {}, sendResponse),
+    ).toBe(true);
+    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
     expect(sendResponse).toHaveBeenCalledWith(
       expect.objectContaining({ type: MESSAGE_TYPES.VALIDATE_RESULT }),
     );

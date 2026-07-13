@@ -423,6 +423,15 @@ describe("filename rewrite and routing", () => {
       );
     });
 
+    test("treats whitespace-only lines as rule separators", () => {
+      const result = router.parseRulesCollecting(
+        "fileext: jpg\ninto: images\n   \nfileext: pdf\ninto: documents",
+      );
+
+      expect(result.rules).toHaveLength(2);
+      expect(result.errors).toEqual([]);
+    });
+
     test("a capture destination without a capture clause warns", () => {
       const rules = router.parseRules("sourceurl: (dog)\ninto: cat:$1:");
       expect(rules.length).toBe(1);
@@ -516,7 +525,7 @@ describe("filename rewrite and routing", () => {
       );
     });
 
-    test("sticky matcher flags are deterministic across evaluations", () => {
+    test("sticky matcher flags are deterministic across evaluations", async () => {
       const rules = router.parseRules(
         "sourceurl/y: (https)\ncapture: sourceurl\ninto: schemes/:$1:",
       );
@@ -524,16 +533,16 @@ describe("filename rewrite and routing", () => {
 
       expect(router.matchRules(rules, stickyInfo)).toBe("schemes/https");
       expect(router.matchRules(rules, stickyInfo)).toBe("schemes/https");
-      expect(router.traceRules(rules, stickyInfo).destination).toBe("schemes/https");
+      expect((await router.traceRules(rules, stickyInfo)).destination).toBe("schemes/https");
     });
   });
 
   describe("rule preview traces", () => {
-    test("reports matcher outcomes and the selected destination", () => {
+    test("reports matcher outcomes and the fully expanded selected destination", async () => {
       const rules = router.parseRules(
         "fileext: png\ninto: images/:filename:\n\nfilename: .*\ninto: other/:filename:",
       );
-      const trace = router.traceRules(rules, {
+      const trace = await router.traceRules(rules, {
         url: "https://x/cat.jpg",
         filename: "server.png",
         initialFilename: "cat.jpg",
@@ -553,6 +562,20 @@ describe("filename rewrite and routing", () => {
       expect(trace.rules[0]!.clauses[0]!).toEqual(
         expect.objectContaining({ name: "fileext", matched: false }),
       );
+    });
+
+    test("uses the real variable pipeline and source URL fallback", async () => {
+      const rules = router.parseRules(
+        "sourceurl: cat\\.jpg$\ninto: archive/:year:/:naivefilename:",
+      );
+
+      const trace = await router.traceRules(rules, {
+        sourceUrl: "https://x/cat.jpg",
+        now: new Date("2026-07-14T00:00:00Z"),
+      });
+
+      expect(trace.expandedDestination).toBe("archive/2026/cat.jpg");
+      expect(trace.finalPath).toBe("archive/2026/cat.jpg");
     });
   });
 

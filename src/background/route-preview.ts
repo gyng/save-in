@@ -2,7 +2,7 @@ import { options } from "../config/options-data.ts";
 import type { DownloadInfo } from "../downloads/download-types.ts";
 import { Download } from "../downloads/download.ts";
 import { Path } from "../routing/path.ts";
-import { getCaptureMatches } from "../routing/router.ts";
+import { getCaptureMatches, matchRule } from "../routing/router.ts";
 import { applyVariables } from "../routing/variable.ts";
 
 export type RoutePreviewState = { info: DownloadInfo };
@@ -28,8 +28,9 @@ export const previewRoutes = async (state?: RoutePreviewState | null): Promise<R
   const filenamePatterns = Array.isArray(options.filenamePatterns) ? options.filenamePatterns : [];
   let captures: (string | undefined)[] | null = null;
   for (const rule of filenamePatterns) {
+    if (!matchRule(rule, info)) continue;
     captures = getCaptureMatches(rule, info);
-    if (captures) break;
+    break;
   }
 
   return { path: path.finalize(), captures };

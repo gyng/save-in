@@ -49,12 +49,14 @@ export const matchesBrowserDownloadFilter = (
 
 export const createBrowserDownloadState = (item: BrowserDownloadItem): DownloadPipelineState => {
   const filename = proposedFilename(item.filename || item.url);
+  const sourceUrl = item.finalUrl || item.url;
   return {
     path: new Path("."),
     scratch: {},
     info: {
       currentTab: null,
-      url: item.finalUrl || item.url,
+      url: sourceUrl,
+      sourceUrl,
       filename,
       naiveFilename: filename,
       suggestedFilename: filename,

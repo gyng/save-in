@@ -153,7 +153,8 @@ export const parseRulesCollecting = (
 ): { rules: RoutingRule[]; errors: RuleError[] } => {
   const source = raw
     .split("\n")
-    .filter((line) => !line.startsWith("//"))
+    .map((line) => (line.trim() === "" ? "" : line))
+    .filter((line) => !line.trimStart().startsWith("//"))
     .join("\n")
     .trim();
   if (!source) return { rules: [], errors: [] };

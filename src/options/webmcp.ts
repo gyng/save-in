@@ -92,11 +92,19 @@ const TRACE_STRING_FIELDS = [
   "sourceUrl",
   "linkUrl",
   "pageUrl",
+  "frameUrl",
+  "linkText",
+  "mediaType",
+  "selectionText",
   "filename",
   "initialFilename",
+  "context",
+  "menuIndex",
   "comment",
 ];
-const TRACE_PROPERTIES = new Set(TRACE_STRING_FIELDS);
+const TRACE_CURRENT_TAB_STRING_FIELDS = ["title"];
+const TRACE_CURRENT_TAB_PROPERTIES = new Set(TRACE_CURRENT_TAB_STRING_FIELDS);
+const TRACE_PROPERTIES = new Set([...TRACE_STRING_FIELDS, "currentTab"]);
 const hasOwn = (input: Record<string, unknown>, key: string) =>
   Object.prototype.hasOwnProperty.call(input, key);
 const isValidDownloadUrl = (url: string) =>
@@ -165,16 +173,27 @@ export const SaveInWebMCP = {
             info: {
               type: "object",
               description:
-                "Sample download values for rule tracing. Use srcUrl for fileext; use urlfileext when only url is known.",
+                "Sample matcher values; use srcUrl/sourceUrl for the resource and currentTab.title for page title.",
               properties: {
                 srcUrl: { type: "string" },
                 url: { type: "string" },
                 sourceUrl: { type: "string" },
                 linkUrl: { type: "string" },
                 pageUrl: { type: "string" },
+                frameUrl: { type: "string" },
+                linkText: { type: "string" },
+                mediaType: { type: "string" },
+                selectionText: { type: "string" },
                 filename: { type: "string" },
                 initialFilename: { type: "string" },
+                context: { type: "string" },
+                menuIndex: { type: "string" },
                 comment: { type: "string" },
+                currentTab: {
+                  type: "object",
+                  properties: { title: { type: "string" } },
+                  additionalProperties: false,
+                },
               },
               additionalProperties: false,
             },
@@ -205,6 +224,27 @@ export const SaveInWebMCP = {
               TRACE_STRING_FIELDS,
             );
             if (infoError) return inputError(`info.${infoError.field}`, infoError.message);
+            const currentTab = Reflect.get(input.info, "currentTab");
+            if (
+              typeof currentTab !== "undefined" &&
+              (typeof currentTab !== "object" || currentTab === null || Array.isArray(currentTab))
+            ) {
+              return inputError("info.currentTab", "Expected an object");
+            }
+            if (currentTab) {
+              const unknownTab = firstUnknownProperty(
+                currentTab as Record<string, unknown>,
+                TRACE_CURRENT_TAB_PROPERTIES,
+              );
+              if (unknownTab)
+                return inputError(`info.currentTab.${unknownTab.field}`, unknownTab.message);
+              const tabError = firstInvalidOptionalString(
+                currentTab as Record<string, unknown>,
+                TRACE_CURRENT_TAB_STRING_FIELDS,
+              );
+              if (tabError)
+                return inputError(`info.currentTab.${tabError.field}`, tabError.message);
+            }
           }
           if (!input || (!hasOwn(input, "paths") && !hasOwn(input, "filenamePatterns"))) {
             return inputError("$", "Provide paths or filenamePatterns");

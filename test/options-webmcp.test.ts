@@ -49,6 +49,10 @@ describe("buildTools", () => {
     expect(validationInfo.description).toContain("srcUrl");
     expect(validationInfo.properties).toHaveProperty("srcUrl");
     expect(validationInfo.properties).toHaveProperty("url");
+    expect(validationInfo.properties).toHaveProperty("mediaType");
+    expect(validationInfo.properties).toHaveProperty("context");
+    expect(validationInfo.properties).toHaveProperty("menuIndex");
+    expect(validationInfo.properties).toHaveProperty("currentTab");
     expect((validationInfo as { additionalProperties?: boolean }).additionalProperties).toBe(false);
   });
 
@@ -107,6 +111,29 @@ describe("buildTools", () => {
     });
   });
 
+  test("passes every matcher input needed for a representative rule trace", async () => {
+    const { send, byName } = toolsByName();
+    const info = {
+      frameUrl: "https://frame.test/",
+      linkText: "Download report",
+      mediaType: "image",
+      selectionText: "selected",
+      context: "media",
+      menuIndex: "2",
+      currentTab: { title: "Quarterly report" },
+    };
+
+    await byName.save_in_validate_config.execute({
+      filenamePatterns: "pagetitle: report\ninto: matched",
+      info,
+    });
+
+    expect(send).toHaveBeenCalledWith({
+      type: "VALIDATE",
+      body: { filenamePatterns: "pagetitle: report\ninto: matched", info },
+    });
+  });
+
   test("rejects malformed tool input before messaging the background", async () => {
     const { send, byName } = toolsByName();
 
@@ -130,6 +157,15 @@ describe("buildTools", () => {
     ).resolves.toEqual({
       status: "ERROR",
       errors: [{ field: "info.filename", message: "Expected a string" }],
+    });
+    await expect(
+      byName.save_in_validate_config.execute({
+        filenamePatterns: "pagetitle: .*\ninto: test",
+        info: { currentTab: { title: 42 } },
+      }),
+    ).resolves.toEqual({
+      status: "ERROR",
+      errors: [{ field: "info.currentTab.title", message: "Expected a string" }],
     });
     await expect(byName.save_in_apply_config.execute({ config: [] })).resolves.toEqual({
       status: "ERROR",

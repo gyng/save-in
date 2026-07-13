@@ -373,19 +373,31 @@ const isDownloadInfo = (value: unknown): boolean => {
   );
 };
 
-const isValidationInfo = (value: unknown): boolean =>
-  isStringKeyedRecord(value) &&
-  ["srcUrl", "url", "sourceUrl", "linkUrl", "pageUrl", "filename", "initialFilename"].every((key) =>
-    hasOptionalString(value, key),
-  ) &&
-  hasOptionalNullableString(value, "comment");
-
 const isWireCurrentTab = (value: unknown): boolean =>
   isStringKeyedRecord(value) &&
   ["title", "url"].every((key) => hasOptionalString(value, key)) &&
   (typeof value.id === "undefined" ||
     (typeof value.id === "number" && Number.isSafeInteger(value.id))) &&
   (typeof value.incognito === "undefined" || typeof value.incognito === "boolean");
+
+const isValidationInfo = (value: unknown): boolean =>
+  isStringKeyedRecord(value) &&
+  [
+    "srcUrl",
+    "url",
+    "sourceUrl",
+    "linkUrl",
+    "pageUrl",
+    "frameUrl",
+    "linkText",
+    "mediaType",
+    "selectionText",
+    "filename",
+    "initialFilename",
+    "context",
+  ].every((key) => hasOptionalString(value, key)) &&
+  ["menuIndex", "comment"].every((key) => hasOptionalNullableString(value, key)) &&
+  (typeof value.currentTab === "undefined" || isWireCurrentTab(value.currentTab));
 
 const isWireDownloadInfo = (value: unknown): value is WireDownloadInfo =>
   isStringKeyedRecord(value) &&

@@ -182,11 +182,11 @@ export const Messaging = {
   // Read-only: dry-run the two grammars and return structured errors + a menu
   // preview, without saving anything. Powers an agent's generate→validate→fix
   // loop and the options-page "paste config" affordance. Safe externally.
-  handleValidate: (
+  handleValidate: async (
     request: MessageOf<typeof MESSAGE_TYPES.VALIDATE>,
     _sender: MessageSender,
     sendResponse: ProtocolSendResponse<MessageOf<typeof MESSAGE_TYPES.VALIDATE>>,
-  ): void => {
+  ): Promise<void> => {
     const body = request.body || {};
     const result: Extract<
       ResponseFor<MessageOf<typeof MESSAGE_TYPES.VALIDATE>>,
@@ -203,7 +203,7 @@ export const Messaging = {
       const parsed = parseRulesCollecting(body.filenamePatterns);
       result.ruleErrors = parsed.errors;
       if (body.info && typeof body.info === "object" && !Array.isArray(body.info)) {
-        result.ruleTrace = traceRules(parsed.rules, body.info);
+        result.ruleTrace = await traceRules(parsed.rules, body.info);
       }
     }
 

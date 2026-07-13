@@ -1,9 +1,9 @@
 import { RULE_TYPES } from "../shared/constants.ts";
-import { EXTENSION_REGEX, getFilenameFromUrl } from "./filename.ts";
 import { getFilenameDiagnostics, Path } from "./path.ts";
 import { parseRulesCollecting } from "./rule-parser.ts";
-import type { RoutingInfo, RoutingRule } from "./rule-types.ts";
+import type { RoutingDownloadInfo, RoutingInfo, RoutingRule } from "./rule-types.ts";
 import { routingPorts } from "./ports.ts";
+import { applyVariables } from "./variable.ts";
 
 export type * from "./rule-types.ts";
 export { matcherFunctions } from "./matchers.ts";
@@ -72,7 +72,7 @@ export type RuleTrace = {
   }>;
 };
 
-export const traceRules = (rules: RoutingRule[], info: RoutingInfo): RuleTrace => {
+export const traceRules = async (rules: RoutingRule[], info: RoutingInfo): Promise<RuleTrace> => {
   const traced = rules.map((rule, index) => {
     const clauses = rule
       .filter((clause) => clause.type === RULE_TYPES.MATCHER)
@@ -95,17 +95,17 @@ export const traceRules = (rules: RoutingRule[], info: RoutingInfo): RuleTrace =
   const selected = selectedIndex >= 0 ? rules[selectedIndex] : undefined;
   const destination = selected ? matchRule(selected, info) || null : null;
   const actualFilename = info.filename || "";
-  const naiveFilename = getFilenameFromUrl(info.url || info.srcUrl || info.linkUrl || "");
-  const expandedDestination = destination
-    ?.replaceAll(":filename:", actualFilename)
-    .replaceAll(":fileext:", actualFilename.match(EXTENSION_REGEX)?.[1] || "")
-    .replaceAll(":actualfileext:", actualFilename.match(EXTENSION_REGEX)?.[1] || "")
-    .replaceAll(":naivefilename:", naiveFilename)
-    .replaceAll(":naivefileext:", naiveFilename.match(EXTENSION_REGEX)?.[1] || "")
-    .replaceAll(":urlfileext:", naiveFilename.match(EXTENSION_REGEX)?.[1] || "");
-  const sanitizedDestination = expandedDestination
-    ? new Path(expandedDestination).finalize()
-    : null;
+  const sourceUrl = info.sourceUrl || info.srcUrl || info.linkUrl || info.pageUrl;
+  const traceInfo: RoutingDownloadInfo = {
+    ...(info as RoutingDownloadInfo),
+    url: info.url || sourceUrl,
+    sourceUrl,
+    now: info.now instanceof Date ? info.now : new Date(),
+    preview: true,
+  };
+  const expandedPath = destination ? await applyVariables(new Path(destination), traceInfo) : null;
+  const expandedDestination = expandedPath?.toString() ?? null;
+  const sanitizedDestination = expandedPath?.finalize() ?? null;
   return {
     initialFilename: info.initialFilename,
     actualFilename: info.filename,

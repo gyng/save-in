@@ -21,6 +21,23 @@ describe("message protocol runtime validation", () => {
     ).toBe(true);
     expect(
       isExternalMessage({
+        type: MESSAGE_TYPES.VALIDATE,
+        body: {
+          filenamePatterns: "pagetitle: report\ninto: reports",
+          info: {
+            frameUrl: "https://frame.test/",
+            linkText: "Report",
+            mediaType: "image",
+            selectionText: "selected",
+            context: "media",
+            menuIndex: "2",
+            currentTab: { title: "Quarterly report" },
+          },
+        },
+      }),
+    ).toBe(true);
+    expect(
+      isExternalMessage({
         type: MESSAGE_TYPES.DOWNLOAD,
         body: {
           url: "https://x/image.png",
@@ -44,6 +61,8 @@ describe("message protocol runtime validation", () => {
     { type: MESSAGE_TYPES.VALIDATE, body: [] },
     { type: MESSAGE_TYPES.VALIDATE, body: { info: { filename: 42 } } },
     { type: MESSAGE_TYPES.VALIDATE, body: { info: { pageUrl: null } } },
+    { type: MESSAGE_TYPES.VALIDATE, body: { info: { mediaType: 42 } } },
+    { type: MESSAGE_TYPES.VALIDATE, body: { info: { currentTab: { title: 42 } } } },
     { type: MESSAGE_TYPES.APPLY_CONFIG, body: { config: [] } },
     { type: MESSAGE_TYPES.APPLY_CONFIG, body: { config: {}, expected: [] } },
     { type: MESSAGE_TYPES.DOWNLOAD, body: { url: 1 } },

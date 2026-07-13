@@ -1,4 +1,5 @@
 import { Path } from "../src/routing/path.ts";
+import { matchRules, parseRules } from "../src/routing/router.ts";
 import {
   createBrowserDownloadState,
   isOrdinaryBrowserDownload,
@@ -66,11 +67,12 @@ describe("browser download routing", () => {
     filename: "C:\\Users\\me\\Downloads\\cat.jpg",
   };
 
-  test("builds the deliberately reduced routing state", () => {
+  test("builds a routing state whose source URL supports the standard matchers", () => {
     const state = createBrowserDownloadState(item as any);
     expect(state.path).toBeInstanceOf(Path);
     expect(state.info).toMatchObject({
       url: item.url,
+      sourceUrl: item.url,
       filename: "cat.jpg",
       suggestedFilename: "cat.jpg",
       initialFilename: "cat.jpg",
@@ -78,6 +80,9 @@ describe("browser download routing", () => {
       currentTab: null,
     });
     expect(state.info.pageUrl).toBeUndefined();
+
+    const rules = parseRules("fileext: jpg\ninto: matched/:filename:");
+    expect(matchRules(rules, state.info)).toBe("matched/:filename:");
   });
 
   test("leaves unmatched downloads untouched", async () => {
