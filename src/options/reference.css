@@ -148,7 +148,7 @@ body:has(.reference-header) {
 }
 
 .click-to-copy.copied {
-  color: var(--green60);
+  color: var(--success-fg);
   outline: 2px solid currentColor;
 }
 

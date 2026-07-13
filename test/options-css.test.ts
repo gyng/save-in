@@ -142,3 +142,25 @@ test("resting form controls use an accessible boundary role", () => {
     /input\[type="text"\],[\s\S]*?select\s*\{[^}]*border:\s*1px solid var\(--control-border\)/,
   );
 });
+
+test("success and muted text roles retain contrast on raised surfaces", () => {
+  expect(stylesheet).toContain("--success-fg: #087a00");
+  expect(stylesheet).toContain("--color-text-muted: #66666b");
+  expect(stylesheet).toMatch(
+    /@media \(prefers-color-scheme: dark\)[\s\S]*?--success-fg:\s*var\(--green60\)/,
+  );
+
+  for (const selector of [
+    "#lastSavedAt.saved-confirmed",
+    ".template-feedback",
+    ".status-badge.status-ok",
+  ]) {
+    const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    expect(stylesheet).toMatch(new RegExp(`${escaped}\\s*\\{[^}]*color:\\s*var\\(--success-fg\\)`));
+  }
+  expect(referenceStylesheet).toMatch(
+    /\.click-to-copy\.copied\s*\{[^}]*color:\s*var\(--success-fg\)/,
+  );
+  expect(stylesheet).not.toMatch(/^\s*color:\s*var\(--green60\)/gm);
+  expect(referenceStylesheet).not.toMatch(/^\s*color:\s*var\(--green60\)/gm);
+});

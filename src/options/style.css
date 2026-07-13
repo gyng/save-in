@@ -53,7 +53,8 @@
   --color-surface-page: #ffffff;
   --color-surface-raised: var(--grey20);
   --color-text: var(--grey-90);
-  --color-text-muted: var(--grey50);
+  --color-text-muted: #66666b;
+  --success-fg: #087a00;
 
   --input-background: unset;
   --link-color: var(--color-accent);
@@ -79,6 +80,7 @@
     --color-surface-raised: var(--grey70);
     --color-text: #ffffff;
     --color-text-muted: var(--grey40);
+    --success-fg: var(--green60);
     --color-danger: #e60038;
     --color-danger-active: #d50033;
     --link-color: var(--blue40);
@@ -364,7 +366,7 @@ body:not(#settings-page) {
 }
 
 #lastSavedAt.saved-confirmed {
-  color: var(--green60);
+  color: var(--success-fg);
 }
 
 .app-icon {
@@ -2153,7 +2155,7 @@ summary {
   margin: 0 var(--space-4) var(--space-2);
   padding: var(--space-2) var(--space-3);
   border-radius: var(--radius);
-  color: var(--green60);
+  color: var(--success-fg);
   background: color-mix(in srgb, var(--green60) 10%, transparent);
 }
 
@@ -3678,7 +3680,7 @@ code.click-to-copy {
 }
 
 .status-badge.status-ok {
-  color: var(--green60);
+  color: var(--success-fg);
   background-color: color-mix(in srgb, var(--green60) 14%, transparent);
 }
 
