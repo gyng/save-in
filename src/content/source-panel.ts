@@ -716,8 +716,7 @@ export const toggleSourcePanel = (
                     : "•";
       }
       const sourceLink = document.createElement("a");
-      const hasRichTooltip =
-        panelOptions.previews !== false && ["image", "video", "audio"].includes(source.kind);
+      const hasRichTooltip = ["image", "video", "audio"].includes(source.kind);
       sourceLink.className = "source-link";
       sourceLink.href = source.url;
       sourceLink.target = "_blank";

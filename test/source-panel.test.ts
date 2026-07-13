@@ -789,6 +789,45 @@ describe("Page Sources panel interactions", () => {
     expect(sourceLink.hasAttribute("aria-describedby")).toBe(false);
   });
 
+  test("keeps hover previews available when inline thumbnails are disabled", () => {
+    document.body.innerHTML = `<img src="hover-only.jpg">`;
+    toggleSourcePanel(vi.fn(), {
+      includeBackgrounds: false,
+      live: false,
+      previews: false,
+    });
+    const shadow = document.getElementById("save-in-source-panel")!.shadowRoot!;
+    const row = shadow.querySelector<HTMLElement>(".row")!;
+
+    expect(row.querySelector(".source-link img")).toBeNull();
+    row.dispatchEvent(new MouseEvent("mouseenter"));
+    expect(shadow.querySelector<HTMLImageElement>(".media-tooltip img")?.src).toBe(
+      "http://localhost/hover-only.jpg",
+    );
+  });
+
+  test("plays and pauses muted video hover previews", () => {
+    const play = vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue(undefined);
+    const pause = vi.spyOn(HTMLMediaElement.prototype, "pause").mockImplementation(() => {});
+    document.body.innerHTML = `<video src="clip.mp4"></video>`;
+    toggleSourcePanel(vi.fn(), {
+      includeBackgrounds: false,
+      live: false,
+      previews: false,
+    });
+    const shadow = document.getElementById("save-in-source-panel")!.shadowRoot!;
+    const row = shadow.querySelector<HTMLElement>(".row")!;
+
+    row.dispatchEvent(new MouseEvent("mouseenter"));
+    const preview = shadow.querySelector<HTMLVideoElement>(".media-tooltip video")!;
+    expect(preview.muted).toBe(true);
+    expect(play).toHaveBeenCalled();
+
+    row.dispatchEvent(new MouseEvent("mouseleave"));
+    expect(pause).toHaveBeenCalled();
+    expect(preview.isConnected).toBe(false);
+  });
+
   test("shows the same preview and page outline for keyboard focus", () => {
     document.body.innerHTML = `<img id="source" src="keyboard.jpg">`;
     toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
