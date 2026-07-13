@@ -4,8 +4,11 @@ import { describe, expect, test } from "vitest";
 import config, { resolveMaxWorkers } from "../vitest.config.mjs";
 
 describe("test runner resource limits", () => {
-  test("leaves two logical CPUs available by default", () => {
-    expect(config.test?.maxWorkers).toBe(Math.max(1, availableParallelism() - 2));
+  test("leaves four logical CPUs available by default", () => {
+    expect(config.test?.maxWorkers).toBe(Math.max(1, availableParallelism() - 4));
+    expect(resolveMaxWorkers({ cores: 32 })).toBe(28);
+    expect(resolveMaxWorkers({ cores: 8 })).toBe(4);
+    expect(resolveMaxWorkers({ cores: 2 })).toBe(1);
   });
 
   test("uses every available CPU in CI", () => {

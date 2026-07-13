@@ -8,14 +8,14 @@ export const resolveMaxWorkers = ({
 } = {}) => {
   const requestedWorkers = Number.parseInt(requested ?? "", 10);
   if (Number.isFinite(requestedWorkers)) return Math.max(1, requestedWorkers);
-  return ci === "true" || ci === "1" ? Math.max(1, cores) : Math.max(1, cores - 2);
+  return ci === "true" || ci === "1" ? Math.max(1, cores) : Math.max(1, cores - 4);
 };
 
 const maxWorkers = resolveMaxWorkers();
 
 export default defineConfig({
   test: {
-    // jsdom workers are CPU- and memory-heavy. Leave two logical CPUs for the
+    // jsdom workers are CPU- and memory-heavy. Leave four logical CPUs for the
     // local desktop; disposable CI runners use every available CPU.
     maxWorkers,
     globals: true,
