@@ -1,5 +1,3 @@
-/* eslint-disable no-unused-vars */
-
 export const MEDIA_TYPES = ["image", "video", "audio"];
 
 export const SPECIAL_DIRS = {

@@ -1,7 +1,5 @@
 import { webExtensionApi } from "../platform/web-extension-api.ts";
 
-/* eslint-disable no-case-declarations */
-
 import { splitLines, withUrl } from "../shared/util.ts";
 import { MESSAGE_TYPES, DOWNLOAD_TYPES } from "../shared/constants.ts";
 import { applyVariables, transformers } from "../routing/variable.ts";

@@ -692,7 +692,6 @@ const removeHistory = async () => {
   }
 };
 const clearHistory = () => {
-  // eslint-disable-next-line no-alert
   if (window.confirm("Delete all saved history? This cannot be undone.")) void removeHistory();
 };
 document.querySelector("#history-clear")?.addEventListener("click", clearHistory);

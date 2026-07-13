@@ -35,12 +35,10 @@ const waitFor = async (callback, description, timeoutMs = 10_000) => {
   let lastError;
   while (Date.now() < deadline) {
     try {
-      // eslint-disable-next-line no-await-in-loop
       if (await callback()) return;
     } catch (error) {
       lastError = error;
     }
-    // eslint-disable-next-line no-await-in-loop
     await cdp.sleep(100);
   }
   throw new Error(`Timed out waiting for ${description}`, { cause: lastError });

@@ -642,13 +642,11 @@ test(":counter: advances once per download and persists in storage", async () =>
       }))
       .then(() => api.reset())`);
   for (let i = 0; i < 2; i += 1) {
-    // eslint-disable-next-line no-await-in-loop
     await evalSW(`api.startDownload({
       content: "counted-${i}",
       suggestedFilename: "countme.txt",
       pageUrl: "https://example.com/",
     })`);
-    // eslint-disable-next-line no-await-in-loop
     const rows = await waitForDownloads(`${i + 1}-countme`);
     expect(rows.some((x) => x.state === "complete")).toBe(true);
   }

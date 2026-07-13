@@ -86,7 +86,6 @@ const removeWithRetries = async (target, { attempts = 6, delayMs = 500 } = {}) =
     } catch (error) {
       // Browser children can release profile files after their suite exits.
     }
-    // eslint-disable-next-line no-await-in-loop
     await sleep(delayMs);
   }
   throw new Error(`Unable to remove interrupted E2E profile: ${target}`);
@@ -113,7 +112,6 @@ const removeOwnedProfiles = async (
         childPids.some((pid) => entry.name.startsWith(`${prefix}${pid}-`))
       ) {
         try {
-          // eslint-disable-next-line no-await-in-loop
           await removeWithRetries(path.join(dir, entry.name), { attempts, delayMs });
         } catch (error) {
           failures.push(error);

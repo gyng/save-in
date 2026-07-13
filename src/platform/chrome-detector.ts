@@ -60,7 +60,7 @@ export const detectCapabilities = (currentBrowser: string): WebExtensionCapabili
 // always move together (a browser and its feature set), so both detection and
 // tests switch browser through here rather than reassigning the pair by hand.
 export const setCurrentBrowser = (currentBrowser: string) => {
-  CURRENT_BROWSER = currentBrowser; // eslint-disable-line
+  CURRENT_BROWSER = currentBrowser;
   WEB_EXTENSION_CAPABILITIES = detectCapabilities(currentBrowser);
 };
 

@@ -116,13 +116,10 @@ const connectBrowser = async (port, attempts = 5) => {
     try {
       // Refresh the browser endpoint on every attempt; Chrome can replace it
       // while finishing startup.
-      // eslint-disable-next-line no-await-in-loop
       const version = await getJson(port, "/json/version");
-      // eslint-disable-next-line no-await-in-loop
       return await Cdp.connect(version.webSocketDebuggerUrl);
     } catch (error) {
       lastError = error;
-      // eslint-disable-next-line no-await-in-loop
       await sleep(200);
     }
   }
@@ -212,7 +209,6 @@ const dispatchInput = async (port, urlSubstr, events) => {
   const cdp = await Cdp.connect(target.webSocketDebuggerUrl);
   try {
     for (const { method, params } of events) {
-      // eslint-disable-next-line no-await-in-loop
       await cdp.send(method, params);
     }
   } finally {
@@ -322,12 +318,9 @@ const reloadTargets = async (port, urlSubstr) => {
   );
   let count = 0;
   for (const t of targets) {
-    // eslint-disable-next-line no-await-in-loop
     const c = await Cdp.connect(t.webSocketDebuggerUrl);
     try {
-      // eslint-disable-next-line no-await-in-loop
       await c.send("Page.enable");
-      // eslint-disable-next-line no-await-in-loop
       await c.send("Page.reload", { ignoreCache: true });
       count += 1;
     } finally {

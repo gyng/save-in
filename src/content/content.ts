@@ -34,7 +34,6 @@ const ClickToSave = {
       BACK_CLICK: 8, // bit 3 (mouse button 4)
       FORWARD_CLICK: 16, // bit 4 (mouse button 5)
     }[target];
-    // eslint-disable-next-line no-bitwise
     if (!bit) return false;
     return (buttons & bit) === bit;
   },

@@ -19,7 +19,7 @@
     "e2e:firefox:headed": "node scripts/build-bundled.js --mode=e2e && node scripts/with-env.js EXT_DIR=dist/bundled-pkg-e2e -- vitest run --config vitest.e2e.config.mjs e2e/firefox.e2e.mjs",
     "fmt": "oxfmt",
     "fmt:check": "oxfmt --check",
-    "lint": "node scripts/check-import-cycles.js && node scripts/build-bundled.js && web-ext lint --source-dir dist/bundled-pkg -i \"src/**\" && oxlint && oxfmt --check",
+    "lint": "node scripts/check-import-cycles.js && node scripts/build-bundled.js && web-ext lint --source-dir dist/bundled-pkg -i \"src/**\" && oxlint --report-unused-disable-directives-severity=error && oxfmt --check",
     "lint:fix": "oxlint --fix && oxfmt",
     "review": "node scripts/review-demo.js",
     "screenshots:store": "node scripts/generate-store-screenshots.js",

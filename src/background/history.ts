@@ -9,8 +9,6 @@ import {
   normalizeHistory,
 } from "./history-normalization.ts";
 
-/* eslint-disable no-unused-vars */
-
 // Entries store the whole download state: cap the list so storage.local
 // does not grow without bound
 const HISTORY_LIMIT = 10000;

@@ -90,7 +90,6 @@ const removeProfile = async (profileDir) => {
     } catch (error) {
       // Chrome children can briefly retain cache files after taskkill returns.
     }
-    // eslint-disable-next-line no-await-in-loop
     await new Promise((resolve) => setTimeout(resolve, 500));
   }
   throw new Error(`Unable to remove disposable Chrome profile: ${profileDir}`);

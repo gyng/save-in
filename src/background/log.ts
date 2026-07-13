@@ -1,5 +1,3 @@
-/* eslint-disable no-unused-vars */
-
 // Session-scoped debug log (#159/#216): a small ring buffer in
 // storage.session so entries survive MV3 service worker restarts but never
 // leave the machine and clear on browser exit. Viewable from the options

@@ -13,7 +13,6 @@ export const poll = async (
 
   for (;;) {
     try {
-      // eslint-disable-next-line no-await-in-loop
       const value = await check();
       if (value) return value;
     } catch (error) {
@@ -27,7 +26,6 @@ export const poll = async (
         : "";
       throw new Error(`Timed out waiting for ${description}${detail}`);
     }
-    // eslint-disable-next-line no-await-in-loop
     await new Promise((resolve) => setTimeout(resolve, intervalMs));
   }
 };

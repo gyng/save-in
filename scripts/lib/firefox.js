@@ -116,11 +116,9 @@ const removeProfile = async (profileDir) => {
   for (let i = 0; i < 5; i += 1) {
     // taskkill can return while a child is completing its final profile write;
     // removing immediately may succeed only for Firefox to recreate the tree.
-    // eslint-disable-next-line no-await-in-loop
     await sleep(1500);
     try {
       fs.rmSync(profileDir, { recursive: true, force: true });
-      // eslint-disable-next-line no-await-in-loop
       await sleep(100);
       if (!fs.existsSync(profileDir)) return;
     } catch (e) {
@@ -134,10 +132,8 @@ const removeProfile = async (profileDir) => {
 const connectWithRetry = async (port, attempts = 30) => {
   for (let i = 0; i < attempts; i += 1) {
     try {
-      // eslint-disable-next-line no-await-in-loop
       return await FirefoxRdp.connect(port);
     } catch (e) {
-      // eslint-disable-next-line no-await-in-loop
       await sleep(1000);
     }
   }
@@ -183,9 +179,7 @@ const launch = async () => {
     for (let i = 0; i < 20; i += 1) {
       let ready = false;
       try {
-        // eslint-disable-next-line no-await-in-loop
         const tabConsole = await connectedRdp.getTabConsoleActor("src/options/options.html");
-        // eslint-disable-next-line no-await-in-loop
         ready = await connectedRdp.evaluate(
           tabConsole,
           'browser.runtime.sendMessage({ type: "WAKE_WARM" }).then((response) => response?.type === "OK", () => false)',
@@ -194,7 +188,6 @@ const launch = async () => {
         // The options target may not be attachable until its first document loads.
       }
       if (ready === true) break;
-      // eslint-disable-next-line no-await-in-loop
       await sleep(500);
       if (i === 19) throw new Error("background page never became ready");
     }

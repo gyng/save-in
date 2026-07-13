@@ -33,7 +33,6 @@ const reloadExtension = async (extensionId) => {
   // has registered the fresh context so they cannot become blocked pages.
   await cdp.sleep(250);
   for (const page of extensionPages) {
-    // eslint-disable-next-line no-await-in-loop
     await cdp.openTab(PORT, page.url);
   }
 };

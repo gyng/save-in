@@ -30,18 +30,14 @@ const main = async () => {
 
   let reloaded = 0;
   for (const port of CANDIDATE_PORTS) {
-    // eslint-disable-next-line no-await-in-loop
     if (!(await isChromeCdp(port))) {
       continue;
     }
     try {
-      // eslint-disable-next-line no-await-in-loop
       const id = await cdp.loadUnpacked(port, chrome.DIST);
-      // eslint-disable-next-line no-await-in-loop
       let count = await cdp.reloadTargets(port, "options.html");
       if (count === 0) {
         // No options tab open: open one on the reloaded build
-        // eslint-disable-next-line no-await-in-loop
         await cdp.openTab(port, `chrome-extension://${id}/src/options/options.html`);
         count = 1;
       }

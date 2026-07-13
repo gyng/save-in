@@ -1,8 +1,6 @@
 import { webExtensionApi } from "../platform/web-extension-api.ts";
 import { getMessage } from "../platform/localization.ts";
 
-/* eslint-disable no-unused-vars */
-
 import { downloadsState, sessionWriteState } from "./state.ts";
 import { getDownload, mergeDownload } from "./download-state.ts";
 import type { DownloadRecord, PrivateDownloadContext } from "./download-state.ts";

@@ -18,7 +18,6 @@ export const setupResetOptions = ({
 }: ResetOptionsDependencies) => {
   document.querySelector<HTMLButtonElement>("#reset")?.addEventListener("click", (event) => {
     event.preventDefault();
-    /* eslint-disable no-alert */
     if (!hostWindow.confirm("Reset settings to defaults?")) return;
 
     void (async () => {
@@ -31,6 +30,5 @@ export const setupResetOptions = ({
       updateErrors();
       hostWindow.alert("Settings have been reset to defaults.");
     })().catch((error) => hostWindow.alert(`Failed to reset settings: ${String(error)}`));
-    /* eslint-enable no-alert */
   });
 };
