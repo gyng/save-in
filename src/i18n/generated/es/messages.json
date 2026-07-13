@@ -1634,6 +1634,9 @@
   "html_splitMultipleCaptureTargetsWithA": {
     "message": ". Separe múltiples objetivos de captura con"
   },
+  "html_captureClauseCompatibility": {
+    "message": "Use capturegroups: para numerar grupos de forma continua entre cláusulas de comparación. capture: conserva el diseño heredado de índices aplanados."
+  },
   "html_stringsAddJavascriptRegexFlagsAfterTheMatcherName": {
     "message": ". Añada indicadores de JavaScript después del nombre del comparador; por ejemplo, use"
   },

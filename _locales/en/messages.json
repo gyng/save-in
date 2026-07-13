@@ -831,6 +831,10 @@
     "message": ". Separate multiple capture targets with",
     "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
   },
+  "html_captureClauseCompatibility": {
+    "message": "Use capturegroups: for continuous group numbering across matcher clauses. capture: preserves the legacy flattened index layout.",
+    "description": "Compatibility guidance in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
+  },
   "html_stringsAddJavascriptRegexFlagsAfterTheMatcherName": {
     "message": ". Add JavaScript flags after the matcher name; for example, use",
     "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."

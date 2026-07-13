@@ -1535,6 +1535,9 @@
   "html_splitMultipleCaptureTargetsWithA": {
     "message": ". 여러 캡처 대상을 다음과 같이 구분합니다."
   },
+  "html_captureClauseCompatibility": {
+    "message": "매처 절 전체에서 그룹 번호를 연속으로 지정하려면 capturegroups:를 사용하세요. capture:는 기존의 평면화된 인덱스 배치를 유지합니다."
+  },
   "html_stringsAddJavascriptRegexFlagsAfterTheMatcherName": {
     "message": "을 사용합니다. 매처 이름 뒤에 JavaScript 플래그를 추가하세요. 예:"
   },

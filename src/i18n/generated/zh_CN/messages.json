@@ -1535,6 +1535,9 @@
   "html_splitMultipleCaptureTargetsWithA": {
     "message": "。分隔多个捕获目标"
   },
+  "html_captureClauseCompatibility": {
+    "message": "使用 capturegroups: 可在多个匹配子句之间连续编号分组。capture: 会保留旧版扁平索引布局。"
+  },
   "html_stringsAddJavascriptRegexFlagsAfterTheMatcherName": {
     "message": "。在匹配器名称后添加 JavaScript 标志；例如，使用"
   },

@@ -1636,6 +1636,9 @@
   "html_splitMultipleCaptureTargetsWithA": {
     "message": ". Trennen Sie mehrere Erfassungsziele mit"
   },
+  "html_captureClauseCompatibility": {
+    "message": "Verwenden Sie capturegroups: für eine fortlaufende Gruppennummerierung über Matcher-Klauseln hinweg. capture: behält das veraltete abgeflachte Indexlayout bei."
+  },
   "html_stringsAddJavascriptRegexFlagsAfterTheMatcherName": {
     "message": ". Fügen Sie nach dem Matcher-Namen JavaScript-Flags hinzu; zum Beispiel verwenden"
   },

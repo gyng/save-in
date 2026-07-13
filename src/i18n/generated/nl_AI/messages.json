@@ -1638,6 +1638,9 @@
   "html_splitMultipleCaptureTargetsWithA": {
     "message": ". Scheid meerdere veroveringsdoelen met"
   },
+  "html_captureClauseCompatibility": {
+    "message": "Gebruik capturegroups: voor doorlopende groepsnummering over matcherclausules. capture: behoudt de verouderde afgevlakte indexindeling."
+  },
   "html_stringsAddJavascriptRegexFlagsAfterTheMatcherName": {
     "message": ". Voeg JavaScript-vlaggen toe na de naam van de matcher; gebruik bijvoorbeeld"
   },

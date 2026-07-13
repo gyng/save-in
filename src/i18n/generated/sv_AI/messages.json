@@ -1632,6 +1632,9 @@
   "html_splitMultipleCaptureTargetsWithA": {
     "message": ". Separera flera fånga mål med"
   },
+  "html_captureClauseCompatibility": {
+    "message": "Använd capturegroups: för löpande gruppnumrering mellan matchningssatser. capture: bevarar den äldre platta indexlayouten."
+  },
   "html_stringsAddJavascriptRegexFlagsAfterTheMatcherName": {
     "message": ". Lägg till JavaScript-flaggor efter matchningsnamnet; till exempel använda"
   },

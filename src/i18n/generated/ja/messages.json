@@ -1535,6 +1535,9 @@
   "html_splitMultipleCaptureTargetsWithA": {
     "message": "。複数のキャプチャ対象を区切る"
   },
+  "html_captureClauseCompatibility": {
+    "message": "マッチャー句をまたいでグループ番号を連続させるには capturegroups: を使用します。capture: は従来の平坦化されたインデックス配置を維持します。"
+  },
   "html_stringsAddJavascriptRegexFlagsAfterTheMatcherName": {
     "message": "。マッチャー名の後に JavaScript フラグを追加します。たとえば、使用します"
   },

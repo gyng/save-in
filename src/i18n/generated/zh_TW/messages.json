@@ -1535,6 +1535,9 @@
   "html_splitMultipleCaptureTargetsWithA": {
     "message": "。多個擷取目標之間請使用"
   },
+  "html_captureClauseCompatibility": {
+    "message": "使用 capturegroups: 可在多個比對子句之間連續編號群組。capture: 會保留舊版扁平索引配置。"
+  },
   "html_stringsAddJavascriptRegexFlagsAfterTheMatcherName": {
     "message": "。在比對器名稱後加入 JavaScript 旗標；例如，使用"
   },
