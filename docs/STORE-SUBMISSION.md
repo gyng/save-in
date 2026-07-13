@@ -139,6 +139,27 @@ CI uploads `dist/e2e-artifacts` when a browser suite fails. The bundle contains
 browser logs plus JSON snapshots of targets, storage, history, debug logs, and
 the options DOM; Chrome also attempts a current-page screenshot.
 
+## Chrome Web Store screenshots
+
+Generate listing-ready screenshots from the real bundled extension with:
+
+```sh
+npm run screenshots:store
+```
+
+The command stages the E2E bundle, launches an isolated headless Chrome, seeds
+the same representative configuration used by `npm run review`, and updates four
+canonical 1280x800 PNGs in `docs/store-screenshots/`:
+
+- configured directories with the live context-menu preview;
+- pattern-based routing and renaming rules;
+- Page Sources open on a realistic editorial page built around the in-repo demo photo;
+- searchable download history with representative routed results.
+
+Each PNG is recompressed losslessly, then its dimensions are validated before
+the command succeeds. Pass a different destination when preparing an upload with
+`npm run screenshots:store -- --output-dir <path>`.
+
 ## Chrome tab-strip context menus
 
 Chrome 150 introduces the `"tab"` context, but Save In does not enable it on

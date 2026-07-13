@@ -23,6 +23,7 @@
     "lint:fix": "oxlint --fix && oxfmt",
     "mockserve": "node test/mockserver",
     "review": "node scripts/review-demo.js",
+    "screenshots:store": "node scripts/generate-store-screenshots.js",
     "reload": "node scripts/reload.js",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",

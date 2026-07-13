@@ -209,7 +209,8 @@ const openTab = async (port, url) => {
   }
 };
 
-const captureScreenshot = async (port, urlSubstr) => {
+const captureScreenshot = async (port, urlSubstr, options = {}) => {
+  const { width, height, deviceScaleFactor = 1, fromSurface = true } = options;
   const target = (await listTargets(port)).find(
     (candidate) => candidate.type === "page" && candidate.url.includes(urlSubstr),
   );
@@ -218,10 +219,37 @@ const captureScreenshot = async (port, urlSubstr) => {
   try {
     await page.send("Page.enable");
     await page.send("Page.bringToFront");
+    if (width && height) {
+      await page.send("Emulation.setDeviceMetricsOverride", {
+        width,
+        height,
+        deviceScaleFactor,
+        mobile: false,
+        screenWidth: width,
+        screenHeight: height,
+      });
+    }
+    await page.send("Emulation.setDefaultBackgroundColorOverride", {
+      color: { r: 255, g: 255, b: 255, a: 1 },
+    });
+    await page.send("Emulation.setEmulatedMedia", {
+      features: [
+        { name: "prefers-color-scheme", value: "light" },
+        { name: "prefers-reduced-motion", value: "reduce" },
+      ],
+    });
+    await page.send("Runtime.evaluate", {
+      // rAF runs before paint. The short timer lets Chrome commit that frame so
+      // a newly foregrounded tab cannot produce partially black tiles.
+      expression:
+        "document.fonts.ready.then(() => new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve, 100))))",
+      awaitPromise: true,
+    });
     const { data } = await page.send(
       "Page.captureScreenshot",
       {
         format: "png",
+        fromSurface,
         captureBeyondViewport: false,
       },
       5000,
