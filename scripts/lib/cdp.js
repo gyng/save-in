@@ -3,7 +3,7 @@
 // Minimal Chrome DevTools Protocol client (no dependencies, Node >= 22 for
 // the global WebSocket). Used by dev-chrome.js and e2e-chrome.js.
 
-/** @typedef {{id?: number, type: string, url: string, webSocketDebuggerUrl: string}} CdpTarget */
+/** @typedef {{id: string, type: string, url: string, webSocketDebuggerUrl: string}} CdpTarget */
 /** @typedef {{resolve: (value: any) => void, reject: (error: unknown) => void}} PendingCommand */
 
 /** @param {number} port @param {string} path @param {number} [timeoutMs] @returns {Promise<any>} */
