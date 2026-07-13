@@ -145,9 +145,9 @@ const launch = async () => {
       // eslint-disable-next-line no-await-in-loop
       const readyType = await rdp.evaluate(
         consoleActor,
-        "typeof globalThis.__SAVE_IN_E2E__?.runtime?.ready",
+        "typeof globalThis.__SAVE_IN_E2E__?.ready",
       );
-      if (readyType === "object") break;
+      if (readyType === "function") break;
       // eslint-disable-next-line no-await-in-loop
       await sleep(500);
       if (i === 19) throw new Error("background page never became ready");

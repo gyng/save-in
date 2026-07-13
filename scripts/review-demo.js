@@ -167,7 +167,7 @@ const main = async () => {
       sourcePanelPreviews: true,
       sourcePanelResourceHints: true,
       sourcePanelLinks: true,
-    }).then(() => globalThis.__SAVE_IN_E2E__.runtime.reset()).then(() => "seeded")`,
+    }).then(() => globalThis.__SAVE_IN_E2E__.reset()).then(() => "seeded")`,
   );
   await cdp.evalInTarget(port, "options.html", "location.reload()");
   await cdp.openTab(port, `http://127.0.0.1:${demoPort}/`);

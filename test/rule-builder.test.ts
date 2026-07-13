@@ -3,21 +3,11 @@
 // variables that actually exist.
 
 import * as constants from "../src/shared/constants.ts";
-import { parseRules } from "../src/routing/router.ts";
+import { parseRulesCollecting } from "../src/routing/router.ts";
 import { RuleBuilder } from "../src/options/rule-builder.ts";
 import { RULE_TEMPLATES } from "../src/options/rule-templates.ts";
 
-Object.assign(global, constants);
-
 describe("RULE_TEMPLATES", () => {
-  beforeAll(() => {
-    global.window.optionErrors = { paths: [], filenamePatterns: [] };
-  });
-
-  beforeEach(() => {
-    global.window.optionErrors.filenamePatterns = [];
-  });
-
   test("covers a useful range of organization strategies", () => {
     expect(RULE_TEMPLATES.length).toBeGreaterThanOrEqual(13);
     expect(RULE_TEMPLATES.map(({ name }) => name)).toEqual(
@@ -36,8 +26,8 @@ describe("RULE_TEMPLATES", () => {
 
   RULE_TEMPLATES.forEach((tpl) => {
     test(`"${tpl.name}" parses as exactly one valid rule`, () => {
-      const rules = parseRules(tpl.rule);
-      expect(global.window.optionErrors.filenamePatterns).toEqual([]);
+      const { rules, errors } = parseRulesCollecting(tpl.rule);
+      expect(errors).toEqual([]);
       expect(rules).toHaveLength(1);
     });
 

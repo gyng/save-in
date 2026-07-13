@@ -4,45 +4,15 @@
 // The bundle is emitted as bare scope-hoisted ESM so both classic hosts can
 // execute it.
 
-import { SHORTCUT_TYPES } from "../shared/constants.ts";
-import { CURRENT_BROWSER, WEB_EXTENSION_CAPABILITIES } from "../platform/chrome-detector.ts";
-import { BackgroundState } from "../background/state.ts";
-import { peekCounter, resetCounter } from "../background/counter.ts";
-import { Log } from "../background/log.ts";
-import { SaveHistory } from "../background/history.ts";
-import { Notifier } from "../downloads/notification.ts";
-import { Path } from "../routing/path.ts";
-import { Download } from "../downloads/download.ts";
-import { Shortcut } from "../downloads/shortcut.ts";
-import { menuState } from "../background/menu-build.ts";
-import { OptionsManagement, seedOptions } from "../config/option.ts";
-import { options } from "../config/options-data.ts";
-import { Messaging, registerMessaging } from "../background/messaging.ts";
+import { seedOptions } from "../config/option.ts";
+import { registerMessaging } from "../background/messaging.ts";
 import { registerNotifier } from "../downloads/notification.ts";
 import { registerDownloadListener } from "../downloads/download.ts";
 import { configureBackgroundPorts, start } from "../background/main.ts";
-import { backgroundRuntime } from "../background/runtime.ts";
 import { installBackgroundE2EBridge } from "../background/e2e-bridge.ts";
+import { createBackgroundE2EApi } from "../background/e2e-api.ts";
 
-installBackgroundE2EBridge(globalThis, {
-  runtime: backgroundRuntime,
-  SHORTCUT_TYPES,
-  CURRENT_BROWSER,
-  WEB_EXTENSION_CAPABILITIES,
-  Log,
-  SaveHistory,
-  BackgroundState,
-  peekCounter,
-  resetCounter,
-  Notifier,
-  Path,
-  Download,
-  Shortcut,
-  menuState,
-  OptionsManagement,
-  options,
-  Messaging,
-});
+installBackgroundE2EBridge(globalThis, createBackgroundE2EApi());
 
 // Register the MV3 event listeners and run the background bootstrap
 // synchronously at startup. Listeners MUST attach synchronously or the service

@@ -44,7 +44,7 @@ const createNotification = (
     logPort.add("notification create failed", String(error)),
   );
   if (duration > 0) {
-    window.setTimeout(() => {
+    globalThis.setTimeout(() => {
       void Promise.resolve(webExtensionApi.notifications.clear(id)).catch((error) =>
         logPort.add("notification clear failed", String(error)),
       );

@@ -15,6 +15,9 @@ const LEGACY_POSITION_KEYS = [
 ];
 
 type TabSection = { heading: HTMLElement; nodes: HTMLElement[]; key: string };
+type TabsOptions = {
+  confirmPendingChanges?: () => boolean | Promise<boolean>;
+};
 const PRIMARY_SECTION_ORDER = [
   "section-downloads",
   "section-dynamic-downloads",
@@ -77,7 +80,7 @@ export const collectSections = (form: HTMLElement): TabSection[] => {
   return sections;
 };
 
-export const setupTabs = (): void => {
+export const setupTabs = ({ confirmPendingChanges }: TabsOptions = {}): void => {
   const form = document.getElementById("options");
   if (!form) {
     return;
@@ -142,12 +145,8 @@ export const setupTabs = (): void => {
     const mine = ++navigationGeneration;
     // Leaving a tab with unsaved editor changes prompts to save/discard
     // (main tabs don't unload the page, so beforeunload can't cover this)
-    if (
-      currentIndex !== -1 &&
-      index !== currentIndex &&
-      typeof window.confirmPendingChanges === "function"
-    ) {
-      const allowed = window.confirmPendingChanges();
+    if (currentIndex !== -1 && index !== currentIndex && confirmPendingChanges) {
+      const allowed = confirmPendingChanges();
       if (allowed && typeof (allowed as Promise<boolean>).then === "function") {
         void (allowed as Promise<boolean>).then((result) => {
           if (mine !== navigationGeneration) return;
@@ -223,7 +222,5 @@ export const setupTabs = (): void => {
   }
   select(initial);
 };
-
-document.addEventListener("DOMContentLoaded", setupTabs);
 
 export { TAB_STORAGE_KEY };

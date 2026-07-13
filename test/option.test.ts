@@ -3,7 +3,6 @@
 
 import * as constants from "../src/shared/constants.ts";
 import type { RoutingRule } from "../src/routing/router.ts";
-import { backgroundRuntime } from "../src/background/runtime.ts";
 
 const routingRule = (name: string): RoutingRule => [
   { name, value: ".*", type: constants.RULE_TYPES.MATCHER },
@@ -40,8 +39,6 @@ vi.mock("../src/routing/variable.ts", () => ({ applyVariables: mocks.applyVariab
 vi.mock("../src/routing/path.ts", () => ({ Path: mocks.Path }));
 vi.mock("../src/downloads/download.ts", () => ({ Download: mocks.Download }));
 
-Object.assign(global, constants);
-
 const setupGlobals = () => {
   mocks.currentBrowser = "UNKNOWN";
   Object.assign(mocks.router, { parseRules: vi.fn((v) => v), getCaptureMatches: vi.fn() });
@@ -49,11 +46,11 @@ const setupGlobals = () => {
   mocks.Path.mockReset();
   Object.assign(mocks.Download, { getRoutingMatches: vi.fn() });
   global.browser.storage.local.get = vi.fn(() => Promise.resolve({}));
-  backgroundRuntime.debug = false;
 };
 
 describe("OptionsManagement", () => {
   let OptionsManagement: (typeof import("../src/config/option.ts"))["OptionsManagement"];
+  let backgroundRuntime: (typeof import("../src/background/runtime.ts"))["backgroundRuntime"];
   type SchemaKey = (typeof OptionsManagement)["OPTION_KEYS"][number];
   type LoadKey = SchemaKey & { onLoad(value: any): any };
   type SaveKey = SchemaKey & { onSave(value: any): any };
@@ -62,6 +59,8 @@ describe("OptionsManagement", () => {
     jest.resetModules();
     setupGlobals();
     const optionModule = await import("../src/config/option.ts");
+    ({ backgroundRuntime } = await import("../src/background/runtime.ts"));
+    backgroundRuntime.debug = false;
     OptionsManagement = optionModule.OptionsManagement;
     // Seeding is deferred out of module eval (Task #2); seed defaults here the
     // way the entry does at startup, so loadOptions overlays storage onto them.
@@ -308,13 +307,13 @@ describe("OptionsManagement", () => {
       expect(global.browser.storage.local.get).toHaveBeenCalledWith(OptionsManagement.getKeys());
     });
 
-    test("sets window.SI_DEBUG when the stored debug flag is true", async () => {
+    test("sets runtime debug when the stored debug flag is true", async () => {
       global.browser.storage.local.get = vi.fn(() => Promise.resolve({ debug: true }));
       await OptionsManagement.loadOptions();
       expect(backgroundRuntime.debug).toBe(true);
     });
 
-    test("does not set window.SI_DEBUG when debug is false or absent", async () => {
+    test("does not set runtime debug when debug is false or absent", async () => {
       global.browser.storage.local.get = vi.fn(() => Promise.resolve({ debug: false }));
       await OptionsManagement.loadOptions();
       expect(backgroundRuntime.debug).toBe(false);

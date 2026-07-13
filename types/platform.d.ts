@@ -1,7 +1,3 @@
-interface Window {
-  confirmPendingChanges?: () => boolean | Promise<boolean>;
-}
-
 // Experimental WebMCP host surface, not yet present in lib.dom.
 interface ModelContext {
   registerTool: (tool: any) => any;

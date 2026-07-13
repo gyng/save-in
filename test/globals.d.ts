@@ -8,11 +8,4 @@ declare global {
   // vitest.setup.mjs aliases jest -> vi so jest-webextension-mock (and the odd
   // test helper) can call jest.fn at import time
   const jest: typeof VitestVi;
-
-  interface Window {
-    optionErrors: {
-      paths: Array<{ message: string; error: string; warning?: boolean }>;
-      filenamePatterns: Array<{ message: string; error: string; warning?: boolean }>;
-    };
-  }
 }

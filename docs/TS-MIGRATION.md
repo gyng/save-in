@@ -34,9 +34,9 @@ Output is readable + non-minified (the AMO "reviewable source" property becomes
   `options` (option.js), `globalChromeState`. Exported `let` is live but only
   reassignable in its defining module — readers import read-only. Where a reader
   must trigger a change, call an exported setter.
-- **`window.*` / `self` globals**: the SW aliases `self.window = self`
-  (background.js). Keep using `window.ready`/`window.SI_DEBUG` (they resolve to
-  the global); they don't need importing.
+- **`window.*` / `self` globals**: migration-era background globals were
+  replaced by imported runtime state. The final worker-safe bundle does not
+  alias `self.window`.
 
 ## Order (smallest / most isolated first)
 
@@ -153,10 +153,9 @@ Work happened on branch **`ts-migration`** (off `mv3`).
 
 ### Bundle facts (load-bearing)
 - Formats: background / background.sw / options / offscreen = `esm` (bare
-  scope-hoisted; entries have NO exports; `entries/background.ts` does
-  `Object.assign(globalThis, {…})` so the e2e's `evalSW` reaches
-  `Notifier/Download/Menus/Path/options/…` by bare name). content = `iife`.
-- `background.sw.js` gets a `banner: "self.window = self;\n"` (SW has no window).
+  scope-hoisted; entries have NO exports). The background entry installs one
+  explicit e2e bridge; content = `iife`.
+- `background.sw.js` uses worker-safe APIs directly and has no `window` banner.
 
 ### Post-migration backlog → `docs/ARCH-CYCLES.md` (tasks #55–68)
 Cuts #55–59 (dissolve the SCC) · #61 renameAndDownload · #63 structure · #60

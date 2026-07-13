@@ -76,9 +76,9 @@ yet need.
   cross-file global must be hand-registered in `.oxlintrc.json` `globals`.
 - **Mutable free-floating globals**: `currentTab` (`index.js:1`),
   `options` (`option.js:7`), plus `window.optionErrors`,
-  `window.lastDownloadState`, `window.ready`, `window.SI_DEBUG`. In the
-  Chrome SW these live on `self` via the `self.window = self` shim in
-  `src/background.js`. ~~`lastUsedPath`~~ → moved onto `Menus.state`;
+  `window.lastDownloadState`, `window.ready`, `window.SI_DEBUG`. These were
+  replaced by the module-owned `backgroundRuntime`; the temporary
+  `self.window = self` shim has also been removed. ~~`lastUsedPath`~~ → moved onto `Menus.state`;
   ~~`requestedDownloadFlag`~~ → replaced by `Notifier.expectDownload()`;
   ~~`globalChromeState`~~ → `Download.pendingStates` keyed map (all **done**).
 - ~~**The file list is duplicated**~~ **Done:** still duplicated by necessity

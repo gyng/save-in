@@ -19,11 +19,7 @@ let PORT;
 let DOWNLOADS;
 
 const inE2EBridge = (expr) => `(() => {
-  const {
-    runtime: window, SHORTCUT_TYPES, CURRENT_BROWSER, WEB_EXTENSION_CAPABILITIES,
-    Log, SaveHistory, BackgroundState, peekCounter, resetCounter, Notifier,
-    Path, Download, Shortcut, menuState, OptionsManagement, options, Messaging
-  } = globalThis.__SAVE_IN_E2E__;
+  const api = globalThis.__SAVE_IN_E2E__;
   return (${expr});
 })()`;
 const evalSW = (expr, wake) => cdp.evalInServiceWorker(PORT, extensionId, inE2EBridge(expr), wake);
@@ -48,7 +44,7 @@ const waitForLog = (predicate, deadlineMs = 8000) =>
   poll(
     async () => {
       const entries = JSON.parse(
-        await evalSW(`Log.get().then((log) => JSON.stringify(log.filter(${predicate})))`),
+        await evalSW(`api.logs().then((log) => JSON.stringify(log.filter(${predicate})))`),
       );
       return entries.length ? entries : null;
     },
@@ -79,15 +75,9 @@ afterAll(async () => {
 
 test("service worker initialises cleanly", async () => {
   const state = JSON.parse(
-    await evalSW(`window.ready.then(() => JSON.stringify({
-      browser: CURRENT_BROWSER,
-      capabilities: WEB_EXTENSION_CAPABILITIES,
-      promptConflictAction: OptionsManagement.OPTION_KEYS
-        .find(({ name }) => name === "conflictAction").onLoad("prompt"),
-      pathErrors: window.optionErrors.paths.length,
-      patternErrors: window.optionErrors.filenamePatterns.length,
-      menuCount: Object.keys(menuState.pathMappings).length,
-      noObjectUrl: typeof URL.createObjectURL === "undefined",
+    await evalSW(`api.inspect().then((state) => JSON.stringify({
+      ...state,
+      noObjectUrl: !state.hasObjectUrl,
     }))`),
   );
 
@@ -156,18 +146,10 @@ test("options-save reset message round-trips", async () => {
 });
 
 test("download completes through the real pipeline with session tracking", async () => {
-  await evalSW(`window.ready.then(() => {
-      Notifier.expectDownload();
-      return Download.renameAndDownload({
-        path: new Path("e2e"),
-        scratch: {},
-        info: {
-          url: Download.makeObjectUrl("e2e smoke test content"),
-          suggestedFilename: "smoke.txt",
-          pageUrl: "https://example.com/",
-          modifiers: [],
-        },
-      });
+  await evalSW(`api.startDownload({
+      content: "e2e smoke test content",
+      suggestedFilename: "smoke.txt",
+      pageUrl: "https://example.com/",
     }).then(() => "started")`);
   const downloads = await waitForDownloads("smoke");
   expect(downloads.some((x) => x.state === "complete")).toBe(true);
@@ -212,8 +194,8 @@ test("download completes through the real pipeline with session tracking", async
 test("lastUsedPath survives re-initialisation", async () => {
   const lastUsed = await evalSW(
     `browser.storage.local.set({ lastUsedPath: "e2e/persisted" })
-      .then(() => window.reset())
-      .then(() => String(menuState.lastUsedPath))`,
+      .then(() => api.reset())
+      .then(() => api.menuSnapshot().lastUsedPath)`,
   );
   expect(lastUsed).toBe("e2e/persisted");
 });
@@ -241,7 +223,7 @@ test("ordinary browser downloads can be routed and tracked without adoption", as
       routeBrowserDownloads: true,
       browserDownloadFilter: "*://127.0.0.1/*",
       filenamePatterns: "filename: native\\.bin\\ninto: browser-routed/:filename:",
-    }).then(() => window.reset())`);
+    }).then(() => api.reset())`);
     await cdp.openTab(PORT, pageUrl);
     await poll(
       async () =>
@@ -256,7 +238,7 @@ test("ordinary browser downloads can be routed and tracked without adoption", as
       await poll(
         async () => {
           const json = await evalSW(
-            `SaveHistory.get().then((entries) => JSON.stringify(entries.filter((entry) => entry.info?.context === "browser")))`,
+            `api.history().then((entries) => JSON.stringify(entries.filter((entry) => entry.info?.context === "browser")))`,
           );
           return JSON.parse(json).some((entry) => entry.status === "complete") ? json : null;
         },
@@ -274,7 +256,7 @@ test("ordinary browser downloads can be routed and tracked without adoption", as
       routeBrowserDownloads: false,
       browserDownloadFilter: "",
       filenamePatterns: "",
-    }).then(() => window.reset())`);
+    }).then(() => api.reset())`);
     server.close();
   }
 });
@@ -358,8 +340,8 @@ test("the paths editor saves manually: Apply/Discard track the dirty state", asy
 test("changing the paths option rebuilds the context menus", async () => {
   const menuCount = await evalSW(
     `browser.storage.local.set({ paths: "alpha\\nbeta\\ngamma\\ndelta\\nepsilon" })
-      .then(() => window.reset())
-      .then(() => JSON.stringify(Object.keys(menuState.pathMappings).length))`,
+      .then(() => api.reset())
+      .then(() => JSON.stringify(api.menuSnapshot().count))`,
   );
   expect(JSON.parse(menuCount)).toBe(5);
 });
@@ -368,20 +350,12 @@ test("routing rules rename and route the download", async () => {
   await evalSW(`browser.storage.local.set({
       filenamePatterns: "filename: routeme\\ninto: routed/renamed-:filename:",
     })
-      .then(() => window.reset())
-      .then(() => {
-        Notifier.expectDownload();
-        return Download.renameAndDownload({
-          path: new Path("e2e"),
-          scratch: {},
-          info: {
-            url: Download.makeObjectUrl("routed content"),
-            suggestedFilename: "routeme.txt",
-            pageUrl: "https://example.com/",
-            modifiers: [],
-          },
-        });
-      }).then(() => "started")`);
+      .then(() => api.reset())
+      .then(() => api.startDownload({
+        content: "routed content",
+        suggestedFilename: "routeme.txt",
+        pageUrl: "https://example.com/",
+      })).then(() => "started")`);
   expect((await waitForDownloads("renamed-routeme")).map((x) => x.state)).toEqual(["complete"]);
 
   const file = path.join(DOWNLOADS, "e2e", "routed", "renamed-routeme.txt");
@@ -389,31 +363,23 @@ test("routing rules rename and route the download", async () => {
 });
 
 test(":counter: advances once per download and persists in storage", async () => {
-  await evalSW(`resetCounter(BackgroundState.counterWrites, browser.storage.local)
+  await evalSW(`api.resetCounter()
       .then(() => browser.storage.local.set({
         filenamePatterns: "filename: countme\\ninto: counters/:counter:-:filename:",
       }))
-      .then(() => window.reset())`);
+      .then(() => api.reset())`);
   for (let i = 0; i < 2; i += 1) {
     // eslint-disable-next-line no-await-in-loop
-    await evalSW(`(() => {
-      Notifier.expectDownload();
-      return Download.renameAndDownload({
-        path: new Path("e2e"),
-        scratch: {},
-        info: {
-          url: Download.makeObjectUrl("counted-${i}"),
-          suggestedFilename: "countme.txt",
-          pageUrl: "https://example.com/",
-          modifiers: [],
-        },
-      });
-    })()`);
+    await evalSW(`api.startDownload({
+      content: "counted-${i}",
+      suggestedFilename: "countme.txt",
+      pageUrl: "https://example.com/",
+    })`);
     // eslint-disable-next-line no-await-in-loop
     const rows = await waitForDownloads(`${i + 1}-countme`);
     expect(rows.some((x) => x.state === "complete")).toBe(true);
   }
-  const finalCount = JSON.parse(await evalSW(`peekCounter(browser.storage.local)`));
+  const finalCount = JSON.parse(await evalSW(`api.peekCounter()`));
   // two downloads -> counter advanced exactly twice
   expect(finalCount).toBe(2);
   // and each download's :counter: resolved to its own value
@@ -423,13 +389,7 @@ test(":counter: advances once per download and persists in storage", async () =>
 
 test("APPLY_CONFIG validates and persists a partial config (#89)", async () => {
   const result = JSON.parse(
-    await evalSW(`new Promise((resolve) => {
-      Messaging.handleApplyConfig(
-        { body: { config: { truncateLength: 99, notifyOnSuccess: false, bogusKey: 1 } } },
-        {},
-        (r) => resolve(r.body),
-      );
-    })
+    await evalSW(`api.applyConfig({ truncateLength: 99, notifyOnSuccess: false, bogusKey: 1 })
       .then((body) =>
         browser.storage.local
           .get(["truncateLength", "notifyOnSuccess"])
@@ -451,7 +411,7 @@ test("message-driven downloads work and never inherit a stale route", async () =
   await evalSW(
     `browser.storage.local.set({
       filenamePatterns: "filename: routeme\\ninto: routed/renamed-:filename:",
-    }).then(() => window.reset())`,
+    }).then(() => api.reset())`,
   );
 
   // v1 handshake: PING negotiates the version + capabilities end-to-end
@@ -492,24 +452,16 @@ test("message-driven downloads work and never inherit a stale route", async () =
 
 test("fetchViaFetch downloads via an offscreen document (Chrome MV3)", async () => {
   await evalSW(`browser.storage.local.set({ filenamePatterns: "" })
-      .then(() => window.reset())
-      .then(() => {
-        options.fetchViaFetch = true;
-        Notifier.expectDownload();
-        return Download.renameAndDownload({
-          path: new Path("e2e"),
-          scratch: {},
-          info: {
-            url: "data:text/plain,via%20fetch%20content",
-            suggestedFilename: "viafetch.txt",
-            pageUrl: "https://example.com/",
-            modifiers: [],
-          },
-        });
-      }).then(() => "started")`);
+      .then(() => api.reset())
+      .then(() => api.startDownload({
+        url: "data:text/plain,via%20fetch%20content",
+        suggestedFilename: "viafetch.txt",
+        pageUrl: "https://example.com/",
+        runtimeOptions: { fetchViaFetch: true },
+      })).then(() => "started")`);
   expect((await waitForDownloads("viafetch")).map((x) => x.state)).toEqual(["complete"]);
   const hasOffscreen = await evalSW(`chrome.offscreen.hasDocument()`);
-  await evalSW(`options.fetchViaFetch = false`);
+  await evalSW(`api.setOptions({ fetchViaFetch: false })`);
   // the service worker used an offscreen document for the blob object URL
   expect(hasOffscreen).toBe(true);
 
@@ -534,20 +486,13 @@ test(":sha256: hashes and saves from a single fetch (Chrome MV3)", async () => {
   try {
     await evalSW(
       `browser.storage.local.set({ filenamePatterns: "" })
-        .then(() => window.reset())
-        .then(() => {
-          Notifier.expectDownload();
-          return Download.renameAndDownload({
-            path: new Path("e2e/:sha256:"),
-            scratch: {},
-            info: {
-              url: "http://127.0.0.1:${serverPort}/hashme.bin",
-              suggestedFilename: "hashme.bin",
-              pageUrl: "http://127.0.0.1:${serverPort}/",
-              modifiers: [],
-            },
-          });
-        }).then(() => "started")`,
+        .then(() => api.reset())
+        .then(() => api.startDownload({
+          path: "e2e/:sha256:",
+          url: "http://127.0.0.1:${serverPort}/hashme.bin",
+          suggestedFilename: "hashme.bin",
+          pageUrl: "http://127.0.0.1:${serverPort}/",
+        })).then(() => "started")`,
     );
 
     const rows = await waitForDownloads(expectedHash, 10000);
@@ -591,7 +536,7 @@ test("options page autosave persists to storage and survives a restart", async (
 
     // ...and survives a simulated service-worker restart
     const afterReset = await evalSW(
-      `window.reset().then(() => JSON.stringify(options.promptOnShift))`,
+      `api.reset().then(() => JSON.stringify(api.getOption("promptOnShift")))`,
     );
     expect(JSON.parse(afterReset)).toBe(false);
   } finally {
@@ -607,23 +552,15 @@ test("options page autosave persists to storage and survives a restart", async (
         await new Promise((resolve) => setTimeout(resolve, 50));
       }
     })()`);
-    await evalSW(`window.reset().then(() => "reset")`);
+    await evalSW(`api.reset().then(() => "reset")`);
   }
 });
 
 test("shortcut files download with redirect content", async () => {
-  await evalSW(`window.ready.then(() => {
-      Notifier.expectDownload();
-      return Download.renameAndDownload({
-        path: new Path("e2e"),
-        scratch: {},
-        info: {
-          url: Shortcut.makeShortcut(SHORTCUT_TYPES.HTML_REDIRECT, "https://example.com/target"),
-          suggestedFilename: "page-shortcut.html",
-          pageUrl: "https://example.com/",
-          modifiers: [],
-        },
-      });
+  await evalSW(`api.startDownload({
+      shortcutUrl: "https://example.com/target",
+      suggestedFilename: "page-shortcut.html",
+      pageUrl: "https://example.com/",
     }).then(() => "started")`);
   const downloads = await waitForDownloads("page-shortcut");
   expect(downloads).toHaveLength(1);
@@ -636,19 +573,10 @@ test("shortcut files download with redirect content", async () => {
 });
 
 test("failed downloads are recorded in the debug log", async () => {
-  await evalSW(`window.ready.then(() => {
-      Notifier.expectDownload();
-      return Download.renameAndDownload({
-        path: new Path("e2e"),
-        scratch: {},
-        info: {
-          // Nothing listens on port 1
-          url: "http://127.0.0.1:1/si-unreachable.bin",
-          suggestedFilename: "si-unreachable.bin",
-          pageUrl: "https://example.com/",
-          modifiers: [],
-        },
-      });
+  await evalSW(`api.startDownload({
+      url: "http://127.0.0.1:1/si-unreachable.bin",
+      suggestedFilename: "si-unreachable.bin",
+      pageUrl: "https://example.com/",
     }).then(() => "started")`);
   const entries = await waitForLog(
     `(e) => e.message === "download failed" || e.message === "downloads.download failed"`,
@@ -659,7 +587,7 @@ test("failed downloads are recorded in the debug log", async () => {
   expect(entries.length).toBeGreaterThanOrEqual(1);
   const requested = JSON.parse(
     await evalSW(
-      `Log.get().then((log) => JSON.stringify(
+      `api.logs().then((log) => JSON.stringify(
         log.filter((e) => e.message === "download requested" && String(e.data).includes("si-unreachable"))
       ))`,
     ),
@@ -685,18 +613,10 @@ test("a failed download is retried automatically via background fetch", async ()
 
   try {
     await evalSW(
-      `window.ready.then(() => {
-        Notifier.expectDownload();
-        return Download.renameAndDownload({
-          path: new Path("e2e"),
-          scratch: {},
-          info: {
-            url: "http://127.0.0.1:${serverPort}/flaky.bin",
-            suggestedFilename: "flaky.bin",
-            pageUrl: "http://127.0.0.1:${serverPort}/",
-            modifiers: [],
-          },
-        });
+      `api.startDownload({
+        url: "http://127.0.0.1:${serverPort}/flaky.bin",
+        suggestedFilename: "flaky.bin",
+        pageUrl: "http://127.0.0.1:${serverPort}/",
       }).then(() => "started")`,
     );
 
@@ -734,7 +654,7 @@ test("alt+click on a real page saves the image through the content script", asyn
   try {
     await evalSW(
       `browser.storage.local.set({ contentClickToSave: true })
-        .then(() => window.reset())
+        .then(() => api.reset())
         .then(() => "enabled")`,
     );
 
@@ -816,7 +736,7 @@ test("alt+click on a real page saves the image through the content script", asyn
       console.log(
         "DIAG:",
         await evalSW(
-          `Promise.all([Log.get(), browser.downloads.search({}), browser.storage.local.get("contentClickToSave")])
+          `Promise.all([api.logs(), browser.downloads.search({}), browser.storage.local.get("contentClickToSave")])
             .then(([log, d, o]) => JSON.stringify({
               log: log.slice(-5),
               downloads: d.map((x) => x.filename.slice(-30)),
@@ -836,7 +756,7 @@ test("alt+click on a real page saves the image through the content script", asyn
 
 test("history and the debug log record the session's downloads", async () => {
   const records = JSON.parse(
-    await evalSW(`Promise.all([SaveHistory.get(), Log.get()]).then(([history, log]) => JSON.stringify({
+    await evalSW(`Promise.all([api.history(), api.logs()]).then(([history, log]) => JSON.stringify({
       history: history.length,
       logRequested: log.filter((e) => e.message === "download requested").length,
     }))`),

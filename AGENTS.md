@@ -57,8 +57,8 @@ filter limits both tracking and routing.
 One `manifest.json` (MV3) serves both browsers via dual `background` keys, both
 pointing at bundles: Firefox (≥ 121) uses `background.scripts: ["background.js"]`
 (an **event page**, real `window`) and ignores `service_worker`; Chrome (≥ 123)
-uses `background.service_worker: "background.sw.js"` (same modules, bundled with
-a `self.window = self;` banner since the SW has no `window`) and ignores
+uses `background.service_worker: "background.sw.js"` (the same worker-safe
+modules, without a `window` shim) and ignores
 `scripts`. Both bundles come from the SAME `src/entries/background.ts`; the staged
 `dist/bundled-pkg` manifest (via `scripts/build-bundled.js`) points the keys at
 the two outputs. Add a background module by importing it from the relevant entry
@@ -83,7 +83,7 @@ to Firefox too.
 1. **Register event listeners synchronously at top level.** A listener added
    inside a `.then()` misses the event that woke the worker. Menu/tab
    listeners are registered top-level in `background/main.ts`; their handlers
-   `await window.ready` (the init promise) before touching options or
+   await `backgroundRuntime.ready` (the init promise) before touching options or
    `menuState.pathMappings`.
 2. **Globals die between events.** Anything needed across wakeups goes to
    storage (via the `SessionState` wrapper, `session-state.ts`):
@@ -95,8 +95,8 @@ to Firefox too.
    `DownloadState.hydrate()` on each wake (awaited in `init`), plus a
    field-union `merge()` so `download.ts` (at `downloads.download` resolution)
    and `notification.ts` (at `onCreated`) converge on one record.
-3. **No `URL.createObjectURL`, no DOM, no `window`.** The SW entry aliases
-   `self.window = self` so legacy `window.foo` globals keep working.
+3. **No `URL.createObjectURL`, no DOM, no `window`.** Shared background code
+   uses worker-safe globals and capability detection; do not add a `window` shim.
 4. **`chrome.downloads.onDeterminingFilename`** listeners must `return true`
    synchronously to call `suggest()` asynchronously.
    The ordinary-browser routing branch always does this, awaits initialization,

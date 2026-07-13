@@ -11,11 +11,7 @@ import { listenLocal } from "./helpers.mjs";
 let session;
 
 const inE2EBridge = (expr) => `(() => {
-  const {
-    runtime: window, SHORTCUT_TYPES, CURRENT_BROWSER, WEB_EXTENSION_CAPABILITIES,
-    Log, SaveHistory, BackgroundState, peekCounter, resetCounter, Notifier,
-    Path, Download, Shortcut, menuState, OptionsManagement, options, Messaging
-  } = globalThis.__SAVE_IN_E2E__;
+  const api = globalThis.__SAVE_IN_E2E__;
   return (${expr});
 })()`;
 const evalBackground = (expr, timeoutMs) => session.evaluate(inE2EBridge(expr), timeoutMs);
@@ -47,7 +43,7 @@ const waitForLog = async (predicate, deadlineMs = 8000) =>
       `(async () => {
         const deadline = Date.now() + ${deadlineMs};
         for (;;) {
-          const matches = (await Log.get()).filter(${predicate});
+          const matches = (await api.logs()).filter(${predicate});
           if (matches.length || Date.now() >= deadline) return JSON.stringify(matches);
           await new Promise((resolve) => setTimeout(resolve, 100));
         }
@@ -86,15 +82,7 @@ afterAll(async () => {
 
 test("background event page initialises cleanly", async () => {
   const state = JSON.parse(
-    await evalBackground(`window.ready.then(() => JSON.stringify({
-      browser: CURRENT_BROWSER,
-      capabilities: WEB_EXTENSION_CAPABILITIES,
-      promptConflictAction: OptionsManagement.OPTION_KEYS
-        .find(({ name }) => name === "conflictAction").onLoad("prompt"),
-      pathErrors: window.optionErrors.paths.length,
-      menuCount: Object.keys(menuState.pathMappings).length,
-      hasObjectUrl: typeof URL.createObjectURL === "function",
-    }))`),
+    await evalBackground(`api.inspect().then((state) => JSON.stringify(state))`),
   );
 
   expect(state.browser).toBe("FIREFOX");
@@ -115,18 +103,10 @@ test("background event page initialises cleanly", async () => {
 
 test("download completes through the real pipeline", async () => {
   await evalBackground(
-    `window.ready.then(() => {
-        Notifier.expectDownload();
-        return Download.renameAndDownload({
-          path: new Path("e2e"),
-          scratch: {},
-          info: {
-            url: Download.makeObjectUrl("firefox e2e content"),
-            suggestedFilename: "ff-smoke.txt",
-            pageUrl: "https://example.com/",
-            modifiers: [],
-          },
-        });
+    `api.startDownload({
+        content: "firefox e2e content",
+        suggestedFilename: "ff-smoke.txt",
+        pageUrl: "https://example.com/",
       }).then(() => "started")`,
   );
   const downloads = await waitForDownloads("ff-smoke");
@@ -137,7 +117,7 @@ test("download completes through the real pipeline", async () => {
 });
 
 test("options reset re-initialises", async () => {
-  const reset = await evalBackground(`Promise.resolve(window.reset()).then(() => "reset-ok")`);
+  const reset = await evalBackground(`api.reset().then(() => "reset-ok")`);
   expect(reset).toBe("reset-ok");
 });
 
@@ -156,14 +136,15 @@ test("downloads receive the configured Referer header", async () => {
   const referer = "http://referrer.example/download-test";
 
   try {
-    await evalBackground(`window.ready.then(() => {
-      options.setRefererHeader = true;
-      options.setRefererHeaderFilter = "*://127.0.0.1/*";
-      return Download.renameAndDownload({
-        path: new Path("e2e"), scratch: {},
-        info: { url: ${JSON.stringify(url)}, pageUrl: ${JSON.stringify(referer)},
-          suggestedFilename: "referer-probe-firefox.txt", modifiers: [] },
-      });
+    await evalBackground(`api.startDownload({
+      url: ${JSON.stringify(url)},
+      pageUrl: ${JSON.stringify(referer)},
+      suggestedFilename: "referer-probe-firefox.txt",
+      expectDownload: false,
+      runtimeOptions: {
+        setRefererHeader: true,
+        setRefererHeaderFilter: "*://127.0.0.1/*",
+      },
     })`);
     await expect(receivedReferer).resolves.toBe(referer);
     expect(
@@ -179,37 +160,26 @@ test("routing rules rename and route the download", async () => {
     `browser.storage.local.set({
         filenamePatterns: "filename: routeme\\ninto: routed/renamed-:filename:",
       })
-        .then(() => window.reset())
-        .then(() => {
-          Notifier.expectDownload();
-          return Download.renameAndDownload({
-            path: new Path("e2e"),
-            scratch: {},
-            info: {
-              url: Download.makeObjectUrl("ff routed content"),
-              suggestedFilename: "routeme.txt",
-              pageUrl: "https://example.com/",
-              modifiers: [],
-            },
-          });
-        }).then(() => "started")`,
+        .then(() => api.reset())
+        .then(() => api.startDownload({
+          content: "ff routed content",
+          suggestedFilename: "routeme.txt",
+          pageUrl: "https://example.com/",
+        })).then(() => "started")`,
   );
   expect((await waitForDownloads("renamed-routeme")).map((x) => x.state)).toEqual(["complete"]);
 });
 
 test("message-driven downloads work and never inherit a stale route", async () => {
   await evalBackground(
-    `new Promise((resolve) => {
-        Messaging.handleDownloadMessage({
-          body: {
-            url: Download.makeObjectUrl("ff message download"),
-            info: {
-              pageUrl: "https://example.com/",
-              srcUrl: "https://example.com/src.png",
-              suggestedFilename: "ff-msg-download.txt",
-            },
-          },
-        }, { tab: { id: 1, title: "E2E Tab" } }, resolve);
+    `api.downloadMessage({
+        content: "ff message download",
+        info: {
+          pageUrl: "https://example.com/",
+          srcUrl: "https://example.com/src.png",
+          suggestedFilename: "ff-msg-download.txt",
+        },
+        sender: { tab: { id: 1, title: "E2E Tab" } },
       }).then(() => "started")`,
   );
   expect((await waitForDownloads("ff-msg-download")).map((x) => x.state)).toEqual(["complete"]);
@@ -217,18 +187,10 @@ test("message-driven downloads work and never inherit a stale route", async () =
 
 test("shortcut files keep their extension and redirect content", async () => {
   await evalBackground(
-    `window.ready.then(() => {
-        Notifier.expectDownload();
-        return Download.renameAndDownload({
-          path: new Path("e2e"),
-          scratch: {},
-          info: {
-            url: Shortcut.makeShortcut(SHORTCUT_TYPES.HTML_REDIRECT, "https://example.com/target"),
-            suggestedFilename: "page-shortcut.html",
-            pageUrl: "https://example.com/",
-            modifiers: [],
-          },
-        });
+    `api.startDownload({
+        shortcutUrl: "https://example.com/target",
+        suggestedFilename: "page-shortcut.html",
+        pageUrl: "https://example.com/",
       }).then(() => "started")`,
   );
   const downloads = await waitForDownloads("page-shortcut");
@@ -243,19 +205,10 @@ test("shortcut files keep their extension and redirect content", async () => {
 
 test("failed downloads are recorded in the debug log", async () => {
   await evalBackground(
-    `window.ready.then(() => {
-        Notifier.expectDownload();
-        return Download.renameAndDownload({
-          path: new Path("e2e"),
-          scratch: {},
-          info: {
-            // Nothing listens on port 1
-            url: "http://127.0.0.1:1/unreachable.bin",
-            suggestedFilename: "unreachable.bin",
-            pageUrl: "https://example.com/",
-            modifiers: [],
-          },
-        });
+    `api.startDownload({
+        url: "http://127.0.0.1:1/unreachable.bin",
+        suggestedFilename: "unreachable.bin",
+        pageUrl: "https://example.com/",
       }).then(() => "started")`,
   );
   const entries = await waitForLog(
@@ -287,7 +240,7 @@ test("ordinary browser downloads can be tracked and experimentally rerouted on F
       routeBrowserDownloadsFirefox: true,
       browserDownloadFilter: "*://127.0.0.1/*",
       filenamePatterns: "filename: native-ff\\.bin\\ninto: browser-routed/:filename:",
-    }).then(() => window.reset())`);
+    }).then(() => api.reset())`);
     await evalBackground(`browser.tabs.create({ url: ${JSON.stringify(pageUrl)} })`);
     await evalBackground(`(async () => {
       const deadline = Date.now() + 8000;
@@ -307,7 +260,7 @@ test("ordinary browser downloads can be tracked and experimentally rerouted on F
       await evalBackground(`(async () => {
         const deadline = Date.now() + 8000;
         for (;;) {
-          const entries = (await SaveHistory.get()).filter((entry) => entry.info?.context === "browser");
+          const entries = (await api.history()).filter((entry) => entry.info?.context === "browser");
           if (entries.some((entry) => entry.status === "complete")) return JSON.stringify(entries);
           if (Date.now() >= deadline) return JSON.stringify(entries);
           await new Promise((resolve) => setTimeout(resolve, 100));
@@ -321,7 +274,7 @@ test("ordinary browser downloads can be tracked and experimentally rerouted on F
       routeBrowserDownloadsFirefox: false,
       browserDownloadFilter: "",
       filenamePatterns: "",
-    }).then(() => window.reset())`);
+    }).then(() => api.reset())`);
     server.close();
   }
 });
@@ -335,7 +288,7 @@ test("alt+click on a real page saves the image through the content script", asyn
     // Enable click-to-save and reinitialise so the content script picks it up
     await evalBackground(
       `browser.storage.local.set({ contentClickToSave: true })
-        .then(() => window.reset())
+        .then(() => api.reset())
         .then(() => "enabled")`,
     );
 
@@ -381,7 +334,7 @@ test("alt+click on a real page saves the image through the content script", asyn
 test("history and the debug log record the session's downloads", async () => {
   const records = JSON.parse(
     await evalBackground(
-      `Promise.all([SaveHistory.get(), Log.get()]).then(([history, log]) => JSON.stringify({
+      `Promise.all([api.history(), api.logs()]).then(([history, log]) => JSON.stringify({
         history: history.length,
         logRequested: log.filter((e) => e.message === "download requested").length,
       }))`,

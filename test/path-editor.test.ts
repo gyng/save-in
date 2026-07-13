@@ -101,7 +101,6 @@ describe("visual editor", () => {
       <div id="path-editor-rows"></div>
       <div id="menu-preview-tree-visual"></div>
     `;
-    Reflect.set(globalThis, "renderMenuPreview", vi.fn());
     global.browser.runtime.sendMessage = vi.fn(() =>
       Promise.resolve({ body: { items: [], errors: [] } }),
     );
@@ -112,7 +111,6 @@ describe("visual editor", () => {
   afterEach(() => {
     vi.useRealTimers();
     document.body.innerHTML = "";
-    Reflect.deleteProperty(globalThis, "renderMenuPreview");
   });
 
   const textarea = () => element<HTMLTextAreaElement>("#paths");

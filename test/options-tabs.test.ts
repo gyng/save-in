@@ -223,6 +223,8 @@ describe("setupTabs guards", () => {
 });
 
 describe("unsaved-changes guard on tab switch", () => {
+  let confirmPendingChanges: (() => boolean | Promise<boolean>) | undefined;
+
   beforeEach(() => {
     buildForm();
     try {
@@ -230,31 +232,33 @@ describe("unsaved-changes guard on tab switch", () => {
     } catch (e) {
       // ignore
     }
-    setupTabs();
+    confirmPendingChanges = undefined;
+    setupTabs({
+      confirmPendingChanges: () => confirmPendingChanges?.() ?? true,
+    });
   });
 
   afterEach(() => {
     document.body.innerHTML = "";
-    delete window.confirmPendingChanges;
   });
 
   test("calls the guard when switching to a different tab", () => {
-    window.confirmPendingChanges = vi.fn(() => true);
+    confirmPendingChanges = vi.fn(() => true);
     const tabs = document.querySelectorAll<HTMLElement>(".tablist .tab");
 
     tabs[1].click();
-    expect(window.confirmPendingChanges).toHaveBeenCalledTimes(1);
+    expect(confirmPendingChanges).toHaveBeenCalledTimes(1);
 
     // Re-clicking the active tab is not a switch
     tabs[1].click();
-    expect(window.confirmPendingChanges).toHaveBeenCalledTimes(1);
+    expect(confirmPendingChanges).toHaveBeenCalledTimes(1);
 
     tabs[0].click();
-    expect(window.confirmPendingChanges).toHaveBeenCalledTimes(2);
+    expect(confirmPendingChanges).toHaveBeenCalledTimes(2);
   });
 
   test("stays on the current tab when the unsaved-changes guard declines", () => {
-    window.confirmPendingChanges = vi.fn(() => false);
+    confirmPendingChanges = vi.fn(() => false);
     const tabs = document.querySelectorAll<HTMLElement>(".tablist .tab");
     const panels = document.querySelectorAll(".tab-panel");
 
@@ -267,7 +271,7 @@ describe("unsaved-changes guard on tab switch", () => {
 
   test("waits for asynchronous persistence before switching tabs", async () => {
     let finish: (allowed: boolean) => void = () => {};
-    window.confirmPendingChanges = vi.fn(
+    confirmPendingChanges = vi.fn(
       () => new Promise<boolean>((resolve) => (finish = resolve)),
     ) as any;
     const tabs = document.querySelectorAll<HTMLElement>(".tablist .tab");
@@ -283,7 +287,7 @@ describe("unsaved-changes guard on tab switch", () => {
 
   test("stays on the current tab when asynchronous persistence detects a newer edit", async () => {
     let finish: (allowed: boolean) => void = () => {};
-    window.confirmPendingChanges = vi.fn(
+    confirmPendingChanges = vi.fn(
       () => new Promise<boolean>((resolve) => (finish = resolve)),
     ) as any;
     const tabs = document.querySelectorAll<HTMLElement>(".tablist .tab");
@@ -300,7 +304,7 @@ describe("unsaved-changes guard on tab switch", () => {
 
   test("waits for an asynchronous save guard before switching", async () => {
     let finish!: (allowed: boolean) => void;
-    window.confirmPendingChanges = vi.fn(
+    confirmPendingChanges = vi.fn(
       () => new Promise<boolean>((resolve) => (finish = resolve)),
     ) as any;
     const tabs = document.querySelectorAll<HTMLElement>(".tablist .tab");
@@ -312,7 +316,7 @@ describe("unsaved-changes guard on tab switch", () => {
 
   test("only the latest pending tab request may activate", async () => {
     const finishes: Array<(allowed: boolean) => void> = [];
-    window.confirmPendingChanges = vi.fn(
+    confirmPendingChanges = vi.fn(
       () => new Promise<boolean>((resolve) => finishes.push(resolve)),
     ) as any;
     const tabs = document.querySelectorAll<HTMLElement>(".tablist .tab");
@@ -327,7 +331,7 @@ describe("unsaved-changes guard on tab switch", () => {
 
   test("keyboard focus follows activation and returns on failure", async () => {
     let finish!: (allowed: boolean) => void;
-    window.confirmPendingChanges = vi.fn(
+    confirmPendingChanges = vi.fn(
       () => new Promise<boolean>((resolve) => (finish = resolve)),
     ) as any;
     const tabs = [...document.querySelectorAll<HTMLElement>('[role="tab"]')];

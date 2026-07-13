@@ -211,9 +211,7 @@ export const addLastUsed = (contexts: string[]) => {
   // worker has no matchMedia (and rejects `icons` anyway — the catch
   // handles it); Firefox's event page has both.
   const darkMode =
-    typeof window !== "undefined" &&
-    typeof window.matchMedia === "function" &&
-    window.matchMedia("(prefers-color-scheme: dark)").matches;
+    typeof matchMedia === "function" && matchMedia("(prefers-color-scheme: dark)").matches;
   const icon = darkMode ? "icons/ic_update_white_24px.svg" : "icons/ic_update_black_24px.svg";
 
   // Chrome, FF < 57 crash when icons is supplied

@@ -2,10 +2,7 @@
 // Content-Disposition parser) and its integration with
 // Download.getFilenameFromContentDisposition, which elsewhere is mocked.
 
-import * as constants from "../src/shared/constants.ts";
 import { getFilenameFromContentDispositionHeader as parse } from "../src/vendor/content-disposition.ts";
-
-Object.assign(global, constants);
 
 describe("vendored content-disposition parser", () => {
   test("quoted and unquoted filenames", () => {

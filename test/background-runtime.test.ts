@@ -1,4 +1,8 @@
-import { backgroundRuntime, resetRuntimeDiagnostics } from "../src/background/runtime.ts";
+import {
+  backgroundRuntime,
+  createBackgroundRuntime,
+  resetRuntimeDiagnostics,
+} from "../src/background/runtime.ts";
 import { BACKGROUND_E2E_BRIDGE, installBackgroundE2EBridge } from "../src/background/e2e-bridge.ts";
 
 describe("BackgroundRuntime", () => {
@@ -8,6 +12,16 @@ describe("BackgroundRuntime", () => {
     resetRuntimeDiagnostics();
 
     expect(backgroundRuntime.optionErrors).toEqual({ paths: [], filenamePatterns: [] });
+  });
+
+  test("creates isolated runtime records", () => {
+    const first = createBackgroundRuntime();
+    const second = createBackgroundRuntime();
+    first.debug = true;
+    first.optionErrors.paths.push({ message: "bad", error: "x" });
+
+    expect(second.debug).toBe(false);
+    expect(second.optionErrors.paths).toEqual([]);
   });
 
   test("installs one non-enumerable, read-only e2e bridge", () => {

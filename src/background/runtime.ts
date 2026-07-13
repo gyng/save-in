@@ -14,18 +14,14 @@ export type BackgroundRuntime = {
   reset: () => Promise<unknown>;
 };
 
-const RUNTIME_KEY = Symbol.for("save-in.backgroundRuntime");
-const runtimeHost = globalThis as typeof globalThis & { [RUNTIME_KEY]?: BackgroundRuntime };
-
-// A module-reset test models a worker module graph being rebuilt while its
-// jsdom host survives. Reusing the record keeps the compatibility bridge bound
-// to the same explicit runtime instance.
-export const backgroundRuntime: BackgroundRuntime = (runtimeHost[RUNTIME_KEY] ??= {
+export const createBackgroundRuntime = (): BackgroundRuntime => ({
   optionErrors: emptyOptionErrors(),
   debug: false,
   init: () => Promise.resolve(),
   reset: () => Promise.resolve(),
 });
+
+export const backgroundRuntime = createBackgroundRuntime();
 
 export const resetRuntimeDiagnostics = () => {
   backgroundRuntime.optionErrors = emptyOptionErrors();

@@ -589,7 +589,7 @@ const showManualSaveError = (id: string, error: unknown) => {
 };
 
 // Called before an in-page tab switch (main tabs don't unload the page).
-window.confirmPendingChanges = async () => {
+export const confirmPendingChanges = async (): Promise<boolean> => {
   // An existing request already owns these values. Keep the current tab
   // visible until it settles instead of prompting and launching a duplicate.
   if (manualEditorState.anySaving() || fieldSaveState.anySaving()) {

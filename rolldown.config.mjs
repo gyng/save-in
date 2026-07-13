@@ -11,15 +11,11 @@ import { defineConfig } from "rolldown";
 //   - background / background.sw / options / offscreen use `esm`: an entry with
 //     NO exports emits bare top-level code (no `export` statements), valid as a
 //     classic script in the SW / event page / page. The background entry then
-//     assigns its objects onto globalThis so the e2e's evalSW can reach them by
-//     bare name — an `iife` would hide them.
+//     installs one explicit e2e bridge on globalThis; an `iife` would hide the
+//     module bindings used to construct that bridge.
 //   - content uses `iife`: it runs as a classic content script and is isolated
 //     (nothing outside reads its bindings), so a function wrapper is fine; `esm`
 //     would emit `export` statements (a syntax error when injected).
-//
-// The Chrome service worker has no `window`; background.sw.js is prefixed with
-// `self.window = self;` (banner) so the legacy `window.foo` globals keep working
-// before any module that touches `window` at load evaluates.
 
 export default defineConfig([
   // Firefox event page (has a real window) — loaded via background.scripts
@@ -32,7 +28,7 @@ export default defineConfig([
       sourcemap: true,
     },
   },
-  // Chrome service worker: same modules, with the window shim up front
+  // Chrome service worker: the same worker-safe module graph.
   {
     input: "src/entries/background.ts",
     output: {
@@ -40,7 +36,6 @@ export default defineConfig([
       format: "esm",
       minify: false,
       sourcemap: true,
-      banner: "self.window = self;\n",
     },
   },
   {
