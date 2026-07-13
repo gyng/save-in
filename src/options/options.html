@@ -1297,77 +1297,90 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
 
       <textarea id="export-target" hidden spellcheck="false"></textarea>
 
-      <h3>External integrations</h3>
-      <h4>External download API</h4>
-      <p class="caption caption-line">
-        Other extensions can save a URL through save-in's routing and rename rules (issue #110).
-        <a class="external" href="https://github.com/gyng/save-in/wiki/Integrations"
-          >Integration guide</a
-        >.
-      </p>
-      <label class="caption-line">
-        <div>Allowed extension IDs</div>
-        <textarea
-          class="full-width"
-          id="externalDownloadAllowlist"
-          rows="3"
-          placeholder="One extension ID per line"
-          spellcheck="false"
-        ></textarea>
-        <div class="caption caption-line">
-          Enter each allowed extension ID—the calling extension's ID, not Save In's—one per line. An
-          empty list blocks all external download requests; discovery and validation requests remain
-          available.
+      <h3 id="external-integrations-heading">External integrations</h3>
+      <section class="external-integrations-card" aria-labelledby="external-integrations-heading">
+        <div class="external-integrations-header">
+          <div>
+            <h4>External download access</h4>
+            <p class="caption">
+              Let trusted extensions send URLs through Save In's routing and rename rules.
+            </p>
+          </div>
+          <a class="external" href="https://github.com/gyng/save-in/wiki/Integrations"
+            >Integration guide</a
+          >
         </div>
-      </label>
-      <section
-        id="external-download-rejections"
-        class="external-download-rejections"
-        aria-live="polite"
-        hidden
-      >
-        <div class="external-download-rejections-title">Blocked external download requests</div>
-        <div class="caption">
-          Review extensions that tried to start a download. Add only callers you trust. Rejected
-          URLs are not stored.
-        </div>
-        <div id="external-download-rejection-list"></div>
-        <div id="external-download-rejection-status" class="caption" role="status"></div>
-      </section>
-      <div class="dev-api">
-        <div class="dev-api-row">
-          <span class="dev-api-label">Extension ID</span>
-          <code id="ext-id" class="click-to-copy dev-api-value" title="Click to copy">…</code>
-        </div>
-        <div class="dev-api-row">
-          <span class="dev-api-label">API version</span>
-          <span id="api-version" class="dev-api-value">…</span>
-        </div>
-        <div class="dev-api-row">
-          <span class="dev-api-label">Capabilities</span>
-          <span id="api-capabilities" class="dev-api-value">…</span>
-        </div>
-        <details class="dev-api-snippet">
-          <summary>Example: negotiate the version, then save a URL</summary>
-          <pre id="api-snippet" class="click-to-copy" title="Click to copy"></pre>
-          <div class="caption">Click the snippet to copy it.</div>
-        </details>
-        <details class="dev-api-snippet">
-          <summary>Where this works</summary>
+
+        <label class="external-allowlist-control">
+          <span class="external-control-label">Allowed extension IDs</span>
+          <span class="caption external-control-help">
+            Add the calling extension's ID—not Save In's ID—one per line. Leave this empty to block
+            external downloads; API discovery remains available.
+          </span>
+          <textarea
+            class="full-width external-allowlist-input"
+            id="externalDownloadAllowlist"
+            rows="4"
+            placeholder="One extension ID per line"
+            spellcheck="false"
+          ></textarea>
+        </label>
+
+        <section
+          id="external-download-rejections"
+          class="external-download-rejections"
+          aria-live="polite"
+          hidden
+        >
+          <div class="external-download-rejections-title">Requests awaiting approval</div>
           <div class="caption">
-            WebExtensions such as Foxy Gestures can message Save In directly. A Greasemonkey,
-            Tampermonkey, or Violentmonkey userscript cannot do so by itself: userscripts do not
-            receive cross-extension messaging access. Use a small companion WebExtension as a relay,
-            or have the userscript hand the URL to an extension that exposes that ability.
+            These extensions tried to start a download. Add only callers you trust. Requested URLs
+            are never stored.
           </div>
-          <div class="caption caption-line">
-            Save In does not adopt downloads already started by another extension, including Video
-            DownloadHelper. The downloader must send Save In's <code>DOWNLOAD</code> message first,
-            or a small relay extension must do so; Video DownloadHelper does not expose a stable
-            integration API that Save In can call directly.
+          <div id="external-download-rejection-list"></div>
+          <div id="external-download-rejection-status" class="caption" role="status"></div>
+        </section>
+
+        <details class="external-api-details">
+          <summary>Developer details</summary>
+          <div class="dev-api">
+            <div class="dev-api-row">
+              <span class="dev-api-label">Extension ID</span>
+              <code id="ext-id" class="click-to-copy dev-api-value" title="Click to copy">…</code>
+            </div>
+            <div class="dev-api-row">
+              <span class="dev-api-label">API version</span>
+              <span id="api-version" class="dev-api-value">…</span>
+            </div>
+            <div class="dev-api-row">
+              <span class="dev-api-label">Capabilities</span>
+              <span id="api-capabilities" class="dev-api-value">…</span>
+            </div>
+            <details class="dev-api-snippet">
+              <summary>Example: negotiate the version, then save a URL</summary>
+              <pre id="api-snippet" class="click-to-copy" title="Click to copy"></pre>
+              <div class="caption">Click the snippet to copy it.</div>
+            </details>
+            <details class="dev-api-snippet">
+              <summary>Where this works</summary>
+              <div class="caption">
+                WebExtensions such as Foxy Gestures can message Save In directly. A Greasemonkey,
+                Tampermonkey, or Violentmonkey userscript cannot do so by itself: userscripts do not
+                receive cross-extension messaging access. Use a small companion WebExtension as a
+                relay, or have the userscript hand the URL to an extension that exposes that
+                ability.
+              </div>
+              <div class="caption caption-line">
+                Save In does not adopt downloads already started by another extension, including
+                Video DownloadHelper. The downloader must send Save In's
+                <code>DOWNLOAD</code> message first, or a small relay extension must do so; Video
+                DownloadHelper does not expose a stable integration API that Save In can call
+                directly.
+              </div>
+            </details>
           </div>
         </details>
-      </div>
+      </section>
 
       <h4>
         WebMCP

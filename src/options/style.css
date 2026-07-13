@@ -2903,18 +2903,72 @@ button {
   border-radius: var(--radius);
 }
 
-/* ── More Options → External API (issue #110) ─────────────────────── */
+/* ── More Options → External integrations ────────────────────────── */
+
+.external-integrations-card {
+  display: grid;
+  gap: var(--space-4);
+  width: min(760px, 100%);
+  box-sizing: border-box;
+  margin: var(--space-2) 0 var(--space-6);
+  padding: var(--space-4);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  background: var(--panel-bg);
+}
+
+.external-integrations-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.external-integrations-header h4,
+.external-integrations-header p {
+  margin: 0;
+}
+
+.external-integrations-header .external {
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+
+.external-allowlist-control {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+}
+
+.external-control-label {
+  font-weight: 600;
+}
+
+.external-control-help {
+  max-width: 68ch;
+  line-height: 1.4;
+}
+
+.tab-panel .external-allowlist-input {
+  min-height: 6.5rem;
+  margin-top: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  font-family: var(--font-mono);
+  line-height: 1.45;
+  resize: vertical;
+}
 
 .external-download-rejections {
-  max-width: 640px;
-  margin: var(--space-2) 0;
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--error-border);
+  margin: 0;
+  padding: var(--space-3);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 32%, var(--panel-border));
   border-radius: var(--radius);
-  background: var(--error-bg);
+  background: color-mix(in srgb, var(--color-accent) 7%, var(--page-bg));
 }
 
 .external-download-rejections-title {
+  margin-bottom: 2px;
   font-weight: 600;
 }
 
@@ -2923,8 +2977,9 @@ button {
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
-  padding: var(--space-2) 0;
-  border-top: 1px solid var(--panel-border);
+  margin-top: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px solid color-mix(in srgb, var(--color-accent) 22%, var(--panel-border));
 }
 
 .external-download-rejection-details {
@@ -2937,6 +2992,42 @@ button {
 
 .external-download-rejection-add {
   flex: 0 0 auto;
+}
+
+.external-api-details {
+  border-top: 1px solid var(--panel-border);
+  padding-top: var(--space-3);
+}
+
+.external-api-details > summary {
+  color: var(--color-text-muted);
+  font-size: var(--text-md);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.external-api-details > .dev-api {
+  max-width: none;
+  margin: var(--space-2) 0 0;
+  padding: var(--space-2) 0 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+@media (max-width: 640px) {
+  .external-integrations-header {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .external-integrations-header .external {
+    margin-top: 0;
+  }
+
+  .external-download-rejection {
+    align-items: flex-start;
+  }
 }
 
 .dev-api {

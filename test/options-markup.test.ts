@@ -189,17 +189,27 @@ describe("options form semantics", () => {
       node.textContent?.replaceAll(/\s+/g, " ").trim(),
     );
     expect(subheadings).toEqual(
-      expect.arrayContaining(["External download API", "WebMCP __MSG_o_lExperimental__"]),
+      expect.arrayContaining(["External download access", "WebMCP __MSG_o_lExperimental__"]),
     );
     expect(document.body.textContent).toContain("Greasemonkey");
     expect(document.body.textContent).toContain("Video DownloadHelper");
     expect(document.body.textContent).toContain("does not adopt downloads already started");
     const allowlist = document.querySelector<HTMLTextAreaElement>("#externalDownloadAllowlist");
     expect(allowlist).not.toBeNull();
-    expect(allowlist?.closest("label")?.textContent).toContain("allowed extension ID");
+    expect(allowlist?.closest("label")?.querySelector(".external-control-label")?.textContent).toBe(
+      "Allowed extension IDs",
+    );
+    const integrationCard = document.querySelector(".external-integrations-card");
+    expect(integrationCard).not.toBeNull();
+    expect(integrationCard?.contains(allowlist)).toBe(true);
     const rejections = document.querySelector("#external-download-rejections");
     expect(rejections).not.toBeNull();
+    expect(integrationCard?.contains(rejections)).toBe(true);
     expect(allowlist?.compareDocumentPosition(rejections!)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(integrationCard?.querySelector(".external-api-details summary")?.textContent).toContain(
+      "Developer details",
+    );
+    expect(integrationCard?.textContent).not.toContain("#110");
   });
 
   test("explains match patterns where browser-download filters are configured", () => {
