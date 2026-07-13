@@ -49,10 +49,7 @@ timestamps, making identical source builds byte-for-byte reproducible.
   metadata, and use click-to-save.
 - Page Sources is a user-opened, DOM-only drawer. It reads media attributes,
   computed backgrounds, and Resource Timing entries for best-effort HLS/DASH
-  discovery. It neither intercepts traffic nor requests `webRequest`. Copying a
-  `yt-dlp` command writes text only; Save In never executes it. Its Advanced
-  theme setting can follow the system or force a drawer-only light/dark palette
-  without changing the host page.
+  discovery. It neither intercepts traffic nor requests `webRequest`.
 - Save In sends no analytics or developer-server requests. It fetches only URLs
   involved in user-requested saves.
 - Private/Incognito activity is excluded from Save In history, recovery state,
