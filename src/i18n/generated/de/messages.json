@@ -482,7 +482,7 @@
     "message": "Sprache"
   },
   "o_lBrowserDefault": {
-    "message": "Browser-Standardeinstellung"
+    "message": "Browsersprache"
   },
   "o_lLanguageChangeFailed": {
     "message": "Die Sprache konnte nicht geändert werden. Versuchen Sie es erneut."

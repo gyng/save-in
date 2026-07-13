@@ -340,18 +340,19 @@ body:not(#settings-page) {
 
 .language-selector {
   display: inline-flex;
-  align-items: baseline;
-  gap: var(--space-2);
+  align-items: center;
   white-space: nowrap;
 }
 
-.language-selector > span,
 .language-error {
   font-size: var(--text-sm);
 }
 
 .language-selector select {
-  max-width: 230px;
+  min-height: 30px;
+  max-width: 210px;
+  padding-block: 2px;
+  font-size: var(--text-sm);
 }
 
 .language-error {

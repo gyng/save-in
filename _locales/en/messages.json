@@ -912,7 +912,7 @@
     "description": "Label, status, or help text in the options interface. Used in src/options/options.html."
   },
   "o_lBrowserDefault": {
-    "message": "Default",
+    "message": "Browser language",
     "description": "Label, status, or help text in the options interface. Used in src/options/options.html."
   },
   "o_lLanguageChangeFailed": {

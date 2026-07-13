@@ -381,7 +381,7 @@
     "message": "언어"
   },
   "o_lBrowserDefault": {
-    "message": "브라우저 기본값"
+    "message": "브라우저 언어"
   },
   "o_lLanguageChangeFailed": {
     "message": "언어를 변경할 수 없습니다. 다시 시도해 보세요."
