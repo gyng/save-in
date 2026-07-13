@@ -781,6 +781,7 @@ export const toggleSourcePanel = (
               : "regular";
         size.textContent = sourceSize;
         detailText.append(
+          document.createTextNode("· "),
           size,
           document.createTextNode(
             `${mediaDetails.length ? ` · ${mediaDetails.join(" · ")}` : ""} ·`,
@@ -796,7 +797,7 @@ export const toggleSourcePanel = (
         );
         detected.setAttribute("aria-label", detectedAt);
         if (!hasRichTooltip) detected.title = detectedAt;
-        meta.replaceChildren(detailText, kindBadge, document.createTextNode("·"), detected);
+        meta.replaceChildren(kindBadge, detailText, detected);
       };
       if (preview instanceof HTMLImageElement) {
         preview.addEventListener(
@@ -831,7 +832,7 @@ export const toggleSourcePanel = (
         });
       }
       updateMeta();
-      text.append(name, url, meta);
+      text.append(name, meta, url);
       sourceLink.append(preview, text);
       const actions = document.createElement("div");
       actions.className = "actions";
