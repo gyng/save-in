@@ -181,6 +181,16 @@ describe("sanitizeFilename", () => {
     expect(Path.sanitizeFilename("CON.txt", 7, false)).toHaveLength(7);
   });
 
+  test("does not recreate a reserved name when a custom replacement is truncated", () => {
+    const previous = options.replacementChar;
+    options.replacementChar = "CON";
+    try {
+      expect(Path.sanitizeFilename("CONSOLE", 3, false)).toBe("_CO");
+    } finally {
+      options.replacementChar = previous;
+    }
+  });
+
   test("does not split a Unicode surrogate pair when truncating", () => {
     expect(Path.sanitizeFilename("ab😀cd", 3, false)).toBe("ab");
   });
@@ -188,6 +198,10 @@ describe("sanitizeFilename", () => {
   test("preserves a file extension within the UTF-8 byte budget", () => {
     expect(Path.sanitizeFilename("界界界.txt", 8, false, true)).toBe("界.txt");
     expect(Path.getFilenameDiagnostics("界.txt", 8).exceedsLimit).toBe(false);
+  });
+
+  test("keeps a nonempty safe component when the first code point exceeds the byte limit", () => {
+    expect(Path.sanitizeFilename("界", 1, false)).toBe("_");
   });
 });
 
@@ -215,6 +229,16 @@ describe("Path.finalize component semantics", () => {
     options.truncateLength = 8;
     try {
       expect(new Path.Path("目录目录/file").finalize()).toBe("目录/file");
+    } finally {
+      options.truncateLength = previous;
+    }
+  });
+
+  test("does not collapse multibyte components under a one-byte limit", () => {
+    const previous = options.truncateLength;
+    options.truncateLength = 1;
+    try {
+      expect(new Path.Path("界/界").finalize()).toBe("_/_");
     } finally {
       options.truncateLength = previous;
     }

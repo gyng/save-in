@@ -55,6 +55,7 @@ const setupGlobals = () => {
   mocks.Path.mockReset();
   Object.assign(mocks.Download, { getRoutingMatches: vi.fn() });
   global.browser.storage.local.get = vi.fn(() => Promise.resolve({}));
+  global.browser.storage.local.set = vi.fn(() => Promise.resolve());
 };
 
 describe("OptionsManagement", () => {
@@ -175,6 +176,17 @@ describe("OptionsManagement", () => {
 
       expect((await OptionsManagement.loadOptions()).truncateLength).toBe(200);
       expect(global.browser.storage.local.set).not.toHaveBeenCalled();
+    });
+
+    test("loads options when the path truncation marker cannot be persisted", async () => {
+      global.browser.storage.local.get = vi.fn(() => Promise.resolve({ truncateLength: 200 }));
+      global.browser.storage.local.set = vi.fn(() =>
+        Promise.reject(new Error("storage quota exceeded")),
+      );
+
+      await expect(OptionsManagement.loadOptions()).resolves.toEqual(
+        expect.objectContaining({ truncateLength: 200 }),
+      );
     });
 
     test("starts new profiles with a small useful Downloads menu", async () => {

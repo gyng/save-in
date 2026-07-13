@@ -254,6 +254,7 @@ export const Download = {
   finalizeFullPath: (_state: FinalizableDownloadState): string => {
     let finalDir = _state.path.finalize();
     let finalFilename;
+    let finalFilenameIsRoutePath = false;
 
     if (_state.route && _state.routeIsFolder) {
       // §8.1: a folder-only rule (its `into:` ends with "/") routes into a
@@ -266,6 +267,7 @@ export const Download = {
     } else if (_state.route) {
       // The rule sets the whole name (which may itself include subdirectories)
       finalFilename = _state.route.finalize({ finalComponentIsFilename: true });
+      finalFilenameIsRoutePath = true;
     } else {
       finalFilename = typeof _state.info.filename === "string" ? _state.info.filename : undefined;
     }
@@ -283,11 +285,17 @@ export const Download = {
     }
 
     if (finalFilename) {
-      const components = finalFilename.split("/");
-      const filename = components.pop();
-      if (filename != null) {
-        components.push(sanitizeFilename(filename, options.truncateLength, true, true));
-        finalFilename = components.join("/");
+      if (finalFilenameIsRoutePath) {
+        const components = finalFilename.split("/");
+        const filename = components.pop();
+        if (filename != null) {
+          components.push(sanitizeFilename(filename, options.truncateLength, true, true));
+          finalFilename = components.join("/");
+        }
+      } else {
+        // Server-, URL-, and browser-derived names are one untrusted component.
+        // Only explicit route paths may introduce destination subdirectories.
+        finalFilename = sanitizeFilename(finalFilename, options.truncateLength, true, true);
       }
     }
 

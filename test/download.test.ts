@@ -143,6 +143,25 @@ describe("finalizeFullPath: folder-only route keeps the real filename (§8.1)", 
       options.truncateLength = previous;
     }
   });
+
+  test.each([
+    { route: undefined, routeIsFolder: undefined, expected: "menu/nested_report.pdf" },
+    {
+      route: { finalize: () => "pdfs" },
+      routeIsFolder: true,
+      expected: "menu/pdfs/nested_report.pdf",
+    },
+  ])("keeps an untrusted filename inside one component", ({ route, routeIsFolder, expected }) => {
+    const s = {
+      path: { finalize: () => "menu" },
+      route,
+      routeIsFolder,
+      info: { filename: getFilenameFromUrl("https://example.com/nested%2Freport.pdf") },
+      scratch: {},
+    };
+
+    expect(Download.finalizeFullPath(s)).toBe(expected);
+  });
 });
 
 describe("filename from URL", () => {

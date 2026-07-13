@@ -181,12 +181,18 @@ export const OptionsManagement: OptionsManagementApi = {
         // v1 counted UTF-16 code units and could exceed byte-limited filesystems.
         // Persist the normalized value with a separate version marker so event-page
         // and service-worker restarts never reinterpret the same profile twice.
+        const committed = commit();
+        // The migration is idempotent: retry a failed marker write on the next
+        // load instead of letting a quota/storage failure block background startup.
         return webExtensionApi.storage.local
           .set({
             truncateLength: nextOptions.truncateLength,
             [PATH_TRUNCATION_MIGRATION_STORAGE_KEY]: PATH_TRUNCATION_MIGRATION_VERSION,
           })
-          .then(commit);
+          .then(
+            () => committed,
+            () => committed,
+          );
       }),
 };
 

@@ -146,7 +146,15 @@ export function sanitizeFilename(
   const finalName = preserveExtension
     ? truncatePreservingExtension(safeName, max)
     : truncateIfLongerThan(safeName, max);
-  return trimTrailingDotsAndSpaces(finalName);
+  const finalTrimmed = trimTrailingDotsAndSpaces(finalName);
+  // A custom replacement can itself truncate back to CON/PRN/etc. The final
+  // filesystem-safety pass therefore uses a known-safe one-byte prefix.
+  const deviceSafe = neutralizeReservedDeviceName(finalTrimmed, "_");
+  const boundedDeviceSafe = preserveExtension
+    ? truncatePreservingExtension(deviceSafe, max)
+    : truncateIfLongerThan(deviceSafe, max);
+  const result = trimTrailingDotsAndSpaces(boundedDeviceSafe);
+  return result || (max >= 1 ? "_" : result);
 }
 
 export function sanitizeBufStrings(buf: PathSegment[]) {
