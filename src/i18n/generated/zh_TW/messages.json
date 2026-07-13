@@ -1840,5 +1840,8 @@
   "o_lUiThemeLight": { "message": "淺色" },
   "o_lUiThemeHelp": {
     "message": "跟隨系統主題，或讓選項頁面和頁面來源一律使用深色或淺色主題。"
+  },
+  "o_lPathEditorDragHelp": {
+    "message": "拖曳點狀控點。放在某列的上方或下方可置於同一層級，放在該列上則會巢狀置於其中。"
   }
 }

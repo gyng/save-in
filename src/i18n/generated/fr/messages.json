@@ -1746,5 +1746,8 @@
   "o_lUiThemeLight": { "message": "Clair" },
   "o_lUiThemeHelp": {
     "message": "Suivez le thème du système ou gardez la page d’options et les sources des pages toujours en mode sombre ou clair."
+  },
+  "o_lPathEditorDragHelp": {
+    "message": "Faites glisser une ligne par la poignée en pointillés. Déposez-la au-dessus ou au-dessous d’une ligne pour la placer au même niveau, ou sur la ligne pour l’y imbriquer."
   }
 }

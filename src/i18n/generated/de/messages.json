@@ -1736,5 +1736,8 @@
   "o_lUiThemeLight": { "message": "Hell" },
   "o_lUiThemeHelp": {
     "message": "Folgen Sie dem Systemdesign oder verwenden Sie für die Optionsseite und die Seitenquellen immer ein dunkles oder helles Design."
+  },
+  "o_lPathEditorDragHelp": {
+    "message": "Ziehen Sie eine Zeile am gepunkteten Griff. Legen Sie sie oberhalb oder unterhalb einer Zeile ab, um sie auf derselben Ebene zu platzieren, oder direkt auf einer Zeile, um sie dieser unterzuordnen."
   }
 }

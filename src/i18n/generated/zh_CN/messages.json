@@ -1840,5 +1840,8 @@
   "o_lUiThemeLight": { "message": "浅色" },
   "o_lUiThemeHelp": {
     "message": "跟随系统主题，或让选项页面和页面来源始终使用深色或浅色主题。"
+  },
+  "o_lPathEditorDragHelp": {
+    "message": "拖动点状手柄。将其放在某一行的上方或下方可置于同一级别，放在该行上则会嵌套到其中。"
   }
 }

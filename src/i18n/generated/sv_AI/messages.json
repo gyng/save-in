@@ -1732,5 +1732,8 @@
   "o_lUiThemeLight": { "message": "Ljust" },
   "o_lUiThemeHelp": {
     "message": "Följ systemtemat eller använd alltid mörkt eller ljust tema på alternativsidan och i sidkällor."
+  },
+  "o_lPathEditorDragHelp": {
+    "message": "Dra i det prickade handtaget. Släpp raden ovanför eller nedanför en annan rad för att placera den på samma nivå, eller på raden för att nästla den inuti."
   }
 }

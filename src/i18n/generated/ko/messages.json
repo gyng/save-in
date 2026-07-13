@@ -1840,5 +1840,8 @@
   "o_lUiThemeLight": { "message": "밝게" },
   "o_lUiThemeHelp": {
     "message": "시스템 테마를 따르거나 옵션 페이지와 페이지 소스를 항상 어둡게 또는 밝게 표시합니다."
+  },
+  "o_lPathEditorDragHelp": {
+    "message": "점으로 된 핸들을 끌어 이동합니다. 행의 위나 아래에 놓으면 같은 단계에 배치되고, 행 위에 놓으면 그 안에 중첩됩니다."
   }
 }

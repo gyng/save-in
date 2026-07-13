@@ -1738,5 +1738,8 @@
   "o_lUiThemeLight": { "message": "Licht" },
   "o_lUiThemeHelp": {
     "message": "Volg het systeemthema of houd de optiepagina en paginabronnen altijd donker of licht."
+  },
+  "o_lPathEditorDragHelp": {
+    "message": "Sleep aan de gestippelde greep. Zet de rij boven of onder een andere rij neer om hem op hetzelfde niveau te plaatsen, of op de rij om hem daarin te nesten."
   }
 }

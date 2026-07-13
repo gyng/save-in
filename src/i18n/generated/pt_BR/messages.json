@@ -1738,5 +1738,8 @@
   "o_lUiThemeLight": { "message": "Claro" },
   "o_lUiThemeHelp": {
     "message": "Siga o tema do sistema ou mantenha a página de opções e os recursos da página sempre no modo escuro ou claro."
+  },
+  "o_lPathEditorDragHelp": {
+    "message": "Arraste pela alça pontilhada. Solte acima ou abaixo de uma linha para colocá-la no mesmo nível, ou sobre a linha para aninhá-la dentro dela."
   }
 }

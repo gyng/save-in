@@ -7,6 +7,7 @@
 // serializes back to it and fires the normal input/autosave pipeline.
 
 import { SPECIAL_DIRS } from "../shared/constants.ts";
+import { getMessage } from "../platform/localization.ts";
 import { setupPathInsertMenu } from "./path-editor-insert-menu.ts";
 import {
   getPathAlias,
@@ -140,9 +141,14 @@ const PathEditorHelpers = {
     const visualHelp = document.createElement("div");
     visualHelp.className = "caption path-editor-help";
     const helpLines: Array<readonly [string, string]> = [
-      ["Changes in this editor are saved when you select Apply.", "manual-save-help"],
       [
-        "Drag by the dotted handle. Drop above or below a row to place it at the same level, or onto the row to nest it inside.",
+        getMessage("o_lManualEditorSaveHelp") ||
+          "Changes in this editor are saved when you select Apply.",
+        "manual-save-help",
+      ],
+      [
+        getMessage("o_lPathEditorDragHelp") ||
+          "Drag by the dotted handle. Drop above or below a row to place it at the same level, or onto the row to nest it inside.",
         "",
       ],
     ];

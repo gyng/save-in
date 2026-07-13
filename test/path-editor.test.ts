@@ -104,6 +104,11 @@ describe("visual editor", () => {
     global.browser.runtime.sendMessage = vi.fn(() =>
       Promise.resolve({ body: { items: [], errors: [] } }),
     );
+    vi.mocked(browser.i18n.getMessage).mockImplementation((key) => {
+      if (key === "o_lManualEditorSaveHelp") return "Localized Apply guidance";
+      if (key === "o_lPathEditorDragHelp") return "Localized drag guidance";
+      return "";
+    });
     new PathEditor().setupVisualEditor();
     vi.advanceTimersByTime(1500); // initial rebuild after options restore
   });
@@ -121,8 +126,11 @@ describe("visual editor", () => {
   test("styles visual Apply guidance like the text editor helper", () => {
     const helper = document.querySelector<HTMLElement>(".path-editor-help .manual-save-help");
 
-    expect(helper?.textContent).toBe("Changes in this editor are saved when you select Apply.");
+    expect(helper?.textContent).toBe("Localized Apply guidance");
     expect(helper?.dataset.manualHelpFor).toBe("paths");
+    expect(document.querySelector(".path-editor-help")?.textContent).toContain(
+      "Localized drag guidance",
+    );
     expect(document.querySelector(".path-editor-help")?.textContent).not.toContain(
       "One relative directory",
     );

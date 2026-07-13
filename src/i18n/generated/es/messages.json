@@ -1734,5 +1734,8 @@
   "o_lUiThemeLight": { "message": "Claro" },
   "o_lUiThemeHelp": {
     "message": "Sigue el tema del sistema o mantén la página de opciones y los recursos de la página siempre en modo oscuro o claro."
+  },
+  "o_lPathEditorDragHelp": {
+    "message": "Arrastra una fila por el tirador de puntos. Suéltala encima o debajo de otra fila para colocarla en el mismo nivel, o sobre la fila para anidarla dentro."
   }
 }

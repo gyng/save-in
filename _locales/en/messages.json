@@ -1319,7 +1319,11 @@
   },
   "o_lManualEditorSaveHelp": {
     "message": "Changes in this editor are saved when you select Apply.",
-    "description": "Label, status, or help text in the options interface. Used in src/options/options.html."
+    "description": "Help text for manually saved editors. Used in src/options/options.html and src/options/path-editor.ts."
+  },
+  "o_lPathEditorDragHelp": {
+    "message": "Drag by the dotted handle. Drop above or below a row to place it at the same level, or onto the row to nest it inside.",
+    "description": "Drag-and-drop instructions below the visual directory editor. Used in src/options/path-editor.ts."
   },
   "o_lReferenceNavigation": {
     "message": "Reference pages",
