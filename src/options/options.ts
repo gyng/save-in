@@ -463,10 +463,6 @@ const setupChromeDisables = () => {
     document.querySelectorAll<HTMLElement>(".firefox-only").forEach((el) => {
       el.hidden = true;
     });
-    document.querySelectorAll(".chrome-only").forEach((el) => {
-      el.classList.toggle("show");
-    });
-
     document.querySelectorAll(".chrome-enabled").forEach((el) => {
       el.removeAttribute("disabled");
     });

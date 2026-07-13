@@ -74,7 +74,7 @@ const isIntentionalLiteral = (node: Node): boolean => {
   return (
     !/[A-Za-z]/.test(text) ||
     text.includes("__MSG_") ||
-    Boolean(node.parentElement?.closest("code, pre, #uiLocale")) ||
+    Boolean(node.parentElement?.closest("code, pre, #uiLocale, [data-technical-literal]")) ||
     isReferenceExample(node) ||
     intentionallyLiteralText.has(text) ||
     /^(?:https?:\/\/|[A-Za-z0-9_.-]+\.(?:gif|jpe?g|m3u8|mp4|png|webp))/.test(text)
