@@ -25,7 +25,7 @@ const collectRuntimeMessageUses = (): Map<string, Set<string>> => {
 
   const manifestAndHtml = [
     resolve("manifest.json"),
-    ...listSourceFiles(resolve("src")).filter((path) => extname(path) === ".html"),
+    ...listSourceFiles(resolve("src")).filter((filePath) => extname(filePath) === ".html"),
   ];
   for (const path of manifestAndHtml) {
     const source = readFileSync(path, "utf8");
@@ -34,7 +34,9 @@ const collectRuntimeMessageUses = (): Map<string, Set<string>> => {
     }
   }
 
-  for (const path of listSourceFiles(resolve("src")).filter((path) => extname(path) === ".ts")) {
+  for (const path of listSourceFiles(resolve("src")).filter(
+    (filePath) => extname(filePath) === ".ts",
+  )) {
     const source = readFileSync(path, "utf8");
     for (const match of source.matchAll(/\b(?:getMessage|localize)\(\s*["']([A-Za-z0-9_]+)["']/g)) {
       record(match[1]!, path);
