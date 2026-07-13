@@ -2013,49 +2013,49 @@
     "message": "Dra i det prickade handtaget. Släpp raden ovanför eller nedanför en annan rad för att placera den på samma nivå, eller på raden för att nästla den inuti."
   },
   "routeIdeDescription": {
-    "message": "Write, inspect, and test routing rules before applying them."
+    "message": "Skriv, granska och testa dirigeringsregler innan du tillämpar dem."
   },
   "routeIdeBadge": {
-    "message": "Grammar-aware"
+    "message": "Grammatikmedveten"
   },
   "routeDebuggerTitle": {
-    "message": "Route debugger"
+    "message": "Testa dirigeringsregler"
   },
   "routeDebuggerDescription": {
-    "message": "Test the current rules against sample download details."
+    "message": "Testa de aktuella dirigeringsreglerna med exempeldata för en hämtning."
   },
   "routeDebuggerUseLastDownload": {
-    "message": "Use last download"
+    "message": "Använd den senaste hämtningen"
   },
   "routeDebuggerFilename": {
-    "message": "Filename"
+    "message": "Filnamn"
   },
   "routeDebuggerSourceUrl": {
-    "message": "Source URL"
+    "message": "Käll-URL"
   },
   "routeDebuggerPageUrl": {
-    "message": "Page URL"
+    "message": "Sid-URL"
   },
   "routeDebuggerContentType": {
-    "message": "Content type"
+    "message": "Innehållstyp"
   },
   "routeDebuggerContext": {
-    "message": "Context"
+    "message": "Sammanhang"
   },
   "routeDebuggerAnyContext": {
-    "message": "Any context"
+    "message": "Alla sammanhang"
   },
   "routeDebuggerUnsavedNote": {
-    "message": "Tests include edits you have not applied."
+    "message": "Testerna använder dina aktuella ändringar, även de som inte har tillämpats än."
   },
   "routeDebuggerRun": {
-    "message": "Run test"
+    "message": "Testa regler"
   },
   "routeDebuggerNoMatch": {
-    "message": "No routing rule matched."
+    "message": "Ingen dirigeringsregel matchar."
   },
   "routeDebuggerMatched": {
-    "message": "Rule $NUMBER$ matched.",
+    "message": "Regel $NUMBER$ matchar.",
     "placeholders": {
       "number": {
         "content": "$1",
@@ -2064,16 +2064,16 @@
     }
   },
   "routeDebuggerTemplate": {
-    "message": "Template"
+    "message": "Mall"
   },
   "routeDebuggerExpanded": {
-    "message": "Expanded"
+    "message": "Expanderat resultat"
   },
   "routeDebuggerFinalPath": {
-    "message": "Final path"
+    "message": "Slutlig sökväg"
   },
   "routeDebuggerRule": {
-    "message": "Rule $NUMBER$",
+    "message": "Regel $NUMBER$",
     "placeholders": {
       "number": {
         "content": "$1",
@@ -2082,19 +2082,19 @@
     }
   },
   "routeDebuggerSelected": {
-    "message": "Selected"
+    "message": "Vald"
   },
   "routeDebuggerAlsoMatches": {
-    "message": "Also matches"
+    "message": "Matchar också"
   },
   "routeDebuggerDidNotMatch": {
-    "message": "Did not match"
+    "message": "Matchar inte"
   },
   "routeDebuggerRunning": {
-    "message": "Testing routes…"
+    "message": "Testar dirigeringsregler…"
   },
   "routeDebuggerFixErrors": {
-    "message": "Fix $COUNT$ routing error(s) before testing.",
+    "message": "Åtgärda $COUNT$ dirigeringsfel innan du testar.",
     "placeholders": {
       "count": {
         "content": "$1",
@@ -2103,46 +2103,46 @@
     }
   },
   "routeDebuggerUnavailable": {
-    "message": "Could not run the route debugger."
+    "message": "Det gick inte att testa dirigeringsreglerna."
   },
   "routeDebuggerNoLastDownload": {
-    "message": "No recent download is available."
+    "message": "Det finns ingen aktuell hämtning."
   },
   "routeDebuggerEmpty": {
-    "message": "Enter download details, then run the current rules."
+    "message": "Ange hämtningsuppgifter och testa sedan de aktuella reglerna."
   },
   "routeDebuggerClear": {
-    "message": "Clear"
+    "message": "Rensa"
   },
   "routeDebuggerMoreData": {
-    "message": "More test data"
+    "message": "Mer testdata"
   },
   "routeDebuggerPageTitle": {
-    "message": "Page title"
+    "message": "Sidrubrik"
   },
   "routeDebuggerReferrerUrl": {
-    "message": "Referrer URL"
+    "message": "Hänvisande URL"
   },
   "routeDebuggerFrameUrl": {
-    "message": "Frame URL"
+    "message": "Ram-URL"
   },
   "routeDebuggerLinkText": {
-    "message": "Link text"
+    "message": "Länktext"
   },
   "routeDebuggerSelectionText": {
-    "message": "Selected text"
+    "message": "Markerad text"
   },
   "routeDebuggerMediaType": {
-    "message": "Media type"
+    "message": "Medietyp"
   },
   "routeDebuggerAnyMediaType": {
-    "message": "Any media type"
+    "message": "Alla medietyper"
   },
   "routeDebuggerShortcut": {
-    "message": "Ctrl/⌘+Enter runs the test."
+    "message": "Tryck på Ctrl/⌘+Retur för att köra testet."
   },
   "routeIdeStats": {
-    "message": "Rules $RULES$ · Matchers $MATCHERS$ · Lines $LINES$",
+    "message": "Regler: $RULES$ · Villkor: $MATCHERS$ · Rader: $LINES$",
     "placeholders": {
       "rules": {
         "content": "$1",
@@ -2159,13 +2159,13 @@
     }
   },
   "routeDebuggerEvaluation": {
-    "message": "Rule evaluation"
+    "message": "Regelutvärdering"
   },
   "routeDebuggerFirstMatch": {
-    "message": "Rules run top to bottom; the first match wins."
+    "message": "Regler kontrolleras uppifrån och ned; den första träffen används."
   },
   "routeDebuggerMatcherCount": {
-    "message": "Matched $MATCHED$/$TOTAL$",
+    "message": "$MATCHED$ av $TOTAL$ villkor matchar",
     "placeholders": {
       "matched": {
         "content": "$1",
@@ -2178,7 +2178,7 @@
     }
   },
   "routeDebuggerGoToLine": {
-    "message": "Go to line $LINE$",
+    "message": "Gå till rad $LINE$",
     "placeholders": {
       "line": {
         "content": "$1",

@@ -2119,49 +2119,49 @@
     "message": "点線のハンドルをドラッグします。行の上または下にドロップすると同じ階層に配置され、行の上にドロップするとその内側に入れ子になります。"
   },
   "routeIdeDescription": {
-    "message": "Write, inspect, and test routing rules before applying them."
+    "message": "適用する前に、ルーティングルールを作成、確認、テストできます。"
   },
   "routeIdeBadge": {
-    "message": "Grammar-aware"
+    "message": "文法対応"
   },
   "routeDebuggerTitle": {
-    "message": "Route debugger"
+    "message": "ルーティングルールをテスト"
   },
   "routeDebuggerDescription": {
-    "message": "Test the current rules against sample download details."
+    "message": "現在のルーティングルールをサンプルのダウンロード情報でテストします。"
   },
   "routeDebuggerUseLastDownload": {
-    "message": "Use last download"
+    "message": "最新のダウンロードを使用"
   },
   "routeDebuggerFilename": {
-    "message": "Filename"
+    "message": "ファイル名"
   },
   "routeDebuggerSourceUrl": {
-    "message": "Source URL"
+    "message": "ソース URL"
   },
   "routeDebuggerPageUrl": {
-    "message": "Page URL"
+    "message": "ページ URL"
   },
   "routeDebuggerContentType": {
-    "message": "Content type"
+    "message": "コンテンツタイプ"
   },
   "routeDebuggerContext": {
-    "message": "Context"
+    "message": "コンテキスト"
   },
   "routeDebuggerAnyContext": {
-    "message": "Any context"
+    "message": "すべてのコンテキスト"
   },
   "routeDebuggerUnsavedNote": {
-    "message": "Tests include edits you have not applied."
+    "message": "テストには、まだ適用していない変更を含む現在の編集内容が使用されます。"
   },
   "routeDebuggerRun": {
-    "message": "Run test"
+    "message": "ルールをテスト"
   },
   "routeDebuggerNoMatch": {
-    "message": "No routing rule matched."
+    "message": "一致するルーティングルールはありません。"
   },
   "routeDebuggerMatched": {
-    "message": "Rule $NUMBER$ matched.",
+    "message": "ルール $NUMBER$ が一致しました。",
     "placeholders": {
       "number": {
         "content": "$1",
@@ -2170,16 +2170,16 @@
     }
   },
   "routeDebuggerTemplate": {
-    "message": "Template"
+    "message": "テンプレート"
   },
   "routeDebuggerExpanded": {
-    "message": "Expanded"
+    "message": "展開結果"
   },
   "routeDebuggerFinalPath": {
-    "message": "Final path"
+    "message": "最終パス"
   },
   "routeDebuggerRule": {
-    "message": "Rule $NUMBER$",
+    "message": "ルール $NUMBER$",
     "placeholders": {
       "number": {
         "content": "$1",
@@ -2188,19 +2188,19 @@
     }
   },
   "routeDebuggerSelected": {
-    "message": "Selected"
+    "message": "選択済み"
   },
   "routeDebuggerAlsoMatches": {
-    "message": "Also matches"
+    "message": "これも一致"
   },
   "routeDebuggerDidNotMatch": {
-    "message": "Did not match"
+    "message": "一致しません"
   },
   "routeDebuggerRunning": {
-    "message": "Testing routes…"
+    "message": "ルーティングルールをテスト中…"
   },
   "routeDebuggerFixErrors": {
-    "message": "Fix $COUNT$ routing error(s) before testing.",
+    "message": "テストする前に、$COUNT$ 件のルーティングエラーを修正してください。",
     "placeholders": {
       "count": {
         "content": "$1",
@@ -2209,46 +2209,46 @@
     }
   },
   "routeDebuggerUnavailable": {
-    "message": "Could not run the route debugger."
+    "message": "ルーティングルールをテストできませんでした。"
   },
   "routeDebuggerNoLastDownload": {
-    "message": "No recent download is available."
+    "message": "最近のダウンロードはありません。"
   },
   "routeDebuggerEmpty": {
-    "message": "Enter download details, then run the current rules."
+    "message": "ダウンロード情報を入力してから、現在のルールをテストしてください。"
   },
   "routeDebuggerClear": {
-    "message": "Clear"
+    "message": "クリア"
   },
   "routeDebuggerMoreData": {
-    "message": "More test data"
+    "message": "その他のテストデータ"
   },
   "routeDebuggerPageTitle": {
-    "message": "Page title"
+    "message": "ページタイトル"
   },
   "routeDebuggerReferrerUrl": {
-    "message": "Referrer URL"
+    "message": "参照元 URL"
   },
   "routeDebuggerFrameUrl": {
-    "message": "Frame URL"
+    "message": "フレーム URL"
   },
   "routeDebuggerLinkText": {
-    "message": "Link text"
+    "message": "リンクテキスト"
   },
   "routeDebuggerSelectionText": {
-    "message": "Selected text"
+    "message": "選択したテキスト"
   },
   "routeDebuggerMediaType": {
-    "message": "Media type"
+    "message": "メディアタイプ"
   },
   "routeDebuggerAnyMediaType": {
-    "message": "Any media type"
+    "message": "すべてのメディアタイプ"
   },
   "routeDebuggerShortcut": {
-    "message": "Ctrl/⌘+Enter runs the test."
+    "message": "Ctrl/⌘+Enter でテストを実行します。"
   },
   "routeIdeStats": {
-    "message": "Rules $RULES$ · Matchers $MATCHERS$ · Lines $LINES$",
+    "message": "ルール $RULES$ · 条件 $MATCHERS$ · 行 $LINES$",
     "placeholders": {
       "rules": {
         "content": "$1",
@@ -2265,13 +2265,13 @@
     }
   },
   "routeDebuggerEvaluation": {
-    "message": "Rule evaluation"
+    "message": "ルールの評価"
   },
   "routeDebuggerFirstMatch": {
-    "message": "Rules run top to bottom; the first match wins."
+    "message": "ルールは上から順に評価され、最初に一致したルールが使用されます。"
   },
   "routeDebuggerMatcherCount": {
-    "message": "Matched $MATCHED$/$TOTAL$",
+    "message": "$TOTAL$ 件中 $MATCHED$ 件の条件が一致",
     "placeholders": {
       "matched": {
         "content": "$1",
@@ -2284,7 +2284,7 @@
     }
   },
   "routeDebuggerGoToLine": {
-    "message": "Go to line $LINE$",
+    "message": "$LINE$ 行目へ移動",
     "placeholders": {
       "line": {
         "content": "$1",

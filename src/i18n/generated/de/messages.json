@@ -2017,49 +2017,49 @@
     "message": "Ziehen Sie eine Zeile am gepunkteten Griff. Legen Sie sie oberhalb oder unterhalb einer Zeile ab, um sie auf derselben Ebene zu platzieren, oder direkt auf einer Zeile, um sie dieser unterzuordnen."
   },
   "routeIdeDescription": {
-    "message": "Write, inspect, and test routing rules before applying them."
+    "message": "Routing-Regeln schreiben, prüfen und testen, bevor sie übernommen werden."
   },
   "routeIdeBadge": {
-    "message": "Grammar-aware"
+    "message": "Grammatikbasiert"
   },
   "routeDebuggerTitle": {
-    "message": "Route debugger"
+    "message": "Routing-Regeln testen"
   },
   "routeDebuggerDescription": {
-    "message": "Test the current rules against sample download details."
+    "message": "Aktuelle Routing-Regeln mit Beispieldaten eines Downloads testen."
   },
   "routeDebuggerUseLastDownload": {
-    "message": "Use last download"
+    "message": "Neuesten Download verwenden"
   },
   "routeDebuggerFilename": {
-    "message": "Filename"
+    "message": "Dateiname"
   },
   "routeDebuggerSourceUrl": {
-    "message": "Source URL"
+    "message": "Quell-URL"
   },
   "routeDebuggerPageUrl": {
-    "message": "Page URL"
+    "message": "Seiten-URL"
   },
   "routeDebuggerContentType": {
-    "message": "Content type"
+    "message": "Inhaltstyp"
   },
   "routeDebuggerContext": {
-    "message": "Context"
+    "message": "Kontext"
   },
   "routeDebuggerAnyContext": {
-    "message": "Any context"
+    "message": "Beliebiger Kontext"
   },
   "routeDebuggerUnsavedNote": {
-    "message": "Tests include edits you have not applied."
+    "message": "Der Test verwendet die aktuellen Änderungen, auch wenn sie noch nicht übernommen wurden."
   },
   "routeDebuggerRun": {
-    "message": "Run test"
+    "message": "Regeln testen"
   },
   "routeDebuggerNoMatch": {
-    "message": "No routing rule matched."
+    "message": "Keine Routing-Regel stimmt überein."
   },
   "routeDebuggerMatched": {
-    "message": "Rule $NUMBER$ matched.",
+    "message": "Regel $NUMBER$ stimmt überein.",
     "placeholders": {
       "number": {
         "content": "$1",
@@ -2068,16 +2068,16 @@
     }
   },
   "routeDebuggerTemplate": {
-    "message": "Template"
+    "message": "Vorlage"
   },
   "routeDebuggerExpanded": {
-    "message": "Expanded"
+    "message": "Erweitert"
   },
   "routeDebuggerFinalPath": {
-    "message": "Final path"
+    "message": "Endgültiger Pfad"
   },
   "routeDebuggerRule": {
-    "message": "Rule $NUMBER$",
+    "message": "Regel $NUMBER$",
     "placeholders": {
       "number": {
         "content": "$1",
@@ -2086,19 +2086,19 @@
     }
   },
   "routeDebuggerSelected": {
-    "message": "Selected"
+    "message": "Ausgewählt"
   },
   "routeDebuggerAlsoMatches": {
-    "message": "Also matches"
+    "message": "Stimmt ebenfalls überein"
   },
   "routeDebuggerDidNotMatch": {
-    "message": "Did not match"
+    "message": "Stimmt nicht überein"
   },
   "routeDebuggerRunning": {
-    "message": "Testing routes…"
+    "message": "Routing-Regeln werden getestet…"
   },
   "routeDebuggerFixErrors": {
-    "message": "Fix $COUNT$ routing error(s) before testing.",
+    "message": "Beheben Sie vor dem Testen $COUNT$ Routing-Fehler.",
     "placeholders": {
       "count": {
         "content": "$1",
@@ -2107,46 +2107,46 @@
     }
   },
   "routeDebuggerUnavailable": {
-    "message": "Could not run the route debugger."
+    "message": "Die Routing-Regeln konnten nicht getestet werden."
   },
   "routeDebuggerNoLastDownload": {
-    "message": "No recent download is available."
+    "message": "Es ist kein aktueller Download verfügbar."
   },
   "routeDebuggerEmpty": {
-    "message": "Enter download details, then run the current rules."
+    "message": "Geben Sie Download-Daten ein und testen Sie dann die aktuellen Regeln."
   },
   "routeDebuggerClear": {
-    "message": "Clear"
+    "message": "Leeren"
   },
   "routeDebuggerMoreData": {
-    "message": "More test data"
+    "message": "Weitere Testdaten"
   },
   "routeDebuggerPageTitle": {
-    "message": "Page title"
+    "message": "Seitentitel"
   },
   "routeDebuggerReferrerUrl": {
-    "message": "Referrer URL"
+    "message": "Referrer-URL"
   },
   "routeDebuggerFrameUrl": {
-    "message": "Frame URL"
+    "message": "Frame-URL"
   },
   "routeDebuggerLinkText": {
-    "message": "Link text"
+    "message": "Linktext"
   },
   "routeDebuggerSelectionText": {
-    "message": "Selected text"
+    "message": "Ausgewählter Text"
   },
   "routeDebuggerMediaType": {
-    "message": "Media type"
+    "message": "Medientyp"
   },
   "routeDebuggerAnyMediaType": {
-    "message": "Any media type"
+    "message": "Beliebiger Medientyp"
   },
   "routeDebuggerShortcut": {
-    "message": "Ctrl/⌘+Enter runs the test."
+    "message": "Mit Strg/⌘+Eingabe wird der Test ausgeführt."
   },
   "routeIdeStats": {
-    "message": "Rules $RULES$ · Matchers $MATCHERS$ · Lines $LINES$",
+    "message": "Regeln: $RULES$ · Bedingungen: $MATCHERS$ · Zeilen: $LINES$",
     "placeholders": {
       "rules": {
         "content": "$1",
@@ -2163,13 +2163,13 @@
     }
   },
   "routeDebuggerEvaluation": {
-    "message": "Rule evaluation"
+    "message": "Regelauswertung"
   },
   "routeDebuggerFirstMatch": {
-    "message": "Rules run top to bottom; the first match wins."
+    "message": "Regeln werden von oben nach unten geprüft; die erste Übereinstimmung wird verwendet."
   },
   "routeDebuggerMatcherCount": {
-    "message": "Matched $MATCHED$/$TOTAL$",
+    "message": "$MATCHED$ von $TOTAL$ Bedingungen stimmen überein",
     "placeholders": {
       "matched": {
         "content": "$1",
@@ -2182,7 +2182,7 @@
     }
   },
   "routeDebuggerGoToLine": {
-    "message": "Go to line $LINE$",
+    "message": "Zu Zeile $LINE$ wechseln",
     "placeholders": {
       "line": {
         "content": "$1",

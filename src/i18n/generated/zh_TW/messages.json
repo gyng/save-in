@@ -2119,49 +2119,49 @@
     "message": "拖曳點狀控點。放在某列的上方或下方可置於同一層級，放在該列上則會巢狀置於其中。"
   },
   "routeIdeDescription": {
-    "message": "Write, inspect, and test routing rules before applying them."
+    "message": "套用前先編寫、檢查及測試路由規則。"
   },
   "routeIdeBadge": {
-    "message": "Grammar-aware"
+    "message": "支援語法"
   },
   "routeDebuggerTitle": {
-    "message": "Route debugger"
+    "message": "測試路由規則"
   },
   "routeDebuggerDescription": {
-    "message": "Test the current rules against sample download details."
+    "message": "使用範例下載資料測試目前的路由規則。"
   },
   "routeDebuggerUseLastDownload": {
-    "message": "Use last download"
+    "message": "使用最近的下載項目"
   },
   "routeDebuggerFilename": {
-    "message": "Filename"
+    "message": "檔案名稱"
   },
   "routeDebuggerSourceUrl": {
-    "message": "Source URL"
+    "message": "來源 URL"
   },
   "routeDebuggerPageUrl": {
-    "message": "Page URL"
+    "message": "頁面 URL"
   },
   "routeDebuggerContentType": {
-    "message": "Content type"
+    "message": "內容類型"
   },
   "routeDebuggerContext": {
-    "message": "Context"
+    "message": "情境"
   },
   "routeDebuggerAnyContext": {
-    "message": "Any context"
+    "message": "任何情境"
   },
   "routeDebuggerUnsavedNote": {
-    "message": "Tests include edits you have not applied."
+    "message": "測試會使用目前編輯的內容，包括尚未套用的變更。"
   },
   "routeDebuggerRun": {
-    "message": "Run test"
+    "message": "測試規則"
   },
   "routeDebuggerNoMatch": {
-    "message": "No routing rule matched."
+    "message": "沒有符合的路由規則。"
   },
   "routeDebuggerMatched": {
-    "message": "Rule $NUMBER$ matched.",
+    "message": "規則 $NUMBER$ 符合。",
     "placeholders": {
       "number": {
         "content": "$1",
@@ -2170,16 +2170,16 @@
     }
   },
   "routeDebuggerTemplate": {
-    "message": "Template"
+    "message": "範本"
   },
   "routeDebuggerExpanded": {
-    "message": "Expanded"
+    "message": "展開結果"
   },
   "routeDebuggerFinalPath": {
-    "message": "Final path"
+    "message": "最終路徑"
   },
   "routeDebuggerRule": {
-    "message": "Rule $NUMBER$",
+    "message": "規則 $NUMBER$",
     "placeholders": {
       "number": {
         "content": "$1",
@@ -2188,19 +2188,19 @@
     }
   },
   "routeDebuggerSelected": {
-    "message": "Selected"
+    "message": "已選取"
   },
   "routeDebuggerAlsoMatches": {
-    "message": "Also matches"
+    "message": "也符合"
   },
   "routeDebuggerDidNotMatch": {
-    "message": "Did not match"
+    "message": "不符合"
   },
   "routeDebuggerRunning": {
-    "message": "Testing routes…"
+    "message": "正在測試路由規則…"
   },
   "routeDebuggerFixErrors": {
-    "message": "Fix $COUNT$ routing error(s) before testing.",
+    "message": "測試前請修正 $COUNT$ 個路由錯誤。",
     "placeholders": {
       "count": {
         "content": "$1",
@@ -2209,46 +2209,46 @@
     }
   },
   "routeDebuggerUnavailable": {
-    "message": "Could not run the route debugger."
+    "message": "無法測試路由規則。"
   },
   "routeDebuggerNoLastDownload": {
-    "message": "No recent download is available."
+    "message": "沒有可用的最近下載項目。"
   },
   "routeDebuggerEmpty": {
-    "message": "Enter download details, then run the current rules."
+    "message": "請輸入下載資料，然後測試目前的規則。"
   },
   "routeDebuggerClear": {
-    "message": "Clear"
+    "message": "清除"
   },
   "routeDebuggerMoreData": {
-    "message": "More test data"
+    "message": "更多測試資料"
   },
   "routeDebuggerPageTitle": {
-    "message": "Page title"
+    "message": "頁面標題"
   },
   "routeDebuggerReferrerUrl": {
-    "message": "Referrer URL"
+    "message": "參照來源 URL"
   },
   "routeDebuggerFrameUrl": {
-    "message": "Frame URL"
+    "message": "框架 URL"
   },
   "routeDebuggerLinkText": {
-    "message": "Link text"
+    "message": "連結文字"
   },
   "routeDebuggerSelectionText": {
-    "message": "Selected text"
+    "message": "選取的文字"
   },
   "routeDebuggerMediaType": {
-    "message": "Media type"
+    "message": "媒體類型"
   },
   "routeDebuggerAnyMediaType": {
-    "message": "Any media type"
+    "message": "任何媒體類型"
   },
   "routeDebuggerShortcut": {
-    "message": "Ctrl/⌘+Enter runs the test."
+    "message": "按 Ctrl/⌘+Enter 執行測試。"
   },
   "routeIdeStats": {
-    "message": "Rules $RULES$ · Matchers $MATCHERS$ · Lines $LINES$",
+    "message": "規則 $RULES$ · 條件 $MATCHERS$ · 行數 $LINES$",
     "placeholders": {
       "rules": {
         "content": "$1",
@@ -2265,13 +2265,13 @@
     }
   },
   "routeDebuggerEvaluation": {
-    "message": "Rule evaluation"
+    "message": "規則評估"
   },
   "routeDebuggerFirstMatch": {
-    "message": "Rules run top to bottom; the first match wins."
+    "message": "規則會由上而下檢查；系統會使用第一個符合的規則。"
   },
   "routeDebuggerMatcherCount": {
-    "message": "Matched $MATCHED$/$TOTAL$",
+    "message": "$TOTAL$ 個條件中有 $MATCHED$ 個符合",
     "placeholders": {
       "matched": {
         "content": "$1",
@@ -2284,7 +2284,7 @@
     }
   },
   "routeDebuggerGoToLine": {
-    "message": "Go to line $LINE$",
+    "message": "前往第 $LINE$ 行",
     "placeholders": {
       "line": {
         "content": "$1",

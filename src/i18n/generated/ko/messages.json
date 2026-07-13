@@ -2119,49 +2119,49 @@
     "message": "점으로 된 핸들을 끌어 이동합니다. 행의 위나 아래에 놓으면 같은 단계에 배치되고, 행 위에 놓으면 그 안에 중첩됩니다."
   },
   "routeIdeDescription": {
-    "message": "Write, inspect, and test routing rules before applying them."
+    "message": "적용하기 전에 라우팅 규칙을 작성하고 검토하고 테스트합니다."
   },
   "routeIdeBadge": {
-    "message": "Grammar-aware"
+    "message": "문법 인식"
   },
   "routeDebuggerTitle": {
-    "message": "Route debugger"
+    "message": "라우팅 규칙 테스트"
   },
   "routeDebuggerDescription": {
-    "message": "Test the current rules against sample download details."
+    "message": "샘플 다운로드 정보로 현재 라우팅 규칙을 테스트합니다."
   },
   "routeDebuggerUseLastDownload": {
-    "message": "Use last download"
+    "message": "최근 다운로드 사용"
   },
   "routeDebuggerFilename": {
-    "message": "Filename"
+    "message": "파일 이름"
   },
   "routeDebuggerSourceUrl": {
-    "message": "Source URL"
+    "message": "소스 URL"
   },
   "routeDebuggerPageUrl": {
-    "message": "Page URL"
+    "message": "페이지 URL"
   },
   "routeDebuggerContentType": {
-    "message": "Content type"
+    "message": "콘텐츠 유형"
   },
   "routeDebuggerContext": {
-    "message": "Context"
+    "message": "컨텍스트"
   },
   "routeDebuggerAnyContext": {
-    "message": "Any context"
+    "message": "모든 컨텍스트"
   },
   "routeDebuggerUnsavedNote": {
-    "message": "Tests include edits you have not applied."
+    "message": "테스트에는 아직 적용하지 않은 변경 사항을 포함하여 현재 편집 내용이 사용됩니다."
   },
   "routeDebuggerRun": {
-    "message": "Run test"
+    "message": "규칙 테스트"
   },
   "routeDebuggerNoMatch": {
-    "message": "No routing rule matched."
+    "message": "일치하는 라우팅 규칙이 없습니다."
   },
   "routeDebuggerMatched": {
-    "message": "Rule $NUMBER$ matched.",
+    "message": "규칙 $NUMBER$이(가) 일치합니다.",
     "placeholders": {
       "number": {
         "content": "$1",
@@ -2170,16 +2170,16 @@
     }
   },
   "routeDebuggerTemplate": {
-    "message": "Template"
+    "message": "템플릿"
   },
   "routeDebuggerExpanded": {
-    "message": "Expanded"
+    "message": "확장 결과"
   },
   "routeDebuggerFinalPath": {
-    "message": "Final path"
+    "message": "최종 경로"
   },
   "routeDebuggerRule": {
-    "message": "Rule $NUMBER$",
+    "message": "규칙 $NUMBER$",
     "placeholders": {
       "number": {
         "content": "$1",
@@ -2188,19 +2188,19 @@
     }
   },
   "routeDebuggerSelected": {
-    "message": "Selected"
+    "message": "선택됨"
   },
   "routeDebuggerAlsoMatches": {
-    "message": "Also matches"
+    "message": "추가로 일치"
   },
   "routeDebuggerDidNotMatch": {
-    "message": "Did not match"
+    "message": "일치하지 않음"
   },
   "routeDebuggerRunning": {
-    "message": "Testing routes…"
+    "message": "라우팅 규칙 테스트 중…"
   },
   "routeDebuggerFixErrors": {
-    "message": "Fix $COUNT$ routing error(s) before testing.",
+    "message": "테스트하기 전에 라우팅 오류 $COUNT$개를 수정하세요.",
     "placeholders": {
       "count": {
         "content": "$1",
@@ -2209,46 +2209,46 @@
     }
   },
   "routeDebuggerUnavailable": {
-    "message": "Could not run the route debugger."
+    "message": "라우팅 규칙을 테스트할 수 없습니다."
   },
   "routeDebuggerNoLastDownload": {
-    "message": "No recent download is available."
+    "message": "사용할 수 있는 최근 다운로드가 없습니다."
   },
   "routeDebuggerEmpty": {
-    "message": "Enter download details, then run the current rules."
+    "message": "다운로드 정보를 입력한 다음 현재 규칙을 테스트하세요."
   },
   "routeDebuggerClear": {
-    "message": "Clear"
+    "message": "지우기"
   },
   "routeDebuggerMoreData": {
-    "message": "More test data"
+    "message": "추가 테스트 데이터"
   },
   "routeDebuggerPageTitle": {
-    "message": "Page title"
+    "message": "페이지 제목"
   },
   "routeDebuggerReferrerUrl": {
-    "message": "Referrer URL"
+    "message": "리퍼러 URL"
   },
   "routeDebuggerFrameUrl": {
-    "message": "Frame URL"
+    "message": "프레임 URL"
   },
   "routeDebuggerLinkText": {
-    "message": "Link text"
+    "message": "링크 텍스트"
   },
   "routeDebuggerSelectionText": {
-    "message": "Selected text"
+    "message": "선택한 텍스트"
   },
   "routeDebuggerMediaType": {
-    "message": "Media type"
+    "message": "미디어 유형"
   },
   "routeDebuggerAnyMediaType": {
-    "message": "Any media type"
+    "message": "모든 미디어 유형"
   },
   "routeDebuggerShortcut": {
-    "message": "Ctrl/⌘+Enter runs the test."
+    "message": "Ctrl/⌘+Enter를 눌러 테스트를 실행합니다."
   },
   "routeIdeStats": {
-    "message": "Rules $RULES$ · Matchers $MATCHERS$ · Lines $LINES$",
+    "message": "규칙 $RULES$ · 조건 $MATCHERS$ · 줄 $LINES$",
     "placeholders": {
       "rules": {
         "content": "$1",
@@ -2265,13 +2265,13 @@
     }
   },
   "routeDebuggerEvaluation": {
-    "message": "Rule evaluation"
+    "message": "규칙 평가"
   },
   "routeDebuggerFirstMatch": {
-    "message": "Rules run top to bottom; the first match wins."
+    "message": "규칙은 위에서 아래 순서로 평가되며 처음 일치하는 규칙이 사용됩니다."
   },
   "routeDebuggerMatcherCount": {
-    "message": "Matched $MATCHED$/$TOTAL$",
+    "message": "조건 $TOTAL$개 중 $MATCHED$개 일치",
     "placeholders": {
       "matched": {
         "content": "$1",
@@ -2284,7 +2284,7 @@
     }
   },
   "routeDebuggerGoToLine": {
-    "message": "Go to line $LINE$",
+    "message": "$LINE$번째 줄로 이동",
     "placeholders": {
       "line": {
         "content": "$1",
