@@ -100,7 +100,16 @@ export const filterPageSources = (
   );
 };
 
-export type SourceSort = "detected-desc" | "detected-asc" | "relevance" | "size-desc" | "name-asc";
+export const SOURCE_SORTS = [
+  "relevance",
+  "detected-desc",
+  "detected-asc",
+  "size-desc",
+  "name-asc",
+] as const;
+export type SourceSort = (typeof SOURCE_SORTS)[number];
+export const isSourceSort = (value: unknown): value is SourceSort =>
+  typeof value === "string" && SOURCE_SORTS.includes(value as SourceSort);
 const compareDetection = (a: PageSource, b: PageSource): number =>
   (a.detectedAt || 0) - (b.detectedAt || 0) || (a.detectedOrder || 0) - (b.detectedOrder || 0);
 

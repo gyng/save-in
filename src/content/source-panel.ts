@@ -5,6 +5,7 @@ import {
   collectResourceHintSources,
   createSourceTooltip,
   filterPageSources,
+  isSourceSort,
   sortPageSources,
   resourceTimingByUrl,
   ytDlpCommand,
@@ -19,6 +20,7 @@ import {
   SOURCE_PANEL_COPY_VALUE_SLOT,
   formatSourcePanelCopy,
 } from "../shared/source-panel-copy.ts";
+import { SOURCE_PANEL_SORT_STORAGE_KEY } from "../shared/storage-keys.ts";
 
 declare const SAVE_IN_CONTENT_E2E: boolean;
 
@@ -50,6 +52,28 @@ const panelUpdates = new WeakMap<
   (sendDownload: (source: PageSource) => void, options: SourcePanelOptions) => void
 >();
 let activePanelHost: HTMLElement | null = null;
+
+const loadSourceSort = (apply: (sort: SourceSort) => void) => {
+  try {
+    chrome.storage.local.get(SOURCE_PANEL_SORT_STORAGE_KEY, (stored) => {
+      void chrome.runtime.lastError;
+      const sort = stored[SOURCE_PANEL_SORT_STORAGE_KEY];
+      if (isSourceSort(sort)) apply(sort);
+    });
+  } catch {
+    // The extension may be reloaded while this content script remains alive.
+  }
+};
+
+const saveSourceSort = (sort: SourceSort) => {
+  try {
+    chrome.storage.local.set({ [SOURCE_PANEL_SORT_STORAGE_KEY]: sort }, () => {
+      void chrome.runtime.lastError;
+    });
+  } catch {
+    // The extension may be reloaded while this content script remains alive.
+  }
+};
 
 export const getSourcePanelHostForTesting = (): HTMLElement | null => activePanelHost;
 
@@ -323,8 +347,8 @@ export const toggleSourcePanel = (
   const sort = document.createElement("select");
   sort.setAttribute("aria-label", copy.sortLabel);
   const sortOptions: ReadonlyArray<readonly [SourceSort, keyof typeof copy.sort]> = [
-    ["detected-desc", "newest"],
     ["relevance", "relevance"],
+    ["detected-desc", "newest"],
     ["detected-asc", "oldest"],
     ["size-desc", "largest"],
     ["name-asc", "name"],
@@ -335,6 +359,7 @@ export const toggleSourcePanel = (
     option.textContent = copy.sort[label];
     sort.append(option);
   });
+  sort.value = "relevance";
   const applyStaticCopy = () => {
     panel.setAttribute("aria-label", copy.title);
     title.textContent = copy.title;
@@ -927,7 +952,13 @@ export const toggleSourcePanel = (
     window.clearTimeout(filterTimer);
     filterTimer = window.setTimeout(render, 80);
   });
-  sort.addEventListener("change", render);
+  let sortChanged = false;
+  sort.addEventListener("change", () => {
+    if (!isSourceSort(sort.value)) return;
+    sortChanged = true;
+    saveSourceSort(sort.value);
+    render();
+  });
   copyUrls.addEventListener("click", () => {
     void navigator.clipboard
       .writeText(visibleSources.map(({ url }) => url).join("\n"))
@@ -1133,6 +1164,11 @@ export const toggleSourcePanel = (
   configureLiveObservers();
   resourceTimingByUrl().forEach((entry, url) => timingByUrl.set(url, entry));
   refreshSources();
+  loadSourceSort((storedSort) => {
+    if (sortChanged || activePanelHost !== host) return;
+    sort.value = storedSort;
+    render();
+  });
   filter.focus();
   return true;
 };

@@ -10,6 +10,7 @@ export const NOTIFICATION_RECOVERY_SESSION_KEY = "siNotificationRecovery";
 export const FINAL_FILENAMES_SESSION_KEY = "siFinalFilenames";
 export const ACTIVE_TRANSFERS_SESSION_KEY = "siActiveTransfers";
 export const SOURCE_PANEL_OPEN_SESSION_KEY = "sourcePanelOpen";
+export const SOURCE_PANEL_SORT_STORAGE_KEY = "sourcePanelSort";
 export const EXTERNAL_DOWNLOAD_REJECTIONS_STORAGE_KEY = "externalDownloadRejections";
 export const PATH_TRUNCATION_MIGRATION_STORAGE_KEY = "pathTruncationMigrationVersion";
 export const PATH_TRUNCATION_MIGRATION_VERSION = 2;
