@@ -119,7 +119,7 @@ const seedShowcase = (port, optionsTarget) =>
   cdp.evalInTarget(
     port,
     optionsTarget,
-    `browser.storage.local.set({
+    `chrome.storage.local.set({
       paths: ${JSON.stringify(SHOWCASE_PATHS)},
       filenamePatterns: ${JSON.stringify(SHOWCASE_RULES)},
       links: true,
@@ -171,7 +171,7 @@ const seedShowcase = (port, optionsTarget) =>
           variables: { pagetitleslug: "design-review" }
         }
       ]
-    }).then(() => browser.runtime.sendMessage({ type: "OPTIONS_LOADED" })).then(() => "seeded")`,
+    }).then(() => chrome.runtime.sendMessage({ type: "OPTIONS_LOADED" })).then(() => "seeded")`,
   );
 
 const main = async () => {
@@ -207,7 +207,7 @@ const main = async () => {
         cdp.evalInTarget(
           port,
           optionsTarget,
-          `browser.runtime.sendMessage({ type: "WAKE_WARM" }).then(() => true, () => false)`,
+          `chrome.runtime.sendMessage({ type: "WAKE_WARM" }).then(() => true, () => false)`,
         ),
       "background message listener",
     );
@@ -245,12 +245,12 @@ const main = async () => {
     await cdp.evalInServiceWorker(
       port,
       extensionId,
-      `browser.tabs.query({}).then(async (tabs) => {
+      `chrome.tabs.query({}).then(async (tabs) => {
         const tab = tabs.find((candidate) => candidate.url?.includes(${JSON.stringify(demoTarget)}));
         if (!tab?.id) throw new Error("Showcase tab missing");
-        await browser.tabs.update(tab.id, { active: true });
-        await browser.storage.session.set({ sourcePanelOpen: true });
-        await browser.tabs.sendMessage(tab.id, { type: "SET_SOURCE_PANEL", body: { open: true } });
+        await chrome.tabs.update(tab.id, { active: true });
+        await chrome.storage.session.set({ sourcePanelOpen: true });
+        await chrome.tabs.sendMessage(tab.id, { type: "SET_SOURCE_PANEL", body: { open: true } });
         return "opened";
       })`,
     );

@@ -229,6 +229,21 @@ const startDemoServerSession = () =>
 /** @returns {Promise<number>} */
 const startDemoServer = async () => (await startDemoServerSession()).port;
 
+/** @param {() => unknown | Promise<unknown>} callback @param {string} description @param {number} [timeoutMs] */
+const waitFor = async (callback, description, timeoutMs = 10_000) => {
+  const deadline = Date.now() + timeoutMs;
+  let lastError;
+  while (Date.now() < deadline) {
+    try {
+      if (await callback()) return;
+    } catch (error) {
+      lastError = error;
+    }
+    await cdp.sleep(100);
+  }
+  throw new Error(`Timed out waiting for ${description}`, { cause: lastError });
+};
+
 /** @param {import("node:http").Server} server */
 const closeDemoServer = (server) =>
   new Promise((resolve, reject) => {
@@ -357,10 +372,21 @@ const main = async () => {
     // worker, so: open it, seed the config, then reload it to pick the
     // seeded values up
     await cdp.openTab(port, `chrome-extension://${extensionId}/src/options/options.html`);
+    const optionsTarget = `${extensionId}/src/options/options.html`;
+    await waitFor(
+      () =>
+        cdp.evalInTarget(
+          port,
+          optionsTarget,
+          `typeof chrome.storage?.local?.set === "function" &&
+            typeof chrome.runtime?.sendMessage === "function"`,
+        ),
+      "options extension APIs",
+    );
     await cdp.evalInTarget(
       port,
-      "options.html",
-      `browser.storage.local.set({
+      optionsTarget,
+      `chrome.storage.local.set({
       paths: ${JSON.stringify(SHOWCASE_PATHS)},
       filenamePatterns: ${JSON.stringify(SHOWCASE_RULES)},
       links: true,
@@ -376,9 +402,9 @@ const main = async () => {
       sourcePanelPreviews: true,
       sourcePanelResourceHints: true,
       sourcePanelLinks: true,
-    }).then(() => browser.runtime.sendMessage({ type: "OPTIONS_LOADED" })).then(() => "seeded")`,
+    }).then(() => chrome.runtime.sendMessage({ type: "OPTIONS_LOADED" })).then(() => "seeded")`,
     );
-    await cdp.evalInTarget(port, "options.html", "location.reload()");
+    await cdp.evalInTarget(port, optionsTarget, "location.reload()");
     await cdp.openTab(port, `http://127.0.0.1:${demoPort}/`);
 
     let reloading = false;
