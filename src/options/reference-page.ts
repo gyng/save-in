@@ -7,10 +7,12 @@ import {
 import { webExtensionApi } from "../platform/web-extension-api.ts";
 import { MESSAGE_TYPES } from "../shared/constants.ts";
 import { sendInternalMessage } from "../shared/message-protocol.ts";
+import { getMessage } from "../platform/localization.ts";
 import { copyText, type CopyText } from "./clipboard.ts";
 
 type ReferenceKind = "variables" | "clauses";
 type RuntimeVocabulary = { variables: string[]; matchers: string[] };
+type GetMessage = (key: string) => string;
 
 const referenceSyntax = (row: HTMLTableRowElement) =>
   row.querySelector("code")?.textContent?.trim() || "";
@@ -19,6 +21,7 @@ export const syncReferenceVocabulary = (
   root: ParentNode,
   kind: ReferenceKind,
   runtimeTerms: string[],
+  localize: GetMessage = getMessage,
 ) => {
   const rows = [
     ...root.querySelectorAll<HTMLTableRowElement>("tbody tr:not(.reference-group-row), table > tr"),
@@ -49,7 +52,10 @@ export const syncReferenceVocabulary = (
     const example = target.ownerDocument.createElement("td");
     if (kind === "variables") example.textContent = "value";
     const meaning = target.ownerDocument.createElement("td");
-    meaning.textContent = kind === "variables" ? "Runtime variable" : "Runtime rule matcher";
+    meaning.textContent =
+      kind === "variables"
+        ? localize("referenceRuntimeVariable") || "Runtime variable"
+        : localize("referenceRuntimeRuleMatcher") || "Runtime rule matcher";
     row.append(syntaxCell, example, meaning);
     target.append(row);
   }

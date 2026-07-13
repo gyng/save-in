@@ -8,6 +8,12 @@
   "translationCredits": {
     "message": "​"
   },
+  "referenceRuntimeVariable": {
+    "message": "ランタイム変数"
+  },
+  "referenceRuntimeRuleMatcher": {
+    "message": "ランタイムルールマッチャー"
+  },
   "genericUnknownError": {
     "message": "不明なエラー"
   },

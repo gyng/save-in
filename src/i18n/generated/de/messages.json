@@ -8,6 +8,12 @@
   "translationCredits": {
     "message": "​"
   },
+  "referenceRuntimeVariable": {
+    "message": "Laufzeitvariable"
+  },
+  "referenceRuntimeRuleMatcher": {
+    "message": "Laufzeit-Regel-Matcher"
+  },
   "genericUnknownError": {
     "message": "Unbekannter Fehler"
   },

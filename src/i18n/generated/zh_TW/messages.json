@@ -8,6 +8,12 @@
   "translationCredits": {
     "message": "​"
   },
+  "referenceRuntimeVariable": {
+    "message": "執行階段變數"
+  },
+  "referenceRuntimeRuleMatcher": {
+    "message": "執行階段規則比對器"
+  },
   "genericUnknownError": {
     "message": "未知錯誤"
   },

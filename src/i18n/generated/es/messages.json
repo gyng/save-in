@@ -8,6 +8,12 @@
   "translationCredits": {
     "message": "​"
   },
+  "referenceRuntimeVariable": {
+    "message": "Variable de tiempo de ejecución"
+  },
+  "referenceRuntimeRuleMatcher": {
+    "message": "Criterio de regla en tiempo de ejecución"
+  },
   "genericUnknownError": {
     "message": "Error desconocido"
   },

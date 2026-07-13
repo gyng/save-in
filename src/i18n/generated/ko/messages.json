@@ -8,6 +8,12 @@
   "translationCredits": {
     "message": "​"
   },
+  "referenceRuntimeVariable": {
+    "message": "런타임 변수"
+  },
+  "referenceRuntimeRuleMatcher": {
+    "message": "런타임 규칙 매처"
+  },
   "genericUnknownError": {
     "message": "알 수 없는 오류"
   },

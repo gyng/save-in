@@ -8,6 +8,12 @@
   "translationCredits": {
     "message": "​"
   },
+  "referenceRuntimeVariable": {
+    "message": "Runtimevariabele"
+  },
+  "referenceRuntimeRuleMatcher": {
+    "message": "Runtime-regelmatcher"
+  },
   "genericUnknownError": {
     "message": "Onbekende fout"
   },

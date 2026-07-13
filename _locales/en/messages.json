@@ -11,6 +11,14 @@
     "message": "​",
     "description": "Credits for translations. Leave ​ for blank. Eg. sv translation by @username <email or url>, Real Name <contact>. Used in src/options/options.html."
   },
+  "referenceRuntimeVariable": {
+    "message": "Runtime variable",
+    "description": "Meaning shown for a runtime variable that is not yet in the authored reference table. Used in src/options/reference-page.ts."
+  },
+  "referenceRuntimeRuleMatcher": {
+    "message": "Runtime rule matcher",
+    "description": "Meaning shown for a runtime rule matcher that is not yet in the authored reference table. Used in src/options/reference-page.ts."
+  },
   "genericUnknownError": {
     "message": "Unknown error",
     "description": "A generic error message used as a fallback. Used in src/downloads/notification.ts."

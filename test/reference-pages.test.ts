@@ -100,13 +100,23 @@ describe("reference controller", () => {
   });
 
   test("syncs rows to the runtime vocabulary and adds fallbacks for new terms", () => {
-    syncReferenceVocabulary(document, "variables", [":date:", ":newvalue:"]);
+    const getMessage = (key: string) =>
+      ({
+        referenceRuntimeVariable: "Localized runtime variable",
+        referenceRuntimeRuleMatcher: "Localized runtime rule matcher",
+      })[key] ?? "";
+    syncReferenceVocabulary(document, "variables", [":date:", ":newvalue:"], getMessage);
     const tokens = [...document.querySelectorAll("tbody tr code:first-child")].map((node) =>
       node.textContent?.trim(),
     );
     expect(tokens).toEqual([":date:", ":newvalue:", ":$1:"]);
-    expect(document.body.textContent).toContain("Runtime variable");
+    expect(document.body.textContent).toContain("Localized runtime variable");
     expect(document.body.textContent).not.toContain(":sourceurl:");
+
+    document.body.innerHTML =
+      "<table><tbody><tr><td><code>into:</code></td><td>Existing matcher</td></tr></tbody></table>";
+    syncReferenceVocabulary(document, "clauses", ["newmatcher:"], getMessage);
+    expect(document.body.textContent).toContain("Localized runtime rule matcher");
   });
 });
 

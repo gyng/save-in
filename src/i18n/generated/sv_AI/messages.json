@@ -8,6 +8,12 @@
   "translationCredits": {
     "message": "​"
   },
+  "referenceRuntimeVariable": {
+    "message": "Körtidsvariabel"
+  },
+  "referenceRuntimeRuleMatcher": {
+    "message": "Regelmatchare vid körning"
+  },
   "genericUnknownError": {
     "message": "Okänt fel"
   },
