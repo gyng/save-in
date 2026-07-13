@@ -109,6 +109,13 @@ describe("syntax parser combinators", () => {
         { span: sourceSpan(source, 1, 3), text: "XX" },
       ]),
     ).toBe("a>XXdef");
+    expect(
+      applySourceEdits(source, [
+        { span: sourceSpan(source, 1, 1), text: ">" },
+        { span: sourceSpan(source, 1, 1), text: "path" },
+        { span: sourceSpan(source, 1, 1), text: " // note" },
+      ]),
+    ).toBe("a>path // notebcdef");
     expect(() =>
       applySourceEdits(source, [
         { span: sourceSpan(source, 1, 4), text: "x" },

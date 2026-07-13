@@ -88,11 +88,14 @@ export const sourceFragment = <Kind extends string>(
 export const applySourceEdits = (source: string, edits: readonly SourceEdit[]): string => {
   let result = source;
   let nextStart = source.length;
-  for (const edit of edits.toSorted(
-    (left, right) =>
-      right.span.start.offset - left.span.start.offset ||
-      right.span.end.offset - left.span.end.offset,
-  )) {
+  // Equal-position insertions must be applied in reverse to preserve their declared order.
+  for (const edit of edits
+    .toReversed()
+    .toSorted(
+      (left, right) =>
+        right.span.start.offset - left.span.start.offset ||
+        right.span.end.offset - left.span.end.offset,
+    )) {
     const { start, end } = edit.span;
     if (end.offset > nextStart) throw new Error("Source edits must not overlap");
     result = `${result.slice(0, start.offset)}${edit.text}${result.slice(end.offset)}`;

@@ -31,13 +31,16 @@
     "reload": "node scripts/reload.js",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
+    "test:fuzz": "vitest run --config vitest.fuzz.config.mjs",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit -p tsconfig.browser.json && tsc --noEmit -p tsconfig.chrome.json && tsc --noEmit -p tsconfig.worker.json && tsc --noEmit -p tsconfig.tools.json && tsc --noEmit -p tsconfig.dev-tools.json && tsc --noEmit -p tsconfig.e2e.json && tsc --noEmit -p tsconfig.test.json"
   },
   "devDependencies": {
+    "@fast-check/vitest": "^0.4.1",
     "@types/chrome": "^0.2.2",
     "@types/firefox-webext-browser": "^143.0.0",
     "@vitest/coverage-v8": "4.1.9",
+    "fast-check": "^4.8.0",
     "jsdom": "^29.1.1",
     "jszip": "3.10.1",
     "oxfmt": "^0.58.0",

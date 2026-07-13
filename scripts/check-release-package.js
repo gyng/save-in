@@ -196,6 +196,7 @@ for (const required of [
   '"tsconfig.dev-tools.json"',
   '"tsconfig.e2e.json"',
   '"tsconfig.test.json"',
+  '"vitest.fuzz.config.mjs"',
   '"!.gitignore"',
   '"!.oxlintrc.json"',
   '"!.oxfmtrc.json"',

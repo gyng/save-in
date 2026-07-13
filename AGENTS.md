@@ -151,6 +151,9 @@ cleanup:
   checks; stage and lint the bundle; then run oxlint and formatting checks.
 - `npm run typecheck`: check Firefox, Chrome, the DOM-free worker, tooling,
   e2e drivers, and the source/test project.
+- `npm run test:fuzz`: run the replayable property fuzz suite for ten seconds.
+  Override `FUZZ_TIME_MS` for longer runs; failures print `FUZZ_PROPERTY`,
+  `FUZZ_SEED`, and `FUZZ_PATH` values for exact replay.
 - `npm run e2e`: stage once and run Chrome and Firefox in parallel. Use
   `e2e:chrome`, `e2e:firefox`, or `e2e:serial` when isolating failures or
   machine-resource issues.

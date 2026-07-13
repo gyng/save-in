@@ -108,6 +108,7 @@ async function main() {
     "tsconfig.worker.json",
     "vitest.config.mjs",
     "vitest.e2e.config.mjs",
+    "vitest.fuzz.config.mjs",
   ];
   for (const file of files) {
     const destination = path.join(stage, file);
@@ -164,6 +165,7 @@ async function main() {
       "tsconfig.test.json",
       "tsconfig.tools.json",
       "tsconfig.worker.json",
+      "vitest.fuzz.config.mjs",
     ],
     ["docs/"],
   );

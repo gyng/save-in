@@ -86,6 +86,21 @@ describe("directory-line grammar", () => {
     );
   });
 
+  test("keeps simultaneous insertions in semantic order on an empty line", () => {
+    const updated = updateDirectoryLine(parsePathLineAst("").ast, {
+      depth: 2,
+      path: "archive",
+      comment: "notes",
+    });
+
+    expect(serializeDirectoryLine(updated)).toBe(">>archive // notes");
+    expect(updated).toMatchObject({
+      depth: 2,
+      path: { value: "archive" },
+      comment: { value: "notes" },
+    });
+  });
+
   test.each(["", "   ", ">>>", "> // comment only"])(
     "reports a missing directory in %j",
     (source) => {
