@@ -2896,16 +2896,12 @@ select {
 
 /* ── More Options → External integrations ────────────────────────── */
 
-.external-integrations-card {
+.external-integrations-content {
   display: grid;
   gap: var(--space-4);
   width: min(760px, 100%);
   box-sizing: border-box;
   margin: var(--space-2) 0 var(--space-6);
-  padding: var(--space-4);
-  border: 1px solid var(--panel-border);
-  border-radius: var(--radius);
-  background: var(--panel-bg);
 }
 
 .external-integrations-header {
