@@ -656,7 +656,7 @@ Save In syntax:
 - End into: with / to move the file while preserving its resolved filename.
 - Otherwise include :filename: unless the goal explicitly requests renaming.
 - Variables use :name: syntax. Useful choices include :filename:, :fileext:, :sourcedomain:, :year:, :month:, :day:, :counter:, and :uuid:.
-- To reuse regex groups, add capture: followed by the matcher name, then use :$1:, :$2:, and so on in into:.
+- To reuse regex groups in new rules, add capturegroups: followed by the matcher name, then use :$1:, :$2:, and so on in into:. capture: is only for compatibility with legacy flattened indexes.
 - Lines beginning with // are comments. Never use absolute paths, .., or unsupported clause names.
 
 If more syntax detail is needed, consult https://github.com/gyng/save-in/wiki/Clause-and-Variable-list before answering.
@@ -1953,6 +1953,7 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
               <tr>
                 <td>
                   <code class="click-to-copy">capture:</code>
+                  <code class="click-to-copy">capturegroups:</code>
                 </td>
                 <td>
                   <code>pageurl</code>
@@ -1964,6 +1965,7 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                   <code class="click-to-copy">:$1:</code>,
                   <code class="click-to-copy">:$2:</code
                   >__MSG_html_splitMultipleCaptureTargetsWithA__ <code>,</code>.
+                  <div class="caption">__MSG_html_captureClauseCompatibility__</div>
                 </td>
               </tr>
             </tbody>

@@ -19,11 +19,15 @@ export type WireDownloadInfo = {
   url?: string | undefined;
   sourceUrl?: string | undefined;
   pageUrl?: string | undefined;
+  frameUrl?: string | undefined;
   selectionText?: string | undefined;
   linkText?: string | undefined;
+  mediaType?: string | undefined;
   filename?: string | undefined;
   naiveFilename?: string | undefined;
   initialFilename?: string | undefined;
+  mimeExtension?: string | undefined;
+  resolvedFilename?: string | undefined;
   suggestedFilename?: string | null | undefined;
   context?: string | undefined;
   menuIndex?: string | null | undefined;
@@ -34,6 +38,7 @@ export type WireDownloadInfo = {
   modifiers?: string[] | undefined;
   sha256?: string | undefined;
   preview?: boolean | undefined;
+  contentFetchDisabled?: boolean | undefined;
   counter?: number | undefined;
   now?: string | undefined;
   currentTab?: WireCurrentTab | null | undefined;
@@ -50,11 +55,15 @@ const WIRE_INFO_STRING_FIELDS = [
   "url",
   "sourceUrl",
   "pageUrl",
+  "frameUrl",
   "selectionText",
   "linkText",
+  "mediaType",
   "filename",
   "naiveFilename",
   "initialFilename",
+  "mimeExtension",
+  "resolvedFilename",
   "context",
   "menuItemId",
   "menuItemTitle",
@@ -74,6 +83,9 @@ export const toWireDownloadState = (state: DownloadPipelineState): WireDownloadS
   }
   if (Array.isArray(state.info.modifiers)) info.modifiers = [...state.info.modifiers];
   if (typeof state.info.preview === "boolean") info.preview = state.info.preview;
+  if (typeof state.info.contentFetchDisabled === "boolean") {
+    info.contentFetchDisabled = state.info.contentFetchDisabled;
+  }
   if (typeof state.info.counter === "number" && Number.isFinite(state.info.counter)) {
     info.counter = state.info.counter;
   }
@@ -409,6 +421,8 @@ const isWireDownloadInfo = (value: unknown): value is WireDownloadInfo =>
     (Array.isArray(value.modifiers) &&
       value.modifiers.every((item) => typeof item === "string"))) &&
   (typeof value.preview === "undefined" || typeof value.preview === "boolean") &&
+  (typeof value.contentFetchDisabled === "undefined" ||
+    typeof value.contentFetchDisabled === "boolean") &&
   (typeof value.counter === "undefined" ||
     (typeof value.counter === "number" && Number.isFinite(value.counter))) &&
   hasOptionalString(value, "now") &&
@@ -416,7 +430,7 @@ const isWireDownloadInfo = (value: unknown): value is WireDownloadInfo =>
     value.currentTab === null ||
     isWireCurrentTab(value.currentTab));
 
-const isWireDownloadState = (value: unknown): value is WireDownloadState =>
+export const isWireDownloadState = (value: unknown): value is WireDownloadState =>
   isStringKeyedRecord(value) &&
   isWireDownloadInfo(value.info) &&
   hasOptionalString(value, "path") &&

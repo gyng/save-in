@@ -5,6 +5,7 @@ import {
   isExternalMessage,
   isInternalMessage,
   isStringKeyedRecord,
+  isWireDownloadState,
   toWireDownloadState,
 } from "../src/shared/message-protocol.ts";
 
@@ -107,6 +108,11 @@ describe("message protocol runtime validation", () => {
       scratch: { historyEntryId: "h1", hasExtension: [".png"] as RegExpMatchArray },
       info: {
         url: "https://x/photo.png",
+        frameUrl: "https://x/gallery",
+        mediaType: "image",
+        mimeExtension: "png",
+        resolvedFilename: "photo.png",
+        contentFetchDisabled: true,
         now: new Date("2026-01-02T03:04:05.000Z"),
         currentTab: { id: 7, title: "Photo", incognito: false },
         contentPromise: Promise.resolve(null),
@@ -119,11 +125,21 @@ describe("message protocol runtime validation", () => {
       routeIsFolder: false,
       info: {
         url: "https://x/photo.png",
+        frameUrl: "https://x/gallery",
+        mediaType: "image",
+        mimeExtension: "png",
+        resolvedFilename: "photo.png",
+        contentFetchDisabled: true,
         now: "2026-01-02T03:04:05.000Z",
         currentTab: { id: 7, title: "Photo", incognito: false },
       },
     });
     expect(structuredClone(snapshot)).toEqual(snapshot);
     expect(JSON.parse(JSON.stringify(snapshot))).toEqual(snapshot);
+  });
+
+  test("rejects malformed persisted download state", () => {
+    expect(isWireDownloadState({ info: { contentFetchDisabled: "yes" } })).toBe(false);
+    expect(isWireDownloadState({ info: { mimeExtension: 42 } })).toBe(false);
   });
 });

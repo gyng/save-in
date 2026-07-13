@@ -5,7 +5,8 @@ import { webExtensionApi } from "../platform/web-extension-api.ts";
 import { WEB_EXTENSION_CAPABILITIES } from "../platform/chrome-detector.ts";
 import { extensionSessionStorage } from "../platform/storage-areas.ts";
 import { Path } from "../routing/path.ts";
-import { applyVariables } from "../routing/variable.ts";
+import { applyVariables, mimeToExtension, resolveMime } from "../routing/variable.ts";
+import { EXTENSION_REGEX } from "../routing/filename.ts";
 import { mergeDownload } from "./download-state.ts";
 import { downloadPorts } from "./ports.ts";
 import {
@@ -15,15 +16,142 @@ import {
 } from "./browser-downloads.ts";
 import type { DownloadRuntimeState } from "./download-runtime-state.ts";
 import type { DownloadPipelineState } from "./download-types.ts";
-import { FINAL_FILENAMES_SESSION_KEY } from "../shared/storage-keys.ts";
+import {
+  DEFERRED_ROUTES_SESSION_KEY,
+  FINAL_FILENAMES_SESSION_KEY,
+} from "../shared/storage-keys.ts";
 import { getMessage } from "../platform/localization.ts";
 import { EXTENSION_NOTIFICATION_STREAMS, Notifier } from "./notification.ts";
+import {
+  fromWireDownloadState,
+  isWireDownloadState,
+  toWireDownloadState,
+  type WireDownloadState,
+} from "../shared/message-protocol.ts";
 
 const historyPort = downloadPorts.history;
 const logPort = downloadPorts.log;
 const backgroundRuntime = downloadPorts.runtime;
 
+const resolveFinalMimeExtension = async (state: DownloadPipelineState): Promise<void> => {
+  const patterns = Array.isArray(options.filenamePatterns) ? options.filenamePatterns : [];
+  const usesActualFileExtension = patterns.some((rule) =>
+    rule.some((clause) => clause.name === "actualfileext"),
+  );
+  if (
+    options.appendMimeExtension === false ||
+    !usesActualFileExtension ||
+    EXTENSION_REGEX.test(state.info.filename || "")
+  ) {
+    return;
+  }
+  const extension = state.info.mimeExtension || mimeToExtension(await resolveMime(state.info));
+  if (extension) {
+    state.info.mimeExtension = extension;
+    state.scratch.mimeExtension = extension;
+  }
+};
+
 export type FinalFilenameMap = Record<string, string | string[]>;
+
+export type DeferredRouteRecovery = {
+  version: 1;
+  id: string;
+  state: WireDownloadState;
+  pathTemplateRaw?: string | undefined;
+  mimeExtension?: string | undefined;
+  historyEntryId?: string | undefined;
+};
+
+export type DeferredRouteMap = Record<string, DeferredRouteRecovery | DeferredRouteRecovery[]>;
+
+const normalizeDeferredRoute = (value: unknown): DeferredRouteRecovery | null => {
+  if (value == null || typeof value !== "object" || Array.isArray(value)) return null;
+  const candidate = value as Record<string, unknown>;
+  const state = candidate.state;
+  if (candidate.version !== 1 || typeof candidate.id !== "string" || !isWireDownloadState(state)) {
+    return null;
+  }
+  return {
+    version: 1,
+    id: candidate.id,
+    state: state as WireDownloadState,
+    ...(typeof candidate.pathTemplateRaw === "string"
+      ? { pathTemplateRaw: candidate.pathTemplateRaw }
+      : {}),
+    ...(typeof candidate.mimeExtension === "string"
+      ? { mimeExtension: candidate.mimeExtension }
+      : {}),
+    ...(typeof candidate.historyEntryId === "string"
+      ? { historyEntryId: candidate.historyEntryId }
+      : {}),
+  };
+};
+
+const deferredRouteQueue = (value: unknown): DeferredRouteRecovery[] =>
+  (Array.isArray(value) ? value : [value])
+    .map(normalizeDeferredRoute)
+    .filter((entry): entry is DeferredRouteRecovery => entry !== null);
+
+const safeDeferredRouteMap = (value: unknown): DeferredRouteMap => {
+  if (value == null || typeof value !== "object" || Array.isArray(value)) return {};
+  const entries: Array<[string, DeferredRouteRecovery | DeferredRouteRecovery[]]> = [];
+  for (const [url, stored] of Object.entries(value)) {
+    const queue = deferredRouteQueue(stored);
+    const first = queue[0];
+    if (first) entries.push([url, queue.length === 1 ? first : queue]);
+  }
+  return Object.fromEntries(entries);
+};
+
+export const createDeferredRouteRecovery = (
+  state: DownloadPipelineState,
+): DeferredRouteRecovery => ({
+  version: 1,
+  id: `${Date.now()}-${Math.random()}`,
+  state: toWireDownloadState(state),
+  ...(state.scratch.pathTemplateRaw ? { pathTemplateRaw: state.scratch.pathTemplateRaw } : {}),
+  ...(state.scratch.mimeExtension ? { mimeExtension: state.scratch.mimeExtension } : {}),
+  ...(state.scratch.historyEntryId ? { historyEntryId: state.scratch.historyEntryId } : {}),
+});
+
+export const enqueueDeferredRoute = (
+  map: unknown,
+  url: string,
+  recovery: DeferredRouteRecovery,
+): DeferredRouteMap => {
+  const safeMap = safeDeferredRouteMap(map);
+  const queue = [...deferredRouteQueue(safeMap[url]), recovery];
+  return { ...safeMap, [url]: queue.length === 1 ? recovery : queue };
+};
+
+export const removeDeferredRoute = (map: unknown, url: string, id?: string): DeferredRouteMap => {
+  const copy = { ...safeDeferredRouteMap(map) };
+  const queue = deferredRouteQueue(copy[url]);
+  const index = id == null ? 0 : queue.findIndex((entry) => entry.id === id);
+  if (index >= 0) queue.splice(index, 1);
+  const first = queue[0];
+  if (first) copy[url] = queue.length === 1 ? first : queue;
+  else delete copy[url];
+  return copy;
+};
+
+const restoreDeferredRoute = (recovery: DeferredRouteRecovery): DownloadPipelineState => {
+  const { info } = fromWireDownloadState(recovery.state);
+  if (recovery.mimeExtension) info.mimeExtension = recovery.mimeExtension;
+  const pathTemplateRaw = recovery.pathTemplateRaw || recovery.state.path || "";
+  return {
+    path: new Path(pathTemplateRaw),
+    info,
+    needRouteMatch: true,
+    scratch: {
+      deferredRouteRequirement: true,
+      pathTemplateRaw,
+      ...(recovery.mimeExtension ? { mimeExtension: recovery.mimeExtension } : {}),
+      ...(recovery.historyEntryId ? { historyEntryId: recovery.historyEntryId } : {}),
+    },
+  };
+};
 
 export const filenameQueue = (value: unknown): string[] =>
   Array.isArray(value)
@@ -134,39 +262,149 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
       return false;
     }
 
+    const rejectDeferredRoute = async (state: DownloadPipelineState): Promise<void> => {
+      suggest();
+      if (typeof downloadItem.id === "number") {
+        await webExtensionApi.downloads.cancel(downloadItem.id).catch(() => {});
+        await historyPort
+          .setStatus(state.scratch?.historyEntryId, "RULE_NO_MATCH", downloadItem.id)
+          .catch((error) => logPort.add("route-miss history update failed", String(error)));
+      }
+      if (options.notifyOnFailure) {
+        Notifier.createExtensionNotification(
+          getMessage("notificationRuleMatchFailedExclusiveTitle"),
+          getMessage("notificationRuleMatchFailedExclusiveMessage", [state.info.url ?? ""]),
+          true,
+          EXTENSION_NOTIFICATION_STREAMS.ROUTE_MISS,
+        );
+      }
+    };
+
+    const rememberResolvedFilename = (state: DownloadPipelineState, filename: string): void => {
+      if (typeof downloadItem.id === "number") {
+        Download.finalFilenamesByDownloadId.set(downloadItem.id, filename);
+        void rememberFilename(downloadItem.id, filename, state.info.currentTab?.incognito === true);
+      }
+      const historyEntryId = state.scratch?.historyEntryId;
+      if (typeof historyEntryId === "string") {
+        void historyPort.patch(historyEntryId, { finalFullPath: filename });
+      }
+    };
+
     const pendingState = pendingQueue?.shift();
     if (pendingUrl && pendingQueue?.length === 0) Download.pendingStates.delete(pendingUrl);
 
     if (!pendingState || !pendingState.path) {
-      getSession(extensionSessionStorage, FINAL_FILENAMES_SESSION_KEY)
-        .then((res) => {
-          const map = safeFilenameMap(res[FINAL_FILENAMES_SESSION_KEY]);
-          const recoveredUrl = map[downloadItem.url]
-            ? downloadItem.url
-            : map[downloadItem.finalUrl]
-              ? downloadItem.finalUrl
-              : undefined;
-          const recovered = recoveredUrl ? filenameQueue(map[recoveredUrl])[0] : undefined;
-          if (!recovered) {
-            suggest();
-            return;
+      void (async () => {
+        if (backgroundRuntime.ready) await backgroundRuntime.ready.catch(() => {});
+        const [filenameResult, deferredResult] = await Promise.all([
+          getSession(extensionSessionStorage, FINAL_FILENAMES_SESSION_KEY),
+          getSession(extensionSessionStorage, DEFERRED_ROUTES_SESSION_KEY),
+        ]);
+        const map = safeFilenameMap(filenameResult[FINAL_FILENAMES_SESSION_KEY]);
+        const deferredMap = safeDeferredRouteMap(deferredResult[DEFERRED_ROUTES_SESSION_KEY]);
+        const urls = [downloadItem.url, downloadItem.finalUrl].filter(
+          (url): url is string => typeof url === "string" && Boolean(url),
+        );
+        const recoveredUrl = urls.find((url) => Boolean(map[url]));
+        const deferredUrl = urls.find((url) => Boolean(deferredMap[url]));
+        const recovered = recoveredUrl ? filenameQueue(map[recoveredUrl])[0] : undefined;
+        const recovery = deferredUrl ? deferredRouteQueue(deferredMap[deferredUrl])[0] : undefined;
+
+        if (recovery) {
+          const recoveredState = restoreDeferredRoute(recovery);
+          recoveredState.info.filename =
+            downloadItem.filename ||
+            recoveredState.info.suggestedFilename ||
+            recoveredState.info.filename;
+          try {
+            await resolveFinalMimeExtension(recoveredState);
+            const pathTemplateRaw = recoveredState.scratch.pathTemplateRaw || "";
+            recoveredState.path = await applyVariables(
+              new Path(pathTemplateRaw),
+              recoveredState.info,
+            );
+            const routeMatches = Download.getRoutingMatches(recoveredState);
+            if (!routeMatches) {
+              await rejectDeferredRoute(recoveredState);
+              return;
+            }
+            recoveredState.routeIsFolder = /\/\s*$/.test(routeMatches);
+            recoveredState.route = await applyVariables(
+              new Path(routeMatches),
+              recoveredState.info,
+            );
+            recoveredState.scratch.deferredRouteRequirement = false;
+            const filename = Download.finalizeFullPath(recoveredState);
+            rememberResolvedFilename(recoveredState, filename);
+            suggest({ filename, conflictAction: options.conflictAction });
+          } catch (error) {
+            logPort.add("deferred route recovery failed", String(error));
+            await rejectDeferredRoute(recoveredState);
+          } finally {
+            await Promise.all([
+              updateSession<FinalFilenameMap>(
+                sessionWriteState,
+                extensionSessionStorage,
+                FINAL_FILENAMES_SESSION_KEY,
+                (stored) =>
+                  recoveredUrl
+                    ? removeFilename(stored, recoveredUrl, recovered)
+                    : safeFilenameMap(stored),
+              ),
+              updateSession<DeferredRouteMap>(
+                sessionWriteState,
+                extensionSessionStorage,
+                DEFERRED_ROUTES_SESSION_KEY,
+                (stored) => removeDeferredRoute(stored, deferredUrl!, recovery.id),
+              ),
+            ]).catch((error) =>
+              logPort.add("deferred route recovery cleanup failed", String(error)),
+            );
           }
-          if (typeof downloadItem.id === "number") {
-            Download.finalFilenamesByDownloadId.set(downloadItem.id, recovered);
-            void rememberFilename(downloadItem.id, recovered);
+          return;
+        }
+
+        if (initiatedBySaveIn && options.routeExclusive) {
+          await rejectDeferredRoute({
+            path: new Path(""),
+            scratch: {},
+            info: {
+              url: downloadItem.finalUrl || downloadItem.url,
+              filename: downloadItem.filename,
+              currentTab: downloadItem.incognito ? { incognito: true } : null,
+            },
+          });
+          if (recoveredUrl) {
+            await updateSession<FinalFilenameMap>(
+              sessionWriteState,
+              extensionSessionStorage,
+              FINAL_FILENAMES_SESSION_KEY,
+              (stored) => removeFilename(stored, recoveredUrl, recovered),
+            );
           }
-          updateSession<FinalFilenameMap>(
-            sessionWriteState,
-            extensionSessionStorage,
-            FINAL_FILENAMES_SESSION_KEY,
-            (m) => removeFilename(m, recoveredUrl!, recovered),
-          );
-          suggest({ filename: recovered, conflictAction: options.conflictAction });
-        })
-        .catch((error) => {
-          logPort.add("filename recovery failed", String(error));
+          return;
+        }
+
+        if (!recovered) {
           suggest();
-        });
+          return;
+        }
+        if (typeof downloadItem.id === "number") {
+          Download.finalFilenamesByDownloadId.set(downloadItem.id, recovered);
+          void rememberFilename(downloadItem.id, recovered);
+        }
+        await updateSession<FinalFilenameMap>(
+          sessionWriteState,
+          extensionSessionStorage,
+          FINAL_FILENAMES_SESSION_KEY,
+          (stored) => removeFilename(stored, recoveredUrl!, recovered),
+        );
+        suggest({ filename: recovered, conflictAction: options.conflictAction });
+      })().catch((error) => {
+        logPort.add("filename recovery failed", String(error));
+        suggest();
+      });
       return true;
     }
 
@@ -178,29 +416,13 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
 
     const pathTemplateRaw = pendingState.scratch?.pathTemplateRaw;
     const filenameChanged = pendingState.info.filename !== previousFilename;
-    const rejectDeferredRoute = async (): Promise<void> => {
-      suggest();
-      if (typeof downloadItem.id === "number") {
-        await webExtensionApi.downloads.cancel(downloadItem.id).catch(() => {});
-        await historyPort
-          .setStatus(pendingState.scratch?.historyEntryId, "RULE_NO_MATCH", downloadItem.id)
-          .catch((error) => logPort.add("route-miss history update failed", String(error)));
-      }
-      if (options.notifyOnFailure) {
-        Notifier.createExtensionNotification(
-          getMessage("notificationRuleMatchFailedExclusiveTitle"),
-          getMessage("notificationRuleMatchFailedExclusiveMessage", [pendingState.info.url ?? ""]),
-          true,
-          EXTENSION_NOTIFICATION_STREAMS.ROUTE_MISS,
-        );
-      }
-    };
     const needsActualFilenameResolution =
       (filenameChanged || pendingState.scratch?.deferredRouteRequirement === true) &&
       ((Array.isArray(options.filenamePatterns) && options.filenamePatterns.length > 0) ||
         (typeof pathTemplateRaw === "string" && /:(?:filename|fileext):/.test(pathTemplateRaw)));
     if (needsActualFilenameResolution) {
       void (async () => {
+        await resolveFinalMimeExtension(pendingState);
         if (typeof pathTemplateRaw === "string") {
           pendingState.path = await applyVariables(new Path(pathTemplateRaw), pendingState.info);
         }
@@ -212,27 +434,16 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
           pendingState.route = await applyVariables(new Path(routeMatches), pendingState.info);
         }
         if (pendingState.scratch?.deferredRouteRequirement && !routeMatches) {
-          await rejectDeferredRoute();
+          await rejectDeferredRoute(pendingState);
           return;
         }
         pendingState.scratch.deferredRouteRequirement = false;
         const filename = Download.finalizeFullPath(pendingState);
-        if (typeof downloadItem.id === "number") {
-          Download.finalFilenamesByDownloadId.set(downloadItem.id, filename);
-          void rememberFilename(
-            downloadItem.id,
-            filename,
-            pendingState.info.currentTab?.incognito === true,
-          );
-        }
-        const historyEntryId = pendingState.scratch?.historyEntryId;
-        if (typeof historyEntryId === "string") {
-          void historyPort.patch(historyEntryId, { finalFullPath: filename });
-        }
+        rememberResolvedFilename(pendingState, filename);
         suggest({ filename, conflictAction: options.conflictAction });
       })().catch((error) => {
         logPort.add("filename resolution failed", String(error));
-        if (pendingState.scratch?.deferredRouteRequirement) void rejectDeferredRoute();
+        if (pendingState.scratch?.deferredRouteRequirement) void rejectDeferredRoute(pendingState);
         else suggest();
       });
       return true;

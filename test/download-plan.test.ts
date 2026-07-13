@@ -135,7 +135,7 @@ describe("renameAndDownload: MIME extension append (§8.1)", () => {
     expect(state.route).toBeDefined();
   });
 
-  test("keeps the MIME fallback when Chrome may replace an existing extension", async () => {
+  test("defers the MIME fallback while Chrome still has an existing extension", async () => {
     setCurrentBrowser("CHROME");
     options.appendMimeExtension = true;
     options.filenamePatterns = [routingRule("actualfileext")];
@@ -145,8 +145,8 @@ describe("renameAndDownload: MIME extension append (§8.1)", () => {
     const state = makeState({ info: { url: "https://cdn.example.com/file.pdf" } });
     await Download.renameAndDownload(state);
 
-    expect(Variable.resolveMime).toHaveBeenCalledWith(state.info);
-    expect(state.info.mimeExtension).toBe("pdf");
+    expect(Variable.resolveMime).not.toHaveBeenCalled();
+    expect(state.info.mimeExtension).toBeUndefined();
   });
 
   test("skips the HEAD and leaves a filename that already has an extension", async () => {

@@ -102,6 +102,7 @@ test("every runtime variable and matcher is documented", () => {
   }
   for (const clause of [...Object.keys(matcherFunctions), "capture", "capturegroups", "into"])
     expect(clauses).toContain(`${clause}:`);
+  expect(variables).toContain("capturegroups:");
 });
 
 test("keeps variables and clauses together in the options reference dialog", () => {

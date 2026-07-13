@@ -8,6 +8,7 @@ export const DOWNLOADS_SESSION_KEY = "siDownloads";
 export const PENDING_DOWNLOADS_SESSION_KEY = "siPendingDownloads";
 export const NOTIFICATION_RECOVERY_SESSION_KEY = "siNotificationRecovery";
 export const FINAL_FILENAMES_SESSION_KEY = "siFinalFilenames";
+export const DEFERRED_ROUTES_SESSION_KEY = "siDeferredRoutes";
 export const ACTIVE_TRANSFERS_SESSION_KEY = "siActiveTransfers";
 export const SOURCE_PANEL_OPEN_SESSION_KEY = "sourcePanelOpen";
 export const SOURCE_PANEL_SORT_STORAGE_KEY = "sourcePanelSort";

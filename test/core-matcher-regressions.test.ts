@@ -55,7 +55,9 @@ describe("built-in matcher templates", () => {
 
   test.each(RULE_TEMPLATES)("$name has a self-contained proof", async (template) => {
     expect(template.rule).not.toMatch(/^capture:/m);
-    const rules = parseRulesCollecting(template.rule).rules;
+    const parsed = parseRulesCollecting(template.rule);
+    expect(parsed.errors).toEqual([]);
+    const rules = parsed.rules;
     const destination = matchRules(rules, template.proof.info);
 
     expect(destination).toBe(template.proof.destination);
@@ -302,6 +304,17 @@ describe("matcher authoring and validation", () => {
         sourceUrl: "https://cdn.example/files/reports/q2",
       }),
     ).toBe("alice-reports");
+  });
+
+  test("expands zero-padded capture indexes consistently with validation", () => {
+    const parsed = parseRulesCollecting(
+      "sourceurl: files/(report)\ncapturegroups: sourceurl\ninto: :$01:",
+    );
+
+    expect(parsed.errors).toEqual([]);
+    expect(matchRules(parsed.rules, { sourceUrl: "https://cdn.example/files/report" })).toBe(
+      "report",
+    );
   });
 
   test("canonicalizes matcher names for capture and shadow analysis", () => {

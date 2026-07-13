@@ -21,6 +21,7 @@ import { fetchUrlForDownload } from "./content-fetch.ts";
 import { OffscreenClient } from "../platform/offscreen-client.ts";
 import { EXTENSION_REGEX, getFilenameFromUrl } from "../routing/filename.ts";
 import {
+  DEFERRED_ROUTES_SESSION_KEY,
   FINAL_FILENAMES_SESSION_KEY,
   PENDING_DOWNLOADS_SESSION_KEY,
 } from "../shared/storage-keys.ts";
@@ -37,8 +38,11 @@ import type {
 } from "./download-types.ts";
 import { createDownloadRuntimeState } from "./download-runtime-state.ts";
 import {
+  createDeferredRouteRecovery,
   enqueueFilename,
+  enqueueDeferredRoute,
   registerFilenameAndObjectUrlListeners,
+  removeDeferredRoute,
   removeFilename,
 } from "./filename-listener.ts";
 import { BrowserDownloadRouting, routeBrowserDownload } from "./browser-downloads.ts";
@@ -385,7 +389,11 @@ export const Download = {
     const usesActualFileExtension = filenamePatterns.some((rule) =>
       rule.some((clause) => clause.name === "actualfileext"),
     );
-    if (options.appendMimeExtension !== false && usesActualFileExtension) {
+    if (
+      options.appendMimeExtension !== false &&
+      usesActualFileExtension &&
+      !EXTENSION_REGEX.test(state.info.filename || "")
+    ) {
       const extension = mimeToExtension(await resolveMime(state.info));
       if (extension) {
         state.info.mimeExtension = extension;
@@ -523,6 +531,9 @@ export const Download = {
         ? RequestHeaders.getDownloadHeaders(state)
         : undefined;
     const allowOriginalUrlFallback = !headers && isHttpDownloadUrl(state.info.url);
+    const deferredRouteRecovery = state.scratch.deferredRouteRequirement
+      ? createDeferredRouteRecovery(state)
+      : undefined;
     throwIfAborted(signal);
     await Promise.all(
       privateContext
@@ -540,6 +551,16 @@ export const Download = {
               FINAL_FILENAMES_SESSION_KEY,
               (m) => enqueueFilename(m, acquired.url, filename),
             ),
+            ...(deferredRouteRecovery
+              ? [
+                  updateSession(
+                    sessionWriteState,
+                    extensionSessionStorage,
+                    DEFERRED_ROUTES_SESSION_KEY,
+                    (map) => enqueueDeferredRoute(map, acquired.url, deferredRouteRecovery),
+                  ),
+                ]
+              : []),
           ],
     );
 
@@ -645,6 +666,16 @@ export const Download = {
                 FINAL_FILENAMES_SESSION_KEY,
                 (m) => removeFilename(m, acquired.url, filename),
               ),
+              ...(deferredRouteRecovery
+                ? [
+                    updateSession(
+                      sessionWriteState,
+                      extensionSessionStorage,
+                      DEFERRED_ROUTES_SESSION_KEY,
+                      (map) => removeDeferredRoute(map, acquired.url, deferredRouteRecovery.id),
+                    ),
+                  ]
+                : []),
             ],
       );
     }

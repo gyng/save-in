@@ -58,9 +58,12 @@ export const matchRule = (rule: RoutingRule, info: RoutingInfo): string | false 
   if (matches.some((match) => !match)) return false;
   let destination = rule.find((clause) => clause.name === "into")!.value as string;
   const captured = getCaptureMatches(rule, info);
-  if (captured)
-    for (let index = 0; index < captured.length; index += 1)
-      destination = destination.split(`:$${index}:`).join(captured[index] ?? "");
+  if (captured) {
+    destination = destination.replace(
+      /:\$(\d+):/g,
+      (_token, index: string) => captured[Number(index)] ?? "",
+    );
+  }
   return destination;
 };
 
