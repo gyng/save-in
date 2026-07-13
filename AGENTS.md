@@ -6,32 +6,29 @@ Firefox (AMO) and Chrome (Web Store).
 
 ## Architecture
 
-**The code is ESM + TypeScript, shipped as a non-minified bundle.** Every
-`src/**/*.ts` is a real ES module using `import`/`export`; `rolldown`
-(`rolldown.config.mjs`) transpiles the types and scope-hoists each target into
-ONE readable, non-minified file (`dist/bundled/*.js`) — so the shipped output is
-still reviewable, but the source has real module boundaries. There is one entry
-module per target (`src/entries/{background,options,offscreen}.ts`) that
-imports its dependencies normally and synchronously calls the background
-registration functions. `entries/background.ts` also re-exposes only the narrow
-objects the e2e `evalSW` bridge needs. Menu construction/click/tab behavior uses
-named imports; `menuState` is the sole shared mutable menu record, and
-`background/main.ts` is the composition root. Source is grouped by ownership:
-`background`, `config`, `downloads`, `routing`, `platform`, and `shared`, plus
-the execution-context directories `options`, `content`, `entries`, and `vendor`.
-The import graph is acyclic and
-checked by `scripts/check-import-cycles.js`. Mutable cross-file state uses
-explicit records or live bindings (`options`, `currentTab`, `CURRENT_BROWSER`)
-owned by one module. Bundle output format is per-target: `esm` (bare,
-scope-hoisted, no `export` statements) for the SW/event-page/options/offscreen
-classic contexts; `iife` for the content script + reference-page controller.
+**The code is ESM + TypeScript, shipped as readable, non-minified bundles.**
+`rolldown.config.mjs` transpiles and scope-hoists each target into one file under
+`dist/bundled/`. Production entries live in `src/entries/` for background,
+options, offscreen, and reference-page targets; the content script is bundled
+directly from `src/content/content.ts`. `background.e2e.ts` imports the
+production background entry and adds the browser-test command only to e2e
+builds.
 
-**Build/ship/test all target the bundle** (`dist/bundled-pkg`, staged by
-`scripts/build-bundled.js`): `npm run build`, `npm run lint`, and
-`npm run e2e:*` all stage and use it. The old individual-scripts build is
-retired. `npm run typecheck`
-(`tsc --noEmit`) covers `src/**` and the complete TypeScript test suite with
-`exactOptionalPropertyTypes` and `noUncheckedIndexedAccess` enabled.
+`background/main.ts` is the background composition root. Source is grouped by
+ownership under `background`, `config`, `downloads`, `i18n`, `menus`,
+`platform`, `routing`, and `shared`, plus the execution-context directories
+`content`, `entries`, `options`, and `vendor`. The import graph is acyclic and
+checked by `scripts/check-import-cycles.js`. Mutable cross-file state uses
+explicit records or owner-controlled live bindings such as `options`,
+`currentTab`, and `CURRENT_BROWSER`.
+
+Bundle output is bare, scope-hoisted `esm` for background, options, and
+offscreen classic contexts, and `iife` for isolated content and reference-page
+scripts.
+
+**Build, ship, and browser tests target the staged bundle** in
+`dist/bundled-pkg`. `npm run typecheck` covers source and the TypeScript test
+suite with `exactOptionalPropertyTypes` and `noUncheckedIndexedAccess`.
 
 Execution contexts:
 
@@ -90,16 +87,12 @@ to Firefox too.
    listeners are registered top-level in `background/main.ts`; their handlers
    await `backgroundRuntime.ready` (the init promise) before touching options or
    `menuState.pathMappings`.
-2. **Globals die between events.** Anything needed across wakeups goes to
-   storage (via the `SessionState` wrapper, `session-state.ts`):
-   `menuState.lastUsedPath` (storage.local); the per-download records
-   (`siDownloads`, keyed by downloadId — retry info, `historyEntryId`, and the
-   `adopted` membership flag), the pending-download counter, and the per-URL
-   final-filename map (storage.session). `DownloadState` (`download-state.js`)
-   owns `siDownloads`: an in-memory `Map` mirror rebuilt from storage by
-   `DownloadState.hydrate()` on each wake (awaited in `init`), plus a
-   field-union `merge()` so `download.ts` (at `downloads.download` resolution)
-   and `notification.ts` (at `onCreated`) converge on one record.
+2. **Globals die between events.** Persist cross-wakeup state through the
+   helpers in `shared/session-state.ts`. Last-used menu data lives in
+   storage.local; per-download records and transient pending/final-filename
+   state use storage.session. `downloads/state.ts` owns the in-memory download
+   map; `hydrateDownloads()` rebuilds it at startup and `mergeDownload()`
+   combines partial records from the download and notification event paths.
 3. **No `URL.createObjectURL`, no DOM, no `window`.** Shared background code
    uses worker-safe globals and capability detection; do not add a `window` shim.
 4. **`chrome.downloads.onDeterminingFilename`** listeners must `return true`
@@ -152,19 +145,19 @@ cleanup:
 
 ## Iteration workflow
 
-| Command                           | What it does                                                                                                                                                                                                                                                                                                                                                                                 |
-| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `npm test` / `npm run test:watch` | vitest unit tests (jsdom + typed Firefox/Chrome host fixtures); npm run test:coverage enforces 95%-line thresholds on src/ (vendor, options page, SW bootstrap excluded)                                                                                                                                                                                                                     |
-| `npm run lint`                    | stage the bundle, run web-ext lint against it, then oxlint and oxfmt --check                                                                                                                                                                                                                                                                                                                 |
-| `npm run typecheck`               | checks application source independently against Firefox and Chrome API declarations, then the DOM-free Chrome worker, strict build/config tooling, strict browser/e2e drivers, and source+test projects. Production source additionally enables `exactOptionalPropertyTypes` and `noUncheckedIndexedAccess`.                                                                                 |
-| `npm run e2e:chrome`              | vitest e2e suite (~15s): isolated Chrome over CDP, drives the real download pipeline — SW lifecycle, CSP, routing rules, messaging, session persistence (e2e/chrome.e2e.mjs)                                                                                                                                                                                                                 |
-| `npm run e2e:firefox`             | vitest e2e suite for Firefox on a throwaway profile via RDP (e2e/firefox.e2e.mjs)                                                                                                                                                                                                                                                                                                            |
-| `npm run e2e`                     | stages once, then runs the Chrome and Firefox suites in parallel; use `npm run e2e:serial` when diagnosing shared machine-resource issues                                                                                                                                                                                                                                                    |
-| `npm run d:chrome`                | dev loop: isolated Chrome + auto restage/reload on file save                                                                                                                                                                                                                                                                                                                                 |
-| `npm run d`                       | bundled Firefox dev loop with automatic rebuilds and web-ext reloads                                                                                                                                                                                                                                                                                                                         |
-| `npm run build`                   | alias for `build:bundled` — builds the store zip                                                                                                                                                                                                                                                                                                                                             |
-| `npm run bundle`                  | rolldown resolves `src/entries/*.ts` → `dist/bundled/*.js`: one readable, NON-minified scope-hoisted file per target (background + SW, options, offscreen, content, reference page). Store builds use `background.ts`; e2e builds explicitly select `background.e2e.ts` to add one same-extension download-seeding command. `esm` is bare for classic contexts; isolated scripts use `iife`. |
-| `npm run build:bundled`           | stage `dist/bundled-pkg` (bundles plus manifest/HTML pointing at them) and create the shared store ZIP. `build`/`lint`/`e2e:*` all target this package.                                                                                                                                                                                                                                      |
+- `npm test`, `npm run test:watch`, and `npm run test:coverage`: unit tests;
+  coverage enforces the configured source thresholds.
+- `npm run lint`: stage the bundle, run `web-ext` lint, oxlint, and formatting
+  checks.
+- `npm run typecheck`: check Firefox, Chrome, the DOM-free worker, tooling,
+  e2e drivers, and the source/test project.
+- `npm run e2e`: stage once and run Chrome and Firefox in parallel. Use
+  `e2e:chrome`, `e2e:firefox`, or `e2e:serial` when isolating failures or
+  machine-resource issues.
+- `npm run d:chrome` and `npm run d`: auto-rebuilding Chrome and Firefox dev
+  loops.
+- `npm run bundle`: emit readable bundles. `npm run build` also stages and
+  packages the shared store ZIP.
 
 Chrome ≥ 137 ignores `--load-extension`; the scripts load the staged bundled
 package from `dist/bundled-pkg` via the CDP `Extensions.loadUnpacked` command (needs
@@ -179,8 +172,8 @@ Work test-first where the change is logic: add/adjust a vitest test in
 `test/`, watch it fail (`npm run test:watch`), then implement. Behavior that
 spans the real browser (menus, downloads, SW lifecycle) belongs in the e2e
 scripts instead — add a test to `e2e/chrome.e2e.mjs` /
-`e2e/firefox.e2e.mjs` (vitest, sequential within each file). Both e2e suites must pass before a release; they are the
-regression net for the two manifests.
+`e2e/firefox.e2e.mjs` (vitest, sequential within each file). Both suites must
+pass before release; they are the regression net for the two manifests.
 
 vitest specifics (`test/*.test.ts`, typed; `tsc` covers them):
 
@@ -231,19 +224,10 @@ vitest specifics (`test/*.test.ts`, typed; `tsc` covers them):
 
 ## Release checklist
 
-When preparing a release or changing release automation, provenance, store
-screenshots, or browser-owned checks, read [docs/RELEASE.md](docs/RELEASE.md).
-It contains useful on-demand detail that is not required for ordinary tasks.
+Read [docs/RELEASE.md](docs/RELEASE.md) when preparing a release or changing
+release automation, provenance, screenshots, or browser-owned checks.
 
 1. `npm test && npm run lint && npm run typecheck && npm run e2e`
 2. Bump version in `manifest.json` and `package.json`.
-3. `npm run build` → upload the same store-reviewable bundled ZIP to AMO and
-   the Chrome Web Store.
-   For AMO, also run `npm run build:source` and attach the resulting source ZIP
-   from `web-ext-artifacts/source` so reviewers can reproduce the TypeScript
-   build with `npm ci && npm run build`.
-   For the bundled build, run both e2e suites against it first:
-   `npm run e2e` (it stages the bundled package once and runs both suites).
-4. Manual spot-check of anything the e2e can't reach: notifications
-   rendering, a pixiv Referer download (Firefox via native download headers;
-   Firefox), options page dialogs.
+3. Run `npm run build` and `npm run build:source`. Upload the same runtime ZIP
+   to both stores and attach the source ZIP in AMO.

@@ -89,11 +89,3 @@ destination:
 ```sh
 npm run screenshots:store -- --output-dir <path>
 ```
-
-## Deferred Chrome tab-strip menus
-
-Chrome 150 adds the `"tab"` context, but Save In keeps tab-strip menu items
-Firefox-only. Save In supports Chrome 123+, the API lacks a portable capability
-test, and Chrome 150 has a known crash when an extension registers multiple
-tab-context items. Enable the feature on Chrome only after Chromium fixes the
-crash and a safe version/capability gate plus Chrome e2e coverage exists.
