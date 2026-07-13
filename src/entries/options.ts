@@ -20,7 +20,7 @@ import { renderHistory, setHistoryLocalizer } from "../options/history-panel.ts"
 import { confirmPendingChanges, setupOptionsPage } from "../options/options.ts";
 import "../options/dismissible-details.ts";
 import { setupPermissionsBanner } from "../options/permissions-banner.ts";
-import "../options/clicktocopy.ts";
+import "../options/click-to-copy.ts";
 import "../options/autocomplete.ts";
 import { setupPathEditor } from "../options/path-editor.ts";
 import { setupRuleBuilder } from "../options/rule-builder.ts";

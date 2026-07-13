@@ -12,7 +12,7 @@ import { configureRoutingPorts } from "../src/routing/ports.ts";
 import { nextCounter, peekCounter } from "../src/background/counter.ts";
 import { counterWriteState } from "../src/background/state.ts";
 import { resolveContent } from "../src/downloads/content-fetch.ts";
-import fixtures from "./fixtures/clickInfo.ts";
+import fixtures from "./fixtures/click-info.ts";
 
 let diagnostics: { filenamePatterns: RuleError[]; paths: RuleError[] } = {
   filenamePatterns: [],

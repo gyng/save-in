@@ -1,5 +1,5 @@
 import { copyText } from "../src/options/clipboard.ts";
-import { addClickToCopy } from "../src/options/clicktocopy.ts";
+import { addClickToCopy } from "../src/options/click-to-copy.ts";
 
 test("writes text through the Clipboard API", async () => {
   const clipboard = { writeText: vi.fn(async () => undefined) };

@@ -5,7 +5,7 @@ import {
   syncReferenceVocabulary,
 } from "./reference-page.ts";
 import { webExtensionApi } from "../platform/web-extension-api.ts";
-import { addClickToCopy } from "./clicktocopy.ts";
+import { addClickToCopy } from "./click-to-copy.ts";
 import { MESSAGE_TYPES } from "../shared/constants.ts";
 import { sendInternalMessage } from "../shared/message-protocol.ts";
 

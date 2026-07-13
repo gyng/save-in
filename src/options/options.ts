@@ -3,7 +3,7 @@ import { getMessage } from "../platform/localization.ts";
 
 import { normalizeKeyComboForDisplay } from "./options-logic.ts";
 import { renderHistory } from "./history-panel.ts";
-import { addClickToCopy } from "./clicktocopy.ts";
+import { addClickToCopy } from "./click-to-copy.ts";
 import {
   CURRENT_BROWSER,
   BROWSERS,
