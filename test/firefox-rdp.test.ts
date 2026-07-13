@@ -42,6 +42,15 @@ describe("FirefoxRdp waitForEvent", () => {
     expect(client.eventBacklog).toHaveLength(0);
   });
 
+  test("does not retain unrelated lifecycle events for future operations", () => {
+    const sock = makeSocket();
+    const client = new FirefoxRdp(sock);
+
+    sock.emit("data", frame({ from: "root", type: "tabListChanged" }));
+
+    expect(client.eventBacklog).toHaveLength(0);
+  });
+
   test("rejects on timeout and drops the waiter", async () => {
     vi.useFakeTimers();
     try {

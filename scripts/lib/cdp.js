@@ -1,8 +1,13 @@
 // Minimal Chrome DevTools Protocol client (no dependencies, Node >= 22 for
 // the global WebSocket). Used by dev-chrome.js and e2e-chrome.js.
 
-const getJson = async (port, path) => {
-  const res = await fetch(`http://127.0.0.1:${port}${path}`);
+const getJson = async (port, path, timeoutMs = 5000) => {
+  const res = await fetch(`http://127.0.0.1:${port}${path}`, {
+    signal: AbortSignal.timeout(timeoutMs),
+  });
+  if (!res.ok) {
+    throw new Error(`CDP endpoint ${path} returned ${res.status} ${res.statusText}`.trim());
+  }
   return res.json();
 };
 
@@ -21,6 +26,13 @@ class Cdp {
         else resolve(msg.result);
       }
     });
+    ws.addEventListener("close", () => this.failPending(new Error("CDP connection closed")));
+    ws.addEventListener("error", () => this.failPending(new Error("CDP connection failed")));
+  }
+
+  failPending(error) {
+    for (const { reject } of this.pending.values()) reject(error);
+    this.pending.clear();
   }
 
   static async connect(url, timeoutMs = 5000) {
@@ -49,7 +61,6 @@ class Cdp {
     const id = this.id;
     const message = JSON.stringify({ id, method, params });
     if (process.env.CDP_DEBUG) console.error("CDP ->", message);
-    this.ws.send(message);
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
         this.pending.delete(id);
@@ -66,14 +77,18 @@ class Cdp {
           reject(error);
         },
       });
+      try {
+        this.ws.send(message);
+      } catch (error) {
+        this.pending.delete(id);
+        clearTimeout(timer);
+        reject(error);
+      }
     });
   }
 
   close() {
-    for (const { reject } of this.pending.values()) {
-      reject(new Error("CDP connection closed"));
-    }
-    this.pending.clear();
+    this.failPending(new Error("CDP connection closed"));
     this.ws.close();
   }
 }
@@ -279,6 +294,7 @@ const waitForCdp = async (port, attempts = 30) => {
 
 module.exports = {
   Cdp,
+  getJson,
   connectBrowser,
   listTargets,
   evalInTarget,

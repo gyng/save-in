@@ -1,12 +1,12 @@
-import type { ContentFetchResult } from "../shared/content-fetch-types.ts";
 import type { CurrentTab } from "../platform/current-tab.ts";
+import type { LazyDownloadMetadata } from "../shared/lazy-download-metadata.ts";
 
 export type PathValue = {
   finalize: () => string;
   toString: () => string;
 };
 
-export type DownloadInfo = {
+export type DownloadInfo = LazyDownloadMetadata & {
   currentTab?: CurrentTab | null;
   linkText?: string;
   now?: Date;
@@ -28,10 +28,6 @@ export type DownloadInfo = {
   initialFilename?: string;
   preview?: boolean;
   counter?: number;
-  headPromise?: Promise<{ contentType: string; finalUrl: string }>;
-  resolvedHead?: { contentType: string; finalUrl: string };
-  contentPromise?: Promise<ContentFetchResult | null>;
-  sha256?: string;
 };
 
 export type DownloadPipelineState = {

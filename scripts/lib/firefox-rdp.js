@@ -109,7 +109,7 @@ class FirefoxRdp {
       return;
     }
 
-    if (EVENT_TYPES.has(packet.type)) {
+    if (packet.type === "evaluationResult") {
       // evaluateJSAsync can emit evaluationResult before its request reply is
       // handled and the resultID-specific waiter is registered. Retain a small
       // bounded backlog so that legitimate ordering does not become a 30s
@@ -119,6 +119,11 @@ class FirefoxRdp {
       if (this.eventBacklog.length > 100) this.eventBacklog.shift();
       return;
     }
+
+    // Other lifecycle events only describe the instant at which they arrive.
+    // Retaining them lets a later operation consume stale state as if it were
+    // a fresh browser event.
+    if (EVENT_TYPES.has(packet.type)) return;
 
     const queue = this.queues.get(packet.from);
     if (queue && queue.length > 0) {

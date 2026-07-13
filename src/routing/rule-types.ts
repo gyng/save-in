@@ -1,12 +1,10 @@
 import type { RuleType } from "../shared/constants.ts";
+import type { ContentFetchResult } from "../shared/content-fetch-types.ts";
+import type { LazyDownloadMetadata } from "../shared/lazy-download-metadata.ts";
 
-export type RoutingContent = {
-  sha256: string;
-  downloadUrl: string;
-  ownedObjectUrl?: string;
-};
+export type RoutingContent = ContentFetchResult;
 
-export type RoutingDownloadInfo = {
+export type RoutingDownloadInfo = LazyDownloadMetadata<RoutingContent> & {
   currentTab?: { title?: string } | null;
   linkText?: string;
   now?: Date;
@@ -25,10 +23,6 @@ export type RoutingDownloadInfo = {
   initialFilename?: string;
   preview?: boolean;
   counter?: number;
-  headPromise?: Promise<{ contentType: string; finalUrl: string }>;
-  resolvedHead?: { contentType: string; finalUrl: string };
-  contentPromise?: Promise<RoutingContent | null>;
-  sha256?: string;
 };
 
 export type RuleError = { message: string; error: string; warning?: boolean };

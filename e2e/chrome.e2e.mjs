@@ -164,7 +164,13 @@ afterAll(async () => {
 afterEach(async ({ task }) => {
   if (task.result?.state === "fail") {
     suiteFailed = true;
-    await captureFailureArtifacts(task.name);
+    try {
+      await captureFailureArtifacts(task.name);
+    } catch (error) {
+      process.stderr.write(
+        `Unable to capture Chrome failure artifacts: ${error instanceof Error ? error.stack || error.message : String(error)}\n`,
+      );
+    }
   }
 });
 

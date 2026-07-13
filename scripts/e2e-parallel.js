@@ -34,14 +34,23 @@ fs.mkdirSync(runDir, { recursive: true });
 fs.cpSync(path.join(root, "dist", "bundled-pkg"), stagedRun, { recursive: true });
 
 const suites = ["e2e/chrome.e2e.mjs", "e2e/firefox.e2e.mjs"];
-const children = suites.map((suite) =>
-  spawn(process.execPath, [vitest, "run", "--config", config, suite], {
+const runs = suites.map((suite) => {
+  const child = spawn(process.execPath, [vitest, "run", "--config", config, suite], {
     cwd: root,
     env: { ...e2eEnv, EXT_DIR: path.relative(root, stagedRun) },
     stdio: "inherit",
     detached: process.platform !== "win32",
-  }),
-);
+  });
+  // Attach completion handlers immediately. A fast startup failure can exit
+  // before all suites have spawned; registering later would miss the event and
+  // let Node exit with cleanup still pending.
+  const done = new Promise((resolve) => {
+    child.once("error", () => resolve(1));
+    child.once("exit", (code, signal) => resolve(code ?? (signal ? 1 : 0)));
+  });
+  return { child, done };
+});
+const children = runs.map(({ child }) => child);
 
 let interruptedSignal;
 const terminate = (child) => {
@@ -63,15 +72,8 @@ const stop = (signal) => {
 process.once("SIGINT", () => stop("SIGINT"));
 process.once("SIGTERM", () => stop("SIGTERM"));
 
-Promise.all(
-  children.map(
-    (child) =>
-      new Promise((resolve) => {
-        child.once("error", () => resolve(1));
-        child.once("exit", (code, signal) => resolve(code ?? (signal ? 1 : 0)));
-      }),
-  ),
-).then(async (codes) => {
+const main = async () => {
+  const codes = await Promise.all(runs.map(({ done }) => done));
   const childPids = children.map((child) => child.pid).filter(Boolean);
   children.forEach(terminate);
   const cleanupErrors = [];
@@ -94,4 +96,9 @@ Promise.all(
   for (const error of cleanupErrors) console.error(error);
   process.exitCode = Boolean(interruptedSignal) || codes.some((code) => code !== 0) ? 1 : 0;
   if (cleanupErrors.length) process.exitCode = 1;
+};
+
+main().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
 });
