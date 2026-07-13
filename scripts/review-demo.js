@@ -219,8 +219,71 @@ const startDemoServer = () =>
     });
   });
 
+/**
+ * @param {{reload: () => void, stop: () => void}} actions
+ * @returns {(input: string) => void}
+ */
+const createReviewKeyHandler =
+  ({ reload, stop }) =>
+  (input) => {
+    for (const key of input) {
+      if (key === "\u0003") {
+        stop();
+        return;
+      }
+      if (key.toLowerCase() === "r") {
+        reload();
+      }
+    }
+  };
+
+/**
+ * @param {{reload: () => void, stop: () => void}} actions
+ * @returns {(() => void) | undefined}
+ */
+const installReviewControls = (actions) => {
+  const input = process.stdin;
+  if (!input.isTTY || typeof input.setRawMode !== "function") {
+    return undefined;
+  }
+
+  const handleKey = createReviewKeyHandler(actions);
+  /** @param {string | Buffer} data */
+  const onData = (data) => handleKey(String(data));
+  input.setEncoding("utf8");
+  input.setRawMode(true);
+  input.resume();
+  input.on("data", onData);
+
+  return () => {
+    input.off("data", onData);
+    if (input.isRaw) {
+      input.setRawMode(false);
+    }
+    input.pause();
+  };
+};
+
+/** @param {number} port @param {number} demoPort */
+const reloadReviewSession = async (port, demoPort) => {
+  chrome.stageBuild();
+  const extensionId = await cdp.loadUnpacked(port, chrome.DIST);
+
+  // Chrome may close extension-owned tabs while re-registering an unpacked
+  // extension. Reopen Options when necessary, and reload the demo page so its
+  // content script belongs to the new extension context.
+  await cdp.sleep(250);
+  let optionsTabs = await cdp.reloadTargets(port, "options.html");
+  if (optionsTabs === 0) {
+    await cdp.openTab(port, `chrome-extension://${extensionId}/src/options/options.html`);
+    optionsTabs = 1;
+  }
+  const demoTabs = await cdp.reloadTargets(port, `127.0.0.1:${demoPort}`);
+  return { extensionId, optionsTabs, demoTabs };
+};
+
 const main = async () => {
-  chrome.stageBuild("e2e");
+  chrome.stageBuild();
   const demoPort = await startDemoServer();
 
   console.log("Launching Chrome (throwaway review profile)...");
@@ -257,6 +320,50 @@ const main = async () => {
   await cdp.evalInTarget(port, "options.html", "location.reload()");
   await cdp.openTab(port, `http://127.0.0.1:${demoPort}/`);
 
+  let reloading = false;
+  let pendingReload = false;
+  const requestReload = () => {
+    if (reloading) {
+      pendingReload = true;
+      return;
+    }
+
+    reloading = true;
+    void (async () => {
+      try {
+        do {
+          pendingReload = false;
+          console.log("\nRestaging and reloading the review extension...");
+          try {
+            const result = await reloadReviewSession(port, demoPort);
+            console.log(
+              `Reloaded ${result.extensionId} (${result.optionsTabs} options tab, ${result.demoTabs} demo tab).`,
+            );
+          } catch (error) {
+            console.error(
+              `Reload failed: ${error instanceof Error ? error.message : String(error)}`,
+            );
+          }
+        } while (pendingReload);
+      } finally {
+        reloading = false;
+      }
+    })();
+  };
+
+  let stopping = false;
+  let cleanupControls = () => {};
+  const stop = () => {
+    if (stopping) return;
+    stopping = true;
+    cleanupControls();
+    void chrome.killTree(proc).finally(() => process.exit(130));
+  };
+  const installedControls = installReviewControls({ reload: requestReload, stop });
+  if (installedControls) {
+    cleanupControls = installedControls;
+  }
+
   console.log(`
 Extension loaded: ${extensionId}
 Downloads land in: ${downloadDir}
@@ -268,11 +375,12 @@ Two tabs are open:
   2. Demo page — follow the numbered checklist on the page (nested menus,
      aliases, :variables:, PDF routing rule, alt+click, selection/page save).
 
-Close the Chrome window to exit.`);
+${installedControls ? "Press r to restage and reload. Press Ctrl+C or close Chrome to exit." : "Close the Chrome window to exit."}`);
 
   proc.on("exit", () => {
+    cleanupControls();
     console.log("Chrome closed");
-    process.exit(0);
+    process.exit(stopping ? 130 : 0);
   });
 };
 
@@ -286,6 +394,7 @@ if (require.main === module) {
 module.exports = {
   SHOWCASE_PATHS,
   SHOWCASE_RULES,
+  createReviewKeyHandler,
   createDemoServer,
   startDemoServer,
 };

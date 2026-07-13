@@ -1,11 +1,37 @@
 import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
-const { createDemoServer } = require("../scripts/review-demo.js") as {
+const { createDemoServer, createReviewKeyHandler } = require("../scripts/review-demo.js") as {
   createDemoServer: () => import("node:http").Server;
+  createReviewKeyHandler: (actions: {
+    reload: () => void;
+    stop: () => void;
+  }) => (input: string) => void;
 };
 
 describe("review demo server", () => {
+  test("reloads on r or R and ignores unrelated input", () => {
+    const reload = vi.fn();
+    const stop = vi.fn();
+    const handleKey = createReviewKeyHandler({ reload, stop });
+
+    handleKey("rxR");
+
+    expect(reload).toHaveBeenCalledTimes(2);
+    expect(stop).not.toHaveBeenCalled();
+  });
+
+  test("stops on Ctrl+C without processing later input", () => {
+    const reload = vi.fn();
+    const stop = vi.fn();
+    const handleKey = createReviewKeyHandler({ reload, stop });
+
+    handleKey(`r\u0003r`);
+
+    expect(reload).toHaveBeenCalledOnce();
+    expect(stop).toHaveBeenCalledOnce();
+  });
+
   test("serves the late-discovered image as an actual WebP", async () => {
     const server = createDemoServer();
     await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
