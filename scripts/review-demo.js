@@ -287,16 +287,19 @@ const cleanupReviewSession = async (
 };
 
 /**
- * @param {{reload: () => void, stop: () => void}} actions
+ * @param {{enableHotReload: () => void, reload: () => void, stop: () => void}} actions
  * @returns {(input: string) => void}
  */
 const createReviewKeyHandler =
-  ({ reload, stop }) =>
+  ({ enableHotReload, reload, stop }) =>
   (input) => {
     for (const key of input) {
       if (key === "\u0003") {
         stop();
         return;
+      }
+      if (key.toLowerCase() === "h") {
+        enableHotReload();
       }
       if (key.toLowerCase() === "r") {
         reload();
@@ -305,7 +308,7 @@ const createReviewKeyHandler =
   };
 
 /**
- * @param {{reload: () => void, stop: () => void}} actions
+ * @param {{enableHotReload: () => void, reload: () => void, stop: () => void}} actions
  * @returns {(() => void) | undefined}
  */
 const installReviewControls = (actions) => {
@@ -328,6 +331,33 @@ const installReviewControls = (actions) => {
       input.setRawMode(false);
     }
     input.pause();
+  };
+};
+
+/**
+ * @param {() => void} reload
+ * @returns {() => void}
+ */
+const installHotReload = (reload) => {
+  /** @type {ReturnType<typeof setTimeout> | undefined} */
+  let timer;
+  /** @type {import("node:fs").FSWatcher[]} */
+  const watchers = [];
+  const queueReload = () => {
+    clearTimeout(timer);
+    timer = setTimeout(reload, 300);
+  };
+
+  for (const dir of ["src", "icons", "_locales"]) {
+    watchers.push(fs.watch(path.join(chrome.ROOT, dir), { recursive: true }, queueReload));
+  }
+  for (const file of ["manifest.json", "rolldown.config.mjs"]) {
+    watchers.push(fs.watch(path.join(chrome.ROOT, file), queueReload));
+  }
+
+  return () => {
+    clearTimeout(timer);
+    for (const watcher of watchers) watcher.close();
   };
 };
 
@@ -355,7 +385,9 @@ const main = async () => {
   /** @type {Awaited<ReturnType<typeof chrome.launch>> | undefined} */
   let browser;
   let cleanupControls = () => {};
+  let cleanupHotReload = () => {};
   let removeSignalHandlers = () => {};
+  let hotReloadEnabled = false;
   let stopping = false;
   let exitCode = 0;
 
@@ -454,6 +486,14 @@ const main = async () => {
       process.off("SIGTERM", onSigterm);
     };
     const installedControls = installReviewControls({
+      enableHotReload: () => {
+        if (hotReloadEnabled) return;
+        cleanupHotReload = installHotReload(requestReload);
+        hotReloadEnabled = true;
+        console.log(
+          "\nHot reload enabled. Watching source, icons, locales, manifest, and bundle config.",
+        );
+      },
       reload: requestReload,
       stop: () => stop(130),
     });
@@ -472,13 +512,14 @@ Two tabs are open:
   2. Demo page — follow the numbered checklist on the page (nested menus,
      aliases, :variables:, PDF routing rule, alt+click, selection/page save).
 
-${installedControls ? "Press r to restage and reload. Press Ctrl+C or close Chrome to exit." : "Close the Chrome window to exit."}`);
+${installedControls ? "Press h to enable hot reload, r to reload once, or Ctrl+C to exit." : "Close the Chrome window to exit."}`);
 
     await exited;
     cleanupControls();
     console.log("Chrome closed");
     return exitCode;
   } finally {
+    cleanupHotReload();
     cleanupControls();
     removeSignalHandlers();
     await cleanupReviewSession({ browser, server });
