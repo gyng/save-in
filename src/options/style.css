@@ -1184,6 +1184,7 @@ fieldset.click-to-save-controls {
   grid-template-columns:
     minmax(0, 7.5rem) auto minmax(0, 7.5rem) auto minmax(0, 9rem) auto
     auto;
+  justify-content: start;
   align-items: center;
   gap: var(--space-2);
   width: 100%;

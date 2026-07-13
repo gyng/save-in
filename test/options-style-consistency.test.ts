@@ -49,7 +49,7 @@ test("saved status keeps Undo and confirmation motion out of the baseline flow",
   expect(confirmedIcon).not.toContain("animation:");
 });
 
-test("click-to-save controls shrink and wrap without overflowing their panel", () => {
+test("click-to-save controls stay packed and wrap without overflowing their panel", () => {
   const css = readStyle("style.css");
   const controls = css.match(/\.click-to-save-controls\s*\{([^}]*)\}/)?.[1] || "";
   const hiddenLegend =
@@ -58,6 +58,7 @@ test("click-to-save controls shrink and wrap without overflowing their panel", (
   const warning = css.match(/#click-to-save-warning\s*\{([^}]*)\}/)?.[1] || "";
 
   expect(controls).toContain("display: grid");
+  expect(controls).toContain("justify-content: start");
   expect(controls).toContain("width: 100%");
   expect(controls).toContain("min-width: 0");
   expect(hiddenLegend).toContain("width: 1px");
