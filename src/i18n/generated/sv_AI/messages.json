@@ -478,7 +478,7 @@
     "message": "Språk"
   },
   "o_lBrowserDefault": {
-    "message": "Webbläsarens språk"
+    "message": "Standardspråk"
   },
   "o_lLanguageChangeFailed": {
     "message": "Det gick inte att ändra språket. Försök igen."

@@ -504,7 +504,7 @@
     "message": "Langue"
   },
   "o_lBrowserDefault": {
-    "message": "Langue du navigateur"
+    "message": "Langue par défaut"
   },
   "o_lLanguageChangeFailed": {
     "message": "Impossible de changer la langue. Réessayez."

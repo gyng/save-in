@@ -381,7 +381,7 @@
     "message": "語言"
   },
   "o_lBrowserDefault": {
-    "message": "瀏覽器語言"
+    "message": "預設語言"
   },
   "o_lLanguageChangeFailed": {
     "message": "無法變更語言，請再試一次。"

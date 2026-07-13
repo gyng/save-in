@@ -381,7 +381,7 @@
     "message": "言語"
   },
   "o_lBrowserDefault": {
-    "message": "ブラウザの言語"
+    "message": "既定の言語"
   },
   "o_lLanguageChangeFailed": {
     "message": "言語を変更できませんでした。もう一度やり直してください。"

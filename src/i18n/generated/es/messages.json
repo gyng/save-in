@@ -480,7 +480,7 @@
     "message": "Idioma"
   },
   "o_lBrowserDefault": {
-    "message": "Idioma del navegador"
+    "message": "Idioma predeterminado"
   },
   "o_lLanguageChangeFailed": {
     "message": "No se pudo cambiar el idioma. Intentar otra vez."

@@ -484,7 +484,7 @@
     "message": "Idioma"
   },
   "o_lBrowserDefault": {
-    "message": "Idioma do navegador"
+    "message": "Idioma padrão"
   },
   "o_lLanguageChangeFailed": {
     "message": "Não foi possível alterar o idioma. Tente novamente."

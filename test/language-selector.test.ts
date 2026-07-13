@@ -4,7 +4,7 @@ import { setupLanguageSelector } from "../src/options/language-selector.ts";
 
 const render = () => {
   document.body.innerHTML = `
-    <select id="uiLocale"><option value="">Browser language</option><option value="fr">Français (AI)</option></select>
+    <select id="uiLocale"><option value="">Default language</option><option value="fr">Français (AI)</option></select>
     <span id="language-error" hidden></span>`;
 };
 
@@ -13,7 +13,7 @@ test("names the browser-controlled locale", () => {
     string,
     { message?: string }
   >;
-  expect(catalog.o_lBrowserDefault?.message).toBe("Browser language");
+  expect(catalog.o_lBrowserDefault?.message).toBe("Default language");
 });
 
 test("saves the selected locale and reloads after acknowledgement", async () => {
