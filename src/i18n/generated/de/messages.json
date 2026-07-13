@@ -1760,16 +1760,16 @@
   },
   "webMcpStatusUnavailableBrowser": { "message": "In diesem Browser nicht verfügbar" },
   "sourcePanelResizeLabel": {
-    "message": "Resize Page Sources"
+    "message": "Größe des Bereichs „Seitenquellen“ ändern"
   },
   "sourcePanelClose": {
-    "message": "Close"
+    "message": "Schließen"
   },
   "sourcePanelCloseLabel": {
-    "message": "Close Page Sources"
+    "message": "Seitenquellen schließen"
   },
   "sourcePanelDockPosition": {
-    "message": "Dock: $POSITION$ — change to the next position",
+    "message": "Andocken: $POSITION$ — zur nächsten Position wechseln",
     "placeholders": {
       "position": {
         "content": "$1",
@@ -1778,49 +1778,49 @@
     }
   },
   "sourcePanelDockRight": {
-    "message": "Right"
+    "message": "Rechts"
   },
   "sourcePanelDockBottom": {
-    "message": "Bottom"
+    "message": "Unten"
   },
   "sourcePanelDockLeft": {
-    "message": "Left"
+    "message": "Links"
   },
   "sourcePanelDockTop": {
-    "message": "Top"
+    "message": "Oben"
   },
   "sourcePanelChangeDockLabel": {
-    "message": "Change panel dock position"
+    "message": "Andockposition des Bereichs ändern"
   },
   "sourcePanelDockPanel": {
-    "message": "Dock Page Sources"
+    "message": "Seitenquellen andocken"
   },
   "sourcePanelPopOutPanel": {
-    "message": "Pop out Page Sources"
+    "message": "Seitenquellen ablösen"
   },
   "sourcePanelPopOutHelp": {
-    "message": "Pop out into a draggable panel"
+    "message": "Als verschiebbaren Bereich ablösen"
   },
   "sourcePanelCopyFilteredUrls": {
-    "message": "Copy URLs in the current filter"
+    "message": "URLs im aktuellen Filter kopieren"
   },
   "sourcePanelCopyFilteredUrlsLabel": {
-    "message": "Copy filtered source URLs"
+    "message": "URLs der gefilterten Quellen kopieren"
   },
   "sourcePanelFilterLabel": {
-    "message": "Filter page sources"
+    "message": "Seitenquellen filtern"
   },
   "sourcePanelSortLabel": {
-    "message": "Sort sources"
+    "message": "Quellen sortieren"
   },
   "sourcePanelSortNewest": {
-    "message": "Newest"
+    "message": "Neueste"
   },
   "sourcePanelSortOldest": {
-    "message": "Oldest"
+    "message": "Älteste"
   },
   "sourcePanelSortLargest": {
-    "message": "Largest"
+    "message": "Größte"
   },
   "sourcePanelSortName": {
     "message": "Name"
@@ -1829,19 +1829,19 @@
     "message": "Audio"
   },
   "sourcePanelKindDocument": {
-    "message": "Document"
+    "message": "Dokument"
   },
   "sourcePanelKindPlaylist": {
-    "message": "Playlist"
+    "message": "Wiedergabeliste"
   },
   "sourcePanelNoMatches": {
-    "message": "No sources match the current filters."
+    "message": "Keine Quellen entsprechen den aktuellen Filtern."
   },
   "sourcePanelNoSources": {
-    "message": "No page media or streaming-video playlists detected yet."
+    "message": "Es wurden noch keine Medien oder Streamingvideo-Wiedergabelisten auf der Seite erkannt."
   },
   "sourcePanelSourceInstructions": {
-    "message": "$URL$. Right-click for Save In; Alt+click to save immediately.",
+    "message": "$URL$. Rechtsklick für Save In; Alt+Klick zum sofortigen Speichern.",
     "placeholders": {
       "url": {
         "content": "$1",
@@ -1850,10 +1850,10 @@
     }
   },
   "sourcePanelSizeUnknown": {
-    "message": "size unknown"
+    "message": "Größe unbekannt"
   },
   "sourcePanelDetectedAt": {
-    "message": "Detected at $TIME$",
+    "message": "Erkannt: $TIME$",
     "placeholders": {
       "time": {
         "content": "$1",
@@ -1862,34 +1862,34 @@
     }
   },
   "sourcePanelPreviewUnavailable": {
-    "message": "Preview unavailable"
+    "message": "Vorschau nicht verfügbar"
   },
   "sourcePanelLocate": {
-    "message": "Locate"
+    "message": "Auf der Seite anzeigen"
   },
   "sourcePanelSave": {
-    "message": "Save"
+    "message": "Speichern"
   },
   "sourcePanelSavePlaylist": {
-    "message": "Save playlist"
+    "message": "Wiedergabeliste speichern"
   },
   "sourcePanelCopyYtDlp": {
-    "message": "Copy yt-dlp command"
+    "message": "yt-dlp-Befehl kopieren"
   },
   "sourcePanelCopyYtDlpHelp": {
-    "message": "Copy a command for yt-dlp to download the complete video"
+    "message": "Einen Befehl kopieren, mit dem yt-dlp das vollständige Video herunterlädt"
   },
   "sourcePanelCopied": {
-    "message": "Copied"
+    "message": "Kopiert"
   },
   "sourcePanelCopyFailed": {
-    "message": "Copy failed"
+    "message": "Kopieren fehlgeschlagen"
   },
   "sourcePanelRowInstructions": {
-    "message": "Alt+click to save; right-click the source title for Save In"
+    "message": "Alt+Klick zum Speichern; Rechtsklick auf den Quellentitel für Save In"
   },
   "sourcePanelCopiedUrls": {
-    "message": "Copied $COUNT$ URLs",
+    "message": "$COUNT$ URLs kopiert",
     "placeholders": {
       "count": {
         "content": "$1",

@@ -1756,16 +1756,16 @@
   },
   "webMcpStatusUnavailableBrowser": { "message": "Inte tillgänglig i den här webbläsaren" },
   "sourcePanelResizeLabel": {
-    "message": "Resize Page Sources"
+    "message": "Ändra storlek på Sidkällor"
   },
   "sourcePanelClose": {
-    "message": "Close"
+    "message": "Stäng"
   },
   "sourcePanelCloseLabel": {
-    "message": "Close Page Sources"
+    "message": "Stäng Sidkällor"
   },
   "sourcePanelDockPosition": {
-    "message": "Dock: $POSITION$ — change to the next position",
+    "message": "Fäst: $POSITION$ — byt till nästa position",
     "placeholders": {
       "position": {
         "content": "$1",
@@ -1774,70 +1774,70 @@
     }
   },
   "sourcePanelDockRight": {
-    "message": "Right"
+    "message": "Höger"
   },
   "sourcePanelDockBottom": {
-    "message": "Bottom"
+    "message": "Nederkant"
   },
   "sourcePanelDockLeft": {
-    "message": "Left"
+    "message": "Vänster"
   },
   "sourcePanelDockTop": {
-    "message": "Top"
+    "message": "Överkant"
   },
   "sourcePanelChangeDockLabel": {
-    "message": "Change panel dock position"
+    "message": "Ändra panelens fästposition"
   },
   "sourcePanelDockPanel": {
-    "message": "Dock Page Sources"
+    "message": "Fäst Sidkällor"
   },
   "sourcePanelPopOutPanel": {
-    "message": "Pop out Page Sources"
+    "message": "Lossa Sidkällor"
   },
   "sourcePanelPopOutHelp": {
-    "message": "Pop out into a draggable panel"
+    "message": "Lossa som en flyttbar panel"
   },
   "sourcePanelCopyFilteredUrls": {
-    "message": "Copy URLs in the current filter"
+    "message": "Kopiera URL:er i det aktuella filtret"
   },
   "sourcePanelCopyFilteredUrlsLabel": {
-    "message": "Copy filtered source URLs"
+    "message": "Kopiera URL:er för filtrerade källor"
   },
   "sourcePanelFilterLabel": {
-    "message": "Filter page sources"
+    "message": "Filtrera sidkällor"
   },
   "sourcePanelSortLabel": {
-    "message": "Sort sources"
+    "message": "Sortera källor"
   },
   "sourcePanelSortNewest": {
-    "message": "Newest"
+    "message": "Nyaste"
   },
   "sourcePanelSortOldest": {
-    "message": "Oldest"
+    "message": "Äldsta"
   },
   "sourcePanelSortLargest": {
-    "message": "Largest"
+    "message": "Största"
   },
   "sourcePanelSortName": {
-    "message": "Name"
+    "message": "Namn"
   },
   "sourcePanelKindAudio": {
-    "message": "Audio"
+    "message": "Ljud"
   },
   "sourcePanelKindDocument": {
-    "message": "Document"
+    "message": "Dokument"
   },
   "sourcePanelKindPlaylist": {
-    "message": "Playlist"
+    "message": "Spellista"
   },
   "sourcePanelNoMatches": {
-    "message": "No sources match the current filters."
+    "message": "Inga källor matchar de aktuella filtren."
   },
   "sourcePanelNoSources": {
-    "message": "No page media or streaming-video playlists detected yet."
+    "message": "Inga medier eller spellistor med strömmande video har upptäckts på sidan ännu."
   },
   "sourcePanelSourceInstructions": {
-    "message": "$URL$. Right-click for Save In; Alt+click to save immediately.",
+    "message": "$URL$. Högerklicka för Save In; Alt-klicka för att spara direkt.",
     "placeholders": {
       "url": {
         "content": "$1",
@@ -1846,10 +1846,10 @@
     }
   },
   "sourcePanelSizeUnknown": {
-    "message": "size unknown"
+    "message": "okänd storlek"
   },
   "sourcePanelDetectedAt": {
-    "message": "Detected at $TIME$",
+    "message": "Upptäckt $TIME$",
     "placeholders": {
       "time": {
         "content": "$1",
@@ -1858,34 +1858,34 @@
     }
   },
   "sourcePanelPreviewUnavailable": {
-    "message": "Preview unavailable"
+    "message": "Förhandsgranskning är inte tillgänglig"
   },
   "sourcePanelLocate": {
-    "message": "Locate"
+    "message": "Visa på sidan"
   },
   "sourcePanelSave": {
-    "message": "Save"
+    "message": "Spara"
   },
   "sourcePanelSavePlaylist": {
-    "message": "Save playlist"
+    "message": "Spara spellistan"
   },
   "sourcePanelCopyYtDlp": {
-    "message": "Copy yt-dlp command"
+    "message": "Kopiera yt-dlp-kommandot"
   },
   "sourcePanelCopyYtDlpHelp": {
-    "message": "Copy a command for yt-dlp to download the complete video"
+    "message": "Kopiera ett kommando som låter yt-dlp hämta hela videon"
   },
   "sourcePanelCopied": {
-    "message": "Copied"
+    "message": "Kopierat"
   },
   "sourcePanelCopyFailed": {
-    "message": "Copy failed"
+    "message": "Kopieringen misslyckades"
   },
   "sourcePanelRowInstructions": {
-    "message": "Alt+click to save; right-click the source title for Save In"
+    "message": "Alt-klicka för att spara; högerklicka på källans titel för Save In"
   },
   "sourcePanelCopiedUrls": {
-    "message": "Copied $COUNT$ URLs",
+    "message": "$COUNT$ URL:er kopierade",
     "placeholders": {
       "count": {
         "content": "$1",

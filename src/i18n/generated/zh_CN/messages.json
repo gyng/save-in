@@ -1862,16 +1862,16 @@
   "webMcpStatusRegistrationFailed": { "message": "不可用 — 工具注册失败" },
   "webMcpStatusUnavailableBrowser": { "message": "此浏览器不支持" },
   "sourcePanelResizeLabel": {
-    "message": "Resize Page Sources"
+    "message": "调整“页面来源”的大小"
   },
   "sourcePanelClose": {
-    "message": "Close"
+    "message": "关闭"
   },
   "sourcePanelCloseLabel": {
-    "message": "Close Page Sources"
+    "message": "关闭“页面来源”"
   },
   "sourcePanelDockPosition": {
-    "message": "Dock: $POSITION$ — change to the next position",
+    "message": "停靠位置：$POSITION$ — 切换到下一个位置",
     "placeholders": {
       "position": {
         "content": "$1",
@@ -1880,70 +1880,70 @@
     }
   },
   "sourcePanelDockRight": {
-    "message": "Right"
+    "message": "右侧"
   },
   "sourcePanelDockBottom": {
-    "message": "Bottom"
+    "message": "底部"
   },
   "sourcePanelDockLeft": {
-    "message": "Left"
+    "message": "左侧"
   },
   "sourcePanelDockTop": {
-    "message": "Top"
+    "message": "顶部"
   },
   "sourcePanelChangeDockLabel": {
-    "message": "Change panel dock position"
+    "message": "更改面板停靠位置"
   },
   "sourcePanelDockPanel": {
-    "message": "Dock Page Sources"
+    "message": "停靠“页面来源”"
   },
   "sourcePanelPopOutPanel": {
-    "message": "Pop out Page Sources"
+    "message": "弹出“页面来源”"
   },
   "sourcePanelPopOutHelp": {
-    "message": "Pop out into a draggable panel"
+    "message": "以可拖动面板形式弹出"
   },
   "sourcePanelCopyFilteredUrls": {
-    "message": "Copy URLs in the current filter"
+    "message": "复制当前筛选结果中的 URL"
   },
   "sourcePanelCopyFilteredUrlsLabel": {
-    "message": "Copy filtered source URLs"
+    "message": "复制已筛选来源的 URL"
   },
   "sourcePanelFilterLabel": {
-    "message": "Filter page sources"
+    "message": "筛选页面来源"
   },
   "sourcePanelSortLabel": {
-    "message": "Sort sources"
+    "message": "来源排序"
   },
   "sourcePanelSortNewest": {
-    "message": "Newest"
+    "message": "最新"
   },
   "sourcePanelSortOldest": {
-    "message": "Oldest"
+    "message": "最早"
   },
   "sourcePanelSortLargest": {
-    "message": "Largest"
+    "message": "最大"
   },
   "sourcePanelSortName": {
-    "message": "Name"
+    "message": "名称"
   },
   "sourcePanelKindAudio": {
-    "message": "Audio"
+    "message": "音频"
   },
   "sourcePanelKindDocument": {
-    "message": "Document"
+    "message": "文档"
   },
   "sourcePanelKindPlaylist": {
-    "message": "Playlist"
+    "message": "播放列表"
   },
   "sourcePanelNoMatches": {
-    "message": "No sources match the current filters."
+    "message": "没有符合当前筛选条件的来源。"
   },
   "sourcePanelNoSources": {
-    "message": "No page media or streaming-video playlists detected yet."
+    "message": "尚未检测到页面媒体或流式视频播放列表。"
   },
   "sourcePanelSourceInstructions": {
-    "message": "$URL$. Right-click for Save In; Alt+click to save immediately.",
+    "message": "$URL$。右键单击以使用 Save In；按住 Alt 并单击可立即保存。",
     "placeholders": {
       "url": {
         "content": "$1",
@@ -1952,10 +1952,10 @@
     }
   },
   "sourcePanelSizeUnknown": {
-    "message": "size unknown"
+    "message": "大小未知"
   },
   "sourcePanelDetectedAt": {
-    "message": "Detected at $TIME$",
+    "message": "检测时间：$TIME$",
     "placeholders": {
       "time": {
         "content": "$1",
@@ -1964,34 +1964,34 @@
     }
   },
   "sourcePanelPreviewUnavailable": {
-    "message": "Preview unavailable"
+    "message": "预览不可用"
   },
   "sourcePanelLocate": {
-    "message": "Locate"
+    "message": "在页面中显示"
   },
   "sourcePanelSave": {
-    "message": "Save"
+    "message": "保存"
   },
   "sourcePanelSavePlaylist": {
-    "message": "Save playlist"
+    "message": "保存播放列表"
   },
   "sourcePanelCopyYtDlp": {
-    "message": "Copy yt-dlp command"
+    "message": "复制 yt-dlp 命令"
   },
   "sourcePanelCopyYtDlpHelp": {
-    "message": "Copy a command for yt-dlp to download the complete video"
+    "message": "复制一条可让 yt-dlp 下载完整视频的命令"
   },
   "sourcePanelCopied": {
-    "message": "Copied"
+    "message": "已复制"
   },
   "sourcePanelCopyFailed": {
-    "message": "Copy failed"
+    "message": "复制失败"
   },
   "sourcePanelRowInstructions": {
-    "message": "Alt+click to save; right-click the source title for Save In"
+    "message": "按住 Alt 并单击可保存；右键单击来源标题可使用 Save In"
   },
   "sourcePanelCopiedUrls": {
-    "message": "Copied $COUNT$ URLs",
+    "message": "已复制 $COUNT$ 个 URL",
     "placeholders": {
       "count": {
         "content": "$1",

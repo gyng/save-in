@@ -1862,16 +1862,16 @@
   "webMcpStatusRegistrationFailed": { "message": "利用不可 — ツールの登録に失敗しました" },
   "webMcpStatusUnavailableBrowser": { "message": "このブラウザーでは利用できません" },
   "sourcePanelResizeLabel": {
-    "message": "Resize Page Sources"
+    "message": "ページソースのサイズを変更"
   },
   "sourcePanelClose": {
-    "message": "Close"
+    "message": "閉じる"
   },
   "sourcePanelCloseLabel": {
-    "message": "Close Page Sources"
+    "message": "ページソースを閉じる"
   },
   "sourcePanelDockPosition": {
-    "message": "Dock: $POSITION$ — change to the next position",
+    "message": "配置: $POSITION$ — 次の位置に変更",
     "placeholders": {
       "position": {
         "content": "$1",
@@ -1880,70 +1880,70 @@
     }
   },
   "sourcePanelDockRight": {
-    "message": "Right"
+    "message": "右"
   },
   "sourcePanelDockBottom": {
-    "message": "Bottom"
+    "message": "下"
   },
   "sourcePanelDockLeft": {
-    "message": "Left"
+    "message": "左"
   },
   "sourcePanelDockTop": {
-    "message": "Top"
+    "message": "上"
   },
   "sourcePanelChangeDockLabel": {
-    "message": "Change panel dock position"
+    "message": "パネルの配置を変更"
   },
   "sourcePanelDockPanel": {
-    "message": "Dock Page Sources"
+    "message": "ページソースを固定"
   },
   "sourcePanelPopOutPanel": {
-    "message": "Pop out Page Sources"
+    "message": "ページソースを切り離す"
   },
   "sourcePanelPopOutHelp": {
-    "message": "Pop out into a draggable panel"
+    "message": "ドラッグ可能なパネルとして切り離す"
   },
   "sourcePanelCopyFilteredUrls": {
-    "message": "Copy URLs in the current filter"
+    "message": "現在のフィルター内の URL をコピー"
   },
   "sourcePanelCopyFilteredUrlsLabel": {
-    "message": "Copy filtered source URLs"
+    "message": "絞り込んだソースの URL をコピー"
   },
   "sourcePanelFilterLabel": {
-    "message": "Filter page sources"
+    "message": "ページソースを絞り込む"
   },
   "sourcePanelSortLabel": {
-    "message": "Sort sources"
+    "message": "ソースを並べ替え"
   },
   "sourcePanelSortNewest": {
-    "message": "Newest"
+    "message": "新しい順"
   },
   "sourcePanelSortOldest": {
-    "message": "Oldest"
+    "message": "古い順"
   },
   "sourcePanelSortLargest": {
-    "message": "Largest"
+    "message": "サイズの大きい順"
   },
   "sourcePanelSortName": {
-    "message": "Name"
+    "message": "名前順"
   },
   "sourcePanelKindAudio": {
-    "message": "Audio"
+    "message": "オーディオ"
   },
   "sourcePanelKindDocument": {
-    "message": "Document"
+    "message": "ドキュメント"
   },
   "sourcePanelKindPlaylist": {
-    "message": "Playlist"
+    "message": "プレイリスト"
   },
   "sourcePanelNoMatches": {
-    "message": "No sources match the current filters."
+    "message": "現在のフィルターに一致するソースはありません。"
   },
   "sourcePanelNoSources": {
-    "message": "No page media or streaming-video playlists detected yet."
+    "message": "ページ内のメディアやストリーミング動画のプレイリストはまだ検出されていません。"
   },
   "sourcePanelSourceInstructions": {
-    "message": "$URL$. Right-click for Save In; Alt+click to save immediately.",
+    "message": "$URL$。右クリックで Save In、Alt+クリックですぐに保存します。",
     "placeholders": {
       "url": {
         "content": "$1",
@@ -1952,10 +1952,10 @@
     }
   },
   "sourcePanelSizeUnknown": {
-    "message": "size unknown"
+    "message": "サイズ不明"
   },
   "sourcePanelDetectedAt": {
-    "message": "Detected at $TIME$",
+    "message": "$TIME$ に検出",
     "placeholders": {
       "time": {
         "content": "$1",
@@ -1964,34 +1964,34 @@
     }
   },
   "sourcePanelPreviewUnavailable": {
-    "message": "Preview unavailable"
+    "message": "プレビューできません"
   },
   "sourcePanelLocate": {
-    "message": "Locate"
+    "message": "ページ内で表示"
   },
   "sourcePanelSave": {
-    "message": "Save"
+    "message": "保存"
   },
   "sourcePanelSavePlaylist": {
-    "message": "Save playlist"
+    "message": "プレイリストを保存"
   },
   "sourcePanelCopyYtDlp": {
-    "message": "Copy yt-dlp command"
+    "message": "yt-dlp コマンドをコピー"
   },
   "sourcePanelCopyYtDlpHelp": {
-    "message": "Copy a command for yt-dlp to download the complete video"
+    "message": "動画全体をダウンロードするための yt-dlp コマンドをコピー"
   },
   "sourcePanelCopied": {
-    "message": "Copied"
+    "message": "コピーしました"
   },
   "sourcePanelCopyFailed": {
-    "message": "Copy failed"
+    "message": "コピーできませんでした"
   },
   "sourcePanelRowInstructions": {
-    "message": "Alt+click to save; right-click the source title for Save In"
+    "message": "Alt+クリックで保存、ソース名を右クリックして Save In を使用"
   },
   "sourcePanelCopiedUrls": {
-    "message": "Copied $COUNT$ URLs",
+    "message": "$COUNT$ 件の URL をコピーしました",
     "placeholders": {
       "count": {
         "content": "$1",

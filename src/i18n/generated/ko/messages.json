@@ -1862,16 +1862,16 @@
   "webMcpStatusRegistrationFailed": { "message": "사용할 수 없음 — 도구 등록 실패" },
   "webMcpStatusUnavailableBrowser": { "message": "이 브라우저에서는 사용할 수 없음" },
   "sourcePanelResizeLabel": {
-    "message": "Resize Page Sources"
+    "message": "페이지 소스 크기 조절"
   },
   "sourcePanelClose": {
-    "message": "Close"
+    "message": "닫기"
   },
   "sourcePanelCloseLabel": {
-    "message": "Close Page Sources"
+    "message": "페이지 소스 닫기"
   },
   "sourcePanelDockPosition": {
-    "message": "Dock: $POSITION$ — change to the next position",
+    "message": "고정 위치: $POSITION$ — 다음 위치로 변경",
     "placeholders": {
       "position": {
         "content": "$1",
@@ -1880,70 +1880,70 @@
     }
   },
   "sourcePanelDockRight": {
-    "message": "Right"
+    "message": "오른쪽"
   },
   "sourcePanelDockBottom": {
-    "message": "Bottom"
+    "message": "아래"
   },
   "sourcePanelDockLeft": {
-    "message": "Left"
+    "message": "왼쪽"
   },
   "sourcePanelDockTop": {
-    "message": "Top"
+    "message": "위"
   },
   "sourcePanelChangeDockLabel": {
-    "message": "Change panel dock position"
+    "message": "패널 고정 위치 변경"
   },
   "sourcePanelDockPanel": {
-    "message": "Dock Page Sources"
+    "message": "페이지 소스 고정"
   },
   "sourcePanelPopOutPanel": {
-    "message": "Pop out Page Sources"
+    "message": "페이지 소스 분리"
   },
   "sourcePanelPopOutHelp": {
-    "message": "Pop out into a draggable panel"
+    "message": "드래그할 수 있는 패널로 분리"
   },
   "sourcePanelCopyFilteredUrls": {
-    "message": "Copy URLs in the current filter"
+    "message": "현재 필터의 URL 복사"
   },
   "sourcePanelCopyFilteredUrlsLabel": {
-    "message": "Copy filtered source URLs"
+    "message": "필터링된 소스 URL 복사"
   },
   "sourcePanelFilterLabel": {
-    "message": "Filter page sources"
+    "message": "페이지 소스 필터링"
   },
   "sourcePanelSortLabel": {
-    "message": "Sort sources"
+    "message": "소스 정렬"
   },
   "sourcePanelSortNewest": {
-    "message": "Newest"
+    "message": "최신순"
   },
   "sourcePanelSortOldest": {
-    "message": "Oldest"
+    "message": "오래된순"
   },
   "sourcePanelSortLargest": {
-    "message": "Largest"
+    "message": "큰 크기순"
   },
   "sourcePanelSortName": {
-    "message": "Name"
+    "message": "이름순"
   },
   "sourcePanelKindAudio": {
-    "message": "Audio"
+    "message": "오디오"
   },
   "sourcePanelKindDocument": {
-    "message": "Document"
+    "message": "문서"
   },
   "sourcePanelKindPlaylist": {
-    "message": "Playlist"
+    "message": "재생목록"
   },
   "sourcePanelNoMatches": {
-    "message": "No sources match the current filters."
+    "message": "현재 필터와 일치하는 소스가 없습니다."
   },
   "sourcePanelNoSources": {
-    "message": "No page media or streaming-video playlists detected yet."
+    "message": "페이지 미디어 또는 스트리밍 동영상 재생목록이 아직 감지되지 않았습니다."
   },
   "sourcePanelSourceInstructions": {
-    "message": "$URL$. Right-click for Save In; Alt+click to save immediately.",
+    "message": "$URL$. Save In을 사용하려면 마우스 오른쪽 버튼을 클릭하고, 바로 저장하려면 Alt+클릭하세요.",
     "placeholders": {
       "url": {
         "content": "$1",
@@ -1952,10 +1952,10 @@
     }
   },
   "sourcePanelSizeUnknown": {
-    "message": "size unknown"
+    "message": "크기 알 수 없음"
   },
   "sourcePanelDetectedAt": {
-    "message": "Detected at $TIME$",
+    "message": "$TIME$에 감지",
     "placeholders": {
       "time": {
         "content": "$1",
@@ -1964,34 +1964,34 @@
     }
   },
   "sourcePanelPreviewUnavailable": {
-    "message": "Preview unavailable"
+    "message": "미리보기 사용 불가"
   },
   "sourcePanelLocate": {
-    "message": "Locate"
+    "message": "페이지에서 찾기"
   },
   "sourcePanelSave": {
-    "message": "Save"
+    "message": "저장"
   },
   "sourcePanelSavePlaylist": {
-    "message": "Save playlist"
+    "message": "재생목록 저장"
   },
   "sourcePanelCopyYtDlp": {
-    "message": "Copy yt-dlp command"
+    "message": "yt-dlp 명령 복사"
   },
   "sourcePanelCopyYtDlpHelp": {
-    "message": "Copy a command for yt-dlp to download the complete video"
+    "message": "전체 동영상을 다운로드하는 yt-dlp 명령 복사"
   },
   "sourcePanelCopied": {
-    "message": "Copied"
+    "message": "복사됨"
   },
   "sourcePanelCopyFailed": {
-    "message": "Copy failed"
+    "message": "복사 실패"
   },
   "sourcePanelRowInstructions": {
-    "message": "Alt+click to save; right-click the source title for Save In"
+    "message": "Alt+클릭하여 저장하고, 소스 제목을 마우스 오른쪽 버튼으로 클릭하여 Save In 사용"
   },
   "sourcePanelCopiedUrls": {
-    "message": "Copied $COUNT$ URLs",
+    "message": "URL $COUNT$개 복사됨",
     "placeholders": {
       "count": {
         "content": "$1",
