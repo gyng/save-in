@@ -342,7 +342,7 @@
     "message": "Historique"
   },
   "o_sPageSources": {
-    "message": "Sources des pages"
+    "message": "Sources de la page"
   },
   "o_lPageSourcesHelp": {
     "message": "Parcourez les images, vidéos, audio, documents et liens téléchargeables trouvés sur la page actuelle. Les éléments enregistrés utilisent vos règles normales de routage et de renommage."
@@ -1792,7 +1792,7 @@
     "message": "Fermer le panneau Sources de la page"
   },
   "sourcePanelDockPosition": {
-    "message": "Ancrage : $POSITION$ — passer à la position suivante",
+    "message": "Position : $POSITION$ — passer à la suivante",
     "placeholders": {
       "position": {
         "content": "$1",
@@ -1822,7 +1822,7 @@
     "message": "Détacher le panneau Sources de la page"
   },
   "sourcePanelPopOutHelp": {
-    "message": "Détacher dans un panneau déplaçable"
+    "message": "Afficher dans un panneau flottant et déplaçable"
   },
   "sourcePanelCopyFilteredUrls": {
     "message": "Copier les URL du filtre actuel"
@@ -1843,7 +1843,7 @@
     "message": "Plus anciennes"
   },
   "sourcePanelSortLargest": {
-    "message": "Plus volumineuses"
+    "message": "Taille décroissante"
   },
   "sourcePanelSortName": {
     "message": "Nom"
@@ -1861,10 +1861,10 @@
     "message": "Aucune source ne correspond aux filtres actuels."
   },
   "sourcePanelNoSources": {
-    "message": "Aucun média ou liste de lecture vidéo en streaming n’a encore été détecté sur la page."
+    "message": "Aucun média ni aucune liste de lecture vidéo en streaming n’ont encore été détectés sur la page."
   },
   "sourcePanelSourceInstructions": {
-    "message": "$URL$. Faites un clic droit pour Save In ; Alt+clic pour enregistrer immédiatement.",
+    "message": "$URL$. Clic droit : Save In ; Alt+clic : enregistrer immédiatement.",
     "placeholders": {
       "url": {
         "content": "$1",
@@ -1888,7 +1888,7 @@
     "message": "Aperçu indisponible"
   },
   "sourcePanelLocate": {
-    "message": "Repérer"
+    "message": "Afficher sur la page"
   },
   "sourcePanelSave": {
     "message": "Enregistrer"
@@ -1900,7 +1900,7 @@
     "message": "Copier la commande yt-dlp"
   },
   "sourcePanelCopyYtDlpHelp": {
-    "message": "Copier une commande permettant à yt-dlp de télécharger la vidéo complète"
+    "message": "Copier une commande yt-dlp pour télécharger la vidéo complète"
   },
   "sourcePanelCopied": {
     "message": "Copié"
@@ -1909,10 +1909,10 @@
     "message": "Échec de la copie"
   },
   "sourcePanelRowInstructions": {
-    "message": "Alt+clic pour enregistrer ; faites un clic droit sur le titre de la source pour Save In"
+    "message": "Alt+clic : enregistrer ; clic droit sur le titre de la source : Save In"
   },
   "sourcePanelCopiedUrls": {
-    "message": "URL copiées : $COUNT$",
+    "message": "$COUNT$ URL copiées",
     "placeholders": {
       "count": {
         "content": "$1",

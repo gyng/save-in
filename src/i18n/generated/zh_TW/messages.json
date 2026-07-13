@@ -1871,7 +1871,7 @@
     "message": "關閉「頁面來源」"
   },
   "sourcePanelDockPosition": {
-    "message": "停駐位置：$POSITION$ — 切換至下一個位置",
+    "message": "停駐：$POSITION$ — 切換至下一個位置",
     "placeholders": {
       "position": {
         "content": "$1",
@@ -1898,13 +1898,13 @@
     "message": "停駐「頁面來源」"
   },
   "sourcePanelPopOutPanel": {
-    "message": "彈出「頁面來源」"
+    "message": "浮動顯示「頁面來源」"
   },
   "sourcePanelPopOutHelp": {
-    "message": "以可拖曳面板形式彈出"
+    "message": "顯示為可拖曳的浮動面板"
   },
   "sourcePanelCopyFilteredUrls": {
-    "message": "複製目前篩選結果中的 URL"
+    "message": "複製目前篩選結果的 URL"
   },
   "sourcePanelCopyFilteredUrlsLabel": {
     "message": "複製已篩選來源的 URL"
@@ -1922,7 +1922,7 @@
     "message": "最早"
   },
   "sourcePanelSortLargest": {
-    "message": "最大"
+    "message": "最大優先"
   },
   "sourcePanelSortName": {
     "message": "名稱"
@@ -1940,10 +1940,10 @@
     "message": "沒有符合目前篩選條件的來源。"
   },
   "sourcePanelNoSources": {
-    "message": "尚未偵測到頁面媒體或串流影片播放清單。"
+    "message": "尚未偵測到頁面中的媒體或串流影片播放清單。"
   },
   "sourcePanelSourceInstructions": {
-    "message": "$URL$。按一下滑鼠右鍵以使用 Save In；按住 Alt 並按一下即可立即儲存。",
+    "message": "$URL$。按一下滑鼠右鍵：Save In；Alt+按一下：立即儲存。",
     "placeholders": {
       "url": {
         "content": "$1",
@@ -1967,7 +1967,7 @@
     "message": "無法預覽"
   },
   "sourcePanelLocate": {
-    "message": "在頁面中顯示"
+    "message": "在頁面中定位"
   },
   "sourcePanelSave": {
     "message": "儲存"
@@ -1988,7 +1988,7 @@
     "message": "複製失敗"
   },
   "sourcePanelRowInstructions": {
-    "message": "按住 Alt 並按一下即可儲存；在來源標題上按一下滑鼠右鍵可使用 Save In"
+    "message": "Alt+按一下：儲存；在來源標題上按一下滑鼠右鍵：Save In"
   },
   "sourcePanelCopiedUrls": {
     "message": "已複製 $COUNT$ 個 URL",

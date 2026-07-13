@@ -1756,7 +1756,7 @@
   },
   "webMcpStatusUnavailableBrowser": { "message": "Inte tillgänglig i den här webbläsaren" },
   "sourcePanelResizeLabel": {
-    "message": "Ändra storlek på Sidkällor"
+    "message": "Ändra storlek på panelen Sidkällor"
   },
   "sourcePanelClose": {
     "message": "Stäng"
@@ -1765,7 +1765,7 @@
     "message": "Stäng Sidkällor"
   },
   "sourcePanelDockPosition": {
-    "message": "Fäst: $POSITION$ — byt till nästa position",
+    "message": "Position: $POSITION$ — byt till nästa",
     "placeholders": {
       "position": {
         "content": "$1",
@@ -1792,13 +1792,13 @@
     "message": "Fäst Sidkällor"
   },
   "sourcePanelPopOutPanel": {
-    "message": "Lossa Sidkällor"
+    "message": "Visa Sidkällor som flytande panel"
   },
   "sourcePanelPopOutHelp": {
-    "message": "Lossa som en flyttbar panel"
+    "message": "Visa som en flyttbar, flytande panel"
   },
   "sourcePanelCopyFilteredUrls": {
-    "message": "Kopiera URL:er i det aktuella filtret"
+    "message": "Kopiera URL:er för källorna i det aktuella filtret"
   },
   "sourcePanelCopyFilteredUrlsLabel": {
     "message": "Kopiera URL:er för filtrerade källor"
@@ -1810,13 +1810,13 @@
     "message": "Sortera källor"
   },
   "sourcePanelSortNewest": {
-    "message": "Nyaste"
+    "message": "Nyaste först"
   },
   "sourcePanelSortOldest": {
-    "message": "Äldsta"
+    "message": "Äldsta först"
   },
   "sourcePanelSortLargest": {
-    "message": "Största"
+    "message": "Största först"
   },
   "sourcePanelSortName": {
     "message": "Namn"
@@ -1834,10 +1834,10 @@
     "message": "Inga källor matchar de aktuella filtren."
   },
   "sourcePanelNoSources": {
-    "message": "Inga medier eller spellistor med strömmande video har upptäckts på sidan ännu."
+    "message": "Inga medier eller spellistor för strömmande video har ännu upptäckts på sidan."
   },
   "sourcePanelSourceInstructions": {
-    "message": "$URL$. Högerklicka för Save In; Alt-klicka för att spara direkt.",
+    "message": "$URL$. Högerklick: Save In; Alt-klick: spara direkt.",
     "placeholders": {
       "url": {
         "content": "$1",
@@ -1849,7 +1849,7 @@
     "message": "okänd storlek"
   },
   "sourcePanelDetectedAt": {
-    "message": "Upptäckt $TIME$",
+    "message": "Upptäckt: $TIME$",
     "placeholders": {
       "time": {
         "content": "$1",
@@ -1858,7 +1858,7 @@
     }
   },
   "sourcePanelPreviewUnavailable": {
-    "message": "Förhandsgranskning är inte tillgänglig"
+    "message": "Ingen förhandsgranskning"
   },
   "sourcePanelLocate": {
     "message": "Visa på sidan"
@@ -1882,7 +1882,7 @@
     "message": "Kopieringen misslyckades"
   },
   "sourcePanelRowInstructions": {
-    "message": "Alt-klicka för att spara; högerklicka på källans titel för Save In"
+    "message": "Alt-klick: spara; högerklick på källans titel: Save In"
   },
   "sourcePanelCopiedUrls": {
     "message": "$COUNT$ URL:er kopierade",

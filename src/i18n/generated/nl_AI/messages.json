@@ -1762,7 +1762,7 @@
   },
   "webMcpStatusUnavailableBrowser": { "message": "Niet beschikbaar in deze browser" },
   "sourcePanelResizeLabel": {
-    "message": "Formaat van Paginabronnen wijzigen"
+    "message": "Formaat van het paneel Paginabronnen wijzigen"
   },
   "sourcePanelClose": {
     "message": "Sluiten"
@@ -1771,7 +1771,7 @@
     "message": "Paginabronnen sluiten"
   },
   "sourcePanelDockPosition": {
-    "message": "Vastzetten: $POSITION$ — naar de volgende positie",
+    "message": "Vastgezet: $POSITION$ — naar de volgende positie",
     "placeholders": {
       "position": {
         "content": "$1",
@@ -1792,16 +1792,16 @@
     "message": "Boven"
   },
   "sourcePanelChangeDockLabel": {
-    "message": "Positie van het paneel wijzigen"
+    "message": "Vastzetpositie van het paneel wijzigen"
   },
   "sourcePanelDockPanel": {
     "message": "Paginabronnen vastzetten"
   },
   "sourcePanelPopOutPanel": {
-    "message": "Paginabronnen losmaken"
+    "message": "Paginabronnen zwevend weergeven"
   },
   "sourcePanelPopOutHelp": {
-    "message": "Losmaken als versleepbaar paneel"
+    "message": "Als versleepbaar zwevend paneel weergeven"
   },
   "sourcePanelCopyFilteredUrls": {
     "message": "URL's in het huidige filter kopiëren"
@@ -1816,13 +1816,13 @@
     "message": "Bronnen sorteren"
   },
   "sourcePanelSortNewest": {
-    "message": "Nieuwste"
+    "message": "Nieuwste eerst"
   },
   "sourcePanelSortOldest": {
-    "message": "Oudste"
+    "message": "Oudste eerst"
   },
   "sourcePanelSortLargest": {
-    "message": "Grootste"
+    "message": "Grootste eerst"
   },
   "sourcePanelSortName": {
     "message": "Naam"
@@ -1843,7 +1843,7 @@
     "message": "Er zijn nog geen media of afspeellijsten met streamingvideo op de pagina gedetecteerd."
   },
   "sourcePanelSourceInstructions": {
-    "message": "$URL$. Klik met de rechtermuisknop voor Save In; Alt+klik om meteen op te slaan.",
+    "message": "$URL$. Rechtsklik: Save In; Alt+klik: direct opslaan.",
     "placeholders": {
       "url": {
         "content": "$1",
@@ -1855,7 +1855,7 @@
     "message": "grootte onbekend"
   },
   "sourcePanelDetectedAt": {
-    "message": "Gedetecteerd om $TIME$",
+    "message": "Gedetecteerd: $TIME$",
     "placeholders": {
       "time": {
         "content": "$1",
@@ -1867,7 +1867,7 @@
     "message": "Voorbeeld niet beschikbaar"
   },
   "sourcePanelLocate": {
-    "message": "Op de pagina tonen"
+    "message": "Op pagina tonen"
   },
   "sourcePanelSave": {
     "message": "Opslaan"
@@ -1888,7 +1888,7 @@
     "message": "Kopiëren mislukt"
   },
   "sourcePanelRowInstructions": {
-    "message": "Alt+klik om op te slaan; klik met de rechtermuisknop op de brontitel voor Save In"
+    "message": "Alt+klik: opslaan; rechtsklik op de brontitel: Save In"
   },
   "sourcePanelCopiedUrls": {
     "message": "$COUNT$ URL's gekopieerd",

@@ -1871,7 +1871,7 @@
     "message": "关闭“页面来源”"
   },
   "sourcePanelDockPosition": {
-    "message": "停靠位置：$POSITION$ — 切换到下一个位置",
+    "message": "停靠：$POSITION$ — 切换至下一位置",
     "placeholders": {
       "position": {
         "content": "$1",
@@ -1898,13 +1898,13 @@
     "message": "停靠“页面来源”"
   },
   "sourcePanelPopOutPanel": {
-    "message": "弹出“页面来源”"
+    "message": "浮动显示“页面来源”"
   },
   "sourcePanelPopOutHelp": {
-    "message": "以可拖动面板形式弹出"
+    "message": "显示为可拖动的浮动面板"
   },
   "sourcePanelCopyFilteredUrls": {
-    "message": "复制当前筛选结果中的 URL"
+    "message": "复制当前筛选结果的 URL"
   },
   "sourcePanelCopyFilteredUrlsLabel": {
     "message": "复制已筛选来源的 URL"
@@ -1922,7 +1922,7 @@
     "message": "最早"
   },
   "sourcePanelSortLargest": {
-    "message": "最大"
+    "message": "最大优先"
   },
   "sourcePanelSortName": {
     "message": "名称"
@@ -1940,10 +1940,10 @@
     "message": "没有符合当前筛选条件的来源。"
   },
   "sourcePanelNoSources": {
-    "message": "尚未检测到页面媒体或流式视频播放列表。"
+    "message": "尚未检测到页面中的媒体或流式视频播放列表。"
   },
   "sourcePanelSourceInstructions": {
-    "message": "$URL$。右键单击以使用 Save In；按住 Alt 并单击可立即保存。",
+    "message": "$URL$。右键单击：Save In；Alt+单击：立即保存。",
     "placeholders": {
       "url": {
         "content": "$1",
@@ -1967,7 +1967,7 @@
     "message": "预览不可用"
   },
   "sourcePanelLocate": {
-    "message": "在页面中显示"
+    "message": "在页面中定位"
   },
   "sourcePanelSave": {
     "message": "保存"
@@ -1988,7 +1988,7 @@
     "message": "复制失败"
   },
   "sourcePanelRowInstructions": {
-    "message": "按住 Alt 并单击可保存；右键单击来源标题可使用 Save In"
+    "message": "Alt+单击：保存；右键单击来源标题：Save In"
   },
   "sourcePanelCopiedUrls": {
     "message": "已复制 $COUNT$ 个 URL",

@@ -975,7 +975,7 @@
     "message": "エクスポート"
   },
   "html_filterSources": {
-    "message": "ソースのフィルタリング"
+    "message": "ソースを絞り込む"
   },
   "html_historyTableTools": {
     "message": "履歴テーブルのツール"
@@ -1871,7 +1871,7 @@
     "message": "ページソースを閉じる"
   },
   "sourcePanelDockPosition": {
-    "message": "配置: $POSITION$ — 次の位置に変更",
+    "message": "ドッキング位置：$POSITION$ — 次の位置に切り替え",
     "placeholders": {
       "position": {
         "content": "$1",
@@ -1895,16 +1895,16 @@
     "message": "パネルの配置を変更"
   },
   "sourcePanelDockPanel": {
-    "message": "ページソースを固定"
+    "message": "ページソースをドッキング"
   },
   "sourcePanelPopOutPanel": {
-    "message": "ページソースを切り離す"
+    "message": "ページソースをフローティング表示"
   },
   "sourcePanelPopOutHelp": {
-    "message": "ドラッグ可能なパネルとして切り離す"
+    "message": "ドラッグできるフローティングパネルで表示"
   },
   "sourcePanelCopyFilteredUrls": {
-    "message": "現在のフィルター内の URL をコピー"
+    "message": "表示中のソース URL をコピー"
   },
   "sourcePanelCopyFilteredUrlsLabel": {
     "message": "絞り込んだソースの URL をコピー"
@@ -1940,10 +1940,10 @@
     "message": "現在のフィルターに一致するソースはありません。"
   },
   "sourcePanelNoSources": {
-    "message": "ページ内のメディアやストリーミング動画のプレイリストはまだ検出されていません。"
+    "message": "ページ上のメディアやストリーミング動画のプレイリストはまだ検出されていません。"
   },
   "sourcePanelSourceInstructions": {
-    "message": "$URL$。右クリックで Save In、Alt+クリックですぐに保存します。",
+    "message": "$URL$。右クリック：Save In、Alt+クリック：すぐに保存。",
     "placeholders": {
       "url": {
         "content": "$1",
@@ -1955,7 +1955,7 @@
     "message": "サイズ不明"
   },
   "sourcePanelDetectedAt": {
-    "message": "$TIME$ に検出",
+    "message": "検出時刻：$TIME$",
     "placeholders": {
       "time": {
         "content": "$1",
@@ -1985,10 +1985,10 @@
     "message": "コピーしました"
   },
   "sourcePanelCopyFailed": {
-    "message": "コピーできませんでした"
+    "message": "コピーに失敗しました"
   },
   "sourcePanelRowInstructions": {
-    "message": "Alt+クリックで保存、ソース名を右クリックして Save In を使用"
+    "message": "Alt+クリックで保存。ソース名を右クリックすると Save In を使用できます"
   },
   "sourcePanelCopiedUrls": {
     "message": "$COUNT$ 件の URL をコピーしました",

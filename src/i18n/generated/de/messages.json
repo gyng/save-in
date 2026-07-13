@@ -1760,7 +1760,7 @@
   },
   "webMcpStatusUnavailableBrowser": { "message": "In diesem Browser nicht verfügbar" },
   "sourcePanelResizeLabel": {
-    "message": "Größe des Bereichs „Seitenquellen“ ändern"
+    "message": "Größe der Seitenquellen ändern"
   },
   "sourcePanelClose": {
     "message": "Schließen"
@@ -1769,7 +1769,7 @@
     "message": "Seitenquellen schließen"
   },
   "sourcePanelDockPosition": {
-    "message": "Andocken: $POSITION$ — zur nächsten Position wechseln",
+    "message": "Andockposition: $POSITION$ — zur nächsten Position wechseln",
     "placeholders": {
       "position": {
         "content": "$1",
@@ -1790,19 +1790,19 @@
     "message": "Oben"
   },
   "sourcePanelChangeDockLabel": {
-    "message": "Andockposition des Bereichs ändern"
+    "message": "Andockposition der Seitenquellen ändern"
   },
   "sourcePanelDockPanel": {
     "message": "Seitenquellen andocken"
   },
   "sourcePanelPopOutPanel": {
-    "message": "Seitenquellen ablösen"
+    "message": "Seitenquellen schwebend anzeigen"
   },
   "sourcePanelPopOutHelp": {
-    "message": "Als verschiebbaren Bereich ablösen"
+    "message": "Als verschiebbaren Bereich anzeigen"
   },
   "sourcePanelCopyFilteredUrls": {
-    "message": "URLs im aktuellen Filter kopieren"
+    "message": "URLs der aktuell gefilterten Quellen kopieren"
   },
   "sourcePanelCopyFilteredUrlsLabel": {
     "message": "URLs der gefilterten Quellen kopieren"
@@ -1814,13 +1814,13 @@
     "message": "Quellen sortieren"
   },
   "sourcePanelSortNewest": {
-    "message": "Neueste"
+    "message": "Neueste zuerst"
   },
   "sourcePanelSortOldest": {
-    "message": "Älteste"
+    "message": "Älteste zuerst"
   },
   "sourcePanelSortLargest": {
-    "message": "Größte"
+    "message": "Größte zuerst"
   },
   "sourcePanelSortName": {
     "message": "Name"
@@ -1838,10 +1838,10 @@
     "message": "Keine Quellen entsprechen den aktuellen Filtern."
   },
   "sourcePanelNoSources": {
-    "message": "Es wurden noch keine Medien oder Streamingvideo-Wiedergabelisten auf der Seite erkannt."
+    "message": "Es wurden noch keine Medien oder Wiedergabelisten für Streamingvideos auf der Seite erkannt."
   },
   "sourcePanelSourceInstructions": {
-    "message": "$URL$. Rechtsklick für Save In; Alt+Klick zum sofortigen Speichern.",
+    "message": "$URL$. Rechtsklick: Save In; Alt+Klick: sofort speichern.",
     "placeholders": {
       "url": {
         "content": "$1",
@@ -1865,7 +1865,7 @@
     "message": "Vorschau nicht verfügbar"
   },
   "sourcePanelLocate": {
-    "message": "Auf der Seite anzeigen"
+    "message": "Auf der Seite finden"
   },
   "sourcePanelSave": {
     "message": "Speichern"
@@ -1877,7 +1877,7 @@
     "message": "yt-dlp-Befehl kopieren"
   },
   "sourcePanelCopyYtDlpHelp": {
-    "message": "Einen Befehl kopieren, mit dem yt-dlp das vollständige Video herunterlädt"
+    "message": "yt-dlp-Befehl zum Herunterladen des vollständigen Videos kopieren"
   },
   "sourcePanelCopied": {
     "message": "Kopiert"
@@ -1886,7 +1886,7 @@
     "message": "Kopieren fehlgeschlagen"
   },
   "sourcePanelRowInstructions": {
-    "message": "Alt+Klick zum Speichern; Rechtsklick auf den Quellentitel für Save In"
+    "message": "Alt+Klick: speichern; Rechtsklick auf den Quellentitel: Save In"
   },
   "sourcePanelCopiedUrls": {
     "message": "$COUNT$ URLs kopiert",

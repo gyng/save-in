@@ -1078,7 +1078,7 @@
     "message": "Exportar"
   },
   "html_filterSources": {
-    "message": "Filtrar fontes"
+    "message": "Filtrar recursos"
   },
   "html_historyTableTools": {
     "message": "Ferramentas da tabela de histórico"
@@ -1762,13 +1762,13 @@
   },
   "webMcpStatusUnavailableBrowser": { "message": "Não disponível neste navegador" },
   "sourcePanelResizeLabel": {
-    "message": "Redimensionar Recursos da página"
+    "message": "Redimensionar o painel Recursos da página"
   },
   "sourcePanelClose": {
     "message": "Fechar"
   },
   "sourcePanelCloseLabel": {
-    "message": "Fechar Recursos da página"
+    "message": "Fechar o painel Recursos da página"
   },
   "sourcePanelDockPosition": {
     "message": "Encaixe: $POSITION$ — mudar para a próxima posição",
@@ -1783,13 +1783,13 @@
     "message": "Direita"
   },
   "sourcePanelDockBottom": {
-    "message": "Embaixo"
+    "message": "Inferior"
   },
   "sourcePanelDockLeft": {
     "message": "Esquerda"
   },
   "sourcePanelDockTop": {
-    "message": "Em cima"
+    "message": "Superior"
   },
   "sourcePanelChangeDockLabel": {
     "message": "Alterar a posição de encaixe do painel"
@@ -1801,13 +1801,13 @@
     "message": "Desencaixar Recursos da página"
   },
   "sourcePanelPopOutHelp": {
-    "message": "Exibir em um painel flutuante arrastável"
+    "message": "Exibir como painel flutuante e arrastável"
   },
   "sourcePanelCopyFilteredUrls": {
-    "message": "Copiar os URLs do filtro atual"
+    "message": "Copiar as URLs do filtro atual"
   },
   "sourcePanelCopyFilteredUrlsLabel": {
-    "message": "Copiar os URLs dos recursos filtrados"
+    "message": "Copiar as URLs dos recursos filtrados"
   },
   "sourcePanelFilterLabel": {
     "message": "Filtrar os recursos da página"
@@ -1822,7 +1822,7 @@
     "message": "Mais antigos"
   },
   "sourcePanelSortLargest": {
-    "message": "Maiores"
+    "message": "Maiores primeiro"
   },
   "sourcePanelSortName": {
     "message": "Nome"
@@ -1840,10 +1840,10 @@
     "message": "Nenhum recurso corresponde aos filtros atuais."
   },
   "sourcePanelNoSources": {
-    "message": "Nenhuma mídia da página nem lista de reprodução de vídeo por streaming foi detectada ainda."
+    "message": "Ainda não foram detectadas mídias da página nem listas de reprodução de vídeo por streaming."
   },
   "sourcePanelSourceInstructions": {
-    "message": "$URL$. Clique com o botão direito para usar o Save In; use Alt+clique para salvar imediatamente.",
+    "message": "$URL$. Botão direito: Save In; Alt+clique: salvar imediatamente.",
     "placeholders": {
       "url": {
         "content": "$1",
@@ -1855,7 +1855,7 @@
     "message": "tamanho desconhecido"
   },
   "sourcePanelDetectedAt": {
-    "message": "Detectado às $TIME$",
+    "message": "Detectado: $TIME$",
     "placeholders": {
       "time": {
         "content": "$1",
@@ -1867,7 +1867,7 @@
     "message": "Prévia indisponível"
   },
   "sourcePanelLocate": {
-    "message": "Localizar"
+    "message": "Mostrar na página"
   },
   "sourcePanelSave": {
     "message": "Salvar"
@@ -1879,7 +1879,7 @@
     "message": "Copiar o comando do yt-dlp"
   },
   "sourcePanelCopyYtDlpHelp": {
-    "message": "Copiar um comando para o yt-dlp baixar o vídeo completo"
+    "message": "Copiar um comando do yt-dlp para baixar o vídeo completo"
   },
   "sourcePanelCopied": {
     "message": "Copiado"
@@ -1888,10 +1888,10 @@
     "message": "Falha ao copiar"
   },
   "sourcePanelRowInstructions": {
-    "message": "Use Alt+clique para salvar; clique com o botão direito no título do recurso para usar o Save In"
+    "message": "Alt+clique: salvar; botão direito no título do recurso: Save In"
   },
   "sourcePanelCopiedUrls": {
-    "message": "$COUNT$ URLs copiados",
+    "message": "$COUNT$ URLs copiadas",
     "placeholders": {
       "count": {
         "content": "$1",
