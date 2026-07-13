@@ -26,9 +26,29 @@ const sleep = (ms) =>
     setTimeout(res, ms);
   });
 
+/** @param {string | undefined} [pathValue] @param {NodeJS.Platform} [platform] */
+const findFirefoxOnPath = (pathValue = process.env.PATH, platform = process.platform) => {
+  if (!pathValue) return undefined;
+  const names = platform === "win32" ? ["firefox.exe", "firefox"] : ["firefox"];
+  for (const directory of pathValue.split(path.delimiter)) {
+    if (!directory) continue;
+    for (const name of names) {
+      const candidate = path.join(directory, name);
+      try {
+        fs.accessSync(candidate, fs.constants.X_OK);
+        if (fs.statSync(candidate).isFile()) return candidate;
+      } catch {
+        continue;
+      }
+    }
+  }
+  return undefined;
+};
+
 const findFirefox = () => {
   const candidates = [
     process.env.FIREFOX_PATH,
+    findFirefoxOnPath(),
     "C:\\Program Files\\Mozilla Firefox\\firefox.exe",
     "C:\\Program Files (x86)\\Mozilla Firefox\\firefox.exe",
     "/usr/bin/firefox",
@@ -253,4 +273,4 @@ const launch = async () => {
   }
 };
 
-module.exports = { ROOT, launch, makeProfile, removeProfile };
+module.exports = { ROOT, findFirefox, findFirefoxOnPath, launch, makeProfile, removeProfile };
