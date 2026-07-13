@@ -860,11 +860,11 @@ button {
 }
 
 button:hover {
-  background-color: var(--grey30);
+  background-color: var(--hover-bg);
 }
 
 button:active {
-  background-color: var(--grey40);
+  background-color: var(--hover-bg-strong);
 }
 
 .save {
@@ -1024,7 +1024,7 @@ button:active {
 }
 
 .click-to-copy:active {
-  background-color: var(--grey40);
+  background-color: var(--hover-bg-strong);
 }
 
 .caption {
@@ -2480,18 +2480,16 @@ button:disabled:hover {
   width: 28px;
   height: 28px;
   padding: 0;
-  color: var(--grey40);
+  color: var(--color-text-muted);
   cursor: grab;
   user-select: none;
-  /* The grip is quiet until you're working on a row */
-  opacity: 0.4;
   border: 0;
   background: transparent;
 }
 
 .path-editor-row:hover .path-editor-handle,
 .path-editor-row:focus-within .path-editor-handle {
-  opacity: 1;
+  color: var(--color-text);
 }
 
 .path-editor-handle:active {

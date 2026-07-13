@@ -91,3 +91,20 @@ test("identical heading, integration-header, and reference-focus rules stay cons
     /\.reference-search-label \.reference-search:focus-visible,\s*\.click-to-copy\[role="button"\]:focus-visible\s*\{/,
   );
 });
+
+test("interactive states retain theme-aware contrast", () => {
+  expect(stylesheet).toMatch(/button:hover\s*\{[^}]*background-color:\s*var\(--hover-bg\)/);
+  expect(stylesheet).toMatch(
+    /button:active\s*\{[^}]*background-color:\s*var\(--hover-bg-strong\)/,
+  );
+  expect(stylesheet).toMatch(
+    /\.click-to-copy:active\s*\{[^}]*background-color:\s*var\(--hover-bg-strong\)/,
+  );
+
+  const handle = stylesheet.match(/\.path-editor-handle\s*\{([^}]*)\}/)?.[1] ?? "";
+  expect(handle).toContain("color: var(--color-text-muted)");
+  expect(handle).not.toMatch(/opacity:\s*0?\.[0-9]+/);
+  expect(stylesheet).toMatch(
+    /\.path-editor-row:hover \.path-editor-handle,\s*\.path-editor-row:focus-within \.path-editor-handle\s*\{[^}]*color:\s*var\(--color-text\)/,
+  );
+});
