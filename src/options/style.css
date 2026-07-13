@@ -99,7 +99,7 @@
   --warning-fg: #ffcc66;
   --input-background: #474749;
   --disabled-control-color: var(--grey40);
-  --app-icon-filter: invert(1) brightness(0.85);
+  --app-icon-filter: brightness(0) invert(1);
   color-scheme: dark;
 }
 
@@ -127,7 +127,7 @@
     --warning-fg: #ffcc66;
     --input-background: #474749;
     --disabled-control-color: var(--grey40);
-    --app-icon-filter: invert(1) brightness(0.85);
+    --app-icon-filter: brightness(0) invert(1);
     color-scheme: dark;
   }
 }
