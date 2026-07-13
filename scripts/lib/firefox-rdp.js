@@ -42,6 +42,8 @@ class FirefoxRdp {
     this.queues = new Map();
     /** @type {EventWaiter[]} */
     this.eventWaiters = [];
+    /** @type {Map<string, string>} */
+    this.tabConsoleActors = new Map();
     socket.on("data", (data) => {
       this.buffer = Buffer.concat([this.buffer, Buffer.from(data)]);
       this.drain();
@@ -291,11 +293,15 @@ class FirefoxRdp {
       );
     }
 
+    const cached = this.tabConsoleActors.get(tab.actor);
+    if (cached) return cached;
+
     const targets = await this.watchFrameTargets(tab.actor);
     const target = targets.find((t) => t && t.url && t.url.includes(urlSubstr) && t.consoleActor);
     if (!target) {
       throw new Error(`No console actor for tab "${urlSubstr}"`);
     }
+    this.tabConsoleActors.set(tab.actor, target.consoleActor);
     return target.consoleActor;
   }
 

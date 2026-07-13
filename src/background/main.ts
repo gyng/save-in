@@ -149,5 +149,10 @@ export const start = () => {
       // Mutating a property of the shared tab object (not reassigning the binding)
       currentTab.title = changeInfo.title;
     }
+    // A new tab can finish loading its content script after an activation-time
+    // restore message. Apply the shared state whenever any tab becomes ready.
+    if (changeInfo.status === "complete") {
+      await syncSourcePanelToTab(tabId);
+    }
   });
 };

@@ -9,6 +9,14 @@ vi.mock("../src/background/menu-tabs.ts", () => ({
   addTabHighlightListener: vi.fn(),
   addTabMenus: vi.fn(),
 }));
+const sourcePanelMocks = vi.hoisted(() => ({
+  sync: vi.fn(() => Promise.resolve()),
+  toggle: vi.fn(() => Promise.resolve()),
+}));
+vi.mock("../src/background/source-panel-state.ts", () => ({
+  syncSourcePanelToTab: sourcePanelMocks.sync,
+  toggleSourcePanelForTab: sourcePanelMocks.toggle,
+}));
 vi.mock("../src/background/menu-build.ts", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../src/background/menu-build.ts")>();
   return {
@@ -379,5 +387,17 @@ describe("current tab tracking", () => {
 
     (onUpdated as any)(3, { status: "complete" });
     expect(tab.title).toBe("Seeded Tab");
+  });
+
+  test("restores the shared Page Sources state when any tab finishes loading", async () => {
+    const tab = { id: 3, title: "Seeded Tab", active: false };
+    await setupGlobals({ tabsQueryResult: [tab] });
+    await importIndex();
+    await Runtime.ready;
+
+    const [[onUpdated]] = vi.mocked(global.browser.tabs.onUpdated.addListener).mock.calls;
+    await (onUpdated as any)(3, { status: "complete" }, tab);
+
+    expect(sourcePanelMocks.sync).toHaveBeenCalledWith(3);
   });
 });

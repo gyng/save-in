@@ -28,4 +28,19 @@ describe("shared Page Sources open state", () => {
       body: { open: true },
     });
   });
+
+  test("records content-script panel changes through the background owner", async () => {
+    const { setSourcePanelOpenState, syncSourcePanelToTab } =
+      await import("../src/background/source-panel-state.ts");
+
+    await setSourcePanelOpenState(true);
+    await syncSourcePanelToTab(9);
+
+    expect(global.browser.storage.session.set).toHaveBeenCalledWith({ sourcePanelOpen: true });
+    expect(global.browser.tabs.sendMessage).toHaveBeenCalledOnce();
+    expect(global.browser.tabs.sendMessage).toHaveBeenCalledWith(9, {
+      type: "SET_SOURCE_PANEL",
+      body: { open: true },
+    });
+  });
 });

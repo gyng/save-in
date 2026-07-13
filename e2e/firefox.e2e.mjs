@@ -6,7 +6,7 @@ import fs from "fs";
 import http from "http";
 
 import firefox from "../scripts/lib/firefox.js";
-import { listenLocal } from "./helpers.mjs";
+import { listenLocal, poll } from "./helpers.mjs";
 
 let session;
 
@@ -67,6 +67,21 @@ const startPageServer = async () => {
       res.writeHead(200, { "Content-Type": "text/html" });
       res.end('<html><body><img id="img" src="/pic.png" width="50" height="50"></body></html>');
     }
+  });
+  const port = await listenLocal(server);
+  return { server, port };
+};
+
+const startSourcePanelServer = async () => {
+  const server = http.createServer((req, res) => {
+    if (req.url?.endsWith(".png")) {
+      res.writeHead(200, { "Content-Type": "image/png", "Content-Length": PNG.length });
+      res.end(PNG);
+      return;
+    }
+    res.writeHead(200, { "Content-Type": "text/html" });
+    res.end(`<!doctype html><title>Page Sources e2e</title>
+      <img src="/first.png" alt="first"><img src="/second.png" alt="second">`);
   });
   const port = await listenLocal(server);
   return { server, port };
@@ -327,6 +342,131 @@ test("alt+click on a real page saves the image through the content script", asyn
     expect(downloads[0].state).toBe("complete");
     expect(fs.readFileSync(downloads[0].filename)).toEqual(PNG);
   } finally {
+    server.close();
+  }
+});
+
+test("Page Sources discovers, sorts, updates live, and restores across tabs", async () => {
+  const { server, port } = await startSourcePanelServer();
+  const firstMatch = `localhost:${port}/sources-one`;
+  const secondMatch = `localhost:${port}/sources-two`;
+  const firstTarget = `localhost:${port}`;
+  const secondTarget = `localhost:${port}`;
+  const firstUrl = `http://${firstMatch}`;
+  const secondUrl = `http://${secondMatch}`;
+  const snapshot = (target) =>
+    session
+      .evaluateInTab(
+        target,
+        `JSON.stringify({
+          names: [...document.querySelector("#save-in-source-panel").shadowRoot.querySelectorAll(".source-link .name")].map((node) => node.textContent),
+          sort: document.querySelector("#save-in-source-panel").shadowRoot.querySelector('select[aria-label="Sort sources"]').value,
+        })`,
+      )
+      .then(JSON.parse);
+
+  try {
+    await evalBackground(`browser.storage.local.set({
+      sourcePanelEnabled: true,
+      sourcePanelLive: true,
+      sourcePanelPreviews: false,
+      sourcePanelBackgrounds: false,
+      sourcePanelResourceHints: false,
+      sourcePanelLinks: false,
+    }).then(() => api.reset()).then(() => "enabled")`);
+    await evalBackground(
+      `browser.tabs.create({ url: ${JSON.stringify(firstUrl)} }).then(() => "opened")`,
+    );
+    await evalBackground(`(async () => {
+      const deadline = Date.now() + 8000;
+      for (;;) {
+        const tab = (await browser.tabs.query({})).find((candidate) =>
+          candidate.url?.includes(${JSON.stringify(firstMatch)}));
+        if (tab?.id && tab.status === "complete") {
+          await browser.storage.session.set({ sourcePanelOpen: true });
+          await browser.tabs.sendMessage(tab.id, { type: "SET_SOURCE_PANEL", body: { open: true } });
+          return "opened";
+        }
+        if (Date.now() >= deadline) throw new Error("Page Sources fixture timeout");
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+    })()`);
+    await poll(
+      async () =>
+        (await session.evaluateInTab(
+          firstTarget,
+          "!!document.querySelector('#save-in-source-panel')?.shadowRoot",
+        )) === true
+          ? true
+          : null,
+      { description: "Firefox Page Sources panel open" },
+    );
+
+    expect((await snapshot(firstTarget)).names).toEqual(["second.png", "first.png"]);
+    await session.evaluateInTab(
+      firstTarget,
+      `(() => {
+        const sort = document.querySelector("#save-in-source-panel").shadowRoot.querySelector('select[aria-label="Sort sources"]');
+        sort.value = "detected-asc";
+        sort.dispatchEvent(new Event("change"));
+      })()`,
+    );
+    expect(await snapshot(firstTarget)).toEqual({
+      names: ["first.png", "second.png"],
+      sort: "detected-asc",
+    });
+
+    await session.evaluateInTab(
+      firstTarget,
+      `(() => {
+        const image = document.createElement("img");
+        image.src = "/late.png";
+        document.body.append(image);
+      })()`,
+    );
+    await poll(
+      async () => ((await snapshot(firstTarget)).names.includes("late.png") ? true : null),
+      { description: "Firefox live Page Sources discovery" },
+    );
+    await session.evaluateInTab(
+      firstTarget,
+      `(() => {
+        const sort = document.querySelector("#save-in-source-panel").shadowRoot.querySelector('select[aria-label="Sort sources"]');
+        sort.value = "detected-desc";
+        sort.dispatchEvent(new Event("change"));
+      })()`,
+    );
+    expect((await snapshot(firstTarget)).names[0]).toBe("late.png");
+
+    await evalBackground(`browser.tabs.query({}).then(async (tabs) => {
+      const first = tabs.find((tab) => tab.url?.includes(${JSON.stringify(firstMatch)}));
+      if (first?.id) await browser.tabs.remove(first.id);
+      await browser.tabs.create({ url: ${JSON.stringify(secondUrl)}, active: true });
+      return "opened";
+    })`);
+    await poll(
+      async () => {
+        try {
+          return (await session.evaluateInTab(
+            secondTarget,
+            "!!document.querySelector('#save-in-source-panel')?.shadowRoot",
+          )) === true
+            ? true
+            : null;
+        } catch {
+          return null;
+        }
+      },
+      { description: "Firefox Page Sources restored on activated tab" },
+    );
+  } finally {
+    await evalBackground(`Promise.all([
+      browser.storage.session.set({ sourcePanelOpen: false }),
+      browser.storage.local.set({ sourcePanelEnabled: false }),
+      browser.tabs.query({}).then((tabs) => browser.tabs.remove(tabs.filter((tab) =>
+        tab.url?.includes(${JSON.stringify(`:${port}/sources-`)})
+      ).map((tab) => tab.id).filter((id) => id != null))),
+    ]).then(() => api.reset()).then(() => "cleaned")`);
     server.close();
   }
 });

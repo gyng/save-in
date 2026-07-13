@@ -25,6 +25,25 @@ const inE2EBridge = (expr) => `(() => {
 const evalSW = (expr, wake) => cdp.evalInServiceWorker(PORT, extensionId, inE2EBridge(expr), wake);
 const evalOptions = (expr) => cdp.evalInTarget(PORT, "options.html", expr);
 
+const SOURCE_PNG = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+  "base64",
+);
+
+const startSourcePanelServer = async () => {
+  const server = http.createServer((req, res) => {
+    if (req.url?.endsWith(".png")) {
+      res.writeHead(200, { "Content-Type": "image/png", "Content-Length": SOURCE_PNG.length });
+      res.end(SOURCE_PNG);
+      return;
+    }
+    res.writeHead(200, { "Content-Type": "text/html" });
+    res.end(`<!doctype html><title>Page Sources e2e</title>
+      <img src="/first.png" alt="first"><img src="/second.png" alt="second">`);
+  });
+  return { server, port: await listenLocal(server) };
+};
+
 // Polls a service-worker expression that returns a JSON array until it is
 // non-empty or the deadline passes, instead of a single fixed sleep
 const waitForDownloads = (regex, deadlineMs = 8000) =>
@@ -768,6 +787,122 @@ test("alt+click on a real page saves the image through the content script", asyn
     expect(download[0].state).toBe("complete");
     expect(fs.readFileSync(download[0].filename)).toEqual(png);
   } finally {
+    server.close();
+  }
+});
+
+test("Page Sources discovers, sorts, updates live, and restores across tabs", async () => {
+  const { server, port } = await startSourcePanelServer();
+  const firstPath = `127.0.0.1:${port}/sources-one`;
+  const secondPath = `127.0.0.1:${port}/sources-two`;
+  const firstUrl = `http://${firstPath}`;
+  const secondUrl = `http://${secondPath}`;
+  const evalPage = (pathPart, expression) => cdp.evalInTarget(PORT, pathPart, expression);
+  const snapshot = (pathPart) =>
+    evalPage(
+      pathPart,
+      `JSON.stringify({
+        names: [...document.querySelector("#save-in-source-panel").shadowRoot.querySelectorAll(".source-link .name")].map((node) => node.textContent),
+        sort: document.querySelector("#save-in-source-panel").shadowRoot.querySelector('select[aria-label="Sort sources"]').value,
+      })`,
+    ).then(JSON.parse);
+
+  try {
+    await evalSW(`browser.storage.local.set({
+      sourcePanelEnabled: true,
+      sourcePanelLive: true,
+      sourcePanelPreviews: false,
+      sourcePanelBackgrounds: false,
+      sourcePanelResourceHints: false,
+      sourcePanelLinks: false,
+    }).then(() => api.reset()).then(() => "enabled")`);
+    await cdp.openTab(PORT, firstUrl);
+    await poll(
+      async () =>
+        (await evalPage(firstPath, "document.readyState === 'complete'")) === true ? true : null,
+      { description: "first Page Sources fixture" },
+    );
+    await evalSW(`browser.tabs.query({}).then(async (tabs) => {
+      const tab = tabs.find((candidate) => candidate.url?.includes(${JSON.stringify(firstPath)}));
+      if (!tab?.id) throw new Error("Page Sources fixture tab missing");
+      await browser.storage.session.set({ sourcePanelOpen: true });
+      await browser.tabs.sendMessage(tab.id, { type: "SET_SOURCE_PANEL", body: { open: true } });
+      return "opened";
+    })`);
+    await poll(
+      async () =>
+        (await evalPage(firstPath, "!!document.querySelector('#save-in-source-panel')?.shadowRoot"))
+          ? true
+          : null,
+      { description: "Page Sources panel open" },
+    );
+
+    expect((await snapshot(firstPath)).names).toEqual(["second.png", "first.png"]);
+    await evalPage(
+      firstPath,
+      `(() => {
+        const root = document.querySelector("#save-in-source-panel").shadowRoot;
+        const sort = root.querySelector('select[aria-label="Sort sources"]');
+        sort.value = "detected-asc";
+        sort.dispatchEvent(new Event("change"));
+      })()`,
+    );
+    expect(await snapshot(firstPath)).toEqual({
+      names: ["first.png", "second.png"],
+      sort: "detected-asc",
+    });
+
+    await evalPage(
+      firstPath,
+      `(() => {
+        const image = document.createElement("img");
+        image.src = "/late.png";
+        image.alt = "late";
+        document.body.append(image);
+      })()`,
+    );
+    await poll(async () => ((await snapshot(firstPath)).names.includes("late.png") ? true : null), {
+      description: "live Page Sources discovery",
+    });
+    await evalPage(
+      firstPath,
+      `(() => {
+        const sort = document.querySelector("#save-in-source-panel").shadowRoot.querySelector('select[aria-label="Sort sources"]');
+        sort.value = "detected-desc";
+        sort.dispatchEvent(new Event("change"));
+      })()`,
+    );
+    expect((await snapshot(firstPath)).names[0]).toBe("late.png");
+
+    await cdp.openTab(PORT, secondUrl);
+    await poll(
+      async () =>
+        (await evalPage(secondPath, "document.readyState === 'complete'")) === true ? true : null,
+      { description: "second Page Sources fixture" },
+    );
+    await evalSW(`browser.tabs.query({}).then((tabs) => {
+      const tab = tabs.find((candidate) => candidate.url?.includes(${JSON.stringify(secondPath)}));
+      if (!tab?.id) throw new Error("second Page Sources fixture tab missing");
+      return browser.tabs.update(tab.id, { active: true });
+    }).then(() => "activated")`);
+    await poll(
+      async () =>
+        (await evalPage(
+          secondPath,
+          "!!document.querySelector('#save-in-source-panel')?.shadowRoot",
+        ))
+          ? true
+          : null,
+      { description: "Page Sources restored on activated tab" },
+    );
+  } finally {
+    await evalSW(`Promise.all([
+      browser.storage.session.set({ sourcePanelOpen: false }),
+      browser.storage.local.set({ sourcePanelEnabled: false }),
+      browser.tabs.query({}).then((tabs) => browser.tabs.remove(tabs.filter((tab) =>
+        tab.url?.includes(${JSON.stringify(`127.0.0.1:${port}/sources-`)})
+      ).map((tab) => tab.id).filter((id) => id != null))),
+    ]).then(() => api.reset()).then(() => "cleaned")`);
     server.close();
   }
 });
