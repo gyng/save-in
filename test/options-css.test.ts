@@ -2,7 +2,6 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 const stylesheet = readFileSync(resolve("src/options/style.css"), "utf8");
-const referenceStylesheet = readFileSync(resolve("src/options/reference.css"), "utf8");
 const selectorCount = (selector: string) => {
   const lines = stylesheet.split(/\r?\n/);
   return lines.filter(
