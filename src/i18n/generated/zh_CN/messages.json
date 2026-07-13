@@ -18,7 +18,7 @@
     "message": "切换页面源"
   },
   "contextMenuExclusive": {
-    "message": "Save In 路线..."
+    "message": "使用 Save In 路由…"
   },
   "contextMenuRoot": {
     "message": "Save In…"
@@ -96,7 +96,7 @@
     "message": "永远无法达到规则，因为较早的规则具有相同或更广泛的匹配"
   },
   "ruleBadClause": {
-    "message": "坏条款"
+    "message": "无效子句"
   },
   "rulePathInvalidCharacter": {
     "message": "路径包含无效字符"
@@ -120,10 +120,10 @@
     "message": "保存从此选项卡打开的其他选项卡"
   },
   "tabstripMenuSaveRightTabs": {
-    "message": "将所有选项卡保存到右侧，包括这个"
+    "message": "保存右侧的所有选项卡，包括此选项卡"
   },
   "tabstripMenuSaveRightTabsMatched": {
-    "message": "将所有选项卡保存到右侧，包括此选项卡（必须与路线匹配）"
+    "message": "保存右侧的所有选项卡，包括此选项卡（必须匹配路由规则）"
   },
   "o_sDownloads": {
     "message": "下载菜单"
@@ -207,10 +207,10 @@
     "message": "上下文菜单访问键"
   },
   "o_sMoreOptions": {
-    "message": "先进的"
+    "message": "高级"
   },
   "o_sHistory": {
-    "message": "历史"
+    "message": "历史记录"
   },
   "o_sPageSources": {
     "message": "页面来源"
@@ -261,7 +261,7 @@
     "message": "来源"
   },
   "o_lHistoryStatus": {
-    "message": "地位"
+    "message": "状态"
   },
   "o_lHistoryType": {
     "message": "类型"
@@ -282,10 +282,10 @@
     "message": "已保存"
   },
   "o_lHistorySaving": {
-    "message": "保存"
+    "message": "保存中"
   },
   "o_lHistoryFailed": {
-    "message": "失败的"
+    "message": "失败"
   },
   "o_lHistoryDateSaved": {
     "message": "保存日期"
@@ -336,19 +336,19 @@
     "message": "目录"
   },
   "o_bAddSeparator": {
-    "message": "分离器"
+    "message": "分隔符"
   },
   "o_lClauses": {
-    "message": "条款"
+    "message": "子句"
   },
   "o_lEditorModeText": {
     "message": "文本"
   },
   "o_bApply": {
-    "message": "申请"
+    "message": "应用"
   },
   "o_bDiscard": {
-    "message": "丢弃"
+    "message": "放弃"
   },
   "o_lRuleBuilder": {
     "message": "快速添加"
@@ -357,7 +357,7 @@
     "message": "模板库"
   },
   "o_lClauseList": {
-    "message": "条款列表"
+    "message": "子句列表"
   },
   "o_lGithub": {
     "message": "GitHub"
@@ -438,13 +438,13 @@
     "message": "下载失败"
   },
   "o_cDupeUniquify": {
-    "message": "创造一个独特的名字"
+    "message": "生成唯一名称"
   },
   "o_cDupeOverwrite": {
     "message": "覆盖"
   },
   "o_cDupePrompt": {
-    "message": "问我"
+    "message": "询问"
   },
   "o_cDupeFilename": {
     "message": "当文件已经存在时："
@@ -483,7 +483,7 @@
     "message": "Windows .url"
   },
   "o_cSaveShortcutsTypeFreedesktop": {
-    "message": "自由桌面.desktop"
+    "message": "Freedesktop .desktop"
   },
   "o_cSaveShortcutsMediaInstead": {
     "message": "将媒体另存为快捷方式"
@@ -495,7 +495,7 @@
     "message": "将页面另存为快捷方式"
   },
   "o_cSaveShortcutsTabsInstead": {
-    "message": "将选项卡另存为快捷方式（通过右键单击选项卡）"
+    "message": "将选项卡保存为快捷方式（通过选项卡的右键菜单）"
   },
   "o_cKeyboardShortcutSaveInMenu": {
     "message": "Save In 上下文菜单项"
@@ -513,7 +513,7 @@
     "message": "按住 Alt（默认）并单击图像或媒体，将其保存在上次使用的目录或默认下载目录中。将脚本插入页面以侦听单击事件。使用此方法时并非所有变量都可用。需要刷新页面才能生效。"
   },
   "o_cHostPermissionMissing": {
-    "message": "Save in 无权访问页面内容。在您授予对所有站点的访问权限之前，“单击保存”功能将不起作用。"
+    "message": "Save In 无权访问页面内容。授予所有网站的访问权限后，点击保存功能才可用。"
   },
   "o_cHostPermissionGrant": {
     "message": "授予访问权限"
@@ -597,10 +597,10 @@
     "message": "启用详细的开发人员日志记录"
   },
   "o_cLastSavedAt": {
-    "message": "设置更新于："
+    "message": "设置更新于： "
   },
   "o_cLastSavedAtNever": {
-    "message": "绝不"
+    "message": "尚未"
   },
   "optionsUnsavedChanges": {
     "message": "放弃未保存的更改，还是继续编辑？"
@@ -618,13 +618,13 @@
     "message": "匹配器"
   },
   "o_lPattern": {
-    "message": "图案"
+    "message": "模式"
   },
   "o_lDestinationInto": {
     "message": "目的地 (into:)"
   },
   "o_lSaving": {
-    "message": "保存…"
+    "message": "保存中…"
   },
   "o_lSaved": {
     "message": "已保存"
@@ -633,13 +633,13 @@
     "message": "无法保存更改"
   },
   "o_lValidationUnavailable": {
-    "message": "暂时无法验证。"
+    "message": "暂时无法验证。 "
   },
   "o_bRetryValidation": {
     "message": "重试验证"
   },
   "o_lAutosaveFailed": {
-    "message": "无法保存此设置。"
+    "message": "无法保存此设置。 "
   },
   "o_bRetrySave": {
     "message": "重试保存"
@@ -648,7 +648,7 @@
     "message": "无验证错误"
   },
   "notificationLinkPreferred": {
-    "message": "而是下载了一个链接"
+    "message": "已改为下载链接"
   },
   "o_cPreferLinksFilterEnabled": {
     "message": "仅在匹配的页面上"
@@ -678,10 +678,10 @@
     "message": "文件名"
   },
   "o_sAdvancedDownloading": {
-    "message": "正在下载"
+    "message": "下载"
   },
   "o_sAdvancedCounter": {
-    "message": "柜台"
+    "message": "计数器"
   },
   "o_sAdvancedBackupReset": {
     "message": "备份与重置"
@@ -690,10 +690,10 @@
     "message": "诊断"
   },
   "o_lExperimental": {
-    "message": "实验性的"
+    "message": "实验性功能"
   },
   "o_lManualEditorSaveHelp": {
-    "message": "当您选择“应用”时，将保存此编辑器中的更改。"
+    "message": "选择“应用”后，此编辑器中的更改将被保存。"
   },
   "o_lReferenceNavigation": {
     "message": "参考导航"

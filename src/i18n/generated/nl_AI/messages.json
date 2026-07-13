@@ -18,7 +18,7 @@
     "message": "Schakel paginabronnen in"
   },
   "contextMenuExclusive": {
-    "message": "Save In route…"
+    "message": "Routeren met Save In…"
   },
   "contextMenuRoot": {
     "message": "Save In…"
@@ -120,22 +120,22 @@
     "message": "Bewaar andere tabbladen die vanaf dit tabblad zijn geopend"
   },
   "tabstripMenuSaveRightTabs": {
-    "message": "Sla alle tabbladen naar rechts op, inclusief dit"
+    "message": "Alle tabbladen rechts opslaan, inclusief dit tabblad"
   },
   "tabstripMenuSaveRightTabsMatched": {
-    "message": "Bewaar alle tabbladen naar rechts, inclusief dit (moet overeenkomen met een route)"
+    "message": "Alle tabbladen rechts opslaan, inclusief dit tabblad (moet overeenkomen met een routeringsregel)"
   },
   "o_sDownloads": {
     "message": "Downloadmenu"
   },
   "o_sDirectories": {
-    "message": "Telefoonboeken"
+    "message": "Mappen"
   },
   "o_sBehavior": {
     "message": "Gedrag"
   },
   "o_sSaveDialog": {
-    "message": "Dialoogvenster opslaan"
+    "message": "Opslagdialoog"
   },
   "o_sExistingFiles": {
     "message": "Bestaande bestanden"
@@ -144,7 +144,7 @@
     "message": "Kies welke Save In acties verschijnen in contextmenu's."
   },
   "o_lAlsoAskWhen": {
-    "message": "Vraag ook waar u kunt besparen wanneer:"
+    "message": "Vraag ook waar moet worden opgeslagen wanneer:"
   },
   "o_sDynamicDownloads": {
     "message": "Routingregels"
@@ -282,7 +282,7 @@
     "message": "Opgeslagen"
   },
   "o_lHistorySaving": {
-    "message": "Besparing"
+    "message": "Bezig met opslaan"
   },
   "o_lHistoryFailed": {
     "message": "Mislukt"
@@ -321,7 +321,7 @@
     "message": "Zoekopties"
   },
   "o_lVariableList": {
-    "message": "Variabele lijst"
+    "message": "Variabelenlijst"
   },
   "o_lMenuPreview": {
     "message": "Menuvoorbeeld"
@@ -330,10 +330,10 @@
     "message": "Live variabelenlijst"
   },
   "o_sVisualEditor": {
-    "message": "Visuele redacteur"
+    "message": "Visuele editor"
   },
   "o_bAddDirectory": {
-    "message": "Directory"
+    "message": "Map"
   },
   "o_bAddSeparator": {
     "message": "Scheidingsteken"
@@ -387,10 +387,10 @@
     "message": "Hernoemd naar"
   },
   "o_lRoutingNoMatches": {
-    "message": "geen wedstrijden"
+    "message": "geen overeenkomsten"
   },
   "o_lRoutingCaptureGroups": {
-    "message": "Groepen vastleggen"
+    "message": "Capturegroepen"
   },
   "o_lRoutingVariables": {
     "message": "Variabelen"
@@ -426,7 +426,7 @@
     "message": "Slaat een tabblad, tabbladgroep of tabbladen naar rechts op"
   },
   "o_cOpenDialog": {
-    "message": "Vraag altijd waar u kunt besparen"
+    "message": "Altijd vragen waar moet worden opgeslagen"
   },
   "o_cOpenDialogNoExt": {
     "message": "De bestandsnaam heeft geen extensie"
@@ -474,7 +474,7 @@
     "message": "HTML-omleiding"
   },
   "o_cSaveShortcutsTypeMac": {
-    "message": "Mac.url"
+    "message": "Mac .url"
   },
   "o_cSaveShortcutsTypeMacWebloc": {
     "message": "macOS .webloc"
@@ -495,7 +495,7 @@
     "message": "Sla pagina's in plaats daarvan op als snelkoppelingen"
   },
   "o_cSaveShortcutsTabsInstead": {
-    "message": "Sla tabbladen in plaats daarvan op als snelkoppelingen (vanaf het rechtermuisknoptabblad)"
+    "message": "Tabbladen opslaan als snelkoppelingen (via het contextmenu van een tabblad)"
   },
   "o_cKeyboardShortcutSaveInMenu": {
     "message": "Save In contextmenu-item"
@@ -513,7 +513,7 @@
     "message": "Houd Alt (standaard) ingedrukt en klik op afbeeldingen of media om ze op te slaan in de laatst gebruikte map of de standaard downloadmap. Injecteert een script in pagina's om te luisteren naar klikgebeurtenissen. Bij gebruik hiervan zijn niet alle variabelen beschikbaar. Vereist paginavernieuwing om van kracht te worden."
   },
   "o_cHostPermissionMissing": {
-    "message": "Save in heeft geen toegang tot pagina-inhoud. Click-to-save werkt pas als u toegang tot alle sites verleent."
+    "message": "Save In heeft geen toegang tot pagina-inhoud. Klikken om op te slaan werkt pas nadat u toegang tot alle websites hebt verleend."
   },
   "o_cHostPermissionGrant": {
     "message": "Toegang verlenen"
@@ -540,7 +540,7 @@
     "message": "Standaardinstellingen herstellen"
   },
   "o_cTruncatePath": {
-    "message": "Kap de padcomponenten af ​​tot zoveel tekens"
+    "message": "Kap de padcomponenten af tot zoveel tekens"
   },
   "o_cTruncatePathHelp": {
     "message": "0 = geen afkapping"
@@ -570,7 +570,7 @@
     "message": "Haalt het bestand zelf op en geeft het resultaat aan de browser, in plaats van de downloader van de browser naar de URL te verwijzen. Schakel het alleen in als normale downloads mislukken. Sommige servers blokkeren het verzoek van de browser of retourneren een leeg bestand. Het is langzamer en in Chrome wordt het bestand tijdens het opslaan in het geheugen bewaard, dus vermijd dit bij zeer grote downloads."
   },
   "o_cIncludeFetchCredentials": {
-    "message": "Gebruik website-inlogcookies voor verlengingsverzoeken"
+    "message": "Website-inlogcookies gebruiken voor extensieverzoeken"
   },
   "o_cIncludeFetchCredentialsHelp": {
     "message": "Standaard ingeschakeld voor niet-privé opslaan. Omvat toepasselijke cookies en browserbeheerde authenticatie bij Fetch- en HEAD-verzoeken op de achtergrond, inclusief op omleidingsbestemmingen; schakel dit uit om deze verzoeken anoniem te doen. Verzoeken om privévensterextensies zijn altijd anoniem omdat de gedeelde achtergrond geen privé-cookie-opslag kan selecteren. Directe browserdownloads beheren hun eigen cookies."
@@ -597,7 +597,7 @@
     "message": "Schakel uitgebreide logboekregistratie voor ontwikkelaars in"
   },
   "o_cLastSavedAt": {
-    "message": "Instellingen bijgewerkt op:"
+    "message": "Instellingen bijgewerkt op: "
   },
   "o_cLastSavedAtNever": {
     "message": "nooit"
@@ -624,7 +624,7 @@
     "message": "Bestemming (into:)"
   },
   "o_lSaving": {
-    "message": "Besparing…"
+    "message": "Bezig met opslaan…"
   },
   "o_lSaved": {
     "message": "Opgeslagen"
@@ -633,13 +633,13 @@
     "message": "Kan de wijzigingen niet opslaan"
   },
   "o_lValidationUnavailable": {
-    "message": "Validatie is tijdelijk niet beschikbaar."
+    "message": "Validatie is tijdelijk niet beschikbaar. "
   },
   "o_bRetryValidation": {
     "message": "Probeer de validatie opnieuw"
   },
   "o_lAutosaveFailed": {
-    "message": "Kan deze instelling niet opslaan."
+    "message": "Kan deze instelling niet opslaan. "
   },
   "o_bRetrySave": {
     "message": "Probeer opnieuw op te slaan"
@@ -681,7 +681,7 @@
     "message": "Downloaden"
   },
   "o_sAdvancedCounter": {
-    "message": "Balie"
+    "message": "Teller"
   },
   "o_sAdvancedBackupReset": {
     "message": "Back-up en reset"

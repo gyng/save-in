@@ -18,7 +18,7 @@
     "message": "Seitenquellen umschalten"
   },
   "contextMenuExclusive": {
-    "message": "Save In Route…"
+    "message": "Mit Save In weiterleiten…"
   },
   "contextMenuRoot": {
     "message": "Save In…"
@@ -39,7 +39,7 @@
     "message": "Seite"
   },
   "contextMenuShowDefaultFolder": {
-    "message": "Öffnen Sie den Standardordner"
+    "message": "Standardordner öffnen"
   },
   "notificationSuccessTitle": {
     "message": "Gespeichert"
@@ -120,10 +120,10 @@
     "message": "Speichern Sie andere Registerkarten, die über diese Registerkarte geöffnet wurden"
   },
   "tabstripMenuSaveRightTabs": {
-    "message": "Speichern Sie alle Registerkarten rechts, einschließlich dieser"
+    "message": "Alle Tabs rechts von diesem Tab speichern, einschließlich dieses Tabs"
   },
   "tabstripMenuSaveRightTabsMatched": {
-    "message": "Speichern Sie alle Registerkarten rechts, einschließlich dieser (muss mit einer Route übereinstimmen)"
+    "message": "Alle Tabs rechts von diesem Tab speichern, einschließlich dieses Tabs (muss einer Routing-Regel entsprechen)"
   },
   "o_sDownloads": {
     "message": "Downloads-Menü"
@@ -135,7 +135,7 @@
     "message": "Verhalten"
   },
   "o_sSaveDialog": {
-    "message": "Dialog speichern"
+    "message": "Speicherdialog"
   },
   "o_sExistingFiles": {
     "message": "Vorhandene Dateien"
@@ -207,10 +207,10 @@
     "message": "Zugriffstasten für Kontextmenüs"
   },
   "o_sMoreOptions": {
-    "message": "Fortschrittlich"
+    "message": "Erweitert"
   },
   "o_sHistory": {
-    "message": "Geschichte"
+    "message": "Verlauf"
   },
   "o_sPageSources": {
     "message": "Seitenquellen"
@@ -246,7 +246,7 @@
     "message": "Tastenkombination"
   },
   "o_lSourcePanelShortcutHelp": {
-    "message": "Verwenden Sie die Browser-Tastenkombinationssyntax, zum Beispiel Strg+Umschalt+Y oder Befehl+Umschalt+Y. Der Browser lehnt reservierte Verknüpfungen ab."
+    "message": "Verwenden Sie die Browser-Syntax für Tastenkombinationen, z. B. Ctrl+Shift+Y oder Command+Shift+Y. Reservierte Tastenkombinationen werden vom Browser abgelehnt."
   },
   "o_bReset": {
     "message": "Zurücksetzen"
@@ -270,7 +270,7 @@
     "message": "Alle Quellen"
   },
   "o_lHistoryAllStatuses": {
-    "message": "Alle Status"
+    "message": "Alle Statuswerte"
   },
   "o_lHistoryAllTypes": {
     "message": "Alle Arten"
@@ -282,7 +282,7 @@
     "message": "Gespeichert"
   },
   "o_lHistorySaving": {
-    "message": "Sparen"
+    "message": "Wird gespeichert"
   },
   "o_lHistoryFailed": {
     "message": "Fehlgeschlagen"
@@ -390,7 +390,7 @@
     "message": "keine Übereinstimmungen"
   },
   "o_lRoutingCaptureGroups": {
-    "message": "Erfassen Sie Gruppen"
+    "message": "Capture-Gruppen"
   },
   "o_lRoutingVariables": {
     "message": "Variablen"
@@ -426,7 +426,7 @@
     "message": "Speichert eine Registerkarte, eine Registerkartengruppe oder Registerkarten rechts"
   },
   "o_cOpenDialog": {
-    "message": "Fragen Sie immer, wo Sie sparen möchten"
+    "message": "Immer nach dem Speicherort fragen"
   },
   "o_cOpenDialogNoExt": {
     "message": "Der Dateiname hat keine Erweiterung"
@@ -444,7 +444,7 @@
     "message": "Überschreiben"
   },
   "o_cDupePrompt": {
-    "message": "Fragen Sie mich"
+    "message": "Nachfragen"
   },
   "o_cDupeFilename": {
     "message": "Wenn eine Datei bereits vorhanden ist:"
@@ -480,7 +480,7 @@
     "message": "macOS .webloc"
   },
   "o_cSaveShortcutsTypeWindows": {
-    "message": "Windows-URL"
+    "message": "Windows .url"
   },
   "o_cSaveShortcutsTypeFreedesktop": {
     "message": "Freedesktop .desktop"
@@ -513,7 +513,7 @@
     "message": "Halten Sie die Alt-Taste (Standard) gedrückt und klicken Sie auf Bilder oder Medien, um sie im zuletzt verwendeten Verzeichnis oder Standard-Download-Verzeichnis zu speichern. Fügt ein Skript in Seiten ein, um auf Klickereignisse zu warten. Bei dieser Verwendung sind nicht alle Variablen verfügbar. Erfordert eine Seitenaktualisierung, um wirksam zu werden."
   },
   "o_cHostPermissionMissing": {
-    "message": "Save in hat keinen Zugriff auf den Seiteninhalt. Click-to-Save funktioniert erst, wenn Sie Zugriff auf alle Websites gewähren."
+    "message": "Save In hat keinen Zugriff auf den Seiteninhalt. „Klicken zum Speichern“ funktioniert erst, wenn Sie den Zugriff auf alle Websites erlauben."
   },
   "o_cHostPermissionGrant": {
     "message": "Zugriff gewähren"
@@ -591,13 +591,13 @@
     "message": "Einstellungen importieren"
   },
   "o_cExportSettings": {
-    "message": "Exporteinstellungen"
+    "message": "Einstellungen exportieren"
   },
   "o_cDebugMode": {
     "message": "Aktivieren Sie die ausführliche Entwicklerprotokollierung"
   },
   "o_cLastSavedAt": {
-    "message": "Einstellungen aktualisiert unter:"
+    "message": "Einstellungen aktualisiert unter: "
   },
   "o_cLastSavedAtNever": {
     "message": "niemals"
@@ -624,7 +624,7 @@
     "message": "Ziel (into:)"
   },
   "o_lSaving": {
-    "message": "Sparen…"
+    "message": "Wird gespeichert…"
   },
   "o_lSaved": {
     "message": "Gespeichert"
@@ -633,13 +633,13 @@
     "message": "Änderungen konnten nicht gespeichert werden"
   },
   "o_lValidationUnavailable": {
-    "message": "Die Validierung ist vorübergehend nicht verfügbar."
+    "message": "Die Validierung ist vorübergehend nicht verfügbar. "
   },
   "o_bRetryValidation": {
     "message": "Wiederholen Sie die Validierung"
   },
   "o_lAutosaveFailed": {
-    "message": "Diese Einstellung konnte nicht gespeichert werden."
+    "message": "Diese Einstellung konnte nicht gespeichert werden. "
   },
   "o_bRetrySave": {
     "message": "Speichern Sie erneut"
@@ -681,7 +681,7 @@
     "message": "Herunterladen"
   },
   "o_sAdvancedCounter": {
-    "message": "Schalter"
+    "message": "Zähler"
   },
   "o_sAdvancedBackupReset": {
     "message": "Sichern und zurücksetzen"
@@ -693,7 +693,7 @@
     "message": "Experimental"
   },
   "o_lManualEditorSaveHelp": {
-    "message": "Änderungen in diesem Editor werden gespeichert, wenn Sie „Übernehmen“ auswählen."
+    "message": "Änderungen in diesem Editor werden gespeichert, wenn Sie „Anwenden“ auswählen."
   },
   "o_lReferenceNavigation": {
     "message": "Referenznavigation"

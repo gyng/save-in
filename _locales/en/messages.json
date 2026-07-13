@@ -642,7 +642,7 @@
   },
 
   "o_cHostPermissionMissing": {
-    "message": "Save in doesn't have access to page content. Click-to-save won't work until you grant access to all sites."
+    "message": "Save In doesn't have access to page content. Click-to-save won't work until you grant access to all sites."
   },
 
   "o_cHostPermissionGrant": {

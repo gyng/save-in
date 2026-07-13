@@ -12,13 +12,13 @@
     "message": "Erreur inconnue"
   },
   "contextMenuItemOptions": {
-    "message": "Possibilités"
+    "message": "Options"
   },
   "contextMenuToggleSourcePanel": {
     "message": "Basculer les sources des pages"
   },
   "contextMenuExclusive": {
-    "message": "Save In itinéraire…"
+    "message": "Acheminer avec Save In…"
   },
   "contextMenuRoot": {
     "message": "Save In…"
@@ -123,19 +123,19 @@
     "message": "Enregistrez tous les onglets à droite, y compris celui-ci"
   },
   "tabstripMenuSaveRightTabsMatched": {
-    "message": "Enregistrez tous les onglets à droite, y compris celui-ci (doit correspondre à un itinéraire)"
+    "message": "Enregistrer tous les onglets à droite, y compris celui-ci (doit correspondre à une règle d’acheminement)"
   },
   "o_sDownloads": {
     "message": "Menu de téléchargements"
   },
   "o_sDirectories": {
-    "message": "Annuaires"
+    "message": "Répertoires"
   },
   "o_sBehavior": {
     "message": "Comportement"
   },
   "o_sSaveDialog": {
-    "message": "Enregistrer la boîte de dialogue"
+    "message": "Boîte de dialogue Enregistrer"
   },
   "o_sExistingFiles": {
     "message": "Fichiers existants"
@@ -210,7 +210,7 @@
     "message": "Avancé"
   },
   "o_sHistory": {
-    "message": "Histoire"
+    "message": "Historique"
   },
   "o_sPageSources": {
     "message": "Sources des pages"
@@ -264,7 +264,7 @@
     "message": "Statut"
   },
   "o_lHistoryType": {
-    "message": "Taper"
+    "message": "Type"
   },
   "o_lHistoryAllSources": {
     "message": "Toutes les sources"
@@ -282,10 +282,10 @@
     "message": "Enregistré"
   },
   "o_lHistorySaving": {
-    "message": "Économie"
+    "message": "Enregistrement"
   },
   "o_lHistoryFailed": {
-    "message": "Échoué"
+    "message": "Échec"
   },
   "o_lHistoryDateSaved": {
     "message": "Date enregistrée"
@@ -333,7 +333,7 @@
     "message": "Éditeur visuel"
   },
   "o_bAddDirectory": {
-    "message": "Annuaire"
+    "message": "Répertoire"
   },
   "o_bAddSeparator": {
     "message": "Séparateur"
@@ -348,7 +348,7 @@
     "message": "Appliquer"
   },
   "o_bDiscard": {
-    "message": "Jeter"
+    "message": "Abandonner"
   },
   "o_lRuleBuilder": {
     "message": "Ajout rapide"
@@ -387,10 +387,10 @@
     "message": "Renommé en"
   },
   "o_lRoutingNoMatches": {
-    "message": "pas de correspondance"
+    "message": "aucune correspondance"
   },
   "o_lRoutingCaptureGroups": {
-    "message": "Capturer des groupes"
+    "message": "Groupes de capture"
   },
   "o_lRoutingVariables": {
     "message": "Variables"
@@ -444,7 +444,7 @@
     "message": "Écraser"
   },
   "o_cDupePrompt": {
-    "message": "Demande moi"
+    "message": "Me demander"
   },
   "o_cDupeFilename": {
     "message": "Lorsqu'un fichier existe déjà :"
@@ -480,10 +480,10 @@
     "message": "macOS .webloc"
   },
   "o_cSaveShortcutsTypeWindows": {
-    "message": "URL Windows"
+    "message": "Windows .url"
   },
   "o_cSaveShortcutsTypeFreedesktop": {
-    "message": "Bureau gratuit .desktop"
+    "message": "Freedesktop .desktop"
   },
   "o_cSaveShortcutsMediaInstead": {
     "message": "Enregistrez plutôt les médias sous forme de raccourcis"
@@ -513,7 +513,7 @@
     "message": "Maintenez Alt (par défaut) et cliquez sur les images ou les médias pour les enregistrer dans le dernier répertoire utilisé ou dans le répertoire de téléchargement par défaut. Injecte un script dans les pages pour écouter les événements de clic. Toutes les variables ne sont pas disponibles lors de son utilisation. Nécessite une actualisation de la page pour prendre effet."
   },
   "o_cHostPermissionMissing": {
-    "message": "Save in n'a pas accès au contenu de la page. Le clic pour enregistrer ne fonctionnera pas tant que vous n'aurez pas accordé l'accès à tous les sites."
+    "message": "Save In n’a pas accès au contenu de la page. Le clic pour enregistrer ne fonctionnera pas tant que vous n’aurez pas autorisé l’accès à tous les sites."
   },
   "o_cHostPermissionGrant": {
     "message": "Accorder l'accès"
@@ -588,16 +588,16 @@
     "message": "Un modèle de correspondance par ligne, par ex. *://i.pximg.net/*. Le Referer n'est défini que pour les téléchargements dont l'URL correspond à l'un de ceux-ci."
   },
   "o_cImportSettings": {
-    "message": "Paramètres d'importation"
+    "message": "Importer les paramètres"
   },
   "o_cExportSettings": {
-    "message": "Paramètres d'exportation"
+    "message": "Exporter les paramètres"
   },
   "o_cDebugMode": {
     "message": "Activer la journalisation détaillée des développeurs"
   },
   "o_cLastSavedAt": {
-    "message": "Paramètres mis à jour à :"
+    "message": "Paramètres mis à jour à : "
   },
   "o_cLastSavedAtNever": {
     "message": "jamais"
@@ -618,13 +618,13 @@
     "message": "Correspondant"
   },
   "o_lPattern": {
-    "message": "Modèle"
+    "message": "Motif"
   },
   "o_lDestinationInto": {
     "message": "Destination (into:)"
   },
   "o_lSaving": {
-    "message": "Économie…"
+    "message": "Enregistrement…"
   },
   "o_lSaved": {
     "message": "Enregistré"
@@ -633,13 +633,13 @@
     "message": "Impossible d'enregistrer les modifications"
   },
   "o_lValidationUnavailable": {
-    "message": "La validation est temporairement indisponible."
+    "message": "La validation est temporairement indisponible. "
   },
   "o_bRetryValidation": {
     "message": "Réessayer la validation"
   },
   "o_lAutosaveFailed": {
-    "message": "Impossible d'enregistrer ce paramètre."
+    "message": "Impossible d'enregistrer ce paramètre. "
   },
   "o_bRetrySave": {
     "message": "Réessayez d'enregistrer"
@@ -681,7 +681,7 @@
     "message": "Téléchargement"
   },
   "o_sAdvancedCounter": {
-    "message": "Comptoir"
+    "message": "Compteur"
   },
   "o_sAdvancedBackupReset": {
     "message": "Sauvegarde et réinitialisation"

@@ -18,7 +18,7 @@
     "message": "Alternar fuentes de página"
   },
   "contextMenuExclusive": {
-    "message": "Save In ruta…"
+    "message": "Enrutar con Save In…"
   },
   "contextMenuRoot": {
     "message": "Save In…"
@@ -120,10 +120,10 @@
     "message": "Guarde otras pestañas abiertas desde esta pestaña"
   },
   "tabstripMenuSaveRightTabs": {
-    "message": "Guarde todas las pestañas a la derecha, incluida esta"
+    "message": "Guardar todas las pestañas a la derecha, incluida esta"
   },
   "tabstripMenuSaveRightTabsMatched": {
-    "message": "Guarde todas las pestañas a la derecha, incluida esta (debe coincidir con una ruta)"
+    "message": "Guardar todas las pestañas a la derecha, incluida esta (debe coincidir con una regla de enrutamiento)"
   },
   "o_sDownloads": {
     "message": "Menú de descargas"
@@ -135,7 +135,7 @@
     "message": "Comportamiento"
   },
   "o_sSaveDialog": {
-    "message": "Guardar cuadro de diálogo"
+    "message": "Cuadro de diálogo Guardar"
   },
   "o_sExistingFiles": {
     "message": "Archivos existentes"
@@ -144,7 +144,7 @@
     "message": "Elija qué acciones Save In aparecen en los menús contextuales."
   },
   "o_lAlsoAskWhen": {
-    "message": "También pregunte dónde guardar cuando:"
+    "message": "Preguntar también dónde guardar cuando:"
   },
   "o_sDynamicDownloads": {
     "message": "Reglas de enrutamiento"
@@ -210,7 +210,7 @@
     "message": "Avanzado"
   },
   "o_sHistory": {
-    "message": "Historia"
+    "message": "Historial"
   },
   "o_sPageSources": {
     "message": "Fuentes de la página"
@@ -246,10 +246,10 @@
     "message": "Atajo de teclado"
   },
   "o_lSourcePanelShortcutHelp": {
-    "message": "Utilice la sintaxis de accesos directos del navegador, por ejemplo Ctrl+Shift+Y o Comando+Shift+Y. El navegador rechaza los accesos directos reservados."
+    "message": "Use la sintaxis de atajos del navegador, por ejemplo Ctrl+Shift+Y o Command+Shift+Y. El navegador rechaza los atajos reservados."
   },
   "o_bReset": {
-    "message": "Reiniciar"
+    "message": "Restablecer"
   },
   "o_lHistoryFilter": {
     "message": "Filtrar por archivo, carpeta, tipo u fuente"
@@ -282,10 +282,10 @@
     "message": "Guardado"
   },
   "o_lHistorySaving": {
-    "message": "Ahorro"
+    "message": "Guardando"
   },
   "o_lHistoryFailed": {
-    "message": "Fallido"
+    "message": "Error"
   },
   "o_lHistoryDateSaved": {
     "message": "Fecha guardada"
@@ -426,7 +426,7 @@
     "message": "Guarda una pestaña, un grupo de pestañas o pestañas a la derecha"
   },
   "o_cOpenDialog": {
-    "message": "Pregunta siempre dónde guardar"
+    "message": "Preguntar siempre dónde guardar"
   },
   "o_cOpenDialogNoExt": {
     "message": "El nombre del archivo no tiene extensión."
@@ -441,10 +441,10 @@
     "message": "Crea un nombre único"
   },
   "o_cDupeOverwrite": {
-    "message": "Exagerar"
+    "message": "Sobrescribir"
   },
   "o_cDupePrompt": {
-    "message": "Pregúnteme"
+    "message": "Preguntarme"
   },
   "o_cDupeFilename": {
     "message": "Cuando ya existe un archivo:"
@@ -474,16 +474,16 @@
     "message": "redireccionamiento HTML"
   },
   "o_cSaveShortcutsTypeMac": {
-    "message": "URL de Mac"
+    "message": "Mac .url"
   },
   "o_cSaveShortcutsTypeMacWebloc": {
     "message": "macOS .webloc"
   },
   "o_cSaveShortcutsTypeWindows": {
-    "message": "URL de Windows"
+    "message": "Windows .url"
   },
   "o_cSaveShortcutsTypeFreedesktop": {
-    "message": "Escritorio gratuito.desktop"
+    "message": "Freedesktop .desktop"
   },
   "o_cSaveShortcutsMediaInstead": {
     "message": "En su lugar, guarde los medios como accesos directos"
@@ -513,7 +513,7 @@
     "message": "Mantenga presionada la tecla Alt (predeterminado) y haga clic en imágenes o medios para guardarlos en el último directorio utilizado o en el directorio de descarga predeterminado. Inyecta un script en las páginas para escuchar eventos de clic. No todas las variables están disponibles al usar esto. Requiere que la página se actualice para que surta efecto."
   },
   "o_cHostPermissionMissing": {
-    "message": "Save in no tiene acceso al contenido de la página. Hacer clic para guardar no funcionará hasta que otorgue acceso a todos los sitios."
+    "message": "Save In no tiene acceso al contenido de la página. Hacer clic para guardar no funcionará hasta que conceda acceso a todos los sitios."
   },
   "o_cHostPermissionGrant": {
     "message": "Conceder acceso"
@@ -591,13 +591,13 @@
     "message": "Importar configuración"
   },
   "o_cExportSettings": {
-    "message": "Configuración de exportación"
+    "message": "Exportar configuración"
   },
   "o_cDebugMode": {
     "message": "Habilitar el registro detallado del desarrollador"
   },
   "o_cLastSavedAt": {
-    "message": "Configuración actualizada en:"
+    "message": "Configuración actualizada en: "
   },
   "o_cLastSavedAtNever": {
     "message": "nunca"
@@ -624,7 +624,7 @@
     "message": "Destino (into:)"
   },
   "o_lSaving": {
-    "message": "Ahorro…"
+    "message": "Guardando…"
   },
   "o_lSaved": {
     "message": "Guardado"
@@ -633,13 +633,13 @@
     "message": "No se pudieron guardar los cambios"
   },
   "o_lValidationUnavailable": {
-    "message": "La validación no está disponible temporalmente."
+    "message": "La validación no está disponible temporalmente. "
   },
   "o_bRetryValidation": {
     "message": "Reintentar la validación"
   },
   "o_lAutosaveFailed": {
-    "message": "No se pudo guardar esta configuración."
+    "message": "No se pudo guardar esta configuración. "
   },
   "o_bRetrySave": {
     "message": "Reintentar guardar"
@@ -681,7 +681,7 @@
     "message": "Descargando"
   },
   "o_sAdvancedCounter": {
-    "message": "Encimera"
+    "message": "Contador"
   },
   "o_sAdvancedBackupReset": {
     "message": "Copia de seguridad y reinicio"

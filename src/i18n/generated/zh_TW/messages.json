@@ -3,7 +3,7 @@
     "message": "Save In…"
   },
   "extensionDescription": {
-    "message": "將{圖像、視訊、音訊、連結、選擇、頁面}保存在相對於預設下載目錄的目錄中。"
+    "message": "將{圖片、影片、音訊、連結、選取範圍、頁面}儲存到預設下載目錄下的子目錄。"
   },
   "translationCredits": {
     "message": "​"
@@ -18,7 +18,7 @@
     "message": "切換頁面來源"
   },
   "contextMenuExclusive": {
-    "message": "Save In 路線..."
+    "message": "使用 Save In 路由…"
   },
   "contextMenuRoot": {
     "message": "Save In…"
@@ -36,7 +36,7 @@
     "message": "選擇文字"
   },
   "contextMenuContextPage": {
-    "message": "頁"
+    "message": "頁面"
   },
   "contextMenuShowDefaultFolder": {
     "message": "開啟預設資料夾"
@@ -96,7 +96,7 @@
     "message": "永遠無法達到規則，因為較早的規則具有相同或更廣泛的匹配"
   },
   "ruleBadClause": {
-    "message": "壞條款"
+    "message": "無效子句"
   },
   "rulePathInvalidCharacter": {
     "message": "路徑包含無效字符"
@@ -105,10 +105,10 @@
     "message": "路徑不能以 .. 或 / 開頭"
   },
   "tabstripMenuSelectedTab": {
-    "message": "儲存選定的選項卡"
+    "message": "儲存選取的分頁"
   },
   "tabstripMenuMultipleSelectedTab": {
-    "message": "儲存反白的選項卡 ($COUNT$)",
+    "message": "儲存反白的分頁 ($COUNT$)",
     "placeholders": {
       "count": {
         "content": "$1",
@@ -117,13 +117,13 @@
     }
   },
   "tabstripMenuSaveChildrenTabs": {
-    "message": "儲存從此選項卡開啟的其他選項卡"
+    "message": "儲存從此分頁開啟的其他分頁"
   },
   "tabstripMenuSaveRightTabs": {
-    "message": "將所有選項卡保存到右側，包括這個"
+    "message": "儲存右側的所有分頁，包括此分頁"
   },
   "tabstripMenuSaveRightTabsMatched": {
-    "message": "將所有選項卡儲存到右側，包括此選項卡（必須與路線相符）"
+    "message": "儲存右側的所有分頁，包括此分頁（必須符合路由規則）"
   },
   "o_sDownloads": {
     "message": "下載選單"
@@ -207,10 +207,10 @@
     "message": "上下文選單存取鍵"
   },
   "o_sMoreOptions": {
-    "message": "先進的"
+    "message": "進階"
   },
   "o_sHistory": {
-    "message": "歷史"
+    "message": "歷史記錄"
   },
   "o_sPageSources": {
     "message": "頁面來源"
@@ -261,7 +261,7 @@
     "message": "來源"
   },
   "o_lHistoryStatus": {
-    "message": "地位"
+    "message": "狀態"
   },
   "o_lHistoryType": {
     "message": "類型"
@@ -282,13 +282,13 @@
     "message": "已儲存"
   },
   "o_lHistorySaving": {
-    "message": "儲存"
+    "message": "儲存中"
   },
   "o_lHistoryFailed": {
-    "message": "失敗的"
+    "message": "失敗"
   },
   "o_lHistoryDateSaved": {
-    "message": "保存日期"
+    "message": "儲存日期"
   },
   "o_lHistoryAnyTime": {
     "message": "任何時間"
@@ -336,19 +336,19 @@
     "message": "目錄"
   },
   "o_bAddSeparator": {
-    "message": "分離器"
+    "message": "分隔符號"
   },
   "o_lClauses": {
-    "message": "條款"
+    "message": "子句"
   },
   "o_lEditorModeText": {
     "message": "文字"
   },
   "o_bApply": {
-    "message": "申請"
+    "message": "套用"
   },
   "o_bDiscard": {
-    "message": "丟棄"
+    "message": "捨棄"
   },
   "o_lRuleBuilder": {
     "message": "快速添加"
@@ -357,7 +357,7 @@
     "message": "範本庫"
   },
   "o_lClauseList": {
-    "message": "條款列表"
+    "message": "子句清單"
   },
   "o_lGithub": {
     "message": "GitHub"
@@ -372,10 +372,10 @@
     "message": "語言"
   },
   "o_lBrowserDefault": {
-    "message": "瀏覽器預設"
+    "message": "瀏覽器預設值"
   },
   "o_lLanguageChangeFailed": {
-    "message": "無法更改語言。再試一次。"
+    "message": "無法變更語言，請再試一次。"
   },
   "o_lRoutingLastDownload": {
     "message": "上次下載"
@@ -420,10 +420,10 @@
     "message": "僅儲存頁面文件；不包括圖像、樣式表和其他外部文件。"
   },
   "o_cSaveTabstrip": {
-    "message": "在選項卡選單中顯示 Save In 操作"
+    "message": "在分頁選單中顯示 Save In 動作"
   },
   "o_cSaveTabstripHelp": {
-    "message": "將選項卡、選項卡組或選項卡儲存到右側"
+    "message": "儲存分頁、分頁群組或右側的分頁"
   },
   "o_cOpenDialog": {
     "message": "總是詢問保存在哪裡"
@@ -438,13 +438,13 @@
     "message": "下載失敗"
   },
   "o_cDupeUniquify": {
-    "message": "創造一個獨特的名字"
+    "message": "建立不重複的名稱"
   },
   "o_cDupeOverwrite": {
     "message": "覆蓋"
   },
   "o_cDupePrompt": {
-    "message": "問我"
+    "message": "詢問"
   },
   "o_cDupeFilename": {
     "message": "當文件已經存在時："
@@ -465,7 +465,7 @@
     "message": "顯示下載失敗的通知"
   },
   "o_cNotifyMatch": {
-    "message": "顯示有​​關規則匹配的通知"
+    "message": "顯示有關規則匹配的通知"
   },
   "o_cSaveShortcutsAs": {
     "message": "將快捷方式另存為"
@@ -483,7 +483,7 @@
     "message": "Windows .url"
   },
   "o_cSaveShortcutsTypeFreedesktop": {
-    "message": "自由桌面.desktop"
+    "message": "Freedesktop .desktop"
   },
   "o_cSaveShortcutsMediaInstead": {
     "message": "將媒體另存為快捷方式"
@@ -495,7 +495,7 @@
     "message": "將頁面另存為快捷方式"
   },
   "o_cSaveShortcutsTabsInstead": {
-    "message": "將選項卡另存為快捷方式（透過右鍵單擊選項卡）"
+    "message": "將分頁儲存為捷徑（從分頁的右鍵選單）"
   },
   "o_cKeyboardShortcutSaveInMenu": {
     "message": "Save In 上下文選單項目"
@@ -513,7 +513,7 @@
     "message": "按住 Alt（預設）並點擊圖像或媒體，將其儲存在上次使用的目錄或預設下載目錄中。將腳本插入頁面以偵聽單擊事件。使用此方法時並非所有變數都可用。需要刷新頁面才能生效。"
   },
   "o_cHostPermissionMissing": {
-    "message": "Save in 無權存取頁面內容。在您授予對所有網站的存取權限之前，「按一下儲存」功能將無法運作。"
+    "message": "Save In 無權存取頁面內容。授予所有網站的存取權限後，點擊儲存功能才可用。"
   },
   "o_cHostPermissionGrant": {
     "message": "授予存取權限"
@@ -597,10 +597,10 @@
     "message": "啟用詳細的開發人員日誌記錄"
   },
   "o_cLastSavedAt": {
-    "message": "設定更新於："
+    "message": "設定更新於： "
   },
   "o_cLastSavedAtNever": {
-    "message": "絕不"
+    "message": "尚未"
   },
   "optionsUnsavedChanges": {
     "message": "放棄未儲存的更改，還是繼續編輯？"
@@ -618,13 +618,13 @@
     "message": "匹配器"
   },
   "o_lPattern": {
-    "message": "圖案"
+    "message": "模式"
   },
   "o_lDestinationInto": {
     "message": "目的地 (into:)"
   },
   "o_lSaving": {
-    "message": "保存…"
+    "message": "儲存中…"
   },
   "o_lSaved": {
     "message": "已儲存"
@@ -633,13 +633,13 @@
     "message": "無法儲存變更"
   },
   "o_lValidationUnavailable": {
-    "message": "暫時無法驗證。"
+    "message": "暫時無法驗證。 "
   },
   "o_bRetryValidation": {
     "message": "重試驗證"
   },
   "o_lAutosaveFailed": {
-    "message": "無法儲存此設定。"
+    "message": "無法儲存此設定。 "
   },
   "o_bRetrySave": {
     "message": "重試保存"
@@ -648,13 +648,13 @@
     "message": "無驗證錯誤"
   },
   "notificationLinkPreferred": {
-    "message": "而是下載了一個鏈接"
+    "message": "已改為下載連結"
   },
   "o_cPreferLinksFilterEnabled": {
     "message": "僅在符合的頁面上"
   },
   "o_cPreferLinksFilter": {
-    "message": "匹配頁面 URL"
+    "message": "符合的頁面 URL"
   },
   "o_cPreferLinksFilterHelp": {
     "message": "每行輸入一個正規表示式。模式與頁面 URL 進行比對。"
@@ -666,7 +666,7 @@
     "message": "下載連結而不是來源時顯示通知"
   },
   "o_cCloseTabOnSave": {
-    "message": "儲存後關閉每個選項卡"
+    "message": "儲存後關閉每個分頁"
   },
   "o_lClickToSaveButton": {
     "message": "點選儲存滑鼠按鈕"
@@ -678,10 +678,10 @@
     "message": "檔案名稱"
   },
   "o_sAdvancedDownloading": {
-    "message": "正在下載"
+    "message": "下載"
   },
   "o_sAdvancedCounter": {
-    "message": "櫃檯"
+    "message": "計數器"
   },
   "o_sAdvancedBackupReset": {
     "message": "備份與重置"
@@ -690,10 +690,10 @@
     "message": "診斷"
   },
   "o_lExperimental": {
-    "message": "實驗性的"
+    "message": "實驗性功能"
   },
   "o_lManualEditorSaveHelp": {
-    "message": "當您選擇“應用”時，將儲存此編輯器中的變更。"
+    "message": "選擇「套用」後，此編輯器中的變更將會儲存。"
   },
   "o_lReferenceNavigation": {
     "message": "參考導航"

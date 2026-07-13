@@ -18,7 +18,7 @@
     "message": "ページソースの切り替え"
   },
   "contextMenuExclusive": {
-    "message": "Save In ルート…"
+    "message": "Save In で振り分け…"
   },
   "contextMenuRoot": {
     "message": "Save In…"
@@ -96,7 +96,7 @@
     "message": "以前のルールに同じまたはより広範囲の一致があるため、ルールに到達できません"
   },
   "ruleBadClause": {
-    "message": "悪い条項"
+    "message": "不正な句"
   },
   "rulePathInvalidCharacter": {
     "message": "パスに無効な文字が含まれています"
@@ -120,10 +120,10 @@
     "message": "このタブから開いた他のタブを保存する"
   },
   "tabstripMenuSaveRightTabs": {
-    "message": "これを含むすべてのタブを右側に保存します"
+    "message": "このタブを含め、右側にあるすべてのタブを保存"
   },
   "tabstripMenuSaveRightTabsMatched": {
-    "message": "これを含むすべてのタブを右側に保存します (ルートと一致する必要があります)"
+    "message": "このタブを含め、右側にあるすべてのタブを保存（振り分けルールとの一致が必要）"
   },
   "o_sDownloads": {
     "message": "ダウンロードメニュー"
@@ -132,7 +132,7 @@
     "message": "ディレクトリ"
   },
   "o_sBehavior": {
-    "message": "行動"
+    "message": "動作"
   },
   "o_sSaveDialog": {
     "message": "保存ダイアログ"
@@ -207,10 +207,10 @@
     "message": "コンテキストメニューのアクセスキー"
   },
   "o_sMoreOptions": {
-    "message": "高度な"
+    "message": "詳細設定"
   },
   "o_sHistory": {
-    "message": "歴史"
+    "message": "履歴"
   },
   "o_sPageSources": {
     "message": "ページソース"
@@ -258,7 +258,7 @@
     "message": "履歴フィルター"
   },
   "o_lHistorySource": {
-    "message": "ソース"
+    "message": "取得元"
   },
   "o_lHistoryStatus": {
     "message": "状態"
@@ -285,7 +285,7 @@
     "message": "保存"
   },
   "o_lHistoryFailed": {
-    "message": "失敗した"
+    "message": "失敗"
   },
   "o_lHistoryDateSaved": {
     "message": "保存日"
@@ -339,13 +339,13 @@
     "message": "セパレータ"
   },
   "o_lClauses": {
-    "message": "条項"
+    "message": "句"
   },
   "o_lEditorModeText": {
     "message": "文章"
   },
   "o_bApply": {
-    "message": "適用する"
+    "message": "適用"
   },
   "o_bDiscard": {
     "message": "破棄"
@@ -357,7 +357,7 @@
     "message": "テンプレートライブラリ"
   },
   "o_lClauseList": {
-    "message": "条項一覧"
+    "message": "句の一覧"
   },
   "o_lGithub": {
     "message": "GitHub"
@@ -480,10 +480,10 @@
     "message": "macOS .webloc"
   },
   "o_cSaveShortcutsTypeWindows": {
-    "message": "Windows の .url"
+    "message": "Windows .url"
   },
   "o_cSaveShortcutsTypeFreedesktop": {
-    "message": "フリーデスクトップ .デスクトップ"
+    "message": "Freedesktop .desktop"
   },
   "o_cSaveShortcutsMediaInstead": {
     "message": "代わりにメディアをショートカットとして保存する"
@@ -495,7 +495,7 @@
     "message": "代わりにページをショートカットとして保存します"
   },
   "o_cSaveShortcutsTabsInstead": {
-    "message": "代わりにタブをショートカットとして保存します (タブを右クリックして)"
+    "message": "タブをショートカットとして保存（タブの右クリックメニューから）"
   },
   "o_cKeyboardShortcutSaveInMenu": {
     "message": "Save In コンテキスト メニュー項目"
@@ -513,7 +513,7 @@
     "message": "Alt (デフォルト) を押しながら画像またはメディアをクリックして、最後に使用したディレクトリまたはデフォルトのダウンロード ディレクトリに保存します。クリック イベントをリッスンするスクリプトをページに挿入します。これを使用する場合、すべての変数が使用できるわけではありません。有効にするにはページを更新する必要があります。"
   },
   "o_cHostPermissionMissing": {
-    "message": "Save in はページ コンテンツにアクセスできません。すべてのサイトへのアクセスを許可するまで、クリックして保存は機能しません。"
+    "message": "Save In はページの内容にアクセスできません。すべてのサイトへのアクセスを許可するまで、クリックして保存は機能しません。"
   },
   "o_cHostPermissionGrant": {
     "message": "アクセスを許可する"
@@ -588,7 +588,7 @@
     "message": "1 行に 1 つの一致パターン。例: *://i.pximg.net/*。リファラーは、URL がこれらのいずれかに一致するダウンロードに対してのみ設定されます。"
   },
   "o_cImportSettings": {
-    "message": "インポート設定"
+    "message": "設定をインポート"
   },
   "o_cExportSettings": {
     "message": "設定のエクスポート"
@@ -597,7 +597,7 @@
     "message": "詳細な開発者ログを有効にする"
   },
   "o_cLastSavedAt": {
-    "message": "設定は次の場所で更新されました:"
+    "message": "設定は次の場所で更新されました: "
   },
   "o_cLastSavedAtNever": {
     "message": "一度もない"
@@ -633,13 +633,13 @@
     "message": "変更を保存できませんでした"
   },
   "o_lValidationUnavailable": {
-    "message": "検証は一時的に利用できません。"
+    "message": "検証は一時的に利用できません。 "
   },
   "o_bRetryValidation": {
     "message": "検証を再試行する"
   },
   "o_lAutosaveFailed": {
-    "message": "この設定を保存できませんでした。"
+    "message": "この設定を保存できませんでした。 "
   },
   "o_bRetrySave": {
     "message": "保存を再試行"
@@ -681,7 +681,7 @@
     "message": "ダウンロード中"
   },
   "o_sAdvancedCounter": {
-    "message": "カウンタ"
+    "message": "カウンター"
   },
   "o_sAdvancedBackupReset": {
     "message": "バックアップとリセット"

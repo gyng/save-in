@@ -18,7 +18,7 @@
     "message": "Alternar fontes de página"
   },
   "contextMenuExclusive": {
-    "message": "Save In rota…"
+    "message": "Rotear com o Save In…"
   },
   "contextMenuRoot": {
     "message": "Save In…"
@@ -75,7 +75,7 @@
     "message": "A cláusula de captura não tem como alvo um correspondente"
   },
   "ruleMissingCapture": {
-    "message": "A regra precisa de uma cláusula de captura para usar variáveis ​​de captura"
+    "message": "A regra precisa de uma cláusula de captura para usar variáveis de captura"
   },
   "ruleMultipleCapture": {
     "message": "A regra só pode ter uma cláusula de captura"
@@ -120,10 +120,10 @@
     "message": "Salvar outras guias abertas nesta guia"
   },
   "tabstripMenuSaveRightTabs": {
-    "message": "Salve todas as guias à direita, incluindo esta"
+    "message": "Salvar todas as guias à direita, incluindo esta"
   },
   "tabstripMenuSaveRightTabsMatched": {
-    "message": "Salve todas as guias à direita, incluindo esta (deve corresponder a uma rota)"
+    "message": "Salvar todas as guias à direita, incluindo esta (deve corresponder a uma regra de roteamento)"
   },
   "o_sDownloads": {
     "message": "Menu de downloads"
@@ -144,7 +144,7 @@
     "message": "Escolha quais ações Save In aparecem nos menus de contexto."
   },
   "o_lAlsoAskWhen": {
-    "message": "Pergunte também onde economizar quando:"
+    "message": "Perguntar também onde salvar quando:"
   },
   "o_sDynamicDownloads": {
     "message": "Regras de roteamento"
@@ -165,7 +165,7 @@
     "message": "Use regras de roteamento para todos os downloads do navegador"
   },
   "o_cRouteBrowserDownloadsHelp": {
-    "message": "Usa downloads.onDeterminingFilename quando o navegador o implementa. As regras correspondentes podem renomear ou colocar downloads comuns do navegador em subdiretórios. Os downloads incomparáveis ​​permanecem inalterados."
+    "message": "Usa downloads.onDeterminingFilename quando o navegador o implementa. As regras correspondentes podem renomear ou colocar downloads comuns do navegador em subdiretórios. Os downloads incomparáveis permanecem inalterados."
   },
   "o_cRouteBrowserDownloadsFirefox": {
     "message": "Redirecione experimentalmente downloads correspondentes no Firefox"
@@ -189,7 +189,7 @@
     "message": "Insira um padrão de correspondência WebExtension por linha. As exclusões substituem os URLs correspondentes acima e se aplicam ao rastreamento e roteamento do histórico."
   },
   "o_lBrowserDownloadVariables": {
-    "message": "Os downloads do navegador fornecem apenas o URL, o nome do arquivo proposto, a hora atual, o contador, o UUID e as variáveis ​​MIME. O título da página, o URL da página, o texto do link, a seleção, os metadados do menu e os modificadores de teclas não estão disponíveis."
+    "message": "Os downloads do navegador fornecem apenas o URL, o nome do arquivo proposto, a hora atual, o contador, o UUID e as variáveis MIME. O título da página, o URL da página, o texto do link, a seleção, os metadados do menu e os modificadores de teclas não estão disponíveis."
   },
   "o_sRenameAndRouteDownloads": {
     "message": "Renomear e encaminhar downloads"
@@ -210,7 +210,7 @@
     "message": "Avançado"
   },
   "o_sHistory": {
-    "message": "História"
+    "message": "Histórico"
   },
   "o_sPageSources": {
     "message": "Fontes de página"
@@ -249,7 +249,7 @@
     "message": "Use a sintaxe de atalho do navegador, por exemplo Ctrl+Shift+Y ou Command+Shift+Y. O navegador rejeita atalhos reservados."
   },
   "o_bReset": {
-    "message": "Reiniciar"
+    "message": "Redefinir"
   },
   "o_lHistoryFilter": {
     "message": "Filtrar por arquivo, pasta, tipo ou origem"
@@ -285,7 +285,7 @@
     "message": "Salvando"
   },
   "o_lHistoryFailed": {
-    "message": "Fracassado"
+    "message": "Falhou"
   },
   "o_lHistoryDateSaved": {
     "message": "Data salva"
@@ -327,7 +327,7 @@
     "message": "Visualização do menu"
   },
   "o_lLiveVariables": {
-    "message": "Lista de variáveis ​​ativas"
+    "message": "Lista de variáveis ativas"
   },
   "o_sVisualEditor": {
     "message": "Editor visual"
@@ -369,7 +369,7 @@
     "message": "Ajuda e recursos"
   },
   "o_lLanguage": {
-    "message": "Linguagem"
+    "message": "Idioma"
   },
   "o_lBrowserDefault": {
     "message": "Padrão do navegador"
@@ -426,7 +426,7 @@
     "message": "Salva uma guia, grupo de guias ou guias à direita"
   },
   "o_cOpenDialog": {
-    "message": "Sempre pergunte onde economizar"
+    "message": "Sempre perguntar onde salvar"
   },
   "o_cOpenDialogNoExt": {
     "message": "O nome do arquivo não tem extensão"
@@ -480,10 +480,10 @@
     "message": "macOS .webloc"
   },
   "o_cSaveShortcutsTypeWindows": {
-    "message": "URL do Windows"
+    "message": "Windows .url"
   },
   "o_cSaveShortcutsTypeFreedesktop": {
-    "message": "Freedesktop.desktop"
+    "message": "Freedesktop .desktop"
   },
   "o_cSaveShortcutsMediaInstead": {
     "message": "Salve mídia como atalhos"
@@ -495,7 +495,7 @@
     "message": "Salve páginas como atalhos"
   },
   "o_cSaveShortcutsTabsInstead": {
-    "message": "Em vez disso, salve as guias como atalhos (na guia do botão direito)"
+    "message": "Salvar guias como atalhos (pelo menu de contexto da guia)"
   },
   "o_cKeyboardShortcutSaveInMenu": {
     "message": "Save In item do menu de contexto"
@@ -510,10 +510,10 @@
     "message": "Habilite clique para salvar"
   },
   "o_cKeyboardShortcutClickToHelp": {
-    "message": "Mantenha pressionada a tecla Alt (padrão) e clique em imagens ou mídia para salvá-las no último diretório usado ou no diretório de download padrão. Injeta um script nas páginas para escutar eventos de clique. Nem todas as variáveis ​​estão disponíveis ao usar isto. Requer atualização da página para entrar em vigor."
+    "message": "Mantenha pressionada a tecla Alt (padrão) e clique em imagens ou mídia para salvá-las no último diretório usado ou no diretório de download padrão. Injeta um script nas páginas para escutar eventos de clique. Nem todas as variáveis estão disponíveis ao usar isto. Requer atualização da página para entrar em vigor."
   },
   "o_cHostPermissionMissing": {
-    "message": "Save in não tem acesso ao conteúdo da página. Clique para salvar não funcionará até que você conceda acesso a todos os sites."
+    "message": "O Save In não tem acesso ao conteúdo da página. O recurso de clicar para salvar não funcionará até você conceder acesso a todos os sites."
   },
   "o_cHostPermissionGrant": {
     "message": "Conceder acesso"
@@ -573,7 +573,7 @@
     "message": "Use cookies de login do site para solicitações de extensão"
   },
   "o_cIncludeFetchCredentialsHelp": {
-    "message": "Ativado por padrão para salvamentos não privados. Inclui cookies aplicáveis ​​e autenticação gerenciada pelo navegador em solicitações de busca e HEAD em segundo plano, inclusive em destinos de redirecionamento; desligue isso para fazer essas solicitações anonimamente. As solicitações de extensão de janela privada são sempre anônimas porque o plano de fundo compartilhado não pode selecionar um armazenamento de cookies privado. Os downloads diretos do navegador gerenciam seus próprios cookies."
+    "message": "Ativado por padrão para salvamentos não privados. Inclui cookies aplicáveis e autenticação gerenciada pelo navegador em solicitações de busca e HEAD em segundo plano, inclusive em destinos de redirecionamento; desligue isso para fazer essas solicitações anonimamente. As solicitações de extensão de janela privada são sempre anônimas porque o plano de fundo compartilhado não pode selecionar um armazenamento de cookies privado. Os downloads diretos do navegador gerenciam seus próprios cookies."
   },
   "o_cSetRefererHeader": {
     "message": "Defina o cabeçalho \"Referer\" para o URL da página quando estiver faltando"
@@ -588,7 +588,7 @@
     "message": "Um padrão de correspondência por linha, por ex. *://i.pximg.net/*. O Referer só é definido para downloads cujo URL corresponda a um destes."
   },
   "o_cImportSettings": {
-    "message": "Configurações de importação"
+    "message": "Importar configurações"
   },
   "o_cExportSettings": {
     "message": "Exportar configurações"
@@ -597,7 +597,7 @@
     "message": "Habilitar registro detalhado do desenvolvedor"
   },
   "o_cLastSavedAt": {
-    "message": "Configurações atualizadas em:"
+    "message": "Configurações atualizadas em: "
   },
   "o_cLastSavedAtNever": {
     "message": "nunca"
@@ -633,13 +633,13 @@
     "message": "Não foi possível salvar as alterações"
   },
   "o_lValidationUnavailable": {
-    "message": "A validação está temporariamente indisponível."
+    "message": "A validação está temporariamente indisponível. "
   },
   "o_bRetryValidation": {
     "message": "Tentar novamente a validação"
   },
   "o_lAutosaveFailed": {
-    "message": "Não foi possível salvar esta configuração."
+    "message": "Não foi possível salvar esta configuração. "
   },
   "o_bRetrySave": {
     "message": "Tentar salvar novamente"

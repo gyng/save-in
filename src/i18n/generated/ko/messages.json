@@ -18,7 +18,7 @@
     "message": "페이지 소스 전환"
   },
   "contextMenuExclusive": {
-    "message": "Save In 경로…"
+    "message": "Save In으로 경로 지정…"
   },
   "contextMenuRoot": {
     "message": "Save In…"
@@ -27,7 +27,7 @@
     "message": "마지막으로 사용됨"
   },
   "contextMenuContextMedia": {
-    "message": "메디아"
+    "message": "미디어"
   },
   "contextMenuContextMediaOrLink": {
     "message": "미디어 또는 링크"
@@ -96,7 +96,7 @@
     "message": "이전 규칙에 동일하거나 더 광범위한 일치가 있으므로 규칙에 도달할 수 없습니다."
   },
   "ruleBadClause": {
-    "message": "잘못된 조항"
+    "message": "잘못된 절"
   },
   "rulePathInvalidCharacter": {
     "message": "경로에 잘못된 문자가 포함되어 있습니다."
@@ -120,22 +120,22 @@
     "message": "이 탭에서 열린 다른 탭 저장"
   },
   "tabstripMenuSaveRightTabs": {
-    "message": "이것을 포함한 모든 탭을 오른쪽에 저장"
+    "message": "이 탭을 포함해 오른쪽의 모든 탭 저장"
   },
   "tabstripMenuSaveRightTabsMatched": {
-    "message": "이것을 포함한 모든 탭을 오른쪽에 저장합니다(경로와 일치해야 함)."
+    "message": "이 탭을 포함해 오른쪽의 모든 탭 저장(라우팅 규칙과 일치해야 함)"
   },
   "o_sDownloads": {
     "message": "다운로드 메뉴"
   },
   "o_sDirectories": {
-    "message": "디렉토리"
+    "message": "디렉터리"
   },
   "o_sBehavior": {
-    "message": "행동"
+    "message": "동작"
   },
   "o_sSaveDialog": {
-    "message": "저장 대화상자"
+    "message": "저장 대화 상자"
   },
   "o_sExistingFiles": {
     "message": "기존 파일"
@@ -207,10 +207,10 @@
     "message": "상황에 맞는 메뉴 액세스 키"
   },
   "o_sMoreOptions": {
-    "message": "고급의"
+    "message": "고급"
   },
   "o_sHistory": {
-    "message": "역사"
+    "message": "기록"
   },
   "o_sPageSources": {
     "message": "페이지 소스"
@@ -219,7 +219,7 @@
     "message": "현재 페이지에 있는 이미지, 비디오, 오디오, 문서 및 다운로드 가능한 링크를 찾아보세요. 저장된 항목은 일반적인 라우팅 및 이름 변경 규칙을 사용합니다."
   },
   "o_lPageSourcesNetworkLimit": {
-    "message": "일부 비디오 플레이어는 임시 URL을 사용하거나 스크립트를 통해 미디어를 로드하므로 Save In이 모든 비디오를 감지하지 못할 수도 있습니다. 때때로 스트리밍 비디오 재생 목록(HLS/DASH)을 찾을 수 있지만 이러한 파일에는 별도의 비디오 조각만 나열됩니다. 하나를 저장해도 전체 비디오가 저장되지는 ​​않습니다."
+    "message": "일부 비디오 플레이어는 임시 URL을 사용하거나 스크립트를 통해 미디어를 로드하므로 Save In이 모든 비디오를 감지하지 못할 수도 있습니다. 때때로 스트리밍 비디오 재생 목록(HLS/DASH)을 찾을 수 있지만 이러한 파일에는 별도의 비디오 조각만 나열됩니다. 하나를 저장해도 전체 비디오가 저장되지는 않습니다."
   },
   "o_cSourcePanelEnabled": {
     "message": "페이지 소스 활성화"
@@ -249,7 +249,7 @@
     "message": "브라우저 단축키 구문(예: Ctrl+Shift+Y 또는 Command+Shift+Y)을 사용합니다. 브라우저는 예약된 단축키를 거부합니다."
   },
   "o_bReset": {
-    "message": "다시 놓기"
+    "message": "재설정"
   },
   "o_lHistoryFilter": {
     "message": "파일, 폴더, 유형 또는 소스별로 필터링"
@@ -258,7 +258,7 @@
     "message": "기록 필터"
   },
   "o_lHistorySource": {
-    "message": "원천"
+    "message": "출처"
   },
   "o_lHistoryStatus": {
     "message": "상태"
@@ -282,13 +282,13 @@
     "message": "저장됨"
   },
   "o_lHistorySaving": {
-    "message": "절약"
+    "message": "저장 중"
   },
   "o_lHistoryFailed": {
-    "message": "실패한"
+    "message": "실패"
   },
   "o_lHistoryDateSaved": {
-    "message": "저장된 날짜"
+    "message": "저장 날짜"
   },
   "o_lHistoryAnyTime": {
     "message": "언제든지"
@@ -333,22 +333,22 @@
     "message": "비주얼 편집기"
   },
   "o_bAddDirectory": {
-    "message": "예배 규칙서"
+    "message": "디렉터리"
   },
   "o_bAddSeparator": {
-    "message": "분리 기호"
+    "message": "구분선"
   },
   "o_lClauses": {
-    "message": "조항"
+    "message": "절"
   },
   "o_lEditorModeText": {
     "message": "텍스트"
   },
   "o_bApply": {
-    "message": "적용하다"
+    "message": "적용"
   },
   "o_bDiscard": {
-    "message": "버리다"
+    "message": "버리기"
   },
   "o_lRuleBuilder": {
     "message": "빠른 추가"
@@ -357,7 +357,7 @@
     "message": "템플릿 라이브러리"
   },
   "o_lClauseList": {
-    "message": "조항 목록"
+    "message": "절 목록"
   },
   "o_lGithub": {
     "message": "GitHub"
@@ -387,7 +387,7 @@
     "message": "다음으로 이름이 변경되었습니다."
   },
   "o_lRoutingNoMatches": {
-    "message": "일치하지 않음"
+    "message": "일치 항목 없음"
   },
   "o_lRoutingCaptureGroups": {
     "message": "캡처 그룹"
@@ -474,13 +474,13 @@
     "message": "HTML 리디렉션"
   },
   "o_cSaveShortcutsTypeMac": {
-    "message": "맥 .url"
+    "message": "Mac .url"
   },
   "o_cSaveShortcutsTypeMacWebloc": {
     "message": "macOS .webloc"
   },
   "o_cSaveShortcutsTypeWindows": {
-    "message": "윈도우 .url"
+    "message": "Windows .url"
   },
   "o_cSaveShortcutsTypeFreedesktop": {
     "message": "Freedesktop .desktop"
@@ -495,7 +495,7 @@
     "message": "대신 페이지를 바로가기로 저장하세요."
   },
   "o_cSaveShortcutsTabsInstead": {
-    "message": "대신 탭을 바로가기로 저장(마우스 오른쪽 버튼 클릭 탭에서)"
+    "message": "탭을 바로가기로 저장(탭의 오른쪽 클릭 메뉴에서)"
   },
   "o_cKeyboardShortcutSaveInMenu": {
     "message": "Save In 컨텍스트 메뉴 항목"
@@ -513,7 +513,7 @@
     "message": "Alt(기본값)를 누른 상태에서 이미지나 미디어를 클릭하면 마지막으로 사용한 디렉터리나 기본 다운로드 디렉터리에 저장됩니다. 클릭 이벤트를 수신하기 위해 페이지에 스크립트를 삽입합니다. 이것을 사용할 때 모든 변수를 사용할 수 있는 것은 아닙니다. 적용하려면 페이지를 새로 고쳐야 합니다."
   },
   "o_cHostPermissionMissing": {
-    "message": "Save in은(는) 페이지 콘텐츠에 액세스할 수 없습니다. 클릭하여 저장은 모든 사이트에 대한 액세스 권한을 부여할 때까지 작동하지 않습니다."
+    "message": "Save In은 페이지 콘텐츠에 액세스할 수 없습니다. 모든 사이트에 대한 액세스 권한을 부여할 때까지 클릭하여 저장이 작동하지 않습니다."
   },
   "o_cHostPermissionGrant": {
     "message": "액세스 권한 부여"
@@ -579,25 +579,25 @@
     "message": "누락된 경우 \"Referer\" 헤더를 페이지 URL로 설정하세요."
   },
   "o_cSetRefererHeaderHelp": {
-    "message": "파이어폭스 전용. 일부 사이트(예: pixiv.net)는 HTTP Referer 헤더가 없는 다운로드를 거부합니다. 일치하는 다운로드를 위해 Firefox는 페이지 URL을 직접 추천자로 보냅니다. 사이트에서 필요로 하지 않는 한 해제해 두세요."
+    "message": "Firefox 전용입니다. 일부 사이트(예: pixiv.net)는 HTTP Referer 헤더가 없는 다운로드를 거부합니다. 일치하는 다운로드의 경우 Firefox는 페이지 URL을 Referer로 직접 전송합니다. 사이트에서 요구하지 않는 한 이 기능을 끄세요."
   },
   "o_cSetRefererHeaderFilter": {
-    "message": "이 사이트에 대한 추천인 설정"
+    "message": "이 사이트에 Referer 설정"
   },
   "o_cSetRefererHeaderFilterHelp": {
-    "message": "한 줄에 하나의 일치 패턴(예: *://i.pximg.net/*. 추천자는 URL이 다음 중 하나와 일치하는 다운로드에 대해서만 설정됩니다."
+    "message": "한 줄에 하나의 일치 패턴을 입력하세요(예: *://i.pximg.net/*). Referer는 URL이 이러한 패턴 중 하나와 일치하는 다운로드에만 설정됩니다."
   },
   "o_cImportSettings": {
-    "message": "가져오기 설정"
+    "message": "설정 가져오기"
   },
   "o_cExportSettings": {
-    "message": "내보내기 설정"
+    "message": "설정 내보내기"
   },
   "o_cDebugMode": {
     "message": "자세한 개발자 로깅 활성화"
   },
   "o_cLastSavedAt": {
-    "message": "설정 업데이트 시간:"
+    "message": "설정 업데이트 시간: "
   },
   "o_cLastSavedAtNever": {
     "message": "절대"
@@ -618,13 +618,13 @@
     "message": "일치자"
   },
   "o_lPattern": {
-    "message": "무늬"
+    "message": "패턴"
   },
   "o_lDestinationInto": {
     "message": "목적지(into:)"
   },
   "o_lSaving": {
-    "message": "절약…"
+    "message": "저장 중…"
   },
   "o_lSaved": {
     "message": "저장됨"
@@ -633,13 +633,13 @@
     "message": "변경사항을 저장할 수 없습니다."
   },
   "o_lValidationUnavailable": {
-    "message": "일시적으로 유효성 검사를 사용할 수 없습니다."
+    "message": "일시적으로 유효성 검사를 사용할 수 없습니다. "
   },
   "o_bRetryValidation": {
     "message": "검증 재시도"
   },
   "o_lAutosaveFailed": {
-    "message": "이 설정을 저장할 수 없습니다."
+    "message": "이 설정을 저장할 수 없습니다. "
   },
   "o_bRetrySave": {
     "message": "저장 다시 시도"
@@ -681,7 +681,7 @@
     "message": "다운로드 중"
   },
   "o_sAdvancedCounter": {
-    "message": "계수기"
+    "message": "카운터"
   },
   "o_sAdvancedBackupReset": {
     "message": "백업 및 재설정"
@@ -693,7 +693,7 @@
     "message": "실험적"
   },
   "o_lManualEditorSaveHelp": {
-    "message": "적용을 선택하면 이 편집기의 변경 사항이 저장됩니다."
+    "message": "“적용”을 선택하면 이 편집기의 변경 사항이 저장됩니다."
   },
   "o_lReferenceNavigation": {
     "message": "참조 탐색"

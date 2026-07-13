@@ -18,7 +18,7 @@
     "message": "Växla sidkällor"
   },
   "contextMenuExclusive": {
-    "message": "Save In rutt..."
+    "message": "Dirigera med Save In…"
   },
   "contextMenuRoot": {
     "message": "Save In…"
@@ -120,10 +120,10 @@
     "message": "Spara andra flikar som öppnats från den här fliken"
   },
   "tabstripMenuSaveRightTabs": {
-    "message": "Spara alla flikar till höger inklusive detta"
+    "message": "Spara alla flikar till höger, inklusive den här"
   },
   "tabstripMenuSaveRightTabsMatched": {
-    "message": "Spara alla flikar till höger inklusive denna (måste matcha en rutt)"
+    "message": "Spara alla flikar till höger, inklusive den här (måste matcha en dirigeringsregel)"
   },
   "o_sDownloads": {
     "message": "Nedladdningsmeny"
@@ -135,7 +135,7 @@
     "message": "Beteende"
   },
   "o_sSaveDialog": {
-    "message": "Spara dialogrutan"
+    "message": "Dialogrutan Spara"
   },
   "o_sExistingFiles": {
     "message": "Befintliga filer"
@@ -144,7 +144,7 @@
     "message": "Välj vilka Save In-åtgärder som ska visas i snabbmenyer."
   },
   "o_lAlsoAskWhen": {
-    "message": "Fråga också var du kan spara när:"
+    "message": "Fråga också var filen ska sparas när:"
   },
   "o_sDynamicDownloads": {
     "message": "Rutningsregler"
@@ -207,10 +207,10 @@
     "message": "Åtkomsttangenter för snabbmeny"
   },
   "o_sMoreOptions": {
-    "message": "Avancerad"
+    "message": "Avancerat"
   },
   "o_sHistory": {
-    "message": "Historia"
+    "message": "Historik"
   },
   "o_sPageSources": {
     "message": "Sidkällor"
@@ -246,10 +246,10 @@
     "message": "Kortkommando"
   },
   "o_lSourcePanelShortcutHelp": {
-    "message": "Använd webbläsarens genvägssyntax, till exempel Ctrl+Skift+Y eller Kommando+Skift+Y. Webbläsaren avvisar reserverade genvägar."
+    "message": "Använd webbläsarens syntax för kortkommandon, till exempel Ctrl+Shift+Y eller Command+Shift+Y. Webbläsaren avvisar reserverade kortkommandon."
   },
   "o_bReset": {
-    "message": "Återställa"
+    "message": "Återställ"
   },
   "o_lHistoryFilter": {
     "message": "Filtrera efter fil, mapp, typ eller källa"
@@ -282,10 +282,10 @@
     "message": "Sparad"
   },
   "o_lHistorySaving": {
-    "message": "Sparande"
+    "message": "Sparar"
   },
   "o_lHistoryFailed": {
-    "message": "Misslyckades"
+    "message": "Misslyckad"
   },
   "o_lHistoryDateSaved": {
     "message": "Datum sparat"
@@ -321,13 +321,13 @@
     "message": "Sökalternativ"
   },
   "o_lVariableList": {
-    "message": "Variabel lista"
+    "message": "Variabellista"
   },
   "o_lMenuPreview": {
     "message": "Menyförhandsgranskning"
   },
   "o_lLiveVariables": {
-    "message": "Live variabel lista"
+    "message": "Aktuell variabellista"
   },
   "o_sVisualEditor": {
     "message": "Visuell redaktör"
@@ -345,7 +345,7 @@
     "message": "Text"
   },
   "o_bApply": {
-    "message": "Tillämpas"
+    "message": "Tillämpa"
   },
   "o_bDiscard": {
     "message": "Kassera"
@@ -390,7 +390,7 @@
     "message": "inga träffar"
   },
   "o_lRoutingCaptureGroups": {
-    "message": "Fånga grupper"
+    "message": "Fångstgrupper"
   },
   "o_lRoutingVariables": {
     "message": "Variabler"
@@ -495,7 +495,7 @@
     "message": "Spara sidor som genvägar istället"
   },
   "o_cSaveShortcutsTabsInstead": {
-    "message": "Spara flikar som genvägar istället (från högerklicksfliken)"
+    "message": "Spara flikar som genvägar (från flikens snabbmeny)"
   },
   "o_cKeyboardShortcutSaveInMenu": {
     "message": "Save In snabbmenyalternativ"
@@ -513,7 +513,7 @@
     "message": "Håll ned Alt (standard) och klicka på bilder eller media för att spara dem i den senast använda katalogen eller standardnedladdningskatalogen. Infogar ett skript på sidor för att lyssna efter klickhändelser. Alla variabler är inte tillgängliga när du använder detta. Kräver att sidan uppdateras för att träda i kraft."
   },
   "o_cHostPermissionMissing": {
-    "message": "Save in har inte åtkomst till sidinnehåll. Klicka för att spara fungerar inte förrän du ger åtkomst till alla webbplatser."
+    "message": "Save In har inte åtkomst till sidinnehållet. Klicka för att spara fungerar inte förrän du ger åtkomst till alla webbplatser."
   },
   "o_cHostPermissionGrant": {
     "message": "Bevilja åtkomst"
@@ -570,7 +570,7 @@
     "message": "Hämtar själva filen och ger webbläsaren resultatet, istället för att peka webbläsarens nedladdare på URL:en. Aktivera den endast där normala nedladdningar misslyckas — vissa servrar blockerar webbläsarens begäran eller returnerar en tom fil. Det är långsammare, och på Chrome hålls filen i minnet medan den sparas, så undvik den för mycket stora nedladdningar."
   },
   "o_cIncludeFetchCredentials": {
-    "message": "Använd cookies för inloggning på webbplatsen för begäranden om tillägg"
+    "message": "Använd webbplatsens inloggningscookies för tilläggsbegäranden"
   },
   "o_cIncludeFetchCredentialsHelp": {
     "message": "Aktiverad som standard för icke-privata lagringar. Inkluderar tillämpliga cookies och webbläsarhanterad autentisering i bakgrundsförfrågningar för hämtning och HEAD, inklusive vid omdirigeringsdestinationer; stäng av detta för att göra dessa förfrågningar anonymt. Förfrågningar om förlängning av privata fönster är alltid anonyma eftersom den delade bakgrunden inte kan välja en privat cookie-butik. Direkta webbläsarnedladdningar hanterar sina egna cookies."
@@ -591,13 +591,13 @@
     "message": "Importera inställningar"
   },
   "o_cExportSettings": {
-    "message": "Exportinställningar"
+    "message": "Exportera inställningar"
   },
   "o_cDebugMode": {
     "message": "Aktivera utförlig utvecklarloggning"
   },
   "o_cLastSavedAt": {
-    "message": "Inställningar uppdaterade på:"
+    "message": "Inställningar uppdaterade på: "
   },
   "o_cLastSavedAtNever": {
     "message": "aldrig"
@@ -624,7 +624,7 @@
     "message": "Destination (into:)"
   },
   "o_lSaving": {
-    "message": "Sparande…"
+    "message": "Sparar…"
   },
   "o_lSaved": {
     "message": "Sparad"
@@ -633,13 +633,13 @@
     "message": "Det gick inte att spara ändringarna"
   },
   "o_lValidationUnavailable": {
-    "message": "Validering är inte tillgänglig för tillfället."
+    "message": "Validering är inte tillgänglig för tillfället. "
   },
   "o_bRetryValidation": {
     "message": "Försök validering igen"
   },
   "o_lAutosaveFailed": {
-    "message": "Det gick inte att spara den här inställningen."
+    "message": "Det gick inte att spara den här inställningen. "
   },
   "o_bRetrySave": {
     "message": "Försök att spara igen"
@@ -681,7 +681,7 @@
     "message": "Laddar ner"
   },
   "o_sAdvancedCounter": {
-    "message": "Disk"
+    "message": "Räknare"
   },
   "o_sAdvancedBackupReset": {
     "message": "Säkerhetskopiera och återställa"
@@ -693,7 +693,7 @@
     "message": "Experimentell"
   },
   "o_lManualEditorSaveHelp": {
-    "message": "Ändringar i denna editor sparas när du väljer Använd."
+    "message": "Ändringar i den här redigeraren sparas när du väljer Tillämpa."
   },
   "o_lReferenceNavigation": {
     "message": "Referensnavigering"
