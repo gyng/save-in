@@ -10,9 +10,13 @@ import { RequestHeaders } from "./headers.ts";
 import { Notifier } from "./notification.ts";
 import { matchRules } from "../routing/router.ts";
 import { Path, sanitizeFilename } from "../routing/path.ts";
-import { applyVariables, mimeToExtension, resolveMime } from "../routing/variable.ts";
+import { applyVariables, mimeToExtension, resolveHead, resolveMime } from "../routing/variable.ts";
 import { options } from "../config/options-data.ts";
 import { getExtensionFetchCredentials } from "../config/fetch-credentials.ts";
+import {
+  DEFAULT_FETCH_RESPONSE_TIMEOUT_MS,
+  fetchFollowingRedirects,
+} from "../shared/redirect-fetch.ts";
 import { downloadPorts } from "./ports.ts";
 import { WEB_EXTENSION_CAPABILITIES } from "../platform/chrome-detector.ts";
 import { getFilenameFromContentDispositionHeader } from "../vendor/content-disposition.ts";
@@ -280,13 +284,10 @@ export const Download = {
     // browser download starts.
     if (!WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion) {
       try {
-        const response = await fetch(url, {
-          method: "HEAD",
-          credentials: getExtensionFetchCredentials(),
-        });
-        if (response.headers.has("Content-Disposition")) {
+        const metadata = await resolveHead(state.info);
+        if (metadata.contentDisposition) {
           const dispositionName = Download.getFilenameFromContentDisposition(
-            response.headers.get("Content-Disposition"),
+            metadata.contentDisposition,
           );
           state.info.filename = dispositionName || state.info.filename;
         }
@@ -396,7 +397,11 @@ export const Download = {
     }
 
     try {
-      const response = await fetch(url, { credentials: getExtensionFetchCredentials() });
+      const response = await fetchFollowingRedirects(
+        url,
+        { credentials: getExtensionFetchCredentials() },
+        DEFAULT_FETCH_RESPONSE_TIMEOUT_MS,
+      );
       if (response.ok === false) throw new Error(`HTTP ${response.status}`);
       const objectUrl = await makeUrlFromBlob(await response.blob());
       return {

@@ -543,10 +543,14 @@ describe("renameAndDownload: Chrome vs Firefox entry", () => {
     const state = makeState();
     await Download.renameAndDownload(state);
 
-    expect(global.fetch).toHaveBeenCalledWith(state.info.url, {
-      method: "HEAD",
-      credentials: "omit",
-    });
+    expect(global.fetch).toHaveBeenCalledWith(
+      state.info.url,
+      expect.objectContaining({
+        method: "HEAD",
+        credentials: "omit",
+        redirect: "follow",
+      }),
+    );
 
     expect(state.info.filename).toBe("server-name.pdf");
     expect(global.browser.downloads.download).toHaveBeenCalledWith(
@@ -961,7 +965,10 @@ describe("renameAndDownload: fetchViaFetch", () => {
     const state = makeState();
     await Download.renameAndDownload(state);
 
-    expect(global.fetch).toHaveBeenCalledWith(state.info.url, { credentials: "omit" });
+    expect(global.fetch).toHaveBeenCalledWith(
+      state.info.url,
+      expect.objectContaining({ credentials: "omit", redirect: "follow" }),
+    );
     expect(Log.add).not.toHaveBeenCalledWith("fetch download failed", expect.anything());
     expect(global.browser.downloads.download).toHaveBeenCalledWith(
       expect.objectContaining({ url: expect.stringMatching(/^blob:/) }),
@@ -1467,9 +1474,10 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
     const retried = await Download.retryViaFetch(101);
 
     expect(retried).toBe(true);
-    expect(global.fetch).toHaveBeenCalledWith("https://example.com/dir/file.png", {
-      credentials: "include",
-    });
+    expect(global.fetch).toHaveBeenCalledWith(
+      "https://example.com/dir/file.png",
+      expect.objectContaining({ credentials: "include", redirect: "follow" }),
+    );
     expect(global.browser.downloads.download).toHaveBeenCalledWith({
       url: expect.stringMatching(/^blob:/),
       filename: "downloads/file.png",
@@ -1495,9 +1503,10 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
 
     await expect(Download.retryViaFetch(101)).resolves.toBe(true);
 
-    expect(global.fetch).toHaveBeenCalledWith("https://example.com/dir/file.png", {
-      credentials: "omit",
-    });
+    expect(global.fetch).toHaveBeenCalledWith(
+      "https://example.com/dir/file.png",
+      expect.objectContaining({ credentials: "omit", redirect: "follow" }),
+    );
   });
 
   test("cleans pending retry state when the browser rejects the retry", async () => {

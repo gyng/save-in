@@ -509,7 +509,7 @@ describe(":mime: / :contenttype: / :mimeext: (async HEAD)", () => {
     expect(out).toBe("image_jpeg"); // the "/" is sanitized like any segment
     expect(global.fetch).toHaveBeenCalledWith(
       "https://x/a",
-      expect.objectContaining({ method: "HEAD", credentials: "omit" }),
+      expect.objectContaining({ method: "HEAD", credentials: "omit", redirect: "follow" }),
     );
   });
 
@@ -521,7 +521,7 @@ describe(":mime: / :contenttype: / :mimeext: (async HEAD)", () => {
 
     expect(global.fetch).toHaveBeenCalledWith(
       "https://x/authenticated",
-      expect.objectContaining({ method: "HEAD", credentials: "include" }),
+      expect.objectContaining({ method: "HEAD", credentials: "include", redirect: "follow" }),
     );
   });
 
@@ -628,7 +628,7 @@ describe(":sha256: (async content hash)", () => {
     expect(out).toBe("h/ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad");
     expect(global.fetch).toHaveBeenCalledWith(
       "https://x/a",
-      expect.objectContaining({ credentials: "omit" }),
+      expect.objectContaining({ credentials: "omit", redirect: "follow" }),
     );
   });
 

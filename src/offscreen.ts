@@ -12,6 +12,10 @@ import {
   isOffscreenFetchRequest,
   type OffscreenFetchResponse,
 } from "./shared/content-fetch-types.ts";
+import {
+  DEFAULT_FETCH_RESPONSE_TIMEOUT_MS,
+  fetchFollowingRedirects,
+} from "./shared/redirect-fetch.ts";
 
 const OFFSCREEN_BLOB_TTL_MS = 5 * 60 * 1000;
 
@@ -30,7 +34,11 @@ chrome.runtime.onMessage.addListener(
 
     // Missing credentials preserves compatibility with an older background
     // that survived an update long enough to message this document.
-    fetch(message.url, { credentials: message.credentials ?? "include" })
+    fetchFollowingRedirects(
+      message.url,
+      { credentials: message.credentials ?? "include" },
+      DEFAULT_FETCH_RESPONSE_TIMEOUT_MS,
+    )
       .then((res) => {
         if (!res.ok) {
           throw new Error(`HTTP ${res.status}`);

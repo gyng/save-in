@@ -4,6 +4,10 @@ import { normalizeSessionCounter, updateSession } from "../shared/session-state.
 import { extensionSessionStorage } from "../platform/storage-areas.ts";
 import { options } from "../config/options-data.ts";
 import { getExtensionFetchCredentials } from "../config/fetch-credentials.ts";
+import {
+  DEFAULT_FETCH_RESPONSE_TIMEOUT_MS,
+  fetchFollowingRedirects,
+} from "../shared/redirect-fetch.ts";
 import { makeUrlFromBlob } from "./content-fetch.ts";
 import { getDownload, mergeDownload } from "./download-state.ts";
 import { isPrivateDownloadRecord } from "./download-state.ts";
@@ -73,7 +77,11 @@ export const retryViaFetch = async (
   let expected: unknown;
   let newId: number | undefined;
   try {
-    const response = await fetch(url, { credentials: getExtensionFetchCredentials() });
+    const response = await fetchFollowingRedirects(
+      url,
+      { credentials: getExtensionFetchCredentials() },
+      DEFAULT_FETCH_RESPONSE_TIMEOUT_MS,
+    );
     if (response.ok === false) throw new Error(`HTTP ${response.status}`);
     blobUrl = await makeUrlFromBlob(await response.blob());
     runtime.pendingRetryFilenames.set(blobUrl, filename);

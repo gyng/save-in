@@ -5,8 +5,10 @@ import { stringSegment, type PathSegment } from "./path.ts";
 import type { RoutingDownloadInfo } from "./rule-types.ts";
 import { routingPorts } from "./ports.ts";
 import { getExtensionFetchCredentials } from "../config/fetch-credentials.ts";
+import { fetchFollowingRedirects } from "../shared/redirect-fetch.ts";
+import type { HeadMetadata } from "../shared/lazy-download-metadata.ts";
 
-type HeadResult = { contentType: string; finalUrl: string };
+type HeadResult = HeadMetadata;
 type VariablePath = { buf?: PathSegment[] | null };
 type Transformer = (
   opts: RoutingDownloadInfo,
@@ -14,6 +16,39 @@ type Transformer = (
   index?: number,
   tokens?: PathSegment[],
 ) => PathSegment | Promise<PathSegment>;
+
+const metadataFromResponse = async (res: Response): Promise<HeadResult> => {
+  try {
+    const contentDisposition = res.headers.get("Content-Disposition") || "";
+    return {
+      contentType: ((res.headers.get("Content-Type") || "").split(";")[0] || "")
+        .trim()
+        .toLowerCase(),
+      finalUrl: res.url || "",
+      ...(contentDisposition ? { contentDisposition } : {}),
+    };
+  } finally {
+    if (res.body) await res.body.cancel().catch(() => {});
+  }
+};
+
+const fetchHeadMetadata = async (url: string): Promise<HeadResult> => {
+  const credentials = getExtensionFetchCredentials();
+  try {
+    const headResponse = await fetchFollowingRedirects(url, { method: "HEAD", credentials }, 5000);
+    if (headResponse.ok !== false) return metadataFromResponse(headResponse);
+    if (headResponse.body) await headResponse.body.cancel().catch(() => {});
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "TimeoutError") throw error;
+  }
+
+  // Some download servers reject HEAD even though GET works. Fetch resolves as
+  // soon as the GET headers arrive; metadataFromResponse cancels the body so
+  // resolving :mime:/:finalurl: does not download the file a second time.
+  return metadataFromResponse(
+    await fetchFollowingRedirects(url, { method: "GET", credentials }, 5000),
+  );
+};
 
 // Thin wrapper over withUrl that keeps this call site's historical behavior of
 // returning the original string on a parse failure.
@@ -170,27 +205,12 @@ export const resolveHead = (opts: RoutingDownloadInfo): Promise<HeadResult> => {
     return opts.headPromise;
   }
   opts.headPromise = (async () => {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 5000);
     try {
-      const res = await fetch(opts.url ?? "", {
-        method: "HEAD",
-        credentials: getExtensionFetchCredentials(),
-        signal: controller.signal,
-      });
-      const result = {
-        contentType: ((res.headers.get("Content-Type") || "").split(";")[0] || "")
-          .trim()
-          .toLowerCase(),
-        // res.url is the URL after redirects (fetch follows them by default)
-        finalUrl: res.url || "",
-      };
+      const result = await fetchHeadMetadata(opts.url ?? "");
       opts.resolvedHead = result;
       return result;
     } catch {
       return { contentType: "", finalUrl: "" };
-    } finally {
-      clearTimeout(timer);
     }
   })();
   return opts.headPromise;

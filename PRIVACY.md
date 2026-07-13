@@ -27,11 +27,11 @@ Temporary state needed to perform a private-window save is kept in memory only.
 Save In makes requests only as needed for its user-facing features, including
 retrieving a resource selected by the user, reading its content type or
 suggested filename, and performing a download. These requests go to the
-resource servers selected by the user and may use the user's existing browser
-session for that server. Direct browser downloads use the browser's normal
-cookie handling. Extension-side Fetch and HEAD requests include applicable
-website cookies and browser-managed authentication by default, matching normal
-authenticated downloads; the user can turn this off in Advanced downloading.
+resource servers selected by the user and any destinations to which those
+servers redirect. Direct browser downloads use the browser's normal cookie
+handling. Extension-side Fetch and HEAD requests include applicable website
+cookies and browser-managed authentication by default, including credentials
+applicable to redirect destinations; the user can turn this off in Advanced downloading.
 Save In does not transmit this information to the developer or to an analytics,
 advertising, or data-broker service.
 

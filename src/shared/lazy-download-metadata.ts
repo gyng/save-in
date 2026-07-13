@@ -3,6 +3,7 @@ import type { ContentFetchResult } from "./content-fetch-types.ts";
 export type HeadMetadata = {
   contentType: string;
   finalUrl: string;
+  contentDisposition?: string | undefined;
 };
 
 export type LazyDownloadMetadata<Content extends ContentFetchResult = ContentFetchResult> = {
