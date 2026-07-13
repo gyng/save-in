@@ -3,7 +3,9 @@
 // variables that actually exist.
 
 import * as constants from "../src/shared/constants.ts";
-import { parseRulesCollecting } from "../src/routing/router.ts";
+import { matchRules, parseRulesCollecting } from "../src/routing/router.ts";
+import { Path } from "../src/routing/path.ts";
+import { applyVariables } from "../src/routing/variable.ts";
 import { RuleBuilder } from "../src/options/rule-builder.ts";
 import { RULE_TEMPLATES } from "../src/options/rule-templates.ts";
 
@@ -49,6 +51,27 @@ describe("RULE_TEMPLATES", () => {
       // into: replaces the whole path; a template that ends in a directory
       // would save the file AS that directory name
       expect(intoLine).toMatch(/:(filename|\$\d+):$/);
+    });
+
+    test(`"${tpl.name}" produces its advertised example`, async () => {
+      const { rules, errors } = parseRulesCollecting(tpl.rule);
+      const proofInfo = {
+        url: "https://cdn.example.com/report.pdf",
+        sourceUrl: "https://example.test/report.pdf",
+        pageUrl: "https://example.com/an-interesting-page",
+        filename: "report.pdf",
+        currentTab: { title: "An Interesting Page" },
+        now: new Date(2026, 6, 12, 12),
+        counter: 42,
+        ...tpl.proof.info,
+      };
+      expect(errors).toEqual([]);
+
+      const destination = matchRules(rules, proofInfo);
+      expect(destination).toBe(tpl.proof.destination);
+      expect((await applyVariables(new Path(destination), proofInfo)).finalize()).toBe(
+        tpl.example.replace(/^Example: /, ""),
+      );
     });
   });
 });
@@ -146,6 +169,9 @@ describe("template list rendering", () => {
 
     const rows = document.querySelectorAll(".rule-template");
     expect(rows).toHaveLength(RULE_TEMPLATES.length);
+    expect(
+      [...document.querySelectorAll(".rule-template-rule")].map((node) => node.textContent),
+    ).toEqual(RULE_TEMPLATES.map(({ rule }) => rule));
 
     const firstAdd = rows[0]?.querySelector<HTMLButtonElement>("button");
     if (!firstAdd) {

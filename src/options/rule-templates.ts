@@ -1,9 +1,12 @@
+import type { RoutingDownloadInfo } from "../routing/rule-types.ts";
+
 export type RuleTemplate = {
   category: "Media" | "File types" | "Date and sequence" | "Sites and URLs" | "Save context";
   name: string;
   description: string;
   example: string;
   rule: string;
+  proof: { info: RoutingDownloadInfo; destination: string };
 };
 
 type GetMessage = (key: string) => string;
@@ -17,6 +20,10 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     description: "Sorts every saved image by the site it came from",
     example: "Example: images/example.com/photo.jpg",
     rule: "mediatype: image\ninto: images/:pagedomain:/:filename:",
+    proof: {
+      info: { mediaType: "image", filename: "photo.jpg" },
+      destination: "images/:pagedomain:/:filename:",
+    },
   },
   {
     category: "Media",
@@ -24,6 +31,10 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     description: "Sorts every saved video by the site it came from",
     example: "Example: videos/example.com/clip.mp4",
     rule: "mediatype: video\ninto: videos/:pagedomain:/:filename:",
+    proof: {
+      info: { mediaType: "video", filename: "clip.mp4" },
+      destination: "videos/:pagedomain:/:filename:",
+    },
   },
   {
     category: "Media",
@@ -31,6 +42,10 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     description: "Groups saved audio by the page where it was found",
     example: "Example: audio/example.com/podcast.mp3",
     rule: "mediatype: audio\ninto: audio/:pagedomain:/:filename:",
+    proof: {
+      info: { mediaType: "audio", filename: "podcast.mp3" },
+      destination: "audio/:pagedomain:/:filename:",
+    },
   },
   {
     category: "Media",
@@ -38,6 +53,10 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     description: "Keeps filenames beginning with screenshot in dated folders",
     example: "Example: screenshots/2026/07/Screenshot 42.png",
     rule: "filename/i: ^screen([ _-]?shot|capture)\ninto: screenshots/:year:/:month:/:filename:",
+    proof: {
+      info: { filename: "Screenshot 42.png" },
+      destination: "screenshots/:year:/:month:/:filename:",
+    },
   },
   {
     category: "File types",
@@ -45,6 +64,10 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     description: "Collects every PDF in one place",
     example: "Example: documents/report.pdf",
     rule: "fileext: pdf\ninto: documents/:filename:",
+    proof: {
+      info: { sourceUrl: "https://example.test/report.pdf" },
+      destination: "documents/:filename:",
+    },
   },
   {
     category: "File types",
@@ -52,6 +75,10 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     description: "Collects zip, rar, 7z, tar, and compressed archives",
     example: "Example: archives/project.zip",
     rule: "fileext/i: (zip|rar|7z|tar|gz|tgz|bz2|xz)\ninto: archives/:filename:",
+    proof: {
+      info: { sourceUrl: "https://example.test/project.zip", filename: "project.zip" },
+      destination: "archives/:filename:",
+    },
   },
   {
     category: "File types",
@@ -59,6 +86,10 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     description: "Collects common office and text documents",
     example: "Example: documents/notes.docx",
     rule: "fileext/i: (pdf|docx?|xlsx?|pptx?|odt|ods|rtf|txt|csv)\ninto: documents/:filename:",
+    proof: {
+      info: { sourceUrl: "https://example.test/notes.docx", filename: "notes.docx" },
+      destination: "documents/:filename:",
+    },
   },
   {
     category: "File types",
@@ -66,6 +97,10 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     description: "Collects common e-book and digital comic formats",
     example: "Example: books/novel.epub",
     rule: "fileext/i: (epub|mobi|azw3?|pdf|cbz|cbr)\ninto: books/:filename:",
+    proof: {
+      info: { sourceUrl: "https://example.test/novel.epub", filename: "novel.epub" },
+      destination: "books/:filename:",
+    },
   },
   {
     category: "File types",
@@ -73,6 +108,10 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     description: "Keeps desktop and mobile installation packages together",
     example: "Example: installers/setup.msi",
     rule: "fileext/i: (exe|msi|dmg|pkg|deb|rpm|appimage|apk)\ninto: installers/:filename:",
+    proof: {
+      info: { sourceUrl: "https://example.test/setup.msi", filename: "setup.msi" },
+      destination: "installers/:filename:",
+    },
   },
   {
     category: "File types",
@@ -80,6 +119,10 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     description: "Collects desktop and web font files",
     example: "Example: fonts/inter.woff2",
     rule: "fileext/i: (ttf|otf|woff2?|eot)\ninto: fonts/:filename:",
+    proof: {
+      info: { sourceUrl: "https://example.test/inter.woff2", filename: "inter.woff2" },
+      destination: "fonts/:filename:",
+    },
   },
   {
     category: "File types",
@@ -87,6 +130,10 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     description: "Captures the extension and uses it as a folder name",
     example: "Example: files/png/screenshot.png",
     rule: "fileext: (.+)\ncapture: fileext\ninto: files/:$1:/:filename:",
+    proof: {
+      info: { sourceUrl: "https://example.test/screenshot.png", filename: "screenshot.png" },
+      destination: "files/png/:filename:",
+    },
   },
   {
     category: "Date and sequence",
@@ -94,6 +141,10 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     description: "Prefixes the original filename with the save date",
     example: "Example: 2026-07-12-report.pdf",
     rule: "sourceurl: .*\ninto: :date:-:filename:",
+    proof: {
+      info: { sourceUrl: "https://example.test/report.pdf" },
+      destination: ":date:-:filename:",
+    },
   },
   {
     category: "Date and sequence",
@@ -101,6 +152,10 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     description: "Creates one folder for each calendar day",
     example: "Example: inbox/2026/07/12/report.pdf",
     rule: "sourceurl: .*\ninto: inbox/:year:/:month:/:day:/:filename:",
+    proof: {
+      info: { sourceUrl: "https://example.test/report.pdf" },
+      destination: "inbox/:year:/:month:/:day:/:filename:",
+    },
   },
   {
     category: "Date and sequence",
@@ -108,6 +163,10 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     description: "Creates year and month folders while keeping the original filename",
     example: "Example: archive/2026/07/report.pdf",
     rule: "sourceurl: .*\ninto: archive/:year:/:month:/:filename:",
+    proof: {
+      info: { sourceUrl: "https://example.test/report.pdf" },
+      destination: "archive/:year:/:month:/:filename:",
+    },
   },
   {
     category: "Date and sequence",
@@ -115,6 +174,10 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     description: "Creates one inbox folder for each ISO week",
     example: "Example: inbox/2026-w28/report.pdf",
     rule: "sourceurl: .*\ninto: inbox/:year:-w:isoweek:/:filename:",
+    proof: {
+      info: { sourceUrl: "https://example.test/report.pdf" },
+      destination: "inbox/:year:-w:isoweek:/:filename:",
+    },
   },
   {
     category: "Date and sequence",
@@ -122,6 +185,10 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     description: "Prefixes files with Save In's persistent download counter",
     example: "Example: archive/42-report.pdf",
     rule: "sourceurl: .*\ninto: archive/:counter:-:filename:",
+    proof: {
+      info: { sourceUrl: "https://example.test/report.pdf" },
+      destination: "archive/:counter:-:filename:",
+    },
   },
   {
     category: "Sites and URLs",
@@ -129,6 +196,10 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     description: "Routes one chosen website into its own folder",
     example: "Example: example/an-interesting-page/report.pdf",
     rule: "pagedomain: example\\.com\ninto: example/:pagetitleslug:/:filename:",
+    proof: {
+      info: { pageUrl: "https://example.com/an-interesting-page" },
+      destination: "example/:pagetitleslug:/:filename:",
+    },
   },
   {
     category: "Sites and URLs",
@@ -136,6 +207,14 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     description: "Groups downloads by the hostname serving the file",
     example: "Example: sites/cdn.example.com/photo.jpg",
     rule: "sourceurl: .*\ninto: sites/:sourcedomain:/:filename:",
+    proof: {
+      info: {
+        sourceUrl: "https://cdn.example.com/photo.jpg",
+        url: "https://cdn.example.com/photo.jpg",
+        filename: "photo.jpg",
+      },
+      destination: "sites/:sourcedomain:/:filename:",
+    },
   },
   {
     category: "Sites and URLs",
@@ -143,6 +222,10 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     description: "Groups files by the website you were browsing rather than the file host",
     example: "Example: sites/example.com/photo.jpg",
     rule: "pageurl: .*\ninto: sites/:pagedomain:/:filename:",
+    proof: {
+      info: { pageUrl: "https://example.com/gallery", filename: "photo.jpg" },
+      destination: "sites/:pagedomain:/:filename:",
+    },
   },
   {
     category: "Sites and URLs",
@@ -150,6 +233,10 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     description: "Adds a filesystem-safe page title before the original filename",
     example: "Example: pages/an-interesting-page-report.pdf",
     rule: "sourceurl: .*\ninto: pages/:pagetitleslug:-:filename:",
+    proof: {
+      info: { sourceUrl: "https://example.test/report.pdf" },
+      destination: "pages/:pagetitleslug:-:filename:",
+    },
   },
   {
     category: "Sites and URLs",
@@ -157,6 +244,10 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     description: "Uses a regex capture group in the saved filename",
     example: "Example: imgur/abc123-photo.jpg",
     rule: "sourceurl: imgur\\.com/(\\w+)\ncapture: sourceurl\ninto: imgur/:$1:-:filename:",
+    proof: {
+      info: { sourceUrl: "https://imgur.com/abc123", filename: "photo.jpg" },
+      destination: "imgur/abc123-:filename:",
+    },
   },
   {
     category: "Save context",
@@ -164,6 +255,10 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     description: "Keeps tracked browser-owned downloads in a separate folder",
     example: "Example: browser-downloads/archive.zip",
     rule: "context: browser\ninto: browser-downloads/:filename:",
+    proof: {
+      info: { context: "browser", filename: "archive.zip" },
+      destination: "browser-downloads/:filename:",
+    },
   },
   {
     category: "Save context",
@@ -171,6 +266,7 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     description: "Separates files saved from links from embedded media",
     example: "Example: links/report.pdf",
     rule: "context: link\ninto: links/:filename:",
+    proof: { info: { context: "link", filename: "report.pdf" }, destination: "links/:filename:" },
   },
   {
     category: "Save context",
@@ -178,6 +274,10 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     description: "Keeps files created from selected page text together",
     example: "Example: selections/2026-07-12-selection.txt",
     rule: "context: selection\ninto: selections/:date:-:filename:",
+    proof: {
+      info: { context: "selection", filename: "selection.txt" },
+      destination: "selections/:date:-:filename:",
+    },
   },
   {
     category: "Save context",
@@ -185,6 +285,7 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     description: "Keeps files saved from tab actions together",
     example: "Example: tabs/page.html",
     rule: "context: tab\ninto: tabs/:filename:",
+    proof: { info: { context: "tab", filename: "page.html" }, destination: "tabs/:filename:" },
   },
 ];
 

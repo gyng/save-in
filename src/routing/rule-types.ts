@@ -6,7 +6,9 @@ export type RoutingContent = ContentFetchResult;
 
 export type RoutingDownloadInfo = LazyDownloadMetadata<RoutingContent> & {
   currentTab?: { title?: string | undefined; incognito?: boolean | undefined } | null | undefined;
+  frameUrl?: string | undefined;
   linkText?: string | undefined;
+  mediaType?: string | undefined;
   now?: Date | undefined;
   pageUrl?: string | undefined;
   selectionText?: string | undefined;
@@ -37,8 +39,6 @@ export type RoutingInfo = Omit<RoutingDownloadInfo, "currentTab"> & {
   currentTab?: unknown;
   srcUrl?: string | undefined;
   linkUrl?: string | undefined;
-  frameUrl?: string | undefined;
-  mediaType?: string | undefined;
 };
 export type RuleMatcher = (info: RoutingInfo, metadata?: Partial<RoutingInfo>) => MatcherResult;
 export type MatcherFactory = (regex: RegExp) => RuleMatcher;

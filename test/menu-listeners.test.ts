@@ -359,7 +359,20 @@ describe("addDownloadListener", () => {
     srcUrl: "https://example.com/i.png",
     linkUrl: "https://example.com/gallery.html",
     pageUrl: "https://example.com/page",
+    frameUrl: "https://example.com/frame",
   };
+
+  test("preserves context-menu fields used by media and frame matchers", async () => {
+    Menus.addPaths(["dir1"], ["image"]);
+
+    await listener(mediaClick, { id: 5, title: "Gallery" });
+
+    expect(lastState().info).toMatchObject({
+      mediaType: "image",
+      frameUrl: "https://example.com/frame",
+      sourceUrl: "https://example.com/i.png",
+    });
+  });
 
   test("handles a click when init already completed (no pending Runtime.ready)", async () => {
     delete Runtime.ready;

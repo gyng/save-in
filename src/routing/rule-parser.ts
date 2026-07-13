@@ -116,20 +116,24 @@ export const parseRule = (lines: RuleToken[], errors: RuleError[] = []): Routing
     const capture = captures[0];
     if (!capture) return false;
     const names = (capture.value as string).split(",").map((name) => name.trim());
+    const capturedMatchers = names.map((name) =>
+      valid.find((clause) => clause.type === RULE_TYPES.MATCHER && clause.name === name),
+    );
     let missing = false;
-    for (const name of names)
-      if (!valid.some((clause) => clause.name === name)) {
+    names.forEach((name, index) => {
+      if (!capturedMatchers[index]) {
         errors.push({
           message: routingPorts.getMessage("ruleCaptureMissingMatcher"),
           error: `capture: ${name}`,
         });
         missing = true;
       }
+    });
     if (missing) return false;
-    const availableIndexes = names.reduce((total, name) => {
-      const clause = valid.find((item) => item.type === RULE_TYPES.MATCHER && item.name === name);
-      return total + captureGroupCount(clause?.value as RegExp) + 1;
-    }, 0);
+    const availableIndexes = capturedMatchers.reduce(
+      (total, clause) => total + captureGroupCount(clause!.value as RegExp) + 1,
+      0,
+    );
     const indexes = [...(destination.value as string).matchAll(/:\$(\d+):/g)].map((match) =>
       Number(match[1]),
     );

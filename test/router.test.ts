@@ -115,6 +115,18 @@ describe("filename rewrite and routing", () => {
       expect(matcher(info)).toBe(null);
     });
 
+    test("pagetitle prefers the tab attached to the download", () => {
+      setCurrentTab({ title: "unrelated active tab" });
+      const matcher = router.matcherFunctions.pagetitle(new RegExp("download tab"));
+
+      expect(expectMatch(matcher({ ...info, currentTab: { title: "download tab" } }))[0]).toBe(
+        "download tab",
+      );
+      expect(matcher({ ...info, currentTab: { title: "other tab" } })).toBe(null);
+
+      setCurrentTab({ title: "some title" });
+    });
+
     test("debug matching does not emit private routing metadata", () => {
       const logDebug = vi.fn();
       configureRoutingPorts({ isDebug: () => true, logDebug });
@@ -279,6 +291,17 @@ describe("filename rewrite and routing", () => {
       expect(expectMatch(matcher(info))[0]!).toBe("source.com");
     });
 
+    test("source-derived matchers accept normalized sourceUrl", () => {
+      const normalized = { sourceUrl: "https://cdn.example.test/media/cat.jpg" };
+
+      expect(
+        expectMatch(router.matcherFunctions.sourcedomain(/cdn\.example\.test/)(normalized))[0],
+      ).toBe("cdn.example.test");
+      expect(expectMatch(router.matcherFunctions.naivefilename(/cat\.jpg/)(normalized))[0]).toBe(
+        "cat.jpg",
+      );
+    });
+
     test("context matches case-insensitively", () => {
       const matcher = router.matcherFunctions.context(new RegExp("image"));
       expect(expectMatch(matcher(info, { context: "IMAGE" }))[0]!).toBe("image");
@@ -431,6 +454,17 @@ describe("filename rewrite and routing", () => {
       expect(rules).toEqual([]);
       expect(diagnostics.filenamePatterns.length).toBe(1);
     });
+
+    test.each(["into", "capture"])(
+      "rejects non-matcher capture target %s without throwing",
+      (target) => {
+        expect(() => router.parseRules(`sourceurl: a\ncapture: ${target}\ninto: x`)).not.toThrow();
+        expect(router.parseRules(`sourceurl: a\ncapture: ${target}\ninto: x`)).toEqual([]);
+        expect(diagnostics.filenamePatterns).toContainEqual(
+          expect.objectContaining({ error: `capture: ${target}` }),
+        );
+      },
+    );
   });
 
   describe("capture matching internals", () => {
@@ -460,6 +494,37 @@ describe("filename rewrite and routing", () => {
     test("capturing context does not throw when metadata is absent", () => {
       const rules = router.parseRules("context: (media)\ncapture: context\ninto: :$1:");
       expect(() => router.getCaptureMatches(rules[0]!, { sourceUrl: "http://x/" })).not.toThrow();
+    });
+
+    test.each([
+      ["context", "context", "media"],
+      ["menuindex", "menuIndex", "2"],
+      ["comment", "comment", "save"],
+    ])("captures %s metadata", (matcherName, infoName, value) => {
+      const rules = router.parseRules(
+        `${matcherName}: (${value})\ncapture: ${matcherName}\ninto: group/:$1:`,
+      );
+
+      expect(router.matchRules(rules, { [infoName]: value })).toBe(`group/${value}`);
+    });
+
+    test("global matcher flags preserve capture groups", () => {
+      const rules = router.parseRules("sourceurl/g: (dog)\ncapture: sourceurl\ninto: animals/:$1:");
+
+      expect(router.matchRules(rules, { sourceUrl: "https://example.test/dog" })).toBe(
+        "animals/dog",
+      );
+    });
+
+    test("sticky matcher flags are deterministic across evaluations", () => {
+      const rules = router.parseRules(
+        "sourceurl/y: (https)\ncapture: sourceurl\ninto: schemes/:$1:",
+      );
+      const stickyInfo = { sourceUrl: "https://example.test/file" };
+
+      expect(router.matchRules(rules, stickyInfo)).toBe("schemes/https");
+      expect(router.matchRules(rules, stickyInfo)).toBe("schemes/https");
+      expect(router.traceRules(rules, stickyInfo).destination).toBe("schemes/https");
     });
   });
 

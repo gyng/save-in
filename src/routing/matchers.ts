@@ -25,15 +25,18 @@ const logMatch = (match: MatcherResult, regex: RegExp, info: RoutingInfo | undef
     routingPorts.logDebug("matched", match, regex, info);
 };
 
+const matchValue = (value: string, regex: RegExp): RegExpMatchArray | null =>
+  new RegExp(regex.source, regex.flags).exec(value);
+
 const makeInfoMatcherFactory =
   (propertyName: InfoStringKey, alternativePropertyName?: InfoStringKey): MatcherFactory =>
   (regex) =>
   (info) => {
     const value = info[propertyName];
-    let match = typeof value === "string" ? value.match(regex) : null;
+    let match = typeof value === "string" ? matchValue(value, regex) : null;
     if (!match && alternativePropertyName) {
       const alternativeValue = info[alternativePropertyName];
-      match = typeof alternativeValue === "string" ? alternativeValue.match(regex) : null;
+      match = typeof alternativeValue === "string" ? matchValue(alternativeValue, regex) : null;
     }
     logMatch(match, regex, info);
     return match;
@@ -43,24 +46,34 @@ const makeTabMatcherFactory =
   (propertyName: "title"): MatcherFactory =>
   (regex) =>
   (info) => {
-    const value = routingPorts.getCurrentTab()?.[propertyName];
-    const match = typeof value === "string" ? value.match(regex) : null;
+    const attachedTab = info.currentTab;
+    const tab = Object.hasOwn(info, "currentTab") ? attachedTab : routingPorts.getCurrentTab();
+    const value =
+      tab != null && typeof tab === "object" ? Reflect.get(tab, propertyName) : undefined;
+    const match = typeof value === "string" ? matchValue(value, regex) : null;
     logMatch(match, regex, info);
     return match;
   };
 
 const makeHostnameMatcherFactory =
-  (propertyName: InfoStringKey): MatcherFactory =>
+  (propertyName: InfoStringKey, alternativePropertyName?: InfoStringKey): MatcherFactory =>
   (regex) =>
   (info) => {
+    const primaryValue = info?.[propertyName];
+    const alternativeValue = alternativePropertyName ? info?.[alternativePropertyName] : undefined;
+    const value =
+      typeof primaryValue === "string"
+        ? primaryValue
+        : typeof alternativeValue === "string"
+          ? alternativeValue
+          : "";
     try {
-      const value = info[propertyName];
-      const match = new URL(typeof value === "string" ? value : "").hostname.match(regex);
+      const match = matchValue(new URL(value).hostname, regex);
       logMatch(match, regex, info);
       return match;
     } catch (error) {
       if (routingPorts.isDebug() && !isPrivateInfo(info))
-        routingPorts.logDebug("bad page domain in matcher", info.pageUrl, error);
+        routingPorts.logDebug("bad page domain in matcher", value, error);
       return null;
     }
   };
@@ -71,21 +84,21 @@ export const matcherFunctions = {
   context:
     (regex) =>
     (info, { context } = EMPTY_INFO) => {
-      const match = context == null ? null : context.toLowerCase().match(regex);
+      const match = context == null ? null : matchValue(context.toLowerCase(), regex);
       logMatch(match, regex, info);
       return match;
     },
   menuindex:
     (regex) =>
     (info, { menuIndex } = EMPTY_INFO) => {
-      const match = menuIndex == null ? null : menuIndex.match(regex);
+      const match = menuIndex == null ? null : matchValue(menuIndex, regex);
       logMatch(match, regex, info);
       return match;
     },
   comment:
     (regex) =>
     (info, { comment } = EMPTY_INFO) => {
-      const match = comment == null ? null : comment.match(regex);
+      const match = comment == null ? null : matchValue(comment, regex);
       logMatch(match, regex, info);
       return match;
     },
@@ -95,20 +108,20 @@ export const matcherFunctions = {
     const extension = url.match(EXTENSION_REGEX);
     const suffix = extension?.[1];
     if (!suffix) return false;
-    const match = suffix.match(regex);
+    const match = matchValue(suffix, regex);
     logMatch(match, regex, info);
     return match;
   },
   urlfileext: (regex) => (info) => {
     const url = info.sourceUrl || info.srcUrl || info.linkUrl || info.pageUrl || info.url;
     if (!url) return false;
-    const match = (getFilenameFromUrl(url).match(EXTENSION_REGEX)?.[1] || "").match(regex);
+    const match = matchValue(getFilenameFromUrl(url).match(EXTENSION_REGEX)?.[1] || "", regex);
     logMatch(match, regex, info);
     return match;
   },
   actualfileext: (regex) => (info) => {
     if (!info.filename) return false;
-    const match = (info.filename.match(EXTENSION_REGEX)?.[1] || "").match(regex);
+    const match = matchValue(info.filename.match(EXTENSION_REGEX)?.[1] || "", regex);
     logMatch(match, regex, info);
     return match;
   },
@@ -117,7 +130,7 @@ export const matcherFunctions = {
     (info, { filename } = EMPTY_INFO) => {
       const fn = info.filename || filename;
       if (!fn) return false;
-      const match = fn.match(regex);
+      const match = matchValue(fn, regex);
       logMatch(match, regex, info);
       return match;
     },
@@ -125,16 +138,16 @@ export const matcherFunctions = {
   linktext: makeInfoMatcherFactory("linkText"),
   mediatype: makeInfoMatcherFactory("mediaType"),
   naivefilename: (regex) => (info) => {
-    const url = info.srcUrl || info.linkUrl || info.pageUrl;
+    const url = info.sourceUrl || info.srcUrl || info.linkUrl || info.pageUrl || info.url;
     if (!url) return false;
     const filename = getFilenameFromUrl(url);
     if (!filename) return false;
-    const match = filename.match(regex);
+    const match = matchValue(filename, regex);
     logMatch(match, regex, info);
     return match;
   },
   pagedomain: makeHostnameMatcherFactory("pageUrl"),
-  sourcedomain: makeHostnameMatcherFactory("srcUrl"),
+  sourcedomain: makeHostnameMatcherFactory("sourceUrl", "srcUrl"),
   pagetitle: makeTabMatcherFactory("title"),
   pageurl: makeInfoMatcherFactory("pageUrl"),
   selectiontext: makeInfoMatcherFactory("selectionText"),

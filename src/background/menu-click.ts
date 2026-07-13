@@ -23,6 +23,7 @@ import { Log } from "./log.ts";
 import { runBackgroundTask } from "./event-task.ts";
 
 type ClickInfo = {
+  frameUrl?: string | undefined;
   mediaType?: string | undefined;
   srcUrl?: string | undefined;
   linkUrl?: string | undefined;
@@ -261,7 +262,9 @@ export const addDownloadListener = () => {
         const modifiersValue: unknown = Reflect.get(info, "modifiers");
         const opts: DownloadInfo = {
           currentTab: clickTab,
+          frameUrl: info.frameUrl,
           linkText: typeof linkTextValue === "string" ? linkTextValue : undefined,
+          mediaType: info.mediaType,
           now: new Date(),
           pageUrl: info.pageUrl,
           selectionText: info.selectionText,

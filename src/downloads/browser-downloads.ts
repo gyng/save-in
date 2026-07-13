@@ -53,6 +53,7 @@ export const createBrowserDownloadState = (item: BrowserDownloadItem): DownloadP
     path: new Path("."),
     scratch: {},
     info: {
+      currentTab: null,
       url: item.finalUrl || item.url,
       filename,
       naiveFilename: filename,

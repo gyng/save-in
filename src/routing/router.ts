@@ -28,7 +28,7 @@ export const getCaptureMatches = (
   const captured: RegExpMatchArray[] = [];
   for (const name of names) {
     const clause = rule.find((item) => item.type === RULE_TYPES.MATCHER && item.name === name);
-    const result = clause?.matcher?.(info);
+    const result = clause?.matcher?.(info, info);
     if (result) captured.push(result);
   }
   return captured.length === names.length ? captured.flat() : null;

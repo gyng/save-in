@@ -75,6 +75,7 @@ describe("browser download routing", () => {
       suggestedFilename: "cat.jpg",
       initialFilename: "cat.jpg",
       context: "browser",
+      currentTab: null,
     });
     expect(state.info.pageUrl).toBeUndefined();
   });
