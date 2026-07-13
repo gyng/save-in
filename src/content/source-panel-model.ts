@@ -100,13 +100,58 @@ export const filterPageSources = (
   );
 };
 
-export type SourceSort = "detected-desc" | "detected-asc" | "size-desc" | "name-asc";
+export type SourceSort = "detected-desc" | "detected-asc" | "relevance" | "size-desc" | "name-asc";
 const compareDetection = (a: PageSource, b: PageSource): number =>
   (a.detectedAt || 0) - (b.detectedAt || 0) || (a.detectedOrder || 0) - (b.detectedOrder || 0);
+
+const KIND_RELEVANCE: Record<PageSourceKind, number> = {
+  video: 36,
+  audio: 34,
+  stream: 32,
+  image: 28,
+  document: 16,
+  link: 0,
+};
+const HIGH_VALUE_URL_HINT =
+  /(?:^|[-_./])(?:download|full|hero|large|master|original|playlist|poster)(?:[-_./]|$)/i;
+const LOW_VALUE_URL_HINT =
+  /(?:^|[-_./])(?:analytics|avatar|badge|emoji|favicon|icon|logo|pixel|spacer|sprite|thumbnail|thumb|tracking)(?:[-_./]|$)/i;
+
+const relevanceUrl = (value: string): string => {
+  try {
+    const url = new URL(value);
+    return `${url.hostname}${url.pathname}`;
+  } catch {
+    return value;
+  }
+};
+
+const sourceRelevance = (source: PageSource): number => {
+  let score = KIND_RELEVANCE[source.kind];
+  if (source.element.matches("img, video, audio")) score += 32;
+  else if (source.kind !== "link" && source.element.matches("a")) score += 12;
+  if (source.previewable === true) score += 16;
+  else if (source.previewable === false) score -= 18;
+  if (source.element.closest("main, article, [role='main']")) score += 16;
+  if (source.element.closest("[hidden], [aria-hidden='true']")) score -= 48;
+
+  const url = relevanceUrl(source.url);
+  if (HIGH_VALUE_URL_HINT.test(url)) score += 12;
+  if (LOW_VALUE_URL_HINT.test(url)) score -= 32;
+  if (source.bytes) score += Math.min(24, Math.log2(source.bytes + 1));
+  return score;
+};
+
+const compareRelevance = (a: PageSource, b: PageSource): number =>
+  sourceRelevance(b) - sourceRelevance(a) ||
+  (b.bytes || 0) - (a.bytes || 0) ||
+  compareDetection(b, a) ||
+  a.url.localeCompare(b.url);
 
 export const sortPageSources = (sources: PageSource[], sort: SourceSort): PageSource[] =>
   [...sources].toSorted((a, b) => {
     if (sort === "detected-asc") return compareDetection(a, b);
+    if (sort === "relevance") return compareRelevance(a, b);
     if (sort === "size-desc") return (b.bytes || 0) - (a.bytes || 0);
     if (sort === "name-asc") return a.url.localeCompare(b.url);
     return compareDetection(b, a);

@@ -324,6 +324,7 @@ export const toggleSourcePanel = (
   sort.setAttribute("aria-label", copy.sortLabel);
   const sortOptions: ReadonlyArray<readonly [SourceSort, keyof typeof copy.sort]> = [
     ["detected-desc", "newest"],
+    ["relevance", "relevance"],
     ["detected-asc", "oldest"],
     ["size-desc", "largest"],
     ["name-asc", "name"],

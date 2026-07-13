@@ -18,6 +18,7 @@ export type SourcePanelCopy = {
   sortLabel: string;
   sort: {
     newest: string;
+    relevance: string;
     oldest: string;
     largest: string;
     name: string;
@@ -80,6 +81,7 @@ export const createSourcePanelCopy = (localize: SourcePanelLocalize): SourcePane
   sortLabel: localize("sourcePanelSortLabel") || "Sort sources",
   sort: {
     newest: localize("sourcePanelSortNewest") || "Newest",
+    relevance: localize("sourcePanelSortRelevance") || "Relevance",
     oldest: localize("sourcePanelSortOldest") || "Oldest",
     largest: localize("sourcePanelSortLargest") || "Largest",
     name: localize("sourcePanelSortName") || "Name",
