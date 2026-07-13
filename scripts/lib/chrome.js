@@ -49,9 +49,20 @@ const killTree = (proc) => {
     try {
       execFileSync("taskkill", ["/pid", String(proc.pid), "/T", "/F"], { stdio: "ignore" });
     } catch (e) {
-      // already gone
+      // Nested automation sandboxes can deny taskkill even for our child.
     }
-    return Promise.resolve();
+    if (proc.exitCode === null) {
+      try {
+        proc.kill();
+      } catch (e) {
+        // already gone
+      }
+    }
+    if (proc.exitCode !== null) return Promise.resolve();
+    return new Promise((resolve) => {
+      proc.once("exit", resolve);
+      setTimeout(resolve, 3000).unref();
+    });
   }
   return new Promise((resolve) => {
     proc.once("exit", resolve);
@@ -105,7 +116,7 @@ const makeProfile = (baseProfileDir, downloadDir, unique = false) => {
   return { profileDir, downloadDir: downloads };
 };
 
-const chromeArgs = (profileDir, port, headless = false) => {
+const chromeArgs = (profileDir, port, headless = false, noSandbox = false) => {
   const args = [
     `--user-data-dir=${profileDir}`,
     `--remote-debugging-port=${port}`,
@@ -117,6 +128,10 @@ const chromeArgs = (profileDir, port, headless = false) => {
     // GPU cache locks crashing a subsequent isolated Chrome before CDP opens.
     "--disable-gpu",
   ];
+  // An outer automation sandbox can deny Chrome's own Windows sandbox token,
+  // crashing the GPU helper with 0xC0000022. Keep normal local/CI runs
+  // sandboxed; CODEX_SHELL or the explicit override opts into nesting support.
+  if (noSandbox) args.push("--no-sandbox");
   if (headless) args.push("--headless=new");
   args.push("about:blank");
   return args;
@@ -161,7 +176,12 @@ const launch = async ({ port: requestedPort, profileDir, downloadDir, fresh = tr
   const port = requestedPort || 9400 + Math.floor(Math.random() * 400);
 
   const chromePath = findChrome();
-  const args = chromeArgs(resolvedProfile, port, Boolean(process.env.HEADLESS));
+  const args = chromeArgs(
+    resolvedProfile,
+    port,
+    Boolean(process.env.HEADLESS),
+    Boolean(process.env.CODEX_SHELL || process.env.CHROME_E2E_NO_SANDBOX),
+  );
   fs.mkdirSync(ARTIFACTS, { recursive: true });
   const logPath = path.join(ARTIFACTS, `chrome-${port}.log`);
   const log = fs.openSync(logPath, "w");
