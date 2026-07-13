@@ -939,7 +939,7 @@ setupSettingsTransfer({
   getSchema: getOptionsSchema,
   getStored: (keys) => webExtensionApi.storage.local.get(keys),
   apply: (config) => optionsRuntime.apply(config),
-  restore: () => void restoreOptions(),
+  restore: restoreOptions,
 });
 
 const updateOptionDependencies = setupOptionDependencies();

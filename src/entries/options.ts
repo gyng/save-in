@@ -49,7 +49,13 @@ document.addEventListener(
     setupPathEditor();
     setupRuleBuilder();
     setupOptionsReferences();
-    setupTabs({ confirmPendingChanges });
+    setupTabs({
+      confirmPendingChanges,
+      onGuardError: (error) => {
+        const message = getMessage("o_lSaveFailed") || "Could not save changes";
+        window.alert(`${message}\n${String(error)}`);
+      },
+    });
     setupOptionSearch();
     setupSourceShortcut();
     setupWebMcpStatus();

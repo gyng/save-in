@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import {
+  assertApplyAcknowledged,
   assertApplySucceeded,
   collectOptionConfig,
   getAppliedValue,
@@ -26,6 +27,19 @@ describe("options apply response", () => {
         },
       }),
     ).toThrow("paths: invalid value");
+  });
+
+  test("accepts a valid partial-apply acknowledgement", () => {
+    const response = {
+      type: "APPLY_CONFIG_RESULT",
+      body: {
+        version: 1,
+        applied: { paths: "cats" },
+        rejected: [{ name: "prompt", reason: "Expected a boolean" }],
+      },
+    };
+
+    expect(assertApplyAcknowledged(response)).toBe(response);
   });
 
   test.each([

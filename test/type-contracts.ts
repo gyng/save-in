@@ -26,6 +26,7 @@ import type {
   InternalMessage,
   MessageOf,
   ResponseFor,
+  ValidationInfo,
   WireDownloadState,
 } from "../src/shared/message-protocol.ts";
 import type { SessionWriteState } from "../src/shared/session-state.ts";
@@ -77,6 +78,13 @@ expectTypeOf<MessageOf<typeof MESSAGE_TYPES.SOURCE_PANEL_STATE>>().toEqualTypeOf
   type: typeof MESSAGE_TYPES.SOURCE_PANEL_STATE;
   body?: { open: boolean } | undefined;
 }>();
+expectTypeOf<NonNullable<MessageOf<typeof MESSAGE_TYPES.VALIDATE>["body"]>["info"]>().toEqualTypeOf<
+  ValidationInfo | undefined
+>();
+// Runtime-only download metadata must not leak into the structured-clone validation protocol.
+// @ts-expect-error content promises are owned by the download pipeline
+const invalidValidationInfo: ValidationInfo = { contentPromise: Promise.resolve(null) };
+void invalidValidationInfo;
 
 const matcherClause: MatcherClause = {
   name: "filename",

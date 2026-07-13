@@ -186,9 +186,9 @@ describe("settings transfer", () => {
 
     document.querySelector<HTMLButtonElement>("#settings-import")!.click();
 
-    await vi.waitFor(() => expect(apply).toHaveBeenCalledWith({ enabled: true }));
+    await vi.waitFor(() => expect(alert).toHaveBeenCalledWith("Settings loaded."));
+    expect(apply).toHaveBeenCalledWith({ enabled: true });
     expect(restoreSettings).toHaveBeenCalledOnce();
-    expect(alert).toHaveBeenCalledWith("Settings loaded.");
   });
 
   test("reports partial imports after restoring the accepted values", async () => {

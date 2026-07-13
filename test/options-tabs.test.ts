@@ -226,6 +226,7 @@ describe("setupTabs guards", () => {
 
 describe("unsaved-changes guard on tab switch", () => {
   let confirmPendingChanges: (() => boolean | Promise<boolean>) | undefined;
+  let onGuardError = vi.fn<(error: unknown) => void>();
 
   beforeEach(() => {
     buildForm();
@@ -235,8 +236,10 @@ describe("unsaved-changes guard on tab switch", () => {
       // ignore
     }
     confirmPendingChanges = undefined;
+    onGuardError = vi.fn<(error: unknown) => void>();
     setupTabs({
       confirmPendingChanges: () => confirmPendingChanges?.() ?? true,
+      onGuardError,
     });
   });
 
@@ -273,9 +276,7 @@ describe("unsaved-changes guard on tab switch", () => {
 
   test("waits for asynchronous persistence before switching tabs", async () => {
     let finish: (allowed: boolean) => void = () => {};
-    confirmPendingChanges = vi.fn(
-      () => new Promise<boolean>((resolve) => (finish = resolve)),
-    ) as any;
+    confirmPendingChanges = vi.fn(() => new Promise<boolean>((resolve) => (finish = resolve)));
     const tabs = document.querySelectorAll<HTMLElement>(".tablist .tab");
     const panels = document.querySelectorAll(".tab-panel");
 
@@ -289,9 +290,7 @@ describe("unsaved-changes guard on tab switch", () => {
 
   test("stays on the current tab when asynchronous persistence detects a newer edit", async () => {
     let finish: (allowed: boolean) => void = () => {};
-    confirmPendingChanges = vi.fn(
-      () => new Promise<boolean>((resolve) => (finish = resolve)),
-    ) as any;
+    confirmPendingChanges = vi.fn(() => new Promise<boolean>((resolve) => (finish = resolve)));
     const tabs = document.querySelectorAll<HTMLElement>(".tablist .tab");
     const panels = document.querySelectorAll(".tab-panel");
 
@@ -306,9 +305,7 @@ describe("unsaved-changes guard on tab switch", () => {
 
   test("waits for an asynchronous save guard before switching", async () => {
     let finish!: (allowed: boolean) => void;
-    confirmPendingChanges = vi.fn(
-      () => new Promise<boolean>((resolve) => (finish = resolve)),
-    ) as any;
+    confirmPendingChanges = vi.fn(() => new Promise<boolean>((resolve) => (finish = resolve)));
     const tabs = document.querySelectorAll<HTMLElement>(".tablist .tab");
     tabs[1]!.click();
     expect(tabs[0]!.getAttribute("aria-selected")).toBe("true");
@@ -318,9 +315,7 @@ describe("unsaved-changes guard on tab switch", () => {
 
   test("only the latest pending tab request may activate", async () => {
     const finishes: Array<(allowed: boolean) => void> = [];
-    confirmPendingChanges = vi.fn(
-      () => new Promise<boolean>((resolve) => finishes.push(resolve)),
-    ) as any;
+    confirmPendingChanges = vi.fn(() => new Promise<boolean>((resolve) => finishes.push(resolve)));
     const tabs = document.querySelectorAll<HTMLElement>(".tablist .tab");
     tabs[1]!.click();
     tabs[2]!.click();
@@ -333,15 +328,39 @@ describe("unsaved-changes guard on tab switch", () => {
 
   test("keyboard focus follows activation and returns on failure", async () => {
     let finish!: (allowed: boolean) => void;
-    confirmPendingChanges = vi.fn(
-      () => new Promise<boolean>((resolve) => (finish = resolve)),
-    ) as any;
+    confirmPendingChanges = vi.fn(() => new Promise<boolean>((resolve) => (finish = resolve)));
     const tabs = [...document.querySelectorAll<HTMLElement>('[role="tab"]')];
     tabs[0]!.focus();
     tabs[0]!.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
     expect(document.activeElement).toBe(tabs[0]!);
     finish(false);
     await vi.waitFor(() => expect(document.activeElement).toBe(tabs[0]!));
+  });
+
+  test("contains rejected guards and restores keyboard focus", async () => {
+    const failure = new Error("restore failed");
+    confirmPendingChanges = vi.fn(() => Promise.reject(failure));
+    const tabs = [...document.querySelectorAll<HTMLElement>('[role="tab"]')];
+    tabs[0]!.focus();
+
+    tabs[0]!.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+
+    await vi.waitFor(() => expect(onGuardError).toHaveBeenCalledWith(failure));
+    expect(tabs[0]!.getAttribute("aria-selected")).toBe("true");
+    expect(document.activeElement).toBe(tabs[0]!);
+  });
+
+  test("contains guards that throw synchronously", () => {
+    const failure = new Error("guard failed");
+    confirmPendingChanges = vi.fn(() => {
+      throw failure;
+    });
+    const tabs = document.querySelectorAll<HTMLElement>(".tablist .tab");
+
+    tabs[1]!.click();
+
+    expect(onGuardError).toHaveBeenCalledWith(failure);
+    expect(tabs[0]!.getAttribute("aria-selected")).toBe("true");
   });
 
   test("still switches when no guard is registered", () => {

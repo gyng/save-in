@@ -17,6 +17,7 @@ const LEGACY_POSITION_KEYS = [
 type TabSection = { heading: HTMLElement; nodes: HTMLElement[]; key: string };
 type TabsOptions = {
   confirmPendingChanges?: () => boolean | Promise<boolean>;
+  onGuardError?: (error: unknown) => void;
 };
 const PRIMARY_SECTION_ORDER = [
   "section-downloads",
@@ -80,7 +81,7 @@ export const collectSections = (form: HTMLElement): TabSection[] => {
   return sections;
 };
 
-export const setupTabs = ({ confirmPendingChanges }: TabsOptions = {}): void => {
+export const setupTabs = ({ confirmPendingChanges, onGuardError }: TabsOptions = {}): void => {
   const form = document.getElementById("options");
   if (!form) {
     return;
@@ -145,24 +146,42 @@ export const setupTabs = ({ confirmPendingChanges }: TabsOptions = {}): void => 
 
   const select = (index: number, focusOnActivate = false, afterActivate?: () => void): void => {
     const mine = ++navigationGeneration;
+    const restoreFocus = (): void => {
+      if (focusOnActivate && currentIndex >= 0) tabs[currentIndex]?.focus();
+    };
+    const finishGuardedNavigation = (allowed: boolean): void => {
+      if (mine !== navigationGeneration) return;
+      if (!allowed) {
+        restoreFocus();
+        return;
+      }
+      activate(index);
+      if (focusOnActivate) tabs[index]?.focus();
+      afterActivate?.();
+    };
+    const failGuardedNavigation = (error: unknown): void => {
+      try {
+        onGuardError?.(error);
+      } catch {
+        // Error reporting must not turn a contained guard failure into an unhandled rejection.
+      }
+      if (mine === navigationGeneration) restoreFocus();
+    };
     // Leaving a tab with unsaved editor changes prompts to save/discard
     // (main tabs don't unload the page, so beforeunload can't cover this)
     if (currentIndex !== -1 && index !== currentIndex && confirmPendingChanges) {
-      const allowed = confirmPendingChanges();
-      if (allowed && typeof (allowed as Promise<boolean>).then === "function") {
-        void (allowed as Promise<boolean>).then((result) => {
-          if (mine !== navigationGeneration) return;
-          if (result) {
-            activate(index);
-            if (focusOnActivate) tabs[index]?.focus();
-            afterActivate?.();
-          } else if (focusOnActivate && currentIndex >= 0) tabs[currentIndex]?.focus();
-        });
+      let allowed: boolean | Promise<boolean>;
+      try {
+        allowed = confirmPendingChanges();
+      } catch (error) {
+        failGuardedNavigation(error);
         return;
       }
-      if (allowed === false) {
+      if (typeof allowed !== "boolean") {
+        void allowed.then(finishGuardedNavigation, failGuardedNavigation);
         return;
       }
+      if (!allowed) return;
     }
     activate(index);
     if (focusOnActivate) tabs[index]?.focus();

@@ -37,7 +37,7 @@ const isSuccessfulApplyResponse = (response: unknown): response is SuccessfulApp
   Array.isArray(response.body.rejected) &&
   response.body.rejected.every(isApplyRejection);
 
-export const assertApplySucceeded = (response: unknown): SuccessfulApplyConfigResponse => {
+export const assertApplyAcknowledged = (response: unknown): SuccessfulApplyConfigResponse => {
   if (
     !isStringKeyedRecord(response) ||
     response.type !== MESSAGE_TYPES.APPLY_CONFIG_RESULT ||
@@ -48,14 +48,19 @@ export const assertApplySucceeded = (response: unknown): SuccessfulApplyConfigRe
   if (!isSuccessfulApplyResponse(response)) {
     throw new Error("Invalid save acknowledgement was received");
   }
-  if (response.body.rejected.length) {
+  return response;
+};
+
+export const assertApplySucceeded = (response: unknown): SuccessfulApplyConfigResponse => {
+  const acknowledged = assertApplyAcknowledged(response);
+  if (acknowledged.body.rejected.length) {
     throw new Error(
-      response.body.rejected
+      acknowledged.body.rejected
         .map((item) => `${item.name || "option"}: ${item.reason || "rejected"}`)
         .join(", "),
     );
   }
-  return response;
+  return acknowledged;
 };
 
 export const getAppliedValue = (response: unknown, name: string): unknown => {

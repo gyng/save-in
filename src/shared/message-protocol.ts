@@ -44,6 +44,12 @@ export type WireDownloadInfo = {
   currentTab?: WireCurrentTab | null | undefined;
 };
 
+export type ValidationInfo = Omit<WireDownloadInfo, "now"> & {
+  srcUrl?: string | undefined;
+  linkUrl?: string | undefined;
+  now?: Date | undefined;
+};
+
 export type WireDownloadState = {
   info: WireDownloadInfo;
   path?: string | undefined;
@@ -294,7 +300,7 @@ export type InternalMessage =
       {
         paths?: string;
         filenamePatterns?: string;
-        info?: Partial<DownloadInfo> & { srcUrl?: string };
+        info?: ValidationInfo;
       }
     >
   | OptionalBodyMessage<
@@ -405,24 +411,25 @@ const isWireCurrentTab = (value: unknown): boolean =>
     (typeof value.id === "number" && Number.isSafeInteger(value.id))) &&
   (typeof value.incognito === "undefined" || typeof value.incognito === "boolean");
 
-const isValidationInfo = (value: unknown): boolean =>
+const isValidationInfo = (value: unknown): value is ValidationInfo =>
   isStringKeyedRecord(value) &&
-  [
-    "srcUrl",
-    "url",
-    "sourceUrl",
-    "linkUrl",
-    "pageUrl",
-    "frameUrl",
-    "linkText",
-    "mediaType",
-    "selectionText",
-    "filename",
-    "initialFilename",
-    "context",
-  ].every((key) => hasOptionalString(value, key)) &&
-  ["menuIndex", "comment"].every((key) => hasOptionalNullableString(value, key)) &&
-  (typeof value.currentTab === "undefined" || isWireCurrentTab(value.currentTab));
+  [...WIRE_INFO_STRING_FIELDS, "srcUrl", "linkUrl"].every((key) => hasOptionalString(value, key)) &&
+  ["suggestedFilename", "menuIndex", "comment"].every((key) =>
+    hasOptionalNullableString(value, key),
+  ) &&
+  (typeof value.modifiers === "undefined" ||
+    (Array.isArray(value.modifiers) &&
+      value.modifiers.every((item) => typeof item === "string"))) &&
+  (typeof value.preview === "undefined" || typeof value.preview === "boolean") &&
+  (typeof value.contentFetchDisabled === "undefined" ||
+    typeof value.contentFetchDisabled === "boolean") &&
+  (typeof value.counter === "undefined" ||
+    (typeof value.counter === "number" && Number.isFinite(value.counter))) &&
+  (typeof value.now === "undefined" ||
+    (value.now instanceof Date && Number.isFinite(value.now.getTime()))) &&
+  (typeof value.currentTab === "undefined" ||
+    value.currentTab === null ||
+    isWireCurrentTab(value.currentTab));
 
 const isWireDownloadInfo = (value: unknown): value is WireDownloadInfo =>
   isStringKeyedRecord(value) &&
