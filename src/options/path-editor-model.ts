@@ -1,28 +1,33 @@
 import {
-  parsePathLine,
-  parsePathMetadata,
-  serializePathLine,
-  setPathMetadata,
-  type PathRow,
+  getDirectoryMetadata,
+  parsePathLineAst,
+  serializeDirectoryLine,
+  updateDirectoryLine,
+  updateDirectoryMetadata,
+  type DirectoryLineNode,
+  type DirectoryLineUpdate,
 } from "../config/path-lines.ts";
 
-export { parsePathLine, serializePathLine };
-export type { PathRow };
+export { serializeDirectoryLine, updateDirectoryLine };
+export type { DirectoryLineNode, DirectoryLineUpdate };
 
-export const pathLinesToRows = (text: string): PathRow[] =>
+export const parseDirectoryLine = (line: string): DirectoryLineNode => parsePathLineAst(line).ast;
+
+export const pathLinesToNodes = (text: string): DirectoryLineNode[] =>
   text
     .split("\n")
     .map((line) => line.trim())
     .filter((line) => line.length > 0)
-    .map(parsePathLine);
+    .map(parseDirectoryLine);
 
-export const pathRowsToLines = (rows: PathRow[]): string[] => rows.map(serializePathLine);
+export const pathNodesToLines = (nodes: DirectoryLineNode[]): string[] =>
+  nodes.map(serializeDirectoryLine);
 
-export const getPathAlias = (comment: string): string =>
-  parsePathMetadata(comment || "").alias ?? "";
+export const getPathAlias = (node: DirectoryLineNode): string =>
+  getDirectoryMetadata(node, "alias");
 
-export const setPathAlias = (comment: string, alias: string): string =>
-  setPathMetadata(comment || "", "alias", alias);
+export const setPathAlias = (node: DirectoryLineNode, alias: string): DirectoryLineNode =>
+  updateDirectoryMetadata(node, "alias", alias);
 
 export const getPathSourceRange = (
   text: string,

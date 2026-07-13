@@ -1,8 +1,7 @@
 import {
-  parsePathLine,
   parsePathLineAst,
-  parsePathMetadata,
-  serializePathLine,
+  serializeDirectoryLine,
+  updateDirectoryLine,
   validatePathLineSyntax,
 } from "../src/config/path-syntax.ts";
 import { parseRoutingRuleAst, validateRoutingRuleSyntax } from "../src/routing/rule-syntax.ts";
@@ -42,8 +41,30 @@ describe("directory-line grammar", () => {
       { depth: 2, body: "work", comment: "notes (alias: Work (shared))" },
     ],
   ])("parses and serializes %s", (source, row) => {
-    expect(parsePathLine(source)).toEqual(row);
-    expect(parsePathLine(serializePathLine(row))).toEqual(row);
+    const parsed = parsePathLineAst(source).ast;
+    const project = (node: typeof parsed) => ({
+      depth: node.depth,
+      body: node.path.value,
+      comment: node.comment?.value ?? "",
+    });
+    expect(project(parsed)).toEqual(row);
+    expect(project(parsePathLineAst(serializeDirectoryLine(parsed)).ast)).toEqual(row);
+  });
+
+  test("rebuilds valid spans after immutable AST edits", () => {
+    const source = "> images // notes (alias: Images)";
+    const parsed = parsePathLineAst(source).ast;
+    const updated = updateDirectoryLine(parsed, { depth: 2, path: "archive" });
+
+    expect(serializeDirectoryLine(updated)).toBe(">>archive // notes (alias: Images)");
+    expect(updated).not.toBe(parsed);
+    expect(updated.raw.slice(updated.path.span.start.offset, updated.path.span.end.offset)).toBe(
+      "archive",
+    );
+    const metadata = updated.metadata[0]!;
+    expect(updated.raw.slice(metadata.span.start.offset, metadata.span.end.offset)).toBe(
+      "(alias: Images)",
+    );
   });
 
   test.each(["", "   ", ">>>", "> // comment only"])(
@@ -56,7 +77,8 @@ describe("directory-line grammar", () => {
   );
 
   test("parses balanced metadata values without treating prose as metadata", () => {
-    expect(parsePathMetadata("photo (edited) (alias: Work (shared)) (key: w)")).toEqual({
+    const parsed = parsePathLineAst("path // photo (edited) (alias: Work (shared)) (key: w)").ast;
+    expect(Object.fromEntries(parsed.metadata.map((entry) => [entry.key, entry.value]))).toEqual({
       alias: "Work (shared)",
       key: "w",
     });

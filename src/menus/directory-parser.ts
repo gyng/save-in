@@ -1,4 +1,4 @@
-import { parsePathLineAst, parsePathMetadata } from "../config/path-lines.ts";
+import { parsePathLineAst } from "../config/path-lines.ts";
 import { Path } from "../routing/path.ts";
 import { SPECIAL_DIRS } from "../shared/constants.ts";
 import { MENU_IDS } from "./menu-ids.ts";
@@ -50,8 +50,6 @@ export type MenuTreeEntry = MenuTreeItem | MenuTreeError;
 export const getMenuTreeEntries = ({ items, errors }: MenuTree): MenuTreeEntry[] =>
   [...items, ...errors].sort((left, right) => left.sourceIndex - right.sourceIndex);
 
-export const parseMeta = (comment: string): MenuMeta => parsePathMetadata(comment);
-
 const normalizeMenuTreeItems = (items: MenuTreeItem[]): MenuTreeItem[] => {
   const siblingsByParent = new Map<string, MenuTreeItem[]>();
   items.forEach((item) => {
@@ -84,11 +82,12 @@ export const parsePath = (dir: string): ParsedPath => {
   const { depth } = ast;
   const parsedDir = ast.path.value;
   const comment = ast.comment?.value ?? "";
+  const meta = Object.fromEntries(ast.metadata.map((entry) => [entry.key, entry.value]));
   return {
     raw: dir,
     comment,
     depth,
-    meta: parseMeta(comment),
+    meta,
     parsedDir,
     validation: issues.length ? { valid: false } : new Path(parsedDir).validate(),
   };

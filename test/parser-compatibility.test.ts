@@ -1,14 +1,15 @@
 import {
-  parsePathLine,
-  parsePathMetadataEntries,
-  type PathMetadataEntry,
-  type PathRow,
+  parsePathLineAst,
+  serializeDirectoryLine,
+  updateDirectoryMetadata,
 } from "../src/config/path-syntax.ts";
 import { parseRoutingRuleAst } from "../src/routing/rule-syntax.ts";
 
 type LegacyRuleToken = [fullClause: string, name: string, value: string];
+type LegacyPathRow = { depth: number; body: string; comment: string };
+type LegacyMetadataEntry = { key: string; value: string; start: number; end: number };
 
-const legacyParsePathLine = (line: string): PathRow => {
+const legacyParsePathLine = (line: string): LegacyPathRow => {
   const commentIndex = line.indexOf("//");
   const rawBody = commentIndex === -1 ? line : line.slice(0, commentIndex);
   const comment = commentIndex === -1 ? "" : line.slice(commentIndex + 2).trim();
@@ -20,8 +21,11 @@ const legacyParsePathLine = (line: string): PathRow => {
   };
 };
 
-const legacyParseMetadataEntries = (comment: string): PathMetadataEntry[] => {
-  const entries: PathMetadataEntry[] = [];
+const legacySerializePathLine = (row: LegacyPathRow): string =>
+  `${">".repeat(row.depth)}${row.body}${row.comment ? ` // ${row.comment}` : ""}`;
+
+const legacyParseMetadataEntries = (comment: string): LegacyMetadataEntry[] => {
+  const entries: LegacyMetadataEntry[] = [];
   let cursor = 0;
   while (cursor < comment.length) {
     const start = comment.indexOf("(", cursor);
@@ -65,6 +69,20 @@ const legacyParseMetadataEntries = (comment: string): PathMetadataEntry[] => {
     cursor = closing + 1;
   }
   return entries;
+};
+
+const legacySetPathMetadata = (comment: string, key: string, value: string): string => {
+  const matching = legacyParseMetadataEntries(comment).filter((entry) => entry.key === key);
+  let cleaned = comment;
+  for (const entry of matching.toReversed()) {
+    const before = cleaned.slice(0, entry.start).trimEnd();
+    const after = cleaned.slice(entry.end).trimStart();
+    cleaned = before && after ? `${before} ${after}` : before || after;
+  }
+  cleaned = cleaned.trim();
+  if (!value) return cleaned;
+  const metadata = `(${key}: ${value})`;
+  return cleaned ? `${cleaned} ${metadata}` : metadata;
 };
 
 const legacyTokenize = (source: string): { tokens: LegacyRuleToken[]; invalid: string[] } => {
@@ -143,7 +161,19 @@ describe("legacy parser compatibility", () => {
       ...generatedStrings(0x51_41_56_45, 2_000, 40),
     ];
     cases.forEach((source) => {
-      expect(parsePathLine(source), JSON.stringify(source)).toEqual(legacyParsePathLine(source));
+      const legacy = legacyParsePathLine(source);
+      const parsed = parsePathLineAst(source).ast;
+      expect(
+        {
+          depth: parsed.depth,
+          body: parsed.path.value,
+          comment: parsed.comment?.value ?? "",
+        },
+        JSON.stringify(source),
+      ).toEqual(legacy);
+      expect(serializeDirectoryLine(parsed), JSON.stringify(source)).toBe(
+        legacySerializePathLine(legacy),
+      );
     });
   });
 
@@ -158,9 +188,43 @@ describe("legacy parser compatibility", () => {
       ...generatedStrings(0x4d_45_54_41, 2_000, 60),
     ];
     cases.forEach((source) => {
-      expect(parsePathMetadataEntries(source), JSON.stringify(source)).toEqual(
-        legacyParseMetadataEntries(source),
-      );
+      const normalized = source.trim();
+      const parsed = parsePathLineAst(`path // ${source}`).ast;
+      const contentStart = parsed.comment?.contentSpan.start.offset ?? 0;
+      const entries = parsed.metadata.map((entry) => ({
+        key: entry.key,
+        value: entry.value,
+        start: entry.span.start.offset - contentStart,
+        end: entry.span.end.offset - contentStart,
+      }));
+      expect(entries, JSON.stringify(source)).toEqual(legacyParseMetadataEntries(normalized));
+    });
+  });
+
+  test("AST metadata edits match the hand-rolled updater", () => {
+    const cases = [
+      "",
+      "cute (alias: Cats) (key: c)",
+      "(alias: One) middle (alias: Two)",
+      "(broken (alias: recovered))",
+      "notes (alias: Work (shared))",
+      ...generatedStrings(0x45_44_49_54, 1_000, 80),
+    ];
+    const updates = [
+      ["alias", ""],
+      ["alias", "Dogs"],
+      ["key", "w"],
+      ["alias", "Work (shared)"],
+    ] as const;
+    cases.forEach((source) => {
+      const normalized = source.trim();
+      updates.forEach(([key, value]) => {
+        const parsed = parsePathLineAst(`path${normalized ? ` // ${normalized}` : ""}`).ast;
+        const updated = updateDirectoryMetadata(parsed, key, value);
+        expect(updated.comment?.value ?? "", `${JSON.stringify(source)} ${key}=${value}`).toBe(
+          legacySetPathMetadata(normalized, key, value),
+        );
+      });
     });
   });
 

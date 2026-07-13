@@ -11,22 +11,25 @@ import { getMessage } from "../platform/localization.ts";
 import { setupPathInsertMenu } from "./path-editor-insert-menu.ts";
 import {
   getPathAlias,
-  parsePathLine,
-  pathLinesToRows,
-  pathRowsToLines,
-  serializePathLine,
+  parseDirectoryLine,
+  pathLinesToNodes,
+  pathNodesToLines,
+  serializeDirectoryLine,
   setPathAlias,
-  type PathRow,
+  updateDirectoryLine,
+  type DirectoryLineNode,
+  type DirectoryLineUpdate,
 } from "./path-editor-model.ts";
 
 type EditorOwner = { rebuildVisual?: () => void };
 const PathEditorHelpers = {
-  parseLine: parsePathLine,
-  serializeLine: serializePathLine,
-  linesToRows: pathLinesToRows,
-  rowsToLines: pathRowsToLines,
+  parseLine: parseDirectoryLine,
+  serializeLine: serializeDirectoryLine,
+  linesToNodes: pathLinesToNodes,
+  nodesToLines: pathNodesToLines,
   getAlias: getPathAlias,
   setAlias: setPathAlias,
+  updateLine: updateDirectoryLine,
 
   // Replaces [start, end) with text as an undoable edit: execCommand is
   // deprecated but remains the only way a programmatic edit joins the
@@ -120,16 +123,22 @@ const PathEditorHelpers = {
       return;
     }
 
-    let rows: PathRow[] = [];
+    let nodes: DirectoryLineNode[] = [];
     // Index being dragged via a row handle; null when no drag is active
     let dragFrom: number | null = null;
     let dropAfter = true;
     let dropInside = false;
     let committing = false;
-    let deletedRows: PathRow[] | null = null;
+    let deletedNodes: DirectoryLineNode[] | null = null;
+    const updateNode = (index: number, update: DirectoryLineUpdate): void => {
+      const node = nodes[index];
+      if (node) nodes[index] = PathEditorHelpers.updateLine(node, update);
+    };
     const normalizeHierarchy = () => {
-      rows.forEach((row, index) => {
-        row.depth = index === 0 ? 0 : Math.min(row.depth, rows[index - 1]!.depth + 1);
+      nodes.forEach((node, index) => {
+        updateNode(index, {
+          depth: index === 0 ? 0 : Math.min(node.depth, nodes[index - 1]!.depth + 1),
+        });
       });
     };
     const undo = document.createElement("button");
@@ -164,7 +173,7 @@ const PathEditorHelpers = {
     // Serialize rows back to the textarea (the source of truth) and let
     // the normal pipeline (autosave, previews) react
     const commit = () => {
-      textarea.value = PathEditorHelpers.rowsToLines(rows).join("\n");
+      textarea.value = PathEditorHelpers.nodesToLines(nodes).join("\n");
       committing = true;
       textarea.dispatchEvent(new InputEvent("input", { bubbles: true }));
       committing = false;
@@ -173,21 +182,21 @@ const PathEditorHelpers = {
     const render = () => {
       container.textContent = "";
 
-      rows.forEach((row, index) => {
+      nodes.forEach((node, index) => {
         const rowEl = document.createElement("div");
         rowEl.className = "path-editor-row";
-        rowEl.dataset.depth = String(row.depth);
-        rowEl.style.setProperty("--row-depth", String(row.depth));
+        rowEl.dataset.depth = String(node.depth);
+        rowEl.style.setProperty("--row-depth", String(node.depth));
 
         const indentEl = document.createElement("span");
         indentEl.className = "path-editor-indent";
-        indentEl.style.width = `${row.depth * 20}px`;
+        indentEl.style.width = `${node.depth * 20}px`;
         indentEl.setAttribute("aria-hidden", "true");
         rowEl.appendChild(indentEl);
 
         // Drag to reorder: only the handle starts a drag (a draggable row
         // would fight text selection in the inputs); any row is a target
-        const rowName = PathEditorHelpers.getAlias(row.comment) || row.body || `row ${index + 1}`;
+        const rowName = PathEditorHelpers.getAlias(node) || node.path.value || `row ${index + 1}`;
         const handle = document.createElement("button");
         handle.type = "button";
         handle.className = "path-editor-handle";
@@ -219,18 +228,23 @@ const PathEditorHelpers = {
             return;
           if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
             event.preventDefault();
-            if (event.key === "ArrowLeft") row.depth = Math.max(0, row.depth - 1);
-            else if (index > 0) row.depth = Math.min(row.depth + 1, rows[index - 1]!.depth + 1);
+            if (event.key === "ArrowLeft") {
+              updateNode(index, { depth: Math.max(0, node.depth - 1) });
+            } else if (index > 0) {
+              updateNode(index, {
+                depth: Math.min(node.depth + 1, nodes[index - 1]!.depth + 1),
+              });
+            }
             commit();
             rebuild();
             container.querySelectorAll<HTMLElement>(".path-editor-handle")[index]?.focus();
             return;
           }
           const destination = event.key === "ArrowUp" ? index - 1 : index + 1;
-          if (destination < 0 || destination >= rows.length) return;
+          if (destination < 0 || destination >= nodes.length) return;
           event.preventDefault();
-          const [moved] = rows.splice(index, 1);
-          if (moved) rows.splice(destination, 0, moved);
+          const [moved] = nodes.splice(index, 1);
+          if (moved) nodes.splice(destination, 0, moved);
           normalizeHierarchy();
           commit();
           rebuild();
@@ -245,7 +259,7 @@ const PathEditorHelpers = {
             const relativeY = bounds.height ? (e.clientY - bounds.top) / bounds.height : 1;
             dropInside =
               dragFrom !== index &&
-              row.body !== SPECIAL_DIRS.SEPARATOR &&
+              node.path.value !== SPECIAL_DIRS.SEPARATOR &&
               relativeY >= 1 / 3 &&
               relativeY <= 2 / 3;
             dropAfter = relativeY > 2 / 3;
@@ -275,14 +289,19 @@ const PathEditorHelpers = {
             dropInside = false;
             return;
           }
-          const target = rows[index];
-          const [moved] = rows.splice(dragFrom, 1);
+          const target = nodes[index];
+          const [moved] = nodes.splice(dragFrom, 1);
           const adjustedTarget = dragFrom < index ? index - 1 : index;
-          const targetIndex = target ? rows.indexOf(target) : -1;
+          const targetIndex = target ? nodes.indexOf(target) : -1;
           const destination = dropInside ? targetIndex + 1 : adjustedTarget + (dropAfter ? 1 : 0);
           if (moved) {
-            rows.splice(destination, 0, moved);
-            moved.depth = dropInside ? (target?.depth ?? 0) + 1 : (target?.depth ?? 0);
+            nodes.splice(
+              destination,
+              0,
+              PathEditorHelpers.updateLine(moved, {
+                depth: dropInside ? (target?.depth ?? 0) + 1 : (target?.depth ?? 0),
+              }),
+            );
           }
           normalizeHierarchy();
           dragFrom = null;
@@ -294,7 +313,7 @@ const PathEditorHelpers = {
         const actions = document.createElement("div");
         actions.className = "path-editor-actions";
 
-        if (row.body === SPECIAL_DIRS.SEPARATOR) {
+        if (node.path.value === SPECIAL_DIRS.SEPARATOR) {
           const sep = document.createElement("span");
           sep.className = "path-editor-separator";
           sep.textContent = "separator";
@@ -303,12 +322,12 @@ const PathEditorHelpers = {
           const dir = document.createElement("input");
           dir.type = "text";
           dir.className = "path-editor-dir";
-          dir.value = row.body;
+          dir.value = node.path.value;
           dir.placeholder = "directory/:variables:";
           dir.spellcheck = false;
           dir.setAttribute("aria-label", `Directory ${index + 1}`);
           dir.addEventListener("input", () => {
-            row.body = dir.value;
+            updateNode(index, { path: dir.value });
             commit();
           });
           rowEl.appendChild(dir);
@@ -316,7 +335,7 @@ const PathEditorHelpers = {
           const alias = document.createElement("input");
           alias.type = "text";
           alias.className = "path-editor-alias";
-          alias.value = PathEditorHelpers.getAlias(row.comment);
+          alias.value = PathEditorHelpers.getAlias(node);
           alias.placeholder = "alias";
           const aliasOpen = Boolean(alias.value);
           alias.classList.toggle("is-open", aliasOpen);
@@ -324,7 +343,8 @@ const PathEditorHelpers = {
           alias.setAttribute("aria-hidden", String(!aliasOpen));
           alias.setAttribute("aria-label", `Display name for directory ${index + 1}`);
           alias.addEventListener("input", () => {
-            row.comment = PathEditorHelpers.setAlias(row.comment, alias.value);
+            const current = nodes[index];
+            if (current) nodes[index] = PathEditorHelpers.setAlias(current, alias.value);
             commit();
           });
           const aliasToggle = document.createElement("button");
@@ -352,14 +372,16 @@ const PathEditorHelpers = {
             "◀",
             "outdent",
             () => {
-              row.depth = Math.max(0, row.depth - 1);
+              updateNode(index, { depth: Math.max(0, node.depth - 1) });
             },
           ],
           [
             "▶",
             "indent",
             () => {
-              if (index > 0 && row.depth < rows[index - 1]!.depth + 1) row.depth += 1;
+              if (index > 0 && node.depth < nodes[index - 1]!.depth + 1) {
+                updateNode(index, { depth: node.depth + 1 });
+              }
             },
           ],
           [
@@ -367,8 +389,8 @@ const PathEditorHelpers = {
             "move up",
             () => {
               if (index > 0) {
-                const moved = rows.splice(index, 1)[0];
-                if (moved) rows.splice(index - 1, 0, moved);
+                const moved = nodes.splice(index, 1)[0];
+                if (moved) nodes.splice(index - 1, 0, moved);
               }
             },
           ],
@@ -376,9 +398,9 @@ const PathEditorHelpers = {
             "▼",
             "move down",
             () => {
-              if (index < rows.length - 1) {
-                const moved = rows.splice(index, 1)[0];
-                if (moved) rows.splice(index + 1, 0, moved);
+              if (index < nodes.length - 1) {
+                const moved = nodes.splice(index, 1)[0];
+                if (moved) nodes.splice(index + 1, 0, moved);
               }
             },
           ],
@@ -386,15 +408,15 @@ const PathEditorHelpers = {
             "✕",
             "delete",
             () => {
-              deletedRows = rows.map((candidate) => ({ ...candidate }));
-              const deletedDepth = row.depth;
-              rows.splice(index, 1);
+              deletedNodes = nodes.slice();
+              const deletedDepth = node.depth;
+              nodes.splice(index, 1);
               for (
                 let child = index;
-                child < rows.length && rows[child]!.depth > deletedDepth;
+                child < nodes.length && nodes[child]!.depth > deletedDepth;
                 child++
               ) {
-                rows[child]!.depth -= 1;
+                updateNode(child, { depth: nodes[child]!.depth - 1 });
               }
               undo.hidden = false;
             },
@@ -411,11 +433,11 @@ const PathEditorHelpers = {
             `${title[0]!.toUpperCase()}${title.slice(1)} ${rowName}`,
           );
           button.textContent = glyph;
-          if (title === "outdent") button.disabled = row.depth === 0;
+          if (title === "outdent") button.disabled = node.depth === 0;
           if (title === "indent")
-            button.disabled = index === 0 || row.depth >= rows[index - 1]!.depth + 1;
+            button.disabled = index === 0 || node.depth >= nodes[index - 1]!.depth + 1;
           if (title === "move up") button.disabled = index === 0;
-          if (title === "move down") button.disabled = index === rows.length - 1;
+          if (title === "move down") button.disabled = index === nodes.length - 1;
           button.addEventListener("click", () => {
             action();
             if (title === "move up" || title === "move down") normalizeHierarchy();
@@ -432,23 +454,23 @@ const PathEditorHelpers = {
     };
 
     const rebuild = () => {
-      rows = PathEditorHelpers.linesToRows(textarea.value);
+      nodes = PathEditorHelpers.linesToNodes(textarea.value);
       render();
     };
     // The mode toggle forces a rebuild when switching into visual mode
     owner.rebuildVisual = rebuild;
 
     undo.addEventListener("click", () => {
-      if (!deletedRows) return;
-      rows = deletedRows;
-      deletedRows = null;
+      if (!deletedNodes) return;
+      nodes = deletedNodes;
+      deletedNodes = null;
       undo.hidden = true;
       commit();
       rebuild();
     });
 
     document.querySelector("#path-editor-add-dir")?.addEventListener("click", () => {
-      rows.push({ depth: 0, body: "new-folder", comment: "" });
+      nodes.push(PathEditorHelpers.parseLine("new-folder"));
       commit();
       rebuild();
       const input = container.lastElementChild?.querySelector<HTMLInputElement>(".path-editor-dir");
@@ -456,7 +478,7 @@ const PathEditorHelpers = {
       input?.select();
     });
     document.querySelector("#path-editor-add-sep")?.addEventListener("click", () => {
-      rows.push({ depth: 0, body: SPECIAL_DIRS.SEPARATOR, comment: "" });
+      nodes.push(PathEditorHelpers.parseLine(SPECIAL_DIRS.SEPARATOR));
       commit();
       rebuild();
     });
@@ -485,8 +507,8 @@ export class PathEditor {
 
   static parseLine = PathEditorHelpers.parseLine;
   static serializeLine = PathEditorHelpers.serializeLine;
-  static linesToRows = PathEditorHelpers.linesToRows;
-  static rowsToLines = PathEditorHelpers.rowsToLines;
+  static linesToNodes = PathEditorHelpers.linesToNodes;
+  static nodesToLines = PathEditorHelpers.nodesToLines;
   static getAlias = PathEditorHelpers.getAlias;
   static setAlias = PathEditorHelpers.setAlias;
   static insertText = PathEditorHelpers.insertText;

@@ -26,8 +26,7 @@ metadata-key   = metadata-character, { metadata-character } ;
 metadata-value = { character | "(", metadata-value, ")" } ;
 `;
 
-export type PathRow = { depth: number; body: string; comment: string };
-export type PathMetadataEntry = {
+type ParsedMetadataEntry = {
   key: string;
   value: string;
   start: number;
@@ -39,30 +38,36 @@ export type PathSyntaxIssue = {
   source: string;
 };
 export type DirectoryMetadataNode = {
-  kind: "metadata";
-  key: string;
-  value: string;
-  span: SourceSpan;
+  readonly kind: "metadata";
+  readonly key: string;
+  readonly value: string;
+  readonly span: SourceSpan;
 };
 
 export type DirectoryLineNode = {
-  kind: "directory-line";
-  raw: string;
-  depth: number;
-  path: { kind: "path"; value: string; span: SourceSpan };
-  comment: {
-    kind: "comment";
-    value: string;
-    span: SourceSpan;
-    contentSpan: SourceSpan;
+  readonly kind: "directory-line";
+  readonly raw: string;
+  readonly depth: number;
+  readonly path: { readonly kind: "path"; readonly value: string; readonly span: SourceSpan };
+  readonly comment: {
+    readonly kind: "comment";
+    readonly value: string;
+    readonly span: SourceSpan;
+    readonly contentSpan: SourceSpan;
   } | null;
-  metadata: DirectoryMetadataNode[];
-  span: SourceSpan;
+  readonly metadata: readonly DirectoryMetadataNode[];
+  readonly span: SourceSpan;
 };
 
 export type ParsedDirectoryAst = {
-  ast: DirectoryLineNode;
-  issues: PathSyntaxIssue[];
+  readonly ast: DirectoryLineNode;
+  readonly issues: readonly PathSyntaxIssue[];
+};
+
+export type DirectoryLineUpdate = {
+  readonly depth?: number;
+  readonly path?: string;
+  readonly comment?: string;
 };
 
 const directoryLineParser = defineGrammar(
@@ -135,7 +140,7 @@ export const parsePathLineAst = (line: string): ParsedDirectoryAst => {
   });
   const comment = commentNode(line, commentIndex);
   const metadata = comment
-    ? parsePathMetadataEntries(comment.value).map((entry) => ({
+    ? parseMetadataEntries(comment.value).map((entry) => ({
         kind: "metadata" as const,
         key: entry.key,
         value: entry.value,
@@ -165,22 +170,26 @@ export const parsePathLineAst = (line: string): ParsedDirectoryAst => {
   };
 };
 
-const pathRowFromAst = (ast: DirectoryLineNode): PathRow => ({
-  depth: ast.depth,
-  body: ast.path.value,
-  comment: ast.comment?.value ?? "",
-});
-
-export const parsePathLine = (line: string): PathRow => pathRowFromAst(parsePathLineAst(line).ast);
-
-export const validatePathLineSyntax = (line: string): PathSyntaxIssue[] =>
+export const validatePathLineSyntax = (line: string): readonly PathSyntaxIssue[] =>
   parsePathLineAst(line).issues;
 
-export const serializePathLine = (row: PathRow): string =>
-  `${">".repeat(row.depth)}${row.body}${row.comment ? ` // ${row.comment}` : ""}`;
+export const serializeDirectoryLine = (node: DirectoryLineNode): string => {
+  const comment = node.comment?.value ?? "";
+  return `${">".repeat(node.depth)}${node.path.value}${comment ? ` // ${comment}` : ""}`;
+};
 
-export const parsePathMetadataEntries = (comment: string): PathMetadataEntry[] => {
-  const entries: PathMetadataEntry[] = [];
+export const updateDirectoryLine = (
+  node: DirectoryLineNode,
+  update: DirectoryLineUpdate,
+): DirectoryLineNode => {
+  const depth = update.depth ?? node.depth;
+  const path = update.path ?? node.path.value;
+  const comment = update.comment ?? node.comment?.value ?? "";
+  return parsePathLineAst(`${">".repeat(depth)}${path}${comment ? ` // ${comment}` : ""}`).ast;
+};
+
+const parseMetadataEntries = (comment: string): ParsedMetadataEntry[] => {
+  const entries: ParsedMetadataEntry[] = [];
   let cursor = 0;
 
   while (cursor < comment.length) {
@@ -204,19 +213,29 @@ export const parsePathMetadataEntries = (comment: string): PathMetadataEntry[] =
   return entries;
 };
 
-export const parsePathMetadata = (comment: string): Record<string, string> =>
-  Object.fromEntries(parsePathMetadataEntries(comment).map(({ key, value }) => [key, value]));
+export const getDirectoryMetadata = (node: DirectoryLineNode, key: string): string =>
+  node.metadata.findLast((entry) => entry.key === key)?.value ?? "";
 
-export const setPathMetadata = (comment: string, key: string, value: string): string => {
-  const matching = parsePathMetadataEntries(comment).filter((entry) => entry.key === key);
-  let cleaned = comment;
-  for (const entry of matching.toReversed()) {
-    const before = cleaned.slice(0, entry.start).trimEnd();
-    const after = cleaned.slice(entry.end).trimStart();
-    cleaned = before && after ? `${before} ${after}` : before || after;
+export const updateDirectoryMetadata = (
+  node: DirectoryLineNode,
+  key: string,
+  value: string,
+): DirectoryLineNode => {
+  const commentAst = node.comment;
+  let comment = commentAst?.value ?? "";
+  const contentStart = commentAst?.contentSpan.start.offset ?? 0;
+  const matching = node.metadata.filter((entry) => entry.key === key).toReversed();
+  for (const entry of matching) {
+    const start = entry.span.start.offset - contentStart;
+    const end = entry.span.end.offset - contentStart;
+    const before = comment.slice(0, start).trimEnd();
+    const after = comment.slice(end).trimStart();
+    comment = before && after ? `${before} ${after}` : before || after;
   }
-  cleaned = cleaned.trim();
-  if (!value) return cleaned;
-  const metadata = `(${key}: ${value})`;
-  return cleaned ? `${cleaned} ${metadata}` : metadata;
+  comment = comment.trim();
+  if (value) {
+    const metadata = `(${key}: ${value})`;
+    comment = comment ? `${comment} ${metadata}` : metadata;
+  }
+  return updateDirectoryLine(node, { comment });
 };

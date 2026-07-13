@@ -36,9 +36,11 @@ const menu = {
 };
 
 describe("menu parsing", () => {
+  const metadataFor = (comment: string) => menu.parsePath(`path // ${comment}`).meta;
+
   test("parses comments for metadata", () => {
     const input = "(alias: doggo is (cute!)) cats (foo:bar)";
-    const actual = menu.parseMeta(input);
+    const actual = metadataFor(input);
 
     const expected = {
       alias: "doggo is (cute!)",
@@ -67,17 +69,17 @@ describe("menu parsing", () => {
     expect(actual).toEqual(expected);
   });
 
-  test("parseMeta returns an empty object when there are no key-value pairs", () => {
-    expect(menu.parseMeta("plain comment (not a pair)")).toEqual({});
-    expect(menu.parseMeta("")).toEqual({});
+  test("returns empty metadata when there are no key-value pairs", () => {
+    expect(metadataFor("plain comment (not a pair)")).toEqual({});
+    expect(metadataFor("")).toEqual({});
   });
 
-  test("parseMeta preserves colons inside metadata values", () => {
-    expect(menu.parseMeta("(alias: Work: 2026)")).toEqual({ alias: "Work: 2026" });
+  test("preserves colons inside metadata values", () => {
+    expect(metadataFor("(alias: Work: 2026)")).toEqual({ alias: "Work: 2026" });
   });
 
-  test("parseMeta ignores ordinary parentheses before metadata", () => {
-    expect(menu.parseMeta("photo (edited) (alias: Work) (key: w)")).toEqual({
+  test("ignores ordinary parentheses before metadata", () => {
+    expect(metadataFor("photo (edited) (alias: Work) (key: w)")).toEqual({
       alias: "Work",
       key: "w",
     });

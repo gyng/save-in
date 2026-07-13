@@ -12,15 +12,19 @@ const element = <T extends Element>(selector: string): T => {
 };
 
 describe("line helpers", () => {
-  test("parseLine extracts depth, body, and comment", () => {
-    expect(PathEditor.parseLine("images")).toEqual({ depth: 0, body: "images", comment: "" });
-    expect(PathEditor.parseLine(">>i/cats // cute (alias: Cats)")).toEqual({
-      depth: 2,
-      body: "i/cats",
-      comment: "cute (alias: Cats)",
-    });
-    expect(PathEditor.parseLine("---")).toEqual({ depth: 0, body: "---", comment: "" });
-    expect(PathEditor.parseLine(">---")).toEqual({ depth: 1, body: "---", comment: "" });
+  test("parseLine builds directory AST nodes", () => {
+    const parsed = PathEditor.parseLine(">>i/cats // cute (alias: Cats)");
+    expect(parsed).toEqual(
+      expect.objectContaining({
+        kind: "directory-line",
+        depth: 2,
+        path: expect.objectContaining({ value: "i/cats" }),
+        comment: expect.objectContaining({ value: "cute (alias: Cats)" }),
+      }),
+    );
+    expect(PathEditor.parseLine("images").path.value).toBe("images");
+    expect(PathEditor.parseLine("---").path.value).toBe("---");
+    expect(PathEditor.parseLine(">---").depth).toBe(1);
   });
 
   test("serializeLine round-trips parseLine", () => {
@@ -30,21 +34,26 @@ describe("line helpers", () => {
     });
   });
 
-  test("linesToRows drops blank lines", () => {
-    const rows = PathEditor.linesToRows("a\n\n  \n>b\n");
-    expect(rows).toHaveLength(2);
-    expect(rows[1]).toEqual({ depth: 1, body: "b", comment: "" });
+  test("linesToNodes drops blank lines", () => {
+    const nodes = PathEditor.linesToNodes("a\n\n  \n>b\n");
+    expect(nodes).toHaveLength(2);
+    expect(nodes[1]).toEqual(
+      expect.objectContaining({ depth: 1, path: expect.objectContaining({ value: "b" }) }),
+    );
   });
 
   test("getAlias and setAlias edit only the alias meta", () => {
-    expect(PathEditor.getAlias("cute (alias: Cats) (key: c)")).toBe("Cats");
-    expect(PathEditor.getAlias("no alias here")).toBe("");
+    const cats = PathEditor.parseLine("path // cute (alias: Cats) (key: c)");
+    expect(PathEditor.getAlias(cats)).toBe("Cats");
+    expect(PathEditor.getAlias(PathEditor.parseLine("path // no alias here"))).toBe("");
 
-    expect(PathEditor.setAlias("cute (alias: Cats) (key: c)", "Dogs")).toBe(
-      "cute (key: c) (alias: Dogs)",
+    expect(PathEditor.serializeLine(PathEditor.setAlias(cats, "Dogs"))).toBe(
+      "path // cute (key: c) (alias: Dogs)",
     );
-    expect(PathEditor.setAlias("", "Dogs")).toBe("(alias: Dogs)");
-    expect(PathEditor.setAlias("cute (alias: Cats)", "")).toBe("cute");
+    expect(
+      PathEditor.serializeLine(PathEditor.setAlias(PathEditor.parseLine("path"), "Dogs")),
+    ).toBe("path // (alias: Dogs)");
+    expect(PathEditor.serializeLine(PathEditor.setAlias(cats, ""))).toBe("path // cute (key: c)");
   });
 });
 
