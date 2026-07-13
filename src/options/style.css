@@ -3854,7 +3854,7 @@ code.click-to-copy {
   position: absolute;
   z-index: 5;
   right: 0;
-  bottom: calc(100% + 6px);
+  top: calc(100% + 6px);
   max-width: 22rem;
   padding: var(--space-1) var(--space-2);
   color: var(--color-text);
