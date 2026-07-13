@@ -16,4 +16,14 @@ test("routing port defaults are safe before a browser adapter is configured", as
     "Routing counter has not been configured",
   );
   await expect(routingPorts.resolveContent("https://example.com")).resolves.toBeNull();
+  const operation = vi.fn(async () => "protected");
+  await expect(
+    routingPorts.withRequestReferer(
+      "https://example.com/file",
+      "https://example.com/page",
+      operation,
+      ["head", "get"],
+    ),
+  ).resolves.toBe("protected");
+  expect(operation).toHaveBeenCalledOnce();
 });

@@ -867,18 +867,20 @@ test("fetchViaFetch downloads via an offscreen document (Chrome MV3)", async () 
 });
 
 test("Referer-protected downloads use a scoped DNR offscreen fetch", async () => {
-  /** @type {string[]} */
-  const receivedReferers = [];
+  /** @type {Array<{method: string, referer: string}>} */
+  const receivedRequests = [];
   const expectedReferer = "http://gallery.example/artwork/66";
+  const body = "chrome referer protected content";
+  const expectedHash = crypto.createHash("sha256").update(body).digest("hex").slice(0, 12);
   const server = http.createServer((req, res) => {
-    receivedReferers.push(req.headers.referer || "");
+    receivedRequests.push({ method: req.method || "", referer: req.headers.referer || "" });
     if (req.headers.referer !== expectedReferer) {
       res.writeHead(403, { "Content-Type": "text/plain" });
       res.end("missing referer");
       return;
     }
-    res.writeHead(200, { "Content-Type": "text/plain" });
-    res.end("chrome referer protected content");
+    res.writeHead(200, { "Content-Type": "image/webp" });
+    res.end(body);
   });
   const port = await listenLocal(server);
   const url = `http://127.0.0.1:${port}/referer-protected.txt`;
@@ -898,15 +900,16 @@ test("Referer-protected downloads use a scoped DNR offscreen fetch", async () =>
       }).then(() => api.startDownload({
         url: ${JSON.stringify(url)},
         pageUrl: ${JSON.stringify(expectedReferer)},
+        path: "e2e/referer-protected-chrome-:mimeext:-:sha256:.txt",
         suggestedFilename: "referer-protected-chrome.txt",
       }))`);
-    expect(
-      (await waitForDownloads("referer-protected-chrome")).some((x) => x.state === "complete"),
-    ).toBe(true);
-    expect(receivedReferers).toContain(expectedReferer);
-    expect(
-      fs.readFileSync(path.join(DOWNLOADS, "e2e", "referer-protected-chrome.txt"), "utf8"),
-    ).toBe("chrome referer protected content");
+    const rows = await waitForDownloads("referer-protected-chrome");
+    const done = rows.find((row) => row.state === "complete");
+    expect(done).toBeTruthy();
+    expect(receivedRequests.map(({ method }) => method)).toEqual(["HEAD", "GET"]);
+    expect(receivedRequests.every(({ referer }) => referer === expectedReferer)).toBe(true);
+    expect(done.filename).toContain(`referer-protected-chrome-webp-${expectedHash}`);
+    expect(fs.readFileSync(done.filename, "utf8")).toBe(body);
     const remainingRules = await evalSW(
       `chrome.declarativeNetRequest.getSessionRules().then((rules) => rules.map((rule) => rule.id))`,
     );

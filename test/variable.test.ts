@@ -7,7 +7,7 @@ import { counterWriteState } from "../src/background/state.ts";
 // import the real options bag and mutate it (option.ts seeds
 // replacementChar "_" at load, so these just document the expectation).
 import { options } from "../src/config/options-data.ts";
-import { configureRoutingPorts } from "../src/routing/ports.ts";
+import { configureRoutingPorts, type RoutingPorts } from "../src/routing/ports.ts";
 
 describe("variables", () => {
   const info = {
@@ -570,6 +570,39 @@ describe(":mime: / :contenttype: / :mimeext: (async HEAD)", () => {
     expect(global.fetch).toHaveBeenCalledTimes(1);
   });
 
+  test("protects lazy metadata requests with the download Referer", async () => {
+    mockHead("image/webp");
+    const protectedCalls: Array<[string, string, string[] | undefined]> = [];
+    const withRequestReferer: RoutingPorts["withRequestReferer"] = async <T>(
+      url: string,
+      referer: string,
+      operation: () => Promise<T>,
+      requestMethods?: Array<"get" | "head">,
+    ): Promise<T> => {
+      protectedCalls.push([url, referer, requestMethods]);
+      return operation();
+    };
+    configureRoutingPorts({ withRequestReferer });
+
+    try {
+      const out = (
+        await Variable.applyVariables(new Path.Path(":mimeext:"), {
+          url: "https://cdn.example/file",
+          protectedFetchReferer: "https://gallery.example/view",
+        })
+      ).finalize();
+
+      expect(out).toBe("webp");
+      expect(protectedCalls).toEqual([
+        ["https://cdn.example/file", "https://gallery.example/view", ["head", "get"]],
+      ]);
+    } finally {
+      configureRoutingPorts({
+        withRequestReferer: async (_url, _referer, operation) => operation(),
+      });
+    }
+  });
+
   test("a failed HEAD yields an empty value (-> replacement char)", async () => {
     global.fetch = vi.fn(() => Promise.reject(new Error("CORS"))) as any;
     const out = (
@@ -672,6 +705,34 @@ describe(":sha256: (async content hash)", () => {
     mockBody("abc");
     await Variable.applyVariables(new Path.Path(":sha256:/:sha256:"), { url: "https://x/a" });
     expect(global.fetch).toHaveBeenCalledTimes(1);
+  });
+
+  test("passes the protected Referer to the shared content fetch", async () => {
+    const protectedContent = vi.fn(async () => ({
+      sha256: "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+      downloadUrl: "blob:protected",
+    }));
+    configureRoutingPorts({ resolveContent: protectedContent });
+
+    try {
+      const out = (
+        await Variable.applyVariables(new Path.Path(":sha256:"), {
+          url: "https://cdn.example/file",
+          protectedFetchReferer: "https://gallery.example/view",
+        })
+      ).finalize();
+
+      expect(out).toBe("ba7816bf8f01");
+      expect(protectedContent).toHaveBeenCalledWith(
+        "https://cdn.example/file",
+        false,
+        undefined,
+        expect.any(String),
+        "https://gallery.example/view",
+      );
+    } finally {
+      configureRoutingPorts({ resolveContent });
+    }
   });
 
   test(":sha256full: returns all 64 characters and shares the :sha256: fetch", async () => {

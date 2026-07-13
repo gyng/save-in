@@ -199,7 +199,8 @@ describe("renameAndDownload: fetchViaFetch", () => {
       const state = makeState({ info: { pageUrl: "https://gallery.example/view#private" } });
       await Download.renameAndDownload(state);
 
-      expect(state.info.contentFetchDisabled).toBe(true);
+      expect(state.info.contentFetchDisabled).toBe(false);
+      expect(state.info.protectedFetchReferer).toBe("https://gallery.example/view");
       expect(global.fetch).not.toHaveBeenCalled();
       expect(OffscreenClient.fetchContent).toHaveBeenCalledWith(
         state.info.url,

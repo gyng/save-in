@@ -36,25 +36,39 @@ const metadataFromResponse = async (res: Response): Promise<HeadResult> => {
   }
 };
 
-const fetchHeadMetadata = async (url: string, privateContext = false): Promise<HeadResult> => {
+const fetchHeadMetadata = async (
+  url: string,
+  privateContext = false,
+  protectedReferer?: string,
+): Promise<HeadResult> => {
   const credentials = getExtensionFetchCredentials(privateContext);
-  try {
-    const headResponse = await fetchFollowingRedirects(url, { method: "HEAD", credentials }, 5000);
-    if (headResponse.ok !== false) return metadataFromResponse(headResponse);
-    if (headResponse.body) await headResponse.body.cancel().catch(() => {});
-  } catch (error) {
-    if (error instanceof DOMException && error.name === "TimeoutError") throw error;
-  }
+  const fetchMetadata = async (): Promise<HeadResult> => {
+    try {
+      const headResponse = await fetchFollowingRedirects(
+        url,
+        { method: "HEAD", credentials },
+        5000,
+      );
+      if (headResponse.ok !== false) return metadataFromResponse(headResponse);
+      if (headResponse.body) await headResponse.body.cancel().catch(() => {});
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "TimeoutError") throw error;
+    }
 
-  // Some download servers reject HEAD even though GET works. Fetch resolves as
-  // soon as the GET headers arrive, and metadataFromResponse deliberately
-  // cancels the body instead of retaining it for acquisition: routing may still
-  // reject this candidate, so consuming the body here could turn a metadata
-  // lookup into a speculative full download of a large file. If routing accepts
-  // it, the acquisition stage performs the actual download later.
-  return metadataFromResponse(
-    await fetchFollowingRedirects(url, { method: "GET", credentials }, 5000),
-  );
+    // Some download servers reject HEAD even though GET works. Fetch resolves as
+    // soon as the GET headers arrive, and metadataFromResponse deliberately
+    // cancels the body instead of retaining it for acquisition: routing may still
+    // reject this candidate, so consuming the body here could turn a metadata
+    // lookup into a speculative full download of a large file. If routing accepts
+    // it, the acquisition stage performs the actual download later.
+    return metadataFromResponse(
+      await fetchFollowingRedirects(url, { method: "GET", credentials }, 5000),
+    );
+  };
+
+  return protectedReferer
+    ? routingPorts.withRequestReferer(url, protectedReferer, fetchMetadata, ["head", "get"])
+    : fetchMetadata();
 };
 
 // Thin wrapper over withUrl that keeps this call site's historical behavior of
@@ -199,7 +213,11 @@ export const resolveHead = (opts: RoutingDownloadInfo): Promise<HeadResult> => {
   }
   opts.headPromise = (async () => {
     try {
-      const result = await fetchHeadMetadata(opts.url ?? "", opts.currentTab?.incognito === true);
+      const result = await fetchHeadMetadata(
+        opts.url ?? "",
+        opts.currentTab?.incognito === true,
+        opts.protectedFetchReferer,
+      );
       opts.resolvedHead = result;
       return result;
     } catch {
@@ -233,6 +251,7 @@ export const resolveContent = (opts: RoutingDownloadInfo) => {
           opts.currentTab?.incognito === true,
           opts.abortSignal,
           requestId,
+          opts.protectedFetchReferer,
         ),
       )
     : Promise.resolve(null);

@@ -21,7 +21,8 @@ context. Use these permission rationales:
 
 - `contextMenus`: show Save In commands on pages and tabs.
 - `declarativeNetRequestWithHostAccess`: attach the containing page as the
-  Referer only while Chrome fetches a matching user-selected resource.
+  Referer only while Chrome fetches requested metadata or content for a matching
+  user-selected resource.
 - `downloads`: start, name, monitor, retry, and record downloads locally.
 - `notifications`: report completion and actionable failures.
 - `storage`: store settings, rules, local history, and recovery state.

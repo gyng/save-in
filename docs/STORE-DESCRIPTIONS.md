@@ -64,7 +64,7 @@ Features
 - Connect other extensions through an explicitly approved, versioned integration API.
 - Optionally send selected save data to a user-configured HTTPS webhook after a Save In download starts.
 
-Chrome does not allow extensions to set a Referer directly on their own downloads. When the optional Referer filter matches, Save In instead applies the page URL only to its protected fetch, holds that file in memory, and passes the resulting file to Chrome. Chrome also cannot assign an extension-started download to its Incognito download context. A download requested through Save In from Incognito may therefore appear in the regular Chrome download manager, although Save In still excludes private activity from its own history and diagnostics.
+Chrome does not allow extensions to set a Referer directly on their own downloads. When the optional Referer filter matches, Save In instead applies the page URL only to its protected metadata and file fetches, holds that file in memory, and passes the resulting file to Chrome. MIME, final-URL, and SHA-256 variables remain available for these downloads. Chrome also cannot assign an extension-started download to its Incognito download context. A download requested through Save In from Incognito may therefore appear in the regular Chrome download manager, although Save In still excludes private activity from its own history and diagnostics.
 
 Browser security limits extensions to folders inside the configured default download directory. Open Save In's Options after installation to configure destinations, and make sure the destination folders exist. Current Chrome versions reject downloads through symlinked destinations, so Chrome cannot use a symlink to escape that directory.
 

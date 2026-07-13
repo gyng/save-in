@@ -29,38 +29,40 @@ export const resolveContent = (
   privateContext = false,
   signal?: AbortSignal,
   requestId: string = crypto.randomUUID(),
+  referer?: string,
 ): Promise<ContentFetchResult | null> => {
   const credentials = getExtensionFetchCredentials(privateContext);
-  if (OffscreenClient.canUse()) {
-    return OffscreenClient.fetchContent(url, credentials, {
-      requestId,
-      hash: true,
-      ...(signal ? { signal } : {}),
-    }).catch((error): ContentFetchResult | null => {
-      if (signal?.aborted) throw error;
-      return null;
-    });
-  }
+  const fetchContent = async (): Promise<ContentFetchResult> => {
+    if (OffscreenClient.canUse()) {
+      return OffscreenClient.fetchContent(url, credentials, {
+        requestId,
+        hash: true,
+        ...(signal ? { signal } : {}),
+      });
+    }
 
-  return fetchFollowingRedirects(
-    url,
-    { credentials, ...(signal ? { signal } : {}) },
-    HASH_FETCH_TIMEOUT_MS,
-  )
-    .then(async (res) => {
-      if (!res.ok) return null;
-      const content = await readResponseContent(res, true, signal);
-      const downloadUrl = URL.createObjectURL(content.blob);
-      return {
-        sha256: content.sha256,
-        downloadUrl,
-        ownedObjectUrl: downloadUrl,
-      };
-    })
-    .catch((error): ContentFetchResult | null => {
-      if (signal?.aborted) throw error;
-      return null;
-    });
+    const res = await fetchFollowingRedirects(
+      url,
+      { credentials, ...(signal ? { signal } : {}) },
+      HASH_FETCH_TIMEOUT_MS,
+    );
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const content = await readResponseContent(res, true, signal);
+    const downloadUrl = URL.createObjectURL(content.blob);
+    return {
+      sha256: content.sha256,
+      downloadUrl,
+      ownedObjectUrl: downloadUrl,
+    };
+  };
+
+  const task = referer
+    ? ChromeRefererRules.withReferer(url, referer, fetchContent)
+    : fetchContent();
+  return task.catch((error): ContentFetchResult | null => {
+    if (signal?.aborted) throw error;
+    return null;
+  });
 };
 
 export const fetchUrlForDownload = async (

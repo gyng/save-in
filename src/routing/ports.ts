@@ -1,6 +1,7 @@
 import type { RoutingContent, RuleError } from "./rule-types.ts";
 
 export type RoutingTab = { title?: string | undefined } | null | undefined;
+export type ProtectedRequestMethod = "get" | "head";
 
 export type RoutingPorts = {
   getMessage(key: string): string;
@@ -16,7 +17,14 @@ export type RoutingPorts = {
     privateContext?: boolean,
     signal?: AbortSignal,
     requestId?: string,
+    referer?: string,
   ): Promise<RoutingContent | null>;
+  withRequestReferer<T>(
+    url: string,
+    referer: string,
+    operation: () => Promise<T>,
+    requestMethods?: ProtectedRequestMethod[],
+  ): Promise<T>;
 };
 
 const ports: RoutingPorts = {
@@ -32,6 +40,11 @@ const ports: RoutingPorts = {
     Promise.reject(new Error("Private routing counter has not been configured")),
   peekCounter: () => Promise.reject(new Error("Routing counter has not been configured")),
   resolveContent: () => Promise.resolve(null),
+  withRequestReferer: async <T>(
+    _url: string,
+    _referer: string,
+    operation: () => Promise<T>,
+  ): Promise<T> => operation(),
 };
 
 export const configureRoutingPorts = (configured: Partial<RoutingPorts>) => {

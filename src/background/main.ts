@@ -46,6 +46,7 @@ export const configureBackgroundPorts = () => {
     nextPrivateCounter: () => nextPrivateCounter(counterWriteState, webExtensionApi.storage.local),
     peekCounter: () => peekCounter(webExtensionApi.storage.local),
     resolveContent,
+    withRequestReferer: ChromeRefererRules.withReferer,
   });
 };
 

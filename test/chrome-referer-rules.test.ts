@@ -48,6 +48,16 @@ test("builds an exact extension-origin GET rule and strips the fragment", () => 
   expect(regex.test("https://i.pximg.net/img/a+b(1).jpg?size=large&extra=1")).toBe(false);
 });
 
+test("can protect the HEAD and GET requests used by lazy metadata", () => {
+  const rule = ChromeRefererRules.buildRule(
+    "https://cdn.example/file",
+    "https://gallery.example/view",
+    ["head", "get"],
+  );
+
+  expect(rule.condition.requestMethods).toEqual(["head", "get"]);
+});
+
 test("installs the rule only around the protected operation", async () => {
   const operation = vi.fn(async () => "fetched");
 

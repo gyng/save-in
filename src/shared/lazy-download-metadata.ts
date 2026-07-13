@@ -11,4 +11,7 @@ export type LazyDownloadMetadata<Content extends ContentFetchResult = ContentFet
   resolvedHead?: HeadMetadata | undefined;
   contentPromise?: Promise<Content | null> | undefined;
   sha256?: string | undefined;
+  // Chrome uses this sanitized value only around exact extension-owned
+  // metadata/content requests; it is not serialized into persisted state.
+  protectedFetchReferer?: string | undefined;
 };

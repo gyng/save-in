@@ -1,4 +1,5 @@
 import { BROWSERS, CURRENT_BROWSER } from "../platform/chrome-detector.ts";
+import type { ProtectedRequestMethod } from "../routing/ports.ts";
 
 export const REFERER_SESSION_RULE_ID = 66_000_001;
 
@@ -16,7 +17,11 @@ const exactRequestUrlRegex = (value: string): string => {
   return `^${escapeRegex(url.href)}$`;
 };
 
-const buildRule = (url: string, referer: string): chrome.declarativeNetRequest.Rule => ({
+const buildRule = (
+  url: string,
+  referer: string,
+  requestMethods: ProtectedRequestMethod[] = ["get"],
+): chrome.declarativeNetRequest.Rule => ({
   id: REFERER_SESSION_RULE_ID,
   priority: 1,
   action: {
@@ -26,7 +31,9 @@ const buildRule = (url: string, referer: string): chrome.declarativeNetRequest.R
   condition: {
     regexFilter: exactRequestUrlRegex(url),
     initiatorDomains: [chrome.runtime.id],
-    requestMethods: ["get"],
+    // @types/chrome models request methods as a runtime enum even though the
+    // WebExtension API consumes their lowercase JSON string values.
+    requestMethods: requestMethods as chrome.declarativeNetRequest.RequestMethod[],
     resourceTypes: ["xmlhttprequest"],
   },
 });
@@ -59,14 +66,19 @@ export const ChromeRefererRules = {
   cleanupStaleRule: (): Promise<void> =>
     ChromeRefererRules.canUse() ? enqueue(removeRule) : Promise.resolve(),
 
-  withReferer: <T>(url: string, referer: string, operation: () => Promise<T>): Promise<T> => {
+  withReferer: <T>(
+    url: string,
+    referer: string,
+    operation: () => Promise<T>,
+    requestMethods: ProtectedRequestMethod[] = ["get"],
+  ): Promise<T> => {
     if (!ChromeRefererRules.canUse()) return operation();
     return enqueue(async () => {
       const api = dnrApi();
       if (!api) return operation();
       await api.updateSessionRules({
         removeRuleIds: [REFERER_SESSION_RULE_ID],
-        addRules: [buildRule(url, referer)],
+        addRules: [buildRule(url, referer, requestMethods)],
       });
       try {
         return await operation();

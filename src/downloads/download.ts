@@ -355,13 +355,15 @@ export const Download = {
       Download.rememberPendingState(state);
     }
 
-    // Firefox attaches the Referer to downloads.download; Chrome uses a scoped
-    // DNR rule around the final extension fetch. Earlier metadata/content
-    // requests cannot carry the same protection safely, so their lazy
-    // variables stay blank and the normal fetch-via-fetch choice is bypassed.
-    state.info.contentFetchDisabled = Boolean(
-      RequestHeaders.getDownloadHeaders(state) || RequestHeaders.getFetchReferer(state),
-    );
+    // Firefox attaches the Referer to downloads.download and cannot safely
+    // reproduce it on speculative extension requests. Chrome's exact DNR rule
+    // can protect user-requested lazy metadata/content fetches as well as final
+    // acquisition, so those variables remain available there.
+    const downloadHeaders = RequestHeaders.getDownloadHeaders(state);
+    const protectedFetchReferer = RequestHeaders.getFetchReferer(state);
+    state.info.contentFetchDisabled = Boolean(downloadHeaders);
+    if (protectedFetchReferer) state.info.protectedFetchReferer = protectedFetchReferer;
+    else delete state.info.protectedFetchReferer;
 
     // Firefox resolves a server-provided filename before finalizing the plan.
     // Chrome must defer this to onDeterminingFilename, which runs after the
@@ -531,7 +533,7 @@ export const Download = {
       state.info.contentPromise = undefined;
     }
     const url = requireDownloadUrl(state);
-    const fetchReferer = RequestHeaders.getFetchReferer(state);
+    const fetchReferer = state.info.protectedFetchReferer ?? RequestHeaders.getFetchReferer(state);
     if (fetchReferer) {
       return Download.acquireFetchedUrl(
         url,
