@@ -74,6 +74,10 @@ for (const dir of [
 }
 
 const files = [
+  ".gitattributes",
+  ".gitignore",
+  ".npmrc",
+  ".oxfmtrc.json",
   ".oxlintrc.json",
   "AGENTS.md",
   "CHANGELOG.md",
@@ -111,6 +115,10 @@ execFileSync(
     artifacts,
     "--overwrite-dest",
     "--ignore-files",
+    "!.gitattributes",
+    "!.gitignore",
+    "!.npmrc",
+    "!.oxfmtrc.json",
     "!.oxlintrc.json",
     "!.github",
     "!.github/**/*",
@@ -124,6 +132,10 @@ const version = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf
 const destination = path.join(artifacts, `save-in-${version}-source.zip`);
 fs.renameSync(path.join(artifacts, built), destination);
 verifyArchive(destination, [
+  ".gitattributes",
+  ".gitignore",
+  ".npmrc",
+  ".oxfmtrc.json",
   ".oxlintrc.json",
   ".github/workflows/ci.yml",
   "CHANGELOG.md",

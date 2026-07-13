@@ -33,7 +33,9 @@ test("ships a self-verifying Mozilla source attachment", () => {
     '"tsconfig.tools.json"',
     '"tsconfig.tools-legacy.json"',
     '"tsconfig.test.json"',
+    '"!.gitignore"',
     '"!.oxlintrc.json"',
+    '"!.oxfmtrc.json"',
     '"!.github/**/*"',
     "verifyArchive",
   ]) {
