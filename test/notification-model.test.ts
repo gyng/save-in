@@ -20,12 +20,25 @@ describe("notification model", () => {
     });
   });
 
-  test("builds success metadata and retry policy", () => {
-    expect(formatNotificationFileSize(123)).toBe("123 B");
-    expect(formatNotificationFileSize(1500)).toBe("1.5 KB");
-    expect(buildSuccessNotificationTitle("Saved", 1_500_000, "image/png")).toBe(
-      "Saved · 1.5 MB · image/png",
-    );
+  test.each([
+    [undefined, ""],
+    [0, ""],
+    [123, "123 B"],
+    [1_500, "1.5 KB"],
+    [2_500_000, "2.5 MB"],
+  ])("formats notification size %s", (size, expected) => {
+    expect(formatNotificationFileSize(size)).toBe(expected);
+  });
+
+  test.each([
+    ["Saved", undefined, undefined, "Saved"],
+    ["Saved", undefined, "image/png", "Saved · image/png"],
+    ["Saved", 1_500_000, "image/png", "Saved · 1.5 MB · image/png"],
+  ])("builds success title metadata", (title, size, mime, expected) => {
+    expect(buildSuccessNotificationTitle(title, size, mime)).toBe(expected);
+  });
+
+  test("defines retry policy and failure reasons", () => {
     expect(isRetryableDownloadFailure({ current: "SERVER_UNREACHABLE" })).toBe(true);
     expect(isRetryableDownloadFailure({ current: "FILE_FAILED" })).toBe(false);
     expect(isRetryableDownloadFailure("SERVER_FAILED")).toBe(false);

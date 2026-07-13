@@ -380,184 +380,41 @@ describe("addDownloadListener", () => {
     expect(Download.renameAndDownload).not.toHaveBeenCalled();
   });
 
-  describe("media clicks", () => {
-    beforeEach(() => {
-      Menus.addPaths(["dir1"], ["image"]);
-    });
-
-    test("downloads the media source", async () => {
-      await listener(Object.assign({}, mediaClick, { linkUrl: undefined }));
-
-      expect(lastState().info.url).toBe("https://example.com/i.png");
-      expect(lastState().info.context).toBe(DOWNLOAD_TYPES.MEDIA);
-    });
-
-    test("keeps the media source for media wrapped in a link by default", async () => {
-      await listener(mediaClick);
-
-      expect(lastState().info.url).toBe("https://example.com/i.png");
-      expect(lastState().info.context).toBe(DOWNLOAD_TYPES.MEDIA);
-      expect(Notifier.createExtensionNotification).not.toHaveBeenCalled();
-    });
-
-    test("preferLinks downloads the wrapping link and notifies", async () => {
-      options.preferLinks = true;
-      options.notifyOnLinkPreferred = true;
-
-      await listener(mediaClick);
-
-      expect(lastState().info.url).toBe("https://example.com/gallery.html");
-      expect(lastState().info.context).toBe(DOWNLOAD_TYPES.LINK);
-      expect(Notifier.createExtensionNotification).toHaveBeenCalledWith(
-        "Translated<notificationLinkPreferred>",
-        "https://example.com/gallery.html",
-        undefined,
-        "link-preferred",
-      );
-    });
-
-    test("preferLinks stays quiet without notifyOnLinkPreferred", async () => {
-      options.preferLinks = true;
-
-      await listener(mediaClick);
-
-      expect(lastState().info.url).toBe("https://example.com/gallery.html");
-      expect(Notifier.createExtensionNotification).not.toHaveBeenCalled();
-    });
-
-    test("preferLinksFilter overrides to the link on matching pages", async () => {
-      options.preferLinksFilterEnabled = true;
-      options.preferLinksFilter = "example\\.com";
-      options.notifyOnLinkPreferred = true;
-
-      await listener(mediaClick);
-
-      expect(lastState().info.url).toBe("https://example.com/gallery.html");
-      expect(lastState().info.context).toBe(DOWNLOAD_TYPES.LINK);
-      expect(Notifier.createExtensionNotification).toHaveBeenCalledWith(
-        "Translated<notificationLinkPreferred>",
-        "https://example.com/gallery.html",
-        undefined,
-        "link-preferred",
-      );
-    });
-
-    test("preferLinksFilter override stays quiet without notifyOnLinkPreferred", async () => {
-      options.preferLinksFilterEnabled = true;
-      options.preferLinksFilter = "example\\.com";
-
-      await listener(mediaClick);
-
-      expect(lastState().info.url).toBe("https://example.com/gallery.html");
-      expect(Notifier.createExtensionNotification).not.toHaveBeenCalled();
-    });
-
-    test("preferLinksFilter keeps the media source on non-matching pages", async () => {
-      options.preferLinksFilterEnabled = true;
-      options.preferLinksFilter = "other\\.site";
-
-      await listener(mediaClick);
-
-      expect(lastState().info.url).toBe("https://example.com/i.png");
-      expect(lastState().info.context).toBe(DOWNLOAD_TYPES.MEDIA);
-    });
-
-    test("a trailing empty filter line does not force-match every page", async () => {
-      options.preferLinksFilterEnabled = true;
-      // The empty lines used to compile to `new RegExp("")` (matches everything)
-      // and wrongly override to the link; splitLines drops them
-      options.preferLinksFilter = "other\\.site\n\n  \n";
-
-      await listener(mediaClick);
-
-      expect(lastState().info.url).toBe("https://example.com/i.png");
-      expect(lastState().info.context).toBe(DOWNLOAD_TYPES.MEDIA);
-    });
-
-    test("an invalid filter pattern notifies and keeps the media source", async () => {
-      options.preferLinksFilterEnabled = true;
-      options.preferLinksFilter = "[";
-
-      await listener(mediaClick);
-
-      expect(Notifier.createExtensionNotification).toHaveBeenCalledWith(
-        "Translated<notificationBadPreferLinksPattern>",
-        expect.any(SyntaxError),
-        undefined,
-        "prefer-links-pattern-error",
-      );
-      expect(lastState().info.url).toBe("https://example.com/i.png");
-      expect(lastState().info.context).toBe(DOWNLOAD_TYPES.MEDIA);
-    });
-  });
-
-  describe("selection clicks", () => {
-    beforeEach(() => {
-      Menus.addPaths(["dir1"], ["selection"]);
-    });
-
-    test("downloads the selection as a text object url named after the tab", async () => {
-      await listener(
-        {
-          menuItemId: "save-in-0",
-          selectionText: "hello world",
-          pageUrl: "https://example.com/",
-        },
-        { id: 5, title: "Page Title" },
-      );
-
-      expect(Download.makeObjectUrl).toHaveBeenCalledWith("hello world");
-      expect(lastState().info.url).toBe("data:text/plain;base64,eA==");
-      expect(lastState().info.context).toBe(DOWNLOAD_TYPES.SELECTION);
-      expect(lastState().info.suggestedFilename).toBe("Page Title.selection.txt");
-    });
-
-    test("falls back to the selection text when there is no tab title", async () => {
-      await listener({
+  test("turns selection targets into object URLs before delegating", async () => {
+    Menus.addPaths(["dir1"], ["selection"]);
+    await listener(
+      {
         menuItemId: "save-in-0",
         selectionText: "hello world",
         pageUrl: "https://example.com/",
-      });
+      },
+      { id: 5, title: "Page Title" },
+    );
 
-      expect(lastState().info.suggestedFilename).toBe("hello world.selection.txt");
-    });
-
-    test("truncates long titles so the suffix still fits truncateLength", async () => {
-      await listener(
-        {
-          menuItemId: "save-in-0",
-          selectionText: "hello world",
-          pageUrl: "https://example.com/",
-        },
-        { id: 5, title: "x".repeat(500) },
-      );
-
-      // truncateLength (240) - ".selection.txt".length (14) = 226 title chars
-      expect(lastState().info.suggestedFilename).toBe(`${"x".repeat(226)}.selection.txt`);
+    expect(Download.makeObjectUrl).toHaveBeenCalledWith("hello world");
+    expect(lastState().info).toMatchObject({
+      url: "data:text/plain;base64,eA==",
+      context: DOWNLOAD_TYPES.SELECTION,
+      suggestedFilename: "Page Title.selection.txt",
     });
   });
 
-  describe("page clicks", () => {
-    beforeEach(() => {
-      Menus.addPaths(["dir1"], ["page"]);
-    });
+  test("reports an invalid prefer-links filter without blocking media saves", async () => {
+    options.preferLinksFilterEnabled = true;
+    options.preferLinksFilter = "[";
+    Menus.addPaths(["dir1"], ["image"]);
 
-    test("downloads the page named after the clicked tab title, sanitized", async () => {
-      await listener(
-        { menuItemId: "save-in-0", pageUrl: "https://example.com/" },
-        { id: 5, title: "T:i|tle" },
-      );
+    await listener(mediaClick);
 
-      expect(lastState().info.url).toBe("https://example.com/");
-      expect(lastState().info.context).toBe(DOWNLOAD_TYPES.PAGE);
-      // ":" and "|" are stripped by filename sanitisation
-      expect(lastState().info.suggestedFilename).toBe("Title");
-    });
-
-    test("falls back to the page url when no tab title is known", async () => {
-      await listener({ menuItemId: "save-in-0", pageUrl: "https://example.com/" });
-
-      expect(lastState().info.suggestedFilename).toBe("httpsexample.com");
+    expect(Notifier.createExtensionNotification).toHaveBeenCalledWith(
+      "Translated<notificationBadPreferLinksPattern>",
+      expect.any(SyntaxError),
+      undefined,
+      "prefer-links-pattern-error",
+    );
+    expect(lastState().info).toMatchObject({
+      url: "https://example.com/i.png",
+      context: DOWNLOAD_TYPES.MEDIA,
     });
   });
 

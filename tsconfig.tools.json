@@ -17,6 +17,7 @@
     "scripts/build-bundled.js",
     "scripts/build-source-package.js",
     "scripts/check-import-cycles.js",
+    "scripts/check-release-package.js",
     "scripts/prepare-release.js",
     "scripts/lib/architecture-checks.js",
     "scripts/lib/canonicalize-zip.js",

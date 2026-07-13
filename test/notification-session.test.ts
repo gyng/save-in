@@ -829,7 +829,7 @@ describe("notification variants", () => {
     expect(global.browser.notifications.clear).toHaveBeenCalledWith("0");
   });
 
-  test("successes are logged and show megabyte sizes", async () => {
+  test("successes are logged and pass browser metadata to the notification model", async () => {
     await install({ notifyOnSuccess: true, notifyDuration: 1000 }, () => [
       { id: 7, fileSize: 2500000, mime: "image/png" },
     ]);
@@ -844,51 +844,9 @@ describe("notification variants", () => {
     expect(global.browser.notifications.create).toHaveBeenCalledWith(
       "7",
       expect.objectContaining({
-        title: expect.stringContaining("2.5 MB"),
+        title: "Translated<notificationSuccessTitle> · 2.5 MB · image/png",
         iconUrl: "icons/ic_archive_black_128px.png",
       }),
-    );
-  });
-
-  test("small downloads show byte sizes", async () => {
-    await install({ notifyOnSuccess: true, notifyDuration: 1000 }, () => [
-      { id: 7, fileSize: 512, mime: "text/plain" },
-    ]);
-    await startTracked({ id: 7, filename: "/dl/pic.png", url: "https://x/p.png" });
-
-    await onChanged({ id: 7, state: { current: "complete", previous: "in_progress" } });
-
-    expect(global.browser.notifications.create).toHaveBeenCalledWith(
-      "7",
-      expect.objectContaining({ title: expect.stringContaining("512 B") }),
-    );
-  });
-
-  test("missing file sizes leave the size out", async () => {
-    await install({ notifyOnSuccess: true, notifyDuration: 1000 }, () => [
-      { id: 7, mime: "text/plain" },
-    ]);
-    await startTracked({ id: 7, filename: "/dl/pic.png", url: "https://x/p.png" });
-
-    await onChanged({ id: 7, state: { current: "complete", previous: "in_progress" } });
-
-    expect(global.browser.notifications.create).toHaveBeenCalledWith(
-      "7",
-      expect.objectContaining({
-        title: "Translated<notificationSuccessTitle> · text/plain",
-      }),
-    );
-  });
-
-  test("an empty search result falls back to a bare success title", async () => {
-    await install({ notifyOnSuccess: true, notifyDuration: 1000 }, () => []);
-    await startTracked({ id: 7, filename: "/dl/pic.png", url: "https://x/p.png" });
-
-    await onChanged({ id: 7, state: { current: "complete", previous: "in_progress" } });
-
-    expect(global.browser.notifications.create).toHaveBeenCalledWith(
-      "7",
-      expect.objectContaining({ title: "Translated<notificationSuccessTitle>" }),
     );
   });
 

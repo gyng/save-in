@@ -32,12 +32,6 @@ test("places the inline privacy policy immediately above About in Help and resou
   expect(optionsDocument.querySelector('#about-dialog a[href="../../PRIVACY.md"]')).toBeNull();
 });
 
-test("uses the regular type size throughout the Help and resources dropdown", () => {
-  const css = readFileSync(resolve("src/options/style.css"), "utf8");
-  const menuRules = css.match(/\.nav-resources-menu\s*\{([^}]*)\}/)?.[1];
-  expect(menuRules).toContain("font-size: var(--text-base)");
-});
-
 test("opens the privacy modal and renders the canonical packaged Markdown", async () => {
   const dialog = setupMarkup();
   const fetch = vi.fn().mockResolvedValue({

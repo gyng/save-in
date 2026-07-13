@@ -67,6 +67,84 @@ const report = (file, rule, dependency) =>
     `${relative(file)}: ${rule}${dependency ? ` (${relative(dependency)})` : ""}`,
   );
 
+/** @param {string} name */
+const readRepoFile = (name) => fs.readFileSync(path.join(root, name), "utf8");
+/** @param {string} name @param {string | RegExp} forbidden @param {string} rule */
+const forbidText = (name, forbidden, rule) => {
+  const source = readRepoFile(name);
+  const found = typeof forbidden === "string" ? source.includes(forbidden) : forbidden.test(source);
+  if (found) report(path.join(root, name), rule);
+};
+/** @param {string} name @param {string | RegExp} required @param {string} rule */
+const requireText = (name, required, rule) => {
+  const source = readRepoFile(name);
+  const found = typeof required === "string" ? source.includes(required) : required.test(source);
+  if (!found) report(path.join(root, name), rule);
+};
+
+forbidText("rolldown.config.mjs", "self.window = self", "must not emulate Window in workers");
+forbidText(
+  "src/background/runtime.ts",
+  'Symbol.for("save-in.backgroundRuntime")',
+  "background runtime state must remain module-owned",
+);
+for (const name of ["src/options/options.ts", "src/options/tabs.ts", "types/platform.d.ts"]) {
+  forbidText(name, "window.confirmPendingChanges", "must not use Window as an options message bus");
+}
+forbidText(
+  "src/entries/background.ts",
+  "registerBackgroundE2ECommand",
+  "production entry must not register E2E controls",
+);
+requireText(
+  "src/entries/background.e2e.ts",
+  "registerBackgroundE2ECommand()",
+  "E2E entry must register the command bridge",
+);
+forbidText(
+  "src/entries/background.e2e.ts",
+  "globalThis",
+  "E2E controls must not be exposed on the browser global",
+);
+forbidText("rolldown.config.mjs", "SAVE_IN_E2E", "must use the explicit build mode contract");
+requireText(
+  "rolldown.config.mjs",
+  "SAVE_IN_CONTENT_E2E",
+  "must retain explicit content-panel E2E gating",
+);
+requireText(
+  "scripts/build-bundled.js",
+  "Unexpected content panel shadow mode",
+  "staging must verify content-panel shadow mode",
+);
+for (const name of ["e2e/chrome.e2e.mjs", "e2e/firefox.e2e.mjs"]) {
+  forbidText(name, "__SAVE_IN_E2E__", "harness must use the command bridge");
+  forbidText(name, "runtime: window", "harness must not expose Window as runtime");
+  forbidText(
+    name,
+    /\b(Log|SaveHistory|Download|Notifier|Messaging|options),/,
+    "harness must not depend on background globals",
+  );
+}
+requireText(
+  "src/entries/options.ts",
+  /addEventListener\(\s*["']DOMContentLoaded["']/,
+  "options entry must own DOM-ready registration",
+);
+for (const name of [
+  "src/options/l10n.ts",
+  "src/options/history-panel.ts",
+  "src/options/option-search.ts",
+  "src/options/options-reference.ts",
+  "src/options/path-editor.ts",
+  "src/options/permissions-banner.ts",
+  "src/options/rule-builder.ts",
+  "src/options/source-shortcut.ts",
+  "src/options/options-bootstrap.ts",
+]) {
+  forbidText(name, /addEventListener\(\s*["']DOMContentLoaded["']/, "DOM-ready is entry-owned");
+}
+
 // Execution contexts communicate through shared contracts, never by importing
 // the background implementation that happens to serve them today.
 for (const [file, dependencies] of imports) {
