@@ -684,9 +684,10 @@ test("fetchViaFetch downloads via an offscreen document (Chrome MV3)", async () 
   expect(fs.readFileSync(file, "utf8")).toBe("via fetch content");
 });
 
-test("extension fetch credentials are opt-in", async () => {
+test("extension fetch credentials are preserved across cross-origin redirects", async () => {
   const protectedRequests = [];
-  const server = http.createServer((req, res) => {
+  const redirectRequests = [];
+  const destinationServer = http.createServer((req, res) => {
     if (req.url === "/protected.bin") {
       const cookie = req.headers.cookie || "";
       protectedRequests.push(cookie);
@@ -696,13 +697,21 @@ test("extension fetch credentials are opt-in", async () => {
     }
     res.writeHead(200, {
       "Content-Type": "text/html",
-      "Set-Cookie": "save_in_auth=granted; Path=/",
+      "Set-Cookie": "save_in_auth=granted; Path=/protected.bin",
     });
     res.end("<!doctype html><title>credential fixture</title>");
   });
-  const serverPort = await listenLocal(server);
-  const pageUrl = `http://127.0.0.1:${serverPort}/`;
-  const targetUrl = `127.0.0.1:${serverPort}`;
+  const destinationPort = await listenLocal(destinationServer);
+  const redirectServer = http.createServer((req, res) => {
+    redirectRequests.push(req.headers.cookie || "");
+    res.writeHead(302, {
+      Location: `http://127.0.0.1:${destinationPort}/protected.bin`,
+    });
+    res.end();
+  });
+  const redirectPort = await listenLocal(redirectServer);
+  const pageUrl = `http://127.0.0.1:${destinationPort}/protected.bin/setup`;
+  const targetUrl = `127.0.0.1:${destinationPort}`;
 
   try {
     await cdp.openTab(PORT, pageUrl);
@@ -717,7 +726,7 @@ test("extension fetch credentials are opt-in", async () => {
     );
 
     await evalSW(`api.startDownload({
-      url: "http://127.0.0.1:${serverPort}/protected.bin",
+      url: "http://127.0.0.1:${redirectPort}/credentials-omitted.bin",
       suggestedFilename: "credentials-omitted.bin",
       pageUrl: ${JSON.stringify(pageUrl)},
       runtimeOptions: { fetchViaFetch: true, includeFetchCredentials: false },
@@ -725,7 +734,7 @@ test("extension fetch credentials are opt-in", async () => {
     await waitForDownloads("credentials-omitted", 10000);
 
     await evalSW(`api.startDownload({
-      url: "http://127.0.0.1:${serverPort}/protected.bin",
+      url: "http://127.0.0.1:${redirectPort}/credentials-included.bin",
       suggestedFilename: "credentials-included.bin",
       pageUrl: ${JSON.stringify(pageUrl)},
       runtimeOptions: { fetchViaFetch: true, includeFetchCredentials: true },
@@ -738,10 +747,12 @@ test("extension fetch credentials are opt-in", async () => {
     expect(fs.readFileSync(path.join(DOWNLOADS, "e2e", "credentials-included.bin"), "utf8")).toBe(
       "authenticated",
     );
+    expect(redirectRequests).toEqual(["", ""]);
     expect(protectedRequests).toEqual(["", expect.stringContaining("save_in_auth=granted")]);
   } finally {
     await evalSW(`api.setOptions({ fetchViaFetch: false, includeFetchCredentials: false })`);
-    server.close();
+    redirectServer.close();
+    destinationServer.close();
   }
 });
 
