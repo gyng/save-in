@@ -45,6 +45,26 @@ describe("vendored content-disposition parser", () => {
     expect(parse("attachment; filename*=UTF-8''report%2520final.txt")).toBe("report%20final.txt");
   });
 
+  test("can match Firefox's native extended-value compatibility", () => {
+    const firefoxCompatibility = {
+      allowQuotedExtendedValue: true,
+      unescapeExtendedValueAgain: true,
+    };
+
+    expect(
+      parse(
+        "attachment; filename=fallback.txt; filename*=\"UTF-8''quoted-%E2%82%AC.txt\"",
+        firefoxCompatibility,
+      ),
+    ).toBe("quoted-€.txt");
+    expect(
+      parse("attachment; filename*=UTF-8''extended-percent%2520value.txt", firefoxCompatibility),
+    ).toBe("extended-percent value.txt");
+    expect(parse("attachment; filename=plain-percent%2520value.txt", firefoxCompatibility)).toBe(
+      "plain-percent%20value.txt",
+    );
+  });
+
   test("latin1 charset", () => {
     expect(parse("attachment; filename*=iso-8859-1'en'caf%E9.txt")).toBe("café.txt");
   });

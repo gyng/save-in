@@ -10,6 +10,10 @@ import path from "path";
 import cdp from "../scripts/lib/cdp.js";
 import chrome from "../scripts/lib/chrome.js";
 import { inBackgroundContext } from "./background-context.mjs";
+import {
+  CONTENT_DISPOSITION_CASES,
+  startContentDispositionServer,
+} from "./content-disposition-cases.mjs";
 import { listenLocal, poll } from "./helpers.mjs";
 
 const PROFILE = path.join(chrome.ROOT, "dist", "e2e-profile");
@@ -122,6 +126,27 @@ const waitForDownloads = (regex, deadlineMs = 8000) =>
     },
     { timeoutMs: deadlineMs, description: `download matching ${regex}` },
   );
+
+/** @param {string} url @returns {Promise<string>} */
+const waitForDownloadUrl = async (url) => {
+  const row = await poll(
+    async () => {
+      const json = await evalSW(
+        `browser.downloads.search({ url: ${JSON.stringify(url)} }).then((rows) => JSON.stringify(rows.at(-1) || null))`,
+      );
+      const result = JSON.parse(json);
+      return result?.state === "complete" ? result : null;
+    },
+    { description: `browser-selected filename for ${url}` },
+  );
+  return path.basename(row.filename);
+};
+
+/** @param {string} url @returns {Promise<string>} */
+const downloadUsingBrowserFilename = async (url) => {
+  await evalSW(`browser.tabs.create({ url: ${JSON.stringify(url)} }).then(() => true)`);
+  return waitForDownloadUrl(url);
+};
 
 /** @param {string} predicate @param {number} [deadlineMs] @returns {Promise<any[]>} */
 const waitForLog = (predicate, deadlineMs = 8000) =>
@@ -420,6 +445,29 @@ test("download completes through the real pipeline with session tracking", async
 
   const file = path.join(DOWNLOADS, "e2e", "smoke.txt");
   expect(fs.readFileSync(file, "utf8")).toBe("e2e smoke test content");
+});
+
+test("Save In filenames match live Chrome Content-Disposition behavior", async () => {
+  const { server, port } = await startContentDispositionServer();
+  try {
+    for (const fixture of CONTENT_DISPOSITION_CASES) {
+      const nativeUrl = `http://127.0.0.1:${port}/${fixture.id}?source=native`;
+      const saveInUrl = `http://127.0.0.1:${port}/${fixture.id}?source=save-in`;
+      const nativeFilename = await downloadUsingBrowserFilename(nativeUrl);
+      await evalSW(
+        `api.startDownload({
+          url: ${JSON.stringify(saveInUrl)},
+          suggestedFilename: ${JSON.stringify(`${fixture.id}-url-fallback.bin`)},
+          pageUrl: ${JSON.stringify(`http://127.0.0.1:${port}/`)},
+          path: "e2e/content-disposition",
+        }).then(() => true)`,
+      );
+      const saveInFilename = await waitForDownloadUrl(saveInUrl);
+      expect.soft(saveInFilename, fixture.id).toBe(nativeFilename);
+    }
+  } finally {
+    server.close();
+  }
 });
 
 test("success notifications are created by the real download listener", async () => {

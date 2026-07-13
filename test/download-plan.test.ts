@@ -108,9 +108,7 @@ describe("renameAndDownload: MIME extension append (§8.1)", () => {
     await Download.renameAndDownload(state);
 
     expect(Variable.resolveMime).toHaveBeenCalledWith(state.info);
-    expect(global.browser.downloads.download).toHaveBeenCalledWith(
-      expect.objectContaining({ filename: expect.stringMatching(/12345\.jpg$/) }),
-    );
+    expect(Download.finalizeFullPath(state)).toMatch(/12345\.jpg$/);
   });
 
   test("skips the HEAD and leaves a filename that already has an extension", async () => {
@@ -123,9 +121,7 @@ describe("renameAndDownload: MIME extension append (§8.1)", () => {
     await Download.renameAndDownload(state);
 
     expect(Variable.resolveMime).not.toHaveBeenCalled();
-    expect(global.browser.downloads.download).toHaveBeenCalledWith(
-      expect.objectContaining({ filename: expect.stringMatching(/photo\.png$/) }),
-    );
+    expect(Download.finalizeFullPath(state)).toMatch(/photo\.png$/);
   });
 });
 
@@ -139,9 +135,7 @@ describe("renameAndDownload: folder-only route (§8.1)", () => {
     await Download.renameAndDownload(state);
 
     expect(state.routeIsFolder).toBe(true);
-    expect(global.browser.downloads.download).toHaveBeenCalledWith(
-      expect.objectContaining({ filename: "downloads/pdfs/file.png" }),
-    );
+    expect(Download.finalizeFullPath(state)).toBe("downloads/pdfs/file.png");
   });
 
   test("a route without a trailing slash sets the whole name (unchanged)", async () => {
@@ -153,9 +147,7 @@ describe("renameAndDownload: folder-only route (§8.1)", () => {
     await Download.renameAndDownload(state);
 
     expect(state.routeIsFolder).toBe(false);
-    expect(global.browser.downloads.download).toHaveBeenCalledWith(
-      expect.objectContaining({ filename: "downloads/renamed.png" }),
-    );
+    expect(Download.finalizeFullPath(state)).toBe("downloads/renamed.png");
   });
 });
 
@@ -288,10 +280,7 @@ describe("renameAndDownload: route matching", () => {
     expect(router.matchRules).toHaveBeenCalledWith(options.filenamePatterns, state.info);
     expect(state.route).toBeDefined();
     expect(String(state.route.finalize())).toBe("matched/route.txt");
-
-    expect(global.browser.downloads.download).toHaveBeenCalledWith(
-      expect.objectContaining({ filename: expect.stringContaining("matched/route.txt") }),
-    );
+    expect(Download.finalizeFullPath(state)).toContain("matched/route.txt");
   });
 });
 

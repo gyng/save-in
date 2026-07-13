@@ -63,7 +63,6 @@ describe("renameAndDownload: browserDownload", () => {
     );
     expect(global.browser.downloads.download).toHaveBeenCalledWith({
       url: state.info.url,
-      filename: expect.any(String),
       saveAs: false,
       conflictAction: "uniquify",
     });
@@ -107,7 +106,7 @@ describe("renameAndDownload: browserDownload", () => {
     expect(URL.revokeObjectURL).toHaveBeenCalledWith(url);
   });
 
-  test("substitutes _ for an empty final path", async () => {
+  test("stores _ as the recovery filename for an empty planned path", async () => {
     setCurrentBrowser("CHROME");
     vi.mocked(Path.sanitizeFilename).mockReturnValue(null as any);
 
@@ -119,9 +118,8 @@ describe("renameAndDownload: browserDownload", () => {
       .mocked(SessionState.updateSession)
       .mock.calls.find((call: any) => call[2] === "siFinalFilenames");
     expect(fnameUpdate![3]({})).toEqual({ [state.info.url]: "_" });
-    expect(global.browser.downloads.download).toHaveBeenCalledWith(
-      expect.objectContaining({ filename: "_" }),
-    );
+    const [downloadOptions] = vi.mocked(global.browser.downloads.download).mock.calls[0]!;
+    expect(downloadOptions).not.toHaveProperty("filename");
   });
 
   test("emits downloaded, records lastDownloadState, and saves history", async () => {
@@ -267,7 +265,7 @@ describe("onDeterminingFilename listener: sync path", () => {
     });
   });
 
-  test("prefers the state's suggestedFilename over the download item's filename", async () => {
+  test("prefers Chrome's HTTP filename over the initial suggestion", async () => {
     setCurrentBrowser("CHROME");
     const state = makeState({ info: { suggestedFilename: "suggested.txt" } });
 
@@ -284,8 +282,11 @@ describe("onDeterminingFilename listener: sync path", () => {
     );
 
     expect(suggest).toHaveBeenCalledWith({
-      filename: "downloads/suggested.txt",
+      filename: "downloads/from-download-item.bin",
       conflictAction: "uniquify",
+    });
+    expect(SaveHistory.patch).toHaveBeenCalledWith("h-test", {
+      finalFullPath: "downloads/from-download-item.bin",
     });
   });
 

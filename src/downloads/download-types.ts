@@ -17,6 +17,7 @@ export type DownloadScratch = {
   mimeExtension?: string | undefined;
   pathTemplateRaw?: string | undefined;
   historyEntryId?: string | null | undefined;
+  browserFilenameResolution?: boolean | undefined;
 };
 
 export type DownloadPipelineState = {

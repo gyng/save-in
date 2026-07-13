@@ -76,6 +76,9 @@ describe("renameAndDownload: Chrome vs Firefox entry", () => {
     expect(global.fetch).not.toHaveBeenCalled();
 
     expect(global.browser.downloads.download).toHaveBeenCalledWith(
+      expect.not.objectContaining({ filename: expect.anything() }),
+    );
+    expect(global.browser.downloads.download).toHaveBeenCalledWith(
       expect.objectContaining({ url: state.info.url }),
     );
   });
@@ -99,6 +102,13 @@ describe("renameAndDownload: Chrome vs Firefox entry", () => {
         credentials: "omit",
         redirect: "follow",
       }),
+    );
+    expect(getFilenameFromContentDispositionHeader).toHaveBeenCalledWith(
+      'attachment; filename="server-name.pdf"',
+      {
+        allowQuotedExtendedValue: true,
+        unescapeExtendedValueAgain: true,
+      },
     );
 
     expect(state.info.filename).toBe("server-name.pdf");

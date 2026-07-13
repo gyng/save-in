@@ -13,7 +13,15 @@
  * @param {string} contentDisposition
  * @return {string} Filename, if found in the Content-Disposition header.
  */
-export function getFilenameFromContentDispositionHeader(contentDisposition: string): string {
+export type ContentDispositionParseOptions = {
+  allowQuotedExtendedValue?: boolean;
+  unescapeExtendedValueAgain?: boolean;
+};
+
+export function getFilenameFromContentDispositionHeader(
+  contentDisposition: string,
+  options: ContentDispositionParseOptions = {},
+): string {
   // This parser is designed to be tolerant and accepting of headers that do
   // not comply with the standard, but accepted by Firefox.
 
@@ -149,6 +157,7 @@ export function getFilenameFromContentDispositionHeader(contentDisposition: stri
     return value;
   }
   function decodeRfc5987Value(extvalue: string): string | null {
+    if (options.allowQuotedExtendedValue) extvalue = rfc2616unquote(extvalue);
     // RFC 5987 ext-value is not a quoted-string. Rejecting malformed values
     // lets callers use the RFC 6266 filename fallback instead.
     const match = /^([^']+)'[^']*'((?:[!#$&+.^_`|~0-9A-Za-z-]|%[0-9A-Fa-f]{2})*)$/.exec(
@@ -169,7 +178,13 @@ export function getFilenameFromContentDispositionHeader(contentDisposition: stri
     }
 
     try {
-      return new TextDecoder(encoding, { fatal: true }).decode(new Uint8Array(bytes));
+      const decoded = new TextDecoder(encoding, { fatal: true }).decode(new Uint8Array(bytes));
+      if (!options.unescapeExtendedValueAgain) return decoded;
+      try {
+        return decodeURIComponent(decoded);
+      } catch {
+        return decoded;
+      }
     } catch {
       return null;
     }

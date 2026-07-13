@@ -13,7 +13,10 @@ import { applyVariables, mimeToExtension, resolveHead, resolveMime } from "../ro
 import { options } from "../config/options-data.ts";
 import { downloadPorts } from "./ports.ts";
 import { WEB_EXTENSION_CAPABILITIES } from "../platform/chrome-detector.ts";
-import { getFilenameFromContentDispositionHeader } from "../vendor/content-disposition.ts";
+import {
+  getFilenameFromContentDispositionHeader,
+  type ContentDispositionParseOptions,
+} from "../vendor/content-disposition.ts";
 import { fetchUrlForDownload } from "./content-fetch.ts";
 import { OffscreenClient } from "../platform/offscreen-client.ts";
 import { EXTENSION_REGEX, getFilenameFromUrl } from "../routing/filename.ts";
@@ -42,6 +45,13 @@ import { BrowserDownloadRouting, routeBrowserDownload } from "./browser-download
 import { resolveFirefoxDownloadContext } from "./auth-context.ts";
 import { ActiveTransfers } from "./active-transfers.ts";
 import type { HistoryEntryInput } from "../shared/history-types.ts";
+
+const FIREFOX_CONTENT_DISPOSITION_COMPATIBILITY: ContentDispositionParseOptions = {
+  // Firefox's native HTTP path accepts quoted ext-values and URI-unescapes a
+  // decoded extended value again. Its HEAD-based Save In path must agree.
+  allowQuotedExtendedValue: true,
+  unescapeExtendedValueAgain: true,
+};
 
 const downloadRuntime = createDownloadRuntimeState();
 const logPort = downloadPorts.log;
@@ -281,10 +291,13 @@ export const Download = {
     return finalFullPath.replace(/^\.\//, "").replace(/^\//, "");
   },
 
-  getFilenameFromContentDisposition: (disposition: unknown): string | null => {
+  getFilenameFromContentDisposition: (
+    disposition: unknown,
+    parseOptions: ContentDispositionParseOptions = {},
+  ): string | null => {
     if (typeof disposition !== "string") return null;
 
-    const filenameFromLib = getFilenameFromContentDispositionHeader(disposition);
+    const filenameFromLib = getFilenameFromContentDispositionHeader(disposition, parseOptions);
     return filenameFromLib || null;
   },
 
@@ -345,6 +358,7 @@ export const Download = {
         if (metadata.contentDisposition) {
           const dispositionName = Download.getFilenameFromContentDisposition(
             metadata.contentDisposition,
+            FIREFOX_CONTENT_DISPOSITION_COMPATIBILITY,
           );
           state.info.filename = dispositionName || state.info.filename;
         }
@@ -506,12 +520,19 @@ export const Download = {
     });
     try {
       if (acquired.url !== state.info.url) Download.movePendingState(state, acquired.url);
+      const browserFilenameResolution =
+        WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion &&
+        acquired.source === "direct" &&
+        isHttpDownloadUrl(acquired.url);
+      state.scratch.browserFilenameResolution = browserFilenameResolution;
       const downloadOptions: Parameters<typeof webExtensionApi.downloads.download>[0] = {
         url: acquired.url,
-        filename,
         saveAs: prompt,
         conflictAction: options.conflictAction,
       };
+      // An explicit Chrome downloads.download filename suppresses the server's
+      // Content-Disposition name before onDeterminingFilename can route it.
+      if (!browserFilenameResolution) downloadOptions.filename = filename;
       if (headers) downloadOptions.headers = headers;
       Object.assign(downloadOptions, await resolveFirefoxDownloadContext(state.info.currentTab));
       throwIfAborted(signal);

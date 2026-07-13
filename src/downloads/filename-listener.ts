@@ -170,8 +170,9 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
 
     pendingState.info = pendingState.info || {};
     const previousFilename = pendingState.info.filename;
-    pendingState.info.filename =
-      pendingState.info.suggestedFilename || downloadItem.filename || pendingState.info.filename;
+    pendingState.info.filename = pendingState.scratch?.browserFilenameResolution
+      ? downloadItem.filename || pendingState.info.suggestedFilename || pendingState.info.filename
+      : pendingState.info.suggestedFilename || downloadItem.filename || pendingState.info.filename;
 
     const pathTemplateRaw = pendingState.scratch?.pathTemplateRaw;
     const filenameChanged = pendingState.info.filename !== previousFilename;
@@ -220,6 +221,10 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
         filename,
         pendingState.info.currentTab?.incognito === true,
       );
+    }
+    const historyEntryId = pendingState.scratch?.historyEntryId;
+    if (typeof historyEntryId === "string") {
+      void historyPort.patch(historyEntryId, { finalFullPath: filename });
     }
     suggest({ filename, conflictAction: options.conflictAction });
     return false;

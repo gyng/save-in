@@ -9,6 +9,10 @@ import path from "path";
 
 import firefox from "../scripts/lib/firefox.js";
 import { inBackgroundContext } from "./background-context.mjs";
+import {
+  CONTENT_DISPOSITION_CASES,
+  startContentDispositionServer,
+} from "./content-disposition-cases.mjs";
 import { listenLocal, poll } from "./helpers.mjs";
 
 /** @type {Awaited<ReturnType<typeof firefox.launch>>} */
@@ -70,6 +74,27 @@ const waitForDownloads = async (filenamePart, deadlineMs = 8000) =>
       deadlineMs + 2000,
     ),
   );
+
+/** @param {string} url @returns {Promise<string>} */
+const waitForDownloadUrl = async (url) => {
+  const row = await poll(
+    async () => {
+      const json = await evalBackground(
+        `browser.downloads.search({ url: ${JSON.stringify(url)} }).then((rows) => JSON.stringify(rows.at(-1) || null))`,
+      );
+      const result = JSON.parse(json);
+      return result?.state === "complete" ? result : null;
+    },
+    { description: `browser-selected filename for ${url}` },
+  );
+  return path.basename(row.filename);
+};
+
+/** @param {string} url @returns {Promise<string>} */
+const downloadUsingBrowserFilename = async (url) => {
+  await evalBackground(`browser.tabs.create({ url: ${JSON.stringify(url)} }).then(() => true)`);
+  return waitForDownloadUrl(url);
+};
 
 /** @param {string} predicate @param {number} [deadlineMs] @returns {Promise<any[]>} */
 const waitForLog = async (predicate, deadlineMs = 8000) =>
@@ -197,6 +222,29 @@ test("download completes through the real pipeline", async () => {
   expect(downloads).toHaveLength(1);
   expect(downloads[0].state).toBe("complete");
   expect(fs.readFileSync(downloads[0].filename, "utf8")).toBe("firefox e2e content");
+});
+
+test("Save In filenames match live Firefox Content-Disposition behavior", async () => {
+  const { server, port } = await startContentDispositionServer();
+  try {
+    for (const fixture of CONTENT_DISPOSITION_CASES) {
+      const nativeUrl = `http://127.0.0.1:${port}/${fixture.id}?source=native`;
+      const saveInUrl = `http://127.0.0.1:${port}/${fixture.id}?source=save-in`;
+      const nativeFilename = await downloadUsingBrowserFilename(nativeUrl);
+      await evalBackground(
+        `api.startDownload({
+          url: ${JSON.stringify(saveInUrl)},
+          suggestedFilename: ${JSON.stringify(`${fixture.id}-url-fallback.bin`)},
+          pageUrl: ${JSON.stringify(`http://127.0.0.1:${port}/`)},
+          path: "e2e/content-disposition",
+        }).then(() => true)`,
+      );
+      const saveInFilename = await waitForDownloadUrl(saveInUrl);
+      expect.soft(saveInFilename, fixture.id).toBe(nativeFilename);
+    }
+  } finally {
+    server.close();
+  }
 });
 
 test("success notifications are created by the real download listener", async () => {
