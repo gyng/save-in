@@ -2,8 +2,7 @@
 
 This document tracks current work only. The completed TypeScript/ESM migration
 and its design constraints are documented in `AGENTS.md`, `ARCH-CYCLES.md`, and
-`TS-MIGRATION.md`. The earlier detailed planning record is preserved in
-[`archive/ROADMAP-2026.md`](archive/ROADMAP-2026.md).
+`TS-MIGRATION.md`. Git history retains the completed planning record.
 
 ## Current priorities
 

@@ -31,6 +31,9 @@ test("ships a self-verifying Mozilla source attachment", () => {
     '"assets"',
     '"assets/README.md"',
     '"assets/icons/notification-info.svg"',
+    '"docs/ARCH-CYCLES.md"',
+    '"docs/STORE-SUBMISSION.md"',
+    '"docs/TS-MIGRATION.md"',
     '"e2e"',
     '"CHANGELOG.md"',
     '"tsconfig.chrome.json"',
@@ -47,6 +50,14 @@ test("ships a self-verifying Mozilla source attachment", () => {
     "canonicalizeZip",
   ]) {
     expect(sourceBuild).toContain(required);
+  }
+  expect(sourceBuild).not.toMatch(/^\s+"docs",$/m);
+  for (const excludedPrefix of [
+    '"docs/archive/"',
+    '"docs/store-assets/"',
+    '"docs/store-screenshots/"',
+  ]) {
+    expect(sourceBuild).toContain(excludedPrefix);
   }
   expect(ci).toContain("npm run build:source");
 });

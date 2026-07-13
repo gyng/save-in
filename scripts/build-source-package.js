@@ -47,11 +47,17 @@ function zipEntries(contents) {
   return entries;
 }
 
-/** @param {string} archive @param {string[]} required */
-function verifyArchive(archive, required) {
+/** @param {string} archive @param {string[]} required @param {string[]} forbiddenPrefixes */
+function verifyArchive(archive, required, forbiddenPrefixes = []) {
   const entries = zipEntries(fs.readFileSync(archive));
   const missing = required.filter((file) => !entries.has(file));
   if (missing.length) throw new Error(`Source archive is missing: ${missing.join(", ")}`);
+  const forbidden = [...entries].filter((entry) =>
+    forbiddenPrefixes.some((prefix) => entry.startsWith(prefix)),
+  );
+  if (forbidden.length) {
+    throw new Error(`Source archive contains excluded files: ${forbidden.join(", ")}`);
+  }
 }
 
 async function main() {
@@ -71,7 +77,6 @@ async function main() {
     "types",
     "icons",
     "_locales",
-    "docs",
   ]) {
     fs.cpSync(path.join(root, dir), path.join(stage, dir), { recursive: true });
   }
@@ -84,6 +89,9 @@ async function main() {
     ".oxlintrc.json",
     "AGENTS.md",
     "CHANGELOG.md",
+    "docs/ARCH-CYCLES.md",
+    "docs/STORE-SUBMISSION.md",
+    "docs/TS-MIGRATION.md",
     "LICENSE",
     "PRIVACY.md",
     "README.md",
@@ -103,7 +111,9 @@ async function main() {
     "vitest.e2e.config.mjs",
   ];
   for (const file of files) {
-    fs.copyFileSync(path.join(root, file), path.join(stage, file));
+    const destination = path.join(stage, file);
+    fs.mkdirSync(path.dirname(destination), { recursive: true });
+    fs.copyFileSync(path.join(root, file), destination);
   }
 
   const webExt = resolveLocalBin("web-ext", root);
@@ -135,25 +145,32 @@ async function main() {
 
   const destination = path.join(artifacts, `save-in-${version}-source.zip`);
   await canonicalizeZip(destination);
-  verifyArchive(destination, [
-    ".gitattributes",
-    ".gitignore",
-    ".npmrc",
-    ".oxfmtrc.json",
-    ".oxlintrc.json",
-    ".github/workflows/ci.yml",
-    "assets/README.md",
-    "assets/icons/notification-info.svg",
-    "CHANGELOG.md",
-    "e2e/chrome.e2e.mjs",
-    "e2e/firefox.e2e.mjs",
-    "tsconfig.chrome.json",
-    "tsconfig.dev-tools.json",
-    "tsconfig.e2e.json",
-    "tsconfig.test.json",
-    "tsconfig.tools.json",
-    "tsconfig.worker.json",
-  ]);
+  verifyArchive(
+    destination,
+    [
+      ".gitattributes",
+      ".gitignore",
+      ".npmrc",
+      ".oxfmtrc.json",
+      ".oxlintrc.json",
+      ".github/workflows/ci.yml",
+      "assets/README.md",
+      "assets/icons/notification-info.svg",
+      "CHANGELOG.md",
+      "docs/ARCH-CYCLES.md",
+      "docs/STORE-SUBMISSION.md",
+      "docs/TS-MIGRATION.md",
+      "e2e/chrome.e2e.mjs",
+      "e2e/firefox.e2e.mjs",
+      "tsconfig.chrome.json",
+      "tsconfig.dev-tools.json",
+      "tsconfig.e2e.json",
+      "tsconfig.test.json",
+      "tsconfig.tools.json",
+      "tsconfig.worker.json",
+    ],
+    ["docs/archive/", "docs/store-assets/", "docs/store-screenshots/"],
+  );
   process.stdout.write(`Mozilla source attachment ready: ${destination}\n`);
 }
 
