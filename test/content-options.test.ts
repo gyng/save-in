@@ -52,3 +52,16 @@ test("falls back safely when a stored shortcut string contains unknown keys", ()
   expect("validate" in comboDefinition && comboDefinition.validate("garbage")).toBe(false);
   expect("validate" in comboDefinition && comboDefinition.validate("Ctrl+Shift")).toBe(true);
 });
+
+test("normalizes Page Sources theme overrides without reinterpreting legacy profiles", () => {
+  expect(resolveContentOptions({}).sourcePanelTheme).toBe("system");
+  expect(resolveContentOptions({ sourcePanelTheme: "dark" }).sourcePanelTheme).toBe("dark");
+  expect(resolveContentOptions({ sourcePanelTheme: "light" }).sourcePanelTheme).toBe("light");
+  expect(resolveContentOptions({ sourcePanelTheme: "auto" }).sourcePanelTheme).toBe("system");
+  expect(resolveContentOptions({ sourcePanelTheme: true }).sourcePanelTheme).toBe("system");
+
+  const themeDefinition = OPTION_KEYS.find(({ name }) => name === "sourcePanelTheme")!;
+  expect("validate" in themeDefinition && themeDefinition.validate("system")).toBe(true);
+  expect("validate" in themeDefinition && themeDefinition.validate("dark")).toBe(true);
+  expect("validate" in themeDefinition && themeDefinition.validate("auto")).toBe(false);
+});

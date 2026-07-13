@@ -268,6 +268,7 @@ const applyOptions = (next: ContentOptions) => {
       "sourcePanelPreviews",
       "sourcePanelResourceHints",
       "sourcePanelLinks",
+      "sourcePanelTheme",
     ] as const
   ).some((key) => previous[key] !== currentOptions[key]);
   if (sourcePanelOptionsChanged) reconfigureOpenSourcePanel?.();
@@ -334,6 +335,7 @@ try {
     previews: currentOptions.sourcePanelPreviews !== false,
     resourceHints: currentOptions.sourcePanelResourceHints !== false,
     includeLinks: currentOptions.sourcePanelLinks !== false,
+    theme: currentOptions.sourcePanelTheme || "system",
     onSaveIntent: warmBackground,
     onOpenChange: (open: boolean) => {
       try {

@@ -3,6 +3,11 @@ import { CLICK_TYPES, type ClickType } from "../shared/constants.ts";
 export const isClickType = (value: unknown): value is ClickType =>
   typeof value === "string" && Object.values(CLICK_TYPES).includes(value as ClickType);
 
+export const SOURCE_PANEL_THEMES = ["system", "dark", "light"] as const;
+export type SourcePanelTheme = (typeof SOURCE_PANEL_THEMES)[number];
+export const isSourcePanelTheme = (value: unknown): value is SourcePanelTheme =>
+  typeof value === "string" && SOURCE_PANEL_THEMES.includes(value as SourcePanelTheme);
+
 const CONTENT_CLICK_COMBO_KEY_CODES: Record<string, number> = {
   alt: 18,
   option: 18,
@@ -62,6 +67,7 @@ export const CONTENT_OPTION_DEFAULTS = {
   sourcePanelPreviews: true,
   sourcePanelResourceHints: true,
   sourcePanelLinks: true,
+  sourcePanelTheme: "system" as SourcePanelTheme,
   contentClickToSaveCombo: DEFAULT_CONTENT_CLICK_COMBO as string | number,
   contentClickToSaveButton: CLICK_TYPES.LEFT_CLICK as ClickType,
   links: true,
@@ -86,6 +92,8 @@ export const normalizeContentOption = <Name extends ContentOptionName>(
     return (isContentClickCombo(stored) ? stored : defaultValue) as ResolvedContentOptions[Name];
   if (name === "contentClickToSaveButton")
     return (isClickType(stored) ? stored : defaultValue) as ResolvedContentOptions[Name];
+  if (name === "sourcePanelTheme")
+    return (isSourcePanelTheme(stored) ? stored : defaultValue) as ResolvedContentOptions[Name];
   return (
     typeof stored === typeof defaultValue ? stored : defaultValue
   ) as ResolvedContentOptions[Name];

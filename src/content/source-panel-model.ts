@@ -1,3 +1,5 @@
+import type { SourcePanelTheme } from "../config/content-options.ts";
+
 export type PageSourceKind = "image" | "video" | "audio" | "stream" | "document" | "link";
 export type PageSource = {
   url: string;
@@ -15,6 +17,7 @@ export type SourcePanelOptions = {
   previews?: boolean;
   resourceHints?: boolean;
   includeLinks?: boolean;
+  theme?: SourcePanelTheme;
   onOpenChange?: (open: boolean) => void;
   onSaveIntent?: () => void;
 };

@@ -353,6 +353,27 @@ describe("Page Sources panel interactions", () => {
     expect(shadow.querySelector(".source-link img")).toBeNull();
   });
 
+  test("applies and live-updates the Page Sources theme override", () => {
+    const options = { includeBackgrounds: false, live: false, theme: "dark" as const };
+    toggleSourcePanel(vi.fn(), options);
+    const host = getSourcePanelHostForTesting()!;
+
+    expect(host.dataset.theme).toBe("dark");
+    expect(host.shadowRoot!.querySelector("style")?.textContent).toContain(
+      ":host([data-theme=dark])",
+    );
+
+    expect(replaceSourcePanel(vi.fn(), { ...options, theme: "light" })).toBe(true);
+    expect(getSourcePanelHostForTesting()).toBe(host);
+    expect(host.dataset.theme).toBe("light");
+  });
+
+  test("defaults direct and legacy panel callers to the system theme", () => {
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+
+    expect(getSourcePanelHostForTesting()!.dataset.theme).toBe("system");
+  });
+
   test("starts and stops live reconciliation without replacing the panel", async () => {
     vi.useFakeTimers();
     document.body.innerHTML = `<img src="initial.jpg">`;

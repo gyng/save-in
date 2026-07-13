@@ -63,6 +63,8 @@ repeated builds of the same source produce byte-identical ZIPs.
   Resource Timing buffer for best-effort HLS/DASH manifest discovery. It does
   not intercept browsing traffic and does not request `webRequest`. Copying a
   `yt-dlp` command only writes text to the clipboard; Save In never executes it.
+  Its Advanced theme setting can follow the operating-system preference or
+  force the drawer's own dark or light palette without changing the host page.
 - The extension makes no analytics or developer-server requests. Resource
   fetches go only to URLs involved in a user-requested save.
 - Chrome Incognito and Firefox Private Browsing activity is excluded from local
@@ -165,7 +167,8 @@ surfaces in current Chrome and Firefox:
 4. Revoke Save In's site access, confirm the options permission banner appears
    and click-to-save is unavailable, then grant access and confirm both recover.
 5. Check the options page and Page Sources dock/popout at normal and narrow
-   widths in light and dark system themes, including keyboard focus indicators.
+   widths in System, Dark, and Light panel modes, including keyboard focus
+   indicators and a forced theme opposite to the operating-system preference.
 6. In both a Chrome Incognito window and a Firefox Private Browsing window,
    perform a Save In download and an ordinary browser download, then confirm
    neither appears in Save In history or the debug log after returning to a

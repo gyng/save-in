@@ -2435,6 +2435,26 @@
     "message": "Reset restores the browser's suggested default.",
     "description": "Help text below the page-sources keyboard shortcut control. Used in src/options/options.html."
   },
+  "o_lSourcePanelTheme": {
+    "message": "Panel theme",
+    "description": "Label for the Page Sources theme override in Advanced options. Used in src/options/options.html."
+  },
+  "o_lSourcePanelThemeSystem": {
+    "message": "System",
+    "description": "Page Sources theme option that follows the operating-system preference. Used in src/options/options.html."
+  },
+  "o_lSourcePanelThemeDark": {
+    "message": "Dark",
+    "description": "Page Sources theme option that always uses dark colors. Used in src/options/options.html."
+  },
+  "o_lSourcePanelThemeLight": {
+    "message": "Light",
+    "description": "Page Sources theme option that always uses light colors. Used in src/options/options.html."
+  },
+  "o_lSourcePanelThemeHelp": {
+    "message": "Follow your system theme, or keep Page Sources dark or light on every site.",
+    "description": "Help text for the Page Sources theme override in Advanced options. Used in src/options/options.html."
+  },
   "html_without": {
     "message": "without",
     "description": "Text in the routing-clause reference. Used in src/options/clauselist.html."
