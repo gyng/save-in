@@ -131,6 +131,25 @@ const connectBrowser = async (port, attempts = 5) => {
 /** @param {number} port @returns {Promise<CdpTarget[]>} */
 const listTargets = (port) => getJson(port, "/json");
 
+/** @param {CdpTarget[]} targets */
+const extensionIdFromTargets = (targets) => {
+  for (const target of targets) {
+    const match = target.url.match(/^chrome-extension:\/\/([a-p]{32})(?:\/|$)/);
+    if (match?.[1]) return match[1];
+  }
+  return undefined;
+};
+
+/** @param {number} port @param {number} [attempts] */
+const waitForExtensionId = async (port, attempts = 30) => {
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    const extensionId = extensionIdFromTargets(await listTargets(port));
+    if (extensionId) return extensionId;
+    await sleep(500);
+  }
+  throw new Error("Chrome did not expose a target for the unpacked extension");
+};
+
 // Evaluates an expression in the first live target whose URL contains
 // urlSubstr. Skips targets whose extension context has been invalidated.
 /** @param {number} port @param {string} urlSubstr @param {string} expression @returns {Promise<any>} */
@@ -370,6 +389,7 @@ module.exports = {
   Cdp,
   getJson,
   connectBrowser,
+  extensionIdFromTargets,
   listTargets,
   evalInTarget,
   evalInServiceWorker,
@@ -382,4 +402,5 @@ module.exports = {
   reloadTargets,
   sleep,
   waitForCdp,
+  waitForExtensionId,
 };

@@ -28,6 +28,13 @@ const installBackgroundHelpers = () => {
         if (response?.body?.status === "OK") return response.body;
         throw new Error(response?.body?.message || "E2E context-menu command failed");
       }),
+    notificationCalls: (/** @type {"get" | "reset"} */ action) =>
+      send({ type: "SAVE_IN_E2E_NOTIFICATION_CALLS", body: { action } }).then(
+        (/** @type {any} */ response) => {
+          if (response?.body?.status === "OK") return response.body.calls;
+          throw new Error(response?.body?.message || "E2E notification command failed");
+        },
+      ),
     resetCounter: () => browserApi.storage.local.set({ "save-in-counter": 0 }),
     peekCounter: () =>
       browserApi.storage.local.get("save-in-counter").then((/** @type {any} */ stored) => {
@@ -79,6 +86,7 @@ const installBackgroundHelpers = () => {
 
 /** @param {string} expression */
 export const inBackgroundContext = (expression) => `(() => {
+  const browser = Reflect.get(globalThis, "browser") || Reflect.get(globalThis, "chrome");
   const api = (${installBackgroundHelpers.toString()})();
   return (${expression});
 })()`;
