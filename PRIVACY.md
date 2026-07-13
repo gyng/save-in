@@ -29,7 +29,8 @@ External extensions can request a save only after the user allows their ID.
 Extension permissions support only the features described above.
 
 Chrome may show an Incognito save in its regular download manager; Save In does
-not retain it in its own history or log.
+not retain it in its own history or log. Firefox keeps the download in its
+Private Browsing session.
 
 ## What information does Save In share?
 
@@ -41,7 +42,8 @@ Local data remains until the user clears it or uninstalls Save In; temporary
 transfer state is removed when no longer needed.
 
 Save In's use of information received from Chrome APIs complies with the Chrome
-Web Store User Data Policy, including its Limited Use requirements.
+Web Store User Data Policy, including its Limited Use requirements. Save In also
+complies with Mozilla's Add-on Policies for Firefox.
 
 ## Contact
 
