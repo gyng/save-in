@@ -654,7 +654,7 @@ Goal: [describe which downloads to match and where they should be saved]
 Save In syntax:
 - Write one clause per line and separate rules with a blank line.
 - Every matcher in one rule must match. Matcher values are JavaScript regular expressions.
-- Common matchers are filename:, fileext:, sourceurl:, sourcedomain:, pageurl:, pagedomain:, pagetitle:, context:, and mediatype:.
+- Common matchers include filename:, actualfileext:, mime:, sourceurl:, sourcedomain:, sourcerootdomain:, pageurl:, pagedomain:, pagerootdomain:, referrerurl:, referrerdomain:, pagetitle:, context:, and mediatype:.
 - Add /i to a matcher name for case-insensitive matching, for example filename/i: \.pdf$.
 - Every rule must contain exactly one into: clause. Its value is a relative destination or filename template.
 - End into: with / to move the file while preserving its resolved filename.
@@ -2155,6 +2155,14 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
               </tr>
               <tr>
                 <td>
+                  <code class="click-to-copy">mime:</code>
+                  <code class="click-to-copy">contenttype:</code>
+                </td>
+                <td><code>image/webp</code></td>
+                <td>__MSG_html_matchesTheMimeContentType__</td>
+              </tr>
+              <tr>
+                <td>
                   <code class="click-to-copy">naivefilename:</code>
                 </td>
                 <td>
@@ -2170,6 +2178,11 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                   <code>xyz.com</code>
                 </td>
                 <td>__MSG_html_matchesThePageHostname__</td>
+              </tr>
+              <tr>
+                <td><code class="click-to-copy">pagerootdomain:</code></td>
+                <td><code>xyz.com</code></td>
+                <td>__MSG_html_matchesTheRootHostname__</td>
               </tr>
               <tr>
                 <td>
@@ -2190,6 +2203,16 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                 <td>__MSG_html_matchesTheCurrentPageUrl__</td>
               </tr>
               <tr>
+                <td><code class="click-to-copy">referrerdomain:</code></td>
+                <td><code>mail.xyz.com</code></td>
+                <td>__MSG_html_matchesTheReferrerHostname__</td>
+              </tr>
+              <tr>
+                <td><code class="click-to-copy">referrerurl:</code></td>
+                <td><code>https://mail.xyz.com/thread/42</code></td>
+                <td>__MSG_html_matchesTheReferrerUrl__</td>
+              </tr>
+              <tr>
                 <td>
                   <code class="click-to-copy">selectiontext:</code>
                 </td>
@@ -2206,6 +2229,11 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                   <code>cdn.xyz.com</code>
                 </td>
                 <td>__MSG_html_matchesTheSourceHostnameForMedia__</td>
+              </tr>
+              <tr>
+                <td><code class="click-to-copy">sourcerootdomain:</code></td>
+                <td><code>xyz.com</code></td>
+                <td>__MSG_html_matchesTheRootHostname__</td>
               </tr>
               <tr>
                 <td>

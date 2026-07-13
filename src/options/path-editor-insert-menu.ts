@@ -41,16 +41,22 @@ export const setupPathInsertMenu = (
     selectiontext: "Match selected page text",
     pageurl: "Match the page URL",
     pagedomain: "Match the page hostname",
+    pagerootdomain: "Match the page root domain",
     pagetitle: "Match the page title",
     frameurl: "Match the frame URL",
+    referrerurl: "Match the referrer URL",
+    referrerdomain: "Match the referrer hostname",
     sourceurl: "Match the file URL",
     sourcedomain: "Match the file hostname",
+    sourcerootdomain: "Match the file root domain",
     filename: "Match the resolved filename",
     naivefilename: "Match the URL-derived filename",
     fileext: "Match the URL-derived extension",
     urlfileext: "Match the URL-derived extension",
     actualfileext: "Match the resolved extension",
     mediatype: "Match image, video, or audio",
+    mime: "Match the MIME content type",
+    contenttype: "Match the MIME content type",
   };
   const clauseButtons: HTMLButtonElement[] = [];
 

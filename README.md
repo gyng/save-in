@@ -22,6 +22,8 @@ Records a sortable, filterable download History with JSON and formula-safe CSV/T
 
 Rich path variables — dates, page/source parts, `:counter:`, `:uuid:`, and `:mime:`/`:mimeext:` (from the file's Content-Type). See the [wiki](https://github.com/gyng/save-in/wiki/Clause-and-Variable-list).
 
+Dynamic Downloads rules can match normalized MIME types (`mime:` / `contenttype:`), referrer URLs and hostnames, and page or source root domains.
+
 Optionally include matching ordinary browser downloads in local history. Chrome
 can apply Dynamic Downloads rules before saving; Firefox offers a separately
 labelled experimental cancel-and-redownload mode for matching HTTP(S) downloads.
