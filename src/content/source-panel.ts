@@ -781,7 +781,6 @@ export const toggleSourcePanel = (
               : "regular";
         size.textContent = sourceSize;
         detailText.append(
-          document.createTextNode("· "),
           size,
           document.createTextNode(
             `${mediaDetails.length ? ` · ${mediaDetails.join(" · ")}` : ""} ·`,
@@ -797,7 +796,7 @@ export const toggleSourcePanel = (
         );
         detected.setAttribute("aria-label", detectedAt);
         if (!hasRichTooltip) detected.title = detectedAt;
-        meta.replaceChildren(kindBadge, detailText, detected);
+        meta.replaceChildren(detailText, kindBadge, document.createTextNode("·"), detected);
       };
       if (preview instanceof HTMLImageElement) {
         preview.addEventListener(
