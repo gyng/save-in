@@ -1,14 +1,47 @@
 import {
   CONTENT_OPTION_DEFAULTS,
+  isAutoDownloadLimit,
   isClickType,
   isContentClickCombo,
   isUiTheme,
+  normalizeAutoDownloadLimit,
 } from "./content-options.ts";
+import { parseAutoDownloadRules } from "../automation/auto-download-rules.ts";
 
 // Background-only schema metadata. The content bundle imports the shared
 // defaults/normalizer, but not these definition objects.
 export const CONTENT_FEATURE_OPTION_DEFINITIONS = [
   { name: "contentClickToSave", type: "BOOL", default: CONTENT_OPTION_DEFAULTS.contentClickToSave },
+  {
+    name: "autoDownloadEnabled",
+    type: "BOOL",
+    default: CONTENT_OPTION_DEFAULTS.autoDownloadEnabled,
+  },
+  {
+    name: "autoDownloadRules",
+    type: "VALUE",
+    onSave: (value: string) => value.trim(),
+    onLoad: (value: string) => parseAutoDownloadRules(value).rules,
+    default: CONTENT_OPTION_DEFAULTS.autoDownloadRules,
+  },
+  {
+    name: "autoDownloadLive",
+    type: "BOOL",
+    default: CONTENT_OPTION_DEFAULTS.autoDownloadLive,
+  },
+  {
+    name: "autoDownloadPrivate",
+    type: "BOOL",
+    default: CONTENT_OPTION_DEFAULTS.autoDownloadPrivate,
+  },
+  {
+    name: "autoDownloadMaxPerPage",
+    type: "VALUE",
+    onLoad: normalizeAutoDownloadLimit,
+    onSave: normalizeAutoDownloadLimit,
+    validate: isAutoDownloadLimit,
+    default: CONTENT_OPTION_DEFAULTS.autoDownloadMaxPerPage,
+  },
   { name: "sourcePanelEnabled", type: "BOOL", default: CONTENT_OPTION_DEFAULTS.sourcePanelEnabled },
   {
     name: "sourcePanelBackgrounds",

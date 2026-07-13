@@ -409,11 +409,15 @@ export const Download = {
       }
     }
 
-    const routeMatches = Download.getRoutingMatches(state);
+    const routeMatches = state.scratch.routeTemplateRaw ?? Download.getRoutingMatches(state);
     // Click-to-save reuses the previous menu directory only as its unmatched
     // fallback. A matched `into:` route is rooted at Downloads so an earlier
     // folder choice cannot be prefixed onto every later dynamic route (#190).
-    if (routeMatches && state.info.context === DOWNLOAD_TYPES.CLICK) state.path = new Path(".");
+    if (
+      routeMatches &&
+      (state.info.context === DOWNLOAD_TYPES.CLICK || state.info.context === DOWNLOAD_TYPES.AUTO)
+    )
+      state.path = new Path(".");
     state.path = await applyVariables(state.path, state.info);
     if (routeMatches) {
       state.routeIsFolder = typeof routeMatches === "string" && /\/\s*$/.test(routeMatches);
@@ -425,7 +429,12 @@ export const Download = {
       WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion &&
       isHttpDownloadUrl(url) &&
       usesResolvedFilename;
-    if (deferRouteRequirement) state.scratch.deferredRouteRequirement = true;
+    const persistAutomaticRoute =
+      typeof state.scratch.routeTemplateRaw === "string" &&
+      WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion &&
+      isHttpDownloadUrl(url);
+    if (deferRouteRequirement || persistAutomaticRoute)
+      state.scratch.deferredRouteRequirement = true;
     if (routeRequired && !routeMatches && !deferRouteRequirement) {
       Download.forgetPendingState(state);
       return null;
@@ -814,7 +823,7 @@ export const Download = {
 
     // Trigger notifications
     if (state.route) {
-      if (options.notifyOnRuleMatch) {
+      if (options.notifyOnRuleMatch && state.info.context !== DOWNLOAD_TYPES.AUTO) {
         Notifier.createExtensionNotification(
           getMessage("notificationRuleMatchedTitle"),
           `${state.info.initialFilename}\n⬇\n${state.route}`,

@@ -35,6 +35,7 @@ import { applyUiTheme } from "../options/theme.ts";
 import { setupSyntaxEditors } from "../options/syntax-editor.ts";
 import { setupRouteDebugger } from "../options/route-debugger.ts";
 import { setupRuleVisualEditor } from "../options/rule-visual-editor.ts";
+import { setupAutoDownloadRuleEditor } from "../options/auto-download-rule-editor.ts";
 
 document.addEventListener(
   "DOMContentLoaded",
@@ -50,6 +51,7 @@ document.addEventListener(
     setupSyntaxEditors();
     setupRouteDebugger();
     setupRuleVisualEditor();
+    setupAutoDownloadRuleEditor();
     setupOptionsPage();
     void setupPermissionsBanner();
     setupPathEditor();

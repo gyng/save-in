@@ -70,3 +70,15 @@ test("normalizes interface locale and theme overrides", () => {
   expect("validate" in themeDefinition && themeDefinition.validate("dark")).toBe(true);
   expect("validate" in themeDefinition && themeDefinition.validate("auto")).toBe(false);
 });
+
+test("normalizes the automatic-save visit limit without reinterpreting malformed settings", () => {
+  expect(resolveContentOptions({ autoDownloadMaxPerPage: 1 }).autoDownloadMaxPerPage).toBe(1);
+  expect(resolveContentOptions({ autoDownloadMaxPerPage: "40" }).autoDownloadMaxPerPage).toBe(40);
+  expect(resolveContentOptions({ autoDownloadMaxPerPage: 500 }).autoDownloadMaxPerPage).toBe(500);
+
+  for (const value of [0, 501, 2.5, "", "many", true, null]) {
+    expect(resolveContentOptions({ autoDownloadMaxPerPage: value }).autoDownloadMaxPerPage).toBe(
+      CONTENT_OPTION_DEFAULTS.autoDownloadMaxPerPage,
+    );
+  }
+});

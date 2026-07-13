@@ -21,6 +21,16 @@ describe("message protocol runtime validation", () => {
       }),
     ).toBe(true);
     expect(
+      isInternalMessage({
+        type: MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
+        body: {
+          pageUrl: "https://example.test/gallery/",
+          sourceUrl: "https://cdn.test/image.png",
+          sourceKind: "image",
+        },
+      }),
+    ).toBe(true);
+    expect(
       isExternalMessage({
         type: MESSAGE_TYPES.VALIDATE,
         body: {
@@ -84,6 +94,14 @@ describe("message protocol runtime validation", () => {
     { type: MESSAGE_TYPES.DOWNLOAD, body: { version: Number.NaN } },
     { type: MESSAGE_TYPES.DOWNLOAD, body: { target: "currentTab" } },
     { type: MESSAGE_TYPES.DOWNLOAD, body: { target: 1 } },
+    {
+      type: MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
+      body: { pageUrl: "https://x/", sourceUrl: "https://x/a.png", sourceKind: "script" },
+    },
+    {
+      type: MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
+      body: { pageUrl: "https://x/", sourceUrl: 1, sourceKind: "image" },
+    },
   ])("rejects malformed internal message %#", (message) => {
     expect(isInternalMessage(message)).toBe(false);
   });
@@ -94,6 +112,16 @@ describe("message protocol runtime validation", () => {
       isExternalMessage({
         type: MESSAGE_TYPES.DOWNLOAD,
         body: { url: "https://x/image.png", info: { pageUrl: 42 } },
+      }),
+    ).toBe(false);
+    expect(
+      isExternalMessage({
+        type: MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
+        body: {
+          pageUrl: "https://example.test/",
+          sourceUrl: "https://cdn.test/image.png",
+          sourceKind: "image",
+        },
       }),
     ).toBe(false);
   });

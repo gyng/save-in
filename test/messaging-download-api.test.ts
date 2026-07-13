@@ -9,6 +9,8 @@ import {
   trackedTab,
   setupGlobals,
 } from "./messaging-fixture.ts";
+import { parseAutoDownloadRules } from "../src/automation/auto-download-rules.ts";
+import { options } from "../src/config/options-data.ts";
 
 beforeEach(() => setupGlobals());
 
@@ -223,6 +225,94 @@ describe("handleDownloadMessage", () => {
       type: MESSAGE_TYPES.DOWNLOAD,
       body: { status: MESSAGE_TYPES.OK, version: 1, url: "https://x/file.png" },
     });
+  });
+});
+
+describe("automatic page-source downloads", () => {
+  const request = {
+    type: MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
+    body: {
+      pageUrl: "https://example.test/gallery/",
+      sourceUrl: "https://cdn.test/original/cat.png",
+      sourceKind: "image" as const,
+    },
+  };
+  const configure = () => {
+    options.autoDownloadEnabled = true;
+    options.autoDownloadPrivate = false;
+    options.autoDownloadRules = parseAutoDownloadRules(`
+pageurl: ^https://example\\.test/gallery/
+sourcekind: image
+sourceurl: /original/
+into: automatic/:pagedomain:/
+`).rules;
+  };
+
+  test("revalidates a candidate and launches it with the matching destination", async () => {
+    configure();
+    const sendResponse = vi.fn();
+    const senderTab = {
+      id: 7,
+      url: "https://example.test/gallery/",
+      title: "Gallery",
+      incognito: false,
+    };
+
+    expect(onMessage(request, { tab: senderTab }, sendResponse)).toBe(true);
+    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+
+    expect(Download.renameAndDownload).toHaveBeenCalledOnce();
+    const state = vi.mocked(Download.renameAndDownload).mock.calls[0]![0]!;
+    expect(state.path).toMatchObject({ raw: "." });
+    expect(state.scratch.routeTemplateRaw).toBe("automatic/:pagedomain:/");
+    expect(state.info).toMatchObject({
+      currentTab: senderTab,
+      context: DOWNLOAD_TYPES.AUTO,
+      pageUrl: senderTab.url,
+      sourceUrl: request.body.sourceUrl,
+      sourceKind: "image",
+      url: request.body.sourceUrl,
+    });
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
+      body: { status: "started" },
+    });
+  });
+
+  test.each([
+    ["the feature is disabled", () => (options.autoDownloadEnabled = false)],
+    ["no rule matches", () => (options.autoDownloadRules = [])],
+    ["the sender is private", () => undefined],
+  ])("skips when %s", async (_label, arrange) => {
+    configure();
+    arrange();
+    const sendResponse = vi.fn();
+    const privateTab = _label === "the sender is private";
+    onMessage(
+      request,
+      { tab: { id: 7, url: request.body.pageUrl, incognito: privateTab } },
+      sendResponse,
+    );
+
+    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    expect(Download.renameAndDownload).not.toHaveBeenCalled();
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
+      body: { status: "skipped" },
+    });
+  });
+
+  test("allows private automatic saves only when explicitly enabled", async () => {
+    configure();
+    options.autoDownloadPrivate = true;
+    const sendResponse = vi.fn();
+    onMessage(
+      request,
+      { tab: { id: 7, url: request.body.pageUrl, incognito: true } },
+      sendResponse,
+    );
+    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    expect(Download.renameAndDownload).toHaveBeenCalledOnce();
   });
 });
 

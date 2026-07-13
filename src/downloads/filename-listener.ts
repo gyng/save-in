@@ -59,6 +59,7 @@ export type DeferredRouteRecovery = {
   id: string;
   state: WireDownloadState;
   pathTemplateRaw?: string | undefined;
+  routeTemplateRaw?: string | undefined;
   mimeExtension?: string | undefined;
   historyEntryId?: string | undefined;
 };
@@ -78,6 +79,9 @@ const normalizeDeferredRoute = (value: unknown): DeferredRouteRecovery | null =>
     state: state as WireDownloadState,
     ...(typeof candidate.pathTemplateRaw === "string"
       ? { pathTemplateRaw: candidate.pathTemplateRaw }
+      : {}),
+    ...(typeof candidate.routeTemplateRaw === "string"
+      ? { routeTemplateRaw: candidate.routeTemplateRaw }
       : {}),
     ...(typeof candidate.mimeExtension === "string"
       ? { mimeExtension: candidate.mimeExtension }
@@ -111,6 +115,7 @@ export const createDeferredRouteRecovery = (
   id: `${Date.now()}-${Math.random()}`,
   state: toWireDownloadState(state),
   ...(state.scratch.pathTemplateRaw ? { pathTemplateRaw: state.scratch.pathTemplateRaw } : {}),
+  ...(state.scratch.routeTemplateRaw ? { routeTemplateRaw: state.scratch.routeTemplateRaw } : {}),
   ...(state.scratch.mimeExtension ? { mimeExtension: state.scratch.mimeExtension } : {}),
   ...(state.scratch.historyEntryId ? { historyEntryId: state.scratch.historyEntryId } : {}),
 });
@@ -147,6 +152,7 @@ const restoreDeferredRoute = (recovery: DeferredRouteRecovery): DownloadPipeline
     scratch: {
       deferredRouteRequirement: true,
       pathTemplateRaw,
+      ...(recovery.routeTemplateRaw ? { routeTemplateRaw: recovery.routeTemplateRaw } : {}),
       ...(recovery.mimeExtension ? { mimeExtension: recovery.mimeExtension } : {}),
       ...(recovery.historyEntryId ? { historyEntryId: recovery.historyEntryId } : {}),
     },
@@ -324,7 +330,8 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
               new Path(pathTemplateRaw),
               recoveredState.info,
             );
-            const routeMatches = Download.getRoutingMatches(recoveredState);
+            const routeMatches =
+              recoveredState.scratch.routeTemplateRaw ?? Download.getRoutingMatches(recoveredState);
             if (!routeMatches) {
               await rejectDeferredRoute(recoveredState);
               return;
@@ -415,18 +422,20 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
       : pendingState.info.suggestedFilename || downloadItem.filename || pendingState.info.filename;
 
     const pathTemplateRaw = pendingState.scratch?.pathTemplateRaw;
+    const routeTemplateRaw = pendingState.scratch?.routeTemplateRaw;
     const filenameChanged = pendingState.info.filename !== previousFilename;
     const needsActualFilenameResolution =
       (filenameChanged || pendingState.scratch?.deferredRouteRequirement === true) &&
       ((Array.isArray(options.filenamePatterns) && options.filenamePatterns.length > 0) ||
-        (typeof pathTemplateRaw === "string" && /:(?:filename|fileext):/.test(pathTemplateRaw)));
+        (typeof pathTemplateRaw === "string" && /:(?:filename|fileext):/.test(pathTemplateRaw)) ||
+        (typeof routeTemplateRaw === "string" && /:(?:filename|fileext):/.test(routeTemplateRaw)));
     if (needsActualFilenameResolution) {
       void (async () => {
         await resolveFinalMimeExtension(pendingState);
         if (typeof pathTemplateRaw === "string") {
           pendingState.path = await applyVariables(new Path(pathTemplateRaw), pendingState.info);
         }
-        const routeMatches = Download.getRoutingMatches(pendingState);
+        const routeMatches = routeTemplateRaw ?? Download.getRoutingMatches(pendingState);
         pendingState.route = undefined;
         pendingState.routeIsFolder = false;
         if (routeMatches) {

@@ -175,6 +175,19 @@ describe("renameAndDownload: notification triggers", () => {
     expect(Notifier.createExtensionNotification).not.toHaveBeenCalled();
   });
 
+  test("does not emit one route notification per automatic source", async () => {
+    setCurrentBrowser("CHROME");
+    options.notifyOnRuleMatch = true;
+    const state = makeState({
+      info: { context: "AUTO" },
+      scratch: { routeTemplateRaw: "automatic/" },
+    });
+
+    await Download.renameAndDownload(state);
+
+    expect(Notifier.createExtensionNotification).not.toHaveBeenCalled();
+  });
+
   test("notifies failure when routeExclusive+notifyOnFailure are enabled and no route matched", async () => {
     setCurrentBrowser("CHROME");
     options.routeExclusive = true;
@@ -395,6 +408,40 @@ describe("onDeterminingFilename listener: sync path", () => {
     );
   });
 
+  test("re-evaluates an automatic destination with Chrome's server filename", async () => {
+    setCurrentBrowser("CHROME");
+    const state = makeState({
+      path: new Path.Path("."),
+      scratch: { routeTemplateRaw: "automatic/:filename:" },
+      info: {
+        context: "AUTO",
+        pageUrl: "https://gallery.example/",
+        url: "https://cdn.example/file.pdf",
+      },
+    });
+
+    await Download.renameAndDownload(state);
+    const suggest = vi.fn();
+    expect(
+      capturedListener(
+        {
+          id: 101,
+          byExtensionId: global.browser.runtime.id,
+          url: state.info.url,
+          filename: "server-name.pdf",
+        },
+        suggest,
+      ),
+    ).toBe(true);
+
+    await vi.waitFor(() =>
+      expect(suggest).toHaveBeenCalledWith(
+        expect.objectContaining({ filename: "automatic/server-name.pdf" }),
+      ),
+    );
+    expect(router.matchRules).not.toHaveBeenCalled();
+  });
+
   test("preserves deferred exclusive rejection across a service-worker restart", async () => {
     setCurrentBrowser("CHROME");
     options.routeExclusive = true;
@@ -433,6 +480,50 @@ describe("onDeterminingFilename listener: sync path", () => {
 
     await vi.waitFor(() => expect(cancel).toHaveBeenCalledWith(101));
     expect(suggest).toHaveBeenCalledWith();
+    resolveDownload(101);
+    await expect(launch).resolves.toEqual({ status: "started", downloadId: 101 });
+    await vi.waitFor(() => expect(sessionStore.siDeferredRoutes).toEqual({}));
+  });
+
+  test("recovers an automatic destination after a service-worker restart", async () => {
+    setCurrentBrowser("CHROME");
+    let resolveDownload!: (downloadId: number) => void;
+    global.browser.downloads.download = vi.fn(
+      () =>
+        new Promise<number>((resolve) => {
+          resolveDownload = resolve;
+        }),
+    );
+    const state = makeState({
+      path: new Path.Path("."),
+      scratch: { routeTemplateRaw: "automatic/:filename:" },
+      info: {
+        context: "AUTO",
+        pageUrl: "https://gallery.example/",
+        url: "https://cdn.example/file.pdf",
+      },
+    });
+
+    const launch = Download.renameAndDownload(state);
+    await vi.waitFor(() => expect(sessionStore.siDeferredRoutes).toBeDefined());
+    Download.pendingStates.clear();
+
+    const suggest = vi.fn();
+    capturedListener(
+      {
+        id: 101,
+        byExtensionId: global.browser.runtime.id,
+        url: state.info.url,
+        filename: "server-name.pdf",
+      },
+      suggest,
+    );
+
+    await vi.waitFor(() =>
+      expect(suggest).toHaveBeenCalledWith(
+        expect.objectContaining({ filename: "automatic/server-name.pdf" }),
+      ),
+    );
     resolveDownload(101);
     await expect(launch).resolves.toEqual({ status: "started", downloadId: 101 });
     await vi.waitFor(() => expect(sessionStore.siDeferredRoutes).toEqual({}));

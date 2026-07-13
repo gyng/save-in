@@ -44,3 +44,25 @@ test("rejects values when schema normalization throws", async () => {
     rejected: [{ name: "filenamePatterns", reason: "invalid value" }],
   });
 });
+
+test("rejects unsafe automatic rules before writing configuration", async () => {
+  const storage = { get: vi.fn(), set: vi.fn() };
+  const reset = vi.fn();
+
+  const result = await applyConfigSerialized(
+    { queue: Promise.resolve() },
+    storage,
+    {
+      autoDownloadRules: "pageurl: .*\nsourceurl: .*\ninto: automatic/",
+    },
+    undefined,
+    reset,
+  );
+
+  expect(result).toEqual({
+    applied: {},
+    rejected: [{ name: "autoDownloadRules", reason: "invalid value" }],
+  });
+  expect(storage.set).not.toHaveBeenCalled();
+  expect(reset).not.toHaveBeenCalled();
+});

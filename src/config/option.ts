@@ -41,6 +41,12 @@ export const OptionsManagement: OptionsManagementApi = {
     contentClickToSaveCombo:
       "Modifiers to hold for click-to-save; legacy raw keyCodes remain supported.",
     contentClickToSaveButton: "Mouse button for click-to-save.",
+    autoDownloadEnabled: "Automatically save page sources that match explicit automation rules.",
+    autoDownloadRules:
+      "Site-scoped automatic source rules (page/source matchers followed by an into destination).",
+    autoDownloadLive: "Watch for matching sources added after the page initially loads.",
+    autoDownloadPrivate: "Allow automatic source saving in private browsing windows.",
+    autoDownloadMaxPerPage: "Maximum automatic saves allowed during one page visit.",
     sourcePanelEnabled: "Enable the toolbar source browser for DOM-visible page media.",
     sourcePanelBackgrounds: "Include URLs found in computed CSS background images.",
     sourcePanelLive: "Refresh the source list when page DOM media changes.",

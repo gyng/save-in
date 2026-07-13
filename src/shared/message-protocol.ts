@@ -8,6 +8,7 @@ import type { RoutePreview } from "../background/route-preview.ts";
 import type { PersistenceFailure } from "./persistence-diagnostics.ts";
 import type { ExternalDownloadRejection } from "./external-download-rejection-types.ts";
 import type { SourcePanelCopy } from "./source-panel-copy.ts";
+import { isPageSourceKind, type PageSourceKind } from "./page-source.ts";
 
 export type WireCurrentTab = {
   id?: number | undefined;
@@ -24,6 +25,7 @@ export type WireDownloadInfo = {
   selectionText?: string | undefined;
   linkText?: string | undefined;
   mediaType?: string | undefined;
+  sourceKind?: PageSourceKind | undefined;
   mime?: string | undefined;
   filename?: string | undefined;
   naiveFilename?: string | undefined;
@@ -88,6 +90,7 @@ export const toWireDownloadState = (state: DownloadPipelineState): WireDownloadS
     const value = state.info[key];
     if (typeof value === "string") info[key] = value;
   }
+  if (isPageSourceKind(state.info.sourceKind)) info.sourceKind = state.info.sourceKind;
   for (const key of ["suggestedFilename", "menuIndex", "comment"] as const) {
     const value = state.info[key];
     if (typeof value === "string" || value === null) info[key] = value;
@@ -180,8 +183,14 @@ type DownloadResponse = Response<
     }
 >;
 
+type AutoDownloadSourceResponse = Response<
+  typeof MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
+  { status: "started" | "skipped" | "failed" }
+>;
+
 export type InternalResponseMap = {
   [MESSAGE_TYPES.WAKE_WARM]: OkResponse;
+  [MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE]: AutoDownloadSourceResponse;
   [MESSAGE_TYPES.SOURCE_PANEL_READY]: OkResponse;
   [MESSAGE_TYPES.SOURCE_PANEL_STATE]: OkResponse;
   [MESSAGE_TYPES.SOURCE_PANEL_COPY]: Response<
@@ -279,8 +288,15 @@ export type DownloadRequestBody = {
   version?: number | undefined;
 };
 
+export type AutoDownloadSourceRequestBody = {
+  pageUrl: string;
+  sourceUrl: string;
+  sourceKind: PageSourceKind;
+};
+
 export type InternalMessage =
   | Message<typeof MESSAGE_TYPES.WAKE_WARM>
+  | RequiredBodyMessage<typeof MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE, AutoDownloadSourceRequestBody>
   | Message<typeof MESSAGE_TYPES.SOURCE_PANEL_READY>
   | OptionalBodyMessage<typeof MESSAGE_TYPES.SOURCE_PANEL_STATE, { open: boolean }>
   | Message<typeof MESSAGE_TYPES.SOURCE_PANEL_COPY>
@@ -352,6 +368,7 @@ export const sendInternalMessage = <Request extends InternalMessage>(
 
 export const INTERNAL_MESSAGE_TYPES = new Set<InternalMessage["type"]>([
   MESSAGE_TYPES.WAKE_WARM,
+  MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
   MESSAGE_TYPES.SOURCE_PANEL_READY,
   MESSAGE_TYPES.SOURCE_PANEL_STATE,
   MESSAGE_TYPES.SOURCE_PANEL_COPY,
@@ -419,6 +436,7 @@ const isWireCurrentTab = (value: unknown): boolean =>
 const isValidationInfo = (value: unknown): value is ValidationInfo =>
   isStringKeyedRecord(value) &&
   [...WIRE_INFO_STRING_FIELDS, "srcUrl", "linkUrl"].every((key) => hasOptionalString(value, key)) &&
+  (typeof value.sourceKind === "undefined" || isPageSourceKind(value.sourceKind)) &&
   ["suggestedFilename", "menuIndex", "comment"].every((key) =>
     hasOptionalNullableString(value, key),
   ) &&
@@ -439,6 +457,7 @@ const isValidationInfo = (value: unknown): value is ValidationInfo =>
 const isWireDownloadInfo = (value: unknown): value is WireDownloadInfo =>
   isStringKeyedRecord(value) &&
   WIRE_INFO_STRING_FIELDS.every((key) => hasOptionalString(value, key)) &&
+  (typeof value.sourceKind === "undefined" || isPageSourceKind(value.sourceKind)) &&
   ["suggestedFilename", "menuIndex", "comment"].every((key) =>
     hasOptionalNullableString(value, key),
   ) &&
@@ -483,6 +502,13 @@ const hasOptionalBody = (
 
 const isMessageBodyValid = (message: Record<string, unknown>): boolean => {
   switch (message.type) {
+    case MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE:
+      return (
+        isStringKeyedRecord(message.body) &&
+        typeof message.body.pageUrl === "string" &&
+        typeof message.body.sourceUrl === "string" &&
+        isPageSourceKind(message.body.sourceKind)
+      );
     case MESSAGE_TYPES.PREVIEW_MENUS:
       return hasOptionalBody(
         message,

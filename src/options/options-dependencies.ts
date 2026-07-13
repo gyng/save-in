@@ -18,6 +18,10 @@ export const setupOptionDependencies = () => {
         "clickToSaveReset",
       ],
     },
+    {
+      parent: "autoDownloadEnabled",
+      children: ["autoDownloadLive", "autoDownloadPrivate", "autoDownloadMaxPerPage"],
+    },
     { parent: "tabEnabled", children: ["closeTabOnSave"] },
     {
       parent: "setRefererHeader",

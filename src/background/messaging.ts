@@ -40,6 +40,7 @@ import { OffscreenClient } from "../platform/offscreen-client.ts";
 import { ExternalDownloadRejections } from "./external-download-rejections.ts";
 import { getMessage } from "../platform/localization.ts";
 import { createSourcePanelCopy } from "../shared/source-panel-copy.ts";
+import { matchAutoDownloadRule } from "../automation/auto-download-rules.ts";
 
 export type MessageSender = { id?: string | undefined; tab?: CurrentTab | undefined };
 type ProtocolSendResponse<Request extends InternalMessage> = SendResponse<ResponseFor<Request>>;
@@ -390,6 +391,68 @@ export const Messaging = {
       })
       .then(() => undefined);
   },
+
+  handleAutoDownloadSource: async (
+    request: MessageOf<typeof MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE>,
+    sender: MessageSender,
+    sendResponse: ProtocolSendResponse<MessageOf<typeof MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE>>,
+  ): Promise<void> => {
+    const skip = () =>
+      sendResponse({
+        type: MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
+        body: { status: "skipped" },
+      });
+    const senderTab = sender.tab;
+    const sourceUrl = request.body.sourceUrl;
+    if (
+      options.autoDownloadEnabled !== true ||
+      !senderTab?.url ||
+      (senderTab.incognito === true && options.autoDownloadPrivate !== true)
+    ) {
+      skip();
+      return;
+    }
+    let sourceProtocol = "";
+    try {
+      sourceProtocol = new URL(sourceUrl).protocol;
+    } catch {
+      skip();
+      return;
+    }
+    if (sourceProtocol !== "http:" && sourceProtocol !== "https:") {
+      skip();
+      return;
+    }
+    const rules = Array.isArray(options.autoDownloadRules) ? options.autoDownloadRules : [];
+    const rule = matchAutoDownloadRule(rules, {
+      pageUrl: senderTab.url,
+      sourceUrl,
+      sourceKind: request.body.sourceKind,
+    });
+    if (!rule) {
+      skip();
+      return;
+    }
+
+    const result = await Download.launch({
+      path: new Path("."),
+      scratch: { routeTemplateRaw: rule.destination },
+      info: {
+        currentTab: senderTab,
+        now: new Date(),
+        pageUrl: senderTab.url,
+        selectedUrl: sourceUrl,
+        sourceUrl,
+        sourceKind: request.body.sourceKind,
+        url: sourceUrl,
+        context: DOWNLOAD_TYPES.AUTO,
+      },
+    });
+    sendResponse({
+      type: MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
+      body: { status: result.status },
+    });
+  },
 };
 
 type Handler<M extends InternalMessage> = (
@@ -407,6 +470,7 @@ const internalHandlers = {
     // Sent by content scripts on combo keydown purely to wake the MV3 worker.
     sendResponse({ type: MESSAGE_TYPES.OK });
   },
+  [MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE]: Messaging.handleAutoDownloadSource,
   [MESSAGE_TYPES.SOURCE_PANEL_READY]: async (_request, sender, sendResponse) => {
     if (sender.tab?.id != null) await syncSourcePanelToTab(sender.tab.id);
     sendResponse({ type: MESSAGE_TYPES.OK });
@@ -551,6 +615,7 @@ const READY_MESSAGE_TYPES = new Set<InternalMessage["type"]>([
   MESSAGE_TYPES.SOURCE_PANEL_COPY,
   MESSAGE_TYPES.CHECK_ROUTES,
   MESSAGE_TYPES.DOWNLOAD,
+  MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
 ]);
 
 const dispatchMessage = <M extends InternalMessage>(

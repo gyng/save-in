@@ -42,6 +42,7 @@ import { applyUiTheme, setupUiThemeControl } from "./theme.ts";
 import { getPathSourceRange } from "./path-editor-model.ts";
 import { setSyntaxEditorDiagnostics } from "./syntax-editor.ts";
 import { validationErrorsToDiagnostics } from "./syntax-editor-model.ts";
+import { parseAutoDownloadRules } from "../automation/auto-download-rules.ts";
 
 const setupLastDownloadState = () => {
   document.querySelector("#last-dl-url")?.classList.add("is-empty");
@@ -565,7 +566,7 @@ window.addEventListener("beforeunload", (e) => {
   }
 });
 
-// The two large editors (#paths, #filenamePatterns) persist only via their
+// The large grammar editors persist only via their
 // Apply button, not autosave: their Apply lights up while the editor value
 // differs from what is stored, and dims once applied. Every other control
 // still autosaves.
@@ -931,8 +932,40 @@ const updateMenuPreview = () => {
   });
 })();
 
+const renderAutoDownloadRuleErrors = () => {
+  const textarea = document.querySelector<HTMLTextAreaElement>("#autoDownloadRules");
+  const panel = document.querySelector("#error-autoDownloadRules");
+  if (!textarea || !panel) return;
+  const errors = parseAutoDownloadRules(textarea.value).errors;
+  const channel = errorChannel(panel, "validation");
+  channel.innerHTML = "";
+  errors.forEach((error) => channel.appendChild(renderErrorRow(error, "#autoDownloadRules")));
+  updateErrorSummary(panel);
+  manualEditorState.setValidity("autoDownloadRules", errors.length === 0);
+  setSyntaxEditorDiagnostics(
+    textarea,
+    validationErrorsToDiagnostics("routing", textarea.value, errors),
+  );
+};
+
+(() => {
+  const textarea = document.querySelector("#autoDownloadRules");
+  if (!textarea) return;
+  let timer: number | null = null;
+  textarea.addEventListener("input", () => {
+    manualEditorState.setValidationPending("autoDownloadRules");
+    if (timer !== null) window.clearTimeout(timer);
+    timer = window.setTimeout(() => {
+      timer = null;
+      renderAutoDownloadRuleErrors();
+    }, MENU_PREVIEW_DEBOUNCE_MS);
+  });
+  document.addEventListener("options-restored", renderAutoDownloadRuleErrors);
+})();
+
 setupManualEditor("paths");
 setupManualEditor("filenamePatterns");
+setupManualEditor("autoDownloadRules");
 
 setupShortcutOptions();
 

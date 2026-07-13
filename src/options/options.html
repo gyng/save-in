@@ -1294,6 +1294,123 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
         <label><input type="checkbox" id="sourcePanelLinks" /> __MSG_o_cSourcePanelLinks__</label>
       </fieldset>
 
+      <section class="auto-download-section" aria-labelledby="auto-download-heading">
+        <header class="auto-download-header">
+          <div>
+            <h3 id="auto-download-heading">__MSG_autoDownloadHeading__</h3>
+            <p class="caption">__MSG_autoDownloadHelp__</p>
+          </div>
+          <label class="auto-download-master">
+            <input type="checkbox" id="autoDownloadEnabled" />
+            <span>__MSG_autoDownloadEnabled__</span>
+          </label>
+        </header>
+
+        <div class="auto-download-safety">
+          <label>
+            <input type="checkbox" id="autoDownloadLive" />
+            <span>__MSG_autoDownloadLive__</span>
+          </label>
+          <label>
+            <input type="checkbox" id="autoDownloadPrivate" />
+            <span>__MSG_autoDownloadPrivate__</span>
+          </label>
+          <label class="auto-download-limit">
+            <span>__MSG_autoDownloadLimit__</span>
+            <input
+              type="number"
+              id="autoDownloadMaxPerPage"
+              min="1"
+              max="500"
+              step="1"
+              inputmode="numeric"
+            />
+          </label>
+        </div>
+        <p class="caption auto-download-limit-help">__MSG_autoDownloadLimitHelp__</p>
+
+        <div class="auto-rule-editor">
+          <header class="auto-rule-editor-header">
+            <div>
+              <strong id="auto-rule-editor-label">__MSG_autoDownloadRulesHeading__</strong>
+              <p class="caption">__MSG_autoDownloadRulesHelp__</p>
+            </div>
+            <div
+              class="editor-tabs auto-rule-tabs"
+              role="tablist"
+              aria-label="__MSG_autoDownloadEditorMode__"
+            >
+              <button
+                type="button"
+                class="editor-tab active"
+                id="auto-rules-mode-visual"
+                role="tab"
+                aria-selected="true"
+                aria-controls="auto-rules-visual"
+              >
+                __MSG_autoDownloadVisual__
+              </button>
+              <button
+                type="button"
+                class="editor-tab"
+                id="auto-rules-mode-text"
+                role="tab"
+                aria-selected="false"
+                aria-controls="auto-rules-text"
+              >
+                __MSG_autoDownloadText__
+              </button>
+            </div>
+          </header>
+
+          <div id="auto-rules-visual" class="auto-rules-visual">
+            <div id="auto-rule-cards" class="auto-rule-cards"></div>
+            <button type="button" id="auto-rule-add" class="auto-rule-add">
+              + __MSG_autoDownloadAddRule__
+            </button>
+          </div>
+
+          <div id="auto-rules-text" hidden>
+            <textarea
+              id="autoDownloadRules"
+              data-manual="true"
+              data-technical-literal
+              rows="11"
+              spellcheck="false"
+              aria-labelledby="auto-rule-editor-label"
+              aria-describedby="error-autoDownloadRules auto-download-grammar-help"
+              placeholder="pageurl: ^https://example\\.com/gallery/&#10;sourcekind: image&#10;sourceurl/i: \\.(?:jpg|png)$&#10;into: galleries/:pagedomain:/"
+            ></textarea>
+            <details class="auto-download-grammar" id="auto-download-grammar-help">
+              <summary>__MSG_autoDownloadGrammar__</summary>
+              <pre>
+pageurl/i: ^https://example\.com/gallery/
+sourcekind: image
+sourceurl/i: \.(?:jpe?g|png)(?:[?#].*)?$
+into: galleries/:pagedomain:/</pre>
+            </details>
+          </div>
+
+          <div
+            class="error-notification"
+            id="error-autoDownloadRules"
+            aria-live="polite"
+            aria-atomic="true"
+          ></div>
+          <div class="editor-actions auto-rule-editor-actions">
+            <button type="button" class="discard-button" data-discard="autoDownloadRules" disabled>
+              __MSG_o_bDiscard__
+            </button>
+            <button type="button" class="apply-button" data-apply="autoDownloadRules" disabled>
+              __MSG_o_bApply__
+            </button>
+            <span class="caption manual-save-help" data-manual-help-for="autoDownloadRules"
+              >__MSG_o_lManualEditorSaveHelp__</span
+            >
+          </div>
+        </div>
+      </section>
+
       <fieldset class="option-group source-shortcut-settings">
         <legend class="option-group-heading">__MSG_o_lSourcePanelShortcut__</legend>
         <div class="source-shortcut-controls">

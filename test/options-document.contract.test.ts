@@ -118,6 +118,14 @@ test("keeps stable Page Sources controls", () => {
   const document = documentForOptions();
   requireIds(document, [
     "sourcePanelEnabled",
+    "autoDownloadEnabled",
+    "autoDownloadLive",
+    "autoDownloadPrivate",
+    "autoDownloadMaxPerPage",
+    "autoDownloadRules",
+    "auto-rules-mode-visual",
+    "auto-rules-mode-text",
+    "auto-rule-add",
     "sourcePanelShortcutModifier",
     "sourcePanelShortcutModifier2",
     "sourcePanelShortcutKey",
@@ -125,6 +133,8 @@ test("keeps stable Page Sources controls", () => {
   expect(document.querySelector("#sourcePanelShortcutKey")?.getAttribute("list")).toBe(
     "sourcePanelShortcutKeys",
   );
+  expect(document.querySelector("#autoDownloadRules")?.getAttribute("data-manual")).toBe("true");
+  expect(document.querySelector("#autoDownloadMaxPerPage")?.getAttribute("max")).toBe("500");
 });
 
 test("keeps editor controls connected to their stable labels", () => {

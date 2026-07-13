@@ -1,6 +1,7 @@
 import { RULE_TYPES } from "../shared/constants.ts";
 import type { ContentFetchResult } from "../shared/content-fetch-types.ts";
 import type { LazyDownloadMetadata } from "../shared/lazy-download-metadata.ts";
+import type { PageSourceKind } from "../shared/page-source.ts";
 
 export type RoutingContent = ContentFetchResult;
 
@@ -9,6 +10,7 @@ export type RoutingDownloadInfo = LazyDownloadMetadata<RoutingContent> & {
   frameUrl?: string | undefined;
   linkText?: string | undefined;
   mediaType?: string | undefined;
+  sourceKind?: PageSourceKind | undefined;
   mime?: string | undefined;
   mimeExtension?: string | undefined;
   now?: Date | undefined;

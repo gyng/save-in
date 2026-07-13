@@ -1,7 +1,8 @@
 import type { UiTheme } from "../config/content-options.ts";
 import type { SourcePanelCopy } from "../shared/source-panel-copy.ts";
+import type { PageSourceKind } from "../shared/page-source.ts";
 
-export type PageSourceKind = "image" | "video" | "audio" | "stream" | "document" | "link";
+export type { PageSourceKind } from "../shared/page-source.ts";
 export type PageSource = {
   url: string;
   kind: PageSourceKind;

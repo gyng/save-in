@@ -19,6 +19,8 @@ import {
   createSourcePanelCopy,
   type SourcePanelCopy,
 } from "../shared/source-panel-copy.ts";
+import { setupAutoDownloadDiscovery, type AutoDownloadSendResult } from "./auto-download.ts";
+import type { AutoDownloadCandidate } from "../automation/auto-download-rules.ts";
 
 // Runs in every page. Uses callback-style chrome.* APIs: available in both
 // Chrome and Firefox content scripts (no polyfill is loaded here). try/catch
@@ -236,8 +238,62 @@ const setupClickToSave = (options: ContentOptions) => {
   };
 };
 
+const setupAutoDownload = (options: ContentOptions) => {
+  const controller = new AbortController();
+  const retryTimers = new Set<number>();
+  const pendingResolvers = new Set<(result: AutoDownloadSendResult) => void>();
+  const send = (candidate: AutoDownloadCandidate, retries = 2): Promise<AutoDownloadSendResult> =>
+    new Promise((resolve) => {
+      if (controller.signal.aborted) {
+        resolve("skipped");
+        return;
+      }
+      pendingResolvers.add(resolve);
+      const finish = (result: AutoDownloadSendResult) => {
+        pendingResolvers.delete(resolve);
+        resolve(result);
+      };
+      try {
+        chrome.runtime.sendMessage(
+          { type: "AUTO_DOWNLOAD_SOURCE", body: candidate },
+          (response) => {
+            const failed = Boolean(chrome.runtime.lastError);
+            if (failed && retries > 0 && !controller.signal.aborted) {
+              const timer = window.setTimeout(() => {
+                retryTimers.delete(timer);
+                void send(candidate, retries - 1).then(finish);
+              }, 300);
+              retryTimers.add(timer);
+              return;
+            }
+            const status = response?.body?.status;
+            finish(["started", "skipped", "failed"].includes(status) ? status : "skipped");
+          },
+        );
+      } catch {
+        finish("skipped");
+      }
+    });
+
+  const discovery = setupAutoDownloadDiscovery({
+    rules: options.autoDownloadRules || "",
+    live: options.autoDownloadLive !== false,
+    maxPerPage: options.autoDownloadMaxPerPage || CONTENT_OPTION_DEFAULTS.autoDownloadMaxPerPage,
+    send,
+  });
+  return () => {
+    controller.abort();
+    discovery.stop();
+    retryTimers.forEach((timer) => window.clearTimeout(timer));
+    retryTimers.clear();
+    pendingResolvers.forEach((resolve) => resolve("skipped"));
+    pendingResolvers.clear();
+  };
+};
+
 let currentOptions: ContentOptions = { ...CONTENT_OPTION_DEFAULTS };
 let removeClickToSave: (() => void) | null = null;
+let removeAutoDownload: (() => void) | null = null;
 let receivedInitialOptions = false;
 let sourcePanelListenerReady = false;
 let announcedSourcePanelReady = false;
@@ -265,6 +321,15 @@ const applyOptions = (next: ContentOptions) => {
   const clickOptionsChanged = (
     ["contentClickToSave", "contentClickToSaveCombo", "contentClickToSaveButton", "links"] as const
   ).some((key) => previous[key] !== currentOptions[key]);
+  const autoDownloadOptionsChanged = (
+    [
+      "autoDownloadEnabled",
+      "autoDownloadRules",
+      "autoDownloadLive",
+      "autoDownloadPrivate",
+      "autoDownloadMaxPerPage",
+    ] as const
+  ).some((key) => previous[key] !== currentOptions[key]);
   const sourcePanelOptionsChanged = (
     [
       "sourcePanelEnabled",
@@ -278,6 +343,13 @@ const applyOptions = (next: ContentOptions) => {
     ] as const
   ).some((key) => previous[key] !== currentOptions[key]);
   if (sourcePanelOptionsChanged) reconfigureOpenSourcePanel?.();
+  if (autoDownloadOptionsChanged) {
+    removeAutoDownload?.();
+    removeAutoDownload =
+      currentOptions.autoDownloadEnabled && currentOptions.autoDownloadRules?.trim()
+        ? setupAutoDownload(currentOptions)
+        : null;
+  }
   if (!clickOptionsChanged) {
     announceSourcePanelReady();
     return;

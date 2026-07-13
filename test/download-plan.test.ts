@@ -198,6 +198,26 @@ describe("renameAndDownload: MIME extension append (§8.1)", () => {
 });
 
 describe("renameAndDownload: folder-only route (§8.1)", () => {
+  test("uses an automatic rule destination without consulting ordinary routing rules", async () => {
+    setCurrentBrowser("CHROME");
+    options.filenamePatterns = [routingRule()];
+    vi.mocked(router.matchRules).mockReturnValue("ordinary-route/");
+    const state = makeState({
+      scratch: { routeTemplateRaw: "automatic/:pagedomain:/" },
+      info: {
+        context: DOWNLOAD_TYPES.AUTO,
+        pageUrl: "https://gallery.example/album/",
+      },
+    });
+
+    await Download.renameAndDownload(state);
+
+    expect(router.matchRules).not.toHaveBeenCalled();
+    expect(state.path).toMatchObject({ raw: "." });
+    expect(state.routeIsFolder).toBe(true);
+    expect(Download.finalizeFullPath(state)).toBe("automatic/gallery.example/file.png");
+  });
+
   test("a trailing-slash into: routes into the folder and keeps the real filename", async () => {
     setCurrentBrowser("CHROME");
     options.filenamePatterns = [routingRule()];

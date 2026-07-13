@@ -16,6 +16,7 @@ export type DownloadScratch = {
   hasExtension?: boolean | RegExpMatchArray | "" | null | undefined;
   mimeExtension?: string | undefined;
   pathTemplateRaw?: string | undefined;
+  routeTemplateRaw?: string | undefined;
   historyEntryId?: string | null | undefined;
   browserFilenameResolution?: boolean | undefined;
   deferredRouteRequirement?: boolean | undefined;

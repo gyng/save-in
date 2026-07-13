@@ -62,6 +62,11 @@ export const contentClickComboToKeyCodes = (
 // and the lightweight direct-storage content path.
 export const CONTENT_OPTION_DEFAULTS = {
   contentClickToSave: false,
+  autoDownloadEnabled: false,
+  autoDownloadRules: "",
+  autoDownloadLive: true,
+  autoDownloadPrivate: false,
+  autoDownloadMaxPerPage: 20,
   sourcePanelEnabled: false,
   sourcePanelBackgrounds: true,
   sourcePanelLive: true,
@@ -84,6 +89,16 @@ export const CONTENT_OPTION_KEYS = Object.keys(CONTENT_OPTION_DEFAULTS) as Conte
 export const isContentOptionName = (value: string): value is ContentOptionName =>
   CONTENT_OPTION_KEYS.includes(value as ContentOptionName);
 
+export const isAutoDownloadLimit = (value: unknown): value is string | number => {
+  if ((typeof value !== "string" && typeof value !== "number") || String(value).trim() === "")
+    return false;
+  const number = Number(value);
+  return Number.isInteger(number) && number >= 1 && number <= 500;
+};
+
+export const normalizeAutoDownloadLimit = (value: string | number): number =>
+  isAutoDownloadLimit(value) ? Number(value) : CONTENT_OPTION_DEFAULTS.autoDownloadMaxPerPage;
+
 export const normalizeContentOption = <Name extends ContentOptionName>(
   name: Name,
   stored: unknown,
@@ -94,6 +109,12 @@ export const normalizeContentOption = <Name extends ContentOptionName>(
     return (isContentClickCombo(stored) ? stored : defaultValue) as ResolvedContentOptions[Name];
   if (name === "contentClickToSaveButton")
     return (isClickType(stored) ? stored : defaultValue) as ResolvedContentOptions[Name];
+  if (name === "autoDownloadMaxPerPage")
+    return normalizeAutoDownloadLimit(
+      typeof stored === "string" || typeof stored === "number"
+        ? stored
+        : CONTENT_OPTION_DEFAULTS.autoDownloadMaxPerPage,
+    ) as ResolvedContentOptions[Name];
   if (name === "uiTheme")
     return (isUiTheme(stored) ? stored : defaultValue) as ResolvedContentOptions[Name];
   if (name === "uiLocale")

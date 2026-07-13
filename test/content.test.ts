@@ -197,6 +197,45 @@ describe("content.js initialisation", () => {
     expect(global.chrome.runtime.sendMessage).not.toHaveBeenCalled();
   });
 
+  test("starts automatic discovery only for an enabled, valid automation ruleset", async () => {
+    document.body.innerHTML = '<img src="https://cdn.test/automatic.png">';
+    await importContentWithOptions({
+      autoDownloadEnabled: true,
+      autoDownloadLive: false,
+      autoDownloadMaxPerPage: 20,
+      autoDownloadRules:
+        "pageurl: ^http://localhost/\nsourcekind: image\nsourceurl: automatic\\.png$\ninto: automatic/",
+    });
+
+    await vi.waitFor(() =>
+      expect(global.chrome.runtime.sendMessage).toHaveBeenCalledWith(
+        {
+          type: "AUTO_DOWNLOAD_SOURCE",
+          body: {
+            pageUrl: "http://localhost/",
+            sourceUrl: "https://cdn.test/automatic.png",
+            sourceKind: "image",
+          },
+        },
+        expect.any(Function),
+      ),
+    );
+  });
+
+  test("does not scan page sources when automatic saving is disabled", async () => {
+    document.body.innerHTML = '<img src="https://cdn.test/automatic.png">';
+    await importContentWithOptions({
+      autoDownloadEnabled: false,
+      autoDownloadRules:
+        "pageurl: ^http://localhost/\nsourcekind: image\nsourceurl: automatic\\.png$\ninto: automatic/",
+    });
+
+    expect(global.chrome.runtime.sendMessage).not.toHaveBeenCalledWith(
+      expect.objectContaining({ type: "AUTO_DOWNLOAD_SOURCE" }),
+      expect.any(Function),
+    );
+  });
+
   test("lets an explicit user toggle open Page Sources while it is disabled", async () => {
     let runtimeListener: ((message: any) => void) | undefined;
     let storageListener: ((changes: Record<string, any>, area: string) => void) | undefined;

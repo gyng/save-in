@@ -1,5 +1,6 @@
 import { OptionsManagement } from "../config/option.ts";
 import { parseRulesCollecting } from "../routing/rule-parser.ts";
+import { parseAutoDownloadRules } from "../automation/auto-download-rules.ts";
 
 export type ConfigWriteState = { queue: Promise<unknown> };
 export type ConfigApplyResult = {
@@ -50,6 +51,14 @@ const validateConfig = (config: Record<string, unknown>): ConfigApplyResult => {
         name === "filenamePatterns" &&
         typeof value === "string" &&
         parseRulesCollecting(value).errors.some((error) => !error.warning)
+      ) {
+        rejected.push({ name, reason: "invalid value" });
+        return;
+      }
+      if (
+        name === "autoDownloadRules" &&
+        typeof value === "string" &&
+        parseAutoDownloadRules(value).errors.length > 0
       ) {
         rejected.push({ name, reason: "invalid value" });
         return;
