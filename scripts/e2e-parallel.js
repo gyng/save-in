@@ -22,7 +22,6 @@ const runArtifacts = path.join(artifacts, `run-${Date.now()}-${process.pid}`);
 /** @type {NodeJS.ProcessEnv} */
 const e2eEnv = {
   ...process.env,
-  SAVE_IN_E2E: "1",
   E2E_ARTIFACT_DIR: path.relative(root, runArtifacts),
 };
 if (process.env.HEADED === "1" || process.env.HEADLESS === "0") {
@@ -40,7 +39,7 @@ pruneRunDirectories(runRoot);
 
 const stagingLock = acquireDirectoryLock(stagingLockDir);
 try {
-  execFileSync(process.execPath, [path.join(__dirname, "build-bundled.js")], {
+  execFileSync(process.execPath, [path.join(__dirname, "build-bundled.js"), "--mode=e2e"], {
     cwd: root,
     env: e2eEnv,
     stdio: "inherit",

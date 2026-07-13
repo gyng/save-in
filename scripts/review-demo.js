@@ -218,8 +218,7 @@ const startDemoServer = () =>
   });
 
 const main = async () => {
-  process.env.SAVE_IN_E2E = "1";
-  chrome.stageBuild();
+  chrome.stageBuild("e2e");
   const demoPort = await startDemoServer();
 
   console.log("Launching Chrome (throwaway review profile)...");
@@ -232,9 +231,9 @@ const main = async () => {
   // worker, so: open it, seed the config, then reload it to pick the
   // seeded values up
   await cdp.openTab(port, `chrome-extension://${extensionId}/src/options/options.html`);
-  await cdp.evalInServiceWorker(
+  await cdp.evalInTarget(
     port,
-    extensionId,
+    "options.html",
     `browser.storage.local.set({
       paths: ${JSON.stringify(SHOWCASE_PATHS)},
       filenamePatterns: ${JSON.stringify(SHOWCASE_RULES)},
@@ -251,7 +250,7 @@ const main = async () => {
       sourcePanelPreviews: true,
       sourcePanelResourceHints: true,
       sourcePanelLinks: true,
-    }).then(() => globalThis.__SAVE_IN_E2E__.reset()).then(() => "seeded")`,
+    }).then(() => browser.runtime.sendMessage({ type: "OPTIONS_LOADED" })).then(() => "seeded")`,
   );
   await cdp.evalInTarget(port, "options.html", "location.reload()");
   await cdp.openTab(port, `http://127.0.0.1:${demoPort}/`);

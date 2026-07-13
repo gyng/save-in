@@ -3,6 +3,7 @@ const fs = require("fs");
 const path = require("path");
 
 const { canonicalizeZip } = require("./lib/canonicalize-zip");
+const { assertBackgroundControlSurface } = require("./lib/bundle-control-surface");
 const { assertPackageVersion } = require("./lib/package-metadata");
 const { resolveLocalBin } = require("./with-env");
 
@@ -11,6 +12,8 @@ async function main() {
   const version = assertPackageVersion(root);
   const artifacts = path.join(root, "web-ext-artifacts");
   const destination = path.join(artifacts, `save-in-${version}.zip`);
+  const sourceDir = path.join(root, "dist", "bundled-pkg");
+  assertBackgroundControlSurface(sourceDir, false);
   const webExt = resolveLocalBin("web-ext", root);
   if (!webExt) throw new Error("web-ext is not installed; run npm install");
   fs.mkdirSync(artifacts, { recursive: true });
@@ -23,7 +26,7 @@ async function main() {
       webExt,
       "build",
       "--source-dir",
-      path.join(root, "dist", "bundled-pkg"),
+      sourceDir,
       "--artifacts-dir",
       artifacts,
       "--filename",

@@ -35,17 +35,18 @@ describe("application global surface", () => {
     expect(read("test/globals.d.ts")).not.toContain("optionErrors");
   });
 
-  test("keeps the e2e bridge command-oriented", () => {
+  test("keeps e2e controls off the browser global", () => {
     const entry = read("src/entries/background.ts");
     const e2eEntry = read("src/entries/background.e2e.ts");
-    expect(entry).not.toContain("installBackgroundE2EBridge");
-    expect(e2eEntry).toContain("createBackgroundE2EApi()");
-    expect(e2eEntry).not.toMatch(/installBackgroundE2EBridge\(globalThis, \{[\s\S]*?\}\);/);
-    expect(read("rolldown.config.mjs")).toContain('process.env.SAVE_IN_E2E === "1"');
-    expect(read("scripts/build-bundled.js")).toContain("Unexpected e2e bridge surface");
+    expect(entry).not.toContain("registerBackgroundE2ECommand");
+    expect(e2eEntry).toContain("registerBackgroundE2ECommand()");
+    expect(e2eEntry).not.toContain("globalThis");
+    expect(read("rolldown.config.mjs")).not.toContain("SAVE_IN_E2E");
+    expect(read("scripts/build-bundled.js")).toContain("assertBackgroundControlSurface");
 
     for (const path of ["e2e/chrome.e2e.mjs", "e2e/firefox.e2e.mjs"]) {
       const harness = read(path);
+      expect(harness).not.toContain("__SAVE_IN_E2E__");
       expect(harness).not.toContain("runtime: window");
       expect(harness).not.toMatch(/\b(Log|SaveHistory|Download|Notifier|Messaging|options),/);
     }

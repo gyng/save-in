@@ -31,8 +31,9 @@ Current state: the project is strict TypeScript + ESM, built as readable,
 non-minified rolldown bundles with sourcemaps. The import graph is acyclic,
 runtime state has explicit owners, storage/message boundaries normalize legacy
 data, and Chrome plus Firefox run the same background source graph through
-different hosts. Production bundles exclude the privileged e2e command bridge;
-browser-test builds add it through `entries/background.e2e.ts`.
+different hosts. Browser tests drive production messages and storage; their
+explicit build adds one same-extension download-seeding command through
+`entries/background.e2e.ts`, while production bundles exclude it.
 
 Current priorities are correctness and product work, not another architecture
 migration. The native-messaging yt-dlp companion remains deliberately separate;

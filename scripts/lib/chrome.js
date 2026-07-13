@@ -37,10 +37,14 @@ const findChrome = () => {
   return found;
 };
 
-const stageBuild = () => {
-  execFileSync(process.execPath, [path.join(ROOT, "scripts", "build-bundled.js")], {
-    stdio: "inherit",
-  });
+const stageBuild = (mode = "production") => {
+  execFileSync(
+    process.execPath,
+    [path.join(ROOT, "scripts", "build-bundled.js"), `--mode=${mode}`],
+    {
+      stdio: "inherit",
+    },
+  );
 };
 
 const killTree = (proc) => {

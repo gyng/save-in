@@ -1,7 +1,6 @@
 // Generates reproducible Chrome Web Store screenshots from the real staged
 // extension. Output is 1280x800 PNG: the preferred store-listing size.
 
-process.env.SAVE_IN_E2E = "1";
 process.env.HEADLESS = "1";
 process.env.E2E_ARTIFACT_DIR ||= "dist/store-screenshot-artifacts";
 
@@ -105,10 +104,10 @@ const activateOptionsTab = async (port, optionsTarget, section, focusSelector) =
   );
 };
 
-const seedShowcase = (port, extensionId) =>
-  cdp.evalInServiceWorker(
+const seedShowcase = (port, optionsTarget) =>
+  cdp.evalInTarget(
     port,
-    extensionId,
+    optionsTarget,
     `browser.storage.local.set({
       paths: ${JSON.stringify(SHOWCASE_PATHS)},
       filenamePatterns: ${JSON.stringify(SHOWCASE_RULES)},
@@ -161,7 +160,7 @@ const seedShowcase = (port, extensionId) =>
           variables: { pagetitleslug: "design-review" }
         }
       ]
-    }).then(() => globalThis.__SAVE_IN_E2E__.reset()).then(() => "seeded")`,
+    }).then(() => browser.runtime.sendMessage({ type: "OPTIONS_LOADED" })).then(() => "seeded")`,
   );
 
 const main = async () => {
@@ -176,7 +175,7 @@ const main = async () => {
   const outputDir = path.resolve(chrome.ROOT, outputArgument());
   fs.mkdirSync(outputDir, { recursive: true });
 
-  chrome.stageBuild();
+  chrome.stageBuild("e2e");
   const server = createDemoServer();
   const demoPort = await listen(server);
   const demoTarget = `127.0.0.1:${demoPort}`;
@@ -194,14 +193,14 @@ const main = async () => {
     );
     await waitFor(
       () =>
-        cdp.evalInServiceWorker(
+        cdp.evalInTarget(
           port,
-          extensionId,
-          `typeof globalThis.__SAVE_IN_E2E__?.reset === "function"`,
+          optionsTarget,
+          `browser.runtime.sendMessage({ type: "WAKE_WARM" }).then(() => true, () => false)`,
         ),
-      "screenshot configuration bridge",
+      "background message listener",
     );
-    await seedShowcase(port, extensionId);
+    await seedShowcase(port, optionsTarget);
     await cdp.evalInTarget(port, optionsTarget, "location.reload()");
     await waitFor(
       () =>

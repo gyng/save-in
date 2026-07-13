@@ -9,6 +9,7 @@ import path from "path";
 
 import cdp from "../scripts/lib/cdp.js";
 import chrome from "../scripts/lib/chrome.js";
+import { inBackgroundContext } from "./background-context.mjs";
 import { listenLocal, poll } from "./helpers.mjs";
 
 const PROFILE = path.join(chrome.ROOT, "dist", "e2e-profile");
@@ -24,12 +25,11 @@ let PROFILE_DIR;
 let browserLogPath;
 let suiteFailed = false;
 
-const inE2EBridge = (expr) => `(() => {
-  const api = globalThis.__SAVE_IN_E2E__;
-  return (${expr});
-})()`;
-const evalSW = (expr) => cdp.evalInServiceWorker(PORT, extensionId, inE2EBridge(expr));
 const evalOptions = (expr) => cdp.evalInTarget(PORT, "options.html", expr);
+// App control travels through production runtime messages from an extension
+// page. Raw worker evaluation remains only for worker-specific assertions.
+const evalSW = (expr) => evalOptions(inBackgroundContext(expr));
+const evalWorker = (expr) => cdp.evalInServiceWorker(PORT, extensionId, expr);
 const artifactName = (name) =>
   name
     .replace(/[^a-z0-9]+/gi, "-")
@@ -183,12 +183,8 @@ afterEach(async ({ task }) => {
 });
 
 test("service worker initialises cleanly", async () => {
-  const state = JSON.parse(
-    await evalSW(`api.inspect().then((state) => JSON.stringify({
-      ...state,
-      noObjectUrl: !state.hasObjectUrl,
-    }))`),
-  );
+  const state = JSON.parse(await evalSW(`api.inspect().then((state) => JSON.stringify(state))`));
+  const noObjectUrl = await evalWorker(`typeof URL.createObjectURL !== "function"`);
 
   expect(state.browser).toBe("CHROME");
   expect(state.capabilities).toMatchObject({
@@ -200,11 +196,11 @@ test("service worker initialises cleanly", async () => {
     downloadRequestHeaders: false,
   });
   expect(state.promptConflictAction).toBe("uniquify");
-  expect(state.pathErrors).toBe(0);
-  expect(state.patternErrors).toBe(0);
-  expect(state.menuCount).toBeGreaterThan(0);
   // Running in a real service worker, with the MV3 fallbacks in play
-  expect(state.noObjectUrl).toBe(true);
+  expect(noObjectUrl).toBe(true);
+  expect(
+    await evalSW(`api.logs().then((log) => log.some((entry) => entry.message === "init failed"))`),
+  ).toBe(false);
 });
 
 test("options can opt into AI localization and explicitly return to English", async () => {
@@ -461,7 +457,8 @@ test("lastUsedPath survives re-initialisation", async () => {
   const lastUsed = await evalSW(
     `browser.storage.local.set({ lastUsedPath: "e2e/persisted" })
       .then(() => api.reset())
-      .then(() => api.menuSnapshot().lastUsedPath)`,
+      .then(() => browser.storage.local.get("lastUsedPath"))
+      .then((stored) => stored.lastUsedPath)`,
   );
   expect(lastUsed).toBe("e2e/persisted");
 });
@@ -603,13 +600,14 @@ test("the paths editor saves manually: Apply/Discard track the dirty state", asy
   expect(result.afterDiscard).toEqual({ value: "baseline", apply: true });
 });
 
-test("changing the paths option rebuilds the context menus", async () => {
-  const menuCount = await evalSW(
+test("changing paths is visible after background reinitialisation", async () => {
+  const pathCount = await evalSW(
     `browser.storage.local.set({ paths: "alpha\\nbeta\\ngamma\\ndelta\\nepsilon" })
       .then(() => api.reset())
-      .then(() => JSON.stringify(api.menuSnapshot().count))`,
+      .then(() => browser.runtime.sendMessage({ type: "OPTIONS" }))
+      .then((response) => JSON.stringify(response.body.paths.split("\\n").length))`,
   );
-  expect(JSON.parse(menuCount)).toBe(5);
+  expect(JSON.parse(pathCount)).toBe(5);
 });
 
 test("routing rules rename and route the download", async () => {
@@ -717,13 +715,12 @@ test("message-driven downloads work and never inherit a stale route", async () =
 });
 
 test("fetchViaFetch downloads via an offscreen document (Chrome MV3)", async () => {
-  await evalSW(`browser.storage.local.set({ filenamePatterns: "" })
+  await evalSW(`browser.storage.local.set({ filenamePatterns: "", fetchViaFetch: true })
       .then(() => api.reset())
       .then(() => api.startDownload({
         url: "data:text/plain,via%20fetch%20content",
         suggestedFilename: "viafetch.txt",
         pageUrl: "https://example.com/",
-        runtimeOptions: { fetchViaFetch: true },
       })).then(() => "started")`);
   expect((await waitForDownloads("viafetch")).map((x) => x.state)).toEqual(["complete"]);
   const hasOffscreen = await evalSW(`chrome.offscreen.hasDocument()`);
@@ -776,20 +773,20 @@ test("extension fetch credentials are preserved across cross-origin redirects", 
       { description: "credential fixture cookie" },
     );
 
-    await evalSW(`api.startDownload({
-      url: "http://127.0.0.1:${redirectPort}/credentials-omitted.bin",
-      suggestedFilename: "credentials-omitted.bin",
-      pageUrl: ${JSON.stringify(pageUrl)},
-      runtimeOptions: { fetchViaFetch: true, includeFetchCredentials: false },
-    }).then(() => "started")`);
+    await evalSW(`api.setOptions({ fetchViaFetch: true, includeFetchCredentials: false })
+      .then(() => api.startDownload({
+        url: "http://127.0.0.1:${redirectPort}/credentials-omitted.bin",
+        suggestedFilename: "credentials-omitted.bin",
+        pageUrl: ${JSON.stringify(pageUrl)},
+      })).then(() => "started")`);
     await waitForDownloads("credentials-omitted", 10000);
 
-    await evalSW(`api.startDownload({
-      url: "http://127.0.0.1:${redirectPort}/credentials-included.bin",
-      suggestedFilename: "credentials-included.bin",
-      pageUrl: ${JSON.stringify(pageUrl)},
-      runtimeOptions: { fetchViaFetch: true, includeFetchCredentials: true },
-    }).then(() => "started")`);
+    await evalSW(`api.setOptions({ fetchViaFetch: true, includeFetchCredentials: true })
+      .then(() => api.startDownload({
+        url: "http://127.0.0.1:${redirectPort}/credentials-included.bin",
+        suggestedFilename: "credentials-included.bin",
+        pageUrl: ${JSON.stringify(pageUrl)},
+      })).then(() => "started")`);
     await waitForDownloads("credentials-included", 10000);
 
     expect(fs.readFileSync(path.join(DOWNLOADS, "e2e", "credentials-omitted.bin"), "utf8")).toBe(
@@ -875,7 +872,7 @@ test("options page autosave persists to storage and survives a restart", async (
 
     // ...and survives a simulated service-worker restart
     const afterReset = await evalSW(
-      `api.reset().then(() => JSON.stringify(api.getOption("promptOnShift")))`,
+      `api.reset().then(() => api.getOption("promptOnShift")).then(JSON.stringify)`,
     );
     expect(JSON.parse(afterReset)).toBe(false);
   } finally {
@@ -899,7 +896,8 @@ test("removing option keys restores live defaults before reset acknowledgement",
   try {
     await evalSW(`browser.storage.local.set({ promptOnShift: false })
       .then(() => api.reset())
-      .then(() => JSON.stringify(api.getOption("promptOnShift")))`);
+      .then(() => api.getOption("promptOnShift"))
+      .then(JSON.stringify)`);
 
     const result = JSON.parse(
       await evalOptions(`(async () => {
@@ -911,7 +909,9 @@ test("removing option keys restores live defaults before reset acknowledgement",
 
     expect(result.response).toEqual({ type: "OK" });
     expect(result.stored).toEqual({});
-    expect(JSON.parse(await evalSW(`JSON.stringify(api.getOption("promptOnShift"))`))).toBe(true);
+    expect(JSON.parse(await evalSW(`api.getOption("promptOnShift").then(JSON.stringify)`))).toBe(
+      true,
+    );
   } finally {
     await evalSW(`browser.storage.local.set({ promptOnShift: true })
       .then(() => api.reset())

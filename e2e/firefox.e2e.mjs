@@ -1,12 +1,14 @@
 // Firefox end-to-end suite: throwaway profile, temporary install over RDP
 // (the about:debugging mechanism), evaluated in the extension's background
-// event page. Tests are sequential and build on each other's state.
+// event page and an extension-page control client. Tests are sequential and
+// build on each other's state.
 
 import fs from "fs";
 import http from "http";
 import path from "path";
 
 import firefox from "../scripts/lib/firefox.js";
+import { inBackgroundContext } from "./background-context.mjs";
 import { listenLocal, poll } from "./helpers.mjs";
 
 let session;
@@ -15,11 +17,8 @@ const ARTIFACTS = process.env.E2E_ARTIFACT_DIR
   ? path.resolve(process.env.E2E_ARTIFACT_DIR)
   : path.resolve("dist", "e2e-artifacts");
 
-const inE2EBridge = (expr) => `(() => {
-  const api = globalThis.__SAVE_IN_E2E__;
-  return (${expr});
-})()`;
-const evalBackground = (expr, timeoutMs) => session.evaluate(inE2EBridge(expr), timeoutMs);
+const evalBackground = (expr, timeoutMs) =>
+  session.evaluateInTab("src/options/options.html", inBackgroundContext(expr), timeoutMs);
 const artifactName = (name) =>
   name
     .replace(/[^a-z0-9]+/gi, "-")
@@ -169,10 +168,13 @@ test("background event page initialises cleanly", async () => {
     downloadRequestHeaders: true,
   });
   expect(state.promptConflictAction).toBe("prompt");
-  expect(state.pathErrors).toBe(0);
-  expect(state.menuCount).toBeGreaterThan(0);
   // Event pages keep a real DOM (unlike Chrome's service worker)...
   expect(state.hasObjectUrl).toBe(true);
+  expect(
+    await evalBackground(
+      `api.logs().then((log) => log.some((entry) => entry.message === "init failed"))`,
+    ),
+  ).toBe(false);
 });
 
 test("download completes through the real pipeline", async () => {
@@ -247,16 +249,14 @@ test("downloads receive the configured Referer header", async () => {
   const referer = "http://referrer.example/download-test";
 
   try {
-    await evalBackground(`api.startDownload({
-      url: ${JSON.stringify(url)},
-      pageUrl: ${JSON.stringify(referer)},
-      suggestedFilename: "referer-probe-firefox.txt",
-      expectDownload: false,
-      runtimeOptions: {
+    await evalBackground(`api.setOptions({
         setRefererHeader: true,
         setRefererHeaderFilter: "*://127.0.0.1/*",
-      },
-    })`);
+      }).then(() => api.startDownload({
+        url: ${JSON.stringify(url)},
+        pageUrl: ${JSON.stringify(referer)},
+        suggestedFilename: "referer-probe-firefox.txt",
+      }))`);
     await expect(receivedReferer).resolves.toBe(referer);
     expect(
       (await waitForDownloads("referer-probe-firefox")).some((x) => x.state === "complete"),

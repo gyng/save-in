@@ -164,15 +164,27 @@ const launch = async () => {
 
     const addonActor = await rdp.findAddonActor(ADDON_ID);
     const consoleActor = await rdp.getConsoleActor(addonActor);
+    await rdp.evaluate(
+      consoleActor,
+      'browser.tabs.create({ url: browser.runtime.getURL("src/options/options.html") }).then(() => true)',
+    );
 
-    // Background scripts may still be loading right after install
+    // Send the readiness probe from an extension page. A background context's
+    // runtime.sendMessage does not loop back to its own onMessage listener.
     for (let i = 0; i < 20; i += 1) {
-      // eslint-disable-next-line no-await-in-loop
-      const readyType = await rdp.evaluate(
-        consoleActor,
-        "typeof globalThis.__SAVE_IN_E2E__?.ready",
-      );
-      if (readyType === "function") break;
+      let ready = false;
+      try {
+        // eslint-disable-next-line no-await-in-loop
+        const tabConsole = await rdp.getTabConsoleActor("src/options/options.html");
+        // eslint-disable-next-line no-await-in-loop
+        ready = await rdp.evaluate(
+          tabConsole,
+          'browser.runtime.sendMessage({ type: "WAKE_WARM" }).then((response) => response?.type === "OK", () => false)',
+        );
+      } catch {
+        // The options target may not be attachable until its first document loads.
+      }
+      if (ready === true) break;
       // eslint-disable-next-line no-await-in-loop
       await sleep(500);
       if (i === 19) throw new Error("background page never became ready");

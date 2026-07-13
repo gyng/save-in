@@ -222,9 +222,11 @@ graph rather than relying on a one-time audit.
 ## Runtime and boundary hardening — DONE
 
 - Background lifecycle and diagnostic state is owned by the typed
-  `BackgroundRuntime` record. The bundle exposes one frozen
-  `__SAVE_IN_E2E__` bridge for browser evaluation; production modules and unit
-  tests no longer publish or consume the historical `window.*` aliases.
+  `BackgroundRuntime` record. Browser tests use production runtime messages and
+  storage from an extension page; the explicit e2e build adds only one
+  same-extension download-seeding command and publishes no test global.
+  Production modules and unit tests no longer publish or consume the historical
+  `window.*` aliases.
 - Message contracts, history contracts, and storage keys live under `shared`;
   options and other clients no longer import background implementations.
 - Internal and external messages use exhaustive handler tables. One dispatcher

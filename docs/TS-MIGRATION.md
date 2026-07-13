@@ -81,8 +81,9 @@ imports) so the handlers attach before `index` calls them. Keep `index` last.
   (an `esm` bundle emits `export` statements → syntax error when injected). The
   **background** bundle stays bare `esm` (scope-hoisted top-level) so synchronous
   listener registration remains obvious and reviewable. Store builds expose no
-  test globals; browser-test builds select `entries/background.e2e.ts`, which
-  installs one frozen command API.
+  test controls; browser-test builds select `entries/background.e2e.ts`, which
+  registers one same-extension download-seeding command. Other browser-test
+  control uses production runtime messages and storage from an extension page.
 - **The individual-scripts build is retired from the first `.ts` file** (a `.ts`
   can't be a classic script and the source manifest can't list it). So `build`,
   `lint` (`web-ext lint --source-dir dist/bundled-pkg -i "src/**"`), and
@@ -157,8 +158,8 @@ Work happened on branch **`ts-migration`** (off `mv3`).
 ### Bundle facts (load-bearing)
 - Formats: background / background.sw / options / offscreen = `esm` (bare
   scope-hoisted; entries have NO exports). Production background bundles have
-  no e2e bridge; e2e staging selects `background.e2e.ts`. Content and the
-  reference-page controller use `iife`.
+  no e2e command; explicit e2e staging selects `background.e2e.ts`. Content and
+  the reference-page controller use `iife`.
 - `background.sw.js` uses worker-safe APIs directly and has no `window` banner.
 
 ### Post-migration backlog → `docs/ARCH-CYCLES.md` (tasks #55–68)

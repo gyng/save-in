@@ -10,12 +10,15 @@ const path = require("path");
 const { execFileSync } = require("child_process");
 
 const { assertPackageVersion } = require("./lib/package-metadata");
+const { assertBackgroundControlSurface } = require("./lib/bundle-control-surface");
+const { parseBuildMode } = require("./lib/build-mode");
 
 const root = path.join(__dirname, "..");
 assertPackageVersion(root);
-const expectE2EBridge = process.env.SAVE_IN_E2E === "1";
-const bundleDir = path.join(root, "dist", expectE2EBridge ? "bundled-e2e" : "bundled");
-const out = path.join(root, "dist", expectE2EBridge ? "bundled-pkg-e2e" : "bundled-pkg");
+const buildMode = parseBuildMode(process.argv.slice(2));
+const expectE2EControl = buildMode === "e2e";
+const bundleDir = path.join(root, "dist", expectE2EControl ? "bundled-e2e" : "bundled");
+const out = path.join(root, "dist", expectE2EControl ? "bundled-pkg-e2e" : "bundled-pkg");
 const bundleFiles = [
   "background.js",
   "background.js.map",
@@ -34,7 +37,7 @@ const excludedRuntimeFiles = new Set(["src/options/version.json"]);
 
 // Remove artifacts from the short-lived per-browser packaging scheme so an
 // obsolete ZIP cannot be mistaken for the current shared store package.
-if (!expectE2EBridge) {
+if (!expectE2EControl) {
   for (const legacyArtifact of [
     "chrome",
     "firefox",
@@ -53,27 +56,21 @@ if (!expectE2EBridge) {
 // keep local/manual release artifacts as reproducible as clean CI builds.
 fs.rmSync(bundleDir, { recursive: true, force: true });
 fs.mkdirSync(bundleDir, { recursive: true });
-execFileSync(
-  process.execPath,
-  [path.join(root, "node_modules", "rolldown", "bin", "cli.mjs"), "-c", "rolldown.config.mjs"],
-  { cwd: root, stdio: "inherit" },
-);
+execFileSync(process.execPath, [path.join(root, "scripts", "bundle.js"), `--mode=${buildMode}`], {
+  cwd: root,
+  stdio: "inherit",
+});
 const actualBundleFiles = fs.readdirSync(bundleDir).toSorted();
 if (JSON.stringify(actualBundleFiles) !== JSON.stringify(bundleFiles.toSorted())) {
   throw new Error(`Unexpected rolldown outputs: ${actualBundleFiles.join(", ")}`);
 }
 
-// The store bundle must never expose the privileged browser-test command API.
-// Conversely, fail e2e staging early if its bridge was accidentally omitted.
-for (const filename of ["background.js", "background.sw.js"]) {
-  const bundle = fs.readFileSync(path.join(bundleDir, filename), "utf8");
-  if (bundle.includes("__SAVE_IN_E2E__") !== expectE2EBridge) {
-    throw new Error(`Unexpected e2e bridge surface in ${filename}`);
-  }
-}
+// The store bundle must never expose the browser-test command. Conversely,
+// fail e2e staging early if its command was accidentally omitted.
+assertBackgroundControlSurface(bundleDir, expectE2EControl);
 const contentBundle = fs.readFileSync(path.join(bundleDir, "content.js"), "utf8");
 const contentShadowMode = contentBundle.match(/attachShadow\(\{\s*mode:\s*"(open|closed)"/)?.[1];
-const expectedContentShadowMode = expectE2EBridge ? "open" : "closed";
+const expectedContentShadowMode = expectE2EControl ? "open" : "closed";
 if (
   contentShadowMode !== expectedContentShadowMode ||
   contentBundle.includes("SAVE_IN_CONTENT_E2E")

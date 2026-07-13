@@ -1,8 +1,8 @@
 import { defineConfig } from "rolldown";
 
-const backgroundEntry =
-  process.env.SAVE_IN_E2E === "1" ? "src/entries/background.e2e.ts" : "src/entries/background.ts";
-const bundleDir = process.env.SAVE_IN_E2E === "1" ? "dist/bundled-e2e" : "dist/bundled";
+const e2eBuild = process.env.SAVE_IN_BUILD_MODE === "e2e";
+const backgroundEntry = e2eBuild ? "src/entries/background.e2e.ts" : "src/entries/background.ts";
+const bundleDir = e2eBuild ? "dist/bundled-e2e" : "dist/bundled";
 
 // Store-submission bundler for the TypeScript/ESM codebase (docs/TS-MIGRATION.md).
 // Each target has one module under src/entries; rolldown strips the types (oxc), resolves the imports and
@@ -14,7 +14,7 @@ const bundleDir = process.env.SAVE_IN_E2E === "1" ? "dist/bundled-e2e" : "dist/b
 //   - background / background.sw / options / offscreen use `esm`: an entry with
 //     NO exports emits bare top-level code (no `export` statements), valid as a
 //     classic script in the SW / event page / page. The background entry then
-//     e2e-only entry installs one explicit command bridge; store builds use the
+//     e2e-only entry installs one same-extension command; store builds use the
 //     production entry and contain no test-control surface.
 //   - content uses `iife`: it runs as a classic content script and is isolated
 //     (nothing outside reads its bindings), so a function wrapper is fine; `esm`
@@ -65,7 +65,7 @@ export default defineConfig([
     input: "src/content/content.ts",
     transform: {
       define: {
-        SAVE_IN_CONTENT_E2E: JSON.stringify(process.env.SAVE_IN_E2E === "1"),
+        SAVE_IN_CONTENT_E2E: JSON.stringify(e2eBuild),
       },
     },
     output: {
