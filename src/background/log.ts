@@ -6,7 +6,7 @@
 // page. No-op where storage.session is unavailable.
 
 import { sessionWriteState } from "./state.ts";
-import { getSession, removeSession, updateSession } from "./session-state.ts";
+import { getSession, removeSession, updateSession } from "../shared/session-state.ts";
 import { extensionSessionStorage } from "../platform/storage-areas.ts";
 
 import { LOG_STORAGE_KEY } from "../shared/storage-keys.ts";

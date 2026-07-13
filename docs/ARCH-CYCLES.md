@@ -139,10 +139,10 @@ graph rather than relying on a one-time audit.
   e2e suites):
   - `messaging.ts` → `registerMessaging()` (onMessage + onMessageExternal)
   - `notification.ts` → `registerNotifier()` (downloads.onCreated/onChanged,
-    notifications.onClicked); the `DownloadState.hydrate()` is still in
-    `window.init`, now run via `start()`.
+    notifications.onClicked); `DownloadState.hydrate()` is still part of
+    `backgroundRuntime.init`, now run via `start()`.
   - `download.ts` → `registerDownloadListener()` (downloads.onDeterminingFilename)
-  - `background/main.ts` → `start()` (menu/tab listeners, `window.ready = init()`, tabs.query)
+  - `background/main.ts` → `start()` (menu/tab listeners, `backgroundRuntime.ready`, tabs.query)
   - `option.ts` → `seedOptions()` (the OPTION_KEYS defaults; loadOptions overlays
     storage onto them, so the entry seeds before init). The options page has its
     own option handling, so only `entries/background` seeds.
@@ -222,8 +222,9 @@ graph rather than relying on a one-time audit.
 ## Runtime and boundary hardening — DONE
 
 - Background lifecycle and diagnostic state is owned by the typed
-  `BackgroundRuntime` record. The composition root installs a narrow legacy
-  `window` bridge solely for the e2e evaluation surface.
+  `BackgroundRuntime` record. The bundle exposes one frozen
+  `__SAVE_IN_E2E__` bridge for browser evaluation; production modules and unit
+  tests no longer publish or consume the historical `window.*` aliases.
 - Message contracts, history contracts, and storage keys live under `shared`;
   options and other clients no longer import background implementations.
 - Internal and external messages use exhaustive handler tables. One dispatcher
@@ -233,10 +234,18 @@ graph rather than relying on a one-time audit.
   current-tab lookup, and counter storage through `routing/ports.ts`.
 - Session read-modify-write operations serialize per storage key. Download
   records are normalized at hydration/read boundaries and accept both the
-  legacy raw map and the versioned envelope.
+  legacy raw map and the versioned envelope. Rejected session/history storage
+  operations also produce bounded structured diagnostics instead of silently
+  disappearing; absence of `storage.session` remains a normal capability
+  fallback.
 - Download correlation and filename-event ownership, plus options-page panels,
   are separate feature modules rather than responsibilities of their former
   orchestration files.
+- Options persistence, runtime adaptation, and DOM/runtime bootstrap are
+  explicit services. Conditional Undo is a serialized compare-and-set in the
+  background, so a stale options page cannot overwrite a newer setting.
 - `scripts/check-import-cycles.js` now also enforces architectural boundaries:
   options cannot import background implementations, routing cannot import
-  platform adapters, and browser listeners have an explicit owner allowlist.
+  platform adapters, low-level runtime dependencies point downward, browser
+  listeners and composition calls have explicit owners, dynamic imports cannot
+  bypass the graph, and source modules cannot mutate the global namespace.

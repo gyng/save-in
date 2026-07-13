@@ -1,5 +1,5 @@
 import { hydrateDownloads, mergeDownload } from "../src/downloads/download-state.ts";
-import { normalizeSessionCounter, updateSession } from "../src/background/session-state.ts";
+import { normalizeSessionCounter, updateSession } from "../src/shared/session-state.ts";
 import { BackgroundState } from "../src/background/state.ts";
 
 describe("state service instances", () => {

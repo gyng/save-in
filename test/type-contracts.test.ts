@@ -11,7 +11,7 @@ import type {
 } from "../src/downloads/download-types.ts";
 import type { DownloadRecord, DownloadsState } from "../src/downloads/download-state.ts";
 import type { RuleClause } from "../src/routing/router.ts";
-import type { SessionWriteState } from "../src/background/session-state.ts";
+import type { SessionWriteState } from "../src/shared/session-state.ts";
 
 test("download stages expose distinct state contracts", () => {
   expectTypeOf<DownloadPlan>().toHaveProperty("state").toEqualTypeOf<DownloadPipelineState>();

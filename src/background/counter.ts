@@ -1,7 +1,7 @@
 import type { StorageReader, StorageWriter } from "../platform/storage-areas.ts";
 export { COUNTER_KEY } from "../shared/storage-keys.ts";
 import { COUNTER_KEY } from "../shared/storage-keys.ts";
-import { normalizeSessionCounter } from "./session-state.ts";
+import { normalizeSessionCounter } from "../shared/session-state.ts";
 
 export type CounterWriteState = {
   queue: Promise<unknown>;

@@ -1,4 +1,4 @@
-import type { ContentFetchResult } from "./content-fetch-types.ts";
+import type { ContentFetchResult } from "../shared/content-fetch-types.ts";
 import type { CurrentTab } from "../platform/current-tab.ts";
 
 export type PathValue = {

@@ -4,7 +4,7 @@ import type {
   BlobContent,
   ContentFetchResult,
   OffscreenFetchResponse,
-} from "./content-fetch-types.ts";
+} from "../shared/content-fetch-types.ts";
 
 export const HASH_MAX_BYTES = 256 * 1024 * 1024;
 export const HASH_FETCH_TIMEOUT_MS = 30000;

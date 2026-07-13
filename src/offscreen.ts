@@ -11,7 +11,7 @@
 import {
   isOffscreenFetchRequest,
   type OffscreenFetchResponse,
-} from "./downloads/content-fetch-types.ts";
+} from "./shared/content-fetch-types.ts";
 
 const OFFSCREEN_BLOB_TTL_MS = 5 * 60 * 1000;
 
