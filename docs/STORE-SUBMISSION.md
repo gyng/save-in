@@ -46,10 +46,10 @@ non-minified JavaScript. No obfuscation or remote executable code is used.
   Users can explicitly enable applicable website cookies and browser-managed
   authentication. Upgraded profiles also remain credential-free unless the
   user explicitly enables the option.
-- `cookies` is optional and Firefox-only in use. Granting it lets the native
-  downloads API select the originating Container's opaque `cookieStoreId` for
-  a direct download. Save In never reads or stores cookie values, and
-  fetch-to-Blob downloads do not claim to preserve Container context.
+- No cookie API permission is requested. The browser attaches applicable
+  credentials when the user enables authenticated extension requests; Save In
+  never reads cookie values. Extension Fetch cannot select a Firefox Container
+  or private cookie store.
 - `<all_urls>` is required because the extension saves resources selected by
   the user from arbitrary websites, optionally reads content metadata, and can
   run its click-to-save content listener on those pages.
@@ -89,8 +89,6 @@ Permission justifications:
   state.
 - `offscreen`: provides Chrome's service worker with temporary Blob URL
   conversion for downloads.
-- optional `cookies`: on Firefox only, selects the originating Container's
-  cookie store for a user-requested direct download without reading cookies.
 - `<all_urls>`: identifies and fetches resources explicitly selected by the
   user on arbitrary websites, including resources requiring the user's
   existing session.
@@ -100,8 +98,7 @@ category, icon, screenshots, support link, privacy-policy link, and the same
 data-use answers as `PRIVACY.md`.
 
 The listing and in-product Advanced downloading copy must disclose that users
-can opt into sending applicable site credentials with extension requests and
-can separately grant Firefox Container access.
+can opt into sending applicable site credentials with extension requests.
 
 ## GitHub release provenance
 

@@ -794,50 +794,20 @@ describe("renameAndDownload: prompt combinations", () => {
 describe("renameAndDownload: browserDownload", () => {
   test("passes Firefox private context without a conflicting cookie store", async () => {
     setCurrentBrowser("FIREFOX");
-    (global.browser as any).permissions = {
-      contains: vi.fn(() => Promise.resolve(true)),
-    };
     const state = makeState({
       info: { currentTab: { incognito: true, cookieStoreId: "firefox-private" } },
     });
 
-    try {
-      await Download.renameAndDownload(state);
+    await Download.renameAndDownload(state);
 
-      expect(global.browser.downloads.download).toHaveBeenCalledWith(
-        expect.objectContaining({
-          url: state.info.url,
-          incognito: true,
-        }),
-      );
-      const [downloadOptions] = vi.mocked(global.browser.downloads.download).mock.calls[0]!;
-      expect(downloadOptions).not.toHaveProperty("cookieStoreId");
-    } finally {
-      Reflect.deleteProperty(global.browser, "permissions");
-    }
-  });
-
-  test("passes an approved Firefox Container to a direct download", async () => {
-    setCurrentBrowser("FIREFOX");
-    (global.browser as any).permissions = {
-      contains: vi.fn(() => Promise.resolve(true)),
-    };
-    const state = makeState({
-      info: { currentTab: { incognito: false, cookieStoreId: "firefox-container-2" } },
-    });
-
-    try {
-      await Download.renameAndDownload(state);
-
-      expect(global.browser.downloads.download).toHaveBeenCalledWith(
-        expect.objectContaining({
-          url: state.info.url,
-          cookieStoreId: "firefox-container-2",
-        }),
-      );
-    } finally {
-      Reflect.deleteProperty(global.browser, "permissions");
-    }
+    expect(global.browser.downloads.download).toHaveBeenCalledWith(
+      expect.objectContaining({
+        url: state.info.url,
+        incognito: true,
+      }),
+    );
+    const [downloadOptions] = vi.mocked(global.browser.downloads.download).mock.calls[0]!;
+    expect(downloadOptions).not.toHaveProperty("cookieStoreId");
   });
 
   test("persists session state, downloads, and tracks the result", async () => {
@@ -962,29 +932,22 @@ describe("renameAndDownload: browserDownload", () => {
 });
 
 describe("renameAndDownload: fetchViaFetch", () => {
-  test("keeps a fetched blob private without attaching its Firefox Container", async () => {
+  test("keeps a fetched blob associated with Firefox private downloads", async () => {
     setCurrentBrowser("FIREFOX");
     options.fetchViaFetch = true;
-    (global.browser as any).permissions = {
-      contains: vi.fn(() => Promise.resolve(true)),
-    };
     global.fetch = vi.fn(() =>
       Promise.resolve({ blob: () => Promise.resolve(new Blob(["file contents"])) }),
     ) as any;
     vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:fetched-content");
 
-    try {
-      const state = makeState({
-        info: { currentTab: { incognito: true, cookieStoreId: "firefox-private" } },
-      });
-      await Download.renameAndDownload(state);
+    const state = makeState({
+      info: { currentTab: { incognito: true, cookieStoreId: "firefox-private" } },
+    });
+    await Download.renameAndDownload(state);
 
-      const [downloadOptions] = vi.mocked(global.browser.downloads.download).mock.calls[0]!;
-      expect(downloadOptions).toHaveProperty("incognito", true);
-      expect(downloadOptions).not.toHaveProperty("cookieStoreId");
-    } finally {
-      Reflect.deleteProperty(global.browser, "permissions");
-    }
+    const [downloadOptions] = vi.mocked(global.browser.downloads.download).mock.calls[0]!;
+    expect(downloadOptions).toHaveProperty("incognito", true);
+    expect(downloadOptions).not.toHaveProperty("cookieStoreId");
   });
 
   test("fetches the URL, converts the blob to an object URL, then downloads it", async () => {

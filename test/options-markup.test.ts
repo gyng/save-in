@@ -134,12 +134,7 @@ describe("options form semantics", () => {
     expect(fetchCredentials?.closest("label")?.textContent).toContain(
       "__MSG_o_cIncludeFetchCredentials__",
     );
-    expect(containerPermission?.closest(".firefox-only")?.textContent).toContain(
-      "__MSG_o_cContainerAuthPermission__",
-    );
-    expect(
-      containerPermission?.closest("label")?.querySelector(".badge.firefox")?.textContent,
-    ).toBe("Firefox");
+    expect(containerPermission).toBeNull();
   });
 
   test("makes default Downloads-folder help directly openable", () => {

@@ -15,6 +15,7 @@
   },
   "homepage_url": "https://github.com/gyng/save-in",
   "minimum_chrome_version": "123",
+  "incognito": "split",
   "background": {
     "scripts": ["background.js"],
     "service_worker": "background.sw.js"
@@ -26,7 +27,6 @@
     }
   ],
   "permissions": ["contextMenus", "downloads", "notifications", "storage", "offscreen"],
-  "optional_permissions": ["cookies"],
   "host_permissions": ["<all_urls>"],
   "options_ui": {
     "page": "src/options/options.html",

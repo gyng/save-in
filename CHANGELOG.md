@@ -49,9 +49,8 @@ testing on Chromium!
 - Extension-side Fetch and HEAD requests now have an explicit website
   credentials option. New and upgraded profiles omit cookies until the user
   explicitly enables authenticated extension requests.
-- Firefox can optionally preserve the originating Container or private cookie
-  context for direct downloads. The optional permission selects a cookie store
-  without reading or storing cookie values.
+- Firefox direct downloads retain private-download-manager isolation. Extension
+  Fetch cannot select a Firefox Container or private cookie store.
 - Remove the old content-script fetch path; MV3 cross-origin fetching runs in
   an extension context with host permission
 - Waterfox and other Gecko forks are now detected as Firefox, and browser

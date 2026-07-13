@@ -793,22 +793,6 @@
     "message": "Includes applicable cookies and browser-managed authentication in background Fetch and HEAD requests. Enable only for sites that require your signed-in session. Direct browser downloads manage their own cookies."
   },
 
-  "o_cContainerAuthPermission": {
-    "message": "Preserve Firefox Container authentication for direct downloads"
-  },
-
-  "o_cContainerAuthPermissionHelp": {
-    "message": "Optional Firefox permission. Selects the originating Container's cookie store without reading or storing cookie values. Fetch-through-extension requests cannot preserve a Container. Status:"
-  },
-
-  "o_lContainerAuthEnabled": {
-    "message": "Enabled"
-  },
-
-  "o_lContainerAuthDisabled": {
-    "message": "Disabled"
-  },
-
   "o_cSetRefererHeader": {
     "message": "Set the \"Referer\" header to the page URL when missing"
   },

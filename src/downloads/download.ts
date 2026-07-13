@@ -42,7 +42,7 @@ import {
   removeFilename,
 } from "./filename-listener.ts";
 import { BrowserDownloadRouting, routeBrowserDownload } from "./browser-downloads.ts";
-import { resolveDirectDownloadContext } from "./auth-context.ts";
+import { resolveFirefoxDownloadContext } from "./auth-context.ts";
 
 const downloadRuntime = createDownloadRuntimeState();
 const logPort = downloadPorts.log;
@@ -490,10 +490,7 @@ export const Download = {
         conflictAction: options.conflictAction,
       };
       if (headers) downloadOptions.headers = headers;
-      Object.assign(
-        downloadOptions,
-        await resolveDirectDownloadContext(state.info.currentTab, acquired.url),
-      );
+      Object.assign(downloadOptions, await resolveFirefoxDownloadContext(state.info.currentTab));
       const downloadId = await webExtensionApi.downloads.download(downloadOptions);
       Notifier.cancelExpectedDownload(expected);
       if (acquired.ownedObjectUrl) {

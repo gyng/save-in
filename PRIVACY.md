@@ -47,10 +47,9 @@ Save In requests access to websites because its purpose is to save resources
 from websites chosen by the user. It uses browser download, context-menu,
 notification, storage, and Chrome offscreen APIs
 only to provide the saving, routing, status, and retry features described in
-the extension and store listings. On Firefox, users can optionally grant the
-cookies permission so a direct download uses the originating Container's
-cookie store. Save In passes only the opaque store identifier to Firefox's
-downloads API; it does not read, store, or expose cookie values.
+the extension and store listings. Save In does not request cookie access or
+read, store, or expose cookie values. When the user enables authenticated
+extension requests, the browser itself attaches applicable credentials.
 
 ## Changes and contact
 
