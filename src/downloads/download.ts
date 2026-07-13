@@ -19,6 +19,10 @@ import { makeUrlFromBlob } from "./content-fetch.ts";
 import { OffscreenClient } from "../platform/offscreen-client.ts";
 import { EXTENSION_REGEX, getFilenameFromUrl } from "../routing/filename.ts";
 import { MESSAGE_TYPES } from "../shared/constants.ts";
+import {
+  FINAL_FILENAMES_SESSION_KEY,
+  PENDING_DOWNLOADS_SESSION_KEY,
+} from "../shared/storage-keys.ts";
 import { DownloadEvents } from "./download-events.ts";
 import { retryViaFetch } from "./download-retry.ts";
 import { extensionSessionStorage } from "../platform/storage-areas.ts";
@@ -416,13 +420,13 @@ export const Download = {
       updateSession<number>(
         sessionWriteState,
         extensionSessionStorage,
-        "siPendingDownloads",
+        PENDING_DOWNLOADS_SESSION_KEY,
         (n) => normalizeSessionCounter(n) + 1,
       ),
       updateSession<FinalFilenameMap>(
         sessionWriteState,
         extensionSessionStorage,
-        "siFinalFilenames",
+        FINAL_FILENAMES_SESSION_KEY,
         (m) => enqueueFilename(m, acquired.url, filename),
       ),
     ]);
@@ -488,13 +492,13 @@ export const Download = {
         updateSession<number>(
           sessionWriteState,
           extensionSessionStorage,
-          "siPendingDownloads",
+          PENDING_DOWNLOADS_SESSION_KEY,
           (n) => Math.max(0, normalizeSessionCounter(n) - 1),
         ),
         updateSession<FinalFilenameMap>(
           sessionWriteState,
           extensionSessionStorage,
-          "siFinalFilenames",
+          FINAL_FILENAMES_SESSION_KEY,
           (m) => removeFilename(m, acquired.url, filename),
         ),
       ]);

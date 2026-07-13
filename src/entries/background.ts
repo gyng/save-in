@@ -9,10 +9,6 @@ import { registerMessaging } from "../background/messaging.ts";
 import { registerNotifier } from "../downloads/notification.ts";
 import { registerDownloadListener } from "../downloads/download.ts";
 import { configureBackgroundPorts, start } from "../background/main.ts";
-import { installBackgroundE2EBridge } from "../background/e2e-bridge.ts";
-import { createBackgroundE2EApi } from "../background/e2e-api.ts";
-
-installBackgroundE2EBridge(globalThis, createBackgroundE2EApi());
 
 // Register the MV3 event listeners and run the background bootstrap
 // synchronously at startup. Listeners MUST attach synchronously or the service

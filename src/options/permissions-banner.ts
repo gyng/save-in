@@ -67,9 +67,8 @@ export const PermissionsBanner = {
   },
 };
 
-document.addEventListener("DOMContentLoaded", () => {
+export const setupPermissionsBanner = () =>
   PermissionsBanner.init(
     document.querySelector<HTMLElement>("#host-permission-banner"),
     document.querySelector<HTMLButtonElement>("#host-permission-grant"),
   );
-});

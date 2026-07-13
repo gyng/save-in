@@ -499,9 +499,9 @@ export class PathEditor {
   }
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+export const setupPathEditor = () => {
   const editor = new PathEditor();
   editor.setupInsertMenu("#rules-clause-menu");
   editor.setupVisualEditor();
   editor.setupModeToggle();
-});
+};

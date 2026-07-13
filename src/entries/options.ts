@@ -7,26 +7,41 @@
 
 // <head> scripts
 import "../platform/web-extension-api.ts";
-import "../options/l10n.ts";
+import { localizeDocument } from "../options/l10n.ts";
 import "../shared/constants.ts";
 import "../platform/chrome-detector.ts";
 
 // <body> scripts (options.html load order)
 import "../options/options-logic.ts";
 import "../options/history-view.ts";
-import "../options/history-panel.ts";
-import { confirmPendingChanges } from "../options/options.ts";
+import { renderHistory } from "../options/history-panel.ts";
+import { confirmPendingChanges, setupOptionsPage } from "../options/options.ts";
 import "../options/dismissible-details.ts";
-import "../options/permissions-banner.ts";
+import { setupPermissionsBanner } from "../options/permissions-banner.ts";
 import "../options/clicktocopy.ts";
 import "../options/autocomplete.ts";
-import "../options/path-editor.ts";
-import "../options/rule-builder.ts";
-import "../options/options-reference.ts";
+import { setupPathEditor } from "../options/path-editor.ts";
+import { setupRuleBuilder } from "../options/rule-builder.ts";
+import { setupOptionsReferences } from "../options/options-reference.ts";
 import { setupTabs } from "../options/tabs.ts";
-import "../options/option-search.ts";
-import "../options/source-shortcut.ts";
+import { setupOptionSearch } from "../options/option-search.ts";
+import { setupSourceShortcut } from "../options/source-shortcut.ts";
 import "../options/webmcp.ts";
 import "../options/about-dialog.ts";
 
-document.addEventListener("DOMContentLoaded", () => setupTabs({ confirmPendingChanges }));
+document.addEventListener(
+  "DOMContentLoaded",
+  () => {
+    localizeDocument();
+    void renderHistory();
+    setupOptionsPage();
+    void setupPermissionsBanner();
+    setupPathEditor();
+    setupRuleBuilder();
+    setupOptionsReferences();
+    setupTabs({ confirmPendingChanges });
+    setupOptionSearch();
+    setupSourceShortcut();
+  },
+  { once: true },
+);

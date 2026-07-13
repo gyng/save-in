@@ -1,8 +1,8 @@
 import { getSession, updateSession } from "../shared/session-state.ts";
 import type { SessionWriteState } from "../shared/session-state.ts";
 import type { StorageReader, StorageWriter } from "../platform/storage-areas.ts";
+import { DOWNLOADS_SESSION_KEY } from "../shared/storage-keys.ts";
 
-const SESSION_KEY = "siDownloads";
 const MAX_RECORDS = 50;
 
 export type DownloadRecord = {
@@ -84,13 +84,14 @@ const storedDownloadEntries = (value: unknown): Array<[number, DownloadRecord]> 
 
 export const hydrateDownloads = (state: DownloadsState, storage: StorageReader | undefined) => {
   if (!state.hydration) {
-    state.hydration = getSession<Record<string, DownloadRecord>>(storage, SESSION_KEY).then(
-      (res) => {
-        storedDownloadEntries(res[SESSION_KEY]).forEach(([id, record]) => {
-          if (!state.records.has(id)) state.records.set(id, record);
-        });
-      },
-    );
+    state.hydration = getSession<Record<string, DownloadRecord>>(
+      storage,
+      DOWNLOADS_SESSION_KEY,
+    ).then((res) => {
+      storedDownloadEntries(res[DOWNLOADS_SESSION_KEY]).forEach(([id, record]) => {
+        if (!state.records.has(id)) state.records.set(id, record);
+      });
+    });
   }
   return state.hydration;
 };
@@ -114,7 +115,7 @@ export const mergeDownload = (
     const oldestId = state.records.keys().next().value;
     if (oldestId !== undefined) state.records.delete(oldestId);
   }
-  return updateSession<unknown>(sessionWrites, storage, SESSION_KEY, (stored) => {
+  return updateSession<unknown>(sessionWrites, storage, DOWNLOADS_SESSION_KEY, (stored) => {
     const records = capDownloads(
       Object.assign(normalizeDownloadRecords(stored), { [downloadId]: merged }),
     );
@@ -129,8 +130,8 @@ export const getDownload = (
 ): Promise<DownloadRecord | null> => {
   const inMemory = state.records.get(downloadId);
   if (inMemory) return Promise.resolve(inMemory);
-  return getSession<Record<string, DownloadRecord>>(storage, SESSION_KEY).then((res) => {
-    const stored = unwrapDownloadRecords(res[SESSION_KEY]);
+  return getSession<Record<string, DownloadRecord>>(storage, DOWNLOADS_SESSION_KEY).then((res) => {
+    const stored = unwrapDownloadRecords(res[DOWNLOADS_SESSION_KEY]);
     const record = isObject(stored) ? stored[downloadId] : undefined;
     return normalizeDownloadRecord(record);
   });

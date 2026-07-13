@@ -107,7 +107,8 @@ describe("history filter controls", () => {
   });
 
   test("keeps table headers and an empty-state row when history has no entries", async () => {
-    document.dispatchEvent(new Event("DOMContentLoaded"));
+    const { renderHistory } = await import("../src/options/history-panel.ts");
+    await renderHistory();
     await vi.waitFor(() => expect(document.querySelector("#history-list table")).not.toBeNull());
 
     expect(document.querySelectorAll("#history-list th").length).toBeGreaterThan(0);

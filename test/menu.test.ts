@@ -367,7 +367,7 @@ describe("menu creation", () => {
   });
 
   describe("addTabHighlightListener", () => {
-    let highlightListener: (info: { tabIds: number[] }) => void;
+    let highlightListener: (info: { tabIds: number[] }) => void | Promise<void>;
 
     beforeEach(() => {
       (global.browser as any).tabs = { onHighlighted: { addListener: jest.fn() } };
@@ -389,6 +389,22 @@ describe("menu creation", () => {
         "tabstripMenuMultipleSelectedTab",
         [2],
       );
+    });
+
+    test("waits for cold-start initialization before reading tab settings", async () => {
+      let finish!: () => void;
+      backgroundRuntime.ready = new Promise<void>((resolve) => {
+        finish = resolve;
+      });
+      options.tabEnabled = false;
+
+      const pending = highlightListener({ tabIds: [4, 8] });
+      options.tabEnabled = true;
+      expect(global.browser.contextMenus.update).not.toHaveBeenCalled();
+
+      finish();
+      await pending;
+      expect(global.browser.contextMenus.update).toHaveBeenCalledTimes(1);
     });
 
     test("does nothing when tab menus are disabled", () => {

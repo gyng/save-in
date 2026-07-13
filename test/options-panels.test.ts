@@ -174,9 +174,9 @@ describe("variables preview", () => {
 });
 
 describe("reset options", () => {
-  test("clears storage, reloads background and refreshes the page state", async () => {
+  test("removes only schema options, preserving history and other extension data", async () => {
     document.body.innerHTML = '<button id="reset"></button><span id="lastSavedAt"></span>';
-    vi.mocked(browser.storage.local.clear).mockResolvedValue();
+    vi.mocked(browser.storage.local.remove).mockResolvedValue();
     vi.mocked(browser.runtime.sendMessage).mockResolvedValue({ type: "OK" });
     const restoreOptions = vi.fn();
     const updateErrors = vi.fn();
@@ -184,11 +184,17 @@ describe("reset options", () => {
       confirm: vi.fn(() => true),
       alert: vi.fn(),
     } as unknown as Window;
-    setupResetOptions({ restoreOptions, updateErrors, window: hostWindow });
+    setupResetOptions({
+      restoreOptions,
+      updateErrors,
+      getOptionNames: () => Promise.resolve(["paths", "prompt"]),
+      window: hostWindow,
+    });
 
     document.querySelector<HTMLButtonElement>("#reset")!.click();
     await flush();
-    expect(browser.storage.local.clear).toHaveBeenCalled();
+    expect(browser.storage.local.remove).toHaveBeenCalledWith(["paths", "prompt"]);
+    expect(browser.storage.local.clear).not.toHaveBeenCalled();
     expect(browser.runtime.sendMessage).toHaveBeenCalledWith({ type: "OPTIONS_LOADED" });
     expect(restoreOptions).toHaveBeenCalled();
     expect(updateErrors).toHaveBeenCalled();
@@ -198,7 +204,12 @@ describe("reset options", () => {
   test("does nothing when confirmation is declined", () => {
     document.body.innerHTML = '<button id="reset"></button>';
     const hostWindow = { confirm: vi.fn(() => false) } as unknown as Window;
-    setupResetOptions({ restoreOptions: vi.fn(), updateErrors: vi.fn(), window: hostWindow });
+    setupResetOptions({
+      restoreOptions: vi.fn(),
+      updateErrors: vi.fn(),
+      getOptionNames: () => Promise.resolve(["paths"]),
+      window: hostWindow,
+    });
     document.querySelector<HTMLButtonElement>("#reset")!.click();
     expect(browser.storage.local.clear).not.toHaveBeenCalled();
   });

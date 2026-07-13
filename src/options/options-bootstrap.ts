@@ -7,11 +7,11 @@ type OptionsBootstrapPorts = {
   startBrowserDetection(): void;
 };
 
-export const bootstrapOptionsPage = (ports: OptionsBootstrapPorts): void => {
+export const bootstrapOptionsPage = (ports: OptionsBootstrapPorts): (() => void) => {
   ports.configureRuntime();
-  ports.ready.forEach((callback) => ports.document.addEventListener("DOMContentLoaded", callback));
   ports.addMessageListener((message) => {
     if (message.type === "DOWNLOADED") ports.onDownloaded();
   });
   ports.startBrowserDetection();
+  return () => ports.ready.forEach((callback) => callback());
 };

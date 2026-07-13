@@ -7,6 +7,7 @@ import { getDownload, mergeDownload } from "./download-state.ts";
 import type { DownloadRecord } from "./download-state.ts";
 import { getSession, normalizeSessionCounter, updateSession } from "../shared/session-state.ts";
 import { options } from "../config/options-data.ts";
+import { PENDING_DOWNLOADS_SESSION_KEY } from "../shared/storage-keys.ts";
 import {
   BROWSERS,
   CURRENT_BROWSER,
@@ -161,8 +162,8 @@ export const Notifier = {
     // between requesting the download and this event. siPendingDownloads is a
     // COUNTER (not a boolean) so several downloads created after one restart
     // are all recovered — a boolean dropped every one past the first.
-    const res = await getSession<number>(extensionSessionStorage, "siPendingDownloads");
-    if (normalizeSessionCounter(res.siPendingDownloads) > 0) {
+    const res = await getSession<number>(extensionSessionStorage, PENDING_DOWNLOADS_SESSION_KEY);
+    if (normalizeSessionCounter(res[PENDING_DOWNLOADS_SESSION_KEY]) > 0) {
       await mergeTrackedDownload(item.id, {
         adopted: true,
         currentFilename: item.filename,
@@ -171,7 +172,7 @@ export const Notifier = {
       await updateSession<number>(
         sessionWriteState,
         extensionSessionStorage,
-        "siPendingDownloads",
+        PENDING_DOWNLOADS_SESSION_KEY,
         (n) => Math.max(0, normalizeSessionCounter(n) - 1),
       );
       return;

@@ -16,38 +16,13 @@
   "homepage_url": "https://github.com/gyng/save-in",
   "minimum_chrome_version": "123",
   "background": {
-    "scripts": [
-      "src/web-extension-api.js",
-      "src/vendor/content-disposition.js",
-      "src/chrome-detector.js",
-      "src/constants.js",
-      "src/util.js",
-      "src/session-state.js",
-      "src/log.js",
-      "src/history.js",
-      "src/counter.js",
-      "src/download-state.js",
-      "src/notification.js",
-      "src/path.js",
-      "src/offscreen-client.js",
-      "src/download.js",
-      "src/router.js",
-      "src/shortcut.js",
-      "src/messaging.js",
-      "src/headers.js",
-      "src/variable.js",
-      "src/menu-build.js",
-      "src/menu-click.js",
-      "src/menu-tabs.js",
-      "src/option.js",
-      "src/index.js"
-    ],
-    "service_worker": "src/background.js"
+    "scripts": ["background.js"],
+    "service_worker": "background.sw.js"
   },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["src/content/content.js"]
+      "js": ["content.js"]
     }
   ],
   "permissions": ["contextMenus", "downloads", "notifications", "storage", "offscreen"],

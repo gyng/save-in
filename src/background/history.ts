@@ -1,6 +1,7 @@
 import { webExtensionApi } from "../platform/web-extension-api.ts";
 import type { HistoryEntry, HistoryEntryInput } from "../shared/history-types.ts";
 import { recordPersistenceFailure } from "../shared/persistence-diagnostics.ts";
+import { HISTORY_STORAGE_KEY } from "../shared/storage-keys.ts";
 import {
   hasLegacyDateOnlyTimestamp,
   migrateLegacyHistoryTimestamps,
@@ -9,14 +10,12 @@ import {
 
 /* eslint-disable no-unused-vars */
 
-const HISTORY_KEY = "save-in-history";
-
 // Entries store the whole download state: cap the list so storage.local
 // does not grow without bound
 const HISTORY_LIMIT = 10000;
 
 const recordHistoryFailure = (operation: "read" | "write" | "migrate", error: unknown): void => {
-  recordPersistenceFailure({ area: "local", operation, key: HISTORY_KEY }, error);
+  recordPersistenceFailure({ area: "local", operation, key: HISTORY_STORAGE_KEY }, error);
 };
 
 export const SaveHistory = {
@@ -39,11 +38,11 @@ export const SaveHistory = {
     const withMeta = Object.assign({ id, status: "pending" }, entry);
 
     SaveHistory.writeQueue = SaveHistory.writeQueue
-      .then(() => webExtensionApi.storage.local.get(HISTORY_KEY))
+      .then(() => webExtensionApi.storage.local.get(HISTORY_STORAGE_KEY))
       .then((res) => {
-        const history = normalizeHistory(res?.[HISTORY_KEY]);
+        const history = normalizeHistory(res?.[HISTORY_STORAGE_KEY]);
         return webExtensionApi.storage.local.set({
-          [HISTORY_KEY]: [...history, withMeta].slice(-HISTORY_LIMIT),
+          [HISTORY_STORAGE_KEY]: [...history, withMeta].slice(-HISTORY_LIMIT),
         });
       })
       .catch((error) => recordHistoryFailure("write", error));
@@ -58,11 +57,11 @@ export const SaveHistory = {
       return SaveHistory.writeQueue;
     }
     SaveHistory.writeQueue = SaveHistory.writeQueue
-      .then(() => webExtensionApi.storage.local.get(HISTORY_KEY))
+      .then(() => webExtensionApi.storage.local.get(HISTORY_STORAGE_KEY))
       .then((res) => {
-        const history = normalizeHistory(res?.[HISTORY_KEY]);
+        const history = normalizeHistory(res?.[HISTORY_STORAGE_KEY]);
         const next = history.map((e) => (e.id === id ? Object.assign({}, e, fields) : e));
-        return webExtensionApi.storage.local.set({ [HISTORY_KEY]: next });
+        return webExtensionApi.storage.local.set({ [HISTORY_STORAGE_KEY]: next });
       })
       .catch((error) => recordHistoryFailure("write", error));
 
@@ -96,7 +95,7 @@ export const SaveHistory = {
   get: async (): Promise<HistoryEntry[]> => {
     let current: Record<string, unknown>;
     try {
-      current = ((await webExtensionApi.storage.local.get(HISTORY_KEY)) || {}) as Record<
+      current = ((await webExtensionApi.storage.local.get(HISTORY_STORAGE_KEY)) || {}) as Record<
         string,
         unknown
       >;
@@ -104,16 +103,16 @@ export const SaveHistory = {
       recordHistoryFailure("read", error);
       throw error;
     }
-    const stored = current[HISTORY_KEY];
+    const stored = current[HISTORY_STORAGE_KEY];
     const history = normalizeHistory(stored);
     if (hasLegacyDateOnlyTimestamp(stored)) {
       SaveHistory.writeQueue = SaveHistory.writeQueue
-        .then(() => webExtensionApi.storage.local.get(HISTORY_KEY))
+        .then(() => webExtensionApi.storage.local.get(HISTORY_STORAGE_KEY))
         .then((latest) => {
-          const latestStored = latest?.[HISTORY_KEY];
+          const latestStored = latest?.[HISTORY_STORAGE_KEY];
           if (!hasLegacyDateOnlyTimestamp(latestStored)) return;
           return webExtensionApi.storage.local.set({
-            [HISTORY_KEY]: migrateLegacyHistoryTimestamps(latestStored),
+            [HISTORY_STORAGE_KEY]: migrateLegacyHistoryTimestamps(latestStored),
           });
         })
         .catch((error) => recordHistoryFailure("migrate", error));

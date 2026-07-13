@@ -385,6 +385,12 @@ const externalHandlers = {
   [MESSAGE_TYPES.DOWNLOAD]: Messaging.handleDownloadMessage,
 } satisfies HandlerTable<ExternalMessage>;
 
+const READY_MESSAGE_TYPES = new Set<InternalMessage["type"]>([
+  MESSAGE_TYPES.OPTIONS,
+  MESSAGE_TYPES.CHECK_ROUTES,
+  MESSAGE_TYPES.DOWNLOAD,
+]);
+
 const dispatchMessage = <M extends InternalMessage>(
   request: M,
   sender: MessageSender,
@@ -394,14 +400,21 @@ const dispatchMessage = <M extends InternalMessage>(
   // The table is exhaustive for M, so this lookup is safe even though TS cannot
   // preserve the correlation between a union's discriminator and mapped value.
   const handler = (handlers as unknown as Record<string, Handler<M>>)[request.type];
+  const reportFailure = (error: unknown) => {
+    void Log.add("message handler failed", {
+      type: request.type,
+      error: error instanceof Error ? error.message : String(error),
+    });
+  };
+  if (READY_MESSAGE_TYPES.has(request.type) && backgroundRuntime.ready) {
+    const task = backgroundRuntime.ready
+      .then(() => handler(request, sender, sendResponse))
+      .then(() => undefined);
+    return respondAsync(request.type, task, sendResponse, reportFailure);
+  }
   const result = handler(request, sender, sendResponse);
   if (result instanceof Promise) {
-    return respondAsync(request.type, result, sendResponse, (error) => {
-      void Log.add("message handler failed", {
-        type: request.type,
-        error: error instanceof Error ? error.message : String(error),
-      });
-    });
+    return respondAsync(request.type, result, sendResponse, reportFailure);
   }
 };
 

@@ -37,13 +37,45 @@ describe("application global surface", () => {
 
   test("keeps the e2e bridge command-oriented", () => {
     const entry = read("src/entries/background.ts");
-    expect(entry).toContain("createBackgroundE2EApi()");
-    expect(entry).not.toMatch(/installBackgroundE2EBridge\(globalThis, \{[\s\S]*?\}\);/);
+    const e2eEntry = read("src/entries/background.e2e.ts");
+    expect(entry).not.toContain("installBackgroundE2EBridge");
+    expect(e2eEntry).toContain("createBackgroundE2EApi()");
+    expect(e2eEntry).not.toMatch(/installBackgroundE2EBridge\(globalThis, \{[\s\S]*?\}\);/);
+    expect(read("rolldown.config.mjs")).toContain('process.env.SAVE_IN_E2E === "1"');
+    expect(read("scripts/build-bundled.js")).toContain("Unexpected e2e bridge surface");
 
     for (const path of ["e2e/chrome.e2e.mjs", "e2e/firefox.e2e.mjs"]) {
       const harness = read(path);
       expect(harness).not.toContain("runtime: window");
       expect(harness).not.toMatch(/\b(Log|SaveHistory|Download|Notifier|Messaging|options),/);
     }
+  });
+
+  test("gives the options entry sole DOM-ready ownership", () => {
+    expect(read("src/entries/options.ts")).toMatch(/addEventListener\(\s*"DOMContentLoaded"/);
+    for (const path of [
+      "src/options/l10n.ts",
+      "src/options/history-panel.ts",
+      "src/options/option-search.ts",
+      "src/options/options-reference.ts",
+      "src/options/path-editor.ts",
+      "src/options/permissions-banner.ts",
+      "src/options/rule-builder.ts",
+      "src/options/source-shortcut.ts",
+      "src/options/options-bootstrap.ts",
+    ]) {
+      expect(read(path)).not.toContain('addEventListener("DOMContentLoaded"');
+    }
+  });
+
+  test("keeps package templates aligned with generated bundle paths", () => {
+    const manifest = JSON.parse(read("manifest.json"));
+    expect(manifest.background).toEqual({
+      scripts: ["background.js"],
+      service_worker: "background.sw.js",
+    });
+    expect(manifest.content_scripts[0].js).toEqual(["content.js"]);
+    expect(read("src/options/options.html").match(/<script[^>]+src=/g)).toHaveLength(1);
+    expect(read("src/options/options.html")).toContain('src="../../options.js"');
   });
 });

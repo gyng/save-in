@@ -34,5 +34,3 @@ export const localizeDocument = () => {
   });
   hardenLinks();
 };
-
-document.addEventListener("DOMContentLoaded", localizeDocument, { once: true });

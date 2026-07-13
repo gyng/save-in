@@ -77,10 +77,10 @@ imports) so the handlers attach before `index` calls them. Keep `index` last.
 
 - **Output format is per-target.** A classic content script needs `format: "iife"`
   (an `esm` bundle emits `export` statements → syntax error when injected). The
-  **background** bundle must stay bare `esm` (scope-hoisted top-level), because
-  the e2e's `evalSW` reaches `Notifier`/`Download`/… as globals on the SW scope —
-  an IIFE would hide them. So the background entry will need explicit
-  `globalThis.X = X` for the handful the e2e + cross-context code touch.
+  **background** bundle stays bare `esm` (scope-hoisted top-level) so synchronous
+  listener registration remains obvious and reviewable. Store builds expose no
+  test globals; browser-test builds select `entries/background.e2e.ts`, which
+  installs one frozen command API.
 - **The individual-scripts build is retired from the first `.ts` file** (a `.ts`
   can't be a classic script and the source manifest can't list it). So `build`,
   `lint` (`web-ext lint --source-dir dist/bundled-pkg -i "src/**"`), and
@@ -94,9 +94,9 @@ imports) so the handlers attach before `index` calls them. Keep `index` last.
 The migration is complete and merged (fast-forward) to `mv3`. Final gate all
 green: `tsc --noEmit` 0 (src + test), `vitest` 742/742, `lint` 0, bundled Chrome
 22/22 + Firefox 10/10. All source is ESM/TS; all 33 test files are typed
-`.test.ts`; the shipped build is the rolldown bundle. What REMAINS is the
-`docs/ARCH-CYCLES.md` backlog (cut the SCC, strict sweep, TS-native, singletons,
-remove the test-side globalThis bridge) — none blocking; 4.0.0 is shippable.
+`.test.ts`; the shipped build is the rolldown bundle. The dependency-cycle,
+strictness, TS-native, singleton, and global-surface follow-ons in
+`docs/ARCH-CYCLES.md` are also complete.
 
 The section below is the historical resume-point from during the migration.
 
@@ -153,8 +153,9 @@ Work happened on branch **`ts-migration`** (off `mv3`).
 
 ### Bundle facts (load-bearing)
 - Formats: background / background.sw / options / offscreen = `esm` (bare
-  scope-hoisted; entries have NO exports). The background entry installs one
-  explicit e2e bridge; content = `iife`.
+  scope-hoisted; entries have NO exports). Production background bundles have
+  no e2e bridge; e2e staging selects `background.e2e.ts`. Content and the
+  reference-page controller use `iife`.
 - `background.sw.js` uses worker-safe APIs directly and has no `window` banner.
 
 ### Post-migration backlog → `docs/ARCH-CYCLES.md` (tasks #55–68)

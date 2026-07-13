@@ -1,3 +1,10 @@
 /** Persisted key names are public compatibility contracts shared by extension contexts. */
 export const COUNTER_KEY = "save-in-counter";
 export const LOG_STORAGE_KEY = "si-log";
+export const HISTORY_STORAGE_KEY = "save-in-history";
+export const LAST_USED_PATH_STORAGE_KEY = "lastUsedPath";
+export const LAST_USED_META_STORAGE_KEY = "lastUsedMeta";
+export const DOWNLOADS_SESSION_KEY = "siDownloads";
+export const PENDING_DOWNLOADS_SESSION_KEY = "siPendingDownloads";
+export const FINAL_FILENAMES_SESSION_KEY = "siFinalFilenames";
+export const SOURCE_PANEL_OPEN_SESSION_KEY = "sourcePanelOpen";

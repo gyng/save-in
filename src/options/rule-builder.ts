@@ -212,7 +212,7 @@ export const RuleBuilder = {
   },
 };
 
-document.addEventListener("DOMContentLoaded", () => {
+export const setupRuleBuilder = () => {
   RuleBuilder.setupGuidedInput();
   RuleBuilder.renderTemplates();
-});
+};

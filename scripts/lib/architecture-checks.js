@@ -30,9 +30,9 @@ const hasDynamicImport = (source) => /\bimport\s*\(/.test(source);
 
 /** @param {string} source */
 const hasGlobalNamespaceMutation = (source) =>
-  /\bObject\.(?:assign|defineProperty)\s*\(\s*globalThis\b/.test(source) ||
-  /\bReflect\.set\s*\(\s*globalThis\b/.test(source) ||
-  /\bglobalThis\s*(?:\.[A-Za-z_$][\w$]*|\[[^\]]+\])\s*=/.test(source);
+  /\bObject\.(?:assign|defineProperty)\s*\(\s*(?:globalThis|window|self)\b/.test(source) ||
+  /\bReflect\.set\s*\(\s*(?:globalThis|window|self)\b/.test(source) ||
+  /\b(?:globalThis|window|self)\s*(?:\.[A-Za-z_$][\w$]*|\[[^\]]+\])\s*=(?!=)/.test(source);
 
 /** @param {string} source @param {string} identifier */
 const callsIdentifier = (source, identifier) =>

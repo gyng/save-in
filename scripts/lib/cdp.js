@@ -173,6 +173,20 @@ const loadUnpacked = async (port, path) => {
   }
 };
 
+const stopServiceWorker = async (port, extensionId) => {
+  const target = (await listTargets(port)).find(
+    (candidate) => candidate.type === "service_worker" && candidate.url.includes(extensionId),
+  );
+  if (!target) return false;
+  const browser = await connectBrowser(port);
+  try {
+    const result = await browser.send("Target.closeTarget", { targetId: target.id });
+    return result.success !== false;
+  } finally {
+    browser.close();
+  }
+};
+
 // Reloads every open page target whose URL contains urlSubstr, in place
 // (so a reloaded unpacked extension is picked up without opening a new
 // tab). Returns how many were reloaded.
@@ -220,6 +234,7 @@ module.exports = {
   dispatchInput,
   openTab,
   loadUnpacked,
+  stopServiceWorker,
   reloadTargets,
   sleep,
   waitForCdp,

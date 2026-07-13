@@ -138,6 +138,24 @@ test("WAKE_WARM prewarm round-trips", async () => {
   expect(JSON.parse(response)).toEqual({ type: "OK" });
 });
 
+test("cold-start messages wait for persisted options", async () => {
+  try {
+    await evalOptions(`chrome.storage.local.set({ promptOnShift: false })`);
+    await evalSW(`api.reset().then(() => "configured")`);
+    expect(await cdp.stopServiceWorker(PORT, extensionId)).toBe(true);
+
+    const response = JSON.parse(
+      await evalOptions(
+        `new Promise((resolve) => chrome.runtime.sendMessage({ type: "OPTIONS" }, (value) => resolve(JSON.stringify(value))))`,
+      ),
+    );
+    expect(response.body.promptOnShift).toBe(false);
+  } finally {
+    await evalOptions(`chrome.storage.local.set({ promptOnShift: true })`);
+    await evalSW(`api.reset().then(() => "restored")`);
+  }
+});
+
 test("options-save reset message round-trips", async () => {
   const response = await evalOptions(
     `new Promise((res) => chrome.runtime.sendMessage({ type: "OPTIONS_LOADED" }, (r) => res(JSON.stringify(r))))`,

@@ -24,6 +24,7 @@ import { addDownloadListener } from "./menu-click.ts";
 import { addTabHighlightListener, addTabMenuListener, addTabMenus } from "./menu-tabs.ts";
 import { splitLines } from "../shared/util.ts";
 import { MEDIA_TYPES } from "../shared/constants.ts";
+import { LAST_USED_META_STORAGE_KEY, LAST_USED_PATH_STORAGE_KEY } from "../shared/storage-keys.ts";
 import { Log } from "./log.ts";
 import { currentTab, setCurrentTab } from "../platform/current-tab.ts";
 import { configureRoutingPorts } from "../routing/ports.ts";
@@ -52,7 +53,7 @@ backgroundRuntime.init = () => {
 
   return Promise.all([
     OptionsManagement.loadOptions(),
-    webExtensionApi.storage.local.get(["lastUsedPath", "lastUsedMeta"]),
+    webExtensionApi.storage.local.get([LAST_USED_PATH_STORAGE_KEY, LAST_USED_META_STORAGE_KEY]),
     webExtensionApi.contextMenus.removeAll(),
     // Rebuild the in-memory download records from storage.session before any
     // download event handler (which awaits backgroundRuntime.ready) touches them

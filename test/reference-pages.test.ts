@@ -20,7 +20,7 @@ describe.each(["variablelist", "clauselist"])("%s reference surface", (name) => 
     expect(document.querySelector<HTMLInputElement>(".reference-search")?.type).toBe("search");
     expect(document.querySelector('[role="status"][aria-live="polite"]')).not.toBeNull();
     expect(document.querySelector('link[href="reference.css"]')).not.toBeNull();
-    expect(document.querySelector('script[src="reference-page.js"]')).not.toBeNull();
+    expect(document.querySelector('script[src="../../reference-page.js"]')).not.toBeNull();
   });
 
   test("uses table captions, column headers, and row headers", () => {

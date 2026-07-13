@@ -135,6 +135,7 @@ const startDemoServer = () =>
   });
 
 const main = async () => {
+  process.env.SAVE_IN_E2E = "1";
   chrome.stageBuild();
   const demoPort = await startDemoServer();
 

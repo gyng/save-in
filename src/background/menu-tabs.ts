@@ -50,7 +50,14 @@ export const addTabMenus = () => {
 };
 
 export const addTabHighlightListener = () => {
-  webExtensionApi.tabs.onHighlighted.addListener((highlightInfo) => {
+  webExtensionApi.tabs.onHighlighted.addListener(async (highlightInfo) => {
+    if (backgroundRuntime.ready) {
+      try {
+        await backgroundRuntime.ready;
+      } catch {
+        return;
+      }
+    }
     if (
       !options.tabEnabled ||
       !WEB_EXTENSION_CAPABILITIES ||
@@ -60,10 +67,12 @@ export const addTabHighlightListener = () => {
     }
 
     const length = highlightInfo.tabIds.length;
-    webExtensionApi.contextMenus.update(MENU_IDS.TABSTRIP.SELECTED_MULTIPLE_TABS, {
-      title: webExtensionApi.i18n.getMessage("tabstripMenuMultipleSelectedTab", [length]),
-      contexts: ["tab"],
-    });
+    await Promise.resolve(
+      webExtensionApi.contextMenus.update(MENU_IDS.TABSTRIP.SELECTED_MULTIPLE_TABS, {
+        title: webExtensionApi.i18n.getMessage("tabstripMenuMultipleSelectedTab", [length]),
+        contexts: ["tab"],
+      }),
+    ).catch(() => {});
   });
 };
 

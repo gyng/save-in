@@ -16,6 +16,7 @@ import {
 } from "./browser-downloads.ts";
 import type { DownloadRuntimeState } from "./download-runtime-state.ts";
 import type { DownloadPipelineState } from "./download-types.ts";
+import { FINAL_FILENAMES_SESSION_KEY } from "../shared/storage-keys.ts";
 
 const historyPort = downloadPorts.history;
 const logPort = downloadPorts.log;
@@ -126,9 +127,9 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
     if (pendingUrl && pendingQueue?.length === 0) Download.pendingStates.delete(pendingUrl);
 
     if (!pendingState || !pendingState.path) {
-      getSession<FinalFilenameMap>(extensionSessionStorage, "siFinalFilenames")
+      getSession<FinalFilenameMap>(extensionSessionStorage, FINAL_FILENAMES_SESSION_KEY)
         .then((res) => {
-          const map = res.siFinalFilenames || {};
+          const map = res[FINAL_FILENAMES_SESSION_KEY] || {};
           const recoveredUrl = map[downloadItem.url]
             ? downloadItem.url
             : map[downloadItem.finalUrl]
@@ -146,7 +147,7 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
           updateSession<FinalFilenameMap>(
             sessionWriteState,
             extensionSessionStorage,
-            "siFinalFilenames",
+            FINAL_FILENAMES_SESSION_KEY,
             (m) => removeFilename(m, recoveredUrl!, recovered),
           );
           suggest({ filename: recovered, conflictAction: options.conflictAction });

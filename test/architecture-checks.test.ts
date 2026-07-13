@@ -41,6 +41,9 @@ describe("architecture module scanner", () => {
       true,
     );
     expect(hasGlobalNamespaceMutation("const host = globalThis.browser")).toBe(false);
+    expect(hasGlobalNamespaceMutation("globalThis.browser === chrome")).toBe(false);
+    expect(hasGlobalNamespaceMutation("window.Feature = Feature")).toBe(true);
+    expect(hasGlobalNamespaceMutation("self.Feature = Feature")).toBe(true);
   });
 
   test("detects composition calls by identifier", () => {

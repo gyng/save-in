@@ -23,44 +23,21 @@ Effort sizing: **S** ≈ hours, **M** ≈ 1–3 days, **L** ≈ a week or more._
 
 ## Executive summary
 
-The codebase is in unusually good shape for its age: one MV3 manifest, no
-bundler, 99.5%-line vitest coverage with enforced thresholds, first-party
-replacements for every vendored library, and a real two-browser e2e net. The
-constraints that made it good — **shipped sources == repository sources** (an
-explicit AMO-reviewer selling point, see `README.md` "Notes for reviewers")
-and **every `src/*.js` self-exports for vitest** — are also the constraints
-that bound this roadmap. The highest-value work is the stuff that _does not_
-require a build step.
+The original roadmap below records the pre-migration reasoning and is retained
+for decision history. Its no-bundler and shared-global recommendations are not
+current guidance.
 
-Top recommendations, in priority order:
+Current state: the project is strict TypeScript + ESM, built as readable,
+non-minified rolldown bundles with sourcemaps. The import graph is acyclic,
+runtime state has explicit owners, storage/message boundaries normalize legacy
+data, and Chrome plus Firefox run the same background source graph through
+different hosts. Production bundles exclude the privileged e2e command bridge;
+browser-test builds add it through `entries/background.e2e.ts`.
 
-1. **Pay down the global-mutation debt first, with no bundler.** Kill
-   `requestedDownloadFlag`, make `globalChromeState` a keyed map (it is a
-   correctness bug under concurrent tab-strip saves, not just ugliness), and
-   split the ~620-line `src/menu.js` by extracting a **pure**
-   `Menus.buildTree()`. This de-risks everything else and is fully covered by
-   existing tests.
-2. **Adopt types via JSDoc + a check-only `tsconfig`**, not a `.ts`
-   migration. **Done:** `checkJs` now covers every src file
-   (`npm run typecheck` in CI). This keeps the no-build property.
-3. **Be honest about yt-dlp: a pure webext cannot run it.** Ship the _cheap_
-   value first — a "copy yt-dlp command / save `.txt` hand-off" that reuses
-   the existing `Shortcut` pipeline — and treat a native-messaging companion
-   app as a separate, later, opt-in project.
-4. **Turn the parse functions into UI.** A live context-menu-tree preview and
-   a guided rule builder both hinge on making `Menus.parsePath`/`buildTree`
-   and `Router.parseRule` reusable and side-effect-free — the same
-   refactor as item 1. High user value; the `>`/`capture:`/`:$1:` syntax is
-   the single most confusing thing in the product.
-5. **Formalize the `onMessageExternal` DOWNLOAD API** (version it, document
-   the `info` contract, add a capabilities ping). This is small, and it is the
-   correct home for both the VideoDownloadHelper story and any external
-   downloader integration.
-
-What I would _not_ do: a full ES-module + bundler migration, and bundling
-yt-dlp. Both trade away properties the project currently sells (readable
-shipped source, zero native install) for benefits this codebase doesn't
-yet need.
+Current priorities are correctness and product work, not another architecture
+migration. The native-messaging yt-dlp companion remains deliberately separate;
+all other completed items are documented in `ARCH-CYCLES.md` and
+`TS-MIGRATION.md`.
 
 ---
 
@@ -98,7 +75,7 @@ yet need.
 - **FIXMEs**: `index.js:4` (`// FIXME` on `optionErrors` shape),
   `download.js:101` (`// FIXME: Fix router params for new path struct`).
 
-### Recommended path — de-globalise now, defer ESM
+### Historical path — de-globalise first, then migrate to ESM
 
 **Do not start with a bundler.** A build step is the one change that breaks
 the project's headline properties: AMO/CWS get readable sources today
@@ -128,7 +105,7 @@ other means. Sequence:
    it); `Router.tokenizeLines`/`parseRule` take an error-collector argument
    and only `parseRules` pushes to `window.optionErrors`.
 
-**Phase B — ESM, only if a bundler becomes justified (later, optional).**
+**Phase B — ESM + bundler. Completed July 2026.**
 
 Native ESM does not work equally in both targets. Chrome's
 `background.service_worker` supports `"type": "module"` and static `import`
@@ -653,23 +630,11 @@ the extension-context registration story before committing.
 | 14 | ~~§8.2 Concurrency / SW-restart correctness~~ (pending counter, per-URL filename map, per-download DNR id) | M | Med | High (silent failures) | — | **Done** |
 | 15 | ~~§9 AI config: `GET_SCHEMA` / `VALIDATE` / `APPLY_CONFIG`~~ (closes #89) + experimental WebMCP adapter | S–M | Low | Med–High | 7 | **Done** |
 | 16 | ~~**§8.3 Referer on redirects**~~ (#66 pixiv, #193) — Firefox listener keyed by requestId (survives redirects/concurrency); Chrome DNR scoped to the source host for same-host signed-URL redirects | M | Med | Med–High | — | **Done** |
-| 17 | ESM + bundler migration (only if justified) | L | Med–High | Low–Med | 1–3 | **Defer** |
+| 17 | ~~ESM + bundler migration~~ | L | Med–High | High | 1–3 | **Done** |
 | 18 | Native-messaging yt-dlp companion (separate repo) | L | High | Med (power users) | 7 | **Defer / separate** |
 
-**Recommended build order:** ~~10a → 10b → 14~~ (done). Remaining: 15
-(AI-config trio, also closes #89) → 13 (§8.1 pipeline: auto-append the MIME
-extension to the saved filename) → 16 (referer on redirects / pixiv) → 8 (yt-dlp
-hand-off).
-
-**Deliberately deferred:** the bundler/ESM migration and the yt-dlp native
-companion — each forfeits a property the project currently sells (readable
-shipped source; zero native install). Revisit only when a concrete need
-outweighs that.
-
-**Deliberately deferred:** the bundler/ESM migration and the yt-dlp native
-companion — each forfeits a property the project currently sells (readable
-shipped source; zero native install). Revisit only when a concrete need
-outweighs that.
+**Remaining roadmap item:** the native-messaging yt-dlp companion is deferred
+to a separate repository because it changes the installation and trust model.
 
 _Every **[verify]** tag above is a browser-API assumption to confirm against
 Chrome 123 / Firefox 121 before building on it — this repo runs polyfill-free

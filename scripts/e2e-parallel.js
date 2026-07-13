@@ -5,8 +5,11 @@ const root = path.join(__dirname, "..");
 const vitest = path.join(root, "node_modules", "vitest", "vitest.mjs");
 const config = "vitest.e2e.config.mjs";
 
+const e2eEnv = { ...process.env, SAVE_IN_E2E: "1" };
+
 execFileSync(process.execPath, [path.join(__dirname, "build-bundled.js")], {
   cwd: root,
+  env: e2eEnv,
   stdio: "inherit",
 });
 
@@ -14,7 +17,7 @@ const suites = ["e2e/chrome.e2e.mjs", "e2e/firefox.e2e.mjs"];
 const children = suites.map((suite) =>
   spawn(process.execPath, [vitest, "run", "--config", config, suite], {
     cwd: root,
-    env: { ...process.env, EXT_DIR: "dist/bundled-pkg" },
+    env: { ...e2eEnv, EXT_DIR: "dist/bundled-pkg" },
     stdio: "inherit",
   }),
 );

@@ -6,6 +6,10 @@ import { options } from "../config/options-data.ts";
 import { makeUrlFromBlob } from "./content-fetch.ts";
 import { getDownload, mergeDownload } from "./download-state.ts";
 import type { DownloadRecord } from "./download-state.ts";
+import {
+  FINAL_FILENAMES_SESSION_KEY,
+  PENDING_DOWNLOADS_SESSION_KEY,
+} from "../shared/storage-keys.ts";
 
 type FinalFilenameMap = Record<string, string | string[]>;
 
@@ -71,13 +75,13 @@ export const retryViaFetch = async (
       updateSession<number>(
         sessionWriteState,
         extensionSessionStorage,
-        "siPendingDownloads",
+        PENDING_DOWNLOADS_SESSION_KEY,
         (n) => normalizeSessionCounter(n) + 1,
       ),
       updateSession<FinalFilenameMap>(
         sessionWriteState,
         extensionSessionStorage,
-        "siFinalFilenames",
+        FINAL_FILENAMES_SESSION_KEY,
         (m) => enqueueFilename(m, blobUrl!, filename),
       ),
     ]);
@@ -106,13 +110,13 @@ export const retryViaFetch = async (
         updateSession<number>(
           sessionWriteState,
           extensionSessionStorage,
-          "siPendingDownloads",
+          PENDING_DOWNLOADS_SESSION_KEY,
           (n) => Math.max(0, normalizeSessionCounter(n) - 1),
         ),
         updateSession<FinalFilenameMap>(
           sessionWriteState,
           extensionSessionStorage,
-          "siFinalFilenames",
+          FINAL_FILENAMES_SESSION_KEY,
           (m) => removeFilename(m, blobUrl!, filename),
         ),
       ]);

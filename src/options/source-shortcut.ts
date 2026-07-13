@@ -148,5 +148,3 @@ export const setupSourceShortcut = () => {
   void load().catch((error) => announce(String(error), true));
   syncPlatformModifiers();
 };
-
-document.addEventListener("DOMContentLoaded", setupSourceShortcut);

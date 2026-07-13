@@ -1,8 +1,10 @@
 import { defineConfig } from "rolldown";
 
+const backgroundEntry =
+  process.env.SAVE_IN_E2E === "1" ? "src/entries/background.e2e.ts" : "src/entries/background.ts";
+
 // Store-submission bundler for the TypeScript/ESM codebase (docs/TS-MIGRATION.md).
-// Each target has one entry module (src/entry.*.ts) that side-effect-imports its
-// files IN LOAD ORDER; rolldown strips the types (oxc), resolves the imports and
+// Each target has one module under src/entries; rolldown strips the types (oxc), resolves the imports and
 // scope-hoists every module into ONE readable, NON-minified file per target — so
 // top-level side effects and synchronous MV3 listener registration are preserved,
 // and the shared-object-mutation idiom (Menus.addDownloadListener = …) survives.
@@ -11,8 +13,8 @@ import { defineConfig } from "rolldown";
 //   - background / background.sw / options / offscreen use `esm`: an entry with
 //     NO exports emits bare top-level code (no `export` statements), valid as a
 //     classic script in the SW / event page / page. The background entry then
-//     installs one explicit e2e bridge on globalThis; an `iife` would hide the
-//     module bindings used to construct that bridge.
+//     e2e-only entry installs one explicit command bridge; store builds use the
+//     production entry and contain no test-control surface.
 //   - content uses `iife`: it runs as a classic content script and is isolated
 //     (nothing outside reads its bindings), so a function wrapper is fine; `esm`
 //     would emit `export` statements (a syntax error when injected).
@@ -20,7 +22,7 @@ import { defineConfig } from "rolldown";
 export default defineConfig([
   // Firefox event page (has a real window) — loaded via background.scripts
   {
-    input: "src/entries/background.ts",
+    input: backgroundEntry,
     output: {
       file: "dist/bundled/background.js",
       format: "esm",
@@ -30,7 +32,7 @@ export default defineConfig([
   },
   // Chrome service worker: the same worker-safe module graph.
   {
-    input: "src/entries/background.ts",
+    input: backgroundEntry,
     output: {
       file: "dist/bundled/background.sw.js",
       format: "esm",

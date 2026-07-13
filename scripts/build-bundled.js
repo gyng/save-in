@@ -21,6 +21,16 @@ execFileSync(
   { cwd: root, stdio: "inherit" },
 );
 
+// The store bundle must never expose the privileged browser-test command API.
+// Conversely, fail e2e staging early if its bridge was accidentally omitted.
+const expectE2EBridge = process.env.SAVE_IN_E2E === "1";
+for (const filename of ["background.js", "background.sw.js"]) {
+  const bundle = fs.readFileSync(path.join(root, "dist", "bundled", filename), "utf8");
+  if (bundle.includes("__SAVE_IN_E2E__") !== expectE2EBridge) {
+    throw new Error(`Unexpected e2e bridge surface in ${filename}`);
+  }
+}
+
 // 2. Stage runtime assets. Original TypeScript belongs in the separate AMO
 // source attachment, not in the executable store package.
 fs.rmSync(out, { recursive: true, force: true });

@@ -87,5 +87,3 @@ export const setupOptionsReferences = () => {
     opener?.focus();
   });
 };
-
-document.addEventListener("DOMContentLoaded", setupOptionsReferences, { once: true });

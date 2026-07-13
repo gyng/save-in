@@ -168,5 +168,3 @@ export const setupOptionSearch = (): void => {
     }, 100);
   });
 };
-
-document.addEventListener("DOMContentLoaded", setupOptionSearch);

@@ -9,7 +9,7 @@ describe("options bootstrap", () => {
     const addMessageListener = vi.fn();
     const startBrowserDetection = vi.fn();
 
-    bootstrapOptionsPage({
+    const onReady = bootstrapOptionsPage({
       document,
       ready: [readyA, readyB],
       configureRuntime,
@@ -25,7 +25,7 @@ describe("options bootstrap", () => {
     expect(onDownloaded).not.toHaveBeenCalled();
     listener({ type: "DOWNLOADED" });
     expect(onDownloaded).toHaveBeenCalledTimes(1);
-    document.dispatchEvent(new Event("DOMContentLoaded"));
+    onReady();
     expect(readyA).toHaveBeenCalledTimes(1);
     expect(readyB).toHaveBeenCalledTimes(1);
     expect(startBrowserDetection).toHaveBeenCalledTimes(1);

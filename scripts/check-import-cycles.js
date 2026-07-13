@@ -141,7 +141,7 @@ for (const file of files) {
 const compositionCallOwners = new Map([
   ["configureDownloadPorts", new Set(["src/background/main.ts"])],
   ["configureRoutingPorts", new Set(["src/background/main.ts", "src/options/options-runtime.ts"])],
-  ["installBackgroundE2EBridge", new Set(["src/entries/background.ts"])],
+  ["installBackgroundE2EBridge", new Set(["src/entries/background.e2e.ts"])],
 ]);
 for (const file of files) {
   const source = fs.readFileSync(file, "utf8");

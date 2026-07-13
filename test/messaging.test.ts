@@ -98,6 +98,7 @@ const setupGlobals = () => {
   } as any);
 
   backgroundRuntime.reset = vi.fn();
+  backgroundRuntime.ready = undefined;
   backgroundRuntime.optionErrors = { paths: [], filenamePatterns: [] };
   backgroundRuntime.lastDownloadState = undefined;
   backgroundRuntime.debug = false;
@@ -145,6 +146,28 @@ describe("onMessage", () => {
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.OPTIONS,
       body: options,
+    });
+  });
+
+  test("OPTIONS waits for cold-start initialization before exposing settings", async () => {
+    let finish!: () => void;
+    backgroundRuntime.ready = new Promise<void>((resolve) => {
+      finish = () => {
+        options.prompt = true;
+        resolve();
+      };
+    });
+    const sendResponse = vi.fn();
+
+    expect(onMessage({ type: MESSAGE_TYPES.OPTIONS }, {}, sendResponse)).toBe(true);
+    expect(sendResponse).not.toHaveBeenCalled();
+
+    finish();
+    await backgroundRuntime.ready;
+    await Promise.resolve();
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.OPTIONS,
+      body: expect.objectContaining({ prompt: true }),
     });
   });
 
@@ -213,6 +236,22 @@ describe("onMessage CHECK_ROUTES", () => {
   // CHECK_ROUTES is now async (interpolation + checkRoutes await); let the
   // handler's microtasks settle before asserting the response
   const settle = () => new Promise((r) => setTimeout(r, 0));
+
+  test("waits for cold-start initialization before previewing routes", async () => {
+    let finish!: () => void;
+    backgroundRuntime.ready = new Promise<void>((resolve) => {
+      finish = resolve;
+    });
+    const sendResponse = vi.fn();
+
+    expect(onMessage({ type: MESSAGE_TYPES.CHECK_ROUTES }, {}, sendResponse)).toBe(true);
+    expect(OptionsManagement.checkRoutes).not.toHaveBeenCalled();
+
+    finish();
+    await backgroundRuntime.ready;
+    await settle();
+    expect(OptionsManagement.checkRoutes).toHaveBeenCalledTimes(1);
+  });
 
   test("uses the state supplied in the request body", async () => {
     const state = { info: { filename: "f.png" } };
@@ -455,6 +494,27 @@ describe("handleDownloadMessage", () => {
     const sendResponse = vi.fn();
     onMessageExternal(request(), { tab: { id: 9 } }, sendResponse);
 
+    expect(Download.renameAndDownload).toHaveBeenCalledTimes(1);
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.DOWNLOAD,
+      body: { status: MESSAGE_TYPES.OK, version: 1, url: "https://x/file.png" },
+    });
+  });
+
+  test("external downloads wait for cold-start initialization", async () => {
+    let finish!: () => void;
+    backgroundRuntime.ready = new Promise<void>((resolve) => {
+      finish = resolve;
+    });
+    const sendResponse = vi.fn();
+
+    expect(onMessageExternal(request(), { tab: { id: 9 } }, sendResponse)).toBe(true);
+    expect(Download.renameAndDownload).not.toHaveBeenCalled();
+    expect(sendResponse).not.toHaveBeenCalled();
+
+    finish();
+    await backgroundRuntime.ready;
+    await Promise.resolve();
     expect(Download.renameAndDownload).toHaveBeenCalledTimes(1);
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.DOWNLOAD,

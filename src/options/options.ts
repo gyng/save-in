@@ -503,7 +503,11 @@ document.querySelectorAll(".help").forEach(addHelp);
 
 // On Chrome the options page opens in a tab (options_ui.open_in_tab), so
 // dialogs work on the local window in both browsers.
-setupResetOptions({ restoreOptions, updateErrors });
+setupResetOptions({
+  restoreOptions,
+  updateErrors,
+  getOptionNames: () => getOptionsSchema().then(({ keys }) => keys.map(({ name }) => name)),
+});
 
 const setupChromeDisables = () => {
   document.querySelectorAll<HTMLElement>(".filename-suggestion-only").forEach((el) => {
@@ -992,7 +996,7 @@ const waitForBrowserDetection = () => {
   }
 };
 
-bootstrapOptionsPage({
+export const setupOptionsPage = bootstrapOptionsPage({
   document,
   ready: [
     setupLastDownloadState,

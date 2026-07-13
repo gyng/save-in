@@ -1,6 +1,6 @@
 import { webExtensionApi } from "../platform/web-extension-api.ts";
+import { SOURCE_PANEL_OPEN_SESSION_KEY } from "../shared/storage-keys.ts";
 
-const KEY = "sourcePanelOpen";
 let fallback = false;
 let queue = Promise.resolve();
 
@@ -8,7 +8,9 @@ const read = async (): Promise<boolean> => {
   const storage = webExtensionApi.storage.session;
   if (!storage) return fallback;
   try {
-    return Boolean((await storage.get(KEY))[KEY]);
+    return Boolean(
+      (await storage.get(SOURCE_PANEL_OPEN_SESSION_KEY))[SOURCE_PANEL_OPEN_SESSION_KEY],
+    );
   } catch {
     return fallback;
   }
@@ -17,7 +19,7 @@ const read = async (): Promise<boolean> => {
 const write = async (open: boolean) => {
   fallback = open;
   try {
-    await webExtensionApi.storage.session?.set({ [KEY]: open });
+    await webExtensionApi.storage.session?.set({ [SOURCE_PANEL_OPEN_SESSION_KEY]: open });
   } catch {
     // Firefox/older hosts without session storage retain the worker-local fallback.
   }

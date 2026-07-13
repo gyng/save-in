@@ -6,6 +6,7 @@ import { webExtensionApi } from "../platform/web-extension-api.ts";
 
 import { WEB_EXTENSION_CAPABILITIES } from "../platform/chrome-detector.ts";
 import { options } from "../config/options-data.ts";
+import { LAST_USED_META_STORAGE_KEY, LAST_USED_PATH_STORAGE_KEY } from "../shared/storage-keys.ts";
 import { MEDIA_TYPES } from "../shared/constants.ts";
 import { Path } from "../routing/path.ts";
 import { backgroundRuntime } from "./runtime.ts";
@@ -64,7 +65,7 @@ export const setLastUsed = (path: string, meta: LastUsedMeta) => {
   menuState.lastUsedPath = path;
   menuState.lastUsedMeta = meta;
   return webExtensionApi.storage.local
-    .set({ lastUsedPath: path, lastUsedMeta: meta })
+    .set({ [LAST_USED_PATH_STORAGE_KEY]: path, [LAST_USED_META_STORAGE_KEY]: meta })
     .catch(() => {});
 };
 
