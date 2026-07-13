@@ -44,8 +44,8 @@ non-minified JavaScript. No obfuscation or remote executable code is used.
   request-interception permission is requested.
 - Extension-side Fetch and HEAD requests omit credentials on new profiles.
   Users can explicitly enable applicable website cookies and browser-managed
-  authentication. Configured legacy profiles are migrated to preserve their
-  previous request behavior.
+  authentication. Upgraded profiles also remain credential-free unless the
+  user explicitly enables the option.
 - `cookies` is optional and Firefox-only in use. Granting it lets the native
   downloads API select the originating Container's opaque `cookieStoreId` for
   a direct download. Save In never reads or stores cookie values, and

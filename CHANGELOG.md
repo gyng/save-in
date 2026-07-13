@@ -47,8 +47,8 @@ testing on Chromium!
 - Options page opens in a tab
 - "Fetch via Fetch API" is now available on Chrome too
 - Extension-side Fetch and HEAD requests now have an explicit website
-  credentials option. New profiles omit cookies by default; configured legacy
-  profiles preserve the previous behavior until the option is changed.
+  credentials option. New and upgraded profiles omit cookies until the user
+  explicitly enables authenticated extension requests.
 - Firefox can optionally preserve the originating Container or private cookie
   context for direct downloads. The optional permission selects a cookie store
   without reading or storing cookie values.

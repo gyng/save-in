@@ -14,7 +14,6 @@ type OptionKey = {
   name: string;
   type: OptionType;
   default: unknown;
-  legacyDefault?: unknown;
   fn?: null;
   onLoad?: (...args: never[]) => unknown;
   onSave?: (...args: never[]) => unknown;
@@ -135,14 +134,7 @@ export const OPTION_KEYS = [
   { name: "appendMimeExtension", type: OPTION_TYPES.BOOL, default: true },
   { name: "fetchViaFetch", type: OPTION_TYPES.BOOL, default: false },
   { name: "fallbackFetch", type: OPTION_TYPES.BOOL, default: true },
-  {
-    name: "includeFetchCredentials",
-    type: OPTION_TYPES.BOOL,
-    default: false,
-    // Extension fetches historically included the browser session. Preserve
-    // configured profiles while making credentials an explicit fresh-profile choice.
-    legacyDefault: true,
-  },
+  { name: "includeFetchCredentials", type: OPTION_TYPES.BOOL, default: false },
   { name: "trackBrowserDownloads", type: OPTION_TYPES.BOOL, default: false },
   { name: "routeBrowserDownloads", type: OPTION_TYPES.BOOL, default: false },
   { name: "browserDownloadFilter", type: OPTION_TYPES.VALUE, default: "" },

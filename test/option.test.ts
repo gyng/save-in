@@ -103,16 +103,14 @@ describe("OptionsManagement", () => {
       expect(resolved.includeFetchCredentials).toBe(false);
     });
 
-    test("migrates configured legacy profiles to their previous credential behavior", async () => {
+    test("keeps configured legacy profiles credential-free until explicit opt-in", async () => {
       global.browser.storage.local.get = vi.fn(() => Promise.resolve({ fallbackFetch: true }));
       global.browser.storage.local.set = vi.fn(() => Promise.resolve());
 
       const resolved = await OptionsManagement.loadOptions();
 
-      expect(resolved.includeFetchCredentials).toBe(true);
-      expect(global.browser.storage.local.set).toHaveBeenCalledWith({
-        includeFetchCredentials: true,
-      });
+      expect(resolved.includeFetchCredentials).toBe(false);
+      expect(global.browser.storage.local.set).not.toHaveBeenCalled();
     });
 
     test("preserves an explicit fetch-credentials preference without migration", async () => {

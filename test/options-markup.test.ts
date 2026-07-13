@@ -137,6 +137,9 @@ describe("options form semantics", () => {
     expect(containerPermission?.closest(".firefox-only")?.textContent).toContain(
       "__MSG_o_cContainerAuthPermission__",
     );
+    expect(
+      containerPermission?.closest("label")?.querySelector(".badge.firefox")?.textContent,
+    ).toBe("Firefox");
   });
 
   test("makes default Downloads-folder help directly openable", () => {

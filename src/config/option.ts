@@ -111,8 +111,6 @@ export const OptionsManagement: OptionsManagementApi = {
     webExtensionApi.storage.local.get(OptionsManagement.getKeys()).then((loadedOptions) => {
       loadedOptions = loadedOptions && typeof loadedOptions === "object" ? loadedOptions : {};
       const nextOptions = {} as SaveInOptions;
-      const migrations: Partial<SaveInOptions> = {};
-      const hasStoredProfile = Object.keys(loadedOptions).length > 0;
 
       OptionsManagement.OPTION_KEYS.forEach((optionType) => {
         const k = optionType.name;
@@ -122,14 +120,7 @@ export const OptionsManagement: OptionsManagementApi = {
           return;
         }
         if (typeof stored === "undefined") {
-          const defaultValue =
-            hasStoredProfile && "legacyDefault" in optionType
-              ? optionType.legacyDefault
-              : optionType.default;
-          nextOptions[k] = defaultValue as never;
-          if (hasStoredProfile && "legacyDefault" in optionType) {
-            migrations[k] = defaultValue as never;
-          }
+          nextOptions[k] = optionType.default as never;
           return;
         }
         const validate =
@@ -168,13 +159,8 @@ export const OptionsManagement: OptionsManagementApi = {
       // Commit a complete snapshot only after every stored value has been
       // normalized. Keys removed by reset therefore return to their defaults,
       // and readers never observe a half-reloaded options bag.
-      const persistMigration = Object.keys(migrations).length
-        ? Promise.resolve(webExtensionApi.storage.local.set(migrations)).catch(() => undefined)
-        : Promise.resolve();
-      return persistMigration.then(() => {
-        replaceOptions(nextOptions);
-        return options;
-      });
+      replaceOptions(nextOptions);
+      return options;
     }),
 };
 
