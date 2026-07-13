@@ -56,6 +56,14 @@ test("reference tables share one column grid across sections", () => {
   expect(meaning).toContain("width: 50%");
 });
 
+test("sticky reference headers use an opaque surface", () => {
+  const reference = readStyle("reference.css");
+  const header = reference.match(/\.reference-table thead th\s*\{([^}]*)\}/)?.[1] || "";
+
+  expect(header).toContain("position: sticky");
+  expect(header).toContain("background: var(--page-bg)");
+});
+
 test("language label and selector share a text baseline", () => {
   const css = readStyle("style.css");
   const selector = css.match(/\.language-selector\s*\{([^}]*)\}/)?.[1] || "";

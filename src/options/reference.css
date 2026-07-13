@@ -116,7 +116,7 @@ body:has(.reference-header) {
   padding-top: var(--space-3);
   padding-bottom: var(--space-2);
   border-bottom: 1px solid var(--panel-border);
-  background: none;
+  background: var(--page-bg);
   color: inherit;
   font-size: var(--text-sm);
   font-weight: 650;
