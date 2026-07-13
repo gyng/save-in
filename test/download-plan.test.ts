@@ -21,11 +21,10 @@ describe("getFilenameFromContentDisposition", () => {
     expect(Download.getFilenameFromContentDisposition(null)).toBe(null);
   });
 
-  test("double-decodes the value returned by the library", () => {
-    // "na me.txt" URI-encoded twice
+  test("returns the parser result without decoding it again", () => {
     vi.mocked(getFilenameFromContentDispositionHeader).mockReturnValue("na%2520me.txt");
     expect(Download.getFilenameFromContentDisposition("attachment; filename=whatever")).toBe(
-      "na me.txt",
+      "na%2520me.txt",
     );
   });
 
@@ -36,11 +35,10 @@ describe("getFilenameFromContentDisposition", () => {
     );
   });
 
-  test("stops decoding when a second pass would fail", () => {
-    // one valid decode, then the result is no longer a valid escape sequence
+  test("preserves percent escapes returned by the parser", () => {
     vi.mocked(getFilenameFromContentDispositionHeader).mockReturnValue("%2550%25.txt");
     expect(Download.getFilenameFromContentDisposition("attachment; filename=whatever")).toBe(
-      "%50%.txt",
+      "%2550%25.txt",
     );
   });
 

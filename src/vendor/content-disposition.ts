@@ -23,11 +23,8 @@ export function getFilenameFromContentDispositionHeader(contentDisposition: stri
   const encodedMatch = toParamRegExp("filename\\*", "i").exec(contentDisposition);
   const encodedValue = encodedMatch?.[1];
   if (encodedValue !== undefined) {
-    let filename = rfc2616unquote(encodedValue);
-    filename = unescape(filename);
-    filename = rfc5987decode(filename);
-    filename = rfc2047decode(filename);
-    return fixupEncoding(filename);
+    const filename = decodeRfc5987Value(encodedValue);
+    if (filename) return filename;
   }
 
   // Continuations (RFC 2231 section 3, referenced by RFC 5987 section 3.1).
@@ -46,7 +43,14 @@ export function getFilenameFromContentDispositionHeader(contentDisposition: stri
   if (plainValue !== undefined) {
     let filename = rfc2616unquote(plainValue);
     filename = rfc2047decode(filename);
-    return fixupEncoding(filename);
+    filename = fixupEncoding(filename);
+    try {
+      // Firefox and Chromium both unescape percent-encoded plain filenames
+      // once for compatibility with non-conforming servers.
+      return decodeURIComponent(filename);
+    } catch {
+      return filename;
+    }
   }
   return "";
 
@@ -143,6 +147,32 @@ export function getFilenameFromContentDispositionHeader(contentDisposition: stri
       value = parts.join('"');
     }
     return value;
+  }
+  function decodeRfc5987Value(extvalue: string): string | null {
+    // RFC 5987 ext-value is not a quoted-string. Rejecting malformed values
+    // lets callers use the RFC 6266 filename fallback instead.
+    const match = /^([^']+)'[^']*'((?:[!#$&+.^_`|~0-9A-Za-z-]|%[0-9A-Fa-f]{2})*)$/.exec(
+      extvalue,
+    );
+    const encoding = match?.[1];
+    const value = match?.[2];
+    if (encoding === undefined || value === undefined) return null;
+
+    const bytes: number[] = [];
+    for (let i = 0; i < value.length; i += 1) {
+      if (value[i] === "%") {
+        bytes.push(parseInt(value.slice(i + 1, i + 3), 16));
+        i += 2;
+      } else {
+        bytes.push(value.charCodeAt(i));
+      }
+    }
+
+    try {
+      return new TextDecoder(encoding, { fatal: true }).decode(new Uint8Array(bytes));
+    } catch {
+      return null;
+    }
   }
   function rfc5987decode(extvalue: string): string {
     // Decodes "ext-value" from RFC 5987.

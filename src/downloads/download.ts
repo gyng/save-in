@@ -285,21 +285,7 @@ export const Download = {
     if (typeof disposition !== "string") return null;
 
     const filenameFromLib = getFilenameFromContentDispositionHeader(disposition);
-
-    if (filenameFromLib) {
-      // Some servers double-encode; decode at most twice, but a filename
-      // with a literal % (e.g. "50%.txt") must not throw and lose the name
-      const safeDecode = (s: string) => {
-        try {
-          return decodeURIComponent(s);
-        } catch (e) {
-          return s;
-        }
-      };
-      return safeDecode(safeDecode(filenameFromLib));
-    }
-
-    return null;
+    return filenameFromLib || null;
   },
 
   getRoutingMatches: (state: Pick<DownloadPipelineState, "info">): string | null => {

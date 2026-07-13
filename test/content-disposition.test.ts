@@ -20,6 +20,31 @@ describe("vendored content-disposition parser", () => {
     );
   });
 
+  test("invalid filename* values fall back to filename", () => {
+    const invalidExtendedValues = [
+      "UTF-8''",
+      "UTF-8''%E2%82",
+      "UTF-8''bad%ZZname.txt",
+      "X-UNKNOWN''bad%20name.txt",
+      "\"UTF-8''%c3%a9tude.pdf\"",
+    ];
+
+    for (const value of invalidExtendedValues) {
+      expect(parse(`attachment; filename="fallback.txt"; filename*=${value}`)).toBe("fallback.txt");
+    }
+  });
+
+  test("invalid filename* without a fallback is ignored", () => {
+    expect(parse("attachment; filename*=foo")).toBe("");
+    expect(parse('attachment; filename*="foo"')).toBe("");
+  });
+
+  test("percent escapes are decoded exactly once", () => {
+    expect(parse("attachment; filename=report%20final.txt")).toBe("report final.txt");
+    expect(parse("attachment; filename=report%2520final.txt")).toBe("report%20final.txt");
+    expect(parse("attachment; filename*=UTF-8''report%2520final.txt")).toBe("report%20final.txt");
+  });
+
   test("latin1 charset", () => {
     expect(parse("attachment; filename*=iso-8859-1'en'caf%E9.txt")).toBe("café.txt");
   });
@@ -54,6 +79,22 @@ describe("Download.getFilenameFromContentDisposition with the real parser", () =
     expect(
       Download.getFilenameFromContentDisposition("attachment; filename*=UTF-8''%c3%a9tude.pdf"),
     ).toBe("étude.pdf");
+  });
+
+  test("does not decode the parser result again", () => {
+    expect(
+      Download.getFilenameFromContentDisposition(
+        "attachment; filename*=UTF-8''report%2520final.txt",
+      ),
+    ).toBe("report%20final.txt");
+  });
+
+  test("uses filename when filename* is invalid", () => {
+    expect(
+      Download.getFilenameFromContentDisposition(
+        "attachment; filename=fallback.txt; filename*=UTF-8''%E2%82",
+      ),
+    ).toBe("fallback.txt");
   });
 
   test("a literal % in the filename does not throw (#double-decode fix)", () => {

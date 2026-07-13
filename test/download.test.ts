@@ -161,9 +161,9 @@ describe("filename from Content-Disposition", () => {
   });
 
   test("handles filename*=", () => {
-    expect(Download.getFilenameFromContentDisposition("filename*=foo")).toBe("foo");
-
-    expect(Download.getFilenameFromContentDisposition('filename*="foo"')).toBe("foo");
+    expect(Download.getFilenameFromContentDisposition("filename*=UTF-8''foo")).toBe("foo");
+    expect(Download.getFilenameFromContentDisposition("filename*=foo")).toBe(null);
+    expect(Download.getFilenameFromContentDisposition('filename*="foo"')).toBe(null);
   });
 
   test("handles encoded utf8 filenames", () => {
