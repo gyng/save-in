@@ -71,7 +71,8 @@ test("text colors stay on theme-aware semantic roles", () => {
 });
 
 test("dark links and accent backgrounds use separate contrast-safe roles", () => {
-  const darkTheme = stylesheet.match(/@media \(prefers-color-scheme: dark\)\s*\{([\s\S]*?)\n\}/)?.[1] ?? "";
+  const darkTheme =
+    stylesheet.match(/@media \(prefers-color-scheme: dark\)\s*\{([\s\S]*?)\n\}/)?.[1] ?? "";
   const darkRoot = darkTheme.match(/:root\s*\{([^}]*)\}/)?.[1] ?? "";
   const darkSettings = darkTheme.match(/#settings-page\s*\{([^}]*)\}/)?.[1] ?? "";
 
@@ -94,9 +95,7 @@ test("identical heading, integration-header, and reference-focus rules stay cons
 
 test("interactive states retain theme-aware contrast", () => {
   expect(stylesheet).toMatch(/button:hover\s*\{[^}]*background-color:\s*var\(--hover-bg\)/);
-  expect(stylesheet).toMatch(
-    /button:active\s*\{[^}]*background-color:\s*var\(--hover-bg-strong\)/,
-  );
+  expect(stylesheet).toMatch(/button:active\s*\{[^}]*background-color:\s*var\(--hover-bg-strong\)/);
   expect(stylesheet).toMatch(
     /\.click-to-copy:active\s*\{[^}]*background-color:\s*var\(--hover-bg-strong\)/,
   );
