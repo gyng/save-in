@@ -53,12 +53,15 @@ export const filterPageSources = (
 };
 
 export type SourceSort = "detected-desc" | "detected-asc" | "size-desc" | "name-asc";
+const compareDetection = (a: PageSource, b: PageSource): number =>
+  (a.detectedAt || 0) - (b.detectedAt || 0) || (a.detectedOrder || 0) - (b.detectedOrder || 0);
+
 export const sortPageSources = (sources: PageSource[], sort: SourceSort): PageSource[] =>
   [...sources].toSorted((a, b) => {
-    if (sort === "detected-asc") return (a.detectedAt || 0) - (b.detectedAt || 0);
+    if (sort === "detected-asc") return compareDetection(a, b);
     if (sort === "size-desc") return (b.bytes || 0) - (a.bytes || 0);
     if (sort === "name-asc") return a.url.localeCompare(b.url);
-    return (b.detectedAt || 0) - (a.detectedAt || 0);
+    return compareDetection(b, a);
   });
 
 export const createSourceTooltip = (source: PageSource): HTMLElement | null => {

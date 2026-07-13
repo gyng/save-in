@@ -116,8 +116,30 @@ test("sorts by first-seen time, size, or name", () => {
     bytes: 10,
   };
   expect(sortPageSources([older, newer], "detected-desc")).toEqual([newer, older]);
+  expect(sortPageSources([older, newer], "detected-asc")).toEqual([older, newer]);
   expect(sortPageSources([older, newer], "size-desc")).toEqual([newer, older]);
   expect(sortPageSources([older, newer], "name-asc")).toEqual([newer, older]);
+});
+
+test("uses detection sequence when sources are found in the same millisecond", () => {
+  const element = document.createElement("div");
+  const first = {
+    url: "https://x.test/first",
+    kind: "image" as const,
+    element,
+    detectedAt: 100,
+    detectedOrder: 1,
+  };
+  const second = {
+    url: "https://x.test/second",
+    kind: "image" as const,
+    element,
+    detectedAt: 100,
+    detectedOrder: 2,
+  };
+
+  expect(sortPageSources([first, second], "detected-desc")).toEqual([second, first]);
+  expect(sortPageSources([first, second], "detected-asc")).toEqual([first, second]);
 });
 
 test("builds larger image and autoplaying media tooltips", () => {
@@ -250,6 +272,25 @@ describe("Page Sources panel interactions", () => {
     expect(detected.textContent).toBe("#1");
     expect(detected.getAttribute("aria-label")).toMatch(/^Detected at /);
     expect(detected.title).toBe("");
+  });
+
+  test("newest and oldest visibly reverse sources detected in one render", () => {
+    vi.spyOn(Date, "now").mockReturnValue(100);
+    document.body.innerHTML = `<img src="first.jpg"><img src="second.jpg">`;
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    const shadow = document.getElementById("save-in-source-panel")!.shadowRoot!;
+    const names = () =>
+      [...shadow.querySelectorAll<HTMLElement>(".source-link .name")].map(
+        (name) => name.textContent,
+      );
+
+    expect(names()).toEqual(["second.jpg", "first.jpg"]);
+
+    const sort = shadow.querySelector<HTMLSelectElement>('select[aria-label="Sort sources"]')!;
+    sort.value = "detected-asc";
+    sort.dispatchEvent(new Event("change"));
+
+    expect(names()).toEqual(["first.jpg", "second.jpg"]);
   });
 
   test("uses the full compact result body as a link and replaces broken previews", () => {
