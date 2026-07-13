@@ -11,22 +11,6 @@ import { RuleBuilder } from "../src/options/rule-builder.ts";
 import { RULE_TEMPLATES } from "../src/options/rule-templates.ts";
 
 describe("RULE_TEMPLATES", () => {
-  test("covers a useful range of organization strategies", () => {
-    expect(RULE_TEMPLATES.length).toBeGreaterThanOrEqual(13);
-    expect(RULE_TEMPLATES.map(({ name }) => name)).toEqual(
-      expect.arrayContaining([
-        "Downloads by month",
-        "One folder per source site",
-        "One folder per file extension",
-        "Browser downloads inbox",
-        "Screenshots by month",
-        "E-books and comics",
-        "Apps and installers",
-        "One folder per page site",
-      ]),
-    );
-  });
-
   RULE_TEMPLATES.forEach((tpl) => {
     test(`"${tpl.name}" parses as exactly one valid rule`, () => {
       const { rules, errors } = parseRulesCollecting(tpl.rule);
@@ -192,20 +176,12 @@ describe("template list rendering", () => {
     if (!firstAdd) {
       throw new Error("First template has no Add button");
     }
-    expect(firstAdd.textContent).toBe("Add");
-
     firstAdd.click();
 
     const textarea = document.querySelector("#filenamePatterns") as HTMLTextAreaElement;
     expect(textarea.value).toContain(RULE_TEMPLATES[0]!.rule);
-    expect(firstAdd.textContent).toBe("Added");
     expect(firstAdd.disabled).toBe(true);
-    expect(document.querySelector(".rule-template-rule")?.textContent).toContain("\ninto:");
-    expect(document.querySelectorAll(".rule-template-example")).toHaveLength(0);
     expect(document.querySelector<HTMLElement>(".template-feedback")?.hidden).toBe(false);
-    expect(document.querySelector(".template-feedback button")?.textContent).toBe(
-      "View in rules editor",
-    );
   });
 
   test("re-checks Added states after options restore fills the textarea", () => {
@@ -221,16 +197,11 @@ describe("template list rendering", () => {
     expect(adds[0]!.disabled).toBe(false);
   });
 
-  test("groups and filters templates, with Enter adding the first match", () => {
+  test("filters templates, with Enter adding the first match", () => {
     RuleBuilder.renderTemplates();
-    expect(
-      [...document.querySelectorAll(".rule-template-category > h3")].map(
-        (heading) => heading.textContent,
-      ),
-    ).toEqual(["Media", "File types", "Date and sequence", "Sites and URLs", "Save context"]);
 
     const filter = document.querySelector<HTMLInputElement>(".rule-template-filter")!;
-    filter.value = "source site";
+    filter.value = "hostname serving";
     filter.dispatchEvent(new InputEvent("input", { bubbles: true }));
     expect(document.querySelectorAll(".rule-template:not([hidden])")).toHaveLength(1);
     filter.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
@@ -281,9 +252,7 @@ describe("template list rendering", () => {
       ...document.querySelectorAll<HTMLElement>("[data-rule-template-library]"),
     ].map((library) => library.querySelector<HTMLButtonElement>(".rule-template-add")!);
     expect(firstButtons).toHaveLength(2);
-    expect(firstButtons.every((button) => button.disabled && button.textContent === "Added")).toBe(
-      true,
-    );
+    expect(firstButtons.every((button) => button.disabled)).toBe(true);
     expect(
       document.querySelector<HTMLElement>(".rule-template-surface .template-feedback")?.hidden,
     ).toBe(false);

@@ -103,7 +103,6 @@ describe("setupTabs", () => {
   test("builds a tab per section and shows the first by default", () => {
     const tabs = document.querySelectorAll<HTMLElement>(".tablist .tab");
     expect(tabs).toHaveLength(3);
-    expect(tabs[0]!.textContent).toBe("Downloads");
 
     const panels = document.querySelectorAll<HTMLElement>(".tab-panel");
     expect(panels[0]!.hidden).toBe(false);

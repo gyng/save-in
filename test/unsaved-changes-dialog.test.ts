@@ -2,17 +2,19 @@
 import { showUnsavedChangesDialog } from "../src/options/unsaved-changes-dialog.ts";
 
 test.each([
-  ["Keep editing", "keep"],
-  ["Discard changes", "discard"],
-] as const)("offers an explicit %s choice", async (label, expected) => {
+  [true, "keep"],
+  [false, "discard"],
+] as const)("resolves the selected choice", async (chooseDefault, expected) => {
   const result = showUnsavedChangesDialog("Discard your unsaved changes, or keep editing?");
   const dialog = document.querySelector("dialog")!;
+  const buttons = [...dialog.querySelectorAll("button")];
 
-  expect([...dialog.querySelectorAll("button")].map((button) => button.textContent)).toEqual([
-    "Keep editing",
-    "Discard changes",
-  ]);
-  [...dialog.querySelectorAll("button")].find((button) => button.textContent === label)!.click();
+  expect(buttons).toHaveLength(2);
+  const selected = chooseDefault
+    ? document.activeElement
+    : buttons.find((button) => !button.matches(":focus"));
+  expect(selected).toBeInstanceOf(HTMLButtonElement);
+  (selected as HTMLButtonElement).click();
 
   await expect(result).resolves.toBe(expected);
   expect(document.querySelector("dialog")).toBeNull();

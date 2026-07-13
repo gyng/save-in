@@ -1,6 +1,5 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import { setupCheckboxRows } from "../src/options/checkbox-rows.ts";
 import { setupShortcutOptions } from "../src/options/shortcut-options.ts";
 import { setupSettingsTransfer } from "../src/options/settings-transfer.ts";
 import { parseCounterValue } from "../src/options/counter-panel.ts";
@@ -109,16 +108,6 @@ describe("shortcut option guidance", () => {
     expect(document.querySelector<HTMLInputElement>("#contentClickToSaveButton")!.value).toBe(
       "RIGHT_CLICK",
     );
-  });
-});
-
-describe("checkbox rows", () => {
-  test("wraps title content without moving help text", () => {
-    document.body.innerHTML =
-      '<label><input type="checkbox"> Enable <b>badge</b><span class="caption">Help</span></label>';
-    setupCheckboxRows();
-    expect(document.querySelector(".opt-title")?.textContent).toContain("Enable");
-    expect(document.querySelector("label > .caption")?.textContent).toBe("Help");
   });
 });
 

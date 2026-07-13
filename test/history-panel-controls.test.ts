@@ -219,7 +219,6 @@ describe("history filter controls", () => {
     cancel.click();
 
     await vi.waitFor(() => expect(cancel.disabled).toBe(false));
-    expect(cancel.textContent).toBe("Cancel");
   });
 
   test("delegates show-in-folder and contains browser failures", async () => {

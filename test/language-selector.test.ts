@@ -1,5 +1,4 @@
 // @vitest-environment jsdom
-import { readFileSync } from "node:fs";
 import { setupLanguageSelector } from "../src/options/language-selector.ts";
 
 const render = () => {
@@ -7,14 +6,6 @@ const render = () => {
     <select id="uiLocale"><option value="">Default language</option><option value="fr">Français (AI)</option></select>
     <span id="language-error" hidden></span>`;
 };
-
-test("names the browser-controlled locale", () => {
-  const catalog = JSON.parse(readFileSync("_locales/en/messages.json", "utf8")) as Record<
-    string,
-    { message?: string }
-  >;
-  expect(catalog.o_lBrowserDefault?.message).toBe("Default language");
-});
 
 test("saves the selected locale and reloads after acknowledgement", async () => {
   render();

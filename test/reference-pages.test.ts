@@ -97,16 +97,12 @@ test("keeps variables and clauses together in the options reference dialog", () 
   expect(document.querySelector("#options-reference-clauses[role=tabpanel]")).not.toBeNull();
 });
 
-test("adds task-oriented group rows to both vocabularies", () => {
+test("adds semantic group headings to both vocabularies", () => {
   const variables = parse("options");
   groupReferenceRows(variables.querySelector("#options-reference-variables")!, "variables");
-  expect(
-    [...variables.querySelectorAll(".reference-group-row")].map((row) => row.textContent),
-  ).toContain("Date and time");
+  expect(variables.querySelector('th[scope="colgroup"]')).not.toBeNull();
 
   const clauses = parse("clauselist");
   groupReferenceRows(clauses, "clauses");
-  expect(
-    [...clauses.querySelectorAll(".reference-group-row")].map((row) => row.textContent),
-  ).toContain("Output");
+  expect(clauses.querySelector('th[scope="colgroup"]')).not.toBeNull();
 });

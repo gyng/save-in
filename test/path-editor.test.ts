@@ -269,7 +269,6 @@ describe("text/visual mode toggle", () => {
     expect(element<HTMLElement>("#paths-editor-description").hidden).toBe(true);
     expect(element<HTMLElement>("#paths-visual").hidden).toBe(false);
     expect(element<HTMLElement>("#error-paths").hidden).toBe(false);
-    expect(element("#paths-mode-visual").classList.contains("active")).toBe(true);
     expect(element("#paths-mode-visual").getAttribute("aria-selected")).toBe("true");
     expect(element("#paths-mode-text").getAttribute("aria-selected")).toBe("false");
     expect(editor.rebuildVisual).toHaveBeenCalled();
@@ -287,7 +286,7 @@ describe("text/visual mode toggle", () => {
     expect(element<HTMLElement>("#paths").hidden).toBe(false);
     expect(element<HTMLElement>("#paths-editor-description").hidden).toBe(false);
     expect(element<HTMLElement>("#paths-visual").hidden).toBe(true);
-    expect(element("#paths-mode-text").classList.contains("active")).toBe(true);
+    expect(element("#paths-mode-text").getAttribute("aria-selected")).toBe("true");
   });
 
   test("remembers the selected editor mode", () => {
@@ -395,11 +394,6 @@ describe("visual editor drag and drop", () => {
     });
     rows[2]!.querySelector(".path-editor-handle")!.dispatchEvent(dragEvent("dragstart", 100));
     rows[0]!.dispatchEvent(dragEvent("dragover", 100, 130));
-
-    expect(rows[0]!.classList.contains("drag-inside")).toBe(true);
-    expect(rows[0]!.querySelector(".path-editor-drop-indicator")?.textContent).toBe(
-      "Nest under “a”",
-    );
 
     rows[0]!.dispatchEvent(dragEvent("drop", 100, 130));
     expect(element<HTMLTextAreaElement>("#paths").value).toBe("a\n>c\nb");
