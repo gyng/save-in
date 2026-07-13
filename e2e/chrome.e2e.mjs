@@ -313,14 +313,21 @@ test("options can opt into AI localization and explicitly return to English", as
 });
 
 test("options page works under MV3 CSP with live first-party autocomplete", async () => {
-  await evalOptions(`document.querySelector("#paths-mode-text")?.click()`);
   await poll(
     async () =>
       (await evalOptions(`(() => {
         const ta = document.querySelector("#paths");
-        return Boolean(ta && !ta.hidden && ta.getAttribute("aria-busy") !== "true");
+        return Boolean(ta && ta.getAttribute("aria-busy") !== "true");
       })()`)) || null,
-    { description: "paths text editor and autocomplete vocabulary" },
+    { description: "paths editor initialization" },
+  );
+  await evalOptions(`document.querySelector("#paths-mode-text")?.click()`);
+  await poll(
+    async () =>
+      (await evalOptions(
+        `Boolean(document.querySelector("#paths") && !document.querySelector("#paths").hidden)`,
+      )) || null,
+    { description: "paths text editor activation" },
   );
   await evalOptions(`(() => {
     const ta = document.querySelector("#paths");
