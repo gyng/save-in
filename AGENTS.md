@@ -168,12 +168,35 @@ for CI runs of either e2e suite.
 
 ## Testing practices
 
-Work test-first where the change is logic: add/adjust a vitest test in
-`test/`, watch it fail (`npm run test:watch`), then implement. Behavior that
-spans the real browser (menus, downloads, SW lifecycle) belongs in the e2e
-scripts instead — add a test to `e2e/chrome.e2e.mjs` /
-`e2e/firefox.e2e.mjs` (vitest, sequential within each file). Both suites must
-pass before release; they are the regression net for the two manifests.
+Test-first is a way to prove meaningful behavior, not a requirement to create
+a new test for every edit. Before writing one, identify the regression it would
+catch and choose the cheapest durable boundary:
+
+- Add or adjust a unit test for logic, error handling, persistence,
+  normalization, or a compatibility contract with a meaningful failure mode.
+  Watch it fail before implementing when practical.
+- Put a full input/output matrix at the pure function or model boundary. Keep
+  handler and integration tests to delegation, lifecycle, persistence, privacy,
+  and error containment; do not repeat the same matrix through every layer.
+- Test browser-owned behavior such as menus, downloads, and service-worker
+  lifecycle in the Chrome/Firefox e2e suites. Prefer one representative
+  pipeline smoke test over duplicating lower-level cases end to end.
+- Enforce architecture, packaging, configuration, formatting, and generated
+  output with `check:*`, lint, typecheck, or build scripts. Do not assert source
+  snippets from Vitest when a direct mechanical check can report the violation.
+- Do not add bespoke tests for prose, typography, exact colors or contrast,
+  class names, sibling placement, incidental item counts, or broad HTML/CSS
+  snapshots. Use accessibility audits, visual/manual browser checks, and the
+  existing consolidated document contract as appropriate. Test markup only
+  when a stable control ID, semantic/ARIA relationship, submitted value, or
+  backward-compatible default is the actual contract.
+- Coverage is a regression floor, not a target to game. A change that is fully
+  checked by an existing test or a mechanical command does not need a token
+  test merely for TDD or coverage. Consolidate or delete redundant tests when
+  the stronger boundary already covers them.
+
+Both browser suites must pass before release; they are the regression net for
+the two manifests.
 
 vitest specifics (`test/*.test.ts`, typed; `tsc` covers them):
 
