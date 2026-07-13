@@ -30,9 +30,10 @@ suggested filename, and performing a download. These requests go to the
 resource servers selected by the user and may use the user's existing browser
 session for that server. Direct browser downloads use the browser's normal
 cookie handling. Extension-side Fetch and HEAD requests include applicable
-website cookies and browser-managed authentication only when the user enables
-that option. Save In does not transmit this information to the developer or to
-an analytics, advertising, or data-broker service.
+website cookies and browser-managed authentication by default, matching normal
+authenticated downloads; the user can turn this off in Advanced downloading.
+Save In does not transmit this information to the developer or to an analytics,
+advertising, or data-broker service.
 
 ## Sharing and retention
 
@@ -48,8 +49,9 @@ from websites chosen by the user. It uses browser download, context-menu,
 notification, storage, and Chrome offscreen APIs
 only to provide the saving, routing, status, and retry features described in
 the extension and store listings. Save In does not request cookie access or
-read, store, or expose cookie values. When the user enables authenticated
-extension requests, the browser itself attaches applicable credentials.
+read, store, or expose cookie values. For authenticated extension requests, the
+browser itself attaches applicable credentials unless the user turns that
+option off.
 
 ## Changes and contact
 

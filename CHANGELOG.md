@@ -46,9 +46,9 @@ testing on Chromium!
   (#159, #216)
 - Options page opens in a tab
 - "Fetch via Fetch API" is now available on Chrome too
-- Extension-side Fetch and HEAD requests now have an explicit website
-  credentials option. New and upgraded profiles omit cookies until the user
-  explicitly enables authenticated extension requests.
+- Extension-side Fetch and HEAD requests now have a website credentials option.
+  Applicable credentials are included by default to support signed-in downloads;
+  users can turn the option off for anonymous extension requests.
 - Firefox direct downloads retain private-download-manager isolation. Extension
   Fetch cannot select a Firefox Container or private cookie store.
 - Remove the old content-script fetch path; MV3 cross-origin fetching runs in

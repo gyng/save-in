@@ -42,14 +42,14 @@ non-minified JavaScript. No obfuscation or remote executable code is used.
 - Firefox can attach a Referer to a user-requested download through its native
   downloads API. Chrome does not expose an equivalent supported mechanism; no
   request-interception permission is requested.
-- Extension-side Fetch and HEAD requests omit credentials on new profiles.
-  Users can explicitly enable applicable website cookies and browser-managed
-  authentication. Upgraded profiles also remain credential-free unless the
-  user explicitly enables the option.
-- No cookie API permission is requested. The browser attaches applicable
-  credentials when the user enables authenticated extension requests; Save In
-  never reads cookie values. Extension Fetch cannot select a Firefox Container
-  or private cookie store.
+- Extension-side Fetch and HEAD requests include applicable website cookies and
+  browser-managed authentication by default for user-requested saves, matching
+  normal authenticated downloads. Users can turn this off to make those
+  extension requests anonymous.
+- No cookie API permission is requested. Unless the user disables authenticated
+  extension requests, the browser attaches applicable credentials; Save In never
+  reads cookie values. Extension Fetch cannot select a Firefox Container or
+  private cookie store.
 - `<all_urls>` is required because the extension saves resources selected by
   the user from arbitrary websites, optionally reads content metadata, and can
   run its click-to-save content listener on those pages.
@@ -97,8 +97,9 @@ Before submitting, verify that the listing has an accurate description,
 category, icon, screenshots, support link, privacy-policy link, and the same
 data-use answers as `PRIVACY.md`.
 
-The listing and in-product Advanced downloading copy must disclose that users
-can opt into sending applicable site credentials with extension requests.
+The listing and in-product Advanced downloading copy must disclose that
+extension requests include applicable site credentials by default and that
+users can turn this off.
 
 ## GitHub release provenance
 

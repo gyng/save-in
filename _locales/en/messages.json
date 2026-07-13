@@ -766,7 +766,7 @@
   },
 
   "o_cAppendMimeExtensionHelp": {
-    "message": "For extensionless or query-suffixed URLs, derive the extension from the server's Content-Type (via a HEAD request). Adds a small delay only when the name lacks one."
+    "message": "For extensionless or query-suffixed URLs, derive the extension from the server's Content-Type (via HEAD, with a body-cancelled GET fallback). Adds a small delay only when the name lacks one."
   },
 
   "o_cFallbackFetch": {
@@ -790,7 +790,7 @@
   },
 
   "o_cIncludeFetchCredentialsHelp": {
-    "message": "Includes applicable cookies and browser-managed authentication in background Fetch and HEAD requests. Enable only for sites that require your signed-in session. Direct browser downloads manage their own cookies."
+    "message": "Enabled by default. Includes applicable cookies and browser-managed authentication in background Fetch and HEAD requests, including at redirect destinations; turn this off to make those requests anonymously. Direct browser downloads manage their own cookies."
   },
 
   "o_cSetRefererHeader": {

@@ -98,18 +98,18 @@ describe("OptionsManagement", () => {
       expect(resolved.sourcePanelEnabled).toBe(false);
     });
 
-    test("does not send credentials from extension fetches for new profiles", async () => {
+    test("sends credentials from extension fetches for new profiles", async () => {
       const resolved = await OptionsManagement.loadOptions();
-      expect(resolved.includeFetchCredentials).toBe(false);
+      expect(resolved.includeFetchCredentials).toBe(true);
     });
 
-    test("keeps configured legacy profiles credential-free until explicit opt-in", async () => {
+    test("enables credentials for legacy profiles without a stored preference", async () => {
       global.browser.storage.local.get = vi.fn(() => Promise.resolve({ fallbackFetch: true }));
       global.browser.storage.local.set = vi.fn(() => Promise.resolve());
 
       const resolved = await OptionsManagement.loadOptions();
 
-      expect(resolved.includeFetchCredentials).toBe(false);
+      expect(resolved.includeFetchCredentials).toBe(true);
       expect(global.browser.storage.local.set).not.toHaveBeenCalled();
     });
 

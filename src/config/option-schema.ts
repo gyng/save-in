@@ -134,7 +134,7 @@ export const OPTION_KEYS = [
   { name: "appendMimeExtension", type: OPTION_TYPES.BOOL, default: true },
   { name: "fetchViaFetch", type: OPTION_TYPES.BOOL, default: false },
   { name: "fallbackFetch", type: OPTION_TYPES.BOOL, default: true },
-  { name: "includeFetchCredentials", type: OPTION_TYPES.BOOL, default: false },
+  { name: "includeFetchCredentials", type: OPTION_TYPES.BOOL, default: true },
   { name: "trackBrowserDownloads", type: OPTION_TYPES.BOOL, default: false },
   { name: "routeBrowserDownloads", type: OPTION_TYPES.BOOL, default: false },
   { name: "browserDownloadFilter", type: OPTION_TYPES.VALUE, default: "" },
