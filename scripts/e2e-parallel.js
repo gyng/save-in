@@ -2,14 +2,22 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 const { execFileSync, spawn } = require("child_process");
-const { pruneArtifactRuns, removeOwnedProfiles } = require("./lib/e2e-cleanup");
+const {
+  acquireDirectoryLock,
+  pruneArtifactRuns,
+  pruneRunDirectories,
+  releaseDirectoryLock,
+  removeOwnedProfiles,
+} = require("./lib/e2e-cleanup");
 
 const root = path.join(__dirname, "..");
 const vitest = path.join(root, "node_modules", "vitest", "vitest.mjs");
 const config = "vitest.e2e.config.mjs";
 const artifacts = path.join(root, "dist", "e2e-artifacts");
-const runDir = path.join(root, "dist", "e2e-runs", String(process.pid));
+const runRoot = path.join(root, "dist", "e2e-runs");
+const runDir = path.join(runRoot, String(process.pid));
 const stagedRun = path.join(runDir, "bundled-pkg");
+const stagingLockDir = path.join(root, "dist", "e2e-staging.lock");
 const runArtifacts = path.join(artifacts, `run-${Date.now()}-${process.pid}`);
 const e2eEnv = {
   ...process.env,
@@ -20,18 +28,25 @@ const e2eEnv = {
 // Keep diagnostics bounded without deleting a concurrently running suite's
 // files. CI uploads this directory from its disposable workspace on failure.
 fs.mkdirSync(runArtifacts, { recursive: true });
+fs.writeFileSync(path.join(runArtifacts, ".active"), String(process.pid));
 pruneArtifactRuns(artifacts);
+pruneRunDirectories(runRoot);
 
-execFileSync(process.execPath, [path.join(__dirname, "build-bundled.js")], {
-  cwd: root,
-  env: e2eEnv,
-  stdio: "inherit",
-});
+const stagingLock = acquireDirectoryLock(stagingLockDir);
+try {
+  execFileSync(process.execPath, [path.join(__dirname, "build-bundled.js")], {
+    cwd: root,
+    env: e2eEnv,
+    stdio: "inherit",
+  });
 
-// A dev watcher or another build can rewrite dist/bundled-pkg. Browsers load
-// this immutable per-run copy so the E2E-only bridge cannot disappear midway.
-fs.mkdirSync(runDir, { recursive: true });
-fs.cpSync(path.join(root, "dist", "bundled-pkg"), stagedRun, { recursive: true });
+  // A dev watcher or another build can rewrite dist/bundled-pkg. Browsers load
+  // this immutable per-run copy; the lock only serializes build + snapshot.
+  fs.mkdirSync(runDir, { recursive: true });
+  fs.cpSync(path.join(root, "dist", "bundled-pkg"), stagedRun, { recursive: true });
+} finally {
+  releaseDirectoryLock(stagingLock);
+}
 
 const suites = ["e2e/chrome.e2e.mjs", "e2e/firefox.e2e.mjs"];
 const runs = suites.map((suite) => {
@@ -90,6 +105,7 @@ const main = async () => {
   } catch (error) {
     cleanupErrors.push(error);
   }
+  fs.rmSync(path.join(runArtifacts, ".active"), { force: true });
   if (fs.existsSync(runArtifacts) && fs.readdirSync(runArtifacts).length === 0) {
     fs.rmSync(runArtifacts, { recursive: true, force: true });
   }

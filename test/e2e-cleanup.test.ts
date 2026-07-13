@@ -5,8 +5,20 @@ import { createRequire } from "node:module";
 import { afterEach, describe, expect, test } from "vitest";
 
 const require = createRequire(import.meta.url);
-const { pruneArtifactRuns, removeOwnedProfiles } = require("../scripts/lib/e2e-cleanup.js") as {
+const {
+  acquireDirectoryLock,
+  pruneArtifactRuns,
+  pruneRunDirectories,
+  releaseDirectoryLock,
+  removeOwnedProfiles,
+} = require("../scripts/lib/e2e-cleanup.js") as {
+  acquireDirectoryLock: (
+    directory: string,
+    options?: { timeoutMs?: number; pollMs?: number; pid?: number },
+  ) => { lockDir: string; token: string };
   pruneArtifactRuns: (directory: string, keep?: number) => void;
+  pruneRunDirectories: (directory: string) => void;
+  releaseDirectoryLock: (lock: { lockDir: string; token: string }) => void;
   removeOwnedProfiles: (
     pids: number[],
     options: { chromeRoot: string; firefoxRoot: string; attempts?: number; delayMs?: number },
@@ -23,6 +35,18 @@ const tempRoot = (name: string) => {
 afterEach(() => roots.splice(0).forEach((root) => rmSync(root, { recursive: true, force: true })));
 
 describe("E2E lifecycle cleanup", () => {
+  test("owns and releases the shared staging lock without touching another owner", () => {
+    const parent = tempRoot("save-in-lock-");
+    const lockDir = join(parent, "staging.lock");
+    const lock = acquireDirectoryLock(lockDir);
+
+    expect(() => releaseDirectoryLock({ ...lock, token: "another-run" })).toThrow(
+      "owned by another process",
+    );
+    releaseDirectoryLock(lock);
+    expect(readdirSync(parent)).toEqual([]);
+  });
+
   test("attaches suite completion handlers at spawn time", () => {
     const runner = require("node:fs").readFileSync("scripts/e2e-parallel.js", "utf8");
 
@@ -76,9 +100,26 @@ describe("E2E lifecycle cleanup", () => {
       const time = new Date(1_000 * index);
       require("node:fs").utimesSync(run, time, time);
     }
+    mkdirSync(join(artifacts, "run-active"));
+    writeFileSync(join(artifacts, "run-active", ".active"), String(process.pid));
+    mkdirSync(join(artifacts, "run-stale"));
+    writeFileSync(join(artifacts, "run-stale", ".active"), "999999999");
+    const staleTime = new Date(500);
+    require("node:fs").utimesSync(join(artifacts, "run-stale"), staleTime, staleTime);
 
     pruneArtifactRuns(artifacts, 3);
 
-    expect(readdirSync(artifacts).toSorted()).toEqual(["run-3", "run-4", "run-5"]);
+    expect(readdirSync(artifacts).toSorted()).toEqual(["run-3", "run-4", "run-5", "run-active"]);
+  });
+
+  test("removes stale staging snapshots without touching a concurrent runner", () => {
+    const runRoot = tempRoot("save-in-runs-");
+    mkdirSync(join(runRoot, String(process.pid)));
+    mkdirSync(join(runRoot, "999999999"));
+    mkdirSync(join(runRoot, "not-a-pid"));
+
+    pruneRunDirectories(runRoot);
+
+    expect(readdirSync(runRoot)).toEqual([String(process.pid)]);
   });
 });
