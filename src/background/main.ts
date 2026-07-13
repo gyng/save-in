@@ -37,6 +37,8 @@ import { backgroundRuntime, resetRuntimeDiagnostics } from "./runtime.ts";
 import { recoverNotificationState } from "../downloads/notification-recovery.ts";
 import { runBackgroundTask } from "./event-task.ts";
 import { Download } from "../downloads/download.ts";
+import { ActiveTransfers } from "../downloads/active-transfers.ts";
+import { OffscreenClient } from "../platform/offscreen-client.ts";
 
 export const configureBackgroundPorts = () => {
   configureDownloadPorts({
@@ -72,6 +74,23 @@ backgroundRuntime.init = () => {
     // download event handler (which awaits backgroundRuntime.ready) touches them
     hydrateDownloads(downloadsState, extensionSessionStorage),
     recoverNotificationState(),
+    ActiveTransfers.recover().then(async (records) => {
+      await Promise.all(
+        Object.entries(records).map(async ([historyId, record]) => {
+          if (record.requestId && OffscreenClient.canUse()) {
+            await OffscreenClient.cancel(record.requestId).catch(() => {});
+          }
+          if (record.downloadId != null) {
+            await webExtensionApi.downloads.cancel(record.downloadId).catch(() => {});
+          }
+          await SaveHistory.setStatus(
+            historyId,
+            "DOWNLOAD_PREPARATION_INTERRUPTED",
+            record.downloadId,
+          );
+        }),
+      );
+    }),
   ])
     .then((results) => {
       backgroundRuntime.debug = results[0].debug;

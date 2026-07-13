@@ -26,9 +26,10 @@ test("download stages expose distinct state contracts", () => {
     url: string;
     source: "direct" | "fetched" | "fetch-fallback-direct";
     ownedObjectUrl?: string | undefined;
+    offscreenRequestId?: string | undefined;
   }>();
   expectTypeOf<DownloadExecutionResult>().toEqualTypeOf<
-    { status: "started"; downloadId: number } | { status: "failed" }
+    { status: "started"; downloadId: number } | { status: "skipped" } | { status: "failed" }
   >();
   expectTypeOf<FinalizableDownloadState>().toMatchTypeOf<{
     path: DownloadPipelineState["path"];

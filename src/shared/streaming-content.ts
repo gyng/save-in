@@ -11,9 +11,14 @@ export const readResponseContent = async (
   hash: boolean,
   signal?: AbortSignal,
 ): Promise<{ blob: Blob; sha256: string }> => {
+  // SHA-256 state is updated incrementally, so hashing does not allocate a
+  // second full-file buffer. The chunks still have to be retained once to make
+  // a Blob because WebExtension downloads accept a URL, not a byte stream.
+  // Consequently browser Blob/memory limits still apply to exceptionally large
+  // files; there is deliberately no arbitrary extension-side size cutoff.
   const chunks: ArrayBuffer[] = [];
   const sha256 = hash ? new Sha256() : undefined;
-  const contentType = response.headers.get("Content-Type") ?? "";
+  const contentType = response.headers?.get?.("Content-Type") ?? "";
 
   if (response.body) {
     const reader = response.body.getReader();

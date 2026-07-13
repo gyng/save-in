@@ -4,7 +4,7 @@ import type { StorageReader, StorageWriter } from "../platform/storage-areas.ts"
 import { DOWNLOADS_SESSION_KEY } from "../shared/storage-keys.ts";
 import type { ConflictAction } from "../shared/constants.ts";
 
-const MAX_RECORDS = 50;
+const MAX_INACTIVE_RECORDS = 50;
 
 export type DownloadRecord = {
   url?: string | undefined;
@@ -18,6 +18,7 @@ export type DownloadRecord = {
   observedBrowserDownload?: boolean | undefined;
   adopted?: boolean | undefined;
   historyEntryId?: string | undefined;
+  offscreenRequestId?: string | undefined;
 };
 
 export type PrivateDownloadContext = { privateContext?: boolean | undefined };
@@ -36,7 +37,14 @@ const isObject = (value: unknown): value is Record<string, unknown> =>
 const normalizeDownloadRecord = (value: unknown): DownloadRecord | null => {
   if (!isObject(value)) return null;
   const record: DownloadRecord = {};
-  const strings = ["url", "pageUrl", "filename", "currentFilename", "historyEntryId"] as const;
+  const strings = [
+    "url",
+    "pageUrl",
+    "filename",
+    "currentFilename",
+    "historyEntryId",
+    "offscreenRequestId",
+  ] as const;
   const booleans = [
     "viaFetch",
     "retried",
@@ -77,15 +85,22 @@ const preserveDownloadStorageShape = (
 const storedDownloadEntries = (value: unknown): Array<[number, DownloadRecord]> => {
   const records = unwrapDownloadRecords(value);
   if (!isObject(records)) return [];
-  return Object.entries(records)
+  const entries = Object.entries(records)
     .filter(
       (entry): entry is [string, DownloadRecord] =>
         /^(0|[1-9]\d*)$/.test(entry[0]) &&
         Number.isSafeInteger(Number(entry[0])) &&
         normalizeDownloadRecord(entry[1]) != null,
     )
-    .slice(-MAX_RECORDS)
-    .map(([id, record]) => [Number(id), normalizeDownloadRecord(record)!]);
+    .map(([id, record]): [number, DownloadRecord] => [
+      Number(id),
+      normalizeDownloadRecord(record)!,
+    ]);
+  const active = entries.filter(([, record]) => record.adopted || record.observedBrowserDownload);
+  const inactive = entries.filter(
+    ([, record]) => !record.adopted && !record.observedBrowserDownload,
+  );
+  return [...active, ...inactive.slice(-MAX_INACTIVE_RECORDS)];
 };
 
 export const hydrateDownloads = (state: DownloadsState, storage: StorageReader | undefined) => {
@@ -100,8 +115,12 @@ export const hydrateDownloads = (state: DownloadsState, storage: StorageReader |
 };
 
 const capDownloads = (records: Record<string, DownloadRecord>) => {
-  const keys = Object.keys(records);
-  keys.slice(0, Math.max(0, keys.length - MAX_RECORDS)).forEach((key) => delete records[key]);
+  const inactiveKeys = Object.keys(records).filter(
+    (key) => !records[key]?.adopted && !records[key]?.observedBrowserDownload,
+  );
+  inactiveKeys
+    .slice(0, Math.max(0, inactiveKeys.length - MAX_INACTIVE_RECORDS))
+    .forEach((key) => delete records[key]);
   return records;
 };
 
@@ -114,10 +133,12 @@ export const mergeDownload = (
 ) => {
   const merged = Object.assign({}, state.records.get(downloadId), partial);
   state.records.set(downloadId, merged);
-  if (state.records.size > MAX_RECORDS) {
-    const oldestId = state.records.keys().next().value;
-    if (oldestId !== undefined) state.records.delete(oldestId);
-  }
+  const inactiveIds = [...state.records]
+    .filter(([, record]) => !record.adopted && !record.observedBrowserDownload)
+    .map(([id]) => id);
+  inactiveIds
+    .slice(0, Math.max(0, inactiveIds.length - MAX_INACTIVE_RECORDS))
+    .forEach((id) => state.records.delete(id));
   return updateSession<unknown>(sessionWrites, storage, DOWNLOADS_SESSION_KEY, (stored) => {
     const records = normalizeDownloadRecords(stored);
     if (merged.privateContext) delete records[downloadId];

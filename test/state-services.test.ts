@@ -206,7 +206,7 @@ describe("state service instances", () => {
     });
   });
 
-  test("persisted download records are capped even when legacy storage is oversized", async () => {
+  test("persisted active download records are never evicted by the inactive-history cap", async () => {
     const state = { records: new Map(), hydration: null };
     const writes = { queues: new Map<string, Promise<unknown>>() };
     const oversized = Object.fromEntries(
@@ -220,11 +220,12 @@ describe("state service instances", () => {
     await mergeDownload(state, writes, storage, 61, { adopted: true });
 
     const persisted = vi.mocked(storage.set).mock.calls[0]![0].siDownloads;
-    expect(Object.keys(persisted)).toHaveLength(50);
+    expect(Object.keys(persisted)).toHaveLength(61);
+    expect(persisted[1]).toEqual({ adopted: true });
     expect(persisted[61]).toEqual({ adopted: true });
   });
 
-  test("in-memory download records evict the oldest entry at the same bound", async () => {
+  test("in-memory active download records are never evicted", async () => {
     const records = new Map(
       Array.from({ length: 50 }, (_, index) => [index + 1, { adopted: true }] as const),
     );
@@ -237,8 +238,8 @@ describe("state service instances", () => {
 
     await mergeDownload(state, writes, storage, 51, { adopted: true });
 
-    expect(state.records).toHaveLength(50);
-    expect(state.records.has(1)).toBe(false);
+    expect(state.records).toHaveLength(51);
+    expect(state.records.has(1)).toBe(true);
     expect(state.records.get(51)).toEqual({ adopted: true });
   });
 });

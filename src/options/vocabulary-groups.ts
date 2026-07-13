@@ -166,7 +166,7 @@ export const variableExample = (variable: string): string => {
   if (name === "pagetitleslug") return "example-page";
   if (name === "pagetitlesnake") return "example_page";
   if (/mime|contenttype/.test(name)) return "image/jpeg";
-  if (name === "sha256") return "ba7816bf";
+  if (name === "sha256") return "ba7816bf8f01";
   if (name === "sha256full") return "ba7816bf…";
   if (/^\$\d+$/.test(name)) return "captured-text";
   if (name === "uuid") return "f47ac10b-…";

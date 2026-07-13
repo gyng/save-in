@@ -295,6 +295,7 @@ describe("pipeline stages", () => {
     const result = await Download.renameAndDownload(state);
 
     expect(result).toEqual({ status: "started", downloadId: 101 });
+    expect(global.fetch).not.toHaveBeenCalled();
     expect(global.browser.downloads.download).toHaveBeenCalledWith(
       expect.objectContaining({
         url: state.info.url,
@@ -464,7 +465,7 @@ describe("renameAndDownload: shared :sha256: fetch reuse", () => {
   test("cancels an in-progress content preparation from its History entry", async () => {
     vi.spyOn(Variable, "applyVariables").mockImplementationOnce((_path, info) => {
       if (!info) throw new Error("Expected download metadata");
-      info.onContentFetchStart?.();
+      info.onContentFetchStart?.("request-test");
       return new Promise((_resolve, reject) => {
         info.abortSignal?.addEventListener(
           "abort",
@@ -961,6 +962,29 @@ describe("renameAndDownload: browserDownload", () => {
 });
 
 describe("renameAndDownload: fetchViaFetch", () => {
+  test("History cancellation aborts fetch acquisition before downloads.download", async () => {
+    setCurrentBrowser("CHROME");
+    options.fetchViaFetch = true;
+    global.fetch = vi.fn(
+      (_url, init) =>
+        new Promise((_resolve, reject) => {
+          init?.signal?.addEventListener(
+            "abort",
+            () => reject(new DOMException("Canceled", "AbortError")),
+            { once: true },
+          );
+        }),
+    ) as any;
+    const state = makeState();
+
+    const task = Download.renameAndDownload(state);
+    await vi.waitFor(() => expect(global.fetch).toHaveBeenCalled());
+    expect(ActiveTransfers.cancel("h-test")).toBe(true);
+
+    await expect(task).resolves.toEqual({ status: "skipped" });
+    expect(global.browser.downloads.download).not.toHaveBeenCalled();
+    expect(SaveHistory.setStatus).toHaveBeenCalledWith("h-test", "USER_CANCELED");
+  });
   test("keeps a fetched blob associated with Firefox private downloads", async () => {
     setCurrentBrowser("FIREFOX");
     options.fetchViaFetch = true;
@@ -1009,20 +1033,26 @@ describe("renameAndDownload: fetchViaFetch", () => {
     setCurrentBrowser("CHROME");
     options.fetchViaFetch = true;
     const origCanUse = OffscreenClient.canUse;
-    const origFetch = OffscreenClient.fetch;
+    const origFetch = OffscreenClient.fetchContent;
     OffscreenClient.canUse = vi.fn(() => true);
-    OffscreenClient.fetch = vi.fn(() => Promise.resolve("blob:offscreen-url"));
+    OffscreenClient.fetchContent = vi.fn(() =>
+      Promise.resolve({ sha256: "", downloadUrl: "blob:offscreen-url", offscreenRequestId: "r1" }),
+    );
     try {
       const state = makeState();
       await Download.renameAndDownload(state);
 
-      expect(OffscreenClient.fetch).toHaveBeenCalledWith(state.info.url, "omit");
+      expect(OffscreenClient.fetchContent).toHaveBeenCalledWith(
+        state.info.url,
+        "omit",
+        expect.objectContaining({ signal: expect.any(AbortSignal) }),
+      );
       expect(global.browser.downloads.download).toHaveBeenCalledWith(
         expect.objectContaining({ url: "blob:offscreen-url" }),
       );
     } finally {
       OffscreenClient.canUse = origCanUse;
-      OffscreenClient.fetch = origFetch;
+      OffscreenClient.fetchContent = origFetch;
     }
   });
 
@@ -1031,17 +1061,23 @@ describe("renameAndDownload: fetchViaFetch", () => {
     options.fetchViaFetch = true;
     options.includeFetchCredentials = true;
     const origCanUse = OffscreenClient.canUse;
-    const origFetch = OffscreenClient.fetch;
+    const origFetch = OffscreenClient.fetchContent;
     OffscreenClient.canUse = vi.fn(() => true);
-    OffscreenClient.fetch = vi.fn(() => Promise.resolve("blob:private-offscreen-url"));
+    OffscreenClient.fetchContent = vi.fn(() =>
+      Promise.resolve({ sha256: "", downloadUrl: "blob:private-offscreen-url" }),
+    );
     try {
       const state = makeState({ info: { currentTab: { incognito: true } } });
       await Download.renameAndDownload(state);
 
-      expect(OffscreenClient.fetch).toHaveBeenCalledWith(state.info.url, "omit");
+      expect(OffscreenClient.fetchContent).toHaveBeenCalledWith(
+        state.info.url,
+        "omit",
+        expect.objectContaining({ signal: expect.any(AbortSignal) }),
+      );
     } finally {
       OffscreenClient.canUse = origCanUse;
-      OffscreenClient.fetch = origFetch;
+      OffscreenClient.fetchContent = origFetch;
     }
   });
 
@@ -1049,9 +1085,9 @@ describe("renameAndDownload: fetchViaFetch", () => {
     setCurrentBrowser("CHROME");
     options.fetchViaFetch = true;
     const origCanUse = OffscreenClient.canUse;
-    const origFetch = OffscreenClient.fetch;
+    const origFetch = OffscreenClient.fetchContent;
     OffscreenClient.canUse = vi.fn(() => true);
-    OffscreenClient.fetch = vi.fn(() => Promise.reject(new Error("offscreen boom")));
+    OffscreenClient.fetchContent = vi.fn(() => Promise.reject(new Error("offscreen boom")));
     try {
       const state = makeState();
       await Download.renameAndDownload(state);
@@ -1065,7 +1101,7 @@ describe("renameAndDownload: fetchViaFetch", () => {
       );
     } finally {
       OffscreenClient.canUse = origCanUse;
-      OffscreenClient.fetch = origFetch;
+      OffscreenClient.fetchContent = origFetch;
     }
   });
 });
@@ -1382,7 +1418,7 @@ describe("concurrent downloads (pendingStates)", () => {
         makeConcurrentState(`https://x/${i}.png`, "d", `${i}.png`),
       );
     }
-    expect(concurrentDownload.pendingStates.size).toBeLessThanOrEqual(50);
+    expect(concurrentDownload.pendingStates.size).toBe(60);
   });
 
   test("bounds queued attempts even when every request uses the same URL", () => {
@@ -1391,9 +1427,7 @@ describe("concurrent downloads (pendingStates)", () => {
         makeConcurrentState("https://x/same.png", "d", `${i}.png`),
       );
     }
-    expect(concurrentDownload.pendingStates.get("https://x/same.png")?.length).toBeLessThanOrEqual(
-      50,
-    );
+    expect(concurrentDownload.pendingStates.get("https://x/same.png")?.length).toBe(60);
   });
 });
 

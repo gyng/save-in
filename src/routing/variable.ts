@@ -266,6 +266,7 @@ export const mimeToExtension = (mime: string | null | undefined) => {
 // a slow/hanging HEAD can't block the download, and resolves to blanks on any
 // failure (CORS, 405, network).
 export const resolveHead = (opts: RoutingDownloadInfo): Promise<HeadResult> => {
+  if (opts.contentFetchDisabled) return Promise.resolve({ contentType: "", finalUrl: "" });
   if (opts.resolvedHead) {
     return Promise.resolve(opts.resolvedHead);
   }
@@ -299,9 +300,17 @@ export const resolveContent = (opts: RoutingDownloadInfo) => {
   if (opts.contentPromise) {
     return opts.contentPromise;
   }
-  opts.onContentFetchStart?.();
+  if (opts.contentFetchDisabled) return Promise.resolve(null);
+  const requestId = crypto.randomUUID();
   opts.contentPromise = opts.url
-    ? routingPorts.resolveContent(opts.url, opts.currentTab?.incognito === true, opts.abortSignal)
+    ? Promise.resolve(opts.onContentFetchStart?.(requestId)).then(() =>
+        routingPorts.resolveContent(
+          opts.url!,
+          opts.currentTab?.incognito === true,
+          opts.abortSignal,
+          requestId,
+        ),
+      )
     : Promise.resolve(null);
   return opts.contentPromise;
 };
@@ -428,7 +437,7 @@ export const transformers = ({
     // resolveContent). The short form is convenient for filenames; the full
     // form is available when the complete digest is required. Blank in preview.
     [SPECIAL_DIRS.SHA256]:
-      async opts => stringSegment((await resolveSha256(opts)).slice(0, 8)),
+      async opts => stringSegment((await resolveSha256(opts)).slice(0, 12)),
     [SPECIAL_DIRS.SHA256_FULL]:
       async opts => stringSegment(await resolveSha256(opts)),
     // Async: the URL after following redirects, from the same HEAD as :mime:.

@@ -39,10 +39,12 @@ export type AcquiredDownload = {
   url: string;
   source: "direct" | "fetched" | "fetch-fallback-direct";
   ownedObjectUrl?: string | undefined;
+  offscreenRequestId?: string | undefined;
 };
 
 export type DownloadExecutionResult =
   | { status: "started"; downloadId: number }
+  | { status: "skipped" }
   | { status: "failed" };
 
 export type DownloadLaunchResult = DownloadExecutionResult | { status: "skipped" };

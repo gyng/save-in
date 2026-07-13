@@ -810,7 +810,7 @@ test(":sha256: and :sha256full: hash and save from a single fetch (Chrome MV3)",
   // same fetch's blob URL — the server must be hit exactly once, not twice.
   const body = "share this fetch once";
   const expectedHash = crypto.createHash("sha256").update(body).digest("hex");
-  const expectedShortHash = expectedHash.slice(0, 8);
+  const expectedShortHash = expectedHash.slice(0, 12);
   let hits = 0;
   const server = http.createServer((req, res) => {
     hits += 1;

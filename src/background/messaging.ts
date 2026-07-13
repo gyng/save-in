@@ -38,6 +38,7 @@ import { getPersistenceDiagnostics } from "../shared/persistence-diagnostics.ts"
 import { syncSourcePanelToTab, setSourcePanelOpenState } from "./source-panel-state.ts";
 import { previewRoutes } from "./route-preview.ts";
 import { ActiveTransfers } from "../downloads/active-transfers.ts";
+import { OffscreenClient } from "../platform/offscreen-client.ts";
 import { ExternalDownloadRejections } from "./external-download-rejections.ts";
 
 export type MessageSender = { id?: string | undefined; tab?: CurrentTab | undefined };
@@ -423,20 +424,32 @@ const internalHandlers = {
   },
   [MESSAGE_TYPES.HISTORY_CANCEL]: async (request, _sender, sendResponse) => {
     const historyId = request.body?.historyId;
+    const active = typeof historyId === "string" ? ActiveTransfers.get(historyId) : undefined;
     let canceled = typeof historyId === "string" && ActiveTransfers.cancel(historyId);
+    if (active?.requestId && OffscreenClient.canUse()) {
+      await OffscreenClient.cancel(active.requestId).catch(() => {});
+    }
     const entry = historyId
       ? (await SaveHistory.get()).find((candidate) => candidate.id === historyId)
       : undefined;
-    const downloadId = entry?.downloadId;
+    const downloadId = entry?.downloadId ?? active?.downloadId;
+    let shouldRecordCanceled = canceled && downloadId == null;
     if (downloadId != null) {
       try {
         await webExtensionApi.downloads.cancel(downloadId);
         canceled = true;
+        const [item] = await webExtensionApi.downloads.search({ id: downloadId });
+        // cancel() also resolves for complete, interrupted, or vanished items.
+        // Never overwrite a real completion merely because the promise resolved.
+        shouldRecordCanceled =
+          item?.state === "interrupted" || Boolean(active && item?.state !== "complete");
       } catch {
         // The browser may have completed between the History poll and click.
       }
     }
-    if (canceled) await SaveHistory.setStatus(historyId, "USER_CANCELED", downloadId);
+    if (shouldRecordCanceled) {
+      await SaveHistory.setStatus(historyId, "USER_CANCELED", downloadId);
+    }
     sendResponse({ type: MESSAGE_TYPES.HISTORY_CANCEL, body: { canceled } });
   },
   [MESSAGE_TYPES.EXTERNAL_DOWNLOAD_REJECTIONS_GET]: async (_request, _sender, sendResponse) => {

@@ -1,6 +1,8 @@
 import { describe, expect, test } from "vitest";
 
 import {
+  isOffscreenBlobReleaseRequest,
+  isOffscreenFetchCancelRequest,
   isOffscreenFetchRequest,
   isOffscreenFetchResponse,
 } from "../src/shared/content-fetch-types.ts";
@@ -18,6 +20,12 @@ describe("offscreen message runtime validation", () => {
     ).toBe(true);
     expect(isOffscreenFetchResponse({ blobUrl: "blob:https://x/id", hash: "abcd" })).toBe(true);
     expect(isOffscreenFetchResponse({ error: "fetch failed" })).toBe(true);
+    expect(isOffscreenFetchCancelRequest({ type: "OFFSCREEN_FETCH_CANCEL", requestId: "r1" })).toBe(
+      true,
+    );
+    expect(isOffscreenBlobReleaseRequest({ type: "OFFSCREEN_BLOB_RELEASE", requestId: "r1" })).toBe(
+      true,
+    );
   });
 
   test.each([

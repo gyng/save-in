@@ -21,3 +21,20 @@ test("finishing an old controller does not remove its replacement", () => {
   expect(ActiveTransfers.cancel("h1")).toBe(true);
   expect(second.signal.aborted).toBe(true);
 });
+
+test("keeps the service worker alive while a transfer is active", async () => {
+  vi.useFakeTimers();
+  const getPlatformInfo = vi.fn(() => Promise.resolve({ os: "win" }));
+  Object.assign(globalThis.browser.runtime, { getPlatformInfo });
+  const controller = new AbortController();
+
+  ActiveTransfers.register("h1", controller);
+  await vi.advanceTimersByTimeAsync(25_000);
+  expect(getPlatformInfo).toHaveBeenCalled();
+
+  ActiveTransfers.finish("h1", controller);
+  getPlatformInfo.mockClear();
+  await vi.advanceTimersByTimeAsync(25_000);
+  expect(getPlatformInfo).not.toHaveBeenCalled();
+  vi.useRealTimers();
+});

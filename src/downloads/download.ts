@@ -13,18 +13,12 @@ import { matchRules } from "../routing/router.ts";
 import { Path, sanitizeFilename } from "../routing/path.ts";
 import { applyVariables, mimeToExtension, resolveHead, resolveMime } from "../routing/variable.ts";
 import { options } from "../config/options-data.ts";
-import { getExtensionFetchCredentials } from "../config/fetch-credentials.ts";
-import {
-  DEFAULT_FETCH_RESPONSE_TIMEOUT_MS,
-  fetchFollowingRedirects,
-} from "../shared/redirect-fetch.ts";
 import { downloadPorts } from "./ports.ts";
 import { WEB_EXTENSION_CAPABILITIES } from "../platform/chrome-detector.ts";
 import { getFilenameFromContentDispositionHeader } from "../vendor/content-disposition.ts";
-import { makeUrlFromBlob } from "./content-fetch.ts";
+import { fetchUrlForDownload } from "./content-fetch.ts";
 import { OffscreenClient } from "../platform/offscreen-client.ts";
 import { EXTENSION_REGEX, getFilenameFromUrl } from "../routing/filename.ts";
-import { MESSAGE_TYPES } from "../shared/constants.ts";
 import {
   FINAL_FILENAMES_SESSION_KEY,
   PENDING_DOWNLOADS_SESSION_KEY,
@@ -150,8 +144,25 @@ const releaseUnusedContent = async (state: DownloadPipelineState): Promise<void>
     if (content?.ownedObjectUrl && typeof URL.revokeObjectURL === "function") {
       URL.revokeObjectURL(content.ownedObjectUrl);
     }
+    if (content?.offscreenRequestId) await OffscreenClient.release(content.offscreenRequestId);
   } catch {
     // The pipeline's original error remains authoritative.
+  }
+};
+
+const abortError = (signal: AbortSignal): unknown =>
+  signal.reason ?? new DOMException("The operation was aborted", "AbortError");
+
+const throwIfAborted = (signal?: AbortSignal): void => {
+  if (signal?.aborted) throw abortError(signal);
+};
+
+const releaseAcquiredDownload = async (acquired: AcquiredDownload): Promise<void> => {
+  if (acquired.ownedObjectUrl && typeof URL.revokeObjectURL === "function") {
+    URL.revokeObjectURL(acquired.ownedObjectUrl);
+  }
+  if (acquired.offscreenRequestId) {
+    await OffscreenClient.release(acquired.offscreenRequestId).catch(() => {});
   }
 };
 
@@ -332,10 +343,19 @@ export const Download = {
       Download.rememberPendingState(state);
     }
 
+    // A Firefox native Referer header is attached by downloads.download. An
+    // extension-origin fetch cannot reproduce the browser request's protected
+    // header/cookie/private context reliably, so lazy metadata/content
+    // variables are deliberately blank and fetch-via-fetch is bypassed.
+    state.info.contentFetchDisabled = Boolean(RequestHeaders.getDownloadHeaders(state));
+
     // Firefox resolves a server-provided filename before finalizing the plan.
     // Chrome must defer this to onDeterminingFilename, which runs after the
     // browser download starts.
-    if (!WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion) {
+    if (
+      !WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion &&
+      !state.info.contentFetchDisabled
+    ) {
       try {
         const metadata = await resolveHead(state.info);
         if (metadata.contentDisposition) {
@@ -392,44 +412,44 @@ export const Download = {
     return { state, finalFullPath, prompt, historyEntryId };
   },
 
-  acquireFetchedUrl: async (url: string, privateContext = false): Promise<AcquiredDownload> => {
-    if (OffscreenClient.canUse()) {
-      try {
-        return {
-          url: await OffscreenClient.fetch(url, getExtensionFetchCredentials(privateContext)),
-          source: "fetched",
-        };
-      } catch (e) {
-        if (privateContext) {
-          logPort.add("offscreen fetch failed", String(e), { privateContext: true });
-        } else logPort.add("offscreen fetch failed", String(e));
-        return { url, source: "fetch-fallback-direct" };
-      }
-    }
-
+  acquireFetchedUrl: async (
+    url: string,
+    privateContext = false,
+    signal?: AbortSignal,
+    requestId?: string,
+  ): Promise<AcquiredDownload> => {
+    const usingOffscreen = OffscreenClient.canUse();
     try {
-      const response = await fetchFollowingRedirects(
-        url,
-        { credentials: getExtensionFetchCredentials(privateContext) },
-        DEFAULT_FETCH_RESPONSE_TIMEOUT_MS,
-      );
-      if (response.ok === false) throw new Error(`HTTP ${response.status}`);
-      const objectUrl = await makeUrlFromBlob(await response.blob());
+      const content = await fetchUrlForDownload(url, privateContext, signal, requestId);
       return {
-        url: objectUrl,
+        url: content.downloadUrl,
         source: "fetched",
-        ownedObjectUrl: objectUrl.startsWith("blob:") ? objectUrl : undefined,
+        ownedObjectUrl: content.ownedObjectUrl,
+        offscreenRequestId: content.offscreenRequestId,
       };
     } catch (e) {
+      if (signal?.aborted) throw e;
       if (privateContext) {
-        logPort.add("fetch download failed", String(e), { privateContext: true });
-      } else logPort.add("fetch download failed", String(e));
+        logPort.add(
+          usingOffscreen ? "offscreen fetch failed" : "fetch download failed",
+          String(e),
+          {
+            privateContext: true,
+          },
+        );
+      } else
+        logPort.add(usingOffscreen ? "offscreen fetch failed" : "fetch download failed", String(e));
       return { url, source: "fetch-fallback-direct" };
     }
   },
 
-  acquireDownloadUrl: async (plan: DownloadPlan): Promise<AcquiredDownload> => {
+  acquireDownloadUrl: async (
+    plan: DownloadPlan,
+    signal?: AbortSignal,
+    requestId?: string,
+  ): Promise<AcquiredDownload> => {
     const { state } = plan;
+    throwIfAborted(signal);
     if (state.info.contentPromise) {
       const content = await state.info.contentPromise;
       if (content && content.downloadUrl) {
@@ -438,6 +458,7 @@ export const Download = {
           url: content.downloadUrl,
           source: "fetched",
           ownedObjectUrl: content.ownedObjectUrl,
+          offscreenRequestId: content.offscreenRequestId,
         };
       }
       if (content?.ownedObjectUrl && typeof URL.revokeObjectURL === "function") {
@@ -446,8 +467,8 @@ export const Download = {
       state.info.contentPromise = undefined;
     }
     const url = requireDownloadUrl(state);
-    if (options.fetchViaFetch)
-      return Download.acquireFetchedUrl(url, isPrivateDownloadState(state));
+    if (options.fetchViaFetch && !RequestHeaders.getDownloadHeaders(state))
+      return Download.acquireFetchedUrl(url, isPrivateDownloadState(state), signal, requestId);
     const ownedObjectUrl = Download.generatedObjectUrls.delete(url) ? url : undefined;
     return { url, source: "direct", ownedObjectUrl };
   },
@@ -455,6 +476,7 @@ export const Download = {
   executeBrowserDownload: async (
     plan: DownloadPlan,
     acquired: AcquiredDownload,
+    signal?: AbortSignal,
   ): Promise<DownloadExecutionResult> => {
     const { state, finalFullPath, prompt, historyEntryId } = plan;
     const privateContext = state.info.currentTab?.incognito === true;
@@ -467,6 +489,7 @@ export const Download = {
         ? RequestHeaders.getDownloadHeaders(state)
         : undefined;
     const allowOriginalUrlFallback = !headers && isHttpDownloadUrl(state.info.url);
+    throwIfAborted(signal);
     await Promise.all(
       privateContext
         ? []
@@ -507,6 +530,7 @@ export const Download = {
       };
       if (headers) downloadOptions.headers = headers;
       Object.assign(downloadOptions, await resolveFirefoxDownloadContext(state.info.currentTab));
+      throwIfAborted(signal);
       const downloadId = await webExtensionApi.downloads.download(downloadOptions);
       Notifier.cancelExpectedDownload(expected);
       if (acquired.ownedObjectUrl) {
@@ -522,15 +546,29 @@ export const Download = {
         viaFetch: acquired.source === "fetched",
         retried: false,
         allowOriginalUrlFallback,
+        ...(acquired.offscreenRequestId ? { offscreenRequestId: acquired.offscreenRequestId } : {}),
         ...(historyEntryId ? { historyEntryId } : {}),
         privateContext,
         adopted: true,
       });
-      if (historyEntryId) historyPort.setDownloadId(historyEntryId, downloadId);
+      if (historyEntryId) {
+        ActiveTransfers.update(historyEntryId, { downloadId });
+        await historyPort.setDownloadId(historyEntryId, downloadId);
+      }
+      if (signal?.aborted) {
+        await webExtensionApi.downloads.cancel(downloadId).catch(() => {});
+        await historyPort.setStatus(historyEntryId, "USER_CANCELED", downloadId);
+        return { status: "skipped" };
+      }
       return { status: "started", downloadId };
     } catch (e) {
       Notifier.cancelExpectedDownload(expected);
-      if (acquired.ownedObjectUrl) URL.revokeObjectURL(acquired.ownedObjectUrl);
+      await releaseAcquiredDownload(acquired);
+      if (signal?.aborted) {
+        Download.forgetPendingState(state);
+        await historyPort.setStatus(historyEntryId, "USER_CANCELED");
+        return { status: "skipped" };
+      }
       addDownloadLog(state, "downloads.download failed", String(e));
       if (
         acquired.source === "direct" &&
@@ -540,8 +578,9 @@ export const Download = {
         const fallback = await Download.acquireFetchedUrl(
           requireDownloadUrl(state),
           privateContext,
+          signal,
         );
-        return await Download.executeBrowserDownload(plan, fallback);
+        return await Download.executeBrowserDownload(plan, fallback, signal);
       } else {
         Download.forgetPendingState(state);
         await historyPort.setStatus(historyEntryId, "DOWNLOAD_API_FAILED");
@@ -576,16 +615,34 @@ export const Download = {
   renameAndDownload: async (state: DownloadPipelineState): Promise<DownloadLaunchResult> => {
     const preparationController = new AbortController();
     state.info.abortSignal = preparationController.signal;
-    state.info.onContentFetchStart = () => {
+    let registeredHistoryId: string | null | undefined;
+    let privateHeld = false;
+    let activeRequestId: string | undefined;
+    const registerTransfer = (requestId?: string) => {
+      activeRequestId = requestId ?? activeRequestId;
+      const id = state.scratch.historyEntryId;
+      if (id) {
+        registeredHistoryId = id;
+        ActiveTransfers.register(
+          id,
+          preparationController,
+          activeRequestId ? { requestId: activeRequestId } : {},
+        );
+      } else if (!privateHeld) {
+        ActiveTransfers.hold(preparationController);
+        privateHeld = true;
+      }
+    };
+    state.info.onContentFetchStart = (requestId) => {
       const preliminaryPath = state.info.filename || getFilenameFromUrl(state.info.url || "");
-      const id = ensureHistoryEntry(state, preliminaryPath);
-      if (id) ActiveTransfers.register(id, preparationController);
+      ensureHistoryEntry(state, preliminaryPath);
+      registerTransfer(requestId);
       // Make an open options page render the cancellable preparation row.
       emitDownloaded(state);
     };
     const finishPreparation = () => {
-      const id = state.scratch.historyEntryId;
-      if (id) ActiveTransfers.finish(id, preparationController);
+      if (registeredHistoryId) ActiveTransfers.finish(registeredHistoryId, preparationController);
+      if (privateHeld) ActiveTransfers.release(preparationController);
       state.info.abortSignal = undefined;
       state.info.onContentFetchStart = undefined;
     };
@@ -623,24 +680,38 @@ export const Download = {
       return { status: "skipped" };
     }
 
-    finishPreparation();
-
+    registerTransfer();
     recordDownloadRequest(plan);
     let acquired: AcquiredDownload;
     try {
-      acquired = await Download.acquireDownloadUrl(plan);
+      acquired = await Download.acquireDownloadUrl(
+        plan,
+        preparationController.signal,
+        activeRequestId,
+      );
     } catch (error) {
       Download.forgetPendingState(state);
       await releaseUnusedContent(state);
       const url = state.info.url;
       if (url && Download.generatedObjectUrls.delete(url)) URL.revokeObjectURL(url);
+      if (preparationController.signal.aborted) {
+        await historyPort.setStatus(plan.historyEntryId, "USER_CANCELED");
+        finishPreparation();
+        return { status: "skipped" };
+      }
       await historyPort.setStatus(plan.historyEntryId, "DOWNLOAD_PREPARATION_FAILED");
       addDownloadLog(state, "download preparation failed", String(error));
       Notifier.reportFailure(plan.finalFullPath || state.info.url || "", String(error));
+      finishPreparation();
       return { status: "failed" };
     }
-    const result = await Download.executeBrowserDownload(plan, acquired);
-    if (result.status === "failed") return result;
+    const result = await Download.executeBrowserDownload(
+      plan,
+      acquired,
+      preparationController.signal,
+    );
+    finishPreparation();
+    if (result.status !== "started") return result;
 
     // Trigger notifications
     if (state.route) {

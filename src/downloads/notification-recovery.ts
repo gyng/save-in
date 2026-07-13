@@ -12,6 +12,8 @@ import {
 } from "../shared/storage-keys.ts";
 import { downloadsState, sessionWriteState } from "./state.ts";
 import { hydrateDownloads, mergeDownload } from "./download-state.ts";
+import { OffscreenClient } from "../platform/offscreen-client.ts";
+import { downloadPorts } from "./ports.ts";
 
 const PENDING_RECOVERY_GRACE_MS = 10000;
 
@@ -91,11 +93,40 @@ const reconcileAdoptedDownloads = async (expected: NotificationRecovery) => {
   await Promise.all(
     expected.adoptedDownloadIds.map(async (id) => {
       if (!downloadsState.records.get(id)?.adopted) return;
+      let item:
+        | {
+            state?: string | undefined;
+            error?: string | undefined;
+            fileSize?: number | undefined;
+            totalBytes?: number | undefined;
+          }
+        | undefined;
       try {
-        const [item] = await webExtensionApi.downloads.search({ id });
-        if (item?.state === "in_progress") return;
+        [item] = await webExtensionApi.downloads.search({ id });
       } catch {
         // A missing/forgotten download is stale too.
+      }
+      if (item?.state === "in_progress") return;
+      const record = downloadsState.records.get(id);
+      if (record?.historyEntryId) {
+        if (item?.state === "complete") {
+          const bytes = (item.fileSize ?? 0) > 0 ? item.fileSize : item.totalBytes;
+          await downloadPorts.history.setStatus(
+            record.historyEntryId,
+            "complete",
+            id,
+            (bytes ?? 0) > 0 ? bytes : undefined,
+          );
+        } else {
+          await downloadPorts.history.setStatus(
+            record.historyEntryId,
+            item?.error || "DOWNLOAD_STATE_LOST",
+            id,
+          );
+        }
+      }
+      if (record?.offscreenRequestId) {
+        await OffscreenClient.release(record.offscreenRequestId).catch(() => {});
       }
       await mergeDownload(downloadsState, sessionWriteState, extensionSessionStorage, id, {
         adopted: false,

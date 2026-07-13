@@ -140,10 +140,14 @@ describe("offscreen document fetch (Chrome MV3)", () => {
     });
     global.chrome = {
       offscreen: {
-        hasDocument: jest.fn(() => Promise.resolve(false)),
-        createDocument: jest.fn(() => Promise.resolve()),
+        hasDocument: vi.fn(() => Promise.resolve(false)),
+        createDocument: vi.fn(() => Promise.resolve()),
       },
-      runtime: { sendMessage: jest.fn(() => Promise.resolve({ blobUrl: "blob:offscreen-url" })) },
+      runtime: {
+        getURL: vi.fn((path: string) => `chrome-extension://id/${path}`),
+        getContexts: vi.fn(() => Promise.resolve([])),
+        sendMessage: vi.fn(() => Promise.resolve({ blobUrl: "blob:offscreen-url" })),
+      },
     } as any;
   });
 
@@ -175,30 +179,56 @@ describe("offscreen document fetch (Chrome MV3)", () => {
       type: "OFFSCREEN_FETCH",
       url: "https://x/big.bin",
       credentials: "omit",
+      requestId: expect.any(String),
     });
     expect(url).toBe("blob:offscreen-url");
   });
 
   test("reuses an existing offscreen document", async () => {
-    global.chrome.offscreen.hasDocument = jest.fn(() => Promise.resolve(true));
+    global.chrome.runtime.getContexts = vi.fn(() => Promise.resolve([{}])) as any;
     await OffscreenClient.fetch("https://x/a", "omit");
     expect(global.chrome.offscreen.createDocument).not.toHaveBeenCalled();
   });
 
   test("tolerates a concurrent create-document race", async () => {
-    global.chrome.offscreen.createDocument = jest.fn(() =>
+    global.chrome.runtime.getContexts = vi
+      .fn()
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([{}]);
+    global.chrome.offscreen.createDocument = vi.fn(() =>
       Promise.reject(new Error("Only a single offscreen document may be created")),
     );
     await expect(OffscreenClient.fetch("https://x/a", "omit")).resolves.toBe("blob:offscreen-url");
   });
 
+  test("deduplicates concurrent offscreen-document creation", async () => {
+    let resolvePending!: () => void;
+    const pending = new Promise<void>((resolve) => {
+      resolvePending = resolve;
+    });
+    global.chrome.offscreen.createDocument = vi.fn(() => pending);
+    const first = OffscreenClient.ensure();
+    const second = OffscreenClient.ensure();
+    await vi.waitFor(() => expect(global.chrome.offscreen.createDocument).toHaveBeenCalledTimes(1));
+    resolvePending();
+    await Promise.all([first, second]);
+  });
+
+  test("releases an offscreen blob explicitly", async () => {
+    await OffscreenClient.release("request-1");
+    expect(global.chrome.runtime.sendMessage).toHaveBeenCalledWith({
+      type: "OFFSCREEN_BLOB_RELEASE",
+      requestId: "request-1",
+    });
+  });
+
   test("rejects when the offscreen fetch reports an error", async () => {
-    global.chrome.runtime.sendMessage = jest.fn(() => Promise.resolve({ error: "HTTP 403" }));
+    global.chrome.runtime.sendMessage = vi.fn(() => Promise.resolve({ error: "HTTP 403" }));
     await expect(OffscreenClient.fetch("https://x/a", "omit")).rejects.toThrow("HTTP 403");
   });
 
   test("resolveContent fetches once via offscreen, returning hash + download URL", async () => {
-    global.chrome.runtime.sendMessage = jest.fn(() =>
+    global.chrome.runtime.sendMessage = vi.fn(() =>
       Promise.resolve({ blobUrl: "blob:offscreen-url", hash: "deadbeef" }),
     );
     const content = await resolveContent("https://x/a");
@@ -211,11 +241,15 @@ describe("offscreen document fetch (Chrome MV3)", () => {
         credentials: "omit",
       }),
     );
-    expect(content).toEqual({ sha256: "deadbeef", downloadUrl: "blob:offscreen-url" });
+    expect(content).toEqual({
+      sha256: "deadbeef",
+      downloadUrl: "blob:offscreen-url",
+      offscreenRequestId: expect.any(String),
+    });
   });
 
   test("resolveContent resolves null when the offscreen fetch fails", async () => {
-    global.chrome.runtime.sendMessage = jest.fn(() => Promise.resolve({ error: "HTTP 500" }));
+    global.chrome.runtime.sendMessage = vi.fn(() => Promise.resolve({ error: "HTTP 500" }));
     await expect(resolveContent("https://x/a")).resolves.toBeNull();
   });
 
@@ -234,12 +268,42 @@ describe("offscreen document fetch (Chrome MV3)", () => {
     );
   });
 
+  test("resolveContent rejects and releases a blob when cancellation races the response", async () => {
+    let resolveFetch!: (value: unknown) => void;
+    const fetchResponse = new Promise((resolve) => {
+      resolveFetch = resolve;
+    });
+    global.chrome.runtime.sendMessage = vi.fn((message) =>
+      message.type === "OFFSCREEN_FETCH" ? fetchResponse : Promise.resolve({ canceled: true }),
+    );
+    const controller = new AbortController();
+    const content = resolveContent("https://x/a", false, controller.signal, "request-race");
+    await vi.waitFor(() =>
+      expect(global.chrome.runtime.sendMessage).toHaveBeenCalledWith(
+        expect.objectContaining({ type: "OFFSCREEN_FETCH" }),
+      ),
+    );
+
+    controller.abort(new DOMException("Canceled", "AbortError"));
+    resolveFetch({ blobUrl: "blob:late-response", hash: "deadbeef" });
+
+    await expect(content).rejects.toMatchObject({ name: "AbortError" });
+    expect(global.chrome.runtime.sendMessage).toHaveBeenCalledWith({
+      type: "OFFSCREEN_BLOB_RELEASE",
+      requestId: "request-race",
+    });
+  });
+
   test("resolveContent tolerates a missing hash from a legacy offscreen response", async () => {
-    global.chrome.runtime.sendMessage = jest.fn(() =>
+    global.chrome.runtime.sendMessage = vi.fn(() =>
       Promise.resolve({ blobUrl: "blob:offscreen-url" }),
     );
     const content = await resolveContent("https://x/a");
-    expect(content).toEqual({ sha256: "", downloadUrl: "blob:offscreen-url" });
+    expect(content).toEqual({
+      sha256: "",
+      downloadUrl: "blob:offscreen-url",
+      offscreenRequestId: expect.any(String),
+    });
   });
 });
 

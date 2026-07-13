@@ -20,14 +20,14 @@ export type RoutingDownloadInfo = LazyDownloadMetadata<RoutingContent> & {
   menuItemPath?: string | undefined;
   comment?: string | null | undefined;
   modifiers?: string[] | undefined;
-  legacyDownloadInfo?: unknown;
   filename?: string | undefined;
   naiveFilename?: string | undefined;
   initialFilename?: string | undefined;
   preview?: boolean | undefined;
   counter?: number | undefined;
   abortSignal?: AbortSignal | undefined;
-  onContentFetchStart?: (() => void) | undefined;
+  onContentFetchStart?: ((requestId: string) => void | Promise<void>) | undefined;
+  contentFetchDisabled?: boolean | undefined;
 };
 
 export type RuleError = { message: string; error: string; warning?: boolean };

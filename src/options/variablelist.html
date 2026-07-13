@@ -328,14 +328,18 @@
           <td>
             <code class="click-to-copy">:sha256:</code>
           </td>
-          <td>ba7816bf&hellip;</td>
+          <td>ba7816bf8f01&hellip;</td>
           <td>
-            First 8 lowercase hex characters of the downloaded file's SHA-256. Available during an
+            First 12 lowercase hex characters of the downloaded file's SHA-256. Available during an
             actual Save In download, so it is blank in previews. Save In must be able to fetch the
             URL with a normal GET request whose response headers arrive within 30 seconds. Bytes are
-            hashed incrementally with no file-size ceiling, and the fetched copy is also saved so
-            the file is downloaded only once. Long preparations can be canceled from History. If
-            fetching or hashing fails, this variable is blank and the download continues.
+            hashed incrementally with no extension-side file-size ceiling, and the fetched copy is
+            also saved so the file is downloaded only once. The browser must still retain one Blob
+            containing the file, so its own memory/Blob limits apply. Credentialed, private, or
+            Referer-protected responses may differ or be unavailable to an extension fetch;
+            Referer-protected downloads skip hashing to preserve the native request. Long
+            preparations can be canceled from History. If fetching or hashing fails, this variable
+            is blank and the download continues.
           </td>
         </tr>
 

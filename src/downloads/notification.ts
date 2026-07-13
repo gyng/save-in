@@ -31,6 +31,7 @@ import {
 } from "./notification-model.ts";
 import { runEventTask } from "../shared/event-task.ts";
 import { resolveFirefoxDownloadContext } from "./auth-context.ts";
+import { OffscreenClient } from "../platform/offscreen-client.ts";
 export { recoverNotificationState } from "./notification-recovery.ts";
 
 type HostDownloadItem = Parameters<
@@ -490,6 +491,10 @@ export const Notifier = {
         await historyPort.setStatus(started.historyEntryId, status, downloadDelta.id);
       };
 
+      if (isFromSelf && isUserCancelled) {
+        await recordHistoryStatus("USER_CANCELED");
+      }
+
       if (
         isFromSelf &&
         downloadDelta.state &&
@@ -615,6 +620,11 @@ export const Notifier = {
 
       const isComplete = downloadDelta.state && downloadDelta.state.current === "complete";
       if (failed || isComplete) {
+        if (record.offscreenRequestId) {
+          await OffscreenClient.release(record.offscreenRequestId).catch((error) =>
+            addDownloadLog(record, "offscreen blob release failed", String(error)),
+          );
+        }
         // Clear adoption but keep the record: recordHistoryStatus (above) and any
         // in-flight retry still read its historyEntryId; the cap evicts it later
         await mergeTrackedDownload(downloadDelta.id, { adopted: false });

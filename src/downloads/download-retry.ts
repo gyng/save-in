@@ -4,13 +4,10 @@ import { downloadsState, sessionWriteState } from "./state.ts";
 import { normalizeSessionCounter, updateSession } from "../shared/session-state.ts";
 import { extensionSessionStorage } from "../platform/storage-areas.ts";
 import { options } from "../config/options-data.ts";
-import { getExtensionFetchCredentials } from "../config/fetch-credentials.ts";
-import {
-  DEFAULT_FETCH_RESPONSE_TIMEOUT_MS,
-  fetchFollowingRedirects,
-} from "../shared/redirect-fetch.ts";
 import { resolveFirefoxDownloadContext } from "./auth-context.ts";
-import { makeUrlFromBlob } from "./content-fetch.ts";
+import { fetchUrlForDownload } from "./content-fetch.ts";
+import { ActiveTransfers } from "./active-transfers.ts";
+import { OffscreenClient } from "../platform/offscreen-client.ts";
 import { getDownload, mergeDownload } from "./download-state.ts";
 import { isPrivateDownloadRecord } from "./download-state.ts";
 import type { DownloadRecord, PrivateDownloadContext } from "./download-state.ts";
@@ -63,6 +60,13 @@ export const retryViaFetch = async (
 
   const { filename, url } = record;
   const privateContext = isPrivateDownloadRecord(record);
+  const controller = new AbortController();
+  const requestId = crypto.randomUUID();
+  if (record.historyEntryId) {
+    ActiveTransfers.register(record.historyEntryId, controller, { requestId });
+  } else {
+    ActiveTransfers.hold(controller);
+  }
   // Persist before fetching so a worker restart cannot retry the same download twice.
   record.retried = true;
   await rememberStartedDownload(downloadId, record);
@@ -70,18 +74,11 @@ export const retryViaFetch = async (
   let blobUrl: string | undefined;
   let expected: unknown;
   let newId: number | undefined;
+  let offscreenRequestId: string | undefined;
   try {
-    const response = await fetchFollowingRedirects(
-      url,
-      {
-        // A spanning Firefox background cannot access the private cookie jar.
-        // Never attach the regular session to a private-window retry.
-        credentials: getExtensionFetchCredentials(privateContext),
-      },
-      DEFAULT_FETCH_RESPONSE_TIMEOUT_MS,
-    );
-    if (response.ok === false) throw new Error(`HTTP ${response.status}`);
-    blobUrl = await makeUrlFromBlob(await response.blob());
+    const content = await fetchUrlForDownload(url, privateContext, controller.signal, requestId);
+    blobUrl = content.downloadUrl;
+    offscreenRequestId = content.offscreenRequestId;
     runtime.pendingRetryFilenames.set(blobUrl, filename);
     expected = services.notifier.expectDownload(blobUrl, { privateContext });
     await Promise.all(
@@ -114,20 +111,37 @@ export const retryViaFetch = async (
     newId = await webExtensionApi.downloads.download(downloadOptions);
     services.notifier.cancelExpectedDownload(expected);
     expected = undefined;
-    if (blobUrl.startsWith("blob:")) runtime.ownedObjectUrls.set(newId, blobUrl);
+    if (content.ownedObjectUrl) runtime.ownedObjectUrls.set(newId, content.ownedObjectUrl);
+    if (record.historyEntryId) ActiveTransfers.update(record.historyEntryId, { downloadId: newId });
     await rememberStartedDownload(
       newId,
-      Object.assign({}, record, { viaFetch: true, adopted: true }),
+      Object.assign({}, record, {
+        viaFetch: true,
+        adopted: true,
+        ...(offscreenRequestId ? { offscreenRequestId } : {}),
+      }),
     );
+    if (controller.signal.aborted) {
+      await webExtensionApi.downloads.cancel(newId).catch(() => {});
+      return false;
+    }
     return true;
   } catch (error) {
     if (expected) services.notifier.cancelExpectedDownload(expected);
-    if (blobUrl?.startsWith("blob:") && newId == null) URL.revokeObjectURL(blobUrl);
+    if (blobUrl?.startsWith("blob:") && newId == null && !offscreenRequestId) {
+      URL.revokeObjectURL(blobUrl);
+    }
+    if (offscreenRequestId && newId == null) {
+      await OffscreenClient.release(offscreenRequestId).catch(() => {});
+    }
+    if (controller.signal.aborted) return true;
     if (privateContext) {
       services.log.add("fallback fetch failed", String(error), { privateContext: true });
     } else services.log.add("fallback fetch failed", String(error));
     return false;
   } finally {
+    if (record.historyEntryId) ActiveTransfers.finish(record.historyEntryId, controller);
+    else ActiveTransfers.release(controller);
     if (blobUrl) {
       const filenameListenerWillConsume =
         newId != null && WEB_EXTENSION_CAPABILITIES.downloadFilenameSuggestion;

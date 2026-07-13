@@ -4,6 +4,7 @@ export type ContentFetchResult = {
   sha256: string;
   downloadUrl: string;
   ownedObjectUrl?: string;
+  offscreenRequestId?: string;
 };
 
 export type BlobContent = {
@@ -25,6 +26,11 @@ export type OffscreenFetchRequest = {
 
 export type OffscreenFetchCancelRequest = {
   type: typeof MESSAGE_TYPES.OFFSCREEN_FETCH_CANCEL;
+  requestId: string;
+};
+
+export type OffscreenBlobReleaseRequest = {
+  type: typeof MESSAGE_TYPES.OFFSCREEN_BLOB_RELEASE;
   requestId: string;
 };
 
@@ -54,6 +60,13 @@ export const isOffscreenFetchCancelRequest = (
 ): value is OffscreenFetchCancelRequest =>
   isRecord(value) &&
   value.type === MESSAGE_TYPES.OFFSCREEN_FETCH_CANCEL &&
+  typeof value.requestId === "string";
+
+export const isOffscreenBlobReleaseRequest = (
+  value: unknown,
+): value is OffscreenBlobReleaseRequest =>
+  isRecord(value) &&
+  value.type === MESSAGE_TYPES.OFFSCREEN_BLOB_RELEASE &&
   typeof value.requestId === "string";
 
 export const isOffscreenFetchResponse = (value: unknown): value is OffscreenFetchResponse =>

@@ -641,12 +641,12 @@ describe(":sha256: (async content hash)", () => {
     URL.createObjectURL = origCreateObjectURL;
   });
 
-  test(":sha256: is the first 8 lowercase hex characters of the SHA-256", async () => {
+  test(":sha256: is the first 12 lowercase hex characters of the SHA-256", async () => {
     mockBody("abc"); // NIST test vector
     const out = (
       await Variable.applyVariables(new Path.Path("h/:sha256:"), { url: "https://x/a" })
     ).finalize();
-    expect(out).toBe("h/ba7816bf");
+    expect(out).toBe("h/ba7816bf8f01");
     expect(global.fetch).toHaveBeenCalledWith(
       "https://x/a",
       expect.objectContaining({ credentials: "omit", redirect: "follow" }),
@@ -682,7 +682,9 @@ describe(":sha256: (async content hash)", () => {
       })
     ).finalize();
 
-    expect(out).toBe("ba7816bf/ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad");
+    expect(out).toBe(
+      "ba7816bf8f01/ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+    );
     expect(global.fetch).toHaveBeenCalledTimes(1);
   });
 
@@ -708,7 +710,7 @@ describe(":sha256: (async content hash)", () => {
     const out = (
       await Variable.applyVariables(new Path.Path(":sha256:"), { url: "https://x/a" })
     ).finalize();
-    expect(out).toBe("e3b0c442");
+    expect(out).toBe("e3b0c44298fc");
   });
 
   test("preview mode never hits the network", async () => {
@@ -736,7 +738,7 @@ describe(":sha256: (async content hash)", () => {
     const out = (await Variable.applyVariables(new Path.Path(":sha256:"), info)).finalize();
 
     expect(global.fetch).toHaveBeenCalledTimes(1);
-    expect(out).toBe("ba7816bf");
+    expect(out).toBe("ba7816bf8f01");
   });
 });
 

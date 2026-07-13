@@ -19,12 +19,12 @@ describe("download runtime state", () => {
     expect(runtime.pendingStates.get("blob:replacement")).toEqual([state]);
   });
 
-  it("bounds pending correlations across URLs", () => {
+  it("retains every live pending correlation across URLs", () => {
     const runtime = createDownloadRuntimeState();
     for (let index = 0; index < 60; index += 1) {
       runtime.rememberPendingState(stateFor(`https://example.test/${index}`));
     }
-    expect([...runtime.pendingStates.values()].flat()).toHaveLength(50);
+    expect([...runtime.pendingStates.values()].flat()).toHaveLength(60);
   });
 
   it("ignores empty URLs and leaves unrelated queued states intact", () => {

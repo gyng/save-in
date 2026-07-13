@@ -10,6 +10,7 @@
 
 import {
   isOffscreenFetchCancelRequest,
+  isOffscreenBlobReleaseRequest,
   isOffscreenFetchRequest,
   type OffscreenFetchResponse,
 } from "./shared/content-fetch-types.ts";
@@ -19,9 +20,16 @@ import {
 } from "./shared/redirect-fetch.ts";
 import { readResponseContent } from "./shared/streaming-content.ts";
 
-const OFFSCREEN_BLOB_TTL_MS = 5 * 60 * 1000;
-
 const activeFetches = new Map<string, AbortController>();
+const blobUrls = new Map<string, string>();
+
+const releaseBlob = (requestId: string): boolean => {
+  const blobUrl = blobUrls.get(requestId);
+  if (!blobUrl) return false;
+  blobUrls.delete(requestId);
+  URL.revokeObjectURL(blobUrl);
+  return true;
+};
 
 chrome.runtime.onMessage.addListener(
   (
@@ -32,7 +40,11 @@ chrome.runtime.onMessage.addListener(
     if (isOffscreenFetchCancelRequest(message)) {
       const controller = activeFetches.get(message.requestId);
       controller?.abort();
-      sendResponse({ canceled: Boolean(controller) });
+      sendResponse({ canceled: Boolean(controller) || releaseBlob(message.requestId) });
+      return false;
+    }
+    if (isOffscreenBlobReleaseRequest(message)) {
+      sendResponse({ canceled: releaseBlob(message.requestId) });
       return false;
     }
     if (!isOffscreenFetchRequest(message)) {
@@ -57,10 +69,16 @@ chrome.runtime.onMessage.addListener(
         return readResponseContent(res, Boolean(message.hash), controller.signal);
       })
       .then(({ blob, sha256 }) => {
+        if (controller.signal.aborted) {
+          throw (
+            controller.signal.reason ?? new DOMException("The operation was aborted", "AbortError")
+          );
+        }
         const blobUrl = URL.createObjectURL(blob);
-        // Free the blob once the download has had time to read it. The blob lives
-        // here (as a Blob, 1x size), not as base64 in the worker.
-        setTimeout(() => URL.revokeObjectURL(blobUrl), OFFSCREEN_BLOB_TTL_MS);
+        // Ownership is explicit: the background releases this URL after a
+        // terminal downloads event. A fixed timer can revoke a very large or
+        // paused download while Chrome is still consuming it.
+        blobUrls.set(requestId, blobUrl);
 
         sendResponse({ blobUrl, ...(message.hash ? { hash: sha256 } : {}) });
       })

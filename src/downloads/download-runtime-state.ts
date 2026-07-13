@@ -1,7 +1,5 @@
 import type { DownloadPipelineState } from "./download-types.ts";
 
-const MAX_PENDING_DOWNLOADS = 50;
-
 export const createDownloadRuntimeState = () => {
   const pendingStates = new Map<string, DownloadPipelineState[]>();
 
@@ -10,13 +8,9 @@ export const createDownloadRuntimeState = () => {
     const queue = pendingStates.get(url) || [];
     queue.push(state);
     pendingStates.set(url, queue);
-    const total = [...pendingStates.values()].reduce((count, states) => count + states.length, 0);
-    if (total <= MAX_PENDING_DOWNLOADS) return;
-    const oldestUrl = pendingStates.keys().next().value;
-    if (oldestUrl === undefined) return;
-    const oldestQueue = pendingStates.get(oldestUrl)!;
-    oldestQueue.shift();
-    if (oldestQueue.length === 0) pendingStates.delete(oldestUrl);
+    // Every entry corresponds to a live browser filename event and is removed
+    // when consumed or when its pipeline terminates. A numeric cap can silently
+    // detach valid concurrent downloads, so lifecycle cleanup is the bound.
   };
 
   const forgetPendingState = (state: DownloadPipelineState) => {

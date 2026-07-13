@@ -406,15 +406,20 @@ the **one plumbing investment**: convert `Variable.applyVariables` to async.
    - **`:finalurl:`/`:redirecturl:`** — URL after redirects, from the HEAD/fetch.
    - **`:uuid:`** — _shipped._ Sync `crypto.randomUUID()` (secure context in the
      SW, event page and Node). Fresh per use.
-   - **`:sha256:` / `:sha256full:`** — _shipped._ The first 8 hex characters or
+   - **`:sha256:` / `:sha256full:`** — _shipped._ The first 12 hex characters or
      full 64-character incremental SHA-256 of the content. Content hashing needs the bytes, so it fetches the
      file — but that **one fetch is shared with the save**: `Download.resolveContent`
      fetches once (in the offscreen document on Chrome, in-context on the event
      page), digests, and hands the download a reusable blob URL, so a hashed save
      is not downloaded twice (`info.contentPromise`; e2e asserts a single origin
      hit). Presence of `:sha256:` therefore forces the blob download path. The
-     response-header wait is timed out, with no file-size ceiling; blank on
-     failure so it never blocks a save.
+     response-header wait is timed out, with no extension-side file-size
+     ceiling; blank on failure so it never blocks a save. Hash state is
+     incremental, but the browser still retains one complete Blob because the
+     downloads API accepts URLs rather than streams. Browser Blob/memory limits
+     therefore still apply. Extension fetches may not reproduce credentialed,
+     private, or Referer-protected browser requests; Referer-protected Firefox
+     downloads skip hashing and preserve their native request instead.
    - **`:md5:` (content hash)** — _held._ **MD5 is not in Web Crypto**, so it
      needs a small vendored pure-JS implementation; it's legacy and only buys
      server-ETag parity. Ship only if a user needs it (it would reuse
@@ -539,10 +544,10 @@ the data-URL ceiling.
 **The real fix — an Offscreen Document (Chrome). ✅ DONE.** `chrome.offscreen`
 (permission: `offscreen`, Chrome-only) creates a hidden page with a full DOM,
 so `URL.createObjectURL` works there. The SW asks the offscreen doc to fetch the
-URL (credentials/referer intact) and hand back a blob URL, then downloads it — no
+URL with extension-fetch credentials and hand back a blob URL, then downloads it — no
 base64, no memory blowup, no data-URL cap. Blob URLs die with their creating
-document, so the offscreen doc is kept alive and the blob URL revoked on a TTL
-(`OFFSCREEN_BLOB_TTL_MS`) after `downloads.download` consumes it. `fetchDownload`
+document, so the offscreen doc is kept alive and each blob URL is explicitly
+released after a terminal download event (or cancellation/recovery). `fetchDownload`
 gates on `Download.canUseOffscreen()` (feature-detects `chrome.offscreen` +
 absent `createObjectURL`) and falls back to the `data:` URL path if the offscreen
 doc can't be created; Firefox keeps `createObjectURL` on its event page.

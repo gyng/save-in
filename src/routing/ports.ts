@@ -15,6 +15,7 @@ export type RoutingPorts = {
     url: string,
     privateContext?: boolean,
     signal?: AbortSignal,
+    requestId?: string,
   ): Promise<RoutingContent | null>;
 };
 
