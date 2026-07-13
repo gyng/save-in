@@ -100,7 +100,12 @@ const setupGlobals = () => {
   backgroundRuntime.lastDownloadState = undefined;
   backgroundRuntime.debug = false;
   global.browser.runtime.sendMessage = vi.fn();
-  (global.browser as any).storage = { local: { set: vi.fn(() => Promise.resolve()) } };
+  (global.browser as any).storage = {
+    local: {
+      get: vi.fn(() => Promise.resolve({})),
+      set: vi.fn(() => Promise.resolve()),
+    },
+  };
   (global.browser.tabs as any).query = vi.fn(() => Promise.resolve([{ id: 42 }]));
   global.browser.tabs.sendMessage = vi.fn(() => Promise.resolve());
 };
@@ -632,6 +637,71 @@ describe("config API", () => {
     const { body } = sendResponse.mock.calls[0][0];
     expect(body.applied).toEqual({ prompt: true, paths: "images" });
     expect(body.rejected).toEqual([{ name: "bogus", reason: "unknown option" }]);
+  });
+
+  test("APPLY_CONFIG atomically rejects a stale expected value", async () => {
+    vi.mocked(global.browser.storage.local.get).mockResolvedValueOnce({ prompt: false });
+    const sendResponse = vi.fn();
+    onMessage(
+      {
+        type: MESSAGE_TYPES.APPLY_CONFIG,
+        body: { config: { prompt: false }, expected: { prompt: true } },
+      },
+      {},
+      sendResponse,
+    );
+    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+
+    expect(global.browser.storage.local.set).not.toHaveBeenCalled();
+    expect(backgroundRuntime.reset).not.toHaveBeenCalled();
+    expect(sendResponse.mock.calls[0][0].body).toMatchObject({
+      applied: {},
+      rejected: [{ name: "prompt", reason: "changed since save" }],
+    });
+  });
+
+  test("APPLY_CONFIG serializes compare-and-set requests", async () => {
+    let storedPrompt = false;
+    let releaseFirst!: () => void;
+    const firstWrite = new Promise<void>((resolve) => {
+      releaseFirst = resolve;
+    });
+    vi.mocked(global.browser.storage.local.get).mockImplementation(async () => ({
+      prompt: storedPrompt,
+    }));
+    vi.mocked(global.browser.storage.local.set)
+      .mockImplementationOnce(async (values) => {
+        await firstWrite;
+        storedPrompt = values.prompt as boolean;
+      })
+      .mockImplementationOnce(async (values) => {
+        storedPrompt = values.prompt as boolean;
+      });
+
+    const firstResponse = vi.fn();
+    const secondResponse = vi.fn();
+    onMessage(
+      { type: MESSAGE_TYPES.APPLY_CONFIG, body: { config: { prompt: true } } },
+      {},
+      firstResponse,
+    );
+    onMessage(
+      {
+        type: MESSAGE_TYPES.APPLY_CONFIG,
+        body: { config: { prompt: false }, expected: { prompt: true } },
+      },
+      {},
+      secondResponse,
+    );
+    await vi.waitFor(() => expect(global.browser.storage.local.set).toHaveBeenCalledTimes(1));
+    releaseFirst();
+    await vi.waitFor(() => expect(secondResponse).toHaveBeenCalled());
+
+    expect(storedPrompt).toBe(false);
+    expect(secondResponse.mock.calls[0][0].body).toMatchObject({
+      applied: { prompt: false },
+      rejected: [],
+    });
   });
 
   test("APPLY_CONFIG rejects a type mismatch", async () => {

@@ -39,7 +39,10 @@ export type InternalMessage =
         info?: Partial<DownloadInfo> & { srcUrl?: string };
       }
     >
-  | Message<typeof MESSAGE_TYPES.APPLY_CONFIG, { config?: Record<string, unknown> }>
+  | Message<
+      typeof MESSAGE_TYPES.APPLY_CONFIG,
+      { config?: Record<string, unknown>; expected?: Record<string, unknown> }
+    >
   | Message<typeof MESSAGE_TYPES.DOWNLOAD, DownloadRequestBody>;
 
 export type ExternalMessage = Extract<
@@ -160,7 +163,8 @@ const isMessageBodyValid = (message: Record<string, unknown>): boolean => {
         message,
         (body) =>
           isStringKeyedRecord(body) &&
-          (typeof body.config === "undefined" || isStringKeyedRecord(body.config)),
+          (typeof body.config === "undefined" || isStringKeyedRecord(body.config)) &&
+          (typeof body.expected === "undefined" || isStringKeyedRecord(body.expected)),
       );
     case MESSAGE_TYPES.DOWNLOAD:
       return hasOptionalBody(message, isDownloadBody);

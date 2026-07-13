@@ -1,8 +1,4 @@
-import {
-  assertSettingsUndoCurrent,
-  assertSettingsUndoSafe,
-  markSavedNow,
-} from "../src/options/saved-indicator.ts";
+import { assertSettingsUndoSafe, markSavedNow } from "../src/options/saved-indicator.ts";
 
 test("marks the top status as successfully saved", () => {
   document.body.innerHTML = '<span id="lastSavedAt">never</span>';
@@ -29,14 +25,6 @@ test("blocks Undo while another setting or editor still has a draft", () => {
   expect(() => assertSettingsUndoSafe(true, false)).toThrow("other edits");
   expect(() => assertSettingsUndoSafe(false, true)).toThrow("other edits");
   expect(() => assertSettingsUndoSafe(false, false)).not.toThrow();
-});
-
-test("blocks Undo when another options page changed the setting again", () => {
-  const changes = [{ name: "notifyOnSuccess", before: true, after: false }];
-  expect(() => assertSettingsUndoCurrent(changes, { notifyOnSuccess: true })).toThrow(
-    "changed again",
-  );
-  expect(() => assertSettingsUndoCurrent(changes, { notifyOnSuccess: false })).not.toThrow();
 });
 
 test("explains why Undo could not run and keeps it available", async () => {

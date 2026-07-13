@@ -26,6 +26,8 @@ import {
 } from "../shared/message-protocol.ts";
 import { respondAsync, type SendResponse } from "./message-dispatch.ts";
 import { Log } from "./log.ts";
+import { applyConfigSerialized } from "./config-apply.ts";
+import { configWriteState } from "./state.ts";
 
 type MessageSender = browser.runtime.MessageSender;
 type ProtocolSendResponse = SendResponse;
@@ -191,50 +193,13 @@ export const Messaging = {
     sendResponse: ProtocolSendResponse,
   ): Promise<void> => {
     const config = (request.body && request.body.config) || {};
-    const applied: Record<string, unknown> = {};
-    const rejected: Array<{ name: string; reason: string }> = [];
-    const toStore: Record<string, unknown> = {};
-
-    Object.keys(config).forEach((name) => {
-      const key = OptionsManagement.OPTION_KEYS.find((k: { name: string }) => k.name === name);
-      if (!key) {
-        rejected.push({ name, reason: "unknown option" });
-        return;
-      }
-      let value = config[name];
-      if (key.type === OptionsManagement.OPTION_TYPES.BOOL && typeof value !== "boolean") {
-        rejected.push({ name, reason: "expected a boolean" });
-        return;
-      }
-      if (
-        key.type === OptionsManagement.OPTION_TYPES.VALUE &&
-        (value == null || typeof value === "object")
-      ) {
-        rejected.push({ name, reason: "expected a string or number" });
-        return;
-      }
-      const validate =
-        "validate" in key ? (key.validate as (stored: unknown) => boolean) : undefined;
-      if (validate && !validate(value)) {
-        rejected.push({ name, reason: "invalid value" });
-        return;
-      }
-      try {
-        if ("onSave" in key && typeof key.onSave === "function") {
-          value = (key.onSave as (stored: unknown) => unknown)(value);
-        }
-      } catch {
-        rejected.push({ name, reason: "invalid value" });
-        return;
-      }
-      toStore[name] = value;
-      applied[name] = value;
-    });
-
-    if (Object.keys(toStore).length > 0) {
-      await webExtensionApi.storage.local.set(toStore);
-      backgroundRuntime.reset();
-    }
+    const { applied, rejected } = await applyConfigSerialized(
+      configWriteState,
+      webExtensionApi.storage.local,
+      config,
+      request.body?.expected,
+      () => backgroundRuntime.reset(),
+    );
 
     sendResponse({
       type: MESSAGE_TYPES.APPLY_CONFIG_RESULT,

@@ -6,18 +6,6 @@ export const assertSettingsUndoSafe = (hasFieldDrafts: boolean, hasManualDrafts:
   }
 };
 
-export const assertSettingsUndoCurrent = (
-  changes: SavedChange[],
-  current: Record<string, unknown>,
-): void => {
-  const changedAgain = changes.some(
-    ({ name, after }) => JSON.stringify(current[name]) !== JSON.stringify(after),
-  );
-  if (changedAgain) {
-    throw new Error("This setting changed again, so Undo was not applied");
-  }
-};
-
 const displayName = (name: string): string =>
   name.replace(/([a-z0-9])([A-Z])/g, "$1 $2").replace(/^./, (character) => character.toUpperCase());
 

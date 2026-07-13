@@ -13,6 +13,12 @@ describe("message protocol runtime validation", () => {
       isInternalMessage({ type: MESSAGE_TYPES.PREVIEW_MENUS, body: { paths: "images" } }),
     ).toBe(true);
     expect(
+      isInternalMessage({
+        type: MESSAGE_TYPES.APPLY_CONFIG,
+        body: { config: { prompt: false }, expected: { prompt: true } },
+      }),
+    ).toBe(true);
+    expect(
       isExternalMessage({
         type: MESSAGE_TYPES.DOWNLOAD,
         body: {
@@ -32,6 +38,7 @@ describe("message protocol runtime validation", () => {
     { type: MESSAGE_TYPES.VALIDATE, body: { info: { filename: 42 } } },
     { type: MESSAGE_TYPES.VALIDATE, body: { info: { pageUrl: null } } },
     { type: MESSAGE_TYPES.APPLY_CONFIG, body: { config: [] } },
+    { type: MESSAGE_TYPES.APPLY_CONFIG, body: { config: {}, expected: [] } },
     { type: MESSAGE_TYPES.DOWNLOAD, body: { url: 1 } },
     { type: MESSAGE_TYPES.DOWNLOAD, body: { info: "not an object" } },
     { type: MESSAGE_TYPES.DOWNLOAD, body: { version: Number.NaN } },
