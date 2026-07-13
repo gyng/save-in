@@ -1132,7 +1132,7 @@
     "description": "Option control label or related help text. Used in src/options/options.html."
   },
   "o_cTruncatePathHelp": {
-    "message": "Uses a portable filesystem limit. 0 means no limit. Existing character limits are upgraded automatically.",
+    "message": "Default: 240. Linux commonly limits names to 255 bytes. Windows and macOS commonly use character-based limits, so higher byte values may work. Save In cannot detect the destination filesystem. 0 means no limit.",
     "description": "Option control label or related help text. Used in src/options/options.html."
   },
   "o_cReplaceInvalidCharsWith": {

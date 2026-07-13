@@ -652,7 +652,7 @@
     "message": "Maximaal aantal UTF-8-bytes per bestands- of mapnaam"
   },
   "o_cTruncatePathHelp": {
-    "message": "Gebruikt een overdraagbare bestandssysteemlimiet. 0 betekent geen limiet. Bestaande tekenlimieten worden automatisch bijgewerkt."
+    "message": "Standaard: 240. Linux beperkt namen meestal tot 255 bytes. Windows en macOS gebruiken meestal limieten op basis van tekens, waardoor hogere bytewaarden kunnen werken. Save In kan het doelbestandssysteem niet detecteren. 0 betekent geen limiet."
   },
   "o_cReplaceInvalidCharsWith": {
     "message": "Vervang ongeldige tekens door"

@@ -672,7 +672,7 @@
     "message": "Nombre maximal d’octets UTF-8 par nom de fichier ou de dossier"
   },
   "o_cTruncatePathHelp": {
-    "message": "Utilise une limite de système de fichiers portable. 0 signifie aucune limite. Les limites de caractères existantes sont mises à niveau automatiquement."
+    "message": "Valeur par défaut : 240. Linux limite généralement les noms à 255 octets. Windows et macOS utilisent généralement des limites basées sur les caractères ; des valeurs en octets supérieures peuvent donc fonctionner. Save In ne peut pas détecter le système de fichiers de destination. 0 signifie aucune limite."
   },
   "o_cReplaceInvalidCharsWith": {
     "message": "Remplacez les caractères invalides par"

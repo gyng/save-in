@@ -648,7 +648,7 @@
     "message": "Máximo de bytes UTF-8 por nombre de archivo o carpeta"
   },
   "o_cTruncatePathHelp": {
-    "message": "Usa un límite de sistema de archivos portable. 0 significa sin límite. Los límites de caracteres existentes se actualizan automáticamente."
+    "message": "Valor predeterminado: 240. Linux suele limitar los nombres a 255 bytes. Windows y macOS suelen usar límites basados en caracteres, por lo que pueden funcionar valores de bytes mayores. Save In no puede detectar el sistema de archivos de destino. 0 significa sin límite."
   },
   "o_cReplaceInvalidCharsWith": {
     "message": "Reemplazar caracteres no válidos con"

@@ -646,7 +646,7 @@
     "message": "Maximalt antal UTF-8-byte per fil- eller mappnamn"
   },
   "o_cTruncatePathHelp": {
-    "message": "Använder en portabel filsystemsgräns. 0 betyder ingen gräns. Befintliga teckengränser uppgraderas automatiskt."
+    "message": "Standard: 240. Linux begränsar vanligtvis namn till 255 byte. Windows och macOS använder vanligtvis teckenbaserade gränser, så högre bytevärden kan fungera. Save In kan inte identifiera målfilsystemet. 0 betyder ingen gräns."
   },
   "o_cReplaceInvalidCharsWith": {
     "message": "Ersätt ogiltiga tecken med"

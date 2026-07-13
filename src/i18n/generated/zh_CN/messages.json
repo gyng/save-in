@@ -549,7 +549,7 @@
     "message": "每个文件或文件夹名称的最大 UTF-8 字节数"
   },
   "o_cTruncatePathHelp": {
-    "message": "使用可移植的文件系统限制。0 表示无限制。现有字符限制会自动升级。"
+    "message": "默认值：240。Linux 通常将名称限制为 255 字节。Windows 和 macOS 通常使用基于字符的限制，因此更大的字节值可能有效。Save In 无法检测目标文件系统。0 表示无限制。"
   },
   "o_cReplaceInvalidCharsWith": {
     "message": "将无效字符替换为"

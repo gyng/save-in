@@ -157,9 +157,9 @@ describe("OptionsManagement", () => {
 
       const resolved = await OptionsManagement.loadOptions();
 
-      expect(resolved.truncateLength).toBe(255);
+      expect(resolved.truncateLength).toBe(999);
       expect(global.browser.storage.local.set).toHaveBeenCalledWith({
-        truncateLength: 255,
+        truncateLength: 999,
         [PATH_TRUNCATION_MIGRATION_STORAGE_KEY]: PATH_TRUNCATION_MIGRATION_VERSION,
       });
     });
@@ -292,7 +292,7 @@ describe("OptionsManagement", () => {
 
     test.each([
       ["truncateLength", "239.6", 240],
-      ["truncateLength", 999, 255],
+      ["truncateLength", 999, 999],
       ["notifyDuration", "7000.4", 7000],
     ])("normalizes %s input to a whole number", (name, input, expected) => {
       const key = OptionsManagement.OPTION_KEYS.find((k) => k.name === name)! as SaveKey;

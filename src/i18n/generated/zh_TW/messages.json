@@ -549,7 +549,7 @@
     "message": "每個檔案或資料夾名稱的最大 UTF-8 位元組數"
   },
   "o_cTruncatePathHelp": {
-    "message": "使用可攜式檔案系統限制。0 表示無限制。現有字元限制會自動升級。"
+    "message": "預設值：240。Linux 通常將名稱限制為 255 位元組。Windows 和 macOS 通常使用以字元為基礎的限制，因此較大的位元組值可能有效。Save In 無法偵測目標檔案系統。0 表示無限制。"
   },
   "o_cReplaceInvalidCharsWith": {
     "message": "將無效字元替換為"

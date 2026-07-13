@@ -66,7 +66,7 @@ test("preserves backward-compatible option defaults", () => {
   expect(document.querySelector<HTMLSelectElement>("#clickToSaveModifier2")?.value).toBe("");
   expect(document.querySelector<HTMLSelectElement>("#clickToSaveButton")?.value).toBe("LEFT_CLICK");
   expect(document.querySelector<HTMLInputElement>("#truncateLength")?.min).toBe("0");
-  expect(document.querySelector<HTMLInputElement>("#truncateLength")?.max).toBe("255");
+  expect(document.querySelector<HTMLInputElement>("#truncateLength")?.max).toBe("");
   expect(document.querySelector("#includeFetchCredentials")).not.toBeNull();
   expect(document.querySelector("#containerAuthPermission")).toBeNull();
 });
