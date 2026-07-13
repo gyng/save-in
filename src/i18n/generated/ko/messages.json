@@ -504,7 +504,7 @@
     "message": "마지막으로 사용한 컨텍스트 하위 메뉴 항목"
   },
   "o_cKeyboardShortcutNumbers": {
-    "message": "상황에 맞는 하위 메뉴 항목에 숫자 키 단축키 추가"
+    "message": "컨텍스트 하위 메뉴 항목에 숫자 키 단축키 추가"
   },
   "o_cKeyboardShortcutClickToSave": {
     "message": "클릭하여 저장 활성화"
@@ -525,7 +525,7 @@
     "message": "가운데 클릭"
   },
   "o_cKeyboardShortcutModifierRightClick": {
-    "message": "마우스 오른쪽 버튼을 클릭하세요."
+    "message": "오른쪽 클릭"
   },
   "o_cKeyboardShortcutModifierBackClick": {
     "message": "뒤로 버튼(4)"
@@ -534,7 +534,7 @@
     "message": "앞으로 버튼(5)"
   },
   "o_cKeyboardShortcutModifierHelp": {
-    "message": "선택한 마우스 버튼을 클릭하는 동안 선택한 수정자 키를 누르십시오. 마우스 버튼만 사용하려면 두 수정자 모두에 대해 없음을 선택합니다. 변경 사항은 기존 페이지에 적용됩니다."
+    "message": "선택한 마우스 버튼을 클릭하는 동안 선택한 보조 키를 누르세요. 마우스 버튼만 사용하려면 두 보조 키를 모두 없음으로 선택합니다. 변경 사항은 이미 열린 페이지에도 적용됩니다."
   },
   "o_cRestoreDefaults": {
     "message": "기본값 복원"
@@ -576,16 +576,16 @@
     "message": "리디렉션 후를 포함하여 Save In가 백그라운드에서 파일을 가져올 때 적용 가능한 쿠키 및 브라우저 관리 로그인을 포함합니다. 개인 창 요청은 익명으로 유지됩니다. 직접 브라우저 다운로드는 자체 자격 증명을 관리합니다."
   },
   "o_cSetRefererHeader": {
-    "message": "누락된 경우 페이지 URL을 참조자로 사용하세요."
+    "message": "누락된 Referer에 페이지 URL 사용"
   },
   "o_cSetRefererHeaderHelp": {
-    "message": "Firefox 전용입니다. 일부 사이트(예: pixiv.net)는 HTTP Referer 헤더가 없는 다운로드를 거부합니다. 일치하는 다운로드의 경우 Firefox는 페이지 URL을 Referer로 직접 전송합니다. 사이트에서 요구하지 않는 한 이 기능을 끄세요."
+    "message": "Firefox 전용입니다. 일부 사이트(예: pixiv.net)는 HTTP Referer 헤더가 없는 다운로드를 거부합니다. 일치하는 다운로드에서는 Firefox가 페이지 URL을 Referer로 직접 전송합니다. 사이트에서 요구하지 않는 한 이 기능을 끄세요."
   },
   "o_cSetRefererHeaderFilter": {
     "message": "이 사이트에 Referer 설정"
   },
   "o_cSetRefererHeaderFilterHelp": {
-    "message": "한 줄에 하나의 일치 패턴을 입력하세요(예: *://i.pximg.net/*). Referer는 URL이 이러한 패턴 중 하나와 일치하는 다운로드에만 설정됩니다."
+    "message": "한 줄에 하나의 일치 패턴을 입력하세요(예: *://i.pximg.net/*). URL이 패턴 중 하나와 일치하는 다운로드에만 Referer를 설정합니다."
   },
   "o_cImportSettings": {
     "message": "가져오기 설정"
@@ -939,16 +939,16 @@
     "message": "대체/옵션"
   },
   "html_applyShortcut": {
-    "message": "바로가기 적용"
+    "message": "단축키 적용"
   },
   "html_click": {
     "message": "클릭"
   },
   "html_clickToSaveShortcut": {
-    "message": "클릭 저장 바로가기"
+    "message": "클릭 저장 단축키"
   },
   "html_clickToSaveShortcutCombination": {
-    "message": "클릭하여 저장하는 바로가기 조합"
+    "message": "클릭 저장 단축키 조합"
   },
   "html_columns": {
     "message": "열"
@@ -1545,7 +1545,7 @@
     "message": "Ctrl+Shift+G와 같은 형식을 사용하세요."
   },
   "o_lShortcutPrimaryModifier": {
-    "message": "Ctrl, Alt, Command 또는 MacCtrl를 수정자로 포함합니다."
+    "message": "Ctrl, Alt, Command 또는 MacCtrl을 보조 키로 포함하세요."
   },
   "o_lShortcutAddKey": {
     "message": "수정자 뒤에 키를 추가합니다."
@@ -1560,22 +1560,22 @@
     "message": "키나 수정자를 반복하지 마세요."
   },
   "o_lShortcutReady": {
-    "message": "신청할 준비가 되었습니다."
+    "message": "적용할 준비가 되었습니다."
   },
   "o_lShortcutChangeUnsupported": {
-    "message": "이 브라우저는 여기에서 바로가기 변경을 지원하지 않습니다."
+    "message": "이 브라우저에서는 여기서 단축키를 변경할 수 없습니다."
   },
   "o_lShortcutRejected": {
-    "message": "브라우저가 이 바로가기를 허용하지 않았습니다. 예약되었거나 사용 중일 수 있습니다."
+    "message": "브라우저가 이 단축키를 허용하지 않았습니다. 예약되어 있거나 이미 사용 중일 수 있습니다."
   },
   "o_lShortcutUpdated": {
-    "message": "바로가기가 업데이트되었습니다."
+    "message": "단축키가 업데이트되었습니다."
   },
   "o_lShortcutResetUnsupported": {
-    "message": "이 브라우저는 여기서 바로가기 재설정을 지원하지 않습니다."
+    "message": "이 브라우저에서는 여기서 단축키를 재설정할 수 없습니다."
   },
   "o_lShortcutReset": {
-    "message": "바로가기 재설정."
+    "message": "단축키가 재설정되었습니다."
   },
   "o_lShortcutLegacyValue": {
     "message": "기존 값: $VALUE$",

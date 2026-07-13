@@ -1545,22 +1545,22 @@
     "message": "使用 Ctrl+Shift+G 等格式。"
   },
   "o_lShortcutPrimaryModifier": {
-    "message": "包括 Ctrl、Alt、Command 或 MacCtrl 作為修飾子。"
+    "message": "將 Ctrl、Alt、Command 或 MacCtrl 用作修飾鍵。"
   },
   "o_lShortcutAddKey": {
-    "message": "在修飾符後面添加一個鍵。"
+    "message": "在修飾鍵後加入一個按鍵。"
   },
   "o_lShortcutOneKey": {
-    "message": "使用一個鍵與您的修飾符。"
+    "message": "每組修飾鍵只能搭配一個按鍵。"
   },
   "o_lShortcutValidKey": {
-    "message": "選擇有效金鑰，例如 Y、5、F12 或 PageDown。"
+    "message": "選擇有效按鍵，例如 Y、5、F12 或 PageDown。"
   },
   "o_lShortcutNoRepeats": {
-    "message": "請勿重複按鍵或修飾符。"
+    "message": "不要重複按鍵或修飾鍵。"
   },
   "o_lShortcutReady": {
-    "message": "準備申請。"
+    "message": "可以套用。"
   },
   "o_lShortcutChangeUnsupported": {
     "message": "此瀏覽器不支援在這裡變更快速鍵。"

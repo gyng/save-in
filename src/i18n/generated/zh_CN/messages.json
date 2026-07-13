@@ -246,7 +246,7 @@
     "message": "键盘快捷键"
   },
   "o_lSourcePanelShortcutHelp": {
-    "message": "使用浏览器快捷语法，例如 Ctrl+Shift+Y 或 Command+Shift+Y。浏览器拒绝保留的快捷方式。"
+    "message": "使用浏览器快捷键语法，例如 Ctrl+Shift+Y 或 Command+Shift+Y。浏览器会拒绝保留的快捷键。"
   },
   "o_bReset": {
     "message": "重置"
@@ -504,7 +504,7 @@
     "message": "最后使用的上下文子菜单项"
   },
   "o_cKeyboardShortcutNumbers": {
-    "message": "将数字键快捷方式添加到上下文子菜单项"
+    "message": "为上下文子菜单项添加数字键快捷键"
   },
   "o_cKeyboardShortcutClickToSave": {
     "message": "启用点击保存"
@@ -534,7 +534,7 @@
     "message": "前进按钮 (5)"
   },
   "o_cKeyboardShortcutModifierHelp": {
-    "message": "按住选定的修饰键，同时单击选定的鼠标按钮。为两个修改器选择“无”以单独使用鼠标按钮。更改适用于现有页面。"
+    "message": "按住所选修饰键，同时点击所选鼠标按钮。若只使用鼠标按钮，请将两个修饰键都设为“无”。更改会应用到已打开的页面。"
   },
   "o_cRestoreDefaults": {
     "message": "恢复默认设置"
@@ -579,13 +579,13 @@
     "message": "缺失时使用页面 URL 作为 Referer"
   },
   "o_cSetRefererHeaderHelp": {
-    "message": "仅限火狐浏览器。某些网站（例如 pixiv.net）会拒绝没有 HTTP Referer 标头的下载。为了匹配下载，Firefox 直接发送页面 URL 作为 Referer。除非网站需要它，否则请将其关闭。"
+    "message": "仅限 Firefox。某些网站（例如 pixiv.net）会拒绝没有 HTTP Referer 标头的下载。对于匹配的下载，Firefox 会直接将页面 URL 作为 Referer 发送。除非网站需要，否则请保持关闭。"
   },
   "o_cSetRefererHeaderFilter": {
     "message": "为这些网站设置 Referer"
   },
   "o_cSetRefererHeaderFilterHelp": {
-    "message": "每行一个匹配模式，例如*://i.pximg.net/*。 Referer 仅为 URL 与其中之一匹配的下载设置。"
+    "message": "每行输入一个匹配模式，例如 *://i.pximg.net/*。只有 URL 与其中一个模式匹配的下载才会设置 Referer。"
   },
   "o_cImportSettings": {
     "message": "导入设置"
@@ -939,7 +939,7 @@
     "message": "替代/选项"
   },
   "html_applyShortcut": {
-    "message": "应用快捷方式"
+    "message": "应用快捷键"
   },
   "html_click": {
     "message": "点击"
@@ -948,7 +948,7 @@
     "message": "点击保存快捷键"
   },
   "html_clickToSaveShortcutCombination": {
-    "message": "单击保存快捷方式组合"
+    "message": "点击保存快捷键组合"
   },
   "html_columns": {
     "message": "专栏"
@@ -1539,43 +1539,43 @@
     "message": "文件名"
   },
   "o_lShortcutEnterOrReset": {
-    "message": "输入快捷方式或使用重置。"
+    "message": "输入快捷键或使用“重置”。"
   },
   "o_lShortcutFormat": {
     "message": "使用 Ctrl+Shift+G 等格式。"
   },
   "o_lShortcutPrimaryModifier": {
-    "message": "包括 Ctrl、Alt、Command 或 MacCtrl 作为修饰符。"
+    "message": "将 Ctrl、Alt、Command 或 MacCtrl 用作修饰键。"
   },
   "o_lShortcutAddKey": {
-    "message": "在修饰符后面添加一个键。"
+    "message": "在修饰键后添加一个按键。"
   },
   "o_lShortcutOneKey": {
-    "message": "使用一个键与您的修饰符。"
+    "message": "每组修饰键只能搭配一个按键。"
   },
   "o_lShortcutValidKey": {
-    "message": "选择有效密钥，例如 Y、5、F12 或 PageDown。"
+    "message": "选择有效按键，例如 Y、5、F12 或 PageDown。"
   },
   "o_lShortcutNoRepeats": {
-    "message": "不要重复按键或修饰符。"
+    "message": "不要重复按键或修饰键。"
   },
   "o_lShortcutReady": {
-    "message": "准备申请。"
+    "message": "可以应用。"
   },
   "o_lShortcutChangeUnsupported": {
-    "message": "此浏览器不支持在此处更改快捷方式。"
+    "message": "此浏览器不支持在这里更改快捷键。"
   },
   "o_lShortcutRejected": {
-    "message": "浏览器不接受此快捷方式。它可能已被保留或正在使用。"
+    "message": "浏览器不接受此快捷键。它可能已被保留或正在使用。"
   },
   "o_lShortcutUpdated": {
-    "message": "快捷方式已更新。"
+    "message": "快捷键已更新。"
   },
   "o_lShortcutResetUnsupported": {
-    "message": "此浏览器不支持在此处重置快捷方式。"
+    "message": "此浏览器不支持在这里重置快捷键。"
   },
   "o_lShortcutReset": {
-    "message": "快捷方式重置。"
+    "message": "快捷键已重置。"
   },
   "o_lShortcutLegacyValue": {
     "message": "旧值：$VALUE$",

@@ -579,13 +579,13 @@
     "message": "Referer がない場合は、ページ URL を Referer として使用します"
   },
   "o_cSetRefererHeaderHelp": {
-    "message": "Firefoxのみ。一部のサイト (例: pixiv.net) は、HTTP Referer ヘッダーのないダウンロードを拒否します。一致するダウンロードの場合、Firefox はページ URL をリファラーとして直接送信します。サイトで必要でない限り、オフのままにしておきます。"
+    "message": "Firefox のみ。一部のサイト（pixiv.net など）は、HTTP Referer ヘッダーのないダウンロードを拒否します。一致するダウンロードでは、Firefox がページ URL を Referer として直接送信します。サイトで必要な場合を除き、オフのままにしてください。"
   },
   "o_cSetRefererHeaderFilter": {
-    "message": "これらのサイトのリファラーを設定する"
+    "message": "対象サイトに Referer を設定"
   },
   "o_cSetRefererHeaderFilterHelp": {
-    "message": "1 行に 1 つの一致パターン。例: *://i.pximg.net/*。リファラーは、URL がこれらのいずれかに一致するダウンロードに対してのみ設定されます。"
+    "message": "1 行に 1 つのマッチパターンを入力します（例：*://i.pximg.net/*）。URL がいずれかのパターンに一致するダウンロードにだけ Referer を設定します。"
   },
   "o_cImportSettings": {
     "message": "インポート設定"
@@ -1560,7 +1560,7 @@
     "message": "キーや修飾子を繰り返さないでください。"
   },
   "o_lShortcutReady": {
-    "message": "申請する準備ができました。"
+    "message": "適用できます。"
   },
   "o_lShortcutChangeUnsupported": {
     "message": "このブラウザは、ここでのショートカットの変更をサポートしていません。"
@@ -1575,7 +1575,7 @@
     "message": "このブラウザは、ここでのショートカットのリセットをサポートしていません。"
   },
   "o_lShortcutReset": {
-    "message": "ショートカットリセット。"
+    "message": "ショートカットをリセットしました。"
   },
   "o_lShortcutLegacyValue": {
     "message": "従来の値: $VALUE$",

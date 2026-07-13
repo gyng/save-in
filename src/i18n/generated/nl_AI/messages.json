@@ -123,7 +123,7 @@
     "message": "Bewaar dit tabblad en alle tabbladen aan de rechterkant"
   },
   "tabstripMenuSaveRightTabsMatched": {
-    "message": "Sla dit tabblad en alle tabbladen aan de rechterkant op (routingregel vereist)"
+    "message": "Dit tabblad en alle tabbladen rechts opslaan (routeringsregel vereist)"
   },
   "o_sDownloads": {
     "message": "Bewaar locaties"
@@ -147,7 +147,7 @@
     "message": "Vraag ook waar moet worden opgeslagen wanneer:"
   },
   "o_sDynamicDownloads": {
-    "message": "Routingregels"
+    "message": "Routeringsregels"
   },
   "o_sBrowserDownloads": {
     "message": "Browserdownloads"
@@ -171,7 +171,7 @@
     "message": "Experimenteel overeenkomende downloads omleiden in Firefox"
   },
   "o_cRouteBrowserDownloadsFirefoxHelp": {
-    "message": "Firefox mist native bestandsnaamrouting, dus Save In annuleert elke overeenkomende download en start een vervanging. Dit kan mislukken voor POST-verzoeken, verlopende URL's, aangepaste headers of geverifieerde downloads."
+    "message": "Firefox heeft geen ingebouwde bestandsnaamroutering, dus Save In annuleert elke overeenkomende download en start een vervangende download. Dit kan mislukken bij POST-verzoeken, verlopende URL’s, aangepaste headers of geverifieerde downloads."
   },
   "o_lFirefoxFilenameApiBug": {
     "message": "Mozilla-bug 1245652"
@@ -192,7 +192,7 @@
     "message": "Browserdownloads bieden alleen de URL, voorgestelde bestandsnaam, huidige tijd, teller, UUID en MIME-variabelen. Paginatitel, pagina-URL, linktekst, selectie, menumetagegevens en sleutelmodificatoren zijn niet beschikbaar."
   },
   "o_sRenameAndRouteDownloads": {
-    "message": "Routing en hernoemen"
+    "message": "Routeren en hernoemen"
   },
   "o_sNotifications": {
     "message": "Meldingen"
@@ -246,7 +246,7 @@
     "message": "Sneltoets"
   },
   "o_lSourcePanelShortcutHelp": {
-    "message": "Gebruik de syntaxis van browsersnelkoppelingen, bijvoorbeeld Ctrl+Shift+Y of Command+Shift+Y. De browser weigert gereserveerde snelkoppelingen."
+    "message": "Gebruik de sneltoetsnotatie van de browser, bijvoorbeeld Ctrl+Shift+Y of Command+Shift+Y. De browser weigert gereserveerde sneltoetsen."
   },
   "o_bReset": {
     "message": "Opnieuw instellen"
@@ -576,16 +576,16 @@
     "message": "Omvat toepasselijke cookies en browserbeheerde aanmelding wanneer Save In bestanden op de achtergrond ophaalt, ook na omleidingen. Verzoeken in een privévenster blijven anoniem. Directe browserdownloads beheren hun eigen inloggegevens."
   },
   "o_cSetRefererHeader": {
-    "message": "Gebruik de pagina-URL als verwijzing als deze ontbreekt"
+    "message": "Ontbrekende Referer vervangen door de pagina-URL"
   },
   "o_cSetRefererHeaderHelp": {
-    "message": "Alleen Firefox. Sommige sites (bijvoorbeeld pixiv.net) weigeren downloads zonder een HTTP Referer-header. Voor overeenkomende downloads verzendt Firefox de pagina-URL rechtstreeks als verwijzing. Laat het uitgeschakeld tenzij een site dit nodig heeft."
+    "message": "Alleen Firefox. Sommige sites (bijvoorbeeld pixiv.net) weigeren downloads zonder een HTTP Referer-header. Voor overeenkomende downloads verzendt Firefox de pagina-URL rechtstreeks als Referer. Laat dit uitgeschakeld tenzij een site het nodig heeft."
   },
   "o_cSetRefererHeaderFilter": {
-    "message": "Stel de verwijzing voor deze sites in"
+    "message": "Referer instellen voor deze sites"
   },
   "o_cSetRefererHeaderFilterHelp": {
-    "message": "Eén matchpatroon per regel, b.v. *://i.pximg.net/*. De Referer is alleen ingesteld voor downloads waarvan de URL overeenkomt met een van deze."
+    "message": "Eén matchpatroon per regel, bijvoorbeeld *://i.pximg.net/*. Referer wordt alleen ingesteld voor downloads waarvan de URL met een van deze patronen overeenkomt."
   },
   "o_cImportSettings": {
     "message": "Instellingen importeren"
@@ -939,7 +939,7 @@
     "message": "Alt / Optie"
   },
   "html_applyShortcut": {
-    "message": "Snelkoppeling toepassen"
+    "message": "Sneltoets toepassen"
   },
   "html_click": {
     "message": "Klik"
@@ -948,7 +948,7 @@
     "message": "Sneltoets voor opslaan met een klik"
   },
   "html_clickToSaveShortcutCombination": {
-    "message": "Snelkoppelingscombinatie voor klikken om op te slaan"
+    "message": "Sneltoetscombinatie voor opslaan met een klik"
   },
   "html_columns": {
     "message": "Kolommen"
@@ -1440,7 +1440,7 @@
     "message": "van het element."
   },
   "html_clausesAreOnlyUsedInRuleDefinitionsForRouting": {
-    "message": "Routingregels gebruiken clausules om te beslissen welke downloads moeten worden verplaatst of hernoemd."
+    "message": "Routeringsregels gebruiken clausules om te bepalen welke downloads worden verplaatst of hernoemd."
   },
   "html_firefox": {
     "message": "(Alleen Firefox)."
@@ -1539,43 +1539,43 @@
     "message": "zonder"
   },
   "o_lShortcutEnterOrReset": {
-    "message": "Voer een snelkoppeling in of gebruik Reset."
+    "message": "Voer een sneltoets in of gebruik Opnieuw instellen."
   },
   "o_lShortcutFormat": {
     "message": "Gebruik een formaat zoals Ctrl+Shift+G."
   },
   "o_lShortcutPrimaryModifier": {
-    "message": "Neem Ctrl, Alt, Command of MacCtrl op als modifier."
+    "message": "Gebruik Ctrl, Alt, Command of MacCtrl als modificatietoets."
   },
   "o_lShortcutAddKey": {
-    "message": "Voeg een sleutel toe na de modifier."
+    "message": "Voeg na de modificatietoets een toets toe."
   },
   "o_lShortcutOneKey": {
-    "message": "Gebruik één sleutel met uw modifiers."
+    "message": "Gebruik één toets met de modificatietoetsen."
   },
   "o_lShortcutValidKey": {
-    "message": "Kies een geldige sleutel, zoals Y, 5, F12 of PageDown."
+    "message": "Kies een geldige toets, zoals Y, 5, F12 of PageDown."
   },
   "o_lShortcutNoRepeats": {
     "message": "Herhaal geen toetsen of modificatoren."
   },
   "o_lShortcutReady": {
-    "message": "Klaar om te solliciteren."
+    "message": "Klaar om toe te passen."
   },
   "o_lShortcutChangeUnsupported": {
-    "message": "Deze browser ondersteunt het wijzigen van toetscombinaties hier niet."
+    "message": "Deze browser ondersteunt het wijzigen van sneltoetsen hier niet."
   },
   "o_lShortcutRejected": {
-    "message": "De browser accepteerde deze toetscombinatie niet. Deze is mogelijk gereserveerd of al in gebruik."
+    "message": "De browser accepteerde deze sneltoets niet. Deze is mogelijk gereserveerd of al in gebruik."
   },
   "o_lShortcutUpdated": {
-    "message": "Snelkoppeling bijgewerkt."
+    "message": "Sneltoets bijgewerkt."
   },
   "o_lShortcutResetUnsupported": {
-    "message": "Deze browser ondersteunt het opnieuw instellen van toetscombinaties hier niet."
+    "message": "Deze browser ondersteunt het opnieuw instellen van sneltoetsen hier niet."
   },
   "o_lShortcutReset": {
-    "message": "Sneltoets opnieuw instellen."
+    "message": "Sneltoets opnieuw ingesteld."
   },
   "o_lShortcutLegacyValue": {
     "message": "Verouderde waarde: $VALUE$",

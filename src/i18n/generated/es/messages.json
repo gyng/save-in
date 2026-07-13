@@ -576,16 +576,16 @@
     "message": "Incluye cookies aplicables e inicio de sesión administrado por el navegador cuando Save In recupera archivos en segundo plano, incluso después de redireccionamientos. Las solicitudes de ventana privada permanecen anónimas. Las descargas directas del navegador administran sus propias credenciales."
   },
   "o_cSetRefererHeader": {
-    "message": "Utilice la URL de la página como referencia cuando falte"
+    "message": "Usar la URL de la página como Referer si falta"
   },
   "o_cSetRefererHeaderHelp": {
-    "message": "Sólo Firefox. Algunos sitios (por ejemplo, pixiv.net) rechazan descargas sin un encabezado HTTP Referer. Para descargas coincidentes, Firefox envía la URL de la página directamente como referencia. Déjelo desactivado a menos que un sitio lo necesite."
+    "message": "Solo Firefox. Algunos sitios (por ejemplo, pixiv.net) rechazan las descargas sin una cabecera HTTP Referer. Para las descargas coincidentes, Firefox envía directamente la URL de la página como Referer. Déjelo desactivado salvo que un sitio lo necesite."
   },
   "o_cSetRefererHeaderFilter": {
-    "message": "Establecer el referente para estos sitios"
+    "message": "Establecer Referer para estos sitios"
   },
   "o_cSetRefererHeaderFilterHelp": {
-    "message": "Un patrón de coincidencia por línea, p. *://i.pximg.net/*. El Referer solo está configurado para descargas cuya URL coincida con una de estas."
+    "message": "Un patrón de coincidencia por línea, por ejemplo, *://i.pximg.net/*. Referer solo se establece para las descargas cuya URL coincide con uno de estos patrones."
   },
   "o_cImportSettings": {
     "message": "Importar configuración"
@@ -939,7 +939,7 @@
     "message": "Alt / Opción"
   },
   "html_applyShortcut": {
-    "message": "Aplicar acceso directo"
+    "message": "Aplicar atajo"
   },
   "html_click": {
     "message": "Haga clic"
@@ -948,7 +948,7 @@
     "message": "Atajo para guardar con un clic"
   },
   "html_clickToSaveShortcutCombination": {
-    "message": "Combinación de atajos de hacer clic para guardar"
+    "message": "Combinación del atajo para guardar con un clic"
   },
   "html_columns": {
     "message": "columnas"
@@ -1539,7 +1539,7 @@
     "message": "sin"
   },
   "o_lShortcutEnterOrReset": {
-    "message": "Ingrese un acceso directo o use Restablecer."
+    "message": "Introduzca un atajo o use Restablecer."
   },
   "o_lShortcutFormat": {
     "message": "Utilice un formato como Ctrl+Shift+G."
@@ -1548,13 +1548,13 @@
     "message": "Incluya Ctrl, Alt, Command o MacCtrl como modificador."
   },
   "o_lShortcutAddKey": {
-    "message": "Agregue una clave después del modificador."
+    "message": "Añada una tecla después del modificador."
   },
   "o_lShortcutOneKey": {
     "message": "Utilice una tecla con sus modificadores."
   },
   "o_lShortcutValidKey": {
-    "message": "Elija una clave válida, como Y, 5, F12 o PageDown."
+    "message": "Elija una tecla válida, como Y, 5, F12 o PageDown."
   },
   "o_lShortcutNoRepeats": {
     "message": "No repita claves ni modificadores."
@@ -1569,13 +1569,13 @@
     "message": "El navegador no aceptó este atajo. Puede estar reservado o en uso."
   },
   "o_lShortcutUpdated": {
-    "message": "Acceso directo actualizado."
+    "message": "Atajo actualizado."
   },
   "o_lShortcutResetUnsupported": {
     "message": "Este navegador no admite restablecer accesos directos aquí."
   },
   "o_lShortcutReset": {
-    "message": "Restablecimiento de acceso directo."
+    "message": "Atajo restablecido."
   },
   "o_lShortcutLegacyValue": {
     "message": "Valor heredado: $VALUE$",

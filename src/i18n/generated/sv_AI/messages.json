@@ -18,7 +18,7 @@
     "message": "Visa eller dölj sidkällor"
   },
   "contextMenuExclusive": {
-    "message": "Spara med en routingregel…"
+    "message": "Spara med en routningsregel…"
   },
   "contextMenuRoot": {
     "message": "Save In…"
@@ -162,7 +162,7 @@
     "message": "Registrerar matchande nedladdningar i historiken Save In utan att ta äganderätten till dem. De testas inte igen och utlöser inte Save In uppmaningar eller meddelanden."
   },
   "o_cRouteBrowserDownloads": {
-    "message": "Använd routingregler för webbläsarnedladdningar"
+    "message": "Använd routningsregler för webbläsarnedladdningar"
   },
   "o_cRouteBrowserDownloadsHelp": {
     "message": "När de stöds kan matchande regler byta namn på webbläsarnedladdningar eller placera dem i undermappar. Omatchade nedladdningar är oförändrade."
@@ -171,7 +171,7 @@
     "message": "Experimentellt omdirigera matchande nedladdningar på Firefox"
   },
   "o_cRouteBrowserDownloadsFirefoxHelp": {
-    "message": "Firefox saknar inbyggd filnamnsrouting, så Save In avbryter varje matchande nedladdning och startar en ersättning. Detta kan misslyckas för POST-förfrågningar, webbadresser som löper ut, anpassade rubriker eller autentiserade nedladdningar."
+    "message": "Firefox saknar inbyggd filnamnsroutning, så Save In avbryter varje matchande nedladdning och startar en ersättningsnedladdning. Detta kan misslyckas för POST-begäranden, webbadresser som löper ut, anpassade rubriker eller autentiserade nedladdningar."
   },
   "o_lFirefoxFilenameApiBug": {
     "message": "Mozilla bugg 1245652"
@@ -180,19 +180,19 @@
     "message": "Inkludera endast matchande nedladdningsadresser (valfritt)"
   },
   "o_cBrowserDownloadFilterHelp": {
-    "message": "Lämna tomt för att hantera varje webbläsarnedladdning, eller ange ett WebExtension-matchningsmönster per rad. Detta filter gäller historikspårning och routing."
+    "message": "Lämna tomt för att hantera alla webbläsarnedladdningar, eller ange ett WebExtension-matchningsmönster per rad. Filtret gäller både historikspårning och routning."
   },
   "o_cBrowserDownloadExcludeFilter": {
     "message": "Uteslut matchande nedladdningsadresser (valfritt)"
   },
   "o_cBrowserDownloadExcludeFilterHelp": {
-    "message": "Ange ett WebExtension-matchningsmönster per rad. Uteslutningar åsidosätter de matchande webbadresserna ovan och gäller både historikspårning och routing."
+    "message": "Ange ett WebExtension-matchningsmönster per rad. Undantag åsidosätter de matchande webbadresserna ovan och gäller både historikspårning och routning."
   },
   "o_lBrowserDownloadVariables": {
     "message": "Webbläsarnedladdningar tillhandahåller endast URL, föreslagna filnamn, aktuell tid, räknare, UUID och MIME-variabler. Sidrubrik, sidadress, länktext, urval, menymetadata och nyckelmodifierare är inte tillgängliga."
   },
   "o_sRenameAndRouteDownloads": {
-    "message": "Routing och byta namn"
+    "message": "Routning och namnbyte"
   },
   "o_sNotifications": {
     "message": "Aviseringar"
@@ -216,7 +216,7 @@
     "message": "Sidkällor"
   },
   "o_lPageSourcesHelp": {
-    "message": "Bläddra bland bilder, video, ljud, dokument och nedladdningsbara länkar som finns på den aktuella sidan. Sparade objekt använder dina vanliga regler för routing och byte av namn."
+    "message": "Bläddra bland bilder, video, ljud, dokument och nedladdningsbara länkar på den aktuella sidan. Sparade objekt använder dina vanliga routnings- och namnbytesregler."
   },
   "o_lPageSourcesNetworkLimit": {
     "message": "Vissa videospelare använder tillfälliga webbadresser eller laddar media genom skript, så Save In kanske inte upptäcker varje video. Det kan ibland hitta strömmande videospellistor (HLS/DASH), men dessa filer listar bara de separata videostyckena; Att spara en sparar inte hela videon."
@@ -453,7 +453,7 @@
     "message": "Fråga var du ska spara när inga ruttregler matchar"
   },
   "o_cExclusiveMode": {
-    "message": "Kräv en matchande routingregel"
+    "message": "Kräv en matchande routningsregel"
   },
   "o_cExclusiveModeHelp": {
     "message": "Döljer mappundermenyn och sparar i förhållande till standardnedladdningsmappen"
@@ -465,7 +465,7 @@
     "message": "Meddela när en nedladdning misslyckas"
   },
   "o_cNotifyMatch": {
-    "message": "Meddela när en routingregel matchar"
+    "message": "Meddela när en routningsregel matchar"
   },
   "o_cSaveShortcutsAs": {
     "message": "Spara genvägar som"
@@ -501,10 +501,10 @@
     "message": "Save In snabbmenyalternativ"
   },
   "o_cKeyboardShortcutSubmenu": {
-    "message": "Senast använda kontextundermenyobjekt"
+    "message": "Senast använda objektet i snabbundermenyn"
   },
   "o_cKeyboardShortcutNumbers": {
-    "message": "Lägg till sifferknappsgenvägar till kontextundermenyobjekt"
+    "message": "Lägg till sifferkortkommandon i snabbundermenyn"
   },
   "o_cKeyboardShortcutClickToSave": {
     "message": "Aktivera klicka för att spara"
@@ -576,16 +576,16 @@
     "message": "Inkluderar tillämpliga cookies och webbläsarhanterad inloggning när Save In hämtar filer i bakgrunden, inklusive efter omdirigeringar. Förfrågningar om privata fönster förblir anonyma. Direkta webbläsarnedladdningar hanterar sina egna referenser."
   },
   "o_cSetRefererHeader": {
-    "message": "Använd sidans URL som referent när den saknas"
+    "message": "Använd sidans URL när Referer saknas"
   },
   "o_cSetRefererHeaderHelp": {
-    "message": "Endast Firefox. Vissa webbplatser (t.ex. pixiv.net) avvisar nedladdningar utan en HTTP Referer-huvud. För matchande nedladdningar skickar Firefox sidans URL direkt som referent. Lämna det av om inte en webbplats behöver det."
+    "message": "Endast Firefox. Vissa webbplatser (t.ex. pixiv.net) avvisar nedladdningar utan ett HTTP Referer-huvud. För matchande nedladdningar skickar Firefox sidans URL direkt som Referer. Låt alternativet vara avstängt om inte en webbplats behöver det."
   },
   "o_cSetRefererHeaderFilter": {
-    "message": "Ställ in Referer för dessa webbplatser"
+    "message": "Ange Referer för dessa webbplatser"
   },
   "o_cSetRefererHeaderFilterHelp": {
-    "message": "Ett matchmönster per rad, t.ex. *://i.pximg.net/*. Refereraren är endast inställd för nedladdningar vars URL matchar en av dessa."
+    "message": "Ett matchningsmönster per rad, t.ex. *://i.pximg.net/*. Referer anges endast för nedladdningar vars URL matchar något av dessa mönster."
   },
   "o_cImportSettings": {
     "message": "Importera inställningar"
@@ -849,7 +849,7 @@
     "message": ", och senare grupper i"
   },
   "html_askAnAiAgentToDraftRoutingRules": {
-    "message": "Be en AI-agent att utarbeta routingregler"
+    "message": "Be en AI-agent att utarbeta routningsregler"
   },
   "html_automaticallyMoveOrRenameDownloadsWhenTheirFilenameSource": {
     "message": "Flytta eller byt namn på nedladdningar automatiskt när deras filnamn, källa, sida eller sammanhang matchar."
@@ -882,7 +882,7 @@
     "message": "Filterklausuler"
   },
   "html_filterRoutingTemplates": {
-    "message": "Filtrera routingmallar"
+    "message": "Filtrera routningsmallar"
   },
   "html_filterTemplates": {
     "message": "Filtermallar"
@@ -897,7 +897,7 @@
     "message": "Hur fungerar nedladdnings-URL-filter?"
   },
   "html_howRoutingRulesWork": {
-    "message": "Hur routingregler fungerar"
+    "message": "Så fungerar routningsregler"
   },
   "html_matchesHttpsFileUrlsOn": {
     "message": "matchar URL:er för HTTPS-filer på"
@@ -939,16 +939,16 @@
     "message": "Alt / Alternativ"
   },
   "html_applyShortcut": {
-    "message": "Använd genväg"
+    "message": "Använd kortkommando"
   },
   "html_click": {
     "message": "Klicka"
   },
   "html_clickToSaveShortcut": {
-    "message": "Genväg för att spara med ett klick"
+    "message": "Kortkommando för att spara med ett klick"
   },
   "html_clickToSaveShortcutCombination": {
-    "message": "Klicka för att spara genvägskombination"
+    "message": "Kortkommando för att spara med ett klick"
   },
   "html_columns": {
     "message": "Kolumner"
@@ -1038,7 +1038,7 @@
     "message": "Genvägsfilens beteende"
   },
   "html_shortcutKey": {
-    "message": "Genvägstangent"
+    "message": "Kortkommando"
   },
   "html_streamHls3": {
     "message": "Streama · HLS · #3"
@@ -1104,7 +1104,7 @@
     "message": "Integrationsguide"
   },
   "html_letTrustedExtensionsSendUrlsThroughSaveInS": {
-    "message": "Låt betrodda tillägg skicka webbadresser genom Save In:s regler för routing och byte av namn."
+    "message": "Låt betrodda tillägg skicka webbadresser genom Save In:s routnings- och namnbytesregler."
   },
   "html_mdnMatchPatterns": {
     "message": "MDN: Matcha mönster"
@@ -1194,7 +1194,7 @@
     "message": "I en webbläsare som stöder"
   },
   "html_keepsSettingsRoutingRulesLocalHistoryAndRestartSafe": {
-    "message": "Behåller inställningar, routingregler, lokal historik och omstartssäkert tillstånd."
+    "message": "Behåller inställningar, routningsregler, lokal historik och tillstånd som överlever omstarter."
   },
   "html_letsChromeConvertFetchedFileDataIntoTemporaryDownload": {
     "message": "Låter Chrome konvertera hämtade fildata till temporära nedladdningsadresser."
@@ -1239,10 +1239,10 @@
     "message": "Save In har ingen analys, reklam, utvecklarstyrd server eller fjärrkörbar kod. Inställningar och historik finns kvar i webbläsarhanterad tilläggslagring."
   },
   "html_saveInIsALocalFirstDownloadsHelperFor": {
-    "message": "Save In är en lokalt körd nedladdningshjälp som ordnar filer med mappar i snabbmenyn, routingregler, namnbyte, sidkällor och nedladdningshistorik."
+    "message": "Save In är en lokalt körd nedladdningshjälp som ordnar filer med mappar i snabbmenyn, routningsregler, namnbyte, sidkällor och nedladdningshistorik."
   },
   "html_saveInRegistersToolsAnAiAgentCanCall": {
-    "message": ", Save In registrerar verktyg som en AI-agent kan anropa medan den här alternativsidan är öppen – för att ändra inställningar, bygga mappmenyer och skriva routingregler."
+    "message": ", Save In registrerar verktyg som en AI-agent kan anropa medan den här alternativsidan är öppen – för att ändra inställningar, bygga mappmenyer och skriva routningsregler."
   },
   "html_showsSaveInCommandsOnPagesLinksMediaAnd": {
     "message": "Visar Save In-kommandon på sidor, länkar, media och flikar."
@@ -1350,7 +1350,7 @@
     "message": "Den för närvarande markerade texten på sidan"
   },
   "html_theNaiveFilenameUrlBasedUseTheRoutingFeature": {
-    "message": "Filnamnet kommer från URL:en. Använd routingregler om detta är felaktigt."
+    "message": "Filnamnet kommer från URL:en. Använd routningsregler om det blir fel."
   },
   "html_titleOfThePage": {
     "message": "Sidans titel"
@@ -1413,7 +1413,7 @@
     "message": "Endast tillgängligt när du dirigerar eller byter namn på filer"
   },
   "html_routingAndFilenamesOnly": {
-    "message": "Endast routing och filnamn"
+    "message": "Endast routning och filnamn"
   },
   "html_specialRowsUsedOnlyInTheDownloadsMenu": {
     "message": "Specialrader används endast i menyn Spara platser"
@@ -1440,7 +1440,7 @@
     "message": "attribut."
   },
   "html_clausesAreOnlyUsedInRuleDefinitionsForRouting": {
-    "message": "Routingregler använder satser för att bestämma vilka nedladdningar som ska flyttas eller byta namn."
+    "message": "Routningsregler använder villkor för att avgöra vilka nedladdningar som ska flyttas eller byta namn."
   },
   "html_firefox": {
     "message": "(endast Firefox)."
@@ -1539,43 +1539,43 @@
     "message": "utan att"
   },
   "o_lShortcutEnterOrReset": {
-    "message": "Ange en genväg eller använd Återställ."
+    "message": "Ange ett kortkommando eller använd Återställ."
   },
   "o_lShortcutFormat": {
     "message": "Använd ett format som Ctrl+Shift+G."
   },
   "o_lShortcutPrimaryModifier": {
-    "message": "Inkludera Ctrl, Alt, Command eller MacCtrl som modifierare."
+    "message": "Använd Ctrl, Alt, Command eller MacCtrl som modifieringstangent."
   },
   "o_lShortcutAddKey": {
-    "message": "Lägg till en nyckel efter modifieraren."
+    "message": "Lägg till en tangent efter modifieringstangenten."
   },
   "o_lShortcutOneKey": {
-    "message": "Använd en knapp med dina modifierare."
+    "message": "Använd en tangent med modifieringstangenterna."
   },
   "o_lShortcutValidKey": {
-    "message": "Välj en giltig nyckel, som Y, 5, F12 eller PageDown."
+    "message": "Välj en giltig tangent, till exempel Y, 5, F12 eller PageDown."
   },
   "o_lShortcutNoRepeats": {
     "message": "Upprepa inte tangenter eller modifierare."
   },
   "o_lShortcutReady": {
-    "message": "Redo att ansöka."
+    "message": "Redo att använda."
   },
   "o_lShortcutChangeUnsupported": {
-    "message": "Den här webbläsaren stöder inte ändring av genvägar här."
+    "message": "Den här webbläsaren stöder inte ändring av kortkommandon här."
   },
   "o_lShortcutRejected": {
-    "message": "Webbläsaren accepterade inte denna genväg. Den kan vara reserverad eller användas."
+    "message": "Webbläsaren accepterade inte kortkommandot. Det kan vara reserverat eller redan användas."
   },
   "o_lShortcutUpdated": {
-    "message": "Genväg uppdaterad."
+    "message": "Kortkommandot har uppdaterats."
   },
   "o_lShortcutResetUnsupported": {
-    "message": "Den här webbläsaren stöder inte återställning av genvägar här."
+    "message": "Den här webbläsaren stöder inte återställning av kortkommandon här."
   },
   "o_lShortcutReset": {
-    "message": "Återställ genväg."
+    "message": "Kortkommandot har återställts."
   },
   "o_lShortcutLegacyValue": {
     "message": "Äldre värde: $VALUE$",

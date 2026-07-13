@@ -525,7 +525,7 @@
     "message": "Mittelklick"
   },
   "o_cKeyboardShortcutModifierRightClick": {
-    "message": "Klicken Sie mit der rechten Maustaste"
+    "message": "Rechtsklick"
   },
   "o_cKeyboardShortcutModifierBackClick": {
     "message": "Zurück-Taste (4)"
@@ -579,13 +579,13 @@
     "message": "Fehlenden Referer durch die Seiten-URL ersetzen"
   },
   "o_cSetRefererHeaderHelp": {
-    "message": "Nur Firefox. Einige Websites (z. B. pixiv.net) lehnen Downloads ohne HTTP-Referer-Header ab. Bei passenden Downloads sendet Firefox die Seiten-URL direkt als Referrer. Lassen Sie es weg, es sei denn, eine Website benötigt es."
+    "message": "Nur Firefox. Einige Websites (z. B. pixiv.net) lehnen Downloads ohne HTTP-Referer-Header ab. Für passende Downloads sendet Firefox die Seiten-URL direkt als Referer. Deaktiviert lassen, sofern eine Website dies nicht benötigt."
   },
   "o_cSetRefererHeaderFilter": {
-    "message": "Legen Sie den Referrer für diese Websites fest"
+    "message": "Referer für diese Websites setzen"
   },
   "o_cSetRefererHeaderFilterHelp": {
-    "message": "Ein Übereinstimmungsmuster pro Zeile, z. B. *://i.pximg.net/*. Der Referrer wird nur für Downloads gesetzt, deren URL mit einer dieser URLs übereinstimmt."
+    "message": "Ein Übereinstimmungsmuster pro Zeile, z. B. *://i.pximg.net/*. Referer wird nur bei Downloads gesetzt, deren URL einem dieser Muster entspricht."
   },
   "o_cImportSettings": {
     "message": "Einstellungen importieren"
@@ -939,7 +939,7 @@
     "message": "Alt / Option"
   },
   "html_applyShortcut": {
-    "message": "Verknüpfung anwenden"
+    "message": "Tastenkombination anwenden"
   },
   "html_click": {
     "message": "Klicken Sie"
@@ -948,7 +948,7 @@
     "message": "Click-to-Save-Tastenkombination"
   },
   "html_clickToSaveShortcutCombination": {
-    "message": "Per Mausklick zu speichernde Verknüpfungskombination"
+    "message": "Click-to-Save-Tastenkombination"
   },
   "html_columns": {
     "message": "Spalten"
@@ -1539,28 +1539,28 @@
     "message": "ohne sie"
   },
   "o_lShortcutEnterOrReset": {
-    "message": "Geben Sie eine Verknüpfung ein oder verwenden Sie Zurücksetzen."
+    "message": "Geben Sie eine Tastenkombination ein oder verwenden Sie „Zurücksetzen“."
   },
   "o_lShortcutFormat": {
     "message": "Verwenden Sie ein Format wie Ctrl+Shift+G."
   },
   "o_lShortcutPrimaryModifier": {
-    "message": "Fügen Sie Ctrl, Alt, Command oder MacCtrl als Modifikator ein."
+    "message": "Ctrl, Alt, Command oder MacCtrl als Modifikatortaste verwenden."
   },
   "o_lShortcutAddKey": {
-    "message": "Fügen Sie nach dem Modifikator einen Schlüssel hinzu."
+    "message": "Nach der Modifikatortaste eine Taste hinzufügen."
   },
   "o_lShortcutOneKey": {
-    "message": "Verwenden Sie eine Taste für Ihre Modifikatoren."
+    "message": "Eine Taste mit den Modifikatortasten verwenden."
   },
   "o_lShortcutValidKey": {
-    "message": "Wählen Sie einen gültigen Schlüssel, z. B. Y, 5, F12 oder PageDown."
+    "message": "Wählen Sie eine gültige Taste, z. B. Y, 5, F12 oder PageDown."
   },
   "o_lShortcutNoRepeats": {
     "message": "Wiederholen Sie keine Tasten oder Modifikatoren."
   },
   "o_lShortcutReady": {
-    "message": "Bereit zur Bewerbung."
+    "message": "Bereit zum Anwenden."
   },
   "o_lShortcutChangeUnsupported": {
     "message": "Dieser Browser unterstützt das Ändern von Tastenkombinationen hier nicht."
@@ -1569,13 +1569,13 @@
     "message": "Der Browser hat diese Tastenkombination nicht akzeptiert. Sie ist möglicherweise reserviert oder bereits belegt."
   },
   "o_lShortcutUpdated": {
-    "message": "Verknüpfung aktualisiert."
+    "message": "Tastenkombination aktualisiert."
   },
   "o_lShortcutResetUnsupported": {
     "message": "Dieser Browser unterstützt das Zurücksetzen von Tastenkombinationen hier nicht."
   },
   "o_lShortcutReset": {
-    "message": "Verknüpfung zurücksetzen."
+    "message": "Tastenkombination zurückgesetzt."
   },
   "o_lShortcutLegacyValue": {
     "message": "Legacy-Wert: $VALUE$",

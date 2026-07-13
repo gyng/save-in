@@ -576,16 +576,16 @@
     "message": "Inclui cookies aplicáveis e login gerenciado pelo navegador quando Save In busca arquivos em segundo plano, inclusive após redirecionamentos. As solicitações de janela privada permanecem anônimas. Os downloads diretos do navegador gerenciam suas próprias credenciais."
   },
   "o_cSetRefererHeader": {
-    "message": "Use o URL da página como referenciador quando estiver faltando"
+    "message": "Usar a URL da página como Referer quando ausente"
   },
   "o_cSetRefererHeaderHelp": {
-    "message": "Apenas Firefox. Alguns sites (por exemplo, pixiv.net) rejeitam downloads sem um cabeçalho HTTP Referer. Para downloads correspondentes, o Firefox envia o URL da página diretamente como Referer. Deixe-o desativado, a menos que um site precise dele."
+    "message": "Somente Firefox. Alguns sites (por exemplo, pixiv.net) rejeitam downloads sem o cabeçalho HTTP Referer. Para downloads correspondentes, o Firefox envia diretamente a URL da página como Referer. Deixe esta opção desativada, a menos que um site precise dela."
   },
   "o_cSetRefererHeaderFilter": {
-    "message": "Defina o referenciador para esses sites"
+    "message": "Definir Referer para estes sites"
   },
   "o_cSetRefererHeaderFilterHelp": {
-    "message": "Um padrão de correspondência por linha, por exemplo, *://i.pximg.net/*. O Referer só é definido para downloads cuja URL corresponde a um desses padrões."
+    "message": "Um padrão de correspondência por linha, por exemplo, *://i.pximg.net/*. Referer só é definido para downloads cuja URL corresponde a um desses padrões."
   },
   "o_cImportSettings": {
     "message": "Importar configurações"
@@ -1548,13 +1548,13 @@
     "message": "Inclua Ctrl, Alt, Command ou MacCtrl como modificador."
   },
   "o_lShortcutAddKey": {
-    "message": "Adicione uma chave após o modificador."
+    "message": "Adicione uma tecla após o modificador."
   },
   "o_lShortcutOneKey": {
-    "message": "Use uma chave com seus modificadores."
+    "message": "Use uma tecla com os modificadores."
   },
   "o_lShortcutValidKey": {
-    "message": "Escolha uma chave válida, como Y, 5, F12 ou PageDown."
+    "message": "Escolha uma tecla válida, como Y, 5, F12 ou PageDown."
   },
   "o_lShortcutNoRepeats": {
     "message": "Não repita teclas ou modificadores."
@@ -1575,7 +1575,7 @@
     "message": "Este navegador não oferece suporte à redefinição de atalhos aqui."
   },
   "o_lShortcutReset": {
-    "message": "Redefinição de atalho."
+    "message": "Atalho redefinido."
   },
   "o_lShortcutLegacyValue": {
     "message": "Valor legado: $VALUE$",
