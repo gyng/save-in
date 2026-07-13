@@ -1247,31 +1247,65 @@ test("Page Sources discovers, sorts, updates live, and restores across tabs", as
     expect(panelLayout.filterLabel).toBe("Filter page sources");
     expect(panelLayout.sortLabel).toBe("Sort sources");
 
-    const hoverPreview = JSON.parse(
+    const hoverTarget = JSON.parse(
       await evalPage(
         firstPath,
-        `(async () => {
-          const root = document.querySelector("#save-in-source-panel").shadowRoot;
-          const row = root.querySelector(".row");
-          row.dispatchEvent(new MouseEvent("mouseenter"));
-          const image = root.querySelector(".media-tooltip img");
-          await image?.decode().catch(() => {});
-          const rect = image?.closest(".media-tooltip")?.getBoundingClientRect();
-          const result = {
-            described: row.querySelector(".source-link").hasAttribute("aria-describedby"),
-            loaded: image?.complete && image.naturalWidth > 0,
-            width: rect?.width || 0,
-            height: rect?.height || 0,
-          };
-          row.dispatchEvent(new MouseEvent("mouseleave"));
-          return JSON.stringify(result);
-        })()`,
+        `JSON.stringify((() => {
+          const row = document.querySelector("#save-in-source-panel").shadowRoot.querySelector(".row");
+          const rect = row.getBoundingClientRect();
+          return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+        })())`,
       ),
+    );
+    await cdp.dispatchInput(PORT, firstPath, [
+      {
+        method: "Input.dispatchMouseEvent",
+        params: { type: "mouseMoved", x: hoverTarget.x, y: hoverTarget.y },
+      },
+    ]);
+    const hoverPreview = await poll(
+      async () => {
+        const preview = JSON.parse(
+          await evalPage(
+            firstPath,
+            `JSON.stringify((() => {
+              const root = document.querySelector("#save-in-source-panel").shadowRoot;
+              const row = root.querySelector(".row");
+              const image = root.querySelector(".media-tooltip img");
+              const rect = image?.closest(".media-tooltip")?.getBoundingClientRect();
+              return {
+                described: row.querySelector(".source-link").hasAttribute("aria-describedby"),
+                loaded: image?.complete && image.naturalWidth > 0,
+                width: rect?.width || 0,
+                height: rect?.height || 0,
+              };
+            })())`,
+          ),
+        );
+        return preview.described && preview.loaded ? preview : null;
+      },
+      { description: "visible Page Sources hover preview" },
     );
     expect(hoverPreview.described).toBe(true);
     expect(hoverPreview.loaded).toBe(true);
     expect(hoverPreview.width).toBeGreaterThanOrEqual(160);
     expect(hoverPreview.height).toBeGreaterThanOrEqual(120);
+    await cdp.dispatchInput(PORT, firstPath, [
+      {
+        method: "Input.dispatchMouseEvent",
+        params: { type: "mouseMoved", x: 8, y: 8 },
+      },
+    ]);
+    await poll(
+      async () =>
+        (await evalPage(
+          firstPath,
+          `!document.querySelector("#save-in-source-panel").shadowRoot.querySelector(".media-tooltip")`,
+        )) === true
+          ? true
+          : null,
+      { description: "Page Sources hover preview dismissal" },
+    );
 
     expect((await snapshot(firstPath)).names).toEqual(["second.png", "first.png"]);
     await evalPage(
