@@ -6,18 +6,25 @@ import { createRequire } from "node:module";
 import { describe, expect, test } from "vitest";
 
 const require = createRequire(import.meta.url);
-const { chromeArgs, killTree, removeProfile } = require("../scripts/lib/chrome.js") as {
-  chromeArgs: (
-    profileDir: string,
-    port: number,
-    headless?: boolean,
-    noSandbox?: boolean,
-  ) => string[];
-  killTree: (process: ReturnType<typeof spawn>) => Promise<void>;
-  removeProfile: (profileDir: string) => Promise<void>;
-};
+const { buildOutputForMode, chromeArgs, killTree, removeProfile } =
+  require("../scripts/lib/chrome.js") as {
+    buildOutputForMode: (mode?: "production" | "e2e") => string;
+    chromeArgs: (
+      profileDir: string,
+      port: number,
+      headless?: boolean,
+      noSandbox?: boolean,
+    ) => string[];
+    killTree: (process: ReturnType<typeof spawn>) => Promise<void>;
+    removeProfile: (profileDir: string) => Promise<void>;
+  };
 
 describe("isolated Chrome launcher", () => {
+  test("selects the staged package that matches the requested build mode", () => {
+    expect(buildOutputForMode()).toMatch(/[\\/]dist[\\/]bundled-pkg$/);
+    expect(buildOutputForMode("e2e")).toMatch(/[\\/]dist[\\/]bundled-pkg-e2e$/);
+  });
+
   test("disables GPU caches that can outlive and break disposable profiles", () => {
     const args = chromeArgs("C:\\tmp\\profile", 9555);
 

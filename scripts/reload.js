@@ -5,10 +5,11 @@
 
 const cdp = require("./lib/cdp");
 const chrome = require("./lib/chrome");
+const { CHROME_DISCOVERY_PORTS } = require("./lib/chrome-ports");
 
-// chrome.js picks 9400..9799 (random) unless a fixed port is passed; 9222
-// is the conventional default for a manually-launched Chrome
-const CANDIDATE_PORTS = [9222, ...Array.from({ length: 400 }, (_, i) => 9400 + i)];
+// Includes the fixed development port, Chrome's conventional debugging port,
+// and the random range used by isolated review sessions.
+const CANDIDATE_PORTS = CHROME_DISCOVERY_PORTS;
 
 /** @param {number} port */
 const isChromeCdp = async (port) => {

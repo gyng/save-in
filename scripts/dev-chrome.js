@@ -8,9 +8,10 @@ const path = require("path");
 
 const cdp = require("./lib/cdp");
 const chrome = require("./lib/chrome");
+const { CHROME_DEV_PORT } = require("./lib/chrome-ports");
 const { startDemoServer } = require("./review-demo");
 
-const PORT = 9378;
+const PORT = CHROME_DEV_PORT;
 const PROFILE = path.join(chrome.ROOT, "dist", "dev-profile");
 const DOWNLOADS = path.join(PROFILE, "downloads");
 const WATCH = process.argv.includes("--watch");

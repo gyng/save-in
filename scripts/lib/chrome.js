@@ -19,6 +19,10 @@ const DIST = process.env.EXT_DIR
   ? path.join(ROOT, process.env.EXT_DIR)
   : path.join(ROOT, "dist", "bundled-pkg");
 
+/** @param {"production" | "e2e"} [mode] */
+const buildOutputForMode = (mode = "production") =>
+  path.join(ROOT, "dist", mode === "e2e" ? "bundled-pkg-e2e" : "bundled-pkg");
+
 const findChrome = () => {
   const candidates = [
     process.env.CHROME_PATH,
@@ -37,6 +41,7 @@ const findChrome = () => {
   return found;
 };
 
+/** @param {"production" | "e2e"} [mode] */
 const stageBuild = (mode = "production") => {
   execFileSync(
     process.execPath,
@@ -45,6 +50,7 @@ const stageBuild = (mode = "production") => {
       stdio: "inherit",
     },
   );
+  return buildOutputForMode(mode);
 };
 
 /** @param {import("node:child_process").ChildProcess | null | undefined} proc */
@@ -170,11 +176,12 @@ const startupError = (error, proc, logPath) => {
   );
 };
 
-/** @param {{port?: number, profileDir: string, downloadDir?: string, fresh?: boolean}} settings */
+/** @param {{port?: number, profileDir: string, downloadDir?: string, extensionDir?: string, fresh?: boolean}} settings */
 const launch = async ({
   port: requestedPort = undefined,
   profileDir,
   downloadDir = undefined,
+  extensionDir = DIST,
   fresh = true,
 }) => {
   let resolvedProfile = profileDir;
@@ -205,7 +212,7 @@ const launch = async ({
   fs.closeSync(log);
   try {
     await cdp.waitForCdp(port);
-    const extensionId = await cdp.loadUnpacked(port, DIST);
+    const extensionId = await cdp.loadUnpacked(port, extensionDir);
     // Loading an invalid package can make Chrome terminate just after the CDP
     // command succeeds. Verify the endpoint remains usable before handing the
     // process to a suite, so startup errors include the browser log.
@@ -239,6 +246,7 @@ const launch = async ({
 module.exports = {
   ROOT,
   DIST,
+  buildOutputForMode,
   findChrome,
   stageBuild,
   chromeArgs,

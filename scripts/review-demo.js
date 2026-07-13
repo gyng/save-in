@@ -205,19 +205,69 @@ const createDemoServer = () =>
     }
   });
 
-/** @returns {Promise<number>} */
-const startDemoServer = () =>
+/** @returns {Promise<{port: number, server: import("node:http").Server}>} */
+const startDemoServerSession = () =>
   new Promise((resolve, reject) => {
     const server = createDemoServer();
+    /** @param {unknown} error */
+    const fail = (error) => reject(error);
+    server.once("error", fail);
     server.listen(0, "127.0.0.1", () => {
+      server.off("error", fail);
       const address = server.address();
       if (!address || typeof address === "string") {
+        server.close();
         reject(new Error("Demo server did not bind to a TCP port"));
         return;
       }
-      resolve(address.port);
+      resolve({ port: address.port, server });
     });
   });
+
+/** @returns {Promise<number>} */
+const startDemoServer = async () => (await startDemoServerSession()).port;
+
+/** @param {import("node:http").Server} server */
+const closeDemoServer = (server) =>
+  new Promise((resolve, reject) => {
+    if (!server.listening) {
+      resolve(undefined);
+      return;
+    }
+    server.close((error) => (error ? reject(error) : resolve(undefined)));
+  });
+
+/**
+ * @param {{browser?: {proc: import("node:child_process").ChildProcess, profileDir: string}, server: import("node:http").Server}} session
+ * @param {{killTree?: typeof chrome.killTree, removeProfile?: typeof chrome.removeProfile}} [cleanup]
+ */
+const cleanupReviewSession = async (
+  { browser, server },
+  { killTree = chrome.killTree, removeProfile = chrome.removeProfile } = {},
+) => {
+  /** @type {unknown[]} */
+  const failures = [];
+  if (browser) {
+    try {
+      await killTree(browser.proc);
+    } catch (error) {
+      failures.push(error);
+    }
+  }
+  try {
+    await closeDemoServer(server);
+  } catch (error) {
+    failures.push(error);
+  }
+  if (browser) {
+    try {
+      await removeProfile(browser.profileDir);
+    } catch (error) {
+      failures.push(error);
+    }
+  }
+  if (failures.length) throw new AggregateError(failures, "Review session cleanup failed");
+};
 
 /**
  * @param {{reload: () => void, stop: () => void}} actions
@@ -284,22 +334,31 @@ const reloadReviewSession = async (port, demoPort) => {
 
 const main = async () => {
   chrome.stageBuild();
-  const demoPort = await startDemoServer();
+  const { port: demoPort, server } = await startDemoServerSession();
+  /** @type {Awaited<ReturnType<typeof chrome.launch>> | undefined} */
+  let browser;
+  let cleanupControls = () => {};
+  let removeSignalHandlers = () => {};
+  let stopping = false;
+  let exitCode = 0;
 
-  console.log("Launching Chrome (throwaway review profile)...");
-  const { proc, extensionId, port, downloadDir } = await chrome.launch({
-    profileDir: PROFILE,
-    fresh: true,
-  });
+  try {
+    console.log("Launching Chrome (throwaway review profile)...");
+    browser = await chrome.launch({
+      profileDir: PROFILE,
+      fresh: true,
+    });
+    const { proc, extensionId, port, downloadDir } = browser;
+    const exited = new Promise((resolve) => proc.once("exit", resolve));
 
-  // The options page must exist before evalInServiceWorker can wake the
-  // worker, so: open it, seed the config, then reload it to pick the
-  // seeded values up
-  await cdp.openTab(port, `chrome-extension://${extensionId}/src/options/options.html`);
-  await cdp.evalInTarget(
-    port,
-    "options.html",
-    `browser.storage.local.set({
+    // The options page must exist before evalInServiceWorker can wake the
+    // worker, so: open it, seed the config, then reload it to pick the
+    // seeded values up
+    await cdp.openTab(port, `chrome-extension://${extensionId}/src/options/options.html`);
+    await cdp.evalInTarget(
+      port,
+      "options.html",
+      `browser.storage.local.set({
       paths: ${JSON.stringify(SHOWCASE_PATHS)},
       filenamePatterns: ${JSON.stringify(SHOWCASE_RULES)},
       links: true,
@@ -316,55 +375,65 @@ const main = async () => {
       sourcePanelResourceHints: true,
       sourcePanelLinks: true,
     }).then(() => browser.runtime.sendMessage({ type: "OPTIONS_LOADED" })).then(() => "seeded")`,
-  );
-  await cdp.evalInTarget(port, "options.html", "location.reload()");
-  await cdp.openTab(port, `http://127.0.0.1:${demoPort}/`);
+    );
+    await cdp.evalInTarget(port, "options.html", "location.reload()");
+    await cdp.openTab(port, `http://127.0.0.1:${demoPort}/`);
 
-  let reloading = false;
-  let pendingReload = false;
-  const requestReload = () => {
-    if (reloading) {
-      pendingReload = true;
-      return;
+    let reloading = false;
+    let pendingReload = false;
+    const requestReload = () => {
+      if (reloading) {
+        pendingReload = true;
+        return;
+      }
+
+      reloading = true;
+      void (async () => {
+        try {
+          do {
+            pendingReload = false;
+            console.log("\nRestaging and reloading the review extension...");
+            try {
+              const result = await reloadReviewSession(port, demoPort);
+              console.log(
+                `Reloaded ${result.extensionId} (${result.optionsTabs} options tab, ${result.demoTabs} demo tab).`,
+              );
+            } catch (error) {
+              console.error(
+                `Reload failed: ${error instanceof Error ? error.message : String(error)}`,
+              );
+            }
+          } while (pendingReload);
+        } finally {
+          reloading = false;
+        }
+      })();
+    };
+
+    const stop = (requestedExitCode = 130) => {
+      if (stopping) return;
+      stopping = true;
+      exitCode = requestedExitCode;
+      cleanupControls();
+      void chrome.killTree(proc);
+    };
+    const onSigint = () => stop(130);
+    const onSigterm = () => stop(143);
+    process.once("SIGINT", onSigint);
+    process.once("SIGTERM", onSigterm);
+    removeSignalHandlers = () => {
+      process.off("SIGINT", onSigint);
+      process.off("SIGTERM", onSigterm);
+    };
+    const installedControls = installReviewControls({
+      reload: requestReload,
+      stop: () => stop(130),
+    });
+    if (installedControls) {
+      cleanupControls = installedControls;
     }
 
-    reloading = true;
-    void (async () => {
-      try {
-        do {
-          pendingReload = false;
-          console.log("\nRestaging and reloading the review extension...");
-          try {
-            const result = await reloadReviewSession(port, demoPort);
-            console.log(
-              `Reloaded ${result.extensionId} (${result.optionsTabs} options tab, ${result.demoTabs} demo tab).`,
-            );
-          } catch (error) {
-            console.error(
-              `Reload failed: ${error instanceof Error ? error.message : String(error)}`,
-            );
-          }
-        } while (pendingReload);
-      } finally {
-        reloading = false;
-      }
-    })();
-  };
-
-  let stopping = false;
-  let cleanupControls = () => {};
-  const stop = () => {
-    if (stopping) return;
-    stopping = true;
-    cleanupControls();
-    void chrome.killTree(proc).finally(() => process.exit(130));
-  };
-  const installedControls = installReviewControls({ reload: requestReload, stop });
-  if (installedControls) {
-    cleanupControls = installedControls;
-  }
-
-  console.log(`
+    console.log(`
 Extension loaded: ${extensionId}
 Downloads land in: ${downloadDir}
 
@@ -377,24 +446,35 @@ Two tabs are open:
 
 ${installedControls ? "Press r to restage and reload. Press Ctrl+C or close Chrome to exit." : "Close the Chrome window to exit."}`);
 
-  proc.on("exit", () => {
+    await exited;
     cleanupControls();
     console.log("Chrome closed");
-    process.exit(stopping ? 130 : 0);
-  });
+    return exitCode;
+  } finally {
+    cleanupControls();
+    removeSignalHandlers();
+    await cleanupReviewSession({ browser, server });
+  }
 };
 
 if (require.main === module) {
-  main().catch((e) => {
-    console.error(e);
-    process.exit(1);
-  });
+  main().then(
+    (exitCode) => {
+      process.exitCode = exitCode;
+    },
+    (error) => {
+      console.error(error);
+      process.exitCode = 1;
+    },
+  );
 }
 
 module.exports = {
   SHOWCASE_PATHS,
   SHOWCASE_RULES,
+  cleanupReviewSession,
   createReviewKeyHandler,
   createDemoServer,
   startDemoServer,
+  startDemoServerSession,
 };

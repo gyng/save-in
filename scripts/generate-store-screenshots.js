@@ -184,14 +184,14 @@ const main = async () => {
   const outputDir = path.resolve(chrome.ROOT, outputArgument());
   fs.mkdirSync(outputDir, { recursive: true });
 
-  chrome.stageBuild("e2e");
+  const extensionDir = chrome.stageBuild("e2e");
   const server = createDemoServer();
   const demoPort = await listen(server);
   const demoTarget = `127.0.0.1:${demoPort}`;
   let session;
 
   try {
-    session = await chrome.launch({ profileDir: PROFILE, fresh: true });
+    session = await chrome.launch({ extensionDir, profileDir: PROFILE, fresh: true });
     const { extensionId, port } = session;
     const optionsTarget = `${extensionId}/src/options/options.html`;
 

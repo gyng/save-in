@@ -11,6 +11,7 @@ const {
   pruneRunDirectories,
   releaseDirectoryLock,
   removeOwnedProfiles,
+  tryReclaimDirectoryLock,
 } = require("../scripts/lib/e2e-cleanup.js") as {
   acquireDirectoryLock: (
     directory: string,
@@ -23,6 +24,10 @@ const {
     pids: number[],
     options: { chromeRoot: string; firefoxRoot: string; attempts?: number; delayMs?: number },
   ) => Promise<void>;
+  tryReclaimDirectoryLock: (
+    directory: string,
+    options?: { pid?: number; orphanedAfterMs?: number },
+  ) => boolean;
 };
 
 const roots: string[] = [];
@@ -44,6 +49,21 @@ describe("E2E lifecycle cleanup", () => {
       "owned by another process",
     );
     releaseDirectoryLock(lock);
+    expect(readdirSync(parent)).toEqual([]);
+  });
+
+  test("allows only one contender to reclaim a stale staging lock", () => {
+    const parent = tempRoot("save-in-stale-lock-");
+    const lockDir = join(parent, "staging.lock");
+    mkdirSync(lockDir);
+    writeFileSync(join(lockDir, "owner.json"), JSON.stringify({ pid: 999_999_999 }));
+    writeFileSync(join(lockDir, ".reclaim.json"), JSON.stringify({ pid: process.pid }));
+
+    expect(tryReclaimDirectoryLock(lockDir)).toBe(false);
+    expect(readdirSync(lockDir)).toContain("owner.json");
+
+    rmSync(join(lockDir, ".reclaim.json"));
+    expect(tryReclaimDirectoryLock(lockDir)).toBe(true);
     expect(readdirSync(parent)).toEqual([]);
   });
 

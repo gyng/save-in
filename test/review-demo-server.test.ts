@@ -1,15 +1,43 @@
 import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
-const { createDemoServer, createReviewKeyHandler } = require("../scripts/review-demo.js") as {
-  createDemoServer: () => import("node:http").Server;
-  createReviewKeyHandler: (actions: {
-    reload: () => void;
-    stop: () => void;
-  }) => (input: string) => void;
-};
+const { cleanupReviewSession, createDemoServer, createReviewKeyHandler } =
+  require("../scripts/review-demo.js") as {
+    cleanupReviewSession: (
+      session: {
+        browser?: { proc: object; profileDir: string };
+        server: import("node:http").Server;
+      },
+      cleanup: {
+        killTree: (proc: object) => Promise<void>;
+        removeProfile: (profileDir: string) => Promise<void>;
+      },
+    ) => Promise<void>;
+    createDemoServer: () => import("node:http").Server;
+    createReviewKeyHandler: (actions: {
+      reload: () => void;
+      stop: () => void;
+    }) => (input: string) => void;
+  };
 
 describe("review demo server", () => {
+  test("closes the server and removes the throwaway browser profile", async () => {
+    const server = createDemoServer();
+    await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+    const proc = {};
+    const killTree = vi.fn(async () => undefined);
+    const removeProfile = vi.fn(async () => undefined);
+
+    await cleanupReviewSession(
+      { browser: { proc, profileDir: "review-profile-unique" }, server },
+      { killTree, removeProfile },
+    );
+
+    expect(killTree).toHaveBeenCalledWith(proc);
+    expect(removeProfile).toHaveBeenCalledWith("review-profile-unique");
+    expect(server.listening).toBe(false);
+  });
+
   test("reloads on r or R and ignores unrelated input", () => {
     const reload = vi.fn();
     const stop = vi.fn();

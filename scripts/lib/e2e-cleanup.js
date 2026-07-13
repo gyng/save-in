@@ -23,6 +23,57 @@ const processIsAlive = (pid) => {
 };
 
 /**
+ * Claims stale-lock cleanup with an exclusive marker inside the lock. A
+ * contender that does not own the marker must leave the directory untouched.
+ *
+ * @param {string} lockDir
+ * @param {{orphanedAfterMs?: number, pid?: number}} [options]
+ */
+const tryReclaimDirectoryLock = (lockDir, { orphanedAfterMs = 2_000, pid = process.pid } = {}) => {
+  let observedMtime;
+  try {
+    observedMtime = fs.statSync(lockDir).mtimeMs;
+  } catch (error) {
+    if (errorCode(error) === "ENOENT") return true;
+    throw error;
+  }
+
+  const claim = path.join(lockDir, ".reclaim.json");
+  let handle;
+  let ownsClaim = false;
+  try {
+    handle = fs.openSync(claim, "wx");
+    ownsClaim = true;
+    fs.writeFileSync(handle, JSON.stringify({ pid }));
+    fs.closeSync(handle);
+    handle = undefined;
+  } catch (error) {
+    if (handle !== undefined) fs.closeSync(handle);
+    if (ownsClaim) fs.rmSync(claim, { force: true });
+    if (errorCode(error) === "EEXIST") return false;
+    if (errorCode(error) === "ENOENT") return true;
+    throw error;
+  }
+
+  let removed = false;
+  try {
+    let stale = false;
+    try {
+      const owner = JSON.parse(fs.readFileSync(path.join(lockDir, "owner.json"), "utf8"));
+      stale = !processIsAlive(owner.pid);
+    } catch (error) {
+      stale = Date.now() - observedMtime > orphanedAfterMs;
+    }
+    if (!stale) return false;
+    fs.rmSync(lockDir, { recursive: true, force: true });
+    removed = true;
+    return true;
+  } finally {
+    if (!removed) fs.rmSync(claim, { force: true });
+  }
+};
+
+/**
  * @param {string} lockDir
  * @param {{timeoutMs?: number, pollMs?: number, pid?: number}} [options]
  */
@@ -39,25 +90,7 @@ const acquireDirectoryLock = (
       return { lockDir, token };
     } catch (error) {
       if (errorCode(error) !== "EEXIST") throw error;
-      try {
-        const owner = JSON.parse(fs.readFileSync(path.join(lockDir, "owner.json"), "utf8"));
-        if (!processIsAlive(owner.pid)) {
-          fs.rmSync(lockDir, { recursive: true, force: true });
-          continue;
-        }
-      } catch (ownerError) {
-        // A competing process may still be writing its owner file. If it died
-        // between mkdir and write, reclaim the ownerless directory promptly.
-        try {
-          if (Date.now() - fs.statSync(lockDir).mtimeMs > 2_000) {
-            fs.rmSync(lockDir, { recursive: true, force: true });
-            continue;
-          }
-        } catch (statError) {
-          if (errorCode(statError) === "ENOENT") continue;
-          throw statError;
-        }
-      }
+      if (tryReclaimDirectoryLock(lockDir, { pid })) continue;
       if (Date.now() >= deadline)
         throw new Error(`Timed out waiting for E2E staging lock: ${lockDir}`, { cause: error });
       sleepSync(pollMs);
@@ -165,4 +198,5 @@ module.exports = {
   releaseDirectoryLock,
   removeOwnedProfiles,
   removeWithRetries,
+  tryReclaimDirectoryLock,
 };
