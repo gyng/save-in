@@ -125,7 +125,7 @@ describe("settings transfer", () => {
       '<button id="settings-export"></button><textarea id="export-target" hidden></textarea>';
     const getStored = vi.fn(async () => ({ enabled: true }));
     setupSettingsTransfer({
-      getSchema: Promise.resolve({ keys: [{ name: "enabled" }] }),
+      getSchema: () => Promise.resolve({ keys: [{ name: "enabled" }] }),
       getStored,
       apply: vi.fn(),
       restore: vi.fn(),
@@ -143,7 +143,7 @@ describe("settings transfer", () => {
     const alert = vi.spyOn(window, "alert").mockImplementation(() => {});
     const apply = vi.fn();
     setupSettingsTransfer({
-      getSchema: Promise.resolve({ keys: [] }),
+      getSchema: () => Promise.resolve({ keys: [] }),
       getStored: vi.fn(),
       apply,
       restore: vi.fn(),

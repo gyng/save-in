@@ -3,7 +3,7 @@ import { isStringKeyedRecord } from "../shared/message-protocol.ts";
 type OptionSchema = { keys: Array<{ name: string }> };
 
 type SettingsTransferDependencies = {
-  getSchema: Promise<OptionSchema>;
+  getSchema: () => Promise<OptionSchema>;
   getStored: (keys: string[]) => Promise<Record<string, unknown>>;
   apply: (config: Record<string, unknown>) => Promise<any>;
   restore: () => void;
@@ -11,7 +11,7 @@ type SettingsTransferDependencies = {
 
 export const setupSettingsTransfer = (dependencies: SettingsTransferDependencies) => {
   document.querySelector("#settings-export")?.addEventListener("click", () => {
-    void dependencies.getSchema.then(async (schema) => {
+    void dependencies.getSchema().then(async (schema) => {
       const loaded = await dependencies.getStored(schema.keys.map(({ name }) => name));
       const output = document.querySelector("#export-target");
       if (output instanceof HTMLTextAreaElement) {
@@ -22,7 +22,7 @@ export const setupSettingsTransfer = (dependencies: SettingsTransferDependencies
   });
 
   document.querySelector("#settings-import")?.addEventListener("click", () => {
-    void dependencies.getSchema.then(async () => {
+    void dependencies.getSchema().then(async () => {
       const json = window.prompt("Paste settings to import");
       if (!json) return;
       try {

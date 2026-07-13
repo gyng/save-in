@@ -18,48 +18,33 @@ import { refreshCounterPanel, setupCounterPanel } from "./counter-panel.ts";
 import { setupDebugLogPanel, updateDebugLog } from "./debug-log-panel.ts";
 import { renderVariablesPreview, setupVariablesPreview } from "./variables-preview.ts";
 import { setupResetOptions } from "./reset-options.ts";
-import { configureRoutingPorts } from "../routing/ports.ts";
 import { buildTree } from "../menus/menu-tree.ts";
 import { splitLines } from "../shared/util.ts";
 import { setupShortcutOptions } from "./shortcut-options.ts";
 import { setupCheckboxRows } from "./checkbox-rows.ts";
 import { setupSettingsTransfer } from "./settings-transfer.ts";
-import { COUNTER_KEY } from "../shared/storage-keys.ts";
-import {
-  assertSettingsUndoSafe,
-  markSavedNow,
-} from "./saved-indicator.ts";
+import { assertSettingsUndoSafe, markSavedNow } from "./saved-indicator.ts";
 import { showUnsavedChangesDialog } from "./unsaved-changes-dialog.ts";
 import { createLatestTaskRunner } from "./latest-task.ts";
+import {
+  createOptionsPersistence,
+  type JsonRecord,
+  type OptionSchema,
+} from "./options-persistence.ts";
+import { optionsRuntime } from "./options-runtime.ts";
+import { bootstrapOptionsPage } from "./options-bootstrap.ts";
 
-configureRoutingPorts({
-  getMessage: (key) => webExtensionApi.i18n.getMessage(key),
-  peekCounter: async () => {
-    const stored = await webExtensionApi.storage.local.get(COUNTER_KEY);
-    const value = stored[COUNTER_KEY];
-    return typeof value === "number" && Number.isSafeInteger(value) && value >= 0 ? value : 0;
-  },
-});
-
-document.addEventListener("DOMContentLoaded", () => {
+const setupLastDownloadState = () => {
   document.querySelector("#last-dl-url")?.classList.add("is-empty");
-});
-
-type JsonRecord = Record<string, any>;
-type OptionSchema = {
-  keys: Array<JsonRecord & { name: string; type: string }>;
-  types: { BOOL: string; VALUE: string };
 };
+
 type ValidationError = { message: string; error: string; warning?: boolean };
 type MenuPreviewTree = {
   items: JsonRecord[];
   errors: Array<ValidationError & { parentId?: string }>;
 };
 
-const getOptionsSchema = webExtensionApi.runtime
-  .sendMessage({ type: "OPTIONS_SCHEMA" })
-  .then((res) => res.body)
-  .catch(() => undefined);
+const getOptionsSchema = () => optionsRuntime.getSchema();
 
 // Latest interpolated variables from the most recent CHECK_ROUTES; read by
 // the once-bound #see-variables-btn handler (see updateErrors)
@@ -374,7 +359,6 @@ const renderVersionLabel = () => {
     })
     .catch(() => {});
 };
-document.addEventListener("DOMContentLoaded", renderVersionLabel);
 
 // More Options → External API: show the live extension id and a ready-to-paste
 // integration snippet, and PING the running background so the displayed version
@@ -427,83 +411,6 @@ const renderExternalApi = () => {
       }
     });
 };
-document.addEventListener("DOMContentLoaded", renderExternalApi);
-
-// More Options → Counter: show and reset the :counter: variable's value. The
-// options page shares storage.local with the background, so it reads/writes the
-// counter directly — no background round-trip needed.
-document.addEventListener("DOMContentLoaded", setupCounterPanel);
-
-// Live variable values, shown in the preview columns of the Downloads and
-// Dynamic tabs: each variable and its current interpolated value from the
-// last download (CHECK_ROUTES). Clicking a variable inserts it into the
-// panel's target editor; empty until there is a download to interpolate.
-document.addEventListener("DOMContentLoaded", setupVariablesPreview);
-
-document.addEventListener("DOMContentLoaded", setupDebugLogPanel);
-
-webExtensionApi.runtime.onMessage.addListener((message) => {
-  switch (message.type) {
-    case "DOWNLOADED":
-      updateErrors();
-      renderHistory();
-      renderVariablesPreview();
-      updateDebugLog();
-      refreshCounterPanel();
-      break;
-    default:
-      break;
-  }
-});
-
-const saveOptions = (e?: Event, scope?: string, scopeValue?: unknown): Promise<any> => {
-  if (e) {
-    e.preventDefault();
-  }
-  // Collect the raw form values, then let the background persist them.
-  return getOptionsSchema.then((schema: OptionSchema) => {
-    const config = collectOptionConfig(schema, scope);
-    // Manual editors may change again while getOptionsSchema resolves. Apply
-    // must persist the value that was visible when the user clicked, not a
-    // later edit that belongs to the next revision.
-    if (scope && typeof scopeValue !== "undefined") config[scope] = scopeValue;
-    const previous = Object.fromEntries(
-      Object.keys(config).map((name) => [name, lastKnownOptions[name]]),
-    );
-
-    // Route through APPLY_CONFIG so the background applies each option's onSave
-    // (schema functions don't survive the OPTIONS_SCHEMA message, so the page
-    // itself can't) and reloads options + menus. This is why saveOptions no
-    // longer trims paths/filenamePatterns locally — the background does it.
-    return webExtensionApi.runtime
-      .sendMessage({ type: "APPLY_CONFIG", body: { config } })
-      .then((response) => {
-        assertApplySucceeded(response);
-        const applied = response?.body?.applied || config;
-        const changes = Object.entries(applied)
-          .filter(([name, value]) => JSON.stringify(previous[name]) !== JSON.stringify(value))
-          .map(([name, after]) => ({ name, before: previous[name], after }));
-        Object.assign(lastKnownOptions, applied);
-        markSavedNow(changes, async () => {
-          assertSettingsUndoSafe(fieldSaveState.hasUnsaved(), anyManualEditorDirty());
-          const undoConfig = Object.fromEntries(changes.map(({ name, before }) => [name, before]));
-          const expected = Object.fromEntries(changes.map(({ name, after }) => [name, after]));
-          const undoResponse = await webExtensionApi.runtime.sendMessage({
-            type: "APPLY_CONFIG",
-            body: { config: undoConfig, expected },
-          });
-          assertApplySucceeded(undoResponse);
-          Object.assign(lastKnownOptions, undoConfig);
-          await restoreOptions();
-          markSavedNow();
-        });
-        return response;
-      });
-  });
-};
-
-const lastKnownOptions: JsonRecord = {};
-
 // Set UI elements' value/checked
 // Transforms applied to a stored value before it populates its options field.
 // These would belong on the option schema as onOptionsLoad, but the schema
@@ -519,7 +426,6 @@ const restoreOptionsHandler = (result: JsonRecord, schema: OptionSchema) => {
   const schemaWithValues = schema.keys.map((o) => Object.assign({}, o, { value: result[o.name] }));
 
   schemaWithValues.forEach((o) => {
-    lastKnownOptions[o.name] = typeof o.value === "undefined" ? o.default : o.value;
     const el = document.getElementById(o.name);
     if (!el) {
       return;
@@ -555,13 +461,22 @@ const restoreOptionsHandler = (result: JsonRecord, schema: OptionSchema) => {
   document.dispatchEvent(new Event("options-restored"));
 };
 
-const restoreOptions = () =>
-  getOptionsSchema.then((schema: OptionSchema) => {
-    const keys = schema.keys.map((o) => o.name);
-    return webExtensionApi.storage.local
-      .get(keys)
-      .then((loaded) => restoreOptionsHandler(loaded, schema));
-  });
+const optionsPersistence = createOptionsPersistence({
+  getSchema: getOptionsSchema,
+  getStored: (keys) => webExtensionApi.storage.local.get(keys),
+  apply: (config, expected) => optionsRuntime.apply(config, expected),
+  collect: collectOptionConfig,
+  assertApplied: assertApplySucceeded,
+  markSaved: markSavedNow,
+  assertUndoSafe: () => assertSettingsUndoSafe(fieldSaveState.hasUnsaved(), anyManualEditorDirty()),
+  onRestore: restoreOptionsHandler,
+});
+
+const restoreOptions = () => optionsPersistence.restore();
+const saveOptions = (e?: Event, scope?: string, scopeValue?: unknown): Promise<any> => {
+  e?.preventDefault();
+  return optionsPersistence.save(scope, scopeValue);
+};
 
 const addHelp = (el: Element) => {
   const helpFor = el instanceof HTMLElement ? el.dataset.helpFor : undefined;
@@ -584,7 +499,6 @@ const addHelp = (el: Element) => {
   });
 };
 
-document.addEventListener("DOMContentLoaded", restoreOptions);
 document.querySelectorAll(".help").forEach(addHelp);
 
 // On Chrome the options page opens in a tab (options_ui.open_in_tab), so
@@ -1061,8 +975,7 @@ document.querySelectorAll("[data-discard]").forEach((button: any) => {
 setupSettingsTransfer({
   getSchema: getOptionsSchema,
   getStored: (keys) => webExtensionApi.storage.local.get(keys),
-  apply: (config) =>
-    webExtensionApi.runtime.sendMessage({ type: "APPLY_CONFIG", body: { config } }),
+  apply: (config) => optionsRuntime.apply(config),
   restore: () => void restoreOptions(),
 });
 
@@ -1078,4 +991,26 @@ const waitForBrowserDetection = () => {
     updateOptionDependencies();
   }
 };
-waitForBrowserDetection();
+
+bootstrapOptionsPage({
+  document,
+  ready: [
+    setupLastDownloadState,
+    renderVersionLabel,
+    renderExternalApi,
+    setupCounterPanel,
+    setupVariablesPreview,
+    setupDebugLogPanel,
+    () => void restoreOptions(),
+  ],
+  configureRuntime: () => optionsRuntime.configure(),
+  addMessageListener: (listener) => webExtensionApi.runtime.onMessage.addListener(listener),
+  onDownloaded: () => {
+    updateErrors();
+    renderHistory();
+    renderVariablesPreview();
+    updateDebugLog();
+    refreshCounterPanel();
+  },
+  startBrowserDetection: waitForBrowserDetection,
+});
