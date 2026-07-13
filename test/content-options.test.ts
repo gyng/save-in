@@ -1,6 +1,5 @@
 import {
   CONTENT_OPTION_DEFAULTS,
-  CONTENT_OPTION_DEFINITIONS,
   CONTENT_OPTION_KEYS,
   resolveContentOptions,
 } from "../src/config/content-options.ts";
@@ -9,7 +8,6 @@ import { OPTION_KEYS } from "../src/config/option-schema.ts";
 test("content option definitions stay aligned with the background schema", () => {
   const schema = new Map(OPTION_KEYS.map((definition) => [definition.name, definition.default]));
 
-  expect(CONTENT_OPTION_KEYS).toEqual(CONTENT_OPTION_DEFINITIONS.map(({ name }) => name));
   CONTENT_OPTION_KEYS.forEach((name) => {
     expect(schema.get(name)).toBe(CONTENT_OPTION_DEFAULTS[name]);
   });

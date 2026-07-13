@@ -114,6 +114,33 @@ const warmBackground = () => {
   }
 };
 
+type ContentDownloadRequest = {
+  url: string;
+  info: { pageUrl: string; srcUrl: string; sourceKind?: PageSource["kind"] };
+};
+type DownloadLifecycle = { signal: AbortSignal; retryTimers: Set<number> };
+
+const sendRuntimeDownload = (
+  body: ContentDownloadRequest,
+  retries = 2,
+  lifecycle?: DownloadLifecycle,
+) => {
+  if (lifecycle?.signal.aborted) return;
+  try {
+    chrome.runtime.sendMessage({ type: "DOWNLOAD", body }, () => {
+      if (chrome.runtime.lastError && retries > 0) {
+        const timer = window.setTimeout(() => {
+          lifecycle?.retryTimers.delete(timer);
+          sendRuntimeDownload(body, retries - 1, lifecycle);
+        }, 300);
+        lifecycle?.retryTimers.add(timer);
+      }
+    });
+  } catch {
+    // Extension context invalidated while the page remained alive.
+  }
+};
+
 const setupClickToSave = (options: ContentOptions) => {
   const controller = new AbortController();
   const listenerOptions = { capture: true, signal: controller.signal };
@@ -124,37 +151,11 @@ const setupClickToSave = (options: ContentOptions) => {
 
   let active: Record<number, boolean> = {};
   const retryTimers = new Set<number>();
+  const downloadLifecycle = { signal: controller.signal, retryTimers };
 
   const eventKeyCode = (e: KeyboardEvent) => {
     const named: Record<string, number> = { Alt: 18, Control: 17, Shift: 16, Meta: 91 };
     return named[e.key] || e.keyCode;
-  };
-
-  // Retries cover the MV3 service worker still starting up on first send
-  const sendDownload = (source: string, retries = 2) => {
-    if (controller.signal.aborted) return;
-    try {
-      chrome.runtime.sendMessage(
-        {
-          type: "DOWNLOAD",
-          body: {
-            url: source,
-            info: { pageUrl: `${window.location}`, srcUrl: source },
-          },
-        },
-        () => {
-          if (chrome.runtime.lastError && retries > 0) {
-            const timer = window.setTimeout(() => {
-              retryTimers.delete(timer);
-              sendDownload(source, retries - 1);
-            }, 300);
-            retryTimers.add(timer);
-          }
-        },
-      );
-    } catch (e) {
-      // Extension context invalidated (extension reloaded)
-    }
   };
 
   window.addEventListener(
@@ -210,7 +211,11 @@ const setupClickToSave = (options: ContentOptions) => {
         if (source) {
           e.preventDefault();
           e.stopImmediatePropagation();
-          sendDownload(source);
+          sendRuntimeDownload(
+            { url: source, info: { pageUrl: `${window.location}`, srcUrl: source } },
+            2,
+            downloadLifecycle,
+          );
         }
       }
     },
@@ -306,9 +311,9 @@ try {
   chrome.runtime.onMessage.addListener((message) => {
     if (!["TOGGLE_SOURCE_PANEL", "SET_SOURCE_PANEL"].includes(message?.type)) return;
     const sendDownload = ({ url, kind }: PageSource) => {
-      chrome.runtime.sendMessage({
-        type: "DOWNLOAD",
-        body: { url, info: { pageUrl: `${window.location}`, srcUrl: url, sourceKind: kind } },
+      sendRuntimeDownload({
+        url,
+        info: { pageUrl: `${window.location}`, srcUrl: url, sourceKind: kind },
       });
     };
     const panelOptions = {

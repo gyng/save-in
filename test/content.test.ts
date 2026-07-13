@@ -145,6 +145,8 @@ describe("content.js initialisation", () => {
   const originalFetch = global.fetch;
 
   afterEach(() => {
+    document.getElementById("save-in-source-panel")?.remove();
+    vi.useRealTimers();
     global.chrome.runtime.sendMessage = originalSendMessage;
     global.chrome.runtime.onMessage.addListener = originalAddListener;
     global.chrome.storage.local.get = originalStorageGet;
@@ -362,6 +364,7 @@ describe("content.js initialisation", () => {
   });
 
   test("warms a sleeping background when Page Sources signals save intent", async () => {
+    vi.useFakeTimers();
     let runtimeListener: ((message: any) => void) | undefined;
     vi.resetModules();
     document.getElementById("save-in-source-panel")?.remove();
@@ -382,16 +385,38 @@ describe("content.js initialisation", () => {
     runtimeListener!({ type: "SET_SOURCE_PANEL", body: { open: true } });
     vi.mocked(global.chrome.runtime.sendMessage).mockClear();
 
-    document
+    const save = document
       .getElementById("save-in-source-panel")!
-      .shadowRoot!.querySelector<HTMLButtonElement>(".actions button:last-child")!
-      .dispatchEvent(new MouseEvent("pointerdown", { bubbles: true, button: 0 }));
+      .shadowRoot!.querySelector<HTMLButtonElement>(".actions button:last-child")!;
+    save.dispatchEvent(new MouseEvent("pointerdown", { bubbles: true, button: 0 }));
 
     expect(global.chrome.runtime.sendMessage).toHaveBeenCalledOnce();
     expect(global.chrome.runtime.sendMessage).toHaveBeenCalledWith(
       { type: "WAKE_WARM" },
       expect.any(Function),
     );
+
+    vi.mocked(global.chrome.runtime.sendMessage).mockClear();
+    global.chrome.runtime.sendMessage = vi.fn((message: any, callback?: () => void) => {
+      if (message.type === "DOWNLOAD") {
+        (global.chrome.runtime as any).lastError = { message: "worker starting" };
+        callback?.();
+        delete (global.chrome.runtime as any).lastError;
+      }
+    }) as any;
+    save.click();
+    expect(
+      vi
+        .mocked(global.chrome.runtime.sendMessage)
+        .mock.calls.filter(([message]) => (message as any)?.type === "DOWNLOAD"),
+    ).toHaveLength(1);
+
+    vi.advanceTimersByTime(600);
+    expect(
+      vi
+        .mocked(global.chrome.runtime.sendMessage)
+        .mock.calls.filter(([message]) => (message as any)?.type === "DOWNLOAD"),
+    ).toHaveLength(3);
   });
 
   test("waits for a complete snapshot before announcing a concurrently enabled panel", async () => {

@@ -2,7 +2,10 @@ import { CONFLICT_ACTION, FORBIDDEN_FILENAME_CHARS, SHORTCUT_TYPES } from "../sh
 import type { ConflictAction, ShortcutType } from "../shared/constants.ts";
 import { WEB_EXTENSION_CAPABILITIES } from "../platform/chrome-detector.ts";
 import { parseRules } from "../routing/router.ts";
-import { CONTENT_FEATURE_OPTION_DEFINITIONS, LINKS_OPTION_DEFINITION } from "./content-options.ts";
+import {
+  CONTENT_FEATURE_OPTION_DEFINITIONS,
+  LINKS_OPTION_DEFINITION,
+} from "./content-option-schema.ts";
 
 export const OPTION_TYPES = { BOOL: "BOOL", VALUE: "VALUE" } as const;
 
