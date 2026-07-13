@@ -33,15 +33,9 @@ export default defineConfig({
       exclude: [
         // vendored libraries
         "src/vendor/**",
-        // Rolldown bundle entries and the background composition/bootstrap
-        // are exercised through the real extension lifecycle in e2e.
+        // Rolldown bundle entries are exercised through the real extension
+        // lifecycle in e2e.
         "src/entries/**",
-        "src/background/main.ts",
-        // Browser/DOM event adapters are exercised end-to-end; their pure
-        // decision models and persistence services remain in unit coverage.
-        "src/content/source-panel.ts",
-        "src/downloads/filename-listener.ts",
-        "src/downloads/notification.ts",
         // Chrome offscreen-document bootstrap (message listener doing
         // fetch/createObjectURL/crypto.subtle in a separate document context):
         // exercised by the Chrome e2e sha256/offscreen path

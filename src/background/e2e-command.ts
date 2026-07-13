@@ -4,9 +4,12 @@ import { Download } from "../downloads/download.ts";
 import type { DownloadInfo, DownloadLaunchResult } from "../downloads/download-types.ts";
 import { Shortcut } from "../downloads/shortcut.ts";
 import { Path } from "../routing/path.ts";
+import type { CurrentTab } from "../platform/current-tab.ts";
 import { backgroundRuntime } from "./runtime.ts";
+import { handleContextMenuClick, type ContextMenuClickInfo } from "./menu-click.ts";
 
 export const BACKGROUND_E2E_COMMAND = "SAVE_IN_E2E_START_DOWNLOAD";
+export const BACKGROUND_E2E_CONTEXT_MENU_COMMAND = "SAVE_IN_E2E_CONTEXT_MENU_CLICK";
 
 type BackgroundE2EDownload = {
   path?: string;
@@ -23,20 +26,78 @@ type BackgroundE2ECommandRequest = {
   body: BackgroundE2EDownload;
 };
 
+type BackgroundE2EContextMenuRequest = {
+  type: typeof BACKGROUND_E2E_CONTEXT_MENU_COMMAND;
+  body: {
+    info: ContextMenuClickInfo;
+    tab?: Pick<CurrentTab, "id" | "title" | "url" | "incognito"> | undefined;
+  };
+};
+
 type BackgroundE2ECommandResponse = {
   type: typeof BACKGROUND_E2E_COMMAND;
   body: { status: "OK"; result: DownloadLaunchResult } | { status: "ERROR"; message: string };
 };
 
+type BackgroundE2EContextMenuResponse = {
+  type: typeof BACKGROUND_E2E_CONTEXT_MENU_COMMAND;
+  body: { status: "OK" } | { status: "ERROR"; message: string };
+};
+
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   value != null && typeof value === "object" && !Array.isArray(value);
+
+const hasOptionalString = (value: Record<string, unknown>, key: string): boolean =>
+  !(key in value) || typeof value[key] === "string";
+
+const hasOptionalNumber = (value: Record<string, unknown>, key: string): boolean =>
+  !(key in value) || typeof value[key] === "number";
+
+const hasOptionalBoolean = (value: Record<string, unknown>, key: string): boolean =>
+  !(key in value) || typeof value[key] === "boolean";
+
+const hasOptionalStringArray = (value: Record<string, unknown>, key: string): boolean =>
+  !(key in value) ||
+  (Array.isArray(value[key]) && value[key].every((item) => typeof item === "string"));
 
 const isBackgroundE2ECommand = (value: unknown): value is BackgroundE2ECommandRequest => {
   if (!isRecord(value) || value.type !== BACKGROUND_E2E_COMMAND || !isRecord(value.body)) {
     return false;
   }
-  return typeof value.body.suggestedFilename === "string";
+  const body = value.body;
+  return (
+    typeof body.suggestedFilename === "string" &&
+    ["path", "content", "url", "shortcutUrl", "pageUrl"].every((key) =>
+      hasOptionalString(body, key),
+    ) &&
+    hasOptionalStringArray(body, "modifiers")
+  );
 };
+
+const isBackgroundE2EContextMenuInfo = (value: unknown): value is ContextMenuClickInfo =>
+  isRecord(value) &&
+  (typeof value.menuItemId === "string" || typeof value.menuItemId === "number") &&
+  ["frameUrl", "mediaType", "srcUrl", "linkUrl", "pageUrl", "selectionText", "linkText"].every(
+    (key) => hasOptionalString(value, key),
+  ) &&
+  hasOptionalStringArray(value, "modifiers");
+
+const isBackgroundE2EContextMenuTab = (
+  value: unknown,
+): value is Pick<CurrentTab, "id" | "title" | "url" | "incognito"> =>
+  isRecord(value) &&
+  hasOptionalNumber(value, "id") &&
+  ["title", "url"].every((key) => hasOptionalString(value, key)) &&
+  hasOptionalBoolean(value, "incognito");
+
+const isBackgroundE2EContextMenuCommand = (
+  value: unknown,
+): value is BackgroundE2EContextMenuRequest =>
+  isRecord(value) &&
+  value.type === BACKGROUND_E2E_CONTEXT_MENU_COMMAND &&
+  isRecord(value.body) &&
+  isBackgroundE2EContextMenuInfo(value.body.info) &&
+  (value.body.tab === undefined || isBackgroundE2EContextMenuTab(value.body.tab));
 
 const resolveDownloadUrl = (request: BackgroundE2EDownload): string => {
   if (request.shortcutUrl) {
@@ -74,8 +135,31 @@ export const handleBackgroundE2ECommand = async (
   }
 };
 
+export const handleBackgroundE2EContextMenuCommand = async (
+  rawRequest: unknown,
+  dispatch: typeof handleContextMenuClick = handleContextMenuClick,
+): Promise<BackgroundE2EContextMenuResponse | null> => {
+  if (!isBackgroundE2EContextMenuCommand(rawRequest)) return null;
+  try {
+    await dispatch(rawRequest.body.info, rawRequest.body.tab);
+    return {
+      type: BACKGROUND_E2E_CONTEXT_MENU_COMMAND,
+      body: { status: "OK" },
+    };
+  } catch (error) {
+    return {
+      type: BACKGROUND_E2E_CONTEXT_MENU_COMMAND,
+      body: { status: "ERROR", message: error instanceof Error ? error.message : String(error) },
+    };
+  }
+};
+
 export const registerBackgroundE2ECommand = (): void => {
   webExtensionApi.runtime.onMessage.addListener((rawRequest, _sender, sendResponse) => {
+    if (isBackgroundE2EContextMenuCommand(rawRequest)) {
+      void handleBackgroundE2EContextMenuCommand(rawRequest).then(sendResponse);
+      return true;
+    }
     if (!isBackgroundE2ECommand(rawRequest)) return;
     void handleBackgroundE2ECommand(rawRequest).then(sendResponse);
     return true;

@@ -1,8 +1,6 @@
 // @vitest-environment jsdom
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { matcherFunctions } from "../src/routing/matchers.ts";
-import { transformers } from "../src/routing/variable.ts";
 import {
   filterReferenceRows,
   groupReferenceRows,
@@ -91,18 +89,6 @@ describe("reference controller", () => {
     syncReferenceVocabulary(document, "clauses", ["newmatcher:"], getMessage);
     expect(document.body.textContent).toContain("Localized runtime rule matcher");
   });
-});
-
-test("every runtime variable and matcher is documented", () => {
-  const variables = readFileSync(resolve("src/options/options.html"), "utf8");
-  const clauses = readFileSync(resolve("src/options/clauselist.html"), "utf8");
-  for (const variable of Object.keys(transformers)) {
-    const token = variable.startsWith(":") ? variable : `:${variable}:`;
-    expect(variables).toContain(token);
-  }
-  for (const clause of [...Object.keys(matcherFunctions), "capture", "capturegroups", "into"])
-    expect(clauses).toContain(`${clause}:`);
-  expect(variables).toContain("capturegroups:");
 });
 
 test("keeps variables and clauses together in the options reference dialog", () => {

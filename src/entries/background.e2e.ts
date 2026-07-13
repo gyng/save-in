@@ -1,5 +1,5 @@
-// Browser-test entry: production startup plus one same-extension command used
-// to seed an internal pipeline path. Everything else uses production messages.
+// Browser-test entry: production startup plus same-extension commands used to
+// drive internal browser boundaries. Store builds contain no test control.
 import "./background.ts";
 import { registerBackgroundE2ECommand } from "../background/e2e-command.ts";
 

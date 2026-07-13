@@ -11,6 +11,7 @@ import firefox from "../scripts/lib/firefox.js";
 import { inBackgroundContext } from "./background-context.mjs";
 import {
   runContentDispositionScenario,
+  runContextMenuScenario,
   runFailedDownloadLogScenario,
   runRoutingScenario,
   runShortcutScenario,
@@ -65,7 +66,7 @@ const waitForDownloads = async (filenamePart, deadlineMs = 8000) =>
           const downloads = await browser.downloads.search({});
           const rows = downloads
             .filter((x) => x.filename.includes(${JSON.stringify(filenamePart)}))
-            .map((x) => ({ state: x.state, filename: x.filename }));
+            .map((x) => ({ id: x.id, state: x.state, filename: x.filename }));
           if (rows.some((x) => x.state === "complete")) {
             return JSON.stringify(rows);
           }
@@ -169,7 +170,8 @@ afterAll(async () => {
     } catch (error) {
       cleanupError = error;
     }
-    if (!suiteFailed && session.logPath) fs.rmSync(session.logPath, { force: true });
+    if (!suiteFailed && !cleanupError && session.logPath)
+      fs.rmSync(session.logPath, { force: true });
     if (cleanupError) throw cleanupError;
   }
 });
@@ -226,6 +228,10 @@ test("download completes through the real pipeline", async () => {
   expect(fs.readFileSync(downloads[0].filename, "utf8")).toBe("firefox e2e content");
 });
 
+test("production context-menu handler completes a selection save", async () => {
+  await runContextMenuScenario({ evaluate: evalBackground, waitForDownloads });
+});
+
 test("Save In filenames match live Firefox Content-Disposition behavior", async () => {
   await runContentDispositionScenario({
     evaluate: evalBackground,
@@ -236,31 +242,34 @@ test("Save In filenames match live Firefox Content-Disposition behavior", async 
 
 test("success notifications are created by the real download listener", async () => {
   try {
-    await evalBackground(`browser.storage.local.set({ notifyOnSuccess: true, notifyDuration: 0 })
-      .then(() => api.reset()).then(() => "configured")`);
+    await evalBackground(`browser.notifications.getAll()
+      .then((rows) => Promise.all(Object.keys(rows).map((id) => browser.notifications.clear(id))))
+      .then(() => browser.storage.local.set({ notifyOnSuccess: true, notifyDuration: 0 }))
+      .then(() => api.reset())
+      .then(() => "configured")`);
 
     await evalBackground(`api.startDownload({
       content: "firefox notification content",
       suggestedFilename: "ff-notification-e2e.txt",
       pageUrl: "https://example.com/",
     }).then(() => "started")`);
-    await waitForDownloads("ff-notification-e2e");
+    const downloads = await waitForDownloads("ff-notification-e2e");
+    const download = downloads.find((row) => row.state === "complete");
+    expect(download?.id).toEqual(expect.any(Number));
+    const notificationId = String(download.id);
 
-    const rows = JSON.parse(
-      await evalBackground(`(async () => {
-        const deadline = Date.now() + 8000;
-        for (;;) {
-          const notifications = await browser.notifications.getAll();
-          if (Object.keys(notifications).length || Date.now() >= deadline) {
-            return JSON.stringify(notifications);
-          }
-          await new Promise((resolve) => setTimeout(resolve, 100));
-        }
-      })()`),
+    const notification = await poll(
+      async () => {
+        const rows = JSON.parse(
+          await evalBackground(
+            `browser.notifications.getAll().then((rows) => JSON.stringify(rows))`,
+          ),
+        );
+        return rows[notificationId] || null;
+      },
+      { description: "success notification for ff-notification-e2e" },
     );
-    expect(Object.values(rows).some((row) => row.message.includes("ff-notification-e2e"))).toBe(
-      true,
-    );
+    expect(notification).toBeTruthy();
   } finally {
     await evalBackground(`browser.notifications.getAll()
       .then((rows) => Promise.all(Object.keys(rows).map((id) => browser.notifications.clear(id))))
@@ -320,6 +329,14 @@ test("routing rules rename and route the download", async () => {
 });
 
 test("message-driven downloads work and never inherit a stale route", async () => {
+  // Establish the stale-state precondition locally so this regression remains
+  // meaningful when the test is isolated or reordered.
+  await evalBackground(
+    `browser.storage.local.set({
+      filenamePatterns: "filename: routeme\\ninto: routed/renamed-:filename:",
+    }).then(() => api.reset())`,
+  );
+
   await evalBackground(
     `api.downloadMessage({
         content: "ff message download",
@@ -331,9 +348,11 @@ test("message-driven downloads work and never inherit a stale route", async () =
         sender: { tab: { id: 1, title: "E2E Tab" } },
       }).then(() => "started")`,
   );
-  expect(
-    (await waitForDownloads("ff-msg-download")).map((/** @type {any} */ x) => x.state),
-  ).toEqual(["complete"]);
+  const downloads = await waitForDownloads("ff-msg-download");
+  expect(downloads).toHaveLength(1);
+  expect(downloads.map((/** @type {any} */ x) => x.state)).toEqual(["complete"]);
+  expect(downloads[0].filename).toMatch(/ff-msg-download\.txt$/);
+  expect(downloads[0].filename).not.toMatch(/routed/);
 });
 
 test("shortcut files keep their extension and redirect content", async () => {

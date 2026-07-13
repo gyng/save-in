@@ -147,6 +147,20 @@ describe("guided input", () => {
     expect(pattern.value).toBe("");
     expect(add.disabled).toBe(true);
   });
+
+  test("defaults new extension rules to URL-path matching", async () => {
+    global.browser.runtime.sendMessage = () =>
+      Promise.resolve({ body: { matchers: ["fileext", "urlfileext", "pagedomain"] } });
+
+    RuleBuilder.setupGuidedInput();
+
+    await vi.waitFor(() =>
+      expect(document.querySelectorAll("#rule-builder-matcher option")).toHaveLength(3),
+    );
+    expect(document.querySelector<HTMLSelectElement>("#rule-builder-matcher")?.value).toBe(
+      "urlfileext",
+    );
+  });
 });
 
 describe("template list rendering", () => {

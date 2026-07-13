@@ -1,6 +1,3 @@
-// @vitest-environment jsdom
-
-import { RuleBuilder } from "../src/options/rule-builder.ts";
 import { RULE_TEMPLATES } from "../src/options/rule-templates.ts";
 import { applyConfigSerialized } from "../src/background/config-apply.ts";
 import { Path } from "../src/routing/path.ts";
@@ -379,27 +376,6 @@ describe("matcher authoring and validation", () => {
         info,
       ),
     ).toBe("pdf/:filename:");
-  });
-
-  test("guided input defaults new extension rules to URL-path matching", async () => {
-    document.body.innerHTML = `
-      <textarea id="filenamePatterns"></textarea>
-      <select id="rule-builder-matcher"></select>
-      <input id="rule-builder-pattern">
-      <input id="rule-builder-into">
-      <button id="rule-builder-add"></button>
-    `;
-    global.browser.runtime.sendMessage = () =>
-      Promise.resolve({ body: { matchers: ["fileext", "urlfileext", "pagedomain"] } });
-
-    RuleBuilder.setupGuidedInput();
-
-    await vi.waitFor(() =>
-      expect(document.querySelectorAll("#rule-builder-matcher option")).toHaveLength(3),
-    );
-    expect(document.querySelector<HTMLSelectElement>("#rule-builder-matcher")?.value).toBe(
-      "urlfileext",
-    );
   });
 
   test("trace expansion preserves production source URL semantics", async () => {

@@ -12,6 +12,7 @@ import chrome from "../scripts/lib/chrome.js";
 import { inBackgroundContext } from "./background-context.mjs";
 import {
   runContentDispositionScenario,
+  runContextMenuScenario,
   runFailedDownloadLogScenario,
   runRoutingScenario,
   runShortcutScenario,
@@ -121,7 +122,7 @@ const waitForDownloads = (regex, deadlineMs = 8000) =>
     async () => {
       const json = await evalSW(
         `browser.downloads.search({ filenameRegex: ${JSON.stringify(regex)} })
-        .then((d) => JSON.stringify(d.map((x) => ({ state: x.state, filename: x.filename }))))`,
+        .then((d) => JSON.stringify(d.map((x) => ({ id: x.id, state: x.state, filename: x.filename }))))`,
       );
       const rows = JSON.parse(json);
       return rows.some((/** @type {any} */ r) => r.state === "complete") ? rows : null;
@@ -197,7 +198,9 @@ afterAll(async () => {
   } catch (error) {
     failures.push(error);
   }
-  if (!suiteFailed && browserLogPath) fs.rmSync(browserLogPath, { force: true });
+  if (!suiteFailed && failures.length === 0 && browserLogPath) {
+    fs.rmSync(browserLogPath, { force: true });
+  }
   if (failures.length) throw new AggregateError(failures, "Chrome E2E cleanup failed");
 });
 
@@ -219,8 +222,8 @@ test("service worker initialises cleanly", async () => {
   const noObjectUrl = await evalWorker(`typeof URL.createObjectURL !== "function"`);
 
   expect(state.browser).toBe("CHROME");
+  expect(state.capabilities.tabContextMenus).toEqual(expect.any(Boolean));
   expect(state.capabilities).toMatchObject({
-    tabContextMenus: true,
     accessKeys: true,
     downloadFilenameSuggestion: true,
     downloadDeltaFilename: true,
@@ -465,6 +468,10 @@ test("download completes through the real pipeline with session tracking", async
   expect(fs.readFileSync(file, "utf8")).toBe("e2e smoke test content");
 });
 
+test("production context-menu handler completes a selection save", async () => {
+  await runContextMenuScenario({ evaluate: evalSW, waitForDownloads });
+});
+
 test("Save In filenames match live Chrome Content-Disposition behavior", async () => {
   await runContentDispositionScenario({
     evaluate: evalSW,
@@ -475,29 +482,38 @@ test("Save In filenames match live Chrome Content-Disposition behavior", async (
 
 test("success notifications are created by the real download listener", async () => {
   try {
-    await evalSW(`browser.storage.local.set({ notifyOnSuccess: true, notifyDuration: 0 })
-      .then(() => api.reset()).then(() => "configured")`);
+    const beforeLog = Number(
+      await evalSW(`browser.notifications.getAll()
+        .then((rows) => Promise.all(Object.keys(rows).map((id) => browser.notifications.clear(id))))
+        .then(() => browser.storage.local.set({ notifyOnSuccess: true, notifyDuration: 0 }))
+        .then(() => api.reset())
+        .then(() => api.logs())
+        .then((log) => log.length)`),
+    );
 
     await evalSW(`api.startDownload({
       content: "notification e2e content",
       suggestedFilename: "notification-e2e.txt",
       pageUrl: "https://example.com/",
     }).then(() => "started")`);
-    await waitForDownloads("notification-e2e");
+    const downloads = await waitForDownloads("notification-e2e");
+    const download = downloads.find((row) => row.state === "complete");
+    expect(download?.id).toEqual(expect.any(Number));
+    const notificationId = String(download.id);
 
-    const notifications = await poll(
+    const notification = await poll(
       async () => {
         const rows = JSON.parse(
           await evalSW(`browser.notifications.getAll().then((rows) => JSON.stringify(rows))`),
         );
-        return Object.keys(rows).length ? rows : null;
+        return rows[notificationId] || null;
       },
-      { description: "success notification" },
+      { description: "success notification for notification-e2e" },
     );
-    expect(Object.keys(notifications)).toHaveLength(1);
+    expect(notification).toBeTruthy();
     const failures = JSON.parse(
       await evalSW(
-        `api.logs().then((log) => JSON.stringify(log.filter((e) => e.message === "notification create failed")))`,
+        `api.logs().then((log) => JSON.stringify(log.slice(${beforeLog}).filter((e) => e.message === "notification create failed")))`,
       ),
     );
     expect(failures).toEqual([]);

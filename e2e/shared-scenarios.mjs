@@ -65,6 +65,37 @@ export const runRoutingScenario = async ({ evaluate, waitForDownloads, content }
 };
 
 /**
+ * Exercises menu-state construction and the production context-menu handler
+ * through download completion. Native browser-chrome menu selection remains a
+ * manual release check because CDP and Firefox RDP cannot operate that UI.
+ *
+ * @param {{
+ *   evaluate: (expression: string) => Promise<any>,
+ *   waitForDownloads: (filename: string) => Promise<any[]>,
+ * }} adapters
+ */
+export const runContextMenuScenario = async ({ evaluate, waitForDownloads }) => {
+  await evaluate(`browser.storage.local.set({ paths: "e2e/context-menu", selection: true })
+      .then(() => api.reset())
+      .then(() => api.clickContextMenu({
+        info: {
+          menuItemId: "save-in-0",
+          selectionText: "context menu content",
+          pageUrl: "https://example.com/",
+        },
+        tab: { id: 1, title: "context-menu-smoke", url: "https://example.com/" },
+      })).then(() => "clicked")`);
+
+  const downloads = await waitForDownloads("context-menu-smoke");
+  expect(downloads).toHaveLength(1);
+  expect(downloads[0].state).toBe("complete");
+  expect(downloads[0].filename).toMatch(
+    /e2e[\\/]context-menu[\\/]context-menu-smoke\.selection\.txt$/,
+  );
+  expect(fs.readFileSync(downloads[0].filename, "utf8")).toBe("context menu content");
+};
+
+/**
  * @param {{
  *   evaluate: (expression: string) => Promise<any>,
  *   waitForDownloads: (filename: string) => Promise<any[]>,
@@ -97,13 +128,15 @@ export const runFailedDownloadLogScenario = async ({
   waitForLog,
   filename = "unreachable.bin",
 }) => {
+  const baseline = Number(await evaluate(`api.logs().then((log) => log.length)`));
   await evaluate(`api.startDownload({
     url: "http://127.0.0.1:1/${filename}",
     suggestedFilename: ${JSON.stringify(filename)},
     pageUrl: "https://example.com/",
   }).then(() => "started")`);
   const entries = await waitForLog(
-    `(entry) => entry.message === "download failed" || entry.message === "downloads.download failed"`,
+    `(entry, index) => index >= ${baseline} &&
+      (entry.message === "download failed" || entry.message === "downloads.download failed")`,
   );
   expect(entries.length).toBeGreaterThanOrEqual(1);
 };

@@ -1,6 +1,6 @@
 const installBackgroundHelpers = () => {
-  const browserApi = /** @type {any} */ (Reflect.get(globalThis, "browser"));
   const chromeApi = /** @type {any} */ (Reflect.get(globalThis, "chrome"));
+  const browserApi = /** @type {any} */ (Reflect.get(globalThis, "browser") || chromeApi);
   /** @param {any} message */
   const send = (message) => browserApi.runtime.sendMessage(message);
   const api = {
@@ -22,6 +22,11 @@ const installBackgroundHelpers = () => {
       send({ type: "SAVE_IN_E2E_START_DOWNLOAD", body }).then((/** @type {any} */ response) => {
         if (response?.body?.status === "OK") return response.body.result;
         throw new Error(response?.body?.message || "E2E download command failed");
+      }),
+    clickContextMenu: (/** @type {any} */ body) =>
+      send({ type: "SAVE_IN_E2E_CONTEXT_MENU_CLICK", body }).then((/** @type {any} */ response) => {
+        if (response?.body?.status === "OK") return response.body;
+        throw new Error(response?.body?.message || "E2E context-menu command failed");
       }),
     resetCounter: () => browserApi.storage.local.set({ "save-in-counter": 0 }),
     peekCounter: () =>

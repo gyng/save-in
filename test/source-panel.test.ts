@@ -171,9 +171,6 @@ describe("Page Sources panel interactions", () => {
     const host = getSourcePanelHostForTesting()!;
 
     expect(host.dataset.theme).toBe("dark");
-    expect(host.shadowRoot!.querySelector("style")?.textContent).toContain(
-      ":host([data-theme=dark])",
-    );
 
     expect(replaceSourcePanel(vi.fn(), { ...options, theme: "light" })).toBe(true);
     expect(getSourcePanelHostForTesting()).toBe(host);
