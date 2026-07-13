@@ -3,7 +3,7 @@ import { webExtensionApi } from "../platform/web-extension-api.ts";
 // https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/notifications
 
 import { downloadsState, sessionWriteState } from "./state.ts";
-import { getDownload, hydrateDownloads, mergeDownload } from "./download-state.ts";
+import { getDownload, mergeDownload } from "./download-state.ts";
 import type { DownloadRecord } from "./download-state.ts";
 import { getSession, normalizeSessionCounter, updateSession } from "../shared/session-state.ts";
 import { options } from "../config/options-data.ts";
@@ -21,6 +21,12 @@ import {
 } from "./browser-downloads.ts";
 import { extensionSessionStorage } from "../platform/storage-areas.ts";
 import { downloadPorts } from "./ports.ts";
+import {
+  buildSuccessNotificationTitle,
+  getDownloadFailure,
+  isRetryableDownloadFailure,
+} from "./notification-model.ts";
+export { notifierReady } from "./notification-recovery.ts";
 
 const INFO_ICON_URL = "icons/notification-info.svg";
 const SUCCESS_ICON_URL = "icons/notification-success.svg";
@@ -59,72 +65,12 @@ const createNotification = (
 type ExpectedDownload = { url?: string; record?: Partial<DownloadRecord> };
 const expectedDownloads: ExpectedDownload[] = [];
 
-// A leftover siPendingDownloads (persisted before downloads.download) lets a
-// download that was in flight when the worker died recover its notification.
-// After this grace window a stale count is cleared so it can't adopt an
-// unrelated download — see the startup reconciliation below.
-const PENDING_RECOVERY_GRACE_MS = 10000;
-
+// Recovery of adopted and pending records is owned by notification-recovery.ts.
 const mergeTrackedDownload = (downloadId: number, partial: Partial<DownloadRecord>) =>
   mergeDownload(downloadsState, sessionWriteState, extensionSessionStorage, downloadId, partial);
 
 const getTrackedDownload = (downloadId: number) =>
   getDownload(downloadsState, extensionSessionStorage, downloadId);
-
-// SessionState (the storage.session wrapper) lives in session-state.js so
-// Notifier, Download and Log share one implementation.
-
-// Reconcile adopted downloads on startup: MV3 service worker globals do not
-// survive termination, so the records are rehydrated from storage.session
-// (`hydrateDownloads`). Any adopted download that already completed or
-// vanished while the worker was dead will never fire another onChanged, so its
-// adoption is cleared — otherwise it would leak. A still-live download keeps its
-// adoption and recovers its completion/failure notification when it finishes.
-const reconcileAdoptedDownloads = async () => {
-  await hydrateDownloads(downloadsState, extensionSessionStorage);
-  const adoptedIds: number[] = [];
-  downloadsState.records.forEach((record, id) => {
-    if (record && record.adopted) {
-      adoptedIds.push(id);
-    }
-  });
-
-  await Promise.all(
-    adoptedIds.map(async (id) => {
-      try {
-        const items = await webExtensionApi.downloads.search({ id });
-        const item = items && items[0];
-        if (!item || item.state === "complete") {
-          await mergeTrackedDownload(id, { adopted: false });
-        }
-      } catch {
-        await mergeTrackedDownload(id, { adopted: false });
-      }
-    }),
-  );
-};
-
-// Reconcile the pending-download counter on startup: honor a leftover count
-// briefly (a download in flight when the worker died fires onCreated within
-// seconds), then subtract whatever of it remains so a stale leak — a requested
-// download that never actually created — can't later adopt an unrelated
-// download as ours.
-const reconcilePendingDownloads = async () => {
-  const res = await getSession<number>(extensionSessionStorage, "siPendingDownloads");
-  const staleAtStartup = normalizeSessionCounter(res.siPendingDownloads);
-  if (staleAtStartup > 0) {
-    setTimeout(() => {
-      updateSession<number>(sessionWriteState, extensionSessionStorage, "siPendingDownloads", (n) =>
-        Math.max(0, normalizeSessionCounter(n) - staleAtStartup),
-      );
-    }, PENDING_RECOVERY_GRACE_MS);
-  }
-};
-
-export const notifierReady = Promise.all([
-  reconcileAdoptedDownloads(),
-  reconcilePendingDownloads(),
-]);
 
 export const Notifier = {
   createExtensionNotification: (title: string | null, message?: string | null, error?: unknown) => {
@@ -155,26 +101,7 @@ export const Notifier = {
 
   // Returns Firefox/Chrome error deltas ({ current }) or a boolean
   /** @returns {any} */
-  isDownloadFailure: (downloadDelta: any, isChrome: boolean): any => {
-    // CHROME
-    // Chrome's DownloadDelta contains different information from Firefox's
-    let failed = false;
-
-    if (isChrome) {
-      failed = downloadDelta.error;
-    } else {
-      // Firefox reports pauses and resumable network stalls as
-      // state:"interrupted" too — neither is a real failure, so treating them
-      // as one produced a spurious "failed" toast (§8.4, #28). Only a terminal
-      // (not paused, not resumable) interruption counts.
-      const paused = downloadDelta.paused && downloadDelta.paused.current === true;
-      const resumable = downloadDelta.canResume && downloadDelta.canResume.current === true;
-      const interrupted = downloadDelta.state && downloadDelta.state.current === "interrupted";
-      failed = !paused && !resumable && (downloadDelta.error || interrupted);
-    }
-
-    return failed;
-  },
+  isDownloadFailure: getDownloadFailure,
 
   // Handlers are registered once at load (bottom of this file): MV3 workers
   // must register listeners synchronously or they miss the very event that
@@ -504,7 +431,7 @@ export const Notifier = {
         // Automatic fallback chain: network/server failures get one retry
         // through the background fetch before the user sees a failure
         const errorName = (failed && failed.current) || "";
-        const canRetry = /^(NETWORK_|SERVER_)/.test(errorName);
+        const canRetry = isRetryableDownloadFailure(failed);
 
         if (canRetry) {
           const retried = await DownloadRetry.retry(downloadDelta.id);
@@ -529,24 +456,13 @@ export const Notifier = {
       ) {
         logPort.add("download complete", { id: downloadDelta.id, filename });
         const res = await webExtensionApi.downloads.search({ id: downloadDelta.id });
-        let filesize = "";
         const mime = res.length > 0 && res[0].mime;
-
-        if (res.length > 0 && res[0].fileSize) {
-          const bytes = res[0].fileSize;
-          if (bytes >= 1000 * 1000) {
-            const mb = (res[0].fileSize / 1000 / 1000).toFixed(1);
-            filesize = `${mb} MB`;
-          } else if (bytes >= 1000) {
-            const kb = (res[0].fileSize / 1000).toFixed(1);
-            filesize = `${kb} KB`;
-          } else {
-            filesize = `${bytes} B`;
-          }
-        }
-
         const successfulLabel = webExtensionApi.i18n.getMessage("notificationSuccessTitle");
-        const title = [successfulLabel, filesize, mime].filter(Boolean).join(" · ");
+        const title = buildSuccessNotificationTitle(
+          successfulLabel,
+          res.length > 0 ? res[0].fileSize : undefined,
+          mime,
+        );
 
         createNotification(
           String(downloadDelta.id),

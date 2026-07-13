@@ -1,0 +1,117 @@
+import type { HistoryEntry } from "../shared/history-types.ts";
+
+const isObject = (value: unknown): value is Record<string, unknown> =>
+  value != null && typeof value === "object" && !Array.isArray(value);
+
+const normalizeHistoryInfo = (value: unknown) => {
+  if (!isObject(value)) return undefined;
+  const info: NonNullable<HistoryEntry["info"]> = {};
+  for (const key of ["sourceUrl", "pageUrl", "context"] as const) {
+    if (typeof value[key] === "string") info[key] = value[key];
+  }
+  return Object.keys(info).length ? info : undefined;
+};
+
+const normalizeStringRecord = (value: unknown): Record<string, string> | undefined => {
+  if (!isObject(value)) return undefined;
+  const entries = Object.entries(value).filter(
+    (entry): entry is [string, string] => typeof entry[1] === "string",
+  );
+  return entries.length ? Object.fromEntries(entries) : undefined;
+};
+
+const LEGACY_DATE_ONLY = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+export const normalizeHistoryTimestamp = (value: string): string => {
+  const match = value.match(LEGACY_DATE_ONLY);
+  if (!match) return value;
+  const year = Number(match[1]);
+  const month = Number(match[2]) - 1;
+  const day = Number(match[3]);
+  const localMidnight = new Date(year, month, day);
+  if (
+    localMidnight.getFullYear() !== year ||
+    localMidnight.getMonth() !== month ||
+    localMidnight.getDate() !== day
+  ) {
+    return value;
+  }
+  return localMidnight.toISOString();
+};
+
+export const normalizeHistoryEntry = (value: unknown): HistoryEntry | null => {
+  if (!isObject(value) || (value.id !== undefined && typeof value.id !== "string")) return null;
+
+  const entry: HistoryEntry = {};
+  for (const key of ["id", "status", "timestamp", "initiatedAt", "url", "finalFullPath"] as const) {
+    if (typeof value[key] === "string") {
+      entry[key] =
+        key === "timestamp" || key === "initiatedAt"
+          ? normalizeHistoryTimestamp(value[key])
+          : value[key];
+    }
+  }
+  for (const key of ["routed", "observedBrowserDownload"] as const) {
+    if (typeof value[key] === "boolean") entry[key] = value[key];
+  }
+  if (
+    typeof value.mechanism === "string" &&
+    ["downloads-api", "fetch-downloads-api", "browser-download", "firefox-replacement"].includes(
+      value.mechanism,
+    )
+  ) {
+    entry.mechanism = value.mechanism as NonNullable<HistoryEntry["mechanism"]>;
+  }
+  if (typeof value.downloadId === "number" && Number.isSafeInteger(value.downloadId)) {
+    entry.downloadId = value.downloadId;
+  }
+  if (typeof value.fileSize === "number" && Number.isFinite(value.fileSize)) {
+    entry.fileSize = value.fileSize;
+  }
+  const info = normalizeHistoryInfo(value.info);
+  if (info) entry.info = info;
+  if (isObject(value.state)) {
+    const stateInfo = normalizeHistoryInfo(value.state.info);
+    if (stateInfo) entry.state = { info: stateInfo };
+  }
+  if (isObject(value.menu)) {
+    const menu: NonNullable<HistoryEntry["menu"]> = {};
+    for (const key of ["id", "title", "path"] as const) {
+      if (typeof value.menu[key] === "string") menu[key] = value.menu[key];
+    }
+    if (Object.keys(menu).length) entry.menu = menu;
+  }
+  const variables = normalizeStringRecord(value.variables);
+  if (variables) entry.variables = variables;
+  return entry;
+};
+
+export const normalizeHistory = (value: unknown): HistoryEntry[] =>
+  Array.isArray(value)
+    ? value.map(normalizeHistoryEntry).filter((entry): entry is HistoryEntry => entry != null)
+    : [];
+
+export const hasLegacyDateOnlyTimestamp = (value: unknown): boolean =>
+  Array.isArray(value) &&
+  value.some(
+    (entry) =>
+      isObject(entry) &&
+      [entry.timestamp, entry.initiatedAt].some(
+        (timestamp) =>
+          typeof timestamp === "string" && normalizeHistoryTimestamp(timestamp) !== timestamp,
+      ),
+  );
+
+export const migrateLegacyHistoryTimestamps = (value: unknown): unknown[] =>
+  Array.isArray(value)
+    ? value.map((entry) => {
+        if (!isObject(entry)) return entry;
+        const migrated = { ...entry };
+        for (const key of ["timestamp", "initiatedAt"] as const) {
+          if (typeof migrated[key] === "string") {
+            migrated[key] = normalizeHistoryTimestamp(migrated[key]);
+          }
+        }
+        return migrated;
+      })
+    : [];

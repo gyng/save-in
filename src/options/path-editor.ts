@@ -1,5 +1,3 @@
-import { webExtensionApi } from "../platform/web-extension-api.ts";
-
 // Directory-list editing helpers for the options page:
 // - an insert menu ("+ Add") for the paths textarea: variables (with their
 //   current values from the last download), separators, submenu lines
@@ -9,52 +7,25 @@ import { webExtensionApi } from "../platform/web-extension-api.ts";
 // serializes back to it and fires the normal input/autosave pipeline.
 
 import { SPECIAL_DIRS } from "../shared/constants.ts";
-import { compareClauses, CLAUSE_GROUPS, clauseGroup } from "./vocabulary-groups.ts";
+import { setupPathInsertMenu } from "./path-editor-insert-menu.ts";
+import {
+  getPathAlias,
+  parsePathLine,
+  pathLinesToRows,
+  pathRowsToLines,
+  serializePathLine,
+  setPathAlias,
+  type PathRow,
+} from "./path-editor-model.ts";
 
-type PathRow = { depth: number; body: string; comment: string };
 type EditorOwner = { rebuildVisual?: () => void };
 const PathEditorHelpers = {
-  // "  >>i/cats // cute (alias: Cats)" -> { depth: 2, body: "i/cats",
-  // comment: "cute (alias: Cats)" }. Round-trips through serializeLine
-  // with whitespace normalized.
-  parseLine: (line: string): PathRow => {
-    const commentIdx = line.indexOf("//");
-    const rawBody = commentIdx === -1 ? line : line.slice(0, commentIdx);
-    const comment = commentIdx === -1 ? "" : line.slice(commentIdx + 2).trim();
-    const depthMatch = rawBody.trim().match(/^(>*)\s*(.*)$/);
-    return {
-      depth: depthMatch?.[1].length ?? 0,
-      body: depthMatch?.[2].trim() ?? "",
-      comment,
-    };
-  },
-
-  serializeLine: (row: PathRow): string =>
-    `${">".repeat(row.depth)}${row.body}${row.comment ? ` // ${row.comment}` : ""}`,
-
-  linesToRows: (text: string): PathRow[] =>
-    text
-      .split("\n")
-      .map((line) => line.trim())
-      .filter((line) => line.length > 0)
-      .map(PathEditorHelpers.parseLine),
-
-  rowsToLines: (rows: PathRow[]): string[] => rows.map(PathEditorHelpers.serializeLine),
-
-  getAlias: (comment: string): string => {
-    const match = (comment || "").match(/\(alias:\s*([^)]*)\)/);
-    return match ? match[1].trim() : "";
-  },
-
-  // Replaces (or appends/removes) the (alias: …) meta while leaving the
-  // rest of the comment untouched
-  setAlias: (comment: string, alias: string): string => {
-    const cleaned = (comment || "").replace(/\s*\(alias:\s*[^)]*\)/, "").trim();
-    if (!alias) {
-      return cleaned;
-    }
-    return cleaned ? `${cleaned} (alias: ${alias})` : `(alias: ${alias})`;
-  },
+  parseLine: parsePathLine,
+  serializeLine: serializePathLine,
+  linesToRows: pathLinesToRows,
+  rowsToLines: pathRowsToLines,
+  getAlias: getPathAlias,
+  setAlias: setPathAlias,
 
   // Replaces [start, end) with text as an undoable edit: execCommand is
   // deprecated but remains the only way a programmatic edit joins the
@@ -92,160 +63,8 @@ const PathEditorHelpers = {
     PathEditorHelpers.insertText(textarea, `${glue}${line}`, lineEnd, lineEnd);
   },
 
-  // An insertion menu for an editor. The menu targets the textarea named by
-  // data-insert-target and supports static line buttons or the clause list.
-  setupInsertMenu: (menuSelector: string): void => {
-    const menu = document.querySelector<HTMLDetailsElement>(menuSelector);
-    if (!menu) {
-      return;
-    }
-    const target = menu.dataset.insertTarget;
-    const textarea = target ? document.querySelector<HTMLTextAreaElement>(`#${target}`) : null;
-    const clauseFilter = menu.querySelector<HTMLInputElement>(".clause-preview-filter");
-    if (!textarea) {
-      return;
-    }
-
-    const closeMenu = () => {
-      menu.open = false;
-    };
-
-    const lineButtons = [...menu.querySelectorAll<HTMLElement>("[data-insert-line]")];
-    lineButtons
-      .toSorted((a, b) => compareClauses(a.dataset.insertLine || "", b.dataset.insertLine || ""))
-      .forEach((button) => button.parentElement?.append(button));
-    lineButtons.forEach((button) => {
-      button.addEventListener("click", () => {
-        PathEditorHelpers.insertLine(textarea, button.dataset.insertLine ?? "");
-        closeMenu();
-      });
-    });
-
-    if (clauseFilter) {
-      const clauseBody = menu.querySelector<HTMLTableSectionElement>(".clause-preview-table tbody");
-      const descriptions: Record<string, string> = {
-        into: "Set the destination path",
-        capture: "Choose regex capture source",
-        context: "Match how the save started",
-        menuindex: "Match the selected menu position",
-        comment: "Match menu-item metadata",
-        linktext: "Match visible link text",
-        selectiontext: "Match selected page text",
-        pageurl: "Match the page URL",
-        pagedomain: "Match the page hostname",
-        pagetitle: "Match the page title",
-        frameurl: "Match the frame URL",
-        sourceurl: "Match the file URL",
-        sourcedomain: "Match the file hostname",
-        filename: "Match the resolved filename",
-        naivefilename: "Match the URL-derived filename",
-        fileext: "Match the URL-derived extension",
-        urlfileext: "Match the URL-derived extension",
-        actualfileext: "Match the resolved extension",
-        mediatype: "Match image, video, or audio",
-      };
-      const clauseButtons: HTMLButtonElement[] = [];
-
-      const renderClauses = (matchers: string[]) => {
-        if (!clauseBody) return;
-        clauseBody.replaceChildren();
-        clauseButtons.length = 0;
-        const clauses = ["into", "capture", ...matchers].toSorted((a, b) =>
-          compareClauses(`${a}:`, `${b}:`),
-        );
-        CLAUSE_GROUPS.forEach((group) => {
-          const grouped = clauses.filter((clause) => clauseGroup(`${clause}:`) === group);
-          if (!grouped.length) return;
-          const headingRow = document.createElement("tr");
-          headingRow.className = "variables-preview-group";
-          const heading = document.createElement("th");
-          heading.colSpan = 2;
-          heading.scope = "colgroup";
-          heading.textContent = group;
-          headingRow.append(heading);
-          clauseBody.append(headingRow);
-
-          grouped.forEach((clause) => {
-            const row = document.createElement("tr");
-            row.className = "variables-preview-row insertable";
-            const syntaxCell = document.createElement("td");
-            const button = document.createElement("button");
-            button.type = "button";
-            button.className = "variables-preview-insert";
-            button.dataset.insertLine = `${clause}: `;
-            button.setAttribute("aria-label", `Insert ${clause}: clause`);
-            const syntax = document.createElement("code");
-            syntax.textContent = `${clause}:`;
-            button.append(syntax);
-            syntaxCell.append(button);
-            const description = document.createElement("td");
-            description.className = "variables-preview-value clause-preview-description";
-            description.textContent = descriptions[clause] || "Match this download property";
-            row.append(syntaxCell, description);
-            clauseBody.append(row);
-            button.addEventListener("click", () => {
-              PathEditorHelpers.insertLine(textarea, button.dataset.insertLine ?? "");
-              closeMenu();
-            });
-            clauseButtons.push(button);
-          });
-        });
-      };
-
-      const applyClauseFilter = () => {
-        const query = clauseFilter.value.trim().toLocaleLowerCase();
-        const buttons = clauseButtons.length ? clauseButtons : lineButtons;
-        buttons.forEach((button) => {
-          const row = button.closest<HTMLTableRowElement>("tr");
-          if (row) {
-            row.hidden = Boolean(query) && !row.textContent?.toLocaleLowerCase().includes(query);
-          } else {
-            button.hidden =
-              Boolean(query) && !button.textContent?.toLocaleLowerCase().includes(query);
-          }
-        });
-        clauseBody
-          ?.querySelectorAll<HTMLTableRowElement>(".variables-preview-group")
-          .forEach((heading) => {
-            let row = heading.nextElementSibling;
-            let visible = false;
-            while (row && !row.classList.contains("variables-preview-group")) {
-              if (row instanceof HTMLTableRowElement && !row.hidden) visible = true;
-              row = row.nextElementSibling;
-            }
-            heading.hidden = !visible;
-          });
-      };
-      clauseFilter.addEventListener("input", applyClauseFilter);
-      clauseFilter.addEventListener("keydown", (event) => {
-        if (event.key === "Escape") {
-          menu.removeAttribute("open");
-          return;
-        }
-        if (event.key !== "Enter") return;
-        event.preventDefault();
-        (clauseButtons.length ? clauseButtons : lineButtons)
-          .find((button) => {
-            const row = button.closest("tr");
-            return row ? !row.hasAttribute("hidden") : !button.hidden;
-          })
-          ?.click();
-      });
-      webExtensionApi.runtime
-        .sendMessage({ type: "GET_KEYWORDS" })
-        .then((res: { body?: { matchers?: string[] } } | undefined) => {
-          renderClauses(
-            Array.isArray(res?.body?.matchers)
-              ? res.body.matchers.filter(
-                  (matcher: unknown): matcher is string => typeof matcher === "string",
-                )
-              : [],
-          );
-          applyClauseFilter();
-        })
-        .catch(() => renderClauses([]));
-    }
-  },
+  setupInsertMenu: (menuSelector: string): void =>
+    setupPathInsertMenu(menuSelector, PathEditorHelpers.insertLine),
 
   // Text/Visual sub-tabs inside the Downloads Menu tab: both edit the same
   // list; visual is the default while the textarea stays the source of truth
