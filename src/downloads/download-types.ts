@@ -17,6 +17,7 @@ export type DownloadPipelineState = {
   scratch: {
     hasExtension?: boolean | RegExpMatchArray | "" | null;
     mimeExtension?: string;
+    historyEntryId?: string | null | undefined;
     [key: string]: unknown;
   };
   info: DownloadInfo;

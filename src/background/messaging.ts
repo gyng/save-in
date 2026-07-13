@@ -33,6 +33,7 @@ import { configWriteState } from "./state.ts";
 import { getPersistenceDiagnostics } from "../shared/persistence-diagnostics.ts";
 import { syncSourcePanelToTab, setSourcePanelOpenState } from "./source-panel-state.ts";
 import { previewRoutes } from "./route-preview.ts";
+import { ActiveTransfers } from "../downloads/active-transfers.ts";
 import { ExternalDownloadRejections } from "./external-download-rejections.ts";
 
 type MessageSender = browser.runtime.MessageSender;
@@ -410,6 +411,24 @@ const internalHandlers = {
   [MESSAGE_TYPES.HISTORY_CLEAR]: async (_request, _sender, sendResponse) => {
     await SaveHistory.clear();
     sendResponse({ type: MESSAGE_TYPES.OK });
+  },
+  [MESSAGE_TYPES.HISTORY_CANCEL]: async (request, _sender, sendResponse) => {
+    const historyId = request.body?.historyId;
+    let canceled = typeof historyId === "string" && ActiveTransfers.cancel(historyId);
+    const entry = historyId
+      ? (await SaveHistory.get()).find((candidate) => candidate.id === historyId)
+      : undefined;
+    const downloadId = entry?.downloadId;
+    if (downloadId != null) {
+      try {
+        await webExtensionApi.downloads.cancel(downloadId);
+        canceled = true;
+      } catch {
+        // The browser may have completed between the History poll and click.
+      }
+    }
+    if (canceled) await SaveHistory.setStatus(historyId, "USER_CANCELED", downloadId);
+    sendResponse({ type: MESSAGE_TYPES.HISTORY_CANCEL, body: { canceled } });
   },
   [MESSAGE_TYPES.EXTERNAL_DOWNLOAD_REJECTIONS_GET]: async (_request, _sender, sendResponse) => {
     sendResponse({

@@ -1,0 +1,52 @@
+import { Sha256 } from "./sha256.ts";
+
+type StreamableResponse = Pick<Response, "body" | "headers"> &
+  Partial<Pick<Response, "arrayBuffer" | "blob">>;
+
+const abortError = (signal: AbortSignal): unknown =>
+  signal.reason ?? new DOMException("The operation was aborted", "AbortError");
+
+export const readResponseContent = async (
+  response: StreamableResponse,
+  hash: boolean,
+  signal?: AbortSignal,
+): Promise<{ blob: Blob; sha256: string }> => {
+  const chunks: ArrayBuffer[] = [];
+  const sha256 = hash ? new Sha256() : undefined;
+  const contentType = response.headers.get("Content-Type") ?? "";
+
+  if (response.body) {
+    const reader = response.body.getReader();
+    const cancelPendingRead = () => {
+      void reader.cancel(abortError(signal!)).catch(() => {});
+    };
+    signal?.addEventListener("abort", cancelPendingRead, { once: true });
+    try {
+      while (true) {
+        if (signal?.aborted) throw abortError(signal);
+        const { done, value } = await reader.read();
+        if (signal?.aborted) throw abortError(signal);
+        if (done) break;
+        const chunk = new Uint8Array(value);
+        chunks.push(chunk.buffer);
+        sha256?.update(chunk);
+      }
+    } catch (error) {
+      await reader.cancel(error).catch(() => {});
+      throw error;
+    } finally {
+      signal?.removeEventListener("abort", cancelPendingRead);
+      reader.releaseLock();
+    }
+  } else {
+    const buffer = response.arrayBuffer
+      ? await response.arrayBuffer()
+      : await response.blob!().then((blob) => blob.arrayBuffer());
+    const chunk = new Uint8Array(buffer);
+    chunks.push(chunk.buffer as ArrayBuffer);
+    sha256?.update(chunk);
+  }
+
+  if (signal?.aborted) throw abortError(signal);
+  return { blob: new Blob(chunks, { type: contentType }), sha256: sha256?.hex() ?? "" };
+};

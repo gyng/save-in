@@ -133,6 +133,7 @@ export const historyRow = (entry: HistoryEntry): HistoryRow => {
   const info = historyInfo(entry);
   const variableEntries = Object.entries(entry.variables || {}).filter(([, value]) => value !== "");
   return {
+    historyId: typeof entry.id === "string" ? entry.id : null,
     time: entry.initiatedAt || entry.timestamp || "",
     status: historyStatus(entry),
     routed: entry.routed ? "routed" : "",

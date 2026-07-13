@@ -43,6 +43,7 @@ export const SPECIAL_DIRS = {
   CONTENT_TYPE: ":contenttype:",
   MIME_EXT: ":mimeext:",
   SHA256: ":sha256:",
+  SHA256_FULL: ":sha256full:",
   FINAL_URL: ":finalurl:",
   REDIRECT_URL: ":redirecturl:",
 } as const;
@@ -96,11 +97,13 @@ export const MESSAGE_TYPES = {
   // Chrome offscreen document: fetch a URL and return a blob object URL (a
   // service worker has no URL.createObjectURL)
   OFFSCREEN_FETCH: "OFFSCREEN_FETCH",
+  OFFSCREEN_FETCH_CANCEL: "OFFSCREEN_FETCH_CANCEL",
   WAKE_WARM: "WAKE_WARM",
   SOURCE_PANEL_READY: "SOURCE_PANEL_READY",
   SOURCE_PANEL_STATE: "SOURCE_PANEL_STATE",
   HISTORY_GET: "HISTORY_GET",
   HISTORY_CLEAR: "HISTORY_CLEAR",
+  HISTORY_CANCEL: "HISTORY_CANCEL",
   EXTERNAL_DOWNLOAD_REJECTIONS_GET: "EXTERNAL_DOWNLOAD_REJECTIONS_GET",
   EXTERNAL_DOWNLOAD_REJECTION_CLEAR: "EXTERNAL_DOWNLOAD_REJECTION_CLEAR",
   // External DOWNLOAD API handshake (see docs/INTEGRATIONS.md)

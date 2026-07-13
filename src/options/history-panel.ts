@@ -352,6 +352,31 @@ const renderHistoryTable = () => {
       open.addEventListener("click", () => void showInFolder(r.downloadId));
       status.appendChild(open);
     }
+    if (r.status === "pending" && r.historyId) {
+      const cancel = document.createElement("button");
+      cancel.type = "button";
+      cancel.className = "history-cancel";
+      cancel.textContent = "Cancel";
+      cancel.title = "Cancel this download";
+      cancel.setAttribute("aria-label", `Cancel ${r.file}`);
+      cancel.addEventListener("click", async () => {
+        cancel.disabled = true;
+        cancel.textContent = "Canceling…";
+        try {
+          await webExtensionApi.runtime.sendMessage({
+            type: MESSAGE_TYPES.HISTORY_CANCEL,
+            body: {
+              historyId: r.historyId!,
+            },
+          });
+          await renderHistory();
+        } catch {
+          cancel.disabled = false;
+          cancel.textContent = "Cancel";
+        }
+      });
+      status.appendChild(cancel);
+    }
     if (visibleHistoryColumns.has("status")) appendCell("status", status);
 
     const size = document.createElement("td");

@@ -807,12 +807,13 @@ test("extension fetch credentials are preserved across cross-origin redirects", 
   }
 });
 
-test(":sha256: hashes and saves from a single fetch (Chrome MV3)", async () => {
-  // The file is named by its own content hash. That hash requires the bytes,
+test(":sha256: and :sha256full: hash and save from a single fetch (Chrome MV3)", async () => {
+  // The file is routed by its own short and full content hashes. That hash requires the bytes,
   // so the offscreen document fetches once, digests, and the save reuses that
   // same fetch's blob URL — the server must be hit exactly once, not twice.
   const body = "share this fetch once";
   const expectedHash = crypto.createHash("sha256").update(body).digest("hex");
+  const expectedShortHash = expectedHash.slice(0, 8);
   let hits = 0;
   const server = http.createServer((req, res) => {
     hits += 1;
@@ -826,7 +827,7 @@ test(":sha256: hashes and saves from a single fetch (Chrome MV3)", async () => {
       `browser.storage.local.set({ filenamePatterns: "" })
         .then(() => api.reset())
         .then(() => api.startDownload({
-          path: "e2e/:sha256:",
+          path: "e2e/:sha256:/:sha256full:",
           url: "http://127.0.0.1:${serverPort}/hashme.bin",
           suggestedFilename: "hashme.bin",
           pageUrl: "http://127.0.0.1:${serverPort}/",
@@ -837,8 +838,8 @@ test(":sha256: hashes and saves from a single fetch (Chrome MV3)", async () => {
     const done = rows.find((r) => r.state === "complete");
     expect(done).toBeTruthy();
 
-    // The content hash appears in the saved path (here as the destination
-    // folder, since the pattern is a directory) and the bytes are intact...
+    // Both content-hash forms appear in the saved path and the bytes are intact...
+    expect(done.filename).toContain(expectedShortHash);
     expect(done.filename).toContain(expectedHash);
     expect(fs.readFileSync(done.filename, "utf8")).toBe(body);
     // ...and the origin server was fetched exactly once: the hash fetch's bytes

@@ -39,7 +39,7 @@ validators + defaults reference `Router`, `Variable`, `Path`, `Download`,
 `:sha256:` fetch-once-and-digest path). `download → variable` is
 `Variable.applyVariables`.
 
-- **Break:** move `resolveContent` (+ `HASH_MAX_BYTES`/`HASH_FETCH_TIMEOUT_MS`,
+- **Break:** move `resolveContent` (+ streaming SHA-256/`HASH_FETCH_TIMEOUT_MS`,
   and possibly `makeUrlFromBlob`) into a `content-fetch` module that depends on
   `OffscreenClient`. `variable` and `download` both import *it*, not each other.
 - **Unblocks:** `variable ↔ download` cut.

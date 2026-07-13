@@ -65,6 +65,7 @@ Object.assign(hostBrowser, {
 // Importing download.ts loads the rest of the (real) cyclic module graph;
 // grab the same singleton instances it binds to.
 const { Download, registerDownloadListener } = await import("../src/downloads/download.ts");
+const { ActiveTransfers } = await import("../src/downloads/active-transfers.ts");
 const { options } = await import("../src/config/options-data.ts");
 const router = await import("../src/routing/router.ts");
 const Variable = await import("../src/routing/variable.ts");
@@ -119,6 +120,7 @@ beforeEach(() => {
   Download.finalFilenamesByDownloadId.clear();
   Download.generatedObjectUrls.clear();
   Download.ownedObjectUrls.clear();
+  ActiveTransfers.clear();
 
   // Reset the real options bag to exactly the fields this suite controls
   for (const k of Object.keys(options)) Reflect.deleteProperty(options, k);
@@ -459,6 +461,29 @@ describe("renameAndDownload: MIME extension append (§8.1)", () => {
 });
 
 describe("renameAndDownload: shared :sha256: fetch reuse", () => {
+  test("cancels an in-progress content preparation from its History entry", async () => {
+    vi.spyOn(Variable, "applyVariables").mockImplementationOnce((_path, info) => {
+      if (!info) throw new Error("Expected download metadata");
+      info.onContentFetchStart?.();
+      return new Promise((_resolve, reject) => {
+        info.abortSignal?.addEventListener(
+          "abort",
+          () => reject(new DOMException("Canceled", "AbortError")),
+          { once: true },
+        );
+      });
+    });
+    const state = makeState();
+
+    const task = Download.renameAndDownload(state);
+    await vi.waitFor(() => expect(SaveHistory.add).toHaveBeenCalled());
+    expect(ActiveTransfers.cancel("h-test")).toBe(true);
+
+    await expect(task).resolves.toEqual({ status: "skipped" });
+    expect(SaveHistory.setStatus).toHaveBeenCalledWith("h-test", "USER_CANCELED");
+    expect(global.browser.downloads.download).not.toHaveBeenCalled();
+  });
+
   test("reuses the already-fetched download URL instead of fetching the file again", async () => {
     setCurrentBrowser("CHROME");
     const state = makeState({

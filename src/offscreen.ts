@@ -9,6 +9,7 @@
 // for both the filename and the save rather than fetched again by the worker.
 
 import {
+  isOffscreenFetchCancelRequest,
   isOffscreenFetchRequest,
   type OffscreenFetchResponse,
 } from "./shared/content-fetch-types.ts";
@@ -16,58 +17,55 @@ import {
   DEFAULT_FETCH_RESPONSE_TIMEOUT_MS,
   fetchFollowingRedirects,
 } from "./shared/redirect-fetch.ts";
+import { readResponseContent } from "./shared/streaming-content.ts";
 
 const OFFSCREEN_BLOB_TTL_MS = 5 * 60 * 1000;
 
-const toHex = (buf: ArrayBuffer) =>
-  [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
+const activeFetches = new Map<string, AbortController>();
 
 chrome.runtime.onMessage.addListener(
   (
     message: unknown,
     _sender: chrome.runtime.MessageSender,
-    sendResponse: (response: OffscreenFetchResponse) => void,
+    sendResponse: (response: OffscreenFetchResponse | { canceled: boolean }) => void,
   ) => {
+    if (isOffscreenFetchCancelRequest(message)) {
+      const controller = activeFetches.get(message.requestId);
+      controller?.abort();
+      sendResponse({ canceled: Boolean(controller) });
+      return false;
+    }
     if (!isOffscreenFetchRequest(message)) {
       return false;
     }
+
+    const requestId = message.requestId ?? `${Date.now()}-${Math.random()}`;
+    const controller = new AbortController();
+    activeFetches.set(requestId, controller);
 
     // Missing credentials preserves compatibility with an older background
     // that survived an update long enough to message this document.
     fetchFollowingRedirects(
       message.url,
-      { credentials: message.credentials ?? "include" },
+      { credentials: message.credentials ?? "include", signal: controller.signal },
       DEFAULT_FETCH_RESPONSE_TIMEOUT_MS,
     )
       .then((res) => {
         if (!res.ok) {
           throw new Error(`HTTP ${res.status}`);
         }
-        return res.blob();
+        return readResponseContent(res, Boolean(message.hash), controller.signal);
       })
-      .then((blob) => {
+      .then(({ blob, sha256 }) => {
         const blobUrl = URL.createObjectURL(blob);
-        const hash = message.hash;
         // Free the blob once the download has had time to read it. The blob lives
         // here (as a Blob, 1x size), not as base64 in the worker.
         setTimeout(() => URL.revokeObjectURL(blobUrl), OFFSCREEN_BLOB_TTL_MS);
 
-        // No hash requested, or the file is too large to buffer a second copy for
-        // digesting: return the blob URL alone (the download still proceeds; the
-        // hash just resolves empty).
-        if (!hash || (message.maxBytes && blob.size > message.maxBytes)) {
-          sendResponse({ blobUrl });
-          return;
-        }
-
-        blob
-          .arrayBuffer()
-          .then((buf) => crypto.subtle.digest(hash, buf))
-          .then((digest) => sendResponse({ blobUrl, hash: toHex(digest) }))
-          // Hashing failed but the blob is fine — let the download go ahead
-          .catch(() => sendResponse({ blobUrl }));
+        sendResponse({ blobUrl, ...(message.hash ? { hash: sha256 } : {}) });
       })
-      .catch((e) => sendResponse({ error: String((e && e.message) || e) }));
+      .catch((e) => sendResponse({ error: String((e && e.message) || e) }))
+      .finally(() => activeFetches.delete(requestId));
 
     return true; // sendResponse is called asynchronously
   },

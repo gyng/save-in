@@ -15,9 +15,17 @@ export type BlobContent = {
 export type OffscreenFetchRequest = {
   type: typeof MESSAGE_TYPES.OFFSCREEN_FETCH;
   url: string;
+  requestId?: string;
   hash?: string;
+  // Accepted for compatibility with a background from an older extension
+  // instance. Streaming hashing no longer applies this limit.
   maxBytes?: number;
   credentials?: "include" | "omit";
+};
+
+export type OffscreenFetchCancelRequest = {
+  type: typeof MESSAGE_TYPES.OFFSCREEN_FETCH_CANCEL;
+  requestId: string;
 };
 
 export type OffscreenFetchResponse = {
@@ -33,12 +41,20 @@ export const isOffscreenFetchRequest = (value: unknown): value is OffscreenFetch
   isRecord(value) &&
   value.type === MESSAGE_TYPES.OFFSCREEN_FETCH &&
   typeof value.url === "string" &&
+  (typeof value.requestId === "undefined" || typeof value.requestId === "string") &&
   (typeof value.hash === "undefined" || typeof value.hash === "string") &&
   (typeof value.credentials === "undefined" ||
     value.credentials === "include" ||
     value.credentials === "omit") &&
   (typeof value.maxBytes === "undefined" ||
     (typeof value.maxBytes === "number" && Number.isFinite(value.maxBytes) && value.maxBytes >= 0));
+
+export const isOffscreenFetchCancelRequest = (
+  value: unknown,
+): value is OffscreenFetchCancelRequest =>
+  isRecord(value) &&
+  value.type === MESSAGE_TYPES.OFFSCREEN_FETCH_CANCEL &&
+  typeof value.requestId === "string";
 
 export const isOffscreenFetchResponse = (value: unknown): value is OffscreenFetchResponse =>
   isRecord(value) &&

@@ -50,6 +50,7 @@ const VARIABLE_ORDER = [
   "finalurl",
   "redirecturl",
   "sha256",
+  "sha256full",
   "counter",
   "uuid",
 ] as const;
@@ -68,7 +69,7 @@ export const variableGroup = (variable: string): VariableGroup => {
   if (/^(page|frame|selection|link|title$)/.test(name)) return "Page context";
   if (/^(source|url$|tld|naive|urlfileext)/.test(name)) return "Source URL";
   if (
-    /^(filename|fileext|actualfileext|mime|contenttype|mimeext|finalurl|redirecturl|sha256)$/.test(
+    /^(filename|fileext|actualfileext|mime|contenttype|mimeext|finalurl|redirecturl|sha256|sha256full)$/.test(
       name,
     )
   )
@@ -165,10 +166,14 @@ export const variableExample = (variable: string): string => {
   if (name === "pagetitleslug") return "example-page";
   if (name === "pagetitlesnake") return "example_page";
   if (/mime|contenttype/.test(name)) return "image/jpeg";
+  if (name === "sha256") return "ba7816bf";
+  if (name === "sha256full") return "ba7816bf…";
   if (/^\$\d+$/.test(name)) return "captured-text";
   if (name === "uuid") return "f47ac10b-…";
   return "example";
 };
 
 export const isLazyVariable = (variable: string): boolean =>
-  /^(mime|contenttype|mimeext|finalurl|redirecturl|sha256)$/.test(variableName(variable));
+  /^(mime|contenttype|mimeext|finalurl|redirecturl|sha256|sha256full)$/.test(
+    variableName(variable),
+  );

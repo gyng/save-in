@@ -219,7 +219,22 @@ describe("offscreen document fetch (Chrome MV3)", () => {
     await expect(resolveContent("https://x/a")).resolves.toBeNull();
   });
 
-  test("resolveContent tolerates a missing hash (large-file skip) but still downloads", async () => {
+  test("resolveContent cancels before starting an offscreen fetch when already aborted", async () => {
+    const controller = new AbortController();
+    controller.abort(new DOMException("Canceled", "AbortError"));
+
+    await expect(resolveContent("https://x/a", false, controller.signal)).rejects.toMatchObject({
+      name: "AbortError",
+    });
+    expect(global.chrome.runtime.sendMessage).toHaveBeenCalledWith(
+      expect.objectContaining({ type: "OFFSCREEN_FETCH_CANCEL" }),
+    );
+    expect(global.chrome.runtime.sendMessage).not.toHaveBeenCalledWith(
+      expect.objectContaining({ type: "OFFSCREEN_FETCH" }),
+    );
+  });
+
+  test("resolveContent tolerates a missing hash from a legacy offscreen response", async () => {
     global.chrome.runtime.sendMessage = jest.fn(() =>
       Promise.resolve({ blobUrl: "blob:offscreen-url" }),
     );

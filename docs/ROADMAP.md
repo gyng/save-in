@@ -405,14 +405,15 @@ the **one plumbing investment**: convert `Variable.applyVariables` to async.
    - **`:finalurl:`/`:redirecturl:`** — URL after redirects, from the HEAD/fetch.
    - **`:uuid:`** — _shipped._ Sync `crypto.randomUUID()` (secure context in the
      SW, event page and Node). Fresh per use.
-   - **`:sha256:`** — _shipped._ SHA-256 of the content, native via
-     `crypto.subtle.digest`. Content hashing needs the bytes, so it fetches the
+   - **`:sha256:` / `:sha256full:`** — _shipped._ The first 8 hex characters or
+     full 64-character incremental SHA-256 of the content. Content hashing needs the bytes, so it fetches the
      file — but that **one fetch is shared with the save**: `Download.resolveContent`
      fetches once (in the offscreen document on Chrome, in-context on the event
      page), digests, and hands the download a reusable blob URL, so a hashed save
      is not downloaded twice (`info.contentPromise`; e2e asserts a single origin
-     hit). Presence of `:sha256:` therefore forces the blob download path. Capped
-     (`HASH_MAX_BYTES`) + timed out; blank on failure so it never blocks a save.
+     hit). Presence of `:sha256:` therefore forces the blob download path. The
+     response-header wait is timed out, with no file-size ceiling; blank on
+     failure so it never blocks a save.
    - **`:md5:` (content hash)** — _held._ **MD5 is not in Web Crypto**, so it
      needs a small vendored pure-JS implementation; it's legacy and only buys
      server-ETag parity. Ship only if a user needs it (it would reuse

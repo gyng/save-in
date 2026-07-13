@@ -48,6 +48,8 @@ import {
 } from "./filename-listener.ts";
 import { BrowserDownloadRouting, routeBrowserDownload } from "./browser-downloads.ts";
 import { resolveFirefoxDownloadContext } from "./auth-context.ts";
+import { ActiveTransfers } from "./active-transfers.ts";
+import type { HistoryEntryInput } from "../shared/history-types.ts";
 
 const downloadRuntime = createDownloadRuntimeState();
 const logPort = downloadPorts.log;
@@ -87,6 +89,56 @@ const isHttpDownloadUrl = (value: string | undefined): boolean => {
   } catch {
     return false;
   }
+};
+
+const historyEntry = (state: DownloadPipelineState, finalFullPath: string): HistoryEntryInput => ({
+  timestamp: new Date().toISOString(),
+  initiatedAt: state.info.now?.toISOString(),
+  url: state.info.url,
+  finalFullPath,
+  routed: Boolean(state.route),
+  info: {
+    sourceUrl: state.info.sourceUrl,
+    pageUrl: state.info.pageUrl,
+    context: state.info.context,
+  },
+  menu: {
+    id: state.info.menuItemId,
+    title: state.info.menuItemTitle,
+    path: state.info.menuItemPath,
+  },
+  variables: Object.fromEntries(
+    Object.entries({
+      filename: state.info.filename,
+      initialfilename: state.info.initialFilename,
+      suggestedfilename: state.info.suggestedFilename,
+      pagetitle: state.info.currentTab?.title,
+      pageurl: state.info.pageUrl,
+      sourceurl: state.info.sourceUrl,
+      linktext: state.info.linkText,
+      selection: state.info.selectionText,
+      context: state.info.context,
+      comment: state.info.comment,
+      menuindex: state.info.menuIndex,
+      counter: state.info.counter,
+    })
+      .filter(
+        (entry): entry is [string, string | number] =>
+          typeof entry[1] === "string" || typeof entry[1] === "number",
+      )
+      .map(([key, value]) => [key, String(value)]),
+  ),
+});
+
+const ensureHistoryEntry = (state: DownloadPipelineState, finalFullPath: string) => {
+  const fields = historyEntry(state, finalFullPath);
+  if (typeof state.scratch.historyEntryId !== "undefined") {
+    void historyPort.patch(state.scratch.historyEntryId, fields);
+    return state.scratch.historyEntryId;
+  }
+  const id = historyPort.add(fields, { privateContext: isPrivateDownloadState(state) });
+  state.scratch.historyEntryId = id;
+  return id;
 };
 
 const releaseUnusedContent = async (state: DownloadPipelineState): Promise<void> => {
@@ -335,49 +387,7 @@ export const Download = {
     const noRuleMatchedPrompt = options.routeFailurePrompt && !state.route;
     const prompt = options.prompt || noExtensionPrompt || shiftHeldPrompt || noRuleMatchedPrompt;
 
-    const privateContext = state.info.currentTab?.incognito === true;
-    const historyEntryId = historyPort.add(
-      {
-        timestamp: new Date().toISOString(),
-        initiatedAt: state.info.now?.toISOString(),
-        url: state.info.url,
-        finalFullPath,
-        routed: Boolean(state.route),
-        info: {
-          sourceUrl: state.info.sourceUrl,
-          pageUrl: state.info.pageUrl,
-          context: state.info.context,
-        },
-        menu: {
-          id: state.info.menuItemId,
-          title: state.info.menuItemTitle,
-          path: state.info.menuItemPath,
-        },
-        variables: Object.fromEntries(
-          Object.entries({
-            filename: state.info.filename,
-            initialfilename: state.info.initialFilename,
-            suggestedfilename: state.info.suggestedFilename,
-            pagetitle: state.info.currentTab?.title,
-            pageurl: state.info.pageUrl,
-            sourceurl: state.info.sourceUrl,
-            linktext: state.info.linkText,
-            selection: state.info.selectionText,
-            context: state.info.context,
-            comment: state.info.comment,
-            menuindex: state.info.menuIndex,
-            counter: state.info.counter,
-          })
-            .filter(
-              (entry): entry is [string, string | number] =>
-                typeof entry[1] === "string" || typeof entry[1] === "number",
-            )
-            .map(([key, value]) => [key, String(value)]),
-        ),
-      },
-      { privateContext },
-    );
-    state.scratch.historyEntryId = historyEntryId;
+    const historyEntryId = ensureHistoryEntry(state, finalFullPath);
 
     return { state, finalFullPath, prompt, historyEntryId };
   },
@@ -564,6 +574,21 @@ export const Download = {
   // :counter:/:mime: transformer). Callers fire-and-forget, so awaiting the
   // path/route interpolation here before the download is safe.
   renameAndDownload: async (state: DownloadPipelineState): Promise<DownloadLaunchResult> => {
+    const preparationController = new AbortController();
+    state.info.abortSignal = preparationController.signal;
+    state.info.onContentFetchStart = () => {
+      const preliminaryPath = state.info.filename || getFilenameFromUrl(state.info.url || "");
+      const id = ensureHistoryEntry(state, preliminaryPath);
+      if (id) ActiveTransfers.register(id, preparationController);
+      // Make an open options page render the cancellable preparation row.
+      emitDownloaded(state);
+    };
+    const finishPreparation = () => {
+      const id = state.scratch.historyEntryId;
+      if (id) ActiveTransfers.finish(id, preparationController);
+      state.info.abortSignal = undefined;
+      state.info.onContentFetchStart = undefined;
+    };
     let plan: DownloadPlan | null;
     try {
       plan = await Download.resolveDownloadPlan(state);
@@ -572,12 +597,21 @@ export const Download = {
       await releaseUnusedContent(state);
       const url = state.info.url;
       if (url && Download.generatedObjectUrls.delete(url)) URL.revokeObjectURL(url);
+      if (preparationController.signal.aborted) {
+        await historyPort.setStatus(state.scratch.historyEntryId, "USER_CANCELED");
+        finishPreparation();
+        return { status: "skipped" };
+      }
+      await historyPort.setStatus(state.scratch.historyEntryId, "DOWNLOAD_PREPARATION_FAILED");
+      finishPreparation();
       throw error;
     }
     if (!plan) {
       await releaseUnusedContent(state);
       const url = state.info.url;
       if (url && Download.generatedObjectUrls.delete(url)) URL.revokeObjectURL(url);
+      await historyPort.setStatus(state.scratch.historyEntryId, "RULE_NO_MATCH");
+      finishPreparation();
       if ((state.needRouteMatch || options.routeExclusive) && options.notifyOnFailure) {
         Notifier.createExtensionNotification(
           getMessage("notificationRuleMatchFailedExclusiveTitle"),
@@ -588,6 +622,8 @@ export const Download = {
       }
       return { status: "skipped" };
     }
+
+    finishPreparation();
 
     recordDownloadRequest(plan);
     let acquired: AcquiredDownload;

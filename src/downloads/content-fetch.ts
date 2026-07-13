@@ -2,13 +2,13 @@ import { MESSAGE_TYPES } from "../shared/constants.ts";
 import { OffscreenClient } from "../platform/offscreen-client.ts";
 import { getExtensionFetchCredentials } from "../config/fetch-credentials.ts";
 import { fetchFollowingRedirects } from "../shared/redirect-fetch.ts";
+import { readResponseContent } from "../shared/streaming-content.ts";
 import type {
   BlobContent,
   ContentFetchResult,
   OffscreenFetchResponse,
 } from "../shared/content-fetch-types.ts";
 
-export const HASH_MAX_BYTES = 256 * 1024 * 1024;
 export const HASH_FETCH_TIMEOUT_MS = 30000;
 
 export const makeUrlFromBlob = (blob: BlobContent): Promise<string> => {
@@ -31,50 +31,61 @@ export const makeUrlFromBlob = (blob: BlobContent): Promise<string> => {
 export const resolveContent = (
   url: string,
   privateContext = false,
+  signal?: AbortSignal,
 ): Promise<ContentFetchResult | null> => {
   const credentials = getExtensionFetchCredentials(privateContext);
   if (OffscreenClient.canUse()) {
+    const requestId = `${Date.now()}-${Math.random()}`;
+    const cancel = () => {
+      void chrome.runtime
+        .sendMessage({ type: MESSAGE_TYPES.OFFSCREEN_FETCH_CANCEL, requestId })
+        .catch(() => {});
+    };
+    if (signal?.aborted) cancel();
+    else signal?.addEventListener("abort", cancel, { once: true });
     return OffscreenClient.ensure()
-      .then(() =>
-        chrome.runtime.sendMessage({
+      .then(() => {
+        if (signal?.aborted) {
+          throw signal.reason ?? new DOMException("The operation was aborted", "AbortError");
+        }
+        return chrome.runtime.sendMessage({
           type: MESSAGE_TYPES.OFFSCREEN_FETCH,
           url,
+          requestId,
           hash: "SHA-256",
-          maxBytes: HASH_MAX_BYTES,
           credentials,
-        }),
-      )
-      .then((res: OffscreenFetchResponse) =>
-        res && res.blobUrl ? { sha256: res.hash || "", downloadUrl: res.blobUrl } : null,
-      )
-      .catch((): ContentFetchResult | null => null);
+        });
+      })
+      .then((res: OffscreenFetchResponse) => {
+        if (signal?.aborted) {
+          throw signal.reason ?? new DOMException("The operation was aborted", "AbortError");
+        }
+        return res && res.blobUrl ? { sha256: res.hash || "", downloadUrl: res.blobUrl } : null;
+      })
+      .catch((error): ContentFetchResult | null => {
+        if (signal?.aborted) throw error;
+        return null;
+      })
+      .finally(() => signal?.removeEventListener("abort", cancel));
   }
 
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), HASH_FETCH_TIMEOUT_MS);
-  return fetchFollowingRedirects(url, {
-    credentials,
-    signal: controller.signal,
-  })
-    .then((res) => {
-      if (!res.ok || Number(res.headers.get("Content-Length")) > HASH_MAX_BYTES) return null;
-      return res.blob();
+  return fetchFollowingRedirects(
+    url,
+    { credentials, ...(signal ? { signal } : {}) },
+    HASH_FETCH_TIMEOUT_MS,
+  )
+    .then(async (res) => {
+      if (!res.ok) return null;
+      const content = await readResponseContent(res, true, signal);
+      const downloadUrl = URL.createObjectURL(content.blob);
+      return {
+        sha256: content.sha256,
+        downloadUrl,
+        ownedObjectUrl: downloadUrl,
+      };
     })
-    .then((blob) => {
-      if (!blob || blob.size > HASH_MAX_BYTES) return null;
-      return blob.arrayBuffer().then((buf) =>
-        crypto.subtle.digest("SHA-256", buf).then((digest) => {
-          const downloadUrl = URL.createObjectURL(blob);
-          return {
-            sha256: [...new Uint8Array(digest)]
-              .map((b) => b.toString(16).padStart(2, "0"))
-              .join(""),
-            downloadUrl,
-            ownedObjectUrl: downloadUrl,
-          };
-        }),
-      );
-    })
-    .catch((): ContentFetchResult | null => null)
-    .finally(() => clearTimeout(timer));
+    .catch((error): ContentFetchResult | null => {
+      if (signal?.aborted) throw error;
+      return null;
+    });
 };

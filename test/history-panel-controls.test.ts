@@ -1,8 +1,13 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 const historyRuntime = vi.hoisted(() => ({
+  entries: [] as Array<Record<string, unknown>>,
   sendMessage: vi.fn(async (message: { type: string }) =>
-    message.type === "HISTORY_GET" ? { body: { entries: [] } } : { type: "OK" },
+    message.type === "HISTORY_GET"
+      ? { type: "HISTORY_GET", body: { entries: historyRuntime.entries } }
+      : message.type === "HISTORY_CANCEL"
+        ? { type: "HISTORY_CANCEL", body: { canceled: true } }
+        : { type: "OK" },
   ),
 }));
 
@@ -40,6 +45,7 @@ describe("history filter controls", () => {
   beforeEach(async () => {
     vi.resetModules();
     historyRuntime.sendMessage.mockClear();
+    historyRuntime.entries = [];
     localStorage.clear();
     document.body.innerHTML = markup();
     await import("../src/options/history-panel.ts");
@@ -132,6 +138,21 @@ describe("history filter controls", () => {
 
     await vi.waitFor(() =>
       expect(historyRuntime.sendMessage).toHaveBeenCalledWith({ type: "HISTORY_CLEAR" }),
+    );
+  });
+
+  test("cancels a pending preparation before it has a browser download ID", async () => {
+    historyRuntime.entries = [{ id: "h-large", status: "pending", finalFullPath: "large.iso" }];
+    const { renderHistory } = await import("../src/options/history-panel.ts");
+    await renderHistory();
+
+    document.querySelector<HTMLButtonElement>(".history-cancel")!.click();
+
+    await vi.waitFor(() =>
+      expect(historyRuntime.sendMessage).toHaveBeenCalledWith({
+        type: "HISTORY_CANCEL",
+        body: { historyId: "h-large" },
+      }),
     );
   });
 });

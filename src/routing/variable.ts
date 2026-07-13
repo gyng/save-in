@@ -293,16 +293,24 @@ const resolvedHeadPreview = (opts: RoutingDownloadInfo): HeadResult | null =>
 // Fetch the file's content once per download (cached on the info bag so every
 // :sha256: shares it — and the download reuses the same fetch rather than
 // pulling the file down a second time, see content-fetch.ts). Resolves
-// to { sha256, downloadUrl } or null on failure/over-cap so a hash can never
-// block a save.
+// to { sha256, downloadUrl } or null on failure. The response is hashed
+// incrementally, without a file-size ceiling, and reused for the download.
 export const resolveContent = (opts: RoutingDownloadInfo) => {
   if (opts.contentPromise) {
     return opts.contentPromise;
   }
+  opts.onContentFetchStart?.();
   opts.contentPromise = opts.url
-    ? routingPorts.resolveContent(opts.url, opts.currentTab?.incognito === true)
+    ? routingPorts.resolveContent(opts.url, opts.currentTab?.incognito === true, opts.abortSignal)
     : Promise.resolve(null);
   return opts.contentPromise;
+};
+
+const resolveSha256 = async (opts: RoutingDownloadInfo): Promise<string> => {
+  if (opts.preview) return opts.sha256 ?? "";
+  const content = await resolveContent(opts);
+  opts.sha256 = content ? content.sha256 : "";
+  return opts.sha256;
 };
 
 // Transformers are called as (info, token, index, tokens); most only
@@ -417,16 +425,12 @@ export const transformers = ({
           opts.preview ? mimeToExtension(resolvedHeadPreview(opts)?.contentType) : mimeToExtension(await resolveMime(opts)),
         ),
     // Async: SHA-256 of the file's content (fetches the bytes once — see
-    // resolveContent). Useful for content-addressed / dedup names. Blank in preview.
+    // resolveContent). The short form is convenient for filenames; the full
+    // form is available when the complete digest is required. Blank in preview.
     [SPECIAL_DIRS.SHA256]:
-      async opts => {
-        if (opts.preview) {
-          return stringSegment(opts.sha256);
-        }
-        const content = await resolveContent(opts);
-        opts.sha256 = content ? content.sha256 : "";
-        return stringSegment(opts.sha256);
-      },
+      async opts => stringSegment((await resolveSha256(opts)).slice(0, 8)),
+    [SPECIAL_DIRS.SHA256_FULL]:
+      async opts => stringSegment(await resolveSha256(opts)),
     // Async: the URL after following redirects, from the same HEAD as :mime:.
     [SPECIAL_DIRS.FINAL_URL]:
       async opts => stringSegment(opts.preview ? resolvedHeadPreview(opts)?.finalUrl : (await resolveHead(opts)).finalUrl),

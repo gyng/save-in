@@ -36,6 +36,7 @@ export type HistoryEntry = HistoryEntryInput & {
 };
 
 export type HistoryRow = {
+  historyId: string | null;
   time: string;
   status: string;
   routed: string;

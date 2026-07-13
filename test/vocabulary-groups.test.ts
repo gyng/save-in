@@ -10,6 +10,7 @@ test("groups variables by user task rather than implementation scope", () => {
   expect(variableGroup(":pagetitle:")).toBe("Page context");
   expect(variableGroup(":sourceurl:")).toBe("Source URL");
   expect(variableGroup(":filename:")).toBe("Resolved file");
+  expect(variableGroup(":sha256full:")).toBe("Resolved file");
   expect(variableGroup(":uuid:")).toBe("Generated values");
   expect(variableGroup(":$1:")).toBe("Capture groups");
 });
@@ -26,12 +27,9 @@ test("orders variables by meaning within each task group", () => {
   expect(
     sortVariables([":day:", ":minute:", ":date:", ":monthname:", ":year:", ":month:", ":hour:"]),
   ).toEqual([":date:", ":year:", ":month:", ":monthname:", ":day:", ":hour:", ":minute:"]);
-  expect(sortVariables([":sha256:", ":filename:", ":mimeext:", ":fileext:"])).toEqual([
-    ":filename:",
-    ":fileext:",
-    ":mimeext:",
-    ":sha256:",
-  ]);
+  expect(
+    sortVariables([":sha256full:", ":sha256:", ":filename:", ":mimeext:", ":fileext:"]),
+  ).toEqual([":filename:", ":fileext:", ":mimeext:", ":sha256:", ":sha256full:"]);
 });
 
 test("orders clauses by routing workflow within each task group", () => {

@@ -1,6 +1,6 @@
 import * as Variable from "../src/routing/variable.ts";
 import * as Path from "../src/routing/path.ts";
-import { HASH_MAX_BYTES, resolveContent } from "../src/downloads/content-fetch.ts";
+import { resolveContent } from "../src/downloads/content-fetch.ts";
 import * as Counter from "../src/background/counter.ts";
 import { counterWriteState } from "../src/background/state.ts";
 // variable.ts reads options.replacementChar (via path.ts) at call time;
@@ -641,12 +641,12 @@ describe(":sha256: (async content hash)", () => {
     URL.createObjectURL = origCreateObjectURL;
   });
 
-  test(":sha256: is the lowercase hex SHA-256 of the fetched bytes", async () => {
+  test(":sha256: is the first 8 lowercase hex characters of the SHA-256", async () => {
     mockBody("abc"); // NIST test vector
     const out = (
       await Variable.applyVariables(new Path.Path("h/:sha256:"), { url: "https://x/a" })
     ).finalize();
-    expect(out).toBe("h/ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad");
+    expect(out).toBe("h/ba7816bf");
     expect(global.fetch).toHaveBeenCalledWith(
       "https://x/a",
       expect.objectContaining({ credentials: "omit", redirect: "follow" }),
@@ -674,6 +674,18 @@ describe(":sha256: (async content hash)", () => {
     expect(global.fetch).toHaveBeenCalledTimes(1);
   });
 
+  test(":sha256full: returns all 64 characters and shares the :sha256: fetch", async () => {
+    mockBody("abc");
+    const out = (
+      await Variable.applyVariables(new Path.Path(":sha256:/:sha256full:"), {
+        url: "https://x/a",
+      })
+    ).finalize();
+
+    expect(out).toBe("ba7816bf/ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad");
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+  });
+
   test("a failed fetch yields an empty value (-> replacement char)", async () => {
     global.fetch = vi.fn(() => Promise.reject(new Error("network"))) as any;
     const out = (
@@ -682,12 +694,12 @@ describe(":sha256: (async content hash)", () => {
     expect(out).toBe("_");
   });
 
-  test("skips a file larger than the cap (declared Content-Length)", async () => {
+  test("does not impose a hash ceiling from declared Content-Length", async () => {
     global.fetch = vi.fn(() =>
       Promise.resolve({
         ok: true,
         headers: {
-          get: (h: string) => (h === "Content-Length" ? String(HASH_MAX_BYTES + 1) : null),
+          get: (h: string) => (h === "Content-Length" ? String(10 * 1024 ** 3) : null),
         },
         blob: () =>
           Promise.resolve({ size: 0, arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)) }),
@@ -696,7 +708,7 @@ describe(":sha256: (async content hash)", () => {
     const out = (
       await Variable.applyVariables(new Path.Path(":sha256:"), { url: "https://x/a" })
     ).finalize();
-    expect(out).toBe("_");
+    expect(out).toBe("e3b0c442");
   });
 
   test("preview mode never hits the network", async () => {
@@ -724,7 +736,7 @@ describe(":sha256: (async content hash)", () => {
     const out = (await Variable.applyVariables(new Path.Path(":sha256:"), info)).finalize();
 
     expect(global.fetch).toHaveBeenCalledTimes(1);
-    expect(out).toBe("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad");
+    expect(out).toBe("ba7816bf");
   });
 });
 

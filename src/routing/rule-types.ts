@@ -26,6 +26,8 @@ export type RoutingDownloadInfo = LazyDownloadMetadata<RoutingContent> & {
   initialFilename?: string | undefined;
   preview?: boolean | undefined;
   counter?: number | undefined;
+  abortSignal?: AbortSignal | undefined;
+  onContentFetchStart?: (() => void) | undefined;
 };
 
 export type RuleError = { message: string; error: string; warning?: boolean };

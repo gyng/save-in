@@ -330,11 +330,23 @@
           </td>
           <td>ba7816bf&hellip;</td>
           <td>
-            SHA-256 of the downloaded file, as lowercase hex. Available during an actual Save In
-            download, so it is blank in previews. Save In must be able to fetch the URL with a
-            normal GET request within 30 seconds; files over 256 MiB are not hashed. The fetched
-            copy is also saved, so the file is downloaded only once. If fetching or hashing fails,
-            this variable is blank and the download continues.
+            First 8 lowercase hex characters of the downloaded file's SHA-256. Available during an
+            actual Save In download, so it is blank in previews. Save In must be able to fetch the
+            URL with a normal GET request whose response headers arrive within 30 seconds. Bytes are
+            hashed incrementally with no file-size ceiling, and the fetched copy is also saved so
+            the file is downloaded only once. Long preparations can be canceled from History. If
+            fetching or hashing fails, this variable is blank and the download continues.
+          </td>
+        </tr>
+
+        <tr>
+          <td>
+            <code class="click-to-copy">:sha256full:</code>
+          </td>
+          <td>ba7816bf8f01cfea&hellip;</td>
+          <td>
+            Full 64-character lowercase SHA-256. It shares the same streamed fetch and digest as
+            <code>:sha256:</code> when both variables are used.
           </td>
         </tr>
 
