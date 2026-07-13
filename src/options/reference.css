@@ -1,4 +1,3 @@
-html:has(body.reference-page),
 html:has(.reference-header) {
   min-width: 0;
 }

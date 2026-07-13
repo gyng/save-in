@@ -1,7 +1,9 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 const stylesheet = readFileSync(resolve("src/options/style.css"), "utf8");
+const referenceStylesheet = readFileSync(resolve("src/options/reference.css"), "utf8");
+const optionsScript = readFileSync(resolve("src/options/options.ts"), "utf8");
 const selectorCount = (selector: string) => {
   const lines = stylesheet.split(/\r?\n/);
   return lines.filter(
@@ -25,6 +27,74 @@ test("options CSS keeps shared component selectors in one rule", () => {
     ".path-editor-help p",
   ]) {
     expect(selectorCount(selector), selector).toBe(1);
+  }
+});
+
+test("retired options UI does not leave selectors, tokens, hooks, or assets behind", () => {
+  for (const selector of [
+    "about-mascot-status",
+    "combo-dropdown",
+    "combo-wrap",
+    "deprecated-text",
+    "float-right",
+    "history-raw-text",
+    "insert-menu",
+    "section-actions",
+    ".help.learn-more",
+    ".guide-demo-box",
+    ".menu-items-demo",
+    ".demo-box",
+    ".variables-preview-empty",
+    ".variables-preview-structures",
+    ".rule-template-example",
+    ".history-downloadId-heading",
+    ".chrome-only",
+    ".link {",
+    ".link:hover",
+    ".link:active",
+    ".link.external",
+    "#submit {",
+    ".firefox.badge",
+    ".demo {",
+    ".demo.g1",
+    ".demo.g2",
+    ".demo.g3",
+    ".demo.g4",
+  ]) {
+    expect(stylesheet, selector).not.toContain(selector);
+  }
+  for (const token of [
+    "blue80",
+    "grey80",
+    "green50",
+    "magenta50",
+    "link-color-hover",
+    "orange50",
+    "teal50",
+  ]) {
+    expect(stylesheet).not.toMatch(new RegExp(`--${token}\\s*:`));
+  }
+  expect(optionsScript).not.toContain(".chrome-only");
+  expect(referenceStylesheet).not.toContain("body.reference-page");
+  expect(existsSync(resolve("src/options/i/help-16.svg"))).toBe(false);
+});
+
+test("notification visibility and accent foregrounds use shared semantic rules", () => {
+  expect(stylesheet).not.toContain(".error-notification:has(");
+  expect(stylesheet).toContain("--color-on-accent: #ffffff;");
+  for (const selector of [
+    ".autocomplete-dropdown li.selected",
+    ".apply-button",
+    ".path-editor-drop-indicator",
+    ".source-panel-demo-facets .active",
+    ".video-thumb",
+    ".stream-thumb",
+    ".danger-button",
+  ]) {
+    const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    expect(stylesheet).toMatch(
+      new RegExp(`${escaped}\\s*\\{[^}]*color:\\s*var\\(--color-on-accent\\)`),
+    );
   }
 });
 
