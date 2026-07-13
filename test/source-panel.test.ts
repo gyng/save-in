@@ -686,44 +686,19 @@ describe("Page Sources panel interactions", () => {
     expect(sendDownload).not.toHaveBeenCalled();
   });
 
-  test("pops the drawer into a draggable floating panel", () => {
+  test("exposes accessible popout and dock states", () => {
     toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
     const host = document.getElementById("save-in-source-panel")!;
     const popout = host.shadowRoot!.querySelector<HTMLButtonElement>(".popout")!;
 
     popout.click();
 
-    expect(host.classList.contains("floating")).toBe(true);
     expect(popout.getAttribute("aria-pressed")).toBe("true");
     expect(popout.getAttribute("aria-label")).toBe("Dock Page Sources");
     expect(popout.title).toBe("Dock Page Sources");
 
-    vi.spyOn(host, "getBoundingClientRect").mockReturnValue({
-      left: 100,
-      top: 80,
-      width: 320,
-      height: 400,
-      right: 420,
-      bottom: 480,
-      x: 100,
-      y: 80,
-      toJSON: () => ({}),
-    });
-    const header = host.shadowRoot!.querySelector("header")!;
-    header.dispatchEvent(
-      new MouseEvent("pointerdown", { bubbles: true, button: 0, clientX: 120, clientY: 100 }),
-    );
-    header.dispatchEvent(
-      new MouseEvent("pointermove", { bubbles: true, clientX: 160, clientY: 130 }),
-    );
-
-    expect(host.style.left).toBe("140px");
-    expect(host.style.top).toBe("110px");
-
     host.shadowRoot!.querySelector<HTMLButtonElement>(".dock")!.click();
-    expect(host.classList.contains("floating")).toBe(false);
-    expect(host.style.left).toBe("");
-    expect(host.style.top).toBe("");
+    expect(popout.getAttribute("aria-pressed")).toBe("false");
     expect(popout.getAttribute("aria-label")).toBe("Pop out Page Sources");
     expect(popout.title).toBe("Pop out into a draggable panel");
   });

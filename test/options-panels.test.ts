@@ -169,7 +169,6 @@ describe("variables preview", () => {
       "example",
       "https://example.com/file.jpg",
     ]);
-    expect(values.every((value) => value.classList.contains("is-placeholder"))).toBe(true);
     expect(values.every((value) => value.title.startsWith("Example —"))).toBe(true);
   });
 

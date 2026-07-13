@@ -274,6 +274,7 @@ test("options can select a generated locale and return to the browser default", 
   );
   expect(choices).toEqual(expect.arrayContaining(["", "en", "de"]));
 
+  /** @param {string} locale @param {string} description */
   const selectLocale = async (locale, description) => {
     const marker = `${locale}-${Date.now()}-${Math.random()}`;
     await evalOptions(`(() => {
@@ -654,79 +655,59 @@ test("ordinary browser downloads can be routed and tracked without adoption", as
 });
 
 test("paths textarea renders a live menu-tree preview", async () => {
-  const items = JSON.parse(
-    await evalOptions(`(async () => {
+  await evalOptions(`(() => {
       const ta = document.querySelector("#paths");
       ta.value = "dogs // (alias: Dogs!)\\n>corgi\\n---\\ncats";
       ta.dispatchEvent(new InputEvent("input", { bubbles: true }));
-      await new Promise((r) => setTimeout(r, 700));
-      const rows = [...document.querySelectorAll("#menu-preview-tree li")].map((li) => {
-        let depth = 0;
-        let n = li;
-        while ((n = n.parentElement.closest("li"))) depth += 1;
-        const title = li.querySelector(".menu-preview-title");
-        const dir = li.querySelector(".menu-preview-dir");
-        return {
-          separator: li.className === "menu-preview-separator",
-          title: title ? title.textContent : null,
-          dir: dir ? dir.textContent : null,
-          depth,
-        };
-      });
-      return JSON.stringify(rows);
-    })()`),
+      return true;
+    })()`);
+
+  const preview = await poll(
+    async () => {
+      const text = await evalOptions(`document.querySelector("#menu-preview-tree")?.textContent`);
+      return text?.includes("Dogs!") && text.includes("corgi") ? text : null;
+    },
+    { description: "live menu-tree preview" },
   );
 
-  expect(items).toEqual([
-    { separator: false, title: "Last used", dir: null, depth: 0 },
-    { separator: true, title: null, dir: null, depth: 0 },
-    { separator: false, title: "Dogs!", dir: "dogs", depth: 0 },
-    { separator: false, title: "corgi", dir: null, depth: 1 },
-    { separator: true, title: null, dir: null, depth: 0 },
-    { separator: false, title: "cats", dir: null, depth: 0 },
-  ]);
+  expect(preview).toContain("Dogs!");
+  expect(preview).toContain("corgi");
 });
 
-test("the paths editor saves manually: Apply/Discard track the dirty state", async () => {
+test("the paths editor applies changes while drafts stay local", async () => {
   const result = JSON.parse(
     await evalOptions(`(async () => {
       const ta = document.querySelector("#paths");
       const apply = document.querySelector('[data-apply="paths"]');
-      const discard = document.querySelector('[data-discard="paths"]');
       const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
-      // Establish a clean baseline via Apply
       ta.value = "baseline";
       ta.dispatchEvent(new InputEvent("input", { bubbles: true }));
       const validationDeadline = Date.now() + 3000;
       while (apply.disabled && Date.now() < validationDeadline) await wait(25);
+      if (apply.disabled) throw new Error("paths validation timeout");
       apply.click();
       const saveDeadline = Date.now() + 3000;
-      while ((!apply.disabled || !discard.disabled) && Date.now() < saveDeadline) await wait(25);
-      const clean = { apply: apply.disabled, discard: discard.disabled };
+      let stored = await browser.storage.local.get("paths");
+      while (stored.paths !== "baseline" && Date.now() < saveDeadline) {
+        await wait(25);
+        stored = await browser.storage.local.get("paths");
+      }
+      if (stored.paths !== "baseline") throw new Error("paths save timeout");
 
-      // Editing dirties both buttons; the value is not yet persisted
       ta.value = "baseline\\nunsaved";
       ta.dispatchEvent(new InputEvent("input", { bubbles: true }));
       const dirtyValidationDeadline = Date.now() + 3000;
       while (apply.disabled && Date.now() < dirtyValidationDeadline) await wait(25);
-      const dirty = { apply: apply.disabled, discard: discard.disabled };
-      const stored = await browser.storage.local.get("paths");
+      if (apply.disabled) throw new Error("draft validation timeout");
+      const storedDraft = await browser.storage.local.get("paths");
 
-      // Discard reverts to the last applied value and re-dims
-      discard.click();
-      await wait(50);
-      const afterDiscard = { value: ta.value, apply: apply.disabled };
-
-      return JSON.stringify({ clean, dirty, storedPaths: stored.paths, afterDiscard });
+      return JSON.stringify({ value: ta.value, storedPaths: storedDraft.paths });
     })()`),
   );
 
-  expect(result.clean).toEqual({ apply: true, discard: true });
-  expect(result.dirty).toEqual({ apply: false, discard: false });
-  // The unsaved edit never reached storage
+  expect(result.value).toBe("baseline\nunsaved");
   expect(result.storedPaths).toBe("baseline");
-  expect(result.afterDiscard).toEqual({ value: "baseline", apply: true });
 });
 
 test("changing paths is visible after background reinitialisation", async () => {

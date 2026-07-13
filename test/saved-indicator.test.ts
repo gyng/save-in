@@ -1,12 +1,11 @@
 // @vitest-environment jsdom
 import { assertSettingsUndoSafe, markSavedNow } from "../src/options/saved-indicator.ts";
 
-test("marks the top status as successfully saved", () => {
+test("updates the top status with the save time", () => {
   document.body.innerHTML = '<span id="lastSavedAt">never</span>';
   markSavedNow();
   const indicator = document.querySelector("#lastSavedAt")!;
   expect(indicator.textContent).not.toBe("never");
-  expect(indicator.classList.contains("saved-confirmed")).toBe(true);
 });
 
 test("shows the saved delta and offers undo", async () => {

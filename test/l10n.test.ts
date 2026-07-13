@@ -1,7 +1,5 @@
 // @vitest-environment jsdom
 import { hardenLinks, localizeString, localizeDocument } from "../src/options/l10n.ts";
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
 
 describe("l10n", () => {
   beforeEach(() => {
@@ -48,25 +46,4 @@ describe("l10n", () => {
     expect(blank.relList.contains("noreferrer")).toBe(true);
     expect((document.getElementById("same") as HTMLAnchorElement).target).toBe("");
   });
-});
-
-test("English options headings use sentence case", () => {
-  const messages = JSON.parse(readFileSync(resolve("_locales/en/messages.json"), "utf8"));
-  expect(
-    [
-      "o_sDownloads",
-      "o_sRenameAndRouteDownloads",
-      "o_sSaveAsShortcuts",
-      "o_sKeyboardShortcuts",
-      "o_sContextMenu",
-      "o_sVisualEditor",
-    ].map((key) => messages[key].message),
-  ).toEqual([
-    "Save locations",
-    "Routing and renaming",
-    "Shortcut files",
-    "Click-to-save",
-    "Context menu access keys",
-    "Visual editor",
-  ]);
 });

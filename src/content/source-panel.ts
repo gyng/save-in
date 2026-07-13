@@ -6,6 +6,7 @@ import {
   createSourceTooltip,
   filterPageSources,
   isSourceSort,
+  positionDraggedSourcePanel,
   positionSourceTooltip,
   sortPageSources,
   resourceTimingByUrl,
@@ -359,13 +360,11 @@ export const toggleSourcePanel = (
     const startY = event.clientY;
     const rect = host.getBoundingClientRect();
     const move = (moveEvent: PointerEvent) => {
-      const left = Math.min(
-        window.innerWidth - rect.width - 8,
-        Math.max(8, rect.left + moveEvent.clientX - startX),
-      );
-      const top = Math.min(
-        window.innerHeight - rect.height - 8,
-        Math.max(8, rect.top + moveEvent.clientY - startY),
+      const { left, top } = positionDraggedSourcePanel(
+        rect,
+        { x: startX, y: startY },
+        { x: moveEvent.clientX, y: moveEvent.clientY },
+        { width: window.innerWidth, height: window.innerHeight },
       );
       host.style.left = `${left}px`;
       host.style.top = `${top}px`;

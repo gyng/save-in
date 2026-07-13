@@ -135,7 +135,9 @@ export const setupTabs = ({ confirmPendingChanges, onGuardError }: TabsOptions =
       tab.classList.toggle("active", selected);
       tab.setAttribute("aria-selected", selected ? "true" : "false");
       tab.tabIndex = selected ? 0 : -1;
-      panels[i]?.classList.toggle("active", selected);
+      const panel = panels[i];
+      panel?.classList.toggle("active", selected);
+      if (panel) panel.hidden = !selected;
     });
     try {
       localStorage.setItem(TAB_STORAGE_KEY, section.key);

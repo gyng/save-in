@@ -4,6 +4,7 @@ import {
   createSourceTooltip,
   filterPageSources,
   formatSourceBytes,
+  positionDraggedSourcePanel,
   positionSourceTooltip,
   sortPageSources,
   urlsFromSrcset,
@@ -257,4 +258,16 @@ test("chooses usable floating-panel space and clamps the tooltip to the viewport
       "right",
     ).left,
   ).toBe(8);
+});
+
+test("moves a floating panel by pointer delta and clamps it to the viewport", () => {
+  const panel = { left: 100, top: 80, width: 320, height: 400 };
+  const viewport = { width: 1200, height: 800 };
+
+  expect(
+    positionDraggedSourcePanel(panel, { x: 120, y: 100 }, { x: 160, y: 130 }, viewport),
+  ).toEqual({ left: 140, top: 110 });
+  expect(
+    positionDraggedSourcePanel(panel, { x: 120, y: 100 }, { x: -500, y: 900 }, viewport),
+  ).toEqual({ left: 8, top: 392 });
 });

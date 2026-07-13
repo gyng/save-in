@@ -194,6 +194,21 @@ export type SourceTooltipSide = "left" | "right" | "top" | "bottom";
 type SourceTooltipRect = Pick<DOMRectReadOnly, "left" | "top" | "right" | "bottom">;
 type SourceTooltipSize = { width: number; height: number };
 
+export const positionDraggedSourcePanel = (
+  panel: Pick<DOMRectReadOnly, "left" | "top" | "width" | "height">,
+  start: { x: number; y: number },
+  current: { x: number; y: number },
+  viewport: SourceTooltipSize,
+): { left: number; top: number } => {
+  const margin = 8;
+  const clamp = (value: number, size: number, viewportSize: number) =>
+    Math.max(margin, Math.min(value, Math.max(margin, viewportSize - size - margin)));
+  return {
+    left: clamp(panel.left + current.x - start.x, panel.width, viewport.width),
+    top: clamp(panel.top + current.y - start.y, panel.height, viewport.height),
+  };
+};
+
 export const positionSourceTooltip = (
   anchor: SourceTooltipRect,
   panel: SourceTooltipRect,

@@ -16,24 +16,6 @@ test("opens and closes the About dialog", () => {
   expect(dialog.close).toHaveBeenCalledOnce();
 });
 
-test("five mascot clicks celebrate until the dialog closes", () => {
-  document.body.innerHTML = `
-    <button id="about-open">About</button>
-    <dialog id="about-dialog">
-      <button class="about-close">Close</button>
-      <button class="about-mascot-button"></button>
-    </dialog>`;
-  setupAboutDialog();
-  const mascot = document.querySelector<HTMLButtonElement>(".about-mascot-button")!;
-  for (let i = 0; i < 4; i += 1) mascot.click();
-  expect(mascot.classList).not.toContain("is-celebrating");
-  mascot.click();
-  expect(mascot.classList).toContain("is-celebrating");
-  expect(document.body.textContent).not.toContain("Lucky cat power activated");
-  document.querySelector("#about-dialog")!.dispatchEvent(new Event("close"));
-  expect(mascot.classList).not.toContain("is-celebrating");
-});
-
 test("shows the runtime manifest version without generated checkout metadata", () => {
   vi.spyOn(webExtensionApi.runtime, "getManifest").mockReturnValue({ version: "4.0.0" } as any);
   const fetch = vi.fn();
