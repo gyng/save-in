@@ -28,7 +28,7 @@ const inE2EBridge = (expr) => `(() => {
   const api = globalThis.__SAVE_IN_E2E__;
   return (${expr});
 })()`;
-const evalSW = (expr, wake) => cdp.evalInServiceWorker(PORT, extensionId, inE2EBridge(expr), wake);
+const evalSW = (expr) => cdp.evalInServiceWorker(PORT, extensionId, inE2EBridge(expr));
 const evalOptions = (expr) => cdp.evalInTarget(PORT, "options.html", expr);
 const artifactName = (name) =>
   name
@@ -682,6 +682,67 @@ test("fetchViaFetch downloads via an offscreen document (Chrome MV3)", async () 
 
   const file = path.join(DOWNLOADS, "e2e", "viafetch.txt");
   expect(fs.readFileSync(file, "utf8")).toBe("via fetch content");
+});
+
+test("extension fetch credentials are opt-in", async () => {
+  const protectedRequests = [];
+  const server = http.createServer((req, res) => {
+    if (req.url === "/protected.bin") {
+      const cookie = req.headers.cookie || "";
+      protectedRequests.push(cookie);
+      res.writeHead(200, { "Content-Type": "application/octet-stream" });
+      res.end(cookie.includes("save_in_auth=granted") ? "authenticated" : "anonymous");
+      return;
+    }
+    res.writeHead(200, {
+      "Content-Type": "text/html",
+      "Set-Cookie": "save_in_auth=granted; Path=/",
+    });
+    res.end("<!doctype html><title>credential fixture</title>");
+  });
+  const serverPort = await listenLocal(server);
+  const pageUrl = `http://127.0.0.1:${serverPort}/`;
+  const targetUrl = `127.0.0.1:${serverPort}`;
+
+  try {
+    await cdp.openTab(PORT, pageUrl);
+    await poll(
+      async () =>
+        (await cdp.evalInTarget(PORT, targetUrl, "document.cookie"))?.includes(
+          "save_in_auth=granted",
+        )
+          ? true
+          : null,
+      { description: "credential fixture cookie" },
+    );
+
+    await evalSW(`api.startDownload({
+      url: "http://127.0.0.1:${serverPort}/protected.bin",
+      suggestedFilename: "credentials-omitted.bin",
+      pageUrl: ${JSON.stringify(pageUrl)},
+      runtimeOptions: { fetchViaFetch: true, includeFetchCredentials: false },
+    }).then(() => "started")`);
+    await waitForDownloads("credentials-omitted", 10000);
+
+    await evalSW(`api.startDownload({
+      url: "http://127.0.0.1:${serverPort}/protected.bin",
+      suggestedFilename: "credentials-included.bin",
+      pageUrl: ${JSON.stringify(pageUrl)},
+      runtimeOptions: { fetchViaFetch: true, includeFetchCredentials: true },
+    }).then(() => "started")`);
+    await waitForDownloads("credentials-included", 10000);
+
+    expect(fs.readFileSync(path.join(DOWNLOADS, "e2e", "credentials-omitted.bin"), "utf8")).toBe(
+      "anonymous",
+    );
+    expect(fs.readFileSync(path.join(DOWNLOADS, "e2e", "credentials-included.bin"), "utf8")).toBe(
+      "authenticated",
+    );
+    expect(protectedRequests).toEqual(["", expect.stringContaining("save_in_auth=granted")]);
+  } finally {
+    await evalSW(`api.setOptions({ fetchViaFetch: false, includeFetchCredentials: false })`);
+    server.close();
+  }
 });
 
 test(":sha256: hashes and saves from a single fetch (Chrome MV3)", async () => {

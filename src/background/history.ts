@@ -1,5 +1,6 @@
 import { webExtensionApi } from "../platform/web-extension-api.ts";
 import type { HistoryEntry, HistoryEntryInput } from "../shared/history-types.ts";
+import type { PrivateWriteOptions } from "../shared/persistence-context.ts";
 import { recordPersistenceFailure } from "../shared/persistence-diagnostics.ts";
 import { HISTORY_STORAGE_KEY } from "../shared/storage-keys.ts";
 import {
@@ -36,7 +37,11 @@ export const SaveHistory = {
 
   // Returns the entry id synchronously (the write itself is queued) so the
   // caller can update the entry's status once the download resolves
-  add: (entry: HistoryEntryInput): string => {
+  add: (entry: HistoryEntryInput, writeOptions: PrivateWriteOptions = {}): string | null => {
+    // Chrome and Firefox both expose the originating private context. Private
+    // activity must never enter extension storage, even temporarily.
+    if (writeOptions.privateContext) return null;
+
     const id = SaveHistory.nextId();
     const withMeta = Object.assign({ id, status: "pending" }, entry);
 

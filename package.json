@@ -13,10 +13,10 @@
     "e2e": "node scripts/e2e-parallel.js",
     "e2e:headed": "node scripts/with-env.js HEADED=1 -- node scripts/e2e-parallel.js",
     "e2e:serial": "npm run e2e:chrome && npm run e2e:firefox",
-    "e2e:chrome": "node scripts/with-env.js SAVE_IN_E2E=1 -- node scripts/build-bundled.js && node scripts/with-env.js SAVE_IN_E2E=1 HEADLESS=1 EXT_DIR=dist/bundled-pkg -- vitest run --config vitest.e2e.config.mjs e2e/chrome.e2e.mjs",
-    "e2e:chrome:headed": "node scripts/with-env.js SAVE_IN_E2E=1 -- node scripts/build-bundled.js && node scripts/with-env.js SAVE_IN_E2E=1 EXT_DIR=dist/bundled-pkg -- vitest run --config vitest.e2e.config.mjs e2e/chrome.e2e.mjs",
-    "e2e:firefox": "node scripts/with-env.js SAVE_IN_E2E=1 -- node scripts/build-bundled.js && node scripts/with-env.js SAVE_IN_E2E=1 HEADLESS=1 EXT_DIR=dist/bundled-pkg -- vitest run --config vitest.e2e.config.mjs e2e/firefox.e2e.mjs",
-    "e2e:firefox:headed": "node scripts/with-env.js SAVE_IN_E2E=1 -- node scripts/build-bundled.js && node scripts/with-env.js SAVE_IN_E2E=1 EXT_DIR=dist/bundled-pkg -- vitest run --config vitest.e2e.config.mjs e2e/firefox.e2e.mjs",
+    "e2e:chrome": "node scripts/with-env.js SAVE_IN_E2E=1 -- node scripts/build-bundled.js && node scripts/with-env.js SAVE_IN_E2E=1 HEADLESS=1 EXT_DIR=dist/bundled-pkg-e2e -- vitest run --config vitest.e2e.config.mjs e2e/chrome.e2e.mjs",
+    "e2e:chrome:headed": "node scripts/with-env.js SAVE_IN_E2E=1 -- node scripts/build-bundled.js && node scripts/with-env.js SAVE_IN_E2E=1 EXT_DIR=dist/bundled-pkg-e2e -- vitest run --config vitest.e2e.config.mjs e2e/chrome.e2e.mjs",
+    "e2e:firefox": "node scripts/with-env.js SAVE_IN_E2E=1 -- node scripts/build-bundled.js && node scripts/with-env.js SAVE_IN_E2E=1 HEADLESS=1 EXT_DIR=dist/bundled-pkg-e2e -- vitest run --config vitest.e2e.config.mjs e2e/firefox.e2e.mjs",
+    "e2e:firefox:headed": "node scripts/with-env.js SAVE_IN_E2E=1 -- node scripts/build-bundled.js && node scripts/with-env.js SAVE_IN_E2E=1 EXT_DIR=dist/bundled-pkg-e2e -- vitest run --config vitest.e2e.config.mjs e2e/firefox.e2e.mjs",
     "fmt": "oxfmt",
     "fmt:check": "oxfmt --check",
     "lint": "node scripts/check-import-cycles.js && node scripts/build-bundled.js && web-ext lint --source-dir dist/bundled-pkg -i \"src/**\" && oxlint && oxfmt --check",
@@ -28,7 +28,7 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit -p tsconfig.browser.json && tsc --noEmit"
+    "typecheck": "tsc --noEmit -p tsconfig.browser.json && tsc --noEmit -p tsconfig.worker.json && tsc --noEmit -p tsconfig.tools.json && tsc --noEmit -p tsconfig.test.json"
   },
   "devDependencies": {
     "@types/chrome": "^0.2.2",

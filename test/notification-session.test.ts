@@ -269,6 +269,19 @@ describe("download lifecycle notifications", () => {
     expect(adoptedIds(sessionStore)).toEqual([7]);
   });
 
+  test("tracks Save In private downloads without a session record", async () => {
+    Notifier.expectDownload("https://private.example/p.png", { privateContext: true });
+
+    await onCreated({
+      id: 8,
+      incognito: true,
+      filename: "C:\\Downloads\\private.png",
+      url: "https://private.example/p.png",
+    });
+
+    expect(sessionStore.siDownloads?.[8]).toBeUndefined();
+  });
+
   test("records an ordinary browser download without adopting or retrying it", async () => {
     options.trackBrowserDownloads = true;
     const { SaveHistory: history } = await import("../src/background/history.ts");
@@ -294,6 +307,7 @@ describe("download lifecycle notifications", () => {
         finalFullPath: "C:\\Downloads\\browser.zip",
         info: { context: "browser" },
       }),
+      { privateContext: false },
     );
 
     await onChanged({ id: 44, state: { current: "complete", previous: "in_progress" } });
@@ -302,6 +316,41 @@ describe("download lifecycle notifications", () => {
     expect(sessionStore.siDownloads[44].observedBrowserDownload).toBe(false);
     expect(retryHolder.retry).not.toHaveBeenCalled();
     expect(global.browser.notifications.create).not.toHaveBeenCalled();
+  });
+
+  test("does not retain ordinary downloads from private browsing", async () => {
+    options.trackBrowserDownloads = true;
+    const { SaveHistory: history } = await import("../src/background/history.ts");
+    vi.spyOn(history, "add");
+
+    await onCreated({
+      id: 48,
+      incognito: true,
+      filename: "C:\\Downloads\\private.zip",
+      url: "https://private.example/private.zip",
+    });
+
+    expect(history.add).not.toHaveBeenCalled();
+    expect(sessionStore.siDownloads?.[48]).toBeUndefined();
+  });
+
+  test("does not reroute Firefox downloads from private browsing", async () => {
+    browserState.current = "FIREFOX";
+    options.routeBrowserDownloadsFirefox = true;
+    options.browserDownloadFilter = "*://private.example/*";
+    const { BrowserDownloadRouting } = await import("../src/downloads/browser-downloads.ts");
+    vi.spyOn(BrowserDownloadRouting, "route");
+
+    await onCreated({
+      id: 49,
+      incognito: true,
+      filename: "C:\\Downloads\\private.bin",
+      url: "https://private.example/private.bin",
+    });
+
+    expect(BrowserDownloadRouting.route).not.toHaveBeenCalled();
+    expect(global.browser.downloads.cancel).not.toHaveBeenCalled();
+    expect(global.browser.downloads.download).not.toHaveBeenCalled();
   });
 
   test("does not track downloads initiated by another extension", async () => {

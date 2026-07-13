@@ -6,8 +6,8 @@ export const parsePathLine = (line: string): PathRow => {
   const comment = commentIdx === -1 ? "" : line.slice(commentIdx + 2).trim();
   const depthMatch = rawBody.trim().match(/^(>*)\s*(.*)$/);
   return {
-    depth: depthMatch?.[1].length ?? 0,
-    body: depthMatch?.[2].trim() ?? "",
+    depth: depthMatch?.[1]?.length ?? 0,
+    body: depthMatch?.[2]?.trim() ?? "",
     comment,
   };
 };
@@ -26,7 +26,7 @@ export const pathRowsToLines = (rows: PathRow[]): string[] => rows.map(serialize
 
 export const getPathAlias = (comment: string): string => {
   const match = (comment || "").match(/\(alias:\s*([^)]*)\)/);
-  return match ? match[1].trim() : "";
+  return match?.[1]?.trim() ?? "";
 };
 
 export const setPathAlias = (comment: string, alias: string): string => {

@@ -133,6 +133,7 @@ beforeEach(() => {
     notifyOnFailure: false,
     conflictAction: "uniquify",
     fetchViaFetch: false,
+    includeFetchCredentials: false,
     // Off by default here; a dedicated suite exercises the MIME-append path
     appendMimeExtension: false,
   });
@@ -196,6 +197,16 @@ afterEach(() => {
 });
 
 describe("pipeline stages", () => {
+  test("marks saves from an incognito tab as private at the history boundary", () => {
+    const state = makeState({ info: { currentTab: { incognito: true } } });
+
+    Download.createDownloadPlan(state);
+
+    expect(SaveHistory.add).toHaveBeenCalledWith(expect.any(Object), {
+      privateContext: true,
+    });
+  });
+
   test("runs RESOLVE, ACQUIRE, and DOWNLOAD in order with explicit values", async () => {
     const calls: string[] = [];
     const state = makeState();
@@ -534,7 +545,7 @@ describe("renameAndDownload: Chrome vs Firefox entry", () => {
 
     expect(global.fetch).toHaveBeenCalledWith(state.info.url, {
       method: "HEAD",
-      credentials: "include",
+      credentials: "omit",
     });
 
     expect(state.info.filename).toBe("server-name.pdf");
@@ -781,6 +792,54 @@ describe("renameAndDownload: prompt combinations", () => {
 });
 
 describe("renameAndDownload: browserDownload", () => {
+  test("passes Firefox private context without a conflicting cookie store", async () => {
+    setCurrentBrowser("FIREFOX");
+    (global.browser as any).permissions = {
+      contains: vi.fn(() => Promise.resolve(true)),
+    };
+    const state = makeState({
+      info: { currentTab: { incognito: true, cookieStoreId: "firefox-private" } },
+    });
+
+    try {
+      await Download.renameAndDownload(state);
+
+      expect(global.browser.downloads.download).toHaveBeenCalledWith(
+        expect.objectContaining({
+          url: state.info.url,
+          incognito: true,
+        }),
+      );
+      const [downloadOptions] = vi.mocked(global.browser.downloads.download).mock.calls[0]!;
+      expect(downloadOptions).not.toHaveProperty("cookieStoreId");
+    } finally {
+      Reflect.deleteProperty(global.browser, "permissions");
+    }
+  });
+
+  test("passes an approved Firefox Container to a direct download", async () => {
+    setCurrentBrowser("FIREFOX");
+    (global.browser as any).permissions = {
+      contains: vi.fn(() => Promise.resolve(true)),
+    };
+    const state = makeState({
+      info: { currentTab: { incognito: false, cookieStoreId: "firefox-container-2" } },
+    });
+
+    try {
+      await Download.renameAndDownload(state);
+
+      expect(global.browser.downloads.download).toHaveBeenCalledWith(
+        expect.objectContaining({
+          url: state.info.url,
+          cookieStoreId: "firefox-container-2",
+        }),
+      );
+    } finally {
+      Reflect.deleteProperty(global.browser, "permissions");
+    }
+  });
+
   test("persists session state, downloads, and tracks the result", async () => {
     setCurrentBrowser("CHROME");
     (global.browser.downloads as any).download = vi.fn(() => Promise.resolve(555));
@@ -897,11 +956,37 @@ describe("renameAndDownload: browserDownload", () => {
           initialfilename: "file.png",
         }),
       }),
+      { privateContext: false },
     );
   });
 });
 
 describe("renameAndDownload: fetchViaFetch", () => {
+  test("keeps a fetched blob private without attaching its Firefox Container", async () => {
+    setCurrentBrowser("FIREFOX");
+    options.fetchViaFetch = true;
+    (global.browser as any).permissions = {
+      contains: vi.fn(() => Promise.resolve(true)),
+    };
+    global.fetch = vi.fn(() =>
+      Promise.resolve({ blob: () => Promise.resolve(new Blob(["file contents"])) }),
+    ) as any;
+    vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:fetched-content");
+
+    try {
+      const state = makeState({
+        info: { currentTab: { incognito: true, cookieStoreId: "firefox-private" } },
+      });
+      await Download.renameAndDownload(state);
+
+      const [downloadOptions] = vi.mocked(global.browser.downloads.download).mock.calls[0]!;
+      expect(downloadOptions).toHaveProperty("incognito", true);
+      expect(downloadOptions).not.toHaveProperty("cookieStoreId");
+    } finally {
+      Reflect.deleteProperty(global.browser, "permissions");
+    }
+  });
+
   test("fetches the URL, converts the blob to an object URL, then downloads it", async () => {
     setCurrentBrowser("CHROME");
     options.fetchViaFetch = true;
@@ -913,7 +998,7 @@ describe("renameAndDownload: fetchViaFetch", () => {
     const state = makeState();
     await Download.renameAndDownload(state);
 
-    expect(global.fetch).toHaveBeenCalledWith(state.info.url, { credentials: "include" });
+    expect(global.fetch).toHaveBeenCalledWith(state.info.url, { credentials: "omit" });
     expect(Log.add).not.toHaveBeenCalledWith("fetch download failed", expect.anything());
     expect(global.browser.downloads.download).toHaveBeenCalledWith(
       expect.objectContaining({ url: expect.stringMatching(/^blob:/) }),
@@ -931,7 +1016,7 @@ describe("renameAndDownload: fetchViaFetch", () => {
       const state = makeState();
       await Download.renameAndDownload(state);
 
-      expect(OffscreenClient.fetch).toHaveBeenCalledWith(state.info.url);
+      expect(OffscreenClient.fetch).toHaveBeenCalledWith(state.info.url, "omit");
       expect(global.browser.downloads.download).toHaveBeenCalledWith(
         expect.objectContaining({ url: "blob:offscreen-url" }),
       );
@@ -1409,6 +1494,7 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
 
   test("retries a failed download once via a background fetch", async () => {
     await seedStartedDownload();
+    options.includeFetchCredentials = true;
 
     global.fetch = vi.fn(() =>
       Promise.resolve({ ok: true, blob: () => Promise.resolve(new Blob(["bytes"])) }),
@@ -1435,6 +1521,20 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
 
     // Only one retry per download
     await expect(Download.retryViaFetch(101)).resolves.toBe(false);
+  });
+
+  test("omits credentials from fallback fetching unless enabled", async () => {
+    await seedStartedDownload();
+    global.fetch = vi.fn(() =>
+      Promise.resolve({ ok: true, blob: () => Promise.resolve(new Blob(["bytes"])) }),
+    ) as any;
+    (global.browser.downloads as any).download = vi.fn(() => Promise.resolve(203));
+
+    await expect(Download.retryViaFetch(101)).resolves.toBe(true);
+
+    expect(global.fetch).toHaveBeenCalledWith("https://example.com/dir/file.png", {
+      credentials: "omit",
+    });
   });
 
   test("cleans pending retry state when the browser rejects the retry", async () => {
@@ -1559,5 +1659,28 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
 
     expect(global.browser.downloads.download).toHaveBeenCalledTimes(1);
     expect(global.fetch).not.toHaveBeenCalled();
+  });
+});
+
+describe("private browsing persistence", () => {
+  test("keeps private save metadata out of local and session storage", async () => {
+    setCurrentBrowser("CHROME");
+    const state = makeState({ info: { currentTab: { incognito: true } } });
+
+    await Download.renameAndDownload(state);
+
+    expect(SaveHistory.add).toHaveBeenCalledWith(expect.any(Object), {
+      privateContext: true,
+    });
+    expect(sessionStore.siPendingDownloads).toBeUndefined();
+    expect(sessionStore.siFinalFilenames).toBeUndefined();
+    expect(sessionStore.siDownloads?.[101]).toBeUndefined();
+    expect(downloadState.records.get(101)).toMatchObject({
+      privateContext: true,
+      adopted: true,
+    });
+    expect(Log.add).not.toHaveBeenCalledWith("download requested", expect.anything());
+    expect(downloaded).not.toHaveBeenCalled();
+    expect(backgroundRuntime.lastDownloadState).toBeUndefined();
   });
 });

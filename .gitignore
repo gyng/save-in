@@ -8,4 +8,5 @@ yarn-error.log
 coverage
 .playwright-mcp/
 .wiki-work/
+.task-build/
 scripts/tmp-options-server.cjs

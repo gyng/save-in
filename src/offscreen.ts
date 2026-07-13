@@ -28,7 +28,9 @@ chrome.runtime.onMessage.addListener(
       return false;
     }
 
-    fetch(message.url, { credentials: "include" })
+    // Missing credentials preserves compatibility with an older background
+    // that survived an update long enough to message this document.
+    fetch(message.url, { credentials: message.credentials ?? "include" })
       .then((res) => {
         if (!res.ok) {
           throw new Error(`HTTP ${res.status}`);

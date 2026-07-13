@@ -1,5 +1,6 @@
 import { MESSAGE_TYPES } from "../shared/constants.ts";
 import { OffscreenClient } from "../platform/offscreen-client.ts";
+import { getExtensionFetchCredentials } from "../config/fetch-credentials.ts";
 import type {
   BlobContent,
   ContentFetchResult,
@@ -35,6 +36,7 @@ export const resolveContent = (url: string): Promise<ContentFetchResult | null> 
           url,
           hash: "SHA-256",
           maxBytes: HASH_MAX_BYTES,
+          credentials: getExtensionFetchCredentials(),
         }),
       )
       .then((res: OffscreenFetchResponse) =>
@@ -45,7 +47,7 @@ export const resolveContent = (url: string): Promise<ContentFetchResult | null> 
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), HASH_FETCH_TIMEOUT_MS);
-  return fetch(url, { credentials: "include", signal: controller.signal })
+  return fetch(url, { credentials: getExtensionFetchCredentials(), signal: controller.signal })
     .then((res) => {
       if (!res.ok || Number(res.headers.get("Content-Length")) > HASH_MAX_BYTES) return null;
       return res.blob();

@@ -1,14 +1,15 @@
 import type { HistoryEntry, HistoryEntryInput } from "../shared/history-types.ts";
+import type { PrivateWriteOptions } from "../shared/persistence-context.ts";
 import type { DownloadPipelineState } from "./download-types.ts";
 
 export type DownloadPorts = {
   runtime: {
-    ready?: Promise<unknown>;
+    ready?: Promise<unknown> | undefined;
     debug: boolean;
-    lastDownloadState?: DownloadPipelineState | null;
+    lastDownloadState?: DownloadPipelineState | null | undefined;
   };
   history: {
-    add(entry: HistoryEntryInput): string;
+    add(entry: HistoryEntryInput, options?: PrivateWriteOptions): string | null;
     patch(id: string | null | undefined, fields: Partial<HistoryEntry>): Promise<unknown>;
     setDownloadId(id: string | null | undefined, downloadId: number): Promise<unknown>;
     setStatus(
@@ -18,7 +19,9 @@ export type DownloadPorts = {
       fileSize?: number,
     ): Promise<unknown>;
   };
-  log: { add(message: string, data?: unknown): unknown };
+  log: {
+    add(message: string, data?: unknown, options?: { privateContext?: boolean }): unknown;
+  };
   retry(downloadId: number): Promise<boolean>;
 };
 

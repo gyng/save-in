@@ -123,6 +123,22 @@ describe("options form semantics", () => {
     expect(document.querySelector<HTMLInputElement>("#truncateLength")?.min).toBe("0");
   });
 
+  test("makes authenticated extension requests an explicit advanced option", () => {
+    const document = documentForOptions();
+    const fetchCredentials = document.querySelector<HTMLInputElement>("#includeFetchCredentials");
+    const containerPermission = document.querySelector<HTMLInputElement>(
+      "#containerAuthPermission",
+    );
+
+    expect(fetchCredentials).not.toBeNull();
+    expect(fetchCredentials?.closest("label")?.textContent).toContain(
+      "__MSG_o_cIncludeFetchCredentials__",
+    );
+    expect(containerPermission?.closest(".firefox-only")?.textContent).toContain(
+      "__MSG_o_cContainerAuthPermission__",
+    );
+  });
+
   test("makes default Downloads-folder help directly openable", () => {
     const document = documentForOptions();
     const links = document.querySelectorAll<HTMLAnchorElement>(

@@ -26,4 +26,21 @@ describe("download runtime state", () => {
     }
     expect([...runtime.pendingStates.values()].flat()).toHaveLength(50);
   });
+
+  it("ignores empty URLs and leaves unrelated queued states intact", () => {
+    const runtime = createDownloadRuntimeState();
+    const first = stateFor("https://example.test/shared");
+    const second = stateFor("https://example.test/shared");
+    const absent = stateFor("https://example.test/absent");
+
+    runtime.rememberPendingStateAtUrl(first, "");
+    runtime.rememberPendingState({ path: new Path("."), info: {}, scratch: {} });
+    runtime.rememberPendingState(first);
+    runtime.forgetPendingState(absent);
+    expect(runtime.pendingStates.get(first.info.url!)).toEqual([first]);
+
+    runtime.rememberPendingState(second);
+    runtime.forgetPendingState(first);
+    expect(runtime.pendingStates.get(second.info.url!)).toEqual([second]);
+  });
 });

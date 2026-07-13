@@ -34,7 +34,7 @@ export const syncReferenceVocabulary = (
     if (!required.has(referenceSyntax(row))) row.remove();
   });
 
-  const target = rows[0].parentElement;
+  const target = rows[0]?.parentElement;
   if (!target) return;
   for (const syntax of required) {
     if (bySyntax.has(syntax)) continue;
@@ -149,9 +149,9 @@ export const enhanceReferenceTables = (root: ParentNode) => {
       ...table.querySelectorAll<HTMLTableRowElement>(":scope > tbody > tr, :scope > tr"),
     ];
     if (rows.length === 0) return;
-    let tbody = table.tBodies[0];
-    if (!tbody) {
-      tbody = table.ownerDocument.createElement("tbody");
+    const existingBody = table.tBodies[0];
+    if (!existingBody) {
+      const tbody = table.ownerDocument.createElement("tbody");
       rows.forEach((row) => tbody.appendChild(row));
       table.appendChild(tbody);
     }

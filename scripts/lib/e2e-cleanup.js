@@ -77,7 +77,10 @@ const removeWithRetries = async (target, { attempts = 6, delayMs = 500 } = {}) =
   throw new Error(`Unable to remove interrupted E2E profile: ${target}`);
 };
 
-const removeOwnedProfiles = async (childPids, { chromeRoot, firefoxRoot, attempts, delayMs }) => {
+const removeOwnedProfiles = async (
+  childPids,
+  { chromeRoot, firefoxRoot, attempts = 6, delayMs = 500 },
+) => {
   const roots = [
     { dir: chromeRoot, prefix: "e2e-profile-" },
     { dir: firefoxRoot, prefix: "save-in-ff-e2e-" },

@@ -1,6 +1,6 @@
 type DownloadChange = Omit<Partial<browser.downloads._OnChangedDownloadDelta>, "error"> & {
   // Older Chromium typings and mocks exposed the reason directly.
-  error?: browser.downloads.StringDelta | string;
+  error?: browser.downloads.StringDelta | string | undefined;
 };
 
 export type DownloadFailure = browser.downloads.StringDelta | string | boolean;

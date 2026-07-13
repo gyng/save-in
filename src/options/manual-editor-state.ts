@@ -38,7 +38,7 @@ export const createManualEditorState = (unsavedLabel: string) => {
     saveStatus.className = "editor-save-status";
     saveStatus.setAttribute("role", "status");
     saveStatus.hidden = true;
-    actionRows[0]!.insertBefore(saveStatus, statuses[0]);
+    actionRows[0]!.insertBefore(saveStatus, statuses[0] ?? null);
     const editor: ManualEditor = {
       textarea,
       saved: textarea.value,

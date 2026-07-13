@@ -205,9 +205,16 @@ const createDemoServer = () =>
   });
 
 const startDemoServer = () =>
-  new Promise((resolve) => {
+  new Promise((resolve, reject) => {
     const server = createDemoServer();
-    server.listen(0, "127.0.0.1", () => resolve(server.address().port));
+    server.listen(0, "127.0.0.1", () => {
+      const address = server.address();
+      if (!address || typeof address === "string") {
+        reject(new Error("Demo server did not bind to a TCP port"));
+        return;
+      }
+      resolve(address.port);
+    });
   });
 
 const main = async () => {

@@ -28,7 +28,7 @@ import { LAST_USED_META_STORAGE_KEY, LAST_USED_PATH_STORAGE_KEY } from "../share
 import { Log } from "./log.ts";
 import { currentTab, setCurrentTab } from "../platform/current-tab.ts";
 import { configureRoutingPorts } from "../routing/ports.ts";
-import { nextCounter, peekCounter } from "./counter.ts";
+import { nextCounter, nextPrivateCounter, peekCounter } from "./counter.ts";
 import { counterWriteState } from "./state.ts";
 import { resolveContent } from "../downloads/content-fetch.ts";
 import { syncSourcePanelToTab, toggleSourcePanelForTab } from "./source-panel-state.ts";
@@ -51,6 +51,7 @@ export const configureBackgroundPorts = () => {
     recordRuleErrors: (errors) => backgroundRuntime.optionErrors.filenamePatterns.push(...errors),
     logDebug: (...values) => console.log(...values), // eslint-disable-line no-console
     nextCounter: () => nextCounter(counterWriteState, webExtensionApi.storage.local),
+    nextPrivateCounter: () => nextPrivateCounter(counterWriteState, webExtensionApi.storage.local),
     peekCounter: () => peekCounter(webExtensionApi.storage.local),
     resolveContent,
   });
@@ -124,14 +125,15 @@ export const start = () => {
   addDownloadListener();
   addTabMenuListener();
   addTabHighlightListener();
-  const toggleSources = (tab: browser.tabs.Tab) => {
+  const toggleSources = (tab: browser.tabs.Tab): Promise<void> | undefined => {
     const tabId = tab.id;
     if (tabId != null)
       return runBackgroundTask("source panel toggle failed", () => toggleSourcePanelForTab(tabId));
+    return undefined;
   };
   webExtensionApi.action?.onClicked.addListener(toggleSources);
-  webExtensionApi.commands?.onCommand.addListener((command) => {
-    if (command !== "toggle-source-panel") return;
+  webExtensionApi.commands?.onCommand.addListener((command): Promise<void> | undefined => {
+    if (command !== "toggle-source-panel") return undefined;
     return runBackgroundTask("source panel command failed", async () => {
       const [tab] = await webExtensionApi.tabs.query({ active: true, currentWindow: true });
       if (tab) await toggleSources(tab);
@@ -141,9 +143,8 @@ export const start = () => {
   const initialTab = webExtensionApi.tabs
     .query({ active: true, currentWindow: true })
     .then((tabs) => {
-      if (!currentTab && tabs && tabs.length > 0) {
-        setCurrentTab(tabs[0]);
-      }
+      const [tab] = tabs;
+      if (!currentTab && tab) setCurrentTab(tab);
     })
     .catch(() => {});
   backgroundRuntime.ready = Promise.all([backgroundRuntime.init(), initialTab]).then(

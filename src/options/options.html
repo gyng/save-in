@@ -1211,7 +1211,21 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
         <div class="caption caption-line">__MSG_o_cFetchViaFetchAPIHelp__</div>
       </label>
 
+      <label>
+        <input type="checkbox" id="includeFetchCredentials" />
+        <span>__MSG_o_cIncludeFetchCredentials__</span>
+        <div class="caption caption-line">__MSG_o_cIncludeFetchCredentialsHelp__</div>
+      </label>
+
       <div class="firefox-only">
+        <label>
+          <input type="checkbox" id="containerAuthPermission" data-runtime-control="true" />
+          __MSG_o_cContainerAuthPermission__
+        </label>
+        <div class="caption caption-line">
+          __MSG_o_cContainerAuthPermissionHelp__
+          <span id="containerAuthPermissionStatus" aria-live="polite"></span>
+        </div>
         <label>
           <input type="checkbox" id="setRefererHeader" />
           __MSG_o_cSetRefererHeader__

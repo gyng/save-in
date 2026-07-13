@@ -170,6 +170,13 @@ describe("Menus last-used state", () => {
       lastUsedMeta: { comment: "cm", menuIndex: "2" },
     });
   });
+
+  test("setLastUsed ignores private-window activity", async () => {
+    await Menus.setLastUsed("private/path", { comment: "secret", menuIndex: "9" }, true);
+
+    expect(Menus.state.lastUsedPath).toBeNull();
+    expect(global.browser.storage.local.set).not.toHaveBeenCalled();
+  });
 });
 
 describe("addDownloadListener", () => {

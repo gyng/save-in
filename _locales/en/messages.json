@@ -785,6 +785,30 @@
     "message": "Fetches the file itself and hands the browser the result, instead of pointing the browser's downloader at the URL. Turn it on only where normal downloads fail — some servers block the browser's request or return an empty file. It's slower, and on Chrome the file is held in memory while saving, so avoid it for very large downloads."
   },
 
+  "o_cIncludeFetchCredentials": {
+    "message": "Use website sign-in cookies for extension requests"
+  },
+
+  "o_cIncludeFetchCredentialsHelp": {
+    "message": "Includes applicable cookies and browser-managed authentication in background Fetch and HEAD requests. Enable only for sites that require your signed-in session. Direct browser downloads manage their own cookies."
+  },
+
+  "o_cContainerAuthPermission": {
+    "message": "Preserve Firefox Container authentication for direct downloads"
+  },
+
+  "o_cContainerAuthPermissionHelp": {
+    "message": "Optional Firefox permission. Selects the originating Container's cookie store without reading or storing cookie values. Fetch-through-extension requests cannot preserve a Container. Status:"
+  },
+
+  "o_lContainerAuthEnabled": {
+    "message": "Enabled"
+  },
+
+  "o_lContainerAuthDisabled": {
+    "message": "Disabled"
+  },
+
   "o_cSetRefererHeader": {
     "message": "Set the \"Referer\" header to the page URL when missing"
   },

@@ -19,6 +19,7 @@ const runDir = path.join(runRoot, String(process.pid));
 const stagedRun = path.join(runDir, "bundled-pkg");
 const stagingLockDir = path.join(root, "dist", "e2e-staging.lock");
 const runArtifacts = path.join(artifacts, `run-${Date.now()}-${process.pid}`);
+/** @type {NodeJS.ProcessEnv} */
 const e2eEnv = {
   ...process.env,
   SAVE_IN_E2E: "1",
@@ -45,10 +46,10 @@ try {
     stdio: "inherit",
   });
 
-  // A dev watcher or another build can rewrite dist/bundled-pkg. Browsers load
-  // this immutable per-run copy; the lock only serializes build + snapshot.
+  // Browsers load this immutable per-run copy; the lock serializes concurrent
+  // E2E builds and snapshots while store/dev builds use separate directories.
   fs.mkdirSync(runDir, { recursive: true });
-  fs.cpSync(path.join(root, "dist", "bundled-pkg"), stagedRun, { recursive: true });
+  fs.cpSync(path.join(root, "dist", "bundled-pkg-e2e"), stagedRun, { recursive: true });
 } finally {
   releaseDirectoryLock(stagingLock);
 }

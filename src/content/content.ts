@@ -33,7 +33,8 @@ const ClickToSave = {
       FORWARD_CLICK: 16, // bit 4 (mouse button 5)
     }[target];
     // eslint-disable-next-line no-bitwise
-    return Boolean(bit) && (buttons & bit!) === bit;
+    if (!bit) return false;
+    return (buttons & bit) === bit;
   },
 
   // Resolve the stored combo option to keyCodes. Raw keyCode numbers remain
@@ -43,8 +44,16 @@ const ClickToSave = {
 
   // Resolves what to download for a click: media under the cursor first
   // (e.target can be an overlay), then the enclosing link (#226)
-  findSource: (e: any, allowLinks: boolean): string | undefined => {
-    let source;
+  findSource: (
+    e: {
+      target: EventTarget | null;
+      clientX: number;
+      clientY: number;
+      composedPath?: () => Array<EventTarget | null>;
+    },
+    allowLinks: boolean,
+  ): string | undefined => {
+    let source: string | undefined;
     const path = typeof e.composedPath === "function" ? e.composedPath() : [];
     const mediaSource = (element: unknown): string | undefined => {
       if (!(element instanceof HTMLImageElement) && !(element instanceof HTMLMediaElement))
@@ -56,14 +65,14 @@ const ClickToSave = {
     // Shadow-DOM retargeting can hide the actual media element from e.target.
     // Prefer the composed path, then retain the coordinate lookup for overlays.
     if (path.length > 0) {
-      path.some((el: any) => {
+      path.some((el) => {
         source = mediaSource(el);
         return !!source;
       });
     }
 
     if (!source && document.elementsFromPoint) {
-      document.elementsFromPoint(e.clientX, e.clientY).some((el: any) => {
+      document.elementsFromPoint(e.clientX, e.clientY).some((el) => {
         source = mediaSource(el);
         return !!source;
       });
@@ -74,9 +83,12 @@ const ClickToSave = {
     }
 
     if (!source && allowLinks) {
-      const anchor =
-        path.find((el: any) => el?.matches?.("a[href]")) || e.target?.closest?.("a[href]");
-      const href = anchor && anchor.href;
+      const pathAnchor = path.find(
+        (el): el is HTMLAnchorElement => el instanceof HTMLAnchorElement && el.matches("a[href]"),
+      );
+      const targetAnchor =
+        e.target instanceof Element ? e.target.closest<HTMLAnchorElement>("a[href]") : null;
+      const href = (pathAnchor ?? targetAnchor)?.href;
       if (href && /^(https?|ftp|blob|data):/i.test(href)) {
         source = href;
       }
@@ -84,9 +96,6 @@ const ClickToSave = {
 
     return source || undefined;
   },
-
-  // Attached below; declared here so TypeScript allows the assignment
-  setupClickToSave: undefined as unknown as (options: ContentOptions) => () => void,
 };
 
 const warmBackground = () => {
@@ -213,8 +222,6 @@ const setupClickToSave = (options: ContentOptions) => {
   };
 };
 
-ClickToSave.setupClickToSave = setupClickToSave;
-
 let currentOptions: ContentOptions = { ...CONTENT_OPTION_DEFAULTS };
 let removeClickToSave: (() => void) | null = null;
 let receivedInitialOptions = false;
@@ -277,7 +284,8 @@ try {
     CONTENT_OPTION_KEYS.forEach((key) => {
       if (key in changes) {
         if (!receivedInitialOptions) changedDuringRead.add(key);
-        changed[key] = normalizeContentOption(key, changes[key].newValue) as never;
+        const change = changes[key];
+        if (change) changed[key] = normalizeContentOption(key, change.newValue) as never;
       }
     });
     if (Object.keys(changed).length > 0) {
@@ -352,4 +360,4 @@ try {
   // Extension context invalidated.
 }
 
-export default ClickToSave;
+export default { ...ClickToSave, setupClickToSave };

@@ -26,6 +26,7 @@
     }
   ],
   "permissions": ["contextMenus", "downloads", "notifications", "storage", "offscreen"],
+  "optional_permissions": ["cookies"],
   "host_permissions": ["<all_urls>"],
   "options_ui": {
     "page": "src/options/options.html",

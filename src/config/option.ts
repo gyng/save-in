@@ -10,7 +10,7 @@ import {
 // settings (path/headers/menu-*/notification/download) import it directly and
 // don't pull in this validator-heavy module — breaking the option↔* cycles
 // (docs/ARCH-CYCLES.md, Cut 1).
-import { options } from "./options-data.ts";
+import { options, replaceOptions, resetOptions } from "./options-data.ts";
 import { isContentOptionName, normalizeContentOption } from "./content-options.ts";
 
 export interface OptionsManagementApi {
@@ -79,6 +79,8 @@ export const OptionsManagement: OptionsManagementApi = {
       "Append a file extension from the server's Content-Type when the filename has none.",
     fetchViaFetch: "Download via the Fetch API instead of the downloads API.",
     fallbackFetch: "Retry a failed download once via a background fetch.",
+    includeFetchCredentials:
+      "Include applicable website cookies and browser-managed authentication in extension fetches.",
     trackBrowserDownloads: "Include ordinary browser downloads in local Save In history.",
     routeBrowserDownloads:
       "Apply matching filename routing rules to ordinary browser downloads on Chrome.",
@@ -109,6 +111,8 @@ export const OptionsManagement: OptionsManagementApi = {
     webExtensionApi.storage.local.get(OptionsManagement.getKeys()).then((loadedOptions) => {
       loadedOptions = loadedOptions && typeof loadedOptions === "object" ? loadedOptions : {};
       const nextOptions = {} as SaveInOptions;
+      const migrations: Partial<SaveInOptions> = {};
+      const hasStoredProfile = Object.keys(loadedOptions).length > 0;
 
       OptionsManagement.OPTION_KEYS.forEach((optionType) => {
         const k = optionType.name;
@@ -118,7 +122,14 @@ export const OptionsManagement: OptionsManagementApi = {
           return;
         }
         if (typeof stored === "undefined") {
-          nextOptions[k] = optionType.default as never;
+          const defaultValue =
+            hasStoredProfile && "legacyDefault" in optionType
+              ? optionType.legacyDefault
+              : optionType.default;
+          nextOptions[k] = defaultValue as never;
+          if (hasStoredProfile && "legacyDefault" in optionType) {
+            migrations[k] = defaultValue as never;
+          }
           return;
         }
         const validate =
@@ -157,10 +168,13 @@ export const OptionsManagement: OptionsManagementApi = {
       // Commit a complete snapshot only after every stored value has been
       // normalized. Keys removed by reset therefore return to their defaults,
       // and readers never observe a half-reloaded options bag.
-      const mutableOptions = options as unknown as Record<string, unknown>;
-      Object.keys(mutableOptions).forEach((key) => delete mutableOptions[key]);
-      Object.assign(mutableOptions, nextOptions);
-      return options;
+      const persistMigration = Object.keys(migrations).length
+        ? Promise.resolve(webExtensionApi.storage.local.set(migrations)).catch(() => undefined)
+        : Promise.resolve();
+      return persistMigration.then(() => {
+        replaceOptions(nextOptions);
+        return options;
+      });
     }),
 };
 
@@ -172,12 +186,6 @@ export const OptionsManagement: OptionsManagementApi = {
 export const seedOptions = () => {
   // Mutate the shared bag in place (it's a `const` leaf export now) so every
   // module's live reference stays valid across a background runtime reset
-  const mutableOptions = options as unknown as Record<string, unknown>;
-  for (const k of Object.keys(mutableOptions)) {
-    delete mutableOptions[k];
-  }
-  OptionsManagement.OPTION_KEYS.forEach((val) => {
-    mutableOptions[val.name] = val.default;
-  });
+  resetOptions(OptionsManagement.OPTION_KEYS.map((val) => [val.name, val.default] as const));
   return options;
 };

@@ -181,14 +181,14 @@ graph rather than relying on a one-time audit.
   until the matching item is complete before reading it. `PathEditor` owns its
   callback per instance, each test constructs a fresh editor, and the isolation
   regression passed 25 repeated focused runs without a failure. (Task #69.)
-- **TS tooling/CI hardening — DONE** (Task #65). Browser-only source typechecking
-  (no Node/Vitest globals) plus the combined source+test check are in place.
-  `expectTypeOf` locks down
-  pipeline stages, routing clauses, and functional state records; every bundle
-  emits an external sourcemap. A narrower background `lib` is deliberately not
-  useful: the same entry is both a Firefox DOM event page and a Chrome worker,
-  and its capability branches are runtime feature-detected. Splitting the type
-  environment would describe neither shared execution target faithfully. **NO
+- **TS tooling/CI hardening — DONE** (Tasks #65 and the strictness follow-up).
+  Production source enables `exactOptionalPropertyTypes` and
+  `noUncheckedIndexedAccess`; the shared background entry also has a DOM-free
+  WebWorker compilation pass so Chrome service-worker code cannot accidentally
+  depend on event-page globals. A separate checked-JS config covers scripts and
+  e2e infrastructure, while the test config permits deliberately partial host
+  mocks. `expectTypeOf` locks down pipeline stages, routing clauses, and
+  functional state records; every bundle emits an external sourcemap. **NO
   typescript-eslint** (decided — stay oxlint-only); the tradeoff is no
   `no-floating-promises`, so guard unawaited promises by `void` convention +
   review, not lint. NOT: TS-ifying scripts/*.mjs, .d.ts emit, path aliases. (Task #65.)

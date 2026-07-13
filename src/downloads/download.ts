@@ -4,7 +4,7 @@ import { webExtensionApi } from "../platform/web-extension-api.ts";
 
 import { downloadsState, sessionWriteState } from "./state.ts";
 import { getDownload, mergeDownload } from "./download-state.ts";
-import type { DownloadRecord } from "./download-state.ts";
+import type { DownloadRecord, PrivateDownloadContext } from "./download-state.ts";
 import { normalizeSessionCounter, updateSession } from "../shared/session-state.ts";
 import { RequestHeaders } from "./headers.ts";
 import { Notifier } from "./notification.ts";
@@ -12,6 +12,7 @@ import { matchRules } from "../routing/router.ts";
 import { Path, sanitizeFilename } from "../routing/path.ts";
 import { applyVariables, mimeToExtension, resolveMime } from "../routing/variable.ts";
 import { options } from "../config/options-data.ts";
+import { getExtensionFetchCredentials } from "../config/fetch-credentials.ts";
 import { downloadPorts } from "./ports.ts";
 import { WEB_EXTENSION_CAPABILITIES } from "../platform/chrome-detector.ts";
 import { getFilenameFromContentDispositionHeader } from "../vendor/content-disposition.ts";
@@ -41,14 +42,17 @@ import {
   removeFilename,
 } from "./filename-listener.ts";
 import { BrowserDownloadRouting, routeBrowserDownload } from "./browser-downloads.ts";
+import { resolveDirectDownloadContext } from "./auth-context.ts";
 
 const downloadRuntime = createDownloadRuntimeState();
 const logPort = downloadPorts.log;
 const historyPort = downloadPorts.history;
 const backgroundRuntime = downloadPorts.runtime;
 
-const mergeStartedDownload = (downloadId: number, partial: Partial<DownloadRecord>) =>
-  mergeDownload(downloadsState, sessionWriteState, extensionSessionStorage, downloadId, partial);
+const mergeStartedDownload = (
+  downloadId: number,
+  partial: Partial<DownloadRecord> & PrivateDownloadContext,
+) => mergeDownload(downloadsState, sessionWriteState, extensionSessionStorage, downloadId, partial);
 
 const getStartedDownload = (downloadId: number) =>
   getDownload(downloadsState, extensionSessionStorage, downloadId);
@@ -57,6 +61,18 @@ const requireDownloadUrl = (state: Pick<DownloadPipelineState, "info">): string 
   if (!state.info.url) throw new Error("Download URL is required");
   return state.info.url;
 };
+
+const isPrivateDownloadState = (state: Pick<DownloadPipelineState, "info">): boolean =>
+  state.info.currentTab?.incognito === true;
+
+const addDownloadLog = (
+  state: Pick<DownloadPipelineState, "info">,
+  message: string,
+  data?: unknown,
+): unknown =>
+  isPrivateDownloadState(state)
+    ? logPort.add(message, data, { privateContext: true })
+    : logPort.add(message, data);
 
 const isHttpDownloadUrl = (value: string | undefined): boolean => {
   if (!value) return false;
@@ -86,15 +102,20 @@ import type { FinalFilenameMap } from "./filename-listener.ts";
 
 const recordDownloadRequest = (plan: DownloadPlan): void => {
   const { state } = plan;
-  logPort.add("download requested", {
-    url: state.info.url && String(state.info.url).slice(0, 200),
-    path: plan.finalFullPath,
-    route: state.route ? String(state.route.finalize()) : null,
-  });
-  if (backgroundRuntime.debug) console.log(state, plan.finalFullPath); // eslint-disable-line
+  const privateContext = isPrivateDownloadState(state);
+  if (!privateContext) {
+    logPort.add("download requested", {
+      url: state.info.url && String(state.info.url).slice(0, 200),
+      path: plan.finalFullPath,
+      route: state.route ? String(state.route.finalize()) : null,
+    });
+  }
+  if (backgroundRuntime.debug && !privateContext) console.log(state, plan.finalFullPath); // eslint-disable-line
 
-  emitDownloaded(state);
-  backgroundRuntime.lastDownloadState = state;
+  if (!privateContext) {
+    emitDownloaded(state);
+    backgroundRuntime.lastDownloadState = state;
+  }
 };
 
 export const Download = {
@@ -146,7 +167,8 @@ export const Download = {
     const bytes = new TextEncoder().encode(content);
     let binary = "";
     for (let i = 0; i < bytes.length; i += 1) {
-      binary += String.fromCharCode(bytes[i]);
+      const byte = bytes[i];
+      if (byte !== undefined) binary += String.fromCharCode(byte);
     }
     return `data:${mime};charset=utf-8;base64,${btoa(binary)}`;
   },
@@ -232,7 +254,7 @@ export const Download = {
   // downloads.download(), so planning failures cannot leak an expectation.
   launch: (state: DownloadPipelineState): Promise<DownloadLaunchResult> =>
     Download.renameAndDownload(state).catch((e) => {
-      logPort.add("renameAndDownload failed", String(e));
+      addDownloadLog(state, "renameAndDownload failed", String(e));
       const name = (state && state.info && (state.info.suggestedFilename || state.info.url)) || "";
       Notifier.reportFailure(name, String(e));
       return { status: "failed" as const };
@@ -260,7 +282,7 @@ export const Download = {
       try {
         const response = await fetch(url, {
           method: "HEAD",
-          credentials: "include",
+          credentials: getExtensionFetchCredentials(),
         });
         if (response.headers.has("Content-Disposition")) {
           const dispositionName = Download.getFilenameFromContentDisposition(
@@ -311,61 +333,70 @@ export const Download = {
     const noRuleMatchedPrompt = options.routeFailurePrompt && !state.route;
     const prompt = options.prompt || noExtensionPrompt || shiftHeldPrompt || noRuleMatchedPrompt;
 
-    const historyEntryId = historyPort.add({
-      timestamp: new Date().toISOString(),
-      initiatedAt: state.info.now?.toISOString(),
-      url: state.info.url,
-      finalFullPath,
-      routed: Boolean(state.route),
-      info: {
-        sourceUrl: state.info.sourceUrl,
-        pageUrl: state.info.pageUrl,
-        context: state.info.context,
-      },
-      menu: {
-        id: state.info.menuItemId,
-        title: state.info.menuItemTitle,
-        path: state.info.menuItemPath,
-      },
-      variables: Object.fromEntries(
-        Object.entries({
-          filename: state.info.filename,
-          initialfilename: state.info.initialFilename,
-          suggestedfilename: state.info.suggestedFilename,
-          pagetitle: state.info.currentTab?.title,
-          pageurl: state.info.pageUrl,
-          sourceurl: state.info.sourceUrl,
-          linktext: state.info.linkText,
-          selection: state.info.selectionText,
+    const privateContext = state.info.currentTab?.incognito === true;
+    const historyEntryId = historyPort.add(
+      {
+        timestamp: new Date().toISOString(),
+        initiatedAt: state.info.now?.toISOString(),
+        url: state.info.url,
+        finalFullPath,
+        routed: Boolean(state.route),
+        info: {
+          sourceUrl: state.info.sourceUrl,
+          pageUrl: state.info.pageUrl,
           context: state.info.context,
-          comment: state.info.comment,
-          menuindex: state.info.menuIndex,
-          counter: state.info.counter,
-        })
-          .filter(
-            (entry): entry is [string, string | number] =>
-              typeof entry[1] === "string" || typeof entry[1] === "number",
-          )
-          .map(([key, value]) => [key, String(value)]),
-      ),
-    });
+        },
+        menu: {
+          id: state.info.menuItemId,
+          title: state.info.menuItemTitle,
+          path: state.info.menuItemPath,
+        },
+        variables: Object.fromEntries(
+          Object.entries({
+            filename: state.info.filename,
+            initialfilename: state.info.initialFilename,
+            suggestedfilename: state.info.suggestedFilename,
+            pagetitle: state.info.currentTab?.title,
+            pageurl: state.info.pageUrl,
+            sourceurl: state.info.sourceUrl,
+            linktext: state.info.linkText,
+            selection: state.info.selectionText,
+            context: state.info.context,
+            comment: state.info.comment,
+            menuindex: state.info.menuIndex,
+            counter: state.info.counter,
+          })
+            .filter(
+              (entry): entry is [string, string | number] =>
+                typeof entry[1] === "string" || typeof entry[1] === "number",
+            )
+            .map(([key, value]) => [key, String(value)]),
+        ),
+      },
+      { privateContext },
+    );
     state.scratch.historyEntryId = historyEntryId;
 
     return { state, finalFullPath, prompt, historyEntryId };
   },
 
-  acquireFetchedUrl: async (url: string): Promise<AcquiredDownload> => {
+  acquireFetchedUrl: async (url: string, privateContext = false): Promise<AcquiredDownload> => {
     if (OffscreenClient.canUse()) {
       try {
-        return { url: await OffscreenClient.fetch(url), source: "fetched" };
+        return {
+          url: await OffscreenClient.fetch(url, getExtensionFetchCredentials()),
+          source: "fetched",
+        };
       } catch (e) {
-        logPort.add("offscreen fetch failed", String(e));
+        if (privateContext) {
+          logPort.add("offscreen fetch failed", String(e), { privateContext: true });
+        } else logPort.add("offscreen fetch failed", String(e));
         return { url, source: "fetch-fallback-direct" };
       }
     }
 
     try {
-      const response = await fetch(url, { credentials: "include" });
+      const response = await fetch(url, { credentials: getExtensionFetchCredentials() });
       if (response.ok === false) throw new Error(`HTTP ${response.status}`);
       const objectUrl = await makeUrlFromBlob(await response.blob());
       return {
@@ -374,7 +405,9 @@ export const Download = {
         ownedObjectUrl: objectUrl.startsWith("blob:") ? objectUrl : undefined,
       };
     } catch (e) {
-      logPort.add("fetch download failed", String(e));
+      if (privateContext) {
+        logPort.add("fetch download failed", String(e), { privateContext: true });
+      } else logPort.add("fetch download failed", String(e));
       return { url, source: "fetch-fallback-direct" };
     }
   },
@@ -397,7 +430,8 @@ export const Download = {
       state.info.contentPromise = undefined;
     }
     const url = requireDownloadUrl(state);
-    if (options.fetchViaFetch) return Download.acquireFetchedUrl(url);
+    if (options.fetchViaFetch)
+      return Download.acquireFetchedUrl(url, isPrivateDownloadState(state));
     const ownedObjectUrl = Download.generatedObjectUrls.delete(url) ? url : undefined;
     return { url, source: "direct", ownedObjectUrl };
   },
@@ -407,6 +441,7 @@ export const Download = {
     acquired: AcquiredDownload,
   ): Promise<DownloadExecutionResult> => {
     const { state, finalFullPath, prompt, historyEntryId } = plan;
+    const privateContext = state.info.currentTab?.incognito === true;
     void historyPort.patch(historyEntryId, {
       mechanism: acquired.source === "fetched" ? "fetch-downloads-api" : "downloads-api",
     });
@@ -416,20 +451,24 @@ export const Download = {
         ? RequestHeaders.getDownloadHeaders(state)
         : undefined;
     const allowOriginalUrlFallback = !headers && isHttpDownloadUrl(state.info.url);
-    await Promise.all([
-      updateSession<number>(
-        sessionWriteState,
-        extensionSessionStorage,
-        PENDING_DOWNLOADS_SESSION_KEY,
-        (n) => normalizeSessionCounter(n) + 1,
-      ),
-      updateSession<FinalFilenameMap>(
-        sessionWriteState,
-        extensionSessionStorage,
-        FINAL_FILENAMES_SESSION_KEY,
-        (m) => enqueueFilename(m, acquired.url, filename),
-      ),
-    ]);
+    await Promise.all(
+      privateContext
+        ? []
+        : [
+            updateSession<number>(
+              sessionWriteState,
+              extensionSessionStorage,
+              PENDING_DOWNLOADS_SESSION_KEY,
+              (n) => normalizeSessionCounter(n) + 1,
+            ),
+            updateSession<FinalFilenameMap>(
+              sessionWriteState,
+              extensionSessionStorage,
+              FINAL_FILENAMES_SESSION_KEY,
+              (m) => enqueueFilename(m, acquired.url, filename),
+            ),
+          ],
+    );
 
     const expected = Notifier.expectDownload(acquired.url, {
       url: state.info.url,
@@ -439,7 +478,8 @@ export const Download = {
       viaFetch: acquired.source === "fetched",
       retried: false,
       allowOriginalUrlFallback,
-      historyEntryId,
+      ...(historyEntryId ? { historyEntryId } : {}),
+      privateContext,
     });
     try {
       if (acquired.url !== state.info.url) Download.movePendingState(state, acquired.url);
@@ -450,6 +490,10 @@ export const Download = {
         conflictAction: options.conflictAction,
       };
       if (headers) downloadOptions.headers = headers;
+      Object.assign(
+        downloadOptions,
+        await resolveDirectDownloadContext(state.info.currentTab, acquired.url),
+      );
       const downloadId = await webExtensionApi.downloads.download(downloadOptions);
       Notifier.cancelExpectedDownload(expected);
       if (acquired.ownedObjectUrl) {
@@ -465,7 +509,8 @@ export const Download = {
         viaFetch: acquired.source === "fetched",
         retried: false,
         allowOriginalUrlFallback,
-        historyEntryId,
+        ...(historyEntryId ? { historyEntryId } : {}),
+        privateContext,
         adopted: true,
       });
       if (historyEntryId) historyPort.setDownloadId(historyEntryId, downloadId);
@@ -473,13 +518,16 @@ export const Download = {
     } catch (e) {
       Notifier.cancelExpectedDownload(expected);
       if (acquired.ownedObjectUrl) URL.revokeObjectURL(acquired.ownedObjectUrl);
-      logPort.add("downloads.download failed", String(e));
+      addDownloadLog(state, "downloads.download failed", String(e));
       if (
         acquired.source === "direct" &&
         allowOriginalUrlFallback &&
         options.fallbackFetch !== false
       ) {
-        const fallback = await Download.acquireFetchedUrl(requireDownloadUrl(state));
+        const fallback = await Download.acquireFetchedUrl(
+          requireDownloadUrl(state),
+          privateContext,
+        );
         return await Download.executeBrowserDownload(plan, fallback);
       } else {
         Download.forgetPendingState(state);
@@ -488,20 +536,24 @@ export const Download = {
         return { status: "failed" };
       }
     } finally {
-      await Promise.all([
-        updateSession<number>(
-          sessionWriteState,
-          extensionSessionStorage,
-          PENDING_DOWNLOADS_SESSION_KEY,
-          (n) => Math.max(0, normalizeSessionCounter(n) - 1),
-        ),
-        updateSession<FinalFilenameMap>(
-          sessionWriteState,
-          extensionSessionStorage,
-          FINAL_FILENAMES_SESSION_KEY,
-          (m) => removeFilename(m, acquired.url, filename),
-        ),
-      ]);
+      await Promise.all(
+        privateContext
+          ? []
+          : [
+              updateSession<number>(
+                sessionWriteState,
+                extensionSessionStorage,
+                PENDING_DOWNLOADS_SESSION_KEY,
+                (n) => Math.max(0, normalizeSessionCounter(n) - 1),
+              ),
+              updateSession<FinalFilenameMap>(
+                sessionWriteState,
+                extensionSessionStorage,
+                FINAL_FILENAMES_SESSION_KEY,
+                (m) => removeFilename(m, acquired.url, filename),
+              ),
+            ],
+      );
     }
   },
 
@@ -545,7 +597,7 @@ export const Download = {
       const url = state.info.url;
       if (url && Download.generatedObjectUrls.delete(url)) URL.revokeObjectURL(url);
       await historyPort.setStatus(plan.historyEntryId, "DOWNLOAD_PREPARATION_FAILED");
-      logPort.add("download preparation failed", String(error));
+      addDownloadLog(state, "download preparation failed", String(error));
       Notifier.reportFailure(plan.finalFullPath || state.info.url || "", String(error));
       return { status: "failed" };
     }

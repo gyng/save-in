@@ -1,34 +1,16 @@
 import type { CurrentTab } from "../platform/current-tab.ts";
 import type { LazyDownloadMetadata } from "../shared/lazy-download-metadata.ts";
+import type { RoutingDownloadInfo } from "../routing/rule-types.ts";
 
 export type PathValue = {
   finalize: () => string;
   toString: () => string;
 };
 
-export type DownloadInfo = LazyDownloadMetadata & {
-  currentTab?: CurrentTab | null;
-  linkText?: string;
-  now?: Date;
-  pageUrl?: string;
-  selectionText?: string;
-  sourceUrl?: string;
-  url?: string;
-  suggestedFilename?: string | null;
-  context?: string;
-  menuIndex?: string | null;
-  menuItemId?: string;
-  menuItemTitle?: string;
-  menuItemPath?: string;
-  comment?: string | null;
-  modifiers?: string[];
-  legacyDownloadInfo?: unknown;
-  filename?: string;
-  naiveFilename?: string;
-  initialFilename?: string;
-  preview?: boolean;
-  counter?: number;
-};
+export type DownloadInfo = LazyDownloadMetadata &
+  Omit<RoutingDownloadInfo, keyof LazyDownloadMetadata | "currentTab"> & {
+    currentTab?: CurrentTab | null | undefined;
+  };
 
 export type DownloadPipelineState = {
   path: PathValue;
@@ -38,22 +20,22 @@ export type DownloadPipelineState = {
     [key: string]: unknown;
   };
   info: DownloadInfo;
-  needRouteMatch?: boolean;
-  route?: PathValue;
-  routeIsFolder?: boolean;
+  needRouteMatch?: boolean | undefined;
+  route?: PathValue | undefined;
+  routeIsFolder?: boolean | undefined;
 };
 
 export type DownloadPlan = {
   state: DownloadPipelineState;
   finalFullPath: string;
   prompt: boolean;
-  historyEntryId: string;
+  historyEntryId: string | null;
 };
 
 export type AcquiredDownload = {
   url: string;
   source: "direct" | "fetched" | "fetch-fallback-direct";
-  ownedObjectUrl?: string;
+  ownedObjectUrl?: string | undefined;
 };
 
 export type DownloadExecutionResult =

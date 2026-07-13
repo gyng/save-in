@@ -1,29 +1,38 @@
 export type HistoryInfo = {
-  sourceUrl?: string;
-  pageUrl?: string;
-  context?: string;
+  sourceUrl?: string | undefined;
+  pageUrl?: string | undefined;
+  context?: string | undefined;
 };
 
 export type HistoryEntryInput = {
-  timestamp?: string;
-  initiatedAt?: string;
-  url?: string;
-  finalFullPath?: string;
-  routed?: boolean;
-  info?: HistoryInfo;
-  state?: { info?: HistoryInfo };
-  observedBrowserDownload?: boolean;
-  mechanism?: "downloads-api" | "fetch-downloads-api" | "browser-download" | "firefox-replacement";
-  menu?: { id?: string; title?: string; path?: string };
-  variables?: Record<string, string>;
+  timestamp?: string | undefined;
+  initiatedAt?: string | undefined;
+  url?: string | undefined;
+  finalFullPath?: string | undefined;
+  routed?: boolean | undefined;
+  info?: HistoryInfo | undefined;
+  state?: { info?: HistoryInfo | undefined } | undefined;
+  observedBrowserDownload?: boolean | undefined;
+  mechanism?:
+    | "downloads-api"
+    | "fetch-downloads-api"
+    | "browser-download"
+    | "firefox-replacement"
+    | undefined;
+  menu?: {
+    id?: string | undefined;
+    title?: string | undefined;
+    path?: string | undefined;
+  };
+  variables?: Record<string, string> | undefined;
   [key: string]: unknown;
 };
 
 export type HistoryEntry = HistoryEntryInput & {
-  id?: string;
-  status?: string;
-  downloadId?: number;
-  fileSize?: number;
+  id?: string | undefined;
+  status?: string | undefined;
+  downloadId?: number | undefined;
+  fileSize?: number | undefined;
 };
 
 export type HistoryRow = {

@@ -51,6 +51,19 @@ describe("SaveHistory", () => {
     expect(store[HISTORY_KEY][0]).toMatchObject({ id, url: "https://a/1", status: "pending" });
   });
 
+  test("does not persist entries from private browsing contexts", async () => {
+    const id = SaveHistory.add(
+      { url: "https://private.example/secret.png" },
+      { privateContext: true },
+    );
+    await flushWrites();
+
+    expect(id).toBeNull();
+    expect(global.browser.storage.local.get).not.toHaveBeenCalled();
+    expect(global.browser.storage.local.set).not.toHaveBeenCalled();
+    expect(store[HISTORY_KEY]).toBeUndefined();
+  });
+
   test("setStatus updates only the matching entry", async () => {
     const id1 = SaveHistory.add({ url: "https://a/1" });
     const id2 = SaveHistory.add({ url: "https://a/2" });
@@ -60,8 +73,8 @@ describe("SaveHistory", () => {
     await flushWrites();
 
     const byId = Object.fromEntries(store[HISTORY_KEY].map((e) => [e.id, e.status]));
-    expect(byId[id1]).toBe("pending");
-    expect(byId[id2]).toBe("complete");
+    expect(byId[id1!]).toBe("pending");
+    expect(byId[id2!]).toBe("complete");
   });
 
   test("setStatus with no id is a no-op", async () => {

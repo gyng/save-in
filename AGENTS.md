@@ -151,7 +151,7 @@ cleanup:
 | --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `npm test` / `npm run test:watch` | vitest unit tests (jsdom + jest-webextension-mock via a vi alias); npm run test:coverage enforces 95%-line thresholds on src/ (vendor, options page, SW bootstrap excluded)                                                                                                                                                                                     |
 | `npm run lint`                    | stage the bundle, run web-ext lint against it, then oxlint and oxfmt --check                                                                                                                                                                                                                                                                                    |
-| `npm run typecheck`               | browser-only `tsc --noEmit` over `src/**` without Node/Vitest globals, then the combined source+test check (shared globals + core typedefs declared in `types/globals.d.ts`)                                                                                                                                                                                    |
+| `npm run typecheck`               | strict browser-source check, DOM-free Chrome worker check, checked-JS Node/e2e tooling pass, then the source+test check. Production source additionally enables `exactOptionalPropertyTypes` and `noUncheckedIndexedAccess`.                                                                                                                                    |
 | `npm run e2e:chrome`              | vitest e2e suite (~15s): isolated Chrome over CDP, drives the real download pipeline — SW lifecycle, CSP, routing rules, messaging, session persistence (e2e/chrome.e2e.mjs)                                                                                                                                                                                    |
 | `npm run e2e:firefox`             | vitest e2e suite for Firefox on a throwaway profile via RDP (e2e/firefox.e2e.mjs)                                                                                                                                                                                                                                                                               |
 | `npm run e2e`                     | stages once, then runs the Chrome and Firefox suites in parallel; use `npm run e2e:serial` when diagnosing shared machine-resource issues                                                                                                                                                                                                                       |
@@ -185,10 +185,10 @@ vitest specifics (`test/*.test.ts`, typed; `tsc` covers them):
   `test/notification-session.test.ts`). `browser`/`chrome` stay ambient host
   globals; only cross-MODULE deps are imported/mocked.
 - Tests import the real `.ts` modules and mock deps via `vi.mock` /
-  `vi.spyOn`. HISTORICAL WART: many still route mocks through `globalThis` (a
-  `vi.mock` getter-bridge that forwards `global.X = …` seeding), typed via the
-  `declare var X: any` ambients in `types/globals.d.ts` — being replaced with
-  import-real + `vi.spyOn` (docs/ARCH-CYCLES.md). `jest` is aliased to `vi` in
+  `vi.spyOn`. HISTORICAL WART: some suites still install partial browser mocks
+  through `globalThis`; prefer the typed builders in
+  `test/webextension-test-helpers.ts`, import-real + `vi.spyOn`, and typed
+  listener capture (docs/ARCH-CYCLES.md). `jest` is aliased to `vi` in
   `test/vitest.setup.mjs`; `test/globals.d.ts` types the test-only ambients.
 - Module-reset tests use `vi.resetModules()` + `await import(...)`. vitest jsdom
   provides `URL.createObjectURL`: stub it away to exercise MV3 paths.
@@ -209,9 +209,9 @@ vitest specifics (`test/*.test.ts`, typed; `tsc` covers them):
 - TypeScript is `strict: true`; keep both the browser-only and combined
   source/test configurations green. The TS-native sweep remains queued in
   `docs/ARCH-CYCLES.md`.
-  `npm run typecheck` (`tsc --noEmit`) must stay green over `src/**` and
-  `test/**`. `types/globals.d.ts` is a shrinking residue of the old shared-global
-  era (mostly test-facing ambients now) — prefer real `import`s.
+  `npm run typecheck` must stay green across the browser, worker, tooling, and
+  test configs. `test/globals.d.ts` contains only test-facing ambients; prefer
+  real imports and typed host-boundary helpers.
   Runtime globals must not reuse platform class names (that is why they are
   `Notifier`/`RequestHeaders`, not `Notification`/`Headers`).
 

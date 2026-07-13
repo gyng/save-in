@@ -4,15 +4,17 @@ export const matchPatternToRegExp = (pattern: string): RegExp | null => {
   const escapeRegExp = (value: string): string => value.replace(/[.+?^${}()|[\]\\]/g, "\\$&");
   const parts = pattern.match(/^(\*|https?|file|ftp):\/\/([^/]*)(\/.*)$/);
   if (!parts) return null;
-  const scheme = parts[1] === "*" ? "https?" : parts[1];
+  const [, rawScheme, rawHost, rawPath] = parts;
+  if (rawScheme === undefined || rawHost === undefined || rawPath === undefined) return null;
+  const scheme = rawScheme === "*" ? "https?" : rawScheme;
   const host =
-    parts[2] === "*"
+    rawHost === "*"
       ? "[^/]+"
-      : parts[2].startsWith("*.")
-        ? `([^/]+\\.)?${escapeRegExp(parts[2].slice(2))}`
-        : escapeRegExp(parts[2]);
-  const path = parts[3].split("*").map(escapeRegExp).join(".*");
-  const port = parts[1] === "file" ? "" : "(?::\\d+)?";
+      : rawHost.startsWith("*.")
+        ? `([^/]+\\.)?${escapeRegExp(rawHost.slice(2))}`
+        : escapeRegExp(rawHost);
+  const path = rawPath.split("*").map(escapeRegExp).join(".*");
+  const port = rawScheme === "file" ? "" : "(?::\\d+)?";
   return new RegExp(`^${scheme}://${host}${port}${path}$`);
 };
 

@@ -55,10 +55,11 @@ export const renderVariablesPreview = async () => {
       table.className = "variables-preview-table";
 
       if (target?.id === "paths") {
-        [
+        const commands: Array<readonly [string, string]> = [
           ["---", "Separator"],
           [">submenu", "Submenu item"],
-        ].forEach(([syntax, label]) => {
+        ];
+        commands.forEach(([syntax, label]) => {
           const row = document.createElement("tr");
           row.className = "variables-preview-row variables-preview-command";
           const cell = document.createElement("td");

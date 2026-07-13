@@ -22,13 +22,13 @@ import { Log } from "./log.ts";
 import { runBackgroundTask } from "./event-task.ts";
 
 type ClickInfo = {
-  mediaType?: string;
-  srcUrl?: string;
-  linkUrl?: string;
-  pageUrl?: string;
-  selectionText?: string;
-  linkText?: string;
-  modifiers?: string[];
+  mediaType?: string | undefined;
+  srcUrl?: string | undefined;
+  linkUrl?: string | undefined;
+  pageUrl?: string | undefined;
+  selectionText?: string | undefined;
+  linkText?: string | undefined;
+  modifiers?: string[] | undefined;
 };
 
 type ClickOptions = {
@@ -161,11 +161,11 @@ export const addDownloadListener = () => {
       const clickTab = tab || currentTab;
 
       const menuInfo = menuState.pathMappings[info.menuItemId];
+      const isSpecialItem = [MENU_IDS.ROUTE_EXCLUSIVE, MENU_IDS.LAST_USED].some(
+        (id) => id === info.menuItemId,
+      );
 
-      if (
-        menuInfo ||
-        [MENU_IDS.ROUTE_EXCLUSIVE, MENU_IDS.LAST_USED].includes(info.menuItemId as any)
-      ) {
+      if (menuInfo || isSpecialItem) {
         let menuIndex: string | null | undefined = menuInfo?.menuIndex;
         let comment: string | null | undefined = menuInfo?.comment;
 
@@ -218,6 +218,7 @@ export const addDownloadListener = () => {
             menuIndex = menuState.lastUsedMeta.menuIndex;
           }
         } else {
+          if (!menuInfo) return;
           saveIntoPath = menuInfo.parsedDir;
           const title = menuInfo.title || saveIntoPath;
           selectedLocation = {
@@ -284,7 +285,11 @@ export const addDownloadListener = () => {
         const result = await Download.launch(state);
 
         if (result.status === "started" && selectedLocation) {
-          await setLastUsed(selectedLocation.path, selectedLocation.meta);
+          await setLastUsed(
+            selectedLocation.path,
+            selectedLocation.meta,
+            clickTab?.incognito === true,
+          );
           if (options.enableLastLocation) {
             webExtensionApi.contextMenus.update(MENU_IDS.LAST_USED, {
               title: WEB_EXTENSION_CAPABILITIES.accessKeys

@@ -166,7 +166,7 @@ describe("offscreen document fetch (Chrome MV3)", () => {
   });
 
   test("creates the offscreen document and returns its blob URL", async () => {
-    const url = await OffscreenClient.fetch("https://x/big.bin");
+    const url = await OffscreenClient.fetch("https://x/big.bin", "omit");
 
     expect(global.chrome.offscreen.createDocument).toHaveBeenCalledWith(
       expect.objectContaining({ url: "src/offscreen.html", reasons: ["BLOBS"] }),
@@ -174,13 +174,14 @@ describe("offscreen document fetch (Chrome MV3)", () => {
     expect(global.chrome.runtime.sendMessage).toHaveBeenCalledWith({
       type: "OFFSCREEN_FETCH",
       url: "https://x/big.bin",
+      credentials: "omit",
     });
     expect(url).toBe("blob:offscreen-url");
   });
 
   test("reuses an existing offscreen document", async () => {
     global.chrome.offscreen.hasDocument = jest.fn(() => Promise.resolve(true));
-    await OffscreenClient.fetch("https://x/a");
+    await OffscreenClient.fetch("https://x/a", "omit");
     expect(global.chrome.offscreen.createDocument).not.toHaveBeenCalled();
   });
 
@@ -188,12 +189,12 @@ describe("offscreen document fetch (Chrome MV3)", () => {
     global.chrome.offscreen.createDocument = jest.fn(() =>
       Promise.reject(new Error("Only a single offscreen document may be created")),
     );
-    await expect(OffscreenClient.fetch("https://x/a")).resolves.toBe("blob:offscreen-url");
+    await expect(OffscreenClient.fetch("https://x/a", "omit")).resolves.toBe("blob:offscreen-url");
   });
 
   test("rejects when the offscreen fetch reports an error", async () => {
     global.chrome.runtime.sendMessage = jest.fn(() => Promise.resolve({ error: "HTTP 403" }));
-    await expect(OffscreenClient.fetch("https://x/a")).rejects.toThrow("HTTP 403");
+    await expect(OffscreenClient.fetch("https://x/a", "omit")).rejects.toThrow("HTTP 403");
   });
 
   test("resolveContent fetches once via offscreen, returning hash + download URL", async () => {
@@ -203,7 +204,12 @@ describe("offscreen document fetch (Chrome MV3)", () => {
     const content = await resolveContent("https://x/a");
     // one offscreen fetch, asked to hash the same bytes it blob-ifies
     expect(global.chrome.runtime.sendMessage).toHaveBeenCalledWith(
-      expect.objectContaining({ type: "OFFSCREEN_FETCH", url: "https://x/a", hash: "SHA-256" }),
+      expect.objectContaining({
+        type: "OFFSCREEN_FETCH",
+        url: "https://x/a",
+        hash: "SHA-256",
+        credentials: "omit",
+      }),
     );
     expect(content).toEqual({ sha256: "deadbeef", downloadUrl: "blob:offscreen-url" });
   });
@@ -224,7 +230,7 @@ describe("offscreen document fetch (Chrome MV3)", () => {
 
 describe("onDeterminingFilename listener (Chrome)", () => {
   let listener: (
-    item: { byExtensionId?: string; filename: string; url?: string },
+    item: { byExtensionId?: string; filename: string; url?: string; incognito?: boolean },
     suggest: (suggestion?: { filename: string; conflictAction: string }) => void,
   ) => boolean;
   let sessionStore: Record<string, any>;
@@ -337,6 +343,26 @@ describe("onDeterminingFilename listener (Chrome)", () => {
         conflictAction: "uniquify",
       }),
     );
+  });
+
+  test("leaves private ordinary browser downloads untouched", () => {
+    freshOptions.routeBrowserDownloads = true;
+    const route = vi.spyOn(freshDownload, "getRoutingMatches");
+    const suggest = jest.fn();
+
+    expect(
+      listener(
+        {
+          incognito: true,
+          filename: "C:\\Downloads\\private.jpg",
+          url: "https://private.example/private.jpg",
+        },
+        suggest,
+      ),
+    ).toBe(false);
+
+    expect(route).not.toHaveBeenCalled();
+    expect(suggest).toHaveBeenCalledWith();
   });
 
   test("recovers the persisted filename after a service worker restart", async () => {

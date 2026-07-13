@@ -4,6 +4,7 @@ import { SPECIAL_DIRS, PATH_SEGMENT_TYPES } from "../shared/constants.ts";
 import { stringSegment, type PathSegment } from "./path.ts";
 import type { RoutingDownloadInfo } from "./rule-types.ts";
 import { routingPorts } from "./ports.ts";
+import { getExtensionFetchCredentials } from "../config/fetch-credentials.ts";
 
 type HeadResult = { contentType: string; finalUrl: string };
 type VariablePath = { buf?: PathSegment[] | null };
@@ -174,11 +175,13 @@ export const resolveHead = (opts: RoutingDownloadInfo): Promise<HeadResult> => {
     try {
       const res = await fetch(opts.url ?? "", {
         method: "HEAD",
-        credentials: "include",
+        credentials: getExtensionFetchCredentials(),
         signal: controller.signal,
       });
       const result = {
-        contentType: (res.headers.get("Content-Type") || "").split(";")[0].trim().toLowerCase(),
+        contentType: ((res.headers.get("Content-Type") || "").split(";")[0] || "")
+          .trim()
+          .toLowerCase(),
         // res.url is the URL after redirects (fetch follows them by default)
         finalUrl: res.url || "",
       };
@@ -300,7 +303,9 @@ export const transformers = ({
           return stringSegment((await routingPorts.peekCounter()) + 1);
         }
         if (opts.counter == null) {
-          opts.counter = await routingPorts.nextCounter();
+          opts.counter = (opts.currentTab as { incognito?: boolean } | null | undefined)?.incognito
+            ? await routingPorts.nextPrivateCounter()
+            : await routingPorts.nextCounter();
         }
         return stringSegment(opts.counter);
       },

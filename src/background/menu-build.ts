@@ -15,7 +15,7 @@ import { buildTree } from "../menus/menu-tree.ts";
 export { buildTree, parseMeta, parsePath } from "../menus/menu-tree.ts";
 
 type MenuContext = `${chrome.contextMenus.ContextType}`;
-const asMenuContexts = (contexts: string[]) => contexts as MenuContext[];
+const asMenuContexts = (contexts: readonly string[]) => contexts as MenuContext[];
 type LastUsedMeta = { comment?: string; menuIndex?: string };
 type StoredLastUsed = {
   lastUsedPath?: string | null;
@@ -60,7 +60,8 @@ export const menuState: {
 // Single owner of the last-used-path state: menu-click mutates it here,
 // background-main.ts restores it, menu-build renders it. MV3 service workers are
 // stateless, so it is mirrored to storage.local to survive restarts.
-export const setLastUsed = (path: string, meta: LastUsedMeta) => {
+export const setLastUsed = (path: string, meta: LastUsedMeta, privateContext = false) => {
+  if (privateContext) return Promise.resolve();
   menuState.lastUsedPath = path;
   menuState.lastUsedMeta = meta;
   return webExtensionApi.storage.local
@@ -135,7 +136,7 @@ export const addSelectionType = (contexts: string[]) => {
       id: "download-context-media-link",
       title: webExtensionApi.i18n.getMessage("contextMenuContextMediaOrLink"),
       enabled: false,
-      contexts: MEDIA_TYPES.concat("link") as any,
+      contexts: asMenuContexts(MEDIA_TYPES.concat("link")),
       parentId: MENU_IDS.ROOT,
     });
   } else {
@@ -143,7 +144,7 @@ export const addSelectionType = (contexts: string[]) => {
       id: "download-context-media",
       title: webExtensionApi.i18n.getMessage("contextMenuContextMedia"),
       enabled: false,
-      contexts: MEDIA_TYPES as any,
+      contexts: asMenuContexts(MEDIA_TYPES),
       parentId: MENU_IDS.ROOT,
     });
   }
@@ -210,8 +211,15 @@ export const addLastUsed = (contexts: string[]) => {
   // Match the menu icon to the browser theme (#184). Chrome's service
   // worker has no matchMedia (and rejects `icons` anyway — the catch
   // handles it); Firefox's event page has both.
+  const matchMediaValue = Reflect.get(globalThis, "matchMedia");
+  const mediaQuery =
+    typeof matchMediaValue === "function"
+      ? Reflect.apply(matchMediaValue, globalThis, ["(prefers-color-scheme: dark)"])
+      : null;
   const darkMode =
-    typeof matchMedia === "function" && matchMedia("(prefers-color-scheme: dark)").matches;
+    mediaQuery !== null &&
+    typeof mediaQuery === "object" &&
+    Boolean(Reflect.get(mediaQuery, "matches"));
   const icon = darkMode ? "icons/ic_update_white_24px.svg" : "icons/ic_update_black_24px.svg";
 
   // Chrome, FF < 57 crash when icons is supplied

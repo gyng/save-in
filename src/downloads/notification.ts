@@ -4,7 +4,8 @@ import { webExtensionApi } from "../platform/web-extension-api.ts";
 
 import { downloadsState, sessionWriteState } from "./state.ts";
 import { getDownload, mergeDownload } from "./download-state.ts";
-import type { DownloadRecord } from "./download-state.ts";
+import { isPrivateDownloadRecord } from "./download-state.ts";
+import type { DownloadRecord, PrivateDownloadContext } from "./download-state.ts";
 import { getSession, normalizeSessionCounter, updateSession } from "../shared/session-state.ts";
 import { options } from "../config/options-data.ts";
 import { PENDING_DOWNLOADS_SESSION_KEY } from "../shared/storage-keys.ts";
@@ -41,6 +42,11 @@ const historyPort = downloadPorts.history;
 const logPort = downloadPorts.log;
 const backgroundRuntime = downloadPorts.runtime;
 
+const addDownloadLog = (record: DownloadRecord, message: string, data?: unknown): unknown =>
+  isPrivateDownloadRecord(record)
+    ? logPort.add(message, data, { privateContext: true })
+    : logPort.add(message, data);
+
 const createNotification = (
   id: string,
   details: browser.notifications.CreateNotificationOptions,
@@ -68,12 +74,17 @@ const createNotification = (
 // Downloads handed to downloads.download that onCreated has not yet seen.
 // URL correlation prevents a rejected or unrelated request from consuming a
 // different attempt; the persisted counter remains the worker-restart fallback.
-type ExpectedDownload = { url?: string; record?: Partial<DownloadRecord> };
+type ExpectedDownload = {
+  url?: string | undefined;
+  record?: Partial<DownloadRecord> | undefined;
+};
 const expectedDownloads: ExpectedDownload[] = [];
 
 // Recovery of adopted and pending records is owned by notification-recovery.ts.
-const mergeTrackedDownload = (downloadId: number, partial: Partial<DownloadRecord>) =>
-  mergeDownload(downloadsState, sessionWriteState, extensionSessionStorage, downloadId, partial);
+const mergeTrackedDownload = (
+  downloadId: number,
+  partial: Partial<DownloadRecord> & PrivateDownloadContext,
+) => mergeDownload(downloadsState, sessionWriteState, extensionSessionStorage, downloadId, partial);
 
 const getTrackedDownload = (downloadId: number) =>
   getDownload(downloadsState, extensionSessionStorage, downloadId);
@@ -114,7 +125,10 @@ export const Notifier = {
   // global at event time, after awaiting init.
   // Call before webExtensionApi.downloads.download() so onDownloadCreated knows
   // the next created download is ours
-  expectDownload: (url?: string, record?: Partial<DownloadRecord>): ExpectedDownload => {
+  expectDownload: (
+    url?: string,
+    record?: Partial<DownloadRecord> & PrivateDownloadContext,
+  ): ExpectedDownload => {
     const expected = { url, record };
     expectedDownloads.push(expected);
     return expected;
@@ -147,14 +161,21 @@ export const Notifier = {
     const expectedIndex = expectedDownloads.findIndex(
       (expected) => expected.url == null || expected.url === item.url || expected.url === finalUrl,
     );
+    // Private ordinary downloads are neither tracked nor experimentally
+    // replaced. Save In-owned private downloads are handled by the in-memory
+    // expected record below, without writing their metadata to storage.session.
+    if (item.incognito && !isPrivateDownloadRecord(expectedDownloads[expectedIndex]?.record || {}))
+      return;
     if (expectedIndex !== -1) {
       const [expected] = expectedDownloads.splice(expectedIndex, 1);
+      if (!expected) return;
       const observedBrowserDownload = expected.record?.observedBrowserDownload === true;
       await mergeTrackedDownload(item.id, {
         ...expected.record,
         adopted: !observedBrowserDownload,
         currentFilename: item.filename,
         url: item.url,
+        privateContext: item.incognito === true || isPrivateDownloadRecord(expected.record || {}),
       });
       if (expected.record?.historyEntryId) {
         void historyPort.setDownloadId(expected.record.historyEntryId, item.id);
@@ -203,20 +224,23 @@ export const Notifier = {
     ) {
       const filename = await BrowserDownloadRouting.route(item);
       if (filename) {
-        const historyEntryId = historyPort.add({
-          timestamp: new Date().toISOString(),
-          url: browserDownloadUrl,
-          finalFullPath: filename,
-          routed: true,
-          mechanism: "firefox-replacement",
-          info: { context: "browser" },
-        });
+        const historyEntryId = historyPort.add(
+          {
+            timestamp: new Date().toISOString(),
+            url: browserDownloadUrl,
+            finalFullPath: filename,
+            routed: true,
+            mechanism: "firefox-replacement",
+            info: { context: "browser" },
+          },
+          { privateContext: item.incognito === true },
+        );
         const expected = Notifier.expectDownload(browserDownloadUrl, {
           observedBrowserDownload: true,
           adopted: false,
           filename,
           url: browserDownloadUrl,
-          historyEntryId,
+          ...(historyEntryId ? { historyEntryId } : {}),
           allowOriginalUrlFallback: false,
         });
         try {
@@ -239,20 +263,23 @@ export const Notifier = {
     }
 
     if (options.trackBrowserDownloads) {
-      const historyEntryId = historyPort.add({
-        timestamp: new Date().toISOString(),
-        url: browserDownloadUrl,
-        finalFullPath: item.filename,
-        routed: false,
-        mechanism: "browser-download",
-        info: { context: "browser" },
-      });
+      const historyEntryId = historyPort.add(
+        {
+          timestamp: new Date().toISOString(),
+          url: browserDownloadUrl,
+          finalFullPath: item.filename,
+          routed: false,
+          mechanism: "browser-download",
+          info: { context: "browser" },
+        },
+        { privateContext: item.incognito === true },
+      );
       await mergeTrackedDownload(item.id, {
         observedBrowserDownload: true,
         adopted: false,
         currentFilename: item.filename,
         url: browserDownloadUrl,
-        historyEntryId,
+        ...(historyEntryId ? { historyEntryId } : {}),
         allowOriginalUrlFallback: false,
       });
       void historyPort.setDownloadId(historyEntryId, item.id);
@@ -306,7 +333,7 @@ export const Notifier = {
             try {
               const [item] = await webExtensionApi.downloads.search({ id: downloadDelta.id });
               const bytes = item && (item.fileSize > 0 ? item.fileSize : item.totalBytes);
-              fileSize = bytes > 0 ? bytes : undefined;
+              fileSize = bytes !== undefined && bytes > 0 ? bytes : undefined;
             } catch {
               // Completion remains valid when size lookup is unavailable.
             }
@@ -388,14 +415,14 @@ export const Notifier = {
         await recordHistoryStatus("complete");
       }
 
-      if (backgroundRuntime.debug) {
+      if (backgroundRuntime.debug && !isPrivateDownloadRecord(record)) {
         /* eslint-disable no-console */
         console.log("notification", failed, isFromSelf, record, downloadDelta, notifyOnSuccess);
         /* eslint-enable no-console */
       }
 
       if (isFromSelf && failed && !isUserCancelled) {
-        logPort.add("download failed", {
+        addDownloadLog(record, "download failed", {
           id: downloadDelta.id,
           error: downloadFailureReason(failed) || failed,
         });
@@ -423,7 +450,7 @@ export const Notifier = {
             });
           }
 
-          if (backgroundRuntime.debug) {
+          if (backgroundRuntime.debug && !isPrivateDownloadRecord(record)) {
             /* eslint-disable no-console */
             console.log(
               "notification: created failure",
@@ -443,7 +470,9 @@ export const Notifier = {
         if (canRetry) {
           const retried = await downloadPorts.retry(downloadDelta.id);
           if (retried) {
-            logPort.add("retrying failed download via fetch", { id: downloadDelta.id });
+            addDownloadLog(record, "retrying failed download via fetch", {
+              id: downloadDelta.id,
+            });
             await mergeTrackedDownload(downloadDelta.id, { adopted: false });
           } else {
             await recordHistoryStatus(errorName || "failed");
@@ -461,15 +490,12 @@ export const Notifier = {
         downloadDelta.state.current === "complete" &&
         downloadDelta.state.previous === "in_progress"
       ) {
-        logPort.add("download complete", { id: downloadDelta.id, filename });
+        addDownloadLog(record, "download complete", { id: downloadDelta.id, filename });
         const res = await webExtensionApi.downloads.search({ id: downloadDelta.id });
-        const mime = res.length > 0 && res[0].mime;
+        const completedItem = res[0];
+        const mime = completedItem?.mime;
         const successfulLabel = webExtensionApi.i18n.getMessage("notificationSuccessTitle");
-        const title = buildSuccessNotificationTitle(
-          successfulLabel,
-          res.length > 0 ? res[0].fileSize : undefined,
-          mime,
-        );
+        const title = buildSuccessNotificationTitle(successfulLabel, completedItem?.fileSize, mime);
 
         createNotification(
           String(downloadDelta.id),
@@ -482,7 +508,7 @@ export const Notifier = {
           notifyDuration,
         );
 
-        if (backgroundRuntime.debug) {
+        if (backgroundRuntime.debug && !isPrivateDownloadRecord(record)) {
           /* eslint-disable no-console */
           console.log(
             "notification: created success",

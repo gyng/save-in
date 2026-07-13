@@ -2,6 +2,7 @@ import { defineConfig } from "rolldown";
 
 const backgroundEntry =
   process.env.SAVE_IN_E2E === "1" ? "src/entries/background.e2e.ts" : "src/entries/background.ts";
+const bundleDir = process.env.SAVE_IN_E2E === "1" ? "dist/bundled-e2e" : "dist/bundled";
 
 // Store-submission bundler for the TypeScript/ESM codebase (docs/TS-MIGRATION.md).
 // Each target has one module under src/entries; rolldown strips the types (oxc), resolves the imports and
@@ -24,7 +25,7 @@ export default defineConfig([
   {
     input: backgroundEntry,
     output: {
-      file: "dist/bundled/background.js",
+      file: `${bundleDir}/background.js`,
       format: "esm",
       minify: false,
       sourcemap: true,
@@ -34,7 +35,7 @@ export default defineConfig([
   {
     input: backgroundEntry,
     output: {
-      file: "dist/bundled/background.sw.js",
+      file: `${bundleDir}/background.sw.js`,
       format: "esm",
       minify: false,
       sourcemap: true,
@@ -43,7 +44,7 @@ export default defineConfig([
   {
     input: "src/entries/options.ts",
     output: {
-      file: "dist/bundled/options.js",
+      file: `${bundleDir}/options.js`,
       format: "esm",
       minify: false,
       sourcemap: true,
@@ -52,7 +53,7 @@ export default defineConfig([
   {
     input: "src/entries/offscreen.ts",
     output: {
-      file: "dist/bundled/offscreen.js",
+      file: `${bundleDir}/offscreen.js`,
       format: "esm",
       minify: false,
       sourcemap: true,
@@ -68,7 +69,7 @@ export default defineConfig([
       },
     },
     output: {
-      file: "dist/bundled/content.js",
+      file: `${bundleDir}/content.js`,
       format: "iife",
       name: "__saveInContent",
       minify: false,
@@ -78,7 +79,7 @@ export default defineConfig([
   {
     input: "src/entries/reference-page.ts",
     output: {
-      file: "dist/bundled/reference-page.js",
+      file: `${bundleDir}/reference-page.js`,
       format: "iife",
       name: "__saveInReferencePage",
       minify: false,

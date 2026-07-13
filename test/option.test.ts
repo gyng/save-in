@@ -98,6 +98,35 @@ describe("OptionsManagement", () => {
       expect(resolved.sourcePanelEnabled).toBe(false);
     });
 
+    test("does not send credentials from extension fetches for new profiles", async () => {
+      const resolved = await OptionsManagement.loadOptions();
+      expect(resolved.includeFetchCredentials).toBe(false);
+    });
+
+    test("migrates configured legacy profiles to their previous credential behavior", async () => {
+      global.browser.storage.local.get = vi.fn(() => Promise.resolve({ fallbackFetch: true }));
+      global.browser.storage.local.set = vi.fn(() => Promise.resolve());
+
+      const resolved = await OptionsManagement.loadOptions();
+
+      expect(resolved.includeFetchCredentials).toBe(true);
+      expect(global.browser.storage.local.set).toHaveBeenCalledWith({
+        includeFetchCredentials: true,
+      });
+    });
+
+    test("preserves an explicit fetch-credentials preference without migration", async () => {
+      global.browser.storage.local.get = vi.fn(() =>
+        Promise.resolve({ fallbackFetch: true, includeFetchCredentials: false }),
+      );
+      global.browser.storage.local.set = vi.fn(() => Promise.resolve());
+
+      const resolved = await OptionsManagement.loadOptions();
+
+      expect(resolved.includeFetchCredentials).toBe(false);
+      expect(global.browser.storage.local.set).not.toHaveBeenCalled();
+    });
+
     test("starts new profiles with a small useful Downloads menu", async () => {
       const resolved = await OptionsManagement.loadOptions();
       expect(resolved.paths).toBe(

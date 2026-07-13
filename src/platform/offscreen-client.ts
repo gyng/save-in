@@ -7,11 +7,12 @@
 
 import { MESSAGE_TYPES } from "../shared/constants.ts";
 import { isOffscreenFetchResponse } from "../shared/content-fetch-types.ts";
+import type { ExtensionFetchCredentials } from "../config/fetch-credentials.ts";
 
 type OffscreenClientApi = {
   canUse: () => boolean;
   ensure: () => Promise<void | null>;
-  fetch: (url: string) => Promise<string>;
+  fetch: (url: string, credentials?: ExtensionFetchCredentials) => Promise<string>;
 };
 
 export const OffscreenClient: OffscreenClientApi = {
@@ -48,9 +49,11 @@ export const OffscreenClient: OffscreenClientApi = {
   },
 
   // Fetch a URL in the offscreen document and resolve to its blob object URL
-  fetch: (url) =>
+  fetch: (url, credentials = "include") =>
     OffscreenClient.ensure()
-      .then(() => chrome.runtime.sendMessage({ type: MESSAGE_TYPES.OFFSCREEN_FETCH, url }))
+      .then(() =>
+        chrome.runtime.sendMessage({ type: MESSAGE_TYPES.OFFSCREEN_FETCH, url, credentials }),
+      )
       .then((res: unknown) => {
         if (!isOffscreenFetchResponse(res) || !res.blobUrl) {
           throw new Error((isOffscreenFetchResponse(res) && res.error) || "offscreen fetch failed");

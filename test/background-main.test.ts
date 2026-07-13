@@ -45,13 +45,17 @@ vi.mock("../src/downloads/notification-recovery.ts", () => ({
 
 import type { CurrentTab } from "../src/platform/current-tab.ts";
 import type { SaveInOptions } from "../src/config/option-schema.ts";
+import { browserTab, installHostProperty } from "./webextension-test-helpers.ts";
 
 // background-main.ts, menu-build.ts, option.ts and log.ts are all real modules, freshly
 // re-imported after every jest.resetModules() below (mirroring test/log.test.ts
 // and test/option.test.ts): a top-level static import would keep pointing at
 // the first module instance, not the fresh one background-main.ts actually wires up on
 // each re-import.
-let Menus: Record<string, any>;
+type MenusFixture = typeof import("../src/background/menu-build.ts") &
+  typeof import("../src/background/menu-click.ts") &
+  typeof import("../src/background/menu-tabs.ts");
+let Menus: MenusFixture;
 let options: typeof import("../src/config/options-data.ts").options;
 let OptionsManagement: typeof import("../src/config/option.ts").OptionsManagement;
 let Log: typeof import("../src/background/log.ts").Log;
@@ -59,7 +63,7 @@ let Runtime: typeof import("../src/background/runtime.ts").backgroundRuntime;
 
 type SetupOptions = {
   options?: Partial<SaveInOptions>;
-  storedLocal?: Record<string, any>;
+  storedLocal?: Record<string, unknown>;
   tabsQueryResult?: CurrentTab[];
 };
 
@@ -78,20 +82,16 @@ const setupGlobals = async ({
   ({ Log } = await import("../src/background/log.ts"));
   ({ backgroundRuntime: Runtime } = await import("../src/background/runtime.ts"));
 
-  for (const name of [
-    "addRoot",
-    "addRouteExclusive",
-    "addLastUsed",
-    "makeSeparator",
-    "addPaths",
-    "addSelectionType",
-    "addShowDefaultFolder",
-    "addOptions",
-    "addSourcePanel",
-    "restoreLastUsed",
-  ]) {
-    Menus[name].mockImplementation(() => {});
-  }
+  vi.mocked(Menus.addRoot).mockImplementation(() => undefined);
+  vi.mocked(Menus.addRouteExclusive).mockImplementation(() => undefined);
+  vi.mocked(Menus.addLastUsed).mockImplementation(() => undefined);
+  vi.mocked(Menus.makeSeparator).mockImplementation(() => undefined);
+  vi.mocked(Menus.addPaths).mockImplementation(() => undefined);
+  vi.mocked(Menus.addSelectionType).mockImplementation(() => undefined);
+  vi.mocked(Menus.addShowDefaultFolder).mockImplementation(() => undefined);
+  vi.mocked(Menus.addOptions).mockImplementation(() => undefined);
+  vi.mocked(Menus.addSourcePanel).mockImplementation(() => undefined);
+  vi.mocked(Menus.restoreLastUsed).mockImplementation(() => undefined);
 
   Object.assign(
     options,
@@ -116,12 +116,50 @@ const setupGlobals = async ({
   global.browser.storage.local.get = vi.fn(() => Promise.resolve(storedLocal));
   // Mock-boundary casts: these test doubles are partial shapes of the
   // strict @types/firefox-webext-browser interfaces (contextMenus, tabs.*)
-  (global.browser as any).contextMenus = { removeAll: vi.fn(() => Promise.resolve()) };
-  (global.browser.tabs as any).query = vi.fn(() => Promise.resolve(tabsQueryResult));
-  (global.browser.tabs as any).get = vi.fn((id) => Promise.resolve({ id, title: `Tab ${id}` }));
-  (global.browser.tabs as any).onActivated = { addListener: vi.fn() };
-  (global.browser.tabs as any).onUpdated = { addListener: vi.fn() };
+  installHostProperty(global.browser, "contextMenus", {
+    removeAll: vi.fn(() => Promise.resolve()),
+  });
+  installHostProperty(
+    global.browser.tabs,
+    "query",
+    vi.fn(() => Promise.resolve(tabsQueryResult)),
+  );
+  installHostProperty(
+    global.browser.tabs,
+    "get",
+    vi.fn((id: number) => Promise.resolve({ id, title: `Tab ${id}` })),
+  );
+  installHostProperty(global.browser.tabs, "onActivated", { addListener: vi.fn() });
+  installHostProperty(global.browser.tabs, "onUpdated", { addListener: vi.fn() });
 };
+
+type OnActivated = (
+  ...args: Parameters<Parameters<typeof browser.tabs.onActivated.addListener>[0]>
+) => void | Promise<void>;
+type OnUpdated = (
+  tabId: number,
+  changeInfo: Parameters<Parameters<typeof browser.tabs.onUpdated.addListener>[0]>[1],
+  tab?: browser.tabs.Tab,
+) => void | Promise<void>;
+
+const capturedOnActivated = (): OnActivated => {
+  const listener = vi.mocked(global.browser.tabs.onActivated.addListener).mock.calls[0]?.[0];
+  if (!listener) throw new Error("onActivated listener was not registered");
+  return listener;
+};
+
+const capturedOnUpdated = (): OnUpdated => {
+  const listener = vi.mocked(global.browser.tabs.onUpdated.addListener).mock.calls[0]?.[0];
+  if (!listener) throw new Error("onUpdated listener was not registered");
+  return (tabId, changeInfo, tab) =>
+    Reflect.apply(
+      listener,
+      undefined,
+      tab === undefined ? [tabId, changeInfo] : [tabId, changeInfo, tab],
+    );
+};
+
+const mockTab = browserTab;
 
 // background-main.ts's bootstrap is an exported start() the entry calls synchronously
 // at startup (Task #2), rather than an import-time side effect. Re-import fresh
@@ -290,7 +328,7 @@ describe("init", () => {
 
 describe("current tab tracking", () => {
   test("seeds currentTab from the active tab at startup", async () => {
-    const tab = { id: 3, title: "Seeded Tab" };
+    const tab = mockTab({ id: 3, title: "Seeded Tab" });
     await setupGlobals({ tabsQueryResult: [tab] });
     await importIndex();
     await Runtime.ready;
@@ -302,8 +340,8 @@ describe("current tab tracking", () => {
 
     // Observable through the onUpdated title-sync branch: a title change on
     // the same tab id mutates the tracked tab object
-    const [[onUpdated]] = vi.mocked(global.browser.tabs.onUpdated.addListener).mock.calls;
-    (onUpdated as any)(3, { title: "New Title" });
+    const onUpdated = capturedOnUpdated();
+    onUpdated(3, { title: "New Title" }, tab);
     expect(tab.title).toBe("New Title");
     expect(global.browser.tabs.get).not.toHaveBeenCalled();
   });
@@ -313,27 +351,35 @@ describe("current tab tracking", () => {
     let resolveQuery: (tabs: CurrentTab[]) => void = () => {
       throw new Error("tab query resolver was not captured");
     };
-    (global.browser.tabs as any).query = vi.fn(
-      () =>
-        new Promise((resolve) => {
-          resolveQuery = resolve;
-        }),
+    Reflect.set(
+      global.browser.tabs,
+      "query",
+      vi.fn(
+        () =>
+          new Promise((resolve) => {
+            resolveQuery = resolve;
+          }),
+      ),
     );
-    const activatedTab = { id: 9, title: "Activated" };
-    (global.browser.tabs as any).get = vi.fn(() => Promise.resolve(activatedTab));
+    const activatedTab = mockTab({ id: 9, title: "Activated" });
+    Reflect.set(
+      global.browser.tabs,
+      "get",
+      vi.fn(() => Promise.resolve(activatedTab)),
+    );
 
     await importIndex();
 
-    const [[onActivated]] = vi.mocked(global.browser.tabs.onActivated.addListener).mock.calls;
-    const [[onUpdated]] = vi.mocked(global.browser.tabs.onUpdated.addListener).mock.calls;
+    const onActivated = capturedOnActivated();
+    const onUpdated = capturedOnUpdated();
 
-    await (onActivated as any)({ tabId: 9 });
+    await onActivated({ tabId: 9, windowId: 1 });
     expect(global.browser.tabs.get).toHaveBeenCalledWith(9);
 
-    resolveQuery([{ id: 1, title: "Startup Tab" }]);
+    resolveQuery([mockTab({ id: 1, title: "Startup Tab" })]);
     await Runtime.ready;
 
-    (onUpdated as any)(9, { title: "Still Activated" });
+    await onUpdated(9, { title: "Still Activated" }, activatedTab);
     expect(activatedTab.title).toBe("Still Activated");
   });
 
@@ -345,83 +391,95 @@ describe("current tab tracking", () => {
     await Runtime.ready;
 
     // The rejection is swallowed; nothing was tracked
-    const [[onUpdated]] = vi.mocked(global.browser.tabs.onUpdated.addListener).mock.calls;
-    (onUpdated as any)(7, { title: "x" });
+    const onUpdated = capturedOnUpdated();
+    await onUpdated(7, { title: "x" });
     expect(global.browser.tabs.get).toHaveBeenCalledWith(7);
   });
 
   test("onActivated replaces the tracked tab", async () => {
-    const startupTab = { id: 1, title: "Startup Tab" };
+    const startupTab = mockTab({ id: 1, title: "Startup Tab" });
     await setupGlobals({ tabsQueryResult: [startupTab] });
-    const activatedTab = { id: 2, title: "Activated Tab" };
-    (global.browser.tabs as any).get = vi.fn(() => Promise.resolve(activatedTab));
+    const activatedTab = mockTab({ id: 2, title: "Activated Tab" });
+    Reflect.set(
+      global.browser.tabs,
+      "get",
+      vi.fn(() => Promise.resolve(activatedTab)),
+    );
 
     await importIndex();
     await Runtime.ready;
 
-    const [[onActivated]] = vi.mocked(global.browser.tabs.onActivated.addListener).mock.calls;
-    const [[onUpdated]] = vi.mocked(global.browser.tabs.onUpdated.addListener).mock.calls;
+    const onActivated = capturedOnActivated();
+    const onUpdated = capturedOnUpdated();
 
-    await (onActivated as any)({ tabId: 2 });
+    await onActivated({ tabId: 2, windowId: 1 });
 
-    (onUpdated as any)(2, { title: "Updated Title" });
+    await onUpdated(2, { title: "Updated Title" }, activatedTab);
     expect(activatedTab.title).toBe("Updated Title");
     expect(startupTab.title).toBe("Startup Tab");
   });
 
   test("contains and logs rejected work from a browser event listener", async () => {
     await setupGlobals();
-    (global.browser.tabs as any).get = vi.fn(() => Promise.reject(new Error("tab closed")));
+    Reflect.set(
+      global.browser.tabs,
+      "get",
+      vi.fn(() => Promise.reject(new Error("tab closed"))),
+    );
 
     await importIndex();
     await Runtime.ready;
 
-    const [[onActivated]] = vi.mocked(global.browser.tabs.onActivated.addListener).mock.calls;
-    await expect((onActivated as any)({ tabId: 9 })).resolves.toBeUndefined();
+    const onActivated = capturedOnActivated();
+    await expect(onActivated({ tabId: 9, windowId: 1 })).resolves.toBeUndefined();
     expect(Log.add).toHaveBeenCalledWith("tab activation failed", "Error: tab closed");
   });
 
   test("onUpdated fetches the tab when none is tracked yet", async () => {
     await setupGlobals({ tabsQueryResult: [] });
-    const fetchedTab = { id: 4, title: "Fetched Tab" };
-    (global.browser.tabs as any).get = vi.fn(() => Promise.resolve(fetchedTab));
+    const fetchedTab = mockTab({ id: 4, title: "Fetched Tab" });
+    Reflect.set(
+      global.browser.tabs,
+      "get",
+      vi.fn(() => Promise.resolve(fetchedTab)),
+    );
 
     await importIndex();
     await Runtime.ready;
 
-    const [[onUpdated]] = vi.mocked(global.browser.tabs.onUpdated.addListener).mock.calls;
-    await (onUpdated as any)(4, {});
+    const onUpdated = capturedOnUpdated();
+    await onUpdated(4, {});
     expect(global.browser.tabs.get).toHaveBeenCalledWith(4);
 
     // Now tracked: a title-only delta mutates it in place
-    (onUpdated as any)(4, { title: "Renamed" });
+    await onUpdated(4, { title: "Renamed" }, fetchedTab);
     expect(fetchedTab.title).toBe("Renamed");
   });
 
   test("onUpdated ignores other tabs and deltas without a title", async () => {
-    const tab = { id: 3, title: "Seeded Tab" };
+    const tab = mockTab({ id: 3, title: "Seeded Tab" });
     await setupGlobals({ tabsQueryResult: [tab] });
     await importIndex();
     await Runtime.ready;
 
-    const [[onUpdated]] = vi.mocked(global.browser.tabs.onUpdated.addListener).mock.calls;
+    const onUpdated = capturedOnUpdated();
 
-    (onUpdated as any)(99, { title: "Other Tab Title" });
+    await onUpdated(99, { title: "Other Tab Title" }, mockTab({ id: 99 }));
     expect(tab.title).toBe("Seeded Tab");
     expect(global.browser.tabs.get).not.toHaveBeenCalled();
 
-    (onUpdated as any)(3, { status: "complete" });
+    await onUpdated(3, { status: "complete" }, tab);
     expect(tab.title).toBe("Seeded Tab");
   });
 
   test("restores the shared Page Sources state when any tab finishes loading", async () => {
-    const tab = { id: 3, title: "Seeded Tab", active: false };
+    const tab = mockTab({ id: 3, title: "Seeded Tab", active: false });
     await setupGlobals({ tabsQueryResult: [tab] });
     await importIndex();
     await Runtime.ready;
 
-    const [[onUpdated]] = vi.mocked(global.browser.tabs.onUpdated.addListener).mock.calls;
-    await (onUpdated as any)(3, { status: "complete" }, tab);
+    const onUpdated = capturedOnUpdated();
+    await onUpdated(3, { status: "complete" }, tab);
 
     expect(sourcePanelMocks.sync).toHaveBeenCalledWith(3);
   });
@@ -431,23 +489,27 @@ describe("current tab tracking", () => {
       throw new Error("tab query resolver was not captured");
     };
     await setupGlobals();
-    (global.browser.tabs as any).query = vi.fn(
-      () =>
-        new Promise((resolve) => {
-          resolveQuery = resolve;
-        }),
+    Reflect.set(
+      global.browser.tabs,
+      "query",
+      vi.fn(
+        () =>
+          new Promise((resolve) => {
+            resolveQuery = resolve;
+          }),
+      ),
     );
     await importIndex();
 
-    const [[onUpdated]] = vi.mocked(global.browser.tabs.onUpdated.addListener).mock.calls;
-    await (onUpdated as any)(7, { title: "Background tab" }, { id: 7, active: false });
+    const onUpdated = capturedOnUpdated();
+    await onUpdated(7, { title: "Background tab" }, mockTab({ id: 7, active: false }));
     expect(global.browser.tabs.get).not.toHaveBeenCalled();
 
-    const activeTab = { id: 3, title: "Active tab" };
+    const activeTab = mockTab({ id: 3, title: "Active tab" });
     resolveQuery([activeTab]);
     await Runtime.ready;
 
-    await (onUpdated as any)(3, { title: "Updated active title" }, activeTab);
+    await onUpdated(3, { title: "Updated active title" }, activeTab);
     expect(activeTab.title).toBe("Updated active title");
   });
 });

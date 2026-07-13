@@ -112,10 +112,13 @@ const isValidDownloadUrl = (url: string) =>
 export const SaveInWebMCP = {
   // The imperative API moved from navigator.* to document.* (Chrome 150); try
   // both so this keeps working across the origin trial
-  getModelContext: (): WebMcpContext | null =>
-    ((typeof document !== "undefined" && document.modelContext) ||
+  getModelContext: (): WebMcpContext | null => {
+    const context =
+      (typeof document !== "undefined" && document.modelContext) ||
       (typeof navigator !== "undefined" && navigator.modelContext) ||
-      null) as WebMcpContext | null,
+      null;
+    return context ? { registerTool: (tool) => context.registerTool(tool) } : null;
+  },
 
   // `send` messages the background and resolves to the response body; injected
   // so the tools stay testable

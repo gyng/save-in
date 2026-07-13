@@ -89,7 +89,7 @@ export function trimTrailingDotsAndSpaces(value: string) {
 }
 
 export function neutralizeReservedDeviceName(value: string, replacement?: string) {
-  const baseName = value.split(".")[0];
+  const baseName = value.split(".")[0] || value;
   if (!RESERVED_DEVICE_NAME_REGEX.test(baseName)) {
     return value;
   }
@@ -125,7 +125,8 @@ export function sanitizeBufStrings(buf: PathSegment[]) {
     }
 
     if (item.type === PATH_SEGMENT_TYPES.STRING) {
-      const forbidLeadingDots = index === 0 || buf[index - 1].type === PATH_SEGMENT_TYPES.SEPARATOR;
+      const previous = buf[index - 1];
+      const forbidLeadingDots = index === 0 || previous?.type === PATH_SEGMENT_TYPES.SEPARATOR;
       return stringSegment(sanitizeFilename(item.val, options.truncateLength, forbidLeadingDots));
     }
     return item;
@@ -200,10 +201,12 @@ export class Path {
     if (this.buf == null) {
       return { valid: false };
     }
-    if (this.buf[0].val === ".") {
+    const first = this.buf[0];
+    if (!first) return { valid: false };
+    if (first.val === ".") {
       return { valid: true };
     }
-    if (this.buf[0].type === PATH_SEGMENT_TYPES.SEPARATOR || this.buf[0].val === "..") {
+    if (first.type === PATH_SEGMENT_TYPES.SEPARATOR || first.val === "..") {
       return {
         valid: false,
         message: routingPorts.getMessage("rulePathStartsWithDot"),

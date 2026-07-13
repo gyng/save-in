@@ -56,8 +56,8 @@ export const matchRules = (rules: RoutingRule[], info: RoutingInfo): string | nu
 };
 
 export type RuleTrace = {
-  initialFilename?: string;
-  actualFilename?: string;
+  initialFilename?: string | undefined;
+  actualFilename?: string | undefined;
   selectedRule: number | null;
   destination: string | null;
   expandedDestination: string | null;
@@ -92,7 +92,8 @@ export const traceRules = (rules: RoutingRule[], info: RoutingInfo): RuleTrace =
   });
   const selectedIndex = traced.findIndex((rule) => rule.matched);
   const selectedRule = selectedIndex >= 0 ? selectedIndex + 1 : null;
-  const destination = selectedIndex >= 0 ? matchRule(rules[selectedIndex], info) || null : null;
+  const selected = selectedIndex >= 0 ? rules[selectedIndex] : undefined;
+  const destination = selected ? matchRule(selected, info) || null : null;
   const actualFilename = info.filename || "";
   const naiveFilename = getFilenameFromUrl(info.url || info.srcUrl || info.linkUrl || "");
   const expandedDestination = destination

@@ -1,7 +1,6 @@
 // Experimental WebMCP host surface, not yet present in lib.dom.
 interface ModelContext {
-  registerTool: (tool: any) => any;
-  [key: string]: any;
+  registerTool: (tool: { name: string }) => unknown;
 }
 
 interface Document {

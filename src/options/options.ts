@@ -36,6 +36,7 @@ import { optionsRuntime } from "./options-runtime.ts";
 import { bootstrapOptionsPage } from "./options-bootstrap.ts";
 import { setupIntegrationPanel } from "./integration-panel.ts";
 import { isStringKeyedRecord } from "../shared/message-protocol.ts";
+import { setupContainerAuthPermission } from "./container-auth-permission.ts";
 
 const setupLastDownloadState = () => {
   document.querySelector("#last-dl-url")?.classList.add("is-empty");
@@ -81,7 +82,7 @@ const renderVariablesTable = () => {
 
     const interpolatedEl = document.createElement("td");
     interpolatedEl.style.fontFamily = "monospace";
-    interpolatedEl.textContent = val;
+    interpolatedEl.textContent = val ?? "";
 
     variableRow.appendChild(nameEl);
     variableRow.appendChild(interpolatedEl);
@@ -264,7 +265,7 @@ const renderValidationErrors = (initiator?: string) => {
 
   void validationRequests
     .run({
-      initiator,
+      ...(initiator === undefined ? {} : { initiator }),
       body: {
         paths: pathsTa instanceof HTMLTextAreaElement ? pathsTa.value : "",
         filenamePatterns: rulesTa instanceof HTMLTextAreaElement ? rulesTa.value : "",
@@ -954,6 +955,7 @@ export const setupOptionsPage = bootstrapOptionsPage({
     setupDefaultDownloadsFolderLinks,
     setupVariablesPreview,
     setupDebugLogPanel,
+    () => void setupContainerAuthPermission(),
     () => void restoreOptions(),
   ],
   configureRuntime: () => optionsRuntime.configure(),

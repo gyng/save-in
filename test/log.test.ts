@@ -43,6 +43,18 @@ describe("Log", () => {
     expect(entries()[1].message).toBe("download complete");
   });
 
+  test("does not persist diagnostics from private browsing", async () => {
+    await Log.add(
+      "download requested",
+      { url: "https://private.example/secret" },
+      { privateContext: true },
+    );
+
+    expect(entries()).toEqual([]);
+    expect(global.browser.storage.session.get).not.toHaveBeenCalled();
+    expect(global.browser.storage.session.set).not.toHaveBeenCalled();
+  });
+
   test("caps the ring buffer", async () => {
     store[LOG_KEY] = Array.from({ length: Log.LIMIT }, (_, i) => ({
       at: "t",

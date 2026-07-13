@@ -36,7 +36,8 @@ export const validateSourceShortcut = (shortcut: string): string => {
   }
   if (keys.length === 0) return "Add a key after the modifier.";
   if (keys.length > 1) return "Use one key with your modifiers.";
-  if (!isShortcutKey(keys[0])) {
+  const key = keys[0];
+  if (key === undefined || !isShortcutKey(key)) {
     return "Choose a valid key, such as Y, 5, F12, or PageDown.";
   }
   if (new Set(parts.map((part) => part.toLocaleLowerCase())).size !== parts.length) {

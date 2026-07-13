@@ -4,8 +4,8 @@ import { matchesAnyPattern } from "../shared/match-pattern.ts";
 import type { DownloadPipelineState } from "./download-types.ts";
 
 type BrowserDownloadItem = Pick<browser.downloads.DownloadItem, "url" | "filename"> & {
-  finalUrl?: string;
-  byExtensionId?: string;
+  finalUrl?: string | undefined;
+  byExtensionId?: string | undefined;
 };
 
 type BrowserDownloadRouter = {

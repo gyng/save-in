@@ -3,9 +3,11 @@ import { downloadsState, sessionWriteState } from "./state.ts";
 import { normalizeSessionCounter, updateSession } from "../shared/session-state.ts";
 import { extensionSessionStorage } from "../platform/storage-areas.ts";
 import { options } from "../config/options-data.ts";
+import { getExtensionFetchCredentials } from "../config/fetch-credentials.ts";
 import { makeUrlFromBlob } from "./content-fetch.ts";
 import { getDownload, mergeDownload } from "./download-state.ts";
-import type { DownloadRecord } from "./download-state.ts";
+import { isPrivateDownloadRecord } from "./download-state.ts";
+import type { DownloadRecord, PrivateDownloadContext } from "./download-state.ts";
 import {
   FINAL_FILENAMES_SESSION_KEY,
   PENDING_DOWNLOADS_SESSION_KEY,
@@ -20,14 +22,18 @@ export type RetryRuntime = {
 
 export type RetryServices = {
   notifier: {
-    expectDownload(url: string): unknown;
+    expectDownload(url: string, record?: Partial<DownloadRecord> & PrivateDownloadContext): unknown;
     cancelExpectedDownload(expected: unknown): void;
   };
-  log: { add(message: string, detail: string): void };
+  log: {
+    add(message: string, detail: string, options?: { privateContext?: boolean }): void;
+  };
 };
 
-const rememberStartedDownload = (downloadId: number, partial: Partial<DownloadRecord>) =>
-  mergeDownload(downloadsState, sessionWriteState, extensionSessionStorage, downloadId, partial);
+const rememberStartedDownload = (
+  downloadId: number,
+  partial: Partial<DownloadRecord> & PrivateDownloadContext,
+) => mergeDownload(downloadsState, sessionWriteState, extensionSessionStorage, downloadId, partial);
 
 export const retryViaFetch = async (
   runtime: RetryRuntime,
@@ -58,6 +64,7 @@ export const retryViaFetch = async (
   }
 
   const { filename, url } = record;
+  const privateContext = isPrivateDownloadRecord(record);
   // Persist before fetching so a worker restart cannot retry the same download twice.
   record.retried = true;
   await rememberStartedDownload(downloadId, record);
@@ -66,25 +73,29 @@ export const retryViaFetch = async (
   let expected: unknown;
   let newId: number | undefined;
   try {
-    const response = await fetch(url, { credentials: "include" });
+    const response = await fetch(url, { credentials: getExtensionFetchCredentials() });
     if (response.ok === false) throw new Error(`HTTP ${response.status}`);
     blobUrl = await makeUrlFromBlob(await response.blob());
     runtime.pendingRetryFilenames.set(blobUrl, filename);
-    expected = services.notifier.expectDownload(blobUrl);
-    await Promise.all([
-      updateSession<number>(
-        sessionWriteState,
-        extensionSessionStorage,
-        PENDING_DOWNLOADS_SESSION_KEY,
-        (n) => normalizeSessionCounter(n) + 1,
-      ),
-      updateSession<FinalFilenameMap>(
-        sessionWriteState,
-        extensionSessionStorage,
-        FINAL_FILENAMES_SESSION_KEY,
-        (m) => enqueueFilename(m, blobUrl!, filename),
-      ),
-    ]);
+    expected = services.notifier.expectDownload(blobUrl, { privateContext });
+    await Promise.all(
+      privateContext
+        ? []
+        : [
+            updateSession<number>(
+              sessionWriteState,
+              extensionSessionStorage,
+              PENDING_DOWNLOADS_SESSION_KEY,
+              (n) => normalizeSessionCounter(n) + 1,
+            ),
+            updateSession<FinalFilenameMap>(
+              sessionWriteState,
+              extensionSessionStorage,
+              FINAL_FILENAMES_SESSION_KEY,
+              (m) => enqueueFilename(m, blobUrl!, filename),
+            ),
+          ],
+    );
     newId = await webExtensionApi.downloads.download({
       url: blobUrl,
       filename,
@@ -101,10 +112,12 @@ export const retryViaFetch = async (
   } catch (error) {
     if (expected) services.notifier.cancelExpectedDownload(expected);
     if (blobUrl?.startsWith("blob:") && newId == null) URL.revokeObjectURL(blobUrl);
-    services.log.add("fallback fetch failed", String(error));
+    if (privateContext) {
+      services.log.add("fallback fetch failed", String(error), { privateContext: true });
+    } else services.log.add("fallback fetch failed", String(error));
     return false;
   } finally {
-    if (blobUrl) {
+    if (blobUrl && !privateContext) {
       runtime.pendingRetryFilenames.delete(blobUrl);
       const cleanup: Promise<unknown>[] = [
         updateSession<number>(

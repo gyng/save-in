@@ -16,7 +16,10 @@ export const tokenizeLines = (lines: string, errors: RuleError[] = []): RuleToke
         });
         return null;
       }
-      return matches;
+      const [fullClause, name, value] = matches;
+      return fullClause !== undefined && name !== undefined && value !== undefined
+        ? ([fullClause, name, value] satisfies RuleToken)
+        : null;
     })
     .filter((tokens): tokens is RuleToken => Boolean(tokens && tokens.length >= 3));
 
@@ -37,13 +40,13 @@ const captureGroupCount = (regex: RegExp): number => {
 
 export const parseRule = (lines: RuleToken[], errors: RuleError[] = []): RoutingRule | false => {
   const clauses: (RuleClause | false)[] = lines.map((tokens) => {
-    const rawName = tokens[1];
+    const [, rawName, rawValue] = tokens;
     const flagSeparator = rawName.lastIndexOf("/");
     const name = flagSeparator > 0 ? rawName.slice(0, flagSeparator) : rawName;
     const flags = flagSeparator > 0 ? rawName.slice(flagSeparator + 1) : "";
     let value: string | RegExp;
     try {
-      value = name === "into" || name === "capture" ? tokens[2] : new RegExp(tokens[2], flags);
+      value = name === "into" || name === "capture" ? rawValue : new RegExp(rawValue, flags);
     } catch (error) {
       errors.push({
         message: routingPorts.getMessage("ruleInvalidRegex"),
@@ -70,14 +73,14 @@ export const parseRule = (lines: RuleToken[], errors: RuleError[] = []): Routing
   if (clauses.some((clause) => clause === false)) return false;
   const valid = clauses as RuleClause[];
   const destinations = valid.filter((clause) => clause.type === RULE_TYPES.DESTINATION);
-  if (!destinations.length || !(destinations[0].value as string).trim()) {
+  const destination = destinations[0];
+  if (!destination || !(destination.value as string).trim()) {
     errors.push({
       message: routingPorts.getMessage("ruleMissingInto"),
-      error: destinations.length ? (destinations[0].value as string) : "",
+      error: destination ? (destination.value as string) : "",
     });
     return false;
   }
-  const destination = destinations[0];
   if (
     (destination.value as string).match(/:\$\d+:/) &&
     !valid.some((clause) => clause.name === "capture")
@@ -110,7 +113,9 @@ export const parseRule = (lines: RuleToken[], errors: RuleError[] = []): Routing
     return false;
   }
   if (captures.length === 1) {
-    const names = (captures[0].value as string).split(",").map((name) => name.trim());
+    const capture = captures[0];
+    if (!capture) return false;
+    const names = (capture.value as string).split(",").map((name) => name.trim());
     let missing = false;
     for (const name of names)
       if (!valid.some((clause) => clause.name === name)) {
@@ -156,9 +161,11 @@ export const parseRulesCollecting = (
     .map((tokens) => parseRule(tokens, errors))
     .filter((rule): rule is RoutingRule => Boolean(rule));
   for (let index = 1; index < rules.length; index += 1) {
+    const laterRule = rules[index];
+    if (!laterRule) continue;
     const shadowed = rules.slice(0, index).some((earlier) => {
       const earlierMatchers = earlier.filter((clause) => clause.type === RULE_TYPES.MATCHER);
-      const laterMatchers = rules[index].filter((clause) => clause.type === RULE_TYPES.MATCHER);
+      const laterMatchers = laterRule.filter((clause) => clause.type === RULE_TYPES.MATCHER);
       return earlierMatchers.every((earlierClause) =>
         laterMatchers.some((laterClause) => {
           if (laterClause.name !== earlierClause.name) return false;

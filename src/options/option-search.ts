@@ -132,8 +132,10 @@ export const setupOptionSearch = (): void => {
     options.forEach((option, index) =>
       option.setAttribute("aria-selected", String(index === active)),
     );
-    input.setAttribute("aria-activedescendant", options[active].id);
-    options[active].scrollIntoView?.({ block: "nearest" });
+    const activeOption = options[active];
+    if (!activeOption) return;
+    input.setAttribute("aria-activedescendant", activeOption.id);
+    activeOption.scrollIntoView?.({ block: "nearest" });
   };
 
   input.addEventListener("input", render);

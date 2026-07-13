@@ -6,18 +6,23 @@ import { DOWNLOADS_SESSION_KEY } from "../shared/storage-keys.ts";
 const MAX_RECORDS = 50;
 
 export type DownloadRecord = {
-  url?: string;
-  pageUrl?: string;
-  filename?: string;
-  currentFilename?: string;
-  conflictAction?: browser.downloads.FilenameConflictAction;
-  viaFetch?: boolean;
-  retried?: boolean;
-  allowOriginalUrlFallback?: boolean;
-  observedBrowserDownload?: boolean;
-  adopted?: boolean;
-  historyEntryId?: string;
+  url?: string | undefined;
+  pageUrl?: string | undefined;
+  filename?: string | undefined;
+  currentFilename?: string | undefined;
+  conflictAction?: browser.downloads.FilenameConflictAction | undefined;
+  viaFetch?: boolean | undefined;
+  retried?: boolean | undefined;
+  allowOriginalUrlFallback?: boolean | undefined;
+  observedBrowserDownload?: boolean | undefined;
+  adopted?: boolean | undefined;
+  historyEntryId?: string | undefined;
 };
+
+export type PrivateDownloadContext = { privateContext?: boolean | undefined };
+
+export const isPrivateDownloadRecord = (record: Partial<DownloadRecord>): boolean =>
+  (record as Partial<DownloadRecord> & PrivateDownloadContext).privateContext === true;
 
 export type DownloadsState = {
   records: Map<number, DownloadRecord>;
@@ -107,7 +112,7 @@ export const mergeDownload = (
   sessionWrites: SessionWriteState,
   storage: StorageWriter | undefined,
   downloadId: number,
-  partial: Partial<DownloadRecord>,
+  partial: Partial<DownloadRecord> & PrivateDownloadContext,
 ) => {
   const merged = Object.assign({}, state.records.get(downloadId), partial);
   state.records.set(downloadId, merged);
@@ -116,9 +121,10 @@ export const mergeDownload = (
     if (oldestId !== undefined) state.records.delete(oldestId);
   }
   return updateSession<unknown>(sessionWrites, storage, DOWNLOADS_SESSION_KEY, (stored) => {
-    const records = capDownloads(
-      Object.assign(normalizeDownloadRecords(stored), { [downloadId]: merged }),
-    );
+    const records = normalizeDownloadRecords(stored);
+    if (merged.privateContext) delete records[downloadId];
+    else Object.assign(records, { [downloadId]: merged });
+    capDownloads(records);
     return preserveDownloadStorageShape(stored, records);
   });
 };

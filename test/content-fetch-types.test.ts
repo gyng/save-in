@@ -13,6 +13,7 @@ describe("offscreen message runtime validation", () => {
         url: "https://x/image.png",
         hash: "SHA-256",
         maxBytes: 1024,
+        credentials: "omit",
       }),
     ).toBe(true);
     expect(isOffscreenFetchResponse({ blobUrl: "blob:https://x/id", hash: "abcd" })).toBe(true);
@@ -26,6 +27,7 @@ describe("offscreen message runtime validation", () => {
     { type: "OTHER", url: "https://x/image.png" },
     { type: "OFFSCREEN_FETCH", url: "https://x/image.png", maxBytes: -1 },
     { type: "OFFSCREEN_FETCH", url: "https://x/image.png", maxBytes: Number.NaN },
+    { type: "OFFSCREEN_FETCH", url: "https://x/image.png", credentials: "same-origin" },
   ])("rejects malformed fetch request %#", (value) => {
     expect(isOffscreenFetchRequest(value)).toBe(false);
   });

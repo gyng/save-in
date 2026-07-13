@@ -30,10 +30,16 @@ export const filenameQueue = (value: unknown): string[] =>
       ? [value]
       : [];
 
-const safeFilenameMap = (value: unknown): FinalFilenameMap =>
-  value != null && typeof value === "object" && !Array.isArray(value)
-    ? (value as FinalFilenameMap)
-    : {};
+const safeFilenameMap = (value: unknown): FinalFilenameMap => {
+  if (value == null || typeof value !== "object" || Array.isArray(value)) return {};
+  const entries: Array<[string, string | string[]]> = [];
+  for (const [url, stored] of Object.entries(value)) {
+    const queue = filenameQueue(stored);
+    const first = queue[0];
+    if (first !== undefined) entries.push([url, queue.length === 1 ? first : queue]);
+  }
+  return Object.fromEntries(entries);
+};
 
 export const enqueueFilename = (
   map: FinalFilenameMap | undefined,
@@ -42,7 +48,8 @@ export const enqueueFilename = (
 ): FinalFilenameMap => {
   map = safeFilenameMap(map);
   const queue = [...filenameQueue(map[url]), filename];
-  return { ...map, [url]: queue.length === 1 ? queue[0] : queue };
+  const first = queue[0];
+  return { ...map, [url]: queue.length === 1 && first !== undefined ? first : queue };
 };
 
 export const removeFilename = (
@@ -54,7 +61,8 @@ export const removeFilename = (
   const queue = filenameQueue(copy[url]);
   const index = filename == null ? 0 : queue.indexOf(filename);
   if (index >= 0) queue.splice(index, 1);
-  if (queue.length) copy[url] = queue.length === 1 ? queue[0] : queue;
+  const first = queue[0];
+  if (queue.length) copy[url] = queue.length === 1 && first !== undefined ? first : queue;
   else delete copy[url];
   return copy;
 };
@@ -65,9 +73,10 @@ type FilenameDownload = DownloadRuntimeState & {
   finalizeFullPath(state: DownloadPipelineState): string;
 };
 
-const rememberFilename = (downloadId: number, filename: string) =>
+const rememberFilename = (downloadId: number, filename: string, privateContext = false) =>
   mergeDownload(downloadsState, sessionWriteState, extensionSessionStorage, downloadId, {
     filename,
+    privateContext,
   });
 
 export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload): void => {
@@ -91,6 +100,10 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
     const initiatedByPage = !downloadItem.byExtensionId && Boolean(pendingQueue);
     if (!initiatedBySaveIn && !initiatedByPage) {
       if (!isOrdinaryBrowserDownload(downloadItem, webExtensionApi.runtime?.id)) return false;
+      if (downloadItem.incognito) {
+        suggest();
+        return false;
+      }
       void (async () => {
         if (backgroundRuntime.ready) await backgroundRuntime.ready.catch(() => {});
         const url = downloadItem.finalUrl || downloadItem.url;
@@ -189,7 +202,11 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
         const filename = Download.finalizeFullPath(pendingState);
         if (typeof downloadItem.id === "number") {
           Download.finalFilenamesByDownloadId.set(downloadItem.id, filename);
-          void rememberFilename(downloadItem.id, filename);
+          void rememberFilename(
+            downloadItem.id,
+            filename,
+            pendingState.info.currentTab?.incognito === true,
+          );
         }
         const historyEntryId = pendingState.scratch?.historyEntryId;
         if (typeof historyEntryId === "string") {
@@ -206,7 +223,11 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
     const filename = Download.finalizeFullPath(pendingState);
     if (typeof downloadItem.id === "number") {
       Download.finalFilenamesByDownloadId.set(downloadItem.id, filename);
-      void rememberFilename(downloadItem.id, filename);
+      void rememberFilename(
+        downloadItem.id,
+        filename,
+        pendingState.info.currentTab?.incognito === true,
+      );
     }
     suggest({ filename, conflictAction: options.conflictAction });
     return false;

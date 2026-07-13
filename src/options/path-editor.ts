@@ -139,13 +139,14 @@ const PathEditorHelpers = {
     container.after(undo);
     const visualHelp = document.createElement("div");
     visualHelp.className = "caption path-editor-help";
-    [
+    const helpLines: Array<readonly [string, string]> = [
       ["Changes in this editor are saved when you select Apply.", "manual-save-help"],
       [
         "Drag by the dotted handle. Drop above or below a row to place it at the same level, or onto the row to nest it inside.",
         "",
       ],
-    ].forEach(([copy, className]) => {
+    ];
+    helpLines.forEach(([copy, className]) => {
       const line = document.createElement("p");
       line.textContent = copy;
       line.className = className;

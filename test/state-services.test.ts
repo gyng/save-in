@@ -63,6 +63,35 @@ describe("state service instances", () => {
     expect(second.hydration).toBeNull();
   });
 
+  test("keeps private download records in memory and removes any session copy", async () => {
+    const state = { records: new Map(), hydration: null };
+    const writes = { queues: new Map<string, Promise<unknown>>() };
+    let persisted: Record<string, any> = {
+      7: { url: "https://stale.example/file", adopted: true },
+      8: { url: "https://public.example/file", adopted: true },
+    };
+    const storage = {
+      get: vi.fn(() => Promise.resolve({ siDownloads: persisted })),
+      set: vi.fn((value: Record<string, any>) => {
+        persisted = value.siDownloads;
+        return Promise.resolve();
+      }),
+    };
+
+    await mergeDownload(state, writes, storage, 7, {
+      url: "https://private.example/file",
+      privateContext: true,
+      adopted: true,
+    });
+
+    expect(state.records.get(7)).toMatchObject({
+      url: "https://private.example/file",
+      privateContext: true,
+    });
+    expect(persisted[7]).toBeUndefined();
+    expect(persisted[8]).toEqual({ url: "https://public.example/file", adopted: true });
+  });
+
   test("download hydration ignores malformed ids and record shapes", async () => {
     const state = { records: new Map(), hydration: null };
     const storage = {
@@ -96,6 +125,27 @@ describe("state service instances", () => {
 
     await hydrateDownloads(state, storage);
     expect(state.records.get(4)).toEqual({ adopted: true });
+  });
+
+  test("download hydration is idempotent and does not overwrite live records", async () => {
+    const state = {
+      records: new Map([[4, { filename: "live.txt" }]]),
+      hydration: null,
+    };
+    const storage = {
+      get: vi.fn(() =>
+        Promise.resolve({ siDownloads: { 4: { filename: "stale.txt" }, 5: { adopted: true } } }),
+      ),
+    };
+
+    const firstHydration = hydrateDownloads(state, storage);
+    const secondHydration = hydrateDownloads(state, storage);
+    expect(secondHydration).toBe(firstHydration);
+    await firstHydration;
+
+    expect(storage.get).toHaveBeenCalledOnce();
+    expect(state.records.get(4)).toEqual({ filename: "live.txt" });
+    expect(state.records.get(5)).toEqual({ adopted: true });
   });
 
   test("merging a versioned envelope preserves its records and persists the new record", async () => {
@@ -157,5 +207,23 @@ describe("state service instances", () => {
     const persisted = vi.mocked(storage.set).mock.calls[0]![0].siDownloads;
     expect(Object.keys(persisted)).toHaveLength(50);
     expect(persisted[61]).toEqual({ adopted: true });
+  });
+
+  test("in-memory download records evict the oldest entry at the same bound", async () => {
+    const records = new Map(
+      Array.from({ length: 50 }, (_, index) => [index + 1, { adopted: true }] as const),
+    );
+    const state = { records, hydration: null };
+    const writes = { queues: new Map<string, Promise<unknown>>() };
+    const storage = {
+      get: vi.fn(() => Promise.resolve({})),
+      set: vi.fn(() => Promise.resolve()),
+    };
+
+    await mergeDownload(state, writes, storage, 51, { adopted: true });
+
+    expect(state.records).toHaveLength(50);
+    expect(state.records.has(1)).toBe(false);
+    expect(state.records.get(51)).toEqual({ adopted: true });
   });
 });

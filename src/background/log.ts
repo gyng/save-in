@@ -10,11 +10,12 @@ import { getSession, removeSession, updateSession } from "../shared/session-stat
 import { extensionSessionStorage } from "../platform/storage-areas.ts";
 
 import { LOG_STORAGE_KEY } from "../shared/storage-keys.ts";
+import type { PrivateWriteOptions } from "../shared/persistence-context.ts";
 
 export type LogEntry = {
   at: string;
   message: string;
-  data?: string;
+  data?: string | undefined;
 };
 
 export const Log = {
@@ -35,7 +36,9 @@ export const Log = {
 
   // SessionState.update serialises the read-modify-write so concurrent adds
   // don't drop entries; the ring buffer is bounded to LIMIT
-  add: (message: string, data?: unknown) => {
+  add: (message: string, data?: unknown, writeOptions: PrivateWriteOptions = {}) => {
+    if (writeOptions.privateContext) return Promise.resolve();
+
     const entry = {
       at: new Date().toISOString(),
       message,

@@ -17,6 +17,7 @@ export type OffscreenFetchRequest = {
   url: string;
   hash?: string;
   maxBytes?: number;
+  credentials?: "include" | "omit";
 };
 
 export type OffscreenFetchResponse = {
@@ -33,6 +34,9 @@ export const isOffscreenFetchRequest = (value: unknown): value is OffscreenFetch
   value.type === MESSAGE_TYPES.OFFSCREEN_FETCH &&
   typeof value.url === "string" &&
   (typeof value.hash === "undefined" || typeof value.hash === "string") &&
+  (typeof value.credentials === "undefined" ||
+    value.credentials === "include" ||
+    value.credentials === "omit") &&
   (typeof value.maxBytes === "undefined" ||
     (typeof value.maxBytes === "number" && Number.isFinite(value.maxBytes) && value.maxBytes >= 0));
 

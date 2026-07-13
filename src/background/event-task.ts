@@ -13,5 +13,6 @@ export const runBackgroundTask = (
       return Log.add(label, String(error));
     } catch {
       // Logging must never recreate the event rejection it is containing.
+      return undefined;
     }
   });

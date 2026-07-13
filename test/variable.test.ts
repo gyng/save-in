@@ -452,6 +452,21 @@ describe(":counter: (async, persistent)", () => {
     expect(Counter.nextCounter).not.toHaveBeenCalled();
     expect(Counter.peekCounter).toHaveBeenCalled();
   });
+
+  test("private browsing uses the memory-only counter", async () => {
+    const nextPrivateCounter = vi.fn(() => Promise.resolve(73));
+    configureRoutingPorts({ nextPrivateCounter });
+
+    const out = (
+      await Variable.applyVariables(new Path.Path("n-:counter:"), {
+        currentTab: { incognito: true },
+      })
+    ).finalize();
+
+    expect(out).toBe("n-73");
+    expect(nextPrivateCounter).toHaveBeenCalledTimes(1);
+    expect(Counter.nextCounter).not.toHaveBeenCalled();
+  });
 });
 
 describe(":uuid:", () => {
@@ -479,6 +494,7 @@ describe(":mime: / :contenttype: / :mimeext: (async HEAD)", () => {
   beforeEach(() => {
     // path.js sanitizes "/" in the mime value using options.replacementChar
     options.replacementChar = "_";
+    options.includeFetchCredentials = false;
   });
 
   afterEach(() => {
@@ -493,6 +509,18 @@ describe(":mime: / :contenttype: / :mimeext: (async HEAD)", () => {
     expect(out).toBe("image_jpeg"); // the "/" is sanitized like any segment
     expect(global.fetch).toHaveBeenCalledWith(
       "https://x/a",
+      expect.objectContaining({ method: "HEAD", credentials: "omit" }),
+    );
+  });
+
+  test("includes credentials in metadata requests only when enabled", async () => {
+    options.includeFetchCredentials = true;
+    mockHead("image/png");
+
+    await Variable.applyVariables(new Path.Path(":mime:"), { url: "https://x/authenticated" });
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      "https://x/authenticated",
       expect.objectContaining({ method: "HEAD", credentials: "include" }),
     );
   });
@@ -582,6 +610,7 @@ describe(":sha256: (async content hash)", () => {
 
   beforeEach(() => {
     options.replacementChar = "_";
+    options.includeFetchCredentials = false;
     origCreateObjectURL = URL.createObjectURL;
     URL.createObjectURL = vi.fn(() => "blob:mock");
   });
@@ -599,7 +628,7 @@ describe(":sha256: (async content hash)", () => {
     expect(out).toBe("h/ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad");
     expect(global.fetch).toHaveBeenCalledWith(
       "https://x/a",
-      expect.objectContaining({ credentials: "include" }),
+      expect.objectContaining({ credentials: "omit" }),
     );
   });
 

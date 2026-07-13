@@ -46,6 +46,12 @@ testing on Chromium!
   (#159, #216)
 - Options page opens in a tab
 - "Fetch via Fetch API" is now available on Chrome too
+- Extension-side Fetch and HEAD requests now have an explicit website
+  credentials option. New profiles omit cookies by default; configured legacy
+  profiles preserve the previous behavior until the option is changed.
+- Firefox can optionally preserve the originating Container or private cookie
+  context for direct downloads. The optional permission selects a cookie store
+  without reading or storing cookie values.
 - Remove the old content-script fetch path; MV3 cross-origin fetching runs in
   an extension context with host permission
 - Waterfox and other Gecko forks are now detected as Firefox, and browser

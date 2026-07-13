@@ -1,6 +1,6 @@
 import type { RoutingContent, RuleError } from "./rule-types.ts";
 
-export type RoutingTab = { title?: string } | null | undefined;
+export type RoutingTab = { title?: string | undefined } | null | undefined;
 
 export type RoutingPorts = {
   getMessage(key: string): string;
@@ -9,6 +9,7 @@ export type RoutingPorts = {
   recordRuleErrors(errors: RuleError[]): void;
   logDebug(...values: unknown[]): void;
   nextCounter(): Promise<number>;
+  nextPrivateCounter(): Promise<number>;
   peekCounter(): Promise<number>;
   resolveContent(url: string): Promise<RoutingContent | null>;
 };
@@ -22,6 +23,8 @@ const ports: RoutingPorts = {
   recordRuleErrors: () => undefined,
   logDebug: (...values) => console.log(...values), // eslint-disable-line no-console
   nextCounter: () => Promise.reject(new Error("Routing counter has not been configured")),
+  nextPrivateCounter: () =>
+    Promise.reject(new Error("Private routing counter has not been configured")),
   peekCounter: () => Promise.reject(new Error("Routing counter has not been configured")),
   resolveContent: () => Promise.resolve(null),
 };

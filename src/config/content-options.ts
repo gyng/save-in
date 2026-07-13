@@ -43,8 +43,10 @@ export const contentClickComboToKeyCodes = (
   // Invalid imported/profile values must not silently weaken the shortcut to
   // button-only. The normalizer uses the same parser, but this also keeps the
   // exported input helper safe when called directly.
-  if (parts === null)
-    return [CONTENT_CLICK_COMBO_KEY_CODES[DEFAULT_CONTENT_CLICK_COMBO.toLocaleLowerCase()]];
+  if (parts === null) {
+    const fallback = CONTENT_CLICK_COMBO_KEY_CODES[DEFAULT_CONTENT_CLICK_COMBO.toLocaleLowerCase()];
+    return fallback === undefined ? [] : [fallback];
+  }
   return parts
     .map((part) => CONTENT_CLICK_COMBO_KEY_CODES[part] ?? Number(part))
     .filter((keyCode) => keyCode > 0);

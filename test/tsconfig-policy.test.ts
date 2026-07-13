@@ -1,0 +1,52 @@
+import fs from "node:fs";
+import path from "node:path";
+
+const root = path.resolve(import.meta.dirname, "..");
+
+const readConfig = (name: string): Record<string, unknown> => {
+  const jsonc = fs.readFileSync(path.join(root, name), "utf8");
+  return JSON.parse(jsonc.replace(/^\s*\/\/.*$/gm, "")) as Record<string, unknown>;
+};
+
+const compilerOptions = (name: string): Record<string, unknown> =>
+  (readConfig(name).compilerOptions as Record<string, unknown> | undefined) ?? {};
+
+describe("TypeScript policy", () => {
+  test("keeps strict production boundary checks enabled", () => {
+    const base = compilerOptions("tsconfig.json");
+    const browser = compilerOptions("tsconfig.browser.json");
+
+    expect(base).toMatchObject({
+      strict: true,
+      skipLibCheck: false,
+      forceConsistentCasingInFileNames: true,
+      noFallthroughCasesInSwitch: true,
+      noImplicitReturns: true,
+    });
+    expect(base).not.toHaveProperty("allowJs");
+    expect(base).not.toHaveProperty("checkJs");
+    expect(browser).toMatchObject({
+      exactOptionalPropertyTypes: true,
+      noUncheckedIndexedAccess: true,
+    });
+  });
+
+  test("checks the Chrome background entry without DOM globals", () => {
+    const worker = compilerOptions("tsconfig.worker.json");
+    expect(worker.lib).toEqual(["es2023", "webworker"]);
+    expect(worker.lib).not.toContain("dom");
+    expect(readConfig("tsconfig.worker.json").include).toContain("src/entries/background.ts");
+  });
+
+  test("checks JavaScript tooling separately from application source", () => {
+    const tools = compilerOptions("tsconfig.tools.json");
+    expect(tools).toMatchObject({ allowJs: true, checkJs: true, noEmit: true, strict: true });
+
+    const pkg = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8")) as {
+      scripts?: Record<string, string>;
+    };
+    expect(pkg.scripts?.typecheck).toContain("tsconfig.worker.json");
+    expect(pkg.scripts?.typecheck).toContain("tsconfig.tools.json");
+    expect(pkg.scripts?.typecheck).toContain("tsconfig.test.json");
+  });
+});

@@ -60,7 +60,9 @@ export const suggestFor = (
   for (const strategy of strategies) {
     const match = beforeCaret.match(strategy.match);
     if (match) {
-      const suggestions = strategy.suggest(match[2]);
+      const term = match[2];
+      if (term === undefined) continue;
+      const suggestions = strategy.suggest(term);
       if (suggestions.length > 0) {
         return { strategy, match, suggestions };
       }
@@ -144,7 +146,7 @@ export const applySuggestion = (
 ) => {
   const beforeCaret = value.slice(0, caret);
   const start = beforeCaret.length - result.match[0].length;
-  const inserted = result.strategy.insert(result.match[1], chosen);
+  const inserted = result.strategy.insert(result.match[1] ?? "", chosen);
   const newBefore = beforeCaret.slice(0, start) + inserted;
   return {
     value: newBefore + value.slice(caret),
@@ -286,7 +288,8 @@ export const attachAutocomplete = (textarea: TextField, strategies: Autocomplete
       render();
     } else if (key === "Enter" || key === "Tab") {
       e.preventDefault();
-      accept(current.result.suggestions[current.selected]);
+      const suggestion = current.result.suggestions[current.selected];
+      if (suggestion !== undefined) accept(suggestion);
     } else if (key === "Escape") {
       close();
     }

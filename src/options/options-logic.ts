@@ -13,5 +13,5 @@ const KEYCODE_NAMES: Record<string, string> = {
 // was 18 = Alt). Custom keyCodes and already-named values pass through.
 export const normalizeKeyComboForDisplay = (value: string | number): string | number => {
   const key = String(value);
-  return key in KEYCODE_NAMES ? KEYCODE_NAMES[key] : value;
+  return KEYCODE_NAMES[key] ?? value;
 };

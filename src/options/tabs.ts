@@ -125,6 +125,8 @@ export const setupTabs = ({ confirmPendingChanges }: TabsOptions = {}): void => 
   let navigationGeneration = 0;
 
   const activate = (index: number): void => {
+    const section = sections[index];
+    if (!section || !tabs[index] || !panels[index]) return;
     currentIndex = index;
 
     tabs.forEach((tab, i) => {
@@ -132,10 +134,10 @@ export const setupTabs = ({ confirmPendingChanges }: TabsOptions = {}): void => 
       tab.classList.toggle("active", selected);
       tab.setAttribute("aria-selected", selected ? "true" : "false");
       tab.tabIndex = selected ? 0 : -1;
-      panels[i].classList.toggle("active", selected);
+      panels[i]?.classList.toggle("active", selected);
     });
     try {
-      localStorage.setItem(TAB_STORAGE_KEY, sections[index].key);
+      localStorage.setItem(TAB_STORAGE_KEY, section.key);
     } catch (e) {
       // localStorage may be unavailable; selection just won't persist
     }
@@ -152,9 +154,9 @@ export const setupTabs = ({ confirmPendingChanges }: TabsOptions = {}): void => 
           if (mine !== navigationGeneration) return;
           if (result) {
             activate(index);
-            if (focusOnActivate) tabs[index].focus();
+            if (focusOnActivate) tabs[index]?.focus();
             afterActivate?.();
-          } else if (focusOnActivate && currentIndex >= 0) tabs[currentIndex].focus();
+          } else if (focusOnActivate && currentIndex >= 0) tabs[currentIndex]?.focus();
         });
         return;
       }
@@ -163,7 +165,7 @@ export const setupTabs = ({ confirmPendingChanges }: TabsOptions = {}): void => 
       }
     }
     activate(index);
-    if (focusOnActivate) tabs[index].focus();
+    if (focusOnActivate) tabs[index]?.focus();
     afterActivate?.();
   };
 

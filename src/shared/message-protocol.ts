@@ -3,23 +3,25 @@ import type { DownloadInfo, DownloadPipelineState } from "../downloads/download-
 
 type Message<T extends string, B = never> = [B] extends [never]
   ? { type: T }
-  : { type: T; body?: B };
+  : { type: T; body?: B | undefined };
 
 export type DownloadRequestBody = {
-  url?: string;
-  target?: "activeTab";
-  info?: Pick<
-    DownloadInfo,
-    | "pageUrl"
-    | "selectionText"
-    | "linkText"
-    | "menuIndex"
-    | "comment"
-    | "modifiers"
-    | "suggestedFilename"
-  > & { srcUrl?: string };
-  comment?: string;
-  version?: number;
+  url?: string | undefined;
+  target?: "activeTab" | undefined;
+  info?:
+    | (Pick<
+        DownloadInfo,
+        | "pageUrl"
+        | "selectionText"
+        | "linkText"
+        | "menuIndex"
+        | "comment"
+        | "modifiers"
+        | "suggestedFilename"
+      > & { srcUrl?: string | undefined })
+    | undefined;
+  comment?: string | undefined;
+  version?: number | undefined;
 };
 
 export type InternalMessage =

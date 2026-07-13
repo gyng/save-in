@@ -83,8 +83,9 @@ export const matcherFunctions = {
     const url = info.sourceUrl || info.srcUrl || info.linkUrl || info.pageUrl;
     if (!url) return false;
     const extension = url.match(EXTENSION_REGEX);
-    if (!extension) return false;
-    const match = extension[1].match(regex);
+    const suffix = extension?.[1];
+    if (!suffix) return false;
+    const match = suffix.match(regex);
     logMatch(match, regex, info);
     return match;
   },

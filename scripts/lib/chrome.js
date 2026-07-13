@@ -69,7 +69,7 @@ const killTree = (proc) => {
     try {
       proc.kill();
     } catch (e) {
-      resolve();
+      resolve(undefined);
     }
     setTimeout(resolve, 3000).unref();
   });
@@ -160,7 +160,12 @@ const startupError = (error, proc, logPath) => {
   );
 };
 
-const launch = async ({ port: requestedPort, profileDir, downloadDir, fresh = true }) => {
+const launch = async ({
+  port: requestedPort = undefined,
+  profileDir,
+  downloadDir = undefined,
+  fresh = true,
+}) => {
   let resolvedProfile = profileDir;
   let resolvedDownloads = downloadDir;
   if (fresh || !fs.existsSync(profileDir)) {

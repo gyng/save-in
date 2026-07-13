@@ -1,6 +1,11 @@
 // Counter: an atomic, persistent, serialised download counter for :counter:
 
-import { nextCounter, peekCounter, resetCounter } from "../src/background/counter.ts";
+import {
+  nextCounter,
+  nextPrivateCounter,
+  peekCounter,
+  resetCounter,
+} from "../src/background/counter.ts";
 import type { CounterWriteState } from "../src/background/counter.ts";
 
 let writes: CounterWriteState;
@@ -43,6 +48,16 @@ describe("Counter", () => {
     expect(await peekCounter(browser.storage.local)).toBe(1);
     expect(await peekCounter(browser.storage.local)).toBe(1);
     expect(await nextCounter(writes, browser.storage.local)).toBe(2);
+  });
+
+  test("private counters advance in memory without changing persisted state", async () => {
+    await nextCounter(writes, browser.storage.local);
+    vi.mocked(browser.storage.local.set).mockClear();
+
+    expect(await nextPrivateCounter(writes, browser.storage.local)).toBe(2);
+    expect(await nextPrivateCounter(writes, browser.storage.local)).toBe(3);
+    expect(browser.storage.local.set).not.toHaveBeenCalled();
+    expect(await peekCounter(browser.storage.local)).toBe(1);
   });
 
   test("concurrent next() calls get distinct, gapless values", async () => {

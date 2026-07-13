@@ -1,8 +1,6 @@
 {
   // Check-only setup for the bundled ESM/TypeScript codebase.
   "compilerOptions": {
-    "allowJs": true,
-    "checkJs": true,
     "noEmit": true,
     "target": "es2022",
     "module": "esnext",
@@ -11,10 +9,12 @@
     "isolatedModules": true,
     "allowImportingTsExtensions": true,
     "lib": ["es2023", "dom"],
-    "types": ["firefox-webext-browser", "chrome", "node", "vitest/globals"],
+    "types": ["firefox-webext-browser", "chrome"],
     "strict": true,
-    "skipLibCheck": true
+    "skipLibCheck": false,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitReturns": true
   },
-  "include": ["src/**/*.js", "src/**/*.ts", "test/**/*.ts", "types/**/*.d.ts"],
-  "exclude": ["src/vendor"]
+  "include": ["src/**/*.ts", "types/**/*.d.ts"]
 }

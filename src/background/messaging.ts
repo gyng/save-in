@@ -114,7 +114,8 @@ export const Messaging = {
       );
       const interpolationMap: Record<string, string> = {};
       keys.forEach((key, i) => {
-        interpolationMap[key] = values[i];
+        const value = values[i];
+        if (value !== undefined) interpolationMap[key] = value;
       });
       interpolatedVariables = interpolationMap;
     }
@@ -450,13 +451,18 @@ const dispatchMessage = <M extends InternalMessage>(
 ): true | void => {
   // The table is exhaustive for M, so this lookup is safe even though TS cannot
   // preserve the correlation between a union's discriminator and mapped value.
-  const handler = (handlers as unknown as Record<string, Handler<M>>)[request.type];
+  const candidate: unknown = Reflect.get(handlers, request.type);
+  const handler = typeof candidate === "function" ? (candidate as Handler<M>) : undefined;
   const reportFailure = (error: unknown) => {
     void Log.add("message handler failed", {
       type: request.type,
       error: error instanceof Error ? error.message : String(error),
     });
   };
+  if (!handler) {
+    reportFailure(new Error(`Missing message handler: ${request.type}`));
+    return;
+  }
   if (READY_MESSAGE_TYPES.has(request.type) && backgroundRuntime.ready) {
     const task = backgroundRuntime.ready
       .then(() => handler(request, sender, sendResponse))

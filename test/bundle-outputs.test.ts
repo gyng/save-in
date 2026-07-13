@@ -8,3 +8,13 @@ test("does not ship a redundant standalone click-to-copy bundle", () => {
   expect(config).not.toContain('file: "dist/bundled/clicktocopy.js"');
   expect(stage).toContain('f === "clicktocopy.js"');
 });
+
+test("isolates E2E bundles from store and dev builds", () => {
+  const config = readFileSync(resolve("rolldown.config.mjs"), "utf8");
+  const stage = readFileSync(resolve("scripts/build-bundled.js"), "utf8");
+  const packageJson = readFileSync(resolve("package.json"), "utf8");
+
+  expect(config).toContain('process.env.SAVE_IN_E2E === "1" ? "dist/bundled-e2e"');
+  expect(stage).toContain('expectE2EBridge ? "bundled-pkg-e2e" : "bundled-pkg"');
+  expect(packageJson).toContain("EXT_DIR=dist/bundled-pkg-e2e");
+});

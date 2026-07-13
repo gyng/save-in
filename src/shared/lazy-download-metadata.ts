@@ -6,8 +6,8 @@ export type HeadMetadata = {
 };
 
 export type LazyDownloadMetadata<Content extends ContentFetchResult = ContentFetchResult> = {
-  headPromise?: Promise<HeadMetadata>;
-  resolvedHead?: HeadMetadata;
-  contentPromise?: Promise<Content | null>;
-  sha256?: string;
+  headPromise?: Promise<HeadMetadata> | undefined;
+  resolvedHead?: HeadMetadata | undefined;
+  contentPromise?: Promise<Content | null> | undefined;
+  sha256?: string | undefined;
 };

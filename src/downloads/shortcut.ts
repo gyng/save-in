@@ -4,10 +4,10 @@ import { sanitizeFilename } from "../routing/path.ts";
 import { currentTab } from "../platform/current-tab.ts";
 
 type ShortcutInfo = {
-  srcUrl?: string;
-  linkUrl?: string;
-  pageUrl?: string;
-  linkText?: string;
+  srcUrl?: string | undefined;
+  linkUrl?: string | undefined;
+  pageUrl?: string | undefined;
+  linkText?: string | undefined;
 };
 
 const escapeDesktopValue = (value: string): string =>

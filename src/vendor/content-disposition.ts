@@ -20,10 +20,10 @@ export function getFilenameFromContentDispositionHeader(contentDisposition: stri
   let needsEncodingFixup = true;
 
   // filename*=ext-value ("ext-value" from RFC 5987, referenced by RFC 6266).
-  let tmp: any = toParamRegExp("filename\\*", "i").exec(contentDisposition);
-  if (tmp) {
-    tmp = tmp[1];
-    let filename = rfc2616unquote(tmp);
+  const encodedMatch = toParamRegExp("filename\\*", "i").exec(contentDisposition);
+  const encodedValue = encodedMatch?.[1];
+  if (encodedValue !== undefined) {
+    let filename = rfc2616unquote(encodedValue);
     filename = unescape(filename);
     filename = rfc5987decode(filename);
     filename = rfc2047decode(filename);
@@ -33,18 +33,18 @@ export function getFilenameFromContentDispositionHeader(contentDisposition: stri
   // Continuations (RFC 2231 section 3, referenced by RFC 5987 section 3.1).
   // filename*n*=part
   // filename*n=part
-  tmp = rfc2231getparam(contentDisposition);
-  if (tmp) {
+  const continuedValue = rfc2231getparam(contentDisposition);
+  if (continuedValue) {
     // RFC 2047, section
-    let filename = rfc2047decode(tmp);
+    let filename = rfc2047decode(continuedValue);
     return fixupEncoding(filename);
   }
 
   // filename=value (RFC 5987, section 4.1).
-  tmp = toParamRegExp("filename", "i").exec(contentDisposition);
-  if (tmp) {
-    tmp = tmp[1];
-    let filename = rfc2616unquote(tmp);
+  const plainMatch = toParamRegExp("filename", "i").exec(contentDisposition);
+  const plainValue = plainMatch?.[1];
+  if (plainValue !== undefined) {
+    let filename = rfc2616unquote(plainValue);
     filename = rfc2047decode(filename);
     return fixupEncoding(filename);
   }
@@ -99,6 +99,7 @@ export function getFilenameFromContentDispositionHeader(contentDisposition: stri
     let iter = toParamRegExp("filename\\*((?!0\\d)\\d+)(\\*?)", "ig");
     while ((match = iter.exec(contentDisposition)) !== null) {
       let [, index, quot, part] = match;
+      if (index === undefined || quot === undefined || part === undefined) continue;
       const n = parseInt(index, 10);
       if (n in matches) {
         // Ignore anything after the invalid second filename*0.
@@ -130,12 +131,14 @@ export function getFilenameFromContentDispositionHeader(contentDisposition: stri
       let parts = value.slice(1).split('\\"');
       // Find the first unescaped " and terminate there.
       for (let i = 0; i < parts.length; ++i) {
-        let quotindex = parts[i].indexOf('"');
+        const currentPart = parts[i];
+        if (currentPart === undefined) continue;
+        let quotindex = currentPart.indexOf('"');
         if (quotindex !== -1) {
-          parts[i] = parts[i].slice(0, quotindex);
+          parts[i] = currentPart.slice(0, quotindex);
           parts.length = i + 1; // Truncates and stop the iteration.
         }
-        parts[i] = parts[i].replace(/\\(.)/g, "$1");
+        parts[i] = (parts[i] ?? "").replace(/\\(.)/g, "$1");
       }
       value = parts.join('"');
     }

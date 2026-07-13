@@ -201,6 +201,25 @@ describe("menu creation", () => {
   });
 
   describe("addLastUsed", () => {
+    test("invokes the event-page matchMedia method with its host receiver", () => {
+      const original = Reflect.get(globalThis, "matchMedia");
+      const matchMedia = vi.fn(function (this: typeof globalThis) {
+        if (this !== globalThis) throw new TypeError("Illegal invocation");
+        return { matches: true };
+      });
+      Reflect.set(globalThis, "matchMedia", matchMedia);
+
+      try {
+        menu.addLastUsed(["link"]);
+      } finally {
+        if (original === undefined) Reflect.deleteProperty(globalThis, "matchMedia");
+        else Reflect.set(globalThis, "matchMedia", original);
+      }
+
+      expect(matchMedia).toHaveBeenCalledWith("(prefers-color-scheme: dark)");
+      expect(created()[0].icons).toEqual({ 16: "icons/ic_update_white_24px.svg" });
+    });
+
     test("creates a disabled placeholder with icons when nothing was used yet", () => {
       menu.addLastUsed(["link"]);
 

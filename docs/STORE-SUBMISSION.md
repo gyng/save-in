@@ -42,6 +42,14 @@ non-minified JavaScript. No obfuscation or remote executable code is used.
 - Firefox can attach a Referer to a user-requested download through its native
   downloads API. Chrome does not expose an equivalent supported mechanism; no
   request-interception permission is requested.
+- Extension-side Fetch and HEAD requests omit credentials on new profiles.
+  Users can explicitly enable applicable website cookies and browser-managed
+  authentication. Configured legacy profiles are migrated to preserve their
+  previous request behavior.
+- `cookies` is optional and Firefox-only in use. Granting it lets the native
+  downloads API select the originating Container's opaque `cookieStoreId` for
+  a direct download. Save In never reads or stores cookie values, and
+  fetch-to-Blob downloads do not claim to preserve Container context.
 - `<all_urls>` is required because the extension saves resources selected by
   the user from arbitrary websites, optionally reads content metadata, and can
   run its click-to-save content listener on those pages.
@@ -52,6 +60,9 @@ non-minified JavaScript. No obfuscation or remote executable code is used.
   `yt-dlp` command only writes text to the clipboard; Save In never executes it.
 - The extension makes no analytics or developer-server requests. Resource
   fetches go only to URLs involved in a user-requested save.
+- Chrome Incognito and Firefox Private Browsing activity is excluded from local
+  history, restart-recovery storage, and the extension debug log. Private saves
+  use memory-only transient state.
 - The external extension API accepts validated save requests from other
   installed extensions. It does not expose user configuration mutation to
   external callers and does not execute received code.
@@ -78,6 +89,8 @@ Permission justifications:
   state.
 - `offscreen`: provides Chrome's service worker with temporary Blob URL
   conversion for downloads.
+- optional `cookies`: on Firefox only, selects the originating Container's
+  cookie store for a user-requested direct download without reading cookies.
 - `<all_urls>`: identifies and fetches resources explicitly selected by the
   user on arbitrary websites, including resources requiring the user's
   existing session.
@@ -85,6 +98,10 @@ Permission justifications:
 Before submitting, verify that the listing has an accurate description,
 category, icon, screenshots, support link, privacy-policy link, and the same
 data-use answers as `PRIVACY.md`.
+
+The listing and in-product Advanced downloading copy must disclose that users
+can opt into sending applicable site credentials with extension requests and
+can separately grant Firefox Container access.
 
 ## GitHub release provenance
 
@@ -134,6 +151,11 @@ surfaces in current Chrome and Firefox:
    and click-to-save is unavailable, then grant access and confirm both recover.
 5. Check the options page and Page Sources dock/popout at normal and narrow
    widths in light and dark system themes, including keyboard focus indicators.
+6. In both a Chrome Incognito window and a Firefox Private Browsing window,
+   perform a Save In download and an ordinary browser download, then confirm
+   neither appears in Save In history or the debug log after returning to a
+   normal window. Confirm ordinary-download routing does not alter the private
+   download filename.
 
 CI uploads `dist/e2e-artifacts` when a browser suite fails. The bundle contains
 browser logs plus JSON snapshots of targets, storage, history, debug logs, and

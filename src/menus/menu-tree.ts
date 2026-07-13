@@ -8,7 +8,7 @@ export type ParsedPath = {
   depth: number;
   meta: MenuMeta;
   parsedDir: string;
-  validation: { valid: boolean; message?: string };
+  validation: { valid: boolean; message?: string | undefined };
 };
 export type MenuTreeItem =
   | { kind: "separator"; parentId: string }
@@ -17,7 +17,7 @@ export type MenuTreeItem =
       id: string;
       title: string;
       number: number;
-      accessKeyOverride?: string;
+      accessKeyOverride?: string | undefined;
       parsedDir: string;
       comment: string;
       menuIndex: string;
@@ -25,7 +25,11 @@ export type MenuTreeItem =
       parentId: string;
       raw: string;
     };
-export type MenuTreeError = { message: string; error: string; parentId?: string };
+export type MenuTreeError = {
+  message: string;
+  error: string;
+  parentId?: string | undefined;
+};
 export type MenuTree = { items: MenuTreeItem[]; errors: MenuTreeError[] };
 
 const ROOT_ID = "save-in-root";
@@ -42,16 +46,17 @@ export const parseMeta = (comment: string): MenuMeta => {
     )
     .reduce<MenuMeta>((acc, values) => {
       const key = values[0];
-      return Object.assign(acc, { [key]: values.slice(1).join(" ") });
+      return key ? Object.assign(acc, { [key]: values.slice(1).join(" ") }) : acc;
     }, {});
 };
 
 export const parsePath = (dir: string): ParsedPath => {
   const tokens = dir.split("//").map((token) => token.trim());
-  const depthMatch = tokens[0].match(/^(>+)?(.+)/)!;
-  const depth = (depthMatch[1] || "").length;
-  const parsedDir = depthMatch[2].trim();
-  const comment = (tokens[1] || "").trim();
+  const [head = "", commentToken = ""] = tokens;
+  const depthMatch = head.match(/^(>+)?(.+)/);
+  const depth = (depthMatch?.[1] || "").length;
+  const parsedDir = (depthMatch?.[2] || "").trim();
+  const comment = commentToken.trim();
   return {
     raw: dir,
     comment,
@@ -79,16 +84,17 @@ export const buildTree = (pathsArray: string[]): MenuTree => {
       depth === 0
         ? ROOT_ID
         : depth > pathsNestingStack.length
-          ? pathsNestingStack[pathsNestingStack.length - 1]
-          : pathsNestingStack[depth - 1];
+          ? pathsNestingStack[pathsNestingStack.length - 1] || ROOT_ID
+          : pathsNestingStack[depth - 1] || ROOT_ID;
     if (!validation.valid) {
-      errors.push({ message: validation.message!, error: dir, parentId });
+      errors.push({ message: validation.message || "Invalid path", error: dir, parentId });
       return;
     }
 
     const title = meta.alias || parsedDir;
     menuItemCounter.splice(depth + 1);
-    menuItemCounter[depth] = (menuItemCounter[depth] || 0) + 1;
+    const number = (menuItemCounter[depth] || 0) + 1;
+    menuItemCounter[depth] = number;
     const id = `save-in-${index}`;
     if (parsedDir === SPECIAL_DIRS.SEPARATOR) {
       items.push({ kind: "separator", parentId });
@@ -103,7 +109,7 @@ export const buildTree = (pathsArray: string[]): MenuTree => {
       kind: "path",
       id,
       title,
-      number: menuItemCounter[depth],
+      number,
       accessKeyOverride: meta.key,
       parsedDir,
       comment: `${index}${comment.replaceAll("-", "_")}`,

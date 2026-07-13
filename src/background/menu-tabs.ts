@@ -95,8 +95,7 @@ export const addTabMenuListener = () => {
       }
 
       let filter: (tab: browser.tabs.Tab) => boolean = () => false;
-      /** @type {{ pinned: boolean, windowId: number, windowType: browser.tabs.WindowType, highlighted?: boolean, openerTabId?: number }} */
-      let query = {
+      let query: Parameters<typeof webExtensionApi.tabs.query>[0] = {
         pinned: false,
         windowId: fromTab.windowId,
         windowType: "normal",
@@ -123,7 +122,7 @@ export const addTabMenuListener = () => {
       }
 
       try {
-        const tabs = (await webExtensionApi.tabs.query(query as any))
+        const tabs = (await webExtensionApi.tabs.query(query))
           .filter(
             (tab): tab is browser.tabs.Tab & { url: string } =>
               Boolean(tab.url) && !/^(about|chrome):/.test(tab.url || ""),

@@ -93,6 +93,7 @@ for (const [file, dependencies] of imports) {
 
 // Low-level runtime layers cannot point back into feature or composition
 // layers. Type-only contract references remain erased from this graph.
+/** @type {Array<[string, string[]]>} */
 const runtimeLayerRules = [
   ["src/shared/", ["src/shared/", "src/vendor/"]],
   ["src/platform/", ["src/platform/", "src/shared/", "src/vendor/"]],
