@@ -17,7 +17,7 @@ The options page shows the ID for the installed build. External callers must use
 
 Only other extensions can call `runtime.sendMessage(extensionId, …)`; ordinary web pages and userscripts do not automatically gain cross-extension messaging privileges.
 
-Before an extension can start a download, add its exact runtime ID under **Advanced → External integrations → Allowed extension IDs**. This is the calling extension's ID, not Save In's destination ID; an integration can display its own `runtime.id` to help the user configure it. The allowlist is empty by default. `PING`, `GET_SCHEMA`, and `VALIDATE` remain available for discovery, but `DOWNLOAD` returns `UNAUTHORIZED` until the caller is explicitly allowed. A caller can check for the `sender_allowlist` capability to detect this policy.
+Before an extension can start a download, paste its exact runtime ID under **Advanced → External integrations → Approved extensions** and select **Allow**. This is the calling extension's ID, not Save In's destination ID; an integration can display its own `runtime.id` to help the user configure it. Approved IDs are shown as removable rows, with the legacy line editor available under **Advanced: edit IDs as text** for bulk changes. The allowlist is empty by default. `PING`, `GET_SCHEMA`, and `VALIDATE` remain available for discovery, but `DOWNLOAD` returns `UNAUTHORIZED` until the caller is explicitly allowed. A caller can check for the `sender_allowlist` capability to detect this policy.
 
 Discover capabilities first:
 
@@ -59,7 +59,7 @@ Accepted URL schemes are `http`, `https`, `ftp`, `data`, and `blob`. A successfu
 
 Download errors are `UNAUTHORIZED`, `BAD_REQUEST`, or `INVALID_URL`; unknown external message types return `UNKNOWN_TYPE`. Treat `UNAUTHORIZED` as a request for user configuration, not as a transient error to retry repeatedly.
 
-For a non-private `UNAUTHORIZED` request with a browser-authenticated caller ID, Save In shows a native notification. Clicking it opens Options. **Advanced → External integrations** lists up to 20 rejected caller IDs with their attempt count, request kind, and last-seen time; selecting **Add** appends that exact ID to the allowlist and clears the rejection. Save In does not retain the rejected URL. Private-window rejections are neither recorded nor notified.
+For a non-private `UNAUTHORIZED` request with a browser-authenticated caller ID, Save In shows a native notification. Clicking it opens Options. **Advanced → External integrations → Pending approval** lists up to 20 rejected caller IDs with their attempt count, request kind, and last-seen time; selecting **Approve** appends that exact ID to the approved list and clears the rejection. Save In does not retain the rejected URL. Private-window rejections are neither recorded nor notified.
 
 The browser may deliver external messages from any installed extension, but Save In checks `sender.id` against the user's allowlist before resolving an active tab or starting a download. Allow only extensions you trust with those capabilities.
 

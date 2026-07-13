@@ -30,7 +30,8 @@ testing on Chromium!
   the default empty allowlist blocks active-tab URL access and download requests
   from other installed extensions
 - Rejected external downloads now show a notification that opens Options. The
-  External integrations panel lists blocked caller IDs with an Add action;
+  External integrations panel lists blocked caller IDs with an Approve action;
+  approved IDs can be added or removed without editing raw settings, and
   rejected URLs are not retained
 - CSV and TSV history exports neutralize formula-leading cells before they are
   opened in spreadsheet applications
