@@ -25,6 +25,43 @@ const urlsFromCss = (value: string): string[] =>
     (match) => match[1] || match[2] || match[3],
   );
 
+const isAsciiWhitespace = (value: string): boolean => /[\t\n\f\r ]/.test(value);
+
+// Mirrors the URL-token boundaries in the HTML srcset parser. In particular,
+// commas inside a non-whitespace URL (such as a data URL) are not separators.
+export const urlsFromSrcset = (input: string): string[] => {
+  const urls: string[] = [];
+  let position = 0;
+  while (position < input.length) {
+    while (
+      position < input.length &&
+      (isAsciiWhitespace(input[position]) || input[position] === ",")
+    )
+      position += 1;
+    if (position >= input.length) break;
+
+    const start = position;
+    while (position < input.length && !isAsciiWhitespace(input[position])) position += 1;
+    let url = input.slice(start, position);
+    if (url.endsWith(",")) {
+      url = url.replace(/,+$/, "");
+      if (url) urls.push(url);
+      continue;
+    }
+    urls.push(url);
+
+    let parentheses = 0;
+    while (position < input.length) {
+      const character = input[position];
+      position += 1;
+      if (character === "(") parentheses += 1;
+      else if (character === ")" && parentheses > 0) parentheses -= 1;
+      else if (character === "," && parentheses === 0) break;
+    }
+  }
+  return urls;
+};
+
 const absoluteUrl = (value: string): string | null => {
   try {
     const url = new URL(value, document.baseURI);
@@ -146,20 +183,28 @@ export const collectPageSourceCandidates = (
 
   queryIncludingRoot<HTMLImageElement>(root, "img").forEach((element) => {
     add(element.currentSrc || element.src, "image", element);
-    element
-      .getAttribute("srcset")
-      ?.split(",")
-      .forEach((candidate) => add(candidate.trim().split(/\s+/)[0], "image", element));
+    urlsFromSrcset(element.getAttribute("srcset") || "").forEach((candidate) =>
+      add(candidate, "image", element),
+    );
+    if (element.parentElement?.matches("picture")) {
+      for (const sibling of element.parentElement.children) {
+        if (sibling === element) break;
+        if (sibling instanceof HTMLSourceElement) {
+          urlsFromSrcset(sibling.getAttribute("srcset") || "").forEach((candidate) =>
+            add(candidate, "image", element),
+          );
+        }
+      }
+    }
   });
   queryIncludingRoot<HTMLMediaElement>(root, "video, audio").forEach((element) => {
     const kind = element instanceof HTMLVideoElement ? "video" : "audio";
     add(element.currentSrc || element.src, kind, element);
     element.querySelectorAll<HTMLSourceElement>("source").forEach((source) => {
       add(source.src, kind, element);
-      source
-        .getAttribute("srcset")
-        ?.split(",")
-        .forEach((candidate) => add(candidate.trim().split(/\s+/)[0], kind, element));
+      urlsFromSrcset(source.getAttribute("srcset") || "").forEach((candidate) =>
+        add(candidate, kind, element),
+      );
     });
   });
   if (options.includeLinks !== false) {

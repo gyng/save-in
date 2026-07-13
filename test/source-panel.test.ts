@@ -3,9 +3,11 @@ import {
   createSourceTooltip,
   filterPageSources,
   formatSourceBytes,
+  replaceSourcePanel,
   setSourcePanelOpen,
   sortPageSources,
   toggleSourcePanel,
+  urlsFromSrcset,
   ytDlpCommand,
 } from "../src/content/source-panel.ts";
 
@@ -30,6 +32,36 @@ describe("page source collection", () => {
       ["https://example.com/page/fallback.webm", "video"],
       ["https://example.com/page/sound.ogg", "audio"],
       ["https://example.com/page/wall.png", "image"],
+    ]);
+  });
+
+  test("parses responsive source lists without splitting data-URL commas", () => {
+    expect(
+      urlsFromSrcset(
+        "small.jpg 1x, data:image/png;base64,AAAA 2x, wide.jpg 1200w, fallback.jpg, next.jpg 3x",
+      ),
+    ).toEqual(["small.jpg", "data:image/png;base64,AAAA", "wide.jpg", "fallback.jpg", "next.jpg"]);
+  });
+
+  test("collects picture source candidates with their fallback image", () => {
+    document.body.innerHTML = `
+      <picture>
+        <source media="(max-width: 600px)" srcset="mobile.jpg 1x, mobile@2x.jpg 2x">
+        <source srcset="data:image/png;base64,AAAA 1x, desktop.jpg 2x">
+        <img src="fallback.jpg" srcset="fallback@2x.jpg 2x">
+      </picture>`;
+
+    expect(
+      collectPageSources(document, { includeBackgrounds: false, resourceHints: false }).map(
+        ({ url }) => url,
+      ),
+    ).toEqual([
+      "http://localhost/fallback.jpg",
+      "http://localhost/fallback@2x.jpg",
+      "http://localhost/mobile.jpg",
+      "http://localhost/mobile@2x.jpg",
+      "data:image/png;base64,AAAA",
+      "http://localhost/desktop.jpg",
     ]);
   });
 
@@ -231,6 +263,23 @@ describe("Page Sources panel interactions", () => {
     vi.useRealTimers();
   });
 
+  test("restores the original page focus after replacing an open panel", () => {
+    vi.useFakeTimers();
+    const pageButton = document.createElement("button");
+    document.body.append(pageButton);
+    pageButton.focus();
+    const options = { includeBackgrounds: false, live: false };
+
+    toggleSourcePanel(vi.fn(), options);
+    expect(replaceSourcePanel(vi.fn(), { ...options, previews: false })).toBe(true);
+    document
+      .getElementById("save-in-source-panel")!
+      .shadowRoot!.querySelector<HTMLButtonElement>(".close")!
+      .click();
+
+    expect(document.activeElement).toBe(pageButton);
+  });
+
   test("filters cached sources without rescanning the page on every keystroke", () => {
     vi.useFakeTimers();
     document.body.innerHTML = `<img src="cat.jpg"><img src="dog.jpg">`;
@@ -261,6 +310,41 @@ describe("Page Sources panel interactions", () => {
       ),
     ).toBe(dogRow);
     vi.useRealTimers();
+  });
+
+  test("shows one empty state and deactivates cached rows when nothing matches", () => {
+    vi.useFakeTimers();
+    document.body.innerHTML = `<img id="cat" src="cat.jpg"><img src="dog.jpg">`;
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
+    const host = document.getElementById("save-in-source-panel")!;
+    const shadow = host.shadowRoot!;
+    const filter = shadow.querySelector<HTMLInputElement>('input[type="search"]')!;
+    const catRow = [...shadow.querySelectorAll<HTMLElement>(".row")].find((row) =>
+      row.textContent?.includes("cat.jpg"),
+    )!;
+    catRow.dispatchEvent(new MouseEvent("mouseenter"));
+    expect(shadow.querySelector(".media-tooltip")).not.toBeNull();
+    expect(document.querySelector<HTMLElement>("#cat")!.style.outline).not.toBe("");
+
+    filter.value = "missing";
+    filter.dispatchEvent(new Event("input"));
+    vi.advanceTimersByTime(80);
+    filter.dispatchEvent(new Event("input"));
+    vi.advanceTimersByTime(80);
+
+    expect(shadow.querySelectorAll(".row")).toHaveLength(0);
+    expect(shadow.querySelectorAll(".empty")).toHaveLength(1);
+    expect(shadow.querySelector(".media-tooltip")).toBeNull();
+    expect(document.querySelector<HTMLElement>("#cat")!.style.outline).toBe("");
+
+    filter.value = "";
+    filter.dispatchEvent(new Event("input"));
+    vi.advanceTimersByTime(80);
+    expect(
+      [...shadow.querySelectorAll<HTMLElement>(".row")].find((row) =>
+        row.textContent?.includes("cat.jpg"),
+      ),
+    ).toBe(catRow);
   });
 
   test("loads list previews only when they approach the panel viewport", () => {
@@ -366,6 +450,51 @@ describe("Page Sources panel interactions", () => {
         ({ href }) => href,
       ),
     ).not.toContain("http://localhost/shared.jpg");
+  });
+
+  test("incrementally reconciles responsive picture source-list changes", async () => {
+    vi.useFakeTimers();
+    document.body.innerHTML = `
+      <picture>
+        <source id="responsive" srcset="old.jpg 1x, old@2x.jpg 2x">
+        <img src="fallback.jpg">
+      </picture>`;
+    toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: true });
+    const host = document.getElementById("save-in-source-panel")!;
+    const urls = () =>
+      [...host.shadowRoot!.querySelectorAll<HTMLAnchorElement>(".source-link")].map(
+        ({ href }) => href,
+      );
+    expect(urls()).toEqual(
+      expect.arrayContaining(["http://localhost/old.jpg", "http://localhost/old@2x.jpg"]),
+    );
+
+    document.querySelector("#responsive")!.setAttribute("srcset", "new.jpg 1x, new@2x.jpg 2x");
+    await Promise.resolve();
+    vi.advanceTimersByTime(200);
+
+    expect(urls()).toEqual(
+      expect.arrayContaining(["http://localhost/new.jpg", "http://localhost/new@2x.jpg"]),
+    );
+    expect(urls()).not.toEqual(
+      expect.arrayContaining(["http://localhost/old.jpg", "http://localhost/old@2x.jpg"]),
+    );
+
+    document.querySelector("#responsive")!.remove();
+    await Promise.resolve();
+    vi.advanceTimersByTime(200);
+    expect(urls()).not.toEqual(
+      expect.arrayContaining(["http://localhost/new.jpg", "http://localhost/new@2x.jpg"]),
+    );
+
+    const added = document.createElement("source");
+    added.srcset = "added.jpg 1x, added@2x.jpg 2x";
+    document.querySelector("picture")!.prepend(added);
+    await Promise.resolve();
+    vi.advanceTimersByTime(200);
+    expect(urls()).toEqual(
+      expect.arrayContaining(["http://localhost/added.jpg", "http://localhost/added@2x.jpg"]),
+    );
   });
 
   test("refreshes computed backgrounds after a class change", async () => {

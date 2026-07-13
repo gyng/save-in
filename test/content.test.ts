@@ -85,6 +85,21 @@ describe("findSource", () => {
     expect(ClickToSave.findSource(event(span), true)).toBeUndefined();
   });
 
+  test("does not mistake embedded documents for media sources", () => {
+    document.body.innerHTML =
+      '<a href="/files/document.pdf"><iframe id="frame" src="/embedded/page.html"></iframe></a>';
+    const frame = document.querySelector("iframe");
+
+    expect(ClickToSave.findSource(event(frame), true)).toBe("http://localhost/files/document.pdf");
+    expect(ClickToSave.findSource(event(frame), false)).toBeUndefined();
+  });
+
+  test("rejects unsafe media URLs before suppressing the page click", () => {
+    document.body.innerHTML = '<img id="image" src="javascript:unsafe">';
+
+    expect(ClickToSave.findSource(event(document.querySelector("img")), false)).toBeUndefined();
+  });
+
   test("returns undefined for plain elements", () => {
     document.body.innerHTML = '<p id="p">text</p>';
     expect(ClickToSave.findSource(event(document.getElementById("p")), true)).toBeUndefined();
@@ -366,6 +381,49 @@ describe("content.js initialisation", () => {
       { type: "SOURCE_PANEL_READY" },
       expect.any(Function),
     );
+  });
+
+  test("reconfigures an open Page Sources panel when its live options change", async () => {
+    vi.useFakeTimers();
+    let storageListener: ((changes: Record<string, any>, area: string) => void) | undefined;
+    let runtimeListener: ((message: any) => void) | undefined;
+    vi.resetModules();
+    document.body.innerHTML = '<img src="cat.jpg">';
+    global.chrome.runtime.sendMessage = vi.fn((_message, callback) => callback?.()) as any;
+    global.chrome.storage.local.get = vi.fn((_keys, callback) =>
+      callback({
+        sourcePanelEnabled: true,
+        sourcePanelBackgrounds: false,
+        sourcePanelLive: true,
+        sourcePanelPreviews: true,
+      }),
+    ) as any;
+    global.chrome.runtime.onMessage.addListener = vi.fn((listener) => {
+      runtimeListener = listener;
+    });
+    (global.chrome.storage as any).onChanged = {
+      addListener: vi.fn((listener) => {
+        storageListener = listener;
+      }),
+    };
+    await import("../src/content/content.ts");
+
+    runtimeListener!({ type: "SET_SOURCE_PANEL", body: { open: true } });
+    const originalHost = document.getElementById("save-in-source-panel")!;
+    expect(originalHost.shadowRoot!.querySelector(".source-link img")).not.toBeNull();
+
+    storageListener!({ sourcePanelLive: { oldValue: true, newValue: false } }, "local");
+    const liveReconfiguredHost = document.getElementById("save-in-source-panel")!;
+    expect(liveReconfiguredHost).not.toBe(originalHost);
+
+    storageListener!({ sourcePanelPreviews: { oldValue: true, newValue: false } }, "local");
+    const reconfiguredHost = document.getElementById("save-in-source-panel")!;
+    expect(reconfiguredHost).not.toBe(liveReconfiguredHost);
+    expect(reconfiguredHost.shadowRoot!.querySelector(".source-link img")).toBeNull();
+
+    storageListener!({ sourcePanelEnabled: { oldValue: true, newValue: false } }, "local");
+    vi.advanceTimersByTime(90);
+    expect(document.getElementById("save-in-source-panel")).toBeNull();
   });
 
   test("warms a sleeping background when Page Sources signals save intent", async () => {

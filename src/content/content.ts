@@ -1,4 +1,9 @@
-import { setSourcePanelOpen, toggleSourcePanel, type PageSource } from "./source-panel.ts";
+import {
+  replaceSourcePanel,
+  setSourcePanelOpen,
+  toggleSourcePanel,
+  type PageSource,
+} from "./source-panel.ts";
 import {
   CONTENT_OPTION_DEFAULTS,
   CONTENT_OPTION_KEYS,
@@ -41,25 +46,31 @@ const ClickToSave = {
   findSource: (e: any, allowLinks: boolean): string | undefined => {
     let source;
     const path = typeof e.composedPath === "function" ? e.composedPath() : [];
+    const mediaSource = (element: unknown): string | undefined => {
+      if (!(element instanceof HTMLImageElement) && !(element instanceof HTMLMediaElement))
+        return undefined;
+      const candidate = element.currentSrc || element.src;
+      return /^(https?|ftp|blob|data):/i.test(candidate) ? candidate : undefined;
+    };
 
     // Shadow-DOM retargeting can hide the actual media element from e.target.
     // Prefer the composed path, then retain the coordinate lookup for overlays.
     if (path.length > 0) {
       path.some((el: any) => {
-        source = el && (el.currentSrc || el.src);
+        source = mediaSource(el);
         return !!source;
       });
     }
 
     if (!source && document.elementsFromPoint) {
       document.elementsFromPoint(e.clientX, e.clientY).some((el: any) => {
-        source = el["currentSrc"] || el["src"]; // undefined for non-media elements
+        source = mediaSource(el);
         return !!source;
       });
     }
 
     if (!source) {
-      source = e.target && (e.target.currentSrc || e.target.src);
+      source = mediaSource(e.target);
     }
 
     if (!source && allowLinks) {
@@ -209,6 +220,7 @@ let removeClickToSave: (() => void) | null = null;
 let receivedInitialOptions = false;
 let sourcePanelListenerReady = false;
 let announcedSourcePanelReady = false;
+let reconfigureOpenSourcePanel: (() => void) | null = null;
 
 const announceSourcePanelReady = () => {
   if (
@@ -232,6 +244,17 @@ const applyOptions = (next: ContentOptions) => {
   const clickOptionsChanged = (
     ["contentClickToSave", "contentClickToSaveCombo", "contentClickToSaveButton", "links"] as const
   ).some((key) => previous[key] !== currentOptions[key]);
+  const sourcePanelOptionsChanged = (
+    [
+      "sourcePanelEnabled",
+      "sourcePanelBackgrounds",
+      "sourcePanelLive",
+      "sourcePanelPreviews",
+      "sourcePanelResourceHints",
+      "sourcePanelLinks",
+    ] as const
+  ).some((key) => previous[key] !== currentOptions[key]);
+  if (sourcePanelOptionsChanged) reconfigureOpenSourcePanel?.();
   if (!clickOptionsChanged) {
     announceSourcePanelReady();
     return;
@@ -281,33 +304,39 @@ try {
 }
 
 try {
+  const sendDownload = ({ url, kind }: PageSource) => {
+    sendRuntimeDownload({
+      url,
+      info: { pageUrl: `${window.location}`, srcUrl: url, sourceKind: kind },
+    });
+  };
+  const createPanelOptions = () => ({
+    enabled: currentOptions.sourcePanelEnabled === true,
+    includeBackgrounds: currentOptions.sourcePanelBackgrounds !== false,
+    live: currentOptions.sourcePanelLive !== false,
+    previews: currentOptions.sourcePanelPreviews !== false,
+    resourceHints: currentOptions.sourcePanelResourceHints !== false,
+    includeLinks: currentOptions.sourcePanelLinks !== false,
+    onSaveIntent: warmBackground,
+    onOpenChange: (open: boolean) => {
+      try {
+        chrome.runtime.sendMessage(
+          { type: "SOURCE_PANEL_STATE", body: { open } },
+          () => chrome.runtime.lastError,
+        );
+      } catch {
+        // Extension context invalidated while the page remained alive.
+      }
+    },
+  });
+  reconfigureOpenSourcePanel = () => {
+    const panelOptions = createPanelOptions();
+    if (panelOptions.enabled) replaceSourcePanel(sendDownload, panelOptions);
+    else setSourcePanelOpen(false, sendDownload, panelOptions);
+  };
   chrome.runtime.onMessage.addListener((message) => {
     if (!["TOGGLE_SOURCE_PANEL", "SET_SOURCE_PANEL"].includes(message?.type)) return;
-    const sendDownload = ({ url, kind }: PageSource) => {
-      sendRuntimeDownload({
-        url,
-        info: { pageUrl: `${window.location}`, srcUrl: url, sourceKind: kind },
-      });
-    };
-    const panelOptions = {
-      enabled: currentOptions.sourcePanelEnabled === true,
-      includeBackgrounds: currentOptions.sourcePanelBackgrounds !== false,
-      live: currentOptions.sourcePanelLive !== false,
-      previews: currentOptions.sourcePanelPreviews !== false,
-      resourceHints: currentOptions.sourcePanelResourceHints !== false,
-      includeLinks: currentOptions.sourcePanelLinks !== false,
-      onSaveIntent: warmBackground,
-      onOpenChange: (open: boolean) => {
-        try {
-          chrome.runtime.sendMessage(
-            { type: "SOURCE_PANEL_STATE", body: { open } },
-            () => chrome.runtime.lastError,
-          );
-        } catch {
-          // Extension context invalidated while the page remained alive.
-        }
-      },
-    };
+    const panelOptions = createPanelOptions();
     if (message.type === "SET_SOURCE_PANEL") {
       setSourcePanelOpen(Boolean(message.body?.open), sendDownload, panelOptions);
     } else {

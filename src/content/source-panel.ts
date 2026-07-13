@@ -22,6 +22,7 @@ export {
   formatSourceBytes,
   sortPageSources,
   resourceTimingByUrl,
+  urlsFromSrcset,
   ytDlpCommand,
   type PageSource,
   type PageSourceKind,
@@ -32,6 +33,7 @@ export {
 const PANEL_HOST_ID = "save-in-source-panel";
 const panelCleanups = new WeakMap<Element, () => void>();
 const panelCloseTimers = new WeakMap<Element, number>();
+const panelPreviousFocus = new WeakMap<Element, HTMLElement>();
 
 const cancelPanelRemoval = (host: Element) => {
   const timer = panelCloseTimers.get(host);
@@ -47,6 +49,7 @@ const schedulePanelRemoval = (host: Element) => {
       panelCloseTimers.delete(host);
       panelCleanups.get(host)?.();
       panelCleanups.delete(host);
+      panelPreviousFocus.delete(host);
       host.remove();
     }, 90),
   );
@@ -94,6 +97,7 @@ export const toggleSourcePanel = (
   const host = document.createElement("aside");
   const previousFocus =
     document.activeElement instanceof HTMLElement ? document.activeElement : null;
+  if (previousFocus) panelPreviousFocus.set(host, previousFocus);
   host.id = PANEL_HOST_ID;
   const shadow = host.attachShadow({ mode: "open" });
   const style = document.createElement("style");
@@ -195,7 +199,7 @@ export const toggleSourcePanel = (
   });
   updateDock();
   const closePanel = () => {
-    previousFocus?.focus();
+    panelPreviousFocus.get(host)?.focus();
     host.classList.add("closing");
     schedulePanelRemoval(host);
     options.onOpenChange?.(false);
@@ -267,7 +271,13 @@ export const toggleSourcePanel = (
   let allSources: PageSource[] = [];
   let visibleSources: PageSource[] = [];
   let resourceHintSources: PageSource[] = [];
-  const rowCache = new Map<string, { source: PageSource; row: HTMLElement }>();
+  type CachedRow = { source: PageSource; row: HTMLElement; deactivate: () => void };
+  const rowCache = new Map<string, CachedRow>();
+  const cachedRows = new WeakMap<HTMLElement, CachedRow>();
+  const deactivateAndRemove = ({ row, deactivate }: CachedRow) => {
+    deactivate();
+    row.remove();
+  };
   const pendingPreviewSources = new WeakMap<Element, string>();
   const previewObserver =
     typeof IntersectionObserver === "function"
@@ -334,10 +344,11 @@ export const toggleSourcePanel = (
     );
   };
   const reconcileRoot = (changedRoot: Element) => {
-    const root =
-      changedRoot.matches("source") && changedRoot.closest("video, audio")
-        ? changedRoot.closest("video, audio")!
-        : changedRoot;
+    const mediaOwner = changedRoot.matches("source") ? changedRoot.closest("video, audio") : null;
+    const pictureOwner = changedRoot.matches("source")
+      ? changedRoot.closest("picture")?.querySelector("img")
+      : null;
+    const root = mediaOwner || pictureOwner || changedRoot;
     removeSourcesUnder(root);
     sourceCandidates.push(
       ...collectPageSourceCandidates(root, { ...options, resourceHints: false }, timingByUrl),
@@ -353,9 +364,9 @@ export const toggleSourcePanel = (
     title.textContent = "Page sources";
     facets.replaceChildren();
     const presentUrls = new Set(allSources.map(({ url }) => url));
-    rowCache.forEach(({ row }, url) => {
+    rowCache.forEach((cached, url) => {
       if (presentUrls.has(url)) return;
-      row.remove();
+      deactivateAndRemove(cached);
       rowCache.delete(url);
     });
     const searchedSources = filterPageSources(allSources, filter.value, "all");
@@ -391,12 +402,15 @@ export const toggleSourcePanel = (
       empty.textContent = allSources.length
         ? `No ${activeKind === "all" ? "sources" : activeKind} match${filter.value ? ` “${filter.value}”` : " this facet"}.`
         : "No page media or streaming-video playlists detected yet.";
-      list.append(empty);
+      rowCache.forEach((cached) => {
+        if (cached.row.isConnected) deactivateAndRemove(cached);
+      });
+      list.replaceChildren(empty);
       copyUrls.disabled = true;
       return;
     }
     copyUrls.disabled = false;
-    list.querySelector(":scope > .empty")?.remove();
+    list.querySelectorAll(":scope > .empty").forEach((empty) => empty.remove());
     let rowIndex = 0;
     const placeRow = (row: HTMLElement) => {
       const current = list.children[rowIndex] || null;
@@ -418,7 +432,7 @@ export const toggleSourcePanel = (
         placeRow(cached.row);
         return;
       }
-      cached?.row.remove();
+      if (cached) deactivateAndRemove(cached);
       const row = document.createElement("div");
       row.className = "row";
       const preview =
@@ -678,10 +692,26 @@ export const toggleSourcePanel = (
       if (!hasRichTooltip)
         row.title = "Alt+click to save; right-click the source title for Save In";
       row.append(sourceLink, actions);
-      rowCache.set(source.url, { source, row });
+      const deactivate = () => {
+        hovered = false;
+        focused = false;
+        syncPreview();
+      };
+      const cachedRow = { source, row, deactivate };
+      rowCache.set(source.url, cachedRow);
+      cachedRows.set(row, cachedRow);
       placeRow(row);
     });
-    while (list.children.length > rowIndex) list.lastElementChild?.remove();
+    while (list.children.length > rowIndex) {
+      const last = list.lastElementChild;
+      if (!(last instanceof HTMLElement)) {
+        last?.remove();
+        continue;
+      }
+      const cached = cachedRows.get(last);
+      if (cached) deactivateAndRemove(cached);
+      else last.remove();
+    }
   };
   let filterTimer = 0;
   filter.addEventListener("input", () => {
@@ -718,6 +748,13 @@ export const toggleSourcePanel = (
   const pendingRoots = new Set<Element>();
   const removedRoots = new Set<Element>();
   let fullRefreshPending = false;
+  const queueRoot = (root: Element) => {
+    for (const pending of pendingRoots) {
+      if (pending === root || pending.contains(root)) return;
+      if (root.contains(pending)) pendingRoots.delete(pending);
+    }
+    pendingRoots.add(root);
+  };
   const scheduleRefresh = () => {
     window.clearTimeout(refreshTimer);
     refreshTimer = window.setTimeout(() => {
@@ -741,6 +778,7 @@ export const toggleSourcePanel = (
     if (!host.isConnected) {
       panelCleanups.get(host)?.();
       panelCleanups.delete(host);
+      panelPreviousFocus.delete(host);
       return;
     }
     if (
@@ -769,16 +807,16 @@ export const toggleSourcePanel = (
         return;
       }
       if (mutation.type === "attributes") {
-        pendingRoots.add(mutation.target);
+        queueRoot(mutation.target);
         return;
       }
       mutation.removedNodes.forEach((node) => {
         if (node instanceof Element) removedRoots.add(node);
       });
       mutation.addedNodes.forEach((node) => {
-        if (node instanceof Element) pendingRoots.add(node);
+        if (node instanceof Element) queueRoot(node);
       });
-      if (mutation.target.matches("video, audio")) pendingRoots.add(mutation.target);
+      if (mutation.target.matches("video, audio, picture")) queueRoot(mutation.target);
     });
     scheduleRefresh();
   });
@@ -800,6 +838,7 @@ export const toggleSourcePanel = (
     previewObserver?.disconnect();
     window.clearTimeout(filterTimer);
     window.clearTimeout(refreshTimer);
+    rowCache.forEach(({ deactivate }) => deactivate());
   });
   if (options.live !== false) {
     const attributeFilter = ["src", "srcset", "style"];
@@ -818,6 +857,24 @@ export const toggleSourcePanel = (
     }
   }
   return true;
+};
+
+export const replaceSourcePanel = (
+  sendDownload: (source: PageSource) => void,
+  options: SourcePanelOptions = {},
+): boolean => {
+  const existing = document.getElementById(PANEL_HOST_ID);
+  if (!existing || existing.classList.contains("closing")) return false;
+  const previousFocus = panelPreviousFocus.get(existing);
+  cancelPanelRemoval(existing);
+  panelCleanups.get(existing)?.();
+  panelCleanups.delete(existing);
+  panelPreviousFocus.delete(existing);
+  existing.remove();
+  const open = toggleSourcePanel(sendDownload, options);
+  const replacement = document.getElementById(PANEL_HOST_ID);
+  if (open && replacement && previousFocus) panelPreviousFocus.set(replacement, previousFocus);
+  return open;
 };
 
 export const setSourcePanelOpen = (
