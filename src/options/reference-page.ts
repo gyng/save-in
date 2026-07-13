@@ -190,69 +190,27 @@ export const enhanceReferenceTables = (root: ParentNode) => {
 };
 
 export const setupReferencePage = (root: Document = document, copy: CopyText = copyText) => {
-  const variablesPanel = root.querySelector("#reference-variables");
-  groupReferenceRows(
-    variablesPanel || root,
-    variablesPanel
-      ? "variables"
-      : root.querySelector("#help-clause-list")
-        ? "clauses"
-        : "variables",
-  );
+  const referenceRoot = root.querySelector("#help-clause-list") || root;
+  const kind: ReferenceKind = root.querySelector("#help-clause-list") ? "clauses" : "variables";
+  groupReferenceRows(referenceRoot, kind);
   enhanceReferenceTables(root);
   const search = root.querySelector<HTMLInputElement>(".reference-search");
   const count = root.querySelector<HTMLElement>(".reference-count");
   const status = root.querySelector<HTMLElement>(".reference-copy-status");
   const updateFilter = () => {
-    const activePanel = root.querySelector<HTMLElement>(".reference-panel:not([hidden])");
-    const visible = filterReferenceRows(activePanel || root, search?.value || "");
+    const visible = filterReferenceRows(referenceRoot, search?.value || "");
     if (count) count.textContent = `${visible} ${visible === 1 ? "result" : "results"}`;
   };
 
-  const tabs = [...root.querySelectorAll<HTMLButtonElement>('[role="tab"][aria-controls]')];
-  const runtimeVocabulary = loadRuntimeVocabulary();
-  const selectTab = async (tab: HTMLButtonElement) => {
-    const panel = root.querySelector<HTMLElement>(`#${tab.getAttribute("aria-controls")}`);
-    if (!panel) return;
-    if (panel.dataset.source && !panel.dataset.loaded) {
-      const response = await fetch(panel.dataset.source);
-      const source = new DOMParser().parseFromString(await response.text(), "text/html");
-      panel.innerHTML = source.querySelector("#help-clause-list")?.innerHTML || "";
-      panel.dataset.loaded = "true";
-      const vocabulary = await runtimeVocabulary;
-      if (vocabulary)
-        syncReferenceVocabulary(
-          panel,
-          "clauses",
-          vocabulary.matchers.map((x) => `${x}:`),
-        );
-      groupReferenceRows(panel, "clauses");
-      enhanceReferenceTables(root);
-    }
-    tabs.forEach((candidate) => {
-      const selected = candidate === tab;
-      candidate.setAttribute("aria-selected", String(selected));
-      const candidatePanel = root.querySelector<HTMLElement>(
-        `#${candidate.getAttribute("aria-controls")}`,
-      );
-      if (candidatePanel) candidatePanel.hidden = !selected;
-    });
-    updateFilter();
-  };
-  tabs.forEach((tab) => tab.addEventListener("click", () => void selectTab(tab)));
-  void runtimeVocabulary.then((vocabulary) => {
-    if (!vocabulary || !variablesPanel) return;
-    syncReferenceVocabulary(variablesPanel, "variables", vocabulary.variables);
-    groupReferenceRows(variablesPanel, "variables");
+  void loadRuntimeVocabulary().then((vocabulary) => {
+    if (!vocabulary) return;
+    const terms =
+      kind === "variables" ? vocabulary.variables : vocabulary.matchers.map((x) => `${x}:`);
+    syncReferenceVocabulary(referenceRoot, kind, terms);
+    groupReferenceRows(referenceRoot, kind);
     enhanceReferenceTables(root);
     updateFilter();
   });
-  if (location.hash === "#clauses") {
-    const clausesTab = tabs.find(
-      (tab) => tab.getAttribute("aria-controls") === "reference-clauses",
-    );
-    if (clausesTab) void selectTab(clausesTab);
-  }
   search?.addEventListener("input", updateFilter);
   updateFilter();
 

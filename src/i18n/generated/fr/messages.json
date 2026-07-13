@@ -824,9 +824,6 @@
   "o_lManualEditorSaveHelp": {
     "message": "Les modifications dans cet éditeur sont enregistrées lorsque vous sélectionnez Appliquer."
   },
-  "o_lReferenceNavigation": {
-    "message": "Pages de référence"
-  },
   "o_lFilterReference": {
     "message": "Filtre"
   },

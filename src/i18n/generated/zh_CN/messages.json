@@ -701,9 +701,6 @@
   "o_lManualEditorSaveHelp": {
     "message": "选择“应用”后，此编辑器中的更改将被保存。"
   },
-  "o_lReferenceNavigation": {
-    "message": "参考页"
-  },
   "o_lFilterReference": {
     "message": "筛选"
   },

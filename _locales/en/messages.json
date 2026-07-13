@@ -485,359 +485,359 @@
   },
   "html_alsoWorks": {
     "message": "also works)",
-    "description": "Text in the filename-variable reference. Used in src/options/variablelist.html."
+    "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
   "html_amOrPmLocalTime": {
     "message": "am or pm (local time)",
-    "description": "Text in the filename-variable reference. Used in src/options/variablelist.html."
+    "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
   "html_attributeOfElement": {
     "message": "attribute of element",
-    "description": "Text in the filename-variable reference. Used in src/options/variablelist.html."
+    "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
   "html_currentDate": {
     "message": "Current date",
-    "description": "Text in the filename-variable reference. Used in src/options/variablelist.html."
+    "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
   "html_currentDatetimeAsAUnixTimestamp": {
     "message": "Current date and time as a Unix timestamp",
-    "description": "Text in the filename-variable reference. Used in src/options/variablelist.html."
+    "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
   "html_currentDatetimeAsAUtcIso8601String": {
     "message": "Current date and time as a UTC ISO 8601 string",
-    "description": "Text in the filename-variable reference. Used in src/options/variablelist.html."
+    "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
   "html_currentDayOfMonth": {
     "message": "Current day of the month",
-    "description": "Text in the filename-variable reference. Used in src/options/variablelist.html."
+    "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
   "html_currentDayOfWeekEnglish": {
     "message": "Current day of the week (English)",
-    "description": "Text in the filename-variable reference. Used in src/options/variablelist.html."
+    "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
   "html_currentHour24Hour": {
     "message": "Current hour (24-hour)",
-    "description": "Text in the filename-variable reference. Used in src/options/variablelist.html."
+    "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
   "html_currentMinute": {
     "message": "Current minute",
-    "description": "Text in the filename-variable reference. Used in src/options/variablelist.html."
+    "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
   "html_currentMonth": {
     "message": "Current month",
-    "description": "Text in the filename-variable reference. Used in src/options/variablelist.html."
+    "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
   "html_currentMonthNameEnglish": {
     "message": "Current month name (English)",
-    "description": "Text in the filename-variable reference. Used in src/options/variablelist.html."
+    "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
   "html_currentSecond": {
     "message": "Current second",
-    "description": "Text in the filename-variable reference. Used in src/options/variablelist.html."
+    "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
   "html_currentYear": {
     "message": "Current year",
-    "description": "Text in the filename-variable reference. Used in src/options/variablelist.html."
+    "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
   "html_hostnameOfThePage": {
     "message": "Hostname of the page",
-    "description": "Text in the filename-variable reference. Used in src/options/variablelist.html."
+    "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
   "html_hostnameOfTheSource": {
     "message": "Hostname of the source",
-    "description": "Text in the filename-variable reference. Used in src/options/variablelist.html."
+    "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
   "html_iso8601WeekNumber": {
     "message": "ISO 8601 week number (",
-    "description": "Text in the filename-variable reference. Used in src/options/variablelist.html."
+    "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
   "html_lastLabelOfTheSourceHostname": {
     "message": "Last label of the source hostname",
-    "description": "Text in the filename-variable reference. Used in src/options/variablelist.html."
+    "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
   "html_pageHostnameWithoutSubdomains": {
     "message": "Page hostname without subdomains",
-    "description": "Text in the filename-variable reference. Used in src/options/variablelist.html."
+    "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
   "html_pageTitleLowercasedAndDashed": {
     "message": "Page title, lowercased and dashed",
-    "description": "Text in the filename-variable reference. Used in src/options/variablelist.html."
+    "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
   "html_pageTitleLowercasedWithUnderscores": {
     "message": "Page title, lowercased with underscores",
-    "description": "Text in the filename-variable reference. Used in src/options/variablelist.html."
+    "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
   "html_pathPartOfTheSourceUrlSeparatorsAreSanitized": {
     "message": "Path part of the source URL (separators are sanitized)",
-    "description": "Text in the filename-variable reference. Used in src/options/variablelist.html."
+    "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
   "html_sourceHostnameWithoutSubdomains": {
     "message": "Source hostname without subdomains",
-    "description": "Text in the filename-variable reference. Used in src/options/variablelist.html."
+    "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
   "html_standard": {
     "message": "Standard",
-    "description": "Text in the filename-variable reference. Used in src/options/variablelist.html."
+    "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
   "html_textOfTheLinkOr": {
     "message": "Text of the link, or",
-    "description": "Text in the filename-variable reference. Used in src/options/variablelist.html."
+    "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
   "html_theCurrentlySelectedTextOnThePage": {
     "message": "The currently selected text on the page",
-    "description": "Text in the filename-variable reference. Used in src/options/variablelist.html."
+    "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
   "html_theNaiveFilenameUrlBasedUseTheRoutingFeature": {
     "message": "Filename derived from the URL. Use routing rules if this is inaccurate.",
-    "description": "Text in the filename-variable reference. Used in src/options/variablelist.html."
+    "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
   "html_titleOfThePage": {
     "message": "Title of the page",
-    "description": "Text in the filename-variable reference. Used in src/options/variablelist.html."
+    "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
   "html_urlOfThePage": {
     "message": "URL of the page",
-    "description": "Text in the filename-variable reference. Used in src/options/variablelist.html."
+    "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
   "html_urlOfTheSource": {
     "message": "URL of the source",
-    "description": "Text in the filename-variable reference. Used in src/options/variablelist.html."
+    "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
   "html_usableEverywhere": {
     "message": "Usable everywhere",
-    "description": "Text in the filename-variable reference. Used in src/options/variablelist.html."
+    "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
   "html_variablesAreUsedInDirectoryAndPathPatterns": {
     "message": "Variables are used in folder and filename patterns.",
-    "description": "Text in the filename-variable reference. Used in src/options/variablelist.html."
+    "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
   "html_actualResolvedFilenameExtensionAlias": {
     "message": "Actual resolved filename extension. Alias:",
-    "description": "Text in the filename-variable reference. Used in src/options/variablelist.html."
+    "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
   "html_aRandomV4UuidUniquePerUse": {
     "message": "A random v4 UUID, unique per use",
-    "description": "Text in the filename-variable reference. Used in src/options/variablelist.html."
+    "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
   "html_autoIncrementingNumberThatAdvancesOncePerSavedDownload": {
     "message": "Number that increases after each saved download and persists across restarts. View or reset it under Download counter.",
-    "description": "Text in the filename-variable reference. Used in src/options/variablelist.html."
+    "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
   "html_blankIfTheServerDoesnTAnswer": {
     "message": " and is blank when unavailable.",
-    "description": "Text in the filename-variable reference. Used in src/options/variablelist.html."
+    "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
   "html_captureGroupWhere": {
     "message": "Text captured by group",
-    "description": "Text in the filename-variable reference. Used in src/options/variablelist.html."
+    "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
   "html_charactersForDeeperNesting": {
     "message": "characters for deeper nesting",
-    "description": "Text in the filename-variable reference. Used in src/options/variablelist.html."
+    "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
   "html_createsASeparatorInTheContextMenu": {
     "message": "Creates a separator in the context menu",
-    "description": "Text in the filename-variable reference. Used in src/options/variablelist.html."
+    "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
   "html_createsASubmenuItemAddMore": {
     "message": "Creates a submenu item; add more",
-    "description": "Text in the filename-variable reference. Used in src/options/variablelist.html."
+    "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
   "html_fileExtensionDerivedFromThe": {
     "message": "File extension derived from the",
-    "description": "Text in the filename-variable reference. Used in src/options/variablelist.html."
+    "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
   "html_first12LowercaseHexCharactersOfTheDownloadedFile": {
     "message": "First 12 lowercase hexadecimal characters of the downloaded file's SHA-256. Preparing this value fetches and hashes the file before saving, so it is blank in previews or when unavailable. The download continues if hashing fails. You can cancel a long preparation from History.",
-    "description": "Text in the filename-variable reference. Used in src/options/variablelist.html."
+    "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
   "html_full64CharacterLowercaseSha256ItSharesThe": {
     "message": "Full 64-character lowercase SHA-256. It is calculated together with",
-    "description": "Text in the filename-variable reference. Used in src/options/variablelist.html."
+    "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
   "html_fullActualFilenameAfterContentDisposition": {
     "message": "Resolved filename, including Content-Disposition",
-    "description": "Text in the filename-variable reference. Used in src/options/variablelist.html."
+    "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
   "html_handyForExtensionlessOrQuerySuffixedUrls": {
     "message": ". Useful for URLs without an extension or with a query suffix.",
-    "description": "Text in the filename-variable reference. Used in src/options/variablelist.html."
+    "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
   "html_menuStructure": {
     "message": "Menu structure",
-    "description": "Text in the filename-variable reference. Used in src/options/variablelist.html."
+    "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
   "html_onlyUsableWhenRoutingAndRewritingFilenames": {
     "message": "Available only when routing or renaming files",
-    "description": "Text in the filename-variable reference. Used in src/options/variablelist.html."
+    "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
   "html_routingAndFilenamesOnly": {
     "message": "Routing and filenames only",
-    "description": "Text in the filename-variable reference. Used in src/options/variablelist.html."
+    "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
   "html_specialRowsUsedOnlyInTheDownloadsMenu": {
     "message": "Special rows used only in the Save locations menu",
-    "description": "Text in the filename-variable reference. Used in src/options/variablelist.html."
+    "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
   "html_theN": {
     "message": "; replace 1 with the group number.",
-    "description": "Text in the filename-variable reference. Used in src/options/variablelist.html."
+    "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
   "html_theServerS": {
     "message": "The server's",
-    "description": "Text in the filename-variable reference. Used in src/options/variablelist.html."
+    "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
   "html_theUrlAfterFollowingRedirectsViaTheSameHead": {
     "message": "The URL after following redirects. It uses the same request as",
-    "description": "Text in the filename-variable reference. Used in src/options/variablelist.html."
+    "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
   "html_urlDerivedExtensionAlias": {
     "message": "URL-derived extension. Alias:",
-    "description": "Text in the filename-variable reference. Used in src/options/variablelist.html."
+    "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
   "html_viaAHeadRequestAddsASmallDelayAnd": {
     "message": ". This adds a small delay and is blank when unavailable.",
-    "description": "Text in the filename-variable reference. Used in src/options/variablelist.html."
+    "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
   "html_whenBothVariablesAreUsed": {
     "message": "when both variables are used.",
-    "description": "Text in the filename-variable reference. Used in src/options/variablelist.html."
+    "description": "Text in the filename-variable reference. Used in src/options/options.html."
   },
   "html_attribute": {
     "message": "attribute.",
-    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html."
+    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
   },
   "html_clausesAreOnlyUsedInRuleDefinitionsForRouting": {
     "message": "Routing rules use clauses to decide which downloads to move or rename.",
-    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html."
+    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
   },
   "html_firefox": {
     "message": "(Firefox only).",
-    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html."
+    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
   },
   "html_forCaseInsensitiveMatching": {
     "message": "for case-insensitive matching.",
-    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html."
+    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
   },
   "html_forExplicitNewRules": {
     "message": "in new rules.",
-    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html."
+    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
   },
   "html_matcherClausesUse": {
     "message": "Matcher clauses use",
-    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html."
+    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
   },
   "html_matchers": {
     "message": "Matchers",
-    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html."
+    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
   },
   "html_matchesTheCommentOfTheClickedMenuItem": {
     "message": "Matches the selected menu item's comment.",
-    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html."
+    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
   },
   "html_matchesTheCurrentPageTitle": {
     "message": "Matches the current page title.",
-    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html."
+    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
   },
   "html_matchesTheCurrentPageUrl": {
     "message": "Matches the current page URL.",
-    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html."
+    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
   },
   "html_matchesTheFinalFilename": {
     "message": "Matches the final filename.",
-    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html."
+    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
   },
   "html_matchesTheLinkTextOrElement": {
     "message": "Matches the link text or the element's",
-    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html."
+    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
   },
   "html_matchesTheMediaType": {
     "message": "Matches the media type:",
-    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html."
+    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
   },
   "html_matchesTheMenuIndexOfTheClickedMenuItem": {
     "message": "Matches the selected menu item's index (1, 2, 3…).",
-    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html."
+    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
   },
   "html_matchesTheNaiveFilename": {
     "message": "Matches the filename derived from the URL.",
-    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html."
+    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
   },
   "html_matchesThePageHostname": {
     "message": "Matches the page hostname.",
-    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html."
+    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
   },
   "html_matchesTheResolvedFilenameExtensionAfterContentDisposition": {
     "message": "Matches the resolved filename extension, including Content-Disposition.",
-    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html."
+    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
   },
   "html_matchesTheSelectionText": {
     "message": "Matches the selected text.",
-    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html."
+    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
   },
   "html_matchesTheSourceHostnameForMedia": {
     "message": "Matches the media source hostname.",
-    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html."
+    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
   },
   "html_matchesTheSourceUrlForMedia": {
     "message": "Matches the media source URL.",
-    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html."
+    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
   },
   "html_matchesTheUrlDerivedExtensionLegacyNameUse": {
     "message": "Matches the URL-derived extension (legacy name). Use",
-    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html."
+    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
   },
   "html_matchesTheUrlOfTheCurrentFrame": {
     "message": "Matches the current frame URL.",
-    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html."
+    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
   },
   "html_matchesWhatIsClicked": {
     "message": "Matches what was clicked:",
-    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html."
+    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
   },
   "html_or": {
     "message": ", or",
-    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html."
+    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
   },
   "html_outputAndCapture": {
     "message": "Output and capture",
-    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html."
+    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
   },
   "html_regularExpression": {
     "message": "regular expressions",
-    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html."
+    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
   },
   "html_renamingTheFileKeepsItsOwnNameEG": {
     "message": "renaming—the file keeps its current name (for example,",
-    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html."
+    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
   },
   "html_required": {
     "message": "Required",
-    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html."
+    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
   },
   "html_routesDownloadsToOrRewritesDownloadFilenamesIntoThe": {
     "message": "Moves a download to the given path or renames it with the given pattern. End with",
-    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html."
+    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
   },
   "html_selectsTheMatcherForRegexCaptureGroupVariables": {
     "message": "Selects the matcher whose regular-expression capture groups are available as",
-    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html."
+    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
   },
   "html_splitMultipleCaptureTargetsWithA": {
     "message": ". Separate multiple capture targets with",
-    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html."
+    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
   },
   "html_stringsAddJavascriptRegexFlagsAfterTheMatcherName": {
     "message": ". Add JavaScript flags after the matcher name; for example, use",
-    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html."
+    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
   },
   "html_toRouteIntoAFolder": {
     "message": "to move it into a folder",
-    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html."
+    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
   },
   "o_lVariableList": {
     "message": "Variable list",
-    "description": "l prefixes are for labels. Used in src/options/clauselist.html, src/options/options.html, and src/options/variablelist.html."
+    "description": "l prefixes are for labels. Used in src/options/clauselist.html and src/options/options.html."
   },
   "o_lMenuPreview": {
     "message": "Menu preview",
@@ -885,7 +885,7 @@
   },
   "o_lClauseList": {
     "message": "Clause list",
-    "description": "Label, status, or help text in the options interface. Used in src/options/clauselist.html, src/options/options.html, and src/options/variablelist.html."
+    "description": "Label, status, or help text in the options interface. Used in src/options/clauselist.html and src/options/options.html."
   },
   "o_lGithub": {
     "message": "GitHub",
@@ -1339,13 +1339,9 @@
     "message": "Drag by the dotted handle. Drop above or below a row to place it at the same level, or onto the row to nest it inside.",
     "description": "Drag-and-drop instructions below the visual directory editor. Used in src/options/path-editor.ts."
   },
-  "o_lReferenceNavigation": {
-    "message": "Reference pages",
-    "description": "Label, status, or help text in the options interface. Used in src/options/clauselist.html."
-  },
   "o_lFilterReference": {
     "message": "Filter",
-    "description": "Label, status, or help text in the options interface. Used in src/options/clauselist.html and src/options/variablelist.html."
+    "description": "Label, status, or help text in the options interface. Used in src/options/clauselist.html and src/options/options.html."
   },
   "o_lShortcutEnterOrReset": {
     "message": "Enter a shortcut or use Reset.",
@@ -2131,7 +2127,7 @@
   },
   "html_referenceType": {
     "message": "Reference type",
-    "description": "Text shared by the options and reference interfaces. Used in src/options/options.html and src/options/variablelist.html."
+    "description": "Text shared by the options and reference interfaces. Used in src/options/options.html."
   },
   "html_refreshLog": {
     "message": "Refresh log",
@@ -2523,6 +2519,6 @@
   },
   "html_without": {
     "message": "without",
-    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html."
+    "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
   }
 }

@@ -802,9 +802,6 @@
   "o_lManualEditorSaveHelp": {
     "message": "Änderungen in diesem Editor werden gespeichert, wenn Sie „Anwenden“ auswählen."
   },
-  "o_lReferenceNavigation": {
-    "message": "Referenzseiten"
-  },
   "o_lFilterReference": {
     "message": "Filter"
   },

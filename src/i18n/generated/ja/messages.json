@@ -701,9 +701,6 @@
   "o_lManualEditorSaveHelp": {
     "message": "このエディターでの変更は、「適用」を選択すると保存されます。"
   },
-  "o_lReferenceNavigation": {
-    "message": "参考ページ"
-  },
   "o_lFilterReference": {
     "message": "フィルター"
   },

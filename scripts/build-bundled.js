@@ -40,7 +40,6 @@ const runtimeAssetFiles = [
   "src/options/options.html",
   "src/options/reference.css",
   "src/options/style.css",
-  "src/options/variablelist.html",
 ];
 
 // 1. Build the bundles without going through a platform shell. Rolldown does
@@ -120,8 +119,7 @@ const rewriteHtml = (htmlRel, bundleHref) => {
 
 rewriteHtml("src/options/options.html", "../../options.js");
 rewriteHtml("src/offscreen.html", "../offscreen.js");
-// Secondary help pages share the searchable/copyable reference controller.
-rewriteHtml("src/options/variablelist.html", "../../reference-page.js");
+// The secondary clause help page uses the searchable/copyable reference controller.
 rewriteHtml("src/options/clauselist.html", "../../reference-page.js");
 
 process.stdout.write(`Staged bundled package in ${out}\n`);

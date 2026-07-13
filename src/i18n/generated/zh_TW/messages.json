@@ -701,9 +701,6 @@
   "o_lManualEditorSaveHelp": {
     "message": "選擇「套用」後，此編輯器中的變更將會儲存。"
   },
-  "o_lReferenceNavigation": {
-    "message": "參考頁"
-  },
   "o_lFilterReference": {
     "message": "篩選"
   },

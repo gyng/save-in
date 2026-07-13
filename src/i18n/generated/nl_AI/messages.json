@@ -804,9 +804,6 @@
   "o_lManualEditorSaveHelp": {
     "message": "Wijzigingen in deze editor worden opgeslagen wanneer u Toepassen selecteert."
   },
-  "o_lReferenceNavigation": {
-    "message": "Referentiepagina's"
-  },
   "o_lFilterReference": {
     "message": "Filter"
   },

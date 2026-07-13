@@ -800,9 +800,6 @@
   "o_lManualEditorSaveHelp": {
     "message": "Los cambios en este editor se guardan cuando selecciona Aplicar."
   },
-  "o_lReferenceNavigation": {
-    "message": "Páginas de referencia"
-  },
   "o_lFilterReference": {
     "message": "Filtrar"
   },

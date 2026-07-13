@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import {
   filterReferenceRows,
@@ -13,8 +13,9 @@ const parse = (name: string) =>
     "text/html",
   );
 
-describe.each(["variablelist", "clauselist"])("%s reference surface", (name) => {
-  test("has navigation, search, copy status, and responsive reference styling", () => {
+describe("clauselist reference surface", () => {
+  const name = "clauselist";
+  test("has search, copy status, and responsive reference styling", () => {
     const document = parse(name);
     expect(document.querySelector('a[href="options.html"]')).toBeNull();
     expect(document.querySelector<HTMLInputElement>(".reference-search")?.type).toBe("search");
@@ -55,14 +56,7 @@ describe.each(["variablelist", "clauselist"])("%s reference surface", (name) => 
         "Meaning",
       ]);
     }
-    if (name === "clauselist") {
-      expect(document.querySelector("tbody td:nth-child(2) code")).toBeNull();
-    } else {
-      const rows = document.querySelectorAll<HTMLTableRowElement>(
-        "tbody tr:not(.reference-group-row)",
-      );
-      expect([...rows].every((row) => row.cells[1]?.textContent?.trim())).toBe(true);
-    }
+    expect(document.querySelector("tbody td:nth-child(2) code")).toBeNull();
   });
 
   test("does not repeat the active reference name as an in-panel heading", () => {
@@ -121,7 +115,7 @@ describe("reference controller", () => {
 });
 
 test("every runtime variable and matcher is documented", () => {
-  const variables = readFileSync(resolve("src/options/variablelist.html"), "utf8");
+  const variables = readFileSync(resolve("src/options/options.html"), "utf8");
   const clauses = readFileSync(resolve("src/options/clauselist.html"), "utf8");
   for (const token of [
     ":urlfileext:",
@@ -155,18 +149,22 @@ test("every runtime variable and matcher is documented", () => {
     expect(clauses).toContain(clause);
 });
 
-test("combines variables and clauses behind accessible tabs", () => {
-  const document = parse("variablelist");
-  expect(document.querySelectorAll('.reference-tabs [role="tab"]')).toHaveLength(2);
-  expect(document.querySelector("#reference-variables[role=tabpanel]")).not.toBeNull();
-  expect(
-    document.querySelector("#reference-clauses[data-source='clauselist.html']"),
-  ).not.toBeNull();
+test("keeps variables and clauses together in the options reference dialog", () => {
+  const document = parse("options");
+  expect(document.querySelector("#options-reference-variables[role=tabpanel]")).not.toBeNull();
+  expect(document.querySelector("#options-reference-clauses[role=tabpanel]")).not.toBeNull();
+});
+
+test("does not ship the retired standalone variable reference", () => {
+  expect(existsSync(resolve("src/options/variablelist.html"))).toBe(false);
+  expect(readFileSync(resolve("scripts/build-bundled.js"), "utf8")).not.toContain(
+    "variablelist.html",
+  );
 });
 
 test("adds task-oriented group rows to both vocabularies", () => {
-  const variables = parse("variablelist");
-  groupReferenceRows(variables.querySelector("#reference-variables")!, "variables");
+  const variables = parse("options");
+  groupReferenceRows(variables.querySelector("#options-reference-variables")!, "variables");
   expect(
     [...variables.querySelectorAll(".reference-group-row")].map((row) => row.textContent),
   ).toContain("Date and time");
@@ -179,8 +177,8 @@ test("adds task-oriented group rows to both vocabularies", () => {
 });
 
 test("orders reference rows semantically within groups", () => {
-  const variables = parse("variablelist");
-  groupReferenceRows(variables.querySelector("#reference-variables")!, "variables");
+  const variables = parse("options");
+  groupReferenceRows(variables.querySelector("#options-reference-variables")!, "variables");
   const dateRows = [
     ...variables.querySelectorAll("table tbody tr:not(.reference-group-row) code:first-child"),
   ]
