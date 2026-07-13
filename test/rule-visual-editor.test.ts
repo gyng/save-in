@@ -32,15 +32,25 @@ describe("routing visual editor", () => {
     localStorage.removeItem("saveInRulesEditorMode");
   });
 
-  test("defaults to Text and renders the same source as visual rule cards", () => {
+  test("defaults to Visual while keeping Text first in the tab order", () => {
     setupRuleVisualEditor({ matchers: ["filename", "sourceurl"] });
 
-    expect(element<HTMLElement>("#rules-text-editor").hidden).toBe(false);
-    element<HTMLButtonElement>("#rules-mode-visual").click();
     expect(element<HTMLElement>("#rules-text-editor").hidden).toBe(true);
     expect(element<HTMLElement>("#rules-visual").hidden).toBe(false);
+    expect(
+      [...document.querySelectorAll("#rules-mode-text, #rules-mode-visual")].map((tab) => tab.id),
+    ).toEqual(["rules-mode-text", "rules-mode-visual"]);
     expect(document.querySelectorAll(".rule-editor-card")).toHaveLength(1);
     expect(element<HTMLInputElement>(".rule-clause-value").value).toBe("\\.jpg$");
+  });
+
+  test("restores an explicit Text preference", () => {
+    localStorage.setItem("saveInRulesEditorMode", "text");
+
+    setupRuleVisualEditor({ matchers: ["filename"] });
+
+    expect(element<HTMLElement>("#rules-text-editor").hidden).toBe(false);
+    expect(element<HTMLElement>("#rules-visual").hidden).toBe(true);
   });
 
   test("switches editor tabs with standard tab-list keys", () => {

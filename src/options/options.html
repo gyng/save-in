@@ -699,26 +699,27 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
               >
                 <button
                   type="button"
-                  class="editor-tab active"
+                  class="editor-tab"
                   id="rules-mode-text"
                   role="tab"
-                  aria-selected="true"
+                  aria-selected="false"
                   aria-controls="rules-text-editor"
+                  tabindex="-1"
                 >
                   __MSG_o_lEditorModeText__
                 </button>
                 <button
                   type="button"
-                  class="editor-tab"
+                  class="editor-tab active"
                   id="rules-mode-visual"
                   role="tab"
-                  aria-selected="false"
+                  aria-selected="true"
                   aria-controls="rules-visual"
                 >
                   __MSG_o_sVisualEditor__
                 </button>
               </div>
-              <div id="rules-text-editor" role="tabpanel" aria-labelledby="rules-mode-text">
+              <div id="rules-text-editor" role="tabpanel" aria-labelledby="rules-mode-text" hidden>
                 <textarea
                   id="filenamePatterns"
                   data-manual="true"
@@ -756,7 +757,6 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                 class="routing-visual-editor"
                 role="tabpanel"
                 aria-labelledby="rules-mode-visual"
-                hidden
               >
                 <div id="rule-editor-cards" class="rule-editor-cards"></div>
                 <div class="visual-editor-toolbar rule-editor-toolbar">

@@ -408,9 +408,9 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
     card.scrollIntoView?.({ block: "nearest", behavior: "smooth" });
   });
 
-  let initialVisual = false;
+  let initialVisual = true;
   try {
-    initialVisual = localStorage.getItem("saveInRulesEditorMode") === "visual";
+    initialVisual = localStorage.getItem("saveInRulesEditorMode") !== "text";
   } catch {}
   setMode(initialVisual);
 
