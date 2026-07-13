@@ -1,7 +1,16 @@
+import { availableParallelism } from "node:os";
 import { defineConfig } from "vitest/config";
+
+const requestedWorkers = Number.parseInt(process.env.TEST_MAX_WORKERS ?? "", 10);
+const maxWorkers = Number.isFinite(requestedWorkers)
+  ? Math.max(1, requestedWorkers)
+  : Math.max(1, availableParallelism() - 2);
 
 export default defineConfig({
   test: {
+    // jsdom workers are CPU- and memory-heavy. Leave two logical CPUs for the
+    // desktop and browser instead of letting Vitest saturate the machine.
+    maxWorkers,
     globals: true,
     environment: "jsdom",
     environmentOptions: {

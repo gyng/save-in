@@ -24,6 +24,11 @@ const e2eEnv = {
   SAVE_IN_E2E: "1",
   E2E_ARTIFACT_DIR: path.relative(root, runArtifacts),
 };
+if (process.env.HEADED === "1" || process.env.HEADLESS === "0") {
+  delete e2eEnv.HEADLESS;
+} else {
+  e2eEnv.HEADLESS = process.env.HEADLESS || "1";
+}
 
 // Keep diagnostics bounded without deleting a concurrently running suite's
 // files. CI uploads this directory from its disposable workspace on failure.
