@@ -112,6 +112,40 @@ describe("built-in matcher templates", () => {
   );
 
   test.each([
+    [
+      "Images into per-site folders",
+      { ...templateNamed("Images into per-site folders").proof.info, mediaType: "video" },
+    ],
+    [
+      "Videos into per-site folders",
+      { ...templateNamed("Videos into per-site folders").proof.info, mediaType: "audio" },
+    ],
+    [
+      "Audio into per-site folders",
+      { ...templateNamed("Audio into per-site folders").proof.info, mediaType: "image" },
+    ],
+    [
+      "Screenshots by month",
+      { ...templateNamed("Screenshots by month").proof.info, filename: "holiday.png" },
+    ],
+    [
+      "Browser downloads inbox",
+      { ...templateNamed("Browser downloads inbox").proof.info, context: "link" },
+    ],
+    [
+      "Link downloads inbox",
+      { ...templateNamed("Link downloads inbox").proof.info, context: "page" },
+    ],
+    [
+      "Selected text inbox",
+      { ...templateNamed("Selected text inbox").proof.info, context: "link" },
+    ],
+    ["Tab saves inbox", { ...templateNamed("Tab saves inbox").proof.info, context: "page" }],
+  ])("%s rejects an input outside its advertised media or save context", (name, info) => {
+    expect(matchRules(rulesFor(name), info)).toBeNull();
+  });
+
+  test.each([
     ["PDFs into a documents folder", "report.pdfx"],
     ["Archives into one folder", "backup.gzip"],
     ["Documents into one folder", "notes.pdfx"],

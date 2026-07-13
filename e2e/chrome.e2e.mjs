@@ -17,6 +17,7 @@ import {
   runRoutingScenario,
   runShortcutScenario,
 } from "./shared-scenarios.mjs";
+import { runTemplateLibraryScenario } from "./template-library-scenario.mjs";
 import { listenLocal, poll } from "./helpers.mjs";
 
 const PROFILE = path.join(chrome.ROOT, "dist", "e2e-profile");
@@ -745,6 +746,16 @@ test("routing rules rename and route the download", async () => {
 
   const file = path.join(DOWNLOADS, "e2e", "routed", "renamed-routeme.txt");
   expect(fs.readFileSync(file, "utf8")).toBe("routed content");
+});
+
+test("a template added in Options persists and routes a matching download", async () => {
+  await runTemplateLibraryScenario({
+    evaluate: evalSW,
+    evaluateOptions: evalOptions,
+    waitForDownloads,
+    filename: "template-library-chrome.pdf",
+    content: "chrome template library e2e",
+  });
 });
 
 test(":counter: advances once per download and persists in storage", async () => {

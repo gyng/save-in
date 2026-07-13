@@ -1,0 +1,121 @@
+import fs from "node:fs";
+import http from "node:http";
+
+import { expect } from "vitest";
+
+import { closeLocal, listenLocal, poll } from "./helpers.mjs";
+
+const PDF_TEMPLATE_MATCHER = "actualfileext/i: ^pdf$";
+const PDF_TEMPLATE_DESTINATION = "into: documents/:filename:";
+
+/**
+ * @param {{
+ *   evaluate: (expression: string) => Promise<any>,
+ *   evaluateOptions: (expression: string) => Promise<any>,
+ *   waitForDownloads: (filename: string) => Promise<any[]>,
+ *   filename: string,
+ *   content: string,
+ * }} adapters
+ */
+export const runTemplateLibraryScenario = async ({
+  evaluate,
+  evaluateOptions,
+  waitForDownloads,
+  filename,
+  content,
+}) => {
+  const previous = JSON.parse(
+    await evaluate(
+      `Promise.resolve(api.getOption("filenamePatterns")).then((value) => JSON.stringify(value))`,
+    ),
+  );
+
+  try {
+    await poll(
+      async () =>
+        (await evaluateOptions(`(() => {
+          const rows = [...document.querySelectorAll(".rule-template")];
+          const row = rows.find((candidate) =>
+            candidate.querySelector(".rule-template-rule")?.textContent?.includes(${JSON.stringify(PDF_TEMPLATE_MATCHER)})
+          );
+          const add = row?.querySelector(".rule-template-add");
+          if (!(add instanceof HTMLButtonElement) || add.disabled) return false;
+          add.click();
+          return true;
+        })()`)) === true,
+      { description: "PDF template Add button" },
+    );
+
+    await poll(
+      async () =>
+        (await evaluateOptions(`(() => {
+          const apply = document.querySelector('button[data-apply="filenamePatterns"]');
+          return apply instanceof HTMLButtonElement && !apply.disabled;
+        })()`)) === true,
+      { description: "valid template rule ready to apply" },
+    );
+    await evaluateOptions(`(() => {
+      const apply = document.querySelector('button[data-apply="filenamePatterns"]');
+      if (!(apply instanceof HTMLButtonElement) || apply.disabled) return false;
+      apply.click();
+      return true;
+    })()`);
+
+    const persisted = await poll(
+      async () => {
+        const state = JSON.parse(
+          await evaluate(`Promise.all([
+            api.getOption("filenamePatterns"),
+            browser.storage.local.get("filenamePatterns"),
+          ]).then(([live, stored]) => JSON.stringify({ live, stored: stored.filenamePatterns }))`),
+        );
+        if (
+          Array.isArray(state.live) &&
+          state.live.some((rule) =>
+            rule.some(
+              (clause) => clause.name === "into" && clause.value === "documents/:filename:",
+            ),
+          ) &&
+          typeof state.stored === "string" &&
+          state.stored.includes(PDF_TEMPLATE_MATCHER) &&
+          state.stored.includes(PDF_TEMPLATE_DESTINATION)
+        ) {
+          return state;
+        }
+        throw new Error(`Unexpected rule state: ${JSON.stringify(state)}`);
+      },
+      { description: "template rule in live and persisted options" },
+    );
+    expect(persisted.stored).toContain(PDF_TEMPLATE_MATCHER);
+    expect(persisted.stored).toContain(PDF_TEMPLATE_DESTINATION);
+
+    const body = Buffer.from(content);
+    const server = http.createServer((_request, response) => {
+      response.writeHead(200, {
+        "Content-Type": "application/pdf",
+        "Content-Length": body.length,
+      });
+      response.end(body);
+    });
+    const port = await listenLocal(server);
+    try {
+      await evaluate(`api.startDownload({
+        url: "http://127.0.0.1:${port}/${filename}",
+        suggestedFilename: ${JSON.stringify(filename)},
+        pageUrl: "http://127.0.0.1:${port}/",
+      }).then(() => "started")`);
+      const downloads = await waitForDownloads(filename);
+      const completed = downloads.find((entry) => entry.state === "complete");
+
+      expect(completed).toBeDefined();
+      expect(completed.filename.replaceAll("\\", "/").endsWith(`/documents/${filename}`)).toBe(
+        true,
+      );
+      expect(fs.readFileSync(completed.filename, "utf8")).toBe(content);
+    } finally {
+      await closeLocal(server);
+    }
+  } finally {
+    await evaluate(`api.setOptions({ filenamePatterns: ${JSON.stringify(previous)} })`);
+  }
+};

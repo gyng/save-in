@@ -16,6 +16,7 @@ import {
   runRoutingScenario,
   runShortcutScenario,
 } from "./shared-scenarios.mjs";
+import { runTemplateLibraryScenario } from "./template-library-scenario.mjs";
 import { listenLocal, poll } from "./helpers.mjs";
 
 /** @type {Awaited<ReturnType<typeof firefox.launch>>} */
@@ -351,6 +352,16 @@ test("routing rules rename and route the download", async () => {
     evaluate: evalBackground,
     waitForDownloads,
     content: "ff routed content",
+  });
+});
+
+test("a template added in Options persists and routes a matching download", async () => {
+  await runTemplateLibraryScenario({
+    evaluate: evalBackground,
+    evaluateOptions: (expression) => session.evaluateInTab("src/options/options.html", expression),
+    waitForDownloads,
+    filename: "template-library-firefox.pdf",
+    content: "firefox template library e2e",
   });
 });
 
