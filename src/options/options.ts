@@ -49,16 +49,22 @@ type ValidationError = {
   message: string;
   error: string;
   warning?: boolean;
-  sourceIndex?: number;
 };
+type IndexedValidationError = ValidationError & { sourceIndex: number };
 type MenuPreviewTree = MenuTree;
 
 const isValidationError = (value: unknown): value is ValidationError =>
   isStringKeyedRecord(value) &&
   typeof value.message === "string" &&
   typeof value.error === "string" &&
-  (typeof value.warning === "undefined" || typeof value.warning === "boolean") &&
-  (typeof value.sourceIndex === "undefined" || Number.isInteger(value.sourceIndex));
+  (typeof value.warning === "undefined" || typeof value.warning === "boolean");
+
+const isIndexedValidationError = (value: unknown): value is IndexedValidationError =>
+  isStringKeyedRecord(value) &&
+  typeof value.sourceIndex === "number" &&
+  Number.isInteger(value.sourceIndex) &&
+  value.sourceIndex >= 0 &&
+  isValidationError(value);
 
 const getOptionsSchema = () => optionsRuntime.getSchema();
 
@@ -178,7 +184,9 @@ const renderErrorRow = (err: ValidationError, textareaId: string) => {
   error.textContent = err.error;
   r.appendChild(error);
 
-  const jump = () => jumpToError(textareaId, err.error, err.sourceIndex);
+  const sourceIndex =
+    "sourceIndex" in err && typeof err.sourceIndex === "number" ? err.sourceIndex : undefined;
+  const jump = () => jumpToError(textareaId, err.error, sourceIndex);
   r.addEventListener("click", jump);
   r.addEventListener("keydown", (e) => {
     if (e.key === "Enter" || e.key === " ") {
@@ -219,7 +227,7 @@ const validationRequests = createLatestOnly(
   (res: unknown) => {
     const body = isStringKeyedRecord(res) && isStringKeyedRecord(res.body) ? res.body : {};
     const pathErrors = Array.isArray(body.pathErrors)
-      ? body.pathErrors.filter(isValidationError)
+      ? body.pathErrors.filter(isIndexedValidationError)
       : [];
     const ruleErrors = Array.isArray(body.ruleErrors)
       ? body.ruleErrors.filter(isValidationError)

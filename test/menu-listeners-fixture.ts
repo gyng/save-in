@@ -91,6 +91,7 @@ const seedDeps = () => {
 
 const importMenus = async () => {
   const menuBuild = await import("../src/background/menu-build.ts");
+  const menuTree = await import("../src/menus/menu-tree.ts");
   const menuClick = await import("../src/background/menu-click.ts");
   const menuTabs = await import("../src/background/menu-tabs.ts");
   ({ options } = await import("../src/config/options-data.ts"));
@@ -106,7 +107,7 @@ const importMenus = async () => {
     ...menuClick,
     ...menuTabs,
     addPaths: (paths: string[], contexts: string[]) =>
-      menuBuild.renderPathTree(menuBuild.buildTree(paths), contexts),
+      menuBuild.renderPathTree(menuTree.buildTree(paths), contexts),
     IDS: menuBuild.MENU_IDS,
     state: menuBuild.menuState,
     pathMappings: menuBuild.menuState.pathMappings,

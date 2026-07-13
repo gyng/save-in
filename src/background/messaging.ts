@@ -6,7 +6,7 @@ import { applyVariables, transformers } from "../routing/variable.ts";
 import { Path } from "../routing/path.ts";
 import { OptionsManagement } from "../config/option.ts";
 import { options } from "../config/options-data.ts";
-import { buildTree } from "./menu-build.ts";
+import { buildTree } from "../menus/menu-tree.ts";
 import { matcherFunctions, parseRulesCollecting, traceRules } from "../routing/router.ts";
 import { Download } from "../downloads/download.ts";
 import { Notifier } from "../downloads/notification.ts";

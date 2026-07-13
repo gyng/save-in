@@ -3,10 +3,10 @@ import { webExtensionApi } from "../platform/web-extension-api.ts";
 import { MEDIA_TYPES } from "../shared/constants.ts";
 import { splitLines } from "../shared/util.ts";
 import { MENU_IDS } from "../menus/menu-ids.ts";
+import { buildTree } from "../menus/menu-tree.ts";
 import {
   addLastUsed,
   addOptions,
-  buildTree,
   addRoot,
   addRouteExclusive,
   addSelectionType,
@@ -33,7 +33,7 @@ export const rebuildMenus = async (): Promise<void> => {
   addRoot(actionContexts);
 
   if (options.routeExclusive) {
-    addRouteExclusive(downloadContexts, MENU_IDS.ROOT);
+    addRouteExclusive(downloadContexts);
     makeSeparator(downloadContexts, MENU_IDS.SEPARATOR.ACTIONS);
     addSourcePanel(actionContexts);
     return;

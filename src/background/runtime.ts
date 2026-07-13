@@ -1,7 +1,8 @@
 import type { DownloadPipelineState } from "../downloads/download-types.ts";
+import type { MenuTreeError } from "../menus/menu-tree.ts";
 
 export type OptionError = { message: string; error: string; warning?: boolean };
-export type OptionErrors = { paths: OptionError[]; filenamePatterns: OptionError[] };
+export type OptionErrors = { paths: MenuTreeError[]; filenamePatterns: OptionError[] };
 
 const emptyOptionErrors = (): OptionErrors => ({ paths: [], filenamePatterns: [] });
 

@@ -4,6 +4,10 @@
 // start() through importMain() below.
 
 vi.mock("../src/background/menu-click.ts", () => ({ addDownloadListener: vi.fn() }));
+vi.mock("../src/menus/menu-tree.ts", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../src/menus/menu-tree.ts")>();
+  return { ...actual, buildTree: vi.fn(actual.buildTree) };
+});
 vi.mock("../src/background/menu-tabs.ts", () => ({
   addTabMenuListener: vi.fn(),
   addTabHighlightListener: vi.fn(),
@@ -21,7 +25,6 @@ vi.mock("../src/background/menu-build.ts", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../src/background/menu-build.ts")>();
   return {
     ...actual,
-    buildTree: vi.fn(actual.buildTree),
     addRoot: vi.fn(actual.addRoot),
     addRouteExclusive: vi.fn(actual.addRouteExclusive),
     addLastUsed: vi.fn(actual.addLastUsed),
@@ -60,7 +63,8 @@ import { browserTab, installHostProperty } from "./webextension-test-helpers.ts"
 // each re-import.
 type MenusFixture = typeof import("../src/background/menu-build.ts") &
   typeof import("../src/background/menu-click.ts") &
-  typeof import("../src/background/menu-tabs.ts");
+  typeof import("../src/background/menu-tabs.ts") &
+  typeof import("../src/menus/menu-tree.ts");
 let Menus: MenusFixture;
 let options: typeof import("../src/config/options-data.ts").options;
 let OptionsManagement: typeof import("../src/config/option.ts").OptionsManagement;
@@ -82,6 +86,7 @@ const setupGlobals = async ({
     ...(await import("../src/background/menu-build.ts")),
     ...(await import("../src/background/menu-click.ts")),
     ...(await import("../src/background/menu-tabs.ts")),
+    ...(await import("../src/menus/menu-tree.ts")),
   };
   ({ OptionsManagement } = await import("../src/config/option.ts"));
   ({ options } = await import("../src/config/options-data.ts"));
@@ -295,7 +300,7 @@ describe("init", () => {
 
     expect(Menus.addTabMenus).toHaveBeenCalledTimes(1);
     const contexts = ["image", "video", "audio", "link", "selection", "page"];
-    expect(Menus.addRouteExclusive).toHaveBeenCalledWith(contexts, Menus.MENU_IDS.ROOT);
+    expect(Menus.addRouteExclusive).toHaveBeenCalledWith(contexts);
     expect(Menus.addRoot).toHaveBeenCalledWith(contexts);
     expect(Menus.makeSeparator).toHaveBeenCalledWith(contexts, Menus.MENU_IDS.SEPARATOR.ACTIONS);
     expect(Menus.addLastUsed).not.toHaveBeenCalled();

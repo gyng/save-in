@@ -13,7 +13,6 @@ import { backgroundRuntime } from "./runtime.ts";
 import type { MenuTree } from "../menus/menu-tree.ts";
 import { MENU_IDS } from "../menus/menu-ids.ts";
 
-export { buildTree, parseMeta, parsePath } from "../menus/menu-tree.ts";
 export { MENU_IDS } from "../menus/menu-ids.ts";
 
 type MenuContexts = NonNullable<
@@ -112,12 +111,12 @@ export const addRoot = (contexts: string[]) => {
   });
 };
 
-export const addRouteExclusive = (contexts: string[], parentId?: string) => {
+export const addRouteExclusive = (contexts: string[]) => {
   webExtensionApi.contextMenus.create({
     id: MENU_IDS.ROUTE_EXCLUSIVE,
     title: setAccesskey(getMessage("contextMenuExclusive"), options.keyRoot),
     contexts: asMenuContexts(contexts),
-    ...(parentId ? { parentId } : {}),
+    parentId: MENU_IDS.ROOT,
   });
 };
 

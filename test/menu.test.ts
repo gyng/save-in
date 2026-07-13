@@ -18,18 +18,19 @@ vi.mock("../src/platform/chrome-detector.ts", () => ({
 
 import * as menuBuild from "../src/background/menu-build.ts";
 import * as menuTabs from "../src/background/menu-tabs.ts";
+import * as menuTree from "../src/menus/menu-tree.ts";
 import { SPECIAL_DIRS, MEDIA_TYPES } from "../src/shared/constants.ts";
 import { options } from "../src/config/options-data.ts";
 import { configureRoutingPorts } from "../src/routing/ports.ts";
 import { backgroundRuntime } from "../src/background/runtime.ts";
 import { rebuildMenus } from "../src/background/menu-rebuild.ts";
-import { getMenuTreeEntries } from "../src/menus/menu-tree.ts";
 
 const menu = {
   ...menuBuild,
   ...menuTabs,
+  ...menuTree,
   addPaths: (paths: string[], contexts: string[]) =>
-    menuBuild.renderPathTree(menuBuild.buildTree(paths), contexts),
+    menuBuild.renderPathTree(menuTree.buildTree(paths), contexts),
   IDS: menuBuild.MENU_IDS,
   pathMappings: menuBuild.menuState.pathMappings,
 };
@@ -200,12 +201,13 @@ describe("menu creation", () => {
       expect(root.title).toContain("(&q)");
     });
 
-    test("addRouteExclusive creates a standalone routing item", () => {
+    test("addRouteExclusive creates the routing item under the root", () => {
       menu.addRouteExclusive(["link"]);
 
       const item = created()[0]!;
       expect(item.id).toBe(menu.IDS.ROUTE_EXCLUSIVE);
       expect(item.contexts).toEqual(["link"]);
+      expect(item.parentId).toBe(menu.IDS.ROOT);
     });
 
     test("addSelectionType describes media+link, selection and page contexts", () => {
@@ -647,6 +649,40 @@ describe("buildTree", () => {
     expect(items[4]!.parentId).toBe(menu.IDS.ROOT);
   });
 
+  test("does not count separators as visible numbered positions", () => {
+    const { items } = menu.buildTree(["a", ">b", ">---", ">c"]);
+    const paths = items.filter((item) => item.kind === "path");
+
+    expect(paths.map((item) => ({ number: item.number, menuIndex: item.menuIndex }))).toEqual([
+      { number: 1, menuIndex: "1" },
+      { number: 1, menuIndex: "1.1" },
+      { number: 2, menuIndex: "1.2" },
+    ]);
+
+    const afterRemovedSeparator = menu
+      .buildTree([">---", "first"])
+      .items.find((item) => item.kind === "path")!;
+    expect(afterRemovedSeparator).toMatchObject({ number: 1, menuIndex: "1" });
+  });
+
+  test("closes stale branches at separator and invalid rows", () => {
+    const separated = menu.buildTree(["a", ">b", ">---", ">>c"]);
+    const separatedC = separated.items.find((item) => item.sourceIndex === 3)!;
+    expect(separated.items.map((item) => item.kind)).toEqual(["path", "path", "separator", "path"]);
+    expect(separatedC).toMatchObject({ parentId: "save-in-0", menuIndex: "1.2" });
+
+    const invalid = menu.buildTree(["a", ">b", "><bad>", ">>c"]);
+    const invalidC = invalid.items.find((item) => item.sourceIndex === 3)!;
+    expect(invalidC).toMatchObject({ parentId: "save-in-0", menuIndex: "1.2" });
+  });
+
+  test("closes the previous submenu at a root separator", () => {
+    const { items } = menu.buildTree(["a", ">b", "---", ">c"]);
+    const c = items.find((item) => item.sourceIndex === 3)!;
+
+    expect(c).toMatchObject({ parentId: menu.IDS.ROOT, menuIndex: "2" });
+  });
+
   test("removes leading, trailing, consecutive, and separator-only sections", () => {
     const { items } = menu.buildTree(["---", "a", "---", "---", "b", "---"]);
 
@@ -672,7 +708,7 @@ describe("buildTree", () => {
   test("merges valid items and errors in source order for previews", () => {
     const tree = menu.buildTree(["first", "<invalid>", "second"]);
 
-    expect(getMenuTreeEntries(tree).map((entry) => entry.sourceIndex)).toEqual([0, 1, 2]);
+    expect(menuTree.getMenuTreeEntries(tree).map((entry) => entry.sourceIndex)).toEqual([0, 1, 2]);
   });
 
   test("carries alias titles and access key overrides", () => {
