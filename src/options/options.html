@@ -261,6 +261,10 @@ Media
                     <dt><code>(key: f)</code></dt>
                     <dd>__MSG_html_assignAnAccessKey__</dd>
                   </div>
+                  <div>
+                    <dt><code>(disabled: true)</code></dt>
+                    <dd>__MSG_html_disableThisDestinationAndItsChildren__</dd>
+                  </div>
                 </dl>
               </details>
               <details class="agent-prompt-guide">
@@ -283,6 +287,7 @@ Save In syntax:
 - Prefix a child with &gt;; use one additional &gt; for each deeper submenu level.
 - Add // (alias: Display name) to show a different menu label without changing the folder path.
 - Add // comments after an instruction; add (key: f) inside the comment to assign an access key.
+- Add (disabled: true) inside the comment to keep a destination and its children out of the menu.
 - Variables use :name: syntax. Useful choices include :sourcedomain:, :year:, :month:, :day:, and :filename:.
 - A single . means the browser's Downloads folder.
 - Paths must be relative. Never use an absolute path, .., or a leading slash.
@@ -296,7 +301,7 @@ Briefly explain the structure, check that every line follows this syntax, then p
 
           <div id="paths-visual" hidden>
             <div id="path-editor-rows"></div>
-            <div class="path-editor-toolbar">
+            <div class="visual-editor-toolbar path-editor-toolbar">
               <button type="button" id="path-editor-add-dir">+ __MSG_o_bAddDirectory__</button>
               <button type="button" id="path-editor-add-sep">+ __MSG_o_bAddSeparator__</button>
               <a class="toolbar-link" href="#" data-reference-tab="options-reference-variables"
@@ -590,6 +595,7 @@ Briefly explain the structure, check that every line follows this syntax, then p
               <li>
                 __MSG_html_everyRuleMustEndWithAn__ <code>into:</code> __MSG_html_destination__
               </li>
+              <li><code>disabled: true</code> __MSG_html_keepsARuleWithoutRunningIt__</li>
             </ul>
             <div class="guide-steps guide-steps-routing">
               <div class="guide-step">
@@ -661,6 +667,7 @@ Save In syntax:
 - Otherwise include :filename: unless the goal explicitly requests renaming.
 - Variables use :name: syntax. Useful choices include :filename:, :fileext:, :sourcedomain:, :year:, :month:, :day:, :counter:, and :uuid:.
 - To reuse regex groups in new rules, add capturegroups: followed by the matcher name, then use :$1:, :$2:, and so on in into:. capture: is only for compatibility with legacy flattened indexes.
+- Add disabled: true to a rule to keep it without running it.
 - Lines beginning with // are comments. Never use absolute paths, .., or unsupported clause names.
 
 If more syntax detail is needed, consult https://github.com/gyng/save-in/wiki/Clause-and-Variable-list before answering.
@@ -675,7 +682,9 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
             <section class="routing-ide" aria-labelledby="rules-text-label">
               <header class="routing-ide-header">
                 <div>
-                  <div class="editor-field-label" id="rules-text-label">__MSG_o_lTextRules__</div>
+                  <div class="editor-field-label" id="rules-text-label">
+                    __MSG_o_sDynamicDownloads__
+                  </div>
                   <p class="caption routing-ide-description">__MSG_routeIdeDescription__</p>
                 </div>
                 <div class="routing-ide-meta">
@@ -683,36 +692,96 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                   <span class="routing-ide-badge">__MSG_routeIdeBadge__</span>
                 </div>
               </header>
-              <textarea
-                id="filenamePatterns"
-                data-manual="true"
-                rows="12"
-                placeholder="__MSG_html_optional__"
-                spellcheck="false"
-                aria-labelledby="rules-text-label"
-                aria-describedby="error-filenamePatterns"
-              ></textarea>
               <div
-                class="error-notification"
-                id="error-filenamePatterns"
-                aria-live="polite"
-                aria-atomic="true"
-              ></div>
-              <div class="editor-actions routing-ide-actions">
+                class="editor-tabs routing-editor-tabs"
+                role="tablist"
+                aria-label="__MSG_routeVisualEditorMode__"
+              >
                 <button
                   type="button"
-                  class="discard-button"
-                  data-discard="filenamePatterns"
-                  disabled
+                  class="editor-tab active"
+                  id="rules-mode-text"
+                  role="tab"
+                  aria-selected="true"
+                  aria-controls="rules-text-editor"
                 >
-                  __MSG_o_bDiscard__
+                  __MSG_o_lEditorModeText__
                 </button>
-                <button type="button" class="apply-button" data-apply="filenamePatterns" disabled>
-                  __MSG_o_bApply__
-                </button>
-                <span class="caption manual-save-help" data-manual-help-for="filenamePatterns"
-                  >__MSG_o_lManualEditorSaveHelp__</span
+                <button
+                  type="button"
+                  class="editor-tab"
+                  id="rules-mode-visual"
+                  role="tab"
+                  aria-selected="false"
+                  aria-controls="rules-visual"
                 >
+                  __MSG_o_sVisualEditor__
+                </button>
+              </div>
+              <div id="rules-text-editor" role="tabpanel" aria-labelledby="rules-mode-text">
+                <textarea
+                  id="filenamePatterns"
+                  data-manual="true"
+                  rows="12"
+                  placeholder="__MSG_html_optional__"
+                  spellcheck="false"
+                  aria-labelledby="rules-text-label"
+                  aria-describedby="error-filenamePatterns"
+                ></textarea>
+                <div
+                  class="error-notification"
+                  id="error-filenamePatterns"
+                  aria-live="polite"
+                  aria-atomic="true"
+                ></div>
+                <div class="editor-actions routing-ide-actions">
+                  <button
+                    type="button"
+                    class="discard-button"
+                    data-discard="filenamePatterns"
+                    disabled
+                  >
+                    __MSG_o_bDiscard__
+                  </button>
+                  <button type="button" class="apply-button" data-apply="filenamePatterns" disabled>
+                    __MSG_o_bApply__
+                  </button>
+                  <span class="caption manual-save-help" data-manual-help-for="filenamePatterns"
+                    >__MSG_o_lManualEditorSaveHelp__</span
+                  >
+                </div>
+              </div>
+              <div
+                id="rules-visual"
+                class="routing-visual-editor"
+                role="tabpanel"
+                aria-labelledby="rules-mode-visual"
+                hidden
+              >
+                <div id="rule-editor-cards" class="rule-editor-cards"></div>
+                <div class="visual-editor-toolbar rule-editor-toolbar">
+                  <button type="button" id="rule-editor-add">+ __MSG_routeVisualAddRule__</button>
+                  <a class="toolbar-link" href="#" data-reference-tab="options-reference-clauses"
+                    >__MSG_o_lClauseList__</a
+                  >
+                  <a class="toolbar-link" href="#" data-reference-tab="options-reference-variables"
+                    >__MSG_o_lVariableList__</a
+                  >
+                  <button
+                    type="button"
+                    class="discard-button"
+                    data-discard="filenamePatterns"
+                    disabled
+                  >
+                    __MSG_o_bDiscard__
+                  </button>
+                  <button type="button" class="apply-button" data-apply="filenamePatterns" disabled>
+                    __MSG_o_bApply__
+                  </button>
+                </div>
+                <p class="caption rule-editor-help" data-manual-help-for="filenamePatterns">
+                  __MSG_routeVisualHelp__
+                </p>
               </div>
             </section>
 

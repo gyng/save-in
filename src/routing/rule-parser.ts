@@ -65,7 +65,31 @@ const parseSemanticRule = (
   rule: RoutingRuleNode,
   errors: RuleError[] = [],
 ): RoutingRule | false => {
-  const lines = rule.clauses;
+  const controls = rule.clauses.filter((line) => line.name === "disabled");
+  if (controls.length > 1) {
+    appendError(
+      errors,
+      routingPorts.getMessage("ruleBadClause"),
+      "disabled may appear only once",
+      controls[1]!.span,
+    );
+    return false;
+  }
+  const control = controls[0];
+  if (control) {
+    const value = control.value.trim().toLowerCase();
+    if (value !== "true" && value !== "false") {
+      appendError(
+        errors,
+        routingPorts.getMessage("ruleBadClause"),
+        "disabled must be true or false",
+        control.valueSpan,
+      );
+      return false;
+    }
+    if (value === "true") return false;
+  }
+  const lines = rule.clauses.filter((line) => line.name !== "disabled");
   const clauses: (RuleClause | false)[] = lines.map((line) => {
     const { name, flags, value: rawValue } = line;
     if (name === "into") {

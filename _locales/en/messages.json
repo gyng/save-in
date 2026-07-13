@@ -1247,10 +1247,6 @@
     "message": "Folder menu definitions",
     "description": "Label, status, or help text in the options interface. Used in src/options/options.html."
   },
-  "o_lTextRules": {
-    "message": "Text rules",
-    "description": "Label, status, or help text in the options interface. Used in src/options/options.html."
-  },
   "o_lMatcher": {
     "message": "Matcher",
     "description": "Label, status, or help text in the options interface. Used in src/options/options.html."
@@ -2840,6 +2836,92 @@
   "routeIdeBadge": {
     "message": "Grammar-aware",
     "description": "Compact badge describing the routing rules editor. Used in src/options/options.html."
+  },
+  "routeVisualEditorMode": {
+    "message": "Routing rule editor mode",
+    "description": "Accessible label for the Text and Visual routing editor tabs. Used in src/options/options.html."
+  },
+  "routeVisualAddRule": {
+    "message": "Add rule",
+    "description": "Button that appends a routing rule in the visual editor. Used in src/options/options.html."
+  },
+  "routeVisualHelp": {
+    "message": "Rules run from top to bottom. All conditions in a rule must match; the first matching rule wins.",
+    "description": "Ordering and matching guidance below the visual routing editor. Used in src/options/options.html."
+  },
+  "visualEditorEnabled": {
+    "message": "Enabled",
+    "description": "Checkbox label for enabling a destination menu entry or routing rule. Used in src/options/path-editor.ts and src/options/rule-visual-editor.ts."
+  },
+  "html_disableThisDestinationAndItsChildren": {
+    "message": "Keep this destination and its children out of the menu",
+    "description": "Explanation for disabled destination syntax in the Downloads menu guide. Used in src/options/options.html."
+  },
+  "html_keepsARuleWithoutRunningIt": {
+    "message": "keeps a rule without running it",
+    "description": "Explanation for disabled routing-rule syntax in the routing guide. Used in src/options/options.html."
+  },
+  "routeVisualCondition": {
+    "message": "Condition",
+    "description": "Accessible label for a matcher selector in the visual routing editor. Used in src/options/rule-visual-editor.ts."
+  },
+  "routeVisualDestination": {
+    "message": "Destination",
+    "description": "Accessible label for a destination field in the visual routing editor. Used in src/options/rule-visual-editor.ts."
+  },
+  "routeVisualPattern": {
+    "message": "Pattern",
+    "description": "Accessible label for a matcher pattern field in the visual routing editor. Used in src/options/rule-visual-editor.ts."
+  },
+  "routeVisualIgnoreCase": {
+    "message": "Ignore case",
+    "description": "Accessible label for case-insensitive matching in the visual routing editor. Used in src/options/rule-visual-editor.ts."
+  },
+  "routeVisualIgnoreCaseHelp": {
+    "message": "Match uppercase and lowercase letters",
+    "description": "Tooltip explaining case-insensitive matching in the visual routing editor. Used in src/options/rule-visual-editor.ts."
+  },
+  "routeVisualDeleteCondition": {
+    "message": "Delete condition",
+    "description": "Accessible label for removing one routing condition. Used in src/options/rule-visual-editor.ts."
+  },
+  "routeVisualUnsupported": {
+    "message": "This rule has syntax Visual mode cannot safely edit near line $LINE$.",
+    "description": "Warning shown for a routing rule that must be edited as text. Used in src/options/rule-visual-editor.ts.",
+    "placeholders": {
+      "line": {
+        "content": "$1",
+        "example": "12"
+      }
+    }
+  },
+  "routeVisualEditText": {
+    "message": "Edit in Text",
+    "description": "Button that opens an unsupported visual rule in the text editor. Used in src/options/rule-visual-editor.ts."
+  },
+  "routeVisualMoveUp": {
+    "message": "Move rule up",
+    "description": "Accessible label for moving a routing rule earlier. Used in src/options/rule-visual-editor.ts."
+  },
+  "routeVisualMoveDown": {
+    "message": "Move rule down",
+    "description": "Accessible label for moving a routing rule later. Used in src/options/rule-visual-editor.ts."
+  },
+  "routeVisualDuplicate": {
+    "message": "Duplicate rule",
+    "description": "Accessible label for copying a routing rule. Used in src/options/rule-visual-editor.ts."
+  },
+  "routeVisualDelete": {
+    "message": "Delete rule",
+    "description": "Accessible label for removing a routing rule. Used in src/options/rule-visual-editor.ts."
+  },
+  "routeVisualAddCondition": {
+    "message": "Add condition",
+    "description": "Button that adds a matcher to a routing rule. Used in src/options/rule-visual-editor.ts."
+  },
+  "routeVisualEmpty": {
+    "message": "No routing rules yet. Add one to get started.",
+    "description": "Empty state in the visual routing editor. Used in src/options/rule-visual-editor.ts."
   },
   "routeDebuggerTitle": {
     "message": "Route debugger",

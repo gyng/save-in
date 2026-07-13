@@ -1,10 +1,12 @@
 import {
   getPathAlias,
+  getPathEnabled,
   getPathSourceRange,
   parseDirectoryLine,
   pathLinesToNodes,
   serializeDirectoryLine,
   setPathAlias,
+  setPathEnabled,
 } from "../src/options/path-editor-model.ts";
 
 describe("path editor model", () => {
@@ -42,6 +44,18 @@ describe("path editor model", () => {
         setPathAlias(parseDirectoryLine("  path\t //  cute (alias: Cats)  "), "Dogs"),
       ),
     ).toBe("  path\t //  cute (alias: Dogs)  ");
+  });
+
+  test("stores the enabled state in existing comment metadata", () => {
+    const node = parseDirectoryLine("path // note (alias: Work)");
+
+    expect(getPathEnabled(node)).toBe(true);
+    const disabled = setPathEnabled(node, false);
+    expect(serializeDirectoryLine(disabled)).toBe("path // note (alias: Work) (disabled: true)");
+    expect(getPathEnabled(disabled)).toBe(false);
+    expect(serializeDirectoryLine(setPathEnabled(disabled, true))).toBe(
+      "path // note (alias: Work)",
+    );
   });
 
   test("maps a menu source index to the matching non-empty text line", () => {

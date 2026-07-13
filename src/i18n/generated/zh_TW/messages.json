@@ -617,7 +617,7 @@
     "message": "缺失時使用頁面 URL 作為 Referer"
   },
   "o_cSetRefererHeaderHelp": {
-    "message": "僅限 Firefox。部分網站（例如 pixiv.net）會拒絕缺少 HTTP Referer 標頭的下載。對於符合篩選條件的下載，Firefox 會直接將頁面 URL 當作 Referer 傳送。除非網站需要，否則請保持關閉。"
+    "message": "部分網站（例如 pixiv.net）會拒絕缺少 HTTP Referer 標頭的下載。Firefox 會直接傳送頁面 URL。Chrome 會透過 Save In 擷取符合條件的檔案，並在儲存期間將每個檔案保留在記憶體中。除非網站需要，否則請保持關閉。"
   },
   "o_cSetRefererHeaderFilter": {
     "message": "為這些網站設定 Referer"
@@ -648,9 +648,6 @@
   },
   "o_lDirectoryDefinitions": {
     "message": "資料夾選單定義"
-  },
-  "o_lTextRules": {
-    "message": "文字規則"
   },
   "o_lMatcher": {
     "message": "比對器"
@@ -2294,5 +2291,69 @@
         "example": "8"
       }
     }
+  },
+  "routeVisualEditorMode": {
+    "message": "Routing rule editor mode"
+  },
+  "routeVisualAddRule": {
+    "message": "Add rule"
+  },
+  "routeVisualHelp": {
+    "message": "Rules run from top to bottom. All conditions in a rule must match; the first matching rule wins."
+  },
+  "routeVisualCondition": {
+    "message": "Condition"
+  },
+  "routeVisualDestination": {
+    "message": "Destination"
+  },
+  "routeVisualPattern": {
+    "message": "Pattern"
+  },
+  "routeVisualIgnoreCase": {
+    "message": "Ignore case"
+  },
+  "routeVisualIgnoreCaseHelp": {
+    "message": "Match uppercase and lowercase letters"
+  },
+  "routeVisualDeleteCondition": {
+    "message": "Delete condition"
+  },
+  "routeVisualUnsupported": {
+    "message": "This rule has syntax Visual mode cannot safely edit near line $LINE$.",
+    "placeholders": {
+      "line": {
+        "content": "$1",
+        "example": "12"
+      }
+    }
+  },
+  "routeVisualEditText": {
+    "message": "Edit in Text"
+  },
+  "routeVisualMoveUp": {
+    "message": "Move rule up"
+  },
+  "routeVisualMoveDown": {
+    "message": "Move rule down"
+  },
+  "routeVisualDuplicate": {
+    "message": "Duplicate rule"
+  },
+  "routeVisualDelete": {
+    "message": "Delete rule"
+  },
+  "routeVisualAddCondition": {
+    "message": "Add condition"
+  },
+  "routeVisualEmpty": {
+    "message": "No routing rules yet. Add one to get started."
+  },
+  "visualEditorEnabled": { "message": "Enabled" },
+  "html_disableThisDestinationAndItsChildren": {
+    "message": "Keep this destination and its children out of the menu"
+  },
+  "html_keepsARuleWithoutRunningIt": {
+    "message": "keeps a rule without running it"
   }
 }

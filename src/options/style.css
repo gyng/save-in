@@ -2415,7 +2415,7 @@ summary {
   letter-spacing: 0.02em;
 }
 
-.routing-ide > .syntax-editor {
+.routing-ide #rules-text-editor > .syntax-editor {
   margin: 0;
   border-width: 0 0 1px;
   border-color: var(--panel-border);
@@ -2423,18 +2423,18 @@ summary {
   box-shadow: none;
 }
 
-.routing-ide > .syntax-editor:focus-within {
+.routing-ide #rules-text-editor > .syntax-editor:focus-within {
   border-color: var(--blue50);
   box-shadow: inset 3px 0 var(--blue50);
 }
 
-.routing-ide > .error-notification {
+.routing-ide #rules-text-editor > .error-notification {
   margin: 0;
   border-width: 0 0 1px;
   border-radius: 0;
 }
 
-.routing-ide > .error-notification:empty {
+.routing-ide #rules-text-editor > .error-notification:empty {
   display: none;
 }
 
@@ -2444,6 +2444,242 @@ summary {
   margin: 0;
   padding: var(--space-2) var(--space-3);
   background: color-mix(in srgb, var(--panel-bg) 48%, var(--page-bg));
+}
+
+.routing-editor-tabs {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0 var(--space-3);
+  background: color-mix(in srgb, var(--panel-bg) 34%, var(--page-bg));
+}
+
+.routing-editor-tabs .editor-tab {
+  padding-top: var(--space-2);
+  padding-bottom: var(--space-2);
+}
+
+.routing-visual-editor {
+  padding: var(--space-3);
+  background:
+    linear-gradient(color-mix(in srgb, var(--panel-bg) 38%, transparent), transparent 120px),
+    var(--page-bg);
+}
+
+.rule-editor-cards {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.visual-editor-card {
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  background: var(--page-bg);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--grey-90) 7%, transparent);
+}
+
+.visual-editor-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  min-height: 34px;
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--panel-border);
+  background: color-mix(in srgb, var(--panel-bg) 58%, var(--page-bg));
+}
+
+.rule-editor-card.is-debug-selected {
+  border-color: color-mix(in srgb, var(--blue50) 62%, var(--panel-border));
+  box-shadow:
+    inset 3px 0 0 var(--blue50),
+    0 0 0 2px color-mix(in srgb, var(--blue50) 10%, transparent);
+}
+
+.visual-editor-enabled {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+  gap: 4px;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  white-space: nowrap;
+}
+
+.rule-editor-card.is-disabled .rule-editor-card-body,
+.path-editor-row.is-disabled > :not(.visual-editor-enabled) {
+  opacity: 0.55;
+}
+
+.rule-editor-identity {
+  display: flex;
+  align-items: baseline;
+  min-width: 0;
+  gap: var(--space-2);
+}
+
+.rule-editor-identity strong {
+  flex: none;
+  font-size: var(--text-md);
+}
+
+.rule-editor-meta {
+  overflow: hidden;
+  color: var(--color-text-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rule-editor-card-body {
+  display: grid;
+  gap: 1px;
+  padding: var(--space-2);
+}
+
+.rule-editor-card-actions .visual-editor-control {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  font-size: 14px;
+}
+
+.rule-clause-row {
+  display: grid;
+  grid-template-columns: 30px minmax(112px, 0.38fr) minmax(150px, 1fr) auto auto;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 38px;
+  padding: 3px var(--space-1);
+  border-radius: var(--radius);
+}
+
+.rule-clause-row:hover,
+.rule-clause-row.is-active {
+  background: var(--hover-bg);
+}
+
+.rule-clause-destination {
+  margin-top: var(--space-1);
+  border-top: 1px dashed var(--panel-border);
+  border-radius: 0 0 var(--radius) var(--radius);
+  grid-template-columns: 30px minmax(112px, 0.38fr) minmax(150px, 1fr);
+}
+
+.rule-clause-capture {
+  grid-template-columns: 30px minmax(112px, 0.38fr) minmax(150px, 1fr) auto;
+}
+
+.rule-clause-marker {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 22px;
+  border-radius: 4px;
+  color: var(--syntax-keyword);
+  background: color-mix(in srgb, var(--syntax-keyword) 10%, transparent);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.rule-clause-destination .rule-clause-marker {
+  color: var(--syntax-variable);
+  background: color-mix(in srgb, var(--syntax-variable) 10%, transparent);
+  font-size: 15px;
+}
+
+.rule-clause-fixed-name {
+  padding-left: var(--space-2);
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-md);
+}
+
+.tab-panel .rule-clause-row input[type="text"],
+.tab-panel .rule-clause-row select {
+  width: 100%;
+  max-width: none;
+  font-family: var(--font-mono);
+}
+
+.rule-clause-flag {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 28px;
+  padding: 0 var(--space-1);
+  border-radius: var(--radius);
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.rule-clause-flag:hover {
+  color: var(--color-text);
+  background: var(--hover-bg);
+}
+
+.rule-clause-flag input {
+  margin: 0;
+}
+
+.rule-editor-add-condition {
+  justify-self: start;
+  margin: var(--space-1) 0 0 34px;
+  padding: 4px 8px;
+  border-color: transparent;
+  color: var(--link-color);
+  background: transparent;
+  font-size: var(--text-sm);
+}
+
+.rule-editor-add-condition:hover {
+  border-color: var(--panel-border);
+  background: var(--hover-bg);
+}
+
+.rule-editor-card-unsupported {
+  border-color: color-mix(in srgb, var(--red50) 34%, var(--panel-border));
+}
+
+.rule-editor-unsupported {
+  margin: var(--space-3) var(--space-3) var(--space-2);
+  color: var(--error-fg);
+  font-size: var(--text-md);
+}
+
+.rule-editor-source-preview {
+  overflow: auto;
+  margin: 0 var(--space-3) var(--space-2);
+  padding: var(--space-2);
+  border-radius: var(--radius);
+  color: var(--color-text-muted);
+  background: var(--input-background);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  white-space: pre-wrap;
+}
+
+.rule-editor-edit-text {
+  margin: 0 var(--space-3) var(--space-3);
+}
+
+.rule-editor-empty {
+  padding: var(--space-6) var(--space-4);
+  border: 1px dashed var(--panel-border);
+  border-radius: var(--radius);
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.rule-editor-toolbar {
+  margin-top: var(--space-3);
+}
+
+.rule-editor-help {
+  margin: var(--space-2) 0 0;
 }
 
 .route-debugger {
@@ -3350,7 +3586,7 @@ button:disabled:hover {
 }
 
 .editor-actions > *,
-.path-editor-toolbar > * {
+.visual-editor-toolbar > * {
   margin-top: 0;
   margin-bottom: 0;
 }
@@ -3358,7 +3594,7 @@ button:disabled:hover {
 /* + Add / toolbar stays left; the save controls (Discard, then Apply)
    float together to the right of the editor */
 .editor-actions .discard-button,
-.path-editor-toolbar .discard-button {
+.visual-editor-toolbar .discard-button {
   margin-left: auto;
 }
 
@@ -3405,7 +3641,7 @@ button:disabled:hover {
   border-color: var(--grey30);
 }
 
-.path-editor-handle {
+.visual-editor-handle {
   flex: none;
   width: 28px;
   height: 28px;
@@ -3422,7 +3658,7 @@ button:disabled:hover {
   color: var(--color-text);
 }
 
-.path-editor-handle:active {
+.visual-editor-handle:active {
   cursor: grabbing;
 }
 
@@ -3475,9 +3711,10 @@ button:disabled:hover {
   bottom: auto;
 }
 
-.path-editor-toolbar {
+.visual-editor-toolbar {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: var(--space-2);
   margin-top: 0;
 }
@@ -3613,7 +3850,7 @@ button:disabled:hover {
 }
 
 /* Row controls read as quiet icon buttons, not full boxed buttons */
-.path-editor-control {
+.visual-editor-control {
   min-width: 24px;
   padding: 4px 6px;
   font-size: 12px;
@@ -3625,13 +3862,13 @@ button:disabled:hover {
   opacity: 0.75;
 }
 
-.path-editor-control:hover {
+.visual-editor-control:hover {
   background-color: var(--hover-bg);
   color: inherit;
   opacity: 1;
 }
 
-.path-editor-actions {
+.visual-editor-row-actions {
   display: flex;
   flex: none;
   align-items: center;
@@ -3639,7 +3876,7 @@ button:disabled:hover {
   margin-left: auto;
 }
 
-.path-editor-control:disabled {
+.visual-editor-control:disabled {
   opacity: 0.25;
   cursor: default;
 }
@@ -4913,8 +5150,23 @@ code.click-to-copy {
   }
 
   .editor-actions,
-  .path-editor-toolbar {
+  .visual-editor-toolbar {
     flex-wrap: wrap;
+  }
+
+  .rule-clause-row,
+  .rule-clause-capture,
+  .rule-clause-destination {
+    grid-template-columns: 28px minmax(0, 1fr) auto;
+  }
+
+  .rule-clause-value {
+    grid-column: 2 / -1;
+  }
+
+  .rule-clause-row .rule-editor-control {
+    grid-column: -1;
+    grid-row: 1;
   }
 }
 

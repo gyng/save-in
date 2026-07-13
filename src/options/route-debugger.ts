@@ -166,7 +166,19 @@ export const setupRouteDebugger = (): void => {
     result.replaceChildren(message);
   };
 
-  const jumpToSource = (source: { start: number; end: number }): void => {
+  const jumpToSource = (
+    source: { start: number; end: number; line?: number },
+    ruleIndex: number,
+  ): void => {
+    document.dispatchEvent(
+      new CustomEvent("route-debugger-source-selected", {
+        detail: {
+          ruleIndex,
+          line: source.line ?? textarea.value.slice(0, source.start).split("\n").length,
+        },
+      }),
+    );
+    if (element("#rules-mode-visual")?.getAttribute("aria-selected") === "true") return;
     textarea.focus();
     textarea.setSelectionRange(source.start, source.end);
     const lineHeight = Number.parseFloat(getComputedStyle(textarea).lineHeight) || 24;
@@ -290,7 +302,7 @@ export const setupRouteDebugger = (): void => {
         sourceLink.addEventListener("click", (event) => {
           event.preventDefault();
           event.stopPropagation();
-          jumpToSource(rule.source!);
+          jumpToSource(rule.source!, rule.sourceIndex ?? rule.index - 1);
         });
         meta.append(sourceLink);
       }
@@ -307,7 +319,9 @@ export const setupRouteDebugger = (): void => {
         clauseButton.classList.toggle("is-match", clause.matched);
         clauseButton.classList.toggle("is-miss", !clause.matched);
         if (clause.source) {
-          clauseButton.addEventListener("click", () => jumpToSource(clause.source!));
+          clauseButton.addEventListener("click", () =>
+            jumpToSource(clause.source!, rule.sourceIndex ?? rule.index - 1),
+          );
         }
         appendText(clauseButton, "route-debugger-clause-mark", clause.matched ? "✓" : "×");
         const name = document.createElement("code");

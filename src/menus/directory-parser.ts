@@ -98,8 +98,18 @@ export const buildTree = (pathsArray: string[]): MenuTree => {
   const errors: MenuTreeError[] = [];
   const menuItemCounter = [0];
   let pathsNestingStack: string[] = [];
+  let disabledDepth: number | null = null;
 
   pathsArray.forEach((dir, index) => {
+    const parsed = parsePath(dir);
+    const { comment, depth, meta, validation, parsedDir } = parsed;
+    if (disabledDepth !== null && depth > disabledDepth) return;
+    disabledDepth = null;
+    if (meta.disabled?.toLowerCase() === "true") {
+      disabledDepth = depth;
+      pathsNestingStack = pathsNestingStack.slice(0, depth);
+      return;
+    }
     if (dir === SPECIAL_DIRS.SEPARATOR) {
       pathsNestingStack = [];
       items.push({
@@ -110,7 +120,6 @@ export const buildTree = (pathsArray: string[]): MenuTree => {
       });
       return;
     }
-    const { comment, depth, meta, validation, parsedDir } = parsePath(dir);
     // Manual/imported configurations may skip a nesting level. The rendered
     // tree has always attached such an item to the deepest available parent;
     // use that effective depth for numbering too, so the menuindex value

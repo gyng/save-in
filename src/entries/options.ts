@@ -34,6 +34,7 @@ import { setupLanguageSelector } from "../options/language-selector.ts";
 import { applyUiTheme } from "../options/theme.ts";
 import { setupSyntaxEditors } from "../options/syntax-editor.ts";
 import { setupRouteDebugger } from "../options/route-debugger.ts";
+import { setupRuleVisualEditor } from "../options/rule-visual-editor.ts";
 
 document.addEventListener(
   "DOMContentLoaded",
@@ -48,6 +49,7 @@ document.addEventListener(
     void renderHistory();
     setupSyntaxEditors();
     setupRouteDebugger();
+    setupRuleVisualEditor();
     setupOptionsPage();
     void setupPermissionsBanner();
     setupPathEditor();

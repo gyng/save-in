@@ -385,6 +385,27 @@ describe("filename rewrite and routing", () => {
       expect(router.parseRules("// just a comment\n\n// another")).toEqual([]);
     });
 
+    test("disabled rules are valid but do not participate in routing", () => {
+      const rules = router.parseRules(
+        "disabled: true\nfilename: \\.jpg$\ninto: images\n\nfilename: \\.pdf$\ninto: documents",
+      );
+
+      expect(rules).toHaveLength(1);
+      expect(router.matchRules(rules, { filename: "cat.jpg" })).toBeNull();
+      expect(router.matchRules(rules, { filename: "report.pdf" })).toBe("documents");
+      expect(diagnostics.filenamePatterns).toEqual([]);
+    });
+
+    test("accepts disabled false and rejects other control values", () => {
+      expect(router.parseRules("filename: \\.pdf$\ninto: documents\ndisabled: false")).toHaveLength(
+        1,
+      );
+      expect(router.parseRules("filename: \\.pdf$\ninto: documents\ndisabled: sometimes")).toEqual(
+        [],
+      );
+      expect(diagnostics.filenamePatterns.at(-1)?.error).toBe("disabled must be true or false");
+    });
+
     test("bad clause syntax is reported", () => {
       const rules = router.parseRules("not a clause\ninto: x");
       expect(rules).toEqual([]);

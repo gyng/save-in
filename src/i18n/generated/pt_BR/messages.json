@@ -720,7 +720,7 @@
     "message": "Usar a URL da página como Referer quando ausente"
   },
   "o_cSetRefererHeaderHelp": {
-    "message": "Somente Firefox. Alguns sites (por exemplo, pixiv.net) rejeitam downloads sem o cabeçalho HTTP Referer. Para downloads correspondentes, o Firefox envia diretamente a URL da página como Referer. Deixe esta opção desativada, a menos que um site precise dela."
+    "message": "Alguns sites (por exemplo, pixiv.net) rejeitam downloads sem o cabeçalho HTTP Referer. O Firefox envia diretamente a URL da página. O Chrome busca os arquivos correspondentes por meio do Save In e mantém cada arquivo na memória durante o salvamento. Deixe esta opção desativada, a menos que um site precise dela."
   },
   "o_cSetRefererHeaderFilter": {
     "message": "Definir Referer para estes sites"
@@ -751,9 +751,6 @@
   },
   "o_lDirectoryDefinitions": {
     "message": "Definições do menu de pastas"
-  },
-  "o_lTextRules": {
-    "message": "Regras de texto"
   },
   "o_lMatcher": {
     "message": "Comparador"
@@ -2194,5 +2191,69 @@
         "example": "8"
       }
     }
+  },
+  "routeVisualEditorMode": {
+    "message": "Routing rule editor mode"
+  },
+  "routeVisualAddRule": {
+    "message": "Add rule"
+  },
+  "routeVisualHelp": {
+    "message": "Rules run from top to bottom. All conditions in a rule must match; the first matching rule wins."
+  },
+  "routeVisualCondition": {
+    "message": "Condition"
+  },
+  "routeVisualDestination": {
+    "message": "Destination"
+  },
+  "routeVisualPattern": {
+    "message": "Pattern"
+  },
+  "routeVisualIgnoreCase": {
+    "message": "Ignore case"
+  },
+  "routeVisualIgnoreCaseHelp": {
+    "message": "Match uppercase and lowercase letters"
+  },
+  "routeVisualDeleteCondition": {
+    "message": "Delete condition"
+  },
+  "routeVisualUnsupported": {
+    "message": "This rule has syntax Visual mode cannot safely edit near line $LINE$.",
+    "placeholders": {
+      "line": {
+        "content": "$1",
+        "example": "12"
+      }
+    }
+  },
+  "routeVisualEditText": {
+    "message": "Edit in Text"
+  },
+  "routeVisualMoveUp": {
+    "message": "Move rule up"
+  },
+  "routeVisualMoveDown": {
+    "message": "Move rule down"
+  },
+  "routeVisualDuplicate": {
+    "message": "Duplicate rule"
+  },
+  "routeVisualDelete": {
+    "message": "Delete rule"
+  },
+  "routeVisualAddCondition": {
+    "message": "Add condition"
+  },
+  "routeVisualEmpty": {
+    "message": "No routing rules yet. Add one to get started."
+  },
+  "visualEditorEnabled": { "message": "Enabled" },
+  "html_disableThisDestinationAndItsChildren": {
+    "message": "Keep this destination and its children out of the menu"
+  },
+  "html_keepsARuleWithoutRunningIt": {
+    "message": "keeps a rule without running it"
   }
 }

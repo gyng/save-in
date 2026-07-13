@@ -617,7 +617,7 @@
     "message": "Referer がない場合は、ページ URL を Referer として使用します"
   },
   "o_cSetRefererHeaderHelp": {
-    "message": "Firefox のみ。一部のサイト（pixiv.net など）は、HTTP Referer ヘッダーのないダウンロードを拒否します。一致するダウンロードでは、Firefox がページ URL を Referer として直接送信します。サイトで必要な場合を除き、オフのままにしてください。"
+    "message": "一部のサイト（pixiv.net など）は、HTTP Referer ヘッダーのないダウンロードを拒否します。Firefox はページ URL を直接送信します。Chrome は一致するファイルを Save In 経由で取得し、保存中は各ファイルをメモリに保持します。サイトで必要な場合を除き、オフのままにしてください。"
   },
   "o_cSetRefererHeaderFilter": {
     "message": "対象サイトに Referer を設定"
@@ -648,9 +648,6 @@
   },
   "o_lDirectoryDefinitions": {
     "message": "フォルダーメニューの定義"
-  },
-  "o_lTextRules": {
-    "message": "テキストのルール"
   },
   "o_lMatcher": {
     "message": "マッチャー"
@@ -2294,5 +2291,69 @@
         "example": "8"
       }
     }
+  },
+  "routeVisualEditorMode": {
+    "message": "Routing rule editor mode"
+  },
+  "routeVisualAddRule": {
+    "message": "Add rule"
+  },
+  "routeVisualHelp": {
+    "message": "Rules run from top to bottom. All conditions in a rule must match; the first matching rule wins."
+  },
+  "routeVisualCondition": {
+    "message": "Condition"
+  },
+  "routeVisualDestination": {
+    "message": "Destination"
+  },
+  "routeVisualPattern": {
+    "message": "Pattern"
+  },
+  "routeVisualIgnoreCase": {
+    "message": "Ignore case"
+  },
+  "routeVisualIgnoreCaseHelp": {
+    "message": "Match uppercase and lowercase letters"
+  },
+  "routeVisualDeleteCondition": {
+    "message": "Delete condition"
+  },
+  "routeVisualUnsupported": {
+    "message": "This rule has syntax Visual mode cannot safely edit near line $LINE$.",
+    "placeholders": {
+      "line": {
+        "content": "$1",
+        "example": "12"
+      }
+    }
+  },
+  "routeVisualEditText": {
+    "message": "Edit in Text"
+  },
+  "routeVisualMoveUp": {
+    "message": "Move rule up"
+  },
+  "routeVisualMoveDown": {
+    "message": "Move rule down"
+  },
+  "routeVisualDuplicate": {
+    "message": "Duplicate rule"
+  },
+  "routeVisualDelete": {
+    "message": "Delete rule"
+  },
+  "routeVisualAddCondition": {
+    "message": "Add condition"
+  },
+  "routeVisualEmpty": {
+    "message": "No routing rules yet. Add one to get started."
+  },
+  "visualEditorEnabled": { "message": "Enabled" },
+  "html_disableThisDestinationAndItsChildren": {
+    "message": "Keep this destination and its children out of the menu"
+  },
+  "html_keepsARuleWithoutRunningIt": {
+    "message": "keeps a rule without running it"
   }
 }

@@ -307,10 +307,10 @@ export const parseRoutingRuleAst = (source: string): ParsedRoutingAst => {
   const active = lines.filter((line) => !line.raw.trimStart().startsWith("//"));
   while (active[0] && !active[0].raw.trim()) active.shift();
   while (active.at(-1) && !active.at(-1)!.raw.trim()) active.pop();
-  if (active[0]) {
-    const leading = active[0].raw.length - active[0].raw.trimStart().length;
-    active[0].parseStart += leading;
-  }
+  active.forEach((line) => {
+    const leading = line.raw.length - line.raw.trimStart().length;
+    line.parseStart += leading;
+  });
   if (active.at(-1)) {
     const trailing = active.at(-1)!.raw.length - active.at(-1)!.raw.trimEnd().length;
     active.at(-1)!.parseEnd -= trailing;

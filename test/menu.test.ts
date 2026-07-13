@@ -102,6 +102,14 @@ describe("menu parsing", () => {
     expect(menu.parsePath("<invalid>").validation.valid).toBe(false);
     expect(menu.parsePath("/absolute").validation.valid).toBe(false);
   });
+
+  test("disabled menu entries suppress their nested subtree", () => {
+    const tree = menu.buildTree(["photos // (disabled: true)", ">private", "documents"]);
+
+    expect(tree.errors).toEqual([]);
+    expect(tree.items).toHaveLength(1);
+    expect(tree.items[0]).toMatchObject({ kind: "path", parsedDir: "documents" });
+  });
 });
 
 const setupMenuCreationMocks = () => {

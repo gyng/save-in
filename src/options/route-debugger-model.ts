@@ -11,6 +11,7 @@ export type RouteDebuggerClause = {
 
 export type RouteDebuggerRule = {
   index: number;
+  sourceIndex?: number | undefined;
   matched: boolean;
   destination: string;
   source?: { start: number; end: number; line: number } | undefined;
@@ -107,16 +108,25 @@ export const mapRouteTraceToSource = (
   source: string,
   trace: RouteDebuggerTrace,
 ): RouteDebuggerTrace => {
-  const sourceRules = parseRoutingRuleAst(source).ast.rules;
+  const sourceRules = parseRoutingRuleAst(source)
+    .ast.rules.map((rule, sourceIndex) => ({ rule, sourceIndex }))
+    .filter(
+      ({ rule }) =>
+        !rule.clauses.some(
+          (clause) => clause.name === "disabled" && clause.value.trim().toLowerCase() === "true",
+        ),
+    );
   return {
     ...trace,
     rules: trace.rules.map((rule) => {
-      const sourceRule = sourceRules[rule.index - 1];
+      const sourceEntry = sourceRules[rule.index - 1];
+      const sourceRule = sourceEntry?.rule;
       const matcherClauses = sourceRule?.clauses.filter(
-        (clause) => clause.clauseKind === "matcher",
+        (clause) => clause.clauseKind === "matcher" && clause.name !== "disabled",
       );
       return {
         ...rule,
+        ...(sourceEntry ? { sourceIndex: sourceEntry.sourceIndex } : {}),
         ...(sourceRule
           ? {
               source: {
@@ -176,7 +186,10 @@ export const summarizeRouteSource = (source: string): RouteSourceSummary => {
     rules: parsed.rules.length,
     matchers: parsed.rules.reduce(
       (total, rule) =>
-        total + rule.clauses.filter((clause) => clause.clauseKind === "matcher").length,
+        total +
+        rule.clauses.filter(
+          (clause) => clause.clauseKind === "matcher" && clause.name !== "disabled",
+        ).length,
       0,
     ),
   };

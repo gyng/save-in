@@ -11,11 +11,13 @@ import { getMessage } from "../platform/localization.ts";
 import { setupPathInsertMenu } from "./path-editor-insert-menu.ts";
 import {
   getPathAlias,
+  getPathEnabled,
   parseDirectoryLine,
   pathLinesToNodes,
   pathNodesToLines,
   serializeDirectoryLine,
   setPathAlias,
+  setPathEnabled,
   updateDirectoryLine,
   type DirectoryLineNode,
   type DirectoryLineUpdate,
@@ -28,7 +30,9 @@ const PathEditorHelpers = {
   linesToNodes: pathLinesToNodes,
   nodesToLines: pathNodesToLines,
   getAlias: getPathAlias,
+  getEnabled: getPathEnabled,
   setAlias: setPathAlias,
+  setEnabled: setPathEnabled,
   updateLine: updateDirectoryLine,
 
   // Replaces [start, end) with text as an undoable edit: execCommand is
@@ -192,10 +196,11 @@ const PathEditorHelpers = {
 
       nodes.forEach((node, index) => {
         const rowEl = document.createElement("div");
-        rowEl.className = "path-editor-row";
+        rowEl.className = "visual-editor-row path-editor-row";
         rowEl.dataset.depth = String(node.depth);
         rowEl.dataset.sourceIndex = String(index);
         rowEl.style.setProperty("--row-depth", String(node.depth));
+        rowEl.classList.toggle("is-disabled", !PathEditorHelpers.getEnabled(node));
         rowEl.addEventListener("click", () => {
           container
             .querySelectorAll(".path-editor-row.is-preview-selected")
@@ -228,7 +233,7 @@ const PathEditorHelpers = {
         const rowName = PathEditorHelpers.getAlias(node) || node.path.value || `row ${index + 1}`;
         const handle = document.createElement("button");
         handle.type = "button";
-        handle.className = "path-editor-handle";
+        handle.className = "visual-editor-handle path-editor-handle";
         handle.textContent = "⠿";
         handle.title = "Drag to reorder. Drop on the middle of a row to nest under it.";
         handle.setAttribute("aria-label", `Reorder or change nesting for ${rowName}`);
@@ -280,6 +285,28 @@ const PathEditorHelpers = {
           container.querySelectorAll<HTMLElement>(".path-editor-handle")[destination]?.focus();
         });
         rowEl.appendChild(handle);
+
+        const enabledLabel = document.createElement("label");
+        enabledLabel.className = "visual-editor-enabled path-editor-enabled-label";
+        const enabled = document.createElement("input");
+        enabled.type = "checkbox";
+        enabled.className = "path-editor-enabled";
+        enabled.checked = PathEditorHelpers.getEnabled(node);
+        enabled.setAttribute(
+          "aria-label",
+          `${getMessage("visualEditorEnabled") || "Enabled"}: ${rowName}`,
+        );
+        enabled.addEventListener("change", () => {
+          const current = nodes[index];
+          if (current) nodes[index] = PathEditorHelpers.setEnabled(current, enabled.checked);
+          commit();
+          rebuild();
+        });
+        enabledLabel.append(
+          enabled,
+          document.createTextNode(getMessage("visualEditorEnabled") || "Enabled"),
+        );
+        rowEl.append(enabledLabel);
 
         rowEl.addEventListener("dragover", (e) => {
           if (dragFrom !== null) {
@@ -340,7 +367,7 @@ const PathEditorHelpers = {
         });
 
         const actions = document.createElement("div");
-        actions.className = "path-editor-actions";
+        actions.className = "visual-editor-row-actions path-editor-actions";
 
         if (node.path.value === SPECIAL_DIRS.SEPARATOR) {
           const sep = document.createElement("span");
@@ -455,7 +482,7 @@ const PathEditorHelpers = {
         controls.forEach(([glyph, title, action]) => {
           const button = document.createElement("button");
           button.type = "button";
-          button.className = "path-editor-control";
+          button.className = "visual-editor-control path-editor-control";
           button.title = title;
           button.setAttribute(
             "aria-label",
@@ -539,7 +566,9 @@ export class PathEditor {
   static linesToNodes = PathEditorHelpers.linesToNodes;
   static nodesToLines = PathEditorHelpers.nodesToLines;
   static getAlias = PathEditorHelpers.getAlias;
+  static getEnabled = PathEditorHelpers.getEnabled;
   static setAlias = PathEditorHelpers.setAlias;
+  static setEnabled = PathEditorHelpers.setEnabled;
   static insertText = PathEditorHelpers.insertText;
   static insertAtCursor = PathEditorHelpers.insertAtCursor;
   static insertLine = PathEditorHelpers.insertLine;

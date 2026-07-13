@@ -84,6 +84,29 @@ test("maps production trace rows back to grammar source locations", () => {
   );
 });
 
+test("maps active trace rows past disabled source rules", () => {
+  const source = [
+    "filename: jpg",
+    "into: images/",
+    "disabled: true",
+    "",
+    "filename: pdf",
+    "into: documents/",
+  ].join("\n");
+  const activeTrace: RouteDebuggerTrace = {
+    ...trace,
+    selectedRule: 1,
+    rules: [{ ...trace.rules[1]!, index: 1 }],
+  };
+
+  const mapped = mapRouteTraceToSource(source, activeTrace);
+
+  expect(mapped.rules[0]?.source?.line).toBe(5);
+  expect(mapped.rules[0]?.sourceIndex).toBe(1);
+  expect(mapped.rules[0]?.clauses[0]?.source?.line).toBe(5);
+  expect(summarizeRouteSource(source)).toEqual({ lines: 6, rules: 2, matchers: 2 });
+});
+
 test("normalizes debugger fields into the routing engine input aliases", () => {
   expect(
     routeDebuggerInfo({

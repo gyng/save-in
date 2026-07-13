@@ -151,6 +151,18 @@ describe("visual editor", () => {
     expect(rows()[2]!.querySelector(".path-editor-separator")).not.toBeNull();
   });
 
+  test("toggles a row with disabled metadata", () => {
+    const enabled = rows()[0]!.querySelector<HTMLInputElement>(".path-editor-enabled")!;
+    expect(enabled.checked).toBe(true);
+
+    enabled.click();
+    expect(textarea().value).toBe("a // (disabled: true)\n>b // (alias: B)\n---");
+    expect(rows()[0]!.classList).toContain("is-disabled");
+
+    rows()[0]!.querySelector<HTMLInputElement>(".path-editor-enabled")!.click();
+    expect(textarea().value).toBe("a\n>b // (alias: B)\n---");
+  });
+
   test("notifies preview consumers when a row is selected", () => {
     const selected = vi.fn();
     textarea().addEventListener("path-editor-row-selected", selected);
