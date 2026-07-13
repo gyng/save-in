@@ -71,7 +71,7 @@ test("About explains privacy and every requested permission", () => {
   ]) {
     expect(about.textContent).toContain(permission);
   }
-  expect(about.querySelector('a[href="../../PRIVACY.md"]')).not.toBeNull();
+  expect(about.querySelector('a[href="../../PRIVACY.md"]')).toBeNull();
 });
 
 test("party cat uses continuous easing instead of stepped frames", () => {

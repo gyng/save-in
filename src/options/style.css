@@ -414,6 +414,7 @@ body:not(#settings-page) {
   border: 1px solid var(--panel-border);
   border-radius: var(--radius);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+  font-size: var(--text-base);
 }
 
 .nav-menu-link {
@@ -442,6 +443,25 @@ body:not(#settings-page) {
 
 .about-dialog::backdrop {
   background: rgba(0, 0, 0, 0.42);
+}
+
+.privacy-dialog {
+  width: min(720px, calc(100vw - 2 * var(--space-5)));
+}
+
+.privacy-content h1 {
+  margin: 0 var(--space-6) var(--space-4) 0;
+  font-size: var(--text-xl);
+}
+
+.privacy-content h2 {
+  margin: var(--space-5) 0 var(--space-2);
+  font-size: var(--text-lg);
+}
+
+.privacy-content p,
+.privacy-content ul {
+  margin: 0 0 var(--space-3);
 }
 
 .about-close {

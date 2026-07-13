@@ -1091,6 +1091,7 @@
   "html_checking": { "message": "checking…" },
   "html_clearLog": { "message": "Clear log" },
   "html_closeAboutSaveIn": { "message": "Close About Save In" },
+  "html_closePrivacyPolicy": { "message": "Close privacy policy" },
   "html_closeReferences": { "message": "Close references" },
   "html_contextMenus": { "message": "Context menus" },
   "html_documentation": { "message": "Documentation" },

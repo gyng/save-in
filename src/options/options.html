@@ -36,6 +36,9 @@
             <a class="external" href="https://github.com/gyng/save-in/blob/master/CHANGELOG.md"
               >__MSG_o_lChangelog__</a
             >
+            <button type="button" id="privacy-open" class="nav-menu-link">
+              __MSG_html_privacyPolicy__
+            </button>
             <button type="button" id="about-open" class="nav-menu-link">
               __MSG_html_aboutSaveIn__
             </button>
@@ -1565,6 +1568,21 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
       </div>
     </dialog>
 
+    <dialog
+      id="privacy-dialog"
+      class="about-dialog privacy-dialog"
+      aria-label="__MSG_html_privacyPolicy__"
+    >
+      <button
+        type="button"
+        class="about-close privacy-close"
+        aria-label="__MSG_html_closePrivacyPolicy__"
+      >
+        ×
+      </button>
+      <article id="privacy-content" class="privacy-content"></article>
+    </dialog>
+
     <dialog id="about-dialog" class="about-dialog" aria-labelledby="about-title">
       <button type="button" class="about-close" aria-label="__MSG_html_closeAboutSaveIn__">
         ×
@@ -1610,7 +1628,6 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
             <dd>__MSG_html_findsAndSavesResourcesTheUserChoosesOnArbitrary__</dd>
           </dl>
           <div class="about-links">
-            <a href="../../PRIVACY.md" target="_blank">__MSG_html_privacyPolicy__</a>
             <a class="external" href="https://github.com/gyng/save-in/issues"
               >__MSG_html_reportAnIssue__</a
             >

@@ -30,6 +30,7 @@ import { setupOptionSearch } from "../options/option-search.ts";
 import { setupSourceShortcut } from "../options/source-shortcut.ts";
 import "../options/webmcp.ts";
 import { setupAboutDialog } from "../options/about-dialog.ts";
+import { setupPrivacyDialog } from "../options/privacy-dialog.ts";
 import { setupLanguageSelector } from "../options/language-selector.ts";
 
 document.addEventListener(
@@ -47,6 +48,7 @@ document.addEventListener(
     setupTabs({ confirmPendingChanges });
     setupOptionSearch();
     setupSourceShortcut();
+    setupPrivacyDialog();
     setupAboutDialog();
     setupLanguageSelector();
   },
