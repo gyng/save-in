@@ -534,7 +534,7 @@
     "message": "進むボタン(5)"
   },
   "o_cKeyboardShortcutModifierHelp": {
-    "message": "選択した修飾キーを押したまま、選択したマウス ボタンをクリックします。マウス ボタンのみを使用するには、両方のモディファイアに [なし] を選択します。変更は既存のページに適用されます。"
+    "message": "選択した修飾キーを押したまま、選択したマウス ボタンをクリックします。マウス ボタンのみを使用するには、両方の修飾キーに「None」を選択します。変更は既存のページに適用されます。"
   },
   "o_cRestoreDefaults": {
     "message": "デフォルトに戻す"
@@ -1011,7 +1011,7 @@
     "message": "ミリ秒"
   },
   "html_none": {
-    "message": "なし"
+    "message": "None"
   },
   "html_notifyMeWhen": {
     "message": "いつ通知するか"

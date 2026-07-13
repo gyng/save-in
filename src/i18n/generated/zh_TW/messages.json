@@ -534,7 +534,7 @@
     "message": "前進按鈕 (5)"
   },
   "o_cKeyboardShortcutModifierHelp": {
-    "message": "按住選取的修飾鍵，同時點選選取的滑鼠按鈕。為兩個修改器選擇“無”以單獨使用滑鼠按鈕。更改適用於現有頁面。"
+    "message": "按住選取的修飾鍵，同時點選選取的滑鼠按鈕。若只使用滑鼠按鈕，請將兩個修飾鍵都設為「None」。變更會套用至已開啟的頁面。"
   },
   "o_cRestoreDefaults": {
     "message": "恢復預設設定"
@@ -1011,7 +1011,7 @@
     "message": "ms"
   },
   "html_none": {
-    "message": "無"
+    "message": "None"
   },
   "html_notifyMeWhen": {
     "message": "通知時機"

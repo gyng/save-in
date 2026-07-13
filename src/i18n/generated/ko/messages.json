@@ -534,7 +534,7 @@
     "message": "앞으로 버튼(5)"
   },
   "o_cKeyboardShortcutModifierHelp": {
-    "message": "선택한 마우스 버튼을 클릭하는 동안 선택한 보조 키를 누르세요. 마우스 버튼만 사용하려면 두 보조 키를 모두 없음으로 선택합니다. 변경 사항은 이미 열린 페이지에도 적용됩니다."
+    "message": "선택한 마우스 버튼을 클릭하는 동안 선택한 보조 키를 누르세요. 마우스 버튼만 사용하려면 두 보조 키를 모두 None으로 선택합니다. 변경 사항은 이미 열린 페이지에도 적용됩니다."
   },
   "o_cRestoreDefaults": {
     "message": "기본값 복원"
@@ -1011,7 +1011,7 @@
     "message": "ms"
   },
   "html_none": {
-    "message": "없음"
+    "message": "None"
   },
   "html_notifyMeWhen": {
     "message": "언제 알림"

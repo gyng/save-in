@@ -534,7 +534,7 @@
     "message": "Vorwärtstaste (5)"
   },
   "o_cKeyboardShortcutModifierHelp": {
-    "message": "Halten Sie die ausgewählten Zusatztasten gedrückt, während Sie mit der gewählten Maustaste klicken. Wählen Sie „Keine“ für beide Modifikatoren, um nur die Maustaste zu verwenden. Änderungen gelten für bestehende Seiten."
+    "message": "Halten Sie die ausgewählten Zusatztasten gedrückt, während Sie mit der gewählten Maustaste klicken. Wählen Sie „None“ für beide Modifikatoren, um nur die Maustaste zu verwenden. Änderungen gelten für bestehende Seiten."
   },
   "o_cRestoreDefaults": {
     "message": "Standardeinstellungen wiederherstellen"
@@ -1011,7 +1011,7 @@
     "message": "ms"
   },
   "html_none": {
-    "message": "Keine"
+    "message": "None"
   },
   "html_notifyMeWhen": {
     "message": "Benachrichtigen Sie, wann"

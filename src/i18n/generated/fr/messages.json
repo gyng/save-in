@@ -534,7 +534,7 @@
     "message": "Bouton Suivant (5)"
   },
   "o_cKeyboardShortcutModifierHelp": {
-    "message": "Maintenez les touches de modification sélectionnées tout en cliquant sur le bouton de la souris choisi. Choisissez Aucun pour que les deux modificateurs utilisent uniquement le bouton de la souris. Les modifications s'appliquent aux pages existantes."
+    "message": "Maintenez les touches de modification sélectionnées tout en cliquant sur le bouton de la souris choisi. Choisissez None pour que les deux modificateurs utilisent uniquement le bouton de la souris. Les modifications s'appliquent aux pages existantes."
   },
   "o_cRestoreDefaults": {
     "message": "Restaurer les valeurs par défaut"
@@ -1011,7 +1011,7 @@
     "message": "ms"
   },
   "html_none": {
-    "message": "Aucun"
+    "message": "None"
   },
   "html_notifyMeWhen": {
     "message": "Avertir quand"

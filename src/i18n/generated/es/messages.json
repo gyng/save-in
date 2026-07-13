@@ -534,7 +534,7 @@
     "message": "Botón de avance (5)"
   },
   "o_cKeyboardShortcutModifierHelp": {
-    "message": "Mantenga presionadas las teclas modificadoras seleccionadas mientras hace clic en el botón elegido del mouse. Elija Ninguno para que ambos modificadores utilicen solo el botón del mouse. Los cambios se aplican a las páginas existentes."
+    "message": "Mantenga presionadas las teclas modificadoras seleccionadas mientras hace clic en el botón elegido del mouse. Elija None para que ambos modificadores utilicen solo el botón del mouse. Los cambios se aplican a las páginas existentes."
   },
   "o_cRestoreDefaults": {
     "message": "Restaurar valores predeterminados"
@@ -1011,7 +1011,7 @@
     "message": "ms"
   },
   "html_none": {
-    "message": "Ninguno"
+    "message": "None"
   },
   "html_notifyMeWhen": {
     "message": "Notificar cuando"

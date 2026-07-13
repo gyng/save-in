@@ -534,7 +534,7 @@
     "message": "Botão Avançar (5)"
   },
   "o_cKeyboardShortcutModifierHelp": {
-    "message": "Segure as teclas modificadoras selecionadas enquanto clica no botão escolhido do mouse. Escolha Nenhum para ambos os modificadores usarem apenas o botão do mouse. As alterações se aplicam às páginas existentes."
+    "message": "Segure as teclas modificadoras selecionadas enquanto clica no botão escolhido do mouse. Escolha None para ambos os modificadores usarem apenas o botão do mouse. As alterações se aplicam às páginas existentes."
   },
   "o_cRestoreDefaults": {
     "message": "Restaurar padrões"
@@ -1011,7 +1011,7 @@
     "message": "ms"
   },
   "html_none": {
-    "message": "Nenhum"
+    "message": "None"
   },
   "html_notifyMeWhen": {
     "message": "Notificar quando"

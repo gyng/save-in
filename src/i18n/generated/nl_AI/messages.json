@@ -534,7 +534,7 @@
     "message": "Vooruitknop (5)"
   },
   "o_cKeyboardShortcutModifierHelp": {
-    "message": "Houd de geselecteerde modificatietoetsen ingedrukt terwijl u op de gekozen muisknop klikt. Kies Geen voor beide modifiers om alleen de muisknop te gebruiken. Wijzigingen zijn van toepassing op bestaande pagina's."
+    "message": "Houd de geselecteerde modificatietoetsen ingedrukt terwijl u op de gekozen muisknop klikt. Kies None voor beide modifiers om alleen de muisknop te gebruiken. Wijzigingen zijn van toepassing op bestaande pagina's."
   },
   "o_cRestoreDefaults": {
     "message": "Standaardwaarden herstellen"
@@ -1011,7 +1011,7 @@
     "message": "ms"
   },
   "html_none": {
-    "message": "Geen"
+    "message": "None"
   },
   "html_notifyMeWhen": {
     "message": "Laat weten wanneer"

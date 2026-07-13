@@ -211,33 +211,35 @@ test("AI-generated catalogs preserve technical tokens and localized UI terminolo
     "o_cSaveShortcutsTypeWindows",
     "o_cSaveShortcutsTypeFreedesktop",
   ];
-  const keyLabelKeys = [
+  const modifierLabelKeys = [
     "html_altOption",
     "html_command",
     "html_commandWindowsKey",
     "html_ctrl",
     "html_macctrl",
+    "html_none",
     "html_shift",
   ];
   const keyboardTokenKeys = [
     "o_cKeyboardShortcutClickToHelp",
+    "o_cKeyboardShortcutModifierHelp",
     "o_cOpenDialogShift",
     "o_lShortcutFormat",
     "o_lShortcutPrimaryModifier",
     "o_lShortcutValidKey",
     "o_lSourcePanelShortcutHelp",
   ];
-  const keyboardTokenPattern = /\b(?:Alt|Shift|Ctrl|Command|MacCtrl|PageDown)\b/g;
+  const keyboardTokenPattern = /\b(?:Alt|Shift|Ctrl|Command|MacCtrl|None|F12|PageDown)\b/g;
   const protectedTokenPattern =
-    /Save In|WebMCP|WebExtensions?|Content-(?:Disposition|Type)|SHA-256|ISO 8601|JavaScript|HTTP\(S\)|HTTPS?|POST|MIME|UUID|JSON|CSV|TSV|HLS|DASH|API|CSS|UTC|PDF|\bURL(?=s?\b)|Ctrl\+Shift\+Y|Command\+Shift\+Y|\*:\/\/[^\s]+?\/\*|:[A-Za-z0-9$]+:|\$[A-Z0-9_]+\$/g;
+    /Save In|Chrome|Firefox|macOS|Windows|GitHub|MDN|WebMCP|WebExtensions?|Content-(?:Disposition|Type)|Referer|SHA-256|ISO 8601|JavaScript|HTML|HTTP\(S\)|HTTPS?|POST|MIME|UUID|JSON|CSV|TSV|HLS|DASH|API|CSS|UTC|PDF|\bURL(?=s?\b)|Ctrl\+Shift\+Y|Command\+Shift\+Y|\*:\/\/[^\s]+?\/\*|:[A-Za-z0-9$]+:|\$[A-Z0-9_]+\$/g;
 
   for (const { locale } of GENERATED_LOCALES) {
     const catalog = readGeneratedCatalog(locale);
     for (const key of fileFormatKeys) {
       expect(catalog[key]?.message, `${locale}.${key}`).toBe(canonical[key]?.message);
     }
-    for (const key of keyLabelKeys) {
-      expect(catalog[key]?.message, `${locale}.${key} physical key label`).toBe(
+    for (const key of modifierLabelKeys) {
+      expect(catalog[key]?.message, `${locale}.${key} literal modifier label`).toBe(
         canonical[key]?.message,
       );
     }

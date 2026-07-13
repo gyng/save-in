@@ -534,7 +534,7 @@
     "message": "前进按钮 (5)"
   },
   "o_cKeyboardShortcutModifierHelp": {
-    "message": "按住所选修饰键，同时点击所选鼠标按钮。若只使用鼠标按钮，请将两个修饰键都设为“无”。更改会应用到已打开的页面。"
+    "message": "按住所选修饰键，同时点击所选鼠标按钮。若只使用鼠标按钮，请将两个修饰键都设为“None”。更改会应用到已打开的页面。"
   },
   "o_cRestoreDefaults": {
     "message": "恢复默认设置"
@@ -1011,7 +1011,7 @@
     "message": "ms"
   },
   "html_none": {
-    "message": "无"
+    "message": "None"
   },
   "html_notifyMeWhen": {
     "message": "通知时间"
