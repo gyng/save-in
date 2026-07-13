@@ -203,7 +203,7 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
           false,
         );
       });
-      insensitive.append(checkbox, document.createTextNode(" Aa"));
+      insensitive.append(checkbox, document.createTextNode(" /i"));
       row.append(insensitive);
     }
 
@@ -259,7 +259,9 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
     header.className = "visual-editor-card-header rule-editor-card-header";
     const identity = document.createElement("div");
     identity.className = "rule-editor-identity";
-    const title = document.createElement("strong");
+    const title = document.createElement("h4");
+    title.id = `rule-editor-title-${rule.index}`;
+    card.setAttribute("aria-labelledby", title.id);
     title.textContent = localize(
       "routeDebuggerRule",
       `Rule ${rule.index + 1}`,

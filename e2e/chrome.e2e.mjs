@@ -21,6 +21,7 @@ import {
   runSymlinkDestinationScenario,
 } from "./shared-scenarios.mjs";
 import { runTemplateLibraryScenario } from "./template-library-scenario.mjs";
+import { runRoutingVisualEditorScenario } from "./routing-visual-editor-scenario.mjs";
 import { listenLocal, poll } from "./helpers.mjs";
 
 const PROFILE = path.join(chrome.ROOT, "dist", "e2e-profile");
@@ -755,6 +756,10 @@ test("a template added in Options persists and routes a matching download", asyn
     filename: "template-library-chrome",
     content: "chrome template library e2e",
   });
+});
+
+test("visual routing edits persist and connect to the debugger", async () => {
+  await runRoutingVisualEditorScenario({ evaluate: evalSW, evaluateOptions: evalOptions });
 });
 
 test(":counter: advances once per download and persists in storage", async () => {

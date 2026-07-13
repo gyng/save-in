@@ -20,6 +20,7 @@ import {
   runSymlinkDestinationScenario,
 } from "./shared-scenarios.mjs";
 import { runTemplateLibraryScenario } from "./template-library-scenario.mjs";
+import { runRoutingVisualEditorScenario } from "./routing-visual-editor-scenario.mjs";
 import { closeLocal, listenLocal, poll } from "./helpers.mjs";
 
 /** @type {Awaited<ReturnType<typeof firefox.launch>>} */
@@ -452,6 +453,13 @@ test("a template added in Options persists and routes a matching download", asyn
     waitForDownloads,
     filename: "template-library-firefox",
     content: "firefox template library e2e",
+  });
+});
+
+test("visual routing edits persist and connect to the debugger", async () => {
+  await runRoutingVisualEditorScenario({
+    evaluate: evalBackground,
+    evaluateOptions: (expression) => session.evaluateInTab("src/options/options.html", expression),
   });
 });
 

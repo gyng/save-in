@@ -2505,6 +2505,31 @@ summary {
   white-space: nowrap;
 }
 
+.rule-editor-enabled-label {
+  min-height: 26px;
+  box-sizing: border-box;
+  padding: 3px 8px;
+  border: 1px solid var(--panel-border);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--panel-bg) 68%, var(--page-bg));
+  transition:
+    border-color 120ms ease,
+    background-color 120ms ease,
+    color 120ms ease;
+}
+
+.rule-editor-enabled-label:has(input:checked) {
+  color: var(--color-text);
+  border-color: color-mix(in srgb, var(--blue50) 42%, var(--panel-border));
+  background: color-mix(in srgb, var(--blue50) 9%, var(--page-bg));
+}
+
+.rule-editor-enabled-label:hover,
+.rule-editor-enabled-label:focus-within {
+  color: var(--color-text);
+  border-color: color-mix(in srgb, var(--blue50) 58%, var(--panel-border));
+}
+
 .rule-editor-card.is-disabled .rule-editor-card-body,
 .path-editor-row.is-disabled > :not(.visual-editor-enabled) {
   opacity: 0.55;
@@ -2513,12 +2538,14 @@ summary {
 .rule-editor-identity {
   display: flex;
   align-items: baseline;
+  flex: 1 1 auto;
   min-width: 0;
   gap: var(--space-2);
 }
 
-.rule-editor-identity strong {
+.rule-editor-identity h4 {
   flex: none;
+  margin: 0;
   font-size: var(--text-md);
 }
 
@@ -2536,10 +2563,26 @@ summary {
 }
 
 .rule-editor-card-actions .visual-editor-control {
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   padding: 0;
+  color: var(--color-text-muted);
+  border-color: transparent;
+  background: transparent;
   font-size: 14px;
+}
+
+.rule-editor-card-actions {
+  flex: none;
+  padding-left: var(--space-1);
+  border-left: 1px solid var(--panel-border);
+}
+
+.rule-editor-card-actions .visual-editor-control:hover:not(:disabled),
+.rule-editor-card-actions .visual-editor-control:focus-visible {
+  color: var(--color-text);
+  border-color: var(--panel-border);
+  background: var(--hover-bg);
 }
 
 .rule-clause-row {
@@ -2553,14 +2596,20 @@ summary {
 }
 
 .rule-clause-row:hover,
-.rule-clause-row.is-active {
+.rule-clause-row.is-active,
+.rule-clause-row:focus-within {
   background: var(--hover-bg);
+}
+
+.rule-clause-row:focus-within {
+  box-shadow: inset 2px 0 color-mix(in srgb, var(--blue50) 72%, transparent);
 }
 
 .rule-clause-destination {
   margin-top: var(--space-1);
   border-top: 1px dashed var(--panel-border);
   border-radius: 0 0 var(--radius) var(--radius);
+  background: color-mix(in srgb, var(--syntax-variable) 3%, transparent);
   grid-template-columns: 30px minmax(112px, 0.38fr) minmax(150px, 1fr);
 }
 
@@ -3206,7 +3255,29 @@ summary {
   }
 }
 
+@media (max-width: 520px) {
+  .rule-editor-card-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .rule-editor-card-actions {
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+    width: 100%;
+    box-sizing: border-box;
+    padding-top: var(--space-1);
+    padding-left: 0;
+    border-top: 1px solid var(--panel-border);
+    border-left: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .rule-editor-enabled-label {
+    transition: none;
+  }
+
   .route-debugger-result[data-busy="true"]::before {
     animation: none;
     width: 100%;
