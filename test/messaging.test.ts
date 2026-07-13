@@ -34,6 +34,8 @@ const Variable = await import("../src/routing/variable.ts");
 const { Path } = await import("../src/routing/path.ts");
 const { setCurrentTab } = await import("../src/platform/current-tab.ts");
 const { backgroundRuntime } = await import("../src/background/runtime.ts");
+const { SaveHistory } = await import("../src/background/history.ts");
+const SourcePanelState = await import("../src/background/source-panel-state.ts");
 
 // Import-time side effects are deferred (Task #2): messaging.ts no longer
 // registers its runtime listeners at load — the entry does, so call it here to
@@ -96,6 +98,10 @@ const setupGlobals = () => {
     path: "routed/dir",
     captures: null,
   } as any);
+  vi.spyOn(SaveHistory, "get").mockResolvedValue([]);
+  vi.spyOn(SaveHistory, "clear").mockResolvedValue();
+  vi.spyOn(SourcePanelState, "syncSourcePanelToTab").mockResolvedValue();
+  vi.spyOn(SourcePanelState, "setSourcePanelOpenState").mockResolvedValue();
 
   backgroundRuntime.reset = vi.fn();
   backgroundRuntime.ready = undefined;
@@ -133,10 +139,66 @@ describe("onMessage", () => {
     expect(sendResponse).toHaveBeenCalledWith({ type: MESSAGE_TYPES.OK });
   });
 
-  test("OPTIONS_LOADED resets the background page and responds OK", () => {
+  test("HISTORY_GET returns normalized history from its background owner", async () => {
+    vi.mocked(SaveHistory.get).mockResolvedValue([{ id: "h1", url: "https://x.test/a" }]);
     const sendResponse = vi.fn();
-    onMessage({ type: MESSAGE_TYPES.OPTIONS_LOADED }, {}, sendResponse);
+
+    expect(onMessage({ type: MESSAGE_TYPES.HISTORY_GET }, {}, sendResponse)).toBe(true);
+    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.HISTORY_GET,
+      body: { entries: [{ id: "h1", url: "https://x.test/a" }] },
+    });
+  });
+
+  test("HISTORY_CLEAR waits for the serialized background clear", async () => {
+    const sendResponse = vi.fn();
+    expect(onMessage({ type: MESSAGE_TYPES.HISTORY_CLEAR }, {}, sendResponse)).toBe(true);
+    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    expect(SaveHistory.clear).toHaveBeenCalledOnce();
+    expect(sendResponse).toHaveBeenCalledWith({ type: MESSAGE_TYPES.OK });
+  });
+
+  test("SOURCE_PANEL_READY synchronizes state after the content listener exists", async () => {
+    const sendResponse = vi.fn();
+    expect(
+      onMessage({ type: MESSAGE_TYPES.SOURCE_PANEL_READY }, { tab: { id: 12 } }, sendResponse),
+    ).toBe(true);
+    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    expect(SourcePanelState.syncSourcePanelToTab).toHaveBeenCalledWith(12);
+    expect(sendResponse).toHaveBeenCalledWith({ type: MESSAGE_TYPES.OK });
+  });
+
+  test("SOURCE_PANEL_STATE persists content-script close state", async () => {
+    const sendResponse = vi.fn();
+    expect(
+      onMessage(
+        { type: MESSAGE_TYPES.SOURCE_PANEL_STATE, body: { open: false } },
+        {},
+        sendResponse,
+      ),
+    ).toBe(true);
+    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    expect(SourcePanelState.setSourcePanelOpenState).toHaveBeenCalledWith(false);
+    expect(sendResponse).toHaveBeenCalledWith({ type: MESSAGE_TYPES.OK });
+  });
+
+  test("OPTIONS_LOADED responds only after the background reset completes", async () => {
+    let finishReset!: () => void;
+    backgroundRuntime.reset = vi.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          finishReset = resolve;
+        }),
+    );
+    const sendResponse = vi.fn();
+    expect(onMessage({ type: MESSAGE_TYPES.OPTIONS_LOADED }, {}, sendResponse)).toBe(true);
     expect(backgroundRuntime.reset).toHaveBeenCalledTimes(1);
+    expect(sendResponse).not.toHaveBeenCalled();
+
+    finishReset();
+    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
     expect(sendResponse).toHaveBeenCalledWith({ type: MESSAGE_TYPES.OK });
   });
 

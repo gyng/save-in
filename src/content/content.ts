@@ -31,6 +31,19 @@ const CONTENT_OPTION_KEYS = [
   "sourcePanelLinks",
 ] as const;
 
+const CONTENT_OPTION_DEFAULTS: Required<ContentOptions> = {
+  contentClickToSave: false,
+  contentClickToSaveCombo: "Alt",
+  contentClickToSaveButton: "LEFT_CLICK",
+  links: true,
+  sourcePanelEnabled: false,
+  sourcePanelBackgrounds: true,
+  sourcePanelLive: true,
+  sourcePanelPreviews: true,
+  sourcePanelResourceHints: true,
+  sourcePanelLinks: true,
+};
+
 const ClickToSave = {
   isKeyboardComboActive: (combo: number[], activeKeys: Record<number, boolean>) =>
     combo.map((code) => activeKeys[code]).every((code) => code === true),
@@ -241,8 +254,21 @@ const setupClickToSave = (options: ContentOptions) => {
 
 ClickToSave.setupClickToSave = setupClickToSave;
 
-let currentOptions: ContentOptions = {};
+let currentOptions: ContentOptions = { ...CONTENT_OPTION_DEFAULTS };
 let removeClickToSave: (() => void) | null = null;
+let receivedInitialOptions = false;
+let sourcePanelListenerReady = false;
+let announcedSourcePanelReady = false;
+
+const announceSourcePanelReady = () => {
+  if (!receivedInitialOptions || !sourcePanelListenerReady || announcedSourcePanelReady) return;
+  announcedSourcePanelReady = true;
+  try {
+    chrome.runtime.sendMessage({ type: "SOURCE_PANEL_READY" }, () => chrome.runtime.lastError);
+  } catch {
+    // Extension context invalidated while the page remained alive.
+  }
+};
 
 const applyOptions = (next: ContentOptions) => {
   currentOptions = { ...currentOptions, ...next };
@@ -253,11 +279,14 @@ const applyOptions = (next: ContentOptions) => {
 try {
   let receivedStorageChange = false;
   chrome.runtime.sendMessage({ type: "OPTIONS" }, (response) => {
+    receivedInitialOptions = true;
     if (receivedStorageChange || !response || !response.body) {
+      announceSourcePanelReady();
       return;
     }
 
     applyOptions(response.body);
+    announceSourcePanelReady();
   });
 
   // Existing tabs outlive option-page changes and extension worker restarts.
@@ -270,12 +299,17 @@ try {
     const changed: ContentOptions = {};
     CONTENT_OPTION_KEYS.forEach((key) => {
       if (key in changes) {
-        changed[key] = changes[key].newValue as never;
+        const value = changes[key].newValue;
+        changed[key] = (
+          typeof value === "undefined" ? CONTENT_OPTION_DEFAULTS[key] : value
+        ) as never;
       }
     });
     if (Object.keys(changed).length > 0) {
       receivedStorageChange = true;
+      receivedInitialOptions = true;
       applyOptions(changed);
+      announceSourcePanelReady();
     }
   });
 } catch (e) {
@@ -292,14 +326,21 @@ try {
       });
     };
     const panelOptions = {
-      enabled: currentOptions.sourcePanelEnabled !== false,
+      enabled: currentOptions.sourcePanelEnabled === true,
       includeBackgrounds: currentOptions.sourcePanelBackgrounds !== false,
       live: currentOptions.sourcePanelLive !== false,
       previews: currentOptions.sourcePanelPreviews !== false,
       resourceHints: currentOptions.sourcePanelResourceHints !== false,
       includeLinks: currentOptions.sourcePanelLinks !== false,
       onOpenChange: (open: boolean) => {
-        void chrome.storage?.session?.set({ sourcePanelOpen: open });
+        try {
+          chrome.runtime.sendMessage(
+            { type: "SOURCE_PANEL_STATE", body: { open } },
+            () => chrome.runtime.lastError,
+          );
+        } catch {
+          // Extension context invalidated while the page remained alive.
+        }
       },
     };
     if (message.type === "SET_SOURCE_PANEL") {
@@ -308,6 +349,11 @@ try {
       toggleSourcePanel(sendDownload, panelOptions);
     }
   });
+  // Unlike timer retries in the service worker, this handshake is emitted
+  // only after the receiving listener exists and reliably restores an open
+  // panel after navigation or an extension worker restart.
+  sourcePanelListenerReady = true;
+  announceSourcePanelReady();
 } catch {
   // Extension context invalidated.
 }

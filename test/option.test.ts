@@ -103,6 +103,26 @@ describe("OptionsManagement", () => {
       const resolved = await OptionsManagement.loadOptions();
       expect(resolved.sourcePanelEnabled).toBe(true);
     });
+
+    test("restores defaults when previously stored keys are removed", async () => {
+      global.browser.storage.local.get = vi
+        .fn()
+        .mockResolvedValueOnce({
+          prompt: true,
+          links: false,
+          sourcePanelEnabled: true,
+          notifyDuration: 1200,
+        })
+        .mockResolvedValueOnce({});
+
+      await OptionsManagement.loadOptions();
+      const resolved = await OptionsManagement.loadOptions();
+
+      expect(resolved.prompt).toBe(false);
+      expect(resolved.links).toBe(true);
+      expect(resolved.sourcePanelEnabled).toBe(false);
+      expect(resolved.notifyDuration).toBe(7000);
+    });
   });
 
   describe("conflictAction validation (#89/#217)", () => {
@@ -181,15 +201,15 @@ describe("OptionsManagement", () => {
   describe("setOption", () => {
     test("sets the option when a value is provided", async () => {
       OptionsManagement.setOption("conflictAction", "overwrite");
-      const resolved = await OptionsManagement.loadOptions();
-      expect(resolved.conflictAction).toBe("overwrite");
+      const { options } = await import("../src/config/options-data.ts");
+      expect(options.conflictAction).toBe("overwrite");
     });
 
     test("leaves the option untouched when the value is undefined", async () => {
       OptionsManagement.setOption("conflictAction", "overwrite");
       OptionsManagement.setOption("conflictAction", undefined);
-      const resolved = await OptionsManagement.loadOptions();
-      expect(resolved.conflictAction).toBe("overwrite");
+      const { options } = await import("../src/config/options-data.ts");
+      expect(options.conflictAction).toBe("overwrite");
     });
   });
 

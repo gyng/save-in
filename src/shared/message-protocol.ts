@@ -23,6 +23,10 @@ export type DownloadRequestBody = {
 
 export type InternalMessage =
   | Message<typeof MESSAGE_TYPES.WAKE_WARM>
+  | Message<typeof MESSAGE_TYPES.SOURCE_PANEL_READY>
+  | Message<typeof MESSAGE_TYPES.SOURCE_PANEL_STATE, { open?: boolean }>
+  | Message<typeof MESSAGE_TYPES.HISTORY_GET>
+  | Message<typeof MESSAGE_TYPES.HISTORY_CLEAR>
   | Message<typeof MESSAGE_TYPES.OPTIONS_LOADED>
   | Message<typeof MESSAGE_TYPES.OPTIONS>
   | Message<typeof MESSAGE_TYPES.OPTIONS_SCHEMA>
@@ -60,6 +64,10 @@ export type MessageOf<
 
 export const INTERNAL_MESSAGE_TYPES = new Set<InternalMessage["type"]>([
   MESSAGE_TYPES.WAKE_WARM,
+  MESSAGE_TYPES.SOURCE_PANEL_READY,
+  MESSAGE_TYPES.SOURCE_PANEL_STATE,
+  MESSAGE_TYPES.HISTORY_GET,
+  MESSAGE_TYPES.HISTORY_CLEAR,
   MESSAGE_TYPES.OPTIONS_LOADED,
   MESSAGE_TYPES.OPTIONS,
   MESSAGE_TYPES.OPTIONS_SCHEMA,
@@ -168,7 +176,15 @@ const isMessageBodyValid = (message: Record<string, unknown>): boolean => {
       );
     case MESSAGE_TYPES.DOWNLOAD:
       return hasOptionalBody(message, isDownloadBody);
+    case MESSAGE_TYPES.SOURCE_PANEL_STATE:
+      return hasOptionalBody(
+        message,
+        (body) => isStringKeyedRecord(body) && typeof body.open === "boolean",
+      );
     case MESSAGE_TYPES.WAKE_WARM:
+    case MESSAGE_TYPES.SOURCE_PANEL_READY:
+    case MESSAGE_TYPES.HISTORY_GET:
+    case MESSAGE_TYPES.HISTORY_CLEAR:
     case MESSAGE_TYPES.OPTIONS_LOADED:
     case MESSAGE_TYPES.OPTIONS:
     case MESSAGE_TYPES.OPTIONS_SCHEMA:

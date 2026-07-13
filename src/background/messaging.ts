@@ -26,9 +26,11 @@ import {
 } from "../shared/message-protocol.ts";
 import { respondAsync, type SendResponse } from "./message-dispatch.ts";
 import { Log } from "./log.ts";
+import { SaveHistory } from "./history.ts";
 import { applyConfigSerialized } from "./config-apply.ts";
 import { configWriteState } from "./state.ts";
 import { getPersistenceDiagnostics } from "../shared/persistence-diagnostics.ts";
+import { syncSourcePanelToTab, setSourcePanelOpenState } from "./source-panel-state.ts";
 
 type MessageSender = browser.runtime.MessageSender;
 type ProtocolSendResponse = SendResponse;
@@ -346,8 +348,26 @@ const internalHandlers = {
     // Sent by content scripts on combo keydown purely to wake the MV3 worker.
     sendResponse({ type: MESSAGE_TYPES.OK });
   },
-  [MESSAGE_TYPES.OPTIONS_LOADED]: (_request, _sender, sendResponse) => {
-    backgroundRuntime.reset();
+  [MESSAGE_TYPES.SOURCE_PANEL_READY]: async (_request, sender, sendResponse) => {
+    if (sender.tab?.id != null) await syncSourcePanelToTab(sender.tab.id);
+    sendResponse({ type: MESSAGE_TYPES.OK });
+  },
+  [MESSAGE_TYPES.SOURCE_PANEL_STATE]: async (request, _sender, sendResponse) => {
+    await setSourcePanelOpenState(Boolean(request.body?.open));
+    sendResponse({ type: MESSAGE_TYPES.OK });
+  },
+  [MESSAGE_TYPES.HISTORY_GET]: async (_request, _sender, sendResponse) => {
+    sendResponse({
+      type: MESSAGE_TYPES.HISTORY_GET,
+      body: { entries: await SaveHistory.get() },
+    });
+  },
+  [MESSAGE_TYPES.HISTORY_CLEAR]: async (_request, _sender, sendResponse) => {
+    await SaveHistory.clear();
+    sendResponse({ type: MESSAGE_TYPES.OK });
+  },
+  [MESSAGE_TYPES.OPTIONS_LOADED]: async (_request, _sender, sendResponse) => {
+    await backgroundRuntime.reset();
     sendResponse({ type: MESSAGE_TYPES.OK });
   },
   [MESSAGE_TYPES.OPTIONS]: (_request, _sender, sendResponse) => {

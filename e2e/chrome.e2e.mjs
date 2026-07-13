@@ -593,6 +593,30 @@ test("options page autosave persists to storage and survives a restart", async (
   }
 });
 
+test("removing option keys restores live defaults before reset acknowledgement", async () => {
+  try {
+    await evalSW(`browser.storage.local.set({ promptOnShift: false })
+      .then(() => api.reset())
+      .then(() => JSON.stringify(api.getOption("promptOnShift")))`);
+
+    const result = JSON.parse(
+      await evalOptions(`(async () => {
+        await chrome.storage.local.remove("promptOnShift");
+        const response = await chrome.runtime.sendMessage({ type: "OPTIONS_LOADED" });
+        return JSON.stringify({ response, stored: await chrome.storage.local.get("promptOnShift") });
+      })()`),
+    );
+
+    expect(result.response).toEqual({ type: "OK" });
+    expect(result.stored).toEqual({});
+    expect(JSON.parse(await evalSW(`JSON.stringify(api.getOption("promptOnShift"))`))).toBe(true);
+  } finally {
+    await evalSW(`browser.storage.local.set({ promptOnShift: true })
+      .then(() => api.reset())
+      .then(() => "restored")`);
+  }
+});
+
 test("shortcut files download with redirect content", async () => {
   await evalSW(`api.startDownload({
       shortcutUrl: "https://example.com/target",

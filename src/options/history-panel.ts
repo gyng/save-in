@@ -27,7 +27,7 @@ import {
   statusLabel,
 } from "./history-view.ts";
 import { renderHistoryFeedback } from "./history-feedback.ts";
-import { HISTORY_STORAGE_KEY } from "../shared/storage-keys.ts";
+import { MESSAGE_TYPES } from "../shared/constants.ts";
 
 export type HistoryPanelState = {
   entries: HistoryEntry[];
@@ -476,8 +476,10 @@ const renderHistoryTable = () => {
 
 export const renderHistory = async () => {
   try {
-    const stored = (await webExtensionApi.storage.local.get(HISTORY_STORAGE_KEY)) ?? {};
-    historyState.entries = ((stored[HISTORY_STORAGE_KEY] || []) as HistoryEntry[]).toReversed(); // newest first
+    const response = await webExtensionApi.runtime.sendMessage({ type: MESSAGE_TYPES.HISTORY_GET });
+    const entries = response?.body?.entries;
+    if (!Array.isArray(entries)) throw new Error("Invalid history response");
+    historyState.entries = (entries as HistoryEntry[]).toReversed(); // newest first
     renderHistoryFeedback(historyFeedback());
     renderHistoryTable();
   } catch {
@@ -614,7 +616,10 @@ const removeHistory = async () => {
   if (clearButton) clearButton.disabled = true;
   renderHistoryFeedback(historyFeedback(), { message: "Clearing history…" });
   try {
-    await webExtensionApi.storage.local.remove(HISTORY_STORAGE_KEY);
+    const response = await webExtensionApi.runtime.sendMessage({
+      type: MESSAGE_TYPES.HISTORY_CLEAR,
+    });
+    if (response?.type !== MESSAGE_TYPES.OK) throw new Error("History clear failed");
     await renderHistory();
   } catch {
     renderHistoryFeedback(historyFeedback(), {

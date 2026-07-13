@@ -26,18 +26,16 @@ const write = async (open: boolean) => {
 };
 
 const send = async (tabId: number, open: boolean) => {
-  for (let attempt = 0; attempt < 3; attempt += 1) {
-    try {
-      await webExtensionApi.tabs.sendMessage(tabId, { type: "SET_SOURCE_PANEL", body: { open } });
-      return;
-    } catch {
-      if (attempt < 2) {
-        // New tabs can activate and report complete just before their content
-        // script accepts messages. Restricted pages exhaust the short retry.
-        await new Promise((resolve) => setTimeout(resolve, 100 * (attempt + 1)));
-      }
-    }
+  try {
+    await webExtensionApi.tabs.sendMessage(tabId, { type: "SET_SOURCE_PANEL", body: { open } });
+  } catch {
+    // Restricted pages and tabs without the content script cannot host the drawer.
   }
+};
+
+export const setSourcePanelOpenState = (open: boolean): Promise<void> => {
+  queue = queue.then(() => write(open));
+  return queue;
 };
 
 export const toggleSourcePanelForTab = (tabId: number): Promise<void> => {

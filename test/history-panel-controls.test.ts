@@ -1,8 +1,15 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
+const historyRuntime = vi.hoisted(() => ({
+  sendMessage: vi.fn(async (message: { type: string }) =>
+    message.type === "HISTORY_GET" ? { body: { entries: [] } } : { type: "OK" },
+  ),
+}));
+
 vi.mock("../src/platform/web-extension-api.ts", () => ({
   webExtensionApi: {
-    storage: { local: { get: vi.fn(async () => ({ "save-in-history": [] })), remove: vi.fn() } },
+    runtime: historyRuntime,
+    storage: { local: { get: vi.fn(), remove: vi.fn() } },
     downloads: {},
   },
 }));
@@ -32,6 +39,7 @@ const markup = () => `
 describe("history filter controls", () => {
   beforeEach(async () => {
     vi.resetModules();
+    historyRuntime.sendMessage.mockClear();
     localStorage.clear();
     document.body.innerHTML = markup();
     await import("../src/options/history-panel.ts");
@@ -114,6 +122,16 @@ describe("history filter controls", () => {
     expect(document.querySelectorAll("#history-list th").length).toBeGreaterThan(0);
     expect(document.querySelector("#history-list .history-empty-row")?.textContent).toContain(
       "No downloads saved yet",
+    );
+    expect(historyRuntime.sendMessage).toHaveBeenCalledWith({ type: "HISTORY_GET" });
+  });
+
+  test("clears history through the serialized background owner", async () => {
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+    document.querySelector<HTMLButtonElement>("#history-clear")!.click();
+
+    await vi.waitFor(() =>
+      expect(historyRuntime.sendMessage).toHaveBeenCalledWith({ type: "HISTORY_CLEAR" }),
     );
   });
 });

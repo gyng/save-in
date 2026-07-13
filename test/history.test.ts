@@ -24,6 +24,10 @@ describe("SaveHistory", () => {
       Object.assign(store, obj);
       return Promise.resolve();
     });
+    global.browser.storage.local.remove = jest.fn((key: string) => {
+      delete store[key];
+      return Promise.resolve();
+    });
   });
 
   test("accumulates entries across saves (#history-key bug regression)", async () => {
@@ -141,6 +145,15 @@ describe("SaveHistory", () => {
 
   test("get returns an empty list when nothing saved", async () => {
     await expect(SaveHistory.get()).resolves.toEqual([]);
+  });
+
+  test("clear is serialized after already queued writes", async () => {
+    SaveHistory.add({ url: "https://a/queued" });
+
+    await SaveHistory.clear();
+
+    expect(store[HISTORY_KEY]).toBeUndefined();
+    expect(global.browser.storage.local.remove).toHaveBeenCalledWith(HISTORY_KEY);
   });
 
   test("caps history length at SaveHistory.LIMIT", async () => {

@@ -14,7 +14,10 @@ import {
 // does not grow without bound
 const HISTORY_LIMIT = 10000;
 
-const recordHistoryFailure = (operation: "read" | "write" | "migrate", error: unknown): void => {
+const recordHistoryFailure = (
+  operation: "read" | "write" | "remove" | "migrate",
+  error: unknown,
+): void => {
   recordPersistenceFailure({ area: "local", operation, key: HISTORY_STORAGE_KEY }, error);
 };
 
@@ -93,6 +96,9 @@ export const SaveHistory = {
     SaveHistory.patch(id, { downloadId }),
 
   get: async (): Promise<HistoryEntry[]> => {
+    // Reads requested by the options page must observe every write that was
+    // already accepted when the request arrived.
+    await SaveHistory.writeQueue;
     let current: Record<string, unknown>;
     try {
       current = ((await webExtensionApi.storage.local.get(HISTORY_STORAGE_KEY)) || {}) as Record<
@@ -119,5 +125,13 @@ export const SaveHistory = {
       await SaveHistory.writeQueue;
     }
     return history;
+  },
+
+  clear: (): Promise<void> => {
+    const task = SaveHistory.writeQueue
+      .catch(() => {})
+      .then(() => webExtensionApi.storage.local.remove(HISTORY_STORAGE_KEY));
+    SaveHistory.writeQueue = task.catch((error) => recordHistoryFailure("remove", error));
+    return task;
   },
 };

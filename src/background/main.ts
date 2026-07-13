@@ -142,9 +142,12 @@ export const start = () => {
     await syncSourcePanelToTab(info.tabId);
   });
 
-  webExtensionApi.tabs.onUpdated.addListener(async (tabId, changeInfo) => {
+  webExtensionApi.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     if (!currentTab) {
-      setCurrentTab(await webExtensionApi.tabs.get(tabId));
+      const candidate = tab || (await webExtensionApi.tabs.get(tabId));
+      // A background tab can update before the startup active-tab query
+      // resolves. It must not become the global fallback for unrelated saves.
+      if (candidate.active !== false) setCurrentTab(candidate);
     } else if (currentTab.id === tabId && changeInfo.title) {
       // Mutating a property of the shared tab object (not reassigning the binding)
       currentTab.title = changeInfo.title;

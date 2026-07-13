@@ -172,16 +172,15 @@ export const OptionsManagement: OptionsManagementApi = {
   loadOptions: () =>
     webExtensionApi.storage.local.get(OptionsManagement.getKeys()).then((loadedOptions) => {
       loadedOptions = loadedOptions && typeof loadedOptions === "object" ? loadedOptions : {};
-      backgroundRuntime.debug = loadedOptions.debug === true;
+      const nextOptions = {} as SaveInOptions;
 
-      const localKeys = Object.keys(loadedOptions);
-      localKeys.forEach((k) => {
-        const optionType = OptionsManagement.OPTION_KEYS.find((option) => option.name === k);
-        if (!optionType) {
-          // A key from a removed option (or foreign storage) must not break load
+      OptionsManagement.OPTION_KEYS.forEach((optionType) => {
+        const k = optionType.name;
+        const stored = loadedOptions[k];
+        if (typeof stored === "undefined") {
+          nextOptions[k] = optionType.default as never;
           return;
         }
-        const stored = loadedOptions[k];
         const validate =
           "validate" in optionType
             ? (optionType.validate as (value: unknown) => boolean)
@@ -196,19 +195,27 @@ export const OptionsManagement: OptionsManagementApi = {
           (typeof stored === "number" && !Number.isFinite(stored)) ||
           (validate && !validate(stored))
         ) {
-          OptionsManagement.setOption(optionType.name, optionType.default);
+          nextOptions[k] = optionType.default as never;
           return;
         }
         const fn: (value: any) => any =
           "onLoad" in optionType ? (optionType.onLoad as (value: any) => any) : (value) => value;
         try {
-          OptionsManagement.setOption(optionType.name, fn(stored));
+          nextOptions[k] = fn(stored) as never;
         } catch {
           // Profiles and imported settings can outlive their parser/migration.
           // One corrupt option must not prevent the background page from starting.
-          OptionsManagement.setOption(optionType.name, optionType.default);
+          nextOptions[k] = optionType.default as never;
         }
       });
+
+      // Commit a complete snapshot only after every stored value has been
+      // normalized. Keys removed by reset therefore return to their defaults,
+      // and readers never observe a half-reloaded options bag.
+      const mutableOptions = options as unknown as Record<string, unknown>;
+      Object.keys(mutableOptions).forEach((key) => delete mutableOptions[key]);
+      Object.assign(mutableOptions, nextOptions);
+      backgroundRuntime.debug = nextOptions.debug;
 
       return options;
     }),

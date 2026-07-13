@@ -157,6 +157,39 @@ describe("content.js initialisation", () => {
     expect(global.chrome.runtime.onMessage.addListener).toHaveBeenCalledOnce();
   });
 
+  test("announces source-panel readiness after its message listener is installed", async () => {
+    await importContentWithOptions({ sourcePanelEnabled: false });
+
+    expect(global.chrome.runtime.sendMessage).toHaveBeenCalledWith(
+      { type: "SOURCE_PANEL_READY" },
+      expect.any(Function),
+    );
+  });
+
+  test("restores content option defaults when storage keys are removed", async () => {
+    vi.resetModules();
+    document.getElementById("save-in-source-panel")?.remove();
+    let storageListener: ((changes: Record<string, any>, area: string) => void) | undefined;
+    let runtimeListener: ((message: any) => void) | undefined;
+    global.chrome.runtime.sendMessage = vi.fn((_message, callback) =>
+      callback?.({ body: { sourcePanelEnabled: true } }),
+    ) as any;
+    global.chrome.runtime.onMessage.addListener = vi.fn((listener) => {
+      runtimeListener = listener;
+    });
+    (global.chrome.storage as any).onChanged = {
+      addListener: vi.fn((listener) => {
+        storageListener = listener;
+      }),
+    };
+    await import("../src/content/content.ts");
+
+    storageListener!({ sourcePanelEnabled: { oldValue: true, newValue: undefined } }, "local");
+    runtimeListener!({ type: "SET_SOURCE_PANEL", body: { open: true } });
+
+    expect(document.getElementById("save-in-source-panel")).toBeNull();
+  });
+
   test("wires up click-to-save when the option is enabled", async () => {
     // Distinct combo/button so this stray listener set stays inert during
     // the setupClickToSave tests below

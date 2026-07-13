@@ -400,4 +400,29 @@ describe("current tab tracking", () => {
 
     expect(sourcePanelMocks.sync).toHaveBeenCalledWith(3);
   });
+
+  test("an inactive tab update cannot win the cold-start active-tab race", async () => {
+    let resolveQuery: (tabs: CurrentTab[]) => void = () => {
+      throw new Error("tab query resolver was not captured");
+    };
+    await setupGlobals();
+    (global.browser.tabs as any).query = vi.fn(
+      () =>
+        new Promise((resolve) => {
+          resolveQuery = resolve;
+        }),
+    );
+    await importIndex();
+
+    const [[onUpdated]] = vi.mocked(global.browser.tabs.onUpdated.addListener).mock.calls;
+    await (onUpdated as any)(7, { title: "Background tab" }, { id: 7, active: false });
+    expect(global.browser.tabs.get).not.toHaveBeenCalled();
+
+    const activeTab = { id: 3, title: "Active tab" };
+    resolveQuery([activeTab]);
+    await Runtime.ready;
+
+    await (onUpdated as any)(3, { title: "Updated active title" }, activeTab);
+    expect(activeTab.title).toBe("Updated active title");
+  });
 });
