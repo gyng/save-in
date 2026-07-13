@@ -304,10 +304,6 @@
     "message": "Context menu access keys"
   },
 
-  "o_sClickToSave": {
-    "message": "Click-to-save gesture"
-  },
-
   "o_sMoreOptions": {
     "message": "Advanced"
   },
@@ -383,14 +379,6 @@
     "message": "Search options"
   },
 
-  "o_cClearHistory": {
-    "message": "Clear history"
-  },
-
-  "o_lHistoryRaw": {
-    "message": "Raw JSON (for import/debugging)"
-  },
-
   "o_lVariableList": {
     "message": "Variable List",
     "description": "l prefixes are for labels"
@@ -418,44 +406,8 @@
     "message": "Separator"
   },
 
-  "o_lInsertMenu": {
-    "message": "+ Add"
-  },
-
-  "o_lInsertVariable": {
-    "message": "+ Variable"
-  },
-
-  "o_lInsertVariableClause": {
-    "message": "+ Variable / clause"
-  },
-
   "o_lClauses": {
     "message": "Clauses"
-  },
-
-  "o_bInsertSeparator": {
-    "message": "Separator"
-  },
-
-  "o_bInsertSubmenuItem": {
-    "message": "Submenu item"
-  },
-
-  "o_bInsertInto": {
-    "message": "into: (destination)"
-  },
-
-  "o_bInsertCapture": {
-    "message": "capture: (matcher)"
-  },
-
-  "o_lInsertVariables": {
-    "message": "Variables (inserted at the cursor)"
-  },
-
-  "o_lInsertFilter": {
-    "message": "Type to filter, Enter to insert"
   },
 
   "o_lEditorModeText": {
@@ -496,22 +448,6 @@
     "message": "Help & resources"
   },
 
-  "o_lGuideCreateMenuItems": {
-    "message": "Guide: Create menu items"
-  },
-
-  "o_lGuideSymlink": {
-    "message": "Guide: Save outside the default downloads directory"
-  },
-
-  "o_lGuideRouting": {
-    "message": "Guide: Rename and route downloads"
-  },
-
-  "o_lDirectoryInstructionSymlink": {
-    "message": "A symlink is needed to save outside the default download directory."
-  },
-
   "o_lRoutingLastDownload": {
     "message": "Last download"
   },
@@ -538,10 +474,6 @@
 
   "o_lRoutingVariablesClickToSee": {
     "message": "Click to reveal"
-  },
-
-  "o_lRoutingTemplates": {
-    "message": "Templates"
   },
 
   "o_lAccessKeysInstruction": {
@@ -637,14 +569,6 @@
     "message": "Show notification on a rule match"
   },
 
-  "o_cNotifyCloseAfter": {
-    "message": "Close notifications early after"
-  },
-
-  "o_cNotifyCloseAfterHelp": {
-    "message": "1s = 1000ms. Will not extend beyond OS/browser notification duration."
-  },
-
   "o_cSaveShortcutsAs": {
     "message": "Save shortcuts as"
   },
@@ -711,10 +635,6 @@
 
   "o_cHostPermissionGrant": {
     "message": "Grant access"
-  },
-
-  "o_cKeyboardShotcutKeycode": {
-    "message": "Hold"
   },
 
   "o_cKeyboardShortcutModifierLeftClick": {
@@ -840,9 +760,6 @@
   },
 
   "o_lDirectoryDefinitions": { "message": "Directory menu definitions" },
-  "o_lDirectoryDefinitionsHelp": {
-    "message": "One relative directory or menu instruction per line. Downloads save relative to the default download directory. Add // at the end for a comment; start with > to create nested submenus, using one > per level."
-  },
   "o_lTextRules": { "message": "Text rules" },
   "o_lMatcher": { "message": "Matcher" },
   "o_lPattern": { "message": "Pattern" },
@@ -856,15 +773,7 @@
   "o_bRetryValidation": { "message": "Retry validation" },
   "o_lAutosaveFailed": { "message": "Could not save this setting. " },
   "o_bRetrySave": { "message": "Retry save" },
-  "o_lFixValidationBeforeSave": { "message": "Fix validation errors before saving." },
   "o_lNoValidationErrors": { "message": "No validation errors" },
-  "o_lValidationSummary": {
-    "message": "$ERRORS$ errors, $WARNINGS$ warnings",
-    "placeholders": {
-      "errors": { "content": "$1" },
-      "warnings": { "content": "$2" }
-    }
-  },
 
   "notificationLinkPreferred": {
     "message": "A link was downloaded instead",
@@ -895,10 +804,6 @@
     "message": "Close each tab after it is saved"
   },
 
-  "o_lClickToSaveModifier": {
-    "message": "Click-to-save keyboard modifier"
-  },
-
   "o_lClickToSaveButton": {
     "message": "Click-to-save mouse button"
   },
@@ -907,14 +812,6 @@
     "message": "Debug log"
   },
 
-  "o_sGuideOutsideDownloadDirectory": {
-    "message": "Saving outside the default download directory"
-  },
-  "o_sGuideCreatingMenuItems": { "message": "Creating context menu items" },
-  "o_sGuideCommentsAliases": { "message": "Comments and aliases" },
-  "o_sGuideSubmenus": { "message": "Submenus" },
-  "o_sGuideRenamingDownloads": { "message": "Renaming downloads" },
-  "o_sGuideMovingDownloads": { "message": "Moving downloads into different directories" },
   "o_sAdvancedFilenames": { "message": "Filenames" },
   "o_sAdvancedDownloading": { "message": "Downloading" },
   "o_sAdvancedCounter": { "message": "Counter" },

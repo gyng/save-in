@@ -229,10 +229,6 @@
     "message": "Innehållsmeny"
   },
 
-  "o_sClickToSave": {
-    "message": "Tryck för att spara"
-  },
-
   "o_sMoreOptions": {
     "message": "Fler alternativ"
   },
@@ -252,38 +248,6 @@
 
   "o_lChangelog": {
     "message": "Ändringslogg"
-  },
-
-  "o_lGuideCreateMenuItems": {
-    "message": "Guide: Skapa menyobjekt"
-  },
-
-  "o_lGuideSymlink": {
-    "message": "Guide: Spara utanför standard nerladdningskatalog"
-  },
-
-  "o_lGuideRouting": {
-    "message": "Guide: Döpa om och dirigera om nerladdningar"
-  },
-
-  "o_lDirectoryInstructionOnePerLine": {
-    "message": "En sökväg per rad, i förhållande till standard nerladdningskatalog."
-  },
-
-  "o_lDirectoryInstructionDot": {
-    "message": "nerladdningar till standard nerladdningskatalog."
-  },
-
-  "o_lDirectoryInstructionComment": {
-    "message": "i slutet av en rad läggs en kommentar."
-  },
-
-  "o_lDirectoryInstructionSymlink": {
-    "message": "En symbolisk länk krävs för att kunna spara utanför standard nerladdningskatalog."
-  },
-
-  "o_lRoutingInstruction": {
-    "message": "Automatisk omdirigering och omdöpning av filer. Separera flera regler med en tom rad. Läs i guiden för fler detaljer."
   },
 
   "o_lRoutingLastDownload": {
@@ -312,14 +276,6 @@
 
   "o_lRoutingVariablesClickToSee": {
     "message": "Klicka för att visa"
-  },
-
-  "o_lRoutingLastDownloadHelp": {
-    "message": "Testa dina aktuella regler, testas på den senaste nerladdade filen"
-  },
-
-  "o_lRoutingTemplates": {
-    "message": "Mallar"
   },
 
   "o_lAccessKeysInstruction": {
@@ -415,14 +371,6 @@
     "message": "Visa avisering vid en regelmatchning"
   },
 
-  "o_cNotifyCloseAfter": {
-    "message": "Stäng aviseringar tidare efter"
-  },
-
-  "o_cNotifyCloseAfterHelp": {
-    "message": "1s = 1000ms. Kommer inte att bli längre än OS/webbläsarens aviseringsvaraktighet."
-  },
-
   "o_cSaveShortcutsAs": {
     "message": "Spara genvägar som"
   },
@@ -477,10 +425,6 @@
 
   "o_cKeyboardShortcutClickToHelp": {
     "message": "Håll ner Alt (standard) och klicka på bilder eller media för att spara dem i den senaste sparade katalogen eller i standard nerladdningskatalog. Inför ett skript på sidorna för att lyssna på klickhändelser. Inte alla variabler är tillgängliga när du använder det här. Kräver en siduppdatering för att träda i kraft."
-  },
-
-  "o_cKeyboardShotcutKeycode": {
-    "message": "nyckelkod"
   },
 
   "o_cKeyboardShortcutModifierLeftClick": {
@@ -553,9 +497,5 @@
 
   "o_cLastSavedAtNever": {
     "message": "aldrig"
-  },
-
-  "o_lSubdirectoryInstructionComment": {
-    "message": "i början skapas inbyggda undermenyer beroende på antalet pilar."
   }
 }

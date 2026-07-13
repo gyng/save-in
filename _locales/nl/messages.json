@@ -224,10 +224,6 @@
     "message": "Context Menu"
   },
 
-  "o_sClickToSave": {
-    "message": "Klik om op te slaan"
-  },
-
   "o_sMoreOptions": {
     "message": "Meer opties"
   },
@@ -249,38 +245,6 @@
     "message": "Changelog"
   },
 
-  "o_lGuideCreateMenuItems": {
-    "message": "Gids: Creeer menuitems"
-  },
-
-  "o_lGuideSymlink": {
-    "message": "Gids: Opslaan buiten de standaard Downloads-map"
-  },
-
-  "o_lGuideRouting": {
-    "message": "Gids: Hernoemen en routeren downloads"
-  },
-
-  "o_lDirectoryInstructionOnePerLine": {
-    "message": "Een pad per regel, startend vanuit de standaard download map."
-  },
-
-  "o_lDirectoryInstructionDot": {
-    "message": "downloads naar de standaard download map."
-  },
-
-  "o_lDirectoryInstructionComment": {
-    "message": "aan het einde van de regel voor het plaatsten van commentaar."
-  },
-
-  "o_lDirectoryInstructionSymlink": {
-    "message": "Een symlink is nodig om buiten de standaard download map op te slaan."
-  },
-
-  "o_lRoutingInstruction": {
-    "message": "Automatisch routeren van Downloads of hernoemen van bestanden. Gebruik een lege regel voor het scheiden van meerdere regels. Zie de Gids voor meer informatie."
-  },
-
   "o_lRoutingLastDownload": {
     "message": "Laatste download"
   },
@@ -299,14 +263,6 @@
 
   "o_lRoutingCaptureGroups": {
     "message": "Groepen"
-  },
-
-  "o_lRoutingLastDownloadHelp": {
-    "message": "Test de huidige regels, toegepast op het bestand wat voor het laatst is gedownload"
-  },
-
-  "o_lRoutingTemplates": {
-    "message": "Sjabloon"
   },
 
   "o_lAccessKeysInstruction": {
@@ -402,14 +358,6 @@
     "message": "Toon notificatie bij een overeenkomst van een regel"
   },
 
-  "o_cNotifyCloseAfter": {
-    "message": "Sluit notificaties eerder na"
-  },
-
-  "o_cNotifyCloseAfterHelp": {
-    "message": "1s = 1000ms. Kan niet langer duren dan de standaard besturingssysteem/browser notificatie tijd."
-  },
-
   "o_cSaveShortcutsAs": {
     "message": "Snelknopplingen opslaan als"
   },
@@ -464,10 +412,6 @@
 
   "o_cKeyboardShortcutClickToHelp": {
     "message": "Houd Alt ingedrukt (standaard) en klik afbeeldingen of media om deze op te slaan in de laatst gebruikte map of standaard Download-map.. Injecteert een script bij de paginas om te luisteren naar muisklikken. Niet alle variabelen kunnen worden hiervoor worden gebruikt. Heeft pagina-vernieuwen nodig om toe te passen."
-  },
-
-  "o_cKeyboardShotcutKeycode": {
-    "message": "toetsenbordcode"
   },
 
   "o_cKeyboardShortcutModifierLeftClick": {

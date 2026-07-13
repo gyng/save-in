@@ -58,7 +58,6 @@ test("English options headings use sentence case", () => {
       "o_sSaveAsShortcuts",
       "o_sKeyboardShortcuts",
       "o_sContextMenu",
-      "o_sClickToSave",
       "o_sVisualEditor",
     ].map((key) => messages[key].message),
   ).toEqual([
@@ -67,7 +66,6 @@ test("English options headings use sentence case", () => {
     "Shortcut files",
     "Click-to-save",
     "Context menu access keys",
-    "Click-to-save gesture",
     "Visual editor",
   ]);
 });
