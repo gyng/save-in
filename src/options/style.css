@@ -446,22 +446,47 @@ body:not(#settings-page) {
 }
 
 .privacy-dialog {
-  width: min(720px, calc(100vw - 2 * var(--space-5)));
+  width: min(680px, calc(100vw - 2 * var(--space-5)));
+  overflow-y: auto;
+}
+
+.privacy-content {
+  max-width: 62ch;
+  margin-inline: auto;
+  font-size: var(--text-base);
+  line-height: 1.55;
 }
 
 .privacy-content h1 {
-  margin: 0 var(--space-6) var(--space-4) 0;
+  margin: 0 var(--space-6) var(--space-1) 0;
   font-size: var(--text-xl);
+  font-weight: 650;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+}
+
+.privacy-content h1 + p {
+  margin-bottom: var(--space-5);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  line-height: 1.4;
 }
 
 .privacy-content h2 {
   margin: var(--space-5) 0 var(--space-2);
   font-size: var(--text-lg);
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
 }
 
 .privacy-content p,
 .privacy-content ul {
   margin: 0 0 var(--space-3);
+}
+
+.privacy-content a {
+  overflow-wrap: anywhere;
 }
 
 .about-close {
