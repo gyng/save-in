@@ -11,6 +11,7 @@ import { options } from "../config/options-data.ts";
 import { buildTree } from "./menu-build.ts";
 import { matcherFunctions, parseRulesCollecting, traceRules } from "../routing/router.ts";
 import { Download } from "../downloads/download.ts";
+import { Notifier } from "../downloads/notification.ts";
 import { currentTab } from "../platform/current-tab.ts";
 import { configureDownloadEvents } from "../downloads/download-events.ts";
 import type { DownloadInfo, DownloadPipelineState } from "../downloads/download-types.ts";
@@ -32,6 +33,7 @@ import { configWriteState } from "./state.ts";
 import { getPersistenceDiagnostics } from "../shared/persistence-diagnostics.ts";
 import { syncSourcePanelToTab, setSourcePanelOpenState } from "./source-panel-state.ts";
 import { previewRoutes } from "./route-preview.ts";
+import { ExternalDownloadRejections } from "./external-download-rejections.ts";
 
 type MessageSender = browser.runtime.MessageSender;
 type ProtocolSendResponse = SendResponse;
@@ -409,6 +411,16 @@ const internalHandlers = {
     await SaveHistory.clear();
     sendResponse({ type: MESSAGE_TYPES.OK });
   },
+  [MESSAGE_TYPES.EXTERNAL_DOWNLOAD_REJECTIONS_GET]: async (_request, _sender, sendResponse) => {
+    sendResponse({
+      type: MESSAGE_TYPES.EXTERNAL_DOWNLOAD_REJECTIONS_GET,
+      body: { rejections: await ExternalDownloadRejections.get() },
+    });
+  },
+  [MESSAGE_TYPES.EXTERNAL_DOWNLOAD_REJECTION_CLEAR]: async (request, _sender, sendResponse) => {
+    await ExternalDownloadRejections.clear(request.body!.senderId);
+    sendResponse({ type: MESSAGE_TYPES.OK });
+  },
   [MESSAGE_TYPES.OPTIONS_LOADED]: async (_request, _sender, sendResponse) => {
     await backgroundRuntime.reset();
     sendResponse({ type: MESSAGE_TYPES.OK });
@@ -447,16 +459,25 @@ const externalHandlers = {
   [MESSAGE_TYPES.VALIDATE]: Messaging.handleValidate,
   [MESSAGE_TYPES.DOWNLOAD]: (request, sender, sendResponse) => {
     if (!Messaging.isExternalDownloadAllowed(sender)) {
-      sendResponse({
-        type: MESSAGE_TYPES.DOWNLOAD,
-        body: {
-          status: MESSAGE_TYPES.ERROR,
-          error: Messaging.API_ERRORS.UNAUTHORIZED,
-          message: "Allow this extension ID in Save In before requesting downloads",
-          version: request.body?.version || Messaging.API_VERSION,
-        },
-      });
-      return;
+      return (async () => {
+        // Rejected private-window activity is never persisted or surfaced in a
+        // system notification; it remains visible only to the calling extension.
+        if (sender.id && sender.tab?.incognito !== true) {
+          await Promise.allSettled([
+            ExternalDownloadRejections.record(sender.id, request.body || {}),
+            Notifier.reportExternalDownloadRejection(sender.id),
+          ]);
+        }
+        sendResponse({
+          type: MESSAGE_TYPES.DOWNLOAD,
+          body: {
+            status: MESSAGE_TYPES.ERROR,
+            error: Messaging.API_ERRORS.UNAUTHORIZED,
+            message: "Allow this extension ID in Save In before requesting downloads",
+            version: request.body?.version || Messaging.API_VERSION,
+          },
+        });
+      })();
     }
     return Messaging.handleDownloadMessage(request, sender, sendResponse);
   },

@@ -51,6 +51,7 @@ const EXTENSION_NOTIFICATION_DEBOUNCE_MS = 250;
 
 export const EXTENSION_NOTIFICATION_STREAMS = Object.freeze({
   DOWNLOAD_FAILURE: "download-failure",
+  EXTERNAL_DOWNLOAD_REJECTION: "external-download-rejection",
   LINK_PREFERRED: "link-preferred",
   PREFER_LINKS_PATTERN_ERROR: "prefer-links-pattern-error",
   ROUTE_MATCH: "route-match",
@@ -84,8 +85,11 @@ const createNotification = (
     notificationClearTimers.delete(id);
   }
 
-  void Promise.resolve(webExtensionApi.notifications.create(id, details)).catch((error) =>
-    logPort.add("notification create failed", String(error)),
+  const created = Promise.resolve(webExtensionApi.notifications.create(id, details)).then(
+    () => undefined,
+    (error) => {
+      logPort.add("notification create failed", String(error));
+    },
   );
   if (duration > 0) {
     const clearTimer = globalThis.setTimeout(() => {
@@ -96,6 +100,7 @@ const createNotification = (
     }, duration);
     notificationClearTimers.set(id, clearTimer);
   }
+  return created;
 };
 
 const queueExtensionNotification = (
@@ -162,6 +167,17 @@ export const Notifier = {
       message: message || getMessage("genericUnknownError"),
     });
   },
+
+  reportExternalDownloadRejection: (senderId: string): Promise<void> =>
+    createNotification(
+      `save-in-not-${EXTENSION_NOTIFICATION_STREAMS.EXTERNAL_DOWNLOAD_REJECTION}`,
+      {
+        type: "basic",
+        title: "External download blocked",
+        iconUrl: ERROR_ICON_URL,
+        message: `Blocked a request from ${senderId}. Click to review it in Options.`,
+      },
+    ),
 
   // Single user-facing path for a TERMINAL download failure that happens before
   // a download is even created (the pipeline throwing, or downloads.download
@@ -352,6 +368,9 @@ export const Notifier = {
   },
 
   onNotificationClicked: (notId: string) => {
+    if (notId === `save-in-not-${EXTENSION_NOTIFICATION_STREAMS.EXTERNAL_DOWNLOAD_REJECTION}`) {
+      return webExtensionApi.runtime.openOptionsPage();
+    }
     if (String(notId).startsWith("save-in-not-")) {
       return;
     }

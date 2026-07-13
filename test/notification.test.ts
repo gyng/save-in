@@ -168,6 +168,29 @@ describe("createExtensionNotification", () => {
     ]);
   });
 
+  test("reports a rejected external download immediately with a stable notification id", async () => {
+    setOptions({ notifyDuration: 0 });
+
+    await notification.reportExternalDownloadRejection("blocked-extension");
+
+    expect(global.browser.notifications.create).toHaveBeenCalledWith(
+      "save-in-not-external-download-rejection",
+      expect.objectContaining({
+        type: "basic",
+        title: "External download blocked",
+        message: "Blocked a request from blocked-extension. Click to review it in Options.",
+      }),
+    );
+  });
+
+  test("opens options when the rejected-download notification is clicked", async () => {
+    global.browser.runtime.openOptionsPage = vi.fn(() => Promise.resolve());
+
+    await notification.onNotificationClicked("save-in-not-external-download-rejection");
+
+    expect(global.browser.runtime.openOptionsPage).toHaveBeenCalledOnce();
+  });
+
   test("restarts auto-clear timing when a stream is updated", () => {
     jest.useFakeTimers();
     setOptions({ notifyDuration: 500 });

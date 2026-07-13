@@ -74,7 +74,9 @@ repeated builds of the same source produce byte-identical ZIPs.
   Firefox associates the download with its Private Browsing session.
 - The external extension API accepts validated save requests only from extension
   IDs the user has explicitly allowed. It does not expose user configuration
-  mutation to external callers and does not execute received code.
+  mutation to external callers and does not execute received code. Rejected
+  non-private callers are shown in a bounded local review list containing the
+  caller ID, request kind, count, and time, but not the rejected URL.
 
 ## Chrome Web Store privacy fields
 

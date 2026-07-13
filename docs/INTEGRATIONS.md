@@ -59,6 +59,8 @@ Accepted URL schemes are `http`, `https`, `ftp`, `data`, and `blob`. A successfu
 
 Download errors are `UNAUTHORIZED`, `BAD_REQUEST`, or `INVALID_URL`; unknown external message types return `UNKNOWN_TYPE`. Treat `UNAUTHORIZED` as a request for user configuration, not as a transient error to retry repeatedly.
 
+For a non-private `UNAUTHORIZED` request with a browser-authenticated caller ID, Save In shows a native notification. Clicking it opens Options. **Advanced → External integrations** lists up to 20 rejected caller IDs with their attempt count, request kind, and last-seen time; selecting **Add** appends that exact ID to the allowlist and clears the rejection. Save In does not retain the rejected URL. Private-window rejections are neither recorded nor notified.
+
 The browser may deliver external messages from any installed extension, but Save In checks `sender.id` against the user's allowlist before resolving an active tab or starting a download. Allow only extensions you trust with those capabilities.
 
 There is no `externally_connectable` declaration, so web pages cannot call Save In directly. A userscript needs a narrowly scoped companion extension or another explicit relay; do not expose a general page-to-extension forwarding bridge.

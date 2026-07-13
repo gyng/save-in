@@ -60,7 +60,8 @@ Save-in exposes a versioned external API (`PING` + `DOWNLOAD`), a config API
 AI agents. Full docs, a Foxy Gestures example, and the trust model are on the
 [Integrations wiki](https://github.com/gyng/save-in/wiki/Integrations).
 External download requests are denied until the caller's extension ID is added
-to Advanced → External integrations.
+to Advanced → External integrations. A blocked request shows a notification and
+appears there with an Add button; Save In records the caller, not its rejected URL.
 
 Ready-to-use recipes: [Foxy Gestures](https://github.com/gyng/save-in/wiki/Integrations#foxy-gestures), [Gesturefy](https://github.com/gyng/save-in/wiki/Integrations#gesturefy), and [Tridactyl](https://github.com/gyng/save-in/wiki/Integrations#tridactyl). Extension developers should start with the [integration guide](https://github.com/gyng/save-in/wiki/Extension-integration-guide).
 

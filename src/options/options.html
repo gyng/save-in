@@ -1320,6 +1320,20 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
           available.
         </div>
       </label>
+      <section
+        id="external-download-rejections"
+        class="external-download-rejections"
+        aria-live="polite"
+        hidden
+      >
+        <div class="external-download-rejections-title">Blocked external download requests</div>
+        <div class="caption">
+          Review extensions that tried to start a download. Add only callers you trust. Rejected
+          URLs are not stored.
+        </div>
+        <div id="external-download-rejection-list"></div>
+        <div id="external-download-rejection-status" class="caption" role="status"></div>
+      </section>
       <div class="dev-api">
         <div class="dev-api-row">
           <span class="dev-api-label">Extension ID</span>

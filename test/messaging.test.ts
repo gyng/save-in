@@ -35,6 +35,8 @@ const { Path } = await import("../src/routing/path.ts");
 const { setCurrentTab } = await import("../src/platform/current-tab.ts");
 const { backgroundRuntime } = await import("../src/background/runtime.ts");
 const { SaveHistory } = await import("../src/background/history.ts");
+const { ExternalDownloadRejections } =
+  await import("../src/background/external-download-rejections.ts");
 const SourcePanelState = await import("../src/background/source-panel-state.ts");
 const RoutePreview = await import("../src/background/route-preview.ts");
 
@@ -104,6 +106,10 @@ const setupGlobals = () => {
   } as any);
   vi.spyOn(SaveHistory, "get").mockResolvedValue([]);
   vi.spyOn(SaveHistory, "clear").mockResolvedValue();
+  vi.spyOn(ExternalDownloadRejections, "get").mockResolvedValue([]);
+  vi.spyOn(ExternalDownloadRejections, "record").mockResolvedValue();
+  vi.spyOn(ExternalDownloadRejections, "clear").mockResolvedValue();
+  vi.spyOn(Notifier, "reportExternalDownloadRejection").mockResolvedValue();
   vi.spyOn(SourcePanelState, "syncSourcePanelToTab").mockResolvedValue();
   vi.spyOn(SourcePanelState, "setSourcePanelOpenState").mockResolvedValue();
 
@@ -162,6 +168,44 @@ describe("onMessage", () => {
     await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
     expect(SaveHistory.clear).toHaveBeenCalledOnce();
     expect(sendResponse).toHaveBeenCalledWith({ type: MESSAGE_TYPES.OK });
+  });
+
+  test("lists and clears rejected external download callers", async () => {
+    vi.mocked(ExternalDownloadRejections.get).mockResolvedValue([
+      {
+        senderId: "blocked-extension",
+        attempts: 2,
+        lastRejectedAt: "2026-07-13T10:00:00.000Z",
+        requestType: "activeTab",
+      },
+    ]);
+    const listResponse = vi.fn();
+
+    expect(
+      onMessage({ type: MESSAGE_TYPES.EXTERNAL_DOWNLOAD_REJECTIONS_GET }, {}, listResponse),
+    ).toBe(true);
+    await vi.waitFor(() => expect(listResponse).toHaveBeenCalled());
+    expect(listResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.EXTERNAL_DOWNLOAD_REJECTIONS_GET,
+      body: {
+        rejections: [expect.objectContaining({ senderId: "blocked-extension", attempts: 2 })],
+      },
+    });
+
+    const clearResponse = vi.fn();
+    expect(
+      onMessage(
+        {
+          type: MESSAGE_TYPES.EXTERNAL_DOWNLOAD_REJECTION_CLEAR,
+          body: { senderId: "blocked-extension" },
+        },
+        {},
+        clearResponse,
+      ),
+    ).toBe(true);
+    await vi.waitFor(() => expect(clearResponse).toHaveBeenCalled());
+    expect(ExternalDownloadRejections.clear).toHaveBeenCalledWith("blocked-extension");
+    expect(clearResponse).toHaveBeenCalledWith({ type: MESSAGE_TYPES.OK });
   });
 
   test("SOURCE_PANEL_READY synchronizes state after the content listener exists", async () => {
@@ -698,20 +742,27 @@ describe("external DOWNLOAD API v1", () => {
     expect(Messaging.isValidDownloadUrl(undefined)).toBe(false);
   });
 
-  test("rejects downloads from extensions the user has not allowed", () => {
+  test("records and notifies downloads from extensions the user has not allowed", async () => {
     const sendResponse = vi.fn();
     vi.mocked(global.browser.tabs.query).mockResolvedValueOnce([
       { id: 7, url: "https://private.example/account?token=secret" },
     ] as any);
 
-    onMessageExternal(
-      download({ target: "activeTab" }),
-      { id: "untrusted-extension" },
-      sendResponse,
-    );
+    expect(
+      onMessageExternal(
+        download({ target: "activeTab" }),
+        { id: "untrusted-extension" },
+        sendResponse,
+      ),
+    ).toBe(true);
 
     expect(Download.renameAndDownload).not.toHaveBeenCalled();
     expect(global.browser.tabs.query).not.toHaveBeenCalled();
+    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    expect(ExternalDownloadRejections.record).toHaveBeenCalledWith("untrusted-extension", {
+      target: "activeTab",
+    });
+    expect(Notifier.reportExternalDownloadRejection).toHaveBeenCalledWith("untrusted-extension");
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.DOWNLOAD,
       body: {
@@ -721,6 +772,19 @@ describe("external DOWNLOAD API v1", () => {
         version: 1,
       },
     });
+  });
+
+  test("does not persist private rejected requests", async () => {
+    const sendResponse = vi.fn();
+    onMessageExternal(
+      download({ url: "https://private.example/secret" }),
+      { id: "untrusted-extension", tab: { incognito: true } },
+      sendResponse,
+    );
+
+    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    expect(ExternalDownloadRejections.record).not.toHaveBeenCalled();
+    expect(Notifier.reportExternalDownloadRejection).not.toHaveBeenCalled();
   });
 
   test("matches external extension ids as trimmed, exact allowlist lines", async () => {

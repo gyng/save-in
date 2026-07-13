@@ -47,6 +47,10 @@ from a private window. Firefox direct downloads instead use the private session
 through the browser's native download API.
 External-extension download requests are accepted only from extension IDs the
 user has explicitly allowed in Save In's settings.
+For a rejected non-private request, Save In stores a bounded local summary with
+the caller ID, request kind, attempt count, and last rejection time so the user
+can review and approve the caller. It does not store the rejected URL. Rejected
+requests from private windows are not stored and do not create a notification.
 Save In does not transmit this information to the developer or to an analytics,
 advertising, or data-broker service.
 

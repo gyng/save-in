@@ -197,6 +197,9 @@ describe("options form semantics", () => {
     const allowlist = document.querySelector<HTMLTextAreaElement>("#externalDownloadAllowlist");
     expect(allowlist).not.toBeNull();
     expect(allowlist?.closest("label")?.textContent).toContain("allowed extension ID");
+    const rejections = document.querySelector("#external-download-rejections");
+    expect(rejections).not.toBeNull();
+    expect(allowlist?.compareDocumentPosition(rejections!)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
   });
 
   test("explains match patterns where browser-download filters are configured", () => {

@@ -9,3 +9,4 @@ export const PENDING_DOWNLOADS_SESSION_KEY = "siPendingDownloads";
 export const NOTIFICATION_RECOVERY_SESSION_KEY = "siNotificationRecovery";
 export const FINAL_FILENAMES_SESSION_KEY = "siFinalFilenames";
 export const SOURCE_PANEL_OPEN_SESSION_KEY = "sourcePanelOpen";
+export const EXTERNAL_DOWNLOAD_REJECTIONS_STORAGE_KEY = "externalDownloadRejections";

@@ -1,5 +1,6 @@
 import { setupIntegrationPanel } from "../src/options/integration-panel.ts";
 import { webExtensionApi } from "../src/platform/web-extension-api.ts";
+import { MESSAGE_TYPES } from "../src/shared/constants.ts";
 
 test("renders build identity and the live external API contract", async () => {
   const originalId = webExtensionApi.runtime.id;
@@ -27,5 +28,77 @@ test("renders build identity and the live external API contract", async () => {
   Object.defineProperty(webExtensionApi.runtime, "id", {
     configurable: true,
     value: originalId,
+  });
+});
+
+test("lists rejected callers and adds an approved caller to the allowlist", async () => {
+  document.body.innerHTML = `
+    <a id="version-label"></a><span id="ext-id"></span><pre id="api-snippet"></pre>
+    <span id="api-version"></span><span id="api-capabilities"></span>
+    <textarea id="externalDownloadAllowlist">existing-extension</textarea>
+    <section id="external-download-rejections" hidden>
+      <div id="external-download-rejection-list"></div>
+    </section>`;
+  vi.spyOn(webExtensionApi.runtime, "getManifest").mockReturnValue({ version: "4.0.0" } as any);
+  const sendMessage = vi
+    .spyOn(webExtensionApi.runtime, "sendMessage")
+    .mockImplementation(async (message: any) => {
+      if (message.type === MESSAGE_TYPES.PING) {
+        return { type: MESSAGE_TYPES.PONG, body: { version: 1, capabilities: [] } };
+      }
+      if (message.type === MESSAGE_TYPES.EXTERNAL_DOWNLOAD_REJECTIONS_GET) {
+        return {
+          type: MESSAGE_TYPES.EXTERNAL_DOWNLOAD_REJECTIONS_GET,
+          body: {
+            rejections: [
+              {
+                senderId: "blocked-extension",
+                attempts: 3,
+                lastRejectedAt: "2026-07-13T10:00:00.000Z",
+                requestType: "url",
+              },
+            ],
+          },
+        };
+      }
+      if (message.type === MESSAGE_TYPES.APPLY_CONFIG) {
+        return {
+          type: MESSAGE_TYPES.APPLY_CONFIG_RESULT,
+          body: {
+            version: 1,
+            applied: { externalDownloadAllowlist: message.body.config.externalDownloadAllowlist },
+            rejected: [],
+          },
+        };
+      }
+      if (message.type === MESSAGE_TYPES.EXTERNAL_DOWNLOAD_REJECTION_CLEAR) {
+        return { type: MESSAGE_TYPES.OK };
+      }
+      throw new Error(`Unexpected message: ${message.type}`);
+    });
+
+  setupIntegrationPanel();
+  document.dispatchEvent(new Event("options-restored"));
+  await vi.waitFor(() =>
+    expect(document.querySelector("[data-rejected-sender-id='blocked-extension']")).not.toBeNull(),
+  );
+  const row = document.querySelector<HTMLElement>("[data-rejected-sender-id='blocked-extension']")!;
+  expect(row.textContent).toContain("3 blocked attempts");
+
+  row.querySelector<HTMLButtonElement>("button")?.click();
+
+  await vi.waitFor(() => expect(row.isConnected).toBe(false));
+  expect(document.querySelector<HTMLTextAreaElement>("#externalDownloadAllowlist")?.value).toBe(
+    "existing-extension\nblocked-extension",
+  );
+  expect(sendMessage).toHaveBeenCalledWith({
+    type: MESSAGE_TYPES.APPLY_CONFIG,
+    body: {
+      config: { externalDownloadAllowlist: "existing-extension\nblocked-extension" },
+    },
+  });
+  expect(sendMessage).toHaveBeenCalledWith({
+    type: MESSAGE_TYPES.EXTERNAL_DOWNLOAD_REJECTION_CLEAR,
+    body: { senderId: "blocked-extension" },
   });
 });
