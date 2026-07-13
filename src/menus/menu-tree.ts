@@ -1,5 +1,6 @@
 import { SPECIAL_DIRS } from "../shared/constants.ts";
 import { Path } from "../routing/path.ts";
+import { MENU_IDS } from "./menu-ids.ts";
 
 export type MenuMeta = Record<string, string>;
 export type ParsedPath = {
@@ -31,8 +32,6 @@ export type MenuTreeError = {
   parentId?: string | undefined;
 };
 export type MenuTree = { items: MenuTreeItem[]; errors: MenuTreeError[] };
-
-const ROOT_ID = "save-in-root";
 
 export const parseMeta = (comment: string): MenuMeta => {
   const matches = comment.match(/\(.+?:.+?\)+/g);
@@ -72,39 +71,37 @@ export const buildTree = (pathsArray: string[]): MenuTree => {
   const errors: MenuTreeError[] = [];
   const menuItemCounter = [0];
   let pathsNestingStack: string[] = [];
-  let lastDepth = 0;
 
   pathsArray.forEach((dir, index) => {
     if (dir === SPECIAL_DIRS.SEPARATOR) {
-      items.push({ kind: "separator", parentId: ROOT_ID });
+      items.push({ kind: "separator", parentId: MENU_IDS.ROOT });
       return;
     }
     const { comment, depth, meta, validation, parsedDir } = parsePath(dir);
+    // Manual/imported configurations may skip a nesting level. The rendered
+    // tree has always attached such an item to the deepest available parent;
+    // use that effective depth for numbering too, so the menuindex value
+    // matches the visible position instead of containing empty components.
+    const effectiveDepth = depth === 0 ? 0 : Math.min(depth, pathsNestingStack.length);
     const parentId =
-      depth === 0
-        ? ROOT_ID
-        : depth > pathsNestingStack.length
-          ? pathsNestingStack[pathsNestingStack.length - 1] || ROOT_ID
-          : pathsNestingStack[depth - 1] || ROOT_ID;
+      effectiveDepth === 0 ? MENU_IDS.ROOT : pathsNestingStack[effectiveDepth - 1] || MENU_IDS.ROOT;
     if (!validation.valid) {
       errors.push({ message: validation.message || "Invalid path", error: dir, parentId });
       return;
     }
 
     const title = meta.alias || parsedDir;
-    menuItemCounter.splice(depth + 1);
-    const number = (menuItemCounter[depth] || 0) + 1;
-    menuItemCounter[depth] = number;
+    menuItemCounter.splice(effectiveDepth + 1);
+    const number = (menuItemCounter[effectiveDepth] || 0) + 1;
+    menuItemCounter[effectiveDepth] = number;
     const id = `save-in-${index}`;
     if (parsedDir === SPECIAL_DIRS.SEPARATOR) {
       items.push({ kind: "separator", parentId });
       return;
     }
-    if (depth === 0) pathsNestingStack = [id];
-    else if (depth <= lastDepth) pathsNestingStack[depth] = id;
-    else pathsNestingStack.push(id);
-    lastDepth = depth;
-    pathsNestingStack = pathsNestingStack.slice(0, depth + 1);
+    if (effectiveDepth === 0) pathsNestingStack = [id];
+    else pathsNestingStack[effectiveDepth] = id;
+    pathsNestingStack = pathsNestingStack.slice(0, effectiveDepth + 1);
     items.push({
       kind: "path",
       id,
@@ -114,7 +111,7 @@ export const buildTree = (pathsArray: string[]): MenuTree => {
       parsedDir,
       comment: `${index}${comment.replaceAll("-", "_")}`,
       menuIndex: menuItemCounter.join("."),
-      depth,
+      depth: effectiveDepth,
       parentId,
       raw: dir,
     });

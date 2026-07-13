@@ -199,14 +199,41 @@ describe("addDownloadListener", () => {
   });
 
   test("opens the options page for the options item", async () => {
-    await listener({ menuItemId: "options" });
+    await listener({ menuItemId: Menus.IDS.OPTIONS });
     expect(global.browser.runtime.openOptionsPage).toHaveBeenCalled();
     expect(Download.renameAndDownload).not.toHaveBeenCalled();
   });
 
   test("shows the default folder for show-default-folder", async () => {
-    await listener({ menuItemId: "show-default-folder" });
+    await listener({ menuItemId: Menus.IDS.SHOW_DEFAULT_FOLDER });
     expect(global.browser.downloads.showDefaultFolder).toHaveBeenCalled();
+  });
+
+  test("keeps the Page Sources toggle alive until its storage and tab work completes", async () => {
+    let finishRead!: (value: Record<string, unknown>) => void;
+    const read = new Promise<Record<string, unknown>>((resolve) => {
+      finishRead = resolve;
+    });
+    (global.browser.storage as any).session = {
+      get: vi.fn(() => read),
+      set: vi.fn(() => Promise.resolve()),
+    };
+    (global.browser.tabs as any).sendMessage = vi.fn(() => Promise.resolve());
+
+    const pending = Promise.resolve(
+      listener({ menuItemId: Menus.IDS.TOGGLE_SOURCE_PANEL }, { id: 17 }),
+    );
+    const settled = vi.fn();
+    void pending.then(settled);
+    await Promise.resolve();
+    await Promise.resolve();
+    const settledBeforeRead = settled.mock.calls.length > 0;
+
+    finishRead({});
+    await pending;
+    await vi.waitFor(() => expect(global.browser.tabs.sendMessage).toHaveBeenCalled());
+
+    expect(settledBeforeRead).toBe(false);
   });
 
   test("ignores tabstrip menu items", async () => {
@@ -558,6 +585,25 @@ describe("addDownloadListener", () => {
     expect(lastState().info.menuIndex).toBe("1");
   });
 
+  test("last-used metadata stays paired with its path after an unrelated download", async () => {
+    Menus.setLastUsed("kept/path", { comment: "kept-comment", menuIndex: "2.1" });
+    Runtime.lastDownloadState = {
+      path: {},
+      scratch: {},
+      info: { comment: "unrelated-comment", menuIndex: "9" },
+    } as any;
+
+    await listener({
+      menuItemId: Menus.IDS.LAST_USED,
+      linkUrl: "https://example.com/file.png",
+      pageUrl: "https://example.com/",
+    });
+
+    expect(lastState().path.raw).toBe("kept/path");
+    expect(lastState().info.comment).toBe("kept-comment");
+    expect(lastState().info.menuIndex).toBe("2.1");
+  });
+
   describe("last used menu bookkeeping", () => {
     const pathClick = {
       menuItemId: "save-in-0",
@@ -577,12 +623,13 @@ describe("addDownloadListener", () => {
 
     test("the last-used title gets an access key where supported", async () => {
       WEB_EXTENSION_CAPABILITIES.accessKeys = true;
+      options.keyLastUsed = "x";
 
       Menus.addPaths(["dir1"], ["link"]);
       await listener(pathClick);
 
       expect(global.browser.contextMenus.update).toHaveBeenCalledWith(Menus.IDS.LAST_USED, {
-        title: "dir1 (&a)",
+        title: "dir1 (&x)",
         enabled: true,
       });
     });
@@ -920,7 +967,6 @@ describe("addTabMenuListener tabstrip downloads", () => {
     await vi.advanceTimersByTimeAsync(2000);
 
     expect(global.browser.tabs.query).toHaveBeenCalledWith({
-      pinned: false,
       windowId: 7,
       windowType: "normal",
     });
@@ -933,6 +979,24 @@ describe("addTabMenuListener tabstrip downloads", () => {
     expect(state.info.suggestedFilename).toBeNull();
     expect(state.needRouteMatch).toBe(false);
     expect(state.path.raw).toBe(".");
+  });
+
+  test("SELECTED_TAB includes an explicitly selected pinned tab", async () => {
+    (global.browser.tabs as any).query = vi.fn((query: { pinned?: boolean }) =>
+      Promise.resolve(
+        query.pinned === false
+          ? []
+          : [{ id: 8, index: 0, pinned: true, url: "https://pinned.test/", title: "Pinned" }],
+      ),
+    );
+
+    await listener(
+      { menuItemId: Menus.IDS.TABSTRIP.SELECTED_TAB },
+      { id: 8, index: 0, windowId: 7, pinned: true },
+    );
+
+    expect(downloads()).toHaveLength(1);
+    expect(downloads()[0]!.info.currentTab.id).toBe(8);
   });
 
   test("SELECTED_MULTIPLE_TABS queues every highlighted tab without background timers", async () => {

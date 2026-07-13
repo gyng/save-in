@@ -3,7 +3,7 @@ import { getMessage } from "../platform/localization.ts";
 
 // Tab-strip context menus (`tab` context): menu creation,
 // the multi-select highlight counter, and the tab-save click handler.
-import { MENU_IDS } from "./menu-build.ts";
+import { MENU_IDS } from "../menus/menu-ids.ts";
 import { options } from "../config/options-data.ts";
 import { WEB_EXTENSION_CAPABILITIES } from "../platform/chrome-detector.ts";
 import { Shortcut } from "../downloads/shortcut.ts";
@@ -99,7 +99,6 @@ export const addTabMenuListener = () => {
 
       let filter: (tab: HostTab) => boolean = () => false;
       let query: Parameters<typeof webExtensionApi.tabs.query>[0] = {
-        pinned: false,
         windowId: fromTab.windowId,
         windowType: "normal",
       };

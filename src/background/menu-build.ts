@@ -12,8 +12,10 @@ import { MEDIA_TYPES } from "../shared/constants.ts";
 import { Path } from "../routing/path.ts";
 import { backgroundRuntime } from "./runtime.ts";
 import { buildTree } from "../menus/menu-tree.ts";
+import { MENU_IDS } from "../menus/menu-ids.ts";
 
 export { buildTree, parseMeta, parsePath } from "../menus/menu-tree.ts";
+export { MENU_IDS } from "../menus/menu-ids.ts";
 
 type MenuContexts = NonNullable<
   Parameters<typeof webExtensionApi.contextMenus.create>[0]["contexts"]
@@ -34,21 +36,7 @@ type MenuPathMapping = {
   comment: string;
   menuIndex: string;
   title: string;
-  depth: number;
 };
-
-export const MENU_IDS = {
-  TABSTRIP: {
-    SELECTED_TAB: "save-in-SI-selected-tab",
-    SELECTED_MULTIPLE_TABS: "save-in-SI-selected-multiple-tabs",
-    TO_RIGHT: "save-in-SI-to-right",
-    TO_RIGHT_MATCH: "save-in-SI-to-right-match",
-    OPENED_FROM_TAB: "save-in-SI-opened-from-tab",
-  },
-  ROUTE_EXCLUSIVE: "save-in-route-exclusive",
-  ROOT: "save-in-root",
-  LAST_USED: "save-in-last-used",
-} as const;
 
 // This is genuine mutable application state shared by menu construction and
 // click handling. Functions stay as module exports instead of being attached
@@ -56,12 +44,10 @@ export const MENU_IDS = {
 export const menuState: {
   lastUsedPath: string | null;
   lastUsedMeta: LastUsedMeta | null;
-  titles: Record<string, string>;
   pathMappings: Record<string | number, MenuPathMapping>;
 } = {
   lastUsedPath: null,
   lastUsedMeta: null,
-  titles: {} as Record<string, string>,
   pathMappings: {} as Record<string | number, MenuPathMapping>,
 };
 
@@ -141,7 +127,7 @@ export const addRouteExclusive = (contexts: string[]) => {
 export const addSelectionType = (contexts: string[]) => {
   if (contexts.includes("link")) {
     webExtensionApi.contextMenus.create({
-      id: "download-context-media-link",
+      id: MENU_IDS.CONTEXT.MEDIA_LINK,
       title: getMessage("contextMenuContextMediaOrLink"),
       enabled: false,
       contexts: asMenuContexts(MEDIA_TYPES.concat("link")),
@@ -149,7 +135,7 @@ export const addSelectionType = (contexts: string[]) => {
     });
   } else {
     webExtensionApi.contextMenus.create({
-      id: "download-context-media",
+      id: MENU_IDS.CONTEXT.MEDIA,
       title: getMessage("contextMenuContextMedia"),
       enabled: false,
       contexts: asMenuContexts(MEDIA_TYPES),
@@ -159,7 +145,7 @@ export const addSelectionType = (contexts: string[]) => {
 
   if (contexts.includes("selection")) {
     webExtensionApi.contextMenus.create({
-      id: "download-context-selection",
+      id: MENU_IDS.CONTEXT.SELECTION,
       title: getMessage("contextMenuContextSelection"),
       enabled: false,
       contexts: ["selection"],
@@ -169,7 +155,7 @@ export const addSelectionType = (contexts: string[]) => {
 
   if (contexts.includes("page")) {
     webExtensionApi.contextMenus.create({
-      id: "download-context-page",
+      id: MENU_IDS.CONTEXT.PAGE,
       title: getMessage("contextMenuContextPage"),
       enabled: false,
       contexts: ["page"],
@@ -180,16 +166,16 @@ export const addSelectionType = (contexts: string[]) => {
 
 export const addOptions = (contexts: string[]) => {
   webExtensionApi.contextMenus.create({
-    id: "options",
+    id: MENU_IDS.OPTIONS,
     title: getMessage("contextMenuItemOptions"),
     contexts: asMenuContexts(contexts),
-    parentId: "save-in-root",
+    parentId: MENU_IDS.ROOT,
   });
 };
 
 export const addSourcePanel = (contexts: string[]) => {
   webExtensionApi.contextMenus.create({
-    id: "toggle-source-panel",
+    id: MENU_IDS.TOGGLE_SOURCE_PANEL,
     title: getMessage("contextMenuToggleSourcePanel") || "Toggle Page Sources",
     contexts: asMenuContexts(contexts),
     parentId: MENU_IDS.ROOT,
@@ -198,7 +184,7 @@ export const addSourcePanel = (contexts: string[]) => {
 
 export const addShowDefaultFolder = (contexts: string[]) => {
   webExtensionApi.contextMenus.create({
-    id: "show-default-folder",
+    id: MENU_IDS.SHOW_DEFAULT_FOLDER,
     title: getMessage("contextMenuShowDefaultFolder"),
     contexts: asMenuContexts(contexts),
     parentId: MENU_IDS.ROOT,
@@ -244,13 +230,14 @@ export const addLastUsed = (contexts: string[]) => {
   }
 };
 
-export const addPaths = (pathsArray: string[], contexts: string[]) => {
+export const clearPathMappings = () => {
   for (const id of Object.keys(menuState.pathMappings)) {
     delete menuState.pathMappings[id];
   }
-  for (const id of Object.keys(menuState.titles)) {
-    delete menuState.titles[id];
-  }
+};
+
+export const addPaths = (pathsArray: string[], contexts: string[]) => {
+  clearPathMappings();
 
   const { items, errors } = buildTree(pathsArray);
 
@@ -269,9 +256,7 @@ export const addPaths = (pathsArray: string[], contexts: string[]) => {
       comment: item.comment,
       menuIndex: item.menuIndex,
       title: item.title,
-      depth: item.depth,
     };
-    menuState.titles[item.id] = item.title;
 
     webExtensionApi.contextMenus.create({
       id: item.id,

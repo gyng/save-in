@@ -33,14 +33,19 @@ vi.mock("../src/background/menu-build.ts", async (importOriginal) => {
     restoreLastUsed: vi.fn(actual.restoreLastUsed),
   };
 });
+const downloadStateMocks = vi.hoisted(() => ({ hydrate: vi.fn(() => Promise.resolve()) }));
 vi.mock("../src/downloads/download-state.ts", () => ({
-  hydrateDownloads: () => Promise.resolve(),
+  hydrateDownloads: downloadStateMocks.hydrate,
   getDownload: () => Promise.resolve(null),
   mergeDownload: () => Promise.resolve(),
 }));
 const recoveryMocks = vi.hoisted(() => ({ recover: vi.fn(() => Promise.resolve()) }));
 vi.mock("../src/downloads/notification-recovery.ts", () => ({
   recoverNotificationState: recoveryMocks.recover,
+}));
+const activeTransferMocks = vi.hoisted(() => ({ recover: vi.fn(() => Promise.resolve({})) }));
+vi.mock("../src/downloads/active-transfers.ts", () => ({
+  ActiveTransfers: { recover: activeTransferMocks.recover },
 }));
 
 import type { CurrentTab } from "../src/platform/current-tab.ts";
@@ -200,6 +205,23 @@ describe("startup", () => {
     expect(Runtime.ready).toBe(p);
     await p;
     expect(OptionsManagement.loadOptions).toHaveBeenCalledTimes(2);
+  });
+
+  test("configuration resets do not repeat cold-start recovery", async () => {
+    await setupGlobals();
+    await importIndex();
+    await Runtime.ready;
+
+    expect(downloadStateMocks.hydrate).toHaveBeenCalledTimes(1);
+    expect(recoveryMocks.recover).toHaveBeenCalledTimes(1);
+    expect(activeTransferMocks.recover).toHaveBeenCalledTimes(1);
+
+    await Runtime.reset();
+
+    expect(downloadStateMocks.hydrate).toHaveBeenCalledTimes(1);
+    expect(recoveryMocks.recover).toHaveBeenCalledTimes(1);
+    expect(activeTransferMocks.recover).toHaveBeenCalledTimes(1);
+    expect(global.browser.contextMenus.removeAll).toHaveBeenCalledTimes(2);
   });
 });
 

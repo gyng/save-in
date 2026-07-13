@@ -6,13 +6,13 @@ import { toggleSourcePanelForTab } from "./source-panel-state.ts";
 // items (and last-used/route-exclusive) into Download.renameAndDownload.
 // Tab-strip clicks are handled in menu-tabs.ts.
 
-import { MENU_IDS, menuState, setLastUsed } from "./menu-build.ts";
+import { menuState, setAccesskey, setLastUsed } from "./menu-build.ts";
+import { MENU_IDS } from "../menus/menu-ids.ts";
 import { DOWNLOAD_TYPES, MEDIA_TYPES } from "../shared/constants.ts";
 import { splitLines } from "../shared/util.ts";
 import { Path, sanitizeFilename, truncateIfLongerThan } from "../routing/path.ts";
 import { Download } from "../downloads/download.ts";
 import { EXTENSION_NOTIFICATION_STREAMS, Notifier } from "../downloads/notification.ts";
-import { WEB_EXTENSION_CAPABILITIES } from "../platform/chrome-detector.ts";
 import { Shortcut } from "../downloads/shortcut.ts";
 import { options } from "../config/options-data.ts";
 import { currentTab } from "../platform/current-tab.ts";
@@ -136,17 +136,17 @@ export const addDownloadListener = () => {
         return;
       }
 
-      if (info.menuItemId === "options") {
+      if (info.menuItemId === MENU_IDS.OPTIONS) {
         webExtensionApi.runtime.openOptionsPage();
         return;
       }
 
-      if (info.menuItemId === "toggle-source-panel") {
-        if (tab?.id != null) void toggleSourcePanelForTab(tab.id);
+      if (info.menuItemId === MENU_IDS.TOGGLE_SOURCE_PANEL) {
+        if (tab?.id != null) await toggleSourcePanelForTab(tab.id);
         return;
       }
 
-      if (info.menuItemId === "show-default-folder") {
+      if (info.menuItemId === MENU_IDS.SHOW_DEFAULT_FOLDER) {
         webExtensionApi.downloads.showDefaultFolder();
         return;
       }
@@ -213,13 +213,10 @@ export const addDownloadListener = () => {
           saveIntoPath = ".";
         } else if (info.menuItemId === MENU_IDS.LAST_USED) {
           saveIntoPath = menuState.lastUsedPath;
-          if (backgroundRuntime.lastDownloadState?.info) {
-            comment = backgroundRuntime.lastDownloadState.info.comment;
-            menuIndex = backgroundRuntime.lastDownloadState.info.menuIndex;
-          } else if (menuState.lastUsedMeta) {
-            // The in-memory lastDownloadState died with the service worker:
-            // fall back to the persisted routing metadata so comment/menuindex
-            // rules still match after a restart
+          if (menuState.lastUsedMeta) {
+            // Keep routing metadata paired with the path that produced it. A
+            // later tab/external download may replace lastDownloadState, but
+            // must not change how the Last used destination routes.
             comment = menuState.lastUsedMeta.comment;
             menuIndex = menuState.lastUsedMeta.menuIndex;
           }
@@ -300,10 +297,8 @@ export const addDownloadListener = () => {
         if (result.status === "started" && selectedLocation && !privateContext) {
           await setLastUsed(selectedLocation.path, selectedLocation.meta);
           if (options.enableLastLocation) {
-            webExtensionApi.contextMenus.update(MENU_IDS.LAST_USED, {
-              title: WEB_EXTENSION_CAPABILITIES.accessKeys
-                ? `${selectedLocation.title} (&a)`
-                : selectedLocation.title,
+            await webExtensionApi.contextMenus.update(MENU_IDS.LAST_USED, {
+              title: setAccesskey(selectedLocation.title, options.keyLastUsed),
               enabled: true,
             });
           }

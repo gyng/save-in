@@ -23,6 +23,7 @@ import { SPECIAL_DIRS, MEDIA_TYPES } from "../src/shared/constants.ts";
 import { options } from "../src/config/options-data.ts";
 import { configureRoutingPorts } from "../src/routing/ports.ts";
 import { backgroundRuntime } from "../src/background/runtime.ts";
+import { rebuildMenus } from "../src/background/menu-rebuild.ts";
 
 const menu = {
   ...menuBuild,
@@ -91,10 +92,17 @@ const setupMenuCreationMocks = () => {
     keyLastUsed: "a",
     enableNumberedItems: false,
     tabEnabled: true,
+    routeExclusive: false,
+    links: true,
+    selection: true,
+    page: true,
+    enableLastLocation: true,
+    paths: ".",
   });
   (global.browser as any).contextMenus = {
     create: vi.fn(),
     update: vi.fn(),
+    removeAll: vi.fn(() => Promise.resolve()),
     onClicked: { addListener: vi.fn() },
   };
   backgroundRuntime.optionErrors = { paths: [], filenamePatterns: [] };
@@ -320,6 +328,9 @@ describe("menu creation", () => {
       menu.addPaths(["a", ">>b"], ["link"]);
 
       expect(created().map((c) => c.parentId)).toEqual([menu.IDS.ROOT, "save-in-0"]);
+      expect(menu.pathMappings["save-in-1"]).toMatchObject({
+        menuIndex: "1.1",
+      });
     });
 
     test("numbers items with access keys when enableNumberedItems is on", () => {
@@ -346,14 +357,35 @@ describe("menu creation", () => {
       expect(created()[0]!.title).toBe("dogs");
     });
 
-    test("drops stale mappings and titles when paths are rebuilt", () => {
+    test("drops stale mappings without retaining parallel title state", () => {
       menu.addPaths(["dogs", "cats"], ["link"]);
       menu.addPaths(["birds"], ["link"]);
 
       expect(menu.pathMappings).toEqual({
-        "save-in-0": expect.objectContaining({ parsedDir: "birds" }),
+        "save-in-0": {
+          parsedDir: "birds",
+          comment: "0",
+          menuIndex: "1",
+          title: "birds",
+        },
       });
-      expect(menuBuild.menuState.titles).toEqual({ "save-in-0": "birds" });
+      expect("titles" in menuBuild.menuState).toBe(false);
+    });
+  });
+
+  describe("rebuildMenus", () => {
+    test("clears stale path mappings when switching to route-exclusive mode", async () => {
+      menu.addPaths(["old/path"], ["link"]);
+      expect(menu.pathMappings["save-in-0"]?.parsedDir).toBe("old/path");
+      vi.mocked(global.browser.contextMenus.create).mockClear();
+      options.routeExclusive = true;
+
+      await rebuildMenus();
+
+      expect(global.browser.contextMenus.removeAll).toHaveBeenCalledOnce();
+      expect(menu.pathMappings).toEqual({});
+      expect(created().map((item) => item.id)).toContain(menu.IDS.ROUTE_EXCLUSIVE);
+      expect(created().map((item) => item.id)).not.toContain(menu.IDS.ROOT);
     });
   });
 

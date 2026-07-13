@@ -3,28 +3,14 @@ import { webExtensionApi } from "../platform/web-extension-api.ts";
 import { getMessage, initializeLocalization } from "../platform/localization.ts";
 
 import { OptionsManagement } from "../config/option.ts";
-import { options } from "../config/options-data.ts";
 import { downloadsState } from "./state.ts";
 import { hydrateDownloads } from "../downloads/download-state.ts";
 import { configureDownloadPorts } from "../downloads/ports.ts";
 import { SaveHistory } from "./history.ts";
 import { extensionSessionStorage } from "../platform/storage-areas.ts";
-import {
-  addLastUsed,
-  addOptions,
-  addSourcePanel,
-  addPaths,
-  addRoot,
-  addRouteExclusive,
-  addSelectionType,
-  addShowDefaultFolder,
-  makeSeparator,
-  restoreLastUsed,
-} from "./menu-build.ts";
+import { restoreLastUsed } from "./menu-build.ts";
 import { addDownloadListener } from "./menu-click.ts";
-import { addTabHighlightListener, addTabMenuListener, addTabMenus } from "./menu-tabs.ts";
-import { splitLines } from "../shared/util.ts";
-import { MEDIA_TYPES } from "../shared/constants.ts";
+import { addTabHighlightListener, addTabMenuListener } from "./menu-tabs.ts";
 import { LAST_USED_META_STORAGE_KEY, LAST_USED_PATH_STORAGE_KEY } from "../shared/storage-keys.ts";
 import { Log } from "./log.ts";
 import { currentTab, setCurrentTab, type CurrentTab } from "../platform/current-tab.ts";
@@ -39,6 +25,8 @@ import { runBackgroundTask } from "./event-task.ts";
 import { Download } from "../downloads/download.ts";
 import { ActiveTransfers } from "../downloads/active-transfers.ts";
 import { OffscreenClient } from "../platform/offscreen-client.ts";
+import { rebuildMenus } from "./menu-rebuild.ts";
+import { MENU_IDS } from "../menus/menu-ids.ts";
 
 export const configureBackgroundPorts = () => {
   configureDownloadPorts({
@@ -60,18 +48,26 @@ export const configureBackgroundPorts = () => {
   });
 };
 
-backgroundRuntime.init = () => {
+const reloadConfigurationAndMenus = async (): Promise<void> => {
   resetRuntimeDiagnostics();
 
-  return Promise.all([
-    OptionsManagement.loadOptions().then(async (loaded) => {
-      await initializeLocalization(loaded.uiLocale);
-      return loaded;
+  const [loaded, storedLastUsed] = await Promise.all([
+    OptionsManagement.loadOptions().then(async (loadedOptions) => {
+      await initializeLocalization(loadedOptions.uiLocale);
+      return loadedOptions;
     }),
     webExtensionApi.storage.local.get([LAST_USED_PATH_STORAGE_KEY, LAST_USED_META_STORAGE_KEY]),
-    webExtensionApi.contextMenus.removeAll(),
+  ]);
+
+  backgroundRuntime.debug = loaded.debug;
+  restoreLastUsed(storedLastUsed);
+  await rebuildMenus();
+};
+
+const recoverColdStartState = async (): Promise<void> => {
+  await Promise.all([
     // Rebuild the in-memory download records from storage.session before any
-    // download event handler (which awaits backgroundRuntime.ready) touches them
+    // download event handler (which awaits backgroundRuntime.ready) touches them.
     hydrateDownloads(downloadsState, extensionSessionStorage),
     recoverNotificationState(),
     ActiveTransfers.recover().then(async (records) => {
@@ -91,45 +87,18 @@ backgroundRuntime.init = () => {
         }),
       );
     }),
-  ])
-    .then((results) => {
-      backgroundRuntime.debug = results[0].debug;
-      // MV3 service workers are stateless: restore last used path across restarts
-      restoreLastUsed(results[1]);
-
-      const pathsArray = splitLines(options.paths);
-
-      let contexts = options.links ? MEDIA_TYPES.concat(["link"]) : MEDIA_TYPES;
-      contexts = options.selection ? contexts.concat(["selection"]) : contexts;
-      contexts = options.page ? contexts.concat(["page"]) : contexts;
-
-      addTabMenus();
-
-      if (options.routeExclusive) {
-        addRouteExclusive(contexts);
-        return;
-      } else {
-        addRoot(contexts);
-      }
-
-      if (options.enableLastLocation) {
-        addLastUsed(contexts);
-        makeSeparator(contexts);
-      }
-
-      addPaths(pathsArray, contexts);
-      makeSeparator(contexts);
-
-      addSelectionType(contexts);
-      addShowDefaultFolder(contexts);
-      addOptions(contexts);
-      addSourcePanel(contexts);
-    })
-    .catch((e) => {
-      Log.add("init failed", String(e));
-      throw e;
-    });
+  ]);
 };
+
+const reportInitFailure = (error: unknown): never => {
+  Log.add("init failed", String(error));
+  throw error;
+};
+
+backgroundRuntime.init = () =>
+  Promise.all([recoverColdStartState(), reloadConfigurationAndMenus()])
+    .then(() => undefined)
+    .catch(reportInitFailure);
 
 backgroundRuntime.reset = () => {
   // Serialize: overlapping inits interleave removeAll() with another
@@ -137,7 +106,8 @@ backgroundRuntime.reset = () => {
   // missing/duplicated menu items
   backgroundRuntime.ready = (backgroundRuntime.ready ?? Promise.resolve())
     .catch(() => {})
-    .then(() => backgroundRuntime.init());
+    .then(() => reloadConfigurationAndMenus())
+    .catch(reportInitFailure);
   return backgroundRuntime.ready;
 };
 
@@ -156,7 +126,7 @@ export const start = () => {
   };
   webExtensionApi.action?.onClicked.addListener(toggleSources);
   webExtensionApi.commands?.onCommand.addListener((command): Promise<void> | undefined => {
-    if (command !== "toggle-source-panel") return undefined;
+    if (command !== MENU_IDS.TOGGLE_SOURCE_PANEL) return undefined;
     return runBackgroundTask("source panel command failed", async () => {
       const [tab] = await webExtensionApi.tabs.query({ active: true, currentWindow: true });
       if (tab) await toggleSources(tab);
