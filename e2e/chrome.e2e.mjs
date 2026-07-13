@@ -1247,6 +1247,32 @@ test("Page Sources discovers, sorts, updates live, and restores across tabs", as
     expect(panelLayout.filterLabel).toBe("Filter page sources");
     expect(panelLayout.sortLabel).toBe("Sort sources");
 
+    const hoverPreview = JSON.parse(
+      await evalPage(
+        firstPath,
+        `(async () => {
+          const root = document.querySelector("#save-in-source-panel").shadowRoot;
+          const row = root.querySelector(".row");
+          row.dispatchEvent(new MouseEvent("mouseenter"));
+          const image = root.querySelector(".media-tooltip img");
+          await image?.decode().catch(() => {});
+          const rect = image?.closest(".media-tooltip")?.getBoundingClientRect();
+          const result = {
+            described: row.querySelector(".source-link").hasAttribute("aria-describedby"),
+            loaded: image?.complete && image.naturalWidth > 0,
+            width: rect?.width || 0,
+            height: rect?.height || 0,
+          };
+          row.dispatchEvent(new MouseEvent("mouseleave"));
+          return JSON.stringify(result);
+        })()`,
+      ),
+    );
+    expect(hoverPreview.described).toBe(true);
+    expect(hoverPreview.loaded).toBe(true);
+    expect(hoverPreview.width).toBeGreaterThanOrEqual(160);
+    expect(hoverPreview.height).toBeGreaterThanOrEqual(120);
+
     expect((await snapshot(firstPath)).names).toEqual(["second.png", "first.png"]);
     await evalPage(
       firstPath,
