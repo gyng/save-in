@@ -1,5 +1,5 @@
 import { Path } from "../routing/path.ts";
-import { applyVariables } from "../routing/variable.ts";
+import { applyVariables, normalizeMimeType } from "../routing/variable.ts";
 import { matchesAnyPattern } from "../shared/match-pattern.ts";
 import type { DownloadPipelineState } from "./download-types.ts";
 
@@ -7,6 +7,8 @@ export type BrowserDownloadItem = {
   url: string;
   filename: string;
   finalUrl?: string | undefined;
+  mime?: string | undefined;
+  referrer?: string | undefined;
   byExtensionId?: string | undefined;
 };
 
@@ -50,6 +52,7 @@ export const matchesBrowserDownloadFilter = (
 export const createBrowserDownloadState = (item: BrowserDownloadItem): DownloadPipelineState => {
   const filename = proposedFilename(item.filename || item.url);
   const sourceUrl = item.finalUrl || item.url;
+  const mime = normalizeMimeType(item.mime);
   return {
     path: new Path("."),
     scratch: {},
@@ -57,6 +60,8 @@ export const createBrowserDownloadState = (item: BrowserDownloadItem): DownloadP
       currentTab: null,
       url: sourceUrl,
       sourceUrl,
+      ...(mime ? { mime } : {}),
+      ...(item.referrer ? { referrerUrl: item.referrer } : {}),
       filename,
       naiveFilename: filename,
       suggestedFilename: filename,

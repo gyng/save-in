@@ -759,6 +759,10 @@
     "message": "Matches the media type:",
     "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
   },
+  "html_matchesTheMimeContentType": {
+    "message": "Matches the resolved MIME Content-Type. Save In may request server headers.",
+    "description": "MIME matcher guidance in the routing-clause reference. Used in src/options/clauselist.html."
+  },
   "html_matchesTheMenuIndexOfTheClickedMenuItem": {
     "message": "Matches the selected menu item's index (1, 2, 3…).",
     "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
@@ -770,6 +774,18 @@
   "html_matchesThePageHostname": {
     "message": "Matches the page hostname.",
     "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
+  },
+  "html_matchesTheReferrerHostname": {
+    "message": "Matches the referring page hostname when the browser provides it.",
+    "description": "Referrer-domain matcher guidance in the routing-clause reference. Used in src/options/clauselist.html."
+  },
+  "html_matchesTheReferrerUrl": {
+    "message": "Matches the referring page URL when the browser provides it.",
+    "description": "Referrer-URL matcher guidance in the routing-clause reference. Used in src/options/clauselist.html."
+  },
+  "html_matchesTheRootHostname": {
+    "message": "Matches the hostname without subdomains.",
+    "description": "Root-domain matcher guidance in the routing-clause reference. Used in src/options/clauselist.html."
   },
   "html_matchesTheResolvedFilenameExtensionAfterContentDisposition": {
     "message": "Matches the resolved filename extension, including Content-Disposition.",

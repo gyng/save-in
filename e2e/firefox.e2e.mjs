@@ -501,7 +501,7 @@ test("ordinary browser downloads can be tracked and experimentally rerouted on F
       trackBrowserDownloads: true,
       routeBrowserDownloadsFirefox: true,
       browserDownloadFilter: "*://127.0.0.1/*",
-      filenamePatterns: "filename: native-ff\\.bin\\ninto: browser-routed/:filename:",
+      filenamePatterns: "mime: ^application/octet-stream$\\nreferrerdomain: ^127\\.0\\.0\\.1$\\ninto: browser-routed/:filename:",
     }).then(() => api.reset())`);
     await evalBackground(`browser.tabs.create({ url: ${JSON.stringify(pageUrl)} })`);
     await evalBackground(`(async () => {

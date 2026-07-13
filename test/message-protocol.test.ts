@@ -121,8 +121,10 @@ describe("message protocol runtime validation", () => {
       scratch: { historyEntryId: "h1", hasExtension: [".png"] as RegExpMatchArray },
       info: {
         url: "https://x/photo.png",
+        referrerUrl: "https://gallery.example/photo/1",
         frameUrl: "https://x/gallery",
         mediaType: "image",
+        mime: "image/png",
         mimeExtension: "png",
         resolvedFilename: "photo.png",
         contentFetchDisabled: true,
@@ -138,8 +140,10 @@ describe("message protocol runtime validation", () => {
       routeIsFolder: false,
       info: {
         url: "https://x/photo.png",
+        referrerUrl: "https://gallery.example/photo/1",
         frameUrl: "https://x/gallery",
         mediaType: "image",
+        mime: "image/png",
         mimeExtension: "png",
         resolvedFilename: "photo.png",
         contentFetchDisabled: true,
@@ -153,6 +157,8 @@ describe("message protocol runtime validation", () => {
 
   test("rejects malformed persisted download state", () => {
     expect(isWireDownloadState({ info: { contentFetchDisabled: "yes" } })).toBe(false);
+    expect(isWireDownloadState({ info: { mime: 42 } })).toBe(false);
+    expect(isWireDownloadState({ info: { referrerUrl: false } })).toBe(false);
     expect(isWireDownloadState({ info: { mimeExtension: 42 } })).toBe(false);
   });
 });

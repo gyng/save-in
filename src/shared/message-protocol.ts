@@ -23,11 +23,13 @@ export type WireDownloadInfo = {
   selectionText?: string | undefined;
   linkText?: string | undefined;
   mediaType?: string | undefined;
+  mime?: string | undefined;
   filename?: string | undefined;
   naiveFilename?: string | undefined;
   initialFilename?: string | undefined;
   mimeExtension?: string | undefined;
   resolvedFilename?: string | undefined;
+  referrerUrl?: string | undefined;
   suggestedFilename?: string | null | undefined;
   context?: string | undefined;
   menuIndex?: string | null | undefined;
@@ -65,11 +67,13 @@ const WIRE_INFO_STRING_FIELDS = [
   "selectionText",
   "linkText",
   "mediaType",
+  "mime",
   "filename",
   "naiveFilename",
   "initialFilename",
   "mimeExtension",
   "resolvedFilename",
+  "referrerUrl",
   "context",
   "menuItemId",
   "menuItemTitle",

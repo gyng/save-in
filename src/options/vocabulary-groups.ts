@@ -95,18 +95,24 @@ const CLAUSE_ORDER = [
   "comment",
   "linktext",
   "selectiontext",
+  "referrerurl",
+  "referrerdomain",
   "pageurl",
   "pagedomain",
+  "pagerootdomain",
   "pagetitle",
   "frameurl",
   "sourceurl",
   "sourcedomain",
+  "sourcerootdomain",
   "filename",
   "naivefilename",
   "fileext",
   "urlfileext",
   "actualfileext",
   "mediatype",
+  "mime",
+  "contenttype",
 ] as const;
 
 const clauseName = (clause: string) => clause.replace(/[:/].*/, "").toLocaleLowerCase();
@@ -117,7 +123,7 @@ export const clauseGroup = (clause: string): ClauseGroup => {
   if (name === "capture") return "Capture setup";
   if (/^(context|menuindex|comment|linktext|selectiontext)$/.test(name))
     return "Page and menu context";
-  if (/^(page|source|frame)/.test(name)) return "URL and source matching";
+  if (/^(page|source|frame|referrer)/.test(name)) return "URL and source matching";
   return "Filename and content matching";
 };
 

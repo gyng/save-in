@@ -613,7 +613,7 @@ test("ordinary browser downloads can be routed and tracked without adoption", as
       trackBrowserDownloads: true,
       routeBrowserDownloads: true,
       browserDownloadFilter: "*://127.0.0.1/*",
-      filenamePatterns: "filename: native\\.bin\\ninto: browser-routed/:filename:",
+      filenamePatterns: "mime: ^application/octet-stream$\\nreferrerdomain: ^127\\.0\\.0\\.1$\\ninto: browser-routed/:filename:",
     }).then(() => api.reset())`);
     await cdp.openTab(PORT, pageUrl);
     await poll(

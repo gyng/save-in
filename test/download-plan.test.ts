@@ -96,6 +96,26 @@ describe("finalizeFullPath", () => {
 });
 
 describe("renameAndDownload: MIME extension append (§8.1)", () => {
+  test("resolves MIME metadata before evaluating a MIME matcher", async () => {
+    setCurrentBrowser("CHROME");
+    options.appendMimeExtension = false;
+    options.filenamePatterns = [routingRule("mime")];
+    vi.spyOn(Variable, "resolveMime").mockResolvedValue("application/pdf");
+    vi.mocked(router.matchRules).mockImplementation((_rules, info) =>
+      info.mime === "application/pdf" ? "documents/:filename:" : null,
+    );
+
+    const state = makeState({ info: { url: "https://cdn.example.com/report.bin" } });
+    await Download.renameAndDownload(state);
+
+    expect(Variable.resolveMime).toHaveBeenCalledWith(state.info);
+    expect(router.matchRules).toHaveBeenCalledWith(
+      options.filenamePatterns,
+      expect.objectContaining({ mime: "application/pdf" }),
+    );
+    expect(state.route).toBeDefined();
+  });
+
   test("appends the Content-Type extension to an extensionless filename", async () => {
     setCurrentBrowser("CHROME");
     options.appendMimeExtension = true;

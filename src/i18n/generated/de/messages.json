@@ -1,4 +1,17 @@
 {
+  "html_matchesTheMimeContentType": {
+    "message": "Matches the resolved MIME Content-Type. Save In may request server headers."
+  },
+  "html_matchesTheReferrerHostname": {
+    "message": "Matches the referring page hostname when the browser provides it."
+  },
+  "html_matchesTheReferrerUrl": {
+    "message": "Matches the referring page URL when the browser provides it."
+  },
+  "html_matchesTheRootHostname": {
+    "message": "Matches the hostname without subdomains."
+  },
+
   "extensionName": {
     "message": "Save In"
   },

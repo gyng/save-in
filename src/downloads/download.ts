@@ -383,6 +383,10 @@ export const Download = {
     const filenamePatterns = Array.isArray(options.filenamePatterns)
       ? options.filenamePatterns
       : [];
+    const usesMime = filenamePatterns.some((rule) =>
+      rule.some((clause) => clause.name === "mime" || clause.name === "contenttype"),
+    );
+    if (usesMime) state.info.mime = await resolveMime(state.info);
     const usesResolvedFilename = filenamePatterns.some((rule) =>
       rule.some((clause) => clause.name === "filename" || clause.name === "actualfileext"),
     );

@@ -17,13 +17,14 @@ type Transformer = (
   tokens?: PathSegment[],
 ) => PathSegment | Promise<PathSegment>;
 
+export const normalizeMimeType = (value: string | null | undefined): string =>
+  ((value || "").split(";")[0] || "").trim().toLocaleLowerCase();
+
 const metadataFromResponse = async (res: Response): Promise<HeadResult> => {
   try {
     const contentDisposition = res.headers.get("Content-Disposition") || "";
     return {
-      contentType: ((res.headers.get("Content-Type") || "").split(";")[0] || "")
-        .trim()
-        .toLowerCase(),
+      contentType: normalizeMimeType(res.headers.get("Content-Type")),
       finalUrl: res.url || "",
       ...(contentDisposition ? { contentDisposition } : {}),
     };
@@ -286,7 +287,7 @@ export const resolveHead = (opts: RoutingDownloadInfo): Promise<HeadResult> => {
 };
 
 export const resolveMime = async (opts: RoutingDownloadInfo) =>
-  (await resolveHead(opts)).contentType;
+  opts.mime ? normalizeMimeType(opts.mime) : (await resolveHead(opts)).contentType;
 
 const resolvedHeadPreview = (opts: RoutingDownloadInfo): HeadResult | null =>
   opts.resolvedHead || null;

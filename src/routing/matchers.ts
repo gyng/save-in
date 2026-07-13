@@ -1,5 +1,6 @@
 import { EXTENSION_REGEX, getFilenameFromUrl } from "./filename.ts";
 import { routingPorts } from "./ports.ts";
+import { normalizeMimeType, toRootDomain } from "./variable.ts";
 import type {
   MatcherFactory,
   MatcherResult,
@@ -56,7 +57,11 @@ const makeTabMatcherFactory =
   };
 
 const makeHostnameMatcherFactory =
-  (propertyName: InfoStringKey, alternativePropertyName?: InfoStringKey): MatcherFactory =>
+  (
+    propertyName: InfoStringKey,
+    alternativePropertyName?: InfoStringKey,
+    transform: (hostname: string) => string | undefined = (hostname) => hostname,
+  ): MatcherFactory =>
   (regex) =>
   (info) => {
     const primaryValue = info?.[propertyName];
@@ -68,7 +73,8 @@ const makeHostnameMatcherFactory =
           ? alternativeValue
           : "";
     try {
-      const match = matchValue(new URL(value).hostname, regex);
+      const hostname = transform(new URL(value).hostname);
+      const match = hostname ? matchValue(hostname, regex) : null;
       logMatch(match, regex, info);
       return match;
     } catch (error) {
@@ -79,6 +85,14 @@ const makeHostnameMatcherFactory =
   };
 
 const EMPTY_INFO: Partial<RoutingDownloadInfo> = {};
+
+const mimeMatcher: MatcherFactory = (regex) => (info) => {
+  const mime = normalizeMimeType(info.mime || info.resolvedHead?.contentType);
+  if (!mime) return false;
+  const match = matchValue(mime, regex);
+  logMatch(match, regex, info);
+  return match;
+};
 
 export const matcherFunctions = {
   context:
@@ -139,6 +153,8 @@ export const matcherFunctions = {
   frameurl: makeInfoMatcherFactory("frameUrl"),
   linktext: makeInfoMatcherFactory("linkText"),
   mediatype: makeInfoMatcherFactory("mediaType"),
+  mime: mimeMatcher,
+  contenttype: mimeMatcher,
   naivefilename: (regex) => (info) => {
     const url = info.url || info.sourceUrl || info.srcUrl || info.linkUrl || info.pageUrl;
     if (!url) return false;
@@ -149,7 +165,11 @@ export const matcherFunctions = {
     return match;
   },
   pagedomain: makeHostnameMatcherFactory("pageUrl"),
+  pagerootdomain: makeHostnameMatcherFactory("pageUrl", undefined, toRootDomain),
+  referrerdomain: makeHostnameMatcherFactory("referrerUrl", "pageUrl"),
+  referrerurl: makeInfoMatcherFactory("referrerUrl", "pageUrl"),
   sourcedomain: makeHostnameMatcherFactory("sourceUrl", "srcUrl"),
+  sourcerootdomain: makeHostnameMatcherFactory("sourceUrl", "srcUrl", toRootDomain),
   pagetitle: makeTabMatcherFactory("title"),
   pageurl: makeInfoMatcherFactory("pageUrl"),
   selectiontext: makeInfoMatcherFactory("selectionText"),
