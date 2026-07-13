@@ -2,6 +2,7 @@ import {
   mapRouteTraceToSource,
   parseRouteDebuggerTrace,
   routeDebuggerInfo,
+  summarizeRouteSource,
   type RouteDebuggerTrace,
 } from "../src/options/route-debugger-model.ts";
 
@@ -91,6 +92,12 @@ test("normalizes debugger fields into the routing engine input aliases", () => {
       pageUrl: "https://example/reports",
       mime: "application/pdf",
       context: "link",
+      pageTitle: "Reports",
+      referrerUrl: "https://example/home",
+      frameUrl: "https://example/embed",
+      linkText: "Quarterly report",
+      selectionText: "Q2",
+      mediaType: "image",
     }),
   ).toEqual({
     filename: "report.pdf",
@@ -101,6 +108,12 @@ test("normalizes debugger fields into the routing engine input aliases", () => {
     pageUrl: "https://example/reports",
     mime: "application/pdf",
     context: "link",
+    currentTab: { title: "Reports" },
+    referrerUrl: "https://example/home",
+    frameUrl: "https://example/embed",
+    linkText: "Quarterly report",
+    selectionText: "Q2",
+    mediaType: "image",
   });
 });
 
@@ -108,4 +121,13 @@ test("omits blank debugger fields", () => {
   expect(
     routeDebuggerInfo({ filename: "", sourceUrl: "", pageUrl: "", mime: "", context: "" }),
   ).toEqual({});
+});
+
+test("summarizes the grammar structure for the IDE status bar", () => {
+  expect(
+    summarizeRouteSource(
+      "fileext: pdf\npageurl: example\\.com\ninto: docs/\n\nmediatype: image\ninto: images/",
+    ),
+  ).toEqual({ lines: 6, rules: 2, matchers: 3 });
+  expect(summarizeRouteSource("")).toEqual({ lines: 0, rules: 0, matchers: 0 });
 });

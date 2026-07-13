@@ -146,6 +146,12 @@ test("keeps route debugger inputs out of persisted option handling", () => {
     "route-debugger-page-url",
     "route-debugger-mime",
     "route-debugger-context",
+    "route-debugger-page-title",
+    "route-debugger-referrer-url",
+    "route-debugger-frame-url",
+    "route-debugger-link-text",
+    "route-debugger-selection-text",
+    "route-debugger-media-type",
   ]) {
     expect(document.getElementById(id)?.hasAttribute("data-no-autosave"), id).toBe(true);
   }

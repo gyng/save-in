@@ -2959,6 +2959,96 @@
     "message": "Enter download details, then run the current rules.",
     "description": "Initial instruction in the route debugger result area. Used in src/options/route-debugger.ts."
   },
+  "routeDebuggerClear": {
+    "message": "Clear",
+    "description": "Button that clears all route debugger test data. Used in src/options/options.html."
+  },
+  "routeDebuggerMoreData": {
+    "message": "More test data",
+    "description": "Expandable heading for less common route debugger inputs. Used in src/options/options.html."
+  },
+  "routeDebuggerPageTitle": {
+    "message": "Page title",
+    "description": "Label for the route debugger page title input. Used in src/options/options.html."
+  },
+  "routeDebuggerReferrerUrl": {
+    "message": "Referrer URL",
+    "description": "Label for the route debugger referrer URL input. Used in src/options/options.html."
+  },
+  "routeDebuggerFrameUrl": {
+    "message": "Frame URL",
+    "description": "Label for the route debugger frame URL input. Used in src/options/options.html."
+  },
+  "routeDebuggerLinkText": {
+    "message": "Link text",
+    "description": "Label for the route debugger link text input. Used in src/options/options.html."
+  },
+  "routeDebuggerSelectionText": {
+    "message": "Selected text",
+    "description": "Label for the route debugger selected text input. Used in src/options/options.html."
+  },
+  "routeDebuggerMediaType": {
+    "message": "Media type",
+    "description": "Label for the route debugger media type input. Used in src/options/options.html."
+  },
+  "routeDebuggerAnyMediaType": {
+    "message": "Any media type",
+    "description": "Empty media type choice in the route debugger. Used in src/options/options.html."
+  },
+  "routeDebuggerShortcut": {
+    "message": "Ctrl/⌘+Enter runs the test.",
+    "description": "Keyboard shortcut hint in the route debugger. Used in src/options/options.html."
+  },
+  "routeIdeStats": {
+    "message": "Rules $RULES$ · Matchers $MATCHERS$ · Lines $LINES$",
+    "description": "Compact routing source summary in the IDE header. Used in src/options/route-debugger.ts.",
+    "placeholders": {
+      "rules": {
+        "content": "$1",
+        "example": "3"
+      },
+      "matchers": {
+        "content": "$2",
+        "example": "6"
+      },
+      "lines": {
+        "content": "$3",
+        "example": "12"
+      }
+    }
+  },
+  "routeDebuggerEvaluation": {
+    "message": "Rule evaluation",
+    "description": "Heading above the route debugger rule trace. Used in src/options/route-debugger.ts."
+  },
+  "routeDebuggerFirstMatch": {
+    "message": "Rules run top to bottom; the first match wins.",
+    "description": "Explanation of route selection order in the debugger. Used in src/options/route-debugger.ts."
+  },
+  "routeDebuggerMatcherCount": {
+    "message": "Matched $MATCHED$/$TOTAL$",
+    "description": "Compact pass count for one rule in the route debugger. Used in src/options/route-debugger.ts.",
+    "placeholders": {
+      "matched": {
+        "content": "$1",
+        "example": "2"
+      },
+      "total": {
+        "content": "$2",
+        "example": "3"
+      }
+    }
+  },
+  "routeDebuggerGoToLine": {
+    "message": "Go to line $LINE$",
+    "description": "Accessible label for a route debugger source-line button. Used in src/options/route-debugger.ts.",
+    "placeholders": {
+      "line": {
+        "content": "$1",
+        "example": "8"
+      }
+    }
+  },
   "html_without": {
     "message": "without",
     "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."

@@ -32,6 +32,18 @@ export type RouteDebuggerFields = {
   pageUrl: string;
   mime: string;
   context: string;
+  pageTitle?: string | undefined;
+  referrerUrl?: string | undefined;
+  frameUrl?: string | undefined;
+  linkText?: string | undefined;
+  selectionText?: string | undefined;
+  mediaType?: string | undefined;
+};
+
+export type RouteSourceSummary = {
+  lines: number;
+  rules: number;
+  matchers: number;
 };
 
 const nullableString = (value: unknown): value is string | null =>
@@ -148,5 +160,24 @@ export const routeDebuggerInfo = (fields: RouteDebuggerFields): ValidationInfo =
   if (fields.pageUrl) info.pageUrl = fields.pageUrl;
   if (fields.mime) info.mime = fields.mime;
   if (fields.context) info.context = fields.context;
+  if (fields.pageTitle) info.currentTab = { title: fields.pageTitle };
+  if (fields.referrerUrl) info.referrerUrl = fields.referrerUrl;
+  if (fields.frameUrl) info.frameUrl = fields.frameUrl;
+  if (fields.linkText) info.linkText = fields.linkText;
+  if (fields.selectionText) info.selectionText = fields.selectionText;
+  if (fields.mediaType) info.mediaType = fields.mediaType;
   return info;
+};
+
+export const summarizeRouteSource = (source: string): RouteSourceSummary => {
+  const parsed = parseRoutingRuleAst(source).ast;
+  return {
+    lines: source ? source.split("\n").length : 0,
+    rules: parsed.rules.length,
+    matchers: parsed.rules.reduce(
+      (total, rule) =>
+        total + rule.clauses.filter((clause) => clause.clauseKind === "matcher").length,
+      0,
+    ),
+  };
 };

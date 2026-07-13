@@ -5,6 +5,7 @@ import { MESSAGE_TYPES } from "../src/shared/constants.ts";
 
 const renderWorkbench = (): void => {
   document.body.innerHTML = `
+    <span id="route-ide-stats"></span>
     <textarea id="filenamePatterns">fileext: png\ninto: images/\n\nfileext: pdf\npagedomain: example\\.com\ninto: pdf/:filename:</textarea>
     <div id="route-debugger-form">
       <input id="route-debugger-filename" value="report.pdf">
@@ -12,8 +13,17 @@ const renderWorkbench = (): void => {
       <input id="route-debugger-page-url" value="https://example.com/reports">
       <input id="route-debugger-mime" value="application/pdf">
       <select id="route-debugger-context"><option value=""></option><option value="link">Link</option></select>
+      <details class="route-debugger-more">
+        <input id="route-debugger-page-title">
+        <input id="route-debugger-referrer-url">
+        <input id="route-debugger-frame-url">
+        <input id="route-debugger-link-text">
+        <input id="route-debugger-selection-text">
+        <select id="route-debugger-media-type"><option value=""></option><option value="image">Image</option></select>
+      </details>
       <button id="route-debugger-run" type="button">Run test</button>
     </div>
+    <button id="route-debugger-clear" type="button">Clear</button>
     <button id="route-debugger-use-last" type="button">Use last download</button>
     <div id="route-debugger-result"></div>`;
 };
@@ -85,9 +95,25 @@ test("shows production rule and clause decisions and jumps back to their source"
   const result = document.querySelector<HTMLElement>("#route-debugger-result")!;
   await vi.waitFor(() => expect(result.dataset.state).toBe("matched"));
   expect(result.textContent).toContain("pdf/report.pdf");
+  const ruleCards = result.querySelectorAll<HTMLDetailsElement>(".route-debugger-rule");
+  expect(ruleCards).toHaveLength(2);
+  expect(ruleCards[0]?.open).toBe(false);
+  expect(ruleCards[1]?.open).toBe(true);
+  expect(ruleCards[1]?.querySelector(".route-debugger-rule-destination")?.textContent).toBe(
+    "into: pdf/:filename:",
+  );
+
+  const validationCount = () =>
+    sendMessage.mock.calls.filter(([message]: any[]) => message.type === MESSAGE_TYPES.VALIDATE)
+      .length;
+  const beforeShortcut = validationCount();
+  document
+    .querySelector<HTMLTextAreaElement>("#filenamePatterns")
+    ?.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", ctrlKey: true, bubbles: true }));
+  await vi.waitFor(() => expect(validationCount()).toBe(beforeShortcut + 1));
 
   const pageDomainClause = [
-    ...result.querySelectorAll<HTMLButtonElement>("article li button"),
+    ...result.querySelectorAll<HTMLButtonElement>(".route-debugger-rule li button"),
   ].find((button) => button.querySelector("code")?.textContent === "pagedomain:");
   expect(pageDomainClause).toBeDefined();
   pageDomainClause!.click();
@@ -124,6 +150,9 @@ test("loads the last download into the test bench", async () => {
                 pageUrl: "https://example.com/gallery",
                 mime: "image/jpeg",
                 context: "link",
+                currentTab: { title: "Photo gallery" },
+                referrerUrl: "https://example.com/home",
+                mediaType: "image",
               },
             },
             interpolatedVariables: null,
@@ -162,4 +191,16 @@ test("loads the last download into the test bench", async () => {
     "photo.jpg",
   );
   expect(document.querySelector<HTMLSelectElement>("#route-debugger-context")?.value).toBe("link");
+  expect(document.querySelector<HTMLInputElement>("#route-debugger-page-title")?.value).toBe(
+    "Photo gallery",
+  );
+  expect(document.querySelector<HTMLDetailsElement>(".route-debugger-more")?.open).toBe(true);
+
+  document.querySelector<HTMLButtonElement>("#route-debugger-clear")?.click();
+  expect(document.querySelector<HTMLInputElement>("#route-debugger-filename")?.value).toBe("");
+  expect(document.querySelector<HTMLInputElement>("#route-debugger-page-title")?.value).toBe("");
+  expect(document.querySelector<HTMLDetailsElement>(".route-debugger-more")?.open).toBe(false);
+  expect(document.querySelector<HTMLElement>("#route-debugger-result")?.dataset.state).toBe(
+    "empty",
+  );
 });

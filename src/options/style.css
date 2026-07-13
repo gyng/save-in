@@ -2387,6 +2387,20 @@ summary {
   margin: 2px 0 0;
 }
 
+.routing-ide-meta {
+  display: flex;
+  align-items: center;
+  flex: none;
+  gap: var(--space-2);
+}
+
+.routing-ide-stats {
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
 .routing-ide-badge {
   flex: none;
   padding: 3px 7px;
@@ -2444,8 +2458,13 @@ summary {
   min-width: 0;
 }
 
-.route-debugger-header > button {
+.route-debugger-header-actions {
+  display: flex;
   flex: none;
+  gap: var(--space-2);
+}
+
+.route-debugger-header-actions > button {
   margin: 0;
   white-space: nowrap;
 }
@@ -2489,6 +2508,26 @@ summary {
   grid-column: span 2;
 }
 
+.route-debugger-more {
+  margin: var(--space-3) 0 0;
+  border-top: 1px solid var(--panel-border);
+}
+
+.route-debugger-more > summary {
+  width: fit-content;
+  padding: var(--space-2) 0 0;
+  color: var(--link-color);
+  font-size: var(--text-sm);
+}
+
+.route-debugger-more-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2) var(--space-3);
+  margin-top: var(--space-2);
+  padding-top: var(--space-2);
+}
+
 .route-debugger-actions {
   display: flex;
   align-items: center;
@@ -2502,9 +2541,41 @@ summary {
   margin: 0;
 }
 
+.route-debugger-note {
+  display: grid;
+  gap: 2px;
+}
+
+.route-debugger-shortcut {
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
 .route-debugger-result {
+  position: relative;
   min-height: 54px;
   background: color-mix(in srgb, var(--syntax-gutter-bg) 58%, var(--page-bg));
+}
+
+.route-debugger-result[data-busy="true"]::before {
+  position: absolute;
+  z-index: 4;
+  top: 0;
+  left: 0;
+  width: 38%;
+  height: 2px;
+  background: var(--blue50);
+  content: "";
+  animation: route-debugger-progress 900ms ease-in-out infinite alternate;
+}
+
+@keyframes route-debugger-progress {
+  from {
+    transform: translateX(-20%);
+  }
+  to {
+    transform: translateX(180%);
+  }
 }
 
 .route-debugger-message {
@@ -2610,6 +2681,31 @@ summary {
   padding: var(--space-3);
 }
 
+.route-debugger-trace-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 0 var(--space-1) var(--space-1);
+}
+
+.route-debugger-trace-title,
+.route-debugger-trace-description {
+  display: block;
+}
+
+.route-debugger-trace-title {
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+.route-debugger-trace-description {
+  margin-top: 2px;
+  color: var(--color-text-muted);
+  font-size: 11px;
+}
+
 .route-debugger-rule {
   overflow: hidden;
   border: 1px solid var(--panel-border);
@@ -2620,6 +2716,14 @@ summary {
 .route-debugger-rule.is-selected {
   border-color: color-mix(in srgb, var(--success-fg) 58%, var(--panel-border));
   box-shadow: inset 3px 0 var(--success-fg);
+}
+
+.route-debugger-rule > summary {
+  list-style: none;
+}
+
+.route-debugger-rule > summary::-webkit-details-marker {
+  display: none;
 }
 
 .route-debugger-rule-header,
@@ -2643,6 +2747,21 @@ summary {
   background: color-mix(in srgb, var(--panel-bg) 64%, var(--page-bg));
 }
 
+.route-debugger-rule-header::before {
+  flex: none;
+  width: 0;
+  height: 0;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-left: 6px solid var(--color-text-muted);
+  content: "";
+  transition: transform 120ms ease;
+}
+
+.route-debugger-rule[open] > .route-debugger-rule-header::before {
+  transform: rotate(90deg);
+}
+
 .route-debugger-rule-header:hover,
 .route-debugger-clause:hover {
   background: var(--hover-bg);
@@ -2654,6 +2773,36 @@ summary {
   font-weight: 700;
 }
 
+.route-debugger-rule-title-group {
+  display: grid;
+  flex: 1 1 auto;
+  min-width: 0;
+  gap: 2px;
+}
+
+.route-debugger-rule-destination {
+  overflow: hidden;
+  color: var(--syntax-destination);
+  font-size: 11px;
+  font-weight: 400;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.route-debugger-rule-meta {
+  display: flex;
+  align-items: center;
+  flex: none;
+  gap: var(--space-2);
+}
+
+.route-debugger-rule-count {
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  white-space: nowrap;
+}
+
 .route-debugger-rule-badge {
   color: var(--color-text-muted);
   font-size: 11px;
@@ -2662,6 +2811,18 @@ summary {
 
 .route-debugger-rule.is-selected .route-debugger-rule-badge {
   color: var(--success-fg);
+}
+
+.route-debugger-source-link {
+  min-width: 0;
+  margin: 0;
+  padding: 2px 5px;
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-sm);
+  color: var(--link-color);
+  background: var(--page-bg);
+  font-family: var(--font-mono);
+  font-size: 10px;
 }
 
 .route-debugger-clauses {
@@ -2709,12 +2870,29 @@ summary {
   font-size: 11px;
 }
 
-.rule-builder {
+.routing-tool {
   margin-top: var(--space-4);
-  padding: var(--space-3);
   border: 1px solid var(--panel-border);
   border-radius: var(--radius);
   background: color-mix(in srgb, var(--panel-bg) 45%, transparent);
+}
+
+.routing-tool > summary {
+  padding: var(--space-2) var(--space-3);
+}
+
+.routing-tool[open] > summary {
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.routing-tool-content,
+.routing-tool > .last-download-info {
+  padding: var(--space-3);
+}
+
+.rules-editor-main > .last-download-row.routing-tool {
+  display: block;
+  align-items: initial;
 }
 
 .routing-post-options {
@@ -2745,11 +2923,38 @@ summary {
     grid-column: auto;
   }
 
+  .route-debugger-more-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .route-debugger-header,
   .route-debugger-actions,
   .route-debugger-outcome-copy {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .routing-ide-header,
+  .routing-ide-meta {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .route-debugger-header-actions {
+    width: 100%;
+  }
+
+  .route-debugger-header-actions > button {
+    flex: 1 1 auto;
+  }
+
+  .route-debugger-rule-header {
+    align-items: flex-start;
+  }
+
+  .route-debugger-rule-meta {
+    flex-wrap: wrap;
+    justify-content: flex-end;
   }
 
   .route-debugger-pipeline {
@@ -2762,6 +2967,17 @@ summary {
   .route-debugger-pipeline > div:last-child {
     padding: 0;
     border: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .route-debugger-result[data-busy="true"]::before {
+    animation: none;
+    width: 100%;
+  }
+
+  .route-debugger-rule-header::before {
+    transition: none;
   }
 }
 

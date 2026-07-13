@@ -6,11 +6,14 @@ import {
   mapRouteTraceToSource,
   parseRouteDebuggerTrace,
   routeDebuggerInfo,
+  summarizeRouteSource,
   type RouteDebuggerFields,
   type RouteDebuggerTrace,
 } from "./route-debugger-model.ts";
 
-const localize = (key: string, fallback: string, substitutions?: string | number): string =>
+type MessageSubstitutions = string | number | Array<string | number>;
+
+const localize = (key: string, fallback: string, substitutions?: MessageSubstitutions): string =>
   getMessage(key, substitutions) || fallback;
 
 const element = <T extends HTMLElement>(selector: string): T | null =>
@@ -22,6 +25,12 @@ const fieldsFromInfo = (info: WireDownloadInfo): RouteDebuggerFields => ({
   pageUrl: info.pageUrl || "",
   mime: info.mime || "",
   context: info.context || "",
+  pageTitle: info.currentTab?.title || "",
+  referrerUrl: info.referrerUrl || "",
+  frameUrl: info.frameUrl || "",
+  linkText: info.linkText || "",
+  selectionText: info.selectionText || "",
+  mediaType: info.mediaType || "",
 });
 
 const appendText = (parent: HTMLElement, className: string, text: string): HTMLElement => {
@@ -38,27 +47,57 @@ export const setupRouteDebugger = (): void => {
   const result = element<HTMLElement>("#route-debugger-result");
   const runButton = element<HTMLButtonElement>("#route-debugger-run");
   const useLastButton = element<HTMLButtonElement>("#route-debugger-use-last");
+  const clearButton = element<HTMLButtonElement>("#route-debugger-clear");
+  const sourceStats = element<HTMLElement>("#route-ide-stats");
   const filename = element<HTMLInputElement>("#route-debugger-filename");
   const sourceUrl = element<HTMLInputElement>("#route-debugger-source-url");
   const pageUrl = element<HTMLInputElement>("#route-debugger-page-url");
   const mime = element<HTMLInputElement>("#route-debugger-mime");
   const context = element<HTMLSelectElement>("#route-debugger-context");
+  const pageTitle = element<HTMLInputElement>("#route-debugger-page-title");
+  const referrerUrl = element<HTMLInputElement>("#route-debugger-referrer-url");
+  const frameUrl = element<HTMLInputElement>("#route-debugger-frame-url");
+  const linkText = element<HTMLInputElement>("#route-debugger-link-text");
+  const selectionText = element<HTMLInputElement>("#route-debugger-selection-text");
+  const mediaType = element<HTMLSelectElement>("#route-debugger-media-type");
+  const moreData = element<HTMLDetailsElement>(".route-debugger-more");
   if (
     !textarea ||
     !form ||
     !result ||
     !runButton ||
     !useLastButton ||
+    !clearButton ||
+    !sourceStats ||
     !filename ||
     !sourceUrl ||
     !pageUrl ||
     !mime ||
-    !context
+    !context ||
+    !pageTitle ||
+    !referrerUrl ||
+    !frameUrl ||
+    !linkText ||
+    !selectionText ||
+    !mediaType ||
+    !moreData
   ) {
     return;
   }
 
-  const controls = { filename, sourceUrl, pageUrl, mime, context };
+  const controls = {
+    filename,
+    sourceUrl,
+    pageUrl,
+    mime,
+    context,
+    pageTitle,
+    referrerUrl,
+    frameUrl,
+    linkText,
+    selectionText,
+    mediaType,
+  };
   let lastDownloadInfo: WireDownloadInfo | null = null;
   let generation = 0;
   let hasRun = false;
@@ -70,6 +109,12 @@ export const setupRouteDebugger = (): void => {
     pageUrl: pageUrl.value.trim(),
     mime: mime.value.trim(),
     context: context.value,
+    pageTitle: pageTitle.value.trim(),
+    referrerUrl: referrerUrl.value.trim(),
+    frameUrl: frameUrl.value.trim(),
+    linkText: linkText.value.trim(),
+    selectionText: selectionText.value.trim(),
+    mediaType: mediaType.value,
   });
 
   const writeFields = (fields: RouteDebuggerFields): void => {
@@ -80,6 +125,32 @@ export const setupRouteDebugger = (): void => {
     context.value = [...context.options].some((option) => option.value === fields.context)
       ? fields.context
       : "";
+    pageTitle.value = fields.pageTitle || "";
+    referrerUrl.value = fields.referrerUrl || "";
+    frameUrl.value = fields.frameUrl || "";
+    linkText.value = fields.linkText || "";
+    selectionText.value = fields.selectionText || "";
+    const nextMediaType = fields.mediaType || "";
+    mediaType.value = [...mediaType.options].some((option) => option.value === nextMediaType)
+      ? nextMediaType
+      : "";
+    moreData.open = Boolean(
+      fields.pageTitle ||
+      fields.referrerUrl ||
+      fields.frameUrl ||
+      fields.linkText ||
+      fields.selectionText ||
+      fields.mediaType,
+    );
+  };
+
+  const updateSourceStats = (): void => {
+    const summary = summarizeRouteSource(textarea.value);
+    sourceStats.textContent = localize(
+      "routeIdeStats",
+      `Rules ${summary.rules} · Matchers ${summary.matchers} · Lines ${summary.lines}`,
+      [summary.rules, summary.matchers, summary.lines],
+    );
   };
 
   const setState = (state: string): void => {
@@ -155,19 +226,50 @@ export const setupRouteDebugger = (): void => {
 
     const rules = document.createElement("div");
     rules.className = "route-debugger-rules";
+    const traceHeading = document.createElement("div");
+    traceHeading.className = "route-debugger-trace-heading";
+    const traceHeadingCopy = document.createElement("div");
+    appendText(
+      traceHeadingCopy,
+      "route-debugger-trace-title",
+      localize("routeDebuggerEvaluation", "Rule evaluation"),
+    );
+    appendText(
+      traceHeadingCopy,
+      "route-debugger-trace-description",
+      localize("routeDebuggerFirstMatch", "Rules run top to bottom; the first match wins."),
+    );
+    traceHeading.append(traceHeadingCopy);
+    rules.append(traceHeading);
     trace.rules.forEach((rule) => {
       const selected = trace.selectedRule === rule.index;
-      const card = document.createElement("article");
+      const card = document.createElement("details");
       card.className = "route-debugger-rule";
+      card.open = selected || (trace.selectedRule === null && rule.index === 1);
       card.classList.toggle("is-selected", selected);
       card.classList.toggle("is-match", rule.matched && !selected);
-      const header = document.createElement("button");
-      header.type = "button";
+      const header = document.createElement("summary");
       header.className = "route-debugger-rule-header";
-      if (rule.source) header.addEventListener("click", () => jumpToSource(rule.source!));
+      const titleGroup = document.createElement("span");
+      titleGroup.className = "route-debugger-rule-title-group";
       const title = document.createElement("span");
       title.className = "route-debugger-rule-title";
       title.textContent = localize("routeDebuggerRule", `Rule ${rule.index}`, rule.index);
+      const destination = document.createElement("code");
+      destination.className = "route-debugger-rule-destination";
+      destination.textContent = `into: ${rule.destination}`;
+      titleGroup.append(title, destination);
+      const meta = document.createElement("span");
+      meta.className = "route-debugger-rule-meta";
+      const matchedClauses = rule.clauses.filter((clause) => clause.matched).length;
+      appendText(
+        meta,
+        "route-debugger-rule-count",
+        localize("routeDebuggerMatcherCount", `Matched ${matchedClauses}/${rule.clauses.length}`, [
+          matchedClauses,
+          rule.clauses.length,
+        ]),
+      );
       const badge = document.createElement("span");
       badge.className = "route-debugger-rule-badge";
       badge.textContent = selected
@@ -175,7 +277,24 @@ export const setupRouteDebugger = (): void => {
         : rule.matched
           ? localize("routeDebuggerAlsoMatches", "Also matches")
           : localize("routeDebuggerDidNotMatch", "Did not match");
-      header.append(title, badge);
+      meta.append(badge);
+      if (rule.source) {
+        const sourceLink = document.createElement("button");
+        sourceLink.type = "button";
+        sourceLink.className = "route-debugger-source-link";
+        sourceLink.textContent = `L${rule.source.line}`;
+        sourceLink.setAttribute(
+          "aria-label",
+          localize("routeDebuggerGoToLine", `Go to line ${rule.source.line}`, rule.source.line),
+        );
+        sourceLink.addEventListener("click", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          jumpToSource(rule.source!);
+        });
+        meta.append(sourceLink);
+      }
+      header.append(titleGroup, meta);
       card.append(header);
 
       const clauses = document.createElement("ul");
@@ -215,7 +334,10 @@ export const setupRouteDebugger = (): void => {
     const mine = ++generation;
     hasRun = true;
     runButton.disabled = true;
-    renderMessage("running", localize("routeDebuggerRunning", "Testing routes…"));
+    const hasTrace = result.querySelector(".route-debugger-rules") !== null;
+    result.dataset.busy = "true";
+    result.setAttribute("aria-busy", "true");
+    if (!hasTrace) renderMessage("running", localize("routeDebuggerRunning", "Testing routes…"));
     try {
       const response = await sendInternalMessage(webExtensionApi.runtime, {
         type: MESSAGE_TYPES.VALIDATE,
@@ -250,7 +372,11 @@ export const setupRouteDebugger = (): void => {
         localize("routeDebuggerUnavailable", "Could not run the route debugger."),
       );
     } finally {
-      if (mine === generation) runButton.disabled = false;
+      if (mine === generation) {
+        runButton.disabled = false;
+        delete result.dataset.busy;
+        result.removeAttribute("aria-busy");
+      }
     }
   };
 
@@ -266,13 +392,49 @@ export const setupRouteDebugger = (): void => {
   runButton.addEventListener("click", () => {
     void run();
   });
+  clearButton.addEventListener("click", () => {
+    generation += 1;
+    hasRun = false;
+    runButton.disabled = false;
+    delete result.dataset.busy;
+    result.removeAttribute("aria-busy");
+    if (rerunTimer !== null) window.clearTimeout(rerunTimer);
+    rerunTimer = null;
+    writeFields({
+      filename: "",
+      sourceUrl: "",
+      pageUrl: "",
+      mime: "",
+      context: "",
+      pageTitle: "",
+      referrerUrl: "",
+      frameUrl: "",
+      linkText: "",
+      selectionText: "",
+      mediaType: "",
+    });
+    renderMessage(
+      "empty",
+      localize("routeDebuggerEmpty", "Enter download details, then run the current rules."),
+    );
+    filename.focus();
+  });
   form.addEventListener("keydown", (event) => {
     if (event.key !== "Enter" || event.isComposing) return;
     event.preventDefault();
     void run();
   });
   Object.values(controls).forEach((control) => control.addEventListener("input", scheduleRerun));
-  textarea.addEventListener("input", scheduleRerun);
+  textarea.addEventListener("input", () => {
+    updateSourceStats();
+    scheduleRerun();
+  });
+  textarea.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter" || (!event.ctrlKey && !event.metaKey) || event.isComposing) return;
+    event.preventDefault();
+    void run();
+  });
+  document.addEventListener("options-restored", updateSourceStats);
   useLastButton.addEventListener("click", () => {
     if (!lastDownloadInfo) {
       renderMessage(
@@ -289,6 +451,7 @@ export const setupRouteDebugger = (): void => {
     "empty",
     localize("routeDebuggerEmpty", "Enter download details, then run the current rules."),
   );
+  updateSourceStats();
   useLastButton.disabled = true;
   void sendInternalMessage(webExtensionApi.runtime, { type: MESSAGE_TYPES.CHECK_ROUTES })
     .then((response) => {

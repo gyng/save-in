@@ -678,7 +678,10 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                   <div class="editor-field-label" id="rules-text-label">__MSG_o_lTextRules__</div>
                   <p class="caption routing-ide-description">__MSG_routeIdeDescription__</p>
                 </div>
-                <span class="routing-ide-badge">__MSG_routeIdeBadge__</span>
+                <div class="routing-ide-meta">
+                  <span class="routing-ide-stats" id="route-ide-stats" aria-live="polite"></span>
+                  <span class="routing-ide-badge">__MSG_routeIdeBadge__</span>
+                </div>
               </header>
               <textarea
                 id="filenamePatterns"
@@ -719,9 +722,14 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                   <h3 id="route-debugger-title">__MSG_routeDebuggerTitle__</h3>
                   <p class="caption">__MSG_routeDebuggerDescription__</p>
                 </div>
-                <button type="button" class="button" id="route-debugger-use-last" disabled>
-                  __MSG_routeDebuggerUseLastDownload__
-                </button>
+                <div class="route-debugger-header-actions">
+                  <button type="button" class="button" id="route-debugger-clear">
+                    __MSG_routeDebuggerClear__
+                  </button>
+                  <button type="button" class="button" id="route-debugger-use-last" disabled>
+                    __MSG_routeDebuggerUseLastDownload__
+                  </button>
+                </div>
               </header>
               <div id="route-debugger-form" role="group" aria-label="__MSG_routeDebuggerTitle__">
                 <div class="route-debugger-fields">
@@ -782,8 +790,76 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                     </select>
                   </label>
                 </div>
+                <details class="route-debugger-more">
+                  <summary>__MSG_routeDebuggerMoreData__</summary>
+                  <div class="route-debugger-more-fields">
+                    <label class="route-debugger-field">
+                      <span>__MSG_routeDebuggerPageTitle__</span>
+                      <input
+                        type="text"
+                        id="route-debugger-page-title"
+                        data-no-autosave
+                        spellcheck="false"
+                      />
+                    </label>
+                    <label class="route-debugger-field">
+                      <span>__MSG_routeDebuggerReferrerUrl__</span>
+                      <input
+                        type="text"
+                        id="route-debugger-referrer-url"
+                        placeholder="https://example.com/previous"
+                        data-technical-literal
+                        data-no-autosave
+                        spellcheck="false"
+                      />
+                    </label>
+                    <label class="route-debugger-field">
+                      <span>__MSG_routeDebuggerFrameUrl__</span>
+                      <input
+                        type="text"
+                        id="route-debugger-frame-url"
+                        placeholder="https://example.com/embed"
+                        data-technical-literal
+                        data-no-autosave
+                        spellcheck="false"
+                      />
+                    </label>
+                    <label class="route-debugger-field">
+                      <span>__MSG_routeDebuggerLinkText__</span>
+                      <input
+                        type="text"
+                        id="route-debugger-link-text"
+                        data-no-autosave
+                        spellcheck="false"
+                      />
+                    </label>
+                    <label class="route-debugger-field">
+                      <span>__MSG_routeDebuggerSelectionText__</span>
+                      <input
+                        type="text"
+                        id="route-debugger-selection-text"
+                        data-no-autosave
+                        spellcheck="false"
+                      />
+                    </label>
+                    <label class="route-debugger-field">
+                      <span>__MSG_routeDebuggerMediaType__</span>
+                      <select id="route-debugger-media-type" data-no-autosave>
+                        <option value="">__MSG_routeDebuggerAnyMediaType__</option>
+                        <option value="image">__MSG_html_image__</option>
+                        <option value="video">__MSG_html_video__</option>
+                        <option value="audio">__MSG_sourcePanelKindAudio__</option>
+                      </select>
+                    </label>
+                  </div>
+                </details>
                 <div class="route-debugger-actions">
-                  <span class="caption">__MSG_routeDebuggerUnsavedNote__</span>
+                  <div class="route-debugger-note">
+                    <span class="caption">__MSG_routeDebuggerUnsavedNote__</span>
+                    <span class="caption route-debugger-shortcut"
+                      >__MSG_routeDebuggerShortcut__</span
+                    >
+                  </div>
                   <button type="button" class="apply-button" id="route-debugger-run">
                     __MSG_routeDebuggerRun__
                   </button>
@@ -792,52 +868,54 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
               <div
                 class="route-debugger-result"
                 id="route-debugger-result"
-                role="status"
+                role="region"
+                aria-labelledby="route-debugger-title"
                 aria-live="polite"
               ></div>
             </section>
 
-            <div class="rule-builder" role="group" aria-labelledby="rule-builder-label">
-              <div class="editor-field-label" id="rule-builder-label">__MSG_o_lRuleBuilder__</div>
-              <div class="rule-builder-row">
-                <label>
-                  <span>__MSG_o_lMatcher__</span>
-                  <select id="rule-builder-matcher"></select>
-                </label>
-                <label>
-                  <span>__MSG_o_lPattern__</span>
-                  <input
-                    type="text"
-                    id="rule-builder-pattern"
-                    placeholder="jpg|png"
-                    spellcheck="false"
-                  />
-                </label>
+            <details class="rule-builder routing-tool">
+              <summary id="rule-builder-label">__MSG_o_lRuleBuilder__</summary>
+              <div class="routing-tool-content">
+                <div class="rule-builder-row">
+                  <label>
+                    <span>__MSG_o_lMatcher__</span>
+                    <select id="rule-builder-matcher"></select>
+                  </label>
+                  <label>
+                    <span>__MSG_o_lPattern__</span>
+                    <input
+                      type="text"
+                      id="rule-builder-pattern"
+                      placeholder="jpg|png"
+                      spellcheck="false"
+                    />
+                  </label>
+                </div>
+                <div class="rule-builder-row">
+                  <label>
+                    <span>__MSG_o_lDestinationInto__</span>
+                    <input
+                      type="text"
+                      id="rule-builder-into"
+                      placeholder="images/:pagedomain:/:filename:"
+                      spellcheck="false"
+                    />
+                  </label>
+                  <button type="button" class="apply-button" id="rule-builder-add" disabled>
+                    __MSG_html_add2__
+                  </button>
+                </div>
               </div>
-              <div class="rule-builder-row">
-                <label>
-                  <span>__MSG_o_lDestinationInto__</span>
-                  <input
-                    type="text"
-                    id="rule-builder-into"
-                    placeholder="images/:pagedomain:/:filename:"
-                    spellcheck="false"
-                  />
-                </label>
-                <button type="button" class="apply-button" id="rule-builder-add" disabled>
-                  __MSG_html_add2__
-                </button>
-              </div>
-            </div>
+            </details>
 
-            <div class="last-download-row">
+            <details class="last-download-row routing-tool">
+              <summary>__MSG_o_lRoutingLastDownload__</summary>
               <div class="info-row last-download-info">
                 <table class="last-download-table">
                   <tbody>
                     <tr>
-                      <th scope="row" class="last-download-label">
-                        __MSG_o_lRoutingLastDownload__
-                      </th>
+                      <th scope="row" class="last-download-label">__MSG_historyColumnUrl__</th>
                       <td class="last-download-url" id="last-dl-url">
                         __MSG_o_lRoutingLastDownloadEmpty__
                       </td>
@@ -868,7 +946,7 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                   </tbody>
                 </table>
               </div>
-            </div>
+            </details>
 
             <div class="routing-post-options">
               <label>

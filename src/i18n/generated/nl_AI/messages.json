@@ -2119,5 +2119,80 @@
   },
   "routeDebuggerEmpty": {
     "message": "Enter download details, then run the current rules."
+  },
+  "routeDebuggerClear": {
+    "message": "Clear"
+  },
+  "routeDebuggerMoreData": {
+    "message": "More test data"
+  },
+  "routeDebuggerPageTitle": {
+    "message": "Page title"
+  },
+  "routeDebuggerReferrerUrl": {
+    "message": "Referrer URL"
+  },
+  "routeDebuggerFrameUrl": {
+    "message": "Frame URL"
+  },
+  "routeDebuggerLinkText": {
+    "message": "Link text"
+  },
+  "routeDebuggerSelectionText": {
+    "message": "Selected text"
+  },
+  "routeDebuggerMediaType": {
+    "message": "Media type"
+  },
+  "routeDebuggerAnyMediaType": {
+    "message": "Any media type"
+  },
+  "routeDebuggerShortcut": {
+    "message": "Ctrl/⌘+Enter runs the test."
+  },
+  "routeIdeStats": {
+    "message": "Rules $RULES$ · Matchers $MATCHERS$ · Lines $LINES$",
+    "placeholders": {
+      "rules": {
+        "content": "$1",
+        "example": "3"
+      },
+      "matchers": {
+        "content": "$2",
+        "example": "6"
+      },
+      "lines": {
+        "content": "$3",
+        "example": "12"
+      }
+    }
+  },
+  "routeDebuggerEvaluation": {
+    "message": "Rule evaluation"
+  },
+  "routeDebuggerFirstMatch": {
+    "message": "Rules run top to bottom; the first match wins."
+  },
+  "routeDebuggerMatcherCount": {
+    "message": "Matched $MATCHED$/$TOTAL$",
+    "placeholders": {
+      "matched": {
+        "content": "$1",
+        "example": "2"
+      },
+      "total": {
+        "content": "$2",
+        "example": "3"
+      }
+    }
+  },
+  "routeDebuggerGoToLine": {
+    "message": "Go to line $LINE$",
+    "placeholders": {
+      "line": {
+        "content": "$1",
+        "example": "8"
+      }
+    }
   }
 }
