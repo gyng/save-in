@@ -1,10 +1,9 @@
 # 4.0.0
 
-Version 4 is the largest Save In release to date. It modernizes browser
-support and makes complex download organization easier while preserving
-existing settings and rules.
+Version 4 is a almost-complete revamp. It modernizes browser
+support and makes complex download organization easier while preserving existing settings and rules.
 
-- Rebuilt for current Firefox and Chrome extension platforms; now requires
+- Rebuilt for current Firefox and Chrome MV3 extension platforms; now requires
   Firefox 121+ or Chrome 123+.
 - Redesigned Options with clearer navigation, visual directory editing, rule
   templates, previews, search, improved localization, and better dark mode.
@@ -19,9 +18,6 @@ existing settings and rules.
 - Automatically migrate path-component truncation from character counts to
   UTF-8 byte limits, apply it consistently to files and folders, and preserve
   filename extensions within the configured limit.
-
-Thanks @rudolphos for #230 and Chromium testing, and everyone who reported and
-tested the many fixes included in this release.
 
 <details>
 <summary>Detailed changes</summary>
