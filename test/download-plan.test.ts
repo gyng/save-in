@@ -161,6 +161,19 @@ describe("renameAndDownload: MIME extension append (§8.1)", () => {
     expect(Variable.resolveMime).not.toHaveBeenCalled();
     expect(Download.finalizeFullPath(state)).toMatch(/photo\.png$/);
   });
+
+  test("skips MIME extension lookup for an existing long extension", async () => {
+    setCurrentBrowser("CHROME");
+    options.appendMimeExtension = true;
+    vi.spyOn(Variable, "resolveMime").mockResolvedValue("application/manifest+json");
+    vi.spyOn(Variable, "mimeToExtension").mockReturnValue("json");
+
+    const state = makeState({ info: { url: "https://cdn.example.com/app.webmanifest" } });
+    await Download.renameAndDownload(state);
+
+    expect(Variable.resolveMime).not.toHaveBeenCalled();
+    expect(Download.finalizeFullPath(state)).toMatch(/app\.webmanifest$/);
+  });
 });
 
 describe("renameAndDownload: folder-only route (§8.1)", () => {

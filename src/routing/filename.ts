@@ -1,4 +1,4 @@
-export const EXTENSION_REGEX = /\.(?!\d+$)([0-9a-z]{1,8})$/i;
+export const EXTENSION_REGEX = /\.([\p{L}\p{M}\p{N}_+-]+)$/u;
 
 export const getFilenameFromUrl = (url: string): string => {
   let segment;

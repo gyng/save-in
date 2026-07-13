@@ -207,6 +207,16 @@ describe("sanitizeFilename", () => {
     expect(Path.getFilenameDiagnostics("界.txt", 8).exceedsLimit).toBe(false);
   });
 
+  test("preserves long and Unicode extensions within the UTF-8 byte budget", () => {
+    const longExtension = Path.sanitizeFilename(`${"a".repeat(250)}.webmanifest`, 24, true, true);
+    const unicodeExtension = Path.sanitizeFilename(`${"a".repeat(250)}.数据`, 12, true, true);
+
+    expect(longExtension).toBe("a".repeat(12) + ".webmanifest");
+    expect(unicodeExtension).toBe("a".repeat(5) + ".数据");
+    expect(Path.getFilenameDiagnostics(longExtension, 24).exceedsLimit).toBe(false);
+    expect(Path.getFilenameDiagnostics(unicodeExtension, 12).exceedsLimit).toBe(false);
+  });
+
   test("uses a safe stem when the extension fits but the first stem code point does not", () => {
     expect(Path.sanitizeFilename("界界界.txt", 5, true, true)).toBe("_.txt");
   });

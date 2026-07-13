@@ -198,10 +198,6 @@ const recordDownloadRequest = (plan: DownloadPlan): void => {
 
 export const Download = {
   DISPOSITION_FILENAME_REGEX: /filename[^;=\n]*=((['"])(.*)?\2|(.+'')?([^;\n]*))/i,
-  // A trailing dotted token of 1–8 alnum chars, but NOT an all-digit one:
-  // "photo.12345" is an id/version, not a ".12345" extension (§8.1). Real
-  // numeric-bearing extensions keep a letter (mp3, mp4, h264, 7z).
-
   // url -> state for in-flight downloads, so onDeterminingFilename can
   // attribute the right state when two Chrome downloads overlap.
   ...downloadRuntime,

@@ -15,14 +15,18 @@ test("extension detection regex", () => {
   expect("abc.jpg:xyz".match(EXTENSION_REGEX)).toBeFalsy();
   expect("abc.jpg:xyz".match(EXTENSION_REGEX)).toBeFalsy();
   expect("abc.bananas".match(EXTENSION_REGEX)).toHaveLength(2);
-  expect("abc.bananas123".match(EXTENSION_REGEX)).toBeFalsy();
-  // Numeric-bearing real extensions keep their letter and still match
+  expect("abc.bananas123".match(EXTENSION_REGEX)?.[1]).toBe("bananas123");
+  expect("app.webmanifest".match(EXTENSION_REGEX)?.[1]).toBe("webmanifest");
+  expect("archive.数据".match(EXTENSION_REGEX)?.[1]).toBe("数据");
+  // Numeric and punctuation-bearing suffixes are extensions under the broad
+  // filename contract.
   expect("song.mp3".match(EXTENSION_REGEX)?.[1]).toBe("mp3");
   expect("clip.h264".match(EXTENSION_REGEX)?.[1]).toBe("h264");
   expect("a.7z".match(EXTENSION_REGEX)?.[1]).toBe("7z");
-  // An all-digit trailing token is an id/version, not an extension (§8.1)
-  expect("photo.12345".match(EXTENSION_REGEX)).toBeFalsy();
-  expect("IMG_0001.20240607".match(EXTENSION_REGEX)).toBeFalsy();
+  expect("source.c++".match(EXTENSION_REGEX)?.[1]).toBe("c++");
+  expect("photo.12345".match(EXTENSION_REGEX)?.[1]).toBe("12345");
+  expect("IMG_0001.20240607".match(EXTENSION_REGEX)?.[1]).toBe("20240607");
+  expect("abc.jpg?download=1".match(EXTENSION_REGEX)).toBeFalsy();
 });
 
 describe("finalizeFullPath: MIME extension append (§8.1)", () => {
@@ -51,9 +55,15 @@ describe("finalizeFullPath: MIME extension append (§8.1)", () => {
     );
   });
 
-  test("appends when the trailing token is all-digits (not a real extension)", () => {
+  test("does not append when the existing extension is all digits", () => {
     expect(Download.finalizeFullPath(state("photo.12345", { mimeExtension: "jpg" }))).toBe(
-      "dir/photo.12345.jpg",
+      "dir/photo.12345",
+    );
+  });
+
+  test("does not append onto an existing long extension", () => {
+    expect(Download.finalizeFullPath(state("app.webmanifest", { mimeExtension: "json" }))).toBe(
+      "dir/app.webmanifest",
     );
   });
 
