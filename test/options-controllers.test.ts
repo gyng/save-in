@@ -4,6 +4,8 @@ import { setupCheckboxRows } from "../src/options/checkbox-rows.ts";
 import { setupShortcutOptions } from "../src/options/shortcut-options.ts";
 import { setupSettingsTransfer } from "../src/options/settings-transfer.ts";
 import { parseCounterValue } from "../src/options/counter-panel.ts";
+import { MESSAGE_TYPES } from "../src/shared/constants.ts";
+import type { ApplyConfigResponse } from "../src/shared/message-protocol.ts";
 
 beforeEach(() => {
   document.body.innerHTML = "";
@@ -121,6 +123,18 @@ describe("checkbox rows", () => {
 });
 
 describe("settings transfer", () => {
+  const applyResult = (
+    rejected: Array<{ name: string; reason: string }> = [],
+  ): ApplyConfigResponse => ({
+    type: MESSAGE_TYPES.APPLY_CONFIG_RESULT,
+    body: { version: 1, applied: {}, rejected },
+  });
+  const restore = () => vi.fn(async (): Promise<void> => {});
+
+  const importMarkup = () => {
+    document.body.innerHTML = '<button id="settings-import"></button>';
+  };
+
   test("exports only schema-owned settings", async () => {
     document.body.innerHTML =
       '<button id="settings-export"></button><textarea id="export-target" hidden></textarea>';
@@ -129,7 +143,7 @@ describe("settings transfer", () => {
       getSchema: () => Promise.resolve({ keys: [{ name: "enabled" }] }),
       getStored,
       apply: vi.fn(),
-      restore: vi.fn(),
+      restore: restore(),
     });
     document.querySelector<HTMLButtonElement>("#settings-export")!.click();
     await vi.waitFor(() => expect(getStored).toHaveBeenCalledWith(["enabled"]));
@@ -138,8 +152,69 @@ describe("settings transfer", () => {
     );
   });
 
+  test.each([
+    ["schema", () => Promise.reject(new Error("schema unavailable")), vi.fn()],
+    [
+      "storage",
+      () => Promise.resolve({ keys: [{ name: "enabled" }] }),
+      vi.fn(() => Promise.reject(new Error("storage unavailable"))),
+    ],
+  ])("contains %s failures while exporting settings", async (_boundary, getSchema, getStored) => {
+    document.body.innerHTML =
+      '<button id="settings-export"></button><textarea id="export-target" hidden></textarea>';
+    const alert = vi.spyOn(window, "alert").mockImplementation(() => {});
+    setupSettingsTransfer({ getSchema, getStored, apply: vi.fn(), restore: restore() });
+
+    document.querySelector<HTMLButtonElement>("#settings-export")!.click();
+
+    await vi.waitFor(() => expect(alert).toHaveBeenCalledWith(expect.stringContaining("Failed")));
+    expect(document.querySelector<HTMLTextAreaElement>("#export-target")!.hidden).toBe(true);
+  });
+
+  test("imports a valid settings object and restores the controls", async () => {
+    importMarkup();
+    vi.spyOn(window, "prompt").mockReturnValue('{"enabled":true}');
+    const alert = vi.spyOn(window, "alert").mockImplementation(() => {});
+    const apply = vi.fn().mockResolvedValue(applyResult());
+    const restoreSettings = restore();
+    setupSettingsTransfer({
+      getSchema: () => Promise.resolve({ keys: [{ name: "enabled" }] }),
+      getStored: vi.fn(),
+      apply,
+      restore: restoreSettings,
+    });
+
+    document.querySelector<HTMLButtonElement>("#settings-import")!.click();
+
+    await vi.waitFor(() => expect(apply).toHaveBeenCalledWith({ enabled: true }));
+    expect(restoreSettings).toHaveBeenCalledOnce();
+    expect(alert).toHaveBeenCalledWith("Settings loaded.");
+  });
+
+  test("reports partial imports after restoring the accepted values", async () => {
+    importMarkup();
+    vi.spyOn(window, "prompt").mockReturnValue('{"enabled":"yes","paths":"cats"}');
+    const alert = vi.spyOn(window, "alert").mockImplementation(() => {});
+    const restoreSettings = restore();
+    setupSettingsTransfer({
+      getSchema: () => Promise.resolve({ keys: [] }),
+      getStored: vi.fn(),
+      apply: vi
+        .fn()
+        .mockResolvedValue(applyResult([{ name: "enabled", reason: "Expected a boolean" }])),
+      restore: restoreSettings,
+    });
+
+    document.querySelector<HTMLButtonElement>("#settings-import")!.click();
+
+    await vi.waitFor(() =>
+      expect(alert).toHaveBeenCalledWith("Settings loaded with 1 rejected value(s)."),
+    );
+    expect(restoreSettings).toHaveBeenCalledOnce();
+  });
+
   test("rejects imported arrays before applying them", async () => {
-    document.body.innerHTML = '<button id="settings-import"></button>';
+    importMarkup();
     vi.spyOn(window, "prompt").mockReturnValue("[]");
     const alert = vi.spyOn(window, "alert").mockImplementation(() => {});
     const apply = vi.fn();
@@ -147,11 +222,73 @@ describe("settings transfer", () => {
       getSchema: () => Promise.resolve({ keys: [] }),
       getStored: vi.fn(),
       apply,
-      restore: vi.fn(),
+      restore: restore(),
     });
     document.querySelector<HTMLButtonElement>("#settings-import")!.click();
     await vi.waitFor(() => expect(alert).toHaveBeenCalled());
     expect(apply).not.toHaveBeenCalled();
+  });
+
+  test.each([
+    ["schema", () => Promise.reject(new Error("schema unavailable")), vi.fn()],
+    [
+      "apply",
+      () => Promise.resolve({ keys: [] }),
+      vi.fn(() => Promise.reject(new Error("apply unavailable"))),
+    ],
+  ])("contains %s failures while importing settings", async (_boundary, getSchema, apply) => {
+    importMarkup();
+    const prompt = vi.spyOn(window, "prompt").mockReturnValue('{"enabled":true}');
+    const alert = vi.spyOn(window, "alert").mockImplementation(() => {});
+    const restoreSettings = restore();
+    setupSettingsTransfer({ getSchema, getStored: vi.fn(), apply, restore: restoreSettings });
+
+    document.querySelector<HTMLButtonElement>("#settings-import")!.click();
+
+    await vi.waitFor(() => expect(alert).toHaveBeenCalledWith(expect.stringContaining("Failed")));
+    expect(restoreSettings).not.toHaveBeenCalled();
+    if (_boundary === "schema") expect(prompt).not.toHaveBeenCalled();
+  });
+
+  test("rejects protocol errors without restoring or reporting success", async () => {
+    importMarkup();
+    vi.spyOn(window, "prompt").mockReturnValue('{"enabled":true}');
+    const alert = vi.spyOn(window, "alert").mockImplementation(() => {});
+    const restoreSettings = restore();
+    setupSettingsTransfer({
+      getSchema: () => Promise.resolve({ keys: [] }),
+      getStored: vi.fn(),
+      apply: vi.fn().mockResolvedValue({
+        type: MESSAGE_TYPES.APPLY_CONFIG,
+        body: { status: MESSAGE_TYPES.ERROR, error: "INTERNAL_ERROR" },
+      } satisfies ApplyConfigResponse),
+      restore: restoreSettings,
+    });
+
+    document.querySelector<HTMLButtonElement>("#settings-import")!.click();
+
+    await vi.waitFor(() => expect(alert).toHaveBeenCalledWith(expect.stringContaining("Failed")));
+    expect(alert).not.toHaveBeenCalledWith("Settings loaded.");
+    expect(restoreSettings).not.toHaveBeenCalled();
+  });
+
+  test("awaits restoration and contains restoration failures", async () => {
+    importMarkup();
+    vi.spyOn(window, "prompt").mockReturnValue('{"enabled":true}');
+    const alert = vi.spyOn(window, "alert").mockImplementation(() => {});
+    const restoreSettings = vi.fn(() => Promise.reject(new Error("storage unavailable")));
+    setupSettingsTransfer({
+      getSchema: () => Promise.resolve({ keys: [] }),
+      getStored: vi.fn(),
+      apply: vi.fn().mockResolvedValue(applyResult()),
+      restore: restoreSettings,
+    });
+
+    document.querySelector<HTMLButtonElement>("#settings-import")!.click();
+
+    await vi.waitFor(() => expect(alert).toHaveBeenCalledWith(expect.stringContaining("Failed")));
+    expect(restoreSettings).toHaveBeenCalledOnce();
+    expect(alert).not.toHaveBeenCalledWith("Settings loaded.");
   });
 });
 
