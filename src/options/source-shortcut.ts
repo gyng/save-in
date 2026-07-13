@@ -110,8 +110,16 @@ export const setupSourceShortcut = () => {
     const shortcut = shortcutValue();
     if (!validate()) return;
     apply.disabled = true;
-    void webExtensionApi.commands
-      .update({ name: COMMAND, shortcut })
+    const updateValue: unknown = Reflect.get(webExtensionApi.commands, "update");
+    if (typeof updateValue !== "function") {
+      announce("This browser does not support changing shortcuts here.", true);
+      apply.disabled = false;
+      return;
+    }
+    const update = Reflect.apply(updateValue, webExtensionApi.commands, [
+      { name: COMMAND, shortcut },
+    ]) as Promise<void>;
+    void update
       .then(() => load())
       .then((retained) => {
         if (retained.toLocaleLowerCase() !== shortcut.toLocaleLowerCase()) {
@@ -124,8 +132,15 @@ export const setupSourceShortcut = () => {
       .catch((error) => announce(String(error), true));
   });
   reset.addEventListener("click", () => {
-    void webExtensionApi.commands
-      .reset(COMMAND)
+    const resetValue: unknown = Reflect.get(webExtensionApi.commands, "reset");
+    if (typeof resetValue !== "function") {
+      announce("This browser does not support resetting shortcuts here.", true);
+      return;
+    }
+    const resetShortcut = Reflect.apply(resetValue, webExtensionApi.commands, [
+      COMMAND,
+    ]) as Promise<void>;
+    void resetShortcut
       .then(() => load())
       .then(() => announce("Shortcut reset."))
       .catch((error) => announce(String(error), true));

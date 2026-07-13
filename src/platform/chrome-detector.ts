@@ -51,15 +51,23 @@ export const setCurrentBrowser = (currentBrowser: string) => {
   WEB_EXTENSION_CAPABILITIES = detectCapabilities(currentBrowser);
 };
 
+const getBrowserInfoValue: unknown = Reflect.get(webExtensionApi?.runtime ?? {}, "getBrowserInfo");
+const getBrowserInfo =
+  typeof getBrowserInfoValue === "function"
+    ? (): Promise<{ version: string }> =>
+        Reflect.apply(getBrowserInfoValue, webExtensionApi.runtime, []) as Promise<{
+          version: string;
+        }>
+    : null;
+
 if (!webExtensionApi) {
   setCurrentBrowser(BROWSERS.UNKNOWN);
-} else if (webExtensionApi.runtime.getBrowserInfo) {
+} else if (getBrowserInfo) {
   // Only Gecko-based browsers implement getBrowserInfo: treat forks like
   // Waterfox or LibreWolf as Firefox regardless of the reported name (#186)
   setCurrentBrowser(BROWSERS.FIREFOX);
 
-  webExtensionApi.runtime
-    .getBrowserInfo()
+  getBrowserInfo()
     .then((res) => {
       CURRENT_BROWSER_VERSION = parseFloat(res.version);
     })

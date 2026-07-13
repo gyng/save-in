@@ -76,6 +76,7 @@ fs.writeFileSync(path.join(out, "manifest.json"), `${JSON.stringify(manifest, nu
 
 // 5. Rewrite the entry pages to load their single bundle instead of the many
 //    source scripts. `bundleHref` is relative to the page's own location.
+/** @param {string} htmlRel @param {string} bundleHref */
 const rewriteHtml = (htmlRel, bundleHref) => {
   const p = path.join(out, htmlRel);
   let html = fs.readFileSync(p, "utf8");

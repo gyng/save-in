@@ -31,6 +31,13 @@ import {
 import { runEventTask } from "../shared/event-task.ts";
 export { recoverNotificationState } from "./notification-recovery.ts";
 
+type HostDownloadItem = Parameters<
+  Parameters<typeof webExtensionApi.downloads.onCreated.addListener>[0]
+>[0];
+type HostDownloadDelta = Parameters<
+  Parameters<typeof webExtensionApi.downloads.onChanged.addListener>[0]
+>[0];
+
 // Chrome's notifications API can reject SVG iconUrl values with "Unable to
 // download all specified images". Use the shipped raster app icon for the
 // native notification surface; status remains explicit in the title and the
@@ -49,7 +56,7 @@ const addDownloadLog = (record: DownloadRecord, message: string, data?: unknown)
 
 const createNotification = (
   id: string,
-  details: browser.notifications.CreateNotificationOptions,
+  details: SaveInNotificationOptions,
   duration = options.notifyDuration,
 ) => {
   void Promise.resolve(webExtensionApi.notifications.create(id, details)).catch((error) =>
@@ -139,7 +146,7 @@ export const Notifier = {
     if (index !== -1) expectedDownloads.splice(index, 1);
   },
 
-  onDownloadCreated: async (item: browser.downloads.DownloadItem) => {
+  onDownloadCreated: async (item: HostDownloadItem) => {
     if (backgroundRuntime.ready) {
       await backgroundRuntime.ready.catch(() => {});
     }
@@ -157,7 +164,8 @@ export const Notifier = {
       return;
     }
 
-    const finalUrl = (item as browser.downloads.DownloadItem & { finalUrl?: string }).finalUrl;
+    const finalUrlValue: unknown = Reflect.get(item, "finalUrl");
+    const finalUrl = typeof finalUrlValue === "string" ? finalUrlValue : undefined;
     const expectedIndex = expectedDownloads.findIndex(
       (expected) => expected.url == null || expected.url === item.url || expected.url === finalUrl,
     );
@@ -295,7 +303,7 @@ export const Notifier = {
     return webExtensionApi.downloads.show(Number(notId));
   },
 
-  onDownloadChanged: async (downloadDelta: browser.downloads._OnChangedDownloadDelta) => {
+  onDownloadChanged: async (downloadDelta: HostDownloadDelta) => {
     if (backgroundRuntime.ready) {
       await backgroundRuntime.ready.catch(() => {});
     }

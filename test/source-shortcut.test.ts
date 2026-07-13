@@ -58,6 +58,28 @@ describe("Page Sources shortcut control", () => {
     );
   });
 
+  test("degrades cleanly when the host cannot update commands", async () => {
+    (global.browser as any).commands = {
+      getAll: vi.fn(() =>
+        Promise.resolve([{ name: "toggle-source-panel", shortcut: "Ctrl+Shift+G" }]),
+      ),
+    };
+    setupSourceShortcut();
+    const input = document.querySelector<HTMLInputElement>("#sourcePanelShortcutKey")!;
+    const apply = document.querySelector<HTMLButtonElement>("#sourcePanelShortcutApply")!;
+    const status = document.querySelector<HTMLElement>("#sourcePanelShortcutStatus")!;
+    await vi.waitFor(() => expect(input.value).toBe("G"));
+
+    input.value = "S";
+    input.dispatchEvent(new InputEvent("input"));
+    apply.click();
+    expect(status.textContent).toContain("does not support changing shortcuts");
+    expect(apply.disabled).toBe(false);
+
+    document.querySelector<HTMLButtonElement>("#sourcePanelShortcutReset")!.click();
+    expect(status.textContent).toContain("does not support resetting shortcuts");
+  });
+
   test("validates a modifier plus one key", () => {
     expect(validateSourceShortcut("Ctrl+Shift+G")).toBe("");
     expect(validateSourceShortcut("Alt+S")).toBe("");

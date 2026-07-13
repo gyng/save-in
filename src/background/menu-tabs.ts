@@ -14,6 +14,8 @@ import { Log } from "./log.ts";
 import { backgroundRuntime } from "./runtime.ts";
 import { runBackgroundTask } from "./event-task.ts";
 
+type HostTab = Parameters<Parameters<typeof webExtensionApi.tabs.onUpdated.addListener>[0]>[2];
+
 export const addTabMenus = () => {
   if (!options.tabEnabled || !WEB_EXTENSION_CAPABILITIES.tabContextMenus) {
     return;
@@ -94,7 +96,7 @@ export const addTabMenuListener = () => {
         await backgroundRuntime.ready;
       }
 
-      let filter: (tab: browser.tabs.Tab) => boolean = () => false;
+      let filter: (tab: HostTab) => boolean = () => false;
       let query: Parameters<typeof webExtensionApi.tabs.query>[0] = {
         pinned: false,
         windowId: fromTab.windowId,
@@ -124,7 +126,7 @@ export const addTabMenuListener = () => {
       try {
         const tabs = (await webExtensionApi.tabs.query(query))
           .filter(
-            (tab): tab is browser.tabs.Tab & { url: string } =>
+            (tab): tab is HostTab & { url: string } =>
               Boolean(tab.url) && !/^(about|chrome):/.test(tab.url || ""),
           )
           .filter(filter);
@@ -159,7 +161,9 @@ export const addTabMenuListener = () => {
             context: DOWNLOAD_TYPES.TAB,
             menuIndex: null,
             comment: null,
-            modifiers: info.modifiers,
+            modifiers: Array.isArray(Reflect.get(info, "modifiers"))
+              ? (Reflect.get(info, "modifiers") as string[])
+              : undefined,
           };
 
           // keeps track of state of the final path

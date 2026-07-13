@@ -1,5 +1,5 @@
 {
-  "extends": "./tsconfig.browser.json",
+  "extends": "./tsconfig.chrome.json",
   "compilerOptions": {
     "lib": ["es2023", "webworker"],
     "types": ["firefox-webext-browser", "chrome"],
@@ -7,5 +7,6 @@
     // types even for APIs available in workers. App source remains checked.
     "skipLibCheck": true
   },
-  "include": ["src/entries/background.ts", "types/**/*.d.ts"]
+  "include": ["src/entries/background.ts", "types/**/*.d.ts"],
+  "exclude": ["types/host-firefox.d.ts"]
 }

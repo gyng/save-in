@@ -1,0 +1,5 @@
+{
+  "extends": "./tsconfig.browser.json",
+  "include": ["src/**/*.ts", "types/**/*.d.ts"],
+  "exclude": ["types/host-firefox.d.ts"]
+}

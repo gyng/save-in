@@ -7,5 +7,6 @@
     "noUncheckedIndexedAccess": false,
     "types": ["firefox-webext-browser", "chrome", "node", "vitest/globals"]
   },
-  "include": ["src/**/*.ts", "test/**/*", "types/**/*.d.ts", "vitest.config.mjs"]
+  "include": ["src/**/*.ts", "test/**/*", "types/**/*.d.ts", "vitest.config.mjs"],
+  "exclude": ["types/host-chrome.d.ts"]
 }

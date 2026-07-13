@@ -252,9 +252,11 @@ export const addDownloadListener = () => {
         }
 
         // Organise things by flattening the info struct and only keeping needed info
+        const linkTextValue: unknown = Reflect.get(info, "linkText");
+        const modifiersValue: unknown = Reflect.get(info, "modifiers");
         const opts: DownloadInfo = {
           currentTab: clickTab,
-          linkText: info.linkText,
+          linkText: typeof linkTextValue === "string" ? linkTextValue : undefined,
           now: new Date(),
           pageUrl: info.pageUrl,
           selectionText: info.selectionText,
@@ -269,7 +271,9 @@ export const addDownloadListener = () => {
             (info.menuItemId === MENU_IDS.LAST_USED ? "Last used location" : "Routing rules"),
           menuItemPath: saveIntoPath || undefined,
           comment,
-          modifiers: info.modifiers,
+          modifiers: Array.isArray(modifiersValue)
+            ? modifiersValue.filter((value): value is string => typeof value === "string")
+            : undefined,
         };
 
         // keeps track of state of the final path

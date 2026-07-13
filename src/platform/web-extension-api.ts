@@ -1,6 +1,6 @@
-type WebExtensionApi = typeof globalThis.browser;
-
 // Every shipped entry runs in a WebExtension host, where one namespace exists.
-// Keeping the fallback expression unguarded preserves standalone detection while
-// preventing false optionality from leaking through every host API call.
-export const webExtensionApi = (globalThis.browser ?? globalThis.chrome) as WebExtensionApi;
+// Firefox and Chrome projects bind SaveInWebExtensionApi to their own namespace,
+// so this is only a runtime-selection cast; every consumer is checked once
+// against each host's declarations.
+export const webExtensionApi = (globalThis.browser ??
+  globalThis.chrome) as unknown as SaveInWebExtensionApi;

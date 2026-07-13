@@ -14,8 +14,15 @@ import { buildTree } from "../menus/menu-tree.ts";
 
 export { buildTree, parseMeta, parsePath } from "../menus/menu-tree.ts";
 
-type MenuContext = `${chrome.contextMenus.ContextType}`;
-const asMenuContexts = (contexts: readonly string[]) => contexts as MenuContext[];
+type MenuContexts = NonNullable<
+  Parameters<typeof webExtensionApi.contextMenus.create>[0]["contexts"]
+>;
+type MenuContext = MenuContexts[number];
+const asMenuContexts = (contexts: readonly string[]): MenuContexts => {
+  const normalized = contexts.filter((context): context is MenuContext => context.length > 0);
+  const [first = "all" as MenuContext, ...rest] = normalized;
+  return [first, ...rest] as MenuContexts;
+};
 type LastUsedMeta = { comment?: string; menuIndex?: string };
 type StoredLastUsed = {
   lastUsedPath?: string | null;

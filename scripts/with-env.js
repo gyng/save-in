@@ -2,6 +2,10 @@ const { spawnSync } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 
+/**
+ * @param {string[]} argv
+ * @param {NodeJS.ProcessEnv} [parentEnv]
+ */
 function prepareCommand(argv, parentEnv = process.env) {
   const env = { ...parentEnv };
   let index = 0;
@@ -28,6 +32,7 @@ function prepareCommand(argv, parentEnv = process.env) {
   return { command, args: argv.slice(index + 1), env };
 }
 
+/** @param {string} command @param {string} [cwd] */
 function resolveLocalBin(command, cwd = process.cwd()) {
   const packageJson = path.join(cwd, "node_modules", command, "package.json");
   if (!fs.existsSync(packageJson)) return null;

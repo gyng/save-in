@@ -576,7 +576,7 @@ export const Download = {
         Notifier.createExtensionNotification(
           webExtensionApi.i18n.getMessage("notificationRuleMatchFailedExclusiveTitle"),
           webExtensionApi.i18n.getMessage("notificationRuleMatchFailedExclusiveMessage", [
-            state.info.url,
+            state.info.url ?? "",
           ]),
           true,
         );

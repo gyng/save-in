@@ -5,5 +5,6 @@
     "exactOptionalPropertyTypes": true,
     "noUncheckedIndexedAccess": true
   },
-  "include": ["src/**/*.ts", "types/**/*.d.ts"]
+  "include": ["src/**/*.ts", "types/**/*.d.ts"],
+  "exclude": ["types/host-chrome.d.ts"]
 }

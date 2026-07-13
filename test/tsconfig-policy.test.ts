@@ -41,12 +41,40 @@ describe("TypeScript policy", () => {
   test("checks JavaScript tooling separately from application source", () => {
     const tools = compilerOptions("tsconfig.tools.json");
     expect(tools).toMatchObject({ allowJs: true, checkJs: true, noEmit: true, strict: true });
+    for (const strictCheck of [
+      "noImplicitAny",
+      "strictNullChecks",
+      "strictFunctionTypes",
+      "strictPropertyInitialization",
+      "useUnknownInCatchVariables",
+      "noImplicitReturns",
+    ]) {
+      expect(tools[strictCheck], strictCheck).not.toBe(false);
+    }
+
+    const legacyTools = compilerOptions("tsconfig.tools-legacy.json");
+    expect(readConfig("tsconfig.tools-legacy.json").extends).toBe("./tsconfig.tools.json");
+    expect(legacyTools).toMatchObject({ strict: false });
+    expect(readConfig("tsconfig.tools.json").include).not.toContain("e2e/**/*.mjs");
+    expect(readConfig("tsconfig.tools-legacy.json").include).toContain("e2e/**/*.mjs");
 
     const pkg = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8")) as {
       scripts?: Record<string, string>;
     };
     expect(pkg.scripts?.typecheck).toContain("tsconfig.worker.json");
     expect(pkg.scripts?.typecheck).toContain("tsconfig.tools.json");
+    expect(pkg.scripts?.typecheck).toContain("tsconfig.tools-legacy.json");
     expect(pkg.scripts?.typecheck).toContain("tsconfig.test.json");
+  });
+
+  test("checks application source against both host API declarations", () => {
+    const adapter = fs.readFileSync(path.join(root, "src/platform/web-extension-api.ts"), "utf8");
+    expect(adapter).toContain("as unknown as SaveInWebExtensionApi");
+    expect(readConfig("tsconfig.browser.json").exclude).toContain("types/host-chrome.d.ts");
+    expect(readConfig("tsconfig.chrome.json").exclude).toContain("types/host-firefox.d.ts");
+    const pkg = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8")) as {
+      scripts?: Record<string, string>;
+    };
+    expect(pkg.scripts?.typecheck).toContain("tsconfig.chrome.json");
   });
 });

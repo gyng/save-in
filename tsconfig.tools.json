@@ -8,21 +8,15 @@
     "checkJs": true,
     "types": ["node", "vitest/globals"],
     "strict": true,
-    // JS tooling has no declaration layer yet; retain inference while checking
-    // real property, call-shape, module, and control-flow errors.
-    "noImplicitAny": false,
-    "strictNullChecks": false,
-    "strictFunctionTypes": false,
-    "strictPropertyInitialization": false,
-    "useUnknownInCatchVariables": false,
     "skipLibCheck": false,
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
-    "noImplicitReturns": false
+    "noImplicitReturns": true
   },
   "include": [
-    "scripts/**/*.js",
-    "e2e/**/*.mjs",
+    "scripts/build-bundled.js",
+    "scripts/with-env.js",
+    "scripts/write-version.js",
     "rolldown.config.mjs",
     "vitest.config.mjs",
     "vitest.e2e.config.mjs"

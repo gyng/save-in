@@ -10,6 +10,7 @@ const path = require("path");
 const writeVersion = () => {
   const root = path.join(__dirname, "..");
   const outputPath = path.join(root, "src", "options", "version.json");
+  /** @type {{ commit?: string, date?: string }} */
   let existing = {};
   if (fs.existsSync(outputPath)) {
     try {
