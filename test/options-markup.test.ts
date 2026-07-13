@@ -1,11 +1,8 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { parseOptionsDocument } from "./options-markup-helpers.ts";
 
-const documentForOptions = () =>
-  new DOMParser().parseFromString(
-    readFileSync(resolve("src/options/options.html"), "utf8"),
-    "text/html",
-  );
+const documentForOptions = parseOptionsDocument;
 
 describe("options form semantics", () => {
   test("each label contains at most one labelable control", () => {

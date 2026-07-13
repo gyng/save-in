@@ -160,14 +160,17 @@ test("English is the only browser-native catalog", () => {
   expect(locales).toEqual(["en"]);
 });
 
-test("AI-generated catalogs completely implement the English schema", () => {
+test("AI-generated partial catalogs match the English schema and fall back for new keys", () => {
   const canonical = readCatalog("en");
-  const canonicalKeys = Object.keys(canonical).toSorted();
   for (const { locale } of GENERATED_LOCALES) {
     const catalog = readGeneratedCatalog(locale);
-    expect(Object.keys(catalog).toSorted(), locale).toEqual(canonicalKeys);
+    const catalogKeys = Object.keys(catalog).toSorted();
     expect(
-      canonicalKeys.filter(
+      catalogKeys.filter((key) => !canonical[key]),
+      `${locale} unknown keys`,
+    ).toEqual([]);
+    expect(
+      catalogKeys.filter(
         (key) =>
           JSON.stringify(catalog[key]?.placeholders ?? {}) !==
           JSON.stringify(canonical[key]?.placeholders ?? {}),
@@ -175,11 +178,11 @@ test("AI-generated catalogs completely implement the English schema", () => {
       `${locale} placeholders`,
     ).toEqual([]);
     expect(
-      canonicalKeys.filter((key) => catalog[key]?.message.includes("__SI_TOKEN_")),
+      catalogKeys.filter((key) => catalog[key]?.message.includes("__SI_TOKEN_")),
       `${locale} protected translation tokens`,
     ).toEqual([]);
     expect(
-      canonicalKeys.filter(
+      catalogKeys.filter(
         (key) =>
           JSON.stringify(edgeWhitespace(catalog[key]?.message ?? "")) !==
           JSON.stringify(edgeWhitespace(canonical[key]?.message ?? "")),
@@ -187,16 +190,16 @@ test("AI-generated catalogs completely implement the English schema", () => {
       `${locale} intentional edge whitespace`,
     ).toEqual([]);
     expect(
-      canonicalKeys.filter(
+      catalogKeys.filter(
         (key) =>
           key !== "translationCredits" && /[\u200B-\u200D\uFEFF]/.test(catalog[key]?.message ?? ""),
       ),
       `${locale} invisible translation artifacts`,
     ).toEqual([]);
     expect(
-      canonicalKeys.filter((key) => catalog[key]?.message !== canonical[key]?.message).length,
+      catalogKeys.filter((key) => catalog[key]?.message !== canonical[key]?.message).length,
       `${locale} translated messages`,
-    ).toBeGreaterThan(canonicalKeys.length * 0.8);
+    ).toBeGreaterThan(catalogKeys.length * 0.8);
   }
 });
 

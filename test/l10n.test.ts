@@ -61,8 +61,8 @@ test("English options headings use sentence case", () => {
       "o_sVisualEditor",
     ].map((key) => messages[key].message),
   ).toEqual([
-    "Downloads menu",
-    "Rename and route downloads",
+    "Save locations",
+    "Routing and renaming",
     "Shortcut files",
     "Click-to-save",
     "Context menu access keys",

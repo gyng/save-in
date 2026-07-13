@@ -2,6 +2,7 @@ import { setupAboutDialog } from "../src/options/about-dialog.ts";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { webExtensionApi } from "../src/platform/web-extension-api.ts";
+import { parseOptionsDocument } from "./options-markup-helpers.ts";
 
 test("opens and closes the About dialog", () => {
   document.body.innerHTML = `
@@ -53,8 +54,7 @@ test("shows the runtime manifest version without generated checkout metadata", (
 });
 
 test("About explains privacy and every requested permission", () => {
-  const html = readFileSync(resolve("src/options/options.html"), "utf8");
-  const document = new DOMParser().parseFromString(html, "text/html");
+  const document = parseOptionsDocument();
   const about = document.querySelector("#about-dialog")!;
   expect(about.querySelector(".about-mascot")?.getAttribute("src")).toContain("mascot.webp");
   expect(about.querySelector("#about-version")).not.toBeNull();

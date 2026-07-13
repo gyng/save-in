@@ -1,11 +1,6 @@
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { parseOptionsDocument } from "./options-markup-helpers.ts";
 
-const optionsDocument = () =>
-  new DOMParser().parseFromString(
-    readFileSync(resolve("src/options/options.html"), "utf8"),
-    "text/html",
-  );
+const optionsDocument = parseOptionsDocument;
 
 test("offers configurable history columns and explicit exports", () => {
   const document = optionsDocument();
