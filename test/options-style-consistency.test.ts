@@ -56,12 +56,13 @@ test("reference tables share one column grid across sections", () => {
   expect(meaning).toContain("width: 50%");
 });
 
-test("sticky reference headers use an opaque surface", () => {
+test("sticky reference headers use an opaque elevated surface", () => {
   const reference = readStyle("reference.css");
   const header = reference.match(/\.reference-table thead th\s*\{([^}]*)\}/)?.[1] || "";
 
   expect(header).toContain("position: sticky");
   expect(header).toContain("background: var(--page-bg)");
+  expect(header).toContain("box-shadow: 0 3px 6px -4px");
 });
 
 test("reference modal has no scrollport gap above sticky headers", () => {
