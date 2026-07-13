@@ -63,9 +63,9 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     name: "PDFs into a documents folder",
     description: "Collects every PDF in one place",
     example: "Example: documents/report.pdf",
-    rule: "urlfileext/i: pdf\ninto: documents/:filename:",
+    rule: "actualfileext/i: ^pdf$\ninto: documents/:filename:",
     proof: {
-      info: { sourceUrl: "https://example.test/report.pdf" },
+      info: { sourceUrl: "https://example.test/report.pdf", filename: "report.pdf" },
       destination: "documents/:filename:",
     },
   },
@@ -74,7 +74,7 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     name: "Archives into one folder",
     description: "Collects zip, rar, 7z, tar, and compressed archives",
     example: "Example: archives/project.zip",
-    rule: "urlfileext/i: (zip|rar|7z|tar|gz|tgz|bz2|xz)\ninto: archives/:filename:",
+    rule: "actualfileext/i: ^(zip|rar|7z|tar|gz|tgz|bz2|xz)$\ninto: archives/:filename:",
     proof: {
       info: { sourceUrl: "https://example.test/project.zip", filename: "project.zip" },
       destination: "archives/:filename:",
@@ -85,7 +85,7 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     name: "Documents into one folder",
     description: "Collects common office and text documents",
     example: "Example: documents/notes.docx",
-    rule: "urlfileext/i: (pdf|docx?|xlsx?|pptx?|odt|ods|rtf|txt|csv)\ninto: documents/:filename:",
+    rule: "actualfileext/i: ^(pdf|docx?|xlsx?|pptx?|odt|ods|rtf|txt|csv)$\ninto: documents/:filename:",
     proof: {
       info: { sourceUrl: "https://example.test/notes.docx", filename: "notes.docx" },
       destination: "documents/:filename:",
@@ -96,7 +96,7 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     name: "E-books and comics",
     description: "Collects common e-book and digital comic formats",
     example: "Example: books/novel.epub",
-    rule: "urlfileext/i: (epub|mobi|azw3?|pdf|cbz|cbr)\ninto: books/:filename:",
+    rule: "actualfileext/i: ^(epub|mobi|azw3?|pdf|cbz|cbr)$\ninto: books/:filename:",
     proof: {
       info: { sourceUrl: "https://example.test/novel.epub", filename: "novel.epub" },
       destination: "books/:filename:",
@@ -107,7 +107,7 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     name: "Apps and installers",
     description: "Keeps desktop and mobile installation packages together",
     example: "Example: installers/setup.msi",
-    rule: "urlfileext/i: (exe|msi|dmg|pkg|deb|rpm|appimage|apk)\ninto: installers/:filename:",
+    rule: "actualfileext/i: ^(exe|msi|dmg|pkg|deb|rpm|appimage|apk)$\ninto: installers/:filename:",
     proof: {
       info: { sourceUrl: "https://example.test/setup.msi", filename: "setup.msi" },
       destination: "installers/:filename:",
@@ -118,7 +118,7 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     name: "Fonts into one folder",
     description: "Collects desktop and web font files",
     example: "Example: fonts/inter.woff2",
-    rule: "urlfileext/i: (ttf|otf|woff2?|eot)\ninto: fonts/:filename:",
+    rule: "actualfileext/i: ^(ttf|otf|woff2?|eot)$\ninto: fonts/:filename:",
     proof: {
       info: { sourceUrl: "https://example.test/inter.woff2", filename: "inter.woff2" },
       destination: "fonts/:filename:",
@@ -129,7 +129,7 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     name: "One folder per file extension",
     description: "Captures the extension and uses it as a folder name",
     example: "Example: files/png/screenshot.png",
-    rule: "urlfileext: (.+)\ncapture: urlfileext\ninto: files/:$1:/:filename:",
+    rule: "actualfileext: ^(.+)$\ncapture: actualfileext\ninto: files/:$1:/:filename:",
     proof: {
       info: { sourceUrl: "https://example.test/screenshot.png", filename: "screenshot.png" },
       destination: "files/png/:filename:",

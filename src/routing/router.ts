@@ -16,10 +16,10 @@ export const parseRules = (raw: string): RoutingRule[] => {
   return rules;
 };
 
-export const getCaptureMatches = (
+const getCaptureMatcherResults = (
   rule: RoutingRule,
   info: RoutingInfo,
-): (string | undefined)[] | null => {
+): RegExpMatchArray[] | null => {
   const declaration = rule.find(
     (clause) => clause.type === RULE_TYPES.CAPTURE && clause.name === "capture",
   );
@@ -31,7 +31,20 @@ export const getCaptureMatches = (
     const result = clause?.matcher?.(info, info);
     if (result) captured.push(result);
   }
-  return captured.length === names.length ? captured.flat() : null;
+  return captured.length === names.length ? captured : null;
+};
+
+const flattenCaptureGroups = (matches: RegExpMatchArray[]): (string | undefined)[] => [
+  matches[0]?.[0],
+  ...matches.flatMap((match) => match.slice(1)),
+];
+
+export const getCaptureMatches = (
+  rule: RoutingRule,
+  info: RoutingInfo,
+): (string | undefined)[] | null => {
+  const matches = getCaptureMatcherResults(rule, info);
+  return matches ? flattenCaptureGroups(matches) : null;
 };
 
 export const matchRule = (rule: RoutingRule, info: RoutingInfo): string | false => {
@@ -40,7 +53,15 @@ export const matchRule = (rule: RoutingRule, info: RoutingInfo): string | false 
     .map((clause) => clause.matcher?.(info, info));
   if (matches.some((match) => !match)) return false;
   let destination = rule.find((clause) => clause.name === "into")!.value as string;
-  const captured = getCaptureMatches(rule, info);
+  const captureResults = getCaptureMatcherResults(rule, info);
+  let captured = captureResults ? flattenCaptureGroups(captureResults) : null;
+  const captureIndexes = [...destination.matchAll(/:\$(\d+):/g)].map((match) => Number(match[1]));
+  const captureCount = captured?.length ?? 0;
+  // Stored rules may reference the older flattened-match indexes. Only select
+  // that layout when a destination cannot be expressed by continuous groups.
+  if (captured && captureIndexes.some((index) => index >= captureCount)) {
+    captured = captureResults?.flat() ?? null;
+  }
   if (captured)
     for (let index = 0; index < captured.length; index += 1)
       destination = destination.split(`:$${index}:`).join(captured[index] ?? "");

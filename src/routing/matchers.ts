@@ -113,7 +113,7 @@ export const matcherFunctions = {
     return match;
   },
   urlfileext: (regex) => (info) => {
-    const url = info.sourceUrl || info.srcUrl || info.linkUrl || info.pageUrl || info.url;
+    const url = info.url || info.sourceUrl || info.srcUrl || info.linkUrl || info.pageUrl;
     if (!url) return false;
     const match = matchValue(getFilenameFromUrl(url).match(EXTENSION_REGEX)?.[1] || "", regex);
     logMatch(match, regex, info);
@@ -138,7 +138,7 @@ export const matcherFunctions = {
   linktext: makeInfoMatcherFactory("linkText"),
   mediatype: makeInfoMatcherFactory("mediaType"),
   naivefilename: (regex) => (info) => {
-    const url = info.sourceUrl || info.srcUrl || info.linkUrl || info.pageUrl || info.url;
+    const url = info.url || info.sourceUrl || info.srcUrl || info.linkUrl || info.pageUrl;
     if (!url) return false;
     const filename = getFilenameFromUrl(url);
     if (!filename) return false;

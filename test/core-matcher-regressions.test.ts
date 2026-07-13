@@ -4,7 +4,12 @@ import { RuleBuilder } from "../src/options/rule-builder.ts";
 import { RULE_TEMPLATES } from "../src/options/rule-templates.ts";
 import { applyConfigSerialized } from "../src/background/config-apply.ts";
 import { Path } from "../src/routing/path.ts";
-import { matchRules, parseRulesCollecting, traceRules } from "../src/routing/router.ts";
+import {
+  getCaptureMatches,
+  matchRules,
+  parseRulesCollecting,
+  traceRules,
+} from "../src/routing/router.ts";
 import { applyVariables } from "../src/routing/variable.ts";
 
 const templateNamed = (name: string) => {
@@ -79,6 +84,40 @@ describe("built-in matcher templates", () => {
     },
   );
 
+  test.each(RULE_TEMPLATES.filter((template) => template.category === "File types"))(
+    "$name classifies an opaque URL from the resolved filename",
+    (template) => {
+      const filename = template.proof.info.filename;
+      expect(filename).toBeTypeOf("string");
+      const rules = parseRulesCollecting(template.rule).rules;
+
+      expect(
+        matchRules(rules, {
+          url: "https://files.example/download?id=42",
+          sourceUrl: "https://files.example/download?id=42",
+          filename,
+        }),
+      ).toBe(template.proof.destination);
+    },
+  );
+
+  test.each([
+    ["PDFs into a documents folder", "report.pdfx"],
+    ["Archives into one folder", "backup.gzip"],
+    ["Documents into one folder", "notes.pdfx"],
+    ["E-books and comics", "book.pdfx"],
+    ["Apps and installers", "setup.exeold"],
+    ["Fonts into one folder", "font.xwoff"],
+  ])("%s rejects the lookalike extension in %s", (name, filename) => {
+    expect(
+      matchRules(rulesFor(name), {
+        url: `https://files.example/${filename}`,
+        sourceUrl: `https://files.example/${filename}`,
+        filename,
+      }),
+    ).toBeNull();
+  });
+
   test("the single-site template matches only the chosen host and its subdomains", () => {
     const rules = rulesFor("One site, one folder");
     const matches = (hostname: string) =>
@@ -147,6 +186,33 @@ describe("matcher authoring and validation", () => {
     expect(reset).toHaveBeenCalledOnce();
   });
 
+  test("config apply rejects an unresolved capture variable", async () => {
+    const storage = { get: vi.fn(async () => ({})), set: vi.fn(async () => {}) };
+    const reset = vi.fn(async () => {});
+    const filenamePatterns = "sourceurl: example\\.test\ninto: files/:$1:";
+
+    const parsed = parseRulesCollecting(filenamePatterns);
+    expect(parsed.rules).toHaveLength(1);
+    const captureError = parsed.errors.find((error) => error.error === "files/:$1:");
+    expect(captureError).toBeDefined();
+    expect(captureError).not.toHaveProperty("warning");
+
+    await expect(
+      applyConfigSerialized(
+        { queue: Promise.resolve() },
+        storage,
+        { filenamePatterns },
+        undefined,
+        reset,
+      ),
+    ).resolves.toEqual({
+      applied: {},
+      rejected: [{ name: "filenamePatterns", reason: "invalid value" }],
+    });
+    expect(storage.set).not.toHaveBeenCalled();
+    expect(reset).not.toHaveBeenCalled();
+  });
+
   test("warns when a catch-all filename rule shadows a different matcher", () => {
     const parsed = parseRulesCollecting(
       "filename: .*\ninto: dated/:filename:\n\ncontext: browser\ninto: browser/:filename:",
@@ -158,6 +224,72 @@ describe("matcher authoring and validation", () => {
     expect(matchRules(parsed.rules, { filename: "report.pdf", context: "browser" })).toBe(
       "dated/:filename:",
     );
+  });
+
+  test("warns when a flagged catch-all filename rule shadows a different matcher", () => {
+    const parsed = parseRulesCollecting(
+      "filename/i: .*\ninto: dated/:filename:\n\ncontext: browser\ninto: browser/:filename:",
+    );
+
+    expect(parsed.errors).toContainEqual(
+      expect.objectContaining({ warning: true, error: "rule 2" }),
+    );
+  });
+
+  test("numbers capture groups continuously across multiple target matchers", () => {
+    const parsed = parseRulesCollecting(
+      [
+        "pageurl: users/(alice)",
+        "sourceurl: files/(report)",
+        "capture: pageurl,sourceurl",
+        "into: :$1:-:$2:",
+      ].join("\n"),
+    );
+    const info = {
+      pageUrl: "https://site.example/users/alice",
+      sourceUrl: "https://cdn.example/files/report",
+    };
+
+    expect(parsed.errors).toEqual([]);
+    expect(getCaptureMatches(parsed.rules[0]!, info)).toEqual(["users/alice", "alice", "report"]);
+    expect(matchRules(parsed.rules, info)).toBe("alice-report");
+  });
+
+  test("keeps legacy high capture indexes working for stored multi-target rules", () => {
+    const parsed = parseRulesCollecting(
+      [
+        "pageurl: users/(alice)",
+        "sourceurl: files/(report)",
+        "capture: pageurl,sourceurl",
+        "into: :$1:-:$3:",
+      ].join("\n"),
+    );
+
+    expect(parsed.errors).toEqual([]);
+    expect(
+      matchRules(parsed.rules, {
+        pageUrl: "https://site.example/users/alice",
+        sourceUrl: "https://cdn.example/files/report",
+      }),
+    ).toBe("alice-report");
+  });
+
+  test("URL-derived matchers prefer the selected download URL over an embedded source", () => {
+    const info = {
+      sourceUrl: "https://cdn.example/thumbnail.jpg",
+      url: "https://files.example/report.pdf",
+      filename: "report.pdf",
+    };
+
+    expect(
+      matchRules(parseRulesCollecting("urlfileext: ^pdf$\ninto: pdf/:filename:").rules, info),
+    ).toBe("pdf/:filename:");
+    expect(
+      matchRules(
+        parseRulesCollecting("naivefilename: ^report\\.pdf$\ninto: pdf/:filename:").rules,
+        info,
+      ),
+    ).toBe("pdf/:filename:");
   });
 
   test("guided input defaults new extension rules to URL-path matching", async () => {

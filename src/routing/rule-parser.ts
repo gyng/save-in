@@ -38,8 +38,7 @@ const captureGroupCount = (regex: RegExp): number => {
   return groups;
 };
 
-const isPlainMatchAll = (regex: RegExp): boolean =>
-  /^(?:\.\*|\^\.\*\$)$/.test(regex.source) && !regex.flags;
+const isPlainMatchAll = (regex: RegExp): boolean => /^(?:\.\*|\^\.\*\$)$/.test(regex.source);
 
 export const parseRule = (lines: RuleToken[], errors: RuleError[] = []): RoutingRule | false => {
   const clauses: (RuleClause | false)[] = lines.map((tokens) => {
@@ -91,7 +90,6 @@ export const parseRule = (lines: RuleToken[], errors: RuleError[] = []): Routing
     errors.push({
       message: routingPorts.getMessage("ruleMissingCapture"),
       error: destination.value as string,
-      warning: true,
     });
   if (!valid.some((clause) => clause.type === RULE_TYPES.MATCHER)) {
     errors.push({
@@ -133,10 +131,20 @@ export const parseRule = (lines: RuleToken[], errors: RuleError[] = []): Routing
       }
     });
     if (missing) return false;
-    const availableIndexes = capturedMatchers.reduce(
+    const standardIndexes =
+      1 +
+      capturedMatchers.reduce(
+        (total, clause) => total + captureGroupCount(clause!.value as RegExp),
+        0,
+      );
+    // Older rules may use indexes from the previous flattened RegExpMatchArray
+    // layout. Keep those high indexes valid so matchRule can evaluate them in
+    // compatibility mode, while new rules get continuous capture-group indexes.
+    const legacyIndexes = capturedMatchers.reduce(
       (total, clause) => total + captureGroupCount(clause!.value as RegExp) + 1,
       0,
     );
+    const availableIndexes = Math.max(standardIndexes, legacyIndexes);
     const indexes = [...(destination.value as string).matchAll(/:\$(\d+):/g)].map((match) =>
       Number(match[1]),
     );

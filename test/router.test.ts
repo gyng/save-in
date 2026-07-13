@@ -432,10 +432,10 @@ describe("filename rewrite and routing", () => {
       expect(result.errors).toEqual([]);
     });
 
-    test("a capture destination without a capture clause warns", () => {
+    test("a capture destination without a capture clause is invalid", () => {
       const rules = router.parseRules("sourceurl: (dog)\ninto: cat:$1:");
       expect(rules.length).toBe(1);
-      expect(diagnostics.filenamePatterns[0]!.warning).toBe(true);
+      expect(diagnostics.filenamePatterns[0]).not.toHaveProperty("warning");
       expect(diagnostics.filenamePatterns[0]!.error).toBe("cat:$1:");
     });
 
