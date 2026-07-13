@@ -1,26 +1,26 @@
 import { RULE_TYPES } from "../shared/constants.ts";
 import { matcherFunctions } from "./matchers.ts";
 import { routingPorts } from "./ports.ts";
+import { parseRoutingRuleSyntax, tokenizeRuleLines } from "./rule-syntax.ts";
 import type { MatcherClause, RuleClause, RuleError, RoutingRule, RuleToken } from "./rule-types.ts";
 
-export const tokenizeLines = (lines: string, errors: RuleError[] = []): RuleToken[] =>
-  lines
-    .split("\n")
-    .map((line) => ({ line, matches: line.match(/^(\S*): ?(.*)/) }))
-    .map(({ line, matches }) => {
-      if (!matches || matches.length < 3) {
-        errors.push({
-          message: routingPorts.getMessage("ruleBadClause"),
-          error: `${line || "invalid line syntax"}`,
-        });
-        return null;
-      }
-      const [fullClause, name, value] = matches;
-      return fullClause !== undefined && name !== undefined && value !== undefined
-        ? ([fullClause, name, value] satisfies RuleToken)
-        : null;
-    })
-    .filter((tokens): tokens is RuleToken => Boolean(tokens && tokens.length >= 3));
+const appendSyntaxErrors = (
+  issues: ReturnType<typeof tokenizeRuleLines>["issues"],
+  errors: RuleError[],
+): void => {
+  issues.forEach((issue) =>
+    errors.push({
+      message: routingPorts.getMessage("ruleBadClause"),
+      error: issue.source || "invalid line syntax",
+    }),
+  );
+};
+
+export const tokenizeLines = (lines: string, errors: RuleError[] = []): RuleToken[] => {
+  const parsed = tokenizeRuleLines(lines);
+  appendSyntaxErrors(parsed.issues, errors);
+  return parsed.tokens;
+};
 
 const captureGroupCount = (regex: RegExp): number => {
   const source = regex.source;
@@ -166,18 +166,10 @@ export const parseRule = (lines: RuleToken[], errors: RuleError[] = []): Routing
 export const parseRulesCollecting = (
   raw: string,
 ): { rules: RoutingRule[]; errors: RuleError[] } => {
-  const source = raw
-    .split("\n")
-    .map((line) => (line.trim() === "" ? "" : line))
-    .filter((line) => !line.trimStart().startsWith("//"))
-    .join("\n")
-    .trim();
-  if (!source) return { rules: [], errors: [] };
+  const syntax = parseRoutingRuleSyntax(raw);
   const errors: RuleError[] = [];
-  const rules = source
-    .replace(/\n\n+/g, "\n\n")
-    .split("\n\n")
-    .map((lines) => tokenizeLines(lines, errors))
+  appendSyntaxErrors(syntax.issues, errors);
+  const rules = syntax.rules
     .map((tokens) => parseRule(tokens, errors))
     .filter((rule): rule is RoutingRule => Boolean(rule));
   for (let index = 1; index < rules.length; index += 1) {

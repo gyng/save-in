@@ -1,7 +1,13 @@
-import { parsePathLine, parsePathMetadata } from "../config/path-lines.ts";
+import { parsePathLineSyntax, parsePathMetadata } from "../config/path-lines.ts";
 import { Path } from "../routing/path.ts";
 import { SPECIAL_DIRS } from "../shared/constants.ts";
 import { MENU_IDS } from "./menu-ids.ts";
+
+export {
+  DIRECTORY_LINE_GRAMMAR,
+  parsePathLineSyntax,
+  validatePathLineSyntax,
+} from "../config/path-lines.ts";
 
 export type MenuMeta = Record<string, string>;
 export type ParsedPath = {
@@ -69,14 +75,15 @@ const normalizeMenuTreeItems = (items: MenuTreeItem[]): MenuTreeItem[] => {
 };
 
 export const parsePath = (dir: string): ParsedPath => {
-  const { depth, body: parsedDir, comment } = parsePathLine(dir);
+  const { row, issues } = parsePathLineSyntax(dir);
+  const { depth, body: parsedDir, comment } = row;
   return {
     raw: dir,
     comment,
     depth,
     meta: parseMeta(comment),
     parsedDir,
-    validation: new Path(parsedDir).validate(),
+    validation: issues.length ? { valid: false } : new Path(parsedDir).validate(),
   };
 };
 
