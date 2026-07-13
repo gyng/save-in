@@ -11,6 +11,9 @@ const { spawn, execFileSync } = require("child_process");
 const cdp = require("./cdp");
 
 const ROOT = path.join(__dirname, "..", "..");
+const ARTIFACTS = process.env.E2E_ARTIFACT_DIR
+  ? path.resolve(ROOT, process.env.E2E_ARTIFACT_DIR)
+  : path.join(ROOT, "dist", "e2e-artifacts");
 // EXT_DIR (repo-relative) overrides the bundled package used by the browser.
 const DIST = process.env.EXT_DIR
   ? path.join(ROOT, process.env.EXT_DIR)
@@ -61,8 +64,25 @@ const killTree = (proc) => {
   });
 };
 
-const makeProfile = (baseProfileDir, downloadDir) => {
-  let profileDir = baseProfileDir;
+const removeProfile = async (profileDir) => {
+  if (!profileDir) return;
+  for (let attempt = 0; attempt < 6; attempt += 1) {
+    try {
+      fs.rmSync(profileDir, { recursive: true, force: true });
+      if (!fs.existsSync(profileDir)) return;
+    } catch (error) {
+      // Chrome children can briefly retain cache files after taskkill returns.
+    }
+    // eslint-disable-next-line no-await-in-loop
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+  throw new Error(`Unable to remove disposable Chrome profile: ${profileDir}`);
+};
+
+const makeProfile = (baseProfileDir, downloadDir, unique = false) => {
+  let profileDir = unique
+    ? `${baseProfileDir}-${process.pid}-${Date.now()}-${Math.random().toString(16).slice(2)}`
+    : baseProfileDir;
   try {
     // force:true only suppresses ENOENT, not EPERM/EBUSY from a Chrome that
     // hasn't fully exited: fall back to a fresh dir rather than crash
@@ -102,6 +122,29 @@ const chromeArgs = (profileDir, port, headless = false) => {
   return args;
 };
 
+const logTail = (logPath, maxBytes = 12000) => {
+  try {
+    const size = fs.statSync(logPath).size;
+    const fd = fs.openSync(logPath, "r");
+    const length = Math.min(size, maxBytes);
+    const buffer = Buffer.alloc(length);
+    fs.readSync(fd, buffer, 0, length, size - length);
+    fs.closeSync(fd);
+    return buffer.toString("utf8").trim();
+  } catch (error) {
+    return `Unable to read Chrome log: ${error.message}`;
+  }
+};
+
+const startupError = (error, proc, logPath) => {
+  const exit = proc.exitCode === null ? "still running" : `exit code ${proc.exitCode}`;
+  const tail = logTail(logPath);
+  return new Error(
+    `${error.message}\nChrome process: ${exit}\nChrome log: ${logPath}${tail ? `\n--- log tail ---\n${tail}` : ""}`,
+    { cause: error },
+  );
+};
+
 const launch = async ({ port: requestedPort, profileDir, downloadDir, fresh = true }) => {
   let resolvedProfile = profileDir;
   let resolvedDownloads = downloadDir;
@@ -109,6 +152,7 @@ const launch = async ({ port: requestedPort, profileDir, downloadDir, fresh = tr
     ({ profileDir: resolvedProfile, downloadDir: resolvedDownloads } = makeProfile(
       profileDir,
       downloadDir,
+      fresh,
     ));
   }
 
@@ -118,18 +162,52 @@ const launch = async ({ port: requestedPort, profileDir, downloadDir, fresh = tr
 
   const chromePath = findChrome();
   const args = chromeArgs(resolvedProfile, port, Boolean(process.env.HEADLESS));
-  const proc = spawn(chromePath, args, { stdio: "ignore", detached: false });
+  fs.mkdirSync(ARTIFACTS, { recursive: true });
+  const logPath = path.join(ARTIFACTS, `chrome-${port}.log`);
+  const log = fs.openSync(logPath, "w");
+  const proc = spawn(chromePath, args, { stdio: ["ignore", log, log], detached: false });
+  fs.closeSync(log);
   try {
     await cdp.waitForCdp(port);
     const extensionId = await cdp.loadUnpacked(port, DIST);
-    return { proc, extensionId, port, profileDir: resolvedProfile, downloadDir: resolvedDownloads };
+    // Loading an invalid package can make Chrome terminate just after the CDP
+    // command succeeds. Verify the endpoint remains usable before handing the
+    // process to a suite, so startup errors include the browser log.
+    await cdp.listTargets(port);
+    return {
+      proc,
+      extensionId,
+      port,
+      profileDir: resolvedProfile,
+      downloadDir: resolvedDownloads,
+      logPath,
+    };
   } catch (error) {
     // beforeAll cannot clean up a session that launch() never returned.
     // Make startup failure atomic so retries don't accumulate browser trees
     // and eventually fail for unrelated resource/port reasons.
     await killTree(proc);
-    throw error;
+    const failure = startupError(error, proc, logPath);
+    try {
+      await removeProfile(resolvedProfile);
+    } catch (cleanupError) {
+      // eslint-disable-next-line preserve-caught-error -- AggregateError includes both failures and explicitly preserves the launch cause.
+      throw new AggregateError([failure, cleanupError], "Chrome launch and cleanup failed", {
+        cause: error,
+      });
+    }
+    throw failure;
   }
 };
 
-module.exports = { ROOT, DIST, findChrome, stageBuild, chromeArgs, launch, killTree };
+module.exports = {
+  ROOT,
+  DIST,
+  findChrome,
+  stageBuild,
+  chromeArgs,
+  launch,
+  killTree,
+  removeProfile,
+  logTail,
+};

@@ -81,7 +81,7 @@ save. `PING` first to negotiate the version and capabilities.
 3. Develop
 4. `npm run fmt:check` and/or `npm run fmt`
 5. `npm run lint` and/or `npm run lint:fix`
-6. `npm test` and/or `npm run test:watch`; `npm run e2e` runs Chrome and Firefox in parallel (`e2e:chrome` / `e2e:firefox` remain available separately)
+6. `npm test` and/or `npm run test:watch`; `npm run e2e` runs Chrome and Firefox in parallel (`e2e:chrome` / `e2e:firefox` remain available separately). Browser failures retain diagnostics in `dist/e2e-artifacts`.
 
 ## Deployment
 

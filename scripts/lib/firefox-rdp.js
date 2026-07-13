@@ -42,6 +42,8 @@ class FirefoxRdp {
     this.queues = new Map();
     /** @type {EventWaiter[]} */
     this.eventWaiters = [];
+    /** @type {RdpPacket[]} */
+    this.eventBacklog = [];
     /** @type {Map<string, string>} */
     this.tabConsoleActors = new Map();
     socket.on("data", (data) => {
@@ -107,7 +109,16 @@ class FirefoxRdp {
       return;
     }
 
-    if (EVENT_TYPES.has(packet.type)) return; // unclaimed event
+    if (EVENT_TYPES.has(packet.type)) {
+      // evaluateJSAsync can emit evaluationResult before its request reply is
+      // handled and the resultID-specific waiter is registered. Retain a small
+      // bounded backlog so that legitimate ordering does not become a 30s
+      // timeout while still preventing unsolicited protocol events growing
+      // without bound.
+      this.eventBacklog.push(packet);
+      if (this.eventBacklog.length > 100) this.eventBacklog.shift();
+      return;
+    }
 
     const queue = this.queues.get(packet.from);
     if (queue && queue.length > 0) {
@@ -133,6 +144,11 @@ class FirefoxRdp {
    * @returns {Promise<RdpPacket | undefined>}
    */
   waitForEvent(predicate, timeoutMs = 30000) {
+    const backlogIndex = this.eventBacklog.findIndex(predicate);
+    if (backlogIndex !== -1) {
+      const [packet] = this.eventBacklog.splice(backlogIndex, 1);
+      return Promise.resolve(packet);
+    }
     return new Promise((resolve, reject) => {
       /** @type {EventWaiter} */
       const waiter = { predicate, resolve: () => {} };
@@ -343,6 +359,7 @@ class FirefoxRdp {
       if (waiter.cancel) waiter.cancel();
     }
     this.eventWaiters = [];
+    this.eventBacklog = [];
     for (const queue of this.queues.values()) {
       for (const entry of queue) {
         if (!entry.settled && entry.cancel) {

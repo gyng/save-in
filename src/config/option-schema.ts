@@ -1,12 +1,8 @@
-import {
-  CLICK_TYPES,
-  CONFLICT_ACTION,
-  FORBIDDEN_FILENAME_CHARS,
-  SHORTCUT_TYPES,
-} from "../shared/constants.ts";
+import { CONFLICT_ACTION, FORBIDDEN_FILENAME_CHARS, SHORTCUT_TYPES } from "../shared/constants.ts";
 import type { ConflictAction, ShortcutType } from "../shared/constants.ts";
 import { WEB_EXTENSION_CAPABILITIES } from "../platform/chrome-detector.ts";
 import { parseRules } from "../routing/router.ts";
+import { CONTENT_FEATURE_OPTION_DEFINITIONS, LINKS_OPTION_DEFINITION } from "./content-options.ts";
 
 export const OPTION_TYPES = { BOOL: "BOOL", VALUE: "VALUE" } as const;
 
@@ -58,26 +54,7 @@ export const OPTION_KEYS = [
     validate: (v: string) => Object.values(CONFLICT_ACTION).includes(v as ConflictAction),
     default: CONFLICT_ACTION.UNIQUIFY,
   },
-  { name: "contentClickToSave", type: OPTION_TYPES.BOOL, default: false },
-  { name: "sourcePanelEnabled", type: OPTION_TYPES.BOOL, default: false },
-  { name: "sourcePanelBackgrounds", type: OPTION_TYPES.BOOL, default: true },
-  { name: "sourcePanelLive", type: OPTION_TYPES.BOOL, default: true },
-  { name: "sourcePanelPreviews", type: OPTION_TYPES.BOOL, default: true },
-  { name: "sourcePanelResourceHints", type: OPTION_TYPES.BOOL, default: true },
-  { name: "sourcePanelLinks", type: OPTION_TYPES.BOOL, default: true },
-  {
-    name: "contentClickToSaveCombo",
-    type: OPTION_TYPES.VALUE,
-    // Numeric keyCodes remain valid for settings created by older releases.
-    onLoad: (v: string | number) => v,
-    default: "Alt",
-  },
-  {
-    name: "contentClickToSaveButton",
-    type: OPTION_TYPES.VALUE,
-    validate: (v: string) => Object.values(CLICK_TYPES).includes(v as any),
-    default: CLICK_TYPES.LEFT_CLICK,
-  },
+  ...CONTENT_FEATURE_OPTION_DEFINITIONS,
   { name: "debug", type: OPTION_TYPES.BOOL, fn: null, default: false },
   { name: "enableLastLocation", type: OPTION_TYPES.BOOL, default: true },
   { name: "enableNumberedItems", type: OPTION_TYPES.BOOL, default: true },
@@ -90,7 +67,7 @@ export const OPTION_KEYS = [
   },
   { name: "keyLastUsed", type: OPTION_TYPES.VALUE, default: "e" },
   { name: "keyRoot", type: OPTION_TYPES.VALUE, default: "e" },
-  { name: "links", type: OPTION_TYPES.BOOL, default: true },
+  LINKS_OPTION_DEFINITION,
   { name: "preferLinks", type: OPTION_TYPES.BOOL, default: false },
   { name: "preferLinksFilterEnabled", type: OPTION_TYPES.BOOL, default: false },
   {

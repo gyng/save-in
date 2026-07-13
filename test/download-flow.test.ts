@@ -1421,6 +1421,9 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
     // The retry is adopted as its own download and marks itself so a second
     // failure cannot loop
     expect(downloadState.records.get(202)).toMatchObject({ viaFetch: true, adopted: true });
+    expect(Object.values(sessionStore.siFinalFilenames || {}).flat()).toContain(
+      "downloads/file.png",
+    );
 
     // Only one retry per download
     await expect(Download.retryViaFetch(101)).resolves.toBe(false);

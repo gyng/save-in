@@ -29,9 +29,13 @@ import {
 } from "./notification-model.ts";
 export { notifierReady } from "./notification-recovery.ts";
 
-const INFO_ICON_URL = "icons/notification-info.svg";
-const SUCCESS_ICON_URL = "icons/notification-success.svg";
-const ERROR_ICON_URL = "icons/notification-error.svg";
+// Chrome's notifications API can reject SVG iconUrl values with "Unable to
+// download all specified images". Use the shipped raster app icon for the
+// native notification surface; status remains explicit in the title and the
+// SVG variants remain available to HTML UI where vector images are reliable.
+const INFO_ICON_URL = "icons/ic_archive_black_128px.png";
+const SUCCESS_ICON_URL = "icons/ic_archive_black_128px.png";
+const ERROR_ICON_URL = "icons/ic_archive_black_128px.png";
 const historyPort = downloadPorts.history;
 const logPort = downloadPorts.log;
 const backgroundRuntime = downloadPorts.runtime;

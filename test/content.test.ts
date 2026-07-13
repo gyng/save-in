@@ -4,6 +4,7 @@ const ClickToSave = (await import("../src/content/content.ts")).default;
 
 describe("findSource", () => {
   afterEach(() => {
+    document.getElementById("save-in-source-panel")?.remove();
     document.body.innerHTML = "";
     Reflect.deleteProperty(document, "elementsFromPoint");
   });
@@ -125,45 +126,70 @@ describe("input helpers", () => {
   });
 });
 
-// Simulate the OPTIONS handshake the content script performs at load: the
-// module is re-imported with chrome.runtime.sendMessage responding
-// synchronously via its callback, mirroring the real callback-style API
+// Simulate the callback-style storage API used by both Chrome and Firefox
+// content scripts.
 const importContentWithOptions = async (optionsBody: Record<string, unknown>) => {
   vi.resetModules();
-  global.chrome.runtime.sendMessage = vi.fn((message, cb) => cb({ body: optionsBody }));
+  global.chrome.runtime.sendMessage = vi.fn((_message, callback) => callback?.());
   global.chrome.runtime.onMessage.addListener = vi.fn();
+  global.chrome.storage.local.get = vi.fn((_keys, callback) => callback(optionsBody)) as any;
+  (global.chrome.storage as any).onChanged = { addListener: vi.fn() };
   await import("../src/content/content.ts");
 };
 
 describe("content.js initialisation", () => {
   const originalSendMessage = global.chrome.runtime.sendMessage;
   const originalAddListener = global.chrome.runtime.onMessage.addListener;
+  const originalStorageGet = global.chrome.storage.local.get;
+  const originalStorageOnChanged = (global.chrome.storage as any).onChanged;
   const originalFetch = global.fetch;
 
   afterEach(() => {
     global.chrome.runtime.sendMessage = originalSendMessage;
     global.chrome.runtime.onMessage.addListener = originalAddListener;
+    global.chrome.storage.local.get = originalStorageGet;
+    (global.chrome.storage as any).onChanged = originalStorageOnChanged;
     global.fetch = originalFetch;
     vi.restoreAllMocks();
   });
 
-  test("bails out when the options response has no body (SW gone)", async () => {
+  test("keeps the source-panel listener available when local storage is unavailable", async () => {
     vi.resetModules();
-    global.chrome.runtime.sendMessage = vi.fn((message, cb) => cb(undefined));
+    global.chrome.runtime.sendMessage = vi.fn();
     global.chrome.runtime.onMessage.addListener = vi.fn();
+    global.chrome.storage.local.get = vi.fn(() => {
+      throw new Error("Extension context invalidated");
+    });
     await import("../src/content/content.ts");
-    // The source-panel toggle remains available even if the options request
-    // raced a sleeping service worker; it does not depend on stored options.
     expect(global.chrome.runtime.onMessage.addListener).toHaveBeenCalledOnce();
   });
 
-  test("announces source-panel readiness after its message listener is installed", async () => {
+  test("does not wake the background when Page Sources is disabled", async () => {
     await importContentWithOptions({ sourcePanelEnabled: false });
 
-    expect(global.chrome.runtime.sendMessage).toHaveBeenCalledWith(
-      { type: "SOURCE_PANEL_READY" },
+    expect(global.chrome.storage.local.get).toHaveBeenCalledWith(
+      expect.any(Array),
       expect.any(Function),
     );
+    expect(global.chrome.runtime.sendMessage).not.toHaveBeenCalled();
+  });
+
+  test("announces enabled Page Sources only after its message listener is installed", async () => {
+    const calls: string[] = [];
+    vi.resetModules();
+    global.chrome.runtime.sendMessage = vi.fn((message, callback) => {
+      calls.push(message.type);
+      callback?.();
+    }) as any;
+    global.chrome.runtime.onMessage.addListener = vi.fn(() => calls.push("LISTENER"));
+    global.chrome.storage.local.get = vi.fn((_keys, callback) =>
+      callback({ sourcePanelEnabled: true }),
+    ) as any;
+    (global.chrome.storage as any).onChanged = { addListener: vi.fn() };
+
+    await import("../src/content/content.ts");
+
+    expect(calls).toEqual(["LISTENER", "SOURCE_PANEL_READY"]);
   });
 
   test("restores content option defaults when storage keys are removed", async () => {
@@ -171,8 +197,9 @@ describe("content.js initialisation", () => {
     document.getElementById("save-in-source-panel")?.remove();
     let storageListener: ((changes: Record<string, any>, area: string) => void) | undefined;
     let runtimeListener: ((message: any) => void) | undefined;
-    global.chrome.runtime.sendMessage = vi.fn((_message, callback) =>
-      callback?.({ body: { sourcePanelEnabled: true } }),
+    global.chrome.runtime.sendMessage = vi.fn((_message, callback) => callback?.()) as any;
+    global.chrome.storage.local.get = vi.fn((_keys, callback) =>
+      callback({ sourcePanelEnabled: true }),
     ) as any;
     global.chrome.runtime.onMessage.addListener = vi.fn((listener) => {
       runtimeListener = listener;
@@ -213,13 +240,9 @@ describe("content.js initialisation", () => {
   });
 
   test("updates an existing page when click-to-save storage settings change", async () => {
-    let storageListener: ((changes: Record<string, any>, area: string) => void) | undefined;
-    (global.chrome.storage as any).onChanged = {
-      addListener: vi.fn((listener) => {
-        storageListener = listener;
-      }),
-    };
     await importContentWithOptions({ contentClickToSave: false });
+    const storageListener = vi.mocked((global.chrome.storage as any).onChanged.addListener).mock
+      .calls[0][0] as (changes: Record<string, any>, area: string) => void;
     expect(storageListener).toBeTypeOf("function");
 
     storageListener!(
@@ -248,15 +271,11 @@ describe("content.js initialisation", () => {
   });
 
   test("ignores option changes from non-local storage areas", async () => {
-    let storageListener: ((changes: Record<string, any>, area: string) => void) | undefined;
-    (global.chrome.storage as any).onChanged = {
-      addListener: vi.fn((listener) => {
-        storageListener = listener;
-      }),
-    };
     await importContentWithOptions({ contentClickToSave: false });
+    const storageListener = vi.mocked((global.chrome.storage as any).onChanged.addListener).mock
+      .calls[0][0] as (changes: Record<string, any>, area: string) => void;
 
-    storageListener!({ contentClickToSave: { newValue: true } }, "sync");
+    storageListener({ contentClickToSave: { newValue: true } }, "sync");
     vi.mocked(global.chrome.runtime.sendMessage).mockClear();
     const keydown = new Event("keydown");
     (keydown as any).keyCode = 89;
@@ -264,12 +283,14 @@ describe("content.js initialisation", () => {
     expect(global.chrome.runtime.sendMessage).not.toHaveBeenCalled();
   });
 
-  test("does not let a late initial response overwrite newer storage settings", async () => {
+  test("merges a late initial read with newer per-key storage settings", async () => {
     vi.resetModules();
-    let optionsCallback: ((response: any) => void) | undefined;
+    let storageCallback: ((response: any) => void) | undefined;
     let storageListener: ((changes: Record<string, any>, area: string) => void) | undefined;
-    global.chrome.runtime.sendMessage = vi.fn((_message, callback) => {
-      optionsCallback = callback;
+    global.chrome.runtime.sendMessage = vi.fn((_message, callback) => callback?.()) as any;
+    global.chrome.runtime.onMessage.addListener = vi.fn();
+    global.chrome.storage.local.get = vi.fn((_keys, callback) => {
+      storageCallback = callback;
     }) as any;
     (global.chrome.storage as any).onChanged = {
       addListener: vi.fn((listener) => {
@@ -286,7 +307,12 @@ describe("content.js initialisation", () => {
       },
       "local",
     );
-    optionsCallback!({ body: { contentClickToSave: false } });
+    storageCallback!({
+      contentClickToSave: false,
+      contentClickToSaveCombo: 18,
+      contentClickToSaveButton: "LEFT_CLICK",
+      links: false,
+    });
 
     vi.mocked(global.chrome.runtime.sendMessage).mockClear();
     const keydown = new KeyboardEvent("keydown", { key: "y" });
@@ -294,6 +320,103 @@ describe("content.js initialisation", () => {
     window.dispatchEvent(keydown);
     expect(global.chrome.runtime.sendMessage).toHaveBeenCalledWith(
       { type: "WAKE_WARM" },
+      expect.any(Function),
+    );
+
+    document.body.innerHTML = `<a href="file.pdf"><span id="link">file</span></a>`;
+    const linkClick = new MouseEvent("mousedown", { buttons: 2, bubbles: true, cancelable: true });
+    document.querySelector("#link")!.dispatchEvent(linkClick);
+    expect(
+      vi
+        .mocked(global.chrome.runtime.sendMessage)
+        .mock.calls.filter(([message]) => (message as any)?.type === "DOWNLOAD"),
+    ).toHaveLength(0);
+
+    window.dispatchEvent(new Event("focus"));
+    vi.mocked(global.chrome.runtime.sendMessage).mockClear();
+    window.dispatchEvent(new KeyboardEvent("keydown", { key: "Alt" }));
+    expect(global.chrome.runtime.sendMessage).not.toHaveBeenCalled();
+  });
+
+  test("announces once when Page Sources becomes enabled in an existing tab", async () => {
+    let storageListener: ((changes: Record<string, any>, area: string) => void) | undefined;
+    (global.chrome.storage as any).onChanged = {
+      addListener: vi.fn((listener) => {
+        storageListener = listener;
+      }),
+    };
+    await importContentWithOptions({ sourcePanelEnabled: false });
+    // importContentWithOptions installs a fresh mock, so capture its listener.
+    storageListener = vi.mocked((global.chrome.storage as any).onChanged.addListener).mock
+      .calls[0][0];
+
+    storageListener!({ sourcePanelEnabled: { newValue: true } }, "local");
+    storageListener!({ sourcePanelEnabled: { oldValue: true, newValue: false } }, "local");
+    storageListener!({ sourcePanelEnabled: { oldValue: false, newValue: true } }, "local");
+
+    expect(global.chrome.runtime.sendMessage).toHaveBeenCalledTimes(1);
+    expect(global.chrome.runtime.sendMessage).toHaveBeenCalledWith(
+      { type: "SOURCE_PANEL_READY" },
+      expect.any(Function),
+    );
+  });
+
+  test("warms a sleeping background when Page Sources signals save intent", async () => {
+    let runtimeListener: ((message: any) => void) | undefined;
+    vi.resetModules();
+    document.getElementById("save-in-source-panel")?.remove();
+    global.chrome.runtime.sendMessage = vi.fn((_message, callback) => callback?.()) as any;
+    global.chrome.runtime.onMessage.addListener = vi.fn((listener) => {
+      runtimeListener = listener;
+    });
+    global.chrome.storage.local.get = vi.fn((_keys, callback) =>
+      callback({
+        sourcePanelEnabled: true,
+        sourcePanelBackgrounds: false,
+        sourcePanelLive: false,
+      }),
+    ) as any;
+    (global.chrome.storage as any).onChanged = { addListener: vi.fn() };
+    document.body.innerHTML = `<img src="cat.jpg">`;
+    await import("../src/content/content.ts");
+    runtimeListener!({ type: "SET_SOURCE_PANEL", body: { open: true } });
+    vi.mocked(global.chrome.runtime.sendMessage).mockClear();
+
+    document
+      .getElementById("save-in-source-panel")!
+      .shadowRoot!.querySelector<HTMLButtonElement>(".actions button:last-child")!
+      .dispatchEvent(new MouseEvent("pointerdown", { bubbles: true, button: 0 }));
+
+    expect(global.chrome.runtime.sendMessage).toHaveBeenCalledOnce();
+    expect(global.chrome.runtime.sendMessage).toHaveBeenCalledWith(
+      { type: "WAKE_WARM" },
+      expect.any(Function),
+    );
+  });
+
+  test("waits for a complete snapshot before announcing a concurrently enabled panel", async () => {
+    vi.resetModules();
+    let storageCallback: ((stored: Record<string, unknown>) => void) | undefined;
+    let storageListener: ((changes: Record<string, any>, area: string) => void) | undefined;
+    global.chrome.runtime.sendMessage = vi.fn((_message, callback) => callback?.()) as any;
+    global.chrome.runtime.onMessage.addListener = vi.fn();
+    global.chrome.storage.local.get = vi.fn((_keys, callback) => {
+      storageCallback = callback;
+    }) as any;
+    (global.chrome.storage as any).onChanged = {
+      addListener: vi.fn((listener) => {
+        storageListener = listener;
+      }),
+    };
+    await import("../src/content/content.ts");
+
+    storageListener!({ sourcePanelEnabled: { oldValue: false, newValue: true } }, "local");
+    expect(global.chrome.runtime.sendMessage).not.toHaveBeenCalled();
+
+    storageCallback!({ sourcePanelEnabled: false });
+    expect(global.chrome.runtime.sendMessage).toHaveBeenCalledOnce();
+    expect(global.chrome.runtime.sendMessage).toHaveBeenCalledWith(
+      { type: "SOURCE_PANEL_READY" },
       expect.any(Function),
     );
   });

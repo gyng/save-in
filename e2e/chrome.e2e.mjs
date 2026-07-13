@@ -12,11 +12,17 @@ import chrome from "../scripts/lib/chrome.js";
 import { listenLocal, poll } from "./helpers.mjs";
 
 const PROFILE = path.join(chrome.ROOT, "dist", "e2e-profile");
+const ARTIFACTS = process.env.E2E_ARTIFACT_DIR
+  ? path.resolve(chrome.ROOT, process.env.E2E_ARTIFACT_DIR)
+  : path.join(chrome.ROOT, "dist", "e2e-artifacts");
 
 let proc;
 let extensionId;
 let PORT;
 let DOWNLOADS;
+let PROFILE_DIR;
+let browserLogPath;
+let suiteFailed = false;
 
 const inE2EBridge = (expr) => `(() => {
   const api = globalThis.__SAVE_IN_E2E__;
@@ -24,6 +30,56 @@ const inE2EBridge = (expr) => `(() => {
 })()`;
 const evalSW = (expr, wake) => cdp.evalInServiceWorker(PORT, extensionId, inE2EBridge(expr), wake);
 const evalOptions = (expr) => cdp.evalInTarget(PORT, "options.html", expr);
+const artifactName = (name) =>
+  name
+    .replace(/[^a-z0-9]+/gi, "-")
+    .replace(/(^-|-$)/g, "")
+    .toLowerCase();
+
+const captureFailureArtifacts = async (testName) => {
+  const prefix = path.join(ARTIFACTS, `chrome-failure-${artifactName(testName)}`);
+  fs.mkdirSync(ARTIFACTS, { recursive: true });
+  const report = { testName, capturedAt: new Date().toISOString() };
+  try {
+    report.targets = await cdp.listTargets(PORT);
+    report.options = JSON.parse(
+      await evalOptions(`JSON.stringify({
+        url: location.href,
+        title: document.title,
+        active: document.activeElement?.outerHTML,
+        viewport: { width: innerWidth, height: innerHeight },
+        document: { width: document.documentElement.scrollWidth, height: document.documentElement.scrollHeight },
+        html: document.documentElement.outerHTML,
+      })`),
+    );
+    const activeUrl = await evalSW(
+      `browser.tabs.query({ active: true, currentWindow: true }).then(([tab]) => tab?.url || "")`,
+    );
+    report.activeUrl = activeUrl;
+    if (activeUrl) {
+      fs.writeFileSync(
+        `${prefix}-active.png`,
+        Buffer.from(await cdp.captureScreenshot(PORT, activeUrl), "base64"),
+      );
+    }
+    fs.writeFileSync(
+      `${prefix}.png`,
+      Buffer.from(await cdp.captureScreenshot(PORT, "options.html"), "base64"),
+    );
+  } catch (error) {
+    report.pageCaptureError = String(error);
+  }
+  try {
+    report.background = JSON.parse(
+      await evalSW(`Promise.all([
+        api.inspect(), api.logs(), api.history(), browser.storage.local.get(null), browser.storage.session.get(null)
+      ]).then(([inspect, logs, history, local, session]) => JSON.stringify({ inspect, logs, history, local, session }))`),
+    );
+  } catch (error) {
+    report.backgroundCaptureError = String(error);
+  }
+  fs.writeFileSync(`${prefix}.json`, JSON.stringify(report, null, 2));
+};
 
 const SOURCE_PNG = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
@@ -71,12 +127,13 @@ const waitForLog = (predicate, deadlineMs = 8000) =>
   );
 
 beforeAll(async () => {
-  chrome.stageBuild();
   ({
     proc,
     extensionId,
     port: PORT,
     downloadDir: DOWNLOADS,
+    profileDir: PROFILE_DIR,
+    logPath: browserLogPath,
   } = await chrome.launch({
     profileDir: PROFILE,
     fresh: true,
@@ -89,7 +146,26 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await chrome.killTree(proc);
+  const failures = [];
+  try {
+    await chrome.killTree(proc);
+  } catch (error) {
+    failures.push(error);
+  }
+  try {
+    await chrome.removeProfile(PROFILE_DIR);
+  } catch (error) {
+    failures.push(error);
+  }
+  if (!suiteFailed && browserLogPath) fs.rmSync(browserLogPath, { force: true });
+  if (failures.length) throw new AggregateError(failures, "Chrome E2E cleanup failed");
+});
+
+afterEach(async ({ task }) => {
+  if (task.result?.state === "fail") {
+    suiteFailed = true;
+    await captureFailureArtifacts(task.name);
+  }
 });
 
 test("service worker initialises cleanly", async () => {
@@ -135,6 +211,8 @@ test("options page works under MV3 CSP with live first-party autocomplete", asyn
         form: !!ta,
         open,
         suggestions,
+        hostPermissionGranted: await chrome.permissions.contains({ origins: ["<all_urls>"] }),
+        permissionBannerHidden: document.querySelector("#host-permission-banner")?.hidden,
         refererHidden: document.querySelector("#setRefererHeader")?.closest(".firefox-only")?.hidden,
         nativeBrowserRoutingHidden: document.querySelector("#routeBrowserDownloads")?.closest("label")?.hidden,
         experimentalFirefoxRoutingHidden: document.querySelector("#routeBrowserDownloadsFirefox")?.closest("label")?.hidden,
@@ -145,9 +223,62 @@ test("options page works under MV3 CSP with live first-party autocomplete", asyn
   expect(result.form).toBe(true);
   expect(result.open).toBe(true);
   expect(result.suggestions).toContain(":date:");
+  expect(result.hostPermissionGranted).toBe(true);
+  expect(result.permissionBannerHidden).toBe(true);
   expect(result.refererHidden).toBe(true);
   expect(result.nativeBrowserRoutingHidden).toBe(false);
   expect(result.experimentalFirefoxRoutingHidden).toBe(true);
+});
+
+test("options page keeps keyboard focus and core layout accessible", async () => {
+  await evalOptions(`(() => {
+    document.activeElement?.blur();
+    document.body.focus();
+  })()`);
+  await cdp.dispatchInput(PORT, "options.html", [
+    {
+      method: "Input.dispatchKeyEvent",
+      params: { type: "keyDown", key: "Tab", code: "Tab", windowsVirtualKeyCode: 9 },
+    },
+    {
+      method: "Input.dispatchKeyEvent",
+      params: { type: "keyUp", key: "Tab", code: "Tab", windowsVirtualKeyCode: 9 },
+    },
+  ]);
+
+  const result = JSON.parse(
+    await evalOptions(`JSON.stringify((() => {
+      const visible = (element) => {
+        const style = getComputedStyle(element);
+        const rect = element.getBoundingClientRect();
+        return style.visibility !== "hidden" && style.display !== "none" && rect.width > 0 && rect.height > 0;
+      };
+      const ids = [...document.querySelectorAll("[id]")].map((element) => element.id);
+      const active = document.activeElement;
+      return {
+        duplicateIds: [...new Set(ids.filter((id, index) => ids.indexOf(id) !== index))],
+        horizontalOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+        unnamedButtons: [...document.querySelectorAll("button")]
+          .filter(visible)
+          .filter((button) => !(button.textContent?.trim() || button.getAttribute("aria-label") || button.title))
+          .map((button) => button.outerHTML),
+        active: {
+          tag: active?.tagName,
+          name: active?.textContent?.trim() || active?.getAttribute?.("aria-label") || active?.id,
+          focusVisible: active?.matches?.(":focus-visible") || false,
+          inViewport: active ? active.getBoundingClientRect().left >= 0 && active.getBoundingClientRect().right <= innerWidth : false,
+        },
+      };
+    })())`),
+  );
+
+  expect(result.duplicateIds).toEqual([]);
+  expect(result.horizontalOverflow).toBeLessThanOrEqual(1);
+  expect(result.unnamedButtons).toEqual([]);
+  expect(result.active.tag).toMatch(/^(A|BUTTON|INPUT|SELECT|TEXTAREA)$/);
+  expect(result.active.name).toBeTruthy();
+  expect(result.active.focusVisible).toBe(true);
+  expect(result.active.inViewport).toBe(true);
 });
 
 test("WAKE_WARM prewarm round-trips", async () => {
@@ -226,6 +357,47 @@ test("download completes through the real pipeline with session tracking", async
 
   const file = path.join(DOWNLOADS, "e2e", "smoke.txt");
   expect(fs.readFileSync(file, "utf8")).toBe("e2e smoke test content");
+});
+
+test("success notifications are created by the real download listener", async () => {
+  try {
+    await evalSW(`Promise.all([
+      browser.storage.local.set({ notifyOnSuccess: true, notifyDuration: 0 }),
+      browser.notifications.getAll().then((rows) =>
+        Promise.all(Object.keys(rows).map((id) => browser.notifications.clear(id)))
+      ),
+    ]).then(() => api.reset()).then(() => "configured")`);
+
+    await evalSW(`api.startDownload({
+      content: "notification e2e content",
+      suggestedFilename: "notification-e2e.txt",
+      pageUrl: "https://example.com/",
+    }).then(() => "started")`);
+    await waitForDownloads("notification-e2e");
+
+    const notifications = await poll(
+      async () => {
+        const rows = JSON.parse(
+          await evalSW(`browser.notifications.getAll().then((rows) => JSON.stringify(rows))`),
+        );
+        return Object.keys(rows).length ? rows : null;
+      },
+      { description: "success notification" },
+    );
+    expect(Object.keys(notifications)).toHaveLength(1);
+    const failures = JSON.parse(
+      await evalSW(
+        `api.logs().then((log) => JSON.stringify(log.filter((e) => e.message === "notification create failed")))`,
+      ),
+    );
+    expect(failures).toEqual([]);
+  } finally {
+    await evalSW(`browser.notifications.getAll()
+      .then((rows) => Promise.all(Object.keys(rows).map((id) => browser.notifications.clear(id))))
+      .then(() => browser.storage.local.remove(["notifyOnSuccess", "notifyDuration"]))
+      .then(() => api.reset())
+      .then(() => "restored")`);
+  }
 });
 
 test("lastUsedPath survives re-initialisation", async () => {
@@ -657,14 +829,14 @@ test("failed downloads are recorded in the debug log", async () => {
 });
 
 test("a failed download is retried automatically via background fetch", async () => {
-  // First response 500s (browser download fails with SERVER_FAILED), the
-  // automatic fetch fallback then gets the 200
+  // Abort the first response so the browser reliably reports a network
+  // failure. Chrome versions differ on whether an HTTP 500 counts as a
+  // completed download, which made this scenario nondeterministic.
   let hits = 0;
   const server = http.createServer((req, res) => {
     hits += 1;
     if (hits === 1) {
-      res.writeHead(500, { "Content-Type": "text/plain" });
-      res.end("boom");
+      req.socket.destroy();
     } else {
       res.writeHead(200, { "Content-Type": "application/octet-stream" });
       res.end("recovered content");
@@ -725,6 +897,11 @@ test("alt+click on a real page saves the image through the content script", asyn
         (await cdp.evalInTarget(PORT, targetUrl, "!!document.getElementById('img')")) === true,
       { description: "content page image" },
     );
+    await evalSW(`browser.tabs.query({}).then((tabs) => {
+      const tab = tabs.find((candidate) => candidate.url?.includes(${JSON.stringify(targetUrl)}));
+      if (!tab?.id) throw new Error("click-to-save fixture tab missing");
+      return browser.tabs.update(tab.id, { active: true });
+    }).then(() => "activated")`);
 
     // Synthetic DOM events don't carry keyCode/buttons across the content
     // script's isolated-world boundary: dispatch trusted input via CDP
@@ -860,6 +1037,49 @@ test("Page Sources discovers, sorts, updates live, and restores across tabs", as
           : null,
       { description: "Page Sources panel open" },
     );
+    await poll(
+      async () =>
+        (await evalPage(
+          firstPath,
+          `document.querySelector("#save-in-source-panel").getAnimations().every((animation) => animation.playState === "finished")`,
+        )) === true
+          ? true
+          : null,
+      { description: "Page Sources opening animation" },
+    );
+
+    const panelLayout = JSON.parse(
+      await evalPage(
+        firstPath,
+        `JSON.stringify((() => {
+          const host = document.querySelector("#save-in-source-panel");
+          const root = host.shadowRoot;
+          const panel = root.querySelector(".panel");
+          const hostRect = host.getBoundingClientRect();
+          const unnamedButtons = [...root.querySelectorAll("button")].filter((button) =>
+            !(button.textContent?.trim() || button.getAttribute("aria-label") || button.title)
+          );
+          return {
+            hostInViewport: hostRect.left >= -1 && hostRect.right <= innerWidth + 1 && hostRect.top >= -1 && hostRect.bottom <= innerHeight + 1,
+            hostRect: { left: hostRect.left, right: hostRect.right, top: hostRect.top, bottom: hostRect.bottom },
+            viewport: { width: innerWidth, height: innerHeight },
+            horizontalOverflow: panel.scrollWidth - panel.clientWidth,
+            unnamedButtons: unnamedButtons.length,
+            rowTargetHeights: [...root.querySelectorAll(".source-link")].map((link) => link.getBoundingClientRect().height),
+            filterLabel: root.querySelector('input[type="search"]')?.getAttribute("aria-label"),
+            sortLabel: root.querySelector("select")?.getAttribute("aria-label"),
+          };
+        })())`,
+      ),
+    );
+    if (!panelLayout.hostInViewport) {
+      throw new Error(`Page Sources escaped the viewport: ${JSON.stringify(panelLayout)}`);
+    }
+    expect(panelLayout.horizontalOverflow).toBeLessThanOrEqual(1);
+    expect(panelLayout.unnamedButtons).toBe(0);
+    expect(panelLayout.rowTargetHeights.every((height) => height >= 38)).toBe(true);
+    expect(panelLayout.filterLabel).toBe("Filter page sources");
+    expect(panelLayout.sortLabel).toBe("Sort sources");
 
     expect((await snapshot(firstPath)).names).toEqual(["second.png", "first.png"]);
     await evalPage(
@@ -931,14 +1151,31 @@ test("Page Sources discovers, sorts, updates live, and restores across tabs", as
   }
 });
 
-test("history and the debug log record the session's downloads", async () => {
+test("history and the debug log record a self-contained download", async () => {
+  const before = JSON.parse(
+    await evalSW(`Promise.all([api.history(), api.logs()]).then(([history, log]) => JSON.stringify({
+      history: history.length,
+      log: log.length,
+    }))`),
+  );
+  await evalSW(`api.startDownload({
+    content: "history e2e content",
+    suggestedFilename: "history-e2e.txt",
+    pageUrl: "https://example.com/",
+  }).then(() => "started")`);
+  await waitForDownloads("history-e2e");
+
   const records = JSON.parse(
     await evalSW(`Promise.all([api.history(), api.logs()]).then(([history, log]) => JSON.stringify({
       history: history.length,
-      logRequested: log.filter((e) => e.message === "download requested").length,
+      matchingHistory: history.filter((entry) => String(entry.finalFullPath).includes("history-e2e")).length,
+      matchingRequests: log.slice(${before.log}).filter((entry) =>
+        entry.message === "download requested" && JSON.stringify(entry.data).includes("history-e2e")
+      ).length,
     }))`),
   );
 
-  expect(records.history).toBeGreaterThanOrEqual(3);
-  expect(records.logRequested).toBeGreaterThanOrEqual(3);
+  expect(records.history).toBeGreaterThan(before.history);
+  expect(records.matchingHistory).toBe(1);
+  expect(records.matchingRequests).toBe(1);
 });

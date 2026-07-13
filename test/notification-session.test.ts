@@ -672,7 +672,7 @@ describe("notification variants", () => {
       "7",
       expect.objectContaining({
         title: expect.stringContaining("2.5 MB"),
-        iconUrl: "icons/notification-success.svg",
+        iconUrl: "icons/ic_archive_black_128px.png",
       }),
     );
   });
@@ -768,7 +768,7 @@ describe("reportFailure", () => {
 
     expect(global.browser.notifications.create).toHaveBeenCalledWith(
       expect.any(String),
-      expect.objectContaining({ iconUrl: "icons/notification-error.svg" }),
+      expect.objectContaining({ iconUrl: "icons/ic_archive_black_128px.png" }),
     );
   });
 

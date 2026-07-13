@@ -33,11 +33,10 @@ describe("notification status icons", () => {
     expect(svg).not.toMatch(/prefers-color-scheme|<style|currentColor/);
   });
 
-  test("runtime notification paths reference every status asset", () => {
+  test("runtime native notifications use Chrome-compatible raster icons", () => {
     const source = readFileSync(resolve("src", "downloads", "notification.ts"), "utf8");
-    Object.values(ICONS).forEach(({ file }) => {
-      expect(source).toContain(`icons/${file}`);
-    });
+    expect(source).toContain("icons/ic_archive_black_128px.png");
+    expect(source).not.toMatch(/ICON_URL = "[^"]+\.svg"/);
   });
 
   test.each([

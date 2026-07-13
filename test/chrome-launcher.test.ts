@@ -1,9 +1,13 @@
+import { mkdtempSync, mkdirSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { createRequire } from "node:module";
 import { describe, expect, test } from "vitest";
 
 const require = createRequire(import.meta.url);
-const { chromeArgs } = require("../scripts/lib/chrome.js") as {
+const { chromeArgs, removeProfile } = require("../scripts/lib/chrome.js") as {
   chromeArgs: (profileDir: string, port: number, headless?: boolean) => string[];
+  removeProfile: (profileDir: string) => Promise<void>;
 };
 
 describe("isolated Chrome launcher", () => {
@@ -18,5 +22,15 @@ describe("isolated Chrome launcher", () => {
   test("adds headless mode only when requested", () => {
     expect(chromeArgs("profile", 9555, true)).toContain("--headless=new");
     expect(chromeArgs("profile", 9555, false)).not.toContain("--headless=new");
+  });
+
+  test("removes a disposable profile including downloaded files", async () => {
+    const profile = mkdtempSync(join(tmpdir(), "save-in-chrome-cleanup-"));
+    mkdirSync(join(profile, "downloads"));
+    writeFileSync(join(profile, "downloads", "fixture.txt"), "fixture");
+
+    await removeProfile(profile);
+
+    expect(() => writeFileSync(join(profile, "still-there.txt"), "no")).toThrow();
   });
 });

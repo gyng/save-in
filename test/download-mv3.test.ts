@@ -364,6 +364,22 @@ describe("onDeterminingFilename listener (Chrome)", () => {
     });
   });
 
+  test("an in-memory retry consumes its persisted filename only when Chrome asks", async () => {
+    const url = "blob:retry-url";
+    freshDownload.pendingRetryFilenames.set(url, "route/retried.txt");
+    sessionStore.siFinalFilenames = { [url]: "route/retried.txt" };
+    const suggest = jest.fn();
+
+    expect(
+      listener({ byExtensionId: "self-extension-id", filename: "download", url }, suggest),
+    ).toBe(false);
+    expect(suggest).toHaveBeenCalledWith({
+      filename: "route/retried.txt",
+      conflictAction: "uniquify",
+    });
+    await vi.waitFor(() => expect(sessionStore.siFinalFilenames).toEqual({}));
+  });
+
   test("recovers same-URL persisted filenames in request order", async () => {
     sessionStore.siFinalFilenames = {
       "https://x/same.png": ["first/a.png", "second/b.png"],

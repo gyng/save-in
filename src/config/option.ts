@@ -17,6 +17,7 @@ import { Download } from "../downloads/download.ts";
 import { options } from "./options-data.ts";
 import type { DownloadInfo } from "../downloads/download-types.ts";
 import { backgroundRuntime } from "../background/runtime.ts";
+import { isContentOptionName, normalizeContentOption } from "./content-options.ts";
 
 type RoutePreviewState = { info: DownloadInfo };
 type RoutePreview = {
@@ -177,6 +178,10 @@ export const OptionsManagement: OptionsManagementApi = {
       OptionsManagement.OPTION_KEYS.forEach((optionType) => {
         const k = optionType.name;
         const stored = loadedOptions[k];
+        if (isContentOptionName(k)) {
+          nextOptions[k] = normalizeContentOption(k, stored) as never;
+          return;
+        }
         if (typeof stored === "undefined") {
           nextOptions[k] = optionType.default as never;
           return;
@@ -192,8 +197,7 @@ export const OptionsManagement: OptionsManagementApi = {
               (typeof optionType.default === "number" &&
                 typeof stored === "string" &&
                 stored.trim() !== "" &&
-                Number.isFinite(Number(stored))) ||
-              (k === "contentClickToSaveCombo" && typeof stored === "number");
+                Number.isFinite(Number(stored)));
         if (
           !validType ||
           (typeof stored === "number" && !Number.isFinite(stored)) ||

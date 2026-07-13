@@ -15,6 +15,7 @@ export type SourcePanelOptions = {
   resourceHints?: boolean;
   includeLinks?: boolean;
   onOpenChange?: (open: boolean) => void;
+  onSaveIntent?: () => void;
 };
 
 const urlsFromCss = (value: string): string[] =>

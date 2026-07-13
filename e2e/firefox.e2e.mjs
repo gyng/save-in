@@ -4,17 +4,46 @@
 
 import fs from "fs";
 import http from "http";
+import path from "path";
 
 import firefox from "../scripts/lib/firefox.js";
 import { listenLocal, poll } from "./helpers.mjs";
 
 let session;
+let suiteFailed = false;
+const ARTIFACTS = process.env.E2E_ARTIFACT_DIR
+  ? path.resolve(process.env.E2E_ARTIFACT_DIR)
+  : path.resolve("dist", "e2e-artifacts");
 
 const inE2EBridge = (expr) => `(() => {
   const api = globalThis.__SAVE_IN_E2E__;
   return (${expr});
 })()`;
 const evalBackground = (expr, timeoutMs) => session.evaluate(inE2EBridge(expr), timeoutMs);
+const artifactName = (name) =>
+  name
+    .replace(/[^a-z0-9]+/gi, "-")
+    .replace(/(^-|-$)/g, "")
+    .toLowerCase();
+
+const captureFailureArtifacts = async (testName) => {
+  fs.mkdirSync(ARTIFACTS, { recursive: true });
+  const report = { testName, capturedAt: new Date().toISOString() };
+  try {
+    report.background = JSON.parse(
+      await evalBackground(`Promise.all([
+        api.inspect(), api.logs(), api.history(), browser.storage.local.get(null),
+        browser.tabs.query({}).then((tabs) => tabs.map(({ id, title, url, active }) => ({ id, title, url, active })))
+      ]).then(([inspect, logs, history, local, tabs]) => JSON.stringify({ inspect, logs, history, local, tabs }))`),
+    );
+  } catch (error) {
+    report.backgroundCaptureError = String(error);
+  }
+  fs.writeFileSync(
+    path.join(ARTIFACTS, `firefox-failure-${artifactName(testName)}.json`),
+    JSON.stringify(report, null, 2),
+  );
+};
 
 const waitForDownloads = async (filenamePart, deadlineMs = 8000) =>
   JSON.parse(
@@ -92,7 +121,23 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  if (session) await session.cleanup();
+  if (session) {
+    let cleanupError;
+    try {
+      await session.cleanup();
+    } catch (error) {
+      cleanupError = error;
+    }
+    if (!suiteFailed && session.logPath) fs.rmSync(session.logPath, { force: true });
+    if (cleanupError) throw cleanupError;
+  }
+});
+
+afterEach(async ({ task }) => {
+  if (task.result?.state === "fail") {
+    suiteFailed = true;
+    await captureFailureArtifacts(task.name);
+  }
 });
 
 test("background event page initialises cleanly", async () => {
@@ -129,6 +174,46 @@ test("download completes through the real pipeline", async () => {
   expect(downloads).toHaveLength(1);
   expect(downloads[0].state).toBe("complete");
   expect(fs.readFileSync(downloads[0].filename, "utf8")).toBe("firefox e2e content");
+});
+
+test("success notifications are created by the real download listener", async () => {
+  try {
+    await evalBackground(`Promise.all([
+      browser.storage.local.set({ notifyOnSuccess: true, notifyDuration: 0 }),
+      browser.notifications.getAll().then((rows) =>
+        Promise.all(Object.keys(rows).map((id) => browser.notifications.clear(id)))
+      ),
+    ]).then(() => api.reset()).then(() => "configured")`);
+
+    await evalBackground(`api.startDownload({
+      content: "firefox notification content",
+      suggestedFilename: "ff-notification-e2e.txt",
+      pageUrl: "https://example.com/",
+    }).then(() => "started")`);
+    await waitForDownloads("ff-notification-e2e");
+
+    const rows = JSON.parse(
+      await evalBackground(`(async () => {
+        const deadline = Date.now() + 8000;
+        for (;;) {
+          const notifications = await browser.notifications.getAll();
+          if (Object.keys(notifications).length || Date.now() >= deadline) {
+            return JSON.stringify(notifications);
+          }
+          await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+      })()`),
+    );
+    expect(Object.values(rows).some((row) => row.message.includes("ff-notification-e2e"))).toBe(
+      true,
+    );
+  } finally {
+    await evalBackground(`browser.notifications.getAll()
+      .then((rows) => Promise.all(Object.keys(rows).map((id) => browser.notifications.clear(id))))
+      .then(() => browser.storage.local.remove(["notifyOnSuccess", "notifyDuration"]))
+      .then(() => api.reset())
+      .then(() => "restored")`);
+  }
 });
 
 test("options reset re-initialises", async () => {
@@ -471,16 +556,35 @@ test("Page Sources discovers, sorts, updates live, and restores across tabs", as
   }
 });
 
-test("history and the debug log record the session's downloads", async () => {
+test("history and the debug log record a self-contained download", async () => {
+  const before = JSON.parse(
+    await evalBackground(
+      `Promise.all([api.history(), api.logs()]).then(([history, log]) => JSON.stringify({
+        history: history.length,
+        log: log.length,
+      }))`,
+    ),
+  );
+  await evalBackground(`api.startDownload({
+    content: "firefox history e2e content",
+    suggestedFilename: "ff-history-e2e.txt",
+    pageUrl: "https://example.com/",
+  }).then(() => "started")`);
+  await waitForDownloads("ff-history-e2e");
+
   const records = JSON.parse(
     await evalBackground(
       `Promise.all([api.history(), api.logs()]).then(([history, log]) => JSON.stringify({
         history: history.length,
-        logRequested: log.filter((e) => e.message === "download requested").length,
+        matchingHistory: history.filter((entry) => String(entry.finalFullPath).includes("ff-history-e2e")).length,
+        matchingRequests: log.slice(${before.log}).filter((entry) =>
+          entry.message === "download requested" && JSON.stringify(entry.data).includes("ff-history-e2e")
+        ).length,
       }))`,
     ),
   );
 
-  expect(records.history).toBeGreaterThanOrEqual(3);
-  expect(records.logRequested).toBeGreaterThanOrEqual(3);
+  expect(records.history).toBeGreaterThan(before.history);
+  expect(records.matchingHistory).toBe(1);
+  expect(records.matchingRequests).toBe(1);
 });

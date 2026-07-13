@@ -1,48 +1,16 @@
 import { setSourcePanelOpen, toggleSourcePanel, type PageSource } from "./source-panel.ts";
+import {
+  CONTENT_OPTION_DEFAULTS,
+  CONTENT_OPTION_KEYS,
+  normalizeContentOption,
+  resolveContentOptions,
+  type ContentOptions,
+} from "../config/content-options.ts";
 
 // Runs in every page. Uses callback-style chrome.* APIs: available in both
 // Chrome and Firefox content scripts (no polyfill is loaded here). try/catch
 // guards cover the extension being reloaded underneath the page
 // ("Extension context invalidated").
-
-type ContentOptions = {
-  contentClickToSave?: boolean;
-  contentClickToSaveCombo?: string | number | null;
-  contentClickToSaveButton?: string;
-  links?: boolean;
-  sourcePanelEnabled?: boolean;
-  sourcePanelBackgrounds?: boolean;
-  sourcePanelLive?: boolean;
-  sourcePanelPreviews?: boolean;
-  sourcePanelResourceHints?: boolean;
-  sourcePanelLinks?: boolean;
-};
-
-const CONTENT_OPTION_KEYS = [
-  "contentClickToSave",
-  "contentClickToSaveCombo",
-  "contentClickToSaveButton",
-  "links",
-  "sourcePanelEnabled",
-  "sourcePanelBackgrounds",
-  "sourcePanelLive",
-  "sourcePanelPreviews",
-  "sourcePanelResourceHints",
-  "sourcePanelLinks",
-] as const;
-
-const CONTENT_OPTION_DEFAULTS: Required<ContentOptions> = {
-  contentClickToSave: false,
-  contentClickToSaveCombo: "Alt",
-  contentClickToSaveButton: "LEFT_CLICK",
-  links: true,
-  sourcePanelEnabled: false,
-  sourcePanelBackgrounds: true,
-  sourcePanelLive: true,
-  sourcePanelPreviews: true,
-  sourcePanelResourceHints: true,
-  sourcePanelLinks: true,
-};
 
 const ClickToSave = {
   isKeyboardComboActive: (combo: number[], activeKeys: Record<number, boolean>) =>
@@ -137,6 +105,15 @@ const ClickToSave = {
   setupClickToSave: undefined as unknown as (options: ContentOptions) => () => void,
 };
 
+const warmBackground = () => {
+  try {
+    // Reading lastError stops Chrome logging an unchecked error.
+    chrome.runtime.sendMessage({ type: "WAKE_WARM" }, () => chrome.runtime.lastError);
+  } catch {
+    // Extension context invalidated while the page remained alive.
+  }
+};
+
 const setupClickToSave = (options: ContentOptions) => {
   const controller = new AbortController();
   const listenerOptions = { capture: true, signal: controller.signal };
@@ -190,12 +167,7 @@ const setupClickToSave = (options: ContentOptions) => {
       // Wake the MV3 service worker as soon as the combo key is held so
       // it is warm by the time the click arrives
       if (!wasActive && shortcutOptions.combo.includes(code)) {
-        try {
-          // Reading lastError stops Chrome logging an unchecked error
-          chrome.runtime.sendMessage({ type: "WAKE_WARM" }, () => chrome.runtime.lastError);
-        } catch (err) {
-          // Extension context invalidated
-        }
+        warmBackground();
       }
     },
     listenerOptions,
@@ -261,7 +233,13 @@ let sourcePanelListenerReady = false;
 let announcedSourcePanelReady = false;
 
 const announceSourcePanelReady = () => {
-  if (!receivedInitialOptions || !sourcePanelListenerReady || announcedSourcePanelReady) return;
+  if (
+    !receivedInitialOptions ||
+    !sourcePanelListenerReady ||
+    announcedSourcePanelReady ||
+    currentOptions.sourcePanelEnabled !== true
+  )
+    return;
   announcedSourcePanelReady = true;
   try {
     chrome.runtime.sendMessage({ type: "SOURCE_PANEL_READY" }, () => chrome.runtime.lastError);
@@ -271,27 +249,25 @@ const announceSourcePanelReady = () => {
 };
 
 const applyOptions = (next: ContentOptions) => {
+  const previous = currentOptions;
   currentOptions = { ...currentOptions, ...next };
+  const clickOptionsChanged = (
+    ["contentClickToSave", "contentClickToSaveCombo", "contentClickToSaveButton", "links"] as const
+  ).some((key) => previous[key] !== currentOptions[key]);
+  if (!clickOptionsChanged) {
+    announceSourcePanelReady();
+    return;
+  }
   removeClickToSave?.();
   removeClickToSave = currentOptions.contentClickToSave ? setupClickToSave(currentOptions) : null;
+  announceSourcePanelReady();
 };
 
 try {
-  let receivedStorageChange = false;
-  chrome.runtime.sendMessage({ type: "OPTIONS" }, (response) => {
-    receivedInitialOptions = true;
-    if (receivedStorageChange || !response || !response.body) {
-      announceSourcePanelReady();
-      return;
-    }
-
-    applyOptions(response.body);
-    announceSourcePanelReady();
-  });
-
   // Existing tabs outlive option-page changes and extension worker restarts.
   // storage.onChanged is additive and works with old backgrounds because it
   // does not require a new message type or atomic extension upgrade.
+  const changedDuringRead = new Set<string>();
   chrome.storage?.onChanged?.addListener((changes, areaName) => {
     if (areaName !== "local") {
       return;
@@ -299,21 +275,31 @@ try {
     const changed: ContentOptions = {};
     CONTENT_OPTION_KEYS.forEach((key) => {
       if (key in changes) {
-        const value = changes[key].newValue;
-        changed[key] = (
-          typeof value === "undefined" ? CONTENT_OPTION_DEFAULTS[key] : value
-        ) as never;
+        if (!receivedInitialOptions) changedDuringRead.add(key);
+        changed[key] = normalizeContentOption(key, changes[key].newValue) as never;
       }
     });
     if (Object.keys(changed).length > 0) {
-      receivedStorageChange = true;
-      receivedInitialOptions = true;
       applyOptions(changed);
-      announceSourcePanelReady();
     }
+  });
+
+  chrome.storage.local.get(CONTENT_OPTION_KEYS, (stored) => {
+    // Reading lastError suppresses Chrome's unchecked-error log if an update
+    // invalidated this long-lived content-script context during the read.
+    void chrome.runtime.lastError;
+    const snapshot = resolveContentOptions(stored);
+    const unchangedSnapshot: ContentOptions = {};
+    CONTENT_OPTION_KEYS.forEach((key) => {
+      if (!changedDuringRead.has(key)) unchangedSnapshot[key] = snapshot[key] as never;
+    });
+    applyOptions(unchangedSnapshot);
+    receivedInitialOptions = true;
+    announceSourcePanelReady();
   });
 } catch (e) {
   // Extension context invalidated (extension reloaded/updated underneath us)
+  receivedInitialOptions = true;
 }
 
 try {
@@ -332,6 +318,7 @@ try {
       previews: currentOptions.sourcePanelPreviews !== false,
       resourceHints: currentOptions.sourcePanelResourceHints !== false,
       includeLinks: currentOptions.sourcePanelLinks !== false,
+      onSaveIntent: warmBackground,
       onOpenChange: (open: boolean) => {
         try {
           chrome.runtime.sendMessage(

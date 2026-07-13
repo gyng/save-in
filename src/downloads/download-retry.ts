@@ -106,20 +106,30 @@ export const retryViaFetch = async (
   } finally {
     if (blobUrl) {
       runtime.pendingRetryFilenames.delete(blobUrl);
-      await Promise.all([
+      const cleanup: Promise<unknown>[] = [
         updateSession<number>(
           sessionWriteState,
           extensionSessionStorage,
           PENDING_DOWNLOADS_SESSION_KEY,
           (n) => Math.max(0, normalizeSessionCounter(n) - 1),
         ),
-        updateSession<FinalFilenameMap>(
-          sessionWriteState,
-          extensionSessionStorage,
-          FINAL_FILENAMES_SESSION_KEY,
-          (m) => removeFilename(m, blobUrl!, filename),
-        ),
-      ]);
+      ];
+      // A successful downloads.download() can resolve before Chrome dispatches
+      // onDeterminingFilename. Keep the restart-safe filename queued until the
+      // listener consumes it; deleting it here races Chrome and produces a
+      // root-level file named "download". Rejected starts have no future
+      // listener, so clean their queue entry immediately.
+      if (newId == null) {
+        cleanup.push(
+          updateSession<FinalFilenameMap>(
+            sessionWriteState,
+            extensionSessionStorage,
+            FINAL_FILENAMES_SESSION_KEY,
+            (m) => removeFilename(m, blobUrl!, filename),
+          ),
+        );
+      }
+      await Promise.all(cleanup);
     }
   }
 };

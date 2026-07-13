@@ -119,6 +119,12 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
     const retryFilename = Download.pendingRetryFilenames.get(downloadItem.url);
     if (retryFilename) {
       Download.pendingRetryFilenames.delete(downloadItem.url);
+      void updateSession<FinalFilenameMap>(
+        sessionWriteState,
+        extensionSessionStorage,
+        FINAL_FILENAMES_SESSION_KEY,
+        (map) => removeFilename(map, downloadItem.url, retryFilename),
+      ).catch((error) => logPort.add("retry filename cleanup failed", String(error)));
       suggest({ filename: retryFilename, conflictAction: options.conflictAction });
       return false;
     }

@@ -31,6 +31,17 @@ describe("FirefoxRdp waitForEvent", () => {
     expect(client.eventWaiters).toHaveLength(0);
   });
 
+  test("consumes an async event that arrived before its waiter", async () => {
+    const sock = makeSocket();
+    const client = new FirefoxRdp(sock);
+    sock.emit("data", frame({ from: "console1", type: "evaluationResult", resultID: "r1" }));
+
+    await expect(
+      client.waitForEvent((pkt) => pkt.type === "evaluationResult" && pkt.resultID === "r1"),
+    ).resolves.toMatchObject({ resultID: "r1" });
+    expect(client.eventBacklog).toHaveLength(0);
+  });
+
   test("rejects on timeout and drops the waiter", async () => {
     vi.useFakeTimers();
     try {

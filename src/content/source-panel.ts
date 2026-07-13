@@ -480,6 +480,12 @@ export const toggleSourcePanel = (
       });
       const save = document.createElement("button");
       save.textContent = source.kind === "stream" ? "Save playlist" : "Save";
+      save.addEventListener("pointerdown", (event) => {
+        if (event.button === 0) options.onSaveIntent?.();
+      });
+      save.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") options.onSaveIntent?.();
+      });
       save.addEventListener("click", () => sendDownload(source));
       actions.append(locate, save);
       if (source.kind === "stream") {
@@ -581,6 +587,24 @@ export const toggleSourcePanel = (
         event.preventDefault();
         event.stopPropagation();
         sendDownload(source);
+      });
+      row.addEventListener("pointerdown", (event) => {
+        if (
+          event.altKey &&
+          event.button === 0 &&
+          !(event.target instanceof Element && event.target.closest("button"))
+        ) {
+          options.onSaveIntent?.();
+        }
+      });
+      row.addEventListener("keydown", (event) => {
+        if (
+          event.altKey &&
+          (event.key === "Enter" || event.key === " ") &&
+          !(event.target instanceof Element && event.target.closest("button"))
+        ) {
+          options.onSaveIntent?.();
+        }
       });
       if (!hasRichTooltip)
         row.title = "Alt+click to save; right-click the source title for Save In";

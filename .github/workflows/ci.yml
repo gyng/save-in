@@ -54,3 +54,10 @@ jobs:
         run: npm ci
       - name: Chrome and Firefox e2e
         run: HEADLESS=1 npm run e2e
+      - name: Preserve browser diagnostics on failure
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: e2e-failure-${{ github.sha }}
+          path: dist/e2e-artifacts
+          if-no-files-found: warn

@@ -372,6 +372,29 @@ describe("Page Sources panel interactions", () => {
     ).toBe(true);
   });
 
+  test("warms the background only at Page Sources save-intent boundaries", () => {
+    document.body.innerHTML = `<img src="cat.jpg">`;
+    const onSaveIntent = vi.fn();
+    toggleSourcePanel(vi.fn(), {
+      includeBackgrounds: false,
+      live: false,
+      onSaveIntent,
+    });
+    const shadow = document.getElementById("save-in-source-panel")!.shadowRoot!;
+    const row = shadow.querySelector<HTMLElement>(".row")!;
+    const [locate, save] = [...row.querySelectorAll<HTMLButtonElement>(".actions button")];
+
+    locate.dispatchEvent(new MouseEvent("pointerdown", { bubbles: true, button: 0 }));
+    expect(onSaveIntent).not.toHaveBeenCalled();
+
+    save.dispatchEvent(new MouseEvent("pointerdown", { bubbles: true, button: 0 }));
+    save.dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, key: "Enter" }));
+    row.dispatchEvent(new MouseEvent("pointerdown", { bubbles: true, button: 0, altKey: true }));
+    row.dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, key: "Enter", altKey: true }));
+
+    expect(onSaveIntent).toHaveBeenCalledTimes(4);
+  });
+
   test("pops the drawer into a draggable floating panel", () => {
     toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
     const host = document.getElementById("save-in-source-panel")!;

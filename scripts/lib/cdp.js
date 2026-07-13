@@ -23,11 +23,23 @@ class Cdp {
     });
   }
 
-  static async connect(url) {
+  static async connect(url, timeoutMs = 5000) {
     const ws = new WebSocket(url);
     await new Promise((resolve, reject) => {
-      ws.addEventListener("open", resolve);
-      ws.addEventListener("error", () => reject(new Error(`Failed to connect to ${url}`)));
+      const timer = setTimeout(() => {
+        ws.close();
+        reject(new Error(`Timed out connecting to ${url}`));
+      }, timeoutMs);
+      const settle = (callback) => {
+        clearTimeout(timer);
+        callback();
+      };
+      ws.addEventListener("open", () => settle(resolve), { once: true });
+      ws.addEventListener(
+        "error",
+        () => settle(() => reject(new Error(`Failed to connect to ${url}`))),
+        { once: true },
+      );
     });
     return new Cdp(ws);
   }
@@ -66,9 +78,25 @@ class Cdp {
   }
 }
 
-const connectBrowser = async (port) => {
-  const version = await getJson(port, "/json/version");
-  return Cdp.connect(version.webSocketDebuggerUrl);
+const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
+
+const connectBrowser = async (port, attempts = 5) => {
+  let lastError;
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    try {
+      // Refresh the browser endpoint on every attempt; Chrome can replace it
+      // while finishing startup.
+      // eslint-disable-next-line no-await-in-loop
+      const version = await getJson(port, "/json/version");
+      // eslint-disable-next-line no-await-in-loop
+      return await Cdp.connect(version.webSocketDebuggerUrl);
+    } catch (error) {
+      lastError = error;
+      // eslint-disable-next-line no-await-in-loop
+      await sleep(200);
+    }
+  }
+  throw lastError;
 };
 
 const listTargets = (port) => getJson(port, "/json");
@@ -83,9 +111,10 @@ const evalInTarget = async (port, urlSubstr, expression) => {
 
   let lastError = null;
   for (const target of targets) {
-    const cdp = await Cdp.connect(target.webSocketDebuggerUrl);
+    let cdp;
     try {
-      await cdp.send("Runtime.enable");
+      cdp = await Cdp.connect(target.webSocketDebuggerUrl);
+      await cdp.send("Runtime.enable", {}, 3000);
       const result = await cdp.send("Runtime.evaluate", {
         expression,
         awaitPromise: true,
@@ -95,8 +124,10 @@ const evalInTarget = async (port, urlSubstr, expression) => {
         return result.result.value;
       }
       lastError = new Error(result.exceptionDetails.exception?.description || "evaluation failed");
+    } catch (error) {
+      lastError = error;
     } finally {
-      cdp.close();
+      cdp?.close();
     }
   }
   throw lastError;
@@ -163,6 +194,29 @@ const openTab = async (port, url) => {
   }
 };
 
+const captureScreenshot = async (port, urlSubstr) => {
+  const target = (await listTargets(port)).find(
+    (candidate) => candidate.type === "page" && candidate.url.includes(urlSubstr),
+  );
+  if (!target) throw new Error(`No page target matching "${urlSubstr}"`);
+  const page = await Cdp.connect(target.webSocketDebuggerUrl);
+  try {
+    await page.send("Page.enable");
+    await page.send("Page.bringToFront");
+    const { data } = await page.send(
+      "Page.captureScreenshot",
+      {
+        format: "png",
+        captureBeyondViewport: false,
+      },
+      5000,
+    );
+    return data;
+  } finally {
+    page.close();
+  }
+};
+
 const loadUnpacked = async (port, path) => {
   const browser = await connectBrowser(port);
   try {
@@ -211,8 +265,6 @@ const reloadTargets = async (port, urlSubstr) => {
   return count;
 };
 
-const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
-
 const waitForCdp = async (port, attempts = 30) => {
   for (let i = 0; i < attempts; i += 1) {
     try {
@@ -233,6 +285,7 @@ module.exports = {
   evalInServiceWorker,
   dispatchInput,
   openTab,
+  captureScreenshot,
   loadUnpacked,
   stopServiceWorker,
   reloadTargets,

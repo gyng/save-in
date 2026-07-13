@@ -12,6 +12,9 @@ const { FirefoxRdp } = require("./firefox-rdp");
 // EXT_DIR (repo-relative) overrides the loaded package, e.g. to run the e2e
 // against the bundled build (dist/bundled-pkg) instead of the repo root.
 const REPO = path.join(__dirname, "..", "..");
+const ARTIFACTS = process.env.E2E_ARTIFACT_DIR
+  ? path.resolve(REPO, process.env.E2E_ARTIFACT_DIR)
+  : path.join(REPO, "dist", "e2e-artifacts");
 const ROOT = process.env.EXT_DIR ? path.join(REPO, process.env.EXT_DIR) : REPO;
 const ADDON_ID = "{72d92df5-2aa0-4b06-b807-aa21767545cd}"; // manifest.json gecko id
 
@@ -51,8 +54,25 @@ const killTree = (pid) => {
   }
 };
 
+const killProfileProcesses = (profileDir) => {
+  if (process.platform !== "win32") return;
+  const escaped = profileDir.replace(/'/g, "''");
+  const script = `$profile = '${escaped}'; Get-CimInstance Win32_Process | Where-Object { $_.Name -eq 'firefox.exe' -and $_.CommandLine -like ('*' + $profile + '*') } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }`;
+  try {
+    execFileSync(
+      "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+      ["-NoProfile", "-NonInteractive", "-Command", script],
+      { stdio: "ignore" },
+    );
+  } catch (error) {
+    // The browser may already have exited between discovery and termination.
+  }
+};
+
 const makeProfile = (baseProfileDir) => {
-  let profileDir = baseProfileDir;
+  let profileDir = `${baseProfileDir}-${process.pid}-${Date.now()}-${Math.random()
+    .toString(16)
+    .slice(2)}`;
   try {
     fs.rmSync(profileDir, { recursive: true, force: true });
   } catch (e) {
@@ -101,6 +121,7 @@ const removeProfile = async (profileDir) => {
       // Firefox may still be releasing files after its process tree exits.
     }
   }
+  throw new Error(`Unable to remove disposable Firefox profile: ${profileDir}`);
 };
 
 const connectWithRetry = async (port, attempts = 30) => {
@@ -129,7 +150,11 @@ const launch = async () => {
   }
   args.push("about:blank");
 
-  const proc = spawn(findFirefox(), args, { stdio: "ignore" });
+  fs.mkdirSync(ARTIFACTS, { recursive: true });
+  const logPath = path.join(ARTIFACTS, `firefox-${port}.log`);
+  const log = fs.openSync(logPath, "w");
+  const proc = spawn(findFirefox(), args, { stdio: ["ignore", log, log] });
+  fs.closeSync(log);
   let rdp;
   try {
     rdp = await connectWithRetry(port);
@@ -165,16 +190,39 @@ const launch = async () => {
     const cleanup = async () => {
       rdp.close();
       killTree(proc.pid);
+      killProfileProcesses(profileDir);
       await removeProfile(profileDir);
     };
 
-    return { proc, rdp, evaluate, evaluateInTab, profileDir, downloadDir, cleanup };
+    return { proc, rdp, evaluate, evaluateInTab, profileDir, downloadDir, logPath, cleanup };
   } catch (error) {
     rdp?.close();
     killTree(proc.pid);
-    await removeProfile(profileDir);
-    throw error;
+    killProfileProcesses(profileDir);
+    let cleanupError;
+    try {
+      await removeProfile(profileDir);
+    } catch (failure) {
+      cleanupError = failure;
+    }
+    let tail = "";
+    try {
+      tail = fs.readFileSync(logPath, "utf8").slice(-12000).trim();
+    } catch (readError) {
+      tail = `Unable to read Firefox log: ${readError.message}`;
+    }
+    const launchError = new Error(
+      `${error.message}\nFirefox process: ${proc.exitCode === null ? "still running" : `exit code ${proc.exitCode}`}\nFirefox log: ${logPath}${tail ? `\n--- log tail ---\n${tail}` : ""}`,
+      { cause: error },
+    );
+    if (cleanupError) {
+      // eslint-disable-next-line preserve-caught-error -- AggregateError includes both failures and explicitly preserves the launch cause.
+      throw new AggregateError([launchError, cleanupError], "Firefox launch and cleanup failed", {
+        cause: error,
+      });
+    }
+    throw launchError;
   }
 };
 
-module.exports = { ROOT, launch };
+module.exports = { ROOT, launch, makeProfile, removeProfile };

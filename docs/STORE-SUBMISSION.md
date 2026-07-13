@@ -115,6 +115,30 @@ manifests; repository rules protect who may create or move it. Release actions
 are pinned to immutable commits and should be updated deliberately during
 normal workflow maintenance.
 
+## Browser-owned surface checks
+
+The parallel E2E suites cover the bundled extension, downloads, routing,
+notifications, options-page keyboard/layout invariants, Page Sources, and
+Chrome service-worker restarts. CDP and Firefox RDP cannot reliably inspect or
+select browser-owned context menus, OS Save As windows, or operating-system
+notification actions. Before publishing a store build, manually check these
+surfaces in current Chrome and Firefox:
+
+1. Right-click an image and a link, choose a configured Save In destination,
+   and confirm the expected directory and Last used location behavior.
+2. Enable each Save As prompt condition and confirm both accepting and
+   cancelling the native picker leave the extension responsive.
+3. Enable success and failure notifications, select a download notification,
+   and confirm the browser reveals the corresponding download.
+4. Revoke Save In's site access, confirm the options permission banner appears
+   and click-to-save is unavailable, then grant access and confirm both recover.
+5. Check the options page and Page Sources dock/popout at normal and narrow
+   widths in light and dark system themes, including keyboard focus indicators.
+
+CI uploads `dist/e2e-artifacts` when a browser suite fails. The bundle contains
+browser logs plus JSON snapshots of targets, storage, history, debug logs, and
+the options DOM; Chrome also attempts a current-page screenshot.
+
 ## Chrome tab-strip context menus
 
 Chrome 150 introduces the `"tab"` context, but Save In does not enable it on
