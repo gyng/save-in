@@ -2293,34 +2293,34 @@
     }
   },
   "routeVisualEditorMode": {
-    "message": "Routing rule editor mode"
+    "message": "路由規則編輯器模式"
   },
   "routeVisualAddRule": {
-    "message": "Add rule"
+    "message": "新增規則"
   },
   "routeVisualHelp": {
-    "message": "Rules run from top to bottom. All conditions in a rule must match; the first matching rule wins."
+    "message": "規則會由上而下檢查。規則中的所有條件都必須符合；系統會執行第一個符合的規則。"
   },
   "routeVisualCondition": {
-    "message": "Condition"
+    "message": "條件"
   },
   "routeVisualDestination": {
-    "message": "Destination"
+    "message": "目的地"
   },
   "routeVisualPattern": {
-    "message": "Pattern"
+    "message": "模式"
   },
   "routeVisualIgnoreCase": {
-    "message": "Ignore case"
+    "message": "忽略大小寫"
   },
   "routeVisualIgnoreCaseHelp": {
-    "message": "Match uppercase and lowercase letters"
+    "message": "將大寫與小寫字母視為相同"
   },
   "routeVisualDeleteCondition": {
-    "message": "Delete condition"
+    "message": "刪除條件"
   },
   "routeVisualUnsupported": {
-    "message": "This rule has syntax Visual mode cannot safely edit near line $LINE$.",
+    "message": "視覺化模式無法安全編輯此規則中第 $LINE$ 行附近的內容。請切換到文字模式。",
     "placeholders": {
       "line": {
         "content": "$1",
@@ -2329,31 +2329,70 @@
     }
   },
   "routeVisualEditText": {
-    "message": "Edit in Text"
+    "message": "以文字編輯"
   },
   "routeVisualMoveUp": {
-    "message": "Move rule up"
+    "message": "上移規則"
   },
   "routeVisualMoveDown": {
-    "message": "Move rule down"
+    "message": "下移規則"
   },
   "routeVisualDuplicate": {
-    "message": "Duplicate rule"
+    "message": "複製規則"
   },
   "routeVisualDelete": {
-    "message": "Delete rule"
+    "message": "刪除規則"
   },
   "routeVisualAddCondition": {
-    "message": "Add condition"
+    "message": "新增條件"
   },
   "routeVisualEmpty": {
-    "message": "No routing rules yet. Add one to get started."
+    "message": "尚無路由規則。新增一個規則即可開始。"
   },
-  "visualEditorEnabled": { "message": "Enabled" },
+  "visualEditorEnabled": { "message": "已啟用" },
   "html_disableThisDestinationAndItsChildren": {
-    "message": "Keep this destination and its children out of the menu"
+    "message": "不在選單中顯示此目的地及其子項目"
   },
   "html_keepsARuleWithoutRunningIt": {
-    "message": "keeps a rule without running it"
-  }
+    "message": "保留規則但不執行"
+  },
+  "autoDownloadHeading": { "message": "自動儲存來源" },
+  "autoDownloadHelp": {
+    "message": "僅在已啟用的規則同時符合頁面和來源時，才儲存新發現的頁面來源。"
+  },
+  "autoDownloadEnabled": { "message": "自動儲存符合項目" },
+  "autoDownloadLive": { "message": "監看頁面載入後新增的來源" },
+  "autoDownloadPrivate": { "message": "允許在隱私視窗中自動儲存" },
+  "autoDownloadLimit": { "message": "每次頁面瀏覽的最大儲存數" },
+  "autoDownloadLimitHelp": {
+    "message": "達到此限制時，Save In 將停止把新的符合項目加入佇列。重新載入頁面即可開始新的瀏覽。"
+  },
+  "autoDownloadRulesHeading": { "message": "自動化規則" },
+  "autoDownloadRulesHelp": {
+    "message": "每項規則都需要頁面條件、來源條件和目的地。首個符合項目優先。"
+  },
+  "autoDownloadEditorMode": { "message": "自動化規則編輯器模式" },
+  "autoDownloadVisual": { "message": "視覺化" },
+  "autoDownloadText": { "message": "文字" },
+  "autoDownloadAddRule": { "message": "新增規則" },
+  "autoDownloadGrammar": { "message": "規則語法" },
+  "autoDownloadCondition": { "message": "條件" },
+  "autoDownloadPattern": { "message": "模式" },
+  "autoDownloadIgnoreCase": { "message": "忽略大小寫" },
+  "autoDownloadIgnoreCaseHelp": { "message": "將大寫與小寫字母視為相同" },
+  "autoDownloadDeleteCondition": { "message": "刪除條件" },
+  "autoDownloadVisualInvalid": {
+    "message": "切換到視覺化模式前，請先在文字模式中修正錯誤。"
+  },
+  "autoDownloadEmpty": {
+    "message": "尚無自動化規則。請新增規則、選擇網站與來源，然後啟用該規則。"
+  },
+  "autoDownloadRule": { "message": "規則" },
+  "autoDownloadMoveUp": { "message": "上移規則" },
+  "autoDownloadMoveDown": { "message": "下移規則" },
+  "autoDownloadDeleteRule": { "message": "刪除規則" },
+  "autoDownloadRuleName": { "message": "規則名稱" },
+  "autoDownloadAddCondition": { "message": "新增條件" },
+  "autoDownloadDestination": { "message": "儲存至" },
+  "autoDownloadNewRule": { "message": "新規則" }
 }

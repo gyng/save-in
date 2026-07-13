@@ -10,8 +10,16 @@ const violations = [];
 const report = (message) => violations.push(message);
 /** @param {string} file */
 const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
-/** @param {string} file @returns {any} */
-const readJson = (file) => JSON.parse(read(file));
+
+/** @param {string} label @param {string} source */
+const checkDuplicateCatalogKeys = (label, source) => {
+  const seen = new Set();
+  for (const match of source.matchAll(/^  "([^"]+)":/gm)) {
+    const key = match[1];
+    if (seen.has(key)) report(`${label}: duplicate key ${key}`);
+    seen.add(key);
+  }
+};
 
 /** @param {string} directory @returns {string[]} */
 const listFiles = (directory) =>
@@ -70,7 +78,9 @@ const checkSchema = (label, catalog) => {
   }
 };
 
-const english = readJson("_locales/en/messages.json");
+const englishSource = read("_locales/en/messages.json");
+checkDuplicateCatalogKeys("en", englishSource);
+const english = JSON.parse(englishSource);
 checkSchema("en", english);
 for (const [key, definition] of Object.entries(english)) {
   if (!definition.description?.trim()) report(`en.${key}: missing translator description`);
@@ -111,9 +121,9 @@ const generatedRoot = path.join(root, "src", "i18n", "generated");
 for (const entry of fs.readdirSync(generatedRoot, { withFileTypes: true })) {
   if (!entry.isDirectory()) continue;
   const locale = entry.name;
-  const catalog = JSON.parse(
-    fs.readFileSync(path.join(generatedRoot, locale, "messages.json"), "utf8"),
-  );
+  const catalogSource = fs.readFileSync(path.join(generatedRoot, locale, "messages.json"), "utf8");
+  checkDuplicateCatalogKeys(locale, catalogSource);
+  const catalog = JSON.parse(catalogSource);
   checkSchema(locale, catalog);
   for (const key of Object.keys(catalog))
     if (!english[key]) report(`${locale}: unknown key ${key}`);

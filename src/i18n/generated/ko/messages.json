@@ -2293,34 +2293,34 @@
     }
   },
   "routeVisualEditorMode": {
-    "message": "Routing rule editor mode"
+    "message": "라우팅 규칙 편집기 모드"
   },
   "routeVisualAddRule": {
-    "message": "Add rule"
+    "message": "규칙 추가"
   },
   "routeVisualHelp": {
-    "message": "Rules run from top to bottom. All conditions in a rule must match; the first matching rule wins."
+    "message": "규칙은 위에서 아래 순서로 평가됩니다. 규칙의 모든 조건이 일치해야 하며, 처음 일치하는 규칙이 실행됩니다."
   },
   "routeVisualCondition": {
-    "message": "Condition"
+    "message": "조건"
   },
   "routeVisualDestination": {
-    "message": "Destination"
+    "message": "저장 위치"
   },
   "routeVisualPattern": {
-    "message": "Pattern"
+    "message": "패턴"
   },
   "routeVisualIgnoreCase": {
-    "message": "Ignore case"
+    "message": "대소문자 무시"
   },
   "routeVisualIgnoreCaseHelp": {
-    "message": "Match uppercase and lowercase letters"
+    "message": "대문자와 소문자를 동일하게 일치시킵니다"
   },
   "routeVisualDeleteCondition": {
-    "message": "Delete condition"
+    "message": "조건 삭제"
   },
   "routeVisualUnsupported": {
-    "message": "This rule has syntax Visual mode cannot safely edit near line $LINE$.",
+    "message": "시각적 모드에서는 $LINE$번째 줄 근처의 이 규칙을 안전하게 편집할 수 없습니다. 텍스트 모드로 전환하세요.",
     "placeholders": {
       "line": {
         "content": "$1",
@@ -2329,31 +2329,70 @@
     }
   },
   "routeVisualEditText": {
-    "message": "Edit in Text"
+    "message": "텍스트로 편집"
   },
   "routeVisualMoveUp": {
-    "message": "Move rule up"
+    "message": "규칙 위로 이동"
   },
   "routeVisualMoveDown": {
-    "message": "Move rule down"
+    "message": "규칙 아래로 이동"
   },
   "routeVisualDuplicate": {
-    "message": "Duplicate rule"
+    "message": "규칙 복제"
   },
   "routeVisualDelete": {
-    "message": "Delete rule"
+    "message": "규칙 삭제"
   },
   "routeVisualAddCondition": {
-    "message": "Add condition"
+    "message": "조건 추가"
   },
   "routeVisualEmpty": {
-    "message": "No routing rules yet. Add one to get started."
+    "message": "라우팅 규칙이 아직 없습니다. 규칙을 추가하여 시작하세요."
   },
-  "visualEditorEnabled": { "message": "Enabled" },
+  "visualEditorEnabled": { "message": "사용" },
   "html_disableThisDestinationAndItsChildren": {
-    "message": "Keep this destination and its children out of the menu"
+    "message": "이 저장 위치와 하위 항목을 메뉴에서 숨깁니다"
   },
   "html_keepsARuleWithoutRunningIt": {
-    "message": "keeps a rule without running it"
-  }
+    "message": "규칙을 실행하지 않고 유지합니다"
+  },
+  "autoDownloadHeading": { "message": "소스 자동 저장" },
+  "autoDownloadHelp": {
+    "message": "활성화된 규칙이 페이지와 소스 모두에 일치할 때만 새로 발견한 페이지 소스를 저장합니다."
+  },
+  "autoDownloadEnabled": { "message": "일치 항목 자동 저장" },
+  "autoDownloadLive": { "message": "페이지 로드 후 추가된 소스 감시" },
+  "autoDownloadPrivate": { "message": "비공개 창에서 자동 저장 허용" },
+  "autoDownloadLimit": { "message": "페이지 방문당 최대 저장 수" },
+  "autoDownloadLimitHelp": {
+    "message": "이 한도에 도달하면 Save In이 새 일치 항목을 대기열에 추가하지 않습니다. 새 방문을 시작하려면 페이지를 다시 로드하세요."
+  },
+  "autoDownloadRulesHeading": { "message": "자동화 규칙" },
+  "autoDownloadRulesHelp": {
+    "message": "각 규칙에는 페이지 조건, 소스 조건, 대상이 필요합니다. 먼저 일치하는 규칙이 적용됩니다."
+  },
+  "autoDownloadEditorMode": { "message": "자동화 규칙 편집기 모드" },
+  "autoDownloadVisual": { "message": "시각적" },
+  "autoDownloadText": { "message": "텍스트" },
+  "autoDownloadAddRule": { "message": "규칙 추가" },
+  "autoDownloadGrammar": { "message": "규칙 구문" },
+  "autoDownloadCondition": { "message": "조건" },
+  "autoDownloadPattern": { "message": "패턴" },
+  "autoDownloadIgnoreCase": { "message": "대소문자 무시" },
+  "autoDownloadIgnoreCaseHelp": { "message": "대문자와 소문자를 동일하게 일치시킵니다" },
+  "autoDownloadDeleteCondition": { "message": "조건 삭제" },
+  "autoDownloadVisualInvalid": {
+    "message": "시각적 모드로 전환하기 전에 텍스트 모드에서 오류를 수정하세요."
+  },
+  "autoDownloadEmpty": {
+    "message": "자동화 규칙이 아직 없습니다. 규칙을 추가하고 사이트와 소스를 선택한 다음 사용 설정하세요."
+  },
+  "autoDownloadRule": { "message": "규칙" },
+  "autoDownloadMoveUp": { "message": "규칙 위로 이동" },
+  "autoDownloadMoveDown": { "message": "규칙 아래로 이동" },
+  "autoDownloadDeleteRule": { "message": "규칙 삭제" },
+  "autoDownloadRuleName": { "message": "규칙 이름" },
+  "autoDownloadAddCondition": { "message": "조건 추가" },
+  "autoDownloadDestination": { "message": "저장 위치" },
+  "autoDownloadNewRule": { "message": "새 규칙" }
 }

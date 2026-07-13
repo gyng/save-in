@@ -2193,34 +2193,34 @@
     }
   },
   "routeVisualEditorMode": {
-    "message": "Routing rule editor mode"
+    "message": "Modo do editor de regras de roteamento"
   },
   "routeVisualAddRule": {
-    "message": "Add rule"
+    "message": "Adicionar regra"
   },
   "routeVisualHelp": {
-    "message": "Rules run from top to bottom. All conditions in a rule must match; the first matching rule wins."
+    "message": "As regras são avaliadas de cima para baixo. Todas as condições de uma regra devem corresponder; a primeira regra correspondente é executada."
   },
   "routeVisualCondition": {
-    "message": "Condition"
+    "message": "Condição"
   },
   "routeVisualDestination": {
-    "message": "Destination"
+    "message": "Destino"
   },
   "routeVisualPattern": {
-    "message": "Pattern"
+    "message": "Padrão"
   },
   "routeVisualIgnoreCase": {
-    "message": "Ignore case"
+    "message": "Ignorar maiúsculas e minúsculas"
   },
   "routeVisualIgnoreCaseHelp": {
-    "message": "Match uppercase and lowercase letters"
+    "message": "Tratar letras maiúsculas e minúsculas da mesma forma"
   },
   "routeVisualDeleteCondition": {
-    "message": "Delete condition"
+    "message": "Excluir condição"
   },
   "routeVisualUnsupported": {
-    "message": "This rule has syntax Visual mode cannot safely edit near line $LINE$.",
+    "message": "O modo Visual não pode editar esta regra com segurança perto da linha $LINE$. Mude para o modo Texto.",
     "placeholders": {
       "line": {
         "content": "$1",
@@ -2229,31 +2229,72 @@
     }
   },
   "routeVisualEditText": {
-    "message": "Edit in Text"
+    "message": "Editar como texto"
   },
   "routeVisualMoveUp": {
-    "message": "Move rule up"
+    "message": "Mover regra para cima"
   },
   "routeVisualMoveDown": {
-    "message": "Move rule down"
+    "message": "Mover regra para baixo"
   },
   "routeVisualDuplicate": {
-    "message": "Duplicate rule"
+    "message": "Duplicar regra"
   },
   "routeVisualDelete": {
-    "message": "Delete rule"
+    "message": "Excluir regra"
   },
   "routeVisualAddCondition": {
-    "message": "Add condition"
+    "message": "Adicionar condição"
   },
   "routeVisualEmpty": {
-    "message": "No routing rules yet. Add one to get started."
+    "message": "Ainda não há regras de roteamento. Adicione uma regra para começar."
   },
-  "visualEditorEnabled": { "message": "Enabled" },
+  "visualEditorEnabled": { "message": "Ativada" },
   "html_disableThisDestinationAndItsChildren": {
-    "message": "Keep this destination and its children out of the menu"
+    "message": "Ocultar este destino e seus itens secundários do menu"
   },
   "html_keepsARuleWithoutRunningIt": {
-    "message": "keeps a rule without running it"
-  }
+    "message": "mantém a regra sem executá-la"
+  },
+  "autoDownloadHeading": { "message": "Salvamento automático de fontes" },
+  "autoDownloadHelp": {
+    "message": "Salve fontes de página recém-descobertas somente quando uma regra ativada corresponder à página e à fonte."
+  },
+  "autoDownloadEnabled": { "message": "Salvar correspondências automaticamente" },
+  "autoDownloadLive": { "message": "Observar fontes adicionadas após o carregamento da página" },
+  "autoDownloadPrivate": { "message": "Permitir salvamento automático em janelas privativas" },
+  "autoDownloadLimit": { "message": "Máximo de salvamentos por visita à página" },
+  "autoDownloadLimitHelp": {
+    "message": "O Save In deixa de colocar novas correspondências na fila quando esse limite é atingido. Recarregue a página para iniciar uma nova visita."
+  },
+  "autoDownloadRulesHeading": { "message": "Regras de automação" },
+  "autoDownloadRulesHelp": {
+    "message": "Cada regra precisa de uma condição de página, uma condição de fonte e um destino. A primeira correspondência vence."
+  },
+  "autoDownloadEditorMode": { "message": "Modo do editor de regras de automação" },
+  "autoDownloadVisual": { "message": "Visual" },
+  "autoDownloadText": { "message": "Texto" },
+  "autoDownloadAddRule": { "message": "Adicionar regra" },
+  "autoDownloadGrammar": { "message": "Sintaxe das regras" },
+  "autoDownloadCondition": { "message": "Condição" },
+  "autoDownloadPattern": { "message": "Padrão" },
+  "autoDownloadIgnoreCase": { "message": "Ignorar maiúsculas e minúsculas" },
+  "autoDownloadIgnoreCaseHelp": {
+    "message": "Tratar letras maiúsculas e minúsculas da mesma forma"
+  },
+  "autoDownloadDeleteCondition": { "message": "Excluir condição" },
+  "autoDownloadVisualInvalid": {
+    "message": "Corrija os erros no modo Texto antes de mudar para o modo Visual."
+  },
+  "autoDownloadEmpty": {
+    "message": "Ainda não há regras de automação. Adicione uma regra, escolha o site e as fontes e ative-a."
+  },
+  "autoDownloadRule": { "message": "Regra" },
+  "autoDownloadMoveUp": { "message": "Mover regra para cima" },
+  "autoDownloadMoveDown": { "message": "Mover regra para baixo" },
+  "autoDownloadDeleteRule": { "message": "Excluir regra" },
+  "autoDownloadRuleName": { "message": "Nome da regra" },
+  "autoDownloadAddCondition": { "message": "Adicionar condição" },
+  "autoDownloadDestination": { "message": "Salvar em" },
+  "autoDownloadNewRule": { "message": "Nova regra" }
 }

@@ -2193,34 +2193,34 @@
     }
   },
   "routeVisualEditorMode": {
-    "message": "Routing rule editor mode"
+    "message": "Modus van editor voor routeringsregels"
   },
   "routeVisualAddRule": {
-    "message": "Add rule"
+    "message": "Regel toevoegen"
   },
   "routeVisualHelp": {
-    "message": "Rules run from top to bottom. All conditions in a rule must match; the first matching rule wins."
+    "message": "Regels worden van boven naar beneden gecontroleerd. Aan elke voorwaarde in een regel moet zijn voldaan; de eerste overeenkomende regel wordt uitgevoerd."
   },
   "routeVisualCondition": {
-    "message": "Condition"
+    "message": "Voorwaarde"
   },
   "routeVisualDestination": {
-    "message": "Destination"
+    "message": "Bestemming"
   },
   "routeVisualPattern": {
-    "message": "Pattern"
+    "message": "Patroon"
   },
   "routeVisualIgnoreCase": {
-    "message": "Ignore case"
+    "message": "Hoofdlettergebruik negeren"
   },
   "routeVisualIgnoreCaseHelp": {
-    "message": "Match uppercase and lowercase letters"
+    "message": "Hoofdletters en kleine letters als gelijk behandelen"
   },
   "routeVisualDeleteCondition": {
-    "message": "Delete condition"
+    "message": "Voorwaarde verwijderen"
   },
   "routeVisualUnsupported": {
-    "message": "This rule has syntax Visual mode cannot safely edit near line $LINE$.",
+    "message": "In de visuele modus kan deze regel rond regel $LINE$ niet veilig worden bewerkt. Schakel over naar de tekstmodus.",
     "placeholders": {
       "line": {
         "content": "$1",
@@ -2229,31 +2229,74 @@
     }
   },
   "routeVisualEditText": {
-    "message": "Edit in Text"
+    "message": "Als tekst bewerken"
   },
   "routeVisualMoveUp": {
-    "message": "Move rule up"
+    "message": "Regel omhoog verplaatsen"
   },
   "routeVisualMoveDown": {
-    "message": "Move rule down"
+    "message": "Regel omlaag verplaatsen"
   },
   "routeVisualDuplicate": {
-    "message": "Duplicate rule"
+    "message": "Regel dupliceren"
   },
   "routeVisualDelete": {
-    "message": "Delete rule"
+    "message": "Regel verwijderen"
   },
   "routeVisualAddCondition": {
-    "message": "Add condition"
+    "message": "Voorwaarde toevoegen"
   },
   "routeVisualEmpty": {
-    "message": "No routing rules yet. Add one to get started."
+    "message": "Er zijn nog geen routeringsregels. Voeg een regel toe om te beginnen."
   },
-  "visualEditorEnabled": { "message": "Enabled" },
+  "visualEditorEnabled": { "message": "Ingeschakeld" },
   "html_disableThisDestinationAndItsChildren": {
-    "message": "Keep this destination and its children out of the menu"
+    "message": "Deze bestemming en onderliggende items niet in het menu tonen"
   },
   "html_keepsARuleWithoutRunningIt": {
-    "message": "keeps a rule without running it"
-  }
+    "message": "behoudt de regel zonder deze uit te voeren"
+  },
+  "autoDownloadHeading": { "message": "Bronnen automatisch opslaan" },
+  "autoDownloadHelp": {
+    "message": "Sla nieuw ontdekte paginabronnen alleen op wanneer een ingeschakelde regel overeenkomt met zowel de pagina als de bron."
+  },
+  "autoDownloadEnabled": { "message": "Overeenkomsten automatisch opslaan" },
+  "autoDownloadLive": {
+    "message": "Controleren op bronnen die na het laden van de pagina worden toegevoegd"
+  },
+  "autoDownloadPrivate": { "message": "Automatisch opslaan in privévensters toestaan" },
+  "autoDownloadLimit": { "message": "Maximumaantal opgeslagen items per paginabezoek" },
+  "autoDownloadLimitHelp": {
+    "message": "Save In stopt met het toevoegen van nieuwe overeenkomsten aan de wachtrij wanneer deze limiet is bereikt. Herlaad de pagina om een nieuw bezoek te starten."
+  },
+  "autoDownloadRulesHeading": { "message": "Automatiseringsregels" },
+  "autoDownloadRulesHelp": {
+    "message": "Elke regel heeft een paginavoorwaarde, een bronvoorwaarde en een bestemming nodig. De eerste overeenkomst wint."
+  },
+  "autoDownloadEditorMode": { "message": "Modus van editor voor automatiseringsregels" },
+  "autoDownloadVisual": { "message": "Visueel" },
+  "autoDownloadText": { "message": "Tekst" },
+  "autoDownloadAddRule": { "message": "Regel toevoegen" },
+  "autoDownloadGrammar": { "message": "Regelsyntaxis" },
+  "autoDownloadCondition": { "message": "Voorwaarde" },
+  "autoDownloadPattern": { "message": "Patroon" },
+  "autoDownloadIgnoreCase": { "message": "Hoofdlettergebruik negeren" },
+  "autoDownloadIgnoreCaseHelp": {
+    "message": "Hoofdletters en kleine letters als gelijk behandelen"
+  },
+  "autoDownloadDeleteCondition": { "message": "Voorwaarde verwijderen" },
+  "autoDownloadVisualInvalid": {
+    "message": "Los de fouten in de tekstmodus op voordat u naar de visuele modus schakelt."
+  },
+  "autoDownloadEmpty": {
+    "message": "Er zijn nog geen automatiseringsregels. Voeg een regel toe, kies de site en bronnen en schakel de regel daarna in."
+  },
+  "autoDownloadRule": { "message": "Regel" },
+  "autoDownloadMoveUp": { "message": "Regel omhoog verplaatsen" },
+  "autoDownloadMoveDown": { "message": "Regel omlaag verplaatsen" },
+  "autoDownloadDeleteRule": { "message": "Regel verwijderen" },
+  "autoDownloadRuleName": { "message": "Regelnaam" },
+  "autoDownloadAddCondition": { "message": "Voorwaarde toevoegen" },
+  "autoDownloadDestination": { "message": "Opslaan in" },
+  "autoDownloadNewRule": { "message": "Nieuwe regel" }
 }

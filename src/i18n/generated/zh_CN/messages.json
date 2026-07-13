@@ -2293,34 +2293,34 @@
     }
   },
   "routeVisualEditorMode": {
-    "message": "Routing rule editor mode"
+    "message": "路由规则编辑器模式"
   },
   "routeVisualAddRule": {
-    "message": "Add rule"
+    "message": "添加规则"
   },
   "routeVisualHelp": {
-    "message": "Rules run from top to bottom. All conditions in a rule must match; the first matching rule wins."
+    "message": "规则按从上到下的顺序检查。规则中的所有条件都必须匹配；系统会执行第一条匹配的规则。"
   },
   "routeVisualCondition": {
-    "message": "Condition"
+    "message": "条件"
   },
   "routeVisualDestination": {
-    "message": "Destination"
+    "message": "目标位置"
   },
   "routeVisualPattern": {
-    "message": "Pattern"
+    "message": "模式"
   },
   "routeVisualIgnoreCase": {
-    "message": "Ignore case"
+    "message": "忽略大小写"
   },
   "routeVisualIgnoreCaseHelp": {
-    "message": "Match uppercase and lowercase letters"
+    "message": "将大写和小写字母视为相同"
   },
   "routeVisualDeleteCondition": {
-    "message": "Delete condition"
+    "message": "删除条件"
   },
   "routeVisualUnsupported": {
-    "message": "This rule has syntax Visual mode cannot safely edit near line $LINE$.",
+    "message": "可视化模式无法安全编辑此规则中第 $LINE$ 行附近的内容。请切换到文本模式。",
     "placeholders": {
       "line": {
         "content": "$1",
@@ -2329,31 +2329,70 @@
     }
   },
   "routeVisualEditText": {
-    "message": "Edit in Text"
+    "message": "以文本方式编辑"
   },
   "routeVisualMoveUp": {
-    "message": "Move rule up"
+    "message": "上移规则"
   },
   "routeVisualMoveDown": {
-    "message": "Move rule down"
+    "message": "下移规则"
   },
   "routeVisualDuplicate": {
-    "message": "Duplicate rule"
+    "message": "复制规则"
   },
   "routeVisualDelete": {
-    "message": "Delete rule"
+    "message": "删除规则"
   },
   "routeVisualAddCondition": {
-    "message": "Add condition"
+    "message": "添加条件"
   },
   "routeVisualEmpty": {
-    "message": "No routing rules yet. Add one to get started."
+    "message": "尚无路由规则。添加一条规则即可开始。"
   },
-  "visualEditorEnabled": { "message": "Enabled" },
+  "visualEditorEnabled": { "message": "已启用" },
   "html_disableThisDestinationAndItsChildren": {
-    "message": "Keep this destination and its children out of the menu"
+    "message": "不在菜单中显示此目标位置及其子项"
   },
   "html_keepsARuleWithoutRunningIt": {
-    "message": "keeps a rule without running it"
-  }
+    "message": "保留规则但不执行"
+  },
+  "autoDownloadHeading": { "message": "自动保存来源" },
+  "autoDownloadHelp": {
+    "message": "仅当已启用的规则同时匹配页面和来源时，才保存新发现的页面来源。"
+  },
+  "autoDownloadEnabled": { "message": "自动保存匹配项" },
+  "autoDownloadLive": { "message": "监视页面加载后添加的来源" },
+  "autoDownloadPrivate": { "message": "允许在隐私窗口中自动保存" },
+  "autoDownloadLimit": { "message": "每次页面访问的最大保存数" },
+  "autoDownloadLimitHelp": {
+    "message": "达到此限制时，Save In 将停止将新匹配项加入队列。重新加载页面即可开始新的访问。"
+  },
+  "autoDownloadRulesHeading": { "message": "自动化规则" },
+  "autoDownloadRulesHelp": {
+    "message": "每条规则都需要页面条件、来源条件和目标位置。首个匹配项优先。"
+  },
+  "autoDownloadEditorMode": { "message": "自动化规则编辑器模式" },
+  "autoDownloadVisual": { "message": "可视化" },
+  "autoDownloadText": { "message": "文本" },
+  "autoDownloadAddRule": { "message": "添加规则" },
+  "autoDownloadGrammar": { "message": "规则语法" },
+  "autoDownloadCondition": { "message": "条件" },
+  "autoDownloadPattern": { "message": "模式" },
+  "autoDownloadIgnoreCase": { "message": "忽略大小写" },
+  "autoDownloadIgnoreCaseHelp": { "message": "将大写和小写字母视为相同" },
+  "autoDownloadDeleteCondition": { "message": "删除条件" },
+  "autoDownloadVisualInvalid": {
+    "message": "切换到可视化模式之前，请先在文本模式中修复错误。"
+  },
+  "autoDownloadEmpty": {
+    "message": "尚无自动化规则。请添加规则，选择网站和资源，然后启用该规则。"
+  },
+  "autoDownloadRule": { "message": "规则" },
+  "autoDownloadMoveUp": { "message": "上移规则" },
+  "autoDownloadMoveDown": { "message": "下移规则" },
+  "autoDownloadDeleteRule": { "message": "删除规则" },
+  "autoDownloadRuleName": { "message": "规则名称" },
+  "autoDownloadAddCondition": { "message": "添加条件" },
+  "autoDownloadDestination": { "message": "保存到" },
+  "autoDownloadNewRule": { "message": "新规则" }
 }

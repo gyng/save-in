@@ -2191,34 +2191,34 @@
     }
   },
   "routeVisualEditorMode": {
-    "message": "Routing rule editor mode"
+    "message": "Ansicht des Routing-Regel-Editors"
   },
   "routeVisualAddRule": {
-    "message": "Add rule"
+    "message": "Regel hinzufügen"
   },
   "routeVisualHelp": {
-    "message": "Rules run from top to bottom. All conditions in a rule must match; the first matching rule wins."
+    "message": "Regeln werden von oben nach unten geprüft. Jede Bedingung einer Regel muss zutreffen; die erste passende Regel wird ausgeführt."
   },
   "routeVisualCondition": {
-    "message": "Condition"
+    "message": "Bedingung"
   },
   "routeVisualDestination": {
-    "message": "Destination"
+    "message": "Ziel"
   },
   "routeVisualPattern": {
-    "message": "Pattern"
+    "message": "Muster"
   },
   "routeVisualIgnoreCase": {
-    "message": "Ignore case"
+    "message": "Groß-/Kleinschreibung ignorieren"
   },
   "routeVisualIgnoreCaseHelp": {
-    "message": "Match uppercase and lowercase letters"
+    "message": "Groß- und Kleinbuchstaben gleich behandeln"
   },
   "routeVisualDeleteCondition": {
-    "message": "Delete condition"
+    "message": "Bedingung löschen"
   },
   "routeVisualUnsupported": {
-    "message": "This rule has syntax Visual mode cannot safely edit near line $LINE$.",
+    "message": "Diese Regel kann im visuellen Modus nahe Zeile $LINE$ nicht sicher bearbeitet werden. Wechseln Sie in den Textmodus.",
     "placeholders": {
       "line": {
         "content": "$1",
@@ -2227,31 +2227,72 @@
     }
   },
   "routeVisualEditText": {
-    "message": "Edit in Text"
+    "message": "Als Text bearbeiten"
   },
   "routeVisualMoveUp": {
-    "message": "Move rule up"
+    "message": "Regel nach oben verschieben"
   },
   "routeVisualMoveDown": {
-    "message": "Move rule down"
+    "message": "Regel nach unten verschieben"
   },
   "routeVisualDuplicate": {
-    "message": "Duplicate rule"
+    "message": "Regel duplizieren"
   },
   "routeVisualDelete": {
-    "message": "Delete rule"
+    "message": "Regel löschen"
   },
   "routeVisualAddCondition": {
-    "message": "Add condition"
+    "message": "Bedingung hinzufügen"
   },
   "routeVisualEmpty": {
-    "message": "No routing rules yet. Add one to get started."
+    "message": "Noch keine Routing-Regeln. Fügen Sie eine Regel hinzu, um zu beginnen."
   },
-  "visualEditorEnabled": { "message": "Enabled" },
+  "visualEditorEnabled": { "message": "Aktiviert" },
   "html_disableThisDestinationAndItsChildren": {
-    "message": "Keep this destination and its children out of the menu"
+    "message": "Dieses Ziel und seine Unterziele nicht im Menü anzeigen"
   },
   "html_keepsARuleWithoutRunningIt": {
-    "message": "keeps a rule without running it"
-  }
+    "message": "behält die Regel bei, ohne sie auszuführen"
+  },
+  "autoDownloadHeading": { "message": "Seitenquellen automatisch speichern" },
+  "autoDownloadHelp": {
+    "message": "Neu erkannte Seitenquellen speichern, wenn eine aktivierte Regel sowohl zur Seite als auch zur Quelle passt."
+  },
+  "autoDownloadEnabled": { "message": "Treffer automatisch speichern" },
+  "autoDownloadLive": { "message": "Nach dem Laden hinzugefügte Quellen einbeziehen" },
+  "autoDownloadPrivate": { "message": "In privaten Fenstern zulassen" },
+  "autoDownloadLimit": { "message": "Maximale Speicherungen pro Seitenbesuch" },
+  "autoDownloadLimitHelp": {
+    "message": "Save In stellt keine weiteren Treffer in die Warteschlange, sobald dieses Limit erreicht ist. Laden Sie die Seite neu, um einen neuen Besuch zu beginnen."
+  },
+  "autoDownloadRulesHeading": { "message": "Automatisierungsregeln" },
+  "autoDownloadRulesHelp": {
+    "message": "Jede Regel benötigt eine Seitenbedingung, eine Quellenbedingung und ein Ziel. Die erste passende Regel wird ausgeführt."
+  },
+  "autoDownloadEditorMode": { "message": "Ansicht des Automatisierungsregel-Editors" },
+  "autoDownloadVisual": { "message": "Visuell" },
+  "autoDownloadText": { "message": "Text" },
+  "autoDownloadAddRule": { "message": "Regel hinzufügen" },
+  "autoDownloadGrammar": { "message": "Regelsyntax" },
+  "autoDownloadCondition": { "message": "Bedingung" },
+  "autoDownloadPattern": { "message": "Muster" },
+  "autoDownloadIgnoreCase": { "message": "Groß-/Kleinschreibung ignorieren" },
+  "autoDownloadIgnoreCaseHelp": {
+    "message": "Groß- und Kleinbuchstaben gleich behandeln"
+  },
+  "autoDownloadDeleteCondition": { "message": "Bedingung löschen" },
+  "autoDownloadVisualInvalid": {
+    "message": "Beheben Sie die Fehler im Textmodus, bevor Sie in den visuellen Modus wechseln."
+  },
+  "autoDownloadEmpty": {
+    "message": "Noch keine Automatisierungsregeln. Fügen Sie eine Regel hinzu, wählen Sie Website und Quellen aus und aktivieren Sie sie anschließend."
+  },
+  "autoDownloadRule": { "message": "Regel" },
+  "autoDownloadMoveUp": { "message": "Regel nach oben verschieben" },
+  "autoDownloadMoveDown": { "message": "Regel nach unten verschieben" },
+  "autoDownloadDeleteRule": { "message": "Regel löschen" },
+  "autoDownloadRuleName": { "message": "Regelname" },
+  "autoDownloadAddCondition": { "message": "Bedingung hinzufügen" },
+  "autoDownloadDestination": { "message": "Speichern unter" },
+  "autoDownloadNewRule": { "message": "Neue Regel" }
 }

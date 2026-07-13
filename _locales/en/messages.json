@@ -1204,7 +1204,7 @@
     "description": "Option control label or related help text. Used in src/options/options.html."
   },
   "o_cSetRefererHeaderHelp": {
-    "message": "Some sites (e.g. pixiv.net) reject downloads without an HTTP Referer header. Firefox sends the page URL directly. Chrome fetches matching files through Save In and holds each file in memory while saving. Leave this off unless a site needs it.",
+    "message": "Some sites reject downloads that do not include an HTTP Referer header. For matching downloads, Firefox adds the page URL as the Referer. Chrome instead fetches the file through Save In, temporarily holding it in memory before saving. Turn this on only for sites that require it.",
     "description": "Option control label or related help text. Used in src/options/options.html."
   },
   "o_cSetRefererHeaderFilter": {
@@ -2846,7 +2846,7 @@
     "description": "Button that appends a routing rule in the visual editor. Used in src/options/options.html."
   },
   "routeVisualHelp": {
-    "message": "Rules run from top to bottom. All conditions in a rule must match; the first matching rule wins.",
+    "message": "Rules run from top to bottom. Every condition in a rule must match; the first matching rule runs.",
     "description": "Ordering and matching guidance below the visual routing editor. Used in src/options/options.html."
   },
   "visualEditorEnabled": {
@@ -2886,7 +2886,7 @@
     "description": "Accessible label for removing one routing condition. Used in src/options/rule-visual-editor.ts."
   },
   "routeVisualUnsupported": {
-    "message": "This rule has syntax Visual mode cannot safely edit near line $LINE$.",
+    "message": "Visual mode cannot safely edit this rule near line $LINE$. Switch to Text mode.",
     "description": "Warning shown for a routing rule that must be edited as text. Used in src/options/rule-visual-editor.ts.",
     "placeholders": {
       "line": {
@@ -2896,7 +2896,7 @@
     }
   },
   "routeVisualEditText": {
-    "message": "Edit in Text",
+    "message": "Edit as text",
     "description": "Button that opens an unsupported visual rule in the text editor. Used in src/options/rule-visual-editor.ts."
   },
   "routeVisualMoveUp": {
@@ -2928,11 +2928,11 @@
     "description": "Heading for the routing rules test workbench. Used in src/options/options.html."
   },
   "routeDebuggerDescription": {
-    "message": "Test the current rules against sample download details.",
+    "message": "Test your current routing rules with sample download details.",
     "description": "Description of the routing rules debugger. Used in src/options/options.html."
   },
   "routeDebuggerUseLastDownload": {
-    "message": "Use last download",
+    "message": "Use latest download",
     "description": "Button that fills the route debugger with the most recent download. Used in src/options/options.html."
   },
   "routeDebuggerFilename": {
@@ -2960,11 +2960,11 @@
     "description": "Empty context choice in the route debugger. Used in src/options/options.html."
   },
   "routeDebuggerUnsavedNote": {
-    "message": "Tests include edits you have not applied.",
+    "message": "Tests use your current edits, including unapplied changes.",
     "description": "Note explaining what source the route debugger evaluates. Used in src/options/options.html."
   },
   "routeDebuggerRun": {
-    "message": "Run test",
+    "message": "Test rules",
     "description": "Button that evaluates routing rules in the route debugger. Used in src/options/options.html."
   },
   "routeDebuggerNoMatch": {
@@ -3134,5 +3134,121 @@
   "html_without": {
     "message": "without",
     "description": "Text in the routing-clause reference. Used in src/options/clauselist.html and src/options/options.html."
+  },
+  "autoDownloadHeading": {
+    "message": "Automatically save page sources",
+    "description": "Heading for unattended page-source download automation. Used in src/options/options.html."
+  },
+  "autoDownloadHelp": {
+    "message": "Save newly discovered page sources when an enabled rule matches both the page and the source.",
+    "description": "Explains the guarded matching behavior of automatic source saving. Used in src/options/options.html."
+  },
+  "autoDownloadEnabled": {
+    "message": "Save matches automatically",
+    "description": "Master checkbox label for automatic source saving. Used in src/options/options.html."
+  },
+  "autoDownloadLive": {
+    "message": "Include sources added after the page loads",
+    "description": "Checkbox label for live automatic source discovery. Used in src/options/options.html."
+  },
+  "autoDownloadPrivate": {
+    "message": "Allow in private windows",
+    "description": "Checkbox label that independently permits automatic saves in private browsing. Used in src/options/options.html."
+  },
+  "autoDownloadLimit": {
+    "message": "Maximum saves per page visit",
+    "description": "Label for the automatic-download safety limit. Used in src/options/options.html."
+  },
+  "autoDownloadLimitHelp": {
+    "message": "Save In stops queuing new matches when this limit is reached. Reload the page to start a new visit.",
+    "description": "Explains the per-visit automatic-download safety limit. Used in src/options/options.html."
+  },
+  "autoDownloadRulesHeading": {
+    "message": "Automation rules",
+    "description": "Heading for the automatic page-source rule editor. Used in src/options/options.html."
+  },
+  "autoDownloadRulesHelp": {
+    "message": "Each rule needs a page condition, a source condition, and a destination. The first matching rule runs.",
+    "description": "Concise grammar guidance above the automatic source rule editor. Used in src/options/options.html."
+  },
+  "autoDownloadEditorMode": {
+    "message": "Automation rule editor mode",
+    "description": "Accessible label for visual and text automation-editor tabs. Used in src/options/options.html."
+  },
+  "autoDownloadVisual": {
+    "message": "Visual",
+    "description": "Tab label for the visual automatic-source rule editor. Used in src/options/options.html."
+  },
+  "autoDownloadText": {
+    "message": "Text",
+    "description": "Tab label for the text automatic-source rule editor. Used in src/options/options.html."
+  },
+  "autoDownloadAddRule": {
+    "message": "Add rule",
+    "description": "Button label for adding a guarded automatic-source rule. Used in src/options/options.html."
+  },
+  "autoDownloadGrammar": {
+    "message": "Rule syntax",
+    "description": "Disclosure label for the automatic rule syntax example. Used in src/options/options.html."
+  },
+  "autoDownloadCondition": {
+    "message": "Condition",
+    "description": "Accessible label for an automatic rule matcher selector. Used in src/options/auto-download-rule-editor.ts."
+  },
+  "autoDownloadPattern": {
+    "message": "Pattern",
+    "description": "Accessible label for an automatic rule regular-expression field. Used in src/options/auto-download-rule-editor.ts."
+  },
+  "autoDownloadIgnoreCase": {
+    "message": "Ignore case",
+    "description": "Accessible checkbox label for case-insensitive automatic matching. Used in src/options/auto-download-rule-editor.ts."
+  },
+  "autoDownloadIgnoreCaseHelp": {
+    "message": "Match uppercase and lowercase letters",
+    "description": "Tooltip explaining case-insensitive automatic matching. Used in src/options/auto-download-rule-editor.ts."
+  },
+  "autoDownloadDeleteCondition": {
+    "message": "Delete condition",
+    "description": "Accessible button label for deleting an automatic rule condition. Used in src/options/auto-download-rule-editor.ts."
+  },
+  "autoDownloadVisualInvalid": {
+    "message": "Fix the errors in Text mode before switching to Visual mode.",
+    "description": "Visual editor warning shown when automatic-rule text is invalid. Used in src/options/auto-download-rule-editor.ts."
+  },
+  "autoDownloadEmpty": {
+    "message": "No automation rules yet. Add a rule, choose the site and sources, then enable it.",
+    "description": "Empty state for the automatic source rule editor. Used in src/options/auto-download-rule-editor.ts."
+  },
+  "autoDownloadRule": {
+    "message": "Rule",
+    "description": "Short label placed before an automatic rule number. Used in src/options/auto-download-rule-editor.ts."
+  },
+  "autoDownloadMoveUp": {
+    "message": "Move rule up",
+    "description": "Accessible button label for moving an automatic rule earlier. Used in src/options/auto-download-rule-editor.ts."
+  },
+  "autoDownloadMoveDown": {
+    "message": "Move rule down",
+    "description": "Accessible button label for moving an automatic rule later. Used in src/options/auto-download-rule-editor.ts."
+  },
+  "autoDownloadDeleteRule": {
+    "message": "Delete rule",
+    "description": "Accessible button label for deleting an automatic rule. Used in src/options/auto-download-rule-editor.ts."
+  },
+  "autoDownloadRuleName": {
+    "message": "Rule name",
+    "description": "Label for the optional automatic rule name. Used in src/options/auto-download-rule-editor.ts."
+  },
+  "autoDownloadAddCondition": {
+    "message": "Add condition",
+    "description": "Button label for adding a matcher to an automatic rule. Used in src/options/auto-download-rule-editor.ts."
+  },
+  "autoDownloadDestination": {
+    "message": "Save to",
+    "description": "Label for an automatic rule destination template. Used in src/options/auto-download-rule-editor.ts."
+  },
+  "autoDownloadNewRule": {
+    "message": "New rule",
+    "description": "Default editable name for a newly added automatic source rule. Used in src/options/auto-download-rule-editor.ts."
   }
 }

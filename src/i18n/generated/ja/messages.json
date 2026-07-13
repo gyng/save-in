@@ -2293,34 +2293,34 @@
     }
   },
   "routeVisualEditorMode": {
-    "message": "Routing rule editor mode"
+    "message": "ルーティングルールの編集モード"
   },
   "routeVisualAddRule": {
-    "message": "Add rule"
+    "message": "ルールを追加"
   },
   "routeVisualHelp": {
-    "message": "Rules run from top to bottom. All conditions in a rule must match; the first matching rule wins."
+    "message": "ルールは上から順に評価されます。ルール内のすべての条件が一致する必要があり、最初に一致したルールが実行されます。"
   },
   "routeVisualCondition": {
-    "message": "Condition"
+    "message": "条件"
   },
   "routeVisualDestination": {
-    "message": "Destination"
+    "message": "保存先"
   },
   "routeVisualPattern": {
-    "message": "Pattern"
+    "message": "パターン"
   },
   "routeVisualIgnoreCase": {
-    "message": "Ignore case"
+    "message": "大文字と小文字を区別しない"
   },
   "routeVisualIgnoreCaseHelp": {
-    "message": "Match uppercase and lowercase letters"
+    "message": "大文字と小文字を同一として照合します"
   },
   "routeVisualDeleteCondition": {
-    "message": "Delete condition"
+    "message": "条件を削除"
   },
   "routeVisualUnsupported": {
-    "message": "This rule has syntax Visual mode cannot safely edit near line $LINE$.",
+    "message": "ビジュアルモードでは、$LINE$ 行目付近のこのルールを安全に編集できません。テキストモードに切り替えてください。",
     "placeholders": {
       "line": {
         "content": "$1",
@@ -2329,31 +2329,70 @@
     }
   },
   "routeVisualEditText": {
-    "message": "Edit in Text"
+    "message": "テキストで編集"
   },
   "routeVisualMoveUp": {
-    "message": "Move rule up"
+    "message": "ルールを上へ移動"
   },
   "routeVisualMoveDown": {
-    "message": "Move rule down"
+    "message": "ルールを下へ移動"
   },
   "routeVisualDuplicate": {
-    "message": "Duplicate rule"
+    "message": "ルールを複製"
   },
   "routeVisualDelete": {
-    "message": "Delete rule"
+    "message": "ルールを削除"
   },
   "routeVisualAddCondition": {
-    "message": "Add condition"
+    "message": "条件を追加"
   },
   "routeVisualEmpty": {
-    "message": "No routing rules yet. Add one to get started."
+    "message": "ルーティングルールはまだありません。ルールを追加して開始してください。"
   },
-  "visualEditorEnabled": { "message": "Enabled" },
+  "visualEditorEnabled": { "message": "有効" },
   "html_disableThisDestinationAndItsChildren": {
-    "message": "Keep this destination and its children out of the menu"
+    "message": "この保存先とその子項目をメニューに表示しない"
   },
   "html_keepsARuleWithoutRunningIt": {
-    "message": "keeps a rule without running it"
-  }
+    "message": "ルールを実行せずに保持します"
+  },
+  "autoDownloadHeading": { "message": "ソースの自動保存" },
+  "autoDownloadHelp": {
+    "message": "有効なルールがページとソースの両方に一致した場合のみ、新しく検出されたページソースを保存します。"
+  },
+  "autoDownloadEnabled": { "message": "一致した項目を自動保存" },
+  "autoDownloadLive": { "message": "ページ読み込み後に追加されたソースを監視" },
+  "autoDownloadPrivate": { "message": "プライベートウィンドウでの自動保存を許可" },
+  "autoDownloadLimit": { "message": "1 回のページ訪問での最大保存数" },
+  "autoDownloadLimitHelp": {
+    "message": "この上限に達すると、Save In は新しい一致項目のキューへの追加を停止します。新しい訪問を開始するにはページを再読み込みしてください。"
+  },
+  "autoDownloadRulesHeading": { "message": "自動化ルール" },
+  "autoDownloadRulesHelp": {
+    "message": "各ルールにはページ条件、ソース条件、保存先が必要です。最初に一致したルールが使われます。"
+  },
+  "autoDownloadEditorMode": { "message": "自動化ルールエディターのモード" },
+  "autoDownloadVisual": { "message": "ビジュアル" },
+  "autoDownloadText": { "message": "テキスト" },
+  "autoDownloadAddRule": { "message": "ルールを追加" },
+  "autoDownloadGrammar": { "message": "ルールの構文" },
+  "autoDownloadCondition": { "message": "条件" },
+  "autoDownloadPattern": { "message": "パターン" },
+  "autoDownloadIgnoreCase": { "message": "大文字と小文字を区別しない" },
+  "autoDownloadIgnoreCaseHelp": { "message": "大文字と小文字を同一として照合します" },
+  "autoDownloadDeleteCondition": { "message": "条件を削除" },
+  "autoDownloadVisualInvalid": {
+    "message": "ビジュアルモードに切り替える前に、テキストモードでエラーを修正してください。"
+  },
+  "autoDownloadEmpty": {
+    "message": "自動保存ルールはまだありません。ルールを追加し、サイトとソースを選択してから有効にしてください。"
+  },
+  "autoDownloadRule": { "message": "ルール" },
+  "autoDownloadMoveUp": { "message": "ルールを上へ移動" },
+  "autoDownloadMoveDown": { "message": "ルールを下へ移動" },
+  "autoDownloadDeleteRule": { "message": "ルールを削除" },
+  "autoDownloadRuleName": { "message": "ルール名" },
+  "autoDownloadAddCondition": { "message": "条件を追加" },
+  "autoDownloadDestination": { "message": "保存先" },
+  "autoDownloadNewRule": { "message": "新しいルール" }
 }

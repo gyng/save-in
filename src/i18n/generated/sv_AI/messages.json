@@ -2187,34 +2187,34 @@
     }
   },
   "routeVisualEditorMode": {
-    "message": "Routing rule editor mode"
+    "message": "Läge för redigeraren av dirigeringsregler"
   },
   "routeVisualAddRule": {
-    "message": "Add rule"
+    "message": "Lägg till regel"
   },
   "routeVisualHelp": {
-    "message": "Rules run from top to bottom. All conditions in a rule must match; the first matching rule wins."
+    "message": "Regler kontrolleras uppifrån och ned. Alla villkor i en regel måste matcha; den första matchande regeln körs."
   },
   "routeVisualCondition": {
-    "message": "Condition"
+    "message": "Villkor"
   },
   "routeVisualDestination": {
-    "message": "Destination"
+    "message": "Mål"
   },
   "routeVisualPattern": {
-    "message": "Pattern"
+    "message": "Mönster"
   },
   "routeVisualIgnoreCase": {
-    "message": "Ignore case"
+    "message": "Ignorera skiftläge"
   },
   "routeVisualIgnoreCaseHelp": {
-    "message": "Match uppercase and lowercase letters"
+    "message": "Behandla stora och små bokstäver som likadana"
   },
   "routeVisualDeleteCondition": {
-    "message": "Delete condition"
+    "message": "Ta bort villkor"
   },
   "routeVisualUnsupported": {
-    "message": "This rule has syntax Visual mode cannot safely edit near line $LINE$.",
+    "message": "Det visuella läget kan inte redigera den här regeln säkert nära rad $LINE$. Byt till textläget.",
     "placeholders": {
       "line": {
         "content": "$1",
@@ -2223,31 +2223,72 @@
     }
   },
   "routeVisualEditText": {
-    "message": "Edit in Text"
+    "message": "Redigera som text"
   },
   "routeVisualMoveUp": {
-    "message": "Move rule up"
+    "message": "Flytta regeln uppåt"
   },
   "routeVisualMoveDown": {
-    "message": "Move rule down"
+    "message": "Flytta regeln nedåt"
   },
   "routeVisualDuplicate": {
-    "message": "Duplicate rule"
+    "message": "Duplicera regeln"
   },
   "routeVisualDelete": {
-    "message": "Delete rule"
+    "message": "Ta bort regeln"
   },
   "routeVisualAddCondition": {
-    "message": "Add condition"
+    "message": "Lägg till villkor"
   },
   "routeVisualEmpty": {
-    "message": "No routing rules yet. Add one to get started."
+    "message": "Det finns inga dirigeringsregler än. Lägg till en regel för att komma igång."
   },
-  "visualEditorEnabled": { "message": "Enabled" },
+  "visualEditorEnabled": { "message": "Aktiverad" },
   "html_disableThisDestinationAndItsChildren": {
-    "message": "Keep this destination and its children out of the menu"
+    "message": "Dölj det här målet och dess underordnade objekt i menyn"
   },
   "html_keepsARuleWithoutRunningIt": {
-    "message": "keeps a rule without running it"
-  }
+    "message": "behåller regeln utan att köra den"
+  },
+  "autoDownloadHeading": { "message": "Spara källor automatiskt" },
+  "autoDownloadHelp": {
+    "message": "Spara nyupptäckta sidkällor endast när en aktiverad regel matchar både sidan och källan."
+  },
+  "autoDownloadEnabled": { "message": "Spara träffar automatiskt" },
+  "autoDownloadLive": { "message": "Bevaka källor som läggs till efter att sidan har lästs in" },
+  "autoDownloadPrivate": { "message": "Tillåt automatiskt sparande i privata fönster" },
+  "autoDownloadLimit": { "message": "Maximalt antal sparningar per sidbesök" },
+  "autoDownloadLimitHelp": {
+    "message": "Save In slutar köa nya träffar när gränsen nås. Läs in sidan igen för att starta ett nytt besök."
+  },
+  "autoDownloadRulesHeading": { "message": "Automatiseringsregler" },
+  "autoDownloadRulesHelp": {
+    "message": "Varje regel behöver ett sidvillkor, ett källvillkor och en destination. Den första träffen gäller."
+  },
+  "autoDownloadEditorMode": { "message": "Läge för redigeraren av automatiseringsregler" },
+  "autoDownloadVisual": { "message": "Visuellt" },
+  "autoDownloadText": { "message": "Text" },
+  "autoDownloadAddRule": { "message": "Lägg till regel" },
+  "autoDownloadGrammar": { "message": "Regelsyntax" },
+  "autoDownloadCondition": { "message": "Villkor" },
+  "autoDownloadPattern": { "message": "Mönster" },
+  "autoDownloadIgnoreCase": { "message": "Ignorera skiftläge" },
+  "autoDownloadIgnoreCaseHelp": {
+    "message": "Behandla stora och små bokstäver som likadana"
+  },
+  "autoDownloadDeleteCondition": { "message": "Ta bort villkor" },
+  "autoDownloadVisualInvalid": {
+    "message": "Åtgärda felen i textläget innan du byter till det visuella läget."
+  },
+  "autoDownloadEmpty": {
+    "message": "Det finns inga automatiseringsregler än. Lägg till en regel, välj webbplats och källor och aktivera sedan regeln."
+  },
+  "autoDownloadRule": { "message": "Regel" },
+  "autoDownloadMoveUp": { "message": "Flytta regeln uppåt" },
+  "autoDownloadMoveDown": { "message": "Flytta regeln nedåt" },
+  "autoDownloadDeleteRule": { "message": "Ta bort regeln" },
+  "autoDownloadRuleName": { "message": "Regelnamn" },
+  "autoDownloadAddCondition": { "message": "Lägg till villkor" },
+  "autoDownloadDestination": { "message": "Spara i" },
+  "autoDownloadNewRule": { "message": "Ny regel" }
 }
