@@ -360,16 +360,6 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
 
   textButton.addEventListener("click", () => setMode(false));
   visualButton.addEventListener("click", () => setMode(true));
-  const handleTabKey = (event: KeyboardEvent): void => {
-    const visualKey = event.key === "ArrowRight" || event.key === "End";
-    const textKey = event.key === "ArrowLeft" || event.key === "Home";
-    if (!visualKey && !textKey) return;
-    event.preventDefault();
-    setMode(visualKey);
-    (visualKey ? visualButton : textButton).focus();
-  };
-  textButton.addEventListener("keydown", handleTabKey);
-  visualButton.addEventListener("keydown", handleTabKey);
   const onModeKeydown = (event: KeyboardEvent): void => {
     if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End"].includes(event.key)) {
       return;

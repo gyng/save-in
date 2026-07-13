@@ -282,7 +282,11 @@ export const updateDirectoryLine = (
         update.comment
           ? { span: node.cst.comment.content.span, text: update.comment }
           : {
-              span: sourceSpan(node.raw, node.path.span.end.offset, node.raw.length),
+              span: sourceSpan(
+                node.raw,
+                node.cst.comment.delimiter.span.start.offset,
+                node.raw.length,
+              ),
               text: "",
             },
       );

@@ -31,8 +31,10 @@ export const setPathAlias = (node: DirectoryLineNode, alias: string): DirectoryL
 export const getPathEnabled = (node: DirectoryLineNode): boolean =>
   getDirectoryMetadata(node, "disabled").toLowerCase() !== "true";
 
-export const setPathEnabled = (node: DirectoryLineNode, enabled: boolean): DirectoryLineNode =>
-  updateDirectoryMetadata(node, "disabled", enabled ? "" : "true");
+export const setPathEnabled = (node: DirectoryLineNode, enabled: boolean): DirectoryLineNode => {
+  const updated = updateDirectoryMetadata(node, "disabled", enabled ? "" : "true");
+  return enabled && updated.comment === null ? parsePathLineAst(updated.raw.trimEnd()).ast : updated;
+};
 
 export const getPathSourceRange = (
   text: string,
