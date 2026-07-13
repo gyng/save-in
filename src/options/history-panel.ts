@@ -20,6 +20,7 @@ import {
   historyDateRange,
   historyCsv,
   historyTsv,
+  localizeHistoryColumns,
   paginateHistory,
   progressCell,
   relativeHistoryTime,
@@ -63,6 +64,12 @@ const HISTORY_COLUMNS_KEY = "si-history-columns";
 const defaultHistoryColumns = HISTORY_COLUMNS.filter(({ defaultVisible }) => defaultVisible).map(
   ({ key }) => key,
 );
+let historyGetMessage: (key: string) => string = () => "";
+export const setHistoryLocalizer = (localize: (key: string) => string): void => {
+  historyGetMessage = localize;
+};
+const historyColumns = () => localizeHistoryColumns(historyGetMessage);
+const historyColumnOptionLabels = new Map<string, Text>();
 let visibleHistoryColumns = new Set<string>(defaultHistoryColumns);
 try {
   const storedColumns = JSON.parse(localStorage.getItem(HISTORY_COLUMNS_KEY) || "null");
@@ -266,34 +273,37 @@ const renderHistoryTable = () => {
   table.className = "history-table";
 
   const head = document.createElement("tr");
-  HISTORY_COLUMNS.filter(({ key }) => visibleHistoryColumns.has(key)).forEach((col) => {
-    const th = document.createElement("th");
-    th.classList.add(`history-${col.key}-heading`);
-    th.textContent = col.label;
-    if (col.width) {
-      th.style.width = col.width;
-    }
-    if (col.sortable) {
-      th.classList.add("sortable");
-      if (historyState.sort.key === col.key) {
-        th.classList.add("sorted");
-        th.textContent = `${col.label} ${historyState.sort.dir === "asc" ? "▲" : "▼"}`;
+  const localizedColumns = historyColumns();
+  localizedColumns
+    .filter(({ key }) => visibleHistoryColumns.has(key))
+    .forEach((col) => {
+      const th = document.createElement("th");
+      th.classList.add(`history-${col.key}-heading`);
+      th.textContent = col.label;
+      if (col.width) {
+        th.style.width = col.width;
       }
-      th.addEventListener("click", () => {
+      if (col.sortable) {
+        th.classList.add("sortable");
         if (historyState.sort.key === col.key) {
-          historyState.sort.dir = historyState.sort.dir === "asc" ? "desc" : "asc";
-        } else {
-          historyState.sort = {
-            key: col.key as keyof HistoryRow,
-            dir: col.key === "time" ? "desc" : "asc",
-          };
+          th.classList.add("sorted");
+          th.textContent = `${col.label} ${historyState.sort.dir === "asc" ? "▲" : "▼"}`;
         }
-        historyState.page = 0;
-        renderHistoryTable();
-      });
-    }
-    head.appendChild(th);
-  });
+        th.addEventListener("click", () => {
+          if (historyState.sort.key === col.key) {
+            historyState.sort.dir = historyState.sort.dir === "asc" ? "desc" : "asc";
+          } else {
+            historyState.sort = {
+              key: col.key as keyof HistoryRow,
+              dir: col.key === "time" ? "desc" : "asc",
+            };
+          }
+          historyState.page = 0;
+          renderHistoryTable();
+        });
+      }
+      head.appendChild(th);
+    });
   table.appendChild(head);
 
   if (pageRows.length === 0) {
@@ -477,6 +487,11 @@ const renderHistoryTable = () => {
 
   container.appendChild(table);
 
+  localizedColumns.forEach(({ key, label }) => {
+    const node = historyColumnOptionLabels.get(key);
+    if (node) node.data = label;
+  });
+
   // Keep location and disabled boundary controls visible even on one page.
   if (total > 0) {
     const pager = document.createElement("div");
@@ -616,7 +631,9 @@ HISTORY_COLUMNS.forEach(({ key, label }) => {
     localStorage.setItem(HISTORY_COLUMNS_KEY, JSON.stringify([...visibleHistoryColumns]));
     renderHistoryTable();
   });
-  option.append(checkbox, label);
+  const labelNode = document.createTextNode(label);
+  historyColumnOptionLabels.set(key, labelNode);
+  option.append(checkbox, labelNode);
   columnOptions.appendChild(option);
 });
 
@@ -625,8 +642,8 @@ const downloadHistoryExport = (format: "json" | "csv" | "tsv") => {
     format === "json"
       ? JSON.stringify(historyState.entries, null, 2)
       : format === "tsv"
-        ? historyTsv(historyState.entries)
-        : historyCsv(historyState.entries);
+        ? historyTsv(historyState.entries, historyColumns())
+        : historyCsv(historyState.entries, historyColumns());
   const url = URL.createObjectURL(
     new Blob([content], {
       type:

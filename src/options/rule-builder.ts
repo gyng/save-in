@@ -9,7 +9,8 @@ import { sendInternalMessage } from "../shared/message-protocol.ts";
 
 import { PathEditor } from "./path-editor.ts";
 import { sortClauses } from "./vocabulary-groups.ts";
-import { RULE_TEMPLATES } from "./rule-templates.ts";
+import { getMessage } from "../platform/localization.ts";
+import { localizeRuleTemplates } from "./rule-templates.ts";
 
 export { RULE_TEMPLATES } from "./rule-templates.ts";
 
@@ -99,7 +100,7 @@ export const RuleBuilder = {
     });
   },
 
-  renderTemplates: () => {
+  renderTemplates: (localize: (key: string) => string = () => "") => {
     const containers = [
       ...new Set(
         document.querySelectorAll<HTMLElement>("[data-rule-template-library], #rule-templates"),
@@ -119,7 +120,7 @@ export const RuleBuilder = {
       let category = "";
       let categoryList: HTMLElement | null = null;
 
-      RULE_TEMPLATES.forEach((tpl) => {
+      localizeRuleTemplates(localize).forEach((tpl) => {
         if (tpl.category !== category) {
           category = tpl.category;
           const section = document.createElement("section");
@@ -163,7 +164,9 @@ export const RuleBuilder = {
         const sync = () => {
           const present = textarea.value.includes(tpl.rule);
           add.disabled = present;
-          add.textContent = present ? "Added" : "Add";
+          add.textContent = present
+            ? localize("ruleTemplateAdded") || "Added"
+            : localize("ruleTemplateAdd") || "Add";
         };
         syncs.push(sync);
         sync();
@@ -187,10 +190,12 @@ export const RuleBuilder = {
                   ?.querySelector<HTMLElement>(".template-feedback")) ||
             document.querySelector<HTMLElement>(".template-feedback");
           if (feedback) {
-            feedback.replaceChildren(`Added “${tpl.name}”. `);
+            feedback.replaceChildren(
+              `${localize("ruleTemplateAddedFeedback") || "Added"} “${tpl.name}”. `,
+            );
             const view = document.createElement("button");
             view.type = "button";
-            view.textContent = "View in rules editor";
+            view.textContent = localize("ruleTemplateViewInEditor") || "View in rules editor";
             view.addEventListener("click", () => {
               document.querySelector<HTMLDialogElement>("#reference-dialog")?.close();
               document.dispatchEvent(
@@ -243,5 +248,5 @@ export const RuleBuilder = {
 
 export const setupRuleBuilder = () => {
   RuleBuilder.setupGuidedInput();
-  RuleBuilder.renderTemplates();
+  RuleBuilder.renderTemplates(getMessage);
 };

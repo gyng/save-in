@@ -16,7 +16,7 @@ import "../platform/chrome-detector.ts";
 // <body> scripts (options.html load order)
 import "../options/options-logic.ts";
 import "../options/history-view.ts";
-import { renderHistory } from "../options/history-panel.ts";
+import { renderHistory, setHistoryLocalizer } from "../options/history-panel.ts";
 import { confirmPendingChanges, setupOptionsPage } from "../options/options.ts";
 import "../options/dismissible-details.ts";
 import { setupPermissionsBanner } from "../options/permissions-banner.ts";
@@ -39,6 +39,7 @@ document.addEventListener(
     const stored = await webExtensionApi.storage.local.get("uiLocale").catch(() => ({}));
     await initializeLocalization(Reflect.get(stored, "uiLocale"));
     localizeDocument(getMessage);
+    setHistoryLocalizer(getMessage);
     void renderHistory();
     setupOptionsPage();
     void setupPermissionsBanner();

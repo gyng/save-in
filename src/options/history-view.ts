@@ -186,7 +186,7 @@ export const formatBytes = (n: number | null | undefined): string => {
 };
 
 // width is a percentage weight (table-layout: fixed)
-type HistoryDisplayColumn = {
+export type HistoryDisplayColumn = {
   key: keyof HistoryRow | "index";
   label: string;
   sortable: boolean;
@@ -218,6 +218,31 @@ export const HISTORY_COLUMNS: HistoryDisplayColumn[] = [
   { key: "variables", label: "Variables", sortable: false, width: "24%", defaultVisible: false },
 ];
 
+export const localizeHistoryColumns = (
+  getMessage: (key: string) => string,
+): HistoryDisplayColumn[] => {
+  const labels: Partial<Record<HistoryDisplayColumn["key"], string>> = {
+    time: getMessage("historyColumnInitiated") || "Initiated",
+    source: getMessage("historyColumnSource") || "Source",
+    mechanism: getMessage("historyColumnMethod") || "Method",
+    status: getMessage("historyColumnStatus") || "Status",
+    size: getMessage("historyColumnSize") || "Size",
+    type: getMessage("historyColumnType") || "Type",
+    routed: getMessage("historyColumnRule") || "Rule",
+    file: getMessage("historyColumnFile") || "File",
+    folder: getMessage("historyColumnFolder") || "Folder",
+    url: getMessage("historyColumnUrl") || "URL",
+    fullPath: getMessage("historyColumnFullPath") || "Full path",
+    downloadId: getMessage("historyColumnDownloadId") || "Download ID",
+    menuItem: getMessage("historyColumnMenuItem") || "Menu item",
+    variables: getMessage("historyColumnVariables") || "Variables",
+  };
+  return HISTORY_COLUMNS.map((column) => ({
+    ...column,
+    label: labels[column.key] ?? column.label,
+  }));
+};
+
 const SPREADSHEET_FORMULA_PREFIX = /^[=+\-@\t\r\n\uFF1D\uFF0B\uFF0D\uFF20]/;
 
 const spreadsheetSafeText = (value: unknown): string => {
@@ -229,8 +254,11 @@ const spreadsheetSafeText = (value: unknown): string => {
 
 const csvCell = (value: unknown): string => `"${spreadsheetSafeText(value).replaceAll('"', '""')}"`;
 
-export const historyCsv = (entries: HistoryEntry[]): string => {
-  const columns = HISTORY_COLUMNS.filter(({ key }) => key !== "index");
+export const historyCsv = (
+  entries: HistoryEntry[],
+  displayColumns: HistoryDisplayColumn[] = HISTORY_COLUMNS,
+): string => {
+  const columns = displayColumns.filter(({ key }) => key !== "index");
   const rows = entries.map(historyRow);
   return [
     columns.map(({ label }) => csvCell(label)).join(","),
@@ -238,8 +266,11 @@ export const historyCsv = (entries: HistoryEntry[]): string => {
   ].join("\n");
 };
 
-export const historyTsv = (entries: HistoryEntry[]): string => {
-  const columns = HISTORY_COLUMNS.filter(({ key }) => key !== "index");
+export const historyTsv = (
+  entries: HistoryEntry[],
+  displayColumns: HistoryDisplayColumn[] = HISTORY_COLUMNS,
+): string => {
+  const columns = displayColumns.filter(({ key }) => key !== "index");
   const rows = entries.map(historyRow);
   const cell = (value: unknown) =>
     spreadsheetSafeText(String(value ?? "").replaceAll(/[\t\r\n]/g, " "));

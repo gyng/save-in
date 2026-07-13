@@ -690,7 +690,7 @@
     "message": "診断"
   },
   "o_lExperimental": {
-    "message": "実験的"
+    "message": "試験運用"
   },
   "o_lManualEditorSaveHelp": {
     "message": "このエディターでの変更は、「適用」を選択すると保存されます。"
@@ -756,7 +756,7 @@
     "message": "[保存場所] メニューに 2 つのフォルダーを作成します。"
   },
   "html_defaultDownloadsDirectory": {
-    "message": "デフォルトの Downloads フォルダー"
+    "message": "デフォルトのダウンロードフォルダー"
   },
   "html_directoryEditorMode": {
     "message": "フォルダーエディターモード"
@@ -795,7 +795,7 @@
     "message": "1 行に 1 つの相対フォルダーまたはメニュー命令を入力します。ファイルは相対的に保存されます。"
   },
   "html_openTheDefaultDownloadsDirectory": {
-    "message": "デフォルトの Downloads フォルダーを開きます"
+    "message": "デフォルトのダウンロードフォルダーを開きます"
   },
   "html_pathsContaining": {
     "message": "を含むパス"
@@ -1600,6 +1600,228 @@
   },
   "o_lShortcutFormatWindows": {
     "message": "Windows インターネット ショートカット"
+  },
+  "ruleTemplateCategoryMedia": {
+    "message": "メディア"
+  },
+  "ruleTemplateCategoryFileTypes": {
+    "message": "ファイル形式"
+  },
+  "ruleTemplateCategoryDateAndSequence": {
+    "message": "日付と連番"
+  },
+  "ruleTemplateCategorySitesAndUrls": {
+    "message": "サイトと URL"
+  },
+  "ruleTemplateCategorySaveContext": {
+    "message": "保存元"
+  },
+  "ruleTemplateImagesPerSiteName": {
+    "message": "サイト別フォルダーに画像を保存"
+  },
+  "ruleTemplateImagesPerSiteDescription": {
+    "message": "保存した画像を取得元サイト別に整理します"
+  },
+  "ruleTemplateVideosPerSiteName": {
+    "message": "サイト別フォルダーに動画を保存"
+  },
+  "ruleTemplateVideosPerSiteDescription": {
+    "message": "保存した動画を取得元サイト別に整理します"
+  },
+  "ruleTemplateAudioPerSiteName": {
+    "message": "サイト別フォルダーに音声を保存"
+  },
+  "ruleTemplateAudioPerSiteDescription": {
+    "message": "保存した音声を見つけたページ別に整理します"
+  },
+  "ruleTemplateScreenshotsByMonthName": {
+    "message": "スクリーンショットを月別に整理"
+  },
+  "ruleTemplateScreenshotsByMonthDescription": {
+    "message": "screenshot で始まるファイル名を日付別フォルダーに保存します"
+  },
+  "ruleTemplatePdfsName": {
+    "message": "PDF をドキュメントフォルダーに保存"
+  },
+  "ruleTemplatePdfsDescription": {
+    "message": "すべての PDF を 1 か所にまとめます"
+  },
+  "ruleTemplateArchivesName": {
+    "message": "アーカイブを 1 つのフォルダーに保存"
+  },
+  "ruleTemplateArchivesDescription": {
+    "message": "zip、rar、7z、tar などの圧縮ファイルをまとめます"
+  },
+  "ruleTemplateDocumentsName": {
+    "message": "ドキュメントを 1 つのフォルダーに保存"
+  },
+  "ruleTemplateDocumentsDescription": {
+    "message": "一般的なオフィス文書とテキスト文書をまとめます"
+  },
+  "ruleTemplateEbooksName": {
+    "message": "電子書籍とコミック"
+  },
+  "ruleTemplateEbooksDescription": {
+    "message": "一般的な電子書籍とデジタルコミック形式をまとめます"
+  },
+  "ruleTemplateInstallersName": {
+    "message": "アプリとインストーラー"
+  },
+  "ruleTemplateInstallersDescription": {
+    "message": "デスクトップとモバイルのインストールパッケージをまとめます"
+  },
+  "ruleTemplateFontsName": {
+    "message": "フォントを 1 つのフォルダーに保存"
+  },
+  "ruleTemplateFontsDescription": {
+    "message": "デスクトップフォントと Web フォントをまとめます"
+  },
+  "ruleTemplatePerExtensionName": {
+    "message": "拡張子別のフォルダー"
+  },
+  "ruleTemplatePerExtensionDescription": {
+    "message": "拡張子を取り込み、フォルダー名として使用します"
+  },
+  "ruleTemplateDateStampName": {
+    "message": "すべてのダウンロードに日付を付加"
+  },
+  "ruleTemplateDateStampDescription": {
+    "message": "元のファイル名の先頭に保存日を追加します"
+  },
+  "ruleTemplateDailyInboxName": {
+    "message": "日別フォルダー"
+  },
+  "ruleTemplateDailyInboxDescription": {
+    "message": "日付ごとに 1 つのフォルダーを作成します"
+  },
+  "ruleTemplateDownloadsByMonthName": {
+    "message": "ダウンロードを月別に整理"
+  },
+  "ruleTemplateDownloadsByMonthDescription": {
+    "message": "元のファイル名を保ったまま、年別と月別のフォルダーを作成します"
+  },
+  "ruleTemplateWeeklyInboxName": {
+    "message": "週別フォルダー"
+  },
+  "ruleTemplateWeeklyInboxDescription": {
+    "message": "ISO 週ごとに 1 つのフォルダーを作成します"
+  },
+  "ruleTemplateSequentialArchiveName": {
+    "message": "連番付きアーカイブ"
+  },
+  "ruleTemplateSequentialArchiveDescription": {
+    "message": "Save In の永続的なダウンロードカウンターをファイル名の先頭に追加します"
+  },
+  "ruleTemplateOneSiteName": {
+    "message": "1 サイトにつき 1 フォルダー"
+  },
+  "ruleTemplateOneSiteDescription": {
+    "message": "選択した 1 つの Web サイトを専用フォルダーに振り分けます"
+  },
+  "ruleTemplatePerSourceSiteName": {
+    "message": "配信元サイト別のフォルダー"
+  },
+  "ruleTemplatePerSourceSiteDescription": {
+    "message": "ファイルを配信したホスト名別にダウンロードを整理します"
+  },
+  "ruleTemplatePerPageSiteName": {
+    "message": "閲覧サイト別のフォルダー"
+  },
+  "ruleTemplatePerPageSiteDescription": {
+    "message": "ファイルの配信元ではなく、閲覧していた Web サイト別に整理します"
+  },
+  "ruleTemplatePageTitlePrefixName": {
+    "message": "ページタイトルを先頭に追加"
+  },
+  "ruleTemplatePageTitlePrefixDescription": {
+    "message": "ファイルシステムで安全なページタイトルを元のファイル名の先頭に追加します"
+  },
+  "ruleTemplateCaptureUrlName": {
+    "message": "URL の一部を取り込む"
+  },
+  "ruleTemplateCaptureUrlDescription": {
+    "message": "正規表現のキャプチャグループを保存先ファイル名に使用します"
+  },
+  "ruleTemplateBrowserInboxName": {
+    "message": "ブラウザーのダウンロード用フォルダー"
+  },
+  "ruleTemplateBrowserInboxDescription": {
+    "message": "追跡対象のブラウザー所有ダウンロードを別のフォルダーに保存します"
+  },
+  "ruleTemplateLinkInboxName": {
+    "message": "リンクのダウンロード用フォルダー"
+  },
+  "ruleTemplateLinkInboxDescription": {
+    "message": "リンクから保存したファイルを埋め込みメディアと分けます"
+  },
+  "ruleTemplateSelectionInboxName": {
+    "message": "選択テキスト用フォルダー"
+  },
+  "ruleTemplateSelectionInboxDescription": {
+    "message": "ページで選択したテキストから作成したファイルをまとめます"
+  },
+  "ruleTemplateTabInboxName": {
+    "message": "タブ保存用フォルダー"
+  },
+  "ruleTemplateTabInboxDescription": {
+    "message": "タブ操作から保存したファイルをまとめます"
+  },
+  "ruleTemplateAdded": {
+    "message": "追加済み"
+  },
+  "ruleTemplateAdd": {
+    "message": "追加"
+  },
+  "ruleTemplateAddedFeedback": {
+    "message": "追加しました"
+  },
+  "ruleTemplateViewInEditor": {
+    "message": "ルールエディターで表示"
+  },
+  "historyColumnInitiated": {
+    "message": "開始日時"
+  },
+  "historyColumnSource": {
+    "message": "保存元"
+  },
+  "historyColumnMethod": {
+    "message": "方式"
+  },
+  "historyColumnStatus": {
+    "message": "状態"
+  },
+  "historyColumnSize": {
+    "message": "サイズ"
+  },
+  "historyColumnType": {
+    "message": "種類"
+  },
+  "historyColumnRule": {
+    "message": "ルール"
+  },
+  "historyColumnFile": {
+    "message": "ファイル"
+  },
+  "historyColumnFolder": {
+    "message": "フォルダー"
+  },
+  "historyColumnUrl": {
+    "message": "URL"
+  },
+  "historyColumnFullPath": {
+    "message": "フルパス"
+  },
+  "historyColumnDownloadId": {
+    "message": "ダウンロード ID"
+  },
+  "historyColumnMenuItem": {
+    "message": "メニュー項目"
+  },
+  "historyColumnVariables": {
+    "message": "変数"
+  },
+  "o_lSourcePanelShortcutResetHelp": {
+    "message": "リセットすると、ブラウザーが推奨する既定値に戻ります。"
   },
   "o_lShortcutFormatLinux": {
     "message": "Linux デスクトップ ショートカット"

@@ -6,6 +6,10 @@ export type RuleTemplate = {
   rule: string;
 };
 
+type GetMessage = (key: string) => string;
+
+export type LocalizedRuleTemplate = Omit<RuleTemplate, "category"> & { category: string };
+
 export const RULE_TEMPLATES: RuleTemplate[] = [
   {
     category: "Media",
@@ -183,3 +187,243 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     rule: "context: tab\ninto: tabs/:filename:",
   },
 ];
+
+export const localizeRuleTemplates = (getMessage: GetMessage): LocalizedRuleTemplate[] => {
+  const categories: Record<RuleTemplate["category"], string> = {
+    Media: getMessage("ruleTemplateCategoryMedia") || "Media",
+    "File types": getMessage("ruleTemplateCategoryFileTypes") || "File types",
+    "Date and sequence": getMessage("ruleTemplateCategoryDateAndSequence") || "Date and sequence",
+    "Sites and URLs": getMessage("ruleTemplateCategorySitesAndUrls") || "Sites and URLs",
+    "Save context": getMessage("ruleTemplateCategorySaveContext") || "Save context",
+  };
+  const copy = new Map<string, { name: string; description: string }>([
+    [
+      "Images into per-site folders",
+      {
+        name: getMessage("ruleTemplateImagesPerSiteName") || "Images into per-site folders",
+        description:
+          getMessage("ruleTemplateImagesPerSiteDescription") ||
+          "Sorts every saved image by the site it came from",
+      },
+    ],
+    [
+      "Videos into per-site folders",
+      {
+        name: getMessage("ruleTemplateVideosPerSiteName") || "Videos into per-site folders",
+        description:
+          getMessage("ruleTemplateVideosPerSiteDescription") ||
+          "Sorts every saved video by the site it came from",
+      },
+    ],
+    [
+      "Audio into per-site folders",
+      {
+        name: getMessage("ruleTemplateAudioPerSiteName") || "Audio into per-site folders",
+        description:
+          getMessage("ruleTemplateAudioPerSiteDescription") ||
+          "Groups saved audio by the page where it was found",
+      },
+    ],
+    [
+      "Screenshots by month",
+      {
+        name: getMessage("ruleTemplateScreenshotsByMonthName") || "Screenshots by month",
+        description:
+          getMessage("ruleTemplateScreenshotsByMonthDescription") ||
+          "Keeps filenames beginning with screenshot in dated folders",
+      },
+    ],
+    [
+      "PDFs into a documents folder",
+      {
+        name: getMessage("ruleTemplatePdfsName") || "PDFs into a documents folder",
+        description: getMessage("ruleTemplatePdfsDescription") || "Collects every PDF in one place",
+      },
+    ],
+    [
+      "Archives into one folder",
+      {
+        name: getMessage("ruleTemplateArchivesName") || "Archives into one folder",
+        description:
+          getMessage("ruleTemplateArchivesDescription") ||
+          "Collects zip, rar, 7z, tar, and compressed archives",
+      },
+    ],
+    [
+      "Documents into one folder",
+      {
+        name: getMessage("ruleTemplateDocumentsName") || "Documents into one folder",
+        description:
+          getMessage("ruleTemplateDocumentsDescription") ||
+          "Collects common office and text documents",
+      },
+    ],
+    [
+      "E-books and comics",
+      {
+        name: getMessage("ruleTemplateEbooksName") || "E-books and comics",
+        description:
+          getMessage("ruleTemplateEbooksDescription") ||
+          "Collects common e-book and digital comic formats",
+      },
+    ],
+    [
+      "Apps and installers",
+      {
+        name: getMessage("ruleTemplateInstallersName") || "Apps and installers",
+        description:
+          getMessage("ruleTemplateInstallersDescription") ||
+          "Keeps desktop and mobile installation packages together",
+      },
+    ],
+    [
+      "Fonts into one folder",
+      {
+        name: getMessage("ruleTemplateFontsName") || "Fonts into one folder",
+        description:
+          getMessage("ruleTemplateFontsDescription") || "Collects desktop and web font files",
+      },
+    ],
+    [
+      "One folder per file extension",
+      {
+        name: getMessage("ruleTemplatePerExtensionName") || "One folder per file extension",
+        description:
+          getMessage("ruleTemplatePerExtensionDescription") ||
+          "Captures the extension and uses it as a folder name",
+      },
+    ],
+    [
+      "Date-stamp every download",
+      {
+        name: getMessage("ruleTemplateDateStampName") || "Date-stamp every download",
+        description:
+          getMessage("ruleTemplateDateStampDescription") ||
+          "Prefixes the original filename with the save date",
+      },
+    ],
+    [
+      "Daily inbox",
+      {
+        name: getMessage("ruleTemplateDailyInboxName") || "Daily inbox",
+        description:
+          getMessage("ruleTemplateDailyInboxDescription") ||
+          "Creates one folder for each calendar day",
+      },
+    ],
+    [
+      "Downloads by month",
+      {
+        name: getMessage("ruleTemplateDownloadsByMonthName") || "Downloads by month",
+        description:
+          getMessage("ruleTemplateDownloadsByMonthDescription") ||
+          "Creates year and month folders while keeping the original filename",
+      },
+    ],
+    [
+      "Weekly inbox",
+      {
+        name: getMessage("ruleTemplateWeeklyInboxName") || "Weekly inbox",
+        description:
+          getMessage("ruleTemplateWeeklyInboxDescription") ||
+          "Creates one inbox folder for each ISO week",
+      },
+    ],
+    [
+      "Sequential archive",
+      {
+        name: getMessage("ruleTemplateSequentialArchiveName") || "Sequential archive",
+        description:
+          getMessage("ruleTemplateSequentialArchiveDescription") ||
+          "Prefixes files with Save In's persistent download counter",
+      },
+    ],
+    [
+      "One site, one folder",
+      {
+        name: getMessage("ruleTemplateOneSiteName") || "One site, one folder",
+        description:
+          getMessage("ruleTemplateOneSiteDescription") ||
+          "Routes one chosen website into its own folder",
+      },
+    ],
+    [
+      "One folder per source site",
+      {
+        name: getMessage("ruleTemplatePerSourceSiteName") || "One folder per source site",
+        description:
+          getMessage("ruleTemplatePerSourceSiteDescription") ||
+          "Groups downloads by the hostname serving the file",
+      },
+    ],
+    [
+      "One folder per page site",
+      {
+        name: getMessage("ruleTemplatePerPageSiteName") || "One folder per page site",
+        description:
+          getMessage("ruleTemplatePerPageSiteDescription") ||
+          "Groups files by the website you were browsing rather than the file host",
+      },
+    ],
+    [
+      "Page-title prefix",
+      {
+        name: getMessage("ruleTemplatePageTitlePrefixName") || "Page-title prefix",
+        description:
+          getMessage("ruleTemplatePageTitlePrefixDescription") ||
+          "Adds a filesystem-safe page title before the original filename",
+      },
+    ],
+    [
+      "Capture part of the URL",
+      {
+        name: getMessage("ruleTemplateCaptureUrlName") || "Capture part of the URL",
+        description:
+          getMessage("ruleTemplateCaptureUrlDescription") ||
+          "Uses a regex capture group in the saved filename",
+      },
+    ],
+    [
+      "Browser downloads inbox",
+      {
+        name: getMessage("ruleTemplateBrowserInboxName") || "Browser downloads inbox",
+        description:
+          getMessage("ruleTemplateBrowserInboxDescription") ||
+          "Keeps tracked browser-owned downloads in a separate folder",
+      },
+    ],
+    [
+      "Link downloads inbox",
+      {
+        name: getMessage("ruleTemplateLinkInboxName") || "Link downloads inbox",
+        description:
+          getMessage("ruleTemplateLinkInboxDescription") ||
+          "Separates files saved from links from embedded media",
+      },
+    ],
+    [
+      "Selected text inbox",
+      {
+        name: getMessage("ruleTemplateSelectionInboxName") || "Selected text inbox",
+        description:
+          getMessage("ruleTemplateSelectionInboxDescription") ||
+          "Keeps files created from selected page text together",
+      },
+    ],
+    [
+      "Tab saves inbox",
+      {
+        name: getMessage("ruleTemplateTabInboxName") || "Tab saves inbox",
+        description:
+          getMessage("ruleTemplateTabInboxDescription") ||
+          "Keeps files saved from tab actions together",
+      },
+    ],
+  ]);
+
+  return RULE_TEMPLATES.map((template) => ({
+    ...template,
+    category: categories[template.category],
+    ...copy.get(template.name),
+  }));
+};

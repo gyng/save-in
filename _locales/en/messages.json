@@ -2131,6 +2131,302 @@
     "message": "Save In is a local-first download helper for organizing files with context-menu folders, routing rules, renaming, page sources, and download history.",
     "description": "Text in the options page. Used in src/options/options.html."
   },
+  "ruleTemplateCategoryMedia": {
+    "message": "Media",
+    "description": "Category heading above built-in routing-template cards. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateCategoryFileTypes": {
+    "message": "File types",
+    "description": "Category heading above built-in routing-template cards. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateCategoryDateAndSequence": {
+    "message": "Date and sequence",
+    "description": "Category heading above built-in routing-template cards. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateCategorySitesAndUrls": {
+    "message": "Sites and URLs",
+    "description": "Category heading above built-in routing-template cards. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateCategorySaveContext": {
+    "message": "Save context",
+    "description": "Category heading above built-in routing-template cards. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateImagesPerSiteName": {
+    "message": "Images into per-site folders",
+    "description": "Title of a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateImagesPerSiteDescription": {
+    "message": "Sorts every saved image by the site it came from",
+    "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateVideosPerSiteName": {
+    "message": "Videos into per-site folders",
+    "description": "Title of a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateVideosPerSiteDescription": {
+    "message": "Sorts every saved video by the site it came from",
+    "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateAudioPerSiteName": {
+    "message": "Audio into per-site folders",
+    "description": "Title of a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateAudioPerSiteDescription": {
+    "message": "Groups saved audio by the page where it was found",
+    "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateScreenshotsByMonthName": {
+    "message": "Screenshots by month",
+    "description": "Title of a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateScreenshotsByMonthDescription": {
+    "message": "Keeps filenames beginning with screenshot in dated folders",
+    "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplatePdfsName": {
+    "message": "PDFs into a documents folder",
+    "description": "Title of a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplatePdfsDescription": {
+    "message": "Collects every PDF in one place",
+    "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateArchivesName": {
+    "message": "Archives into one folder",
+    "description": "Title of a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateArchivesDescription": {
+    "message": "Collects zip, rar, 7z, tar, and compressed archives",
+    "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateDocumentsName": {
+    "message": "Documents into one folder",
+    "description": "Title of a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateDocumentsDescription": {
+    "message": "Collects common office and text documents",
+    "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateEbooksName": {
+    "message": "E-books and comics",
+    "description": "Title of a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateEbooksDescription": {
+    "message": "Collects common e-book and digital comic formats",
+    "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateInstallersName": {
+    "message": "Apps and installers",
+    "description": "Title of a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateInstallersDescription": {
+    "message": "Keeps desktop and mobile installation packages together",
+    "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateFontsName": {
+    "message": "Fonts into one folder",
+    "description": "Title of a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateFontsDescription": {
+    "message": "Collects desktop and web font files",
+    "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplatePerExtensionName": {
+    "message": "One folder per file extension",
+    "description": "Title of a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplatePerExtensionDescription": {
+    "message": "Captures the extension and uses it as a folder name",
+    "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateDateStampName": {
+    "message": "Date-stamp every download",
+    "description": "Title of a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateDateStampDescription": {
+    "message": "Prefixes the original filename with the save date",
+    "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateDailyInboxName": {
+    "message": "Daily inbox",
+    "description": "Title of a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateDailyInboxDescription": {
+    "message": "Creates one folder for each calendar day",
+    "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateDownloadsByMonthName": {
+    "message": "Downloads by month",
+    "description": "Title of a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateDownloadsByMonthDescription": {
+    "message": "Creates year and month folders while keeping the original filename",
+    "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateWeeklyInboxName": {
+    "message": "Weekly inbox",
+    "description": "Title of a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateWeeklyInboxDescription": {
+    "message": "Creates one inbox folder for each ISO week",
+    "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateSequentialArchiveName": {
+    "message": "Sequential archive",
+    "description": "Title of a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateSequentialArchiveDescription": {
+    "message": "Prefixes files with Save In's persistent download counter",
+    "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateOneSiteName": {
+    "message": "One site, one folder",
+    "description": "Title of a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateOneSiteDescription": {
+    "message": "Routes one chosen website into its own folder",
+    "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplatePerSourceSiteName": {
+    "message": "One folder per source site",
+    "description": "Title of a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplatePerSourceSiteDescription": {
+    "message": "Groups downloads by the hostname serving the file",
+    "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplatePerPageSiteName": {
+    "message": "One folder per page site",
+    "description": "Title of a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplatePerPageSiteDescription": {
+    "message": "Groups files by the website you were browsing rather than the file host",
+    "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplatePageTitlePrefixName": {
+    "message": "Page-title prefix",
+    "description": "Title of a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplatePageTitlePrefixDescription": {
+    "message": "Adds a filesystem-safe page title before the original filename",
+    "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateCaptureUrlName": {
+    "message": "Capture part of the URL",
+    "description": "Title of a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateCaptureUrlDescription": {
+    "message": "Uses a regex capture group in the saved filename",
+    "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateBrowserInboxName": {
+    "message": "Browser downloads inbox",
+    "description": "Title of a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateBrowserInboxDescription": {
+    "message": "Keeps tracked browser-owned downloads in a separate folder",
+    "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateLinkInboxName": {
+    "message": "Link downloads inbox",
+    "description": "Title of a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateLinkInboxDescription": {
+    "message": "Separates files saved from links from embedded media",
+    "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateSelectionInboxName": {
+    "message": "Selected text inbox",
+    "description": "Title of a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateSelectionInboxDescription": {
+    "message": "Keeps files created from selected page text together",
+    "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateTabInboxName": {
+    "message": "Tab saves inbox",
+    "description": "Title of a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateTabInboxDescription": {
+    "message": "Keeps files saved from tab actions together",
+    "description": "Description on a built-in routing-template card. Used in src/options/rule-templates.ts."
+  },
+  "ruleTemplateAdded": {
+    "message": "Added",
+    "description": "Control or feedback text for the routing-template cards. Used in src/options/rule-builder.ts."
+  },
+  "ruleTemplateAdd": {
+    "message": "Add",
+    "description": "Control or feedback text for the routing-template cards. Used in src/options/rule-builder.ts."
+  },
+  "ruleTemplateAddedFeedback": {
+    "message": "Added",
+    "description": "Control or feedback text for the routing-template cards. Used in src/options/rule-builder.ts."
+  },
+  "ruleTemplateViewInEditor": {
+    "message": "View in rules editor",
+    "description": "Control or feedback text for the routing-template cards. Used in src/options/rule-builder.ts."
+  },
+  "historyColumnInitiated": {
+    "message": "Initiated",
+    "description": "History table and export column heading. Used in src/options/history-view.ts."
+  },
+  "historyColumnSource": {
+    "message": "Source",
+    "description": "History table and export column heading. Used in src/options/history-view.ts."
+  },
+  "historyColumnMethod": {
+    "message": "Method",
+    "description": "History table and export column heading. Used in src/options/history-view.ts."
+  },
+  "historyColumnStatus": {
+    "message": "Status",
+    "description": "History table and export column heading. Used in src/options/history-view.ts."
+  },
+  "historyColumnSize": {
+    "message": "Size",
+    "description": "History table and export column heading. Used in src/options/history-view.ts."
+  },
+  "historyColumnType": {
+    "message": "Type",
+    "description": "History table and export column heading. Used in src/options/history-view.ts."
+  },
+  "historyColumnRule": {
+    "message": "Rule",
+    "description": "History table and export column heading. Used in src/options/history-view.ts."
+  },
+  "historyColumnFile": {
+    "message": "File",
+    "description": "History table and export column heading. Used in src/options/history-view.ts."
+  },
+  "historyColumnFolder": {
+    "message": "Folder",
+    "description": "History table and export column heading. Used in src/options/history-view.ts."
+  },
+  "historyColumnUrl": {
+    "message": "URL",
+    "description": "History table and export column heading. Used in src/options/history-view.ts."
+  },
+  "historyColumnFullPath": {
+    "message": "Full path",
+    "description": "History table and export column heading. Used in src/options/history-view.ts."
+  },
+  "historyColumnDownloadId": {
+    "message": "Download ID",
+    "description": "History table and export column heading. Used in src/options/history-view.ts."
+  },
+  "historyColumnMenuItem": {
+    "message": "Menu item",
+    "description": "History table and export column heading. Used in src/options/history-view.ts."
+  },
+  "historyColumnVariables": {
+    "message": "Variables",
+    "description": "History table and export column heading. Used in src/options/history-view.ts."
+  },
+  "o_lSourcePanelShortcutResetHelp": {
+    "message": "Reset restores the browser's suggested default.",
+    "description": "Help text below the page-sources keyboard shortcut control. Used in src/options/options.html."
+  },
   "html_without": {
     "message": "without",
     "description": "Text in the routing-clause reference. Used in src/options/clauselist.html."
