@@ -106,6 +106,26 @@ test("confirms before replacing folders from a manually reopened guide", async (
   await Promise.resolve();
 
   document.querySelector<HTMLButtonElement>(".welcome-empty")!.click();
+  const cancel = new Event("cancel", { cancelable: true });
+  document.querySelector<HTMLDialogElement>(".welcome-preset-confirm")!.dispatchEvent(cancel);
+  expect(cancel.defaultPrevented).toBe(true);
+  expect(document.querySelector(".welcome-preset-confirm")).toBeNull();
+  await vi.waitFor(() =>
+    expect(document.querySelector<HTMLButtonElement>(".welcome-empty")!.disabled).toBe(false),
+  );
+
+  document.querySelector<HTMLButtonElement>(".welcome-empty")!.click();
+  document
+    .querySelector<HTMLDialogElement>(".welcome-preset-confirm")!
+    .dispatchEvent(new MouseEvent("click", { bubbles: true }));
+  expect(document.querySelector(".welcome-preset-confirm")).toBeNull();
+  await vi.waitFor(() =>
+    expect(document.querySelector<HTMLButtonElement>(".welcome-empty")!.disabled).toBe(false),
+  );
+
+  Reflect.deleteProperty(HTMLDialogElement.prototype, "showModal");
+  document.querySelector<HTMLButtonElement>(".welcome-empty")!.click();
+  expect(document.querySelector<HTMLDialogElement>(".welcome-preset-confirm")!.open).toBe(true);
   document.querySelector<HTMLButtonElement>(".welcome-preset-confirm .danger-button")!.click();
   await vi.waitFor(() => expect(applyPreset).toHaveBeenCalledWith("."));
   expect(document.querySelector("#welcome-dialog")).toBeNull();
