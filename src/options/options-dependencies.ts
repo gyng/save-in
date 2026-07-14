@@ -1,8 +1,28 @@
 type Dependency = { parent: string; children: string[]; when?: () => boolean };
+type DisableableControl =
+  | HTMLButtonElement
+  | HTMLInputElement
+  | HTMLSelectElement
+  | HTMLTextAreaElement;
+
+const optionCheckbox = (id: string): HTMLInputElement | null => {
+  const control = document.getElementById(id);
+  return control instanceof HTMLInputElement && control.type === "checkbox" ? control : null;
+};
+
+const disableableControl = (id: string): DisableableControl | null => {
+  const control = document.getElementById(id);
+  return control instanceof HTMLButtonElement ||
+    control instanceof HTMLInputElement ||
+    control instanceof HTMLSelectElement ||
+    control instanceof HTMLTextAreaElement
+    ? control
+    : null;
+};
 
 export const setupOptionDependencies = () => {
   const checked = (id: string) => {
-    const control = document.getElementById(id) as HTMLInputElement | null;
+    const control = optionCheckbox(id);
     return control?.checked === true && !control.disabled;
   };
   const dependencies: Dependency[] = [
@@ -47,13 +67,13 @@ export const setupOptionDependencies = () => {
     dependencies.forEach(({ parent, children, when }) => {
       const enabled = when ? when() : checked(parent);
       children.forEach((id) => {
-        const control = document.getElementById(id) as HTMLInputElement | null;
+        const control = disableableControl(id);
         if (control) control.disabled = !enabled;
       });
     });
   };
   [...new Set(dependencies.map(({ parent }) => parent))].forEach((id) =>
-    document.getElementById(id)?.addEventListener("change", update),
+    optionCheckbox(id)?.addEventListener("change", update),
   );
   update();
   return update;

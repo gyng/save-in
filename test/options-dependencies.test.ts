@@ -95,4 +95,15 @@ describe("option dependencies", () => {
 
     expect(close.disabled).toBe(true);
   });
+
+  test("does not treat a checkbox id on the wrong element type as enabled", () => {
+    const fakeParent = document.createElement("div");
+    fakeParent.id = "tabEnabled";
+    Object.assign(fakeParent, { checked: true, disabled: false });
+    document.getElementById("tabEnabled")?.replaceWith(fakeParent);
+
+    setupOptionDependencies();
+
+    expect((document.getElementById("closeTabOnSave") as HTMLInputElement).disabled).toBe(true);
+  });
 });
