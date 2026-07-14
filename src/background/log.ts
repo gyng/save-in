@@ -36,13 +36,17 @@ export const Log = {
     if (typeof data === "undefined") {
       return undefined;
     }
-    let s;
+    let serialized: string | undefined;
     try {
-      s = JSON.stringify(data);
-    } catch (e) {
-      s = String(data);
+      serialized = JSON.stringify(data);
+    } catch {
+      try {
+        serialized = String(data);
+      } catch {
+        serialized = "[Unserializable]";
+      }
     }
-    return s && s.length > 500 ? `${s.slice(0, 500)}…` : s;
+    return serialized && serialized.length > 500 ? `${serialized.slice(0, 500)}…` : serialized;
   },
 
   // SessionState.update serialises the read-modify-write so concurrent adds

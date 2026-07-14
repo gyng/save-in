@@ -78,6 +78,20 @@ describe("Log", () => {
     expect(typeof entries()[0]!.data).toBe("string");
   });
 
+  test("contains values that reject both JSON and string conversion", async () => {
+    const hostile = new Proxy(
+      {},
+      {
+        get() {
+          throw new Error("conversion blocked");
+        },
+      },
+    );
+
+    await expect(Log.add("hostile", hostile)).resolves.toBeUndefined();
+    expect(entries()[0]).toMatchObject({ message: "hostile", data: "[Unserializable]" });
+  });
+
   test("truncates oversized data payloads", async () => {
     await Log.add("big", { blob: "x".repeat(5000) });
     expect(entries()[0]!.data?.length).toBeLessThanOrEqual(501);
