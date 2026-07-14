@@ -42,6 +42,7 @@ describe("l10n", () => {
     expect(documentLanguage("pt_BR", "en-US")).toBe("pt-BR");
     expect(documentLanguage("nl_AI", "en-US")).toBe("nl");
     expect(documentLanguage("", "zh-Hant-TW")).toBe("zh-Hant-TW");
+    expect(documentLanguage("", null)).toBe("en");
     expect(documentLanguage("unknown", "not a locale")).toBe("en");
 
     setDocumentLanguage("sv_AI", "en-US");
