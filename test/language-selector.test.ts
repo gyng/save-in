@@ -28,7 +28,7 @@ test("saves the selected locale and reloads after acknowledgement", async () => 
   const select = document.querySelector<HTMLSelectElement>("#uiLocale")!;
   vi.spyOn(select, "getBoundingClientRect").mockReturnValue({ width: 180, height: 30 } as DOMRect);
   select.value = "fr";
-  select.dispatchEvent(new Event("change"));
+  select.dispatchEvent(new Event("input"));
   expect(select.disabled).toBe(true);
   expect(select.isConnected).toBe(false);
   expect(document.querySelector<HTMLElement>(".language-selector")!.style.width).toBe("180px");
@@ -53,7 +53,7 @@ test("keeps the page usable and reports a rejected locale change", async () => {
 
   const select = document.querySelector<HTMLSelectElement>("#uiLocale")!;
   vi.spyOn(select, "getBoundingClientRect").mockReturnValue({ width: 180, height: 30 } as DOMRect);
-  select.dispatchEvent(new Event("change"));
+  select.dispatchEvent(new Event("input"));
   const error = document.querySelector<HTMLElement>("#language-error")!;
   await vi.waitFor(() => expect(error.hidden).toBe(false));
 
@@ -80,7 +80,7 @@ test("uses fallback error copy when localization is unavailable", async () => {
     getMessage: () => "",
   });
 
-  document.querySelector<HTMLSelectElement>("#uiLocale")!.dispatchEvent(new Event("change"));
+  document.querySelector<HTMLSelectElement>("#uiLocale")!.dispatchEvent(new Event("input"));
 
   await vi.waitFor(() =>
     expect(document.querySelector("#language-error")?.textContent).toBe(
@@ -103,7 +103,7 @@ test("default ports save through the runtime and surface a rejected acknowledgem
   const select = document.querySelector<HTMLSelectElement>("#uiLocale")!;
   select.value = "fr";
 
-  select.dispatchEvent(new Event("change"));
+  select.dispatchEvent(new Event("input"));
 
   await vi.waitFor(() =>
     expect(browser.runtime.sendMessage).toHaveBeenCalledWith({

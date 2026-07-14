@@ -34,7 +34,10 @@ export const setupLanguageSelector = (ports: LanguageSelectorPorts = defaultPort
   const originalContainerWidth = container?.style.width ?? "";
   const originalContainerHeight = container?.style.height ?? "";
 
-  select.addEventListener("change", async () => {
+  // `change` may arrive only after a native select popup has decided to close.
+  // `input` arrives when the option is selected, so the popup anchor can be
+  // removed before any settings work begins.
+  select.addEventListener("input", async () => {
     const bounds = select.getBoundingClientRect();
     if (container && bounds.width > 0 && bounds.height > 0) {
       container.style.width = `${bounds.width}px`;
