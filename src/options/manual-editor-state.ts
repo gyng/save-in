@@ -30,14 +30,24 @@ export const createManualEditorState = (unsavedLabel: string | (() => string)) =
     typeof unsavedLabel === "function" ? unsavedLabel() : unsavedLabel;
 
   const setup = (id: string) => {
-    const textarea = document.querySelector(`#${id}`) as HTMLTextAreaElement;
-    const buttons = [...document.querySelectorAll(`[data-apply="${id}"], [data-discard="${id}"]`)];
+    const textarea = document.getElementById(id);
+    const buttons = [
+      ...document.querySelectorAll<HTMLElement>(`[data-apply="${id}"], [data-discard="${id}"]`),
+    ];
     const helpers = [...document.querySelectorAll<HTMLElement>(`[data-manual-help-for="${id}"]`)];
-    if (!textarea || buttons.length === 0) {
+    if (!(textarea instanceof HTMLTextAreaElement) || buttons.length === 0) {
       return;
     }
 
-    const actionRows = [...new Set(buttons.map((button) => button.parentElement).filter(Boolean))];
+    const actionRows = [
+      ...new Set(
+        buttons
+          .map((button) => button.parentElement)
+          .filter((row): row is HTMLElement => row !== null),
+      ),
+    ];
+    const firstActionRow = actionRows[0];
+    if (!firstActionRow) return;
     const visualSurfaces = buttons
       .map((button) => button.closest<HTMLElement>("#paths-visual, #rules-visual"))
       .filter((surface, index, surfaces): surface is HTMLElement =>
@@ -64,14 +74,16 @@ export const createManualEditorState = (unsavedLabel: string | (() => string)) =
       status.setAttribute("aria-hidden", "true");
       status.textContent = getUnsavedLabel();
       status.hidden = true;
-      row!.insertBefore(status, row!.querySelector(`[data-discard="${id}"]`));
+      row.insertBefore(status, row.querySelector(`[data-discard="${id}"]`));
       return status;
     });
+    const firstStatus = statuses[0];
+    if (!firstStatus) return;
     const saveStatus = document.createElement("span");
     saveStatus.className = "editor-save-status";
     saveStatus.setAttribute("role", "status");
     saveStatus.hidden = true;
-    actionRows[0]!.insertBefore(saveStatus, statuses[0]!);
+    firstActionRow.insertBefore(saveStatus, firstStatus);
     const sync = () => {
       const dirty = textarea.value !== editor.saved;
       buttons.forEach((button) => {

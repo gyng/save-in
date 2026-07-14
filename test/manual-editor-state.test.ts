@@ -51,6 +51,19 @@ describe("manual editor state", () => {
     expect([...document.querySelectorAll("button")].every((button) => !button.disabled)).toBe(true);
   });
 
+  test("ignores an editor id attached to the wrong element type", () => {
+    document.body.innerHTML = `
+      <div id="paths">not a textarea</div>
+      <div><button data-discard="paths">Discard</button><button data-apply="paths">Apply</button></div>`;
+    const state = createManualEditorState("Unsaved changes");
+
+    state.setup("paths");
+
+    expect(state.setValidity("paths", false)).toBe(false);
+    expect(state.dirtyIds()).toEqual([]);
+    expect(document.querySelector(".editor-dirty-status")).toBeNull();
+  });
+
   test("marks only changed visual rows while the editor is dirty", () => {
     document.body.innerHTML = `
       <div class="syntax-editor"><textarea id="paths">saved\nother</textarea></div>
