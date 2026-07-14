@@ -38,6 +38,33 @@ test("loads a selected AI catalog with canonical English fallback", async () => 
   expect(localization.getMessage("failure", ["photo.jpg"])).toBe("Failed to save photo.jpg.");
 });
 
+test("starts the selected and English catalog loads together", async () => {
+  let finishEnglishLoad!: () => void;
+  const englishLoad = new Promise<unknown>((resolve) => {
+    finishEnglishLoad = () => resolve(english);
+  });
+  const loadCatalog = vi.fn((path: string) =>
+    path.includes("generated/fr")
+      ? Promise.resolve({ greeting: { message: "Bonjour" } })
+      : englishLoad,
+  );
+  const localization = createLocalization({
+    nativeGetMessage: (key) => `native:${key}`,
+    loadCatalog,
+  });
+
+  const initializing = localization.initialize("fr");
+  try {
+    expect(loadCatalog).toHaveBeenCalledWith("_locales/en/messages.json");
+    expect(loadCatalog).toHaveBeenCalledWith("src/i18n/generated/fr/messages.json");
+  } finally {
+    finishEnglishLoad();
+  }
+  await initializing;
+
+  expect(localization.getMessage("greeting")).toBe("Bonjour");
+});
+
 test("matches placeholder identifiers independently of the host locale", async () => {
   const localeLowerCase = String.prototype.toLocaleLowerCase;
   vi.spyOn(String.prototype, "toLocaleLowerCase").mockImplementation(function (this: string) {
@@ -76,6 +103,20 @@ test("falls back to native messages when an AI catalog cannot be loaded", async 
   });
 
   await expect(localization.initialize("de")).resolves.toBeUndefined();
+  expect(localization.getMessage("greeting")).toBe("native:greeting");
+});
+
+test("ignores a selected catalog when canonical English is unavailable", async () => {
+  const localization = createLocalization({
+    nativeGetMessage: (key) => `native:${key}`,
+    loadCatalog: vi.fn(async (path: string) => {
+      if (path.includes("generated/fr")) return { greeting: { message: "Bonjour" } };
+      throw new Error("missing canonical catalog");
+    }),
+  });
+
+  await localization.initialize("fr");
+
   expect(localization.getMessage("greeting")).toBe("native:greeting");
 });
 

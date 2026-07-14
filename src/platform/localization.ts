@@ -66,21 +66,26 @@ export const createLocalization = (ports: LocalizationPorts) => {
       selectedCatalog = undefined;
       englishCatalog = undefined;
       if (!isSelectableLocale(locale)) return;
-      try {
-        englishCatalog = parseCatalog(await ports.loadCatalog("_locales/en/messages.json"));
-      } catch {
-        // A missing canonical catalog must never prevent startup.
-        englishCatalog = undefined;
-        return;
-      }
+      const loadParsedCatalog = (path: string) => ports.loadCatalog(path).then(parseCatalog);
+      const englishRequest = loadParsedCatalog("_locales/en/messages.json");
       if (!isGeneratedLocale(locale)) {
-        selectedCatalog = englishCatalog;
+        try {
+          englishCatalog = await englishRequest;
+          selectedCatalog = englishCatalog;
+        } catch {
+          // A missing canonical catalog must never prevent startup.
+          englishCatalog = undefined;
+        }
         return;
       }
-      try {
-        selectedCatalog = parseCatalog(await ports.loadCatalog(generatedCatalogPath(locale)));
-      } catch {
-        // Generated catalogs are optional; explicit selections fall back to English.
+      const selectedRequest = loadParsedCatalog(generatedCatalogPath(locale));
+      // Both extension resources are local, but neither request needs the result of the other.
+      [englishCatalog, selectedCatalog] = await Promise.all([
+        englishRequest.catch(() => undefined),
+        selectedRequest.catch(() => undefined),
+      ]);
+      if (!englishCatalog) {
+        // A missing canonical catalog must never prevent startup.
         selectedCatalog = undefined;
       }
     },
