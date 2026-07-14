@@ -98,6 +98,47 @@ describe("options search", () => {
     expect((navigate.mock.calls[0]![0]! as CustomEvent).detail.target.tabIndex).toBe(-1);
   });
 
+  test("ranks exact, prefix, and whole-word label matches", () => {
+    document.querySelector(".tab-panel")?.insertAdjacentHTML(
+      "beforeend",
+      `<h3>Ranking fixtures</h3>
+       <button id="word-match" data-option-search="true">Send webhook now</button>
+       <button id="prefix-match" data-option-search="true">Webhook delivery</button>
+       <button id="exact-match" data-option-search="true">Webhook</button>`,
+    );
+    setupOptionSearch();
+    const input = document.getElementById("option-search") as HTMLInputElement;
+
+    input.value = "webhook";
+    input.dispatchEvent(new InputEvent("input"));
+
+    expect(
+      [...document.querySelectorAll<HTMLElement>(".option-search-result-label")]
+        .map(({ textContent }) => textContent)
+        .filter((label) => label?.toLocaleLowerCase().includes("webhook")),
+    ).toEqual(["Webhook", "Webhook delivery", "Send webhook now"]);
+  });
+
+  test("ranks matches in the nearest breadcrumb above deeper ancestor matches", () => {
+    document.querySelector(".tab-panel")!.innerHTML = `<h3>Webhooks</h3>
+      <section>
+        <h4>Delivery</h4>
+        <button id="nested-setting" data-option-search="true">Nested setting</button>
+      </section>
+      <button id="direct-setting" data-option-search="true">Direct setting</button>`;
+    setupOptionSearch();
+    const input = document.getElementById("option-search") as HTMLInputElement;
+
+    input.value = "webhook";
+    input.dispatchEvent(new InputEvent("input"));
+
+    const labels = [...document.querySelectorAll<HTMLElement>(".option-search-result-label")].map(
+      ({ textContent }) => textContent,
+    );
+    expect(labels[0]).toBe("Webhooks");
+    expect(labels.indexOf("Direct setting")).toBeLessThan(labels.indexOf("Nested setting"));
+  });
+
   test("searches full paths, compacts displayed breadcrumbs, and navigates indexed actions", () => {
     document.querySelector(".tab-panel")?.insertAdjacentHTML(
       "beforeend",

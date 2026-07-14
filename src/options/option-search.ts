@@ -68,6 +68,20 @@ const displayedPath = (path: readonly string[]): string[] => {
   return path.length > 3 && first !== undefined ? [first, ...path.slice(-2)] : [...path];
 };
 
+const textWords = (text: string): string[] => text.match(/[\p{L}\p{N}]+/gu) || [];
+
+const matchQuality = (text: string, query: string, terms: readonly string[]): number => {
+  if (text === query) return 5;
+  if (text.startsWith(query)) return 4;
+  const words = textWords(text);
+  if (terms.every((term) => words.includes(term))) return 3;
+  if (terms.every((term) => words.some((word) => word.startsWith(term)))) return 2;
+  return terms.every((term) => text.includes(term)) ? 1 : 0;
+};
+
+const termCoverage = (text: string, terms: readonly string[]): number =>
+  terms.filter((term) => text.includes(term)).length;
+
 export const optionSearchEntries = (
   form: HTMLElement,
   additionalControls: readonly HTMLElement[] = [],
@@ -192,18 +206,35 @@ export const setupOptionSearch = (): void => {
     visibleEntries = entries
       .map((entry, index) => {
         const label = entry.label.toLocaleLowerCase();
-        const searchable = `${label} ${entry.path.join(" ")}`.toLocaleLowerCase();
+        const path = entry.path.map((segment) => segment.toLocaleLowerCase());
+        const nearestPath = path.at(-1) || "";
+        const fullPath = path.join(" ");
+        const searchable = `${label} ${fullPath}`;
         return {
           entry,
           index,
-          labelMatch: label.includes(query)
-            ? terms.length + 1
-            : terms.filter((term) => label.includes(term)).length,
+          labelQuality: matchQuality(label, query, terms),
+          labelCoverage: termCoverage(label, terms),
+          nearestPathQuality: matchQuality(nearestPath, query, terms),
+          nearestPathCoverage: termCoverage(nearestPath, terms),
+          fullPathQuality: matchQuality(fullPath, query, terms),
+          fullPathCoverage: termCoverage(fullPath, terms),
+          depth: path.length,
           matches: terms.every((term) => searchable.includes(term)),
         };
       })
       .filter(({ matches }) => matches)
-      .toSorted((left, right) => right.labelMatch - left.labelMatch || left.index - right.index)
+      .toSorted(
+        (left, right) =>
+          right.labelQuality - left.labelQuality ||
+          right.labelCoverage - left.labelCoverage ||
+          right.nearestPathQuality - left.nearestPathQuality ||
+          right.nearestPathCoverage - left.nearestPathCoverage ||
+          right.fullPathQuality - left.fullPathQuality ||
+          right.fullPathCoverage - left.fullPathCoverage ||
+          left.depth - right.depth ||
+          left.index - right.index,
+      )
       .map(({ entry }) => entry)
       .slice(0, 12);
     visibleEntries.forEach((entry, index) => {
