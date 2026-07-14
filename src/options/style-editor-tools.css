@@ -475,7 +475,7 @@ button:disabled {
 .path-editor-row {
   position: relative;
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: var(--space-1);
   padding: var(--space-1);
   border-radius: var(--radius);
@@ -637,7 +637,7 @@ button:disabled {
 .visual-editor-row-actions {
   display: flex;
   flex: none;
-  align-items: center;
+  align-items: baseline;
   gap: 1px;
   margin-left: auto;
 }
