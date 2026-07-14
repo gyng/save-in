@@ -251,6 +251,12 @@ vitest specifics (`test/*.test.ts`, typed; `tsc` covers them):
 - UI copy must be concise, concrete, and action-oriented. Use sentence case for headings,
   labels, and buttons; name the user-visible outcome rather than the implementation; avoid
   jargon, idioms, unnecessary punctuation, and text assembled from translated fragments.
+- Treat typography as a shared UI system, not per-component decoration. Preserve the native UI
+  font stack and the tokenized scale in `src/options/style.css`; avoid raw one-off font sizes and
+  keep meaningful help, status, and error text at least 13px. Reserve smaller dense typography for
+  nonessential metadata, keep editor/code text comfortably legible, prefer the 400/500/600/700
+  weight vocabulary, and verify hierarchy and wrapping in both browser screenshots after broad
+  typography changes.
 - Keep terminology consistent across settings, menus, notifications, help text, and
   accessibility labels. Give translators enough context in message descriptions when a label
   is ambiguous, preserve placeholders exactly, and write complete strings that allow languages
