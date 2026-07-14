@@ -40,19 +40,18 @@ export const runTemplateLibraryScenario = async ({
       return true;
     })()`);
     await evaluateOptions(`new Promise((resolve, reject) => {
+          const library = document.querySelector(".inline-template-library");
           const picker = document.querySelector("#routing-template-typeahead");
-          const add = document.querySelector(".rule-template-typeahead-add");
           const apply = document.querySelector('button[data-apply="filenamePatterns"]');
           const rules = document.querySelector("#filenamePatterns");
-          if (!(picker instanceof HTMLInputElement) ||
-              !(add instanceof HTMLButtonElement) ||
+          if (!(library instanceof HTMLDetailsElement) ||
+              !(picker instanceof HTMLInputElement) ||
               !(apply instanceof HTMLButtonElement) ||
               !(rules instanceof HTMLTextAreaElement)) {
             reject(new Error("Template controls are unavailable"));
             return;
           }
           const timeout = AbortSignal.timeout(8000);
-          let selected = false;
           let added = false;
           let applied = false;
           let appliedValue;
@@ -85,15 +84,10 @@ export const runTemplateLibraryScenario = async ({
             }
           };
           const check = () => {
-            if (!selected) {
-              const listbox = document.getElementById(picker.getAttribute("aria-controls") || "");
-              const option = listbox?.querySelector('[role="option"]');
-              if (option instanceof HTMLButtonElement) {
-                selected = true;
-                option.click();
-              }
-            }
-            if (!added && !add.disabled) {
+            const add = library.querySelector(
+              ".rule-template:not([hidden]) .rule-template-add",
+            );
+            if (!added && add instanceof HTMLButtonElement && !add.disabled) {
               added = true;
               add.click();
             }
@@ -109,8 +103,7 @@ export const runTemplateLibraryScenario = async ({
           };
           const onTimeout = () => finish(() => reject(new Error(JSON.stringify({
             picker: picker.value,
-            selected,
-            addDisabled: add.disabled,
+            visibleTemplates: library.querySelectorAll(".rule-template:not([hidden])").length,
             applyDisabled: apply.disabled,
             applied,
             appliedValue,
@@ -127,6 +120,7 @@ export const runTemplateLibraryScenario = async ({
           timeout.addEventListener("abort", onTimeout, { once: true });
           browser.storage.onChanged.addListener(onStorage);
           rules.addEventListener("options-value-applied", onApplied);
+          library.open = true;
           picker.value = ${JSON.stringify(PDF_TEMPLATE_MATCHER)};
           picker.dispatchEvent(new InputEvent("input", { bubbles: true }));
           check();

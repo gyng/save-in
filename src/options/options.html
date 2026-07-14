@@ -1228,13 +1228,11 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                 </div>
               </details>
 
-              <div class="inline-template-library rule-template-surface">
-                <label class="editor-field-label" for="routing-template-typeahead"
-                  >__MSG_o_lRuleTemplates__</label
-                >
-                <div class="inline-template-picker">
+              <details class="inline-template-library rule-template-surface">
+                <summary>__MSG_o_lRuleTemplates__</summary>
+                <div class="variables-preview-list inline-template-library-content">
                   <input
-                    type="text"
+                    type="search"
                     id="routing-template-typeahead"
                     class="rule-template-filter"
                     name="routing-template-filter"
@@ -1244,12 +1242,12 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                     autocomplete="off"
                     spellcheck="false"
                   />
-                  <button type="button" class="rule-template-typeahead-add" disabled>
-                    __MSG_ruleTemplateAdd__
-                  </button>
+                  <div class="inline-template-library-scroll">
+                    <div class="template-feedback" role="status" aria-live="polite" hidden></div>
+                    <div class="rule-template-library" data-rule-template-library></div>
+                  </div>
                 </div>
-                <div class="template-feedback" role="status" aria-live="polite" hidden></div>
-              </div>
+              </details>
             </div>
           </aside>
         </div>

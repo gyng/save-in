@@ -136,35 +136,38 @@
 }
 
 .inline-template-library {
-  display: grid;
-  gap: var(--space-2);
-  margin: var(--space-2) 0 0;
-}
-
-.inline-template-library > .editor-field-label {
+  position: relative;
   margin: 0;
 }
 
-.inline-template-picker {
+.inline-template-library-content {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: var(--space-2);
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
 }
 
-.inline-template-picker .rule-template-filter {
-  width: 100%;
-  min-width: 0;
+.inline-template-library-content > .rule-template-filter {
+  display: block;
+  width: calc(100% - 2 * var(--space-2));
   max-width: none;
-  margin: 0;
+  margin: var(--space-2);
+  background-color: var(--floating-bg);
 }
 
-.rule-template-typeahead-add {
-  min-width: 60px;
+.inline-template-library-scroll {
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+.inline-template-library-scroll > .rule-template-library {
+  padding: 0 var(--space-2) var(--space-2);
 }
 
 .inline-template-library .template-feedback {
-  margin: 0;
+  margin: 0 var(--space-2) var(--space-2);
 }
 
 .reference-dialog {

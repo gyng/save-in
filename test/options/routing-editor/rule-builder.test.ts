@@ -222,8 +222,8 @@ describe("template list rendering", () => {
       <textarea id="filenamePatterns"></textarea>
       <div class="rule-template-surface">
         <input class="rule-template-filter">
-        <button class="rule-template-typeahead-add" disabled>Add</button>
         <div class="template-feedback" hidden></div>
+        <div data-rule-template-library></div>
       </div>
       <dialog id="reference-dialog">
         <input class="reference-dialog-filter rule-template-filter">
@@ -231,29 +231,23 @@ describe("template list rendering", () => {
         <div id="rule-templates" data-rule-template-library></div>
       </dialog>`;
     RuleBuilder.renderTemplates();
-    expect(document.querySelectorAll(".rule-template")).toHaveLength(RULE_TEMPLATES.length);
+    expect(document.querySelectorAll(".rule-template")).toHaveLength(RULE_TEMPLATES.length * 2);
 
     const picker = document.querySelector<HTMLInputElement>(".rule-template-surface input")!;
-    const add = document.querySelector<HTMLButtonElement>(".rule-template-typeahead-add")!;
-    picker.focus();
-    const dropdown = document.getElementById(picker.getAttribute("aria-controls")!);
-    expect(picker.getAttribute("role")).toBe("combobox");
-    expect(dropdown?.querySelectorAll('[role="option"]')).toHaveLength(12);
-    picker.value = RULE_TEMPLATES[0]!.name.slice(0, 5);
+    picker.value = RULE_TEMPLATES[0]!.name;
     picker.dispatchEvent(new InputEvent("input", { bubbles: true }));
-    picker.dispatchEvent(
-      new KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true }),
-    );
-    expect(picker.value).toBe(RULE_TEMPLATES[0]!.name);
-    expect(add.disabled).toBe(false);
-    add.click();
+    document
+      .querySelector<HTMLButtonElement>("[data-rule-template-library] .rule-template-add")!
+      .click();
     expect(document.querySelector<HTMLTextAreaElement>("#filenamePatterns")?.value).toContain(
       `// ${RULE_TEMPLATES[0]!.name}\n${RULE_TEMPLATES[0]!.rule}`,
     );
     expect(picker.value).toBe("");
-    expect(add.disabled).toBe(true);
-    add.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-    expect(document.querySelector<HTMLButtonElement>(".rule-template-add")?.disabled).toBe(true);
+    const firstButtons = [
+      ...document.querySelectorAll<HTMLElement>("[data-rule-template-library]"),
+    ].map((library) => library.querySelector<HTMLButtonElement>(".rule-template-add")!);
+    expect(firstButtons).toHaveLength(2);
+    expect(firstButtons.every((button) => button.disabled)).toBe(true);
     expect(
       document.querySelector<HTMLElement>(".rule-template-surface .template-feedback")?.hidden,
     ).toBe(false);
@@ -324,6 +318,24 @@ describe("template list rendering", () => {
 
     document.querySelector<HTMLButtonElement>(".rule-template-add")!.click();
     expect(document.querySelector<HTMLTextAreaElement>("#filenamePatterns")!.value).not.toBe("");
+  });
+
+  test("closes the inline template library after an outside click", () => {
+    document.body.innerHTML = `
+      <textarea id="filenamePatterns"></textarea>
+      <details class="inline-template-library rule-template-surface" open>
+        <summary>Template library</summary>
+        <input class="rule-template-filter">
+        <div data-rule-template-library></div>
+      </details>
+      <button id="outside">Outside</button>`;
+
+    setupRuleBuilder();
+    document.querySelector<HTMLButtonElement>("#outside")!.click();
+
+    expect(document.querySelector<HTMLDetailsElement>(".inline-template-library")?.open).toBe(
+      false,
+    );
   });
 
   test("setup composes both rule-builder surfaces", () => {
