@@ -180,9 +180,8 @@ const parseClauseNode = (
     limit: sourceLine.parseEnd,
   });
   if (!parsed.ok) {
-    const consumedName = source
-      .slice(sourceLine.parseStart, sourceLine.parseEnd)
-      .match(/^\S*/)![0]!.length;
+    const consumedName =
+      /^\S*/.exec(source.slice(sourceLine.parseStart, sourceLine.parseEnd))?.[0].length ?? 0;
     // The clause grammar backtracks failed alternatives to the line start;
     // report after the consumed token so malformed clauses remain actionable.
     const position = sourcePointAt(source, sourceLine.parseStart + consumedName);
@@ -303,14 +302,20 @@ export const parseRoutingRuleAst = (source: string): ParsedRoutingAst => {
     .map((line) => triviaNode(source, line));
   const active = lines.filter((line) => !line.raw.trimStart().startsWith("//"));
   while (active[0] && !active[0].raw.trim()) active.shift();
-  while (active.at(-1) && !active.at(-1)!.raw.trim()) active.pop();
-  if (active[0]) {
-    const leading = active[0].raw.length - active[0].raw.trimStart().length;
-    active[0].parseStart += leading;
+  while (true) {
+    const last = active.at(-1);
+    if (!last || last.raw.trim()) break;
+    active.pop();
   }
-  if (active.at(-1)) {
-    const trailing = active.at(-1)!.raw.length - active.at(-1)!.raw.trimEnd().length;
-    active.at(-1)!.parseEnd -= trailing;
+  const first = active[0];
+  if (first) {
+    const leading = first.raw.length - first.raw.trimStart().length;
+    first.parseStart += leading;
+  }
+  const last = active.at(-1);
+  if (last) {
+    const trailing = last.raw.length - last.raw.trimEnd().length;
+    last.parseEnd -= trailing;
   }
 
   const rules: RoutingRuleNode[] = [];
