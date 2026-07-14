@@ -1,5 +1,5 @@
 import type { HistoryEntry } from "../shared/history-types.ts";
-import { isStringMember } from "../shared/util.ts";
+import { isStringKeyedRecord, isStringMember } from "../shared/util.ts";
 
 const HISTORY_MECHANISMS = [
   "downloads-api",
@@ -8,11 +8,8 @@ const HISTORY_MECHANISMS = [
   "firefox-replacement",
 ] as const satisfies readonly NonNullable<HistoryEntry["mechanism"]>[];
 
-const isObject = (value: unknown): value is Record<string, unknown> =>
-  value != null && typeof value === "object" && !Array.isArray(value);
-
 const normalizeHistoryInfo = (value: unknown) => {
-  if (!isObject(value)) return undefined;
+  if (!isStringKeyedRecord(value)) return undefined;
   const info: NonNullable<HistoryEntry["info"]> = {};
   for (const key of ["sourceUrl", "pageUrl", "context"] as const) {
     if (typeof value[key] === "string") info[key] = value[key];
@@ -21,7 +18,7 @@ const normalizeHistoryInfo = (value: unknown) => {
 };
 
 const normalizeStringRecord = (value: unknown): Record<string, string> | undefined => {
-  if (!isObject(value)) return undefined;
+  if (!isStringKeyedRecord(value)) return undefined;
   const entries = Object.entries(value).filter(
     (entry): entry is [string, string] => typeof entry[1] === "string",
   );
@@ -48,7 +45,8 @@ export const normalizeHistoryTimestamp = (value: string): string => {
 };
 
 export const normalizeHistoryEntry = (value: unknown): HistoryEntry | null => {
-  if (!isObject(value) || (value.id !== undefined && typeof value.id !== "string")) return null;
+  if (!isStringKeyedRecord(value) || (value.id !== undefined && typeof value.id !== "string"))
+    return null;
 
   const entry: HistoryEntry = {};
   for (const key of ["id", "status", "timestamp", "initiatedAt", "url", "finalFullPath"] as const) {
@@ -65,19 +63,27 @@ export const normalizeHistoryEntry = (value: unknown): HistoryEntry | null => {
   if (isStringMember(HISTORY_MECHANISMS, value.mechanism)) {
     entry.mechanism = value.mechanism;
   }
-  if (typeof value.downloadId === "number" && Number.isSafeInteger(value.downloadId)) {
+  if (
+    typeof value.downloadId === "number" &&
+    Number.isSafeInteger(value.downloadId) &&
+    value.downloadId >= 0
+  ) {
     entry.downloadId = value.downloadId;
   }
-  if (typeof value.fileSize === "number" && Number.isFinite(value.fileSize)) {
+  if (
+    typeof value.fileSize === "number" &&
+    Number.isFinite(value.fileSize) &&
+    value.fileSize >= 0
+  ) {
     entry.fileSize = value.fileSize;
   }
   const info = normalizeHistoryInfo(value.info);
   if (info) entry.info = info;
-  if (isObject(value.state)) {
+  if (isStringKeyedRecord(value.state)) {
     const stateInfo = normalizeHistoryInfo(value.state.info);
     if (stateInfo) entry.state = { info: stateInfo };
   }
-  if (isObject(value.menu)) {
+  if (isStringKeyedRecord(value.menu)) {
     const menu: NonNullable<HistoryEntry["menu"]> = {};
     for (const key of ["id", "title", "path"] as const) {
       if (typeof value.menu[key] === "string") menu[key] = value.menu[key];
@@ -98,7 +104,7 @@ export const hasLegacyDateOnlyTimestamp = (value: unknown): boolean =>
   Array.isArray(value) &&
   value.some(
     (entry) =>
-      isObject(entry) &&
+      isStringKeyedRecord(entry) &&
       [entry.timestamp, entry.initiatedAt].some(
         (timestamp) =>
           typeof timestamp === "string" && normalizeHistoryTimestamp(timestamp) !== timestamp,
@@ -108,7 +114,7 @@ export const hasLegacyDateOnlyTimestamp = (value: unknown): boolean =>
 export const migrateLegacyHistoryTimestamps = (value: unknown): unknown[] =>
   Array.isArray(value)
     ? value.map((entry) => {
-        if (!isObject(entry)) return entry;
+        if (!isStringKeyedRecord(entry)) return entry;
         const migrated = { ...entry };
         for (const key of ["timestamp", "initiatedAt"] as const) {
           if (typeof migrated[key] === "string") {

@@ -8,6 +8,7 @@ import {
   migrateLegacyHistoryTimestamps,
   normalizeHistory,
 } from "./history-normalization.ts";
+import { isStringKeyedRecord } from "../shared/util.ts";
 
 // Entries store the whole download state: cap the list so storage.local
 // does not grow without bound
@@ -24,7 +25,7 @@ export const SaveHistory = {
   LIMIT: HISTORY_LIMIT,
 
   // Serialise writes: concurrent read-modify-write would drop entries
-  writeQueue: Promise.resolve() as Promise<unknown>,
+  writeQueue: Promise.resolve<unknown>(undefined),
   idCounter: 0,
 
   // A short, process-unique id so a later setStatus can find this entry
@@ -102,17 +103,14 @@ export const SaveHistory = {
     // Reads requested by the options page must observe every write that was
     // already accepted when the request arrived.
     await SaveHistory.writeQueue;
-    let current: Record<string, unknown>;
+    let current: unknown;
     try {
-      current = ((await webExtensionApi.storage.local.get(HISTORY_STORAGE_KEY)) || {}) as Record<
-        string,
-        unknown
-      >;
+      current = await webExtensionApi.storage.local.get(HISTORY_STORAGE_KEY);
     } catch (error) {
       recordHistoryFailure("read", error);
       throw error;
     }
-    const stored = current[HISTORY_STORAGE_KEY];
+    const stored = isStringKeyedRecord(current) ? current[HISTORY_STORAGE_KEY] : undefined;
     const history = normalizeHistory(stored);
     if (hasLegacyDateOnlyTimestamp(stored)) {
       SaveHistory.writeQueue = SaveHistory.writeQueue

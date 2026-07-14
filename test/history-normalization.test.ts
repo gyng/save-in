@@ -67,7 +67,7 @@ describe("history normalization", () => {
     expect(
       normalizeHistory([
         {
-          id: "minimal",
+          id: "invalid-shapes",
           info: { sourceUrl: 1 },
           state: { info: { pageUrl: false } },
           menu: { title: null },
@@ -76,8 +76,13 @@ describe("history normalization", () => {
           fileSize: Number.POSITIVE_INFINITY,
           mechanism: "unknown",
         },
+        {
+          id: "negative-numbers",
+          downloadId: -1,
+          fileSize: -1,
+        },
       ]),
-    ).toEqual([{ id: "minimal" }]);
+    ).toEqual([{ id: "invalid-shapes" }, { id: "negative-numbers" }]);
   });
 
   test("leaves invalid and already-qualified timestamps unchanged", () => {

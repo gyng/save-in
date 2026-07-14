@@ -50,6 +50,9 @@ test("normalizes malformed values and preserves legacy numeric shortcut keycodes
     sourcePanelEnabled: true,
   });
   expect(resolveContentOptions("invalid")).toEqual(CONTENT_OPTION_DEFAULTS);
+
+  const arraySnapshot = Object.assign([], { contentClickToSave: true });
+  expect(resolveContentOptions(arraySnapshot)).toEqual(CONTENT_OPTION_DEFAULTS);
 });
 
 test("falls back safely when a stored shortcut string contains unknown keys", () => {

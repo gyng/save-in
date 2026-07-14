@@ -1,6 +1,6 @@
 import { CLICK_TYPES, type ClickType } from "../shared/constants.ts";
 import { isSelectableLocale, type SelectableLocale } from "../shared/generated-locales.ts";
-import { isStringMember } from "../shared/util.ts";
+import { isStringKeyedRecord, isStringMember } from "../shared/util.ts";
 
 export const isClickType = (value: unknown): value is ClickType =>
   isStringMember(Object.values(CLICK_TYPES), value);
@@ -60,7 +60,27 @@ export const contentClickComboToKeyCodes = (
 
 // These defaults are the single source of truth for both the background schema
 // and the lightweight direct-storage content path.
-export const CONTENT_OPTION_DEFAULTS = {
+export type ResolvedContentOptions = {
+  contentClickToSave: boolean;
+  autoDownloadEnabled: boolean;
+  autoDownloadRules: string;
+  autoDownloadLive: boolean;
+  autoDownloadPrivate: boolean;
+  autoDownloadMaxPerPage: number;
+  sourcePanelEnabled: boolean;
+  sourcePanelBackgrounds: boolean;
+  sourcePanelLive: boolean;
+  sourcePanelPreviews: boolean;
+  sourcePanelResourceHints: boolean;
+  sourcePanelLinks: boolean;
+  uiLocale: "" | SelectableLocale;
+  uiTheme: UiTheme;
+  contentClickToSaveCombo: string | number;
+  contentClickToSaveButton: ClickType;
+  links: boolean;
+};
+
+export const CONTENT_OPTION_DEFAULTS: ResolvedContentOptions = {
   contentClickToSave: false,
   autoDownloadEnabled: false,
   autoDownloadRules: "",
@@ -73,15 +93,14 @@ export const CONTENT_OPTION_DEFAULTS = {
   sourcePanelPreviews: true,
   sourcePanelResourceHints: true,
   sourcePanelLinks: true,
-  uiLocale: "" as "" | SelectableLocale,
-  uiTheme: "system" as UiTheme,
-  contentClickToSaveCombo: DEFAULT_CONTENT_CLICK_COMBO as string | number,
-  contentClickToSaveButton: CLICK_TYPES.LEFT_CLICK as ClickType,
+  uiLocale: "",
+  uiTheme: "system",
+  contentClickToSaveCombo: DEFAULT_CONTENT_CLICK_COMBO,
+  contentClickToSaveButton: CLICK_TYPES.LEFT_CLICK,
   links: true,
 };
 
 export type ContentOptionName = keyof typeof CONTENT_OPTION_DEFAULTS;
-export type ResolvedContentOptions = typeof CONTENT_OPTION_DEFAULTS;
 export type ContentOptions = Partial<ResolvedContentOptions> & { filenamePatterns?: string };
 
 export const CONTENT_OPTION_KEYS = Object.keys(CONTENT_OPTION_DEFAULTS) as ContentOptionName[];
@@ -100,34 +119,58 @@ export const isAutoDownloadLimit = (value: unknown): value is string | number =>
 export const normalizeAutoDownloadLimit = (value: string | number): number =>
   isAutoDownloadLimit(value) ? Number(value) : CONTENT_OPTION_DEFAULTS.autoDownloadMaxPerPage;
 
-export const normalizeContentOption = <Name extends ContentOptionName>(
-  name: Name,
-  stored: unknown,
-): ResolvedContentOptions[Name] => {
-  const defaultValue = CONTENT_OPTION_DEFAULTS[name];
-  if (typeof stored === "undefined") return defaultValue;
-  if (name === "contentClickToSaveCombo")
-    return (isContentClickCombo(stored) ? stored : defaultValue) as ResolvedContentOptions[Name];
-  if (name === "contentClickToSaveButton")
-    return (isClickType(stored) ? stored : defaultValue) as ResolvedContentOptions[Name];
-  if (name === "autoDownloadMaxPerPage")
-    return normalizeAutoDownloadLimit(
+type ContentOptionNormalizers = {
+  [Name in ContentOptionName]: (stored: unknown) => ResolvedContentOptions[Name];
+};
+
+const booleanOption =
+  (fallback: boolean) =>
+  (stored: unknown): boolean =>
+    typeof stored === "boolean" ? stored : fallback;
+
+const stringOption =
+  (fallback: string) =>
+  (stored: unknown): string =>
+    typeof stored === "string" ? stored : fallback;
+
+const CONTENT_OPTION_NORMALIZERS: ContentOptionNormalizers = {
+  contentClickToSave: booleanOption(CONTENT_OPTION_DEFAULTS.contentClickToSave),
+  autoDownloadEnabled: booleanOption(CONTENT_OPTION_DEFAULTS.autoDownloadEnabled),
+  autoDownloadRules: stringOption(CONTENT_OPTION_DEFAULTS.autoDownloadRules),
+  autoDownloadLive: booleanOption(CONTENT_OPTION_DEFAULTS.autoDownloadLive),
+  autoDownloadPrivate: booleanOption(CONTENT_OPTION_DEFAULTS.autoDownloadPrivate),
+  autoDownloadMaxPerPage: (stored) =>
+    normalizeAutoDownloadLimit(
       typeof stored === "string" || typeof stored === "number"
         ? stored
         : CONTENT_OPTION_DEFAULTS.autoDownloadMaxPerPage,
-    ) as ResolvedContentOptions[Name];
-  if (name === "uiTheme")
-    return (isUiTheme(stored) ? stored : defaultValue) as ResolvedContentOptions[Name];
-  if (name === "uiLocale")
-    return (isSelectableLocale(stored) ? stored : defaultValue) as ResolvedContentOptions[Name];
-  return (
-    typeof stored === typeof defaultValue ? stored : defaultValue
-  ) as ResolvedContentOptions[Name];
+    ),
+  sourcePanelEnabled: booleanOption(CONTENT_OPTION_DEFAULTS.sourcePanelEnabled),
+  sourcePanelBackgrounds: booleanOption(CONTENT_OPTION_DEFAULTS.sourcePanelBackgrounds),
+  sourcePanelLive: booleanOption(CONTENT_OPTION_DEFAULTS.sourcePanelLive),
+  sourcePanelPreviews: booleanOption(CONTENT_OPTION_DEFAULTS.sourcePanelPreviews),
+  sourcePanelResourceHints: booleanOption(CONTENT_OPTION_DEFAULTS.sourcePanelResourceHints),
+  sourcePanelLinks: booleanOption(CONTENT_OPTION_DEFAULTS.sourcePanelLinks),
+  uiLocale: (stored) => (isSelectableLocale(stored) ? stored : CONTENT_OPTION_DEFAULTS.uiLocale),
+  uiTheme: (stored) => (isUiTheme(stored) ? stored : CONTENT_OPTION_DEFAULTS.uiTheme),
+  contentClickToSaveCombo: (stored) =>
+    isContentClickCombo(stored) ? stored : CONTENT_OPTION_DEFAULTS.contentClickToSaveCombo,
+  contentClickToSaveButton: (stored) =>
+    isClickType(stored) ? stored : CONTENT_OPTION_DEFAULTS.contentClickToSaveButton,
+  links: booleanOption(CONTENT_OPTION_DEFAULTS.links),
 };
 
+export const normalizeContentOption = <Name extends ContentOptionName>(
+  name: Name,
+  stored: unknown,
+): ResolvedContentOptions[Name] => CONTENT_OPTION_NORMALIZERS[name](stored);
+
 export const resolveContentOptions = (stored: unknown): ResolvedContentOptions => {
-  const values = stored && typeof stored === "object" ? (stored as Record<string, unknown>) : {};
-  return Object.fromEntries(
-    CONTENT_OPTION_KEYS.map((name) => [name, normalizeContentOption(name, values[name])]),
-  ) as ResolvedContentOptions;
+  const values = isStringKeyedRecord(stored) ? stored : {};
+  const resolved = { ...CONTENT_OPTION_DEFAULTS };
+  const assign = <Name extends ContentOptionName>(name: Name): void => {
+    resolved[name] = normalizeContentOption(name, values[name]);
+  };
+  CONTENT_OPTION_KEYS.forEach(assign);
+  return resolved;
 };

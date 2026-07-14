@@ -202,6 +202,12 @@ describe("SaveHistory", () => {
     await expect(SaveHistory.get()).resolves.toEqual([]);
   });
 
+  test("get rejects an array-shaped storage snapshot", async () => {
+    returnRawStorageValueOnce(Object.assign([], { [HISTORY_KEY]: [{ id: "array-property" }] }));
+
+    await expect(SaveHistory.get()).resolves.toEqual([]);
+  });
+
   test("get drops malformed persisted entries", async () => {
     returnRawStorageValueOnce({
       [HISTORY_KEY]: [null, "bad", { id: 4 }, { id: "ok", downloadId: 7 }],
