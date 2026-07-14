@@ -272,6 +272,24 @@ describe("routing visual editor", () => {
     expect(element<HTMLTextAreaElement>("#filenamePatterns").value).toContain("into: docs/:date:");
   });
 
+  test("keeps a separator when completing a variable into an empty destination", () => {
+    element<HTMLTextAreaElement>("#filenamePatterns").value = "fileext: pdf\ninto:";
+    setupRuleVisualEditor({ matchers: ["fileext"], variables: [":filename:"] });
+
+    const destination = element<HTMLInputElement>(".rule-clause-destination .rule-clause-value");
+    destination.value = ":";
+    destination.setSelectionRange(1, 1);
+    destination.dispatchEvent(new InputEvent("input", { bubbles: true }));
+    expect(element<HTMLTextAreaElement>("#filenamePatterns").value).toBe("fileext: pdf\ninto: :");
+
+    destination.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true }),
+    );
+    expect(element<HTMLTextAreaElement>("#filenamePatterns").value).toBe(
+      "fileext: pdf\ninto: :filename:",
+    );
+  });
+
   test("adds, duplicates, reorders, and deletes rules without leaving Visual mode", () => {
     setupRuleVisualEditor({ matchers: ["filename", "sourceurl"] });
     element<HTMLButtonElement>("#rules-mode-visual").click();

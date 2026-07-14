@@ -263,10 +263,12 @@ export const updateRoutingClause = (
   }
   if (update.value !== undefined) {
     const trailingWhitespace = clause.value.match(/\s+$/)?.[0].length ?? 0;
+    const leadingSeparator =
+      update.value.startsWith(":") && clause.cst.valueLeadingTrivia.raw.length === 0 ? " " : "";
     patches.push({
       start: clause.valueSpan.start.offset,
       end: clause.valueSpan.end.offset - trailingWhitespace,
-      value: update.value,
+      value: `${leadingSeparator}${update.value}`,
     });
   }
   return replacePatches(source, patches);

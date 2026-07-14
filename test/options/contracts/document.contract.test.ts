@@ -338,6 +338,7 @@ test("keeps routing references secondary and uses a compact template typeahead",
   expect(picker?.getAttribute("list")).toBeNull();
   expect(templates?.querySelector("datalist")).toBeNull();
   expect(picker?.getAttribute("autocomplete")).toBe("off");
+  expect(picker?.hasAttribute("data-no-autosave")).toBe(true);
   expect(
     templates?.querySelector<HTMLButtonElement>(".rule-template-typeahead-add")?.disabled,
   ).toBe(true);

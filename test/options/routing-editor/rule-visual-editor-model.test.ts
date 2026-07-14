@@ -117,6 +117,12 @@ describe("routing visual editor model", () => {
     expect(updateRoutingClause("filename: jpg\ninto: images", 0, 0, { name: "fileext" })).toBe(
       "fileext: jpg\ninto: images",
     );
+    expect(updateRoutingClause("filename: pdf\ninto:", 0, 1, { value: ":filename:" })).toBe(
+      "filename: pdf\ninto: :filename:",
+    );
+    expect(updateRoutingClause("filename: pdf\ninto:old", 0, 1, { value: ":date:" })).toBe(
+      "filename: pdf\ninto: :date:",
+    );
   });
 
   test("inserts a matcher immediately before capture and destination clauses", () => {
