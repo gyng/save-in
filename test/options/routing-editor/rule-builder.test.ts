@@ -221,10 +221,9 @@ describe("template list rendering", () => {
     document.body.innerHTML = `
       <textarea id="filenamePatterns"></textarea>
       <div class="rule-template-surface">
-        <input class="rule-template-filter" list="routing-template-options">
+        <input class="rule-template-filter">
         <button class="rule-template-typeahead-add" disabled>Add</button>
         <div class="template-feedback" hidden></div>
-        <datalist id="routing-template-options" data-rule-template-library></datalist>
       </div>
       <dialog id="reference-dialog">
         <input class="reference-dialog-filter rule-template-filter">
@@ -233,20 +232,21 @@ describe("template list rendering", () => {
       </dialog>`;
     RuleBuilder.renderTemplates();
     expect(document.querySelectorAll(".rule-template")).toHaveLength(RULE_TEMPLATES.length);
-    expect(document.querySelectorAll("#routing-template-options option")).toHaveLength(
-      RULE_TEMPLATES.length,
-    );
 
     const picker = document.querySelector<HTMLInputElement>(".rule-template-surface input")!;
     const add = document.querySelector<HTMLButtonElement>(".rule-template-typeahead-add")!;
-    picker.dispatchEvent(new KeyboardEvent("keydown", { key: "x", bubbles: true }));
-    picker.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
-    picker.value = RULE_TEMPLATES[0]!.name;
+    picker.focus();
+    const dropdown = document.getElementById(picker.getAttribute("aria-controls")!);
+    expect(picker.getAttribute("role")).toBe("combobox");
+    expect(dropdown?.querySelectorAll('[role="option"]')).toHaveLength(12);
+    picker.value = RULE_TEMPLATES[0]!.name.slice(0, 5);
     picker.dispatchEvent(new InputEvent("input", { bubbles: true }));
-    expect(add.disabled).toBe(false);
     picker.dispatchEvent(
       new KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true }),
     );
+    expect(picker.value).toBe(RULE_TEMPLATES[0]!.name);
+    expect(add.disabled).toBe(false);
+    add.click();
     expect(document.querySelector<HTMLTextAreaElement>("#filenamePatterns")?.value).toContain(
       `// ${RULE_TEMPLATES[0]!.name}\n${RULE_TEMPLATES[0]!.rule}`,
     );

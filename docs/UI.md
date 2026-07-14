@@ -99,10 +99,12 @@ or feedback.
 - Visual routing cards keep the stable rule number and expose the optional rule
   name as a quiet inline field. Names remain leading `//` comments in rule text
   so imports, exports, Text mode, and older profiles keep one routing grammar.
-- Long routing vocabularies use compact typeahead controls instead of expanded
-  lists. Matcher suggestions are alphabetical, destination fields complete
-  variables at the caret, and the inline template picker keeps detailed cards
-  in the reference dialog rather than stretching the routing workspace.
+- Long routing vocabularies use compact first-party typeahead dropdowns instead
+  of expanded lists or native datalists. A typeahead filters a selectable
+  dropdown; autocomplete inserts a token within freeform text at the caret.
+  Matcher suggestions are alphabetical, destination fields autocomplete
+  variables, and the inline template picker keeps detailed cards in the
+  reference dialog rather than stretching the routing workspace.
 - Reorderable rule cards use a dedicated drag grip so text fields remain safe
   to select and edit. Keep equivalent Move up and Move down actions available
   for keyboard and assistive-technology workflows.

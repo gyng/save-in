@@ -44,14 +44,17 @@ export const runTemplateLibraryScenario = async ({
         (await evaluateOptions(`(() => {
           const picker = document.querySelector("#routing-template-typeahead");
           const add = document.querySelector(".rule-template-typeahead-add");
-          const option = [...document.querySelectorAll("#routing-template-options option")].find(
-            (candidate) => candidate.dataset.rule?.includes(${JSON.stringify(PDF_TEMPLATE_MATCHER)})
-          );
-          if (!(picker instanceof HTMLInputElement) || !(add instanceof HTMLButtonElement) || !option) {
+          if (!(picker instanceof HTMLInputElement) || !(add instanceof HTMLButtonElement)) {
             return false;
           }
-          picker.value = option.value;
+          picker.value = ${JSON.stringify(PDF_TEMPLATE_MATCHER)};
           picker.dispatchEvent(new InputEvent("input", { bubbles: true }));
+          const listbox = document.getElementById(picker.getAttribute("aria-controls") || "");
+          const option = listbox?.querySelector('[role="option"]');
+          if (!(option instanceof HTMLButtonElement)) {
+            return false;
+          }
+          option.click();
           if (add.disabled) return false;
           add.click();
           return true;

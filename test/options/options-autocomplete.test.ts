@@ -94,6 +94,15 @@ describe("attachAutocomplete", () => {
     expect(input).toHaveBeenCalledOnce();
   });
 
+  test("re-attaching replaces the previous completion instead of duplicating insertion", () => {
+    cleanup = attachAutocomplete(textarea, [pathVariableStrategy(VARIABLES)]);
+    type("into: :d");
+    key("Enter");
+
+    expect(textarea.value).toBe("into: :date:");
+    expect(document.querySelectorAll(".autocomplete-dropdown")).toHaveLength(1);
+  });
+
   test("arrow keys cycle the selection", () => {
     type("a/:d");
     key("ArrowDown");
@@ -235,7 +244,7 @@ describe("setupRoutingAutocomplete wiring", () => {
     document.body.innerHTML = '<textarea id="filenamePatterns"></textarea>';
     setupRoutingAutocomplete({
       matchers: ["fileext", "filename"],
-      variables: [":date:", ":day:"],
+      variables: [":date:", ":day:", ":filename:"],
     });
 
     const textarea = document.querySelector("textarea")!;
@@ -249,6 +258,12 @@ describe("setupRoutingAutocomplete wiring", () => {
 
     textarea.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", cancelable: true }));
     expect(textarea.value).toBe("filename: ");
+
+    textarea.value = "fileext: pdf\ninto: :f";
+    textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+    textarea.dispatchEvent(new InputEvent("input", { bubbles: true }));
+    textarea.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", cancelable: true }));
+    expect(textarea.value).toBe("fileext: pdf\ninto: :filename:");
 
     textarea.value = "";
     textarea.setSelectionRange(0, 0);

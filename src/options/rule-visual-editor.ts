@@ -2,7 +2,7 @@ import { getMessage } from "../platform/localization.ts";
 import { webExtensionApi } from "../platform/web-extension-api.ts";
 import { MESSAGE_TYPES } from "../shared/constants.ts";
 import { sendInternalMessage } from "../shared/message-protocol.ts";
-import { attachAutocomplete, pathVariableStrategy } from "./autocomplete.ts";
+import { attachAutocomplete } from "./autocomplete.ts";
 import {
   addRoutingClause,
   addAutomaticRoutingRule,
@@ -19,7 +19,9 @@ import {
 } from "./rule-visual-editor-model.ts";
 import { sortClauses, sortVariables } from "./vocabulary-groups.ts";
 import { isAutomaticRuleClauses } from "../routing/automatic-rule.ts";
+import { completeDirectorySyntax } from "./syntax-editor-model.ts";
 import { bindTabInteractions, syncTabSelection } from "./tab-controls.ts";
+import { attachTypeahead } from "./typeahead.ts";
 import {
   clearValidationFields,
   EDITOR_VALIDATION_EVENT,
@@ -104,16 +106,14 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
       .replace("$CONDITION$", String(conditionNumber ?? ""));
   let matchers = sortClauses([...(options.matchers ?? DEFAULT_MATCHERS)]);
   let variables = sortVariables([...(options.variables ?? [])]);
-  let autocompleteCleanups: Array<() => void> = [];
+  let editorControlCleanups: Array<() => void> = [];
   let committing = false;
   let rebuildTimer = 0;
   let visual = false;
   let draggedRuleIndex: number | null = null;
   let validationErrors: readonly EditorValidationFeedback[] = [];
   const openMenuSelector = ".rule-add-menu[open], .rule-editor-card-actions[open]";
-  const matcherSuggestions = document.createElement("datalist");
-  matcherSuggestions.id = "rule-editor-matcher-options";
-  visualEditor.append(matcherSuggestions);
+  let matcherSuggestions = [...matchers];
 
   const clearDragAppearance = (): void => {
     cards
@@ -231,7 +231,6 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
     input.className = "rule-clause-name visual-editor-control-field";
     input.name = "routing-matcher";
     input.value = clause.name;
-    input.setAttribute("list", matcherSuggestions.id);
     input.setAttribute("autocomplete", "off");
     input.spellcheck = false;
     input.setAttribute(
@@ -245,15 +244,26 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
         conditionNumber,
       ),
     );
-    input.addEventListener("change", () => {
-      const matcher = input.value.trim();
-      input.value = matcher;
-      if (matcher === clause.name) return;
+    const updateMatcher = (matcher: string): void => {
+      const normalized = matcher.trim();
+      input.value = normalized;
+      if (normalized === clause.name) return;
       commit(
-        updateRoutingClause(textarea.value, rule.index, clause.index, { name: matcher }),
+        updateRoutingClause(textarea.value, rule.index, clause.index, { name: normalized }),
         false,
       );
-    });
+    };
+    input.addEventListener("change", () => updateMatcher(input.value));
+    editorControlCleanups.push(
+      attachTypeahead(input, {
+        items: () =>
+          matcherSuggestions.map((matcher) => ({
+            value: matcher,
+            label: matcher,
+          })),
+        onSelect: (item) => updateMatcher(item.value),
+      }),
+    );
     return input;
   };
 
@@ -320,7 +330,11 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
     });
     row.append(value);
     if (clause.kind === "destination" && variables.length > 0) {
-      autocompleteCleanups.push(attachAutocomplete(value, [pathVariableStrategy(variables)]));
+      editorControlCleanups.push(
+        attachAutocomplete(value, (source, caret) =>
+          completeDirectorySyntax(source, caret, variables),
+        ),
+      );
     }
 
     if (clause.kind === "matcher") {
@@ -617,24 +631,16 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
 
   const render = (): void => {
     const documentModel = parseVisualRoutingRules(textarea.value);
-    autocompleteCleanups.forEach((cleanup) => cleanup());
-    autocompleteCleanups = [];
-    matcherSuggestions.replaceChildren(
-      ...[
-        ...new Set([
-          ...matchers,
-          ...documentModel.rules.flatMap((rule) =>
-            rule.clauses.filter((clause) => clause.kind === "matcher").map((clause) => clause.name),
-          ),
-        ]),
-      ]
-        .toSorted((left, right) => left.localeCompare(right))
-        .map((matcher) => {
-          const option = document.createElement("option");
-          option.value = matcher;
-          return option;
-        }),
-    );
+    editorControlCleanups.forEach((cleanup) => cleanup());
+    editorControlCleanups = [];
+    matcherSuggestions = [
+      ...new Set([
+        ...matchers,
+        ...documentModel.rules.flatMap((rule) =>
+          rule.clauses.filter((clause) => clause.kind === "matcher").map((clause) => clause.name),
+        ),
+      ]),
+    ].toSorted((left, right) => left.localeCompare(right));
     cards.replaceChildren();
     if (documentModel.rules.length === 0) {
       const empty = document.createElement("div");
@@ -724,15 +730,19 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
   } catch {}
   setMode(initialVisual);
 
-  if (!options.matchers) {
+  if (!options.matchers || !options.variables) {
     void sendInternalMessage(webExtensionApi.runtime, { type: MESSAGE_TYPES.GET_KEYWORDS })
       .then((response) => {
         let changed = false;
-        if ("matchers" in response.body && response.body.matchers.length > 0) {
+        if (!options.matchers && "matchers" in response.body && response.body.matchers.length > 0) {
           matchers = sortClauses(response.body.matchers);
           changed = true;
         }
-        if ("variables" in response.body && response.body.variables.length > 0) {
+        if (
+          !options.variables &&
+          "variables" in response.body &&
+          response.body.variables.length > 0
+        ) {
           variables = sortVariables(response.body.variables);
           changed = true;
         }

@@ -246,10 +246,12 @@ describe("routing visual editor", () => {
     });
 
     const matcher = element<HTMLInputElement>(".rule-clause-name");
-    expect(matcher.getAttribute("list")).toBe("rule-editor-matcher-options");
+    matcher.focus();
+    expect(matcher.getAttribute("role")).toBe("combobox");
+    const matcherDropdown = document.getElementById(matcher.getAttribute("aria-controls")!);
     expect(
-      [...document.querySelectorAll<HTMLOptionElement>("#rule-editor-matcher-options option")].map(
-        (option) => option.value,
+      [...(matcherDropdown?.querySelectorAll<HTMLElement>('[role="option"]') ?? [])].map(
+        (option) => option.textContent,
       ),
     ).toEqual(["context", "filename", "sourceurl"]);
 
@@ -648,8 +650,12 @@ describe("routing visual editor", () => {
       vi.mocked(browser.runtime.sendMessage).mockResolvedValueOnce(response as never);
       setupRuleVisualEditor();
       await Promise.resolve();
+      const matcher = element<HTMLInputElement>(".rule-clause-name");
+      matcher.focus();
       expect(
-        document.querySelectorAll("#rule-editor-matcher-options option").length,
+        document
+          .getElementById(matcher.getAttribute("aria-controls")!)
+          ?.querySelectorAll('[role="option"]').length,
       ).toBeGreaterThan(1);
     },
   );
@@ -659,9 +665,15 @@ describe("routing visual editor", () => {
       .mockResolvedValueOnce({ body: { matchers: ["sourcekind"], variables: [":date:"] } } as never)
       .mockRejectedValueOnce(new Error("offline"));
     setupRuleVisualEditor();
-    await vi.waitFor(() =>
-      expect(document.querySelectorAll("#rule-editor-matcher-options option")).toHaveLength(2),
-    );
+    await vi.waitFor(() => {
+      const matcher = element<HTMLInputElement>(".rule-clause-name");
+      matcher.focus();
+      expect(
+        document
+          .getElementById(matcher.getAttribute("aria-controls")!)
+          ?.querySelectorAll('[role="option"]'),
+      ).toHaveLength(2);
+    });
 
     const restoredMarkup = document.body.innerHTML;
     document.body.innerHTML = restoredMarkup;

@@ -26,6 +26,7 @@ type RoutingKeywords = {
 };
 
 type TextField = HTMLInputElement | HTMLTextAreaElement;
+const autocompleteCleanups = new WeakMap<TextField, () => void>();
 type AutocompleteProvider = (
   value: string,
   caret: number,
@@ -174,6 +175,7 @@ export const attachAutocomplete = (
   textarea: TextField,
   source: AutocompleteStrategy[] | AutocompleteProvider,
 ) => {
+  autocompleteCleanups.get(textarea)?.();
   const controller = new AbortController();
   const listenerOptions = { signal: controller.signal };
   const dropdown = document.createElement("ul");
@@ -375,10 +377,23 @@ export const attachAutocomplete = (
     listenerOptions,
   );
 
-  return () => {
+  let cleaned = false;
+  const cleanup = () => {
+    if (cleaned) return;
+    cleaned = true;
     controller.abort();
     dropdown.remove();
+    if (autocompleteCleanups.get(textarea) === cleanup) {
+      autocompleteCleanups.delete(textarea);
+      textarea.removeAttribute("role");
+      textarea.removeAttribute("aria-autocomplete");
+      textarea.removeAttribute("aria-controls");
+      textarea.removeAttribute("aria-expanded");
+      textarea.removeAttribute("aria-activedescendant");
+    }
   };
+  autocompleteCleanups.set(textarea, cleanup);
+  return cleanup;
 };
 
 export const setupRoutingAutocomplete = (keywords: RoutingKeywords) => {

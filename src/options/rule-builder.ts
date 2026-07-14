@@ -12,8 +12,11 @@ import { sortClauses } from "./vocabulary-groups.ts";
 import { getMessage } from "../platform/localization.ts";
 import { localizeRuleTemplates, type LocalizedRuleTemplate } from "./rule-templates.ts";
 import { renderSyntaxHighlight } from "./syntax-editor.ts";
+import { attachTypeahead } from "./typeahead.ts";
 
 export { RULE_TEMPLATES } from "./rule-templates.ts";
+
+const templateTypeaheadCleanups = new WeakMap<HTMLInputElement, () => void>();
 
 const MATCHER_PATTERN_PLACEHOLDERS: Record<string, string> = {
   context: "media|link|page|tab",
@@ -155,28 +158,17 @@ export const RuleBuilder = {
       ),
     ];
     const textarea = document.getElementById("filenamePatterns");
-    if (containers.length === 0 || !(textarea instanceof HTMLTextAreaElement)) {
+    const inlineSurface = document.querySelector<HTMLElement>(".rule-template-surface");
+    if ((containers.length === 0 && !inlineSurface) || !(textarea instanceof HTMLTextAreaElement)) {
       return;
     }
+    const templates = localizeRuleTemplates(localize);
 
-    containers.forEach((container) => {
-      container.replaceChildren();
-      const templates = localizeRuleTemplates(localize);
-
-      if (container instanceof HTMLDataListElement) {
-        const surface = container.closest<HTMLElement>(".rule-template-surface");
-        const filter = surface?.querySelector<HTMLInputElement>(".rule-template-filter");
-        const add = surface?.querySelector<HTMLButtonElement>(".rule-template-typeahead-add");
-        if (!filter || !add) return;
-
-        templates.forEach((template) => {
-          const option = document.createElement("option");
-          option.value = template.name;
-          option.label = template.description;
-          option.dataset.rule = template.rule;
-          container.append(option);
-        });
-
+    if (inlineSurface) {
+      const filter = inlineSurface.querySelector<HTMLInputElement>(".rule-template-filter");
+      const add = inlineSurface.querySelector<HTMLButtonElement>(".rule-template-typeahead-add");
+      if (filter && add) {
+        templateTypeaheadCleanups.get(filter)?.();
         const selectedTemplate = (): LocalizedRuleTemplate | undefined => {
           const value = filter.value.trim().toLocaleLowerCase();
           return templates.find((template) => template.name.toLocaleLowerCase() === value);
@@ -195,21 +187,32 @@ export const RuleBuilder = {
           RuleBuilder.appendRule(textarea, `// ${template.name}\n${template.rule}`);
           filter.value = "";
           sync();
-          showTemplateFeedback(container, template, localize);
+          showTemplateFeedback(inlineSurface, template, localize);
         };
+        templateTypeaheadCleanups.set(
+          filter,
+          attachTypeahead(filter, {
+            items: templates.map((template) => ({
+              value: template.name,
+              label: template.name,
+              description: template.description,
+              searchText: template.rule,
+            })),
+            onSelect: sync,
+            preferredWidth: 440,
+          }),
+        );
         filter.addEventListener("input", sync);
         filter.addEventListener("change", sync);
-        filter.addEventListener("keydown", (event) => {
-          if (event.key !== "Enter" || add.disabled) return;
-          event.preventDefault();
-          apply();
-        });
         add.addEventListener("click", apply);
         textarea.addEventListener("input", sync);
         document.addEventListener("options-restored", sync);
         sync();
-        return;
       }
+    }
+
+    containers.forEach((container) => {
+      container.replaceChildren();
 
       const syncs: Array<() => void> = [];
       const rows: HTMLElement[] = [];

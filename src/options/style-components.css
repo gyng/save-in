@@ -1191,3 +1191,77 @@ textarea.syntax-editor-input::placeholder {
   background: var(--color-accent);
   color: var(--color-on-accent);
 }
+
+/* Editable select controls use a first-party listbox rather than native
+   datalists so their filtering, keyboard behavior, and floating surface match. */
+.typeahead-input {
+  padding-right: calc(var(--space-3) + 12px);
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--color-text-muted) 50%),
+    linear-gradient(135deg, var(--color-text-muted) 50%, transparent 50%);
+  background-position:
+    calc(100% - 11px) 50%,
+    calc(100% - 7px) 50%;
+  background-size: 4px 4px;
+  background-repeat: no-repeat;
+}
+
+.typeahead-dropdown {
+  position: fixed;
+  z-index: 110;
+  box-sizing: border-box;
+  display: grid;
+  gap: 2px;
+  max-height: min(20rem, calc(100vh - 16px));
+  overflow-y: auto;
+  padding: var(--space-1);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  background: var(--floating-bg);
+  box-shadow: var(--floating-shadow);
+}
+
+.typeahead-dropdown[hidden] {
+  display: none;
+}
+
+.typeahead-option {
+  display: grid;
+  gap: 1px;
+  width: 100%;
+  min-height: 0;
+  padding: 6px var(--space-2);
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  background: transparent;
+  text-align: left;
+}
+
+.typeahead-option:hover {
+  background: var(--hover-bg);
+}
+
+.typeahead-option[aria-selected="true"] {
+  color: var(--link-color);
+  background: color-mix(in srgb, var(--link-color) 10%, transparent);
+}
+
+.typeahead-option-label {
+  overflow: hidden;
+  font-size: var(--text-base);
+  font-weight: 600;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.typeahead-option-description {
+  overflow: hidden;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-weight: 400;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

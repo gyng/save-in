@@ -335,8 +335,9 @@ test("keeps routing references secondary and uses a compact template typeahead",
   expect(references?.tagName).toBe("ASIDE");
   expect(references?.getAttribute("aria-labelledby")).toBe("routing-reference-heading");
   expect(templates?.tagName).toBe("DIV");
-  expect(picker?.getAttribute("list")).toBe("routing-template-options");
-  expect(templates?.querySelector("datalist[data-rule-template-library]")).not.toBeNull();
+  expect(picker?.getAttribute("list")).toBeNull();
+  expect(templates?.querySelector("datalist")).toBeNull();
+  expect(picker?.getAttribute("autocomplete")).toBe("off");
   expect(
     templates?.querySelector<HTMLButtonElement>(".rule-template-typeahead-add")?.disabled,
   ).toBe(true);
