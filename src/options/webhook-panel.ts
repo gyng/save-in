@@ -64,22 +64,25 @@ export const setupWebhookPanel = (
     includePageTitle: document.querySelector<HTMLInputElement>("#webhookIncludePageTitle"),
     includeSelectionText: document.querySelector<HTMLInputElement>("#webhookIncludeSelectionText"),
   };
+  const { includePageUrl, includePageTitle, includeSelectionText } = fieldControls;
   if (
     !endpoint ||
     !enabled ||
     !test ||
     !status ||
     !preview ||
-    Object.values(fieldControls).some((control) => !control)
+    !includePageUrl ||
+    !includePageTitle ||
+    !includeSelectionText
   ) {
     return;
   }
 
   const controls = {
-    includePageUrl: fieldControls.includePageUrl,
-    includePageTitle: fieldControls.includePageTitle,
-    includeSelectionText: fieldControls.includeSelectionText,
-  } as Record<keyof WebhookFieldSelection, HTMLInputElement>;
+    includePageUrl,
+    includePageTitle,
+    includeSelectionText,
+  };
 
   const fields = (): WebhookFieldSelection => ({
     includePageUrl: controls.includePageUrl.checked,

@@ -199,7 +199,9 @@ export const setupTabs = ({ confirmPendingChanges, onGuardError }: TabsOptions =
   panels.forEach((panel) => form.appendChild(panel));
 
   document.addEventListener("save-in:navigate-option", (event) => {
-    const target = (event as CustomEvent<{ target?: HTMLElement }>).detail?.target;
+    if (!(event instanceof CustomEvent)) return;
+    const detailTarget: unknown = Reflect.get(event.detail ?? {}, "target");
+    const target = detailTarget instanceof HTMLElement ? detailTarget : undefined;
     const panel = target?.closest<HTMLElement>(".tab-panel");
     const index = panel ? panels.indexOf(panel) : -1;
     if (!target || index < 0) return;
