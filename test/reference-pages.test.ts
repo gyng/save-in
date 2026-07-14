@@ -158,6 +158,18 @@ describe("reference controller", () => {
     expect(document.querySelector("#clause td code")).toBeNull();
   });
 
+  test("repairs an existing empty table header", () => {
+    document.body.innerHTML = `<table id="missing-header"><thead></thead><tbody>
+      <tr><td><code>:date:</code></td><td>Current date</td></tr>
+    </tbody></table>`;
+
+    enhanceReferenceTables(document, referenceMessage);
+
+    expect(
+      [...document.querySelectorAll("#missing-header thead th")].map((cell) => cell.textContent),
+    ).toEqual(["Syntax", "Meaning"]);
+  });
+
   test("loads runtime vocabulary, filters counts, copies by pointer and keyboard, and secures links", async () => {
     document.body.insertAdjacentHTML(
       "beforeend",

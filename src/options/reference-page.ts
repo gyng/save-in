@@ -167,9 +167,10 @@ export const enhanceReferenceTables = (root: ParentNode, localize: GetMessage = 
       caption.textContent = sectionTitle;
       table.prepend(caption);
     }
-    if (!table.tHead) {
-      const head = table.createTHead();
-      const row = head.insertRow();
+    let headerRow = table.tHead?.rows[0];
+    if (!headerRow) {
+      const head = table.tHead ?? table.createTHead();
+      headerRow = head.insertRow();
       const columnCount = Math.max(...dataRows.map((dataRow) => dataRow.cells.length));
       const syntax = localize("referenceColumnSyntax") || "Syntax";
       const meaning = localize("referenceColumnMeaning") || "Meaning";
@@ -181,7 +182,7 @@ export const enhanceReferenceTables = (root: ParentNode, localize: GetMessage = 
         const th = table.ownerDocument.createElement("th");
         th.scope = "col";
         th.textContent = label;
-        row.appendChild(th);
+        headerRow.appendChild(th);
       });
     }
     rows.forEach((row) => {
@@ -192,7 +193,7 @@ export const enhanceReferenceTables = (root: ParentNode, localize: GetMessage = 
       while (first.firstChild) th.appendChild(first.firstChild);
       first.replaceWith(th);
     });
-    const labels = [...table.tHead!.rows[0]!.cells].map((cell) => cell.textContent.trim());
+    const labels = [...headerRow.cells].map((cell) => cell.textContent.trim());
     dataRows.forEach((row) => {
       [...row.cells].forEach((cell, index) => {
         if (!cell.querySelector(":scope > .reference-cell-content")) {
