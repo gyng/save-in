@@ -88,11 +88,13 @@ describe("routing visual editor", () => {
     expect(input).toHaveBeenCalledOnce();
   });
 
-  test("marks the exact visual clause row invalid", () => {
+  test("marks, aggregates, and clears visual rule validation", () => {
     element<HTMLTextAreaElement>("#filenamePatterns").value =
       "fileext: pdf\ninto: pdfs/:weekday:-:naivefidlename:";
     setupRuleVisualEditor({ matchers: ["fileext"] });
     const textarea = element<HTMLTextAreaElement>("#filenamePatterns");
+    const card = element<HTMLElement>(".rule-editor-card");
+    card.classList.add("has-validation-warning");
 
     textarea.dispatchEvent(
       new CustomEvent(EDITOR_VALIDATION_EVENT, {
@@ -110,8 +112,45 @@ describe("routing visual editor", () => {
 
     const row = element<HTMLElement>(".rule-clause-destination");
     expect(row.classList).toContain("has-validation-error");
+    expect(card.classList).not.toContain("has-validation-warning");
     expect(row.title).toContain(":naivefidlename:");
     expect(row.querySelector("input")?.getAttribute("aria-invalid")).toBe("true");
+
+    textarea.dispatchEvent(
+      new CustomEvent(EDITOR_VALIDATION_EVENT, {
+        detail: {
+          errors: [
+            { message: "Missing location", error: "ignored" },
+            {
+              message: "Before any rule",
+              error: "ignored",
+              location: { start: 0, end: 0, line: -1, column: 0 },
+            },
+            {
+              message: "Rule warning",
+              error: "",
+              warning: true,
+              location: { start: 50, end: 50, line: 3, column: 0 },
+            },
+            {
+              message: "Second warning",
+              error: "detail",
+              warning: true,
+              location: { start: 50, end: 50, line: 3, column: 0 },
+            },
+          ],
+        },
+      }),
+    );
+
+    expect(row.classList).not.toContain("has-validation-error");
+    expect(row.querySelector("input")?.hasAttribute("aria-invalid")).toBe(false);
+    expect(card.classList).toContain("has-validation-warning");
+    expect(card.title).toBe("Rule warning\nSecond warning: detail");
+
+    textarea.dispatchEvent(new Event(EDITOR_VALIDATION_EVENT));
+    expect(card.classList).not.toContain("has-validation-warning");
+    expect(card.hasAttribute("title")).toBe(false);
   });
 
   test("toggles a rule with a disabled control clause", () => {

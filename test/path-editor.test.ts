@@ -5,7 +5,10 @@
 
 import { PathEditor, setupPathEditor } from "../src/options/path-editor.ts";
 import { createSyntaxEditor, setSyntaxEditorDiagnostics } from "../src/options/syntax-editor.ts";
-import { EDITOR_VALIDATION_EVENT } from "../src/options/editor-validation.ts";
+import {
+  dispatchEditorValidation,
+  EDITOR_VALIDATION_EVENT,
+} from "../src/options/editor-validation.ts";
 
 const element = <T extends Element>(selector: string): T => {
   const match = document.querySelector<T>(selector);
@@ -157,24 +160,50 @@ describe("visual editor", () => {
     expect(rows()[2]!.querySelector(".path-editor-separator")).not.toBeNull();
   });
 
-  test("marks an invalid visual path row", () => {
+  test("marks, replaces, and clears visual path validation", () => {
+    rows()[2]!.classList.add("has-validation-warning");
+    dispatchEditorValidation(textarea(), [
+      {
+        sourceIndex: 1,
+        message: "Path variable is not supported",
+        error: ":modnthname:",
+      },
+    ]);
+
+    expect(rows()[1]!.classList).toContain("has-validation-error");
+    expect(rows()[2]!.classList).not.toContain("has-validation-warning");
+    expect(rows()[1]!.title).toContain(":modnthname:");
+    expect(rows()[1]!.querySelector(".path-editor-dir")?.getAttribute("aria-invalid")).toBe("true");
+
     textarea().dispatchEvent(
       new CustomEvent(EDITOR_VALIDATION_EVENT, {
         detail: {
           errors: [
-            {
-              sourceIndex: 1,
-              message: "Path variable is not supported",
-              error: ":modnthname:",
-            },
+            null,
+            { message: 4, error: "ignored" },
+            { message: "ignored", error: 4 },
+            { message: "Missing index", error: "" },
+            { sourceIndex: 99, message: "Missing row", error: "unknown" },
+            { sourceIndex: 0, message: "Warning only", error: "", warning: true },
           ],
         },
       }),
     );
 
-    expect(rows()[1]!.classList).toContain("has-validation-error");
-    expect(rows()[1]!.title).toContain(":modnthname:");
-    expect(rows()[1]!.querySelector(".path-editor-dir")?.getAttribute("aria-invalid")).toBe("true");
+    expect(rows()[1]!.classList).not.toContain("has-validation-error");
+    expect(rows()[1]!.hasAttribute("title")).toBe(false);
+    expect(rows()[1]!.querySelector(".path-editor-dir")?.hasAttribute("aria-invalid")).toBe(false);
+    expect(rows()[0]!.classList).toContain("has-validation-warning");
+    expect(rows()[0]!.title).toBe("Warning only");
+    expect(rows()[0]!.querySelector(".path-editor-dir")?.hasAttribute("aria-invalid")).toBe(false);
+
+    textarea().dispatchEvent(
+      new CustomEvent(EDITOR_VALIDATION_EVENT, { detail: { errors: "invalid" } }),
+    );
+    expect(rows()[0]!.classList).not.toContain("has-validation-warning");
+    expect(rows()[0]!.hasAttribute("title")).toBe(false);
+
+    textarea().dispatchEvent(new Event(EDITOR_VALIDATION_EVENT));
   });
 
   test("toggles a row with disabled metadata", () => {
