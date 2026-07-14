@@ -80,6 +80,7 @@ document.addEventListener(
     setupOptionsReferences();
     setupTabs({
       confirmPendingChanges,
+      label: getMessage("html_settingsSaveIn") || "Save In settings",
       onGuardError: (error) => {
         const message = getMessage("o_lSaveFailed") || "Could not save changes";
         window.alert(`${message}\n${String(error)}`);

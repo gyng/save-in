@@ -20,6 +20,7 @@ type TabSection = { heading: HTMLElement; nodes: HTMLElement[]; key: string };
 type TabsOptions = {
   confirmPendingChanges?: () => boolean | Promise<boolean>;
   onGuardError?: (error: unknown) => void;
+  label?: string;
 };
 const PRIMARY_SECTION_ORDER = [
   "section-downloads",
@@ -83,7 +84,11 @@ export const collectSections = (form: HTMLElement): TabSection[] => {
   return sections;
 };
 
-export const setupTabs = ({ confirmPendingChanges, onGuardError }: TabsOptions = {}): void => {
+export const setupTabs = ({
+  confirmPendingChanges,
+  onGuardError,
+  label = "Settings sections",
+}: TabsOptions = {}): void => {
   const form = document.getElementById("options");
   if (!form) {
     return;
@@ -98,6 +103,7 @@ export const setupTabs = ({ confirmPendingChanges, onGuardError }: TabsOptions =
   const tablist = document.createElement("div");
   tablist.className = "tablist";
   tablist.setAttribute("role", "tablist");
+  tablist.setAttribute("aria-label", label);
 
   const panels = sections.map((section) => {
     const panel = document.createElement("section");

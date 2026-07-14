@@ -45,6 +45,20 @@ test("keeps editing when the modal is canceled", async () => {
   }
 });
 
+test("restores focus to the control that opened the dialog", async () => {
+  const opener = document.createElement("button");
+  opener.textContent = "Advanced";
+  document.body.append(opener);
+  opener.focus();
+
+  const result = showUnsavedChangesDialog("Discard these edits?");
+  document.querySelector<HTMLButtonElement>(".danger-button")!.click();
+
+  await expect(result).resolves.toBe("discard");
+  expect(document.activeElement).toBe(opener);
+  opener.remove();
+});
+
 test("uses readable action copy without localization or modal support", async () => {
   const result = showUnsavedChangesDialog("Keep these edits?", () => "");
   const dialog = document.querySelector("dialog")!;

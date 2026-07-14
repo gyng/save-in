@@ -116,6 +116,10 @@ describe("setupTabs", () => {
     const tabs = document.querySelectorAll<HTMLElement>(".tablist .tab");
     expect(tabs).toHaveLength(3);
 
+    expect(document.querySelector(".tablist")?.getAttribute("aria-label")).toBe(
+      "Settings sections",
+    );
+
     const panels = document.querySelectorAll<HTMLElement>(".tab-panel");
     expect(panels[0]!.hidden).toBe(false);
     expect(panels[1]!.hidden).toBe(true);

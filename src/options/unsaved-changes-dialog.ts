@@ -9,6 +9,10 @@ export const showUnsavedChangesDialog = (
   localize: GetMessage = getMessage,
 ): Promise<UnsavedChangesChoice> =>
   new Promise((resolve) => {
+    const opener =
+      document.activeElement instanceof HTMLElement && document.activeElement !== document.body
+        ? document.activeElement
+        : null;
     const dialog = document.createElement("dialog");
     dialog.className = "app-dialog unsaved-changes-dialog";
     dialog.setAttribute("aria-labelledby", "unsaved-changes-title");
@@ -35,6 +39,7 @@ export const showUnsavedChangesDialog = (
 
     const finish = (choice: UnsavedChangesChoice) => {
       dialog.remove();
+      if (opener?.isConnected) opener.focus();
       resolve(choice);
     };
     keep.addEventListener("click", () => finish("keep"));
