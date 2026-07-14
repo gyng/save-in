@@ -1171,18 +1171,23 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
               </div>
             </section>
 
-            <fieldset class="option-group routing-post-options">
-              <legend class="option-group-heading">__MSG_routingNoMatchBehavior__</legend>
-              <label>
-                <input type="checkbox" id="routeFailurePrompt" />
-                __MSG_o_cOpenDialogIfNoRulesMatch__
-              </label>
+            <div class="routing-post-options">
+              <fieldset class="option-group">
+                <legend class="option-group-heading">__MSG_routingNoMatchBehavior__</legend>
+                <label>
+                  <input type="checkbox" id="routeFailurePrompt" />
+                  __MSG_o_cOpenDialogIfNoRulesMatch__
+                </label>
+              </fieldset>
 
-              <label>
-                <input type="checkbox" id="routeExclusive" /> __MSG_o_cExclusiveMode__
-                <div class="caption caption-line">__MSG_o_cExclusiveModeHelp__</div>
-              </label>
-            </fieldset>
+              <fieldset class="option-group">
+                <legend class="option-group-heading">__MSG_o_sContextMenu__</legend>
+                <label>
+                  <input type="checkbox" id="routeExclusive" /> __MSG_o_cExclusiveMode__
+                  <div class="caption caption-line">__MSG_o_cExclusiveModeHelp__</div>
+                </label>
+              </fieldset>
+            </div>
           </div>
 
           <aside

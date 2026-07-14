@@ -1060,11 +1060,11 @@
     "description": "Option control label or related help text. Used in src/options/options.html."
   },
   "o_cExclusiveMode": {
-    "message": "Do not save the file",
+    "message": "Use routing rules instead of folder choices",
     "description": "Option control label or related help text. Used in src/options/options.html."
   },
   "o_cExclusiveModeHelp": {
-    "message": "Also hides folder choices in the context menu",
+    "message": "Files are not saved when no routing rule matches",
     "description": "Option control label or related help text. Used in src/options/options.html."
   },
   "o_cNotifySuccess": {
