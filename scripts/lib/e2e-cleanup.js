@@ -94,7 +94,7 @@ const acquireDirectoryLock = (
       if (errorCode(error) !== "EEXIST") throw error;
       if (tryReclaimDirectoryLock(lockDir, { pid })) continue;
       if (Date.now() >= deadline)
-        throw new Error(`Timed out waiting for E2E staging lock: ${lockDir}`, { cause: error });
+        throw new Error(`Timed out waiting for staging lock: ${lockDir}`, { cause: error });
       sleepSync(pollMs);
     }
   }
@@ -105,7 +105,7 @@ const releaseDirectoryLock = ({ lockDir, token }) => {
   try {
     const owner = JSON.parse(fs.readFileSync(path.join(lockDir, "owner.json"), "utf8"));
     if (owner.token !== token)
-      throw new Error(`Refusing to release an E2E lock owned by another process: ${lockDir}`);
+      throw new Error(`Refusing to release a lock owned by another process: ${lockDir}`);
     fs.rmSync(lockDir, { recursive: true, force: true });
   } catch (error) {
     if (errorCode(error) !== "ENOENT") throw error;

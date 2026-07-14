@@ -63,6 +63,28 @@ type ProtocolSendResponse<Request extends InternalMessage> = SendResponse<Respon
 const sourcePanelCopies = new Map<string, ReturnType<typeof createSourcePanelCopy>>();
 const allowExternalValidation = createExternalValidationRateLimiter();
 
+const getUntrustedValidationRejection = (
+  request: MessageOf<typeof MESSAGE_TYPES.VALIDATE>,
+  sender: MessageSender,
+): ResponseFor<MessageOf<typeof MESSAGE_TYPES.VALIDATE>>["body"] | undefined => {
+  const requestError = externalValidationRequestError(request.body);
+  if (requestError) {
+    return {
+      status: MESSAGE_TYPES.ERROR,
+      error: Messaging.API_ERRORS.BAD_REQUEST,
+      message: requestError,
+    };
+  }
+  if (!allowExternalValidation(sender.id || "unknown")) {
+    return {
+      status: MESSAGE_TYPES.ERROR,
+      error: Messaging.API_ERRORS.RATE_LIMITED,
+      message: "Too many validation requests",
+    };
+  }
+  return undefined;
+};
+
 export const Messaging = {
   // ─── External DOWNLOAD API (issue #110) ────────────────────────────────
   // Versioned, supported contract for other extensions to push a URL into
@@ -792,28 +814,11 @@ export const registerMessaging = () => {
       return;
     }
     if (rawRequest.type === MESSAGE_TYPES.VALIDATE) {
-      const requestError = externalValidationRequestError(rawRequest.body);
-      if (requestError) {
+      const rejection = getUntrustedValidationRejection(rawRequest, sender);
+      if (rejection) {
         sendResponse({
           type: MESSAGE_TYPES.VALIDATE,
-          body: {
-            status: MESSAGE_TYPES.ERROR,
-            error: Messaging.API_ERRORS.BAD_REQUEST,
-            message: requestError,
-            version: Messaging.API_VERSION,
-          },
-        });
-        return;
-      }
-      if (!allowExternalValidation(sender.id || "unknown")) {
-        sendResponse({
-          type: MESSAGE_TYPES.VALIDATE,
-          body: {
-            status: MESSAGE_TYPES.ERROR,
-            error: Messaging.API_ERRORS.RATE_LIMITED,
-            message: "Too many validation requests",
-            version: Messaging.API_VERSION,
-          },
+          body: { ...rejection, version: Messaging.API_VERSION },
         });
         return;
       }
@@ -824,6 +829,17 @@ export const registerMessaging = () => {
   webExtensionApi.runtime.onMessage.addListener((rawRequest, sender, sendResponse) => {
     if (!isInternalMessage(rawRequest)) {
       return;
+    }
+    if (
+      rawRequest.type === MESSAGE_TYPES.VALIDATE &&
+      rawRequest.body?.validationSource === "webmcp"
+    ) {
+      const rejection = getUntrustedValidationRejection(rawRequest, sender);
+      if (rejection) {
+        sendResponse({ type: MESSAGE_TYPES.VALIDATE, body: rejection });
+        return;
+      }
+      return dispatchMessage(rawRequest, sender, sendResponse, externalHandlers);
     }
     return dispatchMessage(rawRequest, sender, sendResponse, internalHandlers);
   });

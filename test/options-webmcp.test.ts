@@ -104,7 +104,10 @@ describe("buildTools", () => {
     expect(send).toHaveBeenCalledWith({ type: "GET_GRAMMARS" });
 
     byName.save_in_validate_config.execute({ paths: "dogs" });
-    expect(send).toHaveBeenCalledWith({ type: "VALIDATE", body: { paths: "dogs" } });
+    expect(send).toHaveBeenCalledWith({
+      type: "VALIDATE",
+      body: { paths: "dogs", validationSource: "webmcp" },
+    });
 
     byName.save_in_apply_config.execute({ config: { prompt: true } });
     expect(send).toHaveBeenCalledWith({
@@ -155,6 +158,7 @@ describe("buildTools", () => {
         filenamePatterns:
           "context: ^auto$\npagedomain: example\\.test\nsourcekind: image\ninto: Images",
         automaticCandidate,
+        validationSource: "webmcp",
       },
     });
   });
@@ -178,7 +182,11 @@ describe("buildTools", () => {
 
     expect(send).toHaveBeenCalledWith({
       type: "VALIDATE",
-      body: { filenamePatterns: "pagetitle: report\ninto: matched", info },
+      body: {
+        filenamePatterns: "pagetitle: report\ninto: matched",
+        info,
+        validationSource: "webmcp",
+      },
     });
   });
 

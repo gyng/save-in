@@ -180,6 +180,48 @@ describe("config API", () => {
     });
   });
 
+  test("WebMCP VALIDATE uses the external regex safeguards", async () => {
+    const rules = [
+      [
+        {
+          name: "filename",
+          value: /(a+)+$/,
+          type: "MATCHER",
+          matcher: vi.fn(),
+        },
+        { name: "into", value: "images", type: "DESTINATION" },
+      ],
+    ] as any;
+    vi.mocked(router.parseRulesCollecting).mockReturnValue({ rules, errors: [] });
+    const sendResponse = vi.fn();
+
+    expect(
+      onMessage(
+        {
+          type: MESSAGE_TYPES.VALIDATE,
+          body: {
+            filenamePatterns: "filename: (a+)+$\ninto: images",
+            info: { filename: "a" },
+            validationSource: "webmcp",
+          },
+        } as any,
+        { id: "save-in" },
+        sendResponse,
+      ),
+    ).toBe(true);
+    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+
+    expect(router.traceRules).not.toHaveBeenCalled();
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.VALIDATE,
+      body: {
+        status: MESSAGE_TYPES.ERROR,
+        error: "BAD_REQUEST",
+        message: "Validation rules contain an unsafe regular expression",
+      },
+    });
+  });
+
   test("external VALIDATE rejects oversized input before parsing", () => {
     const sendResponse = vi.fn();
 

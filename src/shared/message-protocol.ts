@@ -366,6 +366,7 @@ export type InternalMessage =
         filenamePatterns?: string;
         info?: ValidationInfo;
         automaticCandidate?: AutomaticRoutingValidationCandidate;
+        validationSource?: "webmcp";
       }
     >
   | OptionalBodyMessage<
@@ -599,6 +600,7 @@ const isMessageBodyValid = (message: Record<string, unknown> & { type: string })
           isStringKeyedRecord(body) &&
           hasOptionalString(body, "paths") &&
           hasOptionalString(body, "filenamePatterns") &&
+          (typeof body.validationSource === "undefined" || body.validationSource === "webmcp") &&
           (typeof body.info === "undefined" || isValidationInfo(body.info)) &&
           (typeof body.automaticCandidate === "undefined" ||
             isAutomaticRoutingValidationCandidate(body.automaticCandidate)),

@@ -325,7 +325,10 @@ export const SaveInWebMCP = {
           if (!hasOwn(input, "paths") && !hasOwn(input, "filenamePatterns")) {
             return inputError("$", "Provide paths or filenamePatterns");
           }
-          return send({ type: "VALIDATE", body: input });
+          return send({
+            type: "VALIDATE",
+            body: { ...input, validationSource: "webmcp" },
+          });
         },
       },
       {

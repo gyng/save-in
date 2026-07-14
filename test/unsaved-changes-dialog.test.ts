@@ -10,6 +10,10 @@ test.each([
   const buttons = [...dialog.querySelectorAll("button")];
 
   expect(buttons).toHaveLength(2);
+  expect(dialog.getAttribute("aria-describedby")).toBe("unsaved-changes-description");
+  expect(document.getElementById("unsaved-changes-description")?.textContent).toBe(
+    "Discard your unsaved changes, or keep editing?",
+  );
   const selected = chooseDefault
     ? document.activeElement
     : buttons.find((button) => !button.matches(":focus"));

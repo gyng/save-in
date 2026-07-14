@@ -12,11 +12,13 @@ export const showUnsavedChangesDialog = (
     const dialog = document.createElement("dialog");
     dialog.className = "app-dialog unsaved-changes-dialog";
     dialog.setAttribute("aria-labelledby", "unsaved-changes-title");
+    dialog.setAttribute("aria-describedby", "unsaved-changes-description");
 
     const title = document.createElement("h2");
     title.id = "unsaved-changes-title";
     title.textContent = localize("optionsEditorUnsaved") || "Unsaved changes";
     const body = document.createElement("p");
+    body.id = "unsaved-changes-description";
     body.textContent = message;
     const actions = document.createElement("div");
     actions.className = "dialog-actions";

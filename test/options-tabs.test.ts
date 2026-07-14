@@ -346,6 +346,7 @@ describe("unsaved-changes guard on tab switch", () => {
     const tabs = document.querySelectorAll<HTMLElement>(".tablist .tab");
     const panels = document.querySelectorAll<HTMLElement>(".tab-panel");
 
+    tabs[1]!.focus();
     tabs[1]!.click();
     finish(false);
     await Promise.resolve();
@@ -353,6 +354,7 @@ describe("unsaved-changes guard on tab switch", () => {
     expect(tabs[0]!.getAttribute("aria-selected")).toBe("true");
     expect(panels[0]!.hidden).toBe(false);
     expect(panels[1]!.hidden).toBe(true);
+    expect(document.activeElement).toBe(tabs[0]);
   });
 
   test("waits for an asynchronous save guard before switching", async () => {

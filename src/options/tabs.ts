@@ -143,7 +143,7 @@ export const setupTabs = ({ confirmPendingChanges, onGuardError }: TabsOptions =
   const select = (index: number, focusOnActivate = false, afterActivate?: () => void): void => {
     const mine = ++navigationGeneration;
     const restoreFocus = (): void => {
-      if (focusOnActivate && currentIndex >= 0) tabs[currentIndex]?.focus();
+      if (currentIndex >= 0) tabs[currentIndex]?.focus();
     };
     const finishGuardedNavigation = (allowed: boolean): void => {
       if (mine !== navigationGeneration) return;
@@ -177,7 +177,10 @@ export const setupTabs = ({ confirmPendingChanges, onGuardError }: TabsOptions =
         void allowed.then(finishGuardedNavigation, failGuardedNavigation);
         return;
       }
-      if (!allowed) return;
+      if (!allowed) {
+        restoreFocus();
+        return;
+      }
     }
     activate(index);
     if (focusOnActivate) tabs[index]?.focus();
