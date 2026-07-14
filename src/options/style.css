@@ -1009,6 +1009,13 @@ button:active {
   font-weight: 600;
 }
 
+.error-location {
+  flex: none;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  white-space: nowrap;
+}
+
 .error-error {
   font-family: var(--font-mono);
   font-size: var(--text-sm);

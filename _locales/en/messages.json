@@ -110,27 +110,27 @@
     }
   },
   "ruleMissingMatcher": {
-    "message": "Add at least one matcher clause",
+    "message": "Add at least one match condition before into:",
     "description": "Error message for missing matcher in rule. Used in src/routing/rule-parser.ts."
   },
   "ruleAutomaticMissingPage": {
-    "message": "Automatic source rules need a page condition",
+    "message": "Add a pageurl:, pagedomain:, or pagerootdomain: condition",
     "description": "Validation error requiring automatic source routing rules to be limited to a page or site. Used in src/routing/rule-parser.ts."
   },
   "ruleAutomaticMissingSource": {
-    "message": "Automatic source rules need a source condition",
+    "message": "Add a source address, domain, kind, or extension condition",
     "description": "Validation error requiring automatic source routing rules to select a source URL, kind, domain, or extension. Used in src/routing/rule-parser.ts."
   },
   "ruleCaptureMissingMatcher": {
-    "message": "Capture clause does not target a matcher",
+    "message": "Capture target does not match any condition in this rule",
     "description": "Error message for capture targeting missing matcher. Used in src/routing/rule-parser.ts."
   },
   "ruleCaptureAmbiguousMatcher": {
-    "message": "Legacy capture uses the first matching clause",
+    "message": "capture: uses the first condition with this name",
     "description": "Warning when a legacy capture target names more than one matcher clause. Used in src/routing/rule-parser.ts."
   },
   "ruleMissingCapture": {
-    "message": "Add a capture clause to use capture variables",
+    "message": "Destination capture variable has no matching capture group",
     "description": "Error message for missing capture clause in rule. Used in src/routing/rule-parser.ts."
   },
   "ruleMultipleCapture": {
@@ -138,7 +138,7 @@
     "description": "Error message for multiple capture clauses in rule. Used in src/routing/rule-parser.ts."
   },
   "ruleMissingInto": {
-    "message": "Add at least one into: clause",
+    "message": "Add one non-empty into: destination",
     "description": "Error message for missing into clause in rule. Used in src/routing/rule-parser.ts."
   },
   "ruleExtraInto": {
@@ -146,19 +146,19 @@
     "description": "Error message for multiple into clauses in rule. Used in src/routing/rule-parser.ts."
   },
   "ruleUnknownMatcher": {
-    "message": "Unknown matcher",
+    "message": "Matcher name is not supported",
     "description": "Error message for an unknown matcher. Used in src/routing/rule-parser.ts."
   },
   "ruleInvalidRegex": {
-    "message": "Invalid regular expression",
+    "message": "Pattern or flags are not a valid regular expression",
     "description": "Error message for a rule with invalid regex. Used in src/routing/rule-parser.ts."
   },
   "ruleShadowed": {
-    "message": "This rule never runs because an earlier rule matches the same or more downloads",
+    "message": "Earlier rule already matches every download this rule can match",
     "description": "Warning for a routing rule shadowed by an earlier rule. Used in src/routing/rule-parser.ts."
   },
   "ruleBadClause": {
-    "message": "Invalid clause",
+    "message": "Use name: value syntax",
     "description": "Error message for lines in rule with syntax errors. Used in src/routing/rule-parser.ts."
   },
   "rulePathInvalidCharacter": {

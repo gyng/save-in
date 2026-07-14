@@ -432,13 +432,11 @@ export const setupWebMcpStatus = (localize: typeof getMessage = getMessage): voi
   const statusEl = document.getElementById("webmcp-status");
 
   if (ctx && typeof ctx.registerTool === "function" && webExtensionApi) {
-    const count = SaveInWebMCP.buildTools((message) =>
-      webExtensionApi.runtime.sendMessage(message),
-    ).length;
+    const send = (message: WebMcpMessage) =>
+      webExtensionApi.runtime.sendMessage(message).then((res) => (res && res.body) || res);
+    const count = SaveInWebMCP.buildTools(send).length;
     if (statusEl) statusEl.textContent = localize("webMcpStatusRegistering") || "Registering…";
-    void SaveInWebMCP.register(ctx, (message: WebMcpMessage) =>
-      webExtensionApi.runtime.sendMessage(message).then((res) => (res && res.body) || res),
-    ).then((registered) => {
+    void SaveInWebMCP.register(ctx, send).then((registered) => {
       if (!statusEl) return;
       statusEl.textContent =
         registered === count

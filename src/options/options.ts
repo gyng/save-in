@@ -193,15 +193,24 @@ const renderErrorRow = (err: ValidationError, textareaId: string) => {
   r.setAttribute("tabindex", "0");
   r.title = "Jump to this error";
 
+  if (err.location) {
+    const location = document.createElement("span");
+    location.className = "error-location";
+    location.textContent = `L${err.location.line}:${err.location.column + 1}`;
+    r.appendChild(location);
+  }
+
   const message = document.createElement("span");
   message.className = "error-message";
   message.textContent = err.message;
   r.appendChild(message);
 
-  const error = document.createElement("span");
-  error.className = "error-error";
-  error.textContent = err.error;
-  r.appendChild(error);
+  if (err.error) {
+    const error = document.createElement("span");
+    error.className = "error-error";
+    error.textContent = err.error;
+    r.appendChild(error);
+  }
 
   const sourceIndex =
     "sourceIndex" in err && typeof err.sourceIndex === "number" ? err.sourceIndex : undefined;
