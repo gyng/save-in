@@ -12,6 +12,8 @@ const styles = fs
 const violations = [];
 const styleEntryPath = path.join(root, "src", "options", "style.css");
 const tokenStylePath = path.join(root, "src", "options", "style-tokens.css");
+const optionsDocumentPath = path.join(root, "src", "options", "options.html");
+const clauseListDocumentPath = path.join(root, "src", "options", "clauselist.html");
 const sourcePanelPath = path.join(root, "src", "content", "source-panel.ts");
 const sourcePanelStylePath = path.join(root, "src", "content", "source-panel-style.ts");
 /** @type {Array<[string, string[]]>} */
@@ -50,6 +52,23 @@ for (const [entry, file, layer] of pageStyleLayers) {
   const source = fs.readFileSync(path.join(root, "src", "options", entry), "utf8");
   if (source !== `@import url("${file}") layer(${layer});\n`) {
     violations.push(`src/options/${entry} must import ${file} into the ${layer} layer`);
+  }
+}
+
+/** @type {Array<[string, string[]]>} */
+const expectedDocumentStyles = [
+  [optionsDocumentPath, ["style.css", "style-welcome.css", "style-reference.css"]],
+  [clauseListDocumentPath, ["style.css", "style-reference.css"]],
+];
+for (const [documentPath, expected] of expectedDocumentStyles) {
+  const source = fs.readFileSync(documentPath, "utf8");
+  const actual = [...source.matchAll(/<link href="([^"]+\.css)" rel="stylesheet" \/>/g)].map(
+    (match) => match[1],
+  );
+  if (actual.join("\n") !== expected.join("\n")) {
+    violations.push(
+      `${path.relative(root, documentPath)} must load the declared layered stylesheet entries`,
+    );
   }
 }
 

@@ -460,6 +460,10 @@
   background-color: color-mix(in srgb, var(--link-color) 10%, transparent);
 }
 
+#history-list {
+  container-type: inline-size;
+}
+
 /* The history table spans the full tab width (it has many columns); its
    action row (filter, count, clear) spans the same width so the count and
    Clear button align flush with the table's right edge */
@@ -468,10 +472,6 @@
 .tab-panel > .history-facets,
 .tab-panel > .history-table-tools {
   max-width: none;
-}
-
-#history-list {
-  container-type: inline-size;
 }
 
 .history-pager {
