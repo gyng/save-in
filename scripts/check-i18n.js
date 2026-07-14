@@ -143,6 +143,33 @@ const keyboardTokenKeys = [
   "o_lSourcePanelShortcutHelp",
 ];
 const keyboardTokenPattern = /\b(?:Alt|Shift|Ctrl|Command|MacCtrl|None|F12|PageDown)\b/g;
+const browserExtensionKeys = [
+  "html_allowedExtensionIds",
+  "html_approvedExtensions",
+  "html_extensionId",
+  "html_letTrustedExtensionsSendUrlsThroughSaveInS",
+  "html_noExtensionsAreApprovedExternalDownloadsAreBlockedBy",
+  "html_oneExtensionIdPerLine",
+  "html_onlyApprovedExtensionsCanStartDownloadsUseTheCalling",
+  "html_pasteAnExtensionId",
+  "html_theseExtensionsTriedToStartADownloadAddOnly",
+  "html_useOneExtensionIdPerLineForBulkChanges",
+  "html_webextensionsSuchAsFoxyGesturesCanMessageSaveIn",
+];
+/** @type {Map<string, RegExp>} */
+const browserExtensionTermByLocale = new Map([
+  ["de", /Erweiterung/],
+  ["es", /extensi/i],
+  ["fr", /extension/i],
+  ["it", /estension/i],
+  ["ja", /拡張機能/],
+  ["ko", /확장 프로그램/],
+  ["nl_AI", /extensi/i],
+  ["pt_BR", /extens/i],
+  ["sv_AI", /tillägg/i],
+  ["zh_CN", /扩展程序/],
+  ["zh_TW", /擴充功能/],
+]);
 const generatedRoot = path.join(root, "src", "i18n", "generated");
 /** @type {{locale:string, catalog:Record<string, any>}[]} */
 const generatedCatalogs = [];
@@ -200,6 +227,14 @@ for (const entry of fs.readdirSync(generatedRoot, { withFileTypes: true })) {
     for (const token of english[key]?.message.match(keyboardTokenPattern) || []) {
       if (!catalog[key]?.message.includes(token))
         report(`${locale}.${key}: missing keyboard token ${token}`);
+    }
+  }
+  const browserExtensionTerm = browserExtensionTermByLocale.get(locale);
+  if (browserExtensionTerm) {
+    for (const key of browserExtensionKeys) {
+      if (!browserExtensionTerm.test(catalog[key]?.message || "")) {
+        report(`${locale}.${key}: missing locale browser-extension term`);
+      }
     }
   }
 }

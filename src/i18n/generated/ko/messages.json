@@ -434,7 +434,7 @@
     "message": "캡처 그룹"
   },
   "o_lRoutingVariables": {
-    "message": "변수"
+    "message": "다음 변수의 현재 값:"
   },
   "o_lRoutingVariablesClickToSee": {
     "message": "공개하려면 클릭하세요."
@@ -1127,10 +1127,10 @@
     "message": "예: 버전을 협상한 후 URL을 저장합니다."
   },
   "html_extensionId": {
-    "message": "확장 ID"
+    "message": "확장 프로그램 ID"
   },
   "html_externalDownloadAccess": {
-    "message": "외부 다운로드 액세스"
+    "message": "외부 다운로드 접근 권한"
   },
   "html_externalIntegrations": {
     "message": "외부 통합"
@@ -1145,16 +1145,16 @@
     "message": "MDN: 일치 패턴"
   },
   "html_noExtensionsAreApprovedExternalDownloadsAreBlockedBy": {
-    "message": "확장이 승인되지 않았습니다. 외부 다운로드는 기본적으로 차단됩니다."
+    "message": "승인된 확장 프로그램이 없습니다. 외부 다운로드는 기본적으로 차단됩니다."
   },
   "html_noneApproved": {
-    "message": "승인되지 않음"
+    "message": "승인된 확장 프로그램 없음"
   },
   "html_oneExtensionIdPerLine": {
     "message": "한 줄에 하나의 확장 프로그램 ID"
   },
   "html_onlyApprovedExtensionsCanStartDownloadsUseTheCalling": {
-    "message": "승인된 확장 프로그램만 다운로드를 시작할 수 있습니다. Save In의 ID가 아닌 통화 내선 번호의 ID를 사용하세요."
+    "message": "승인된 확장 프로그램만 다운로드를 시작할 수 있습니다. Save In의 ID가 아닌 요청한 확장 프로그램의 ID를 사용하세요."
   },
   "html_pasteAnExtensionId": {
     "message": "확장 프로그램 ID 붙여넣기"
@@ -1169,19 +1169,19 @@
     "message": "설정값"
   },
   "html_theseExtensionsTriedToStartADownloadAddOnly": {
-    "message": "이 확장 프로그램이 다운로드를 시작하려고 했습니다. 신뢰할 수 있는 발신자만 추가하세요. 요청된 URL은 저장되지 않습니다."
+    "message": "이 확장 프로그램들이 다운로드를 시작하려고 했습니다. 신뢰할 수 있는 확장 프로그램만 추가하세요. 요청된 URL은 저장되지 않습니다."
   },
   "html_useOneExtensionIdPerLineForBulkChanges": {
     "message": "대량 변경에는 한 줄에 하나의 확장 프로그램 ID를 사용하세요."
   },
   "html_variableItAdvancesOncePerSavedDownloadAndPersists": {
-    "message": "의 현재 값입니다. 다운로드가 저장될 때마다 1씩 증가하며 다시 시작해도 유지됩니다."
+    "message": "— 다운로드가 저장될 때마다 1씩 증가하며 다시 시작해도 유지됩니다."
   },
   "html_webextensionsSuchAsFoxyGesturesCanMessageSaveIn": {
     "message": "Foxy Gestures 같은 WebExtensions는 Save In에 직접 메시지를 보낼 수 있습니다. Greasemonkey, Tampermonkey 또는 Violentmonkey 사용자 스크립트만으로는 이 작업을 수행할 수 없습니다. 사용자 스크립트에는 확장 프로그램 간 메시지 접근 권한이 없습니다. 작은 보조 WebExtension을 중계로 사용하거나, 해당 기능을 제공하는 확장 프로그램에 URL을 전달하도록 사용자 스크립트를 설정하세요."
   },
   "html_whereThisWorks": {
-    "message": "이것이 작동하는 곳"
+    "message": "지원 환경"
   },
   "html_askTheCommunity": {
     "message": "커뮤니티에 물어보세요"

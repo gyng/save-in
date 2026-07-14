@@ -1094,16 +1094,16 @@
     "message": "許可する"
   },
   "html_allowedExtensionIds": {
-    "message": "許可される拡張機能 ID"
+    "message": "許可された拡張機能 ID"
   },
   "html_apiVersion": {
-    "message": "APIバージョン"
+    "message": "API バージョン"
   },
   "html_approvedExtensions": {
-    "message": "承認された拡張機能"
+    "message": "承認済みの拡張機能"
   },
   "html_capabilities": {
-    "message": "能力"
+    "message": "機能"
   },
   "html_clickTheSnippetToCopyIt": {
     "message": "スニペットをクリックしてコピーします。"
@@ -1121,7 +1121,7 @@
     "message": "削除する"
   },
   "html_developerDetails": {
-    "message": "開発者の詳細"
+    "message": "開発者向け情報"
   },
   "html_exampleNegotiateTheVersionThenSaveAUrl": {
     "message": "例: バージョンをネゴシエートし、URL を保存します。"
@@ -1130,7 +1130,7 @@
     "message": "拡張機能 ID"
   },
   "html_externalDownloadAccess": {
-    "message": "外部ダウンロードアクセス"
+    "message": "外部ダウンロードへのアクセス"
   },
   "html_externalIntegrations": {
     "message": "外部統合"
@@ -1145,19 +1145,19 @@
     "message": "MDN：マッチパターン"
   },
   "html_noExtensionsAreApprovedExternalDownloadsAreBlockedBy": {
-    "message": "延長は認められません。外部ダウンロードはデフォルトでブロックされます。"
+    "message": "承認済みの拡張機能はありません。外部ダウンロードは既定でブロックされます。"
   },
   "html_noneApproved": {
-    "message": "何も承認されていません"
+    "message": "承認済みなし"
   },
   "html_oneExtensionIdPerLine": {
-    "message": "1 行に 1 つの拡張 ID"
+    "message": "1 行に 1 つの拡張機能 ID"
   },
   "html_onlyApprovedExtensionsCanStartDownloadsUseTheCalling": {
-    "message": "承認された拡張機能のみがダウンロードを開始できます。 Save In の ID ではなく、発信者内線番号の ID を使用します。"
+    "message": "承認済みの拡張機能だけがダウンロードを開始できます。Save In の ID ではなく、呼び出し元の拡張機能 ID を使用してください。"
   },
   "html_pasteAnExtensionId": {
-    "message": "拡張機能 ID を貼り付けます"
+    "message": "拡張機能 ID を貼り付け"
   },
   "html_pendingApproval": {
     "message": "承認待ち"
@@ -1169,10 +1169,10 @@
     "message": "設定値"
   },
   "html_theseExtensionsTriedToStartADownloadAddOnly": {
-    "message": "これらの拡張機能はダウンロードを開始しようとしました。信頼できる発信者のみを追加してください。リクエストされた URL は保存されません。"
+    "message": "これらの拡張機能からダウンロード開始の要求がありました。信頼できる拡張機能だけを追加してください。要求された URL は保存されません。"
   },
   "html_useOneExtensionIdPerLineForBulkChanges": {
-    "message": "一括変更の場合は、1 行に 1 つの拡張 ID を使用します。"
+    "message": "一括変更では、1 行に 1 つの拡張機能 ID を入力してください。"
   },
   "html_variableItAdvancesOncePerSavedDownloadAndPersists": {
     "message": "の現在値です。保存が完了するたびに 1 ずつ増え、再起動後も保持されます。"
@@ -1181,7 +1181,7 @@
     "message": "Foxy Gestures などの WebExtensions は Save In に直接メッセージを送信できます。Greasemonkey、Tampermonkey、Violentmonkey のユーザースクリプトだけでは実行できません。ユーザースクリプトには拡張機能間メッセージングの権限がありません。小さな補助 WebExtension を中継として使うか、その機能を提供する拡張機能に URL を渡すようユーザースクリプトを設定してください。"
   },
   "html_whereThisWorks": {
-    "message": "これが機能する場所"
+    "message": "利用できる環境"
   },
   "html_askTheCommunity": {
     "message": "コミュニティに質問する"

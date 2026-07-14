@@ -1088,22 +1088,22 @@
     "message": "影片 · 2.4 MB · #2"
   },
   "html_advancedEditIdsAsText": {
-    "message": "進階：將 ID 編輯為文本"
+    "message": "進階：將 ID 編輯為文字"
   },
   "html_allow": {
     "message": "允許"
   },
   "html_allowedExtensionIds": {
-    "message": "允許的擴充 ID"
+    "message": "允許的擴充功能 ID"
   },
   "html_apiVersion": {
-    "message": "API版本"
+    "message": "API 版本"
   },
   "html_approvedExtensions": {
-    "message": "批准的擴展"
+    "message": "已核准的擴充功能"
   },
   "html_capabilities": {
-    "message": "能力"
+    "message": "功能"
   },
   "html_clickTheSnippetToCopyIt": {
     "message": "點選程式碼片段即可複製。"
@@ -1121,7 +1121,7 @@
     "message": "刪除"
   },
   "html_developerDetails": {
-    "message": "開發商詳情"
+    "message": "開發者詳細資訊"
   },
   "html_exampleNegotiateTheVersionThenSaveAUrl": {
     "message": "範例：協商版本，然後儲存 URL"
@@ -1130,7 +1130,7 @@
     "message": "擴充功能 ID"
   },
   "html_externalDownloadAccess": {
-    "message": "外部下載訪問"
+    "message": "外部下載存取權"
   },
   "html_externalIntegrations": {
     "message": "外部整合"
@@ -1145,34 +1145,34 @@
     "message": "MDN：比對模式"
   },
   "html_noExtensionsAreApprovedExternalDownloadsAreBlockedBy": {
-    "message": "沒有批准延期。預設情況下阻止外部下載。"
+    "message": "沒有已核准的擴充功能。預設會封鎖外部下載。"
   },
   "html_noneApproved": {
-    "message": "未獲批准"
+    "message": "未核准任何擴充功能"
   },
   "html_oneExtensionIdPerLine": {
-    "message": "每條線路一個分機 ID"
+    "message": "每行一個擴充功能 ID"
   },
   "html_onlyApprovedExtensionsCanStartDownloadsUseTheCalling": {
-    "message": "只有經過批准的擴充功能才能開始下載。使用主叫分機的 ID，而不是 Save In 的 ID。"
+    "message": "只有已核准的擴充功能才能開始下載。請使用發出要求的擴充功能 ID，而不是 Save In 的 ID。"
   },
   "html_pasteAnExtensionId": {
-    "message": "貼上擴充 ID"
+    "message": "貼上擴充功能 ID"
   },
   "html_pendingApproval": {
-    "message": "待批准"
+    "message": "待核准"
   },
   "html_resetTo0": {
-    "message": "重置為0"
+    "message": "重設為 0"
   },
   "html_setValue": {
     "message": "設定值"
   },
   "html_theseExtensionsTriedToStartADownloadAddOnly": {
-    "message": "這些擴充功能嘗試開始下載。僅新增您信任的來電者。請求的 URL 永遠不會儲存。"
+    "message": "這些擴充功能曾嘗試開始下載。請只新增您信任的擴充功能。要求的 URL 絕不會儲存。"
   },
   "html_useOneExtensionIdPerLineForBulkChanges": {
-    "message": "每行使用一個分機 ID 進行批次變更。"
+    "message": "進行批次變更時，每行使用一個擴充功能 ID。"
   },
   "html_variableItAdvancesOncePerSavedDownloadAndPersists": {
     "message": "的目前值。每儲存一個下載項目，該值就增加 1，並在重新啟動後保留。"
@@ -1181,7 +1181,7 @@
     "message": "Foxy Gestures 等 WebExtensions 可以直接傳送訊息給 Save In。Greasemonkey、Tampermonkey 或 Violentmonkey 使用者腳本本身無法做到這點，因為使用者腳本沒有跨擴充功能訊息傳遞權限。請使用小型輔助 WebExtension 作為中繼，或讓使用者腳本將 URL 傳遞給提供此功能的擴充功能。"
   },
   "html_whereThisWorks": {
-    "message": "這在哪裡有效"
+    "message": "適用範圍"
   },
   "html_askTheCommunity": {
     "message": "詢問社區"

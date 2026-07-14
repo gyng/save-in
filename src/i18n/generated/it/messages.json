@@ -1257,7 +1257,7 @@
     "message": "Riferimento per clausole e variabili"
   },
   "html_copyThisPromptIntoAnAgentOrUseWebmcp": {
-    "message": "Copia questa richiesta in un agente o utilizza WebMCP da Integrazioni esterne."
+    "message": "Copia questo prompt in un agente o utilizza WebMCP da Integrazioni esterne."
   },
   "html_destination": {
     "message": "destinazione."
@@ -1476,13 +1476,13 @@
     "message": "Corrente"
   },
   "html_currentValueOfThe": {
-    "message": "Valore attuale del"
+    "message": "Valore attuale della variabile"
   },
   "html_delete": {
     "message": "Elimina"
   },
   "html_developerDetails": {
-    "message": "Dettagli dello sviluppatore"
+    "message": "Dettagli per sviluppatori"
   },
   "html_exampleNegotiateTheVersionThenSaveAUrl": {
     "message": "Esempio: negozia la versione, quindi salva un URL"
@@ -1491,7 +1491,7 @@
     "message": "ID dell'estensione"
   },
   "html_externalDownloadAccess": {
-    "message": "Accesso al download esterno"
+    "message": "Accesso ai download esterni"
   },
   "html_externalIntegrations": {
     "message": "Integrazioni esterne"
@@ -1506,10 +1506,10 @@
     "message": "MDN: pattern di corrispondenza"
   },
   "html_noExtensionsAreApprovedExternalDownloadsAreBlockedBy": {
-    "message": "Nessuna estensione è approvata. I download esterni sono bloccati per impostazione predefinita."
+    "message": "Nessuna estensione è stata approvata. I download esterni sono bloccati per impostazione predefinita."
   },
   "html_noneApproved": {
-    "message": "Nessuno approvato"
+    "message": "Nessuna approvata"
   },
   "html_oneExtensionIdPerLine": {
     "message": "Un ID estensione per riga"
@@ -1536,7 +1536,7 @@
     "message": "Inserisci un ID estensione per riga per apportare modifiche in blocco."
   },
   "html_variableItAdvancesOncePerSavedDownloadAndPersists": {
-    "message": "variabile. Avanza una volta per ogni download salvato e persiste dopo i riavvii."
+    "message": "— aumenta di uno per ogni download salvato e rimane memorizzato dopo il riavvio."
   },
   "html_webextensionsSuchAsFoxyGesturesCanMessageSaveIn": {
     "message": "Le WebExtensions come Foxy Gestures possono inviare messaggi direttamente a Save In. Gli script utente di Greasemonkey, Tampermonkey o Violentmonkey non possono farlo autonomamente, perché non hanno accesso alla messaggistica tra estensioni. Usa una piccola WebExtension complementare come tramite oppure fai in modo che lo script passi gli URL a un'estensione che offre questa funzionalità."

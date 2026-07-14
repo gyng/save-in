@@ -1212,7 +1212,7 @@
     "message": "Klik op het fragment om het te kopiëren."
   },
   "html_counterValue": {
-    "message": "Tegenwaarde"
+    "message": "Tellerwaarde"
   },
   "html_current": {
     "message": "Huidig"
@@ -1224,7 +1224,7 @@
     "message": "verwijderen"
   },
   "html_developerDetails": {
-    "message": "Details van de ontwikkelaar"
+    "message": "Details voor ontwikkelaars"
   },
   "html_exampleNegotiateTheVersionThenSaveAUrl": {
     "message": "Voorbeeld: onderhandel over de versie en sla vervolgens een URL op"
@@ -1233,13 +1233,13 @@
     "message": "Extensie-ID"
   },
   "html_externalDownloadAccess": {
-    "message": "Externe downloadtoegang"
+    "message": "Toegang tot externe downloads"
   },
   "html_externalIntegrations": {
     "message": "Externe integraties"
   },
   "html_integrationGuide": {
-    "message": "Integratie gids"
+    "message": "Integratiegids"
   },
   "html_letTrustedExtensionsSendUrlsThroughSaveInS": {
     "message": "Laat vertrouwde extensies URL's verzenden via de routerings- en hernoemingsregels van Save In."
@@ -1248,16 +1248,16 @@
     "message": "MDN: matchpatronen"
   },
   "html_noExtensionsAreApprovedExternalDownloadsAreBlockedBy": {
-    "message": "Er worden geen verlengingen goedgekeurd. Externe downloads worden standaard geblokkeerd."
+    "message": "Er zijn geen extensies goedgekeurd. Externe downloads worden standaard geblokkeerd."
   },
   "html_noneApproved": {
-    "message": "Geen goedgekeurd"
+    "message": "Geen goedgekeurde extensies"
   },
   "html_oneExtensionIdPerLine": {
-    "message": "Eén toestel-ID per lijn"
+    "message": "Eén extensie-ID per regel"
   },
   "html_onlyApprovedExtensionsCanStartDownloadsUseTheCalling": {
-    "message": "Alleen goedgekeurde extensies kunnen downloads starten. Gebruik de ID van het bellende toestel, niet de ID van Save In."
+    "message": "Alleen goedgekeurde extensies kunnen downloads starten. Gebruik de ID van de aanroepende extensie, niet de ID van Save In."
   },
   "html_pasteAnExtensionId": {
     "message": "Plak een extensie-ID"
@@ -1272,7 +1272,7 @@
     "message": "Waarde instellen"
   },
   "html_theseExtensionsTriedToStartADownloadAddOnly": {
-    "message": "Deze extensies probeerden een download te starten. Voeg alleen bellers toe die u vertrouwt. Opgevraagde URL's worden nooit opgeslagen."
+    "message": "Deze extensies probeerden een download te starten. Voeg alleen extensies toe die u vertrouwt. Opgevraagde URL's worden nooit opgeslagen."
   },
   "html_useOneExtensionIdPerLineForBulkChanges": {
     "message": "Gebruik één extensie-ID per regel voor bulkwijzigingen."
@@ -1281,7 +1281,7 @@
     "message": "— deze wordt na elke opgeslagen download verhoogd en blijft na opnieuw opstarten behouden."
   },
   "html_webextensionsSuchAsFoxyGesturesCanMessageSaveIn": {
-    "message": "WebExtensions zoals Foxy Gestures kunnen Save In rechtstreeks een bericht sturen. Een Greasemonkey-, Tampermonkey- of Violentmonkey-gebruikersscript kan dit niet zelf doen: gebruikersscripts ontvangen geen berichtentoegang tussen verschillende extensies. Gebruik een kleine metgezel WebExtension als relay, of laat het gebruikersscript de URL doorgeven aan een extensie die die mogelijkheid blootlegt."
+    "message": "WebExtensions zoals Foxy Gestures kunnen Save In rechtstreeks een bericht sturen. Een Greasemonkey-, Tampermonkey- of Violentmonkey-gebruikersscript kan dit niet zelf doen: gebruikersscripts hebben geen toegang tot berichten tussen extensies. Gebruik een kleine aanvullende WebExtension als tussenstap of laat het gebruikersscript de URL doorgeven aan een extensie die deze mogelijkheid biedt."
   },
   "html_whereThisWorks": {
     "message": "Waar dit werkt"

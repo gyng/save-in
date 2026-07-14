@@ -1244,7 +1244,7 @@
     "message": "supprimer"
   },
   "html_developerDetails": {
-    "message": "Détails du développeur"
+    "message": "Informations pour les développeurs"
   },
   "html_exampleNegotiateTheVersionThenSaveAUrl": {
     "message": "Exemple : négocier la version, puis enregistrer une URL"
@@ -1253,13 +1253,13 @@
     "message": "ID d’extension"
   },
   "html_externalDownloadAccess": {
-    "message": "Accès au téléchargement externe"
+    "message": "Accès aux téléchargements externes"
   },
   "html_externalIntegrations": {
     "message": "Intégrations externes"
   },
   "html_integrationGuide": {
-    "message": "Guide d'intégration"
+    "message": "Guide d’intégration"
   },
   "html_letTrustedExtensionsSendUrlsThroughSaveInS": {
     "message": "Laissez les extensions de confiance envoyer des URL via les règles de routage et de renommage de Save In."
@@ -1268,10 +1268,10 @@
     "message": "MDN : motifs de correspondance"
   },
   "html_noExtensionsAreApprovedExternalDownloadsAreBlockedBy": {
-    "message": "Aucune prolongation n’est approuvée. Les téléchargements externes sont bloqués par défaut."
+    "message": "Aucune extension n’est autorisée. Les téléchargements externes sont bloqués par défaut."
   },
   "html_noneApproved": {
-    "message": "Aucun approuvé"
+    "message": "Aucune approuvée"
   },
   "html_oneExtensionIdPerLine": {
     "message": "Un identifiant d'extension par ligne"
@@ -1292,7 +1292,7 @@
     "message": "Définir la valeur"
   },
   "html_theseExtensionsTriedToStartADownloadAddOnly": {
-    "message": "Ces extensions ont tenté de démarrer un téléchargement. Ajoutez uniquement les appelants en qui vous avez confiance. Les URL demandées ne sont jamais stockées."
+    "message": "Ces extensions ont tenté de démarrer un téléchargement. Ajoutez uniquement les extensions auxquelles vous faites confiance. Les URL demandées ne sont jamais stockées."
   },
   "html_useOneExtensionIdPerLineForBulkChanges": {
     "message": "Utilisez un ID d'extension par ligne pour les modifications groupées."
@@ -1301,10 +1301,10 @@
     "message": "— elle augmente après chaque téléchargement enregistré et persiste après un redémarrage."
   },
   "html_webextensionsSuchAsFoxyGesturesCanMessageSaveIn": {
-    "message": "WebExtensions tel que Foxy Gestures peut envoyer un message directement à Save In. Un script utilisateur Greasemonkey, Tampermonkey ou Violentmonkey ne peut pas le faire par lui-même : les scripts utilisateur ne reçoivent pas d'accès à la messagerie entre extensions. Utilisez un petit compagnon WebExtension comme relais, ou demandez au script utilisateur de transmettre l'URL à une extension qui expose cette capacité."
+    "message": "Les WebExtensions telles que Foxy Gestures peuvent envoyer des messages directement à Save In. Un script utilisateur Greasemonkey, Tampermonkey ou Violentmonkey ne peut pas le faire seul : les scripts utilisateur n’ont pas accès à la messagerie entre extensions. Utilisez une petite WebExtension complémentaire comme relais ou demandez au script utilisateur de transmettre l’URL à une extension qui offre cette fonction."
   },
   "html_whereThisWorks": {
-    "message": "Où ça marche"
+    "message": "Où cela fonctionne"
   },
   "html_askTheCommunity": {
     "message": "Demandez à la communauté"

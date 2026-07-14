@@ -1200,13 +1200,13 @@
     "message": "Godkända tillägg"
   },
   "html_capabilities": {
-    "message": "Förmågor"
+    "message": "Funktioner"
   },
   "html_clickTheSnippetToCopyIt": {
     "message": "Klicka på utdraget för att kopiera det."
   },
   "html_counterValue": {
-    "message": "Motvärde"
+    "message": "Räknarvärde"
   },
   "html_current": {
     "message": "Aktuell"
@@ -1218,7 +1218,7 @@
     "message": "ta bort"
   },
   "html_developerDetails": {
-    "message": "Utvecklardetaljer"
+    "message": "Utvecklarinformation"
   },
   "html_exampleNegotiateTheVersionThenSaveAUrl": {
     "message": "Exempel: förhandla om versionen och spara sedan en URL"
@@ -1227,7 +1227,7 @@
     "message": "Tilläggs-ID"
   },
   "html_externalDownloadAccess": {
-    "message": "Extern nedladdningsåtkomst"
+    "message": "Åtkomst till externa nedladdningar"
   },
   "html_externalIntegrations": {
     "message": "Externa integrationer"
@@ -1239,19 +1239,19 @@
     "message": "Låt betrodda tillägg skicka URL:er genom Save In:s routnings- och namnbytesregler."
   },
   "html_mdnMatchPatterns": {
-    "message": "MDN: Matcha mönster"
+    "message": "MDN: Matchningsmönster"
   },
   "html_noExtensionsAreApprovedExternalDownloadsAreBlockedBy": {
-    "message": "Inga förlängningar godkänns. Externa nedladdningar är blockerade som standard."
+    "message": "Inga tillägg är godkända. Externa nedladdningar blockeras som standard."
   },
   "html_noneApproved": {
-    "message": "Ingen godkänd"
+    "message": "Inga godkända tillägg"
   },
   "html_oneExtensionIdPerLine": {
-    "message": "Ett anknytnings-ID per rad"
+    "message": "Ett tilläggs-ID per rad"
   },
   "html_onlyApprovedExtensionsCanStartDownloadsUseTheCalling": {
-    "message": "Endast godkända tillägg kan starta nedladdningar. Använd den anropande anknytningens ID – inte Save Ins ID."
+    "message": "Endast godkända tillägg kan starta nedladdningar. Använd det anropande tilläggets ID – inte Save Ins ID."
   },
   "html_pasteAnExtensionId": {
     "message": "Klistra in ett tilläggs-ID"
@@ -1266,7 +1266,7 @@
     "message": "Ställ in värde"
   },
   "html_theseExtensionsTriedToStartADownloadAddOnly": {
-    "message": "Dessa tillägg försökte starta en nedladdning. Lägg bara till uppringare du litar på. Begärda URL:er lagras aldrig."
+    "message": "Dessa tillägg försökte starta en nedladdning. Lägg bara till tillägg som du litar på. Begärda URL:er lagras aldrig."
   },
   "html_useOneExtensionIdPerLineForBulkChanges": {
     "message": "Använd ett tilläggs-ID per rad för massändringar."
@@ -1275,10 +1275,10 @@
     "message": "— värdet ökar efter varje sparad nedladdning och behålls efter omstarter."
   },
   "html_webextensionsSuchAsFoxyGesturesCanMessageSaveIn": {
-    "message": "WebExtensions såsom Foxy Gestures kan skicka meddelanden till Save In direkt. Ett Greasemonkey-, Tampermonkey- eller Violentmonkey-användarskript kan inte göra det själv: användarskript får inte åtkomst till korsextensionsmeddelanden. Använd en liten följeslagare WebExtension som ett relä, eller låt användarskriptet lämna URL:en till ett tillägg som exponerar den förmågan."
+    "message": "WebExtensions som Foxy Gestures kan skicka meddelanden direkt till Save In. Ett Greasemonkey-, Tampermonkey- eller Violentmonkey-användarskript kan inte göra det på egen hand: användarskript har inte åtkomst till meddelanden mellan tillägg. Använd en liten kompletterande WebExtension som mellanhand eller låt användarskriptet lämna URL:en till ett tillägg som erbjuder funktionen."
   },
   "html_whereThisWorks": {
-    "message": "Där detta fungerar"
+    "message": "Var detta fungerar"
   },
   "html_askTheCommunity": {
     "message": "Fråga samhället"

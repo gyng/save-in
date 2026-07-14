@@ -1193,7 +1193,7 @@
     "message": "Permitir"
   },
   "html_allowedExtensionIds": {
-    "message": "ID de extensión permitidas"
+    "message": "ID de extensiones permitidas"
   },
   "html_apiVersion": {
     "message": "Versión API"
@@ -1229,7 +1229,7 @@
     "message": "ID de extensión"
   },
   "html_externalDownloadAccess": {
-    "message": "Acceso de descarga externa"
+    "message": "Acceso a descargas externas"
   },
   "html_externalIntegrations": {
     "message": "Integraciones externas"
@@ -1244,19 +1244,19 @@
     "message": "MDN: Patrones de coincidencia"
   },
   "html_noExtensionsAreApprovedExternalDownloadsAreBlockedBy": {
-    "message": "No se aprueban prórrogas. Las descargas externas están bloqueadas de forma predeterminada."
+    "message": "No hay extensiones aprobadas. Las descargas externas están bloqueadas de forma predeterminada."
   },
   "html_noneApproved": {
-    "message": "Ninguno aprobado"
+    "message": "Ninguna aprobada"
   },
   "html_oneExtensionIdPerLine": {
-    "message": "Una ID de extensión por línea"
+    "message": "Un ID de extensión por línea"
   },
   "html_onlyApprovedExtensionsCanStartDownloadsUseTheCalling": {
-    "message": "Sólo las extensiones aprobadas pueden iniciar las descargas. Utilice el ID de la extensión que llama, no el ID de Save In."
+    "message": "Solo las extensiones aprobadas pueden iniciar descargas. Utilice el ID de la extensión solicitante, no el ID de Save In."
   },
   "html_pasteAnExtensionId": {
-    "message": "Pegar una ID de extensión"
+    "message": "Pegar un ID de extensión"
   },
   "html_pendingApproval": {
     "message": "Pendiente de aprobación"
@@ -1268,16 +1268,16 @@
     "message": "Establecer valor"
   },
   "html_theseExtensionsTriedToStartADownloadAddOnly": {
-    "message": "Estas extensiones intentaron iniciar una descarga. Agregue solo personas que llamen en las que confíe. Las URL solicitadas nunca se almacenan."
+    "message": "Estas extensiones intentaron iniciar una descarga. Añada solo extensiones solicitantes en las que confíe. Las URL solicitadas nunca se almacenan."
   },
   "html_useOneExtensionIdPerLineForBulkChanges": {
-    "message": "Utilice una ID de extensión por línea para cambios masivos."
+    "message": "Utilice un ID de extensión por línea para cambios masivos."
   },
   "html_variableItAdvancesOncePerSavedDownloadAndPersists": {
     "message": "— aumenta con cada descarga guardada y se conserva tras reiniciar."
   },
   "html_webextensionsSuchAsFoxyGesturesCanMessageSaveIn": {
-    "message": "WebExtensions como Foxy Gestures pueden enviar mensajes a Save In directamente. Un script de usuario de Greasemonkey, Tampermonkey o Violentmonkey no puede hacerlo por sí solo: los scripts de usuario no reciben acceso a mensajes entre extensiones. Utilice un pequeño compañero WebExtension como retransmisión, o haga que el script de usuario entregue la URL a una extensión que exponga esa capacidad."
+    "message": "Las WebExtensions como Foxy Gestures pueden enviar mensajes directamente a Save In. Un script de usuario de Greasemonkey, Tampermonkey o Violentmonkey no puede hacerlo por sí solo: los scripts de usuario no tienen acceso a mensajes entre extensiones. Utilice una pequeña WebExtension complementaria como intermediaria o haga que el script de usuario pase la URL a una extensión que ofrezca esa función."
   },
   "html_whereThisWorks": {
     "message": "donde funciona esto"

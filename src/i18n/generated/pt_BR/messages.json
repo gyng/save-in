@@ -999,7 +999,7 @@
     "message": "Cláusula e referência de variável"
   },
   "html_copyThisPromptIntoAnAgentOrUseWebmcp": {
-    "message": "Copie esse prompt em um agente ou use WebMCP em Integrações externas."
+    "message": "Copie este prompt para um agente ou use WebMCP em Integrações externas."
   },
   "html_destination": {
     "message": "destino."
@@ -1233,7 +1233,7 @@
     "message": "ID da extensão"
   },
   "html_externalDownloadAccess": {
-    "message": "Acesso de download externo"
+    "message": "Acesso a downloads externos"
   },
   "html_externalIntegrations": {
     "message": "Integrações externas"
@@ -1248,16 +1248,16 @@
     "message": "MDN: padrões de correspondência"
   },
   "html_noExtensionsAreApprovedExternalDownloadsAreBlockedBy": {
-    "message": "Nenhuma extensão é aprovada. Os downloads externos são bloqueados por padrão."
+    "message": "Nenhuma extensão foi aprovada. Os downloads externos são bloqueados por padrão."
   },
   "html_noneApproved": {
-    "message": "Nenhum aprovado"
+    "message": "Nenhuma aprovada"
   },
   "html_oneExtensionIdPerLine": {
     "message": "Um ID de extensão por linha"
   },
   "html_onlyApprovedExtensionsCanStartDownloadsUseTheCalling": {
-    "message": "Somente extensões aprovadas podem iniciar downloads. Use o ID do ramal chamador – não o ID de Save In."
+    "message": "Somente extensões aprovadas podem iniciar downloads. Use o ID da extensão solicitante, não o ID do Save In."
   },
   "html_pasteAnExtensionId": {
     "message": "Cole um ID de extensão"
@@ -1281,7 +1281,7 @@
     "message": "— o valor aumenta a cada download salvo e persiste após reinicializações."
   },
   "html_webextensionsSuchAsFoxyGesturesCanMessageSaveIn": {
-    "message": "WebExtensions, como Foxy Gestures, pode enviar mensagens diretamente para Save In. Um userscript Greasemonkey, Tampermonkey ou Violentmonkey não pode fazer isso sozinho: os userscripts não recebem acesso de mensagens de extensão cruzada. Use um pequeno companheiro WebExtension como retransmissão ou faça com que o script do usuário entregue a URL para uma extensão que expõe essa capacidade."
+    "message": "WebExtensions, como Foxy Gestures, podem enviar mensagens diretamente ao Save In. Um script de usuário do Greasemonkey, Tampermonkey ou Violentmonkey não pode fazer isso sozinho: scripts de usuário não têm acesso a mensagens entre extensões. Use uma pequena WebExtension complementar como intermediária ou faça o script de usuário passar a URL para uma extensão que ofereça essa função."
   },
   "html_whereThisWorks": {
     "message": "Onde isso funciona"

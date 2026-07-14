@@ -1094,16 +1094,16 @@
     "message": "允许"
   },
   "html_allowedExtensionIds": {
-    "message": "允许的扩展 ID"
+    "message": "允许的扩展程序 ID"
   },
   "html_apiVersion": {
-    "message": "API版本"
+    "message": "API 版本"
   },
   "html_approvedExtensions": {
-    "message": "批准的扩展"
+    "message": "已批准的扩展程序"
   },
   "html_capabilities": {
-    "message": "能力"
+    "message": "功能"
   },
   "html_clickTheSnippetToCopyIt": {
     "message": "单击该片段以复制它。"
@@ -1121,7 +1121,7 @@
     "message": "删除"
   },
   "html_developerDetails": {
-    "message": "开发商详情"
+    "message": "开发者详细信息"
   },
   "html_exampleNegotiateTheVersionThenSaveAUrl": {
     "message": "示例：协商版本，然后保存 URL"
@@ -1130,7 +1130,7 @@
     "message": "扩展程序 ID"
   },
   "html_externalDownloadAccess": {
-    "message": "外部下载访问"
+    "message": "外部下载权限"
   },
   "html_externalIntegrations": {
     "message": "外部集成"
@@ -1139,49 +1139,49 @@
     "message": "集成指南"
   },
   "html_letTrustedExtensionsSendUrlsThroughSaveInS": {
-    "message": "让受信任的扩展通过 Save In 的路由和重命名规则发送 URL。"
+    "message": "让受信任的扩展程序通过 Save In 的路由和重命名规则发送 URL。"
   },
   "html_mdnMatchPatterns": {
     "message": "MDN：匹配模式"
   },
   "html_noExtensionsAreApprovedExternalDownloadsAreBlockedBy": {
-    "message": "没有批准延期。默认情况下阻止外部下载。"
+    "message": "没有已批准的扩展程序。默认情况下会阻止外部下载。"
   },
   "html_noneApproved": {
-    "message": "未获批准"
+    "message": "无已批准的扩展程序"
   },
   "html_oneExtensionIdPerLine": {
-    "message": "每条线路一个分机 ID"
+    "message": "每行一个扩展程序 ID"
   },
   "html_onlyApprovedExtensionsCanStartDownloadsUseTheCalling": {
-    "message": "只有经过批准的扩展程序才能开始下载。使用主叫分机的 ID，而不是 Save In 的 ID。"
+    "message": "只有已批准的扩展程序才能开始下载。请使用发起调用的扩展程序 ID，而不是 Save In 的 ID。"
   },
   "html_pasteAnExtensionId": {
-    "message": "粘贴扩展 ID"
+    "message": "粘贴扩展程序 ID"
   },
   "html_pendingApproval": {
     "message": "待批准"
   },
   "html_resetTo0": {
-    "message": "重置为0"
+    "message": "重置为 0"
   },
   "html_setValue": {
-    "message": "设定值"
+    "message": "设置值"
   },
   "html_theseExtensionsTriedToStartADownloadAddOnly": {
-    "message": "这些扩展尝试开始下载。仅添加您信任的呼叫者。请求的 URL 永远不会被存储。"
+    "message": "这些扩展程序曾尝试开始下载。请仅添加您信任的扩展程序。请求的 URL 绝不会被存储。"
   },
   "html_useOneExtensionIdPerLineForBulkChanges": {
-    "message": "每行使用一个分机 ID 进行批量更改。"
+    "message": "进行批量更改时，每行使用一个扩展程序 ID。"
   },
   "html_variableItAdvancesOncePerSavedDownloadAndPersists": {
     "message": "的当前值。每保存一个下载，该值就增加 1，并在重启后保留。"
   },
   "html_webextensionsSuchAsFoxyGesturesCanMessageSaveIn": {
-    "message": "Foxy Gestures 等 WebExtensions 可以直接向 Save In 发送消息。Greasemonkey、Tampermonkey 或 Violentmonkey 用户脚本本身无法做到这一点，因为用户脚本没有跨扩展消息传递权限。请使用小型辅助 WebExtension 作为中继，或让用户脚本把 URL 传递给提供此功能的扩展。"
+    "message": "Foxy Gestures 等 WebExtensions 可以直接向 Save In 发送消息。Greasemonkey、Tampermonkey 或 Violentmonkey 用户脚本本身无法做到这一点，因为用户脚本没有跨扩展程序的消息传递权限。请使用小型辅助 WebExtension 作为中继，或让用户脚本把 URL 传递给提供此功能的扩展程序。"
   },
   "html_whereThisWorks": {
-    "message": "这在哪里有效"
+    "message": "适用范围"
   },
   "html_askTheCommunity": {
     "message": "询问社区"

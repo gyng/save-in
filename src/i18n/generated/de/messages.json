@@ -1204,7 +1204,7 @@
     "message": "Genehmigte Erweiterungen"
   },
   "html_capabilities": {
-    "message": "Fähigkeiten"
+    "message": "Funktionen"
   },
   "html_clickTheSnippetToCopyIt": {
     "message": "Klicken Sie auf das Snippet, um es zu kopieren."
@@ -1222,7 +1222,7 @@
     "message": "löschen"
   },
   "html_developerDetails": {
-    "message": "Details zum Entwickler"
+    "message": "Details für Entwickler"
   },
   "html_exampleNegotiateTheVersionThenSaveAUrl": {
     "message": "Beispiel: Verhandeln Sie die Version und speichern Sie dann eine URL"
@@ -1231,7 +1231,7 @@
     "message": "Erweiterungs-ID"
   },
   "html_externalDownloadAccess": {
-    "message": "Externer Download-Zugriff"
+    "message": "Zugriff auf externe Downloads"
   },
   "html_externalIntegrations": {
     "message": "Externe Integrationen"
@@ -1246,16 +1246,16 @@
     "message": "MDN: Übereinstimmungsmuster"
   },
   "html_noExtensionsAreApprovedExternalDownloadsAreBlockedBy": {
-    "message": "Es werden keine Verlängerungen genehmigt. Externe Downloads sind standardmäßig blockiert."
+    "message": "Keine Erweiterungen sind genehmigt. Externe Downloads werden standardmäßig blockiert."
   },
   "html_noneApproved": {
-    "message": "Keiner genehmigt"
+    "message": "Keine genehmigt"
   },
   "html_oneExtensionIdPerLine": {
     "message": "Eine Erweiterungs-ID pro Zeile"
   },
   "html_onlyApprovedExtensionsCanStartDownloadsUseTheCalling": {
-    "message": "Nur genehmigte Erweiterungen können Downloads starten. Verwenden Sie die ID der anrufenden Nebenstelle – nicht die ID von Save In."
+    "message": "Nur genehmigte Erweiterungen können Downloads starten. Verwenden Sie die ID der aufrufenden Erweiterung – nicht die ID von Save In."
   },
   "html_pasteAnExtensionId": {
     "message": "Fügen Sie eine Erweiterungs-ID ein"
@@ -1270,7 +1270,7 @@
     "message": "Wert einstellen"
   },
   "html_theseExtensionsTriedToStartADownloadAddOnly": {
-    "message": "Diese Erweiterungen haben versucht, einen Download zu starten. Fügen Sie nur Anrufer hinzu, denen Sie vertrauen. Angefragte URLs werden niemals gespeichert."
+    "message": "Diese Erweiterungen haben versucht, einen Download zu starten. Fügen Sie nur Erweiterungen hinzu, denen Sie vertrauen. Angefragte URLs werden niemals gespeichert."
   },
   "html_useOneExtensionIdPerLineForBulkChanges": {
     "message": "Verwenden Sie für Massenänderungen eine Erweiterungs-ID pro Zeile."
@@ -1279,7 +1279,7 @@
     "message": "— sie erhöht sich nach jedem gespeicherten Download und bleibt über Neustarts hinweg erhalten."
   },
   "html_webextensionsSuchAsFoxyGesturesCanMessageSaveIn": {
-    "message": "WebExtensions wie Foxy Gestures können Save In direkt benachrichtigen. Ein Greasemonkey-, Tampermonkey- oder Violentmonkey-Benutzerskript kann dies nicht alleine tun: Benutzerskripte erhalten keinen erweiterungsübergreifenden Nachrichtenzugriff. Verwenden Sie einen kleinen Begleiter WebExtension als Relay, oder lassen Sie das Benutzerskript die URL an eine Erweiterung übergeben, die diese Funktion bereitstellt."
+    "message": "WebExtensions wie Foxy Gestures können Save In direkt Nachrichten senden. Ein Greasemonkey-, Tampermonkey- oder Violentmonkey-Benutzerskript kann dies nicht alleine tun: Benutzerskripte erhalten keinen Nachrichtenzugriff zwischen Erweiterungen. Verwenden Sie eine kleine begleitende WebExtension als Vermittler oder lassen Sie das Benutzerskript die URL an eine Erweiterung übergeben, die diese Funktion bereitstellt."
   },
   "html_whereThisWorks": {
     "message": "Wo das funktioniert"

@@ -45,6 +45,10 @@ messages together as a feature:
   uses it.
 - Look for English fallbacks, mistranslated actions versus statuses, inconsistent
   terminology, and accidental changes to placeholders or product names.
+- Resolve overloaded platform terms from the feature context. In External
+  integrations, `extension` means a browser extension, and a calling extension
+  is the software sender—not extra time or a telephone line. Reuse the locale's
+  established browser-extension term throughout that workflow.
 - Check short labels in their surrounding UI, and check longer help, status,
   and error copy at narrow widths. Follow the localization layout rules in
   [UI.md](UI.md).
