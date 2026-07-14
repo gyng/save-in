@@ -242,6 +242,7 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
             url,
             options.browserDownloadFilter,
             options.browserDownloadExcludeFilter,
+            options.browserDownloadFiltersEnabled,
           )
         ) {
           suggest();

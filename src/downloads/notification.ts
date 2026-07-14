@@ -289,6 +289,7 @@ export const Notifier = {
         browserDownloadUrl,
         options.browserDownloadFilter,
         options.browserDownloadExcludeFilter,
+        options.browserDownloadFiltersEnabled,
       )
     ) {
       return;

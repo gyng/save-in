@@ -2418,6 +2418,7 @@
     "message": "Se copió $VALUE$",
     "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
   },
+  "o_cBrowserDownloadFiltersEnabled": { "message": "Limitar descargas del navegador por URL" },
   "welcomeReady": { "message": "Listo para guardar" },
   "welcomeTitle": { "message": "Te damos la bienvenida a Save In" },
   "welcomeIntro": {

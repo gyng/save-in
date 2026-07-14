@@ -30,6 +30,9 @@ describe("download lifecycle notifications", () => {
       notifyOnFailure: true,
       notifyDuration: 1000,
       promptOnFailure: false,
+      browserDownloadFiltersEnabled: true,
+      browserDownloadFilter: "",
+      browserDownloadExcludeFilter: "",
     });
 
     const [createdHandler] = vi.mocked(global.browser.downloads.onCreated.addListener).mock

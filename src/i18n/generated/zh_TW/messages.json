@@ -2514,6 +2514,7 @@
     "message": "已複製 $VALUE$",
     "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
   },
+  "o_cBrowserDownloadFiltersEnabled": { "message": "依 URL 限制瀏覽器下載" },
   "welcomeReady": { "message": "可以開始儲存" },
   "welcomeTitle": { "message": "歡迎使用 Save In" },
   "welcomeIntro": {

@@ -13,6 +13,9 @@ describe("option dependencies", () => {
       <input type="checkbox" id="closeTabOnSave">
       <input type="checkbox" id="trackBrowserDownloads">
       <input type="checkbox" id="routeBrowserDownloads">
+      <input type="checkbox" id="browserDownloadFiltersEnabled">
+      <textarea id="browserDownloadFilter"></textarea>
+      <textarea id="browserDownloadExcludeFilter"></textarea>
       <input type="checkbox" id="setRefererHeader">
       <textarea id="setRefererHeaderFilter"></textarea>
       <input type="checkbox" id="links">
@@ -33,7 +36,34 @@ describe("option dependencies", () => {
     expect(
       (document.querySelector("#setRefererHeaderFilter") as HTMLTextAreaElement).disabled,
     ).toBe(true);
+    expect((document.querySelector("#browserDownloadFilter") as HTMLTextAreaElement).disabled).toBe(
+      true,
+    );
+    expect(
+      (document.querySelector("#browserDownloadExcludeFilter") as HTMLTextAreaElement).disabled,
+    ).toBe(true);
     expect((document.querySelector("#preferLinks") as HTMLInputElement).disabled).toBe(true);
+  });
+
+  test("retains browser URL filters while toggling their interaction", () => {
+    setupOptionDependencies();
+    const enabled = document.querySelector("#browserDownloadFiltersEnabled") as HTMLInputElement;
+    const filter = document.querySelector("#browserDownloadFilter") as HTMLTextAreaElement;
+    const exclude = document.querySelector("#browserDownloadExcludeFilter") as HTMLTextAreaElement;
+    filter.value = "*://allowed.example/*";
+    exclude.value = "*://private.example/*";
+
+    enabled.checked = true;
+    enabled.dispatchEvent(new Event("change"));
+    expect(filter.disabled).toBe(false);
+    expect(exclude.disabled).toBe(false);
+    enabled.checked = false;
+    enabled.dispatchEvent(new Event("change"));
+
+    expect(filter.disabled).toBe(true);
+    expect(exclude.disabled).toBe(true);
+    expect(filter.value).toBe("*://allowed.example/*");
+    expect(exclude.value).toBe("*://private.example/*");
   });
 
   test("updates immediately and respects the full preferred-link dependency chain", () => {

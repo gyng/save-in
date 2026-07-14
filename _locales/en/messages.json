@@ -267,6 +267,10 @@
     "message": "Mozilla bug 1245652",
     "description": "Label, status, or help text in the options interface. Used in src/options/options.html."
   },
+  "o_cBrowserDownloadFiltersEnabled": {
+    "message": "Limit browser downloads by URL",
+    "description": "Checkbox enabling the include and exclude URL filters for ordinary browser downloads. Used in src/options/options.html."
+  },
   "o_cBrowserDownloadFilter": {
     "message": "Include only matching download URLs (optional)",
     "description": "Option control label or related help text. Used in src/options/options.html."

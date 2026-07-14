@@ -106,6 +106,8 @@ export const OptionsManagement: OptionsManagementApi = {
     trackBrowserDownloads: "Include ordinary browser downloads in local Save In history.",
     routeBrowserDownloads:
       "Apply matching filename routing rules to ordinary browser downloads on Chrome.",
+    browserDownloadFiltersEnabled:
+      "Limit ordinary browser-download tracking and routing with URL filters.",
     browserDownloadFilter:
       "Optional URL match patterns limiting which ordinary browser downloads are handled.",
     browserDownloadExcludeFilter:

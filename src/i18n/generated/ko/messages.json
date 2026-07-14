@@ -2514,6 +2514,7 @@
     "message": "$VALUE$ 복사됨",
     "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
   },
+  "o_cBrowserDownloadFiltersEnabled": { "message": "브라우저 다운로드를 URL로 제한" },
   "welcomeReady": { "message": "저장할 준비가 되었습니다" },
   "welcomeTitle": { "message": "Save In에 오신 것을 환영합니다" },
   "welcomeIntro": {

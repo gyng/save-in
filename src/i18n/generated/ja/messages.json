@@ -2514,6 +2514,7 @@
     "message": "$VALUE$ をコピーしました",
     "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
   },
+  "o_cBrowserDownloadFiltersEnabled": { "message": "ブラウザーのダウンロードを URL で制限" },
   "welcomeReady": { "message": "保存の準備ができました" },
   "welcomeTitle": { "message": "Save In へようこそ" },
   "welcomeIntro": {

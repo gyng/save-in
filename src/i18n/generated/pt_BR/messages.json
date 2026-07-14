@@ -2420,6 +2420,7 @@
     "message": "$VALUE$ copiado",
     "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
   },
+  "o_cBrowserDownloadFiltersEnabled": { "message": "Limitar downloads do navegador por URL" },
   "welcomeReady": { "message": "Pronto para salvar" },
   "welcomeTitle": { "message": "Boas-vindas ao Save In" },
   "welcomeIntro": {

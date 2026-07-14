@@ -35,6 +35,17 @@ describe("browser download URL filter", () => {
     expect(matchesBrowserDownloadFilter("https://example.com/file.zip", "")).toBe(true);
   });
 
+  test("disabled filters retain their text without limiting downloads", () => {
+    expect(
+      matchesBrowserDownloadFilter(
+        "https://other.example/file.zip",
+        "*://allowed.example/*",
+        "*://other.example/*",
+        false,
+      ),
+    ).toBe(true);
+  });
+
   test("supports domains, subdomains, paths, and multiple patterns", () => {
     const filter = "*://*.example.com/files/*\nhttps://downloads.test/*";
     expect(matchesBrowserDownloadFilter("https://cdn.example.com/files/a.zip", filter)).toBe(true);

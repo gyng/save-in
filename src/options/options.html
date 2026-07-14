@@ -534,29 +534,36 @@ Briefly explain the structure, check that every line follows this syntax, then p
           </div>
         </label>
 
-        <label>
-          <span>__MSG_o_cBrowserDownloadFilter__</span>
-          <textarea
-            class="full-width"
-            id="browserDownloadFilter"
-            rows="3"
-            placeholder="*://*.example.com/*"
-            spellcheck="false"
-          ></textarea>
-          <div class="caption caption-line">__MSG_o_cBrowserDownloadFilterHelp__</div>
+        <label class="browser-download-filter-master">
+          <input type="checkbox" id="browserDownloadFiltersEnabled" />
+          __MSG_o_cBrowserDownloadFiltersEnabled__
         </label>
 
-        <label>
-          <span>__MSG_o_cBrowserDownloadExcludeFilter__</span>
-          <textarea
-            class="full-width"
-            id="browserDownloadExcludeFilter"
-            rows="3"
-            placeholder="*://private.example.com/*"
-            spellcheck="false"
-          ></textarea>
-          <div class="caption caption-line">__MSG_o_cBrowserDownloadExcludeFilterHelp__</div>
-        </label>
+        <div class="dependent-options browser-download-filter-options">
+          <label>
+            <span>__MSG_o_cBrowserDownloadFilter__</span>
+            <textarea
+              class="full-width"
+              id="browserDownloadFilter"
+              rows="3"
+              placeholder="*://*.example.com/*"
+              spellcheck="false"
+            ></textarea>
+            <div class="caption caption-line">__MSG_o_cBrowserDownloadFilterHelp__</div>
+          </label>
+
+          <label>
+            <span>__MSG_o_cBrowserDownloadExcludeFilter__</span>
+            <textarea
+              class="full-width"
+              id="browserDownloadExcludeFilter"
+              rows="3"
+              placeholder="*://private.example.com/*"
+              spellcheck="false"
+            ></textarea>
+            <div class="caption caption-line">__MSG_o_cBrowserDownloadExcludeFilterHelp__</div>
+          </label>
+        </div>
 
         <details class="inline-guide">
           <summary>__MSG_html_howDoDownloadUrlFiltersWork__</summary>

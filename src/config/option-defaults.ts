@@ -51,6 +51,7 @@ export const OPTION_DEFAULTS = {
   webhookIncludeSelectionText: false,
   trackBrowserDownloads: false,
   routeBrowserDownloads: false,
+  browserDownloadFiltersEnabled: false,
   browserDownloadFilter: "",
   browserDownloadExcludeFilter: "",
   routeBrowserDownloadsFirefox: false,

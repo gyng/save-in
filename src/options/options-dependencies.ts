@@ -27,6 +27,10 @@ export const setupOptionDependencies = () => {
       parent: "setRefererHeader",
       children: ["setRefererHeaderFilter"],
     },
+    {
+      parent: "browserDownloadFiltersEnabled",
+      children: ["browserDownloadFilter", "browserDownloadExcludeFilter"],
+    },
     { parent: "links", children: ["preferLinks"] },
     {
       parent: "preferLinks",

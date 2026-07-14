@@ -45,9 +45,11 @@ export const matchesBrowserDownloadFilter = (
   url: string,
   filter?: string,
   excludeFilter?: string,
+  enabled = true,
 ): boolean =>
-  (!filter || filter.trim() === "" || matchesAnyPattern(url, filter)) &&
-  (!excludeFilter || excludeFilter.trim() === "" || !matchesAnyPattern(url, excludeFilter));
+  !enabled ||
+  ((!filter || filter.trim() === "" || matchesAnyPattern(url, filter)) &&
+    (!excludeFilter || excludeFilter.trim() === "" || !matchesAnyPattern(url, excludeFilter)));
 
 export const createBrowserDownloadState = (item: BrowserDownloadItem): DownloadPipelineState => {
   const filename = proposedFilename(item.filename || item.url);

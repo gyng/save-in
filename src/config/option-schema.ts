@@ -308,6 +308,11 @@ export const OPTION_KEYS = defineOptions([
     default: OPTION_DEFAULTS.routeBrowserDownloads,
   },
   {
+    name: "browserDownloadFiltersEnabled",
+    type: OPTION_TYPES.BOOL,
+    default: OPTION_DEFAULTS.browserDownloadFiltersEnabled,
+  },
+  {
     name: "browserDownloadFilter",
     type: OPTION_TYPES.VALUE,
     default: OPTION_DEFAULTS.browserDownloadFilter,
