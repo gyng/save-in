@@ -119,6 +119,8 @@ describe("attachAutocomplete", () => {
 
   test("Escape and blur close the dropdown", () => {
     type("a/:d");
+    key("a");
+    expect(textarea.getAttribute("aria-expanded")).toBe("true");
     key("Escape");
     expect(textarea.getAttribute("aria-expanded")).toBe("false");
 
