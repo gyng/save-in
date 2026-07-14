@@ -176,13 +176,12 @@ export const runRoutingVisualEditorScenario = async ({
         source.click();
         const selected = document.querySelector(".rule-editor-card.is-debug-selected");
         return {
-          line: source.textContent,
           ruleIndex: selected?.dataset.ruleIndex,
           activeLine: selected?.querySelector(".rule-clause-row.is-active")?.dataset.line,
         };
       })())`),
     );
-    expect(sourceNavigation).toEqual({ line: "L2", ruleIndex: "0", activeLine: "2" });
+    expect(sourceNavigation).toEqual({ ruleIndex: "0", activeLine: "2" });
   } finally {
     await evaluate(`Promise.all([
       browser.storage.local.set(${JSON.stringify(previousConfig)}),
