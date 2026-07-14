@@ -80,6 +80,14 @@ describe("l10n", () => {
     await initialized;
     expect(localize).toHaveBeenCalledOnce();
     expect(document.documentElement.classList).not.toContain("localization-pending");
+
+    await initializeLocalizedDocument("invalid", "en-US", {
+      root: document.documentElement,
+      localeControl: select,
+      initialize: () => Promise.resolve(),
+      localize,
+    });
+    expect(select.value).toBe("");
   });
 
   test("reveals the document when localization initialization fails", async () => {
