@@ -74,6 +74,47 @@ const appendText = (parent: HTMLElement, className: string, text: string): HTMLE
   return child;
 };
 
+const matcherSourceLabel = (source: string): string => {
+  switch (source) {
+    case "url":
+    case "sourceUrl":
+    case "srcUrl":
+    case "linkUrl":
+      return localize("routeDebuggerSourceUrl", "Source URL");
+    case "pageUrl":
+      return localize("routeDebuggerPageUrl", "Page URL");
+    case "referrerUrl":
+      return localize("routeDebuggerReferrerUrl", "Referrer URL");
+    case "frameUrl":
+      return localize("routeDebuggerFrameUrl", "Frame URL");
+    case "resolvedFilename":
+    case "filename":
+    case "mimeExtension":
+      return localize("routeDebuggerFilename", "Filename");
+    case "mime":
+    case "resolvedContentType":
+      return localize("routeDebuggerContentType", "Content type");
+    case "context":
+      return localize("routeDebuggerContext", "Context");
+    case "currentTabTitle":
+      return localize("routeDebuggerPageTitle", "Page title");
+    case "linkText":
+      return localize("routeDebuggerLinkText", "Link text");
+    case "selectionText":
+      return localize("routeDebuggerSelectionText", "Selected text");
+    case "mediaType":
+      return localize("routeDebuggerMediaType", "Media type");
+    case "sourceKind":
+      return localize("routeDebuggerSourceKind", "Source kind");
+    case "menuIndex":
+      return localize("routeDebuggerMenuIndex", "Menu index");
+    case "comment":
+      return localize("routeDebuggerMenuComment", "Menu comment");
+    default:
+      return source;
+  }
+};
+
 export const setupRouteDebugger = (): void => {
   const textarea = element<HTMLTextAreaElement>("#filenamePatterns");
   const form = element<HTMLElement>("#route-debugger-form");
@@ -365,21 +406,60 @@ export const setupRouteDebugger = (): void => {
           );
         }
         appendText(clauseButton, "route-debugger-clause-mark", clause.matched ? "✓" : "×");
-        appendText(
-          clauseButton,
-          "route-debugger-clause-decision",
-          clause.matched
-            ? localize(
-                "routeDebuggerConditionMatched",
-                `${clause.name} matches ${clause.pattern}`,
-                [clause.name, clause.pattern],
-              )
-            : localize(
-                "routeDebuggerConditionDidNotMatch",
-                `${clause.name} does not match ${clause.pattern}`,
-                [clause.name, clause.pattern],
-              ),
-        );
+        const decision = document.createElement("span");
+        decision.className = "route-debugger-clause-decision";
+        if (clause.attempts && clause.attempts.length > 0) {
+          const expression = document.createElement("code");
+          expression.className = "route-debugger-clause-expression";
+          expression.textContent = `${clause.name}: ${clause.pattern}`;
+          decision.append(expression);
+          clause.attempts.forEach((attempt) => {
+            const source = matcherSourceLabel(attempt.source);
+            const value = attempt.value ?? "";
+            const text =
+              attempt.status === "matched"
+                ? localize(
+                    "routeDebuggerAttemptMatched",
+                    `Tested “${value}” from ${source} — matched.`,
+                    [value, source],
+                  )
+                : attempt.status === "not-matched"
+                  ? localize(
+                      "routeDebuggerAttemptDidNotMatch",
+                      `Tested “${value}” from ${source} — did not match.`,
+                      [value, source],
+                    )
+                  : attempt.status === "invalid"
+                    ? localize(
+                        "routeDebuggerAttemptInvalid",
+                        `Could not read a valid value from ${source}: “${value}”.`,
+                        [source, value],
+                      )
+                    : localize(
+                        "routeDebuggerAttemptMissing",
+                        `No value was available from ${source}.`,
+                        source,
+                      );
+            appendText(decision, "route-debugger-clause-attempt", text);
+          });
+        } else {
+          appendText(
+            decision,
+            "route-debugger-clause-legacy",
+            clause.matched
+              ? localize(
+                  "routeDebuggerConditionMatched",
+                  `${clause.name} matches ${clause.pattern}`,
+                  [clause.name, clause.pattern],
+                )
+              : localize(
+                  "routeDebuggerConditionDidNotMatch",
+                  `${clause.name} does not match ${clause.pattern}`,
+                  [clause.name, clause.pattern],
+                ),
+          );
+        }
+        clauseButton.append(decision);
         item.append(clauseButton);
         clauses.append(item);
       });

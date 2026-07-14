@@ -257,6 +257,9 @@ vitest specifics (`test/*.test.ts`, typed; `tsc` covers them):
   nonessential metadata, keep editor/code text comfortably legible, prefer the 400/500/600/700
   weight vocabulary, and verify hierarchy and wrapping in both browser screenshots after broad
   typography changes.
+- Make new UI feel native to the existing app. Reuse the spacing, typography, controls,
+  disclosures, borders, and feedback patterns of adjacent settings before adding component-specific
+  variants; verify new states alongside the surrounding page in both themes and at narrow widths.
 - Keep terminology consistent across settings, menus, notifications, help text, and
   accessibility labels. Give translators enough context in message descriptions when a label
   is ambiguous, preserve placeholders exactly, and write complete strings that allow languages

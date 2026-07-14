@@ -3183,6 +3183,58 @@
     "message": "Edit",
     "description": "Button that opens a route debugger rule in the editor. Used in src/options/route-debugger.ts."
   },
+  "routeDebuggerAttemptMatched": {
+    "message": "Tested “$VALUE$” from $SOURCE$ — matched.",
+    "description": "Explains the actual value that satisfied a route debugger matcher. Used in src/options/route-debugger.ts.",
+    "placeholders": {
+      "value": {
+        "content": "$1",
+        "example": "pdf"
+      },
+      "source": {
+        "content": "$2",
+        "example": "Source URL"
+      }
+    }
+  },
+  "routeDebuggerAttemptDidNotMatch": {
+    "message": "Tested “$VALUE$” from $SOURCE$ — did not match.",
+    "description": "Explains the actual value that failed a route debugger matcher. Used in src/options/route-debugger.ts.",
+    "placeholders": {
+      "value": {
+        "content": "$1",
+        "example": "jpg"
+      },
+      "source": {
+        "content": "$2",
+        "example": "Source URL"
+      }
+    }
+  },
+  "routeDebuggerAttemptMissing": {
+    "message": "No value was available from $SOURCE$.",
+    "description": "Explains that a route debugger matcher had no value to test. Used in src/options/route-debugger.ts.",
+    "placeholders": {
+      "source": {
+        "content": "$1",
+        "example": "Page title"
+      }
+    }
+  },
+  "routeDebuggerAttemptInvalid": {
+    "message": "Could not read a valid value from $SOURCE$: “$VALUE$”.",
+    "description": "Explains that a route debugger matcher could not derive a value from malformed input. Used in src/options/route-debugger.ts.",
+    "placeholders": {
+      "source": {
+        "content": "$1",
+        "example": "Page URL"
+      },
+      "value": {
+        "content": "$2",
+        "example": "not a URL"
+      }
+    }
+  },
   "routeDebuggerConditionMatched": {
     "message": "$FIELD$ matches $PATTERN$",
     "description": "Plain-language route debugger condition that matched. Used in src/options/route-debugger.ts.",

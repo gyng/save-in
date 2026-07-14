@@ -66,6 +66,7 @@ beforeEach(() => {
 
 test("shows production rule and clause decisions and jumps back to their source", async () => {
   renderWorkbench();
+  vi.mocked(browser.i18n.getMessage).mockReturnValue("");
   const sendMessage = vi
     .spyOn(webExtensionApi.runtime, "sendMessage")
     .mockImplementation(async (message: any) => {
@@ -98,14 +99,33 @@ test("shows production rule and clause decisions and jumps back to their source"
                   index: 1,
                   matched: false,
                   destination: "images/",
-                  clauses: [{ name: "fileext", pattern: "png", matched: false }],
+                  clauses: [
+                    {
+                      name: "fileext",
+                      pattern: "png",
+                      matched: false,
+                      attempts: [{ source: "sourceUrl", value: "pdf", status: "not-matched" }],
+                    },
+                  ],
                 },
                 {
                   index: 2,
                   matched: true,
                   destination: "pdf/:filename:",
                   clauses: [
-                    { name: "fileext", pattern: "pdf", matched: true },
+                    {
+                      name: "fileext",
+                      pattern: "pdf",
+                      matched: true,
+                      attempts: [
+                        {
+                          source: "sourceUrl",
+                          value: "pdf",
+                          status: "matched",
+                          matchedText: "pdf",
+                        },
+                      ],
+                    },
                     { name: "pagedomain", pattern: "example\\.com", matched: true },
                   ],
                 },
@@ -129,6 +149,8 @@ test("shows production rule and clause decisions and jumps back to their source"
   expect(ruleCards).toHaveLength(2);
   expect(ruleCards[0]?.open).toBe(false);
   expect(ruleCards[1]?.open).toBe(true);
+  expect(rulesResult.textContent).toContain("Tested “pdf” from Source URL — matched.");
+  expect(rulesResult.textContent).toContain("Tested “pdf” from Source URL — did not match.");
   expect(
     ruleCards[1]?.querySelector<HTMLElement>(".route-debugger-rule-destination")?.dataset.path,
   ).toBe("pdf/:filename:");
@@ -319,6 +341,9 @@ test("uses legacy last-download filename and URL fallbacks and normalizes unknow
             url: "https://legacy.example/image.jpg",
             context: "unknown",
             mediaType: "unknown",
+            sourceKind: "image",
+            now: "2026-07-15T12:30:00",
+            counter: 7,
           },
         })
       : {
@@ -343,13 +368,20 @@ test("uses legacy last-download filename and URL fallbacks and normalizes unknow
   );
   expect(document.querySelector<HTMLSelectElement>("#route-debugger-context")!.value).toBe("");
   expect(document.querySelector<HTMLSelectElement>("#route-debugger-media-type")!.value).toBe("");
+  expect(document.querySelector<HTMLSelectElement>("#route-debugger-source-kind")!.value).toBe(
+    "image",
+  );
+  expect(document.querySelector<HTMLInputElement>("#route-debugger-now")!.value).toBe(
+    "2026-07-15T12:30",
+  );
+  expect(document.querySelector<HTMLInputElement>("#route-debugger-counter")!.value).toBe("7");
 });
 
 test("falls through to resolved filenames and empty last-download fields", async () => {
   renderWorkbench();
   vi.spyOn(webExtensionApi.runtime, "sendMessage").mockImplementation(async (message: any) =>
     message.type === MESSAGE_TYPES.CHECK_ROUTES
-      ? checkResponse({ info: { resolvedFilename: "resolved.bin" } })
+      ? checkResponse({ info: { resolvedFilename: "resolved.bin", now: "not-a-date" } })
       : {
           type: MESSAGE_TYPES.VALIDATE_RESULT,
           body: { version: 1, ruleErrors: [], ruleTrace: noMatchTrace },
@@ -364,6 +396,7 @@ test("falls through to resolved filenames and empty last-download fields", async
       "resolved.bin",
     ),
   );
+  expect(document.querySelector<HTMLInputElement>("#route-debugger-now")!.value).toBe("");
 });
 
 test("loads an empty last-download record with safe field defaults", async () => {

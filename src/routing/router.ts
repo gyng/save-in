@@ -2,15 +2,20 @@ import { RULE_TYPES } from "../shared/constants.ts";
 import { options } from "../config/options-data.ts";
 import { getFilenameDiagnostics, Path } from "./path.ts";
 import { parseRulesCollecting } from "./rule-parser.ts";
-import { matchRule } from "./rule-matcher.ts";
-import type { RoutingDownloadInfo, RoutingInfo, RoutingRule } from "./rule-types.ts";
+import { evaluateRule } from "./rule-matcher.ts";
+import type {
+  MatcherAttempt,
+  RoutingDownloadInfo,
+  RoutingInfo,
+  RoutingRule,
+} from "./rule-types.ts";
 import { routingPorts } from "./ports.ts";
 import { applyVariables } from "./variable.ts";
 import { isStringKeyedRecord } from "../shared/util.ts";
 
 export type * from "./rule-types.ts";
 export { matcherFunctions } from "./matchers.ts";
-export { getCaptureMatches, matchRule, matchRules } from "./rule-matcher.ts";
+export { evaluateRule, getCaptureMatches, matchRule, matchRules } from "./rule-matcher.ts";
 export { parseRulesCollecting } from "./rule-parser.ts";
 export {
   parseRoutingRuleAst,
@@ -49,7 +54,12 @@ export type RuleTrace = {
     index: number;
     matched: boolean;
     destination: string;
-    clauses: Array<{ name: string; pattern: string; matched: boolean }>;
+    clauses: Array<{
+      name: string;
+      pattern: string;
+      matched: boolean;
+      attempts: MatcherAttempt[];
+    }>;
   }>;
 };
 
@@ -68,17 +78,23 @@ export const traceRules = async (
   isEligible: (rule: RoutingRule) => boolean = () => true,
 ): Promise<RuleTrace> => {
   const eligibility = rules.map(isEligible);
-  const matchedDestinations = rules.map((rule, index) =>
-    eligibility[index] ? matchRule(rule, info) : false,
+  const evaluations = rules.map((rule, index) =>
+    eligibility[index] ? evaluateRule(rule, info) : { destination: false as const, clauses: [] },
   );
+  const matchedDestinations = evaluations.map(({ destination }) => destination);
   const traced = rules.map((rule, index) => {
+    const evaluation = evaluations[index]!;
     const clauses = rule
       .filter((clause) => clause.type === RULE_TYPES.MATCHER)
-      .map((clause) => ({
-        name: clause.name,
-        pattern: String(clause.value),
-        matched: eligibility[index] ? Boolean(clause.matcher(info, info)) : false,
-      }));
+      .map((clause) => {
+        const evaluated = evaluation.clauses.find((item) => item.clause === clause);
+        return {
+          name: clause.name,
+          pattern: String(clause.value),
+          matched: eligibility[index] ? Boolean(evaluated?.result) : false,
+          attempts: evaluated?.attempts ?? [],
+        };
+      });
     const destination = rule.find((clause) => clause.type === RULE_TYPES.DESTINATION)?.value ?? "";
     return {
       index: index + 1,

@@ -7,7 +7,16 @@ export type RouteDebuggerClause = {
   name: string;
   pattern: string;
   matched: boolean;
+  attempts?: RouteDebuggerAttempt[] | undefined;
   source?: { start: number; end: number; line: number } | undefined;
+};
+
+export type RouteDebuggerAttempt = {
+  source: string;
+  value: string | null;
+  status: "matched" | "not-matched" | "missing" | "invalid";
+  matchedText?: string | undefined;
+  captures?: Array<string | null> | undefined;
 };
 
 export type RouteDebuggerRule = {
@@ -57,6 +66,39 @@ export type RouteSourceSummary = {
 const nullableString = (value: unknown): value is string | null =>
   value === null || typeof value === "string";
 
+const ATTEMPT_STATUSES = new Set(["matched", "not-matched", "missing", "invalid"]);
+
+const parseAttempts = (value: unknown): RouteDebuggerAttempt[] | null => {
+  if (!Array.isArray(value)) return null;
+  const attempts: RouteDebuggerAttempt[] = [];
+  for (const attempt of value) {
+    if (
+      !isStringKeyedRecord(attempt) ||
+      typeof attempt.source !== "string" ||
+      !nullableString(attempt.value) ||
+      typeof attempt.status !== "string" ||
+      !ATTEMPT_STATUSES.has(attempt.status) ||
+      !(typeof attempt.matchedText === "undefined" || typeof attempt.matchedText === "string") ||
+      !(
+        typeof attempt.captures === "undefined" ||
+        (Array.isArray(attempt.captures) && attempt.captures.every(nullableString))
+      )
+    ) {
+      return null;
+    }
+    attempts.push({
+      source: attempt.source,
+      value: attempt.value,
+      status: attempt.status as RouteDebuggerAttempt["status"],
+      ...(typeof attempt.matchedText === "string" ? { matchedText: attempt.matchedText } : {}),
+      ...(Array.isArray(attempt.captures)
+        ? { captures: attempt.captures as Array<string | null> }
+        : {}),
+    });
+  }
+  return attempts;
+};
+
 export const parseRouteDebuggerTrace = (value: unknown): RouteDebuggerTrace | null => {
   if (
     !isStringKeyedRecord(value) ||
@@ -91,7 +133,15 @@ export const parseRouteDebuggerTrace = (value: unknown): RouteDebuggerTrace | nu
       ) {
         return null;
       }
-      clauses.push({ name: clause.name, pattern: clause.pattern, matched: clause.matched });
+      const attempts =
+        typeof clause.attempts === "undefined" ? undefined : parseAttempts(clause.attempts);
+      if (attempts === null) return null;
+      clauses.push({
+        name: clause.name,
+        pattern: clause.pattern,
+        matched: clause.matched,
+        ...(attempts ? { attempts } : {}),
+      });
     }
     rules.push({
       index: candidate.index,

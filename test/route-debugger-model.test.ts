@@ -17,7 +17,14 @@ const trace: RouteDebuggerTrace = {
       index: 1,
       matched: false,
       destination: "images/",
-      clauses: [{ name: "fileext", pattern: "png", matched: false }],
+      clauses: [
+        {
+          name: "fileext",
+          pattern: "png",
+          matched: false,
+          attempts: [{ source: "sourceUrl", value: "jpg", status: "not-matched" }],
+        },
+      ],
     },
     {
       index: 2,
@@ -58,6 +65,22 @@ test.each([
   {
     ...trace,
     rules: [{ ...trace.rules[0], clauses: [{ name: "fileext", pattern: "png", matched: 1 }] }],
+  },
+  {
+    ...trace,
+    rules: [
+      {
+        ...trace.rules[0],
+        clauses: [
+          {
+            name: "fileext",
+            pattern: "png",
+            matched: false,
+            attempts: [{ source: "sourceUrl", value: "jpg", status: "unknown" }],
+          },
+        ],
+      },
+    ],
   },
 ])("rejects malformed route trace fields", (value) => {
   expect(parseRouteDebuggerTrace(value)).toBeNull();
@@ -173,7 +196,15 @@ test("normalizes debugger fields into the routing engine input aliases", () => {
 
 test("omits blank debugger fields", () => {
   expect(
-    routeDebuggerInfo({ filename: "", sourceUrl: "", pageUrl: "", mime: "", context: "" }),
+    routeDebuggerInfo({
+      filename: "",
+      sourceUrl: "",
+      pageUrl: "",
+      mime: "",
+      context: "",
+      now: "not-a-date",
+      counter: "not-a-number",
+    }),
   ).toEqual({});
 });
 

@@ -54,12 +54,27 @@ export type RuleError = {
   location?: RuleErrorLocation;
 };
 export type MatcherResult = RegExpMatchArray | null | false;
+export type MatcherAttemptStatus = "matched" | "not-matched" | "missing" | "invalid";
+export type MatcherAttempt = {
+  source: string;
+  value: string | null;
+  status: MatcherAttemptStatus;
+  matchedText?: string | undefined;
+  captures?: Array<string | null> | undefined;
+};
+export type MatcherEvaluation = {
+  result: MatcherResult;
+  attempts: MatcherAttempt[];
+};
 export type RoutingInfo = Omit<RoutingDownloadInfo, "currentTab"> & {
   currentTab?: unknown;
   srcUrl?: string | undefined;
   linkUrl?: string | undefined;
 };
-export type RuleMatcher = (info: RoutingInfo, metadata?: Partial<RoutingInfo>) => MatcherResult;
+export type RuleMatcher = {
+  (info: RoutingInfo, metadata?: Partial<RoutingInfo>): MatcherResult;
+  explain?: (info: RoutingInfo, metadata?: Partial<RoutingInfo>) => MatcherEvaluation;
+};
 export type MatcherFactory = (regex: RegExp) => RuleMatcher;
 export type MatcherClause = {
   name: string;

@@ -692,6 +692,70 @@ into: captures/:$1:/:$2:`,
       );
     });
 
+    test("explains the values and fallbacks tested by each matcher", async () => {
+      const rules = router.parseRules("referrerurl: gallery\\.example\ninto: galleries/:filename:");
+
+      const trace = await router.traceRules(rules, {
+        filename: "photo.jpg",
+        referrerUrl: "https://mail.example/thread/7",
+        pageUrl: "https://gallery.example/album/42",
+      });
+
+      expect(trace.rules[0]?.clauses[0]).toMatchObject({
+        matched: true,
+        attempts: [
+          {
+            source: "referrerUrl",
+            value: "https://mail.example/thread/7",
+            status: "not-matched",
+          },
+          {
+            source: "pageUrl",
+            value: "https://gallery.example/album/42",
+            status: "matched",
+            matchedText: "gallery.example",
+          },
+        ],
+      });
+    });
+
+    test("distinguishes missing matcher values from invalid derived values", async () => {
+      const missing = await router.traceRules(router.parseRules("fileext: pdf\ninto: pdf/"), {});
+      const invalid = await router.traceRules(
+        router.parseRules("pagedomain: example\ninto: sites/"),
+        { pageUrl: "not a URL" },
+      );
+
+      expect(missing.rules[0]?.clauses[0]?.attempts).toEqual([
+        { source: "sourceUrl", value: null, status: "missing" },
+      ]);
+      expect(invalid.rules[0]?.clauses[0]?.attempts).toEqual([
+        { source: "pageUrl", value: "not a URL", status: "invalid" },
+      ]);
+    });
+
+    test("evaluates each matcher once while producing a trace", async () => {
+      let calls = 0;
+      const matcherOnly = [
+        {
+          type: constants.RULE_TYPES.MATCHER,
+          name: "filename",
+          value: /(file)/,
+          matcher: () => {
+            calls += 1;
+            return ["file", "file"] as unknown as RegExpMatchArray;
+          },
+        },
+        { type: constants.RULE_TYPES.CAPTURE, name: "capture", value: "filename" },
+        { type: constants.RULE_TYPES.DESTINATION, name: "into", value: "files/:$1:" },
+      ] as unknown as RoutingRule;
+
+      const trace = await router.traceRules([matcherOnly], { filename: "file.txt" });
+
+      expect(trace.destination).toBe("files/file");
+      expect(calls).toBe(1);
+    });
+
     test("uses the real variable pipeline and source URL fallback", async () => {
       const rules = router.parseRules(
         "sourceurl: cat\\.jpg$\ninto: archive/:year:/:naivefilename:",

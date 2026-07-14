@@ -1798,6 +1798,54 @@
   "routeDebuggerEditRule": {
     "message": "Edit"
   },
+  "routeDebuggerAttemptMatched": {
+    "message": "Tested “$VALUE$” from $SOURCE$ — matched.",
+    "placeholders": {
+      "value": {
+        "content": "$1",
+        "example": "pdf"
+      },
+      "source": {
+        "content": "$2",
+        "example": "Source URL"
+      }
+    }
+  },
+  "routeDebuggerAttemptDidNotMatch": {
+    "message": "Tested “$VALUE$” from $SOURCE$ — did not match.",
+    "placeholders": {
+      "value": {
+        "content": "$1",
+        "example": "jpg"
+      },
+      "source": {
+        "content": "$2",
+        "example": "Source URL"
+      }
+    }
+  },
+  "routeDebuggerAttemptMissing": {
+    "message": "No value was available from $SOURCE$.",
+    "placeholders": {
+      "source": {
+        "content": "$1",
+        "example": "Page title"
+      }
+    }
+  },
+  "routeDebuggerAttemptInvalid": {
+    "message": "Could not read a valid value from $SOURCE$: “$VALUE$”.",
+    "placeholders": {
+      "source": {
+        "content": "$1",
+        "example": "Page URL"
+      },
+      "value": {
+        "content": "$2",
+        "example": "not a URL"
+      }
+    }
+  },
   "routeDebuggerConditionMatched": {
     "message": "$FIELD$ matches $PATTERN$",
     "placeholders": {
