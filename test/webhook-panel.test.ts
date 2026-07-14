@@ -60,6 +60,9 @@ test("wires the default save, delivery, and localization dependencies", async ()
   await vi.waitFor(() =>
     expect(document.querySelector("#webhook-status")?.textContent).toBe("Test delivered."),
   );
+  expect(document.querySelector("#webhook-status")?.classList.contains("feedback-success")).toBe(
+    true,
+  );
 });
 
 test("requests Firefox data consent and atomically enables a valid endpoint", async () => {
@@ -202,6 +205,9 @@ test("sends a privacy-minimal test and reports endpoint rejection", async () => 
 
   await vi.waitFor(() => expect(ports.post).toHaveBeenCalledWith("https://hooks.example/test"));
   expect(document.querySelector("#webhook-status")?.textContent).toBe("webhookTestRejected");
+  expect(document.querySelector("#webhook-status")?.classList.contains("feedback-error")).toBe(
+    true,
+  );
 });
 
 test("debounces valid endpoint saves, saves blank endpoints, and rejects malformed endpoints", async () => {

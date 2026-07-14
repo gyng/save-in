@@ -86,6 +86,8 @@ export const setupWebhookPanel = (
   const setStatus = (message: string, error = false) => {
     status.textContent = message;
     status.classList.toggle("is-error", error);
+    status.classList.toggle("feedback-error", error);
+    status.classList.toggle("feedback-success", Boolean(message) && !error);
   };
   const renderPreview = () => {
     preview.textContent = JSON.stringify(

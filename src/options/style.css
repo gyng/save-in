@@ -4046,6 +4046,10 @@ button:disabled {
   width: min(760px, 100%);
   box-sizing: border-box;
   margin: var(--space-2) 0 var(--space-5);
+  padding: var(--space-4);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  background: transparent;
 }
 
 .webhook-heading-row {
@@ -4065,7 +4069,7 @@ button:disabled {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2) var(--space-4);
-  margin: calc(-1 * var(--space-2)) 0 var(--space-4);
+  margin: calc(-1 * var(--space-2)) 0 var(--space-6);
   font-size: var(--text-sm);
 }
 
@@ -4147,8 +4151,8 @@ button:disabled {
   font-size: var(--text-sm);
 }
 
-.webhook-status {
-  min-height: 1.3em;
+.webhook-status:empty {
+  display: none;
 }
 
 .webhook-status.is-error {
