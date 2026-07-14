@@ -3566,8 +3566,8 @@
     "description": "Primary welcome action that accepts the working default folders and closes the guide. Used in src/options/welcome-dialog.ts."
   },
   "welcomeUsingStarterSettings": {
-    "message": "Using starter settings",
-    "description": "Fresh-install save status shown while the welcome dialog is open. Used in src/options/welcome-dialog.ts."
+    "message": "Just now",
+    "description": "Fresh-install value shown after the Last updated label while the welcome dialog is open. Used in src/options/welcome-dialog.ts."
   },
   "html_showWelcomeGuide": {
     "message": "Show welcome guide",

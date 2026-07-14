@@ -270,7 +270,7 @@ test("first install starts with a focused welcome", async () => {
   );
   expect(welcome).toMatchObject({
     title: "Welcome to Save In",
-    status: "Using starter settings",
+    status: "Just now",
   });
   expect(welcome.steps).toHaveLength(3);
 

@@ -205,7 +205,7 @@ export const showWelcomeDialog = (
 
   const savedStatus = document.querySelector<HTMLElement>("#lastSavedAt");
   if (savedStatus && isFirstInstall) {
-    savedStatus.textContent = localize("welcomeUsingStarterSettings") || "Using starter settings";
+    savedStatus.textContent = localize("welcomeUsingStarterSettings") || "Just now";
   }
 
   let finished = false;

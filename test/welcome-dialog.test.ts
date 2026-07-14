@@ -6,7 +6,7 @@ import { setupWelcomeDialog, showWelcomeDialog } from "../src/options/welcome-di
 const localize = (key: string): string =>
   ({
     welcomeTitle: "Welcome to Save In",
-    welcomeUsingStarterSettings: "Using starter settings",
+    welcomeUsingStarterSettings: "Just now",
   })[key] || "";
 
 const pageFixture = () => {
@@ -54,7 +54,7 @@ test("shows the current welcome once and accepts the working starter folders", a
   const dialog = document.querySelector<HTMLDialogElement>("#welcome-dialog");
   expect(dialog?.open).toBe(true);
   expect(dialog?.querySelector("h1")?.textContent).toBe("Welcome to Save In");
-  expect(document.querySelector("#lastSavedAt")?.textContent).toBe("Using starter settings");
+  expect(document.querySelector("#lastSavedAt")?.textContent).toBe("Just now");
 
   dialog?.querySelector<HTMLButtonElement>(".welcome-accept")?.click();
   expect(storage.remove).toHaveBeenCalledWith(WELCOME_PENDING_STORAGE_KEY);
