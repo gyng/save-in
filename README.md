@@ -78,42 +78,13 @@ approved extensions, an internal configuration API (`GET_SCHEMA` / `VALIDATE` /
 See the source-controlled [integration contract](docs/INTEGRATIONS.md) for the
 protocol, availability, and trust model.
 
-## Development
+## Notes for reviewers
 
-1. Install dev dependencies with `npm install` (Node 24+).
-2. Run `npm run d` to start a Firefox development instance with web-ext, or
-   `npm run d:chrome` for a Chrome development loop with automatic reload.
-3. Develop the change.
-4. Run `npm run fmt:check` or format with `npm run fmt`.
-5. Run `npm run lint` or apply safe fixes with `npm run lint:fix`.
-6. Run `npm test` or `npm run test:watch`. `npm run test:integration` adds tests
-   that require loopback listeners or child processes, and `npm run test:all`
-   runs both suites. `npm run test:fuzz` runs a ten-second property fuzz of the
-   parser, routing, filename, and webhook boundaries; see the
-   [fuzzing guide](docs/FUZZING.md). Set a longer budget with
-   `node scripts/with-env.js FUZZ_TIME_MS=60000 -- npm run test:fuzz`; failures
-   print a replayable property and seed, plus a shrink path when available.
-7. Run `npm run e2e` for Chrome and Firefox in parallel. `e2e:chrome` and
-   `e2e:firefox` remain available separately. Browser failures retain
-   diagnostics in `dist/e2e-artifacts`.
-
-Run `npm run clean` to remove generated bundles, browser profiles, coverage
-reports, and packaged artifacts while keeping installed dependencies.
-
-## Deployment
-
-`npm run build` creates the shared Manifest V3 ZIP in `web-ext-artifacts` for
-both stores. AMO also requires the reproducible source ZIP created by
-`npm run build:source`. See the [release workflow](docs/RELEASE.md) for release
-gates, upload guidance, permission rationales, and manual checks.
-
-### Notes for reviewers
-
-#### Source code
+### Source code
 
 The source code for this extension is available at https://github.com/gyng/save-in.
 
-#### Third-party dependencies
+### Third-party dependencies
 
 All shipped extension code is first-party except
 `src/vendor/content-disposition.ts`, a
@@ -126,3 +97,5 @@ file per execution target; the shipped bundle remains suitable for review.
 ## Contributors
 
 Pull requests, bug reports, and issues are welcome.
+See the [contributor guide](AGENTS.md) for development setup and validation, and
+the [release workflow](docs/RELEASE.md) for packaging and store submissions.

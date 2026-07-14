@@ -178,6 +178,8 @@ browsers before reporting it as confirmed.
 
 ## Iteration workflow
 
+- `npm install`: install the development dependencies with Node 24 or newer.
+- `npm run fmt:check` and `npm run fmt`: check or apply repository formatting.
 - `npm test` and `npm run test:watch`: sandbox-safe unit tests.
   `npm run test:integration` runs tests that require loopback listeners or child
   processes; `npm run test:all` runs both. `npm run test:coverage` also runs
@@ -188,7 +190,8 @@ browsers before reporting it as confirmed.
   e2e drivers, and the source/test project.
 - `npm run test:fuzz`: run the replayable property fuzz suite for ten seconds.
   Override `FUZZ_TIME_MS` for longer runs; failures print `FUZZ_PROPERTY`,
-  `FUZZ_SEED`, and `FUZZ_PATH` values for exact replay.
+  `FUZZ_SEED`, and `FUZZ_PATH` values for exact replay. See the
+  [fuzzing guide](docs/FUZZING.md) for campaign and replay details.
 - `npm run e2e`: stage once and run Chrome and Firefox in parallel. Use
   `e2e:chrome`, `e2e:firefox`, or `e2e:serial` when isolating failures or
   machine-resource issues.
@@ -196,6 +199,8 @@ browsers before reporting it as confirmed.
   loops.
 - `npm run bundle`: emit readable bundles. `npm run build` also stages and
   packages the shared store ZIP.
+- `npm run clean`: remove generated bundles, browser profiles, coverage reports,
+  and packaged artifacts while keeping installed dependencies.
 
 Chrome ≥ 137 ignores `--load-extension`; the scripts load the staged bundled
 package from `dist/bundled-pkg` via the CDP `Extensions.loadUnpacked` command (needs

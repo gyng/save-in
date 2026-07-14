@@ -3,6 +3,12 @@
 This is on-demand guidance for release preparation and release-tooling changes.
 Ordinary development tasks do not need it.
 
+## Local release artifacts
+
+`npm run build` creates the shared Manifest V3 runtime ZIP in
+`web-ext-artifacts` for both stores. `npm run build:source` creates the
+reproducible source ZIP required for the AMO submission.
+
 ## Store upload
 
 Run the release gates in `AGENTS.md`, then upload the same reviewed runtime ZIP
