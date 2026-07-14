@@ -140,18 +140,13 @@ export const Messaging = {
         now: lastState.info.now instanceof Date ? lastState.info.now : new Date(),
         preview: true,
       });
-      const values = await Promise.all(
-        keys.map((val) =>
-          applyVariables(new Path(val), previewInfo).then((path: { finalize: () => string }) =>
-            path.finalize(),
-          ),
-        ),
+      const interpolationEntries = await Promise.all(
+        keys.map(async (key) => {
+          const path = await applyVariables(new Path(key), previewInfo);
+          return [key, path.finalize()] as const;
+        }),
       );
-      const interpolationMap: Record<string, string> = {};
-      keys.forEach((key, i) => {
-        interpolationMap[key] = values[i]!;
-      });
-      interpolatedVariables = interpolationMap;
+      interpolatedVariables = Object.fromEntries(interpolationEntries);
     }
 
     // The legacy no-state path evaluates to false; checkRoutes treats every
