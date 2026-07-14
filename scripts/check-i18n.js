@@ -237,7 +237,10 @@ const parseTag = (tagSource) => {
   const attributes = {};
   const body = tagSource.replace(/^<\s*[\w-]+/, "");
   for (const match of body.matchAll(/([^\s=/>]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+)))?/g)) {
-    attributes[match[1].toLowerCase()] = match[2] ?? match[3] ?? match[4] ?? "";
+    const attributeName = match[1];
+    if (attributeName) {
+      attributes[attributeName.toLowerCase()] = match[2] ?? match[3] ?? match[4] ?? "";
+    }
   }
   return { name, attributes };
 };

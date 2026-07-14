@@ -13,7 +13,9 @@ function prepareCommand(argv, parentEnv = process.env) {
   let index = 0;
 
   while (index < argv.length && argv[index] !== "--") {
-    if (argv[index] === "-u") {
+    const argument = argv[index];
+    if (argument === undefined) break;
+    if (argument === "-u") {
       const name = argv[index + 1];
       if (!name) throw new Error("-u requires an environment variable name");
       delete env[name];
@@ -21,9 +23,9 @@ function prepareCommand(argv, parentEnv = process.env) {
       continue;
     }
 
-    const separator = argv[index].indexOf("=");
+    const separator = argument.indexOf("=");
     if (separator < 1) break;
-    env[argv[index].slice(0, separator)] = argv[index].slice(separator + 1);
+    env[argument.slice(0, separator)] = argument.slice(separator + 1);
     index += 1;
   }
 

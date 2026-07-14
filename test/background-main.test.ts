@@ -371,7 +371,7 @@ describe("init", () => {
     };
     OptionsManagement.loadOptions = vi.fn(
       () =>
-        new Promise<SaveInOptions>((resolve, reject) => {
+        new Promise<SaveInOptions>((_resolve, reject) => {
           rejectLoad = reject;
         }),
     );

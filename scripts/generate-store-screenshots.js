@@ -27,8 +27,9 @@ const DEFAULT_OUTPUT = path.join(chrome.ROOT, "docs", "store-screenshots");
 const outputArgument = () => {
   const index = process.argv.indexOf("--output-dir");
   if (index < 0) return process.env.STORE_SCREENSHOT_DIR || DEFAULT_OUTPUT;
-  if (!process.argv[index + 1]) throw new Error("--output-dir requires a path");
-  return process.argv[index + 1];
+  const output = process.argv[index + 1];
+  if (!output) throw new Error("--output-dir requires a path");
+  return output;
 };
 
 /** @param {() => unknown | Promise<unknown>} callback @param {string} description @param {number} [timeoutMs] */

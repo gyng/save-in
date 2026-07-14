@@ -255,7 +255,7 @@ const closeDemoServer = (server) =>
   });
 
 /**
- * @param {{browser?: {proc: import("node:child_process").ChildProcess, profileDir: string}, server: import("node:http").Server}} session
+ * @param {{browser: {proc: import("node:child_process").ChildProcess, profileDir: string} | undefined, server: import("node:http").Server}} session
  * @param {{killTree?: typeof chrome.killTree, removeProfile?: typeof chrome.removeProfile}} [cleanup]
  */
 const cleanupReviewSession = async (

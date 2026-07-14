@@ -82,6 +82,11 @@ for (const [name, expected] of Object.entries({
   forceConsistentCasingInFileNames: true,
   noFallthroughCasesInSwitch: true,
   noImplicitReturns: true,
+  exactOptionalPropertyTypes: true,
+  noUncheckedIndexedAccess: true,
+  noImplicitOverride: true,
+  noUnusedLocals: true,
+  noUnusedParameters: true,
 })) {
   check(
     baseOptions[name] === expected,
@@ -89,9 +94,6 @@ for (const [name, expected] of Object.entries({
   );
 }
 check(!("allowJs" in baseOptions), "tsconfig.json: allowJs belongs only in tooling/test configs");
-const browserOptions = readJson("tsconfig.browser.json").compilerOptions || {};
-check(browserOptions.exactOptionalPropertyTypes === true, "browser config needs exact optionals");
-check(browserOptions.noUncheckedIndexedAccess === true, "browser config needs checked indexing");
 const worker = readJson("tsconfig.worker.json");
 check(
   JSON.stringify(worker.compilerOptions?.lib) === JSON.stringify(["es2023", "webworker"]),
@@ -115,7 +117,12 @@ check(
   tools.compilerOptions?.allowJs === true &&
     tools.compilerOptions?.checkJs === true &&
     tools.compilerOptions?.noEmit === true &&
-    tools.compilerOptions?.strict === true,
+    tools.compilerOptions?.strict === true &&
+    tools.compilerOptions?.exactOptionalPropertyTypes === true &&
+    tools.compilerOptions?.noUncheckedIndexedAccess === true &&
+    tools.compilerOptions?.noImplicitOverride === true &&
+    tools.compilerOptions?.noUnusedLocals === true &&
+    tools.compilerOptions?.noUnusedParameters === true,
   "tooling config must strictly check JavaScript without emitting",
 );
 check(

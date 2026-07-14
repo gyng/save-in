@@ -1002,7 +1002,7 @@ test(":sha256: and :sha256full: hash and save from a single fetch (Chrome MV3)",
   const expectedHash = crypto.createHash("sha256").update(body).digest("hex");
   const expectedShortHash = expectedHash.slice(0, 12);
   let hits = 0;
-  const server = http.createServer((req, res) => {
+  const server = http.createServer((_req, res) => {
     hits += 1;
     res.writeHead(200, { "Content-Type": "application/octet-stream" });
     res.end(body);

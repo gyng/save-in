@@ -48,8 +48,9 @@ for (const file of files) {
     const match =
       declaration.match(/\bfrom\s+["'](\.[^"']+)["']/) ||
       declaration.match(/^\s*import\s+["'](\.[^"']+)["']/);
-    if (!match) continue;
-    const resolved = path.resolve(path.dirname(file), match[1]);
+    const specifier = match?.[1];
+    if (!specifier) continue;
+    const resolved = path.resolve(path.dirname(file), specifier);
     const target = path.extname(resolved) ? resolved : `${resolved}.ts`;
     if (known.has(target)) {
       imports.get(file)?.push(target);

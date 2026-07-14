@@ -5,6 +5,8 @@ const { deflateSync, inflateSync } = require("zlib");
 const SCREENSHOT_WIDTH = 1280;
 const SCREENSHOT_HEIGHT = 800;
 
+/** @typedef {Readonly<{filename: string, description: string}>} Screenshot */
+/** @type {readonly [Screenshot, Screenshot, Screenshot, Screenshot, Screenshot]} */
 const SCREENSHOTS = Object.freeze([
   Object.freeze({
     filename: "01-downloads-menu.png",
@@ -61,7 +63,11 @@ const CRC_TABLE = Array.from({ length: 256 }, (_, value) => {
 /** @param {Buffer} buffer */
 const crc32 = (buffer) => {
   let crc = 0xffffffff;
-  for (const byte of buffer) crc = CRC_TABLE[(crc ^ byte) & 0xff] ^ (crc >>> 8);
+  for (const byte of buffer) {
+    const tableValue = CRC_TABLE[(crc ^ byte) & 0xff];
+    if (tableValue === undefined) throw new RangeError("CRC table lookup out of bounds");
+    crc = tableValue ^ (crc >>> 8);
+  }
   return (crc ^ 0xffffffff) >>> 0;
 };
 

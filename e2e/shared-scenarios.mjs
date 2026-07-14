@@ -80,7 +80,7 @@ export const runRoutingScenario = async ({ evaluate, waitForDownloads, content }
  */
 export const runLegacyProfileRoutingScenario = async ({ evaluate, waitForDownloads, filename }) => {
   const body = Buffer.from("legacy profile png");
-  const server = http.createServer((req, res) => {
+  const server = http.createServer((_req, res) => {
     res.writeHead(200, {
       "Content-Type": "image/png",
       "Content-Length": body.length,

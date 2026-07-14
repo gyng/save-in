@@ -774,7 +774,7 @@ describe("setupClickToSave", () => {
   test("retries the DOWNLOAD every 300ms while the service worker is starting", async () => {
     vi.useFakeTimers();
     // Every send reports lastError: initial send + 2 retries, then gives up
-    sendMessage.mockImplementation((message, cb) => {
+    sendMessage.mockImplementation((_message, cb) => {
       (global.chrome.runtime as any).lastError = { message: "SW starting" };
       if (cb) {
         cb();
