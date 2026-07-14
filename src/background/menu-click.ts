@@ -124,7 +124,8 @@ export const handleContextMenuClick = async (
         menuIndex = menuState.lastUsedMeta.menuIndex;
       }
     } else {
-      const mappedMenu = menuInfo!;
+      const mappedMenu = menuInfo;
+      if (!mappedMenu) return;
       saveIntoPath = mappedMenu.parsedDir;
       const title = mappedMenu.title || saveIntoPath;
       selectedLocation = {
