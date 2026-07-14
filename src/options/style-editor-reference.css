@@ -38,6 +38,10 @@
   scrollbar-width: thin;
 }
 
+.variables-preview-reference-row {
+  padding-block: 6px;
+}
+
 .variables-preview-filter,
 .clause-preview-filter,
 .inline-template-library-content > .rule-template-filter {
