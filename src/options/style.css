@@ -545,6 +545,7 @@ body:not(#settings-page) {
 
 .privacy-dialog {
   width: min(680px, calc(100vw - 2 * var(--space-5)));
+  max-height: min(680px, 80vh);
   overflow-y: auto;
 }
 
