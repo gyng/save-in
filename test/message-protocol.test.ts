@@ -171,6 +171,10 @@ describe("message protocol runtime validation", () => {
   test("recognizes message types without accepting malformed discriminators", () => {
     expect(getMessageType({ type: MESSAGE_TYPES.PING })).toBe(MESSAGE_TYPES.PING);
     expect(getMessageType({ type: 1 })).toBeUndefined();
+    const arrayMessage = Object.assign([], { type: MESSAGE_TYPES.PING });
+    expect(getMessageType(arrayMessage)).toBeUndefined();
+    expect(isInternalMessage(arrayMessage)).toBe(false);
+    expect(isExternalMessage(arrayMessage)).toBe(false);
     expect(getMessageType(null)).toBeUndefined();
     expect(isInternalMessage({ type: "UNKNOWN" })).toBe(false);
     expect(isExternalMessage({ type: MESSAGE_TYPES.HISTORY_GET })).toBe(false);

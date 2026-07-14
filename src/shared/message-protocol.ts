@@ -449,7 +449,7 @@ const isExternalMessageType = (value: string): value is ExternalMessage["type"] 
   Object.hasOwn(EXTERNAL_MESSAGE_TYPE_MAP, value);
 
 const hasType = (value: unknown): value is Record<string, unknown> & { type: string } =>
-  typeof value === "object" && value !== null && typeof Reflect.get(value, "type") === "string";
+  isStringKeyedRecord(value) && typeof value.type === "string";
 
 const hasNoBody = (message: Record<string, unknown>): boolean =>
   !("body" in message) || typeof message.body === "undefined";
