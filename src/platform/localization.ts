@@ -42,6 +42,9 @@ const parseCatalog = (value: unknown): MessageCatalog => {
   return value;
 };
 
+const isBrowserDefaultLocale = (locale: unknown): boolean =>
+  locale === "" || locale === null || typeof locale === "undefined";
+
 const formatMessage = (definition: MessageDefinition, substitutions?: Substitutions): string => {
   const values = Array.isArray(substitutions)
     ? substitutions
@@ -65,7 +68,7 @@ export const createLocalization = (ports: LocalizationPorts) => {
     async initialize(locale: unknown): Promise<void> {
       selectedCatalog = undefined;
       englishCatalog = undefined;
-      if (!isSelectableLocale(locale)) return;
+      if (!isSelectableLocale(locale) && !isBrowserDefaultLocale(locale)) return;
       const loadParsedCatalog = (path: string) => ports.loadCatalog(path).then(parseCatalog);
       const englishRequest = loadParsedCatalog("_locales/en/messages.json");
       if (!isGeneratedLocale(locale)) {

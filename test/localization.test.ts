@@ -94,6 +94,23 @@ test("allows an explicit English override without loading an AI catalog", async 
   expect(localization.getMessage("greeting")).toBe("Hello");
 });
 
+test.each([undefined, null, ""])(
+  "loads canonical English for the browser-default locale %j",
+  async (locale) => {
+    const loadCatalog = vi.fn(async () => english);
+    const localization = createLocalization({
+      nativeGetMessage: (key) => `native:${key}`,
+      loadCatalog,
+    });
+
+    await localization.initialize(locale);
+
+    expect(loadCatalog).toHaveBeenCalledOnce();
+    expect(loadCatalog).toHaveBeenCalledWith("_locales/en/messages.json");
+    expect(localization.getMessage("greeting")).toBe("Hello");
+  },
+);
+
 test("falls back to native messages when an AI catalog cannot be loaded", async () => {
   const localization = createLocalization({
     nativeGetMessage: (key) => `native:${key}`,
