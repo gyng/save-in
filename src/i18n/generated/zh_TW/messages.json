@@ -2351,12 +2351,6 @@
   "routeDebuggerAnyMediaType": {
     "message": "任何媒體類型"
   },
-  "routeDebuggerEvaluation": {
-    "message": "規則評估"
-  },
-  "routeDebuggerFirstMatch": {
-    "message": "規則會由上而下檢查；系統會使用第一個符合的規則。"
-  },
   "routeDebuggerMatcherCount": {
     "message": "$TOTAL$ 個條件中有 $MATCHED$ 個符合",
     "placeholders": {

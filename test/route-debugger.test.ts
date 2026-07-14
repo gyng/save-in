@@ -30,9 +30,7 @@ const renderWorkbench = (): void => {
     <button id="route-debugger-use-last" type="button">Use last download</button>
     <button id="route-debugger-use-sample" type="button">Use sample download</button>
     <div id="route-debugger-result"></div>
-    <details class="route-debugger-rules-disclosure">
-      <div id="route-debugger-rules"></div>
-    </details>`;
+    <div id="route-debugger-rules"></div>`;
 };
 
 const checkResponse = (lastDownload: unknown = null) => ({
@@ -348,35 +346,6 @@ test("prefills the latest download and can switch back to the sample", async () 
       "report.pdf",
     ),
   );
-});
-
-test("keeps the rule trace collapsed when test actions run", async () => {
-  renderWorkbench();
-  const disclosure = document.querySelector<HTMLDetailsElement>(
-    ".route-debugger-rules-disclosure",
-  )!;
-  vi.spyOn(webExtensionApi.runtime, "sendMessage").mockImplementation(async (message: any) =>
-    message.type === MESSAGE_TYPES.CHECK_ROUTES
-      ? checkResponse({ info: { filename: "latest.jpg" } })
-      : {
-          type: MESSAGE_TYPES.VALIDATE_RESULT,
-          body: { version: 1, ruleErrors: [], ruleTrace: noMatchTrace },
-        },
-  );
-
-  setupRouteDebugger();
-  const useLast = document.querySelector<HTMLButtonElement>("#route-debugger-use-last")!;
-  await vi.waitFor(() => expect(useLast.disabled).toBe(false));
-
-  for (const selector of [
-    "#route-debugger-run",
-    "#route-debugger-use-last",
-    "#route-debugger-use-sample",
-  ]) {
-    disclosure.open = false;
-    document.querySelector<HTMLButtonElement>(selector)!.click();
-    expect(disclosure.open, selector).toBe(false);
-  }
 });
 
 test("uses legacy last-download filename and URL fallbacks and normalizes unknown selects", async () => {

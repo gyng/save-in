@@ -2251,12 +2251,6 @@
   "routeDebuggerAnyMediaType": {
     "message": "Elk mediatype"
   },
-  "routeDebuggerEvaluation": {
-    "message": "Regelevaluatie"
-  },
-  "routeDebuggerFirstMatch": {
-    "message": "Regels worden van boven naar beneden gecontroleerd; de eerste overeenkomst wordt gebruikt."
-  },
   "routeDebuggerMatcherCount": {
     "message": "$MATCHED$ van $TOTAL$ voorwaarden komen overeen",
     "placeholders": {

@@ -2351,12 +2351,6 @@
   "routeDebuggerAnyMediaType": {
     "message": "任意媒体类型"
   },
-  "routeDebuggerEvaluation": {
-    "message": "规则评估"
-  },
-  "routeDebuggerFirstMatch": {
-    "message": "规则按从上到下的顺序检查；系统会使用第一条匹配的规则。"
-  },
   "routeDebuggerMatcherCount": {
     "message": "$TOTAL$ 个条件中有 $MATCHED$ 个匹配",
     "placeholders": {

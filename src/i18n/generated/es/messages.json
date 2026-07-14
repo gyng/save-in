@@ -2249,12 +2249,6 @@
   "routeDebuggerAnyMediaType": {
     "message": "Cualquier tipo de medio"
   },
-  "routeDebuggerEvaluation": {
-    "message": "Evaluación de reglas"
-  },
-  "routeDebuggerFirstMatch": {
-    "message": "Las reglas se evalúan de arriba abajo; se usa la primera que coincida."
-  },
   "routeDebuggerMatcherCount": {
     "message": "Coinciden $MATCHED$ de $TOTAL$ condiciones",
     "placeholders": {

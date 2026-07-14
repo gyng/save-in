@@ -3099,8 +3099,7 @@ summary {
   padding: var(--space-2) 0;
 }
 
-.route-debugger-variables > summary,
-.route-debugger-rules-disclosure > summary {
+.route-debugger-variables > summary {
   width: fit-content;
   padding: var(--space-2) 0;
   color: var(--link-color);
@@ -3114,15 +3113,6 @@ summary {
 
 .route-debugger-variable-actions > button {
   margin: 0;
-}
-
-.route-debugger-rules-disclosure {
-  min-width: 0;
-}
-
-.route-debugger-rules-help {
-  margin: 0;
-  padding: 0 var(--space-3) var(--space-2);
 }
 
 .route-debugger-last-download {

@@ -2351,12 +2351,6 @@
   "routeDebuggerAnyMediaType": {
     "message": "모든 미디어 유형"
   },
-  "routeDebuggerEvaluation": {
-    "message": "규칙 평가"
-  },
-  "routeDebuggerFirstMatch": {
-    "message": "규칙은 위에서 아래 순서로 평가되며 처음 일치하는 규칙이 사용됩니다."
-  },
   "routeDebuggerMatcherCount": {
     "message": "조건 $TOTAL$개 중 $MATCHED$개 일치",
     "placeholders": {

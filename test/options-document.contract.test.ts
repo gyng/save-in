@@ -203,7 +203,7 @@ test("keeps the route debugger in its simple testing order", () => {
     "#route-debugger-run",
     "#route-debugger-result",
     ".route-debugger-variables",
-    ".route-debugger-rules-disclosure",
+    "#route-debugger-rules",
   ];
   const orderedElements = orderedSelectors.map((selector) =>
     debuggerShell?.querySelector(selector),
@@ -228,7 +228,5 @@ test("keeps the route debugger in its simple testing order", () => {
   expect(
     document.querySelector(".route-debugger-variables-header #route-debugger-use-sample"),
   ).not.toBeNull();
-  expect(
-    document.querySelector(".route-debugger-rules-disclosure #route-debugger-rules"),
-  ).not.toBeNull();
+  expect(document.querySelector("details #route-debugger-rules")).toBeNull();
 });

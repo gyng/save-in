@@ -2334,12 +2334,6 @@
   "routeDebuggerAnyMediaType": {
     "message": "Qualsiasi tipo di contenuto multimediale"
   },
-  "routeDebuggerEvaluation": {
-    "message": "Valutazione delle regole"
-  },
-  "routeDebuggerFirstMatch": {
-    "message": "Le regole vengono valutate dall'alto verso il basso; viene usata la prima corrispondenza."
-  },
   "routeDebuggerMatcherCount": {
     "message": "$MATCHED$ criteri corrispondenti su $TOTAL$",
     "placeholders": {

@@ -2245,12 +2245,6 @@
   "routeDebuggerAnyMediaType": {
     "message": "Alla medietyper"
   },
-  "routeDebuggerEvaluation": {
-    "message": "Regelutvärdering"
-  },
-  "routeDebuggerFirstMatch": {
-    "message": "Regler kontrolleras uppifrån och ned; den första träffen används."
-  },
   "routeDebuggerMatcherCount": {
     "message": "$MATCHED$ av $TOTAL$ villkor matchar",
     "placeholders": {

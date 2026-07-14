@@ -3147,14 +3147,6 @@
     "message": "Any media type",
     "description": "Empty media type choice in the route debugger. Used in src/options/options.html."
   },
-  "routeDebuggerEvaluation": {
-    "message": "Rules",
-    "description": "Expandable heading above the route debugger rule trace. Used in src/options/options.html."
-  },
-  "routeDebuggerFirstMatch": {
-    "message": "Rules run top to bottom; the first match wins.",
-    "description": "Explanation of route selection order in the debugger. Used in src/options/route-debugger.ts."
-  },
   "routeDebuggerMatcherCount": {
     "message": "$MATCHED$ of $TOTAL$ conditions met",
     "description": "Compact pass count for one rule in the route debugger. Used in src/options/route-debugger.ts.",
