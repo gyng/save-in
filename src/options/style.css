@@ -466,10 +466,10 @@ body:not(#settings-page) {
   position: absolute;
   z-index: 20;
   display: grid;
-  gap: var(--space-2);
-  min-width: 180px;
+  gap: 1px;
+  min-width: 210px;
   margin-top: var(--space-1);
-  padding: var(--space-3);
+  padding: var(--space-2);
   background: var(--panel-bg);
   border: 1px solid var(--panel-border);
   border-radius: var(--radius);
@@ -477,16 +477,30 @@ body:not(#settings-page) {
   font-size: var(--text-base);
 }
 
-.nav-menu-link {
-  padding: 0;
+.nav-resources-menu > :is(a, button) {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 30px;
+  padding: var(--space-1) var(--space-2);
   border: 0;
+  border-radius: var(--radius-sm);
+  background-color: transparent;
   color: var(--link-color);
+  font-size: inherit;
+  line-height: var(--leading-ui);
   text-align: left;
 }
 
-.nav-menu-link:hover {
-  background: transparent;
-  text-decoration: underline;
+.nav-resources-menu > :is(a, button):hover {
+  background-color: var(--hover-bg);
+  text-decoration: none;
+}
+
+.nav-resources-menu > a.external {
+  padding-right: calc(20px + var(--space-2));
+  background-position: right var(--space-2) center;
 }
 
 .about-dialog {
