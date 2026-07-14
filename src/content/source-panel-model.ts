@@ -28,11 +28,10 @@ export type SourcePanelOptions = {
 
 export type ResourceTimingByUrl = ReadonlyMap<string, PerformanceResourceTiming>;
 
-const urlsFromCss = (value: string): string[] =>
-  [...value.matchAll(/url\((?:"([^"]+)"|'([^']+)'|([^)'"\s]+))\)/g)].flatMap((match) => {
-    const url = match[1] || match[2] || match[3];
-    return url ? [url] : [];
-  });
+export const urlsFromCss = (value: string): string[] =>
+  [...value.matchAll(/url\((?:"([^"]+)"|'([^']+)'|([^)'"\s]+))\)/g)].map(
+    (match) => match[1] || match[2] || match[3]!,
+  );
 
 const isAsciiWhitespace = (value: string): boolean => /[\t\n\f\r ]/.test(value);
 
@@ -54,7 +53,7 @@ export const urlsFromSrcset = (input: string): string[] => {
     let url = input.slice(start, position);
     if (url.endsWith(",")) {
       url = url.replace(/,+$/, "");
-      if (url) urls.push(url);
+      urls.push(url);
       continue;
     }
     urls.push(url);
@@ -183,8 +182,8 @@ export const createSourceTooltip = (source: PageSource): HTMLElement | null => {
       media.loop = true;
       media.playsInline = true;
     }
-  } else if (media instanceof HTMLImageElement) {
-    media.alt = "";
+  } else {
+    (media as HTMLImageElement).alt = "";
   }
   tooltip.append(media);
   return tooltip;

@@ -339,6 +339,14 @@ describe("variables", () => {
       const result = await Variable.applyVariables({ buf: undefined }, info);
       expect(result.buf).toBeUndefined();
     });
+
+    test("normalizes missing inputs for URL and filename-derived variables", async () => {
+      const input = new Path.Path(
+        ":fileext:/:actualfileext:/:sourcedomain:/:pagedomain:/:sourcerootdomain:/:pagerootdomain:/:sourcepath:/:tld:/:naivefilename:/:naivefileext:/:urlfileext:/:pagetitlesnake:",
+      );
+      await expect(Variable.applyVariables(input, {})).resolves.toBe(input);
+      expect(input.finalize()).toBe("_/_/_/_/_/_/_/_/_/_/_/_");
+    });
   });
 });
 
@@ -636,12 +644,125 @@ describe(":mime: / :contenttype: / :mimeext: (async HEAD)", () => {
     expect(out).toBe("image_jpeg/jpg");
   });
 
+  test("uses explicit and disabled metadata without starting a request", async () => {
+    global.fetch = vi.fn() as any;
+    const resolved = { contentType: "image/webp", finalUrl: "https://cdn.test/file" };
+    await expect(Variable.resolveHead({ resolvedHead: resolved })).resolves.toBe(resolved);
+    await expect(Variable.resolveHead({ contentFetchDisabled: true })).resolves.toEqual({
+      contentType: "",
+      finalUrl: "",
+    });
+    await expect(Variable.resolveMime({ mime: "IMAGE/PNG; charset=utf-8" })).resolves.toBe(
+      "image/png",
+    );
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  test("normalizes a missing metadata URL at the fetch boundary", async () => {
+    mockHead("image/png");
+    await expect(Variable.resolveHead({})).resolves.toEqual({
+      contentType: "image/png",
+      finalUrl: "",
+    });
+    expect(global.fetch).toHaveBeenCalledWith("", expect.objectContaining({ method: "HEAD" }));
+  });
+
+  test("returns disposition metadata and contains response-body cancellation failures", async () => {
+    const cancel = vi.fn(() => Promise.reject(new Error("already closed")));
+    global.fetch = vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        url: "https://cdn.test/file.jpg",
+        headers: {
+          get: (name: string) =>
+            name === "Content-Disposition"
+              ? 'attachment; filename="file.jpg"'
+              : name === "Content-Type"
+                ? "image/jpeg"
+                : null,
+        },
+        body: { cancel },
+      }),
+    ) as any;
+    await expect(Variable.resolveHead({ url: "https://source.test/file" })).resolves.toEqual({
+      contentType: "image/jpeg",
+      contentDisposition: 'attachment; filename="file.jpg"',
+      finalUrl: "https://cdn.test/file.jpg",
+    });
+    expect(cancel).toHaveBeenCalledOnce();
+  });
+
+  test("cancels a rejected HEAD body before falling back to GET", async () => {
+    const cancel = vi.fn(() => Promise.reject(new Error("already closed")));
+    global.fetch = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: false, body: { cancel } })
+      .mockResolvedValueOnce({
+        ok: true,
+        url: "https://cdn.test/file.png",
+        headers: { get: (name: string) => (name === "Content-Type" ? "image/png" : null) },
+        body: null,
+      }) as any;
+    await expect(Variable.resolveHead({ url: "https://source.test/file" })).resolves.toEqual({
+      contentType: "image/png",
+      finalUrl: "https://cdn.test/file.png",
+    });
+    expect(cancel).toHaveBeenCalledOnce();
+    expect(global.fetch).toHaveBeenCalledTimes(2);
+  });
+
+  test("falls back when a rejected HEAD has no response body", async () => {
+    global.fetch = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: false, body: null })
+      .mockResolvedValueOnce({
+        ok: true,
+        url: "https://cdn.test/file.webp",
+        headers: { get: (name: string) => (name === "Content-Type" ? "image/webp" : null) },
+        body: null,
+      }) as any;
+    await expect(Variable.resolveHead({ url: "https://source.test/file" })).resolves.toEqual({
+      contentType: "image/webp",
+      finalUrl: "https://cdn.test/file.webp",
+    });
+    expect(global.fetch).toHaveBeenCalledTimes(2);
+  });
+
+  test("contains metadata timeouts at the lazy-variable boundary", async () => {
+    global.fetch = vi.fn(() =>
+      Promise.reject(new DOMException("timed out", "TimeoutError")),
+    ) as any;
+    await expect(Variable.resolveHead({ url: "https://source.test/file" })).resolves.toEqual({
+      contentType: "",
+      finalUrl: "",
+    });
+    expect(global.fetch).toHaveBeenCalledOnce();
+  });
+
+  test("preview aliases reuse resolved content type and redirect URL", async () => {
+    global.fetch = vi.fn() as any;
+    const out = (
+      await Variable.applyVariables(new Path.Path(":contenttype:/:redirecturl:"), {
+        preview: true,
+        resolvedHead: {
+          contentType: "image/avif",
+          finalUrl: "https://cdn.test/image.avif",
+        },
+      })
+    ).finalize();
+    expect(out).toBe("image_avif/https___cdn.test_image.avif");
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
   test("mimeToExtension maps common types and falls back to the subtype", () => {
+    expect(Variable.normalizeMimeType(undefined)).toBe("");
+    expect(Variable.normalizeMimeType("; charset=utf-8")).toBe("");
     expect(Variable.mimeToExtension("image/jpeg")).toBe("jpg");
     expect(Variable.mimeToExtension("image/png")).toBe("png");
     expect(Variable.mimeToExtension("application/vnd.foobar+json")).toBe("json");
     expect(Variable.mimeToExtension("audio/x-wav")).toBe("wav");
     expect(Variable.mimeToExtension("")).toBe("");
+    expect(Variable.mimeToExtension("invalid")).toBe("");
   });
 });
 
@@ -784,6 +905,11 @@ describe(":sha256: (async content hash)", () => {
     ).finalize();
     expect(global.fetch).not.toHaveBeenCalled();
     expect(out).toBe("_");
+  });
+
+  test("content fetching is disabled or skipped without a source URL", async () => {
+    await expect(Variable.resolveContent({ contentFetchDisabled: true })).resolves.toBeNull();
+    await expect(Variable.resolveContent({})).resolves.toBeNull();
   });
 
   test("preview mode reuses a hash retained from the completed download", async () => {

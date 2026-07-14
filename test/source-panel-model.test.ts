@@ -1,12 +1,19 @@
 // @vitest-environment jsdom
 import {
+  collectBackgroundElements,
+  collectBackgroundSourceCandidates,
+  collectPageSourceCandidates,
   collectPageSources,
+  collectResourceHintSources,
   createSourceTooltip,
   filterPageSources,
   formatSourceBytes,
+  isSourceSort,
   positionDraggedSourcePanel,
   positionSourceTooltip,
+  resourceTimingByUrl,
   sortPageSources,
+  urlsFromCss,
   urlsFromSrcset,
   ytDlpCommand,
 } from "../src/content/source-panel-model.ts";
@@ -41,6 +48,19 @@ describe("page source collection", () => {
         "small.jpg 1x, data:image/png;base64,AAAA 2x, wide.jpg 1200w, fallback.jpg, next.jpg 3x",
       ),
     ).toEqual(["small.jpg", "data:image/png;base64,AAAA", "wide.jpg", "fallback.jpg", "next.jpg"]);
+    expect(urlsFromSrcset(" , \t ")).toEqual([]);
+    expect(urlsFromSrcset("first.jpg type(image, jpeg), second.jpg 2x")).toEqual([
+      "first.jpg",
+      "second.jpg",
+    ]);
+  });
+
+  test("parses quoted and unquoted CSS image URLs", () => {
+    expect(urlsFromCss(`url("double.png") url('single.png') url(plain.png)`)).toEqual([
+      "double.png",
+      "single.png",
+      "plain.png",
+    ]);
   });
 
   test("collects picture source candidates with their fallback image", () => {
@@ -101,6 +121,23 @@ describe("page source collection", () => {
     ]);
   });
 
+  test("classifies linked audio and streams and can omit all links", () => {
+    document.body.innerHTML = `
+      <a href="sound.flac">sound</a><a href="playlist.m3u8">playlist</a><a href="">same page</a>`;
+    expect(
+      collectPageSources(document, { includeBackgrounds: false, resourceHints: false }).map(
+        ({ kind }) => kind,
+      ),
+    ).toEqual(["audio", "stream", "link"]);
+    expect(
+      collectPageSources(document, {
+        includeLinks: false,
+        includeBackgrounds: false,
+        resourceHints: false,
+      }),
+    ).toEqual([]);
+  });
+
   test("ignores malformed link URLs without aborting collection", () => {
     document.body.innerHTML = `<a href="http://[">broken</a><img src="valid.png">`;
 
@@ -124,6 +161,92 @@ describe("page source collection", () => {
     expect(collectPageSources().map(({ url, kind }) => [url, kind])).toEqual([
       ["https://cdn.test/master.m3u8?token=x", "stream"],
       ["https://cdn.test/manifest.mpd", "stream"],
+    ]);
+  });
+
+  test("maps resource timing sizes and rejects unsafe manifest and background URLs", () => {
+    const entries = [
+      {
+        name: "https://cdn.test/master.m3u8",
+        encodedBodySize: 0,
+        transferSize: 2048,
+      } as PerformanceResourceTiming,
+      {
+        name: "https://cdn.test/empty.mpd",
+        encodedBodySize: 0,
+        transferSize: 0,
+      } as PerformanceResourceTiming,
+      { name: "javascript:unsafe.m3u8" } as PerformanceResourceTiming,
+    ];
+    const timing = resourceTimingByUrl(entries);
+    expect(collectResourceHintSources(timing).map(({ bytes }) => bytes)).toEqual([2048, undefined]);
+
+    const element = document.createElement("div");
+    element.style.backgroundImage = `url("https://cdn.test/double.png"), url(https://cdn.test/plain.png), url("javascript:bad")`;
+    document.body.append(element);
+    expect(collectBackgroundElements(element)).toEqual([element]);
+    expect(collectBackgroundSourceCandidates([element], timing).map(({ url }) => url)).toEqual([
+      "https://cdn.test/double.png",
+      "https://cdn.test/plain.png",
+    ]);
+  });
+
+  test("collects a root media element and media source srcset candidates", () => {
+    const video = document.createElement("video");
+    video.innerHTML = `<span></span><source src="fallback.webm" srcset="small.webm 1x, large.webm 2x">`;
+    expect(
+      collectPageSourceCandidates(video, {
+        includeLinks: false,
+        includeBackgrounds: false,
+        resourceHints: false,
+      }).map(({ url }) => url),
+    ).toEqual([
+      "http://localhost/fallback.webm",
+      "http://localhost/small.webm",
+      "http://localhost/large.webm",
+    ]);
+  });
+
+  test("uses reflected media properties and skips non-source picture siblings", () => {
+    const picture = document.createElement("picture");
+    const irrelevant = document.createElement("span");
+    const emptySource = document.createElement("source");
+    const image = document.createElement("img");
+    Object.defineProperty(image, "src", {
+      configurable: true,
+      value: "https://cdn.test/image.jpg",
+    });
+    picture.append(irrelevant, emptySource, image);
+
+    const video = document.createElement("video");
+    Object.defineProperty(video, "currentSrc", {
+      configurable: true,
+      value: "https://cdn.test/selected.mp4",
+    });
+    Object.defineProperty(video, "src", {
+      configurable: true,
+      value: "https://cdn.test/fallback.mp4",
+    });
+    const source = document.createElement("source");
+    Object.defineProperty(source, "src", {
+      configurable: true,
+      value: "https://cdn.test/source.mp4",
+    });
+    video.append(source);
+
+    const root = document.createElement("div");
+    root.append(picture, video);
+    expect(
+      collectPageSourceCandidates(root, {
+        includeLinks: false,
+        includeBackgrounds: false,
+        resourceHints: false,
+      }).map(({ url }) => url),
+    ).toEqual([
+      "https://cdn.test/image.jpg",
+      "https://cdn.test/selected.mp4",
+      "https://cdn.test/fallback.mp4",
+      "https://cdn.test/source.mp4",
     ]);
   });
 
@@ -156,6 +279,12 @@ test("filters source results by URL and type", () => {
   ];
   expect(filterPageSources(sources, "master", "all")).toEqual([sources[1]!]);
   expect(filterPageSources(sources, "", "image")).toEqual([sources[0]!]);
+});
+
+test("validates persisted source sort values", () => {
+  expect(isSourceSort("relevance")).toBe(true);
+  expect(isSourceSort("unknown")).toBe(false);
+  expect(isSourceSort(3)).toBe(false);
 });
 
 test("sorts by first-seen time, size, or name", () => {
@@ -219,6 +348,14 @@ test("builds larger image and autoplaying media tooltips", () => {
   const audio = audioTooltip.querySelector("audio")!;
   expect(audio.autoplay).toBe(true);
   expect(audio.controls).toBe(true);
+  const video = createSourceTooltip({
+    url: "https://x.test/video.mp4",
+    kind: "video",
+    element,
+  })!.querySelector("video")!;
+  expect(video.muted).toBe(true);
+  expect(video.loop).toBe(true);
+  expect(video.playsInline).toBe(true);
   expect(createSourceTooltip({ url: "https://x.test/page", kind: "link", element })).toBeNull();
 });
 

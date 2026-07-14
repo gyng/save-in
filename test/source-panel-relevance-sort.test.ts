@@ -87,4 +87,21 @@ describe("Page Sources relevance sorting", () => {
       small,
     ]);
   });
+
+  test("handles malformed URLs, anchor media, missing sizes, and final URL ties", () => {
+    const anchor = document.createElement("a");
+    const malformed = source({ url: "not a url", kind: "image", element: anchor });
+    const missingSize = source({ url: "https://cdn.test/z", kind: "image", element: anchor });
+    const alphabetical = source({ url: "https://cdn.test/a", kind: "image", element: anchor });
+
+    expect(sortPageSources([malformed, missingSize, alphabetical], "relevance")).toEqual([
+      alphabetical,
+      missingSize,
+      malformed,
+    ]);
+    expect(sortPageSources([missingSize, alphabetical], "size-desc")).toEqual([
+      missingSize,
+      alphabetical,
+    ]);
+  });
 });

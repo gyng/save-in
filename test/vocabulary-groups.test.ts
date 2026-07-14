@@ -1,7 +1,11 @@
 import {
   clauseGroup,
+  compareClauses,
+  compareVariables,
+  isLazyVariable,
   sortClauses,
   sortVariables,
+  variableExample,
   variableGroup,
 } from "../src/options/vocabulary-groups.ts";
 
@@ -48,4 +52,56 @@ test("orders clauses by routing workflow within each task group", () => {
     "actualfileext",
     "mediatype",
   ]);
+});
+
+test("orders task groups, unknown terms, and numbered captures deterministically", () => {
+  expect(compareVariables(":date:", ":filename:")).toBeLessThan(0);
+  expect(compareVariables(":$10:", ":$2:")).toBeGreaterThan(0);
+  expect(compareVariables(":custom-z:", ":custom-a:")).toBeGreaterThan(0);
+  expect(compareClauses("into:", "sourceurl:")).toBeLessThan(0);
+  expect(compareClauses("custom-z:", "custom-a:")).toBeGreaterThan(0);
+});
+
+test.each([
+  [":date:", "2026-07-12"],
+  [":year:", "2026"],
+  [":month:", "07"],
+  [":day:", "07"],
+  [":hour:", "09"],
+  [":minute:", "09"],
+  [":second:", "09"],
+  [":counter:", "42"],
+  [":fileext:", "jpg"],
+  [":mimeext:", "jpg"],
+  [":filename:", "photo.jpg"],
+  [":pagedomain:", "example.com"],
+  [":tld:", "com"],
+  [":sourceurl:", "https://example.com/file.jpg"],
+  [":pagetitle:", "Example page"],
+  [":pagetitleslug:", "example-page"],
+  [":pagetitlesnake:", "example_page"],
+  [":mime:", "image/jpeg"],
+  [":contenttype:", "image/jpeg"],
+  [":sha256:", "ba7816bf8f01"],
+  [":sha256full:", "ba7816bf…"],
+  [":$1:", "captured-text"],
+  [":uuid:", "f47ac10b-…"],
+  [":selectiontext:", "example"],
+])("provides a representative example for %s", (variable, expected) => {
+  expect(variableExample(variable)).toBe(expected);
+});
+
+test("identifies variables that require downloaded metadata or content", () => {
+  for (const variable of [
+    ":mime:",
+    ":contenttype:",
+    ":mimeext:",
+    ":finalurl:",
+    ":redirecturl:",
+    ":sha256:",
+    ":sha256full:",
+  ]) {
+    expect(isLazyVariable(variable)).toBe(true);
+  }
+  expect(isLazyVariable(":filename:")).toBe(false);
 });
