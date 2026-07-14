@@ -2535,6 +2535,10 @@
   },
   "welcomePermissions": { "message": "이 권한이 필요한 이유" },
   "welcomeCustomizeFolders": { "message": "폴더 맞춤 설정" },
+  "welcomeUseEmptyPreset": { "message": "빈 프리셋 사용" },
+  "welcomeEmptyPresetFailed": {
+    "message": "빈 프리셋을 적용할 수 없습니다. 시작 폴더는 변경되지 않았습니다."
+  },
   "welcomeUseStarterFolders": { "message": "Save In 사용 시작" },
   "welcomeUsingStarterSettings": { "message": "시작 설정 사용 중" },
   "html_showWelcomeGuide": { "message": "시작 안내 보기" }

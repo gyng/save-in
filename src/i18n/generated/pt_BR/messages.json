@@ -2443,6 +2443,10 @@
   },
   "welcomePermissions": { "message": "Por que estas permissões são necessárias?" },
   "welcomeCustomizeFolders": { "message": "Personalizar pastas" },
+  "welcomeUseEmptyPreset": { "message": "Usar predefinição vazia" },
+  "welcomeEmptyPresetFailed": {
+    "message": "Não foi possível aplicar a predefinição vazia. Suas pastas iniciais não foram alteradas."
+  },
   "welcomeUseStarterFolders": { "message": "Começar a usar o Save In" },
   "welcomeUsingStarterSettings": { "message": "Usando as configurações iniciais" },
   "html_showWelcomeGuide": { "message": "Exibir o guia de boas-vindas" }

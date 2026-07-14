@@ -2535,6 +2535,10 @@
   },
   "welcomePermissions": { "message": "为什么需要这些权限？" },
   "welcomeCustomizeFolders": { "message": "自定义文件夹" },
+  "welcomeUseEmptyPreset": { "message": "使用空预设" },
+  "welcomeEmptyPresetFailed": {
+    "message": "无法应用空预设。初始文件夹未更改。"
+  },
   "welcomeUseStarterFolders": { "message": "开始使用 Save In" },
   "welcomeUsingStarterSettings": { "message": "正在使用初始设置" },
   "html_showWelcomeGuide": { "message": "显示欢迎指南" }

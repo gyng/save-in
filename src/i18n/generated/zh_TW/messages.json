@@ -2535,6 +2535,10 @@
   },
   "welcomePermissions": { "message": "為什麼需要這些權限？" },
   "welcomeCustomizeFolders": { "message": "自訂資料夾" },
+  "welcomeUseEmptyPreset": { "message": "使用空白預設" },
+  "welcomeEmptyPresetFailed": {
+    "message": "無法套用空白預設。初始資料夾未變更。"
+  },
   "welcomeUseStarterFolders": { "message": "開始使用 Save In" },
   "welcomeUsingStarterSettings": { "message": "正在使用初始設定" },
   "html_showWelcomeGuide": { "message": "顯示歡迎指南" }

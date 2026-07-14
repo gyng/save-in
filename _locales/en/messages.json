@@ -3507,6 +3507,14 @@
     "message": "Customize folders",
     "description": "Secondary welcome action that moves focus to the folder editor. Used in src/options/welcome-dialog.ts."
   },
+  "welcomeUseEmptyPreset": {
+    "message": "Use empty preset",
+    "description": "Welcome action that replaces the starter folders with only the browser Downloads destination. Used in src/options/welcome-dialog.ts."
+  },
+  "welcomeEmptyPresetFailed": {
+    "message": "Could not apply the empty preset. Your starter folders are unchanged.",
+    "description": "Error shown when the empty welcome preset could not be saved. Used in src/options/welcome-dialog.ts."
+  },
   "welcomeUseStarterFolders": {
     "message": "Start using Save In",
     "description": "Primary welcome action that accepts the working default folders and closes the guide. Used in src/options/welcome-dialog.ts."

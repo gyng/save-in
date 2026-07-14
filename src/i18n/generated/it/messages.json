@@ -2636,6 +2636,10 @@
   },
   "welcomePermissions": { "message": "Perché sono necessarie queste autorizzazioni?" },
   "welcomeCustomizeFolders": { "message": "Personalizza cartelle" },
+  "welcomeUseEmptyPreset": { "message": "Usa preset vuoto" },
+  "welcomeEmptyPresetFailed": {
+    "message": "Impossibile applicare il preset vuoto. Le cartelle iniziali non sono state modificate."
+  },
   "welcomeUseStarterFolders": { "message": "Inizia a usare Save In" },
   "welcomeUsingStarterSettings": { "message": "Uso delle impostazioni iniziali" },
   "html_showWelcomeGuide": { "message": "Mostra la guida introduttiva" }

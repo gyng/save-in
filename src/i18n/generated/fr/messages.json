@@ -2468,6 +2468,10 @@
   },
   "welcomePermissions": { "message": "Pourquoi ces autorisations ?" },
   "welcomeCustomizeFolders": { "message": "Personnaliser les dossiers" },
+  "welcomeUseEmptyPreset": { "message": "Utiliser la configuration vide" },
+  "welcomeEmptyPresetFailed": {
+    "message": "Impossible d’appliquer la configuration vide. Vos dossiers de départ restent inchangés."
+  },
   "welcomeUseStarterFolders": { "message": "Commencer à utiliser Save In" },
   "welcomeUsingStarterSettings": { "message": "Paramètres de départ utilisés" },
   "html_showWelcomeGuide": { "message": "Afficher le guide de bienvenue" }

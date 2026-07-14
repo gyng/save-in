@@ -4,10 +4,13 @@ import { WELCOME_PENDING_STORAGE_KEY, WELCOME_VERSION } from "../shared/storage-
 
 type Localize = (key: string) => string;
 type WelcomeStorage = Pick<typeof webExtensionApi.storage.local, "get" | "remove">;
-type WelcomeAction = "dismiss" | "customize" | "permissions";
+export type WelcomePresetApplier = (paths: string) => Promise<void>;
+type WelcomeAction = "dismiss" | "customize" | "empty" | "permissions";
+
+const EMPTY_PRESET_PATHS = ".";
 
 const isWelcomeAction = (value: unknown): value is WelcomeAction =>
-  value === "dismiss" || value === "customize" || value === "permissions";
+  value === "dismiss" || value === "customize" || value === "empty" || value === "permissions";
 
 const createButton = (
   text: string,
@@ -39,7 +42,11 @@ const createWelcomeDialog = (localize: Localize): HTMLDialogElement => {
       "The toolbar button opens Page Sources for finding media on the current page.",
     permissions: localize("welcomePermissions") || "Why these permissions?",
     customize: localize("welcomeCustomizeFolders") || "Customize folders",
+    empty: localize("welcomeUseEmptyPreset") || "Use empty preset",
     accept: localize("welcomeUseStarterFolders") || "Start using Save In",
+    emptyFailed:
+      localize("welcomeEmptyPresetFailed") ||
+      "Could not apply the empty preset. Your starter folders are unchanged.",
   };
   const dialog = document.createElement("dialog");
   dialog.id = "welcome-dialog";
@@ -94,11 +101,18 @@ const createWelcomeDialog = (localize: Localize): HTMLDialogElement => {
   const actions = document.createElement("div");
   actions.className = "welcome-actions";
   const customize = createButton(copy.customize, "welcome-customize", "customize");
+  const empty = createButton(copy.empty, "welcome-empty", "empty");
   const accept = createButton(copy.accept, "button-primary welcome-accept", "dismiss");
-  actions.append(customize, accept);
+  actions.append(customize, empty, accept);
   footer.append(permissions, actions);
 
-  content.append(heading, intro, steps, notes, footer);
+  const actionStatus = document.createElement("p");
+  actionStatus.className = "welcome-action-status feedback feedback-error";
+  actionStatus.setAttribute("role", "alert");
+  actionStatus.textContent = copy.emptyFailed;
+  actionStatus.hidden = true;
+
+  content.append(heading, intro, steps, notes, actionStatus, footer);
   shell.append(content);
   dialog.append(shell);
   return dialog;
@@ -126,6 +140,7 @@ export const showWelcomeDialog = (
   storage: WelcomeStorage = webExtensionApi.storage.local,
   localize: Localize = getMessage,
   updateStarterStatus = false,
+  applyPreset?: WelcomePresetApplier,
 ): boolean => {
   if (document.querySelector("#welcome-dialog")) return false;
 
@@ -149,6 +164,28 @@ export const showWelcomeDialog = (
     if (typeof dialog.close === "function") dialog.close(action);
     else finish(action);
   };
+  let applyingPreset = false;
+  const setApplyingPreset = (applying: boolean) => {
+    applyingPreset = applying;
+    dialog.toggleAttribute("aria-busy", applying);
+    dialog
+      .querySelectorAll<HTMLButtonElement>("button")
+      .forEach((button) => (button.disabled = applying));
+  };
+  const useEmptyPreset = async () => {
+    if (applyingPreset) return;
+    const status = dialog.querySelector<HTMLElement>(".welcome-action-status");
+    if (status) status.hidden = true;
+    setApplyingPreset(true);
+    try {
+      if (!applyPreset) throw new Error("Empty preset is unavailable");
+      await applyPreset(EMPTY_PRESET_PATHS);
+      close("empty");
+    } catch {
+      if (status) status.hidden = false;
+      setApplyingPreset(false);
+    }
+  };
 
   dialog.addEventListener("click", (event) => {
     const actionTarget =
@@ -156,12 +193,13 @@ export const showWelcomeDialog = (
         ? event.target.closest<HTMLButtonElement>("[data-welcome-action]")
         : null;
     const action = actionTarget?.dataset.welcomeAction;
-    if (isWelcomeAction(action)) close(action);
-    else if (event.target === dialog) close("dismiss");
+    if (action === "empty") void useEmptyPreset();
+    else if (isWelcomeAction(action)) close(action);
+    else if (event.target === dialog && !applyingPreset) close("dismiss");
   });
   dialog.addEventListener("cancel", (event) => {
     event.preventDefault();
-    close("dismiss");
+    if (!applyingPreset) close("dismiss");
   });
   dialog.addEventListener("close", () =>
     finish(isWelcomeAction(dialog.returnValue) ? dialog.returnValue : "dismiss"),
@@ -176,8 +214,9 @@ export const showWelcomeDialog = (
 export const setupWelcomeDialog = async (
   storage: WelcomeStorage = webExtensionApi.storage.local,
   localize: Localize = getMessage,
+  applyPreset?: WelcomePresetApplier,
 ): Promise<boolean> => {
   const stored = await storage.get(WELCOME_PENDING_STORAGE_KEY).catch(() => ({}));
   if (Reflect.get(stored, WELCOME_PENDING_STORAGE_KEY) !== WELCOME_VERSION) return false;
-  return showWelcomeDialog(storage, localize, true);
+  return showWelcomeDialog(storage, localize, true, applyPreset);
 };

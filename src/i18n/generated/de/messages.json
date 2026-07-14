@@ -2443,6 +2443,10 @@
   },
   "welcomePermissions": { "message": "Warum sind diese Berechtigungen nötig?" },
   "welcomeCustomizeFolders": { "message": "Ordner anpassen" },
+  "welcomeUseEmptyPreset": { "message": "Leere Voreinstellung verwenden" },
+  "welcomeEmptyPresetFailed": {
+    "message": "Die leere Voreinstellung konnte nicht angewendet werden. Ihre Startordner bleiben unverändert."
+  },
   "welcomeUseStarterFolders": { "message": "Save In verwenden" },
   "welcomeUsingStarterSettings": { "message": "Starteinstellungen werden verwendet" },
   "html_showWelcomeGuide": { "message": "Willkommensanleitung anzeigen" }

@@ -7,7 +7,7 @@ const STORE_LINK_IDS = {
   [BROWSERS.FIREFOX]: "about-store-firefox",
 } as const;
 
-export const setupAboutDialog = () => {
+export const setupAboutDialog = (openWelcome: () => boolean = () => showWelcomeDialog()) => {
   const dialog = document.querySelector<HTMLDialogElement>("#about-dialog");
   const open = document.querySelector<HTMLButtonElement>("#about-open");
   const close = dialog?.querySelector<HTMLButtonElement>(".about-close");
@@ -20,7 +20,7 @@ export const setupAboutDialog = () => {
   dialog.querySelector<HTMLAnchorElement>("#about-welcome")?.addEventListener("click", (event) => {
     event.preventDefault();
     dialog.close();
-    showWelcomeDialog();
+    openWelcome();
   });
   dialog.addEventListener("click", (event) => {
     if (event.target === dialog) dialog.close();

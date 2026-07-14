@@ -77,6 +77,32 @@ test("opens the folder editor through the main options navigation", async () => 
   expect(document.activeElement).toBe(firstPath);
 });
 
+test("applies the empty preset before closing the guide", async () => {
+  const storage = storageFixture();
+  const applyPreset = vi.fn(() => Promise.resolve());
+  await setupWelcomeDialog(storage, localize, applyPreset);
+
+  document.querySelector<HTMLButtonElement>(`[data-welcome-action="empty"]`)?.click();
+
+  await vi.waitFor(() => expect(applyPreset).toHaveBeenCalledWith("."));
+  expect(storage.remove).toHaveBeenCalledWith(WELCOME_PENDING_STORAGE_KEY);
+  expect(document.querySelector("#welcome-dialog")).toBeNull();
+});
+
+test("keeps the guide open when the empty preset cannot be saved", async () => {
+  const storage = storageFixture();
+  const applyPreset = vi.fn(() => Promise.reject(new Error("unavailable")));
+  await setupWelcomeDialog(storage, localize, applyPreset);
+
+  document.querySelector<HTMLButtonElement>(`[data-welcome-action="empty"]`)?.click();
+
+  const status = document.querySelector<HTMLElement>(".welcome-action-status")!;
+  await vi.waitFor(() => expect(status.hidden).toBe(false));
+  expect(document.querySelector("#welcome-dialog")).not.toBeNull();
+  expect(storage.remove).not.toHaveBeenCalled();
+  expect(document.querySelector<HTMLButtonElement>(".welcome-empty")?.disabled).toBe(false);
+});
+
 test("opens the permission explanation through the existing About action", async () => {
   const storage = storageFixture();
   const about = document.querySelector<HTMLButtonElement>("#about-open")!;

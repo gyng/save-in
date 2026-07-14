@@ -2447,6 +2447,10 @@
   },
   "welcomePermissions": { "message": "Waarom zijn deze machtigingen nodig?" },
   "welcomeCustomizeFolders": { "message": "Mappen aanpassen" },
+  "welcomeUseEmptyPreset": { "message": "Lege voorinstelling gebruiken" },
+  "welcomeEmptyPresetFailed": {
+    "message": "De lege voorinstelling kon niet worden toegepast. Je startmappen zijn niet gewijzigd."
+  },
   "welcomeUseStarterFolders": { "message": "Save In gaan gebruiken" },
   "welcomeUsingStarterSettings": { "message": "Startinstellingen worden gebruikt" },
   "html_showWelcomeGuide": { "message": "Welkomstgids tonen" }

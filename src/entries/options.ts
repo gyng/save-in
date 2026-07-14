@@ -39,7 +39,14 @@ import { applyUiTheme } from "../options/theme.ts";
 import { setupSyntaxEditors } from "../options/syntax-editor.ts";
 import { setupRouteDebugger } from "../options/route-debugger.ts";
 import { setupRuleVisualEditor } from "../options/rule-visual-editor.ts";
-import { setupWelcomeDialog } from "../options/welcome-dialog.ts";
+import { showWelcomeDialog, setupWelcomeDialog } from "../options/welcome-dialog.ts";
+import { optionsRuntime } from "../options/options-runtime.ts";
+import { assertApplySucceeded } from "../options/options-save.ts";
+
+const applyWelcomePreset = async (paths: string): Promise<void> => {
+  const response = assertApplySucceeded(await optionsRuntime.apply({ paths }));
+  await syncOptionsPageAfterWebMcpApply(response.body.applied);
+};
 
 document.addEventListener(
   "DOMContentLoaded",
@@ -78,9 +85,9 @@ document.addEventListener(
     setupSourceShortcut();
     setupWebMcpStatus(getMessage, syncOptionsPageAfterWebMcpApply);
     setupPrivacyDialog();
-    setupAboutDialog();
+    setupAboutDialog(() => showWelcomeDialog(undefined, undefined, false, applyWelcomePreset));
     setupLanguageSelector();
-    void setupWelcomeDialog();
+    void setupWelcomeDialog(undefined, undefined, applyWelcomePreset);
   },
   { once: true },
 );

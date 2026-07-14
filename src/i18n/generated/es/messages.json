@@ -2441,6 +2441,10 @@
   },
   "welcomePermissions": { "message": "¿Por qué se necesitan estos permisos?" },
   "welcomeCustomizeFolders": { "message": "Personalizar carpetas" },
+  "welcomeUseEmptyPreset": { "message": "Usar preajuste vacío" },
+  "welcomeEmptyPresetFailed": {
+    "message": "No se pudo aplicar el preajuste vacío. Tus carpetas iniciales no se modificaron."
+  },
   "welcomeUseStarterFolders": { "message": "Empezar a usar Save In" },
   "welcomeUsingStarterSettings": { "message": "Usando la configuración inicial" },
   "html_showWelcomeGuide": { "message": "Mostrar la guía de bienvenida" }

@@ -2535,6 +2535,10 @@
   },
   "welcomePermissions": { "message": "これらの権限が必要な理由" },
   "welcomeCustomizeFolders": { "message": "フォルダーをカスタマイズ" },
+  "welcomeUseEmptyPreset": { "message": "空のプリセットを使用" },
+  "welcomeEmptyPresetFailed": {
+    "message": "空のプリセットを適用できませんでした。初期フォルダーは変更されていません。"
+  },
   "welcomeUseStarterFolders": { "message": "Save In を使い始める" },
   "welcomeUsingStarterSettings": { "message": "初期設定を使用中" },
   "html_showWelcomeGuide": { "message": "ウェルカムガイドを表示" }
