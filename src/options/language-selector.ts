@@ -6,13 +6,22 @@ type LanguageSelectorPorts = {
   apply(locale: string): Promise<unknown>;
   reload(): void;
   getMessage(key: string): string;
+  afterClose?(): Promise<void>;
 };
+
+const afterNativePopupClose = (): Promise<void> =>
+  new Promise((resolve) => {
+    // Native select popups are browser UI. Give the browser a rendering turn
+    // after removing their anchor before starting extension messaging.
+    requestAnimationFrame(() => resolve());
+  });
 
 const defaultPorts: LanguageSelectorPorts = {
   apply: (uiLocale) => optionsRuntime.apply({ uiLocale }),
   /* v8 ignore next -- navigation is owned by the real options-page browser context. */
   reload: () => location.reload(),
   getMessage,
+  afterClose: afterNativePopupClose,
 };
 
 export const setupLanguageSelector = (ports: LanguageSelectorPorts = defaultPorts) => {
@@ -20,6 +29,8 @@ export const setupLanguageSelector = (ports: LanguageSelectorPorts = defaultPort
   const error = document.querySelector<HTMLElement>("#language-error");
   if (!select || !error) return;
   const container = select.closest<HTMLElement>(".language-selector");
+  const parent = select.parentNode;
+  const nextSibling = select.nextSibling;
   const originalContainerWidth = container?.style.width ?? "";
   const originalContainerHeight = container?.style.height ?? "";
 
@@ -29,18 +40,19 @@ export const setupLanguageSelector = (ports: LanguageSelectorPorts = defaultPort
       container.style.width = `${bounds.width}px`;
       container.style.height = `${bounds.height}px`;
     }
-    select.disabled = true;
     select.blur();
-    select.hidden = true;
+    select.disabled = true;
+    select.remove();
     error.hidden = true;
     try {
+      await (ports.afterClose?.() ?? Promise.resolve());
       assertApplySucceeded(await ports.apply(select.value));
       ports.reload();
     } catch {
       error.textContent =
         ports.getMessage("o_lLanguageChangeFailed") || "Could not change the language. Try again.";
       error.hidden = false;
-      select.hidden = false;
+      if (parent && !select.isConnected) parent.insertBefore(select, nextSibling);
       select.disabled = false;
       if (container) {
         container.style.width = originalContainerWidth;

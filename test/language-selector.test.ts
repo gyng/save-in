@@ -16,20 +16,29 @@ test("saves the selected locale and reloads after acknowledgement", async () => 
     body: { version: 1, applied: { uiLocale: "fr" }, rejected: [] },
   }));
   const reload = vi.fn();
-  setupLanguageSelector({ apply, reload, getMessage: vi.fn() });
+  let finishClose!: () => void;
+  const afterClose = vi.fn(
+    () =>
+      new Promise<void>((resolve) => {
+        finishClose = resolve;
+      }),
+  );
+  setupLanguageSelector({ apply, reload, getMessage: vi.fn(), afterClose });
 
   const select = document.querySelector<HTMLSelectElement>("#uiLocale")!;
   vi.spyOn(select, "getBoundingClientRect").mockReturnValue({ width: 180, height: 30 } as DOMRect);
   select.value = "fr";
   select.dispatchEvent(new Event("change"));
   expect(select.disabled).toBe(true);
-  expect(select.hidden).toBe(true);
+  expect(select.isConnected).toBe(false);
   expect(document.querySelector<HTMLElement>(".language-selector")!.style.width).toBe("180px");
   expect(document.querySelector<HTMLElement>(".language-selector")!.style.height).toBe("30px");
+  expect(apply).not.toHaveBeenCalled();
+  finishClose();
   await vi.waitFor(() => expect(reload).toHaveBeenCalledOnce());
 
   expect(apply).toHaveBeenCalledWith("fr");
-  expect(select.hidden).toBe(true);
+  expect(select.isConnected).toBe(false);
 });
 
 test("keeps the page usable and reports a rejected locale change", async () => {
@@ -49,7 +58,7 @@ test("keeps the page usable and reports a rejected locale change", async () => {
   await vi.waitFor(() => expect(error.hidden).toBe(false));
 
   expect(select.disabled).toBe(false);
-  expect(select.hidden).toBe(false);
+  expect(select.isConnected).toBe(true);
   expect(document.querySelector<HTMLElement>(".language-selector")!.style.width).toBe("");
   expect(document.querySelector<HTMLElement>(".language-selector")!.style.height).toBe("");
   expect(document.activeElement).toBe(select);
