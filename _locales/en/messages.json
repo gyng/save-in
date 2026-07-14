@@ -1060,11 +1060,11 @@
     "description": "Option control label or related help text. Used in src/options/options.html."
   },
   "o_cExclusiveMode": {
-    "message": "Require a matching routing rule",
+    "message": "Do not save the file",
     "description": "Option control label or related help text. Used in src/options/options.html."
   },
   "o_cExclusiveModeHelp": {
-    "message": "Hides the folder submenu and saves relative to the default download folder",
+    "message": "Also hides folder choices in the context menu",
     "description": "Option control label or related help text. Used in src/options/options.html."
   },
   "o_cNotifySuccess": {
