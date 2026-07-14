@@ -785,29 +785,46 @@ fieldset.click-to-save-controls {
 @keyframes saved-field-check {
   from {
     background-size: 11px 11px;
+    background-position: right calc(var(--saved-check-right) + 3.5px) var(--saved-check-y-from);
   }
 
   60% {
     background-size: 21px 21px;
+    background-position: right calc(var(--saved-check-right) - 1.5px) var(--saved-check-y-peak);
+  }
+
+  to {
+    background-size: 18px 18px;
+    background-position: right var(--saved-check-right) var(--saved-check-y-rest);
   }
 }
 
 .saved-base {
+  --saved-check-right: 4px;
+  --saved-check-y-from: center;
+  --saved-check-y-peak: center;
+  --saved-check-y-rest: center;
+
   background-image: url(i/check-16.svg);
-  background-position: right 4px center;
+  background-position: right var(--saved-check-right) var(--saved-check-y-rest);
   background-size: 18px 18px;
   background-repeat: no-repeat;
 }
 
 label.saved-base,
 .opt-title.saved-base {
+  --saved-check-right: 2px;
+
   padding-right: 23px;
-  background-position: right center;
 }
 
 textarea.saved-base {
+  --saved-check-right: 7px;
+  --saved-check-y-from: top 10.5px;
+  --saved-check-y-peak: top 5.5px;
+  --saved-check-y-rest: top 7px;
+
   padding-right: 30px;
-  background-position: right 7px top 7px;
 }
 
 .saved {
