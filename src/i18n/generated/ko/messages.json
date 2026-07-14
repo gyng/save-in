@@ -2379,6 +2379,9 @@
   "routeVisualHelp": {
     "message": "규칙은 위에서 아래 순서로 평가됩니다. 규칙의 모든 조건이 일치해야 하며, 처음 일치하는 규칙이 실행됩니다."
   },
+  "routeTextEmptyExample": {
+    "message": "// example\nfileext: pdf\ninto: documents/:filename:"
+  },
   "routeVisualRuleEnabledAccessible": {
     "message": "규칙 $RULE$ 사용",
     "placeholders": { "rule": { "content": "$1", "example": "2" } }

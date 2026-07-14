@@ -2163,6 +2163,9 @@
   "html_keepsARuleWithoutRunningIt": {
     "message": "mantiene la regola senza eseguirla"
   },
+  "routeTextEmptyExample": {
+    "message": "// example\nfileext: pdf\ninto: documents/:filename:"
+  },
   "routeVisualRuleEnabledAccessible": {
     "message": "Regola $RULE$ attiva",
     "placeholders": { "rule": { "content": "$1", "example": "2" } }

@@ -37,6 +37,7 @@ describe("caretCoordinates", () => {
 
 describe("attachAutocomplete", () => {
   let textarea: HTMLTextAreaElement;
+  let cleanup: () => void;
 
   const type = (value: string) => {
     textarea.value = value;
@@ -54,10 +55,11 @@ describe("attachAutocomplete", () => {
   beforeEach(() => {
     document.body.innerHTML = '<textarea id="ta"></textarea>';
     textarea = document.getElementById("ta") as HTMLTextAreaElement;
-    attachAutocomplete(textarea, [pathVariableStrategy(VARIABLES)]);
+    cleanup = attachAutocomplete(textarea, [pathVariableStrategy(VARIABLES)]);
   });
 
   afterEach(() => {
+    cleanup();
     document.body.innerHTML = "";
   });
 

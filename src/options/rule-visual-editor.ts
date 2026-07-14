@@ -2,6 +2,7 @@ import { getMessage } from "../platform/localization.ts";
 import { webExtensionApi } from "../platform/web-extension-api.ts";
 import { MESSAGE_TYPES } from "../shared/constants.ts";
 import { sendInternalMessage } from "../shared/message-protocol.ts";
+import { attachAutocomplete, pathVariableStrategy } from "./autocomplete.ts";
 import {
   addRoutingClause,
   addAutomaticRoutingRule,
@@ -12,10 +13,11 @@ import {
   moveRoutingRule,
   parseVisualRoutingRules,
   setRoutingRuleEnabled,
+  setRoutingRuleName,
   updateRoutingClause,
   type VisualRoutingRule,
 } from "./rule-visual-editor-model.ts";
-import { sortClauses } from "./vocabulary-groups.ts";
+import { sortClauses, sortVariables } from "./vocabulary-groups.ts";
 import { isAutomaticRuleClauses } from "../routing/automatic-rule.ts";
 import { bindTabInteractions, syncTabSelection } from "./tab-controls.ts";
 import {
@@ -56,6 +58,7 @@ const DEFAULT_MATCHERS = [
 
 type RuleVisualEditorOptions = {
   matchers?: string[];
+  variables?: string[];
   localize?: (key: string) => string;
 };
 
@@ -100,16 +103,29 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
       .replace("$RULE$", String(ruleNumber))
       .replace("$CONDITION$", String(conditionNumber ?? ""));
   let matchers = sortClauses([...(options.matchers ?? DEFAULT_MATCHERS)]);
+  let variables = sortVariables([...(options.variables ?? [])]);
+  let autocompleteCleanups: Array<() => void> = [];
   let committing = false;
   let rebuildTimer = 0;
   let visual = false;
+  let draggedRuleIndex: number | null = null;
   let validationErrors: readonly EditorValidationFeedback[] = [];
   const openMenuSelector = ".rule-add-menu[open], .rule-editor-card-actions[open]";
+  const matcherSuggestions = document.createElement("datalist");
+  matcherSuggestions.id = "rule-editor-matcher-options";
+  visualEditor.append(matcherSuggestions);
+
+  const clearDragAppearance = (): void => {
+    cards
+      .querySelectorAll(".is-dragging, .is-drop-before, .is-drop-after")
+      .forEach((card) => card.classList.remove("is-dragging", "is-drop-before", "is-drop-after"));
+  };
 
   document.addEventListener(
     "click",
     (event) => {
       const target = event.target;
+      /* v8 ignore next -- DOM-dispatched click targets are Nodes or null. */
       if (!(target instanceof Node)) return;
       document.querySelectorAll<HTMLDetailsElement>(openMenuSelector).forEach((menu) => {
         if (!menu.contains(target)) menu.open = false;
@@ -194,7 +210,7 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
   const selectTextSource = (line: number): void => {
     setMode(false);
     const lines = textarea.value.split("\n");
-    const selectedLine = lines[line - 1] ?? "";
+    const selectedLine = lines[line - 1]!;
     const offset = lines
       .slice(0, Math.max(0, line - 1))
       .reduce((sum, value) => sum + value.length + 1, 0);
@@ -205,15 +221,20 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
     );
   };
 
-  const createMatcherSelect = (
+  const createMatcherInput = (
     rule: VisualRoutingRule,
     clause: VisualRoutingRule["clauses"][number],
     conditionNumber: number,
-  ): HTMLSelectElement => {
-    const select = document.createElement("select");
-    select.className = "rule-clause-name visual-editor-control-field";
-    select.name = "routing-matcher";
-    select.setAttribute(
+  ): HTMLInputElement => {
+    const input = document.createElement("input");
+    input.type = "text";
+    input.className = "rule-clause-name visual-editor-control-field";
+    input.name = "routing-matcher";
+    input.value = clause.name;
+    input.setAttribute("list", matcherSuggestions.id);
+    input.setAttribute("autocomplete", "off");
+    input.spellcheck = false;
+    input.setAttribute(
       "aria-label",
       contextualLabel(
         localize("routeVisualMatcherAccessible", "Rule $RULE$, condition $CONDITION$: matcher", [
@@ -224,21 +245,16 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
         conditionNumber,
       ),
     );
-    const names = [...new Set([...matchers, clause.name])];
-    sortClauses(names).forEach((name) => {
-      const option = document.createElement("option");
-      option.value = name;
-      option.textContent = name;
-      select.append(option);
-    });
-    select.value = clause.name;
-    select.addEventListener("change", () => {
+    input.addEventListener("change", () => {
+      const matcher = input.value.trim();
+      input.value = matcher;
+      if (matcher === clause.name) return;
       commit(
-        updateRoutingClause(textarea.value, rule.index, clause.index, { name: select.value }),
+        updateRoutingClause(textarea.value, rule.index, clause.index, { name: matcher }),
         false,
       );
     });
-    return select;
+    return input;
   };
 
   const createClauseRow = (
@@ -262,7 +278,7 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
         : undefined;
 
     if (clause.kind === "matcher" && conditionNumber !== undefined) {
-      row.append(createMatcherSelect(rule, clause, conditionNumber));
+      row.append(createMatcherInput(rule, clause, conditionNumber));
     } else {
       const name = document.createElement("span");
       name.className = "rule-clause-fixed-name";
@@ -289,7 +305,7 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
               localize(
                 "routeVisualPatternAccessible",
                 "Rule $RULE$, condition $CONDITION$: pattern",
-                [rule.index + 1, conditionNumber ?? 0],
+                [rule.index + 1, conditionNumber!],
               ),
               rule.index + 1,
               conditionNumber,
@@ -303,6 +319,9 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
       );
     });
     row.append(value);
+    if (clause.kind === "destination" && variables.length > 0) {
+      autocompleteCleanups.push(attachAutocomplete(value, [pathVariableStrategy(variables)]));
+    }
 
     if (clause.kind === "matcher") {
       const insensitive = document.createElement("label");
@@ -321,7 +340,7 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
           localize(
             "routeVisualIgnoreCaseAccessible",
             "Rule $RULE$, condition $CONDITION$: ignore case",
-            [rule.index + 1, conditionNumber ?? 0],
+            [rule.index + 1, conditionNumber!],
           ),
           rule.index + 1,
           conditionNumber,
@@ -399,6 +418,23 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
 
     const header = document.createElement("header");
     header.className = "visual-editor-card-header rule-editor-card-header";
+    const dragHandle = document.createElement("span");
+    dragHandle.className = "rule-editor-drag-handle";
+    dragHandle.textContent = "⠿";
+    dragHandle.draggable = rule.editable;
+    dragHandle.setAttribute("aria-hidden", "true");
+    dragHandle.addEventListener("dragstart", (event) => {
+      draggedRuleIndex = rule.index;
+      card.classList.add("is-dragging");
+      if (event.dataTransfer) {
+        event.dataTransfer.effectAllowed = "move";
+        event.dataTransfer.setData("text/plain", String(rule.index));
+      }
+    });
+    dragHandle.addEventListener("dragend", () => {
+      draggedRuleIndex = null;
+      clearDragAppearance();
+    });
     const identity = document.createElement("div");
     identity.className = "rule-editor-identity";
     const title = document.createElement("h4");
@@ -409,10 +445,32 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
       `Rule ${rule.index + 1}`,
       rule.index + 1,
     ).replace("$NUMBER$", String(rule.index + 1));
-    const meta = document.createElement("span");
-    meta.className = "caption rule-editor-meta";
-    meta.textContent = rule.comment;
-    identity.append(title, meta);
+    const nameLabel = document.createElement("span");
+    nameLabel.id = `rule-editor-name-label-${rule.index}`;
+    nameLabel.className = "visually-hidden";
+    nameLabel.textContent = localize("autoDownloadRuleName", "Rule name");
+    const name = document.createElement("input");
+    name.type = "text";
+    name.className = "rule-editor-name";
+    name.name = "routing-rule-name";
+    name.value = rule.comment;
+    name.placeholder = nameLabel.textContent;
+    name.disabled = !rule.editable;
+    name.setAttribute("aria-labelledby", `${title.id} ${nameLabel.id}`);
+    name.addEventListener("change", () => {
+      if (name.value === rule.comment) return;
+      commit(setRoutingRuleName(textarea.value, rule.index, name.value));
+    });
+    name.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        name.blur();
+      } else if (event.key === "Escape") {
+        name.value = rule.comment;
+        name.blur();
+      }
+    });
+    identity.append(title, nameLabel, name);
     if (isAutomaticRuleClauses(rule.clauses)) {
       const badge = document.createElement("span");
       badge.className = "rule-editor-auto-badge";
@@ -494,8 +552,36 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
     });
     actionsMenu.append(up, down, duplicate, remove);
     actions.append(actionsTrigger, actionsMenu);
-    header.append(enabledLabel, identity, actions);
+    header.append(dragHandle, enabledLabel, identity, actions);
     card.append(header);
+
+    card.addEventListener("dragover", (event) => {
+      if (draggedRuleIndex === null || draggedRuleIndex === rule.index) return;
+      event.preventDefault();
+      if (event.dataTransfer) event.dataTransfer.dropEffect = "move";
+      const bounds = card.getBoundingClientRect();
+      const after = event.clientY >= bounds.top + bounds.height / 2;
+      card.classList.toggle("is-drop-before", !after);
+      card.classList.toggle("is-drop-after", after);
+    });
+    card.addEventListener("dragleave", (event) => {
+      const related = event.relatedTarget;
+      if (related instanceof Node && card.contains(related)) return;
+      card.classList.remove("is-drop-before", "is-drop-after");
+    });
+    card.addEventListener("drop", (event) => {
+      if (draggedRuleIndex === null || draggedRuleIndex === rule.index) return;
+      event.preventDefault();
+      const source = draggedRuleIndex;
+      const bounds = card.getBoundingClientRect();
+      const after = event.clientY >= bounds.top + bounds.height / 2;
+      let destination = rule.index + (after ? 1 : 0);
+      if (source < destination) destination -= 1;
+      destination = Math.max(0, Math.min(total - 1, destination));
+      draggedRuleIndex = null;
+      clearDragAppearance();
+      if (source !== destination) commit(moveRoutingRule(textarea.value, source, destination));
+    });
 
     if (!rule.editable) {
       createUnsupportedCard(rule, card);
@@ -531,6 +617,24 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
 
   const render = (): void => {
     const documentModel = parseVisualRoutingRules(textarea.value);
+    autocompleteCleanups.forEach((cleanup) => cleanup());
+    autocompleteCleanups = [];
+    matcherSuggestions.replaceChildren(
+      ...[
+        ...new Set([
+          ...matchers,
+          ...documentModel.rules.flatMap((rule) =>
+            rule.clauses.filter((clause) => clause.kind === "matcher").map((clause) => clause.name),
+          ),
+        ]),
+      ]
+        .toSorted((left, right) => left.localeCompare(right))
+        .map((matcher) => {
+          const option = document.createElement("option");
+          option.value = matcher;
+          return option;
+        }),
+    );
     cards.replaceChildren();
     if (documentModel.rules.length === 0) {
       const empty = document.createElement("div");
@@ -623,9 +727,16 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
   if (!options.matchers) {
     void sendInternalMessage(webExtensionApi.runtime, { type: MESSAGE_TYPES.GET_KEYWORDS })
       .then((response) => {
-        if (!("matchers" in response.body) || response.body.matchers.length === 0) return;
-        matchers = sortClauses(response.body.matchers);
-        if (visual) render();
+        let changed = false;
+        if ("matchers" in response.body && response.body.matchers.length > 0) {
+          matchers = sortClauses(response.body.matchers);
+          changed = true;
+        }
+        if ("variables" in response.body && response.body.variables.length > 0) {
+          variables = sortVariables(response.body.variables);
+          changed = true;
+        }
+        if (changed && visual) render();
       })
       .catch(() => {});
   }

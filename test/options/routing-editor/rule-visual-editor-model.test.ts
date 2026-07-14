@@ -8,6 +8,7 @@ import {
   moveRoutingRule,
   parseVisualRoutingRules,
   setRoutingRuleEnabled,
+  setRoutingRuleName,
   updateRoutingClause,
 } from "../../../src/options/rule-visual-editor-model.ts";
 
@@ -67,6 +68,29 @@ describe("routing visual editor model", () => {
         "capturegroups: fileext",
         "into: documents/:filename:",
       ].join("\n"),
+    );
+  });
+
+  test("renames an attached rule comment without changing its clauses", () => {
+    expect(setRoutingRuleName(source, 0, "CDN images")).toBe(
+      source.replace("// Images from the CDN", "// CDN images"),
+    );
+  });
+
+  test("adds and removes a name on an unnamed rule", () => {
+    const unnamed = "filename: jpg\ninto: images\n\nfileext: pdf\ninto: documents";
+    const named = setRoutingRuleName(unnamed, 1, "PDF files");
+
+    expect(named).toBe(
+      "filename: jpg\ninto: images\n\n// PDF files\nfileext: pdf\ninto: documents",
+    );
+    expect(setRoutingRuleName(named, 1, "")).toBe(unnamed);
+    expect(setRoutingRuleName(unnamed, 1, "  ")).toBe(unnamed);
+  });
+
+  test("collapses a multiline attached comment into one trimmed rule name", () => {
+    expect(setRoutingRuleName("// First\n// Second\nfilename: jpg", 0, "  New\nname  ")).toBe(
+      "// New name\nfilename: jpg",
     );
   });
 

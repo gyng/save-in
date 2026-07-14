@@ -2379,6 +2379,9 @@
   "routeVisualHelp": {
     "message": "規則會由上而下檢查。規則中的所有條件都必須符合；系統會執行第一個符合的規則。"
   },
+  "routeTextEmptyExample": {
+    "message": "// example\nfileext: pdf\ninto: documents/:filename:"
+  },
   "routeVisualRuleEnabledAccessible": {
     "message": "規則 $RULE$ 已啟用",
     "placeholders": { "rule": { "content": "$1", "example": "2" } }

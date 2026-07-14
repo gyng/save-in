@@ -2300,6 +2300,9 @@
   "routeVisualHelp": {
     "message": "Les règles sont évaluées de haut en bas. Toutes les conditions d’une règle doivent être remplies ; la première règle correspondante est exécutée."
   },
+  "routeTextEmptyExample": {
+    "message": "// example\nfileext: pdf\ninto: documents/:filename:"
+  },
   "routeVisualRuleEnabledAccessible": {
     "message": "Règle $RULE$ activée",
     "placeholders": { "rule": { "content": "$1", "example": "2" } }

@@ -10,7 +10,7 @@ import { sendInternalMessage } from "../shared/message-protocol.ts";
 import { PathEditor } from "./path-editor.ts";
 import { sortClauses } from "./vocabulary-groups.ts";
 import { getMessage } from "../platform/localization.ts";
-import { localizeRuleTemplates } from "./rule-templates.ts";
+import { localizeRuleTemplates, type LocalizedRuleTemplate } from "./rule-templates.ts";
 import { renderSyntaxHighlight } from "./syntax-editor.ts";
 
 export { RULE_TEMPLATES } from "./rule-templates.ts";
@@ -40,6 +40,39 @@ const MATCHER_PATTERN_PLACEHOLDERS: Record<string, string> = {
   selectiontext: "invoice|receipt",
   sourceurl: "/images/|/media/",
   sourcekind: "image|video|audio|stream|document|link",
+};
+
+const showTemplateFeedback = (
+  container: HTMLElement,
+  template: LocalizedRuleTemplate,
+  localize: (key: string) => string,
+): void => {
+  const feedback =
+    (container.id === "rule-templates"
+      ? document.querySelector<HTMLElement>("#reference-dialog .template-feedback")
+      : container
+          .closest(".rule-template-surface")
+          ?.querySelector<HTMLElement>(".template-feedback")) ||
+    document.querySelector<HTMLElement>(".template-feedback");
+  if (!feedback) return;
+  feedback.replaceChildren(
+    `${localize("ruleTemplateAddedFeedback") || "Added"} “${template.name}”. `,
+  );
+  const view = document.createElement("button");
+  view.type = "button";
+  view.textContent = localize("ruleTemplateViewInEditor") || "View in rules editor";
+  view.addEventListener("click", () => {
+    document.querySelector<HTMLDialogElement>("#reference-dialog")?.close();
+    document.querySelector<HTMLButtonElement>("#rules-mode-text")?.click();
+    const textarea = document.querySelector<HTMLTextAreaElement>("#filenamePatterns");
+    if (textarea) {
+      document.dispatchEvent(
+        new CustomEvent("save-in:navigate-option", { detail: { target: textarea } }),
+      );
+    }
+  });
+  feedback.append(view);
+  feedback.hidden = false;
 };
 
 export const RuleBuilder = {
@@ -128,6 +161,56 @@ export const RuleBuilder = {
 
     containers.forEach((container) => {
       container.replaceChildren();
+      const templates = localizeRuleTemplates(localize);
+
+      if (container instanceof HTMLDataListElement) {
+        const surface = container.closest<HTMLElement>(".rule-template-surface");
+        const filter = surface?.querySelector<HTMLInputElement>(".rule-template-filter");
+        const add = surface?.querySelector<HTMLButtonElement>(".rule-template-typeahead-add");
+        if (!filter || !add) return;
+
+        templates.forEach((template) => {
+          const option = document.createElement("option");
+          option.value = template.name;
+          option.label = template.description;
+          option.dataset.rule = template.rule;
+          container.append(option);
+        });
+
+        const selectedTemplate = (): LocalizedRuleTemplate | undefined => {
+          const value = filter.value.trim().toLocaleLowerCase();
+          return templates.find((template) => template.name.toLocaleLowerCase() === value);
+        };
+        const sync = () => {
+          const template = selectedTemplate();
+          const present = Boolean(template && textarea.value.includes(template.rule));
+          add.disabled = !template || present;
+          add.textContent = present
+            ? localize("ruleTemplateAdded") || "Added"
+            : localize("ruleTemplateAdd") || "Add";
+        };
+        const apply = () => {
+          const template = selectedTemplate();
+          if (!template || textarea.value.includes(template.rule)) return;
+          RuleBuilder.appendRule(textarea, `// ${template.name}\n${template.rule}`);
+          filter.value = "";
+          sync();
+          showTemplateFeedback(container, template, localize);
+        };
+        filter.addEventListener("input", sync);
+        filter.addEventListener("change", sync);
+        filter.addEventListener("keydown", (event) => {
+          if (event.key !== "Enter" || add.disabled) return;
+          event.preventDefault();
+          apply();
+        });
+        add.addEventListener("click", apply);
+        textarea.addEventListener("input", sync);
+        document.addEventListener("options-restored", sync);
+        sync();
+        return;
+      }
+
       const syncs: Array<() => void> = [];
       const rows: HTMLElement[] = [];
       let filter: HTMLInputElement | null = null;
@@ -135,7 +218,7 @@ export const RuleBuilder = {
       let category = "";
       let categoryList: HTMLElement | null = null;
 
-      localizeRuleTemplates(localize).forEach((tpl) => {
+      templates.forEach((tpl) => {
         if (tpl.category !== category) {
           category = tpl.category;
           const section = document.createElement("section");
@@ -189,38 +272,13 @@ export const RuleBuilder = {
         add.addEventListener("click", (event) => {
           event.preventDefault();
           event.stopPropagation();
-          // Prepend the description as a comment (parseRules strips //-lines)
-          // so the added rule is self-documenting in the textarea
-          RuleBuilder.appendRule(textarea, `// ${tpl.name}: ${tpl.description}\n${tpl.rule}`);
+          RuleBuilder.appendRule(textarea, `// ${tpl.name}\n${tpl.rule}`);
           if (filter?.value) {
             filter.value = "";
             applyFilter();
           }
           syncs.forEach((fn) => fn());
-          const feedback =
-            (container.id === "rule-templates"
-              ? document.querySelector<HTMLElement>("#reference-dialog .template-feedback")
-              : container
-                  .closest(".rule-template-surface")
-                  ?.querySelector<HTMLElement>(".template-feedback")) ||
-            document.querySelector<HTMLElement>(".template-feedback");
-          if (feedback) {
-            feedback.replaceChildren(
-              `${localize("ruleTemplateAddedFeedback") || "Added"} “${tpl.name}”. `,
-            );
-            const view = document.createElement("button");
-            view.type = "button";
-            view.textContent = localize("ruleTemplateViewInEditor") || "View in rules editor";
-            view.addEventListener("click", () => {
-              document.querySelector<HTMLDialogElement>("#reference-dialog")?.close();
-              document.querySelector<HTMLButtonElement>("#rules-mode-text")?.click();
-              document.dispatchEvent(
-                new CustomEvent("save-in:navigate-option", { detail: { target: textarea } }),
-              );
-            });
-            feedback.append(view);
-            feedback.hidden = false;
-          }
+          showTemplateFeedback(container, tpl, localize);
         });
 
         row.appendChild(body);

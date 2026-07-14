@@ -204,8 +204,28 @@ export const setRoutingRuleEnabled = (
     });
   }
   const newline = newlineFor(source);
+  /* v8 ignore next -- Every editable rule has at least one parsed clause. */
   const offset = unit.rule.clauses.at(-1)?.span.end.offset ?? unit.end;
   return `${source.slice(0, offset)}${newline}disabled: true${source.slice(offset)}`;
+};
+
+export const setRoutingRuleName = (source: string, ruleIndex: number, name: string): string => {
+  const { unit } = editableRule(source, ruleIndex);
+  const normalizedName = name.replace(/[\r\n]+/g, " ").trim();
+  const newline = newlineFor(source);
+  const firstComment = unit.attached[0];
+  const lastComment = unit.attached.at(-1);
+
+  if (firstComment && lastComment) {
+    const start = firstComment.cst.line.span.start.offset;
+    const end = lastComment.cst.terminator.span.end.offset;
+    const replacement = normalizedName ? `// ${normalizedName}${newline}` : "";
+    return `${source.slice(0, start)}${replacement}${source.slice(end)}`;
+  }
+
+  if (!normalizedName) return source;
+  const offset = unit.rule.span.start.offset;
+  return `${source.slice(0, offset)}// ${normalizedName}${newline}${source.slice(offset)}`;
 };
 
 const replacePatches = (

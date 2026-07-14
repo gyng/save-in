@@ -325,14 +325,22 @@ test("groups fallback behavior with rules before the debugger", () => {
   ).toBe(true);
 });
 
-test("keeps routing references secondary and templates collapsed initially", () => {
+test("keeps routing references secondary and uses a compact template typeahead", () => {
   const document = documentForOptions();
   const references = document.querySelector(".routing-reference-column");
-  const templates = document.querySelector<HTMLDetailsElement>(".inline-template-library");
+  const templates = document.querySelector<HTMLElement>(".inline-template-library");
+  const picker = templates?.querySelector<HTMLInputElement>("#routing-template-typeahead");
+  const textEditor = document.querySelector<HTMLTextAreaElement>("#filenamePatterns");
 
   expect(references?.tagName).toBe("ASIDE");
   expect(references?.getAttribute("aria-labelledby")).toBe("routing-reference-heading");
-  expect(templates?.open).toBe(false);
+  expect(templates?.tagName).toBe("DIV");
+  expect(picker?.getAttribute("list")).toBe("routing-template-options");
+  expect(templates?.querySelector("datalist[data-rule-template-library]")).not.toBeNull();
+  expect(
+    templates?.querySelector<HTMLButtonElement>(".rule-template-typeahead-add")?.disabled,
+  ).toBe(true);
+  expect(textEditor?.placeholder).toBe("__MSG_routeTextEmptyExample__");
 });
 
 test("keeps route debugger inputs out of persisted option handling", () => {

@@ -42,12 +42,17 @@ export const runTemplateLibraryScenario = async ({
     await poll(
       async () =>
         (await evaluateOptions(`(() => {
-          const rows = [...document.querySelectorAll(".inline-template-library .rule-template")];
-          const row = rows.find((candidate) =>
-            candidate.querySelector(".rule-template-rule")?.textContent?.includes(${JSON.stringify(PDF_TEMPLATE_MATCHER)})
+          const picker = document.querySelector("#routing-template-typeahead");
+          const add = document.querySelector(".rule-template-typeahead-add");
+          const option = [...document.querySelectorAll("#routing-template-options option")].find(
+            (candidate) => candidate.dataset.rule?.includes(${JSON.stringify(PDF_TEMPLATE_MATCHER)})
           );
-          const add = row?.querySelector(".rule-template-add");
-          if (!(add instanceof HTMLButtonElement) || add.disabled) return false;
+          if (!(picker instanceof HTMLInputElement) || !(add instanceof HTMLButtonElement) || !option) {
+            return false;
+          }
+          picker.value = option.value;
+          picker.dispatchEvent(new InputEvent("input", { bubbles: true }));
+          if (add.disabled) return false;
           add.click();
           return true;
         })()`)) === true,

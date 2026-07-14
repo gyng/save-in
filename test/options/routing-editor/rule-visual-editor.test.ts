@@ -58,6 +58,16 @@ describe("routing visual editor", () => {
     ).toBe(true);
   });
 
+  test("closes the add menu before opening the template browser", () => {
+    setupRuleVisualEditor({ matchers: ["filename"] });
+    const menu = element<HTMLDetailsElement>(".rule-add-menu");
+    menu.open = true;
+
+    element<HTMLButtonElement>("#rule-editor-browse-templates").click();
+
+    expect(menu.open).toBe(false);
+  });
+
   test("restores an explicit Text preference", () => {
     localStorage.setItem("saveInRulesEditorMode", "text");
 
@@ -207,7 +217,7 @@ describe("routing visual editor", () => {
     expect(element<HTMLInputElement>(".rule-editor-enabled").getAttribute("aria-label")).toBe(
       "Rule 1 enabled",
     );
-    expect(element<HTMLSelectElement>(".rule-clause-name").getAttribute("aria-label")).toBe(
+    expect(element<HTMLInputElement>(".rule-clause-name").getAttribute("aria-label")).toBe(
       "Rule 1, condition 1: matcher",
     );
     expect(element<HTMLInputElement>(".rule-clause-value").getAttribute("aria-label")).toBe(
@@ -229,6 +239,37 @@ describe("routing visual editor", () => {
     );
   });
 
+  test("provides sorted matcher typeahead and destination variable autocomplete", () => {
+    setupRuleVisualEditor({
+      matchers: ["sourceurl", "filename", "context"],
+      variables: [":day:", ":date:"],
+    });
+
+    const matcher = element<HTMLInputElement>(".rule-clause-name");
+    expect(matcher.getAttribute("list")).toBe("rule-editor-matcher-options");
+    expect(
+      [...document.querySelectorAll<HTMLOptionElement>("#rule-editor-matcher-options option")].map(
+        (option) => option.value,
+      ),
+    ).toEqual(["context", "filename", "sourceurl"]);
+
+    const destination = element<HTMLInputElement>(".rule-clause-destination .rule-clause-value");
+    destination.value = "docs/:d";
+    destination.selectionStart = destination.value.length;
+    destination.dispatchEvent(new InputEvent("input", { bubbles: true }));
+    const dropdown = document.getElementById(destination.getAttribute("aria-controls")!);
+    expect(
+      [...(dropdown?.querySelectorAll<HTMLElement>('[role="option"]') ?? [])].map(
+        (option) => option.textContent,
+      ),
+    ).toEqual([":date:", ":day:"]);
+
+    destination.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true }),
+    );
+    expect(element<HTMLTextAreaElement>("#filenamePatterns").value).toContain("into: docs/:date:");
+  });
+
   test("adds, duplicates, reorders, and deletes rules without leaving Visual mode", () => {
     setupRuleVisualEditor({ matchers: ["filename", "sourceurl"] });
     element<HTMLButtonElement>("#rules-mode-visual").click();
@@ -244,6 +285,96 @@ describe("routing visual editor", () => {
     element<HTMLButtonElement>('[data-rule-action="down"]').click();
     element<HTMLButtonElement>('[data-rule-action="delete"]').click();
     expect(document.querySelectorAll(".rule-editor-card")).toHaveLength(2);
+  });
+
+  test("reorders rules by dragging the dedicated card handle", () => {
+    element<HTMLTextAreaElement>("#filenamePatterns").value = [
+      "filename: jpg",
+      "into: images",
+      "",
+      "sourceurl: cdn",
+      "into: downloads",
+    ].join("\n");
+    setupRuleVisualEditor({ matchers: ["filename", "sourceurl"] });
+
+    const cards = document.querySelectorAll<HTMLElement>(".rule-editor-card");
+    const handles = document.querySelectorAll<HTMLElement>(".rule-editor-drag-handle");
+    vi.spyOn(cards[1]!, "getBoundingClientRect").mockReturnValue({
+      top: 0,
+      height: 100,
+    } as DOMRect);
+
+    handles[0]!.dispatchEvent(new Event("dragstart", { bubbles: true }));
+    cards[1]!.dispatchEvent(
+      new MouseEvent("dragover", { bubbles: true, cancelable: true, clientY: 75 }),
+    );
+    expect(cards[1]!.classList).toContain("is-drop-after");
+    cards[1]!.dispatchEvent(
+      new MouseEvent("drop", { bubbles: true, cancelable: true, clientY: 75 }),
+    );
+
+    expect(element<HTMLTextAreaElement>("#filenamePatterns").value).toBe(
+      ["sourceurl: cdn", "into: downloads", "", "filename: jpg", "into: images"].join("\n"),
+    );
+  });
+
+  test("contains card drag lifecycle edge cases", () => {
+    element<HTMLTextAreaElement>("#filenamePatterns").value = [
+      "filename: jpg",
+      "into: images",
+      "",
+      "sourceurl: cdn",
+      "into: downloads",
+    ].join("\n");
+    setupRuleVisualEditor({ matchers: ["filename", "sourceurl"] });
+
+    let cards = document.querySelectorAll<HTMLElement>(".rule-editor-card");
+    let handles = document.querySelectorAll<HTMLElement>(".rule-editor-drag-handle");
+    const transfer = { effectAllowed: "none", dropEffect: "none", setData: vi.fn() };
+    const start = new Event("dragstart", { bubbles: true });
+    Object.defineProperty(start, "dataTransfer", { value: transfer });
+    handles[1]!.dispatchEvent(start);
+    expect(transfer.effectAllowed).toBe("move");
+    expect(transfer.setData).toHaveBeenCalledWith("text/plain", "1");
+
+    vi.spyOn(cards[0]!, "getBoundingClientRect").mockReturnValue({
+      top: 0,
+      height: 100,
+    } as DOMRect);
+    const over = new MouseEvent("dragover", { bubbles: true, cancelable: true, clientY: 25 });
+    Object.defineProperty(over, "dataTransfer", { value: transfer });
+    cards[0]!.dispatchEvent(over);
+    expect(transfer.dropEffect).toBe("move");
+    expect(cards[0]!.classList).toContain("is-drop-before");
+
+    cards[0]!.dispatchEvent(
+      new MouseEvent("dragleave", { bubbles: true, relatedTarget: cards[0]!.firstChild }),
+    );
+    expect(cards[0]!.classList).toContain("is-drop-before");
+    cards[0]!.dispatchEvent(new MouseEvent("dragleave", { bubbles: true }));
+    expect(cards[0]!.classList).not.toContain("is-drop-before");
+
+    cards[0]!.dispatchEvent(
+      new MouseEvent("drop", { bubbles: true, cancelable: true, clientY: 25 }),
+    );
+    expect(element<HTMLTextAreaElement>("#filenamePatterns").value.startsWith("sourceurl")).toBe(
+      true,
+    );
+
+    cards = document.querySelectorAll<HTMLElement>(".rule-editor-card");
+    handles = document.querySelectorAll<HTMLElement>(".rule-editor-drag-handle");
+    handles[0]!.dispatchEvent(new Event("dragstart", { bubbles: true }));
+    vi.spyOn(cards[1]!, "getBoundingClientRect").mockReturnValue({
+      top: 0,
+      height: 100,
+    } as DOMRect);
+    cards[1]!.dispatchEvent(
+      new MouseEvent("drop", { bubbles: true, cancelable: true, clientY: 25 }),
+    );
+    handles[0]!.dispatchEvent(new Event("dragend", { bubbles: true }));
+
+    cards[0]!.dispatchEvent(new MouseEvent("dragover", { bubbles: true, cancelable: true }));
+    cards[0]!.dispatchEvent(new MouseEvent("drop", { bubbles: true, cancelable: true }));
   });
 
   test("creates and identifies an enabled guarded automatic-source rule", () => {
@@ -312,6 +443,28 @@ describe("routing visual editor", () => {
     expect(element<HTMLTextAreaElement>("#filenamePatterns").selectionStart).toBeGreaterThan(0);
   });
 
+  test("uses the rule line for read-only rules with unsupported flags", () => {
+    element<HTMLTextAreaElement>("#filenamePatterns").value =
+      "filename/x: jpg\ninto: images/:filename:";
+    setupRuleVisualEditor({ matchers: ["filename"] });
+
+    expect(element<HTMLElement>(".rule-editor-unsupported").textContent).toContain("line 1");
+  });
+
+  test("contains optional add actions outside their normal menu wrapper", () => {
+    const menu = element<HTMLDetailsElement>(".rule-add-menu");
+    const addAutomatic = element<HTMLButtonElement>("#rule-editor-add-auto");
+    const browse = element<HTMLButtonElement>("#rule-editor-browse-templates");
+    menu.replaceWith(addAutomatic, browse);
+    setupRuleVisualEditor({ matchers: ["filename"] });
+
+    addAutomatic.click();
+    browse.click();
+    element<HTMLButtonElement>("#auto-download-manage-rules").click();
+
+    expect(document.querySelectorAll(".rule-editor-card")).toHaveLength(2);
+  });
+
   test("rebuilds after restored options and highlights debugger-selected rules", () => {
     setupRuleVisualEditor({ matchers: ["filename"] });
     element<HTMLButtonElement>("#rules-mode-visual").click();
@@ -328,7 +481,7 @@ describe("routing visual editor", () => {
     );
     expect(document.querySelectorAll(".rule-editor-card.is-debug-selected")).toHaveLength(1);
     expect(document.activeElement).toBe(
-      selectedCard.querySelector<HTMLSelectElement>(".rule-clause-name"),
+      selectedCard.querySelector<HTMLInputElement>(".rule-clause-name"),
     );
   });
 
@@ -344,7 +497,7 @@ describe("routing visual editor", () => {
     ].join("\n");
     setupRuleVisualEditor({ matchers: ["filename", "sourceurl"] });
     const textarea = element<HTMLTextAreaElement>("#filenamePatterns");
-    expect(document.querySelector(".rule-editor-meta")?.textContent).toContain("Documents");
+    expect(element<HTMLInputElement>(".rule-editor-name").value).toBe("Documents");
     expect(
       [...document.querySelectorAll(".rule-clause-marker")].map((node) => node.textContent),
     ).toContain("$");
@@ -355,10 +508,10 @@ describe("routing visual editor", () => {
     const secondRow = document.querySelectorAll<HTMLElement>(".rule-clause-row")[1]!;
     secondRow.click();
     expect(firstRow.classList).not.toContain("is-active");
-    const select = element<HTMLSelectElement>(".rule-clause-name");
-    select.dispatchEvent(new Event("change"));
-    select.value = "sourceurl";
-    select.dispatchEvent(new Event("change"));
+    const matcher = element<HTMLInputElement>(".rule-clause-name");
+    matcher.dispatchEvent(new Event("change"));
+    matcher.value = "sourceurl";
+    matcher.dispatchEvent(new Event("change"));
     expect(textarea.value).toContain("sourceurl/i: pdf");
 
     const insensitive = element<HTMLInputElement>(".rule-clause-flag input");
@@ -373,9 +526,35 @@ describe("routing visual editor", () => {
     ).click();
     expect(textarea.value).not.toContain("capturegroups:");
     element<HTMLButtonElement>('[data-rule-index="1"] [data-rule-action="up"]').click();
-    expect(
-      element<HTMLElement>('[data-rule-index="0"] .rule-editor-meta').textContent,
-    ).not.toContain("Documents");
+    expect(element<HTMLInputElement>('[data-rule-index="0"] .rule-editor-name').value).not.toBe(
+      "Documents",
+    );
+  });
+
+  test("renames and clears a rule from its card header", () => {
+    setupRuleVisualEditor({ matchers: ["filename"] });
+    const textarea = element<HTMLTextAreaElement>("#filenamePatterns");
+    let name = element<HTMLInputElement>(".rule-editor-name");
+
+    expect(name.value).toBe("");
+    expect(name.placeholder).toBe("Rule name");
+    name.dispatchEvent(new Event("change"));
+    name.dispatchEvent(new KeyboardEvent("keydown", { key: "x", bubbles: true }));
+    name.value = "Discard me";
+    name.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    expect(name.value).toBe("");
+    name.value = "JPEG files";
+    name.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true }),
+    );
+    name.dispatchEvent(new Event("change"));
+    expect(textarea.value).toBe("// JPEG files\nfilename/i: \\.jpg$\ninto: images/:filename:");
+
+    name = element<HTMLInputElement>(".rule-editor-name");
+    expect(name.value).toBe("JPEG files");
+    name.value = "";
+    name.dispatchEvent(new Event("change"));
+    expect(textarea.value).toBe("filename/i: \\.jpg$\ninto: images/:filename:");
   });
 
   test("renders an empty localized editor without optional actions", () => {
@@ -469,17 +648,19 @@ describe("routing visual editor", () => {
       vi.mocked(browser.runtime.sendMessage).mockResolvedValueOnce(response as never);
       setupRuleVisualEditor();
       await Promise.resolve();
-      expect(document.querySelectorAll(".rule-clause-name option").length).toBeGreaterThan(1);
+      expect(
+        document.querySelectorAll("#rule-editor-matcher-options option").length,
+      ).toBeGreaterThan(1);
     },
   );
 
   test("loads runtime matchers and contains lookup failures", async () => {
     vi.mocked(browser.runtime.sendMessage)
-      .mockResolvedValueOnce({ body: { matchers: ["sourcekind"] } } as never)
+      .mockResolvedValueOnce({ body: { matchers: ["sourcekind"], variables: [":date:"] } } as never)
       .mockRejectedValueOnce(new Error("offline"));
     setupRuleVisualEditor();
     await vi.waitFor(() =>
-      expect(element<HTMLSelectElement>(".rule-clause-name").options).toHaveLength(2),
+      expect(document.querySelectorAll("#rule-editor-matcher-options option")).toHaveLength(2),
     );
 
     const restoredMarkup = document.body.innerHTML;

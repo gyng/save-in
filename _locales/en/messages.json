@@ -2865,6 +2865,10 @@
     "message": "Rules run from top to bottom. Every condition in a rule must match; the first matching rule runs.",
     "description": "Ordering and matching guidance below the visual routing editor. Used in src/options/options.html."
   },
+  "routeTextEmptyExample": {
+    "message": "// example\nfileext: pdf\ninto: documents/:filename:",
+    "description": "Literal routing syntax shown as the empty Text editor placeholder. Used in src/options/options.html."
+  },
   "visualEditorEnabled": {
     "message": "Enabled",
     "description": "Checkbox label for enabling a destination menu entry or routing rule. Used in src/options/path-editor.ts and src/options/rule-visual-editor.ts."
@@ -3453,7 +3457,7 @@
   },
   "autoDownloadRuleName": {
     "message": "Rule name",
-    "description": "Label for the optional automatic rule name. Used in src/options/auto-download-rule-editor.ts."
+    "description": "Label for an optional routing rule name. Used in src/options/rule-visual-editor.ts."
   },
   "autoDownloadAddCondition": {
     "message": "Add condition",

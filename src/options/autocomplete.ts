@@ -174,6 +174,8 @@ export const attachAutocomplete = (
   textarea: TextField,
   source: AutocompleteStrategy[] | AutocompleteProvider,
 ) => {
+  const controller = new AbortController();
+  const listenerOptions = { signal: controller.signal };
   const dropdown = document.createElement("ul");
   const dropdownId = `autocomplete-${textarea.id || document.querySelectorAll(".autocomplete-dropdown").length}`;
   dropdown.id = dropdownId;
@@ -187,7 +189,7 @@ export const attachAutocomplete = (
   textarea.setAttribute("aria-expanded", "false");
   // Any press inside the dropdown (row, padding, scrollbar) must not blur the
   // field — keep focus so the list stays open and scrollable
-  dropdown.addEventListener("mousedown", (e) => e.preventDefault());
+  dropdown.addEventListener("mousedown", (e) => e.preventDefault(), listenerOptions);
 
   let current: ActiveCompletion | null = null;
 
@@ -295,66 +297,88 @@ export const attachAutocomplete = (
     dropdown.style.top = `${top}px`;
   };
 
-  textarea.addEventListener("input", () => {
-    const result = completionAtCaret(false);
-    if (result) {
-      current = result;
-      render(result);
-    } else {
-      close();
-    }
-  });
-
-  textarea.addEventListener("keydown", (e) => {
-    if (!(e instanceof KeyboardEvent)) {
-      return;
-    }
-    const key = e.key;
-
-    if ((e.ctrlKey || e.metaKey) && key === " ") {
-      const result = completionAtCaret(true);
+  textarea.addEventListener(
+    "input",
+    () => {
+      const result = completionAtCaret(false);
       if (result) {
-        e.preventDefault();
         current = result;
         render(result);
+      } else {
+        close();
       }
-      return;
-    }
+    },
+    listenerOptions,
+  );
 
-    if (!current) return;
+  textarea.addEventListener(
+    "keydown",
+    (e) => {
+      if (!(e instanceof KeyboardEvent)) {
+        return;
+      }
+      const key = e.key;
 
-    if (key === "ArrowDown" || key === "ArrowUp") {
-      e.preventDefault();
-      const count = current.suggestions.length;
-      const delta = key === "ArrowDown" ? 1 : -1;
-      current.selected = (current.selected + delta + count) % count;
-      render(current);
-    } else if (key === "Home" || key === "End") {
-      e.preventDefault();
-      current.selected = key === "Home" ? 0 : current.suggestions.length - 1;
-      render(current);
-    } else if (key === "Enter" || key === "Tab") {
-      e.preventDefault();
-      const selected = current.suggestions[current.selected];
-      if (selected) accept(selected);
-    } else if (key === "Escape") {
-      close();
-    }
-  });
+      if ((e.ctrlKey || e.metaKey) && key === " ") {
+        const result = completionAtCaret(true);
+        if (result) {
+          e.preventDefault();
+          current = result;
+          render(result);
+        }
+        return;
+      }
 
-  textarea.addEventListener("blur", close);
+      if (!current) return;
+
+      if (key === "ArrowDown" || key === "ArrowUp") {
+        e.preventDefault();
+        const count = current.suggestions.length;
+        const delta = key === "ArrowDown" ? 1 : -1;
+        current.selected = (current.selected + delta + count) % count;
+        render(current);
+      } else if (key === "Home" || key === "End") {
+        e.preventDefault();
+        current.selected = key === "Home" ? 0 : current.suggestions.length - 1;
+        render(current);
+      } else if (key === "Enter" || key === "Tab") {
+        e.preventDefault();
+        const selected = current.suggestions[current.selected];
+        /* v8 ignore next -- An open completion always has a modulo-bounded selected index. */
+        if (selected) accept(selected);
+      } else if (key === "Escape") {
+        close();
+      }
+    },
+    listenerOptions,
+  );
+
+  textarea.addEventListener("blur", close, listenerOptions);
 
   // A press anywhere else — outside both the field and its dropdown — dismisses
   // the list (belt-and-suspenders with blur, and covers non-focus-stealing
   // targets). Presses inside the dropdown are ignored above, so this never
   // races the item-accept handler.
-  document.addEventListener("mousedown", (e) => {
-    const target = e.target;
-    if (!current || target === textarea || (target instanceof Node && dropdown.contains(target))) {
-      return;
-    }
-    close();
-  });
+  document.addEventListener(
+    "mousedown",
+    (e) => {
+      const target = e.target;
+      if (
+        !current ||
+        target === textarea ||
+        (target instanceof Node && dropdown.contains(target))
+      ) {
+        return;
+      }
+      close();
+    },
+    listenerOptions,
+  );
+
+  return () => {
+    controller.abort();
+    dropdown.remove();
+  };
 };
 
 export const setupRoutingAutocomplete = (keywords: RoutingKeywords) => {

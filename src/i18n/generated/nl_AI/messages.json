@@ -2279,6 +2279,9 @@
   "routeVisualHelp": {
     "message": "Regels worden van boven naar beneden gecontroleerd. Aan elke voorwaarde in een regel moet zijn voldaan; de eerste overeenkomende regel wordt uitgevoerd."
   },
+  "routeTextEmptyExample": {
+    "message": "// example\nfileext: pdf\ninto: documents/:filename:"
+  },
   "routeVisualRuleEnabledAccessible": {
     "message": "Regel $RULE$ ingeschakeld",
     "placeholders": { "rule": { "content": "$1", "example": "2" } }

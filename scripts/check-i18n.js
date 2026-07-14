@@ -268,6 +268,7 @@ const intentionallySharedEnglishKeys = new Set([
   "historyColumnUrl",
   "o_lGithub",
   "routeDebuggerSha256",
+  "routeTextEmptyExample",
   "translationCredits",
 ]);
 for (const [key, canonical] of Object.entries(english)) {

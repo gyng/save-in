@@ -103,6 +103,9 @@ or feedback.
   lists. Matcher suggestions are alphabetical, destination fields complete
   variables at the caret, and the inline template picker keeps detailed cards
   in the reference dialog rather than stretching the routing workspace.
+- Reorderable rule cards use a dedicated drag grip so text fields remain safe
+  to select and edit. Keep equivalent Move up and Move down actions available
+  for keyboard and assistive-technology workflows.
 - Page Sources settings describe the real drawer. Its static preview must expose
   the same header actions and vocabulary as the shipped drawer.
 - History is a dense data organism. Filters, menu triggers, statuses, table, and
