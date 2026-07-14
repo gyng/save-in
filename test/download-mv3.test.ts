@@ -428,7 +428,14 @@ describe("offscreen document fetch (Chrome MV3)", () => {
 
 describe("onDeterminingFilename listener (Chrome)", () => {
   let listener: (
-    item: { byExtensionId?: string; filename: string; url?: string; incognito?: boolean },
+    item: {
+      id?: number;
+      byExtensionId?: string;
+      filename: string;
+      url?: string;
+      finalUrl?: string;
+      incognito?: boolean;
+    },
     suggest: (suggestion?: { filename: string; conflictAction: string }) => void,
   ) => boolean;
   let sessionStore: Record<string, any>;
@@ -446,7 +453,10 @@ describe("onDeterminingFilename listener (Chrome)", () => {
         },
       },
     } as any;
-    global.browser = { runtime: { id: "self-extension-id" } } as any;
+    global.browser = {
+      runtime: { id: "self-extension-id" },
+      i18n: { getMessage: vi.fn((key: string) => key) },
+    } as any;
 
     // vi.resetModules() gives download.ts (below) a fresh module graph, so
     // options/SessionState must be re-imported here to get the SAME
@@ -542,6 +552,68 @@ describe("onDeterminingFilename listener (Chrome)", () => {
     );
   });
 
+  test("keeps Chrome naming when an enabled ordinary route does not match", async () => {
+    freshOptions.routeBrowserDownloads = true;
+    vi.spyOn(freshDownload, "getRoutingMatches").mockReturnValue(null);
+    const suggest = vi.fn();
+
+    listener({ filename: "cat.jpg", url: "https://cdn.example/cat.jpg" }, suggest);
+    await vi.waitFor(() => expect(suggest).toHaveBeenCalledWith(undefined));
+  });
+
+  test("falls back to Chrome naming when ordinary routing rejects", async () => {
+    freshOptions.routeBrowserDownloads = true;
+    vi.spyOn(freshDownload, "getRoutingMatches").mockImplementation(() => {
+      throw new Error("routing failed");
+    });
+    const suggest = vi.fn();
+
+    expect(listener({ filename: "cat.jpg", url: "https://cdn.example/cat.jpg" }, suggest)).toBe(
+      true,
+    );
+    await vi.waitFor(() => expect(suggest).toHaveBeenCalledWith());
+  });
+
+  test("continues ordinary routing after failed startup initialization", async () => {
+    const { configureDownloadPorts } = await import("../src/downloads/ports.ts");
+    configureDownloadPorts({
+      runtime: { ready: Promise.reject(new Error("startup failed")), debug: false },
+      history: {
+        add: () => "history-id",
+        patch: () => Promise.resolve(),
+        setDownloadId: () => Promise.resolve(),
+        setStatus: () => Promise.resolve(),
+      },
+      log: { add: vi.fn() },
+      retry: freshDownload.retryViaFetch,
+    });
+    freshOptions.routeBrowserDownloads = false;
+    const suggest = vi.fn();
+
+    listener({ filename: "cat.jpg", url: "https://cdn.example/cat.jpg" }, suggest);
+    await vi.waitFor(() => expect(suggest).toHaveBeenCalledWith());
+  });
+
+  test("routes ordinary downloads without a startup promise", async () => {
+    const { configureDownloadPorts } = await import("../src/downloads/ports.ts");
+    configureDownloadPorts({
+      runtime: { debug: false },
+      history: {
+        add: () => "history-id",
+        patch: () => Promise.resolve(),
+        setDownloadId: () => Promise.resolve(),
+        setStatus: () => Promise.resolve(),
+      },
+      log: { add: vi.fn() },
+      retry: freshDownload.retryViaFetch,
+    });
+    freshOptions.routeBrowserDownloads = false;
+    const suggest = vi.fn();
+
+    listener({ filename: "cat.jpg", url: "https://cdn.example/cat.jpg" }, suggest);
+    await vi.waitFor(() => expect(suggest).toHaveBeenCalledWith());
+  });
+
   test("leaves private ordinary browser downloads untouched", () => {
     freshOptions.routeBrowserDownloads = true;
     const route = vi.spyOn(freshDownload, "getRoutingMatches");
@@ -571,6 +643,7 @@ describe("onDeterminingFilename listener (Chrome)", () => {
     const suggest = vi.fn();
     const returned = listener(
       {
+        id: 17,
         byExtensionId: "self-extension-id",
         filename: "original.txt",
         url: "https://x/recover.png",
@@ -586,6 +659,23 @@ describe("onDeterminingFilename listener (Chrome)", () => {
       filename: "route/recovered.txt",
       conflictAction: "uniquify",
     });
+  });
+
+  test("still suggests a retry filename when persisted cleanup fails", async () => {
+    const sessionState = await import("../src/shared/session-state.ts");
+    vi.mocked(sessionState.updateSession).mockRejectedValueOnce(new Error("storage failed"));
+    const url = "blob:retry-cleanup-failure";
+    freshDownload.pendingRetryFilenames.set(url, "route/retried.txt");
+    const suggest = vi.fn();
+
+    expect(
+      listener({ byExtensionId: "self-extension-id", filename: "download", url }, suggest),
+    ).toBe(false);
+    expect(suggest).toHaveBeenCalledWith({
+      filename: "route/retried.txt",
+      conflictAction: "uniquify",
+    });
+    await vi.waitFor(() => expect(sessionState.updateSession).toHaveBeenCalled());
   });
 
   test("an in-memory retry consumes its persisted filename only when Chrome asks", async () => {
@@ -704,6 +794,202 @@ describe("onDeterminingFilename listener (Chrome)", () => {
     ).toBe(true);
     await vi.waitFor(() => expect(suggest).toHaveBeenCalledWith());
     expect(suggest).toHaveBeenCalledTimes(1);
+  });
+
+  test("rejects a deferred route when actual-filename resolution rejects", async () => {
+    freshOptions.filenamePatterns = [{}] as any;
+    freshOptions.notifyOnFailure = false;
+    const state = {
+      path: { raw: ":filename:", finalize: () => "old.txt", toString: () => "old.txt" },
+      scratch: { pathTemplateRaw: ":filename:", deferredRouteRequirement: true },
+      info: { url: "https://x/deferred", filename: "old.txt" },
+    } as any;
+    freshDownload.rememberPendingState(state);
+    const variable = await import("../src/routing/variable.ts");
+    vi.spyOn(variable, "applyVariables").mockRejectedValueOnce(new Error("variable failed"));
+    const suggest = vi.fn();
+
+    expect(
+      listener(
+        {
+          byExtensionId: "self-extension-id",
+          filename: "server.txt",
+          url: "https://x/deferred",
+        },
+        suggest,
+      ),
+    ).toBe(true);
+    await vi.waitFor(() => expect(suggest).toHaveBeenCalledWith());
+  });
+
+  test("resolves a changed filename without a persisted path template", async () => {
+    freshOptions.filenamePatterns = [[]] as any;
+    vi.spyOn(freshDownload, "getRoutingMatches").mockReturnValue(null);
+    const state = {
+      path: { finalize: () => "old.txt", toString: () => "old.txt" },
+      scratch: {},
+      info: { url: "https://x/no-template", filename: "old.txt" },
+    } as any;
+    freshDownload.rememberPendingState(state);
+    vi.spyOn(freshDownload, "finalizeFullPath").mockReturnValue("server.txt");
+    const suggest = vi.fn();
+
+    listener(
+      {
+        byExtensionId: "self-extension-id",
+        filename: "server.txt",
+        url: "https://x/no-template",
+      },
+      suggest,
+    );
+    await vi.waitFor(() =>
+      expect(suggest).toHaveBeenCalledWith({
+        filename: "server.txt",
+        conflictAction: "uniquify",
+      }),
+    );
+  });
+
+  test("keeps the pending filename when Chrome supplies no replacement", () => {
+    const state = {
+      path: { finalize: () => "old.txt", toString: () => "old.txt" },
+      scratch: { browserFilenameResolution: false },
+      info: { url: "https://x/no-replacement", filename: "old.txt" },
+    } as any;
+    freshDownload.rememberPendingState(state);
+    vi.spyOn(freshDownload, "finalizeFullPath").mockReturnValue("old.txt");
+    const suggest = vi.fn();
+
+    expect(
+      listener(
+        {
+          byExtensionId: "self-extension-id",
+          filename: "",
+          url: "https://x/no-replacement",
+        },
+        suggest,
+      ),
+    ).toBe(false);
+    expect(state.info.filename).toBe("old.txt");
+  });
+
+  test("contains deferred recovery and cleanup failures", async () => {
+    const url = "https://x/deferred-recovery";
+    sessionStore.siDeferredRoutes = {
+      [url]: {
+        version: 1,
+        id: "recovery-1",
+        state: { info: { url, filename: "old.txt" } },
+        mimeExtension: "pdf",
+      },
+    };
+    const variable = await import("../src/routing/variable.ts");
+    vi.spyOn(variable, "applyVariables").mockRejectedValueOnce(new Error("recovery failed"));
+    const sessionState = await import("../src/shared/session-state.ts");
+    vi.mocked(sessionState.updateSession).mockRejectedValue(new Error("cleanup failed"));
+    const suggest = vi.fn();
+
+    listener({ byExtensionId: "self-extension-id", filename: "server.txt", url }, suggest);
+    await vi.waitFor(() => expect(suggest).toHaveBeenCalledWith());
+  });
+
+  test("recovers a deferred route from only its final URL and empty legacy state", async () => {
+    const requestedUrl = "https://x/requested";
+    const finalUrl = "https://x/final";
+    sessionStore.siDeferredRoutes = {
+      [finalUrl]: {
+        version: 1,
+        id: "recovery-final-url",
+        state: { info: {} },
+      },
+    };
+    freshOptions.filenamePatterns = [[{ name: "actualfileext" }]] as any;
+    const variable = await import("../src/routing/variable.ts");
+    vi.spyOn(variable, "resolveMime").mockResolvedValue("application/x-unknown");
+    vi.spyOn(variable, "mimeToExtension").mockReturnValue("");
+    vi.spyOn(freshDownload, "getRoutingMatches").mockReturnValue("route/:filename:");
+    vi.spyOn(freshDownload, "finalizeFullPath").mockReturnValue("route/recovered");
+    const { configureDownloadPorts } = await import("../src/downloads/ports.ts");
+    configureDownloadPorts({
+      runtime: { ready: Promise.reject(new Error("startup failed")), debug: false },
+      history: {
+        add: () => "history-id",
+        patch: () => Promise.resolve(),
+        setDownloadId: () => Promise.resolve(),
+        setStatus: () => Promise.resolve(),
+      },
+      log: { add: vi.fn() },
+      retry: freshDownload.retryViaFetch,
+    });
+    const suggest = vi.fn();
+
+    listener(
+      {
+        byExtensionId: "self-extension-id",
+        filename: "",
+        url: requestedUrl,
+        finalUrl,
+      },
+      suggest,
+    );
+    await vi.waitFor(() =>
+      expect(suggest).toHaveBeenCalledWith({
+        filename: "route/recovered",
+        conflictAction: "uniquify",
+      }),
+    );
+    expect(sessionStore.siDeferredRoutes).toEqual({});
+  });
+
+  test("notifies for an unrecoverable legacy deferred route without a source URL", async () => {
+    const url = "https://x/unrecoverable";
+    sessionStore.siDeferredRoutes = {
+      [url]: { version: 1, id: "recovery-no-url", state: { info: {} } },
+    };
+    freshOptions.notifyOnFailure = true;
+    vi.spyOn(freshDownload, "getRoutingMatches").mockReturnValue(null);
+    const suggest = vi.fn();
+
+    listener({ byExtensionId: "self-extension-id", filename: "", url }, suggest);
+    await vi.waitFor(() => expect(suggest).toHaveBeenCalledWith());
+  });
+
+  test("uses a tracked final URL when the requested URL has no pending state", () => {
+    const state = {
+      path: { finalize: () => "final.txt", toString: () => "final.txt" },
+      scratch: {},
+      info: { url: "https://x/final-pending", filename: "final.txt" },
+    } as any;
+    freshDownload.rememberPendingState(state);
+    const suggest = vi.fn();
+
+    listener(
+      {
+        byExtensionId: "self-extension-id",
+        filename: "final.txt",
+        url: "https://x/request-pending",
+        finalUrl: "https://x/final-pending",
+      },
+      suggest,
+    );
+    expect(freshDownload.pendingStates.has("https://x/final-pending")).toBe(false);
+  });
+
+  test("does not register Chrome filename handling when the capability is absent", async () => {
+    vi.resetModules();
+    const onChanged = { addListener: vi.fn() };
+    global.chrome = { downloads: {} } as any;
+    global.browser = {
+      runtime: { id: "self-extension-id", getBrowserInfo: () => Promise.resolve({ version: "1" }) },
+      downloads: { onChanged },
+    } as any;
+    const detector = await import("../src/platform/chrome-detector.ts");
+    detector.setCurrentBrowser("FIREFOX");
+    const { registerFilenameAndObjectUrlListeners } =
+      await import("../src/downloads/filename-listener.ts");
+    registerFilenameAndObjectUrlListeners(freshDownload);
+
+    expect(onChanged.addListener).toHaveBeenCalledOnce();
   });
 
   test("consuming a URL queue does not delete a distinct final-URL queue", () => {

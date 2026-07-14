@@ -669,8 +669,9 @@ describe("onDeterminingFilename listener: sync path", () => {
     vi.mocked(router.matchRules).mockImplementation((_rules, info) =>
       info.filename === "file.pdf" ? "pdf/:filename:" : null,
     );
-    const cancel = vi.fn(() => Promise.resolve());
+    const cancel = vi.fn(() => Promise.reject(new Error("already stopped")));
     global.browser.downloads.cancel = cancel;
+    vi.mocked(SaveHistory.setStatus).mockRejectedValue(new Error("history unavailable"));
     const state = makeState({
       path: new Path.Path("downloads"),
       info: { url: "https://example.com/file.pdf" },
@@ -743,6 +744,27 @@ describe("onDeterminingFilename listener: sync path", () => {
       filename: "downloads/item.bin",
       conflictAction: "uniquify",
     });
+  });
+
+  test("remembers a numeric download id on the synchronous filename path", async () => {
+    setCurrentBrowser("CHROME");
+    const state = makeState();
+    await Download.renameAndDownload(state);
+    const suggest = vi.fn();
+
+    expect(
+      capturedListener(
+        {
+          id: 202,
+          byExtensionId: global.browser.runtime.id,
+          url: state.info.url,
+          filename: "file.png",
+        },
+        suggest,
+      ),
+    ).toBe(false);
+
+    expect(Download.finalFilenamesByDownloadId.get(202)).toBe("downloads/file.png");
   });
 });
 
@@ -952,6 +974,15 @@ describe("owned object URL lifecycle", () => {
 
     expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:owned-download");
     expect(Download.ownedObjectUrls.has(404)).toBe(false);
+  });
+
+  test("ignores nonterminal changes and terminal changes without an object URL", () => {
+    vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {});
+
+    capturedDownloadChangedListener({ id: 1, state: { current: "in_progress" } });
+    capturedDownloadChangedListener({ id: 2, error: { current: "NETWORK_FAILED" } });
+
+    expect(URL.revokeObjectURL).not.toHaveBeenCalled();
   });
 });
 

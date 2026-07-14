@@ -190,7 +190,7 @@ export const removeFilename = (map: unknown, url: string, filename?: string): Fi
   const index = filename == null ? 0 : queue.indexOf(filename);
   if (index >= 0) queue.splice(index, 1);
   const first = queue[0];
-  if (queue.length) copy[url] = queue.length === 1 && first !== undefined ? first : queue;
+  if (queue.length) copy[url] = queue.length === 1 ? first! : queue;
   else delete copy[url];
   return copy;
 };
