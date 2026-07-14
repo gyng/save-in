@@ -28,10 +28,13 @@ const listFiles = (directory) =>
     return entry.isDirectory() ? listFiles(file) : [file];
   });
 
+const manifestFile = path.join(root, "manifest.json");
+const manifestSource = fs.readFileSync(manifestFile, "utf8");
+const manifest = JSON.parse(manifestSource);
 const sourceFiles = listFiles(path.join(root, "src")).filter((file) => /\.(?:html|ts)$/.test(file));
 const runtimeKeys = new Set();
-for (const file of [path.join(root, "manifest.json"), ...sourceFiles]) {
-  const source = fs.readFileSync(file, "utf8");
+for (const file of [manifestFile, ...sourceFiles]) {
+  const source = file === manifestFile ? manifestSource : fs.readFileSync(file, "utf8");
   if (!file.endsWith(".ts")) {
     for (const match of source.matchAll(/__MSG_([A-Za-z0-9_]+)__/g)) runtimeKeys.add(match[1]);
   }
@@ -39,6 +42,25 @@ for (const file of [path.join(root, "manifest.json"), ...sourceFiles]) {
     for (const match of source.matchAll(/\b(?:getMessage|localize)\(\s*["']([A-Za-z0-9_]+)["']/g)) {
       runtimeKeys.add(match[1]);
     }
+  }
+}
+
+const manifestMessagePattern = /^__MSG_[A-Za-z0-9_]+__$/;
+const manifestUiStrings = [
+  ["name", manifest.name],
+  ["short_name", manifest.short_name],
+  ["description", manifest.description],
+  ["action.default_title", manifest.action?.default_title],
+  ["browser_action.default_title", manifest.browser_action?.default_title],
+  ["page_action.default_title", manifest.page_action?.default_title],
+  ...Object.entries(manifest.commands || {}).map(([name, command]) => [
+    `commands.${name}.description`,
+    command?.description,
+  ]),
+];
+for (const [location, value] of manifestUiStrings) {
+  if (typeof value === "string" && !manifestMessagePattern.test(value)) {
+    report(`manifest.json ${location}: user-visible value must use __MSG_key__ localization`);
   }
 }
 

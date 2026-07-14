@@ -1,6 +1,7 @@
 {
   "name": "save-in",
   "version": "4.0.0",
+  "private": true,
   "license": "MIT",
   "scripts": {
     "build": "npm run build:bundled",

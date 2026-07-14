@@ -34,6 +34,12 @@
   "extensionDescription": {
     "message": "將圖片、影片、音訊、連結、選取的文字與頁面儲存至預設下載資料夾內的資料夾。"
   },
+  "manifestActionListPageSources": {
+    "message": "列出頁面來源"
+  },
+  "manifestCommandTogglePageSources": {
+    "message": "顯示或隱藏頁面來源"
+  },
   "translationCredits": {
     "message": "​"
   },

@@ -34,6 +34,12 @@
   "extensionDescription": {
     "message": "이미지, 비디오, 오디오, 링크, 선택한 텍스트 및 페이지를 기본 다운로드 폴더 내의 폴더에 저장합니다."
   },
+  "manifestActionListPageSources": {
+    "message": "페이지 소스 목록 표시"
+  },
+  "manifestCommandTogglePageSources": {
+    "message": "페이지 소스 표시 또는 숨기기"
+  },
   "translationCredits": {
     "message": "​"
   },

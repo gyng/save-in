@@ -34,6 +34,12 @@
   "extensionDescription": {
     "message": "Speichert Bilder, Videos, Audio, Links, ausgewählten Text und Seiten in Ordnern innerhalb Ihres Standard-Download-Ordners."
   },
+  "manifestActionListPageSources": {
+    "message": "Seitenquellen auflisten"
+  },
+  "manifestCommandTogglePageSources": {
+    "message": "Seitenquellen ein- oder ausblenden"
+  },
   "translationCredits": {
     "message": "​"
   },

@@ -34,6 +34,12 @@
   "extensionDescription": {
     "message": "Salva imagens, vídeos, áudio, links, texto selecionado e páginas em pastas dentro da pasta padrão de downloads."
   },
+  "manifestActionListPageSources": {
+    "message": "Listar fontes da página"
+  },
+  "manifestCommandTogglePageSources": {
+    "message": "Mostrar ou ocultar Fontes da página"
+  },
   "translationCredits": {
     "message": "​"
   },

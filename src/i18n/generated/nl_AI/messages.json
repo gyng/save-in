@@ -34,6 +34,12 @@
   "extensionDescription": {
     "message": "Slaat afbeeldingen, video's, audio, links, geselecteerde tekst en pagina's op in mappen binnen uw standaarddownloadmap."
   },
+  "manifestActionListPageSources": {
+    "message": "Paginabronnen weergeven"
+  },
+  "manifestCommandTogglePageSources": {
+    "message": "Paginabronnen tonen of verbergen"
+  },
   "translationCredits": {
     "message": "​"
   },

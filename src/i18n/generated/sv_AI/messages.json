@@ -34,6 +34,12 @@
   "extensionDescription": {
     "message": "Sparar bilder, videor, ljud, länkar, markerad text och sidor i mappar i din standardnedladdningsmapp."
   },
+  "manifestActionListPageSources": {
+    "message": "Visa sidkällor"
+  },
+  "manifestCommandTogglePageSources": {
+    "message": "Visa eller dölj sidkällor"
+  },
   "translationCredits": {
     "message": "​"
   },

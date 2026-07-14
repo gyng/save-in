@@ -1,6 +1,6 @@
-# save-in
+# Save In
 
-[Firefox Addons](https://addons.mozilla.org/en-US/firefox/addon/save-in)<br />
+[Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/save-in)<br />
 [Chrome Web Store](https://chromewebstore.google.com/detail/save-in/jpblofcpgfjikaapfedldfeilmpgkedf)<br />
 [Releases](https://github.com/gyng/save-in/releases/)
 
@@ -8,21 +8,20 @@
 
 ![Save In options](docs/store-screenshots/01-downloads-menu.png)
 
-A web extension for Firefox and Chrome.
+A WebExtension for Firefox and Chrome that adds a context menu for saving images,
+video, audio, links, selected text, and pages into user-defined folders inside
+the default download location.
 
-Adds a context menu to save media {image, video, audio, link, selection, page} in user-defined folders or directories relative to the default download location.
-
-Save into dynamically named directories.
-
-Flexible rules-based download renaming and routing.
-
-Option to save as shortcuts {.url, .desktop, .html redirect}.
-
-Records a sortable, filterable download History with JSON and formula-safe CSV/TSV exports.
-
-Rich path variables — dates, page/source parts, `:counter:`, `:uuid:`, and `:mime:`/`:mimeext:` (from the file's Content-Type). See the [wiki](https://github.com/gyng/save-in/wiki/Clause-and-Variable-list).
-
-Dynamic Downloads rules can match normalized MIME types (`mime:` / `contenttype:`), referrer URLs and hostnames, and page or source root domains.
+- Save into dynamically named directories.
+- Rename and route downloads with flexible rules.
+- Save links or pages as `.url`, `.desktop`, or HTML redirect shortcuts.
+- Browse sortable, filterable download history and export it as JSON or
+  formula-safe CSV/TSV.
+- Build paths from dates, page and source parts, `:counter:`, `:uuid:`,
+  `:mime:`, `:mimeext:`, and other variables. Open **Reference** in Options for
+  the maintained variable and matcher list.
+- Match normalized MIME types (`mime:` / `contenttype:`), referrer URLs and
+  hostnames, and page or source root domains in Dynamic Downloads rules.
 
 Page Sources can automatically save newly discovered matching media. Automatic
 saves are off by default and use guarded Dynamic Downloads rules with an
@@ -34,13 +33,18 @@ Optionally include matching ordinary browser downloads in local history. Chrome
 can apply Dynamic Downloads rules before saving; Firefox offers a separately
 labelled experimental cancel-and-redownload mode for matching HTTP(S) downloads.
 
-A versioned external API plus config tools for scripts and AI agents (WebMCP). See [Integrations](https://github.com/gyng/save-in/wiki/Integrations).
+A versioned external API plus configuration tools support scripts and compatible
+in-browser AI agents through WebMCP. See the source-controlled
+[integration contract](docs/INTEGRATIONS.md).
 
 Version 4 is a [Manifest V3](https://github.com/gyng/save-in/wiki/Manifest-V3) extension on Firefox 121+ and Chrome 123+.
 
-The WebExtension API only allows saving into directories relative to the default download directory. Symlinks can be used to get around this limitation:
+The WebExtension API only allows saving into directories relative to the default
+download directory. Firefox can follow a symlink placed there to another
+existing directory. Current Chrome versions reject symlinked download
+destinations, so this workaround is Firefox-only.
 
-Linux/Mac:
+Linux/macOS:
 
     ln -s /path/to/actual /default_download_dir/symlink
 
@@ -48,7 +52,8 @@ Windows:
 
     mklink /d \default_download_dir\symlink \path\to\actual
 
-Make sure the actual directories exist, or downloads will silently fail.
+Make sure the target directory exists. Firefox reports a failed download when
+the target is missing or inaccessible.
 
 - `<all_urls>` is used for page features and extension-context HEAD/fetch requests.
 - The optional Referer filter supports anti-hotlink downloads. Both browsers use
@@ -67,22 +72,30 @@ Make sure the actual directories exist, or downloads will silently fail.
 
 ## Integrations
 
-Save-in exposes a versioned external API (`PING` + `DOWNLOAD`), a config API
-(`GET_SCHEMA` / `VALIDATE` / `APPLY_CONFIG`), and experimental WebMCP tools for
-AI agents. See the source-controlled [integration contract](docs/INTEGRATIONS.md)
-for the protocol and trust model, or the
-[Integrations wiki](https://github.com/gyng/save-in/wiki/Integrations) for
-ready-to-use recipes.
+Save In exposes a versioned external API (`PING` + `DOWNLOAD`) to explicitly
+approved extensions, an internal configuration API (`GET_SCHEMA` / `VALIDATE` /
+`APPLY_CONFIG`), and experimental WebMCP tools for compatible in-browser agents.
+See the source-controlled [integration contract](docs/INTEGRATIONS.md) for the
+protocol, availability, and trust model.
 
 ## Development
 
-1. Install dev dependencies `npm install` (Node 24+)
-2. `npm run d` to start a dev Firefox instance using web-ext, or `npm run d:chrome` for a Chrome dev loop with auto-reload
-3. Develop
-4. `npm run fmt:check` and/or `npm run fmt`
-5. `npm run lint` and/or `npm run lint:fix`
-6. `npm test` and/or `npm run test:watch`; `npm run test:integration` adds tests that require loopback listeners or child processes, and `npm run test:all` runs both suites. `npm run test:fuzz` runs a ten-second property fuzz of the parser, routing, filename, and webhook boundaries; see the [fuzzing guide](docs/FUZZING.md). Set a longer budget with `node scripts/with-env.js FUZZ_TIME_MS=60000 -- npm run test:fuzz`; failures print a replayable property and seed, plus a shrink path when available.
-7. `npm run e2e` runs Chrome and Firefox in parallel (`e2e:chrome` / `e2e:firefox` remain available separately). Browser failures retain diagnostics in `dist/e2e-artifacts`.
+1. Install dev dependencies with `npm install` (Node 24+).
+2. Run `npm run d` to start a Firefox development instance with web-ext, or
+   `npm run d:chrome` for a Chrome development loop with automatic reload.
+3. Develop the change.
+4. Run `npm run fmt:check` or format with `npm run fmt`.
+5. Run `npm run lint` or apply safe fixes with `npm run lint:fix`.
+6. Run `npm test` or `npm run test:watch`. `npm run test:integration` adds tests
+   that require loopback listeners or child processes, and `npm run test:all`
+   runs both suites. `npm run test:fuzz` runs a ten-second property fuzz of the
+   parser, routing, filename, and webhook boundaries; see the
+   [fuzzing guide](docs/FUZZING.md). Set a longer budget with
+   `node scripts/with-env.js FUZZ_TIME_MS=60000 -- npm run test:fuzz`; failures
+   print a replayable property and seed, plus a shrink path when available.
+7. Run `npm run e2e` for Chrome and Firefox in parallel. `e2e:chrome` and
+   `e2e:firefox` remain available separately. Browser failures retain
+   diagnostics in `dist/e2e-artifacts`.
 
 ## Deployment
 

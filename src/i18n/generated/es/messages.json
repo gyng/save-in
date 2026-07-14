@@ -34,6 +34,12 @@
   "extensionDescription": {
     "message": "Guarda imágenes, videos, audio, enlaces, texto seleccionado y páginas en carpetas dentro de su carpeta de descarga predeterminada."
   },
+  "manifestActionListPageSources": {
+    "message": "Mostrar las fuentes de la página"
+  },
+  "manifestCommandTogglePageSources": {
+    "message": "Mostrar u ocultar Fuentes de la página"
+  },
   "translationCredits": {
     "message": "​"
   },

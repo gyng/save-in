@@ -5,6 +5,12 @@
   "extensionDescription": {
     "message": "Salva immagini, video, audio, collegamenti, testo selezionato e pagine in cartelle all'interno della cartella di download predefinita."
   },
+  "manifestActionListPageSources": {
+    "message": "Elenca le sorgenti della pagina"
+  },
+  "manifestCommandTogglePageSources": {
+    "message": "Mostra o nascondi Sorgenti della pagina"
+  },
   "translationCredits": {
     "message": "​"
   },

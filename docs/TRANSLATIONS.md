@@ -32,12 +32,13 @@ to maintain.
 
 ## Review passes
 
-`npm run check:i18n` checks runtime-key coverage, duplicate and unknown keys,
-catalog schema, placeholder identity, protected technical tokens, edge
-whitespace, ellipses, invisible artifacts, literal keyboard labels, and broad
-translation coverage. It also rejects a non-literal message that remains the
-same in every generated locale, including stale English wording left behind
-after the canonical message changes.
+`npm run check:i18n` checks runtime-key coverage, rejects raw user-visible
+manifest strings, and checks duplicate and unknown keys, catalog schema,
+placeholder identity, protected technical tokens, edge whitespace, ellipses,
+invisible artifacts, literal keyboard labels, and broad translation coverage.
+It also rejects a non-literal message that remains the same in every generated
+locale, including stale English wording left behind after the canonical message
+changes.
 
 That mechanical pass is necessary but not sufficient. Review new or changed
 messages together as a feature:

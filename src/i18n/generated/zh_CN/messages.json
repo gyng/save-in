@@ -34,6 +34,12 @@
   "extensionDescription": {
     "message": "将图像、视频、音频、链接、选定文本和页面保存到默认下载文件夹内的文件夹中。"
   },
+  "manifestActionListPageSources": {
+    "message": "列出页面来源"
+  },
+  "manifestCommandTogglePageSources": {
+    "message": "显示或隐藏页面来源"
+  },
   "translationCredits": {
     "message": "​"
   },

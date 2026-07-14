@@ -7,6 +7,14 @@
     "message": "Saves images, videos, audio, links, selected text, and pages to folders inside your default download folder.",
     "description": "Description of the add-on. Used in manifest.json."
   },
+  "manifestActionListPageSources": {
+    "message": "List page sources",
+    "description": "Tooltip for the extension toolbar button that opens the Page Sources browser. Used in manifest.json."
+  },
+  "manifestCommandTogglePageSources": {
+    "message": "Show or hide Page Sources",
+    "description": "Description of the browser keyboard command that toggles the Page Sources browser. Used in manifest.json."
+  },
   "translationCredits": {
     "message": "​",
     "description": "Credits for translations. Leave ​ for blank. Eg. sv translation by @username <email or url>, Real Name <contact>. Used in src/options/options.html."

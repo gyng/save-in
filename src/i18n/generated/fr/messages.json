@@ -34,6 +34,12 @@
   "extensionDescription": {
     "message": "Enregistre les images, les vidéos, l'audio, les liens, le texte sélectionné et les pages dans des dossiers de votre dossier de téléchargement par défaut."
   },
+  "manifestActionListPageSources": {
+    "message": "Afficher les sources de la page"
+  },
+  "manifestCommandTogglePageSources": {
+    "message": "Afficher ou masquer les sources de la page"
+  },
   "translationCredits": {
     "message": "​"
   },

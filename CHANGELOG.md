@@ -1,6 +1,6 @@
 # 4.0.0
 
-Version 4 is a almost-complete revamp. It modernizes browser
+Version 4 is an extensive revamp. It modernizes browser
 support and makes complex download organization easier while preserving existing settings and rules.
 
 - Rebuilt for current Firefox and Chrome MV3 extension platforms; now requires
@@ -19,9 +19,9 @@ support and makes complex download organization easier while preserving existing
   tools without adding remote code or broader interception permissions.
 - Unified both browser releases into one readable, reproducible package backed
   by automated Firefox and Chrome end-to-end tests.
-- Automatically migrate path-component truncation from character counts to
-  UTF-8 byte limits, apply it consistently to files and folders, and preserve
-  filename extensions within the configured limit.
+- Migrated path-component truncation from character counts to UTF-8 byte limits,
+  applied it consistently to files and folders, and preserved filename
+  extensions within the configured limit.
 
 <details>
 <summary>Detailed changes</summary>
@@ -127,8 +127,9 @@ support and makes complex download organization easier while preserving existing
   (with a Discard button) instead of autosaving; Apply/Discard light up
   only while there are unsaved edits, and switching tabs or closing the
   page prompts to save or discard. Every other setting still autosaves.
-- Options page refresh: full-width tabbed layout, live save indicator in
-  the top bar, system font stack, dark-mode fixes
+- Options page refresh: full-width tabbed layout, live save indicator in the
+  top bar, system font stack, dark-mode fixes, a stale event-listener leak fix,
+  and correct persistence when importing settings
 - Filenames are hardened for Windows: control and invisible format characters,
   variation selectors (#220), trailing
   dots/spaces, and reserved device names (CON, NUL, ...) are neutralized;
@@ -137,8 +138,6 @@ support and makes complex download organization easier while preserving existing
   also applies to page saves (#115)
 - Options textareas autosave after you pause typing instead of rebuilding
   the context menu on every keystroke
-- Tabbed options page with a refreshed system-font design; fixed a stale
-  event-listener leak and a settings-import that never persisted
 - A bad routing-rule regex is now dropped instead of matching everything;
   malformed URLs, absent capture groups, and info-less external messages no
   longer abort downloads

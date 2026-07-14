@@ -41,7 +41,7 @@
     "open_in_tab": true
   },
   "action": {
-    "default_title": "List page sources",
+    "default_title": "__MSG_manifestActionListPageSources__",
     "default_icon": {
       "48": "icons/ic_archive_black_48px.png",
       "96": "icons/ic_archive_black_96px.png"
@@ -53,7 +53,7 @@
         "default": "Ctrl+Shift+Y",
         "mac": "Command+Shift+Y"
       },
-      "description": "Toggle the Page Sources browser"
+      "description": "__MSG_manifestCommandTogglePageSources__"
     }
   },
   "icons": {

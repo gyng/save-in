@@ -1,6 +1,6 @@
 # Save In Privacy Policy
 
-Last updated: July 14, 2026
+Last updated: July 15, 2026
 
 ## What information does Save In collect?
 
@@ -37,13 +37,23 @@ ordinary page traffic.
 External extensions can request a save only after the user allows their ID.
 Extension permissions support only the features described above.
 
+When the options page is open in a browser that provides WebMCP, compatible
+in-browser agents can use Save In tools to read its schema, routing vocabulary,
+and complete saved configuration, including destinations, routing rules,
+approved extension IDs, and webhook details. They can also validate or apply
+configuration changes and start downloads. Save In adds no separate consent
+prompt; the browser or agent controls tool access and confirmation. Close the
+options page to make the tools unavailable. Data received by an agent is
+subject to that agent's and browser's data-handling policies.
+
 Webhooks are off by default. If the user supplies an HTTPS endpoint and enables
 the feature, Save In sends one JSON request after a non-private download starts
-from a direct Save In save command. Automated external-extension requests and
-ordinary browser downloads are excluded. Every request contains the selected
-resource URL, a save event, and a timestamp. The user can separately include the
-containing page URL, page title, and selected text. The options page shows the
-resulting payload before the feature is enabled.
+from a direct Save In save command. Automatic Page Sources saves,
+external-extension requests, and ordinary browser downloads are excluded. Every
+request contains the selected resource URL, a save event, and a timestamp. The
+user can separately include the containing page URL, page title, and selected
+text. The options page shows the resulting payload before the feature is
+enabled.
 
 Webhook requests go directly from the browser to the endpoint selected by the
 user. They contain no cookies or browser credentials, do not follow endpoint
@@ -61,6 +71,10 @@ data brokers, or other unrelated parties. Necessary download requests go only
 to hosts selected directly by the user or matched by their enabled automatic
 rules, and to those hosts' redirects. Optional webhook requests go only to the
 exact HTTPS endpoint configured by the user.
+
+When the options page is open and WebMCP is available, configuration and tool
+results can also be shared with a compatible in-browser agent as described
+above. Save In does not send that information to an agent on its own.
 
 Local data remains until the user clears it or uninstalls Save In; temporary
 transfer state is removed when no longer needed.
