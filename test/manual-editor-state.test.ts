@@ -5,7 +5,6 @@ describe("manual editor state", () => {
   beforeEach(() => {
     document.body.innerHTML = `
       <textarea id="paths">saved</textarea>
-      <span data-manual-help-for="paths">Changes are saved when you select Apply.</span>
       <div><button data-discard="paths">Discard</button><button data-apply="paths">Apply</button></div>`;
   });
 
@@ -15,24 +14,21 @@ describe("manual editor state", () => {
     const textarea = document.querySelector("textarea")!;
     const buttons = [...document.querySelectorAll("button")];
     const status = document.querySelector<HTMLElement>(".editor-dirty-status")!;
-    const help = document.querySelector<HTMLElement>("[data-manual-help-for=paths]")!;
 
     expect(buttons.every((button) => button.disabled)).toBe(true);
     expect(status.hidden).toBe(true);
-    expect(help.hidden).toBe(true);
+    expect(status.getAttribute("role")).toBe("status");
     expect(state.anyDirty()).toBe(false);
 
     textarea.value = "changed";
     textarea.dispatchEvent(new InputEvent("input"));
     expect(buttons.every((button) => !button.disabled)).toBe(true);
     expect(status.hidden).toBe(false);
-    expect(help.hidden).toBe(false);
     expect(status.textContent).toBe("Unsaved changes");
     expect(state.anyDirty()).toBe(true);
 
     state.refreshBaselines();
     expect(status.hidden).toBe(true);
-    expect(help.hidden).toBe(true);
     expect(state.anyDirty()).toBe(false);
   });
 

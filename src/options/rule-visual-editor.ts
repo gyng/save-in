@@ -81,6 +81,9 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
   const cards = document.querySelector<HTMLElement>("#rule-editor-cards");
   const addRule = document.querySelector<HTMLButtonElement>("#rule-editor-add");
   const addAutomaticRule = document.querySelector<HTMLButtonElement>("#rule-editor-add-auto");
+  const browseTemplates = document.querySelector<HTMLButtonElement>(
+    "#rule-editor-browse-templates",
+  );
   const manageAutomaticRules = document.querySelector<HTMLButtonElement>(
     "#auto-download-manage-rules",
   );
@@ -88,11 +91,39 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
 
   const localize = (key: string, fallback: string, substitutions?: MessageSubstitutions): string =>
     (options.localize ? options.localize(key) : getMessage(key, substitutions)) || fallback;
+  const contextualLabel = (
+    template: string,
+    ruleNumber: number,
+    conditionNumber?: number,
+  ): string =>
+    template
+      .replace("$RULE$", String(ruleNumber))
+      .replace("$CONDITION$", String(conditionNumber ?? ""));
   let matchers = sortClauses([...(options.matchers ?? DEFAULT_MATCHERS)]);
   let committing = false;
   let rebuildTimer = 0;
   let visual = false;
   let validationErrors: readonly EditorValidationFeedback[] = [];
+  const openMenuSelector = ".rule-add-menu[open], .rule-editor-card-actions[open]";
+
+  document.addEventListener(
+    "click",
+    (event) => {
+      const target = event.target;
+      if (!(target instanceof Node)) return;
+      document.querySelectorAll<HTMLDetailsElement>(openMenuSelector).forEach((menu) => {
+        if (!menu.contains(target)) menu.open = false;
+      });
+    },
+    { capture: true },
+  );
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") return;
+    const openMenus = [...document.querySelectorAll<HTMLDetailsElement>(openMenuSelector)];
+    const activeMenu = openMenus.find((menu) => menu.contains(document.activeElement));
+    openMenus.forEach((menu) => (menu.open = false));
+    activeMenu?.querySelector<HTMLElement>("summary")?.focus();
+  });
 
   const clearValidationAppearance = (): void => {
     cards
@@ -177,11 +208,22 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
   const createMatcherSelect = (
     rule: VisualRoutingRule,
     clause: VisualRoutingRule["clauses"][number],
+    conditionNumber: number,
   ): HTMLSelectElement => {
     const select = document.createElement("select");
     select.className = "rule-clause-name visual-editor-control-field";
     select.name = "routing-matcher";
-    select.setAttribute("aria-label", localize("routeVisualCondition", "Condition"));
+    select.setAttribute(
+      "aria-label",
+      contextualLabel(
+        localize("routeVisualMatcherAccessible", "Rule $RULE$, condition $CONDITION$: matcher", [
+          rule.index + 1,
+          conditionNumber,
+        ]),
+        rule.index + 1,
+        conditionNumber,
+      ),
+    );
     const names = [...new Set([...matchers, clause.name])];
     sortClauses(names).forEach((name) => {
       const option = document.createElement("option");
@@ -214,8 +256,13 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
     marker.setAttribute("aria-hidden", "true");
     row.append(marker);
 
-    if (clause.kind === "matcher") {
-      row.append(createMatcherSelect(rule, clause));
+    const conditionNumber =
+      clause.kind === "matcher"
+        ? rule.clauses.slice(0, clause.index + 1).filter((item) => item.kind === "matcher").length
+        : undefined;
+
+    if (clause.kind === "matcher" && conditionNumber !== undefined) {
+      row.append(createMatcherSelect(rule, clause, conditionNumber));
     } else {
       const name = document.createElement("span");
       name.className = "rule-clause-fixed-name";
@@ -233,8 +280,21 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
     value.setAttribute(
       "aria-label",
       clause.kind === "destination"
-        ? localize("routeVisualDestination", "Destination")
-        : localize("routeVisualPattern", "Pattern"),
+        ? contextualLabel(
+            localize("routeVisualDestinationAccessible", "Rule $RULE$ destination", rule.index + 1),
+            rule.index + 1,
+          )
+        : clause.kind === "matcher"
+          ? contextualLabel(
+              localize(
+                "routeVisualPatternAccessible",
+                "Rule $RULE$, condition $CONDITION$: pattern",
+                [rule.index + 1, conditionNumber ?? 0],
+              ),
+              rule.index + 1,
+              conditionNumber,
+            )
+          : clause.name,
     );
     value.addEventListener("input", () => {
       commit(
@@ -255,7 +315,18 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
       checkbox.type = "checkbox";
       checkbox.name = "routing-ignore-case";
       checkbox.checked = clause.flags === "i";
-      checkbox.setAttribute("aria-label", localize("routeVisualIgnoreCase", "Ignore case"));
+      checkbox.setAttribute(
+        "aria-label",
+        contextualLabel(
+          localize(
+            "routeVisualIgnoreCaseAccessible",
+            "Rule $RULE$, condition $CONDITION$: ignore case",
+            [rule.index + 1, conditionNumber ?? 0],
+          ),
+          rule.index + 1,
+          conditionNumber,
+        ),
+      );
       checkbox.addEventListener("change", () => {
         commit(
           updateRoutingClause(textarea.value, rule.index, clause.index, {
@@ -272,7 +343,17 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
       const remove = button(
         "×",
         "delete-clause",
-        localize("routeVisualDeleteCondition", "Delete condition"),
+        conditionNumber === undefined
+          ? localize("routeVisualDeleteCondition", "Delete condition")
+          : contextualLabel(
+              localize(
+                "routeVisualDeleteConditionAccessible",
+                "Delete condition $CONDITION$ from rule $RULE$",
+                [rule.index + 1, conditionNumber],
+              ),
+              rule.index + 1,
+              conditionNumber,
+            ),
       );
       remove.addEventListener("click", () =>
         commit(deleteRoutingClause(textarea.value, rule.index, clause.index)),
@@ -346,32 +427,75 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
     enabled.name = "routing-rule-enabled";
     enabled.checked = rule.enabled;
     enabled.disabled = !rule.editable;
-    enabled.setAttribute("aria-label", localize("visualEditorEnabled", "Enabled"));
+    enabled.setAttribute(
+      "aria-label",
+      contextualLabel(
+        localize("routeVisualRuleEnabledAccessible", "Rule $RULE$ enabled", rule.index + 1),
+        rule.index + 1,
+      ),
+    );
     enabled.addEventListener("change", () =>
       commit(setRoutingRuleEnabled(textarea.value, rule.index, enabled.checked)),
     );
-    enabledLabel.append(enabled);
-    const actions = document.createElement("div");
+    const enabledText = document.createElement("span");
+    enabledText.textContent = localize("visualEditorEnabled", "Enabled");
+    enabledLabel.append(enabled, enabledText);
+    const actions = document.createElement("details");
     actions.className = "visual-editor-row-actions rule-editor-card-actions";
-    const up = button("↑", "up", localize("routeVisualMoveUp", "Move rule up"));
+    const actionsTrigger = document.createElement("summary");
+    actionsTrigger.className = "visual-editor-control rule-editor-actions-trigger";
+    actionsTrigger.textContent = "⋯";
+    const actionsLabel = contextualLabel(
+      localize("routeVisualRuleActionsAccessible", "More actions for rule $RULE$", rule.index + 1),
+      rule.index + 1,
+    );
+    actionsTrigger.setAttribute("aria-label", actionsLabel);
+    actionsTrigger.title = actionsLabel;
+    const actionsMenu = document.createElement("div");
+    actionsMenu.className = "rule-editor-card-action-menu";
+    const closeActions = () => (actions.open = false);
+    const up = button(
+      localize("routeVisualMoveUp", "Move rule up"),
+      "up",
+      localize("routeVisualMoveUp", "Move rule up"),
+    );
     up.disabled = !rule.editable || rule.index === 0;
-    up.addEventListener("click", () =>
-      commit(moveRoutingRule(textarea.value, rule.index, rule.index - 1)),
+    up.addEventListener("click", () => {
+      commit(moveRoutingRule(textarea.value, rule.index, rule.index - 1));
+      closeActions();
+    });
+    const down = button(
+      localize("routeVisualMoveDown", "Move rule down"),
+      "down",
+      localize("routeVisualMoveDown", "Move rule down"),
     );
-    const down = button("↓", "down", localize("routeVisualMoveDown", "Move rule down"));
     down.disabled = !rule.editable || rule.index === total - 1;
-    down.addEventListener("click", () =>
-      commit(moveRoutingRule(textarea.value, rule.index, rule.index + 1)),
+    down.addEventListener("click", () => {
+      commit(moveRoutingRule(textarea.value, rule.index, rule.index + 1));
+      closeActions();
+    });
+    const duplicate = button(
+      localize("routeVisualDuplicate", "Duplicate rule"),
+      "duplicate",
+      localize("routeVisualDuplicate", "Duplicate rule"),
     );
-    const duplicate = button("⧉", "duplicate", localize("routeVisualDuplicate", "Duplicate rule"));
     duplicate.disabled = !rule.editable;
-    duplicate.addEventListener("click", () =>
-      commit(duplicateRoutingRule(textarea.value, rule.index)),
+    duplicate.addEventListener("click", () => {
+      commit(duplicateRoutingRule(textarea.value, rule.index));
+      closeActions();
+    });
+    const remove = button(
+      localize("routeVisualDelete", "Delete rule"),
+      "delete",
+      localize("routeVisualDelete", "Delete rule"),
     );
-    const remove = button("×", "delete", localize("routeVisualDelete", "Delete rule"));
     remove.disabled = !rule.editable;
-    remove.addEventListener("click", () => commit(deleteRoutingRule(textarea.value, rule.index)));
-    actions.append(up, down, duplicate, remove);
+    remove.addEventListener("click", () => {
+      commit(deleteRoutingRule(textarea.value, rule.index));
+      closeActions();
+    });
+    actionsMenu.append(up, down, duplicate, remove);
+    actions.append(actionsTrigger, actionsMenu);
     header.append(enabledLabel, identity, actions);
     card.append(header);
 
@@ -432,16 +556,26 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
     setMode(index === 1);
     if (focus) [textButton, visualButton][index]?.focus();
   });
-  addRule?.addEventListener("click", () =>
+  addRule?.addEventListener("click", () => {
+    const nextIndex = parseVisualRoutingRules(textarea.value).rules.length;
     commit(
       addRoutingRule(textarea.value, { name: "filename", value: ".*", destination: ":filename:" }),
-    ),
-  );
-  addAutomaticRule?.addEventListener("click", () =>
-    commit(addAutomaticRoutingRule(textarea.value)),
-  );
+    );
+    cards.querySelector<HTMLElement>(`[data-rule-index="${nextIndex}"] .rule-clause-name`)?.focus();
+  });
+  const addRuleMenu = addAutomaticRule?.closest<HTMLDetailsElement>(".rule-add-menu");
+  addAutomaticRule?.addEventListener("click", () => {
+    const nextIndex = parseVisualRoutingRules(textarea.value).rules.length;
+    commit(addAutomaticRoutingRule(textarea.value));
+    if (addRuleMenu) addRuleMenu.open = false;
+    cards.querySelector<HTMLElement>(`[data-rule-index="${nextIndex}"] .rule-clause-name`)?.focus();
+  });
+  browseTemplates?.addEventListener("click", () => {
+    if (addRuleMenu) addRuleMenu.open = false;
+  });
   manageAutomaticRules?.addEventListener("click", () => {
     setMode(true);
+    if (addRuleMenu) addRuleMenu.open = true;
     const target = addAutomaticRule ?? visualButton;
     document.dispatchEvent(new CustomEvent("save-in:navigate-option", { detail: { target } }));
   });

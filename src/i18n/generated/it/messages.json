@@ -689,9 +689,6 @@
   "o_bDiscard": {
     "message": "Scartare"
   },
-  "o_lRuleBuilder": {
-    "message": "Aggiunta rapida"
-  },
   "o_lRuleTemplates": {
     "message": "Libreria di modelli"
   },
@@ -950,15 +947,6 @@
   "o_lDirectoryDefinitions": {
     "message": "Definizioni del menu delle cartelle"
   },
-  "o_lMatcher": {
-    "message": "Criterio"
-  },
-  "o_lPattern": {
-    "message": "Pattern"
-  },
-  "o_lDestinationInto": {
-    "message": "Destinazione (in:)"
-  },
   "o_lSaving": {
     "message": "Salvataggio…"
   },
@@ -1027,9 +1015,6 @@
   },
   "o_lExperimental": {
     "message": "Sperimentale"
-  },
-  "o_lManualEditorSaveHelp": {
-    "message": "Le modifiche in questo editor vengono salvate quando selezioni Applica."
   },
   "o_lPathEditorDragHelp": {
     "message": "Trascina tramite la maniglia tratteggiata. Rilascia sopra o sotto una riga per posizionarla allo stesso livello o sulla riga per annidarla all'interno."
@@ -1237,9 +1222,6 @@
   },
   "html_wiki": {
     "message": "Wiki"
-  },
-  "html_add2": {
-    "message": "Aggiungi"
   },
   "html_advancedUseCaptureGroups": {
     "message": "Avanzato: utilizza i gruppi di acquisizione"
@@ -2166,6 +2148,9 @@
   "routeVisualAddRule": {
     "message": "Aggiungi regola"
   },
+  "routingNoMatchBehavior": {
+    "message": "Quando nessuna regola corrisponde"
+  },
   "routeVisualHelp": {
     "message": "Le regole vengono valutate dall'alto verso il basso. Tutte le condizioni devono corrispondere; viene eseguita la prima regola corrispondente."
   },
@@ -2178,17 +2163,45 @@
   "html_keepsARuleWithoutRunningIt": {
     "message": "mantiene la regola senza eseguirla"
   },
-  "routeVisualCondition": {
-    "message": "Condizione"
+  "routeVisualRuleEnabledAccessible": {
+    "message": "Regola $RULE$ attiva",
+    "placeholders": { "rule": { "content": "$1", "example": "2" } }
   },
-  "routeVisualDestination": {
-    "message": "Destinazione"
+  "routeVisualRuleActionsAccessible": {
+    "message": "Altre azioni per la regola $RULE$",
+    "placeholders": { "rule": { "content": "$1", "example": "2" } }
   },
-  "routeVisualPattern": {
-    "message": "Pattern"
+  "routeVisualMatcherAccessible": {
+    "message": "Regola $RULE$, condizione $CONDITION$: criterio",
+    "placeholders": {
+      "rule": { "content": "$1", "example": "2" },
+      "condition": { "content": "$2", "example": "1" }
+    }
   },
-  "routeVisualIgnoreCase": {
-    "message": "Ignora maiuscole/minuscole"
+  "routeVisualPatternAccessible": {
+    "message": "Regola $RULE$, condizione $CONDITION$: modello",
+    "placeholders": {
+      "rule": { "content": "$1", "example": "2" },
+      "condition": { "content": "$2", "example": "1" }
+    }
+  },
+  "routeVisualIgnoreCaseAccessible": {
+    "message": "Regola $RULE$, condizione $CONDITION$: ignora maiuscole e minuscole",
+    "placeholders": {
+      "rule": { "content": "$1", "example": "2" },
+      "condition": { "content": "$2", "example": "1" }
+    }
+  },
+  "routeVisualDeleteConditionAccessible": {
+    "message": "Elimina la condizione $CONDITION$ dalla regola $RULE$",
+    "placeholders": {
+      "condition": { "content": "$2", "example": "1" },
+      "rule": { "content": "$1", "example": "2" }
+    }
+  },
+  "routeVisualDestinationAccessible": {
+    "message": "Destinazione della regola $RULE$",
+    "placeholders": { "rule": { "content": "$1", "example": "2" } }
   },
   "routeVisualIgnoreCaseHelp": {
     "message": "Considera equivalenti lettere maiuscole e minuscole"

@@ -24,7 +24,11 @@ describe("routing visual editor", () => {
       <div id="rules-visual" hidden>
         <div id="rule-editor-cards"></div>
         <button type="button" id="rule-editor-add">Add rule</button>
-        <button type="button" id="rule-editor-add-auto">Add automatic source rule</button>
+        <details class="rule-add-menu">
+          <summary>More</summary>
+          <button type="button" id="rule-editor-add-auto">Add automatic source rule</button>
+          <button type="button" id="rule-editor-browse-templates">Browse templates</button>
+        </details>
       </div>
       <button type="button" id="auto-download-manage-rules">Open routing rules</button>
     `;
@@ -195,6 +199,35 @@ describe("routing visual editor", () => {
     );
   });
 
+  test("gives repeated rule controls contextual accessible names", () => {
+    setupRuleVisualEditor({ matchers: ["filename", "sourceurl"] });
+
+    expect(element<HTMLElement>(".rule-editor-enabled-label").textContent).toContain("Enabled");
+    expect(element<HTMLInputElement>(".rule-editor-enabled").getAttribute("aria-label")).toBe(
+      "Rule 1 enabled",
+    );
+    expect(element<HTMLSelectElement>(".rule-clause-name").getAttribute("aria-label")).toBe(
+      "Rule 1, condition 1: matcher",
+    );
+    expect(element<HTMLInputElement>(".rule-clause-value").getAttribute("aria-label")).toBe(
+      "Rule 1, condition 1: pattern",
+    );
+    expect(element<HTMLInputElement>(".rule-clause-flag input").getAttribute("aria-label")).toBe(
+      "Rule 1, condition 1: ignore case",
+    );
+    expect(
+      element<HTMLInputElement>(".rule-clause-destination .rule-clause-value").getAttribute(
+        "aria-label",
+      ),
+    ).toBe("Rule 1 destination");
+    expect(
+      element<HTMLButtonElement>('[data-rule-action="delete-clause"]').getAttribute("aria-label"),
+    ).toBe("Delete condition 1 from rule 1");
+    expect(element<HTMLElement>(".rule-editor-actions-trigger").getAttribute("aria-label")).toBe(
+      "More actions for rule 1",
+    );
+  });
+
   test("adds, duplicates, reorders, and deletes rules without leaving Visual mode", () => {
     setupRuleVisualEditor({ matchers: ["filename", "sourceurl"] });
     element<HTMLButtonElement>("#rules-mode-visual").click();
@@ -214,6 +247,8 @@ describe("routing visual editor", () => {
 
   test("creates and identifies a guarded automatic-source rule", () => {
     setupRuleVisualEditor({ matchers: ["context", "pageurl", "sourcekind"] });
+    const menu = element<HTMLDetailsElement>(".rule-add-menu");
+    menu.open = true;
     element<HTMLButtonElement>("#rule-editor-add-auto").click();
 
     const source = element<HTMLTextAreaElement>("#filenamePatterns").value;
@@ -222,6 +257,28 @@ describe("routing visual editor", () => {
     expect(source).toContain("sourcekind: ^image$");
     expect(source).toContain("disabled: true");
     expect(document.querySelectorAll(".rule-editor-auto-badge")).toHaveLength(1);
+    expect(menu.open).toBe(false);
+  });
+
+  test("closes add and rule menus when clicking outside or pressing Escape", () => {
+    setupRuleVisualEditor({ matchers: ["filename"] });
+    const addMenu = element<HTMLDetailsElement>(".rule-add-menu");
+    const ruleMenu = element<HTMLDetailsElement>(".rule-editor-card-actions");
+
+    addMenu.open = true;
+    document.body.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(addMenu.open).toBe(false);
+
+    ruleMenu.open = true;
+    element<HTMLButtonElement>('[data-rule-action="duplicate"]').focus();
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    expect(ruleMenu.open).toBe(false);
+    expect(document.activeElement).toBe(ruleMenu.querySelector("summary"));
+
+    addMenu.open = true;
+    ruleMenu.open = true;
+    addMenu.querySelector("summary")?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(ruleMenu.open).toBe(false);
   });
 
   test("opens the shared editor in Visual mode from Page Sources", () => {
@@ -233,6 +290,7 @@ describe("routing visual editor", () => {
     element<HTMLButtonElement>("#auto-download-manage-rules").click();
 
     expect(element<HTMLElement>("#rules-visual").hidden).toBe(false);
+    expect(element<HTMLDetailsElement>(".rule-add-menu").open).toBe(true);
     expect(navigate).toHaveBeenCalledOnce();
     expect((navigate.mock.calls[0]![0] as CustomEvent).detail.target).toBe(
       element("#rule-editor-add-auto"),

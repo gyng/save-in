@@ -923,10 +923,6 @@
     "message": "Discard",
     "description": "Button label on the options page. Used in src/options/options.html."
   },
-  "o_lRuleBuilder": {
-    "message": "Quick add",
-    "description": "Caption above the guided rule input on the options page. Used in src/options/options.html."
-  },
   "o_lRuleTemplates": {
     "message": "Template library",
     "description": "Summary label for the built-in rule templates list. Used in src/options/options.html."
@@ -1271,18 +1267,6 @@
     "message": "Folder menu definitions",
     "description": "Label, status, or help text in the options interface. Used in src/options/options.html."
   },
-  "o_lMatcher": {
-    "message": "Matcher",
-    "description": "Label, status, or help text in the options interface. Used in src/options/options.html."
-  },
-  "o_lPattern": {
-    "message": "Pattern",
-    "description": "Label, status, or help text in the options interface. Used in src/options/options.html."
-  },
-  "o_lDestinationInto": {
-    "message": "Destination (into:)",
-    "description": "Label, status, or help text in the options interface. Used in src/options/options.html."
-  },
   "o_lSaving": {
     "message": "Saving…",
     "description": "Label, status, or help text in the options interface. Used in src/options/options.ts."
@@ -1382,10 +1366,6 @@
   "o_lExperimental": {
     "message": "Experimental",
     "description": "Label, status, or help text in the options interface. Used in src/options/options.html."
-  },
-  "o_lManualEditorSaveHelp": {
-    "message": "Changes in this editor are saved when you select Apply.",
-    "description": "Dirty-state help shown beside Apply in text and visual editors. Used in src/options/options.html."
   },
   "o_lPathEditorDragHelp": {
     "message": "Drag by the dotted handle. Drop above or below a row to place it at the same level, or onto the row to nest it inside.",
@@ -1659,10 +1639,6 @@
   },
   "html_wiki": {
     "message": "Wiki",
-    "description": "Text in the options page. Used in src/options/options.html."
-  },
-  "html_add2": {
-    "message": "Add",
     "description": "Text in the options page. Used in src/options/options.html."
   },
   "html_advancedUseCaptureGroups": {
@@ -2881,6 +2857,10 @@
     "message": "Add rule",
     "description": "Button that appends a routing rule in the visual editor. Used in src/options/options.html."
   },
+  "routingNoMatchBehavior": {
+    "message": "When no rule matches",
+    "description": "Heading for routing behavior used when no rule matches. Used in src/options/options.html."
+  },
   "routeVisualHelp": {
     "message": "Rules run from top to bottom. Every condition in a rule must match; the first matching rule runs.",
     "description": "Ordering and matching guidance below the visual routing editor. Used in src/options/options.html."
@@ -2897,21 +2877,91 @@
     "message": "keeps a rule without running it",
     "description": "Explanation for disabled routing-rule syntax in the routing guide. Used in src/options/options.html."
   },
-  "routeVisualCondition": {
-    "message": "Condition",
-    "description": "Accessible label for a matcher selector in the visual routing editor. Used in src/options/rule-visual-editor.ts."
+  "routeVisualRuleEnabledAccessible": {
+    "message": "Rule $RULE$ enabled",
+    "description": "Accessible label for a routing rule enabled checkbox. Used in src/options/rule-visual-editor.ts.",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
   },
-  "routeVisualDestination": {
-    "message": "Destination",
-    "description": "Accessible label for a destination field in the visual routing editor. Used in src/options/rule-visual-editor.ts."
+  "routeVisualRuleActionsAccessible": {
+    "message": "More actions for rule $RULE$",
+    "description": "Accessible label for a routing rule action menu. Used in src/options/rule-visual-editor.ts.",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
   },
-  "routeVisualPattern": {
-    "message": "Pattern",
-    "description": "Accessible label for a matcher pattern field in the visual routing editor. Used in src/options/rule-visual-editor.ts."
+  "routeVisualMatcherAccessible": {
+    "message": "Rule $RULE$, condition $CONDITION$: matcher",
+    "description": "Accessible label for a matcher selector with its routing rule and condition position. Used in src/options/rule-visual-editor.ts.",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      },
+      "condition": {
+        "content": "$2",
+        "example": "1"
+      }
+    }
   },
-  "routeVisualIgnoreCase": {
-    "message": "Ignore case",
-    "description": "Accessible label for case-insensitive matching in the visual routing editor. Used in src/options/rule-visual-editor.ts."
+  "routeVisualPatternAccessible": {
+    "message": "Rule $RULE$, condition $CONDITION$: pattern",
+    "description": "Accessible label for a matcher pattern with its routing rule and condition position. Used in src/options/rule-visual-editor.ts.",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      },
+      "condition": {
+        "content": "$2",
+        "example": "1"
+      }
+    }
+  },
+  "routeVisualIgnoreCaseAccessible": {
+    "message": "Rule $RULE$, condition $CONDITION$: ignore case",
+    "description": "Accessible label for a case-insensitive matcher flag with its routing rule and condition position. Used in src/options/rule-visual-editor.ts.",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      },
+      "condition": {
+        "content": "$2",
+        "example": "1"
+      }
+    }
+  },
+  "routeVisualDeleteConditionAccessible": {
+    "message": "Delete condition $CONDITION$ from rule $RULE$",
+    "description": "Accessible label for deleting a condition from a specific routing rule. Used in src/options/rule-visual-editor.ts.",
+    "placeholders": {
+      "condition": {
+        "content": "$2",
+        "example": "1"
+      },
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "routeVisualDestinationAccessible": {
+    "message": "Rule $RULE$ destination",
+    "description": "Accessible label for a routing rule destination field. Used in src/options/rule-visual-editor.ts.",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
   },
   "routeVisualIgnoreCaseHelp": {
     "message": "Match uppercase and lowercase letters",

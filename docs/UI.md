@@ -68,6 +68,17 @@ or feedback.
   navigation.
 - Save locations and Routing rules are sibling editor workspaces and must share
   editor tabs, validation, action rows, previews, and responsive behavior.
+- Routing rules has one visible primary creation action. Automation rules and
+  the template library are secondary choices in the adjacent More menu; Page
+  Sources may open that menu directly. Dismiss creation and per-rule menus on an
+  outside click or Escape, restoring focus to the trigger after Escape.
+- Keep matcher, pattern, flag, remove, and destination fields on shared clause
+  columns so rows scan vertically. Put lower-frequency rule operations in a
+  labelled per-rule menu, and give repeated controls rule/condition-specific
+  accessible names.
+- Keep no-match behavior with the routing rules, before the debugger. Desktop
+  references are a secondary column with collapsed disclosures; omit that
+  column at narrow widths rather than creating a nested scrolling surface.
 - Route debugger is a plain testing workflow: heading and Run test, result,
   variables, and rule explanation. It should not introduce a competing card
   system.

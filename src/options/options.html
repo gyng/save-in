@@ -170,9 +170,6 @@
               <button type="button" class="button-primary apply-button" data-apply="paths" disabled>
                 __MSG_o_bApply__
               </button>
-              <span class="caption manual-save-help" data-manual-help-for="paths"
-                >__MSG_o_lManualEditorSaveHelp__</span
-              >
             </div>
 
             <details id="paths-text-help" class="inline-guide editor-guide">
@@ -309,9 +306,6 @@ Briefly explain the structure, check that every line follows this syntax, then p
               <button type="button" class="button-primary apply-button" data-apply="paths" disabled>
                 __MSG_o_bApply__
               </button>
-              <span class="caption manual-save-help" data-manual-help-for="paths"
-                >__MSG_o_lManualEditorSaveHelp__</span
-              >
             </div>
           </div>
           <div
@@ -788,9 +782,6 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                   >
                     __MSG_o_bApply__
                   </button>
-                  <span class="caption manual-save-help" data-manual-help-for="filenamePatterns"
-                    >__MSG_o_lManualEditorSaveHelp__</span
-                  >
                 </div>
               </div>
               <div
@@ -802,10 +793,34 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
               >
                 <div id="rule-editor-cards" class="rule-editor-cards"></div>
                 <div class="visual-editor-toolbar rule-editor-toolbar">
-                  <button type="button" id="rule-editor-add">+ __MSG_routeVisualAddRule__</button>
-                  <button type="button" id="rule-editor-add-auto" class="rule-editor-add-auto">
-                    + __MSG_autoDownloadAddRule__
-                  </button>
+                  <div class="rule-editor-create-actions">
+                    <button type="button" id="rule-editor-add">+ __MSG_routeVisualAddRule__</button>
+                    <details class="rule-add-menu">
+                      <summary
+                        class="rule-add-menu-trigger"
+                        aria-label="__MSG_html_more__"
+                        title="__MSG_html_more__"
+                      >
+                        ⋯
+                      </summary>
+                      <div class="rule-add-menu-options">
+                        <button
+                          type="button"
+                          id="rule-editor-add-auto"
+                          class="rule-editor-add-auto"
+                        >
+                          __MSG_autoDownloadAddRule__
+                        </button>
+                        <button
+                          type="button"
+                          id="rule-editor-browse-templates"
+                          data-reference-tab="options-reference-templates"
+                        >
+                          __MSG_o_lRuleTemplates__
+                        </button>
+                      </div>
+                    </details>
+                  </div>
                   <a class="toolbar-link" href="#" data-reference-tab="options-reference-clauses"
                     >__MSG_o_lClauses__</a
                   >
@@ -828,9 +843,6 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                   >
                     __MSG_o_bApply__
                   </button>
-                  <span class="caption manual-save-help" data-manual-help-for="filenamePatterns"
-                    >__MSG_o_lManualEditorSaveHelp__</span
-                  >
                 </div>
                 <p class="caption rule-editor-help">__MSG_routeVisualHelp__</p>
               </div>
@@ -843,43 +855,18 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
               ></div>
             </section>
 
-            <div class="rule-builder" role="group" aria-labelledby="rule-builder-label">
-              <div class="editor-field-label" id="rule-builder-label">__MSG_o_lRuleBuilder__</div>
-              <div class="rule-builder-row">
-                <label>
-                  <span>__MSG_o_lMatcher__</span>
-                  <select id="rule-builder-matcher"></select>
-                </label>
-                <label>
-                  <span>__MSG_o_lPattern__</span>
-                  <input
-                    type="text"
-                    id="rule-builder-pattern"
-                    placeholder="jpg|png"
-                    spellcheck="false"
-                  />
-                </label>
-              </div>
-              <div class="rule-builder-row">
-                <label>
-                  <span>__MSG_o_lDestinationInto__</span>
-                  <input
-                    type="text"
-                    id="rule-builder-into"
-                    placeholder="images/:pagedomain:/:filename:"
-                    spellcheck="false"
-                  />
-                </label>
-                <button
-                  type="button"
-                  class="button-primary apply-button"
-                  id="rule-builder-add"
-                  disabled
-                >
-                  __MSG_html_add2__
-                </button>
-              </div>
-            </div>
+            <fieldset class="option-group routing-post-options">
+              <legend class="option-group-heading">__MSG_routingNoMatchBehavior__</legend>
+              <label>
+                <input type="checkbox" id="routeFailurePrompt" />
+                __MSG_o_cOpenDialogIfNoRulesMatch__
+              </label>
+
+              <label>
+                <input type="checkbox" id="routeExclusive" /> __MSG_o_cExclusiveMode__
+                <div class="caption caption-line">__MSG_o_cExclusiveModeHelp__</div>
+              </label>
+            </fieldset>
 
             <section
               class="routing-tool route-debugger-shell"
@@ -1178,21 +1165,15 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                 </div>
               </div>
             </section>
-
-            <div class="routing-post-options">
-              <label>
-                <input type="checkbox" id="routeFailurePrompt" />
-                __MSG_o_cOpenDialogIfNoRulesMatch__
-              </label>
-
-              <label>
-                <input type="checkbox" id="routeExclusive" /> __MSG_o_cExclusiveMode__
-                <div class="caption caption-line">__MSG_o_cExclusiveModeHelp__</div>
-              </label>
-            </div>
           </div>
 
-          <div class="preview-column">
+          <aside
+            class="preview-column routing-reference-column"
+            aria-labelledby="routing-reference-heading"
+          >
+            <div class="editor-field-label" id="routing-reference-heading">
+              __MSG_html_references__
+            </div>
             <div class="reference-sections" aria-label="__MSG_html_insertionReferences__">
               <details class="variables-preview" data-insert-target="filenamePatterns">
                 <summary>__MSG_o_lLiveVariables__</summary>
@@ -1220,7 +1201,7 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                 </div>
               </details>
 
-              <details class="inline-template-library rule-template-surface" open>
+              <details class="inline-template-library rule-template-surface">
                 <summary>__MSG_o_lRuleTemplates__</summary>
                 <div class="inline-template-library-content">
                   <input
@@ -1236,7 +1217,7 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                 </div>
               </details>
             </div>
-          </div>
+          </aside>
         </div>
       </div>
 

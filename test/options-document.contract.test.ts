@@ -161,6 +161,26 @@ test("uses one shared container for each external integration", () => {
   expect(document.querySelector("#webhook-state-badge")?.getAttribute("data-state")).toBe("off");
 });
 
+test("keeps webhook consent, field controls, preview, and status connected", () => {
+  const document = documentForOptions();
+  const endpoint = document.querySelector<HTMLInputElement>("#webhookUrl");
+  expect(endpoint?.type).toBe("url");
+  expect(endpoint?.getAttribute("aria-describedby")).toContain("webhook-status");
+  expect(document.querySelector("#webhookEnabled")?.hasAttribute("data-no-autosave")).toBe(true);
+  expect(document.querySelector("#webhookEnabled")?.getAttribute("aria-describedby")).toContain(
+    "webhookEnabledHelp",
+  );
+  expect(document.querySelector("#webhookIncludePageUrl")).not.toBeNull();
+  expect(document.querySelector("#webhookIncludePageTitle")).not.toBeNull();
+  expect(document.querySelector("#webhookIncludeSelectionText")).not.toBeNull();
+  expect(document.querySelector("#webhook-payload-preview")).not.toBeNull();
+  expect(document.querySelector("#webhook-status")?.getAttribute("role")).toBe("status");
+  expect(document.querySelector("#webhook-state-badge")).not.toBeNull();
+  expect(document.querySelector<HTMLAnchorElement>("#webhook-documentation")?.href).toBe(
+    "https://github.com/gyng/save-in/wiki/Webhooks",
+  );
+});
+
 test("keeps stable history controls and export commands", () => {
   const document = documentForOptions();
   const runtimeControls = [
@@ -270,22 +290,49 @@ test("connects every tab to a labelled tab panel without treating launchers as t
   expect(document.querySelector(".reference-launcher-actions")?.getAttribute("role")).toBeNull();
 });
 
-test("keeps manual-save guidance beside Apply in both visual editors", () => {
+test("keeps visual editor actions direct and validation feedback unobstructed", () => {
   const document = documentForOptions();
 
-  for (const [editor, field] of [
-    ["#paths-visual", "paths"],
-    ["#rules-visual", "filenamePatterns"],
-  ]) {
-    const help = document.querySelector(
-      `${editor} .visual-editor-toolbar > [data-manual-help-for="${field}"]`,
-    );
-    expect(help?.textContent?.trim()).toBe("__MSG_o_lManualEditorSaveHelp__");
-  }
+  expect(document.querySelector("[data-manual-help-for]")).toBeNull();
+  expect(document.querySelector("#paths-visual [data-discard='paths']")).not.toBeNull();
+  expect(document.querySelector("#paths-visual [data-apply='paths']")).not.toBeNull();
+  expect(document.querySelector("#rules-visual [data-discard='filenamePatterns']")).not.toBeNull();
+  expect(document.querySelector("#rules-visual [data-apply='filenamePatterns']")).not.toBeNull();
+});
 
-  expect(document.querySelector(".rule-editor-help")?.hasAttribute("data-manual-help-for")).toBe(
-    false,
+test("keeps one primary routing-rule creation path with secondary choices", () => {
+  const document = documentForOptions();
+  const menu = document.querySelector<HTMLDetailsElement>(".rule-add-menu");
+
+  expect(document.querySelector("#rule-editor-add")).not.toBeNull();
+  expect(menu?.contains(document.querySelector("#rule-editor-add-auto"))).toBe(true);
+  expect(menu?.contains(document.querySelector("#rule-editor-browse-templates"))).toBe(true);
+  expect(document.querySelector(".rule-builder")).toBeNull();
+  expect(document.querySelector("#rule-builder-matcher")).toBeNull();
+});
+
+test("groups fallback behavior with rules before the debugger", () => {
+  const document = documentForOptions();
+  const fallback = document.querySelector(".routing-post-options");
+  const debuggerShell = document.querySelector(".route-debugger-shell");
+
+  expect(fallback?.querySelector("legend")?.textContent?.trim()).toBe(
+    "__MSG_routingNoMatchBehavior__",
   );
+  if (!fallback || !debuggerShell) throw new Error("Missing routing fallback or debugger group");
+  expect(
+    Boolean(fallback.compareDocumentPosition(debuggerShell) & Node.DOCUMENT_POSITION_FOLLOWING),
+  ).toBe(true);
+});
+
+test("keeps routing references secondary and templates collapsed initially", () => {
+  const document = documentForOptions();
+  const references = document.querySelector(".routing-reference-column");
+  const templates = document.querySelector<HTMLDetailsElement>(".inline-template-library");
+
+  expect(references?.tagName).toBe("ASIDE");
+  expect(references?.getAttribute("aria-labelledby")).toBe("routing-reference-heading");
+  expect(templates?.open).toBe(false);
 });
 
 test("keeps route debugger inputs out of persisted option handling", () => {

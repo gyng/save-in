@@ -397,9 +397,6 @@
   "o_bDiscard": {
     "message": "放弃"
   },
-  "o_lRuleBuilder": {
-    "message": "快速添加"
-  },
   "o_lRuleTemplates": {
     "message": "模板库"
   },
@@ -658,15 +655,6 @@
   "o_lDirectoryDefinitions": {
     "message": "文件夹菜单定义"
   },
-  "o_lMatcher": {
-    "message": "匹配器"
-  },
-  "o_lPattern": {
-    "message": "模式"
-  },
-  "o_lDestinationInto": {
-    "message": "保存位置 (into:)"
-  },
   "o_lSaving": {
     "message": "保存中…"
   },
@@ -735,9 +723,6 @@
   },
   "o_lExperimental": {
     "message": "实验功能"
-  },
-  "o_lManualEditorSaveHelp": {
-    "message": "选择“应用”后，此编辑器中的更改将被保存。"
   },
   "o_lFilterReference": {
     "message": "筛选"
@@ -876,9 +861,6 @@
   },
   "html_wiki": {
     "message": "维基百科"
-  },
-  "html_add2": {
-    "message": "添加"
   },
   "html_advancedUseCaptureGroups": {
     "message": "高级：使用捕获组"
@@ -2391,20 +2373,51 @@
   "routeVisualAddRule": {
     "message": "添加规则"
   },
+  "routingNoMatchBehavior": {
+    "message": "没有规则匹配时"
+  },
   "routeVisualHelp": {
     "message": "规则按从上到下的顺序检查。规则中的所有条件都必须匹配；系统会执行第一条匹配的规则。"
   },
-  "routeVisualCondition": {
-    "message": "条件"
+  "routeVisualRuleEnabledAccessible": {
+    "message": "规则 $RULE$ 已启用",
+    "placeholders": { "rule": { "content": "$1", "example": "2" } }
   },
-  "routeVisualDestination": {
-    "message": "目标位置"
+  "routeVisualRuleActionsAccessible": {
+    "message": "规则 $RULE$ 的更多操作",
+    "placeholders": { "rule": { "content": "$1", "example": "2" } }
   },
-  "routeVisualPattern": {
-    "message": "模式"
+  "routeVisualMatcherAccessible": {
+    "message": "规则 $RULE$，条件 $CONDITION$：匹配器",
+    "placeholders": {
+      "rule": { "content": "$1", "example": "2" },
+      "condition": { "content": "$2", "example": "1" }
+    }
   },
-  "routeVisualIgnoreCase": {
-    "message": "忽略大小写"
+  "routeVisualPatternAccessible": {
+    "message": "规则 $RULE$，条件 $CONDITION$：模式",
+    "placeholders": {
+      "rule": { "content": "$1", "example": "2" },
+      "condition": { "content": "$2", "example": "1" }
+    }
+  },
+  "routeVisualIgnoreCaseAccessible": {
+    "message": "规则 $RULE$，条件 $CONDITION$：忽略大小写",
+    "placeholders": {
+      "rule": { "content": "$1", "example": "2" },
+      "condition": { "content": "$2", "example": "1" }
+    }
+  },
+  "routeVisualDeleteConditionAccessible": {
+    "message": "从规则 $RULE$ 中删除条件 $CONDITION$",
+    "placeholders": {
+      "condition": { "content": "$2", "example": "1" },
+      "rule": { "content": "$1", "example": "2" }
+    }
+  },
+  "routeVisualDestinationAccessible": {
+    "message": "规则 $RULE$ 的目标位置",
+    "placeholders": { "rule": { "content": "$1", "example": "2" } }
   },
   "routeVisualIgnoreCaseHelp": {
     "message": "将大写和小写字母视为相同"

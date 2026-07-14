@@ -494,9 +494,6 @@
   "o_bDiscard": {
     "message": "Kassera"
   },
-  "o_lRuleBuilder": {
-    "message": "Snabbt tillägg"
-  },
   "o_lRuleTemplates": {
     "message": "Mallbibliotek"
   },
@@ -755,15 +752,6 @@
   "o_lDirectoryDefinitions": {
     "message": "Mappmenydefinitioner"
   },
-  "o_lMatcher": {
-    "message": "Matchare"
-  },
-  "o_lPattern": {
-    "message": "Mönster"
-  },
-  "o_lDestinationInto": {
-    "message": "Sparmål (into:)"
-  },
   "o_lSaving": {
     "message": "Sparar…"
   },
@@ -832,9 +820,6 @@
   },
   "o_lExperimental": {
     "message": "Experimentell"
-  },
-  "o_lManualEditorSaveHelp": {
-    "message": "Ändringar i den här redigeraren sparas när du väljer Tillämpa."
   },
   "o_lFilterReference": {
     "message": "Filtrera"
@@ -973,9 +958,6 @@
   },
   "html_wiki": {
     "message": "Wiki"
-  },
-  "html_add2": {
-    "message": "Lägg till"
   },
   "html_advancedUseCaptureGroups": {
     "message": "Avancerat: använd fångstgrupper"
@@ -2285,20 +2267,51 @@
   "routeVisualAddRule": {
     "message": "Lägg till regel"
   },
+  "routingNoMatchBehavior": {
+    "message": "När ingen regel matchar"
+  },
   "routeVisualHelp": {
     "message": "Regler kontrolleras uppifrån och ned. Alla villkor i en regel måste matcha; den första matchande regeln körs."
   },
-  "routeVisualCondition": {
-    "message": "Villkor"
+  "routeVisualRuleEnabledAccessible": {
+    "message": "Regel $RULE$ aktiverad",
+    "placeholders": { "rule": { "content": "$1", "example": "2" } }
   },
-  "routeVisualDestination": {
-    "message": "Mål"
+  "routeVisualRuleActionsAccessible": {
+    "message": "Fler åtgärder för regel $RULE$",
+    "placeholders": { "rule": { "content": "$1", "example": "2" } }
   },
-  "routeVisualPattern": {
-    "message": "Mönster"
+  "routeVisualMatcherAccessible": {
+    "message": "Regel $RULE$, villkor $CONDITION$: matchare",
+    "placeholders": {
+      "rule": { "content": "$1", "example": "2" },
+      "condition": { "content": "$2", "example": "1" }
+    }
   },
-  "routeVisualIgnoreCase": {
-    "message": "Ignorera skiftläge"
+  "routeVisualPatternAccessible": {
+    "message": "Regel $RULE$, villkor $CONDITION$: mönster",
+    "placeholders": {
+      "rule": { "content": "$1", "example": "2" },
+      "condition": { "content": "$2", "example": "1" }
+    }
+  },
+  "routeVisualIgnoreCaseAccessible": {
+    "message": "Regel $RULE$, villkor $CONDITION$: ignorera skiftläge",
+    "placeholders": {
+      "rule": { "content": "$1", "example": "2" },
+      "condition": { "content": "$2", "example": "1" }
+    }
+  },
+  "routeVisualDeleteConditionAccessible": {
+    "message": "Ta bort villkor $CONDITION$ från regel $RULE$",
+    "placeholders": {
+      "condition": { "content": "$2", "example": "1" },
+      "rule": { "content": "$1", "example": "2" }
+    }
+  },
+  "routeVisualDestinationAccessible": {
+    "message": "Mål för regel $RULE$",
+    "placeholders": { "rule": { "content": "$1", "example": "2" } }
   },
   "routeVisualIgnoreCaseHelp": {
     "message": "Behandla stora och små bokstäver som likadana"

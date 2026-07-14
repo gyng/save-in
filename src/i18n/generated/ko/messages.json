@@ -397,9 +397,6 @@
   "o_bDiscard": {
     "message": "버리기"
   },
-  "o_lRuleBuilder": {
-    "message": "빠른 추가"
-  },
   "o_lRuleTemplates": {
     "message": "템플릿 라이브러리"
   },
@@ -658,15 +655,6 @@
   "o_lDirectoryDefinitions": {
     "message": "폴더 메뉴 정의"
   },
-  "o_lMatcher": {
-    "message": "매처"
-  },
-  "o_lPattern": {
-    "message": "패턴"
-  },
-  "o_lDestinationInto": {
-    "message": "저장 위치(into:)"
-  },
   "o_lSaving": {
     "message": "저장 중…"
   },
@@ -735,9 +723,6 @@
   },
   "o_lExperimental": {
     "message": "실험 기능"
-  },
-  "o_lManualEditorSaveHelp": {
-    "message": "“적용”을 선택하면 이 편집기의 변경 사항이 저장됩니다."
   },
   "o_lFilterReference": {
     "message": "필터"
@@ -876,9 +861,6 @@
   },
   "html_wiki": {
     "message": "위키"
-  },
-  "html_add2": {
-    "message": "추가"
   },
   "html_advancedUseCaptureGroups": {
     "message": "고급: 캡처 그룹 사용"
@@ -2391,20 +2373,51 @@
   "routeVisualAddRule": {
     "message": "규칙 추가"
   },
+  "routingNoMatchBehavior": {
+    "message": "일치하는 규칙이 없을 때"
+  },
   "routeVisualHelp": {
     "message": "규칙은 위에서 아래 순서로 평가됩니다. 규칙의 모든 조건이 일치해야 하며, 처음 일치하는 규칙이 실행됩니다."
   },
-  "routeVisualCondition": {
-    "message": "조건"
+  "routeVisualRuleEnabledAccessible": {
+    "message": "규칙 $RULE$ 사용",
+    "placeholders": { "rule": { "content": "$1", "example": "2" } }
   },
-  "routeVisualDestination": {
-    "message": "저장 위치"
+  "routeVisualRuleActionsAccessible": {
+    "message": "규칙 $RULE$의 추가 작업",
+    "placeholders": { "rule": { "content": "$1", "example": "2" } }
   },
-  "routeVisualPattern": {
-    "message": "패턴"
+  "routeVisualMatcherAccessible": {
+    "message": "규칙 $RULE$, 조건 $CONDITION$: 매처",
+    "placeholders": {
+      "rule": { "content": "$1", "example": "2" },
+      "condition": { "content": "$2", "example": "1" }
+    }
   },
-  "routeVisualIgnoreCase": {
-    "message": "대소문자 무시"
+  "routeVisualPatternAccessible": {
+    "message": "규칙 $RULE$, 조건 $CONDITION$: 패턴",
+    "placeholders": {
+      "rule": { "content": "$1", "example": "2" },
+      "condition": { "content": "$2", "example": "1" }
+    }
+  },
+  "routeVisualIgnoreCaseAccessible": {
+    "message": "규칙 $RULE$, 조건 $CONDITION$: 대소문자 무시",
+    "placeholders": {
+      "rule": { "content": "$1", "example": "2" },
+      "condition": { "content": "$2", "example": "1" }
+    }
+  },
+  "routeVisualDeleteConditionAccessible": {
+    "message": "규칙 $RULE$에서 조건 $CONDITION$ 삭제",
+    "placeholders": {
+      "condition": { "content": "$2", "example": "1" },
+      "rule": { "content": "$1", "example": "2" }
+    }
+  },
+  "routeVisualDestinationAccessible": {
+    "message": "규칙 $RULE$ 대상",
+    "placeholders": { "rule": { "content": "$1", "example": "2" } }
   },
   "routeVisualIgnoreCaseHelp": {
     "message": "대문자와 소문자를 동일하게 일치시킵니다"

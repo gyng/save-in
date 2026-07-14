@@ -397,9 +397,6 @@
   "o_bDiscard": {
     "message": "捨棄"
   },
-  "o_lRuleBuilder": {
-    "message": "快速新增"
-  },
   "o_lRuleTemplates": {
     "message": "範本庫"
   },
@@ -658,15 +655,6 @@
   "o_lDirectoryDefinitions": {
     "message": "資料夾選單定義"
   },
-  "o_lMatcher": {
-    "message": "比對器"
-  },
-  "o_lPattern": {
-    "message": "模式"
-  },
-  "o_lDestinationInto": {
-    "message": "儲存位置 (into:)"
-  },
   "o_lSaving": {
     "message": "儲存中…"
   },
@@ -735,9 +723,6 @@
   },
   "o_lExperimental": {
     "message": "實驗功能"
-  },
-  "o_lManualEditorSaveHelp": {
-    "message": "選擇「套用」後，此編輯器中的變更將會儲存。"
   },
   "o_lFilterReference": {
     "message": "篩選"
@@ -876,9 +861,6 @@
   },
   "html_wiki": {
     "message": "維基百科"
-  },
-  "html_add2": {
-    "message": "新增"
   },
   "html_advancedUseCaptureGroups": {
     "message": "進階：使用擷取群組"
@@ -2391,20 +2373,51 @@
   "routeVisualAddRule": {
     "message": "新增規則"
   },
+  "routingNoMatchBehavior": {
+    "message": "沒有規則相符時"
+  },
   "routeVisualHelp": {
     "message": "規則會由上而下檢查。規則中的所有條件都必須符合；系統會執行第一個符合的規則。"
   },
-  "routeVisualCondition": {
-    "message": "條件"
+  "routeVisualRuleEnabledAccessible": {
+    "message": "規則 $RULE$ 已啟用",
+    "placeholders": { "rule": { "content": "$1", "example": "2" } }
   },
-  "routeVisualDestination": {
-    "message": "目的地"
+  "routeVisualRuleActionsAccessible": {
+    "message": "規則 $RULE$ 的更多操作",
+    "placeholders": { "rule": { "content": "$1", "example": "2" } }
   },
-  "routeVisualPattern": {
-    "message": "模式"
+  "routeVisualMatcherAccessible": {
+    "message": "規則 $RULE$，條件 $CONDITION$：比對器",
+    "placeholders": {
+      "rule": { "content": "$1", "example": "2" },
+      "condition": { "content": "$2", "example": "1" }
+    }
   },
-  "routeVisualIgnoreCase": {
-    "message": "忽略大小寫"
+  "routeVisualPatternAccessible": {
+    "message": "規則 $RULE$，條件 $CONDITION$：模式",
+    "placeholders": {
+      "rule": { "content": "$1", "example": "2" },
+      "condition": { "content": "$2", "example": "1" }
+    }
+  },
+  "routeVisualIgnoreCaseAccessible": {
+    "message": "規則 $RULE$，條件 $CONDITION$：忽略大小寫",
+    "placeholders": {
+      "rule": { "content": "$1", "example": "2" },
+      "condition": { "content": "$2", "example": "1" }
+    }
+  },
+  "routeVisualDeleteConditionAccessible": {
+    "message": "從規則 $RULE$ 刪除條件 $CONDITION$",
+    "placeholders": {
+      "condition": { "content": "$2", "example": "1" },
+      "rule": { "content": "$1", "example": "2" }
+    }
+  },
+  "routeVisualDestinationAccessible": {
+    "message": "規則 $RULE$ 的目的地",
+    "placeholders": { "rule": { "content": "$1", "example": "2" } }
   },
   "routeVisualIgnoreCaseHelp": {
     "message": "將大寫與小寫字母視為相同"

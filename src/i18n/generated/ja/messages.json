@@ -397,9 +397,6 @@
   "o_bDiscard": {
     "message": "破棄"
   },
-  "o_lRuleBuilder": {
-    "message": "クイック追加"
-  },
   "o_lRuleTemplates": {
     "message": "テンプレートライブラリ"
   },
@@ -658,15 +655,6 @@
   "o_lDirectoryDefinitions": {
     "message": "フォルダーメニューの定義"
   },
-  "o_lMatcher": {
-    "message": "マッチャー"
-  },
-  "o_lPattern": {
-    "message": "パターン"
-  },
-  "o_lDestinationInto": {
-    "message": "保存先（into:）"
-  },
   "o_lSaving": {
     "message": "保存中…"
   },
@@ -735,9 +723,6 @@
   },
   "o_lExperimental": {
     "message": "試験運用"
-  },
-  "o_lManualEditorSaveHelp": {
-    "message": "このエディターでの変更は、「適用」を選択すると保存されます。"
   },
   "o_lFilterReference": {
     "message": "フィルター"
@@ -876,9 +861,6 @@
   },
   "html_wiki": {
     "message": "ウィキ"
-  },
-  "html_add2": {
-    "message": "追加"
   },
   "html_advancedUseCaptureGroups": {
     "message": "詳細: キャプチャ グループを使用する"
@@ -2391,20 +2373,51 @@
   "routeVisualAddRule": {
     "message": "ルールを追加"
   },
+  "routingNoMatchBehavior": {
+    "message": "どのルールにも一致しない場合"
+  },
   "routeVisualHelp": {
     "message": "ルールは上から順に評価されます。ルール内のすべての条件が一致する必要があり、最初に一致したルールが実行されます。"
   },
-  "routeVisualCondition": {
-    "message": "条件"
+  "routeVisualRuleEnabledAccessible": {
+    "message": "ルール $RULE$ を有効化",
+    "placeholders": { "rule": { "content": "$1", "example": "2" } }
   },
-  "routeVisualDestination": {
-    "message": "保存先"
+  "routeVisualRuleActionsAccessible": {
+    "message": "ルール $RULE$ のその他の操作",
+    "placeholders": { "rule": { "content": "$1", "example": "2" } }
   },
-  "routeVisualPattern": {
-    "message": "パターン"
+  "routeVisualMatcherAccessible": {
+    "message": "ルール $RULE$、条件 $CONDITION$：マッチャー",
+    "placeholders": {
+      "rule": { "content": "$1", "example": "2" },
+      "condition": { "content": "$2", "example": "1" }
+    }
   },
-  "routeVisualIgnoreCase": {
-    "message": "大文字と小文字を区別しない"
+  "routeVisualPatternAccessible": {
+    "message": "ルール $RULE$、条件 $CONDITION$：パターン",
+    "placeholders": {
+      "rule": { "content": "$1", "example": "2" },
+      "condition": { "content": "$2", "example": "1" }
+    }
+  },
+  "routeVisualIgnoreCaseAccessible": {
+    "message": "ルール $RULE$、条件 $CONDITION$：大文字と小文字を区別しない",
+    "placeholders": {
+      "rule": { "content": "$1", "example": "2" },
+      "condition": { "content": "$2", "example": "1" }
+    }
+  },
+  "routeVisualDeleteConditionAccessible": {
+    "message": "ルール $RULE$ から条件 $CONDITION$ を削除",
+    "placeholders": {
+      "condition": { "content": "$2", "example": "1" },
+      "rule": { "content": "$1", "example": "2" }
+    }
+  },
+  "routeVisualDestinationAccessible": {
+    "message": "ルール $RULE$ の保存先",
+    "placeholders": { "rule": { "content": "$1", "example": "2" } }
   },
   "routeVisualIgnoreCaseHelp": {
     "message": "大文字と小文字を同一として照合します"

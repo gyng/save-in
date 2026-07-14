@@ -34,7 +34,6 @@ export const createManualEditorState = (unsavedLabel: string | (() => string)) =
     const buttons = [
       ...document.querySelectorAll<HTMLElement>(`[data-apply="${id}"], [data-discard="${id}"]`),
     ];
-    const helpers = [...document.querySelectorAll<HTMLElement>(`[data-manual-help-for="${id}"]`)];
     if (!(textarea instanceof HTMLTextAreaElement) || buttons.length === 0) {
       return;
     }
@@ -71,7 +70,7 @@ export const createManualEditorState = (unsavedLabel: string | (() => string)) =
     const statuses = actionRows.map((row) => {
       const status = document.createElement("span");
       status.className = "editor-dirty-status";
-      status.setAttribute("aria-hidden", "true");
+      status.setAttribute("role", "status");
       status.textContent = getUnsavedLabel();
       status.hidden = true;
       row.insertBefore(status, row.querySelector(`[data-discard="${id}"]`));
@@ -96,9 +95,6 @@ export const createManualEditorState = (unsavedLabel: string | (() => string)) =
       statuses.forEach((status) => {
         status.hidden = !dirty;
         if (!editor.saving) status.textContent = getUnsavedLabel();
-      });
-      helpers.forEach((helper) => {
-        helper.hidden = !dirty;
       });
       syncDirtyRows(editor.saved, textarea.value);
     };

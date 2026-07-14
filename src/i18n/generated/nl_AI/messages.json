@@ -500,9 +500,6 @@
   "o_bDiscard": {
     "message": "Weggooien"
   },
-  "o_lRuleBuilder": {
-    "message": "Snel toevoegen"
-  },
   "o_lRuleTemplates": {
     "message": "Sjabloonbibliotheek"
   },
@@ -761,15 +758,6 @@
   "o_lDirectoryDefinitions": {
     "message": "Definities van mapmenu's"
   },
-  "o_lMatcher": {
-    "message": "Matcher"
-  },
-  "o_lPattern": {
-    "message": "Patroon"
-  },
-  "o_lDestinationInto": {
-    "message": "Bestemming (into:)"
-  },
   "o_lSaving": {
     "message": "Bezig met opslaan…"
   },
@@ -838,9 +826,6 @@
   },
   "o_lExperimental": {
     "message": "Experimenteel"
-  },
-  "o_lManualEditorSaveHelp": {
-    "message": "Wijzigingen in deze editor worden opgeslagen wanneer u Toepassen selecteert."
   },
   "o_lFilterReference": {
     "message": "Filter"
@@ -979,9 +964,6 @@
   },
   "html_wiki": {
     "message": "Wiki"
-  },
-  "html_add2": {
-    "message": "Toevoegen"
   },
   "html_advancedUseCaptureGroups": {
     "message": "Geavanceerd: gebruik capture-groepen"
@@ -2291,20 +2273,51 @@
   "routeVisualAddRule": {
     "message": "Regel toevoegen"
   },
+  "routingNoMatchBehavior": {
+    "message": "Wanneer geen regel overeenkomt"
+  },
   "routeVisualHelp": {
     "message": "Regels worden van boven naar beneden gecontroleerd. Aan elke voorwaarde in een regel moet zijn voldaan; de eerste overeenkomende regel wordt uitgevoerd."
   },
-  "routeVisualCondition": {
-    "message": "Voorwaarde"
+  "routeVisualRuleEnabledAccessible": {
+    "message": "Regel $RULE$ ingeschakeld",
+    "placeholders": { "rule": { "content": "$1", "example": "2" } }
   },
-  "routeVisualDestination": {
-    "message": "Bestemming"
+  "routeVisualRuleActionsAccessible": {
+    "message": "Meer acties voor regel $RULE$",
+    "placeholders": { "rule": { "content": "$1", "example": "2" } }
   },
-  "routeVisualPattern": {
-    "message": "Patroon"
+  "routeVisualMatcherAccessible": {
+    "message": "Regel $RULE$, voorwaarde $CONDITION$: matcher",
+    "placeholders": {
+      "rule": { "content": "$1", "example": "2" },
+      "condition": { "content": "$2", "example": "1" }
+    }
   },
-  "routeVisualIgnoreCase": {
-    "message": "Hoofdlettergebruik negeren"
+  "routeVisualPatternAccessible": {
+    "message": "Regel $RULE$, voorwaarde $CONDITION$: patroon",
+    "placeholders": {
+      "rule": { "content": "$1", "example": "2" },
+      "condition": { "content": "$2", "example": "1" }
+    }
+  },
+  "routeVisualIgnoreCaseAccessible": {
+    "message": "Regel $RULE$, voorwaarde $CONDITION$: hoofdlettergebruik negeren",
+    "placeholders": {
+      "rule": { "content": "$1", "example": "2" },
+      "condition": { "content": "$2", "example": "1" }
+    }
+  },
+  "routeVisualDeleteConditionAccessible": {
+    "message": "Voorwaarde $CONDITION$ uit regel $RULE$ verwijderen",
+    "placeholders": {
+      "condition": { "content": "$2", "example": "1" },
+      "rule": { "content": "$1", "example": "2" }
+    }
+  },
+  "routeVisualDestinationAccessible": {
+    "message": "Bestemming van regel $RULE$",
+    "placeholders": { "rule": { "content": "$1", "example": "2" } }
   },
   "routeVisualIgnoreCaseHelp": {
     "message": "Hoofdletters en kleine letters als gelijk behandelen"
