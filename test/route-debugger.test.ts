@@ -629,18 +629,18 @@ test("ignores stale validation completion after clearing", async () => {
 
 test("ignores stale validation rejection after clearing", async () => {
   renderWorkbench();
-  let rejectValidation!: (error: unknown) => void;
   vi.spyOn(webExtensionApi.runtime, "sendMessage").mockImplementation((message: any) => {
     if (message.type === MESSAGE_TYPES.CHECK_ROUTES) return Promise.resolve(checkResponse());
-    return new Promise((_resolve, reject) => {
-      rejectValidation = reject;
-    });
+    return Promise.reject(new Error("stale"));
   });
   setupRouteDebugger();
   document.querySelector<HTMLButtonElement>("#route-debugger-run")!.click();
   document.querySelector<HTMLButtonElement>("#route-debugger-clear")!.click();
-  rejectValidation(new Error("stale"));
-  await Promise.resolve();
+  await vi.waitFor(() =>
+    expect(document.querySelector<HTMLElement>("#route-debugger-result")!.dataset.state).toBe(
+      "empty",
+    ),
+  );
   expect(document.querySelector<HTMLElement>("#route-debugger-result")!.dataset.state).toBe(
     "empty",
   );

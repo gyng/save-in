@@ -10,6 +10,7 @@ describe("pattern list grammar", () => {
       ],
       issues: [],
     });
+    expect(parsePatternList(null, (value) => value)).toEqual({ entries: [], issues: [] });
   });
 
   test("reports a parser error at its source line", () => {

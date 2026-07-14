@@ -39,12 +39,14 @@ describe("matchesRefererFilter", () => {
       expect(RequestHeaders.matchesRefererFilter("https://i.pximg.net/a.png")).toBe(false);
     }
     const original = RequestHeaders.matchPatternToRegExp;
-    RequestHeaders.matchPatternToRegExp = () => {
-      throw new Error("bad pattern");
-    };
     try {
-      options.setRefererHeaderFilter = "*://i.pximg.net/*";
-      expect(RequestHeaders.matchesRefererFilter("https://i.pximg.net/a.png")).toBe(false);
+      for (const failure of [new Error("bad pattern"), "bad pattern"]) {
+        RequestHeaders.matchPatternToRegExp = () => {
+          throw failure;
+        };
+        options.setRefererHeaderFilter = "*://i.pximg.net/*";
+        expect(RequestHeaders.matchesRefererFilter("https://i.pximg.net/a.png")).toBe(false);
+      }
     } finally {
       RequestHeaders.matchPatternToRegExp = original;
     }

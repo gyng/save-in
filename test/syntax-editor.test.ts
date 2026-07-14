@@ -271,6 +271,18 @@ describe("syntax editor surface", () => {
     vi.mocked(global.browser.i18n.getMessage).mockReturnValue("");
     createSyntaxEditor(textarea, "directories");
     setSyntaxEditorDiagnostics(textarea, [
+      { start: 0, end: 1, line: 1, column: 0, message: "matchPatternInvalid", severity: "error" },
+      {
+        start: 1,
+        end: 2,
+        line: 1,
+        column: 1,
+        message: "regularExpressionInvalid",
+        severity: "warning",
+      },
+      { start: 4, end: 5, line: 2, column: 0, message: "ruleBadClause", severity: "error" },
+    ]);
+    setSyntaxEditorDiagnostics(textarea, [
       { start: -10, end: 99, line: 1, column: 0, message: "html_required", severity: "error" },
       { start: 0, end: 3, line: 1, column: 0, message: "html_required: detail", severity: "error" },
       { start: 1, end: 2, line: 1, column: 0, message: "html_required", severity: "error" },

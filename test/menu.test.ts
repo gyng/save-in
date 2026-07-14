@@ -205,11 +205,13 @@ describe("menu creation", () => {
   describe("static menu items", () => {
     test("addRoot creates the root item with the root access key", () => {
       menu.addRoot(["link"]);
+      menu.addRoot([]);
 
       const root = created()[0]!;
       expect(root.id).toBe(menu.IDS.ROOT);
       expect(root.contexts).toEqual(["link"]);
       expect(root.title).toContain("(&q)");
+      expect(created()[1]!.contexts).toEqual(["all"]);
     });
 
     test("addRouteExclusive creates the routing item under the root", () => {

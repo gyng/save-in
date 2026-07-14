@@ -102,3 +102,21 @@ test("can be reopened manually without changing the saved-settings status", () =
   expect(document.querySelector("#lastSavedAt")?.textContent).toBe("Never");
   expect(showWelcomeDialog(storage, localize)).toBe(false);
 });
+
+test("uses readable fallbacks and contains missing dialog APIs and storage failures", async () => {
+  Reflect.deleteProperty(HTMLDialogElement.prototype, "showModal");
+  Reflect.deleteProperty(HTMLDialogElement.prototype, "close");
+  const storage = storageFixture();
+  storage.remove.mockRejectedValueOnce(new Error("unavailable"));
+
+  expect(showWelcomeDialog(storage, () => "", true)).toBe(true);
+  const dialog = document.querySelector<HTMLDialogElement>("#welcome-dialog")!;
+  expect(dialog.querySelector("h1")?.textContent).toBe("Welcome to Save In");
+  expect(dialog.hasAttribute("open")).toBe(true);
+  dialog.querySelector(".welcome-content")?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+  dialog.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+  expect(document.querySelector("#welcome-dialog")).toBeNull();
+  dialog.dispatchEvent(new Event("close"));
+  await Promise.resolve();
+  expect(storage.remove).toHaveBeenCalledOnce();
+});

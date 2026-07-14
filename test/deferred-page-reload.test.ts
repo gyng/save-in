@@ -14,7 +14,10 @@ describe("deferred page reload", () => {
 
     expect(reload).not.toHaveBeenCalled();
     expect(scheduled).toHaveLength(1);
-    scheduled.shift()!();
+    const attempt = scheduled.shift()!;
+    attempt();
+    expect(reload).toHaveBeenCalledOnce();
+    attempt();
     expect(reload).toHaveBeenCalledOnce();
   });
 
@@ -40,5 +43,18 @@ describe("deferred page reload", () => {
     scheduled.shift()!();
     expect(reload).toHaveBeenCalledOnce();
     expect(controller.isPending()).toBe(false);
+  });
+
+  test("uses the event-loop scheduler by default", () => {
+    vi.useFakeTimers();
+    try {
+      const reload = vi.fn();
+      createDeferredPageReload({ isBlocked: () => false, reload }).request();
+      expect(reload).not.toHaveBeenCalled();
+      vi.runAllTimers();
+      expect(reload).toHaveBeenCalledOnce();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

@@ -212,6 +212,28 @@ describe("reference controller", () => {
     await vi.waitFor(() => expect(copy).toHaveBeenCalledWith(""));
   });
 
+  test("uses readable table, result, and copy fallbacks without localization", async () => {
+    vi.mocked(browser.runtime.sendMessage).mockRejectedValueOnce(new Error("offline"));
+    const copy = vi.fn(() => Promise.resolve());
+    setupReferencePage(document, copy, () => "");
+
+    expect(document.querySelector("caption")?.textContent).toBe("Reference");
+    expect(
+      [...document.querySelectorAll("thead th")].map((cell) => cell.textContent),
+    ).toEqual(["Syntax", "Meaning"]);
+    expect(document.querySelector(".reference-count")?.textContent).toBe("2 results");
+    const search = document.querySelector<HTMLInputElement>(".reference-search")!;
+    search.value = "date";
+    search.dispatchEvent(new InputEvent("input"));
+    expect(document.querySelector(".reference-count")?.textContent).toBe("1 result");
+
+    const token = document.querySelector<HTMLElement>(".click-to-copy")!;
+    expect(token.getAttribute("aria-label")).toBe("Copy :date:");
+    token.click();
+    await vi.waitFor(() => expect(copy).toHaveBeenCalledWith(":date:"));
+    expect(document.querySelector(".reference-copy-status")?.textContent).toBe("Copied :date:");
+  });
+
   test("updates clause vocabulary without optional search and count controls", async () => {
     document.body.innerHTML = `<div id="help-clause-list"><table><tbody>
       <tr><td><code>filename:</code></td><td>Filename matcher</td></tr>

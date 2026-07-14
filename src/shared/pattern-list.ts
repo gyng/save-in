@@ -64,6 +64,7 @@ export const parseRegularExpressionList = (
     try {
       return new RegExp(pattern);
     } catch (error) {
-      return error instanceof Error ? error : new Error(String(error));
+      // The native RegExp constructor only throws SyntaxError instances.
+      return error as Error;
     }
   });

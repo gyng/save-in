@@ -40,3 +40,16 @@ test("keeps editing when the modal is canceled", async () => {
     Reflect.deleteProperty(HTMLDialogElement.prototype, "showModal");
   }
 });
+
+test("uses readable action copy without localization or modal support", async () => {
+  const result = showUnsavedChangesDialog("Keep these edits?", () => "");
+  const dialog = document.querySelector("dialog")!;
+  expect(dialog.querySelector("h2")?.textContent).toBe("Unsaved changes");
+  expect([...dialog.querySelectorAll("button")].map((button) => button.textContent)).toEqual([
+    "Keep editing",
+    "Discard changes",
+  ]);
+  expect(dialog.hasAttribute("open")).toBe(true);
+  dialog.querySelector<HTMLButtonElement>("button")!.click();
+  await expect(result).resolves.toBe("keep");
+});

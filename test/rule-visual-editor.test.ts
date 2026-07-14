@@ -152,6 +152,21 @@ describe("routing visual editor", () => {
     expect(card.classList).toContain("has-validation-warning");
     expect(card.title).toBe("Rule warning\nSecond warning: detail");
 
+    textarea.dispatchEvent(
+      new CustomEvent(EDITOR_VALIDATION_EVENT, {
+        detail: {
+          errors: [
+            {
+              message: "Rule error",
+              error: "detail",
+              location: { start: 50, end: 50, line: 3, column: 0 },
+            },
+          ],
+        },
+      }),
+    );
+    expect(card.classList).toContain("has-validation-error");
+
     textarea.dispatchEvent(new Event(EDITOR_VALIDATION_EVENT));
     expect(card.classList).not.toContain("has-validation-warning");
     expect(card.hasAttribute("title")).toBe(false);

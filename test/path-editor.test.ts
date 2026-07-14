@@ -8,6 +8,7 @@ import { createSyntaxEditor, setSyntaxEditorDiagnostics } from "../src/options/s
 import {
   dispatchEditorValidation,
   EDITOR_VALIDATION_EVENT,
+  markValidationField,
 } from "../src/options/editor-validation.ts";
 
 const element = <T extends Element>(selector: string): T => {
@@ -162,6 +163,7 @@ describe("visual editor", () => {
 
   test("marks, replaces, and clears visual path validation", () => {
     rows()[2]!.classList.add("has-validation-warning");
+    rows()[1]!.querySelector(".path-editor-dir")?.setAttribute("aria-describedby", "path-help");
     dispatchEditorValidation(textarea(), [
       {
         sourceIndex: 1,
@@ -175,7 +177,7 @@ describe("visual editor", () => {
     expect(rows()[1]!.title).toContain(":modnthname:");
     expect(rows()[1]!.querySelector(".path-editor-dir")?.getAttribute("aria-invalid")).toBe("true");
     expect(rows()[1]!.querySelector(".path-editor-dir")?.getAttribute("aria-describedby")).toBe(
-      "error-paths",
+      "path-help error-paths",
     );
 
     textarea().dispatchEvent(
@@ -196,8 +198,8 @@ describe("visual editor", () => {
     expect(rows()[1]!.classList).not.toContain("has-validation-error");
     expect(rows()[1]!.hasAttribute("title")).toBe(false);
     expect(rows()[1]!.querySelector(".path-editor-dir")?.hasAttribute("aria-invalid")).toBe(false);
-    expect(rows()[1]!.querySelector(".path-editor-dir")?.hasAttribute("aria-describedby")).toBe(
-      false,
+    expect(rows()[1]!.querySelector(".path-editor-dir")?.getAttribute("aria-describedby")).toBe(
+      "path-help",
     );
     expect(rows()[0]!.classList).toContain("has-validation-warning");
     expect(rows()[0]!.title).toBe("Warning only");
@@ -210,6 +212,7 @@ describe("visual editor", () => {
     expect(rows()[0]!.hasAttribute("title")).toBe(false);
 
     textarea().dispatchEvent(new Event(EDITOR_VALIDATION_EVENT));
+    expect(() => markValidationField(null, "error-paths")).not.toThrow();
   });
 
   test("toggles a row with disabled metadata", () => {
