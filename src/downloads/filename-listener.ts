@@ -319,7 +319,7 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
         const recovered = recoveredUrl ? filenameQueue(map[recoveredUrl])[0] : undefined;
         const recovery = deferredUrl ? deferredRouteQueue(deferredMap[deferredUrl])[0] : undefined;
 
-        if (recovery) {
+        if (recovery && deferredUrl) {
           const recoveredState = restoreDeferredRoute(recovery);
           recoveredState.info.filename =
             downloadItem.filename ||
@@ -365,7 +365,7 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
                 sessionWriteState,
                 extensionSessionStorage,
                 DEFERRED_ROUTES_SESSION_KEY,
-                (stored) => removeDeferredRoute(stored, deferredUrl!, recovery.id),
+                (stored) => removeDeferredRoute(stored, deferredUrl, recovery.id),
               ),
             ]).catch((error) =>
               logPort.add("deferred route recovery cleanup failed", String(error)),
@@ -395,7 +395,7 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
           return;
         }
 
-        if (!recovered) {
+        if (!recovered || !recoveredUrl) {
           suggest();
           return;
         }
@@ -407,7 +407,7 @@ export const registerFilenameAndObjectUrlListeners = (Download: FilenameDownload
           sessionWriteState,
           extensionSessionStorage,
           FINAL_FILENAMES_SESSION_KEY,
-          (stored) => removeFilename(stored, recoveredUrl!, recovered),
+          (stored) => removeFilename(stored, recoveredUrl, recovered),
         );
         suggest({ filename: recovered, conflictAction: options.conflictAction });
       })().catch((error) => {
