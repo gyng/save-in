@@ -82,7 +82,6 @@ const absoluteUrl = (value: string): string | null => {
   }
 };
 
-export const ytDlpCommand = (url: string): string => `yt-dlp "${url.replaceAll('"', '\\"')}"`;
 const resourceBytes = (...values: unknown[]): number | undefined =>
   values.find(
     (value): value is number =>

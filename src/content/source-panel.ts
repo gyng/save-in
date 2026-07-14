@@ -10,7 +10,6 @@ import {
   positionSourceTooltip,
   sortPageSources,
   resourceTimingByUrl,
-  ytDlpCommand,
   type PageSource,
   type PageSourceKind,
   type SourcePanelOptions,
@@ -36,7 +35,6 @@ export {
   sortPageSources,
   resourceTimingByUrl,
   urlsFromSrcset,
-  ytDlpCommand,
   type PageSource,
   type PageSourceKind,
   type SourcePanelOptions,
@@ -865,7 +863,7 @@ export const toggleSourcePanel = (
         copyCommand.title = copy.copyYtDlpHelp;
         copyCommand.addEventListener("click", () => {
           void navigator.clipboard
-            .writeText(ytDlpCommand(source.url))
+            .writeText(source.url)
             .then(() => {
               copyCommand.textContent = copy.copied;
               window.setTimeout(() => (copyCommand.textContent = copy.copyYtDlp), 1200);

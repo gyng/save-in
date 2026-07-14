@@ -1230,8 +1230,27 @@ test("alt+click on a real page saves the image through the content script", asyn
       return browser.tabs.update(tab.id, { active: true });
     }).then(() => "activated")`);
 
-    // Synthetic DOM events don't carry keyCode/buttons across the content
-    // script's isolated-world boundary: dispatch trusted input via CDP
+    await cdp.evalInTarget(
+      PORT,
+      targetUrl,
+      `(() => {
+        window.dispatchEvent(new KeyboardEvent("keydown", { key: "Alt", bubbles: true }));
+        document.getElementById("img").dispatchEvent(
+          new MouseEvent("mousedown", { bubbles: true, cancelable: true, buttons: 1 })
+        );
+        return true;
+      })()`,
+    );
+    const syntheticDownloads = JSON.parse(
+      await evalSW(
+        `browser.downloads.search({}).then((items) => JSON.stringify(items
+          .filter((item) => item.url === ${JSON.stringify(`${pageUrl}pic.png`)})))`,
+      ),
+    );
+    expect(syntheticDownloads).toHaveLength(0);
+
+    // The page-generated attempt above is rejected. Dispatch real input through
+    // the browser to prove the configured gesture still works.
     const target = JSON.parse(
       await cdp.evalInTarget(
         PORT,

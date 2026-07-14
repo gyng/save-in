@@ -555,7 +555,7 @@ test("ordinary browser downloads can be tracked and experimentally rerouted on F
   }
 });
 
-test("alt+click on a real page saves the image through the content script", async () => {
+test("page-generated alt+click cannot trigger a content-script download", async () => {
   const { server, port } = await startPageServer();
   const pageUrl = `http://127.0.0.1:${port}/`;
   const targetUrl = `127.0.0.1:${port}`;
@@ -577,9 +577,6 @@ test("alt+click on a real page saves the image through the content script", asyn
     );
     await evalBackground(waitForTabExpression(targetUrl));
 
-    // Firefox honours keyCode/buttons on synthetic events, and content-script
-    // window listeners fire on real page DOM events, so we can drive the flow
-    // straight from a page-context evaluate
     await session.evaluateInTab(
       targetUrl,
       `(() => {
@@ -591,11 +588,13 @@ test("alt+click on a real page saves the image through the content script", asyn
       })()`,
     );
 
-    const downloads = await waitForDownloads("pic");
-
-    expect(downloads.length).toBeGreaterThanOrEqual(1);
-    expect(downloads[0].state).toBe("complete");
-    expect(fs.readFileSync(downloads[0].filename)).toEqual(PNG);
+    const downloads = JSON.parse(
+      await evalBackground(
+        `browser.downloads.search({}).then((items) => JSON.stringify(items
+          .filter((item) => item.url === ${JSON.stringify(`${pageUrl}pic.png`)})))`,
+      ),
+    );
+    expect(downloads).toHaveLength(0);
   } finally {
     try {
       await evalBackground(`browser.storage.local

@@ -161,7 +161,10 @@ type ResolvedAutoDownloadOptions = Pick<
 > & { filenamePatterns: string };
 type ResolvedContentScriptOptions = ResolvedContentOptions & ResolvedAutoDownloadOptions;
 
-const setupClickToSave = (options: ResolvedClickToSaveOptions) => {
+const setupClickToSave = (
+  options: ResolvedClickToSaveOptions,
+  acceptInput: (event: KeyboardEvent | MouseEvent) => boolean = (event) => event.isTrusted,
+) => {
   const controller = new AbortController();
   const listenerOptions = { capture: true, signal: controller.signal };
   const shortcutOptions = {
@@ -181,6 +184,7 @@ const setupClickToSave = (options: ResolvedClickToSaveOptions) => {
   window.addEventListener(
     "keydown",
     (e) => {
+      if (!acceptInput(e)) return;
       const code = eventKeyCode(e);
       const wasActive = active[code] === true;
       active[code] = true;
@@ -197,6 +201,7 @@ const setupClickToSave = (options: ResolvedClickToSaveOptions) => {
   window.addEventListener(
     "keyup",
     (e) => {
+      if (!acceptInput(e)) return;
       active[eventKeyCode(e)] = false;
     },
     listenerOptions,
@@ -222,6 +227,7 @@ const setupClickToSave = (options: ResolvedClickToSaveOptions) => {
   window.addEventListener(
     "mousedown",
     (e) => {
+      if (!acceptInput(e)) return;
       if (
         ClickToSave.isMouseButtonActive(shortcutOptions.button, e.buttons) &&
         ClickToSave.isKeyboardComboActive(shortcutOptions.combo, active)

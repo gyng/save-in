@@ -733,6 +733,7 @@ describe("content.js initialisation", () => {
   test("wires up click-to-save when the option is enabled", async () => {
     // Distinct combo/button so this stray listener set stays inert during
     // the setupClickToSave tests below
+    const addEventListener = vi.spyOn(window, "addEventListener");
     await importContentWithOptions({
       contentClickToSave: true,
       contentClickToSaveCombo: 17,
@@ -741,10 +742,11 @@ describe("content.js initialisation", () => {
     });
 
     vi.mocked(global.chrome.runtime.sendMessage).mockClear();
-
-    const keydown = new Event("keydown");
-    (keydown as any).keyCode = 17;
-    window.dispatchEvent(keydown);
+    const keydown = addEventListener.mock.calls.find(([type]) => type === "keydown")?.[1] as
+      | EventListener
+      | undefined;
+    expect(keydown).toBeTypeOf("function");
+    keydown!({ isTrusted: true, key: "Control", keyCode: 17 } as KeyboardEvent);
 
     expect(global.chrome.runtime.sendMessage).toHaveBeenCalledWith(
       { type: "WAKE_WARM" },
@@ -753,6 +755,7 @@ describe("content.js initialisation", () => {
   });
 
   test("updates an existing page when click-to-save storage settings change", async () => {
+    const addEventListener = vi.spyOn(window, "addEventListener");
     await importContentWithOptions({ contentClickToSave: false });
     const storageListener = vi.mocked((global.chrome.storage as any).onChanged.addListener).mock
       .calls[0][0] as (changes: Record<string, any>, area: string) => void;
@@ -769,18 +772,19 @@ describe("content.js initialisation", () => {
     );
 
     vi.mocked(global.chrome.runtime.sendMessage).mockClear();
-    const keydown = new Event("keydown");
-    (keydown as any).keyCode = 90;
-    window.dispatchEvent(keydown);
+    const keydownCall = addEventListener.mock.calls.find(([type]) => type === "keydown");
+    const keydown = keydownCall?.[1] as EventListener | undefined;
+    const listenerOptions = keydownCall?.[2] as AddEventListenerOptions | undefined;
+    expect(keydown).toBeTypeOf("function");
+    expect(listenerOptions?.signal?.aborted).toBe(false);
+    keydown!({ isTrusted: true, key: "z", keyCode: 90 } as KeyboardEvent);
     expect(global.chrome.runtime.sendMessage).toHaveBeenCalledWith(
       { type: "WAKE_WARM" },
       expect.any(Function),
     );
 
     storageListener!({ contentClickToSave: { oldValue: true, newValue: false } }, "local");
-    vi.mocked(global.chrome.runtime.sendMessage).mockClear();
-    window.dispatchEvent(keydown);
-    expect(global.chrome.runtime.sendMessage).not.toHaveBeenCalled();
+    expect(listenerOptions?.signal?.aborted).toBe(true);
   });
 
   test("ignores option changes from non-local storage areas", async () => {
@@ -798,6 +802,7 @@ describe("content.js initialisation", () => {
 
   test("merges a late initial read with newer per-key storage settings", async () => {
     vi.resetModules();
+    const addEventListener = vi.spyOn(window, "addEventListener");
     let storageCallback: ((response: any) => void) | undefined;
     let storageListener: ((changes: Record<string, any>, area: string) => void) | undefined;
     global.chrome.runtime.sendMessage = vi.fn((_message, callback) => callback?.()) as any;
@@ -829,9 +834,11 @@ describe("content.js initialisation", () => {
     });
 
     vi.mocked(global.chrome.runtime.sendMessage).mockClear();
-    const keydown = new KeyboardEvent("keydown", { key: "y" });
-    Object.defineProperty(keydown, "keyCode", { value: 89 });
-    window.dispatchEvent(keydown);
+    const keydown = addEventListener.mock.calls.find(([type]) => type === "keydown")?.[1] as
+      | EventListener
+      | undefined;
+    expect(keydown).toBeTypeOf("function");
+    keydown!({ isTrusted: true, key: "y", keyCode: 89 } as KeyboardEvent);
     expect(global.chrome.runtime.sendMessage).toHaveBeenCalledWith(
       { type: "WAKE_WARM" },
       expect.any(Function),
@@ -1010,15 +1017,20 @@ describe("content.js initialisation", () => {
 });
 
 describe("setupClickToSave", () => {
+  const acceptTestInput = () => true;
+
   // One listener set for the whole block: setupClickToSave registers window
   // listeners that cannot be removed, so state is reset between tests by
   // firing the same events a real page would (focus, keyup)
   beforeAll(() => {
-    ClickToSave.setupClickToSave({
-      contentClickToSaveCombo: 18,
-      contentClickToSaveButton: "LEFT_CLICK",
-      links: false,
-    });
+    ClickToSave.setupClickToSave(
+      {
+        contentClickToSaveCombo: 18,
+        contentClickToSaveButton: "LEFT_CLICK",
+        links: false,
+      },
+      acceptTestInput,
+    );
   });
 
   let sendMessage =
@@ -1064,11 +1076,14 @@ describe("setupClickToSave", () => {
   });
 
   test("recognizes named Meta when Firefox reports a legacy keyCode", () => {
-    const remove = ClickToSave.setupClickToSave({
-      contentClickToSaveCombo: "Meta",
-      contentClickToSaveButton: "RIGHT_CLICK",
-      links: false,
-    });
+    const remove = ClickToSave.setupClickToSave(
+      {
+        contentClickToSaveCombo: "Meta",
+        contentClickToSaveButton: "RIGHT_CLICK",
+        links: false,
+      },
+      acceptTestInput,
+    );
     const event = new KeyboardEvent("keydown", { key: "Meta" });
     Object.defineProperty(event, "keyCode", { value: 224 });
     window.dispatchEvent(event);
@@ -1109,11 +1124,14 @@ describe("setupClickToSave", () => {
   });
 
   test("a two-modifier shortcut requires both modifiers", () => {
-    const remove = ClickToSave.setupClickToSave({
-      contentClickToSaveCombo: "Ctrl+Shift",
-      contentClickToSaveButton: "BACK_CLICK",
-      links: false,
-    });
+    const remove = ClickToSave.setupClickToSave(
+      {
+        contentClickToSaveCombo: "Ctrl+Shift",
+        contentClickToSaveButton: "BACK_CLICK",
+        links: false,
+      },
+      acceptTestInput,
+    );
     const img = document.getElementById("i");
 
     window.dispatchEvent(keyEvent("keydown", 17));
@@ -1123,6 +1141,22 @@ describe("setupClickToSave", () => {
     window.dispatchEvent(keyEvent("keydown", 16));
     mousedown(img, 8);
     expect(downloadsSent()).toHaveLength(1);
+    remove();
+  });
+
+  test("ignores page-generated shortcut and mouse events", () => {
+    const remove = ClickToSave.setupClickToSave({
+      contentClickToSaveCombo: "Ctrl+Shift",
+      contentClickToSaveButton: "BACK_CLICK",
+      links: false,
+    });
+    const img = document.getElementById("i");
+
+    window.dispatchEvent(keyEvent("keydown", 17));
+    window.dispatchEvent(keyEvent("keydown", 16));
+    mousedown(img, 8);
+
+    expect(sendMessage).not.toHaveBeenCalled();
     remove();
   });
 
@@ -1213,11 +1247,14 @@ describe("setupClickToSave", () => {
 
   test("cancels pending retries when click-to-save is disabled", async () => {
     vi.useFakeTimers();
-    const remove = ClickToSave.setupClickToSave({
-      contentClickToSaveCombo: 90,
-      contentClickToSaveButton: "LEFT_CLICK",
-      links: false,
-    });
+    const remove = ClickToSave.setupClickToSave(
+      {
+        contentClickToSaveCombo: 90,
+        contentClickToSaveButton: "LEFT_CLICK",
+        links: false,
+      },
+      acceptTestInput,
+    );
     sendMessage.mockImplementation((_message, cb) => {
       (global.chrome.runtime as any).lastError = { message: "SW starting" };
       cb?.();

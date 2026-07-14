@@ -1466,17 +1466,17 @@ describe("Page Sources panel interactions", () => {
     expect(source.style.outline).toBe("");
   });
 
-  test("copies a yt-dlp command for direct video sources", async () => {
+  test("copies only the media URL for a yt-dlp hand-off", async () => {
     const writeText = vi.fn(async () => undefined);
     Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText } });
-    document.body.innerHTML = `<video src="https://cdn.test/movie.mp4"></video>`;
+    document.body.innerHTML = `<video src="https://cdn.test/movie.mp4?probe=$(id)"></video>`;
     toggleSourcePanel(vi.fn(), { includeBackgrounds: false, live: false });
     const shadow = document.getElementById("save-in-source-panel")!.shadowRoot!;
 
     shadow.querySelector<HTMLButtonElement>(".actions button[title]")!.click();
 
     await vi.waitFor(() =>
-      expect(writeText).toHaveBeenCalledWith('yt-dlp "https://cdn.test/movie.mp4"'),
+      expect(writeText).toHaveBeenCalledWith("https://cdn.test/movie.mp4?probe=$(id)"),
     );
   });
 

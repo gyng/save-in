@@ -110,10 +110,8 @@ export const createSourcePanelCopy = (localize: SourcePanelLocalize): SourcePane
   locate: localize("sourcePanelLocate") || "Locate",
   save: localize("sourcePanelSave") || "Save",
   savePlaylist: localize("sourcePanelSavePlaylist") || "Save playlist",
-  copyYtDlp: localize("sourcePanelCopyYtDlp") || "Copy yt-dlp command",
-  copyYtDlpHelp:
-    localize("sourcePanelCopyYtDlpHelp") ||
-    "Copy a command for yt-dlp to download the complete video",
+  copyYtDlp: localize("sourcePanelCopyYtDlp") || "Copy URL for yt-dlp",
+  copyYtDlpHelp: localize("sourcePanelCopyYtDlpHelp") || "Copy the video URL to use with yt-dlp",
   copied: localize("sourcePanelCopied") || "Copied",
   copyFailed: localize("sourcePanelCopyFailed") || "Copy failed",
   rowInstructions:

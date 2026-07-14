@@ -166,6 +166,16 @@ cleanup:
   an explicit migration with a documented fallback and coverage for both old
   and new states.
 
+## Security and privacy reviews
+
+Read [docs/SECURITY-PRIVACY-REVIEWS.md](docs/SECURITY-PRIVACY-REVIEWS.md) before
+performing a security or privacy scan. It defines the client-extension threat
+model, severity calibration, high-value boundaries, safe reproduction rules,
+and the required fix-versus-acceptance analysis. In particular, distinguish
+hostile-page authority from behavior that already requires an installed or
+approved extension, and verify browser-owned private or input behavior in both
+browsers before reporting it as confirmed.
+
 ## Iteration workflow
 
 - `npm test`, `npm run test:watch`, and `npm run test:coverage`: unit tests;

@@ -186,6 +186,6 @@ but sends only `version`, `event: "test"`, and `timestamp`.
 
 ## Downloader hand-offs
 
-Save In deliberately does not adopt downloads initiated by another extension. A cooperating downloader can call the Download API before starting its own workflow. For HLS/DASH sources, Page Sources can copy a `yt-dlp` command as a local hand-off without adding native-messaging permissions.
+Save In deliberately does not adopt downloads initiated by another extension. A cooperating downloader can call the Download API before starting its own workflow. For HLS/DASH sources, Page Sources can copy the media URL for use with `yt-dlp` as a local hand-off without adding native-messaging permissions or constructing executable shell text.
 
 The [extension integration guide](https://github.com/gyng/save-in/wiki/Extension-integration-guide) covers capability negotiation, metadata, batches, ownership, and direct-media limitations.

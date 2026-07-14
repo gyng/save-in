@@ -15,7 +15,6 @@ import {
   sortPageSources,
   urlsFromCss,
   urlsFromSrcset,
-  ytDlpCommand,
 } from "../src/content/source-panel-model.ts";
 
 describe("page source collection", () => {
@@ -277,12 +276,6 @@ describe("page source collection", () => {
     collectPageSources();
     expect(computed.mock.calls.length).toBeLessThanOrEqual(2);
   });
-});
-
-test("builds a quoted yt-dlp command for a manifest URL", () => {
-  expect(ytDlpCommand('https://cdn.test/master.m3u8?name="demo"')).toBe(
-    'yt-dlp "https://cdn.test/master.m3u8?name=\\"demo\\""',
-  );
 });
 
 test("formats available Resource Timing sizes compactly", () => {
