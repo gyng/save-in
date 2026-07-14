@@ -69,8 +69,8 @@ export const localizeDocument = (getMessage: GetMessage = nativeGetMessage) => {
     }
   }
   texts.forEach((node) => {
-    // TreeWalker is restricted to text nodes, whose nodeValue is always a string.
-    node.nodeValue = localizeString(node.nodeValue!, getMessage);
+    const value = node.nodeValue;
+    if (value !== null) node.nodeValue = localizeString(value, getMessage);
   });
 
   document.querySelectorAll("*").forEach((el) => {

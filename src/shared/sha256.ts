@@ -16,6 +16,12 @@ const ROUND_CONSTANTS = new Uint32Array([
 const rotateRight = (value: number, bits: number): number =>
   (value >>> bits) | (value << (32 - bits));
 
+const uint32At = (values: Uint32Array, index: number): number => {
+  const value = values[index];
+  if (value === undefined) throw new RangeError(`Missing 32-bit word at index ${index}`);
+  return value;
+};
+
 export class Sha256 {
   readonly #state = new Uint32Array(INITIAL_STATE);
   readonly #buffer = new Uint8Array(64);
@@ -74,48 +80,53 @@ export class Sha256 {
 
   #transform(chunk: Uint8Array, offset: number): void {
     const words = this.#words;
+    const chunkView = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
     for (let index = 0; index < 16; index += 1) {
       const position = offset + index * 4;
-      words[index] =
-        ((chunk[position]! << 24) |
-          (chunk[position + 1]! << 16) |
-          (chunk[position + 2]! << 8) |
-          chunk[position + 3]!) >>>
-        0;
+      words[index] = chunkView.getUint32(position);
     }
     for (let index = 16; index < 64; index += 1) {
-      const before15 = words[index - 15]!;
-      const before2 = words[index - 2]!;
+      const before15 = uint32At(words, index - 15);
+      const before2 = uint32At(words, index - 2);
       const sigma0 = rotateRight(before15, 7) ^ rotateRight(before15, 18) ^ (before15 >>> 3);
       const sigma1 = rotateRight(before2, 17) ^ rotateRight(before2, 19) ^ (before2 >>> 10);
-      words[index] = (words[index - 16]! + sigma0 + words[index - 7]! + sigma1) >>> 0;
+      words[index] =
+        (uint32At(words, index - 16) + sigma0 + uint32At(words, index - 7) + sigma1) >>> 0;
     }
 
-    let [a, b, c, d, e, f, g, h] = this.#state;
+    let a = uint32At(this.#state, 0);
+    let b = uint32At(this.#state, 1);
+    let c = uint32At(this.#state, 2);
+    let d = uint32At(this.#state, 3);
+    let e = uint32At(this.#state, 4);
+    let f = uint32At(this.#state, 5);
+    let g = uint32At(this.#state, 6);
+    let h = uint32At(this.#state, 7);
     for (let index = 0; index < 64; index += 1) {
-      const sum1 = rotateRight(e!, 6) ^ rotateRight(e!, 11) ^ rotateRight(e!, 25);
-      const choice = (e! & f!) ^ (~e! & g!);
-      const temp1 = (h! + sum1 + choice + ROUND_CONSTANTS[index]! + words[index]!) >>> 0;
-      const sum0 = rotateRight(a!, 2) ^ rotateRight(a!, 13) ^ rotateRight(a!, 22);
-      const majority = (a! & b!) ^ (a! & c!) ^ (b! & c!);
+      const sum1 = rotateRight(e, 6) ^ rotateRight(e, 11) ^ rotateRight(e, 25);
+      const choice = (e & f) ^ (~e & g);
+      const temp1 =
+        (h + sum1 + choice + uint32At(ROUND_CONSTANTS, index) + uint32At(words, index)) >>> 0;
+      const sum0 = rotateRight(a, 2) ^ rotateRight(a, 13) ^ rotateRight(a, 22);
+      const majority = (a & b) ^ (a & c) ^ (b & c);
       const temp2 = (sum0 + majority) >>> 0;
       h = g;
       g = f;
       f = e;
-      e = (d! + temp1) >>> 0;
+      e = (d + temp1) >>> 0;
       d = c;
       c = b;
       b = a;
       a = (temp1 + temp2) >>> 0;
     }
 
-    this.#state[0] = (this.#state[0]! + a!) >>> 0;
-    this.#state[1] = (this.#state[1]! + b!) >>> 0;
-    this.#state[2] = (this.#state[2]! + c!) >>> 0;
-    this.#state[3] = (this.#state[3]! + d!) >>> 0;
-    this.#state[4] = (this.#state[4]! + e!) >>> 0;
-    this.#state[5] = (this.#state[5]! + f!) >>> 0;
-    this.#state[6] = (this.#state[6]! + g!) >>> 0;
-    this.#state[7] = (this.#state[7]! + h!) >>> 0;
+    this.#state[0] = (uint32At(this.#state, 0) + a) >>> 0;
+    this.#state[1] = (uint32At(this.#state, 1) + b) >>> 0;
+    this.#state[2] = (uint32At(this.#state, 2) + c) >>> 0;
+    this.#state[3] = (uint32At(this.#state, 3) + d) >>> 0;
+    this.#state[4] = (uint32At(this.#state, 4) + e) >>> 0;
+    this.#state[5] = (uint32At(this.#state, 5) + f) >>> 0;
+    this.#state[6] = (uint32At(this.#state, 6) + g) >>> 0;
+    this.#state[7] = (uint32At(this.#state, 7) + h) >>> 0;
   }
 }

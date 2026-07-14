@@ -42,7 +42,7 @@ export const menuState: {
 } = {
   lastUsedPath: null,
   lastUsedMeta: null,
-  pathMappings: {} as Record<string | number, MenuPathMapping>,
+  pathMappings: {},
 };
 
 // Single owner of the last-used-path state: menu-click mutates it here,

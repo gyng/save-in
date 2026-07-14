@@ -176,12 +176,14 @@ const PathEditorHelpers = {
       });
     };
     const updateNode = (index: number, update: DirectoryLineUpdate): void => {
-      nodes[index] = PathEditorHelpers.updateLine(nodes[index]!, update);
+      const current = nodes[index];
+      if (current) nodes[index] = PathEditorHelpers.updateLine(current, update);
     };
     const normalizeHierarchy = () => {
       nodes.forEach((node, index) => {
+        const previousDepth = nodes[index - 1]?.depth ?? 0;
         updateNode(index, {
-          depth: index === 0 ? 0 : Math.min(node.depth, nodes[index - 1]!.depth + 1),
+          depth: index === 0 ? 0 : Math.min(node.depth, previousDepth + 1),
         });
       });
     };
@@ -293,8 +295,10 @@ const PathEditorHelpers = {
             if (event.key === "ArrowLeft") {
               updateNode(index, { depth: Math.max(0, node.depth - 1) });
             } else if (index > 0) {
+              const previous = nodes[index - 1];
+              if (!previous) return;
               updateNode(index, {
-                depth: Math.min(node.depth + 1, nodes[index - 1]!.depth + 1),
+                depth: Math.min(node.depth + 1, previous.depth + 1),
               });
             }
             commit();
@@ -305,7 +309,8 @@ const PathEditorHelpers = {
           const destination = event.key === "ArrowUp" ? index - 1 : index + 1;
           if (destination < 0 || destination >= nodes.length) return;
           event.preventDefault();
-          const moved = nodes.splice(index, 1)[0]!;
+          const [moved] = nodes.splice(index, 1);
+          if (!moved) return;
           nodes.splice(destination, 0, moved);
           normalizeHierarchy();
           commit();
@@ -326,7 +331,9 @@ const PathEditorHelpers = {
           `${getMessage("visualEditorEnabled") || "Enabled"}: ${rowName}`,
         );
         enabled.addEventListener("change", () => {
-          nodes[index] = PathEditorHelpers.setEnabled(nodes[index]!, enabled.checked);
+          const current = nodes[index];
+          if (!current) return;
+          nodes[index] = PathEditorHelpers.setEnabled(current, enabled.checked);
           commit();
           rebuild();
         });
@@ -370,8 +377,10 @@ const PathEditorHelpers = {
             dropInside = false;
             return;
           }
-          const target = nodes[index]!;
-          const moved = nodes.splice(dragFrom, 1)[0]!;
+          const target = nodes[index];
+          if (!target) return;
+          const [moved] = nodes.splice(dragFrom, 1);
+          if (!moved) return;
           const adjustedTarget = dragFrom < index ? index - 1 : index;
           const targetIndex = nodes.indexOf(target);
           const destination = dropInside ? targetIndex + 1 : adjustedTarget + (dropAfter ? 1 : 0);
@@ -424,7 +433,9 @@ const PathEditorHelpers = {
           alias.setAttribute("aria-hidden", String(!aliasOpen));
           alias.setAttribute("aria-label", `Display name for directory ${index + 1}`);
           alias.addEventListener("input", () => {
-            nodes[index] = PathEditorHelpers.setAlias(nodes[index]!, alias.value);
+            const current = nodes[index];
+            if (!current) return;
+            nodes[index] = PathEditorHelpers.setAlias(current, alias.value);
             commit();
           });
           const aliasToggle = document.createElement("button");
@@ -466,16 +477,16 @@ const PathEditorHelpers = {
             "▲",
             "move up",
             () => {
-              const moved = nodes.splice(index, 1)[0]!;
-              nodes.splice(index - 1, 0, moved);
+              const [moved] = nodes.splice(index, 1);
+              if (moved) nodes.splice(index - 1, 0, moved);
             },
           ],
           [
             "▼",
             "move down",
             () => {
-              const moved = nodes.splice(index, 1)[0]!;
-              nodes.splice(index + 1, 0, moved);
+              const [moved] = nodes.splice(index, 1);
+              if (moved) nodes.splice(index + 1, 0, moved);
             },
           ],
           [
@@ -485,12 +496,10 @@ const PathEditorHelpers = {
               deletedNodes = nodes.slice();
               const deletedDepth = node.depth;
               nodes.splice(index, 1);
-              for (
-                let child = index;
-                child < nodes.length && nodes[child]!.depth > deletedDepth;
-                child++
-              ) {
-                updateNode(child, { depth: nodes[child]!.depth - 1 });
+              for (let child = index; child < nodes.length; child++) {
+                const childNode = nodes[child];
+                if (!childNode || childNode.depth <= deletedDepth) break;
+                updateNode(child, { depth: childNode.depth - 1 });
               }
               undo.hidden = false;
             },
@@ -504,12 +513,14 @@ const PathEditorHelpers = {
           button.title = title;
           button.setAttribute(
             "aria-label",
-            `${title[0]!.toUpperCase()}${title.slice(1)} ${rowName}`,
+            `${(title[0] ?? "").toUpperCase()}${title.slice(1)} ${rowName}`,
           );
           button.textContent = glyph;
           if (title === "outdent") button.disabled = node.depth === 0;
-          if (title === "indent")
-            button.disabled = index === 0 || node.depth >= nodes[index - 1]!.depth + 1;
+          if (title === "indent") {
+            const previousDepth = nodes[index - 1]?.depth;
+            button.disabled = previousDepth === undefined || node.depth >= previousDepth + 1;
+          }
           if (title === "move up") button.disabled = index === 0;
           if (title === "move down") button.disabled = index === nodes.length - 1;
           button.addEventListener("click", () => {

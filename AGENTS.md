@@ -300,6 +300,22 @@ vitest specifics (`test/*.test.ts`, typed; `tsc` covers them):
   green. Release-critical build/config scripts, browser-control tooling, and
   e2e drivers are checked in separate strict projects. Prefer real imports and
   typed host-boundary helpers in tests.
+- Production source must not use non-null assertions (`value!`); oxlint enforces
+  this for `src/**/*.ts`. Prove availability with a runtime guard, preserve a
+  checked value in a local before an async callback, or model correlated optional
+  fields as a discriminated object. For indexed access, handle the missing case
+  explicitly; do not replace an assertion with a default that hides a broken
+  invariant.
+- Type assertions do not validate or convert runtime data. Narrow DOM nodes,
+  browser messages, storage, imported configuration, and other untrusted values
+  before use. Keep unavoidable assertions local to generic adapters, platform
+  declaration gaps, or branded values whose runtime invariants were already
+  checked; never use a cast merely to silence a boundary error. Convert unknown
+  errors with `String(error)` or a checked `Error.message` instead of casting.
+- Tests may use non-null assertions only where fixture construction or captured
+  listener setup already proves the value exists. Behavior at malformed or stale
+  runtime boundaries belongs in a regression test when it has a meaningful
+  failure mode.
   Runtime globals must not reuse platform class names (that is why they are
   `Notifier`/`RequestHeaders`, not `Notification`/`Headers`).
 

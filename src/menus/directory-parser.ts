@@ -141,7 +141,10 @@ export const buildTree = (pathsArray: string[]): MenuTree => {
     // use that effective depth for numbering too, so the menuindex value
     // matches the visible position instead of containing empty components.
     const effectiveDepth = depth === 0 ? 0 : Math.min(depth, pathsNestingStack.length);
-    const parentId = effectiveDepth === 0 ? MENU_IDS.ROOT : pathsNestingStack[effectiveDepth - 1]!;
+    const parentId =
+      effectiveDepth === 0
+        ? MENU_IDS.ROOT
+        : (pathsNestingStack[effectiveDepth - 1] ?? MENU_IDS.ROOT);
     if (!validation.valid) {
       pathsNestingStack = pathsNestingStack.slice(0, effectiveDepth);
       errors.push({

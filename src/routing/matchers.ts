@@ -37,9 +37,10 @@ type MatcherEvaluator = NonNullable<RuleMatcher["explain"]>;
 
 const explainableMatcher = (evaluate: MatcherEvaluator): RuleMatcher => {
   const explain: MatcherEvaluator = (info, metadata) => evaluate(info ?? {}, metadata);
-  const matcher = ((info, metadata) => explain(info, metadata).result) as RuleMatcher;
-  matcher.explain = explain;
-  return matcher;
+  return Object.assign(
+    (info: RoutingInfo, metadata?: Partial<RoutingInfo>) => explain(info, metadata).result,
+    { explain },
+  );
 };
 
 const evaluatedAttempt = (

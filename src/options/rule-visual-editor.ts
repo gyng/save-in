@@ -163,18 +163,21 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
   const selectTextSource = (line: number): void => {
     setMode(false);
     const lines = textarea.value.split("\n");
+    const selectedLine = lines[line - 1] ?? "";
     const offset = lines
       .slice(0, Math.max(0, line - 1))
       .reduce((sum, value) => sum + value.length + 1, 0);
     textarea.focus();
     textarea.setSelectionRange(
       offset,
-      Math.min(textarea.value.length, offset + lines[line - 1]!.length),
+      Math.min(textarea.value.length, offset + selectedLine.length),
     );
   };
 
-  const createMatcherSelect = (rule: VisualRoutingRule, clauseIndex: number): HTMLSelectElement => {
-    const clause = rule.clauses[clauseIndex]!;
+  const createMatcherSelect = (
+    rule: VisualRoutingRule,
+    clause: VisualRoutingRule["clauses"][number],
+  ): HTMLSelectElement => {
     const select = document.createElement("select");
     select.className = "rule-clause-name visual-editor-control-field";
     select.name = "routing-matcher";
@@ -196,8 +199,10 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
     return select;
   };
 
-  const createClauseRow = (rule: VisualRoutingRule, clauseIndex: number): HTMLElement => {
-    const clause = rule.clauses[clauseIndex]!;
+  const createClauseRow = (
+    rule: VisualRoutingRule,
+    clause: VisualRoutingRule["clauses"][number],
+  ): HTMLElement => {
     const row = document.createElement("div");
     row.className = `visual-editor-row rule-clause-row rule-clause-${clause.kind}`;
     row.dataset.line = String(clause.line);
@@ -210,7 +215,7 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
     row.append(marker);
 
     if (clause.kind === "matcher") {
-      row.append(createMatcherSelect(rule, clauseIndex));
+      row.append(createMatcherSelect(rule, clause));
     } else {
       const name = document.createElement("span");
       name.className = "rule-clause-fixed-name";
@@ -287,7 +292,7 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
     card.classList.add("rule-editor-card-unsupported");
     const warning = document.createElement("div");
     warning.className = "rule-editor-unsupported";
-    const issueLine = rule.issues[0]!.line;
+    const issueLine = rule.issues[0]?.line ?? rule.line;
     warning.textContent = localize(
       "routeVisualUnsupported",
       `This rule has syntax Visual mode cannot safely edit near line ${issueLine}.`,
@@ -381,7 +386,7 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
     const conditionEnd = firstOutput < 0 ? rule.clauses.length : firstOutput;
     rule.clauses
       .slice(0, conditionEnd)
-      .forEach((_clause, index) => body.append(createClauseRow(rule, index)));
+      .forEach((clause) => body.append(createClauseRow(rule, clause)));
     const addCondition = document.createElement("button");
     addCondition.type = "button";
     addCondition.className = "rule-editor-add-condition";
@@ -397,7 +402,7 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
     body.append(addCondition);
     rule.clauses
       .slice(conditionEnd)
-      .forEach((_clause, offset) => body.append(createClauseRow(rule, conditionEnd + offset)));
+      .forEach((clause) => body.append(createClauseRow(rule, clause)));
     card.append(body);
     return card;
   };

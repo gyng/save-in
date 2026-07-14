@@ -55,12 +55,15 @@ const uniqueDiagnostics = (
     });
     if (duplicate < 0) {
       result.push(diagnostic);
-    } else if (
-      (result[duplicate]!.start === diagnostic.start &&
-        result[duplicate]!.end === diagnostic.end) ||
-      message.length > diagnosticText(result[duplicate]!.message).length
-    ) {
-      result[duplicate] = diagnostic;
+    } else {
+      const existing = result[duplicate];
+      if (
+        existing &&
+        ((existing.start === diagnostic.start && existing.end === diagnostic.end) ||
+          message.length > diagnosticText(existing.message).length)
+      ) {
+        result[duplicate] = diagnostic;
+      }
     }
   });
   return result;
@@ -125,8 +128,9 @@ const renderOverlay = (
   const positions = [...boundaries].toSorted((left, right) => left - right);
   const fragment = document.createDocumentFragment();
   for (let index = 0; index < positions.length - 1; index += 1) {
-    const start = positions[index]!;
-    const end = positions[index + 1]!;
+    const start = positions[index];
+    const end = positions[index + 1];
+    if (start === undefined || end === undefined) continue;
     const value = snapshot.source.slice(start, end);
     const syntaxToken = snapshot.tokens.findLast(
       (candidate) => candidate.start <= start && candidate.end >= end,
@@ -334,8 +338,13 @@ export const createSyntaxEditor = (
     };
   };
 
-  const lineAtOffset = (offset: number) =>
-    snapshot.lines.find((line) => offset >= line.start && offset <= line.end)!;
+  const lineAtOffset = (offset: number) => {
+    const line = snapshot.lines.find(
+      (candidate) => offset >= candidate.start && offset <= candidate.end,
+    );
+    if (!line) throw new RangeError(`No syntax line contains offset ${offset}.`);
+    return line;
+  };
 
   const showTooltipForCaret = () => {
     const diagnostics = diagnosticsAtSelection();
@@ -388,7 +397,9 @@ export const createSyntaxEditor = (
   };
 
   const onVisibilityChange = (event: Event) => {
-    if ((event as CustomEvent<{ visible?: boolean }>).detail?.visible === false) hideTooltip();
+    if (event instanceof CustomEvent && Reflect.get(event.detail ?? {}, "visible") === false) {
+      hideTooltip();
+    }
   };
 
   const onBlur = () => {

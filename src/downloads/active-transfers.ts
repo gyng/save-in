@@ -19,10 +19,12 @@ const writes: SessionWriteState = { queues: new Map() };
 let keepaliveTimer: ReturnType<typeof setInterval> | undefined;
 
 const heartbeat = () => {
-  const runtime = webExtensionApi.runtime as typeof webExtensionApi.runtime & {
-    getPlatformInfo?: () => Promise<unknown>;
-  };
-  void runtime?.getPlatformInfo?.().catch(() => {});
+  const getPlatformInfo: unknown = Reflect.get(webExtensionApi.runtime, "getPlatformInfo");
+  if (typeof getPlatformInfo === "function") {
+    void Promise.resolve(Reflect.apply(getPlatformInfo, webExtensionApi.runtime, [])).catch(
+      () => {},
+    );
+  }
 };
 
 const syncKeepalive = () => {

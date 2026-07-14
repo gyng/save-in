@@ -32,7 +32,8 @@ export const setupAboutDialog = (openWelcome: () => boolean = () => showWelcomeD
 
   const storeLinks = dialog.querySelectorAll<HTMLAnchorElement>("[data-about-store]");
   storeLinks.forEach((link) => (link.hidden = true));
-  const storeLinkId = Reflect.get(STORE_LINK_IDS, CURRENT_BROWSER) as string | undefined;
+  const storeLinkValue: unknown = Reflect.get(STORE_LINK_IDS, CURRENT_BROWSER);
+  const storeLinkId = typeof storeLinkValue === "string" ? storeLinkValue : undefined;
   if (storeLinkId) {
     const storeLink = dialog.querySelector<HTMLAnchorElement>(`#${storeLinkId}`);
     if (storeLink) storeLink.hidden = false;

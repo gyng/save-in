@@ -268,11 +268,13 @@ export const historyCsv = (
   entries: HistoryEntry[],
   displayColumns: HistoryDisplayColumn[] = HISTORY_COLUMNS,
 ): string => {
-  const columns = displayColumns.filter(({ key }) => key !== "index");
+  const columns = displayColumns.filter(
+    (column): column is HistoryDisplayColumn & { key: keyof HistoryRow } => column.key !== "index",
+  );
   const rows = entries.map(historyRow);
   return [
     columns.map(({ label }) => csvCell(label)).join(","),
-    ...rows.map((row) => columns.map(({ key }) => csvCell(row[key as keyof HistoryRow])).join(",")),
+    ...rows.map((row) => columns.map(({ key }) => csvCell(row[key])).join(",")),
   ].join("\n");
 };
 
@@ -280,13 +282,15 @@ export const historyTsv = (
   entries: HistoryEntry[],
   displayColumns: HistoryDisplayColumn[] = HISTORY_COLUMNS,
 ): string => {
-  const columns = displayColumns.filter(({ key }) => key !== "index");
+  const columns = displayColumns.filter(
+    (column): column is HistoryDisplayColumn & { key: keyof HistoryRow } => column.key !== "index",
+  );
   const rows = entries.map(historyRow);
   const cell = (value: unknown) =>
     spreadsheetSafeText(String(value ?? "").replaceAll(/[\t\r\n]/g, " "));
   return [
     columns.map(({ label }) => cell(label)).join("\t"),
-    ...rows.map((row) => columns.map(({ key }) => cell(row[key as keyof HistoryRow])).join("\t")),
+    ...rows.map((row) => columns.map(({ key }) => cell(row[key])).join("\t")),
   ].join("\n");
 };
 

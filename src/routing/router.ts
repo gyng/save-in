@@ -83,7 +83,8 @@ export const traceRules = async (
   );
   const matchedDestinations = evaluations.map(({ destination }) => destination);
   const traced = rules.map((rule, index) => {
-    const evaluation = evaluations[index]!;
+    const evaluation = evaluations[index];
+    if (!evaluation) throw new Error(`Missing evaluation for routing rule ${index + 1}`);
     const clauses = rule
       .filter((clause) => clause.type === RULE_TYPES.MATCHER)
       .map((clause) => {

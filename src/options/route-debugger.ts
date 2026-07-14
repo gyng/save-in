@@ -9,6 +9,7 @@ import {
   type RouteDebuggerFields,
   type RouteDebuggerTrace,
 } from "./route-debugger-model.ts";
+import { isPageSourceKind } from "../shared/page-source.ts";
 
 type MessageSubstitutions = string | number | Array<string | number>;
 
@@ -214,7 +215,7 @@ export const setupRouteDebugger = (): void => {
     linkText: linkText.value.trim(),
     selectionText: selectionText.value.trim(),
     mediaType: mediaType.value,
-    sourceKind: sourceKind.value as RouteDebuggerFields["sourceKind"],
+    sourceKind: isPageSourceKind(sourceKind.value) ? sourceKind.value : "",
     menuIndex: menuIndex.value.trim(),
     comment: comment.value.trim(),
     now: now.value,
@@ -373,19 +374,22 @@ export const setupRouteDebugger = (): void => {
           : localize("routeDebuggerDidNotMatch", "Conditions not met");
       meta.append(badge);
       let sourceLink: HTMLButtonElement | null = null;
-      if (rule.source) {
+      const ruleSource = rule.source;
+      const ruleSourceIndex = rule.sourceIndex;
+      if (ruleSource && ruleSourceIndex !== undefined) {
         sourceLink = document.createElement("button");
         sourceLink.type = "button";
         sourceLink.className = "route-debugger-source-link";
         sourceLink.textContent = localize("routeDebuggerEditRule", "Edit");
-        sourceLink.setAttribute(
-          "aria-label",
-          localize("routeDebuggerGoToLine", `Go to line ${rule.source.line}`, rule.source.line),
+        sourceLink.title = localize(
+          "routeDebuggerGoToLine",
+          `Go to line ${ruleSource.line}`,
+          ruleSource.line,
         );
         sourceLink.addEventListener("click", (event) => {
           event.preventDefault();
           event.stopPropagation();
-          jumpToSource(rule.source!, rule.sourceIndex!);
+          jumpToSource(ruleSource, ruleSourceIndex);
         });
       }
       header.append(titleGroup, meta);
@@ -424,10 +428,9 @@ export const setupRouteDebugger = (): void => {
         clauseRow.dataset.clauseName = clause.name;
         clauseRow.classList.toggle("is-match", clause.matched);
         clauseRow.classList.toggle("is-miss", !clause.matched);
-        if (clause.source) {
-          clauseRow.addEventListener("click", () =>
-            jumpToSource(clause.source!, rule.sourceIndex!),
-          );
+        const clauseSource = clause.source;
+        if (clauseSource && ruleSourceIndex !== undefined) {
+          clauseRow.addEventListener("click", () => jumpToSource(clauseSource, ruleSourceIndex));
         }
         appendText(clauseRow, "route-debugger-clause-mark", clause.matched ? "✓" : "×");
         const decision = document.createElement("span");
@@ -540,7 +543,14 @@ export const setupRouteDebugger = (): void => {
         );
         return;
       }
-      renderTrace(mapRouteTraceToSource(textarea.value, validation.trace!));
+      if (!validation.trace) {
+        renderMessage(
+          "error",
+          localize("routeDebuggerUnavailable", "Could not run the route debugger."),
+        );
+        return;
+      }
+      renderTrace(mapRouteTraceToSource(textarea.value, validation.trace));
     } catch {
       if (mine !== generation) return;
       renderMessage(

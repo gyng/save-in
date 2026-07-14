@@ -180,8 +180,8 @@ const parseClauseNode = (
     limit: sourceLine.parseEnd,
   });
   if (!parsed.ok) {
-    const consumedName = /^\S*/.exec(source.slice(sourceLine.parseStart, sourceLine.parseEnd))![0]
-      .length;
+    const consumedName =
+      /^\S*/.exec(source.slice(sourceLine.parseStart, sourceLine.parseEnd))?.[0].length ?? 0;
     // The clause grammar backtracks failed alternatives to the line start;
     // report after the consumed token so malformed clauses remain actionable.
     const position = sourcePointAt(source, sourceLine.parseStart + consumedName);

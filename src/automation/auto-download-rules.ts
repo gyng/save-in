@@ -179,12 +179,14 @@ const parseRule = (
       ),
     );
   } else if (pageClauses.every((clause) => isMatchAll(clause.value))) {
+    const firstPageClause = pageClauses[0];
+    if (!firstPageClause) throw new Error("Page matcher validation lost its first clause");
     errors.push(
       errorFor(
         "unsafe-page-matcher",
         "The page constraint must be narrower than match-all",
-        pageClauses[0]!.raw,
-        pageClauses[0]!.valueSpan,
+        firstPageClause.raw,
+        firstPageClause.valueSpan,
       ),
     );
   }
@@ -198,12 +200,14 @@ const parseRule = (
       ),
     );
   } else if (sourceClauses.every((clause) => isMatchAll(clause.value))) {
+    const firstSourceClause = sourceClauses[0];
+    if (!firstSourceClause) throw new Error("Source matcher validation lost its first clause");
     errors.push(
       errorFor(
         "unsafe-source-matcher",
         "The source constraint must be narrower than match-all",
-        sourceClauses[0]!.raw,
-        sourceClauses[0]!.valueSpan,
+        firstSourceClause.raw,
+        firstSourceClause.valueSpan,
       ),
     );
   }

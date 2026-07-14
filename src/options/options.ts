@@ -449,7 +449,10 @@ const updateErrors = () => {
 // functions — so field-display transforms live here instead. The logic is in
 // DOM-free helpers live in options-logic.ts so they can be unit-tested.
 const OPTION_FIELD_DISPLAY_TRANSFORMS = {
-  contentClickToSaveCombo: (v: unknown) => normalizeKeyComboForDisplay(v as string | number),
+  contentClickToSaveCombo: (value: unknown) =>
+    typeof value === "string" || typeof value === "number"
+      ? normalizeKeyComboForDisplay(value)
+      : value,
 };
 
 const setOptionFieldValue = (
@@ -461,8 +464,9 @@ const setOptionFieldValue = (
   if (!el) return false;
 
   const transform =
-    OPTION_FIELD_DISPLAY_TRANSFORMS[option.name as keyof typeof OPTION_FIELD_DISPLAY_TRANSFORMS] ||
-    ((value: unknown) => value);
+    option.name === "contentClickToSaveCombo"
+      ? OPTION_FIELD_DISPLAY_TRANSFORMS.contentClickToSaveCombo
+      : (value: unknown) => value;
   const value = typeof storedValue === "undefined" ? option.default : transform(storedValue);
   if (option.type === schema.types.BOOL && el instanceof HTMLInputElement) {
     el.checked = Boolean(value);
@@ -910,8 +914,8 @@ const renderMenuPreview = (container: Element, tree: MenuPreviewTree) => {
 
   // Mirror the real menu: the Last Used slot and its separator sit above
   // the configured paths when the option is enabled
-  const lastUsed = document.querySelector("#enableLastLocation") as HTMLInputElement;
-  if (lastUsed && lastUsed.checked) {
+  const lastUsed = document.querySelector<HTMLInputElement>("#enableLastLocation");
+  if (lastUsed?.checked) {
     if (tree.items.some((item) => item.kind === "path")) {
       const sep = document.createElement("li");
       sep.className = "menu-preview-separator";
@@ -936,14 +940,12 @@ const renderMenuPreview = (container: Element, tree: MenuPreviewTree) => {
 };
 
 const updateMenuPreview = () => {
-  const textarea = document.querySelector("#paths") as HTMLTextAreaElement;
-  if (!textarea || !document.querySelector("#menu-preview-tree")) {
+  const textarea = document.querySelector<HTMLTextAreaElement>("#paths");
+  const preview = document.querySelector<HTMLElement>("#menu-preview-tree");
+  if (!textarea || !preview) {
     return;
   }
-  renderMenuPreview(
-    document.querySelector("#menu-preview-tree")!,
-    buildTree(splitLines(textarea.value)),
-  );
+  renderMenuPreview(preview, buildTree(splitLines(textarea.value)));
 };
 
 (() => {
@@ -958,7 +960,8 @@ const updateMenuPreview = () => {
     ?.addEventListener("change", () => updateMenuPreview());
 
   textarea.addEventListener("path-editor-row-selected", (event) => {
-    const sourceIndex = (event as CustomEvent<{ sourceIndex?: unknown }>).detail?.sourceIndex;
+    if (!(event instanceof CustomEvent)) return;
+    const sourceIndex: unknown = Reflect.get(event.detail ?? {}, "sourceIndex");
     if (typeof sourceIndex === "number" && Number.isInteger(sourceIndex) && sourceIndex >= 0) {
       highlightMenuPreviewSource(sourceIndex);
     }

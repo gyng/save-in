@@ -89,7 +89,7 @@ export const groupReferenceRows = (root: ParentNode, kind: ReferenceKind) => {
           ? compareVariables(aSyntax, bSyntax)
           : compareClauses(aSyntax, bSyntax);
       })
-      .forEach((row) => row.parentElement!.append(row));
+      .forEach((row) => row.parentElement?.append(row));
     let lastGroup = "";
     [...table.querySelectorAll<HTMLTableRowElement>(":scope > tbody > tr, :scope > tr")].forEach(
       (row) => {
@@ -155,7 +155,7 @@ export const enhanceReferenceTables = (root: ParentNode, localize: GetMessage = 
       dataRows.forEach((row) => {
         row.cells[1]
           ?.querySelectorAll("code")
-          .forEach((code) => code.replaceWith(code.textContent!));
+          .forEach((code) => code.replaceWith(code.textContent ?? ""));
       });
     }
     const sectionTitle =

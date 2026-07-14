@@ -10,6 +10,7 @@ import {
   positionSourceTooltip,
   sortPageSources,
   resourceTimingByUrl,
+  isPerformanceResourceTiming,
   type PageSource,
   type PageSourceKind,
   type SourcePanelOptions,
@@ -226,7 +227,8 @@ export const toggleSourcePanel = (
   let panelSendDownload = sendDownload;
 
   const host = document.createElement("aside");
-  panelPreviousFocus.set(host, document.activeElement as HTMLElement);
+  const previousFocus = document.activeElement;
+  if (previousFocus instanceof HTMLElement) panelPreviousFocus.set(host, previousFocus);
   host.id = PANEL_HOST_ID;
   host.dataset.theme = resolvedPanelTheme(panelOptions.theme);
   const exposeShadowForTests = SAVE_IN_CONTENT_E2E === true;
@@ -240,6 +242,9 @@ export const toggleSourcePanel = (
   panel.className = "panel";
   panel.setAttribute("role", "dialog");
   panel.setAttribute("aria-label", copy.title);
+  const docks = ["right", "bottom", "left", "top"] as const;
+  const currentDock = (): (typeof docks)[number] =>
+    docks.find((candidate) => candidate === host.dataset.dock) ?? "right";
   const resize = document.createElement("div");
   resize.className = "resize";
   resize.setAttribute("role", "separator");
@@ -251,7 +256,7 @@ export const toggleSourcePanel = (
     const startWidth = host.getBoundingClientRect().width;
     const startHeight = host.getBoundingClientRect().height;
     const move = (moveEvent: PointerEvent) => {
-      const dock = host.dataset.dock!;
+      const dock = currentDock();
       if (dock === "right" || dock === "left") {
         const delta = dock === "right" ? startX - moveEvent.clientX : moveEvent.clientX - startX;
         host.style.width = `${Math.min(window.innerWidth * 0.92, Math.max(280, startWidth + delta))}px`;
@@ -275,10 +280,9 @@ export const toggleSourcePanel = (
   setButtonIcon(close, "close");
   close.title = copy.close;
   close.setAttribute("aria-label", copy.closeLabel);
-  const docks = ["right", "bottom", "left", "top"] as const;
   let dockIndex = 0;
   const updateDock = () => {
-    const dock = docks[dockIndex]!;
+    const dock = docks[dockIndex] ?? "right";
     host.dataset.dock = dock;
     host.classList.remove("dock-left", "dock-bottom", "dock-top");
     if (dock !== "right") host.classList.add(`dock-${dock}`);
@@ -395,14 +399,14 @@ export const toggleSourcePanel = (
     filter.setAttribute("aria-label", copy.filterLabel);
     sort.setAttribute("aria-label", copy.sortLabel);
     [...sort.options].forEach((option, index) => {
-      const key = sortOptions[index]![1];
-      option.textContent = copy.sort[key];
+      const entry = sortOptions[index];
+      if (entry) option.textContent = copy.sort[entry[1]];
     });
-    const dock = host.dataset.dock!;
+    const dock = currentDock();
     dockButton.title = formatSourcePanelCopy(
       copy.dockPositionTemplate,
       SOURCE_PANEL_COPY_VALUE_SLOT,
-      copy.dockPositions[dock as keyof typeof copy.dockPositions],
+      copy.dockPositions[dock],
     );
     updatePopoutButton(host.classList.contains("floating"));
   };
@@ -497,7 +501,8 @@ export const toggleSourcePanel = (
       if (!firstSeen.has(source.url)) {
         firstSeen.set(source.url, { at: Date.now(), order: ++detectionSequence });
       }
-      const detection = firstSeen.get(source.url)!;
+      const detection = firstSeen.get(source.url);
+      if (!detection) return;
       source.detectedAt = detection.at;
       source.detectedOrder = detection.order;
     });
@@ -531,7 +536,8 @@ export const toggleSourcePanel = (
       backgroundScanHandle = 0;
       let processed = 0;
       while (index < elements.length) {
-        const element = elements[index++]!;
+        const element = elements[index++];
+        if (!element) continue;
         if (element.isConnected)
           nextBackgroundCandidates.push(
             ...collectBackgroundSourceCandidates([element], timingByUrl),
@@ -784,7 +790,7 @@ export const toggleSourcePanel = (
         const detectedAt = formatSourcePanelCopy(
           copy.detectedAtTemplate,
           SOURCE_PANEL_COPY_VALUE_SLOT,
-          formatters.date.format(new Date(source.detectedAt!)),
+          formatters.date.format(new Date(source.detectedAt ?? Date.now())),
         );
         detected.setAttribute("aria-label", detectedAt);
         if (!hasRichTooltip) detected.title = detectedAt;
@@ -906,7 +912,8 @@ export const toggleSourcePanel = (
           return;
         }
         if (!hasRichTooltip) return;
-        richTooltip = createSourceTooltip(source)!;
+        richTooltip = createSourceTooltip(source);
+        if (!richTooltip) return;
         const tooltipId = `source-tooltip-${source.detectedOrder}`;
         richTooltip.id = tooltipId;
         sourceLink.setAttribute("aria-describedby", tooltipId);
@@ -921,9 +928,7 @@ export const toggleSourcePanel = (
             panelBounds,
             tooltipBounds,
             { width: window.innerWidth, height: window.innerHeight },
-            host.classList.contains("floating")
-              ? "floating"
-              : (host.dataset.dock as "right" | "bottom" | "left" | "top"),
+            host.classList.contains("floating") ? "floating" : currentDock(),
           );
           richTooltip.dataset.side = position.side;
           richTooltip.style.left = `${position.left - panelBounds.left}px`;
@@ -1007,7 +1012,11 @@ export const toggleSourcePanel = (
       placeRow(row);
     });
     while (list.children.length > rowIndex) {
-      const last = list.lastElementChild as HTMLElement;
+      const last = list.lastElementChild;
+      if (!(last instanceof HTMLElement)) {
+        last?.remove();
+        continue;
+      }
       const cached = cachedRows.get(last);
       if (cached) deactivateAndRemove(cached);
       else last.remove();
@@ -1137,7 +1146,7 @@ export const toggleSourcePanel = (
   const resourceObserver =
     typeof PerformanceObserver === "function"
       ? new PerformanceObserver((entries) => {
-          const observed = entries.getEntries() as PerformanceResourceTiming[];
+          const observed = entries.getEntries().filter(isPerformanceResourceTiming);
           observed.forEach((entry) => timingByUrl.set(entry.name, entry));
           let changed = false;
           sourceCandidates = sourceCandidates.map((source) => {

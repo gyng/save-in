@@ -63,8 +63,10 @@ const captureGroupCount = (regex: RegExp): number => {
     else if (source[i] === "[") inClass = true;
     else if (source[i] === "]") inClass = false;
     else if (!inClass && source[i] === "(" && source[i + 1] !== "?") groups += 1;
-    else if (!inClass && source.slice(i, i + 3) === "(?<" && !/[=!]/.test(source[i + 3]!))
-      groups += 1;
+    else if (!inClass && source.slice(i, i + 3) === "(?<") {
+      const groupMarker = source[i + 3];
+      if (groupMarker !== undefined && !/[=!]/.test(groupMarker)) groups += 1;
+    }
   }
   return groups;
 };
@@ -80,11 +82,13 @@ const parseSemanticRule = (
 ): RoutingRule | false => {
   const controls = rule.clauses.filter((line) => line.name === "disabled");
   if (controls.length > 1) {
+    const duplicateControl = controls[1];
+    if (!duplicateControl) return false;
     appendError(
       errors,
       routingPorts.getMessage("ruleBadClause"),
       "disabled may appear only once",
-      controls[1]!.span,
+      duplicateControl.span,
     );
     return false;
   }
@@ -135,7 +139,7 @@ const parseSemanticRule = (
         errors,
         routingPorts.getMessage("ruleInvalidRegex"),
         flags ? `invalid regex flags: ${flags} (${error})` : `${error}`,
-        flags ? line.flagsSpan! : line.valueSpan,
+        flags ? (line.flagsSpan ?? line.valueSpan) : line.valueSpan,
       );
       return false;
     }
@@ -152,7 +156,7 @@ const parseSemanticRule = (
   const destinationNodes = lines.filter((line) => line.name === "into");
   const destination = destinations[0];
   const destinationNode = destinationNodes[0];
-  if (!destination || !destination.value.trim()) {
+  if (!destination || !destinationNode || !destination.value.trim()) {
     appendError(
       errors,
       routingPorts.getMessage("ruleMissingInto"),
@@ -167,7 +171,7 @@ const parseSemanticRule = (
       errors,
       routingPorts.getMessage("ruleUnknownDestinationVariable"),
       variable.value,
-      spanWithin(destinationNode!.valueSpan, variable.start, variable.value.length),
+      spanWithin(destinationNode.valueSpan, variable.start, variable.value.length),
     );
   }
   if (unknownVariables.length > 0) return false;
@@ -179,7 +183,7 @@ const parseSemanticRule = (
       errors,
       routingPorts.getMessage("ruleMissingCapture"),
       destination.value,
-      destinationNode!.valueSpan,
+      destinationNode.valueSpan,
     );
   if (!valid.some((clause) => clause.type === RULE_TYPES.MATCHER)) {
     appendError(
@@ -191,11 +195,13 @@ const parseSemanticRule = (
     return false;
   }
   if (destinations.length >= 2) {
+    const duplicateDestination = destinationNodes[1];
+    if (!duplicateDestination) return false;
     appendError(
       errors,
       routingPorts.getMessage("ruleExtraInto"),
       JSON.stringify(lines.map((line) => line.raw)),
-      destinationNodes[1]!.span,
+      duplicateDestination.span,
     );
     return false;
   }
@@ -204,17 +210,20 @@ const parseSemanticRule = (
     (line) => line.name === "capture" || line.name === "capturegroups",
   );
   if (captures.length >= 2) {
+    const duplicateCapture = captureNodes[1];
+    if (!duplicateCapture) return false;
     appendError(
       errors,
       routingPorts.getMessage("ruleMultipleCapture"),
       JSON.stringify(lines.map((line) => line.raw)),
-      captureNodes[1]!.span,
+      duplicateCapture.span,
     );
     return false;
   }
   if (captures.length === 1) {
-    const capture = captures[0]!;
-    const captureNode = captureNodes[0]!;
+    const capture = captures[0];
+    const captureNode = captureNodes[0];
+    if (!capture || !captureNode) return false;
     const names = capture.value.split(",").map((name) => name.trim().toLowerCase());
     const matcherCandidates = names.map((name) =>
       valid.filter((clause) => clause.type === RULE_TYPES.MATCHER && clause.name === name),
@@ -222,7 +231,7 @@ const parseSemanticRule = (
     const capturedMatchers = matcherCandidates.map((matches) => matches[0]);
     let missing = false;
     names.forEach((name, index) => {
-      const candidates = matcherCandidates[index]!;
+      const candidates = matcherCandidates[index] ?? [];
       if (!capturedMatchers[index] || (capture.name === "capturegroups" && candidates.length > 1)) {
         appendError(
           errors,
@@ -255,7 +264,7 @@ const parseSemanticRule = (
         errors,
         routingPorts.getMessage("ruleMissingCapture"),
         destination.value,
-        destinationNode!.valueSpan,
+        destinationNode.valueSpan,
       );
       return false;
     }
@@ -276,7 +285,8 @@ export const parseRulesCollecting = (
     .filter((entry): entry is { ast: RoutingRuleNode; rule: RoutingRule } => Boolean(entry.rule));
   const rules = parsedRules.map((entry) => entry.rule);
   for (let index = 1; index < parsedRules.length; index += 1) {
-    const laterEntry = parsedRules[index]!;
+    const laterEntry = parsedRules[index];
+    if (!laterEntry) continue;
     const laterRule = laterEntry.rule;
     const shadowed = parsedRules.slice(0, index).some(({ rule: earlier }) => {
       if (isAutomaticRuleClauses(earlier) !== isAutomaticRuleClauses(laterRule)) return false;

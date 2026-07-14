@@ -235,14 +235,15 @@ const routingSnapshot = (source: string, lines: readonly SyntaxLine[]): SyntaxSn
     if (line.kind === "clause") {
       addRoutingClauseTokens(source, line, tokens);
     } else if (line.kind === "comment") {
-      tokens.push(
-        token(
-          "comment-delimiter",
-          line.cst.delimiter!.span.start.offset,
-          line.cst.delimiter!.span.end.offset,
-        ),
-        token("comment", line.cst.content!.span.start.offset, line.cst.content!.span.end.offset),
-      );
+      const { delimiter, content } = line.cst;
+      if (delimiter) {
+        tokens.push(
+          token("comment-delimiter", delimiter.span.start.offset, delimiter.span.end.offset),
+        );
+      }
+      if (content) {
+        tokens.push(token("comment", content.span.start.offset, content.span.end.offset));
+      }
     } else if (line.kind === "invalid") {
       tokens.push(
         token("invalid", line.cst.content.span.start.offset, line.cst.content.span.end.offset),
@@ -250,7 +251,11 @@ const routingSnapshot = (source: string, lines: readonly SyntaxLine[]): SyntaxSn
     }
   }
   const diagnostics = parsed.issues.map((issue) => {
-    const line = lines[issue.line - 1]!;
+    const line = lines[issue.line - 1] ?? {
+      number: issue.line,
+      start: issue.span.start.offset,
+      end: issue.span.end.offset,
+    };
     const range = visibleDiagnosticRange(issue.span.start.offset, issue.span.end.offset, line);
     return {
       ...range,

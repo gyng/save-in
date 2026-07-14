@@ -1,10 +1,5 @@
 import { webExtensionApi } from "../platform/web-extension-api.ts";
-import type {
-  DownloadProgress,
-  HistoryEntry,
-  HistoryRow,
-  HistorySort,
-} from "../shared/history-types.ts";
+import type { DownloadProgress, HistoryEntry, HistorySort } from "../shared/history-types.ts";
 
 // History panel controller for the options page. Owns the history table's
 // view state (sort/filter/page) and its DOM rendering + live download-progress
@@ -287,19 +282,20 @@ const renderHistoryTable = () => {
       th.classList.add(`history-${col.key}-heading`);
       th.textContent = col.label;
       th.style.width = col.width;
-      if (col.sortable) {
+      if (col.sortable && col.key !== "index") {
+        const sortKey = col.key;
         th.classList.add("sortable");
-        if (historyState.sort.key === col.key) {
+        if (historyState.sort.key === sortKey) {
           th.classList.add("sorted");
           th.textContent = `${col.label} ${historyState.sort.dir === "asc" ? "▲" : "▼"}`;
         }
         th.addEventListener("click", () => {
-          if (historyState.sort.key === col.key) {
+          if (historyState.sort.key === sortKey) {
             historyState.sort.dir = historyState.sort.dir === "asc" ? "desc" : "asc";
           } else {
             historyState.sort = {
-              key: col.key as keyof HistoryRow,
-              dir: col.key === "time" ? "desc" : "asc",
+              key: sortKey,
+              dir: sortKey === "time" ? "desc" : "asc",
             };
           }
           historyState.page = 0;
@@ -369,7 +365,8 @@ const renderHistoryTable = () => {
       open.addEventListener("click", () => void showInFolder(r.downloadId));
       status.appendChild(open);
     }
-    if (r.status === "pending" && r.historyId) {
+    const historyId = r.historyId;
+    if (r.status === "pending" && historyId) {
       const cancel = document.createElement("button");
       cancel.type = "button";
       cancel.className = "history-cancel";
@@ -383,7 +380,7 @@ const renderHistoryTable = () => {
           await sendInternalMessage(webExtensionApi.runtime, {
             type: MESSAGE_TYPES.HISTORY_CANCEL,
             body: {
-              historyId: r.historyId!,
+              historyId,
             },
           });
           await renderHistory();
@@ -554,7 +551,7 @@ export const renderHistory = async () => {
     });
   }
 };
-const historyFilterInput = document.querySelector("#history-filter") as HTMLInputElement;
+const historyFilterInput = document.querySelector<HTMLInputElement>("#history-filter");
 historyFilterInput?.addEventListener("input", () => {
   historyState.filter = historyFilterInput.value;
   historyState.page = 0;
@@ -565,7 +562,14 @@ const bindHistoryFacet = (id: string, update: (value: string) => void) => {
   document
     .querySelector<HTMLInputElement | HTMLSelectElement>(id)
     ?.addEventListener("change", (event) => {
-      update((event.currentTarget as HTMLInputElement | HTMLSelectElement).value);
+      if (
+        !(
+          event.currentTarget instanceof HTMLInputElement ||
+          event.currentTarget instanceof HTMLSelectElement
+        )
+      )
+        return;
+      update(event.currentTarget.value);
       historyState.page = 0;
       renderHistoryTable();
     });

@@ -243,9 +243,7 @@ export const Download = {
     // MV3 service workers have no URL.createObjectURL: use a data URL
     const bytes = new TextEncoder().encode(content);
     let binary = "";
-    for (let i = 0; i < bytes.length; i += 1) {
-      binary += String.fromCharCode(bytes[i]!);
-    }
+    for (const byte of bytes) binary += String.fromCharCode(byte);
     return `data:${mime};charset=utf-8;base64,${btoa(binary)}`;
   },
 
@@ -285,8 +283,10 @@ export const Download = {
     if (finalFilename) {
       if (finalFilenameIsRoutePath) {
         const components = finalFilename.split("/");
-        const filename = components.pop()!;
-        components.push(sanitizeFilename(filename, options.truncateLength, true, true));
+        const filename = components.pop();
+        if (filename !== undefined) {
+          components.push(sanitizeFilename(filename, options.truncateLength, true, true));
+        }
         finalFilename = components.join("/");
       } else {
         // Server-, URL-, and browser-derived names are one untrusted component.
@@ -377,7 +377,7 @@ export const Download = {
         // HEAD is best-effort; acquisition still proceeds with the resolved name.
       }
     }
-    const resolvedFilename = state.info.filename!;
+    const resolvedFilename = state.info.filename ?? initialFilename;
     state.info.filename = resolvedFilename;
 
     const filenamePatterns = Array.isArray(options.filenamePatterns)
@@ -732,7 +732,10 @@ export const Download = {
       }
     };
     state.info.onContentFetchStart = (requestId) => {
-      ensureHistoryEntry(state, state.info.filename!);
+      ensureHistoryEntry(
+        state,
+        state.info.filename ?? state.info.suggestedFilename ?? state.info.url ?? "",
+      );
       registerTransfer(requestId);
       // Make an open options page render the cancellable preparation row.
       emitDownloaded(state);

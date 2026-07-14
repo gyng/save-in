@@ -74,7 +74,8 @@ export const setupResetOptions = ({
 }: ResetOptionsDependencies) => {
   document.querySelector<HTMLButtonElement>("#reset")?.addEventListener("click", async (event) => {
     event.preventDefault();
-    const button = event.currentTarget as HTMLButtonElement;
+    const button = event.currentTarget;
+    if (!(button instanceof HTMLButtonElement)) return;
     button.disabled = true;
     const confirmed = await showRestoreDefaultsDialog(localize);
     if (!confirmed) {

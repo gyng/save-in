@@ -20,6 +20,12 @@
   "ignorePatterns": ["src/vendor", "web-ext-artifacts", "dist", "docs"],
   "overrides": [
     {
+      "files": ["src/**/*.ts"],
+      "rules": {
+        "typescript/no-non-null-assertion": "error"
+      }
+    },
+    {
       "files": ["scripts/**/*.js", "scripts/**/*.mjs"],
       "env": {
         "node": true

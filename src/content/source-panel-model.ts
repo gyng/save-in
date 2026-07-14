@@ -29,10 +29,14 @@ export type SourcePanelOptions = {
 
 export type ResourceTimingByUrl = ReadonlyMap<string, PerformanceResourceTiming>;
 
+export const isPerformanceResourceTiming = (
+  entry: PerformanceEntry,
+): entry is PerformanceResourceTiming => !entry.entryType || entry.entryType === "resource";
+
 export const urlsFromCss = (value: string): string[] =>
   [...value.matchAll(/url\((?:"([^"]+)"|'([^']+)'|([^)'"\s]+))\)/g)].flatMap((match) => {
-    const url = (match[1] || match[2] || match[3])!;
-    return [url];
+    const url = match[1] || match[2] || match[3];
+    return url ? [url] : [];
   });
 
 const isAsciiWhitespace = (value: string | undefined): boolean =>
@@ -190,9 +194,7 @@ export const createSourceTooltip = (source: PageSource): HTMLElement | null => {
       media.loop = true;
       media.playsInline = true;
     }
-  } else {
-    (media as HTMLImageElement).alt = "";
-  }
+  } else if (media instanceof HTMLImageElement) media.alt = "";
   tooltip.append(media);
   return tooltip;
 };
@@ -246,9 +248,9 @@ export const positionSourceTooltip = (
   };
   const side =
     dock === "floating"
-      ? (["left", "right", "top", "bottom"] as const).toSorted(
+      ? ((["left", "right", "top", "bottom"] as const).toSorted(
           (a, b) => available[b] - required[b] - (available[a] - required[a]),
-        )[0]!
+        )[0] ?? "left")
       : dockSide[dock];
   const clamp = (value: number, size: number, viewportSize: number) =>
     Math.max(margin, Math.min(value, Math.max(margin, viewportSize - size - margin)));
@@ -274,9 +276,9 @@ export const positionSourceTooltip = (
 };
 
 export const resourceTimingByUrl = (
-  entries: PerformanceResourceTiming[] = performance.getEntriesByType(
-    "resource",
-  ) as PerformanceResourceTiming[],
+  entries: PerformanceResourceTiming[] = performance
+    .getEntriesByType("resource")
+    .filter(isPerformanceResourceTiming),
 ): Map<string, PerformanceResourceTiming> => new Map(entries.map((entry) => [entry.name, entry]));
 
 export const collectResourceHintSources = (

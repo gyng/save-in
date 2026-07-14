@@ -119,7 +119,8 @@ export const isSafeExternalRegex = (regex: RegExp): boolean => {
   ];
   let inCharacterClass = false;
   for (let index = 0; index < source.length; index += 1) {
-    const token = source[index]!;
+    const token = source[index];
+    if (token === undefined) return false;
     if (token === "\\") {
       const escaped = source[index + 1];
       if (
@@ -147,15 +148,18 @@ export const isSafeExternalRegex = (regex: RegExp): boolean => {
       continue;
     }
     if (token === ")" && groups.length > 1) {
-      const group = groups.pop()!;
+      const group = groups.pop();
+      if (!group) return false;
       const repeated = repeatingQuantifierAt(source, index + 1);
       if (repeated && (group.hasAlternation || group.hasQuantifier)) return false;
-      const parent = groups.at(-1)!;
+      const parent = groups.at(-1);
+      if (!parent) return false;
       parent.hasAlternation ||= group.hasAlternation;
       parent.hasQuantifier ||= group.hasQuantifier || repeated;
       continue;
     }
-    const current = groups.at(-1)!;
+    const current = groups.at(-1);
+    if (!current) return false;
     if (token === "|") current.hasAlternation = true;
     if (
       token === "*" ||

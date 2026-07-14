@@ -3,6 +3,7 @@ import { MESSAGE_TYPES } from "../shared/constants.ts";
 import { sendInternalMessage } from "../shared/message-protocol.ts";
 import type { ExternalDownloadRejection } from "../shared/external-download-rejection-types.ts";
 import { splitLines } from "../shared/util.ts";
+import { addClickToCopy } from "./click-to-copy.ts";
 import { setupWebhookPanel } from "./webhook-panel.ts";
 
 const renderVersionLabel = () => {
@@ -20,6 +21,7 @@ const renderExternalApi = () => {
 
   const id = webExtensionApi.runtime.id;
   idElement.textContent = id;
+  if (idElement instanceof HTMLElement) addClickToCopy(idElement);
 
   const snippet = document.querySelector("#api-snippet");
   if (snippet) {
@@ -38,6 +40,7 @@ const renderExternalApi = () => {
       `});`,
       `// res.body -> { status: "OK", version, url } | { status: "ERROR", error, message }`,
     ].join("\n");
+    if (snippet instanceof HTMLElement) addClickToCopy(snippet);
   }
 
   const versionElement = document.querySelector("#api-version");
@@ -184,13 +187,10 @@ const renderRejectedCaller = (
         const ids = splitLines(allowlist.value);
         if (!ids.includes(rejection.senderId)) ids.push(rejection.senderId);
         const nextAllowlist = ids.join("\n");
-        const applied = (await webExtensionApi.runtime.sendMessage({
+        const applied = await sendInternalMessage(webExtensionApi.runtime, {
           type: MESSAGE_TYPES.APPLY_CONFIG,
           body: { config: { externalDownloadAllowlist: nextAllowlist } },
-        })) as {
-          type?: string;
-          body?: { applied?: Record<string, unknown>; rejected?: unknown[] };
-        };
+        });
         if (
           applied.type !== MESSAGE_TYPES.APPLY_CONFIG_RESULT ||
           !applied.body ||
@@ -200,10 +200,10 @@ const renderRejectedCaller = (
         ) {
           throw new Error("Save In did not accept the allowlist change");
         }
-        const cleared = (await webExtensionApi.runtime.sendMessage({
+        const cleared = await sendInternalMessage(webExtensionApi.runtime, {
           type: MESSAGE_TYPES.EXTERNAL_DOWNLOAD_REJECTION_CLEAR,
           body: { senderId: rejection.senderId },
-        })) as { type?: string };
+        });
         if (cleared.type !== MESSAGE_TYPES.OK) {
           throw new Error("Save In could not clear the rejected request");
         }
@@ -232,20 +232,20 @@ const renderExternalDownloadRejections = async () => {
   if (!panel || !list) return;
 
   try {
-    const response = (await webExtensionApi.runtime.sendMessage({
+    const response = await sendInternalMessage(webExtensionApi.runtime, {
       type: MESSAGE_TYPES.EXTERNAL_DOWNLOAD_REJECTIONS_GET,
-    })) as { type?: string; body?: { rejections?: ExternalDownloadRejection[] } };
+    });
     if (
       response.type !== MESSAGE_TYPES.EXTERNAL_DOWNLOAD_REJECTIONS_GET ||
-      !Array.isArray(response.body?.rejections)
+      !("rejections" in response.body) ||
+      !Array.isArray(response.body.rejections)
     ) {
       throw new Error("Invalid rejected-download response");
     }
+    const { rejections } = response.body;
     list.textContent = "";
-    response.body.rejections.forEach((rejection) =>
-      renderRejectedCaller(rejection, list, panel, status),
-    );
-    panel.hidden = response.body.rejections.length === 0;
+    rejections.forEach((rejection) => renderRejectedCaller(rejection, list, panel, status));
+    panel.hidden = rejections.length === 0;
   } catch (error) {
     panel.hidden = false;
     if (status) status.textContent = `Could not load rejected requests: ${String(error)}`;
