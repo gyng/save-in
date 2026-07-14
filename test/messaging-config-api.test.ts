@@ -125,6 +125,85 @@ describe("config API", () => {
     expect(sendResponse.mock.calls[0]![0]!.body.ruleTrace).toEqual({ selectedRule: 1 });
   });
 
+  test("external VALIDATE never falls back to the tracked browser tab", async () => {
+    const rules = [[{ name: "into", value: "images", type: "DESTINATION" }]] as any;
+    vi.mocked(router.parseRulesCollecting).mockReturnValue({ rules, errors: [] });
+    const sendResponse = vi.fn();
+
+    expect(
+      onMessageExternal(
+        { type: MESSAGE_TYPES.VALIDATE, body: { filenamePatterns: "x", info: {} } },
+        { id: "validation-client" },
+        sendResponse,
+      ),
+    ).toBe(true);
+    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+
+    expect(router.traceRules).toHaveBeenCalledWith(rules, { currentTab: null });
+  });
+
+  test("external VALIDATE rejects unsafe regexes before tracing", async () => {
+    const rules = [
+      [
+        {
+          name: "filename",
+          value: /(a+)+$/,
+          type: "MATCHER",
+          matcher: vi.fn(),
+        },
+        { name: "into", value: "images", type: "DESTINATION" },
+      ],
+    ] as any;
+    vi.mocked(router.parseRulesCollecting).mockReturnValue({ rules, errors: [] });
+    const sendResponse = vi.fn();
+
+    expect(
+      onMessageExternal(
+        {
+          type: MESSAGE_TYPES.VALIDATE,
+          body: { filenamePatterns: "filename: (a+)+$\ninto: images", info: { filename: "a" } },
+        },
+        { id: "validation-client" },
+        sendResponse,
+      ),
+    ).toBe(true);
+    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+
+    expect(router.traceRules).not.toHaveBeenCalled();
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.VALIDATE,
+      body: {
+        status: MESSAGE_TYPES.ERROR,
+        error: "BAD_REQUEST",
+        message: "Validation rules contain an unsafe regular expression",
+      },
+    });
+  });
+
+  test("external VALIDATE rejects oversized input before parsing", () => {
+    const sendResponse = vi.fn();
+
+    onMessageExternal(
+      {
+        type: MESSAGE_TYPES.VALIDATE,
+        body: { filenamePatterns: "x".repeat(32_769) },
+      },
+      { id: "validation-client" },
+      sendResponse,
+    );
+
+    expect(router.parseRulesCollecting).not.toHaveBeenCalled();
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.VALIDATE,
+      body: {
+        status: MESSAGE_TYPES.ERROR,
+        error: "BAD_REQUEST",
+        message: "Validation rules are too large",
+        version: 1,
+      },
+    });
+  });
+
   test("VALIDATE parses and traces unified automatic routing rules", async () => {
     const filenamePatterns = [
       "context: ^auto$",

@@ -92,6 +92,8 @@ There is no `externally_connectable` declaration, so web pages cannot call Save 
 
 Unknown options and type mismatches are rejected. Omitted options remain unchanged. Use the default from `GET_SCHEMA` to restore one setting.
 
+External validation is isolated from Save In's browser state: a trace uses only the sample fields supplied by the caller and never falls back to the active tab. Requests are bounded to 32,768 characters for each editable grammar, 4,096 characters per ordinary sample field, and 8,192 characters per sample URL. Unsafe nested-repetition regular expressions return `BAD_REQUEST`; bursts above 20 validation requests per 10 seconds per sender return `RATE_LIMITED`.
+
 Automatic source rules live in `filenamePatterns` and use the same routing AST, matcher vocabulary, validation, and debugger as ordinary routing. They are identified by a `context` clause matching `AUTO` and must include both a page constraint and a source constraint. To validate and trace one against representative input:
 
 ```js
@@ -145,6 +147,7 @@ Recommended agent flow:
 7. `save_in_apply_config`
 
 Tools exist only while the options page is open and the browser provides WebMCP. Inputs may contain untrusted page data; tool annotations distinguish read-only and mutating operations.
+`save_in_get_config` returns the complete saved configuration, including text settings such as destinations, routing rules, approved extension IDs, and webhook details. It does not add a Save In-specific consent step. Mutating tools remain marked with `readOnlyHint: false` so the agent or browser can apply its normal confirmation policy.
 `save_in_apply_config` applies every valid key and reports invalid keys separately, so a mixed request can partially succeed. Read the returned `applied` and `rejected` lists before continuing.
 
 ## Webhooks

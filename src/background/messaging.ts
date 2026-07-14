@@ -52,10 +52,16 @@ import {
   AUTOMATIC_SOURCE_MATCHERS,
 } from "../routing/automatic-rule.ts";
 import { getFilenameFromUrl } from "../routing/filename.ts";
+import {
+  createExternalValidationRateLimiter,
+  externalValidationRequestError,
+  hasUnsafeExternalRegex,
+} from "./external-validation.ts";
 
 export type MessageSender = { id?: string | undefined; tab?: CurrentTab | undefined };
 type ProtocolSendResponse<Request extends InternalMessage> = SendResponse<ResponseFor<Request>>;
 const sourcePanelCopies = new Map<string, ReturnType<typeof createSourcePanelCopy>>();
+const allowExternalValidation = createExternalValidationRateLimiter();
 
 export const Messaging = {
   // ─── External DOWNLOAD API (issue #110) ────────────────────────────────
@@ -82,6 +88,7 @@ export const Messaging = {
   API_ERRORS: {
     BAD_REQUEST: "BAD_REQUEST", // malformed message (e.g. missing url)
     INVALID_URL: "INVALID_URL", // url is not a fetchable http(s)/ftp/data URL
+    RATE_LIMITED: "RATE_LIMITED", // caller exceeded the bounded validation burst rate
     UNAUTHORIZED: "UNAUTHORIZED", // caller is not in the user's external-download allowlist
     UNKNOWN_TYPE: "UNKNOWN_TYPE", // unrecognised message type
   },
@@ -260,6 +267,7 @@ export const Messaging = {
     request: MessageOf<typeof MESSAGE_TYPES.VALIDATE>,
     _sender: MessageSender,
     sendResponse: ProtocolSendResponse<MessageOf<typeof MESSAGE_TYPES.VALIDATE>>,
+    external = false,
   ): Promise<void> => {
     const body = request.body || {};
     const result: Extract<
@@ -275,9 +283,24 @@ export const Messaging = {
     }
     if (typeof body.filenamePatterns === "string") {
       const parsed = parseRulesCollecting(body.filenamePatterns);
+      if (external && hasUnsafeExternalRegex(parsed.rules)) {
+        sendResponse({
+          type: MESSAGE_TYPES.VALIDATE,
+          body: {
+            status: MESSAGE_TYPES.ERROR,
+            error: Messaging.API_ERRORS.BAD_REQUEST,
+            message: "Validation rules contain an unsafe regular expression",
+          },
+        });
+        return;
+      }
       result.ruleErrors = parsed.errors;
       if (body.info && typeof body.info === "object" && !Array.isArray(body.info)) {
-        result.ruleTrace = await traceRules(parsed.rules, body.info);
+        const traceInfo =
+          external && !Object.hasOwn(body.info, "currentTab")
+            ? { ...body.info, currentTab: null }
+            : body.info;
+        result.ruleTrace = await traceRules(parsed.rules, traceInfo);
       }
       if (body.automaticCandidate) {
         const candidate = body.automaticCandidate;
@@ -682,7 +705,8 @@ const externalHandlers = {
   [MESSAGE_TYPES.GET_SCHEMA]: Messaging.handleGetSchema,
   [MESSAGE_TYPES.GET_KEYWORDS]: Messaging.handleGetKeywords,
   [MESSAGE_TYPES.GET_GRAMMARS]: Messaging.handleGetGrammars,
-  [MESSAGE_TYPES.VALIDATE]: Messaging.handleValidate,
+  [MESSAGE_TYPES.VALIDATE]: (request, sender, sendResponse) =>
+    Messaging.handleValidate(request, sender, sendResponse, true),
   [MESSAGE_TYPES.DOWNLOAD]: (request, sender, sendResponse) => {
     if (!Messaging.isExternalDownloadAllowed(sender)) {
       return (async () => {
@@ -766,6 +790,33 @@ export const registerMessaging = () => {
         });
       }
       return;
+    }
+    if (rawRequest.type === MESSAGE_TYPES.VALIDATE) {
+      const requestError = externalValidationRequestError(rawRequest.body);
+      if (requestError) {
+        sendResponse({
+          type: MESSAGE_TYPES.VALIDATE,
+          body: {
+            status: MESSAGE_TYPES.ERROR,
+            error: Messaging.API_ERRORS.BAD_REQUEST,
+            message: requestError,
+            version: Messaging.API_VERSION,
+          },
+        });
+        return;
+      }
+      if (!allowExternalValidation(sender.id || "unknown")) {
+        sendResponse({
+          type: MESSAGE_TYPES.VALIDATE,
+          body: {
+            status: MESSAGE_TYPES.ERROR,
+            error: Messaging.API_ERRORS.RATE_LIMITED,
+            message: "Too many validation requests",
+            version: Messaging.API_VERSION,
+          },
+        });
+        return;
+      }
     }
     return dispatchMessage(rawRequest, sender, sendResponse, externalHandlers);
   });
