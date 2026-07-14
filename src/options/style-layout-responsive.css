@@ -14,22 +14,10 @@
     width: calc(100% + 2 * var(--space-3));
     margin-inline: calc(-1 * var(--space-3));
     padding-inline: var(--space-3);
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    overflow-y: hidden;
-    scrollbar-width: thin;
+    flex-wrap: wrap;
   }
 
   .tablist .tab {
     flex: 0 0 auto;
-  }
-
-  .tablist::-webkit-scrollbar {
-    height: var(--space-1);
-  }
-
-  .tablist::-webkit-scrollbar-thumb {
-    border-radius: var(--radius);
-    background: var(--color-control-border);
   }
 }

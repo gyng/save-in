@@ -565,6 +565,7 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
       "delete",
       localize("routeVisualDelete", "Delete rule"),
     );
+    remove.classList.add("danger-button");
     remove.disabled = !rule.editable;
     remove.addEventListener("click", () => {
       commit(deleteRoutingRule(textarea.value, rule.index));

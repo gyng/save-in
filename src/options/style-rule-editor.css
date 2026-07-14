@@ -261,6 +261,18 @@
   opacity: 1;
 }
 
+.rule-editor-card-action-menu .danger-button {
+  color: var(--color-on-accent);
+  border-color: var(--color-danger);
+  background: var(--color-danger);
+}
+
+.rule-editor-card-action-menu .danger-button:hover,
+.rule-editor-card-action-menu .danger-button:active {
+  border-color: var(--color-danger-active);
+  background: var(--color-danger-active);
+}
+
 .rule-clause-row {
   display: grid;
   grid-column: 1 / -1;

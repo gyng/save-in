@@ -157,9 +157,9 @@ or visually separate interface. Preserve these rules as the tab grows:
   semantics, visible focus, a localized accessible name, and live confirmation.
 - Action rows must wrap without fixed translated-text offsets. Check backup,
   reset, and similar multi-button rows with a long locale as well as English.
-- At narrow widths, keep the main tab list to one horizontally scrollable row and
-  reveal the active tab after activation or resize. Do not let wrapped tabs
-  consume multiple rows above the active panel.
+- At narrow widths, let the main tab list wrap onto additional rows instead of
+  introducing a horizontal scrollbar. Keep the active tab visible after
+  activation or resize.
 
 When changing Advanced, verify the section hierarchy, dependency states, and all
 integration cards together. A locally polished row is not complete if it creates

@@ -8,10 +8,7 @@
 
 .tablist {
   display: flex;
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scrollbar-width: thin;
+  flex-wrap: wrap;
   gap: var(--space-1);
   /* Full-bleed bar: escape the form's horizontal padding */
   width: calc(100% + 2 * var(--space-5));
@@ -49,15 +46,6 @@
 
 .tablist .tab {
   flex: 0 0 auto;
-}
-
-.tablist::-webkit-scrollbar {
-  height: var(--space-1);
-}
-
-.tablist::-webkit-scrollbar-thumb {
-  border-radius: var(--radius);
-  background: var(--color-control-border);
 }
 
 .editor-tab {
