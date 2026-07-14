@@ -22,7 +22,14 @@ import {
 } from "./shared-scenarios.mjs";
 import { runTemplateLibraryScenario } from "./template-library-scenario.mjs";
 import { runRoutingVisualEditorScenario } from "./routing-visual-editor-scenario.mjs";
-import { closeLocal, listenLocal, poll } from "./helpers.mjs";
+import {
+  closeLocal,
+  listenLocal,
+  nextBrowserTaskExpression,
+  poll,
+  waitForDownloadExpression,
+  waitForTabExpression,
+} from "./helpers.mjs";
 
 /** @type {Awaited<ReturnType<typeof firefox.launch>>} */
 let session;
@@ -66,37 +73,15 @@ const captureFailureArtifacts = async (testName) => {
 const waitForDownloads = async (filenamePart, deadlineMs = 8000) =>
   JSON.parse(
     await evalBackground(
-      `(async () => {
-        const deadline = Date.now() + ${deadlineMs};
-        for (;;) {
-          const downloads = await browser.downloads.search({});
-          const rows = downloads
-            .filter((x) => x.filename.includes(${JSON.stringify(filenamePart)}))
-            .map((x) => ({ id: x.id, state: x.state, filename: x.filename }));
-          if (rows.some((x) => x.state === "complete")) {
-            return JSON.stringify(rows);
-          }
-          if (Date.now() >= deadline) return JSON.stringify(rows);
-          await new Promise((resolve) => setTimeout(resolve, 100));
-        }
-      })()`,
+      waitForDownloadExpression({ filenameIncludes: filenamePart, timeoutMs: deadlineMs }),
       deadlineMs + 2000,
     ),
   );
 
 /** @param {string} url @returns {Promise<string>} */
 const waitForDownloadUrl = async (url) => {
-  const row = await poll(
-    async () => {
-      const json = await evalBackground(
-        `browser.downloads.search({ url: ${JSON.stringify(url)} }).then((rows) => JSON.stringify(rows.at(-1) || null))`,
-      );
-      const result = JSON.parse(json);
-      return result?.state === "complete" ? result : null;
-    },
-    { description: `browser-selected filename for ${url}` },
-  );
-  return path.basename(row.filename);
+  const rows = JSON.parse(await evalBackground(waitForDownloadExpression({ url })));
+  return path.basename(rows.at(-1).filename);
 };
 
 /** @param {string} url @returns {Promise<string>} */
@@ -114,7 +99,7 @@ const waitForLog = async (predicate, deadlineMs = 8000) =>
         for (;;) {
           const matches = (await api.logs()).filter(${predicate});
           if (matches.length || Date.now() >= deadline) return JSON.stringify(matches);
-          await new Promise((resolve) => setTimeout(resolve, 100));
+          await ${nextBrowserTaskExpression};
         }
       })()`,
       deadlineMs + 2000,
@@ -538,15 +523,7 @@ test("ordinary browser downloads can be tracked and experimentally rerouted on F
       filenamePatterns: "mime: ^application/octet-stream$\\nreferrerdomain: ^127\\.0\\.0\\.1$\\ninto: browser-routed/:filename:",
     }).then(() => api.reset())`);
     await evalBackground(`browser.tabs.create({ url: ${JSON.stringify(pageUrl)} })`);
-    await evalBackground(`(async () => {
-      const deadline = Date.now() + 8000;
-      for (;;) {
-        const tabs = await browser.tabs.query({});
-        if (tabs.some((tab) => tab.url?.includes(${JSON.stringify(target)}) && tab.status === "complete")) return;
-        if (Date.now() >= deadline) throw new Error("ordinary download page timeout");
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      }
-    })()`);
+    await evalBackground(waitForTabExpression(target));
     await session.evaluateInTab(target, `document.querySelector("#native").click()`);
 
     const rows = await waitForDownloads("browser-routed");
@@ -561,7 +538,7 @@ test("ordinary browser downloads can be tracked and experimentally rerouted on F
           const entries = (await api.history()).filter((entry) => entry.info?.context === "browser");
           if (entries.some((entry) => entry.status === "complete")) return JSON.stringify(entries);
           if (Date.now() >= deadline) return JSON.stringify(entries);
-          await new Promise((resolve) => setTimeout(resolve, 100));
+          await ${nextBrowserTaskExpression};
         }
       })()`),
     );
@@ -597,17 +574,7 @@ test("alt+click on a real page saves the image through the content script", asyn
     await evalBackground(
       `browser.tabs.create({ url: ${JSON.stringify(pageUrl)} }).then(() => "opened")`,
     );
-    await evalBackground(`(async () => {
-      const deadline = Date.now() + 8000;
-      for (;;) {
-        const tabs = await browser.tabs.query({});
-        if (tabs.some((tab) => tab.url?.includes(${JSON.stringify(targetUrl)}) && tab.status === "complete")) {
-          return "ready";
-        }
-        if (Date.now() >= deadline) throw new Error("page load timeout");
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      }
-    })()`);
+    await evalBackground(waitForTabExpression(targetUrl));
 
     // Firefox honours keyCode/buttons on synthetic events, and content-script
     // window listeners fire on real page DOM events, so we can drive the flow
@@ -677,20 +644,12 @@ test("Page Sources discovers, updates live, and restores across tabs", async () 
     await evalBackground(
       `browser.tabs.create({ url: ${JSON.stringify(firstUrl)} }).then(() => "opened")`,
     );
-    await evalBackground(`(async () => {
-      const deadline = Date.now() + 8000;
-      for (;;) {
-        const tab = (await browser.tabs.query({})).find((candidate) =>
-          candidate.url?.includes(${JSON.stringify(firstMatch)}));
-        if (tab?.id && tab.status === "complete") {
-          await browser.storage.session.set({ sourcePanelOpen: true });
-          await browser.tabs.sendMessage(tab.id, { type: "SET_SOURCE_PANEL", body: { open: true } });
-          return "opened";
-        }
-        if (Date.now() >= deadline) throw new Error("Page Sources fixture timeout");
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      }
-    })()`);
+    await evalBackground(`(${waitForTabExpression(firstMatch)}).then(async (tabJson) => {
+      const tab = JSON.parse(tabJson);
+      await browser.storage.session.set({ sourcePanelOpen: true });
+      await browser.tabs.sendMessage(tab.id, { type: "SET_SOURCE_PANEL", body: { open: true } });
+      return "opened";
+    })`);
     await poll(
       async () =>
         (await session.evaluateInTab(

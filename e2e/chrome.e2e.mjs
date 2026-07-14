@@ -22,7 +22,7 @@ import {
 } from "./shared-scenarios.mjs";
 import { runTemplateLibraryScenario } from "./template-library-scenario.mjs";
 import { runRoutingVisualEditorScenario } from "./routing-visual-editor-scenario.mjs";
-import { listenLocal, poll } from "./helpers.mjs";
+import { listenLocal, poll, waitForDownloadExpression } from "./helpers.mjs";
 
 const PROFILE = path.join(chrome.ROOT, "dist", "e2e-profile");
 const ARTIFACTS = process.env.E2E_ARTIFACT_DIR
@@ -144,35 +144,16 @@ const startSourcePanelServer = async () => {
   return { server, port: await listenLocal(server) };
 };
 
-// Polls a service-worker expression that returns a JSON array until it is
-// non-empty or the deadline passes, instead of a single fixed sleep
 /** @param {string} regex @param {number} [deadlineMs] @returns {Promise<any[]>} */
-const waitForDownloads = (regex, deadlineMs = 8000) =>
-  poll(
-    async () => {
-      const json = await evalSW(
-        `browser.downloads.search({ filenameRegex: ${JSON.stringify(regex)} })
-        .then((d) => JSON.stringify(d.map((x) => ({ id: x.id, state: x.state, filename: x.filename }))))`,
-      );
-      const rows = JSON.parse(json);
-      return rows.some((/** @type {any} */ r) => r.state === "complete") ? rows : null;
-    },
-    { timeoutMs: deadlineMs, description: `download matching ${regex}` },
+const waitForDownloads = async (regex, deadlineMs = 8000) =>
+  JSON.parse(
+    await evalSW(waitForDownloadExpression({ filenameRegex: regex, timeoutMs: deadlineMs })),
   );
 
 /** @param {string} url @returns {Promise<string>} */
 const waitForDownloadUrl = async (url) => {
-  const row = await poll(
-    async () => {
-      const json = await evalSW(
-        `browser.downloads.search({ url: ${JSON.stringify(url)} }).then((rows) => JSON.stringify(rows.at(-1) || null))`,
-      );
-      const result = JSON.parse(json);
-      return result?.state === "complete" ? result : null;
-    },
-    { description: `browser-selected filename for ${url}` },
-  );
-  return path.basename(row.filename);
+  const rows = JSON.parse(await evalSW(waitForDownloadExpression({ url })));
+  return path.basename(rows.at(-1).filename);
 };
 
 /** @param {string} url @returns {Promise<string>} */
