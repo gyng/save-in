@@ -317,7 +317,6 @@ export const addAutomaticRoutingRule = (source: string): string => {
     "pageurl: ^https://example\\.com/",
     "sourcekind: ^image$",
     "into: automatic/:pagedomain:/",
-    "disabled: true",
   ].join(newline)}${newline}`;
 };
 

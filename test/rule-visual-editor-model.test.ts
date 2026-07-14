@@ -138,16 +138,17 @@ describe("routing visual editor model", () => {
     );
   });
 
-  test("adds a disabled, guarded automatic-source rule", () => {
-    expect(addAutomaticRoutingRule("filename: jpg\ninto: images/:filename:\n")).toContain(
+  test("adds an enabled, guarded automatic-source rule", () => {
+    const source = addAutomaticRoutingRule("filename: jpg\ninto: images/:filename:\n");
+    expect(source).toContain(
       [
         "context: ^auto$",
         "pageurl: ^https://example\\.com/",
         "sourcekind: ^image$",
         "into: automatic/:pagedomain:/",
-        "disabled: true",
       ].join("\n"),
     );
+    expect(source).not.toContain("disabled: true");
   });
 
   test.each([

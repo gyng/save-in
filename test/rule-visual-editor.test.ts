@@ -245,7 +245,7 @@ describe("routing visual editor", () => {
     expect(document.querySelectorAll(".rule-editor-card")).toHaveLength(2);
   });
 
-  test("creates and identifies a guarded automatic-source rule", () => {
+  test("creates and identifies an enabled guarded automatic-source rule", () => {
     setupRuleVisualEditor({ matchers: ["context", "pageurl", "sourcekind"] });
     const menu = element<HTMLDetailsElement>(".rule-add-menu");
     menu.open = true;
@@ -255,7 +255,8 @@ describe("routing visual editor", () => {
     expect(source).toContain("context: ^auto$");
     expect(source).toContain("pageurl: ^https://example\\.com/");
     expect(source).toContain("sourcekind: ^image$");
-    expect(source).toContain("disabled: true");
+    expect(source).not.toContain("disabled: true");
+    expect(element<HTMLInputElement>(".rule-editor-enabled").checked).toBe(true);
     expect(document.querySelectorAll(".rule-editor-auto-badge")).toHaveLength(1);
     expect(menu.open).toBe(false);
   });
