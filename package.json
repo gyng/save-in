@@ -22,6 +22,8 @@
     "release:prepare": "node scripts/prepare-release.js",
     "d": "node scripts/dev-firefox.js",
     "d:chrome": "node scripts/dev-chrome.js --watch",
+    "dogfood:functional": "node scripts/dogfood-functional.js",
+    "dogfood:functional:watch": "node scripts/dogfood-functional.js --watch",
     "e2e": "node scripts/e2e-parallel.js",
     "e2e:headed": "node scripts/e2e-parallel.js --headed",
     "e2e:serial": "node scripts/e2e-parallel.js --serial",

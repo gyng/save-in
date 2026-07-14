@@ -216,6 +216,12 @@ browsers before reporting it as confirmed.
 - `npm run e2e`: stage once and run Chrome and Firefox in parallel. Use
   `e2e:chrome`, `e2e:firefox`, or `e2e:serial` when isolating failures or
   machine-resource issues.
+- `npm run dogfood:functional`: run the fast isolated Chrome/WebMCP functional
+  smoke round. Use `dogfood:functional:watch` to keep Chrome alive, rebuild and
+  reload after source changes, or press Enter to rerun the same build immediately.
+  Pass `-- --no-stage` to reuse the current bundle or `-- --headed` to inspect
+  the browser. Reports and failure artifacts are written under
+  `dist/dogfood-artifacts`.
 - `npm run d:chrome` and `npm run d`: auto-rebuilding Chrome and Firefox dev
   loops.
 - `npm run bundle`: emit readable bundles. `npm run build` also stages and
