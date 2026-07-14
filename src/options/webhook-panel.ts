@@ -72,10 +72,16 @@ export const setupWebhookPanel = (
     return;
   }
 
+  const controls = {
+    includePageUrl: fieldControls.includePageUrl,
+    includePageTitle: fieldControls.includePageTitle,
+    includeSelectionText: fieldControls.includeSelectionText,
+  } as Record<keyof WebhookFieldSelection, HTMLInputElement>;
+
   const fields = (): WebhookFieldSelection => ({
-    includePageUrl: fieldControls.includePageUrl?.checked === true,
-    includePageTitle: fieldControls.includePageTitle?.checked === true,
-    includeSelectionText: fieldControls.includeSelectionText?.checked === true,
+    includePageUrl: controls.includePageUrl.checked,
+    includePageTitle: controls.includePageTitle.checked,
+    includeSelectionText: controls.includeSelectionText.checked,
   });
   const setStatus = (message: string, error = false) => {
     status.textContent = message;
@@ -261,8 +267,8 @@ export const setupWebhookPanel = (
     }
   });
 
-  Object.entries(fieldControls).forEach(([field, control]) => {
-    control?.addEventListener("change", async () => {
+  Object.entries(controls).forEach(([field, control]) => {
+    control.addEventListener("change", async () => {
       const next = control.checked;
       if (next && enabled.checked && !(await requestDataTypes(fields()))) {
         control.checked = false;
@@ -273,7 +279,7 @@ export const setupWebhookPanel = (
       control.disabled = true;
       try {
         await dependencies.apply({
-          [`webhook${field[0]?.toUpperCase() ?? ""}${field.slice(1)}`]: next,
+          [`webhook${field[0]!.toUpperCase()}${field.slice(1)}`]: next,
         });
         setStatus(dependencies.message("webhookFieldsSaved", "Webhook data updated."));
       } catch {

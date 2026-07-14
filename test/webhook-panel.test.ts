@@ -1,5 +1,7 @@
 // @vitest-environment jsdom
 import { setupWebhookPanel, type WebhookPanelDependencies } from "../src/options/webhook-panel.ts";
+import { webExtensionApi } from "../src/platform/web-extension-api.ts";
+import { MESSAGE_TYPES } from "../src/shared/constants.ts";
 
 const markup = () => {
   document.body.innerHTML = `
@@ -28,6 +30,37 @@ const dependencies = (
 });
 
 beforeEach(markup);
+
+afterEach(() => {
+  vi.useRealTimers();
+  vi.unstubAllGlobals();
+});
+
+test("returns when the complete webhook control set is unavailable", () => {
+  document.body.innerHTML = "";
+  expect(() => setupWebhookPanel(dependencies())).not.toThrow();
+});
+
+test("wires the default save, delivery, and localization dependencies", async () => {
+  vi.mocked(browser.i18n.getMessage).mockReturnValue("");
+  vi.mocked(webExtensionApi.runtime.sendMessage).mockResolvedValue({
+    type: MESSAGE_TYPES.APPLY_CONFIG_RESULT,
+    body: { version: 1, applied: {}, rejected: [] },
+  });
+  const fetcher = vi.fn(async () => ({ ok: true, status: 204 }));
+  vi.stubGlobal("fetch", fetcher);
+  setupWebhookPanel();
+  const endpoint = document.querySelector<HTMLInputElement>("#webhookUrl")!;
+  endpoint.value = "https://hooks.example/default";
+  endpoint.dispatchEvent(new FocusEvent("blur"));
+  await vi.waitFor(() => expect(webExtensionApi.runtime.sendMessage).toHaveBeenCalled());
+
+  document.querySelector<HTMLButtonElement>("#webhook-test")!.click();
+  await vi.waitFor(() => expect(fetcher).toHaveBeenCalled());
+  await vi.waitFor(() =>
+    expect(document.querySelector("#webhook-status")?.textContent).toBe("Test delivered."),
+  );
+});
 
 test("requests Firefox data consent and atomically enables a valid endpoint", async () => {
   const ports = dependencies();
@@ -75,6 +108,32 @@ test("does not enable delivery when Firefox consent is declined", async () => {
   await vi.waitFor(() => expect(enabled.checked).toBe(false));
   expect(ports.apply).not.toHaveBeenCalledWith(expect.objectContaining({ webhookEnabled: true }));
   expect(document.querySelector("#webhook-status")?.textContent).toBe("webhookPermissionDenied");
+});
+
+test("does not re-request data permissions that are already granted", async () => {
+  const ports = dependencies({
+    permissions: {
+      getAll: vi.fn(async () => ({
+        data_collection: ["browsingActivity", "websiteActivity"],
+      })),
+      request: vi.fn(async () => true),
+    },
+  });
+  setupWebhookPanel(ports);
+  const endpoint = document.querySelector<HTMLInputElement>("#webhookUrl")!;
+  const enabled = document.querySelector<HTMLInputElement>("#webhookEnabled")!;
+  endpoint.value = "https://hooks.example/save";
+  await vi.waitFor(() => expect(enabled.disabled).toBe(false));
+  enabled.checked = true;
+  enabled.dispatchEvent(new Event("change"));
+
+  await vi.waitFor(() =>
+    expect(ports.apply).toHaveBeenCalledWith({
+      webhookEnabled: true,
+      webhookUrl: "https://hooks.example/save",
+    }),
+  );
+  expect(ports.permissions?.request).not.toHaveBeenCalled();
 });
 
 test("surfaces a revoked Firefox permission for a stored enabled webhook", async () => {
@@ -143,4 +202,178 @@ test("sends a privacy-minimal test and reports endpoint rejection", async () => 
 
   await vi.waitFor(() => expect(ports.post).toHaveBeenCalledWith("https://hooks.example/test"));
   expect(document.querySelector("#webhook-status")?.textContent).toBe("webhookTestRejected");
+});
+
+test("debounces valid endpoint saves, saves blank endpoints, and rejects malformed endpoints", async () => {
+  vi.useFakeTimers();
+  const ports = dependencies();
+  setupWebhookPanel(ports);
+  const endpoint = document.querySelector<HTMLInputElement>("#webhookUrl")!;
+
+  endpoint.value = "https://hooks.example/first";
+  endpoint.dispatchEvent(new InputEvent("input"));
+  endpoint.value = "https://hooks.example/final";
+  endpoint.dispatchEvent(new InputEvent("input"));
+  await vi.advanceTimersByTimeAsync(400);
+  expect(ports.apply).toHaveBeenCalledWith({ webhookUrl: "https://hooks.example/final" });
+
+  endpoint.value = "";
+  endpoint.dispatchEvent(new FocusEvent("blur"));
+  await vi.waitFor(() => expect(ports.apply).toHaveBeenCalledWith({ webhookUrl: "" }));
+
+  vi.mocked(ports.apply).mockClear();
+  endpoint.value = "http://insecure.example/hook";
+  endpoint.dispatchEvent(new FocusEvent("blur"));
+  await Promise.resolve();
+  expect(endpoint.validationMessage).toContain("HTTPS");
+  expect(ports.apply).not.toHaveBeenCalled();
+});
+
+test("reports endpoint-save failures", async () => {
+  const ports = dependencies({
+    apply: vi.fn(() => Promise.reject(new Error("storage"))),
+    message: (key) => key,
+  });
+  setupWebhookPanel(ports);
+  const endpoint = document.querySelector<HTMLInputElement>("#webhookUrl")!;
+  endpoint.value = "https://hooks.example/save";
+  endpoint.dispatchEvent(new FocusEvent("blur"));
+
+  await vi.waitFor(() =>
+    expect(document.querySelector("#webhook-status")?.textContent).toBe("webhookSaveFailed"),
+  );
+});
+
+test("reports invalid test URLs and delivery failures", async () => {
+  const ports = dependencies({
+    post: vi.fn(() => Promise.reject(new Error("offline"))),
+    message: (key) => key,
+  });
+  setupWebhookPanel(ports);
+  const endpoint = document.querySelector<HTMLInputElement>("#webhookUrl")!;
+  const button = document.querySelector<HTMLButtonElement>("#webhook-test")!;
+  const reportValidity = vi.spyOn(endpoint, "reportValidity").mockReturnValue(false);
+
+  button.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+  expect(reportValidity).toHaveBeenCalled();
+  expect(ports.post).not.toHaveBeenCalled();
+
+  endpoint.value = "https://hooks.example/test";
+  endpoint.dispatchEvent(new InputEvent("input"));
+  button.click();
+  await vi.waitFor(() =>
+    expect(document.querySelector("#webhook-status")?.textContent).toBe("webhookTestFailed"),
+  );
+  expect(button.dataset.sending).toBeUndefined();
+  expect(button.disabled).toBe(false);
+});
+
+test("enables without a data-permission API and rejects invalid endpoints", async () => {
+  const ports = dependencies({ permissions: undefined });
+  setupWebhookPanel(ports);
+  const endpoint = document.querySelector<HTMLInputElement>("#webhookUrl")!;
+  const enabled = document.querySelector<HTMLInputElement>("#webhookEnabled")!;
+  await vi.waitFor(() => expect(enabled.disabled).toBe(false));
+
+  enabled.checked = true;
+  enabled.dispatchEvent(new Event("change"));
+  await vi.waitFor(() => expect(enabled.checked).toBe(false));
+  expect(ports.apply).not.toHaveBeenCalled();
+
+  endpoint.value = "https://hooks.example/save";
+  enabled.checked = true;
+  enabled.dispatchEvent(new Event("change"));
+  await vi.waitFor(() =>
+    expect(ports.apply).toHaveBeenCalledWith({
+      webhookEnabled: true,
+      webhookUrl: "https://hooks.example/save",
+    }),
+  );
+});
+
+test.each([
+  [true, false],
+  [false, true],
+])("disables webhooks and handles permission removal %#", async (removed, rejects) => {
+  const remove = rejects
+    ? vi.fn(() => Promise.reject(new Error("unsupported")))
+    : vi.fn(async () => removed);
+  const ports = dependencies({
+    permissions: {
+      getAll: vi.fn(async () => ({
+        data_collection: ["browsingActivity", "websiteActivity", "websiteContent"],
+      })),
+      request: vi.fn(async () => true),
+      remove,
+    },
+    message: (key) => key,
+  });
+  setupWebhookPanel(ports);
+  const enabled = document.querySelector<HTMLInputElement>("#webhookEnabled")!;
+  await vi.waitFor(() => expect(enabled.disabled).toBe(false));
+  enabled.checked = false;
+  enabled.dispatchEvent(new Event("change"));
+
+  await vi.waitFor(() => expect(ports.apply).toHaveBeenCalledWith({ webhookEnabled: false }));
+  await vi.waitFor(() => expect(remove).toHaveBeenCalled());
+  expect(document.querySelector("#webhook-status")?.textContent).toBe("webhookDisabledSaved");
+});
+
+test("restores the toggle after an enable save fails", async () => {
+  const ports = dependencies({
+    apply: vi.fn(() => Promise.reject(new Error("storage"))),
+    message: (key) => key,
+  });
+  setupWebhookPanel(ports);
+  const endpoint = document.querySelector<HTMLInputElement>("#webhookUrl")!;
+  const enabled = document.querySelector<HTMLInputElement>("#webhookEnabled")!;
+  endpoint.value = "https://hooks.example/save";
+  await vi.waitFor(() => expect(enabled.disabled).toBe(false));
+  enabled.checked = true;
+  enabled.dispatchEvent(new Event("change"));
+
+  await vi.waitFor(() => expect(enabled.checked).toBe(false));
+  expect(document.querySelector("#webhook-status")?.textContent).toBe("webhookSaveFailed");
+  expect(enabled.disabled).toBe(false);
+});
+
+test("reverts denied and failed field changes", async () => {
+  const denied = dependencies({
+    permissions: {
+      getAll: vi.fn(async () => ({ data_collection: [] })),
+      request: vi.fn(async () => false),
+    },
+    message: (key) => key,
+  });
+  setupWebhookPanel(denied);
+  const enabled = document.querySelector<HTMLInputElement>("#webhookEnabled")!;
+  const title = document.querySelector<HTMLInputElement>("#webhookIncludePageTitle")!;
+  await vi.waitFor(() => expect(enabled.disabled).toBe(false));
+  enabled.checked = true;
+  title.checked = true;
+  title.dispatchEvent(new Event("change"));
+  await vi.waitFor(() => expect(title.checked).toBe(false));
+  expect(document.querySelector("#webhook-status")?.textContent).toBe("webhookPermissionDenied");
+
+  markup();
+  const failed = dependencies({
+    apply: vi.fn(() => Promise.reject(new Error("storage"))),
+    message: (key) => key,
+  });
+  setupWebhookPanel(failed);
+  const selection = document.querySelector<HTMLInputElement>("#webhookIncludeSelectionText")!;
+  selection.checked = false;
+  selection.dispatchEvent(new Event("change"));
+  await vi.waitFor(() => expect(selection.checked).toBe(true));
+  expect(document.querySelector("#webhook-status")?.textContent).toBe("webhookSaveFailed");
+  expect(selection.disabled).toBe(false);
+});
+
+test("refreshes preview, validation, and permission state after options restore", async () => {
+  const ports = dependencies();
+  setupWebhookPanel(ports);
+  const title = document.querySelector<HTMLInputElement>("#webhookIncludePageTitle")!;
+  title.checked = true;
+  document.dispatchEvent(new Event("options-restored"));
+  expect(document.querySelector("#webhook-payload-preview")?.textContent).toContain("pageTitle");
 });
