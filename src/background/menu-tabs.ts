@@ -14,6 +14,7 @@ import type { DownloadInfo } from "../downloads/download-types.ts";
 import { Log } from "./log.ts";
 import { backgroundRuntime } from "./runtime.ts";
 import { runBackgroundTask } from "./event-task.ts";
+import { isDownloadableTab } from "./downloadable-tab.ts";
 
 type HostTab = Parameters<Parameters<typeof webExtensionApi.tabs.onUpdated.addListener>[0]>[2];
 
@@ -116,14 +117,7 @@ export const addTabMenuListener = () => {
       }
 
       try {
-        const tabs = (await webExtensionApi.tabs.query(query))
-          .filter(
-            (tab): tab is HostTab & { url: string } =>
-              typeof tab.url === "string" &&
-              tab.url.length > 0 &&
-              !/^(about|chrome):/.test(tab.url),
-          )
-          .filter(filter);
+        const tabs = (await webExtensionApi.tabs.query(query)).filter(isDownloadableTab).filter(filter);
 
         // Keep the event handler alive and bound concurrency without relying on
         // timers, which non-persistent MV3/event-page backgrounds may discard.
