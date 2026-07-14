@@ -3,6 +3,27 @@ import { setupIntegrationPanel } from "../src/options/integration-panel.ts";
 import { webExtensionApi } from "../src/platform/web-extension-api.ts";
 import { MESSAGE_TYPES } from "../src/shared/constants.ts";
 
+const dispatchRestore = () => document.dispatchEvent(new Event("options-restored"));
+
+const rejection = (
+  senderId: string,
+  requestType: "activeTab" | "url" | "unknown" = "url",
+  attempts = 1,
+) => ({
+  senderId,
+  attempts,
+  lastRejectedAt: "2026-07-13T10:00:00.000Z",
+  requestType,
+});
+
+const rejectedCallerMarkup = (allowlist = "") => {
+  document.body.innerHTML = `<textarea id="externalDownloadAllowlist">${allowlist}</textarea>
+    <section id="external-download-rejections" hidden>
+      <div id="external-download-rejection-list"></div>
+      <div id="external-download-rejection-status"></div>
+    </section>`;
+};
+
 test("renders build identity and the live external API contract", async () => {
   const originalId = webExtensionApi.runtime.id;
   Object.defineProperty(webExtensionApi.runtime, "id", {
@@ -156,4 +177,258 @@ test("manages approved extension IDs without exposing the raw editor", async () 
   expect(document.querySelector<HTMLTextAreaElement>("#externalDownloadAllowlist")?.value).toBe(
     "second-extension\nnew-extension",
   );
+});
+
+test("tolerates an integration document without optional surfaces", async () => {
+  document.body.innerHTML = "";
+  setupIntegrationPanel();
+  dispatchRestore();
+  await Promise.resolve();
+
+  document.body.innerHTML = '<div id="external-download-rejection-list"></div>';
+  setupIntegrationPanel();
+  dispatchRestore();
+  await Promise.resolve();
+});
+
+test.each([
+  [{ body: {} }, "unavailable", "—"],
+  [{ body: { version: 2 } }, "unavailable", "—"],
+  [{ body: { version: null, capabilities: null } }, "unknown", "—"],
+])("degrades the API handshake for response %#", async (response, version, capabilities) => {
+  document.body.innerHTML = `<span id="ext-id"></span>
+    <span id="api-version"></span><span id="api-capabilities"></span>`;
+  vi.spyOn(webExtensionApi.runtime, "sendMessage").mockResolvedValue(response as never);
+  setupIntegrationPanel();
+
+  await vi.waitFor(() => expect(document.querySelector("#api-version")?.textContent).toBe(version));
+  expect(document.querySelector("#api-capabilities")?.textContent).toBe(capabilities);
+});
+
+test("completes and contains API handshakes without result fields", async () => {
+  document.body.innerHTML = '<span id="ext-id"></span>';
+  const sendMessage = vi
+    .spyOn(webExtensionApi.runtime, "sendMessage")
+    .mockResolvedValueOnce({ body: { version: 1, capabilities: [] } } as never);
+  setupIntegrationPanel();
+  await vi.waitFor(() => expect(sendMessage).toHaveBeenCalled());
+
+  document.body.innerHTML = '<span id="ext-id"></span>';
+  const callsBeforeFailure = sendMessage.mock.calls.length;
+  sendMessage.mockRejectedValueOnce(new Error("offline"));
+  setupIntegrationPanel();
+  await vi.waitFor(() => expect(sendMessage.mock.calls.length).toBeGreaterThan(callsBeforeFailure));
+});
+
+test("manages empty, duplicate, and keyboard-approved allowlist drafts", async () => {
+  document.body.innerHTML = `<input id="external-extension-id-draft">
+    <button id="external-extension-id-add">Allow</button>
+    <span id="external-approved-count"></span>
+    <div id="external-approved-list"></div><div id="external-approved-empty"></div>
+    <textarea id="externalDownloadAllowlist"></textarea>
+    <section id="external-download-rejections"><div id="external-download-rejection-list"></div></section>`;
+  vi.spyOn(webExtensionApi.runtime, "sendMessage").mockResolvedValue({
+    type: MESSAGE_TYPES.EXTERNAL_DOWNLOAD_REJECTIONS_GET,
+    body: { rejections: [] },
+  });
+  setupIntegrationPanel();
+  dispatchRestore();
+  await vi.waitFor(() =>
+    expect(document.querySelector("#external-approved-count")?.textContent).toBe("None approved"),
+  );
+
+  const draft = document.querySelector<HTMLInputElement>("#external-extension-id-draft")!;
+  const add = document.querySelector<HTMLButtonElement>("#external-extension-id-add")!;
+  expect(add.disabled).toBe(true);
+  add.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+  draft.dispatchEvent(new KeyboardEvent("keydown", { key: "x", bubbles: true }));
+  draft.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+
+  draft.value = "keyboard-extension";
+  draft.dispatchEvent(new InputEvent("input", { bubbles: true }));
+  draft.dispatchEvent(
+    new KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true }),
+  );
+  expect(document.querySelector("#external-approved-count")?.textContent).toBe("1 approved");
+
+  draft.value = "keyboard-extension";
+  draft.dispatchEvent(new InputEvent("input", { bubbles: true }));
+  expect(add.disabled).toBe(true);
+  add.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+  document.querySelector<HTMLButtonElement>(".external-approved-remove")!.click();
+  expect(document.querySelector("#external-approved-count")?.textContent).toBe("None approved");
+});
+
+test("renders every rejected-request label and keeps the panel for remaining callers", async () => {
+  rejectedCallerMarkup("active-caller");
+  vi.spyOn(webExtensionApi.runtime, "sendMessage").mockImplementation(async (message: any) => {
+    if (message.type === MESSAGE_TYPES.EXTERNAL_DOWNLOAD_REJECTIONS_GET) {
+      return {
+        type: MESSAGE_TYPES.EXTERNAL_DOWNLOAD_REJECTIONS_GET,
+        body: {
+          rejections: [
+            rejection("active-caller", "activeTab"),
+            rejection("url-caller", "url", 2),
+            rejection("other-caller", "unknown"),
+          ],
+        },
+      };
+    }
+    if (message.type === MESSAGE_TYPES.APPLY_CONFIG) {
+      return {
+        type: MESSAGE_TYPES.APPLY_CONFIG_RESULT,
+        body: {
+          applied: { externalDownloadAllowlist: "active-caller" },
+          rejected: [],
+        },
+      };
+    }
+    return { type: MESSAGE_TYPES.OK };
+  });
+  setupIntegrationPanel();
+  dispatchRestore();
+  await vi.waitFor(() =>
+    expect(document.querySelectorAll(".external-download-rejection")).toHaveLength(3),
+  );
+  expect(document.body.textContent).toContain("1 blocked attempt · active-tab request");
+  expect(document.body.textContent).toContain("2 blocked attempts · URL request");
+  expect(document.body.textContent).toContain("download request");
+
+  document
+    .querySelector<HTMLButtonElement>("[data-rejected-sender-id='active-caller'] button")!
+    .click();
+  await vi.waitFor(() =>
+    expect(document.querySelector("[data-rejected-sender-id='active-caller']")).toBeNull(),
+  );
+  expect(document.querySelector<HTMLElement>("#external-download-rejections")!.hidden).toBe(false);
+});
+
+test.each([
+  { type: "wrong" },
+  { type: MESSAGE_TYPES.APPLY_CONFIG_RESULT },
+  { type: MESSAGE_TYPES.APPLY_CONFIG_RESULT, body: { rejected: {}, applied: {} } },
+  { type: MESSAGE_TYPES.APPLY_CONFIG_RESULT, body: { rejected: [{}], applied: {} } },
+  { type: MESSAGE_TYPES.APPLY_CONFIG_RESULT, body: { rejected: [], applied: {} } },
+])("rejects an unconfirmed allowlist update %#", async (applyResponse) => {
+  rejectedCallerMarkup();
+  vi.spyOn(webExtensionApi.runtime, "sendMessage").mockImplementation(async (message: any) => {
+    if (message.type === MESSAGE_TYPES.EXTERNAL_DOWNLOAD_REJECTIONS_GET) {
+      return {
+        type: MESSAGE_TYPES.EXTERNAL_DOWNLOAD_REJECTIONS_GET,
+        body: { rejections: [rejection("blocked")] },
+      };
+    }
+    return applyResponse;
+  });
+  setupIntegrationPanel();
+  dispatchRestore();
+  await vi.waitFor(() =>
+    expect(document.querySelector("[data-rejected-sender-id]")).not.toBeNull(),
+  );
+  document.querySelector<HTMLButtonElement>(".external-download-rejection-add")!.click();
+
+  await vi.waitFor(() =>
+    expect(document.querySelector("#external-download-rejection-status")?.textContent).toContain(
+      "Could not add blocked",
+    ),
+  );
+  expect(
+    document.querySelector<HTMLButtonElement>(".external-download-rejection-add")!.disabled,
+  ).toBe(false);
+});
+
+test("reports missing allowlists and rejected-clear failures, then accepts a later retry", async () => {
+  document.body.innerHTML = `<section id="external-download-rejections">
+    <div id="external-download-rejection-list"></div>
+    <div id="external-download-rejection-status"></div></section>`;
+  let clearSucceeds = false;
+  vi.spyOn(webExtensionApi.runtime, "sendMessage").mockImplementation(async (message: any) => {
+    if (message.type === MESSAGE_TYPES.EXTERNAL_DOWNLOAD_REJECTIONS_GET) {
+      return {
+        type: MESSAGE_TYPES.EXTERNAL_DOWNLOAD_REJECTIONS_GET,
+        body: { rejections: [rejection("blocked")] },
+      };
+    }
+    if (message.type === MESSAGE_TYPES.APPLY_CONFIG) {
+      const value = message.body.config.externalDownloadAllowlist;
+      return {
+        type: MESSAGE_TYPES.APPLY_CONFIG_RESULT,
+        body: { rejected: [], applied: { externalDownloadAllowlist: value } },
+      };
+    }
+    return { type: clearSucceeds ? MESSAGE_TYPES.OK : "wrong" };
+  });
+  setupIntegrationPanel();
+  dispatchRestore();
+  await vi.waitFor(() =>
+    expect(document.querySelector("[data-rejected-sender-id]")).not.toBeNull(),
+  );
+  document.querySelector<HTMLButtonElement>(".external-download-rejection-add")!.click();
+  await vi.waitFor(() =>
+    expect(document.querySelector("#external-download-rejection-status")?.textContent).toContain(
+      "allowlist field is unavailable",
+    ),
+  );
+
+  const allowlist = document.createElement("textarea");
+  allowlist.id = "externalDownloadAllowlist";
+  document.body.append(allowlist);
+  document.querySelector<HTMLButtonElement>(".external-download-rejection-add")!.click();
+  await vi.waitFor(() =>
+    expect(document.querySelector("#external-download-rejection-status")?.textContent).toContain(
+      "could not clear",
+    ),
+  );
+
+  clearSucceeds = true;
+  document.querySelector<HTMLButtonElement>(".external-download-rejection-add")!.click();
+  await vi.waitFor(() => expect(document.querySelector("[data-rejected-sender-id]")).toBeNull());
+});
+
+test("contains approval and rejection-load failures without status outputs", async () => {
+  document.body.innerHTML = `<textarea id="externalDownloadAllowlist"></textarea>
+    <section id="external-download-rejections"><div id="external-download-rejection-list"></div></section>`;
+  const sendMessage = vi
+    .spyOn(webExtensionApi.runtime, "sendMessage")
+    .mockResolvedValueOnce({
+      type: MESSAGE_TYPES.EXTERNAL_DOWNLOAD_REJECTIONS_GET,
+      body: { rejections: [rejection("blocked")] },
+    } as never)
+    .mockResolvedValueOnce({ type: "wrong" } as never);
+  setupIntegrationPanel();
+  dispatchRestore();
+  await vi.waitFor(() =>
+    expect(document.querySelector("[data-rejected-sender-id]")).not.toBeNull(),
+  );
+  const approve = document.querySelector<HTMLButtonElement>(".external-download-rejection-add")!;
+  approve.click();
+  await vi.waitFor(() => expect(approve.textContent).toBe("Approve"));
+
+  document.body.innerHTML = `<section id="external-download-rejections">
+    <div id="external-download-rejection-list"></div></section>`;
+  const callsBeforeLoadFailure = sendMessage.mock.calls.length;
+  sendMessage.mockResolvedValueOnce({ type: "wrong" } as never);
+  setupIntegrationPanel();
+  dispatchRestore();
+  await vi.waitFor(() =>
+    expect(sendMessage.mock.calls.length).toBeGreaterThan(callsBeforeLoadFailure),
+  );
+});
+
+test.each([
+  () => Promise.resolve({ type: "wrong", body: { rejections: [] } }),
+  () => Promise.resolve({ type: MESSAGE_TYPES.EXTERNAL_DOWNLOAD_REJECTIONS_GET, body: {} }),
+  () => Promise.reject(new Error("offline")),
+])("reports invalid rejected-caller responses", async (response) => {
+  rejectedCallerMarkup();
+  vi.spyOn(webExtensionApi.runtime, "sendMessage").mockReturnValue(response() as never);
+  setupIntegrationPanel();
+  dispatchRestore();
+
+  await vi.waitFor(() =>
+    expect(document.querySelector("#external-download-rejection-status")?.textContent).toContain(
+      "Could not load rejected requests",
+    ),
+  );
+  expect(document.querySelector<HTMLElement>("#external-download-rejections")!.hidden).toBe(false);
 });

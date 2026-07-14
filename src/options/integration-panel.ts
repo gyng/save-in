@@ -178,7 +178,6 @@ const renderRejectedCaller = (
     add.textContent = "Approving…";
     if (status) status.textContent = "";
     approvalQueue = approvalQueue
-      .catch(() => {})
       .then(async () => {
         const allowlist = document.querySelector<HTMLTextAreaElement>("#externalDownloadAllowlist");
         if (!allowlist) throw new Error("The allowlist field is unavailable");
