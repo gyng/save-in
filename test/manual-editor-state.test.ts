@@ -36,29 +36,70 @@ describe("manual editor state", () => {
     expect(state.anyDirty()).toBe(false);
   });
 
-  test("marks the paired text and visual surfaces while the editor is dirty", () => {
+  test("keeps an unrecognized editor id functional without visual row assumptions", () => {
     document.body.innerHTML = `
-      <div class="syntax-editor"><textarea id="paths">saved</textarea></div>
+      <textarea id="legacyEditor">saved</textarea>
+      <div><button data-discard="legacyEditor">Discard</button><button data-apply="legacyEditor">Apply</button></div>`;
+    const state = createManualEditorState("Unsaved changes");
+    state.setup("legacyEditor");
+    const textarea = document.querySelector("textarea")!;
+
+    textarea.value = "changed";
+    textarea.dispatchEvent(new InputEvent("input"));
+
+    expect(state.anyDirty()).toBe(true);
+    expect([...document.querySelectorAll("button")].every((button) => !button.disabled)).toBe(true);
+  });
+
+  test("marks only changed visual rows while the editor is dirty", () => {
+    document.body.innerHTML = `
+      <div class="syntax-editor"><textarea id="paths">saved\nother</textarea></div>
       <div id="paths-visual">
+        <div class="path-editor-row" data-source-index="0"></div>
+        <div class="path-editor-row" data-source-index="1"></div>
         <div><button data-discard="paths">Discard</button><button data-apply="paths">Apply</button></div>
       </div>`;
     const state = createManualEditorState("Unsaved changes");
     state.setup("paths");
     const textarea = document.querySelector("textarea")!;
-    const textSurface = document.querySelector<HTMLElement>(".syntax-editor")!;
-    const visualSurface = document.querySelector<HTMLElement>("#paths-visual")!;
+    const rows = [...document.querySelectorAll<HTMLElement>(".path-editor-row")];
 
-    expect(textSurface.classList).not.toContain("is-dirty");
-    expect(visualSurface.classList).not.toContain("is-dirty");
+    expect(rows.every((row) => !row.classList.contains("is-dirty-row"))).toBe(true);
 
-    textarea.value = "changed";
+    textarea.value = "changed\nother";
     textarea.dispatchEvent(new InputEvent("input"));
-    expect(textSurface.classList).toContain("is-dirty");
-    expect(visualSurface.classList).toContain("is-dirty");
+    expect(rows[0]?.classList).toContain("is-dirty-row");
+    expect(rows[1]?.classList).not.toContain("is-dirty-row");
 
     state.refreshBaselines();
-    expect(textSurface.classList).not.toContain("is-dirty");
-    expect(visualSurface.classList).not.toContain("is-dirty");
+    expect(rows.every((row) => !row.classList.contains("is-dirty-row"))).toBe(true);
+  });
+
+  test("restores dirty markers after a routing visual editor rerenders", () => {
+    document.body.innerHTML = `
+      <textarea id="filenamePatterns">filename: jpg\ninto: images\n\nfilename: pdf\ninto: docs</textarea>
+      <div id="rules-visual">
+        <section class="rule-editor-card" data-rule-index="0"></section>
+        <section class="rule-editor-card" data-rule-index="1"></section>
+        <div><button data-discard="filenamePatterns">Discard</button><button data-apply="filenamePatterns">Apply</button></div>
+      </div>`;
+    const state = createManualEditorState("Unsaved changes");
+    state.setup("filenamePatterns");
+    const textarea = document.querySelector("textarea")!;
+    textarea.value = "filename: jpg\ninto: images\n\nfilename: pdf\ninto: archive";
+    textarea.dispatchEvent(new InputEvent("input"));
+
+    const visual = document.querySelector<HTMLElement>("#rules-visual")!;
+    visual.querySelectorAll(".rule-editor-card").forEach((card) => card.remove());
+    visual.insertAdjacentHTML(
+      "afterbegin",
+      '<section class="rule-editor-card" data-rule-index="0"></section><section class="rule-editor-card" data-rule-index="1"></section>',
+    );
+    textarea.dispatchEvent(new Event("visual-editor-rendered"));
+
+    const cards = [...visual.querySelectorAll<HTMLElement>(".rule-editor-card")];
+    expect(cards[0]?.classList).not.toContain("is-dirty-row");
+    expect(cards[1]?.classList).toContain("is-dirty-row");
   });
 
   test("discard restores the saved baseline through the existing input contract", () => {

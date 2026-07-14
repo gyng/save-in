@@ -217,8 +217,12 @@ describe("visual editor", () => {
     expect(textarea().value).toBe("a // (disabled: true)\n>b // (alias: B)\n---");
     expect(rows()[0]!.classList).toContain("is-disabled");
     expect(rows()[0]!.querySelector<HTMLButtonElement>(".path-editor-alias-toggle")!.hidden).toBe(
-      true,
+      false,
     );
+
+    const aliasToggle = rows()[0]!.querySelector<HTMLButtonElement>(".path-editor-alias-toggle")!;
+    aliasToggle.click();
+    expect(rows()[0]!.querySelector(".path-editor-alias")?.classList).toContain("is-open");
 
     rows()[0]!.querySelector<HTMLInputElement>(".path-editor-enabled")!.click();
     expect(textarea().value).toBe("a\n>b // (alias: B)\n---");

@@ -346,10 +346,7 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
     enabled.addEventListener("change", () =>
       commit(setRoutingRuleEnabled(textarea.value, rule.index, enabled.checked)),
     );
-    enabledLabel.append(
-      enabled,
-      document.createTextNode(localize("visualEditorEnabled", "Enabled")),
-    );
+    enabledLabel.append(enabled);
     const actions = document.createElement("div");
     actions.className = "visual-editor-row-actions rule-editor-card-actions";
     const up = button("↑", "up", localize("routeVisualMoveUp", "Move rule up"));
@@ -417,12 +414,14 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
         "No routing rules yet. Add one to get started.",
       );
       cards.append(empty);
+      textarea.dispatchEvent(new Event("visual-editor-rendered"));
       return;
     }
     documentModel.rules.forEach((rule) =>
       cards.append(createRuleCard(rule, documentModel.rules.length)),
     );
     applyValidationAppearance();
+    textarea.dispatchEvent(new Event("visual-editor-rendered"));
   };
 
   textButton.addEventListener("click", () => setMode(false));

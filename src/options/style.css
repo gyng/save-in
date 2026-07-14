@@ -1729,11 +1729,13 @@ textarea.syntax-editor-input::placeholder {
   background: color-mix(in srgb, var(--syntax-warning-soft) 72%, transparent);
 }
 
-.manual-editor-surface {
+.visual-editor-row,
+.visual-editor-card {
   position: relative;
 }
 
-.manual-editor-surface.is-dirty::before {
+.visual-editor-row.is-dirty-row::before,
+.visual-editor-card.is-dirty-row::before {
   content: "";
   position: absolute;
   z-index: 4;
@@ -2444,7 +2446,13 @@ summary {
 }
 
 .rule-editor-enabled-label {
+  align-self: center;
   padding: 0;
+  line-height: 1;
+}
+
+.rule-editor-enabled-label input {
+  margin: 0;
 }
 
 .rule-editor-enabled-label:has(input:checked) {
@@ -5204,7 +5212,9 @@ code.click-to-copy {
   z-index: 5;
   right: 0;
   top: calc(100% + 6px);
-  max-width: 22rem;
+  box-sizing: border-box;
+  width: max-content;
+  max-width: min(22rem, 100%);
   padding: var(--space-1) var(--space-2);
   color: var(--color-on-accent);
   border: 1px solid var(--color-accent-active);
@@ -5213,7 +5223,7 @@ code.click-to-copy {
   box-shadow: var(--floating-shadow);
   font-size: var(--text-sm);
   font-weight: 500;
-  white-space: nowrap;
+  white-space: normal;
 }
 
 :is(.editor-actions, .visual-editor-toolbar) > .manual-save-help::before {

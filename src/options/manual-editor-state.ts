@@ -1,3 +1,6 @@
+import { pathLinesToNodes, pathNodesToLines } from "./path-editor-model.ts";
+import { parseVisualRoutingRules } from "./rule-visual-editor-model.ts";
+
 type ManualEditor = {
   textarea: HTMLTextAreaElement;
   saved: string;
@@ -8,6 +11,14 @@ type ManualEditor = {
   saving: boolean;
   validationPending: boolean;
   revision: number;
+};
+
+const visualRowSources = (id: string, source: string): string[] => {
+  if (id === "paths") return pathNodesToLines(pathLinesToNodes(source));
+  if (id === "filenamePatterns") {
+    return parseVisualRoutingRules(source).rules.map((rule) => rule.source);
+  }
+  return [];
 };
 
 // Owns the dirty/baseline state shared by the text and visual representations
@@ -27,13 +38,26 @@ export const createManualEditorState = (unsavedLabel: string | (() => string)) =
     }
 
     const actionRows = [...new Set(buttons.map((button) => button.parentElement).filter(Boolean))];
-    const dirtySurfaces = [
-      textarea.closest<HTMLElement>(".syntax-editor"),
-      ...buttons.map((button) => button.closest<HTMLElement>("#paths-visual, #rules-visual")),
-    ].filter((surface, index, surfaces): surface is HTMLElement =>
-      Boolean(surface && surfaces.indexOf(surface) === index),
-    );
-    dirtySurfaces.forEach((surface) => surface.classList.add("manual-editor-surface"));
+    const visualSurfaces = buttons
+      .map((button) => button.closest<HTMLElement>("#paths-visual, #rules-visual"))
+      .filter((surface, index, surfaces): surface is HTMLElement =>
+        Boolean(surface && surfaces.indexOf(surface) === index),
+      );
+    const syncDirtyRows = (saved: string, current: string): void => {
+      const savedRows = visualRowSources(id, saved);
+      const currentRows = visualRowSources(id, current);
+      const selector = id === "paths" ? ".path-editor-row" : ".rule-editor-card";
+      const indexKey = id === "paths" ? "sourceIndex" : "ruleIndex";
+      visualSurfaces.forEach((surface) => {
+        surface.querySelectorAll<HTMLElement>(selector).forEach((row) => {
+          const index = Number(row.dataset[indexKey]);
+          row.classList.toggle(
+            "is-dirty-row",
+            Number.isSafeInteger(index) && currentRows[index] !== savedRows[index],
+          );
+        });
+      });
+    };
     const statuses = actionRows.map((row) => {
       const status = document.createElement("span");
       status.className = "editor-dirty-status";
@@ -77,7 +101,7 @@ export const createManualEditorState = (unsavedLabel: string | (() => string)) =
       helpers.forEach((helper) => {
         helper.hidden = !dirty;
       });
-      dirtySurfaces.forEach((surface) => surface.classList.toggle("is-dirty", dirty));
+      syncDirtyRows(editor.saved, textarea.value);
     };
 
     textarea.addEventListener("input", () => {
@@ -85,6 +109,7 @@ export const createManualEditorState = (unsavedLabel: string | (() => string)) =
       editor.sync();
       editor.saveStatus.hidden = true;
     });
+    textarea.addEventListener("visual-editor-rendered", () => editor.sync());
     textarea.addEventListener("keydown", (event) => {
       if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
         event.preventDefault();
