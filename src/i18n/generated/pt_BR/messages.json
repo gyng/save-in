@@ -2409,6 +2409,12 @@
   "validationJumpToIssue": { "message": "Ir para este problema" },
   "optionsKeepEditing": { "message": "Continuar editando" },
   "optionsDiscardChanges": { "message": "Descartar alterações" },
+  "restoreDefaultsConfirm": {
+    "message": "Restaurar todas as configurações para os padrões? O histórico de downloads será mantido."
+  },
+  "restoreDefaultsCancel": { "message": "Manter configurações atuais" },
+  "restoreDefaultsSuccess": { "message": "Configurações padrão restauradas." },
+  "restoreDefaultsFailure": { "message": "Não foi possível restaurar as configurações padrão." },
   "referenceCaption": { "message": "Referência" },
   "referenceColumnSyntax": { "message": "Sintaxe" },
   "referenceColumnExample": { "message": "Exemplo" },

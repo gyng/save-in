@@ -2434,6 +2434,12 @@
   "validationJumpToIssue": { "message": "Accéder à ce problème" },
   "optionsKeepEditing": { "message": "Continuer à modifier" },
   "optionsDiscardChanges": { "message": "Abandonner les modifications" },
+  "restoreDefaultsConfirm": {
+    "message": "Restaurer tous les paramètres par défaut ? L’historique des téléchargements sera conservé."
+  },
+  "restoreDefaultsCancel": { "message": "Conserver les paramètres actuels" },
+  "restoreDefaultsSuccess": { "message": "Paramètres par défaut restaurés." },
+  "restoreDefaultsFailure": { "message": "Impossible de restaurer les paramètres par défaut." },
   "referenceCaption": { "message": "Référence" },
   "referenceColumnSyntax": { "message": "Syntaxe" },
   "referenceColumnExample": { "message": "Exemple" },

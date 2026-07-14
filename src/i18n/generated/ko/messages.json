@@ -2503,6 +2503,12 @@
   "validationJumpToIssue": { "message": "이 문제로 이동" },
   "optionsKeepEditing": { "message": "계속 편집" },
   "optionsDiscardChanges": { "message": "변경 사항 버리기" },
+  "restoreDefaultsConfirm": {
+    "message": "모든 설정을 기본값으로 복원할까요? 다운로드 기록은 유지됩니다."
+  },
+  "restoreDefaultsCancel": { "message": "현재 설정 유지" },
+  "restoreDefaultsSuccess": { "message": "기본 설정을 복원했습니다." },
+  "restoreDefaultsFailure": { "message": "기본 설정을 복원하지 못했습니다." },
   "referenceCaption": { "message": "참조" },
   "referenceColumnSyntax": { "message": "구문" },
   "referenceColumnExample": { "message": "예" },

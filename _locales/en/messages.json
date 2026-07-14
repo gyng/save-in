@@ -3437,6 +3437,22 @@
     "message": "Discard changes",
     "description": "Button that confirms discarding editor changes. Used in src/options/unsaved-changes-dialog.ts."
   },
+  "restoreDefaultsConfirm": {
+    "message": "Restore all settings to their defaults? Download history will be kept.",
+    "description": "Confirmation text before restoring default settings. Used in src/options/reset-options.ts."
+  },
+  "restoreDefaultsCancel": {
+    "message": "Keep current settings",
+    "description": "Button that closes the restore-defaults dialog without changing settings. Used in src/options/reset-options.ts."
+  },
+  "restoreDefaultsSuccess": {
+    "message": "Default settings restored.",
+    "description": "Confirmation shown after default settings are restored. Used in src/options/reset-options.ts."
+  },
+  "restoreDefaultsFailure": {
+    "message": "Could not restore default settings.",
+    "description": "Error shown when restoring default settings fails. Used in src/options/reset-options.ts."
+  },
   "referenceCaption": {
     "message": "Reference",
     "description": "Fallback accessible caption for a variable or clause reference table. Used in src/options/reference-page.ts."

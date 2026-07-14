@@ -2600,6 +2600,12 @@
   "validationJumpToIssue": { "message": "Vai a questo problema" },
   "optionsKeepEditing": { "message": "Continua a modificare" },
   "optionsDiscardChanges": { "message": "Scarta le modifiche" },
+  "restoreDefaultsConfirm": {
+    "message": "Ripristinare tutte le impostazioni predefinite? La cronologia dei download verrà conservata."
+  },
+  "restoreDefaultsCancel": { "message": "Mantieni le impostazioni attuali" },
+  "restoreDefaultsSuccess": { "message": "Impostazioni predefinite ripristinate." },
+  "restoreDefaultsFailure": { "message": "Impossibile ripristinare le impostazioni predefinite." },
   "referenceCaption": { "message": "Riferimento" },
   "referenceColumnSyntax": { "message": "Sintassi" },
   "referenceColumnExample": { "message": "Esempio" },

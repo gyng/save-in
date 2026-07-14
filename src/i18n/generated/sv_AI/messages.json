@@ -2399,6 +2399,12 @@
   "validationJumpToIssue": { "message": "Gå till det här problemet" },
   "optionsKeepEditing": { "message": "Fortsätt redigera" },
   "optionsDiscardChanges": { "message": "Ignorera ändringar" },
+  "restoreDefaultsConfirm": {
+    "message": "Återställa alla inställningar till standardvärdena? Nedladdningshistoriken behålls."
+  },
+  "restoreDefaultsCancel": { "message": "Behåll aktuella inställningar" },
+  "restoreDefaultsSuccess": { "message": "Standardinställningarna har återställts." },
+  "restoreDefaultsFailure": { "message": "Det gick inte att återställa standardinställningarna." },
   "referenceCaption": { "message": "Referens" },
   "referenceColumnSyntax": { "message": "Syntax" },
   "referenceColumnExample": { "message": "Exempel" },

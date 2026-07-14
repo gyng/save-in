@@ -2411,6 +2411,12 @@
   "validationJumpToIssue": { "message": "Naar dit probleem gaan" },
   "optionsKeepEditing": { "message": "Doorgaan met bewerken" },
   "optionsDiscardChanges": { "message": "Wijzigingen verwerpen" },
+  "restoreDefaultsConfirm": {
+    "message": "Alle instellingen herstellen naar de standaardwaarden? De downloadgeschiedenis blijft behouden."
+  },
+  "restoreDefaultsCancel": { "message": "Huidige instellingen behouden" },
+  "restoreDefaultsSuccess": { "message": "Standaardinstellingen hersteld." },
+  "restoreDefaultsFailure": { "message": "De standaardinstellingen konden niet worden hersteld." },
   "referenceCaption": { "message": "Referentie" },
   "referenceColumnSyntax": { "message": "Syntaxis" },
   "referenceColumnExample": { "message": "Voorbeeld" },

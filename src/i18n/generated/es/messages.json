@@ -2407,6 +2407,12 @@
   "validationJumpToIssue": { "message": "Ir a este problema" },
   "optionsKeepEditing": { "message": "Seguir editando" },
   "optionsDiscardChanges": { "message": "Descartar cambios" },
+  "restoreDefaultsConfirm": {
+    "message": "¿Restaurar todos los ajustes a sus valores predeterminados? Se conservará el historial de descargas."
+  },
+  "restoreDefaultsCancel": { "message": "Conservar los ajustes actuales" },
+  "restoreDefaultsSuccess": { "message": "Se restauraron los ajustes predeterminados." },
+  "restoreDefaultsFailure": { "message": "No se pudieron restaurar los ajustes predeterminados." },
   "referenceCaption": { "message": "Referencia" },
   "referenceColumnSyntax": { "message": "Sintaxis" },
   "referenceColumnExample": { "message": "Ejemplo" },

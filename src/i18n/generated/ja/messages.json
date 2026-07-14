@@ -2503,6 +2503,12 @@
   "validationJumpToIssue": { "message": "この問題に移動" },
   "optionsKeepEditing": { "message": "編集を続ける" },
   "optionsDiscardChanges": { "message": "変更を破棄" },
+  "restoreDefaultsConfirm": {
+    "message": "すべての設定を既定値に戻しますか？ダウンロード履歴は保持されます。"
+  },
+  "restoreDefaultsCancel": { "message": "現在の設定を保持" },
+  "restoreDefaultsSuccess": { "message": "既定の設定を復元しました。" },
+  "restoreDefaultsFailure": { "message": "既定の設定を復元できませんでした。" },
   "referenceCaption": { "message": "リファレンス" },
   "referenceColumnSyntax": { "message": "構文" },
   "referenceColumnExample": { "message": "例" },

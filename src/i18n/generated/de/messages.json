@@ -2407,6 +2407,14 @@
   "validationJumpToIssue": { "message": "Zu diesem Problem springen" },
   "optionsKeepEditing": { "message": "Weiter bearbeiten" },
   "optionsDiscardChanges": { "message": "Änderungen verwerfen" },
+  "restoreDefaultsConfirm": {
+    "message": "Alle Einstellungen auf ihre Standardwerte zurücksetzen? Der Downloadverlauf bleibt erhalten."
+  },
+  "restoreDefaultsCancel": { "message": "Aktuelle Einstellungen beibehalten" },
+  "restoreDefaultsSuccess": { "message": "Standardeinstellungen wiederhergestellt." },
+  "restoreDefaultsFailure": {
+    "message": "Standardeinstellungen konnten nicht wiederhergestellt werden."
+  },
   "referenceCaption": { "message": "Referenz" },
   "referenceColumnSyntax": { "message": "Syntax" },
   "referenceColumnExample": { "message": "Beispiel" },
