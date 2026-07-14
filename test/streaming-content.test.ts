@@ -93,6 +93,32 @@ test("checks cancellation after a non-stream body read", async () => {
   });
 });
 
+test("rejects a pending non-stream body read as soon as it is aborted", async () => {
+  const controller = new AbortController();
+  const reason = new DOMException("Canceled", "AbortError");
+  let finishRead!: (buffer: ArrayBuffer) => void;
+  const response = {
+    body: null,
+    headers: new Headers(),
+    arrayBuffer: () =>
+      new Promise<ArrayBuffer>((resolve) => {
+        finishRead = resolve;
+      }),
+  };
+  const outcome = readResponseContent(response, false, controller.signal).then(
+    () => "resolved",
+    (error: unknown) => error,
+  );
+
+  controller.abort(reason);
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  try {
+    await expect(Promise.race([outcome, Promise.resolve("still pending")])).resolves.toBe(reason);
+  } finally {
+    finishRead(new ArrayBuffer(0));
+  }
+});
+
 test("preserves a read failure when reader cancellation also rejects", async () => {
   const readFailure = new Error("stream failed");
   const reader = {

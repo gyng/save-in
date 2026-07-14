@@ -6,6 +6,22 @@ type StreamableResponse = Pick<Response, "body" | "headers"> &
 const abortError = (signal: AbortSignal): unknown =>
   signal.reason ?? new DOMException("The operation was aborted", "AbortError");
 
+const runAbortable = async <T>(signal: AbortSignal | undefined, operation: () => Promise<T>) => {
+  if (!signal) return operation();
+  if (signal.aborted) throw abortError(signal);
+  let rejectOnAbort!: (reason: unknown) => void;
+  const aborted = new Promise<never>((_resolve, reject) => {
+    rejectOnAbort = reject;
+  });
+  const onAbort = () => rejectOnAbort(abortError(signal));
+  signal.addEventListener("abort", onAbort, { once: true });
+  try {
+    return await Promise.race([operation(), aborted]);
+  } finally {
+    signal.removeEventListener("abort", onAbort);
+  }
+};
+
 export const readResponseContent = async (
   response: StreamableResponse,
   hash: boolean,
@@ -23,7 +39,7 @@ export const readResponseContent = async (
   if (response.body) {
     const reader = response.body.getReader();
     const cancelPendingRead = () => {
-      void reader.cancel(abortError(signal!)).catch(() => {});
+      if (signal) void reader.cancel(abortError(signal)).catch(() => {});
     };
     signal?.addEventListener("abort", cancelPendingRead, { once: true });
     try {
@@ -44,10 +60,11 @@ export const readResponseContent = async (
       reader.releaseLock();
     }
   } else {
-    const buffer =
+    const buffer = await runAbortable(signal, () =>
       "arrayBuffer" in response
-        ? await response.arrayBuffer()
-        : await response.blob().then((blob) => blob.arrayBuffer());
+        ? response.arrayBuffer()
+        : response.blob().then((blob) => blob.arrayBuffer()),
+    );
     const chunk = new Uint8Array(buffer);
     chunks.push(chunk.buffer);
     sha256?.update(chunk);
