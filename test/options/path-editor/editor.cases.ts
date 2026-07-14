@@ -139,6 +139,7 @@ describe("visual editor", () => {
     vi.useFakeTimers();
     document.body.innerHTML = `
       <textarea id="paths">a\n>b // (alias: B)\n---</textarea>
+      <input type="checkbox" id="enableNumberedItems" checked>
       <button type="button" id="path-editor-add-dir"></button>
       <button type="button" id="path-editor-add-sep"></button>
       <div id="path-editor-rows"></div>
@@ -193,6 +194,23 @@ describe("visual editor", () => {
 
     key.value = "";
     key.dispatchEvent(new InputEvent("input", { bubbles: true }));
+    expect(textarea().value).toBe("a\n>b // (alias: B)\n---");
+  });
+
+  test("shows automatic number keys without changing path rules", () => {
+    const keys = document.querySelectorAll<HTMLInputElement>(".path-editor-access-key-input");
+    expect([...keys].map((key) => key.placeholder)).toEqual(["1", "1"]);
+    expect(textarea().value).toBe("a\n>b // (alias: B)\n---");
+
+    const numberedItems = element<HTMLInputElement>("#enableNumberedItems");
+    numberedItems.checked = false;
+    numberedItems.dispatchEvent(new Event("change"));
+
+    expect(
+      [...document.querySelectorAll<HTMLInputElement>(".path-editor-access-key-input")].map(
+        (key) => key.placeholder,
+      ),
+    ).toEqual(["", ""]);
     expect(textarea().value).toBe("a\n>b // (alias: B)\n---");
   });
 

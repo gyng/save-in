@@ -897,7 +897,7 @@ const renderMenuPreview = (container: Element, tree: MenuPreviewTree) => {
       if (accessKey !== null) {
         const key = document.createElement("kbd");
         key.className = "menu-preview-access-key";
-        key.textContent = `&${accessKey}`;
+        key.textContent = accessKey;
         key.setAttribute(
           "aria-label",
           `${getMessage("o_sContextMenu") || "Context menu access key"}: ${accessKey}`,

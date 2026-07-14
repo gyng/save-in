@@ -8,6 +8,8 @@
 
 import { SPECIAL_DIRS } from "../shared/constants.ts";
 import { getMessage } from "../platform/localization.ts";
+import { buildTree } from "../menus/menu-tree.ts";
+import { resolveMenuAccessKey } from "../menus/access-key.ts";
 import { setupPathInsertMenu } from "./path-editor-insert-menu.ts";
 import { bindTabInteractions, syncTabSelection } from "./tab-controls.ts";
 import {
@@ -222,6 +224,14 @@ const PathEditorHelpers = {
 
     const render = () => {
       container.textContent = "";
+
+      const showNumberedItems =
+        document.querySelector<HTMLInputElement>("#enableNumberedItems")?.checked === true;
+      const menuItemsBySourceIndex = new Map(
+        buildTree(PathEditorHelpers.nodesToLines(nodes))
+          .items.filter((item) => item.kind === "path")
+          .map((item) => [item.sourceIndex, item]),
+      );
 
       nodes.forEach((node, index) => {
         const rowEl = document.createElement("div");
@@ -457,6 +467,11 @@ const PathEditorHelpers = {
           accessKey.className = "path-editor-access-key-input";
           accessKey.name = "path-access-key";
           accessKey.value = PathEditorHelpers.getAccessKey(node);
+          const menuItem = menuItemsBySourceIndex.get(index);
+          accessKey.placeholder =
+            showNumberedItems && menuItem && menuItem.accessKeyOverride !== ""
+              ? (resolveMenuAccessKey(menuItem.number) ?? "")
+              : "";
           accessKey.maxLength = 1;
           accessKey.spellcheck = false;
           accessKey.setAttribute("aria-label", `${accessKeyAssignment}: ${rowName}`);
@@ -595,6 +610,7 @@ const PathEditorHelpers = {
       validationErrors = validationFeedbackFromEvent(event);
       applyValidationAppearance();
     });
+    document.querySelector("#enableNumberedItems")?.addEventListener("change", rebuild);
 
     // restoreOptions fills the textarea programmatically (no input event).
     document.addEventListener("options-restored", rebuild);

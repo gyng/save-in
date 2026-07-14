@@ -505,6 +505,7 @@ button:disabled {
   color: var(--color-text-muted);
   font-size: var(--text-sm);
   line-height: 1;
+  margin-left: 2px;
 }
 
 .path-editor-access-key-label {
@@ -512,7 +513,7 @@ button:disabled {
   user-select: none;
 }
 
-.path-editor-access-key-input {
+.path-editor-access-key > .path-editor-access-key-input {
   box-sizing: border-box;
   width: 30px;
   min-width: 30px;
