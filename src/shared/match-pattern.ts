@@ -11,9 +11,13 @@ export type ParsedMatchPattern = {
 export const parseMatchPattern = (pattern: string): ParsedMatchPattern | Error => {
   const parts = pattern.match(/^(\*|https?|file|ftp):\/\/([^/]*)(\/.*)$/);
   if (!parts) return new Error("Invalid WebExtension match pattern");
-  const rawScheme = parts[1]!;
-  const host = parts[2]!;
-  const path = parts[3]!;
+  const [, rawScheme, host, path] = parts;
+  if (rawScheme === undefined || host === undefined || path === undefined) {
+    return new Error("Invalid WebExtension match pattern");
+  }
+  if (rawScheme !== "file" && host.length === 0) {
+    return new Error("Network match patterns require a host");
+  }
   const escapeRegExp = (value: string): string => value.replace(/[.+?^${}()|[\]\\]/g, "\\$&");
   const scheme = rawScheme === "*" ? "https?" : rawScheme;
   const hostPattern =

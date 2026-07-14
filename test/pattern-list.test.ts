@@ -49,6 +49,20 @@ describe("pattern list grammar", () => {
     expect(result.issues).toEqual([expect.objectContaining({ line: 2, source: "not a pattern" })]);
   });
 
+  test("requires hosts for network schemes but permits hostless file patterns", () => {
+    const result = parseMatchPatternList("https:///files/*\nfile:///tmp/*");
+
+    expect(result.entries).toEqual([
+      expect.objectContaining({
+        source: "file:///tmp/*",
+        value: expect.objectContaining({ scheme: "file", host: "", path: "/tmp/*" }),
+      }),
+    ]);
+    expect(result.issues).toEqual([
+      expect.objectContaining({ line: 1, source: "https:///files/*" }),
+    ]);
+  });
+
   test("compiles regular expressions atomically for callers", () => {
     const valid = parseRegularExpressionList("example\\.com\n/files/");
     expect(valid.issues).toEqual([]);
