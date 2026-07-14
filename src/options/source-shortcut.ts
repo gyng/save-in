@@ -30,8 +30,7 @@ const englishShortcutMessage: ShortcutLocalizer = (_key, fallback) => fallback;
 
 const invokeCommandMethod = (method: unknown, args: unknown[]): Promise<unknown> =>
   Promise.resolve().then(() => {
-    if (typeof method !== "function") throw new TypeError("Command method is unavailable");
-    return Reflect.apply(method, webExtensionApi.commands, args);
+    return Reflect.apply(method as (...args: never[]) => unknown, webExtensionApi.commands, args);
   });
 
 export const validateSourceShortcut = (
