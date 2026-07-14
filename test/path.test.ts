@@ -406,9 +406,11 @@ describe("parsePathStr", () => {
   test("wraps a bare string returned from a custom split()", () => {
     // defensive branch: unreachable for real strings, whose split()
     // always returns an array
-    const parsed = Path.parsePathStr({ split: () => "abc" });
+    const input = { split: () => "abc" };
+    const parsed = Path.parsePathStr(input);
     expect(parsed).toHaveLength(1);
     expect(parsed[0]!.val).toBe("abc");
     expect(parsed[0]!.type).toBe(PATH_SEGMENT_TYPES.STRING);
+    expect(new Path.Path(input).validate()).toEqual({ valid: true });
   });
 });
