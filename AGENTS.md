@@ -251,21 +251,21 @@ catch and choose the cheapest durable boundary:
 Both browser suites must pass before release; they are the regression net for
 the two manifests.
 
-vitest specifics (`test/*.test.ts`, typed; `tsc` covers them):
+vitest specifics (`test/**/*.test.ts`, typed; `tsc` covers them):
 
 - Vitest defaults to the lightweight Node environment. Put
   `// @vitest-environment jsdom` at the top of tests that actually exercise the
   DOM; do not make pure model, protocol, or tooling tests pay for jsdom.
-- `test/vitest.setup.ts` installs typed `browser`/`chrome` fixtures from
-  `test/webextension-test-helpers.ts`. Replace only the host boundary a test
+- `test/support/vitest.setup.ts` installs typed `browser`/`chrome` fixtures from
+  `test/support/webextension-host.fixture.ts`. Replace only the host boundary a test
   exercises; `browser`/`chrome` stay ambient host globals and cross-module
   dependencies are imported or mocked normally.
 - Tests import the real `.ts` modules and mock deps via `vi.mock` /
-  `vi.spyOn`. Prefer the typed builders in `test/webextension-test-helpers.ts`,
+  `vi.spyOn`. Prefer the typed builders in `test/support/webextension-host.fixture.ts`,
   import-real + `vi.spyOn`, and typed listener capture.
 - Module-reset tests use `vi.resetModules()` + `await import(...)`. In jsdom
   tests, stub away `URL.createObjectURL` to exercise MV3 paths.
-- Compile-only API relationships belong in `test/type-contracts.ts`; do not
+- Compile-only API relationships belong in `test/contracts/type-contracts.ts`; do not
   wrap `expectTypeOf` assertions in runtime tests.
 - Capture browser event handlers via
   `vi.mocked(browser.x.onY.addListener).mock.calls[0]![0]` and invoke them.

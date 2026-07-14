@@ -25,7 +25,7 @@ export default defineConfig({
         url: "http://localhost/",
       },
     },
-    setupFiles: ["./test/vitest.setup.ts"],
+    setupFiles: ["./test/support/vitest.setup.ts"],
     include: ["test/**/*.test.ts"],
     coverage: {
       provider: "v8",
