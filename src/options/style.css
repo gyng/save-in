@@ -1823,7 +1823,7 @@ textarea.syntax-editor-input::placeholder {
   border-radius: var(--radius);
   background: var(--floating-bg);
   box-shadow: var(--floating-shadow);
-  font-size: var(--text-sm);
+  font-size: var(--text-md);
   line-height: 1.4;
   pointer-events: none;
 }
