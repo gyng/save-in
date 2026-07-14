@@ -160,6 +160,11 @@ describe("resolveClickTarget (pure decision)", () => {
     expect(t.suggestedFilename.length).toBeLessThanOrEqual(30);
   });
 
+  test("a selection falls back to its text when the tab has no title", () => {
+    const t = Menus.resolveClickTarget({ selectionText: "selected words" }, opts(), { id: 4 });
+    expect(t?.suggestedFilename).toBe("selected words.selection.txt");
+  });
+
   test("a page click saves the page url named after the tab title", () => {
     const t = Menus.resolveClickTarget({ pageUrl: "https://x/page" }, opts(), { title: "Title" });
     expect(t).toMatchObject({

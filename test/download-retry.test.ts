@@ -1,10 +1,12 @@
 // Focused retry coverage extracted from the pipeline suite.
 import {
+  ActiveTransfers,
   Download,
   downloadState,
   Log,
   makeState,
   options,
+  OffscreenClient,
   sessionStore,
   setCurrentBrowser,
 } from "./download-flow-fixture.ts";
@@ -207,6 +209,142 @@ describe("automatic fetch fallback (retryViaFetch)", () => {
 
     await expect(Download.retryViaFetch(101)).resolves.toBe(false);
     expect(global.browser.downloads.download).not.toHaveBeenCalled();
+  });
+
+  test("holds and releases a retry that has no history transfer owner", async () => {
+    await seedStartedDownload();
+    const record = downloadState.records.get(101)!;
+    delete record.historyEntryId;
+    const hold = vi.spyOn(ActiveTransfers, "hold");
+    const release = vi.spyOn(ActiveTransfers, "release");
+    vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:untracked-retry");
+    global.fetch = vi.fn(() =>
+      Promise.resolve({ ok: true, blob: () => Promise.resolve(new Blob(["bytes"])) }),
+    ) as any;
+    vi.mocked(global.browser.downloads.download).mockResolvedValue(212);
+
+    await expect(Download.retryViaFetch(101)).resolves.toBe(true);
+
+    expect(hold).toHaveBeenCalledOnce();
+    expect(release).toHaveBeenCalledWith(hold.mock.calls[0]![0]);
+    expect(Download.ownedObjectUrls.get(212)).toBe("blob:untracked-retry");
+  });
+
+  test("cancels a replacement accepted after its transfer was aborted", async () => {
+    await seedStartedDownload();
+    const historyEntryId = downloadState.records.get(101)!.historyEntryId!;
+    const register = vi.spyOn(ActiveTransfers, "register");
+    vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:aborted-retry");
+    global.fetch = vi.fn(() =>
+      Promise.resolve({ ok: true, blob: () => Promise.resolve(new Blob(["bytes"])) }),
+    ) as any;
+    let acceptDownload!: (id: number) => void;
+    vi.mocked(global.browser.downloads.download)
+      .mockClear()
+      .mockReturnValue(
+        new Promise<number>((resolve) => {
+          acceptDownload = resolve;
+        }),
+      );
+    global.browser.downloads.cancel = vi.fn(() => Promise.reject(new Error("already gone")));
+
+    const retry = Download.retryViaFetch(101);
+    await vi.waitFor(() => expect(global.browser.downloads.download).toHaveBeenCalledOnce());
+    const controller = register.mock.calls.at(-1)![1];
+    controller.abort();
+    acceptDownload(213);
+
+    await expect(retry).resolves.toBe(false);
+    expect(global.browser.downloads.cancel).toHaveBeenCalledWith(213);
+    expect(ActiveTransfers.get(historyEntryId)).toBeUndefined();
+  });
+
+  test("releases offscreen content when the replacement download is rejected", async () => {
+    await seedStartedDownload();
+    vi.spyOn(OffscreenClient, "canUse").mockReturnValue(true);
+    vi.spyOn(OffscreenClient, "fetchContent").mockResolvedValue({
+      downloadUrl: "blob:offscreen-retry",
+      offscreenRequestId: "offscreen-request",
+    } as any);
+    vi.spyOn(OffscreenClient, "release").mockRejectedValue(new Error("worker stopped"));
+    vi.mocked(global.browser.downloads.download).mockRejectedValue(new Error("denied"));
+
+    await expect(Download.retryViaFetch(101)).resolves.toBe(false);
+
+    expect(OffscreenClient.release).toHaveBeenCalledWith("offscreen-request");
+    expect(Download.pendingRetryFilenames.has("blob:offscreen-retry")).toBe(false);
+  });
+
+  test("adopts a successful offscreen retry without claiming ownership of its URL", async () => {
+    await seedStartedDownload();
+    vi.spyOn(OffscreenClient, "canUse").mockReturnValue(true);
+    vi.spyOn(OffscreenClient, "fetchContent").mockResolvedValue({
+      downloadUrl: "blob:offscreen-success",
+      offscreenRequestId: "offscreen-success-request",
+    } as any);
+    vi.mocked(global.browser.downloads.download).mockResolvedValue(215);
+
+    await expect(Download.retryViaFetch(101)).resolves.toBe(true);
+
+    expect(Download.ownedObjectUrls.has(215)).toBe(false);
+    expect(downloadState.records.get(215)).toMatchObject({
+      adopted: true,
+      viaFetch: true,
+      offscreenRequestId: "offscreen-success-request",
+    });
+  });
+
+  test("treats an aborted in-flight fetch as handled", async () => {
+    await seedStartedDownload();
+    const register = vi.spyOn(ActiveTransfers, "register");
+    vi.spyOn(OffscreenClient, "canUse").mockReturnValue(true);
+    let rejectFetch!: (error: Error) => void;
+    vi.spyOn(OffscreenClient, "fetchContent").mockReturnValue(
+      new Promise((_, reject) => {
+        rejectFetch = reject;
+      }) as ReturnType<typeof OffscreenClient.fetchContent>,
+    );
+
+    const retry = Download.retryViaFetch(101);
+    await vi.waitFor(() => expect(register).toHaveBeenCalledOnce());
+    register.mock.calls[0]![1].abort();
+    rejectFetch(new Error("aborted"));
+
+    await expect(retry).resolves.toBe(true);
+    expect(Log.add).not.toHaveBeenCalledWith("fallback fetch failed", expect.anything());
+  });
+
+  test("records a private fetch failure without exposing it to shared state", async () => {
+    setCurrentBrowser("FIREFOX");
+    await Download.renameAndDownload(
+      makeState({
+        info: {
+          url: "https://example.com/private/file.png",
+          currentTab: { incognito: true },
+        },
+      }),
+    );
+    global.fetch = vi.fn(() => Promise.reject(new Error("network denied"))) as any;
+
+    await expect(Download.retryViaFetch(101)).resolves.toBe(false);
+
+    expect(Log.add).toHaveBeenCalledWith("fallback fetch failed", "Error: network denied", {
+      privateContext: true,
+    });
+  });
+
+  test("keeps Chrome's transient filename until its synchronous listener consumes it", async () => {
+    setCurrentBrowser("CHROME");
+    await seedStartedDownload();
+    vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:chrome-retry");
+    global.fetch = vi.fn(() =>
+      Promise.resolve({ ok: true, blob: () => Promise.resolve(new Blob(["bytes"])) }),
+    ) as any;
+    vi.mocked(global.browser.downloads.download).mockResolvedValue(214);
+
+    await expect(Download.retryViaFetch(101)).resolves.toBe(true);
+
+    expect(Download.pendingRetryFilenames.get("blob:chrome-retry")).toBe("downloads/file.png");
   });
 
   test("unknown download ids resolve false", async () => {

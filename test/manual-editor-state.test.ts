@@ -198,4 +198,76 @@ describe("manual editor state", () => {
     expect(document.querySelector<HTMLButtonElement>("[data-apply]")!.disabled).toBe(true);
     expect(textarea.getAttribute("aria-busy")).toBe("false");
   });
+
+  test("supports dynamic unsaved copy and ignores incomplete editor markup", () => {
+    let label = "First label";
+    const state = createManualEditorState(() => label);
+    document.body.innerHTML = '<textarea id="missing-actions"></textarea>';
+    expect(state.setup("missing-actions")).toBeUndefined();
+    expect(state.setup("missing-textarea")).toBeUndefined();
+
+    document.body.innerHTML = `
+      <textarea id="paths">saved</textarea>
+      <div><button data-discard="paths">Discard</button><button data-apply="paths">Apply</button></div>`;
+    state.setup("paths");
+    label = "Updated label";
+    const textarea = document.querySelector("textarea")!;
+    textarea.value = "changed";
+    textarea.dispatchEvent(new InputEvent("input"));
+    expect(document.querySelector(".editor-dirty-status")?.textContent).toBe("Updated label");
+  });
+
+  test("returns false for operations targeting an unknown editor", () => {
+    const state = createManualEditorState("Unsaved");
+    expect(state.setValidity("missing", true)).toBe(false);
+    expect(state.setValidationPending("missing")).toBe(false);
+    expect(state.setValidationUnavailable("missing")).toBe(false);
+    expect(state.setSaving("missing", true)).toBe(false);
+    expect(state.markSaved("missing")).toBe(false);
+    expect(state.canSave("missing")).toBe(false);
+    expect(state.revision("missing")).toBeUndefined();
+  });
+
+  test("does not dispatch a disabled keyboard Apply", () => {
+    const state = createManualEditorState("Unsaved");
+    state.setup("paths");
+    const textarea = document.querySelector("textarea")!;
+    const apply = document.querySelector<HTMLButtonElement>("[data-apply]")!;
+    const clicked = vi.fn();
+    apply.addEventListener("click", clicked);
+
+    textarea.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", ctrlKey: true }));
+    expect(clicked).not.toHaveBeenCalled();
+  });
+
+  test("supports unlabeled save transitions without an applied replacement value", () => {
+    const state = createManualEditorState("Unsaved");
+    state.setup("paths");
+    const textarea = document.querySelector("textarea")!;
+    textarea.value = "changed";
+    textarea.dispatchEvent(new InputEvent("input"));
+    expect(state.setSaving("paths", true)).toBe(true);
+    expect(document.querySelector<HTMLElement>(".editor-save-status")!.hidden).toBe(true);
+
+    expect(state.markSaved("paths")).toBe(true);
+    expect(state.anyDirty()).toBe(false);
+    expect(document.querySelector<HTMLElement>(".editor-dirty-status")!.textContent).toBe(
+      "Unsaved",
+    );
+    expect(document.querySelector<HTMLElement>(".editor-save-status")!.textContent).toBe("");
+  });
+
+  test("announces a non-string applied value without replacing the textarea", () => {
+    const state = createManualEditorState("Unsaved");
+    state.setup("paths");
+    const textarea = document.querySelector("textarea")!;
+    const applied = vi.fn();
+    textarea.addEventListener("options-value-applied", applied);
+    textarea.value = "changed";
+    textarea.dispatchEvent(new InputEvent("input"));
+
+    expect(state.markSaved("paths", undefined, { normalized: true })).toBe(true);
+    expect(textarea.value).toBe("changed");
+    expect((applied.mock.calls[0]![0] as CustomEvent).detail).toEqual({ normalized: true });
+  });
 });

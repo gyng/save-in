@@ -26,7 +26,6 @@ type NotificationRecovery = {
 };
 
 let recovery: Promise<void> | null = null;
-let recoveryTimer: ReturnType<typeof setTimeout> | undefined;
 
 const normalizeRecovery = (value: unknown): NotificationRecovery | null => {
   if (value == null || typeof value !== "object" || Array.isArray(value)) return null;
@@ -61,24 +60,22 @@ const readRecovery = async (): Promise<NotificationRecovery | null> => {
 
 const queuePendingRecovery = (expected: NotificationRecovery): Promise<void> => {
   const prior = sessionWriteState.queues.get(PENDING_DOWNLOADS_SESSION_KEY) ?? Promise.resolve();
-  const queued = prior
-    .then(async () => {
-      const [pendingStored, current] = await Promise.all([
-        getSession(extensionSessionStorage, PENDING_DOWNLOADS_SESSION_KEY),
-        readRecovery(),
-      ]);
-      if (!current || !sameRecovery(current, expected) || current.pendingDownloads === 0) return;
-      const pending = normalizeSessionCounter(pendingStored[PENDING_DOWNLOADS_SESSION_KEY]);
-      await setSession(
-        extensionSessionStorage,
-        {
-          [PENDING_DOWNLOADS_SESSION_KEY]: Math.max(0, pending - current.pendingDownloads),
-          [NOTIFICATION_RECOVERY_SESSION_KEY]: { ...current, pendingDownloads: 0 },
-        },
-        `${PENDING_DOWNLOADS_SESSION_KEY},${NOTIFICATION_RECOVERY_SESSION_KEY}`,
-      );
-    })
-    .catch(() => {});
+  const queued = prior.then(async () => {
+    const [pendingStored, current] = await Promise.all([
+      getSession(extensionSessionStorage, PENDING_DOWNLOADS_SESSION_KEY),
+      readRecovery(),
+    ]);
+    if (!current || !sameRecovery(current, expected) || current.pendingDownloads === 0) return;
+    const pending = normalizeSessionCounter(pendingStored[PENDING_DOWNLOADS_SESSION_KEY]);
+    await setSession(
+      extensionSessionStorage,
+      {
+        [PENDING_DOWNLOADS_SESSION_KEY]: Math.max(0, pending - current.pendingDownloads),
+        [NOTIFICATION_RECOVERY_SESSION_KEY]: { ...current, pendingDownloads: 0 },
+      },
+      `${PENDING_DOWNLOADS_SESSION_KEY},${NOTIFICATION_RECOVERY_SESSION_KEY}`,
+    );
+  });
   sessionWriteState.queues.set(PENDING_DOWNLOADS_SESSION_KEY, queued);
   void queued.finally(() => {
     if (sessionWriteState.queues.get(PENDING_DOWNLOADS_SESSION_KEY) === queued) {
@@ -145,10 +142,8 @@ const finishRecovery = async (expected: NotificationRecovery): Promise<void> => 
 };
 
 const scheduleRecovery = (expected: NotificationRecovery, delay: number): void => {
-  if (recoveryTimer !== undefined) clearTimeout(recoveryTimer);
-  recoveryTimer = setTimeout(
+  setTimeout(
     () => {
-      recoveryTimer = undefined;
       void finishRecovery(expected);
     },
     Math.max(0, delay),
@@ -208,9 +203,6 @@ const initializeRecovery = async (): Promise<void> => {
 };
 
 export const recoverNotificationState = (): Promise<void> => {
-  recovery ??= initializeRecovery().catch((error) => {
-    recovery = null;
-    throw error;
-  });
+  recovery ??= initializeRecovery();
   return recovery;
 };

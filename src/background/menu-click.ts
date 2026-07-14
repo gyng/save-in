@@ -220,6 +220,7 @@ export const handleContextMenuClick = async (
       saveIntoPath = ".";
     } else if (info.menuItemId === MENU_IDS.LAST_USED) {
       saveIntoPath = menuState.lastUsedPath;
+      if (!saveIntoPath) return;
       if (menuState.lastUsedMeta) {
         // Keep routing metadata paired with the path that produced it. A
         // later tab/external download may replace lastDownloadState, but
@@ -228,14 +229,14 @@ export const handleContextMenuClick = async (
         menuIndex = menuState.lastUsedMeta.menuIndex;
       }
     } else {
-      if (!menuInfo) return;
-      saveIntoPath = menuInfo.parsedDir;
-      const title = menuInfo.title || saveIntoPath;
+      const selectedMenuInfo = menuInfo!;
+      saveIntoPath = selectedMenuInfo.parsedDir;
+      const title = selectedMenuInfo.title || saveIntoPath;
       selectedLocation = {
         path: saveIntoPath,
         meta: {
-          comment: menuInfo.comment,
-          menuIndex: menuInfo.menuIndex,
+          comment: selectedMenuInfo.comment,
+          menuIndex: selectedMenuInfo.menuIndex,
           title,
         },
         title,
@@ -287,7 +288,7 @@ export const handleContextMenuClick = async (
       menuItemTitle:
         selectedLocation?.title ||
         (info.menuItemId === MENU_IDS.LAST_USED ? "Last used location" : "Routing rules"),
-      menuItemPath: saveIntoPath || undefined,
+      menuItemPath: saveIntoPath,
       comment,
       modifiers: Array.isArray(modifiersValue)
         ? modifiersValue.filter((value): value is string => typeof value === "string")

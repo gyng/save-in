@@ -157,6 +157,12 @@ describe("debug log panel", () => {
 });
 
 describe("variables preview", () => {
+  test("does nothing without preview panels", async () => {
+    document.body.innerHTML = "";
+    await expect(renderVariablesPreview()).resolves.toBeUndefined();
+    expect(browser.runtime.sendMessage).not.toHaveBeenCalled();
+  });
+
   test("closes an open live-variable list when clicking outside", () => {
     document.body.innerHTML = `
       <details class="variables-preview" open>
@@ -265,6 +271,47 @@ describe("variables preview", () => {
     );
     expect(rows.find((row) => row.textContent?.includes(":filename:"))?.textContent).toContain(
       "photo.jpg",
+    );
+  });
+
+  test("contains unavailable route values and panels without a list container", async () => {
+    document.body.innerHTML = '<section class="variables-preview"></section>';
+    vi.mocked(browser.runtime.sendMessage)
+      .mockResolvedValueOnce({ body: {} })
+      .mockRejectedValueOnce(new Error("worker restarting"));
+
+    await expect(renderVariablesPreview()).resolves.toBeUndefined();
+    expect(document.querySelector(".variables-preview-filter")).toBeNull();
+  });
+
+  test("supports filter keyboard dismissal and inserts the first visible result", async () => {
+    document.body.innerHTML = `
+      <textarea id="paths"></textarea>
+      <section class="variables-preview" data-insert-target="paths" open>
+        <div class="variables-preview-list"></div>
+      </section>`;
+    vi.mocked(browser.runtime.sendMessage)
+      .mockResolvedValueOnce({ body: { variables: [":url:"] } })
+      .mockResolvedValueOnce({ body: { interpolatedVariables: {} } });
+    const insertLine = vi.spyOn(PathEditor, "insertLine").mockImplementation(() => {});
+    await renderVariablesPreview();
+    const panel = document.querySelector<HTMLElement>(".variables-preview")!;
+    const filter = document.querySelector<HTMLInputElement>(".variables-preview-filter")!;
+
+    filter.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    expect(panel.hasAttribute("open")).toBe(false);
+    filter.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }));
+    filter.value = "no match";
+    filter.dispatchEvent(new InputEvent("input", { bubbles: true }));
+    filter.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+    expect(insertLine).not.toHaveBeenCalled();
+
+    filter.value = "";
+    filter.dispatchEvent(new InputEvent("input", { bubbles: true }));
+    filter.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+    expect(insertLine).toHaveBeenCalledWith(
+      document.querySelector<HTMLTextAreaElement>("#paths"),
+      "---",
     );
   });
 });

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 // Guided rule input + template library on the options page.
 
-import { RuleBuilder } from "../src/options/rule-builder.ts";
+import { RuleBuilder, setupRuleBuilder } from "../src/options/rule-builder.ts";
 import { RULE_TEMPLATES } from "../src/options/rule-templates.ts";
 
 describe("RuleBuilder.appendRule", () => {
@@ -86,6 +86,37 @@ describe("guided input", () => {
     );
     expect(document.querySelector<HTMLSelectElement>("#rule-builder-matcher")?.value).toBe(
       "urlfileext",
+    );
+  });
+
+  test("tolerates missing controls and unavailable or legacy keyword responses", async () => {
+    document.body.innerHTML = "";
+    expect(RuleBuilder.setupGuidedInput()).toBeUndefined();
+
+    document.body.innerHTML = `
+      <textarea id="filenamePatterns"></textarea>
+      <select id="rule-builder-matcher"></select>
+      <input id="rule-builder-pattern">
+      <input id="rule-builder-into">
+      <button id="rule-builder-add"></button>`;
+    global.browser.runtime.sendMessage = vi.fn().mockRejectedValueOnce(new Error("worker asleep"));
+    RuleBuilder.setupGuidedInput();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(document.querySelector("#rule-builder-matcher option")).toBeNull();
+
+    document.body.innerHTML = `
+      <textarea id="filenamePatterns"></textarea>
+      <select id="rule-builder-matcher"><option value="other">other</option></select>
+      <input id="rule-builder-pattern">
+      <input id="rule-builder-into">
+      <button id="rule-builder-add"></button>`;
+    global.browser.runtime.sendMessage = vi.fn().mockResolvedValue({ body: {} });
+    RuleBuilder.setupGuidedInput();
+    await vi.waitFor(() =>
+      expect(document.querySelector<HTMLInputElement>("#rule-builder-pattern")?.placeholder).toBe(
+        ".*",
+      ),
     );
   });
 });
@@ -199,5 +230,59 @@ describe("template list rendering", () => {
     expect(
       document.querySelector<HTMLElement>(".rule-template-surface .template-feedback")?.hidden,
     ).toBe(false);
+  });
+
+  test("does nothing without both a library and the rules textarea", () => {
+    document.body.innerHTML = '<div id="rule-templates"></div>';
+    expect(RuleBuilder.renderTemplates()).toBeUndefined();
+    document.body.innerHTML = '<textarea id="filenamePatterns"></textarea>';
+    expect(RuleBuilder.renderTemplates()).toBeUndefined();
+  });
+
+  test("the feedback action closes the reference and navigates to the rules editor", () => {
+    document.body.innerHTML = `
+      <textarea id="filenamePatterns"></textarea>
+      <dialog id="reference-dialog">
+        <input class="reference-dialog-filter rule-template-filter">
+        <div class="template-feedback" hidden></div>
+        <div id="rule-templates"></div>
+      </dialog>`;
+    const dialog = document.querySelector<HTMLDialogElement>("dialog")!;
+    dialog.close = vi.fn();
+    const navigate = vi.fn();
+    document.addEventListener("save-in:navigate-option", navigate, { once: true });
+    RuleBuilder.renderTemplates();
+    document.querySelector<HTMLButtonElement>(".rule-template-add")!.click();
+    document.querySelector<HTMLButtonElement>(".template-feedback button")!.click();
+
+    expect(dialog.close).toHaveBeenCalledOnce();
+    expect(navigate).toHaveBeenCalledWith(
+      expect.objectContaining({ detail: { target: document.querySelector("#filenamePatterns") } }),
+    );
+  });
+
+  test("contains empty filter results and works without feedback or a filter surface", () => {
+    document.body.innerHTML = `
+      <textarea id="filenamePatterns"></textarea>
+      <div class="rule-template-surface">
+        <input class="rule-template-filter">
+        <div data-rule-template-library></div>
+      </div>
+      <div data-rule-template-library></div>`;
+    RuleBuilder.renderTemplates();
+    const filter = document.querySelector<HTMLInputElement>(".rule-template-filter")!;
+    filter.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    filter.value = "no template can match this";
+    filter.dispatchEvent(new InputEvent("input", { bubbles: true }));
+    filter.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+    expect(document.querySelector<HTMLTextAreaElement>("#filenamePatterns")!.value).toBe("");
+
+    document.querySelector<HTMLButtonElement>(".rule-template-add")!.click();
+    expect(document.querySelector<HTMLTextAreaElement>("#filenamePatterns")!.value).not.toBe("");
+  });
+
+  test("setup composes both rule-builder surfaces", () => {
+    document.body.innerHTML = "";
+    expect(setupRuleBuilder()).toBeUndefined();
   });
 });

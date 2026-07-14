@@ -161,4 +161,123 @@ describe("startup restore", () => {
     expect(adoptedIds(sessionStore)).toEqual([]);
     expect(sessionStore.siNotificationRecovery).toBeUndefined();
   });
+
+  test("replaces malformed recovery metadata instead of trusting partial persisted state", async () => {
+    vi.useFakeTimers();
+    const sessionStore = {
+      siPendingDownloads: 2,
+      siNotificationRecovery: {
+        version: 2,
+        token: "old",
+        deadline: Number.POSITIVE_INFINITY,
+        adoptedDownloadIds: "invalid",
+      },
+    } as Record<string, any>;
+    setupGlobals(sessionStore, () => []);
+
+    await loadNotification();
+
+    expect(sessionStore.siNotificationRecovery).toMatchObject({
+      version: 1,
+      pendingDownloads: 2,
+      adoptedDownloadIds: [],
+    });
+  });
+
+  test("reconciles completed history bytes and releases offscreen content", async () => {
+    vi.useFakeTimers();
+    const sessionStore = {
+      siDownloads: {
+        31: { adopted: true, historyEntryId: "h31", offscreenRequestId: "offscreen-31" },
+        32: { adopted: true, historyEntryId: "h32" },
+        33: { adopted: false, historyEntryId: "h33" },
+      },
+      siNotificationRecovery: {
+        version: 1,
+        token: "existing",
+        deadline: 0,
+        pendingDownloads: 0,
+        adoptedDownloadIds: [31, 32, 33],
+      },
+    } as Record<string, any>;
+    setupGlobals(sessionStore, (query) => {
+      if (query.id === 31) return [{ id: 31, state: "complete", fileSize: 12 }];
+      if (query.id === 32) return [{ id: 32, state: "complete", fileSize: 0, totalBytes: 9 }];
+      return [{ id: 33, state: "complete", fileSize: 4 }];
+    });
+
+    await loadNotification();
+    const { OffscreenClient } = await import("../src/platform/offscreen-client.ts");
+    vi.spyOn(OffscreenClient, "release").mockRejectedValue(new Error("already released"));
+    const { downloadPorts } = await import("../src/downloads/ports.ts");
+    const setStatus = vi.spyOn(downloadPorts.history, "setStatus");
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(setStatus).toHaveBeenCalledWith("h31", "complete", 31, 12);
+    expect(setStatus).toHaveBeenCalledWith("h32", "complete", 32, 9);
+    expect(setStatus).not.toHaveBeenCalledWith("h33", expect.anything(), expect.anything());
+    expect(OffscreenClient.release).toHaveBeenCalledWith("offscreen-31");
+  });
+
+  test("merges newly adopted downloads into an existing recovery lease", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-01-01T00:00:00Z"));
+    const sessionStore = {
+      siDownloads: { 41: { adopted: true } },
+      siNotificationRecovery: {
+        version: 1,
+        token: "existing",
+        deadline: Date.now() + 10_000,
+        pendingDownloads: 0,
+        adoptedDownloadIds: [],
+      },
+    } as Record<string, any>;
+    setupGlobals(sessionStore, () => [{ id: 41, state: "in_progress" }]);
+
+    await loadNotification();
+
+    expect(sessionStore.siNotificationRecovery.adoptedDownloadIds).toEqual([41]);
+  });
+
+  test("does not remove a recovery lease replaced by a newer worker", async () => {
+    vi.useFakeTimers();
+    const sessionStore = { siPendingDownloads: 1 } as Record<string, any>;
+    setupGlobals(sessionStore, () => []);
+    await loadNotification();
+    sessionStore.siNotificationRecovery = {
+      ...sessionStore.siNotificationRecovery,
+      token: "new-worker",
+    };
+
+    await vi.advanceTimersByTimeAsync(10_000);
+
+    expect(sessionStore.siNotificationRecovery.token).toBe("new-worker");
+  });
+
+  test("does not delete a newer pending-download write queue", async () => {
+    vi.useFakeTimers();
+    const sessionStore = { siPendingDownloads: 1 } as Record<string, any>;
+    setupGlobals(sessionStore, () => []);
+    await loadNotification();
+    let releaseRead!: () => void;
+    const pendingRead = new Promise<void>((resolve) => {
+      releaseRead = resolve;
+    });
+    const originalGet = vi.mocked(global.browser.storage.session.get).getMockImplementation()!;
+    vi.mocked(global.browser.storage.session.get).mockImplementation(async (key) => {
+      if (key === "siPendingDownloads") await pendingRead;
+      return originalGet(key);
+    });
+
+    await vi.advanceTimersByTimeAsync(10_000);
+    const { sessionWriteState } = await import("../src/downloads/state.ts");
+    await vi.waitFor(() => expect(sessionWriteState.queues.has("siPendingDownloads")).toBe(true));
+    const newerQueue = Promise.resolve();
+    sessionWriteState.queues.set("siPendingDownloads", newerQueue);
+    releaseRead();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(sessionWriteState.queues.get("siPendingDownloads")).toBe(newerQueue);
+  });
 });

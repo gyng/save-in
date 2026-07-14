@@ -96,6 +96,24 @@ into: duplicate/
     expect(parsed.errors.every(({ location }) => location.line > 0)).toBe(true);
   });
 
+  test("reports duplicate and malformed disabled controls plus malformed source lines", () => {
+    const parsed = parseAutoDownloadRules(`
+disabled: maybe
+disabled: false
+pageurl: example
+sourcekind: image
+not a clause
+into: files/
+`);
+
+    expect(parsed.rules).toEqual([]);
+    expect(parsed.errors.map(({ code }) => code)).toEqual([
+      "bad-clause",
+      "duplicate-disabled",
+      "invalid-disabled",
+    ]);
+  });
+
   test("rejects match-all page or source guards unless the user writes an explicit constraint", () => {
     const parsed = parseAutoDownloadRules(`
 pageurl: .*
@@ -128,6 +146,19 @@ into: dangerous/
     );
   });
 
+  test("serializes the minimal enabled rule without optional control lines", () => {
+    expect(
+      serializeAutoDownloadRules([
+        {
+          name: "",
+          enabled: true,
+          matchers: [{ name: "pageurl", pattern: "example", flags: "" }],
+          destination: "files/",
+        },
+      ]),
+    ).toBe("pageurl: example\ninto: files/");
+  });
+
   test("migrates legacy automatic rules into guarded routing rules", () => {
     expect(
       migrateLegacyAutoDownloadRules(
@@ -144,5 +175,49 @@ into: dangerous/
         "disabled: true",
       ].join("\n"),
     });
+  });
+
+  test("returns migration diagnostics without emitting a partial routing document", () => {
+    const result = migrateLegacyAutoDownloadRules("pageurl: example\ninto: files/");
+    expect(result.routingSource).toBe("");
+    expect(result.errors).toEqual([expect.objectContaining({ code: "missing-source-matcher" })]);
+  });
+
+  test("migrates an unnamed enabled matcher with flags", () => {
+    expect(
+      migrateLegacyAutoDownloadRules("pageurl/i: example\nsourcekind: image\ninto: files/")
+        .routingSource,
+    ).toBe("context: ^auto$\npageurl/i: example\nsourcekind: image\ninto: files/");
+  });
+
+  test("contains malformed candidate URLs and unmatched extensions", () => {
+    const parsed = parseAutoDownloadRules(`
+pagedomain: ^$
+sourcedomain: ^$
+fileext: ^$
+into: files/
+`);
+    expect(parsed.errors).toEqual([]);
+    expect(
+      matchAutoDownloadRule(parsed.rules, {
+        pageUrl: "not a URL",
+        sourceUrl: "also not a URL",
+        sourceKind: "image",
+      })?.destination,
+    ).toBe("files/");
+
+    const extensionless = parseAutoDownloadRules("pageurl: example\nfileext: ^$\ninto: files/");
+    expect(
+      matchAutoDownloadRule(extensionless.rules, {
+        pageUrl: "https://example.test/",
+        sourceUrl: "https://cdn.example.test/no-extension",
+        sourceKind: "image",
+      })?.destination,
+    ).toBe("files/");
+  });
+
+  test("returns null when no enabled rule matches", () => {
+    const parsed = parseAutoDownloadRules("pageurl: other\\.test\nsourcekind: image\ninto: files/");
+    expect(matchAutoDownloadRule(parsed.rules, candidate)).toBeNull();
   });
 });

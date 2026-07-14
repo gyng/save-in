@@ -135,9 +135,9 @@ export const setupTabs = ({ confirmPendingChanges, onGuardError }: TabsOptions =
       tab.classList.toggle("active", selected);
       tab.setAttribute("aria-selected", selected ? "true" : "false");
       tab.tabIndex = selected ? 0 : -1;
-      const panel = panels[i];
-      panel?.classList.toggle("active", selected);
-      if (panel) panel.hidden = !selected;
+      const panel = panels[i]!;
+      panel.classList.toggle("active", selected);
+      panel.hidden = !selected;
     });
     try {
       localStorage.setItem(TAB_STORAGE_KEY, section.key);
@@ -158,7 +158,7 @@ export const setupTabs = ({ confirmPendingChanges, onGuardError }: TabsOptions =
         return;
       }
       activate(index);
-      if (focusOnActivate) tabs[index]?.focus();
+      if (focusOnActivate) tabs[index]!.focus();
       afterActivate?.();
     };
     const failGuardedNavigation = (error: unknown): void => {

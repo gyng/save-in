@@ -88,3 +88,41 @@ test("does nothing when required dialog controls are absent", () => {
   document.body.innerHTML = '<button id="privacy-open">Privacy</button>';
   expect(setupPrivacyDialog()).toBeUndefined();
 });
+
+test("renders multiline prose, star lists, and links without trailing punctuation", async () => {
+  setupMarkup();
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({
+      ok: true,
+      text: () =>
+        Promise.resolve(
+          "Intro line\ncontinues here with https://example.com/policy\n\n* First\n* Second",
+        ),
+    }),
+  );
+  setupPrivacyDialog();
+  document.querySelector<HTMLButtonElement>("#privacy-open")!.click();
+
+  await vi.waitFor(() => expect(document.querySelectorAll("#privacy-content li")).toHaveLength(2));
+  expect(document.querySelector("#privacy-content p")?.textContent).toContain(
+    "Intro line continues here",
+  );
+  expect(document.querySelector<HTMLAnchorElement>("#privacy-content a")?.href).toBe(
+    "https://example.com/policy",
+  );
+  vi.unstubAllGlobals();
+});
+
+test("uses concrete fallback copy when the open control has no text", async () => {
+  setupMarkup();
+  document.querySelector("#privacy-open")!.textContent = "";
+  vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("unavailable")));
+  setupPrivacyDialog();
+  document.querySelector<HTMLButtonElement>("#privacy-open")!.click();
+
+  await vi.waitFor(() =>
+    expect(document.querySelector("#privacy-content a")?.textContent).toBe("Privacy policy"),
+  );
+  vi.unstubAllGlobals();
+});

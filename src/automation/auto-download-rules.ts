@@ -247,10 +247,10 @@ const matcherValue = (
 ): string => {
   if (matcher === "pageurl") return candidate.pageUrl;
   if (matcher === "pagedomain") return hostname(candidate.pageUrl);
-  if (matcher === "pagerootdomain") return toRootDomain(hostname(candidate.pageUrl)) ?? "";
+  if (matcher === "pagerootdomain") return toRootDomain(hostname(candidate.pageUrl))!;
   if (matcher === "sourceurl") return candidate.sourceUrl;
   if (matcher === "sourcedomain") return hostname(candidate.sourceUrl);
-  if (matcher === "sourcerootdomain") return toRootDomain(hostname(candidate.sourceUrl)) ?? "";
+  if (matcher === "sourcerootdomain") return toRootDomain(hostname(candidate.sourceUrl))!;
   if (matcher === "sourcekind") return candidate.sourceKind;
   return getFilenameFromUrl(candidate.sourceUrl).match(/\.([\p{L}\p{M}\p{N}_+-]+)$/u)?.[1] ?? "";
 };

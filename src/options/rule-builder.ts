@@ -124,7 +124,7 @@ export const RuleBuilder = {
       const syncs: Array<() => void> = [];
       const rows: HTMLElement[] = [];
       let filter: HTMLInputElement | null = null;
-      let applyFilter = () => {};
+      let applyFilter: () => void;
       let category = "";
       let categoryList: HTMLElement | null = null;
 

@@ -101,6 +101,7 @@ describe("automatic source discovery", () => {
     document.body.innerHTML = `
       <img src="https://cdn.test/one.png">
       <img src="https://cdn.test/two.png">
+      <img src="https://cdn.test/three.png">
       <img src="data:image/png;base64,AAAA">
     `;
     const send = vi.fn(() => Promise.resolve("started" as const));
@@ -138,5 +139,54 @@ describe("automatic source discovery", () => {
     release?.();
     await settle();
     expect(send).toHaveBeenCalledOnce();
+  });
+
+  test("contains a rejected send and ignores scans while the queue is already draining", async () => {
+    document.body.innerHTML = '<img src="https://cdn.test/one.png">';
+    let rejectSend!: (error: Error) => void;
+    const send = vi.fn(
+      () =>
+        new Promise<"started">((_resolve, reject) => {
+          rejectSend = reject;
+        }),
+    );
+    const controller = setupAutoDownloadDiscovery({ rules, live: false, maxPerPage: 20, send });
+    await vi.waitFor(() => expect(send).toHaveBeenCalledOnce());
+
+    controller.scan();
+    rejectSend(new Error("extension context invalidated"));
+    await controller.idle();
+
+    expect(send).toHaveBeenCalledOnce();
+    controller.stop();
+  });
+
+  test("is inert without eligible rules and after it has stopped", async () => {
+    document.body.innerHTML = '<img src="https://cdn.test/one.png">';
+    const send = vi.fn(() => Promise.resolve("started" as const));
+    const controller = setupAutoDownloadDiscovery({
+      rules: "filename: \\.png$\ninto: files/",
+      live: true,
+      maxPerPage: 20,
+      send,
+    });
+    await controller.idle();
+    controller.scan();
+    controller.stop();
+    controller.stop();
+    controller.scan();
+
+    expect(send).not.toHaveBeenCalled();
+  });
+
+  test("ignores mutations that add no discoverable elements", async () => {
+    const send = vi.fn(() => Promise.resolve("started" as const));
+    const controller = setupAutoDownloadDiscovery({ rules, live: true, maxPerPage: 20, send });
+    document.body.append(document.createTextNode("text only"));
+    await settle();
+    await new Promise((resolve) => setTimeout(resolve, 250));
+
+    expect(send).not.toHaveBeenCalled();
+    controller.stop();
   });
 });

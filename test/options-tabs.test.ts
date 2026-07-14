@@ -46,6 +46,18 @@ describe("collectSections", () => {
     expect(sections.map((s) => s.heading.textContent)).toEqual(["Downloads", "Dynamic"]);
     expect(sections[1]!.nodes[0]!.querySelector("#rules")).not.toBeNull();
   });
+
+  test("ignores non-HTML children before the first section", () => {
+    document.body.innerHTML = `
+      <form id="options">
+        <svg><title>Decoration</title></svg>
+        <div>HTML preface</div>
+        <h2>Downloads</h2><label>Option</label>
+      </form>`;
+    const sections = collectSections(document.getElementById("options") as HTMLFormElement);
+    expect(sections).toHaveLength(1);
+    expect(sections[0]!.nodes).toHaveLength(2);
+  });
 });
 
 describe("headingLabel", () => {
@@ -205,6 +217,49 @@ describe("setupTabs", () => {
 
     expect(document.querySelectorAll<HTMLElement>(".tab-panel")[1]!.hidden).toBe(false);
   });
+
+  test("ArrowLeft wraps and unrelated keys leave selection unchanged", () => {
+    const tabs = [...document.querySelectorAll<HTMLElement>('[role="tab"]')];
+    tabs[0]!.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    expect(tabs[0]!.ariaSelected).toBe("true");
+
+    tabs[0]!.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowLeft", bubbles: true }));
+    expect(tabs.at(-1)!.ariaSelected).toBe("true");
+  });
+
+  test("ignores option-navigation events outside a tab panel", () => {
+    const outside = document.createElement("button");
+    document.body.append(outside);
+    document.dispatchEvent(new CustomEvent("save-in:navigate-option"));
+    document.dispatchEvent(
+      new CustomEvent("save-in:navigate-option", { detail: { target: outside } }),
+    );
+    expect(document.querySelectorAll<HTMLElement>('[role="tab"]')[0]!.ariaSelected).toBe("true");
+  });
+
+  test("highlights a non-choice option and removes the marker after the timeout", async () => {
+    vi.useFakeTimers();
+    try {
+      const target = document.getElementById("c") as HTMLInputElement;
+      target.type = "text";
+      target.scrollIntoView = vi.fn();
+      document.dispatchEvent(new CustomEvent("save-in:navigate-option", { detail: { target } }));
+
+      expect(target.classList.contains("option-search-target")).toBe(true);
+      expect(target.scrollIntoView).toHaveBeenCalledWith({ block: "center", behavior: "smooth" });
+      await vi.advanceTimersByTimeAsync(1600);
+      expect(target.classList.contains("option-search-target")).toBe(false);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  test("contains an out-of-range legacy position", () => {
+    buildForm();
+    localStorage.setItem(TAB_STORAGE_KEY, "6");
+    expect(setupTabs()).toBeUndefined();
+    expect(document.querySelector('[role="tab"][aria-selected="true"]')).toBeNull();
+  });
 });
 
 describe("setupTabs guards", () => {
@@ -323,6 +378,26 @@ describe("unsaved-changes guard on tab switch", () => {
     expect(tabs[2]!.getAttribute("aria-selected")).toBe("true");
   });
 
+  test("ignores a stale guard rejection after a newer navigation starts", async () => {
+    const finishes: Array<{ resolve: (allowed: boolean) => void; reject: (error: Error) => void }> =
+      [];
+    confirmPendingChanges = vi.fn(
+      () =>
+        new Promise<boolean>((resolve, reject) => {
+          finishes.push({ resolve, reject });
+        }),
+    );
+    const tabs = document.querySelectorAll<HTMLElement>(".tablist .tab");
+    tabs[1]!.click();
+    tabs[2]!.click();
+    finishes[1]!.resolve(true);
+    await vi.waitFor(() => expect(tabs[2]!.ariaSelected).toBe("true"));
+    finishes[0]!.reject(new Error("stale failure"));
+    await Promise.resolve();
+
+    expect(tabs[2]!.ariaSelected).toBe("true");
+  });
+
   test("keyboard focus follows activation and returns on failure", async () => {
     let finish!: (allowed: boolean) => void;
     confirmPendingChanges = vi.fn(() => new Promise<boolean>((resolve) => (finish = resolve)));
@@ -358,6 +433,29 @@ describe("unsaved-changes guard on tab switch", () => {
 
     expect(onGuardError).toHaveBeenCalledWith(failure);
     expect(tabs[0]!.getAttribute("aria-selected")).toBe("true");
+  });
+
+  test("contains a throwing guard-error reporter", async () => {
+    const failure = new Error("guard failed");
+    confirmPendingChanges = vi.fn(() => Promise.reject(failure));
+    onGuardError.mockImplementation(() => {
+      throw new Error("reporter failed");
+    });
+    const tabs = [...document.querySelectorAll<HTMLElement>('[role="tab"]')];
+    tabs[0]!.focus();
+    tabs[0]!.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+
+    await vi.waitFor(() => expect(onGuardError).toHaveBeenCalledWith(failure));
+    expect(document.activeElement).toBe(tabs[0]);
+  });
+
+  test("moves keyboard focus after an asynchronous guard allows navigation", async () => {
+    confirmPendingChanges = vi.fn(async () => true);
+    const tabs = [...document.querySelectorAll<HTMLElement>('[role="tab"]')];
+    tabs[0]!.focus();
+    tabs[0]!.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+
+    await vi.waitFor(() => expect(document.activeElement).toBe(tabs[1]));
   });
 
   test("still switches when no guard is registered", () => {

@@ -27,12 +27,14 @@ test("prevents row and passive-help clicks without blocking interactive help", (
       <input type="checkbox">
       <span class="caption"><span id="help">Help</span><a id="link" href="#details">Details</a></span>
     </label>
+    <div class="caption" id="standalone-help">Standalone help</div>
     <div id="outside">Outside</div>`;
   setupCheckboxRows();
   const label = document.querySelector("#option")!;
   const help = document.querySelector("#help")!;
   const link = document.querySelector("#link")!;
   const outside = document.querySelector("#outside")!;
+  const standaloneHelp = document.querySelector("#standalone-help")!;
 
   expect(label.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }))).toBe(
     false,
@@ -46,6 +48,9 @@ test("prevents row and passive-help clicks without blocking interactive help", (
   expect(outside.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }))).toBe(
     true,
   );
+  expect(
+    standaloneHelp.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true })),
+  ).toBe(true);
 
   const text = document.createTextNode("plain text");
   document.body.append(text);

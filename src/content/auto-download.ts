@@ -55,9 +55,7 @@ export const setupAutoDownloadDiscovery = (
     if (draining || stopped) return;
     draining = true;
     while (queue.length > 0) {
-      if (stopped) break;
-      const candidate = queue.shift();
-      if (!candidate) break;
+      const candidate = queue.shift()!;
       try {
         await options.send(candidate);
       } catch {

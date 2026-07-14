@@ -67,6 +67,12 @@ describe("addDownloadListener", () => {
     });
   });
 
+  test("ignores a Page Sources toggle without a usable tab id", async () => {
+    vi.mocked(global.browser.tabs.sendMessage).mockClear();
+    await listener({ menuItemId: Menus.IDS.TOGGLE_SOURCE_PANEL }, {});
+    expect(global.browser.tabs.sendMessage).not.toHaveBeenCalled();
+  });
+
   test("ignores tabstrip menu items", async () => {
     await listener({ menuItemId: Menus.IDS.TABSTRIP.SELECTED_TAB });
     expect(Download.renameAndDownload).not.toHaveBeenCalled();
@@ -289,6 +295,35 @@ describe("addDownloadListener", () => {
     });
   });
 
+  test("reports a preferred link and normalizes optional context-menu metadata", async () => {
+    options.preferLinks = true;
+    options.notifyOnLinkPreferred = true;
+    Menus.addPaths(["dir1"], ["image"]);
+
+    await listener({
+      ...mediaClick,
+      linkText: "Gallery link",
+      modifiers: ["Shift", 7, "Ctrl"],
+    });
+
+    expect(Notifier.createExtensionNotification).toHaveBeenCalledWith(
+      "Translated<notificationLinkPreferred>",
+      "https://example.com/gallery.html",
+      undefined,
+      "link-preferred",
+    );
+    expect(lastState().info).toMatchObject({
+      linkText: "Gallery link",
+      modifiers: ["Shift", "Ctrl"],
+    });
+  });
+
+  test("contains a media menu event whose source URL disappeared", async () => {
+    Menus.addPaths(["dir1"], ["image"]);
+    await listener({ menuItemId: "save-in-0", mediaType: "image" });
+    expect(Download.renameAndDownload).not.toHaveBeenCalled();
+  });
+
   test("bails out when the click has nothing downloadable", async () => {
     options.selection = false;
     options.page = false;
@@ -435,6 +470,28 @@ describe("addDownloadListener", () => {
     expect(lastState().info.menuIndex).toBe("2.1");
   });
 
+  test("last-used clicks tolerate legacy state without paired metadata", async () => {
+    Menus.state.lastUsedPath = "legacy/path";
+    Menus.state.lastUsedMeta = null;
+    await listener({
+      menuItemId: Menus.IDS.LAST_USED,
+      linkUrl: "https://example.com/file.png",
+      pageUrl: "https://example.com/",
+    });
+
+    expect(lastState().path.raw).toBe("legacy/path");
+    expect(lastState().info.menuIndex).toBeUndefined();
+  });
+
+  test("ignores a stale Last used click when no path was restored", async () => {
+    await listener({
+      menuItemId: Menus.IDS.LAST_USED,
+      linkUrl: "https://example.com/file.png",
+      pageUrl: "https://example.com/",
+    });
+    expect(Download.renameAndDownload).not.toHaveBeenCalled();
+  });
+
   describe("last used menu bookkeeping", () => {
     const pathClick = {
       menuItemId: "save-in-0",
@@ -466,6 +523,7 @@ describe("addDownloadListener", () => {
 
     test("falls back to the path when the clicked item has an empty alias", async () => {
       Menus.addPaths(["dir1 // (alias: )"], ["link"]);
+      Menus.pathMappings["save-in-0"]!.title = "";
       await listener(pathClick);
 
       expect(global.browser.contextMenus.update).toHaveBeenCalledWith(Menus.IDS.LAST_USED, {
