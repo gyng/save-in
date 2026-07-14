@@ -6,6 +6,7 @@ import {
   getWebhookDataTypes,
   postWebhook,
   validateWebhookUrl,
+  WEBHOOK_DATA_TYPES,
   type WebhookDataType,
   type WebhookFieldSelection,
 } from "../shared/webhook.ts";
@@ -26,6 +27,47 @@ export type WebhookPanelDependencies = {
   message(key: string, fallback: string): string;
 };
 
+const webhookDataTypes = new Set<string>(Object.values(WEBHOOK_DATA_TYPES));
+
+const isWebhookDataType = (value: unknown): value is WebhookDataType =>
+  typeof value === "string" && webhookDataTypes.has(value);
+
+export const createDataCollectionPermissionsApi = (
+  candidate: unknown,
+): DataCollectionPermissionsApi | undefined => {
+  if (candidate === null || (typeof candidate !== "object" && typeof candidate !== "function")) {
+    return undefined;
+  }
+  const getAll = Reflect.get(candidate, "getAll");
+  const request = Reflect.get(candidate, "request");
+  const remove = Reflect.get(candidate, "remove");
+  if (typeof getAll !== "function" || typeof request !== "function") return undefined;
+
+  const invoke = async (method: (...args: unknown[]) => unknown, argument?: unknown) => {
+    const result: unknown = await Reflect.apply(
+      method,
+      candidate,
+      argument === undefined ? [] : [argument],
+    );
+    return result;
+  };
+
+  return {
+    getAll: async () => {
+      const current = await invoke(getAll);
+      if (current === null || typeof current !== "object") return {};
+      const dataCollection: unknown = Reflect.get(current, "data_collection");
+      return Array.isArray(dataCollection)
+        ? { data_collection: dataCollection.filter(isWebhookDataType) }
+        : {};
+    },
+    request: async (permissions) => (await invoke(request, permissions)) === true,
+    ...(typeof remove === "function"
+      ? { remove: async (permissions) => (await invoke(remove, permissions)) === true }
+      : {}),
+  };
+};
+
 const defaultDependencies = (): WebhookPanelDependencies => {
   const messages: Record<string, string> = {
     webhookPermissionDenied: getMessage("webhookPermissionDenied"),
@@ -43,7 +85,7 @@ const defaultDependencies = (): WebhookPanelDependencies => {
     webhookStateOff: getMessage("webhookStateOff"),
   };
   return {
-    permissions: webExtensionApi.permissions as unknown as DataCollectionPermissionsApi,
+    permissions: createDataCollectionPermissionsApi(webExtensionApi.permissions),
     apply: async (config) => assertApplySucceeded(await optionsRuntime.apply(config)),
     post: (endpoint) => postWebhook(endpoint, createTestWebhookPayload()),
     message: (key, fallback) => messages[key] || fallback,

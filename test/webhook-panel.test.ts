@@ -1,5 +1,9 @@
 // @vitest-environment jsdom
-import { setupWebhookPanel, type WebhookPanelDependencies } from "../src/options/webhook-panel.ts";
+import {
+  createDataCollectionPermissionsApi,
+  setupWebhookPanel,
+  type WebhookPanelDependencies,
+} from "../src/options/webhook-panel.ts";
 import { webExtensionApi } from "../src/platform/web-extension-api.ts";
 import { MESSAGE_TYPES } from "../src/shared/constants.ts";
 
@@ -35,6 +39,29 @@ beforeEach(markup);
 afterEach(() => {
   vi.useRealTimers();
   vi.unstubAllGlobals();
+});
+
+test("normalizes the browser data-permission boundary without type assertions", async () => {
+  const host = {
+    marker: "permissions",
+    getAll: vi.fn(function (this: { marker: string }) {
+      expect(this.marker).toBe("permissions");
+      return Promise.resolve({
+        data_collection: ["browsingActivity", "unknown", 17, "websiteContent"],
+      });
+    }),
+    request: vi.fn(async () => true),
+    remove: vi.fn(async () => "not-a-boolean"),
+  };
+  const permissions = createDataCollectionPermissionsApi(host);
+
+  expect(await permissions?.getAll()).toEqual({
+    data_collection: ["browsingActivity", "websiteContent"],
+  });
+  await expect(permissions?.request({ data_collection: ["browsingActivity"] })).resolves.toBe(true);
+  await expect(permissions?.remove?.({ data_collection: ["websiteContent"] })).resolves.toBe(false);
+  expect(createDataCollectionPermissionsApi(null)).toBeUndefined();
+  expect(createDataCollectionPermissionsApi({ getAll: () => ({}) })).toBeUndefined();
 });
 
 test("returns when the complete webhook control set is unavailable", () => {
