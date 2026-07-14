@@ -48,7 +48,7 @@ const confirmEmptyPreset = (localize: Localize): Promise<boolean> =>
     const replace = document.createElement("button");
     replace.type = "button";
     replace.className = "button-danger danger-button";
-    replace.textContent = localize("welcomeUseEmptyPreset") || "Use Downloads only";
+    replace.textContent = localize("welcomeUseEmptyPreset") || "Use only the Downloads folder";
     actions.append(keep, replace);
     dialog.append(title, description, actions);
     document.body.append(dialog);
@@ -88,11 +88,11 @@ const createWelcomeDialog = (localize: Localize): HTMLDialogElement => {
       "The toolbar button opens Page Sources for finding media on the current page.",
     permissions: localize("welcomePermissions") || "Why these permissions?",
     customize: localize("welcomeCustomizeFolders") || "Customize folders",
-    empty: localize("welcomeUseEmptyPreset") || "Use Downloads only",
+    empty: localize("welcomeUseEmptyPreset") || "Use only the Downloads folder",
     accept: localize("welcomeUseStarterFolders") || "Keep starter folders",
     emptyFailed:
       localize("welcomeEmptyPresetFailed") ||
-      "Could not switch to Downloads only. Your folders are unchanged.",
+      "Could not switch to only the Downloads folder. Your folders are unchanged.",
   };
   const dialog = document.createElement("dialog");
   dialog.id = "welcome-dialog";

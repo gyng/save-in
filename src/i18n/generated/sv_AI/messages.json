@@ -2510,9 +2510,9 @@
   },
   "welcomePermissions": { "message": "Varför behövs dessa behörigheter?" },
   "welcomeCustomizeFolders": { "message": "Anpassa mappar" },
-  "welcomeUseEmptyPreset": { "message": "Använd endast Nedladdningar" },
+  "welcomeUseEmptyPreset": { "message": "Använd endast mappen Nedladdningar" },
   "welcomeEmptyPresetFailed": {
-    "message": "Det gick inte att endast använda Nedladdningar. Dina mappar har inte ändrats."
+    "message": "Det gick inte att endast använda mappen Nedladdningar. Dina mappar har inte ändrats."
   },
   "welcomeEmptyConfirmTitle": { "message": "Ersätta nuvarande mappar?" },
   "welcomeEmptyConfirmDescription": {

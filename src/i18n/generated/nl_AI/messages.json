@@ -2497,9 +2497,9 @@
   },
   "welcomePermissions": { "message": "Waarom zijn deze machtigingen nodig?" },
   "welcomeCustomizeFolders": { "message": "Mappen aanpassen" },
-  "welcomeUseEmptyPreset": { "message": "Alleen Downloads gebruiken" },
+  "welcomeUseEmptyPreset": { "message": "Alleen de map Downloads gebruiken" },
   "welcomeEmptyPresetFailed": {
-    "message": "Kan niet overschakelen naar alleen Downloads. Uw mappen zijn niet gewijzigd."
+    "message": "Kan niet overschakelen naar alleen de map Downloads. Uw mappen zijn niet gewijzigd."
   },
   "welcomeEmptyConfirmTitle": { "message": "Huidige mappen vervangen?" },
   "welcomeEmptyConfirmDescription": {

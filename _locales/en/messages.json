@@ -3646,11 +3646,11 @@
     "description": "Secondary welcome action that moves focus to the folder editor. Used in src/options/welcome-dialog.ts."
   },
   "welcomeUseEmptyPreset": {
-    "message": "Use Downloads only",
+    "message": "Use only the Downloads folder",
     "description": "Welcome action that replaces the starter folders with only the browser Downloads destination. Used in src/options/welcome-dialog.ts."
   },
   "welcomeEmptyPresetFailed": {
-    "message": "Could not switch to Downloads only. Your folders are unchanged.",
+    "message": "Could not switch to only the Downloads folder. Your folders are unchanged.",
     "description": "Error shown when the Downloads-only welcome preset could not be saved. Used in src/options/welcome-dialog.ts."
   },
   "welcomeEmptyConfirmTitle": {

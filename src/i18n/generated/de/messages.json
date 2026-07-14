@@ -2509,9 +2509,9 @@
   },
   "welcomePermissions": { "message": "Warum sind diese Berechtigungen nötig?" },
   "welcomeCustomizeFolders": { "message": "Ordner anpassen" },
-  "welcomeUseEmptyPreset": { "message": "Nur Downloads verwenden" },
+  "welcomeUseEmptyPreset": { "message": "Nur den Downloads-Ordner verwenden" },
   "welcomeEmptyPresetFailed": {
-    "message": "Es konnte nicht auf „Nur Downloads“ umgestellt werden. Ihre Ordner bleiben unverändert."
+    "message": "Es konnte nicht auf „Nur den Downloads-Ordner“ umgestellt werden. Ihre Ordner bleiben unverändert."
   },
   "welcomeEmptyConfirmTitle": { "message": "Vorhandene Ordner ersetzen?" },
   "welcomeEmptyConfirmDescription": {

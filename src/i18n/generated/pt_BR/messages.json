@@ -2493,9 +2493,9 @@
   },
   "welcomePermissions": { "message": "Por que estas permissões são necessárias?" },
   "welcomeCustomizeFolders": { "message": "Personalizar pastas" },
-  "welcomeUseEmptyPreset": { "message": "Usar apenas Downloads" },
+  "welcomeUseEmptyPreset": { "message": "Usar apenas a pasta Downloads" },
   "welcomeEmptyPresetFailed": {
-    "message": "Não foi possível mudar para apenas Downloads. Suas pastas não foram alteradas."
+    "message": "Não foi possível mudar para apenas a pasta Downloads. Suas pastas não foram alteradas."
   },
   "welcomeEmptyConfirmTitle": { "message": "Substituir as pastas atuais?" },
   "welcomeEmptyConfirmDescription": {

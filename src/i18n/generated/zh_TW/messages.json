@@ -2585,9 +2585,9 @@
   },
   "welcomePermissions": { "message": "為什麼需要這些權限？" },
   "welcomeCustomizeFolders": { "message": "自訂資料夾" },
-  "welcomeUseEmptyPreset": { "message": "僅使用「下載」" },
+  "welcomeUseEmptyPreset": { "message": "僅使用「下載」資料夾" },
   "welcomeEmptyPresetFailed": {
-    "message": "無法切換為僅使用「下載」。您的資料夾未變更。"
+    "message": "無法切換為僅使用「下載」資料夾。您的資料夾未變更。"
   },
   "welcomeEmptyConfirmTitle": { "message": "取代目前的資料夾？" },
   "welcomeEmptyConfirmDescription": {

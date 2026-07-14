@@ -2518,9 +2518,9 @@
   },
   "welcomePermissions": { "message": "Pourquoi ces autorisations ?" },
   "welcomeCustomizeFolders": { "message": "Personnaliser les dossiers" },
-  "welcomeUseEmptyPreset": { "message": "Utiliser uniquement Téléchargements" },
+  "welcomeUseEmptyPreset": { "message": "Utiliser uniquement le dossier Téléchargements" },
   "welcomeEmptyPresetFailed": {
-    "message": "Impossible de conserver uniquement Téléchargements. Vos dossiers restent inchangés."
+    "message": "Impossible de conserver uniquement le dossier Téléchargements. Vos dossiers restent inchangés."
   },
   "welcomeEmptyConfirmTitle": { "message": "Remplacer les dossiers actuels ?" },
   "welcomeEmptyConfirmDescription": {

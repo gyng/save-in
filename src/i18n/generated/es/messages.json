@@ -2493,9 +2493,9 @@
   },
   "welcomePermissions": { "message": "¿Por qué se necesitan estos permisos?" },
   "welcomeCustomizeFolders": { "message": "Personalizar carpetas" },
-  "welcomeUseEmptyPreset": { "message": "Usar solo Descargas" },
+  "welcomeUseEmptyPreset": { "message": "Usar solo la carpeta Descargas" },
   "welcomeEmptyPresetFailed": {
-    "message": "No se pudo cambiar a solo Descargas. Tus carpetas no se han modificado."
+    "message": "No se pudo cambiar a usar solo la carpeta Descargas. Tus carpetas no se han modificado."
   },
   "welcomeEmptyConfirmTitle": { "message": "¿Reemplazar las carpetas actuales?" },
   "welcomeEmptyConfirmDescription": {

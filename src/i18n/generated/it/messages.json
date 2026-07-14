@@ -2686,9 +2686,9 @@
   },
   "welcomePermissions": { "message": "Perché sono necessarie queste autorizzazioni?" },
   "welcomeCustomizeFolders": { "message": "Personalizza cartelle" },
-  "welcomeUseEmptyPreset": { "message": "Usa solo Download" },
+  "welcomeUseEmptyPreset": { "message": "Usa solo la cartella Download" },
   "welcomeEmptyPresetFailed": {
-    "message": "Impossibile passare a solo Download. Le cartelle non sono state modificate."
+    "message": "Impossibile passare alla sola cartella Download. Le cartelle non sono state modificate."
   },
   "welcomeEmptyConfirmTitle": { "message": "Sostituire le cartelle attuali?" },
   "welcomeEmptyConfirmDescription": {
