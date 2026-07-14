@@ -242,8 +242,21 @@ catch and choose the cheapest durable boundary:
 - Test browser-owned behavior such as menus, downloads, and service-worker
   lifecycle in the Chrome/Firefox e2e suites. Prefer one representative
   pipeline smoke test over duplicating lower-level cases end to end.
-- Keep e2e waits event-driven and in-browser where possible; avoid fixed sleeps
-  and repeated CDP/RDP polling. Preserve real user-visible timing and keep only measured wins.
+- Keep e2e waits event-driven and in-browser where possible. Fixed sleeps and
+  repeated runner-side CDP/RDP polling are not acceptable when a browser event,
+  observer, or storage listener can signal completion. Preserve real
+  user-visible timing and keep only measured wins.
+- Review e2e performance primarily through deterministic work: protocol
+  evaluations, page reloads, polling iterations, and browser/server lifetimes.
+  Ordinary cases should not reload a page or restart a browser/background unless
+  the behavior requires it, and should normally complete within two seconds.
+  Document legitimate lifecycle or network costs beside the case.
+- Treat a per-case duration increase above 25% as an advisory regression. An
+  increase above 50% and at least two seconds requires a fix or an explanation
+  backed by repeated measurements. Enforce total wall-clock budgets only in a
+  stable scheduled environment; shared PR runners use timings diagnostically.
+  Raising a baseline requires before/after evidence, and retries must never hide
+  a performance regression.
 - Enforce architecture, packaging, configuration, formatting, and generated
   output with `check:*`, lint, typecheck, or build scripts. Do not assert source
   snippets from Vitest when a direct mechanical check can report the violation.
