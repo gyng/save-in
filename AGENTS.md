@@ -267,7 +267,9 @@ vitest specifics (`test/*.test.ts`, typed; `tsc` covers them):
 - English is the canonical i18n key schema and the only browser-native catalog. Generated catalogs
   stay outside `_locales`: they are opt-in, clearly labelled in the language selector, bundled
   locally without runtime AI or network access, and fall back to English for missing messages. Add
-  or update the `check:i18n` catalog/runtime-key policy when UI copy changes.
+  or update the `check:i18n` catalog/runtime-key policy when UI copy changes. Follow the authoring,
+  semantic-review, concurrency, and staged-snapshot workflow in
+  [docs/TRANSLATIONS.md](docs/TRANSLATIONS.md).
 - When the user asks for repository changes, commit the completed, verified
   work before handing it back unless they explicitly ask to leave it uncommitted.
   Stage only task-related changes when the worktree contains unrelated edits.
