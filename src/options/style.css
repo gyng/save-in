@@ -1,3 +1,4 @@
+/* biome-ignore-all lint/style/noDescendingSpecificity: This legacy shared sheet is organized by UI ownership; globally sorting unrelated components by selector specificity would change its cascade. */
 :root {
   /* Native OS UI font on every platform */
   --font-stack:
@@ -1121,11 +1122,11 @@ input[type="text"] {
 }
 
 .hide {
-  display: none !important;
+  display: none;
 }
 
 .show {
-  display: block !important;
+  display: block;
 }
 
 /* The `hidden` attribute (e.g. the paths editor's text toolbar when Visual mode
@@ -1133,6 +1134,7 @@ input[type="text"] {
    display: flex }`, which share its specificity and would otherwise win on
    source order. */
 [hidden] {
+  /* biome-ignore lint/complexity/noImportantStyles: The hidden attribute must override component display rules regardless of their source order. */
   display: none !important;
 }
 
@@ -5236,7 +5238,7 @@ code.click-to-copy {
   }
 
   .advanced-section-nav {
-    gap-inline: var(--space-3);
+    column-gap: var(--space-3);
   }
 
   .fetch-credentials-option {
