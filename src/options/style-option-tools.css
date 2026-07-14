@@ -49,6 +49,7 @@ button:disabled {
 
 .unit-control input {
   width: 7rem;
+  max-width: none;
 }
 
 .shortcut-format-control {
