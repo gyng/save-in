@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
-import { parseOptionsDocument } from "./options-markup-helpers.ts";
+import { getReadOnlyOptionsDocument } from "./options-markup-helpers.ts";
 
-const documentForOptions = parseOptionsDocument;
+const documentForOptions = getReadOnlyOptionsDocument;
 
 const requireIds = (document: Document, ids: string[]) => {
   expect(

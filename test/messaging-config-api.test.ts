@@ -7,6 +7,7 @@ import {
   onMessage,
   onMessageExternal,
   setupGlobals,
+  waitForCall,
 } from "./messaging-fixture.ts";
 
 beforeEach(() => setupGlobals());
@@ -42,7 +43,7 @@ describe("config API", () => {
     const sendResponse = vi.fn();
 
     expect(onMessage({ type: MESSAGE_TYPES.GET_CONFIG }, {}, sendResponse)).toBe(true);
-    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    await waitForCall(sendResponse);
 
     expect(global.browser.storage.local.get).toHaveBeenCalledWith(["prompt", "paths"]);
     expect(sendResponse).toHaveBeenCalledWith({
@@ -98,7 +99,7 @@ describe("config API", () => {
         sendResponse,
       ),
     ).toBe(true);
-    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    await waitForCall(sendResponse);
     expect(Menus.buildTree).toHaveBeenCalledWith(["dogs", ">cats"]);
     expect(router.parseRulesCollecting).toHaveBeenCalledWith("x");
     const { body } = sendResponse.mock.calls[0]![0]!;
@@ -120,7 +121,7 @@ describe("config API", () => {
         sendResponse,
       ),
     ).toBe(true);
-    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    await waitForCall(sendResponse);
     expect(router.traceRules).toHaveBeenCalledWith(rules, info);
     expect(sendResponse.mock.calls[0]![0]!.body.ruleTrace).toEqual({ selectedRule: 1 });
   });
@@ -144,7 +145,7 @@ describe("config API", () => {
         sendResponse,
       ),
     ).toBe(true);
-    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    await waitForCall(sendResponse);
     expect(router.traceRules).toHaveBeenCalledWith(rules, {
       filename: "cat.jpg",
       now: new Date("2026-07-15T12:30:00.000Z"),
@@ -163,7 +164,7 @@ describe("config API", () => {
         sendResponse,
       ),
     ).toBe(true);
-    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    await waitForCall(sendResponse);
 
     expect(router.traceRules).toHaveBeenCalledWith(rules, { currentTab: null });
   });
@@ -193,7 +194,7 @@ describe("config API", () => {
         sendResponse,
       ),
     ).toBe(true);
-    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    await waitForCall(sendResponse);
 
     expect(router.traceRules).not.toHaveBeenCalled();
     expect(sendResponse).toHaveBeenCalledWith({
@@ -235,7 +236,7 @@ describe("config API", () => {
         sendResponse,
       ),
     ).toBe(true);
-    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    await waitForCall(sendResponse);
 
     expect(router.traceRules).not.toHaveBeenCalled();
     expect(sendResponse).toHaveBeenCalledWith({
@@ -301,7 +302,7 @@ describe("config API", () => {
         sendResponse,
       ),
     ).toBe(true);
-    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    await waitForCall(sendResponse);
     expect(router.traceRules).toHaveBeenCalledWith(
       expect.any(Array),
       {
@@ -327,7 +328,7 @@ describe("config API", () => {
     expect(
       onMessage({ type: MESSAGE_TYPES.VALIDATE, body: { paths: "dogs" } }, {}, sendResponse),
     ).toBe(true);
-    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    await waitForCall(sendResponse);
     expect(sendResponse).toHaveBeenCalledWith(
       expect.objectContaining({ type: MESSAGE_TYPES.VALIDATE_RESULT }),
     );
@@ -336,7 +337,7 @@ describe("config API", () => {
   test("VALIDATE accepts an omitted body as an empty dry run", async () => {
     const sendResponse = vi.fn();
     expect(onMessage({ type: MESSAGE_TYPES.VALIDATE }, {}, sendResponse)).toBe(true);
-    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    await waitForCall(sendResponse);
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.VALIDATE_RESULT,
       body: { version: 1 },
@@ -353,7 +354,7 @@ describe("config API", () => {
       {},
       sendResponse,
     );
-    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    await waitForCall(sendResponse);
 
     expect(global.browser.storage.local.set).toHaveBeenCalledWith({
       prompt: true,
@@ -376,7 +377,7 @@ describe("config API", () => {
       {},
       sendResponse,
     );
-    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    await waitForCall(sendResponse);
 
     expect(global.browser.storage.local.set).not.toHaveBeenCalled();
     expect(backgroundRuntime.reset).not.toHaveBeenCalled();
@@ -421,7 +422,7 @@ describe("config API", () => {
     );
     await vi.waitFor(() => expect(global.browser.storage.local.set).toHaveBeenCalledTimes(1));
     releaseFirst();
-    await vi.waitFor(() => expect(secondResponse).toHaveBeenCalled());
+    await waitForCall(secondResponse);
 
     expect(storedPrompt).toBe(false);
     expect(secondResponse.mock.calls[0]![0]!.body).toMatchObject({
@@ -437,7 +438,7 @@ describe("config API", () => {
       {},
       sendResponse,
     );
-    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    await waitForCall(sendResponse);
 
     expect(global.browser.storage.local.set).not.toHaveBeenCalled();
     expect(sendResponse.mock.calls[0]![0]!.body.rejected).toEqual([
@@ -469,7 +470,7 @@ describe("config API", () => {
       {},
       sendResponse,
     );
-    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    await waitForCall(sendResponse);
 
     expect(global.browser.storage.local.set).not.toHaveBeenCalled();
     expect(sendResponse.mock.calls[0]![0]!.body.rejected).toEqual([
@@ -493,7 +494,7 @@ describe("config API", () => {
   test("APPLY_CONFIG accepts an omitted body as an empty update", async () => {
     const sendResponse = vi.fn();
     expect(onMessage({ type: MESSAGE_TYPES.APPLY_CONFIG }, {}, sendResponse)).toBe(true);
-    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    await waitForCall(sendResponse);
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.APPLY_CONFIG_RESULT,
       body: { version: 1, applied: {}, rejected: [] },

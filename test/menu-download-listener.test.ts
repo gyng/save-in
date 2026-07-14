@@ -17,7 +17,7 @@ describe("addDownloadListener", () => {
   let listener: TestMenuListener;
 
   beforeEach(async () => {
-    vi.resetModules();
+    vi.restoreAllMocks();
     setupBrowserMocks();
     Menus = await importMenus();
     Runtime.ready = Promise.resolve();

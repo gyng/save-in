@@ -135,6 +135,25 @@ const setupGlobals = () => {
   global.browser.tabs.sendMessage = vi.fn(() => Promise.resolve());
 };
 
+type ObservableMock = {
+  mock: { calls: unknown[][] };
+  getMockImplementation: () => ((...args: unknown[]) => unknown) | undefined;
+  mockImplementationOnce: (implementation: (...args: unknown[]) => unknown) => unknown;
+};
+
+const waitForCall = (mock: ObservableMock): Promise<unknown[]> => {
+  const completedCall = mock.mock.calls.at(-1);
+  if (completedCall) return Promise.resolve(completedCall);
+
+  return new Promise((resolve) => {
+    const implementation = mock.getMockImplementation();
+    mock.mockImplementationOnce((...args) => {
+      resolve(args);
+      return implementation?.(...args);
+    });
+  });
+};
+
 export {
   MESSAGE_TYPES,
   DOWNLOAD_TYPES,
@@ -159,4 +178,5 @@ export {
   onMessageExternal,
   trackedTab,
   setupGlobals,
+  waitForCall,
 };

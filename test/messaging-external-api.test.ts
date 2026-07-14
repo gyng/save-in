@@ -8,6 +8,7 @@ import {
   onMessage,
   onMessageExternal,
   setupGlobals,
+  waitForCall,
 } from "./messaging-fixture.ts";
 
 beforeEach(() => setupGlobals());
@@ -35,12 +36,11 @@ describe("external DOWNLOAD API v1", () => {
         sendResponse,
       ),
     ).toBe(true);
-    await vi.waitFor(() =>
-      expect(sendResponse).toHaveBeenCalledWith({
-        type: MESSAGE_TYPES.DOWNLOAD,
-        body: { status: MESSAGE_TYPES.OK, version: 1, url: "https://x/f.png" },
-      }),
-    );
+    await waitForCall(sendResponse);
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.DOWNLOAD,
+      body: { status: MESSAGE_TYPES.OK, version: 1, url: "https://x/f.png" },
+    });
   });
 
   test("rejects a missing url with BAD_REQUEST and does not download", () => {
@@ -105,7 +105,7 @@ describe("external DOWNLOAD API v1", () => {
 
     expect(Download.renameAndDownload).not.toHaveBeenCalled();
     expect(global.browser.tabs.query).not.toHaveBeenCalled();
-    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    await waitForCall(sendResponse);
     expect(ExternalDownloadRejections.record).toHaveBeenCalledWith("untrusted-extension", {
       target: "activeTab",
     });
@@ -130,7 +130,7 @@ describe("external DOWNLOAD API v1", () => {
         sendResponse,
       ),
     ).toBe(true);
-    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    await waitForCall(sendResponse);
     expect(ExternalDownloadRejections.record).toHaveBeenCalledWith("untrusted-extension", {});
   });
 
@@ -142,7 +142,7 @@ describe("external DOWNLOAD API v1", () => {
       sendResponse,
     );
 
-    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    await waitForCall(sendResponse);
     expect(ExternalDownloadRejections.record).not.toHaveBeenCalled();
     expect(Notifier.reportExternalDownloadRejection).not.toHaveBeenCalled();
   });
@@ -158,7 +158,7 @@ describe("external DOWNLOAD API v1", () => {
         sendResponse,
       ),
     ).toBe(true);
-    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    await waitForCall(sendResponse);
     expect(Download.renameAndDownload).toHaveBeenCalledOnce();
   });
 

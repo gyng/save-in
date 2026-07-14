@@ -43,16 +43,19 @@ jobs:
           echo "RELEASE_TAG=$RELEASE_TAG" >> "$GITHUB_ENV"
           node scripts/prepare-release.js --check "$RELEASE_TAG"
 
+      - name: Stage bundled extension
+        run: npm run stage:bundled
+
       - name: Unit, type, lint, and browser gates
         run: |
           npm run test:coverage
           npm run typecheck
-          npm run lint
+          npm run lint:staged
           HEADLESS=1 npm run e2e:serial
 
       - name: Build runtime and source archives
         run: |
-          npm run build
+          npm run package:runtime
           npm run build:source
           npm run release:prepare -- "$RELEASE_TAG"
 

@@ -12,7 +12,7 @@ import {
 
 describe("addTabMenuListener", () => {
   test("registers a synchronous listener that ignores non-tabstrip items", async () => {
-    vi.resetModules();
+    vi.restoreAllMocks();
     setupBrowserMocks();
     (global.browser as any).tabs = { query: vi.fn(() => Promise.resolve([])) };
     const Menus = await importMenus();
@@ -48,7 +48,7 @@ describe("addTabMenuListener tabstrip downloads", () => {
   const fromTab = { id: 2, index: 1, windowId: 7 };
 
   beforeEach(async () => {
-    vi.resetModules();
+    vi.restoreAllMocks();
     setupBrowserMocks();
     (global.browser as any).tabs = {
       query: vi.fn(() => Promise.resolve(tabFixtures())),

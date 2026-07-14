@@ -1,12 +1,12 @@
 // Context menu click handling: listeners are registered synchronously at
 // service worker startup and must wait for async init before acting.
 //
-// menu-build/menu-click/menu-tabs and their deps are imported for real. Each
-// test resets the module registry (fresh menu state per case), so the deps are
-// re-imported inside importMenus after the reset — they resolve to the same
-// fresh instances the menu modules just loaded, so Object.assign (options,
-// WEB_EXTENSION_CAPABILITIES) and vi.spyOn (Download/Notifier/Shortcut) reach the live
-// click handlers. Path stays untouched (the handlers build real Path objects).
+// menu-build/menu-click/menu-tabs and their deps are imported for real.
+// importMenus resets their owner-controlled state and seeds the same module
+// instances the click handlers use, so Object.assign (options,
+// WEB_EXTENSION_CAPABILITIES) and vi.spyOn (Download/Notifier/Shortcut) reach
+// the live collaborators. Path stays untouched (the handlers build real Path
+// objects).
 
 import { DOWNLOAD_TYPES } from "../src/shared/constants.ts";
 import type { CurrentTab } from "../src/platform/current-tab.ts";
@@ -29,8 +29,8 @@ function assertPresent<T>(value: T): asserts value is NonNullable<T> {
   expect(value).not.toBeUndefined();
 }
 
-// Reassigned each module reset (in importMenus) to the fresh dep instances; the
-// setup fn and the describe-scoped helpers below read them.
+// Reassigned by importMenus so the setup function and describe-scoped helpers
+// below read the same dependency instances as the handlers.
 let options: any;
 let Download: any;
 let Notifier: any;
@@ -102,6 +102,8 @@ const importMenus = async () => {
   ({ WEB_EXTENSION_CAPABILITIES } = await import("../src/platform/chrome-detector.ts"));
   ({ setCurrentTab } = await import("../src/platform/current-tab.ts"));
   ({ backgroundRuntime: Runtime } = await import("../src/background/runtime.ts"));
+  menuBuild.restoreLastUsed(undefined);
+  menuBuild.menuState.pathMappings = {};
   seedDeps();
   return {
     ...menuBuild,

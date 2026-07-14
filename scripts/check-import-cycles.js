@@ -249,8 +249,8 @@ for (const file of files) {
 }
 
 const compositionCallOwners = new Map([
-  ["configureDownloadPorts", new Set(["src/background/main.ts"])],
-  ["configureRoutingPorts", new Set(["src/background/main.ts", "src/options/options-runtime.ts"])],
+  ["configureDownloadPorts", new Set(["src/background/ports.ts"])],
+  ["configureRoutingPorts", new Set(["src/background/ports.ts", "src/options/options-runtime.ts"])],
   ["registerBackgroundE2ECommand", new Set(["src/entries/background.e2e.ts"])],
 ]);
 for (const file of files) {

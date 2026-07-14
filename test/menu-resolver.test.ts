@@ -1,12 +1,11 @@
-import {
-  assertPresent,
-  setupBrowserMocks,
-  importMenus,
-  type MenusFixture,
-} from "./menu-listeners-fixture.ts";
+import { resolveClickTarget } from "../src/background/menu-target.ts";
+
+function assertPresent<T>(value: T): asserts value is NonNullable<T> {
+  expect(value).not.toBeNull();
+  expect(value).not.toBeUndefined();
+}
 
 describe("resolveClickTarget (pure decision)", () => {
-  let Menus: MenusFixture;
   const opts = (over: Record<string, unknown> = {}) => ({
     links: true,
     selection: true,
@@ -18,18 +17,8 @@ describe("resolveClickTarget (pure decision)", () => {
     ...over,
   });
 
-  beforeEach(async () => {
-    vi.resetModules();
-    setupBrowserMocks();
-    Menus = await importMenus();
-  });
-
   test("a media click saves the media source", () => {
-    const t = Menus.resolveClickTarget(
-      { mediaType: "image", srcUrl: "https://x/i.png" },
-      opts(),
-      null,
-    );
+    const t = resolveClickTarget({ mediaType: "image", srcUrl: "https://x/i.png" }, opts(), null);
     expect(t).toMatchObject({
       downloadType: "MEDIA",
       url: "https://x/i.png",
@@ -38,7 +27,7 @@ describe("resolveClickTarget (pure decision)", () => {
   });
 
   test("media wrapped in a link keeps the source by default", () => {
-    const t = Menus.resolveClickTarget(
+    const t = resolveClickTarget(
       { mediaType: "image", srcUrl: "https://x/i.png", linkUrl: "https://x/page" },
       opts(),
       null,
@@ -47,7 +36,7 @@ describe("resolveClickTarget (pure decision)", () => {
   });
 
   test("preferLinks switches to the wrapping link and flags a notification", () => {
-    const t = Menus.resolveClickTarget(
+    const t = resolveClickTarget(
       { mediaType: "image", srcUrl: "https://x/i.png", linkUrl: "https://x/page" },
       opts({ preferLinks: true }),
       null,
@@ -60,7 +49,7 @@ describe("resolveClickTarget (pure decision)", () => {
   });
 
   test("preferLinksFilter overrides to the link on a matching page", () => {
-    const t = Menus.resolveClickTarget(
+    const t = resolveClickTarget(
       {
         mediaType: "image",
         srcUrl: "https://x/i.png",
@@ -78,7 +67,7 @@ describe("resolveClickTarget (pure decision)", () => {
   });
 
   test("preferLinksFilter keeps the source on a non-matching page", () => {
-    const t = Menus.resolveClickTarget(
+    const t = resolveClickTarget(
       {
         mediaType: "image",
         srcUrl: "https://x/i.png",
@@ -92,7 +81,7 @@ describe("resolveClickTarget (pure decision)", () => {
   });
 
   test("a trailing empty filter line does not match every page", () => {
-    const t = Menus.resolveClickTarget(
+    const t = resolveClickTarget(
       {
         mediaType: "image",
         srcUrl: "https://x/i.png",
@@ -107,7 +96,7 @@ describe("resolveClickTarget (pure decision)", () => {
   });
 
   test("an invalid filter pattern reports the error and keeps the source", () => {
-    const t = Menus.resolveClickTarget(
+    const t = resolveClickTarget(
       {
         mediaType: "image",
         srcUrl: "https://x/i.png",
@@ -123,12 +112,12 @@ describe("resolveClickTarget (pure decision)", () => {
   });
 
   test("a plain link (no media) saves the link", () => {
-    const t = Menus.resolveClickTarget({ linkUrl: "https://x/page" }, opts(), null);
+    const t = resolveClickTarget({ linkUrl: "https://x/page" }, opts(), null);
     expect(t).toMatchObject({ downloadType: "LINK", url: "https://x/page" });
   });
 
   test("with links disabled a link-only click falls through to the page", () => {
-    const t = Menus.resolveClickTarget(
+    const t = resolveClickTarget(
       { linkUrl: "https://x/page", pageUrl: "https://p" },
       opts({ links: false }),
       null,
@@ -138,7 +127,7 @@ describe("resolveClickTarget (pure decision)", () => {
   });
 
   test("a text selection reports its text and a .selection.txt name", () => {
-    const t = Menus.resolveClickTarget({ selectionText: "hello world" }, opts(), {
+    const t = resolveClickTarget({ selectionText: "hello world" }, opts(), {
       title: "My Tab",
     });
     assertPresent(t);
@@ -151,7 +140,7 @@ describe("resolveClickTarget (pure decision)", () => {
   });
 
   test("a long selection title is truncated so the suffix still fits", () => {
-    const t = Menus.resolveClickTarget({ selectionText: "x" }, opts({ truncateLength: 30 }), {
+    const t = resolveClickTarget({ selectionText: "x" }, opts({ truncateLength: 30 }), {
       title: "a".repeat(80),
     });
     assertPresent(t);
@@ -161,12 +150,12 @@ describe("resolveClickTarget (pure decision)", () => {
   });
 
   test("a selection falls back to its text when the tab has no title", () => {
-    const t = Menus.resolveClickTarget({ selectionText: "selected words" }, opts(), { id: 4 });
+    const t = resolveClickTarget({ selectionText: "selected words" }, opts(), { id: 4 });
     expect(t?.suggestedFilename).toBe("selected words.selection.txt");
   });
 
   test("a page click saves the page url named after the tab title", () => {
-    const t = Menus.resolveClickTarget({ pageUrl: "https://x/page" }, opts(), { title: "Title" });
+    const t = resolveClickTarget({ pageUrl: "https://x/page" }, opts(), { title: "Title" });
     expect(t).toMatchObject({
       downloadType: "PAGE",
       url: "https://x/page",
@@ -175,12 +164,12 @@ describe("resolveClickTarget (pure decision)", () => {
   });
 
   test("a page click falls back to the url when no tab title is known", () => {
-    const t = Menus.resolveClickTarget({ pageUrl: "https://x/page" }, opts(), null);
+    const t = resolveClickTarget({ pageUrl: "https://x/page" }, opts(), null);
     assertPresent(t);
     expect(t.suggestedFilename).toBe("https://x/page");
   });
 
   test("returns null when there is nothing downloadable", () => {
-    expect(Menus.resolveClickTarget({}, opts({ page: false, selection: false }), null)).toBeNull();
+    expect(resolveClickTarget({}, opts({ page: false, selection: false }), null)).toBeNull();
   });
 });

@@ -1,6 +1,6 @@
+import { routingPorts } from "../src/routing/ports.ts";
+
 test("routing port defaults are safe before a browser adapter is configured", async () => {
-  vi.resetModules();
-  const { routingPorts } = await import("../src/routing/ports.ts");
   const log = vi.spyOn(console, "log").mockImplementation(() => {});
 
   expect(routingPorts.getMessage("key")).toBe("key");

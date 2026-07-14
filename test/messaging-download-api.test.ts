@@ -8,6 +8,7 @@ import {
   onMessageExternal,
   trackedTab,
   setupGlobals,
+  waitForCall,
 } from "./messaging-fixture.ts";
 import { parseRulesCollecting } from "../src/routing/rule-parser.ts";
 import { options } from "../src/config/options-data.ts";
@@ -36,12 +37,11 @@ describe("handleDownloadMessage", () => {
       ),
     ).toBe(true);
     expect(Download.renameAndDownload).toHaveBeenCalledTimes(1);
-    await vi.waitFor(() =>
-      expect(sendResponse).toHaveBeenCalledWith({
-        type: MESSAGE_TYPES.DOWNLOAD,
-        body: { status: MESSAGE_TYPES.OK, version: 1, url: "https://x/file.png" },
-      }),
-    );
+    await waitForCall(sendResponse);
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.DOWNLOAD,
+      body: { status: MESSAGE_TYPES.OK, version: 1, url: "https://x/file.png" },
+    });
   });
 
   test("rejects an omitted body as a missing URL", () => {
@@ -75,12 +75,11 @@ describe("handleDownloadMessage", () => {
     expect(state.info.context).toBe(DOWNLOAD_TYPES.CLICK);
     expect(state.info.now).toEqual(expect.any(Date));
 
-    await vi.waitFor(() =>
-      expect(sendResponse).toHaveBeenCalledWith({
-        type: MESSAGE_TYPES.DOWNLOAD,
-        body: { status: MESSAGE_TYPES.OK, version: 1, url: "https://x/file.png" },
-      }),
-    );
+    await waitForCall(sendResponse);
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.DOWNLOAD,
+      body: { status: MESSAGE_TYPES.OK, version: 1, url: "https://x/file.png" },
+    });
   });
 
   test("keeps the message channel alive until the browser accepts the download", async () => {
@@ -96,12 +95,11 @@ describe("handleDownloadMessage", () => {
     expect(sendResponse).not.toHaveBeenCalled();
 
     finish({ status: "started", downloadId: 7 });
-    await vi.waitFor(() =>
-      expect(sendResponse).toHaveBeenCalledWith({
-        type: MESSAGE_TYPES.DOWNLOAD,
-        body: { status: MESSAGE_TYPES.OK, version: 1, url: "https://x/file.png" },
-      }),
-    );
+    await waitForCall(sendResponse);
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.DOWNLOAD,
+      body: { status: MESSAGE_TYPES.OK, version: 1, url: "https://x/file.png" },
+    });
   });
 
   test("preserves a caller-supplied suggested filename", () => {
@@ -233,12 +231,11 @@ describe("handleDownloadMessage", () => {
     ).toBe(true);
 
     expect(Download.renameAndDownload).toHaveBeenCalledTimes(1);
-    await vi.waitFor(() =>
-      expect(sendResponse).toHaveBeenCalledWith({
-        type: MESSAGE_TYPES.DOWNLOAD,
-        body: { status: MESSAGE_TYPES.OK, version: 1, url: "https://x/file.png" },
-      }),
-    );
+    await waitForCall(sendResponse);
+    expect(sendResponse).toHaveBeenCalledWith({
+      type: MESSAGE_TYPES.DOWNLOAD,
+      body: { status: MESSAGE_TYPES.OK, version: 1, url: "https://x/file.png" },
+    });
   });
 
   test("external downloads wait for cold-start initialization", async () => {
@@ -256,7 +253,7 @@ describe("handleDownloadMessage", () => {
 
     finish();
     await backgroundRuntime.ready;
-    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    await waitForCall(sendResponse);
     expect(Download.renameAndDownload).toHaveBeenCalledTimes(1);
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.DOWNLOAD,
@@ -297,7 +294,7 @@ into: automatic/:pagedomain:/
     };
 
     expect(onMessage(request, { tab: senderTab }, sendResponse)).toBe(true);
-    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    await waitForCall(sendResponse);
 
     expect(Download.renameAndDownload).toHaveBeenCalledOnce();
     const state = vi.mocked(Download.renameAndDownload).mock.calls[0]![0]!;
@@ -333,7 +330,7 @@ into: automatic/:pagedomain:/
       sendResponse,
     );
 
-    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    await waitForCall(sendResponse);
     expect(Download.renameAndDownload).not.toHaveBeenCalled();
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
@@ -352,7 +349,7 @@ into: automatic/:pagedomain:/
         sendResponse,
       );
 
-      await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+      await waitForCall(sendResponse);
       expect(Download.renameAndDownload).not.toHaveBeenCalled();
       expect(sendResponse).toHaveBeenCalledWith({
         type: MESSAGE_TYPES.AUTO_DOWNLOAD_SOURCE,
@@ -370,7 +367,7 @@ into: automatic/:pagedomain:/
       { tab: { id: 7, url: request.body.pageUrl, incognito: true } },
       sendResponse,
     );
-    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    await waitForCall(sendResponse);
     expect(Download.renameAndDownload).toHaveBeenCalledOnce();
   });
 });

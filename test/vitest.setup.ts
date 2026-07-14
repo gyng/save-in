@@ -1,5 +1,14 @@
 import { createWebExtensionTestHost, installHostProperty } from "./webextension-test-helpers.ts";
 
+// These tests wait on local promises and mocked browser callbacks, not external
+// services. Vitest's 50 ms polling default dominates their actual work.
+const vitestWaitFor = vi.waitFor.bind(vi);
+vi.waitFor = (callback, options = {}) =>
+  vitestWaitFor(
+    callback,
+    typeof options === "number" ? { interval: 1, timeout: options } : { interval: 1, ...options },
+  );
+
 const host = createWebExtensionTestHost();
 installHostProperty(globalThis, "browser", host.browser);
 installHostProperty(globalThis, "chrome", host.chrome);

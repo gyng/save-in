@@ -1,77 +1,75 @@
-import { setupBrowserMocks, importMenus, type MenusFixture } from "./menu-listeners-fixture.ts";
+import { menuState, restoreLastUsed, setLastUsed } from "../src/background/menu-build.ts";
+import { setupBrowserMocks } from "./menu-listeners-fixture.ts";
 
 describe("Menus last-used state", () => {
-  let Menus: MenusFixture;
-
-  beforeEach(async () => {
-    vi.resetModules();
+  beforeEach(() => {
     setupBrowserMocks();
-    Menus = await importMenus();
+    restoreLastUsed(undefined);
   });
 
   test("restoreLastUsed maps a stored object into state, defaulting to null", () => {
-    Menus.restoreLastUsed({
+    restoreLastUsed({
       lastUsedPath: "a/b",
       lastUsedMeta: { comment: "c" },
-    } as unknown as Parameters<MenusFixture["restoreLastUsed"]>[0]);
-    expect(Menus.state.lastUsedPath).toBe("a/b");
-    expect(Menus.state.lastUsedMeta).toEqual({ comment: "c" });
+    });
+    expect(menuState.lastUsedPath).toBe("a/b");
+    expect(menuState.lastUsedMeta).toEqual({ comment: "c" });
 
-    Menus.restoreLastUsed({
+    restoreLastUsed({
       lastUsedPath: "other/file",
       lastUsedMeta: { menuIndex: "2", title: "Saved file" },
-    } as unknown as Parameters<MenusFixture["restoreLastUsed"]>[0]);
-    expect(Menus.state.lastUsedMeta).toEqual({ menuIndex: "2", title: "Saved file" });
+    });
+    expect(menuState.lastUsedMeta).toEqual({ menuIndex: "2", title: "Saved file" });
 
-    Menus.restoreLastUsed(undefined as unknown as Parameters<MenusFixture["restoreLastUsed"]>[0]);
-    expect(Menus.state.lastUsedPath).toBeNull();
-    expect(Menus.state.lastUsedMeta).toBeNull();
+    restoreLastUsed(undefined);
+    expect(menuState.lastUsedPath).toBeNull();
+    expect(menuState.lastUsedMeta).toBeNull();
   });
 
   test("restoreLastUsed rejects malformed persisted values", () => {
-    Menus.restoreLastUsed({
+    restoreLastUsed({
       lastUsedPath: { path: "legacy-object" },
       lastUsedMeta: { comment: 4, menuIndex: [1] },
-    } as any);
+    });
 
-    expect(Menus.state.lastUsedPath).toBeNull();
-    expect(Menus.state.lastUsedMeta).toBeNull();
+    expect(menuState.lastUsedPath).toBeNull();
+    expect(menuState.lastUsedMeta).toBeNull();
   });
 
   test("restoreLastUsed keeps a valid path but drops malformed routing metadata", () => {
-    Menus.restoreLastUsed({
+    restoreLastUsed({
       lastUsedPath: "images",
       lastUsedMeta: { comment: "ok", menuIndex: 2 },
-    } as any);
+    });
 
-    expect(Menus.state.lastUsedPath).toBe("images");
-    expect(Menus.state.lastUsedMeta).toBeNull();
+    expect(menuState.lastUsedPath).toBe("images");
+    expect(menuState.lastUsedMeta).toBeNull();
   });
 
   test("restoreLastUsed rejects array-shaped routing metadata", () => {
-    Menus.restoreLastUsed({
+    restoreLastUsed({
       lastUsedPath: "images",
       lastUsedMeta: [],
     });
 
-    expect(Menus.state.lastUsedPath).toBe("images");
-    expect(Menus.state.lastUsedMeta).toBeNull();
+    expect(menuState.lastUsedPath).toBe("images");
+    expect(menuState.lastUsedMeta).toBeNull();
   });
 
   test("restoreLastUsed rejects persisted paths that violate the path policy", () => {
-    Menus.restoreLastUsed({
+    restoreLastUsed({
       lastUsedPath: "../escape",
       lastUsedMeta: { comment: "old", menuIndex: "1" },
     });
 
-    expect(Menus.state.lastUsedPath).toBeNull();
-    expect(Menus.state.lastUsedMeta).toBeNull();
+    expect(menuState.lastUsedPath).toBeNull();
+    expect(menuState.lastUsedMeta).toBeNull();
   });
 
   test("setLastUsed mutates state and persists to storage.local", () => {
-    Menus.setLastUsed("dir/x", { comment: "cm", menuIndex: "2" });
-    expect(Menus.state.lastUsedPath).toBe("dir/x");
-    expect(Menus.state.lastUsedMeta).toEqual({ comment: "cm", menuIndex: "2" });
+    setLastUsed("dir/x", { comment: "cm", menuIndex: "2" });
+    expect(menuState.lastUsedPath).toBe("dir/x");
+    expect(menuState.lastUsedMeta).toEqual({ comment: "cm", menuIndex: "2" });
     expect(global.browser.storage.local.set).toHaveBeenCalledWith({
       lastUsedPath: "dir/x",
       lastUsedMeta: { comment: "cm", menuIndex: "2" },
@@ -79,9 +77,9 @@ describe("Menus last-used state", () => {
   });
 
   test("setLastUsed ignores private-window activity", async () => {
-    await Menus.setLastUsed("private/path", { comment: "secret", menuIndex: "9" }, true);
+    await setLastUsed("private/path", { comment: "secret", menuIndex: "9" }, true);
 
-    expect(Menus.state.lastUsedPath).toBeNull();
+    expect(menuState.lastUsedPath).toBeNull();
     expect(global.browser.storage.local.set).not.toHaveBeenCalled();
   });
 });

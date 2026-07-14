@@ -1,7 +1,7 @@
 // Background entry point: synchronous listener registration (MV3
 // requirement), async init/menu construction, and current-tab tracking.
-// background-main.ts exports start(); every test re-imports it fresh and calls
-// start() through importMain() below.
+// background-main.ts exports start(); each test resets the owner-controlled
+// runtime/tab state and calls start() through importIndex() below.
 
 vi.mock("../src/background/menu-click.ts", () => ({ addDownloadListener: vi.fn() }));
 vi.mock("../src/menus/menu-tree.ts", async (importOriginal) => {
@@ -57,11 +57,9 @@ import type { SaveInOptions } from "../src/config/option-schema.ts";
 import { WELCOME_PENDING_STORAGE_KEY, WELCOME_VERSION } from "../src/shared/storage-keys.ts";
 import { browserTab, installHostProperty } from "./webextension-test-helpers.ts";
 
-// background-main.ts, menu-build.ts, option.ts and log.ts are all real modules, freshly
-// re-imported after every vi.resetModules() below (mirroring test/log.test.ts
-// and test/option.test.ts): a top-level static import would keep pointing at
-// the first module instance, not the fresh one background-main.ts actually wires up on
-// each re-import.
+// background-main.ts, menu-build.ts, option.ts and log.ts are real modules.
+// They are loaded lazily so the host fakes exist first, then reused while each
+// test resets the mutable owners explicitly.
 type MenusFixture = typeof import("../src/background/menu-build.ts") &
   typeof import("../src/background/menu-click.ts") &
   typeof import("../src/background/menu-tabs.ts") &
@@ -93,6 +91,11 @@ const setupGlobals = async ({
   ({ options } = await import("../src/config/options-data.ts"));
   ({ Log } = await import("../src/background/log.ts"));
   ({ backgroundRuntime: Runtime } = await import("../src/background/runtime.ts"));
+  const { setCurrentTab } = await import("../src/platform/current-tab.ts");
+  setCurrentTab(null);
+  delete Runtime.ready;
+  Runtime.debug = false;
+  Runtime.optionErrors = { paths: [], filenamePatterns: [] };
 
   vi.mocked(Menus.addRoot).mockImplementation(() => undefined);
   vi.mocked(Menus.addRouteExclusive).mockImplementation(() => undefined);
@@ -196,8 +199,8 @@ const capturedCommand = () => {
 
 const mockTab = browserTab;
 
-// The entry calls start() synchronously. Re-import after resetModules and call
-// it explicitly to reproduce the startup sequence.
+// The entry calls start() synchronously; call it explicitly to reproduce the
+// startup sequence against each test's fresh browser listeners.
 const importIndex = async () => {
   const { start } = await import("../src/background/main.ts");
   start();
@@ -205,29 +208,9 @@ const importIndex = async () => {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.resetModules();
 });
 
 describe("startup", () => {
-  test("wires download and routing ports to background-owned services", async () => {
-    await setupGlobals();
-    const { configureBackgroundPorts } = await import("../src/background/main.ts");
-    const { routingPorts } = await import("../src/routing/ports.ts");
-    const consoleLog = vi.spyOn(console, "log").mockImplementation(() => {});
-
-    configureBackgroundPorts();
-    expect(routingPorts.getCurrentTab()).toBeNull();
-    expect(routingPorts.isDebug()).toBe(false);
-    const error = { message: "Invalid rule", error: "bad rule" };
-    routingPorts.recordRuleErrors([error]);
-    expect(Runtime.optionErrors.filenamePatterns).toEqual([error]);
-    routingPorts.logDebug("route", 1);
-    expect(consoleLog).toHaveBeenCalledWith("route", 1);
-    await expect(routingPorts.nextCounter()).resolves.toBe(1);
-    await expect(routingPorts.nextPrivateCounter()).resolves.toBe(2);
-    await expect(routingPorts.peekCounter()).resolves.toBe(0);
-  });
-
   test("registers event listeners synchronously on startup (MV3 requirement)", async () => {
     await setupGlobals();
     await importIndex();

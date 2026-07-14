@@ -16,6 +16,7 @@ import {
   onMessage,
   onMessageExternal,
   setupGlobals,
+  waitForCall,
 } from "./messaging-fixture.ts";
 
 beforeEach(() => setupGlobals());
@@ -48,7 +49,7 @@ describe("onMessage", () => {
     const sendResponse = vi.fn();
 
     expect(onMessage({ type: MESSAGE_TYPES.GET_CONFIG }, {}, sendResponse)).toBe(true);
-    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    await waitForCall(sendResponse);
     expect(sendResponse.mock.calls[0]![0]!.body.config.paths).toBe(expected);
   });
 
@@ -71,7 +72,7 @@ describe("onMessage", () => {
         sendResponse,
       ),
     ).toBe(true);
-    await vi.waitFor(() => expect(router.traceRules).toHaveBeenCalled());
+    await waitForCall(sendResponse);
     expect(vi.mocked(router.traceRules).mock.calls[0]![1]).toEqual({
       context: "AUTO",
       pageUrl: "https://example.test/gallery",
@@ -87,7 +88,7 @@ describe("onMessage", () => {
     const sendResponse = vi.fn();
 
     expect(onMessage({ type: MESSAGE_TYPES.HISTORY_GET }, {}, sendResponse)).toBe(true);
-    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    await waitForCall(sendResponse);
 
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.HISTORY_GET,
@@ -98,7 +99,7 @@ describe("onMessage", () => {
   test("HISTORY_CLEAR waits for the serialized background clear", async () => {
     const sendResponse = vi.fn();
     expect(onMessage({ type: MESSAGE_TYPES.HISTORY_CLEAR }, {}, sendResponse)).toBe(true);
-    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    await waitForCall(sendResponse);
     expect(SaveHistory.clear).toHaveBeenCalledOnce();
     expect(sendResponse).toHaveBeenCalledWith({ type: MESSAGE_TYPES.OK });
   });
@@ -124,7 +125,7 @@ describe("onMessage", () => {
         sendResponse,
       ),
     ).toBe(true);
-    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    await waitForCall(sendResponse);
 
     expect(OffscreenClient.cancel).toHaveBeenCalledWith("request-1");
     expect(global.browser.downloads.cancel).toHaveBeenCalledWith(17);
@@ -149,7 +150,7 @@ describe("onMessage", () => {
       {},
       sendResponse,
     );
-    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    await waitForCall(sendResponse);
 
     expect(global.browser.downloads.cancel).toHaveBeenCalledWith(23);
     expect(SaveHistory.setStatus).not.toHaveBeenCalled();
@@ -169,7 +170,7 @@ describe("onMessage", () => {
       {},
       sendResponse,
     );
-    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    await waitForCall(sendResponse);
 
     expect(SaveHistory.setStatus).toHaveBeenCalledWith("history-3", "USER_CANCELED", undefined);
     expect(sendResponse).toHaveBeenCalledWith({
@@ -189,7 +190,7 @@ describe("onMessage", () => {
       {},
       racedResponse,
     );
-    await vi.waitFor(() => expect(racedResponse).toHaveBeenCalled());
+    await waitForCall(racedResponse);
     expect(racedResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.HISTORY_CANCEL,
       body: { canceled: false },
@@ -198,7 +199,7 @@ describe("onMessage", () => {
     vi.mocked(SaveHistory.get).mockClear();
     const emptyResponse = vi.fn();
     onMessage({ type: MESSAGE_TYPES.HISTORY_CANCEL, body: { historyId: "" } }, {}, emptyResponse);
-    await vi.waitFor(() => expect(emptyResponse).toHaveBeenCalled());
+    await waitForCall(emptyResponse);
     expect(SaveHistory.get).not.toHaveBeenCalled();
   });
 
@@ -216,7 +217,7 @@ describe("onMessage", () => {
     expect(
       onMessage({ type: MESSAGE_TYPES.EXTERNAL_DOWNLOAD_REJECTIONS_GET }, {}, listResponse),
     ).toBe(true);
-    await vi.waitFor(() => expect(listResponse).toHaveBeenCalled());
+    await waitForCall(listResponse);
     expect(listResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.EXTERNAL_DOWNLOAD_REJECTIONS_GET,
       body: {
@@ -235,7 +236,7 @@ describe("onMessage", () => {
         clearResponse,
       ),
     ).toBe(true);
-    await vi.waitFor(() => expect(clearResponse).toHaveBeenCalled());
+    await waitForCall(clearResponse);
     expect(ExternalDownloadRejections.clear).toHaveBeenCalledWith("blocked-extension");
     expect(clearResponse).toHaveBeenCalledWith({ type: MESSAGE_TYPES.OK });
   });
@@ -245,7 +246,7 @@ describe("onMessage", () => {
     expect(
       onMessage({ type: MESSAGE_TYPES.SOURCE_PANEL_READY }, { tab: { id: 12 } }, sendResponse),
     ).toBe(true);
-    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    await waitForCall(sendResponse);
     expect(SourcePanelState.syncSourcePanelToTab).toHaveBeenCalledWith(12);
     expect(sendResponse).toHaveBeenCalledWith({ type: MESSAGE_TYPES.OK });
   });
@@ -253,7 +254,7 @@ describe("onMessage", () => {
   test("SOURCE_PANEL_READY tolerates a sender without a tab", async () => {
     const sendResponse = vi.fn();
     expect(onMessage({ type: MESSAGE_TYPES.SOURCE_PANEL_READY }, {}, sendResponse)).toBe(true);
-    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    await waitForCall(sendResponse);
     expect(SourcePanelState.syncSourcePanelToTab).not.toHaveBeenCalled();
     expect(sendResponse).toHaveBeenCalledWith({ type: MESSAGE_TYPES.OK });
   });
@@ -287,7 +288,7 @@ describe("onMessage", () => {
         sendResponse,
       ),
     ).toBe(true);
-    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    await waitForCall(sendResponse);
     expect(SourcePanelState.setSourcePanelOpenState).toHaveBeenCalledWith(false);
     expect(sendResponse).toHaveBeenCalledWith({ type: MESSAGE_TYPES.OK });
   });
@@ -306,7 +307,7 @@ describe("onMessage", () => {
     expect(sendResponse).not.toHaveBeenCalled();
 
     finishReset();
-    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    await waitForCall(sendResponse);
     expect(sendResponse).toHaveBeenCalledWith({ type: MESSAGE_TYPES.OK });
   });
 
@@ -424,7 +425,7 @@ describe("onMessage", () => {
     const sendResponse = vi.fn();
 
     expect(onMessage({ type: MESSAGE_TYPES.OPTIONS }, {}, sendResponse)).toBe(true);
-    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    await waitForCall(sendResponse);
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.OPTIONS,
       body: {
@@ -449,7 +450,8 @@ describe("onMessage CHECK_ROUTES", () => {
 
     finish();
     await backgroundRuntime.ready;
-    await vi.waitFor(() => expect(RoutePreview.previewRoutes).toHaveBeenCalledTimes(1));
+    await waitForCall(sendResponse);
+    expect(RoutePreview.previewRoutes).toHaveBeenCalledTimes(1);
   });
 
   test("uses the state supplied in the request body", async () => {
@@ -462,7 +464,7 @@ describe("onMessage CHECK_ROUTES", () => {
       sendResponse,
     );
     expect(keepChannelOpen).toBe(true);
-    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    await waitForCall(sendResponse);
 
     expect(RoutePreview.previewRoutes).toHaveBeenCalledWith(state);
     // interpolation runs in preview mode (a copy of info with preview:true)
@@ -488,7 +490,7 @@ describe("onMessage CHECK_ROUTES", () => {
 
     const keepChannelOpen = onMessage({ type: MESSAGE_TYPES.CHECK_ROUTES }, {}, sendResponse);
     expect(keepChannelOpen).toBe(true);
-    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    await waitForCall(sendResponse);
 
     expect(sendResponse).toHaveBeenCalledWith({
       type: MESSAGE_TYPES.CHECK_ROUTES,
@@ -507,7 +509,7 @@ describe("onMessage CHECK_ROUTES", () => {
     const sendResponse = vi.fn();
 
     onMessage({ type: MESSAGE_TYPES.CHECK_ROUTES, body: {} }, {}, sendResponse);
-    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    await waitForCall(sendResponse);
 
     expect(RoutePreview.previewRoutes).toHaveBeenCalledWith(lastState);
     expect(Variable.applyVariables).toHaveBeenCalledWith(
@@ -529,7 +531,7 @@ describe("onMessage CHECK_ROUTES", () => {
     const sendResponse = vi.fn();
 
     onMessage({ type: MESSAGE_TYPES.CHECK_ROUTES }, {}, sendResponse);
-    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    await waitForCall(sendResponse);
 
     expect(RoutePreview.previewRoutes).toHaveBeenCalledWith(null);
     expect(Variable.applyVariables).not.toHaveBeenCalled();

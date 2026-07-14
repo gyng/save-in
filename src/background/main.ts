@@ -1,11 +1,10 @@
 // Background composition root; listener registration remains synchronous.
 import { webExtensionApi } from "../platform/web-extension-api.ts";
-import { getMessage, initializeLocalization } from "../platform/localization.ts";
+import { initializeLocalization } from "../platform/localization.ts";
 
 import { OptionsManagement } from "../config/option.ts";
 import { downloadsState } from "./state.ts";
 import { hydrateDownloads } from "../downloads/download-state.ts";
-import { configureDownloadPorts } from "../downloads/ports.ts";
 import { SaveHistory } from "./history.ts";
 import { extensionSessionStorage } from "../platform/storage-areas.ts";
 import { restoreLastUsed } from "./menu-build.ts";
@@ -19,15 +18,10 @@ import {
 } from "../shared/storage-keys.ts";
 import { Log } from "./log.ts";
 import { currentTab, setCurrentTab, type CurrentTab } from "../platform/current-tab.ts";
-import { configureRoutingPorts } from "../routing/ports.ts";
-import { nextCounter, nextPrivateCounter, peekCounter } from "./counter.ts";
-import { counterWriteState } from "./state.ts";
-import { resolveContent } from "../downloads/content-fetch.ts";
 import { syncSourcePanelToTab, toggleSourcePanelForTab } from "./source-panel-state.ts";
 import { backgroundRuntime, resetRuntimeDiagnostics } from "./runtime.ts";
 import { recoverNotificationState } from "../downloads/notification-recovery.ts";
 import { runBackgroundTask } from "./event-task.ts";
-import { Download } from "../downloads/download.ts";
 import { ActiveTransfers } from "../downloads/active-transfers.ts";
 import { OffscreenClient } from "../platform/offscreen-client.ts";
 import { rebuildMenus } from "./menu-rebuild.ts";
@@ -37,27 +31,6 @@ import { RefererRules } from "../downloads/referer-rules.ts";
 const seedCurrentTab = (candidate: CurrentTab): void => {
   if (candidate.active === false) return;
   setCurrentTab(candidate);
-};
-
-export const configureBackgroundPorts = () => {
-  configureDownloadPorts({
-    runtime: backgroundRuntime,
-    history: SaveHistory,
-    log: Log,
-    retry: Download.retryViaFetch,
-  });
-  configureRoutingPorts({
-    getMessage,
-    getCurrentTab: () => currentTab,
-    isDebug: () => backgroundRuntime.debug,
-    recordRuleErrors: (errors) => backgroundRuntime.optionErrors.filenamePatterns.push(...errors),
-    logDebug: (...values) => console.log(...values), // eslint-disable-line no-console
-    nextCounter: () => nextCounter(counterWriteState, webExtensionApi.storage.local),
-    nextPrivateCounter: () => nextPrivateCounter(counterWriteState, webExtensionApi.storage.local),
-    peekCounter: () => peekCounter(webExtensionApi.storage.local),
-    resolveContent,
-    withRequestReferer: RefererRules.withReferer,
-  });
 };
 
 const reloadConfigurationAndMenus = async (): Promise<void> => {

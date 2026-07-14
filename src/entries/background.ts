@@ -8,7 +8,8 @@ import { seedOptions } from "../config/option.ts";
 import { registerMessaging } from "../background/messaging.ts";
 import { registerNotifier } from "../downloads/notification.ts";
 import { registerDownloadListener } from "../downloads/download.ts";
-import { configureBackgroundPorts, start } from "../background/main.ts";
+import { start } from "../background/main.ts";
+import { configureBackgroundPorts } from "../background/ports.ts";
 
 // Register the MV3 event listeners and run the background bootstrap
 // synchronously at startup. Listeners MUST attach synchronously or the service

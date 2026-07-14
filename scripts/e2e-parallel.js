@@ -22,6 +22,7 @@ const stagedRun = path.join(runDir, "bundled-pkg");
 const stagingLockDir = path.join(root, "dist", "e2e-staging.lock");
 const runId = `${process.pid}-${Date.now()}`;
 const runArtifacts = path.join(artifacts, `run-${runId}`);
+const serial = process.argv.slice(2).includes("--serial");
 /** @type {NodeJS.ProcessEnv} */
 const e2eEnv = {
   ...process.env,
@@ -58,7 +59,10 @@ try {
 }
 
 const suites = ["e2e/chrome.e2e.mjs", "e2e/firefox.e2e.mjs"];
-const runs = suites.map((suite) => {
+/** @type {import("node:child_process").ChildProcess[]} */
+const children = [];
+/** @param {string} suite */
+const startSuite = (suite) => {
   const child = spawn(process.execPath, [vitest, "run", "--config", config, suite], {
     cwd: root,
     env: { ...e2eEnv, EXT_DIR: path.relative(root, stagedRun) },
@@ -73,8 +77,7 @@ const runs = suites.map((suite) => {
     child.once("exit", (code, signal) => resolve(code ?? (signal ? 1 : 0)));
   });
   return { child, done };
-});
-const children = runs.map(({ child }) => child);
+};
 
 /** @type {NodeJS.Signals | undefined} */
 let interruptedSignal;
@@ -100,7 +103,21 @@ process.once("SIGINT", () => stop("SIGINT"));
 process.once("SIGTERM", () => stop("SIGTERM"));
 
 const main = async () => {
-  const codes = await Promise.all(runs.map(({ done }) => done));
+  /** @type {number[]} */
+  const codes = [];
+  if (serial) {
+    for (const suite of suites) {
+      const run = startSuite(suite);
+      children.push(run.child);
+      const code = await run.done;
+      codes.push(code);
+      if (code !== 0) break;
+    }
+  } else {
+    const runs = suites.map(startSuite);
+    children.push(...runs.map(({ child }) => child));
+    codes.push(...(await Promise.all(runs.map(({ done }) => done))));
+  }
   children.forEach(terminate);
   /** @type {unknown[]} */
   const cleanupErrors = [];
