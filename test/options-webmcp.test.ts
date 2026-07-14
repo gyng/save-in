@@ -85,6 +85,7 @@ describe("buildTools", () => {
     const { send, byName } = toolsByName();
 
     byName.save_in_get_schema.execute({});
+    byName.save_in_get_schema.execute();
     expect(send).toHaveBeenCalledWith({ type: "GET_SCHEMA" });
 
     byName.save_in_list_vocabulary.execute({});
@@ -260,6 +261,76 @@ describe("buildTools", () => {
       status: "ERROR",
       errors: [{ field: "info.surprise", message: "Unknown property" }],
     });
+    await expect(
+      byName.save_in_validate_config.execute({ filenamePatterns: "into: x", info: [] }),
+    ).resolves.toMatchObject({ errors: [{ field: "info", message: "Expected an object" }] });
+    await expect(
+      byName.save_in_validate_config.execute({
+        filenamePatterns: "into: x",
+        info: { currentTab: [] },
+      }),
+    ).resolves.toMatchObject({
+      errors: [{ field: "info.currentTab", message: "Expected an object" }],
+    });
+    await expect(
+      byName.save_in_validate_config.execute({
+        filenamePatterns: "into: x",
+        info: { currentTab: { unexpected: "x" } },
+      }),
+    ).resolves.toMatchObject({
+      errors: [{ field: "info.currentTab.unexpected", message: "Unknown property" }],
+    });
+    await expect(
+      byName.save_in_validate_config.execute({
+        filenamePatterns: "into: x",
+        automaticCandidate: [],
+      }),
+    ).resolves.toMatchObject({
+      errors: [{ field: "automaticCandidate", message: "Expected an object" }],
+    });
+    await expect(
+      byName.save_in_validate_config.execute({
+        filenamePatterns: "into: x",
+        automaticCandidate: {
+          pageUrl: "https://page.test",
+          sourceUrl: "https://source.test",
+          sourceKind: "image",
+          unexpected: true,
+        },
+      }),
+    ).resolves.toMatchObject({
+      errors: [{ field: "automaticCandidate.unexpected", message: "Unknown property" }],
+    });
+    await expect(
+      byName.save_in_validate_config.execute({
+        filenamePatterns: "into: x",
+        automaticCandidate: { pageUrl: "", sourceUrl: "https://source.test", sourceKind: "image" },
+      }),
+    ).resolves.toMatchObject({
+      errors: [{ field: "automaticCandidate.pageUrl", message: "Expected a non-empty string" }],
+    });
+    await expect(
+      byName.save_in_validate_config.execute({
+        automaticCandidate: {
+          pageUrl: "https://page.test",
+          sourceUrl: "https://source.test",
+          sourceKind: "image",
+        },
+      }),
+    ).resolves.toMatchObject({
+      errors: [{ field: "automaticCandidate", message: "Provide filenamePatterns to trace" }],
+    });
+    await expect(
+      byName.save_in_apply_config.execute({ config: { prompt: true }, extra: 1 }),
+    ).resolves.toMatchObject({ errors: [{ field: "extra", message: "Unknown property" }] });
+    await expect(
+      byName.save_in_download.execute({ url: "https://x/a", mime: 42 }),
+    ).resolves.toMatchObject({ errors: [{ field: "mime", message: "Expected a string" }] });
+    await expect(
+      byName.save_in_download.execute({ url: "https://x/a", sourceKind: "script" }),
+    ).resolves.toMatchObject({
+      errors: [{ field: "sourceKind", message: "Unknown source kind" }],
+    });
   });
 
   test("normalizes surrounding URL whitespace before starting a download", async () => {
@@ -268,6 +339,19 @@ describe("buildTools", () => {
       url: "  https://x/a.png  ",
       pageUrl: "  https://x/page  ",
     });
+
+    await byName.save_in_download.execute({ url: "https://x/no-page", pageUrl: "   " });
+    expect(send).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        body: expect.objectContaining({ info: expect.objectContaining({ pageUrl: undefined }) }),
+      }),
+    );
+    await byName.save_in_download.execute({ url: "https://x/omitted-page" });
+    expect(send).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        body: expect.objectContaining({ info: expect.objectContaining({ pageUrl: undefined }) }),
+      }),
+    );
     expect(send).toHaveBeenCalledWith({
       type: "DOWNLOAD",
       body: {
@@ -352,6 +436,7 @@ describe("buildTools", () => {
 describe("options-page registration", () => {
   afterEach(() => {
     delete document.modelContext;
+    delete navigator.modelContext;
     Reflect.deleteProperty(global, "browser");
     document.body.innerHTML = "";
   });
@@ -409,5 +494,51 @@ describe("options-page registration", () => {
     expect(document.getElementById("webmcp-status")?.textContent).toBe(
       "Not available in this browser",
     );
+  });
+
+  test("uses the legacy navigator context when the document context is absent", () => {
+    const registerTool = vi.fn();
+    navigator.modelContext = { registerTool };
+    expect(SaveInWebMCP.getModelContext()?.registerTool).toEqual(expect.any(Function));
+  });
+
+  test("reports localized registration failure when every tool is rejected", async () => {
+    document.body.innerHTML = '<span id="webmcp-status"></span>';
+    document.modelContext = { registerTool: vi.fn(() => Promise.reject(new Error("nope"))) };
+    (global as any).browser = {
+      runtime: { sendMessage: vi.fn(() => Promise.resolve({ body: {} })) },
+    };
+
+    vi.resetModules();
+    const { setupWebMcpStatus } = await import("../src/options/webmcp.ts");
+    const localize = vi
+      .fn<(key: string) => string>()
+      .mockReturnValueOnce("Localized<webMcpStatusRegistering>")
+      .mockReturnValue("");
+    setupWebMcpStatus(localize);
+
+    await vi.waitFor(() =>
+      expect(document.getElementById("webmcp-status")?.textContent).toBe(
+        "Unavailable — tool registration failed",
+      ),
+    );
+  });
+
+  test("registers without a status element and tolerates an empty runtime response", async () => {
+    document.body.innerHTML = "";
+    document.modelContext = {
+      registerTool: vi.fn((tool: { name: string }) => (tool as SaveInTool).execute({})),
+    };
+    const sendMessage = vi.fn().mockResolvedValueOnce(null).mockResolvedValue({ body: null });
+    (global as any).browser = {
+      runtime: { sendMessage },
+    };
+
+    vi.resetModules();
+    const { setupWebMcpStatus } = await import("../src/options/webmcp.ts");
+    expect(() => setupWebMcpStatus(() => "")).not.toThrow();
+    await vi.waitFor(() => expect(document.modelContext?.registerTool).toHaveBeenCalledTimes(6));
+    delete document.modelContext;
+    expect(() => setupWebMcpStatus(() => "")).not.toThrow();
   });
 });

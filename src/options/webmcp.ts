@@ -3,7 +3,6 @@ import { getMessage } from "../platform/localization.ts";
 import { withUrl } from "../shared/util.ts";
 import { isPageSourceKind, PAGE_SOURCE_KINDS } from "../shared/page-source.ts";
 
-type WebMcpInput = Record<string, unknown> | null | undefined;
 type WebMcpMessage = { type: string; body?: unknown };
 type WebMcpSend = (message: WebMcpMessage) => unknown;
 type WebMcpSchema = {
@@ -24,7 +23,7 @@ type WebMcpTool = {
   execute: (input?: unknown) => unknown;
 };
 type PreparedWebMcpTool = Omit<WebMcpTool, "execute"> & {
-  execute: (input: WebMcpInput) => unknown;
+  execute: (input: Record<string, unknown>) => unknown;
 };
 type WebMcpContext = { registerTool: (tool: WebMcpTool) => unknown };
 
@@ -58,13 +57,16 @@ const unavailableError = () => ({
   errors: [{ field: "$", message: "Save In is temporarily unavailable" }],
 });
 
-const invalidOptionalString = (input: WebMcpInput, key: string): WebMcpInputError | null =>
-  input && typeof input[key] !== "undefined" && typeof input[key] !== "string"
+const invalidOptionalString = (
+  input: Record<string, unknown>,
+  key: string,
+): WebMcpInputError | null =>
+  typeof input[key] !== "undefined" && typeof input[key] !== "string"
     ? { field: key, message: "Expected a string" }
     : null;
 
 const firstInvalidOptionalString = (
-  input: WebMcpInput,
+  input: Record<string, unknown>,
   keys: string[],
 ): WebMcpInputError | null => {
   for (const key of keys) {
@@ -75,10 +77,9 @@ const firstInvalidOptionalString = (
 };
 
 const firstUnknownProperty = (
-  input: WebMcpInput,
+  input: Record<string, unknown>,
   allowed: ReadonlySet<string>,
 ): WebMcpInputError | null => {
-  if (!input) return null;
   const field = Object.keys(input).find((key) => !allowed.has(key));
   return field ? { field, message: "Unknown property" } : null;
 };
@@ -153,7 +154,7 @@ export const SaveInWebMCP = {
         description: "List Save In's configurable options (name, type, default, description).",
         inputSchema: { type: "object", properties: {}, additionalProperties: false },
         annotations: { readOnlyHint: true, untrustedContentHint: false },
-        execute: (input: WebMcpInput) => {
+        execute: (input) => {
           const unknown = firstUnknownProperty(input, NO_PROPERTIES);
           return unknown
             ? inputError(unknown.field, unknown.message)
@@ -166,7 +167,7 @@ export const SaveInWebMCP = {
           "List path variables, routing matchers, automatic-source matchers, and source kinds. Use this to translate a request into supported config vocabulary.",
         inputSchema: { type: "object", properties: {}, additionalProperties: false },
         annotations: { readOnlyHint: true, untrustedContentHint: false },
-        execute: (input: WebMcpInput) => {
+        execute: (input) => {
           const unknown = firstUnknownProperty(input, NO_PROPERTIES);
           return unknown
             ? inputError(unknown.field, unknown.message)
@@ -179,7 +180,7 @@ export const SaveInWebMCP = {
           "Return the EBNF, semantic constraints, option name, and examples for each editable Save In language.",
         inputSchema: { type: "object", properties: {}, additionalProperties: false },
         annotations: { readOnlyHint: true, untrustedContentHint: false },
-        execute: (input: WebMcpInput) => {
+        execute: (input) => {
           const unknown = firstUnknownProperty(input, NO_PROPERTIES);
           return unknown
             ? inputError(unknown.field, unknown.message)
@@ -239,7 +240,7 @@ export const SaveInWebMCP = {
           additionalProperties: false,
         },
         annotations: { readOnlyHint: true, untrustedContentHint: true },
-        execute: (input: WebMcpInput) => {
+        execute: (input) => {
           const error =
             firstUnknownProperty(input, VALIDATE_PROPERTIES) ||
             firstInvalidOptionalString(input, ["paths", "filenamePatterns"]);
@@ -251,7 +252,7 @@ export const SaveInWebMCP = {
           ) {
             return inputError("info", "Expected an object");
           }
-          if (input?.info) {
+          if (input.info) {
             const unknownInfo = firstUnknownProperty(
               input.info as Record<string, unknown>,
               TRACE_PROPERTIES,
@@ -284,7 +285,7 @@ export const SaveInWebMCP = {
                 return inputError(`info.currentTab.${tabError.field}`, tabError.message);
             }
           }
-          const candidate = input?.automaticCandidate;
+          const candidate = input.automaticCandidate;
           if (typeof candidate !== "undefined") {
             if (typeof candidate !== "object" || candidate === null || Array.isArray(candidate)) {
               return inputError("automaticCandidate", "Expected an object");
@@ -308,14 +309,14 @@ export const SaveInWebMCP = {
             if (!isPageSourceKind(candidateRecord.sourceKind)) {
               return inputError("automaticCandidate.sourceKind", "Unknown source kind");
             }
-            if (!hasOwn(input!, "filenamePatterns")) {
+            if (!hasOwn(input, "filenamePatterns")) {
               return inputError("automaticCandidate", "Provide filenamePatterns to trace");
             }
           }
-          if (!input || (!hasOwn(input, "paths") && !hasOwn(input, "filenamePatterns"))) {
+          if (!hasOwn(input, "paths") && !hasOwn(input, "filenamePatterns")) {
             return inputError("$", "Provide paths or filenamePatterns");
           }
-          return send({ type: "VALIDATE", body: input || {} });
+          return send({ type: "VALIDATE", body: input });
         },
       },
       {
@@ -334,11 +335,10 @@ export const SaveInWebMCP = {
           required: ["config"],
         },
         annotations: { readOnlyHint: false, untrustedContentHint: true },
-        execute: (input: WebMcpInput) => {
+        execute: (input) => {
           const unknown = firstUnknownProperty(input, APPLY_PROPERTIES);
           if (unknown) return inputError(unknown.field, unknown.message);
           if (
-            !input ||
             typeof input.config !== "object" ||
             input.config === null ||
             Array.isArray(input.config)
@@ -373,10 +373,10 @@ export const SaveInWebMCP = {
           required: ["url"],
         },
         annotations: { readOnlyHint: false, untrustedContentHint: true },
-        execute: (input: WebMcpInput) => {
+        execute: (input) => {
           const unknown = firstUnknownProperty(input, DOWNLOAD_PROPERTIES);
           if (unknown) return inputError(unknown.field, unknown.message);
-          if (!input || typeof input.url !== "string" || input.url.trim() === "") {
+          if (typeof input.url !== "string" || input.url.trim() === "") {
             return inputError("url", "Expected a non-empty string");
           }
           const error = firstInvalidOptionalString(input, [
@@ -450,13 +450,12 @@ export const SaveInWebMCP = {
 
 export const setupWebMcpStatus = (localize: typeof getMessage = getMessage): void => {
   const ctx = SaveInWebMCP.getModelContext();
-  const statusEl =
-    typeof document !== "undefined" && document.getElementById
-      ? document.getElementById("webmcp-status")
-      : null;
+  const statusEl = document.getElementById("webmcp-status");
 
   if (ctx && typeof ctx.registerTool === "function" && webExtensionApi) {
-    const count = SaveInWebMCP.buildTools(() => {}).length;
+    const count = SaveInWebMCP.buildTools(
+      webExtensionApi.runtime.sendMessage.bind(webExtensionApi.runtime) as WebMcpSend,
+    ).length;
     if (statusEl) statusEl.textContent = localize("webMcpStatusRegistering") || "Registering…";
     void SaveInWebMCP.register(ctx, (message: WebMcpMessage) =>
       webExtensionApi.runtime.sendMessage(message).then((res) => (res && res.body) || res),

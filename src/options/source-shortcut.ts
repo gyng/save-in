@@ -47,8 +47,8 @@ export const validateSourceShortcut = (
   }
   if (keys.length === 0) return localize("o_lShortcutAddKey", "Add a key after the modifier.");
   if (keys.length > 1) return localize("o_lShortcutOneKey", "Use one key with your modifiers.");
-  const key = keys[0];
-  if (key === undefined || !isShortcutKey(key)) {
+  const key = keys[0]!;
+  if (!isShortcutKey(key)) {
     return localize("o_lShortcutValidKey", "Choose a valid key, such as Y, 5, F12, or PageDown.");
   }
   if (new Set(parts.map((part) => part.toLocaleLowerCase())).size !== parts.length) {

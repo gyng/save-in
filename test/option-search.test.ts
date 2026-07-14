@@ -34,6 +34,38 @@ describe("options search", () => {
     ]);
   });
 
+  test("indexes accessible and additional controls while excluding hidden search entries", () => {
+    const panel = document.querySelector(".tab-panel")!;
+    panel.insertAdjacentHTML(
+      "beforeend",
+      `<h3> </h3>
+       <input id="aria-only" aria-label="Accessible only">
+       <input id="excluded" data-option-search="false" aria-label="Excluded">`,
+    );
+    const additional = document.createElement("button");
+    additional.id = "additional";
+    additional.setAttribute("aria-label", "Language selector");
+    document.body.append(additional);
+    const orphanPanel = document.createElement("section");
+    orphanPanel.className = "tab-panel";
+    orphanPanel.id = "orphan";
+    orphanPanel.innerHTML = '<input id="orphan-control" aria-label="Orphan">';
+    document.body.append(orphanPanel);
+
+    const entries = optionSearchEntries(document.getElementById("options")!, [
+      additional,
+      orphanPanel.querySelector("input")!,
+    ]);
+    expect(entries).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: "Accessible only", section: "Downloads" }),
+        expect.objectContaining({ label: "Language selector", section: "" }),
+        expect.objectContaining({ label: "Orphan", section: "" }),
+      ]),
+    );
+    expect(entries.some(({ control }) => control.id === "excluded")).toBe(false);
+  });
+
   test("finds subsection headings and navigates to them", () => {
     const navigate = vi.fn();
     document.addEventListener("save-in:navigate-option", navigate, { once: true });
@@ -57,6 +89,47 @@ describe("options search", () => {
     expect(
       document.getElementById("options")?.contains(document.getElementById("option-search")),
     ).toBe(false);
+    setupOptionSearch();
+    expect(document.querySelectorAll("#option-search")).toHaveLength(1);
+  });
+
+  test("falls back into the form without navigation and uses fallback copy", () => {
+    document.querySelector(".top-nav")?.remove();
+    vi.mocked(browser.i18n.getMessage).mockReturnValueOnce("");
+    setupOptionSearch();
+    const input = document.getElementById("option-search")!;
+    expect(input.parentElement?.parentElement).toBe(document.getElementById("options"));
+    expect(input.getAttribute("placeholder")).toBe("Search options");
+  });
+
+  test("does nothing without the options form", () => {
+    document.body.innerHTML = '<nav class="top-nav"><div></div></nav>';
+    expect(() => setupOptionSearch()).not.toThrow();
+    expect(document.getElementById("option-search")).toBeNull();
+  });
+
+  test("moves save status into primary navigation and search into the tools area", () => {
+    document
+      .querySelector(".top-nav")
+      ?.insertAdjacentHTML("beforeend", '<div class="top-nav-tools"></div>');
+    setupOptionSearch();
+    expect(document.querySelector(".top-nav > div:first-child > .save-status")?.textContent).toBe(
+      "Last saved",
+    );
+    expect(document.querySelector(".top-nav-tools > .option-search")).not.toBeNull();
+  });
+
+  test("indexes the language selector and tolerates a missing save status", () => {
+    document.querySelector(".save-status")?.remove();
+    document.body.insertAdjacentHTML(
+      "beforeend",
+      '<label for="uiLocale">Language</label><select id="uiLocale"><option>English</option></select>',
+    );
+    setupOptionSearch();
+    const input = document.getElementById("option-search") as HTMLInputElement;
+    input.value = "language";
+    input.dispatchEvent(new InputEvent("input"));
+    expect(document.querySelector(".option-search-result-label")?.textContent).toBe("Language");
   });
 
   test("selects the first match with Enter without requiring an arrow key", () => {
@@ -74,6 +147,22 @@ describe("options search", () => {
     expect((navigate.mock.calls[0]![0]! as CustomEvent).detail.target.id).toBe("duration");
   });
 
+  test("chooses a result by pointer without allowing mousedown to steal focus", () => {
+    const navigate = vi.fn();
+    document.addEventListener("save-in:navigate-option", navigate, { once: true });
+    setupOptionSearch();
+    const input = document.getElementById("option-search") as HTMLInputElement;
+    input.value = "short";
+    input.dispatchEvent(new InputEvent("input"));
+    const option = document.querySelector<HTMLButtonElement>('[role="option"]')!;
+    const down = new MouseEvent("mousedown", { bubbles: true, cancelable: true });
+    option.dispatchEvent(down);
+    expect(down.defaultPrevented).toBe(true);
+    option.click();
+    expect(navigate).toHaveBeenCalledOnce();
+    expect(input.value).toBe("");
+  });
+
   test("closes stale results when the query has no matches", () => {
     setupOptionSearch();
     const input = document.getElementById("option-search") as HTMLInputElement;
@@ -83,6 +172,9 @@ describe("options search", () => {
     input.dispatchEvent(new InputEvent("input"));
     expect(input.getAttribute("aria-expanded")).toBe("false");
     expect(input.hasAttribute("aria-activedescendant")).toBe(false);
+    input.value = "";
+    input.dispatchEvent(new InputEvent("input"));
+    expect(input.getAttribute("aria-expanded")).toBe("false");
   });
 
   test("reopens a populated query on focus and keyboard navigation", async () => {
@@ -106,5 +198,40 @@ describe("options search", () => {
     input.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }));
     expect(results.hidden).toBe(false);
     expect(input.getAttribute("aria-activedescendant")).toBe("option-search-result-0");
+  });
+
+  test("wraps upward navigation and contains empty-result keyboard commands", () => {
+    document
+      .querySelector(".tab-panel")
+      ?.insertAdjacentHTML("beforeend", '<label><input id="second-title"> Another title</label>');
+    setupOptionSearch();
+    const input = document.getElementById("option-search") as HTMLInputElement;
+    input.value = "not found";
+    input.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }));
+    expect(input.getAttribute("aria-expanded")).toBe("false");
+
+    input.value = "title";
+    input.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp", bubbles: true }));
+    expect(input.getAttribute("aria-expanded")).toBe("true");
+    expect(input.getAttribute("aria-activedescendant")).toBe("option-search-result-1");
+    input.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }));
+    expect(input.getAttribute("aria-activedescendant")).toBe("option-search-result-0");
+    input.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp", bubbles: true }));
+    expect(input.getAttribute("aria-activedescendant")).toBe("option-search-result-1");
+    input.dispatchEvent(new KeyboardEvent("keydown", { key: "x", bubbles: true }));
+  });
+
+  test("cancels pending blur closure on refocus and replaces repeated blur timers", async () => {
+    vi.useFakeTimers();
+    setupOptionSearch();
+    const input = document.getElementById("option-search") as HTMLInputElement;
+    input.value = "notification";
+    input.dispatchEvent(new InputEvent("input"));
+    input.dispatchEvent(new FocusEvent("blur"));
+    input.dispatchEvent(new FocusEvent("blur"));
+    input.dispatchEvent(new FocusEvent("focus"));
+    await vi.advanceTimersByTimeAsync(100);
+    expect(input.getAttribute("aria-expanded")).toBe("true");
+    input.dispatchEvent(new FocusEvent("focus"));
   });
 });
