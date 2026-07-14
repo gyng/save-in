@@ -1,10 +1,11 @@
 import { COUNTER_KEY } from "../shared/storage-keys.ts";
 import { webExtensionApi } from "../platform/web-extension-api.ts";
+import { normalizeSessionCounter } from "../shared/session-state.ts";
 
 export const refreshCounterPanel = () =>
   webExtensionApi.storage.local.get(COUNTER_KEY).then((res) => {
     const valueEl = document.querySelector<HTMLInputElement>("#counter-value");
-    if (valueEl) valueEl.value = String(res[COUNTER_KEY] || 0);
+    if (valueEl) valueEl.value = String(normalizeSessionCounter(res[COUNTER_KEY]));
   });
 
 export const parseCounterValue = (value: string): number | null => {

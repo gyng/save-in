@@ -100,4 +100,18 @@ describe("shared Page Sources open state", () => {
       body: { open: true },
     });
   });
+
+  test.each(["false", 1, {}, null])("ignores malformed persisted open state %p", async (stored) => {
+    (global.browser as any).storage.session.get = vi.fn(() =>
+      Promise.resolve({ sourcePanelOpen: stored }),
+    );
+    const { syncSourcePanelToTab } = await import("../src/background/source-panel-state.ts");
+
+    await syncSourcePanelToTab(14);
+
+    expect(global.browser.tabs.sendMessage).toHaveBeenCalledWith(14, {
+      type: "SET_SOURCE_PANEL",
+      body: { open: false },
+    });
+  });
 });

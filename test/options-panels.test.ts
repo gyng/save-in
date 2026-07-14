@@ -43,6 +43,18 @@ describe("counter panel", () => {
     expect(document.querySelector<HTMLInputElement>("#counter-value")?.value).toBe("8");
   });
 
+  test.each(["8", -1, 1.5, Number.NaN])(
+    "renders malformed persisted counter %p as zero",
+    async (stored) => {
+      document.body.innerHTML = '<input id="counter-value" value="7">';
+      vi.mocked(browser.storage.local.get).mockResolvedValue({ [COUNTER_KEY]: stored });
+
+      await refreshCounterPanel();
+
+      expect(document.querySelector<HTMLInputElement>("#counter-value")?.value).toBe("0");
+    },
+  );
+
   test("validates edits and supports the keyboard without writing malformed values", async () => {
     document.body.innerHTML =
       '<input id="counter-value"><button id="counter-set"></button><button id="counter-reset"></button>';

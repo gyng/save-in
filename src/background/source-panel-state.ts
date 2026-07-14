@@ -8,9 +8,10 @@ const read = async (): Promise<boolean> => {
   const storage = webExtensionApi.storage.session;
   if (!storage) return fallback;
   try {
-    return Boolean(
-      (await storage.get(SOURCE_PANEL_OPEN_SESSION_KEY))[SOURCE_PANEL_OPEN_SESSION_KEY],
-    );
+    const stored = (await storage.get(SOURCE_PANEL_OPEN_SESSION_KEY))[
+      SOURCE_PANEL_OPEN_SESSION_KEY
+    ];
+    return typeof stored === "boolean" ? stored : fallback;
   } catch {
     return fallback;
   }
