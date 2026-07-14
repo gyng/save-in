@@ -1,5 +1,9 @@
 // @vitest-environment jsdom
-import { createSyntaxEditor, setSyntaxEditorDiagnostics } from "../src/options/syntax-editor.ts";
+import {
+  createSyntaxEditor,
+  setSyntaxEditorDiagnostics,
+  setupSyntaxEditors,
+} from "../src/options/syntax-editor.ts";
 
 describe("syntax editor surface", () => {
   afterEach(() => {
@@ -116,5 +120,132 @@ describe("syntax editor surface", () => {
     expect(textarea.selectionStart).toBe(6);
     expect(tooltip.hidden).toBe(false);
     expect(tooltip.textContent).toContain("L2");
+  });
+
+  test("sets up both option editors once and rejects a disconnected textarea", () => {
+    document.body.innerHTML = [
+      '<textarea id="paths">one</textarea>',
+      '<textarea id="filenamePatterns">into: images</textarea>',
+    ].join("");
+
+    const editors = setupSyntaxEditors();
+    expect(editors).toHaveLength(2);
+    expect(createSyntaxEditor(editors[0]!.textarea, "directories")).toBe(editors[0]);
+    expect(setupSyntaxEditors()).toEqual(editors);
+
+    editors.forEach((editor) => editor.destroy());
+    document.body.innerHTML = "";
+    expect(setupSyntaxEditors()).toEqual([]);
+
+    const disconnected = document.createElement("textarea");
+    expect(() => createSyntaxEditor(disconnected, "routing")).toThrow(
+      "Syntax editor textarea must be connected",
+    );
+  });
+
+  test("handles caret, pointer, keyboard, visibility, and scroll states", () => {
+    document.body.innerHTML = '<textarea id="paths">first\n\tsecond</textarea>';
+    const textarea = document.querySelector("textarea")!;
+    const editor = createSyntaxEditor(textarea, "directories");
+    setSyntaxEditorDiagnostics(textarea, [
+      {
+        start: 6,
+        end: 13,
+        line: 2,
+        column: 0,
+        message: "Bad destination",
+        severity: "warning",
+      },
+    ]);
+    vi.spyOn(textarea, "getBoundingClientRect").mockReturnValue({
+      top: 10,
+      left: 10,
+      right: 410,
+      bottom: 210,
+      width: 400,
+      height: 200,
+      x: 10,
+      y: 10,
+      toJSON: () => ({}),
+    });
+    const tooltip = document.querySelector<HTMLElement>('[role="tooltip"]')!;
+
+    textarea.setSelectionRange(0, 2);
+    textarea.dispatchEvent(new MouseEvent("click"));
+    expect(tooltip.hidden).toBe(true);
+
+    textarea.setSelectionRange(0, 0);
+    textarea.dispatchEvent(new MouseEvent("click"));
+    expect(tooltip.hidden).toBe(true);
+
+    textarea.dispatchEvent(new MouseEvent("mousemove", { clientX: 5, clientY: 500 }));
+    textarea.dispatchEvent(new MouseEvent("mousemove", { clientX: 12, clientY: 12 }));
+    expect(tooltip.hidden).toBe(true);
+
+    textarea.dispatchEvent(new MouseEvent("mousemove", { clientX: 12, clientY: 40 }));
+    expect(tooltip.hidden).toBe(false);
+    textarea.setSelectionRange(8, 8);
+    textarea.dispatchEvent(new MouseEvent("click"));
+    textarea.dispatchEvent(new MouseEvent("mousemove", { clientX: 12, clientY: 12 }));
+    expect(tooltip.hidden).toBe(false);
+
+    textarea.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown" }));
+    textarea.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+    expect(tooltip.hidden).toBe(true);
+    textarea.dispatchEvent(
+      new CustomEvent("syntax-editor-visibility", { detail: { visible: true } }),
+    );
+    textarea.dispatchEvent(
+      new CustomEvent("syntax-editor-visibility", { detail: { visible: false } }),
+    );
+
+    textarea.scrollLeft = 12;
+    textarea.scrollTop = 24;
+    textarea.dispatchEvent(new Event("scroll"));
+    expect(document.querySelector<HTMLElement>(".syntax-editor-overlay")!.style.transform).toBe(
+      "translate(-12px, -24px)",
+    );
+    editor.destroy();
+  });
+
+  test("deduplicates diagnostics and contains malformed gutter targets", () => {
+    document.body.innerHTML = '<textarea id="paths">abc\ndef</textarea>';
+    const textarea = document.querySelector("textarea")!;
+    vi.mocked(global.browser.i18n.getMessage).mockReturnValue("");
+    createSyntaxEditor(textarea, "directories");
+    setSyntaxEditorDiagnostics(textarea, [
+      { start: -10, end: 99, line: 1, column: 0, message: "html_required", severity: "error" },
+      { start: 0, end: 3, line: 1, column: 0, message: "html_required: detail", severity: "error" },
+      { start: 1, end: 2, line: 1, column: 0, message: "html_required", severity: "error" },
+      { start: 0, end: 0, line: 1, column: 0, message: "At start", severity: "warning" },
+      { start: 0, end: 3, line: 1, column: 0, message: "Other", severity: "warning" },
+      { start: 4, end: 7, line: 2, column: 0, message: "Second", severity: "warning" },
+    ]);
+
+    const gutter = document.querySelector<HTMLElement>(".syntax-editor-gutter")!;
+    const second = gutter.querySelector<HTMLElement>('[data-line="2"]')!;
+    second.dispatchEvent(new MouseEvent("mousemove", { bubbles: true }));
+    expect(document.querySelector<HTMLElement>('[role="tooltip"]')!.textContent).toContain(
+      "Second",
+    );
+    second.dispatchEvent(new MouseEvent("mouseleave", { bubbles: true }));
+
+    textarea.setSelectionRange(5, 5);
+    textarea.dispatchEvent(new MouseEvent("click"));
+    second.dispatchEvent(new MouseEvent("mousemove", { bubbles: true }));
+    textarea.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+
+    setSyntaxEditorDiagnostics(textarea, []);
+    const cleanSecond = gutter.querySelector<HTMLElement>('[data-start="4"]')!;
+    cleanSecond.dataset.line = "2";
+    cleanSecond.dispatchEvent(new MouseEvent("mousemove", { bubbles: true }));
+    expect(document.querySelector<HTMLElement>('[role="tooltip"]')!.hidden).toBe(true);
+
+    gutter.dispatchEvent(new MouseEvent("mousemove", { bubbles: true }));
+    gutter.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    const text = document.createTextNode("x");
+    gutter.append(text);
+    text.dispatchEvent(new MouseEvent("mousemove", { bubbles: true }));
+    text.dispatchEvent(new MouseEvent("click", { bubbles: true }));
   });
 });

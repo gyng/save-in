@@ -45,9 +45,9 @@ const uniqueDiagnostics = (
     if (duplicate < 0) {
       result.push(diagnostic);
     } else if (
-      (result[duplicate]?.start === diagnostic.start &&
-        result[duplicate]?.end === diagnostic.end) ||
-      message.length > diagnosticText(result[duplicate]?.message ?? "").length
+      (result[duplicate]!.start === diagnostic.start &&
+        result[duplicate]!.end === diagnostic.end) ||
+      message.length > diagnosticText(result[duplicate]!.message).length
     ) {
       result[duplicate] = diagnostic;
     }
@@ -330,8 +330,7 @@ export const createSyntaxEditor = (
   };
 
   const lineAtOffset = (offset: number) =>
-    snapshot.lines.find((line) => offset >= line.start && offset <= line.end) ??
-    snapshot.lines.at(-1);
+    snapshot.lines.find((line) => offset >= line.start && offset <= line.end)!;
 
   const showTooltipForCaret = () => {
     if (textarea.selectionStart !== textarea.selectionEnd) {
@@ -340,10 +339,6 @@ export const createSyntaxEditor = (
     }
     const offset = textarea.selectionStart;
     const line = lineAtOffset(offset);
-    if (!line) {
-      hideTooltip();
-      return;
-    }
     const diagnostics = diagnosticsForLine(renderedDiagnostics, line);
     if (diagnostics.length === 0) {
       hideTooltip();
