@@ -56,7 +56,7 @@
     "message": "옵션"
   },
   "contextMenuToggleSourcePanel": {
-    "message": "페이지 리소스 표시 또는 숨기기"
+    "message": "페이지 소스 표시 또는 숨기기"
   },
   "contextMenuExclusive": {
     "message": "라우팅 규칙으로 저장…"
@@ -110,13 +110,13 @@
     }
   },
   "ruleMissingMatcher": {
-    "message": "매처 절을 하나 이상 추가하세요"
+    "message": "into: 앞에 일치 조건을 하나 이상 추가하세요"
   },
   "ruleCaptureMissingMatcher": {
-    "message": "캡처 절이 매처를 가리키지 않습니다"
+    "message": "캡처 대상이 이 규칙의 어떤 조건과도 일치하지 않습니다"
   },
   "ruleCaptureAmbiguousMatcher": {
-    "message": "레거시 캡처는 첫 번째로 일치하는 절을 사용합니다"
+    "message": "capture:는 이 이름의 첫 번째 조건을 사용합니다"
   },
   "ruleMissingCapture": {
     "message": "캡처 변수를 사용하려면 캡처 절을 추가하세요."
@@ -125,25 +125,25 @@
     "message": "규칙에는 하나의 캡처 절만 포함될 수 있습니다."
   },
   "ruleMissingInto": {
-    "message": "into: 절을 하나 이상 추가하세요"
+    "message": "비어 있지 않은 into: 저장 위치를 하나 추가하세요"
   },
   "ruleExtraInto": {
     "message": "규칙에는 into: 절이 하나만 포함될 수 있습니다."
   },
   "ruleUnknownMatcher": {
-    "message": "알 수 없는 매처"
+    "message": "매처 이름이 지원되지 않습니다"
   },
   "ruleUnknownDestinationVariable": {
     "message": "경로 변수가 지원되지 않습니다"
   },
   "ruleInvalidRegex": {
-    "message": "잘못된 정규 표현식"
+    "message": "패턴 또는 플래그가 올바른 정규 표현식이 아닙니다"
   },
   "ruleShadowed": {
     "message": "이전 규칙이 동일하거나 더 많은 다운로드와 일치하므로 이 규칙은 실행되지 않습니다."
   },
   "ruleBadClause": {
-    "message": "잘못된 조항"
+    "message": "name: value 구문을 사용하세요"
   },
   "rulePathInvalidCharacter": {
     "message": "경로에 잘못된 문자가 포함되어 있습니다."
@@ -164,16 +164,16 @@
     }
   },
   "tabstripMenuSaveChildrenTabs": {
-    "message": "이 탭에서 열린 저장 탭"
+    "message": "이 탭에서 열린 탭 저장"
   },
   "tabstripMenuSaveRightTabs": {
-    "message": "이 탭과 모든 탭을 오른쪽에 저장"
+    "message": "이 탭과 오른쪽의 모든 탭 저장"
   },
   "tabstripMenuSaveRightTabsMatched": {
-    "message": "이 탭과 모든 탭을 오른쪽에 저장합니다(라우팅 규칙 필요)."
+    "message": "이 탭과 오른쪽의 모든 탭 저장(라우팅 규칙 필요)"
   },
   "o_sDownloads": {
-    "message": "위치 저장"
+    "message": "저장 위치"
   },
   "o_sDirectories": {
     "message": "폴더"
@@ -188,7 +188,7 @@
     "message": "기존 파일"
   },
   "o_lContextMenuBehaviorHelp": {
-    "message": "상황에 맞는 메뉴에 어떤 Save In 작업을 표시할지 선택하세요."
+    "message": "컨텍스트 메뉴에 어떤 Save In 작업을 표시할지 선택하세요."
   },
   "o_lAlsoAskWhen": {
     "message": "또한 다음과 같은 경우 어디에 저장할지 물어보세요."
@@ -221,7 +221,7 @@
     "message": "Firefox에는 기본 파일명 라우팅 기능이 없으므로 Save In은 일치하는 다운로드를 취소하고 대체 다운로드를 시작합니다. POST 요청, 만료되는 URL, 사용자 지정 헤더 또는 인증이 필요한 다운로드에서는 실패할 수 있습니다."
   },
   "o_lFirefoxFilenameApiBug": {
-    "message": "모질라 버그 1245652"
+    "message": "Mozilla 버그 1245652"
   },
   "o_cBrowserDownloadFilter": {
     "message": "일치하는 다운로드 URL만 포함(선택 사항)"
@@ -230,10 +230,10 @@
     "message": "모든 브라우저 다운로드를 처리하려면 비워 두거나 한 줄에 하나의 WebExtension 일치 패턴을 입력하세요. 이 필터는 기록 추적 및 라우팅에 적용됩니다."
   },
   "o_cBrowserDownloadExcludeFilter": {
-    "message": "일치하는 다운로드 URL 제외(선택사항)"
+    "message": "일치하는 다운로드 URL 제외(선택 사항)"
   },
   "o_cBrowserDownloadExcludeFilterHelp": {
-    "message": "WebExtension 일치 패턴을 한 줄에 하나씩 입력하세요. 제외는 위의 일치 URL을 재정의하고 내역 추적 및 라우팅에 모두 적용됩니다."
+    "message": "WebExtension 일치 패턴을 한 줄에 하나씩 입력하세요. 제외는 위의 일치 URL보다 우선하며 기록 추적 및 라우팅에 모두 적용됩니다."
   },
   "o_lBrowserDownloadVariables": {
     "message": "브라우저 다운로드는 URL, 제안된 파일 이름, 현재 시간, 카운터, UUID 및 MIME 변수만 제공합니다. 페이지 제목, 페이지 URL, 링크 텍스트, 선택 항목, 메뉴 메타데이터 및 보조 키는 사용할 수 없습니다."
@@ -251,7 +251,7 @@
     "message": "클릭하여 저장"
   },
   "o_sContextMenu": {
-    "message": "상황에 맞는 메뉴 액세스 키"
+    "message": "컨텍스트 메뉴 액세스 키"
   },
   "o_sMoreOptions": {
     "message": "고급"
@@ -260,7 +260,7 @@
     "message": "기록"
   },
   "o_sPageSources": {
-    "message": "페이지 리소스"
+    "message": "페이지 소스"
   },
   "o_lPageSourcesHelp": {
     "message": "현재 페이지에 있는 이미지, 비디오, 오디오, 문서 및 다운로드 가능한 링크를 찾아보세요. 저장된 항목은 일반적인 라우팅 및 이름 변경 규칙을 사용합니다."
@@ -269,7 +269,7 @@
     "message": "일부 동영상 플레이어는 임시 URL을 사용하거나 스크립트로 미디어를 불러오므로 Save In이 모든 동영상을 감지하지 못할 수 있습니다. 스트리밍 동영상 재생목록(HLS/DASH)을 찾는 경우도 있지만 여기에는 개별 동영상 세그먼트만 나열됩니다. 재생목록을 저장해도 전체 동영상은 저장되지 않습니다."
   },
   "o_cSourcePanelEnabled": {
-    "message": "페이지 리소스 활성화"
+    "message": "페이지 소스 사용"
   },
   "o_cSourcePanelBackgrounds": {
     "message": "CSS 배경 이미지 포함"
@@ -401,7 +401,7 @@
     "message": "템플릿 라이브러리"
   },
   "o_lClauseList": {
-    "message": "조항 목록"
+    "message": "절 목록"
   },
   "o_lGithub": {
     "message": "GitHub"
@@ -428,7 +428,7 @@
     "message": "아직 없음"
   },
   "o_lRoutingRenamedTo": {
-    "message": "다음으로 이름이 변경되었습니다."
+    "message": "변경된 이름"
   },
   "o_lRoutingNoMatches": {
     "message": "일치 항목 없음"
@@ -437,10 +437,10 @@
     "message": "캡처 그룹"
   },
   "o_lRoutingVariables": {
-    "message": "다음 변수의 현재 값:"
+    "message": "변수"
   },
   "o_lRoutingVariablesClickToSee": {
-    "message": "공개하려면 클릭하세요."
+    "message": "표시하려면 클릭하세요."
   },
   "o_lAccessKeysInstruction": {
     "message": "Save In 메뉴 항목에 대한 액세스 키를 설정합니다."
@@ -452,7 +452,7 @@
     "message": "링크에 대한 작업 표시"
   },
   "o_cPreferLinks": {
-    "message": "내장된 미디어 대신 링크 대상을 저장하세요."
+    "message": "내장 미디어 대신 링크 대상 저장"
   },
   "o_cSaveText": {
     "message": "선택한 텍스트에 대한 작업 표시"
@@ -467,7 +467,7 @@
     "message": "탭 메뉴에 Save In 작업 표시"
   },
   "o_cSaveTabstripHelp": {
-    "message": "탭, 탭 그룹 또는 탭을 오른쪽에 저장합니다."
+    "message": "탭, 탭 그룹 또는 오른쪽의 탭을 저장합니다."
   },
   "o_cOpenDialog": {
     "message": "어디에 저장할지 항상 물어보세요"
@@ -512,7 +512,7 @@
     "message": "라우팅 규칙이 일치하면 알림"
   },
   "o_cSaveShortcutsAs": {
-    "message": "바로가기를 다른 이름으로 저장"
+    "message": "바로가기 저장 형식"
   },
   "o_cSaveShortcutsTypeHtml": {
     "message": "HTML 리디렉션"
@@ -530,16 +530,16 @@
     "message": "Freedesktop .desktop"
   },
   "o_cSaveShortcutsMediaInstead": {
-    "message": "대신 미디어를 바로가기로 저장하세요."
+    "message": "대신 미디어를 바로가기로 저장"
   },
   "o_cSaveShortcutsLinksInstead": {
-    "message": "대신 링크를 바로가기로 저장하세요."
+    "message": "대신 링크를 바로가기로 저장"
   },
   "o_cSaveShortcutsPagesInstead": {
-    "message": "대신 페이지를 바로가기로 저장하세요."
+    "message": "대신 페이지를 바로가기로 저장"
   },
   "o_cSaveShortcutsTabsInstead": {
-    "message": "탭을 바로가기로 저장(탭 상황에 맞는 메뉴에서)"
+    "message": "탭을 바로가기로 저장(탭 컨텍스트 메뉴에서)"
   },
   "o_cKeyboardShortcutSaveInMenu": {
     "message": "Save In 컨텍스트 메뉴 항목"
@@ -554,10 +554,10 @@
     "message": "클릭하여 저장 활성화"
   },
   "o_cKeyboardShortcutClickToHelp": {
-    "message": "기본적으로 Alt를 누른 상태에서 이미지나 미디어 항목을 클릭하면 마지막으로 사용한 폴더나 기본 다운로드 폴더에 저장됩니다. Save In는 페이지에 클릭 리스너를 추가합니다. 일부 변수는 사용할 수 없습니다."
+    "message": "기본적으로 Alt를 누른 상태에서 이미지나 미디어 항목을 클릭하면 마지막으로 사용한 폴더나 기본 다운로드 폴더에 저장됩니다. Save In은 페이지에 클릭 리스너를 추가합니다. 일부 변수는 사용할 수 없습니다."
   },
   "o_cHostPermissionMissing": {
-    "message": "Save In는 페이지 콘텐츠에 액세스할 수 없습니다. 클릭하여 저장을 사용하려면 모든 사이트에 대한 액세스 권한을 부여하세요."
+    "message": "Save In은 페이지 콘텐츠에 액세스할 수 없습니다. 클릭하여 저장을 사용하려면 모든 사이트에 대한 액세스 권한을 부여하세요."
   },
   "o_cHostPermissionGrant": {
     "message": "액세스 권한 부여"
@@ -578,7 +578,7 @@
     "message": "앞으로 버튼(5)"
   },
   "o_cKeyboardShortcutModifierHelp": {
-    "message": "선택한 마우스 버튼을 클릭하는 동안 선택한 보조 키를 누르세요. 마우스 버튼만 사용하려면 두 보조 키를 모두 None으로 선택합니다. 변경 사항은 이미 열린 페이지에도 적용됩니다."
+    "message": "선택한 마우스 버튼을 클릭하는 동안 선택한 보조 키를 누르세요. 마우스 버튼만 사용하려면 두 보조 키를 모두 None으로 선택하세요. 변경 사항은 이미 열린 페이지에도 적용됩니다."
   },
   "o_cRestoreDefaults": {
     "message": "기본값 복원"
@@ -590,13 +590,13 @@
     "message": "기본값: 240. Linux는 일반적으로 이름을 255바이트로 제한합니다. Windows와 macOS는 일반적으로 문자 기반 제한을 사용하므로 더 큰 바이트 값이 작동할 수 있습니다. Save In은 대상 파일 시스템을 감지할 수 없습니다. 0은 제한 없음을 의미합니다."
   },
   "o_cReplaceInvalidCharsWith": {
-    "message": "유효하지 않은 문자를 다음으로 바꾸십시오."
+    "message": "잘못된 문자를 다음으로 바꾸기"
   },
   "o_cReplaceInvalidCharsWithHelp": {
     "message": "삭제하려면 비워두세요. 잘못된 대체 문자는 무시됩니다."
   },
   "o_cAppendMimeExtension": {
-    "message": "파일 이름에 확장자가 없으면 확장자를 추가하세요."
+    "message": "파일 이름에 확장자가 없으면 확장자 추가"
   },
   "o_cAppendMimeExtensionHelp": {
     "message": "확장자가 없는 URL의 경우 서버의 Content-Type에서 파생됩니다. 이는 필요한 경우에만 약간의 지연을 추가합니다."
@@ -611,7 +611,7 @@
     "message": "항상 Save In을 통해 다운로드"
   },
   "o_cFetchViaFetchAPIHelp": {
-    "message": "Save In는 파일을 가져와 브라우저에 전달합니다. 일반 다운로드가 실패한 경우에만 이 기능을 사용하세요. 속도가 느리고 Chrome는 저장하는 동안 파일을 메모리에 유지하므로 매우 큰 파일의 경우에는 사용하지 마세요."
+    "message": "Save In은 파일을 가져와 브라우저에 전달합니다. 일반 다운로드가 실패한 경우에만 이 기능을 사용하세요. 속도가 느리고 Chrome은 저장하는 동안 파일을 메모리에 유지하므로 매우 큰 파일에는 사용하지 마세요."
   },
   "o_cIncludeFetchCredentials": {
     "message": "웹사이트 로그인 쿠키 포함"
@@ -632,7 +632,7 @@
     "message": "페이지 URL이 아니라 실패한 파일의 URL 패턴을 입력하세요. 한 줄에 하나의 일치 패턴을 사용하세요(예: *://i.pximg.net/*)."
   },
   "o_cImportSettings": {
-    "message": "가져오기 설정"
+    "message": "설정 가져오기"
   },
   "o_cExportSettings": {
     "message": "설정 내보내기"
@@ -644,13 +644,13 @@
     "message": "마지막 업데이트: "
   },
   "o_cLastSavedAtNever": {
-    "message": "절대로"
+    "message": "없음"
   },
   "optionsUnsavedChanges": {
-    "message": "저장되지 않은 변경사항을 삭제하시겠습니까, 아니면 계속 수정하시겠습니까?"
+    "message": "저장하지 않은 변경 사항을 버리거나 계속 편집하시겠습니까?"
   },
   "optionsEditorUnsaved": {
-    "message": "저장되지 않은 변경사항"
+    "message": "저장하지 않은 변경 사항"
   },
   "o_lDirectoryDefinitions": {
     "message": "폴더 메뉴 정의"
@@ -713,7 +713,7 @@
     "message": "다운로드 처리"
   },
   "o_sAdvancedCounter": {
-    "message": "카운터 다운로드"
+    "message": "다운로드 카운터"
   },
   "o_sAdvancedBackupReset": {
     "message": "백업 및 재설정"
@@ -992,10 +992,10 @@
     "message": "조기에 닫기까지"
   },
   "html_export": {
-    "message": "수출"
+    "message": "내보내기"
   },
   "html_filterSources": {
-    "message": "리소스 필터링"
+    "message": "소스 필터링"
   },
   "html_historyTableTools": {
     "message": "기록 테이블 도구"
@@ -1013,7 +1013,7 @@
     "message": "JSON — 완전한 데이터"
   },
   "html_key": {
-    "message": "열쇠"
+    "message": "키"
   },
   "html_link": {
     "message": "링크"
@@ -1028,7 +1028,7 @@
     "message": "더보기"
   },
   "html_mouseOnlyLeftClickWillReplaceNormalClicksOn": {
-    "message": "이 기능이 활성화되어 있는 동안에는 저장 가능한 미디어 및 링크에 대한 일반적인 클릭이 마우스로만 왼쪽 클릭으로 대체됩니다."
+    "message": "이 기능을 사용하는 동안 보조 키 없이 왼쪽 클릭하면 저장 가능한 미디어와 링크의 일반 클릭 동작이 바뀝니다."
   },
   "html_ms": {
     "message": "ms"
@@ -1037,19 +1037,19 @@
     "message": "None"
   },
   "html_notifyMeWhen": {
-    "message": "언제 알림"
+    "message": "다음 경우 알림"
   },
   "html_previewOfThePageSourcesDrawer": {
     "message": "페이지 소스 창 미리보기"
   },
   "html_primaryModifier": {
-    "message": "기본 수정자"
+    "message": "주 보조 키"
   },
   "html_saveTheseAsShortcutFiles": {
     "message": "바로가기 파일로 저장"
   },
   "html_secondModifier": {
-    "message": "두 번째 수정자"
+    "message": "두 번째 보조 키"
   },
   "html_selection": {
     "message": "선택"
@@ -1175,7 +1175,7 @@
     "message": "0으로 재설정"
   },
   "html_setValue": {
-    "message": "설정값"
+    "message": "값 설정"
   },
   "html_theseExtensionsTriedToStartADownloadAddOnly": {
     "message": "이 확장 프로그램들이 다운로드를 시작하려고 했습니다. 신뢰할 수 있는 확장 프로그램만 추가하세요. 요청된 URL은 저장되지 않습니다."
@@ -1217,7 +1217,7 @@
     "message": "참조 닫기"
   },
   "html_contextMenus": {
-    "message": "상황에 맞는 메뉴"
+    "message": "컨텍스트 메뉴"
   },
   "html_documentation": {
     "message": "문서"
@@ -1226,7 +1226,7 @@
     "message": "다운로드"
   },
   "html_filterCurrentReference": {
-    "message": "필터 전류 참조"
+    "message": "현재 참조 필터링"
   },
   "html_filterVariables": {
     "message": "변수 필터링"
@@ -1241,10 +1241,10 @@
     "message": "설정, 라우팅 규칙, 로컬 기록 및 다시 시작해도 안전한 상태를 유지합니다."
   },
   "html_letsChromeConvertFetchedFileDataIntoTemporaryDownload": {
-    "message": "Chrome가 가져온 파일 데이터를 임시 다운로드 URL로 변환할 수 있습니다."
+    "message": "Chrome이 가져온 파일 데이터를 임시 다운로드 URL로 변환할 수 있습니다."
   },
   "html_loadingClauses": {
-    "message": "조항 로드 중…"
+    "message": "절 로드 중…"
   },
   "html_loadingVariables": {
     "message": "변수 로드 중…"
@@ -1283,10 +1283,10 @@
     "message": "Save In에는 분석, 광고, 개발자 운영 서버 또는 원격 실행 코드가 없습니다. 설정 및 기록은 브라우저 관리 확장 저장소에 유지됩니다."
   },
   "html_saveInIsALocalFirstDownloadsHelperFor": {
-    "message": "Save In은 로컬 처리를 우선하는 다운로드 도우미입니다. 컨텍스트 메뉴 폴더, 라우팅 규칙, 이름 변경, 페이지 리소스, 다운로드 기록을 사용해 파일을 정리합니다."
+    "message": "Save In은 로컬 처리를 우선하는 다운로드 도우미입니다. 컨텍스트 메뉴 폴더, 라우팅 규칙, 이름 변경, 페이지 소스, 다운로드 기록을 사용해 파일을 정리합니다."
   },
   "html_saveInRegistersToolsAnAiAgentCanCall": {
-    "message": ", Save In는 이 옵션 페이지가 열려 있는 동안 AI 에이전트가 호출할 수 있는 도구를 등록하여 설정을 변경하고, 폴더 메뉴를 작성하고, 라우팅 규칙을 작성합니다."
+    "message": ", Save In은 이 옵션 페이지가 열려 있는 동안 AI 에이전트가 호출할 수 있는 도구를 등록하여 설정 변경, 폴더 메뉴 구성, 라우팅 규칙 작성을 지원합니다."
   },
   "html_showsSaveInCommandsOnPagesLinksMediaAnd": {
     "message": "페이지, 링크, 미디어 및 탭에 Save In 명령을 표시합니다."
@@ -1295,7 +1295,7 @@
     "message": "저장을 시작하고, 파일 이름을 선택하고, 결과를 모니터링하고, 재시도를 지원합니다."
   },
   "html_storage": {
-    "message": "저장"
+    "message": "저장소"
   },
   "html_theSessionLogBelowAlwaysKeepsASmallLocal": {
     "message": "아래 세션 로그에는 최근 실패가 소량만 로컬에 기록됩니다. 브라우저 개발자 콘솔로 문제를 해결할 때만 활성화하세요. 자세한 내부 정보가 추가되며 다시 시작하면 저장된 설정으로 돌아갑니다."
@@ -1373,13 +1373,13 @@
     "message": "하위 도메인이 없는 페이지 호스트 이름"
   },
   "html_pageTitleLowercasedAndDashed": {
-    "message": "페이지 제목(소문자 및 점선)"
+    "message": "페이지 제목(소문자, 하이픈으로 연결)"
   },
   "html_pageTitleLowercasedWithUnderscores": {
     "message": "페이지 제목(밑줄 포함 소문자)"
   },
   "html_pathPartOfTheSourceUrlSeparatorsAreSanitized": {
-    "message": "소스 URL의 경로 부분(구분자는 삭제됨)"
+    "message": "소스 URL의 경로 부분(구분자는 안전하게 처리됨)"
   },
   "html_sourceHostnameWithoutSubdomains": {
     "message": "하위 도메인이 없는 소스 호스트 이름"
@@ -1412,7 +1412,7 @@
     "message": "변수는 폴더 및 파일 이름 패턴에 사용됩니다."
   },
   "html_actualResolvedFilenameExtensionAlias": {
-    "message": "실제 해결된 파일 이름 확장자입니다. 별칭:"
+    "message": "실제 확인된 파일 이름 확장자. 별칭:"
   },
   "html_aRandomV4UuidUniquePerUse": {
     "message": "사용 시 고유한 임의의 v4 UUID"
@@ -1424,28 +1424,28 @@
     "message": " 사용할 수 없는 경우 비어 있습니다."
   },
   "html_captureGroupWhere": {
-    "message": "그룹별로 캡처된 텍스트"
+    "message": "그룹에서 캡처한 텍스트"
   },
   "html_charactersForDeeperNesting": {
-    "message": "더 깊은 중첩을 위한 문자"
+    "message": "문자를 더 추가하면 더 깊게 중첩됩니다."
   },
   "html_createsASeparatorInTheContextMenu": {
-    "message": "상황에 맞는 메뉴에 구분 기호를 만듭니다."
+    "message": "컨텍스트 메뉴에 구분 기호를 만듭니다."
   },
   "html_createsASubmenuItemAddMore": {
-    "message": "하위 메뉴 항목을 만듭니다. 더 추가하다"
+    "message": "하위 메뉴 항목을 만듭니다."
   },
   "html_fileExtensionDerivedFromThe": {
     "message": "다음에서 파생된 파일 확장자"
   },
   "html_first12LowercaseHexCharactersOfTheDownloadedFile": {
-    "message": "다운로드한 파일의 SHA-256의 처음 12자리 소문자 16진수입니다. 이 값을 준비하면 저장하기 전에 파일을 가져와서 해시하므로 미리 보기에서나 사용할 수 없을 때 비어 있습니다. 해싱이 실패하면 다운로드가 계속됩니다. 내역에서 오랜 준비를 취소할 수 있습니다."
+    "message": "다운로드한 파일의 SHA-256에서 처음 12자의 소문자 16진수입니다. 이 값을 준비하면 저장하기 전에 파일을 가져와 해시하므로 미리보기에서는 값이 비어 있으며, 사용할 수 없는 경우에도 비어 있습니다. 해싱에 실패해도 다운로드는 계속됩니다. 기록에서 오래 걸리는 준비 작업을 취소할 수 있습니다."
   },
   "html_full64CharacterLowercaseSha256ItSharesThe": {
-    "message": "전체 64자 소문자 SHA-256. 와 함께 계산됩니다."
+    "message": "64자의 소문자 SHA-256 전체 값입니다."
   },
   "html_fullActualFilenameAfterContentDisposition": {
-    "message": "Content-Disposition를 포함한 해결된 파일 이름"
+    "message": "Content-Disposition를 포함한 확인된 파일 이름"
   },
   "html_handyForExtensionlessOrQuerySuffixedUrls": {
     "message": ". 확장자가 없거나 쿼리 접미사가 있는 URL에 유용합니다."
@@ -1460,7 +1460,7 @@
     "message": "라우팅 및 파일 이름만"
   },
   "html_specialRowsUsedOnlyInTheDownloadsMenu": {
-    "message": "위치 저장 메뉴에서만 사용되는 특수 행"
+    "message": "저장 위치 메뉴에서만 사용되는 특수 행"
   },
   "html_theN": {
     "message": "; 1을 그룹 번호로 바꿉니다."
@@ -1469,16 +1469,16 @@
     "message": "서버의"
   },
   "html_theUrlAfterFollowingRedirectsViaTheSameHead": {
-    "message": "다음 리디렉션 후의 URL입니다. 다음과 동일한 요청을 사용합니다."
+    "message": "리디렉션을 따른 후의 URL입니다. 다음과 동일한 요청을 사용합니다."
   },
   "html_urlDerivedExtensionAlias": {
-    "message": "URL 파생 확장. 별칭:"
+    "message": "URL에서 파생된 확장자. 별칭:"
   },
   "html_viaAHeadRequestAddsASmallDelayAnd": {
     "message": ". 약간의 지연이 추가되며 사용할 수 없는 경우 비어 있습니다."
   },
   "html_whenBothVariablesAreUsed": {
-    "message": "두 변수를 모두 사용하는 경우."
+    "message": "변수를 함께 사용하면 두 값이 동시에 계산됩니다."
   },
   "html_attribute": {
     "message": "속성과 일치합니다."
@@ -1493,7 +1493,7 @@
     "message": "대소문자를 구분하지 않는 일치를 위해."
   },
   "html_forExplicitNewRules": {
-    "message": "새로운 규칙에서."
+    "message": "을 사용하세요."
   },
   "html_matcherClausesUse": {
     "message": "매처 절에는"
@@ -1517,7 +1517,7 @@
     "message": "링크 텍스트 또는 요소의"
   },
   "html_matchesTheMediaType": {
-    "message": "미디어 유형과 일치:"
+    "message": "미디어 유형과 일치합니다:"
   },
   "html_matchesTheMenuIndexOfTheClickedMenuItem": {
     "message": "선택한 메뉴 항목의 색인(1, 2, 3…)과 일치합니다."
@@ -1541,7 +1541,7 @@
     "message": "미디어 소스 URL과 일치합니다."
   },
   "html_matchesTheUrlDerivedExtensionLegacyNameUse": {
-    "message": "URL 파생 확장명(레거시 이름)과 일치합니다. 사용"
+    "message": "URL에서 파생된 확장자와 일치합니다(이전 이름). 새 규칙에서는"
   },
   "html_matchesTheUrlOfTheCurrentFrame": {
     "message": "현재 프레임 URL과 일치합니다."
@@ -1568,10 +1568,10 @@
     "message": "다운로드를 지정한 경로로 이동하거나 지정한 패턴으로 이름을 바꿉니다. 폴더로 이동하려면 패턴 끝에"
   },
   "html_selectsTheMatcherForRegexCaptureGroupVariables": {
-    "message": "정규식 캡처 그룹을 변수로 사용할 매처를 선택합니다."
+    "message": "사용할 정규 표현식 캡처 그룹이 있는 매처를 선택합니다:"
   },
   "html_splitMultipleCaptureTargetsWithA": {
-    "message": ". 여러 캡처 대상을 다음과 같이 구분합니다."
+    "message": ". 여러 캡처 대상의 구분 문자는"
   },
   "html_captureClauseCompatibility": {
     "message": "매처 절 전체에서 그룹 번호를 연속으로 지정하려면 capturegroups:를 사용하세요. capture:는 기존의 평면화된 인덱스 배치를 유지합니다."
@@ -1792,16 +1792,16 @@
     "message": "Ctrl, Alt, Command 또는 MacCtrl을 보조 키로 포함하세요."
   },
   "o_lShortcutAddKey": {
-    "message": "수정자 뒤에 키를 추가합니다."
+    "message": "보조 키 뒤에 일반 키를 추가하세요."
   },
   "o_lShortcutOneKey": {
-    "message": "수정자와 함께 하나의 키를 사용하십시오."
+    "message": "보조 키와 함께 일반 키 하나를 사용하세요."
   },
   "o_lShortcutValidKey": {
     "message": "Y, 5, F12 또는 PageDown 같은 유효한 키를 선택하세요."
   },
   "o_lShortcutNoRepeats": {
-    "message": "키나 수정자를 반복하지 마세요."
+    "message": "키나 보조 키를 반복하지 마세요."
   },
   "o_lShortcutReady": {
     "message": "적용할 준비가 되었습니다."
@@ -2077,7 +2077,7 @@
   "o_lUiThemeDark": { "message": "어둡게" },
   "o_lUiThemeLight": { "message": "밝게" },
   "o_lUiThemeHelp": {
-    "message": "시스템 테마를 따르거나 옵션 페이지와 페이지 리소스를 항상 어둡게 또는 밝게 표시합니다."
+    "message": "시스템 테마를 따르거나 옵션 페이지와 페이지 소스를 항상 어둡게 또는 밝게 표시합니다."
   },
   "notificationExternalDownloadBlockedTitle": { "message": "외부 다운로드 차단됨" },
   "notificationExternalDownloadBlockedMessage": {
@@ -2103,13 +2103,13 @@
   "webMcpStatusRegistrationFailed": { "message": "사용할 수 없음 — 도구 등록 실패" },
   "webMcpStatusUnavailableBrowser": { "message": "이 브라우저에서는 사용할 수 없음" },
   "sourcePanelResizeLabel": {
-    "message": "페이지 리소스 크기 조절"
+    "message": "페이지 소스 크기 조절"
   },
   "sourcePanelClose": {
     "message": "닫기"
   },
   "sourcePanelCloseLabel": {
-    "message": "페이지 리소스 닫기"
+    "message": "페이지 소스 닫기"
   },
   "sourcePanelDockPosition": {
     "message": "도킹 위치: $POSITION$ — 다음 위치로 변경",
@@ -2136,10 +2136,10 @@
     "message": "패널 도킹 위치 변경"
   },
   "sourcePanelDockPanel": {
-    "message": "페이지 리소스 도킹"
+    "message": "페이지 소스 도킹"
   },
   "sourcePanelPopOutPanel": {
-    "message": "페이지 리소스 분리"
+    "message": "페이지 소스 분리"
   },
   "sourcePanelPopOutHelp": {
     "message": "드래그 가능한 플로팅 패널로 분리"
@@ -2148,13 +2148,13 @@
     "message": "현재 필터의 URL 복사"
   },
   "sourcePanelCopyFilteredUrlsLabel": {
-    "message": "필터링된 리소스 URL 복사"
+    "message": "필터링된 소스 URL 복사"
   },
   "sourcePanelFilterLabel": {
-    "message": "페이지 리소스 필터링"
+    "message": "페이지 소스 필터링"
   },
   "sourcePanelSortLabel": {
-    "message": "리소스 정렬"
+    "message": "소스 정렬"
   },
   "sourcePanelSortNewest": {
     "message": "최신순"
@@ -2181,7 +2181,7 @@
     "message": "재생목록"
   },
   "sourcePanelNoMatches": {
-    "message": "현재 필터와 일치하는 리소스가 없습니다."
+    "message": "현재 필터와 일치하는 소스가 없습니다."
   },
   "sourcePanelNoSources": {
     "message": "페이지의 미디어 또는 스트리밍 동영상 재생목록이 아직 감지되지 않았습니다."
@@ -2232,7 +2232,7 @@
     "message": "복사 실패"
   },
   "sourcePanelRowInstructions": {
-    "message": "Alt+클릭: 저장, 리소스 제목을 오른쪽 클릭: Save In"
+    "message": "Alt+클릭: 저장, 소스 제목을 오른쪽 클릭: Save In"
   },
   "sourcePanelCopiedUrls": {
     "message": "$COUNT$개 URL 복사됨",
@@ -2491,7 +2491,7 @@
     "message": "활성화된 규칙이 페이지와 소스 모두에 일치할 때만 새로 발견한 페이지 소스를 저장합니다."
   },
   "autoDownloadEnabled": { "message": "일치 항목 자동 저장" },
-  "autoDownloadLive": { "message": "페이지 로드 후 추가된 소스 감시" },
+  "autoDownloadLive": { "message": "페이지가 로드된 후 추가된 소스 포함" },
   "autoDownloadPrivate": { "message": "비공개 창에서 자동 저장 허용" },
   "autoDownloadLimit": { "message": "페이지 방문당 최대 저장 수" },
   "autoDownloadLimitHelp": {
@@ -2499,7 +2499,7 @@
   },
   "autoDownloadRulesHeading": { "message": "자동화 규칙" },
   "autoDownloadRulesHelp": {
-    "message": "각 규칙에는 페이지 조건, 소스 조건, 대상이 필요합니다. 먼저 일치하는 규칙이 적용됩니다."
+    "message": "각 규칙에는 페이지 조건, 소스 조건, 저장 위치가 필요합니다. 처음 일치하는 규칙이 실행됩니다."
   },
   "autoDownloadEditorMode": { "message": "자동화 규칙 편집기 모드" },
   "autoDownloadVisual": { "message": "시각적" },
@@ -2525,12 +2525,16 @@
   "autoDownloadAddCondition": { "message": "조건 추가" },
   "autoDownloadDestination": { "message": "저장 위치" },
   "autoDownloadNewRule": { "message": "새 규칙" },
-  "ruleAutomaticMissingPage": { "message": "소스 자동 저장 규칙에는 페이지 조건이 필요합니다" },
-  "ruleAutomaticMissingSource": { "message": "소스 자동 저장 규칙에는 소스 조건이 필요합니다" },
+  "ruleAutomaticMissingPage": {
+    "message": "pageurl:, pagedomain: 또는 pagerootdomain: 조건을 추가하세요"
+  },
+  "ruleAutomaticMissingSource": {
+    "message": "소스 주소, 도메인, 종류 또는 확장자 조건을 추가하세요"
+  },
   "autoDownloadRoutingBadge": { "message": "소스 자동 저장" },
   "autoDownloadManageRules": { "message": "라우팅 규칙 열기" },
   "autoDownloadRoutingHelp": {
-    "message": "자동 규칙은 라우팅 규칙과 함께 관리되며 context: auto를 사용합니다. 각 규칙에는 페이지 및 소스 조건이 필요합니다."
+    "message": "자동 다운로드를 일치시키려면 context: auto를 페이지 및 소스 조건과 함께 사용하세요. 처음 일치하는 규칙이 저장 위치를 설정합니다."
   },
   "html_openInFirefoxAddons": { "message": "Firefox Add-ons에서 열기" },
   "html_openInChromeWebStore": { "message": "Chrome Web Store에서 열기" },
@@ -2585,17 +2589,17 @@
   },
   "welcomePermissions": { "message": "이 권한이 필요한 이유" },
   "welcomeCustomizeFolders": { "message": "폴더 맞춤 설정" },
-  "welcomeUseEmptyPreset": { "message": "빈 프리셋 사용" },
+  "welcomeUseEmptyPreset": { "message": "다운로드 폴더만 사용" },
   "welcomeEmptyPresetFailed": {
-    "message": "빈 프리셋을 적용할 수 없습니다. 시작 폴더는 변경되지 않았습니다."
+    "message": "다운로드 폴더만 사용하도록 전환할 수 없습니다. 폴더는 변경되지 않았습니다."
   },
   "welcomeEmptyConfirmTitle": { "message": "현재 폴더를 바꾸시겠습니까?" },
   "welcomeEmptyConfirmDescription": {
-    "message": "빈 프리셋은 현재 폴더 구성을 바꾸고 브라우저의 다운로드 대상만 남깁니다."
+    "message": "현재 폴더 구성을 바꾸고 브라우저의 다운로드 폴더만 남깁니다."
   },
   "welcomeKeepCurrentFolders": { "message": "현재 폴더 유지" },
-  "welcomeUseStarterFolders": { "message": "Save In 사용 시작" },
-  "welcomeUsingStarterSettings": { "message": "시작 설정 사용 중" },
+  "welcomeUseStarterFolders": { "message": "시작 폴더 유지" },
+  "welcomeUsingStarterSettings": { "message": "방금 전" },
   "html_showWelcomeGuide": { "message": "시작 안내 보기" },
   "advancedFilesDownloads": { "message": "파일 및 다운로드" },
   "advancedMaintenanceDiagnostics": { "message": "유지 관리 및 진단" },

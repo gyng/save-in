@@ -93,40 +93,40 @@
     }
   },
   "ruleMissingMatcher": {
-    "message": "Aggiungi almeno una clausola di corrispondenza"
+    "message": "Aggiungi almeno una condizione di corrispondenza prima di into:"
   },
   "ruleCaptureMissingMatcher": {
     "message": "La clausola capture: non fa riferimento a un criterio di corrispondenza"
   },
   "ruleCaptureAmbiguousMatcher": {
-    "message": "La clausola capture: legacy utilizza la prima clausola di corrispondenza"
+    "message": "capture: usa la prima condizione con questo nome"
   },
   "ruleMissingCapture": {
-    "message": "Aggiungi una clausola capture: per utilizzare le variabili di acquisizione"
+    "message": "La variabile di acquisizione della destinazione non ha un gruppo di acquisizione corrispondente"
   },
   "ruleMultipleCapture": {
     "message": "Una regola può contenere una sola clausola capture:"
   },
   "ruleMissingInto": {
-    "message": "Aggiungi almeno una clausola into:"
+    "message": "Aggiungi una destinazione into: non vuota"
   },
   "ruleExtraInto": {
     "message": "Una regola può contenere una sola clausola into:"
   },
   "ruleUnknownMatcher": {
-    "message": "Criterio di corrispondenza sconosciuto"
+    "message": "Il nome del criterio di corrispondenza non è supportato"
   },
   "ruleUnknownDestinationVariable": {
     "message": "La variabile di percorso non è supportata"
   },
   "ruleInvalidRegex": {
-    "message": "Espressione regolare non valida"
+    "message": "Il pattern o i flag non costituiscono un'espressione regolare valida"
   },
   "ruleShadowed": {
-    "message": "Questa regola non viene mai eseguita perché una regola precedente corrisponde allo stesso o a più download"
+    "message": "Una regola precedente corrisponde già a tutti i download a cui può corrispondere questa regola"
   },
   "ruleBadClause": {
-    "message": "Clausola non valida"
+    "message": "Usa la sintassi nome: valore"
   },
   "rulePathInvalidCharacter": {
     "message": "Il percorso contiene caratteri non validi"
@@ -177,7 +177,7 @@
     "message": "Chiedi anche dove salvare quando:"
   },
   "o_sDynamicDownloads": {
-    "message": "Regole di percorso"
+    "message": "Regole di routing"
   },
   "o_sBrowserDownloads": {
     "message": "Download del browser"
@@ -210,7 +210,7 @@
     "message": "Includi solo gli URL di download corrispondenti (facoltativo)"
   },
   "o_cBrowserDownloadFilterHelp": {
-    "message": "Lascia vuoto per gestire ogni download del browser oppure inserisci un modello di corrispondenza WebExtension per riga. Questo filtro si applica al monitoraggio e al routing della cronologia."
+    "message": "Lascia vuoto per gestire ogni download del browser oppure inserisci un pattern di corrispondenza WebExtension per riga. Questo filtro si applica sia al monitoraggio della cronologia sia al routing."
   },
   "o_cBrowserDownloadExcludeFilter": {
     "message": "Escludi gli URL di download corrispondenti (facoltativo)"
@@ -276,7 +276,7 @@
     "message": "Scorciatoia da tastiera"
   },
   "o_lSourcePanelShortcutHelp": {
-    "message": "Utilizza la sintassi del collegamento del browser, ad esempio Ctrl+Shift+Y o Command+Shift+Y. Il browser rifiuta i collegamenti riservati."
+    "message": "Usa la sintassi delle scorciatoie del browser, ad esempio Ctrl+Shift+Y o Command+Shift+Y. Il browser rifiuta le scorciatoie riservate."
   },
   "o_bReset": {
     "message": "Ripristina"
@@ -297,7 +297,7 @@
     "message": "Tipo"
   },
   "o_lHistoryAllSources": {
-    "message": "Tutte le fonti"
+    "message": "Tutte le origini"
   },
   "o_lHistoryAllStatuses": {
     "message": "Tutti gli stati"
@@ -312,7 +312,7 @@
     "message": "Salvato"
   },
   "o_lHistorySaving": {
-    "message": "Salvataggio"
+    "message": "In corso"
   },
   "o_lHistoryFailed": {
     "message": "Non riuscito"
@@ -357,13 +357,13 @@
     "message": "Mostra i comandi Save In su pagine, collegamenti, contenuti multimediali e schede."
   },
   "html_startsSavesChoosesFilenamesMonitorsResultsAndSupportsRetries": {
-    "message": "Avvia i salvataggi, sceglie i nomi dei file, monitora i risultati e supporta i tentativi."
+    "message": "Avvia i salvataggi, sceglie i nomi dei file, monitora i risultati e supporta nuovi tentativi."
   },
   "html_storage": {
     "message": "Archiviazione"
   },
   "html_theSessionLogBelowAlwaysKeepsASmallLocal": {
-    "message": "Il registro della sessione riportato di seguito conserva sempre un piccolo record locale degli errori recenti. Abilitalo solo durante la risoluzione dei problemi con la console per sviluppatori del browser; aggiunge dettagli interni dettagliati e ripristina le impostazioni salvate dopo il riavvio."
+    "message": "Il registro della sessione riportato di seguito conserva sempre un piccolo record locale degli errori recenti. Abilitalo solo durante la risoluzione dei problemi con la console per sviluppatori del browser; aggiunge dettagli interni completi e torna all'impostazione salvata dopo il riavvio."
   },
   "html_toConnectOpenThisPageInABrowserThat": {
     "message": "Per connetterti: apri questa pagina in un browser che supporta WebMCP, mantienila aperta e punta l'agente interno al browser su questa scheda. Chiedilo in un linguaggio semplice, ad es. \"ordina i miei download in cartelle per sito web e data, numera ogni file e avvisami solo quando uno fallisce.\""
@@ -516,7 +516,7 @@
     "message": ". Utile per URL senza estensione o con parametri di query."
   },
   "html_menuStructure": {
-    "message": "Struttura del menù"
+    "message": "Struttura del menu"
   },
   "html_onlyUsableWhenRoutingAndRewritingFilenames": {
     "message": "Disponibile solo durante il routing o la ridenominazione dei file"
@@ -525,7 +525,7 @@
     "message": "Solo routing e nomi di file"
   },
   "html_specialRowsUsedOnlyInTheDownloadsMenu": {
-    "message": "Righe speciali utilizzate solo nel menu Salva posizioni"
+    "message": "Righe speciali utilizzate solo nel menu Destinazioni di salvataggio"
   },
   "html_theN": {
     "message": "; sostituire 1 con il numero del gruppo."
@@ -618,7 +618,7 @@
     "message": "Corrisponde all'URL della sorgente multimediale."
   },
   "html_matchesTheUrlDerivedExtensionLegacyNameUse": {
-    "message": "Corrisponde all'estensione derivata da URL (nome legacy). Utilizzo"
+    "message": "Corrisponde all'estensione derivata da URL (nome legacy). Usa"
   },
   "html_matchesTheUrlOfTheCurrentFrame": {
     "message": "Corrisponde all'URL del frame corrente."
@@ -633,7 +633,7 @@
     "message": "Output e acquisizione"
   },
   "html_regularExpression": {
-    "message": "Espressione regolare"
+    "message": "espressioni regolari"
   },
   "html_renamingTheFileKeepsItsOwnNameEG": {
     "message": "ridenominazione: il file mantiene il nome corrente (ad esempio,"
@@ -651,7 +651,7 @@
     "message": ". Separa più obiettivi di cattura con"
   },
   "html_captureClauseCompatibility": {
-    "message": "Utilizza capture-groups: per numerare progressivamente i gruppi tra le clausole di corrispondenza. capture: mantiene la precedente numerazione con indice lineare."
+    "message": "Usa capturegroups: per numerare progressivamente i gruppi tra le clausole di corrispondenza. capture: mantiene la precedente numerazione con indice lineare."
   },
   "html_stringsAddJavascriptRegexFlagsAfterTheMatcherName": {
     "message": ". Aggiungi i flag delle espressioni regolari JavaScript dopo il nome del criterio; ad esempio"
@@ -663,7 +663,7 @@
     "message": "Elenco variabili"
   },
   "o_lMenuPreview": {
-    "message": "Anteprima del menù"
+    "message": "Anteprima del menu"
   },
   "o_lLiveVariables": {
     "message": "Variabili in tempo reale"
@@ -687,7 +687,7 @@
     "message": "Applica"
   },
   "o_bDiscard": {
-    "message": "Scartare"
+    "message": "Scarta"
   },
   "o_lRuleTemplates": {
     "message": "Libreria di modelli"
@@ -804,7 +804,7 @@
     "message": "Notifica quando una regola di routing corrisponde"
   },
   "o_cSaveShortcutsAs": {
-    "message": "Salva scorciatoie con nome"
+    "message": "Salva i file di collegamento come"
   },
   "o_cSaveShortcutsTypeHtml": {
     "message": "Reindirizzamento HTML"
@@ -822,16 +822,16 @@
     "message": "Freedesktop .desktop"
   },
   "o_cSaveShortcutsMediaInstead": {
-    "message": "Salva invece i contenuti multimediali come collegamenti"
+    "message": "Salva invece i contenuti multimediali come file di collegamento"
   },
   "o_cSaveShortcutsLinksInstead": {
-    "message": "Salva invece i link come collegamenti"
+    "message": "Salva invece i link come file di collegamento"
   },
   "o_cSaveShortcutsPagesInstead": {
-    "message": "Salva invece le pagine come collegamenti"
+    "message": "Salva invece le pagine come file di collegamento"
   },
   "o_cSaveShortcutsTabsInstead": {
-    "message": "Salva le schede come collegamenti (dal relativo menu contestuale)"
+    "message": "Salva le schede come file di collegamento (dal menu contestuale delle schede)"
   },
   "o_cKeyboardShortcutSaveInMenu": {
     "message": "Voce del menu contestuale Save In"
@@ -870,7 +870,7 @@
     "message": "Pulsante Avanti (5)"
   },
   "o_cKeyboardShortcutModifierHelp": {
-    "message": "Tieni premuti i modificatori selezionati mentre fai clic con il pulsante del mouse scelto. Seleziona None per utilizzare soltanto il pulsante del mouse con entrambi i modificatori. Le modifiche si applicano anche alle pagine già aperte."
+    "message": "Tieni premuti i modificatori selezionati mentre fai clic con il pulsante del mouse scelto. Seleziona None per entrambi i modificatori per usare soltanto il pulsante del mouse. Le modifiche si applicano anche alle pagine già aperte."
   },
   "o_cRestoreDefaults": {
     "message": "Ripristina le impostazioni predefinite"
@@ -972,7 +972,7 @@
     "message": "Nessun errore di convalida"
   },
   "notificationLinkPreferred": {
-    "message": "È stata scaricata la destinazione del collegamento"
+    "message": "È stata scaricata invece la destinazione del collegamento"
   },
   "o_cPreferLinksFilterEnabled": {
     "message": "Solo sulle pagine corrispondenti"
@@ -1020,7 +1020,7 @@
     "message": "Trascina tramite la maniglia tratteggiata. Rilascia sopra o sotto una riga per posizionarla allo stesso livello o sulla riga per annidarla all'interno."
   },
   "o_lFilterReference": {
-    "message": "Riferimento dei filtri"
+    "message": "Filtro"
   },
   "o_lShortcutEnterOrReset": {
     "message": "Inserisci una scorciatoia o usa Ripristina."
@@ -1140,7 +1140,7 @@
     "message": "Crea un sottomenu"
   },
   "html_createsTwoSelectableRowsInTheDownloadsMenu": {
-    "message": "Crea due cartelle nel menu Salva posizioni."
+    "message": "Crea due cartelle nel menu Destinazioni di salvataggio."
   },
   "html_defaultDownloadsDirectory": {
     "message": "cartella Download predefinita"
@@ -1176,7 +1176,7 @@
     "message": "stesso"
   },
   "html_moreMenuSyntax": {
-    "message": "Più sintassi del menu"
+    "message": "Altra sintassi dei menu"
   },
   "html_oneRelativeDirectoryOrMenuInstructionPerLineDownloads": {
     "message": "Inserisci una cartella relativa o un'istruzione di menu per riga. I file vengono salvati rispetto alla"
@@ -1251,7 +1251,7 @@
     "message": "destinazione."
   },
   "html_destinationsAreRelativeToTheDownloadsMenuDestinationYou": {
-    "message": "Le destinazioni sono relative alla cartella selezionata. I valori di corrispondenza sono espressioni regolari; vedere il"
+    "message": "Le destinazioni sono relative alla cartella selezionata. I valori di corrispondenza sono espressioni regolari; consulta la"
   },
   "html_enterOneUrlLikeBrowserMatchPatternPerLine": {
     "message": "Aggiungi un pattern di corrispondenza WebExtension per riga. Non sono espressioni regolari. Ogni pattern usa uno schema, un host e un percorso."
@@ -1278,7 +1278,7 @@
     "message": "Corrisponde a HTTP e HTTPS."
   },
   "html_howDoDownloadUrlFiltersWork": {
-    "message": "Come i filtri URL abbinano i download"
+    "message": "Come i filtri URL trovano corrispondenze nei download"
   },
   "html_howRoutingRulesWork": {
     "message": "Come funzionano le regole di routing"
@@ -1356,7 +1356,7 @@
     "message": "Esporta"
   },
   "html_filterSources": {
-    "message": "Filtra fonti"
+    "message": "Filtra le sorgenti"
   },
   "html_historyTableTools": {
     "message": "Strumenti della tabella Cronologia"
@@ -1365,7 +1365,7 @@
     "message": "Immagine"
   },
   "html_image128Kb1": {
-    "message": "Immagine · 128 KB · N.1"
+    "message": "Immagine · 128 KB · #1"
   },
   "html_images": {
     "message": "Immagini"
@@ -1434,7 +1434,7 @@
     "message": "Video"
   },
   "html_video24Mb2": {
-    "message": "Video · 2,4 MB · #2"
+    "message": "Video · 2.4 MB · #2"
   },
   "html_advancedEditIdsAsText": {
     "message": "Avanzato: modifica gli ID come testo"
@@ -1443,7 +1443,7 @@
     "message": "Consenti"
   },
   "html_allowedExtensionIds": {
-    "message": "ID di estensione consentiti"
+    "message": "ID delle estensioni consentite"
   },
   "html_apiVersion": {
     "message": "Versione API"
@@ -1548,7 +1548,7 @@
     "message": "— aumenta di uno per ogni download salvato e rimane memorizzato dopo il riavvio."
   },
   "html_webextensionsSuchAsFoxyGesturesCanMessageSaveIn": {
-    "message": "Le WebExtensions come Foxy Gestures possono inviare messaggi direttamente a Save In. Gli script utente di Greasemonkey, Tampermonkey o Violentmonkey non possono farlo autonomamente, perché non hanno accesso alla messaggistica tra estensioni. Usa una piccola WebExtension complementare come tramite oppure fai in modo che lo script passi gli URL a un'estensione che offre questa funzionalità."
+    "message": "Le WebExtensions come Foxy Gestures possono inviare messaggi direttamente a Save In. Gli script utente di Greasemonkey, Tampermonkey o Violentmonkey non possono farlo autonomamente, perché non hanno accesso alla messaggistica tra estensioni. Usa una piccola WebExtension complementare come tramite oppure fai in modo che lo script passi l'URL a un'estensione che offre questa funzionalità."
   },
   "html_whereThisWorks": {
     "message": "Dove funziona"
@@ -1617,7 +1617,7 @@
     "message": "Gatto organizzatore fortunato"
   },
   "html_messageFirstOrASmallRelayExtensionMustDo": {
-    "message": " prima un messaggio, oppure una piccola estensione intermediaria deve farlo. Video DownloadHelper non offre un'API di integrazione stabile che Save In possa chiamare direttamente."
+    "message": " oppure deve farlo una piccola estensione intermediaria. Video DownloadHelper non offre un'API di integrazione stabile che Save In possa chiamare direttamente."
   },
   "html_offscreen": {
     "message": "Fuori schermo"
@@ -1641,7 +1641,7 @@
     "message": "Segnala i salvataggi completati e gli errori risolvibili quando abilitato."
   },
   "html_saveInDoesNotAdoptDownloadsThatAnotherExtension": {
-    "message": "Save In non adotta i download già avviati da un'altra estensione, incluso Video DownloadHelper. Il downloader deve prima inviare Save In a"
+    "message": "Save In non adotta i download già avviati da un'altra estensione, incluso Video DownloadHelper. Il downloader deve prima inviare a Save In una richiesta"
   },
   "html_saveInHasNoAnalyticsAdvertisingDeveloperOperatedServer": {
     "message": "Save In non dispone di analisi, pubblicità, server gestiti dagli sviluppatori o codice eseguibile remoto. Le impostazioni e la cronologia rimangono nello spazio di archiviazione delle estensioni gestite dal browser."
@@ -1740,7 +1740,7 @@
     "message": "Aggiungi la data a ogni download"
   },
   "ruleTemplateDateStampDescription": {
-    "message": "Anteponi al nome file originale la data di salvataggio"
+    "message": "Antepone al nome file originale la data di salvataggio"
   },
   "ruleTemplateDailyInboxName": {
     "message": "Raccolta giornaliera"
@@ -1764,7 +1764,7 @@
     "message": "Archivio sequenziale"
   },
   "ruleTemplateSequentialArchiveDescription": {
-    "message": "Anteponi ai nomi file il contatore download persistente di Save In"
+    "message": "Antepone ai nomi file il contatore download persistente di Save In"
   },
   "ruleTemplateOneSiteName": {
     "message": "Un sito, una cartella"
@@ -1785,7 +1785,7 @@
     "message": "Combina i download dai sottodomini dello stesso sito sorgente"
   },
   "ruleTemplatePerPageSiteName": {
-    "message": "Una cartella per pagina del sito"
+    "message": "Una cartella per sito della pagina"
   },
   "ruleTemplatePerPageSiteDescription": {
     "message": "Raggruppa i file in base al sito Web che stai visitando anziché all'host del file"
@@ -1812,7 +1812,7 @@
     "message": "Raccolta dei download del browser"
   },
   "ruleTemplateBrowserInboxDescription": {
-    "message": "Tiene traccia dei download di proprietà del browser in una cartella separata"
+    "message": "Conserva in una cartella separata i download del browser di cui viene tenuta traccia"
   },
   "ruleTemplateLinkInboxName": {
     "message": "Raccolta dei download da collegamenti"
@@ -1924,7 +1924,7 @@
     "message": "Non disponibile in questo browser"
   },
   "o_lSourcePanelShortcutResetHelp": {
-    "message": "Ripristina usa nuovamente l'impostazione predefinita suggerita dal browser."
+    "message": "Ripristina reimposta il valore predefinito suggerito dal browser."
   },
   "o_sAppearance": {
     "message": "Aspetto"
@@ -1978,7 +1978,7 @@
     "message": "Cambia la posizione del dock del pannello"
   },
   "sourcePanelDockPanel": {
-    "message": "Ancora Sorgenti della pagina"
+    "message": "Riaggancia Sorgenti della pagina"
   },
   "sourcePanelPopOutPanel": {
     "message": "Sgancia Sorgenti della pagina"
@@ -2203,7 +2203,7 @@
     }
   },
   "routeVisualPatternAccessible": {
-    "message": "Regola $RULE$, condizione $CONDITION$: modello",
+    "message": "Regola $RULE$, condizione $CONDITION$: pattern",
     "placeholders": {
       "rule": { "content": "$1", "example": "2" },
       "condition": { "content": "$2", "example": "1" }
@@ -2294,10 +2294,10 @@
     "message": "Verifica regole"
   },
   "routeDebuggerNoMatch": {
-    "message": "Nessuna regola di routing corrisponde."
+    "message": "Nessuna regola di routing ha trovato corrispondenza."
   },
   "routeDebuggerOneRuleMatched": {
-    "message": "$COUNT$ regola corrisponde ed è stata usata.",
+    "message": "$COUNT$ regola ha trovato corrispondenza ed è stata usata.",
     "placeholders": { "count": { "content": "$1", "example": "1" } }
   },
   "routeDebuggerOneLaterRuleMatches": {
@@ -2309,7 +2309,7 @@
     "placeholders": { "count": { "content": "$1", "example": "2" } }
   },
   "routeDebuggerMatched": {
-    "message": "La regola $NUMBER$ corrisponde.",
+    "message": "La regola $NUMBER$ ha trovato corrispondenza.",
     "placeholders": {
       "number": {
         "content": "$1",
@@ -2345,7 +2345,7 @@
     "message": "Verifica delle regole di routing…"
   },
   "routeDebuggerFixErrors": {
-    "message": "Correggi i problemi di instradamento evidenziati prima del test. Totale: $COUNT$.",
+    "message": "Correggi i problemi di routing evidenziati prima del test. Numero di problemi: $COUNT$.",
     "placeholders": {
       "count": {
         "content": "$1",
@@ -2384,7 +2384,7 @@
     "message": "Qualsiasi tipo di contenuto multimediale"
   },
   "routeDebuggerMatcherCount": {
-    "message": "$MATCHED$ criteri corrispondenti su $TOTAL$",
+    "message": "$MATCHED$ condizioni soddisfatte su $TOTAL$",
     "placeholders": {
       "matched": {
         "content": "$1",
@@ -2415,13 +2415,13 @@
     "message": "Testo della pagina"
   },
   "routeDebuggerRoutingData": {
-    "message": "Contesto di instradamento"
+    "message": "Contesto di routing"
   },
   "routeDebuggerSourceKind": {
-    "message": "Tipo di origine"
+    "message": "Tipo di sorgente"
   },
   "routeDebuggerAnySourceKind": {
-    "message": "Qualsiasi tipo di origine"
+    "message": "Qualsiasi tipo di sorgente"
   },
   "routeDebuggerMenuIndex": {
     "message": "Indice del menu"
@@ -2627,7 +2627,7 @@
     "message": "Apri le regole di routing"
   },
   "autoDownloadRoutingHelp": {
-    "message": "Le regole automatiche si trovano insieme alle regole di routing e usano context: auto. Ognuna richiede condizioni per la pagina e la sorgente."
+    "message": "Usa context: auto con condizioni per la pagina e la sorgente per trovare i download automatici corrispondenti. La prima regola corrispondente imposta la destinazione di salvataggio."
   },
   "html_openInFirefoxAddons": { "message": "Apri in Firefox Add-ons" },
   "html_openInChromeWebStore": { "message": "Apri nel Chrome Web Store" },
@@ -2686,17 +2686,17 @@
   },
   "welcomePermissions": { "message": "Perché sono necessarie queste autorizzazioni?" },
   "welcomeCustomizeFolders": { "message": "Personalizza cartelle" },
-  "welcomeUseEmptyPreset": { "message": "Usa preset vuoto" },
+  "welcomeUseEmptyPreset": { "message": "Usa solo Download" },
   "welcomeEmptyPresetFailed": {
-    "message": "Impossibile applicare il preset vuoto. Le cartelle iniziali non sono state modificate."
+    "message": "Impossibile passare a solo Download. Le cartelle non sono state modificate."
   },
   "welcomeEmptyConfirmTitle": { "message": "Sostituire le cartelle attuali?" },
   "welcomeEmptyConfirmDescription": {
-    "message": "Il preset vuoto sostituisce la configurazione attuale delle cartelle e mantiene solo la destinazione Download del browser."
+    "message": "Questa operazione sostituisce la configurazione attuale delle cartelle e mantiene solo la destinazione Download del browser."
   },
-  "welcomeKeepCurrentFolders": { "message": "Mantieni cartelle attuali" },
-  "welcomeUseStarterFolders": { "message": "Inizia a usare Save In" },
-  "welcomeUsingStarterSettings": { "message": "Uso delle impostazioni iniziali" },
+  "welcomeKeepCurrentFolders": { "message": "Mantieni le cartelle attuali" },
+  "welcomeUseStarterFolders": { "message": "Mantieni le cartelle iniziali" },
+  "welcomeUsingStarterSettings": { "message": "Adesso" },
   "html_showWelcomeGuide": { "message": "Mostra la guida introduttiva" },
   "advancedFilesDownloads": { "message": "File e download" },
   "advancedMaintenanceDiagnostics": { "message": "Manutenzione e diagnostica" },

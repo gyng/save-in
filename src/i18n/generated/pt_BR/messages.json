@@ -89,7 +89,7 @@
     "message": "Mantém juntos os pacotes de instalação para computador e celular"
   },
   "ruleTemplateFontsName": { "message": "Fontes em uma pasta" },
-  "ruleTemplateFontsDescription": { "message": "Reúne arquivos de fontes para computador e Web" },
+  "ruleTemplateFontsDescription": { "message": "Reúne arquivos de fontes para computador e web" },
   "ruleTemplatePerExtensionName": { "message": "Uma pasta por extensão de arquivo" },
   "ruleTemplatePerExtensionDescription": {
     "message": "Captura a extensão do arquivo e a usa como nome da pasta"
@@ -144,9 +144,9 @@
   "ruleTemplateSelectionInboxDescription": {
     "message": "Mantém juntos os arquivos criados a partir do texto selecionado da página"
   },
-  "ruleTemplateTabInboxName": { "message": "Caixa de entrada de salvamentos de abas" },
+  "ruleTemplateTabInboxName": { "message": "Caixa de entrada de salvamentos de guias" },
   "ruleTemplateTabInboxDescription": {
-    "message": "Mantém juntos os arquivos salvos por ações de abas"
+    "message": "Mantém juntos os arquivos salvos por ações de guias"
   },
   "ruleTemplateAdded": { "message": "Adicionado" },
   "ruleTemplateAdd": { "message": "Adicionar" },
@@ -159,7 +159,7 @@
     "message": "Opções"
   },
   "contextMenuToggleSourcePanel": {
-    "message": "Mostrar ou ocultar os recursos da página"
+    "message": "Mostrar ou ocultar as fontes da página"
   },
   "contextMenuExclusive": {
     "message": "Salvar com uma regra de roteamento…"
@@ -213,40 +213,40 @@
     }
   },
   "ruleMissingMatcher": {
-    "message": "Adicione pelo menos uma cláusula de comparação"
+    "message": "Adicione pelo menos uma condição de correspondência antes de into:"
   },
   "ruleCaptureMissingMatcher": {
-    "message": "A cláusula de captura não aponta para um comparador"
+    "message": "O destino de captura não corresponde a nenhuma condição desta regra"
   },
   "ruleCaptureAmbiguousMatcher": {
-    "message": "A captura legada usa a primeira cláusula correspondente"
+    "message": "capture: usa a primeira condição com este nome"
   },
   "ruleMissingCapture": {
-    "message": "Adicione uma cláusula de captura para usar variáveis de captura"
+    "message": "A variável de captura do destino não tem um grupo de captura correspondente"
   },
   "ruleMultipleCapture": {
     "message": "Uma regra pode conter apenas uma cláusula de captura"
   },
   "ruleMissingInto": {
-    "message": "Adicione pelo menos uma cláusula into:"
+    "message": "Adicione um único destino into: não vazio"
   },
   "ruleExtraInto": {
     "message": "Uma regra pode conter apenas uma cláusula into:"
   },
   "ruleUnknownMatcher": {
-    "message": "Comparador desconhecido"
+    "message": "O nome do comparador não é compatível"
   },
   "ruleUnknownDestinationVariable": {
     "message": "A variável de caminho não é compatível"
   },
   "ruleInvalidRegex": {
-    "message": "Expressão regular inválida"
+    "message": "O padrão ou os sinalizadores não formam uma expressão regular válida"
   },
   "ruleShadowed": {
     "message": "Esta regra nunca é executada porque uma regra anterior corresponde ao mesmo ou a mais downloads"
   },
   "ruleBadClause": {
-    "message": "Cláusula inválida"
+    "message": "Use a sintaxe nome: valor"
   },
   "rulePathInvalidCharacter": {
     "message": "O caminho contém caracteres inválidos"
@@ -270,13 +270,13 @@
     "message": "Salvar guias abertas nesta guia"
   },
   "tabstripMenuSaveRightTabs": {
-    "message": "Salve esta guia e todas as guias à sua direita"
+    "message": "Salvar esta guia e todas as guias à sua direita"
   },
   "tabstripMenuSaveRightTabsMatched": {
-    "message": "Salve esta guia e todas as guias à sua direita (é necessária uma regra de roteamento)"
+    "message": "Salvar esta guia e todas as guias à sua direita (é necessária uma regra de roteamento)"
   },
   "o_sDownloads": {
-    "message": "Salvar locais"
+    "message": "Locais de salvamento"
   },
   "o_sDirectories": {
     "message": "Pastas"
@@ -291,7 +291,7 @@
     "message": "Arquivos existentes"
   },
   "o_lContextMenuBehaviorHelp": {
-    "message": "Escolha quais ações Save In aparecem nos menus de contexto."
+    "message": "Escolha quais ações do Save In aparecem nos menus de contexto."
   },
   "o_lAlsoAskWhen": {
     "message": "Perguntar também onde salvar quando:"
@@ -309,7 +309,7 @@
     "message": "Incluir downloads comuns do navegador no histórico de Save In"
   },
   "o_cTrackBrowserDownloadsHelp": {
-    "message": "Registra downloads correspondentes no histórico Save In sem se apropriar deles. Eles não são repetidos e não acionam prompts ou notificações Save In."
+    "message": "Registra downloads correspondentes no histórico do Save In sem assumir o controle deles. Não há novas tentativas, e eles não acionam perguntas nem notificações do Save In."
   },
   "o_cRouteBrowserDownloads": {
     "message": "Use regras de roteamento para downloads do navegador"
@@ -330,13 +330,13 @@
     "message": "Incluir apenas URLs de download correspondentes (opcional)"
   },
   "o_cBrowserDownloadFilterHelp": {
-    "message": "Deixe em branco para lidar com cada download do navegador ou insira um padrão de correspondência WebExtension por linha. Este filtro se aplica ao rastreamento e roteamento de histórico."
+    "message": "Deixe em branco para lidar com todos os downloads do navegador ou insira um padrão de correspondência WebExtension por linha. Este filtro se aplica ao rastreamento do histórico e ao roteamento."
   },
   "o_cBrowserDownloadExcludeFilter": {
     "message": "Excluir URLs de download correspondentes (opcional)"
   },
   "o_cBrowserDownloadExcludeFilterHelp": {
-    "message": "Insira um padrão de correspondência WebExtension por linha. As exclusões substituem os URLs correspondentes acima e se aplicam ao rastreamento e roteamento do histórico."
+    "message": "Insira um padrão de correspondência WebExtension por linha. As exclusões têm precedência sobre os URLs correspondentes acima e se aplicam ao rastreamento do histórico e ao roteamento."
   },
   "o_lBrowserDownloadVariables": {
     "message": "Os downloads do navegador fornecem apenas o URL, o nome do arquivo proposto, a hora atual, o contador, o UUID e as variáveis MIME. O título da página, o URL da página, o texto do link, a seleção, os metadados do menu e os modificadores de teclas não estão disponíveis."
@@ -363,7 +363,7 @@
     "message": "Histórico"
   },
   "o_sPageSources": {
-    "message": "Recursos da página"
+    "message": "Fontes da página"
   },
   "o_lPageSourcesHelp": {
     "message": "Navegue por imagens, vídeos, áudios, documentos e links para download encontrados na página atual. Os itens salvos usam suas regras normais de roteamento e renomeação."
@@ -372,7 +372,7 @@
     "message": "Alguns players usam URLs temporárias ou carregam mídia por scripts, por isso o Save In talvez não detecte todos os vídeos. Às vezes, ele encontra playlists de vídeo por streaming (HLS/DASH), mas elas contêm apenas segmentos separados; salvar uma playlist não baixa o vídeo completo."
   },
   "o_cSourcePanelEnabled": {
-    "message": "Ativar os recursos da página"
+    "message": "Ativar as fontes da página"
   },
   "o_cSourcePanelBackgrounds": {
     "message": "Incluir imagens de fundo CSS"
@@ -438,7 +438,7 @@
     "message": "Falhou"
   },
   "o_lHistoryDateSaved": {
-    "message": "Data salva"
+    "message": "Data do salvamento"
   },
   "o_lHistoryAnyTime": {
     "message": "A qualquer momento"
@@ -468,7 +468,7 @@
     "message": "Excluir todo o histórico…"
   },
   "o_lSearchOptions": {
-    "message": "Opções de pesquisa"
+    "message": "Pesquisar opções"
   },
   "o_lVariableList": {
     "message": "Lista de variáveis"
@@ -537,7 +537,7 @@
     "message": "sem correspondências"
   },
   "o_lRoutingCaptureGroups": {
-    "message": "Capturar grupos"
+    "message": "Grupos de captura"
   },
   "o_lRoutingVariables": {
     "message": "Variáveis"
@@ -546,7 +546,7 @@
     "message": "Clique para revelar"
   },
   "o_lAccessKeysInstruction": {
-    "message": "Defina teclas de acesso para itens de menu Save In."
+    "message": "Defina teclas de acesso para itens do menu do Save In."
   },
   "o_cLastUsedMenu": {
     "message": "Mostrar último item de menu usado"
@@ -567,7 +567,7 @@
     "message": "Salva apenas o documento da página; imagens, folhas de estilo e outros arquivos externos não estão incluídos."
   },
   "o_cSaveTabstrip": {
-    "message": "Mostrar ações Save In no menu de guias"
+    "message": "Mostrar ações do Save In no menu de guias"
   },
   "o_cSaveTabstripHelp": {
     "message": "Salva uma guia, um grupo de guias ou guias à direita"
@@ -585,25 +585,25 @@
     "message": "Um download falha"
   },
   "o_cDupeUniquify": {
-    "message": "Crie um nome exclusivo"
+    "message": "Criar um nome exclusivo"
   },
   "o_cDupeOverwrite": {
     "message": "Substituir"
   },
   "o_cDupePrompt": {
-    "message": "Pergunte sempre"
+    "message": "Perguntar sempre"
   },
   "o_cDupeFilename": {
     "message": "Quando um arquivo já existe:"
   },
   "o_cOpenDialogIfNoRulesMatch": {
-    "message": "Pergunte onde salvar quando nenhuma regra de roteamento corresponder"
+    "message": "Perguntar onde salvar quando nenhuma regra de roteamento corresponder"
   },
   "o_cExclusiveMode": {
     "message": "Exigir uma regra de roteamento correspondente"
   },
   "o_cExclusiveModeHelp": {
-    "message": "Oculta o submenu da pasta e salva em relação à pasta de download padrão"
+    "message": "Oculta o submenu da pasta e salva em relação à pasta padrão de downloads"
   },
   "o_cNotifySuccess": {
     "message": "Notificar quando um download for bem-sucedido"
@@ -633,31 +633,31 @@
     "message": "Freedesktop .desktop"
   },
   "o_cSaveShortcutsMediaInstead": {
-    "message": "Salve mídia como atalhos"
+    "message": "Salvar mídia como atalhos"
   },
   "o_cSaveShortcutsLinksInstead": {
-    "message": "Salve links como atalhos"
+    "message": "Salvar links como atalhos"
   },
   "o_cSaveShortcutsPagesInstead": {
-    "message": "Salve páginas como atalhos"
+    "message": "Salvar páginas como atalhos"
   },
   "o_cSaveShortcutsTabsInstead": {
     "message": "Salvar guias como atalhos (no menu de contexto da guia)"
   },
   "o_cKeyboardShortcutSaveInMenu": {
-    "message": "Save In item do menu de contexto"
+    "message": "Item do menu de contexto do Save In"
   },
   "o_cKeyboardShortcutSubmenu": {
     "message": "Item de submenu de contexto usado pela última vez"
   },
   "o_cKeyboardShortcutNumbers": {
-    "message": "Adicione atalhos de teclas numéricas aos itens do submenu de contexto"
+    "message": "Adicionar atalhos de teclas numéricas aos itens do submenu de contexto"
   },
   "o_cKeyboardShortcutClickToSave": {
     "message": "Ativar clique para salvar"
   },
   "o_cKeyboardShortcutClickToHelp": {
-    "message": "Segure Alt por padrão e clique em uma imagem ou item de mídia para salvá-lo na última pasta usada ou na pasta de download padrão. Save In adiciona um ouvinte de clique às páginas; algumas variáveis não estão disponíveis."
+    "message": "Mantenha Alt pressionada por padrão e clique em uma imagem ou item de mídia para salvá-lo na última pasta usada ou na pasta padrão de downloads. O Save In adiciona um ouvinte de clique às páginas; algumas variáveis não estão disponíveis."
   },
   "o_cHostPermissionMissing": {
     "message": "Save In não pode acessar o conteúdo da página. Conceda acesso a todos os sites para usar clique para salvar."
@@ -669,7 +669,7 @@
     "message": "Clique esquerdo"
   },
   "o_cKeyboardShortcutModifierMiddleClick": {
-    "message": "Clique com o meio"
+    "message": "Clique com o botão do meio"
   },
   "o_cKeyboardShortcutModifierRightClick": {
     "message": "Clique com o botão direito"
@@ -681,7 +681,7 @@
     "message": "Botão Avançar (5)"
   },
   "o_cKeyboardShortcutModifierHelp": {
-    "message": "Segure as teclas modificadoras selecionadas enquanto clica no botão escolhido do mouse. Escolha None para ambos os modificadores usarem apenas o botão do mouse. As alterações se aplicam às páginas existentes."
+    "message": "Mantenha as teclas modificadoras selecionadas pressionadas enquanto clica no botão escolhido do mouse. Escolha None nos dois modificadores para usar apenas o botão do mouse. As alterações se aplicam às páginas existentes."
   },
   "o_cRestoreDefaults": {
     "message": "Restaurar padrões"
@@ -693,7 +693,7 @@
     "message": "Padrão: 240. O Linux normalmente limita os nomes a 255 bytes. Windows e macOS normalmente usam limites baseados em caracteres, portanto valores de bytes maiores podem funcionar. O Save In não consegue detectar o sistema de arquivos de destino. 0 significa sem limite."
   },
   "o_cReplaceInvalidCharsWith": {
-    "message": "Substitua caracteres inválidos por"
+    "message": "Substituir caracteres inválidos por"
   },
   "o_cReplaceInvalidCharsWithHelp": {
     "message": "Deixe em branco para excluir. Caracteres de substituição inválidos são ignorados."
@@ -714,13 +714,13 @@
     "message": "Sempre baixar pelo Save In"
   },
   "o_cFetchViaFetchAPIHelp": {
-    "message": "Save In busca o arquivo e o passa para o navegador. Use isto somente quando os downloads normais falharem. É mais lento e Chrome mantém o arquivo na memória enquanto salva, portanto evite-o para arquivos muito grandes."
+    "message": "O Save In busca o arquivo e o passa para o navegador. Use esta opção somente quando os downloads normais falharem. Ela é mais lenta, e o Chrome mantém o arquivo na memória durante o salvamento; evite-a com arquivos muito grandes."
   },
   "o_cIncludeFetchCredentials": {
     "message": "Incluir cookies de login no site"
   },
   "o_cIncludeFetchCredentialsHelp": {
-    "message": "Inclui cookies aplicáveis e login gerenciado pelo navegador quando Save In busca arquivos em segundo plano, inclusive após redirecionamentos. As solicitações de janela privada permanecem anônimas. Os downloads diretos do navegador gerenciam suas próprias credenciais."
+    "message": "Inclui cookies aplicáveis e o login gerenciado pelo navegador quando o Save In busca arquivos em segundo plano, inclusive após redirecionamentos. As solicitações de janelas privativas permanecem anônimas. Os downloads diretos do navegador gerenciam suas próprias credenciais."
   },
   "o_cSetRefererHeader": {
     "message": "Usar a URL da página como Referer quando ausente"
@@ -801,10 +801,10 @@
     "message": "Notificar quando um destino de link for baixado em vez de mídia incorporada"
   },
   "o_cCloseTabOnSave": {
-    "message": "Feche cada guia depois de salvá-la"
+    "message": "Fechar cada guia depois de salvá-la"
   },
   "o_lClickToSaveButton": {
-    "message": "Botão do mouse clique para salvar"
+    "message": "Botão do mouse para clique para salvar"
   },
   "o_lDebugLog": {
     "message": "Registro de depuração"
@@ -822,7 +822,7 @@
     "message": "Backup e redefinição"
   },
   "o_sAdvancedDiagnostics": {
-    "message": "Diagnóstico"
+    "message": "Diagnósticos"
   },
   "o_lExperimental": {
     "message": "Experimental"
@@ -852,10 +852,10 @@
     "message": "não são suportados."
   },
   "html_askAnAiAgentToDraftADownloadsMenu": {
-    "message": "Peça a um agente de IA para elaborar um menu de pasta"
+    "message": "Peça a um agente de IA para elaborar um menu de pastas"
   },
   "html_assignAnAccessKey": {
-    "message": "Atribuir uma chave de acesso"
+    "message": "Atribuir uma tecla de acesso"
   },
   "html_atTheEndForACommentStartWith": {
     "message": "no fim da linha. Para criar submenus aninhados, comece com"
@@ -882,13 +882,13 @@
     "message": "Crie um submenu"
   },
   "html_createsTwoSelectableRowsInTheDownloadsMenu": {
-    "message": "Cria duas pastas no menu Salvar locais."
+    "message": "Cria duas pastas no menu Locais de salvamento."
   },
   "html_defaultDownloadsDirectory": {
-    "message": "pasta padrão Downloads"
+    "message": "pasta padrão de downloads"
   },
   "html_directoryEditorMode": {
-    "message": "Modo editor de pasta"
+    "message": "Modo do editor de pastas"
   },
   "html_discussions": {
     "message": "Discussões"
@@ -924,7 +924,7 @@
     "message": "Insira uma pasta relativa ou instrução de menu por linha. Os arquivos são salvos em relação ao"
   },
   "html_openTheDefaultDownloadsDirectory": {
-    "message": "Abra a pasta Downloads padrão"
+    "message": "Abrir a pasta padrão de downloads"
   },
   "html_pathsContaining": {
     "message": "Caminhos contendo"
@@ -963,7 +963,7 @@
     "message": "Use uma variável"
   },
   "html_wiki": {
-    "message": "Wikipédia"
+    "message": "Wiki"
   },
   "html_advancedUseCaptureGroups": {
     "message": "Avançado: use grupos de captura"
@@ -984,7 +984,7 @@
     "message": "torna-se"
   },
   "html_clauseAndVariableReference": {
-    "message": "Cláusula e referência de variável"
+    "message": "Referência de cláusulas e variáveis"
   },
   "html_copyThisPromptIntoAnAgentOrUseWebmcp": {
     "message": "Copie este prompt para um agente ou use WebMCP em Integrações externas."
@@ -993,7 +993,7 @@
     "message": "destino."
   },
   "html_destinationsAreRelativeToTheDownloadsMenuDestinationYou": {
-    "message": "Os destinos são relativos à pasta selecionada. Os valores correspondentes são expressões regulares; veja o"
+    "message": "Os destinos são relativos à pasta selecionada. Os valores dos comparadores são expressões regulares; veja o"
   },
   "html_enterOneUrlLikeBrowserMatchPatternPerLine": {
     "message": "Adicione um padrão de correspondência WebExtension por linha. Eles não são expressões regulares. Cada padrão usa um esquema, host e caminho."
@@ -1032,7 +1032,7 @@
     "message": "Mover e renomear arquivos correspondentes"
   },
   "html_moveMatchingFilesAndKeepTheirNames": {
-    "message": "Mova os arquivos correspondentes e mantenha seus nomes"
+    "message": "Mover os arquivos correspondentes e manter seus nomes"
   },
   "html_optional": {
     "message": "Opcional"
@@ -1098,7 +1098,7 @@
     "message": "Exportar"
   },
   "html_filterSources": {
-    "message": "Filtrar recursos"
+    "message": "Filtrar fontes"
   },
   "html_historyTableTools": {
     "message": "Ferramentas da tabela de histórico"
@@ -1119,10 +1119,10 @@
     "message": "Chave"
   },
   "html_link": {
-    "message": "Ligação"
+    "message": "Link"
   },
   "html_links": {
-    "message": "Ligações"
+    "message": "Links"
   },
   "html_macctrl": {
     "message": "MacCtrl"
@@ -1143,7 +1143,7 @@
     "message": "Notificar quando"
   },
   "html_previewOfThePageSourcesDrawer": {
-    "message": "Visualização do painel Recursos da página"
+    "message": "Visualização do painel Fontes da página"
   },
   "html_primaryModifier": {
     "message": "Modificador primário"
@@ -1230,7 +1230,7 @@
     "message": "Guia de integração"
   },
   "html_letTrustedExtensionsSendUrlsThroughSaveInS": {
-    "message": "Permita que extensões confiáveis enviem URLs por meio das regras de roteamento e renomeação de Save In."
+    "message": "Permita que extensões confiáveis enviem URLs por meio das regras de roteamento e renomeação do Save In."
   },
   "html_mdnMatchPatterns": {
     "message": "MDN: padrões de correspondência"
@@ -1314,7 +1314,7 @@
     "message": "Limpar registro"
   },
   "html_closeAboutSaveIn": {
-    "message": "Fechar Sobre Save In"
+    "message": "Fechar Sobre o Save In"
   },
   "html_closeReferences": {
     "message": "Fechar referências"
@@ -1326,7 +1326,7 @@
     "message": "Documentação"
   },
   "html_downloads": {
-    "message": "Transferências"
+    "message": "Downloads"
   },
   "html_filterCurrentReference": {
     "message": "Filtrar referência atual"
@@ -1341,10 +1341,10 @@
     "message": "Em um navegador que suporte"
   },
   "html_keepsSettingsRoutingRulesLocalHistoryAndRestartSafe": {
-    "message": "Mantém configurações, regras de roteamento, histórico local e estado seguro para reinicialização."
+    "message": "Mantém configurações, regras de roteamento, histórico local e estado preservado entre reinicializações."
   },
   "html_letsChromeConvertFetchedFileDataIntoTemporaryDownload": {
-    "message": "Permite que Chrome converta os dados do arquivo buscado em URLs de download temporários."
+    "message": "Permite que o Chrome converta os dados do arquivo buscado em URLs temporárias para download."
   },
   "html_loadingClauses": {
     "message": "Carregando cláusulas…"
@@ -1377,7 +1377,7 @@
     "message": "Informar um problema"
   },
   "html_reportsCompletedSavesAndActionableFailuresWhenEnabled": {
-    "message": "Relata salvamentos concluídos e falhas acionáveis quando ativado."
+    "message": "Relata salvamentos concluídos e falhas que exigem ação quando ativado."
   },
   "html_saveInDoesNotAdoptDownloadsThatAnotherExtension": {
     "message": "O Save In não assume downloads já iniciados por outra extensão, incluindo o Video DownloadHelper. A extensão responsável pelo download deve primeiro enviar uma mensagem do tipo"
@@ -1386,7 +1386,7 @@
     "message": "Save In não possui análises, publicidade, servidor operado por desenvolvedor ou código executável remoto. As configurações e o histórico permanecem no armazenamento de extensões gerenciado pelo navegador."
   },
   "html_saveInIsALocalFirstDownloadsHelperFor": {
-    "message": "O Save In é um assistente de downloads que prioriza o processamento local e organiza arquivos com pastas do menu de contexto, regras de roteamento, renomeação, recursos da página e histórico de downloads."
+    "message": "O Save In é um assistente de downloads que prioriza o processamento local e organiza arquivos com pastas do menu de contexto, regras de roteamento, renomeação, fontes da página e histórico de downloads."
   },
   "html_saveInRegistersToolsAnAiAgentCanCall": {
     "message": ", Save In registra ferramentas que um agente de IA pode chamar enquanto esta página de opções está aberta – para alterar configurações, criar menus de pastas e escrever regras de roteamento."
@@ -1476,7 +1476,7 @@
     "message": "Nome do host da página sem subdomínios"
   },
   "html_pageTitleLowercasedAndDashed": {
-    "message": "Título da página, em letras minúsculas e tracejadas"
+    "message": "Título da página em letras minúsculas e separado por hifens"
   },
   "html_pageTitleLowercasedWithUnderscores": {
     "message": "Título da página em letras minúsculas com sublinhados"
@@ -1515,13 +1515,13 @@
     "message": "Variáveis são usadas em padrões de pastas e nomes de arquivos."
   },
   "html_actualResolvedFilenameExtensionAlias": {
-    "message": "Extensão de nome de arquivo real resolvida. Alias:"
+    "message": "Extensão real do nome de arquivo resolvido. Alias:"
   },
   "html_aRandomV4UuidUniquePerUse": {
     "message": "Um UUID v4 aleatório, exclusivo por uso"
   },
   "html_autoIncrementingNumberThatAdvancesOncePerSavedDownload": {
-    "message": "Número que aumenta após cada download salvo e persiste durante as reinicializações. Visualize ou redefina-o em Contador de downloads."
+    "message": "Número que aumenta após cada download salvo e persiste entre reinicializações. Veja ou redefina-o em Contador de downloads."
   },
   "html_blankIfTheServerDoesnTAnswer": {
     "message": " e fica em branco quando não está disponível."
@@ -1563,13 +1563,13 @@
     "message": "Apenas roteamento e nomes de arquivos"
   },
   "html_specialRowsUsedOnlyInTheDownloadsMenu": {
-    "message": "Linhas especiais usadas somente no menu Salvar locais"
+    "message": "Linhas especiais usadas somente no menu Locais de salvamento"
   },
   "html_theN": {
     "message": "; substitua 1 pelo número do grupo."
   },
   "html_theServerS": {
-    "message": "O servidor"
+    "message": "Do servidor: o"
   },
   "html_theUrlAfterFollowingRedirectsViaTheSameHead": {
     "message": "O URL após seguir os redirecionamentos. Ele usa a mesma solicitação que"
@@ -1644,7 +1644,7 @@
     "message": "Corresponde ao URL da fonte de mídia."
   },
   "html_matchesTheUrlDerivedExtensionLegacyNameUse": {
-    "message": "Corresponde à extensão derivada de URL (nome legado). Usar"
+    "message": "Corresponde à extensão derivada de URL (nome legado). Use"
   },
   "html_matchesTheUrlOfTheCurrentFrame": {
     "message": "Corresponde ao URL do quadro atual."
@@ -1776,10 +1776,10 @@
     "message": "Contexto de roteamento"
   },
   "routeDebuggerSourceKind": {
-    "message": "Tipo de origem"
+    "message": "Tipo de fonte"
   },
   "routeDebuggerAnySourceKind": {
-    "message": "Qualquer tipo de origem"
+    "message": "Qualquer tipo de fonte"
   },
   "routeDebuggerMenuIndex": {
     "message": "Índice do menu"
@@ -1788,7 +1788,7 @@
     "message": "Comentário do menu"
   },
   "routeDebuggerRuntimeData": {
-    "message": "Valores de execução"
+    "message": "Valores em tempo de execução"
   },
   "routeDebuggerDateTime": {
     "message": "Data e hora"
@@ -1946,7 +1946,7 @@
     "message": "Atalho nativo macOS"
   },
   "o_lShortcutFormatWindows": {
-    "message": "Windows Atalho de Internet"
+    "message": "Atalho da Internet do Windows"
   },
   "o_lShortcutFormatLinux": {
     "message": "Atalho Linux na área de trabalho"
@@ -1975,7 +1975,7 @@
   "o_lUiThemeDark": { "message": "Escuro" },
   "o_lUiThemeLight": { "message": "Claro" },
   "o_lUiThemeHelp": {
-    "message": "Siga o tema do sistema ou mantenha a página de opções e os recursos da página sempre no modo escuro ou claro."
+    "message": "Siga o tema do sistema ou mantenha a página de opções e as Fontes da página sempre no modo escuro ou claro."
   },
   "notificationExternalDownloadBlockedTitle": { "message": "Download externo bloqueado" },
   "notificationExternalDownloadBlockedMessage": {
@@ -2003,13 +2003,13 @@
   },
   "webMcpStatusUnavailableBrowser": { "message": "Não disponível neste navegador" },
   "sourcePanelResizeLabel": {
-    "message": "Redimensionar o painel Recursos da página"
+    "message": "Redimensionar o painel Fontes da página"
   },
   "sourcePanelClose": {
     "message": "Fechar"
   },
   "sourcePanelCloseLabel": {
-    "message": "Fechar o painel Recursos da página"
+    "message": "Fechar o painel Fontes da página"
   },
   "sourcePanelDockPosition": {
     "message": "Encaixe: $POSITION$ — mudar para a próxima posição",
@@ -2036,10 +2036,10 @@
     "message": "Alterar a posição de encaixe do painel"
   },
   "sourcePanelDockPanel": {
-    "message": "Encaixar Recursos da página"
+    "message": "Encaixar o painel Fontes da página"
   },
   "sourcePanelPopOutPanel": {
-    "message": "Desencaixar Recursos da página"
+    "message": "Desencaixar o painel Fontes da página"
   },
   "sourcePanelPopOutHelp": {
     "message": "Exibir como painel flutuante e arrastável"
@@ -2048,13 +2048,13 @@
     "message": "Copiar as URLs do filtro atual"
   },
   "sourcePanelCopyFilteredUrlsLabel": {
-    "message": "Copiar as URLs dos recursos filtrados"
+    "message": "Copiar as URLs das fontes filtradas"
   },
   "sourcePanelFilterLabel": {
-    "message": "Filtrar os recursos da página"
+    "message": "Filtrar as fontes da página"
   },
   "sourcePanelSortLabel": {
-    "message": "Ordenar os recursos"
+    "message": "Ordenar as fontes"
   },
   "sourcePanelSortNewest": {
     "message": "Mais recentes"
@@ -2081,7 +2081,7 @@
     "message": "Playlist"
   },
   "sourcePanelNoMatches": {
-    "message": "Nenhum recurso corresponde aos filtros atuais."
+    "message": "Nenhuma fonte corresponde aos filtros atuais."
   },
   "sourcePanelNoSources": {
     "message": "Ainda não foram detectadas mídias da página nem playlists de vídeo por streaming."
@@ -2132,7 +2132,7 @@
     "message": "Falha ao copiar"
   },
   "sourcePanelRowInstructions": {
-    "message": "Alt+clique: salvar; botão direito no título do recurso: Save In"
+    "message": "Alt+clique: salvar; botão direito no título da fonte: Save In"
   },
   "sourcePanelCopiedUrls": {
     "message": "$COUNT$ URLs copiadas",
@@ -2156,7 +2156,7 @@
     "message": "Nome do arquivo"
   },
   "routeDebuggerSourceUrl": {
-    "message": "URL de origem"
+    "message": "URL da fonte"
   },
   "routeDebuggerPageUrl": {
     "message": "URL da página"
@@ -2177,7 +2177,7 @@
     "message": "Testar regras"
   },
   "routeDebuggerNoMatch": {
-    "message": "Nenhuma regra de roteamento corresponde."
+    "message": "Nenhuma regra de roteamento correspondeu."
   },
   "routeDebuggerOneRuleMatched": {
     "message": "$COUNT$ regra correspondeu e foi usada.",
@@ -2192,7 +2192,7 @@
     "placeholders": { "count": { "content": "$1", "example": "2" } }
   },
   "routeDebuggerMatched": {
-    "message": "A regra $NUMBER$ corresponde.",
+    "message": "A regra $NUMBER$ correspondeu.",
     "placeholders": {
       "number": {
         "content": "$1",
@@ -2219,7 +2219,7 @@
     "message": "Usada"
   },
   "routeDebuggerAlsoMatches": {
-    "message": "Corresponde, não usada"
+    "message": "Correspondeu, não usada"
   },
   "routeDebuggerDidNotMatch": {
     "message": "Condições não atendidas"
@@ -2386,12 +2386,12 @@
   "html_keepsARuleWithoutRunningIt": {
     "message": "mantém a regra sem executá-la"
   },
-  "autoDownloadHeading": { "message": "Salvamento automático de fontes" },
+  "autoDownloadHeading": { "message": "Salvar fontes da página automaticamente" },
   "autoDownloadHelp": {
-    "message": "Salve fontes de página recém-descobertas somente quando uma regra ativada corresponder à página e à fonte."
+    "message": "Salve fontes da página recém-descobertas quando uma regra ativada corresponder à página e à fonte."
   },
   "autoDownloadEnabled": { "message": "Salvar correspondências automaticamente" },
-  "autoDownloadLive": { "message": "Observar fontes adicionadas após o carregamento da página" },
+  "autoDownloadLive": { "message": "Incluir fontes adicionadas após o carregamento da página" },
   "autoDownloadPrivate": { "message": "Permitir salvamento automático em janelas privativas" },
   "autoDownloadLimit": { "message": "Máximo de salvamentos por visita à página" },
   "autoDownloadLimitHelp": {
@@ -2399,13 +2399,13 @@
   },
   "autoDownloadRulesHeading": { "message": "Regras de automação" },
   "autoDownloadRulesHelp": {
-    "message": "Cada regra precisa de uma condição de página, uma condição de fonte e um destino. A primeira correspondência vence."
+    "message": "Cada regra precisa de uma condição de página, uma condição de fonte e um destino. A primeira regra correspondente é executada."
   },
   "autoDownloadEditorMode": { "message": "Modo do editor de regras de automação" },
   "autoDownloadVisual": { "message": "Visual" },
   "autoDownloadText": { "message": "Texto" },
   "autoDownloadAddRule": { "message": "Adicionar regra de automação" },
-  "autoDownloadGrammar": { "message": "Sintaxe das regras" },
+  "autoDownloadGrammar": { "message": "Sintaxe da regra" },
   "autoDownloadCondition": { "message": "Condição" },
   "autoDownloadPattern": { "message": "Padrão" },
   "autoDownloadIgnoreCase": { "message": "Ignorar maiúsculas e minúsculas" },
@@ -2428,15 +2428,15 @@
   "autoDownloadDestination": { "message": "Salvar em" },
   "autoDownloadNewRule": { "message": "Nova regra" },
   "ruleAutomaticMissingPage": {
-    "message": "As regras automáticas de fontes precisam de uma condição de página"
+    "message": "Adicione uma condição pageurl:, pagedomain: ou pagerootdomain:"
   },
   "ruleAutomaticMissingSource": {
-    "message": "As regras automáticas de fontes precisam de uma condição de fonte"
+    "message": "Adicione uma condição de endereço, domínio, tipo ou extensão da fonte"
   },
   "autoDownloadRoutingBadge": { "message": "Fonte automática" },
   "autoDownloadManageRules": { "message": "Abrir regras de roteamento" },
   "autoDownloadRoutingHelp": {
-    "message": "As regras automáticas são gerenciadas com as regras de roteamento e usam context: auto. Cada uma precisa de condições de página e fonte."
+    "message": "Use context: auto com condições de página e fonte para corresponder a downloads automáticos. A primeira regra correspondente define o local de salvamento."
   },
   "html_openInFirefoxAddons": { "message": "Abrir nos complementos do Firefox" },
   "html_openInChromeWebStore": { "message": "Abrir na Chrome Web Store" },
@@ -2493,20 +2493,20 @@
   },
   "welcomePermissions": { "message": "Por que estas permissões são necessárias?" },
   "welcomeCustomizeFolders": { "message": "Personalizar pastas" },
-  "welcomeUseEmptyPreset": { "message": "Usar predefinição vazia" },
+  "welcomeUseEmptyPreset": { "message": "Usar apenas Downloads" },
   "welcomeEmptyPresetFailed": {
-    "message": "Não foi possível aplicar a predefinição vazia. Suas pastas iniciais não foram alteradas."
+    "message": "Não foi possível mudar para apenas Downloads. Suas pastas não foram alteradas."
   },
   "welcomeEmptyConfirmTitle": { "message": "Substituir as pastas atuais?" },
   "welcomeEmptyConfirmDescription": {
-    "message": "A predefinição vazia substitui a configuração atual de pastas e mantém apenas o destino Downloads do navegador."
+    "message": "Isso substitui a configuração atual de pastas e mantém apenas o destino Downloads do navegador."
   },
   "welcomeKeepCurrentFolders": { "message": "Manter pastas atuais" },
-  "welcomeUseStarterFolders": { "message": "Começar a usar o Save In" },
-  "welcomeUsingStarterSettings": { "message": "Usando as configurações iniciais" },
+  "welcomeUseStarterFolders": { "message": "Manter pastas iniciais" },
+  "welcomeUsingStarterSettings": { "message": "Agora mesmo" },
   "html_showWelcomeGuide": { "message": "Exibir o guia de boas-vindas" },
   "advancedFilesDownloads": { "message": "Arquivos e downloads" },
-  "advancedMaintenanceDiagnostics": { "message": "Manutenção e diagnóstico" },
+  "advancedMaintenanceDiagnostics": { "message": "Manutenção e diagnósticos" },
   "webhookStateOn": { "message": "Ativado" },
   "webhookStateOff": { "message": "Desativado" }
 }

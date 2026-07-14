@@ -56,10 +56,10 @@
     "message": "オプション"
   },
   "contextMenuToggleSourcePanel": {
-    "message": "ページリソースを表示または非表示にする"
+    "message": "ページソースの表示と非表示を切り替える"
   },
   "contextMenuExclusive": {
-    "message": "ルーティング ルールを付けて保存…"
+    "message": "ルーティングルールで保存…"
   },
   "contextMenuRoot": {
     "message": "Save In…"
@@ -110,40 +110,40 @@
     }
   },
   "ruleMissingMatcher": {
-    "message": "マッチャー句を少なくとも 1 つ追加してください"
+    "message": "into: の前に一致条件を 1 つ以上追加してください"
   },
   "ruleCaptureMissingMatcher": {
-    "message": "Capture 句はマッチャーをターゲットにしていません"
+    "message": "キャプチャ対象に一致する条件がこのルール内にありません"
   },
   "ruleCaptureAmbiguousMatcher": {
-    "message": "従来の capture は最初に一致する句を使用します"
+    "message": "capture: では、この名前の最初の条件が使用されます"
   },
   "ruleMissingCapture": {
-    "message": "キャプチャ変数を使用するにはキャプチャ句を追加します"
+    "message": "保存先のキャプチャ変数に対応するキャプチャグループがありません"
   },
   "ruleMultipleCapture": {
     "message": "ルールにはキャプチャ句を 1 つだけ含めることができます"
   },
   "ruleMissingInto": {
-    "message": "into: 句を少なくとも 1 つ追加してください"
+    "message": "空でない into: の保存先を 1 つ追加してください"
   },
   "ruleExtraInto": {
     "message": "ルールには into: 句を 1 つだけ含めることができます"
   },
   "ruleUnknownMatcher": {
-    "message": "不明なマッチャー"
+    "message": "マッチャー名はサポートされていません"
   },
   "ruleUnknownDestinationVariable": {
     "message": "パス変数はサポートされていません"
   },
   "ruleInvalidRegex": {
-    "message": "無効な正規表現です"
+    "message": "パターンまたはフラグが有効な正規表現ではありません"
   },
   "ruleShadowed": {
-    "message": "以前のルールが同じまたは複数のダウンロードに一致するため、このルールは実行されません"
+    "message": "このルールに一致するすべてのダウンロードが先のルールにも一致するため、このルールは実行されません"
   },
   "ruleBadClause": {
-    "message": "無効な条項"
+    "message": "name: value の構文を使用してください"
   },
   "rulePathInvalidCharacter": {
     "message": "パスに無効な文字が含まれています"
@@ -173,7 +173,7 @@
     "message": "このタブとその右側にあるすべてのタブを保存します (ルーティング ルールが必要です)"
   },
   "o_sDownloads": {
-    "message": "場所を保存する"
+    "message": "保存先"
   },
   "o_sDirectories": {
     "message": "フォルダー"
@@ -197,7 +197,7 @@
     "message": "ルーティングルール"
   },
   "o_sBrowserDownloads": {
-    "message": "ブラウザのダウンロード"
+    "message": "ブラウザーのダウンロード"
   },
   "o_lBrowserDownloadsHelp": {
     "message": "必要に応じて、Web ページまたはブラウザーによって開始されたダウンロードを追跡またはルーティングします。Save In または別の拡張機能によって開始されたダウンロードは除外されます。"
@@ -209,10 +209,10 @@
     "message": "所有権を取得せずに、Save In 履歴に一致するダウンロードを記録します。これらは再試行されず、Save In プロンプトや通知もトリガーされません。"
   },
   "o_cRouteBrowserDownloads": {
-    "message": "ブラウザのダウンロードにルーティング ルールを使用する"
+    "message": "ブラウザーのダウンロードにルーティングルールを使用する"
   },
   "o_cRouteBrowserDownloadsHelp": {
-    "message": "サポートされている場合、一致ルールはブラウザーのダウンロードの名前を変更したり、サブフォルダーに配置したりできます。一致しないダウンロードは変更されません。"
+    "message": "サポートされている場合、一致するルールでブラウザーのダウンロードの名前を変更したり、サブフォルダーに配置したりできます。一致しないダウンロードは変更されません。"
   },
   "o_cRouteBrowserDownloadsFirefox": {
     "message": "Firefox で一致するダウンロードを試験的に再ルーティング"
@@ -224,13 +224,13 @@
     "message": "Mozilla バグ 1245652"
   },
   "o_cBrowserDownloadFilter": {
-    "message": "一致するダウンロード URL のみを含めます (オプション)"
+    "message": "一致するダウンロード URL のみを含める（任意）"
   },
   "o_cBrowserDownloadFilterHelp": {
     "message": "すべてのブラウザーのダウンロードを処理するには空白のままにするか、1 行に 1 つの WebExtension 一致パターンを入力します。このフィルターは履歴の追跡とルーティングに適用されます。"
   },
   "o_cBrowserDownloadExcludeFilter": {
-    "message": "一致するダウンロード URL を除外する (オプション)"
+    "message": "一致するダウンロード URL を除外する（任意）"
   },
   "o_cBrowserDownloadExcludeFilterHelp": {
     "message": "1 行に 1 つの WebExtension 一致パターンを入力します。除外は、上記の一致する URL をオーバーライドし、履歴追跡とルーティングの両方に適用されます。"
@@ -260,7 +260,7 @@
     "message": "履歴"
   },
   "o_sPageSources": {
-    "message": "ページリソース"
+    "message": "ページソース"
   },
   "o_lPageSourcesHelp": {
     "message": "現在のページにある画像、ビデオ、オーディオ、ドキュメント、およびダウンロード可能なリンクを参照します。保存されたアイテムには、通常のルーティングおよび名前変更ルールが使用されます。"
@@ -269,7 +269,7 @@
     "message": "一部の動画プレーヤーは一時 URL を使用したり、スクリプトでメディアを読み込んだりするため、Save In ですべての動画を検出できるとは限りません。ストリーミング動画のプレイリスト（HLS/DASH）が見つかる場合もありますが、記載されているのは個別の動画セグメントだけです。プレイリストを保存しても動画全体は保存されません。"
   },
   "o_cSourcePanelEnabled": {
-    "message": "ページリソースを有効にする"
+    "message": "ページソースを有効にする"
   },
   "o_cSourcePanelBackgrounds": {
     "message": "CSS 背景画像を含める"
@@ -293,13 +293,13 @@
     "message": "キーボードショートカット"
   },
   "o_lSourcePanelShortcutHelp": {
-    "message": "Ctrl+Shift+Y や Command+Shift+Y などのブラウザのショートカット構文を使用します。ブラウザーは予約されたショートカットを拒否します。"
+    "message": "Ctrl+Shift+Y や Command+Shift+Y などのブラウザーのショートカット構文を使用します。ブラウザーは予約されたショートカットを拒否します。"
   },
   "o_bReset": {
     "message": "リセット"
   },
   "o_lHistoryFilter": {
-    "message": "ファイル、フォルダー、タイプ、またはソースによるフィルター"
+    "message": "ファイル、フォルダー、種類、保存元で絞り込む"
   },
   "o_lHistoryFacets": {
     "message": "履歴フィルター"
@@ -317,7 +317,7 @@
     "message": "すべてのソース"
   },
   "o_lHistoryAllStatuses": {
-    "message": "すべてのステータス"
+    "message": "すべての状態"
   },
   "o_lHistoryAllTypes": {
     "message": "全種類"
@@ -326,10 +326,10 @@
     "message": "ブラウザ"
   },
   "o_lHistorySaved": {
-    "message": "保存されました"
+    "message": "保存済み"
   },
   "o_lHistorySaving": {
-    "message": "保存"
+    "message": "保存中"
   },
   "o_lHistoryFailed": {
     "message": "失敗"
@@ -338,7 +338,7 @@
     "message": "保存日"
   },
   "o_lHistoryAnyTime": {
-    "message": "いつでも"
+    "message": "期間指定なし"
   },
   "o_lHistoryToday": {
     "message": "今日"
@@ -362,10 +362,10 @@
     "message": "フィルターをクリアする"
   },
   "o_cDeleteAllHistory": {
-    "message": "すべての履歴を削除します…"
+    "message": "すべての履歴を削除…"
   },
   "o_lSearchOptions": {
-    "message": "検索オプション"
+    "message": "オプションを検索"
   },
   "o_lVariableList": {
     "message": "変数リスト"
@@ -389,7 +389,7 @@
     "message": "句"
   },
   "o_lEditorModeText": {
-    "message": "文章"
+    "message": "テキスト"
   },
   "o_bApply": {
     "message": "適用"
@@ -401,7 +401,7 @@
     "message": "テンプレートライブラリ"
   },
   "o_lClauseList": {
-    "message": "条項一覧"
+    "message": "句の一覧"
   },
   "o_lGithub": {
     "message": "GitHub"
@@ -422,16 +422,16 @@
     "message": "言語を変更できませんでした。もう一度やり直してください。"
   },
   "o_lRoutingLastDownload": {
-    "message": "最終ダウンロード"
+    "message": "前回のダウンロード"
   },
   "o_lRoutingLastDownloadEmpty": {
-    "message": "まだ何もありません"
+    "message": "まだありません"
   },
   "o_lRoutingRenamedTo": {
     "message": "に名前変更"
   },
   "o_lRoutingNoMatches": {
-    "message": "一致しません"
+    "message": "一致なし"
   },
   "o_lRoutingCaptureGroups": {
     "message": "キャプチャグループ"
@@ -446,7 +446,7 @@
     "message": "Save In メニュー項目のアクセス キーを設定します。"
   },
   "o_cLastUsedMenu": {
-    "message": "最後に使用したメニュー項目を表示"
+    "message": "前回使用したメニュー項目を表示"
   },
   "o_cSaveLinks": {
     "message": "リンクのアクションを表示する"
@@ -464,10 +464,10 @@
     "message": "ページドキュメントのみを保存します。画像、スタイルシート、その他の外部ファイルは含まれません。"
   },
   "o_cSaveTabstrip": {
-    "message": "タブメニューにSave Inアクションを表示"
+    "message": "タブメニューに Save In のアクションを表示"
   },
   "o_cSaveTabstripHelp": {
-    "message": "タブ、タブ グループ、またはタブを右側に保存します"
+    "message": "タブ、タブグループ、または右側のタブを保存します"
   },
   "o_cOpenDialog": {
     "message": "どこに保存するかを常に尋ねる"
@@ -512,7 +512,7 @@
     "message": "ルーティング ルールが一致した場合に通知する"
   },
   "o_cSaveShortcutsAs": {
-    "message": "ショートカットを名前を付けて保存"
+    "message": "ショートカットの形式"
   },
   "o_cSaveShortcutsTypeHtml": {
     "message": "HTMLリダイレクト"
@@ -554,7 +554,7 @@
     "message": "クリックして保存を有効にする"
   },
   "o_cKeyboardShortcutClickToHelp": {
-    "message": "デフォルトでは、Alt キーを押しながら画像またはメディア項目をクリックすると、最後に使用したフォルダーまたはデフォルトのダウンロード フォルダーに保存されます。 Save In は、クリック リスナーをページに追加します。一部の変数は使用できません。"
+    "message": "既定では、Alt キーを押しながら画像またはメディア項目をクリックすると、前回使用したフォルダーまたは既定のダウンロードフォルダーに保存されます。Save In はページにクリックリスナーを追加します。一部の変数は使用できません。"
   },
   "o_cHostPermissionMissing": {
     "message": "Save In はページのコンテンツにアクセスできません。クリックして保存を使用するには、すべてのサイトへのアクセスを許可します。"
@@ -611,7 +611,7 @@
     "message": "常に Save In からダウンロード"
   },
   "o_cFetchViaFetchAPIHelp": {
-    "message": "Save In はファイルをフェッチし、ブラウザに渡します。これは、通常のダウンロードが失敗した場合にのみ使用してください。速度が遅く、Chrome は保存中にファイルをメモリに保持するため、非常に大きなファイルの場合は避けてください。"
+    "message": "Save In はファイルを取得してブラウザーに渡します。通常のダウンロードが失敗する場合にのみ使用してください。処理が遅く、Chrome では保存中にファイルをメモリに保持するため、非常に大きなファイルには使用しないでください。"
   },
   "o_cIncludeFetchCredentials": {
     "message": "Web サイトのサインイン Cookie を含める"
@@ -632,7 +632,7 @@
     "message": "ページ URL ではなく、失敗したファイルの URL パターンを入力してください。1 行につき 1 つのマッチパターンを使用します（例: *://i.pximg.net/*）。"
   },
   "o_cImportSettings": {
-    "message": "インポート設定"
+    "message": "設定をインポート"
   },
   "o_cExportSettings": {
     "message": "設定のエクスポート"
@@ -644,7 +644,7 @@
     "message": "最終更新日: "
   },
   "o_cLastSavedAtNever": {
-    "message": "決してしない"
+    "message": "なし"
   },
   "optionsUnsavedChanges": {
     "message": "保存していない変更を破棄しますか、それとも編集を続けますか?"
@@ -659,7 +659,7 @@
     "message": "保存中…"
   },
   "o_lSaved": {
-    "message": "保存されました"
+    "message": "保存済み"
   },
   "o_lSaveFailed": {
     "message": "変更を保存できませんでした"
@@ -722,7 +722,7 @@
     "message": "診断"
   },
   "o_lExperimental": {
-    "message": "試験運用"
+    "message": "試験的"
   },
   "o_lFilterReference": {
     "message": "フィルター"
@@ -737,7 +737,7 @@
     "message": "。コメントを付けるには行末に"
   },
   "html_addACommentThatIsNotDisplayed": {
-    "message": "表示されていないコメントを追加する"
+    "message": "表示されないコメントを追加する"
   },
   "html_addDestinations": {
     "message": "保存先を追加"
@@ -773,13 +773,13 @@
     "message": "表示名を変更する"
   },
   "html_copyThisPromptThenReplaceTheExampleDestinations": {
-    "message": "このプロンプトをコピーし、宛先例を置き換えます。"
+    "message": "このプロンプトをコピーし、保存先の例を置き換えます。"
   },
   "html_createASubmenu": {
     "message": "サブメニューを作成する"
   },
   "html_createsTwoSelectableRowsInTheDownloadsMenu": {
-    "message": "[保存場所] メニューに 2 つのフォルダーを作成します。"
+    "message": "［保存先］メニューに 2 つのフォルダーを作成します。"
   },
   "html_defaultDownloadsDirectory": {
     "message": "デフォルトのダウンロードフォルダー"
@@ -905,10 +905,10 @@
     "message": "フィルタ句"
   },
   "html_filterRoutingTemplates": {
-    "message": "ルーティングテンプレートのフィルタリング"
+    "message": "ルーティングテンプレートを絞り込む"
   },
   "html_filterTemplates": {
-    "message": "フィルターテンプレート"
+    "message": "テンプレートを絞り込む"
   },
   "html_forExample2": {
     "message": "パターン形式"
@@ -974,7 +974,7 @@
     "message": "クリックして保存するショートカットの組み合わせ"
   },
   "html_columns": {
-    "message": "コラム"
+    "message": "列"
   },
   "html_command": {
     "message": "Command"
@@ -995,7 +995,7 @@
     "message": "エクスポート"
   },
   "html_filterSources": {
-    "message": "リソースを絞り込む"
+    "message": "ソースを絞り込む"
   },
   "html_historyTableTools": {
     "message": "履歴テーブルのツール"
@@ -1226,10 +1226,10 @@
     "message": "ダウンロード"
   },
   "html_filterCurrentReference": {
-    "message": "フィルタ電流基準"
+    "message": "現在のリファレンスを絞り込む"
   },
   "html_filterVariables": {
-    "message": "フィルター変数"
+    "message": "変数を絞り込む"
   },
   "html_findsAndSavesResourcesTheUserChoosesOnArbitrary": {
     "message": "任意の Web サイト上でユーザーが選択したリソースを検索して保存します。"
@@ -1262,7 +1262,7 @@
     "message": "プライバシーポリシー"
   },
   "html_references": {
-    "message": "参考文献"
+    "message": "リファレンス"
   },
   "html_referenceType": {
     "message": "参照タイプ"
@@ -1283,7 +1283,7 @@
     "message": "Save In には、分析、広告、開発者が運営するサーバー、またはリモート実行可能コードはありません。設定と履歴はブラウザー管理の拡張機能ストレージに残ります。"
   },
   "html_saveInIsALocalFirstDownloadsHelperFor": {
-    "message": "Save In はローカル処理を優先するダウンロード支援ツールです。コンテキストメニューのフォルダー、ルーティングルール、名前変更、ページのリソース、ダウンロード履歴を使ってファイルを整理できます。"
+    "message": "Save In はローカル処理を優先するダウンロード支援ツールです。コンテキストメニューのフォルダー、ルーティングルール、名前変更、ページソース、ダウンロード履歴を使ってファイルを整理できます。"
   },
   "html_saveInRegistersToolsAnAiAgentCanCall": {
     "message": ", Save In は、このオプション ページが開いているときに AI エージェントが呼び出せるツール (設定の変更、フォルダー メニューの構築、ルーティング ルールの作成など) を登録します。"
@@ -1460,7 +1460,7 @@
     "message": "ルーティングとファイル名のみ"
   },
   "html_specialRowsUsedOnlyInTheDownloadsMenu": {
-    "message": "[保存場所] メニューでのみ使用される特別な行"
+    "message": "［保存先］メニューでのみ使用される特別な行"
   },
   "html_theN": {
     "message": "; 1 をグループ番号に置き換えます。"
@@ -2077,7 +2077,7 @@
   "o_lUiThemeDark": { "message": "ダーク" },
   "o_lUiThemeLight": { "message": "ライト" },
   "o_lUiThemeHelp": {
-    "message": "システムテーマに合わせるか、オプションページとページリソースを常にダークまたはライトに設定します。"
+    "message": "システムテーマに合わせるか、オプションページとページソースを常にダークまたはライトに設定します。"
   },
   "notificationExternalDownloadBlockedTitle": { "message": "外部ダウンロードをブロックしました" },
   "notificationExternalDownloadBlockedMessage": {
@@ -2103,13 +2103,13 @@
   "webMcpStatusRegistrationFailed": { "message": "利用不可 — ツールの登録に失敗しました" },
   "webMcpStatusUnavailableBrowser": { "message": "このブラウザーでは利用できません" },
   "sourcePanelResizeLabel": {
-    "message": "ページリソースのサイズを変更"
+    "message": "ページソースのサイズを変更"
   },
   "sourcePanelClose": {
     "message": "閉じる"
   },
   "sourcePanelCloseLabel": {
-    "message": "ページリソースを閉じる"
+    "message": "ページソースを閉じる"
   },
   "sourcePanelDockPosition": {
     "message": "ドッキング位置：$POSITION$ — 次の位置に切り替え",
@@ -2136,25 +2136,25 @@
     "message": "パネルの配置を変更"
   },
   "sourcePanelDockPanel": {
-    "message": "ページリソースをドッキング"
+    "message": "ページソースをドッキング"
   },
   "sourcePanelPopOutPanel": {
-    "message": "ページリソースをフローティング表示"
+    "message": "ページソースをフローティング表示"
   },
   "sourcePanelPopOutHelp": {
     "message": "ドラッグできるフローティングパネルで表示"
   },
   "sourcePanelCopyFilteredUrls": {
-    "message": "表示中のリソース URL をコピー"
+    "message": "現在のフィルターに該当するソース URL をコピー"
   },
   "sourcePanelCopyFilteredUrlsLabel": {
-    "message": "絞り込んだリソースの URL をコピー"
+    "message": "絞り込まれたソース URL をコピー"
   },
   "sourcePanelFilterLabel": {
-    "message": "ページリソースを絞り込む"
+    "message": "ページソースを絞り込む"
   },
   "sourcePanelSortLabel": {
-    "message": "リソースを並べ替え"
+    "message": "ソースを並べ替え"
   },
   "sourcePanelSortNewest": {
     "message": "新しい順"
@@ -2181,7 +2181,7 @@
     "message": "プレイリスト"
   },
   "sourcePanelNoMatches": {
-    "message": "現在のフィルターに一致するリソースはありません。"
+    "message": "現在のフィルターに一致するソースはありません。"
   },
   "sourcePanelNoSources": {
     "message": "ページ上のメディアやストリーミング動画のプレイリストはまだ検出されていません。"
@@ -2232,7 +2232,7 @@
     "message": "コピーに失敗しました"
   },
   "sourcePanelRowInstructions": {
-    "message": "Alt+クリックで保存。リソース名を右クリックすると Save In を使用できます"
+    "message": "Alt+クリックで保存。ソース名を右クリックすると Save In を使用できます"
   },
   "sourcePanelCopiedUrls": {
     "message": "$COUNT$ 件の URL をコピーしました",
@@ -2486,12 +2486,12 @@
   "html_keepsARuleWithoutRunningIt": {
     "message": "ルールを実行せずに保持します"
   },
-  "autoDownloadHeading": { "message": "ソースの自動保存" },
+  "autoDownloadHeading": { "message": "ページソースを自動保存" },
   "autoDownloadHelp": {
     "message": "有効なルールがページとソースの両方に一致した場合のみ、新しく検出されたページソースを保存します。"
   },
   "autoDownloadEnabled": { "message": "一致した項目を自動保存" },
-  "autoDownloadLive": { "message": "ページ読み込み後に追加されたソースを監視" },
+  "autoDownloadLive": { "message": "ページの読み込み後に追加されたソースも含める" },
   "autoDownloadPrivate": { "message": "プライベートウィンドウでの自動保存を許可" },
   "autoDownloadLimit": { "message": "1 回のページ訪問での最大保存数" },
   "autoDownloadLimitHelp": {
@@ -2525,12 +2525,16 @@
   "autoDownloadAddCondition": { "message": "条件を追加" },
   "autoDownloadDestination": { "message": "保存先" },
   "autoDownloadNewRule": { "message": "新しいルール" },
-  "ruleAutomaticMissingPage": { "message": "ソースの自動保存ルールにはページ条件が必要です" },
-  "ruleAutomaticMissingSource": { "message": "ソースの自動保存ルールにはソース条件が必要です" },
+  "ruleAutomaticMissingPage": {
+    "message": "pageurl:、pagedomain:、pagerootdomain: のいずれかの条件を追加してください"
+  },
+  "ruleAutomaticMissingSource": {
+    "message": "ソースのアドレス、ドメイン、種類、拡張子のいずれかの条件を追加してください"
+  },
   "autoDownloadRoutingBadge": { "message": "ソースを自動保存" },
   "autoDownloadManageRules": { "message": "ルーティングルールを開く" },
   "autoDownloadRoutingHelp": {
-    "message": "自動ルールは振り分けルールと一緒に管理され、context: auto を使用します。各ルールにはページ条件とソース条件が必要です。"
+    "message": "自動ダウンロードを照合するには、context: auto をページ条件およびソース条件と組み合わせて使用します。最初に一致したルールによって保存先が決まります。"
   },
   "html_openInFirefoxAddons": { "message": "Firefox Add-ons で開く" },
   "html_openInChromeWebStore": { "message": "Chrome Web Store で開く" },
@@ -2585,17 +2589,17 @@
   },
   "welcomePermissions": { "message": "これらの権限が必要な理由" },
   "welcomeCustomizeFolders": { "message": "フォルダーをカスタマイズ" },
-  "welcomeUseEmptyPreset": { "message": "空のプリセットを使用" },
+  "welcomeUseEmptyPreset": { "message": "ダウンロードフォルダーのみを使用" },
   "welcomeEmptyPresetFailed": {
-    "message": "空のプリセットを適用できませんでした。初期フォルダーは変更されていません。"
+    "message": "ダウンロードフォルダーのみに切り替えられませんでした。現在のフォルダーは変更されていません。"
   },
   "welcomeEmptyConfirmTitle": { "message": "現在のフォルダーを置き換えますか？" },
   "welcomeEmptyConfirmDescription": {
-    "message": "空のプリセットは現在のフォルダー設定を置き換え、ブラウザーのダウンロード先だけを残します。"
+    "message": "現在のフォルダー設定を置き換え、ブラウザーのダウンロード先だけを残します。"
   },
   "welcomeKeepCurrentFolders": { "message": "現在のフォルダーを保持" },
-  "welcomeUseStarterFolders": { "message": "Save In を使い始める" },
-  "welcomeUsingStarterSettings": { "message": "初期設定を使用中" },
+  "welcomeUseStarterFolders": { "message": "初期フォルダーを保持" },
+  "welcomeUsingStarterSettings": { "message": "たった今" },
   "html_showWelcomeGuide": { "message": "ウェルカムガイドを表示" },
   "advancedFilesDownloads": { "message": "ファイルとダウンロード" },
   "advancedMaintenanceDiagnostics": { "message": "メンテナンスと診断" },

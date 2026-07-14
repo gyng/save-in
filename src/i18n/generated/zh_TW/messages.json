@@ -56,7 +56,7 @@
     "message": "選項"
   },
   "contextMenuToggleSourcePanel": {
-    "message": "顯示或隱藏頁面資源"
+    "message": "顯示或隱藏頁面來源"
   },
   "contextMenuExclusive": {
     "message": "使用路由規則儲存…"
@@ -74,7 +74,7 @@
     "message": "媒體或連結"
   },
   "contextMenuContextSelection": {
-    "message": "選定的文本"
+    "message": "選取的文字"
   },
   "contextMenuContextPage": {
     "message": "頁面"
@@ -101,7 +101,7 @@
     "message": "Save In：無法路由或重新命名下載"
   },
   "notificationRuleMatchFailedExclusiveMessage": {
-    "message": "找不到 $URL$ 的符合規則",
+    "message": "找不到符合 $URL$ 的規則",
     "placeholders": {
       "url": {
         "content": "$1",
@@ -110,28 +110,28 @@
     }
   },
   "ruleMissingMatcher": {
-    "message": "請至少新增一個比對子句"
+    "message": "請在 into: 前新增至少一個比對條件"
   },
   "ruleCaptureMissingMatcher": {
-    "message": "擷取子句未指定比對器"
+    "message": "擷取目標與此規則的任何條件都不相符"
   },
   "ruleCaptureAmbiguousMatcher": {
-    "message": "舊版擷取使用第一個相符子句"
+    "message": "capture: 會使用第一個具有此名稱的條件"
   },
   "ruleMissingCapture": {
-    "message": "請新增擷取子句以使用擷取變數"
+    "message": "目的地的擷取變數沒有對應的擷取群組"
   },
   "ruleMultipleCapture": {
     "message": "一項規則只能包含一個擷取子句"
   },
   "ruleMissingInto": {
-    "message": "請至少新增一個 into: 子句"
+    "message": "新增一個非空白的 into: 目的地"
   },
   "ruleExtraInto": {
     "message": "一條規則只能包含一個 into: 子句"
   },
   "ruleUnknownMatcher": {
-    "message": "未知的比對器"
+    "message": "不支援此比對器名稱"
   },
   "ruleUnknownDestinationVariable": {
     "message": "不支援此路徑變數"
@@ -143,7 +143,7 @@
     "message": "此規則永遠不會執行，因為前面的規則會比對相同或更多下載項目"
   },
   "ruleBadClause": {
-    "message": "無效子句"
+    "message": "請使用 name: value 語法"
   },
   "rulePathInvalidCharacter": {
     "message": "路徑包含無效字元"
@@ -164,13 +164,13 @@
     }
   },
   "tabstripMenuSaveChildrenTabs": {
-    "message": "儲存從此選項卡開啟的選項卡"
+    "message": "儲存從此分頁開啟的分頁"
   },
   "tabstripMenuSaveRightTabs": {
-    "message": "儲存此選項卡及其右側的所有選項卡"
+    "message": "儲存此分頁及其右側的所有分頁"
   },
   "tabstripMenuSaveRightTabsMatched": {
-    "message": "儲存此選項卡及其右側的所有選項卡（需要路由規則）"
+    "message": "儲存此分頁及其右側的所有分頁（需要路由規則）"
   },
   "o_sDownloads": {
     "message": "儲存位置"
@@ -188,7 +188,7 @@
     "message": "現有檔案"
   },
   "o_lContextMenuBehaviorHelp": {
-    "message": "選擇上下文選單中顯示的 Save In 操作。"
+    "message": "選擇要在內容選單中顯示的 Save In 操作。"
   },
   "o_lAlsoAskWhen": {
     "message": "同時在以下情況詢問儲存位置："
@@ -200,10 +200,10 @@
     "message": "瀏覽器下載"
   },
   "o_lBrowserDownloadsHelp": {
-    "message": "可選擇追蹤或路由由網頁或瀏覽器啟動的下載。由 Save In 或其他擴充功能啟動的下載被排除在外。"
+    "message": "您可以追蹤或路由由網頁或瀏覽器啟動的下載。Save In 或其他擴充功能啟動的下載不在此限。"
   },
   "o_cTrackBrowserDownloads": {
-    "message": "將普通瀏覽器下載包含在 Save In 歷史記錄中"
+    "message": "將一般瀏覽器下載納入 Save In 歷史記錄"
   },
   "o_cTrackBrowserDownloadsHelp": {
     "message": "在 Save In 記錄中記下相符的下載項目，但不接管這些下載。Save In 不會重試，也不會顯示提示或通知。"
@@ -224,13 +224,13 @@
     "message": "Mozilla Bug 1245652"
   },
   "o_cBrowserDownloadFilter": {
-    "message": "僅包含符合的下載 URL（可選）"
+    "message": "僅包含相符的下載 URL（選填）"
   },
   "o_cBrowserDownloadFilterHelp": {
     "message": "留空即可處理所有瀏覽器下載項目；也可以每行輸入一個 WebExtension 比對模式。此篩選條件同時套用於記錄追蹤和路由。"
   },
   "o_cBrowserDownloadExcludeFilter": {
-    "message": "排除符合的下載 URL（可選）"
+    "message": "排除相符的下載 URL（選填）"
   },
   "o_cBrowserDownloadExcludeFilterHelp": {
     "message": "每行輸入一個 WebExtension 比對模式。排除項目會優先於上方相符的 URL，並同時套用於記錄追蹤和路由。"
@@ -260,7 +260,7 @@
     "message": "歷史記錄"
   },
   "o_sPageSources": {
-    "message": "頁面資源"
+    "message": "頁面來源"
   },
   "o_lPageSourcesHelp": {
     "message": "瀏覽目前頁面中的圖片、影片、音訊、文件與可下載連結。儲存的項目會套用一般的路由與重新命名規則。"
@@ -269,7 +269,7 @@
     "message": "某些影片播放器使用暫時 URL，或透過指令碼載入媒體，因此 Save In 不一定能偵測到所有影片。有時可以找到串流播放清單（HLS/DASH），但這些檔案只列出個別影片片段；儲存播放清單並不會儲存完整影片。"
   },
   "o_cSourcePanelEnabled": {
-    "message": "啟用頁面資源"
+    "message": "啟用頁面來源"
   },
   "o_cSourcePanelBackgrounds": {
     "message": "包含 CSS 背景圖片"
@@ -302,7 +302,7 @@
     "message": "依檔案、資料夾、類型或來源篩選"
   },
   "o_lHistoryFacets": {
-    "message": "歷史過濾器"
+    "message": "歷史記錄篩選條件"
   },
   "o_lHistorySource": {
     "message": "來源"
@@ -359,7 +359,7 @@
     "message": "結束日期"
   },
   "o_cClearHistoryFilters": {
-    "message": "清除過濾器"
+    "message": "清除篩選條件"
   },
   "o_cDeleteAllHistory": {
     "message": "刪除所有歷史記錄…"
@@ -569,7 +569,7 @@
     "message": "中鍵點選"
   },
   "o_cKeyboardShortcutModifierRightClick": {
-    "message": "右鍵單擊"
+    "message": "按一下滑鼠右鍵"
   },
   "o_cKeyboardShortcutModifierBackClick": {
     "message": "返回按鈕 (4)"
@@ -581,7 +581,7 @@
     "message": "按住選取的修飾鍵，同時點選選取的滑鼠按鈕。若只使用滑鼠按鈕，請將兩個修飾鍵都設為「None」。變更會套用至已開啟的頁面。"
   },
   "o_cRestoreDefaults": {
-    "message": "恢復預設設定"
+    "message": "還原預設設定"
   },
   "o_cTruncatePath": {
     "message": "每個檔案或資料夾名稱的最大 UTF-8 位元組數"
@@ -632,7 +632,7 @@
     "message": "請輸入失敗檔案的 URL 模式，而不是頁面 URL。每行使用一個比對模式，例如 *://i.pximg.net/*。"
   },
   "o_cImportSettings": {
-    "message": "導入設定"
+    "message": "匯入設定"
   },
   "o_cExportSettings": {
     "message": "匯出設定"
@@ -698,7 +698,7 @@
     "message": "改為下載連結目標時顯示通知"
   },
   "o_cCloseTabOnSave": {
-    "message": "儲存後關閉每個選項卡"
+    "message": "儲存後關閉每個分頁"
   },
   "o_lClickToSaveButton": {
     "message": "點選儲存滑鼠按鈕"
@@ -728,7 +728,7 @@
     "message": "篩選"
   },
   "html_aboutSaveIn": {
-    "message": "關於Save In"
+    "message": "關於 Save In"
   },
   "html_absolutePathsAndHiddenPathSegmentsSuchAs": {
     "message": "、絕對路徑和隱藏路徑段，例如"
@@ -737,7 +737,7 @@
     "message": "。若要加入註解，請在行末使用"
   },
   "html_addACommentThatIsNotDisplayed": {
-    "message": "新增不顯示的評論"
+    "message": "新增不顯示的註解"
   },
   "html_addDestinations": {
     "message": "新增儲存位置"
@@ -752,7 +752,7 @@
     "message": "請 AI 代理程式起草資料夾選單"
   },
   "html_assignAnAccessKey": {
-    "message": "分配存取密鑰"
+    "message": "指定存取鍵"
   },
   "html_atTheEndForACommentStartWith": {
     "message": "作為註解標記。若要建立巢狀子選單，請在行首使用"
@@ -860,7 +860,7 @@
     "message": "使用變數"
   },
   "html_wiki": {
-    "message": "維基百科"
+    "message": "Wiki"
   },
   "html_advancedUseCaptureGroups": {
     "message": "進階：使用擷取群組"
@@ -881,7 +881,7 @@
     "message": "變成"
   },
   "html_clauseAndVariableReference": {
-    "message": "子句和變數引用"
+    "message": "子句與變數參考"
   },
   "html_copyThisPromptIntoAnAgentOrUseWebmcp": {
     "message": "將此提示複製到代理程式中，或使用外部整合中的 WebMCP。"
@@ -902,13 +902,13 @@
     "message": "每條規則都必須以"
   },
   "html_filterClauses": {
-    "message": "過濾子句"
+    "message": "篩選子句"
   },
   "html_filterRoutingTemplates": {
-    "message": "過濾路由模板"
+    "message": "篩選路由範本"
   },
   "html_filterTemplates": {
-    "message": "過濾器模板"
+    "message": "篩選範本"
   },
   "html_forExample2": {
     "message": "模式格式"
@@ -932,7 +932,7 @@
     "message": "移動相符的檔案並保留檔名"
   },
   "html_optional": {
-    "message": "可選"
+    "message": "選填"
   },
   "html_parenthesesCapturePartsOfAMatcherSelectTheMatcher": {
     "message": "括號會擷取比對器的一部分。請選擇比對器"
@@ -974,7 +974,7 @@
     "message": "點選儲存快速鍵組合"
   },
   "html_columns": {
-    "message": "專欄"
+    "message": "欄"
   },
   "html_command": {
     "message": "Command"
@@ -992,10 +992,10 @@
     "message": "提前關閉時間"
   },
   "html_export": {
-    "message": "出口"
+    "message": "匯出"
   },
   "html_filterSources": {
-    "message": "篩選資源"
+    "message": "篩選來源"
   },
   "html_historyTableTools": {
     "message": "記錄表工具"
@@ -1013,13 +1013,13 @@
     "message": "JSON — 完整資料"
   },
   "html_key": {
-    "message": "鑰匙"
+    "message": "按鍵"
   },
   "html_link": {
     "message": "連結"
   },
   "html_links": {
-    "message": "友情連結"
+    "message": "連結"
   },
   "html_macctrl": {
     "message": "MacCtrl"
@@ -1052,7 +1052,7 @@
     "message": "第二個修飾符"
   },
   "html_selection": {
-    "message": "選擇"
+    "message": "選取內容"
   },
   "html_shift": {
     "message": "Shift"
@@ -1067,7 +1067,7 @@
     "message": "串流 · HLS · #3"
   },
   "html_tab": {
-    "message": "選項卡"
+    "message": "分頁"
   },
   "html_video": {
     "message": "影片"
@@ -1148,15 +1148,15 @@
   },
   "externalRemoveApproval": { "message": "移除" },
   "externalRemoveApprovalFor": {
-    "message": "移除 $ID$ 的核准",
+    "message": "取消核准 $ID$",
     "placeholders": { "id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" } }
   },
   "externalApprovalRemoved": {
-    "message": "$ID$ 已不再獲核准。",
+    "message": "已取消核准 $ID$。",
     "placeholders": { "id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" } }
   },
   "externalApprovalAdded": {
-    "message": "$ID$ 現已獲核准。",
+    "message": "已核准 $ID$。",
     "placeholders": { "id": { "content": "$1", "example": "abcdefghijklmnopabcdefghijklmnop" } }
   },
   "html_oneExtensionIdPerLine": {
@@ -1193,13 +1193,13 @@
     "message": "適用範圍"
   },
   "html_askTheCommunity": {
-    "message": "詢問社區"
+    "message": "詢問社群"
   },
   "html_aVeryDiligentOrganizer": {
     "message": "非常用心的組織者"
   },
   "html_aWatercolorLuckyCatCarefullyOrganizingDocumentsPhotographsFilm": {
-    "message": "一隻水彩招財貓仔細整理文件、照片、電影和書籍"
+    "message": "一隻水彩招財貓仔細整理文件、照片、影片與書籍"
   },
   "html_buildInformation": {
     "message": "建構資訊"
@@ -1211,10 +1211,10 @@
     "message": "清除記錄"
   },
   "html_closeAboutSaveIn": {
-    "message": "關閉關於Save In"
+    "message": "關閉「關於 Save In」"
   },
   "html_closeReferences": {
-    "message": "關閉參考文獻"
+    "message": "關閉參考資料"
   },
   "html_contextMenus": {
     "message": "內容選單"
@@ -1226,7 +1226,7 @@
     "message": "下載"
   },
   "html_filterCurrentReference": {
-    "message": "濾波器電流參考"
+    "message": "篩選目前的參考資料"
   },
   "html_filterVariables": {
     "message": "篩選變數"
@@ -1238,7 +1238,7 @@
     "message": "在支援的瀏覽器中"
   },
   "html_keepsSettingsRoutingRulesLocalHistoryAndRestartSafe": {
-    "message": "保留設定、路由規則、本機歷史記錄和重新啟動安全狀態。"
+    "message": "保留設定、路由規則、本機歷史記錄，以及可在重新啟動後保留的狀態。"
   },
   "html_letsChromeConvertFetchedFileDataIntoTemporaryDownload": {
     "message": "讓 Chrome 將取得的檔案資料轉換為臨時下載 URL。"
@@ -1262,7 +1262,7 @@
     "message": "隱私權政策"
   },
   "html_references": {
-    "message": "參考文獻"
+    "message": "參考資料"
   },
   "html_referenceType": {
     "message": "參考類型"
@@ -1310,7 +1310,7 @@
     "message": "版本"
   },
   "html_websiteAccess": {
-    "message": "網站訪問"
+    "message": "網站存取權"
   },
   "html_whyThesePermissionsAreNeeded": {
     "message": "為什麼需要這些權限"
@@ -1352,16 +1352,16 @@
     "message": "目前月份名稱（英文）"
   },
   "html_currentSecond": {
-    "message": "目前第二個"
+    "message": "目前秒數"
   },
   "html_currentYear": {
     "message": "本年度"
   },
   "html_hostnameOfThePage": {
-    "message": "頁面的主機名"
+    "message": "頁面的主機名稱"
   },
   "html_hostnameOfTheSource": {
-    "message": "來源的主機名"
+    "message": "來源的主機名稱"
   },
   "html_iso8601WeekNumber": {
     "message": "ISO 8601 週數（"
@@ -1370,7 +1370,7 @@
     "message": "來源主機名稱的最後一個標籤"
   },
   "html_pageHostnameWithoutSubdomains": {
-    "message": "沒有子網域的頁面主機名"
+    "message": "不含子網域的頁面主機名稱"
   },
   "html_pageTitleLowercasedAndDashed": {
     "message": "頁面標題，小寫和虛線"
@@ -1382,16 +1382,16 @@
     "message": "來源 URL 的路徑部分（分隔符號已清理）"
   },
   "html_sourceHostnameWithoutSubdomains": {
-    "message": "不含子網域的來源主機名"
+    "message": "不含子網域的來源主機名稱"
   },
   "html_standard": {
     "message": "標準型"
   },
   "html_textOfTheLinkOr": {
-    "message": "連結的文本，或"
+    "message": "連結文字，或"
   },
   "html_theCurrentlySelectedTextOnThePage": {
-    "message": "頁面上目前選定的文本"
+    "message": "頁面上目前選取的文字"
   },
   "html_theNaiveFilenameUrlBasedUseTheRoutingFeature": {
     "message": "從 URL 派生的檔案名稱。如果不準確，請使用路由規則。"
@@ -1439,10 +1439,10 @@
     "message": "檔案副檔名源自"
   },
   "html_first12LowercaseHexCharactersOfTheDownloadedFile": {
-    "message": "下載檔案 SHA-256 的前 12 個小寫十六進位字元。準備此值會在儲存之前取得檔案並對其進行雜湊處理，因此在預覽中或不可用時該檔案為空白。如果哈希失敗，下載將繼續。您可以從歷史記錄中取消長時間的準備。"
+    "message": "下載檔案 SHA-256 的前 12 個小寫十六進位字元。準備此值時，Save In 會在儲存前擷取檔案並計算雜湊，因此預覽時或無法取得時會留空。雜湊失敗時仍會繼續下載。您可以在歷史記錄中取消耗時過久的準備工作。"
   },
   "html_full64CharacterLowercaseSha256ItSharesThe": {
-    "message": "完整的 64 個字元小寫 SHA-256。它與一起計算"
+    "message": "完整的 64 字元小寫 SHA-256。若同時使用，會與"
   },
   "html_fullActualFilenameAfterContentDisposition": {
     "message": "解析後的檔名，包含 Content-Disposition"
@@ -1457,28 +1457,28 @@
     "message": "僅在路由或重新命名檔案時可用"
   },
   "html_routingAndFilenamesOnly": {
-    "message": "僅路由和檔案名"
+    "message": "僅用於路由與檔案名稱"
   },
   "html_specialRowsUsedOnlyInTheDownloadsMenu": {
     "message": "僅在「儲存位置」選單中使用的特殊行"
   },
   "html_theN": {
-    "message": ";將 1 替換為組別號碼。"
+    "message": "；請將 1 替換為群組編號。"
   },
   "html_theServerS": {
     "message": "伺服器的"
   },
   "html_theUrlAfterFollowingRedirectsViaTheSameHead": {
-    "message": "重定向後的 URL。它使用與以下相同的請求"
+    "message": "重新導向後的 URL。它使用與以下項目相同的要求："
   },
   "html_urlDerivedExtensionAlias": {
-    "message": "URL 派生的擴充。別名："
+    "message": "從 URL 衍生的副檔名。別名："
   },
   "html_viaAHeadRequestAddsASmallDelayAnd": {
     "message": "。這會增加一點延遲，並且在不可用時顯示為空白。"
   },
   "html_whenBothVariablesAreUsed": {
-    "message": "當兩個變數都被使用時。"
+    "message": "一併計算。"
   },
   "html_attribute": {
     "message": "屬性。"
@@ -1858,7 +1858,7 @@
     "message": "網站與 URL"
   },
   "ruleTemplateCategorySaveContext": {
-    "message": "儲存來源"
+    "message": "儲存情境"
   },
   "ruleTemplateImagesPerSiteName": {
     "message": "將圖片儲存至各網站的資料夾"
@@ -2103,13 +2103,13 @@
   "webMcpStatusRegistrationFailed": { "message": "無法使用 — 工具註冊失敗" },
   "webMcpStatusUnavailableBrowser": { "message": "此瀏覽器不支援" },
   "sourcePanelResizeLabel": {
-    "message": "調整「頁面資源」大小"
+    "message": "調整「頁面來源」大小"
   },
   "sourcePanelClose": {
     "message": "關閉"
   },
   "sourcePanelCloseLabel": {
-    "message": "關閉「頁面資源」"
+    "message": "關閉「頁面來源」"
   },
   "sourcePanelDockPosition": {
     "message": "停駐：$POSITION$ — 切換至下一個位置",
@@ -2136,10 +2136,10 @@
     "message": "變更面板停駐位置"
   },
   "sourcePanelDockPanel": {
-    "message": "停駐「頁面資源」"
+    "message": "停駐「頁面來源」"
   },
   "sourcePanelPopOutPanel": {
-    "message": "浮動顯示「頁面資源」"
+    "message": "浮動顯示「頁面來源」"
   },
   "sourcePanelPopOutHelp": {
     "message": "顯示為可拖曳的浮動面板"
@@ -2148,13 +2148,13 @@
     "message": "複製目前篩選結果的 URL"
   },
   "sourcePanelCopyFilteredUrlsLabel": {
-    "message": "複製已篩選資源的 URL"
+    "message": "複製已篩選來源的 URL"
   },
   "sourcePanelFilterLabel": {
-    "message": "篩選頁面資源"
+    "message": "篩選頁面來源"
   },
   "sourcePanelSortLabel": {
-    "message": "資源排序"
+    "message": "排序來源"
   },
   "sourcePanelSortNewest": {
     "message": "最新"
@@ -2181,7 +2181,7 @@
     "message": "播放清單"
   },
   "sourcePanelNoMatches": {
-    "message": "沒有符合目前篩選條件的資源。"
+    "message": "沒有符合目前篩選條件的來源。"
   },
   "sourcePanelNoSources": {
     "message": "尚未偵測到頁面中的媒體或串流影片播放清單。"
@@ -2232,7 +2232,7 @@
     "message": "複製失敗"
   },
   "sourcePanelRowInstructions": {
-    "message": "Alt+按一下：儲存；在資源標題上按一下滑鼠右鍵：Save In"
+    "message": "Alt+按一下：儲存；在來源標題上按一下滑鼠右鍵：Save In"
   },
   "sourcePanelCopiedUrls": {
     "message": "已複製 $COUNT$ 個 URL",
@@ -2499,7 +2499,7 @@
   },
   "autoDownloadRulesHeading": { "message": "自動化規則" },
   "autoDownloadRulesHelp": {
-    "message": "每項規則都需要頁面條件、來源條件和目的地。首個符合項目優先。"
+    "message": "每項規則都需要頁面條件、來源條件和目的地。第一個相符的規則會執行。"
   },
   "autoDownloadEditorMode": { "message": "自動化規則編輯器模式" },
   "autoDownloadVisual": { "message": "視覺化" },
@@ -2525,12 +2525,14 @@
   "autoDownloadAddCondition": { "message": "新增條件" },
   "autoDownloadDestination": { "message": "儲存至" },
   "autoDownloadNewRule": { "message": "新規則" },
-  "ruleAutomaticMissingPage": { "message": "自動來源規則需要頁面條件" },
-  "ruleAutomaticMissingSource": { "message": "自動來源規則需要來源條件" },
+  "ruleAutomaticMissingPage": {
+    "message": "新增 pageurl:、pagedomain: 或 pagerootdomain: 條件"
+  },
+  "ruleAutomaticMissingSource": { "message": "新增來源位址、網域、類型或副檔名條件" },
   "autoDownloadRoutingBadge": { "message": "自動來源" },
   "autoDownloadManageRules": { "message": "開啟路由規則" },
   "autoDownloadRoutingHelp": {
-    "message": "自動規則與路由規則一起管理，並使用 context: auto。每項規則都需要頁面條件和來源條件。"
+    "message": "使用 context: auto 搭配頁面與來源條件來比對自動下載。第一個相符的規則會決定儲存位置。"
   },
   "html_openInFirefoxAddons": { "message": "在 Firefox Add-ons 中開啟" },
   "html_openInChromeWebStore": { "message": "在 Chrome Web Store 中開啟" },
@@ -2539,7 +2541,7 @@
     "message": "網站需要時，會暫時為完全符合的 Save In 要求加入頁面 URL 作為 Referer。"
   },
   "matchPatternInvalid": { "message": "無效的 WebExtension 比對模式" },
-  "regularExpressionInvalid": { "message": "無效的規則運算式" },
+  "regularExpressionInvalid": { "message": "無效的正規表示式" },
   "validationJumpToIssue": { "message": "跳至此問題" },
   "optionsKeepEditing": { "message": "繼續編輯" },
   "optionsDiscardChanges": { "message": "捨棄變更" },
@@ -2550,7 +2552,7 @@
   "referenceCaption": { "message": "參考" },
   "referenceColumnSyntax": { "message": "語法" },
   "referenceColumnExample": { "message": "範例" },
-  "referenceColumnMeaning": { "message": "含義" },
+  "referenceColumnMeaning": { "message": "說明" },
   "referenceResult": {
     "message": "$COUNT$ 筆結果",
     "placeholders": { "count": { "content": "$1", "example": "1" } }
@@ -2583,17 +2585,17 @@
   },
   "welcomePermissions": { "message": "為什麼需要這些權限？" },
   "welcomeCustomizeFolders": { "message": "自訂資料夾" },
-  "welcomeUseEmptyPreset": { "message": "使用空白預設" },
+  "welcomeUseEmptyPreset": { "message": "僅使用「下載」" },
   "welcomeEmptyPresetFailed": {
-    "message": "無法套用空白預設。初始資料夾未變更。"
+    "message": "無法切換為僅使用「下載」。您的資料夾未變更。"
   },
   "welcomeEmptyConfirmTitle": { "message": "取代目前的資料夾？" },
   "welcomeEmptyConfirmDescription": {
-    "message": "空白預設會取代目前的資料夾設定，只保留瀏覽器的下載目的地。"
+    "message": "這會取代目前的資料夾設定，只保留瀏覽器的「下載」目的地。"
   },
   "welcomeKeepCurrentFolders": { "message": "保留目前的資料夾" },
-  "welcomeUseStarterFolders": { "message": "開始使用 Save In" },
-  "welcomeUsingStarterSettings": { "message": "正在使用初始設定" },
+  "welcomeUseStarterFolders": { "message": "保留初始資料夾" },
+  "welcomeUsingStarterSettings": { "message": "剛剛" },
   "html_showWelcomeGuide": { "message": "顯示歡迎指南" },
   "advancedFilesDownloads": { "message": "檔案與下載" },
   "advancedMaintenanceDiagnostics": { "message": "維護與診斷" },

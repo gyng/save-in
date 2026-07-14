@@ -35,10 +35,10 @@
     "message": "Sparar bilder, videor, ljud, länkar, markerad text och sidor i mappar i din standardnedladdningsmapp."
   },
   "manifestActionListPageSources": {
-    "message": "Visa sidkällor"
+    "message": "Visa sidresurser"
   },
   "manifestCommandTogglePageSources": {
-    "message": "Visa eller dölj sidkällor"
+    "message": "Visa eller dölj sidresurser"
   },
   "translationCredits": {
     "message": "​"
@@ -177,7 +177,7 @@
     "message": "Sida"
   },
   "contextMenuShowDefaultFolder": {
-    "message": "Öppna standard nedladdningsmapp"
+    "message": "Öppna standardmappen för nedladdningar"
   },
   "notificationSuccessTitle": {
     "message": "Sparad"
@@ -207,7 +207,7 @@
     }
   },
   "ruleMissingMatcher": {
-    "message": "Lägg till minst ett matchningsvillkor"
+    "message": "Lägg till minst ett matchningsvillkor före into:"
   },
   "ruleCaptureMissingMatcher": {
     "message": "Capture-satsen riktar sig inte mot en matchare"
@@ -222,7 +222,7 @@
     "message": "En regel kan bara innehålla en fångstsats"
   },
   "ruleMissingInto": {
-    "message": "Lägg till minst en i: klausul"
+    "message": "Lägg till ett ifyllt mål med into:"
   },
   "ruleExtraInto": {
     "message": "En regel kan bara innehålla en i:-sats"
@@ -240,7 +240,7 @@
     "message": "Den här regeln körs aldrig eftersom en tidigare regel matchar samma eller flera nedladdningar"
   },
   "ruleBadClause": {
-    "message": "Ogiltig klausul"
+    "message": "Använd syntaxen namn: värde"
   },
   "rulePathInvalidCharacter": {
     "message": "Sökvägen innehåller ogiltiga tecken"
@@ -465,7 +465,7 @@
     "message": "Sökalternativ"
   },
   "o_lVariableList": {
-    "message": "Variabel lista"
+    "message": "Variabellista"
   },
   "o_lMenuPreview": {
     "message": "Menyförhandsgranskning"
@@ -474,7 +474,7 @@
     "message": "Aktuell variabellista"
   },
   "o_sVisualEditor": {
-    "message": "Visuell redaktör"
+    "message": "Visuell redigerare"
   },
   "o_bAddDirectory": {
     "message": "Mapp"
@@ -537,10 +537,10 @@
     "message": "Variabler"
   },
   "o_lRoutingVariablesClickToSee": {
-    "message": "Klicka för att avslöja"
+    "message": "Klicka för att visa"
   },
   "o_lAccessKeysInstruction": {
-    "message": "Ställ in åtkomstnycklar för Save In menyalternativ."
+    "message": "Ange åtkomsttangenter för menyalternativen i Save In."
   },
   "o_cLastUsedMenu": {
     "message": "Visa senast använda menyalternativ"
@@ -561,7 +561,7 @@
     "message": "Sparar endast siddokumentet; bilder, stilmallar och andra externa filer ingår inte."
   },
   "o_cSaveTabstrip": {
-    "message": "Visa Save In åtgärder i flikmenyn"
+    "message": "Visa Save In-åtgärder i flikmenyn"
   },
   "o_cSaveTabstripHelp": {
     "message": "Sparar en flik, flikgrupp eller flikar till höger"
@@ -582,7 +582,7 @@
     "message": "Skapa ett unikt namn"
   },
   "o_cDupeOverwrite": {
-    "message": "Skriva över"
+    "message": "Skriv över"
   },
   "o_cDupePrompt": {
     "message": "Fråga varje gång"
@@ -651,7 +651,7 @@
     "message": "Aktivera klicka för att spara"
   },
   "o_cKeyboardShortcutClickToHelp": {
-    "message": "Håll ned Alt som standard och klicka på en bild eller ett mediaobjekt för att spara det i den senast använda mappen eller standardmappen för nedladdning. Save In lägger till en klicklyssnare på sidor; vissa variabler är inte tillgängliga."
+    "message": "Håll ned Alt som standard och klicka på en bild eller ett mediaobjekt för att spara det i den senast använda mappen eller standardmappen för nedladdningar. Save In lägger till en klicklyssnare på sidor; vissa variabler är inte tillgängliga."
   },
   "o_cHostPermissionMissing": {
     "message": "Save In kan inte komma åt sidans innehåll. Ge åtkomst till alla webbplatser för att använda klicka för att spara."
@@ -660,13 +660,13 @@
     "message": "Bevilja åtkomst"
   },
   "o_cKeyboardShortcutModifierLeftClick": {
-    "message": "Vänsterklicka"
+    "message": "Vänsterklick"
   },
   "o_cKeyboardShortcutModifierMiddleClick": {
     "message": "Mellanklick"
   },
   "o_cKeyboardShortcutModifierRightClick": {
-    "message": "Högerklicka"
+    "message": "Högerklick"
   },
   "o_cKeyboardShortcutModifierBackClick": {
     "message": "Bakåtknapp (4)"
@@ -744,7 +744,7 @@
     "message": "Aldrig"
   },
   "optionsUnsavedChanges": {
-    "message": "Släng dina osparade ändringar eller fortsätta redigera?"
+    "message": "Vill du slänga dina osparade ändringar eller fortsätta redigera?"
   },
   "optionsEditorUnsaved": {
     "message": "Osparade ändringar"
@@ -777,7 +777,7 @@
     "message": "Inga valideringsfel"
   },
   "notificationLinkPreferred": {
-    "message": "Laddade ner länkmålet istället"
+    "message": "Länkmålet hämtades i stället"
   },
   "o_cPreferLinksFilterEnabled": {
     "message": "Endast på matchande sidor"
@@ -798,7 +798,7 @@
     "message": "Stäng varje flik när du har sparat den"
   },
   "o_lClickToSaveButton": {
-    "message": "Klicka för att spara musknapp"
+    "message": "Musknapp för Klicka för att spara"
   },
   "o_lDebugLog": {
     "message": "Felsökningslogg"
@@ -810,7 +810,7 @@
     "message": "Nedladdningshantering"
   },
   "o_sAdvancedCounter": {
-    "message": "Ladda ner räknare"
+    "message": "Nedladdningsräknare"
   },
   "o_sAdvancedBackupReset": {
     "message": "Säkerhetskopiera och återställa"
@@ -831,7 +831,7 @@
     "message": ", absoluta banor och dolda vägsegment som t.ex"
   },
   "html_add": {
-    "message": ". Lägg till en kommentar genom att skriva"
+    "message": ". Lägg till"
   },
   "html_addACommentThatIsNotDisplayed": {
     "message": "Lägg till en kommentar som inte visas"
@@ -852,7 +852,7 @@
     "message": "Tilldela en åtkomstnyckel"
   },
   "html_atTheEndForACommentStartWith": {
-    "message": "i slutet av raden. Skapa nästlade undermenyer genom att börja med"
+    "message": "i slutet för en kommentar; börja med"
   },
   "html_browsersOnlyLetExtensionsSaveInsideTheDefault": {
     "message": "Webbläsare tillåter bara tillägg att spara filer i webbläsarens förvalda"
@@ -906,7 +906,7 @@
     "message": "Insättningsreferenser"
   },
   "html_issues": {
-    "message": "frågor"
+    "message": "Ärenden"
   },
   "html_itself": {
     "message": "sig själv"
@@ -948,7 +948,7 @@
     "message": "Den"
   },
   "html_toCreateNestedSubmenusUsingOne": {
-    "message": "och lägg till ytterligare ett"
+    "message": "för att skapa nästlade undermenyer, med ett"
   },
   "html_toReachAnotherLocationCreateASymlinkInsideDownloads": {
     "message": ". För att nå en annan plats, skapa en symbollänk i Downloads och använd den relativa symbollänkssökvägen som en destination. Målmappen måste redan finnas."
@@ -1149,7 +1149,7 @@
     "message": "Andra modifierartangenten"
   },
   "html_selection": {
-    "message": "Urval"
+    "message": "Markerad text"
   },
   "html_shift": {
     "message": "Shift"
@@ -1161,7 +1161,7 @@
     "message": "Kortkommando"
   },
   "html_streamHls3": {
-    "message": "Streama · HLS · #3"
+    "message": "Ström · HLS · #3"
   },
   "html_tab": {
     "message": "Tab"
@@ -1317,7 +1317,7 @@
     "message": "Var detta fungerar"
   },
   "html_askTheCommunity": {
-    "message": "Fråga samhället"
+    "message": "Fråga communityn"
   },
   "html_aVeryDiligentOrganizer": {
     "message": "En mycket flitig arrangör"
@@ -1338,7 +1338,7 @@
     "message": "Stäng Om Save In"
   },
   "html_closeReferences": {
-    "message": "Nära referenser"
+    "message": "Stäng referenser"
   },
   "html_contextMenus": {
     "message": "Snabbmenyer"
@@ -1374,7 +1374,7 @@
     "message": "Laddar variabler…"
   },
   "html_luckyOrganizingCat": {
-    "message": "Tur att organisera katt"
+    "message": "Organiserande lyckokatt"
   },
   "html_messageFirstOrASmallRelayExtensionMustDo": {
     "message": " till Save In, eller så måste ett litet relätillägg göra det. Video DownloadHelper erbjuder inget stabilt integrations-API som Save In kan anropa direkt."
@@ -1398,7 +1398,7 @@
     "message": "Rapportera ett problem"
   },
   "html_reportsCompletedSavesAndActionableFailuresWhenEnabled": {
-    "message": "Rapporterar slutförda besparingar och åtgärdsbara misslyckanden när aktiverat."
+    "message": "Rapporterar slutförda sparningar och fel som går att åtgärda när funktionen är aktiverad."
   },
   "html_saveInDoesNotAdoptDownloadsThatAnotherExtension": {
     "message": "Save In tar inte över nedladdningar som ett annat tillägg redan har startat, inklusive Video DownloadHelper. Nedladdningstillägget måste först skicka ett meddelande av typen"
@@ -1407,7 +1407,7 @@
     "message": "Save In har ingen analys, reklam, utvecklarstyrd server eller fjärrkörbar kod. Inställningar och historik finns kvar i webbläsarhanterad tilläggslagring."
   },
   "html_saveInIsALocalFirstDownloadsHelperFor": {
-    "message": "Save In är en lokalt körd nedladdningshjälp som ordnar filer med mappar i snabbmenyn, routningsregler, namnbyte, sidkällor och nedladdningshistorik."
+    "message": "Save In är en lokalt körd nedladdningshjälp som ordnar filer med mappar i snabbmenyn, routningsregler, namnbyte, sidresurser och nedladdningshistorik."
   },
   "html_saveInRegistersToolsAnAiAgentCanCall": {
     "message": ", Save In registrerar verktyg som en AI-agent kan anropa medan den här alternativsidan är öppen – för att ändra inställningar, bygga mappmenyer och skriva routningsregler."
@@ -1416,10 +1416,10 @@
     "message": "Visar Save In-kommandon på sidor, länkar, media och flikar."
   },
   "html_startsSavesChoosesFilenamesMonitorsResultsAndSupportsRetries": {
-    "message": "Startar sparar, väljer filnamn, övervakar resultat och stöder återförsök."
+    "message": "Påbörjar sparningar, väljer filnamn, övervakar resultat och stöder nya försök."
   },
   "html_storage": {
-    "message": "Förvaring"
+    "message": "Lagring"
   },
   "html_theSessionLogBelowAlwaysKeepsASmallLocal": {
     "message": "Sessionsloggen sparar alltid en liten lokal historik över de senaste felen. Aktivera den bara vid felsökning med webbläsarens utvecklarkonsol; den lägger till utförlig intern information och återgår till den sparade inställningen efter omstart."
@@ -1464,7 +1464,7 @@
     "message": "Aktuell veckodag (engelska)"
   },
   "html_currentHour24Hour": {
-    "message": "Aktuell timme (24 timmar)"
+    "message": "Aktuell timme (24-timmarsformat)"
   },
   "html_currentMinute": {
     "message": "Aktuell minut"
@@ -1473,10 +1473,10 @@
     "message": "Aktuell månad"
   },
   "html_currentMonthNameEnglish": {
-    "message": "Aktuell månadsnamn (engelska)"
+    "message": "Den aktuella månadens namn (engelska)"
   },
   "html_currentSecond": {
-    "message": "Aktuell tvåa"
+    "message": "Aktuell sekund"
   },
   "html_currentYear": {
     "message": "Innevarande år"
@@ -1539,7 +1539,7 @@
     "message": "Faktiskt löst filnamnstillägg. Alias:"
   },
   "html_aRandomV4UuidUniquePerUse": {
-    "message": "Ett slumpmässigt v4 UUID, unikt per användning"
+    "message": "Ett slumpmässigt UUID av version 4, unikt för varje användning"
   },
   "html_autoIncrementingNumberThatAdvancesOncePerSavedDownload": {
     "message": "Antal som ökar efter varje sparad nedladdning och kvarstår vid omstarter. Visa eller återställ den under Nedladdningsräknare."
@@ -1566,7 +1566,7 @@
     "message": "De första 12 gemena hexadecimala tecknen i den nedladdade filens SHA-256. När värdet förbereds hämtas och hashas filen före sparandet, så värdet är tomt i förhandsgranskningar eller när det inte är tillgängligt. Nedladdningen fortsätter om hashningen misslyckas. Du kan avbryta en lång förberedelse från Historik."
   },
   "html_full64CharacterLowercaseSha256ItSharesThe": {
-    "message": "Hela 64-teckens gemener SHA-256. Det beräknas tillsammans med"
+    "message": "Fullständigt SHA-256 med 64 gemena tecken. Det beräknas tillsammans med"
   },
   "html_fullActualFilenameAfterContentDisposition": {
     "message": "Löst filnamn, inklusive Content-Disposition"
@@ -1620,7 +1620,7 @@
     "message": "i nya regler."
   },
   "html_matcherClausesUse": {
-    "message": "Matcher-klausuler används"
+    "message": "Matchningssatser använder"
   },
   "html_matchers": {
     "message": "Matchare"
@@ -1668,7 +1668,7 @@
     "message": "Matchar det URL-härledda tillägget (äldre namn). Använd"
   },
   "html_matchesTheUrlOfTheCurrentFrame": {
-    "message": "Matchar den aktuella ram-URL."
+    "message": "Matchar den aktuella ramens URL."
   },
   "html_matchesWhatIsClicked": {
     "message": "Matchar det som klickades på:"
@@ -1677,7 +1677,7 @@
     "message": ", eller"
   },
   "html_outputAndCapture": {
-    "message": "Utdata och fånga"
+    "message": "Utdata och fångst"
   },
   "html_regularExpression": {
     "message": "reguljära uttryck"
@@ -1692,16 +1692,16 @@
     "message": "Flyttar en nedladdning till den angivna sökvägen eller byter namn på den enligt det angivna mönstret. Avsluta mönstret med"
   },
   "html_selectsTheMatcherForRegexCaptureGroupVariables": {
-    "message": "Väljer matcharen vars infångningsgrupper med reguljära uttryck är tillgängliga som"
+    "message": "Väljer matcharen vars fångstgrupper för reguljära uttryck är tillgängliga som"
   },
   "html_splitMultipleCaptureTargetsWithA": {
-    "message": ". Separera flera fånga mål med"
+    "message": ". Skilj flera fångstmål åt med"
   },
   "html_captureClauseCompatibility": {
     "message": "Använd capturegroups: för löpande gruppnumrering mellan matchningssatser. capture: bevarar den äldre platta indexlayouten."
   },
   "html_stringsAddJavascriptRegexFlagsAfterTheMatcherName": {
-    "message": ". Lägg till JavaScript-flaggor efter matchningsnamnet; till exempel använda"
+    "message": ". Lägg till JavaScript-flaggor efter matchningsnamnet; använd till exempel"
   },
   "html_toRouteIntoAFolder": {
     "message": "för att flytta filen till en mapp"
@@ -2168,7 +2168,7 @@
     "message": "Dra i det prickade handtaget. Släpp raden ovanför eller nedanför en annan rad för att placera den på samma nivå, eller på raden för att nästla den inuti."
   },
   "routeDebuggerTitle": {
-    "message": "Testa dirigeringsregler"
+    "message": "Testa routningsregler"
   },
   "routeDebuggerUseSource": { "message": "Använd" },
   "routeDebuggerLatestDownload": { "message": "Senaste" },
@@ -2198,7 +2198,7 @@
     "message": "Testa regler"
   },
   "routeDebuggerNoMatch": {
-    "message": "Ingen dirigeringsregel matchar."
+    "message": "Ingen routningsregel matchade."
   },
   "routeDebuggerOneRuleMatched": {
     "message": "$COUNT$ regel matchade och användes.",
@@ -2213,7 +2213,7 @@
     "placeholders": { "count": { "content": "$1", "example": "2" } }
   },
   "routeDebuggerMatched": {
-    "message": "Regel $NUMBER$ matchar.",
+    "message": "Regel $NUMBER$ matchade.",
     "placeholders": {
       "number": {
         "content": "$1",
@@ -2240,13 +2240,13 @@
     "message": "Använd"
   },
   "routeDebuggerAlsoMatches": {
-    "message": "Matchar, används inte"
+    "message": "Matchade, användes inte"
   },
   "routeDebuggerDidNotMatch": {
-    "message": "Villkoren är inte uppfyllda"
+    "message": "Villkoren uppfylldes inte"
   },
   "routeDebuggerRunning": {
-    "message": "Testar dirigeringsregler…"
+    "message": "Testar routningsregler…"
   },
   "routeDebuggerFixErrors": {
     "message": "Åtgärda de markerade routningsproblemen före testning. Antal: $COUNT$.",
@@ -2258,10 +2258,10 @@
     }
   },
   "routeDebuggerUnavailable": {
-    "message": "Det gick inte att testa dirigeringsreglerna."
+    "message": "Det gick inte att testa routningsreglerna."
   },
   "routeDebuggerNoLastDownload": {
-    "message": "Det finns ingen aktuell hämtning."
+    "message": "Ingen nyligen gjord nedladdning är tillgänglig."
   },
   "routeDebuggerClear": {
     "message": "Rensa"
@@ -2288,7 +2288,7 @@
     "message": "Alla medietyper"
   },
   "routeDebuggerMatcherCount": {
-    "message": "$MATCHED$ av $TOTAL$ villkor matchar",
+    "message": "$MATCHED$ av $TOTAL$ villkor uppfyllda",
     "placeholders": {
       "matched": {
         "content": "$1",
@@ -2310,7 +2310,7 @@
     }
   },
   "routeVisualEditorMode": {
-    "message": "Läge för redigeraren av dirigeringsregler"
+    "message": "Läge för redigeraren av routningsregler"
   },
   "routeVisualAddRule": {
     "message": "Lägg till regel"
@@ -2398,7 +2398,7 @@
     "message": "Lägg till villkor"
   },
   "routeVisualEmpty": {
-    "message": "Det finns inga dirigeringsregler än. Lägg till en regel för att komma igång."
+    "message": "Det finns inga routningsregler än. Lägg till en regel för att komma igång."
   },
   "visualEditorEnabled": { "message": "Aktiverad" },
   "html_disableThisDestinationAndItsChildren": {
@@ -2409,7 +2409,7 @@
   },
   "autoDownloadHeading": { "message": "Spara källor automatiskt" },
   "autoDownloadHelp": {
-    "message": "Spara nyupptäckta sidkällor endast när en aktiverad regel matchar både sidan och källan."
+    "message": "Spara nyupptäckta sidresurser endast när en aktiverad regel matchar både sidan och källan."
   },
   "autoDownloadEnabled": { "message": "Spara träffar automatiskt" },
   "autoDownloadLive": { "message": "Bevaka källor som läggs till efter att sidan har lästs in" },
@@ -2451,9 +2451,9 @@
   "ruleAutomaticMissingPage": { "message": "Automatiska källregler behöver ett sidvillkor" },
   "ruleAutomaticMissingSource": { "message": "Automatiska källregler behöver ett källvillkor" },
   "autoDownloadRoutingBadge": { "message": "Automatisk källa" },
-  "autoDownloadManageRules": { "message": "Öppna dirigeringsregler" },
+  "autoDownloadManageRules": { "message": "Öppna routningsregler" },
   "autoDownloadRoutingHelp": {
-    "message": "Automatiska regler hanteras tillsammans med routningsreglerna och använder context: auto. Varje regel behöver sid- och källvillkor."
+    "message": "Använd context: auto med sid- och källvillkor för att matcha automatiska nedladdningar. Den första matchande regeln anger var filerna sparas."
   },
   "html_openInFirefoxAddons": { "message": "Öppna i Firefox Add-ons" },
   "html_openInChromeWebStore": { "message": "Öppna i Chrome Web Store" },
@@ -2465,7 +2465,7 @@
   "regularExpressionInvalid": { "message": "Ogiltigt reguljärt uttryck" },
   "validationJumpToIssue": { "message": "Gå till det här problemet" },
   "optionsKeepEditing": { "message": "Fortsätt redigera" },
-  "optionsDiscardChanges": { "message": "Ignorera ändringar" },
+  "optionsDiscardChanges": { "message": "Kassera ändringar" },
   "restoreDefaultsConfirm": {
     "message": "Återställa alla inställningar till standardvärdena? Nedladdningshistoriken behålls."
   },
@@ -2506,21 +2506,21 @@
     "message": "Startmapparna är nu aktiva. Du kan anpassa dem när som helst."
   },
   "welcomeToolbarNote": {
-    "message": "Verktygsfältsknappen öppnar Sidkällor för att hitta media på den aktuella sidan."
+    "message": "Verktygsfältsknappen öppnar Sidresurser för att hitta media på den aktuella sidan."
   },
   "welcomePermissions": { "message": "Varför behövs dessa behörigheter?" },
   "welcomeCustomizeFolders": { "message": "Anpassa mappar" },
-  "welcomeUseEmptyPreset": { "message": "Använd tom förinställning" },
+  "welcomeUseEmptyPreset": { "message": "Använd endast Nedladdningar" },
   "welcomeEmptyPresetFailed": {
-    "message": "Det gick inte att använda den tomma förinställningen. Dina startmappar är oförändrade."
+    "message": "Det gick inte att endast använda Nedladdningar. Dina mappar har inte ändrats."
   },
   "welcomeEmptyConfirmTitle": { "message": "Ersätta nuvarande mappar?" },
   "welcomeEmptyConfirmDescription": {
-    "message": "Den tomma förinställningen ersätter din nuvarande mappkonfiguration och behåller bara webbläsarens hämtningsmål."
+    "message": "Detta ersätter din nuvarande mappkonfiguration och behåller endast webbläsarens mål för nedladdningar."
   },
   "welcomeKeepCurrentFolders": { "message": "Behåll nuvarande mappar" },
-  "welcomeUseStarterFolders": { "message": "Börja använda Save In" },
-  "welcomeUsingStarterSettings": { "message": "Använder startinställningar" },
+  "welcomeUseStarterFolders": { "message": "Behåll startmapparna" },
+  "welcomeUsingStarterSettings": { "message": "Nyss" },
   "html_showWelcomeGuide": { "message": "Visa välkomstguiden" },
   "advancedFilesDownloads": { "message": "Filer och hämtningar" },
   "advancedMaintenanceDiagnostics": { "message": "Underhåll och diagnostik" },
