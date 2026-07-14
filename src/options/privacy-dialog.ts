@@ -26,17 +26,20 @@ const renderPrivacyMarkdown = (container: HTMLElement, markdown: string) => {
   let index = 0;
 
   while (index < lines.length) {
-    const line = lines[index]!;
+    const line = lines[index];
+    if (line === undefined) break;
     if (!line.trim()) {
       index += 1;
       continue;
     }
 
     const heading = /^(#{1,6})\s+(.+)$/.exec(line);
-    if (heading) {
-      const level = heading[1]!.length;
+    const headingMarks = heading?.[1];
+    const headingText = heading?.[2];
+    if (headingMarks && headingText) {
+      const level = headingMarks.length;
       const element = document.createElement(`h${level}` as "h1");
-      appendLinkedText(element, heading[2]!);
+      appendLinkedText(element, headingText);
       rendered.append(element);
       index += 1;
       continue;
@@ -44,9 +47,11 @@ const renderPrivacyMarkdown = (container: HTMLElement, markdown: string) => {
 
     if (/^[-*]\s+/.test(line)) {
       const list = document.createElement("ul");
-      while (index < lines.length && /^[-*]\s+/.test(lines[index]!)) {
+      for (;;) {
+        const itemLine = lines[index];
+        if (itemLine === undefined || !/^[-*]\s+/.test(itemLine)) break;
         const item = document.createElement("li");
-        appendLinkedText(item, lines[index]!.replace(/^[-*]\s+/, ""));
+        appendLinkedText(item, itemLine.replace(/^[-*]\s+/, ""));
         list.append(item);
         index += 1;
       }
@@ -56,12 +61,15 @@ const renderPrivacyMarkdown = (container: HTMLElement, markdown: string) => {
 
     const paragraphLines = [line.trim()];
     index += 1;
-    while (
-      index < lines.length &&
-      lines[index]!.trim() &&
-      !/^(#{1,6}|[-*])\s+/.test(lines[index]!)
-    ) {
-      paragraphLines.push(lines[index]!.trim());
+    for (;;) {
+      const paragraphLine = lines[index];
+      if (
+        paragraphLine === undefined ||
+        !paragraphLine.trim() ||
+        /^(#{1,6}|[-*])\s+/.test(paragraphLine)
+      )
+        break;
+      paragraphLines.push(paragraphLine.trim());
       index += 1;
     }
     const paragraph = document.createElement("p");
@@ -96,7 +104,7 @@ export const setupPrivacyDialog = () => {
         link.href = privacyUrl;
         link.target = "_blank";
         link.rel = "noreferrer";
-        link.textContent = open.textContent!.trim() || "Privacy policy";
+        link.textContent = open.textContent?.trim() || "Privacy policy";
         const paragraph = document.createElement("p");
         paragraph.append(link);
         content.replaceChildren(paragraph);
