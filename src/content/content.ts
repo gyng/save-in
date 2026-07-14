@@ -135,7 +135,6 @@ const sendRuntimeDownload = (
   retries = 2,
   lifecycle?: DownloadLifecycle,
 ) => {
-  if (lifecycle?.signal.aborted) return;
   try {
     chrome.runtime.sendMessage({ type: "DOWNLOAD", body }, () => {
       if (chrome.runtime.lastError && retries > 0) {
@@ -280,9 +279,9 @@ const setupAutoDownload = (options: ContentOptions) => {
     });
 
   const discovery = setupAutoDownloadDiscovery({
-    rules: options.filenamePatterns || "",
+    rules: options.filenamePatterns!,
     live: options.autoDownloadLive !== false,
-    maxPerPage: options.autoDownloadMaxPerPage || CONTENT_OPTION_DEFAULTS.autoDownloadMaxPerPage,
+    maxPerPage: options.autoDownloadMaxPerPage!,
     send,
   });
   return () => {
@@ -420,7 +419,6 @@ try {
     });
   };
   const resolvedPanelCopies = new Map<string, SourcePanelCopy>();
-  const pendingPanelCopies = new Map<string, Promise<SourcePanelCopy>>();
   const nativePanelCopy = () =>
     createSourcePanelCopy((key, substitutions) => chrome.i18n.getMessage(key, substitutions));
   const isSourcePanelCopy = (value: unknown): value is SourcePanelCopy =>
@@ -434,14 +432,12 @@ try {
   const loadPanelCopy = (locale: string): Promise<SourcePanelCopy> => {
     const cached = resolvedPanelCopies.get(locale);
     if (cached) return Promise.resolve(cached);
-    const pending = pendingPanelCopies.get(locale);
-    if (pending) return pending;
     if (!locale || locale === "en") {
       const copy = nativePanelCopy();
       resolvedPanelCopies.set(locale, copy);
       return Promise.resolve(copy);
     }
-    const request = new Promise<SourcePanelCopy>((resolve) => {
+    return new Promise<SourcePanelCopy>((resolve) => {
       try {
         chrome.runtime.sendMessage({ type: "SOURCE_PANEL_COPY" }, (response) => {
           void chrome.runtime.lastError;
@@ -455,12 +451,9 @@ try {
         resolve(DEFAULT_SOURCE_PANEL_COPY);
       }
     }).then((copy) => {
-      pendingPanelCopies.delete(locale);
       resolvedPanelCopies.set(locale, copy);
       return copy;
     });
-    pendingPanelCopies.set(locale, request);
-    return request;
   };
   let sourcePanelIsOpen = false;
   let sourcePanelForcedOpen = false;
@@ -476,7 +469,7 @@ try {
     locale:
       locale ||
       (typeof chrome.i18n.getUILanguage === "function" ? chrome.i18n.getUILanguage() : ""),
-    theme: currentOptions.uiTheme || "system",
+    theme: currentOptions.uiTheme!,
     onSaveIntent: warmBackground,
     onOpenChange: (open: boolean) => {
       sourcePanelIsOpen = open;

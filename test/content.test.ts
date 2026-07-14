@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { vi } from "vitest";
+import { DEFAULT_SOURCE_PANEL_COPY } from "../src/shared/source-panel-copy.ts";
 
 const ClickToSave = (await import("../src/content/content.ts")).default;
 
@@ -31,6 +32,18 @@ describe("findSource", () => {
         false,
       ),
     ).toBe("http://x.test/path.png");
+  });
+
+  test("finds a composed-path link when the event target is not an element", () => {
+    document.body.innerHTML = '<a id="link" href="https://example.test/file.pdf">file</a>';
+    const link = document.querySelector<HTMLAnchorElement>("#link")!;
+
+    expect(
+      ClickToSave.findSource(
+        { ...event(window), composedPath: () => [window, link, document] },
+        true,
+      ),
+    ).toBe("https://example.test/file.pdf");
   });
 
   test("finds media below an overlay via elementsFromPoint", () => {
@@ -222,6 +235,181 @@ describe("content.js initialisation", () => {
     );
   });
 
+  test("retries automatic saves and accepts a started response", async () => {
+    vi.useFakeTimers();
+    vi.resetModules();
+    document.body.innerHTML = '<img src="https://cdn.test/automatic.png">';
+    let attempts = 0;
+    global.chrome.runtime.sendMessage = vi.fn((message, callback) => {
+      if (message.type === "AUTO_DOWNLOAD_SOURCE") {
+        attempts += 1;
+        if (attempts < 3) {
+          (global.chrome.runtime as any).lastError = { message: "worker starting" };
+          callback?.();
+          delete (global.chrome.runtime as any).lastError;
+        } else {
+          callback?.({ body: { status: "started" } });
+        }
+        return;
+      }
+      callback?.();
+    }) as any;
+    global.chrome.runtime.onMessage.addListener = vi.fn();
+    global.chrome.storage.local.get = vi.fn((_keys, callback) =>
+      callback({
+        autoDownloadEnabled: true,
+        autoDownloadLive: false,
+        filenamePatterns:
+          "context: ^auto$\npageurl: ^http://localhost/\nsourceurl: automatic\\.png$\ninto: automatic/",
+      }),
+    ) as any;
+    (global.chrome.storage as any).onChanged = { addListener: vi.fn() };
+
+    await import("../src/content/content.ts");
+    await vi.runAllTicks();
+    await vi.advanceTimersByTimeAsync(600);
+
+    expect(attempts).toBe(3);
+  });
+
+  test("tears down a pending automatic save when the option is disabled", async () => {
+    vi.resetModules();
+    document.body.innerHTML =
+      '<img src="https://cdn.test/automatic.png"><img src="https://cdn.test/automatic-2.png">';
+    let storageListener: ((changes: Record<string, any>, area: string) => void) | undefined;
+    global.chrome.runtime.sendMessage = vi.fn((message, callback) => {
+      if (message.type !== "AUTO_DOWNLOAD_SOURCE") callback?.();
+    }) as any;
+    global.chrome.runtime.onMessage.addListener = vi.fn();
+    global.chrome.storage.local.get = vi.fn((_keys, callback) =>
+      callback({
+        autoDownloadEnabled: true,
+        autoDownloadLive: false,
+        filenamePatterns:
+          "context: ^auto$\npageurl: ^http://localhost/\nsourceurl: automatic\\.png$\ninto: automatic/",
+      }),
+    ) as any;
+    (global.chrome.storage as any).onChanged = {
+      addListener: vi.fn((listener) => {
+        storageListener = listener;
+      }),
+    };
+    await import("../src/content/content.ts");
+    await vi.waitFor(() =>
+      expect(global.chrome.runtime.sendMessage).toHaveBeenCalledWith(
+        expect.objectContaining({ type: "AUTO_DOWNLOAD_SOURCE" }),
+        expect.any(Function),
+      ),
+    );
+
+    storageListener!({ autoDownloadEnabled: { newValue: false } }, "local");
+    await Promise.resolve();
+
+    expect(storageListener).toBeTypeOf("function");
+  });
+
+  test("clears a scheduled automatic-save retry when disabled", async () => {
+    vi.useFakeTimers();
+    vi.resetModules();
+    document.body.innerHTML = '<img src="https://cdn.test/automatic.png">';
+    let storageListener: ((changes: Record<string, any>, area: string) => void) | undefined;
+    global.chrome.runtime.sendMessage = vi.fn((message, callback) => {
+      if (message.type === "AUTO_DOWNLOAD_SOURCE") {
+        (global.chrome.runtime as any).lastError = { message: "worker starting" };
+        callback?.();
+        delete (global.chrome.runtime as any).lastError;
+      } else callback?.();
+    }) as any;
+    global.chrome.runtime.onMessage.addListener = vi.fn();
+    global.chrome.storage.local.get = vi.fn((_keys, callback) =>
+      callback({
+        autoDownloadEnabled: true,
+        autoDownloadLive: false,
+        filenamePatterns:
+          "context: ^auto$\npageurl: ^http://localhost/\nsourceurl: automatic\\.png$\ninto: automatic/",
+      }),
+    ) as any;
+    (global.chrome.storage as any).onChanged = {
+      addListener: vi.fn((listener) => {
+        storageListener = listener;
+      }),
+    };
+    await import("../src/content/content.ts");
+    await vi.runAllTicks();
+
+    storageListener!({ autoDownloadEnabled: { newValue: false } }, "local");
+    await vi.advanceTimersByTimeAsync(300);
+
+    expect(
+      vi
+        .mocked(global.chrome.runtime.sendMessage)
+        .mock.calls.filter(([message]) => (message as any)?.type === "AUTO_DOWNLOAD_SOURCE"),
+    ).toHaveLength(1);
+  });
+
+  test("contains a synchronous automatic-save messaging failure", async () => {
+    vi.resetModules();
+    document.body.innerHTML = '<img src="https://cdn.test/automatic.png">';
+    global.chrome.runtime.sendMessage = vi.fn((message, callback) => {
+      if (message.type === "AUTO_DOWNLOAD_SOURCE") throw new Error("context invalidated");
+      callback?.();
+    }) as any;
+    global.chrome.runtime.onMessage.addListener = vi.fn();
+    global.chrome.storage.local.get = vi.fn((_keys, callback) =>
+      callback({
+        autoDownloadEnabled: true,
+        autoDownloadLive: false,
+        filenamePatterns:
+          "context: ^auto$\npageurl: ^http://localhost/\nsourceurl: automatic\\.png$\ninto: automatic/",
+      }),
+    ) as any;
+    (global.chrome.storage as any).onChanged = { addListener: vi.fn() };
+
+    await expect(import("../src/content/content.ts")).resolves.toBeDefined();
+  });
+
+  test("skips discovery sends that arrive after automatic saving is torn down", async () => {
+    vi.resetModules();
+    let discoverySend:
+      | ((candidate: {
+          pageUrl: string;
+          sourceUrl: string;
+          sourceKind: "image";
+        }) => Promise<string>)
+      | undefined;
+    vi.doMock("../src/content/auto-download.ts", () => ({
+      setupAutoDownloadDiscovery: vi.fn((options) => {
+        discoverySend = options.send;
+        return { stop: vi.fn() };
+      }),
+    }));
+    let storageListener: ((changes: Record<string, any>, area: string) => void) | undefined;
+    global.chrome.runtime.sendMessage = vi.fn((_message, callback) => callback?.()) as any;
+    global.chrome.runtime.onMessage.addListener = vi.fn();
+    global.chrome.storage.local.get = vi.fn((_keys, callback) =>
+      callback({
+        autoDownloadEnabled: true,
+        filenamePatterns: "context: ^auto$\npageurl: .\nsourceurl: .\ninto: automatic/",
+      }),
+    ) as any;
+    (global.chrome.storage as any).onChanged = {
+      addListener: vi.fn((listener) => {
+        storageListener = listener;
+      }),
+    };
+    await import("../src/content/content.ts");
+    storageListener!({ autoDownloadEnabled: { newValue: false } }, "local");
+
+    await expect(
+      discoverySend!({
+        pageUrl: "http://localhost/",
+        sourceUrl: "https://cdn.test/late.png",
+        sourceKind: "image",
+      }),
+    ).resolves.toBe("skipped");
+    vi.doUnmock("../src/content/auto-download.ts");
+  });
+
   test("does not scan page sources when automatic saving is disabled", async () => {
     document.body.innerHTML = '<img src="https://cdn.test/automatic.png">';
     await importContentWithOptions({
@@ -260,6 +448,198 @@ describe("content.js initialisation", () => {
     expect(document.getElementById("save-in-source-panel")).not.toBeNull();
   });
 
+  test("loads, caches, and applies translated Page Sources copy", async () => {
+    let runtimeListener: ((message: any) => void) | undefined;
+    vi.resetModules();
+    global.chrome.runtime.sendMessage = vi.fn((message, callback) => {
+      if (message.type === "SOURCE_PANEL_COPY") {
+        callback?.({
+          type: "SOURCE_PANEL_COPY",
+          body: { ...DEFAULT_SOURCE_PANEL_COPY, title: "Sources traduites" },
+        });
+      } else callback?.();
+    }) as any;
+    global.chrome.runtime.onMessage.addListener = vi.fn((listener) => {
+      runtimeListener = listener;
+    });
+    global.chrome.storage.local.get = vi.fn((_keys, callback) =>
+      callback({ sourcePanelEnabled: true, sourcePanelBackgrounds: false, uiLocale: "fr" }),
+    ) as any;
+    (global.chrome.storage as any).onChanged = { addListener: vi.fn() };
+    await import("../src/content/content.ts");
+
+    runtimeListener!({ type: "SET_SOURCE_PANEL", body: { open: true } });
+    await vi.waitFor(() =>
+      expect(
+        document.getElementById("save-in-source-panel")?.shadowRoot?.querySelector("h2")
+          ?.textContent,
+      ).toBe("Sources traduites"),
+    );
+    document.getElementById("save-in-source-panel")?.remove();
+    runtimeListener!({ type: "SET_SOURCE_PANEL", body: { open: true } });
+    await vi.waitFor(() => expect(document.getElementById("save-in-source-panel")).not.toBeNull());
+
+    expect(
+      vi
+        .mocked(global.chrome.runtime.sendMessage)
+        .mock.calls.filter(([message]) => (message as any)?.type === "SOURCE_PANEL_COPY"),
+    ).toHaveLength(1);
+  });
+
+  test("uses the latest locale when localization changes during a request", async () => {
+    let runtimeListener: ((message: any) => void) | undefined;
+    let storageListener: ((changes: Record<string, any>, area: string) => void) | undefined;
+    let copyCallback: ((response: unknown) => void) | undefined;
+    vi.resetModules();
+    global.chrome.runtime.sendMessage = vi.fn((message, callback) => {
+      if (message.type === "SOURCE_PANEL_COPY") copyCallback = callback;
+      else callback?.();
+    }) as any;
+    global.chrome.runtime.onMessage.addListener = vi.fn((listener) => {
+      runtimeListener = listener;
+    });
+    global.chrome.storage.local.get = vi.fn((_keys, callback) =>
+      callback({ sourcePanelEnabled: true, sourcePanelBackgrounds: false, uiLocale: "fr" }),
+    ) as any;
+    (global.chrome.storage as any).onChanged = {
+      addListener: vi.fn((listener) => {
+        storageListener = listener;
+      }),
+    };
+    await import("../src/content/content.ts");
+    runtimeListener!({ type: "SET_SOURCE_PANEL", body: { open: true } });
+    await vi.waitFor(() => expect(copyCallback).toBeTypeOf("function"));
+    storageListener!({ uiLocale: { oldValue: "fr", newValue: "en" } }, "local");
+
+    copyCallback!({
+      type: "SOURCE_PANEL_COPY",
+      body: { ...DEFAULT_SOURCE_PANEL_COPY, title: "Ancien titre" },
+    });
+
+    await vi.waitFor(() =>
+      expect(
+        document.getElementById("save-in-source-panel")?.shadowRoot?.querySelector("h2")
+          ?.textContent,
+      ).toBe("Translated<o_sPageSources>"),
+    );
+  });
+
+  test("reuses native copy when a pending translation reverts to the default locale", async () => {
+    let runtimeListener: ((message: any) => void) | undefined;
+    let storageListener: ((changes: Record<string, any>, area: string) => void) | undefined;
+    let copyCallback: ((response: unknown) => void) | undefined;
+    vi.resetModules();
+    const getUILanguage = global.chrome.i18n.getUILanguage;
+    Reflect.deleteProperty(global.chrome.i18n, "getUILanguage");
+    global.chrome.runtime.sendMessage = vi.fn((message, callback) => {
+      if (message.type === "SOURCE_PANEL_COPY") copyCallback = callback;
+      else callback?.();
+    }) as any;
+    global.chrome.runtime.onMessage.addListener = vi.fn((listener) => {
+      runtimeListener = listener;
+    });
+    global.chrome.storage.local.get = vi.fn((_keys, callback) =>
+      callback({ sourcePanelEnabled: true, sourcePanelBackgrounds: false, uiLocale: "" }),
+    ) as any;
+    (global.chrome.storage as any).onChanged = {
+      addListener: vi.fn((listener) => {
+        storageListener = listener;
+      }),
+    };
+    await import("../src/content/content.ts");
+    runtimeListener!({ type: "SET_SOURCE_PANEL", body: { open: true } });
+    await Promise.resolve();
+    runtimeListener!({ type: "SET_SOURCE_PANEL", body: { open: false } });
+    storageListener!({ uiLocale: { oldValue: "", newValue: "fr" } }, "local");
+    runtimeListener!({ type: "SET_SOURCE_PANEL", body: { open: true } });
+    await vi.waitFor(() => expect(copyCallback).toBeTypeOf("function"));
+    storageListener!({ uiLocale: { oldValue: "fr", newValue: "" } }, "local");
+
+    copyCallback!({ type: "SOURCE_PANEL_COPY", body: DEFAULT_SOURCE_PANEL_COPY });
+    await vi.waitFor(() =>
+      expect(document.getElementById("save-in-source-panel")?.classList).not.toContain("closing"),
+    );
+
+    global.chrome.i18n.getUILanguage = getUILanguage;
+  });
+
+  test("contains an exception raised while applying asynchronous panel copy", async () => {
+    let runtimeListener: ((message: any) => void) | undefined;
+    vi.resetModules();
+    global.chrome.runtime.sendMessage = vi.fn((message, callback) => {
+      if (message.type === "SOURCE_PANEL_COPY") {
+        callback?.({ type: "SOURCE_PANEL_COPY", body: DEFAULT_SOURCE_PANEL_COPY });
+      } else callback?.();
+    }) as any;
+    global.chrome.runtime.onMessage.addListener = vi.fn((listener) => {
+      runtimeListener = listener;
+    });
+    global.chrome.storage.local.get = vi.fn((_keys, callback) =>
+      callback({ sourcePanelEnabled: true, sourcePanelBackgrounds: false, uiLocale: "fr" }),
+    ) as any;
+    (global.chrome.storage as any).onChanged = { addListener: vi.fn() };
+    await import("../src/content/content.ts");
+    const append = vi.spyOn(document.documentElement, "append").mockImplementation(() => {
+      throw new Error("page became unavailable");
+    });
+
+    runtimeListener!({ type: "SET_SOURCE_PANEL", body: { open: true } });
+    await vi.waitFor(() => expect(append).toHaveBeenCalled());
+  });
+
+  test("falls back when translated Page Sources copy is invalid", async () => {
+    let runtimeListener: ((message: any) => void) | undefined;
+    vi.resetModules();
+    global.chrome.runtime.sendMessage = vi.fn((message, callback) => {
+      if (message.type === "SOURCE_PANEL_COPY") {
+        callback?.({ type: "SOURCE_PANEL_COPY", body: { title: 7 } });
+      } else callback?.();
+    }) as any;
+    global.chrome.runtime.onMessage.addListener = vi.fn((listener) => {
+      runtimeListener = listener;
+    });
+    global.chrome.storage.local.get = vi.fn((_keys, callback) =>
+      callback({ sourcePanelEnabled: true, sourcePanelBackgrounds: false, uiLocale: "fr" }),
+    ) as any;
+    (global.chrome.storage as any).onChanged = { addListener: vi.fn() };
+    await import("../src/content/content.ts");
+
+    runtimeListener!({ type: "SET_SOURCE_PANEL", body: { open: true } });
+
+    await vi.waitFor(() =>
+      expect(
+        document.getElementById("save-in-source-panel")?.shadowRoot?.querySelector("h2")
+          ?.textContent,
+      ).toBe(DEFAULT_SOURCE_PANEL_COPY.title),
+    );
+  });
+
+  test("falls back when requesting translated Page Sources copy throws", async () => {
+    let runtimeListener: ((message: any) => void) | undefined;
+    vi.resetModules();
+    global.chrome.runtime.sendMessage = vi.fn((message, callback) => {
+      if (message.type === "SOURCE_PANEL_COPY") throw new Error("context invalidated");
+      callback?.();
+    }) as any;
+    global.chrome.runtime.onMessage.addListener = vi.fn((listener) => {
+      runtimeListener = listener;
+    });
+    global.chrome.storage.local.get = vi.fn((_keys, callback) =>
+      callback({ sourcePanelEnabled: true, sourcePanelBackgrounds: false, uiLocale: "fr" }),
+    ) as any;
+    (global.chrome.storage as any).onChanged = { addListener: vi.fn() };
+    await import("../src/content/content.ts");
+
+    runtimeListener!({ type: "SET_SOURCE_PANEL", body: { open: true } });
+
+    await vi.waitFor(() =>
+      expect(
+        document.getElementById("save-in-source-panel")?.shadowRoot?.querySelector("h2")
+          ?.textContent,
+      ).toBe(DEFAULT_SOURCE_PANEL_COPY.title),
+    );
+  });
+
   test("keeps automatic Page Sources messages disabled without an override", async () => {
     let runtimeListener: ((message: any) => void) | undefined;
     vi.resetModules();
@@ -274,8 +654,33 @@ describe("content.js initialisation", () => {
     await import("../src/content/content.ts");
 
     runtimeListener!({ type: "SET_SOURCE_PANEL", body: { open: true } });
+    runtimeListener!({ type: "UNRELATED" });
 
     expect(document.getElementById("save-in-source-panel")).toBeNull();
+  });
+
+  test("handles a regular Page Sources toggle without forcing disabled state", async () => {
+    await importContentWithOptions({ sourcePanelEnabled: true, sourcePanelBackgrounds: false });
+    const runtimeListener = vi.mocked(global.chrome.runtime.onMessage.addListener).mock
+      .calls[0]![0] as (message: any) => void;
+
+    runtimeListener({ type: "TOGGLE_SOURCE_PANEL" });
+    await Promise.resolve();
+
+    expect(document.getElementById("save-in-source-panel")).not.toBeNull();
+  });
+
+  test("closes Page Sources in response to explicit background state", async () => {
+    await importContentWithOptions({ sourcePanelEnabled: true, sourcePanelBackgrounds: false });
+    const runtimeListener = vi.mocked(global.chrome.runtime.onMessage.addListener).mock
+      .calls[0]![0] as (message: any) => void;
+    runtimeListener({ type: "SET_SOURCE_PANEL", body: { open: true } });
+    await Promise.resolve();
+    expect(document.getElementById("save-in-source-panel")).not.toBeNull();
+
+    runtimeListener({ type: "SET_SOURCE_PANEL", body: { open: false } });
+
+    expect(document.getElementById("save-in-source-panel")?.classList).toContain("closing");
   });
 
   test("announces enabled Page Sources only after its message listener is installed", async () => {
@@ -408,6 +813,7 @@ describe("content.js initialisation", () => {
         contentClickToSave: { newValue: true },
         contentClickToSaveCombo: { newValue: 89 },
         contentClickToSaveButton: { newValue: "RIGHT_CLICK" },
+        filenamePatterns: { newValue: "newer-rules" },
       },
       "local",
     );
@@ -440,6 +846,9 @@ describe("content.js initialisation", () => {
     vi.mocked(global.chrome.runtime.sendMessage).mockClear();
     window.dispatchEvent(new KeyboardEvent("keydown", { key: "Alt" }));
     expect(global.chrome.runtime.sendMessage).not.toHaveBeenCalled();
+
+    storageListener!({ links: undefined, filenamePatterns: { newValue: 7 } }, "local");
+    storageListener!({ links: undefined }, "local");
   });
 
   test("announces once when Page Sources becomes enabled in an existing tab", async () => {
