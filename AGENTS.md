@@ -207,6 +207,8 @@ catch and choose the cheapest durable boundary:
 - Test browser-owned behavior such as menus, downloads, and service-worker
   lifecycle in the Chrome/Firefox e2e suites. Prefer one representative
   pipeline smoke test over duplicating lower-level cases end to end.
+- Keep e2e waits event-driven and in-browser where possible; avoid fixed sleeps
+  and repeated CDP/RDP polling. Preserve real user-visible timing and keep only measured wins.
 - Enforce architecture, packaging, configuration, formatting, and generated
   output with `check:*`, lint, typecheck, or build scripts. Do not assert source
   snippets from Vitest when a direct mechanical check can report the violation.
