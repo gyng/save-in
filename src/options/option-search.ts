@@ -137,7 +137,8 @@ export const setupOptionSearch = (): void => {
     options.forEach((option, index) =>
       option.setAttribute("aria-selected", String(index === active)),
     );
-    const activeOption = options[active]!;
+    const activeOption = options[active];
+    if (!activeOption) return close();
     input.setAttribute("aria-activedescendant", activeOption.id);
     activeOption.scrollIntoView?.({ block: "nearest" });
   };
@@ -162,7 +163,10 @@ export const setupOptionSearch = (): void => {
       setActive(active + (event.key === "ArrowDown" ? 1 : -1));
     } else if (event.key === "Enter" && visibleEntries.length > 0) {
       event.preventDefault();
-      choose(visibleEntries[active]!);
+      const entry = visibleEntries[active];
+      const option = results.querySelector<HTMLElement>(`#option-search-result-${active}`);
+      if (!entry || !option) return close();
+      choose(entry);
     } else if (event.key === "Escape") close();
   });
   input.addEventListener("blur", () => {

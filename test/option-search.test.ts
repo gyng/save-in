@@ -236,6 +236,23 @@ describe("options search", () => {
     expect(input.hasAttribute("aria-activedescendant")).toBe(false);
   });
 
+  test("does not choose a stale result removed before Enter", () => {
+    const navigate = vi.fn();
+    document.addEventListener("save-in:navigate-option", navigate);
+    setupOptionSearch();
+    const input = document.getElementById("option-search") as HTMLInputElement;
+    const results = document.getElementById("option-search-results") as HTMLElement;
+    input.value = "notification";
+    input.dispatchEvent(new InputEvent("input"));
+    results.replaceChildren();
+
+    input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+
+    expect(navigate).not.toHaveBeenCalled();
+    expect(input.getAttribute("aria-expanded")).toBe("false");
+    expect(input.hasAttribute("aria-activedescendant")).toBe(false);
+  });
+
   test("cancels pending blur closure on refocus and replaces repeated blur timers", async () => {
     vi.useFakeTimers();
     setupOptionSearch();
