@@ -2213,7 +2213,7 @@
     "message": "Testando regras de roteamento…"
   },
   "routeDebuggerFixErrors": {
-    "message": "Corrija $COUNT$ erros de roteamento antes de testar.",
+    "message": "Corrija os problemas de roteamento destacados antes de testar. Total: $COUNT$.",
     "placeholders": {
       "count": {
         "content": "$1",
@@ -2421,7 +2421,6 @@
     "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
   },
   "o_cBrowserDownloadFiltersEnabled": { "message": "Limitar downloads do navegador por URL" },
-  "welcomeReady": { "message": "Pronto para salvar" },
   "welcomeTitle": { "message": "Boas-vindas ao Save In" },
   "welcomeIntro": {
     "message": "O Save In está pronto. Use o menu de contexto para salvar imagens, links, texto selecionado, mídia e páginas nas pastas que você escolher."
@@ -2439,7 +2438,7 @@
   },
   "welcomePermissions": { "message": "Por que estas permissões são necessárias?" },
   "welcomeCustomizeFolders": { "message": "Personalizar pastas" },
-  "welcomeUseStarterFolders": { "message": "Usar pastas iniciais" },
+  "welcomeUseStarterFolders": { "message": "Começar a usar o Save In" },
   "welcomeUsingStarterSettings": { "message": "Usando as configurações iniciais" },
   "html_showWelcomeGuide": { "message": "Exibir o guia de boas-vindas" }
 }

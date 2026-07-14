@@ -3110,7 +3110,7 @@
     "description": "Status while the route debugger is evaluating rules. Used in src/options/route-debugger.ts."
   },
   "routeDebuggerFixErrors": {
-    "message": "Fix $COUNT$ routing error(s) before testing.",
+    "message": "Fix the highlighted routing issues before testing. Issue count: $COUNT$.",
     "description": "Route debugger status when the rules cannot be evaluated. Used in src/options/route-debugger.ts.",
     "placeholders": {
       "count": {
@@ -3455,10 +3455,6 @@
       "value": { "content": "$1", "example": ":filename:" }
     }
   },
-  "welcomeReady": {
-    "message": "Ready to save",
-    "description": "Short first-install status above the welcome heading. Used in src/options/welcome-dialog.ts."
-  },
   "welcomeTitle": {
     "message": "Welcome to Save In",
     "description": "Heading for the first-install welcome dialog. Used in src/options/welcome-dialog.ts."
@@ -3496,8 +3492,8 @@
     "description": "Secondary welcome action that moves focus to the folder editor. Used in src/options/welcome-dialog.ts."
   },
   "welcomeUseStarterFolders": {
-    "message": "Use starter folders",
-    "description": "Primary welcome action that keeps the working default folders. Used in src/options/welcome-dialog.ts."
+    "message": "Start using Save In",
+    "description": "Primary welcome action that accepts the working default folders and closes the guide. Used in src/options/welcome-dialog.ts."
   },
   "welcomeUsingStarterSettings": {
     "message": "Using starter settings",

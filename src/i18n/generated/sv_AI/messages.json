@@ -2207,7 +2207,7 @@
     "message": "Testar dirigeringsregler…"
   },
   "routeDebuggerFixErrors": {
-    "message": "Åtgärda $COUNT$ dirigeringsfel innan du testar.",
+    "message": "Åtgärda de markerade routningsproblemen före testning. Antal: $COUNT$.",
     "placeholders": {
       "count": {
         "content": "$1",
@@ -2413,7 +2413,6 @@
   "o_cBrowserDownloadFiltersEnabled": {
     "message": "Begränsa webbläsarhämtningar utifrån URL"
   },
-  "welcomeReady": { "message": "Klar att spara" },
   "welcomeTitle": { "message": "Välkommen till Save In" },
   "welcomeIntro": {
     "message": "Save In är klart. Använd högerklicksmenyn för att spara bilder, länkar, markerad text, media och sidor i mappar du väljer."
@@ -2429,7 +2428,7 @@
   },
   "welcomePermissions": { "message": "Varför behövs dessa behörigheter?" },
   "welcomeCustomizeFolders": { "message": "Anpassa mappar" },
-  "welcomeUseStarterFolders": { "message": "Använd startmappar" },
+  "welcomeUseStarterFolders": { "message": "Börja använda Save In" },
   "welcomeUsingStarterSettings": { "message": "Använder startinställningar" },
   "html_showWelcomeGuide": { "message": "Visa välkomstguiden" }
 }

@@ -2313,7 +2313,7 @@
     "message": "라우팅 규칙 테스트 중…"
   },
   "routeDebuggerFixErrors": {
-    "message": "테스트하기 전에 라우팅 오류 $COUNT$개를 수정하세요.",
+    "message": "테스트하기 전에 강조 표시된 라우팅 문제를 수정하세요. 개수: $COUNT$.",
     "placeholders": {
       "count": {
         "content": "$1",
@@ -2515,7 +2515,6 @@
     "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
   },
   "o_cBrowserDownloadFiltersEnabled": { "message": "브라우저 다운로드를 URL로 제한" },
-  "welcomeReady": { "message": "저장할 준비가 되었습니다" },
   "welcomeTitle": { "message": "Save In에 오신 것을 환영합니다" },
   "welcomeIntro": {
     "message": "Save In을 사용할 준비가 되었습니다. 오른쪽 클릭 메뉴를 사용하여 이미지, 링크, 선택한 텍스트, 미디어 및 페이지를 원하는 폴더에 저장하세요."
@@ -2531,7 +2530,7 @@
   },
   "welcomePermissions": { "message": "이 권한이 필요한 이유" },
   "welcomeCustomizeFolders": { "message": "폴더 맞춤 설정" },
-  "welcomeUseStarterFolders": { "message": "시작 폴더 사용" },
+  "welcomeUseStarterFolders": { "message": "Save In 사용 시작" },
   "welcomeUsingStarterSettings": { "message": "시작 설정 사용 중" },
   "html_showWelcomeGuide": { "message": "시작 안내 보기" }
 }

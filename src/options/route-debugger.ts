@@ -500,7 +500,7 @@ export const setupRouteDebugger = (): void => {
           "invalid",
           localize(
             "routeDebuggerFixErrors",
-            `Fix ${validation.errors.length} routing error(s) before testing.`,
+            `Fix the highlighted routing issues before testing. Issue count: ${validation.errors.length}.`,
             validation.errors.length,
           ),
         );

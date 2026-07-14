@@ -2313,7 +2313,7 @@
     "message": "正在測試路由規則…"
   },
   "routeDebuggerFixErrors": {
-    "message": "測試前請修正 $COUNT$ 個路由錯誤。",
+    "message": "請先修正醒目標示的路由問題，再進行測試。問題數：$COUNT$。",
     "placeholders": {
       "count": {
         "content": "$1",
@@ -2515,7 +2515,6 @@
     "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
   },
   "o_cBrowserDownloadFiltersEnabled": { "message": "依 URL 限制瀏覽器下載" },
-  "welcomeReady": { "message": "可以開始儲存" },
   "welcomeTitle": { "message": "歡迎使用 Save In" },
   "welcomeIntro": {
     "message": "Save In 已準備就緒。使用右鍵選單可將圖片、連結、選取的文字、媒體和頁面儲存到您選擇的資料夾。"
@@ -2531,7 +2530,7 @@
   },
   "welcomePermissions": { "message": "為什麼需要這些權限？" },
   "welcomeCustomizeFolders": { "message": "自訂資料夾" },
-  "welcomeUseStarterFolders": { "message": "使用初始資料夾" },
+  "welcomeUseStarterFolders": { "message": "開始使用 Save In" },
   "welcomeUsingStarterSettings": { "message": "正在使用初始設定" },
   "html_showWelcomeGuide": { "message": "顯示歡迎指南" }
 }

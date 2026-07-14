@@ -2234,7 +2234,7 @@
     "message": "Test des règles de routage…"
   },
   "routeDebuggerFixErrors": {
-    "message": "Corrigez $COUNT$ erreurs de routage avant d’effectuer le test.",
+    "message": "Corrigez les problèmes de routage signalés avant de tester. Total : $COUNT$.",
     "placeholders": {
       "count": {
         "content": "$1",
@@ -2448,7 +2448,6 @@
   "o_cBrowserDownloadFiltersEnabled": {
     "message": "Limiter les téléchargements du navigateur par URL"
   },
-  "welcomeReady": { "message": "Prêt à enregistrer" },
   "welcomeTitle": { "message": "Bienvenue dans Save In" },
   "welcomeIntro": {
     "message": "Save In est prêt. Utilisez le menu contextuel pour enregistrer des images, des liens, du texte sélectionné, des médias et des pages dans les dossiers de votre choix."
@@ -2464,7 +2463,7 @@
   },
   "welcomePermissions": { "message": "Pourquoi ces autorisations ?" },
   "welcomeCustomizeFolders": { "message": "Personnaliser les dossiers" },
-  "welcomeUseStarterFolders": { "message": "Utiliser les dossiers de départ" },
+  "welcomeUseStarterFolders": { "message": "Commencer à utiliser Save In" },
   "welcomeUsingStarterSettings": { "message": "Paramètres de départ utilisés" },
   "html_showWelcomeGuide": { "message": "Afficher le guide de bienvenue" }
 }

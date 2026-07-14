@@ -2313,7 +2313,7 @@
     "message": "正在测试路由规则…"
   },
   "routeDebuggerFixErrors": {
-    "message": "测试前请修复 $COUNT$ 个路由错误。",
+    "message": "请先修复突出显示的路由问题，再进行测试。问题数：$COUNT$。",
     "placeholders": {
       "count": {
         "content": "$1",
@@ -2515,7 +2515,6 @@
     "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
   },
   "o_cBrowserDownloadFiltersEnabled": { "message": "按 URL 限制浏览器下载" },
-  "welcomeReady": { "message": "可以开始保存" },
   "welcomeTitle": { "message": "欢迎使用 Save In" },
   "welcomeIntro": {
     "message": "Save In 已准备就绪。使用右键菜单可将图片、链接、选中的文本、媒体和页面保存到您选择的文件夹。"
@@ -2531,7 +2530,7 @@
   },
   "welcomePermissions": { "message": "为什么需要这些权限？" },
   "welcomeCustomizeFolders": { "message": "自定义文件夹" },
-  "welcomeUseStarterFolders": { "message": "使用初始文件夹" },
+  "welcomeUseStarterFolders": { "message": "开始使用 Save In" },
   "welcomeUsingStarterSettings": { "message": "正在使用初始设置" },
   "html_showWelcomeGuide": { "message": "显示欢迎指南" }
 }

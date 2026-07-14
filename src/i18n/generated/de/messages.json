@@ -2211,7 +2211,7 @@
     "message": "Routing-Regeln werden getestet…"
   },
   "routeDebuggerFixErrors": {
-    "message": "Beheben Sie vor dem Testen $COUNT$ Routing-Fehler.",
+    "message": "Beheben Sie vor dem Testen die markierten Routing-Probleme. Anzahl: $COUNT$.",
     "placeholders": {
       "count": {
         "content": "$1",
@@ -2421,7 +2421,6 @@
   "o_cBrowserDownloadFiltersEnabled": {
     "message": "Browser-Downloads anhand der URL begrenzen"
   },
-  "welcomeReady": { "message": "Bereit zum Speichern" },
   "welcomeTitle": { "message": "Willkommen bei Save In" },
   "welcomeIntro": {
     "message": "Save In ist bereit. Speichern Sie Bilder, Links, ausgewählten Text, Medien und Seiten über das Kontextmenü in Ordnern Ihrer Wahl."
@@ -2439,7 +2438,7 @@
   },
   "welcomePermissions": { "message": "Warum sind diese Berechtigungen nötig?" },
   "welcomeCustomizeFolders": { "message": "Ordner anpassen" },
-  "welcomeUseStarterFolders": { "message": "Startordner verwenden" },
+  "welcomeUseStarterFolders": { "message": "Save In verwenden" },
   "welcomeUsingStarterSettings": { "message": "Starteinstellungen werden verwendet" },
   "html_showWelcomeGuide": { "message": "Willkommensanleitung anzeigen" }
 }

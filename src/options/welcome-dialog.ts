@@ -24,7 +24,6 @@ const createButton = (
 
 const createWelcomeDialog = (localize: Localize): HTMLDialogElement => {
   const copy = {
-    ready: localize("welcomeReady") || "Ready to save",
     title: localize("welcomeTitle") || "Welcome to Save In",
     intro:
       localize("welcomeIntro") ||
@@ -40,7 +39,7 @@ const createWelcomeDialog = (localize: Localize): HTMLDialogElement => {
       "The toolbar button opens Page Sources for finding media on the current page.",
     permissions: localize("welcomePermissions") || "Why these permissions?",
     customize: localize("welcomeCustomizeFolders") || "Customize folders",
-    accept: localize("welcomeUseStarterFolders") || "Use starter folders",
+    accept: localize("welcomeUseStarterFolders") || "Start using Save In",
   };
   const dialog = document.createElement("dialog");
   dialog.id = "welcome-dialog";
@@ -51,27 +50,20 @@ const createWelcomeDialog = (localize: Localize): HTMLDialogElement => {
   const shell = document.createElement("div");
   shell.className = "welcome-shell";
 
-  const accent = document.createElement("div");
-  accent.className = "welcome-accent";
-  accent.setAttribute("aria-hidden", "true");
-
   const content = document.createElement("div");
   content.className = "welcome-content";
 
   const heading = document.createElement("div");
   heading.className = "welcome-heading";
   const icon = document.createElement("img");
-  icon.className = "welcome-icon";
-  icon.src = "../../icons/ic_archive_black_48px.png";
+  icon.className = "app-icon welcome-icon";
+  icon.src = "../../icons/ic_archive_black_24px.svg";
   icon.alt = "";
   const headingCopy = document.createElement("div");
-  const kicker = document.createElement("p");
-  kicker.className = "welcome-kicker";
-  kicker.textContent = copy.ready;
   const title = document.createElement("h1");
   title.id = "welcome-title";
   title.textContent = copy.title;
-  headingCopy.append(kicker, title);
+  headingCopy.append(title);
   heading.append(icon, headingCopy);
 
   const intro = document.createElement("p");
@@ -107,7 +99,7 @@ const createWelcomeDialog = (localize: Localize): HTMLDialogElement => {
   footer.append(permissions, actions);
 
   content.append(heading, intro, steps, notes, footer);
-  shell.append(accent, content);
+  shell.append(content);
   dialog.append(shell);
   return dialog;
 };
@@ -120,8 +112,14 @@ const followWelcomeAction = (action: WelcomeAction): void => {
   if (action !== "customize") return;
   document.querySelector<HTMLButtonElement>("#paths-mode-visual")?.click();
   const firstPath = document.querySelector<HTMLInputElement>("#path-editor-rows .path-editor-dir");
-  firstPath?.scrollIntoView({ block: "center", behavior: "smooth" });
-  firstPath?.focus();
+  if (!firstPath) return;
+  document.dispatchEvent(
+    new CustomEvent("save-in:navigate-option", { detail: { target: firstPath } }),
+  );
+  if (!firstPath.closest(".tab-panel")) {
+    firstPath.scrollIntoView({ block: "center", behavior: "smooth" });
+    firstPath.focus();
+  }
 };
 
 export const showWelcomeDialog = (

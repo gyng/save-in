@@ -60,20 +60,32 @@ test("shows the current welcome once and accepts the working starter folders", a
   expect(document.querySelector("#welcome-dialog")).toBeNull();
 });
 
-test.each([
-  ["customize", "#paths-mode-visual"],
-  ["permissions", "#about-open"],
-] as const)("routes the %s action into the existing options UI", async (action, target) => {
+test("opens the folder editor through the main options navigation", async () => {
   const storage = storageFixture();
-  const click = vi.spyOn(document.querySelector<HTMLButtonElement>(target)!, "click");
+  const visual = document.querySelector<HTMLButtonElement>("#paths-mode-visual")!;
+  const firstPath = document.querySelector<HTMLInputElement>(".path-editor-dir")!;
+  const click = vi.spyOn(visual, "click");
+  const navigate = vi.fn();
+  document.addEventListener("save-in:navigate-option", navigate, { once: true });
   await setupWelcomeDialog(storage, localize);
 
-  document.querySelector<HTMLButtonElement>(`[data-welcome-action="${action}"]`)?.click();
+  document.querySelector<HTMLButtonElement>(`[data-welcome-action="customize"]`)?.click();
 
   expect(click).toHaveBeenCalledOnce();
-  if (action === "customize") {
-    expect(document.activeElement).toBe(document.querySelector(".path-editor-dir"));
-  }
+  expect(navigate).toHaveBeenCalledOnce();
+  expect((navigate.mock.calls[0]![0] as CustomEvent).detail.target).toBe(firstPath);
+  expect(document.activeElement).toBe(firstPath);
+});
+
+test("opens the permission explanation through the existing About action", async () => {
+  const storage = storageFixture();
+  const about = document.querySelector<HTMLButtonElement>("#about-open")!;
+  const click = vi.spyOn(about, "click");
+  await setupWelcomeDialog(storage, localize);
+
+  document.querySelector<HTMLButtonElement>(`[data-welcome-action="permissions"]`)?.click();
+
+  expect(click).toHaveBeenCalledOnce();
 });
 
 test("dismisses from the keyboard but does not show for other or unreadable state", async () => {

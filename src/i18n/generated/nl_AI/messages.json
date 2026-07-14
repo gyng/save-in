@@ -2213,7 +2213,7 @@
     "message": "Routeringsregels testen…"
   },
   "routeDebuggerFixErrors": {
-    "message": "Los $COUNT$ routeringsfouten op voordat u test.",
+    "message": "Los de gemarkeerde routeringsproblemen op voordat u test. Aantal: $COUNT$.",
     "placeholders": {
       "count": {
         "content": "$1",
@@ -2425,7 +2425,6 @@
   "o_cBrowserDownloadFiltersEnabled": {
     "message": "Browserdownloads beperken op basis van URL"
   },
-  "welcomeReady": { "message": "Klaar om op te slaan" },
   "welcomeTitle": { "message": "Welkom bij Save In" },
   "welcomeIntro": {
     "message": "Save In is klaar. Gebruik het rechtermuisknopmenu om afbeeldingen, links, geselecteerde tekst, media en pagina’s op te slaan in mappen die je kiest."
@@ -2443,7 +2442,7 @@
   },
   "welcomePermissions": { "message": "Waarom zijn deze machtigingen nodig?" },
   "welcomeCustomizeFolders": { "message": "Mappen aanpassen" },
-  "welcomeUseStarterFolders": { "message": "Startmappen gebruiken" },
+  "welcomeUseStarterFolders": { "message": "Save In gaan gebruiken" },
   "welcomeUsingStarterSettings": { "message": "Startinstellingen worden gebruikt" },
   "html_showWelcomeGuide": { "message": "Welkomstgids tonen" }
 }

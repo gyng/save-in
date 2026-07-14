@@ -2313,7 +2313,7 @@
     "message": "ルーティングルールをテスト中…"
   },
   "routeDebuggerFixErrors": {
-    "message": "テストする前に、$COUNT$ 件のルーティングエラーを修正してください。",
+    "message": "テストする前に、強調表示されたルーティングの問題を修正してください。件数: $COUNT$。",
     "placeholders": {
       "count": {
         "content": "$1",
@@ -2515,7 +2515,6 @@
     "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
   },
   "o_cBrowserDownloadFiltersEnabled": { "message": "ブラウザーのダウンロードを URL で制限" },
-  "welcomeReady": { "message": "保存の準備ができました" },
   "welcomeTitle": { "message": "Save In へようこそ" },
   "welcomeIntro": {
     "message": "Save In の準備ができました。右クリックメニューを使って、画像、リンク、選択したテキスト、メディア、ページを選択したフォルダーに保存できます。"
@@ -2531,7 +2530,7 @@
   },
   "welcomePermissions": { "message": "これらの権限が必要な理由" },
   "welcomeCustomizeFolders": { "message": "フォルダーをカスタマイズ" },
-  "welcomeUseStarterFolders": { "message": "初期フォルダーを使用" },
+  "welcomeUseStarterFolders": { "message": "Save In を使い始める" },
   "welcomeUsingStarterSettings": { "message": "初期設定を使用中" },
   "html_showWelcomeGuide": { "message": "ウェルカムガイドを表示" }
 }

@@ -2211,7 +2211,7 @@
     "message": "Probando las reglas de enrutamiento…"
   },
   "routeDebuggerFixErrors": {
-    "message": "Corrija $COUNT$ errores de enrutamiento antes de realizar la prueba.",
+    "message": "Corrige los problemas de enrutamiento resaltados antes de probar. Total: $COUNT$.",
     "placeholders": {
       "count": {
         "content": "$1",
@@ -2419,7 +2419,6 @@
     "placeholders": { "value": { "content": "$1", "example": ":filename:" } }
   },
   "o_cBrowserDownloadFiltersEnabled": { "message": "Limitar descargas del navegador por URL" },
-  "welcomeReady": { "message": "Listo para guardar" },
   "welcomeTitle": { "message": "Te damos la bienvenida a Save In" },
   "welcomeIntro": {
     "message": "Save In está listo. Usa el menú contextual para guardar imágenes, enlaces, texto seleccionado, contenido multimedia y páginas en las carpetas que elijas."
@@ -2437,7 +2436,7 @@
   },
   "welcomePermissions": { "message": "¿Por qué se necesitan estos permisos?" },
   "welcomeCustomizeFolders": { "message": "Personalizar carpetas" },
-  "welcomeUseStarterFolders": { "message": "Usar carpetas iniciales" },
+  "welcomeUseStarterFolders": { "message": "Empezar a usar Save In" },
   "welcomeUsingStarterSettings": { "message": "Usando la configuración inicial" },
   "html_showWelcomeGuide": { "message": "Mostrar la guía de bienvenida" }
 }
