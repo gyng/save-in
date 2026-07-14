@@ -110,6 +110,48 @@ export const groupReferenceRows = (root: ParentNode, kind: ReferenceKind) => {
   });
 };
 
+const wrapReferenceSection = (table: HTMLTableElement): HTMLElement | null => {
+  const existing = table.closest<HTMLElement>(".reference-section");
+  if (existing) return existing;
+
+  let heading = table.previousElementSibling;
+  while (heading && heading.tagName !== "H3") {
+    if (heading.matches("table, .reference-table-scroll")) return null;
+    heading = heading.previousElementSibling;
+  }
+  if (!(heading instanceof HTMLHeadingElement)) return null;
+
+  const section = table.ownerDocument.createElement("section");
+  section.className = "reference-section";
+  heading.before(section);
+  let node: Node | null = heading;
+  while (node) {
+    const next: ChildNode | null = node.nextSibling;
+    section.append(node);
+    if (node === table) break;
+    node = next;
+  }
+  return section;
+};
+
+export const ensureReferenceEmptyState = (
+  root: ParentNode,
+  localize: GetMessage = getMessage,
+): HTMLElement | null => {
+  const existing = root.querySelector<HTMLElement>(".reference-empty-state");
+  if (existing) return existing;
+  const container =
+    root instanceof Document ? root.body : root instanceof HTMLElement ? root : null;
+  if (!container) return null;
+  const empty = container.ownerDocument.createElement("p");
+  empty.className = "reference-empty-state";
+  empty.hidden = true;
+  empty.setAttribute("role", "status");
+  empty.textContent = localize("o_lRoutingNoMatches") || "No matches";
+  container.append(empty);
+  return empty;
+};
+
 export const filterReferenceRows = (root: ParentNode, query: string): number => {
   const needle = query.trim().toLocaleLowerCase();
   let visible = 0;
@@ -134,11 +176,15 @@ export const filterReferenceRows = (root: ParentNode, query: string): number => 
     const section = table.closest<HTMLElement>(".reference-section");
     if (section) section.hidden = table.hidden;
   });
+  root.querySelectorAll<HTMLElement>(".reference-empty-state").forEach((empty) => {
+    empty.hidden = visible !== 0;
+  });
   return visible;
 };
 
 export const enhanceReferenceTables = (root: ParentNode, localize: GetMessage = getMessage) => {
   root.querySelectorAll<HTMLTableElement>("table").forEach((table) => {
+    const section = wrapReferenceSection(table);
     table.classList.add("reference-table");
     const rows = [
       ...table.querySelectorAll<HTMLTableRowElement>(":scope > tbody > tr, :scope > tr"),
@@ -159,6 +205,7 @@ export const enhanceReferenceTables = (root: ParentNode, localize: GetMessage = 
       });
     }
     const sectionTitle =
+      section?.querySelector("h3")?.textContent?.trim() ||
       table.previousElementSibling?.textContent?.trim() ||
       localize("referenceCaption") ||
       "Reference";
@@ -223,7 +270,8 @@ export const setupReferencePage = (
   const referenceRoot = root.querySelector("#help-clause-list") || root;
   const kind: ReferenceKind = root.querySelector("#help-clause-list") ? "clauses" : "variables";
   groupReferenceRows(referenceRoot, kind);
-  enhanceReferenceTables(root, localize);
+  enhanceReferenceTables(referenceRoot, localize);
+  ensureReferenceEmptyState(referenceRoot, localize);
   const search = root.querySelector<HTMLInputElement>(".reference-search");
   const count = root.querySelector<HTMLElement>(".reference-count");
   const status = root.querySelector<HTMLElement>(".reference-copy-status");

@@ -1,5 +1,6 @@
 import {
   enhanceReferenceTables,
+  ensureReferenceEmptyState,
   filterReferenceRows,
   groupReferenceRows,
   syncReferenceVocabulary,
@@ -33,6 +34,7 @@ const enhanceReference = async (kind: ReferenceKind) => {
   } catch {}
   groupReferenceRows(target, kind);
   enhanceReferenceTables(target);
+  ensureReferenceEmptyState(target);
   target.querySelector(".reference-loading-status")?.remove();
   target.querySelectorAll<HTMLElement>(".click-to-copy").forEach((token) => {
     token.tabIndex = 0;

@@ -68,6 +68,10 @@ test("enhances inline variable and clause references in the main option tabs", a
       "#options-reference-variables tbody tr:not(.reference-group-row)",
     )!.hidden,
   ).toBe(true);
+  expect(
+    document.querySelector<HTMLElement>("#options-reference-variables .reference-empty-state")!
+      .hidden,
+  ).toBe(false);
 
   const variableTab = dialog.querySelector<HTMLElement>(
     "[role='tab'][data-reference-tab='options-reference-variables']",

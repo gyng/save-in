@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import {
   enhanceReferenceTables,
+  ensureReferenceEmptyState,
   filterReferenceRows,
   groupReferenceRows,
   setupReferencePage,
@@ -134,19 +135,32 @@ describe("reference controller", () => {
   });
 
   test("filters grouped tables and their containing sections", () => {
-    document.body.innerHTML = `<section class="reference-section"><table><tbody>
+    document.body.innerHTML = `<h3>Dates</h3><div class="caption">Date values</div><table><tbody>
       <tr><td><code>:date:</code></td><td>Date</td></tr>
       <tr><td><code>:year:</code></td><td>Year</td></tr>
+    </tbody></table>
+    <h3>Files</h3><table><tbody>
       <tr><td><code>:filename:</code></td><td>File</td></tr>
-    </tbody></table></section>`;
+    </tbody></table>`;
     groupReferenceRows(document, "variables");
     groupReferenceRows(document, "variables");
     enhanceReferenceTables(document);
+    const empty = ensureReferenceEmptyState(document, referenceMessage)!;
+    const [dates, files] = [...document.querySelectorAll<HTMLElement>(".reference-section")];
+    expect(dates?.querySelector("h3")?.textContent).toBe("Dates");
+    expect(files?.querySelector("h3")?.textContent).toBe("Files");
     expect(filterReferenceRows(document, "file")).toBe(1);
     expect(document.querySelectorAll(".reference-group-row[hidden]").length).toBeGreaterThan(0);
+    expect(dates?.hidden).toBe(true);
+    expect(files?.hidden).toBe(false);
+    expect(empty.hidden).toBe(true);
     expect(filterReferenceRows(document, "missing")).toBe(0);
-    expect(document.querySelector("table")?.hidden).toBe(true);
-    expect(document.querySelector<HTMLElement>(".reference-section")?.hidden).toBe(true);
+    expect(
+      [...document.querySelectorAll<HTMLTableElement>("table")].every((table) => table.hidden),
+    ).toBe(true);
+    expect(dates?.hidden).toBe(true);
+    expect(files?.hidden).toBe(true);
+    expect(empty.hidden).toBe(false);
   });
 
   test("enhances empty and direct-row tables without duplicating existing structure", () => {
@@ -292,6 +306,9 @@ test("keeps variables and clauses together in the options reference dialog", () 
   const document = parse("options");
   expect(document.querySelector("#options-reference-variables[role=tabpanel]")).not.toBeNull();
   expect(document.querySelector("#options-reference-clauses[role=tabpanel]")).not.toBeNull();
+  expect(document.querySelector(".reference-dialog-filter")?.hasAttribute("data-no-autosave")).toBe(
+    true,
+  );
 });
 
 test("adds semantic group headings to both vocabularies", () => {

@@ -65,6 +65,15 @@ body:has(.reference-header) {
   overflow-x: auto;
 }
 
+.reference-empty-state {
+  margin: var(--space-5) 0 0;
+  padding: var(--space-5);
+  border: 1px dashed var(--panel-border);
+  border-radius: var(--radius);
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
 /* Reference popouts are already their own surface; avoid nesting the list in
    another raised panel. */
 .reference-panel {
