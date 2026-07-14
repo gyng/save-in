@@ -2404,5 +2404,6 @@
   "welcomePermissions": { "message": "Varför behövs dessa behörigheter?" },
   "welcomeCustomizeFolders": { "message": "Anpassa mappar" },
   "welcomeUseStarterFolders": { "message": "Använd startmappar" },
-  "welcomeUsingStarterSettings": { "message": "Använder startinställningar" }
+  "welcomeUsingStarterSettings": { "message": "Använder startinställningar" },
+  "html_showWelcomeGuide": { "message": "Visa välkomstguiden" }
 }

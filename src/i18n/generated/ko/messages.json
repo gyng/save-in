@@ -2508,5 +2508,6 @@
   "welcomePermissions": { "message": "이 권한이 필요한 이유" },
   "welcomeCustomizeFolders": { "message": "폴더 맞춤 설정" },
   "welcomeUseStarterFolders": { "message": "시작 폴더 사용" },
-  "welcomeUsingStarterSettings": { "message": "시작 설정 사용 중" }
+  "welcomeUsingStarterSettings": { "message": "시작 설정 사용 중" },
+  "html_showWelcomeGuide": { "message": "시작 안내 보기" }
 }

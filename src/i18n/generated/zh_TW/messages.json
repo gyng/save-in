@@ -2508,5 +2508,6 @@
   "welcomePermissions": { "message": "為什麼需要這些權限？" },
   "welcomeCustomizeFolders": { "message": "自訂資料夾" },
   "welcomeUseStarterFolders": { "message": "使用初始資料夾" },
-  "welcomeUsingStarterSettings": { "message": "正在使用初始設定" }
+  "welcomeUsingStarterSettings": { "message": "正在使用初始設定" },
+  "html_showWelcomeGuide": { "message": "顯示歡迎指南" }
 }

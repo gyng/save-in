@@ -2439,5 +2439,6 @@
   "welcomePermissions": { "message": "Pourquoi ces autorisations ?" },
   "welcomeCustomizeFolders": { "message": "Personnaliser les dossiers" },
   "welcomeUseStarterFolders": { "message": "Utiliser les dossiers de départ" },
-  "welcomeUsingStarterSettings": { "message": "Paramètres de départ utilisés" }
+  "welcomeUsingStarterSettings": { "message": "Paramètres de départ utilisés" },
+  "html_showWelcomeGuide": { "message": "Afficher le guide de bienvenue" }
 }

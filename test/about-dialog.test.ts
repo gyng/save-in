@@ -19,6 +19,25 @@ test("opens and closes the About dialog", () => {
   expect(dialog.close).toHaveBeenCalledOnce();
 });
 
+test("opens the welcome guide from About", () => {
+  document.body.innerHTML = `
+    <span id="lastSavedAt">Saved</span>
+    <button id="about-open">About</button>
+    <dialog id="about-dialog">
+      <button class="about-close">Close</button>
+      <a id="about-welcome" href="#welcome-dialog">Show welcome guide</a>
+    </dialog>`;
+  const dialog = document.querySelector<HTMLDialogElement>("#about-dialog")!;
+  dialog.close = vi.fn(() => dialog.removeAttribute("open"));
+  setupAboutDialog();
+
+  document.querySelector<HTMLAnchorElement>("#about-welcome")!.click();
+
+  expect(dialog.close).toHaveBeenCalledOnce();
+  expect(document.querySelector<HTMLDialogElement>("#welcome-dialog")?.open).toBe(true);
+  expect(document.querySelector("#lastSavedAt")?.textContent).toBe("Saved");
+});
+
 test("shows the runtime manifest version without generated checkout metadata", () => {
   vi.spyOn(webExtensionApi.runtime, "getManifest").mockReturnValue({ version: "4.0.0" } as any);
   const fetch = vi.fn();

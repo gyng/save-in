@@ -2402,7 +2402,9 @@
   "welcomeIntro": {
     "message": "O Save In está pronto. Use o menu de contexto para salvar imagens, links, texto selecionado, mídia e páginas nas pastas que você escolher."
   },
-  "welcomeStepRightClick": { "message": "Clique com o botão direito em algo que você deseja salvar." },
+  "welcomeStepRightClick": {
+    "message": "Clique com o botão direito em algo que você deseja salvar."
+  },
   "welcomeStepChooseSaveIn": { "message": "Escolha Save In… no menu." },
   "welcomeStepPickFolder": { "message": "Escolha uma pasta inicial." },
   "welcomeStarterNote": {
@@ -2414,5 +2416,6 @@
   "welcomePermissions": { "message": "Por que estas permissões são necessárias?" },
   "welcomeCustomizeFolders": { "message": "Personalizar pastas" },
   "welcomeUseStarterFolders": { "message": "Usar pastas iniciais" },
-  "welcomeUsingStarterSettings": { "message": "Usando as configurações iniciais" }
+  "welcomeUsingStarterSettings": { "message": "Usando as configurações iniciais" },
+  "html_showWelcomeGuide": { "message": "Exibir o guia de boas-vindas" }
 }

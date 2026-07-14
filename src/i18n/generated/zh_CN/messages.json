@@ -2508,5 +2508,6 @@
   "welcomePermissions": { "message": "为什么需要这些权限？" },
   "welcomeCustomizeFolders": { "message": "自定义文件夹" },
   "welcomeUseStarterFolders": { "message": "使用初始文件夹" },
-  "welcomeUsingStarterSettings": { "message": "正在使用初始设置" }
+  "welcomeUsingStarterSettings": { "message": "正在使用初始设置" },
+  "html_showWelcomeGuide": { "message": "显示欢迎指南" }
 }

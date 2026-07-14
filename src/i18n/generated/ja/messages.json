@@ -2508,5 +2508,6 @@
   "welcomePermissions": { "message": "これらの権限が必要な理由" },
   "welcomeCustomizeFolders": { "message": "フォルダーをカスタマイズ" },
   "welcomeUseStarterFolders": { "message": "初期フォルダーを使用" },
-  "welcomeUsingStarterSettings": { "message": "初期設定を使用中" }
+  "welcomeUsingStarterSettings": { "message": "初期設定を使用中" },
+  "html_showWelcomeGuide": { "message": "ウェルカムガイドを表示" }
 }

@@ -2593,7 +2593,9 @@
   "welcomeIntro": {
     "message": "Save In è pronto. Usa il menu contestuale per salvare immagini, link, testo selezionato, contenuti multimediali e pagine nelle cartelle che preferisci."
   },
-  "welcomeStepRightClick": { "message": "Fai clic con il pulsante destro su qualcosa che vuoi salvare." },
+  "welcomeStepRightClick": {
+    "message": "Fai clic con il pulsante destro su qualcosa che vuoi salvare."
+  },
   "welcomeStepChooseSaveIn": { "message": "Scegli Save In… dal menu." },
   "welcomeStepPickFolder": { "message": "Scegli una cartella iniziale." },
   "welcomeStarterNote": {
@@ -2605,5 +2607,6 @@
   "welcomePermissions": { "message": "Perché sono necessarie queste autorizzazioni?" },
   "welcomeCustomizeFolders": { "message": "Personalizza cartelle" },
   "welcomeUseStarterFolders": { "message": "Usa cartelle iniziali" },
-  "welcomeUsingStarterSettings": { "message": "Uso delle impostazioni iniziali" }
+  "welcomeUsingStarterSettings": { "message": "Uso delle impostazioni iniziali" },
+  "html_showWelcomeGuide": { "message": "Mostra la guida introduttiva" }
 }

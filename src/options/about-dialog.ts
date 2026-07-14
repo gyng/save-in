@@ -1,5 +1,6 @@
 import { webExtensionApi } from "../platform/web-extension-api.ts";
 import { BROWSERS, CURRENT_BROWSER } from "../platform/chrome-detector.ts";
+import { showWelcomeDialog } from "./welcome-dialog.ts";
 
 const STORE_LINK_IDS = {
   [BROWSERS.CHROME]: "about-store-chrome",
@@ -16,6 +17,11 @@ export const setupAboutDialog = () => {
     dialog.showModal();
   });
   close.addEventListener("click", () => dialog.close());
+  dialog.querySelector<HTMLAnchorElement>("#about-welcome")?.addEventListener("click", (event) => {
+    event.preventDefault();
+    dialog.close();
+    showWelcomeDialog();
+  });
   dialog.addEventListener("click", (event) => {
     if (event.target === dialog) dialog.close();
   });

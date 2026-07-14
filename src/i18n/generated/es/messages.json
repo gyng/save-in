@@ -2400,7 +2400,9 @@
   "welcomeIntro": {
     "message": "Save In está listo. Usa el menú contextual para guardar imágenes, enlaces, texto seleccionado, contenido multimedia y páginas en las carpetas que elijas."
   },
-  "welcomeStepRightClick": { "message": "Haz clic con el botón derecho en algo que quieras guardar." },
+  "welcomeStepRightClick": {
+    "message": "Haz clic con el botón derecho en algo que quieras guardar."
+  },
   "welcomeStepChooseSaveIn": { "message": "Elige Save In… en el menú." },
   "welcomeStepPickFolder": { "message": "Elige una carpeta inicial." },
   "welcomeStarterNote": {
@@ -2412,5 +2414,6 @@
   "welcomePermissions": { "message": "¿Por qué se necesitan estos permisos?" },
   "welcomeCustomizeFolders": { "message": "Personalizar carpetas" },
   "welcomeUseStarterFolders": { "message": "Usar carpetas iniciales" },
-  "welcomeUsingStarterSettings": { "message": "Usando la configuración inicial" }
+  "welcomeUsingStarterSettings": { "message": "Usando la configuración inicial" },
+  "html_showWelcomeGuide": { "message": "Mostrar la guía de bienvenida" }
 }

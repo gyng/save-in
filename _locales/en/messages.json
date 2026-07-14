@@ -3442,5 +3442,9 @@
   "welcomeUsingStarterSettings": {
     "message": "Using starter settings",
     "description": "Fresh-install save status shown while the welcome dialog is open. Used in src/options/welcome-dialog.ts."
+  },
+  "html_showWelcomeGuide": {
+    "message": "Show welcome guide",
+    "description": "Link in the About dialog that reopens the first-install welcome guide. Used in src/options/options.html."
   }
 }

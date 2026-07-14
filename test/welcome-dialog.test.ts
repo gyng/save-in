@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { WELCOME_PENDING_STORAGE_KEY, WELCOME_VERSION } from "../src/shared/storage-keys.ts";
-import { setupWelcomeDialog } from "../src/options/welcome-dialog.ts";
+import { setupWelcomeDialog, showWelcomeDialog } from "../src/options/welcome-dialog.ts";
 
 const localize = (key: string): string =>
   ({
@@ -92,4 +92,13 @@ test("dismisses from the keyboard but does not show for other or unreadable stat
   const unavailable = storageFixture();
   unavailable.get.mockRejectedValueOnce(new Error("unavailable"));
   await expect(setupWelcomeDialog(unavailable, localize)).resolves.toBe(false);
+});
+
+test("can be reopened manually without changing the saved-settings status", () => {
+  const storage = storageFixture(undefined);
+
+  expect(showWelcomeDialog(storage, localize)).toBe(true);
+  expect(document.querySelector<HTMLDialogElement>("#welcome-dialog")?.open).toBe(true);
+  expect(document.querySelector("#lastSavedAt")?.textContent).toBe("Never");
+  expect(showWelcomeDialog(storage, localize)).toBe(false);
 });

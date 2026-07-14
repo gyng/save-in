@@ -2404,7 +2404,9 @@
   "welcomeIntro": {
     "message": "Save In is klaar. Gebruik het rechtermuisknopmenu om afbeeldingen, links, geselecteerde tekst, media en pagina’s op te slaan in mappen die je kiest."
   },
-  "welcomeStepRightClick": { "message": "Klik met de rechtermuisknop op iets dat je wilt opslaan." },
+  "welcomeStepRightClick": {
+    "message": "Klik met de rechtermuisknop op iets dat je wilt opslaan."
+  },
   "welcomeStepChooseSaveIn": { "message": "Kies Save In… in het menu." },
   "welcomeStepPickFolder": { "message": "Kies een startmap." },
   "welcomeStarterNote": {
@@ -2416,5 +2418,6 @@
   "welcomePermissions": { "message": "Waarom zijn deze machtigingen nodig?" },
   "welcomeCustomizeFolders": { "message": "Mappen aanpassen" },
   "welcomeUseStarterFolders": { "message": "Startmappen gebruiken" },
-  "welcomeUsingStarterSettings": { "message": "Startinstellingen worden gebruikt" }
+  "welcomeUsingStarterSettings": { "message": "Startinstellingen worden gebruikt" },
+  "html_showWelcomeGuide": { "message": "Welkomstgids tonen" }
 }

@@ -121,18 +121,18 @@ const followWelcomeAction = (action: WelcomeAction): void => {
   firstPath?.focus();
 };
 
-export const setupWelcomeDialog = async (
+export const showWelcomeDialog = (
   storage: WelcomeStorage = webExtensionApi.storage.local,
   localize: Localize = getMessage,
-): Promise<boolean> => {
-  const stored = await storage.get(WELCOME_PENDING_STORAGE_KEY).catch(() => ({}));
-  if (Reflect.get(stored, WELCOME_PENDING_STORAGE_KEY) !== WELCOME_VERSION) return false;
+  updateStarterStatus = false,
+): boolean => {
+  if (document.querySelector("#welcome-dialog")) return false;
 
   const dialog = createWelcomeDialog(localize);
   document.body.append(dialog);
 
   const savedStatus = document.querySelector<HTMLElement>("#lastSavedAt");
-  if (savedStatus) {
+  if (savedStatus && updateStarterStatus) {
     savedStatus.textContent = localize("welcomeUsingStarterSettings") || "Using starter settings";
   }
 
@@ -167,4 +167,13 @@ export const setupWelcomeDialog = async (
   else dialog.setAttribute("open", "");
   dialog.querySelector<HTMLButtonElement>(".welcome-accept")?.focus();
   return true;
+};
+
+export const setupWelcomeDialog = async (
+  storage: WelcomeStorage = webExtensionApi.storage.local,
+  localize: Localize = getMessage,
+): Promise<boolean> => {
+  const stored = await storage.get(WELCOME_PENDING_STORAGE_KEY).catch(() => ({}));
+  if (Reflect.get(stored, WELCOME_PENDING_STORAGE_KEY) !== WELCOME_VERSION) return false;
+  return showWelcomeDialog(storage, localize, true);
 };

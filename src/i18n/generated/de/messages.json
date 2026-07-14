@@ -2400,7 +2400,9 @@
   "welcomeIntro": {
     "message": "Save In ist bereit. Speichern Sie Bilder, Links, ausgewählten Text, Medien und Seiten über das Kontextmenü in Ordnern Ihrer Wahl."
   },
-  "welcomeStepRightClick": { "message": "Klicken Sie mit der rechten Maustaste auf etwas, das Sie speichern möchten." },
+  "welcomeStepRightClick": {
+    "message": "Klicken Sie mit der rechten Maustaste auf etwas, das Sie speichern möchten."
+  },
   "welcomeStepChooseSaveIn": { "message": "Wählen Sie im Menü Save In…" },
   "welcomeStepPickFolder": { "message": "Wählen Sie einen Startordner." },
   "welcomeStarterNote": {
@@ -2412,5 +2414,6 @@
   "welcomePermissions": { "message": "Warum sind diese Berechtigungen nötig?" },
   "welcomeCustomizeFolders": { "message": "Ordner anpassen" },
   "welcomeUseStarterFolders": { "message": "Startordner verwenden" },
-  "welcomeUsingStarterSettings": { "message": "Starteinstellungen werden verwendet" }
+  "welcomeUsingStarterSettings": { "message": "Starteinstellungen werden verwendet" },
+  "html_showWelcomeGuide": { "message": "Willkommensanleitung anzeigen" }
 }
