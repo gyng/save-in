@@ -706,13 +706,13 @@
     "message": "Für URLs ohne Erweiterung leiten Sie eine vom Content-Type des Servers ab. Dadurch wird nur bei Bedarf eine kleine Verzögerung hinzugefügt."
   },
   "o_cFallbackFetch": {
-    "message": "Versuchen Sie fehlgeschlagene Downloads einmal im Hintergrund"
+    "message": "Fehlgeschlagene Downloads über Save In wiederholen"
   },
   "o_cFallbackFetchHelp": {
-    "message": "Wiederholt Netzwerk- oder Serverfehler, bevor ein Fehler gemeldet wird."
+    "message": "Wenn ein Browser-Download wegen eines Netzwerk- oder Serverfehlers fehlschlägt, ruft Save In die Datei ab und versucht es einmal erneut."
   },
   "o_cFetchViaFetchAPI": {
-    "message": "Herunterladen über Save In"
+    "message": "Immer über Save In herunterladen"
   },
   "o_cFetchViaFetchAPIHelp": {
     "message": "Save In ruft die Datei ab und übergibt sie an den Browser. Verwenden Sie dies nur, wenn normale Downloads fehlschlagen. Es ist langsamer und Chrome hält die Datei beim Speichern im Speicher. Vermeiden Sie es daher bei sehr großen Dateien."
@@ -1689,9 +1689,6 @@
   "html_webhookDocumentation": {
     "message": "Webhook-Dokumentation lesen"
   },
-  "html_offByDefault": {
-    "message": "Standardmäßig deaktiviert"
-  },
   "html_webhookEndpoint": {
     "message": "HTTPS-Endpunkt"
   },
@@ -2472,5 +2469,9 @@
   "welcomeKeepCurrentFolders": { "message": "Aktuelle Ordner behalten" },
   "welcomeUseStarterFolders": { "message": "Save In verwenden" },
   "welcomeUsingStarterSettings": { "message": "Starteinstellungen werden verwendet" },
-  "html_showWelcomeGuide": { "message": "Willkommensanleitung anzeigen" }
+  "html_showWelcomeGuide": { "message": "Willkommensanleitung anzeigen" },
+  "advancedFilesDownloads": { "message": "Dateien und Downloads" },
+  "advancedMaintenanceDiagnostics": { "message": "Wartung und Diagnose" },
+  "webhookStateOn": { "message": "Ein" },
+  "webhookStateOff": { "message": "Aus" }
 }

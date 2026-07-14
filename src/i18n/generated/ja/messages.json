@@ -605,13 +605,13 @@
     "message": "拡張子のない URL の場合は、サーバーの Content-Type から拡張子を取得します。これにより、必要な場合にのみ小さな遅延が追加されます。"
   },
   "o_cFallbackFetch": {
-    "message": "失敗したダウンロードをバックグラウンドで一度再試行します"
+    "message": "失敗したダウンロードを Save In で再試行"
   },
   "o_cFallbackFetchHelp": {
-    "message": "失敗を報告する前に、ネットワークまたはサーバーのエラーを再試行します。"
+    "message": "ブラウザーのダウンロードがネットワークまたはサーバーのエラーで失敗した場合、Save In がファイルを取得して一度再試行します。"
   },
   "o_cFetchViaFetchAPI": {
-    "message": "Save In からダウンロード"
+    "message": "常に Save In からダウンロード"
   },
   "o_cFetchViaFetchAPIHelp": {
     "message": "Save In はファイルをフェッチし、ブラウザに渡します。これは、通常のダウンロードが失敗した場合にのみ使用してください。速度が遅く、Chrome は保存中にファイルをメモリに保持するため、非常に大きなファイルの場合は避けてください。"
@@ -1588,9 +1588,6 @@
   "html_webhookDocumentation": {
     "message": "Webhook のドキュメントを読む"
   },
-  "html_offByDefault": {
-    "message": "初期設定ではオフ"
-  },
   "html_webhookEndpoint": {
     "message": "HTTPS エンドポイント"
   },
@@ -2562,5 +2559,9 @@
   "welcomeKeepCurrentFolders": { "message": "現在のフォルダーを保持" },
   "welcomeUseStarterFolders": { "message": "Save In を使い始める" },
   "welcomeUsingStarterSettings": { "message": "初期設定を使用中" },
-  "html_showWelcomeGuide": { "message": "ウェルカムガイドを表示" }
+  "html_showWelcomeGuide": { "message": "ウェルカムガイドを表示" },
+  "advancedFilesDownloads": { "message": "ファイルとダウンロード" },
+  "advancedMaintenanceDiagnostics": { "message": "メンテナンスと診断" },
+  "webhookStateOn": { "message": "オン" },
+  "webhookStateOff": { "message": "オフ" }
 }

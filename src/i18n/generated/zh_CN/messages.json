@@ -605,13 +605,13 @@
     "message": "对于没有扩展名的 URL，请从服务器的 Content-Type 派生一个。这仅在需要时增加一点延迟。"
   },
   "o_cFallbackFetch": {
-    "message": "在后台重试一次失败的下载"
+    "message": "通过 Save In 重试失败的下载"
   },
   "o_cFallbackFetchHelp": {
-    "message": "在报告失败之前重试网络或服务器错误。"
+    "message": "如果浏览器下载因网络或服务器错误而失败，Save In 会获取文件并重试一次。"
   },
   "o_cFetchViaFetchAPI": {
-    "message": "通过Save In下载"
+    "message": "始终通过 Save In 下载"
   },
   "o_cFetchViaFetchAPIHelp": {
     "message": "Save In 获取文件并将其传递给浏览器。仅当正常下载失败时才使用此选项。它速度较慢，并且 Chrome 在保存时将文件保存在内存中，因此对于非常大的文件请避免使用它。"
@@ -1588,9 +1588,6 @@
   "html_webhookDocumentation": {
     "message": "阅读 Webhook 文档"
   },
-  "html_offByDefault": {
-    "message": "默认关闭"
-  },
   "html_webhookEndpoint": {
     "message": "HTTPS 端点"
   },
@@ -2560,5 +2557,9 @@
   "welcomeKeepCurrentFolders": { "message": "保留当前文件夹" },
   "welcomeUseStarterFolders": { "message": "开始使用 Save In" },
   "welcomeUsingStarterSettings": { "message": "正在使用初始设置" },
-  "html_showWelcomeGuide": { "message": "显示欢迎指南" }
+  "html_showWelcomeGuide": { "message": "显示欢迎指南" },
+  "advancedFilesDownloads": { "message": "文件和下载" },
+  "advancedMaintenanceDiagnostics": { "message": "维护和诊断" },
+  "webhookStateOn": { "message": "开" },
+  "webhookStateOff": { "message": "关" }
 }

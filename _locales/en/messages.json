@@ -1200,15 +1200,15 @@
     "description": "Option control label or related help text. Used in src/options/options.html."
   },
   "o_cFallbackFetch": {
-    "message": "Retry failed downloads once in the background",
+    "message": "Retry failed downloads through Save In",
     "description": "Option control label or related help text. Used in src/options/options.html."
   },
   "o_cFallbackFetchHelp": {
-    "message": "Retries network or server errors before reporting failure.",
+    "message": "If a browser download fails with a network or server error, Save In fetches the file and retries once.",
     "description": "Option control label or related help text. Used in src/options/options.html."
   },
   "o_cFetchViaFetchAPI": {
-    "message": "Download through Save In",
+    "message": "Always download through Save In",
     "description": "Option control label or related help text. Used in src/options/options.html."
   },
   "o_cFetchViaFetchAPIHelp": {
@@ -2754,7 +2754,7 @@
   },
   "sourcePanelCopied": {
     "message": "Copied",
-    "description": "Page Sources copy-success status. Used in src/shared/source-panel-copy.ts."
+    "description": "Short copy-success status shared by Page Sources and options-page copy controls. Used in src/shared/source-panel-copy.ts and src/options/click-to-copy.ts."
   },
   "sourcePanelCopyFailed": {
     "message": "Copy failed",
@@ -2780,10 +2780,6 @@
   "html_webhookDocumentation": {
     "message": "Read webhook documentation",
     "description": "Link from the Webhooks settings card to the public setup and payload guide. Used in src/options/options.html."
-  },
-  "html_offByDefault": {
-    "message": "Off by default",
-    "description": "Badge confirming that webhooks require user configuration. Used in src/options/options.html."
   },
   "html_webhookEndpoint": {
     "message": "HTTPS endpoint",
@@ -3493,7 +3489,7 @@
   },
   "referenceCopyValue": {
     "message": "Copy $VALUE$",
-    "description": "Accessible action for copying a token from a reference table. Used in src/options/reference-page.ts.",
+    "description": "Accessible action for copying a value from an options or reference surface. Used in src/options/click-to-copy.ts and src/options/reference-page.ts.",
     "placeholders": {
       "value": { "content": "$1", "example": ":filename:" }
     }
@@ -3572,5 +3568,21 @@
   "html_showWelcomeGuide": {
     "message": "Show welcome guide",
     "description": "Link in the About dialog that reopens the first-install welcome guide. Used in src/options/options.html."
+  },
+  "advancedFilesDownloads": {
+    "message": "Files and downloads",
+    "description": "Advanced-tab section combining filename and download-handling settings. Used in src/options/options.html."
+  },
+  "advancedMaintenanceDiagnostics": {
+    "message": "Maintenance and diagnostics",
+    "description": "Advanced-tab section combining counter, settings-transfer, reset, and diagnostic controls. Used in src/options/options.html."
+  },
+  "webhookStateOn": {
+    "message": "On",
+    "description": "Current-state badge shown when webhook delivery is enabled. Used in src/options/options.html and src/options/webhook-panel.ts."
+  },
+  "webhookStateOff": {
+    "message": "Off",
+    "description": "Current-state badge shown when webhook delivery is disabled. Used in src/options/options.html and src/options/webhook-panel.ts."
   }
 }

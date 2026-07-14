@@ -23,6 +23,57 @@ test("click-to-copy delegates the element text", async () => {
   element.click();
 
   await vi.waitFor(() => expect(copy).toHaveBeenCalledWith(":filename:"));
+  expect(element.getAttribute("role")).toBe("button");
+  expect(element.tabIndex).toBe(0);
+});
+
+test("click-to-copy supports keyboard activation and announces success", async () => {
+  const element = document.createElement("code");
+  element.textContent = "extension-id";
+  document.body.append(element);
+  const copy = vi.fn(async () => undefined);
+  addClickToCopy(element, copy);
+
+  const event = new KeyboardEvent("keydown", { key: " ", bubbles: true, cancelable: true });
+  element.dispatchEvent(event);
+
+  expect(event.defaultPrevented).toBe(true);
+  await vi.waitFor(() => expect(copy).toHaveBeenCalledWith("extension-id"));
+  await vi.waitFor(() =>
+    expect(document.querySelector("#copy-to-clipboard-status")?.textContent).toBe(
+      "Translated<sourcePanelCopied>",
+    ),
+  );
+});
+
+test("click-to-copy setup is idempotent", async () => {
+  const element = document.createElement("code");
+  element.textContent = "once";
+  const copy = vi.fn(async () => undefined);
+  addClickToCopy(element, copy);
+  addClickToCopy(element, copy);
+
+  element.click();
+
+  await vi.waitFor(() => expect(copy).toHaveBeenCalledTimes(1));
+});
+
+test("click-to-copy refreshes generated labels after dynamic content loads", () => {
+  vi.mocked(browser.i18n.getMessage).mockImplementation(
+    ((key: string, substitutions?: string | string[]) =>
+      `${key}:${Array.isArray(substitutions) ? substitutions.join(",") : (substitutions ?? "")}`) as never,
+  );
+  const element = document.createElement("code");
+  element.textContent = "loading";
+  addClickToCopy(
+    element,
+    vi.fn(async () => undefined),
+  );
+  element.textContent = "extension-id";
+
+  addClickToCopy(element);
+
+  expect(element.getAttribute("aria-label")).toContain("extension-id");
 });
 
 test("click-to-copy contains clipboard failures and normalizes missing text", async () => {

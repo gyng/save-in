@@ -1,4 +1,9 @@
-type Dependency = { parent: string; children: string[]; when?: () => boolean };
+type Dependency = {
+  parent: string;
+  children: string[];
+  when?: () => boolean;
+  watches?: string[];
+};
 type DisableableControl =
   | HTMLButtonElement
   | HTMLInputElement
@@ -48,6 +53,12 @@ export const setupOptionDependencies = () => {
       children: ["setRefererHeaderFilter"],
     },
     {
+      parent: "fallbackFetch",
+      watches: ["fetchViaFetch"],
+      children: ["includeFetchCredentials"],
+      when: () => checked("fallbackFetch") || checked("fetchViaFetch"),
+    },
+    {
       parent: "browserDownloadFiltersEnabled",
       children: ["browserDownloadFilter", "browserDownloadExcludeFilter"],
     },
@@ -72,8 +83,8 @@ export const setupOptionDependencies = () => {
       });
     });
   };
-  [...new Set(dependencies.map(({ parent }) => parent))].forEach((id) =>
-    optionCheckbox(id)?.addEventListener("change", update),
+  [...new Set(dependencies.flatMap(({ parent, watches = [] }) => [parent, ...watches]))].forEach(
+    (id) => optionCheckbox(id)?.addEventListener("change", update),
   );
   update();
   return update;

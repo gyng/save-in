@@ -702,13 +702,13 @@
     "message": "För URL:er utan filändelse, härled en från serverns Content-Type. Detta medför en liten fördröjning endast när det behövs."
   },
   "o_cFallbackFetch": {
-    "message": "Försök misslyckade nedladdningar igen en gång i bakgrunden"
+    "message": "Försök misslyckade hämtningar igen via Save In"
   },
   "o_cFallbackFetchHelp": {
-    "message": "Försöker nätverks- eller serverfel igen innan fel rapporteras."
+    "message": "Om en webbläsarhämtning misslyckas på grund av ett nätverks- eller serverfel hämtar Save In filen och försöker en gång till."
   },
   "o_cFetchViaFetchAPI": {
-    "message": "Ladda ner via Save In"
+    "message": "Hämta alltid via Save In"
   },
   "o_cFetchViaFetchAPIHelp": {
     "message": "Save In hämtar filen och skickar den till webbläsaren. Använd detta endast när normala nedladdningar misslyckas. Det är långsammare och Chrome håller filen i minnet medan den sparas, så undvik den för mycket stora filer."
@@ -1685,9 +1685,6 @@
   "html_webhookDocumentation": {
     "message": "Läs dokumentationen om webhooks"
   },
-  "html_offByDefault": {
-    "message": "Av som standard"
-  },
   "html_webhookEndpoint": {
     "message": "HTTPS-slutpunkt"
   },
@@ -2460,5 +2457,9 @@
   "welcomeKeepCurrentFolders": { "message": "Behåll nuvarande mappar" },
   "welcomeUseStarterFolders": { "message": "Börja använda Save In" },
   "welcomeUsingStarterSettings": { "message": "Använder startinställningar" },
-  "html_showWelcomeGuide": { "message": "Visa välkomstguiden" }
+  "html_showWelcomeGuide": { "message": "Visa välkomstguiden" },
+  "advancedFilesDownloads": { "message": "Filer och hämtningar" },
+  "advancedMaintenanceDiagnostics": { "message": "Underhåll och diagnostik" },
+  "webhookStateOn": { "message": "På" },
+  "webhookStateOff": { "message": "Av" }
 }

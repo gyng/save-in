@@ -605,13 +605,13 @@
     "message": "확장자가 없는 URL의 경우 서버의 Content-Type에서 파생됩니다. 이는 필요한 경우에만 약간의 지연을 추가합니다."
   },
   "o_cFallbackFetch": {
-    "message": "실패한 다운로드를 백그라운드에서 한 번 다시 시도"
+    "message": "실패한 다운로드를 Save In을 통해 다시 시도"
   },
   "o_cFallbackFetchHelp": {
-    "message": "실패를 보고하기 전에 네트워크 또는 서버 오류를 다시 시도합니다."
+    "message": "브라우저 다운로드가 네트워크 또는 서버 오류로 실패하면 Save In이 파일을 가져와 한 번 다시 시도합니다."
   },
   "o_cFetchViaFetchAPI": {
-    "message": "Save In를 통해 다운로드"
+    "message": "항상 Save In을 통해 다운로드"
   },
   "o_cFetchViaFetchAPIHelp": {
     "message": "Save In는 파일을 가져와 브라우저에 전달합니다. 일반 다운로드가 실패한 경우에만 이 기능을 사용하세요. 속도가 느리고 Chrome는 저장하는 동안 파일을 메모리에 유지하므로 매우 큰 파일의 경우에는 사용하지 마세요."
@@ -1588,9 +1588,6 @@
   "html_webhookDocumentation": {
     "message": "웹후크 문서 보기"
   },
-  "html_offByDefault": {
-    "message": "기본적으로 사용 안 함"
-  },
   "html_webhookEndpoint": {
     "message": "HTTPS 엔드포인트"
   },
@@ -2562,5 +2559,9 @@
   "welcomeKeepCurrentFolders": { "message": "현재 폴더 유지" },
   "welcomeUseStarterFolders": { "message": "Save In 사용 시작" },
   "welcomeUsingStarterSettings": { "message": "시작 설정 사용 중" },
-  "html_showWelcomeGuide": { "message": "시작 안내 보기" }
+  "html_showWelcomeGuide": { "message": "시작 안내 보기" },
+  "advancedFilesDownloads": { "message": "파일 및 다운로드" },
+  "advancedMaintenanceDiagnostics": { "message": "유지 관리 및 진단" },
+  "webhookStateOn": { "message": "켬" },
+  "webhookStateOff": { "message": "끔" }
 }

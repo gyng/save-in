@@ -18,6 +18,9 @@ describe("option dependencies", () => {
       <textarea id="browserDownloadExcludeFilter"></textarea>
       <input type="checkbox" id="setRefererHeader">
       <textarea id="setRefererHeaderFilter"></textarea>
+      <input type="checkbox" id="fallbackFetch">
+      <input type="checkbox" id="fetchViaFetch">
+      <input type="checkbox" id="includeFetchCredentials">
       <input type="checkbox" id="links">
       <input type="checkbox" id="preferLinks">
       <input type="checkbox" id="preferLinksFilterEnabled">
@@ -43,6 +46,28 @@ describe("option dependencies", () => {
       (document.querySelector("#browserDownloadExcludeFilter") as HTMLTextAreaElement).disabled,
     ).toBe(true);
     expect((document.querySelector("#preferLinks") as HTMLInputElement).disabled).toBe(true);
+    expect((document.querySelector("#includeFetchCredentials") as HTMLInputElement).disabled).toBe(
+      true,
+    );
+  });
+
+  test("enables fetch credentials when either Save In fetch mode is active", () => {
+    setupOptionDependencies();
+    const fallback = document.querySelector("#fallbackFetch") as HTMLInputElement;
+    const direct = document.querySelector("#fetchViaFetch") as HTMLInputElement;
+    const credentials = document.querySelector("#includeFetchCredentials") as HTMLInputElement;
+
+    fallback.checked = true;
+    fallback.dispatchEvent(new Event("change"));
+    expect(credentials.disabled).toBe(false);
+
+    fallback.checked = false;
+    fallback.dispatchEvent(new Event("change"));
+    expect(credentials.disabled).toBe(true);
+
+    direct.checked = true;
+    direct.dispatchEvent(new Event("change"));
+    expect(credentials.disabled).toBe(false);
   });
 
   test("retains browser URL filters while toggling their interaction", () => {

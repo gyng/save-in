@@ -142,6 +142,25 @@ describe("setupTabs", () => {
     expect(panels[1]!.getAttribute("aria-labelledby")).toBe(tabs[1]!.id);
   });
 
+  test("keeps the selected tab visible in a horizontally scrolling tab list", () => {
+    const tabs = document.querySelectorAll<HTMLElement>(".tablist .tab");
+    tabs[1]!.scrollIntoView = vi.fn();
+
+    tabs[1]!.click();
+
+    expect(tabs[1]!.scrollIntoView).toHaveBeenCalledWith({
+      block: "nearest",
+      inline: "nearest",
+    });
+
+    tabs[1]!.scrollIntoView = vi.fn();
+    window.dispatchEvent(new Event("resize"));
+    expect(tabs[1]!.scrollIntoView).toHaveBeenCalledWith({
+      block: "nearest",
+      inline: "nearest",
+    });
+  });
+
   test("option navigation activates its panel before focusing the control", () => {
     const target = document.getElementById("b") as HTMLInputElement;
     document.dispatchEvent(new CustomEvent("save-in:navigate-option", { detail: { target } }));

@@ -1723,383 +1723,521 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
 
       <h2 id="section-more-options">__MSG_o_sMoreOptions__</h2>
 
-      <h3>__MSG_o_sAppearance__</h3>
-      <label>
-        <span>__MSG_o_lUiTheme__</span>
-        <select id="uiTheme" aria-describedby="uiThemeHelp">
-          <option value="system">__MSG_o_lUiThemeSystem__</option>
-          <option value="dark">__MSG_o_lUiThemeDark__</option>
-          <option value="light">__MSG_o_lUiThemeLight__</option>
-        </select>
-        <div class="caption caption-line" id="uiThemeHelp">__MSG_o_lUiThemeHelp__</div>
-      </label>
-
-      <h3>__MSG_o_sAdvancedFilenames__</h3>
-      <label>
-        <input type="number" id="truncateLength" min="0" step="1" />__MSG_o_cTruncatePath__&nbsp;
-        <div class="caption caption-line">__MSG_o_cTruncatePathHelp__</div>
-      </label>
-
-      <label>
-        __MSG_o_cReplaceInvalidCharsWith__
-        <input
-          type="text"
-          id="replacementChar"
-          placeholder="__MSG_html_delete__"
-          class="mono-input"
-        />
-        <div class="caption caption-line">__MSG_o_cReplaceInvalidCharsWithHelp__</div>
-      </label>
-
-      <label>
-        <input type="checkbox" id="appendMimeExtension" />__MSG_o_cAppendMimeExtension__
-        <div class="caption caption-line">__MSG_o_cAppendMimeExtensionHelp__</div>
-      </label>
-
-      <h3>__MSG_o_sAdvancedDownloading__</h3>
-      <label>
-        <input type="checkbox" id="fallbackFetch" />
-        <span>__MSG_o_cFallbackFetch__</span>
-        <div class="caption caption-line">__MSG_o_cFallbackFetchHelp__</div>
-      </label>
-
-      <label>
-        <input type="checkbox" id="fetchViaFetch" />
-        <span>__MSG_o_cFetchViaFetchAPI__</span>
-        <div class="caption caption-line">__MSG_o_cFetchViaFetchAPIHelp__</div>
-      </label>
-
-      <label>
-        <input type="checkbox" id="includeFetchCredentials" />
-        <span>__MSG_o_cIncludeFetchCredentials__</span>
-        <div class="caption caption-line">__MSG_o_cIncludeFetchCredentialsHelp__</div>
-      </label>
-
-      <div class="referer-option-group">
-        <label>
-          <input type="checkbox" id="setRefererHeader" aria-controls="referer-options" />
-          __MSG_o_cSetRefererHeader__
-        </label>
-        <div id="referer-options" class="dependent-options referer-options">
-          <div class="caption caption-line">__MSG_o_cSetRefererHeaderHelp__</div>
-          <label class="caption-line">
-            <div>__MSG_o_cSetRefererHeaderFilter__</div>
-            <textarea
-              class="full-width"
-              id="setRefererHeaderFilter"
-              rows="3"
-              placeholder=""
-              spellcheck="false"
-            ></textarea>
-          </label>
-          <div class="caption caption-line">
-            __MSG_o_cSetRefererHeaderFilterHelp__
-            <a
-              href="https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Match_patterns"
-              >__MSG_html_mdnMatchPatterns__</a
-            >
-          </div>
-        </div>
-      </div>
-
-      <h3>__MSG_o_sAdvancedCounter__</h3>
-      <p class="caption caption-line">
-        __MSG_html_currentValueOfThe__
-        <code>:counter:</code> __MSG_html_variableItAdvancesOncePerSavedDownloadAndPersists__
-      </p>
-      <div class="dev-api counter-control">
-        <div class="dev-api-row">
-          <span class="dev-api-label">__MSG_html_current__</span>
-          <input
-            id="counter-value"
-            class="dev-api-value"
-            type="number"
-            min="0"
-            step="1"
-            value="0"
-            inputmode="numeric"
-            data-runtime-control="true"
-            aria-label="__MSG_html_counterValue__"
-          />
-          <button type="button" id="counter-set">__MSG_html_setValue__</button>
-          <button type="button" id="counter-reset">__MSG_html_resetTo0__</button>
-        </div>
-      </div>
-
-      <h3>__MSG_o_sAdvancedBackupReset__</h3>
-      <div class="settings-transfer-actions">
-        <button type="button" id="settings-import" class="button">__MSG_o_cImportSettings__</button>
-        <button type="button" id="settings-export" class="button settings-export-button">
-          __MSG_o_cExportSettings__
-        </button>
-        <button type="button" id="reset" class="button-danger danger-button settings-reset-button">
-          __MSG_o_cRestoreDefaults__
-        </button>
-      </div>
-      <div
-        id="settings-reset-status"
-        class="feedback feedback-inline settings-reset-status"
-        role="status"
-        aria-live="polite"
-        hidden
-      ></div>
-
-      <textarea id="export-target" hidden spellcheck="false"></textarea>
-
-      <h3 id="external-integrations-heading">__MSG_html_externalIntegrations__</h3>
-      <nav class="integration-documentation-links" aria-label="__MSG_html_externalIntegrations__">
-        <a
-          class="external"
-          href="https://github.com/gyng/save-in/wiki/Integrations"
-          target="_blank"
-          rel="noreferrer"
-          >__MSG_html_integrationGuide__</a
-        >
-        <a
-          id="webhook-documentation"
-          class="external"
-          href="https://github.com/gyng/save-in/wiki/Webhooks"
-          target="_blank"
-          rel="noreferrer"
-          >__MSG_html_webhookDocumentation__</a
-        >
+      <nav class="advanced-section-nav" aria-label="__MSG_o_sMoreOptions__">
+        <a href="#advanced-appearance">__MSG_o_sAppearance__</a>
+        <a href="#advanced-files-downloads">__MSG_advancedFilesDownloads__</a>
+        <a href="#advanced-maintenance">__MSG_advancedMaintenanceDiagnostics__</a>
+        <a href="#advanced-integrations">__MSG_html_externalIntegrations__</a>
       </nav>
 
-      <div class="external-integrations-header">
-        <div>
-          <h4 id="external-download-access-heading">__MSG_html_externalDownloadAccess__</h4>
-          <p class="caption">__MSG_html_letTrustedExtensionsSendUrlsThroughSaveInS__</p>
+      <section
+        id="advanced-appearance"
+        class="advanced-section"
+        aria-labelledby="advanced-appearance-heading"
+      >
+        <h3 id="advanced-appearance-heading">__MSG_o_sAppearance__</h3>
+        <div class="advanced-option-row advanced-field-option">
+          <label>
+            <span>__MSG_o_lUiTheme__</span>
+            <select id="uiTheme" aria-describedby="uiThemeHelp">
+              <option value="system">__MSG_o_lUiThemeSystem__</option>
+              <option value="dark">__MSG_o_lUiThemeDark__</option>
+              <option value="light">__MSG_o_lUiThemeLight__</option>
+            </select>
+          </label>
+          <div class="caption advanced-option-help" id="uiThemeHelp">__MSG_o_lUiThemeHelp__</div>
         </div>
-      </div>
+      </section>
 
       <section
-        class="external-integrations-content"
-        aria-labelledby="external-download-access-heading"
+        id="advanced-files-downloads"
+        class="advanced-section"
+        aria-labelledby="advanced-files-downloads-heading"
       >
-        <section class="external-access-control" aria-labelledby="external-approved-heading">
-          <div class="external-access-heading">
+        <h3 id="advanced-files-downloads-heading">__MSG_advancedFilesDownloads__</h3>
+        <h4>__MSG_o_sAdvancedFilenames__</h4>
+        <div class="advanced-option-row advanced-field-option">
+          <label>
+            <span>__MSG_o_cTruncatePath__</span>
+            <input
+              type="number"
+              id="truncateLength"
+              min="0"
+              step="1"
+              aria-describedby="truncateLengthHelp"
+            />
+          </label>
+          <div class="caption advanced-option-help" id="truncateLengthHelp">
+            __MSG_o_cTruncatePathHelp__
+          </div>
+        </div>
+
+        <div class="advanced-option-row advanced-field-option">
+          <label>
+            <span>__MSG_o_cReplaceInvalidCharsWith__</span>
+            <input
+              type="text"
+              id="replacementChar"
+              placeholder="__MSG_html_delete__"
+              class="mono-input"
+              aria-describedby="replacementCharHelp"
+            />
+          </label>
+          <div class="caption advanced-option-help" id="replacementCharHelp">
+            __MSG_o_cReplaceInvalidCharsWithHelp__
+          </div>
+        </div>
+
+        <div class="advanced-option-row advanced-checkbox-option">
+          <label>
+            <input
+              type="checkbox"
+              id="appendMimeExtension"
+              aria-describedby="appendMimeExtensionHelp"
+            />__MSG_o_cAppendMimeExtension__
+          </label>
+          <div class="caption advanced-option-help" id="appendMimeExtensionHelp">
+            __MSG_o_cAppendMimeExtensionHelp__
+          </div>
+        </div>
+
+        <h4>__MSG_o_sAdvancedDownloading__</h4>
+        <div class="background-fetch-options">
+          <div class="advanced-option-row advanced-checkbox-option">
+            <label>
+              <input type="checkbox" id="fallbackFetch" aria-describedby="fallbackFetchHelp" />
+              <span>__MSG_o_cFallbackFetch__</span>
+            </label>
+            <div class="caption advanced-option-help" id="fallbackFetchHelp">
+              __MSG_o_cFallbackFetchHelp__
+            </div>
+          </div>
+
+          <div class="advanced-option-row advanced-checkbox-option">
+            <label>
+              <input type="checkbox" id="fetchViaFetch" aria-describedby="fetchViaFetchHelp" />
+              <span>__MSG_o_cFetchViaFetchAPI__</span>
+            </label>
+            <div class="caption advanced-option-help" id="fetchViaFetchHelp">
+              __MSG_o_cFetchViaFetchAPIHelp__
+            </div>
+          </div>
+
+          <div class="advanced-option-row advanced-checkbox-option fetch-credentials-option">
+            <label>
+              <input
+                type="checkbox"
+                id="includeFetchCredentials"
+                aria-describedby="includeFetchCredentialsHelp"
+              />
+              <span>__MSG_o_cIncludeFetchCredentials__</span>
+            </label>
+            <div class="caption advanced-option-help" id="includeFetchCredentialsHelp">
+              __MSG_o_cIncludeFetchCredentialsHelp__
+            </div>
+          </div>
+        </div>
+
+        <div class="referer-option-group">
+          <label>
+            <input
+              type="checkbox"
+              id="setRefererHeader"
+              aria-controls="referer-options"
+              aria-describedby="setRefererHeaderHelp"
+            />
+            __MSG_o_cSetRefererHeader__
+          </label>
+          <div id="referer-options" class="dependent-options referer-options">
+            <div class="caption caption-line" id="setRefererHeaderHelp">
+              __MSG_o_cSetRefererHeaderHelp__
+            </div>
+            <label class="caption-line">
+              <div>__MSG_o_cSetRefererHeaderFilter__</div>
+              <textarea
+                class="full-width"
+                id="setRefererHeaderFilter"
+                rows="3"
+                placeholder=""
+                spellcheck="false"
+              ></textarea>
+            </label>
+            <div class="caption caption-line">
+              __MSG_o_cSetRefererHeaderFilterHelp__
+              <a
+                href="https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Match_patterns"
+                >__MSG_html_mdnMatchPatterns__</a
+              >
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section
+        id="advanced-maintenance"
+        class="advanced-section"
+        aria-labelledby="advanced-maintenance-heading"
+      >
+        <h3 id="advanced-maintenance-heading">__MSG_advancedMaintenanceDiagnostics__</h3>
+        <h4>__MSG_o_sAdvancedCounter__</h4>
+        <p class="caption caption-line">
+          __MSG_html_currentValueOfThe__
+          <code>:counter:</code> __MSG_html_variableItAdvancesOncePerSavedDownloadAndPersists__
+        </p>
+        <div class="dev-api counter-control">
+          <div class="dev-api-row">
+            <span class="dev-api-label">__MSG_html_current__</span>
+            <input
+              id="counter-value"
+              class="dev-api-value"
+              type="number"
+              min="0"
+              step="1"
+              value="0"
+              inputmode="numeric"
+              data-runtime-control="true"
+              aria-label="__MSG_html_counterValue__"
+            />
+            <button type="button" id="counter-set" data-option-search="true">
+              __MSG_html_setValue__
+            </button>
+            <button type="button" id="counter-reset" data-option-search="true">
+              __MSG_html_resetTo0__
+            </button>
+          </div>
+        </div>
+
+        <h4>__MSG_o_sAdvancedBackupReset__</h4>
+        <div class="settings-transfer-actions">
+          <div class="settings-transfer-standard-actions">
+            <button type="button" id="settings-import" class="button" data-option-search="true">
+              __MSG_o_cImportSettings__
+            </button>
+            <button type="button" id="settings-export" class="button" data-option-search="true">
+              __MSG_o_cExportSettings__
+            </button>
+          </div>
+          <button
+            type="button"
+            id="reset"
+            class="button-danger danger-button"
+            data-option-search="true"
+          >
+            __MSG_o_cRestoreDefaults__
+          </button>
+        </div>
+        <div
+          id="settings-reset-status"
+          class="feedback feedback-inline settings-reset-status"
+          role="status"
+          aria-live="polite"
+          hidden
+        ></div>
+
+        <textarea id="export-target" hidden spellcheck="false"></textarea>
+
+        <h4>__MSG_o_sAdvancedDiagnostics__</h4>
+        <div class="advanced-option-row advanced-checkbox-option">
+          <label>
+            <input type="checkbox" id="debug" aria-describedby="debugModeHelp" />
+            __MSG_o_cDebugMode__
+          </label>
+          <div class="caption advanced-option-help" id="debugModeHelp">
+            __MSG_html_theSessionLogBelowAlwaysKeepsASmallLocal__
+          </div>
+        </div>
+
+        <div class="diagnostics-row">
+          <details class="diagnostics-details">
+            <summary>__MSG_o_lDebugLog__</summary>
+            <textarea
+              class="full-width debug-log-text"
+              id="debug-log"
+              aria-label="__MSG_o_lDebugLog__"
+              spellcheck="false"
+              readonly
+            ></textarea>
+            <button type="button" id="debug-log-refresh" class="button" data-option-search="true">
+              __MSG_html_refreshLog__
+            </button>
+            <button type="button" id="debug-log-clear" class="button" data-option-search="true">
+              __MSG_html_clearLog__
+            </button>
+          </details>
+        </div>
+      </section>
+
+      <section
+        id="advanced-integrations"
+        class="advanced-section"
+        aria-labelledby="external-integrations-heading"
+      >
+        <h3 id="external-integrations-heading">__MSG_html_externalIntegrations__</h3>
+        <nav class="integration-documentation-links" aria-label="__MSG_html_externalIntegrations__">
+          <a
+            class="external"
+            href="https://github.com/gyng/save-in/wiki/Integrations"
+            target="_blank"
+            rel="noreferrer"
+            >__MSG_html_integrationGuide__</a
+          >
+          <a
+            id="webhook-documentation"
+            class="external"
+            href="https://github.com/gyng/save-in/wiki/Webhooks"
+            target="_blank"
+            rel="noreferrer"
+            >__MSG_html_webhookDocumentation__</a
+          >
+        </nav>
+
+        <section
+          class="advanced-integration-section external-integrations-content"
+          aria-labelledby="external-download-access-heading"
+        >
+          <div class="advanced-integration-heading">
             <div>
-              <h5 id="external-approved-heading">__MSG_html_approvedExtensions__</h5>
-              <p class="caption external-control-help">
-                __MSG_html_onlyApprovedExtensionsCanStartDownloadsUseTheCalling__
-              </p>
+              <h4 id="external-download-access-heading">__MSG_html_externalDownloadAccess__</h4>
+              <p class="caption">__MSG_html_letTrustedExtensionsSendUrlsThroughSaveInS__</p>
             </div>
             <span id="external-approved-count" class="external-approved-count"
               >__MSG_html_noneApproved__</span
             >
           </div>
+          <section class="external-access-control" aria-labelledby="external-approved-heading">
+            <div class="external-access-heading">
+              <div>
+                <h5 id="external-approved-heading">__MSG_html_approvedExtensions__</h5>
+                <p class="caption external-control-help">
+                  __MSG_html_onlyApprovedExtensionsCanStartDownloadsUseTheCalling__
+                </p>
+              </div>
+            </div>
 
-          <div class="external-extension-add-row">
-            <label class="visually-hidden" for="external-extension-id-draft"
-              >__MSG_html_extensionId__</label
-            >
-            <input
-              id="external-extension-id-draft"
-              class="external-extension-id-draft"
-              type="text"
-              placeholder="__MSG_html_pasteAnExtensionId__"
-              autocomplete="off"
-              autocapitalize="none"
-              spellcheck="false"
-              data-runtime-control="true"
-            />
-            <button id="external-extension-id-add" class="button" type="button" disabled>
-              __MSG_html_allow__
-            </button>
-          </div>
-
-          <div id="external-approved-list" class="external-approved-list" role="list"></div>
-          <p id="external-approved-empty" class="caption external-approved-empty">
-            __MSG_html_noExtensionsAreApprovedExternalDownloadsAreBlockedBy__
-          </p>
-          <p
-            id="external-approved-status"
-            class="feedback feedback-success feedback-inline external-approved-status"
-            role="status"
-          ></p>
-
-          <details class="external-raw-editor">
-            <summary>__MSG_html_advancedEditIdsAsText__</summary>
-            <p class="caption">__MSG_html_useOneExtensionIdPerLineForBulkChanges__</p>
-            <label>
-              <span class="external-control-label visually-hidden"
-                >__MSG_html_allowedExtensionIds__</span
+            <div class="external-extension-add-row">
+              <label class="visually-hidden" for="external-extension-id-draft"
+                >__MSG_html_extensionId__</label
               >
-              <textarea
-                class="full-width external-allowlist-input"
-                id="externalDownloadAllowlist"
-                rows="4"
-                placeholder="__MSG_html_oneExtensionIdPerLine__"
+              <input
+                id="external-extension-id-draft"
+                class="external-extension-id-draft"
+                type="text"
+                placeholder="__MSG_html_pasteAnExtensionId__"
+                autocomplete="off"
+                autocapitalize="none"
                 spellcheck="false"
-              ></textarea>
-            </label>
+                data-runtime-control="true"
+              />
+              <button id="external-extension-id-add" class="button" type="button" disabled>
+                __MSG_html_allow__
+              </button>
+            </div>
+
+            <div id="external-approved-list" class="external-approved-list" role="list"></div>
+            <p id="external-approved-empty" class="caption external-approved-empty">
+              __MSG_html_noExtensionsAreApprovedExternalDownloadsAreBlockedBy__
+            </p>
+            <p
+              id="external-approved-status"
+              class="feedback feedback-success feedback-inline external-approved-status"
+              role="status"
+            ></p>
+
+            <details class="external-raw-editor">
+              <summary>__MSG_html_advancedEditIdsAsText__</summary>
+              <p class="caption">__MSG_html_useOneExtensionIdPerLineForBulkChanges__</p>
+              <label>
+                <span class="external-control-label visually-hidden"
+                  >__MSG_html_allowedExtensionIds__</span
+                >
+                <textarea
+                  class="full-width external-allowlist-input"
+                  id="externalDownloadAllowlist"
+                  rows="4"
+                  placeholder="__MSG_html_oneExtensionIdPerLine__"
+                  spellcheck="false"
+                ></textarea>
+              </label>
+            </details>
+          </section>
+
+          <section
+            id="external-download-rejections"
+            class="external-download-rejections"
+            aria-live="polite"
+            aria-labelledby="external-pending-heading"
+            hidden
+          >
+            <h5 id="external-pending-heading" class="external-download-rejections-title">
+              __MSG_html_pendingApproval__
+            </h5>
+            <div class="caption">__MSG_html_theseExtensionsTriedToStartADownloadAddOnly__</div>
+            <div id="external-download-rejection-list"></div>
+            <div id="external-download-rejection-status" class="caption" role="status"></div>
+          </section>
+
+          <details class="external-api-details">
+            <summary>__MSG_html_developerDetails__</summary>
+            <div class="dev-api">
+              <div class="dev-api-row">
+                <span class="dev-api-label">__MSG_html_extensionId__</span>
+                <code id="ext-id" class="click-to-copy dev-api-value">…</code>
+              </div>
+              <div class="dev-api-row">
+                <span class="dev-api-label">__MSG_html_apiVersion__</span>
+                <span id="api-version" class="dev-api-value">…</span>
+              </div>
+              <div class="dev-api-row">
+                <span class="dev-api-label">__MSG_html_capabilities__</span>
+                <span id="api-capabilities" class="dev-api-value">…</span>
+              </div>
+              <details class="dev-api-snippet">
+                <summary>__MSG_html_exampleNegotiateTheVersionThenSaveAUrl__</summary>
+                <pre
+                  id="api-snippet"
+                  class="click-to-copy"
+                  aria-label="__MSG_html_clickTheSnippetToCopyIt__"
+                ></pre>
+                <div class="caption">__MSG_html_clickTheSnippetToCopyIt__</div>
+              </details>
+              <details class="dev-api-snippet">
+                <summary>__MSG_html_whereThisWorks__</summary>
+                <div class="caption">
+                  __MSG_html_webextensionsSuchAsFoxyGesturesCanMessageSaveIn__
+                </div>
+                <div class="caption caption-line">
+                  __MSG_html_saveInDoesNotAdoptDownloadsThatAnotherExtension__
+                  <code>DOWNLOAD</code> __MSG_html_messageFirstOrASmallRelayExtensionMustDo__
+                </div>
+              </details>
+            </div>
           </details>
         </section>
 
         <section
-          id="external-download-rejections"
-          class="external-download-rejections"
-          aria-live="polite"
-          aria-labelledby="external-pending-heading"
-          hidden
+          class="advanced-integration-section webhook-section"
+          aria-labelledby="webhook-heading"
         >
-          <h5 id="external-pending-heading" class="external-download-rejections-title">
-            __MSG_html_pendingApproval__
-          </h5>
-          <div class="caption">__MSG_html_theseExtensionsTriedToStartADownloadAddOnly__</div>
-          <div id="external-download-rejection-list"></div>
-          <div id="external-download-rejection-status" class="caption" role="status"></div>
+          <div class="advanced-integration-heading webhook-heading-row">
+            <div>
+              <h4 id="webhook-heading">__MSG_html_webhooks__</h4>
+              <p class="caption">__MSG_html_webhooksHelp__</p>
+            </div>
+            <span id="webhook-state-badge" class="external-approved-count" data-state="off"
+              >__MSG_webhookStateOff__</span
+            >
+          </div>
+
+          <label class="webhook-endpoint-label" for="webhookUrl">
+            <span class="external-control-label">__MSG_html_webhookEndpoint__</span>
+            <span class="caption">__MSG_html_webhookEndpointHelp__</span>
+          </label>
+          <div class="webhook-endpoint-row">
+            <input
+              id="webhookUrl"
+              type="url"
+              data-no-autosave
+              inputmode="url"
+              placeholder="https://hooks.example.com/save"
+              data-technical-literal
+              autocomplete="off"
+              autocapitalize="none"
+              spellcheck="false"
+              aria-describedby="webhook-endpoint-note webhook-status"
+            />
+            <button
+              id="webhook-test"
+              class="button"
+              type="button"
+              data-option-search="true"
+              data-option-search-target="webhookUrl"
+              disabled
+            >
+              __MSG_html_testWebhook__
+            </button>
+          </div>
+          <p id="webhook-endpoint-note" class="caption webhook-endpoint-note">
+            __MSG_html_webhookTestHelp__
+          </p>
+
+          <div class="webhook-enable-row">
+            <input
+              type="checkbox"
+              id="webhookEnabled"
+              data-no-autosave
+              aria-describedby="webhookEnabledHelp"
+              disabled
+            />
+            <span>
+              <label for="webhookEnabled"><strong>__MSG_html_webhookEnabled__</strong></label>
+              <span class="caption advanced-option-help" id="webhookEnabledHelp"
+                >__MSG_html_webhookAlwaysIncludes__</span
+              >
+            </span>
+          </div>
+
+          <fieldset class="webhook-fields">
+            <legend>__MSG_html_webhookAdditionalData__</legend>
+            <label>
+              <input type="checkbox" id="webhookIncludePageUrl" data-no-autosave />
+              __MSG_html_webhookIncludePageUrl__
+            </label>
+            <label>
+              <input type="checkbox" id="webhookIncludePageTitle" data-no-autosave />
+              __MSG_html_webhookIncludePageTitle__
+            </label>
+            <label>
+              <input type="checkbox" id="webhookIncludeSelectionText" data-no-autosave />
+              __MSG_html_webhookIncludeSelectionText__
+            </label>
+          </fieldset>
+
+          <p class="caption caption-line webhook-disclosure">__MSG_html_webhookPrivacy__</p>
+          <details class="webhook-preview-details">
+            <summary>__MSG_html_webhookPayloadPreview__</summary>
+            <pre id="webhook-payload-preview"></pre>
+          </details>
+          <div
+            id="webhook-status"
+            class="feedback feedback-inline webhook-status"
+            role="status"
+            aria-live="polite"
+          ></div>
         </section>
 
-        <details class="external-api-details">
-          <summary>__MSG_html_developerDetails__</summary>
-          <div class="dev-api">
-            <div class="dev-api-row">
-              <span class="dev-api-label">__MSG_html_extensionId__</span>
-              <code id="ext-id" class="click-to-copy dev-api-value" title="Click to copy">…</code>
-            </div>
-            <div class="dev-api-row">
-              <span class="dev-api-label">__MSG_html_apiVersion__</span>
-              <span id="api-version" class="dev-api-value">…</span>
-            </div>
-            <div class="dev-api-row">
-              <span class="dev-api-label">__MSG_html_capabilities__</span>
-              <span id="api-capabilities" class="dev-api-value">…</span>
-            </div>
-            <details class="dev-api-snippet">
-              <summary>__MSG_html_exampleNegotiateTheVersionThenSaveAUrl__</summary>
-              <pre id="api-snippet" class="click-to-copy" title="Click to copy"></pre>
-              <div class="caption">__MSG_html_clickTheSnippetToCopyIt__</div>
-            </details>
-            <details class="dev-api-snippet">
-              <summary>__MSG_html_whereThisWorks__</summary>
-              <div class="caption">
-                __MSG_html_webextensionsSuchAsFoxyGesturesCanMessageSaveIn__
-              </div>
-              <div class="caption caption-line">
-                __MSG_html_saveInDoesNotAdoptDownloadsThatAnotherExtension__
-                <code>DOWNLOAD</code> __MSG_html_messageFirstOrASmallRelayExtensionMustDo__
-              </div>
-            </details>
+        <section
+          class="advanced-integration-section webmcp-section"
+          aria-labelledby="webmcp-heading"
+        >
+          <div class="advanced-integration-heading">
+            <h4 id="webmcp-heading">WebMCP</h4>
+            <span class="warning badge">__MSG_o_lExperimental__</span>
           </div>
-        </details>
-      </section>
-
-      <section class="webhook-section" aria-labelledby="webhook-heading">
-        <div class="webhook-heading-row">
-          <div>
-            <h4 id="webhook-heading">__MSG_html_webhooks__</h4>
-            <p class="caption">__MSG_html_webhooksHelp__</p>
+          <p class="caption">
+            __MSG_html_inABrowserThatSupports__
+            <a class="external" href="https://developer.chrome.com/docs/ai/webmcp">WebMCP</a
+            >__MSG_html_saveInRegistersToolsAnAiAgentCanCall__
+          </p>
+          <div class="dev-api-row">
+            <span class="dev-api-label">__MSG_o_lHistoryStatus__</span>
+            <span id="webmcp-status" class="dev-api-value">__MSG_html_checking__</span>
           </div>
-          <span class="external-approved-count">__MSG_html_offByDefault__</span>
-        </div>
-
-        <label class="webhook-endpoint-label" for="webhookUrl">
-          <span class="external-control-label">__MSG_html_webhookEndpoint__</span>
-          <span class="caption">__MSG_html_webhookEndpointHelp__</span>
-        </label>
-        <div class="webhook-endpoint-row">
-          <input
-            id="webhookUrl"
-            type="url"
-            data-no-autosave
-            inputmode="url"
-            placeholder="https://hooks.example.com/save"
-            data-technical-literal
-            autocomplete="off"
-            autocapitalize="none"
-            spellcheck="false"
-            aria-describedby="webhook-endpoint-note webhook-status"
-          />
-          <button id="webhook-test" class="button" type="button" disabled>
-            __MSG_html_testWebhook__
-          </button>
-        </div>
-        <p id="webhook-endpoint-note" class="caption webhook-endpoint-note">
-          __MSG_html_webhookTestHelp__
-        </p>
-
-        <label class="webhook-enable-row">
-          <input type="checkbox" id="webhookEnabled" data-no-autosave disabled />
-          <span>
-            <strong>__MSG_html_webhookEnabled__</strong>
-            <span class="caption caption-line">__MSG_html_webhookAlwaysIncludes__</span>
-          </span>
-        </label>
-
-        <fieldset class="webhook-fields">
-          <legend>__MSG_html_webhookAdditionalData__</legend>
-          <label>
-            <input type="checkbox" id="webhookIncludePageUrl" data-no-autosave />
-            __MSG_html_webhookIncludePageUrl__
-          </label>
-          <label>
-            <input type="checkbox" id="webhookIncludePageTitle" data-no-autosave />
-            __MSG_html_webhookIncludePageTitle__
-          </label>
-          <label>
-            <input type="checkbox" id="webhookIncludeSelectionText" data-no-autosave />
-            __MSG_html_webhookIncludeSelectionText__
-          </label>
-        </fieldset>
-
-        <p class="caption caption-line webhook-disclosure">__MSG_html_webhookPrivacy__</p>
-        <details class="webhook-preview-details">
-          <summary>__MSG_html_webhookPayloadPreview__</summary>
-          <pre id="webhook-payload-preview"></pre>
-        </details>
-        <div
-          id="webhook-status"
-          class="feedback feedback-inline webhook-status"
-          role="status"
-          aria-live="polite"
-        ></div>
+          <details class="webmcp-developer-details">
+            <summary>__MSG_html_developerDetails__</summary>
+            <div class="webmcp-developer-content">
+              <div class="dev-api-row">
+                <span class="dev-api-label">__MSG_html_tools__</span>
+                <span class="dev-api-value webmcp-tool-list" data-technical-literal
+                  >save_in_get_schema, save_in_get_config, save_in_list_vocabulary,
+                  save_in_get_grammars, save_in_validate_config, save_in_apply_config,
+                  save_in_download</span
+                >
+              </div>
+              <p class="caption">__MSG_html_toConnectOpenThisPageInABrowserThat__</p>
+            </div>
+          </details>
+        </section>
       </section>
-
-      <h4>
-        WebMCP
-        <span class="warning badge">__MSG_o_lExperimental__</span>
-      </h4>
-      <p class="caption caption-line">
-        __MSG_html_inABrowserThatSupports__
-        <a class="external" href="https://developer.chrome.com/docs/ai/webmcp">WebMCP</a
-        >__MSG_html_saveInRegistersToolsAnAiAgentCanCall__
-      </p>
-      <div class="dev-api webmcp-card">
-        <div class="dev-api-row">
-          <span class="dev-api-label">__MSG_o_lHistoryStatus__</span>
-          <span id="webmcp-status" class="dev-api-value">__MSG_html_checking__</span>
-        </div>
-        <div class="dev-api-row">
-          <span class="dev-api-label">__MSG_html_tools__</span>
-          <span class="dev-api-value webmcp-tool-list" data-technical-literal
-            >save_in_get_schema, save_in_get_config, save_in_list_vocabulary, save_in_get_grammars,
-            save_in_validate_config, save_in_apply_config, save_in_download</span
-          >
-        </div>
-        <p class="caption">__MSG_html_toConnectOpenThisPageInABrowserThat__</p>
-      </div>
-
-      <h3>__MSG_o_sAdvancedDiagnostics__</h3>
-      <label> <input type="checkbox" id="debug" /> __MSG_o_cDebugMode__ </label>
-      <div class="caption caption-line">__MSG_html_theSessionLogBelowAlwaysKeepsASmallLocal__</div>
-
-      <div class="diagnostics-row">
-        <details class="diagnostics-details">
-          <summary>__MSG_o_lDebugLog__</summary>
-          <textarea
-            class="full-width debug-log-text"
-            id="debug-log"
-            aria-label="__MSG_o_lDebugLog__"
-            spellcheck="false"
-            readonly
-          ></textarea>
-          <button type="button" id="debug-log-refresh" class="button">
-            __MSG_html_refreshLog__
-          </button>
-          <button type="button" id="debug-log-clear" class="button">__MSG_html_clearLog__</button>
-        </details>
-      </div>
 
       <p>__MSG_translationCredits__</p>
     </main>

@@ -122,6 +122,45 @@ test("preserves backward-compatible option defaults", () => {
   expect(document.querySelector("#containerAuthPermission")).toBeNull();
 });
 
+test("groups Advanced into navigable sections with described controls", () => {
+  const document = documentForOptions();
+  const sectionLinks = [
+    "advanced-appearance",
+    "advanced-files-downloads",
+    "advanced-maintenance",
+    "advanced-integrations",
+  ];
+  expect(
+    [...document.querySelectorAll<HTMLAnchorElement>(".advanced-section-nav a")].map((link) =>
+      link.hash.slice(1),
+    ),
+  ).toEqual(sectionLinks);
+  for (const id of sectionLinks) expect(document.getElementById(id)).not.toBeNull();
+
+  for (const [control, help] of [
+    ["truncateLength", "truncateLengthHelp"],
+    ["replacementChar", "replacementCharHelp"],
+    ["appendMimeExtension", "appendMimeExtensionHelp"],
+    ["fallbackFetch", "fallbackFetchHelp"],
+    ["fetchViaFetch", "fetchViaFetchHelp"],
+    ["includeFetchCredentials", "includeFetchCredentialsHelp"],
+    ["debug", "debugModeHelp"],
+  ] as const) {
+    expect(document.getElementById(control)?.getAttribute("aria-describedby")).toContain(help);
+    expect(document.getElementById(help)).not.toBeNull();
+  }
+});
+
+test("uses one shared container for each external integration", () => {
+  const document = documentForOptions();
+  const integrations = document.querySelectorAll(
+    "#advanced-integrations > .advanced-integration-section",
+  );
+  expect(integrations).toHaveLength(3);
+  expect(document.querySelector(".webmcp-developer-details")?.hasAttribute("open")).toBe(false);
+  expect(document.querySelector("#webhook-state-badge")?.getAttribute("data-state")).toBe("off");
+});
+
 test("keeps stable history controls and export commands", () => {
   const document = documentForOptions();
   const runtimeControls = [

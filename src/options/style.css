@@ -1165,6 +1165,16 @@ input[type="text"] {
   outline: solid 2px var(--link-color);
 }
 
+.click-to-copy:focus-visible {
+  border-radius: var(--radius-sm);
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.click-to-copy.copied {
+  color: var(--success-fg);
+}
+
 .click-to-copy:active {
   background-color: var(--hover-bg-strong);
 }
@@ -1552,18 +1562,21 @@ fieldset.click-to-save-controls {
 }
 
 .settings-transfer-actions,
+.settings-transfer-standard-actions,
 .diagnostics-row {
   display: flex;
-  width: 100%;
   align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
 }
 
-.settings-export-button {
-  margin-left: var(--space-2);
+.settings-transfer-actions,
+.diagnostics-row {
+  width: 100%;
 }
 
-.settings-reset-button {
-  margin-left: var(--space-5);
+.settings-transfer-actions {
+  gap: var(--space-3);
 }
 
 .diagnostics-details {
@@ -4053,18 +4066,118 @@ button:disabled {
   border-radius: var(--radius);
 }
 
-/* ── More Options → External integrations ────────────────────────── */
+/* ── Advanced ────────────────────────────────────────────────────── */
 
-.webhook-section {
+.advanced-section-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  max-width: var(--content-max-width);
+  margin: 0 0 var(--space-5);
+  padding: var(--space-2) 0 var(--space-3);
+  border-bottom: 1px solid var(--panel-border);
+  font-size: var(--text-sm);
+}
+
+.advanced-section {
+  width: min(var(--content-max-width), 100%);
+  box-sizing: border-box;
+  scroll-margin-top: calc(var(--control-height) + var(--space-5));
+}
+
+.advanced-section + .advanced-section {
+  margin-top: var(--space-6);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--panel-border);
+}
+
+.tab-panel .advanced-section > h3 {
+  margin: 0 0 var(--space-4);
+}
+
+.advanced-section > h4 {
+  margin: var(--space-5) 0 var(--space-2);
+}
+
+.advanced-section > h3 + h4 {
+  margin-top: 0;
+}
+
+.advanced-option-row {
+  max-width: 48rem;
+  margin-bottom: var(--space-3);
+}
+
+.advanced-option-row > label {
+  margin: 0;
+}
+
+.advanced-field-option > label {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.advanced-field-option > label :is(input, select) {
+  margin: 0;
+}
+
+.advanced-option-help {
+  max-width: 68ch;
+  margin-top: var(--space-1);
+  color: var(--color-text-muted);
+  line-height: var(--leading-copy);
+}
+
+.advanced-checkbox-option > .advanced-option-help {
+  margin-left: calc(1em + var(--space-2));
+}
+
+.background-fetch-options {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.fetch-credentials-option {
+  margin-left: var(--space-4);
+  padding-left: var(--space-3);
+  border-left: 2px solid var(--panel-border);
+}
+
+.fetch-credentials-option:has(input:disabled) label {
+  color: var(--disabled-control-color);
+}
+
+.advanced-integration-section {
   display: grid;
   gap: var(--space-3);
   width: min(760px, 100%);
   box-sizing: border-box;
-  margin: var(--space-2) 0 var(--space-5);
+  margin: var(--space-3) 0 0;
   padding: var(--space-4);
   border: 1px solid var(--panel-border);
   border-radius: var(--radius);
   background: transparent;
+}
+
+.advanced-integration-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.advanced-integration-heading h4,
+.advanced-integration-heading p {
+  margin: 0;
+}
+
+/* ── Advanced → External integrations ────────────────────────────── */
+
+.webhook-section {
+  display: grid;
+  gap: var(--space-3);
 }
 
 .webhook-heading-row {
@@ -4084,7 +4197,7 @@ button:disabled {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2) var(--space-4);
-  margin: var(--space-3) 0 var(--space-6);
+  margin: 0 0 var(--space-3);
   font-size: var(--text-sm);
 }
 
@@ -4121,6 +4234,11 @@ button:disabled {
 
 .webhook-enable-row > input {
   margin-top: 3px;
+}
+
+.webhook-enable-row label {
+  margin: 0;
+  padding: 0;
 }
 
 .webhook-fields {
@@ -4170,38 +4288,13 @@ button:disabled {
 .external-integrations-content {
   display: grid;
   gap: var(--space-4);
-  width: min(760px, 100%);
-  box-sizing: border-box;
-  margin: var(--space-2) 0 var(--space-6);
-}
-
-.external-integrations-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-4);
-  width: min(760px, 100%);
-  box-sizing: border-box;
-}
-
-.external-integrations-header h4,
-.external-integrations-header p {
-  margin: 0;
-}
-
-.external-integrations-header .external {
-  flex: 0 0 auto;
-  margin-top: 2px;
 }
 
 .external-access-control {
   display: grid;
   gap: var(--space-3);
   margin: 0;
-  padding: var(--space-3);
-  border: 1px solid var(--panel-border);
-  border-radius: var(--radius);
-  background: var(--page-bg);
+  padding: 0;
 }
 
 .external-access-heading {
@@ -4372,15 +4465,10 @@ button:disabled {
 
 @media (max-width: 640px) {
   .webhook-heading-row,
-  .external-integrations-header,
+  .advanced-integration-heading,
   .external-access-heading {
     display: grid;
     gap: var(--space-2);
-  }
-
-  .external-integrations-header .external {
-    justify-self: start;
-    margin-top: 0;
   }
 
   .external-approved-count {
@@ -4405,16 +4493,41 @@ button:disabled {
   background-color: var(--panel-bg);
 }
 
-.webmcp-card {
-  width: min(760px, 100%);
-  max-width: none;
-  box-sizing: border-box;
+.webmcp-section > .dev-api-row {
+  padding: 0;
 }
 
-.webmcp-card .dev-api-value {
+.webmcp-section > .dev-api-row .dev-api-value {
   font-family: var(--font-stack);
   word-break: normal;
+}
+
+.webmcp-tool-list {
+  font-family: var(--font-mono);
   overflow-wrap: anywhere;
+}
+
+.webmcp-developer-details {
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--panel-border);
+}
+
+.webmcp-developer-details > summary {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+.webmcp-developer-content {
+  display: grid;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+#webhook-state-badge[data-state="on"] {
+  color: var(--success-fg);
+  border-color: color-mix(in srgb, var(--color-success) 45%, var(--panel-border));
+  background: color-mix(in srgb, var(--color-success) 10%, transparent);
 }
 
 .counter-control {
@@ -5069,12 +5182,52 @@ code.click-to-copy {
     width: calc(100% + 2 * var(--space-3));
     margin-inline: calc(-1 * var(--space-3));
     padding-inline: var(--space-3);
-    flex-wrap: wrap;
-    overflow: visible;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: thin;
   }
 
   .tablist .tab {
-    flex: 0 1 auto;
+    flex: 0 0 auto;
+  }
+
+  .tablist::-webkit-scrollbar {
+    height: var(--space-1);
+  }
+
+  .tablist::-webkit-scrollbar-thumb {
+    border-radius: var(--radius);
+    background: var(--color-control-border);
+  }
+
+  .advanced-section {
+    scroll-margin-top: calc(var(--control-height) + var(--space-4));
+  }
+
+  .advanced-section-nav {
+    gap-inline: var(--space-3);
+  }
+
+  .fetch-credentials-option {
+    margin-left: var(--space-2);
+    padding-left: var(--space-2);
+  }
+
+  .counter-control .dev-api-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .counter-control .dev-api-label {
+    grid-column: 1 / -1;
+  }
+
+  .tab-panel .counter-control #counter-value {
+    width: 100%;
+    max-width: none;
   }
 
   #history-list {
@@ -5319,8 +5472,7 @@ code.click-to-copy {
 
 .auto-download-options:has(#autoDownloadEnabled:not(:checked)) .auto-download-dependent,
 .browser-download-filter-group:has(#browserDownloadFiltersEnabled:not(:checked))
-  .browser-download-filter-options,
-.referer-option-group:has(#setRefererHeader:not(:checked)) .referer-options {
+  .browser-download-filter-options {
   opacity: 0.55;
 }
 

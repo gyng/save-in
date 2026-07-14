@@ -605,13 +605,13 @@
     "message": "對於沒有副檔名的 URL，請從伺服器的 Content-Type 衍生出一個。這僅在需要時增加一點延遲。"
   },
   "o_cFallbackFetch": {
-    "message": "在後台重試一次失敗的下載"
+    "message": "透過 Save In 重試失敗的下載"
   },
   "o_cFallbackFetchHelp": {
-    "message": "在報告失敗之前重試網路或伺服器錯誤。"
+    "message": "如果瀏覽器下載因網路或伺服器錯誤而失敗，Save In 會擷取檔案並重試一次。"
   },
   "o_cFetchViaFetchAPI": {
-    "message": "透過Save In下載"
+    "message": "一律透過 Save In 下載"
   },
   "o_cFetchViaFetchAPIHelp": {
     "message": "Save In 會擷取檔案並交給瀏覽器。只有在一般下載失敗時才使用此選項。這種方式較慢，而且 Chrome 會在儲存期間將檔案保留在記憶體中，因此不適合非常大的檔案。"
@@ -1588,9 +1588,6 @@
   "html_webhookDocumentation": {
     "message": "閱讀 Webhook 文件"
   },
-  "html_offByDefault": {
-    "message": "預設關閉"
-  },
   "html_webhookEndpoint": {
     "message": "HTTPS 端點"
   },
@@ -2560,5 +2557,9 @@
   "welcomeKeepCurrentFolders": { "message": "保留目前的資料夾" },
   "welcomeUseStarterFolders": { "message": "開始使用 Save In" },
   "welcomeUsingStarterSettings": { "message": "正在使用初始設定" },
-  "html_showWelcomeGuide": { "message": "顯示歡迎指南" }
+  "html_showWelcomeGuide": { "message": "顯示歡迎指南" },
+  "advancedFilesDownloads": { "message": "檔案與下載" },
+  "advancedMaintenanceDiagnostics": { "message": "維護與診斷" },
+  "webhookStateOn": { "message": "開" },
+  "webhookStateOff": { "message": "關" }
 }

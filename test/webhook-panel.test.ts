@@ -7,6 +7,7 @@ const markup = () => {
   document.body.innerHTML = `
     <input id="webhookUrl">
     <input type="checkbox" id="webhookEnabled" disabled>
+    <span id="webhook-state-badge"></span>
     <button id="webhook-test" disabled>Send test</button>
     <input type="checkbox" id="webhookIncludePageUrl">
     <input type="checkbox" id="webhookIncludePageTitle">
@@ -89,6 +90,8 @@ test("requests Firefox data consent and atomically enables a valid endpoint", as
     }),
   );
   expect(enabled.checked).toBe(true);
+  expect(document.querySelector("#webhook-state-badge")?.textContent).toBe("On");
+  expect(document.querySelector("#webhook-state-badge")?.getAttribute("data-state")).toBe("on");
 });
 
 test("does not enable delivery when Firefox consent is declined", async () => {

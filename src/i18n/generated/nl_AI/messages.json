@@ -708,13 +708,13 @@
     "message": "Voor URL's zonder extensie leidt u er een af van de Content-Type van de server. Dit voegt alleen een kleine vertraging toe als dat nodig is."
   },
   "o_cFallbackFetch": {
-    "message": "Probeer mislukte downloads één keer opnieuw op de achtergrond"
+    "message": "Mislukte downloads opnieuw proberen via Save In"
   },
   "o_cFallbackFetchHelp": {
-    "message": "Probeert opnieuw netwerk- of serverfouten voordat de fout wordt gerapporteerd."
+    "message": "Als een browserdownload mislukt door een netwerk- of serverfout, haalt Save In het bestand op en probeert het nog één keer."
   },
   "o_cFetchViaFetchAPI": {
-    "message": "Downloaden via Save In"
+    "message": "Altijd downloaden via Save In"
   },
   "o_cFetchViaFetchAPIHelp": {
     "message": "Save In haalt het bestand op en geeft het door aan de browser. Gebruik dit alleen als normale downloads mislukken. Het is langzamer en Chrome houdt het bestand in het geheugen tijdens het opslaan, dus vermijd dit voor zeer grote bestanden."
@@ -1691,9 +1691,6 @@
   "html_webhookDocumentation": {
     "message": "Webhookdocumentatie lezen"
   },
-  "html_offByDefault": {
-    "message": "Standaard uitgeschakeld"
-  },
   "html_webhookEndpoint": {
     "message": "HTTPS-eindpunt"
   },
@@ -2474,5 +2471,9 @@
   "welcomeKeepCurrentFolders": { "message": "Huidige mappen behouden" },
   "welcomeUseStarterFolders": { "message": "Save In gaan gebruiken" },
   "welcomeUsingStarterSettings": { "message": "Startinstellingen worden gebruikt" },
-  "html_showWelcomeGuide": { "message": "Welkomstgids tonen" }
+  "html_showWelcomeGuide": { "message": "Welkomstgids tonen" },
+  "advancedFilesDownloads": { "message": "Bestanden en downloads" },
+  "advancedMaintenanceDiagnostics": { "message": "Onderhoud en diagnostiek" },
+  "webhookStateOn": { "message": "Aan" },
+  "webhookStateOff": { "message": "Uit" }
 }

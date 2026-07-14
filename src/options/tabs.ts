@@ -126,6 +126,9 @@ export const setupTabs = ({ confirmPendingChanges, onGuardError }: TabsOptions =
 
   let currentIndex = -1;
   let navigationGeneration = 0;
+  const revealTab = (index: number): void => {
+    tabs[index]?.scrollIntoView?.({ block: "nearest", inline: "nearest" });
+  };
 
   const activate = (index: number): void => {
     const section = sections[index];
@@ -133,6 +136,7 @@ export const setupTabs = ({ confirmPendingChanges, onGuardError }: TabsOptions =
     currentIndex = index;
 
     syncTabSelection(tabs, panels, index);
+    revealTab(index);
     try {
       localStorage.setItem(TAB_STORAGE_KEY, section.key);
     } catch (e) {
@@ -143,7 +147,7 @@ export const setupTabs = ({ confirmPendingChanges, onGuardError }: TabsOptions =
   const select = (index: number, focusOnActivate = false, afterActivate?: () => void): void => {
     const mine = ++navigationGeneration;
     const restoreFocus = (): void => {
-      tabs[currentIndex]!.focus();
+      tabs[currentIndex]?.focus();
     };
     const finishGuardedNavigation = (allowed: boolean): void => {
       if (mine !== navigationGeneration) return;
@@ -152,7 +156,7 @@ export const setupTabs = ({ confirmPendingChanges, onGuardError }: TabsOptions =
         return;
       }
       activate(index);
-      if (focusOnActivate) tabs[index]!.focus();
+      if (focusOnActivate) tabs[index]?.focus();
       afterActivate?.();
     };
     const failGuardedNavigation = (error: unknown): void => {
@@ -188,6 +192,7 @@ export const setupTabs = ({ confirmPendingChanges, onGuardError }: TabsOptions =
   };
 
   bindTabInteractions(tabs, (index, focus) => select(index, focus));
+  window.addEventListener("resize", () => revealTab(currentIndex), { passive: true });
   tabs.forEach((tab) => tablist.appendChild(tab));
 
   form.prepend(tablist);

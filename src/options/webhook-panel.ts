@@ -39,6 +39,8 @@ const defaultDependencies = (): WebhookPanelDependencies => {
     webhookDisabledSaved: getMessage("webhookDisabledSaved"),
     webhookSaveFailed: getMessage("webhookSaveFailed"),
     webhookFieldsSaved: getMessage("webhookFieldsSaved"),
+    webhookStateOn: getMessage("webhookStateOn"),
+    webhookStateOff: getMessage("webhookStateOff"),
   };
   return {
     permissions: webExtensionApi.permissions as unknown as DataCollectionPermissionsApi,
@@ -55,6 +57,7 @@ export const setupWebhookPanel = (
   const enabled = document.querySelector<HTMLInputElement>("#webhookEnabled");
   const test = document.querySelector<HTMLButtonElement>("#webhook-test");
   const status = document.querySelector<HTMLElement>("#webhook-status");
+  const stateBadge = document.querySelector<HTMLElement>("#webhook-state-badge");
   const preview = document.querySelector<HTMLElement>("#webhook-payload-preview");
   const fieldControls = {
     includePageUrl: document.querySelector<HTMLInputElement>("#webhookIncludePageUrl"),
@@ -88,6 +91,13 @@ export const setupWebhookPanel = (
     status.classList.toggle("is-error", error);
     status.classList.toggle("feedback-error", error);
     status.classList.toggle("feedback-success", Boolean(message) && !error);
+  };
+  const renderEnabledState = () => {
+    if (!stateBadge) return;
+    stateBadge.dataset.state = enabled.checked ? "on" : "off";
+    stateBadge.textContent = enabled.checked
+      ? dependencies.message("webhookStateOn", "On")
+      : dependencies.message("webhookStateOff", "Off");
   };
   const renderPreview = () => {
     preview.textContent = JSON.stringify(
@@ -266,6 +276,7 @@ export const setupWebhookPanel = (
       );
     } finally {
       enabled.disabled = false;
+      renderEnabledState();
     }
   });
 
@@ -281,7 +292,7 @@ export const setupWebhookPanel = (
       control.disabled = true;
       try {
         await dependencies.apply({
-          [`webhook${field[0]!.toUpperCase()}${field.slice(1)}`]: next,
+          [`webhook${field.charAt(0).toUpperCase()}${field.slice(1)}`]: next,
         });
         setStatus(dependencies.message("webhookFieldsSaved", "Webhook data updated."));
       } catch {
@@ -301,8 +312,10 @@ export const setupWebhookPanel = (
     renderPreview();
     endpointValidation(false);
     showPermissionState();
+    renderEnabledState();
   });
   renderPreview();
   endpointValidation(false);
+  renderEnabledState();
   void refreshPermissionSupport();
 };
