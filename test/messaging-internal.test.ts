@@ -72,7 +72,7 @@ describe("onMessage", () => {
       ),
     ).toBe(true);
     await vi.waitFor(() => expect(router.traceRules).toHaveBeenCalled());
-    expect(router.traceRules.mock.calls[0]![1]).toEqual({
+    expect(vi.mocked(router.traceRules).mock.calls[0]![1]).toEqual({
       context: "AUTO",
       pageUrl: "https://example.test/gallery",
       sourceUrl: "https://cdn.test/",
