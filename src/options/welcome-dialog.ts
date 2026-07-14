@@ -6,6 +6,9 @@ type Localize = (key: string) => string;
 type WelcomeStorage = Pick<typeof webExtensionApi.storage.local, "get" | "remove">;
 type WelcomeAction = "dismiss" | "customize" | "permissions";
 
+const isWelcomeAction = (value: unknown): value is WelcomeAction =>
+  value === "dismiss" || value === "customize" || value === "permissions";
+
 const createButton = (
   text: string,
   className: string,
@@ -150,18 +153,21 @@ export const showWelcomeDialog = (
   };
 
   dialog.addEventListener("click", (event) => {
-    const actionTarget = (event.target as Element).closest<HTMLButtonElement>(
-      "[data-welcome-action]",
-    );
-    const action = actionTarget?.dataset.welcomeAction as WelcomeAction | undefined;
-    if (action) close(action);
+    const actionTarget =
+      event.target instanceof Element
+        ? event.target.closest<HTMLButtonElement>("[data-welcome-action]")
+        : null;
+    const action = actionTarget?.dataset.welcomeAction;
+    if (isWelcomeAction(action)) close(action);
     else if (event.target === dialog) close("dismiss");
   });
   dialog.addEventListener("cancel", (event) => {
     event.preventDefault();
     close("dismiss");
   });
-  dialog.addEventListener("close", () => finish(dialog.returnValue as WelcomeAction));
+  dialog.addEventListener("close", () =>
+    finish(isWelcomeAction(dialog.returnValue) ? dialog.returnValue : "dismiss"),
+  );
 
   if (typeof dialog.showModal === "function") dialog.showModal();
   else dialog.setAttribute("open", "");

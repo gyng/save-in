@@ -103,6 +103,18 @@ test("can be reopened manually without changing the saved-settings status", () =
   expect(showWelcomeDialog(storage, localize)).toBe(false);
 });
 
+test("ignores unknown actions from mutated dialog markup", () => {
+  const storage = storageFixture();
+  showWelcomeDialog(storage, localize);
+  const action = document.querySelector<HTMLButtonElement>(".welcome-accept")!;
+  action.dataset.welcomeAction = "unexpected";
+
+  action.click();
+
+  expect(document.querySelector("#welcome-dialog")).not.toBeNull();
+  expect(storage.remove).not.toHaveBeenCalled();
+});
+
 test("uses readable fallbacks and contains missing dialog APIs and storage failures", async () => {
   Reflect.deleteProperty(HTMLDialogElement.prototype, "showModal");
   Reflect.deleteProperty(HTMLDialogElement.prototype, "close");
