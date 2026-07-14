@@ -115,6 +115,28 @@ describe("startup restore", () => {
     expect(sessionStore.siPendingDownloads).toBe(0);
   });
 
+  test("caps a persisted recovery deadline at one grace window", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-01-01T00:00:00Z"));
+    const sessionStore = {
+      siPendingDownloads: 2,
+      siNotificationRecovery: {
+        version: 1,
+        token: "future-lease",
+        deadline: Date.now() + 24 * 60 * 60 * 1000,
+        pendingDownloads: 2,
+        adoptedDownloadIds: [],
+      },
+    } as Record<string, any>;
+    setupGlobals(sessionStore, () => []);
+
+    await loadNotification();
+    await vi.advanceTimersByTimeAsync(10_000);
+
+    expect(sessionStore.siPendingDownloads).toBe(0);
+    expect(sessionStore.siNotificationRecovery).toBeUndefined();
+  });
+
   test("does not fold newer downloads into an expired recovery lease", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-01-01T00:00:00Z"));

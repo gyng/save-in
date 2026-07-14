@@ -35,7 +35,7 @@ const normalizeRecovery = (value: unknown): NotificationRecovery | null => {
     candidate.version !== 1 ||
     typeof candidate.token !== "string" ||
     typeof candidate.deadline !== "number" ||
-    !Number.isFinite(candidate.deadline) ||
+    !Number.isSafeInteger(candidate.deadline) ||
     !Array.isArray(candidate.adoptedDownloadIds)
   ) {
     return null;
@@ -190,7 +190,7 @@ const initializeRecovery = async (): Promise<void> => {
   }
   if (!expected) return;
 
-  const delay = expected.deadline - Date.now();
+  const delay = Math.min(PENDING_RECOVERY_GRACE_MS, expected.deadline - Date.now());
   if (delay > 0) {
     scheduleRecovery(expected, delay);
     return;
