@@ -487,7 +487,7 @@ export const setupRouteDebugger = (): void => {
             info: routeDebuggerInfo(readFields()),
           },
         });
-        if (!("version" in response.body)) {
+        if ("status" in response.body) {
           throw new Error(response.body.message || response.body.error);
         }
         const errors = response.body.ruleErrors?.filter((error) => !error.warning) ?? [];

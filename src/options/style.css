@@ -4040,16 +4040,12 @@ button:disabled {
 
 /* ── More Options → External integrations ────────────────────────── */
 
-.webhook-card {
+.webhook-section {
   display: grid;
   gap: var(--space-3);
   width: min(760px, 100%);
   box-sizing: border-box;
   margin: var(--space-2) 0 var(--space-5);
-  padding: var(--space-4);
-  border: 1px solid color-mix(in srgb, var(--color-info) 38%, var(--panel-border));
-  border-radius: var(--radius);
-  background: color-mix(in srgb, var(--color-info) 5%, var(--page-bg));
 }
 
 .webhook-heading-row {
@@ -5310,6 +5306,8 @@ code.click-to-copy {
 }
 
 .auto-download-options:has(#autoDownloadEnabled:not(:checked)) .auto-download-dependent,
+.browser-download-filter-group:has(#browserDownloadFiltersEnabled:not(:checked))
+  .browser-download-filter-options,
 .referer-option-group:has(#setRefererHeader:not(:checked)) .referer-options {
   opacity: 0.55;
 }

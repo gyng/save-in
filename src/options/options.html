@@ -534,35 +534,44 @@ Briefly explain the structure, check that every line follows this syntax, then p
           </div>
         </label>
 
-        <label class="browser-download-filter-master">
-          <input type="checkbox" id="browserDownloadFiltersEnabled" />
-          __MSG_o_cBrowserDownloadFiltersEnabled__
-        </label>
-
-        <div class="dependent-options browser-download-filter-options">
-          <label>
-            <span>__MSG_o_cBrowserDownloadFilter__</span>
-            <textarea
-              class="full-width"
-              id="browserDownloadFilter"
-              rows="3"
-              placeholder="*://*.example.com/*"
-              spellcheck="false"
-            ></textarea>
-            <div class="caption caption-line">__MSG_o_cBrowserDownloadFilterHelp__</div>
+        <div class="browser-download-filter-group">
+          <label class="browser-download-filter-master">
+            <input
+              type="checkbox"
+              id="browserDownloadFiltersEnabled"
+              aria-controls="browser-download-filter-options"
+            />
+            __MSG_o_cBrowserDownloadFiltersEnabled__
           </label>
 
-          <label>
-            <span>__MSG_o_cBrowserDownloadExcludeFilter__</span>
-            <textarea
-              class="full-width"
-              id="browserDownloadExcludeFilter"
-              rows="3"
-              placeholder="*://private.example.com/*"
-              spellcheck="false"
-            ></textarea>
-            <div class="caption caption-line">__MSG_o_cBrowserDownloadExcludeFilterHelp__</div>
-          </label>
+          <div
+            id="browser-download-filter-options"
+            class="dependent-options browser-download-filter-options"
+          >
+            <label>
+              <span>__MSG_o_cBrowserDownloadFilter__</span>
+              <textarea
+                class="full-width"
+                id="browserDownloadFilter"
+                rows="3"
+                placeholder="*://*.example.com/*"
+                spellcheck="false"
+              ></textarea>
+              <div class="caption caption-line">__MSG_o_cBrowserDownloadFilterHelp__</div>
+            </label>
+
+            <label>
+              <span>__MSG_o_cBrowserDownloadExcludeFilter__</span>
+              <textarea
+                class="full-width"
+                id="browserDownloadExcludeFilter"
+                rows="3"
+                placeholder="*://private.example.com/*"
+                spellcheck="false"
+              ></textarea>
+              <div class="caption caption-line">__MSG_o_cBrowserDownloadExcludeFilterHelp__</div>
+            </label>
+          </div>
         </div>
 
         <div class="caption caption-line">__MSG_o_lBrowserDownloadVariables__</div>
@@ -1957,7 +1966,7 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
         </details>
       </section>
 
-      <section class="webhook-card" aria-labelledby="webhook-heading">
+      <section class="webhook-section" aria-labelledby="webhook-heading">
         <div class="webhook-heading-row">
           <div>
             <h4 id="webhook-heading">__MSG_html_webhooks__</h4>

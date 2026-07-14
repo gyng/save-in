@@ -44,6 +44,18 @@ test("keeps stable controls for each options workflow", () => {
   ]);
 });
 
+test.each([
+  ["browserDownloadFiltersEnabled", "browser-download-filter-options"],
+  ["setRefererHeader", "referer-options"],
+] as const)("connects the %s master option to its dependent controls", (controlId, groupId) => {
+  const document = documentForOptions();
+  const control = document.getElementById(controlId);
+  const group = document.getElementById(groupId);
+
+  expect(control?.getAttribute("aria-controls")).toBe(groupId);
+  expect(group).not.toBeNull();
+});
+
 test("keeps behavior controls owned by their semantic groups", () => {
   const document = documentForOptions();
   const expected = {
