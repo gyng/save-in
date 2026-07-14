@@ -99,8 +99,14 @@ test("recovers only normalized durable transfer records and removes the snapshot
       array: [],
       missingTimestamp: { requestId: "bad" },
       nonFiniteTimestamp: { requestId: "bad", updatedAt: Number.POSITIVE_INFINITY },
+      negativeTimestamp: { requestId: "bad", updatedAt: -1 },
+      fractionalTimestamp: { requestId: "bad", updatedAt: 12.5 },
+      unsafeTimestamp: { requestId: "bad", updatedAt: Number.MAX_SAFE_INTEGER + 1 },
       invalidDownloadId: { requestId: "req-2", downloadId: Number.NaN, updatedAt: 12 },
       fractionalDownloadId: { downloadId: 4.5, updatedAt: 13 },
+      blankRequestId: { requestId: "  ", updatedAt: 14 },
+      "": { requestId: "missing-history-id", updatedAt: 15 },
+      "   ": { requestId: "blank-history-id", updatedAt: 16 },
     },
   });
   vi.mocked(browser.storage.session.remove).mockResolvedValue();
@@ -110,6 +116,7 @@ test("recovers only normalized durable transfer records and removes the snapshot
     minimal: { updatedAt: 11 },
     invalidDownloadId: { requestId: "req-2", updatedAt: 12 },
     fractionalDownloadId: { updatedAt: 13 },
+    blankRequestId: { updatedAt: 14 },
   });
   expect(browser.storage.session.remove).toHaveBeenCalledWith(ACTIVE_TRANSFERS_SESSION_KEY);
 });

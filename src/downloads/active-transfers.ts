@@ -38,9 +38,11 @@ const storedRecords = (value: unknown): Record<string, ActiveTransferRecord> => 
   if (!isStringKeyedRecord(value)) return {};
   return Object.fromEntries(
     Object.entries(value).flatMap(([id, candidate]) => {
-      if (!isStringKeyedRecord(candidate)) return [];
+      if (!id.trim() || !isStringKeyedRecord(candidate)) return [];
       const { requestId, downloadId, updatedAt } = candidate;
-      if (typeof updatedAt !== "number" || !Number.isFinite(updatedAt)) return [];
+      if (typeof updatedAt !== "number" || !Number.isSafeInteger(updatedAt) || updatedAt < 0)
+        return [];
+      const validRequestId = typeof requestId === "string" && requestId.trim().length > 0;
       const validDownloadId =
         typeof downloadId === "number" && Number.isSafeInteger(downloadId) && downloadId >= 0;
       return [
@@ -48,7 +50,7 @@ const storedRecords = (value: unknown): Record<string, ActiveTransferRecord> => 
           id,
           {
             updatedAt,
-            ...(typeof requestId === "string" ? { requestId } : {}),
+            ...(validRequestId ? { requestId } : {}),
             ...(validDownloadId ? { downloadId } : {}),
           },
         ],
