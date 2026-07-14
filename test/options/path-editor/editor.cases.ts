@@ -64,6 +64,18 @@ describe("line helpers", () => {
     ).toBe("path // (alias: Dogs)");
     expect(PathEditor.serializeLine(PathEditor.setAlias(cats, ""))).toBe("path // cute (key: c)");
   });
+
+  test("getAccessKey and setAccessKey edit only the key metadata", () => {
+    const cats = PathEditor.parseLine("path // cute (alias: Cats) (key: c)");
+
+    expect(PathEditor.getAccessKey(cats)).toBe("c");
+    expect(PathEditor.serializeLine(PathEditor.setAccessKey(cats, "d"))).toBe(
+      "path // cute (alias: Cats) (key: d)",
+    );
+    expect(PathEditor.serializeLine(PathEditor.setAccessKey(cats, ""))).toBe(
+      "path // cute (alias: Cats)",
+    );
+  });
 });
 
 describe("insertAtCursor / insertLine", () => {
@@ -167,6 +179,21 @@ describe("visual editor", () => {
       ),
     ).toBe(true);
     expect(rows()[2]!.querySelector(".path-editor-separator")).not.toBeNull();
+    expect(rows()[2]!.querySelector(".path-editor-access-key")).toBeNull();
+  });
+
+  test("edits access-key metadata from a compact visual control", () => {
+    const key = rows()[0]!.querySelector<HTMLInputElement>(".path-editor-access-key-input")!;
+    expect(key.value).toBe("");
+    expect(key.getAttribute("aria-label")).toBe("Assign an access key: a");
+
+    key.value = "a";
+    key.dispatchEvent(new InputEvent("input", { bubbles: true }));
+    expect(textarea().value).toBe("a // (key: a)\n>b // (alias: B)\n---");
+
+    key.value = "";
+    key.dispatchEvent(new InputEvent("input", { bubbles: true }));
+    expect(textarea().value).toBe("a\n>b // (alias: B)\n---");
   });
 
   test("marks, replaces, and clears visual path validation", () => {

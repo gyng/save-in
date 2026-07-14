@@ -2,7 +2,7 @@
 // - an insert menu ("+ Add") for the paths textarea: variables (with their
 //   current values from the last download), separators, submenu lines
 // - a visual editor (its own tab) with one row per line: indent/outdent,
-//   reorder, alias editing, add/delete
+//   reorder, alias/access-key editing, add/delete
 // The paths textarea stays the single source of truth: every edit
 // serializes back to it and fires the normal input/autosave pipeline.
 
@@ -13,6 +13,7 @@ import { bindTabInteractions, syncTabSelection } from "./tab-controls.ts";
 import {
   deletePathNode,
   dropPathNode,
+  getPathAccessKey,
   getPathAlias,
   getPathEnabled,
   parseDirectoryLine,
@@ -20,6 +21,7 @@ import {
   pathNodesToLines,
   serializeDirectoryLine,
   reorderPathNode,
+  setPathAccessKey,
   setPathAlias,
   setPathEnabled,
   updateDirectoryLine,
@@ -42,8 +44,10 @@ const PathEditorHelpers = {
   linesToNodes: pathLinesToNodes,
   nodesToLines: pathNodesToLines,
   getAlias: getPathAlias,
+  getAccessKey: getPathAccessKey,
   getEnabled: getPathEnabled,
   setAlias: setPathAlias,
+  setAccessKey: setPathAccessKey,
   setEnabled: setPathEnabled,
   updateLine: updateDirectoryLine,
 
@@ -437,8 +441,35 @@ const PathEditorHelpers = {
               alias.select();
             }
           });
+
+          const accessKeyLabel = getMessage("html_assignAnAccessKey") || "Assign an access key";
+          const accessKeyControl = document.createElement("label");
+          accessKeyControl.className = "path-editor-access-key";
+          accessKeyControl.title = accessKeyLabel;
+          const accessKeyMarker = document.createElement("span");
+          accessKeyMarker.className = "path-editor-access-key-marker";
+          accessKeyMarker.textContent = "&";
+          accessKeyMarker.setAttribute("aria-hidden", "true");
+          const accessKey = document.createElement("input");
+          accessKey.type = "text";
+          accessKey.className = "path-editor-access-key-input";
+          accessKey.name = "path-access-key";
+          accessKey.value = PathEditorHelpers.getAccessKey(node);
+          accessKey.placeholder = "—";
+          accessKey.maxLength = 1;
+          accessKey.spellcheck = false;
+          accessKey.setAttribute("aria-label", `${accessKeyLabel}: ${rowName}`);
+          accessKey.addEventListener("input", () => {
+            const current = nodes[index];
+            if (!current) return;
+            const key = [...accessKey.value][0] ?? "";
+            accessKey.value = key;
+            nodes[index] = PathEditorHelpers.setAccessKey(current, key);
+            commit();
+          });
+          accessKeyControl.append(accessKeyMarker, accessKey);
           rowEl.append(alias);
-          actions.append(aliasToggle);
+          actions.append(accessKeyControl, aliasToggle);
         }
 
         const controls: [string, string, () => void][] = [
@@ -577,8 +608,10 @@ export class PathEditor {
   static linesToNodes = PathEditorHelpers.linesToNodes;
   static nodesToLines = PathEditorHelpers.nodesToLines;
   static getAlias = PathEditorHelpers.getAlias;
+  static getAccessKey = PathEditorHelpers.getAccessKey;
   static getEnabled = PathEditorHelpers.getEnabled;
   static setAlias = PathEditorHelpers.setAlias;
+  static setAccessKey = PathEditorHelpers.setAccessKey;
   static setEnabled = PathEditorHelpers.setEnabled;
   static insertText = PathEditorHelpers.insertText;
   static insertAtCursor = PathEditorHelpers.insertAtCursor;

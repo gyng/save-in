@@ -104,6 +104,16 @@ export const getPathAlias = (node: DirectoryLineNode): string =>
 export const setPathAlias = (node: DirectoryLineNode, alias: string): DirectoryLineNode =>
   updateDirectoryMetadata(node, "alias", alias);
 
+export const getPathAccessKey = (node: DirectoryLineNode): string =>
+  getDirectoryMetadata(node, "key");
+
+export const setPathAccessKey = (node: DirectoryLineNode, key: string): DirectoryLineNode => {
+  const updated = updateDirectoryMetadata(node, "key", key);
+  return key === "" && updated.comment === null
+    ? parsePathLineAst(updated.raw.trimEnd()).ast
+    : updated;
+};
+
 export const getPathEnabled = (node: DirectoryLineNode): boolean =>
   getDirectoryMetadata(node, "disabled").toLowerCase() !== "true";
 

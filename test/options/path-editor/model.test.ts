@@ -1,6 +1,7 @@
 import {
   deletePathNode,
   dropPathNode,
+  getPathAccessKey,
   getPathAlias,
   getPathEnabled,
   getPathSourceRange,
@@ -10,6 +11,7 @@ import {
   reorderPathNode,
   serializeDirectoryLine,
   setPathAlias,
+  setPathAccessKey,
   setPathEnabled,
 } from "../../../src/options/path-editor-model.ts";
 
@@ -53,6 +55,16 @@ describe("path editor model", () => {
         setPathAlias(parseDirectoryLine("  path\t //  cute (alias: Cats)  "), "Dogs"),
       ),
     ).toBe("  path\t //  cute (alias: Dogs)  ");
+  });
+
+  test("updates access keys without disturbing other comment metadata", () => {
+    const node = parseDirectoryLine("path // note (alias: Work) (key: w)");
+
+    expect(getPathAccessKey(node)).toBe("w");
+    expect(serializeDirectoryLine(setPathAccessKey(node, "p"))).toBe(
+      "path // note (alias: Work) (key: p)",
+    );
+    expect(serializeDirectoryLine(setPathAccessKey(node, ""))).toBe("path // note (alias: Work)");
   });
 
   test("stores the enabled state in existing comment metadata", () => {

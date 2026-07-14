@@ -497,6 +497,28 @@ button:disabled {
   line-height: 1.2;
 }
 
+.path-editor-access-key {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 2px;
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+}
+
+.path-editor-access-key-marker {
+  user-select: none;
+}
+
+.path-editor-access-key-input {
+  width: 28px;
+  min-width: 28px;
+  padding: 3px 2px;
+  text-align: center;
+  text-transform: none;
+}
+
 .path-editor-help {
   margin-top: var(--space-2);
 }
