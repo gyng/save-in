@@ -47,6 +47,11 @@ describe("routing visual editor", () => {
     ).toEqual(["rules-mode-text", "rules-mode-visual"]);
     expect(document.querySelectorAll(".rule-editor-card")).toHaveLength(1);
     expect(element<HTMLInputElement>(".rule-clause-value").value).toBe("\\.jpg$");
+    expect(
+      [...document.querySelectorAll("#rules-visual input, #rules-visual select")].every(
+        (control) => control.hasAttribute("id") || control.hasAttribute("name"),
+      ),
+    ).toBe(true);
   });
 
   test("restores an explicit Text preference", () => {

@@ -158,6 +158,11 @@ describe("visual editor", () => {
     expect(rows()).toHaveLength(3);
     expect(rows()[0]!.querySelector<HTMLInputElement>(".path-editor-dir")!.value).toBe("a");
     expect(rows()[1]!.querySelector<HTMLInputElement>(".path-editor-alias")!.value).toBe("B");
+    expect(
+      [...document.querySelectorAll("#path-editor-rows input")].every(
+        (control) => control.hasAttribute("id") || control.hasAttribute("name"),
+      ),
+    ).toBe(true);
     expect(rows()[2]!.querySelector(".path-editor-separator")).not.toBeNull();
   });
 

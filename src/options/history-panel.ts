@@ -624,6 +624,8 @@ HISTORY_COLUMNS.forEach(({ key, label }) => {
   const option = document.createElement("label");
   const checkbox = document.createElement("input");
   checkbox.type = "checkbox";
+  checkbox.name = "history-column";
+  checkbox.value = key;
   checkbox.checked = visibleHistoryColumns.has(key);
   checkbox.addEventListener("change", () => {
     if (checkbox.checked) visibleHistoryColumns.add(key);

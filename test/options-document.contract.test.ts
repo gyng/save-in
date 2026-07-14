@@ -44,6 +44,15 @@ test("keeps stable controls for each options workflow", () => {
   ]);
 });
 
+test("gives every static form field an id or name", () => {
+  const document = documentForOptions();
+  expect(
+    [...document.querySelectorAll("input, select, textarea")]
+      .filter((control) => !control.hasAttribute("id") && !control.hasAttribute("name"))
+      .map((control) => control.outerHTML),
+  ).toEqual([]);
+});
+
 test.each([
   ["browserDownloadFiltersEnabled", "browser-download-filter-options"],
   ["setRefererHeader", "referer-options"],

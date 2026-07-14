@@ -55,6 +55,7 @@ export const renderVariablesPreview = async () => {
       const filter = document.createElement("input");
       filter.type = "search";
       filter.className = "variables-preview-filter";
+      filter.name = "variable-filter";
       filter.placeholder = "Filter variables";
       filter.setAttribute("aria-label", "Filter variables");
       filter.spellcheck = false;

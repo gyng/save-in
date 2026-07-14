@@ -346,8 +346,9 @@ export const setupRouteDebugger = (): void => {
           ? localize("routeDebuggerAlsoMatches", "Matched, not used")
           : localize("routeDebuggerDidNotMatch", "Conditions not met");
       meta.append(badge);
+      let sourceLink: HTMLButtonElement | null = null;
       if (rule.source) {
-        const sourceLink = document.createElement("button");
+        sourceLink = document.createElement("button");
         sourceLink.type = "button";
         sourceLink.className = "route-debugger-source-link";
         sourceLink.textContent = localize("routeDebuggerEditRule", "Edit");
@@ -360,10 +361,10 @@ export const setupRouteDebugger = (): void => {
           event.stopPropagation();
           jumpToSource(rule.source!, rule.sourceIndex!);
         });
-        meta.append(sourceLink);
       }
       header.append(titleGroup, meta);
       card.append(header);
+      if (sourceLink) card.append(sourceLink);
 
       if (selected && trace.destination) {
         const pipeline = document.createElement("dl");

@@ -252,6 +252,7 @@ describe("variables preview", () => {
     ).toEqual(["Page context", "Source URL"]);
 
     const filter = document.querySelector<HTMLInputElement>(".variables-preview-filter")!;
+    expect(filter.name).toBe("variable-filter");
     filter.value = "title";
     filter.dispatchEvent(new InputEvent("input", { bubbles: true }));
     expect(rows[0]!.hidden).toBe(false);

@@ -377,7 +377,7 @@ describe("onMessage", () => {
           "fileext",
           "urlfileext",
         ],
-        automaticContext: "AUTO",
+        automaticContext: "auto",
         sourceKinds: ["image", "video", "audio", "stream", "document", "link"],
       },
     });

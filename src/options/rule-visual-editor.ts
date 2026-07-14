@@ -177,6 +177,7 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
     const clause = rule.clauses[clauseIndex]!;
     const select = document.createElement("select");
     select.className = "rule-clause-name visual-editor-control-field";
+    select.name = "routing-matcher";
     select.setAttribute("aria-label", localize("routeVisualCondition", "Condition"));
     const names = [...new Set([...matchers, clause.name])];
     sortClauses(names).forEach((name) => {
@@ -220,6 +221,7 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
     const value = document.createElement("input");
     value.type = "text";
     value.className = "rule-clause-value";
+    value.name = `routing-${clause.kind === "matcher" ? "pattern" : clause.kind}`;
     value.value = clause.value;
     value.spellcheck = false;
     value.placeholder = clause.kind === "destination" ? "folder/:filename:" : ".*";
@@ -246,6 +248,7 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
       );
       const checkbox = document.createElement("input");
       checkbox.type = "checkbox";
+      checkbox.name = "routing-ignore-case";
       checkbox.checked = clause.flags === "i";
       checkbox.setAttribute("aria-label", localize("routeVisualIgnoreCase", "Ignore case"));
       checkbox.addEventListener("change", () => {
@@ -335,6 +338,7 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
     const enabled = document.createElement("input");
     enabled.type = "checkbox";
     enabled.className = "rule-editor-enabled";
+    enabled.name = "routing-rule-enabled";
     enabled.checked = rule.enabled;
     enabled.disabled = !rule.editable;
     enabled.setAttribute("aria-label", localize("visualEditorEnabled", "Enabled"));

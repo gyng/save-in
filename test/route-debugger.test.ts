@@ -168,6 +168,8 @@ test("shows production rule and clause decisions and jumps back to their source"
   expect(result.textContent).toContain("pdf/report.pdf");
   const ruleCards = result.querySelectorAll<HTMLDetailsElement>(".route-debugger-rule");
   expect(ruleCards).toHaveLength(2);
+  expect(result.querySelector("summary button")).toBeNull();
+  expect(ruleCards[1]?.querySelector(":scope > .route-debugger-source-link")).not.toBeNull();
   expect(ruleCards[0]?.open).toBe(false);
   expect(ruleCards[1]?.open).toBe(true);
   expect(ruleCards[1]?.textContent).toContain("Rule 2 matched.");

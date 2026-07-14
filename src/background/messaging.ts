@@ -258,7 +258,10 @@ export const Messaging = {
         matchers: Object.keys(matcherFunctions),
         variables: Object.keys(transformers),
         automaticMatchers: [...AUTOMATIC_PAGE_MATCHERS, ...AUTOMATIC_SOURCE_MATCHERS],
-        automaticContext: AUTOMATIC_CONTEXT,
+        // Context matchers normalize their input before testing. Expose the
+        // value an integration should place in its case-sensitive pattern,
+        // not the internal synthetic event sentinel.
+        automaticContext: AUTOMATIC_CONTEXT.toLowerCase(),
         sourceKinds: [...PAGE_SOURCE_KINDS],
       },
     });

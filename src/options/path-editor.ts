@@ -319,6 +319,7 @@ const PathEditorHelpers = {
         const enabled = document.createElement("input");
         enabled.type = "checkbox";
         enabled.className = "path-editor-enabled";
+        enabled.name = "path-enabled";
         enabled.checked = PathEditorHelpers.getEnabled(node);
         enabled.setAttribute(
           "aria-label",
@@ -400,6 +401,7 @@ const PathEditorHelpers = {
           const dir = document.createElement("input");
           dir.type = "text";
           dir.className = "path-editor-dir";
+          dir.name = "path-directory";
           dir.value = node.path.value;
           dir.placeholder = "directory/:variables:";
           dir.spellcheck = false;
@@ -413,6 +415,7 @@ const PathEditorHelpers = {
           const alias = document.createElement("input");
           alias.type = "text";
           alias.className = "path-editor-alias";
+          alias.name = "path-alias";
           alias.value = PathEditorHelpers.getAlias(node);
           alias.placeholder = "alias";
           const aliasOpen = Boolean(alias.value);

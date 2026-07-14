@@ -65,7 +65,7 @@ describe("config API", () => {
       matchers: expect.any(Array),
       variables: [":date:", ":year:"],
       automaticMatchers: expect.arrayContaining(["pagedomain", "sourcekind", "mediatype"]),
-      automaticContext: "AUTO",
+      automaticContext: "auto",
       sourceKinds: expect.arrayContaining(["image", "document", "link"]),
     });
 

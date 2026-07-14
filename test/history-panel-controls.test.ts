@@ -320,6 +320,8 @@ describe("history filter controls", () => {
     const checkboxes = [
       ...document.querySelectorAll<HTMLInputElement>("#history-column-options input"),
     ];
+    expect(checkboxes.every((checkbox) => checkbox.name === "history-column")).toBe(true);
+    expect(checkboxes.every((checkbox) => checkbox.value.length > 0)).toBe(true);
     const firstChecked = checkboxes.find((checkbox) => checkbox.checked)!;
 
     firstChecked.click();
