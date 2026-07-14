@@ -146,17 +146,16 @@ test("keeps editor controls connected to their stable labels", () => {
   requireIds(document, ["paths-editor-label", "rules-text-label", "paths-text-actions"]);
 });
 
-test("keeps routing validation feedback available in both editor modes", () => {
+test("places routing validation feedback directly after the text editor", () => {
   const document = documentForOptions();
   const errors = document.querySelector("#error-filenamePatterns");
 
-  expect(errors?.closest('[role="tabpanel"]')).toBeNull();
+  expect(errors?.parentElement?.id).toBe("rules-text-editor");
+  expect(document.querySelector("#filenamePatterns")?.nextElementSibling).toBe(errors);
   expect(document.querySelector("#filenamePatterns")?.getAttribute("aria-describedby")).toContain(
     "error-filenamePatterns",
   );
-  expect(document.querySelector("#rules-visual")?.getAttribute("aria-describedby")).toContain(
-    "error-filenamePatterns",
-  );
+  expect(document.querySelector("#rules-visual")?.hasAttribute("aria-describedby")).toBe(false);
 });
 
 test("keeps manual-save guidance beside Apply in both visual editors", () => {

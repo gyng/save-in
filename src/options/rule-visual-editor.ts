@@ -17,6 +17,12 @@ import {
 } from "./rule-visual-editor-model.ts";
 import { sortClauses } from "./vocabulary-groups.ts";
 import { isAutomaticRuleClauses } from "../routing/automatic-rule.ts";
+import {
+  EDITOR_VALIDATION_EVENT,
+  validationFeedbackFromEvent,
+  validationFeedbackLabel,
+  type EditorValidationFeedback,
+} from "./editor-validation.ts";
 
 const DEFAULT_MATCHERS = [
   "context",
@@ -83,6 +89,51 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
   let committing = false;
   let rebuildTimer = 0;
   let visual = false;
+  let validationErrors: readonly EditorValidationFeedback[] = [];
+
+  const clearValidationAppearance = (): void => {
+    cards
+      .querySelectorAll<HTMLElement>(
+        ".has-validation-error, .has-validation-warning, [data-validation-message]",
+      )
+      .forEach((element) => {
+        element.classList.remove("has-validation-error", "has-validation-warning");
+        if (element.dataset.validationMessage !== undefined) {
+          element.removeAttribute("title");
+          delete element.dataset.validationMessage;
+        }
+      });
+    cards.querySelectorAll<HTMLElement>('[aria-invalid="true"]').forEach((field) => {
+      field.removeAttribute("aria-invalid");
+    });
+  };
+
+  const applyValidationAppearance = (): void => {
+    clearValidationAppearance();
+    const ruleCards = [...cards.querySelectorAll<HTMLElement>(".rule-editor-card")];
+    validationErrors.forEach((error) => {
+      const line = error.location?.line;
+      if (!line) return;
+      const row = cards.querySelector<HTMLElement>(`.rule-clause-row[data-line="${line}"]`);
+      const card =
+        row?.closest<HTMLElement>(".rule-editor-card") ??
+        ruleCards.findLast((candidate) => Number(candidate.dataset.line) <= line);
+      const target = row ?? card;
+      if (!target) return;
+      target.classList.add(error.warning ? "has-validation-warning" : "has-validation-error");
+      const label = validationFeedbackLabel(error);
+      const messages = target.dataset.validationMessage
+        ? `${target.dataset.validationMessage}\n${label}`
+        : label;
+      target.dataset.validationMessage = messages;
+      target.title = messages;
+      if (!error.warning) {
+        row
+          ?.querySelector<HTMLElement>(".rule-clause-value, .rule-clause-name")
+          ?.setAttribute("aria-invalid", "true");
+      }
+    });
+  };
 
   const setMode = (nextVisual: boolean): void => {
     visual = nextVisual;
@@ -371,6 +422,7 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
     documentModel.rules.forEach((rule) =>
       cards.append(createRuleCard(rule, documentModel.rules.length)),
     );
+    applyValidationAppearance();
   };
 
   textButton.addEventListener("click", () => setMode(false));
@@ -405,9 +457,15 @@ export const setupRuleVisualEditor = (options: RuleVisualEditorOptions = {}): vo
     document.dispatchEvent(new CustomEvent("save-in:navigate-option", { detail: { target } }));
   });
   textarea.addEventListener("input", () => {
+    validationErrors = [];
+    clearValidationAppearance();
     if (committing || !visual) return;
     window.clearTimeout(rebuildTimer);
     rebuildTimer = window.setTimeout(render, 180);
+  });
+  textarea.addEventListener(EDITOR_VALIDATION_EVENT, (event) => {
+    validationErrors = validationFeedbackFromEvent(event);
+    applyValidationAppearance();
   });
   document.addEventListener("options-restored", render);
   document.addEventListener("route-debugger-source-selected", (event) => {

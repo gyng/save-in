@@ -2531,6 +2531,36 @@ summary {
   box-shadow: inset 2px 0 color-mix(in srgb, var(--blue50) 72%, transparent);
 }
 
+.visual-editor-row.has-validation-error {
+  background-color: var(--error-bg);
+  box-shadow: inset 3px 0 var(--red50);
+}
+
+.visual-editor-row.has-validation-error:hover,
+.visual-editor-row.has-validation-error:focus-within {
+  background-color: color-mix(in srgb, var(--red50) 11%, var(--page-bg));
+  box-shadow: inset 3px 0 var(--red50);
+}
+
+.visual-editor-row.has-validation-error input[type="text"],
+.visual-editor-row.has-validation-error select {
+  border-color: var(--red50);
+}
+
+.visual-editor-row.has-validation-error .rule-clause-marker {
+  color: var(--error-fg);
+  background: color-mix(in srgb, var(--red50) 14%, transparent);
+}
+
+.visual-editor-row.has-validation-warning {
+  background-color: var(--syntax-warning-soft);
+  box-shadow: inset 3px 0 var(--syntax-warning);
+}
+
+.rule-editor-card.has-validation-error {
+  box-shadow: inset 3px 0 var(--red50);
+}
+
 .rule-clause-destination {
   margin-top: var(--space-1);
   border-top: 1px dashed var(--panel-border);

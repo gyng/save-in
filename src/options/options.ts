@@ -45,6 +45,7 @@ import {
   directoryValidationLocation,
   validationErrorsToDiagnostics,
 } from "./syntax-editor-model.ts";
+import { dispatchEditorValidation } from "./editor-validation.ts";
 
 const setupLastDownloadState = () => {
   document.querySelector("#last-dl-url")?.classList.add("is-empty");
@@ -294,6 +295,7 @@ const validationRequests = createLatestOnly(
       updateErrorSummary(pathsErrors);
       manualEditorState.setValidity("paths", !pathErrors.some((err) => !err.warning));
       if (pathsTextarea instanceof HTMLTextAreaElement) {
+        dispatchEditorValidation(pathsTextarea, pathErrors);
         setSyntaxEditorDiagnostics(
           pathsTextarea,
           validationErrorsToDiagnostics("directories", pathsTextarea.value, pathErrors),
@@ -306,6 +308,7 @@ const validationRequests = createLatestOnly(
       updateErrorSummary(rulesErrors);
       manualEditorState.setValidity("filenamePatterns", !ruleErrors.some((err) => !err.warning));
       if (rulesTextarea instanceof HTMLTextAreaElement) {
+        dispatchEditorValidation(rulesTextarea, ruleErrors);
         setSyntaxEditorDiagnostics(
           rulesTextarea,
           validationErrorsToDiagnostics("routing", rulesTextarea.value, ruleErrors),
@@ -316,6 +319,8 @@ const validationRequests = createLatestOnly(
   (_error, request) => {
     (request.initiator ? [request.initiator] : ["paths", "filenamePatterns"]).forEach((id) => {
       manualEditorState.setValidationUnavailable(id);
+      const textarea = document.querySelector(`#${id}`);
+      if (textarea instanceof HTMLTextAreaElement) dispatchEditorValidation(textarea, []);
       const panel = document.querySelector(`#error-${id}`);
       if (!panel) return;
       const channel = errorChannel(panel, "validation-service");

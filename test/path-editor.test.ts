@@ -5,6 +5,7 @@
 
 import { PathEditor, setupPathEditor } from "../src/options/path-editor.ts";
 import { createSyntaxEditor, setSyntaxEditorDiagnostics } from "../src/options/syntax-editor.ts";
+import { EDITOR_VALIDATION_EVENT } from "../src/options/editor-validation.ts";
 
 const element = <T extends Element>(selector: string): T => {
   const match = document.querySelector<T>(selector);
@@ -154,6 +155,26 @@ describe("visual editor", () => {
     expect(rows()[0]!.querySelector<HTMLInputElement>(".path-editor-dir")!.value).toBe("a");
     expect(rows()[1]!.querySelector<HTMLInputElement>(".path-editor-alias")!.value).toBe("B");
     expect(rows()[2]!.querySelector(".path-editor-separator")).not.toBeNull();
+  });
+
+  test("marks an invalid visual path row", () => {
+    textarea().dispatchEvent(
+      new CustomEvent(EDITOR_VALIDATION_EVENT, {
+        detail: {
+          errors: [
+            {
+              sourceIndex: 1,
+              message: "Path variable is not supported",
+              error: ":modnthname:",
+            },
+          ],
+        },
+      }),
+    );
+
+    expect(rows()[1]!.classList).toContain("has-validation-error");
+    expect(rows()[1]!.title).toContain(":modnthname:");
+    expect(rows()[1]!.querySelector(".path-editor-dir")?.getAttribute("aria-invalid")).toBe("true");
   });
 
   test("toggles a row with disabled metadata", () => {

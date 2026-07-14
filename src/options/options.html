@@ -719,12 +719,6 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                   __MSG_o_sVisualEditor__
                 </button>
               </div>
-              <div
-                class="error-notification"
-                id="error-filenamePatterns"
-                aria-live="polite"
-                aria-atomic="true"
-              ></div>
               <div id="rules-text-editor" role="tabpanel" aria-labelledby="rules-mode-text" hidden>
                 <textarea
                   id="filenamePatterns"
@@ -735,6 +729,12 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                   aria-labelledby="rules-text-label"
                   aria-describedby="error-filenamePatterns"
                 ></textarea>
+                <div
+                  class="error-notification"
+                  id="error-filenamePatterns"
+                  aria-live="polite"
+                  aria-atomic="true"
+                ></div>
                 <div class="editor-actions routing-ide-actions">
                   <span class="editor-action-help editor-reference-links">
                     <a class="toolbar-link" href="#" data-reference-tab="options-reference-clauses"
@@ -768,7 +768,6 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
                 class="routing-visual-editor"
                 role="tabpanel"
                 aria-labelledby="rules-mode-visual"
-                aria-describedby="error-filenamePatterns"
               >
                 <div id="rule-editor-cards" class="rule-editor-cards"></div>
                 <div class="visual-editor-toolbar rule-editor-toolbar">

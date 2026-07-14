@@ -22,6 +22,12 @@ import {
   type DirectoryLineNode,
   type DirectoryLineUpdate,
 } from "./path-editor-model.ts";
+import {
+  EDITOR_VALIDATION_EVENT,
+  validationFeedbackFromEvent,
+  validationFeedbackLabel,
+  type EditorValidationFeedback,
+} from "./editor-validation.ts";
 
 type EditorOwner = { rebuildVisual?: () => void };
 const PathEditorHelpers = {
@@ -142,6 +148,42 @@ const PathEditorHelpers = {
     let dropInside = false;
     let committing = false;
     let deletedNodes: DirectoryLineNode[] | null = null;
+    let validationErrors: readonly EditorValidationFeedback[] = [];
+
+    const clearValidationAppearance = (): void => {
+      container
+        .querySelectorAll<HTMLElement>(
+          ".has-validation-error, .has-validation-warning, [data-validation-message]",
+        )
+        .forEach((row) => {
+          row.classList.remove("has-validation-error", "has-validation-warning");
+          if (row.dataset.validationMessage !== undefined) {
+            row.removeAttribute("title");
+            delete row.dataset.validationMessage;
+          }
+        });
+      container.querySelectorAll<HTMLElement>('[aria-invalid="true"]').forEach((field) => {
+        field.removeAttribute("aria-invalid");
+      });
+    };
+
+    const applyValidationAppearance = (): void => {
+      clearValidationAppearance();
+      validationErrors.forEach((error) => {
+        if (error.sourceIndex === undefined) return;
+        const row = container.querySelector<HTMLElement>(
+          `.path-editor-row[data-source-index="${error.sourceIndex}"]`,
+        );
+        if (!row) return;
+        row.classList.add(error.warning ? "has-validation-warning" : "has-validation-error");
+        const label = validationFeedbackLabel(error);
+        row.dataset.validationMessage = label;
+        row.title = label;
+        if (!error.warning) {
+          row.querySelector<HTMLElement>(".path-editor-dir")?.setAttribute("aria-invalid", "true");
+        }
+      });
+    };
     const updateNode = (index: number, update: DirectoryLineUpdate): void => {
       nodes[index] = PathEditorHelpers.updateLine(nodes[index]!, update);
     };
@@ -179,6 +221,8 @@ const PathEditorHelpers = {
     // the normal pipeline (autosave, previews) react
     const commit = () => {
       textarea.value = PathEditorHelpers.nodesToLines(nodes).join("\n");
+      validationErrors = [];
+      clearValidationAppearance();
       committing = true;
       textarea.dispatchEvent(new InputEvent("input", { bubbles: true }));
       committing = false;
@@ -488,6 +532,7 @@ const PathEditorHelpers = {
 
         container.appendChild(rowEl);
       });
+      applyValidationAppearance();
     };
 
     const rebuild = () => {
@@ -524,6 +569,8 @@ const PathEditorHelpers = {
     // templates, restore); our own commits also funnel through this
     let rebuildTimer: number | null = null;
     textarea.addEventListener("input", () => {
+      validationErrors = [];
+      clearValidationAppearance();
       if (committing) return;
       if (rebuildTimer !== null) {
         window.clearTimeout(rebuildTimer);
@@ -532,6 +579,10 @@ const PathEditorHelpers = {
         rebuildTimer = null;
         rebuild();
       }, 300);
+    });
+    textarea.addEventListener(EDITOR_VALIDATION_EVENT, (event) => {
+      validationErrors = validationFeedbackFromEvent(event);
+      applyValidationAppearance();
     });
 
     // restoreOptions fills the textarea programmatically (no input event).

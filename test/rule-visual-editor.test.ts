@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 
 import { setupRuleVisualEditor } from "../src/options/rule-visual-editor.ts";
+import { EDITOR_VALIDATION_EVENT } from "../src/options/editor-validation.ts";
 
 const element = <T extends Element>(selector: string): T => {
   const match = document.querySelector<T>(selector);
@@ -85,6 +86,32 @@ describe("routing visual editor", () => {
 
     expect(textarea.value).toBe("filename/i: \\.png$\ninto: images/:filename:");
     expect(input).toHaveBeenCalledOnce();
+  });
+
+  test("marks the exact visual clause row invalid", () => {
+    element<HTMLTextAreaElement>("#filenamePatterns").value =
+      "fileext: pdf\ninto: pdfs/:weekday:-:naivefidlename:";
+    setupRuleVisualEditor({ matchers: ["fileext"] });
+    const textarea = element<HTMLTextAreaElement>("#filenamePatterns");
+
+    textarea.dispatchEvent(
+      new CustomEvent(EDITOR_VALIDATION_EVENT, {
+        detail: {
+          errors: [
+            {
+              message: "Path variable is not supported",
+              error: ":naivefidlename:",
+              location: { start: 34, end: 49, line: 2, column: 21 },
+            },
+          ],
+        },
+      }),
+    );
+
+    const row = element<HTMLElement>(".rule-clause-destination");
+    expect(row.classList).toContain("has-validation-error");
+    expect(row.title).toContain(":naivefidlename:");
+    expect(row.querySelector("input")?.getAttribute("aria-invalid")).toBe("true");
   });
 
   test("toggles a rule with a disabled control clause", () => {
