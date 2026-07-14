@@ -9,6 +9,17 @@ body:has(.reference-header) {
   padding: var(--space-4) var(--space-5);
 }
 
+.reference-dialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+.reference-dialog .reference-dialog-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: auto;
+}
+
 .reference-header {
   position: sticky;
   top: 0;
@@ -45,6 +56,18 @@ body:has(.reference-header) {
 .click-to-copy[role="button"]:focus-visible {
   outline: none;
   box-shadow: var(--focus-ring);
+}
+
+.reference-dialog-descriptions {
+  margin: var(--space-3) var(--space-4) 0;
+}
+
+.reference-dialog-description {
+  margin: 0;
+}
+
+.reference-dialog-descriptions + .reference-dialog-filter-label {
+  padding-top: var(--space-2);
 }
 
 .reference-count {

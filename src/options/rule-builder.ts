@@ -213,6 +213,7 @@ export const RuleBuilder = {
             view.textContent = localize("ruleTemplateViewInEditor") || "View in rules editor";
             view.addEventListener("click", () => {
               document.querySelector<HTMLDialogElement>("#reference-dialog")?.close();
+              document.querySelector<HTMLButtonElement>("#rules-mode-text")?.click();
               document.dispatchEvent(
                 new CustomEvent("save-in:navigate-option", { detail: { target: textarea } }),
               );

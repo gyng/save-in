@@ -49,6 +49,10 @@ export const setupOptionsReferences = () => {
 
   const dialog = document.querySelector<HTMLDialogElement>("#reference-dialog");
   const filter = document.querySelector<HTMLInputElement>(".reference-dialog-filter");
+  const descriptionRegion = dialog?.querySelector<HTMLElement>(".reference-dialog-descriptions");
+  const descriptions = [
+    ...(dialog?.querySelectorAll<HTMLElement>("[data-reference-description]") ?? []),
+  ];
   const dialogTabs = [...(dialog?.querySelectorAll<HTMLElement>("[data-reference-tab]") ?? [])];
   const launchers = [...document.querySelectorAll<HTMLElement>("[data-reference-tab]")].filter(
     (control) => !dialog?.contains(control),
@@ -68,6 +72,13 @@ export const setupOptionsReferences = () => {
         getMessage("html_filterRoutingTemplates") || "Filter routing templates",
     }[id];
     if (filterCopy) filter?.setAttribute("placeholder", filterCopy);
+    const description = descriptions.find(
+      (candidate) => candidate.dataset.referenceDescription === id,
+    );
+    descriptions.forEach((candidate) => (candidate.hidden = candidate !== description));
+    if (descriptionRegion) descriptionRegion.hidden = !description;
+    if (description) filter?.setAttribute("aria-describedby", description.id);
+    else filter?.removeAttribute("aria-describedby");
     if (filter) {
       filter.value = "";
       filter.dispatchEvent(new InputEvent("input", { bubbles: true }));

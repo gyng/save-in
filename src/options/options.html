@@ -2292,6 +2292,23 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
           __MSG_html_templates__
         </button>
       </div>
+      <div class="reference-dialog-descriptions">
+        <p
+          id="reference-dialog-description-variables"
+          class="reference-dialog-description"
+          data-reference-description="options-reference-variables"
+        >
+          __MSG_html_variablesAreUsedInDirectoryAndPathPatterns__
+        </p>
+        <p
+          id="reference-dialog-description-clauses"
+          class="reference-dialog-description"
+          data-reference-description="options-reference-clauses"
+          hidden
+        >
+          __MSG_html_clausesAreOnlyUsedInRuleDefinitionsForRouting__
+        </p>
+      </div>
       <label class="reference-dialog-filter-label">
         <span class="visually-hidden">__MSG_html_filterCurrentReference__</span>
         <input
@@ -2301,6 +2318,7 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
           data-no-autosave
           placeholder="__MSG_html_filterVariables__"
           aria-label="__MSG_html_filterCurrentReference__"
+          aria-describedby="reference-dialog-description-variables"
           spellcheck="false"
         />
       </label>
@@ -2315,7 +2333,6 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
           <span class="reference-loading-status visually-hidden" role="status"
             >__MSG_html_loadingVariables__</span
           >
-          <p>__MSG_html_variablesAreUsedInDirectoryAndPathPatterns__</p>
           <h3>__MSG_html_standard__</h3>
           <div class="caption">__MSG_html_usableEverywhere__</div>
           <table class="box">
@@ -2683,7 +2700,6 @@ Explain each rule briefly, check for regex and path mistakes, then provide one f
           <span class="reference-loading-status visually-hidden" role="status"
             >__MSG_html_loadingClauses__</span
           >
-          <p>__MSG_html_clausesAreOnlyUsedInRuleDefinitionsForRouting__</p>
           <h3>__MSG_html_outputAndCapture__</h3>
           <table class="box">
             <tbody>

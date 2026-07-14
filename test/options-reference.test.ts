@@ -15,6 +15,10 @@ const referenceMarkup = ({ filter = true }: { filter?: boolean } = {}) => `
       <button role="tab" data-reference-tab="options-reference-clauses" aria-controls="options-reference-clauses">Clauses</button>
       <button role="tab" data-reference-tab="options-reference-templates" aria-controls="options-reference-templates">Templates</button>
     </div>
+    <div class="reference-dialog-descriptions">
+      <p id="reference-dialog-description-variables" data-reference-description="options-reference-variables">Variables are used in folder and filename patterns.</p>
+      <p id="reference-dialog-description-clauses" data-reference-description="options-reference-clauses" hidden>Routing rules use clauses to decide which downloads to move or rename.</p>
+    </div>
     ${filter ? '<input class="reference-dialog-filter">' : ""}
     <section id="options-reference-variables" role="tabpanel">
       <span class="reference-loading-status visually-hidden">Loading variables</span>
@@ -60,6 +64,10 @@ test("enhances inline variable and clause references in the main option tabs", a
   expect(dialog.hasAttribute("open")).toBe(true);
   expect(document.querySelector<HTMLElement>("#options-reference-variables")!.hidden).toBe(false);
   expect(filter.placeholder).toBe("Translated<html_filterVariables>");
+  expect(
+    document.querySelector<HTMLElement>("#reference-dialog-description-variables")?.hidden,
+  ).toBe(false);
+  expect(filter.getAttribute("aria-describedby")).toBe("reference-dialog-description-variables");
 
   filter.value = "missing";
   filter.dispatchEvent(new InputEvent("input", { bubbles: true }));
@@ -85,11 +93,20 @@ test("enhances inline variable and clause references in the main option tabs", a
 
   document.querySelector<HTMLElement>("[data-reference-tab='options-reference-clauses']")!.click();
   expect(filter.placeholder).toBe("Translated<html_filterClauses>");
+  expect(
+    document.querySelector<HTMLElement>("#reference-dialog-description-variables")?.hidden,
+  ).toBe(true);
+  expect(document.querySelector<HTMLElement>("#reference-dialog-description-clauses")?.hidden).toBe(
+    false,
+  );
+  expect(filter.getAttribute("aria-describedby")).toBe("reference-dialog-description-clauses");
   expect(filter.value).toBe("");
   document
     .querySelector<HTMLElement>("[data-reference-tab='options-reference-templates']")!
     .click();
   expect(filter.placeholder).toBe("Translated<html_filterRoutingTemplates>");
+  expect(document.querySelector<HTMLElement>(".reference-dialog-descriptions")?.hidden).toBe(true);
+  expect(filter.hasAttribute("aria-describedby")).toBe(false);
 
   document.querySelector<HTMLElement>("[data-reference-tab='missing-panel']")!.click();
   [...document.querySelectorAll<HTMLElement>("[data-reference-tab]")].at(-1)!.click();

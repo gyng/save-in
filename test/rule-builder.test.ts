@@ -230,7 +230,6 @@ describe("template list rendering", () => {
         <div class="template-feedback" hidden></div>
         <div id="rule-templates" data-rule-template-library></div>
       </dialog>`;
-
     RuleBuilder.renderTemplates();
     expect(document.querySelectorAll(".rule-template")).toHaveLength(RULE_TEMPLATES.length * 2);
 
@@ -263,12 +262,17 @@ describe("template list rendering", () => {
 
   test("the feedback action closes the reference and navigates to the rules editor", () => {
     document.body.innerHTML = `
+      <button type="button" id="rules-mode-text">Text</button>
+      <div id="rules-text-editor" hidden></div>
       <textarea id="filenamePatterns"></textarea>
       <dialog id="reference-dialog">
         <input class="reference-dialog-filter rule-template-filter">
         <div class="template-feedback" hidden></div>
         <div id="rule-templates"></div>
       </dialog>`;
+    document.querySelector("#rules-mode-text")!.addEventListener("click", () => {
+      document.querySelector<HTMLElement>("#rules-text-editor")!.hidden = false;
+    });
     const dialog = document.querySelector<HTMLDialogElement>("dialog")!;
     dialog.close = vi.fn();
     const navigate = vi.fn();
@@ -278,6 +282,7 @@ describe("template list rendering", () => {
     document.querySelector<HTMLButtonElement>(".template-feedback button")!.click();
 
     expect(dialog.close).toHaveBeenCalledOnce();
+    expect(document.querySelector<HTMLElement>("#rules-text-editor")!.hidden).toBe(false);
     expect(navigate).toHaveBeenCalledWith(
       expect.objectContaining({ detail: { target: document.querySelector("#filenamePatterns") } }),
     );
