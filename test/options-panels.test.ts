@@ -116,6 +116,9 @@ describe("debug log panel", () => {
   test("contains values that JSON serialization cannot represent", async () => {
     const circular: Record<string, unknown> = {};
     circular.self = circular;
+    circular.toString = () => {
+      throw new Error("cannot stringify");
+    };
     vi.mocked(browser.storage.session.get).mockResolvedValue({
       [LOG_STORAGE_KEY]: [{ at: "now", message: 7n, data: circular }],
     });
@@ -123,7 +126,7 @@ describe("debug log panel", () => {
     await updateDebugLog();
 
     expect(document.querySelector<HTMLTextAreaElement>("#debug-log")!.value).toBe(
-      "now  7  [object Object]",
+      "now  7  [unprintable]",
     );
   });
 
