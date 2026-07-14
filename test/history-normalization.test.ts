@@ -3,7 +3,7 @@ import {
   migrateLegacyHistoryTimestamps,
   normalizeHistory,
   normalizeHistoryTimestamp,
-} from "../src/background/history-normalization.ts";
+} from "../src/shared/history-normalization.ts";
 
 describe("history normalization", () => {
   test("normalizes allowlisted fields and drops malformed entries", () => {

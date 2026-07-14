@@ -546,6 +546,31 @@ describe("history filter controls", () => {
     expect(document.querySelector("#history-feedback")?.getAttribute("role")).toBe("alert");
   });
 
+  test("discards malformed history elements without losing valid entries", async () => {
+    historyRuntime.sendMessage.mockResolvedValueOnce({
+      type: "HISTORY_GET",
+      body: {
+        entries: [
+          null,
+          { id: 7, finalFullPath: "wrong-id.txt" },
+          {
+            id: "valid",
+            initiatedAt: "2026-07-15T00:00:00.000Z",
+            finalFullPath: "safe.txt",
+          },
+        ],
+      },
+    });
+    const { renderHistory } = await import("../src/options/history-panel.ts");
+
+    await renderHistory();
+
+    expect([...document.querySelectorAll(".history-file")].map((cell) => cell.textContent)).toEqual(
+      ["safe.txt"],
+    );
+    expect(document.querySelector("#history-feedback")?.getAttribute("role")).not.toBe("alert");
+  });
+
   test("imports safely without history markup or valid stored preferences", async () => {
     localStorage.setItem("si-history-columns", "not json");
     vi.resetModules();

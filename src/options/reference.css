@@ -74,6 +74,11 @@ body:has(.reference-header) {
   border-collapse: collapse;
 }
 
+.reference-table-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
 /* Reference popouts are already their own surface; avoid nesting the list in
    another raised panel. */
 .reference-panel {
@@ -176,5 +181,69 @@ body:has(.reference-header) {
     grid-column: 1;
     grid-row: auto;
     justify-self: stretch;
+  }
+
+  .reference-table-scroll {
+    overflow: visible;
+  }
+
+  .reference-table,
+  .reference-table tbody {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .reference-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .reference-table tbody tr:not(.reference-group-row) {
+    display: grid;
+    gap: var(--space-1);
+    padding: var(--space-3);
+    border: 1px solid var(--panel-border);
+    border-radius: var(--radius);
+    background: var(--page-bg);
+  }
+
+  .reference-table tbody th,
+  .reference-table tbody td {
+    display: grid;
+    grid-template-columns: minmax(5.5rem, 30%) minmax(0, 1fr);
+    gap: var(--space-2);
+    padding: 0;
+    border: 0;
+    overflow-wrap: anywhere;
+    white-space: normal;
+  }
+
+  .reference-table tbody [data-reference-label]::before {
+    color: var(--color-text-muted);
+    content: attr(data-reference-label);
+    font-family: var(--font-stack);
+    font-size: var(--text-sm);
+    font-weight: 600;
+  }
+
+  .reference-table .reference-cell-content {
+    min-width: 0;
+  }
+
+  .reference-table tbody th code {
+    white-space: nowrap;
+  }
+
+  .reference-table .reference-group-row {
+    display: block;
+  }
+
+  .reference-table .reference-group-row th {
+    display: block;
+    padding: var(--space-3) 0 0;
   }
 }

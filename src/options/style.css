@@ -242,6 +242,9 @@ body {
   margin: 0;
   min-height: 100vh;
   box-sizing: border-box;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
   color: var(--color-text);
   background-color: var(--page-bg);
 }
@@ -363,7 +366,7 @@ body:not(#settings-page) {
   overflow-wrap: anywhere;
   color: var(--color-text-muted);
   font-family: var(--font-mono);
-  font-size: var(--text-xs);
+  font-size: var(--text-sm);
 }
 
 .saved-change-undo {

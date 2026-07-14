@@ -7,7 +7,7 @@ import {
   hasLegacyDateOnlyTimestamp,
   migrateLegacyHistoryTimestamps,
   normalizeHistory,
-} from "./history-normalization.ts";
+} from "../shared/history-normalization.ts";
 import { isStringKeyedRecord } from "../shared/util.ts";
 
 // Entries store the whole download state: cap the list so storage.local

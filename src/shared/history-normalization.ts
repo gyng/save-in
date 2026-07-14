@@ -1,5 +1,5 @@
-import type { HistoryEntry } from "../shared/history-types.ts";
-import { isStringKeyedRecord, isStringMember } from "../shared/util.ts";
+import type { HistoryEntry } from "./history-types.ts";
+import { isStringKeyedRecord, isStringMember } from "./util.ts";
 
 const HISTORY_MECHANISMS = [
   "downloads-api",

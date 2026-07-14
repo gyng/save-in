@@ -30,6 +30,7 @@ import {
 import { renderHistoryFeedback } from "./history-feedback.ts";
 import { MESSAGE_TYPES } from "../shared/constants.ts";
 import { sendInternalMessage } from "../shared/message-protocol.ts";
+import { normalizeHistory } from "../shared/history-normalization.ts";
 
 export type HistoryPanelState = {
   entries: HistoryEntry[];
@@ -536,7 +537,7 @@ export const renderHistory = async () => {
     });
     const entries = "entries" in response.body ? response.body.entries : undefined;
     if (!Array.isArray(entries)) throw new Error("Invalid history response");
-    historyState.entries = (entries as HistoryEntry[]).toReversed(); // newest first
+    historyState.entries = normalizeHistory(entries).toReversed(); // newest first
     renderHistoryFeedback(historyFeedback());
     renderHistoryTable();
   } catch {
