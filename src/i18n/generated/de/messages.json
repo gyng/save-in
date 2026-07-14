@@ -2112,10 +2112,10 @@
     "message": "Wiedergabeliste speichern"
   },
   "sourcePanelCopyYtDlp": {
-    "message": "yt-dlp-Befehl kopieren"
+    "message": "URL für yt-dlp kopieren"
   },
   "sourcePanelCopyYtDlpHelp": {
-    "message": "yt-dlp-Befehl zum Herunterladen des vollständigen Videos kopieren"
+    "message": "Video-URL zur Verwendung mit yt-dlp kopieren"
   },
   "sourcePanelCopied": {
     "message": "Kopiert"

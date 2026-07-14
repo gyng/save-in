@@ -2214,10 +2214,10 @@
     "message": "儲存播放清單"
   },
   "sourcePanelCopyYtDlp": {
-    "message": "複製 yt-dlp 指令"
+    "message": "複製用於 yt-dlp 的 URL"
   },
   "sourcePanelCopyYtDlpHelp": {
-    "message": "複製一個可讓 yt-dlp 下載完整影片的指令"
+    "message": "複製要在 yt-dlp 中使用的影片 URL"
   },
   "sourcePanelCopied": {
     "message": "已複製"

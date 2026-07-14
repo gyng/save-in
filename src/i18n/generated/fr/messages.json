@@ -2135,10 +2135,10 @@
     "message": "Enregistrer la liste de lecture"
   },
   "sourcePanelCopyYtDlp": {
-    "message": "Copier la commande yt-dlp"
+    "message": "Copier l'URL pour yt-dlp"
   },
   "sourcePanelCopyYtDlpHelp": {
-    "message": "Copier une commande yt-dlp pour télécharger la vidéo complète"
+    "message": "Copier l'URL de la vidéo à utiliser avec yt-dlp"
   },
   "sourcePanelCopied": {
     "message": "Copié"

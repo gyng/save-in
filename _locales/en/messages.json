@@ -2737,12 +2737,12 @@
     "description": "Page Sources streaming-playlist save action. Used in src/shared/source-panel-copy.ts."
   },
   "sourcePanelCopyYtDlp": {
-    "message": "Copy yt-dlp command",
-    "description": "Page Sources action for copying a yt-dlp command. Used in src/shared/source-panel-copy.ts."
+    "message": "Copy URL for yt-dlp",
+    "description": "Page Sources action for copying a video URL to use with yt-dlp. Used in src/shared/source-panel-copy.ts."
   },
   "sourcePanelCopyYtDlpHelp": {
-    "message": "Copy a command for yt-dlp to download the complete video",
-    "description": "Tooltip for the Page Sources yt-dlp action. Used in src/shared/source-panel-copy.ts."
+    "message": "Copy the video URL to use with yt-dlp",
+    "description": "Tooltip for the Page Sources yt-dlp URL action. Used in src/shared/source-panel-copy.ts."
   },
   "sourcePanelCopied": {
     "message": "Copied",

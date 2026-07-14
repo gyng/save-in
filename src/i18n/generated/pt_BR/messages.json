@@ -2114,10 +2114,10 @@
     "message": "Salvar playlist"
   },
   "sourcePanelCopyYtDlp": {
-    "message": "Copiar o comando do yt-dlp"
+    "message": "Copiar URL para yt-dlp"
   },
   "sourcePanelCopyYtDlpHelp": {
-    "message": "Copiar um comando do yt-dlp para baixar o vídeo completo"
+    "message": "Copiar a URL do vídeo para usar com yt-dlp"
   },
   "sourcePanelCopied": {
     "message": "Copiado"

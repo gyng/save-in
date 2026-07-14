@@ -2053,10 +2053,10 @@
     "message": "Salva playlist"
   },
   "sourcePanelCopyYtDlp": {
-    "message": "Copia il comando yt-dlp"
+    "message": "Copia URL per yt-dlp"
   },
   "sourcePanelCopyYtDlpHelp": {
-    "message": "Copia un comando per yt-dlp per scaricare il video completo"
+    "message": "Copia l'URL del video da usare con yt-dlp"
   },
   "sourcePanelCopied": {
     "message": "Copiato"

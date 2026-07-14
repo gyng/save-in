@@ -2114,10 +2114,10 @@
     "message": "Afspeellijst opslaan"
   },
   "sourcePanelCopyYtDlp": {
-    "message": "yt-dlp-opdracht kopiëren"
+    "message": "URL voor yt-dlp kopiëren"
   },
   "sourcePanelCopyYtDlpHelp": {
-    "message": "Een opdracht kopiëren waarmee yt-dlp de volledige video downloadt"
+    "message": "De video-URL kopiëren voor gebruik met yt-dlp"
   },
   "sourcePanelCopied": {
     "message": "Gekopieerd"

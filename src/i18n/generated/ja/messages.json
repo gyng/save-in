@@ -2214,10 +2214,10 @@
     "message": "プレイリストを保存"
   },
   "sourcePanelCopyYtDlp": {
-    "message": "yt-dlp コマンドをコピー"
+    "message": "yt-dlp 用の URL をコピー"
   },
   "sourcePanelCopyYtDlpHelp": {
-    "message": "動画全体をダウンロードするための yt-dlp コマンドをコピー"
+    "message": "yt-dlp で使用する動画 URL をコピー"
   },
   "sourcePanelCopied": {
     "message": "コピーしました"

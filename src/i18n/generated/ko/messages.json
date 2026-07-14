@@ -2214,10 +2214,10 @@
     "message": "재생목록 저장"
   },
   "sourcePanelCopyYtDlp": {
-    "message": "yt-dlp 명령 복사"
+    "message": "yt-dlp용 URL 복사"
   },
   "sourcePanelCopyYtDlpHelp": {
-    "message": "전체 동영상을 다운로드하는 yt-dlp 명령 복사"
+    "message": "yt-dlp에 사용할 동영상 URL 복사"
   },
   "sourcePanelCopied": {
     "message": "복사됨"

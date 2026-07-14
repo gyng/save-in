@@ -2112,10 +2112,10 @@
     "message": "Guardar la lista de reproducción"
   },
   "sourcePanelCopyYtDlp": {
-    "message": "Copiar el comando de yt-dlp"
+    "message": "Copiar URL para yt-dlp"
   },
   "sourcePanelCopyYtDlpHelp": {
-    "message": "Copiar un comando de yt-dlp para descargar el vídeo completo"
+    "message": "Copiar la URL del vídeo para usarla con yt-dlp"
   },
   "sourcePanelCopied": {
     "message": "Copiado"

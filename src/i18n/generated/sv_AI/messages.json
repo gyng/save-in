@@ -2108,10 +2108,10 @@
     "message": "Spara spellistan"
   },
   "sourcePanelCopyYtDlp": {
-    "message": "Kopiera yt-dlp-kommandot"
+    "message": "Kopiera URL för yt-dlp"
   },
   "sourcePanelCopyYtDlpHelp": {
-    "message": "Kopiera ett kommando som låter yt-dlp hämta hela videon"
+    "message": "Kopiera videons URL för användning med yt-dlp"
   },
   "sourcePanelCopied": {
     "message": "Kopierat"
