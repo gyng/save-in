@@ -2,15 +2,15 @@ import { SHORTCUT_EXTENSIONS, isShortcutType, type ShortcutType } from "../share
 import { getMessage } from "../platform/localization.ts";
 
 const EFFECTIVE_ACCESS_KEY = /^[a-z0-9]$/i;
-const FORMAT_GUIDANCE: Record<ShortcutType, { filename: string; meaning: string }> = {
+const FORMAT_GUIDANCE = {
   HTML_REDIRECT: { filename: "page.html", meaning: "o_lShortcutFormatAnyBrowser" },
   MAC: { filename: "page.url", meaning: "o_lShortcutFormatLegacyInternet" },
   MAC_WEBLOC: { filename: "page.webloc", meaning: "o_lShortcutFormatMac" },
   WINDOWS: { filename: "page.url", meaning: "o_lShortcutFormatWindows" },
   FREEDESKTOP: { filename: "page.desktop", meaning: "o_lShortcutFormatLinux" },
-};
+} as const satisfies Record<ShortcutType, { filename: string; meaning: string }>;
 
-const shortcutFormatMeaning = (key: string): string => {
+const shortcutFormatMeaning = (key: (typeof FORMAT_GUIDANCE)[ShortcutType]["meaning"]): string => {
   switch (key) {
     case "o_lShortcutFormatAnyBrowser":
       return getMessage("o_lShortcutFormatAnyBrowser") || "Works in any browser";
@@ -22,8 +22,6 @@ const shortcutFormatMeaning = (key: string): string => {
       return getMessage("o_lShortcutFormatWindows") || "Windows Internet Shortcut";
     case "o_lShortcutFormatLinux":
       return getMessage("o_lShortcutFormatLinux") || "Linux desktop shortcut";
-    default:
-      return "";
   }
 };
 
@@ -85,7 +83,7 @@ export const setupShortcutOptions = () => {
     const unknown = parts.find((part) => !known.has(part));
     if (button) button.value = storedButton?.value || "LEFT_CLICK";
     modifier.querySelector("[data-legacy]")?.remove();
-    if (unknown || (parts.length === 1 && combo.value && !known.has(combo.value))) {
+    if (unknown) {
       const option = document.createElement("option");
       option.value = combo.value;
       option.textContent =
@@ -121,7 +119,7 @@ export const setupShortcutOptions = () => {
   clickToSave?.addEventListener("change", syncGestureWarning);
   modifier?.addEventListener("change", syncClickControls);
   modifier2?.addEventListener("change", syncClickControls);
-  apply?.addEventListener("click", () => {
+  const applyGesture = () => {
     if (!combo || !storedButton || !button) return;
     combo.value = draftCombo();
     storedButton.value = button.value;
@@ -129,13 +127,14 @@ export const setupShortcutOptions = () => {
     storedButton.dispatchEvent(new Event("change", { bubbles: true }));
     syncClickControls();
     if (status) status.textContent = getMessage("o_lShortcutUpdated") || "Shortcut updated.";
-  });
+  };
+  apply?.addEventListener("click", applyGesture);
   reset?.addEventListener("click", () => {
     if (!modifier || !modifier2 || !button) return;
     modifier.value = "Alt";
     modifier2.value = "";
     button.value = "LEFT_CLICK";
-    apply?.click();
+    applyGesture();
     if (status) status.textContent = getMessage("o_lShortcutReset") || "Shortcut reset.";
   });
   showClickCombo();
