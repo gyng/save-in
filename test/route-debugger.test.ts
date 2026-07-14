@@ -312,6 +312,45 @@ test("loads the last download into the test bench", async () => {
   );
 });
 
+test("enables Latest when a download arrives without replacing the current test data", async () => {
+  renderWorkbench();
+  let lastDownload: unknown = null;
+  vi.spyOn(webExtensionApi.runtime, "sendMessage").mockImplementation(async (message: any) =>
+    message.type === MESSAGE_TYPES.CHECK_ROUTES
+      ? checkResponse(lastDownload)
+      : {
+          type: MESSAGE_TYPES.VALIDATE_RESULT,
+          body: { version: 1, ruleErrors: [], ruleTrace: noMatchTrace },
+        },
+  );
+
+  setupRouteDebugger();
+  const useLast = document.querySelector<HTMLButtonElement>("#route-debugger-use-last")!;
+  await vi.waitFor(() => expect(useLast.disabled).toBe(true));
+  expect(document.querySelector<HTMLInputElement>("#route-debugger-filename")?.value).toBe(
+    "report.pdf",
+  );
+
+  lastDownload = {
+    info: {
+      filename: "new-photo.jpg",
+      sourceUrl: "https://images.example/new-photo.jpg",
+    },
+  };
+  const listener = vi.mocked(webExtensionApi.runtime.onMessage.addListener).mock.calls.at(-1)?.[0];
+  expect(listener).toBeDefined();
+  listener!({ type: MESSAGE_TYPES.DOWNLOADED }, {}, vi.fn());
+
+  await vi.waitFor(() => expect(useLast.disabled).toBe(false));
+  expect(document.querySelector<HTMLInputElement>("#route-debugger-filename")?.value).toBe(
+    "report.pdf",
+  );
+  useLast.click();
+  expect(document.querySelector<HTMLInputElement>("#route-debugger-filename")?.value).toBe(
+    "new-photo.jpg",
+  );
+});
+
 test("returns before wiring an incomplete workbench", () => {
   document.body.innerHTML = '<textarea id="filenamePatterns"></textarea>';
   expect(() => setupRouteDebugger()).not.toThrow();

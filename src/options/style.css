@@ -1494,16 +1494,18 @@ fieldset.click-to-save-controls {
   flex: 1;
   flex-direction: column;
   align-items: baseline;
+  min-width: 0;
   max-width: 100%;
   padding-right: var(--space-2);
-  overflow: hidden;
 }
 
 .last-download-table {
+  width: 100%;
   max-width: 100%;
   margin: 0;
   padding: 0;
   border-spacing: 0;
+  table-layout: fixed;
   font-size: var(--text-base);
 }
 
@@ -1512,7 +1514,7 @@ fieldset.click-to-save-controls {
 }
 
 .last-download-label {
-  min-width: 110px;
+  width: 110px;
   padding: 0;
   font-weight: 600;
   text-align: left;
@@ -1529,10 +1531,8 @@ fieldset.click-to-save-controls {
 }
 
 .last-download-url {
-  max-width: 80%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .last-download-value {
@@ -2792,7 +2792,7 @@ summary {
 }
 
 .route-debugger-file-fields .route-debugger-field-grid {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
 }
 
 .route-debugger-page-fields .route-debugger-field-grid {
@@ -3214,6 +3214,17 @@ summary {
   .route-debugger-field-grid,
   .route-debugger-file-fields .route-debugger-field-grid {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .last-download-table > tbody > tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+    margin-bottom: var(--space-2);
+  }
+
+  .last-download-table > tbody > tr > .last-download-label {
+    width: auto;
   }
 
   .route-debugger-source-picker > span {

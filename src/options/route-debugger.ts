@@ -190,6 +190,7 @@ export const setupRouteDebugger = (): void => {
   };
   let lastDownloadInfo: WireDownloadInfo | null = null;
   let generation = 0;
+  let latestDownloadGeneration = 0;
   let hasRun = false;
   let rerunTimer: number | null = null;
 
@@ -617,15 +618,26 @@ export const setupRouteDebugger = (): void => {
     void run();
   });
 
+  const refreshLatestDownload = (replaceFields: boolean): void => {
+    const mine = ++latestDownloadGeneration;
+    void sendInternalMessage(webExtensionApi.runtime, { type: MESSAGE_TYPES.CHECK_ROUTES })
+      .then((response) => {
+        if (mine !== latestDownloadGeneration || !("lastDownload" in response.body)) return;
+        lastDownloadInfo = response.body.lastDownload?.info ?? null;
+        useLastButton.disabled = lastDownloadInfo === null;
+        if (replaceFields) {
+          writeFields(lastDownloadInfo ? fieldsFromInfo(lastDownloadInfo) : SAMPLE_DOWNLOAD);
+        }
+      })
+      .catch(() => {});
+  };
+
+  webExtensionApi.runtime.onMessage.addListener((message: { type?: string }) => {
+    if (message.type === MESSAGE_TYPES.DOWNLOADED) refreshLatestDownload(false);
+  });
+
   clearResult();
   useLastButton.disabled = true;
   writeFields(SAMPLE_DOWNLOAD);
-  void sendInternalMessage(webExtensionApi.runtime, { type: MESSAGE_TYPES.CHECK_ROUTES })
-    .then((response) => {
-      if (!("lastDownload" in response.body)) return;
-      lastDownloadInfo = response.body.lastDownload?.info ?? null;
-      useLastButton.disabled = lastDownloadInfo === null;
-      writeFields(lastDownloadInfo ? fieldsFromInfo(lastDownloadInfo) : SAMPLE_DOWNLOAD);
-    })
-    .catch(() => {});
+  refreshLatestDownload(true);
 };
