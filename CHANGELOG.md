@@ -1,12 +1,14 @@
 # 4.0.0
 
-Version 4 is an extensive revamp. It modernizes browser
-support and makes complex download organization easier while preserving existing settings and rules.
+Version 4 is an extensive revamp. It modernizes browser support and makes
+complex download organization easier while preserving existing settings and
+rules.
 
 - Rebuilt for current Firefox and Chrome MV3 extension platforms; now requires
   Firefox 121+ or Chrome 123+.
 - Redesigned Options with clearer navigation, visual directory editing, rule
-  templates, previews, search, improved localization, and better dark mode.
+  templates, previews, a route debugger, search, first-run guidance, improved
+  localization, and better dark mode.
 - Made downloads resilient to background restarts, with reliable filenames,
   notifications, history, retries, and private-browsing safeguards.
 - Expanded routing and renaming with many new variables, safer filename
@@ -15,8 +17,10 @@ support and makes complex download organization easier while preserving existing
   `context: ^auto$` routing rules, with live/private controls and a per-page
   limit. The shared Visual routing editor creates and identifies these rules;
   valid settings from the earlier dedicated rule field migrate automatically.
-- Added explicitly approved external integrations and validated configuration
-  tools without adding remote code or broader interception permissions.
+- Added opt-in tracking and routing for ordinary browser downloads, including a
+  separately labelled experimental Firefox replacement mode.
+- Added explicitly approved extension integrations, validated configuration
+  tools, experimental WebMCP support, and disabled-by-default HTTPS webhooks.
 - Unified both browser releases into one readable, reproducible package backed
   by automated Firefox and Chrome end-to-end tests.
 - Migrated path-component truncation from character counts to UTF-8 byte limits,
@@ -26,133 +30,133 @@ support and makes complex download organization easier while preserving existing
 <details>
 <summary>Detailed changes</summary>
 
-- Migrate to Manifest V3; requires Firefox 121+ / Chrome 123+
-- Wake the service worker as soon as the click-to-save combo key is held, so
-  alt+click saves work reliably on Chrome (thanks @rudolphos, #230)
-- Download notifications and filenames now survive the background
-  terminating mid-download (session storage tracking)
-- The "Set Referer header" option protects matching metadata and content
-  requests with temporary exact rules in both browsers. Firefox keeps its
-  native direct download when possible; Chrome saves the protected content as
-  a local Blob. Empty or invalid filter lines no longer break the context menu
-  (#222), and the preset now also covers MangaDex image hosts (#218).
-- Click-to-save now falls back to the link under the cursor (respects the
-  "links" option), so alt+click on PDF/file links works (#226)
-- Page titles in filenames come from the tab that was clicked, fixing wrong
-  or mutated titles (#172, #188)
-- Download history actually accumulates now (previously only the last entry
-  was kept) and is capped at 10,000 entries
-- Click-to-save and external-extension downloads no longer inherit the
-  previous download's filename or rename route. A matching click-to-save rule
-  is rooted at Downloads instead of the previous menu directory (#190).
-- The external DOWNLOAD API is now official and versioned (v1, #110): send
-  `{ type: "PING" }` to negotiate the version and capabilities, `DOWNLOAD`
-  now returns a typed `OK`/`ERROR` response and validates the URL scheme, and
-  Advanced → External integrations shows the extension id, live version, and a
-  copy-paste snippet
-- External DOWNLOAD callers must now be explicitly allowed by extension ID;
-  the default empty allowlist blocks active-tab URL access and download requests
-  from other installed extensions
-- Rejected external downloads now show a notification that opens Options. The
-  External integrations panel lists blocked caller IDs with an Approve action;
-  approved IDs can be added or removed without editing raw settings, and
-  rejected URLs are not retained
-- Options localization now covers rejected-download notifications, WebMCP
-  availability, and empty History states. Option search also includes the
-  language selector, and wrapped external-link icons retain a fixed size
-- Page Sources now follows the selected interface language. Its localized copy
-  is resolved lazily and cached without adding translation work to page scanning
-- Page Sources can save newly discovered matching resources automatically.
-  Automatic rules share the normal routing editor and grammar, require explicit
-  page and source conditions, and cannot be triggered by broad ordinary rules.
-- CSV and TSV history exports neutralize formula-leading cells before they are
-  opened in spreadsheet applications
-- New path variables: `:counter:` (atomic, persistent, per-download counter with
-  a reset control), `:uuid:`, and `:mime:`/`:contenttype:`/`:mimeext:` (from a
-  HEAD request) for naming extensionless URLs
-- Scriptable / AI-assisted configuration: `GET_SCHEMA`, `VALIDATE` and (internal)
-  `APPLY_CONFIG` messages validate a config against the schema before applying
-  (#89), plus an experimental WebMCP adapter that exposes them as AI-agent tools
-  on the options page (Advanced → External integrations → WebMCP)
-- Reliability: `Variable.applyVariables` is async; concurrent downloads survive a
-  service-worker restart without losing notifications (pending counter, per-URL
-  filename recovery, per-download Referer rule ids)
-- Shortcut files keep their extensions instead of being saved as .txt
-  (#161): the download mime now matches the shortcut type
-- Server-provided filenames containing a literal % no longer error out and
-  fall back to the URL filename. Content-Disposition names are resolved before
-  routing, including extensionless or PHP download URLs (#178).
-- Empty menu aliases (`alias:` with no value) fall back to the path instead of a blank
-  menu item; multi-dash comments are munged consistently
-- New session-scoped debug log, viewable at the bottom of the options page
-  (#159, #216)
-- Options page opens in a tab
-- "Fetch via Fetch API" is now available on Chrome too
-- Extension-side Fetch and HEAD requests now have a website credentials option.
-  Applicable credentials are included by default to support signed-in downloads;
-  this includes redirect destinations, and users can turn the option off for
-  anonymous extension requests. Private-window extension requests always omit
-  credentials because the shared background cannot select a private cookie store.
-- Extension fetches now use one explicit redirect policy and response-header
-  timeout. Metadata lookup falls back to a body-cancelled GET when HEAD is rejected.
-- Firefox direct downloads retain private-download-manager isolation. Extension
-  Fetch cannot select a Firefox Container or private cookie store.
-- Remove the old content-script fetch path; MV3 cross-origin fetching runs in
-  an extension context with host permission
-- Waterfox and other Gecko forks are now detected as Firefox, and browser
-  detection is synchronous (#186)
-- Concurrent downloads (e.g. tab-strip batch saves) no longer misattribute
-  filenames, referers, notifications, or history entries to each other
-- Download completion/failure notifications survive a service worker
-  cold-start (listeners now register synchronously); "Last used" keeps its
-  routing metadata across restarts
-- New :pagerootdomain: and :sourcerootdomain: variables (#221)
-- More new variables: :weekday:, :monthname:, :ampm:, :isoweek:/:week:,
-  :pagetitleslug:, :pagetitlesnake:, :sourcepath:, :tld:
-- The options page shows a live preview of the context-menu tree as you
-  edit the directory list
-- Downloads that fail with a network or server error are now retried
-  once automatically through a background fetch before reporting failure
-  (on by default; "Retry failed downloads in the background" in More
-  Options)
-- Routing rules got a guided quick-add row (matcher, pattern, destination)
-  with variable autocomplete, and a built-in template library with
-  one-click starter rules
-- The directory list has a Text/Visual editor: the visual mode edits rows
-  with indent, drag-to-reorder, alias, and delete controls; both modes
-  share a "+ Add" menu (variables with live values, separators, submenu
-  lines) and a live menu-tree preview. The rules editor gets the same
-  "+ Add" menu (into:/capture: clauses and variables).
-- The directory list and routing rules now save explicitly via Apply
-  (with a Discard button) instead of autosaving; Apply/Discard light up
-  only while there are unsaved edits, and switching tabs or closing the
-  page prompts to save or discard. Every other setting still autosaves.
-- Options page refresh: full-width tabbed layout, live save indicator in the
-  top bar, system font stack, dark-mode fixes, a stale event-listener leak fix,
-  and correct persistence when importing settings
-- Filenames are hardened for Windows: control and invisible format characters,
-  variation selectors (#220), trailing
-  dots/spaces, and reserved device names (CON, NUL, ...) are neutralized;
-  a broken replacement character can no longer defeat the sanitizer
-- Dark-mode last-used menu icon on Firefox (#184); "close tab on save" now
-  also applies to page saves (#115)
-- Options textareas autosave after you pause typing instead of rebuilding
-  the context menu on every keystroke
-- A bad routing-rule regex is now dropped instead of matching everything;
-  malformed URLs, absent capture groups, and info-less external messages no
-  longer abort downloads
-- The Firefox-only conflict action is downgraded on Chrome, where
-  it silently broke all downloads (#89, #217); a fresh install's default
-  Downloads menu item shows a name instead of "." (#213)
-- HTML-redirect shortcuts escape the target URL
-- Removed vendored libraries for easier store review: the WebExtension API now
-  uses a small first-party native adapter, and the options-page autocomplete
-  and l10n are first-party rewrites. This also revives autocomplete, whose
-  event wiring had been silently broken. Only the readable, credited
-  `src/vendor/content-disposition.ts` remains vendored.
-- Dev: automated Chrome (CDP) and Firefox (RDP) end-to-end smoke tests,
-  watch-mode dev loop, comprehensive Vitest suite, oxlint + oxfmt, web-ext 10,
-  npm, CI on Node 24
+### Platform and compatibility
+
+- Migrated to Manifest V3 and raised the minimum versions to Firefox 121 and
+  Chrome 123.
+- Unified Firefox and Chrome releases into one readable, reproducible package
+  with browser-specific background handling.
+- Moved cross-origin acquisition from the old content-script path into the
+  extension context. “Always download through Save In” is now available on
+  Chrome as well as Firefox.
+- Waterfox and other Gecko forks are detected as Firefox (#186).
+- Downgraded the Firefox-only conflict action on Chrome, where it could break
+  downloads (#89, #217). Fresh installs also show “Downloads” instead of “.”
+  for the default destination (#213).
+
+### Routing and editing
+
+- Added a route debugger that tests saved or unsaved rules against recent,
+  sample, or custom download details; explains first-match decisions; previews
+  variable expansion and sanitization; and links results back to the editor.
+- Added searchable routing templates, Quick add, grammar-aware validation,
+  variable and clause autocomplete, and final-filename previews.
+- Added Text and Visual editors for directories and routing rules. Visual mode
+  supports indentation, drag-to-reorder, aliases, clauses, variables,
+  separators, and a live context-menu preview.
+- Directory and routing edits now use explicit Apply and Discard actions and
+  warn before unsaved drafts are abandoned. Other settings continue to
+  autosave.
+- Added `:counter:`, `:uuid:`, `:mime:`, `:contenttype:`, `:mimeext:`,
+  `:pagerootdomain:`, `:sourcerootdomain:`, `:weekday:`, `:monthname:`,
+  `:ampm:`, `:isoweek:`/`:week:`, `:pagetitleslug:`, `:pagetitlesnake:`,
+  `:sourcepath:`, and `:tld:` variables (#221).
+- Page titles now come from the clicked tab (#172, #188). Server-provided
+  names, including extensionless and PHP download URLs, are resolved before
+  routing, and literal `%` characters no longer cause an error (#178).
+- Hardened Windows filenames against control and invisible format characters,
+  variation selectors (#220), trailing dots or spaces, reserved device names,
+  and broken replacement characters. Path-component limits now use UTF-8 bytes
+  and preserve filename extensions.
+- Shortcut files retain their intended extension instead of becoming `.txt`
+  (#161), and HTML redirect shortcuts escape their target URL.
+- Empty aliases fall back to their path, multi-dash comments are handled
+  consistently, and invalid regular expressions, URLs, capture groups, and
+  routing variables produce contained validation errors instead of broad
+  matches or aborted downloads.
+
+### Page Sources and downloads
+
+- Added Page Sources for previewing media discovered on the current page,
+  including relevance sorting, richer previews, live updates, and per-page
+  controls.
+- Added opt-in automatic Page Sources saves. Eligible rules use the normal
+  routing grammar, require explicit `context: ^auto$`, page, and source
+  conditions, and cannot be triggered by broad ordinary rules. Valid settings
+  from the earlier dedicated automation field migrate automatically.
+- Added opt-in handling for ordinary browser downloads. Chrome can record or
+  route matching downloads before they are saved. Firefox can record them and
+  offers a separately labelled experimental mode that cancels a matching
+  HTTP(S) download and starts a routed replacement; that replacement can lose
+  POST bodies, temporary URLs, authentication, or other request context.
+- Fixed History so entries accumulate instead of replacing one another, capped
+  it at 10,000 entries, and added search, filtering, pagination, recovery
+  actions, JSON export, and formula-safe CSV and TSV export (#159).
+- Wake the background as soon as the click-to-save modifier is held, making
+  Chrome saves more reliable (thanks @rudolphos, #230). Click-to-save also
+  falls back to the link under the cursor when link saving is enabled (#226).
+- Click-to-save and external-extension requests no longer inherit the previous
+  download's filename, destination, or rename route (#190).
+- “Retry failed downloads through Save In” retries eligible network and server
+  failures once through a background fetch before reporting failure.
+- Optional Referer handling protects each exact metadata or content request in
+  both browsers. Firefox keeps a native direct download when possible; Chrome
+  saves the protected content locally. Invalid filter lines no longer break the
+  context menu (#222), and the preset covers MangaDex image hosts (#218).
+- Background fetches can include applicable website sign-in cookies, including
+  after redirects, or run anonymously. Private-window extension requests stay
+  anonymous because the shared background cannot select a private cookie store;
+  Firefox direct downloads retain private-download-manager isolation.
+- Background fetches use an explicit redirect policy and response-header
+  timeout, and metadata lookup falls back to a body-cancelled GET when HEAD is
+  rejected.
+- Downloads, filenames, counters, Referer operations, notifications, History,
+  and Last used routing metadata survive background shutdowns and concurrent
+  activity without being attributed to the wrong request.
+- “Close tab on save” now applies to page saves (#115).
+
+### Integrations and privacy
+
+- Made the external `DOWNLOAD` API official and versioned (v1, #110). `PING`
+  negotiates capabilities, and `DOWNLOAD` validates its URL and returns a typed
+  `OK` or `ERROR` response.
+- External downloads now require an explicitly approved extension ID. Rejected
+  callers can be reviewed and approved in Options without retaining the
+  rejected URL; the default empty allowlist blocks download and active-tab URL
+  access.
+- Added `GET_SCHEMA`, `VALIDATE`, and internal `APPLY_CONFIG` messages (#89),
+  plus experimental WebMCP tools for compatible in-browser agents while Options
+  is open.
+- Added disabled-by-default HTTPS webhooks for Save In download starts. Requests
+  go directly to the user-selected endpoint, disclose and preview their fields,
+  omit credentials and referrers, reject redirects, and are never retried.
+  Automatic saves, ordinary browser downloads, external-extension requests, and
+  private activity never trigger a webhook. Firefox requests its optional data
+  permissions from the enabling action when the browser supports them.
+
+### Options and localization
+
+- Rebuilt Options as a full-width tabbed interface with clearer navigation,
+  searchable settings, a live save indicator, consistent typography, improved
+  keyboard and narrow-screen behavior, and dark-mode fixes.
+- Added a first-install welcome guide with starter configurations and direct
+  links to the most important setup actions.
+- Added a language selector and opt-in, locally bundled generated translation
+  catalogs with English fallback. Page Sources, integration feedback, History
+  states, templates, and validation messages follow the selected language.
+- Added a session-scoped debug log in Advanced diagnostics (#216), and made the
+  Options page open in a browser tab.
+- Fixed the Firefox dark-mode Last used icon (#184), restored first-party
+  autocomplete, and made ordinary text settings autosave after typing pauses.
+
+### Developer and release process
+
+- Removed runtime libraries in favor of first-party WebExtension, localization,
+  and autocomplete adapters. The readable, credited
+  `src/vendor/content-disposition.ts` parser remains the only vendored code.
+- Added strict TypeScript checks, comprehensive unit and property tests,
+  automated Chrome and Firefox end-to-end suites, reproducible runtime and AMO
+  source archives, store screenshot generation, oxlint, oxfmt, and Node 24 CI.
 
 </details>
 
