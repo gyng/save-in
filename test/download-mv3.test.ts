@@ -468,6 +468,10 @@ describe("onDeterminingFilename listener (Chrome)", () => {
     global.browser = {
       runtime: { id: "self-extension-id" },
       i18n: { getMessage: vi.fn((key: string) => key) },
+      notifications: {
+        create: vi.fn(() => Promise.resolve()),
+        clear: vi.fn(() => Promise.resolve(true)),
+      },
     } as any;
 
     // vi.resetModules() gives download.ts (below) a fresh module graph, so
