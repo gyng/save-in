@@ -170,6 +170,18 @@ describe("syntax editor surface", () => {
     ).toBe("8ch");
     expect(inline()!.style.marginLeft).toBe("");
 
+    setSyntaxEditorDiagnostics(textarea, [
+      {
+        start: 7,
+        end: 10,
+        line: 2,
+        column: 1,
+        message: "Unusual destination",
+        severity: "warning",
+      },
+    ]);
+    expect(inline()?.classList.contains("syntax-editor-inline-warning")).toBe(true);
+
     textarea.setSelectionRange(11, 11);
     textarea.dispatchEvent(new Event("select"));
     expect(inline()).toBeNull();
