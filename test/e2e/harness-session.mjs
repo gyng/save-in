@@ -1,60 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
 
-/** @param {Record<string, unknown> | undefined} snapshot */
-const cleanupExpression = (snapshot) => `(async () => {
-  const optionsUrl = browser.runtime.getURL("src/options/options.html");
-  const failures = [];
-  const attempt = async (label, operation) => {
-    try {
-      await operation();
-    } catch (error) {
-      failures.push(label + ": " + String(error?.stack || error));
-    }
-  };
-  await Promise.all([
-    attempt("tabs", async () => {
-      const [current, tabs] = await Promise.all([browser.tabs.getCurrent(), browser.tabs.query({})]);
-      const keep = current?.id ?? tabs.find((tab) => tab.url?.startsWith(optionsUrl))?.id;
-      const remove = tabs.flatMap((tab) => tab.id !== undefined && tab.id !== keep ? [tab.id] : []);
-      if (remove.length) await browser.tabs.remove(remove);
-    }),
-    attempt("downloads", async () => {
-      const downloads = await browser.downloads.search({});
-      await Promise.all(downloads
-        .filter((download) => download.state === "in_progress")
-        .map((download) => browser.downloads.cancel(download.id).catch(() => {})));
-      await browser.downloads.erase({});
-    }),
-    attempt("notifications", async () => {
-      if (!browser.notifications?.getAll) return;
-      const notifications = await browser.notifications.getAll();
-      await Promise.all(Object.keys(notifications).map((id) => browser.notifications.clear(id)));
-    }),
-    attempt("session rules", async () => {
-      if (!browser.declarativeNetRequest?.getSessionRules) return;
-      const rules = await browser.declarativeNetRequest.getSessionRules();
-      if (rules.length) {
-        await browser.declarativeNetRequest.updateSessionRules({
-          removeRuleIds: rules.map((rule) => rule.id),
-        });
-      }
-    }),
-  ]);
-  await attempt("session storage", () => browser.storage.session?.clear?.());
-  ${
-    snapshot
-      ? `await attempt("local storage", async () => {
-    await browser.storage.local.clear();
-    await browser.storage.local.set(${JSON.stringify(snapshot)});
-  });`
-      : ""
-  }
-  await attempt("runtime reset", () => api.reset());
-  if (failures.length) throw new Error(failures.join("\\n---\\n"));
-  return true;
-})()`;
-
 /** @param {string} directory */
 const emptyDirectory = async (directory) => {
   if (!directory || !fs.existsSync(directory)) return;
@@ -75,16 +21,11 @@ const emptyDirectory = async (directory) => {
 
 /**
  * @param {{
- *   evaluateBackground: (expression: string, timeoutMs?: number) => Promise<any>,
- *   evaluateControl?: (expression: string, timeoutMs?: number) => Promise<any>,
+ *   control: ReturnType<typeof import("./control-client.mjs").createE2EControlClient>,
  *   downloadDir: () => string,
  * }} adapters
  */
-export const createHarnessSession = ({
-  evaluateBackground,
-  evaluateControl = evaluateBackground,
-  downloadDir,
-}) => {
+export const createHarnessSession = ({ control, downloadDir }) => {
   /** @type {Record<string, unknown> | undefined} */
   let baseline;
   /** @type {Record<string, unknown> | undefined} */
@@ -93,11 +34,7 @@ export const createHarnessSession = ({
     async beginCase() {
       snapshot = baseline;
       if (!snapshot) {
-        snapshot = JSON.parse(
-          await evaluateControl(
-            `browser.storage.local.get(null).then((stored) => JSON.stringify(stored))`,
-          ),
-        );
+        snapshot = /** @type {Record<string, unknown>} */ (await control.storage.local.get());
       }
     },
 
@@ -106,7 +43,7 @@ export const createHarnessSession = ({
       /** @type {unknown[]} */
       const failures = [];
       try {
-        await evaluateControl(cleanupExpression(preserveLocal ? undefined : snapshot), 15000);
+        await control.harness.resetCase(preserveLocal ? undefined : snapshot);
       } catch (error) {
         failures.push(error);
       }

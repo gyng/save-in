@@ -637,23 +637,20 @@ export const runInterruptedTransferRecoveryScenario = async ({
 
 /**
  * @param {{
- *   evaluate: (expression: string) => Promise<any>,
+ *   control: ReturnType<typeof import("./control-client.mjs").createE2EControlClient>,
  *   waitForDownloads: (filename: string) => Promise<any[]>,
  *   content: string,
  * }} adapters
  */
-export const runRoutingScenario = async ({ evaluate, waitForDownloads, content }) => {
-  await evaluate(
-    `browser.storage.local.set({
-      filenamePatterns: "filename: routeme\\ninto: routed/renamed-:filename:",
-    })
-      .then(() => api.reset())
-      .then(() => api.startDownload({
-        content: ${JSON.stringify(content)},
-        suggestedFilename: "routeme.txt",
-        pageUrl: "https://example.com/",
-      })).then(() => "started")`,
-  );
+export const runRoutingScenario = async ({ control, waitForDownloads, content }) => {
+  await control.options.set({
+    filenamePatterns: "filename: routeme\ninto: routed/renamed-:filename:",
+  });
+  await control.background.startDownload({
+    content,
+    suggestedFilename: "routeme.txt",
+    pageUrl: "https://example.com/",
+  });
   const downloads = await waitForDownloads("renamed-routeme");
   expect(downloads.map((entry) => entry.state)).toEqual(["complete"]);
   return downloads;
@@ -665,12 +662,12 @@ export const runRoutingScenario = async ({ evaluate, waitForDownloads, content }
  * configured folder with the MIME-derived extension.
  *
  * @param {{
- *   evaluate: (expression: string) => Promise<any>,
+ *   control: ReturnType<typeof import("./control-client.mjs").createE2EControlClient>,
  *   waitForDownloads: (filename: string) => Promise<any[]>,
  *   filename: string,
  * }} adapters
  */
-export const runLegacyProfileRoutingScenario = async ({ evaluate, waitForDownloads, filename }) => {
+export const runLegacyProfileRoutingScenario = async ({ control, waitForDownloads, filename }) => {
   const body = Buffer.from("legacy profile png");
   const server = http.createServer((_req, res) => {
     res.writeHead(200, {
@@ -681,35 +678,29 @@ export const runLegacyProfileRoutingScenario = async ({ evaluate, waitForDownloa
   });
   const port = await listenLocal(server);
   const url = `http://127.0.0.1:${port}/${filename}`;
-  const previous = JSON.parse(
-    await evaluate(`browser.storage.local.get([
-      "paths", "filenamePatterns", "contentClickToSaveCombo"
-    ]).then((stored) => JSON.stringify(stored))`),
+  const previous = /** @type {Record<string, unknown>} */ (
+    await control.storage.local.get(["paths", "filenamePatterns", "contentClickToSaveCombo"])
   );
   const legacyKeys = ["paths", "filenamePatterns", "contentClickToSaveCombo"];
   const missingLegacyKeys = legacyKeys.filter((key) => !(key in previous));
 
   try {
-    const resolved = JSON.parse(
-      await evaluate(`browser.storage.local.set({
-        paths: "e2e/legacy-custom",
-        filenamePatterns: "mime: ^image/png$\\ninto: legacy-custom/:filename:",
-        contentClickToSaveCombo: 18,
-      })
-        .then(() => api.reset())
-        .then(() => Promise.all([
-          api.getOption("paths"),
-          api.getOption("contentClickToSaveCombo"),
-        ]))
-        .then(([paths, combo]) => JSON.stringify({ paths, combo }))`),
-    );
+    await control.options.set({
+      paths: "e2e/legacy-custom",
+      filenamePatterns: "mime: ^image/png$\ninto: legacy-custom/:filename:",
+      contentClickToSaveCombo: 18,
+    });
+    const resolved = {
+      paths: await control.options.get("paths"),
+      combo: await control.options.get("contentClickToSaveCombo"),
+    };
     expect(resolved).toEqual({ paths: "e2e/legacy-custom", combo: 18 });
 
-    await evaluate(`api.startDownload({
-      url: ${JSON.stringify(url)},
-      suggestedFilename: ${JSON.stringify(filename)},
+    await control.background.startDownload({
+      url,
+      suggestedFilename: filename,
       pageUrl: "https://legacy-profile.example/",
-    }).then(() => "started")`);
+    });
     const downloads = await waitForDownloads(`${filename}.png`);
     expect(downloads).toHaveLength(1);
     expect(downloads[0].state).toBe("complete");
@@ -719,10 +710,11 @@ export const runLegacyProfileRoutingScenario = async ({ evaluate, waitForDownloa
     expect(fs.readFileSync(downloads[0].filename)).toEqual(body);
   } finally {
     try {
-      await evaluate(`Promise.all([
-        browser.storage.local.set(${JSON.stringify(previous)}),
-        browser.storage.local.remove(${JSON.stringify(missingLegacyKeys)}),
-      ]).then(() => api.reset())`);
+      await Promise.all([
+        control.storage.local.set(previous),
+        control.storage.local.remove(missingLegacyKeys),
+      ]);
+      await control.runtime.reset();
     } finally {
       await closeLocal(server);
     }
@@ -794,21 +786,20 @@ export const runSymlinkDestinationScenario = async ({
  * manual release check because CDP and Firefox RDP cannot operate that UI.
  *
  * @param {{
- *   evaluate: (expression: string) => Promise<any>,
+ *   control: ReturnType<typeof import("./control-client.mjs").createE2EControlClient>,
  *   waitForDownloads: (filename: string) => Promise<any[]>,
  * }} adapters
  */
-export const runContextMenuScenario = async ({ evaluate, waitForDownloads }) => {
-  await evaluate(`browser.storage.local.set({ paths: "e2e/context-menu", selection: true })
-      .then(() => api.reset())
-      .then(() => api.clickContextMenu({
-        info: {
-          menuItemId: "save-in-0",
-          selectionText: "context menu content",
-          pageUrl: "https://example.com/",
-        },
-        tab: { id: 1, title: "context-menu-smoke", url: "https://example.com/" },
-      })).then(() => "clicked")`);
+export const runContextMenuScenario = async ({ control, waitForDownloads }) => {
+  await control.options.set({ paths: "e2e/context-menu", selection: true });
+  await control.background.clickContextMenu({
+    info: {
+      menuItemId: "save-in-0",
+      selectionText: "context menu content",
+      pageUrl: "https://example.com/",
+    },
+    tab: { id: 1, title: "context-menu-smoke", url: "https://example.com/" },
+  });
 
   const downloads = await waitForDownloads("context-menu-smoke");
   expect(downloads).toHaveLength(1);
@@ -887,16 +878,16 @@ export const runTabStripScenario = async ({ evaluate, waitForDownloads, filename
 
 /**
  * @param {{
- *   evaluate: (expression: string) => Promise<any>,
+ *   control: ReturnType<typeof import("./control-client.mjs").createE2EControlClient>,
  *   waitForDownloads: (filename: string) => Promise<any[]>,
  * }} adapters
  */
-export const runShortcutScenario = async ({ evaluate, waitForDownloads }) => {
-  await evaluate(`api.startDownload({
+export const runShortcutScenario = async ({ control, waitForDownloads }) => {
+  await control.background.startDownload({
     shortcutUrl: "https://example.com/target",
     suggestedFilename: "page-shortcut.html",
     pageUrl: "https://example.com/",
-  }).then(() => "started")`);
+  });
   const downloads = await waitForDownloads("page-shortcut");
   expect(downloads).toHaveLength(1);
   expect(downloads[0].state).toBe("complete");
@@ -908,37 +899,34 @@ export const runShortcutScenario = async ({ evaluate, waitForDownloads }) => {
 
 /**
  * @param {{
- *   evaluate: (expression: string) => Promise<any>,
- *   waitForLog: (predicate: string) => Promise<any[]>,
+ *   control: ReturnType<typeof import("./control-client.mjs").createE2EControlClient>,
+ *   waitForLog: (baseline: number, messages: string[]) => Promise<any[]>,
  *   filename?: string,
  * }} adapters
  */
 export const runFailedDownloadLogScenario = async ({
-  evaluate,
+  control,
   waitForLog,
   filename = "unreachable.bin",
 }) => {
-  const baseline = Number(await evaluate(`api.logs().then((log) => log.length)`));
-  await evaluate(`api.startDownload({
-    url: "http://127.0.0.1:1/${filename}",
-    suggestedFilename: ${JSON.stringify(filename)},
+  const baseline = (await control.logs.get()).length;
+  await control.background.startDownload({
+    url: `http://127.0.0.1:1/${filename}`,
+    suggestedFilename: filename,
     pageUrl: "https://example.com/",
-  }).then(() => "started")`);
-  const entries = await waitForLog(
-    `(entry, index) => index >= ${baseline} &&
-      (entry.message === "download failed" || entry.message === "downloads.download failed")`,
-  );
+  });
+  const entries = await waitForLog(baseline, ["download failed", "downloads.download failed"]);
   expect(entries.length).toBeGreaterThanOrEqual(1);
 };
 
 /**
  * @param {{
- *   evaluate: (expression: string) => Promise<any>,
+ *   control: ReturnType<typeof import("./control-client.mjs").createE2EControlClient>,
  *   waitForDownloads: (filename: string, deadlineMs?: number) => Promise<any[]>,
  *   filename: string,
  * }} adapters
  */
-export const runAutomaticRetryScenario = async ({ evaluate, waitForDownloads, filename }) => {
+export const runAutomaticRetryScenario = async ({ control, waitForDownloads, filename }) => {
   const body = `recovered ${filename}`;
   let hits = 0;
   const server = http.createServer((req, res) => {
@@ -951,21 +939,18 @@ export const runAutomaticRetryScenario = async ({ evaluate, waitForDownloads, fi
     res.end(body);
   });
   const port = await listenLocal(server);
-  const previous = JSON.parse(
-    await evaluate(`Promise.all([
-      api.getOption("fallbackFetch"),
-      api.getOption("filenamePatterns"),
-    ]).then(([fallbackFetch, filenamePatterns]) =>
-      JSON.stringify({ fallbackFetch, filenamePatterns }))`),
-  );
+  const previous = {
+    fallbackFetch: await control.options.get("fallbackFetch"),
+    filenamePatterns: await control.options.get("filenamePatterns"),
+  };
 
   try {
-    await evaluate(`api.setOptions({ fallbackFetch: true, filenamePatterns: "" })
-      .then(() => api.startDownload({
-        url: "http://127.0.0.1:${port}/${filename}",
-        suggestedFilename: ${JSON.stringify(filename)},
-        pageUrl: "http://127.0.0.1:${port}/",
-      })).then(() => "started")`);
+    await control.options.set({ fallbackFetch: true, filenamePatterns: "" });
+    await control.background.startDownload({
+      url: `http://127.0.0.1:${port}/${filename}`,
+      suggestedFilename: filename,
+      pageUrl: `http://127.0.0.1:${port}/`,
+    });
 
     const rows = await waitForDownloads(filename, 10000);
     const completed = rows.find((row) => row.state === "complete");
@@ -974,7 +959,7 @@ export const runAutomaticRetryScenario = async ({ evaluate, waitForDownloads, fi
     expect(hits).toBeGreaterThanOrEqual(2);
   } finally {
     try {
-      await evaluate(`api.setOptions(${JSON.stringify(previous)})`);
+      await control.options.set(previous);
     } finally {
       await closeLocal(server);
     }

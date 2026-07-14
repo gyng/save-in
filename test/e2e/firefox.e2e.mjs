@@ -11,6 +11,7 @@ import path from "path";
 import firefox from "../../scripts/lib/firefox.js";
 import { inBackgroundContext } from "./background-context.mjs";
 import { registerSharedBrowserCases } from "./cases/shared-browser.cases.mjs";
+import { createE2EControlClient } from "./control-client.mjs";
 import {
   runContentDispositionScenario,
   runExternalExtensionScenario,
@@ -27,7 +28,6 @@ import {
   listenLocal,
   poll,
   waitForApiEntriesExpression,
-  waitForDownloadExpression,
   waitForTabExpression,
 } from "./helpers.mjs";
 
@@ -42,6 +42,10 @@ const FIRST_INSTALL_TEST = "first install starts with a focused welcome";
 const ARTIFACTS = process.env.E2E_ARTIFACT_DIR
   ? path.resolve(process.env.E2E_ARTIFACT_DIR)
   : path.resolve("dist", "e2e-artifacts");
+const control = createE2EControlClient({
+  callFunction: (functionDeclaration, args, timeoutMs) =>
+    session.bidi.callFunction("src/options/options.html", functionDeclaration, args, timeoutMs),
+});
 
 /** @param {string} expr @param {number} [timeoutMs] */
 const rawEvalOptions = (expr, timeoutMs) =>
@@ -99,12 +103,14 @@ const captureFailureArtifacts = async (testName, durationMs) => {
     },
   };
   try {
-    report.background = JSON.parse(
-      await evalBackground(`Promise.all([
-        api.inspect(), api.logs(), api.history(), browser.storage.local.get(null),
-        browser.tabs.query({}).then((tabs) => tabs.map(({ id, title, url, active }) => ({ id, title, url, active })))
-      ]).then(([inspect, logs, history, local, tabs]) => JSON.stringify({ inspect, logs, history, local, tabs }))`),
-    );
+    const [inspect, logs, history, local, tabs] = await Promise.all([
+      control.inspect(),
+      control.logs.get(),
+      control.history.get(),
+      control.storage.local.get(),
+      control.tabs.query(),
+    ]);
+    report.background = { inspect, logs, history, local, tabs };
   } catch (error) {
     report.backgroundCaptureError = String(error);
   }
@@ -133,33 +139,25 @@ const captureFailureArtifacts = async (testName, durationMs) => {
 
 /** @param {string} filenamePart @param {number} [deadlineMs] @returns {Promise<any[]>} */
 const waitForDownloads = async (filenamePart, deadlineMs = 8000) =>
-  JSON.parse(
-    await evalBackground(
-      waitForDownloadExpression({ filenameIncludes: filenamePart, timeoutMs: deadlineMs }),
-      deadlineMs + 2000,
-    ),
+  /** @type {any[]} */ (
+    await control.downloads.wait({ filenameIncludes: filenamePart, timeoutMs: deadlineMs })
   );
 
 /** @param {string} url @returns {Promise<string>} */
 const waitForDownloadUrl = async (url) => {
-  const rows = JSON.parse(await evalBackground(waitForDownloadExpression({ url })));
+  const rows = /** @type {any[]} */ (await control.downloads.wait({ url }));
   return path.basename(rows.at(-1).filename);
 };
 
 /** @param {string} url @returns {Promise<string>} */
 const downloadUsingBrowserFilename = async (url) => {
-  await evalBackground(`browser.tabs.create({ url: ${JSON.stringify(url)} }).then(() => true)`);
+  await control.tabs.create({ url });
   return waitForDownloadUrl(url);
 };
 
-/** @param {string} predicate @param {number} [deadlineMs] @returns {Promise<any[]>} */
-const waitForLog = async (predicate, deadlineMs = 8000) =>
-  JSON.parse(
-    await evalBackground(
-      waitForApiEntriesExpression("logs", predicate, deadlineMs),
-      deadlineMs + 2000,
-    ),
-  );
+/** @param {number} baseline @param {string[]} messages @param {number} [deadlineMs] */
+const waitForLog = async (baseline, messages, deadlineMs = 8000) =>
+  /** @type {any[]} */ (await control.logs.wait({ baseline, messages, timeoutMs: deadlineMs }));
 
 // 1x1 transparent PNG
 const PNG = Buffer.from(
@@ -201,15 +199,14 @@ beforeAll(async () => {
     session = await firefox.launch();
     // Native notifications are exercised by one focused test below. Keep the
     // rest of the download-heavy suite from submitting Windows toasts.
-    await evalBackground(`browser.storage.local.set({
+    await control.options.set({
       notifyOnSuccess: false,
       notifyOnFailure: false,
       notifyOnRuleMatch: false,
       notifyOnLinkPreferred: false,
-    }).then(() => api.reset()).then(() => "notifications suppressed")`);
+    });
     harness = createHarnessSession({
-      evaluateBackground: evalBackground,
-      evaluateControl: (expression, timeoutMs) => session.evaluate(expression, timeoutMs),
+      control,
       downloadDir: () => session.downloadDir,
     });
   } catch (error) {
@@ -303,9 +300,7 @@ test("first install starts with a focused welcome", async () => {
 });
 
 test("background event page initialises cleanly", async () => {
-  const state = JSON.parse(
-    await evalBackground(`api.inspect().then((state) => JSON.stringify(state))`),
-  );
+  const state = await control.inspect();
 
   expect(state.browser).toBe("FIREFOX");
   expect(state.capabilities).toMatchObject({
@@ -320,14 +315,12 @@ test("background event page initialises cleanly", async () => {
   // Event pages keep a real DOM (unlike Chrome's service worker)...
   expect(state.hasObjectUrl).toBe(true);
   expect(
-    await evalBackground(
-      `api.logs().then((log) => log.some((entry) => entry.message === "init failed"))`,
-    ),
+    (await control.logs.get()).some((/** @type {any} */ entry) => entry.message === "init failed"),
   ).toBe(false);
 });
 
 test("options page autosaves through Firefox host APIs", async () => {
-  const original = await evalBackground(`api.getOption("promptOnShift")`);
+  const original = await control.options.get("promptOnShift");
   const changed = !original;
   try {
     await poll(
@@ -353,67 +346,61 @@ test("options page autosaves through Firefox host APIs", async () => {
 
     const state = await poll(
       async () => {
-        const candidate = JSON.parse(
-          await evalBackground(`Promise.all([
-            browser.storage.local.get("promptOnShift"),
-            api.getOption("promptOnShift"),
-          ]).then(([stored, live]) => JSON.stringify({ stored: stored.promptOnShift, live }))`),
-        );
+        const stored = await control.storage.local.get("promptOnShift");
+        const candidate = {
+          stored: stored.promptOnShift,
+          live: await control.options.get("promptOnShift"),
+        };
         return candidate.stored === changed && candidate.live === changed ? candidate : null;
       },
       { description: "Firefox options autosave" },
     );
     expect(state).toEqual({ stored: changed, live: changed });
   } finally {
-    await evalBackground(`api.setOptions({ promptOnShift: ${JSON.stringify(original)} })`);
+    await control.options.set({ promptOnShift: original });
   }
 });
 
 test("event-page reload hydrates persisted options before replying", async () => {
-  const original = await evalBackground(`api.getOption("promptOnShift")`);
+  const original = await control.options.get("promptOnShift");
   const persisted = !original;
   try {
-    await evalBackground(
-      `browser.storage.local.set({ promptOnShift: ${JSON.stringify(persisted)} })`,
-    );
+    await control.storage.local.set({ promptOnShift: persisted });
     await session.reloadBackgroundPage();
-    expect(await evalBackground(`api.getOption("promptOnShift")`)).toBe(persisted);
+    expect(await control.options.get("promptOnShift")).toBe(persisted);
   } finally {
-    await evalBackground(`api.setOptions({ promptOnShift: ${JSON.stringify(original)} })`).catch(
-      () =>
-        session
-          .evaluate(`browser.storage.local.set({ promptOnShift: ${JSON.stringify(original)} })`)
-          .catch(() => {}),
-    );
+    await control.options
+      .set({ promptOnShift: original })
+      .catch(() => control.storage.local.set({ promptOnShift: original }).catch(() => {}));
   }
 });
 
 test("event-page cold start removes a stale Referer session rule", async () => {
-  await evalBackground(`browser.declarativeNetRequest.updateSessionRules({
+  await control.dnr.updateSessionRules({
     removeRuleIds: [66000001],
-    addRules: [{
-      id: 66000001,
-      priority: 1,
-      action: {
-        type: "modifyHeaders",
-        requestHeaders: [{
-          header: "Referer",
-          operation: "set",
-          value: "https://stale.example/",
-        }],
+    addRules: [
+      {
+        id: 66000001,
+        priority: 1,
+        action: {
+          type: "modifyHeaders",
+          requestHeaders: [
+            {
+              header: "Referer",
+              operation: "set",
+              value: "https://stale.example/",
+            },
+          ],
+        },
+        condition: {
+          urlFilter: "|http://127.0.0.1/",
+          resourceTypes: ["xmlhttprequest"],
+        },
       },
-      condition: {
-        urlFilter: "|http://127.0.0.1/",
-        resourceTypes: ["xmlhttprequest"],
-      },
-    }],
-  }).then(() => true)`);
+    ],
+  });
   await session.reloadBackgroundPage();
-  const remaining = JSON.parse(
-    await evalBackground(
-      `browser.declarativeNetRequest.getSessionRules().then((rules) => JSON.stringify(rules.map(({ id }) => id)))`,
-    ),
-  );
+  const remaining = (await control.dnr.getSessionRules()).map((/** @type {any} */ rule) => rule.id);
   expect(remaining).not.toContain(66_000_001);
 });
 
@@ -426,13 +413,11 @@ test("event-page cold start recovers an interrupted in-flight fetch", async () =
 });
 
 test("download completes through the real pipeline", async () => {
-  await evalBackground(
-    `api.startDownload({
-        content: "firefox e2e content",
-        suggestedFilename: "ff-smoke.txt",
-        pageUrl: "https://example.com/",
-      }).then(() => "started")`,
-  );
+  await control.background.startDownload({
+    content: "firefox e2e content",
+    suggestedFilename: "ff-smoke.txt",
+    pageUrl: "https://example.com/",
+  });
   const downloads = await waitForDownloads("ff-smoke");
 
   expect(downloads).toHaveLength(1);
@@ -503,21 +488,20 @@ test("Save In filenames match live Firefox Content-Disposition behavior", async 
 
 test("success notifications are created by the real download listener", async () => {
   try {
-    const beforeLog = Number(
-      await evalBackground(`api.notificationCalls("reset")
-        .then(() => browser.notifications.getAll())
-        .then((rows) => Promise.all(Object.keys(rows).map((id) => browser.notifications.clear(id))))
-        .then(() => browser.storage.local.set({ notifyOnSuccess: true, notifyDuration: 0 }))
-        .then(() => api.reset())
-        .then(() => api.logs())
-        .then((log) => log.length)`),
+    await control.background.notificationCalls("reset");
+    await Promise.all(
+      Object.keys(await control.notifications.getAll()).map((id) =>
+        control.notifications.clear(id),
+      ),
     );
+    await control.options.set({ notifyOnSuccess: true, notifyDuration: 0 });
+    const beforeLog = (await control.logs.get()).length;
 
-    await evalBackground(`api.startDownload({
+    await control.background.startDownload({
       content: "firefox notification content",
       suggestedFilename: "ff-notification-e2e.txt",
       pageUrl: "https://example.com/",
-    }).then(() => "started")`);
+    });
     const downloads = await waitForDownloads("ff-notification-e2e");
     const download = downloads.find((row) => row.state === "complete");
     expect(download?.id).toEqual(expect.any(Number));
@@ -525,29 +509,25 @@ test("success notifications are created by the real download listener", async ()
 
     const notification = await poll(
       async () => {
-        const calls = JSON.parse(
-          await evalBackground(
-            `api.notificationCalls("get").then((calls) => JSON.stringify(calls))`,
-          ),
-        );
+        const calls = await control.background.notificationCalls("get");
         return calls.find((/** @type {any} */ call) => call.id === notificationId) || null;
       },
       { description: "success notification for ff-notification-e2e" },
     );
     expect(notification.message).toContain("ff-notification-e2e");
-    const failures = JSON.parse(
-      await evalBackground(
-        `api.logs().then((log) => JSON.stringify(log.slice(${beforeLog}).filter((e) => e.message === "notification create failed")))`,
-      ),
-    );
+    const failures = (await control.logs.get())
+      .slice(beforeLog)
+      .filter((/** @type {any} */ entry) => entry.message === "notification create failed");
     expect(failures).toEqual([]);
   } finally {
-    await evalBackground(`browser.notifications.getAll()
-      .then((rows) => Promise.all(Object.keys(rows).map((id) => browser.notifications.clear(id))))
-      .then(() => browser.storage.local.set({ notifyOnSuccess: false }))
-      .then(() => browser.storage.local.remove("notifyDuration"))
-      .then(() => api.reset())
-      .then(() => "restored")`);
+    await Promise.all(
+      Object.keys(await control.notifications.getAll()).map((id) =>
+        control.notifications.clear(id),
+      ),
+    );
+    await control.storage.local.set({ notifyOnSuccess: false });
+    await control.storage.local.remove("notifyDuration");
+    await control.runtime.reset();
   }
 });
 
@@ -1003,6 +983,7 @@ test("Page Sources discovers, updates live, and restores across tabs", async () 
 });
 
 registerSharedBrowserCases({
+  control,
   evaluate: evalBackground,
   evaluateOptions: evalOptions,
   waitForDownloads,

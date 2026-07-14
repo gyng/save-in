@@ -22,10 +22,11 @@ import { runRoutingVisualEditorScenario } from "../routing-visual-editor-scenari
  * capability differences.
  *
  * @param {{
+ *   control: ReturnType<typeof import("../control-client.mjs").createE2EControlClient>,
  *   evaluate: (expression: string) => Promise<any>,
  *   evaluateOptions: (expression: string) => Promise<any>,
  *   waitForDownloads: (filename: string, timeoutMs?: number) => Promise<any[]>,
- *   waitForLog: (predicate: string, timeoutMs?: number) => Promise<any[]>,
+ *   waitForLog: (baseline: number, messages: string[], timeoutMs?: number) => Promise<any[]>,
  *   downloadDir: () => string,
  *   browserLabel: "chrome" | "firefox",
  *   routingContent: string,
@@ -37,6 +38,7 @@ import { runRoutingVisualEditorScenario } from "../routing-visual-editor-scenari
  */
 export const registerSharedBrowserCases = (adapters) => {
   const {
+    control,
     evaluate,
     evaluateOptions,
     waitForDownloads,
@@ -58,7 +60,7 @@ export const registerSharedBrowserCases = (adapters) => {
   });
 
   test("production context-menu handler completes a selection save", async () => {
-    await runContextMenuScenario({ evaluate, waitForDownloads });
+    await runContextMenuScenario({ control, waitForDownloads });
   });
 
   test("production tab-strip handler saves the selected real tab", async () => {
@@ -71,7 +73,7 @@ export const registerSharedBrowserCases = (adapters) => {
 
   test("routing rules rename and route the download", async () => {
     const downloads = await runRoutingScenario({
-      evaluate,
+      control,
       waitForDownloads,
       content: routingContent,
     });
@@ -80,7 +82,7 @@ export const registerSharedBrowserCases = (adapters) => {
 
   test("a 3.7 profile keeps its custom folder and repairs an extensionless filename", async () => {
     await runLegacyProfileRoutingScenario({
-      evaluate,
+      control,
       waitForDownloads,
       filename: `legacy-profile-${browserLabel}`,
     });
@@ -124,13 +126,13 @@ export const registerSharedBrowserCases = (adapters) => {
       ? "shortcut files download with redirect content"
       : "shortcut files keep their extension and redirect content",
     async () => {
-      await runShortcutScenario({ evaluate, waitForDownloads });
+      await runShortcutScenario({ control, waitForDownloads });
     },
   );
 
   test("failed downloads are recorded in the debug log", async () => {
     await runFailedDownloadLogScenario({
-      evaluate,
+      control,
       waitForLog,
       ...(failedDownloadFilename ? { filename: failedDownloadFilename } : {}),
     });
@@ -139,7 +141,7 @@ export const registerSharedBrowserCases = (adapters) => {
 
   test("a failed download is retried automatically via background fetch", async () => {
     await runAutomaticRetryScenario({
-      evaluate,
+      control,
       waitForDownloads,
       filename: `flaky-${browserLabel}.bin`,
     });

@@ -11,6 +11,7 @@ import cdp from "../../scripts/lib/cdp.js";
 import chrome from "../../scripts/lib/chrome.js";
 import { inBackgroundContext } from "./background-context.mjs";
 import { registerSharedBrowserCases } from "./cases/shared-browser.cases.mjs";
+import { createE2EControlClient } from "./control-client.mjs";
 import {
   runContentDispositionScenario,
   runExternalExtensionScenario,
@@ -26,8 +27,6 @@ import {
   createLazyPageEvaluator,
   listenLocal,
   poll,
-  waitForApiEntriesExpression,
-  waitForDownloadExpression,
 } from "./helpers.mjs";
 
 const PROFILE = path.join(chrome.ROOT, "dist", "e2e-profile");
@@ -50,6 +49,10 @@ let resourceScope;
 /** @type {ReturnType<typeof createHarnessSession> | undefined} */
 let harness;
 const FIRST_INSTALL_TEST = "first install starts with a focused welcome";
+const control = createE2EControlClient({
+  callFunction: (functionDeclaration, args, timeoutMs) =>
+    cdp.callFunctionInTarget(PORT, "options.html", functionDeclaration, args, timeoutMs),
+});
 
 /** @param {string} expr @returns {Promise<any>} */
 const rawEvalOptions = (expr) => cdp.evalInTarget(PORT, "options.html", expr);
@@ -137,9 +140,10 @@ const captureFailureArtifacts = async (testName, durationMs) => {
       })`),
     );
     fs.writeFileSync(`${prefix}.html`, await evalOptions(`document.documentElement.outerHTML`));
-    const activeUrl = await evalSW(
-      `browser.tabs.query({ active: true, currentWindow: true }).then(([tab]) => tab?.url || "")`,
+    const [activeTab] = /** @type {any[]} */ (
+      await control.tabs.query({ active: true, currentWindow: true })
     );
+    const activeUrl = activeTab?.url || "";
     report.activeUrl = activeUrl;
     if (activeUrl) {
       fs.writeFileSync(
@@ -155,11 +159,14 @@ const captureFailureArtifacts = async (testName, durationMs) => {
     report.pageCaptureError = String(error);
   }
   try {
-    report.background = JSON.parse(
-      await evalSW(`Promise.all([
-        api.inspect(), api.logs(), api.history(), browser.storage.local.get(null), browser.storage.session.get(null)
-      ]).then(([inspect, logs, history, local, session]) => JSON.stringify({ inspect, logs, history, local, session }))`),
-    );
+    const [inspect, logs, history, local, sessionState] = await Promise.all([
+      control.inspect(),
+      control.logs.get(),
+      control.history.get(),
+      control.storage.local.get(),
+      control.storage.session.get(),
+    ]);
+    report.background = { inspect, logs, history, local, session: sessionState };
   } catch (error) {
     report.backgroundCaptureError = String(error);
   }
@@ -188,25 +195,25 @@ const startSourcePanelServer = async () => {
 
 /** @param {string} regex @param {number} [deadlineMs] @returns {Promise<any[]>} */
 const waitForDownloads = async (regex, deadlineMs = 8000) =>
-  JSON.parse(
-    await evalSW(waitForDownloadExpression({ filenameRegex: regex, timeoutMs: deadlineMs })),
+  /** @type {any[]} */ (
+    await control.downloads.wait({ filenameRegex: regex, timeoutMs: deadlineMs })
   );
 
 /** @param {string} url @returns {Promise<string>} */
 const waitForDownloadUrl = async (url) => {
-  const rows = JSON.parse(await evalSW(waitForDownloadExpression({ url })));
+  const rows = /** @type {any[]} */ (await control.downloads.wait({ url }));
   return path.basename(rows.at(-1).filename);
 };
 
 /** @param {string} url @returns {Promise<string>} */
 const downloadUsingBrowserFilename = async (url) => {
-  await evalSW(`browser.tabs.create({ url: ${JSON.stringify(url)} }).then(() => true)`);
+  await control.tabs.create({ url });
   return waitForDownloadUrl(url);
 };
 
-/** @param {string} predicate @param {number} [deadlineMs] @returns {Promise<any[]>} */
-const waitForLog = async (predicate, deadlineMs = 8000) =>
-  JSON.parse(await evalSW(waitForApiEntriesExpression("logs", predicate, deadlineMs)));
+/** @param {number} baseline @param {string[]} messages @param {number} [deadlineMs] */
+const waitForLog = async (baseline, messages, deadlineMs = 8000) =>
+  /** @type {any[]} */ (await control.logs.wait({ baseline, messages, timeoutMs: deadlineMs }));
 
 beforeAll(async () => {
   try {
@@ -245,14 +252,14 @@ beforeAll(async () => {
     );
     // Native notifications are exercised by one focused test below. Keep the
     // rest of the download-heavy suite from submitting Windows toasts.
-    await evalSW(`browser.storage.local.set({
+    await control.options.set({
       notifyOnSuccess: false,
       notifyOnFailure: false,
       notifyOnRuleMatch: false,
       notifyOnLinkPreferred: false,
-    }).then(() => api.reset()).then(() => "notifications suppressed")`);
+    });
     harness = createHarnessSession({
-      evaluateBackground: evalSW,
+      control,
       downloadDir: () => DOWNLOADS,
     });
   } catch (error) {
@@ -420,7 +427,7 @@ test("option search shows detailed locations and navigates indexed actions", asy
 });
 
 test("service worker initialises cleanly", async () => {
-  const state = JSON.parse(await evalSW(`api.inspect().then((state) => JSON.stringify(state))`));
+  const state = await control.inspect();
   const noObjectUrl = await evalWorker(`typeof URL.createObjectURL !== "function"`);
 
   expect(state.browser).toBe("CHROME");
@@ -436,7 +443,7 @@ test("service worker initialises cleanly", async () => {
   // Running in a real service worker, with the MV3 fallbacks in play
   expect(noObjectUrl).toBe(true);
   expect(
-    await evalSW(`api.logs().then((log) => log.some((entry) => entry.message === "init failed"))`),
+    (await control.logs.get()).some((/** @type {any} */ entry) => entry.message === "init failed"),
   ).toBe(false);
 });
 
@@ -618,57 +625,47 @@ test("options page keeps keyboard focus and core layout accessible", async () =>
 });
 
 test("WAKE_WARM prewarm round-trips", async () => {
-  const response = await evalOptions(
-    `new Promise((res) => chrome.runtime.sendMessage({ type: "WAKE_WARM" }, (r) => res(JSON.stringify(r))))`,
-  );
-  expect(JSON.parse(response)).toEqual({ type: "OK" });
+  expect(await control.runtime.ready()).toEqual({ type: "OK" });
 });
 
 test("cold-start messages wait for persisted options", async () => {
   try {
-    await evalOptions(`chrome.storage.local.set({ promptOnShift: false })`);
-    await evalSW(`api.reset().then(() => "configured")`);
+    await control.options.set({ promptOnShift: false });
     expect(await cdp.stopServiceWorker(PORT, extensionId)).toBe(true);
 
-    const response = JSON.parse(
-      await evalOptions(
-        `new Promise((resolve) => chrome.runtime.sendMessage({ type: "OPTIONS" }, (value) => resolve(JSON.stringify(value))))`,
-      ),
-    );
-    expect(response.body.promptOnShift).toBe(false);
+    expect(await control.options.get("promptOnShift")).toBe(false);
   } finally {
-    await evalOptions(`chrome.storage.local.set({ promptOnShift: true })`);
-    await evalSW(`api.reset().then(() => "restored")`);
+    await control.options.set({ promptOnShift: true });
   }
 });
 
 test("cold start removes a stale Referer session rule", async () => {
-  await evalOptions(`chrome.declarativeNetRequest.updateSessionRules({
+  await control.dnr.updateSessionRules({
     removeRuleIds: [66000001],
-    addRules: [{
-      id: 66000001,
-      priority: 1,
-      action: {
-        type: "modifyHeaders",
-        requestHeaders: [{
-          header: "Referer",
-          operation: "set",
-          value: "https://stale.example/",
-        }],
+    addRules: [
+      {
+        id: 66000001,
+        priority: 1,
+        action: {
+          type: "modifyHeaders",
+          requestHeaders: [
+            {
+              header: "Referer",
+              operation: "set",
+              value: "https://stale.example/",
+            },
+          ],
+        },
+        condition: {
+          urlFilter: "|http://127.0.0.1/",
+          resourceTypes: ["xmlhttprequest"],
+        },
       },
-      condition: {
-        urlFilter: "|http://127.0.0.1/",
-        resourceTypes: ["xmlhttprequest"],
-      },
-    }],
-  }).then(() => true)`);
+    ],
+  });
   expect(await cdp.stopServiceWorker(PORT, extensionId)).toBe(true);
-  await evalOptions(`chrome.runtime.sendMessage({ type: "OPTIONS" }).then(() => true)`);
-  const remaining = JSON.parse(
-    await evalOptions(
-      `chrome.declarativeNetRequest.getSessionRules().then((rules) => JSON.stringify(rules.map(({ id }) => id)))`,
-    ),
-  );
+  await control.options.all();
+  const remaining = (await control.dnr.getSessionRules()).map((/** @type {any} */ rule) => rule.id);
   expect(remaining).not.toContain(66_000_001);
 });
 
@@ -677,25 +674,22 @@ test("cold start recovers an interrupted in-flight fetch", async () => {
     evaluate: evalSW,
     restartBackground: async () => {
       expect(await cdp.stopServiceWorker(PORT, extensionId)).toBe(true);
-      await evalOptions(`chrome.runtime.sendMessage({ type: "OPTIONS" }).then(() => true)`);
+      await control.options.all();
     },
     filename: "interrupted-chrome.bin",
   });
 });
 
 test("options-save reset message round-trips", async () => {
-  const response = await evalOptions(
-    `new Promise((res) => chrome.runtime.sendMessage({ type: "OPTIONS_LOADED" }, (r) => res(JSON.stringify(r))))`,
-  );
-  expect(JSON.parse(response)).toEqual({ type: "OK" });
+  expect(await control.runtime.reset()).toEqual({ type: "OK" });
 });
 
 test("download completes through the real pipeline with session tracking", async () => {
-  await evalSW(`api.startDownload({
-      content: "e2e smoke test content",
-      suggestedFilename: "smoke.txt",
-      pageUrl: "https://example.com/",
-    }).then(() => "started")`);
+  await control.background.startDownload({
+    content: "e2e smoke test content",
+    suggestedFilename: "smoke.txt",
+    pageUrl: "https://example.com/",
+  });
   const downloads = await waitForDownloads("smoke");
   expect(downloads.some((x) => x.state === "complete")).toBe(true);
 
@@ -816,21 +810,20 @@ test("Save In filenames match live Chrome Content-Disposition behavior", async (
 
 test("success notifications are created by the real download listener", async () => {
   try {
-    const beforeLog = Number(
-      await evalSW(`api.notificationCalls("reset")
-        .then(() => browser.notifications.getAll())
-        .then((rows) => Promise.all(Object.keys(rows).map((id) => browser.notifications.clear(id))))
-        .then(() => browser.storage.local.set({ notifyOnSuccess: true, notifyDuration: 0 }))
-        .then(() => api.reset())
-        .then(() => api.logs())
-        .then((log) => log.length)`),
+    await control.background.notificationCalls("reset");
+    await Promise.all(
+      Object.keys(await control.notifications.getAll()).map((id) =>
+        control.notifications.clear(id),
+      ),
     );
+    await control.options.set({ notifyOnSuccess: true, notifyDuration: 0 });
+    const beforeLog = (await control.logs.get()).length;
 
-    await evalSW(`api.startDownload({
+    await control.background.startDownload({
       content: "notification e2e content",
       suggestedFilename: "notification-e2e.txt",
       pageUrl: "https://example.com/",
-    }).then(() => "started")`);
+    });
     const downloads = await waitForDownloads("notification-e2e");
     const download = downloads.find((row) => row.state === "complete");
     expect(download?.id).toEqual(expect.any(Number));
@@ -838,27 +831,25 @@ test("success notifications are created by the real download listener", async ()
 
     const notification = await poll(
       async () => {
-        const calls = JSON.parse(
-          await evalSW(`api.notificationCalls("get").then((calls) => JSON.stringify(calls))`),
-        );
+        const calls = await control.background.notificationCalls("get");
         return calls.find((/** @type {any} */ call) => call.id === notificationId) || null;
       },
       { description: "success notification for notification-e2e" },
     );
     expect(notification.message).toContain("notification-e2e");
-    const failures = JSON.parse(
-      await evalSW(
-        `api.logs().then((log) => JSON.stringify(log.slice(${beforeLog}).filter((e) => e.message === "notification create failed")))`,
-      ),
-    );
+    const failures = (await control.logs.get())
+      .slice(beforeLog)
+      .filter((/** @type {any} */ entry) => entry.message === "notification create failed");
     expect(failures).toEqual([]);
   } finally {
-    await evalSW(`browser.notifications.getAll()
-      .then((rows) => Promise.all(Object.keys(rows).map((id) => browser.notifications.clear(id))))
-      .then(() => browser.storage.local.set({ notifyOnSuccess: false }))
-      .then(() => browser.storage.local.remove("notifyDuration"))
-      .then(() => api.reset())
-      .then(() => "restored")`);
+    await Promise.all(
+      Object.keys(await control.notifications.getAll()).map((id) =>
+        control.notifications.clear(id),
+      ),
+    );
+    await control.storage.local.set({ notifyOnSuccess: false });
+    await control.storage.local.remove("notifyDuration");
+    await control.runtime.reset();
   }
 });
 
@@ -1875,6 +1866,7 @@ test("Page Sources discovers, updates live, and restores across tabs", async () 
 });
 
 registerSharedBrowserCases({
+  control,
   evaluate: evalSW,
   evaluateOptions: evalOptions,
   waitForDownloads,

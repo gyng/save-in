@@ -95,6 +95,42 @@ class FirefoxBidi {
     throw new Error(`No Firefox BiDi context matching "${urlSubstr}"`);
   }
 
+  /**
+   * Calls a function in the page realm with JSON-compatible structured
+   * arguments. This avoids building console-evaluation expressions from test
+   * data while preserving Firefox's real extension page and runtime boundary.
+   *
+   * @param {string} urlSubstr
+   * @param {string} functionDeclaration
+   * @param {unknown[]} [args]
+   * @param {number} [timeoutMs]
+   */
+  async callFunction(urlSubstr, functionDeclaration, args = [], timeoutMs = 15000) {
+    const context = await this.findContext(urlSubstr);
+    const result = await this.send(
+      "script.callFunction",
+      {
+        functionDeclaration,
+        awaitPromise: true,
+        target: { context },
+        arguments: args.map((value) => ({ type: "string", value: JSON.stringify(value) })),
+      },
+      timeoutMs,
+    );
+    if (result?.type !== "success") {
+      const message = result?.exceptionDetails?.text || "Firefox BiDi function call failed";
+      throw new Error(message);
+    }
+    const remote = result.result;
+    if (remote?.type === "undefined") return undefined;
+    if (remote?.type !== "string") {
+      throw new Error(
+        `Firefox BiDi function returned unsupported type: ${remote?.type || "missing"}`,
+      );
+    }
+    return remote.value;
+  }
+
   /** @param {string} urlSubstr @param {number} x @param {number} y */
   async altClick(urlSubstr, x, y) {
     const context = await this.findContext(urlSubstr);

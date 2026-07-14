@@ -11,7 +11,20 @@
  *   "Runtime.evaluate": {
  *     params: {expression: string, awaitPromise?: boolean, returnByValue?: boolean},
  *     result: {
- *       result: {value: unknown},
+ *       result: {value?: unknown, objectId?: string},
+ *       exceptionDetails?: {exception?: {description?: string}}
+ *     }
+ *   },
+ *   "Runtime.callFunctionOn": {
+ *     params: {
+ *       functionDeclaration: string,
+ *       objectId: string,
+ *       arguments?: Array<{value: unknown}>,
+ *       awaitPromise?: boolean,
+ *       returnByValue?: boolean
+ *     },
+ *     result: {
+ *       result: {value?: unknown},
  *       exceptionDetails?: {exception?: {description?: string}}
  *     }
  *   },
@@ -293,6 +306,63 @@ const evalInTarget = async (port, urlSubstr, expression) => {
   throw lastError;
 };
 
+/**
+ * Calls a function in a page target with structured arguments. The only
+ * evaluated expression is the fixed global-object bootstrap required by CDP;
+ * callers do not interpolate data or executable expressions.
+ *
+ * @param {number} port
+ * @param {string} urlSubstr
+ * @param {string} functionDeclaration
+ * @param {unknown[]} [args]
+ * @param {number} [timeoutMs]
+ * @returns {Promise<any>}
+ */
+const callFunctionInTarget = async (
+  port,
+  urlSubstr,
+  functionDeclaration,
+  args = [],
+  timeoutMs = 15000,
+) => {
+  let lastError = null;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const targets = (await listTargets(port)).filter((target) => target.url.includes(urlSubstr));
+    if (targets.length === 0) lastError = new Error(`No target matching "${urlSubstr}"`);
+    for (const target of targets) {
+      /** @type {Cdp | undefined} */
+      let client;
+      try {
+        client = await Cdp.connect(target.webSocketDebuggerUrl);
+        const root = await client.send("Runtime.evaluate", { expression: "globalThis" }, timeoutMs);
+        const objectId = root.result.objectId;
+        if (!objectId) throw new Error("CDP did not return the page global object");
+        const result = await client.send(
+          "Runtime.callFunctionOn",
+          {
+            functionDeclaration,
+            objectId,
+            arguments: args.map((value) => ({ value: JSON.stringify(value) })),
+            awaitPromise: true,
+            returnByValue: true,
+          },
+          timeoutMs,
+        );
+        if (!result.exceptionDetails) return result.result.value;
+        lastError = new Error(
+          result.exceptionDetails.exception?.description || "function call failed",
+        );
+      } catch (error) {
+        lastError = error;
+      } finally {
+        client?.close();
+      }
+    }
+    if (attempt < 2) await nextTurn();
+  }
+  throw lastError;
+};
+
 // The MV3 service worker disappears from the target list when idle:
 // wake it via an extension page first, then attach quickly.
 /** @param {number} port @param {string} extensionId @param {string} expression @returns {Promise<any>} */
@@ -543,6 +613,7 @@ module.exports = {
   connectBrowser,
   extensionIdFromTargets,
   listTargets,
+  callFunctionInTarget,
   evalInTarget,
   evalInServiceWorker,
   dispatchInput,

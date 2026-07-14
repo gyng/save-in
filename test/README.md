@@ -28,12 +28,23 @@ rules, notifications, and downloaded files after the case. Only lifecycle cases 
 preserve a transition. Cleanup, restoration, and runtime reset share one browser transaction;
 the Options page reloads lazily only when a case first drives it.
 
+Cross-browser setup, cleanup, browser state, and event waits go through
+`test/e2e/control-client.mjs`. It uses CDP `Runtime.callFunctionOn` on Chrome and BiDi
+`script.callFunction` on Firefox, passing values as structured arguments to a fixed dispatcher in
+the Options page. Runtime commands then cross the real `runtime.sendMessage` boundary and wake the
+background normally. Keep direct page evaluation for DOM-local assertions and lifecycle-specific
+diagnostics only. `npm run check:e2e-harness` enforces declining ceilings on the remaining raw
+background evaluations; lower the relevant ceiling whenever one is migrated.
+
 ## E2E performance policy
 
 Keep the suite fast by limiting deterministic work rather than weakening assertions:
 
 - Subscribe to an in-browser event, observer, or storage change before triggering the action.
   Do not add fixed sleeps or repeated runner-side CDP/RDP polling when such a signal exists.
+- Use the structured control client for serializable setup, state, and browser API operations. Raw
+  evaluation is an escape hatch for page-local DOM behavior or a protocol lifecycle that the
+  control client cannot express; it must not be used merely to avoid adding a typed operation.
 - Reuse the shared harness helpers and per-run browser/server resources. A case starts another
   server, reloads Options, or restarts a browser/background only when that transition is the
   behavior under test; explain the cost in a nearby comment.

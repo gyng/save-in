@@ -254,6 +254,10 @@ catch and choose the cheapest durable boundary:
   Ordinary cases should not reload a page or restart a browser/background unless
   the behavior requires it, and should normally complete within two seconds.
   Document legitimate lifecycle or network costs beside the case.
+- Send serializable e2e setup, browser-state, and wait operations through the
+  shared structured control client. Reserve direct CDP/RDP evaluation for
+  page-local DOM behavior and lifecycle diagnostics. When migrating a raw
+  evaluation, lower its enforced ceiling in `scripts/check-e2e-harness.js`.
 - Treat a per-case duration increase above 25% as an advisory regression. An
   increase above 50% and at least two seconds requires a fix or an explanation
   backed by repeated measurements. Enforce total wall-clock budgets only in a
